@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Madi AI: Discover America - 4weird Games</title>
+    <meta name="description" content="Sail with Madi AI from the English Channel to the New World. Gather data and organize it correctly to chart your course across the Atlantic. A Carmen-Sandiego-style HTML5 adventure by 4weird Games.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="game.css">
+</head>
+<body>
+    <div class="header">
+        <a href="../../../index.html" class="logo">
+            <span>🎮</span> 4weird<span style="color:#8b5cf6;">Games</span>
+        </a>
+        <span class="game-title">🧭 MADI AI: DISCOVER AMERICA</span>
+        <a href="../../../index.html" class="back-btn">← Back</a>
+    </div>
+
+    <div class="game-wrapper">
+        <canvas id="mapCanvas"></canvas>
+
+        <!-- HUD -->
+        <div class="hud">
+            <div class="hud-section">
+                <div class="stat-box score-box">
+                    <span class="stat-label">DATA SCORE</span>
+                    <span class="stat-value" id="hudScore">0</span>
+                </div>
+                <div class="stat-box wave-box">
+                    <span class="stat-label">STAGE</span>
+                    <span class="stat-value" id="hudStage">1 / 5</span>
+                </div>
+            </div>
+            <div class="hud-section center">
+                <div class="voyage-progress">
+                    <span class="voyage-icon">🇬🇧</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="voyageBar"></div>
+                    </div>
+                    <span class="voyage-icon">🗽</span>
+                </div>
+            </div>
+            <div class="hud-section">
+                <div class="location-indicator" id="locationIndicator">English Channel</div>
+            </div>
+        </div>
+
+        <!-- Map hint banner -->
+        <div class="map-hint" id="mapHint">Tap the glowing port to gather data ⚓</div>
+
+        <!-- Start Screen -->
+        <div class="screen-overlay" id="startScreen">
+            <div class="logo-big">🧭 MADI AI<br><span class="sub">DISCOVER AMERICA</span></div>
+            <div class="tagline">Chart a course to the New World</div>
+            <div class="story">
+                <p>🤖 <strong>Meet Madi</strong>, an explorer AI aboard a wooden ship.</p>
+                <p>You're leaving the <strong>English Channel</strong> bound for an unknown western land.</p>
+                <p>At every port, <strong>gather scattered data fragments</strong> and <strong>organize them correctly</strong> to chart the next leg of the voyage.</p>
+            </div>
+            <div class="enemies-preview">
+                <div class="enemy-type"><span>🧩</span><small>Gather Data</small></div>
+                <div class="enemy-type"><span>🗂️</span><small>Sort It Right</small></div>
+                <div class="enemy-type"><span>🌊</span><small>Unlock Next Port</small></div>
+            </div>
+            <button class="btn btn-start" id="btnStart">⛵ SET SAIL</button>
+            <div class="controls-hint">
+                <span>🖱️ Tap a fragment, then tap its bin</span>
+                <span>🗺️ Tap the glowing port on the map</span>
+                <span>✅ Sort everything correctly to advance</span>
+            </div>
+        </div>
+
+        <!-- Puzzle Screen -->
+        <div class="screen-overlay hidden puzzle-overlay" id="puzzleScreen">
+            <div class="puzzle-head">
+                <div class="puzzle-title" id="puzzleTitle">Port</div>
+                <div class="puzzle-brief" id="puzzleBrief">Sort the data fragments.</div>
+            </div>
+
+            <div class="fragments-zone">
+                <div class="zone-label">📥 Data Fragments <small>(tap one, then tap a bin)</small></div>
+                <div class="fragments-pool" id="fragmentsPool"></div>
+            </div>
+
+            <div class="bins-zone" id="binsZone"></div>
+
+            <div class="puzzle-feedback" id="puzzleFeedback"></div>
+
+            <div class="puzzle-actions">
+                <button class="btn btn-secondary" id="btnReset">🔄 Reset</button>
+                <button class="btn btn-start" id="btnSubmit">✅ Confirm Course</button>
+                <button class="btn btn-secondary" id="btnLeave">🗺️ Back to Map</button>
+            </div>
+        </div>
+
+        <!-- Victory Screen -->
+        <div class="screen-overlay hidden" id="victoryScreen">
+            <div class="logo-big">🗽 LAND HO!</div>
+            <div class="tagline">Madi AI has discovered America!</div>
+            <div class="final-stats">
+                <div class="stat-row">
+                    <span>Data Score</span>
+                    <span class="highlight" id="victoryScore">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>Ports Charted</span>
+                    <span class="highlight" id="victoryPorts">5 / 5</span>
+                </div>
+                <div class="stat-row">
+                    <span>Perfect Sorts</span>
+                    <span class="highlight" id="victoryPerfect">0</span>
+                </div>
+            </div>
+            <button class="btn btn-start" id="btnVictoryRestart">🔄 New Voyage</button>
+            <button class="btn btn-secondary" onclick="window.location.href='../../../index.html'">🏠 More Games</button>
+        </div>
+    </div>
+
+    <div class="footer-bar">
+        <span>🎮 A 4weird Games Production</span>
+        <span>🧭 Pure HTML5 • Emoji Graphics</span>
+        <span>🔗 <a href="https://mattyjacks.com" target="_blank">MattyJacks.com</a></span>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
