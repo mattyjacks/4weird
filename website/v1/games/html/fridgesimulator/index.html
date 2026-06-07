@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fridge Simulator - 4weird Games</title>
+    <meta name="description" content="Manage fridges for multiple countries. Buy food, balance nutrition, feed families or they starve. Pure HTML5 simulation game.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="game.css">
+</head>
+<body>
+    <div class="header">
+        <a href="../../../index.html" class="logo">
+            <span>🎮</span> 4weird<span style="color:#8b5cf6;">Games</span>
+        </a>
+        <span class="game-title">🍳 FRIDGE SIMULATOR</span>
+        <a href="../../../index.html" class="back-btn">← Back</a>
+    </div>
+
+    <div class="game-wrapper">
+        <!-- Main Game Container -->
+        <div class="game-main" id="gameMain">
+            <!-- HUD -->
+            <div class="hud">
+                <div class="hud-stat">
+                    <span class="hud-label">💵 Money</span>
+                    <span class="hud-value" id="hudMoney">$1000</span>
+                </div>
+                <div class="hud-stat">
+                    <span class="hud-label">📅 Day</span>
+                    <span class="hud-value" id="hudDay">1</span>
+                </div>
+                <div class="hud-stat">
+                    <span class="hud-label">👥 Population</span>
+                    <span class="hud-value" id="hudPopulation">8</span>
+                </div>
+                <div class="hud-stat">
+                    <span class="hud-label">💀 Deaths</span>
+                    <span class="hud-value" id="hudDeaths">0</span>
+                </div>
+            </div>
+
+            <!-- Game Content -->
+            <div class="game-content">
+                <!-- Left Panel: Shopping -->
+                <div class="panel shopping-panel">
+                    <h2 class="panel-title">🛒 Shopping</h2>
+                    <div class="shop-tabs" id="shopTabs">
+                        <button class="shop-tab active" data-source="grocery">🏪 Grocery</button>
+                        <button class="shop-tab" data-source="pantry">🥫 Pantry</button>
+                        <button class="shop-tab" data-source="charity">🎗️ Charity</button>
+                        <button class="shop-tab" data-source="dumpster">🗑️ Dumpster</button>
+                        <button class="shop-tab" data-source="wholesale">📦 Wholesale</button>
+                    </div>
+                    <div class="shop-items" id="shopItems"></div>
+                </div>
+
+                <!-- Center Panel: Fridges -->
+                <div class="panel fridges-panel">
+                    <h2 class="panel-title">🌍 Fridges by Country</h2>
+                    <div class="countries-container" id="countriesContainer"></div>
+                </div>
+
+                <!-- Right Panel: Inventory & Families -->
+                <div class="panel families-panel">
+                    <h2 class="panel-title">👨‍👩‍👧‍👦 Families</h2>
+                    <div class="families-list" id="familiesList"></div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="btnNextDay">➡️ Next Day</button>
+                <button class="btn btn-secondary" id="btnPause">⏸️ Pause</button>
+            </div>
+        </div>
+
+        <!-- Start Screen -->
+        <div class="screen-overlay" id="startScreen">
+            <div class="logo-big">🍳 FRIDGE SIMULATOR 🌍</div>
+            <div class="tagline">Feed the World or Watch Them Starve</div>
+            <div class="story">
+                <p>You are a global food coordinator managing fridges across multiple countries.</p>
+                <p>Buy food from various sources, stock fridges, balance nutrition, and keep families alive.</p>
+                <p>Each day, families get hungrier. Fail to feed them, and they die. 💀</p>
+            </div>
+            <button class="btn btn-start" id="btnStart">🚀 START GAME</button>
+            <div class="controls-hint">
+                <p>🛒 Buy food from shops • 🍳 Stock fridges • 👥 Feed families • 📊 Balance nutrition</p>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div class="screen-overlay hidden" id="gameOverScreen">
+            <div class="logo-big">💀 GAME OVER</div>
+            <div class="tagline">Too many people starved</div>
+            <div class="final-stats">
+                <div class="stat-row">
+                    <span>Days Survived</span>
+                    <span class="highlight" id="finalDays">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>Total Deaths</span>
+                    <span class="highlight" id="finalDeaths">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>Final Money</span>
+                    <span class="highlight" id="finalMoney">$0</span>
+                </div>
+            </div>
+            <button class="btn btn-start" id="btnRestart">🔄 Try Again</button>
+            <button class="btn btn-secondary" onclick="window.location.href='../../../index.html'">🏠 Back to 4weird</button>
+        </div>
+
+        <!-- Victory Screen -->
+        <div class="screen-overlay hidden" id="victoryScreen">
+            <div class="logo-big">🏆 VICTORY!</div>
+            <div class="tagline">You kept everyone alive!</div>
+            <div class="final-stats">
+                <div class="stat-row">
+                    <span>Days Survived</span>
+                    <span class="highlight" id="victoryDays">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>Final Population</span>
+                    <span class="highlight" id="victoryPopulation">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>Final Money</span>
+                    <span class="highlight" id="victoryMoney">$0</span>
+                </div>
+            </div>
+            <button class="btn btn-start" id="btnPlayAgain">🔄 Play Again</button>
+            <button class="btn btn-secondary" onclick="window.location.href='../../../index.html'">🏠 More Games</button>
+        </div>
+    </div>
+
+    <div class="footer-bar">
+        <span>🎮 A 4weird Games Production</span>
+        <span>⚡ Pure HTML5 • Emoji Graphics</span>
+        <span>🔗 <a href="https://mattyjacks.com" target="_blank">MattyJacks.com</a></span>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

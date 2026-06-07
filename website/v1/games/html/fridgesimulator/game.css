@@ -1,0 +1,485 @@
+/* Fridge Simulator - Game Styles */
+:root {
+    --bg-dark: #0a0a0f;
+    --bg-panel: #12121a;
+    --neon-purple: #8b5cf6;
+    --neon-green: #10b981;
+    --neon-cyan: #06b6d4;
+    --text-primary: #f5f5f5;
+    --text-secondary: #9ca3af;
+    --text-muted: #6b7280;
+    --font-display: 'Orbitron', sans-serif;
+    --font-body: 'Inter', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: var(--font-body);
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: rgba(10, 10, 15, 0.95);
+    border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+    z-index: 1000;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-primary);
+    text-decoration: none;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.logo span { font-size: 1.2rem; }
+
+.game-title {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+}
+
+.back-btn {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, var(--neon-purple), #7c3aed);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: 0.3s ease;
+    cursor: pointer;
+}
+
+.back-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+}
+
+.game-wrapper {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: radial-gradient(ellipse at center, #1a1a3e 0%, #0a0a0f 70%);
+    overflow: hidden;
+}
+
+.game-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    gap: 15px;
+}
+
+.hud {
+    display: flex;
+    gap: 20px;
+    background: rgba(10, 10, 15, 0.8);
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.hud-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.hud-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+.hud-value {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--neon-green);
+    text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+.game-content {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 15px;
+    overflow: hidden;
+}
+
+.panel {
+    background: var(--bg-panel);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.panel-title {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
+}
+
+.shop-tabs {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.shop-tab {
+    padding: 6px 12px;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    color: var(--text-secondary);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: 0.3s ease;
+}
+
+.shop-tab.active {
+    background: var(--neon-purple);
+    color: white;
+    border-color: var(--neon-purple);
+}
+
+.shop-tab:hover {
+    border-color: var(--neon-purple);
+}
+
+.shop-items {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.shop-item {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 8px;
+    padding: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.3s ease;
+    font-size: 0.8rem;
+}
+
+.shop-item:hover {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: var(--neon-green);
+    transform: scale(1.05);
+}
+
+.shop-item-emoji {
+    font-size: 1.5rem;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.shop-item-name {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.7rem;
+}
+
+.shop-item-price {
+    color: var(--neon-green);
+    font-size: 0.7rem;
+    margin-top: 3px;
+}
+
+.countries-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.country-fridge {
+    background: rgba(10, 10, 15, 0.5);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.country-header {
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--neon-cyan);
+    font-size: 0.9rem;
+}
+
+.fridge-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+}
+
+.fridge-slot {
+    aspect-ratio: 1;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px dashed rgba(139, 92, 246, 0.3);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.fridge-slot:hover {
+    background: rgba(139, 92, 246, 0.1);
+    border-color: var(--neon-purple);
+}
+
+.families-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.family-card {
+    background: rgba(10, 10, 15, 0.5);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 0.85rem;
+}
+
+.family-members {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.family-member {
+    font-size: 1.2rem;
+}
+
+.hunger-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+
+.hunger-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981, #f59e0b, #ef4444);
+    transition: width 0.3s ease;
+}
+
+.nutrition-bars {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 3px;
+    margin-top: 5px;
+}
+
+.nutrition-bar {
+    height: 6px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.nutrition-fill {
+    height: 100%;
+    background: var(--neon-purple);
+    transition: width 0.3s ease;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    padding: 15px;
+    background: rgba(10, 10, 15, 0.8);
+    border-top: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.btn {
+    padding: 12px 30px;
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--neon-cyan), var(--neon-green));
+    color: white;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--text-primary);
+    border: 2px solid var(--neon-purple);
+}
+
+.btn-secondary:hover {
+    background: rgba(139, 92, 246, 0.2);
+}
+
+.btn-start {
+    background: linear-gradient(135deg, var(--neon-cyan), var(--neon-green));
+    color: white;
+    padding: 16px 40px;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+}
+
+.btn-start:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 30px rgba(16, 185, 129, 0.6);
+}
+
+.screen-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 10, 15, 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 500;
+    text-align: center;
+    padding: 2rem;
+    border-radius: 12px;
+}
+
+.screen-overlay.hidden { display: none; }
+
+.logo-big {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    font-weight: 800;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple), var(--neon-green));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.tagline {
+    font-size: 1.1rem;
+    color: var(--neon-cyan);
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+}
+
+.story {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(139, 92, 246, 0.1));
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 1.5rem;
+    max-width: 500px;
+}
+
+.story p { margin-bottom: 10px; font-size: 0.95rem; color: var(--text-secondary); }
+.story p:last-child { margin-bottom: 0; }
+
+.final-stats {
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 12px;
+    padding: 20px 30px;
+    margin-bottom: 1.5rem;
+    min-width: 250px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.stat-row:last-child { border-bottom: none; }
+.stat-row span:first-child { color: var(--text-secondary); font-size: 0.9rem; }
+.stat-row .highlight {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--neon-green);
+}
+
+.controls-hint {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 1.5rem;
+}
+
+.controls-hint p { margin-bottom: 8px; }
+
+.footer-bar {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    padding: 12px;
+    background: rgba(10, 10, 15, 0.95);
+    border-top: 1px solid rgba(139, 92, 246, 0.2);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.footer-bar a { color: var(--neon-purple); text-decoration: none; }
+
+@media (max-width: 1200px) {
+    .game-content { grid-template-columns: 1fr; }
+    .shop-items { grid-template-columns: 1fr 1fr 1fr; }
+}
+
+@media (max-width: 768px) {
+    .hud { flex-wrap: wrap; gap: 10px; }
+    .game-content { grid-template-columns: 1fr; }
+    .fridge-grid { grid-template-columns: repeat(3, 1fr); }
+}
