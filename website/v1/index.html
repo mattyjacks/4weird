@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4weird Games - Future Forward Fun</title>
+    <meta name="description" content="4weird Games is an AI-powered game development studio based in New Hampshire, owned by MattyJacks.com. We create games using HTML, Roblox Studio, and Godot.">
+    <meta name="keywords" content="4weird, games, AI gaming, HTML5 games, Roblox, Godot, MattyJacks">
+    <meta property="og:title" content="4weird Games - Future Forward Fun">
+    <meta property="og:description" content="AI-powered indie game studio. We build the future of play.">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Particle Canvas Background -->
+    <canvas id="starfield"></canvas>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <span class="logo-emoji">🎮</span>
+                <span class="logo-text">4weird<span class="logo-accent">Games</span></span>
+            </a>
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="#games" class="nav-link">Games</a></li>
+                <li><a href="#about" class="nav-link">About</a></li>
+                <li><a href="#tech" class="nav-link">Tech</a></li>
+                <li><a href="#team" class="nav-link">Team</a></li>
+                <li><a href="#contact" class="nav-link nav-cta">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="floating-orbs">
+                <span class="orb">💀</span>
+                <span class="orb">🎮</span>
+                <span class="orb">🤖</span>
+                <span class="orb">🧙</span>
+                <span class="orb">⚔️</span>
+                <span class="orb">🏰</span>
+            </div>
+            <h1 class="hero-title">
+                <span class="title-line">4weird<span class="title-accent">Games</span></span>
+            </h1>
+            <p class="hero-tagline">
+                <span class="typewriter" id="typewriter"></span>
+                <span class="cursor">|</span>
+            </p>
+            <p class="hero-subtitle">AI-powered game development for the future of play</p>
+            <div class="hero-cta">
+                <a href="#games" class="btn btn-primary">
+                    <span class="btn-emoji">🚀</span> View Our Games
+                </a>
+                <a href="#about" class="btn btn-secondary">
+                    <span class="btn-emoji">📖</span> Our Story
+                </a>
+            </div>
+        </div>
+        <div class="hero-scroll">
+            <span class="scroll-arrow">↓</span>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="section about" id="about">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-emoji">⚡</span>
+                <h2 class="section-title">About 4weird</h2>
+                <p class="section-subtitle">Pushing the boundaries of AI-powered game creation</p>
+            </div>
+            <div class="about-grid">
+                <div class="about-card reveal">
+                    <div class="card-icon">🤖</div>
+                    <h3>AI-First Development</h3>
+                    <p>We leverage cutting-edge artificial intelligence to accelerate every aspect of game development - from procedural generation to AI-assisted art, sound design, and intelligent playtesting systems.</p>
+                </div>
+                <div class="about-card reveal">
+                    <div class="card-icon">🌎</div>
+                    <h3>Global Talent Network</h3>
+                    <p>Our team spans the globe. Elite freelancers from every continent collaborate to bring ambitious visions to life, coordinated through our proprietary ecosystem platform.</p>
+                </div>
+                <div class="about-card reveal">
+                    <div class="card-icon">🏔️</div>
+                    <h3>New Hampshire Roots</h3>
+                    <p>Headquartered in New Hampshire, USA, 4weird Games combines small-studio agility with worldwide reach. Our NH base grounds us while our network elevates us.</p>
+                </div>
+                <div class="about-card reveal parent-company">
+                    <div class="card-icon">🔗</div>
+                    <h3>A MattyJacks.com Company</h3>
+                    <p>4weird Games is proudly owned by <a href="https://mattyjacks.com" target="_blank" rel="noopener">MattyJacks.com</a> - the holding company and outsourcing agency building the future of technology and talent deployment.</p>
+                    <p class="slogan-highlight">Do and/or DIE TRYING!!!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Section -->
+    <section class="section ai-section" id="ai">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-emoji">🧠</span>
+                <h2 class="section-title">AI-Powered Game Dev</h2>
+                <p class="section-subtitle">The tools we build, the games we ship</p>
+            </div>
+            <div class="ai-grid">
+                <div class="ai-feature reveal">
+                    <div class="ai-icon">🎨</div>
+                    <h3>AI Art Pipelines</h3>
+                    <p>Procedural textures, AI-assisted character design, and automated asset generation workflows that scale from prototype to production.</p>
+                </div>
+                <div class="ai-feature reveal">
+                    <div class="ai-icon">🎵</div>
+                    <h3>Generative Audio</h3>
+                    <p>Dynamic soundscapes, procedural music systems, and AI-generated SFX that adapt to gameplay in real-time.</p>
+                </div>
+                <div class="ai-feature reveal">
+                    <div class="ai-icon">🧪</div>
+                    <h3>Intelligent Playtesting</h3>
+                    <p>AI agents that play our games thousands of times, identifying balance issues, bugs, and optimization opportunities before players do.</p>
+                </div>
+                <div class="ai-feature reveal">
+                    <div class="ai-icon">🛠️</div>
+                    <h3>CryptArtist Studio</h3>
+                    <p>Our in-house desktop creative suite for AI-assisted game development, media production, and digital art. <a href="https://github.com/mattyjacks/CryptArtistStudio" target="_blank" rel="noopener">Learn more</a></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack Section -->
+    <section class="section tech" id="tech">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-emoji">⚙️</span>
+                <h2 class="section-title">Our Tech Stack</h2>
+                <p class="section-subtitle">Three engines, infinite possibilities</p>
+            </div>
+            <div class="tech-grid">
+                <div class="tech-card reveal">
+                    <div class="tech-header">
+                        <span class="tech-emoji">🌐</span>
+                        <h3>HTML5 Games</h3>
+                        <span class="tech-tag">Web Native</span>
+                    </div>
+                    <p class="tech-desc">Pure browser-based experiences with zero friction. Instant play, no downloads, maximum reach. Our HTML titles run everywhere - desktop, mobile, tablet.</p>
+                    <ul class="tech-features">
+                        <li><span class="check">✓</span> Canvas 2D/WebGL rendering</li>
+                        <li><span class="check">✓</span> Web Audio API sound</li>
+                        <li><span class="check">✓</span> Touch + keyboard controls</li>
+                    </ul>
+                </div>
+                <div class="tech-card reveal">
+                    <div class="tech-header">
+                        <span class="tech-emoji">🔷</span>
+                        <h3>Roblox Studio</h3>
+                        <span class="tech-tag">Social Gaming</span>
+                    </div>
+                    <p class="tech-desc">The world's largest gaming platform. We build immersive multiplayer experiences for millions of concurrent players, leveraging Roblox's massive ecosystem.</p>
+                    <ul class="tech-features">
+                        <li><span class="check">✓</span> Lua scripting expertise</li>
+                        <li><span class="check">✓</span> Multiplayer networking</li>
+                        <li><span class="check">✓</span> Live ops & analytics</li>
+                    </ul>
+                </div>
+                <div class="tech-card reveal">
+                    <div class="tech-header">
+                        <span class="tech-emoji">🎭</span>
+                        <h3>Godot</h3>
+                        <span class="tech-tag">Open Source</span>
+                    </div>
+                    <p class="tech-desc">The future of indie game development. Lightweight, powerful, and completely open source. Perfect for desktop, mobile, and console exports.</p>
+                    <ul class="tech-features">
+                        <li><span class="check">✓</span> GDScript & C# support</li>
+                        <li><span class="check">✓</span> 2D/3D hybrid engine</li>
+                        <li><span class="check">✓</span> One-click export to all platforms</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Games Section -->
+    <section class="section games" id="games">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-emoji">🎯</span>
+                <h2 class="section-title">Our Games</h2>
+                <p class="section-subtitle">Play them now - no downloads required</p>
+            </div>
+            <div class="games-grid">
+                <div class="game-card reveal live">
+                    <div class="game-thumbnail">
+                        <div class="thumb-bg thumb-demolichdom"></div>
+                        <div class="thumb-overlay">
+                            <span class="play-btn">▶️</span>
+                        </div>
+                        <span class="game-badge live-badge">LIVE</span>
+                    </div>
+                    <div class="game-info">
+                        <h3 class="game-title">Demo Lichdom</h3>
+                        <p class="game-desc">Command your skeleton army to demolish buildings as a modern necromancer! Pure HTML5 strategy action with emoji-powered graphics.</p>
+                        <div class="game-tags">
+                            <span class="tag">HTML5</span>
+                            <span class="tag">Strategy</span>
+                            <span class="tag">Action</span>
+                        </div>
+                        <a href="games/html/demolichdom/index.html" class="btn btn-game">
+                            <span class="btn-emoji">🎮</span> Play Now
+                        </a>
+                    </div>
+                </div>
+                <div class="game-card reveal coming-soon">
+                    <div class="game-thumbnail">
+                        <div class="thumb-bg thumb-placeholder-1"></div>
+                        <div class="thumb-overlay coming-overlay">
+                            <span class="cs-text">?</span>
+                        </div>
+                        <span class="game-badge cs-badge">COMING SOON</span>
+                    </div>
+                    <div class="game-info">
+                        <h3 class="game-title">Untitled Roblox Project</h3>
+                        <p class="game-desc">A multiplayer social experience powered by AI systems. Currently in early development.</p>
+                        <div class="game-tags">
+                            <span class="tag">Roblox</span>
+                            <span class="tag">Multiplayer</span>
+                            <span class="tag">Social</span>
+                        </div>
+                        <button class="btn btn-game btn-disabled" disabled>
+                            <span class="btn-emoji">🔒</span> In Development
+                        </button>
+                    </div>
+                </div>
+                <div class="game-card reveal coming-soon">
+                    <div class="game-thumbnail">
+                        <div class="thumb-bg thumb-placeholder-2"></div>
+                        <div class="thumb-overlay coming-overlay">
+                            <span class="cs-text">?</span>
+                        </div>
+                        <span class="game-badge cs-badge">COMING SOON</span>
+                    </div>
+                    <div class="game-info">
+                        <h3 class="game-title">Godot Adventure</h3>
+                        <p class="game-desc">A narrative-driven 2D adventure exploring themes of AI consciousness and human connection.</p>
+                        <div class="game-tags">
+                            <span class="tag">Godot</span>
+                            <span class="tag">Narrative</span>
+                            <span class="tag">2D</span>
+                        </div>
+                        <button class="btn btn-game btn-disabled" disabled>
+                            <span class="btn-emoji">🔒</span> In Development
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="section team" id="team">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-emoji">👥</span>
+                <h2 class="section-title">Meet the Team</h2>
+                <p class="section-subtitle">A global force of creative talent</p>
+            </div>
+            <div class="team-grid">
+                <div class="team-card reveal founder">
+                    <div class="team-avatar">
+                        <span class="avatar-emoji">👔</span>
+                    </div>
+                    <h3 class="team-name">MattyJacks</h3>
+                    <p class="team-role">CEO & Founder</p>
+                    <p class="team-bio">Visionary leader behind 4weird Games and the MattyJacks.com ecosystem. Based in New Hampshire, building companies that deploy global talent and ship technology that makes money.</p>
+                    <a href="https://mattyjacks.com" target="_blank" rel="noopener" class="team-link">
+                        <span class="link-emoji">🔗</span> mattyjacks.com
+                    </a>
+                </div>
+                <div class="team-card reveal global-team">
+                    <div class="team-avatar">
+                        <span class="avatar-emoji">🌐</span>
+                    </div>
+                    <h3 class="team-name">Global Freelancers</h3>
+                    <p class="team-role">Development Team</p>
+                    <p class="team-bio">Elite developers, designers, writers, and operators from around the world. Maximum cost effectiveness through strategic team composition. Handpicked for every project.</p>
+                    <div class="team-stats">
+                        <div class="stat">
+                            <span class="stat-num">50+</span>
+                            <span class="stat-label">Countries</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-num">200+</span>
+                            <span class="stat-label">Freelancers</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="hiring-cta reveal">
+                <p class="hiring-text">Want to join the 4weird team?</p>
+                <a href="#contact" class="btn btn-primary">
+                    <span class="btn-emoji">📧</span> Get in Touch
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="section contact" id="contact">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-emoji">📬</span>
+                <h2 class="section-title">Get in Touch</h2>
+                <p class="section-subtitle">Let's build something weird together</p>
+            </div>
+            <div class="contact-content reveal">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <span class="contact-icon">🏢</span>
+                        <div class="contact-details">
+                            <h4>Headquarters</h4>
+                            <p>New Hampshire, USA</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-icon">🔗</span>
+                        <div class="contact-details">
+                            <h4>Parent Company</h4>
+                            <p><a href="https://mattyjacks.com" target="_blank" rel="noopener">MattyJacks.com</a></p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-icon">🌎</span>
+                        <div class="contact-details">
+                            <h4>Global Operations</h4>
+                            <p>Remote teams across 50+ countries</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="contact-form">
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" id="name" name="name" required placeholder="Your name">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required placeholder="your@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="subject">Subject</label>
+                            <select id="subject" name="subject" required>
+                                <option value="">Select a topic</option>
+                                <option value="game-idea">Game Idea</option>
+                                <option value="freelance">Freelance Work</option>
+                                <option value="partnership">Partnership</option>
+                                <option value="press">Press Inquiry</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="message">Message</label>
+                            <textarea id="message" name="message" rows="5" required placeholder="Tell us about your project..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">
+                            <span class="btn-emoji">📤</span> Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <span class="footer-logo">🎮 4weird<span class="footer-accent">Games</span></span>
+                    <p class="footer-tagline">Future Forward Fun</p>
+                </div>
+                <div class="footer-links">
+                    <a href="#games" class="footer-link">Games</a>
+                    <a href="#about" class="footer-link">About</a>
+                    <a href="#tech" class="footer-link">Tech</a>
+                    <a href="#team" class="footer-link">Team</a>
+                    <a href="#contact" class="footer-link">Contact</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p class="footer-copyright">
+                    &copy; 2025 4weird Games. A <a href="https://mattyjacks.com" target="_blank" rel="noopener">MattyJacks.com</a> Company.
+                </p>
+                <p class="footer-location">New Hampshire, USA &bull; Global Freelancers</p>
+                <p class="footer-slogan">Do and/or DIE TRYING!!!</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

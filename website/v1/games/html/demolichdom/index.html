@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Lichdom - 4weird Games</title>
+    <meta name="description" content="Command your skeleton army to demolish buildings as a modern necromancer! Pure HTML5 strategy action.">
+    <link rel="stylesheet" href="game.css">
+</head>
+<body>
+    <div class="header">
+        <a href="../../../index.html" class="logo">
+            <span>🎮</span> 4weird<span style="color:#8b5cf6;">Games</span>
+        </a>
+        <a href="../../../index.html" class="back-btn">← Back to Site</a>
+    </div>
+
+    <div class="game-container">
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+        
+        <div class="hud">
+            <div class="bar-container">
+                <span>❤️</span>
+                <div class="bar"><div class="bar-fill hp-fill" id="hpBar"></div></div>
+            </div>
+            <div class="bar-container">
+                <span>💧</span>
+                <div class="bar"><div class="bar-fill mana-fill" id="manaBar"></div></div>
+            </div>
+            <div class="bar-container">
+                <span>⭐</span>
+                <div class="bar"><div class="bar-fill xp-fill" id="xpBar"></div></div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div><span class="label">Level</span><div class="value" id="levelDisplay">1</div></div>
+            <div><span class="label">Score</span><div class="value" id="scoreDisplay">0</div></div>
+            <div><span class="label">Wave</span><div class="value" id="phaseDisplay">1</div></div>
+        </div>
+
+        <div class="skeleton-count">
+            <span class="emoji">💀</span>
+            <span>Army: <strong id="skeletonCount">0/3</strong></span>
+        </div>
+
+        <div class="controls">
+            <strong>CONTROLS</strong><br>
+            WASD / Arrows: Move<br>
+            Click: Cast Skull Spell<br>
+            S: Summon Skeleton (-25 Mana)<br>
+            P: Pause Game
+        </div>
+
+        <div class="phase-indicator" id="phaseIndicator">PHASE 1</div>
+
+        <div class="overlay" id="mainMenu">
+            <h1>💀 DEMO LICHDOM 🏰</h1>
+            <div class="subtitle">Command the Undead. Demolish the Modern World.</div>
+            <div class="instructions">
+                <div class="instruction"><span class="key">🧙‍♂️</span>You are the Necromancer</div>
+                <div class="instruction"><span class="key">💀</span>Summon Skeleton Army</div>
+                <div class="instruction"><span class="key">🏰</span>Destroy All Buildings</div>
+            </div>
+            <p>You are a necromancer demolition contractor in a modern world. Old buildings must fall. Your skeletons do the work. Use WASD to move, CLICK to cast skull spells, S to summon skeletons.</p>
+            <button class="btn btn-start" onclick="game.start()">⚔️ START DEMOLITION</button>
+            <button class="btn btn-menu" onclick="game.showHowToPlay()">📖 How to Play</button>
+        </div>
+
+        <div class="overlay hidden" id="pauseMenu">
+            <h1>⏸️ PAUSED</h1>
+            <button class="btn btn-start" onclick="game.resume()">▶️ Resume</button>
+            <button class="btn btn-menu" onclick="game.restart()">🔄 Restart</button>
+            <button class="btn btn-menu" onclick="game.toMenu()">📋 Main Menu</button>
+        </div>
+
+        <div class="overlay hidden" id="upgradeMenu">
+            <h1>⭐ LEVEL UP!</h1>
+            <p>Choose your power:</p>
+            <div class="upgrades-grid" id="upgradeOptions"></div>
+        </div>
+
+        <div class="overlay hidden" id="winScreen">
+            <h1>🏆 VICTORY!</h1>
+            <div class="subtitle">The city lies in ruins. You are the ultimate demolition lich.</div>
+            <p>Final Score: <strong id="finalScore">0</strong></p>
+            <p>Level Reached: <strong id="finalLevel">1</strong></p>
+            <button class="btn btn-start" onclick="game.restart()">🔄 Play Again</button>
+            <button class="btn btn-menu" onclick="window.location.href='../../../index.html'">🏠 Back to 4weird</button>
+        </div>
+
+        <div class="overlay hidden" id="loseScreen">
+            <h1>💀 DEFEATED</h1>
+            <div class="subtitle">Your necromantic power was not enough...</div>
+            <p>Final Score: <strong id="deathScore">0</strong></p>
+            <p>Buildings Destroyed: <strong id="buildingsDestroyed">0</strong>/3</p>
+            <button class="btn btn-start" onclick="game.restart()">🔄 Try Again</button>
+            <button class="btn btn-menu" onclick="game.toMenu()">📋 Main Menu</button>
+        </div>
+    </div>
+
+    <div class="game-title">A 4weird Games Production | Pure HTML5 | Emoji Graphics Only</div>
+
+    <script src="game.js"></script>
+</body>
+</html>
