@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Server Saver Shield - 4weird Games</title>
+    <meta name="description" content="Defend the servers from cyber attacks! A pure HTML5 arcade shooter by 4weird Games.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="game.css">
+</head>
+<body>
+    <div class="header">
+        <a href="../../../index.html" class="logo">
+            <span>🎮</span> 4weird<span style="color:#8b5cf6;">Games</span>
+        </a>
+        <span class="game-title">⚡ SERVER SAVER SHIELD</span>
+        <a href="../../../index.html" class="back-btn">← Back</a>
+    </div>
+
+    <div class="game-wrapper">
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- HUD -->
+        <div class="hud">
+            <div class="hud-section">
+                <div class="stat-box score-box">
+                    <span class="stat-label">SCORE</span>
+                    <span class="stat-value" id="hudScore">0</span>
+                </div>
+                <div class="stat-box wave-box">
+                    <span class="stat-label">WAVE</span>
+                    <span class="stat-value" id="hudWave">1</span>
+                </div>
+            </div>
+            <div class="hud-section center">
+                <div class="server-health">
+                    <span class="server-icon">🖥️</span>
+                    <div class="health-bar">
+                        <div class="health-fill" id="hpBar"></div>
+                    </div>
+                    <span class="health-text" id="hpText">100%</span>
+                </div>
+            </div>
+            <div class="hud-section">
+                <div class="powerup-indicator" id="powerupIndicator"></div>
+            </div>
+        </div>
+
+        <!-- Start Screen -->
+        <div class="screen-overlay" id="startScreen">
+            <div class="logo-big">🛡️ SERVER SAVER SHIELD ⚡</div>
+            <div class="tagline">The Servers Are Under Attack!</div>
+            <div class="story">
+                <p>🔴 <strong>CRITICAL ALERT</strong> 🔴</p>
+                <p>Malware bots, DDOS attacks, and rogue viruses are targeting our data centers!</p>
+                <p>You are the <strong>Server Saver Shield</strong> - our last line of defense.</p>
+            </div>
+            <div class="enemies-preview">
+                <div class="enemy-type"><span>🤖</span><small>Malware Bot</small></div>
+                <div class="enemy-type"><span>🐛</span><small>Bug Virus</small></div>
+                <div class="enemy-type"><span>🔥</span><small>DDOS Attack</small></div>
+            </div>
+            <button class="btn btn-start" id="btnStart">🚀 DEPLOY SHIELD</button>
+            <div class="controls-hint">
+                <span>🖱️ Mouse/Touch: Move</span>
+                <span>👆 Hold: Fire Shield Beams</span>
+                <span>⌨️ P: Pause</span>
+            </div>
+        </div>
+
+        <!-- Pause Screen -->
+        <div class="screen-overlay hidden" id="pauseScreen">
+            <div class="logo-big">⏸️ PAUSED</div>
+            <button class="btn btn-start" id="btnResume">▶️ Resume</button>
+            <button class="btn btn-secondary" id="btnRestartPause">🔄 Restart</button>
+            <button class="btn btn-secondary" id="btnMenuPause">📋 Main Menu</button>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div class="screen-overlay hidden" id="gameOverScreen">
+            <div class="logo-big glitch">💀 SERVERS BREACHED</div>
+            <div class="final-stats">
+                <div class="stat-row">
+                    <span>Final Score</span>
+                    <span class="highlight" id="finalScore">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>Waves Survived</span>
+                    <span class="highlight" id="finalWave">1</span>
+                </div>
+                <div class="stat-row">
+                    <span>Threats Eliminated</span>
+                    <span class="highlight" id="finalKills">0</span>
+                </div>
+            </div>
+            <button class="btn btn-start" id="btnRestart">🔄 Redeploy Shield</button>
+            <button class="btn btn-secondary" onclick="window.location.href='../../../index.html'">🏠 Back to 4weird</button>
+        </div>
+
+        <!-- Victory Screen -->
+        <div class="screen-overlay hidden" id="victoryScreen">
+            <div class="logo-big">🏆 CYBER HERO!</div>
+            <div class="tagline">The servers are safe thanks to you!</div>
+            <div class="final-stats">
+                <div class="stat-row">
+                    <span>Final Score</span>
+                    <span class="highlight" id="victoryScore">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>Max Combo</span>
+                    <span class="highlight" id="victoryCombo">x1</span>
+                </div>
+            </div>
+            <button class="btn btn-start" id="btnVictoryRestart">🔄 Play Again</button>
+            <button class="btn btn-secondary" onclick="window.location.href='../../../index.html'">🏠 More Games</button>
+        </div>
+    </div>
+
+    <div class="footer-bar">
+        <span>🎮 A 4weird Games Production</span>
+        <span>⚡ Pure HTML5 • Emoji Graphics</span>
+        <span>🔗 <a href="https://mattyjacks.com" target="_blank">MattyJacks.com</a></span>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
