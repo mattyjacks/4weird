@@ -289,6 +289,18 @@ body {
 .stat-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
 .hiring-cta { text-align: center; margin-top: 60px; padding: 40px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(16, 185, 129, 0.1)); border-radius: 20px; border: 1px dashed rgba(139, 92, 246, 0.3); }
 .hiring-text { font-size: 1.3rem; margin-bottom: 20px; }
+.contribute { background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%); }
+.contribute-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; }
+.contribute-step { position: relative; background: var(--bg-card); backdrop-filter: blur(10px); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 20px; padding: 30px; transition: 0.3s ease; }
+.contribute-step:hover { transform: translateY(-8px); border-color: var(--neon-green); box-shadow: 0 0 20px rgba(16, 185, 129, 0.25); }
+.step-num { position: absolute; top: -16px; left: 24px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; color: var(--bg-primary); background: linear-gradient(135deg, var(--neon-purple), var(--neon-green)); border-radius: 50%; box-shadow: 0 0 12px rgba(139, 92, 246, 0.4); }
+.step-icon { font-size: 2.5rem; margin-bottom: 15px; }
+.contribute-step h3 { font-family: var(--font-display); font-size: 1.15rem; margin-bottom: 12px; color: var(--neon-purple-light); }
+.contribute-step p { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.7; }
+.contribute-step code { font-family: monospace; font-size: 0.82rem; color: var(--neon-green-light); background: rgba(16, 185, 129, 0.1); padding: 2px 6px; border-radius: 5px; }
+.contribute-cta { text-align: center; margin-top: 60px; padding: 40px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(16, 185, 129, 0.12)); border-radius: 20px; border: 1px dashed rgba(16, 185, 129, 0.4); }
+.contribute-text { font-size: 1.3rem; margin-bottom: 25px; }
+.contribute-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
 .contact { background: var(--bg-primary); }
 .contact-content { display: grid; grid-template-columns: 1fr 1.5fr; gap: 60px; max-width: 1000px; margin: 0 auto; }
 .contact-info { display: flex; flex-direction: column; gap: 30px; }
