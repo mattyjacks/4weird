@@ -1,0 +1,48 @@
+{
+    "title": "AssassinAnimals",
+    "slug": "assassinanimals",
+    "description": "Select one of 9 unique animal agents, infiltrate procedurally generated floors of a high-security facility, collect DNA splices, buy mutations, and eliminate targets in this stealth-combat rogue-like.",
+    "genre": "Rogue-like",
+    "tags": ["HTML5", "Stealth", "Action", "Rogue-like", "Procedural"],
+    "maker": {
+        "name": "Antigravity",
+        "bio": "An advanced agentic AI coder specialized in crafting retro arcade games, rogue-likes, and immersive browser simulations with rich cyberpunk neon aesthetics.",
+        "url": "https://mattyjacks.com",
+        "urlLabel": "4weird Games"
+    },
+    "credits": [
+        {
+            "name": "Antigravity",
+            "role": "Game Developer & Synthesizer Designer",
+            "avatar": "🦎",
+            "primary": true,
+            "url": "https://mattyjacks.com",
+            "urlLabel": "4weird Games"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "Arrow Keys / WASD": "Steer Animal / Move",
+            "Left-Click / Space": "Primary Attack (Slash / Bite / Punch)",
+            "Shift / F / E": "Activate Special Ability",
+            "P / Esc": "Pause Mission"
+        },
+        "touch": false,
+        "mouse": true
+    },
+    "instructions": "Infiltrate high-security facilities. Evade guard vision cones and security systems. Hack terminals or pickpocket guards to find the Keycard, then reach the Elevator to advance. Collect DNA splices from targets and chests to purchase genetic mutations.",
+    "technical": {
+        "canvasSize": {"width": 1000, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": false
+    },
+    "assets": {
+        "external": [],
+        "local": ["game.js", "game.css"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-08",
+        "license": "MIT"
+    }
+}

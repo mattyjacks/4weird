@@ -82,7 +82,7 @@ function initTypewriter() {
     const typewriter = document.getElementById('typewriter');
     if (!typewriter) return;
 
-    const text = 'Future Forward Fun';
+    const text = 'Website Under Construction - Current Games in Development';
     let index = 0;
     let isDeleting = false;
 

@@ -9,7 +9,7 @@
 
     const SITE_CONFIG = {
         name: '4weird Games',
-        tagline: 'Future Forward Fun',
+        tagline: 'Website Under Construction - Current Games in Development',
         company: 'MattyJacks.com',
         email: 'Matt@MattyJacks.com',
         started: '6/6/26',
