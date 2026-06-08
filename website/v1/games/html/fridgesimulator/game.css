@@ -29,7 +29,7 @@ body {
     font-family: var(--font-body);
     background: var(--bg-dark);
     color: var(--text-primary);
-    overflow: hidden;
+    overflow-x: hidden;
     user-select: none;
     -webkit-user-select: none;
     min-height: 100vh;
@@ -373,7 +373,7 @@ body {
 
 .nutrition-bars {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 3px;
     margin-top: 5px;
 }
@@ -540,12 +540,46 @@ body {
 .footer-bar a { color: var(--neon-purple); text-decoration: none; }
 
 @media (max-width: 1200px) {
-    .game-content { grid-template-columns: 1fr; }
-    .shop-items { grid-template-columns: 1fr 1fr 1fr; }
+    .game-wrapper {
+        height: auto;
+        max-height: none;
+        overflow: visible;
+    }
+    .game-content {
+        grid-template-columns: 1fr;
+        overflow: visible;
+    }
+    .panel {
+        max-height: none;
+        overflow-y: visible;
+    }
+    .shop-items {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
 }
 
 @media (max-width: 768px) {
-    .hud { flex-wrap: wrap; gap: 10px; }
-    .game-content { grid-template-columns: 1fr; }
-    .fridge-grid { grid-template-columns: repeat(3, 1fr); }
+    .hud {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .game-wrapper {
+        height: auto;
+        max-height: none;
+        overflow: visible;
+    }
+    .game-content {
+        grid-template-columns: 1fr;
+        overflow: visible;
+    }
+    .panel {
+        max-height: none;
+        overflow-y: visible;
+    }
+    .fridge-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .shop-items {
+        grid-template-columns: 1fr 1fr;
+    }
 }

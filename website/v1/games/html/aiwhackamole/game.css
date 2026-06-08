@@ -1,0 +1,224 @@
+/* AI Whack-A-Mole Styles */
+
+#game-container {
+    position: relative;
+    width: 100%;
+    height: 600px;
+    background: #050508;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), inset 0 0 100px rgba(139, 92, 246, 0.15);
+    border: 2px solid rgba(139, 92, 246, 0.3);
+}
+
+#TEMPLATE-4weird-gameCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: crosshair;
+}
+
+/* Bubbles overlay container */
+#bubbles-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Let clicks pass through to canvas for raycasting */
+    overflow: hidden;
+    z-index: 10;
+}
+
+/* Chat bubble style - must NOT be styled differently for good/bad */
+.mole-bubble {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    background: rgba(18, 18, 26, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(139, 92, 246, 0.6);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 15px rgba(139, 92, 246, 0.2);
+    border-radius: 12px;
+    padding: 8px 12px;
+    color: #e5e7eb;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    line-height: 1.4;
+    max-width: 180px;
+    text-align: center;
+    pointer-events: none;
+    transition: opacity 0.15s ease-out, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    animation: bubble-bounce 0.4s ease-out forwards;
+    word-wrap: break-word;
+}
+
+.mole-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px 6px 0;
+    border-style: solid;
+    border-color: rgba(18, 18, 26, 0.85) transparent;
+    display: block;
+    width: 0;
+}
+
+@keyframes bubble-bounce {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -90%) scale(0.7);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -105%) scale(1);
+    }
+}
+
+/* HUD Panel */
+#game-hud {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+    z-index: 15;
+    font-family: 'Orbitron', sans-serif;
+    color: #fff;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+.hud-item {
+    background: rgba(10, 10, 15, 0.85);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    padding: 10px 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.hud-label {
+    font-size: 10px;
+    color: #a78bfa;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+}
+
+.hud-value {
+    font-size: 18px;
+    font-weight: 700;
+    font-family: 'Share Tech Mono', monospace;
+    color: #22d3ee;
+    text-shadow: 0 0 10px rgba(34, 211, 238, 0.6);
+}
+
+/* Health Bar specific */
+.health-container {
+    flex: 1;
+    max-width: 300px;
+    margin: 0 20px;
+}
+
+.health-bar-bg {
+    flex: 1;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+#hud-health-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #ef4444, #10b981);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+    transition: width 0.3s ease-out;
+}
+
+/* Glow effects and screen designs */
+.glow-text {
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 2px;
+    background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 12px rgba(139, 92, 246, 0.5));
+    font-weight: 800;
+}
+
+.header-fail {
+    background: linear-gradient(135deg, #ef4444, #f97316);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.5));
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Whack particle effect */
+.whack-score-popup {
+    position: absolute;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: bold;
+    font-size: 20px;
+    pointer-events: none;
+    z-index: 20;
+    animation: popup-float 0.8s ease-out forwards;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.score-positive {
+    color: #10b981;
+    text-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+.score-negative {
+    color: #ef4444;
+    text-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+}
+
+@keyframes popup-float {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -120%) scale(1.4);
+    }
+}
+
+/* Adaptive mobile layout adjustments */
+@media (max-width: 768px) {
+    #game-container {
+        height: 480px;
+    }
+    #game-hud {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+    }
+    .hud-item {
+        padding: 6px 10px;
+    }
+    .hud-value {
+        font-size: 14px;
+    }
+    .health-container {
+        margin: 0 5px;
+    }
+    .mole-bubble {
+        max-width: 130px;
+        font-size: 10px;
+    }
+}

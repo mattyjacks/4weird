@@ -1,0 +1,42 @@
+{
+    "title": "AI-whack-a-mole",
+    "slug": "aiwhackamole",
+    "description": "An intense 3D arcade experience. Whack the rogue, dangerous AIs while saving the good, helpful ones before time runs out!",
+    "genre": "Arcade",
+    "tags": ["HTML5", "Arcade", "Three.js", "3D", "AI"],
+    "maker": {
+        "name": "Antigravity AI",
+        "bio": "Crafting premium, interactive 3D browser games that combine retro mechanics with futuristic themes.",
+        "url": "https://mattyjacks.com",
+        "urlLabel": "4weird Games"
+    },
+    "credits": [
+        {
+            "name": "Antigravity AI",
+            "role": "Lead Developer & 3D Designer",
+            "avatar": "🤖",
+            "primary": true,
+            "url": "https://mattyjacks.com",
+            "urlLabel": "4weird Games"
+        }
+    ],
+    "controls": {
+        "mouse": "Click to Whack Moles",
+        "touch": "Tap to Whack Moles"
+    },
+    "instructions": "🤖 AIs are popping up from the 3D arcade machine. Read the chat bubbles above them quickly! Click or tap to WHACK the bad/dangerous AIs. Avoid whacking the good/helpful AIs. Letting a bad AI escape costs health, and whacking a good AI penalizes your score!",
+    "technical": {
+        "canvasSize": {"width": 800, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [],
+        "local": ["game.js", "game.css", "good_quotes.json", "bad_quotes.json"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-08",
+        "license": "MIT"
+    }
+}

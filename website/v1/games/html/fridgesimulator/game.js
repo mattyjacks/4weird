@@ -46,13 +46,7 @@
     draw();
 })();
 
-const FOOD_EMOJIS = {
-    proteins: ['🍗', '🥩', '🍖', '🐟', '🥚', '🫘', '🧀', '🥜', '🦐', '🦞', '🦀', '🐙', '🦑', '🍤', '🥓', '🍔', '🌭'],
-    carbs: ['🍞', '🍚', '🍝', '🥔', '🌽', '🥖', '🥯', '🥨', '🥐', '🥞', '🧇', '🍳', '🥟', '🍱', '🍛', '🍜', '🍲', '🥘', '🍲', '🥗'],
-    fruits: ['🍎', '🍌', '🍇', '🍓', '🍊', '🍉', '🍑', '🥝', '🍍', '🥭', '🍒', '🫐', '🍈', '🍋', '🍐', '🥑', '🍆', '🫒', '🥥', '🍅'],
-    vegetables: ['🥦', '🥕', '🥬', '🍅', '🥒', '🫑', '🧅', '🧄', '🍆', '🥗', '🌶️', '🫑', '🥬', '🥒', '🍄', '🌰', '🫘', '🥔'],
-    dairy: ['🥛', '🧈', '🧀', '🥥', '🫒', '🥑', '🍶', '🍷', '🍾', '🥤', '☕', '🍵', '🧃', '🧋']
-};
+// Food categorizations are defined directly in FOOD_STATS
 
 const HUMAN_EMOJIS = [
     '👶', '🧒', '👦', '👧', '🧑', '👨', '👩', '🧓', '👴', '👵',
@@ -116,6 +110,55 @@ const FOOD_PRICES = {
     '🥛': 2, '🧈': 3, '🥥': 2, '🫒': 4, '🥑': 1.5
 };
 
+const CATEGORY_COLORS = ['#ef4444', '#f59e0b', '#10b981'];
+const CATEGORY_LABELS = ['Pro', 'Carb', 'Vit'];
+
+const FOOD_STATS = {
+    // Proteins
+    '🍗': { name: 'Chicken', hunger: 50, nutrition: [50, 0, 0] },
+    '🥩': { name: 'Steak', hunger: 70, nutrition: [60, 0, 0] },
+    '🍖': { name: 'Ribs', hunger: 60, nutrition: [50, 0, 0] },
+    '🐟': { name: 'Fish', hunger: 45, nutrition: [50, 0, 0] },
+    '🥚': { name: 'Egg', hunger: 30, nutrition: [30, 0, 0] },
+    '🫘': { name: 'Beans', hunger: 40, nutrition: [30, 20, 0] },
+    '🧀': { name: 'Cheese', hunger: 35, nutrition: [40, 0, 0] },
+    '🥜': { name: 'Peanuts', hunger: 25, nutrition: [25, 10, 0] },
+
+    // Carbs
+    '🍞': { name: 'Bread', hunger: 40, nutrition: [10, 50, 0] },
+    '🍚': { name: 'Rice', hunger: 35, nutrition: [0, 50, 0] },
+    '🍝': { name: 'Pasta', hunger: 55, nutrition: [10, 60, 0] },
+    '🥔': { name: 'Potato', hunger: 40, nutrition: [0, 30, 15] },
+    '🌽': { name: 'Corn', hunger: 30, nutrition: [0, 30, 15] },
+    '🥖': { name: 'Baguette', hunger: 45, nutrition: [10, 50, 0] },
+    '🥯': { name: 'Bagel', hunger: 40, nutrition: [10, 50, 0] },
+
+    // Fruits
+    '🍎': { name: 'Apple', hunger: 20, nutrition: [0, 10, 40] },
+    '🍌': { name: 'Banana', hunger: 30, nutrition: [0, 20, 40] },
+    '🍇': { name: 'Grapes', hunger: 20, nutrition: [0, 10, 40] },
+    '🍓': { name: 'Strawberry', hunger: 15, nutrition: [0, 5, 40] },
+    '🍊': { name: 'Orange', hunger: 20, nutrition: [0, 5, 45] },
+    '🍉': { name: 'Watermelon', hunger: 25, nutrition: [0, 5, 30] },
+    '🍑': { name: 'Peach', hunger: 20, nutrition: [0, 10, 40] },
+
+    // Vegetables
+    '🥦': { name: 'Broccoli', hunger: 20, nutrition: [10, 0, 45] },
+    '🥕': { name: 'Carrot', hunger: 15, nutrition: [0, 10, 40] },
+    '🥬': { name: 'Lettuce', hunger: 10, nutrition: [0, 0, 30] },
+    '🍅': { name: 'Tomato', hunger: 15, nutrition: [0, 5, 35] },
+    '🥒': { name: 'Cucumber', hunger: 10, nutrition: [0, 0, 30] },
+    '🧅': { name: 'Onion', hunger: 10, nutrition: [0, 5, 25] },
+    '🧄': { name: 'Garlic', hunger: 5, nutrition: [0, 0, 20] },
+
+    // Dairy / Fats
+    '🥛': { name: 'Milk', hunger: 25, nutrition: [20, 0, 30] },
+    '🧈': { name: 'Butter', hunger: 20, nutrition: [15, 0, 15] },
+    '🥥': { name: 'Coconut', hunger: 30, nutrition: [10, 10, 30] },
+    '🫒': { name: 'Olive', hunger: 15, nutrition: [0, 0, 30] },
+    '🥑': { name: 'Avocado', hunger: 25, nutrition: [10, 0, 40] }
+};
+
 let gameRunning = false;
 let gamePaused = false;
 let day = 1;
@@ -129,14 +172,28 @@ let countries = {};
 let currentShop = 'grocery';
 
 let selectedFood = null;
+let shopStocks = {};
 
-function getFoodCategory(emoji) {
-    if (FOOD_EMOJIS.proteins.includes(emoji)) return 0;
-    if (FOOD_EMOJIS.carbs.includes(emoji)) return 1;
-    if (FOOD_EMOJIS.fruits.includes(emoji)) return 2;
-    if (FOOD_EMOJIS.vegetables.includes(emoji)) return 3;
-    if (FOOD_EMOJIS.dairy.includes(emoji)) return 4;
-    return -1;
+function generateShopStocks() {
+    shopStocks = {};
+    Object.entries(SHOPS).forEach(([key, shop]) => {
+        const items = {};
+        if (shop.stock === 'all') {
+            Object.entries(FOOD_PRICES).forEach(([emoji, price]) => {
+                items[emoji] = Math.ceil(price * shop.multiplier);
+            });
+        } else {
+            const allFoods = Object.keys(FOOD_STATS);
+            // Select 12 unique random foods for the shop stock
+            const shuffled = [...allFoods].sort(() => 0.5 - Math.random());
+            const selected = shuffled.slice(0, 12);
+            selected.forEach(emoji => {
+                const basePrice = FOOD_PRICES[emoji] || 2;
+                items[emoji] = Math.ceil(basePrice * (shop.multiplier || 0.5));
+            });
+        }
+        shopStocks[key] = items;
+    });
 }
 
 function initAudio() {
@@ -185,6 +242,7 @@ function startGame() {
     deaths = 0;
     inventory = {};
     selectedFood = null;
+    generateShopStocks();
     
     // Initialize countries
     countries = {};
@@ -198,7 +256,7 @@ function startGame() {
                 fridge: {},
                 family: generateFamily(data.familySize),
                 hunger: Array(data.familySize).fill(100),
-                nutrition: Array(data.familySize).fill(null).map(() => [20, 20, 20, 20, 20])
+                nutrition: Array(data.familySize).fill(null).map(() => [20, 20, 20])
             };
         }
     });
@@ -219,23 +277,7 @@ function generateFamily(size) {
 }
 
 function getShopItems() {
-    const shop = SHOPS[currentShop];
-    const items = {};
-    
-    if (shop.stock === 'all') {
-        Object.entries(FOOD_PRICES).forEach(([emoji, price]) => {
-            items[emoji] = Math.ceil(price * shop.multiplier);
-        });
-    } else {
-        const allFoods = Object.values(FOOD_EMOJIS).flat();
-        for (let i = 0; i < 12; i++) {
-            const emoji = allFoods[Math.floor(Math.random() * allFoods.length)];
-            const basePrice = FOOD_PRICES[emoji] || 2;
-            items[emoji] = Math.ceil(basePrice * (shop.multiplier || 0.5));
-        }
-    }
-    
-    return items;
+    return shopStocks[currentShop] || {};
 }
 
 function buyFood(emoji) {
@@ -278,10 +320,12 @@ function nextDay() {
                 const consumed = fridgeFoods.splice(foodIndex, 1)[0];
                 delete country.fridge[consumed.slot];
                 
-                country.hunger[i] = Math.min(100, country.hunger[i] + 40);
-                const category = getFoodCategory(consumed.food);
-                if (category !== -1) {
-                    country.nutrition[i][category] = Math.min(100, country.nutrition[i][category] + 50);
+                const fStats = FOOD_STATS[consumed.food] || { name: 'Food', hunger: 40, nutrition: [10, 10, 10] };
+                country.hunger[i] = Math.min(100, country.hunger[i] + fStats.hunger);
+                for (let idx = 0; idx < 3; idx++) {
+                    if (fStats.nutrition[idx] > 0) {
+                        country.nutrition[i][idx] = Math.min(100, country.nutrition[i][idx] + fStats.nutrition[idx]);
+                    }
                 }
             } else {
                 const malnutCount = country.nutrition[i].filter(n => n <= 0).length;
@@ -306,6 +350,7 @@ function nextDay() {
         playSound('death');
     }
     day++;
+    generateShopStocks();
     
     // Unlock new countries
     Object.entries(COUNTRIES).forEach(([key, data]) => {
@@ -318,7 +363,7 @@ function nextDay() {
                 fridge: {},
                 family: generateFamily(data.familySize),
                 hunger: Array(data.familySize).fill(100),
-                nutrition: Array(data.familySize).fill(null).map(() => [20, 20, 20, 20, 20])
+                nutrition: Array(data.familySize).fill(null).map(() => [20, 20, 20])
             };
         }
     });
@@ -356,13 +401,28 @@ function render() {
     const shopItemsDiv = document.getElementById('shopItems');
     shopItemsDiv.innerHTML = '';
     Object.entries(shopItems).forEach(([emoji, price]) => {
+        const fStats = FOOD_STATS[emoji] || { name: 'Food', hunger: 40, nutrition: [0, 0, 0, 0, 0] };
+        
+        let nutHtml = '';
+        fStats.nutrition.forEach((val, idx) => {
+            if (val > 0) {
+                const label = CATEGORY_LABELS[idx];
+                const color = CATEGORY_COLORS[idx];
+                nutHtml += `<div style="font-size: 0.65rem; color: ${color}; font-weight: bold; margin-top: 1px;">${label} +${val}</div>`;
+            }
+        });
+
         const div = document.createElement('div');
         div.className = 'shop-item';
         div.onclick = () => buyFood(emoji);
         div.innerHTML = `
             <span class="shop-item-emoji">${emoji}</span>
-            <div class="shop-item-name">Food</div>
-            <div class="shop-item-price">$${price}</div>
+            <div class="shop-item-name" style="font-weight: 700; margin-top: 2px;">${fStats.name}</div>
+            <div class="shop-item-price" style="color: var(--neon-green); font-size: 0.75rem; font-weight: 600; margin-top: 2px;">$${price}</div>
+            <div class="shop-item-hunger" style="color: #ff4a4a; font-size: 0.65rem; font-weight: bold; margin-top: 3px;">❤️ Hunger +${fStats.hunger}</div>
+            <div class="shop-item-nutrition-list" style="margin-top: 2px;">
+                ${nutHtml}
+            </div>
         `;
         shopItemsDiv.appendChild(div);
     });
@@ -373,15 +433,31 @@ function render() {
         inventoryListDiv.innerHTML = '';
         Object.entries(inventory).forEach(([emoji, count]) => {
             if (count <= 0) return;
+            const fStats = FOOD_STATS[emoji] || { name: 'Food', hunger: 40, nutrition: [0, 0, 0, 0, 0] };
+            
+            let nutHtml = '';
+            fStats.nutrition.forEach((val, idx) => {
+                if (val > 0) {
+                    const label = CATEGORY_LABELS[idx];
+                    const color = CATEGORY_COLORS[idx];
+                    nutHtml += `<div style="font-size: 0.6rem; color: ${color}; font-weight: bold; margin-top: 1px;">${label} +${val}</div>`;
+                }
+            });
+
             const itemDiv = document.createElement('div');
             itemDiv.className = 'inventory-item' + (selectedFood === emoji ? ' selected' : '');
             itemDiv.onclick = () => {
                 selectedFood = selectedFood === emoji ? null : emoji;
                 render();
             };
+            itemDiv.title = `${fStats.name} (Hunger +${fStats.hunger})`;
             itemDiv.innerHTML = `
                 <span class="inventory-item-emoji">${emoji}</span>
                 <span class="inventory-item-count">${count}</span>
+                <div class="inventory-item-name" style="font-size: 0.65rem; font-weight: 700; margin-top: 2px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${fStats.name}</div>
+                <div class="inventory-item-nutrition" style="margin-top: 1px;">
+                    ${nutHtml}
+                </div>
             `;
             inventoryListDiv.appendChild(itemDiv);
         });
@@ -425,9 +501,9 @@ function render() {
         const avgHunger = country.hunger.reduce((a, b) => a + b, 0) / country.hunger.length;
         const hungerColor = avgHunger > 70 ? '#10b981' : avgHunger > 40 ? '#f59e0b' : '#ef4444';
         
-        const avgNut = [0, 0, 0, 0, 0];
+        const avgNut = [0, 0, 0];
         country.nutrition.forEach(nut => {
-            for (let idx = 0; idx < 5; idx++) {
+            for (let idx = 0; idx < 3; idx++) {
                 avgNut[idx] += nut[idx];
             }
         });
@@ -454,15 +530,17 @@ function render() {
             </div>
             <div class="nutrition-bars">
                 ${avgNutPct.map((val, idx) => {
+                    const color = CATEGORY_COLORS[idx];
+                    const label = CATEGORY_LABELS[idx];
                     return `
-                        <div class="nutrition-bar" title="Nutrition Category ${idx}: ${val}%">
-                            <div class="nutrition-fill" style="width: ${val}%; background: var(--neon-purple);"></div>
+                        <div class="nutrition-bar" title="${label}: ${val}%">
+                            <div class="nutrition-fill" style="width: ${val}%; background: ${color};"></div>
                         </div>
                     `;
                 }).join('')}
             </div>
             <div style="font-size: 0.6rem; color: var(--text-muted); display: flex; justify-content: space-between; margin-top: 4px;">
-                <span>Pro</span><span>Carb</span><span>Fru</span><span>Veg</span><span>Dai</span>
+                <span>Pro</span><span>Carb</span><span>Vit</span>
             </div>
         `;
         familiesDiv.appendChild(div);
