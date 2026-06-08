@@ -1,20 +1,20 @@
 /* Server Saver Shield - Enhanced Styles */
 :root {
-    --bg-dark: #0a0a0f;
-    --bg-panel: #12121a;
-    --bg-primary: #0a0a0f;
-    --bg-secondary: #12121a;
-    --neon-purple: #8b5cf6;
-    --neon-purple-light: #a78bfa;
+    --bg-dark: var(--bg-primary);
+    --bg-panel: var(--bg-secondary);
+    --bg-primary: var(--bg-primary);
+    --bg-secondary: var(--bg-secondary);
+    --neon-purple: var(--neon-purple);
+    --neon-purple-light: var(--neon-purple-light);
     --neon-blue: #3b82f6;
     --neon-cyan: #06b6d4;
-    --neon-green: #10b981;
+    --neon-green: var(--neon-green);
     --neon-red: #ef4444;
     --neon-orange: #f59e0b;
     --neon-pink: #ec4899;
-    --text-primary: #f5f5f5;
-    --text-secondary: #9ca3af;
-    --text-muted: #6b7280;
+    --text-primary: var(--text-primary);
+    --text-secondary: var(--text-secondary);
+    --text-muted: var(--text-muted);
     --font-display: 'Orbitron', sans-serif;
     --font-body: 'Inter', sans-serif;
 }
@@ -106,8 +106,8 @@
 
 /* Tutorial Tooltip Styles */
 .tutorial-tooltip {
-    background: rgba(10, 10, 15, 0.98);
-    border: 2px solid #8b5cf6;
+    background: rgba(10, 10, 15, 1.0);
+    border: 2px solid var(--neon-purple);
     border-radius: 12px;
     padding: 20px;
     max-width: 300px;
@@ -133,13 +133,13 @@
     font-family: 'Orbitron', sans-serif;
     font-size: 1.2rem;
     font-weight: 700;
-    color: #8b5cf6;
+    color: var(--neon-purple);
 }
 
 .tutorial-close {
     background: none;
     border: none;
-    color: #9ca3af;
+    color: var(--text-secondary);
     font-size: 1.5rem;
     cursor: pointer;
     padding: 0;
@@ -171,12 +171,12 @@
 }
 
 .tutorial-progress {
-    color: #9ca3af;
+    color: var(--text-secondary);
     font-size: 0.85rem;
 }
 
 .tutorial-next {
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-purple-dark));
     border: none;
     color: white;
     padding: 8px 20px;
@@ -207,7 +207,7 @@
     position: absolute;
     top: 100px;
     right: 20px;
-    background: rgba(10, 10, 15, 0.9);
+    background: rgba(10, 10, 15, 1.0);
     border: 1px solid rgba(245, 158, 11, 0.5);
     border-radius: 8px;
     padding: 10px 15px;
@@ -216,7 +216,7 @@
 
 .kill-counter-label {
     font-size: 0.75rem;
-    color: #9ca3af;
+    color: var(--text-secondary);
     text-transform: uppercase;
 }
 
@@ -260,7 +260,7 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 12px 20px;
-    background: rgba(10, 10, 15, 0.95);
+    background: rgba(10, 10, 15, 1.0);
     border-bottom: 1px solid rgba(139, 92, 246, 0.3);
     z-index: 1000;
 }
@@ -288,7 +288,7 @@ body {
 
 .back-btn {
     padding: 8px 16px;
-    background: linear-gradient(135deg, var(--neon-purple), #7c3aed);
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-purple-dark));
     color: white;
     border: none;
     border-radius: 8px;
@@ -305,7 +305,7 @@ body {
 
 /* Game Wrapper - background added to fallback definition above */
 .game-wrapper {
-    background: radial-gradient(ellipse at center, #1a1a3e 0%, #0a0a0f 70%);
+    background: radial-gradient(ellipse at center, #1a1a3e 0%, var(--bg-primary) 70%);
 }
 
 #gameCanvas {
@@ -350,7 +350,7 @@ body {
 }
 
 .stat-box {
-    background: rgba(10, 10, 15, 0.8);
+    background: rgba(10, 10, 15, 1.0);
     border: 1px solid rgba(139, 92, 246, 0.3);
     border-radius: 10px;
     padding: 8px 16px;
@@ -381,7 +381,7 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
-    background: rgba(10, 10, 15, 0.9);
+    background: rgba(10, 10, 15, 1.0);
     padding: 8px 16px;
     border-radius: 25px;
     border: 2px solid var(--neon-green);
@@ -432,7 +432,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: rgba(10, 10, 15, 0.95);
+    background: rgba(10, 10, 15, 1.0);
     backdrop-filter: blur(10px);
     z-index: 500;
     text-align: center;
@@ -521,9 +521,9 @@ body {
     align-items: center;
     gap: 5px;
     padding: 15px;
-    background: rgba(139, 92, 246, 0.1);
+    background: rgba(139, 92, 246, 0.25);
     border-radius: 12px;
-    border: 1px solid rgba(139, 92, 246, 0.2);
+    border: 1px solid rgba(139, 92, 246, 0.35);
     transition: 0.3s ease;
 }
 
@@ -570,7 +570,7 @@ body {
 }
 
 .btn-secondary:hover {
-    background: rgba(139, 92, 246, 0.2);
+    background: rgba(139, 92, 246, 0.35);
     box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
 }
 
@@ -588,14 +588,14 @@ body {
     display: flex;
     align-items: center;
     gap: 5px;
-    background: rgba(139, 92, 246, 0.1);
+    background: rgba(139, 92, 246, 0.25);
     padding: 8px 12px;
     border-radius: 20px;
 }
 
 /* Final Stats */
 .final-stats {
-    background: rgba(139, 92, 246, 0.1);
+    background: rgba(139, 92, 246, 0.25);
     border: 1px solid rgba(139, 92, 246, 0.3);
     border-radius: 12px;
     padding: 20px 30px;
@@ -608,7 +608,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 10px 0;
-    border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+    border-bottom: 1px solid rgba(139, 92, 246, 0.35);
 }
 
 .stat-row:last-child { border-bottom: none; }
@@ -626,8 +626,8 @@ body {
     justify-content: center;
     gap: 30px;
     padding: 12px;
-    background: rgba(10, 10, 15, 0.95);
-    border-top: 1px solid rgba(139, 92, 246, 0.2);
+    background: rgba(10, 10, 15, 1.0);
+    border-top: 1px solid rgba(139, 92, 246, 0.35);
     font-size: 0.75rem;
     color: var(--text-muted);
 }
@@ -636,7 +636,7 @@ body {
 
 /* Game Info Panel */
 .game-info-panel {
-    background: rgba(10, 10, 15, 0.95);
+    background: rgba(10, 10, 15, 1.0);
     border-top: 2px solid rgba(139, 92, 246, 0.3);
     padding: 40px 20px;
     margin-top: 20px;
@@ -651,8 +651,8 @@ body {
 }
 
 .info-section {
-    background: rgba(139, 92, 246, 0.1);
-    border: 1px solid rgba(139, 92, 246, 0.2);
+    background: rgba(139, 92, 246, 0.25);
+    border: 1px solid rgba(139, 92, 246, 0.35);
     border-radius: 16px;
     padding: 25px;
 }
@@ -686,7 +686,7 @@ body {
     padding: 8px 0;
     color: var(--text-secondary);
     font-size: 0.9rem;
-    border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+    border-bottom: 1px solid rgba(139, 92, 246, 0.25);
 }
 
 .controls-list li:last-child {
@@ -694,7 +694,7 @@ body {
 }
 
 .key {
-    background: rgba(139, 92, 246, 0.2);
+    background: rgba(139, 92, 246, 0.35);
     color: var(--neon-purple-light);
     padding: 4px 10px;
     border-radius: 6px;

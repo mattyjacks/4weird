@@ -9,6 +9,13 @@ function updateHighScoreDisplay() {
 function startGame() {
     initAudio();
     resetGameState();
+    
+    // Clear active game entities for a clean restart
+    if (typeof clearEnemies === 'function') clearEnemies();
+    if (typeof clearBullets === 'function') clearBullets();
+    if (typeof clearPowerups === 'function') clearPowerups();
+    if (typeof clearParticles === 'function') clearParticles();
+    
     initServers();
     initStars();
     

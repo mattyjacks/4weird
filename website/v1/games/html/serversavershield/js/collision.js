@@ -11,6 +11,7 @@ function checkBulletEnemyCollisions() {
                 dmg *= DIFFICULTY_MULTIPLIERS[difficulty].playerDamage;
                 if (player.hasCompanion) dmg *= 1.5;
                 if (staff.some(s => s.type === 'pentester')) dmg *= 1.5;
+                if (player.damageMultiplier) dmg *= player.damageMultiplier;
                 e.currentHp -= dmg;
                 spawnParticles(b.x, b.y, e.color, 5);
                 playSound('hit');

@@ -22,7 +22,15 @@ function initEventHandlers() {
     document.getElementById('btnRestart').addEventListener('click', startGame);
     document.getElementById('btnRestartPause').addEventListener('click', startGame);
     document.getElementById('btnMenuPause').addEventListener('click', () => {
+        gameRunning = false;
         gamePaused = false;
+        
+        // Clean up entities when returning to Main Menu
+        if (typeof clearEnemies === 'function') clearEnemies();
+        if (typeof clearBullets === 'function') clearBullets();
+        if (typeof clearPowerups === 'function') clearPowerups();
+        if (typeof clearParticles === 'function') clearParticles();
+        
         document.getElementById('pauseScreen').classList.add('hidden');
         document.getElementById('startScreen').classList.remove('hidden');
     });

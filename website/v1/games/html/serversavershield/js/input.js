@@ -17,6 +17,16 @@ function initInput() {
 
     gameCanvas.addEventListener('mousedown', (e) => {
         e.preventDefault();
+        const rect = gameCanvas.getBoundingClientRect();
+        const scale = gameCanvas.width / rect.width;
+        const clickX = (e.clientX - rect.left) * scale;
+        const clickY = (e.clientY - rect.top) * scale;
+        
+        // Check if shop was clicked first; if so, do not toggle shooting
+        if (typeof checkShopClick === 'function' && checkShopClick(clickX, clickY)) {
+            return;
+        }
+        
         isShooting = !isShooting;
     });
 
@@ -31,12 +41,22 @@ function initInput() {
 
     gameCanvas.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        isShooting = !isShooting;
         const rect = gameCanvas.getBoundingClientRect();
         const scale = gameCanvas.width / rect.width;
         const t = e.touches[0];
-        inputX = (t.clientX - rect.left) * scale;
-        inputY = (t.clientY - rect.top) * scale;
+        const clickX = (t.clientX - rect.left) * scale;
+        const clickY = (t.clientY - rect.top) * scale;
+        
+        // Check if shop was clicked first; if so, do not toggle shooting
+        if (typeof checkShopClick === 'function' && checkShopClick(clickX, clickY)) {
+            inputX = clickX;
+            inputY = clickY;
+            return;
+        }
+        
+        isShooting = !isShooting;
+        inputX = clickX;
+        inputY = clickY;
     }, { passive: false });
 
     gameCanvas.addEventListener('touchend', (e) => {

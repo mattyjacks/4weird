@@ -80,6 +80,11 @@ function checkShopClick(x, y) {
 
 function purchaseShopItem(index) {
     const item = shopItems[index];
+    const zoneY = CANVAS_HEIGHT * 0.85;
+    const zoneHeight = CANVAS_HEIGHT * 0.1;
+    const positions = [0.25, 0.5, 0.75];
+    const itemX = CANVAS_WIDTH * positions[index];
+    const itemY = zoneY + zoneHeight / 2 + 10;
     
     if (gameState.balance >= item.price) {
         gameState.balance -= item.price;
@@ -87,23 +92,24 @@ function purchaseShopItem(index) {
         // Apply effect
         switch(item.id) {
             case 'weapon_upgrade':
-                // Upgrade to next weapon tier
                 upgradeWeapon();
                 break;
             case 'emergency_repair':
-                // Heal all servers
-                servers.forEach(s => healServer(s.id, 50));
+                if (typeof servers !== 'undefined') {
+                    servers.forEach(s => {
+                        if (typeof healServer === 'function') healServer(s.id, 50);
+                    });
+                }
                 break;
             case 'damage_buff':
-                // Apply damage buff
                 activateDamageBuff();
                 break;
         }
         
         playSound('powerup');
-        addFloatingText(itemX, itemY, 'PURCHASED!', '#10b981', 20);
+        if (typeof addText === 'function') addText(itemX, itemY - 30, 'PURCHASED!', '#10b981', 18);
     } else {
-        addFloatingText(itemX, itemY, 'INSUFFICIENT FUNDS', '#ef4444', 16);
+        if (typeof addText === 'function') addText(itemX, itemY - 30, 'INSUFFICIENT FUNDS', '#ef4444', 14);
     }
 }
 
@@ -251,7 +257,7 @@ function addManagementStyles() {
         .management-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(10, 10, 15, 0.95);
+            background: rgba(5, 5, 8, 1.0);
             z-index: 1000;
             display: flex;
             align-items: center;
@@ -259,7 +265,7 @@ function addManagementStyles() {
         }
         .management-overlay.hidden { display: none; }
         .management-panel {
-            background: #1a1a24;
+            background: #0d0d12; border-color: #06b6d4; box-shadow: 0 0 30px rgba(6, 182, 212, 0.3);
             border: 2px solid #8b5cf6;
             border-radius: 20px;
             width: 90%;
@@ -296,7 +302,7 @@ function addManagementStyles() {
             margin-bottom: 20px;
         }
         .tab-btn {
-            background: rgba(139, 92, 246, 0.1);
+            background: rgba(139, 92, 246, 0.25);
             border: 1px solid rgba(139, 92, 246, 0.3);
             color: #a78bfa;
             padding: 10px 20px;
@@ -578,16 +584,35 @@ function hireStaff(type) {
 
 // Stub functions for features to be implemented
 function upgradeWeapon() {
-    console.log('Weapon upgrade purchased');
+    const weaponKeys = Object.keys(WEAPONS);
+    const currentIndex = weaponKeys.indexOf(currentWeapon);
+    const nextIndex = (currentIndex + 1) % weaponKeys.length;
+    const nextWeaponKey = weaponKeys[nextIndex];
+    if (typeof setCurrentWeapon === 'function') {
+        setCurrentWeapon(nextWeaponKey);
+    } else {
+        currentWeapon = nextWeaponKey;
+        weaponTimer = weaponTimerMax;
+    }
+    console.log('Weapon upgraded to:', nextWeaponKey);
 }
 
 function activateDamageBuff() {
+    if (typeof player !== 'undefined') {
+        player.damageMultiplier = 2.0;
+        setTimeout(() => {
+            player.damageMultiplier = 1.0;
+        }, 30000);
+    }
     console.log('Damage buff activated');
 }
 
 function addFloatingText(x, y, text, color, size) {
-    // Stub for floating text system
-    console.log('Floating text:', text);
+    if (typeof addText === 'function') {
+        addText(x, y, text, color, size);
+    } else {
+        console.log('Floating text:', text);
+    }
 }
 
 function renderReviews() {
