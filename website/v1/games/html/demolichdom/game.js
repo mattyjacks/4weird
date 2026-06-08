@@ -2,6 +2,37 @@
 // Pure HTML5 Canvas with Emoji Graphics
 // v2.0 - 25 improvements with love
 
+// ===== STARFIELD BACKGROUND =====
+(function initStarfield() {
+    const sf = document.getElementById('TEMPLATE-4weird-starfield');
+    if (!sf) return;
+    const ctx2 = sf.getContext('2d');
+    let stars = [];
+    function resize() {
+        sf.width = window.innerWidth;
+        sf.height = window.innerHeight;
+        stars = [];
+        const count = Math.floor((sf.width * sf.height) / 4000);
+        for (let i = 0; i < count; i++) {
+            stars.push({ x: Math.random()*sf.width, y: Math.random()*sf.height, size: Math.random()*2+0.5, opacity: Math.random()*0.8+0.2, twinkleSpeed: Math.random()*0.02+0.01, twinklePhase: Math.random()*Math.PI*2 });
+        }
+    }
+    function draw() {
+        ctx2.clearRect(0, 0, sf.width, sf.height);
+        stars.forEach(s => {
+            s.twinklePhase += s.twinkleSpeed;
+            const alpha = s.opacity * (Math.sin(s.twinklePhase) * 0.3 + 0.7);
+            ctx2.beginPath(); ctx2.arc(s.x, s.y, s.size, 0, Math.PI*2);
+            ctx2.fillStyle = `rgba(255,255,255,${alpha})`; ctx2.fill();
+        });
+        const g = ctx2.createRadialGradient(sf.width*0.3, sf.height*0.3, 0, sf.width*0.3, sf.height*0.3, sf.width*0.6);
+        g.addColorStop(0, 'rgba(139,92,246,0.08)'); g.addColorStop(0.5, 'rgba(16,185,129,0.05)'); g.addColorStop(1, 'transparent');
+        ctx2.fillStyle = g; ctx2.fillRect(0, 0, sf.width, sf.height);
+        requestAnimationFrame(draw);
+    }
+    window.addEventListener('resize', resize, { passive: true }); resize(); draw();
+})();
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 

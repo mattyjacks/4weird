@@ -430,17 +430,18 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    /* flex-start (not center) so overflow is always scrollable from the top.
+       justify-content:center splits overflow above AND below, making the top
+       unreachable since browsers can't scroll to negative positions. */
+    justify-content: flex-start;
     background: #0a0a0f;
     backdrop-filter: blur(10px);
     z-index: 500;
     text-align: center;
-    padding: 2rem;
+    padding: 1.5rem 2rem;
     border-radius: 12px;
     overflow-y: auto;
-    max-height: 90vh;
     -webkit-overflow-scrolling: touch;
-    /* Smooth transitions */
     transition: opacity 0.5s ease, visibility 0.5s ease;
 }
 
@@ -798,9 +799,8 @@ body {
 
     /* Mobile screen overlay fixes */
     .screen-overlay {
-        padding: 1rem;
+        padding: 1rem 1rem;
         overflow-y: auto;
-        max-height: 95vh;
         -webkit-overflow-scrolling: touch;
     }
 

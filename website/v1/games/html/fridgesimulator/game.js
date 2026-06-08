@@ -1,6 +1,51 @@
 // Fridge Simulator - Full Game Engine
 // Manage fridges across countries, feed families, balance nutrition
 
+// ===== STARFIELD BACKGROUND =====
+(function initStarfield() {
+    const canvas = document.getElementById('TEMPLATE-4weird-starfield');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        stars = [];
+        const count = Math.floor((canvas.width * canvas.height) / 4000);
+        for (let i = 0; i < count; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 2 + 0.5,
+                opacity: Math.random() * 0.8 + 0.2,
+                twinkleSpeed: Math.random() * 0.02 + 0.01,
+                twinklePhase: Math.random() * Math.PI * 2
+            });
+        }
+    }
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        stars.forEach(s => {
+            s.twinklePhase += s.twinkleSpeed;
+            const alpha = s.opacity * (Math.sin(s.twinklePhase) * 0.3 + 0.7);
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+            ctx.fill();
+        });
+        const g = ctx.createRadialGradient(canvas.width*0.3, canvas.height*0.3, 0, canvas.width*0.3, canvas.height*0.3, canvas.width*0.6);
+        g.addColorStop(0, 'rgba(139,92,246,0.08)');
+        g.addColorStop(0.5, 'rgba(16,185,129,0.05)');
+        g.addColorStop(1, 'transparent');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        requestAnimationFrame(draw);
+    }
+    window.addEventListener('resize', resize, { passive: true });
+    resize();
+    draw();
+})();
+
 const FOOD_EMOJIS = {
     proteins: ['🍗', '🥩', '🍖', '🐟', '🥚', '🫘', '🧀', '🥜', '🦐', '🦞', '🦀', '🐙', '🦑', '🍤', '🥓', '🍔', '🌭'],
     carbs: ['🍞', '🍚', '🍝', '🥔', '🌽', '🥖', '🥯', '🥨', '🥐', '🥞', '🧇', '🍳', '🥟', '🍱', '🍛', '🍜', '🍲', '🥘', '🍲', '🥗'],
@@ -467,29 +512,29 @@ function resumeGame() {
     }
 }
 
-document.getElementById('btnStart').addEventListener('click', startGame);
-document.getElementById('btnNextDay').addEventListener('click', nextDay);
-document.getElementById('btnRestart').addEventListener('click', startGame);
-document.getElementById('btnPlayAgain').addEventListener('click', startGame);
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('btnStart').addEventListener('click', startGame);
+    document.getElementById('btnNextDay').addEventListener('click', nextDay);
+    document.getElementById('btnRestart').addEventListener('click', startGame);
+    document.getElementById('btnPlayAgain').addEventListener('click', startGame);
 
-const pauseBtn = document.getElementById('btnPause');
-if (pauseBtn) {
-    pauseBtn.addEventListener('click', togglePause);
-}
-
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
-        if (gameRunning) togglePause();
+    const pauseBtn = document.getElementById('btnPause');
+    if (pauseBtn) {
+        pauseBtn.addEventListener('click', togglePause);
     }
-});
 
-document.querySelectorAll('.shop-tab').forEach(tab => {
-    tab.addEventListener('click', (e) => {
-        document.querySelectorAll('.shop-tab').forEach(t => t.classList.remove('active'));
-        e.target.classList.add('active');
-        currentShop = e.target.dataset.source;
-        render();
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
+            if (gameRunning) togglePause();
+        }
+    });
+
+    document.querySelectorAll('.shop-tab').forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            document.querySelectorAll('.shop-tab').forEach(t => t.classList.remove('active'));
+            e.target.classList.add('active');
+            currentShop = e.target.dataset.source;
+            if (gameRunning) render();
+        });
     });
 });
-
-render();
