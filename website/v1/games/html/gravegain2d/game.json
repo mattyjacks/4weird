@@ -1,0 +1,51 @@
+{
+    "title": "GraveGain2D",
+    "slug": "gravegain2d",
+    "description": "A dark fantasy action RPG featuring emoji-based visuals, 2.5D lighting, procedural dungeons, dialogue system, and a starship management hub.",
+    "genre": "RPG",
+    "tags": ["HTML5", "Action", "RPG", "Rogue-like"],
+    "maker": {
+        "name": "Antigravity Dev",
+        "bio": "Specializing in high-fidelity HTML5 game experiences with immersive systems and rich game-feel.",
+        "url": "https://4weird.com",
+        "urlLabel": "4weird"
+    },
+    "credits": [
+        {
+            "name": "Antigravity",
+            "role": "Lead Architect",
+            "avatar": "🧙",
+            "primary": true,
+            "url": "https://4weird.com",
+            "urlLabel": "4weird"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "WASD / Arrow Keys": "Move (Top-down) or Accelerate/Climb (Platformer)",
+            "Space": "Jump (Platformer) / Interact (Top-down)",
+            "Left-Click": "Melee / Primary Skill (Hold for Charge Attack)",
+            "Right-Click": "Block / Projectile Skill",
+            "Shift": "Active Class Ability / Sprint Lunge",
+            "E": "Enter/Exit Sidescroller Buildings",
+            "Escape / P": "Pause Game"
+        },
+        "touch": true,
+        "mouse": true
+    },
+    "instructions": "Choose your race and class, clear procedurally generated dungeon floors, collect Gold, and buy upgrades. Return to the LuckyStarShip hub to grow offline crops, exchange gold, and repair modules.",
+    "technical": {
+        "canvasSize": {"width": 1000, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [],
+        "local": ["game.js", "game.css"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-08",
+        "license": "MIT"
+    }
+}

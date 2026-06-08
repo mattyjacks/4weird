@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>GraveGain2D - 4weird Games</title>
+    <meta name="description" content="A premium 2D dark fantasy RPG action rogue-like featuring procedural levels, dynamic lighting, combat systems, starship management hub, and botany station.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../../styles.css">
+    <link rel="stylesheet" href="game.css">
+</head>
+<body class="TEMPLATE-4weird-game-page">
+    <canvas id="TEMPLATE-4weird-starfield"></canvas>
+    <div id="TEMPLATE-4weird-nav-placeholder"></div>
+
+    <div class="game-wrapper">
+        <!-- Main Game Screen (HUD + Canvas) -->
+        <div class="game-main hidden" id="gameMain">
+            <!-- HUD -->
+            <div class="game-hud glass-panel">
+                <div class="hud-group">
+                    <div class="hud-stat">
+                        <span class="hud-label">❤️ HP</span>
+                        <div class="hud-bar-container">
+                            <div class="hud-bar bar-hp" id="hudHpBar"></div>
+                        </div>
+                        <span class="hud-value" id="hudHpText">100/100</span>
+                    </div>
+                    <div class="hud-stat">
+                        <span class="hud-label">⚡ Stamina</span>
+                        <div class="hud-bar-container">
+                            <div class="hud-bar bar-stamina" id="hudStaminaBar"></div>
+                        </div>
+                        <span class="hud-value" id="hudStaminaText">100/100</span>
+                    </div>
+                    <div class="hud-stat" id="hudResourceStat">
+                        <span class="hud-label" id="hudResourceLabel">🔮 Resource</span>
+                        <div class="hud-bar-container">
+                            <div class="hud-bar bar-resource" id="hudResourceBar"></div>
+                        </div>
+                        <span class="hud-value" id="hudResourceText">0/100</span>
+                    </div>
+                </div>
+
+                <div class="hud-group">
+                    <div class="hud-stat">
+                        <span class="hud-label">🪙 Gold</span>
+                        <span class="hud-value gold-display" id="hudGoldText">0</span>
+                    </div>
+                    <div class="hud-stat">
+                        <span class="hud-label">💵 $UUSD</span>
+                        <span class="hud-value uusd-display" id="hudUusdText">0</span>
+                    </div>
+                    <div class="hud-stat">
+                        <span class="hud-label">🏢 Floor</span>
+                        <span class="hud-value highlight-cyan" id="hudFloorText">Layer 1</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Double Canvas Viewport -->
+            <div class="canvas-container" id="canvasContainer">
+                <canvas id="gameCanvas" width="1000" height="600"></canvas>
+                <canvas id="lightingCanvas" width="1000" height="600"></canvas>
+
+                <!-- Mobile controls overlays -->
+                <div class="mobile-joystick-container" id="mobileJoystick">
+                    <div class="mobile-joystick-knob"></div>
+                </div>
+                <div class="mobile-action-button" id="mobileAttackBtn">⚔️</div>
+                <div class="mobile-action-button" id="mobileBlockBtn" style="bottom: 110px; right: 30px;">🛡️</div>
+            </div>
+
+            <!-- Bottom action row -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                <button class="btn-game" id="btnPause">⏸️ Pause</button>
+                <button class="btn-game btn-primary" id="btnReturnToHub">🚀 Return to Starship</button>
+            </div>
+        </div>
+
+        <!-- 1. MAIN MENU SCREEN -->
+        <div class="screen-overlay" id="mainMenuScreen">
+            <div class="menu-content glass-panel">
+                <h1 class="menu-title">GRAVEGAIN2D</h1>
+                <p class="menu-subtitle">Dark Fantasy Action RPG</p>
+
+                <!-- Daily Challenges Panel -->
+                <div class="daily-challenges-container">
+                    <h3 style="margin-top: 0; font-family: 'Orbitron'; font-size: 1rem; color: var(--grave-gold);">📅 Daily Mission Logs</h3>
+                    <div id="dailyChallengesList">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn-game btn-primary" id="btnPlay">⚔️ Initiate Run</button>
+                    <button class="btn-game" id="btnEnterHub">🚀 Visit LuckyStarShip</button>
+                    <button class="btn-game" id="btnOpenSettings">⚙️ Engine Configurations</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. CHARACTER SELECT SCREEN -->
+        <div class="screen-overlay hidden" id="charSelectScreen">
+            <div class="menu-content glass-panel" style="max-width: 800px;">
+                <h2 class="menu-title" style="font-size: 2rem;">Select Infiltrator Spec</h2>
+                <p class="menu-subtitle">Choose your Race and Class path</p>
+
+                <!-- Race cards -->
+                <div class="char-grid" id="raceGrid">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- Class selectors -->
+                <div class="class-select" id="classGrid">
+                    <!-- Populated by JS -->
+                </div>
+
+                <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
+                    <button class="btn-game" id="btnCharSelectBack">← Main Menu</button>
+                    <button class="btn-game btn-primary" id="btnCharSelectStart">🚀 Deploy to Dungeon</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. LUCKYSTARSHIP HUB SCREEN -->
+        <div class="screen-overlay hidden" id="hubScreen">
+            <div class="menu-content glass-panel" style="max-width: 850px; text-align: left;">
+                <div class="hub-header">
+                    <div>
+                        <h2 class="menu-title" style="font-size: 2rem; margin: 0;">LuckyStarShip Hub</h2>
+                        <p style="margin: 5px 0 0 0; color: var(--grave-text-muted); font-size: 0.85rem;">Universal Operations Deck</p>
+                    </div>
+                    <div class="hub-tabs">
+                        <button class="hub-tab-btn active" data-tab="quarters">🏠 Quarters</button>
+                        <button class="hub-tab-btn" data-tab="botany">🌱 Botany Station</button>
+                        <button class="hub-tab-btn" data-tab="repair">🔧 Repair Station</button>
+                        <button class="hub-tab-btn" data-tab="exchange">🪙 Exchange</button>
+                    </div>
+                </div>
+
+                <!-- Quarters Tab -->
+                <div class="hub-pane active" id="tab-quarters">
+                    <h3 style="margin-top: 0; color: var(--grave-gold);">Crew Quarters Upgrades</h3>
+                    <p style="font-size: 0.9rem;">Level up your quarters size to expand crop capacity bounds and repair efficiency.</p>
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border: 1px solid var(--grave-border);">
+                        <div class="stat-row"><span>Current Quarters Level:</span> <strong id="hubQuartersLevel">Level 1</strong></div>
+                        <div class="stat-row"><span>Dimensions:</span> <strong id="hubQuartersSize">400x300 px</strong></div>
+                        <div class="stat-row"><span>Crop Capacity:</span> <strong id="hubQuartersCapacity">100 Space</strong></div>
+                        <div class="stat-row"><span>Next Level Upgrade Cost:</span> <strong class="highlight-cyan" id="hubQuartersCost">250 $UUSD</strong></div>
+                    </div>
+                    <button class="btn-game btn-primary" id="btnUpgradeQuarters" style="margin-top: 15px;">🔧 Purchase Expansion Upgrade</button>
+                </div>
+
+                <!-- Botany Station Tab -->
+                <div class="hub-pane" id="tab-botany">
+                    <h3 style="margin-top: 0; color: var(--grave-gold);">Offline Botany Incubators</h3>
+                    <p style="font-size: 0.9rem;">Grow exotic plants that synthesize Gold or $UUSD. Crops grow in real-time even offline!</p>
+                    <div class="botany-grid" id="botanyGrid">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <!-- Repair Station Tab -->
+                <div class="hub-pane" id="tab-repair">
+                    <h3 style="margin-top: 0; color: var(--grave-gold);">Microcircuit Restoration Mini-game</h3>
+                    <p style="font-size: 0.9rem;">Drag broken circuit modules (violet nodes) back onto target terminals (gold dotted outline) to restore component integrity.</p>
+                    <div class="repair-circuit-area" id="repairCircuitArea">
+                        <!-- Draggables loaded dynamically -->
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span id="repairStatus" style="font-size: 0.85rem; color: var(--grave-text-muted);">Status: Ready for calibration</span>
+                        <button class="btn-game" id="btnGenerateCircuit">⚡ New Circuit Calibration</button>
+                    </div>
+                </div>
+
+                <!-- Exchange Tab -->
+                <div class="hub-pane" id="tab-exchange">
+                    <h3 style="margin-top: 0; color: var(--grave-gold);">Universal Bank Exchange</h3>
+                    <p style="font-size: 0.9rem;">Convert raw dungeon Gold into Starship $UUSD or vice-versa.</p>
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border: 1px solid var(--grave-border); display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
+                        <div class="stat-row"><span>Dungeon Gold Balance:</span> <strong class="highlight-gold" id="exchangeGoldBalance">0 Gold</strong></div>
+                        <div class="stat-row"><span>Starship $UUSD Balance:</span> <strong class="highlight-cyan" id="exchangeUusdBalance">0 $UUSD</strong></div>
+                        <div class="stat-row"><span>Rates:</span> <span>1 Gold = 10 $UUSD  |  1 $UUSD = 0.1 Gold</span></div>
+                    </div>
+                    <div style="display: flex; gap: 15px;">
+                        <button class="btn-game btn-primary" id="btnBuyUusd" style="flex: 1;">🪙 Sell 10 Gold for 100 $UUSD</button>
+                        <button class="btn-game" id="btnBuyGold" style="flex: 1;">💵 Exchange 100 $UUSD for 10 Gold</button>
+                    </div>
+                </div>
+
+                <div style="margin-top: 25px; display: flex; justify-content: flex-end;">
+                    <button class="btn-game" id="btnLeaveHub">← Exit to Deck Hub</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. ENGINE CONFIGURATIONS (SETTINGS) SCREEN -->
+        <div class="screen-overlay hidden" id="settingsScreen">
+            <div class="menu-content glass-panel" style="max-width: 600px; text-align: left;">
+                <h2 class="menu-title" style="font-size: 2rem;">Engine Settings</h2>
+                <p class="menu-subtitle">Configurations Manager</p>
+
+                <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; max-height: 350px; overflow-y: auto; padding-right: 10px;">
+                    <div>
+                        <label style="display:block; font-size:0.85rem; margin-bottom:5px;">Difficulty Multiplier</label>
+                        <select id="settingsDifficulty" style="width:100%; padding:8px; background:rgba(0,0,0,0.5); border:1px solid var(--grave-border); color:white; border-radius:5px;">
+                            <option value="easy">Easy (HP 0.6x, DMG 0.5x, XP 0.75x, Loot 1.5x)</option>
+                            <option value="normal" selected>Normal</option>
+                            <option value="nightmare">Nightmare (HP 2.5x, DMG 2.0x, XP 2.5x, Loot 0.6x)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="display:block; font-size:0.85rem; margin-bottom:5px;">Master Volume</label>
+                        <input type="range" id="settingsMasterVol" min="0" max="100" value="80" style="width:100%;">
+                    </div>
+
+                    <div>
+                        <label style="display:block; font-size:0.85rem; margin-bottom:5px;">Auto-Pickup Range (Pixels)</label>
+                        <input type="range" id="settingsPickupRange" min="30" max="250" value="100" style="width:100%;">
+                    </div>
+
+                    <div>
+                        <label style="display:block; font-size:0.85rem; margin-bottom:5px;">Aesthetics Configuration</label>
+                        <div style="display:flex; gap:15px; font-size:0.85rem;">
+                            <label><input type="checkbox" id="settingsCameraShake" checked> Camera Shake</label>
+                            <label><input type="checkbox" id="settingsCameraLead" checked> Camera Lead</label>
+                            <label><input type="checkbox" id="settingsCameraPunch" checked> Camera Punch</label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="display:block; font-size:0.85rem; margin-bottom:5px;">ElevenLabs API Key (TTS Synthesis Cache)</label>
+                        <input type="password" id="settingsElevenLabsKey" placeholder="sk-..." style="width:100%; padding:8px; background:rgba(0,0,0,0.5); border:1px solid var(--grave-border); color:white; border-radius:5px;">
+                    </div>
+
+                    <div>
+                        <label style="display:block; font-size:0.85rem; margin-bottom:5px;">OpenAI API Key (TTS Synthesis Cache)</label>
+                        <input type="password" id="settingsOpenAIKey" placeholder="sk-..." style="width:100%; padding:8px; background:rgba(0,0,0,0.5); border:1px solid var(--grave-border); color:white; border-radius:5px;">
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end;">
+                    <button class="btn-game btn-primary" id="btnSaveSettings">Save Configs</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. PAUSE SCREEN -->
+        <div class="screen-overlay hidden" id="pauseScreen">
+            <div class="menu-content glass-panel">
+                <h2 class="menu-title" style="font-size: 2.5rem; color: var(--grave-purple-glow);">PAUSED</h2>
+                <p class="menu-subtitle">Grid Simulation Frozen</p>
+                <div class="btn-group">
+                    <button class="btn-game btn-primary" id="btnResume">Resume Run</button>
+                    <button class="btn-game" id="btnAbandon">Abandon Run</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. GAME OVER SCREEN -->
+        <div class="screen-overlay hidden" id="gameOverScreen">
+            <div class="menu-content glass-panel">
+                <h2 class="menu-title" style="font-size: 2.5rem; color: var(--grave-crimson-glow);" id="gameOverTitle">RUN COMPLETED</h2>
+                <p class="menu-subtitle" id="gameOverSub">Vital signs terminated</p>
+
+                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border: 1px solid var(--grave-border); text-align: left; margin-bottom: 20px;">
+                    <div class="stat-row"><span>Character Path:</span> <strong id="goRaceClass">Human Warrior</strong></div>
+                    <div class="stat-row"><span>Max Floor Depth:</span> <strong id="goFloor">Layer 1</strong></div>
+                    <div class="stat-row"><span>Enemies Slain:</span> <strong id="goKills">0</strong></div>
+                    <div class="stat-row"><span>Gold Harvested:</span> <strong class="highlight-gold" id="goGold">0</strong></div>
+                    <div class="stat-row"><span>XP Gained:</span> <strong id="goXp">0</strong></div>
+                </div>
+
+                <button class="btn-game btn-primary" id="btnGoToMenu">Return to Main Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Credits & Personnel Section -->
+    <section class="TEMPLATE-4weird-credits-section" id="TEMPLATE-4weird-credits">
+        <div class="TEMPLATE-4weird-credits-container">
+            <h2 class="TEMPLATE-4weird-credits-title">Credits & Personnel</h2>
+            <div class="TEMPLATE-4weird-credits-grid" id="TEMPLATE-4weird-credits-grid">
+                <!-- Auto populated -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Maker Bio Section -->
+    <section class="TEMPLATE-4weird-bio-section" id="TEMPLATE-4weird-bio">
+        <div class="TEMPLATE-4weird-bio-container">
+            <h2 class="TEMPLATE-4weird-bio-title">About the Intelligence Agent</h2>
+            <div class="TEMPLATE-4weird-bio-content" id="TEMPLATE-4weird-maker-bio">
+                <!-- Auto populated -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer placeholders -->
+    <div id="TEMPLATE-4weird-footer-placeholder"></div>
+
+    <script src="../../../components.js"></script>
+    <script src="game.js"></script>
+    <script>
+        (function() {
+            fetch('game.json')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('TEMPLATE-4weird-maker-bio').innerHTML = '<p>' + data.maker.bio + '</p>';
+                    if (data.credits && data.credits.length > 0) {
+                        const grid = document.getElementById('TEMPLATE-4weird-credits-grid');
+                        grid.innerHTML = data.credits.map(c => `
+                            <div class="TEMPLATE-4weird-credit-card ${c.primary ? 'TEMPLATE-4weird-primary' : ''}">
+                                <div class="TEMPLATE-4weird-credit-avatar">${c.avatar || '🧙'}</div>
+                                <h3 class="TEMPLATE-4weird-credit-name">${c.name}</h3>
+                                <p class="TEMPLATE-4weird-credit-role">${c.role}</p>
+                                ${c.url ? `<p class="TEMPLATE-4weird-credit-links"><a href="${c.url}" target="_blank" rel="noopener">${c.urlLabel || 'Link'}</a></p>` : ''}
+                            </div>
+                        `).join('');
+                    }
+                })
+                .catch(err => console.log('Metadata load fallback:', err));
+        })();
+    </script>
+</body>
+</html>
