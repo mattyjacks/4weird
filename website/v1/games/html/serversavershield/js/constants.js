@@ -1,6 +1,8 @@
-// Game Constants
-const CANVAS_WIDTH = 800;
-const CANVAS_HEIGHT = 600;
+// Game Constants - Orientation Aware
+// Desktop: Horizontal (landscape), Mobile: Vertical (portrait)
+const IS_MOBILE = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
+const CANVAS_WIDTH = IS_MOBILE ? 400 : 800;
+const CANVAS_HEIGHT = IS_MOBILE ? 700 : 600;
 
 const WEAPONS = {
     standard: { name: 'Standard', emoji: '🔵', fireRate: 8, bulletCount: 1, spread: 0, speed: 8, radius: 6, color: '#fbbf24', damage: 1 },

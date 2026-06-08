@@ -1,4 +1,11 @@
 // Game Flow Management
+var highScore = 0;
+
+function updateHighScoreDisplay() {
+    const display = document.getElementById('highScoreDisplay');
+    if (display) display.textContent = highScore.toLocaleString();
+}
+
 function startGame() {
     initAudio();
     resetGameState();
@@ -24,6 +31,10 @@ function resumeGame() {
 
 function gameOver() {
     gameRunning = false;
+    if (score > highScore) {
+        highScore = score;
+        updateHighScoreDisplay();
+    }
     document.getElementById('finalScore').textContent = score.toLocaleString();
     document.getElementById('finalWave').textContent = wave;
     document.getElementById('finalKills').textContent = kills;
@@ -49,6 +60,10 @@ function gameOver() {
 
 function victory() {
     gameRunning = false;
+    if (score > highScore) {
+        highScore = score;
+        updateHighScoreDisplay();
+    }
     document.getElementById('victoryScore').textContent = score.toLocaleString();
     document.getElementById('victoryCombo').textContent = 'x' + maxCombo;
     document.getElementById('victoryBalance').textContent = '$' + Math.floor(gameState.balance);

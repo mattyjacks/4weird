@@ -431,6 +431,92 @@ body {
 
 .footer-bar a { color: var(--neon-purple-light); text-decoration: none; }
 
+/* Game Info Panel */
+.game-info-panel {
+    background: rgba(10, 10, 15, 0.95);
+    border-top: 2px solid rgba(139, 92, 246, 0.3);
+    padding: 40px 20px;
+    margin-top: 20px;
+}
+
+.game-info-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.info-section {
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 16px;
+    padding: 25px;
+}
+
+.info-section h3 {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    color: var(--neon-cyan);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-section p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.controls-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.controls-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.controls-list li:last-child {
+    border-bottom: none;
+}
+
+.key {
+    background: rgba(139, 92, 246, 0.2);
+    color: var(--neon-purple-light);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.high-score-display {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--neon-orange);
+    text-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+    margin: 10px 0;
+}
+
+.high-score-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
 /* Animations */
 @keyframes pulse {
     0%, 100% { transform: scale(1); opacity: 1; }
@@ -495,15 +581,45 @@ body {
         font-size: 1rem;
     }
 
-    /* Ensure canvas fits mobile screen */
+    /* Mobile: Larger vertical canvas */
     #gameCanvas {
-        max-height: calc(100vh - 80px);
+        max-height: 85vh;
+        width: 100%;
+        max-width: 100%;
         border-width: 2px;
+        border-radius: 8px;
     }
 
     .game-wrapper {
         min-height: 100vh;
-        padding: 10px;
+        padding: 5px;
+        align-items: flex-start;
+        padding-top: 10px;
+    }
+
+    /* Mobile HUD adjustments for vertical layout */
+    .hud {
+        top: 5px;
+        left: 5px;
+        right: 5px;
+    }
+
+    .stat-box {
+        padding: 4px 8px;
+        min-width: 50px;
+    }
+
+    .stat-value {
+        font-size: 0.9rem;
+    }
+
+    .stat-label {
+        font-size: 0.6rem;
+    }
+
+    .health-bar {
+        width: 80px;
+        height: 8px;
     }
 }
 
@@ -553,5 +669,27 @@ body {
     .screen-overlay > div[style*="display: flex"] button {
         max-width: 100% !important;
         width: 100%;
+    }
+
+    /* Mobile info panel adjustments */
+    .game-info-panel {
+        padding: 20px 15px;
+    }
+
+    .game-info-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .info-section {
+        padding: 20px;
+    }
+
+    .info-section h3 {
+        font-size: 1.1rem;
+    }
+
+    .high-score-display {
+        font-size: 2rem;
     }
 }

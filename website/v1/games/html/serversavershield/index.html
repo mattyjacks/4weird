@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Server Saver Shield - 4weird Games</title>
     <meta name="description" content="Defend the servers from cyber attacks! A pure HTML5 arcade shooter by 4weird Games.">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
@@ -62,7 +62,7 @@
             <div style="margin: 20px 0;">
                 <p style="color: #9ca3af; margin-bottom: 10px; font-size: 0.9rem;">SELECT DIFFICULTY:</p>
                 <div style="display: flex; gap: 10px; justify-content: center;">
-                    <button class="btn btn-secondary" id="btnEasy" style="flex: 1; max-width: 150px;">😊 EASY</button>
+                    <button class="btn btn-secondary" id="btnEasy" style="flex: 1; max-width: 150px; background: linear-gradient(135deg, #10b981, #059669); color: white;">😊 EASY</button>
                     <button class="btn btn-secondary" id="btnHard" style="flex: 1; max-width: 150px;">💀 HARD</button>
                 </div>
             </div>
@@ -151,6 +151,31 @@
             <button class="btn btn-secondary" onclick="window.location.href='../../../index.html'">🏠 More Games</button>
         </div>
     </div>
+
+    <!-- Game Info Panel -->
+    <aside class="game-info-panel">
+        <div class="game-info-container">
+            <div class="info-section">
+                <h3>🎮 How to Play</h3>
+                <p>Defend your servers from cyber attacks! Move your shield to intercept enemies, click to toggle firing, and collect powerups to upgrade your weapons. Hire security staff to boost your defenses and protect your reputation. Survive 10 waves to win!</p>
+            </div>
+
+            <div class="info-section">
+                <h3>🕹️ Controls</h3>
+                <ul class="controls-list">
+                    <li><span class="key">Mouse/Touch</span> - Move Shield</li>
+                    <li><span class="key">Click/Tap</span> - Toggle Firing</li>
+                    <li><span class="key">P / Esc</span> - Pause Game</li>
+                </ul>
+            </div>
+
+            <div class="info-section">
+                <h3>🏆 High Score</h3>
+                <p class="high-score-display" id="highScoreDisplay">0</p>
+                <p class="high-score-label">Best Score This Session</p>
+            </div>
+        </div>
+    </aside>
 
     <!-- Credits Section -->
     <section class="TEMPLATE-4weird-credits-section" id="TEMPLATE-4weird-credits">
