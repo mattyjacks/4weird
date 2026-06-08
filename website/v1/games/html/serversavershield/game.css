@@ -257,6 +257,9 @@ body {
     text-align: center;
     padding: 2rem;
     border-radius: 12px;
+    overflow-y: auto;
+    max-height: 90vh;
+    -webkit-overflow-scrolling: touch;
 }
 
 .screen-overlay.hidden { display: none; }
@@ -543,6 +546,7 @@ body {
     .screen-overlay {
         padding: 1rem;
         overflow-y: auto;
+        max-height: 95vh;
         -webkit-overflow-scrolling: touch;
     }
 

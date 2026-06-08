@@ -36,26 +36,10 @@ function checkBulletEnemyCollisions() {
     });
 }
 
-function checkEnemyServerCollisions() {
-    enemies.forEach(e => {
-        if (e.currentHp <= 0) return;
-        servers.forEach(s => {
-            if (s.status === 'OFFLINE') return;
-            const dx = e.x - s.x, dy = e.y - s.y, dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < e.radius + 30) {
-                let repDmg = e.reputationDmg || 0;
-                if (e.typeKey === 'socialeng' && staff.some(st => st.type === 'writer')) repDmg *= 0.5;
-                if (e.typeKey === 'fraudster' && staff.some(st => st.type === 'compliance')) repDmg *= 0.6;
-                gameState.reputation = Math.max(0, gameState.reputation - repDmg);
-                if (e.typeKey === 'ddos') { s.status = 'DDOS_FROZEN'; s.ddosCountdown = staff.some(st => st.type === 'firewall') ? 480 : 900; e.currentHp = 0; }
-                else if (e.typeKey === 'ransomware') { s.status = 'RANSOMED'; s.ransomAmount = 500 * (difficulty === 'hard' ? 1.5 : 1); e.currentHp = 0; }
-                else if (e.typeKey === 'fraudster') { gameState.balance -= 2; gameState.fraudsterCount++; }
-                else if (e.typeKey === 'socialeng') { gameState.customerTrust -= 5 * (staff.some(st => st.type === 'ciso') ? 0.5 : 1); }
-                else if (e.typeKey === 'cryptominer') { s.cryptoMinerDamage = 0.2; gameState.cryptominerCount++; }
-                else { s.hp -= 10; }
-            }
-        });
-    });
+// Old server collision system - deprecated, use checkServerCollisions() in servers.js
+function checkEnemyServerCollisions_OLD() {
+    // This function is deprecated. The new 3-server defense line system
+    // uses checkServerCollisions() in servers.js
 }
 
 function checkPowerupCollisions() {

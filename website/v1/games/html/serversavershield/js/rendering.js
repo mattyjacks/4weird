@@ -120,9 +120,14 @@ function drawPlayer() {
     ctx.arc(player.x, player.y, player.radius + 8 + Math.sin(Date.now() * 0.005) * 3, 0, Math.PI * 2);
     ctx.stroke();
     ctx.shadowBlur = 10;
-    ctx.font = '40px Arial';
-    ctx.fillText('🛡️', player.x, player.y);
-    if (player.hasCompanion) { ctx.font = '32px Arial'; ctx.fillText('👨‍💻', player.x - 50, player.y + 20); }
+    ctx.font = (player.radius * 2.5) + 'px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🛡️', player.x, player.y + 5);
+    if (player.hasCompanion) { 
+        ctx.font = (player.radius * 2) + 'px Arial'; 
+        ctx.fillText('👨‍💻', player.x - player.radius - 20, player.y + player.radius); 
+    }
     ctx.restore();
 }
 
@@ -184,4 +189,62 @@ function drawHUD() {
     ctx.fillText('🏆 Score: ' + score, CANVAS_WIDTH - 150, 50);
     ctx.fillText('Firing: ' + (isShooting ? '✅ ON' : '❌ OFF'), CANVAS_WIDTH - 150, 65);
     ctx.restore();
+}
+
+function drawServers() {
+    const ctx = getContext();
+    const shake = getScreenShake();
+    
+    servers.forEach(server => {
+        if (server.status === 'offline') return; // Don't draw offline servers
+        
+        ctx.save();
+        ctx.translate(shake.x, shake.y);
+        
+        // Draw server emoji
+        ctx.font = '50px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Shadow/glow effect based on status
+        if (server.status === 'degraded') {
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#f59e0b'; // Orange warning
+        } else {
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#10b981'; // Green online
+        }
+        
+        ctx.fillText(server.emoji, server.x, server.y);
+        
+        // Draw HP bar above server
+        const barWidth = 60;
+        const barHeight = 8;
+        const barX = server.x - barWidth / 2;
+        const barY = server.y - 50;
+        
+        // Background
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(barX, barY, barWidth, barHeight);
+        
+        // HP fill
+        const hpPercent = server.hp / server.maxHp;
+        let hpColor = '#10b981'; // Green
+        if (server.status === 'degraded') hpColor = '#f59e0b'; // Orange
+        
+        ctx.fillStyle = hpColor;
+        ctx.fillRect(barX, barY, barWidth * hpPercent, barHeight);
+        
+        // HP border
+        ctx.strokeStyle = hpColor;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(barX, barY, barWidth, barHeight);
+        
+        // Status indicator
+        ctx.font = '10px Arial';
+        ctx.fillStyle = hpColor;
+        ctx.fillText(server.status.toUpperCase(), server.x, barY - 8);
+        
+        ctx.restore();
+    });
 }

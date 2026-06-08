@@ -44,7 +44,15 @@ const STAFF_TYPES = {
     trainer: { name: 'Security Trainer', emoji: '🎭', hireCost: 260, salarySec: 6, ability: 'Trust +1/s' },
     vendor: { name: 'Vendor Manager', emoji: '💱', hireCost: 290, salarySec: 7, ability: 'Cost -10%' },
     hr: { name: 'HR Manager', emoji: '👥', hireCost: 240, salarySec: 6, ability: 'Morale +5%' },
-    legal: { name: 'Legal Counsel', emoji: '📋', hireCost: 500, salarySec: 15, ability: 'Ransom -70%' }
+    legal: { name: 'Legal Counsel', emoji: '📋', hireCost: 500, salarySec: 15, ability: 'Ransom -70%' },
+    // PRODUCT TEAM (7 NEW) - Revenue Generation
+    programmer: { name: 'Programmer', emoji: '💻', hireCost: 350, salarySec: 9, ability: 'New customers +15%', category: 'product' },
+    vibecoder: { name: 'Vibe Coder', emoji: '🌊', hireCost: 320, salarySec: 8, ability: 'Retention +10%, Morale +5%', category: 'product' },
+    engineer: { name: 'Engineer', emoji: '⚙️', hireCost: 380, salarySec: 10, ability: 'New customers +15%, Server stability +10%', category: 'product' },
+    qalead: { name: 'QA Lead', emoji: '🐞', hireCost: 300, salarySec: 8, ability: 'Bug chance -50%, Satisfaction +10%', category: 'product' },
+    uxd: { name: 'UX Designer', emoji: '🎨', hireCost: 340, salarySec: 9, ability: 'New customers +20%', category: 'product' },
+    pm: { name: 'Product Manager', emoji: '📊', hireCost: 400, salarySec: 11, ability: 'Revenue +15%, Customer focus', category: 'product' },
+    techlead: { name: 'Tech Lead', emoji: '👑', hireCost: 450, salarySec: 12, ability: 'All product team effects +25%', category: 'product' }
 };
 
 const ENEMIES = {

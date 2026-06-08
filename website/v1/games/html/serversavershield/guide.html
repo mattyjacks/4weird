@@ -261,15 +261,212 @@
             <h3>📋 Quick Navigation</h3>
             <div class="toc-links">
                 <a href="#enemies" class="toc-link">🎯 Enemies (9 Types)</a>
+                <a href="#servers" class="toc-link">🖥️ 3-Server Defense</a>
+                <a href="#shop" class="toc-link">💻 Weapon Shop</a>
+                <a href="#management" class="toc-link">🧑‍💼 Business Management</a>
                 <a href="#staff" class="toc-link">👥 Security Staff (5 Types)</a>
                 <a href="#powerups" class="toc-link">⚡ Powerups (24 Types)</a>
                 <a href="#reputation" class="toc-link">💯 Reputation System</a>
                 <a href="#compute" class="toc-link">🖥️ Compute System</a>
-                <a href="#staff-expanded" class="toc-link">👥 Complete Staff (17 Types)</a>
+                <a href="#staff-expanded" class="toc-link">👥 Complete Staff (24 Types)</a>
+                <a href="#reviews" class="toc-link">⭐ Review System</a>
                 <a href="#mechanics" class="toc-link">⚙️ Game Mechanics</a>
                 <a href="#strategy" class="toc-link">🧠 Strategy Tips</a>
             </div>
         </div>
+
+        <!-- 3-SERVER DEFENSE SECTION -->
+        <section class="section" id="servers">
+            <h2>🖥️ 3-SERVER DEFENSE LINE</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">Your servers are positioned at the bottom of the screen and are your last line of defense. Enemies that reach the bottom will attack your servers, causing economic and reputation damage.</p>
+            
+            <div class="entity-grid">
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🖥️</div>
+                        <div>
+                            <div class="entity-name">Server 1</div>
+                            <div class="entity-type">Primary Server</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Left-positioned server (20% from left edge). Takes damage from enemies reaching bottom-left area.</div>
+                    <div class="entity-details">
+                        <p>Positioned at 20% of screen width from the left. When enemies reach the bottom of the screen, they attack the nearest server. This server generates 1/3 of your total income when online. If it goes offline, your income multiplier drops to 70% for 2 servers or 40% for 1 server remaining.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">HP</div><div class="stat-value">100</div></div>
+                        <div class="stat"><div class="stat-label">Position</div><div class="stat-value">Left</div></div>
+                        <div class="stat"><div class="stat-label">Income</div><div class="stat-value">33%</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">💻</div>
+                        <div>
+                            <div class="entity-name">Server 2</div>
+                            <div class="entity-type">Central Server</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Center-positioned server (50% of screen width). Most frequently attacked due to central position.</div>
+                    <div class="entity-details">
+                        <p>Positioned at the center of the screen (50% width). As the middle server, it often takes the most damage since enemies spawn across the entire width. Keep this server healed! When all 3 servers are online, you earn 100% of your potential income. The server displays a visual HP bar above it that changes color from green (healthy) to yellow (degraded) to indicate status.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">HP</div><div class="stat-value">100</div></div>
+                        <div class="stat"><div class="stat-label">Position</div><div class="stat-value">Center</div></div>
+                        <div class="stat"><div class="stat-label">Income</div><div class="stat-value">33%</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🗄️</div>
+                        <div>
+                            <div class="entity-name">Server 3</div>
+                            <div class="entity-type">Backup Server</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Right-positioned server (80% from left edge). Takes damage from enemies reaching bottom-right area.</div>
+                    <div class="entity-details">
+                        <p>Positioned at 80% of screen width from the left. When this server goes offline, you lose 1/3 of your income generation. If all 3 servers go offline, your income drops to just 10% of normal. You can repair servers using the Emergency Repair item from the shop ($300 for +50 HP to all servers). The DevOps Engineer staff member can increase all server HP by 20.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">HP</div><div class="stat-value">100</div></div>
+                        <div class="stat"><div class="stat-label">Position</div><div class="stat-value">Right</div></div>
+                        <div class="stat"><div class="stat-label">Income</div><div class="stat-value">33%</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+
+            <div class="tip-box">
+                <strong>🖥️ Server Defense Tip:</strong> Protect your servers at all costs! When enemies reach the bottom of the screen, they attack the nearest server. Each server lost reduces your income: 3 servers = 100% income, 2 servers = 70% income, 1 server = 40% income, 0 servers = 10% income. Use the Emergency Repair ($300) from the shop to heal all servers by 50 HP instantly!
+            </div>
+        </section>
+
+        <!-- SHOP ZONE SECTION -->
+        <section class="section" id="shop">
+            <h2>💻 WEAPON SHOP</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">The Shop Zone is located at the bottom of the screen (85-95% of canvas height). Fly down to the 3 laptop emojis to purchase upgrades and emergency repairs.</p>
+            
+            <div class="entity-grid">
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">💻</div>
+                        <div>
+                            <div class="entity-name">Weapon Upgrade</div>
+                            <div class="entity-type">Combat Enhancement</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Upgrade to the next weapon tier for $500. Increases your firepower significantly.</div>
+                    <div class="entity-details">
+                        <p>Purchase a weapon upgrade for $500 to advance to the next weapon tier. Weapons have 5 tiers total (Mark I through Mark V). Each tier increases damage output, fire rate, and bullet count. Higher tier weapons are essential for dealing with high-HP enemies like DDOS Attacks (5 HP) and Ransomware (4 HP). Click on the left laptop emoji (25% from left edge) to purchase.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">Cost</div><div class="stat-value">$500</div></div>
+                        <div class="stat"><div class="stat-label">Effect</div><div class="stat-value">Next Tier</div></div>
+                        <div class="stat"><div class="stat-label">Max Tier</div><div class="stat-value">Mk V</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">💻</div>
+                        <div>
+                            <div class="entity-name">Emergency Repair</div>
+                            <div class="entity-type">Server Healing</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Instantly repairs all 3 servers by +50 HP for $300. Critical when servers are low on health.</div>
+                    <div class="entity-details">
+                        <p>Emergency Repair is your lifeline when servers are taking heavy damage. For $300, all 3 servers immediately regain 50 HP. If a server was offline (0 HP), it comes back online in "degraded" status. If a server was degraded (under 30 HP), it returns to "online" status. This can save your income generation during intense waves. Click on the center laptop emoji (50% from left edge) to purchase. Cannot be used if you have insufficient funds.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">Cost</div><div class="stat-value">$300</div></div>
+                        <div class="stat"><div class="stat-label">Heal</div><div class="stat-value">+50 HP</div></div>
+                        <div class="stat"><div class="stat-label">Targets</div><div class="stat-value">All 3</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">💻</div>
+                        <div>
+                            <div class="entity-name">Damage Boost</div>
+                            <div class="entity-type">Temporary Buff</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">2x damage multiplier for 30 seconds. Excellent for clearing waves or boss fights.</div>
+                    <div class="entity-details">
+                        <p>Activate a 30-second damage buff for $200. While active, all your bullets deal double damage (2x multiplier). This stacks with other multipliers: if you also have the Pen Tester hired (+50%) and a companion (+50%), your total damage could reach 4.5x! Best used during boss waves or when overwhelmed by high-HP enemies. The buff timer counts down even when you're not shooting. Click on the right laptop emoji (75% from left edge) to purchase.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">Cost</div><div class="stat-value">$200</div></div>
+                        <div class="stat"><div class="stat-label">Effect</div><div class="stat-value">2x Dmg</div></div>
+                        <div class="stat"><div class="stat-label">Duration</div><div class="stat-value">30 sec</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+
+            <div class="tip-box">
+                <strong>💻 Shop Strategy Tip:</strong> Keep an eye on your server HP bars! When they turn yellow (below 30 HP), buy Emergency Repair immediately. Weapon Upgrades are best purchased early to maximize their value across all waves. Damage Boosts are perfect for Wave 5, 10, and 15 (boss waves). Remember: shop purchases deduct from your balance instantly, so make sure you can afford staff salaries afterward!
+            </div>
+        </section>
+
+        <!-- MANAGEMENT ZONE SECTION -->
+        <section class="section" id="management">
+            <h2>🧑‍💼 BUSINESS MANAGEMENT ZONE</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">Fly down to the bottom of the screen (75-82% of canvas height) where the 3 business people emojis are to enter the Management Zone. The game pauses, allowing you to review analytics, hire/fire staff, and check customer reviews.</p>
+            
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">How to Enter</h3>
+            <p style="color: #d1d5db; margin-bottom: 20px;">
+                Move your shield down to the Management Zone (below the "MANAGE BUSINESS" text). The game will automatically pause and open the Business Management overlay. To exit, click the "RESUME GAME" button or press ESC.
+            </p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Management Tabs</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0;">
+                <div style="background: rgba(16, 185, 129, 0.1); padding: 20px; border-radius: 12px; border-left: 4px solid #10b981;">
+                    <strong>⚔️ Combat Analytics</strong><br>
+                    View enemies defeated by type, damage dealt/taken, accuracy percentage, peak combo, and waves survived.
+                </div>
+                <div style="background: rgba(139, 92, 246, 0.1); padding: 20px; border-radius: 12px; border-left: 4px solid #8b5cf6;">
+                    <strong>💼 Business Analytics</strong><br>
+                    Track revenue per second, total staff costs, net profit/loss, lifetime earnings, and severance tracking.
+                </div>
+                <div style="background: rgba(245, 158, 11, 0.1); padding: 20px; border-radius: 12px; border-left: 4px solid #f59e0b;">
+                    <strong>⭐ Reviews</strong><br>
+                    See your average star rating (1-5), recent customer reviews, and rating breakdown by category.
+                </div>
+                <div style="background: rgba(6, 182, 212, 0.1); padding: 20px; border-radius: 12px; border-left: 4px solid #06b6d4;">
+                    <strong>👥 Staff Management</strong><br>
+                    Hire new staff members or fire existing ones. When firing, choose to pay severance (ethical) or skip it (reputation penalty).
+                </div>
+            </div>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Severance System</h3>
+            <p style="color: #d1d5db; margin-bottom: 20px;">
+                When firing staff, you have two options:<br><br>
+                <strong>Option A: Pay Severance (Ethical)</strong><br>
+                Cost: salary × 60 seconds<br>
+                Effect: No reputation penalty<br>
+                <br>
+                <strong>Option B: Skip Severance (Unethical)</strong><br>
+                Cost: FREE<br>
+                Effect: -5 reputation per staff fired, 5% chance of lawsuit (-$1000, -10 rep)<br>
+                <br>
+                Your ethics are tracked in the Business Analytics tab showing total severance paid vs skipped, and number of unethical firings.
+            </p>
+
+            <div class="tip-box">
+                <strong>🧑‍💼 Management Tip:</strong> Use the Management Zone between waves to assess your situation! Check if you can afford new staff, review which enemies are causing problems, and read customer feedback. The game pauses completely, so take your time making strategic decisions. Remember: firing staff without severance damages your reputation, which directly reduces your income!
+            </div>
+        </section>
 
         <!-- ENEMIES SECTION -->
         <section class="section" id="enemies">
@@ -919,10 +1116,28 @@
 
             <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">🖥️ Server Management</h3>
             <p style="color: #d1d5db; margin-bottom: 20px;">
-                <strong>Server Capacity:</strong> Maximum 5 servers<br>
-                <strong>Server States:</strong> ONLINE (generating income), DDOS_FROZEN (15s freeze), RANSOMED (down until paid), OFFLINE (not purchased)<br>
-                <strong>Backup System:</strong> Link servers - backup absorbs ransomware, reduces income to 50%<br>
-                <strong>Server Health:</strong> Damaged by direct attacks, recovers over time
+                <strong>3-Server Defense Line:</strong> Servers positioned at bottom of screen (20%, 50%, 80% width)<br>
+                <strong>Server States:</strong> ONLINE (100% contribution), DEGRADED (under 30 HP, still online), OFFLINE (0 HP, no contribution)<br>
+                <strong>Income Impact:</strong> 3 servers = 100% income, 2 servers = 70% income, 1 server = 40% income, 0 servers = 10% income<br>
+                <strong>Server Health:</strong> Damaged by enemies reaching bottom of screen, heals via Emergency Repair ($300)<br>
+                <strong>HP Bars:</strong> Visual indicators above each server showing health (green → yellow → red)
+            </p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">💻 Shop Zone</h3>
+            <p style="color: #d1d5db; margin-bottom: 20px;">
+                <strong>Location:</strong> Bottom of screen (85-95% of canvas height)<br>
+                <strong>Items:</strong> Weapon Upgrade ($500), Emergency Repair ($300), Damage Boost ($200)<br>
+                <strong>Interaction:</strong> Fly down to 3 laptop emojis and click to purchase<br>
+                <strong>Instant:</strong> Purchases apply immediately, deduct from balance
+            </p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">🧑‍💼 Management Zone</h3>
+            <p style="color: #d1d5db; margin-bottom: 20px;">
+                <strong>Location:</strong> Bottom of screen (75-82% of canvas height)<br>
+                <strong>Entry:</strong> Fly down to business people emojis (🧑‍💼👨‍💼👩‍💼)<br>
+                <strong>Pause:</strong> Game pauses automatically when you enter<br>
+                <strong>Tabs:</strong> Combat Analytics, Business Analytics, Reviews, Staff Management<br>
+                <strong>Exit:</strong> Click "Resume Game" or press ESC
             </p>
 
             <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">🎯 Combat System</h3>
@@ -1132,8 +1347,138 @@
                 </div>
             </div>
 
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">🆕 PRODUCT TEAM (7 NEW STAFF TYPES)</h3>
+            <p style="color: #d1d5db; margin-bottom: 20px;">The Product Team focuses on revenue generation through customer acquisition and retention. These staff members directly boost your income by making your service more attractive to customers.</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
+                <div style="background: rgba(236, 72, 153, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #ec4899;">
+                    <strong>💻 Programmer</strong><br>
+                    Hire: $350 | Salary: $9/sec<br>
+                    <em>New customers +15% | Code quality improves trust</em>
+                </div>
+                <div style="background: rgba(236, 72, 153, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #ec4899;">
+                    <strong>🌊 Vibe Coder</strong><br>
+                    Hire: $320 | Salary: $8/sec<br>
+                    <em>Retention +10% | Morale +5% | Hype generation</em>
+                </div>
+                <div style="background: rgba(236, 72, 153, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #ec4899;">
+                    <strong>⚙️ Engineer</strong><br>
+                    Hire: $380 | Salary: $10/sec<br>
+                    <em>New customers +15% | Server stability +10%</em>
+                </div>
+                <div style="background: rgba(236, 72, 153, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #ec4899;">
+                    <strong>🐞 QA Lead</strong><br>
+                    Hire: $300 | Salary: $8/sec<br>
+                    <em>Bug chance -50% | Customer satisfaction +10%</em>
+                </div>
+                <div style="background: rgba(236, 72, 153, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #ec4899;">
+                    <strong>🎨 UX Designer</strong><br>
+                    Hire: $340 | Salary: $9/sec<br>
+                    <em>New customers +20% | Interface improvements</em>
+                </div>
+                <div style="background: rgba(236, 72, 153, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #ec4899;">
+                    <strong>📊 Product Manager</strong><br>
+                    Hire: $400 | Salary: $11/sec<br>
+                    <em>Revenue +15% | Customer focus specialist</em>
+                </div>
+                <div style="background: rgba(236, 72, 153, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #ec4899; grid-column: 1 / -1;">
+                    <strong>👑 Tech Lead</strong><br>
+                    Hire: $450 | Salary: $12/sec<br>
+                    <em>All product team effects +25% | Force multiplier</em>
+                </div>
+            </div>
+
             <div class="tip-box">
-                <strong>💡 Staff Hiring Tip:</strong> Prioritize staff based on current threats. Early game: focus on damage (Pen Tester). Mid game: add defensive staff (Firewall Tech, Incident Responder). Late game: add economic boosters (Solutions Architect, PR Officer). Always check if you can afford the salary before hiring!
+                <strong>💡 Product Team Strategy:</strong> Product Team members are expensive but pay for themselves through increased revenue. A full product team (7 members + Tech Lead) can increase your new customer rate by over 100%! Best hired mid-to-late game when you have stable income. The Tech Lead is especially valuable as a "force multiplier" - hire them last for maximum effect!
+            </div>
+
+            <div class="tip-box">
+                <strong>💡 Staff Hiring Tip:</strong> Prioritize staff based on current threats. Early game: focus on damage (Pen Tester). Mid game: add defensive staff (Firewall Tech, Incident Responder). Late game: add economic boosters (Solutions Architect, PR Officer, Product Team). Always check if you can afford the salary before hiring! Remember: firing staff costs severance unless you want to take a reputation hit.
+            </div>
+        </section>
+
+        <!-- REVIEWS SYSTEM SECTION -->
+        <section class="section" id="reviews">
+            <h2>⭐ CUSTOMER REVIEW SYSTEM</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">Your business receives customer reviews based on your performance. Reviews affect your reputation, which directly impacts your income. Manage your reputation carefully!</p>
+            
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">How Reviews Work</h3>
+            <p style="color: #d1d5db; margin-bottom: 20px;">
+                <strong>150 Total Reviews:</strong> The system maintains up to 150 reviews in a circular buffer (oldest removed when full)<br>
+                <strong>Review Generation:</strong> New reviews appear every 30 seconds of gameplay, plus immediately after server breaches<br>
+                <strong>Star Rating:</strong> 1-5 stars based on your current reputation percentage<br>
+                <strong>Customer Personas:</strong> 30 unique customer types (Enterprise, SMB, Startup, Individual)<br>
+                <strong>Review Categories:</strong> Security (40%), Pricing (30%), Support (20%), Reliability (10%)
+            </p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Star Rating Formula</h3>
+            <div style="background: rgba(139, 92, 246, 0.1); padding: 20px; border-radius: 12px; margin: 20px 0;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 1.5rem; color: #ef4444;">⭐ (1 Star)</div>
+                        <div style="color: #9ca3af; font-size: 0.9rem;">Reputation &lt; 30%</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 1.5rem; color: #f59e0b;">⭐⭐ (2 Stars)</div>
+                        <div style="color: #9ca3af; font-size: 0.9rem;">Reputation 30-50%</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 1.5rem; color: #fbbf24;">⭐⭐⭐ (3 Stars)</div>
+                        <div style="color: #9ca3af; font-size: 0.9rem;">Reputation 50-70%</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 1.5rem; color: #a3e635;">⭐⭐⭐⭐ (4 Stars)</div>
+                        <div style="color: #9ca3af; font-size: 0.9rem;">Reputation 70-85%</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 1.5rem; color: #10b981;">⭐⭐⭐⭐⭐ (5 Stars)</div>
+                        <div style="color: #9ca3af; font-size: 0.9rem;">Reputation 85%+</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Sample Reviews by Category</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
+                <div style="background: rgba(16, 185, 129, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #10b981;">
+                    <strong style="color: #10b981;">5-Star Security Review</strong><br>
+                    <span style="color: #f59e0b;">⭐⭐⭐⭐⭐</span><br>
+                    <em style="color: #d1d5db; font-size: 0.9rem;">"Best security service ever! Never had a single breach in 6 months!"</em><br>
+                    <span style="color: #6b7280; font-size: 0.8rem;">- TechCorp Industries</span>
+                </div>
+                <div style="background: rgba(245, 158, 11, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #f59e0b;">
+                    <strong style="color: #f59e0b;">3-Star Pricing Review</strong><br>
+                    <span style="color: #f59e0b;">⭐⭐⭐</span><br>
+                    <em style="color: #d1d5db; font-size: 0.9rem;">"Decent protection but pricing could be more competitive."</em><br>
+                    <span style="color: #6b7280; font-size: 0.8rem;">- Dave's Diner</span>
+                </div>
+                <div style="background: rgba(239, 68, 68, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #ef4444;">
+                    <strong style="color: #ef4444;">1-Star Security Review</strong><br>
+                    <span style="color: #f59e0b;">⭐</span><br>
+                    <em style="color: #d1d5db; font-size: 0.9rem;">"COMPLETE DISASTER! Lost ALL customer data to ransomware!"</em><br>
+                    <span style="color: #6b7280; font-size: 0.8rem;">- InnovateTech</span>
+                </div>
+            </div>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Review Triggers</h3>
+            <p style="color: #d1d5db; margin-bottom: 20px;">
+                <strong>Regular Reviews:</strong> Generated every 30 seconds of active gameplay<br>
+                <strong>Breach Reviews:</strong> Immediately after a server is hit by an enemy<br>
+                <strong>Negative Reviews:</strong> Automatically 1-2 stars when server breaches occur<br>
+                <strong>Good Reviews:</strong> 4-5 stars generated when reputation is high (85%+)<br>
+                <strong>Reputation Impact:</strong> Each 5-star review gives +0.1 reputation
+            </p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Viewing Reviews</h3>
+            <p style="color: #d1d5db; margin-bottom: 20px;">
+                Access your reviews through the <strong>Management Zone</strong> (fly down to the business people emojis). The Reviews tab shows:<br><br>
+                • <strong>Average Rating:</strong> Your overall star rating (1.0 - 5.0)<br>
+                • <strong>Recent Reviews:</strong> Last 3 reviews received<br>
+                • <strong>Rating Breakdown:</strong> Count of 5★, 4★, 3★, 2★, and 1★ reviews<br>
+                • <strong>Category Analysis:</strong> Which areas customers comment on most
+            </p>
+
+            <div class="tip-box">
+                <strong>⭐ Review Management Tip:</strong> Monitor your reviews closely! If you see many 1-2 star reviews, take action immediately: hire a PR Officer to regenerate reputation (+2% per second), or check if you need the Article Writer (counters Social Engineer reputation damage) or Compliance Officer (counters Fraudster damage). Remember: reputation directly affects income multiplier. At 100% reputation, you earn 50% more than at 50% reputation!
             </div>
         </section>
 
@@ -1193,7 +1538,18 @@
                 2. <strong>Incident Responder</strong> - Handles ransomware (Wave 5+)<br>
                 3. <strong>CISO</strong> - Protects trust (Wave 7+)<br>
                 4. <strong>Pen Tester</strong> - Increases damage (any time)<br>
-                5. <strong>SOC Analyst</strong> - Detects stealth (optional, Wave 3+)
+                5. <strong>SOC Analyst</strong> - Detects stealth (optional, Wave 3+)<br>
+                6. <strong>Product Team</strong> - Hire mid-game for revenue boost (Programmer, UX Designer, PM)<br>
+                7. <strong>Tech Lead</strong> - Hire last for force multiplier effect
+            </p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Shop & Management Zone Tips</h3>
+            <p style="color: #d1d5db; margin-bottom: 15px;">
+                • <strong>Emergency Repair ($300):</strong> Buy when any server drops below 30 HP (yellow)<br>
+                • <strong>Weapon Upgrade ($500):</strong> Purchase early in Wave 1-2 for maximum value<br>
+                • <strong>Damage Boost ($200):</strong> Use before boss waves (5, 10, 15) or when overwhelmed<br>
+                • <strong>Management Zone:</strong> Enter between waves to assess staff needs and check reviews<br>
+                • <strong>Severance Ethics:</strong> Pay severance when possible to protect reputation; only skip if desperate
             </p>
 
             <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Reputation Management Strategy</h3>
@@ -1227,7 +1583,7 @@
 
         <footer>
             <p>Server Saver Shield - Strategic Security Management Game</p>
-            <p style="margin-top: 10px; font-size: 0.9rem;">Made with ❤️ by 4weird Games | <a href="index.html" style="color: #a78bfa; text-decoration: none;">Play Game</a> | <a href="../../index.html" style="color: #a78bfa; text-decoration: none;">Back to 4weird</a></p>
+            <p style="margin-top: 10px; font-size: 0.9rem;">Made with ❤️ by 4weird Games | <a href="index.html" style="color: #a78bfa; text-decoration: none;">Play Game</a> | <a href="../index.html" style="color: #a78bfa; text-decoration: none;">All Games</a> | <a href="../../../index.html" style="color: #a78bfa; text-decoration: none;">Back to Home</a></p>
         </footer>
     </div>
 

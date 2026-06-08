@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
         initCanvas();
         initInput();
         initEventHandlers();
+        initReviews(); // Initialize review system
+        initServers(); // Initialize 3-server defense line
         startGameLoop();
         console.log('Server Saver Shield initialized successfully');
     } catch (error) {
