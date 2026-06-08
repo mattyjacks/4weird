@@ -3,6 +3,9 @@ function update() {
     if (!gameRunning || gamePaused) return;
     
     try {
+        // Update keyboard movement before player update
+        if (typeof updateKeyboardMovement === 'function') updateKeyboardMovement();
+        
         if (typeof updatePlayer === 'function') updatePlayer();
         if (typeof updateBullets === 'function') updateBullets();
         if (typeof updateEnemies === 'function') updateEnemies();

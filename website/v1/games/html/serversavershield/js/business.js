@@ -146,16 +146,37 @@ function drawManagementZone() {
     ctx.restore();
 }
 
+var managementZoneGracePeriod = 0;
+const MANAGEMENT_ZONE_GRACE = 180; // 3 seconds at 60fps
+
 function checkManagementZoneEntry() {
     if (!gameRunning || gamePaused) return;
+    
+    // Grace period after game start - don't activate management zone immediately
+    if (managementZoneGracePeriod > 0) {
+        managementZoneGracePeriod--;
+        return;
+    }
     
     const zoneY = CANVAS_HEIGHT * 0.75;
     
     // Check if player entered management zone (moving down)
+    // Require player to be in zone for at least 30 frames (0.5 seconds) to prevent accidental triggers
     if (player.y > zoneY && !managementZoneActive) {
-        activateManagementZone();
+        if (!managementZoneEntryTimer) {
+            managementZoneEntryTimer = 30; // 0.5 second delay
+        }
+        managementZoneEntryTimer--;
+        if (managementZoneEntryTimer <= 0) {
+            activateManagementZone();
+            managementZoneEntryTimer = null;
+        }
+    } else {
+        managementZoneEntryTimer = null;
     }
 }
+
+var managementZoneEntryTimer = null;
 
 function activateManagementZone() {
     managementZoneActive = true;

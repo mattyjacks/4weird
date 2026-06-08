@@ -52,6 +52,20 @@ document.addEventListener('DOMContentLoaded', () => {
         
         console.log('[INIT] Server Saver Shield initialized successfully');
         
+        // Initialize auto-save system
+        if (typeof initAutoSave === 'function') {
+            initAutoSave();
+            console.log('[INIT] Auto-save initialized');
+        }
+        
+        // Initialize tutorial system (after short delay)
+        setTimeout(() => {
+            if (typeof initTutorial === 'function') {
+                initTutorial();
+                console.log('[INIT] Tutorial system initialized');
+            }
+        }, 1500);
+        
         // Emergency: Ensure start screen is visible
         const startScreen = document.getElementById('startScreen');
         if (startScreen) {

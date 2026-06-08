@@ -188,7 +188,113 @@ function drawHUD() {
     ctx.fillText('💀 Kills: ' + kills, CANVAS_WIDTH - 150, 35);
     ctx.fillText('🏆 Score: ' + score, CANVAS_WIDTH - 150, 50);
     ctx.fillText('Firing: ' + (isShooting ? '✅ ON' : '❌ OFF'), CANVAS_WIDTH - 150, 65);
+    
+    // Draw combo multiplier if active
+    if (comboCount > 1 && comboTimer > 0) {
+        drawComboEffect(ctx);
+    }
+    
     ctx.restore();
+}
+
+// Screen flash effect for damage
+var screenFlashIntensity = 0;
+
+function triggerScreenFlash(intensity = 0.3) {
+    screenFlashIntensity = Math.min(intensity, 0.5);
+}
+
+function updateScreenFlash() {
+    if (screenFlashIntensity > 0) {
+        screenFlashIntensity -= 0.02;
+        if (screenFlashIntensity < 0) screenFlashIntensity = 0;
+    }
+}
+
+function drawScreenFlash(ctx) {
+    if (screenFlashIntensity > 0) {
+        ctx.fillStyle = `rgba(255, 0, 0, ${screenFlashIntensity})`;
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    }
+}
+
+// Enhanced combo effect
+function drawComboEffect(ctx) {
+    const comboMult = Math.min(comboCount, 5);
+    const pulse = Math.sin(Date.now() / 100) * 0.3 + 0.7;
+    
+    // Draw combo badge
+    ctx.save();
+    ctx.font = `bold ${20 + comboMult * 3}px Orbitron,sans-serif`;
+    ctx.fillStyle = `rgba(245, 158, 11, ${pulse})`; // Orange with pulse
+    ctx.textAlign = 'center';
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = '#f59e0b';
+    
+    const comboText = `COMBO x${comboCount}`;
+    const x = CANVAS_WIDTH / 2;
+    const y = 80;
+    
+    // Draw background glow
+    ctx.fillStyle = `rgba(245, 158, 11, ${0.2 * pulse})`;
+    ctx.fillRect(x - 80, y - 25, 160, 40);
+    
+    // Draw text
+    ctx.fillStyle = `rgba(255, 255, 255, ${pulse})`;
+    ctx.fillText(comboText, x, y);
+    
+    // Draw multiplier bonus
+    if (comboMult > 1) {
+        ctx.font = '14px Orbitron,sans-serif';
+        ctx.fillStyle = `rgba(16, 185, 129, ${pulse})`;
+        ctx.fillText(`${comboMult}x SCORE MULTIPLIER`, x, y + 25);
+    }
+    
+    ctx.restore();
+}
+
+// Hit feedback particles
+var hitParticles = [];
+
+function spawnHitParticles(x, y, color = '#ff0000', count = 5) {
+    for (let i = 0; i < count; i++) {
+        hitParticles.push({
+            x: x,
+            y: y,
+            vx: (Math.random() - 0.5) * 10,
+            vy: (Math.random() - 0.5) * 10,
+            life: 1.0,
+            color: color,
+            size: Math.random() * 4 + 2
+        });
+    }
+}
+
+function updateHitParticles() {
+    for (let i = hitParticles.length - 1; i >= 0; i--) {
+        const p = hitParticles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 0.05;
+        p.vx *= 0.95;
+        p.vy *= 0.95;
+        
+        if (p.life <= 0) {
+            hitParticles.splice(i, 1);
+        }
+    }
+}
+
+function drawHitParticles(ctx) {
+    hitParticles.forEach(p => {
+        ctx.save();
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    });
 }
 
 function drawServers() {
