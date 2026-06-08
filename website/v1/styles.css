@@ -403,6 +403,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    padding-top: 70px;
 }
 
 .TEMPLATE-4weird-game-header {
