@@ -94,6 +94,8 @@ function drawEnemies() {
         ctx.shadowBlur = 15;
         ctx.shadowColor = e.color;
         ctx.font = e.radius * 1.8 + 'px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         ctx.fillText(e.emoji, e.x, e.y);
         ctx.restore();
     });
