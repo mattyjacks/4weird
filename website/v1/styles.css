@@ -622,8 +622,9 @@ body {
 
 /* ===== TEMPLATE-4weird CREDITS ===== */
 .TEMPLATE-4weird-credits-section {
-    background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
     padding: 80px 0;
+    border-top: 1px solid rgba(139, 92, 246, 0.15);
 }
 
 .TEMPLATE-4weird-credits-container {
@@ -647,12 +648,13 @@ body {
 }
 
 .TEMPLATE-4weird-credit-card {
-    background: var(--bg-card);
+    background: rgba(139, 92, 246, 0.08);
     border-radius: 16px;
     padding: 30px;
     text-align: center;
-    border: 1px solid rgba(139, 92, 246, 0.2);
+    border: 1px solid rgba(139, 92, 246, 0.35);
     transition: 0.3s ease;
+    backdrop-filter: blur(8px);
 }
 
 .TEMPLATE-4weird-credit-card:hover {
@@ -663,7 +665,8 @@ body {
 .TEMPLATE-4weird-credit-card.primary,
 .TEMPLATE-4weird-credit-card.TEMPLATE-4weird-primary {
     border-color: var(--neon-green);
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(139, 92, 246, 0.05));
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(139, 92, 246, 0.1));
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
 }
 
 .TEMPLATE-4weird-credit-avatar,
@@ -676,28 +679,40 @@ body {
     font-family: var(--font-display);
     font-size: 1.2rem;
     margin-bottom: 8px;
+    color: var(--text-primary);
 }
 
 .TEMPLATE-4weird-credit-role {
     color: var(--neon-purple-light);
     font-size: 0.9rem;
     margin-bottom: 15px;
+    font-weight: 500;
 }
 
 .TEMPLATE-4weird-credit-links a {
-    color: var(--neon-green);
+    color: var(--neon-green-light);
     text-decoration: none;
     font-size: 0.9rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    display: inline-block;
+    transition: 0.2s ease;
 }
 
 .TEMPLATE-4weird-credit-links a:hover {
-    color: var(--neon-green-light);
+    color: var(--text-primary);
+    background: rgba(16, 185, 129, 0.25);
+    border-color: var(--neon-green-light);
 }
 
 /* ===== TEMPLATE-4weird BIO ===== */
 .TEMPLATE-4weird-bio-section {
-    background: var(--bg-secondary);
+    background: var(--bg-primary);
     padding: 60px 0;
+    border-top: 1px solid rgba(139, 92, 246, 0.1);
 }
 
 .TEMPLATE-4weird-bio-container {
@@ -708,22 +723,29 @@ body {
 
 .TEMPLATE-4weird-bio-title {
     font-family: var(--font-display);
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     margin-bottom: 25px;
     color: var(--neon-green-light);
+    letter-spacing: 1px;
 }
 
 .TEMPLATE-4weird-bio-content p {
-    color: var(--text-secondary);
-    line-height: 1.9;
-    font-size: 1rem;
+    color: var(--text-primary);
+    line-height: 2;
+    font-size: 1.05rem;
+    padding: 24px;
+    background: rgba(139, 92, 246, 0.05);
+    border-left: 3px solid var(--neon-purple);
+    border-radius: 0 12px 12px 0;
 }
 
 /* ===== TEMPLATE-4weird MORE GAMES ===== */
 .TEMPLATE-4weird-more-games {
-    background: var(--bg-primary);
-    padding: 60px 0;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(16, 185, 129, 0.05));
+    padding: 70px 0;
     text-align: center;
+    border-top: 1px solid rgba(139, 92, 246, 0.2);
+    border-bottom: 1px solid rgba(139, 92, 246, 0.2);
 }
 
 .TEMPLATE-4weird-more-games-container {
@@ -734,9 +756,13 @@ body {
 
 .TEMPLATE-4weird-more-games h2 {
     font-family: var(--font-display);
-    font-size: 1.8rem;
+    font-size: 2rem;
     margin-bottom: 30px;
-    color: var(--text-primary);
+    background: linear-gradient(135deg, var(--neon-purple-light), var(--neon-green-light));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 1px;
 }
 
 /* ===== TEMPLATE-4weird MOBILE ===== */
