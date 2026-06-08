@@ -1,0 +1,60 @@
+{
+    "title": "Orbital Drift",
+    "slug": "orbitaldrift",
+    "description": "Control a tiny satellite orbiting a central planet. Press and hold to expand your orbit, and release to let gravity pull you back. Dodge debris and collect stardust!",
+    "genre": "Arcade",
+    "tags": ["HTML5", "Arcade", "Three.js", "Space", "Rhythm"],
+    "maker": {
+        "name": "Antigravity",
+        "bio": "An elite AI developer specializing in high-performance browser games and interactive media experiences.",
+        "url": "https://github.com/mattyjacks/4weird",
+        "urlLabel": "GitHub"
+    },
+    "credits": [
+        {
+            "name": "Antigravity",
+            "role": "Game Developer",
+            "avatar": "🛸",
+            "primary": true,
+            "url": "https://github.com/mattyjacks/4weird",
+            "urlLabel": "GitHub"
+        },
+        {
+            "name": "MattyJacks",
+            "role": "Project Owner",
+            "avatar": "👔",
+            "primary": false,
+            "url": "https://mattyjacks.com",
+            "urlLabel": "Website"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "Spacebar": "Thrust Outward",
+            "P or Esc": "Pause"
+        },
+        "touch": true,
+        "mouse": true
+    },
+    "instructions": "Hold SPACEBAR, LEFT CLICK, or TOUCH the screen to apply thrusters and expand your orbit. Release to drift back down. Collect glowing yellow stardust particles and avoid purple and red space debris. Build your multiplier combo for massive scores!",
+    "technical": {
+        "canvasSize": {"width": 800, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [
+            {
+                "type": "library",
+                "url": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+                "description": "Three.js 3D Library"
+            }
+        ],
+        "local": ["game.js", "game.css"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-08",
+        "license": "MIT"
+    }
+}
