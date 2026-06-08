@@ -28,19 +28,22 @@ function resize() {
     console.log('[RESIZE] Resizing canvas, window:', window.innerWidth, 'x', window.innerHeight);
     
     const isMobile = window.innerWidth < 768 || window.matchMedia('(pointer: coarse)').matches;
-    const padding = isMobile ? 10 : 40;
-    const headerSpace = isMobile ? 60 : 140;
-    const maxWidth = Math.max(window.innerWidth - padding, 400);  // Minimum 400px
-    const maxHeight = Math.max(window.innerHeight - headerSpace, 300);  // Minimum 300px
 
-    // For mobile, prioritize filling the width and use more height
     let scale;
     if (isMobile) {
-        // On mobile: fill width, use as much height as possible
+        // On mobile: fit width, also limit height to avoid needing to scroll during play
+        const padding = 10;
+        const headerSpace = 60;
+        const maxWidth = Math.max(window.innerWidth - padding, 400);
+        const maxHeight = Math.max(window.innerHeight - headerSpace, 300);
         scale = Math.min(maxWidth / CANVAS_WIDTH, maxHeight / CANVAS_HEIGHT);
     } else {
-        // On desktop: maintain aspect ratio, don't scale up beyond 100%
-        scale = Math.min(maxWidth / CANVAS_WIDTH, maxHeight / CANVAS_HEIGHT, 1);
+        // On desktop: fit to available width only — no height capping.
+        // The page scrolls naturally if the canvas is taller than the viewport.
+        const padding = 80; // leave room for page margins/nav
+        const maxWidth = Math.max(window.innerWidth - padding, 400);
+        // Scale to fit width, but never scale UP beyond 100%
+        scale = Math.min(maxWidth / CANVAS_WIDTH, 1);
     }
     
     // Ensure scale is never zero or negative

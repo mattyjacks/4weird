@@ -55,7 +55,7 @@
     position: relative;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     width: 100%;
     overflow: visible;
     z-index: 10;
@@ -311,7 +311,7 @@ body {
     background: linear-gradient(180deg, #0f0f23 0%, #1a1a3e 50%, #16213e 100%);
     border: 3px solid var(--neon-purple);
     border-radius: 12px;
-    /* Emergency: Ensure canvas is always visible */
+    /* Always show full canvas - page scrolls to reveal content below */
     min-width: 400px !important;
     min-height: 300px !important;
     display: block !important;
@@ -320,7 +320,7 @@ body {
     box-shadow: 0 0 40px #1d1530;
     cursor: crosshair;
     max-width: 100%;
-    max-height: calc(100vh - 120px);
+    /* No max-height - let the canvas be its natural size */
 }
 
 /* HUD */
@@ -455,12 +455,67 @@ body {
     display: flex;
     opacity: 1;
     visibility: visible;
+    padding: 1.25rem;
 }
 
 #startScreen.hidden {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
+}
+
+#startScreen .logo-big {
+    font-size: clamp(1.5rem, 4vw, 2.2rem);
+    margin-bottom: 0.25rem;
+}
+
+#startScreen .tagline {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+}
+
+#startScreen .story {
+    padding: 10px 15px;
+    margin-bottom: 0.5rem;
+    max-width: 420px;
+}
+
+#startScreen .story p {
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+}
+
+#startScreen .enemies-preview {
+    gap: 10px;
+    margin-bottom: 0.5rem;
+}
+
+#startScreen .enemy-type {
+    padding: 6px 12px;
+}
+
+#startScreen .enemy-type span {
+    font-size: 1.4rem;
+}
+
+#startScreen .enemy-type small {
+    font-size: 0.65rem;
+}
+
+#startScreen .btn {
+    padding: 8px 20px;
+    font-size: 0.85rem;
+    margin: 4px;
+}
+
+#startScreen .controls-hint {
+    margin-top: 0.5rem;
+    gap: 8px;
+}
+
+#startScreen .controls-hint span {
+    font-size: 0.75rem;
+    padding: 4px 8px;
 }
 
 .logo-big {
@@ -784,9 +839,8 @@ body {
         font-size: 1rem;
     }
 
-    /* Mobile: Larger vertical canvas */
+    /* Mobile: Natural canvas size, page scrolls */
     #gameCanvas {
-        max-height: 85vh;
         width: 100%;
         max-width: 100%;
         border-width: 2px;
@@ -794,7 +848,6 @@ body {
     }
 
     .game-wrapper {
-        min-height: 100vh;
         padding: 5px;
         align-items: flex-start;
         padding-top: 10px;
