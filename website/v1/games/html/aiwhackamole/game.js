@@ -655,6 +655,7 @@ document.getElementById('TEMPLATE-4weird-play-again-btn').addEventListener('clic
 document.getElementById('TEMPLATE-4weird-resume-btn').addEventListener('click', () => {
     pauseScreen.classList.add('hidden');
     isPlaying = true;
+    spawnLoop();
 });
 document.getElementById('TEMPLATE-4weird-restart-btn').addEventListener('click', () => {
     startGame();
@@ -669,6 +670,7 @@ window.addEventListener('keydown', (e) => {
         } else if (pauseScreen.classList.contains('hidden') === false) {
             pauseScreen.classList.add('hidden');
             isPlaying = true;
+            spawnLoop();
         }
     }
 });
