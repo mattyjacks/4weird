@@ -17,138 +17,140 @@
     <div id="TEMPLATE-4weird-nav-placeholder"></div>
 
     <div class="game-wrapper">
-        <canvas id="gameCanvas"></canvas>
+        <div class="game-container">
+            <canvas id="gameCanvas"></canvas>
 
-        <!-- HUD -->
-        <div class="hud">
-            <div class="hud-section">
-                <div class="stat-box score-box">
-                    <span class="stat-label">SCORE</span>
-                    <span class="stat-value" id="hudScore">0</span>
-                </div>
-                <div class="stat-box wave-box">
-                    <span class="stat-label">WAVE</span>
-                    <span class="stat-value" id="hudWave">1</span>
-                </div>
-            </div>
-            <div class="hud-section center">
-                <div class="server-health">
-                    <span class="server-icon">🖥️</span>
-                    <div class="health-bar">
-                        <div class="health-fill" id="hpBar"></div>
+            <!-- HUD -->
+            <div class="hud">
+                <div class="hud-section">
+                    <div class="stat-box score-box">
+                        <span class="stat-label">SCORE</span>
+                        <span class="stat-value" id="hudScore">0</span>
                     </div>
-                    <span class="health-text" id="hpText">100%</span>
+                    <div class="stat-box wave-box">
+                        <span class="stat-label">WAVE</span>
+                        <span class="stat-value" id="hudWave">1</span>
+                    </div>
+                </div>
+                <div class="hud-section center">
+                    <div class="server-health">
+                        <span class="server-icon">🖥️</span>
+                        <div class="health-bar">
+                            <div class="health-fill" id="hpBar"></div>
+                        </div>
+                        <span class="health-text" id="hpText">100%</span>
+                    </div>
+                </div>
+                <div class="hud-section">
+                    <div class="powerup-indicator" id="powerupIndicator"></div>
                 </div>
             </div>
-            <div class="hud-section">
-                <div class="powerup-indicator" id="powerupIndicator"></div>
-            </div>
-        </div>
 
-        <!-- Start Screen -->
-        <div class="screen-overlay" id="startScreen">
-            <div class="logo-big">🛡️ SERVER SAVER SHIELD ⚡</div>
-            <div class="tagline">The Servers Are Under Attack!</div>
-            <div class="story">
-                <p>🔴 <strong>CRITICAL ALERT</strong> 🔴</p>
-                <p>Malware bots, DDOS attacks, and rogue viruses are targeting our data centers!</p>
-                <p>You are the <strong>Server Saver Shield</strong> - our last line of defense.</p>
-            </div>
-            <div class="enemies-preview">
-                <div class="enemy-type"><span>🎩</span><small>Black Hat Hacker</small></div>
-                <div class="enemy-type"><span>🧠</span><small>Intelligence Agency</small></div>
-                <div class="enemy-type"><span>🔥</span><small>DDOS Attack</small></div>
-            </div>
-            <div style="margin: 20px 0;">
-                <p style="color: #9ca3af; margin-bottom: 10px; font-size: 0.9rem;">SELECT DIFFICULTY:</p>
-                <div style="display: flex; gap: 10px; justify-content: center;">
-                    <button class="btn btn-secondary" id="btnEasy" style="flex: 1; max-width: 150px; background: linear-gradient(135deg, #10b981, #059669); color: white;">😊 EASY</button>
-                    <button class="btn btn-secondary" id="btnHard" style="flex: 1; max-width: 150px;">💀 HARD</button>
+            <!-- Start Screen -->
+            <div class="screen-overlay" id="startScreen">
+                <div class="logo-big">🛡️ SERVER SAVER SHIELD ⚡</div>
+                <div class="tagline">The Servers Are Under Attack!</div>
+                <div class="story">
+                    <p>🔴 <strong>CRITICAL ALERT</strong> 🔴</p>
+                    <p>Malware bots, DDOS attacks, and rogue viruses are targeting our data centers!</p>
+                    <p>You are the <strong>Server Saver Shield</strong> - our last line of defense.</p>
+                </div>
+                <div class="enemies-preview">
+                    <div class="enemy-type"><span>🎩</span><small>Black Hat Hacker</small></div>
+                    <div class="enemy-type"><span>🧠</span><small>Intelligence Agency</small></div>
+                    <div class="enemy-type"><span>🔥</span><small>DDOS Attack</small></div>
+                </div>
+                <div style="margin: 20px 0;">
+                    <p style="color: #9ca3af; margin-bottom: 10px; font-size: 0.9rem;">SELECT DIFFICULTY:</p>
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <button class="btn btn-secondary" id="btnEasy" style="flex: 1; max-width: 150px; background: linear-gradient(135deg, #10b981, #059669); color: white;">😊 EASY</button>
+                        <button class="btn btn-secondary" id="btnHard" style="flex: 1; max-width: 150px;">💀 HARD</button>
+                    </div>
+                </div>
+                <button class="btn btn-start" id="btnStart">🚀 START GAME</button>
+                <a href="guide.html" class="btn btn-secondary" style="display: inline-block; margin-top: 15px;">📖 Game Guide</a>
+                <div class="controls-hint">
+                    <span>🖱️ Mouse/Touch: Move</span>
+                    <span>👆 Click: Toggle Firing</span>
+                    <span>⚡ Collect Weapon Powerups</span>
+                    <span>⌨️ P: Pause</span>
                 </div>
             </div>
-            <button class="btn btn-start" id="btnStart">🚀 START GAME</button>
-            <a href="guide.html" class="btn btn-secondary" style="display: inline-block; margin-top: 15px;">📖 Game Guide</a>
-            <div class="controls-hint">
-                <span>🖱️ Mouse/Touch: Move</span>
-                <span>👆 Click: Toggle Firing</span>
-                <span>⚡ Collect Weapon Powerups</span>
-                <span>⌨️ P: Pause</span>
-            </div>
-        </div>
 
-        <!-- Pause Screen -->
-        <div class="screen-overlay hidden" id="pauseScreen">
-            <div class="logo-big">⏸️ PAUSED</div>
-            <button class="btn btn-start" id="btnResume">▶️ Resume</button>
-            <button class="btn btn-secondary" id="btnRestartPause">🔄 Restart</button>
-            <button class="btn btn-secondary" id="btnMenuPause">📋 Main Menu</button>
-        </div>
+            <!-- Pause Screen -->
+            <div class="screen-overlay hidden" id="pauseScreen">
+                <div class="logo-big">⏸️ PAUSED</div>
+                <button class="btn btn-start" id="btnResume">▶️ Resume</button>
+                <button class="btn btn-secondary" id="btnRestartPause">🔄 Restart</button>
+                <button class="btn btn-secondary" id="btnMenuPause">📋 Main Menu</button>
+            </div>
 
-        <!-- Game Over Screen -->
-        <div class="screen-overlay hidden" id="gameOverScreen">
-            <div class="logo-big glitch">💀 SERVERS BREACHED</div>
-            <div class="final-stats">
-                <div class="stat-row">
-                    <span>Final Score</span>
-                    <span class="highlight" id="finalScore">0</span>
+            <!-- Game Over Screen -->
+            <div class="screen-overlay hidden" id="gameOverScreen">
+                <div class="logo-big glitch">💀 SERVERS BREACHED</div>
+                <div class="final-stats">
+                    <div class="stat-row">
+                        <span>Final Score</span>
+                        <span class="highlight" id="finalScore">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Waves Survived</span>
+                        <span class="highlight" id="finalWave">1</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Threats Eliminated</span>
+                        <span class="highlight" id="finalKills">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Final Balance</span>
+                        <span class="highlight" id="finalBalance">$0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Max Compute Used</span>
+                        <span class="highlight" id="finalCompute">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Final Reputation</span>
+                        <span class="highlight" id="finalReputation">0%</span>
+                    </div>
                 </div>
-                <div class="stat-row">
-                    <span>Waves Survived</span>
-                    <span class="highlight" id="finalWave">1</span>
+                <div style="margin: 20px 0; padding: 15px; background: rgba(139, 92, 246, 0.1); border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.3);">
+                    <p style="color: #9ca3af; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">Enemies Neutralized</p>
+                    <div id="killStats"></div>
                 </div>
-                <div class="stat-row">
-                    <span>Threats Eliminated</span>
-                    <span class="highlight" id="finalKills">0</span>
-                </div>
-                <div class="stat-row">
-                    <span>Final Balance</span>
-                    <span class="highlight" id="finalBalance">$0</span>
-                </div>
-                <div class="stat-row">
-                    <span>Max Compute Used</span>
-                    <span class="highlight" id="finalCompute">0</span>
-                </div>
-                <div class="stat-row">
-                    <span>Final Reputation</span>
-                    <span class="highlight" id="finalReputation">0%</span>
-                </div>
+                <button class="btn btn-start" id="btnRestart">🔄 RESTART GAME</button>
+                <button class="btn btn-secondary" onclick="window.location.href='../../../games/index.html'">🏠 Back to Games</button>
             </div>
-            <div style="margin: 20px 0; padding: 15px; background: rgba(139, 92, 246, 0.1); border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.3);">
-                <p style="color: #9ca3af; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">Enemies Neutralized</p>
-                <div id="killStats"></div>
-            </div>
-            <button class="btn btn-start" id="btnRestart">🔄 RESTART GAME</button>
-            <button class="btn btn-secondary" onclick="window.location.href='../../../games/index.html'">🏠 Back to Games</button>
-        </div>
 
-        <!-- Victory Screen -->
-        <div class="screen-overlay hidden" id="victoryScreen">
-            <div class="logo-big">🏆 CYBER HERO!</div>
-            <div class="tagline">The servers are safe thanks to you!</div>
-            <div class="final-stats">
-                <div class="stat-row">
-                    <span>Final Score</span>
-                    <span class="highlight" id="victoryScore">0</span>
+            <!-- Victory Screen -->
+            <div class="screen-overlay hidden" id="victoryScreen">
+                <div class="logo-big">🏆 CYBER HERO!</div>
+                <div class="tagline">The servers are safe thanks to you!</div>
+                <div class="final-stats">
+                    <div class="stat-row">
+                        <span>Final Score</span>
+                        <span class="highlight" id="victoryScore">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Max Combo</span>
+                        <span class="highlight" id="victoryCombo">x1</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Final Balance</span>
+                        <span class="highlight" id="victoryBalance">$0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Max Compute Used</span>
+                        <span class="highlight" id="victoryCompute">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Final Reputation</span>
+                        <span class="highlight" id="victoryReputation">0%</span>
+                    </div>
                 </div>
-                <div class="stat-row">
-                    <span>Max Combo</span>
-                    <span class="highlight" id="victoryCombo">x1</span>
-                </div>
-                <div class="stat-row">
-                    <span>Final Balance</span>
-                    <span class="highlight" id="victoryBalance">$0</span>
-                </div>
-                <div class="stat-row">
-                    <span>Max Compute Used</span>
-                    <span class="highlight" id="victoryCompute">0</span>
-                </div>
-                <div class="stat-row">
-                    <span>Final Reputation</span>
-                    <span class="highlight" id="victoryReputation">0%</span>
-                </div>
+                <button class="btn btn-start" id="btnVictoryRestart">🔄 PLAY AGAIN</button>
+                <button class="btn btn-secondary" onclick="window.location.href='../../../games/index.html'">🏠 More Games</button>
             </div>
-            <button class="btn btn-start" id="btnVictoryRestart">🔄 PLAY AGAIN</button>
-            <button class="btn btn-secondary" onclick="window.location.href='../../../games/index.html'">🏠 More Games</button>
         </div>
     </div>
 

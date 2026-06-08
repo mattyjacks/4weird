@@ -534,3 +534,7 @@ body {
     .controls-hint { font-size: 0.72rem; }
     .location-indicator { font-size: 0.68rem; padding: 6px 8px; }
 }
+
+.shake-effect {
+    animation: shake 0.35s ease;
+}

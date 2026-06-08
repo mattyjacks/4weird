@@ -13,7 +13,7 @@ function initServers() {
         servers.push({
             id: i,
             x: CANVAS_WIDTH * positions[i],
-            y: CANVAS_HEIGHT - 60,
+            y: 440,
             hp: 100,
             maxHp: 100,
             emoji: emojis[i],
@@ -48,7 +48,7 @@ function updateServerIncomeContribution() {
 }
 
 function checkServerCollisions() {
-    const serverZoneY = CANVAS_HEIGHT - 100;
+    const serverZoneY = 400;
     
     for (let i = enemies.length - 1; i >= 0; i--) {
         const enemy = enemies[i];

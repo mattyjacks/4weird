@@ -223,6 +223,8 @@ class Game {
         }, { passive: false });
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            const mobileActionButtons = document.getElementById('mobileActionButtons');
+            if (mobileActionButtons) mobileActionButtons.style.display = 'flex';
             const rect = canvas.getBoundingClientRect();
             const scale = canvas.width / rect.width;
             const t = e.touches[0];
@@ -234,6 +236,18 @@ class Game {
         canvas.addEventListener('touchend', (e) => {
             e.preventDefault();
             this.mouse.down = false;
+        }, { passive: false });
+
+        document.getElementById('btnSummonMobile').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (this.state === STATE.PLAYING) this.summonSkeleton();
+        }, { passive: false });
+
+        document.getElementById('btnBlinkMobile').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (this.state === STATE.PLAYING && this.player.hasBlink && this.blinkCooldown <= 0) this.blink();
         }, { passive: false });
     }
 
@@ -593,19 +607,36 @@ class Game {
             this.player.hp = Math.min(this.player.maxHp, this.player.hp + this.player.hpRegen);
         }
 
-        if (this.keys['a'] || this.keys['arrowleft']) {
-            this.player.vx = -this.player.speed;
-            this.player.facingLeft = true;
-        } else if (this.keys['d'] || this.keys['arrowright']) {
-            this.player.vx = this.player.speed;
-            this.player.facingLeft = false;
-        } else {
-            this.player.vx *= 0.85;
+        let movingByTouch = false;
+        if (this.mouse.down) {
+            const dx = this.mouse.x - this.player.x;
+            const dy = this.mouse.y - this.player.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > 20) {
+                movingByTouch = true;
+                const speed = this.player.speed;
+                this.player.vx = (dx / dist) * speed;
+                this.player.vy = (dy / dist) * speed;
+                if (dx < 0) this.player.facingLeft = true;
+                if (dx > 0) this.player.facingLeft = false;
+            }
         }
 
-        if (this.keys['w'] || this.keys['arrowup']) this.player.vy = -this.player.speed;
-        else if (this.keys['arrowdown']) this.player.vy = this.player.speed;
-        else this.player.vy *= 0.85;
+        if (!movingByTouch) {
+            if (this.keys['a'] || this.keys['arrowleft']) {
+                this.player.vx = -this.player.speed;
+                this.player.facingLeft = true;
+            } else if (this.keys['d'] || this.keys['arrowright']) {
+                this.player.vx = this.player.speed;
+                this.player.facingLeft = false;
+            } else {
+                this.player.vx *= 0.85;
+            }
+
+            if (this.keys['w'] || this.keys['arrowup']) this.player.vy = -this.player.speed;
+            else if (this.keys['arrowdown']) this.player.vy = this.player.speed;
+            else this.player.vy *= 0.85;
+        }
 
         this.starOffset.x += this.player.vx * 0.04;
         this.starOffset.y += this.player.vy * 0.04;
@@ -646,6 +677,7 @@ class Game {
                     this.player.xp += xpGain;
                     this.score += 10;
                     this.addScorePop(building.x + (Math.random()-0.5)*40, building.y - 30, '+10', '#10b981');
+                    this.addScorePop(building.x + (Math.random()-0.5)*60, building.y + (Math.random()-0.5)*30, '-8 HP', '#ef4444');
                 }
             }
             if (skel.attackCooldown > 0) skel.attackCooldown--;
@@ -739,6 +771,7 @@ class Game {
                     this.addRipple(b.x, b.y + 30);
                     this.spawnParticles(p.x, p.y, '💥', 4);
                     this.addScorePop(p.x, p.y - 15, '+15', '#8b5cf6');
+                    this.addScorePop(p.x + (Math.random()-0.5)*40, p.y + (Math.random()-0.5)*20, `-${p.damage} HP`, '#a78bfa');
                     playSound('hit');
                     if (!p.piercing) deadProjectiles.add(pi);
                 }
@@ -788,8 +821,12 @@ class Game {
             const blinkPct = Math.max(0, 100 - (this.blinkCooldown / 180 * 100));
             document.getElementById('blinkBarFill').style.width = blinkPct + '%';
             document.getElementById('blinkBar').style.display = 'flex';
+            const btnBlink = document.getElementById('btnBlinkMobile');
+            if (btnBlink) btnBlink.style.display = 'flex';
         } else {
             document.getElementById('blinkBar').style.display = 'none';
+            const btnBlink = document.getElementById('btnBlinkMobile');
+            if (btnBlink) btnBlink.style.display = 'none';
         }
         document.getElementById('highScoreDisplay').textContent = this.highScore;
     }
@@ -873,6 +910,25 @@ class Game {
                 ctx.fillText('👮', b.x - 40, b.y + 50);
                 ctx.fillText('👮', b.x + 40, b.y + 50);
                 ctx.fillText('👮', b.x, b.y + 60);
+            }
+
+            if (b.type === 'skyscraper') {
+                ctx.save();
+                ctx.fillStyle = 'rgba(10, 10, 15, 0.85)';
+                ctx.fillRect(200, 20, 400, 24);
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(199, 19, 402, 26);
+                
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(201, 21, 398 * healthPct, 22);
+                
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 12px Orbitron, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🏙️ SKYSCRAPER BOSS: ' + Math.floor(b.hp) + ' / ' + b.maxHp, 400, 32);
+                ctx.restore();
             }
 
             ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';

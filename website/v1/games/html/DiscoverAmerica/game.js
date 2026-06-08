@@ -264,6 +264,10 @@ function drawMap() {
     // Avatar (Madi's ship)
     drawAvatar();
 
+    if (typeof updateAndDrawParticles === 'function') {
+        updateAndDrawParticles();
+    }
+
     waveTime += 0.04;
 }
 
@@ -489,6 +493,8 @@ function renderFragments() {
 
 function selectFragment(idx) {
     Game.selectedFragment = (Game.selectedFragment === idx) ? null : idx;
+    initAudio();
+    playSound('select');
     refreshSelectionHighlight();
     refreshTargetableBins();
 }
@@ -514,6 +520,7 @@ function placeSelectedInBin(binId) {
     Game.selectedFragment = null;
     el.puzzleFeedback.textContent = '';
     el.puzzleFeedback.className = 'puzzle-feedback';
+    playSound('place');
     renderPlacedFragments();
     renderFragments();
 }
@@ -545,6 +552,7 @@ function returnFragmentToPool(idx) {
     delete Game.placements[idx];
     el.puzzleFeedback.textContent = '';
     el.puzzleFeedback.className = 'puzzle-feedback';
+    playSound('place');
     renderPlacedFragments();
     renderFragments();
 }
@@ -590,11 +598,23 @@ function submitPuzzle() {
         Game.score += gained;
         el.puzzleFeedback.textContent = `Course confirmed! +${gained} data points 🎉`;
         el.puzzleFeedback.className = 'puzzle-feedback ok';
+        playSound('success');
+        if (typeof spawnSuccessParticles === 'function') spawnSuccessParticles();
         updateHUD();
         setTimeout(() => advanceFromPuzzle(stageIndex), 1100);
     } else {
         el.puzzleFeedback.textContent = `${correct}/${frags.length} correct. Fix the red ones and try again.`;
         el.puzzleFeedback.className = 'puzzle-feedback bad';
+        playSound('error');
+        
+        // Trigger screen shake
+        const puzzleOverlay = el.puzzleScreen;
+        if (puzzleOverlay) {
+            puzzleOverlay.classList.remove('shake-effect');
+            void puzzleOverlay.offsetWidth; // trigger reflow
+            puzzleOverlay.classList.add('shake-effect');
+            setTimeout(() => puzzleOverlay.classList.remove('shake-effect'), 350);
+        }
     }
 }
 
@@ -643,6 +663,7 @@ function startGame() {
 function showVictory() {
     Game.mode = 'victory';
     el.mapHint.classList.add('hidden');
+    playSound('victory');
     el.victoryScore.textContent = Game.score;
     el.victoryPorts.textContent = `${Game.completed.filter(Boolean).length} / ${STAGES.length}`;
     el.victoryPerfect.textContent = Game.perfectSorts;
@@ -670,6 +691,115 @@ window.addEventListener('resize', () => {
         snapAvatarTo(Game.currentStage);
     }
 });
+
+/* ---------------------------------------------------------------------
+   AUDIO & PARTICLE EFFECTS
+--------------------------------------------------------------------- */
+let audioCtx = null;
+function initAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playSound(type) {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    const now = audioCtx.currentTime;
+    
+    switch(type) {
+        case 'select':
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(500, now);
+            osc.frequency.exponentialRampToValueAtTime(700, now + 0.08);
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+            osc.start(now);
+            osc.stop(now + 0.1);
+            break;
+        case 'place':
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(350, now);
+            osc.frequency.exponentialRampToValueAtTime(450, now + 0.1);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+            osc.start(now);
+            osc.stop(now + 0.12);
+            break;
+        case 'success':
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(400, now);
+            osc.frequency.setValueAtTime(523.25, now + 0.1); // C5
+            osc.frequency.setValueAtTime(659.25, now + 0.2); // E5
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.35);
+            osc.start(now);
+            osc.stop(now + 0.35);
+            break;
+        case 'error':
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.linearRampToValueAtTime(100, now + 0.25);
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+            osc.start(now);
+            osc.stop(now + 0.25);
+            break;
+        case 'victory':
+            for (let i = 0; i < 5; i++) {
+                const o = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                o.connect(g);
+                g.connect(audioCtx.destination);
+                o.type = 'sine';
+                o.frequency.setValueAtTime(300 * Math.pow(1.25, i), now + i * 0.1);
+                g.gain.setValueAtTime(0.1, now + i * 0.1);
+                g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.4);
+                o.start(now + i * 0.1);
+                o.stop(now + i * 0.1 + 0.4);
+            }
+            break;
+    }
+}
+
+let particles = [];
+function spawnSuccessParticles() {
+    const rect = canvas.getBoundingClientRect();
+    const emojis = ['🎉', '🧭', '⭐', '⛵', '🗺️', '🌊', '🗽', '✨'];
+    for (let i = 0; i < 35; i++) {
+        particles.push({
+            x: rect.width / 2,
+            y: rect.height / 2,
+            vx: (Math.random() - 0.5) * 8,
+            vy: (Math.random() - 0.5) * 8 - 4,
+            gravity: 0.15,
+            life: 60 + Math.random() * 40,
+            emoji: emojis[Math.floor(Math.random() * emojis.length)],
+            size: 16 + Math.random() * 18
+        });
+    }
+}
+
+function updateAndDrawParticles() {
+    particles = particles.filter(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += p.gravity;
+        p.life--;
+        
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.life / 100);
+        ctx.font = `${p.size}px serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(p.emoji, p.x, p.y);
+        ctx.restore();
+        
+        return p.life > 0;
+    });
+}
 
 /* ---------------------------------------------------------------------
    BOOT
