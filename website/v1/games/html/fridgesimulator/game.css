@@ -14,6 +14,17 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* Starfield canvas - fixed background, never blocks content */
+#TEMPLATE-4weird-starfield {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+}
+
 body {
     font-family: var(--font-body);
     background: var(--bg-dark);
@@ -24,6 +35,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    padding-top: 70px; /* account for fixed navbar */
 }
 
 .header {
@@ -82,6 +94,8 @@ body {
     flex-direction: column;
     background: radial-gradient(ellipse at center, #1a1a3e 0%, #0a0a0f 70%);
     overflow: hidden;
+    height: calc(100vh - 70px);
+    max-height: calc(100vh - 70px);
 }
 
 .game-main {

@@ -51,7 +51,7 @@
                     <span></span>
                 </button>
                 <ul class="nav-menu" id="navMenu">
-                    <li><a href="${isRoot ? '#games' : basePath + 'index.html#games'}" class="nav-link">Games</a></li>
+                    <li><a href="https://4weird.com/games" class="nav-link">Games</a></li>
                     <li><a href="${isRoot ? '#contribute' : basePath + 'index.html#contribute'}" class="nav-link">Contribute</a></li>
                     <li><a href="${isRoot ? '#contact' : basePath + 'index.html#contact'}" class="nav-link nav-cta">Contact MattyJacks</a></li>
                 </ul>
@@ -89,7 +89,7 @@
                         <p class="footer-tagline">${SITE_CONFIG.tagline}</p>
                     </div>
                     <div class="footer-links">
-                        <a href="${isRoot ? '#games' : basePath + 'index.html#games'}" class="footer-link">Games</a>
+                        <a href="https://4weird.com/games" class="footer-link">Games</a>
                         <a href="${isRoot ? '#contribute' : basePath + 'index.html#contribute'}" class="footer-link">Contribute</a>
                         <a href="${isRoot ? '#contact' : basePath + 'index.html#contact'}" class="footer-link">Contact MattyJacks</a>
                         <a href="${basePath}privacy-policy.html" class="footer-link">Privacy Policy</a>

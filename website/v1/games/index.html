@@ -43,6 +43,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            backdrop-filter: blur(10px);
         }
 
         .header-container {
@@ -63,8 +64,9 @@
             font-family: var(--font-display);
             font-weight: 700;
             font-size: 1.5rem;
+            transition: opacity 0.2s;
         }
-
+        .logo:hover { opacity: 0.85; }
         .logo span { font-size: 1.8rem; }
 
         .back-link {
@@ -119,12 +121,13 @@
             gap: 30px;
         }
 
+        /* ─── Game Card ─── */
         .game-card {
             background: var(--bg-card);
             border-radius: 20px;
             overflow: hidden;
             border: 1px solid rgba(139, 92, 246, 0.2);
-            transition: all 0.3s ease;
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
             display: flex;
             flex-direction: column;
         }
@@ -132,20 +135,35 @@
         .game-card:hover {
             transform: translateY(-8px);
             border-color: var(--neon-purple);
-            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.2);
+            box-shadow: 0 10px 40px rgba(139, 92, 246, 0.25);
         }
 
-        .game-card.live {
-            border-color: var(--neon-green);
-        }
+        .game-card.live { border-color: rgba(16, 185, 129, 0.4); }
+        .game-card.live:hover { border-color: var(--neon-green); box-shadow: 0 10px 40px rgba(16, 185, 129, 0.2); }
 
+        /* ─── Thumbnail / Screenshot Area ─── */
         .game-thumbnail {
-            height: 180px;
+            height: 200px;
             position: relative;
             overflow: hidden;
+            cursor: pointer;
+            display: block;
+            text-decoration: none;
         }
 
-        .thumb-bg {
+        /* Actual screenshot image fills the area */
+        .game-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.4s ease, filter 0.3s ease;
+        }
+
+        /* Fallback gradient when no image */
+        .game-thumbnail .thumb-bg {
+            position: absolute;
+            inset: 0;
             width: 100%;
             height: 100%;
             display: flex;
@@ -154,70 +172,85 @@
             font-size: 4rem;
         }
 
-        .thumb-serversaver {
-            background: linear-gradient(135deg, #1a1a2e 0%, #4c1d95 50%, #7c3aed 100%);
+        /* Hover overlay with ▶️ play button */
+        .thumb-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 2;
         }
 
-        .thumb-serversaver::before {
-            content: '🛡️';
-            font-size: 5rem;
-            filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.8));
+        .play-btn-circle {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: rgba(139, 92, 246, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.7), 0 0 60px rgba(139, 92, 246, 0.3);
+            transform: scale(0.8);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .thumb-demolich {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+        .game-thumbnail:hover .thumb-overlay { opacity: 1; }
+        .game-thumbnail:hover img { transform: scale(1.06); filter: brightness(0.7); }
+        .game-thumbnail:hover .thumb-bg { filter: brightness(0.7); }
+        .game-thumbnail:hover .play-btn-circle {
+            transform: scale(1);
+            box-shadow: 0 0 40px rgba(139, 92, 246, 0.9), 0 0 80px rgba(139, 92, 246, 0.4);
         }
 
-        .thumb-demolich::before {
-            content: '💀';
-            font-size: 5rem;
-            filter: drop-shadow(0 0 20px rgba(100, 116, 139, 0.8));
-        }
-
-        .thumb-fridge {
-            background: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #5eead4 100%);
-        }
-
-        .thumb-fridge::before {
-            content: '🥶';
-            font-size: 5rem;
-            filter: drop-shadow(0 0 20px rgba(94, 234, 212, 0.8));
-        }
-
-        .thumb-discover {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%);
-        }
-
-        .thumb-discover::before {
-            content: '🗽';
-            font-size: 5rem;
-            filter: drop-shadow(0 0 20px rgba(96, 165, 250, 0.8));
-        }
-
-        .thumb-template {
-            background: linear-gradient(135deg, #312e81 0%, #6366f1 50%, #818cf8 100%);
-        }
-
-        .thumb-template::before {
-            content: '📋';
-            font-size: 5rem;
-            filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.8));
-        }
-
+        /* Badge */
         .live-badge {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 12px;
+            right: 12px;
             background: var(--neon-green);
-            color: var(--bg-primary);
+            color: #0a0a0f;
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 0.7rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
+            z-index: 3;
         }
 
+        .featured-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            z-index: 3;
+        }
+
+        /* Fallback emoji thumbnails */
+        .thumb-serversaver { background: linear-gradient(135deg, #1a1a2e 0%, #4c1d95 50%, #7c3aed 100%); }
+        .thumb-serversaver::before { content: '🛡️'; font-size: 5rem; filter: drop-shadow(0 0 20px rgba(139,92,246,0.8)); }
+        .thumb-demolich { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); }
+        .thumb-demolich::before { content: '💀'; font-size: 5rem; filter: drop-shadow(0 0 20px rgba(100,116,139,0.8)); }
+        .thumb-fridge { background: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #5eead4 100%); }
+        .thumb-fridge::before { content: '🥶'; font-size: 5rem; filter: drop-shadow(0 0 20px rgba(94,234,212,0.8)); }
+        .thumb-discover { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%); }
+        .thumb-discover::before { content: '🗽'; font-size: 5rem; filter: drop-shadow(0 0 20px rgba(96,165,250,0.8)); }
+        .thumb-template { background: linear-gradient(135deg, #312e81 0%, #6366f1 50%, #818cf8 100%); }
+        .thumb-template::before { content: '📋'; font-size: 5rem; filter: drop-shadow(0 0 20px rgba(99,102,241,0.8)); }
+
+        /* ─── Card Info ─── */
         .game-info {
             padding: 20px;
             flex: 1;
@@ -227,7 +260,7 @@
 
         .game-title {
             font-family: var(--font-display);
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             margin-bottom: 10px;
             color: var(--text-primary);
         }
@@ -244,7 +277,7 @@
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
         }
 
         .tag {
@@ -286,44 +319,26 @@
             font-size: 0.9rem;
         }
 
-        .games-footer a {
-            color: var(--neon-purple-light);
-            text-decoration: none;
-        }
+        .games-footer a { color: var(--neon-purple-light); text-decoration: none; }
 
         /* Responsive */
         @media (max-width: 768px) {
-            .page-title {
-                font-size: 1.8rem;
-            }
-
-            .games-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .header-container {
-                flex-wrap: wrap;
-                gap: 15px;
-            }
-
-            .logo {
-                font-size: 1.2rem;
-            }
-
-            .games-main {
-                padding: 30px 15px;
-            }
+            .page-title { font-size: 1.8rem; }
+            .games-grid { grid-template-columns: 1fr; }
+            .header-container { flex-wrap: wrap; gap: 15px; }
+            .logo { font-size: 1.2rem; }
+            .games-main { padding: 30px 15px; }
         }
     </style>
 </head>
 <body>
     <header class="games-header">
         <div class="header-container">
-            <a href="/" class="logo">
+            <a href="https://4weird.com" class="logo">
                 <span>🎮</span>
                 4weird Games
             </a>
-            <a href="/" class="back-link">
+            <a href="https://4weird.com" class="back-link">
                 ← Back to Home
             </a>
         </div>
@@ -331,15 +346,20 @@
 
     <main class="games-main">
         <h1 class="page-title">All Games</h1>
-        <p class="page-subtitle">Play instantly in your browser - no downloads required</p>
+        <p class="page-subtitle">Play instantly in your browser — no downloads required</p>
 
         <div class="games-grid">
+
             <!-- Server Saver Shield -->
             <div class="game-card live">
-                <div class="game-thumbnail">
+                <a class="game-thumbnail" href="html/serversavershield/index.html" aria-label="Play Server Saver Shield">
+                    <img src="images/thumb_serversavershield.png" alt="Server Saver Shield game screenshot" onerror="this.style.display='none'">
                     <div class="thumb-bg thumb-serversaver"></div>
+                    <div class="thumb-overlay">
+                        <div class="play-btn-circle">▶️</div>
+                    </div>
                     <span class="live-badge">Live</span>
-                </div>
+                </a>
                 <div class="game-info">
                     <h3 class="game-title">🛡️ Server Saver Shield</h3>
                     <p class="game-desc">Defend servers from cyber attacks! Strategic security management meets arcade shooter. Hire staff, upgrade weapons, survive 10 waves.</p>
@@ -356,12 +376,16 @@
 
             <!-- Demo Lich Dom -->
             <div class="game-card live">
-                <div class="game-thumbnail">
+                <a class="game-thumbnail" href="html/demolichdom/index.html" aria-label="Play Demo Lichdom">
+                    <img src="images/thumb_demolichdom.png" alt="Demo Lichdom game screenshot" onerror="this.style.display='none'">
                     <div class="thumb-bg thumb-demolich"></div>
+                    <div class="thumb-overlay">
+                        <div class="play-btn-circle">▶️</div>
+                    </div>
                     <span class="live-badge">Live</span>
-                </div>
+                </a>
                 <div class="game-info">
-                    <h3 class="game-title">💀 Demo Lich Dom</h3>
+                    <h3 class="game-title">💀 Demo Lichdom</h3>
                     <p class="game-desc">Navigate the treacherous politics of undead lords. Strategy and action combined in this dark fantasy adventure.</p>
                     <div class="game-tags">
                         <span class="tag">Strategy</span>
@@ -376,10 +400,14 @@
 
             <!-- Fridge Simulator -->
             <div class="game-card live">
-                <div class="game-thumbnail">
+                <a class="game-thumbnail" href="html/fridgesimulator/index.html" aria-label="Play Fridge Simulator">
+                    <img src="images/thumb_fridgesimulator.png" alt="Fridge Simulator game screenshot" onerror="this.style.display='none'">
                     <div class="thumb-bg thumb-fridge"></div>
+                    <div class="thumb-overlay">
+                        <div class="play-btn-circle">▶️</div>
+                    </div>
                     <span class="live-badge">Live</span>
-                </div>
+                </a>
                 <div class="game-info">
                     <h3 class="game-title">🥶 Fridge Simulator</h3>
                     <p class="game-desc">Manage your fridge, feed your family, save the world. A quirky simulation game about household logistics and global impact.</p>
@@ -396,12 +424,16 @@
 
             <!-- Discover America -->
             <div class="game-card live">
-                <div class="game-thumbnail">
+                <a class="game-thumbnail" href="html/DiscoverAmerica/index.html" aria-label="Play Madi AI: Discover America">
+                    <img src="images/thumb_discoveramerica.png" alt="Discover America game screenshot" onerror="this.style.display='none'">
                     <div class="thumb-bg thumb-discover"></div>
+                    <div class="thumb-overlay">
+                        <div class="play-btn-circle">▶️</div>
+                    </div>
                     <span class="live-badge">Live</span>
-                </div>
+                </a>
                 <div class="game-info">
-                    <h3 class="game-title">🗽 Discover America</h3>
+                    <h3 class="game-title">🗽 Madi AI: Discover America</h3>
                     <p class="game-desc">Explore American history through interactive puzzles and adventures. Educational gameplay meets engaging storytelling.</p>
                     <div class="game-tags">
                         <span class="tag">Adventure</span>
@@ -416,9 +448,13 @@
 
             <!-- Template Demo -->
             <div class="game-card">
-                <div class="game-thumbnail">
+                <a class="game-thumbnail" href="html/template-demo/index.html" aria-label="View Template Demo">
+                    <img src="images/thumb_templatedemo.png" alt="Template Demo screenshot" onerror="this.style.display='none'">
                     <div class="thumb-bg thumb-template"></div>
-                </div>
+                    <div class="thumb-overlay">
+                        <div class="play-btn-circle">▶️</div>
+                    </div>
+                </a>
                 <div class="game-info">
                     <h3 class="game-title">📋 Template Demo</h3>
                     <p class="game-desc">See how 4weird games work. A complete example showing the standardized structure, shared components, credits, and maker bio sections.</p>
@@ -427,11 +463,12 @@
                         <span class="tag">Demo</span>
                         <span class="tag">Reference</span>
                     </div>
-                    <a href="html/template-demo/index.html" class="btn-game">
+                    <a href="html/template-demo/index.html" class="btn-game" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
                         <span>📋</span> View Template
                     </a>
                 </div>
             </div>
+
         </div>
     </main>
 
