@@ -62,9 +62,32 @@ document.addEventListener('DOMContentLoaded', () => {
         // Force a canvas redraw to show something
         const ctx = canvas.getContext('2d');
         if (ctx) {
-            drawBackground();
-            if (typeof drawStars === 'function') drawStars();
+            // Emergency visual test - draw colored bars
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(50, 50, 100, 100); // Red square
+            ctx.fillStyle = '#00ff00';
+            ctx.fillRect(200, 50, 100, 100); // Green square
+            ctx.fillStyle = '#0000ff';
+            ctx.fillRect(350, 50, 100, 100); // Blue square
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 30px Arial';
+            ctx.fillText('TEST PATTERN', 100, 200);
+            
+            console.log('[INIT] Emergency test pattern drawn');
         }
+        
+        // Add emergency click handler to force start screen
+        document.body.addEventListener('click', function() {
+            const startScreen = document.getElementById('startScreen');
+            if (startScreen) {
+                startScreen.style.display = 'flex';
+                startScreen.style.opacity = '1';
+                startScreen.style.visibility = 'visible';
+                startScreen.style.zIndex = '999999';
+                console.log('[INIT] Start screen forced visible via click');
+            }
+        });
         
     } catch (error) {
         console.error('[INIT] Failed to initialize game:', error);
