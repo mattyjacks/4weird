@@ -1,113 +1,237 @@
-# Contributing to 4weird Games
+# Contributing to 4weird Games 🚀
 
-Thanks for wanting to make something weird with us! 4weird is an open collection of
-browser-playable games, and we love new contributions. Whether it is a tiny experiment
-or a polished arcade title, if it runs in a browser and it is fun, we want it.
+**Ready to ship your weird game to thousands of players? You're in the right place.**
 
-Every accepted game gets credited to its author on the site.
+4weird is a **contributor-first platform**. We prioritize getting your game live fast with full credit, attribution, and promotion.
 
-## What we are looking for
+---
 
-- **Pure HTML5 games** - HTML, CSS, and vanilla JavaScript (or a small self-contained library). No build step required.
-- **Instant play** - the game should run by opening `index.html`, with no install or server needed.
-- **Weird, creative, fun** - originality is welcome. Surprise us.
-- **Family-friendly-ish** - keep it tasteful. No hateful, illegal, or explicit content.
+## 🎯 WHY CONTRIBUTE? (What's In It For You)
 
-## Project structure
+Every accepted game receives:
 
-Each HTML game lives in its own folder:
+| Benefit | What You Get |
+|---------|--------------|
+| **🌐 Live Featuring** | Permanent spot on 4weird.games with dedicated page |
+| **👤 Full Credits** | Name, role, avatar, and links on your game's page |
+| **📝 Maker Bio** | 200-word bio section to tell your story |
+| **🔗 SEO Backlink** | Do-follow link from an established gaming site |
+| **📱 Social Boost** | We promote new games on our channels |
+| **⭐ GitHub Credit** | Listed as contributor in the repo |
+| **🎮 Cross-Promotion** | Your game appears in "More Games" on other pages |
 
+**Zero cost. Full attribution. You keep ownership.**
+
+---
+
+## 🚦 THE 4-STEP FAST TRACK
+
+### Step 1: Fork & Clone (30 seconds)
+
+```bash
+# Using GitHub CLI (recommended)
+gh repo fork mattyjacks/4weird --clone
+cd 4weird
+
+# Or manual:
+git clone https://github.com/YOUR-USERNAME/4weird.git
+cd 4weird
+git checkout -b game/your-game-name
 ```
-website/v1/
-  index.html          <- main landing page (game cards live here)
-  styles.css
-  script.js
-  games/
-    html/
-      yourgame/        <- your game folder
-        index.html     <- entry point
-        game.js        <- your game logic
-        game.css       <- your styles
+
+### Step 2: Use The Template (1 minute)
+
+```bash
+# Copy the template folder
+cp -r website/v1/games/html/_TEMPLATE website/v1/games/html/your-game-name
+
+# Edit the metadata file with YOUR info
+# This drives credits and bio automatically
 ```
 
-## Step-by-step
+**What you get in `_TEMPLATE/`:**
+- `index.html` - Full game page with all sections (uses `TEMPLATE-4weird-*` classes)
+- `game.json` - Your metadata: title, credits, bio, controls
+- `game.css` - Optional overrides (template styles come from main stylesheet)
+- Automatic nav, footer, credits section, bio section, "More Games" CTA
 
-### 1. Fork and clone
+### Step 3: Build Your Game (the fun part)
 
-1. Fork https://github.com/mattyjacks/4weird on GitHub.
-2. Clone your fork:
-   ```bash
-   git clone https://github.com/<your-username>/4weird.git
-   cd 4weird
-   ```
-3. Create a branch:
-   ```bash
-   git checkout -b game/yourgame
-   ```
+**Required files in your folder:**
+```
+website/v1/games/html/your-game-name/
+├── index.html      # Entry point (from template)
+├── game.js         # Your game logic
+├── game.css        # Your styles (optional)
+├── game.json       # Metadata for credits/bio
+└── (external assets linked by URL)
+```
 
-### 2. Build your game
+**Critical requirements:**
+- ✅ Pure HTML5 + vanilla JS (no frameworks, no build step)
+- ✅ Max 10MB total per game
+- ✅ Large files (audio, video, big images) hosted externally & linked
+- ✅ Uses `TEMPLATE-4weird-*` classes for template elements
+- ✅ Includes `game.json` with your credits and bio
+- ✅ Opens directly in browser (no server needed)
 
-1. Create your folder: `website/v1/games/html/yourgame/`.
-2. Add an `index.html` entry point. Keep assets relative to your folder.
-3. Add a header link back to the main site so players can return:
-   ```html
-   <a href="../../../index.html" class="back-btn">&larr; Back</a>
-   ```
-4. Test it by opening `website/v1/games/html/yourgame/index.html` in your browser.
+**game.json template:**
+```json
+{
+    "title": "Your Game",
+    "slug": "your-game-name",
+    "description": "One sentence hook",
+    "genre": "Arcade",
+    "maker": {
+        "name": "Your Name",
+        "bio": "Your story (50-200 words). What inspires you? Your style?",
+        "url": "https://yourportfolio.com",
+        "urlLabel": "Portfolio"
+    },
+    "credits": [
+        {
+            "name": "Your Name",
+            "role": "Developer",
+            "avatar": "🎨",
+            "primary": true
+        }
+    ],
+    "controls": {
+        "keyboard": {"Arrow Keys": "Move", "Space": "Action"},
+        "touch": true
+    }
+}
+```
 
-### 3. Add your game card to the landing page
+### Step 4: Add Game Card & PR (2 minutes)
 
-Open `website/v1/index.html`, find the `<!-- Games Section -->`, and add a new card
-inside `<div class="games-grid">`. Use an existing card as a template:
+**Add your game to the main page:**
+
+Open `website/v1/index.html`, find `<div class="games-grid">`, and add:
 
 ```html
 <div class="game-card reveal live">
     <div class="game-thumbnail">
         <div class="thumb-bg thumb-yourgame"></div>
-        <div class="thumb-overlay"><span class="play-btn">&#9654;&#65039;</span></div>
+        <div class="thumb-overlay"><span class="play-btn">▶️</span></div>
         <span class="game-badge live-badge">LIVE</span>
     </div>
     <div class="game-info">
         <h3 class="game-title">Your Game</h3>
-        <p class="game-desc">A short, punchy description of your weird game.</p>
+        <p class="game-desc">Short punchy description of your weird game.</p>
         <div class="game-tags">
             <span class="tag">HTML5</span>
             <span class="tag">YourGenre</span>
         </div>
-        <a href="games/html/yourgame/index.html" class="btn btn-game">
-            <span class="btn-emoji">&#127918;</span> Play Now
+        <a href="games/html/your-game-name/index.html" class="btn btn-game">
+            <span class="btn-emoji">🎮</span> Play Now
         </a>
     </div>
 </div>
 ```
 
-Then add a matching thumbnail style in `website/v1/styles.css` (optional but nice):
-
+**Optional: Add thumbnail style to `styles.css`:**
 ```css
-.thumb-yourgame { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); position: relative; }
-.thumb-yourgame::before { content: '🎲 🚀'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; letter-spacing: 8px; }
+.thumb-yourgame {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    position: relative;
+}
+.thumb-yourgame::before {
+    content: '🎲 🚀';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2.5rem;
+}
 ```
 
-### 4. Open a pull request
+**Commit and ship:**
+```bash
+git add .
+git commit -m "Add: Your Game Name - short description"
+git push origin game/your-game-name
 
-1. Commit your work:
-   ```bash
-   git add .
-   git commit -m "Add Your Game"
-   git push origin game/yourgame
-   ```
-2. Open a pull request against `mattyjacks/4weird`.
-3. In the PR description, include:
-   - A one-line summary of the game.
-   - How to play / controls.
-   - How you would like to be credited (name + optional link).
+# Open PR on GitHub
+# Include in PR description:
+# - Game summary (1 sentence)
+# - How to play / controls
+# - Anything special we should know
+```
 
-## Review
+---
 
-We review quickly, give friendly feedback, and merge the weird ones live. If something
-needs changes we will let you know in the PR. That is it - go make something weird!
+## 📋 WHAT WE ACCEPT
 
-## License and ownership
+**YES - Send these:**
+- ✅ Weird, creative, fun browser games
+- ✅ Tiny experiments (even 1-day builds)
+- ✅ Polished arcade/shooter/puzzle/strategy games
+- ✅ Educational games with engaging mechanics
+- ✅ Emoji-graphics games (no art skills required!)
+- ✅ Mobile-touch friendly games
 
-By contributing, you confirm your submission is your own work (or properly licensed),
-and you agree it can be hosted and showcased as part of the 4weird Games project.
+**NO - Don't send these:**
+- ❌ Games requiring build tools (webpack, vite, etc.)
+- ❌ Framework-dependent games (React, Vue, Angular)
+- ❌ Server-side required games (PHP, Node backend)
+- ❌ Hateful, illegal, or explicit content
+- ❌ Games over 10MB with all assets bundled
+
+---
+
+## 🎨 CODE STANDARDS (Quick Checklist)
+
+Before submitting, verify:
+
+- [ ] Uses `TEMPLATE-4weird-*` classes for template elements
+- [ ] `game.json` populated with your info
+- [ ] No em/en dashes in code (use hyphens `-` only)
+- [ ] All paths relative (`../../` not `/`)
+- [ ] Total folder under 10MB
+- [ ] Large assets linked externally (not bundled)
+- [ ] Works by opening `index.html` directly
+- [ ] Mobile touch controls (if applicable)
+- [ ] Pause functionality (P or Esc key)
+
+**See [CODING_STANDARD.md](CODING_STANDARD.md) for full conventions.**
+
+---
+
+## 🔄 REVIEW PROCESS
+
+1. **Submit PR** → Automated checks run
+2. **Human review** → We play your game (usually within 24-48 hours)
+3. **Feedback** → If needed, we suggest changes (friendly, constructive)
+4. **Merge** → You go live on 4weird.games immediately
+5. **Promote** → We shout out new games on social channels
+
+**We want to merge your game.** The weirder, the better.
+
+---
+
+## 🆘 NEED HELP?
+
+- **Template questions?** Check `website/v1/games/html/_TEMPLATE/`
+- **Code standards?** Read [CODING_STANDARD.md](CODING_STANDARD.md)
+- **Skill file for AI agents?** Use `skill.md` with ID `4weird-game-dev-by-mattyjacks`
+- **Direct contact:** Matt@MattyJacks.com or [mattyjacks.com/contact](https://mattyjacks.com/contact)
+
+---
+
+## 📜 LICENSE & OWNERSHIP
+
+By contributing, you confirm:
+- Your submission is your original work OR properly licensed
+- You grant 4weird the right to host and showcase your game
+- **You retain full ownership** of your game and code
+- Your game stays open source in this repo (MIT license)
+
+---
+
+## 🎮 READY TO BUILD?
+
+### [👉 FORK THE REPO AND START NOW](https://github.com/mattyjacks/4weird/fork)
+
+**Copy the template. Make it weird. Ship it.**
+
+*Do and/or DIE TRYING!!!*

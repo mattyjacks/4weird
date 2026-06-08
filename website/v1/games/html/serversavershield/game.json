@@ -1,0 +1,55 @@
+{
+    "title": "Server Saver Shield",
+    "slug": "serversavershield",
+    "description": "Defend the data centers from cyber attacks! Malware bots, DDOS attacks, and viruses are targeting our servers. Deploy your shield and save the network!",
+    "genre": "Arcade",
+    "tags": ["HTML5", "Arcade", "Shooter", "Cyber"],
+    "maker": {
+        "name": "MattyJacks",
+        "bio": "Founder of 4weird Games. Server Saver Shield represents my passion for creating games with timely themes - cybersecurity meets arcade action. I believe games can be both entertaining and relevant to modern digital challenges. Every game I create follows the 4weird philosophy: unexpected concepts, polished execution, pure browser-based gameplay.",
+        "url": "https://mattyjacks.com",
+        "urlLabel": "mattyjacks.com"
+    },
+    "credits": [
+        {
+            "name": "MattyJacks",
+            "role": "Game Developer & Designer",
+            "avatar": "🛡️",
+            "primary": true,
+            "url": "https://mattyjacks.com",
+            "urlLabel": "Website"
+        },
+        {
+            "name": "4weird Games",
+            "role": "Publisher",
+            "avatar": "🎮",
+            "primary": false,
+            "url": "https://github.com/mattyjacks/4weird",
+            "urlLabel": "GitHub"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "Mouse/Touch": "Move shield",
+            "Hold Click": "Fire shield beams",
+            "P": "Pause game"
+        },
+        "touch": true,
+        "mouse": true
+    },
+    "instructions": "You are the Server Saver Shield - our last line of defense! Move your shield with mouse or touch to intercept malware bots, viruses, and DDOS attacks. Hold to fire shield beams. Protect the server health bar at all costs!",
+    "technical": {
+        "canvasSize": {"width": 800, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [],
+        "local": ["game.js", "game.css", "game.json"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2025-01-15",
+        "license": "MIT"
+    }
+}

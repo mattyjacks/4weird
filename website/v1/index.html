@@ -18,28 +18,8 @@
     <!-- Particle Canvas Background -->
     <canvas id="starfield"></canvas>
 
-    <!-- Navigation -->
-    <nav class="navbar" id="navbar">
-        <div class="nav-container">
-            <a href="#" class="logo">
-                <span class="logo-emoji">🎮</span>
-                <span class="logo-text">4weird<span class="logo-accent">Games</span></span>
-            </a>
-            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-            <ul class="nav-menu" id="navMenu">
-                <li><a href="#games" class="nav-link">Games</a></li>
-                <li><a href="#about" class="nav-link">About</a></li>
-                <li><a href="#tech" class="nav-link">Tech</a></li>
-                <li><a href="#contribute" class="nav-link">Contribute</a></li>
-                <li><a href="#team" class="nav-link">Team</a></li>
-                <li><a href="#contact" class="nav-link nav-cta">Contact</a></li>
-            </ul>
-        </div>
-    </nav>
+    <!-- Navigation placeholder - injected by components.js -->
+    <div id="nav-placeholder"></div>
 
     <!-- Hero Section -->
     <section class="hero" id="hero">
@@ -286,6 +266,27 @@
                         </a>
                     </div>
                 </div>
+                <div class="game-card reveal live">
+                    <div class="game-thumbnail">
+                        <div class="thumb-bg thumb-template"></div>
+                        <div class="thumb-overlay">
+                            <span class="play-btn">▶️</span>
+                        </div>
+                        <span class="game-badge template-badge">TEMPLATE</span>
+                    </div>
+                    <div class="game-info">
+                        <h3 class="game-title">Template Demo</h3>
+                        <p class="game-desc">See how 4weird games work. A complete example showing the standardized structure, shared components, credits, and maker bio sections. Use this as reference!</p>
+                        <div class="game-tags">
+                            <span class="tag">HTML5</span>
+                            <span class="tag">Demo</span>
+                            <span class="tag">Reference</span>
+                        </div>
+                        <a href="games/html/template-demo/index.html" class="btn btn-game">
+                            <span class="btn-emoji">📋</span> View Template
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -425,34 +426,10 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-brand">
-                    <span class="footer-logo">🎮 4weird<span class="footer-accent">Games</span></span>
-                    <p class="footer-tagline">Future Forward Fun</p>
-                </div>
-                <div class="footer-links">
-                    <a href="#games" class="footer-link">Games</a>
-                    <a href="#about" class="footer-link">About</a>
-                    <a href="#tech" class="footer-link">Tech</a>
-                    <a href="#contribute" class="footer-link">Contribute</a>
-                    <a href="#team" class="footer-link">Team</a>
-                    <a href="#contact" class="footer-link">Contact</a>
-                    <a href="https://github.com/mattyjacks/4weird" target="_blank" rel="noopener" class="footer-link">GitHub</a>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p class="footer-copyright">
-                    &copy; 2025 4weird Games. A <a href="https://mattyjacks.com" target="_blank" rel="noopener">MattyJacks.com</a> Company.
-                </p>
-                <p class="footer-location">New Hampshire, USA &bull; Global Freelancers</p>
-                <p class="footer-slogan">Do and/or DIE TRYING!!!</p>
-            </div>
-        </div>
-    </footer>
+    <!-- Footer placeholder - injected by components.js -->
+    <div id="footer-placeholder"></div>
 
+    <script src="components.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

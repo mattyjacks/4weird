@@ -1,0 +1,55 @@
+{
+    "title": "Fridge Simulator",
+    "slug": "fridgesimulator",
+    "description": "Manage fridges for multiple countries. Buy food from diverse sources, balance nutrition, and keep families alive. Feed everyone or watch them starve.",
+    "genre": "Simulation",
+    "tags": ["HTML5", "Simulation", "Strategy", "Management"],
+    "maker": {
+        "name": "MattyJacks",
+        "bio": "Founder of 4weird Games. Fridge Simulator emerged from my interest in systems thinking and resource management games. The darkly humorous premise - managing global food logistics with real consequences - exemplifies the 4weird approach to game design: take a serious concept, make it playable, and let players discover the depth for themselves.",
+        "url": "https://mattyjacks.com",
+        "urlLabel": "mattyjacks.com"
+    },
+    "credits": [
+        {
+            "name": "MattyJacks",
+            "role": "Game Developer & Designer",
+            "avatar": "🍳",
+            "primary": true,
+            "url": "https://mattyjacks.com",
+            "urlLabel": "Website"
+        },
+        {
+            "name": "4weird Games",
+            "role": "Publisher",
+            "avatar": "🎮",
+            "primary": false,
+            "url": "https://github.com/mattyjacks/4weird",
+            "urlLabel": "GitHub"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "Mouse/Touch": "Navigate interface",
+            "Click": "Buy food, manage fridges",
+            "Next Day": "Advance time"
+        },
+        "touch": true,
+        "mouse": true
+    },
+    "instructions": "You are a global food coordinator. Buy food from various sources (grocery, pantry, charity, dumpster, wholesale), stock fridges across multiple countries, and balance nutrition. Each day, families get hungrier. Fail to feed them and they die. Survive as many days as possible.",
+    "technical": {
+        "canvasSize": {"width": 1200, "height": 800},
+        "targetFPS": 30,
+        "mobileOptimized": false
+    },
+    "assets": {
+        "external": [],
+        "local": ["game.js", "game.css", "game.json"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2025-02-01",
+        "license": "MIT"
+    }
+}

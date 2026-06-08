@@ -1,30 +1,104 @@
-# 4weird
+# 4weird Games 🎮
 
-4weird games. Website and also on-site games.
+**The open HTML5 game platform where weird ideas become playable reality.**
 
-A growing, open collection of browser-playable HTML5 games and the site that showcases them.
+Started 6/6/26 | A [MattyJacks.com](https://mattyjacks.com) Company
 
-## Play
+---
 
-Open `website/v1/index.html` in your browser, or visit the live site and hit **Play Now** on any game card. Every game lives under `website/v1/games/html/`.
+## 🚀 CONTRIBUTE YOUR GAME - GET FEATURED TODAY
 
-## Contribute a game
+**Have a weird game idea? We want it.** 4weird is an **open, contributor-first platform**. Every accepted game gets:
 
-**We want your weird games!** 4weird is open source and contributions are welcome - from tiny experiments to polished arcade titles. If it runs in a browser and it is fun, we want it. Every accepted game gets credited to its author.
+- ✅ **Permanent featuring** on 4weird.games
+- ✅ **Dedicated game page** with credits & your bio
+- ✅ **Social promotion** across our channels
+- ✅ **GitHub contributor credit** in the repo
+- ✅ **Backlink to your portfolio** from a live site
 
-It is quick to get started:
+### It takes 4 steps to go from idea to live:
 
-1. **Fork & clone** this repo.
-2. **Build your game** in `website/v1/games/html/yourgame/` (just `index.html` + your JS/CSS, no build step).
-3. **Add a game card** to the Games section of `website/v1/index.html`.
-4. **Open a pull request** - we review fast and ship the weird ones live.
+```bash
+# 1. Fork & clone
+gh repo fork mattyjacks/4weird --clone
 
-Full step-by-step instructions, templates, and guidelines are in **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+# 2. Copy the template
+cp -r website/v1/games/html/_TEMPLATE website/v1/games/html/yourgame
 
-Ready? [Fork the repo](https://github.com/mattyjacks/4weird/fork) and make something weird.
+# 3. Build your game (index.html + game.js + game.css)
+# Edit game.json with your credits and bio
 
-## Tech
+# 4. PR and ship
+git add . && git commit -m "Add: Your Game Name" && git push
+# Open PR -> We review fast -> You're live!
+```
 
-Pure HTML5 games - HTML, CSS, and vanilla JavaScript. No frameworks or build tools required. Instant play, no downloads.
+### 🎯 The Template Does The Heavy Lifting
 
-A [MattyJacks.com](https://mattyjacks.com) project. Do and/or DIE TRYING!!!
+Our **`_TEMPLATE/`** folder gives you everything:
+- Pre-built game page structure
+- Shared nav/footer (automatic)
+- Credits section (populated from `game.json`)
+- Maker bio section (your story, your links)
+- Mobile-ready responsive layout
+- "More Games" cross-promotion
+
+**Max 10MB per game.** Big assets? Host externally and link. No build tools needed.
+
+### [👉 CLICK HERE TO FORK AND START BUILDING](https://github.com/mattyjacks/4weird/fork)
+
+Full details, conventions, and code standards in **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+
+---
+
+## 🎮 Play Games
+
+Visit [4weird.games](https://4weird.games) or open `website/v1/index.html` locally.
+
+Current lineup:
+- **Demo Lichdom** - Command skeletons to demolish buildings
+- **Server Saver Shield** - Cyber defense arcade shooter
+- **Fridge Simulator** - Global food logistics management
+- **Madi AI: Discover America** - Sort data to chart a voyage
+- **Template Demo** - See how the template works
+
+---
+
+## 🛠️ Tech Stack
+
+| Requirement | Specification |
+|-------------|---------------|
+| **Engine** | Pure HTML5 Canvas + vanilla JS |
+| **Styling** | CSS variables from `styles.css` |
+| **Template** | `_TEMPLATE/` folder with namespaced classes (`TEMPLATE-4weird-*`) |
+| **Size Limit** | 10MB max (external assets for large files) |
+| **Build Step** | None. Zero. Just open in browser. |
+
+---
+
+## 📋 Quick Reference for Contributors
+
+```
+website/v1/games/html/yourgame/
+├── index.html          # Uses TEMPLATE-4weird-* classes
+├── game.js             # Your game logic
+├── game.css            # Your styles (optional)
+└── game.json           # Credits, bio, controls info
+```
+
+**Naming convention:** All template classes are prefixed with `TEMPLATE-4weird-` to avoid CSS conflicts with your game-specific styles.
+
+---
+
+## 🤝 Why Contribute?
+
+- **Visibility:** Your game on a curated platform
+- **Portfolio:** Live demo + source code + credits
+- **Community:** Join other weird game makers
+- **Simple:** Copy template, build game, PR, done
+
+**Weird is welcome. Polished is appreciated. Both together? That's 4weird.**
+
+---
+
+*Do and/or DIE TRYING!!!*

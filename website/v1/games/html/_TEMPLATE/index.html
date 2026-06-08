@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<!--
+    4weird Game Template
+    Copy this folder to create a new game: website/v1/games/html/YOURGAME/
+    
+    Required files in your game folder:
+    - index.html (this file, customized)
+    - game.js (your game logic)
+    - game.css (your game styles)
+    - game.json (metadata for credits and bio)
+    
+    Max size: 10MB total. Large assets must be hosted externally.
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>GAME_TITLE - 4weird Games</title>
+    <meta name="description" content="GAME_DESCRIPTION. A pure HTML5 game by GAME_MAKER for 4weird Games.">
+    <meta name="keywords" content="4weird, GAME_TITLE, HTML5 game, browser game, GAME_GENRE">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="GAME_TITLE - 4weird Games">
+    <meta property="og:description" content="GAME_SHORT_DESCRIPTION">
+    <meta property="og:type" content="website">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Base Styles -->
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="game.css">
+    
+    <!-- Game Metadata (loaded for credits/bio) -->
+    <script src="game.json" type="application/json" id="game-metadata"></script>
+</head>
+<body class="TEMPLATE-4weird-game-page">
+    <!-- Background -->
+    <canvas id="TEMPLATE-4weird-starfield"></canvas>
+    
+    <!-- Navigation placeholder - injected by components.js -->
+    <div id="TEMPLATE-4weird-nav-placeholder"></div>
+    
+    <!-- Game Header Bar -->
+    <header class="TEMPLATE-4weird-game-header">
+        <div class="TEMPLATE-4weird-game-header-inner">
+            <a href="../../../index.html#games" class="TEMPLATE-4weird-back-link">
+                <span class="TEMPLATE-4weird-back-arrow">←</span>
+                <span>Back to 4weird</span>
+            </a>
+            <h1 class="TEMPLATE-4weird-game-title" id="TEMPLATE-4weird-game-title">GAME_TITLE</h1>
+            <div class="TEMPLATE-4weird-game-meta" id="TEMPLATE-4weird-game-meta">
+                <span class="TEMPLATE-4weird-game-genre">GAME_GENRE</span>
+                <span class="TEMPLATE-4weird-separator">•</span>
+                <span class="TEMPLATE-4weird-game-status live">LIVE</span>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Game Container -->
+    <main class="TEMPLATE-4weird-game-main">
+        <!-- Game Canvas/Frame -->
+        <div class="TEMPLATE-4weird-game-frame">
+            <canvas id="TEMPLATE-4weird-gameCanvas"></canvas>
+            
+            <!-- Game Overlay States -->
+            <div class="TEMPLATE-4weird-game-overlay" id="TEMPLATE-4weird-start-screen">
+                <div class="TEMPLATE-4weird-overlay-content">
+                    <h2>GAME_TITLE</h2>
+                    <p>GAME_SHORT_DESCRIPTION</p>
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-start-btn">
+                        <span class="btn-emoji">🎮</span> Start Game
+                    </button>
+                    <div class="TEMPLATE-4weird-controls-hint">
+                        <p><strong>Controls:</strong> GAME_CONTROLS</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="TEMPLATE-4weird-pause-screen">
+                <div class="TEMPLATE-4weird-overlay-content">
+                    <h2>Paused</h2>
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-resume-btn">Resume</button>
+                    <button class="btn btn-secondary" id="TEMPLATE-4weird-restart-btn">Restart</button>
+                </div>
+            </div>
+            
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="TEMPLATE-4weird-game-over-screen">
+                <div class="TEMPLATE-4weird-overlay-content">
+                    <h2>Game Over</h2>
+                    <p class="TEMPLATE-4weird-final-score">Score: <span id="TEMPLATE-4weird-final-score">0</span></p>
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-play-again-btn">Play Again</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Game Info Panel -->
+        <aside class="TEMPLATE-4weird-game-info-panel">
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>How to Play</h3>
+                <p id="TEMPLATE-4weird-how-to-play">GAME_INSTRUCTIONS</p>
+            </div>
+            
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>Controls</h3>
+                <ul id="TEMPLATE-4weird-controls-list">
+                    <li><kbd>Arrow Keys</kbd> / <kbd>WASD</kbd> - Move</li>
+                    <li><kbd>Space</kbd> - Action</li>
+                    <li><kbd>P</kbd> / <kbd>Esc</kbd> - Pause</li>
+                </ul>
+            </div>
+            
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>High Score</h3>
+                <p class="TEMPLATE-4weird-high-score" id="TEMPLATE-4weird-high-score">0</p>
+            </div>
+        </aside>
+    </main>
+    
+    <!-- Credits Section -->
+    <section class="TEMPLATE-4weird-credits-section" id="TEMPLATE-4weird-credits">
+        <div class="TEMPLATE-4weird-credits-container">
+            <h2 class="TEMPLATE-4weird-credits-title">Credits</h2>
+            
+            <div class="TEMPLATE-4weird-credits-grid" id="TEMPLATE-4weird-credits-grid">
+                <!-- Populated from game.json -->
+                <div class="TEMPLATE-4weird-credit-card TEMPLATE-4weird-primary">
+                    <div class="TEMPLATE-4weird-credit-avatar">🎨</div>
+                    <h3 class="TEMPLATE-4weird-credit-name" id="TEMPLATE-4weird-maker-name">GAME_MAKER</h3>
+                    <p class="TEMPLATE-4weird-credit-role">Game Developer</p>
+                    <p class="TEMPLATE-4weird-credit-links">
+                        <a href="MAKER_URL" target="_blank" rel="noopener" id="TEMPLATE-4weird-maker-link">Portfolio</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Maker Bio Section -->
+    <section class="TEMPLATE-4weird-bio-section" id="TEMPLATE-4weird-bio">
+        <div class="TEMPLATE-4weird-bio-container">
+            <h2 class="TEMPLATE-4weird-bio-title">About the Creator</h2>
+            <div class="TEMPLATE-4weird-bio-content" id="TEMPLATE-4weird-maker-bio">
+                <p>MAKER_BIO_TEXT</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- More Games -->
+    <section class="TEMPLATE-4weird-more-games">
+        <div class="TEMPLATE-4weird-more-games-container">
+            <h2>More 4weird Games</h2>
+            <a href="../../../index.html#games" class="btn btn-secondary">
+                <span class="btn-emoji">🎯</span> Browse All Games
+            </a>
+        </div>
+    </section>
+    
+    <!-- Footer placeholder -->
+    <div id="TEMPLATE-4weird-footer-placeholder"></div>
+    
+    <!-- Scripts -->
+    <script src="../../components.js"></script>
+    <script src="game.js"></script>
+    <script>
+        // Load game metadata and populate template
+        (function() {
+            fetch('game.json')
+                .then(r => r.json())
+                .then(data => {
+                    document.title = data.title + ' - 4weird Games';
+                    document.getElementById('TEMPLATE-4weird-game-title').textContent = data.title;
+                    document.getElementById('TEMPLATE-4weird-maker-name').textContent = data.maker.name;
+                    document.getElementById('TEMPLATE-4weird-maker-bio').innerHTML = '<p>' + data.maker.bio + '</p>';
+                    
+                    if (data.maker.url) {
+                        const link = document.getElementById('TEMPLATE-4weird-maker-link');
+                        link.href = data.maker.url;
+                        link.textContent = data.maker.urlLabel || 'Portfolio';
+                    }
+                    
+                    // Update credits grid with all contributors
+                    if (data.credits && data.credits.length > 0) {
+                        const grid = document.getElementById('TEMPLATE-4weird-credits-grid');
+                        grid.innerHTML = data.credits.map(c => `
+                            <div class="TEMPLATE-4weird-credit-card ${c.primary ? 'TEMPLATE-4weird-primary' : ''}">
+                                <div class="TEMPLATE-4weird-credit-avatar">${c.avatar || '👤'}</div>
+                                <h3 class="TEMPLATE-4weird-credit-name">${c.name}</h3>
+                                <p class="TEMPLATE-4weird-credit-role">${c.role}</p>
+                                ${c.url ? `<p class="TEMPLATE-4weird-credit-links"><a href="${c.url}" target="_blank" rel="noopener">${c.urlLabel || 'Link'}</a></p>` : ''}
+                            </div>
+                        `).join('');
+                    }
+                })
+                .catch(err => console.log('Using template defaults:', err));
+        })();
+    </script>
+</body>
+</html>

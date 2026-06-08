@@ -1,0 +1,54 @@
+{
+    "title": "Template Demo",
+    "slug": "template-demo",
+    "description": "A demonstration of the 4weird game template showing all standard features and conventions.",
+    "genre": "Demo",
+    "tags": ["HTML5", "Demo", "Template"],
+    "maker": {
+        "name": "MattyJacks",
+        "bio": "Founder of 4weird Games and MattyJacks.com. I build AI-powered development tools and browser games. This template demonstrates the standardized structure for all 4weird games - including shared components, credits sections, and maker bios. Every game on the platform follows this format to ensure consistency and maintainability.",
+        "url": "https://mattyjacks.com",
+        "urlLabel": "mattyjacks.com"
+    },
+    "credits": [
+        {
+            "name": "MattyJacks",
+            "role": "Template Creator",
+            "avatar": "🎨",
+            "primary": true,
+            "url": "https://mattyjacks.com",
+            "urlLabel": "Website"
+        },
+        {
+            "name": "4weird Community",
+            "role": "Testers & Feedback",
+            "avatar": "🎮",
+            "primary": false
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "Arrow Keys / WASD": "Move player",
+            "Space": "Change color",
+            "P or Esc": "Pause game"
+        },
+        "touch": true,
+        "mouse": false
+    },
+    "instructions": "Move the glowing orb around the screen. Press SPACE to change colors. Try to keep the orb within the bounds. This is a template demonstration showing how all 4weird games work.",
+    "technical": {
+        "canvasSize": {"width": 800, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [],
+        "local": ["game.js", "game.css", "game.json"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-07",
+        "template": true,
+        "license": "MIT"
+    }
+}

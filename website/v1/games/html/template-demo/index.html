@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Template Demo - 4weird Games</title>
+    <meta name="description" content="A demonstration of the 4weird game template showing all standard features and conventions.">
+    <meta name="keywords" content="4weird, template, demo, HTML5 game, browser game">
+    <meta property="og:title" content="Template Demo - 4weird Games">
+    <meta property="og:description" content="See how 4weird games are structured.">
+    <meta property="og:type" content="website">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../_TEMPLATE/game.css">
+    <link rel="stylesheet" href="game.css">
+</head>
+<body class="TEMPLATE-4weird-game-page">
+    <canvas id="TEMPLATE-4weird-starfield"></canvas>
+    <div id="TEMPLATE-4weird-nav-placeholder"></div>
+    
+    <header class="TEMPLATE-4weird-game-header">
+        <div class="TEMPLATE-4weird-game-header-inner">
+            <a href="../../../index.html#games" class="TEMPLATE-4weird-back-link">
+                <span class="TEMPLATE-4weird-back-arrow">←</span>
+                <span>Back to 4weird</span>
+            </a>
+            <h1 class="TEMPLATE-4weird-game-title" id="TEMPLATE-4weird-game-title">Template Demo</h1>
+            <div class="TEMPLATE-4weird-game-meta" id="TEMPLATE-4weird-game-meta">
+                <span class="TEMPLATE-4weird-game-genre">Demo</span>
+                <span class="TEMPLATE-4weird-separator">•</span>
+                <span class="TEMPLATE-4weird-game-status live">LIVE</span>
+            </div>
+        </div>
+    </header>
+    
+    <main class="TEMPLATE-4weird-game-main">
+        <div class="TEMPLATE-4weird-game-frame">
+            <canvas id="gameCanvas"></canvas>
+            
+            <div class="TEMPLATE-4weird-game-overlay" id="start-screen">
+                <div class="TEMPLATE-4weird-overlay-content">
+                    <h2>Template Demo</h2>
+                    <p>Move the orb. Press SPACE (or tap) to change colors. Stay alive to score!</p>
+                    <button class="btn btn-primary" id="start-btn">
+                        <span class="btn-emoji">🎮</span> Start Demo
+                    </button>
+                    <div class="TEMPLATE-4weird-controls-hint">
+                        <p><strong>Controls:</strong> Arrow Keys/WASD to move, SPACE to change color, P to pause</p>
+                        <p><strong>Mobile:</strong> Touch and drag to move, tap to change color</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="pause-screen">
+                <div class="TEMPLATE-4weird-overlay-content">
+                    <h2>Paused</h2>
+                    <button class="btn btn-primary" id="resume-btn">Resume</button>
+                    <button class="btn btn-secondary" id="restart-btn">Restart</button>
+                </div>
+            </div>
+            
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="game-over-screen">
+                <div class="TEMPLATE-4weird-overlay-content">
+                    <h2>Demo Complete</h2>
+                    <p class="TEMPLATE-4weird-final-score">Score: <span id="final-score">0</span></p>
+                    <button class="btn btn-primary" id="play-again-btn">Play Again</button>
+                </div>
+            </div>
+        </div>
+        
+        <aside class="TEMPLATE-4weird-game-info-panel">
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>How to Play</h3>
+                <p>Move the glowing orb around the screen. Press SPACE or tap to change colors and earn points. The longer you play, the more points you get!</p>
+            </div>
+            
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>Controls</h3>
+                <ul>
+                    <li><kbd>Arrow Keys</kbd> / <kbd>WASD</kbd> - Move</li>
+                    <li><kbd>Space</kbd> - Change color (+10 pts)</li>
+                    <li><kbd>P</kbd> / <kbd>Esc</kbd> - Pause</li>
+                    <li><kbd>Touch</kbd> - Drag to move, tap to color</li>
+                </ul>
+            </div>
+            
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>High Score</h3>
+                <p class="TEMPLATE-4weird-high-score" id="high-score">0</p>
+            </div>
+            
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>Template Features</h3>
+                <ul>
+                    <li>✓ Shared nav/footer</li>
+                    <li>✓ Credits section</li>
+                    <li>✓ Maker bio</li>
+                    <li>✓ Mobile touch</li>
+                    <li>✓ Pause functionality</li>
+                </ul>
+            </div>
+        </aside>
+    </main>
+    
+    <section class="TEMPLATE-4weird-credits-section" id="TEMPLATE-4weird-credits">
+        <div class="TEMPLATE-4weird-credits-container">
+            <h2 class="TEMPLATE-4weird-credits-title">Credits</h2>
+            <div class="TEMPLATE-4weird-credits-grid" id="TEMPLATE-4weird-credits-grid">
+                <div class="TEMPLATE-4weird-credit-card TEMPLATE-4weird-primary">
+                    <div class="TEMPLATE-4weird-credit-avatar">🎨</div>
+                    <h3 class="TEMPLATE-4weird-credit-name">MattyJacks</h3>
+                    <p class="TEMPLATE-4weird-credit-role">Template Creator</p>
+                    <p class="TEMPLATE-4weird-credit-links"><a href="https://mattyjacks.com" target="_blank" rel="noopener">mattyjacks.com</a></p>
+                </div>
+                <div class="TEMPLATE-4weird-credit-card">
+                    <div class="TEMPLATE-4weird-credit-avatar">🎮</div>
+                    <h3 class="TEMPLATE-4weird-credit-name">4weird Community</h3>
+                    <p class="TEMPLATE-4weird-credit-role">Testers &amp; Feedback</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="TEMPLATE-4weird-bio-section" id="TEMPLATE-4weird-bio">
+        <div class="TEMPLATE-4weird-bio-container">
+            <h2 class="TEMPLATE-4weird-bio-title">About the Creator</h2>
+            <div class="TEMPLATE-4weird-bio-content">
+                <p>Founder of 4weird Games and MattyJacks.com. I build AI-powered development tools and browser games. This template demonstrates the standardized structure for all 4weird games - including shared components, credits sections, and maker bios. Every game on the platform follows this format to ensure consistency and maintainability.</p>
+            </div>
+        </div>
+    </section>
+    
+    <section class="TEMPLATE-4weird-more-games">
+        <div class="TEMPLATE-4weird-more-games-container">
+            <h2>More 4weird Games</h2>
+            <a href="../../../index.html#games" class="btn btn-secondary">
+                <span class="btn-emoji">🎯</span> Browse All Games
+            </a>
+        </div>
+    </section>
+    
+    <div id="TEMPLATE-4weird-footer-placeholder"></div>
+    
+    <script src="../../components.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

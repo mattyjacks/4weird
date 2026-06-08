@@ -271,6 +271,9 @@ body {
 .thumb-fridge::before { content: '🍳 🌍 👥 🍎'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; letter-spacing: 8px; animation: float 3s ease-in-out infinite; }
 .thumb-discoveramerica { background: linear-gradient(135deg, #06121f 0%, #0b2a4a 50%, #103a63 100%); position: relative; }
 .thumb-discoveramerica::before { content: '🧭 ⛵ 🌊 🗽'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; letter-spacing: 8px; animation: float 3s ease-in-out infinite; }
+.thumb-template { background: linear-gradient(135deg, #1a1a2e 0%, #4c1d95 50%, #7c3aed 100%); position: relative; }
+.thumb-template::before { content: '📋 ✨ 🎮 📐'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; letter-spacing: 8px; animation: float 3s ease-in-out infinite; }
+.template-badge { background: linear-gradient(135deg, var(--neon-purple), #7c3aed); color: var(--text-primary); }
 .team { background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%); }
 .team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; max-width: 800px; margin: 0 auto; }
 .team-card { background: var(--bg-card); border-radius: 24px; padding: 40px; text-align: center; border: 1px solid rgba(139, 92, 246, 0.2); transition: 0.3s ease; }
@@ -389,4 +392,383 @@ body {
     .contact-content { grid-template-columns: 1fr; }
     .footer-content { flex-direction: column; text-align: center; }
     .footer-links { flex-wrap: wrap; justify-content: center; }
+}
+
+/* ===== TEMPLATE-4weird GAME PAGE STYLES ===== */
+/* Namespaced to avoid conflicts with game-specific CSS */
+
+.TEMPLATE-4weird-game-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.TEMPLATE-4weird-game-header {
+    position: sticky;
+    top: 70px;
+    z-index: 100;
+    background: rgba(10, 10, 15, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+    padding: 15px 0;
+}
+
+.TEMPLATE-4weird-game-header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.TEMPLATE-4weird-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--neon-purple-light);
+    text-decoration: none;
+    font-weight: 500;
+    transition: 0.3s ease;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.TEMPLATE-4weird-back-link:hover {
+    color: var(--neon-green-light);
+    border-color: var(--neon-green);
+    transform: translateX(-3px);
+}
+
+.TEMPLATE-4weird-back-arrow {
+    font-size: 1.2rem;
+}
+
+.TEMPLATE-4weird-game-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    margin: 0;
+    background: linear-gradient(135deg, var(--text-primary), var(--neon-purple-light));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.TEMPLATE-4weird-game-meta {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+}
+
+.TEMPLATE-4weird-game-genre {
+    color: var(--neon-green-light);
+    font-weight: 500;
+}
+
+.TEMPLATE-4weird-separator {
+    color: var(--text-muted);
+}
+
+.TEMPLATE-4weird-game-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.TEMPLATE-4weird-game-status.live {
+    background: var(--neon-green);
+    color: var(--bg-primary);
+}
+
+.TEMPLATE-4weird-game-main {
+    flex: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 24px;
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 30px;
+    width: 100%;
+}
+
+@media (max-width: 900px) {
+    .TEMPLATE-4weird-game-main {
+        grid-template-columns: 1fr;
+    }
+}
+
+.TEMPLATE-4weird-game-frame {
+    position: relative;
+    background: var(--bg-card);
+    border-radius: 20px;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    overflow: hidden;
+    aspect-ratio: 4/3;
+}
+
+#TEMPLATE-4weird-gameCanvas,
+.TEMPLATE-4weird-gameCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    background: var(--bg-tertiary);
+}
+
+.TEMPLATE-4weird-game-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 10, 15, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.TEMPLATE-4weird-game-overlay.hidden {
+    display: none;
+}
+
+.TEMPLATE-4weird-overlay-content {
+    text-align: center;
+    padding: 40px;
+}
+
+.TEMPLATE-4weird-overlay-content h2 {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    margin-bottom: 15px;
+    color: var(--neon-purple-light);
+}
+
+.TEMPLATE-4weird-overlay-content p {
+    color: var(--text-secondary);
+    margin-bottom: 30px;
+}
+
+.TEMPLATE-4weird-controls-hint {
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 10px;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.TEMPLATE-4weird-final-score {
+    font-size: 1.5rem;
+    color: var(--neon-green-light);
+}
+
+.TEMPLATE-4weird-game-info-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.TEMPLATE-4weird-panel-section {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 25px;
+    border: 1px solid rgba(139, 92, 246, 0.15);
+}
+
+.TEMPLATE-4weird-panel-section h3 {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    margin-bottom: 15px;
+    color: var(--neon-purple-light);
+}
+
+.TEMPLATE-4weird-panel-section p,
+.TEMPLATE-4weird-panel-section li {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.7;
+}
+
+.TEMPLATE-4weird-panel-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.TEMPLATE-4weird-panel-section li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.TEMPLATE-4weird-panel-section li:last-child {
+    border-bottom: none;
+}
+
+.TEMPLATE-4weird-high-score {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: var(--neon-green);
+    text-align: center;
+}
+
+/* ===== TEMPLATE-4weird CREDITS ===== */
+.TEMPLATE-4weird-credits-section {
+    background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    padding: 80px 0;
+}
+
+.TEMPLATE-4weird-credits-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.TEMPLATE-4weird-credits-title {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: 40px;
+    color: var(--neon-purple-light);
+}
+
+.TEMPLATE-4weird-credits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 25px;
+}
+
+.TEMPLATE-4weird-credit-card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 30px;
+    text-align: center;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    transition: 0.3s ease;
+}
+
+.TEMPLATE-4weird-credit-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--neon-purple);
+}
+
+.TEMPLATE-4weird-credit-card.primary,
+.TEMPLATE-4weird-credit-card.TEMPLATE-4weird-primary {
+    border-color: var(--neon-green);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(139, 92, 246, 0.05));
+}
+
+.TEMPLATE-4weird-credit-avatar,
+.TEMPLATE-4weird-credit-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.TEMPLATE-4weird-credit-name {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+}
+
+.TEMPLATE-4weird-credit-role {
+    color: var(--neon-purple-light);
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+}
+
+.TEMPLATE-4weird-credit-links a {
+    color: var(--neon-green);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.TEMPLATE-4weird-credit-links a:hover {
+    color: var(--neon-green-light);
+}
+
+/* ===== TEMPLATE-4weird BIO ===== */
+.TEMPLATE-4weird-bio-section {
+    background: var(--bg-secondary);
+    padding: 60px 0;
+}
+
+.TEMPLATE-4weird-bio-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.TEMPLATE-4weird-bio-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    margin-bottom: 25px;
+    color: var(--neon-green-light);
+}
+
+.TEMPLATE-4weird-bio-content p {
+    color: var(--text-secondary);
+    line-height: 1.9;
+    font-size: 1rem;
+}
+
+/* ===== TEMPLATE-4weird MORE GAMES ===== */
+.TEMPLATE-4weird-more-games {
+    background: var(--bg-primary);
+    padding: 60px 0;
+    text-align: center;
+}
+
+.TEMPLATE-4weird-more-games-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.TEMPLATE-4weird-more-games h2 {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    margin-bottom: 30px;
+    color: var(--text-primary);
+}
+
+/* ===== TEMPLATE-4weird MOBILE ===== */
+@media (max-width: 768px) {
+    .TEMPLATE-4weird-game-header-inner {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .TEMPLATE-4weird-game-meta {
+        margin-left: 0;
+    }
+    
+    .TEMPLATE-4weird-game-title {
+        font-size: 1.2rem;
+    }
+    
+    .TEMPLATE-4weird-game-frame {
+        aspect-ratio: auto;
+        min-height: 300px;
+    }
+    
+    .TEMPLATE-4weird-overlay-content {
+        padding: 20px;
+    }
+    
+    .TEMPLATE-4weird-overlay-content h2 {
+        font-size: 1.5rem;
+    }
+    
+    .TEMPLATE-4weird-credits-grid {
+        grid-template-columns: 1fr;
+    }
 }
