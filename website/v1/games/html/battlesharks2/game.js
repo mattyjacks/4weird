@@ -1,7 +1,7 @@
 /* ──────────────────────────────────────────────────────────
    BATTLESHARKS II - UPGRADED ENGINE
    Advanced Systems: Schooling AI, Homing Missiles, Boss Battle
-   Changes: Full emoji opacity, Eat enemies with dynamic blood
+   Changes: Drop-launch splash animation, eat enemies, 3s death
    ────────────────────────────────────────────────────────── */
 
 // Game State
@@ -34,7 +34,15 @@ const state = {
     bossSpawned: false,
     bossDefeated: false,
     bossActive: false,
-    bossAlertTimer: 0
+    bossAlertTimer: 0,
+    // Death animation state
+    dying: false,
+    deathTimer: 0,
+    // Launch Drop animation state
+    launching: false,
+    launchTimer: 0,
+    hasSplashed: false,
+    waterLevel: 140
 };
 
 // Player Object
@@ -257,6 +265,13 @@ function resetGameState() {
     state.bossDefeated = false;
     state.bossActive = false;
     state.bossAlertTimer = 0;
+    state.dying = false;
+    state.deathTimer = 0;
+
+    // Drop Launch Init
+    state.launching = true;
+    state.launchTimer = 90; // 1.5 seconds drop/splash
+    state.hasSplashed = false;
 
     // Reset warnings
     document.getElementById('bossWarningAlert').classList.add('hidden');
@@ -266,11 +281,13 @@ function resetGameState() {
     Object.keys(state.upgrades).forEach(key => state.upgrades[key] = false);
     state.shieldActive = false;
     
-    // Player
+    // Player starts high above water
     player.x = canvas ? canvas.width / 2 : 500;
-    player.y = canvas ? canvas.height / 2 : 350;
+    player.y = -80; 
     player.vx = 0;
-    player.vy = 0;
+    player.vy = 0.5; // Dropping velocity
+    player.angle = Math.PI / 2; // Facing straight down
+    
     player.level = 1;
     player.xp = 0;
     player.nextLevelXp = 120;
@@ -519,7 +536,7 @@ function updateStatsHUD() {
 
 // ─── Weapons Shooting ───
 function fireWeapon() {
-    if (state.upgrades.lasers) {
+    if (state.upgrades.lasers && !state.dying && !state.launching) {
         const angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
         projectiles.push({
             type: 'laser',
@@ -535,7 +552,7 @@ function fireWeapon() {
 }
 
 function triggerDash() {
-    if (player.dashCooldown > 0 || player.isDashing) return;
+    if (player.dashCooldown > 0 || player.isDashing || state.dying || state.launching) return;
     
     player.isDashing = true;
     player.dashTimer = 14;
@@ -586,7 +603,7 @@ function spawnPrey() {
     preys.push({
         type: type,
         x: Math.random() < 0.5 ? -30 : canvas.width + 30,
-        y: isBottomWalker ? canvas.height - 40 - Math.random() * 20 : Math.random() * (canvas.height - 130) + 50,
+        y: isBottomWalker ? canvas.height - 40 - Math.random() * 20 : Math.random() * (canvas.height - 180) + state.waterLevel + 30,
         vx: (Math.random() > 0.5 ? 1 : -1) * type.speed,
         vy: isBottomWalker ? 0 : (Math.random() - 0.5) * 0.5,
         radius: type.size,
@@ -602,12 +619,12 @@ function spawnEnemy() {
 
     if (type.isStatic) {
         x = Math.random() * (canvas.width - 100) + 50;
-        y = -30;
+        y = state.waterLevel - 20; // drop down below water level
         vx = 0;
         vy = 1.3;
     } else {
         x = Math.random() < 0.5 ? -30 : canvas.width + 30;
-        y = Math.random() * (canvas.height - 150) + 50;
+        y = Math.random() * (canvas.height - 200) + state.waterLevel + 40;
         vx = (x < 0 ? 1 : -1) * type.speed;
         vy = (Math.random() - 0.5) * 0.5;
     }
@@ -629,7 +646,7 @@ function spawnFloatingCollectibles() {
     floatingItems.push({
         type: Math.random() < 0.3 ? 'mutagen' : 'debris',
         x: Math.random() * (canvas.width - 100) + 50,
-        y: -20,
+        y: state.waterLevel - 25,
         vy: 1.1 + Math.random() * 0.4,
         radius: 12,
         emoji: Math.random() < 0.3 ? '🧪' : '⚙️'
@@ -671,6 +688,24 @@ function createExplosion(x, y, color, count = 20) {
 
 function createBloodSplat(x, y, count = 8) {
     createExplosion(x, y, 'rgba(255, 0, 50, 0.75)', count);
+}
+
+function createSplash(x, y, count = 35) {
+    for (let i = 0; i < count; i++) {
+        const angle = -Math.PI / 2 + (Math.random() - 0.5) * 1.6; // Spray upwards
+        const speed = Math.random() * 6 + 3;
+        particles.push({
+            x: x,
+            y: y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            radius: Math.random() * 5 + 2,
+            color: Math.random() < 0.4 ? 'rgba(0, 242, 254, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+            life: 35 + Math.random() * 15,
+            maxLife: 50,
+            isSplashDrop: true
+        });
+    }
 }
 
 // Notification Text
@@ -730,20 +765,21 @@ function update(timestamp) {
     }
 
     // 1. Spawning Mechanics
-    state.spawnTimer++;
-    if (state.spawnTimer % Math.floor(75 / state.difficulty) === 0) {
-        spawnPrey();
-    }
-    if (state.spawnTimer % Math.floor(170 / state.difficulty) === 0) {
-        spawnEnemy();
-    }
-    if (state.spawnTimer % 380 === 0) {
-        spawnFloatingCollectibles();
+    if (!state.dying && !state.launching) {
+        state.spawnTimer++;
+        if (state.spawnTimer % Math.floor(75 / state.difficulty) === 0) {
+            spawnPrey();
+        }
+        if (state.spawnTimer % Math.floor(170 / state.difficulty) === 0) {
+            spawnEnemy();
+        }
+        if (state.spawnTimer % 380 === 0) {
+            spawnFloatingCollectibles();
+        }
     }
 
     // Prey Schooling Flocking AI + Fleeing Behavior
     preys.forEach((pr, idx) => {
-        // Schooling attraction
         let flockX = 0;
         let flockY = 0;
         let flockCount = 0;
@@ -759,66 +795,122 @@ function update(timestamp) {
         if (flockCount > 0) {
             flockX /= flockCount;
             flockY /= flockCount;
-            // Guide slightly toward flock center
             pr.vx += (flockX - pr.x) * 0.003;
             pr.vy += (flockY - pr.y) * 0.003;
         }
 
-        // Fleeing Shark behavior
         const distToPlayer = Math.hypot(player.x - pr.x, player.y - pr.y);
-        if (distToPlayer < 180) {
+        if (distToPlayer < 180 && !state.dying && !state.launching) {
             const angleAway = Math.atan2(pr.y - player.y, pr.x - player.x);
             pr.vx += Math.cos(angleAway) * 0.25;
             pr.vy += Math.sin(angleAway) * 0.25;
         }
     });
 
-    // 2. Player Steering Physics
-    let targetX = mouse.x;
-    let targetY = mouse.y;
+    // 2. Player Steering / Launch Dropping Physics
+    if (state.launching) {
+        player.vx = 0;
+        
+        if (!state.hasSplashed) {
+            player.vy += 0.38; // gravity drop acceleration
+            player.y += player.vy;
+            player.angle = Math.PI / 2; // Face down
 
-    let keyMoving = false;
-    let dx = 0;
-    let dy = 0;
+            // Check water line cross
+            if (player.y >= state.waterLevel) {
+                state.hasSplashed = true;
+                createSplash(player.x, state.waterLevel, 45); // Explode water splash upwards
+                state.cameraShake = 30; // Splash impact shake!
+                player.vy *= 0.25; // Drag slowdown
+            }
+        } else {
+            // Settle in water
+            player.vy += (0 - player.vy) * 0.08;
+            player.y += player.vy;
+            // Level out angle
+            player.angle += (0 - player.angle) * 0.1;
+        }
 
-    if (keys['w'] || keys['arrowup']) { dy = -1; keyMoving = true; }
-    if (keys['s'] || keys['arrowdown']) { dy = 1; keyMoving = true; }
-    if (keys['a'] || keys['arrowleft']) { dx = -1; keyMoving = true; }
-    if (keys['d'] || keys['arrowright']) { dx = 1; keyMoving = true; }
+        state.launchTimer--;
+        if (state.launchTimer <= 0) {
+            state.launching = false;
+            player.angle = 0;
+            player.vy = 0;
+        }
+    } else if (state.dying) {
+        player.vx = 0;
+        player.vy = 0.55; // Sink slowly
+        player.angle += 0.075; // Spin slowly
+        player.x += Math.sin(timestamp * 0.005) * 0.45;
+        player.y += player.vy;
 
-    if (player.isDashing) {
-        player.dashTimer--;
-        if (player.dashTimer <= 0) {
-            player.isDashing = false;
+        if (state.deathTimer % 2 === 0) {
+            particles.push({
+                x: player.x + (Math.random() - 0.5) * 15,
+                y: player.y + (Math.random() - 0.5) * 15,
+                vx: (Math.random() - 0.5) * 3.5,
+                vy: -0.6 + (Math.random() - 0.5) * 1.5,
+                radius: Math.random() * 8 + 4,
+                color: Math.random() < 0.35 ? 'rgba(160, 0, 10, 0.75)' : 'rgba(240, 10, 30, 0.85)',
+                life: 95 + Math.random() * 50,
+                maxLife: 150,
+                isBlood: true
+            });
+            state.cameraShake = Math.max(state.cameraShake, 9);
+        }
+
+        state.deathTimer--;
+        if (state.deathTimer <= 0) {
+            state.dying = false;
+            gameOver();
         }
     } else {
-        if (keyMoving) {
-            const len = Math.sqrt(dx * dx + dy * dy);
-            player.vx = (dx / len) * player.speed;
-            player.vy = (dy / len) * player.speed;
+        // Normal Steering Physics
+        let targetX = mouse.x;
+        let targetY = mouse.y;
+
+        let keyMoving = false;
+        let dx = 0;
+        let dy = 0;
+
+        if (keys['w'] || keys['arrowup']) { dy = -1; keyMoving = true; }
+        if (keys['s'] || keys['arrowdown']) { dy = 1; keyMoving = true; }
+        if (keys['a'] || keys['arrowleft']) { dx = -1; keyMoving = true; }
+        if (keys['d'] || keys['arrowright']) { dx = 1; keyMoving = true; }
+
+        if (player.isDashing) {
+            player.dashTimer--;
+            if (player.dashTimer <= 0) {
+                player.isDashing = false;
+            }
         } else {
-            const distance = Math.hypot(targetX - player.x, targetY - player.y);
-            if (distance > 10) {
-                const angle = Math.atan2(targetY - player.y, targetX - player.x);
-                player.vx = Math.cos(angle) * player.speed;
-                player.vy = Math.sin(angle) * player.speed;
+            if (keyMoving) {
+                const len = Math.sqrt(dx * dx + dy * dy);
+                player.vx = (dx / len) * player.speed;
+                player.vy = (dy / len) * player.speed;
             } else {
-                player.vx *= 0.85;
-                player.vy *= 0.85;
+                const distance = Math.hypot(targetX - player.x, targetY - player.y);
+                if (distance > 10) {
+                    const angle = Math.atan2(targetY - player.y, targetX - player.x);
+                    player.vx = Math.cos(angle) * player.speed;
+                    player.vy = Math.sin(angle) * player.speed;
+                } else {
+                    player.vx *= 0.85;
+                    player.vy *= 0.85;
+                }
             }
         }
-    }
 
-    player.x += player.vx;
-    player.y += player.vy;
+        player.x += player.vx;
+        player.y += player.vy;
 
-    // Boundaries
-    player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
-    player.y = Math.max(player.radius + 20, Math.min(canvas.height - player.radius - 20, player.y));
+        player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
+        player.y = Math.max(player.radius + 20, Math.min(canvas.height - player.radius - 20, player.y));
 
-    if (Math.hypot(player.vx, player.vy) > 0.5) {
-        player.angle = Math.atan2(player.vy, player.vx);
-        player.facingLeft = Math.cos(player.angle) < 0;
+        if (Math.hypot(player.vx, player.vy) > 0.5) {
+            player.angle = Math.atan2(player.vy, player.vx);
+            player.facingLeft = Math.cos(player.angle) < 0;
+        }
     }
 
     // Cooldown updates
@@ -833,16 +925,16 @@ function update(timestamp) {
     }
 
     // 3. Automated Cyber weapons (Homing Missiles)
-    if (state.upgrades.missiles) {
+    if (state.upgrades.missiles && !state.dying && !state.launching) {
         state.missileTimer++;
-        if (state.missileTimer >= 140) { // Every 2.3 seconds
+        if (state.missileTimer >= 140) {
             state.missileTimer = 0;
             fireHomingMissile();
         }
     }
 
     // Passive mutations ticks
-    if (state.upgrades.electric) {
+    if (state.upgrades.electric && !state.dying && !state.launching) {
         state.electricTimer++;
         if (state.electricTimer >= 150) {
             state.electricTimer = 0;
@@ -850,7 +942,7 @@ function update(timestamp) {
         }
     }
 
-    if (state.upgrades.acid) {
+    if (state.upgrades.acid && !state.dying && !state.launching) {
         state.acidTimer++;
         if (state.acidTimer >= 90) {
             state.acidTimer = 0;
@@ -861,11 +953,9 @@ function update(timestamp) {
     // 4. Update Damage clouds (Acid puddles)
     damageClouds.forEach((cloud, cIdx) => {
         cloud.timer--;
-        
-        // Damage enemies in bubble area
         enemies.forEach((en, eIdx) => {
             if (Math.hypot(en.x - cloud.x, en.y - cloud.y) < cloud.radius) {
-                en.health -= 0.5; // Tick damage
+                en.health -= 0.5;
                 createBubble(en.x, en.y, 1);
                 if (en.health <= 0) {
                     destroyEnemy(en, eIdx);
@@ -873,7 +963,6 @@ function update(timestamp) {
             }
         });
 
-        // Damage boss in area
         if (state.bossActive) {
             if (Math.hypot(boss.x - cloud.x, boss.y - cloud.y) < cloud.radius + boss.radius) {
                 boss.health -= 1.0;
@@ -894,14 +983,16 @@ function update(timestamp) {
         updateBoss(timestamp);
     }
 
-    // Update Entities
+    // Update Particles (including gravity falls for splashes)
     particles.forEach((p, idx) => {
-        // Apply dynamic water drift to blood particles
         if (p.isBlood) {
-            p.vx *= 0.96; // Water drag
+            p.vx *= 0.96;
             p.vy *= 0.96;
-            p.vy += 0.025; // Sinks slowly
-            p.x += Math.sin(timestamp * 0.005 + p.y) * 0.25; // Swirling current
+            p.vy += 0.025;
+            p.x += Math.sin(timestamp * 0.005 + p.y) * 0.25;
+        }
+        if (p.isSplashDrop) {
+            p.vy += 0.22; // gravity fall of droplets in lab air
         }
         p.x += p.vx;
         p.y += p.vy;
@@ -975,12 +1066,10 @@ function update(timestamp) {
 
     // Projectiles
     projectiles.forEach((proj, idx) => {
-        // Homing missile tracking
         if (proj.type === 'missile') {
             let target = null;
             let minDist = 9999;
             
-            // Track boss
             if (state.bossActive) {
                 target = boss;
             } else {
@@ -995,13 +1084,11 @@ function update(timestamp) {
 
             if (target) {
                 const targetAngle = Math.atan2(target.y - proj.y, target.x - proj.x);
-                // Adjust steering angle slowly
                 proj.angle += (targetAngle - proj.angle) * 0.12;
                 proj.vx = Math.cos(proj.angle) * 8.5;
                 proj.vy = Math.sin(proj.angle) * 8.5;
             }
 
-            // Draw rocket smoke trail
             if (Math.random() < 0.45) {
                 particles.push({
                     x: proj.x,
@@ -1033,7 +1120,7 @@ function update(timestamp) {
             enemy.vx = Math.sin(timestamp * 0.002) * 0.5;
         }
 
-        if (enemy.type.shoots) {
+        if (enemy.type.shoots && !state.dying && !state.launching) {
             enemy.shootCooldown--;
             if (enemy.shootCooldown <= 0) {
                 enemy.shootCooldown = 120 + Math.random() * 100;
@@ -1055,9 +1142,11 @@ function update(timestamp) {
         }
     });
 
-    checkCollisions(timestamp);
+    if (!state.dying && !state.launching) {
+        checkCollisions(timestamp);
+    }
 
-    if (Math.hypot(player.vx, player.vy) > 2) {
+    if (Math.hypot(player.vx, player.vy) > 2 && !state.dying && !state.launching) {
         createBubble(player.x - Math.cos(player.angle) * (player.radius * 0.8), player.y - Math.sin(player.angle) * (player.radius * 0.4), 1);
     }
 
@@ -1071,7 +1160,6 @@ function updateBoss(timestamp) {
             boss.state = 'fight';
         }
     } else if (boss.state === 'fight') {
-        // Hover side to side
         boss.x += boss.vx;
         if (boss.x < 100 || boss.x > canvas.width - 100) {
             boss.vx = -boss.vx;
@@ -1081,12 +1169,10 @@ function updateBoss(timestamp) {
         if (boss.shootCooldown <= 0) {
             boss.shootCooldown = 80 + Math.random() * 60;
             
-            // Randomly sweep or shoot barrage
             if (Math.random() < 0.45) {
                 boss.state = 'sweep';
-                boss.sweepTimer = 180; // Sweep laser for 3s
+                boss.sweepTimer = 180;
             } else {
-                // Shoot a cluster of 5 bullets
                 for (let i = -2; i <= 2; i++) {
                     const ang = Math.atan2(player.y - boss.y, player.x - boss.x) + (i * 0.18);
                     projectiles.push({
@@ -1105,7 +1191,6 @@ function updateBoss(timestamp) {
     } else if (boss.state === 'sweep') {
         boss.sweepTimer--;
         
-        // Shoot sweeping lasers
         const laserAngle = Math.PI/2 + Math.sin(timestamp * 0.015) * 0.6;
         if (boss.sweepTimer % 6 === 0) {
             projectiles.push({
@@ -1136,7 +1221,6 @@ function triggerBossDefeat() {
     state.bossDefeated = true;
     document.getElementById('bossHPBarContainer').classList.add('hidden');
     
-    // Massive explosion fireworks
     for (let i = 0; i < 6; i++) {
         setTimeout(() => {
             createExplosion(boss.x + (Math.random() - 0.5) * 100, boss.y + (Math.random() - 0.5) * 80, '#ff3b30', 25);
@@ -1144,7 +1228,7 @@ function triggerBossDefeat() {
         }, i * 200);
     }
 
-    state.score += 10000; // HUGE BOSS KILL BONUS
+    state.score += 10000;
     state.debris += 150;
     state.mutagens += 10;
     updateStatsHUD();
@@ -1249,12 +1333,11 @@ function addXp(amount) {
         player.level++;
         player.nextLevelXp = Math.floor(player.nextLevelXp * 1.3);
         
-        // Growth Scale increase
-        player.scaleMultiplier = 1.0 + (player.level - 1) * 0.18; // Increase size by 18% per level
+        player.scaleMultiplier = 1.0 + (player.level - 1) * 0.18;
         player.radius = player.baseRadius * player.scaleMultiplier;
         
         player.maxHealth += 20;
-        player.health = player.maxHealth; // Full heal on level-up!
+        player.health = player.maxHealth;
 
         createExplosion(player.x, player.y, '#8b5cf6', 35);
         state.cameraShake = 12;
@@ -1268,7 +1351,6 @@ function destroyEnemy(enemy, idx) {
     state.debris += enemy.type.debris;
     state.score += (enemy.type.debris * 50);
     
-    // Spawn floating metal wreckage
     floatingItems.push({
         type: 'debris',
         x: enemy.x,
@@ -1288,7 +1370,6 @@ function destroyEnemy(enemy, idx) {
 }
 
 function checkCollisions(timestamp) {
-    // Player vs Prey
     preys.forEach((pr, idx) => {
         const dist = Math.hypot(pr.x - player.x, pr.y - player.y);
         if (dist < player.radius + pr.radius) {
@@ -1302,7 +1383,6 @@ function checkCollisions(timestamp) {
         }
     });
 
-    // Player vs Floating collectibles
     floatingItems.forEach((item, idx) => {
         const dist = Math.hypot(item.x - player.x, item.y - player.y);
         if (dist < player.radius + item.radius) {
@@ -1319,17 +1399,13 @@ function checkCollisions(timestamp) {
         }
     });
 
-    // Player vs Enemies (DEVOUR OR DAMAGE)
     enemies.forEach((enemy, idx) => {
         const dist = Math.hypot(enemy.x - player.x, enemy.y - player.y);
         if (dist < player.radius + enemy.radius) {
             
-            // Check if it's edible (Cyber Diver or Mecha Sentinel)
             if (enemy.emoji === 'scuba' || enemy.emoji === 'robot' || enemy.type.emoji === 'scuba' || enemy.type.emoji === 'robot') {
-                // BIG EXPLOSIVE BITING CRUNCH! DEVOUR ENEMY
                 createBloodSplat(enemy.x, enemy.y, 25);
                 
-                // Add drifting red blood clouds
                 for (let i = 0; i < 12; i++) {
                     const angle = Math.random() * Math.PI * 2;
                     const speed = Math.random() * 4 + 1;
@@ -1346,7 +1422,6 @@ function checkCollisions(timestamp) {
                     });
                 }
                 
-                // Rewards
                 player.health = Math.min(player.health + 15, player.maxHealth);
                 state.debris += enemy.type.debris;
                 state.score += (enemy.type.debris * 100);
@@ -1357,7 +1432,6 @@ function checkCollisions(timestamp) {
                 showNotification("🦈 DEVOUR ENEMY +DEBRIS!");
                 updateStatsHUD();
             } else {
-                // Naval Mine or Toxic barrel (not edible)
                 dealPlayerDamage(enemy.type.damage);
                 
                 if (enemy.type.isStatic || enemy.type.emoji === '💣') {
@@ -1371,14 +1445,12 @@ function checkCollisions(timestamp) {
         }
     });
 
-    // Player Biting Boss (🐙)
     if (state.bossActive) {
         const distToBoss = Math.hypot(player.x - boss.x, player.y - boss.y);
         if (distToBoss < player.radius + boss.radius) {
-            boss.health -= 60; // Bite deals 60 damage
+            boss.health -= 60;
             updateBossHPBar();
             
-            // Spawn heavy dynamic blood sprays
             createBloodSplat(player.x, player.y, 18);
             for (let i = 0; i < 10; i++) {
                 const angle = Math.random() * Math.PI * 2;
@@ -1396,10 +1468,9 @@ function checkCollisions(timestamp) {
                 });
             }
             
-            // Recoil
             player.vx = -player.vx * 1.2;
             player.vy = -player.vy * 1.2;
-            dealPlayerDamage(8); // Minor spike damage from boss armor
+            dealPlayerDamage(8);
             
             if (boss.health <= 0) {
                 triggerBossDefeat();
@@ -1407,7 +1478,6 @@ function checkCollisions(timestamp) {
         }
     }
 
-    // Projectiles vs enemies
     projectiles.forEach((proj, pIdx) => {
         if (proj.type === 'laser' || proj.type === 'acid' || proj.type === 'missile') {
             enemies.forEach((enemy, eIdx) => {
@@ -1423,7 +1493,7 @@ function checkCollisions(timestamp) {
                             x: proj.x,
                             y: proj.y,
                             radius: 50,
-                            timer: 180, // 3 seconds
+                            timer: 180,
                             color: 'rgba(5, 243, 162, 0.25)'
                         });
                     }
@@ -1478,8 +1548,9 @@ function dealPlayerDamage(amount) {
 
     createBloodSplat(player.x, player.y, 16);
 
-    if (player.health <= 0) {
-        gameOver();
+    if (player.health <= 0 && !state.dying) {
+        state.dying = true;
+        state.deathTimer = 180; // 3 seconds at 60 FPS
     }
     updateStatsHUD();
 }
@@ -1495,25 +1566,50 @@ function render(timestamp) {
         ctx.translate(shakeX, shakeY);
     }
 
-    // 1. Background
-    const lightGrd = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    lightGrd.addColorStop(0, '#0b162a');
+    // 1. Background (Above water vs Below water)
+    // Draw Lab Bay air for top section (y < waterLevel)
+    ctx.fillStyle = '#141424';
+    ctx.fillRect(0, 0, canvas.width, state.waterLevel);
+    
+    // Draw laboratory steel pillars/crane grid lines in air
+    ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+    ctx.lineWidth = 4;
+    for (let i = 0; i < canvas.width; i += 120) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, state.waterLevel);
+        ctx.stroke();
+    }
+
+    // Draw Deep water background gradients below waterLevel
+    const lightGrd = ctx.createLinearGradient(0, state.waterLevel, 0, canvas.height);
+    lightGrd.addColorStop(0, '#0a1d37');
     lightGrd.addColorStop(1, '#02030a');
     ctx.fillStyle = lightGrd;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, state.waterLevel, canvas.width, canvas.height - state.waterLevel);
 
-    // 2. Light Shafts
+    // 2. Light Shafts (only below waterLevel)
     ctx.fillStyle = 'rgba(0, 242, 254, 0.03)';
     for (let i = 0; i < 4; i++) {
-        const width = 80 + i * 20;
         const offset = Math.sin(timestamp * 0.001 + i) * 60;
         ctx.beginPath();
-        ctx.moveTo(150 + i * 200 + offset, 0);
-        ctx.lineTo(250 + i * 200 + offset, 0);
-        ctx.lineTo(400 + i * 200 + offset * 1.5, canvas.height);
-        ctx.lineTo(100 + i * 200 + offset * 1.5, canvas.height);
+        ctx.moveTo(150 + i * 200 + offset, state.waterLevel);
+        ctx.lineTo(220 + i * 200 + offset, state.waterLevel);
+        ctx.lineTo(380 + i * 200 + offset * 1.5, canvas.height);
+        ctx.lineTo(120 + i * 200 + offset * 1.5, canvas.height);
         ctx.fill();
     }
+
+    // Draw wavy cyan water surface line
+    ctx.strokeStyle = 'rgba(0, 242, 254, 0.8)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, state.waterLevel);
+    for (let x = 0; x <= canvas.width; x += 15) {
+        const y = state.waterLevel + Math.sin(x * 0.02 + timestamp * 0.004) * 3.5;
+        ctx.lineTo(x, y);
+    }
+    ctx.stroke();
 
     // Bottom floor
     ctx.fillStyle = 'rgba(2, 242, 254, 0.03)';
@@ -1526,7 +1622,7 @@ function render(timestamp) {
 
     // Render Deployed Aquarium Items
     aquariumItems.forEach(item => {
-        ctx.fillStyle = '#ffffff'; // Guarantee full opacity!
+        ctx.fillStyle = '#ffffff';
         ctx.font = `${item.size}px Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -1557,7 +1653,7 @@ function render(timestamp) {
         if (pr.vx < 0) {
             ctx.scale(-1, 1);
         }
-        ctx.fillStyle = '#ffffff'; // Guarantee full opacity!
+        ctx.fillStyle = '#ffffff';
         ctx.font = `${pr.radius * 2}px Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -1567,7 +1663,7 @@ function render(timestamp) {
 
     // Render Floating Collectibles
     floatingItems.forEach(item => {
-        ctx.fillStyle = '#ffffff'; // Guarantee full opacity!
+        ctx.fillStyle = '#ffffff';
         ctx.font = `${item.radius * 2}px Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -1580,7 +1676,7 @@ function render(timestamp) {
             ctx.save();
             ctx.translate(proj.x, proj.y);
             ctx.rotate(proj.angle);
-            ctx.fillStyle = '#ffffff'; // Guarantee full opacity!
+            ctx.fillStyle = '#ffffff';
             ctx.font = '22px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -1604,7 +1700,7 @@ function render(timestamp) {
 
     // Render Enemies
     enemies.forEach(enemy => {
-        if (enemy.type.shoots && Math.hypot(enemy.x - player.x, enemy.y - player.y) < 500) {
+        if (enemy.type.shoots && Math.hypot(enemy.x - player.x, enemy.y - player.y) < 500 && !state.dying && !state.launching) {
             ctx.strokeStyle = 'rgba(255, 59, 48, 0.22)';
             ctx.lineWidth = 1;
             ctx.beginPath();
@@ -1615,7 +1711,7 @@ function render(timestamp) {
 
         ctx.save();
         ctx.translate(enemy.x, enemy.y);
-        ctx.fillStyle = '#ffffff'; // Guarantee full opacity!
+        ctx.fillStyle = '#ffffff';
         
         if (enemy.emoji === 'scuba' || enemy.emoji === 'robot') {
             if (enemy.vx < 0) ctx.scale(-1, 1);
@@ -1646,14 +1742,14 @@ function render(timestamp) {
         ctx.arc(0,0, glowRad, 0, Math.PI*2);
         ctx.fill();
 
-        ctx.fillStyle = '#ffffff'; // Guarantee full opacity!
+        ctx.fillStyle = '#ffffff';
         ctx.font = `${boss.radius * 2.2}px Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('🐙', 0, 0);
         ctx.restore();
 
-        if (boss.state === 'sweep') {
+        if (boss.state === 'sweep' && !state.dying && !state.launching) {
             ctx.strokeStyle = 'rgba(255, 59, 48, 0.4)';
             ctx.lineWidth = 4;
             ctx.beginPath();
@@ -1676,38 +1772,44 @@ function render(timestamp) {
     ctx.translate(player.x, player.y);
     ctx.rotate(player.angle);
     
-    if (player.facingLeft) {
-        ctx.scale(1, -1);
+    if (state.dying) {
+        ctx.scale(-1, -1);
     } else {
-        ctx.scale(-1, 1);
+        if (player.facingLeft) {
+            ctx.scale(1, -1);
+        } else {
+            ctx.scale(-1, 1);
+        }
     }
 
-    ctx.fillStyle = '#ffffff'; // Guarantee full opacity!
+    ctx.fillStyle = '#ffffff';
     ctx.font = `${player.radius * 2.5}px Arial`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('🦈', 0, 0);
 
     // Cyber weapon additions
-    if (state.upgrades.lasers || state.upgrades.missiles) {
-        ctx.fillStyle = 'rgba(0, 242, 254, 0.85)';
-        ctx.fillRect(-15, -12, 10, 6);
-        if (state.upgrades.missiles) {
-            ctx.fillStyle = '#ff9500';
-            ctx.fillRect(-8, -16, 6, 4);
+    if (!state.dying && !state.launching) {
+        if (state.upgrades.lasers || state.upgrades.missiles) {
+            ctx.fillStyle = 'rgba(0, 242, 254, 0.85)';
+            ctx.fillRect(-15, -12, 10, 6);
+            if (state.upgrades.missiles) {
+                ctx.fillStyle = '#ff9500';
+                ctx.fillRect(-8, -16, 6, 4);
+            }
         }
-    }
 
-    if (state.upgrades.thruster) {
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '16px Arial';
-        ctx.fillText('🚀', 18, 12);
+        if (state.upgrades.thruster) {
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '16px Arial';
+            ctx.fillText('🚀', 18, 12);
+        }
     }
 
     ctx.restore();
 
     // Draw Plasma Force Shield
-    if (state.shieldActive) {
+    if (state.shieldActive && !state.dying && !state.launching) {
         ctx.strokeStyle = 'rgba(0, 242, 254, 0.8)';
         ctx.lineWidth = 3;
         ctx.beginPath();
