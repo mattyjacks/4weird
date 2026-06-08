@@ -1,14 +1,14 @@
 // Game State Management
-let gameRunning = false;
-let gamePaused = false;
-let score = 0;
-let wave = 1;
-let kills = 0;
-let maxCombo = 1;
-let difficulty = 'easy';
-let killHistory = [];
+var gameRunning = false;
+var gamePaused = false;
+var score = 0;
+var wave = 1;
+var kills = 0;
+var maxCombo = 1;
+var difficulty = 'easy';
+var killHistory = [];
 
-let gameState = {
+var gameState = {
     balance: 1000,
     incomePerSec: 10,
     customerTrust: 100,
@@ -22,9 +22,9 @@ let gameState = {
     maxComputeUsed: 0
 };
 
-let servers = [];
-let staff = [];
-let upgrades = { serverHPBoost: 0, rapidFire: 0, multiShot: 0, cdn: 0, firewall: 0, prCampaign: 0 };
+var servers = [];
+var staff = [];
+var upgrades = { serverHPBoost: 0, rapidFire: 0, multiShot: 0, cdn: 0, firewall: 0, prCampaign: 0 };
 
 function resetGameState() {
     gameRunning = false;

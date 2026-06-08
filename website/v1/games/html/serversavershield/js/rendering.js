@@ -1,5 +1,5 @@
 // Rendering System
-let stars = [];
+var stars = [];
 
 function initStars() {
     stars = [];
@@ -25,6 +25,7 @@ function updateStars() {
 }
 
 function drawBackground() {
+    const ctx = getContext();
     ctx.fillStyle = '#0f0f23';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     const bgGrad = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
@@ -36,6 +37,7 @@ function drawBackground() {
 }
 
 function drawStars() {
+    const ctx = getContext();
     stars.forEach(s => {
         ctx.fillStyle = 'rgba(255,255,255,' + s.brightness + ')';
         ctx.beginPath();
@@ -45,6 +47,7 @@ function drawStars() {
 }
 
 function drawPowerups() {
+    const ctx = getContext();
     powerups.forEach(p => {
         ctx.save();
         ctx.globalAlpha = 1;
@@ -58,6 +61,7 @@ function drawPowerups() {
 }
 
 function drawParticles() {
+    const ctx = getContext();
     particles.forEach(p => {
         ctx.save();
         ctx.globalAlpha = Math.min(1, p.life);
@@ -77,6 +81,7 @@ function drawParticles() {
 }
 
 function drawEnemies() {
+    const ctx = getContext();
     enemies.forEach(e => {
         ctx.save();
         ctx.globalAlpha = 1;
@@ -95,6 +100,7 @@ function drawEnemies() {
 }
 
 function drawPlayer() {
+    const ctx = getContext();
     ctx.save();
     ctx.globalAlpha = 1;
     if (shieldTimer > 0) {
@@ -121,6 +127,7 @@ function drawPlayer() {
 }
 
 function drawBullets() {
+    const ctx = getContext();
     bullets.forEach(b => {
         ctx.fillStyle = b.color || '#fbbf24';
         ctx.beginPath();
@@ -130,6 +137,7 @@ function drawBullets() {
 }
 
 function drawCombo() {
+    const ctx = getContext();
     if (comboCount > 1 && comboTimer > 0) {
         ctx.save();
         ctx.font = 'bold 20px Orbitron,sans-serif';
@@ -143,6 +151,7 @@ function drawCombo() {
 }
 
 function drawFloatingTexts() {
+    const ctx = getContext();
     floatingTexts.forEach(t => {
         ctx.save();
         ctx.globalAlpha = Math.min(1, t.life);
@@ -157,6 +166,7 @@ function drawFloatingTexts() {
 }
 
 function drawHUD() {
+    const ctx = getContext();
     ctx.save();
     ctx.font = '12px Orbitron,sans-serif';
     ctx.fillStyle = '#10b981';

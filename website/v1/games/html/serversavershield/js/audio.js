@@ -1,5 +1,5 @@
 // Audio System
-let audioCtx = null;
+var audioCtx = null;
 
 function initAudio() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();

@@ -1,5 +1,5 @@
 // Player Management
-let player = {
+var player = {
     x: CANVAS_WIDTH / 2,
     y: CANVAS_HEIGHT - 80,
     radius: 25,
@@ -8,12 +8,12 @@ let player = {
     companionTimer: 0
 };
 
-let inputX = CANVAS_WIDTH / 2;
-let inputY = CANVAS_HEIGHT - 100;
-let isShooting = false;
-let currentWeapon = 'standard';
-let weaponTimer = 0;
-let weaponTimerMax = 600;
+var inputX = CANVAS_WIDTH / 2;
+var inputY = CANVAS_HEIGHT - 100;
+var isShooting = false;
+var currentWeapon = 'standard';
+var weaponTimer = 0;
+var weaponTimerMax = 600;
 
 function updatePlayer() {
     player.x += (inputX - player.x) * 0.12;

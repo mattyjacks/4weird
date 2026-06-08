@@ -1,5 +1,5 @@
 // Powerup Management
-let powerups = [];
+var powerups = [];
 
 function spawnPowerup(x, y) {
     if (Math.random() > 0.20) return;

@@ -1,6 +1,6 @@
 // Enemy Management
-let enemies = [];
-let spawnTimer = 0;
+var enemies = [];
+var spawnTimer = 0;
 
 function spawnEnemy() {
     let types = ['blackhat', 'pentester'];

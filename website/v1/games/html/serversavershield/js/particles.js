@@ -1,5 +1,5 @@
 // Particle Effects
-let particles = [];
+var particles = [];
 
 function spawnParticles(x, y, color, count, emoji) {
     for (let i = 0; i < count; i++) {

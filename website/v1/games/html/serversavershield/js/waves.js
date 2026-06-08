@@ -1,6 +1,6 @@
 // Wave Management
-let waveTimer = 0;
-let waveDuration = 600;
+var waveTimer = 0;
+var waveDuration = 600;
 
 function updateWaves() {
     waveTimer++;

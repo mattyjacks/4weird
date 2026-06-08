@@ -1,8 +1,8 @@
 // UI and Text Management
-let floatingTexts = [];
-let shieldTimer = 0;
-let comboCount = 0;
-let comboTimer = 0;
+var floatingTexts = [];
+var shieldTimer = 0;
+var comboCount = 0;
+var comboTimer = 0;
 
 function addText(x, y, text, color, size) {
     floatingTexts.push({ x, y, text, color, size, life: 60 });

@@ -1,37 +1,38 @@
 // Input Handling
 function initInput() {
-    canvas.addEventListener('mousemove', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const scale = canvas.width / rect.width;
+    const gameCanvas = getCanvas();
+    gameCanvas.addEventListener('mousemove', (e) => {
+        const rect = gameCanvas.getBoundingClientRect();
+        const scale = gameCanvas.width / rect.width;
         inputX = (e.clientX - rect.left) * scale;
         inputY = (e.clientY - rect.top) * scale;
     });
-    
-    canvas.addEventListener('mousedown', (e) => {
+
+    gameCanvas.addEventListener('mousedown', (e) => {
         e.preventDefault();
         isShooting = !isShooting;
     });
-    
-    canvas.addEventListener('touchmove', (e) => {
+
+    gameCanvas.addEventListener('touchmove', (e) => {
         e.preventDefault();
-        const rect = canvas.getBoundingClientRect();
-        const scale = canvas.width / rect.width;
+        const rect = gameCanvas.getBoundingClientRect();
+        const scale = gameCanvas.width / rect.width;
         const t = e.touches[0];
         inputX = (t.clientX - rect.left) * scale;
         inputY = (t.clientY - rect.top) * scale;
     }, { passive: false });
-    
-    canvas.addEventListener('touchstart', (e) => {
+
+    gameCanvas.addEventListener('touchstart', (e) => {
         e.preventDefault();
         isShooting = !isShooting;
-        const rect = canvas.getBoundingClientRect();
-        const scale = canvas.width / rect.width;
+        const rect = gameCanvas.getBoundingClientRect();
+        const scale = gameCanvas.width / rect.width;
         const t = e.touches[0];
         inputX = (t.clientX - rect.left) * scale;
         inputY = (t.clientY - rect.top) * scale;
     }, { passive: false });
-    
-    canvas.addEventListener('touchend', (e) => {
+
+    gameCanvas.addEventListener('touchend', (e) => {
         e.preventDefault();
     });
     

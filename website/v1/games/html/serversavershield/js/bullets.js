@@ -1,5 +1,5 @@
 // Bullet Management
-let bullets = [];
+var bullets = [];
 
 function spawnBullet() {
     if (player.shootCooldown > 0) return;

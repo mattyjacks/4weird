@@ -1,6 +1,6 @@
 // Canvas Management
-let canvas = null;
-let ctx = null;
+var canvas = null;
+var ctx = null;
 
 function initCanvas() {
     canvas = document.getElementById('gameCanvas');
