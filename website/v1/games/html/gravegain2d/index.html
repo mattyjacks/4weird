@@ -138,6 +138,7 @@
                         <button class="hub-tab-btn" data-tab="botany">🌱 Botany Station</button>
                         <button class="hub-tab-btn" data-tab="repair">🔧 Repair Station</button>
                         <button class="hub-tab-btn" data-tab="exchange">🪙 Exchange</button>
+                        <button class="hub-tab-btn" data-tab="lore">📖 Lore Codex</button>
                     </div>
                 </div>
 
@@ -188,6 +189,23 @@
                     <div style="display: flex; gap: 15px;">
                         <button class="btn-game btn-primary" id="btnBuyUusd" style="flex: 1;">🪙 Sell 10 Gold for 100 $UUSD</button>
                         <button class="btn-game" id="btnBuyGold" style="flex: 1;">💵 Exchange 100 $UUSD for 10 Gold</button>
+                    </div>
+                </div>
+
+                <!-- Lore Codex Tab -->
+                <div class="hub-pane" id="tab-lore">
+                    <h3 style="margin-top: 0; color: var(--grave-gold);">LuckyStarShip Lore Archives</h3>
+                    <p style="font-size: 0.9rem; margin-bottom: 10px;">Select a log from the ship's retrieved databanks to decode and read.</p>
+                    <div style="display: flex; gap: 20px; height: 350px;">
+                        <div id="loreList" style="width: 250px; overflow-y: auto; background: rgba(0,0,0,0.4); border: 1px solid var(--grave-border); border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+                            <!-- Populated by JS -->
+                        </div>
+                        <div id="loreReader" style="flex: 1; overflow-y: auto; background: rgba(0,0,0,0.3); border: 1px solid var(--grave-border); border-radius: 6px; padding: 15px; display: flex; flex-direction: column; gap: 10px;">
+                            <h4 id="loreTitle" style="margin: 0; color: var(--grave-gold); font-family: 'Orbitron'; font-size: 1.1rem;">Select an entry</h4>
+                            <div id="loreCategory" style="font-size: 0.75rem; text-transform: uppercase; color: var(--grave-text-muted);">Category</div>
+                            <div id="loreContent" style="font-size: 0.85rem; line-height: 1.6; white-space: pre-line;">Select an entry from the list on the left to read its contents.</div>
+                            <button class="btn-game" id="btnSpeakLore" style="margin-top: auto; font-size: 0.8rem; padding: 6px 12px; align-self: flex-start;">🔊 Synthesize Audio Log</button>
+                        </div>
                     </div>
                 </div>
 
@@ -304,6 +322,7 @@
     <div id="TEMPLATE-4weird-footer-placeholder"></div>
 
     <script src="../../../components.js"></script>
+    <script src="lore.js"></script>
     <script src="game.js"></script>
     <script>
         (function() {

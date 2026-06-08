@@ -401,7 +401,7 @@
             const spawnRoom = rooms.find(r => r.type === 'spawn') || rooms[0];
             const maxDistance = Math.hypot(this.gridSize, this.gridSize);
 
-            return { grid, rooms, spawnRoom, breakableWalls };
+            return { grid, rooms, spawnRoom, breakableWalls, gridSize: this.gridSize };
         }
 
         digCorridor(grid, x1, y1, x2, y2) {
@@ -579,7 +579,7 @@
             // Slow down in water
             const tileX = Math.floor(this.x / 48);
             const tileY = Math.floor(this.y / 48);
-            if (tilemap && tilemap.getTile(tileX, tileY) === 2) {
+            if (tilemap && tilemap.grid && tilemap.grid[tileX] && tilemap.grid[tileX][tileY] === 2) {
                 this.vx *= 0.5;
                 this.vy *= 0.5;
             }
@@ -861,6 +861,7 @@
         getEmoji() {
             if (this.type === 'gold') return '🪙';
             if (this.type === 'uusd') return '💵';
+            if (this.type === 'item') return '📜';
             return '💎';
         }
     }
@@ -1072,6 +1073,7 @@
             return { grounded };
         }
         isCollidingWithWall(x, y, radius, tilemap) {
+            if (!tilemap || !tilemap.grid) return false;
             // Check boundary points
             const points = [
                 { x: x - radius, y: y - radius },
@@ -1082,7 +1084,11 @@
             for (const p of points) {
                 const tx = Math.floor(p.x / 48);
                 const ty = Math.floor(p.y / 48);
-                if (tilemap.getTile(tx, ty) === 1 || tilemap.getTile(tx, ty) === 6) {
+                if (tx < 0 || tx >= tilemap.gridSize || ty < 0 || ty >= tilemap.gridSize) {
+                    return true;
+                }
+                const cell = tilemap.grid[tx] ? tilemap.grid[tx][ty] : undefined;
+                if (cell === 1 || cell === 6) {
                     return true;
                 }
             }
@@ -1268,6 +1274,8 @@
                     if (targetTab === 'exchange') {
                         document.getElementById('exchangeGoldBalance').textContent = this.gold + ' Gold';
                         document.getElementById('exchangeUusdBalance').textContent = this.uusd + ' $UUSD';
+                    } else if (targetTab === 'lore') {
+                        this.renderLoreList();
                     }
                 });
             });
@@ -1567,6 +1575,13 @@
                         this.loot.push(new LootItem(lx, ly, 'gold', 50));
                     }
                 }
+
+                // Spawn a lore scroll with a small chance in any room
+                if (Math.random() < 0.2) {
+                    const lx = (room.x + Math.floor(Math.random() * room.w)) * 48 + 24;
+                    const ly = (room.y + Math.floor(Math.random() * room.h)) * 48 + 24;
+                    this.loot.push(new LootItem(lx, ly, 'item', 150));
+                }
             });
 
             this.updateChallengeProgress('depth', this.floorIndex);
@@ -1656,9 +1671,13 @@
                 if (dist < this.player.radius + l.radius) {
                     this.gold += l.value;
                     this.updateChallengeProgress('gold', l.value);
+                    if (l.type === 'item') {
+                        this.player.xp += 30;
+                        this.audio.speakFallback('Vocal log recovered.');
+                    }
                     l.picked = true;
                     this.audio.play('loot');
-                    this.vfx.spawnSparks(l.x, l.y, 'gold', 4);
+                    this.vfx.spawnSparks(l.x, l.y, l.type === 'item' ? 'purple' : 'gold', 6);
                 }
             });
             this.loot = this.loot.filter(l => !l.picked);
@@ -1791,18 +1810,18 @@
                         if (screenX < -size || screenX > w || screenY < -size || screenY > h) continue;
 
                         if (tile === 1) {
-                            ctx.fillStyle = '#11111b';
+                            ctx.fillStyle = '#1e1b4b';
                             ctx.fillRect(screenX, screenY, size, size);
-                            ctx.strokeStyle = '#222233';
+                            ctx.strokeStyle = '#312e81';
                             ctx.strokeRect(screenX, screenY, size, size);
                         } else if (tile === 2) {
-                            ctx.fillStyle = '#1e293b'; // Water
+                            ctx.fillStyle = '#1e40af'; // Water
                             ctx.fillRect(screenX, screenY, size, size);
                         } else if (tile === 3) {
-                            ctx.fillStyle = 'rgba(16, 185, 129, 0.2)'; // Poison
+                            ctx.fillStyle = 'rgba(16, 185, 129, 0.4)'; // Poison
                             ctx.fillRect(screenX, screenY, size, size);
                         } else if (tile === 4) {
-                            ctx.fillStyle = 'rgba(239, 68, 68, 0.2)'; // Fire
+                            ctx.fillStyle = 'rgba(239, 68, 68, 0.4)'; // Fire
                             ctx.fillRect(screenX, screenY, size, size);
                         } else if (tile === 6) {
                             ctx.fillStyle = '#475569'; // Breakable Wall
@@ -1811,9 +1830,9 @@
                             ctx.font = '16px serif';
                             ctx.fillText('⚡', screenX + 16, screenY + 30);
                         } else {
-                            ctx.fillStyle = '#0f172a'; // Standard floor
+                            ctx.fillStyle = '#334155'; // Standard floor (Slate Blue)
                             ctx.fillRect(screenX, screenY, size, size);
-                            ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+                            ctx.strokeStyle = 'rgba(255,255,255,0.05)';
                             ctx.strokeRect(screenX, screenY, size, size);
                         }
                     }
@@ -1959,6 +1978,47 @@
                 ctx.fill();
 
                 ctx.restore();
+            }
+        }
+
+        renderLoreList() {
+            const listEl = document.getElementById('loreList');
+            if (!listEl) return;
+
+            const allLore = window.GraveGainLore.getAll();
+            listEl.innerHTML = Object.keys(allLore).map(key => {
+                const item = allLore[key];
+                return `<button class="class-btn" style="text-align: left; padding: 8px; font-size: 0.8rem; width: 100%;" onclick="window.GraveGainGame.viewLoreEntry('${item.id}')">${item.title}</button>`;
+            }).join('');
+
+            // Attach speech button listener once
+            const speakBtn = document.getElementById('btnSpeakLore');
+            if (speakBtn && !speakBtn.dataset.bound) {
+                speakBtn.dataset.bound = "true";
+                speakBtn.addEventListener('click', () => {
+                    const currentId = speakBtn.dataset.currentId;
+                    if (currentId) {
+                        const item = window.GraveGainLore.get(currentId);
+                        if (item) {
+                            this.audio.speakFallback(item.content);
+                        }
+                    }
+                });
+            }
+        }
+
+        viewLoreEntry(id) {
+            const item = window.GraveGainLore.get(id);
+            if (!item) return;
+
+            document.getElementById('loreTitle').textContent = item.title;
+            document.getElementById('loreCategory').textContent = "Category: " + item.category.replace('_', ' ');
+            document.getElementById('loreContent').textContent = item.content;
+
+            const speakBtn = document.getElementById('btnSpeakLore');
+            if (speakBtn) {
+                speakBtn.style.display = 'block';
+                speakBtn.dataset.currentId = id;
             }
         }
 
