@@ -1,5 +1,10 @@
 // Event Handlers
+var eventHandlersInitialized = false;
+
 function initEventHandlers() {
+    if (eventHandlersInitialized) return; // Prevent duplicate handlers
+    eventHandlersInitialized = true;
+
     document.getElementById('btnEasy').addEventListener('click', () => {
         difficulty = 'easy';
         document.getElementById('btnEasy').style.background = 'linear-gradient(135deg, #10b981, #059669)';

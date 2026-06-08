@@ -1,8 +1,11 @@
 // Canvas Management
 var canvas = null;
 var ctx = null;
+var canvasInitialized = false;
 
 function initCanvas() {
+    if (canvasInitialized) return; // Prevent duplicate initialization
+
     canvas = document.getElementById('gameCanvas');
     if (!canvas) {
         console.error('Game canvas not found!');
@@ -13,6 +16,7 @@ function initCanvas() {
         console.error('Could not get 2D context!');
         return;
     }
+    canvasInitialized = true;
     // Set initial size before resize
     canvas.width = CANVAS_WIDTH;
     canvas.height = CANVAS_HEIGHT;

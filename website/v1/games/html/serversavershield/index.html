@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Server Saver Shield - 4weird Games</title>
     <meta name="description" content="Defend the servers from cyber attacks! A pure HTML5 arcade shooter by 4weird Games.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../../../styles.css" onerror="this.remove(); console.warn('styles.css not found - using fallback styles')">
     <link rel="stylesheet" href="game.css">
 </head>
 <body class="TEMPLATE-4weird-game-page">
@@ -194,7 +195,7 @@
 
     <div id="TEMPLATE-4weird-footer-placeholder"></div>
 
-    <script src="../../components.js"></script>
+    <script src="../../../components.js" onerror="console.warn('components.js failed to load - running without shared components')"></script>
     <!-- Modular Game Scripts -->
     <script src="js/constants.js"></script>
     <script src="js/audio.js"></script>
@@ -216,5 +217,15 @@
     <script src="js/gameFlow.js"></script>
     <script src="js/eventHandlers.js"></script>
     <script src="js/init.js"></script>
+    <script>
+        // Global error handler to catch and log any remaining errors
+        window.addEventListener('error', function(e) {
+            console.warn('Caught error:', e.message, 'at', e.filename + ':' + e.lineno);
+            // Prevent default error display for non-critical errors
+            if (e.message && (e.message.includes('components.js') || e.message.includes('styles.css'))) {
+                e.preventDefault();
+            }
+        });
+    </script>
 </body>
 </html>

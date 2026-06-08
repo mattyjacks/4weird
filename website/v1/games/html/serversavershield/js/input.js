@@ -1,5 +1,10 @@
 // Input Handling
+var inputInitialized = false;
+
 function initInput() {
+    if (inputInitialized) return; // Prevent duplicate listeners
+    inputInitialized = true;
+
     const gameCanvas = getCanvas();
     gameCanvas.addEventListener('mousemove', (e) => {
         const rect = gameCanvas.getBoundingClientRect();
