@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Saver Shield - Game Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+            color: #f5f5f5;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 40px 20px;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 20px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #f5f5f5, #a78bfa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .tagline { color: #9ca3af; font-size: 1.1rem; margin-bottom: 20px; }
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            transition: 0.3s ease;
+        }
+        .nav-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3); }
+        .section {
+            margin-bottom: 60px;
+            padding: 40px;
+            background: rgba(26, 26, 37, 0.8);
+            border-radius: 20px;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+        .section h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: #a78bfa;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .entity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .entity-card {
+            background: rgba(30, 30, 45, 0.9);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            transition: 0.3s ease;
+            cursor: pointer;
+        }
+        .entity-card:hover {
+            border-color: rgba(139, 92, 246, 0.8);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+            transform: translateY(-5px);
+        }
+        .entity-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .entity-emoji { font-size: 2.5rem; }
+        .entity-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #f5f5f5;
+        }
+        .entity-type {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .entity-short {
+            color: #d1d5db;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+            min-height: 40px;
+        }
+        .entity-details {
+            display: none;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #d1d5db;
+            line-height: 1.7;
+        }
+        .entity-details.active { display: block; }
+        .read-more-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: 0.3s ease;
+            width: 100%;
+        }
+        .read-more-btn:hover { transform: scale(1.02); }
+        .read-more-btn.active { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+            font-size: 0.85rem;
+        }
+        .stat {
+            background: rgba(139, 92, 246, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 3px solid #8b5cf6;
+        }
+        .stat-label { color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { color: #10b981; font-weight: 700; font-size: 1.1rem; }
+        .toc {
+            background: rgba(139, 92, 246, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            margin-bottom: 40px;
+        }
+        .toc h3 {
+            font-family: 'Orbitron', sans-serif;
+            margin-bottom: 20px;
+            color: #a78bfa;
+        }
+        .toc-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .toc-link {
+            padding: 12px;
+            background: rgba(30, 30, 45, 0.8);
+            border-radius: 8px;
+            text-decoration: none;
+            color: #a78bfa;
+            transition: 0.3s ease;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+        .toc-link:hover {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: rgba(139, 92, 246, 0.6);
+        }
+        .tip-box {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid #10b981;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+        .tip-box strong { color: #10b981; }
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #6b7280;
+            border-top: 1px solid rgba(139, 92, 246, 0.2);
+            margin-top: 60px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛡️ SERVER SAVER SHIELD</h1>
+            <p class="tagline">Complete Game Guide & Entity Reference</p>
+            <div class="nav-buttons">
+                <a href="index.html" class="nav-btn">🎮 Play Game</a>
+                <a href="../../index.html" class="nav-btn">🏠 Back to 4weird</a>
+            </div>
+        </header>
+
+        <div class="toc">
+            <h3>📋 Quick Navigation</h3>
+            <div class="toc-links">
+                <a href="#enemies" class="toc-link">🎯 Enemies (9 Types)</a>
+                <a href="#staff" class="toc-link">👥 Security Staff (5 Types)</a>
+                <a href="#powerups" class="toc-link">⚡ Powerups (24 Types)</a>
+                <a href="#reputation" class="toc-link">💯 Reputation System</a>
+                <a href="#compute" class="toc-link">🖥️ Compute System</a>
+                <a href="#staff-expanded" class="toc-link">👥 Complete Staff (17 Types)</a>
+                <a href="#mechanics" class="toc-link">⚙️ Game Mechanics</a>
+                <a href="#strategy" class="toc-link">🧠 Strategy Tips</a>
+            </div>
+        </div>
+
+        <!-- ENEMIES SECTION -->
+        <section class="section" id="enemies">
+            <h2>🎯 ENEMIES (9 Threat Types)</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">Defend your servers from increasingly sophisticated cyber threats. Each enemy type has unique behavior and attack patterns.</p>
+            
+            <div class="entity-grid">
+                <!-- Black Hat Hacker -->
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🎩</div>
+                        <div>
+                            <div class="entity-name">Black Hat Hacker</div>
+                            <div class="entity-type">Direct Attacker</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Fast, aggressive hacker that deals direct damage to servers.</div>
+                    <div class="entity-details">
+                        <p>The most basic cyber threat. Black Hat Hackers move straight down the screen toward your servers with high speed. They deal direct damage on contact, reducing server health. Easy to defeat individually but dangerous in groups. Prioritize eliminating them early in waves to prevent server damage accumulation.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">HP</div><div class="stat-value">1</div></div>
+                        <div class="stat"><div class="stat-label">Speed</div><div class="stat-value">2.5</div></div>
+                        <div class="stat"><div class="stat-label">Score</div><div class="stat-value">10</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Trojan Horse -->
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🐴</div>
+                        <div>
+                            <div class="entity-name">Trojan Horse</div>
+                            <div class="entity-type">Stealth Threat</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Slow, sneaky malware that bypasses some defenses.</div>
+                    <div class="entity-details">
+                        <p>Trojan Horses move slowly but unpredictably, using zigzag patterns to evade your fire. They bypass standard defenses and are harder to hit than direct attackers. Their slow speed makes them less immediately dangerous, but their evasive behavior means you need precise aim. Hire a SOC Analyst to detect them earlier.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">HP</div><div class="stat-value">3</div></div>
+                        <div class="stat"><div class="stat-label">Speed</div><div class="stat-value">1.5</div></div>
+                        <div class="stat"><div class="stat-label">Score</div><div class="stat-value">50</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- AI Pen Tester -->
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🤖</div>
+                        <div>
+                            <div class="entity-name">AI Pen Tester</div>
+                            <div class="entity-type">Evasive Threat</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Fast, evasive attacker that targets the player directly.</div>
+                    <div class="entity-details">
+                        <p>AI Pen Testers are highly evasive and move at high speed, actively dodging your bullets. Unlike other enemies, they target you directly rather than servers. They're dangerous because they force you to move and defend yourself while managing server threats. Use rapid fire powerups or hire a Pen Tester staff member to increase damage and take them down faster.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">HP</div><div class="stat-value">2</div></div>
+                        <div class="stat"><div class="stat-label">Speed</div><div class="stat-value">3.5</div></div>
+                        <div class="stat"><div class="stat-label">Score</div><div class="stat-value">30</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Intelligence Agency -->
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🧠</div>
+                        <div>
+                            <div class="entity-name">Intelligence Agency</div>
+                            <div class="entity-type">Strategic Threat</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Smart attacker that targets your highest-income server.</div>
+                    <div class="entity-details">
+                        <p>Intelligence Agencies use strategic pathfinding to locate and attack your most profitable servers. They're moderately fast and have higher HP than basic threats. Their intelligence makes them particularly dangerous to your economy - they'll specifically target servers generating the most revenue. Prioritize eliminating them to protect your income streams, or use backup servers to absorb their attacks.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">HP</div><div class="stat-value">4</div></div>
+                        <div class="stat"><div class="stat-label">Speed</div><div class="stat-value">2.0</div></div>
+                        <div class="stat"><div class="stat-label">Score</div><div class="stat-value">60</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- DDOS Attack -->
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🔥</div>
+                        <div>
+                            <div class="entity-name">DDOS Attack</div>
+                            <div class="entity-type">Income Disruptor</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Freezes server income for 15 seconds (8s with Firewall Tech).</div>
+                    <div class="entity-details">
+                        <p>DDOS Attacks are large, slow-moving threats that freeze one server's income generation for 15 seconds when they hit. This is devastating to your economy - a frozen server generates zero revenue during the freeze period. The countdown timer is visible on the affected server. Hiring a Firewall Tech reduces the freeze duration to 8 seconds. These are high-priority targets - eliminate them before they reach your servers.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">HP</div><div class="stat-value">5</div></div>
+                        <div class="stat"><div class="stat-label">Speed</div><div class="stat-value">1.0</div></div>
+                        <div class="stat"><div class="stat-label">Score</div><div class="stat-value">100</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Ransomware -->
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🔒</div>
+                        <div>
+                            <div class="entity-name">Ransomware</div>
+                            <div class="entity-type">Server Disabler</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Permanently disables a server until ransom is paid.</div>
+                    <div class="entity-details">
+                        <p>Ransomware is one of the most dangerous threats. When it hits a server, that server becomes RANSOMED and stops generating income permanently until you pay the ransom fee (typically $500, higher on Hard difficulty). The ransom amount is displayed on the affected server. You can pay the ransom by clicking the server panel. Alternatively, use backup servers - if a server has a backup link, the backup absorbs the ransomware attack instead. Hiring an Incident Responder automatically pays ransoms at 50% cost.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">HP</div><div class="stat-value">4</div></div>
+                        <div class="stat"><div class="stat-label">Speed</div><div class="stat-value">1.2</div></div>
+                        <div class="stat"><div class="stat-label">Score</div><div class="stat-value">80</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Fraudster -->
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">💰</div>
+                        <div>
+                            <div class="entity-name">Fraudster</div>
+                            <div class="entity-type">Economic Drain</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Drains your balance directly while alive.</div>
+                    <div class="entity-details">
+                        <p>Fraudsters are economic threats that don't target servers directly - instead, they drain your balance continuously while alive. Every frame they exist, they steal money from your account. This makes them extremely dangerous to your economy, especially if multiple fraudsters are active simultaneously. They ignore servers and focus on draining your resources. Eliminate them as quickly as possible to stop the financial bleeding. They appear starting in Wave 6.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">HP</div><div class="stat-value">2</div></div>
+                        <div class="stat"><div class="stat-label">Speed</div><div class="stat-value">2.0</div></div>
+                        <div class="stat"><div class="stat-label">Score</div><div class="stat-value">40</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Social Engineer -->
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🎭</div>
+                        <div>
+                            <div class="entity-name">Social Engineer</div>
+                            <div class="entity-type">Trust Destroyer</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Reduces customer trust, decreasing all server income.</div>
+                    <div class="entity-details">
+                        <p>Social Engineers are small, fast threats that reduce your Customer Trust percentage when they hit servers or the player. Lower trust directly multiplies your income - at 50% trust, you only earn half revenue. This makes them economically devastating despite their low HP. Each hit reduces trust by 5% (2.5% with CISO staff). They appear starting in Wave 7. Hire a CISO to reduce their impact, and use PR Campaign upgrades to restore trust over time.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">HP</div><div class="stat-value">1</div></div>
+                        <div class="stat"><div class="stat-label">Speed</div><div class="stat-value">2.8</div></div>
+                        <div class="stat"><div class="stat-label">Score</div><div class="stat-value">25</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Cryptominer -->
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">⛏️</div>
+                        <div>
+                            <div class="entity-name">Cryptominer</div>
+                            <div class="entity-type">Resource Hijacker</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Reduces server income by 20% while alive.</div>
+                    <div class="entity-details">
+                        <p>Cryptominers are stealth threats that hijack your server resources when they infect them. While alive, they reduce the affected server's income generation by 20%. Unlike ransomware, they don't disable the server - they just make it less profitable. Multiple cryptominers can stack their effects, severely reducing your revenue. They use stealth behavior to evade detection. Eliminate them quickly to restore full server profitability. They appear starting in Wave 8.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">HP</div><div class="stat-value">3</div></div>
+                        <div class="stat"><div class="stat-label">Speed</div><div class="stat-value">1.8</div></div>
+                        <div class="stat"><div class="stat-label">Score</div><div class="stat-value">55</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- STAFF SECTION -->
+        <section class="section" id="staff">
+            <h2>👥 SECURITY STAFF (5 Types)</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">Hire security professionals to enhance your defenses and boost your economy. Each staff member has a hire cost and ongoing salary.</p>
+            
+            <div class="entity-grid">
+                <!-- Firewall Tech -->
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🔥</div>
+                        <div>
+                            <div class="entity-name">Firewall Tech</div>
+                            <div class="entity-type">Defense Specialist</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Reduces DDOS freeze duration from 15s to 8s.</div>
+                    <div class="entity-details">
+                        <p>Firewall Technicians specialize in network defense. When you hire one, any DDOS attacks that freeze your servers will only freeze them for 8 seconds instead of 15 seconds. This significantly reduces the income loss from DDOS attacks. Hire cost is $200 with a $5/sec salary. Best hired early when DDOS attacks start appearing in Wave 4. The faster recovery time compounds over multiple DDOS hits throughout the game.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">Hire Cost</div><div class="stat-value">$200</div></div>
+                        <div class="stat"><div class="stat-label">Salary/sec</div><div class="stat-value">$5</div></div>
+                        <div class="stat"><div class="stat-label">Ability</div><div class="stat-value">DDOS -7s</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Incident Responder -->
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🚘</div>
+                        <div>
+                            <div class="entity-name">Incident Responder</div>
+                            <div class="entity-type">Crisis Manager</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Auto-pays ransomware at 50% cost after 5 seconds.</div>
+                    <div class="entity-details">
+                        <p>Incident Responders automatically handle ransomware attacks. When a server gets ransomed, they automatically pay the ransom at 50% of the normal cost after a 5-second delay. This is invaluable protection against ransomware threats. Hire cost is $300 with a $8/sec salary. While expensive, they save you money on ransoms and keep servers online longer. Essential for late-game survival when ransomware becomes frequent.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">Hire Cost</div><div class="stat-value">$300</div></div>
+                        <div class="stat"><div class="stat-label">Salary/sec</div><div class="stat-value">$8</div></div>
+                        <div class="stat"><div class="stat-label">Ability</div><div class="stat-value">Ransom -50%</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- SOC Analyst -->
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🔍</div>
+                        <div>
+                            <div class="entity-name">SOC Analyst</div>
+                            <div class="entity-type">Detection Expert</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Detects stealth enemies earlier, giving you more time to react.</div>
+                    <div class="entity-details">
+                        <p>SOC (Security Operations Center) Analysts specialize in threat detection. When hired, they detect stealth enemies (Trojan Horses, Ransomware, Cryptominers) earlier on the screen, giving you more reaction time. This is particularly valuable against Trojan Horses which are hard to hit due to their evasive behavior. Hire cost is $250 with a $6/sec salary. Useful starting in Wave 3 when stealth threats begin appearing.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">Hire Cost</div><div class="stat-value">$250</div></div>
+                        <div class="stat"><div class="stat-label">Salary/sec</div><div class="stat-value">$6</div></div>
+                        <div class="stat"><div class="stat-label">Ability</div><div class="stat-value">Detect Stealth</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Pen Tester -->
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🤖</div>
+                        <div>
+                            <div class="entity-name">Pen Tester</div>
+                            <div class="entity-type">Offensive Specialist</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Increases your bullet damage by 50%.</div>
+                    <div class="entity-details">
+                        <p>Penetration Testers enhance your offensive capabilities. When hired, all your bullets deal 50% more damage, making it easier to eliminate threats quickly. This stacks with other damage multipliers (companion, difficulty). Hire cost is $280 with a $7/sec salary. Excellent for aggressive playstyles and helps you clear waves faster. Particularly effective against high-HP enemies like DDOS and Ransomware.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">Hire Cost</div><div class="stat-value">$280</div></div>
+                        <div class="stat"><div class="stat-label">Salary/sec</div><div class="stat-value">$7</div></div>
+                        <div class="stat"><div class="stat-label">Ability</div><div class="stat-value">Dmg +50%</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- CISO -->
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">👨</div>
+                        <div>
+                            <div class="entity-name">CISO</div>
+                            <div class="entity-type">Chief Information Security Officer</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Reduces customer trust damage from fraud and social engineering.</div>
+                    <div class="entity-details">
+                        <p>The Chief Information Security Officer is your top-level security executive. When hired, they reduce the trust damage from Social Engineers and Fraudsters by 50%. Since customer trust directly multiplies your income, protecting it is crucial. Hire cost is $400 with a $12/sec salary - the most expensive staff member. Essential for late-game when Social Engineers appear in Wave 7 and trust becomes a critical resource.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">Hire Cost</div><div class="stat-value">$400</div></div>
+                        <div class="stat"><div class="stat-label">Salary/sec</div><div class="stat-value">$12</div></div>
+                        <div class="stat"><div class="stat-label">Ability</div><div class="stat-value">Trust Protect</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+
+            <div class="tip-box">
+                <strong>💡 Staff Strategy Tip:</strong> Staff members have ongoing salary costs that drain your balance every second. Hire strategically based on the threats you're facing. Early game: focus on Firewall Tech. Mid-game: add Incident Responder. Late-game: add CISO for trust protection. You can fire staff anytime to stop their salary drain.
+            </div>
+        </section>
+
+        <!-- POWERUPS SECTION -->
+        <section class="section" id="powerups">
+            <h2>⚡ POWERUPS (24 Types - 20 Weapons + 4 Utility)</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">Powerups drop randomly from defeated enemies. Weapon powerups last 10 seconds of active shooting. Collect them to gain temporary bonuses and switch weapons on the fly. Click to toggle firing on/off and switch between weapons.</p>
+            
+            <div class="entity-grid">
+                <!-- Heal -->
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">💖</div>
+                        <div>
+                            <div class="entity-name">Heal</div>
+                            <div class="entity-type">Economic Boost</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Instantly adds $100 to your balance.</div>
+                    <div class="entity-details">
+                        <p>The Heal powerup provides immediate financial relief. When collected, it adds $100 to your balance. This is particularly valuable when you're low on funds and need to hire staff or pay ransoms. Spawn rate: 30% of defeated enemies. Most common powerup. Use the extra funds strategically - either to hire staff members or to pay off ransomed servers.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">Effect</div><div class="stat-value">+$100</div></div>
+                        <div class="stat"><div class="stat-label">Duration</div><div class="stat-value">Instant</div></div>
+                        <div class="stat"><div class="stat-label">Spawn Rate</div><div class="stat-value">30%</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Rapid Fire -->
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">⚡</div>
+                        <div>
+                            <div class="entity-name">Rapid Fire</div>
+                            <div class="entity-type">Weapon Enhancement</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Increases fire rate and shoots 3 bullets per shot for 5 seconds.</div>
+                    <div class="entity-details">
+                        <p>Rapid Fire dramatically increases your offensive capability. When activated, your fire rate increases from 8 frames between shots to 3 frames, and each shot fires 3 bullets instead of 1. This lasts for 5 seconds (300 frames). Excellent for clearing waves quickly or dealing with multiple threats. Spawn rate: 25%. Stack multiple Rapid Fire powerups for extended duration.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">Fire Rate</div><div class="stat-value">3x</div></div>
+                        <div class="stat"><div class="stat-label">Duration</div><div class="stat-value">5 sec</div></div>
+                        <div class="stat"><div class="stat-label">Spawn Rate</div><div class="stat-value">25%</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Shield -->
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🛡️</div>
+                        <div>
+                            <div class="entity-name">Shield</div>
+                            <div class="entity-type">Defensive Boost</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Creates a protective shield around you for 6.5 seconds.</div>
+                    <div class="entity-details">
+                        <p>The Shield powerup provides temporary protection. When activated, a glowing shield appears around your player character for 6.5 seconds (400 frames). While active, you're visually protected (though this is primarily visual - focus on dodging). The shield has a pulsing animation. Spawn rate: 15%. Useful when you're surrounded by threats and need breathing room.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">Effect</div><div class="stat-value">Visual Shield</div></div>
+                        <div class="stat"><div class="stat-label">Duration</div><div class="stat-value">6.5 sec</div></div>
+                        <div class="stat"><div class="stat-label">Spawn Rate</div><div class="stat-value">15%</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Companion -->
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">👨‍💻</div>
+                        <div>
+                            <div class="entity-name">Companion</div>
+                            <div class="entity-type">Ally Summon</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Summons a White Hat Hacker ally that shoots nearby enemies for 8 seconds.</div>
+                    <div class="entity-details">
+                        <p>The Companion powerup summons a White Hat Hacker ally that orbits your player and shoots at nearby enemies. The ally increases your effective damage output and helps clear threats. Lasts 8 seconds (500 frames). The companion's bullets also deal 1.5x damage. Spawn rate: 15%. Excellent for dealing with multiple threats simultaneously. The ally appears as a 👨‍💻 emoji near your position.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">Effect</div><div class="stat-value">+1 Ally</div></div>
+                        <div class="stat"><div class="stat-label">Duration</div><div class="stat-value">8 sec</div></div>
+                        <div class="stat"><div class="stat-label">Spawn Rate</div><div class="stat-value">15%</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Nuke -->
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">💣</div>
+                        <div>
+                            <div class="entity-name">Nuke</div>
+                            <div class="entity-type">Instant Clear</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Instantly destroys all enemies on screen and awards their points.</div>
+                    <div class="entity-details">
+                        <p>The Nuke powerup is the most powerful. When collected, it instantly destroys every enemy currently on the screen and awards you their full point values. This is a game-changer when you're overwhelmed by multiple threats. Spawn rate: 10% (rarest common powerup). Use it strategically - save it for waves with many high-value enemies. The nuke effect creates particle explosions for all destroyed enemies.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">Effect</div><div class="stat-value">Clear All</div></div>
+                        <div class="stat"><div class="stat-label">Duration</div><div class="stat-value">Instant</div></div>
+                        <div class="stat"><div class="stat-label">Spawn Rate</div><div class="stat-value">10%</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Multi Shot -->
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🔫</div>
+                        <div>
+                            <div class="entity-name">Multi Shot</div>
+                            <div class="entity-type">Weapon Enhancement</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Extended rapid fire with 3 bullets per shot for 10 seconds.</div>
+                    <div class="entity-details">
+                        <p>Multi Shot is an extended version of Rapid Fire. It provides the same 3x fire rate and 3-bullet spread, but lasts twice as long (10 seconds / 600 frames). This gives you sustained offensive power for clearing entire waves. Spawn rate: 5% (rarest powerup). Extremely valuable when you get it. Stack multiple Multi Shot powerups for even longer duration of enhanced firepower.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">Fire Rate</div><div class="stat-value">3x</div></div>
+                        <div class="stat"><div class="stat-label">Duration</div><div class="stat-value">10 sec</div></div>
+                        <div class="stat"><div class="stat-label">Spawn Rate</div><div class="stat-value">5%</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- WEAPONS: 20 Types -->
+                <!-- Standard -->
+                <div class="entity-card">
+                    <div class="entity-header"><div class="entity-emoji">🔵</div><div><div class="entity-name">Standard</div><div class="entity-type">Default Weapon</div></div></div>
+                    <div class="entity-short">Single bullet, balanced fire rate. Your starting weapon.</div>
+                    <div class="entity-details"><p>The Standard weapon is your default gun. Fires 1 bullet per shot at a balanced fire rate. Reliable and consistent. Use as a baseline when no other weapons are active.</p></div>
+                    <div class="stats-grid"><div class="stat"><div class="stat-label">Fire Rate</div><div class="stat-value">8</div></div><div class="stat"><div class="stat-label">Bullets</div><div class="stat-value">1</div></div><div class="stat"><div class="stat-label">Damage</div><div class="stat-value">1.0</div></div></div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Spreadshot -->
+                <div class="entity-card">
+                    <div class="entity-header"><div class="entity-emoji">🔶</div><div><div class="entity-name">Spreadshot</div><div class="entity-type">Spread Weapon</div></div></div>
+                    <div class="entity-short">5 bullets in a wide spread pattern. Great for groups.</div>
+                    <div class="entity-details"><p>Fires 5 bullets in a wide spread pattern. Lower damage per bullet but covers more area. Excellent for clearing groups of enemies. Slightly slower fire rate.</p></div>
+                    <div class="stats-grid"><div class="stat"><div class="stat-label">Fire Rate</div><div class="stat-value">10</div></div><div class="stat"><div class="stat-label">Bullets</div><div class="stat-value">5</div></div><div class="stat"><div class="stat-label">Damage</div><div class="stat-value">0.8</div></div></div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Laser -->
+                <div class="entity-card">
+                    <div class="entity-header"><div class="entity-emoji">🔴</div><div><div class="entity-name">Laser</div><div class="entity-type">High Damage</div></div></div>
+                    <div class="entity-short">Fast, high-damage single beam. Best for single targets.</div>
+                    <div class="entity-details"><p>Fires a fast, high-damage laser beam. Excellent for eliminating high-HP enemies quickly. Very fast projectile speed. Lower fire rate but devastating damage.</p></div>
+                    <div class="stats-grid"><div class="stat"><div class="stat-label">Fire Rate</div><div class="stat-value">4</div></div><div class="stat"><div class="stat-label">Bullets</div><div class="stat-value">1</div></div><div class="stat"><div class="stat-label">Damage</div><div class="stat-value">2.0</div></div></div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Flamethrower -->
+                <div class="entity-card">
+                    <div class="entity-header"><div class="entity-emoji">�</div><div><div class="entity-name">Flamethrower</div><div class="entity-type">Area Denial</div></div></div>
+                    <div class="entity-short">8 bullets in wide spread. Extremely fast fire rate.</div>
+                    <div class="entity-details"><p>Fires 8 bullets in a wide spread at extremely fast rate. Creates a wall of fire. Lower damage per bullet but rapid-fire makes it effective. Great for sustained fire.</p></div>
+                    <div class="stats-grid"><div class="stat"><div class="stat-label">Fire Rate</div><div class="stat-value">2</div></div><div class="stat"><div class="stat-label">Bullets</div><div class="stat-value">8</div></div><div class="stat"><div class="stat-label">Damage</div><div class="stat-value">0.6</div></div></div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Sniper -->
+                <div class="entity-card">
+                    <div class="entity-header"><div class="entity-emoji">🎯</div><div><div class="entity-name">Sniper</div><div class="entity-type">Precision Weapon</div></div></div>
+                    <div class="entity-short">Single shot, very high damage. Slow fire rate.</div>
+                    <div class="entity-details"><p>Precision sniper rifle. Fires slowly but with extreme damage and very fast projectile speed. Perfect for eliminating high-priority targets. Requires patience between shots.</p></div>
+                    <div class="stats-grid"><div class="stat"><div class="stat-label">Fire Rate</div><div class="stat-value">20</div></div><div class="stat"><div class="stat-label">Bullets</div><div class="stat-value">1</div></div><div class="stat"><div class="stat-label">Damage</div><div class="stat-value">3.0</div></div></div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Grenade Launcher -->
+                <div class="entity-card">
+                    <div class="entity-header"><div class="entity-emoji">💣</div><div><div class="entity-name">Grenade Launcher</div><div class="entity-type">Explosive</div></div></div>
+                    <div class="entity-short">Single large projectile. High damage, slow fire.</div>
+                    <div class="entity-details"><p>Launches large grenades with high damage. Slow fire rate but each shot packs a punch. Large projectile size makes it easier to hit. Great for bosses.</p></div>
+                    <div class="stats-grid"><div class="stat"><div class="stat-label">Fire Rate</div><div class="stat-value">15</div></div><div class="stat"><div class="stat-label">Bullets</div><div class="stat-value">1</div></div><div class="stat"><div class="stat-label">Damage</div><div class="stat-value">2.5</div></div></div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Machine Gun -->
+                <div class="entity-card">
+                    <div class="entity-header"><div class="entity-emoji">🔫</div><div><div class="entity-name">Machine Gun</div><div class="entity-type">Rapid Fire</div></div></div>
+                    <div class="entity-short">2 bullets per shot, very fast fire rate.</div>
+                    <div class="entity-details"><p>Classic machine gun. Fires 2 bullets per shot at very fast rate. Balanced damage and fire rate. Excellent all-purpose weapon for sustained combat.</p></div>
+                    <div class="stats-grid"><div class="stat"><div class="stat-label">Fire Rate</div><div class="stat-value">2</div></div><div class="stat"><div class="stat-label">Bullets</div><div class="stat-value">2</div></div><div class="stat"><div class="stat-label">Damage</div><div class="stat-value">1.2</div></div></div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Ice Beam -->
+                <div class="entity-card">
+                    <div class="entity-header"><div class="entity-emoji">❄️</div><div><div class="entity-name">Ice Beam</div><div class="entity-type">Frost Weapon</div></div></div>
+                    <div class="entity-short">3 bullets, moderate damage. Cyan projectiles.</div>
+                    <div class="entity-details"><p>Freezing ice beam. Fires 3 bullets with moderate damage. Good balance of spread and damage. Visually distinctive cyan color.</p></div>
+                    <div class="stats-grid"><div class="stat"><div class="stat-label">Fire Rate</div><div class="stat-value">6</div></div><div class="stat"><div class="stat-label">Bullets</div><div class="stat-value">3</div></div><div class="stat"><div class="stat-label">Damage</div><div class="stat-value">1.5</div></div></div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Plasma Cannon -->
+                <div class="entity-card">
+                    <div class="entity-header"><div class="entity-emoji">⚡</div><div><div class="entity-name">Plasma Cannon</div><div class="entity-type">Energy Weapon</div></div></div>
+                    <div class="entity-short">2 bullets, high damage. Purple energy blasts.</div>
+                    <div class="entity-details"><p>Plasma energy weapon. Fires 2 high-damage bullets. Good balance of fire rate and damage. Purple energy projectiles.</p></div>
+                    <div class="stats-grid"><div class="stat"><div class="stat-label">Fire Rate</div><div class="stat-value">5</div></div><div class="stat"><div class="stat-label">Bullets</div><div class="stat-value">2</div></div><div class="stat"><div class="stat-label">Damage</div><div class="stat-value">1.8</div></div></div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Railgun -->
+                <div class="entity-card">
+                    <div class="entity-header"><div class="entity-emoji">💫</div><div><div class="entity-name">Railgun</div><div class="entity-type">Piercing Weapon</div></div></div>
+                    <div class="entity-short">Single shot, very high damage. Fast projectile.</div>
+                    <div class="entity-details"><p>Advanced railgun technology. Single shot with very high damage and fast projectile speed. Excellent for eliminating tough enemies.</p></div>
+                    <div class="stats-grid"><div class="stat"><div class="stat-label">Fire Rate</div><div class="stat-value">12</div></div><div class="stat"><div class="stat-label">Bullets</div><div class="stat-value">1</div></div><div class="stat"><div class="stat-label">Damage</div><div class="stat-value">2.8</div></div></div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Shotgun -->
+                <div class="entity-card">
+                    <div class="entity-header"><div class="entity-emoji">🔱</div><div><div class="entity-name">Shotgun</div><div class="entity-type">Close Range</div></div></div>
+                    <div class="entity-short">7 bullets in wide spread. Moderate damage per bullet.</div>
+                    <div class="entity-details"><p>Classic shotgun. Fires 7 bullets in a wide spread. Moderate damage per bullet but devastating in groups. Good for close-range combat.</p></div>
+                    <div class="stats-grid"><div class="stat"><div class="stat-label">Fire Rate</div><div class="stat-value">12</div></div><div class="stat"><div class="stat-label">Bullets</div><div class="stat-value">7</div></div><div class="stat"><div class="stat-label">Damage</div><div class="stat-value">1.3</div></div></div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Burst Fire -->
+                <div class="entity-card">
+                    <div class="entity-header"><div class="entity-emoji">💥</div><div><div class="entity-name">Burst Fire</div><div class="entity-type">Tactical Weapon</div></div></div>
+                    <div class="entity-short">3 bullets per shot, fast fire rate.</div>
+                    <div class="entity-details"><p>Tactical burst fire weapon. Fires 3 bullets per shot with fast fire rate. Good balance of spread and rapid fire capability.</p></div>
+                    <div class="stats-grid"><div class="stat"><div class="stat-label">Fire Rate</div><div class="stat-value">3</div></div><div class="stat"><div class="stat-label">Bullets</div><div class="stat-value">3</div></div><div class="stat"><div class="stat-label">Damage</div><div class="stat-value">1.4</div></div></div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Mini Gun -->
+                <div class="entity-card">
+                    <div class="entity-header"><div class="entity-emoji">⚙️</div><div><div class="entity-name">Mini Gun</div><div class="entity-type">Ultra Rapid</div></div></div>
+                    <div class="entity-short">4 bullets, extremely fast fire rate.</div>
+                    <div class="entity-details"><p>Miniature rapid-fire gun. Fires 4 bullets at extremely fast rate. Lowest damage per bullet but sustained fire is devastating.</p></div>
+                    <div class="stats-grid"><div class="stat"><div class="stat-label">Fire Rate</div><div class="stat-value">1</div></div><div class="stat"><div class="stat-label">Bullets</div><div class="stat-value">4</div></div><div class="stat"><div class="stat-label">Damage</div><div class="stat-value">0.9</div></div></div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Photon Blaster -->
+                <div class="entity-card">
+                    <div class="entity-header"><div class="entity-emoji">✨</div><div><div class="entity-name">Photon Blaster</div><div class="entity-type">Light Weapon</div></div></div>
+                    <div class="entity-short">2 bullets, high damage. Fast projectiles.</div>
+                    <div class="entity-details"><p>Advanced photon technology. Fires 2 high-damage bullets with fast projectile speed. Excellent balance of fire rate and damage.</p></div>
+                    <div class="stats-grid"><div class="stat"><div class="stat-label">Fire Rate</div><div class="stat-value">7</div></div><div class="stat"><div class="stat-label">Bullets</div><div class="stat-value">2</div></div><div class="stat"><div class="stat-label">Damage</div><div class="stat-value">1.6</div></div></div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Vortex Cannon -->
+                <div class="entity-card">
+                    <div class="entity-header"><div class="entity-emoji">🌀</div><div><div class="entity-name">Vortex Cannon</div><div class="entity-type">Spiral Weapon</div></div></div>
+                    <div class="entity-short">6 bullets in spiral pattern. Unique spread.</div>
+                    <div class="entity-details"><p>Vortex energy weapon. Fires 6 bullets in a spiral pattern. Unique spread pattern covers wide area. Moderate damage per bullet.</p></div>
+                    <div class="stats-grid"><div class="stat"><div class="stat-label">Fire Rate</div><div class="stat-value">8</div></div><div class="stat"><div class="stat-label">Bullets</div><div class="stat-value">6</div></div><div class="stat"><div class="stat-label">Damage</div><div class="stat-value">1.1</div></div></div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Inferno -->
+                <div class="entity-card">
+                    <div class="entity-header"><div class="entity-emoji">🌋</div><div><div class="entity-name">Inferno</div><div class="entity-type">Fire Storm</div></div></div>
+                    <div class="entity-short">10 bullets in wide spread. Extreme fire rate.</div>
+                    <div class="entity-details"><p>Inferno fire weapon. Fires 10 bullets in wide spread at extreme fire rate. Creates a wall of fire. Lowest damage per bullet but overwhelming volume.</p></div>
+                    <div class="stats-grid"><div class="stat"><div class="stat-label">Fire Rate</div><div class="stat-value">3</div></div><div class="stat"><div class="stat-label">Bullets</div><div class="stat-value">10</div></div><div class="stat"><div class="stat-label">Damage</div><div class="stat-value">0.7</div></div></div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Frostbolt -->
+                <div class="entity-card">
+                    <div class="entity-header"><div class="entity-emoji">🧊</div><div><div class="entity-name">Frostbolt</div><div class="entity-type">Cryo Weapon</div></div></div>
+                    <div class="entity-short">2 bullets, high damage. Freezing projectiles.</div>
+                    <div class="entity-details"><p>Cryogenic frostbolt weapon. Fires 2 high-damage freezing projectiles. Good fire rate and damage balance.</p></div>
+                    <div class="stats-grid"><div class="stat"><div class="stat-label">Fire Rate</div><div class="stat-value">9</div></div><div class="stat"><div class="stat-label">Bullets</div><div class="stat-value">2</div></div><div class="stat"><div class="stat-label">Damage</div><div class="stat-value">1.7</div></div></div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Thunderstrike -->
+                <div class="entity-card">
+                    <div class="entity-header"><div class="entity-emoji">⚡</div><div><div class="entity-name">Thunderstrike</div><div class="entity-type">Lightning Weapon</div></div></div>
+                    <div class="entity-short">3 bullets, moderate damage. Lightning projectiles.</div>
+                    <div class="entity-details"><p>Lightning-based weapon. Fires 3 lightning bolts with moderate damage. Good spread pattern for group targets.</p></div>
+                    <div class="stats-grid"><div class="stat"><div class="stat-label">Fire Rate</div><div class="stat-value">11</div></div><div class="stat"><div class="stat-label">Bullets</div><div class="stat-value">3</div></div><div class="stat"><div class="stat-label">Damage</div><div class="stat-value">1.5</div></div></div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Void Beam -->
+                <div class="entity-card">
+                    <div class="entity-header"><div class="entity-emoji">🌑</div><div><div class="entity-name">Void Beam</div><div class="entity-type">Dark Matter</div></div></div>
+                    <div class="entity-short">Single shot, very high damage. Dark projectile.</div>
+                    <div class="entity-details"><p>Void dark matter weapon. Fires single dark matter projectile with very high damage and fast speed. Excellent for eliminating tough enemies.</p></div>
+                    <div class="stats-grid"><div class="stat"><div class="stat-label">Fire Rate</div><div class="stat-value">6</div></div><div class="stat"><div class="stat-label">Bullets</div><div class="stat-value">1</div></div><div class="stat"><div class="stat-label">Damage</div><div class="stat-value">2.2</div></div></div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <!-- Starlight -->
+                <div class="entity-card">
+                    <div class="entity-header"><div class="entity-emoji">⭐</div><div><div class="entity-name">Starlight</div><div class="entity-type">Celestial Weapon</div></div></div>
+                    <div class="entity-short">4 bullets, moderate damage. Star projectiles.</div>
+                    <div class="entity-details"><p>Celestial starlight weapon. Fires 4 star projectiles with moderate damage. Good spread pattern and balanced fire rate.</p></div>
+                    <div class="stats-grid"><div class="stat"><div class="stat-label">Fire Rate</div><div class="stat-value">5</div></div><div class="stat"><div class="stat-label">Bullets</div><div class="stat-value">4</div></div><div class="stat"><div class="stat-label">Damage</div><div class="stat-value">1.3</div></div></div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+
+            <div class="tip-box">
+                <strong>💡 Weapon Strategy Tip:</strong> Weapon powerups last 10 seconds of active shooting. Click to toggle firing on/off. Each weapon has unique characteristics - Laser and Sniper for high damage, Flamethrower and Inferno for area denial, Spreadshot and Shotgun for groups. Experiment to find your favorite! Weapons automatically revert to Standard after 10 seconds.
+            </div>
+        </section>
+
+        <!-- MECHANICS SECTION -->
+        <section class="section" id="mechanics">
+            <h2>⚙️ GAME MECHANICS</h2>
+            
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">💰 Economic System</h3>
+            <p style="color: #d1d5db; margin-bottom: 20px;">
+                <strong>Starting Balance:</strong> $1000<br>
+                <strong>Income Generation:</strong> Each ONLINE server generates money/sec based on customer count<br>
+                <strong>Customer Trust:</strong> 0-100% multiplier on all income (at 50% trust, you earn half revenue)<br>
+                <strong>Staff Salaries:</strong> Deducted every second from your balance<br>
+                <strong>Bankruptcy:</strong> Game Over if balance stays negative for 10 seconds
+            </p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">🖥️ Server Management</h3>
+            <p style="color: #d1d5db; margin-bottom: 20px;">
+                <strong>Server Capacity:</strong> Maximum 5 servers<br>
+                <strong>Server States:</strong> ONLINE (generating income), DDOS_FROZEN (15s freeze), RANSOMED (down until paid), OFFLINE (not purchased)<br>
+                <strong>Backup System:</strong> Link servers - backup absorbs ransomware, reduces income to 50%<br>
+                <strong>Server Health:</strong> Damaged by direct attacks, recovers over time
+            </p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">🎯 Combat System</h3>
+            <p style="color: #d1d5db; margin-bottom: 20px;">
+                <strong>Bullet Damage:</strong> Base 1 HP per bullet<br>
+                <strong>Difficulty Multiplier:</strong> Easy 1.3x, Hard 0.8x<br>
+                <strong>Companion Bonus:</strong> +1.5x damage when active<br>
+                <strong>Pen Tester Bonus:</strong> +1.5x damage when hired<br>
+                <strong>Combo System:</strong> Consecutive kills multiply score (max 5x multiplier)
+            </p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">🌊 Wave System</h3>
+            <p style="color: #d1d5db; margin-bottom: 20px;">
+                <strong>Wave Duration:</strong> 600 frames base, increases by 50 frames per wave<br>
+                <strong>Wave Bonus:</strong> Wave number × 50 points when wave completes<br>
+                <strong>Enemy Scaling:</strong> Speed increases by 10% per wave<br>
+                <strong>Victory Condition:</strong> Survive 10 waves with at least 1 server ONLINE
+            </p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">📊 Difficulty Settings</h3>
+            <p style="color: #d1d5db; margin-bottom: 20px;">
+                <strong>Easy Mode:</strong> 0.7x enemy spawn rate, 1.3x player damage, lower ransom amounts<br>
+                <strong>Hard Mode:</strong> 1.5x enemy spawn rate, 0.8x player damage, higher ransom amounts, more frequent ransomware
+            </p>
+        </section>
+
+        <!-- REPUTATION SYSTEM SECTION -->
+        <section class="section" id="reputation">
+            <h2>💯 REPUTATION SYSTEM</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">Your company's reputation affects customer acquisition, pricing power, and overall business success. Manage it carefully!</p>
+            
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">How Reputation Works</h3>
+            <p style="color: #d1d5db; margin-bottom: 20px;">
+                <strong>Starting Reputation:</strong> 50%<br>
+                <strong>Range:</strong> 0-100%<br>
+                <strong>Income Multiplier:</strong> Reputation directly affects your earning potential
+                <ul style="margin-top: 10px; margin-left: 20px; color: #d1d5db;">
+                    <li>0% Reputation = 50% income multiplier (half earnings)</li>
+                    <li>50% Reputation = 75% income multiplier (75% earnings)</li>
+                    <li>100% Reputation = 100% income multiplier (full earnings)</li>
+                </ul>
+            </p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Reputation Damage by Enemy</h3>
+            <p style="color: #d1d5db; margin-bottom: 20px;">
+                Different enemies damage your reputation when they hit your servers:
+                <ul style="margin-top: 10px; margin-left: 20px; color: #d1d5db;">
+                    <li><strong>Social Engineer</strong> - 8 damage (most damaging - spreads rumors)</li>
+                    <li><strong>Fraudster</strong> - 7 damage (financial fraud damages trust)</li>
+                    <li><strong>Ransomware</strong> - 6 damage (data breaches hurt reputation)</li>
+                    <li><strong>DDOS Attack</strong> - 5 damage (service outages reduce trust)</li>
+                    <li><strong>Intelligence Agency</strong> - 4 damage (espionage concerns)</li>
+                    <li><strong>Cryptominer</strong> - 4 damage (resource theft damages brand)</li>
+                    <li><strong>Trojan Horse</strong> - 3 damage (malware concerns)</li>
+                    <li><strong>Black Hat</strong> - 2 damage (minor hacking attempts)</li>
+                    <li><strong>AI Pen Tester</strong> - 1 damage (legitimate security testing)</li>
+                </ul>
+            </p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Reputation Recovery</h3>
+            <p style="color: #d1d5db; margin-bottom: 20px;">
+                <strong>PR Officer</strong> (📢) - Regenerates reputation +2% per second<br>
+                <strong>Security Trainer</strong> (🎭) - Regenerates customer trust +1% per second<br>
+                <strong>Article Writer</strong> (✍️) - Reduces Social Engineer reputation damage by 50% (counters rumors)<br>
+                <strong>Compliance Officer</strong> (⚖️) - Reduces Fraudster reputation damage by 40% (prevents fraud)
+            </p>
+
+            <div class="tip-box">
+                <strong>💡 Reputation Tip:</strong> Hire a PR Officer early if you're taking heavy reputation damage. The +2/sec regeneration adds up quickly and directly increases your income. At 100% reputation, you earn 50% more than at 50% reputation!
+            </div>
+        </section>
+
+        <!-- COMPUTE SYSTEM SECTION -->
+        <section class="section" id="compute">
+            <h2>🖥️ COMPUTE SYSTEM</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">Track your infrastructure utilization as enemies consume compute resources. This is a secondary scoring metric.</p>
+            
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">What is Compute?</h3>
+            <p style="color: #d1d5db; margin-bottom: 20px;">
+                Compute represents the computational resources your servers use to defend against and process threats. Each enemy type consumes different amounts of compute when defeated:
+            </p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Compute Usage by Enemy</h3>
+            <p style="color: #d1d5db; margin-bottom: 20px;">
+                <ul style="margin-left: 20px; color: #d1d5db;">
+                    <li><strong>DDOS Attack</strong> - 200 compute (massive resource drain)</li>
+                    <li><strong>Cryptominer</strong> - 180 compute (steals processing power)</li>
+                    <li><strong>Ransomware</strong> - 150 compute (encryption overhead)</li>
+                    <li><strong>Intelligence Agency</strong> - 120 compute (complex threat)</li>
+                    <li><strong>Fraudster</strong> - 100 compute (transaction processing)</li>
+                    <li><strong>Trojan Horse</strong> - 80 compute (malware overhead)</li>
+                    <li><strong>Black Hat</strong> - 50 compute (simple attack)</li>
+                    <li><strong>Social Engineer</strong> - 60 compute (investigation overhead)</li>
+                    <li><strong>AI Pen Tester</strong> - 40 compute (lightweight testing)</li>
+                </ul>
+            </p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Scoring</h3>
+            <p style="color: #d1d5db; margin-bottom: 20px;">
+                Your <strong>Max Compute Used</strong> is displayed on the game over and victory screens as a secondary score metric. Higher compute usage means you faced more/tougher threats and defended against them successfully.
+            </p>
+
+            <div class="tip-box">
+                <strong>💡 Compute Tip:</strong> Compute is just a metric - it doesn't affect gameplay directly. Focus on eliminating threats quickly to keep your servers running smoothly. The compute score rewards aggressive play and wave progression!
+            </div>
+        </section>
+
+        <!-- EXPANDED STAFF SECTION -->
+        <section class="section" id="staff-expanded">
+            <h2>👥 COMPLETE STAFF DIRECTORY (17 Types)</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">Hire specialized staff to enhance your defenses, boost income, and protect your reputation. Each staff member has unique abilities and salary costs.</p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Defensive Staff (Threat Mitigation)</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
+                <div style="background: rgba(16, 185, 129, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #10b981;">
+                    <strong>🔥 Firewall Tech</strong><br>
+                    Hire: $200 | Salary: $5/sec<br>
+                    <em>Reduces DDOS freeze time from 15s to 8s</em>
+                </div>
+                <div style="background: rgba(16, 185, 129, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #10b981;">
+                    <strong>🚘 Incident Responder</strong><br>
+                    Hire: $300 | Salary: $8/sec<br>
+                    <em>Auto-pays ransomware at 50% cost</em>
+                </div>
+                <div style="background: rgba(16, 185, 129, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #10b981;">
+                    <strong>🔍 SOC Analyst</strong><br>
+                    Hire: $250 | Salary: $6/sec<br>
+                    <em>Detects stealth enemies before they attack</em>
+                </div>
+                <div style="background: rgba(16, 185, 129, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #10b981;">
+                    <strong>👨 CISO</strong><br>
+                    Hire: $400 | Salary: $12/sec<br>
+                    <em>Reduces customer trust damage by 50%</em>
+                </div>
+                <div style="background: rgba(16, 185, 129, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #10b981;">
+                    <strong>⚖️ Compliance Officer</strong><br>
+                    Hire: $300 | Salary: $8/sec<br>
+                    <em>Reduces Fraudster reputation damage by 40%</em>
+                </div>
+                <div style="background: rgba(16, 185, 129, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #10b981;">
+                    <strong>💾 Backup Admin</strong><br>
+                    Hire: $220 | Salary: $6/sec<br>
+                    <em>Doubles recovery speed from ransomware</em>
+                </div>
+            </div>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Economic & Reputation Staff</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
+                <div style="background: rgba(168, 85, 247, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #a855f7;">
+                    <strong>📢 PR Officer</strong><br>
+                    Hire: $350 | Salary: $9/sec<br>
+                    <em>Regenerates reputation +2% per second</em>
+                </div>
+                <div style="background: rgba(168, 85, 247, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #a855f7;">
+                    <strong>✍️ Article Writer</strong><br>
+                    Hire: $280 | Salary: $7/sec<br>
+                    <em>Reduces Social Engineer reputation damage by 50%</em>
+                </div>
+                <div style="background: rgba(168, 85, 247, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #a855f7;">
+                    <strong>🎭 Security Trainer</strong><br>
+                    Hire: $260 | Salary: $6/sec<br>
+                    <em>Regenerates customer trust +1% per second</em>
+                </div>
+                <div style="background: rgba(168, 85, 247, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #a855f7;">
+                    <strong>🏗️ Solutions Architect</strong><br>
+                    Hire: $450 | Salary: $14/sec<br>
+                    <em>Increases income by 15%</em>
+                </div>
+                <div style="background: rgba(168, 85, 247, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #a855f7;">
+                    <strong>👥 HR Manager</strong><br>
+                    Hire: $240 | Salary: $6/sec<br>
+                    <em>Increases team morale by 5%</em>
+                </div>
+            </div>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Specialized & Support Staff</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
+                <div style="background: rgba(59, 130, 246, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #3b82f6;">
+                    <strong>🤖 Pen Tester</strong><br>
+                    Hire: $280 | Salary: $7/sec<br>
+                    <em>Increases player damage by 50%</em>
+                </div>
+                <div style="background: rgba(59, 130, 246, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #3b82f6;">
+                    <strong>🔗 Network Engineer</strong><br>
+                    Hire: $320 | Salary: $8/sec<br>
+                    <em>Reduces Cryptominer income loss by 30%</em>
+                </div>
+                <div style="background: rgba(59, 130, 246, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #3b82f6;">
+                    <strong>🚀 DevOps Engineer</strong><br>
+                    Hire: $380 | Salary: $10/sec<br>
+                    <em>Increases server HP by 20</em>
+                </div>
+                <div style="background: rgba(59, 130, 246, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #3b82f6;">
+                    <strong>📊 Monitoring Specialist</strong><br>
+                    Hire: $270 | Salary: $7/sec<br>
+                    <em>Provides 5-second early warning on threats</em>
+                </div>
+                <div style="background: rgba(59, 130, 246, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #3b82f6;">
+                    <strong>💱 Vendor Manager</strong><br>
+                    Hire: $290 | Salary: $7/sec<br>
+                    <em>Reduces all costs by 10%</em>
+                </div>
+                <div style="background: rgba(59, 130, 246, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #3b82f6;">
+                    <strong>📋 Legal Counsel</strong><br>
+                    Hire: $500 | Salary: $15/sec<br>
+                    <em>Reduces ransomware costs by 70%</em>
+                </div>
+            </div>
+
+            <div class="tip-box">
+                <strong>💡 Staff Hiring Tip:</strong> Prioritize staff based on current threats. Early game: focus on damage (Pen Tester). Mid game: add defensive staff (Firewall Tech, Incident Responder). Late game: add economic boosters (Solutions Architect, PR Officer). Always check if you can afford the salary before hiring!
+            </div>
+        </section>
+
+        <!-- STRATEGY SECTION -->
+        <section class="section" id="strategy">
+            <h2>🧠 STRATEGY TIPS & TACTICS</h2>
+            
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Early Game (Waves 1-3)</h3>
+            <p style="color: #d1d5db; margin-bottom: 15px;">
+                • Focus on eliminating Black Hat Hackers and AI Pen Testers<br>
+                • Accumulate balance before hiring staff<br>
+                • Don't hire staff yet - your initial income is sufficient<br>
+                • Collect Heal powerups to build up your balance<br>
+                • Avoid getting hit - focus on dodging
+            </p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Mid Game (Waves 4-6)</h3>
+            <p style="color: #d1d5db; margin-bottom: 15px;">
+                • Hire Firewall Tech ($200) when DDOS attacks appear (Wave 4)<br>
+                • Consider hiring Incident Responder ($300) when ransomware appears (Wave 5)<br>
+                • Fraudsters appear in Wave 6 - prioritize eliminating them<br>
+                • Buy a second server if you have $1500+ balance<br>
+                • Use Rapid Fire powerups to clear waves faster
+            </p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Late Game (Waves 7-10)</h3>
+            <p style="color: #d1d5db; margin-bottom: 15px;">
+                • Hire CISO ($400) when Social Engineers appear (Wave 7)<br>
+                • Hire Pen Tester ($280) for increased damage output<br>
+                • Use backup servers strategically - link them to absorb ransomware<br>
+                • Maintain customer trust above 70% - use PR Campaign upgrades<br>
+                • Save Nuke powerups for waves with multiple high-value enemies<br>
+                • Keep balance positive - bankruptcy is instant game over
+            </p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Economic Strategies</h3>
+            <p style="color: #d1d5db; margin-bottom: 15px;">
+                <strong>Aggressive Economy:</strong> Buy servers early, hire multiple staff, maximize income generation<br>
+                <strong>Defensive Economy:</strong> Hire staff to reduce threat damage, use backup servers, focus on survival<br>
+                <strong>Balanced Approach:</strong> Buy 2-3 servers, hire 2-3 staff members, balance offense and defense<br>
+                <strong>Bankruptcy Prevention:</strong> Always maintain positive balance - fire staff if necessary to avoid negative balance
+            </p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Combat Tactics</h3>
+            <p style="color: #d1d5db; margin-bottom: 15px;">
+                • Prioritize high-threat enemies: DDOS, Ransomware, Fraudsters<br>
+                • Use Rapid Fire powerups to burst down high-HP enemies<br>
+                • Keep moving - don't stay in one spot<br>
+                • Focus on eliminating threats before they reach servers<br>
+                • Use Nuke powerups when overwhelmed by multiple threats<br>
+                • Companion allies help clear waves - collect them when available
+            </p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Staff Hiring Priority</h3>
+            <p style="color: #d1d5db; margin-bottom: 15px;">
+                1. <strong>Firewall Tech</strong> - Reduces DDOS damage (Wave 4+)<br>
+                2. <strong>Incident Responder</strong> - Handles ransomware (Wave 5+)<br>
+                3. <strong>CISO</strong> - Protects trust (Wave 7+)<br>
+                4. <strong>Pen Tester</strong> - Increases damage (any time)<br>
+                5. <strong>SOC Analyst</strong> - Detects stealth (optional, Wave 3+)
+            </p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Reputation Management Strategy</h3>
+            <p style="color: #d1d5db; margin-bottom: 15px;">
+                <strong>Reputation is Critical:</strong> It directly multiplies your income. At 50% reputation, you earn 75% of your potential. At 100% reputation, you earn 100%.<br>
+                <strong>Protect Reputation:</strong> Hire Article Writer to counter Social Engineers (8 damage each). Hire Compliance Officer to counter Fraudsters (7 damage each).<br>
+                <strong>Recover Reputation:</strong> Hire PR Officer ($350, $9/sec) to regenerate +2% reputation per second. This pays for itself quickly through increased income.<br>
+                <strong>Priority:</strong> If reputation drops below 30%, prioritize hiring PR Officer. The income boost will quickly recover your balance.
+            </p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Compute Score Optimization</h3>
+            <p style="color: #d1d5db; margin-bottom: 15px;">
+                <strong>What is Compute?</strong> A secondary score metric tracking infrastructure utilization. Higher compute = tougher threats defeated.<br>
+                <strong>Maximize Compute:</strong> Focus on defeating high-compute enemies (DDOS = 200, Cryptominer = 180, Ransomware = 150).<br>
+                <strong>Wave Progression:</strong> Reaching Wave 10 with high compute usage shows excellent threat management.<br>
+                <strong>Scoring:</strong> Compute doesn't affect gameplay - it's just a bragging right metric for how much you've defended against!
+            </p>
+
+            <h3 style="color: #a78bfa; margin-top: 30px; margin-bottom: 15px;">Advanced Staff Synergies</h3>
+            <p style="color: #d1d5db; margin-bottom: 15px;">
+                <strong>Defensive Stack:</strong> Firewall Tech + Incident Responder + CISO = Handles all major threats<br>
+                <strong>Economic Stack:</strong> Solutions Architect + PR Officer + Vendor Manager = Maximize income and reduce costs<br>
+                <strong>Reputation Stack:</strong> PR Officer + Article Writer + Compliance Officer = Protect against reputation damage<br>
+                <strong>Hybrid Stack:</strong> Pen Tester + Firewall Tech + PR Officer = Offense + Defense + Economy balance
+            </p>
+
+            <div class="tip-box">
+                <strong>🎯 Pro Tip:</strong> The key to winning is balancing offense and defense. You need enough damage output to clear waves quickly, but also enough economic protection to survive the financial drain of staff salaries. Don't hire staff you can't afford - bankruptcy is instant game over. Monitor your balance constantly and be ready to fire staff if you're going negative. Remember: reputation directly affects income, so protecting it is as important as protecting your servers!
+            </div>
+        </section>
+
+        <footer>
+            <p>Server Saver Shield - Strategic Security Management Game</p>
+            <p style="margin-top: 10px; font-size: 0.9rem;">Made with ❤️ by 4weird Games | <a href="index.html" style="color: #a78bfa; text-decoration: none;">Play Game</a> | <a href="../../index.html" style="color: #a78bfa; text-decoration: none;">Back to 4weird</a></p>
+        </footer>
+    </div>
+
+    <script>
+        function toggleDetails(button) {
+            const card = button.closest('.entity-card');
+            const details = card.querySelector('.entity-details');
+            details.classList.toggle('active');
+            button.classList.toggle('active');
+            button.textContent = details.classList.contains('active') ? 'Read Less' : 'Read More';
+        }
+    </script>
+</body>
+</html>

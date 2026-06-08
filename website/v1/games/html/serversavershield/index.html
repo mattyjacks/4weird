@@ -66,9 +66,11 @@
                 </div>
             </div>
             <button class="btn btn-start" id="btnStart">🚀 START GAME</button>
+            <a href="guide.html" class="btn btn-secondary" style="display: inline-block; margin-top: 15px;">📖 Game Guide</a>
             <div class="controls-hint">
                 <span>🖱️ Mouse/Touch: Move</span>
-                <span>👆 Hold: Fire Shield Beams</span>
+                <span>👆 Click: Toggle Firing</span>
+                <span>⚡ Collect Weapon Powerups</span>
                 <span>⌨️ P: Pause</span>
             </div>
         </div>
@@ -97,6 +99,18 @@
                     <span>Threats Eliminated</span>
                     <span class="highlight" id="finalKills">0</span>
                 </div>
+                <div class="stat-row">
+                    <span>Final Balance</span>
+                    <span class="highlight" id="finalBalance">$0</span>
+                </div>
+                <div class="stat-row">
+                    <span>Max Compute Used</span>
+                    <span class="highlight" id="finalCompute">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>Final Reputation</span>
+                    <span class="highlight" id="finalReputation">0%</span>
+                </div>
             </div>
             <div style="margin: 20px 0; padding: 15px; background: rgba(139, 92, 246, 0.1); border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.3);">
                 <p style="color: #9ca3af; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">Enemies Neutralized</p>
@@ -118,6 +132,18 @@
                 <div class="stat-row">
                     <span>Max Combo</span>
                     <span class="highlight" id="victoryCombo">x1</span>
+                </div>
+                <div class="stat-row">
+                    <span>Final Balance</span>
+                    <span class="highlight" id="victoryBalance">$0</span>
+                </div>
+                <div class="stat-row">
+                    <span>Max Compute Used</span>
+                    <span class="highlight" id="victoryCompute">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>Final Reputation</span>
+                    <span class="highlight" id="victoryReputation">0%</span>
                 </div>
             </div>
             <button class="btn btn-start" id="btnVictoryRestart">🔄 PLAY AGAIN</button>
@@ -169,6 +195,26 @@
     <div id="TEMPLATE-4weird-footer-placeholder"></div>
 
     <script src="../../components.js"></script>
-    <script src="game.js"></script>
+    <!-- Modular Game Scripts -->
+    <script src="js/constants.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/canvas.js"></script>
+    <script src="js/gameState.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/bullets.js"></script>
+    <script src="js/enemies.js"></script>
+    <script src="js/powerups.js"></script>
+    <script src="js/particles.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/collision.js"></script>
+    <script src="js/servers.js"></script>
+    <script src="js/staff.js"></script>
+    <script src="js/waves.js"></script>
+    <script src="js/rendering.js"></script>
+    <script src="js/input.js"></script>
+    <script src="js/gameLoop.js"></script>
+    <script src="js/gameFlow.js"></script>
+    <script src="js/eventHandlers.js"></script>
+    <script src="js/init.js"></script>
 </body>
 </html>
