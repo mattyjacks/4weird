@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Lich Dom - Game Guide</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1e1b4b 50%, #111827 100%);
+            color: #f5f5f5;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 40px 20px;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 20px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #f5f5f5, #a78bfa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .tagline { color: #9ca3af; font-size: 1.1rem; margin-bottom: 20px; }
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            transition: 0.3s ease;
+        }
+        .nav-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3); }
+        .section {
+            margin-bottom: 60px;
+            padding: 40px;
+            background: rgba(26, 26, 37, 0.85);
+            border-radius: 20px;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+        .section h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: #a78bfa;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .entity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .entity-card {
+            background: rgba(30, 30, 45, 0.9);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            transition: 0.3s ease;
+            cursor: pointer;
+        }
+        .entity-card:hover {
+            border-color: rgba(139, 92, 246, 0.8);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+            transform: translateY(-5px);
+        }
+        .entity-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .entity-emoji { font-size: 2.5rem; }
+        .entity-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #f5f5f5;
+        }
+        .entity-type {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .entity-short {
+            color: #d1d5db;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+            min-height: 40px;
+        }
+        .entity-details {
+            display: none;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #d1d5db;
+            line-height: 1.7;
+        }
+        .entity-details.active { display: block; }
+        .read-more-btn {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: 0.3s ease;
+            width: 100%;
+        }
+        .read-more-btn:hover { transform: scale(1.02); }
+        .read-more-btn.active { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+            font-size: 0.85rem;
+        }
+        .stat {
+            background: rgba(139, 92, 246, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 3px solid #8b5cf6;
+        }
+        .stat-label { color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { color: #a78bfa; font-weight: 700; font-size: 1.1rem; }
+        .toc {
+            background: rgba(139, 92, 246, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            margin-bottom: 40px;
+        }
+        .toc h3 {
+            font-family: 'Orbitron', sans-serif;
+            margin-bottom: 20px;
+            color: #a78bfa;
+        }
+        .toc-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .toc-link {
+            padding: 12px;
+            background: rgba(30, 30, 45, 0.8);
+            border-radius: 8px;
+            text-decoration: none;
+            color: #a78bfa;
+            transition: 0.3s ease;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+        .toc-link:hover {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: rgba(139, 92, 246, 0.6);
+        }
+        .tip-box {
+            background: rgba(139, 92, 246, 0.1);
+            border-left: 4px solid #8b5cf6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+        .tip-box strong { color: #a78bfa; }
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #6b7280;
+            border-top: 1px solid rgba(139, 92, 246, 0.2);
+            margin-top: 60px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💀 DEMO LICHDOM</h1>
+            <p class="tagline">Official Necromancy Guide & Entity Reference</p>
+            <div class="nav-buttons">
+                <a href="index.html" class="nav-btn">🎮 Play Game</a>
+                <a href="../../../index.html" class="nav-btn">🏠 Back to 4weird</a>
+            </div>
+        </header>
+
+        <div class="toc">
+            <h3>📋 Quick Navigation</h3>
+            <div class="toc-links">
+                <a href="#demolition" class="toc-link">🏰 Demolition Targets</a>
+                <a href="#spells" class="toc-link">⚡ Necromancy Spells</a>
+                <a href="#upgrades" class="toc-link">⭐ Level Up Upgrades</a>
+                <a href="#powerups" class="toc-link">🧪 Battle Powerups</a>
+                <a href="#enemies" class="toc-link">👮 City Defenders</a>
+            </div>
+        </div>
+
+        <!-- DEMOLITION TARGETS -->
+        <section class="section" id="demolition">
+            <h2>🏰 DEMOLITION TARGETS</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">As a modern demolition contractor, your goal is to destroy target properties. Direct your skeleton army to crush them while dodging defenses.</p>
+            <div class="entity-grid">
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">⛪</div>
+                        <div>
+                            <div class="entity-name">Old Church</div>
+                            <div class="entity-type">Phase 1 Target</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Standard brick structure. No defenses, easy to crush.</div>
+                    <div class="entity-details">
+                        <p>The Old Church has 300 HP and does not fight back. Great for leveling up early. Skeletons deal passive damage to it. Destroying it advances the game to Phase 2.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">HP</div><div class="stat-value">300</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🏭</div>
+                        <div>
+                            <div class="entity-name">Factory</div>
+                            <div class="entity-type">Phase 2 Target</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Reinforced factory. Drops falling bricks.</div>
+                    <div class="entity-details">
+                        <p>The Factory has 500 HP and active defenses. It periodically drops falling bricks (🧱) that damage the player on impact. Dodge them to stay alive.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">HP</div><div class="stat-value">500</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🏙️</div>
+                        <div>
+                            <div class="entity-name">Skyscraper</div>
+                            <div class="entity-type">Phase 3 Boss</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Giant skyscraper boss. Spawns guards and shoots missiles.</div>
+                    <div class="entity-details">
+                        <p>The Skyscraper is the final boss with 1000 HP. It spawns city guards to defend it and periodically launches rocket barrages. It displays a boss health bar at the top center of the screen.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">HP</div><div class="stat-value">1000</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SPELLS SECTION -->
+        <section class="section" id="spells">
+            <h2>⚡ NECROMANCY SPELLS</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">Use your spell power to summon minions and directly blast guards and buildings.</p>
+            <div class="entity-grid">
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">💀</div>
+                        <div>
+                            <div class="entity-name">Skull Spell</div>
+                            <div class="entity-type">Mana Cost: 10</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Fires a necro-bolt dealing base 15 damage.</div>
+                    <div class="entity-details">
+                        <p>Your primary ranged attack. Fires a flying skull in the direction of the cursor. Deals damage to guards and buildings. Spends 10 mana.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🦴</div>
+                        <div>
+                            <div class="entity-name">Summon Skeleton</div>
+                            <div class="entity-type">Mana Cost: 25</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Summons a skeleton minion that attacks buildings.</div>
+                    <div class="entity-details">
+                        <p>Summons a loyal skeleton that moves towards the active target building and attacks it repeatedly. Skeletons also distract and fight nearby city guards.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- UPGRADES SECTION -->
+        <section class="section" id="upgrades">
+            <h2>⭐ LEVEL UP UPGRADES</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">Gather XP from destroying buildings and defeating city guards to choose upgrades.</p>
+            <div class="entity-grid">
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🧪</div>
+                        <div>
+                            <div class="entity-name">Acid Skull</div>
+                            <div class="entity-type">Offensive Upgrade</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Adds damage-over-time poison to your primary spells.</div>
+                    <div class="entity-details">
+                        <p>Infuses your spells with corrosive acid. Enemies hit take damage over time, melting guards' shields and building defenses continuously.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- POWERUPS SECTION -->
+        <section class="section" id="powerups">
+            <h2>🧪 BATTLE POWERUPS</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">Powerups occasionally drop from defeated city defenders. Collect them to turn the tide.</p>
+            <div class="entity-grid">
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">⚡</div>
+                        <div>
+                            <div class="entity-name">Mana Overload</div>
+                            <div class="entity-type">Temporary Buff</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Gives infinite mana for 5 seconds.</div>
+                    <div class="entity-details">
+                        <p>Instantly maxes your mana and halts all mana consumption for 5 seconds. Spam skull spells and summon skeletons at will during this period!</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>💀 Demo Lich Dom — A 4weird Games Publication</p>
+        </footer>
+    </div>
+
+    <script>
+        function toggleDetails(btn) {
+            const details = btn.previousElementSibling.previousElementSibling; // targets .entity-details
+            details.classList.toggle('active');
+            btn.classList.toggle('active');
+            btn.textContent = details.classList.contains('active') ? 'Read Less' : 'Read More';
+        }
+    </script>
+</body>
+</html>

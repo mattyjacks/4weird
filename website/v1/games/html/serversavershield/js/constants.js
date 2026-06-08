@@ -46,7 +46,7 @@ const STAFF_TYPES = {
     hr: { name: 'HR Manager', emoji: '👥', hireCost: 240, salarySec: 6, ability: 'Morale +5%' },
     legal: { name: 'Legal Counsel', emoji: '📋', hireCost: 500, salarySec: 15, ability: 'Ransom -70%' },
     // PRODUCT TEAM (7 NEW) - Revenue Generation
-    programmer: { name: 'Programmer', emoji: '💻', hireCost: 350, salarySec: 9, ability: 'New customers +15%', category: 'product' },
+    programmer: { name: 'Programmer', emoji: '💻', hireCost: 350, salarySec: 9, ability: 'Weapon 5s->10s', category: 'product' },
     vibecoder: { name: 'Vibe Coder', emoji: '🌊', hireCost: 320, salarySec: 8, ability: 'Retention +10%, Morale +5%', category: 'product' },
     engineer: { name: 'Engineer', emoji: '⚙️', hireCost: 380, salarySec: 10, ability: 'New customers +15%, Server stability +10%', category: 'product' },
     qalead: { name: 'QA Lead', emoji: '🐞', hireCost: 300, salarySec: 8, ability: 'Bug chance -50%, Satisfaction +10%', category: 'product' },

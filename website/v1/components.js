@@ -21,19 +21,22 @@
         ]
     };
 
-    function getCurrentPage() {
-        return window.location.pathname.split('/').pop() || 'index.html';
+    let basePath = '';
+    const scriptTag = document.querySelector('script[src*="components.js"]');
+    if (scriptTag) {
+        const src = scriptTag.getAttribute('src');
+        const index = src.indexOf('components.js');
+        if (index !== -1) {
+            basePath = src.substring(0, index);
+        }
     }
+    const isRoot = basePath === '' || basePath === './';
 
     function injectNavbar() {
         // Support both legacy and namespaced placeholders
         const placeholder = document.getElementById('TEMPLATE-4weird-nav-placeholder') 
             || document.getElementById('nav-placeholder');
         if (!placeholder) return;
-
-        const currentPage = getCurrentPage();
-        const isRoot = currentPage === 'index.html' || currentPage === '';
-        const basePath = isRoot ? '' : '../../';
 
         const navHTML = `
         <nav class="navbar" id="navbar">
@@ -76,10 +79,6 @@
         const placeholder = document.getElementById('TEMPLATE-4weird-footer-placeholder')
             || document.getElementById('footer-placeholder');
         if (!placeholder) return;
-
-        const currentPage = getCurrentPage();
-        const isRoot = currentPage === 'index.html' || currentPage === '';
-        const basePath = isRoot ? '' : '../../';
 
         const footerHTML = `
         <footer class="footer">

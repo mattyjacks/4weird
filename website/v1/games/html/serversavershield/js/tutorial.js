@@ -122,13 +122,13 @@ function positionTooltip(tooltip, target, position) {
             left = rect.left;
     }
     
-    // Ensure tooltip stays on screen
+    // Ensure tooltip stays on screen (viewport-relative constraints)
     top = Math.max(10, Math.min(top, window.innerHeight - tooltipRect.height - 10));
     left = Math.max(10, Math.min(left, window.innerWidth - tooltipRect.width - 10));
     
-    tooltip.style.position = 'fixed';
-    tooltip.style.top = top + 'px';
-    tooltip.style.left = left + 'px';
+    tooltip.style.position = 'absolute';
+    tooltip.style.top = (top + window.pageYOffset) + 'px';
+    tooltip.style.left = (left + window.pageXOffset) + 'px';
     tooltip.style.zIndex = '10001';
 }
 

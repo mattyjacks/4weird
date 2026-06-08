@@ -604,7 +604,7 @@ function upgradeWeapon() {
         setCurrentWeapon(nextWeaponKey);
     } else {
         currentWeapon = nextWeaponKey;
-        weaponTimer = weaponTimerMax;
+        weaponTimer = typeof getWeaponDuration === 'function' ? getWeaponDuration() : 300;
     }
     console.log('Weapon upgraded to:', nextWeaponKey);
 }
