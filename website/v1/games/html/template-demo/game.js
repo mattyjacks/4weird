@@ -41,12 +41,10 @@
     document.addEventListener('keydown', (e) => {
         keys[e.code] = true;
         
-        // Pause toggle
         if (e.code === 'KeyP' || e.code === 'Escape') {
             if (state.isPlaying) togglePause();
         }
         
-        // Color change on space
         if (e.code === 'Space' && state.isPlaying && !state.isPaused) {
             e.preventDefault();
             colorIndex = (colorIndex + 1) % colors.length;
@@ -95,12 +93,12 @@
         const rect = canvas.parentElement.getBoundingClientRect();
         const dpr = window.devicePixelRatio || 1;
         
-        canvas.width = rect.width * dpr;
-        canvas.height = rect.height * dpr;
+        canvas.width = Math.floor(rect.width * dpr);
+        canvas.height = Math.floor(rect.height * dpr);
         canvas.style.width = rect.width + 'px';
         canvas.style.height = rect.height + 'px';
         
-        ctx.scale(dpr, dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
     
     // ===== GAME LOOP =====

@@ -141,19 +141,42 @@ class Game {
             this.keys[e.key.toLowerCase()] = true;
             if (e.key === ' ' && this.player.hasBlink && this.blinkCooldown <= 0) this.blink();
             if (e.key.toLowerCase() === 's' && this.state === STATE.PLAYING) this.summonSkeleton();
-            if (e.key.toLowerCase() === 'p') this.togglePause();
+            if (e.key.toLowerCase() === 'p' || e.key === 'Escape') this.togglePause();
         });
         window.addEventListener('keyup', (e) => this.keys[e.key.toLowerCase()] = false);
         canvas.addEventListener('mousemove', (e) => {
             const rect = canvas.getBoundingClientRect();
-            this.mouse.x = e.clientX - rect.left;
-            this.mouse.y = e.clientY - rect.top;
+            const scale = canvas.width / rect.width;
+            this.mouse.x = (e.clientX - rect.left) * scale;
+            this.mouse.y = (e.clientY - rect.top) * scale;
         });
         canvas.addEventListener('mousedown', () => {
             this.mouse.down = true;
             if (this.state === STATE.PLAYING) this.castSpell();
         });
         canvas.addEventListener('mouseup', () => this.mouse.down = false);
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const scale = canvas.width / rect.width;
+            const t = e.touches[0];
+            this.mouse.x = (t.clientX - rect.left) * scale;
+            this.mouse.y = (t.clientY - rect.top) * scale;
+        }, { passive: false });
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const scale = canvas.width / rect.width;
+            const t = e.touches[0];
+            this.mouse.x = (t.clientX - rect.left) * scale;
+            this.mouse.y = (t.clientY - rect.top) * scale;
+            this.mouse.down = true;
+            if (this.state === STATE.PLAYING) this.castSpell();
+        }, { passive: false });
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.mouse.down = false;
+        }, { passive: false });
     }
 
     blink() {

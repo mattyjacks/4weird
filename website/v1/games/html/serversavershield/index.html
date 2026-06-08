@@ -54,11 +54,18 @@
                 <p>You are the <strong>Server Saver Shield</strong> - our last line of defense.</p>
             </div>
             <div class="enemies-preview">
-                <div class="enemy-type"><span>🤖</span><small>Malware Bot</small></div>
-                <div class="enemy-type"><span>🐛</span><small>Bug Virus</small></div>
+                <div class="enemy-type"><span>🎩</span><small>Black Hat Hacker</small></div>
+                <div class="enemy-type"><span>🧠</span><small>Intelligence Agency</small></div>
                 <div class="enemy-type"><span>🔥</span><small>DDOS Attack</small></div>
             </div>
-            <button class="btn btn-start" id="btnStart">🚀 DEPLOY SHIELD</button>
+            <div style="margin: 20px 0;">
+                <p style="color: #9ca3af; margin-bottom: 10px; font-size: 0.9rem;">SELECT DIFFICULTY:</p>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button class="btn btn-secondary" id="btnEasy" style="flex: 1; max-width: 150px;">😊 EASY</button>
+                    <button class="btn btn-secondary" id="btnHard" style="flex: 1; max-width: 150px;">💀 HARD</button>
+                </div>
+            </div>
+            <button class="btn btn-start" id="btnStart">🚀 START GAME</button>
             <div class="controls-hint">
                 <span>🖱️ Mouse/Touch: Move</span>
                 <span>👆 Hold: Fire Shield Beams</span>
@@ -91,7 +98,11 @@
                     <span class="highlight" id="finalKills">0</span>
                 </div>
             </div>
-            <button class="btn btn-start" id="btnRestart">🔄 Redeploy Shield</button>
+            <div style="margin: 20px 0; padding: 15px; background: rgba(139, 92, 246, 0.1); border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.3);">
+                <p style="color: #9ca3af; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">Enemies Neutralized</p>
+                <div id="killStats"></div>
+            </div>
+            <button class="btn btn-start" id="btnRestart">🔄 RESTART GAME</button>
             <button class="btn btn-secondary" onclick="window.location.href='../../../index.html'">🏠 Back to 4weird</button>
         </div>
 
@@ -109,7 +120,7 @@
                     <span class="highlight" id="victoryCombo">x1</span>
                 </div>
             </div>
-            <button class="btn btn-start" id="btnVictoryRestart">🔄 Play Again</button>
+            <button class="btn btn-start" id="btnVictoryRestart">🔄 PLAY AGAIN</button>
             <button class="btn btn-secondary" onclick="window.location.href='../../../index.html'">🏠 More Games</button>
         </div>
     </div>

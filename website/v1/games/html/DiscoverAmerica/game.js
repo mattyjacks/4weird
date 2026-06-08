@@ -199,7 +199,8 @@ window.addEventListener('resize', resizeCanvas);
 /* Convenience: normalized -> pixel coordinates */
 function nodePixel(stage) {
     const rect = canvas.getBoundingClientRect();
-    return { x: stage.pos.x * rect.width, y: stage.pos.y * rect.height };
+    const dpr = window.devicePixelRatio || 1;
+    return { x: stage.pos.x * rect.width * dpr, y: stage.pos.y * rect.height * dpr };
 }
 
 /* ---------------------------------------------------------------------
@@ -209,7 +210,7 @@ let waveTime = 0;
 
 function drawMap() {
     const rect = canvas.getBoundingClientRect();
-    const w = rect.width, h = rect.height;
+    const w = rect.width * dpr, h = rect.height * dpr;
 
     // Ocean gradient background
     const grad = ctx.createLinearGradient(0, 0, 0, h);
@@ -425,9 +426,10 @@ canvas.addEventListener('click', (e) => handleMapClick(e.clientX, e.clientY));
 canvas.addEventListener('touchend', (e) => {
     if (e.changedTouches && e.changedTouches.length) {
         const t = e.changedTouches[0];
+        e.preventDefault();
         handleMapClick(t.clientX, t.clientY);
     }
-}, { passive: true });
+}, { passive: false });
 
 /* ---------------------------------------------------------------------
    PUZZLE: build, interact, validate

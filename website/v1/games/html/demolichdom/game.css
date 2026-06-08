@@ -51,6 +51,9 @@ body {
     box-shadow: 0 0 40px rgba(139, 92, 246, 0.3);
     cursor: crosshair;
     max-width: 100%;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 .hud {
     position: absolute;

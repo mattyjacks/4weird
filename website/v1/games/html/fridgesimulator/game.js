@@ -77,6 +77,7 @@ let day = 1;
 let money = 1000;
 let deaths = 0;
 let maxCombo = 0;
+let lastTime = 0;
 
 let inventory = {};
 let countries = {};
@@ -309,11 +310,38 @@ function addToFridge(country, slot) {
     console.log('Add to fridge:', country, slot);
 }
 
-// Event listeners
+function togglePause() {
+    if (!gameRunning) return;
+    gamePaused = !gamePaused;
+    const pauseBtn = document.getElementById('btnPause');
+    if (pauseBtn) {
+        pauseBtn.textContent = gamePaused ? '▶️ Resume' : '⏸️ Pause';
+    }
+}
+
+function resumeGame() {
+    gamePaused = false;
+    const pauseBtn = document.getElementById('btnPause');
+    if (pauseBtn) {
+        pauseBtn.textContent = '⏸️ Pause';
+    }
+}
+
 document.getElementById('btnStart').addEventListener('click', startGame);
 document.getElementById('btnNextDay').addEventListener('click', nextDay);
 document.getElementById('btnRestart').addEventListener('click', startGame);
 document.getElementById('btnPlayAgain').addEventListener('click', startGame);
+
+const pauseBtn = document.getElementById('btnPause');
+if (pauseBtn) {
+    pauseBtn.addEventListener('click', togglePause);
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
+        if (gameRunning) togglePause();
+    }
+});
 
 document.querySelectorAll('.shop-tab').forEach(tab => {
     tab.addEventListener('click', (e) => {
@@ -324,5 +352,4 @@ document.querySelectorAll('.shop-tab').forEach(tab => {
     });
 });
 
-// Initial render
 render();

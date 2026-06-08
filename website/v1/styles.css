@@ -247,6 +247,8 @@ body {
 .game-card:hover { transform: translateY(-8px); border-color: var(--neon-purple); }
 .game-card.live { border-color: var(--neon-green); }
 .game-card.live:hover { box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
+.game-card.featured { grid-column: span 1; border: 2px solid var(--neon-purple); background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(16, 185, 129, 0.1)); }
+.game-card.featured:hover { transform: translateY(-12px); box-shadow: 0 0 30px rgba(139, 92, 246, 0.4); }
 .game-thumbnail { position: relative; height: 200px; overflow: hidden; }
 .thumb-bg { width: 100%; height: 100%; background-size: cover; background-position: center; }
 .thumb-demolichdom { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%); position: relative; }
