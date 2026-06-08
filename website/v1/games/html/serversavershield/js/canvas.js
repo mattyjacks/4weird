@@ -4,7 +4,18 @@ var ctx = null;
 
 function initCanvas() {
     canvas = document.getElementById('gameCanvas');
+    if (!canvas) {
+        console.error('Game canvas not found!');
+        return;
+    }
     ctx = canvas.getContext('2d');
+    if (!ctx) {
+        console.error('Could not get 2D context!');
+        return;
+    }
+    // Set initial size before resize
+    canvas.width = CANVAS_WIDTH;
+    canvas.height = CANVAS_HEIGHT;
     resize();
     window.addEventListener('resize', resize);
 }

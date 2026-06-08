@@ -41,10 +41,22 @@ function draw() {
 }
 
 function gameLoop() {
-    if (gameRunning) { update(); draw(); }
+    if (gameRunning) {
+        update();
+        draw();
+    } else {
+        // Draw idle screen (background + stars) when game is not running
+        drawBackground();
+        updateStars();
+        drawStars();
+    }
     requestAnimationFrame(gameLoop);
 }
 
 function startGameLoop() {
+    // Initialize stars for idle animation
+    if (typeof initStars === 'function') {
+        initStars();
+    }
     gameLoop();
 }

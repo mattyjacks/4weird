@@ -2,6 +2,8 @@
 :root {
     --bg-dark: #0a0a0f;
     --bg-panel: #12121a;
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #12121a;
     --neon-purple: #8b5cf6;
     --neon-purple-light: #a78bfa;
     --neon-blue: #3b82f6;
@@ -15,6 +17,51 @@
     --text-muted: #6b7280;
     --font-display: 'Orbitron', sans-serif;
     --font-body: 'Inter', sans-serif;
+}
+
+/* ===== CRITICAL TEMPLATE FALLBACK STYLES ===== */
+/* These ensure the game works even if styles.css fails to load */
+
+.TEMPLATE-4weird-game-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+}
+
+.TEMPLATE-4weird-starfield {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.TEMPLATE-4weird-nav-placeholder,
+.TEMPLATE-4weird-footer-placeholder {
+    display: block;
+}
+
+/* Credits section - hide by default, show properly when styles load */
+.TEMPLATE-4weird-credits-section,
+.TEMPLATE-4weird-bio-section,
+.TEMPLATE-4weird-more-games {
+    display: none !important;
+}
+
+/* Ensure game wrapper takes full viewport */
+.game-wrapper {
+    position: relative;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    width: 100%;
+    overflow: hidden;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -81,13 +128,8 @@ body {
     box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
 }
 
-/* Game Wrapper */
+/* Game Wrapper - background added to fallback definition above */
 .game-wrapper {
-    position: relative;
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     background: radial-gradient(ellipse at center, #1a1a3e 0%, #0a0a0f 70%);
 }
 
@@ -404,16 +446,112 @@ body {
     .stat-box { padding: 6px 12px; min-width: 60px; }
     .stat-value { font-size: 1rem; }
     .health-bar { width: 100px; height: 10px; }
-    .enemies-preview { gap: 10px; }
+    .enemies-preview { gap: 10px; flex-wrap: wrap; justify-content: center; }
     .enemy-type { padding: 10px; }
     .enemy-type span { font-size: 1.5rem; }
     .controls-hint { flex-direction: column; gap: 8px; }
     .controls-hint span { font-size: 0.7rem; padding: 6px 10px; }
     .footer-bar { flex-wrap: wrap; gap: 15px; font-size: 0.7rem; }
+
+    /* Mobile screen overlay fixes */
+    .screen-overlay {
+        padding: 1rem;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .logo-big {
+        font-size: 1.4rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .story {
+        padding: 15px;
+        margin-bottom: 1rem;
+        max-width: 100%;
+    }
+
+    .story p {
+        font-size: 0.85rem;
+    }
+
+    .btn {
+        padding: 12px 25px;
+        font-size: 0.9rem;
+    }
+
+    .final-stats {
+        padding: 15px;
+        min-width: auto;
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .stat-row {
+        padding: 8px 0;
+    }
+
+    .stat-row .highlight {
+        font-size: 1rem;
+    }
+
+    /* Ensure canvas fits mobile screen */
+    #gameCanvas {
+        max-height: calc(100vh - 80px);
+        border-width: 2px;
+    }
+
+    .game-wrapper {
+        min-height: 100vh;
+        padding: 10px;
+    }
 }
 
 @media (max-width: 480px) {
     .hud-section.center { position: static; transform: none; order: -1; width: 100%; justify-content: center; margin-bottom: 10px; }
     .hud { flex-wrap: wrap; justify-content: center; }
     .health-bar { width: 120px; }
+
+    /* Smaller mobile adjustments */
+    .logo-big {
+        font-size: 1.2rem;
+    }
+
+    .tagline {
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .enemies-preview {
+        gap: 8px;
+    }
+
+    .enemy-type {
+        padding: 8px;
+    }
+
+    .enemy-type span {
+        font-size: 1.2rem;
+    }
+
+    .enemy-type small {
+        font-size: 0.6rem;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        font-size: 0.85rem;
+        margin: 4px;
+    }
+
+    /* Stack buttons on very small screens */
+    .screen-overlay > div[style*="display: flex"] {
+        flex-direction: column !important;
+        width: 100%;
+    }
+
+    .screen-overlay > div[style*="display: flex"] button {
+        max-width: 100% !important;
+        width: 100%;
+    }
 }
