@@ -57,6 +57,8 @@
     position: relative;
     flex: 1;
     display: flex;
+    min-height: 500px;
+    min-width: 400px;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
@@ -266,9 +268,20 @@ body {
     overflow-y: auto;
     max-height: 90vh;
     -webkit-overflow-scrolling: touch;
+    /* Debug: Make visible */
+    border: 5px solid #10b981 !important;
 }
 
-.screen-overlay.hidden { display: none; }
+.screen-overlay.hidden { 
+    display: none !important; 
+}
+
+/* Emergency: Force start screen visible */
+#startScreen {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
 
 .logo-big {
     font-family: var(--font-display);
