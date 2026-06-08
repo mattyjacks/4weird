@@ -1,5 +1,6 @@
 // Demo Lichdom - Full Game Engine
 // Pure HTML5 Canvas with Emoji Graphics
+// v2.0 - 25 improvements with love
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -66,18 +67,55 @@ function playSound(type) {
             osc.stop(now + 0.5);
             break;
         case 'win':
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < 6; i++) {
                 const o = audioCtx.createOscillator();
                 const g = audioCtx.createGain();
                 o.connect(g);
                 g.connect(audioCtx.destination);
                 o.type = 'sine';
-                o.frequency.setValueAtTime(440 * Math.pow(1.5, i), now + i * 0.15);
-                g.gain.setValueAtTime(0.12, now + i * 0.15);
-                g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.3);
-                o.start(now + i * 0.15);
-                o.stop(now + i * 0.15 + 0.3);
+                o.frequency.setValueAtTime(440 * Math.pow(1.189, i), now + i * 0.12);
+                g.gain.setValueAtTime(0.12, now + i * 0.12);
+                g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.12 + 0.35);
+                o.start(now + i * 0.12);
+                o.stop(now + i * 0.12 + 0.35);
             }
+            break;
+        case 'lose':
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(300, now);
+            osc.frequency.exponentialRampToValueAtTime(80, now + 0.8);
+            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.9);
+            osc.start(now);
+            osc.stop(now + 0.9);
+            break;
+        case 'enemydeath':
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(350, now);
+            osc.frequency.exponentialRampToValueAtTime(150, now + 0.15);
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+            osc.start(now);
+            osc.stop(now + 0.18);
+            break;
+        case 'blink':
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, now);
+            osc.frequency.exponentialRampToValueAtTime(400, now + 0.12);
+            gain.gain.setValueAtTime(0.18, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+            osc.start(now);
+            osc.stop(now + 0.18);
+            break;
+        case 'combo':
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, now);
+            osc.frequency.setValueAtTime(800, now + 0.05);
+            osc.frequency.setValueAtTime(1000, now + 0.1);
+            gain.gain.setValueAtTime(0.14, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+            osc.start(now);
+            osc.stop(now + 0.2);
             break;
     }
 }
@@ -92,6 +130,7 @@ class Game {
             x: 400, y: 400,
             vx: 0, vy: 0,
             speed: 3,
+            facingLeft: false,
             hp: 100, maxHp: 100,
             mana: 100, maxMana: 100,
             manaRegen: 0.12,
@@ -106,10 +145,23 @@ class Game {
         this.buildings = [];
         this.enemies = [];
         this.debris = [];
+        this.rubble = [];
+        this.ripples = [];
+        this.scorePops = [];
         this.phase = 1;
         this.score = 0;
         this.buildingsDestroyed = 0;
         this.shake = 0;
+        this.shakeTime = 0;
+        this.combo = 0;
+        this.comboTimer = 0;
+        this.maxCombo = 0;
+        this.highScore = parseInt(localStorage.getItem('demolichdom_hs') || '0');
+        this.sessionStart = Date.now();
+        this.phaseFlash = 0;
+        this.phaseFlashColor = '#10b981';
+        this.starOffset = { x: 0, y: 0 };
+        this.activeUpgradeOptions = [];
         this.upgrades = [
             { id: 'mana', name: 'Mana Mastery', emoji: '💧', desc: '+30 Mana, +50% Regen' },
             { id: 'army', name: 'Lich Lord', emoji: '💀', desc: '+2 Skeletons, +5 HP each' },
@@ -142,6 +194,12 @@ class Game {
             if (e.key === ' ' && this.player.hasBlink && this.blinkCooldown <= 0) this.blink();
             if (e.key.toLowerCase() === 's' && this.state === STATE.PLAYING) this.summonSkeleton();
             if (e.key.toLowerCase() === 'p' || e.key === 'Escape') this.togglePause();
+            if (this.state === STATE.UPGRADE && this.activeUpgradeOptions.length > 0) {
+                const n = parseInt(e.key);
+                if (n >= 1 && n <= this.activeUpgradeOptions.length) {
+                    this.applyUpgrade(this.activeUpgradeOptions[n - 1].id);
+                }
+            }
         });
         window.addEventListener('keyup', (e) => this.keys[e.key.toLowerCase()] = false);
         canvas.addEventListener('mousemove', (e) => {
@@ -181,12 +239,14 @@ class Game {
 
     blink() {
         const angle = Math.atan2(this.mouse.y - this.player.y, this.mouse.x - this.player.x);
+        this.spawnParticles(this.player.x, this.player.y, '✨', 6);
         this.player.x += Math.cos(angle) * 100;
         this.player.y += Math.sin(angle) * 100;
         this.player.x = Math.max(30, Math.min(770, this.player.x));
         this.player.y = Math.max(30, Math.min(470, this.player.y));
         this.blinkCooldown = 180;
-        this.spawnParticles(this.player.x, this.player.y, '👻', 5);
+        this.spawnParticles(this.player.x, this.player.y, '👻', 6);
+        playSound('blink');
     }
 
     start() {
@@ -215,6 +275,7 @@ class Game {
             x: 400, y: 400,
             vx: 0, vy: 0,
             speed: 3,
+            facingLeft: false,
             hp: 100, maxHp: 100,
             mana: 100, maxMana: 100,
             manaRegen: 0.12,
@@ -228,9 +289,20 @@ class Game {
         this.particles = [];
         this.enemies = [];
         this.debris = [];
+        this.rubble = [];
+        this.ripples = [];
+        this.scorePops = [];
         this.phase = 1;
         this.score = 0;
         this.buildingsDestroyed = 0;
+        this.shake = 0;
+        this.shakeTime = 0;
+        this.combo = 0;
+        this.comboTimer = 0;
+        this.maxCombo = 0;
+        this.phaseFlash = 0;
+        this.starOffset = { x: 0, y: 0 };
+        this.sessionStart = Date.now();
         this.setupBuildings();
         this.state = STATE.PLAYING;
         document.getElementById('pauseMenu').classList.add('hidden');
@@ -248,31 +320,32 @@ class Game {
     }
 
     showHowToPlay() {
-        alert('HOW TO PLAY:\n\n' +
-            '🧙‍♂️ You are a Necromancer demolition contractor\n' +
-            '🏰 Destroy 3 buildings to win\n\n' +
-            'CONTROLS:\n' +
-            'WASD / Arrows - Move\n' +
-            'Click - Cast skull spell (10 mana)\n' +
-            'S - Summon skeleton (25 mana)\n' +
-            'P - Pause\n\n' +
-            'Your skeletons attack buildings automatically!\n' +
-            'Watch out for falling debris in later phases!');
+        document.getElementById('howToPlayMenu').classList.remove('hidden');
     }
 
     castSpell() {
         if (this.player.mana < 10) return;
         this.player.mana -= 10;
         const angle = Math.atan2(this.mouse.y - this.player.y, this.mouse.x - this.player.x);
+        const spellEmoji = this.player.voidBolt ? '⚡' : '💀';
         this.projectiles.push({
             x: this.player.x, y: this.player.y,
             vx: Math.cos(angle) * 8, vy: Math.sin(angle) * 8,
             damage: 15 + (this.player.voidBolt ? 15 : 0),
             piercing: this.player.voidBolt || false,
-            life: 60, emoji: '💀'
+            life: 60, emoji: spellEmoji,
+            trail: []
         });
         this.spawnParticles(this.player.x, this.player.y, '✨', 3);
         playSound('cast');
+    }
+
+    addScorePop(x, y, text, color) {
+        this.scorePops.push({ x, y, text, color: color || '#f5f5f5', life: 50, vy: -1.2 });
+    }
+
+    addRipple(x, y) {
+        this.ripples.push({ x, y, r: 10, maxR: 55, life: 30 });
     }
 
     summonSkeleton() {
@@ -314,7 +387,9 @@ class Game {
             vx: (this.player.x - building.x) * 0.008 + (Math.random() - 0.5) * 2,
             vy: -4 - Math.random() * 3,
             damage: 10,
-            emoji: '🧱'
+            emoji: '🧱',
+            rotation: 0,
+            rotSpeed: (Math.random() - 0.5) * 0.25
         });
     }
 
@@ -336,12 +411,13 @@ class Game {
             const idx = Math.floor(Math.random() * available.length);
             options.push(available.splice(idx, 1)[0]);
         }
+        this.activeUpgradeOptions = options;
         const container = document.getElementById('upgradeOptions');
         container.innerHTML = '';
-        options.forEach(upg => {
+        options.forEach((upg, idx) => {
             const card = document.createElement('div');
             card.className = 'upgrade-card';
-            card.innerHTML = `<span class="emoji">${upg.emoji}</span><h3>${upg.name}</h3><p>${upg.desc}</p>`;
+            card.innerHTML = `<span class="upgrade-key">${idx + 1}</span><span class="emoji">${upg.emoji}</span><h3>${upg.name}</h3><p>${upg.desc}</p>`;
             card.onclick = () => this.applyUpgrade(upg.id);
             container.appendChild(card);
         });
@@ -385,12 +461,31 @@ class Game {
 
     advancePhase() {
         this.buildingsDestroyed++;
-        this.score += 1000 * this.phase;
-        this.shake = 20;
+        const phaseScore = 1000 * this.phase;
+        this.score += phaseScore;
+        this.shake = 25;
+        this.shakeTime = 30;
+        this.phaseFlash = 30;
         playSound('explosion');
+        const destroyedBuilding = this.buildings.find(b => b.hp <= 0);
+        if (destroyedBuilding) {
+            this.rubble.push({
+                x: destroyedBuilding.x,
+                y: destroyedBuilding.y + 20,
+                emoji: '🪨',
+                scale: 1.5 + Math.random() * 0.5
+            });
+            this.rubble.push({
+                x: destroyedBuilding.x - 25 + Math.random() * 50,
+                y: destroyedBuilding.y + 35,
+                emoji: '🧱',
+                scale: 0.8 + Math.random() * 0.4
+            });
+        }
         if (this.phase === 1) {
             this.phase = 2;
-            this.showPhaseText('PHASE 2');
+            this.phaseFlashColor = '#f59e0b';
+            this.showPhaseText('PHASE 2 - FACTORY!');
             this.buildings.push({
                 x: 200, y: 120,
                 hp: 500, maxHp: 500,
@@ -403,6 +498,7 @@ class Game {
             this.buildings[0].active = false;
         } else if (this.phase === 2) {
             this.phase = 3;
+            this.phaseFlashColor = '#ef4444';
             this.showPhaseText('PHASE 3 - BOSS!');
             this.buildings.push({
                 x: 600, y: 100,
@@ -440,26 +536,55 @@ class Game {
     win() {
         this.state = STATE.WIN;
         playSound('win');
+        if (this.score > this.highScore) {
+            this.highScore = this.score;
+            localStorage.setItem('demolichdom_hs', this.score);
+        }
+        const elapsed = Math.floor((Date.now() - this.sessionStart) / 1000);
+        const mins = Math.floor(elapsed / 60);
+        const secs = elapsed % 60;
         document.getElementById('finalScore').textContent = this.score;
         document.getElementById('finalLevel').textContent = this.player.level;
+        document.getElementById('finalTime').textContent = mins + 'm ' + secs + 's';
+        document.getElementById('finalCombo').textContent = 'x' + this.maxCombo;
+        document.getElementById('finalHighScore').textContent = this.highScore;
         document.getElementById('winScreen').classList.remove('hidden');
     }
 
     lose() {
         this.state = STATE.LOSE;
+        playSound('lose');
+        if (this.score > this.highScore) {
+            this.highScore = this.score;
+            localStorage.setItem('demolichdom_hs', this.score);
+        }
         document.getElementById('deathScore').textContent = this.score;
         document.getElementById('buildingsDestroyed').textContent = this.buildingsDestroyed;
+        document.getElementById('deathHighScore').textContent = this.highScore;
         document.getElementById('loseScreen').classList.remove('hidden');
     }
 
     update() {
         if (this.state !== STATE.PLAYING) return;
 
-        if (this.shake > 0) this.shake *= 0.9;
-        if (this.shake < 0.5) this.shake = 0;
+        const t = Date.now() * 0.001;
+
+        if (this.shakeTime > 0) {
+            this.shake = 12 * Math.sin(this.shakeTime * 1.8) * (this.shakeTime / 30);
+            this.shakeTime--;
+        } else {
+            this.shake = 0;
+        }
+
+        if (this.phaseFlash > 0) this.phaseFlash--;
 
         if (this.player.summonCooldown > 0) this.player.summonCooldown--;
         if (this.blinkCooldown > 0) this.blinkCooldown--;
+
+        if (this.combo > 0) {
+            this.comboTimer--;
+            if (this.comboTimer <= 0) this.combo = 0;
+        }
 
         if (this.player.mana < this.player.maxMana) {
             this.player.mana = Math.min(this.player.maxMana, this.player.mana + this.player.manaRegen);
@@ -468,29 +593,41 @@ class Game {
             this.player.hp = Math.min(this.player.maxHp, this.player.hp + this.player.hpRegen);
         }
 
+        if (this.keys['a'] || this.keys['arrowleft']) {
+            this.player.vx = -this.player.speed;
+            this.player.facingLeft = true;
+        } else if (this.keys['d'] || this.keys['arrowright']) {
+            this.player.vx = this.player.speed;
+            this.player.facingLeft = false;
+        } else {
+            this.player.vx *= 0.85;
+        }
+
         if (this.keys['w'] || this.keys['arrowup']) this.player.vy = -this.player.speed;
-        else if (this.keys['s'] || this.keys['arrowdown']) this.player.vy = this.player.speed;
+        else if (this.keys['arrowdown']) this.player.vy = this.player.speed;
         else this.player.vy *= 0.85;
 
-        if (this.keys['a'] || this.keys['arrowleft']) this.player.vx = -this.player.speed;
-        else if (this.keys['d'] || this.keys['arrowright']) this.player.vx = this.player.speed;
-        else this.player.vx *= 0.85;
+        this.starOffset.x += this.player.vx * 0.04;
+        this.starOffset.y += this.player.vy * 0.04;
 
         this.player.x += this.player.vx;
         this.player.y += this.player.vy;
         this.player.x = Math.max(25, Math.min(775, this.player.x));
         this.player.y = Math.max(25, Math.min(475, this.player.y));
 
-        this.projectiles.forEach((p, i) => {
+        this.projectiles = this.projectiles.filter(p => {
+            if (p.trail) {
+                p.trail.push({ x: p.x, y: p.y });
+                if (p.trail.length > 5) p.trail.shift();
+            }
             p.x += p.vx;
             p.y += p.vy;
             p.life--;
-            if (p.life <= 0 || p.x < 0 || p.x > 800 || p.y < 0 || p.y > 500) {
-                this.projectiles.splice(i, 1);
-            }
+            return p.life > 0 && p.x >= 0 && p.x <= 800 && p.y >= 0 && p.y <= 500;
         });
 
-        this.skeletons.forEach((skel, si) => {
+        this.skeletons.forEach(skel => {
+            skel.bobPhase = (skel.bobPhase || 0) + 0.12;
             const building = this.buildings.find(b => b.active);
             if (building) {
                 const dx = building.x - skel.x;
@@ -502,17 +639,21 @@ class Game {
                 } else if (skel.attackCooldown <= 0) {
                     building.hp -= 8;
                     skel.attackCooldown = 45;
+                    this.addRipple(building.x, building.y);
                     this.spawnParticles(building.x, building.y, '💥', 3);
                     playSound('hit');
-                    this.player.xp += 2;
+                    const xpGain = 2 * this.phase;
+                    this.player.xp += xpGain;
                     this.score += 10;
+                    this.addScorePop(building.x + (Math.random()-0.5)*40, building.y - 30, '+10', '#10b981');
                 }
             }
             if (skel.attackCooldown > 0) skel.attackCooldown--;
         });
 
-        this.enemies.forEach((enemy, ei) => {
-            const nearestSkel = this.skeletons.length > 0 ? 
+        const deadEnemies = [];
+        this.enemies.forEach(enemy => {
+            const nearestSkel = this.skeletons.length > 0 ?
                 this.skeletons.reduce((closest, skel) => {
                     const d1 = Math.hypot(skel.x - enemy.x, skel.y - enemy.y);
                     const d2 = Math.hypot(closest.x - enemy.x, closest.y - enemy.y);
@@ -531,29 +672,44 @@ class Game {
                     enemy.attackCooldown = 60;
                     if (nearestSkel.hp <= 0) {
                         this.spawnParticles(nearestSkel.x, nearestSkel.y, '🦴', 8);
-                        this.skeletons = this.skeletons.filter(s => s !== nearestSkel);
                     }
                 }
             }
             enemy.x += enemy.vx;
             if (enemy.x < 50 || enemy.x > 750) enemy.vx *= -1;
             if (enemy.attackCooldown > 0) enemy.attackCooldown--;
+
+            if (enemy.hp <= 0) deadEnemies.push(enemy);
         });
 
+        deadEnemies.forEach(e => {
+            this.spawnParticles(e.x, e.y, '💥', 6);
+            playSound('enemydeath');
+            this.combo++;
+            this.comboTimer = 120;
+            if (this.combo > this.maxCombo) this.maxCombo = this.combo;
+            const bonus = this.combo >= 3 ? this.combo * 10 : 50;
+            this.score += bonus;
+            this.addScorePop(e.x, e.y - 20, (this.combo >= 3 ? 'COMBO x' + this.combo + '!' : '') + '+' + bonus, this.combo >= 3 ? '#f59e0b' : '#ef4444');
+            if (this.combo >= 3) playSound('combo');
+        });
+
+        this.skeletons = this.skeletons.filter(s => s.hp > 0);
         this.enemies = this.enemies.filter(e => e.hp > 0);
 
-        this.debris.forEach((d, di) => {
+        this.debris = this.debris.filter(d => {
             d.x += d.vx;
             d.y += d.vy;
             d.vy += 0.3;
+            d.rotation = (d.rotation || 0) + d.rotSpeed;
             const dist = Math.hypot(d.x - this.player.x, d.y - this.player.y);
             if (dist < 25) {
                 this.player.hp -= d.damage;
-                this.shake = 10;
-                this.debris.splice(di, 1);
-            } else if (d.y > 520) {
-                this.debris.splice(di, 1);
+                this.shakeTime = 10;
+                playSound('hit');
+                return false;
             }
+            return d.y <= 520;
         });
 
         this.buildings.forEach(b => {
@@ -570,30 +726,45 @@ class Game {
             }
         });
 
-        this.skeletons = this.skeletons.filter(s => s.hp > 0);
-
+        const deadProjectiles = new Set();
         this.projectiles.forEach((p, pi) => {
             this.buildings.forEach(b => {
-                if (!b.active) return;
+                if (!b.active || deadProjectiles.has(pi)) return;
                 const dist = Math.hypot(p.x - b.x, p.y - (b.y + 30));
                 if (dist < 60) {
                     b.hp -= p.damage;
-                    this.player.xp += 3;
+                    const xpGain = 3 * this.phase;
+                    this.player.xp += xpGain;
                     this.score += 15;
+                    this.addRipple(b.x, b.y + 30);
                     this.spawnParticles(p.x, p.y, '💥', 4);
+                    this.addScorePop(p.x, p.y - 15, '+15', '#8b5cf6');
                     playSound('hit');
-                    if (!p.piercing) this.projectiles.splice(pi, 1);
+                    if (!p.piercing) deadProjectiles.add(pi);
                 }
             });
         });
+        this.projectiles = this.projectiles.filter((_, i) => !deadProjectiles.has(i));
 
-        this.particles.forEach((p, i) => {
+        this.particles = this.particles.filter(p => {
             p.x += p.vx;
             p.y += p.vy;
             p.life--;
             p.vx *= 0.95;
             p.vy *= 0.95;
-            if (p.life <= 0) this.particles.splice(i, 1);
+            return p.life > 0;
+        });
+
+        this.ripples = this.ripples.filter(r => {
+            r.r += (r.maxR - r.r) * 0.15;
+            r.life--;
+            return r.life > 0;
+        });
+
+        this.scorePops = this.scorePops.filter(sp => {
+            sp.y += sp.vy;
+            sp.life--;
+            return sp.life > 0;
         });
 
         if (this.player.hp <= 0) this.lose();
@@ -602,19 +773,31 @@ class Game {
     }
 
     updateUI() {
-        document.getElementById('hpBar').style.width = (this.player.hp / this.player.maxHp * 100) + '%';
+        const hpPct = this.player.hp / this.player.maxHp * 100;
+        document.getElementById('hpBar').style.width = hpPct + '%';
+        document.getElementById('hpBar').style.boxShadow = hpPct < 30 ? '0 0 12px #ef4444' : '';
         document.getElementById('manaBar').style.width = (this.player.mana / this.player.maxMana * 100) + '%';
         document.getElementById('xpBar').style.width = (this.player.xp / this.player.maxXp * 100) + '%';
         document.getElementById('levelDisplay').textContent = this.player.level;
         document.getElementById('scoreDisplay').textContent = this.score;
-        document.getElementById('phaseDisplay').textContent = this.phase;
+        const phaseNames = ['', 'Church', 'Factory', 'BOSS'];
+        document.getElementById('phaseDisplay').textContent = 'P' + this.phase + ' ' + (phaseNames[this.phase] || '');
         document.getElementById('skeletonCount').textContent = this.skeletons.length + '/' + this.player.maxSkeletons;
+        document.getElementById('comboDisplay').textContent = this.combo >= 2 ? 'x' + this.combo + ' COMBO' : '';
+        if (this.player.hasBlink) {
+            const blinkPct = Math.max(0, 100 - (this.blinkCooldown / 180 * 100));
+            document.getElementById('blinkBarFill').style.width = blinkPct + '%';
+            document.getElementById('blinkBar').style.display = 'flex';
+        } else {
+            document.getElementById('blinkBar').style.display = 'none';
+        }
+        document.getElementById('highScoreDisplay').textContent = this.highScore;
     }
 
     draw() {
         ctx.save();
-        if (this.shake > 0) {
-            ctx.translate((Math.random() - 0.5) * this.shake, (Math.random() - 0.5) * this.shake);
+        if (this.shake !== 0) {
+            ctx.translate(this.shake, this.shake * 0.5);
         }
 
         ctx.clearRect(0, 0, 800, 500);
@@ -626,39 +809,65 @@ class Game {
         ctx.fillStyle = skyGrad;
         ctx.fillRect(0, 0, 800, 500);
 
-        ctx.fillStyle = '#1a1a2e';
-        ctx.beginPath();
-        ctx.ellipse(100, 80, 40, 40, 0, 0, Math.PI * 2);
-        ctx.fill();
         ctx.font = '60px Arial';
-        ctx.fillText('🌕', 70, 100);
+        ctx.textAlign = 'center';
+        ctx.fillText('🌕', 70 + this.starOffset.x * 0.3, 100 + this.starOffset.y * 0.3);
 
-        for (let i = 0; i < 20; i++) {
-            const x = (i * 137) % 800;
-            const y = (i * 73) % 200 + 20;
+        for (let i = 0; i < 24; i++) {
+            const sx = ((i * 137 + this.starOffset.x * 0.6) % 800 + 800) % 800;
+            const sy = ((i * 73 + this.starOffset.y * 0.6) % 200 + 200) % 200 + 10;
             const alpha = 0.3 + Math.sin(Date.now() * 0.001 + i) * 0.2;
             ctx.globalAlpha = alpha;
             ctx.font = '12px Arial';
-            ctx.fillText('✨', x, y);
+            ctx.fillText('✨', sx, sy);
         }
         ctx.globalAlpha = 1;
 
         ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
         ctx.fillRect(0, 420, 800, 80);
 
+        ctx.strokeStyle = 'rgba(139, 92, 246, 0.08)';
+        ctx.lineWidth = 1;
+        for (let gx = 0; gx < 800; gx += 40) {
+            ctx.beginPath();
+            ctx.moveTo(gx, 420);
+            ctx.lineTo(gx, 500);
+            ctx.stroke();
+        }
+
+        this.rubble.forEach(r => {
+            ctx.font = (30 * r.scale) + 'px Arial';
+            ctx.textAlign = 'center';
+            ctx.globalAlpha = 0.6;
+            ctx.fillText(r.emoji, r.x, r.y);
+            ctx.globalAlpha = 1;
+        });
+
+        this.ripples.forEach(r => {
+            const alpha = r.life / 30 * 0.5;
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+        });
+
         this.buildings.forEach(b => {
             if (!b.active) return;
             ctx.font = '80px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            
+
             let healthPct = b.hp / b.maxHp;
             let emoji = b.emoji;
             if (healthPct < 0.7) emoji = '💢';
             if (healthPct < 0.3) emoji = '🔥';
-            
+
             ctx.fillText(emoji, b.x, b.y);
-            
+
             if (b.guards) {
                 ctx.font = '20px Arial';
                 ctx.fillText('👮', b.x - 40, b.y + 50);
@@ -671,20 +880,28 @@ class Game {
             const hpColor = healthPct > 0.5 ? '#10b981' : healthPct > 0.25 ? '#f59e0b' : '#ef4444';
             ctx.fillStyle = hpColor;
             ctx.fillRect(b.x - 38, b.y - 68, 76 * healthPct, 4);
-            
+            if (healthPct < 0.3) {
+                ctx.shadowColor = '#ef4444';
+                ctx.shadowBlur = 8;
+                ctx.fillRect(b.x - 38, b.y - 68, 76 * healthPct, 4);
+                ctx.shadowBlur = 0;
+            }
+
             ctx.fillStyle = 'white';
             ctx.font = 'bold 12px Arial';
+            ctx.textBaseline = 'alphabetic';
             ctx.fillText(Math.floor(b.hp), b.x, b.y - 80);
         });
 
         this.skeletons.forEach(s => {
+            const bob = Math.sin(s.bobPhase || 0) * 3;
             ctx.font = '30px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('💀', s.x, s.y);
+            ctx.fillText('💀', s.x, s.y + bob);
             ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-            ctx.fillRect(s.x - 15, s.y - 25, 30, 4);
+            ctx.fillRect(s.x - 15, s.y - 28 + bob, 30, 4);
             ctx.fillStyle = '#10b981';
-            ctx.fillRect(s.x - 14, s.y - 24, 28 * (s.hp / s.maxHp), 2);
+            ctx.fillRect(s.x - 14, s.y - 27 + bob, 28 * (s.hp / s.maxHp), 2);
         });
 
         this.enemies.forEach(e => {
@@ -694,20 +911,45 @@ class Game {
         });
 
         this.projectiles.forEach(p => {
+            if (p.trail && p.trail.length > 1) {
+                for (let ti = 0; ti < p.trail.length; ti++) {
+                    const alpha = (ti / p.trail.length) * 0.4;
+                    const sz = (12 + ti * 2);
+                    ctx.save();
+                    ctx.globalAlpha = alpha;
+                    ctx.font = sz + 'px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(p.emoji, p.trail[ti].x, p.trail[ti].y);
+                    ctx.restore();
+                }
+            }
             ctx.font = '24px Arial';
             ctx.textAlign = 'center';
             ctx.fillText(p.emoji, p.x, p.y);
         });
 
         this.debris.forEach(d => {
+            ctx.save();
+            ctx.translate(d.x, d.y);
+            ctx.rotate(d.rotation || 0);
             ctx.font = '22px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText(d.emoji, d.x, d.y);
+            ctx.textBaseline = 'middle';
+            ctx.fillText(d.emoji, 0, 0);
+            ctx.restore();
         });
 
+        ctx.save();
         ctx.font = '40px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText('🧙‍♂️', this.player.x, this.player.y);
+        ctx.textBaseline = 'middle';
+        if (this.player.facingLeft) {
+            ctx.scale(-1, 1);
+            ctx.fillText('🧙‍♂️', -this.player.x, this.player.y);
+        } else {
+            ctx.fillText('🧙‍♂️', this.player.x, this.player.y);
+        }
+        ctx.restore();
 
         this.particles.forEach(p => {
             ctx.save();
@@ -717,6 +959,38 @@ class Game {
             ctx.fillText(p.emoji, p.x, p.y);
             ctx.restore();
         });
+
+        this.scorePops.forEach(sp => {
+            ctx.save();
+            ctx.globalAlpha = sp.life / 50;
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = sp.color;
+            ctx.shadowColor = sp.color;
+            ctx.shadowBlur = 6;
+            ctx.fillText(sp.text, sp.x, sp.y);
+            ctx.restore();
+        });
+
+        if (this.phaseFlash > 0) {
+            const alpha = (this.phaseFlash / 30) * 0.35;
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = this.phaseFlashColor;
+            ctx.fillRect(0, 0, 800, 500);
+            ctx.restore();
+        }
+
+        const hpPct = this.player.hp / this.player.maxHp;
+        if (hpPct < 0.3) {
+            const pulse = 0.5 + Math.sin(Date.now() * 0.006) * 0.5;
+            const vigAlpha = (1 - hpPct / 0.3) * 0.45 * pulse;
+            const vigGrad = ctx.createRadialGradient(400, 250, 200, 400, 250, 400);
+            vigGrad.addColorStop(0, 'rgba(0,0,0,0)');
+            vigGrad.addColorStop(1, `rgba(180,0,0,${vigAlpha})`);
+            ctx.fillStyle = vigGrad;
+            ctx.fillRect(0, 0, 800, 500);
+        }
 
         ctx.restore();
     }

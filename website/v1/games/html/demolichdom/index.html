@@ -31,12 +31,18 @@
                 <span>⭐</span>
                 <div class="bar"><div class="bar-fill xp-fill" id="xpBar"></div></div>
             </div>
+            <div class="bar-container" id="blinkBar" style="display:none">
+                <span>👻</span>
+                <div class="bar"><div class="bar-fill blink-fill" id="blinkBarFill"></div></div>
+            </div>
         </div>
+        <div class="combo-display" id="comboDisplay"></div>
 
         <div class="stats">
             <div><span class="label">Level</span><div class="value" id="levelDisplay">1</div></div>
             <div><span class="label">Score</span><div class="value" id="scoreDisplay">0</div></div>
-            <div><span class="label">Wave</span><div class="value" id="phaseDisplay">1</div></div>
+            <div><span class="label">Phase</span><div class="value" id="phaseDisplay">P1 Church</div></div>
+            <div><span class="label">Best</span><div class="value" id="highScoreDisplay">0</div></div>
         </div>
 
         <div class="skeleton-count">
@@ -49,6 +55,8 @@
             WASD / Arrows: Move<br>
             Click: Cast Skull Spell<br>
             S: Summon Skeleton (-25 Mana)<br>
+            Space: Blink (after upgrade)<br>
+            1/2/3: Pick Upgrade<br>
             P: Pause Game
         </div>
 
@@ -76,15 +84,36 @@
 
         <div class="overlay hidden" id="upgradeMenu">
             <h1>⭐ LEVEL UP!</h1>
-            <p>Choose your power:</p>
+            <p>Choose your power: <span class="hint">(or press 1, 2, 3)</span></p>
             <div class="upgrades-grid" id="upgradeOptions"></div>
+        </div>
+
+        <div class="overlay hidden" id="howToPlayMenu">
+            <h1>📖 HOW TO PLAY</h1>
+            <div class="how-to-grid">
+                <div class="how-to-item"><span class="how-icon">🧙‍♂️</span><strong>You are a Necromancer demolition contractor</strong></div>
+                <div class="how-to-item"><span class="how-icon">🏰</span><strong>Destroy 3 buildings to win:</strong> Church, Factory, Skyscraper</div>
+                <div class="how-to-item"><span class="how-icon">WASD</span>Move your necromancer</div>
+                <div class="how-to-item"><span class="how-icon">🖱️</span>Click to cast a skull spell (10 mana)</div>
+                <div class="how-to-item"><span class="how-icon">S</span>Summon a skeleton (25 mana)</div>
+                <div class="how-to-item"><span class="how-icon">Space</span>Blink teleport (after Spectral Dash upgrade)</div>
+                <div class="how-to-item"><span class="how-icon">⭐</span>Kill enemies and damage buildings to earn XP and level up</div>
+                <div class="how-to-item"><span class="how-icon">🧱</span>Dodge falling debris in later phases!</div>
+                <div class="how-to-item"><span class="how-icon">💀</span>Kill enemies fast for combo multiplier bonuses!</div>
+            </div>
+            <button class="btn btn-start" onclick="document.getElementById('howToPlayMenu').classList.add('hidden')">Got it!</button>
         </div>
 
         <div class="overlay hidden" id="winScreen">
             <h1>🏆 VICTORY!</h1>
             <div class="subtitle">The city lies in ruins. You are the ultimate demolition lich.</div>
-            <p>Final Score: <strong id="finalScore">0</strong></p>
-            <p>Level Reached: <strong id="finalLevel">1</strong></p>
+            <div class="end-stats">
+                <div class="end-stat"><span class="end-label">Score</span><span class="end-value" id="finalScore">0</span></div>
+                <div class="end-stat"><span class="end-label">Level</span><span class="end-value" id="finalLevel">1</span></div>
+                <div class="end-stat"><span class="end-label">Time</span><span class="end-value" id="finalTime">0m 0s</span></div>
+                <div class="end-stat"><span class="end-label">Best Combo</span><span class="end-value" id="finalCombo">x0</span></div>
+                <div class="end-stat"><span class="end-label">High Score</span><span class="end-value" id="finalHighScore">0</span></div>
+            </div>
             <button class="btn btn-start" onclick="game.restart()">🔄 Play Again</button>
             <button class="btn btn-menu" onclick="window.location.href='../../../index.html'">🏠 Back to 4weird</button>
         </div>
@@ -92,8 +121,11 @@
         <div class="overlay hidden" id="loseScreen">
             <h1>💀 DEFEATED</h1>
             <div class="subtitle">Your necromantic power was not enough...</div>
-            <p>Final Score: <strong id="deathScore">0</strong></p>
-            <p>Buildings Destroyed: <strong id="buildingsDestroyed">0</strong>/3</p>
+            <div class="end-stats">
+                <div class="end-stat"><span class="end-label">Score</span><span class="end-value" id="deathScore">0</span></div>
+                <div class="end-stat"><span class="end-label">Buildings</span><span class="end-value" id="buildingsDestroyed">0</span>/3</div>
+                <div class="end-stat"><span class="end-label">High Score</span><span class="end-value" id="deathHighScore">0</span></div>
+            </div>
             <button class="btn btn-start" onclick="game.restart()">🔄 Try Again</button>
             <button class="btn btn-menu" onclick="game.toMenu()">📋 Main Menu</button>
         </div>

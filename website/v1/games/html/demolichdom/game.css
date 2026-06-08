@@ -87,6 +87,7 @@ body {
 .hp-fill { background: linear-gradient(90deg, #ef4444, #dc2626); }
 .mana-fill { background: linear-gradient(90deg, #3b82f6, #2563eb); }
 .xp-fill { background: linear-gradient(90deg, #8b5cf6, #7c3aed); }
+.blink-fill { background: linear-gradient(90deg, #06b6d4, #0891b2); }
 .stats {
     position: absolute;
     top: 20px;
@@ -217,10 +218,102 @@ body {
     border-radius: 8px;
     border: 1px solid #8b5cf6;
 }
+.combo-display {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Courier New', monospace;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #f59e0b;
+    text-shadow: 0 0 20px rgba(245, 158, 11, 0.9);
+    pointer-events: none;
+    z-index: 40;
+    transition: opacity 0.2s;
+    letter-spacing: 2px;
+}
+.upgrade-key {
+    display: inline-block;
+    background: rgba(139, 92, 246, 0.5);
+    border: 1px solid #8b5cf6;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #f5f5f5;
+    padding: 1px 5px;
+    margin-bottom: 6px;
+    font-family: 'Courier New', monospace;
+}
+.end-stats {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin: 16px 0;
+}
+.end-stat {
+    background: rgba(139, 92, 246, 0.15);
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    border-radius: 8px;
+    padding: 8px 16px;
+    text-align: center;
+    min-width: 90px;
+}
+.end-label {
+    display: block;
+    color: #9ca3af;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+}
+.end-value {
+    color: #10b981;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+.hint {
+    color: #6b7280;
+    font-size: 0.8rem;
+    font-style: italic;
+}
+.how-to-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 16px 0;
+    max-width: 500px;
+    text-align: left;
+}
+.how-to-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #9ca3af;
+    font-size: 0.85rem;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 8px;
+    padding: 8px 12px;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+}
+.how-icon {
+    min-width: 36px;
+    text-align: center;
+    font-size: 1.1rem;
+    background: rgba(139, 92, 246, 0.25);
+    border-radius: 6px;
+    padding: 3px 6px;
+    font-weight: 700;
+    color: #f5f5f5;
+    font-size: 0.85rem;
+}
 @media (max-width: 850px) {
     #gameCanvas { width: 100%; height: auto; }
     .controls { font-size: 0.65rem; padding: 8px 10px; }
     .bar { width: 100px; }
     .overlay h1 { font-size: 1.8rem; }
     .instruction .key { font-size: 1.2rem; padding: 5px 10px; }
+    .how-to-grid { grid-template-columns: 1fr; }
+    .end-stats { gap: 8px; }
+    .end-stat { min-width: 70px; padding: 6px 10px; }
 }
