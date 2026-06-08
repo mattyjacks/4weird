@@ -231,8 +231,7 @@ window.addEventListener('resize', resizeCanvas);
 /* Convenience: normalized -> pixel coordinates */
 function nodePixel(stage) {
     const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    return { x: stage.pos.x * rect.width * dpr, y: stage.pos.y * rect.height * dpr };
+    return { x: stage.pos.x * rect.width, y: stage.pos.y * rect.height };
 }
 
 /* ---------------------------------------------------------------------
@@ -242,7 +241,7 @@ let waveTime = 0;
 
 function drawMap() {
     const rect = canvas.getBoundingClientRect();
-    const w = rect.width * dpr, h = rect.height * dpr;
+    const w = rect.width, h = rect.height;
 
     // Ocean gradient background
     const grad = ctx.createLinearGradient(0, 0, 0, h);

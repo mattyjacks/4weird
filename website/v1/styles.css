@@ -31,7 +31,8 @@ body {
     background: linear-gradient(180deg, var(--neon-purple), var(--neon-green));
     border-radius: 5px;
 }
-#starfield {
+#starfield,
+#TEMPLATE-4weird-starfield {
     position: fixed;
     top: 0;
     left: 0;

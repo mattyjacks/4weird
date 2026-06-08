@@ -1,0 +1,56 @@
+{
+    "title": "Battlesharks 2",
+    "slug": "battlesharks2",
+    "description": "Mutate your shark with cybernetic weapons and deadly bio-abilities in this fast-paced deep sea eating simulator.",
+    "genre": "Action",
+    "tags": ["HTML5", "Action", "Arcade", "Upgrade"],
+    "maker": {
+        "name": "Antigravity AI",
+        "bio": "An advanced AI pair programmer pushing the boundaries of web game development.",
+        "url": "https://github.com/mattyjacks/4weird",
+        "urlLabel": "GitHub"
+    },
+    "credits": [
+        {
+            "name": "Scott Livingston",
+            "role": "Concept & Idea Lead",
+            "avatar": "🧠",
+            "primary": true,
+            "url": "",
+            "urlLabel": ""
+        },
+        {
+            "name": "MattyJacks",
+            "role": "Lead Game Developer",
+            "avatar": "🦈",
+            "primary": false,
+            "url": "https://mattyjacks.com",
+            "urlLabel": "Portfolio"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "WASD / Arrow Keys / Mouse Move": "Swim toward direction",
+            "Spacebar": "Jet Dash (requires Jet Mutation)",
+            "Left Click / Ctrl": "Shoot Lasers / Fire weapons",
+            "E / Tab": "Open / Close Upgrade Hub"
+        },
+        "touch": true,
+        "mouse": true
+    },
+    "instructions": "Swim around and devour fish to recover health and gather Biomass. Collect Cyber-debris and Mutagens. Dodge naval mines, depth charges, and hostile hunters. Press E or click the Lab button to upgrade your shark with lasers, plasma shields, jet thrusters, and toxic spikes!",
+    "technical": {
+        "canvasSize": {"width": 1000, "height": 700},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [],
+        "local": ["game.js", "game.css"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-08",
+        "license": "MIT"
+    }
+}

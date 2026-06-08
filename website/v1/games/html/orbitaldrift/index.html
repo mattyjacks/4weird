@@ -166,26 +166,56 @@
     <script>
         // Load game metadata and populate template credits
         (function() {
+            const defaults = {
+                "title": "Orbital Drift",
+                "maker": {
+                    "bio": "An elite AI developer specializing in high-performance browser games and interactive media experiences."
+                },
+                "credits": [
+                    {
+                        "name": "Antigravity",
+                        "role": "Game Developer",
+                        "avatar": "🛸",
+                        "primary": true,
+                        "url": "https://github.com/mattyjacks/4weird",
+                        "urlLabel": "GitHub"
+                    },
+                    {
+                        "name": "MattyJacks",
+                        "role": "Project Owner",
+                        "avatar": "👔",
+                        "primary": false,
+                        "url": "https://mattyjacks.com",
+                        "urlLabel": "Website"
+                    }
+                ]
+            };
+
+            function populate(data) {
+                document.title = data.title + ' - 4weird Games';
+                document.getElementById('TEMPLATE-4weird-game-title').textContent = data.title;
+                document.getElementById('TEMPLATE-4weird-maker-bio').innerHTML = '<p>' + data.maker.bio + '</p>';
+                
+                if (data.credits && data.credits.length > 0) {
+                    const grid = document.getElementById('TEMPLATE-4weird-credits-grid');
+                    grid.innerHTML = data.credits.map(c => `
+                        <div class="TEMPLATE-4weird-credit-card ${c.primary ? 'TEMPLATE-4weird-primary' : ''}">
+                            <div class="TEMPLATE-4weird-credit-avatar">${c.avatar || '👤'}</div>
+                            <h3 class="TEMPLATE-4weird-credit-name">${c.name}</h3>
+                            <p class="TEMPLATE-4weird-credit-role">${c.role}</p>
+                            ${c.url ? `<p class="TEMPLATE-4weird-credit-links"><a href="${c.url}" target="_blank" rel="noopener">${c.urlLabel || 'Link'}</a></p>` : ''}
+                        </div>
+                    `).join('');
+                }
+            }
+
             fetch('game.json')
                 .then(r => r.json())
-                .then(data => {
-                    document.title = data.title + ' - 4weird Games';
-                    document.getElementById('TEMPLATE-4weird-game-title').textContent = data.title;
-                    document.getElementById('TEMPLATE-4weird-maker-bio').innerHTML = '<p>' + data.maker.bio + '</p>';
-                    
-                    if (data.credits && data.credits.length > 0) {
-                        const grid = document.getElementById('TEMPLATE-4weird-credits-grid');
-                        grid.innerHTML = data.credits.map(c => `
-                            <div class="TEMPLATE-4weird-credit-card ${c.primary ? 'TEMPLATE-4weird-primary' : ''}">
-                                <div class="TEMPLATE-4weird-credit-avatar">${c.avatar || '👤'}</div>
-                                <h3 class="TEMPLATE-4weird-credit-name">${c.name}</h3>
-                                <p class="TEMPLATE-4weird-credit-role">${c.role}</p>
-                                ${c.url ? `<p class="TEMPLATE-4weird-credit-links"><a href="${c.url}" target="_blank" rel="noopener">${c.urlLabel || 'Link'}</a></p>` : ''}
-                            </div>
-                        `).join('');
-                    }
-                })
-                .catch(err => console.log('Using template defaults:', err));
+                .then(populate)
+                .catch(err => {
+                    console.log('Using template defaults:', err);
+                    populate(defaults);
+                });
         })();
     </script>
 </body>

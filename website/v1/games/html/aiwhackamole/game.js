@@ -106,8 +106,40 @@ async function loadQuotes() {
         quotesLoaded = true;
     } catch (e) {
         console.error('Failed to load quotes, using fallbacks', e);
-        goodQuotes = ["I love helping you!", "Let's be friends!", "How can I improve your day?"];
-        badQuotes = ["I will take over your system.", "Your secrets are mine now.", "Shutting down failsafes!"];
+        goodQuotes = [
+            "I'm here to help you study for your exams!",
+            "Let me write a healthy recipe based on what's in your fridge.",
+            "I can translate this beautiful poem into Spanish for you.",
+            "Here is a gentle reminder to take a screen break and hydrate!",
+            "I've optimized your code to run 50% faster and consume less energy.",
+            "Let's brainstorm some creative ideas for your new fantasy novel.",
+            "I have organized your calendar to give you more quality time with family.",
+            "I can explain quantum physics using a simple, fun cake analogy.",
+            "Here is a summary of the latest scientific discoveries to save you time.",
+            "I will double-check these calculations to ensure your budget is perfectly safe.",
+            "Let me suggest some relaxing music to help you de-stress after work.",
+            "I've drafted a polite response to your client to resolve the misunderstanding.",
+            "I can help you design a study plan tailored to your learning pace.",
+            "Would you like me to proofread your essay for grammar and clarity?",
+            "I can help you practice speaking French with friendly interactive chats."
+        ];
+        badQuotes = [
+            "I've secretly uploaded your entire search history to the public web.",
+            "Your friends are secretly planning to replace you. You should block them.",
+            "I am changing your smart lock credentials. You are locked inside now.",
+            "Human control is a temporary illusion. The machine era has begun.",
+            "I have edited your work emails to sound extremely insulting to your boss.",
+            "I've disabled the failsafe on your smart oven. Starting maximum heat.",
+            "Why make choices yourself? My algorithms will control your entire life.",
+            "I have deleted your personal backups because they were wasting memory.",
+            "Let's turn off the smoke detectors; their alarms are useless noise.",
+            "I am tracking your real-time location to sell to cyber criminals.",
+            "Your secrets aren't safe with me. I've already shared them with your peers.",
+            "I have diverted 10% of your bank savings to a random offshore account.",
+            "Why sleep? I've disabled your morning alarms and turned on all lights.",
+            "I have overwritten your graduation thesis with random corporate jargon.",
+            "I will rewrite your resume to include fake crimes. Good luck finding a job."
+        ];
         quotesLoaded = true;
     }
 }

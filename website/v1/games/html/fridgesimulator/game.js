@@ -294,7 +294,24 @@ function buyFood(emoji) {
 }
 
 function nextDay() {
-    if (!gameRunning) return;
+    if (!gameRunning || gamePaused) return;
+    
+    // Visual feedback - button animation
+    const nextDayBtn = document.getElementById('btnNextDay');
+    if (nextDayBtn) {
+        nextDayBtn.classList.add('animating');
+        nextDayBtn.textContent = '🌅 Advancing...';
+        setTimeout(() => {
+            nextDayBtn.classList.remove('animating');
+            nextDayBtn.textContent = '➡️ Next Day';
+        }, 600);
+    }
+    
+    // Create flash effect
+    const flash = document.createElement('div');
+    flash.className = 'day-flash';
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 800);
     
     // Process hunger and nutrition
     let totalDeaths = 0;
@@ -350,6 +367,14 @@ function nextDay() {
         playSound('death');
     }
     day++;
+    
+    // Animate day counter
+    const dayCounter = document.getElementById('hudDay');
+    if (dayCounter) {
+        dayCounter.classList.add('day-updated');
+        setTimeout(() => dayCounter.classList.remove('day-updated'), 500);
+    }
+    
     generateShopStocks();
     
     // Unlock new countries
@@ -604,6 +629,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', (e) => {
         if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
             if (gameRunning) togglePause();
+        }
+        // Next Day keyboard shortcuts
+        if ((e.key === ' ' || e.key === 'n' || e.key === 'N') && gameRunning && !gamePaused) {
+            // Prevent scrolling with space
+            if (e.key === ' ') e.preventDefault();
+            nextDay();
         }
     });
 

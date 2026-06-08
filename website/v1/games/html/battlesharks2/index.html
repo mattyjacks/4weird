@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Battlesharks 2 - 4weird Games</title>
+    <meta name="description" content="Become the ultimate predator in the BS-07 Aquarium Complex. Hunt, mutate, and evolve with cybernetic lasers and genetic enhancements.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../../styles.css">
+    <link rel="stylesheet" href="game.css">
+</head>
+<body class="TEMPLATE-4weird-game-page">
+    <canvas id="TEMPLATE-4weird-starfield"></canvas>
+    <div id="TEMPLATE-4weird-nav-placeholder"></div>
+
+    <div class="game-wrapper">
+        <!-- Main Game Area -->
+        <div class="game-main" id="gameMain">
+            <!-- HUD -->
+            <div class="hud">
+                <div class="hud-left">
+                    <div class="hud-stat health-stat">
+                        <span class="hud-label">❤️ Health</span>
+                        <div class="health-bar-container">
+                            <div class="health-bar" id="healthBar" style="width: 100%;"></div>
+                        </div>
+                        <span class="hud-value" id="hudHealthText">100/100</span>
+                    </div>
+                    <div class="hud-stat growth-stat">
+                        <span class="hud-label">📈 Shark Growth</span>
+                        <div class="growth-bar-container">
+                            <div class="growth-bar" id="growthBar" style="width: 0%;"></div>
+                        </div>
+                        <span class="hud-value" id="hudLevelText">LVL 1 (Pup)</span>
+                    </div>
+                </div>
+                <div class="hud-right">
+                    <div class="hud-stat">
+                        <span class="hud-label">🧬 Biomass</span>
+                        <span class="hud-value" id="hudBiomass">0</span>
+                    </div>
+                    <div class="hud-stat">
+                        <span class="hud-label">⚙️ Cyber Debris</span>
+                        <span class="hud-value" id="hudDebris">0</span>
+                    </div>
+                    <div class="hud-stat">
+                        <span class="hud-label">🧪 Mutagens</span>
+                        <span class="hud-value" id="hudMutagens">0</span>
+                    </div>
+                    <div class="hud-stat score-stat">
+                        <span class="hud-label">🏆 Score</span>
+                        <span class="hud-value" id="hudScore">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Canvas Viewport -->
+            <div class="viewport-container" id="viewportContainer">
+                <canvas id="gameCanvas" width="1000" height="600"></canvas>
+                
+                <!-- Boss Warning Alert -->
+                <div class="boss-warning-alert hidden" id="bossWarningAlert">
+                    <div class="alert-flash">⚠️ CRITICAL THREAT DETECTED ⚠️</div>
+                    <div class="alert-subtext">ROBO-KRAKEN BS-BOSS ENTERING TESTING BAY</div>
+                </div>
+
+                <!-- Boss HP Bar -->
+                <div class="boss-bar-container hidden" id="bossHPBarContainer">
+                    <div class="boss-name">🐙 ROBO-KRAKEN BS-BOSS</div>
+                    <div class="boss-health-bg">
+                        <div class="boss-health-bar" id="bossHealthBar" style="width: 100%;"></div>
+                    </div>
+                </div>
+                
+                <!-- Quick Tips overlay -->
+                <div class="quick-tips">
+                    <span>Move: <strong>Mouse / WASD</strong></span>
+                    <span class="separator">|</span>
+                    <span>Shoot: <strong>Left-Click / Ctrl</strong></span>
+                    <span class="separator">|</span>
+                    <span>Dash: <strong>Space</strong> (Needs Jet Thruster)</span>
+                </div>
+
+                <!-- Floating Lab Button -->
+                <button class="lab-trigger-btn" id="btnOpenLab">
+                    <span class="pulse-ring"></span>
+                    🧬 R&D LAB HUB [E]
+                </button>
+            </div>
+
+            <!-- Lower Action Row -->
+            <div class="action-row">
+                <button class="btn btn-secondary" id="btnPauseGame">⏸️ Pause Game</button>
+                <div class="equipped-readout">
+                    <span class="readout-title">EQUIPPED:</span>
+                    <div class="equipped-slots" id="equippedSlots">
+                        <span class="equipped-item empty" title="Weapon Slot">🔫 None</span>
+                        <span class="equipped-item empty" title="Bio Mutation Slot">🧬 None</span>
+                        <span class="equipped-item empty" title="Thruster Slot">🚀 None</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- R&D Lab Upgrade Overlay Panel (Glassmorphism design) -->
+        <div class="screen-overlay hidden" id="rdLabOverlay">
+            <div class="lab-modal">
+                <div class="lab-header">
+                    <h2>🧬 BS-07 R&D LAB COMPLEX</h2>
+                    <p>Upgrade shark mutations, cybernetics, or customize the aquarium complex</p>
+                    <button class="close-btn" id="btnCloseLab">&times;</button>
+                </div>
+                
+                <div class="lab-content">
+                    <!-- Resources Bar in Modal -->
+                    <div class="lab-resources">
+                        <div class="resource-pill">🧬 Biomass: <span class="highlight" id="labBiomass">0</span></div>
+                        <div class="resource-pill">⚙️ Debris: <span class="highlight" id="labDebris">0</span></div>
+                        <div class="resource-pill">🧪 Mutagens: <span class="highlight" id="labMutagens">0</span></div>
+                    </div>
+
+                    <!-- Category Tabs -->
+                    <div class="lab-tabs">
+                        <button class="lab-tab active" data-tab="cybernetics">🔫 Cybernetics</button>
+                        <button class="lab-tab" data-tab="mutations">🧬 Bio-Mutations</button>
+                        <button class="lab-tab" data-tab="aquarium">🐠 Customize Aquarium</button>
+                    </div>
+
+                    <!-- Tab Pane: Cybernetics -->
+                    <div class="lab-pane active" id="pane-cybernetics">
+                        <div class="upgrades-grid">
+                            <!-- Laser Jaws -->
+                            <div class="upgrade-card" id="up-lasers">
+                                <div class="upgrade-icon">🔫</div>
+                                <div class="upgrade-details">
+                                    <h3>Laser Cannon</h3>
+                                    <p>Shoot energy beams to obliterate robotic sea life and divers.</p>
+                                    <div class="upgrade-cost">Cost: ⚙️ 20 Debris</div>
+                                </div>
+                                <button class="btn-upgrade" onclick="buyUpgrade('lasers')">Install</button>
+                            </div>
+                            <!-- Jet Thruster -->
+                            <div class="upgrade-card" id="up-thruster">
+                                <div class="upgrade-icon">🚀</div>
+                                <div class="upgrade-details">
+                                    <h3>Jet Engine</h3>
+                                    <p>Allows high-speed dashing using the SPACEBAR.</p>
+                                    <div class="upgrade-cost">Cost: ⚙️ 30 Debris, 🧬 10 Biomass</div>
+                                </div>
+                                <button class="btn-upgrade" onclick="buyUpgrade('thruster')">Install</button>
+                            </div>
+                            <!-- Plasma Shield -->
+                            <div class="upgrade-card" id="up-shield">
+                                <div class="upgrade-icon">🛡️</div>
+                                <div class="upgrade-details">
+                                    <h3>Force Shield</h3>
+                                    <p>Passive energy barrier that blocks one hit before recharging.</p>
+                                    <div class="upgrade-cost">Cost: ⚙️ 40 Debris, 🧪 1 Mutagen</div>
+                                </div>
+                                <button class="btn-upgrade" onclick="buyUpgrade('shield')">Install</button>
+                            </div>
+                            <!-- Homing Missiles -->
+                            <div class="upgrade-card" id="up-missiles">
+                                <div class="upgrade-icon">🚀</div>
+                                <div class="upgrade-details">
+                                    <h3>Homing Micro-Missiles</h3>
+                                    <p>Launches automatic heat-seeking missiles targeting nearby military threats.</p>
+                                    <div class="upgrade-cost">Cost: ⚙️ 50 Debris, 🧪 2 Mutagens</div>
+                                </div>
+                                <button class="btn-upgrade" onclick="buyUpgrade('missiles')">Install</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Pane: Bio-Mutations -->
+                    <div class="lab-pane" id="pane-mutations">
+                        <div class="upgrades-grid">
+                            <!-- Electric Shock -->
+                            <div class="upgrade-card" id="up-electric">
+                                <div class="upgrade-icon">⚡</div>
+                                <div class="upgrade-details">
+                                    <h3>Electric Charge</h3>
+                                    <p>Periodically zaps and stuns nearby sea life and minor threats.</p>
+                                    <div class="upgrade-cost">Cost: 🧬 35 Biomass, 🧪 1 Mutagen</div>
+                                </div>
+                                <button class="btn-upgrade" onclick="buyUpgrade('electric')">Mutate</button>
+                            </div>
+                            <!-- Acid Spit -->
+                            <div class="upgrade-card" id="up-acid">
+                                <div class="upgrade-icon">🤮</div>
+                                <div class="upgrade-details">
+                                    <h3>Corrosive Acid</h3>
+                                    <p>Fires acid projectiles that disintegrate metal hulls and defense grids.</p>
+                                    <div class="upgrade-cost">Cost: 🧬 25 Biomass, 🧪 2 Mutagens</div>
+                                </div>
+                                <button class="btn-upgrade" onclick="buyUpgrade('acid')">Mutate</button>
+                            </div>
+                            <!-- Armored Scales -->
+                            <div class="upgrade-card" id="up-scales">
+                                <div class="upgrade-icon">🐊</div>
+                                <div class="upgrade-details">
+                                    <h3>Chitinous Scales</h3>
+                                    <p>Increases max health by 50 and grants 25% damage reduction.</p>
+                                    <div class="upgrade-cost">Cost: 🧬 50 Biomass</div>
+                                </div>
+                                <button class="btn-upgrade" onclick="buyUpgrade('scales')">Mutate</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Pane: Customize Aquarium -->
+                    <div class="lab-pane" id="pane-aquarium">
+                        <p class="aquarium-hint">Create interactive items inside the BS-07 launch bay to populate your hunting environment!</p>
+                        <div class="upgrades-grid">
+                            <!-- Spawn Coral Reef -->
+                            <div class="upgrade-card">
+                                <div class="upgrade-icon">🪸</div>
+                                <div class="upgrade-details">
+                                    <h3>Spawn Bioluminescent Coral</h3>
+                                    <p>Drops a glowing reef structure that spawns edible clownfish.</p>
+                                    <div class="upgrade-cost">Cost: 🧬 15 Biomass</div>
+                                </div>
+                                <button class="btn-upgrade" onclick="spawnAquariumItem('coral')">Deploy</button>
+                            </div>
+                            <!-- Spawn Sunken Sub -->
+                            <div class="upgrade-card">
+                                <div class="upgrade-icon">🚢</div>
+                                <div class="upgrade-details">
+                                    <h3>Spawn Shipwreck Debris</h3>
+                                    <p>Places a metal wreckage cluster that leaks cyber debris ⚙️.</p>
+                                    <div class="upgrade-cost">Cost: ⚙️ 20 Debris</div>
+                                </div>
+                                <button class="btn-upgrade" onclick="spawnAquariumItem('wreckage')">Deploy</button>
+                            </div>
+                            <!-- Spawn Mutagen Vent -->
+                            <div class="upgrade-card">
+                                <div class="upgrade-icon">🌋</div>
+                                <div class="upgrade-details">
+                                    <h3>Spawn Hydrothermal Vent</h3>
+                                    <p>Creates a volcanic vent that occasionally emits mutagen canisters 🧪.</p>
+                                    <div class="upgrade-cost">Cost: 🧬 30 Biomass, ⚙️ 15 Debris</div>
+                                </div>
+                                <button class="btn-upgrade" onclick="spawnAquariumItem('vent')">Deploy</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lab-footer">
+                    <button class="btn btn-primary" id="btnResumeFromLab">Back to Mission</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Start Screen -->
+        <div class="screen-overlay" id="startScreen">
+            <div class="lab-logo-container">
+                <span class="tech-tag">PROJECT</span>
+                <h1 class="logo-big">BATTLESHARKS II</h1>
+                <span class="subtitle-neon">BS-07 R&D COMMAND</span>
+            </div>
+            
+            <div class="story">
+                <p>Welcome to the <strong>BS-07 Aquarium Testing Complex</strong>.</p>
+                <p>Take control of the cybernetically-engineered Shark (🦈). Hunt, absorb biomass 🧬, harvest cyber debris ⚙️, and find raw mutagens 🧪.</p>
+                <p>Mutate your DNA or install heavy military hardware to survive military hunters, mines, and security grids.</p>
+            </div>
+            
+            <button class="btn btn-start" id="btnStart">⚡ LAUNCH SHARK</button>
+            
+            <div class="controls-hint">
+                <p>🖱️ Move mouse to steer shark • 💥 Click Left-Mouse to fire weapons</p>
+                <p>🎹 WASD/Arrows also work • 🚀 Press <strong>SPACE</strong> to dash (requires Jet Engine)</p>
+                <p>🧬 Press <strong>E</strong> or <strong>TAB</strong> at any time to open the Upgrade Hub</p>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div class="screen-overlay hidden" id="gameOverScreen">
+            <div class="logo-big red-neon">⚠️ SHARK TERMINATED</div>
+            <div class="tagline">System Offline - Testing Session Concluded</div>
+            <div class="final-stats">
+                <div class="stat-row">
+                    <span>Mission Score</span>
+                    <span class="highlight" id="finalScore">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>Biomass Collected</span>
+                    <span class="highlight" id="finalBiomass">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>Debris Recovered</span>
+                    <span class="highlight" id="finalDebris">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>Mutations Installed</span>
+                    <span class="highlight" id="finalMutations">0</span>
+                </div>
+            </div>
+            <button class="btn btn-start" id="btnRestart">🔄 Re-Clone Shark</button>
+            <button class="btn btn-secondary" onclick="window.location.href='/games/index.html'">🏠 Return to Hub</button>
+        </div>
+
+        <!-- Pause Screen -->
+        <div class="screen-overlay hidden" id="pauseScreen">
+            <div class="logo-big cyan-neon">⏸️ MISSION PAUSED</div>
+            <p style="margin-bottom: 20px;">BS-07 testing simulation is temporarily suspended.</p>
+            <button class="btn btn-start" id="btnResume">▶️ Resume Mission</button>
+            <button class="btn btn-secondary" id="btnRestartFromPause">🔄 Restart</button>
+        </div>
+    </div>
+
+    <!-- Credits Section -->
+    <section class="TEMPLATE-4weird-credits-section" id="TEMPLATE-4weird-credits">
+        <div class="TEMPLATE-4weird-credits-container">
+            <h2 class="TEMPLATE-4weird-credits-title">Credits</h2>
+            <div class="TEMPLATE-4weird-credits-grid" id="TEMPLATE-4weird-credits-grid">
+                <!-- Loaded via JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Maker Bio Section -->
+    <section class="TEMPLATE-4weird-bio-section" id="TEMPLATE-4weird-bio">
+        <div class="TEMPLATE-4weird-bio-container">
+            <h2 class="TEMPLATE-4weird-bio-title">About the Creator</h2>
+            <div class="TEMPLATE-4weird-bio-content" id="TEMPLATE-4weird-maker-bio">
+                <!-- Loaded via JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- More Games -->
+    <section class="TEMPLATE-4weird-more-games">
+        <div class="TEMPLATE-4weird-more-games-container">
+            <h2>More 4weird Games</h2>
+            <a href="/games/index.html" class="btn btn-secondary">
+                <span class="btn-emoji">🎯</span> Browse All Games
+            </a>
+        </div>
+    </section>
+
+    <div id="TEMPLATE-4weird-footer-placeholder"></div>
+
+    <script src="../../../components.js"></script>
+    <script src="game.js"></script>
+    <script>
+        // Load game metadata and populate template
+        (function() {
+            fetch('game.json')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('TEMPLATE-4weird-maker-bio').innerHTML = '<p>' + data.maker.bio + '</p>';
+                    
+                    // Update credits grid with all contributors
+                    if (data.credits && data.credits.length > 0) {
+                        const grid = document.getElementById('TEMPLATE-4weird-credits-grid');
+                        grid.innerHTML = data.credits.map(c => `
+                            <div class="TEMPLATE-4weird-credit-card ${c.primary ? 'TEMPLATE-4weird-primary' : ''}">
+                                <div class="TEMPLATE-4weird-credit-avatar">${c.avatar || '👤'}</div>
+                                <h3 class="TEMPLATE-4weird-credit-name">${c.name}</h3>
+                                <p class="TEMPLATE-4weird-credit-role">${c.role}</p>
+                                ${c.url ? `<p class="TEMPLATE-4weird-credit-links"><a href="${c.url}" target="_blank" rel="noopener">${c.urlLabel || 'Link'}</a></p>` : ''}
+                            </div>
+                        `).join('');
+                    }
+                })
+                .catch(err => console.log('Using template defaults:', err));
+        })();
+    </script>
+</body>
+</html>
