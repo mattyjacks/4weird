@@ -1,6 +1,7 @@
 /* ──────────────────────────────────────────────────────────
    BATTLESHARKS II - UPGRADED ENGINE
    Advanced Systems: Schooling AI, Homing Missiles, Boss Battle
+   Changes: Full emoji opacity, Eat enemies with dynamic blood
    ────────────────────────────────────────────────────────── */
 
 // Game State
@@ -895,6 +896,13 @@ function update(timestamp) {
 
     // Update Entities
     particles.forEach((p, idx) => {
+        // Apply dynamic water drift to blood particles
+        if (p.isBlood) {
+            p.vx *= 0.96; // Water drag
+            p.vy *= 0.96;
+            p.vy += 0.025; // Sinks slowly
+            p.x += Math.sin(timestamp * 0.005 + p.y) * 0.25; // Swirling current
+        }
         p.x += p.vx;
         p.y += p.vy;
         p.life--;
@@ -1047,7 +1055,7 @@ function update(timestamp) {
         }
     });
 
-    checkCollisions();
+    checkCollisions(timestamp);
 
     if (Math.hypot(player.vx, player.vy) > 2) {
         createBubble(player.x - Math.cos(player.angle) * (player.radius * 0.8), player.y - Math.sin(player.angle) * (player.radius * 0.4), 1);
@@ -1279,7 +1287,8 @@ function destroyEnemy(enemy, idx) {
     updateStatsHUD();
 }
 
-function checkCollisions() {
+function checkCollisions(timestamp) {
+    // Player vs Prey
     preys.forEach((pr, idx) => {
         const dist = Math.hypot(pr.x - player.x, pr.y - player.y);
         if (dist < player.radius + pr.radius) {
@@ -1293,6 +1302,7 @@ function checkCollisions() {
         }
     });
 
+    // Player vs Floating collectibles
     floatingItems.forEach((item, idx) => {
         const dist = Math.hypot(item.x - player.x, item.y - player.y);
         if (dist < player.radius + item.radius) {
@@ -1309,22 +1319,95 @@ function checkCollisions() {
         }
     });
 
+    // Player vs Enemies (DEVOUR OR DAMAGE)
     enemies.forEach((enemy, idx) => {
         const dist = Math.hypot(enemy.x - player.x, enemy.y - player.y);
         if (dist < player.radius + enemy.radius) {
-            dealPlayerDamage(enemy.type.damage);
             
-            if (enemy.type.isStatic || enemy.type.emoji === '💣') {
-                createExplosion(enemy.x, enemy.y, '#ff3300', 30);
+            // Check if it's edible (Cyber Diver or Mecha Sentinel)
+            if (enemy.emoji === 'scuba' || enemy.emoji === 'robot' || enemy.type.emoji === 'scuba' || enemy.type.emoji === 'robot') {
+                // BIG EXPLOSIVE BITING CRUNCH! DEVOUR ENEMY
+                createBloodSplat(enemy.x, enemy.y, 25);
+                
+                // Add drifting red blood clouds
+                for (let i = 0; i < 12; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 4 + 1;
+                    particles.push({
+                        x: enemy.x,
+                        y: enemy.y,
+                        vx: player.vx * 0.4 + Math.cos(angle) * speed,
+                        vy: player.vy * 0.4 + Math.sin(angle) * speed,
+                        radius: Math.random() * 7 + 2.5,
+                        color: Math.random() < 0.35 ? 'rgba(160, 0, 10, 0.7)' : 'rgba(230, 20, 30, 0.8)',
+                        life: 55 + Math.random() * 45,
+                        maxLife: 100,
+                        isBlood: true
+                    });
+                }
+                
+                // Rewards
+                player.health = Math.min(player.health + 15, player.maxHealth);
+                state.debris += enemy.type.debris;
+                state.score += (enemy.type.debris * 100);
+                addXp(45);
+                
                 enemies.splice(idx, 1);
+                state.cameraShake = 12;
+                showNotification("🦈 DEVOUR ENEMY +DEBRIS!");
+                updateStatsHUD();
             } else {
-                player.vx = -player.vx * 1.5;
-                player.vy = -player.vy * 1.5;
+                // Naval Mine or Toxic barrel (not edible)
+                dealPlayerDamage(enemy.type.damage);
+                
+                if (enemy.type.isStatic || enemy.type.emoji === '💣') {
+                    createExplosion(enemy.x, enemy.y, '#ff3300', 30);
+                    enemies.splice(idx, 1);
+                } else {
+                    player.vx = -player.vx * 1.5;
+                    player.vy = -player.vy * 1.5;
+                }
             }
         }
     });
 
-    // Projectiles
+    // Player Biting Boss (🐙)
+    if (state.bossActive) {
+        const distToBoss = Math.hypot(player.x - boss.x, player.y - boss.y);
+        if (distToBoss < player.radius + boss.radius) {
+            boss.health -= 60; // Bite deals 60 damage
+            updateBossHPBar();
+            
+            // Spawn heavy dynamic blood sprays
+            createBloodSplat(player.x, player.y, 18);
+            for (let i = 0; i < 10; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 5 + 1.5;
+                particles.push({
+                    x: player.x,
+                    y: player.y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    radius: Math.random() * 8 + 3,
+                    color: 'rgba(190, 0, 15, 0.75)',
+                    life: 60 + Math.random() * 40,
+                    maxLife: 100,
+                    isBlood: true
+                });
+            }
+            
+            // Recoil
+            player.vx = -player.vx * 1.2;
+            player.vy = -player.vy * 1.2;
+            dealPlayerDamage(8); // Minor spike damage from boss armor
+            
+            if (boss.health <= 0) {
+                triggerBossDefeat();
+            }
+        }
+    }
+
+    // Projectiles vs enemies
     projectiles.forEach((proj, pIdx) => {
         if (proj.type === 'laser' || proj.type === 'acid' || proj.type === 'missile') {
             enemies.forEach((enemy, eIdx) => {
@@ -1336,7 +1419,6 @@ function checkCollisions() {
                     let dmg = 10;
                     if (proj.type === 'acid') {
                         dmg = 20;
-                        // Spawn acid damage cloud puddle in water
                         damageClouds.push({
                             x: proj.x,
                             y: proj.y,
@@ -1345,7 +1427,7 @@ function checkCollisions() {
                             color: 'rgba(5, 243, 162, 0.25)'
                         });
                     }
-                    if (proj.type === 'missile') dmg = 45; // High missile damage
+                    if (proj.type === 'missile') dmg = 45;
 
                     enemy.health -= dmg;
                     if (enemy.health <= 0) {
@@ -1354,7 +1436,6 @@ function checkCollisions() {
                 }
             });
 
-            // Target Boss
             if (state.bossActive) {
                 const distToBoss = Math.hypot(proj.x - boss.x, proj.y - boss.y);
                 if (distToBoss < proj.radius + boss.radius) {
@@ -1408,21 +1489,20 @@ function render(timestamp) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     ctx.save();
-    // Camera shake translation
     if (state.cameraShake > 0) {
         const shakeX = (Math.random() - 0.5) * state.cameraShake;
         const shakeY = (Math.random() - 0.5) * state.cameraShake;
         ctx.translate(shakeX, shakeY);
     }
 
-    // 1. Draw Deep water background gradients
+    // 1. Background
     const lightGrd = ctx.createLinearGradient(0, 0, 0, canvas.height);
     lightGrd.addColorStop(0, '#0b162a');
     lightGrd.addColorStop(1, '#02030a');
     ctx.fillStyle = lightGrd;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 2. Draw Overhead Light Shafts
+    // 2. Light Shafts
     ctx.fillStyle = 'rgba(0, 242, 254, 0.03)';
     for (let i = 0; i < 4; i++) {
         const width = 80 + i * 20;
@@ -1435,7 +1515,7 @@ function render(timestamp) {
         ctx.fill();
     }
 
-    // Bottom floor sandy hatch
+    // Bottom floor
     ctx.fillStyle = 'rgba(2, 242, 254, 0.03)';
     ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
     ctx.strokeStyle = 'rgba(0, 242, 254, 0.15)';
@@ -1446,6 +1526,7 @@ function render(timestamp) {
 
     // Render Deployed Aquarium Items
     aquariumItems.forEach(item => {
+        ctx.fillStyle = '#ffffff'; // Guarantee full opacity!
         ctx.font = `${item.size}px Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -1476,6 +1557,7 @@ function render(timestamp) {
         if (pr.vx < 0) {
             ctx.scale(-1, 1);
         }
+        ctx.fillStyle = '#ffffff'; // Guarantee full opacity!
         ctx.font = `${pr.radius * 2}px Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -1485,6 +1567,7 @@ function render(timestamp) {
 
     // Render Floating Collectibles
     floatingItems.forEach(item => {
+        ctx.fillStyle = '#ffffff'; // Guarantee full opacity!
         ctx.font = `${item.radius * 2}px Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -1497,6 +1580,7 @@ function render(timestamp) {
             ctx.save();
             ctx.translate(proj.x, proj.y);
             ctx.rotate(proj.angle);
+            ctx.fillStyle = '#ffffff'; // Guarantee full opacity!
             ctx.font = '22px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -1518,9 +1602,8 @@ function render(timestamp) {
         }
     });
 
-    // Render Enemies & aim laser targeting lines
+    // Render Enemies
     enemies.forEach(enemy => {
-        // Laser targeting line for shoots enemies
         if (enemy.type.shoots && Math.hypot(enemy.x - player.x, enemy.y - player.y) < 500) {
             ctx.strokeStyle = 'rgba(255, 59, 48, 0.22)';
             ctx.lineWidth = 1;
@@ -1532,6 +1615,7 @@ function render(timestamp) {
 
         ctx.save();
         ctx.translate(enemy.x, enemy.y);
+        ctx.fillStyle = '#ffffff'; // Guarantee full opacity!
         
         if (enemy.emoji === 'scuba' || enemy.emoji === 'robot') {
             if (enemy.vx < 0) ctx.scale(-1, 1);
@@ -1553,7 +1637,6 @@ function render(timestamp) {
         ctx.save();
         ctx.translate(boss.x, boss.y);
         
-        // Draw glow aura
         const glowRad = boss.radius * 1.5 + Math.sin(timestamp * 0.01) * 10;
         const radialGrd = ctx.createRadialGradient(0,0, 10, 0,0, glowRad);
         radialGrd.addColorStop(0, 'rgba(255, 59, 48, 0.25)');
@@ -1563,13 +1646,13 @@ function render(timestamp) {
         ctx.arc(0,0, glowRad, 0, Math.PI*2);
         ctx.fill();
 
+        ctx.fillStyle = '#ffffff'; // Guarantee full opacity!
         ctx.font = `${boss.radius * 2.2}px Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('🐙', 0, 0);
         ctx.restore();
 
-        // Draw aiming laser from Boss to player if sweeping
         if (boss.state === 'sweep') {
             ctx.strokeStyle = 'rgba(255, 59, 48, 0.4)';
             ctx.lineWidth = 4;
@@ -1588,7 +1671,7 @@ function render(timestamp) {
         ctx.fill();
     });
 
-    // Render Player (Shark) with Growth multiplier
+    // Render Player (Shark)
     ctx.save();
     ctx.translate(player.x, player.y);
     ctx.rotate(player.angle);
@@ -1599,7 +1682,7 @@ function render(timestamp) {
         ctx.scale(-1, 1);
     }
 
-    // Render shark with scale size
+    ctx.fillStyle = '#ffffff'; // Guarantee full opacity!
     ctx.font = `${player.radius * 2.5}px Arial`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -1611,12 +1694,12 @@ function render(timestamp) {
         ctx.fillRect(-15, -12, 10, 6);
         if (state.upgrades.missiles) {
             ctx.fillStyle = '#ff9500';
-            ctx.fillRect(-8, -16, 6, 4); // Missile rack
+            ctx.fillRect(-8, -16, 6, 4);
         }
     }
 
     if (state.upgrades.thruster) {
-        ctx.fillStyle = 'rgba(255, 80, 0, 0.9)';
+        ctx.fillStyle = '#ffffff';
         ctx.font = '16px Arial';
         ctx.fillText('🚀', 18, 12);
     }
@@ -1638,7 +1721,7 @@ function render(timestamp) {
         ctx.fill();
     }
 
-    ctx.restore(); // camera shake restore
+    ctx.restore();
 
     // Render Screen Alert Banner
     if (notificationTimer > 0) {
