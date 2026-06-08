@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Games - 4weird Games</title>
+    <meta name="description" content="Play all 4weird Games - HTML5 browser games with no downloads required.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --neon-purple: #8b5cf6;
+            --neon-purple-light: #a78bfa;
+            --neon-green: #10b981;
+            --neon-cyan: #06b6d4;
+            --text-primary: #f5f5f5;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --font-display: 'Orbitron', sans-serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .games-header {
+            background: rgba(10, 10, 15, 0.95);
+            border-bottom: 2px solid rgba(139, 92, 246, 0.3);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .logo span { font-size: 1.8rem; }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--neon-purple-light);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: var(--neon-purple);
+            transform: translateX(-3px);
+        }
+
+        /* Main Content */
+        .games-main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        .page-title {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+        }
+
+        /* Games Grid */
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+        }
+
+        .game-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--neon-purple);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.2);
+        }
+
+        .game-card.live {
+            border-color: var(--neon-green);
+        }
+
+        .game-thumbnail {
+            height: 180px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .thumb-bg {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+
+        .thumb-serversaver {
+            background: linear-gradient(135deg, #1a1a2e 0%, #4c1d95 50%, #7c3aed 100%);
+        }
+
+        .thumb-serversaver::before {
+            content: '🛡️';
+            font-size: 5rem;
+            filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.8));
+        }
+
+        .thumb-demolich {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+        }
+
+        .thumb-demolich::before {
+            content: '💀';
+            font-size: 5rem;
+            filter: drop-shadow(0 0 20px rgba(100, 116, 139, 0.8));
+        }
+
+        .thumb-fridge {
+            background: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #5eead4 100%);
+        }
+
+        .thumb-fridge::before {
+            content: '🥶';
+            font-size: 5rem;
+            filter: drop-shadow(0 0 20px rgba(94, 234, 212, 0.8));
+        }
+
+        .thumb-discover {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%);
+        }
+
+        .thumb-discover::before {
+            content: '🗽';
+            font-size: 5rem;
+            filter: drop-shadow(0 0 20px rgba(96, 165, 250, 0.8));
+        }
+
+        .thumb-template {
+            background: linear-gradient(135deg, #312e81 0%, #6366f1 50%, #818cf8 100%);
+        }
+
+        .thumb-template::before {
+            content: '📋';
+            font-size: 5rem;
+            filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.8));
+        }
+
+        .live-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--neon-green);
+            color: var(--bg-primary);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .game-info {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-title {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .game-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            flex: 1;
+        }
+
+        .game-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .tag {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--neon-purple-light);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .btn-game {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, var(--neon-purple), #7c3aed);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-game:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        /* Footer */
+        .games-footer {
+            text-align: center;
+            padding: 40px 24px;
+            border-top: 1px solid rgba(139, 92, 246, 0.2);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .games-footer a {
+            color: var(--neon-purple-light);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 1.8rem;
+            }
+
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-container {
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+
+            .logo {
+                font-size: 1.2rem;
+            }
+
+            .games-main {
+                padding: 30px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="games-header">
+        <div class="header-container">
+            <a href="../index.html" class="logo">
+                <span>🎮</span>
+                4weird Games
+            </a>
+            <a href="../index.html" class="back-link">
+                ← Back to Home
+            </a>
+        </div>
+    </header>
+
+    <main class="games-main">
+        <h1 class="page-title">All Games</h1>
+        <p class="page-subtitle">Play instantly in your browser - no downloads required</p>
+
+        <div class="games-grid">
+            <!-- Server Saver Shield -->
+            <div class="game-card live">
+                <div class="game-thumbnail">
+                    <div class="thumb-bg thumb-serversaver"></div>
+                    <span class="live-badge">Live</span>
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">🛡️ Server Saver Shield</h3>
+                    <p class="game-desc">Defend servers from cyber attacks! Strategic security management meets arcade shooter. Hire staff, upgrade weapons, survive 10 waves.</p>
+                    <div class="game-tags">
+                        <span class="tag">Arcade</span>
+                        <span class="tag">Shooter</span>
+                        <span class="tag">Strategy</span>
+                    </div>
+                    <a href="html/serversavershield/index.html" class="btn-game">
+                        <span>🎮</span> Play Now
+                    </a>
+                </div>
+            </div>
+
+            <!-- Demo Lich Dom -->
+            <div class="game-card live">
+                <div class="game-thumbnail">
+                    <div class="thumb-bg thumb-demolich"></div>
+                    <span class="live-badge">Live</span>
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">💀 Demo Lich Dom</h3>
+                    <p class="game-desc">Navigate the treacherous politics of undead lords. Strategy and action combined in this dark fantasy adventure.</p>
+                    <div class="game-tags">
+                        <span class="tag">Strategy</span>
+                        <span class="tag">Action</span>
+                        <span class="tag">Dark Fantasy</span>
+                    </div>
+                    <a href="html/demolichdom/index.html" class="btn-game">
+                        <span>🎮</span> Play Now
+                    </a>
+                </div>
+            </div>
+
+            <!-- Fridge Simulator -->
+            <div class="game-card live">
+                <div class="game-thumbnail">
+                    <div class="thumb-bg thumb-fridge"></div>
+                    <span class="live-badge">Live</span>
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">🥶 Fridge Simulator</h3>
+                    <p class="game-desc">Manage your fridge, feed your family, save the world. A quirky simulation game about household logistics and global impact.</p>
+                    <div class="game-tags">
+                        <span class="tag">Simulation</span>
+                        <span class="tag">Strategy</span>
+                        <span class="tag">Casual</span>
+                    </div>
+                    <a href="html/fridgesimulator/index.html" class="btn-game">
+                        <span>🎮</span> Play Now
+                    </a>
+                </div>
+            </div>
+
+            <!-- Discover America -->
+            <div class="game-card live">
+                <div class="game-thumbnail">
+                    <div class="thumb-bg thumb-discover"></div>
+                    <span class="live-badge">Live</span>
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">🗽 Discover America</h3>
+                    <p class="game-desc">Explore American history through interactive puzzles and adventures. Educational gameplay meets engaging storytelling.</p>
+                    <div class="game-tags">
+                        <span class="tag">Adventure</span>
+                        <span class="tag">Puzzle</span>
+                        <span class="tag">Educational</span>
+                    </div>
+                    <a href="html/DiscoverAmerica/index.html" class="btn-game">
+                        <span>🎮</span> Play Now
+                    </a>
+                </div>
+            </div>
+
+            <!-- Template Demo -->
+            <div class="game-card">
+                <div class="game-thumbnail">
+                    <div class="thumb-bg thumb-template"></div>
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">📋 Template Demo</h3>
+                    <p class="game-desc">See how 4weird games work. A complete example showing the standardized structure, shared components, credits, and maker bio sections.</p>
+                    <div class="game-tags">
+                        <span class="tag">HTML5</span>
+                        <span class="tag">Demo</span>
+                        <span class="tag">Reference</span>
+                    </div>
+                    <a href="html/template-demo/index.html" class="btn-game">
+                        <span>📋</span> View Template
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="games-footer">
+        <p>🎮 4weird Games — A <a href="https://mattyjacks.com" target="_blank" rel="noopener">MattyJacks.com</a> Company</p>
+        <p style="margin-top: 10px;">Made with 💜 in New Hampshire</p>
+    </footer>
+</body>
+</html>
