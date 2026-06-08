@@ -137,6 +137,12 @@ body {
     background: linear-gradient(180deg, #0f0f23 0%, #1a1a3e 50%, #16213e 100%);
     border: 3px solid var(--neon-purple);
     border-radius: 12px;
+    /* Emergency: Ensure canvas is always visible */
+    min-width: 400px !important;
+    min-height: 300px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
     box-shadow: 0 0 40px rgba(139, 92, 246, 0.3);
     cursor: crosshair;
     max-width: 100%;
