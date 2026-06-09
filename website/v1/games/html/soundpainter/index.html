@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<!--
+    Sound Painter - 4weird Game
+    A creative audio-visual experience for 4weird Games
+    
+    Required files in this folder:
+    - index.html (this file)
+    - game.js (game logic)
+    - game.css (game styles)
+    - game.json (metadata for credits and bio)
+    
+    Max size: 10MB total
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Sound Painter - 4weird Games</title>
+    <meta name="description" content="Click tiles to paint music and color. Create unique audio-visual patterns and explore infinite combinations of sound and art.">
+    <meta name="keywords" content="4weird, Sound Painter, HTML5 game, Creative, Music">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Sound Painter - 4weird Games">
+    <meta property="og:description" content="Paint music with color and sound. Create unique audio-visual patterns.">
+    <meta property="og:type" content="website">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎨</text></svg>">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Base Styles -->
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="game.css">
+    
+    <!-- Game Metadata (loaded for credits/bio) -->
+    <script src="game.json" type="application/json" id="game-metadata"></script>
+</head>
+<body class="TEMPLATE-4weird-game-page">
+    <!-- Background -->
+    <canvas id="TEMPLATE-4weird-starfield"></canvas>
+    
+    <!-- Navigation placeholder - injected by components.js -->
+    <div id="TEMPLATE-4weird-nav-placeholder"></div>
+    
+    <!-- Game Header Bar -->
+    <header class="TEMPLATE-4weird-game-header">
+        <div class="TEMPLATE-4weird-game-header-inner">
+            <a href="/" class="TEMPLATE-4weird-back-link">
+                <span class="TEMPLATE-4weird-back-arrow">-</span>
+                <span>Back to 4weird</span>
+            </a>
+            <h1 class="TEMPLATE-4weird-game-title" id="TEMPLATE-4weird-game-title">Sound Painter</h1>
+            <div class="TEMPLATE-4weird-game-meta" id="TEMPLATE-4weird-game-meta">
+                <span class="TEMPLATE-4weird-game-genre">Creative</span>
+                <span class="TEMPLATE-4weird-separator">-</span>
+                <span class="TEMPLATE-4weird-game-status live">LIVE</span>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Game Container -->
+    <main class="TEMPLATE-4weird-game-main">
+        <!-- Game Canvas/Frame -->
+        <div class="TEMPLATE-4weird-game-frame">
+            <canvas id="TEMPLATE-4weird-gameCanvas"></canvas>
+            
+            <!-- Game Overlay States -->
+            <div class="TEMPLATE-4weird-game-overlay" id="TEMPLATE-4weird-start-screen">
+                <div class="TEMPLATE-4weird-overlay-content">
+                    <h2>Sound Painter</h2>
+                    <p>Click tiles to paint music and color. Create unique audio-visual patterns.</p>
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-start-btn">
+                        <span class="btn-emoji">🎨</span> Start Creating
+                    </button>
+                    <div class="TEMPLATE-4weird-controls-hint">
+                        <p><strong>Controls:</strong> Click tiles to paint, R to reset, Space to play all, P to pause</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="TEMPLATE-4weird-pause-screen">
+                <div class="TEMPLATE-4weird-overlay-content">
+                    <h2>Paused</h2>
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-resume-btn">Resume</button>
+                    <button class="btn btn-secondary" id="TEMPLATE-4weird-restart-btn">Reset</button>
+                </div>
+            </div>
+            
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="TEMPLATE-4weird-game-over-screen">
+                <div class="TEMPLATE-4weird-overlay-content">
+                    <h2>Great Pattern!</h2>
+                    <p class="TEMPLATE-4weird-final-score">Keep Exploring</p>
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-play-again-btn">Create More</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Game Info Panel -->
+        <aside class="TEMPLATE-4weird-game-info-panel">
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>How to Play</h3>
+                <p id="TEMPLATE-4weird-how-to-play">Click any tile to paint it with sound and color. Each column is a note, each row is an instrument. Create patterns and hit Space to hear your creation.</p>
+            </div>
+            
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>Controls</h3>
+                <ul id="TEMPLATE-4weird-controls-list">
+                    <li><kbd>Click</kbd> - Paint tiles</li>
+                    <li><kbd>R</kbd> - Reset grid</li>
+                    <li><kbd>Space</kbd> - Play all</li>
+                    <li><kbd>P</kbd> / <kbd>Esc</kbd> - Pause music</li>
+                </ul>
+            </div>
+            
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>Tiles Painted</h3>
+                <p class="TEMPLATE-4weird-high-score" id="TEMPLATE-4weird-high-score">0</p>
+            </div>
+        </aside>
+    </main>
+    
+    <!-- Credits Section -->
+    <section class="TEMPLATE-4weird-credits-section" id="TEMPLATE-4weird-credits">
+        <div class="TEMPLATE-4weird-credits-container">
+            <h2 class="TEMPLATE-4weird-credits-title">Credits</h2>
+            
+            <div class="TEMPLATE-4weird-credits-grid" id="TEMPLATE-4weird-credits-grid">
+                <!-- Populated from game.json -->
+                <div class="TEMPLATE-4weird-credit-card TEMPLATE-4weird-primary">
+                    <div class="TEMPLATE-4weird-credit-avatar">🎨</div>
+                    <h3 class="TEMPLATE-4weird-credit-name" id="TEMPLATE-4weird-maker-name">Contributor</h3>
+                    <p class="TEMPLATE-4weird-credit-role">Game Creator</p>
+                    <p class="TEMPLATE-4weird-credit-links">
+                        <a href="https://mattyjacks.com" target="_blank" rel="noopener" id="TEMPLATE-4weird-maker-link">4weird Games</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Maker Bio Section -->
+    <section class="TEMPLATE-4weird-bio-section" id="TEMPLATE-4weird-bio">
+        <div class="TEMPLATE-4weird-bio-container">
+            <h2 class="TEMPLATE-4weird-bio-title">About the Creator</h2>
+            <div class="TEMPLATE-4weird-bio-content" id="TEMPLATE-4weird-maker-bio">
+                <p>Sound Painter is a creative audio-visual experience designed to inspire. Click, explore, and paint with sound.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- More Games -->
+    <section class="TEMPLATE-4weird-more-games">
+        <div class="TEMPLATE-4weird-more-games-container">
+            <h2>More 4weird Games</h2>
+            <a href="../../../index.html#games" class="btn btn-secondary">
+                <span class="btn-emoji">🎯</span> Browse All Games
+            </a>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="TEMPLATE-4weird-footer">
+        <div class="TEMPLATE-4weird-footer-content">
+            <p>🎨 <span id="TEMPLATE-4weird-footer-title">Sound Painter</span> - A 4weird Game</p>
+            <p style="margin-top: 8px;">
+                <a href="../../../privacy-policy.html">Privacy Policy</a>
+                <span class="TEMPLATE-4weird-footer-separator">|</span>
+                <a href="../../../index.html#games">More Games</a>
+                <span class="TEMPLATE-4weird-footer-separator">|</span>
+                <a href="/">4weird Home</a>
+            </p>
+        </div>
+    </footer>
+    
+    <!-- Scripts -->
+    <script src="../../components.js"></script>
+    <script src="game.js"></script>
+    <script>
+        // Load game metadata and populate template
+        (function() {
+            fetch('game.json')
+                .then(r => r.json())
+                .then(data => {
+                    document.title = data.title + ' - 4weird Games';
+                    document.getElementById('TEMPLATE-4weird-game-title').textContent = data.title;
+                    document.getElementById('TEMPLATE-4weird-maker-name').textContent = data.maker.name;
+                    document.getElementById('TEMPLATE-4weird-maker-bio').innerHTML = '<p>' + data.maker.bio + '</p>';
+                    
+                    if (data.maker.url) {
+                        const link = document.getElementById('TEMPLATE-4weird-maker-link');
+                        link.href = data.maker.url;
+                        link.textContent = data.maker.urlLabel || 'Portfolio';
+                    }
+                    
+                    // Update credits grid with all contributors
+                    if (data.credits && data.credits.length > 0) {
+                        const grid = document.getElementById('TEMPLATE-4weird-credits-grid');
+                        grid.innerHTML = data.credits.map(c => `
+                            <div class="TEMPLATE-4weird-credit-card ${c.primary ? 'TEMPLATE-4weird-primary' : ''}">
+                                <div class="TEMPLATE-4weird-credit-avatar">${c.avatar || '👤'}</div>
+                                <h3 class="TEMPLATE-4weird-credit-name">${c.name}</h3>
+                                <p class="TEMPLATE-4weird-credit-role">${c.role}</p>
+                                ${c.url ? `<p class="TEMPLATE-4weird-credit-links"><a href="${c.url}" target="_blank" rel="noopener">${c.urlLabel || 'Link'}</a></p>` : ''}
+                            </div>
+                        `).join('');
+                    }
+                })
+                .catch(err => console.log('Using template defaults:', err));
+        })();
+    </script>
+</body>
+</html>

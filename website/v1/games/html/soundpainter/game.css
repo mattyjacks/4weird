@@ -1,0 +1,74 @@
+/**
+ * Sound Painter - Game Styles
+ * Extends main styles.css and uses CSS variables for consistency
+ */
+
+/* ===== CUSTOM GAME ELEMENTS ===== */
+
+/* Canvas styling */
+#TEMPLATE-4weird-gameCanvas {
+    background: linear-gradient(135deg, var(--bg-tertiary) 0%, rgba(139, 92, 246, 0.05) 100%);
+}
+
+/* Game-specific button styling */
+.sound-painter-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    cursor: pointer;
+    background: rgba(139, 92, 246, 0.1);
+    color: var(--neon-purple-light);
+    transition: 0.3s ease;
+}
+
+.sound-painter-btn:hover {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: var(--neon-green);
+    color: var(--neon-green-light);
+}
+
+/* Tile animation classes */
+.tile-active {
+    animation: tile-pulse 0.3s ease-out;
+}
+
+@keyframes tile-pulse {
+    0% {
+        transform: scale(0.9);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Info panel adjustments */
+.TEMPLATE-4weird-panel-section p {
+    font-size: 0.95rem;
+    line-height: 1.8;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .sound-painter-btn {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+    
+    #TEMPLATE-4weird-gameCanvas {
+        min-height: 300px;
+    }
+}
+
+/* Performance optimization */
+#TEMPLATE-4weird-gameCanvas {
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
+    -ms-interpolation-mode: nearest-neighbor;
+}
