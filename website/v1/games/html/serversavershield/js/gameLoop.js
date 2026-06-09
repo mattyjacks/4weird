@@ -1,6 +1,17 @@
 // Main Game Loop
 function update() {
     if (!gameRunning || gamePaused) return;
+    if (window.gameDebug?.godMode) {
+        gameState.balance = Math.max(gameState.balance, 1000);
+        gameState.customerTrust = 100;
+        gameState.reputation = 100;
+        if (typeof servers !== 'undefined') {
+            servers.forEach(s => { s.hp = 100; if (s.status === 'DDOS_FROZEN' || s.status === 'RANSOMED') s.status = 'ONLINE'; });
+        }
+        if (typeof shieldTimer !== 'undefined') {
+            shieldTimer = 400;
+        }
+    }
     
     try {
         // Update keyboard movement before player update
@@ -82,6 +93,11 @@ function gameLoop() {
             if (typeof updateStars === 'function') updateStars();
             if (typeof drawStars === 'function') drawStars();
         }
+        
+        // Update page-wide matrix background
+        if (typeof updateAndDrawOuterMatrix === 'function') {
+            updateAndDrawOuterMatrix();
+        }
     } catch (error) {
         console.error('[GAMELOOP] Error in game loop:', error);
     }
@@ -113,3 +129,23 @@ function startGameLoop() {
     console.log('[GAMELOOP] Context found, starting loop');
     gameLoop();
 }
+
+// ===== DEVELOPER DEBUGGING API =====
+window.gameDebug = {
+    name: "Server Saver Shield",
+    getScore: () => typeof score !== 'undefined' ? score : 0,
+    setScore: (s) => { if (typeof score !== 'undefined') { score = s; if (document.getElementById('hudScore')) document.getElementById('hudScore').textContent = s; } },
+    getHealth: () => typeof gameState !== 'undefined' ? gameState.balance : 0,
+    setHealth: (b) => { if (typeof gameState !== 'undefined') gameState.balance = b; },
+    win: () => {
+        if (typeof victory === 'function') victory();
+    },
+    lose: () => {
+        if (typeof gameOver === 'function') gameOver();
+    },
+    godMode: false,
+    toggleGodMode: function() {
+        this.godMode = !this.godMode;
+        return this.godMode;
+    }
+};

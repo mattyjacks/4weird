@@ -856,11 +856,13 @@ function animate() {
                 } else {
                     // Regular damage
                     spawnExplosion(item.mesh.position, 0xec4899, 20);
-                    integrity = Math.max(0, integrity - 25);
-                    multiplier = 1.0; // Reset combo multiplier
+                    if (!window.gameDebug?.godMode) {
+                        integrity = Math.max(0, integrity - 25);
+                        multiplier = 1.0; // Reset combo multiplier
+                    }
                     screenShake = 16;
                     document.getElementById('hud-integrity-bar').style.width = integrity + '%';
-                    document.getElementById('hud-multiplier').textContent = '1.0x';
+                    document.getElementById('hud-multiplier').textContent = multiplier.toFixed(1) + 'x';
 
                     if (integrity <= 0) {
                         gameOver();
@@ -949,3 +951,25 @@ function animate() {
 
     renderer.render(scene, camera);
 }
+
+// ===== DEVELOPER DEBUGGING API =====
+window.gameDebug = {
+    name: "Orbital Drift",
+    getScore: () => score,
+    setScore: (s) => { score = s; document.getElementById('hud-score').textContent = Math.floor(score); },
+    getHealth: () => integrity,
+    setHealth: (h) => { integrity = h; document.getElementById('hud-integrity-bar').style.width = integrity + '%'; },
+    win: () => {
+        score += 5000;
+        gameOver();
+    },
+    lose: () => {
+        integrity = 0;
+        gameOver();
+    },
+    godMode: false,
+    toggleGodMode: function() {
+        this.godMode = !this.godMode;
+        return this.godMode;
+    }
+};

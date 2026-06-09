@@ -611,6 +611,10 @@ class Game {
 
     update() {
         if (this.state !== STATE.PLAYING) return;
+        if (window.gameDebug?.godMode) {
+            this.player.hp = this.player.maxHp;
+            this.player.mana = this.player.maxMana;
+        }
 
         const t = Date.now() * 0.001;
 
@@ -767,7 +771,9 @@ class Game {
             d.rotation = (d.rotation || 0) + d.rotSpeed;
             const dist = Math.hypot(d.x - this.player.x, d.y - this.player.y);
             if (dist < 25) {
-                this.player.hp -= d.damage;
+                if (!window.gameDebug?.godMode) {
+                    this.player.hp -= d.damage;
+                }
                 this.shakeTime = 10;
                 playSound('hit');
                 return false;
@@ -1090,3 +1096,20 @@ class Game {
 }
 
 const game = new Game();
+window.game = game;
+
+// ===== DEVELOPER DEBUGGING API =====
+window.gameDebug = {
+    name: "Demo Lichdom",
+    getScore: () => game.score,
+    setScore: (s) => { game.score = s; },
+    getHealth: () => game.player.hp,
+    setHealth: (h) => { game.player.hp = h; },
+    win: () => game.win(),
+    lose: () => game.lose(),
+    godMode: false,
+    toggleGodMode: function() {
+        this.godMode = !this.godMode;
+        return this.godMode;
+    }
+};

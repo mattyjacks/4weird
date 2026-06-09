@@ -656,6 +656,7 @@
         }
 
         takeDamage(dmg, type = 'normal') {
+            if (window.gameDebug?.godMode) return;
             if (this.dodgeTime > 0 || this.stoneForm) return;
 
             // Perfect Block window check
@@ -2044,3 +2045,23 @@
         window.GraveGainGame = new GraveGainGame();
     });
 })();
+
+// ===== DEVELOPER DEBUGGING API =====
+window.gameDebug = {
+    name: "Grave Gain 2D",
+    getScore: () => window.GraveGainGame ? window.GraveGainGame.gold : 0,
+    setScore: (g) => { if (window.GraveGainGame) { window.GraveGainGame.gold = g; window.GraveGainGame.player.gold = g; } },
+    getHealth: () => window.GraveGainGame ? window.GraveGainGame.player.hp : 0,
+    setHealth: (h) => { if (window.GraveGainGame) window.GraveGainGame.player.hp = h; },
+    win: () => {
+        if (window.GraveGainGame) window.GraveGainGame.gameOver(true);
+    },
+    lose: () => {
+        if (window.GraveGainGame) window.GraveGainGame.gameOver(false);
+    },
+    godMode: false,
+    toggleGodMode: function() {
+        this.godMode = !this.godMode;
+        return this.godMode;
+    }
+};

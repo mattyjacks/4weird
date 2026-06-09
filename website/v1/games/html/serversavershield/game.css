@@ -1,12 +1,12 @@
 /* Server Saver Shield - Enhanced Styles */
 :root {
-    --bg-dark: #0a0a0f;
-    --bg-panel: #12121a;
-    --bg-primary: #0a0a0f;
-    --bg-secondary: #12121a;
-    --neon-purple: #8b5cf6;
-    --neon-purple-light: #a78bfa;
-    --neon-purple-dark: #7c3aed;
+    --bg-dark: #020503;
+    --bg-panel: #050d06;
+    --bg-primary: #020503;
+    --bg-secondary: #050d06;
+    --neon-purple: #10b981;
+    --neon-purple-light: #34d399;
+    --neon-purple-dark: #047857;
     --neon-blue: #3b82f6;
     --neon-cyan: #06b6d4;
     --neon-green: #10b981;
@@ -14,8 +14,8 @@
     --neon-orange: #f59e0b;
     --neon-pink: #ec4899;
     --text-primary: #f5f5f5;
-    --text-secondary: #9ca3af;
-    --text-muted: #6b7280;
+    --text-secondary: #a7f3d0;
+    --text-muted: #047857;
     --font-display: 'Orbitron', sans-serif;
     --font-body: 'Inter', sans-serif;
 }
@@ -304,11 +304,11 @@ body {
 
 /* Game Wrapper - background added to fallback definition above */
 .game-wrapper {
-    background: radial-gradient(ellipse at center, #1a1a3e 0%, var(--bg-primary) 70%);
+    background: radial-gradient(ellipse at center, #051a08 0%, var(--bg-primary) 70%);
 }
 
 #gameCanvas {
-    background: linear-gradient(180deg, #0f0f23 0%, #1a1a3e 50%, #16213e 100%);
+    background: linear-gradient(180deg, #020503 0%, #051207 50%, #020803 100%);
     border: 3px solid var(--neon-purple);
     border-radius: 12px;
     /* Always show full canvas - page scrolls to reveal content below */
@@ -317,7 +317,7 @@ body {
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
-    box-shadow: 0 0 40px #1d1530;
+    box-shadow: 0 0 45px rgba(16, 185, 129, 0.25);
     cursor: crosshair;
     max-width: 100%;
     /* No max-height - let the canvas be its natural size */

@@ -448,7 +448,9 @@ function triggerWhack(hole, screenX, screenY) {
     } else {
         // Incorrectly whacked a good/aligned AI
         score = Math.max(0, score - 200);
-        health = Math.max(0, health - 20);
+        if (!window.gameDebug?.godMode) {
+            health = Math.max(0, health - 20);
+        }
         hudScore.textContent = score;
         updateHealthBar();
         playSound('whack-good');
@@ -617,7 +619,9 @@ function updatePhysics(delta) {
                 
                 // If it was a bad AI and escaped, subtract health!
                 if (h.type === 'bad' && isPlaying) {
-                    health = Math.max(0, health - 15);
+                    if (!window.gameDebug?.godMode) {
+                        health = Math.max(0, health - 15);
+                    }
                     updateHealthBar();
                     playSound('escape');
                     if (health <= 0) {
@@ -712,3 +716,21 @@ loadQuotes().then(() => {
     init3D();
     animate();
 });
+
+// ===== DEVELOPER DEBUGGING API =====
+window.gameDebug = {
+    name: "AI Whack-A-Mole",
+    getScore: () => score,
+    setScore: (s) => { score = s; hudScore.textContent = s; },
+    getHealth: () => health,
+    setHealth: (h) => { health = h; updateHealthBar(); },
+    getTimeLeft: () => timeLeft,
+    setTimeLeft: (t) => { timeLeft = t; hudTime.textContent = t; },
+    win: () => { endGame('time'); },
+    lose: () => { endGame('integrity'); },
+    godMode: false,
+    toggleGodMode: function() {
+        this.godMode = !this.godMode;
+        return this.godMode;
+    }
+};

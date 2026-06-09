@@ -22,6 +22,11 @@ function initCanvas() {
     canvas.height = CANVAS_HEIGHT;
     resize();
     window.addEventListener('resize', resize);
+    
+    // Initialize page-wide matrix background
+    if (typeof initOuterMatrix === 'function') {
+        initOuterMatrix();
+    }
 }
 
 function resize() {

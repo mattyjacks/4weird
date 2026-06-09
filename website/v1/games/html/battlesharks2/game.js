@@ -741,6 +741,12 @@ function gameLoop(timestamp) {
 }
 
 function update(timestamp) {
+    if (window.gameDebug?.godMode) {
+        player.health = player.maxHealth;
+        state.biomass = Math.max(state.biomass, 1000);
+        state.debris = Math.max(state.debris, 1000);
+        state.mutagens = Math.max(state.mutagens, 10);
+    }
     // Screen shake decay
     if (state.cameraShake > 0) {
         state.cameraShake *= 0.92;
@@ -1533,6 +1539,7 @@ function checkCollisions(timestamp) {
 }
 
 function dealPlayerDamage(amount) {
+    if (window.gameDebug?.godMode) return;
     if (state.shieldActive) {
         state.shieldActive = false;
         state.shieldRechargeTimer = 360;
@@ -1840,3 +1847,27 @@ function render(timestamp) {
         ctx.fillText(notificationText, canvas.width / 2, 52);
     }
 }
+
+// ===== DEVELOPER DEBUGGING API =====
+window.gameDebug = {
+    name: "Battle Sharks 2",
+    getScore: () => state.score,
+    setScore: (s) => { state.score = s; updateStatsHUD(); },
+    getHealth: () => player.health,
+    setHealth: (h) => { player.health = h; updateStatsHUD(); },
+    win: () => {
+        state.score += 5000;
+        state.bossDefeated = true;
+        state.bossActive = false;
+        document.getElementById('bossHPBarContainer').classList.add('hidden');
+        showNotification("APEX PREDATOR WINS!");
+    },
+    lose: () => {
+        gameOver();
+    },
+    godMode: false,
+    toggleGodMode: function() {
+        this.godMode = !this.godMode;
+        return this.godMode;
+    }
+};

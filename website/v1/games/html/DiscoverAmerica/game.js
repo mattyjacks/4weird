@@ -839,3 +839,26 @@ resizeCanvas();
 snapAvatarTo(0);
 updateHUD();
 loop();
+
+// ===== DEVELOPER DEBUGGING API =====
+window.gameDebug = {
+    name: "Discover America",
+    getScore: () => Game.score,
+    setScore: (s) => { Game.score = s; updateHUD(); },
+    getHealth: () => Game.completed.filter(Boolean).length * 20,
+    setHealth: () => {},
+    win: () => {
+        Game.completed = STAGES.map(() => true);
+        showVictory();
+    },
+    lose: () => {
+        // Just return to start
+        startGame();
+    },
+    godMode: false,
+    toggleGodMode: function() {
+        this.godMode = !this.godMode;
+        return this.godMode;
+    }
+};
+

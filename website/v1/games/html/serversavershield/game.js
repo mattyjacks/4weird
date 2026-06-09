@@ -233,6 +233,13 @@ function spawnParticles(x, y, color, count, emoji) {
 
 function update() {
     if (!gameRunning || gamePaused) return;
+    if (window.gameDebug?.godMode) {
+        gameState.balance = Math.max(gameState.balance, 1000);
+        gameState.customerTrust = 100;
+        gameState.reputation = 100;
+        servers.forEach(s => { s.hp = 100; if (s.status === 'DDOS_FROZEN' || s.status === 'RANSOMED') s.status = 'ONLINE'; });
+        shieldTimer = 400;
+    }
     player.x += (inputX - player.x) * 0.12;
     player.y += (inputY - player.y) * 0.12;
     player.x = Math.max(player.radius, Math.min(CANVAS_WIDTH - player.radius, player.x));
@@ -521,3 +528,23 @@ function idleLoop() {
 }
 idleLoop();
 gameLoop();
+
+// ===== DEVELOPER DEBUGGING API =====
+window.gameDebug = {
+    name: "Server Saver Shield",
+    getScore: () => score,
+    setScore: (s) => { score = s; document.getElementById('hudScore').textContent = score; },
+    getHealth: () => gameState.balance,
+    setHealth: (b) => { gameState.balance = b; },
+    win: () => {
+        victory();
+    },
+    lose: () => {
+        gameOver();
+    },
+    godMode: false,
+    toggleGodMode: function() {
+        this.godMode = !this.godMode;
+        return this.godMode;
+    }
+};

@@ -288,4 +288,20 @@
     resizeCanvas();
     
     console.log('[Template Demo] 4weird Games - Initialized');
+
+    // ===== DEVELOPER DEBUGGING API =====
+    window.gameDebug = {
+        name: "Template Demo",
+        getScore: () => state.score,
+        setScore: (s) => { state.score = s; },
+        getHealth: () => 100,
+        setHealth: () => {},
+        win: () => { endGame(); },
+        lose: () => { endGame(); },
+        godMode: false,
+        toggleGodMode: function() {
+            this.godMode = !this.godMode;
+            return this.godMode;
+        }
+    };
 })();

@@ -1507,7 +1507,9 @@ function updateGame() {
         if (l.active && player.burrowTimer <= 0) {
             const dist = distToSegment({ x: player.x, y: player.y }, { x: l.x1, y: l.y1 }, { x: l.x2, y: l.y2 });
             if (dist < player.r) {
-                player.hp -= 2;
+                if (!window.gameDebug?.godMode) {
+                    player.hp -= 2;
+                }
                 triggerSparkEffect(player.x, player.y, 3);
                 
                 // GORE: Player bleeds from laser burns
@@ -1585,7 +1587,9 @@ function updateGame() {
                 if (state.selectedId === 'gorilla') {
                     bulletDmg *= 0.6;
                 }
-                player.hp -= bulletDmg;
+                if (!window.gameDebug?.godMode) {
+                    player.hp -= bulletDmg;
+                }
                 
                 // GORE: Player blood spurt when shot
                 triggerBloodSplatter(player.x, player.y, 14);
@@ -2394,3 +2398,27 @@ function gameLoop(timestamp) {
 bindGameEvents();
 requestAnimationFrame(gameLoop);
 changeState('MENU');
+
+// ===== DEVELOPER DEBUGGING API =====
+window.gameDebug = {
+    name: "Assassin Animals",
+    getScore: () => state.run.score,
+    setScore: (s) => { state.run.score = s; },
+    getHealth: () => state.player ? state.player.hp : 0,
+    setHealth: (h) => { if (state.player) state.player.hp = h; },
+    getDNA: () => state.run.dna,
+    setDNA: (d) => { state.run.dna = d; document.getElementById('hudDNA').textContent = d; },
+    win: () => {
+        state.run.hasKey = true;
+        document.getElementById('hudKey').textContent = '🔑 YES';
+        changeState('SHOP');
+    },
+    lose: () => {
+        changeState('GAMEOVER');
+    },
+    godMode: false,
+    toggleGodMode: function() {
+        this.godMode = !this.godMode;
+        return this.godMode;
+    }
+};

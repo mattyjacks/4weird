@@ -1,49 +1,191 @@
-// Rendering System
-var stars = [];
+var matrixStreams = [];
+var outerMatrixCanvas = null;
+var outerMatrixCtx = null;
+var outerStreams = [];
+var outerInitialized = false;
+
+function initOuterMatrix() {
+    outerMatrixCanvas = document.getElementById('TEMPLATE-4weird-starfield');
+    if (!outerMatrixCanvas) return;
+    
+    outerMatrixCtx = outerMatrixCanvas.getContext('2d');
+    if (!outerMatrixCtx) return;
+    
+    resizeOuterMatrix();
+    window.addEventListener('resize', resizeOuterMatrix);
+    
+    outerStreams = [];
+    const columns = Math.floor(outerMatrixCanvas.width / 18);
+    for (let i = 0; i < columns; i++) {
+        outerStreams.push({
+            x: i * 18,
+            y: Math.random() * outerMatrixCanvas.height - outerMatrixCanvas.height,
+            speed: Math.random() * 2 + 1,
+            fontSize: Math.floor(Math.random() * 6) + 12,
+            opacity: Math.random() * 0.15 + 0.05,
+            chars: [],
+            maxLength: Math.floor(Math.random() * 20) + 10,
+            ticksSinceChange: 0,
+            changeInterval: Math.floor(Math.random() * 15) + 5
+        });
+    }
+    outerInitialized = true;
+}
+
+function resizeOuterMatrix() {
+    if (!outerMatrixCanvas) return;
+    outerMatrixCanvas.width = window.innerWidth;
+    outerMatrixCanvas.height = window.innerHeight;
+    
+    if (outerInitialized) {
+        const columns = Math.floor(outerMatrixCanvas.width / 18);
+        const currentCount = outerStreams.length;
+        if (columns > currentCount) {
+            for (let i = currentCount; i < columns; i++) {
+                outerStreams.push({
+                    x: i * 18,
+                    y: Math.random() * outerMatrixCanvas.height - outerMatrixCanvas.height,
+                    speed: Math.random() * 2 + 1,
+                    fontSize: Math.floor(Math.random() * 6) + 12,
+                    opacity: Math.random() * 0.15 + 0.05,
+                    chars: [],
+                    maxLength: Math.floor(Math.random() * 20) + 10,
+                    ticksSinceChange: 0,
+                    changeInterval: Math.floor(Math.random() * 15) + 5
+                });
+            }
+        } else if (columns < currentCount) {
+            outerStreams.splice(columns);
+        }
+    }
+}
+
+function updateAndDrawOuterMatrix() {
+    if (!outerInitialized || !outerMatrixCtx) return;
+    
+    outerMatrixCtx.fillStyle = 'rgba(2, 5, 3, 0.08)'; // Deep dark green-black matching --bg-dark
+    outerMatrixCtx.fillRect(0, 0, outerMatrixCanvas.width, outerMatrixCanvas.height);
+    
+    outerStreams.forEach(stream => {
+        stream.y += stream.speed;
+        if (stream.y > outerMatrixCanvas.height + 200) {
+            stream.y = -Math.random() * 200;
+            stream.speed = Math.random() * 2 + 1;
+            stream.opacity = Math.random() * 0.15 + 0.05;
+            stream.maxLength = Math.floor(Math.random() * 20) + 10;
+            stream.chars = [];
+        }
+        
+        stream.ticksSinceChange++;
+        if (stream.ticksSinceChange > stream.changeInterval) {
+            stream.ticksSinceChange = 0;
+            const characters = "0101010101ABCDEFGHIJKLMNOPQRSTUVWXYZ@#$%&*+-/\\";
+            const newChar = characters.charAt(Math.floor(Math.random() * characters.length));
+            stream.chars.unshift(newChar);
+            if (stream.chars.length > stream.maxLength) {
+                stream.chars.pop();
+            }
+        }
+        
+        outerMatrixCtx.font = `${stream.fontSize}px monospace`;
+        for (let i = 0; i < stream.chars.length; i++) {
+            const charY = stream.y - i * (stream.fontSize * 0.85);
+            if (charY < 0 || charY > outerMatrixCanvas.height) continue;
+            
+            let fillStyle;
+            if (i === 0) {
+                fillStyle = `rgba(168, 244, 190, ${stream.opacity * 2})`;
+            } else {
+                const fade = 1 - (i / stream.maxLength);
+                fillStyle = `rgba(16, 185, 129, ${stream.opacity * fade})`;
+            }
+            outerMatrixCtx.fillStyle = fillStyle;
+            outerMatrixCtx.fillText(stream.chars[i], stream.x, charY);
+        }
+    });
+}
 
 function initStars() {
-    stars = [];
-    for (let i = 0; i < 100; i++) {
-        stars.push({
+    matrixStreams = [];
+    const streamCount = 40;
+    for (let i = 0; i < streamCount; i++) {
+        matrixStreams.push({
             x: Math.random() * CANVAS_WIDTH,
-            y: Math.random() * CANVAS_HEIGHT,
-            size: Math.random() * 2 + 0.5,
-            speed: Math.random() * 2 + 0.5,
-            brightness: Math.random(),
-            twinkle: Math.random() * 0.1
+            y: Math.random() * CANVAS_HEIGHT - CANVAS_HEIGHT,
+            speed: Math.random() * 2.5 + 1.5,
+            fontSize: Math.floor(Math.random() * 6) + 10,
+            opacity: Math.random() * 0.4 + 0.2,
+            chars: [],
+            maxLength: Math.floor(Math.random() * 12) + 6,
+            changeInterval: Math.floor(Math.random() * 10) + 4,
+            ticksSinceChange: 0
         });
     }
 }
 
 function updateStars() {
-    stars.forEach(s => {
-        s.y += s.speed;
-        if (s.y > CANVAS_HEIGHT) { s.y = 0; s.x = Math.random() * CANVAS_WIDTH; }
-        s.brightness += s.twinkle;
-        if (s.brightness > 1 || s.brightness < 0.3) s.twinkle *= -1;
+    matrixStreams.forEach(stream => {
+        stream.y += stream.speed;
+        if (stream.y > CANVAS_HEIGHT + 150) {
+            stream.y = -Math.random() * 150;
+            stream.x = Math.random() * CANVAS_WIDTH;
+            stream.speed = Math.random() * 2.5 + 1.5;
+            stream.fontSize = Math.floor(Math.random() * 6) + 10;
+            stream.opacity = Math.random() * 0.4 + 0.2;
+            stream.maxLength = Math.floor(Math.random() * 12) + 6;
+            stream.chars = [];
+        }
+
+        stream.ticksSinceChange++;
+        if (stream.ticksSinceChange > stream.changeInterval) {
+            stream.ticksSinceChange = 0;
+            const characters = "0101010101ABCDEFGHIJKLMNOPQRSTUVWXYZ@#$%&*+-/\\";
+            const newChar = characters.charAt(Math.floor(Math.random() * characters.length));
+            stream.chars.unshift(newChar);
+            if (stream.chars.length > stream.maxLength) {
+                stream.chars.pop();
+            }
+        }
     });
 }
 
 function drawBackground() {
     const ctx = getContext();
-    ctx.fillStyle = '#0f0f23';
+    ctx.fillStyle = '#020503';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     const bgGrad = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-    bgGrad.addColorStop(0, '#0f0f23');
-    bgGrad.addColorStop(0.5, '#1a1a3e');
-    bgGrad.addColorStop(1, '#16213e');
+    bgGrad.addColorStop(0, '#020503');
+    bgGrad.addColorStop(0.5, '#051207');
+    bgGrad.addColorStop(1, '#020803');
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 }
 
 function drawStars() {
     const ctx = getContext();
-    stars.forEach(s => {
-        ctx.fillStyle = 'rgba(255,255,255,' + s.brightness + ')';
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-        ctx.fill();
+    ctx.save();
+    
+    matrixStreams.forEach(stream => {
+        ctx.font = `${stream.fontSize}px monospace`;
+        
+        for (let i = 0; i < stream.chars.length; i++) {
+            const charY = stream.y - i * (stream.fontSize * 0.85);
+            if (charY < 0 || charY > CANVAS_HEIGHT) continue;
+            
+            let fillStyle;
+            if (i === 0) {
+                fillStyle = `rgba(200, 255, 210, ${stream.opacity * 1.5})`;
+            } else {
+                const fade = 1 - (i / stream.maxLength);
+                fillStyle = `rgba(16, 185, 129, ${stream.opacity * fade})`;
+            }
+            
+            ctx.fillStyle = fillStyle;
+            ctx.fillText(stream.chars[i], stream.x, charY);
+        }
     });
+    
+    ctx.restore();
 }
 
 function drawPowerups() {

@@ -329,6 +329,11 @@ function nextDay() {
         
         country.family.forEach((member, i) => {
             if (member === '💀') return;
+            if (window.gameDebug?.godMode) {
+                country.hunger[i] = 100;
+                country.nutrition[i] = [100, 100, 100];
+                return;
+            }
             
             if (fridgeFoods.length > 0) {
                 let foodIndex = fridgeFoods.findIndex(f => country.preferences.includes(f.food));
@@ -647,3 +652,33 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+
+// ===== DEVELOPER DEBUGGING API =====
+window.gameDebug = {
+    name: "Fridge Simulator",
+    getScore: () => money,
+    setScore: (m) => { money = m; render(); },
+    getHealth: () => deaths,
+    setHealth: (d) => { deaths = d; render(); },
+    win: () => {
+        day = 30;
+        Object.values(countries).forEach(c => {
+            c.family = c.family.map(() => HUMAN_EMOJIS[0]);
+            c.hunger = c.hunger.map(() => 100);
+            c.nutrition = c.nutrition.map(() => [100, 100, 100]);
+        });
+        nextDay();
+    },
+    lose: () => {
+        Object.values(countries).forEach(c => {
+            c.family = c.family.map(() => '💀');
+            c.hunger = c.hunger.map(() => 0);
+        });
+        nextDay();
+    },
+    godMode: false,
+    toggleGodMode: function() {
+        this.godMode = !this.godMode;
+        return this.godMode;
+    }
+};
