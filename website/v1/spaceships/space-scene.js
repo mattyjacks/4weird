@@ -5,6 +5,9 @@
 
 import { ShipBuilder } from './ship-builder.js';
 
+// THREE.js is loaded globally via CDN in index.html
+const THREE = window.THREE;
+
 let scene, camera, renderer;
 let ambientLight, sunLight;
 let fleetGroup, alienGroup, stationGroup;
@@ -15,6 +18,9 @@ let projectiles = [], debrisList = [], explosions = [], tractorBeams = [];
 let boidsWorker, physicsWorker;
 let boidsWorkerBusy = false;
 let physicsWorkerBusy = false;
+// Track which debris IDs were included in the last physics worker batch.
+// Debris spawned while the worker is busy must NOT be evicted by stale responses.
+let lastSentDebrisIds = new Set();
 
 // HUD & State
 let credits = 0;
@@ -88,8 +94,8 @@ export function initSpaceBackground() {
   spawnHumanFleet();
 
   // Initialize Web Workers
-  boidsWorker = new Worker('spaceships/workers/boids-worker.js');
-  physicsWorker = new Worker('spaceships/workers/physics-worker.js');
+  boidsWorker = new Worker('./spaceships/workers/boids-worker.js');
+  physicsWorker = new Worker('./spaceships/workers/physics-worker.js');
 
   // Handle Boids Worker response
   boidsWorker.onmessage = function(e) {
@@ -174,10 +180,17 @@ export function initSpaceBackground() {
       });
 
       // 2. Sync Debris (Scrap)
+      // Only evict debris that was actually SENT in this batch.
+      // Debris spawned while the worker was busy (not in lastSentDebrisIds) must
+      // survive so the next tick can process it.
       const updatedDebrisMap = new Map(data.debris.map(d => [d.id, d]));
+      const sentIds = lastSentDebrisIds;
       debrisList = debrisList.filter(d => {
+        // Not sent this tick -- newly spawned, keep it for next tick
+        if (!sentIds.has(d.id)) return true;
         const dData = updatedDebrisMap.get(d.id);
         if (!dData) {
+          // Sent but not returned -- either collected or OOB, remove it
           scene.remove(d.mesh);
           return false;
         }
@@ -529,9 +542,9 @@ function destroyAlien(alien) {
       mesh: dMesh,
       position: dMesh.position.toArray(),
       velocity: [
-        (Math.random() - 0.5) * 10.0,
-        (Math.random() - 0.5) * 10.0,
-        (Math.random() - 0.5) * 5.0
+        (Math.random() - 0.5) * 2.5, // Low scatter so ships can catch it
+        (Math.random() - 0.5) * 2.5,
+        (Math.random() - 0.5) * 1.5
       ],
       partType: itemType,
       value: val
@@ -950,7 +963,8 @@ function animate(timestamp) {
     }));
 
     // Target wanders via simple sin/cos paths to simulate organic flying patterns
-    const targetZ = -45.0;
+    // targetZ is relative to the fleet's current average Z so ships always fly forward
+    const targetZ = fleetZ - 45.0;
     const targetX = Math.sin(timestamp * 0.0006) * 18.0;
     const targetY = Math.cos(timestamp * 0.0004) * 6.0;
 
@@ -992,9 +1006,13 @@ function animate(timestamp) {
       radius: h.radius
     }));
 
+    // Record which debris IDs are in this batch so the response handler
+    // knows not to evict items spawned after this snapshot was taken.
+    lastSentDebrisIds = new Set(debrisList.map(d => d.id));
+    // Use live Three.js mesh position -- not the stale cached snapshot array
     const dData = debrisList.map(d => ({
       id: d.id,
-      position: d.position,
+      position: [d.mesh.position.x, d.mesh.position.y, d.mesh.position.z],
       velocity: d.velocity,
       partType: d.partType,
       value: d.value
@@ -1007,7 +1025,8 @@ function animate(timestamp) {
         aliens: aData,
         humans: hData,
         debris: dData,
-        dt: dt
+        dt: dt,
+        fleetZ: fleetZ
       }
     });
   }

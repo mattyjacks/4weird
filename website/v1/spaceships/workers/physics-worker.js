@@ -6,7 +6,7 @@
 self.onmessage = function(e) {
   const { type, data } = e.data;
   if (type === "simulate_physics") {
-    const { projectiles, aliens, humans, debris, dt } = data;
+    const { projectiles, aliens, humans, debris, dt, fleetZ } = data;
 
     const hitEvents = [];
     const collectEvents = [];
@@ -87,9 +87,9 @@ self.onmessage = function(e) {
 
     // 2. Process Debris and Gravity Tractor Beams
     const activeDebris = [];
-    const gravityStrength = 24.0; // Acceleration speed towards ship
-    const pullDistanceSq = 35.0 * 35.0; // Distance to engage gravity beam
-    const collectDistanceSq = 2.0 * 2.0; // Distance to collect scrap
+    const gravityStrength = 80.0; // Strong enough to pull scrap against its scatter velocity
+    const pullDistanceSq = 50.0 * 50.0; // Distance to engage gravity beam
+    const collectDistanceSq = 3.5 * 3.5; // Distance to collect scrap
 
     for (let i = 0; i < debris.length; i++) {
       const d = debris[i];
@@ -157,12 +157,14 @@ self.onmessage = function(e) {
         d.velocity[1] *= 0.98;
         d.velocity[2] *= 0.98;
 
-        // Slowly drift along with the camera/stars
-        d.position[2] += -1.5 * dt;
+        // Drift debris along with the fleet so it doesn't get left behind
+        // Fleet typical speed is 5-7 units/sec in negative Z
+        d.position[2] += -5.5 * dt;
 
-        // If debris flies too far behind the camera, discard it
-        if (d.position[2] > 50.0) {
-          isCollected = true; // Discarded
+        // Discard debris that is more than 80 units behind the fleet
+        const debrisRelativeToFleet = (fleetZ || 0) - d.position[2];
+        if (debrisRelativeToFleet > 80.0 || debrisRelativeToFleet < -200.0) {
+          isCollected = true; // Discard as out of range
         }
 
         if (!isCollected) {

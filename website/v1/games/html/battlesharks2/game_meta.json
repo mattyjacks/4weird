@@ -1,0 +1,9 @@
+{
+  "name": "Battle Sharks 2",
+  "objective": "Survive as long as possible while shooting enemy sharks to maximize your score.",
+  "controls": "WASD or Arrow Keys to move. Space to shoot. Avoid enemy sharks and bullets.",
+  "known_states": ["menu", "playing", "game_over"],
+  "win_condition": "Achieve the highest score you can before dying. Highscores are persisted.",
+  "avoid": "Colliding with enemy sharks. Getting hit by projectiles.",
+  "tips": "The play button is usually in the center of the menu screen. During gameplay, keep moving and shoot frequently. When game_over screen appears, look for a Restart or Play Again button."
+}

@@ -1,0 +1,9 @@
+{
+  "name": "Orbital Drift",
+  "objective": "Navigate a spacecraft through orbital paths without crashing. Survive as long as possible.",
+  "controls": "Arrow Keys or WASD to steer. Space may activate thrust or special abilities.",
+  "known_states": ["menu", "playing", "game_over"],
+  "win_condition": "Survive for as long as possible and reach the highest distance or score.",
+  "avoid": "Colliding with asteroids, debris, or other orbital bodies.",
+  "tips": "Look for a Start or Play button on the menu. During gameplay the ship moves continuously — steer carefully. After game_over, a Retry or Play Again button should appear."
+}

@@ -68,6 +68,16 @@
         <div class="form-group">
           <textarea id="game-rules" rows="3" placeholder="e.g. Press 'Space' to jump. Move using ArrowRight. Avoid spikes. Click 'Start Game' button at coordinates..."></textarea>
         </div>
+        <div class="form-group toggle-row">
+          <label for="toggle-memory" title="Always include episode history in every LLM call. Default OFF saves tokens — memory is only sent when the agent is stuck.">
+            📚 Always Send Memory
+            <span class="toggle-hint">(default: stuck-only)</span>
+          </label>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-memory">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
       </div>
 
       <div class="sidebar-section">
@@ -185,6 +195,10 @@
             <div class="brain-decision" id="brain-reasoning">
               <em>Agent is waiting...</em>
             </div>
+            <div class="action-trail" id="action-trail">
+              <span class="trail-label">LAST ACTIONS:</span>
+              <span class="trail-entries" id="trail-entries"><em>—</em></span>
+            </div>
           </div>
         </div>
       </section>
@@ -238,6 +252,20 @@
           </div>
           <textarea id="mega-prompt-output" readonly></textarea>
         </div>
+      </div>
+
+      <div class="sidebar-header border-top">
+        <h2>SESSION MEMORY</h2>
+      </div>
+      <div class="session-stats-box" id="session-stats-box">
+        <div class="token-grid">
+          <div class="token-row"><span>Steps</span><span id="sess-steps">0</span></div>
+          <div class="token-row"><span>Bugs Found</span><span id="sess-bugs">0</span></div>
+          <div class="token-row"><span>Stuck Events</span><span id="sess-stuck">0</span></div>
+          <div class="token-row"><span>Recoveries</span><span id="sess-recoveries">0</span></div>
+        </div>
+        <div class="action-mix" id="action-mix"><em>No session active.</em></div>
+        <div class="heatmap-zones" id="heatmap-zones"></div>
       </div>
 
       <div class="sidebar-header border-top">

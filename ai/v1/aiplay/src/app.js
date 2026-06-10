@@ -106,6 +106,21 @@ const modalBugLogs = document.getElementById('modal-bug-logs');
 const modalBugImg = document.getElementById('modal-bug-img');
 const btnCloseModal = document.getElementById('btn-close-modal');
 
+// Memory Toggle & Action Trail Elements
+const toggleMemory = document.getElementById('toggle-memory');
+const trailEntries = document.getElementById('trail-entries');
+
+// Session Memory UI Elements
+const sessSteps = document.getElementById('sess-steps');
+const sessBugs = document.getElementById('sess-bugs');
+const sessStuck = document.getElementById('sess-stuck');
+const sessRecoveries = document.getElementById('sess-recoveries');
+const actionMixEl = document.getElementById('action-mix');
+const heatmapZonesEl = document.getElementById('heatmap-zones');
+
+// Action trail ring buffer (last 5 actions)
+let actionTrail = [];
+
 // Initial Setup
 document.addEventListener('DOMContentLoaded', () => {
   webviewElement = document.getElementById('game-webview');
@@ -144,6 +159,15 @@ document.addEventListener('DOMContentLoaded', () => {
   btnTimelinePlay.addEventListener('click', resumeFromScrub);
   
   tokenModelSelect.addEventListener('change', updateTokenStatsUI);
+
+  // Episodic memory toggle
+  if (toggleMemory) {
+    toggleMemory.addEventListener('change', () => {
+      agentBrain.config.alwaysSendMemory = toggleMemory.checked;
+      saveSettings();
+      logSystemMessage(`Episodic memory mode: ${toggleMemory.checked ? 'ALWAYS SEND (higher token cost)' : 'STUCK-ONLY (token-saving)'}`);
+    });
+  }
   
   // Close Modal binding
   btnCloseModal.addEventListener('click', () => bugModal.classList.add('hidden'));
@@ -205,7 +229,17 @@ function loadSettings() {
   gameUrlInput.value = settings.gameUrl || '';
   isAudioEnabled = settings.isAudioEnabled || false;
   btnToggleAudio.textContent = isAudioEnabled ? '🔊' : '🔇';
-  
+  if (toggleMemory) {
+    const alwaysMem = settings.alwaysSendMemory || false;
+    toggleMemory.checked = alwaysMem;
+    agentBrain.config.alwaysSendMemory = alwaysMem;
+  }
+
+  // Load persisted session memory
+  agentBrain.updateConfig({ dataDir });
+  agentBrain.loadSessionMemory();
+  updateSessionStatsUI();
+
   handleProviderChange();
 }
 
@@ -218,7 +252,8 @@ function saveSettings() {
     modelName: modelNameInput.value,
     gameRules: gameRulesInput.value,
     gameUrl: gameUrlInput.value,
-    isAudioEnabled: isAudioEnabled
+    isAudioEnabled: isAudioEnabled,
+    alwaysSendMemory: toggleMemory ? toggleMemory.checked : false
   };
   localStorage.setItem('ai_debugger_settings', JSON.stringify(settings));
 
@@ -351,9 +386,34 @@ function selectDemoGame() {
     gameUrlInput.value = val;
     saveSettings();
     loadGameUrl();
-    
-    // Auto-crawls and populates code explorer files instantly
     crawlCodeFiles();
+    // Auto-load game_meta.json if it exists alongside the index.html
+    loadGameMeta(val);
+  }
+}
+
+// Load game_meta.json for a given local file:// URL and populate game rules
+function loadGameMeta(fileUrl) {
+  try {
+    if (!fileUrl.startsWith('file:///')) return;
+    const indexPath = fileUrl.replace('file:///', '').replace(/\\/g, '/');
+    const gameDir = path.dirname(indexPath);
+    const metaPath = path.join(gameDir, 'game_meta.json');
+    if (fs.existsSync(metaPath)) {
+      const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+      const rulesText = [
+        meta.objective ? `Objective: ${meta.objective}` : '',
+        meta.controls ? `Controls: ${meta.controls}` : '',
+        meta.win_condition ? `Win condition: ${meta.win_condition}` : '',
+        meta.avoid ? `Avoid: ${meta.avoid}` : '',
+        meta.tips ? `Tips: ${meta.tips}` : ''
+      ].filter(Boolean).join('\n');
+      gameRulesInput.value = rulesText;
+      saveSettings();
+      logSystemMessage(`Game meta loaded for "${meta.name || 'unknown'}". Rules auto-populated.`);
+    }
+  } catch (e) {
+    console.warn('Could not load game_meta.json:', e);
   }
 }
 
@@ -560,11 +620,31 @@ async function runAgentLoop() {
       renderBugs();
     }
 
-    // 6. Execute action inside webview
+    // 6. Update action trail (last 5)
+    const trailEntry = `${result.action.type}${result.action.target ? ':' + result.action.target : ''}`;
+    actionTrail.push(trailEntry);
+    if (actionTrail.length > 5) actionTrail.shift();
+    if (trailEntries) {
+      trailEntries.innerHTML = actionTrail
+        .map((t, i) => `<span class="trail-step ${i === actionTrail.length - 1 ? 'trail-latest' : ''}">${t}</span>`)
+        .join('<span class="trail-arrow"> → </span>');
+    }
+
+    // 7. Update session stats UI
+    updateSessionStatsUI();
+
+    // 8. Execute action inside webview
     await gameController.executeAction(webviewElement, result.action);
 
-    // Schedule next run
-    const delay = result.action.type === 'wait' ? result.action.duration_ms : 1800;
+    // Schedule next run with adaptive delay
+    const MIN_DELAY = 100;
+    const MAX_DELAY = 5000;
+    let delay = 1800;
+    if (result.action.type === 'wait') {
+      delay = result.action.duration_ms || 1000;
+    } else if (typeof result.next_delay_ms === 'number') {
+      delay = Math.min(MAX_DELAY, Math.max(MIN_DELAY, result.next_delay_ms));
+    }
     executionTimer = setTimeout(runAgentLoop, delay);
 
   } catch (err) {
@@ -941,6 +1021,50 @@ function logMessage(text, type = 'system') {
 
 function logSystemMessage(text) {
   logMessage(text, 'system');
+}
+
+// Render session memory stats to the right sidebar
+function updateSessionStatsUI() {
+  const mem = agentBrain._sessionMem;
+  if (!mem) return;
+
+  if (sessSteps) sessSteps.textContent = mem.totalSteps || 0;
+  if (sessBugs) sessBugs.textContent = mem.bugsFound || 0;
+  if (sessStuck) sessStuck.textContent = mem.stuckEvents || 0;
+  if (sessRecoveries) sessRecoveries.textContent = mem.recoveries || 0;
+
+  // Action type breakdown
+  if (actionMixEl) {
+    const counts = mem.actionTypeCounts || {};
+    const total = Object.values(counts).reduce((s, v) => s + v, 0);
+    if (total === 0) {
+      actionMixEl.innerHTML = '<em>No actions yet.</em>';
+    } else {
+      const bars = Object.entries(counts)
+        .filter(([, v]) => v > 0)
+        .sort((a, b) => b[1] - a[1])
+        .map(([k, v]) => {
+          const pct = Math.round((v / total) * 100);
+          return `<div class="mix-bar"><span>${k}</span><div class="mix-track"><div class="mix-fill" style="width:${pct}%"></div></div><span>${pct}%</span></div>`;
+        }).join('');
+      actionMixEl.innerHTML = bars;
+    }
+  }
+
+  // Top click zones
+  if (heatmapZonesEl) {
+    const zones = mem.clickHeatmapZones || {};
+    const topZones = Object.entries(zones).sort((a, b) => b[1] - a[1]).slice(0, 3);
+    if (topZones.length === 0) {
+      heatmapZonesEl.innerHTML = '';
+    } else {
+      heatmapZonesEl.innerHTML = '<div class="zones-label">Top Click Zones:</div>' +
+        topZones.map(([k, v]) => {
+          const [gx, gy] = k.split('_');
+          return `<span class="zone-chip">(${gx * 100}–${gx * 100 + 99}, ${gy * 100}–${gy * 100 + 99}) ×${v}</span>`;
+        }).join(' ');
+    }
+  }
 }
 
 // Triggered when agent pauses, reveals trace slider

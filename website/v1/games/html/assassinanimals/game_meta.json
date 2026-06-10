@@ -1,0 +1,9 @@
+{
+  "name": "Assassin Animals",
+  "objective": "Control an assassin animal character to defeat enemies and complete the level objective.",
+  "controls": "WASD or Arrow Keys to move. Space or mouse click to attack. Look for on-screen prompts.",
+  "known_states": ["menu", "playing", "game_over", "level_complete"],
+  "win_condition": "Eliminate all enemies or reach the level exit without dying.",
+  "avoid": "Taking too many hits from enemies. Falling into hazards.",
+  "tips": "Find and click the Start or Play button first. During gameplay attack enemies before they reach you. On game_over look for Retry or Restart button."
+}
