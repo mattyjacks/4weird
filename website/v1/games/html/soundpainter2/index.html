@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<!--
+    Sound Painter 2 - 4weird Game
+    An advanced music production studio for 4weird Games
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Sound Painter 2 - 4weird Games</title>
+    <meta name="description" content="Step into a web-based music studio. Program beats, shape synth parameters, adjust dynamic filters, visual effects, and share your sound paintings via URL.">
+    <meta name="keywords" content="4weird, Sound Painter 2, HTML5 game, Synth, Sequencer, Music Studio">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Sound Painter 2 - 4weird Games">
+    <meta property="og:description" content="Create music with visualizers, oscillators, filters, effects, and shareable paintings.">
+    <meta property="og:type" content="website">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎹</text></svg>">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Base Styles -->
+    <link rel="stylesheet" href="../../../styles.css">
+    <link rel="stylesheet" href="game.css">
+    
+    <!-- Game Metadata -->
+    <script src="game.json" type="application/json" id="game-metadata"></script>
+</head>
+<body class="TEMPLATE-4weird-game-page">
+    <!-- Background Canvas -->
+    <canvas id="TEMPLATE-4weird-starfield"></canvas>
+    
+    <!-- Navigation placeholder -->
+    <div id="TEMPLATE-4weird-nav-placeholder"></div>
+    
+    <!-- Header Bar -->
+    <header class="TEMPLATE-4weird-game-header">
+        <div class="TEMPLATE-4weird-game-header-inner">
+            <a href="/" class="TEMPLATE-4weird-back-link">
+                <span class="TEMPLATE-4weird-back-arrow">-</span>
+                <span>Back to 4weird</span>
+            </a>
+            <h1 class="TEMPLATE-4weird-game-title" id="TEMPLATE-4weird-game-title">Sound Painter 2</h1>
+            <div class="TEMPLATE-4weird-game-meta" id="TEMPLATE-4weird-game-meta">
+                <span class="TEMPLATE-4weird-game-genre">Creative</span>
+                <span class="TEMPLATE-4weird-separator">-</span>
+                <span class="TEMPLATE-4weird-game-status live">LIVE</span>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Studio Area -->
+    <main class="TEMPLATE-4weird-game-main studio-main">
+        <div class="studio-frame">
+            <!-- Audio Context Activator Overlay / Start Screen -->
+            <div class="studio-overlay" id="start-screen">
+                <div class="overlay-card">
+                    <div class="studio-logo">🎛️</div>
+                    <h2>SOUND PAINTER II</h2>
+                    <p class="subtitle">Advanced Audio-Visual Synthesis & sequencing workstation</p>
+                    <button class="btn-activate-studio" id="btn-start-studio">
+                        <span>INITIALIZE STUDIO</span>
+                    </button>
+                    <div class="shortcuts-hint">
+                        <p><kbd>Space</kbd> Play/Stop | <kbd>C</kbd> Clear Track | <kbd>R</kbd> Reset Studio</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Dashboard: Presets & Transport -->
+            <div class="studio-dashboard">
+                <div class="dashboard-left">
+                    <button class="control-btn transport-btn" id="btn-play-stop" title="Play / Stop (Space)">
+                        <span class="icon">▶</span> <span class="label">Play</span>
+                    </button>
+                    <button class="control-btn" id="btn-clear-track" title="Clear steps of the active track (C)">
+                        <span>Clear Track</span>
+                    </button>
+                    <button class="control-btn" id="btn-reset-all" title="Reset everything to default (R)">
+                        <span>Reset Studio</span>
+                    </button>
+                </div>
+
+                <!-- Global Tempo -->
+                <div class="dashboard-tempo">
+                    <label for="input-bpm">TEMPO</label>
+                    <input type="range" id="input-bpm" min="60" max="200" value="120" class="studio-slider">
+                    <span id="label-bpm" class="numeric-display">120 BPM</span>
+                </div>
+
+                <div class="dashboard-right">
+                    <!-- Presets Selector -->
+                    <div class="selector-container">
+                        <label for="select-preset">SONG PRESET</label>
+                        <select id="select-preset" class="studio-select">
+                            <option value="">-- Choose Preset --</option>
+                            <option value="neon-synthwave">Neon Synthwave</option>
+                            <option value="techno-pulse">Techno Pulse</option>
+                            <option value="ambient-dreams">Ambient Dreams</option>
+                            <option value="chiptune-groove">Chiptune Groove</option>
+                        </select>
+                    </div>
+
+                    <!-- Share System -->
+                    <button class="control-btn highlight-btn" id="btn-share-song">
+                        <span class="icon">🔗</span> Share Painting
+                    </button>
+                </div>
+            </div>
+
+            <!-- Real-time Visualizer Panel -->
+            <div class="visualizer-container">
+                <canvas id="visualizer-canvas"></canvas>
+                <div class="visualizer-label">MASTER OUTPUT OSCILLOSCOPE & FFT</div>
+            </div>
+
+            <!-- Studio Mixer and Parameter Control Panel -->
+            <div class="studio-mixer">
+                <!-- Channel Strips (Track selectors) -->
+                <div class="channels-column">
+                    <h3>CHANNELS</h3>
+                    <div class="track-channel active" data-track="lead">
+                        <div class="channel-header">
+                            <span class="status-indicator"></span>
+                            <span class="channel-title">Lead Synth</span>
+                        </div>
+                        <div class="channel-faders">
+                            <div class="fader-group">
+                                <label>VOL</label>
+                                <input type="range" class="channel-vol" min="0" max="1" step="0.05" value="0.7">
+                            </div>
+                            <div class="fader-group">
+                                <label>PAN</label>
+                                <input type="range" class="channel-pan" min="-1" max="1" step="0.1" value="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="track-channel" data-track="bass">
+                        <div class="channel-header">
+                            <span class="status-indicator"></span>
+                            <span class="channel-title">Sub Bass</span>
+                        </div>
+                        <div class="channel-faders">
+                            <div class="fader-group">
+                                <label>VOL</label>
+                                <input type="range" class="channel-vol" min="0" max="1" step="0.05" value="0.7">
+                            </div>
+                            <div class="fader-group">
+                                <label>PAN</label>
+                                <input type="range" class="channel-pan" min="-1" max="1" step="0.1" value="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="track-channel" data-track="chords">
+                        <div class="channel-header">
+                            <span class="status-indicator"></span>
+                            <span class="channel-title">Pad Synth</span>
+                        </div>
+                        <div class="channel-faders">
+                            <div class="fader-group">
+                                <label>VOL</label>
+                                <input type="range" class="channel-vol" min="0" max="1" step="0.05" value="0.6">
+                            </div>
+                            <div class="fader-group">
+                                <label>PAN</label>
+                                <input type="range" class="channel-pan" min="-1" max="1" step="0.1" value="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="track-channel" data-track="drums">
+                        <div class="channel-header">
+                            <span class="status-indicator"></span>
+                            <span class="channel-title">Drum Machine</span>
+                        </div>
+                        <div class="channel-faders">
+                            <div class="fader-group">
+                                <label>VOL</label>
+                                <input type="range" class="channel-vol" min="0" max="1" step="0.05" value="0.8">
+                            </div>
+                            <div class="fader-group">
+                                <label>PAN</label>
+                                <input type="range" class="channel-pan" min="-1" max="1" step="0.1" value="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Parameters Controls Panel (changes dynamically or shows all in sections) -->
+                <div class="parameters-column">
+                    <h3>SYNTH CONTROLS & EFFECTS</h3>
+                    <div class="parameters-grid">
+                        <div class="param-card">
+                            <span class="param-title">FILTER CUTOFF</span>
+                            <input type="range" id="param-cutoff" min="100" max="10000" step="50" value="2000" class="studio-slider">
+                            <span id="display-cutoff" class="param-val">2000 Hz</span>
+                        </div>
+                        <div class="param-card">
+                            <span class="param-title">FILTER RESONANCE</span>
+                            <input type="range" id="param-q" min="0" max="15" step="0.5" value="2" class="studio-slider">
+                            <span id="display-q" class="param-val">2.0</span>
+                        </div>
+                        <div class="param-card">
+                            <span class="param-title">ENVELOPE DECAY</span>
+                            <input type="range" id="param-decay" min="0.05" max="2.0" step="0.05" value="0.3" class="studio-slider">
+                            <span id="display-decay" class="param-val">0.3s</span>
+                        </div>
+                        <div class="param-card">
+                            <span class="param-title">SYNTH WAVEFORM</span>
+                            <select id="param-waveform" class="studio-select mini-select">
+                                <option value="sawtooth">Sawtooth</option>
+                                <option value="square">Square</option>
+                                <option value="triangle">Triangle</option>
+                                <option value="sine">Sine</option>
+                            </select>
+                        </div>
+                        <div class="param-card">
+                            <span class="param-title">DELAY LEVEL</span>
+                            <input type="range" id="param-delay-gain" min="0" max="0.8" step="0.05" value="0.2" class="studio-slider">
+                            <span id="display-delay-gain" class="param-val">20%</span>
+                        </div>
+                        <div class="param-card">
+                            <span class="param-title">DELAY FEEDBACK</span>
+                            <input type="range" id="param-delay-feedback" min="0" max="0.9" step="0.05" value="0.4" class="studio-slider">
+                            <span id="display-delay-feedback" class="param-val">40%</span>
+                        </div>
+                        <div class="param-card">
+                            <span class="param-title">DELAY TIME</span>
+                            <input type="range" id="param-delay-time" min="0.1" max="1.0" step="0.05" value="0.3" class="studio-slider">
+                            <span id="display-delay-time" class="param-val">0.3s</span>
+                        </div>
+                        <div class="param-card">
+                            <span class="param-title">REVERB SPACE</span>
+                            <input type="range" id="param-reverb" min="0" max="0.8" step="0.05" value="0.15" class="studio-slider">
+                            <span id="display-reverb" class="param-val">15%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sequencer Grid Header / Indicators -->
+            <div class="sequencer-steps-indicator">
+                <div class="notes-label-padding">Track Scale</div>
+                <div class="steps-indicators-grid">
+                    <!-- Dynamic active playhead steps 1-16 generated here -->
+                </div>
+            </div>
+
+            <!-- Sequencer Work Area -->
+            <div class="sequencer-container">
+                <div class="sequencer-y-labels" id="sequencer-y-labels">
+                    <!-- Note names or drum sample names -->
+                </div>
+                <div class="sequencer-grid" id="sequencer-grid">
+                    <!-- Step buttons (Grid cells) will be generated here dynamically by game.js -->
+                </div>
+            </div>
+            
+            <!-- Instructions and Share feedback banner -->
+            <div class="share-feedback hidden" id="share-banner">
+                <span>Copied shareable URL to clipboard! 🎵</span>
+            </div>
+        </div>
+        
+        <!-- Info Sidebar -->
+        <aside class="TEMPLATE-4weird-game-info-panel studio-info">
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>About Sound Painter II</h3>
+                <p>Welcome to a fully loaded music workstation. You have 4 synthesizers/tracks playing in perfect lockstep sync. Edit one track at a time by clicking channels on the left.</p>
+            </div>
+            
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>Keyboard Shortcuts</h3>
+                <ul class="shortcuts-list">
+                    <li><kbd>Space</kbd> - Play / Stop</li>
+                    <li><kbd>C</kbd> - Clear Active Grid</li>
+                    <li><kbd>R</kbd> - Reset Studio</li>
+                    <li><kbd>Click</kbd> - Toggle note step</li>
+                </ul>
+            </div>
+
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>Synthesis Guide</h3>
+                <p><strong>Lead Synth:</strong> High-pitched solo voice. Try changing its wave to square for a chiptune feel!</p>
+                <p><strong>Sub Bass:</strong> Rich low-end. High filter cutoff gives crunchy bass; low cutoff gives clean sub.</p>
+                <p><strong>Pad Synth:</strong> Rich chord accompaniment triggered automatically from chords root notes.</p>
+                <p><strong>Drum Machine:</strong> Percussive synth voices. Kick, Snare, Hi-hat, and Clap elements.</p>
+            </div>
+        </aside>
+    </main>
+    
+    <!-- Credits Section -->
+    <section class="TEMPLATE-4weird-credits-section" id="TEMPLATE-4weird-credits">
+        <div class="TEMPLATE-4weird-credits-container">
+            <h2 class="TEMPLATE-4weird-credits-title">Credits</h2>
+            <div class="TEMPLATE-4weird-credits-grid" id="TEMPLATE-4weird-credits-grid">
+                <!-- Populated from game.json or JS -->
+            </div>
+        </div>
+    </section>
+    
+    <!-- Maker Bio Section -->
+    <section class="TEMPLATE-4weird-bio-section" id="TEMPLATE-4weird-bio">
+        <div class="TEMPLATE-4weird-bio-container">
+            <h2 class="TEMPLATE-4weird-bio-title">About the Creator</h2>
+            <div class="TEMPLATE-4weird-bio-content" id="TEMPLATE-4weird-maker-bio">
+                <p>Sound Painter II is a music performance interface built with Vanilla Web Audio API and CSS, enabling instant music production on any device.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="TEMPLATE-4weird-footer">
+        <div class="TEMPLATE-4weird-footer-content">
+            <p>🎹 <span id="TEMPLATE-4weird-footer-title">Sound Painter 2</span> - A 4weird Game</p>
+            <p style="margin-top: 8px;">
+                <a href="../../../privacy-policy.html">Privacy Policy</a>
+                <span class="TEMPLATE-4weird-footer-separator">|</span>
+                <a href="../../../index.html#games">More Games</a>
+                <span class="TEMPLATE-4weird-footer-separator">|</span>
+                <a href="/">4weird Home</a>
+            </p>
+        </div>
+    </footer>
+    
+    <!-- Scripts -->
+    <script src="../../../components.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

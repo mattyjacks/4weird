@@ -72,3 +72,43 @@
     image-rendering: pixelated;
     -ms-interpolation-mode: nearest-neighbor;
 }
+
+/* Controls container */
+.TEMPLATE-4weird-game-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 5;
+    display: flex;
+    gap: 12px;
+}
+
+/* Play button custom styling to make it feel premium */
+#TEMPLATE-4weird-play-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(139, 92, 246, 0.25);
+    border: 1px solid rgba(139, 92, 246, 0.6);
+    color: var(--text-primary);
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+}
+
+#TEMPLATE-4weird-play-btn:hover {
+    background: rgba(16, 185, 129, 0.25);
+    border-color: var(--neon-green);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+#TEMPLATE-4weird-play-btn:active,
+#TEMPLATE-4weird-play-btn.playing {
+    background: var(--neon-green);
+    color: var(--bg-primary);
+    border-color: var(--neon-green-light);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+    transform: scale(0.95);
+}

@@ -545,6 +545,9 @@ function saveSettings() {
 
   // Sync to AutoCode system
   autoCodeSystem.updateConfig({
+    provider: settings.provider,
+    apiKey: settings.apiKey,
+    endpointUrl: settings.localUrl,
     autoChooseModel: settings.autoChooseModel,
     largestModelAllowed: settings.largestModelAllowed,
     useProForExtreme: settings.useProForExtreme,
@@ -2282,9 +2285,8 @@ async function executeVibeCode() {
         }
       });
 
-      // This would normally display the diff
-      // For now, show a placeholder
-      showAutoCodeDiff(autoCodeFileContent, autoCodeFileContent); // Placeholder
+      // Display the actual diff
+      showAutoCodeDiff(autoCodeFileContent, result.modifications);
     }
   } catch (err) {
     logMessage(`Vibe Code failed: ${err.message}`, 'error');
@@ -2333,8 +2335,12 @@ function discardAutoCodeChanges() {
 
 async function applyAutoCodeChanges() {
   try {
-    // This would apply the actual changes
-    logSystemMessage('Changes applied successfully!');
+    if (autoCodeSystem.proposedChanges) {
+      autoCodeSystem.applyChanges(autoCodeSystem.proposedChanges);
+      logSystemMessage('Changes applied successfully!');
+    } else {
+      logMessage('No changes to apply.', 'warning');
+    }
     discardAutoCodeChanges();
 
     // Refresh the code view

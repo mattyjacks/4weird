@@ -10,6 +10,11 @@ class AutoCodeConfig {
     this.largestModelAllowed = 'gpt-5.4';
     this.useProForExtreme = false;
 
+    // Credentials / API settings
+    this.provider = 'openai';
+    this.apiKey = '';
+    this.endpointUrl = '';
+
     // Budget & token limits
     this.budgetLimit = 0.05; // $0.05 default
     this.maxInputTokens = 30000;

@@ -182,6 +182,89 @@ Output format:
 - Do not include explanations before or after the code`;
   }
 
+  async callLLM(prompt, model) {
+    const provider = this.config.provider || 'openai';
+    const apiKey = this.config.apiKey || '';
+    const endpointUrl = this.config.endpointUrl || '';
+    
+    let url = '';
+    let headers = { 'Content-Type': 'application/json' };
+    let body = {};
+
+    if (provider === 'openai') {
+      url = 'https://api.openai.com/v1/chat/completions';
+      headers['Authorization'] = `Bearer ${apiKey}`;
+      body = {
+        model: model || 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }]
+      };
+    } else if (provider === 'gemini') {
+      const activeModel = model || 'gemini-2.5-flash';
+      url = `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent?key=${apiKey}`;
+      body = {
+        contents: [{ parts: [{ text: prompt }] }]
+      };
+    } else if (provider === 'openrouter') {
+      url = 'https://openrouter.ai/api/v1/chat/completions';
+      headers['Authorization'] = `Bearer ${apiKey}`;
+      headers['HTTP-Referer'] = 'https://github.com/mattyjacks/4weird';
+      headers['X-Title'] = 'AutoCode IDE';
+      body = {
+        model: model || 'google/gemini-2.5-flash',
+        messages: [{ role: 'user', content: prompt }]
+      };
+    } else if (provider === 'local') {
+      url = endpointUrl || 'http://localhost:11434/api/chat';
+      const activeModel = model || 'llama3';
+      if (url.includes('/api/chat')) {
+        body = {
+          model: activeModel,
+          stream: false,
+          messages: [{ role: 'user', content: prompt }]
+        };
+      } else {
+        body = {
+          model: activeModel,
+          messages: [{ role: 'user', content: prompt }]
+        };
+      }
+    }
+
+    this.log(`Sending AutoCode LLM Request to ${provider} using model ${model}`);
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`LLM API Call failed: ${response.status} ${response.statusText} - ${errText}`);
+    }
+
+    const data = await response.json();
+    let contentString = '';
+
+    if (provider === 'gemini') {
+      if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
+        contentString = data.candidates[0].content.parts[0].text;
+      } else {
+        throw new Error("Unexpected Gemini API response format");
+      }
+    } else {
+      if (data.choices && data.choices[0] && data.choices[0].message) {
+        contentString = data.choices[0].message.content;
+      } else if (data.message && data.message.content) {
+        contentString = data.message.content;
+      } else {
+        throw new Error("Unexpected LLM API response format");
+      }
+    }
+
+    return contentString;
+  }
+
   // Generation
   async generateModifications(instruction) {
     if (this.isProcessing) {
@@ -193,12 +276,27 @@ Output format:
 
     try {
       const payload = this.buildPayload(instruction);
+      const responseText = await this.callLLM(payload.context, payload.model);
+      
+      let cleanCode = responseText.trim();
+      if (cleanCode.startsWith('```')) {
+        const lines = cleanCode.split('\n');
+        if (lines[0].startsWith('```')) {
+          lines.shift();
+        }
+        if (lines[lines.length - 1].startsWith('```')) {
+          lines.pop();
+        }
+        cleanCode = lines.join('\n').trim();
+      }
+
+      this.proposedChanges = cleanCode;
 
       const result = {
         success: true,
         model: payload.model,
         cost: payload.costEstimate,
-        modifications: null
+        modifications: cleanCode
       };
 
       this.debugAPI.recordResponse(result);

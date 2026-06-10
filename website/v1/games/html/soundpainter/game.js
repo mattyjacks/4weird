@@ -361,6 +361,44 @@
         startGame();
     });
 
+    // Play button hold/tap logic
+    let playInterval = null;
+    const playBtn = document.getElementById('TEMPLATE-4weird-play-btn');
+
+    function startPlayingPattern(e) {
+        if (e) {
+            e.preventDefault();
+        }
+        if (!state.isPlaying || state.isPaused) return;
+        
+        // Visual state
+        playBtn.classList.add('playing');
+        
+        // Play once immediately
+        playAll();
+        
+        // Loop interval (every 800ms)
+        if (playInterval) clearInterval(playInterval);
+        playInterval = setInterval(playAll, 800);
+    }
+
+    function stopPlayingPattern(e) {
+        if (e) {
+            e.preventDefault();
+        }
+        playBtn.classList.remove('playing');
+        if (playInterval) {
+            clearInterval(playInterval);
+            playInterval = null;
+        }
+    }
+
+    // Pointer events for desktop and mobile support
+    playBtn.addEventListener('pointerdown', startPlayingPattern);
+    playBtn.addEventListener('pointerup', stopPlayingPattern);
+    playBtn.addEventListener('pointerleave', stopPlayingPattern);
+    playBtn.addEventListener('pointercancel', stopPlayingPattern);
+
     // Window resize handling
     window.addEventListener('resize', resizeCanvas);
 

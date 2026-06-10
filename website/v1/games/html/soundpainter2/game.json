@@ -1,0 +1,48 @@
+{
+    "title": "Sound Painter 2",
+    "slug": "soundpainter2",
+    "description": "An advanced web-based music production studio and step sequencer. Draw notes across multiple instruments, customize synthesizer sound parameters, apply digital audio effects, and share your compositions via URL.",
+    "genre": "Creative",
+    "tags": ["HTML5", "Creative", "Music", "Interactive", "Synthesizer", "Sequencer"],
+    "maker": {
+        "name": "WewennJr",
+        "bio": "Independent contributor creating games for the 4weird platform. I build creative, playable experiences using pure HTML5 and vanilla JavaScript. Sound Painter 2 is a sequel that moves closer to a full desktop music workstation.",
+        "url": "",
+        "urlLabel": ""
+    },
+    "credits": [
+        {
+            "name": "WewennJr",
+            "role": "Game Creator",
+            "avatar": "🎹",
+            "primary": true,
+            "url": "",
+            "urlLabel": ""
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "Click Cells": "Toggle Note Step",
+            "Space": "Play / Stop Sequencer",
+            "C Key": "Clear Current Track Grid",
+            "R Key": "Reset All Tracks & Settings"
+        },
+        "touch": true,
+        "mouse": true
+    },
+    "instructions": "Select a Track (Melody, Bass, Chords, Drums) from the channel list, then click cells on the grid to schedule notes. Play/Stop with Space. Customize the sound using synth parameters like filter cutoff, reverb, decay, and tempo. Load preset songs, or copy a URL to share your creations.",
+    "technical": {
+        "canvasSize": {"width": 800, "height": 200},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [],
+        "local": ["game.js", "game.css"]
+    },
+    "meta": {
+        "version": "2.0.0",
+        "created": "2026-06-10",
+        "license": "MIT"
+    }
+}

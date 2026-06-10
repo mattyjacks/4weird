@@ -96,6 +96,7 @@ class SpaceGameCore {
 
   async initializeSystems() {
     const systems = [
+      'SpaceDustSystem',
       'LightingSystem',
       'StarfieldSystem',
       'SolarSystemSystem',
@@ -121,6 +122,8 @@ class SpaceGameCore {
 
   async createSystem(systemName) {
     switch (systemName) {
+      case 'SpaceDustSystem':
+        return new SpaceDustSystem(this.systems.get('scene'));
       case 'LightingSystem':
         return new LightingSystem(this.systems.get('scene'));
       case 'StarfieldSystem':
@@ -215,6 +218,9 @@ class SpaceGameCore {
     const scaledDt = deltaTime * 5.0;
 
     // Local visual-only updates
+    const spaceDustSystem = this.systems.get('spacedustsystem');
+    if (spaceDustSystem) spaceDustSystem.update(scaledDt);
+
     const starfieldSystem = this.systems.get('starfieldsystem');
     if (starfieldSystem) starfieldSystem.update(scaledDt);
 
@@ -254,7 +260,8 @@ class SpaceGameCore {
             id: id,
             pos: { x: alien.position.x, y: alien.position.y, z: alien.position.z },
             speed: alien.speed,
-            health: alien.health
+            health: alien.health,
+            isBoss: alien.isBoss || false
           });
         });
       }
@@ -402,7 +409,8 @@ class SpaceGameCore {
                   const dy = proj.pos.y - alien.pos.y;
                   const dz = proj.pos.z - alien.pos.z;
                   const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
-                  if (dist < 15.0) {
+                  const hitRadius = alien.isBoss ? 45.0 : 15.0;
+                  if (dist < hitRadius) {
                     collisions.push({
                       type: 'alien_hit',
                       alienId: alien.id,
@@ -634,7 +642,16 @@ class SpaceGameCore {
       if (Date.now() - alien.lastShot > nextShotDelay) {
         const targetShip = shipSystem.getRandomShip();
         if (targetShip) {
-          projSystem.fire(alien.position, targetShip.position, 'alien');
+          if (alien.isBoss) {
+            // Boss shoots 3 spread projectiles
+            projSystem.fire(alien.position, targetShip.position, 'alien');
+            const leftOffset = new THREE.Vector3(-15, 0, -10).applyQuaternion(alien.mesh.quaternion);
+            const rightOffset = new THREE.Vector3(15, 0, -10).applyQuaternion(alien.mesh.quaternion);
+            projSystem.fire(new THREE.Vector3().copy(alien.position).add(leftOffset), targetShip.position, 'alien');
+            projSystem.fire(new THREE.Vector3().copy(alien.position).add(rightOffset), targetShip.position, 'alien');
+          } else {
+            projSystem.fire(alien.position, targetShip.position, 'alien');
+          }
           alien.lastShot = Date.now();
         }
       }
@@ -809,6 +826,99 @@ class SpaceGameCore {
     }
     this.systems.clear();
     this.state.initialized = false;
+  }
+}
+
+
+// Space Dust System (Dynamic Speed Particles)
+class SpaceDustSystem {
+  constructor(scene) {
+    this.scene = scene;
+    this.dust = null;
+    this.particleCount = 600;
+    this.initialize();
+  }
+
+  initialize() {
+    const geometry = new THREE.BufferGeometry();
+    const positions = [];
+    const colors = [];
+
+    for (let i = 0; i < this.particleCount; i++) {
+      positions.push(
+        (Math.random() - 0.5) * 400,
+        (Math.random() - 0.5) * 150,
+        (Math.random() - 0.5) * 600
+      );
+
+      const color = new THREE.Color();
+      if (Math.random() < 0.5) {
+        color.setHSL(0.5, 0.9, 0.85); // Cyan
+      } else {
+        color.setHSL(0.8, 0.9, 0.85); // Purple
+      }
+      colors.push(color.r, color.g, color.b);
+    }
+
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+    const material = new THREE.PointsMaterial({
+      size: 1.0,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.8,
+      blending: THREE.AdditiveBlending
+    });
+
+    this.dust = new THREE.Points(geometry, material);
+    this.scene.add(this.dust);
+  }
+
+  update(deltaTime) {
+    if (!this.dust) return;
+
+    const positions = this.dust.geometry.attributes.position.array;
+    const core = this.core;
+    const shipSystem = core ? core.getSystem('shipsystem') : null;
+    const leadShip = shipSystem ? shipSystem.getLeadShip() : null;
+
+    let speedVec = new THREE.Vector3(0, 0, 1);
+    if (leadShip) {
+      const forwardVec = new THREE.Vector3(0, 0, -1).applyQuaternion(leadShip.quaternion);
+      speedVec.copy(forwardVec).multiplyScalar(-1);
+    }
+
+    const speed = 120;
+    for (let i = 0; i < positions.length; i += 3) {
+      positions[i] += speedVec.x * speed * deltaTime;
+      positions[i + 1] += speedVec.y * speed * deltaTime;
+      positions[i + 2] += speedVec.z * speed * deltaTime;
+
+      const pz = positions[i + 2];
+      const relativeZ = leadShip ? pz - leadShip.position.z : pz;
+      
+      if (relativeZ > 300) {
+        positions[i] = leadShip ? leadShip.position.x + (Math.random() - 0.5) * 400 : (Math.random() - 0.5) * 400;
+        positions[i + 1] = leadShip ? leadShip.position.y + (Math.random() - 0.5) * 150 : (Math.random() - 0.5) * 150;
+        positions[i + 2] = leadShip ? leadShip.position.z - 300 : -300;
+      } else if (relativeZ < -300) {
+        positions[i] = leadShip ? leadShip.position.x + (Math.random() - 0.5) * 400 : (Math.random() - 0.5) * 400;
+        positions[i + 1] = leadShip ? leadShip.position.y + (Math.random() - 0.5) * 150 : (Math.random() - 0.5) * 150;
+        positions[i + 2] = leadShip ? leadShip.position.z + 300 : 300;
+      }
+    }
+
+    this.dust.geometry.attributes.position.needsUpdate = true;
+  }
+
+  destroy() {
+    if (this.dust) {
+      this.scene.remove(this.dust);
+      this.dust.geometry.dispose();
+      this.dust.material.dispose();
+      this.dust = null;
+    }
   }
 }
 
@@ -1286,6 +1396,62 @@ class AlienSystem {
     }
   }
 
+  async spawnBoss(centerPos = new THREE.Vector3(0, 0, -80)) {
+    this.aliens.forEach(alien => this.group.remove(alien.mesh));
+    this.aliens.clear();
+
+    const id = 'alien_mothership';
+    const alienMesh = new THREE.Group();
+    
+    const bodyGeom = new THREE.CylinderGeometry(15, 15, 4, 12);
+    const bodyMat = new THREE.MeshStandardMaterial({
+      color: 0x18181a,
+      metalness: 0.9,
+      roughness: 0.2,
+      flatShading: true
+    });
+    const body = new THREE.Mesh(bodyGeom, bodyMat);
+    body.rotation.x = Math.PI / 2;
+    alienMesh.add(body);
+
+    const domeGeom = new THREE.SphereGeometry(8, 12, 12, 0, Math.PI * 2, 0, Math.PI / 2);
+    const domeMat = new THREE.MeshBasicMaterial({ color: 0xff00ff, wireframe: true });
+    const dome = new THREE.Mesh(domeGeom, domeMat);
+    dome.position.y = 2.1;
+    dome.rotation.x = -Math.PI / 2;
+    alienMesh.add(dome);
+
+    const wingGeom = new THREE.BoxGeometry(32, 1, 8);
+    const wing = new THREE.Mesh(wingGeom, bodyMat);
+    alienMesh.add(wing);
+
+    const trailGeom = new THREE.ConeGeometry(2.0, 10.0, 6);
+    trailGeom.rotateX(Math.PI / 2);
+    const trailMat = new THREE.MeshBasicMaterial({
+      color: 0xff00ff,
+      transparent: true,
+      opacity: 0.7
+    });
+    const trail = new THREE.Mesh(trailGeom, trailMat);
+    trail.position.set(0, 0, 7);
+    alienMesh.add(trail);
+
+    const spawnPos = new THREE.Vector3().copy(centerPos).add(new THREE.Vector3(0, 0, -120));
+    alienMesh.position.copy(spawnPos);
+    this.group.add(alienMesh);
+
+    this.aliens.set(id, {
+      mesh: alienMesh,
+      trail: trail,
+      position: alienMesh.position,
+      speed: 6,
+      health: 500,
+      maxHealth: 500,
+      lastShot: 0,
+      isBoss: true
+    });
+  }
+
   getNearestAlien(pos) {
     let nearest = null;
     let minDist = Infinity;
@@ -1562,6 +1728,12 @@ class QuestSystem {
         title: `SCAN NEBULA ANOMALY`,
         desc: `Deploy sensor vectors to investigate spatial energy signatures.`,
         duration: 10
+      },
+      {
+        type: 'BOSS',
+        title: `DEFEAT ALIEN MOTHERSHIP`,
+        desc: `A massive spatial distortion detected! Intercept and destroy the Alien Mothership.`,
+        duration: 35
       }
     ];
 
@@ -1594,6 +1766,13 @@ class QuestSystem {
       const alienSys = this.core.getSystem('aliensystem');
       if (alienSys) {
         alienSys.spawnWave(planet.group.position);
+      }
+    }
+
+    if (chosen.type === 'BOSS') {
+      const alienSys = this.core.getSystem('aliensystem');
+      if (alienSys) {
+        alienSys.spawnBoss(planet.group.position);
       }
     }
 
@@ -1678,6 +1857,16 @@ class QuestSystem {
               this.questProgress = 100;
             } else {
               this.questProgress = (this.enemyKills / 3) * 100;
+            }
+          }
+        } else if (this.activeQuest.type === 'BOSS') {
+          const alienSys = this.core.getSystem('aliensystem');
+          if (alienSys) {
+            const boss = alienSys.aliens.get('alien_mothership');
+            if (!boss || boss.health <= 0) {
+              this.questProgress = 100;
+            } else {
+              this.questProgress = ((boss.maxHealth - boss.health) / boss.maxHealth) * 100;
             }
           }
         }
