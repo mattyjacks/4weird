@@ -71,8 +71,14 @@
     // Calculate tile position from mouse/touch
     function getTileAt(x, y) {
         const rect = canvas.getBoundingClientRect();
+<<<<<<< HEAD
         const localX = x - rect.left;
         const localY = y - rect.top;
+=======
+        const dpr = window.devicePixelRatio || 1;
+        const localX = (x - rect.left) * dpr;
+        const localY = (y - rect.top) * dpr;
+>>>>>>> c74a4f0e970468708928871f6f4dfeac370442fd
 
         const gridStartX = GRID_PADDING;
         const gridStartY = GRID_PADDING;
@@ -127,10 +133,13 @@
             tileCount++;
             state.score = tileCount;
             document.getElementById('TEMPLATE-4weird-high-score').textContent = tileCount;
+<<<<<<< HEAD
         } else {
             tileCount--;
             state.score = tileCount;
             document.getElementById('TEMPLATE-4weird-high-score').textContent = tileCount;
+=======
+>>>>>>> c74a4f0e970468708928871f6f4dfeac370442fd
         }
 
         // Play sound

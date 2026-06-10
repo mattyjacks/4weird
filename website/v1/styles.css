@@ -276,6 +276,8 @@ body {
 .thumb-discoveramerica::before { content: '🧭 ⛵ 🌊 🗽'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; letter-spacing: 8px; animation: float 3s ease-in-out infinite; }
 .thumb-template { background: linear-gradient(135deg, #1a1a2e 0%, #4c1d95 50%, #7c3aed 100%); position: relative; }
 .thumb-template::before { content: '📋 ✨ 🎮 📐'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; letter-spacing: 8px; animation: float 3s ease-in-out infinite; }
+.thumb-soundpainter { background: linear-gradient(135deg, #2d1b4e 0%, #6b21a8 50%, #d946ef 100%); position: relative; }
+.thumb-soundpainter::before { content: '🎨 🎵 🌈 🎶'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; letter-spacing: 8px; animation: float 3s ease-in-out infinite; }
 .template-badge { background: linear-gradient(135deg, var(--neon-purple), #7c3aed); color: var(--text-primary); }
 .team { background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%); }
 .team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; max-width: 800px; margin: 0 auto; }
