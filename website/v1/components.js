@@ -116,7 +116,7 @@
             const gaScript = document.createElement('script');
             gaScript.id = 'ga-script';
             gaScript.async = true;
-            gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID';
+            gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-KZ03RW8P96';
             document.head.appendChild(gaScript);
 
             const gaConfig = document.createElement('script');
@@ -124,7 +124,7 @@
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}
                 gtag('js', new Date());
-                gtag('config', 'GA_MEASUREMENT_ID');
+                gtag('config', 'G-KZ03RW8P96');
             `;
             document.head.appendChild(gaConfig);
         }
