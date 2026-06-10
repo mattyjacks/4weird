@@ -3,12 +3,26 @@ const path = require('path');
 const { ipcRenderer } = require('electron');
 const AgentBrain = require('../agent_brain');
 const GameController = require('../game_controller');
-const { AutoCodeSystem } = require('../autocode_core');
+const {
+  AutoCodeSystem,
+  PromptHistory,
+  DraftManager,
+  TemplateLibrary,
+  ToastNotifier,
+  KeyboardShortcuts
+} = require('../autocode_core');
 
 // Instantiate cores
 const agentBrain = new AgentBrain();
 const gameController = new GameController();
 const autoCodeSystem = new AutoCodeSystem();
+
+// QOL Helper Classes
+const promptHistory = new PromptHistory(20);
+const draftManager = new DraftManager();
+const templateLibrary = new TemplateLibrary();
+const toastNotifier = new ToastNotifier();
+const keyboardShortcuts = new KeyboardShortcuts();
 
 // App states
 let isRunning = false;
@@ -1755,6 +1769,369 @@ function setupAutoCodeEventListeners() {
 
   // Populate AutoCode file select from source files
   populateAutoCodeFileSelect();
+
+  // ============================================================
+  // QOL FEATURES SETUP
+  // ============================================================
+
+  // 1. Keyboard Shortcuts
+  setupAutoCodeKeyboardShortcuts();
+
+  // 2. Setup Templates UI
+  setupTemplatesUI();
+
+  // 3. Setup Prompt History UI
+  setupPromptHistoryUI();
+
+  // 4. Setup Auto-Save for Drafts
+  setupDraftAutoSave();
+
+  // 5. Setup Copy-to-Clipboard Buttons
+  setupCopyButtons();
+
+  // 6. Show welcome toast
+  setTimeout(() => {
+    toastNotifier.info('AutoCode ready! Press Ctrl+Enter to vibe code', { duration: 5000 });
+  }, 1000);
+}
+
+// Setup Keyboard Shortcuts
+function setupAutoCodeKeyboardShortcuts() {
+  // Ctrl+Enter: Execute Vibe Code
+  keyboardShortcuts.register('ctrl+enter', () => {
+    if (autocodePromptInput && document.activeElement === autocodePromptInput) {
+      executeVibeCode();
+    }
+  }, 'Execute Vibe Code');
+
+  // Ctrl+Shift+C: Copy current file content
+  keyboardShortcuts.register('ctrl+shift+c', () => {
+    if (autoCodeFileContent) {
+      navigator.clipboard.writeText(autoCodeFileContent);
+      toastNotifier.success('File content copied to clipboard');
+    }
+  }, 'Copy file content');
+
+  // Ctrl+Shift+S: Trigger screenshot
+  keyboardShortcuts.register('ctrl+shift+s', () => {
+    triggerManualScreenshotCapture();
+  }, 'Capture screenshot');
+
+  // Escape: Close diff panel or dismiss modals
+  keyboardShortcuts.register('escape', () => {
+    if (autocodeDiffSection && !autocodeDiffSection.classList.contains('hidden')) {
+      discardAutoCodeChanges();
+    }
+  }, 'Dismiss changes');
+
+  // Ctrl+K: Focus prompt input
+  keyboardShortcuts.register('ctrl+k', () => {
+    if (autocodePromptInput) {
+      autocodePromptInput.focus();
+      autocodePromptInput.select();
+    }
+  }, 'Focus prompt input');
+
+  // Ctrl+Shift+H: Toggle history dropdown
+  keyboardShortcuts.register('ctrl+shift+h', () => {
+    togglePromptHistoryDropdown();
+  }, 'Toggle prompt history');
+}
+
+// Setup Templates UI
+function setupTemplatesUI() {
+  // Create template selector dropdown
+  const templateContainer = document.createElement('div');
+  templateContainer.className = 'template-selector-container';
+  templateContainer.style.cssText = `
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    align-items: center;
+  `;
+
+  const label = document.createElement('label');
+  label.textContent = 'Quick Template:';
+  label.style.cssText = 'font-size: 0.75rem; color: var(--text-secondary); white-space: nowrap;';
+
+  const select = document.createElement('select');
+  select.id = 'template-select';
+  select.style.cssText = `
+    flex: 1;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid rgba(0,242,254,0.3);
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+  `;
+
+  // Add default option
+  select.innerHTML = '<option value="">-- Choose Template --</option>';
+
+  // Add templates from library
+  templateLibrary.getAllTemplates().forEach(tmpl => {
+    const opt = document.createElement('option');
+    opt.value = tmpl.id;
+    opt.textContent = `${tmpl.icon} ${tmpl.name}`;
+    select.appendChild(opt);
+  });
+
+  select.addEventListener('change', () => {
+    const tmpl = templateLibrary.getTemplate(select.value);
+    if (tmpl && autocodePromptInput) {
+      autocodePromptInput.value = tmpl.template;
+      autocodePromptInput.focus();
+      toastNotifier.info(`Template loaded: ${tmpl.name}. Fill in the {{placeholders}}!`);
+    }
+    select.value = ''; // Reset to default
+  });
+
+  templateContainer.appendChild(label);
+  templateContainer.appendChild(select);
+
+  // Insert before the prompt input
+  const promptSection = document.querySelector('.prompt-workspace-section');
+  if (promptSection) {
+    promptSection.insertBefore(templateContainer, promptSection.firstChild);
+  }
+}
+
+// Setup Prompt History UI
+function setupPromptHistoryUI() {
+  // Create history button and dropdown
+  const historyContainer = document.createElement('div');
+  historyContainer.className = 'prompt-history-container';
+  historyContainer.style.cssText = `
+    position: relative;
+    display: inline-block;
+  `;
+
+  const historyBtn = document.createElement('button');
+  historyBtn.id = 'btn-prompt-history';
+  historyBtn.innerHTML = '📜 History';
+  historyBtn.style.cssText = `
+    background: rgba(0,242,254,0.1);
+    border: 1px solid rgba(0,242,254,0.3);
+    color: var(--accent-cyan);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  `;
+
+  const dropdown = document.createElement('div');
+  dropdown.id = 'prompt-history-dropdown';
+  dropdown.className = 'hidden';
+  dropdown.style.cssText = `
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    width: 350px;
+    max-height: 300px;
+    background: rgba(22, 25, 41, 0.98);
+    border: 1px solid rgba(0,242,254,0.3);
+    border-radius: 8px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  `;
+
+  historyBtn.addEventListener('click', () => {
+    dropdown.classList.toggle('hidden');
+    if (!dropdown.classList.contains('hidden')) {
+      renderPromptHistoryDropdown(dropdown);
+    }
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!historyContainer.contains(e.target)) {
+      dropdown.classList.add('hidden');
+    }
+  });
+
+  historyContainer.appendChild(historyBtn);
+  historyContainer.appendChild(dropdown);
+
+  // Insert into the toolbar area
+  const toolbar = document.querySelector('.autocode-toolbar');
+  if (toolbar) {
+    toolbar.appendChild(historyContainer);
+  }
+}
+
+function togglePromptHistoryDropdown() {
+  const dropdown = document.getElementById('prompt-history-dropdown');
+  if (dropdown) {
+    dropdown.classList.toggle('hidden');
+    if (!dropdown.classList.contains('hidden')) {
+      renderPromptHistoryDropdown(dropdown);
+    }
+  }
+}
+
+function renderPromptHistoryDropdown(container) {
+  const history = promptHistory.getRecent(10);
+
+  if (history.length === 0) {
+    container.innerHTML = `
+      <div style="padding: 20px; text-align: center; color: var(--text-secondary); font-size: 0.85rem;">
+        No prompt history yet.<br>Your recent prompts will appear here.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = history.map(entry => `
+    <div class="history-item" data-id="${entry.id}" style="
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      cursor: pointer;
+      transition: background 0.2s ease;
+    " onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+      <div style="font-size: 0.8rem; color: white; line-height: 1.4; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+        ${escapeHtml(entry.prompt)}
+      </div>
+      <div style="font-size: 0.65rem; color: var(--text-secondary); display: flex; justify-content: space-between;">
+        <span>${new Date(entry.timestamp).toLocaleString()}</span>
+        ${entry.metadata.fileEdited ? `<span>${entry.metadata.fileEdited}</span>` : ''}
+      </div>
+    </div>
+  `).join('');
+
+  // Add click handlers
+  container.querySelectorAll('.history-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const id = parseInt(item.dataset.id);
+      const entry = promptHistory.getAll().find(h => h.id === id);
+      if (entry && autocodePromptInput) {
+        autocodePromptInput.value = entry.prompt;
+        autocodePromptInput.focus();
+        container.classList.add('hidden');
+        toastNotifier.success('Prompt restored from history');
+      }
+    });
+  });
+}
+
+// Setup Draft Auto-Save
+function setupDraftAutoSave() {
+  draftManager.onChange((event, data) => {
+    if (event === 'save') {
+      console.log(`[Draft Auto-Save] Saved draft for ${data.filePath} (v${data.version})`);
+    }
+  });
+
+  // Start auto-save with 5 second interval
+  draftManager.startAutoSave(() => {
+    if (autocodeFileSelect?.value && autocodePromptInput?.value) {
+      return {
+        filePath: autocodeFileSelect.value,
+        content: autocodePromptInput.value,
+        metadata: {
+          timestamp: Date.now(),
+          hasContent: autocodePromptInput.value.length > 0
+        }
+      };
+    }
+    return null;
+  });
+
+  // Check for existing draft on file load
+  if (autocodeFileSelect) {
+    autocodeFileSelect.addEventListener('change', () => {
+      const filePath = autocodeFileSelect.value;
+      if (filePath) {
+        const draft = draftManager.getDraft(filePath);
+        if (draft && draft.content && autocodePromptInput) {
+          // Ask user if they want to restore
+          toastNotifier.warning(`Draft found for this file`, {
+            duration: 10000,
+            action: {
+              text: 'Restore',
+              callback: () => {
+                autocodePromptInput.value = draft.content;
+                toastNotifier.success('Draft restored!');
+              }
+            }
+          });
+        }
+      }
+    });
+  }
+}
+
+// Setup Copy-to-Clipboard Buttons
+function setupCopyButtons() {
+  // Add copy button to code editor
+  if (autocodeEditorView) {
+    const copyBtn = document.createElement('button');
+    copyBtn.innerHTML = '📋 Copy';
+    copyBtn.className = 'btn btn-small btn-secondary copy-btn';
+    copyBtn.style.cssText = `
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      font-size: 0.7rem;
+      padding: 4px 10px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    `;
+
+    const editorContainer = autocodeEditorView.parentElement;
+    editorContainer.style.position = 'relative';
+    editorContainer.appendChild(copyBtn);
+
+    // Show on hover
+    editorContainer.addEventListener('mouseenter', () => copyBtn.style.opacity = '1');
+    editorContainer.addEventListener('mouseleave', () => copyBtn.style.opacity = '0');
+
+    copyBtn.addEventListener('click', () => {
+      if (autoCodeFileContent) {
+        navigator.clipboard.writeText(autoCodeFileContent);
+        toastNotifier.success('File content copied!');
+      }
+    });
+  }
+
+  // Add copy button to prompt input
+  if (autocodePromptInput) {
+    const wrapper = autocodePromptInput.parentElement;
+    if (wrapper) {
+      const copyPromptBtn = document.createElement('button');
+      copyPromptBtn.innerHTML = '📋';
+      copyPromptBtn.title = 'Copy prompt';
+      copyPromptBtn.style.cssText = `
+        position: absolute;
+        right: 80px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+        opacity: 0.6;
+        transition: opacity 0.2s ease;
+      `;
+
+      wrapper.style.position = 'relative';
+      wrapper.appendChild(copyPromptBtn);
+
+      copyPromptBtn.addEventListener('click', () => {
+        if (autocodePromptInput.value) {
+          navigator.clipboard.writeText(autocodePromptInput.value);
+          toastNotifier.success('Prompt copied!');
+        }
+      });
+
+      copyPromptBtn.addEventListener('mouseenter', () => copyPromptBtn.style.opacity = '1');
+      copyPromptBtn.addEventListener('mouseleave', () => copyPromptBtn.style.opacity = '0.6');
+    }
+  }
 }
 
 function updateAutoCodeConfig() {
@@ -1884,12 +2261,41 @@ async function executeVibeCode() {
     if (result.success) {
       logSystemMessage(`Generated modifications using ${result.model}. Estimated cost: ${result.cost.formatted}`);
 
+      // Add to prompt history
+      promptHistory.add(autocodePromptInput.value, {
+        fileEdited: autocodeFileSelect?.value || 'unknown',
+        modelUsed: result.model,
+        success: true,
+        cost: result.cost.formatted
+      });
+
+      // Show success toast
+      toastNotifier.success(`Generated with ${result.model}!`, {
+        action: {
+          text: 'View Diff',
+          callback: () => {
+            // Scroll to diff section
+            if (autocodeDiffSection) {
+              autocodeDiffSection.scrollIntoView({ behavior: 'smooth' });
+            }
+          }
+        }
+      });
+
       // This would normally display the diff
       // For now, show a placeholder
       showAutoCodeDiff(autoCodeFileContent, autoCodeFileContent); // Placeholder
     }
   } catch (err) {
     logMessage(`Vibe Code failed: ${err.message}`, 'error');
+    toastNotifier.error(`Generation failed: ${err.message}`);
+
+    // Add failed attempt to history
+    promptHistory.add(autocodePromptInput.value, {
+      fileEdited: autocodeFileSelect?.value || 'unknown',
+      success: false,
+      error: err.message
+    });
   } finally {
     btnVibeCode.disabled = false;
     btnVibeCode.innerHTML = '<span>⚡ VIBE CODE</span>';

@@ -1197,3 +1197,133 @@ textarea:focus {
 .diff-container div:hover {
   background: rgba(255, 255, 255, 0.03);
 }
+
+/* ─── TOAST ANIMATIONS ────────────────────────────────────────────── */
+@keyframes slideIn {
+  from {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+}
+
+/* ─── TEMPLATE SELECTOR ───────────────────────────────────────────── */
+.template-selector-container select:hover {
+  border-color: var(--accent-cyan);
+}
+
+.template-selector-container select:focus {
+  outline: none;
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 8px rgba(0, 242, 254, 0.2);
+}
+
+/* ─── PROMPT HISTORY DROPDOWN ──────────────────────────────────────── */
+.prompt-history-container #btn-prompt-history:hover {
+  background: rgba(0, 242, 254, 0.2);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.15);
+}
+
+#prompt-history-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+#prompt-history-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(0, 242, 254, 0.3);
+  border-radius: 3px;
+}
+
+#prompt-history-dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.history-item:last-child {
+  border-bottom: none !important;
+}
+
+/* ─── COPY BUTTONS ──────────────────────────────────────────────────── */
+.copy-btn {
+  backdrop-filter: blur(4px);
+}
+
+.copy-btn:hover {
+  background: rgba(0, 242, 254, 0.15) !important;
+  border-color: var(--accent-cyan) !important;
+  color: var(--accent-cyan) !important;
+}
+
+/* ─── LOADING STATES ──────────────────────────────────────────────── */
+.btn-loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── ACCESSIBILITY ─────────────────────────────────────────────── */
+.keyboard-focus:focus {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
+/* ─── SCROLLBAR STYLING ──────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ─── SELECTION COLORS ────────────────────────────────────────────── */
+::selection {
+  background: rgba(0, 242, 254, 0.3);
+  color: white;
+}
+
+::-moz-selection {
+  background: rgba(0, 242, 254, 0.3);
+  color: white;
+}
