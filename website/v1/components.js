@@ -52,6 +52,7 @@
                 </button>
                 <ul class="nav-menu" id="navMenu">
                     <li><a href="https://4weird.com/games" class="nav-link">Games</a></li>
+                    <li><a href="${basePath}tech.html" class="nav-link">Technology</a></li>
                     <li><a href="${isRoot ? '#contribute' : basePath + 'index.html#contribute'}" class="nav-link">Contribute</a></li>
                     <li><a href="${isRoot ? '#contact' : basePath + 'index.html#contact'}" class="nav-link nav-cta">Contact MattyJacks</a></li>
                 </ul>

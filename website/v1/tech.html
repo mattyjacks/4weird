@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4weird Technology - Next-Gen Autonomous Game Development Platform</title>
+    <meta name="description" content="Invest in the future of autonomous play. 4weird Games is leveraging agentic automation (AIPlay) and generative workflows to disrupt traditional game studio overhead.">
+    <meta name="keywords" content="4weird technology, AIPlay, autonomous QA, investment pitch, game startup, AI playtesting, tech stack">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Inter:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan-glow: rgba(6, 182, 212, 0.4);
+            --neon-purple-glow: rgba(139, 92, 246, 0.4);
+            --neon-green-glow: rgba(16, 185, 129, 0.4);
+        }
+
+        .tech-hero {
+            padding: 160px 0 100px;
+            background: radial-gradient(circle at top, rgba(139, 92, 246, 0.15) 0%, rgba(6, 182, 212, 0.05) 40%, transparent 70%);
+            text-align: center;
+            position: relative;
+        }
+
+        /* Ambient glowing background decorations */
+        .glow-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+            pointer-events: none;
+        }
+        .orb-1 { width: 300px; height: 300px; background: var(--neon-purple-glow); top: 10%; left: 15%; }
+        .orb-2 { width: 250px; height: 250px; background: var(--neon-cyan-glow); top: 40%; right: 10%; }
+
+        .tech-hero h1 {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 7vw, 5.5rem);
+            margin-bottom: 25px;
+            font-weight: 900;
+            letter-spacing: -2px;
+            text-transform: uppercase;
+        }
+
+        .tech-hero-subtitle {
+            font-size: 1.35rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin: 0 auto 40px;
+            line-height: 1.8;
+            font-weight: 300;
+        }
+
+        .investor-badge {
+            font-size: 0.8rem;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(139, 92, 246, 0.15));
+            color: var(--neon-cyan);
+            border-radius: 30px;
+            font-family: var(--font-display);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.15);
+        }
+
+        /* Grid elements and glassmorphic cards */
+        .tech-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 80px;
+            margin: 60px 0;
+        }
+
+        .tech-detail-item {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            background: linear-gradient(135deg, rgba(26, 26, 37, 0.6), rgba(18, 18, 26, 0.8));
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            padding: 50px;
+            border-radius: 32px;
+            backdrop-filter: blur(20px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .tech-detail-item:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 30px 60px rgba(6, 182, 212, 0.15), inset 0 0 20px rgba(6, 182, 212, 0.05);
+            transform: translateY(-5px);
+        }
+
+        @media (max-width: 1024px) {
+            .tech-detail-item {
+                grid-template-columns: 1fr;
+                padding: 40px;
+                gap: 40px;
+            }
+            .tech-detail-item.reverse {
+                direction: ltr;
+            }
+        }
+
+        .tech-detail-content h2 {
+            font-family: var(--font-display);
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--text-primary), var(--neon-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        .tech-detail-content p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        /* Live Terminal Simulation */
+        .live-terminal {
+            background: #05050a;
+            border: 1px solid rgba(0, 242, 254, 0.4);
+            border-radius: 16px;
+            font-family: 'Share Tech Mono', monospace;
+            padding: 24px;
+            height: 320px;
+            overflow-y: hidden;
+            color: #00f2fe;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 242, 254, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .terminal-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(0, 242, 254, 0.2);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+        }
+
+        .terminal-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .terminal-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .dot-red { background: #ef4444; }
+        .dot-yellow { background: #eab308; }
+        .dot-green { background: #10b981; }
+
+        .terminal-body {
+            flex: 1;
+            overflow-y: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .terminal-line {
+            opacity: 0;
+            animation: fadeInLine 0.4s forwards;
+            display: flex;
+            gap: 10px;
+        }
+
+        .terminal-prompt {
+            color: var(--neon-purple-light);
+        }
+
+        .terminal-log-text {
+            color: #f5f5f5;
+        }
+
+        .terminal-log-success {
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .terminal-log-error {
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        @keyframes fadeInLine {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Interactive ROI Calculator Section */
+        .calculator-container {
+            background: linear-gradient(135deg, rgba(26, 26, 37, 0.8), rgba(18, 18, 26, 0.95));
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            box-shadow: 0 20px 50px rgba(16, 185, 129, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            margin: 60px auto;
+            max-width: 900px;
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .calculator-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .calculator-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .slider-group label {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .slider-group label span {
+            color: var(--neon-green-light);
+            font-weight: bold;
+        }
+
+        .calc-slider {
+            width: 100%;
+            accent-color: var(--neon-green-light);
+            background: rgba(255, 255, 255, 0.1);
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .calculator-results {
+            background: rgba(10, 10, 15, 0.7);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .result-title {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .result-amount {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: var(--neon-green-light);
+            text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .result-detail {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Large investment opportunities blocks */
+        .opportunities-section {
+            background: radial-gradient(circle at bottom, rgba(6, 182, 212, 0.1) 0%, transparent 60%);
+            padding: 100px 0;
+            border-top: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .pitch-deck-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .pitch-card {
+            background: rgba(26, 26, 37, 0.5);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 20px;
+            padding: 35px;
+            transition: all 0.3s ease;
+        }
+
+        .pitch-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 15px 30px rgba(6, 182, 212, 0.15);
+        }
+
+        .pitch-card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .pitch-card h3 {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .pitch-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Ambient Blur Background -->
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <canvas id="starfield"></canvas>
+
+    <!-- Navigation placeholder - injected by components.js -->
+    <div id="nav-placeholder"></div>
+
+    <!-- Tech Hero -->
+    <section class="tech-hero">
+        <div class="container reveal">
+            <div class="investor-badge">
+                <span>💸</span> Seed Round Open — 4weird Tech Pitch
+            </div>
+            <h1>Automated <span class="title-accent">Play</span> &amp; Profit</h1>
+            <p class="tech-hero-subtitle">We are replacing expensive manual QA and engineering friction with agentic loop systems. Build multi-million dollar game catalog yields on 10x smaller studio budgets.</p>
+            
+            <div class="hero-cta">
+                <a href="#investors" class="btn btn-primary">
+                    <span class="btn-emoji">🤝</span> Partner / Invest Now
+                </a>
+                <a href="#demo-console" class="btn btn-secondary">
+                    <span class="btn-emoji">🤖</span> View Live Agent Console
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Live Agent Demo Section -->
+    <section class="section" id="demo-console">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-emoji">📟</span>
+                <h2 class="section-title">Live Playtesting Agent stream</h2>
+                <p class="section-subtitle">Observe our autonomous debugging agent (AIPlay) playing games, catching anomalies, and rewriting code on the fly.</p>
+            </div>
+
+            <div class="tech-detail-item reveal" style="grid-template-columns: 1.2fr 0.8fr; gap: 40px; margin-top: 30px;">
+                <div class="live-terminal">
+                    <div class="terminal-header">
+                        <div class="terminal-dots">
+                            <span class="terminal-dot dot-red"></span>
+                            <span class="terminal-dot dot-yellow"></span>
+                            <span class="terminal-dot dot-green"></span>
+                        </div>
+                        <div>aiplay_agent_session_07.log</div>
+                        <div id="terminal-status" style="color: var(--neon-green-light);">RUNNING</div>
+                    </div>
+                    <div class="terminal-body" id="terminal-body">
+                        <!-- Instantiated dynamically via script -->
+                    </div>
+                </div>
+                <div class="tech-detail-content">
+                    <span style="color: var(--neon-cyan); font-weight: 700; font-family: var(--font-display); font-size: 0.85rem; text-transform: uppercase;">Real-Time Execution Logs</span>
+                    <h3 style="font-family: var(--font-display); font-size: 1.6rem; color: #fff; margin: 10px 0 15px;">Zero-Human QA Automation</h3>
+                    <p style="font-size: 0.95rem; line-height: 1.6;">AIPlay continuously checks repository files, launches sandboxed runs, executes millions of input variations (speed-dilated to 5x using our time-dilation wrapper), and resolves crashes by communicating with LLMs.</p>
+                    <p style="font-size: 0.95rem; line-height: 1.6;">Once verification succeeds, code updates are pushed safely into staging, reducing QA bottlenecks to absolute zero.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Technology Blocks -->
+    <section class="section">
+        <div class="container">
+            <div class="tech-detail-grid">
+                
+                <!-- AIPlay Platform -->
+                <div class="tech-detail-item reveal">
+                    <div class="tech-detail-content">
+                        <span style="color: var(--neon-purple-light); font-weight: bold; font-family: var(--font-display); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">01. Flagship Intellectual Property</span>
+                        <h2>AIPlay Agent Core (ai/v1/aiplay)</h2>
+                        <p>Our autonomous core runner manages playtesting sessions, error backpropagation, and semantic layout parsing. In traditional pipelines, layout glitches require visual verification from design staff. AIPlay automates this with local vision processing APIs.</p>
+                        <ul class="tech-specs-list" style="margin-top: 15px;">
+                            <li><strong>Automated Self-Fixing:</strong> Generates code patches on error logs, runs regression tests, and commits clean solutions.</li>
+                            <li><strong>Electron Sandbox Runtime:</strong> Seamlessly captures audio canvas nodes, canvas states, and Three.js matrices.</li>
+                        </ul>
+                    </div>
+                    <div class="tech-detail-image-container">
+                        <img src="images/4weird aiplay 1 - Screenshot 2026-06-10 163239.jpg" alt="AIPlay Debugging Screenshot">
+                    </div>
+                </div>
+
+                <!-- Web Audio Synth -->
+                <div class="tech-detail-item reveal reverse" style="direction: rtl;">
+                    <div class="tech-detail-content" style="direction: ltr;">
+                        <span style="color: var(--neon-cyan); font-weight: bold; font-family: var(--font-display); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">02. Infinite Generative Audio</span>
+                        <h2>Sound Painter 2 Synthesizer</h2>
+                        <p>Procedural games require procedural music. Our Sound Painter 2 engine allows games to dynamically adjust synthesis patterns, delay filters, and polyphonic lines according to player health or game tension.</p>
+                        <p>No storage overhead. Full synth tracks are generated in real-time by browser oscillators, saving bandwidth and lowering hosting fees.</p>
+                    </div>
+                    <div class="tech-detail-image-container" style="direction: ltr;">
+                        <div style="background: linear-gradient(135deg, #181024 0%, #4c1d95 50%, #d946ef 100%); width: 100%; height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: var(--font-display); border-radius: 12px; color: var(--text-primary); font-size: 1.5rem; gap: 8px; border: 1px solid rgba(139, 92, 246, 0.4); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                            <span style="font-size: 3.5rem;">🎹</span>
+                            <span>Sound Painter 2 Synth</span>
+                            <span style="font-size: 0.8rem; color: var(--neon-cyan); letter-spacing: 2px;">Web Audio API Architecture</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive ROI Calculator Section -->
+    <section class="section" style="background: rgba(10, 10, 15, 0.5); border-top: 1px solid rgba(16, 185, 129, 0.2); border-bottom: 1px solid rgba(16, 185, 129, 0.2);">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-emoji">🧮</span>
+                <h2 class="section-title">Investor ROI Calculator</h2>
+                <p class="section-subtitle">Calculate the budget savings of deploying 4weird agentic automation vs. a traditional studio layout.</p>
+            </div>
+
+            <div class="calculator-container reveal">
+                <div class="calculator-grid">
+                    <div class="calculator-inputs">
+                        <div class="slider-group">
+                            <label for="games-slider">Games in Development: <span id="games-val">5</span></label>
+                            <input type="range" id="games-slider" min="1" max="25" value="5" class="calc-slider">
+                        </div>
+                        <div class="slider-group">
+                            <label for="devs-slider">Standard Developers Replaced: <span id="devs-val">8</span></label>
+                            <input type="range" id="devs-slider" min="1" max="50" value="8" class="calc-slider">
+                        </div>
+                        <div class="slider-group">
+                            <label for="qa-weeks-slider">Manual QA Weeks Saved: <span id="qa-weeks-val">12</span></label>
+                            <input type="range" id="qa-weeks-slider" min="2" max="52" value="12" class="calc-slider">
+                        </div>
+                    </div>
+                    <div class="calculator-results">
+                        <div class="result-title">Projected Annual Savings</div>
+                        <div class="result-amount" id="savings-amount">$940,000</div>
+                        <div class="result-detail">
+                            By utilizing AIPlay debugging and automated freelancer orchestration, your studio saves development cycles, accelerates launches, and maximizes profits.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Investment Opportunities Section -->
+    <section class="opportunities-section" id="investors">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-emoji">🤝</span>
+                <h2 class="section-title">Why Invest in 4weird?</h2>
+                <p class="section-subtitle">Disrupting the unit economics of game development.</p>
+            </div>
+
+            <p style="max-width: 800px; margin: 0 auto; text-align: center; font-size: 1.15rem; line-height: 1.8; color: var(--text-secondary);" class="reveal">
+                Gaming is a $200B+ market, yet studio operations remain labor-intensive and plagued by overhead. 4weird is constructing the first fully automated indie studio game loop. We generate assets, auto-fix layouts, run playtesting swarms, and launch globally on the web with instant loading speeds.
+            </p>
+
+            <div class="pitch-deck-container reveal">
+                <div class="pitch-card">
+                    <div class="pitch-card-icon">⚡</div>
+                    <h3>Massive Margins</h3>
+                    <p>Zero local hardware overhead. Our global talent and automation stacks ensure that game updates are committed at 90% lower developer cost than standard studios.</p>
+                </div>
+                <div class="pitch-card">
+                    <div class="pitch-card-icon">📈</div>
+                    <h3>Proprietary IP Assets</h3>
+                    <p>AIPlay, Sound Painter engines, time-dilation debug containers, and our talent dispatcher remain 100% owned by the holding company 4weird and MattyJacks.com.</p>
+                </div>
+                <div class="pitch-card">
+                    <div class="pitch-card-icon">🚀</div>
+                    <h3>Instant Global Reach</h3>
+                    <p>No console licensing delays or installer barriers. Our pure HTML5/Three.js engines boot up instantly on mobile or desktop browsers, driving rapid consumer adoption.</p>
+                </div>
+            </div>
+
+            <div class="hiring-cta reveal" style="max-width: 700px; margin: 60px auto 0; border-color: rgba(6, 182, 212, 0.4); background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(139, 92, 246, 0.05));">
+                <p class="hiring-text" style="font-family: var(--font-display); font-weight: bold; color: var(--neon-cyan);">Partner with Us</p>
+                <p style="color: var(--text-secondary); margin-bottom: 30px; font-size: 0.95rem;">
+                    For seed round investment inquiries, pitch decks, or live product demonstrations, reach out directly to the founder.
+                </p>
+                <a href="mailto:Matt@MattyJacks.com" class="btn btn-primary" style="background: linear-gradient(135deg, var(--neon-cyan), #0891b2); box-shadow: 0 4px 15px rgba(6, 182, 212, 0.4);">
+                    <span class="btn-emoji">📧</span> Request Pitch Deck (Matt@MattyJacks.com)
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer placeholder - injected by components.js -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <script src="components.js"></script>
+    <script src="script.js"></script>
+
+    <!-- Interactive Features Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Simulated terminal loop ---
+            const terminalLines = [
+                { type: 'prompt', text: 'Initializing AIPlay agent session...' },
+                { type: 'text', text: 'Connecting sandbox window to game build: website/v1/games/html/gravegain2d/index.html' },
+                { type: 'text', text: 'Time dilation speed factor set: 5.0x' },
+                { type: 'prompt', text: 'Simulating high-frequency keyboard & mouse runs...' },
+                { type: 'text', text: 'Checking canvas rendering matrix...' },
+                { type: 'text', text: 'Agent health check: active.' },
+                { type: 'error', text: 'CSS Layout Exception caught: overflow detected on Botany HUD layer' },
+                { type: 'prompt', text: 'Backpropagating to code corrector (LLM prompt compiled)' },
+                { type: 'text', text: 'Writing inline patch to style.css: Botany HUD absolute positioning rule' },
+                { type: 'success', text: 'Code update applied successfully to website/v1/games/html/gravegain2d/css/style.css' },
+                { type: 'prompt', text: 'Running regression testing (10 cycles)' },
+                { type: 'success', text: 'Regressions passed: 10/10' },
+                { type: 'prompt', text: 'Checking memory leaks...' },
+                { type: 'text', text: 'Heap stable: 45MB' },
+                { type: 'success', text: 'Verification cycle complete. Status: STABLE' }
+            ];
+
+            const terminalBody = document.getElementById('terminal-body');
+            let logIndex = 0;
+
+            function addTerminalLine() {
+                if (!terminalBody) return;
+                const log = terminalLines[logIndex];
+                
+                const lineDiv = document.createElement('div');
+                lineDiv.className = 'terminal-line';
+                
+                const promptSpan = document.createElement('span');
+                promptSpan.className = 'terminal-prompt';
+                promptSpan.textContent = 'aiplay-agent$';
+                lineDiv.appendChild(promptSpan);
+
+                const textSpan = document.createElement('span');
+                if (log.type === 'success') {
+                    textSpan.className = 'terminal-log-success';
+                } else if (log.type === 'error') {
+                    textSpan.className = 'terminal-log-error';
+                } else {
+                    textSpan.className = 'terminal-log-text';
+                }
+                textSpan.textContent = log.text;
+                lineDiv.appendChild(textSpan);
+
+                terminalBody.appendChild(lineDiv);
+                
+                // Scroll to bottom
+                terminalBody.scrollTop = terminalBody.scrollHeight;
+
+                // Loop index
+                logIndex = (logIndex + 1) % terminalLines.length;
+
+                // Limit lines displayed
+                if (terminalBody.childElementCount > 12) {
+                    terminalBody.removeChild(terminalBody.firstChild);
+                }
+
+                // Random delay for realism
+                setTimeout(addTerminalLine, 1200 + Math.random() * 1000);
+            }
+
+            // Start logging
+            addTerminalLine();
+
+            // --- ROI Calculator logic ---
+            const gamesSlider = document.getElementById('games-slider');
+            const devsSlider = document.getElementById('devs-slider');
+            const qaSlider = document.getElementById('qa-weeks-slider');
+            
+            const gamesVal = document.getElementById('games-val');
+            const devsVal = document.getElementById('devs-val');
+            const qaVal = document.getElementById('qa-weeks-val');
+            
+            const savingsAmount = document.getElementById('savings-amount');
+
+            function updateROI() {
+                const games = parseInt(gamesSlider.value);
+                const devs = parseInt(devsSlider.value);
+                const qaWeeks = parseInt(qaSlider.value);
+
+                gamesVal.textContent = games;
+                devsVal.textContent = devs;
+                qaVal.textContent = qaWeeks;
+
+                // Base values
+                const devSalaryAnnual = 120000; // Average engineer cost
+                const qaCostPerWeek = 4000;    // Cost of manual QA resource time per week
+
+                // Calculate savings
+                const devSavings = devs * devSalaryAnnual * 0.75; // Save 75% of dev overhead via agent code assists
+                const qaSavings = games * qaWeeks * qaCostPerWeek;
+
+                const totalSavings = devSavings + qaSavings;
+                
+                // Format
+                savingsAmount.textContent = new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD',
+                    maximumFractionDigits: 0
+                }).format(totalSavings);
+            }
+
+            if (gamesSlider && devsSlider && qaSlider) {
+                gamesSlider.addEventListener('input', updateROI);
+                devsSlider.addEventListener('input', updateROI);
+                qaSlider.addEventListener('input', updateROI);
+                updateROI();
+            }
+        });
+    </script>
+</body>
+</html>
