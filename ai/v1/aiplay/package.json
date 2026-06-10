@@ -1,0 +1,16 @@
+{
+  "name": "ai-game-player-debugger",
+  "version": "1.0.0",
+  "description": "AI-powered game player and debugging agent using Electron and local/remote LLMs.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^31.0.0"
+  }
+}

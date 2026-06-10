@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Playtest Runner & Debugger</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Space+Grotesk:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- LEFT SIDEBAR: CONTROL & CONFIGURATION -->
+    <aside class="sidebar control-panel glass">
+      <div class="sidebar-header">
+        <div class="glow-dot active"></div>
+        <h2>CONFIG PANEL</h2>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>1. LLM ENGINE SETTINGS</h3>
+        <div class="form-group">
+          <label for="provider-select">Provider</label>
+          <select id="provider-select">
+            <option value="openai">OpenAI (Cloud)</option>
+            <option value="openrouter">OpenRouter (Multi-model)</option>
+            <option value="local">Local Endpoint (Ollama/LM Studio)</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="apikey-group">
+          <label for="api-key">API Key</label>
+          <input type="password" id="api-key" placeholder="Enter sk-... or OpenRouter key">
+        </div>
+
+        <div class="form-group hidden" id="local-url-group">
+          <label for="local-url">API Endpoint URL</label>
+          <input type="text" id="local-url" placeholder="e.g. http://localhost:11434/api/chat">
+        </div>
+
+        <div class="form-group">
+          <label for="model-name">Model Identifier</label>
+          <input type="text" id="model-name" placeholder="e.g. gpt-5.4-mini-2026-03-17, llama3, etc.">
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>2. GAME TARGET</h3>
+        <div class="form-group">
+          <label for="game-url">Game Address (URL or local file://)</label>
+          <div class="input-row">
+            <input type="text" id="game-url" placeholder="http:// or file:///">
+            <button id="btn-load-url" class="btn btn-secondary">LOAD</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Quick Load Local Demos</label>
+          <select id="demo-game-select">
+            <option value="">-- Choose Local Game --</option>
+            <!-- Javascript will populate this with website/v1/games/html games -->
+          </select>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>3. GAME-SPECIFIC PLAY RULES</h3>
+        <div class="form-group">
+          <textarea id="game-rules" rows="3" placeholder="e.g. Press 'Space' to jump. Move using ArrowRight. Avoid spikes. Click 'Start Game' button at coordinates..."></textarea>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>4. NATIVE ENGINE SCANNER (Roblox/Godot/Unity/Unreal)</h3>
+        <div class="form-group">
+          <label for="native-process">Target Process</label>
+          <div class="input-row">
+            <select id="native-process">
+              <option value="">-- Scan / Select Game Window --</option>
+              <option value="RobloxPlayer">RobloxPlayerBeta.exe</option>
+              <option value="Godot">Godot_v4.exe (Godot Game)</option>
+              <option value="Unity">UnityPlayer.dll (Unity Game)</option>
+              <option value="Unreal">UnrealEngine.exe (Unreal Game)</option>
+            </select>
+            <button id="btn-scan-processes" class="btn btn-icon" title="Refresh processes">🔄</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-footer">
+        <button id="btn-toggle-agent" class="btn btn-primary btn-large disabled" disabled>
+          <span class="icon">▶</span> START AI AGENT
+        </button>
+      </div>
+    </aside>
+
+    <!-- CENTER PANEL: GAME VIEWPORT & AGENT MIND -->
+    <main class="main-content">
+      <header class="main-header glass">
+        <div class="title-area">
+          <h1>ANTIGRAVITY AI PLAYTESTER</h1>
+          <span class="badge" id="agent-state-badge">IDLE</span>
+        </div>
+        <div class="metrics-bar">
+          <div class="metric">
+            <span class="label">FPS:</span>
+            <span class="value" id="fps-val">--</span>
+            <canvas id="fps-chart" width="60" height="20"></canvas>
+          </div>
+          <div class="metric">
+            <span class="label">HEAP MEM:</span>
+            <span class="value" id="heap-val">-- MB</span>
+            <canvas id="heap-chart" width="60" height="20"></canvas>
+          </div>
+          <div class="metric">
+            <span class="label">STUCK:</span>
+            <span class="value" id="stuck-val">0/3</span>
+          </div>
+          <button id="btn-toggle-audio" class="btn btn-icon btn-small" title="Toggle Synth Sounds">🔊</button>
+        </div>
+      </header>
+
+      <section class="viewport-section glass">
+        <div class="viewport-bezel">
+          <!-- ELECTRON WEBVIEW COMPONENT -->
+          <webview id="game-webview" src="about:blank" style="width: 100%; height: 100%;" nodeintegrationinsubframes="false"></webview>
+          
+          <div class="no-game-placeholder" id="webview-placeholder">
+            <div class="placeholder-icon">🎮</div>
+            <h3>No Game Loaded</h3>
+            <p>Input a game address on the left and click <strong>LOAD</strong> to begin testing.</p>
+          </div>
+        </div>
+
+        <!-- TIMELINE SCRUBBER PLAYER -->
+        <div class="timeline-player hidden" id="timeline-container">
+          <button id="btn-timeline-play" class="btn btn-icon btn-small">⏸</button>
+          <input type="range" id="timeline-scrubber" min="0" max="0" value="0">
+          <span id="timeline-time">Tick: 0/0</span>
+        </div>
+
+        <div class="viewport-toolbar">
+          <button id="btn-webview-reload" class="btn btn-small btn-secondary">🔄 RELOAD GAME</button>
+          <button id="btn-webview-devtools" class="btn btn-small btn-secondary">🛠 OPEN GAME DEVTOOLS</button>
+          <button id="btn-manual-shot" class="btn btn-small btn-secondary">📸 SNAPSHOT FRAME</button>
+          <button id="btn-simulate-heuristic" class="btn btn-small btn-warning">🧪 FORCE HEURISTIC</button>
+        </div>
+      </section>
+
+      <!-- AGENT LOGIC MONITOR & GRAPHICS HEATMAP & CODE VIEWER -->
+      <section class="monitor-section">
+        <div class="monitor-card glass flex-2">
+          <div class="card-header">
+            <div class="tab-selectors">
+              <button class="tab-btn active" id="tab-logs">LOGS & ACTION TRACE</button>
+              <button class="tab-btn" id="tab-code">SOURCE CODE EXPLORER</button>
+            </div>
+            <button id="btn-clear-logs" class="btn btn-small btn-secondary">Clear</button>
+          </div>
+          <div class="card-body log-container" id="log-stream">
+            <div class="log-entry system">System initialized. Ready to load game URL...</div>
+          </div>
+          <div class="card-body code-explorer hidden" id="code-stream">
+            <div class="code-grid">
+              <div class="file-list" id="code-file-list">
+                <div class="empty-state">No source files crawled yet. Select and run a local game demo.</div>
+              </div>
+              <div class="file-content-wrapper">
+                <pre><code id="code-content-view">// Select a file to inspect its source code...</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="monitor-card glass flex-1">
+          <div class="card-header">
+            <h3>CURRENT FRAME BRAIN</h3>
+          </div>
+          <div class="card-body brain-visualizer">
+            <div class="brain-shot-wrapper">
+              <img id="brain-screenshot" src="" alt="Latest frame screenshot">
+              <div class="brain-placeholder">NO FRAME</div>
+              <canvas id="heatmap-overlay"></canvas>
+            </div>
+            <div class="brain-decision" id="brain-reasoning">
+              <em>Agent is waiting...</em>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- RIGHT SIDEBAR: BUG TRACKER & MEGA-PROMPT GENERATOR -->
+    <aside class="sidebar bug-panel glass">
+      <div class="sidebar-header">
+        <h2>BUG TRACKER</h2>
+        <span class="count-badge" id="bug-count">0</span>
+      </div>
+
+      <div class="bug-list" id="bugs-container">
+        <div class="empty-state">No bugs identified yet. Run the playtest agent to scan.</div>
+      </div>
+
+      <div class="sidebar-header border-top">
+        <h2>TOKEN MONITOR</h2>
+      </div>
+      <div class="token-stats-box">
+        <div class="token-grid">
+          <div class="token-row"><span>Last Run</span><span id="token-last-run">0</span></div>
+          <div class="token-row"><span>Hourly</span><span id="token-hourly">0</span></div>
+          <div class="token-row"><span>Daily</span><span id="token-daily">0</span></div>
+          <div class="token-row"><span>Weekly</span><span id="token-weekly">0</span></div>
+          <div class="token-row"><span>Yearly</span><span id="token-yearly">0</span></div>
+          <div class="token-row"><span>Lifetime</span><span id="token-lifetime">0</span></div>
+        </div>
+        <div class="form-group" style="margin-top: 8px; margin-bottom: 0;">
+          <label for="token-model-select">Filter Model</label>
+          <select id="token-model-select" style="padding: 6px 10px; font-size: 0.8rem;">
+            <option value="total">All Models (Combined)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sidebar-header border-top">
+        <h2>MEGA-PROMPT GENERATOR</h2>
+      </div>
+
+      <div class="prompt-generator-box">
+        <p class="box-desc">Generate an automated mega-prompt bundling screenshots, error logs, and game files to feed into code generation tools (Antigravity/Devin) for automated bug resolution.</p>
+        <button id="btn-generate-prompt" class="btn btn-primary btn-full">
+          ⚡ GENERATE AI BUG-FIX PROMPT
+        </button>
+        
+        <div class="prompt-output-wrapper hidden" id="prompt-output-container">
+          <div class="prompt-actions">
+            <span>Mega-Prompt Ready</span>
+            <button id="btn-copy-prompt" class="btn btn-small btn-secondary">Copy</button>
+          </div>
+          <textarea id="mega-prompt-output" readonly></textarea>
+        </div>
+      </div>
+
+      <div class="sidebar-header border-top">
+        <h2>REPLAY SCRIPTS</h2>
+      </div>
+      <div class="replay-section">
+        <button id="btn-save-replay" class="btn btn-secondary btn-full">💾 SAVE REPLAY FILE</button>
+        <div class="replay-status" id="replay-status-text">No active replay recorded.</div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- LIGHTBOX / DETAIL MODAL FOR DETECTED BUGS -->
+  <div class="modal hidden" id="bug-modal">
+    <div class="modal-content glass">
+      <span class="modal-close" id="btn-close-modal">&times;</span>
+      <h2 id="modal-bug-title">Bug Detail</h2>
+      <div class="modal-body">
+        <div class="modal-grid">
+          <div>
+            <h3>Console & System Logs</h3>
+            <pre id="modal-bug-logs"></pre>
+          </div>
+          <div>
+            <h3>Capture Frame</h3>
+            <img id="modal-bug-img" src="" alt="Bug Capture Screen">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
