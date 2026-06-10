@@ -53,6 +53,10 @@
                         <span class="hud-label">🏆 Score</span>
                         <span class="hud-value" id="hudScore">0</span>
                     </div>
+                    <div class="hud-stat score-stat">
+                        <span class="hud-label">👑 Best</span>
+                        <span class="hud-value" id="hudHighScore">0</span>
+                    </div>
                 </div>
             </div>
 
@@ -93,6 +97,7 @@
             <!-- Lower Action Row -->
             <div class="action-row">
                 <button class="btn btn-secondary" id="btnPauseGame">⏸️ Pause Game</button>
+                <button class="btn btn-secondary" id="btnToggleGameAudio">🔊 Sound</button>
                 <div class="equipped-readout">
                     <span class="readout-title">EQUIPPED:</span>
                     <div class="equipped-slots" id="equippedSlots">
@@ -268,6 +273,9 @@
                 <p>Mutate your DNA or install heavy military hardware to survive military hunters, mines, and security grids.</p>
             </div>
             
+            <div class="high-score-hint" style="margin-bottom: 20px; font-family: 'Orbitron', sans-serif; color: #ffeb3b; font-size: 1.1rem; text-shadow: 0 0 10px rgba(255,235,59,0.5);">
+                🏆 COMPLEX RECORD: <span id="startHighScore">0</span>
+            </div>
             <button class="btn btn-start" id="btnStart">⚡ LAUNCH SHARK</button>
             
             <div class="controls-hint">
@@ -285,6 +293,10 @@
                 <div class="stat-row">
                     <span>Mission Score</span>
                     <span class="highlight" id="finalScore">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>All-time Record</span>
+                    <span class="highlight" id="gameOverHighScore">0</span>
                 </div>
                 <div class="stat-row">
                     <span>Biomass Collected</span>

@@ -151,14 +151,52 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Webview Event setup
   setupWebviewListeners();
+
+  // Listen to remote agent controls from local HTTP server
+  ipcRenderer.on('agent-control', (event, { command }) => {
+    logSystemMessage(`Remote AI Agent command received: '${command}'`);
+    if (command === 'start') {
+      if (!isRunning) toggleAgentState();
+    } else if (command === 'pause') {
+      if (isRunning) toggleAgentState();
+    } else if (command === 'reload') {
+      reloadGame();
+    }
+  });
   
+  // Auto-load last game if URL exists (wrapped in setTimeout to allow webview initialization)
+  if (gameUrlInput.value) {
+    setTimeout(() => {
+      loadGameUrl();
+      crawlCodeFiles();
+    }, 500);
+  }
+
   // Log message helper
   logSystemMessage("System dashboard loaded. Enter credentials and select target URL to begin.");
 });
 
-// Load Settings from LocalStorage
+const configFilePath = path.join(__dirname, '..', 'config.json');
+
+// Load Settings from config.json (gitignored) or fallback to LocalStorage
 function loadSettings() {
-  const settings = JSON.parse(localStorage.getItem('ai_debugger_settings') || '{}');
+  let settings = {};
+  try {
+    if (fs.existsSync(configFilePath)) {
+      settings = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
+    } else {
+      settings = JSON.parse(localStorage.getItem('ai_debugger_settings') || '{}');
+    }
+  } catch (e) {
+    console.error("Failed to read settings config file", e);
+    settings = JSON.parse(localStorage.getItem('ai_debugger_settings') || '{}');
+  }
+
+  // Migrate deprecated nano model name to mini
+  if (settings.modelName === 'gpt-5.4-nano-2026-03-17') {
+    settings.modelName = 'gpt-5.4-mini-2026-03-17';
+  }
+
   providerSelect.value = settings.provider || 'openai';
   apiKeyInput.value = settings.apiKey || '';
   localUrlInput.value = settings.localUrl || 'http://localhost:11434/api/chat';
@@ -171,7 +209,7 @@ function loadSettings() {
   handleProviderChange();
 }
 
-// Save Settings to LocalStorage
+// Save Settings to config.json (gitignored) and LocalStorage
 function saveSettings() {
   const settings = {
     provider: providerSelect.value,
@@ -183,6 +221,12 @@ function saveSettings() {
     isAudioEnabled: isAudioEnabled
   };
   localStorage.setItem('ai_debugger_settings', JSON.stringify(settings));
+
+  try {
+    fs.writeFileSync(configFilePath, JSON.stringify(settings, null, 2), 'utf8');
+  } catch (e) {
+    console.error("Failed to write settings to config.json", e);
+  }
   
   // Sync to agent brain
   agentBrain.updateConfig({
@@ -875,6 +919,24 @@ function logMessage(text, type = 'system') {
   
   logStream.appendChild(entry);
   logStream.scrollTop = logStream.scrollHeight;
+
+  // Save live logs to file for external scraper
+  try {
+    const logsPath = path.join(dataDir, 'live_logs.json');
+    let logs = [];
+    if (fs.existsSync(logsPath)) {
+      try {
+        logs = JSON.parse(fs.readFileSync(logsPath, 'utf8'));
+      } catch (e) {
+        logs = [];
+      }
+    }
+    logs.push({ timestamp: new Date().toISOString(), type, text });
+    if (logs.length > 150) logs.shift(); // Limit file growth
+    fs.writeFileSync(logsPath, JSON.stringify(logs, null, 2), 'utf8');
+  } catch (err) {
+    console.error("Failed to write live log file", err);
+  }
 }
 
 function logSystemMessage(text) {

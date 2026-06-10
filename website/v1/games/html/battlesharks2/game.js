@@ -4,6 +4,190 @@
    Changes: Drop-launch splash animation, eat enemies, 3s death
    ────────────────────────────────────────────────────────── */
 
+const sfx = {
+    ctx: null,
+    muted: false,
+    bgmInterval: null,
+    
+    init() {
+        if (this.ctx) return;
+        try {
+            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            this.muted = localStorage.getItem('battlesharks2_muted') === 'true';
+            this.startBGM();
+        } catch (e) {
+            console.error("Web Audio API not supported", e);
+        }
+    },
+    
+    toggleMute() {
+        this.muted = !this.muted;
+        localStorage.setItem('battlesharks2_muted', this.muted);
+        if (this.muted) {
+            this.stopBGM();
+        } else {
+            this.init();
+            this.startBGM();
+        }
+        return this.muted;
+    },
+    
+    playLaser() {
+        if (!this.ctx || this.muted) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.exponentialRampToValueAtTime(110, now + 0.15);
+        
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        
+        osc.start(now);
+        osc.stop(now + 0.15);
+    },
+    
+    playExplosion() {
+        if (!this.ctx || this.muted) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.linearRampToValueAtTime(10, now + 0.4);
+        
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+        
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        
+        osc.start(now);
+        osc.stop(now + 0.4);
+    },
+
+    playEat() {
+        if (!this.ctx || this.muted) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.exponentialRampToValueAtTime(360, now + 0.08);
+        
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+        
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        
+        osc.start(now);
+        osc.stop(now + 0.08);
+    },
+
+    playDash() {
+        if (!this.ctx || this.muted) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.exponentialRampToValueAtTime(900, now + 0.12);
+        
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+        
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        
+        osc.start(now);
+        osc.stop(now + 0.12);
+    },
+
+    playUpgrade() {
+        if (!this.ctx || this.muted) return;
+        const now = this.ctx.currentTime;
+        
+        const playTone = (freq, delay, dur) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, now + delay);
+            gain.gain.setValueAtTime(0.06, now + delay);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + delay + dur);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + delay);
+            osc.stop(now + delay + dur);
+        };
+        
+        playTone(330, 0, 0.25);
+        playTone(440, 0.08, 0.25);
+        playTone(554, 0.16, 0.35);
+    },
+
+    playGameOver() {
+        if (!this.ctx || this.muted) return;
+        const now = this.ctx.currentTime;
+        const playTone = (freq, delay, dur) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + delay);
+            gain.gain.setValueAtTime(0.15, now + delay);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + delay + dur);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + delay);
+            osc.stop(now + delay + dur);
+        };
+        playTone(220, 0, 0.4);
+        playTone(196, 0.2, 0.4);
+        playTone(165, 0.4, 0.6);
+    },
+
+    startBGM() {
+        if (this.muted || this.bgmInterval) return;
+        let step = 0;
+        const notes = [110, 130, 110, 146, 110, 165, 110, 146]; // Cyberpunk bassline
+        this.bgmInterval = setInterval(() => {
+            if (!this.ctx || this.muted) return;
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            
+            osc.type = 'sawtooth';
+            const freq = notes[step % notes.length];
+            osc.frequency.setValueAtTime(freq, now);
+            
+            gain.gain.setValueAtTime(0.04, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+            
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            
+            osc.start(now);
+            osc.stop(now + 1.2);
+            step++;
+        }, 1500);
+    },
+    
+    stopBGM() {
+        if (this.bgmInterval) {
+            clearInterval(this.bgmInterval);
+            this.bgmInterval = null;
+        }
+    }
+};
+
 // Game State
 const state = {
     running: false,
@@ -132,6 +316,24 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Initial Stats Load
     updateStatsHUD();
+
+    // Load high score
+    const highscore = parseInt(localStorage.getItem('battlesharks2_highscore') || '0', 10);
+    const startHighScore = document.getElementById('startHighScore');
+    if (startHighScore) {
+        startHighScore.textContent = highscore;
+    }
+    const hudHighScore = document.getElementById('hudHighScore');
+    if (hudHighScore) {
+        hudHighScore.textContent = highscore;
+    }
+
+    // Audio mute button state
+    const isMuted = localStorage.getItem('battlesharks2_muted') === 'true';
+    const muteBtn = document.getElementById('btnToggleGameAudio');
+    if (muteBtn) {
+        muteBtn.textContent = isMuted ? '🔇 Muted' : '🔊 Sound';
+    }
 });
 
 function resizeCanvas() {
@@ -220,6 +422,15 @@ function setupUIListeners() {
     document.getElementById('btnCloseLab').addEventListener('click', toggleLab);
     document.getElementById('btnResumeFromLab').addEventListener('click', toggleLab);
 
+    const muteBtn = document.getElementById('btnToggleGameAudio');
+    if (muteBtn) {
+        muteBtn.addEventListener('click', () => {
+            sfx.init();
+            const isMuted = sfx.toggleMute();
+            muteBtn.textContent = isMuted ? '🔇 Muted' : '🔊 Sound';
+        });
+    }
+
     const tabs = document.querySelectorAll('.lab-tab');
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
@@ -238,6 +449,7 @@ function setupUIListeners() {
 // ─── Game Control Functions ───
 function startGame() {
     document.getElementById('startScreen').classList.add('hidden');
+    sfx.init();
     resetGameState();
     state.running = true;
     requestAnimationFrame(gameLoop);
@@ -246,6 +458,7 @@ function startGame() {
 function restartGame() {
     document.getElementById('gameOverScreen').classList.add('hidden');
     document.getElementById('pauseScreen').classList.add('hidden');
+    sfx.init();
     resetGameState();
     state.running = true;
     state.paused = false;
@@ -332,6 +545,7 @@ function togglePause() {
     if (state.paused) {
         pauseScreen.classList.remove('hidden');
     } else {
+        sfx.init();
         pauseScreen.classList.add('hidden');
         requestAnimationFrame(gameLoop);
     }
@@ -348,6 +562,7 @@ function toggleLab() {
         updateUpgradesStoreUI();
         lab.classList.remove('hidden');
     } else {
+        sfx.init();
         lab.classList.add('hidden');
         requestAnimationFrame(gameLoop);
     }
@@ -355,10 +570,38 @@ function toggleLab() {
 
 function gameOver() {
     state.running = false;
+    sfx.playGameOver();
+
+    // Check and save high score
+    const prevHighScore = parseInt(localStorage.getItem('battlesharks2_highscore') || '0', 10);
+    let isNewHighScore = false;
+    if (state.score > prevHighScore) {
+        localStorage.setItem('battlesharks2_highscore', state.score.toString());
+        isNewHighScore = true;
+    }
+    const currentHighScore = Math.max(prevHighScore, state.score);
+
     document.getElementById('finalScore').textContent = state.score;
     document.getElementById('finalBiomass').textContent = state.biomass;
     document.getElementById('finalDebris').textContent = state.debris;
     document.getElementById('finalMutations').textContent = state.mutationsCount;
+
+    const gameOverHighScore = document.getElementById('gameOverHighScore');
+    if (gameOverHighScore) {
+        gameOverHighScore.textContent = currentHighScore;
+    }
+
+    const gameOverTitle = document.querySelector('#gameOverScreen .logo-big');
+    if (gameOverTitle) {
+        if (isNewHighScore) {
+            gameOverTitle.textContent = '👑 NEW RECORD ECLIPSED!';
+            gameOverTitle.className = 'logo-big gold-neon';
+        } else {
+            gameOverTitle.textContent = '⚠️ SHARK TERMINATED';
+            gameOverTitle.className = 'logo-big red-neon';
+        }
+    }
+
     document.getElementById('gameOverScreen').classList.remove('hidden');
 }
 
@@ -400,6 +643,7 @@ window.buyUpgrade = function(type) {
     }
 
     if (canAfford) {
+        sfx.playUpgrade();
         state.upgrades[type] = true;
         state.mutationsCount++;
         state.score += 500;
@@ -434,6 +678,7 @@ window.spawnAquariumItem = function(itemType) {
     }
 
     if (canAfford) {
+        sfx.playUpgrade();
         aquariumItems.push({
             type: itemType,
             x: player.x + (Math.random() - 0.5) * 150,
@@ -515,6 +760,12 @@ function updateStatsHUD() {
     document.getElementById('hudMutagens').textContent = state.mutagens;
     document.getElementById('hudScore').textContent = state.score;
 
+    const highscore = localStorage.getItem('battlesharks2_highscore') || '0';
+    const hudHighScore = document.getElementById('hudHighScore');
+    if (hudHighScore) {
+        hudHighScore.textContent = highscore;
+    }
+
     // Health Bar
     const healthBar = document.getElementById('healthBar');
     const healthPercentage = (player.health / player.maxHealth) * 100;
@@ -537,6 +788,7 @@ function updateStatsHUD() {
 // ─── Weapons Shooting ───
 function fireWeapon() {
     if (state.upgrades.lasers && !state.dying && !state.launching) {
+        sfx.playLaser();
         const angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
         projectiles.push({
             type: 'laser',
@@ -554,6 +806,7 @@ function fireWeapon() {
 function triggerDash() {
     if (player.dashCooldown > 0 || player.isDashing || state.dying || state.launching) return;
     
+    sfx.playDash();
     player.isDashing = true;
     player.dashTimer = 14;
     player.dashCooldown = 75; // Dash faster cooldown
@@ -890,28 +1143,49 @@ function update(timestamp) {
                 player.isDashing = false;
             }
         } else {
+            let tx = 0;
+            let ty = 0;
             if (keyMoving) {
                 const len = Math.sqrt(dx * dx + dy * dy);
-                player.vx = (dx / len) * player.speed;
-                player.vy = (dy / len) * player.speed;
+                tx = (dx / len) * player.speed;
+                ty = (dy / len) * player.speed;
             } else {
                 const distance = Math.hypot(targetX - player.x, targetY - player.y);
                 if (distance > 10) {
                     const angle = Math.atan2(targetY - player.y, targetX - player.x);
-                    player.vx = Math.cos(angle) * player.speed;
-                    player.vy = Math.sin(angle) * player.speed;
-                } else {
-                    player.vx *= 0.85;
-                    player.vy *= 0.85;
+                    tx = Math.cos(angle) * player.speed;
+                    ty = Math.sin(angle) * player.speed;
                 }
             }
+            // Smooth steering with linear interpolation (inertia)
+            player.vx += (tx - player.vx) * 0.12;
+            player.vy += (ty - player.vy) * 0.12;
         }
 
         player.x += player.vx;
         player.y += player.vy;
 
-        player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
-        player.y = Math.max(player.radius + 20, Math.min(canvas.height - player.radius - 20, player.y));
+        // Boundary safety with zeroing/bouncing
+        const minX = player.radius;
+        const maxX = canvas.width - player.radius;
+        const minY = player.radius + 20;
+        const maxY = canvas.height - player.radius - 20;
+
+        if (player.x < minX) {
+            player.x = minX;
+            player.vx = 0;
+        } else if (player.x > maxX) {
+            player.x = maxX;
+            player.vx = 0;
+        }
+
+        if (player.y < minY) {
+            player.y = minY;
+            player.vy = 0;
+        } else if (player.y > maxY) {
+            player.y = maxY;
+            player.vy = 0;
+        }
 
         if (Math.hypot(player.vx, player.vy) > 0.5) {
             player.angle = Math.atan2(player.vy, player.vx);
@@ -1352,6 +1626,7 @@ function addXp(amount) {
 }
 
 function destroyEnemy(enemy, idx) {
+    sfx.playExplosion();
     createExplosion(enemy.x, enemy.y, '#ff5500', 20);
     state.cameraShake = 6;
     state.debris += enemy.type.debris;
@@ -1379,6 +1654,7 @@ function checkCollisions(timestamp) {
     preys.forEach((pr, idx) => {
         const dist = Math.hypot(pr.x - player.x, pr.y - player.y);
         if (dist < player.radius + pr.radius) {
+            sfx.playEat();
             createBloodSplat(pr.x, pr.y, 6);
             player.health = Math.min(player.health + pr.type.biomass * 3, player.maxHealth);
             state.biomass += pr.type.biomass;
@@ -1410,6 +1686,7 @@ function checkCollisions(timestamp) {
         if (dist < player.radius + enemy.radius) {
             
             if (enemy.emoji === 'scuba' || enemy.emoji === 'robot' || enemy.type.emoji === 'scuba' || enemy.type.emoji === 'robot') {
+                sfx.playEat();
                 createBloodSplat(enemy.x, enemy.y, 25);
                 
                 for (let i = 0; i < 12; i++) {
@@ -1441,6 +1718,7 @@ function checkCollisions(timestamp) {
                 dealPlayerDamage(enemy.type.damage);
                 
                 if (enemy.type.isStatic || enemy.type.emoji === '💣') {
+                    sfx.playExplosion();
                     createExplosion(enemy.x, enemy.y, '#ff3300', 30);
                     enemies.splice(idx, 1);
                 } else {
@@ -1543,12 +1821,14 @@ function dealPlayerDamage(amount) {
     if (state.shieldActive) {
         state.shieldActive = false;
         state.shieldRechargeTimer = 360;
+        sfx.playExplosion();
         createExplosion(player.x, player.y, '#00f2fe', 25);
         state.cameraShake = 15;
         showNotification("Shield Shattered!");
         return;
     }
 
+    sfx.playExplosion();
     const finalDamage = amount * player.damageReduction;
     player.health -= finalDamage;
     state.cameraShake = 18;

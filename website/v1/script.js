@@ -14,6 +14,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===== STARFIELD BACKGROUND =====
 function initStarfield() {
+    if (window.initSpaceBackground) {
+        window.initSpaceBackground();
+    } else {
+        // Register hook for when module loads
+        window.ThreeBackgroundLoaded = () => {
+            if (window.initSpaceBackground) {
+                window.initSpaceBackground();
+            }
+        };
+        // Safety fallback after 1200ms if WebGL fails or Three.js hasn't loaded
+        setTimeout(() => {
+            if (!window.initSpaceBackground) {
+                console.log('[4weird] WebGL space background not ready. Falling back to 2D.');
+                initLegacy2DStarfield();
+            }
+        }, 1200);
+    }
+}
+
+function initLegacy2DStarfield() {
     const canvas = document.getElementById('starfield');
     if (!canvas) return;
 
@@ -82,7 +102,7 @@ function initTypewriter() {
     const typewriter = document.getElementById('typewriter');
     if (!typewriter) return;
 
-    const text = 'Website Under Construction - Current Games in Development';
+    const text = 'Future Forward Fun';
     let index = 0;
     let isDeleting = false;
 
