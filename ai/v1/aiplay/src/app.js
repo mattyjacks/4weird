@@ -3,14 +3,14 @@ const path = require('path');
 const { ipcRenderer } = require('electron');
 const AgentBrain = require('../agent_brain');
 const GameController = require('../game_controller');
+const { AutoCodeSystem } = require('../lib/core');
 const {
-  AutoCodeSystem,
   PromptHistory,
   DraftManager,
   TemplateLibrary,
   ToastNotifier,
   KeyboardShortcuts
-} = require('../autocode_core');
+} = require('../lib/qol');
 
 // Instantiate cores
 const agentBrain = new AgentBrain();
