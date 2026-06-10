@@ -501,6 +501,14 @@ Rules:
 
   detectStuckState(screenshotBase64) {
     if (this.episodes.length < 3) return false;
+
+    // If the game status is menu, game_over, or paused, visual stability is normal
+    const recentStatuses = this.episodes.slice(-3).map(ep => ep.status);
+    if (recentStatuses.some(s => s === 'menu' || s === 'game_over' || s === 'paused')) {
+      // For non-playing states, only consider stuck if we are repeating active input actions
+      return this.sameActionStreak >= 4;
+    }
+
     const currentHash = this.simpleHash(screenshotBase64);
 
     // Visual stability: last 3 frames identical

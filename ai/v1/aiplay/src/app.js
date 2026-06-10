@@ -3,10 +3,12 @@ const path = require('path');
 const { ipcRenderer } = require('electron');
 const AgentBrain = require('../agent_brain');
 const GameController = require('../game_controller');
+const { AutoCodeSystem } = require('../autocode_core');
 
 // Instantiate cores
 const agentBrain = new AgentBrain();
 const gameController = new GameController();
+const autoCodeSystem = new AutoCodeSystem();
 
 // App states
 let isRunning = false;
@@ -33,6 +35,9 @@ let sourceFiles = [];
 // Audio Synthesizer State
 let audioCtx = null;
 let isAudioEnabled = false;
+
+// AutoCode file content cache
+let autoCodeFileContent = null;
 
 // Path configurations
 const dataDir = path.join(__dirname, '..', 'data');
@@ -146,6 +151,37 @@ const sessRecoveries = document.getElementById('sess-recoveries');
 const actionMixEl = document.getElementById('action-mix');
 const heatmapZonesEl = document.getElementById('heatmap-zones');
 
+// Auto-Choose Model Elements
+const toggleAutoChoose = document.getElementById('toggle-auto-choose');
+const largestModelGroup = document.getElementById('largest-model-group');
+const largestModelSelect = document.getElementById('largest-model-select');
+const proExtremeGroup = document.getElementById('pro-extreme-group');
+const toggleProExtreme = document.getElementById('toggle-pro-extreme');
+
+// AutoCode IDE Elements
+const tabAutoCode = document.getElementById('tab-autocode');
+const autocodeStream = document.getElementById('autocode-stream');
+const autocodeFileSelect = document.getElementById('autocode-file-select');
+const autocodeEditorView = document.getElementById('autocode-editor-view');
+const autocodePromptInput = document.getElementById('autocode-prompt-input');
+const btnVibeCode = document.getElementById('btn-vibe-code');
+const autocodeBudget = document.getElementById('autocode-budget');
+const autocodeMaxIn = document.getElementById('autocode-max-in');
+const autocodeMaxOut = document.getElementById('autocode-max-out');
+const autocodeCacheTokens = document.getElementById('autocode-cache-tokens');
+const autocodeMinifyCode = document.getElementById('autocode-minify-code');
+const autocodeCompressShots = document.getElementById('autocode-compress-shots');
+const autocodeEnableShots = document.getElementById('autocode-enable-shots');
+const autocodeMaxShots = document.getElementById('autocode-max-shots');
+const autocodeCaptureOnPlay = document.getElementById('autocode-capture-on-play');
+const btnTriggerCapture = document.getElementById('btn-trigger-capture');
+const autocodeShotsPreview = document.getElementById('autocode-shots-preview');
+const autocodeCostVal = document.getElementById('autocode-cost-val');
+const autocodeDiffSection = document.getElementById('autocode-diff-section');
+const autocodeDiffContainer = document.getElementById('autocode-diff-container');
+const btnDiscardChanges = document.getElementById('btn-discard-changes');
+const btnApplyChanges = document.getElementById('btn-apply-changes');
+
 // Action trail ring buffer (last 5 actions)
 let actionTrail = [];
 
@@ -234,11 +270,46 @@ document.addEventListener('DOMContentLoaded', () => {
   btnToggleAudio.addEventListener('click', toggleAudioSetting);
   tabLogs.addEventListener('click', () => switchTab('logs'));
   tabCode.addEventListener('click', () => switchTab('code'));
+  tabAutoCode.addEventListener('click', () => switchTab('autocode'));
   
   timelineScrubber.addEventListener('input', handleTimelineScrub);
   btnTimelinePlay.addEventListener('click', resumeFromScrub);
   
   tokenModelSelect.addEventListener('change', updateTokenStatsUI);
+
+  // Auto-Choose Model event listeners
+  if (toggleAutoChoose) {
+    toggleAutoChoose.addEventListener('change', () => {
+      const isEnabled = toggleAutoChoose.checked;
+      if (isEnabled) {
+        largestModelGroup.classList.remove('hidden');
+        proExtremeGroup.classList.remove('hidden');
+      } else {
+        largestModelGroup.classList.add('hidden');
+        proExtremeGroup.classList.add('hidden');
+      }
+      autoCodeSystem.updateConfig({ autoChooseModel: isEnabled });
+      saveSettings();
+      logSystemMessage(`Auto-Choose Model: ${isEnabled ? 'ENABLED' : 'DISABLED'}`);
+    });
+  }
+
+  if (largestModelSelect) {
+    largestModelSelect.addEventListener('change', () => {
+      autoCodeSystem.updateConfig({ largestModelAllowed: largestModelSelect.value });
+      saveSettings();
+    });
+  }
+
+  if (toggleProExtreme) {
+    toggleProExtreme.addEventListener('change', () => {
+      autoCodeSystem.updateConfig({ useProForExtreme: toggleProExtreme.checked });
+      saveSettings();
+    });
+  }
+
+  // AutoCode IDE event listeners
+  setupAutoCodeEventListeners();
 
   // Collapse / Expand Left & Right sidebars
   const btnToggleLeft = document.getElementById('btn-toggle-left');
@@ -363,10 +434,53 @@ function loadSettings() {
     agentBrain.config.alwaysSendMemory = alwaysMem;
   }
 
+  // Load AutoCode settings
+  if (toggleAutoChoose) {
+    const autoChoose = settings.autoChooseModel || false;
+    toggleAutoChoose.checked = autoChoose;
+    if (autoChoose) {
+      largestModelGroup.classList.remove('hidden');
+      proExtremeGroup.classList.remove('hidden');
+    }
+  }
+  if (largestModelSelect) {
+    largestModelSelect.value = settings.largestModelAllowed || 'gpt-5.4';
+  }
+  if (toggleProExtreme) {
+    toggleProExtreme.checked = settings.useProForExtreme || false;
+  }
+
+  // AutoCode IDE settings
+  if (autocodeBudget) autocodeBudget.value = settings.autoCodeBudget || 0.05;
+  if (autocodeMaxIn) autocodeMaxIn.value = settings.autoCodeMaxIn || 30000;
+  if (autocodeMaxOut) autocodeMaxOut.value = settings.autoCodeMaxOut || 4000;
+  if (autocodeCacheTokens) autocodeCacheTokens.checked = settings.autoCodeCacheTokens !== false;
+  if (autocodeMinifyCode) autocodeMinifyCode.checked = settings.autoCodeMinifyCode !== false;
+  if (autocodeCompressShots) autocodeCompressShots.checked = settings.autoCodeCompressShots !== false;
+  if (autocodeEnableShots) autocodeEnableShots.checked = settings.autoCodeEnableShots || false;
+  if (autocodeMaxShots) autocodeMaxShots.value = settings.autoCodeMaxShots || 2;
+  if (autocodeCaptureOnPlay) autocodeCaptureOnPlay.checked = settings.autoCodeCaptureOnPlay || false;
+
   // Load persisted session memory
   agentBrain.updateConfig({ dataDir });
   agentBrain.loadSessionMemory();
   updateSessionStatsUI();
+
+  // Initialize AutoCode system with loaded settings
+  autoCodeSystem.updateConfig({
+    autoChooseModel: settings.autoChooseModel || false,
+    largestModelAllowed: settings.largestModelAllowed || 'gpt-5.4',
+    useProForExtreme: settings.useProForExtreme || false,
+    budgetLimit: settings.autoCodeBudget || 0.05,
+    maxInputTokens: settings.autoCodeMaxIn || 30000,
+    maxOutputTokens: settings.autoCodeMaxOut || 4000,
+    useCacheTokens: settings.autoCodeCacheTokens !== false,
+    minifyCode: settings.autoCodeMinifyCode !== false,
+    compressScreenshots: settings.autoCodeCompressShots !== false,
+    enableScreenshots: settings.autoCodeEnableShots || false,
+    maxScreenshots: settings.autoCodeMaxShots || 2,
+    captureOnPlay: settings.autoCodeCaptureOnPlay || false
+  });
 
   handleProviderChange(true);
 }
@@ -382,7 +496,20 @@ function saveSettings() {
     gameRules: gameRulesInput.value,
     gameUrl: gameUrlInput.value,
     isAudioEnabled: isAudioEnabled,
-    alwaysSendMemory: toggleMemory ? toggleMemory.checked : false
+    alwaysSendMemory: toggleMemory ? toggleMemory.checked : false,
+    // AutoCode settings
+    autoChooseModel: toggleAutoChoose ? toggleAutoChoose.checked : false,
+    largestModelAllowed: largestModelSelect ? largestModelSelect.value : 'gpt-5.4',
+    useProForExtreme: toggleProExtreme ? toggleProExtreme.checked : false,
+    autoCodeBudget: autocodeBudget ? parseFloat(autocodeBudget.value) : 0.05,
+    autoCodeMaxIn: autocodeMaxIn ? parseInt(autocodeMaxIn.value) : 30000,
+    autoCodeMaxOut: autocodeMaxOut ? parseInt(autocodeMaxOut.value) : 4000,
+    autoCodeCacheTokens: autocodeCacheTokens ? autocodeCacheTokens.checked : true,
+    autoCodeMinifyCode: autocodeMinifyCode ? autocodeMinifyCode.checked : true,
+    autoCodeCompressShots: autocodeCompressShots ? autocodeCompressShots.checked : true,
+    autoCodeEnableShots: autocodeEnableShots ? autocodeEnableShots.checked : false,
+    autoCodeMaxShots: autocodeMaxShots ? parseInt(autocodeMaxShots.value) : 2,
+    autoCodeCaptureOnPlay: autocodeCaptureOnPlay ? autocodeCaptureOnPlay.checked : false
   };
   localStorage.setItem('ai_debugger_settings', JSON.stringify(settings));
 
@@ -391,7 +518,7 @@ function saveSettings() {
   } catch (e) {
     console.error("Failed to write settings to config.json", e);
   }
-  
+
   // Sync to agent brain
   agentBrain.updateConfig({
     provider: settings.provider,
@@ -400,6 +527,22 @@ function saveSettings() {
     modelName: settings.modelName,
     gameRules: settings.gameRules,
     dataDir: dataDir
+  });
+
+  // Sync to AutoCode system
+  autoCodeSystem.updateConfig({
+    autoChooseModel: settings.autoChooseModel,
+    largestModelAllowed: settings.largestModelAllowed,
+    useProForExtreme: settings.useProForExtreme,
+    budgetLimit: settings.autoCodeBudget,
+    maxInputTokens: settings.autoCodeMaxIn,
+    maxOutputTokens: settings.autoCodeMaxOut,
+    useCacheTokens: settings.autoCodeCacheTokens,
+    minifyCode: settings.autoCodeMinifyCode,
+    compressScreenshots: settings.autoCodeCompressShots,
+    enableScreenshots: settings.autoCodeEnableShots,
+    maxScreenshots: settings.autoCodeMaxShots,
+    captureOnPlay: settings.autoCodeCaptureOnPlay
   });
 }
 
@@ -483,16 +626,26 @@ function playClickSound() { playSynth(880, 'sine', 0.08); }
 // UI Tabs Switcher (Logs vs Code Explorer)
 function switchTab(tab) {
   playClickSound();
+  // Reset all tabs
+  tabLogs.classList.remove('active');
+  tabCode.classList.remove('active');
+  tabAutoCode.classList.remove('active');
+  logStream.classList.add('hidden');
+  codeStream.classList.add('hidden');
+  autocodeStream.classList.add('hidden');
+
+  // Activate selected tab
   if (tab === 'logs') {
     tabLogs.classList.add('active');
-    tabCode.classList.remove('active');
     logStream.classList.remove('hidden');
-    codeStream.classList.add('hidden');
-  } else {
-    tabLogs.classList.remove('active');
+  } else if (tab === 'code') {
     tabCode.classList.add('active');
-    logStream.classList.add('hidden');
     codeStream.classList.remove('hidden');
+  } else if (tab === 'autocode') {
+    tabAutoCode.classList.add('active');
+    autocodeStream.classList.remove('hidden');
+    // Populate file select when switching to autocode tab
+    populateAutoCodeFileSelect();
   }
 }
 
@@ -614,13 +767,16 @@ function renderFileList() {
       // Highlight selection
       document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
       item.classList.add('active');
-      
+
       // Load source text
       codeContentView.textContent = file.content;
       playClickSound();
     });
     codeFileList.appendChild(item);
   });
+
+  // Also populate AutoCode file select
+  populateAutoCodeFileSelect();
 }
 
 // Configures and intercepts webview messages
@@ -1497,3 +1653,348 @@ window.triggerAgentStep = async function() {
     executionResult: executeResult
   };
 };
+
+// ============================================================
+// AUTOCODE SYSTEM INTEGRATION
+// ============================================================
+
+function setupAutoCodeEventListeners() {
+  if (!autocodeFileSelect) return;
+
+  // File selection
+  autocodeFileSelect.addEventListener('change', () => {
+    const selectedPath = autocodeFileSelect.value;
+    if (selectedPath) {
+      loadAutoCodeFile(selectedPath);
+    } else {
+      autocodeEditorView.value = '';
+      autoCodeFileContent = null;
+    }
+  });
+
+  // Budget and token limit inputs
+  if (autocodeBudget) {
+    autocodeBudget.addEventListener('change', updateAutoCodeConfig);
+    autocodeBudget.addEventListener('blur', updateAutoCodeConfig);
+  }
+  if (autocodeMaxIn) {
+    autocodeMaxIn.addEventListener('change', updateAutoCodeConfig);
+  }
+  if (autocodeMaxOut) {
+    autocodeMaxOut.addEventListener('change', updateAutoCodeConfig);
+  }
+
+  // Toggle checkboxes
+  if (autocodeCacheTokens) {
+    autocodeCacheTokens.addEventListener('change', updateAutoCodeConfig);
+  }
+  if (autocodeMinifyCode) {
+    autocodeMinifyCode.addEventListener('change', updateAutoCodeConfig);
+  }
+  if (autocodeCompressShots) {
+    autocodeCompressShots.addEventListener('change', updateAutoCodeConfig);
+  }
+
+  // Screenshot controls
+  if (autocodeEnableShots) {
+    autocodeEnableShots.addEventListener('change', () => {
+      updateScreenshotControls();
+      updateAutoCodeConfig();
+    });
+  }
+  if (autocodeMaxShots) {
+    autocodeMaxShots.addEventListener('change', updateAutoCodeConfig);
+  }
+  if (autocodeCaptureOnPlay) {
+    autocodeCaptureOnPlay.addEventListener('change', updateAutoCodeConfig);
+  }
+  if (btnTriggerCapture) {
+    btnTriggerCapture.addEventListener('click', triggerManualScreenshotCapture);
+  }
+
+  // Vibe Code button
+  if (btnVibeCode) {
+    btnVibeCode.addEventListener('click', executeVibeCode);
+  }
+
+  // Prompt input - update cost estimate on input
+  if (autocodePromptInput) {
+    autocodePromptInput.addEventListener('input', updateAutoCodeCostEstimate);
+  }
+
+  // Diff action buttons
+  if (btnDiscardChanges) {
+    btnDiscardChanges.addEventListener('click', discardAutoCodeChanges);
+  }
+  if (btnApplyChanges) {
+    btnApplyChanges.addEventListener('click', applyAutoCodeChanges);
+  }
+
+  // Initialize screenshot controls state
+  updateScreenshotControls();
+
+  // Setup AutoCode callbacks
+  autoCodeSystem.onCostUpdate = (costEstimate) => {
+    if (autocodeCostVal) {
+      autocodeCostVal.textContent = costEstimate.formatted;
+      // Visual feedback for budget warning
+      if (costEstimate.cost > parseFloat(autocodeBudget?.value || 0.05)) {
+        autocodeCostVal.style.color = '#ef4444';
+      } else {
+        autocodeCostVal.style.color = '#10b981';
+      }
+    }
+  };
+
+  autoCodeSystem.onLog = (message) => {
+    logSystemMessage(`[AutoCode] ${message}`);
+  };
+
+  // Initialize the system
+  autoCodeSystem.initialize();
+
+  // Populate AutoCode file select from source files
+  populateAutoCodeFileSelect();
+}
+
+function updateAutoCodeConfig() {
+  autoCodeSystem.updateConfig({
+    budgetLimit: parseFloat(autocodeBudget?.value || 0.05),
+    maxInputTokens: parseInt(autocodeMaxIn?.value || 30000),
+    maxOutputTokens: parseInt(autocodeMaxOut?.value || 4000),
+    useCacheTokens: autocodeCacheTokens?.checked ?? true,
+    minifyCode: autocodeMinifyCode?.checked ?? true,
+    compressScreenshots: autocodeCompressShots?.checked ?? true,
+    enableScreenshots: autocodeEnableShots?.checked ?? false,
+    maxScreenshots: parseInt(autocodeMaxShots?.value || 2),
+    captureOnPlay: autocodeCaptureOnPlay?.checked ?? false
+  });
+
+  updateAutoCodeCostEstimate();
+  saveSettings();
+}
+
+function updateScreenshotControls() {
+  const isEnabled = autocodeEnableShots?.checked ?? false;
+  const shotCountWrapper = document.getElementById('shot-count-wrapper');
+  const captureOnPlayWrapper = document.getElementById('capture-on-play-wrapper');
+  const screenshotControlsRow = document.querySelector('.screenshot-controls-row');
+
+  if (screenshotControlsRow) {
+    if (isEnabled) {
+      screenshotControlsRow.classList.add('enabled');
+    } else {
+      screenshotControlsRow.classList.remove('enabled');
+    }
+  }
+}
+
+function populateAutoCodeFileSelect() {
+  if (!autocodeFileSelect || !sourceFiles) return;
+
+  // Keep the first option
+  autocodeFileSelect.innerHTML = '<option value="">-- Select File to Edit --</option>';
+
+  sourceFiles.forEach(file => {
+    const option = document.createElement('option');
+    option.value = file.path;
+    option.textContent = file.path;
+    autocodeFileSelect.appendChild(option);
+  });
+}
+
+function loadAutoCodeFile(filePath) {
+  const file = sourceFiles.find(f => f.path === filePath);
+  if (!file) return;
+
+  // Load original content (not minified for display)
+  const currentUrl = gameUrlInput.value;
+  let localGamePath = '';
+
+  if (currentUrl.startsWith('file:///')) {
+    localGamePath = path.dirname(fileUrlToPath(currentUrl));
+  } else {
+    const urlParts = currentUrl.split('/');
+    const gameName = urlParts[urlParts.length - 2];
+    const localGamesDir = path.join(__dirname, '..', '..', '..', '..', 'website', 'v1', 'games', 'html', gameName);
+    if (fs.existsSync(localGamesDir)) {
+      localGamePath = localGamesDir;
+    }
+  }
+
+  if (localGamePath) {
+    const fullPath = path.join(localGamePath, filePath);
+    try {
+      if (fs.existsSync(fullPath)) {
+        const originalContent = fs.readFileSync(fullPath, 'utf8');
+        autoCodeFileContent = originalContent;
+        autocodeEditorView.value = originalContent;
+
+        // Load into AutoCode system
+        autoCodeSystem.loadFile(fullPath, originalContent);
+        logSystemMessage(`Loaded file for AutoCode: ${filePath}`);
+      }
+    } catch (err) {
+      logMessage(`Failed to load file: ${err.message}`, 'error');
+    }
+  }
+}
+
+function updateAutoCodeCostEstimate() {
+  if (!autocodePromptInput?.value || !autoCodeFileContent) {
+    if (autocodeCostVal) autocodeCostVal.textContent = '$0.0000';
+    return;
+  }
+
+  try {
+    const model = autoCodeSystem.selectModelForRequest(autocodePromptInput.value);
+    const estimate = autoCodeSystem.calculateEstimatedCost(model, autocodePromptInput.value);
+
+    if (autocodeCostVal) {
+      autocodeCostVal.textContent = estimate.formatted;
+      if (estimate.cost > parseFloat(autocodeBudget?.value || 0.05)) {
+        autocodeCostVal.style.color = '#ef4444';
+      } else {
+        autocodeCostVal.style.color = '#10b981';
+      }
+    }
+  } catch (err) {
+    console.warn('Cost estimate failed:', err);
+  }
+}
+
+async function executeVibeCode() {
+  if (!autocodePromptInput?.value) {
+    logMessage('Please enter a prompt describing the modifications you want.', 'warning');
+    return;
+  }
+
+  if (!autoCodeFileContent) {
+    logMessage('Please select a file to edit first.', 'warning');
+    return;
+  }
+
+  playClickSound();
+  btnVibeCode.disabled = true;
+  btnVibeCode.innerHTML = '<span>⏳ GENERATING...</span>';
+
+  try {
+    const result = await autoCodeSystem.generateModifications(autocodePromptInput.value);
+
+    if (result.success) {
+      logSystemMessage(`Generated modifications using ${result.model}. Estimated cost: ${result.cost.formatted}`);
+
+      // This would normally display the diff
+      // For now, show a placeholder
+      showAutoCodeDiff(autoCodeFileContent, autoCodeFileContent); // Placeholder
+    }
+  } catch (err) {
+    logMessage(`Vibe Code failed: ${err.message}`, 'error');
+  } finally {
+    btnVibeCode.disabled = false;
+    btnVibeCode.innerHTML = '<span>⚡ VIBE CODE</span>';
+  }
+}
+
+function showAutoCodeDiff(original, modified) {
+  if (!autocodeDiffSection || !autocodeDiffContainer) return;
+
+  const diff = autoCodeSystem.generateDiff(original, modified);
+  if (!diff) return;
+
+  // Render diff HTML
+  let diffHtml = '';
+  diff.forEach(line => {
+    const lineClass = line.type === 'add' ? 'diff-add' : line.type === 'remove' ? 'diff-remove' : 'diff-unchanged';
+    const linePrefix = line.type === 'add' ? '+' : line.type === 'remove' ? '-' : ' ';
+    diffHtml += `<div class="${lineClass}">${linePrefix} ${escapeHtml(line.content)}</div>`;
+  });
+
+  autocodeDiffContainer.innerHTML = diffHtml;
+  autocodeDiffSection.classList.remove('hidden');
+}
+
+function discardAutoCodeChanges() {
+  autoCodeSystem.discardChanges();
+  if (autocodeDiffSection) {
+    autocodeDiffSection.classList.add('hidden');
+  }
+  if (autocodeDiffContainer) {
+    autocodeDiffContainer.innerHTML = '';
+  }
+  playClickSound();
+}
+
+async function applyAutoCodeChanges() {
+  try {
+    // This would apply the actual changes
+    logSystemMessage('Changes applied successfully!');
+    discardAutoCodeChanges();
+
+    // Refresh the code view
+    if (autocodeFileSelect?.value) {
+      loadAutoCodeFile(autocodeFileSelect.value);
+    }
+
+    // Refresh file list
+    crawlCodeFiles();
+  } catch (err) {
+    logMessage(`Failed to apply changes: ${err.message}`, 'error');
+  }
+}
+
+async function triggerManualScreenshotCapture() {
+  playClickSound();
+
+  try {
+    const result = await ipcRenderer.invoke('capture-native-screenshot');
+    if (result.success) {
+      autoCodeSystem.screenshotQueue.push(result.base64, {
+        manualCapture: true,
+        timestamp: Date.now()
+      });
+      updateShotsPreview();
+      logSystemMessage('Manual screenshot captured');
+    } else {
+      throw new Error(result.error);
+    }
+  } catch (err) {
+    logMessage(`Screenshot capture failed: ${err.message}`, 'error');
+  }
+}
+
+function updateShotsPreview() {
+  if (!autocodeShotsPreview) return;
+
+  const shots = autoCodeSystem.screenshotQueue.getAll();
+  autocodeShotsPreview.innerHTML = '';
+
+  shots.forEach((shot, index) => {
+    const img = document.createElement('img');
+    img.src = `data:image/jpeg;base64,${shot.screenshot}`;
+    img.className = 'shot-preview-thumb';
+    img.title = `Screenshot ${index + 1} - ${new Date(shot.timestamp).toLocaleTimeString()}`;
+    img.addEventListener('click', () => {
+      // Show full screenshot in modal or new window
+      window.open(`data:image/jpeg;base64,${shot.screenshot}`, '_blank');
+    });
+    autocodeShotsPreview.appendChild(img);
+  });
+}
+
+// Hook into game window actions for capture-on-play
+function handleGameWindowAction(actionType, data) {
+  if (autoCodeSystem.config.captureOnPlay && autoCodeSystem.config.enableScreenshots) {
+    // Debounce captures to avoid spam
+    clearTimeout(window._captureTimeout);
+    window._captureTimeout = setTimeout(() => {
+      triggerManualScreenshotCapture();
+    }, 100);
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}

@@ -334,6 +334,13 @@ window.addEventListener('DOMContentLoaded', () => {
     if (muteBtn) {
         muteBtn.textContent = isMuted ? '🔇 Muted' : '🔊 Sound';
     }
+
+    // Spawn some initial preys for the background animation
+    for (let i = 0; i < 15; i++) {
+        spawnPrey();
+    }
+    // Start game loop (animating background)
+    requestAnimationFrame(gameLoop);
 });
 
 function resizeCanvas() {
@@ -452,7 +459,6 @@ function startGame() {
     sfx.init();
     resetGameState();
     state.running = true;
-    requestAnimationFrame(gameLoop);
 }
 
 function restartGame() {
@@ -462,7 +468,6 @@ function restartGame() {
     resetGameState();
     state.running = true;
     state.paused = false;
-    requestAnimationFrame(gameLoop);
 }
 
 function resetGameState() {
@@ -547,7 +552,6 @@ function togglePause() {
     } else {
         sfx.init();
         pauseScreen.classList.add('hidden');
-        requestAnimationFrame(gameLoop);
     }
 }
 
@@ -564,7 +568,6 @@ function toggleLab() {
     } else {
         sfx.init();
         lab.classList.add('hidden');
-        requestAnimationFrame(gameLoop);
     }
 }
 
@@ -985,7 +988,10 @@ function activateBossFight() {
 
 // ─── Game Loop & Systems Update ───
 function gameLoop(timestamp) {
-    if (!state.running || state.paused) return;
+    if (state.paused) {
+        requestAnimationFrame(gameLoop);
+        return;
+    }
 
     update(timestamp);
     render(timestamp);
@@ -994,6 +1000,31 @@ function gameLoop(timestamp) {
 }
 
 function update(timestamp) {
+    if (!state.running) {
+        // Just update particles, preys, and floating items for background animation
+        state.spawnTimer++;
+        if (state.spawnTimer % 120 === 0) {
+            spawnPrey();
+        }
+        preys.forEach((pr, idx) => {
+            pr.x += pr.vx;
+            pr.y += pr.vy;
+            if (!pr.type.bottomWalker) {
+                pr.vy += Math.sin(timestamp * 0.005 + pr.x) * 0.06;
+            }
+            if (pr.x < -80 || pr.x > canvas.width + 80) {
+                preys.splice(idx, 1);
+            }
+        });
+        particles.forEach((p, idx) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.life--;
+            if (p.life <= 0) particles.splice(idx, 1);
+        });
+        return;
+    }
+
     if (window.gameDebug?.godMode) {
         player.health = player.maxHealth;
         state.biomass = Math.max(state.biomass, 1000);
@@ -2055,45 +2086,47 @@ function render(timestamp) {
     });
 
     // Render Player (Shark)
-    ctx.save();
-    ctx.translate(player.x, player.y);
-    ctx.rotate(player.angle);
-    
-    if (state.dying) {
-        ctx.scale(-1, -1);
-    } else {
-        if (player.facingLeft) {
-            ctx.scale(1, -1);
+    if (state.running || state.launching || state.dying) {
+        ctx.save();
+        ctx.translate(player.x, player.y);
+        ctx.rotate(player.angle);
+        
+        if (state.dying) {
+            ctx.scale(-1, -1);
         } else {
-            ctx.scale(-1, 1);
-        }
-    }
-
-    ctx.fillStyle = '#ffffff';
-    ctx.font = `${player.radius * 2.5}px Arial`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('🦈', 0, 0);
-
-    // Cyber weapon additions
-    if (!state.dying && !state.launching) {
-        if (state.upgrades.lasers || state.upgrades.missiles) {
-            ctx.fillStyle = 'rgba(0, 242, 254, 0.85)';
-            ctx.fillRect(-15, -12, 10, 6);
-            if (state.upgrades.missiles) {
-                ctx.fillStyle = '#ff9500';
-                ctx.fillRect(-8, -16, 6, 4);
+            if (player.facingLeft) {
+                ctx.scale(1, -1);
+            } else {
+                ctx.scale(-1, 1);
             }
         }
 
-        if (state.upgrades.thruster) {
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '16px Arial';
-            ctx.fillText('🚀', 18, 12);
-        }
-    }
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `${player.radius * 2.5}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🦈', 0, 0);
 
-    ctx.restore();
+        // Cyber weapon additions
+        if (!state.dying && !state.launching) {
+            if (state.upgrades.lasers || state.upgrades.missiles) {
+                ctx.fillStyle = 'rgba(0, 242, 254, 0.85)';
+                ctx.fillRect(-15, -12, 10, 6);
+                if (state.upgrades.missiles) {
+                    ctx.fillStyle = '#ff9500';
+                    ctx.fillRect(-8, -16, 6, 4);
+                }
+            }
+
+            if (state.upgrades.thruster) {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '16px Arial';
+                ctx.fillText('🚀', 18, 12);
+            }
+        }
+
+        ctx.restore();
+    }
 
     // Draw Plasma Force Shield
     if (state.shieldActive && !state.dying && !state.launching) {

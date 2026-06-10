@@ -47,6 +47,38 @@
           </select>
         </div>
 
+        <div class="form-group toggle-row" id="auto-choose-group">
+          <label for="toggle-auto-choose" title="Automatically select the most cost-effective model based on task complexity">
+            🤖 Auto-Choose Model (OpenAI)
+            <span class="toggle-hint">(saves budget)</span>
+          </label>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-auto-choose">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="form-group hidden" id="largest-model-group">
+          <label for="largest-model-select">Largest Model Allowed</label>
+          <select id="largest-model-select">
+            <option value="gpt-5.5-pro">GPT-5.5 Pro ($180/1M out)</option>
+            <option value="gpt-5.5">GPT-5.5 ($30/1M out)</option>
+            <option value="gpt-5.4-pro">GPT-5.4 Pro ($180/1M out)</option>
+            <option value="gpt-5.4" selected>GPT-5.4 ($15/1M out)</option>
+            <option value="gpt-5.4-mini">GPT-5.4 Mini ($4.50/1M out)</option>
+            <option value="gpt-5.4-nano">GPT-5.4 Nano ($1.25/1M out)</option>
+          </select>
+          <span class="field-hint">Caps auto-selected model tier to control costs</span>
+        </div>
+
+        <div class="form-group hidden" id="pro-extreme-group">
+          <label class="toggle-checkbox" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="toggle-pro-extreme">
+            <span>Use Pro for Extreme Complexity</span>
+          </label>
+          <span class="field-hint">Uses GPT-5.5-Pro for high complexity tasks (expensive)</span>
+        </div>
+
         <div class="form-group hidden" id="custom-model-group">
           <label for="model-name">Custom Model Name</label>
           <input type="text" id="model-name" value="gpt-5.4-mini-2026-03-17" placeholder="e.g. custom-model">
@@ -188,6 +220,7 @@
             <div class="tab-selectors">
               <button class="tab-btn active" id="tab-logs">LOGS & ACTION TRACE</button>
               <button class="tab-btn" id="tab-code">SOURCE CODE EXPLORER</button>
+              <button class="tab-btn" id="tab-autocode">🖥️ AUTOCODE IDE</button>
             </div>
             <button id="btn-clear-logs" class="btn btn-small btn-secondary">Clear</button>
           </div>
@@ -201,6 +234,96 @@
               </div>
               <div class="file-content-wrapper">
                 <pre><code id="code-content-view">// Select a file to inspect its source code...</code></pre>
+              </div>
+            </div>
+          </div>
+          
+          <!-- AUTOCODE IDE WORKSPACE PANEL -->
+          <div class="card-body autocode-explorer hidden" id="autocode-stream">
+            <div class="autocode-toolbar">
+              <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                <label for="autocode-file-select" style="font-size: 0.75rem; margin-bottom: 2px;">Target Source File</label>
+                <select id="autocode-file-select" style="padding: 6px 12px; font-size: 0.85rem;">
+                  <option value="">-- Select File to Edit --</option>
+                </select>
+              </div>
+              
+              <div class="cost-limits-grid" style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+                <div class="limit-input" style="display: flex; flex-direction: column;">
+                  <label for="autocode-budget" style="font-size: 0.7rem;">Budget (USD)</label>
+                  <input type="number" id="autocode-budget" step="0.001" value="0.05" style="width: 70px; padding: 4px; font-size: 0.75rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(0,242,254,0.3); color: white;">
+                </div>
+                <div class="limit-input" style="display: flex; flex-direction: column;">
+                  <label for="autocode-max-in" style="font-size: 0.7rem;">Max Input</label>
+                  <input type="number" id="autocode-max-in" value="30000" style="width: 75px; padding: 4px; font-size: 0.75rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(0,242,254,0.3); color: white;">
+                </div>
+                <div class="limit-input" style="display: flex; flex-direction: column;">
+                  <label for="autocode-max-out" style="font-size: 0.7rem;">Max Output</label>
+                  <input type="number" id="autocode-max-out" value="4000" style="width: 65px; padding: 4px; font-size: 0.75rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(0,242,254,0.3); color: white;">
+                </div>
+                <div class="toggle-checkbox" style="display: flex; align-items: center; gap: 4px; font-size: 0.75rem;">
+                  <input type="checkbox" id="autocode-cache-tokens" checked>
+                  <label for="autocode-cache-tokens" title="Use cached input tokens for 50% cost discount">Cache</label>
+                </div>
+                <div class="toggle-checkbox" style="display: flex; align-items: center; gap: 4px; font-size: 0.75rem;">
+                  <input type="checkbox" id="autocode-minify-code" checked>
+                  <label for="autocode-minify-code" title="Strip comments and whitespace from code before sending">Minify</label>
+                </div>
+                <div class="toggle-checkbox" style="display: flex; align-items: center; gap: 4px; font-size: 0.75rem;">
+                  <input type="checkbox" id="autocode-compress-shots" checked>
+                  <label for="autocode-compress-shots" title="Compress screenshots: 256px width, grayscale, 20% JPEG quality">Compress</label>
+                </div>
+                <div class="cost-display" style="display: flex; flex-direction: column; align-items: flex-end; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;">
+                  <span style="font-size: 0.65rem; color: var(--text-secondary);">EST. COST</span>
+                  <span id="autocode-cost-val" style="color: #10b981; font-weight: 700; text-shadow: 0 0 8px rgba(16,185,129,0.3);">$0.0000</span>
+                </div>
+              </div>
+
+              <!-- Screenshot Controls Row -->
+              <div class="screenshot-controls-row" style="display: flex; gap: 15px; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05);">
+                <div class="toggle-checkbox" style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem;">
+                  <input type="checkbox" id="autocode-enable-shots">
+                  <label for="autocode-enable-shots" title="Enable screenshot context for the AI">Enable Screenshots</label>
+                </div>
+                <div class="shot-count-control" style="display: flex; align-items: center; gap: 6px; opacity: 0.5; transition: opacity 0.2s;" id="shot-count-wrapper">
+                  <label for="autocode-max-shots" style="font-size: 0.7rem;">Max Shots (0-5):</label>
+                  <input type="number" id="autocode-max-shots" min="0" max="5" value="2" style="width: 45px; padding: 4px; font-size: 0.75rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(0,242,254,0.3); color: white;">
+                </div>
+                <div class="toggle-checkbox" style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; opacity: 0.5; transition: opacity 0.2s;" id="capture-on-play-wrapper">
+                  <input type="checkbox" id="autocode-capture-on-play">
+                  <label for="autocode-capture-on-play" title="Auto-capture screenshots on manual play actions (click/keypress)">Capture on Play</label>
+                </div>
+                <button id="btn-trigger-capture" class="btn btn-small btn-secondary" style="font-size: 0.7rem; padding: 4px 10px; opacity: 0.5; transition: opacity 0.2s;" id="trigger-capture-wrapper" disabled>
+                  📸 Manual Capture
+                </button>
+              </div>
+            </div>
+            
+            <div class="autocode-workspace" style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px; flex: 1; min-height: 250px;">
+              <div class="code-editor-container" style="flex: 1; min-height: 180px; position: relative; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; overflow: hidden;">
+                <textarea id="autocode-editor-view" readonly style="width: 100%; height: 100%; background: #05050c; color: #a5b4fc; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; padding: 10px; border: none; resize: none; box-sizing: border-box;" placeholder="Select a source file above to load its content..."></textarea>
+              </div>
+              
+              <div class="prompt-workspace-section" style="display: flex; flex-direction: column; gap: 6px;">
+                <div class="shots-preview-row" id="autocode-shots-preview" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;"></div>
+                <div style="display: flex; gap: 10px;">
+                  <textarea id="autocode-prompt-input" rows="2" style="flex: 1; background: rgba(255,255,255,0.04); border: 1px solid rgba(0,242,254,0.25); border-radius: 8px; color: white; padding: 10px; font-family: inherit; font-size: 0.9rem; resize: none; box-sizing: border-box;" placeholder="Describe modifications here (e.g. 'Add a speed booster capsule spawning from hydrothermal vents')..."></textarea>
+                  <button id="btn-vibe-code" class="btn btn-primary" style="padding: 0 25px; font-family: var(--font-display); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 8px;">
+                    <span>⚡ VIBE CODE</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- AutoCode Proposed Changes Diff Panel -->
+            <div class="diff-review-section hidden" id="autocode-diff-section" style="margin-top: 15px; border-top: 1px solid rgba(0,242,254,0.3); padding-top: 15px;">
+              <h3 style="font-family: var(--font-display); font-size: 0.95rem; color: var(--accent-cyan); margin-bottom: 10px; letter-spacing: 1px;">🔍 REVIEW AI GENERATED MODIFICATIONS</h3>
+              <div class="diff-container" id="autocode-diff-container" style="max-height: 250px; overflow-y: auto; background: #030307; border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; box-sizing: border-box;"></div>
+              <div class="diff-actions" style="display: flex; gap: 12px; margin-top: 12px; justify-content: flex-end;">
+                <button id="btn-discard-changes" class="btn btn-secondary btn-small" style="font-size: 0.8rem; padding: 8px 16px;">Discard</button>
+                <button id="btn-apply-changes" class="btn btn-primary btn-small" style="font-size: 0.8rem; padding: 8px 20px; display: flex; align-items: center; gap: 6px;">
+                  <span>💾 APPLY CHANGES TO FILE</span>
+                </button>
               </div>
             </div>
           </div>
