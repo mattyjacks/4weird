@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Playtest Runner & Debugger</title>
+  <title>4weird aiplay - game runner and fixer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Space+Grotesk:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -11,8 +11,60 @@
 </head>
 <body>
   <div class="app-container">
-    <!-- LEFT SIDEBAR: CONTROL & CONFIGURATION -->
-    <aside class="sidebar control-panel glass">
+    <!-- TOP HEADER: TITLE & CORE CONTROLS -->
+    <header class="main-header glass">
+      <div class="header-left">
+        <div class="logo-area">
+          <div class="glow-dot active"></div>
+          <h1>4WEIRD AIPLAY</h1>
+        </div>
+        <span class="subtitle">game runner and fixer</span>
+      </div>
+      
+      <div class="header-center">
+        <div class="actions-group">
+          <button id="btn-toggle-view" class="btn btn-secondary" title="Switch between Simple and Advanced layouts">👁️ VIEW: ADVANCED</button>
+          <button id="btn-toggle-agent" class="btn btn-primary btn-large-top disabled" disabled title="Select a game target and click LOAD first">
+            <span class="icon">▶</span> START AI AGENT
+          </button>
+          <button id="btn-webview-reload" class="btn btn-secondary">🔄 RELOAD</button>
+          <button id="btn-webview-devtools" class="btn btn-secondary">🛠 DEVTOOLS</button>
+          <button id="btn-manual-shot" class="btn btn-secondary">📸 SNAPSHOT</button>
+          <button id="btn-simulate-heuristic" class="btn btn-warning">🧪 FORCE HEURISTIC</button>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="metrics-bar">
+          <div class="metric">
+            <span class="badge" id="agent-state-badge">IDLE</span>
+          </div>
+          <div class="metric">
+            <span class="label">FPS:</span>
+            <span class="value" id="fps-val">--</span>
+            <canvas id="fps-chart" width="50" height="18"></canvas>
+          </div>
+          <div class="metric">
+            <span class="label">HEAP:</span>
+            <span class="value" id="heap-val">-- MB</span>
+            <canvas id="heap-chart" width="50" height="18"></canvas>
+          </div>
+          <div class="metric">
+            <span class="label">STUCK:</span>
+            <span class="value" id="stuck-val">0/3</span>
+          </div>
+        </div>
+        <div class="toggles-group">
+          <button id="btn-toggle-left" class="btn btn-secondary btn-small" title="Toggle Configuration Panel">⚙️ Config</button>
+          <button id="btn-toggle-right" class="btn btn-secondary btn-small" title="Toggle Bug Tracker">🐛 Tracker</button>
+          <button id="btn-toggle-audio" class="btn btn-icon btn-small" title="Toggle Synth Sounds">🔊</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="main-body">
+      <!-- LEFT SIDEBAR: CONTROL & CONFIGURATION -->
+      <aside class="sidebar control-panel glass">
       <div class="sidebar-header">
         <div class="glow-dot active"></div>
         <h2>CONFIG PANEL</h2>
@@ -137,55 +189,33 @@
         </div>
       </div>
 
-      <div class="action-footer">
-        <button id="btn-toggle-agent" class="btn btn-primary btn-large disabled" disabled title="Select a game target (URL or local demo) and click LOAD first">
-          <span class="icon">▶</span> START AI AGENT
-        </button>
-      </div>
+      <!-- Start AI Agent button moved to top action bar -->
     </aside>
 
     <!-- CENTER PANEL: GAME VIEWPORT & AGENT MIND -->
     <main class="main-content">
-      <header class="main-header glass">
-        <div class="title-area">
-          <button id="btn-toggle-left" class="btn btn-secondary btn-small" title="Toggle Left Config Panel" style="margin-right: 8px;">⚙️ Config</button>
-          <h1>ANTIGRAVITY AI PLAYTESTER</h1>
-          <span class="badge" id="agent-state-badge">IDLE</span>
-          <button id="btn-toggle-right" class="btn btn-secondary btn-small" title="Toggle Right Bug Tracker" style="margin-left: 12px;">🐛 Tracker</button>
-        </div>
-        <div class="metrics-bar">
-          <div class="metric">
-            <span class="label">FPS:</span>
-            <span class="value" id="fps-val">--</span>
-            <canvas id="fps-chart" width="60" height="20"></canvas>
-          </div>
-          <div class="metric">
-            <span class="label">HEAP MEM:</span>
-            <span class="value" id="heap-val">-- MB</span>
-            <canvas id="heap-chart" width="60" height="20"></canvas>
-          </div>
-          <div class="metric">
-            <span class="label">STUCK:</span>
-            <span class="value" id="stuck-val">0/3</span>
-          </div>
-          <button id="btn-toggle-audio" class="btn btn-icon btn-small" title="Toggle Synth Sounds">🔊</button>
-        </div>
-      </header>
-
-      <section class="viewport-section glass">
+      <section class="viewport-section glass" style="margin-top: 0;">
         <div class="viewport-bezel">
            <!-- ELECTRON WEBVIEW COMPONENT -->
           <webview id="game-webview" src="about:blank" style="width: 100%; height: 100%;" partition="persist:gameview" nodeintegrationinsubframes="false"></webview>
           
+          <div class="game-status-banner" id="game-status-banner">Select a game from local demos below or enter a URL</div>
+          
           <div class="no-game-placeholder" id="webview-placeholder">
             <div class="placeholder-icon">🎮</div>
-            <h3>No Game Loaded</h3>
-            <p>Input a game address on the left and click <strong>LOAD</strong> to begin testing.</p>
+            <h3>4weird AIPlay Runner</h3>
+            <p style="margin-bottom: 15px; max-width: 450px;">Select a local demo game to quick-launch and start playtesting immediately:</p>
+            <div class="quick-launch-grid" id="quick-launch-grid" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 15px; max-width: 500px;">
+              <!-- Javascript will dynamically populate quick launch buttons here -->
+            </div>
+            <div style="font-size: 0.8rem; opacity: 0.6; max-width: 400px; line-height: 1.4;">
+              Or configure a custom address in the Config Panel on the left.
+            </div>
           </div>
 
           <!-- SEPARATE GAME WINDOW ACTIVE PLACEHOLDER -->
           <div class="gamewindow-active-placeholder hidden" id="gamewindow-active-placeholder" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(10, 10, 20, 0.95); text-align: center; padding: 20px; box-sizing: border-box; z-index: 8; transform: none;">
-            <div class="placeholder-icon" style="font-size: 3.5rem; margin-bottom: 12px; color: var(--accent-cyan); text-shadow: 0 0 15px rgba(0, 242, 254, 0.4);">🖥️</div>
+            <div class="placeholder-icon" style="font-size: 3.5rem; margin-bottom: 12px; color: var(--accent-cyan); text-shadow: 0 0 15px rgba(0, 255, 204, 0.4);">🖥️</div>
             <h3 style="font-family: var(--font-display); font-size: 1.25rem; color: #fff; margin-bottom: 8px; letter-spacing: 1px;">Game Window Active</h3>
             <p style="color: var(--text-secondary); font-size: 0.9rem; max-width: 400px; margin-bottom: 20px; line-height: 1.5; padding: 0 20px;">The game simulation is running in a separate window. You can interact with it there or monitor agent actions below.</p>
             <div class="live-stream-preview" style="position: relative; width: 320px; height: 180px; border-radius: 8px; border: 2px solid var(--accent-blue); overflow: hidden; box-shadow: var(--shadow-glow);">
@@ -199,17 +229,10 @@
         </div>
 
         <!-- TIMELINE SCRUBBER PLAYER -->
-        <div class="timeline-player hidden" id="timeline-container">
+        <div class="timeline-player hidden" id="timeline-container" style="margin-top: 10px;">
           <button id="btn-timeline-play" class="btn btn-icon btn-small">⏸</button>
           <input type="range" id="timeline-scrubber" min="0" max="0" value="0">
           <span id="timeline-time">Tick: 0/0</span>
-        </div>
-
-        <div class="viewport-toolbar">
-          <button id="btn-webview-reload" class="btn btn-small btn-secondary">🔄 RELOAD GAME</button>
-          <button id="btn-webview-devtools" class="btn btn-small btn-secondary">🛠 OPEN GAME DEVTOOLS</button>
-          <button id="btn-manual-shot" class="btn btn-small btn-secondary">📸 SNAPSHOT FRAME</button>
-          <button id="btn-simulate-heuristic" class="btn btn-small btn-warning">🧪 FORCE HEURISTIC</button>
         </div>
       </section>
 
@@ -423,6 +446,7 @@
         <div class="replay-status" id="replay-status-text">No active replay recorded.</div>
       </div>
     </aside>
+    </div> <!-- Close main-body -->
   </div>
 
   <!-- LIGHTBOX / DETAIL MODAL FOR DETECTED BUGS -->

@@ -26,7 +26,7 @@ function createWindow() {
       webviewTag: true,
       devTools: true
     },
-    title: "AI Game Player & Debugger Dashboard",
+    title: "4weird aiplay - game runner and fixer",
     icon: path.join(__dirname, 'src', 'icon.png') // Fallback if icon doesn't exist
   });
 

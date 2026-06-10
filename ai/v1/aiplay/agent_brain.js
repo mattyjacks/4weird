@@ -16,6 +16,15 @@ class AgentBrain {
     this.lastActionTarget = null;
     this.sameActionStreak = 0;
 
+    this.sessionStats = {
+      steps: 0,
+      bugsFound: 0,
+      stuckEvents: 0,
+      recoveries: 0,
+      actionMix: {},
+      clickZones: {}
+    };
+
     this.config = {
       provider: 'openai',
       apiKey: '',
@@ -24,6 +33,37 @@ class AgentBrain {
       gameRules: '',
       alwaysSendMemory: false // Default: token-saving (only inject memory when stuck)
     };
+  }
+
+  get stuckCounter() {
+    return this.stuckRecoveryStage;
+  }
+
+  set stuckCounter(val) {
+    this.stuckRecoveryStage = val;
+  }
+
+  get tokenUsage() {
+    const stats = this.getTokenStats();
+    const usage = {};
+    const mapKeys = (obj) => {
+      if (!obj) return null;
+      return {
+        last_run: obj.lastRun || 0,
+        hourly: obj.hourly || 0,
+        daily: obj.daily || 0,
+        weekly: obj.weekly || 0,
+        yearly: obj.yearly || 0,
+        lifetime: obj.lifetime || 0
+      };
+    };
+    usage['total'] = mapKeys(stats.total);
+    if (stats.models) {
+      for (const model of Object.keys(stats.models)) {
+        usage[model] = mapKeys(stats.models[model]);
+      }
+    }
+    return usage;
   }
 
   updateConfig(newConfig) {
@@ -179,12 +219,15 @@ class AgentBrain {
     if (provider === 'openai') {
       url = 'https://api.openai.com/v1/chat/completions';
       headers['Authorization'] = `Bearer ${apiKey}`;
-      const model = modelName || 'gpt-5.4-mini-2026-03-17';
+      
+      // Enforce gpt-4o-mini as the smallest/cheapest vision-capable model, completely avoiding gpt-4o
+      const realModel = 'gpt-4o-mini';
+      
       const content = [{ type: 'text', text: prompt }];
       if (base64Image) {
         content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } });
       }
-      body = { model, response_format: { type: "json_object" }, messages: [{ role: 'user', content }] };
+      body = { model: realModel, response_format: { type: "json_object" }, messages: [{ role: 'user', content }] };
 
     } else if (provider === 'gemini') {
       const model = modelName || 'gemini-2.5-flash';
@@ -405,22 +448,28 @@ Rules:
   // MAIN STEP PROCESSOR
   // ─────────────────────────────────────────────
 
-  async processStep(screenshotBase64, consoleLogs, domSnapshot, bugsLogPath) {
+  async chooseNextAction(screenshotBase64, domSnapshot, forceHeuristic = false, consoleLogs = []) {
     const isStuck = this.detectStuckState(screenshotBase64);
 
     const prompt = this.buildPrompt(consoleLogs, domSnapshot, isStuck);
 
     let result;
-    try {
-      result = await this.callLLM(prompt, screenshotBase64);
-    } catch (e) {
-      console.warn("LLM Call failed. Falling back to heuristic rules...", e);
+    if (forceHeuristic) {
       result = this.runHeuristicFallback(consoleLogs, domSnapshot);
+    } else {
+      try {
+        result = await this.callLLM(prompt, screenshotBase64);
+      } catch (e) {
+        console.warn("LLM Call failed. Falling back to heuristic rules...", e);
+        result = this.runHeuristicFallback(consoleLogs, domSnapshot);
+      }
     }
 
     let action;
     if (isStuck) {
+      if (this.sessionStats) this.sessionStats.stuckEvents++;
       action = this.getStuckRecoveryAction();
+      if (this.sessionStats) this.sessionStats.recoveries++;
       if (result) {
         result.action = action;
         result.reasoning_path = [...(result.reasoning_path || []), `R_RECOVER_${this.stuckRecoveryStage}`];
@@ -441,7 +490,6 @@ Rules:
       this.sameActionStreak++;
     } else {
       this.sameActionStreak = 0;
-      // If we were stuck but took a recovery action, we don't reset recovery stage until sameActionStreak breaks
       if (!isStuck) {
         this.stuckRecoveryStage = 0;
       }
@@ -471,19 +519,29 @@ Rules:
 
     // Log bug reports
     if (result.bug_report && result.bug_report.has_bug) {
-      const bugEntry = {
-        timestamp: new Date().toISOString(),
-        description: result.bug_report.description,
-        severity: result.bug_report.severity,
-        consoleLogs,
-        screenshot: `data:image/jpeg;base64,${screenshotBase64}`,
-        actionTakenBeforeBug: this.replayActions.slice(-3)
-      };
-      const isDuplicate = this.bugs.some(b => b.description === bugEntry.description);
-      if (!isDuplicate) {
-        this.bugs.push(bugEntry);
-        this.saveBugs(bugsLogPath);
-        if (this._sessionMem) this._sessionMem.bugsFound++;
+      const desc = result.bug_report.description || '';
+      const isFakeBug = desc.toLowerCase().includes('interactive element') || 
+                        desc.toLowerCase().includes('stuck') || 
+                        desc.toLowerCase().includes('electron security') ||
+                        desc.toLowerCase().includes('no elements');
+      if (!isFakeBug) {
+        const bugEntry = {
+          timestamp: new Date().toISOString(),
+          type: result.bug_report.type || 'UI/Visual Bug',
+          description: result.bug_report.description,
+          severity: result.bug_report.severity,
+          consoleLogs: (consoleLogs || []).filter(l => {
+            const msg = typeof l === 'string' ? l : (l.message || '');
+            return !msg.includes('Electron Security Warning');
+          }),
+          screenshot: `data:image/jpeg;base64,${screenshotBase64}`,
+          actionTakenBeforeBug: this.replayActions.slice(-3)
+        };
+        const isDuplicate = this.bugs.some(b => b.description === bugEntry.description);
+        if (!isDuplicate) {
+          this.bugs.push(bugEntry);
+          if (this.sessionStats) this.sessionStats.bugsFound++;
+        }
       }
     }
 
@@ -493,6 +551,104 @@ Rules:
     result.reasoning = result.reasoning || (result.reasoning_path ? result.reasoning_path.join(' -> ') : '');
 
     return result;
+  }
+
+  async processStep(screenshotBase64, consoleLogs, domSnapshot, bugsLogPath) {
+    const res = await this.chooseNextAction(screenshotBase64, domSnapshot, false, consoleLogs);
+    if (res.bug_report && res.bug_report.has_bug) {
+      this.saveBugs(bugsLogPath);
+    }
+    return res;
+  }
+
+  scanForBugs(screenshotBase64, consoleLogs) {
+    const beforeCount = this.bugs.length;
+    const errorLogs = (consoleLogs || []).filter(log => {
+      const msg = typeof log === 'string' ? log : (log.message || '');
+      if (msg.includes('Electron Security Warning') || msg.includes('Content Security Policy')) return false;
+      
+      if (typeof log === 'string') {
+        const lower = log.toLowerCase();
+        return lower.includes('error') || lower.includes('exception') || lower.includes('failed to load');
+      }
+      return log.level === 3 || (log.message && (
+        log.message.includes('Error') || 
+        log.message.includes('exception') || 
+        log.message.includes('TypeError') ||
+        log.message.includes('ReferenceError')
+      ));
+    });
+    
+    if (errorLogs.length > 0) {
+      const lastErr = errorLogs[errorLogs.length - 1];
+      const msg = typeof lastErr === 'string' ? lastErr : lastErr.message;
+      
+      const bugEntry = {
+        timestamp: new Date().toISOString(),
+        type: 'Console Error',
+        description: msg.slice(0, 150),
+        severity: 'high',
+        consoleLogs: errorLogs.map(l => typeof l === 'string' ? l : l.message),
+        screenshot: `data:image/jpeg;base64,${screenshotBase64}`,
+        actionTakenBeforeBug: this.replayActions.slice(-3)
+      };
+      
+      const isDuplicate = this.bugs.some(b => b.description === bugEntry.description);
+      if (!isDuplicate) {
+        this.bugs.push(bugEntry);
+        if (this.sessionStats) this.sessionStats.bugsFound++;
+      }
+    }
+    return this.bugs.length > beforeCount;
+  }
+
+  generateMegaPrompt(localGamePath = '', files = []) {
+    let filesContext = '';
+    if (files && files.length > 0) {
+      filesContext = files.map(f => {
+        return `### File: ${f.path}\n\`\`\`${path.extname(f.path).substring(1)}\n${f.content}\n\`\`\`\n`;
+      }).join('\n');
+    }
+    
+    const bugReportsMarkdown = this.bugs.length > 0
+      ? this.bugs.map((b, idx) => {
+          const logsStr = b.consoleLogs 
+            ? (b.consoleLogs.map(l => typeof l === 'string' ? l : (l.message || '')).join('\n') || 'None')
+            : 'None';
+          return `#### Bug #${idx+1} [${b.severity ? b.severity.toUpperCase() : 'HIGH'}]
+  - **Timestamp**: ${b.timestamp}
+  - **Description**: ${b.description}
+  - **Actions Leading Up**: ${JSON.stringify(b.actionTakenBeforeBug || [])}
+  - **Errors/Console**: 
+  \`\`\`
+  ${logsStr}
+  \`\`\``;
+        }).join('\n\n')
+      : "No bugs explicitly flagged by the agent yet.";
+      
+    const promptText = `# Game Bug Resolution Task
+  
+You are an expert game developer agent. Your task is to fix the bugs and add the requested features/improvements noted during our automated AI playtest run.
+
+## Game Context
+- **Target Source Directory**: ${localGamePath || "Remote URL"}
+- **Playtest Replay Actions**: ${JSON.stringify(this.replayActions.slice(-20))}
+
+## Logged Bugs & Glitches
+${bugReportsMarkdown}
+
+## Game Codebase Context
+Below are the source files of the game:
+
+${filesContext || "*No code files were auto-detected. Please locate and modify code files manually based on the logs.*"}
+
+## Instructions
+1. Review the logged bugs and compare them with the code snippets above.
+2. Locate the logic errors or visual glitches (e.g. infinite loops, broken state-updates, missing event boundaries).
+3. Apply code fixes directly to resolve the bugs.
+4. Verify the gameplay runs normally without exceptions.
+`;
+    return promptText;
   }
 
   // ─────────────────────────────────────────────
@@ -594,6 +750,18 @@ Rules:
     this.lastActionType = null;
     this.lastActionTarget = null;
     this.initSessionMemory();
+  }
+
+  startSession() {
+    this.startNewRun();
+    this.sessionStats = {
+      steps: 0,
+      bugsFound: 0,
+      stuckEvents: 0,
+      recoveries: 0,
+      actionMix: {},
+      clickZones: {}
+    };
   }
 
   endCurrentRun() {
