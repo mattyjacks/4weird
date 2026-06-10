@@ -4,6 +4,16 @@
 // No em-dashes or en-dashes used in comments.
 
 import { ShipBuilder } from './ship-builder.js';
+import { ShipAI } from './ship-ai.js';
+import { VoxelDamageSystem } from './voxel-damage.js';
+import { CinematicCamera } from './cinematic-camera.js';
+import { LootSystem, RepairSystem } from './loot-system.js';
+import { DifficultySystem } from './difficulty-system.js';
+import { WeaponSystem } from './weapon-system.js';
+import { DebugSystem } from './debug-system.js';
+import { RealisticShipGenerator } from './realistic-ship-generator.js';
+// Temporarily disabled performance manager to fix loading
+// import { PerformanceManager } from './performance-manager.js';
 
 // THREE.js is loaded globally via CDN in index.html
 const THREE = window.THREE;
@@ -35,11 +45,21 @@ let currentStation = null;
 let spaceStationActive = false;
 
 // Camera Cinematic Modes
-let cameraMode = "chase"; // chase, flyby, side, combat
+let cameraMode = "dynamic"; // chase, flyby, side, combat, dynamic
 let cameraTimer = 0.0;
 let cameraTargetOffset = new THREE.Vector3();
 let cameraLookAtTarget = new THREE.Vector3();
 let cameraCurrentRoll = 0.0;
+let nextCameraSwitch = 10.0; // Switch camera modes every 10 seconds
+
+// Advanced Systems
+let voxelDamageSystem;
+let cinematicCamera;
+let lootSystem;
+let repairSystem;
+let difficultySystem;
+let weaponSystem;
+let shipAIs = new Map(); // AI instances for each ship
 
 export function initSpaceBackground() {
   const canvas = document.getElementById('starfield');
@@ -202,14 +222,28 @@ export function initSpaceBackground() {
         return true;
       });
 
-      // 3. Process Hits
+      // 3. Process Hits with voxel damage system
       data.hitEvents.forEach(evt => {
         if (evt.alienId) {
           const alien = activeAliens.get(evt.alienId);
           if (alien) {
-            alien.health -= evt.damage;
+            let damageDealt = evt.damage;
+            
+            // Use voxel damage system if available
+            if (voxelDamageSystem && alien.mesh.userData.voxels) {
+              const impactPoint = new THREE.Vector3(...evt.hitPos);
+              const damageResult = voxelDamageSystem.applyDamage(alien.mesh, evt.damage, impactPoint);
+              damageDealt = damageResult.damageDealt;
+              alien.health = damageResult.remainingHealth;
+              
+              console.log(`Alien ${alien.id} took ${damageDealt.toFixed(1)} damage, ${damageResult.destroyedVoxels} voxels destroyed`);
+            } else {
+              alien.health -= evt.damage;
+            }
+            
             flashAlien(alien);
             createHitSparks(evt.hitPos, 0x39ff14);
+            
             if (alien.health <= 0) {
               destroyAlien(alien);
             }
@@ -217,7 +251,28 @@ export function initSpaceBackground() {
         } else if (evt.humanId) {
           const human = activeHumanShips.get(evt.humanId);
           if (human) {
+            let damageDealt = evt.damage;
+            
+            // Use voxel damage system for human ships
+            if (voxelDamageSystem && human.mesh.userData.voxels) {
+              const impactPoint = new THREE.Vector3(...evt.hitPos);
+              const damageResult = voxelDamageSystem.applyDamage(human.mesh, evt.damage, impactPoint);
+              damageDealt = damageResult.damageDealt;
+              
+              if (human.ai) {
+                human.ai.health = damageResult.remainingHealth;
+              }
+              
+              console.log(`Human ${human.id} took ${damageDealt.toFixed(1)} damage, ${damageResult.destroyedVoxels} voxels destroyed`);
+            }
+            
             createHitSparks(evt.hitPos, 0x00f6ff); // Blue shield hit glow
+            
+            // Check if ship is destroyed
+            if (human.ai && human.ai.health <= 0) {
+              console.log(`Human ship ${human.id} destroyed!`);
+              // Could add ship destruction effects here
+            }
           }
         }
       });
@@ -258,19 +313,77 @@ export function initSpaceBackground() {
 // ===== ENTITY SPAWNERS =====
 
 function spawnHumanFleet() {
+  // Initialize advanced systems if not already done
+  if (!voxelDamageSystem) {
+    voxelDamageSystem = new VoxelDamageSystem();
+  }
+  if (!cinematicCamera) {
+    cinematicCamera = new CinematicCamera(camera, scene);
+  }
+  if (!lootSystem) {
+    lootSystem = new LootSystem();
+  }
+  if (!repairSystem) {
+    repairSystem = new RepairSystem(lootSystem);
+  }
+  if (!difficultySystem) {
+    difficultySystem = new DifficultySystem();
+  }
+  if (!weaponSystem) {
+    weaponSystem = new WeaponSystem(scene);
+  }
+  
+  // Initialize debug system
+  if (!window.debugSystem) {
+    window.debugSystem = new DebugSystem();
+  }
+  
+  // Temporarily disabled performance manager to fix loading
+  // if (!window.performanceManager) {
+  //   window.performanceManager = new PerformanceManager();
+  // }
+  
+  // Initialize realistic ship generator and make it globally available
+  if (!window.RealisticShipGenerator) {
+    window.RealisticShipGenerator = RealisticShipGenerator;
+  }
+  
+  // Expose systems and scene globally for AI access
+  window.scene = scene;
+  window.weaponSystem = weaponSystem;
+  window.repairSystem = repairSystem;
+  window.lootSystem = lootSystem;
+  window.voxelDamageSystem = voxelDamageSystem;
+  window.difficultySystem = difficultySystem;
+  window.RealisticShipGenerator = RealisticShipGenerator;
+  // Temporarily disabled performance manager to fix loading
+  // window.performanceManager = window.performanceManager;
+  window.activeHumanShips = activeHumanShips;
+  window.activeAliens = activeAliens;
+
+  // Updated formation with reasonable spacing
   const formation = [
     [0, 0, 0],       // Leader
-    [-4, 1, 3],      // Left Wing
-    [4, 1, 3],       // Right Wing
-    [-7, -1, 6],     // Far Left Wing
-    [7, -1, 6]       // Far Right Wing
+    [-15, 2, 8],     // Left Wing - reasonable spacing
+    [15, 2, 8],      // Right Wing - reasonable spacing
+    [-25, -2, 12],   // Far Left Wing - reasonable spacing
+    [25, -2, 12]     // Far Right Wing - reasonable spacing
   ];
+
+  const roles = ['leader', 'wingman', 'wingman', 'support', 'support'];
+  const personalities = ['tactical', 'balanced', 'reckless', 'cautious', 'opportunistic'];
 
   for (let i = 0; i < 5; i++) {
     const id = "human_" + i;
-    const mesh = ShipBuilder.buildShip("human", i * 1.5);
+    
+    // Use voxel damage system for realistic ship construction
+    const mesh = voxelDamageSystem.createVoxelShip("human", id);
     mesh.position.fromArray(formation[i]);
     fleetGroup.add(mesh);
+
+    // Create AI for this ship
+    const shipAI = new ShipAI(id, roles[i], personalities[i]);
+    shipAIs.set(id, shipAI);
 
     activeHumanShips.set(id, {
       id: id,
@@ -280,7 +393,22 @@ function spawnHumanFleet() {
       wanderOffset: formation[i],
       inventory: [],
       weaponCooldown: 0.0,
-      radius: mesh.userData.collisionRadius
+      radius: mesh.userData.collisionRadius,
+      
+      // AI Properties
+      ai: {
+        role: roles[i],
+        personality: personalities[i],
+        aggression: shipAI.aggression,
+        health: mesh.userData.totalHealth,
+        maxHealth: mesh.userData.maxTotalHealth,
+        loot: 50, // Starting loot
+        experience: 0,
+        state: 'patrol',
+        currentTarget: null,
+        lastShot: 0,
+        combatTactics: shipAI.combatTactics
+      }
     });
 
     // Add Engine Thruster point light to one of the ships for visual lighting
@@ -294,7 +422,11 @@ function spawnHumanFleet() {
 }
 
 function spawnAlienWave() {
-  const count = 2 + Math.floor(Math.random() * 2);
+  // Use difficulty system to determine spawn parameters
+  const difficulty = difficultySystem ? difficultySystem.update() : { level: 1, params: {} };
+  const params = difficulty.params || {};
+  
+  const count = Math.min(2 + difficulty.level, params.maxAliens || 5);
   const targetKeys = Array.from(activeHumanShips.keys());
 
   let fleetZ = 0.0;
@@ -307,27 +439,43 @@ function spawnAlienWave() {
   for (let i = 0; i < count; i++) {
     const id = "alien_" + Date.now() + "_" + i;
     // Spawn ahead along Z-axis (relative to current average fleet Z)
+    const spawnDistance = 130 + (difficulty.level * 10);
     const spawnPos = [
-      (Math.random() - 0.5) * 40.0,
-      (Math.random() - 0.5) * 15.0,
-      fleetZ - 130.0 + (Math.random() - 0.5) * 20.0
+      (Math.random() - 0.5) * 60.0,
+      (Math.random() - 0.5) * 20.0,
+      fleetZ - spawnDistance + (Math.random() - 0.5) * 30.0
     ];
 
-    const mesh = ShipBuilder.buildShip("alien", Math.random() * 5.0);
+    // Use voxel damage system for alien ships
+    const mesh = voxelDamageSystem ? 
+      voxelDamageSystem.createVoxelShip("alien", id) : 
+      ShipBuilder.buildShip("alien", Math.random() * 5.0);
     mesh.position.fromArray(spawnPos);
     alienGroup.add(mesh);
 
     const randomTarget = targetKeys[Math.floor(Math.random() * targetKeys.length)];
 
+    const alienHealth = params.alienHealth || 50;
+    const alienSpeed = params.alienSpeed || 8;
+    const alienLoot = difficultySystem ? 
+      difficultySystem.calculateAlienLoot() : 
+      (10 + Math.floor(Math.random() * 20));
+
     activeAliens.set(id, {
       id: id,
       mesh: mesh,
       position: new THREE.Vector3().fromArray(spawnPos),
-      velocity: [0, 0, 8],
+      velocity: [0, 0, alienSpeed],
       targetId: randomTarget,
-      health: 3,
+      health: alienHealth,
+      maxHealth: alienHealth,
       radius: mesh.userData.collisionRadius,
-      seed: Math.random() * 100
+      seed: Math.random() * 100,
+      loot: alienLoot,
+      damage: params.alienDamage || 10,
+      accuracy: params.alienAccuracy || 0.3,
+      type: 'basic',
+      level: difficulty.level || 1
     });
 
     // Warp flare effect
@@ -355,28 +503,53 @@ function spawnSpaceStation() {
 // ===== GRAPHICS & PARTICLES =====
 
 function createStarField() {
-  const count = 2500;
+  const count = 3500; // Increased star count for better density
   const geom = new THREE.BufferGeometry();
   const positions = new Float32Array(count * 3);
   const sizes = new Float32Array(count);
+  const colors = new Float32Array(count * 3); // Add color variation
 
   for (let i = 0; i < count * 3; i += 3) {
-    positions[i] = (Math.random() - 0.5) * 300.0;
-    positions[i + 1] = (Math.random() - 0.5) * 150.0;
-    positions[i + 2] = -Math.random() * 300.0;
-    sizes[i/3] = 0.5 + Math.random() * 1.5;
+    positions[i] = (Math.random() - 0.5) * 800.0; // Even larger range for X
+    positions[i + 1] = (Math.random() - 0.5) * 400.0; // Even larger range for Y
+    positions[i + 2] = (Math.random() - 0.5) * 800.0; // Full 360 degree range for Z
+    
+    // Variable star sizes for depth perception
+    const depth = Math.abs(positions[i + 2]) / 400.0;
+    sizes[i/3] = 0.3 + Math.random() * 2.0 * (1.0 - depth * 0.5);
+    
+    // Color variation - slight blue/white tints
+    const colorTemp = Math.random();
+    if (colorTemp < 0.7) {
+      // White stars
+      colors[i] = 1.0;
+      colors[i + 1] = 1.0;
+      colors[i + 2] = 1.0;
+    } else if (colorTemp < 0.85) {
+      // Blue stars
+      colors[i] = 0.7;
+      colors[i + 1] = 0.8;
+      colors[i + 2] = 1.0;
+    } else {
+      // Yellow stars
+      colors[i] = 1.0;
+      colors[i + 1] = 0.9;
+      colors[i + 2] = 0.7;
+    }
   }
 
   geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geom.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+  geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-  // Small, efficient point texture shader representation
+  // Enhanced star material with vertex colors
   const mat = new THREE.PointsMaterial({
     color: 0xffffff,
-    size: 0.8,
+    size: 1.0,
     transparent: true,
-    opacity: 0.8,
-    sizeAttenuation: true
+    opacity: 0.9,
+    sizeAttenuation: true,
+    vertexColors: true
   });
 
   starField = new THREE.Points(geom, mat);
@@ -482,6 +655,22 @@ function createHitSparks(pos, colorHex) {
 }
 
 function destroyAlien(alien) {
+  // Add loot to the sharing system
+  if (lootSystem && alien.loot) {
+    lootSystem.addLoot(alien.loot, 'alien');
+    console.log(`Alien destroyed! Dropped ${alien.loot} loot.`);
+  }
+  
+  // Create voxel destruction effects if available
+  if (voxelDamageSystem && alien.mesh.userData.voxels) {
+    // Create debris from destroyed voxels
+    alien.mesh.userData.voxels.forEach(voxel => {
+      if (voxel.visible) {
+        voxelDamageSystem.createVoxelDebris(voxel);
+      }
+    });
+  }
+  
   // 1. Create large beautiful explosion particle sphere
   createHitSparks(alien.position.toArray(), 0xff3300);
   
@@ -562,8 +751,9 @@ function fireHumanWeapon(ship, typeIdx) {
   const id = "laser_" + Date.now() + "_" + Math.random();
   const origin = new THREE.Vector3().copy(ship.mesh.position);
   
-  // Offset origin slightly forward
-  origin.z -= 2.0;
+  // Dynamic weapon offset based on ship position in formation
+  const weaponOffset = Math.sin(Date.now() * 0.01 + ship.id.length) * 0.5;
+  origin.z -= 2.0 + weaponOffset;
 
   let geom, mat, vel, dmg, pMesh, pLight;
 
@@ -875,6 +1065,63 @@ function animate(timestamp) {
     let sumZ = 0.0;
     activeHumanShips.forEach(h => sumZ += h.position.z);
     fleetZ = sumZ / activeHumanShips.size;
+  }
+
+  // Update advanced systems
+  if (difficultySystem) {
+    difficultySystem.update();
+  }
+  
+  // Update AI for all human ships
+  if (shipAIs.size > 0) {
+    activeHumanShips.forEach((ship, id) => {
+      const ai = shipAIs.get(id);
+      if (ai && ship.ai) {
+        ai.updateAI(ship, activeHumanShips, activeAliens, dt);
+        
+        // Update health from voxel system
+        if (voxelDamageSystem && ship.mesh.userData.totalHealth) {
+          ship.ai.health = ship.mesh.userData.totalHealth;
+        }
+      }
+    });
+  }
+  
+  // Update loot sharing system
+  if (lootSystem && activeHumanShips.size > 0) {
+    lootSystem.shareLoot(activeHumanShips);
+  }
+  
+  // Update repair system
+  if (repairSystem && activeHumanShips.size > 0) {
+    repairSystem.autoRepairAll(activeHumanShips);
+  }
+  
+  // Update weapon system
+  if (weaponSystem) {
+    weaponSystem.updateProjectiles(dt, activeAliens, activeHumanShips);
+  }
+  
+  // Update cinematic camera
+  if (cinematicCamera) {
+    let fleetCenter = new THREE.Vector3();
+    if (activeHumanShips.size > 0) {
+      activeHumanShips.forEach(ship => fleetCenter.add(ship.position));
+      fleetCenter.divideScalar(activeHumanShips.size);
+    }
+    
+    // Find closest alien for combat camera mode
+    let closestAlien = null;
+    let minDist = Infinity;
+    activeAliens.forEach(alien => {
+      const dist = alien.position.distanceTo(fleetCenter);
+      if (dist < minDist) {
+        minDist = dist;
+        closestAlien = alien;
+      }
+    });
+    
+    cinematicCamera.update(dt, timestamp, fleetCenter, { closestAlien });
   }
 
   // Rotate station parts if station is active (station remains stationary in space)

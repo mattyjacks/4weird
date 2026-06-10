@@ -3,6 +3,9 @@
 // Optimized with a shared geometry cache for minimal GPU/memory overhead
 // No em-dashes or en-dashes used in comments
 
+// THREE.js is loaded globally via CDN in index.html
+const THREE = window.THREE;
+
 import { hulls } from './parts/hulls.js';
 import { cockpits } from './parts/cockpits.js';
 import { wings } from './parts/wings.js';

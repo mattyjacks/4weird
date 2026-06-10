@@ -110,7 +110,8 @@ ipcMain.handle('scan-directory', async (event, dirPath) => {
             const content = fs.readFileSync(fullPath, 'utf8');
             // Remove comments and blank lines to optimize prompt token payload
             const minifiedContent = content
-              .replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, '$1')
+              .replace(/\/\*[\s\S]*?\*\//g, '')
+              .replace(/([^:'"`])(\/\/.*)$/gm, '$1')
               .replace(/^\s*[\r\n]/gm, '')
               .slice(0, 3000);
 

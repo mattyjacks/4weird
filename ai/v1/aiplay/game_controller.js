@@ -184,7 +184,8 @@ class GameController {
       webview.reload();
       return "Reloaded page";
     } else if (type === 'wait') {
-      return new Promise((resolve) => setTimeout(() => resolve(`Waited ${duration_ms}ms`), duration_ms));
+      const waitMs = duration_ms || 500;
+      return new Promise((resolve) => setTimeout(() => resolve(`Waited ${waitMs}ms`), waitMs));
     }
   }
 
@@ -197,13 +198,31 @@ class GameController {
       'ArrowDown': 'ArrowDown',
       'Space': 'Space',
       ' ': 'Space',
+      'Enter': 'Enter',
+      'Tab': 'Tab',
+      'Backspace': 'Backspace',
+      'Delete': 'Delete',
+      'Shift': 'ShiftLeft',
+      'Control': 'ControlLeft',
+      'Alt': 'AltLeft',
+      'Meta': 'MetaLeft',
+      'Home': 'Home',
+      'End': 'End',
+      'PageUp': 'PageUp',
+      'PageDown': 'PageDown',
+      'Insert': 'Insert',
+      'F1': 'F1', 'F2': 'F2', 'F3': 'F3', 'F4': 'F4',
+      'F5': 'F5', 'F6': 'F6', 'F7': 'F7', 'F8': 'F8',
+      'F9': 'F9', 'F10': 'F10', 'F11': 'F11', 'F12': 'F12',
       'w': 'KeyW',
       'a': 'KeyA',
       's': 'KeyS',
       'd': 'KeyD',
       'Escape': 'Escape'
     };
-    return map[key] || 'Key' + (key.toUpperCase());
+    if (map[key]) return map[key];
+    if (key.length === 1) return 'Key' + key.toUpperCase();
+    return key;
   }
 }
 

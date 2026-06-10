@@ -149,6 +149,14 @@ document.addEventListener('DOMContentLoaded', () => {
   btnGeneratePrompt.addEventListener('click', generateMegaPrompt);
   btnCopyPrompt.addEventListener('click', copyPromptToClipboard);
   btnSaveReplay.addEventListener('click', saveReplayFile);
+
+  const btnScanProcesses = document.getElementById('btn-scan-processes');
+  if (btnScanProcesses) {
+    btnScanProcesses.addEventListener('click', () => {
+      playClickSound();
+      logSystemMessage('Native process scanner: not yet implemented for this platform.');
+    });
+  }
   
   // Audio, Tabs and Timeline event listeners
   btnToggleAudio.addEventListener('click', toggleAudioSetting);
@@ -392,11 +400,23 @@ function selectDemoGame() {
   }
 }
 
+// Converts a file:/// URL to a native filesystem path (cross-platform)
+function fileUrlToPath(fileUrl) {
+  if (!fileUrl.startsWith('file:///')) return '';
+  let p = decodeURIComponent(fileUrl.slice('file:///'.length));
+  if (process.platform !== 'win32') {
+    p = '/' + p;
+  } else {
+    p = p.replace(/\//g, '\\');
+  }
+  return p;
+}
+
 // Load game_meta.json for a given local file:// URL and populate game rules
 function loadGameMeta(fileUrl) {
   try {
     if (!fileUrl.startsWith('file:///')) return;
-    const indexPath = fileUrl.replace('file:///', '').replace(/\\/g, '/');
+    const indexPath = fileUrlToPath(fileUrl);
     const gameDir = path.dirname(indexPath);
     const metaPath = path.join(gameDir, 'game_meta.json');
     if (fs.existsSync(metaPath)) {
@@ -423,7 +443,7 @@ async function crawlCodeFiles() {
   let localGamePath = '';
   
   if (currentUrl.startsWith('file:///')) {
-    localGamePath = path.dirname(currentUrl.replace('file:///', ''));
+    localGamePath = path.dirname(fileUrlToPath(currentUrl));
   } else {
     const urlParts = currentUrl.split('/');
     const gameName = urlParts[urlParts.length - 2];
@@ -450,7 +470,7 @@ function renderFileList() {
     return;
   }
 
-  sourceFiles.forEach((file, index) => {
+  sourceFiles.forEach((file) => {
     const item = document.createElement('div');
     item.className = 'file-item';
     item.textContent = file.path;
@@ -482,6 +502,12 @@ function setupWebviewListeners() {
     // Start tracking frame updates for FPS estimation
     startFpsTracker();
     crawlCodeFiles();
+  });
+
+  webviewElement.addEventListener('did-fail-load', (e) => {
+    if (e.errorCode === -3) return; // Ignore aborted navigations (e.g. redirects)
+    logMessage(`Game failed to load: [${e.errorCode}] ${e.errorDescription} - ${e.validatedURL}`, 'error');
+    webviewPlaceholder.classList.remove('hidden');
   });
 
   webviewElement.addEventListener('console-message', (e) => {
@@ -557,7 +583,7 @@ function toggleAgentState() {
     // Start active token run track
     agentBrain.startNewRun();
     
-    logSystemMessage("AI Playtest Agent RESUMED.");
+    logSystemMessage("AI Playtest Agent STARTED.");
     runAgentLoop();
   }
 }
@@ -577,9 +603,12 @@ async function runAgentLoop() {
     if (metrics.heapUsed > 0) {
       heapMB = Math.round(metrics.heapUsed / (1024 * 1024));
       heapVal.textContent = `${heapMB} MB`;
+    } else {
+      heapVal.textContent = '-- MB';
     }
     
-    const isStuckCount = agentBrain.history.filter(h => h.screenshotHash === agentBrain.simpleHash(screenshot)).length;
+    const currentHash = agentBrain.simpleHash(screenshot);
+    const isStuckCount = agentBrain.episodes.slice(-3).filter(h => h.screenshotHash === currentHash).length;
     stuckVal.textContent = `${isStuckCount}/3`;
 
     // Display frame in brain preview
@@ -720,6 +749,9 @@ function resumeFromScrub() {
     agentStateBadge.textContent = "PLAYING";
     agentStateBadge.className = "badge active";
     
+    // Start a new run for token tracking when resuming from scrubber
+    agentBrain.startNewRun();
+
     // Cut history to scrubber index to avoid timeline splits
     timelineHistory = timelineHistory.slice(0, currentScrubIndex + 1);
     runAgentLoop();
@@ -884,13 +916,19 @@ ${filesContext || "*No code files were auto-detected. Please locate and modify c
 // Copy prompt text to clipboard
 function copyPromptToClipboard() {
   playClickSound();
-  megaPromptOutput.select();
-  document.execCommand('copy');
-  
-  btnCopyPrompt.textContent = "Copied!";
-  setTimeout(() => {
-    btnCopyPrompt.textContent = "Copy";
-  }, 2000);
+  navigator.clipboard.writeText(megaPromptOutput.value).then(() => {
+    btnCopyPrompt.textContent = "Copied!";
+    setTimeout(() => {
+      btnCopyPrompt.textContent = "Copy";
+    }, 2000);
+  }).catch(() => {
+    megaPromptOutput.select();
+    document.execCommand('copy');
+    btnCopyPrompt.textContent = "Copied!";
+    setTimeout(() => {
+      btnCopyPrompt.textContent = "Copy";
+    }, 2000);
+  });
 }
 
 // Save play session replay JSON

@@ -14,22 +14,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===== STARFIELD BACKGROUND =====
 function initStarfield() {
-    if (window.initSpaceBackground) {
-        window.initSpaceBackground();
+    // New clean architecture handles initialization automatically
+    if (window.spaceGameCore) {
+        console.log('Space game core already available');
     } else {
         // Register hook for when module loads
         window.ThreeBackgroundLoaded = () => {
-            if (window.initSpaceBackground) {
-                window.initSpaceBackground();
-            }
+            console.log('Space game loaded');
         };
-        // Safety fallback after 1200ms if WebGL fails or Three.js hasn't loaded
+        // Safety fallback after 1000ms
         setTimeout(() => {
-            if (!window.initSpaceBackground) {
-                console.log('[4weird] WebGL space background not ready. Falling back to 2D.');
+            if (!window.spaceGameCore) {
+                console.log('[4weird] Space game not ready. Falling back to 2D.');
                 initLegacy2DStarfield();
             }
-        }, 1200);
+        }, 1000);
     }
 }
 

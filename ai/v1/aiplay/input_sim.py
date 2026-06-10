@@ -18,8 +18,7 @@ except ImportError:
     install_pyautogui()
     import pyautogui
 
-# Disable PyAutoGUI fail-safe to prevent crash, but warn user.
-# User can trigger fail-safe by moving mouse to upper-left corner of screen.
+# PyAutoGUI fail-safe is ENABLED: move mouse to upper-left corner to abort.
 pyautogui.FAILSAFE = True
 
 def print_help():

@@ -240,6 +240,12 @@ textarea:focus {
   cursor: not-allowed;
 }
 
+/* SIDEBAR ACTION FOOTER */
+.action-footer {
+  margin-top: auto;
+  padding-top: 16px;
+}
+
 /* CENTER PANEL STYLES */
 .main-content {
   flex: 1;
@@ -268,6 +274,7 @@ textarea:focus {
   letter-spacing: 2px;
   background: linear-gradient(135deg, #fff 30%, var(--accent-cyan) 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -671,6 +678,7 @@ textarea:focus {
 .timeline-player input[type="range"] {
   flex: 1;
   -webkit-appearance: none;
+  appearance: none;
   background: rgba(255, 255, 255, 0.1);
   height: 6px;
   border-radius: 3px;
@@ -679,6 +687,7 @@ textarea:focus {
 
 .timeline-player input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
+  appearance: none;
   width: 14px;
   height: 14px;
   border-radius: 50%;

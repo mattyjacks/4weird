@@ -196,7 +196,7 @@ class AgentBrain {
       if (base64Image) {
         content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } });
       }
-      body = { model, response_format: { type: "json_object" }, messages: [{ role: 'user', content }] };
+      body = { model, messages: [{ role: 'user', content }] };
 
     } else if (provider === 'local') {
       url = endpointUrl || 'http://localhost:11434/api/chat';
@@ -208,12 +208,19 @@ class AgentBrain {
         if (base64Image) {
           content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } });
         }
-        body = { model, response_format: { type: "json_object" }, messages: [{ role: 'user', content }] };
+        body = { model, messages: [{ role: 'user', content }] };
       }
     }
 
     console.log(`Sending API Request to ${provider} using model ${modelName || 'default'}`);
-    const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
+    const abortController = new AbortController();
+    const fetchTimeout = setTimeout(() => abortController.abort(), 60000);
+    let response;
+    try {
+      response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body), signal: abortController.signal });
+    } finally {
+      clearTimeout(fetchTimeout);
+    }
 
     if (!response.ok) {
       const errText = await response.text();
@@ -246,7 +253,15 @@ class AgentBrain {
     }
 
     this.recordTokenUsage(activeModel, promptTokens, completionTokens);
-    return JSON.parse(contentString);
+    try {
+      return JSON.parse(contentString);
+    } catch (e) {
+      const jsonMatch = contentString.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]);
+      }
+      throw new Error(`LLM returned non-JSON response: ${contentString.slice(0, 200)}`);
+    }
   }
 
   // ─────────────────────────────────────────────
@@ -337,7 +352,7 @@ Rules:
       result = this.runHeuristicFallback(consoleLogs, domSnapshot);
     }
 
-    const action = result.action || { type: 'wait', duration_ms: 500 };
+    const action = result.action || this.getStuckRecoveryAction() || { type: 'wait', duration_ms: 500 };
 
     // Update same-action streak tracker for stuck detection
     const actionSig = `${action.type}:${action.target || ''}`;

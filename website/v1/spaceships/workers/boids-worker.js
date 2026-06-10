@@ -25,6 +25,9 @@ self.onmessage = function(e) {
       const ship = humans[i];
       const pos = ship.position;
       const vel = ship.velocity;
+      
+      // Individual ship behavior pattern based on ship ID
+      const shipPattern = getShipBehaviorPattern(ship.id, i);
 
       // Force accumulators
       let sepX = 0.0, sepY = 0.0, sepZ = 0.0;
@@ -35,7 +38,7 @@ self.onmessage = function(e) {
       let neighborCount = 0;
 
       // Separation, Alignment, Cohesion distances (squared for speed)
-      const sepDistSq = 2.2 * 2.2;
+      const sepDistSq = 6.0 * 6.0; // Balanced distance for reasonable spacing
       const neighborDistSq = 12.0 * 12.0;
 
       for (let j = 0; j < humans.length; j++) {
@@ -73,10 +76,10 @@ self.onmessage = function(e) {
         sepX /= sepCount;
         sepY /= sepCount;
         sepZ /= sepCount;
-        // Limit separation steering
-        steerX += sepX * 2.0;
-        steerY += sepY * 2.0;
-        steerZ += sepZ * 2.0;
+        // Limit separation steering - increased force for much larger separation distance
+        steerX += sepX * 6.0;
+        steerY += sepY * 6.0;
+        steerZ += sepZ * 6.0;
       }
 
       if (neighborCount > 0) {
@@ -97,20 +100,28 @@ self.onmessage = function(e) {
         steerZ += (cohZ - pos[2]) * 0.08;
       }
 
-      // Wander/Target seek force (leads the fleet towards background, i.e., -z direction)
-      const tx = wanderTarget[0] + (ship.wanderOffset ? ship.wanderOffset[0] : 0.0);
-      const ty = wanderTarget[1] + (ship.wanderOffset ? ship.wanderOffset[1] : 0.0);
-      const tz = wanderTarget[2] + (ship.wanderOffset ? ship.wanderOffset[2] : 0.0);
+      // Dynamic formation wander based on ship behavior pattern
+      const timeFactor = Date.now() * 0.001;
+      const dynamicOffset = [
+        shipPattern.preferredOffset[0] + Math.sin(timeFactor + i) * shipPattern.wanderRadius,
+        shipPattern.preferredOffset[1] + Math.cos(timeFactor * 0.7 + i) * shipPattern.wanderRadius * 0.5,
+        shipPattern.preferredOffset[2] + Math.sin(timeFactor * 0.3 + i) * shipPattern.wanderRadius * 0.3
+      ];
+      
+      const tx = wanderTarget[0] + dynamicOffset[0];
+      const ty = wanderTarget[1] + dynamicOffset[1];
+      const tz = wanderTarget[2] + dynamicOffset[2];
 
       const dx = tx - pos[0];
       const dy = ty - pos[1];
       const dz = tz - pos[2];
       const dist = Math.sqrt(dx*dx + dy*dy + dz*dz) || 1.0;
       
-      // Strong pull forward (always moving along -z direction)
-      steerX += (dx / dist) * 0.65;
-      steerY += (dy / dist) * 0.65;
-      steerZ += (dz / dist) * 0.65;
+      // Variable pull strength based on ship role
+      const pullStrength = shipPattern.role === 'leader' ? 0.8 : 0.65;
+      steerX += (dx / dist) * pullStrength;
+      steerY += (dy / dist) * pullStrength;
+      steerZ += (dz / dist) * pullStrength;
 
       // Obstacle avoidance for boundaries
       if (pos[0] < -bounds.width) steerX += 1.5;
@@ -118,7 +129,7 @@ self.onmessage = function(e) {
       if (pos[1] < -bounds.height) steerY += 1.5;
       if (pos[1] > bounds.height) steerY -= 1.5;
 
-      // If aliens are present, humans apply minor evasive wander logic or steer slightly
+      // If aliens are present, humans apply evasive behavior based on aggression
       if (aliens && aliens.length > 0) {
         const nearestAlien = getNearest(pos, aliens);
         if (nearestAlien && nearestAlien.distSq < 15.0 * 15.0) {
@@ -127,9 +138,12 @@ self.onmessage = function(e) {
           const ady = pos[1] - aPos[1];
           const adz = pos[2] - aPos[2];
           const aDist = Math.sqrt(adx*adx + ady*ady + adz*adz) || 1.0;
-          steerX += (adx / aDist) * 0.8;
-          steerY += (ady / aDist) * 0.8;
-          steerZ += (adz / aDist) * 0.8;
+          
+          // Evasion strength based on ship aggression pattern
+          const evasionStrength = shipPattern.aggression * 1.2;
+          steerX += (adx / aDist) * evasionStrength;
+          steerY += (ady / aDist) * evasionStrength;
+          steerZ += (adz / aDist) * evasionStrength;
         }
       }
 
@@ -276,4 +290,17 @@ function getNearest(pos, targets) {
     }
   }
   return nearest;
+}
+
+function getShipBehaviorPattern(shipId, index) {
+  // Create unique behavior patterns for each ship based on index with reasonable spacing
+  const patterns = [
+    { role: 'leader', aggression: 0.3, wanderRadius: 8.0, preferredOffset: [0, 0, 0] },
+    { role: 'wingman_left', aggression: 0.6, wanderRadius: 12.0, preferredOffset: [-12, 2, 6] },
+    { role: 'wingman_right', aggression: 0.6, wanderRadius: 12.0, preferredOffset: [12, 2, 6] },
+    { role: 'support_left', aggression: 0.4, wanderRadius: 15.0, preferredOffset: [-18, -2, 10] },
+    { role: 'support_right', aggression: 0.4, wanderRadius: 15.0, preferredOffset: [18, -2, 10] }
+  ];
+  
+  return patterns[index % patterns.length];
 }
