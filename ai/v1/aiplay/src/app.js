@@ -48,6 +48,34 @@ const apiKeyInput = document.getElementById('api-key');
 const localUrlGroup = document.getElementById('local-url-group');
 const localUrlInput = document.getElementById('local-url');
 const modelNameInput = document.getElementById('model-name');
+const modelSelect = document.getElementById('model-select');
+const customModelGroup = document.getElementById('custom-model-group');
+const nativeProcessSelect = document.getElementById('native-process');
+
+const modelsByProvider = {
+  openai: [
+    { value: 'gpt-5.4-mini-2026-03-17', text: 'GPT-5.4 Mini' },
+    { value: 'gpt-4o-mini', text: 'GPT-4o Mini' },
+    { value: 'gpt-4o', text: 'GPT-4o (Standard)' },
+    { value: 'custom', text: 'Custom...' }
+  ],
+  gemini: [
+    { value: 'gemini-2.5-flash', text: 'Gemini 2.5 Flash' },
+    { value: 'gemini-2.5-pro', text: 'Gemini 2.5 Pro' },
+    { value: 'custom', text: 'Custom...' }
+  ],
+  openrouter: [
+    { value: 'google/gemini-2.5-flash', text: 'Gemini 2.5 Flash' },
+    { value: 'google/gemini-2.5-pro', text: 'Gemini 2.5 Pro' },
+    { value: 'openai/gpt-4o-mini', text: 'GPT-4o Mini' },
+    { value: 'custom', text: 'Custom...' }
+  ],
+  local: [
+    { value: 'llama3', text: 'Llama 3' },
+    { value: 'mistral', text: 'Mistral' },
+    { value: 'custom', text: 'Custom...' }
+  ]
+};
 const gameUrlInput = document.getElementById('game-url');
 const btnLoadUrl = document.getElementById('btn-load-url');
 const demoGameSelect = document.getElementById('demo-game-select');
@@ -152,9 +180,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const btnScanProcesses = document.getElementById('btn-scan-processes');
   if (btnScanProcesses) {
-    btnScanProcesses.addEventListener('click', () => {
+    btnScanProcesses.addEventListener('click', async () => {
       playClickSound();
-      logSystemMessage('Native process scanner: not yet implemented for this platform.');
+      logSystemMessage('Scanning running native processes...');
+      const result = await ipcRenderer.invoke('scan-processes');
+      if (result.success) {
+        nativeProcessSelect.innerHTML = '<option value="">-- Scan / Select Game Window --</option>';
+        if (result.processes && result.processes.length > 0) {
+          result.processes.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.MainWindowTitle;
+            opt.textContent = `${p.ProcessName} (PID: ${p.Id}) - "${p.MainWindowTitle}"`;
+            nativeProcessSelect.appendChild(opt);
+          });
+          logSystemMessage(`Found ${result.processes.length} windowed processes.`);
+        } else {
+          logSystemMessage('No windowed processes found.');
+        }
+      } else {
+        logSystemMessage(`Scanning failed: ${result.error}`);
+      }
+    });
+  }
+
+  if (nativeProcessSelect) {
+    nativeProcessSelect.addEventListener('change', () => {
+      if (nativeProcessSelect.value) {
+        btnToggleAgent.classList.remove('disabled');
+        btnToggleAgent.removeAttribute('disabled');
+        logSystemMessage(`Native target selected: "${nativeProcessSelect.value}". AI Play button is active.`);
+      } else {
+        if (!webviewElement.src || webviewElement.src === 'about:blank') {
+          btnToggleAgent.classList.add('disabled');
+          btnToggleAgent.setAttribute('disabled', 'true');
+        }
+      }
+    });
+  }
+
+  if (modelSelect) {
+    modelSelect.addEventListener('change', () => {
+      if (modelSelect.value === 'custom') {
+        customModelGroup.classList.remove('hidden');
+      } else {
+        customModelGroup.classList.add('hidden');
+        modelNameInput.value = modelSelect.value;
+      }
+      saveSettings();
     });
   }
   
@@ -167,6 +239,28 @@ document.addEventListener('DOMContentLoaded', () => {
   btnTimelinePlay.addEventListener('click', resumeFromScrub);
   
   tokenModelSelect.addEventListener('change', updateTokenStatsUI);
+
+  // Collapse / Expand Left & Right sidebars
+  const btnToggleLeft = document.getElementById('btn-toggle-left');
+  const btnToggleRight = document.getElementById('btn-toggle-right');
+  const leftSidebar = document.querySelector('.control-panel');
+  const rightSidebar = document.querySelector('.bug-panel');
+
+  if (btnToggleLeft && leftSidebar) {
+    btnToggleLeft.addEventListener('click', () => {
+      leftSidebar.classList.toggle('collapsed');
+      btnToggleLeft.classList.toggle('active');
+      playClickSound();
+    });
+  }
+
+  if (btnToggleRight && rightSidebar) {
+    btnToggleRight.addEventListener('click', () => {
+      rightSidebar.classList.toggle('collapsed');
+      btnToggleRight.classList.toggle('active');
+      playClickSound();
+    });
+  }
 
   // Episodic memory toggle
   if (toggleMemory) {
@@ -210,6 +304,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const configFilePath = path.join(__dirname, '..', 'config.json');
 
+function populateModelsDropdown(provider) {
+  if (!modelSelect) return;
+  modelSelect.innerHTML = '';
+  const models = modelsByProvider[provider] || [];
+  models.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.value;
+    opt.textContent = m.text;
+    modelSelect.appendChild(opt);
+  });
+}
+
 // Load Settings from config.json (gitignored) or fallback to LocalStorage
 function loadSettings() {
   let settings = {};
@@ -232,7 +338,21 @@ function loadSettings() {
   providerSelect.value = settings.provider || 'openai';
   apiKeyInput.value = settings.apiKey || '';
   localUrlInput.value = settings.localUrl || 'http://localhost:11434/api/chat';
-  modelNameInput.value = settings.modelName || 'gpt-5.4-mini-2026-03-17';
+  
+  populateModelsDropdown(providerSelect.value);
+  
+  const savedModel = settings.modelName || 'gpt-5.4-mini-2026-03-17';
+  const hasModelInSelect = Array.from(modelSelect.options).some(opt => opt.value === savedModel);
+  if (hasModelInSelect) {
+    modelSelect.value = savedModel;
+    customModelGroup.classList.add('hidden');
+    modelNameInput.value = savedModel;
+  } else {
+    modelSelect.value = 'custom';
+    customModelGroup.classList.remove('hidden');
+    modelNameInput.value = savedModel;
+  }
+
   gameRulesInput.value = settings.gameRules || '';
   gameUrlInput.value = settings.gameUrl || '';
   isAudioEnabled = settings.isAudioEnabled || false;
@@ -248,16 +368,17 @@ function loadSettings() {
   agentBrain.loadSessionMemory();
   updateSessionStatsUI();
 
-  handleProviderChange();
+  handleProviderChange(true);
 }
 
 // Save Settings to config.json (gitignored) and LocalStorage
 function saveSettings() {
+  const modelToSave = modelSelect.value === 'custom' ? modelNameInput.value : modelSelect.value;
   const settings = {
     provider: providerSelect.value,
     apiKey: apiKeyInput.value,
     localUrl: localUrlInput.value,
-    modelName: modelNameInput.value,
+    modelName: modelToSave,
     gameRules: gameRulesInput.value,
     gameUrl: gameUrlInput.value,
     isAudioEnabled: isAudioEnabled,
@@ -283,16 +404,31 @@ function saveSettings() {
 }
 
 // Adjust UI layout depending on Cloud or Local API selection
-function handleProviderChange() {
+function handleProviderChange(skipSave = false) {
   const val = providerSelect.value;
+  
+  populateModelsDropdown(val);
+  
   if (val === 'local') {
     localUrlGroup.classList.remove('hidden');
     apiKeyInput.placeholder = "Not required for local (optional)";
   } else {
     localUrlGroup.classList.add('hidden');
-    apiKeyInput.placeholder = "Enter sk-... or OpenRouter key";
+    if (val === 'gemini') {
+      apiKeyInput.placeholder = "Enter Gemini API Key";
+    } else {
+      apiKeyInput.placeholder = "Enter API Key";
+    }
   }
-  saveSettings();
+  
+  if (!skipSave) {
+    if (modelSelect.options.length > 0) {
+      modelSelect.value = modelSelect.options[0].value;
+      customModelGroup.classList.add('hidden');
+      modelNameInput.value = modelSelect.value;
+    }
+    saveSettings();
+  }
 }
 
 // Audio synthesizer logic using Web Audio API
@@ -530,9 +666,50 @@ function setupWebviewListeners() {
       consoleLogs.shift();
     }
   });
+
+  // Listen to events from the separate game window
+  ipcRenderer.on('webview-console', (event, e) => {
+    let type = 'system';
+    if (e.level === 1) type = 'warning';
+    if (e.level === 2) type = 'error';
+    
+    const formattedMsg = `[Game Window Console] ${e.message}`;
+    logMessage(formattedMsg, type);
+    
+    consoleLogs.push({
+      timestamp: new Date().toLocaleTimeString(),
+      level: e.level,
+      message: e.message
+    });
+    
+    if (consoleLogs.length > 50) {
+      consoleLogs.shift();
+    }
+  });
+
+  ipcRenderer.on('webview-loaded', () => {
+    logSystemMessage("Game window loaded successfully. AI play button is now active.");
+    btnToggleAgent.classList.remove('disabled');
+    btnToggleAgent.removeAttribute('disabled');
+    webviewPlaceholder.classList.add('hidden');
+    
+    startFpsTracker();
+    crawlCodeFiles();
+  });
+
+  ipcRenderer.on('webview-fail-load', (event, e) => {
+    logMessage(`Game window failed to load: [${e.errorCode}] ${e.errorDescription} - ${e.validatedURL}`, 'error');
+  });
+
+  ipcRenderer.on('webview-closed', () => {
+    logSystemMessage("Game window closed.");
+    document.getElementById('gamewindow-active-placeholder').classList.add('hidden');
+    webviewPlaceholder.classList.remove('hidden');
+    webviewElement.classList.remove('hidden');
+  });
 }
 
-// Load url in webview
+// Load url in webview/game window
 function loadGameUrl() {
   const url = gameUrlInput.value.trim();
   if (!url) {
@@ -543,7 +720,16 @@ function loadGameUrl() {
   saveSettings();
   consoleLogs = [];
   logStream.innerHTML = '';
-  webviewElement.src = url;
+  
+  ipcRenderer.invoke('open-game-window', url).then(() => {
+    document.getElementById('gamewindow-active-placeholder').classList.remove('hidden');
+    webviewPlaceholder.classList.add('hidden');
+    webviewElement.classList.add('hidden');
+  }).catch(err => {
+    console.warn("Failed to open separate game window, falling back to embedded webview:", err);
+    webviewElement.src = url;
+    document.getElementById('gamewindow-active-placeholder').classList.add('hidden');
+  });
 }
 
 // Enable/Disable AI Loop Run
@@ -593,14 +779,28 @@ async function runAgentLoop() {
   if (!isRunning) return;
 
   try {
-    // 1. Capture screen & metadata
-    const screenshot = await gameController.captureScreenshot(webviewElement);
-    const domSnapshot = await gameController.getInteractiveDOM(webviewElement);
-    const metrics = await gameController.getPerformanceMetrics(webviewElement);
+    let screenshot;
+    let domSnapshot = [];
+    let metrics = { heapUsed: 0 };
+    const nativeTarget = nativeProcessSelect ? nativeProcessSelect.value : '';
+
+    if (nativeTarget) {
+      const result = await ipcRenderer.invoke('capture-native-screenshot', nativeTarget);
+      if (result.success) {
+        screenshot = result.base64;
+      } else {
+        throw new Error(`Failed to capture native screenshot: ${result.error}`);
+      }
+    } else {
+      // 1. Capture screen & metadata
+      screenshot = await gameController.captureScreenshot(webviewElement);
+      domSnapshot = await gameController.getInteractiveDOM(webviewElement);
+      metrics = await gameController.getPerformanceMetrics(webviewElement);
+    }
 
     // Update performance indicators
     let heapMB = 0;
-    if (metrics.heapUsed > 0) {
+    if (metrics && metrics.heapUsed > 0) {
       heapMB = Math.round(metrics.heapUsed / (1024 * 1024));
       heapVal.textContent = `${heapMB} MB`;
     } else {
@@ -613,6 +813,12 @@ async function runAgentLoop() {
 
     // Display frame in brain preview
     brainScreenshot.src = `data:image/jpeg;base64,${screenshot}`;
+    
+    // Update live-stream preview image
+    const liveFeedImg = document.getElementById('live-stream-image');
+    if (liveFeedImg) {
+      liveFeedImg.src = `data:image/jpeg;base64,${screenshot}`;
+    }
 
     // 2. Call brain step process
     logMessage("Analyzing game frame...", "system");
@@ -662,8 +868,8 @@ async function runAgentLoop() {
     // 7. Update session stats UI
     updateSessionStatsUI();
 
-    // 8. Execute action inside webview
-    await gameController.executeAction(webviewElement, result.action);
+    // 8. Execute action inside webview / native process
+    await gameController.executeAction(webviewElement, result.action, nativeTarget);
 
     // Schedule next run with adaptive delay
     const MIN_DELAY = 100;
@@ -946,13 +1152,25 @@ function saveReplayFile() {
 // Controls
 function reloadGame() {
   playClickSound();
-  webviewElement.reload();
+  ipcRenderer.invoke('is-game-window-active').then(active => {
+    if (active) {
+      ipcRenderer.invoke('reload-game-window');
+    } else {
+      webviewElement.reload();
+    }
+  });
   logSystemMessage("Game reloaded.");
 }
 
 function openGameDevTools() {
   playClickSound();
-  webviewElement.openDevTools();
+  ipcRenderer.invoke('is-game-window-active').then(active => {
+    if (active) {
+      ipcRenderer.invoke('open-game-devtools');
+    } else {
+      webviewElement.openDevTools();
+    }
+  });
   logSystemMessage("DevTools opened.");
 }
 
@@ -961,6 +1179,10 @@ async function takeManualSnapshot() {
   try {
     const screenshot = await gameController.captureScreenshot(webviewElement);
     brainScreenshot.src = `data:image/jpeg;base64,${screenshot}`;
+    const liveFeedImg = document.getElementById('live-stream-image');
+    if (liveFeedImg) {
+      liveFeedImg.src = `data:image/jpeg;base64,${screenshot}`;
+    }
     logSystemMessage("Manual screenshot captured.");
   } catch (e) {
     logMessage(`Screenshot failed: ${e.message}`, "error");
@@ -1161,3 +1383,117 @@ function updateTokenStatsUI() {
   tokenYearly.textContent = (activeStats.yearly || 0).toLocaleString();
   tokenLifetime.textContent = (activeStats.lifetime || 0).toLocaleString();
 }
+
+// ===== EXPOSING INTERFACES FOR HTTP API =====
+window.getAgentStatus = function() {
+  const mem = agentBrain._sessionMem || {};
+  return {
+    isRunning,
+    gameUrl: gameUrlInput.value,
+    provider: providerSelect.value,
+    modelName: modelNameInput.value,
+    gameRules: gameRulesInput.value,
+    sessionStats: {
+      totalSteps: mem.totalSteps || 0,
+      bugsFound: mem.bugsFound || 0,
+      stuckEvents: mem.stuckEvents || 0,
+      recoveries: mem.recoveries || 0
+    },
+    bugs: agentBrain.bugs
+  };
+};
+
+window.updateAgentConfig = function(newConfig) {
+  if (newConfig.gameUrl !== undefined && newConfig.gameUrl !== gameUrlInput.value) {
+    gameUrlInput.value = newConfig.gameUrl;
+    loadGameUrl();
+  }
+  if (newConfig.gameRules !== undefined) gameRulesInput.value = newConfig.gameRules;
+  if (newConfig.provider !== undefined) providerSelect.value = newConfig.provider;
+  if (newConfig.apiKey !== undefined) apiKeyInput.value = newConfig.apiKey;
+  if (newConfig.localUrl !== undefined) localUrlInput.value = newConfig.localUrl;
+  if (newConfig.modelName !== undefined) modelNameInput.value = newConfig.modelName;
+  
+  saveSettings();
+  return { success: true, message: "Configuration updated successfully" };
+};
+
+window.getInteractiveDOM = async function() {
+  if (!webviewElement) return [];
+  return await gameController.getInteractiveDOM(webviewElement);
+};
+
+window.executeAgentAction = async function(action) {
+  if (!webviewElement) throw new Error("Webview not initialized");
+  const result = await gameController.executeAction(webviewElement, action);
+  
+  // Register in local history
+  actionTrail.push(`${action.type}${action.target ? ':' + action.target : ''}`);
+  if (actionTrail.length > 5) actionTrail.shift();
+  if (trailEntries) {
+    trailEntries.innerHTML = actionTrail
+      .map((t, i) => `<span class="trail-step ${i === actionTrail.length - 1 ? 'trail-latest' : ''}">${t}</span>`)
+      .join('<span class="trail-arrow"> → </span>');
+  }
+  
+  return result;
+};
+
+window.triggerAgentStep = async function() {
+  if (!webviewElement) throw new Error("Webview not initialized");
+  
+  const screenshot = await gameController.captureScreenshot(webviewElement);
+  const domSnapshot = await gameController.getInteractiveDOM(webviewElement);
+  const metrics = await gameController.getPerformanceMetrics(webviewElement);
+  
+  let heapMB = 0;
+  if (metrics.heapUsed > 0) {
+    heapMB = Math.round(metrics.heapUsed / (1024 * 1024));
+    heapVal.textContent = `${heapMB} MB`;
+  }
+  
+  const currentHash = agentBrain.simpleHash(screenshot);
+  const isStuckCount = agentBrain.episodes.slice(-3).filter(h => h.screenshotHash === currentHash).length;
+  stuckVal.textContent = `${isStuckCount}/3`;
+  brainScreenshot.src = `data:image/jpeg;base64,${screenshot}`;
+  const liveFeedImg = document.getElementById('live-stream-image');
+  if (liveFeedImg) {
+    liveFeedImg.src = `data:image/jpeg;base64,${screenshot}`;
+  }
+  
+  logMessage("Manual agent step triggered...", "system");
+  const result = await agentBrain.processStep(screenshot, consoleLogs, domSnapshot, bugsLogPath);
+  
+  updateTokenStatsUI();
+  playAgentActionSound();
+  
+  brainReasoning.innerHTML = `<strong>[Manual Step] Reasoning:</strong> ${result.reasoning}`;
+  logMessage(`Agent decided: ${result.action.type} -> ${result.action.target || 'N/A'}`, "agent");
+  drawHeatmapClick(result.action);
+  
+  timelineHistory.push({
+    screenshot: screenshot,
+    action: result.action,
+    reasoning: result.reasoning,
+    logs: [...consoleLogs],
+    fps: currentFps,
+    heap: heapMB,
+    stuck: isStuckCount
+  });
+  
+  if (result.bug_report && result.bug_report.has_bug) {
+    logMessage(`BUG DETECTED: [${result.bug_report.severity.toUpperCase()}] ${result.bug_report.description}`, "error");
+    playBugAlertSound();
+    renderBugs();
+  }
+  
+  updateSessionStatsUI();
+  
+  // Execute action in game webview
+  const executeResult = await gameController.executeAction(webviewElement, result.action);
+  
+  return {
+    decision: result,
+    executionResult: executeResult
+  };
+};

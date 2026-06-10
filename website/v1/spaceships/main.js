@@ -1,7 +1,7 @@
 // Main Entry Point - Clean and Simple
 // Uses the new refactored architecture
 
-import { SpaceGameCore } from './core.js';
+import { SpaceGameCore } from './core.js?v=11';
 
 class SpaceGameMain {
   constructor() {

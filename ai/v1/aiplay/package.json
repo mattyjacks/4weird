@@ -4,7 +4,8 @@
   "description": "AI-powered game player and debugging agent using Electron and local/remote LLMs.",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "test": "node test_aiplay.js"
   },
   "keywords": [],
   "author": "",

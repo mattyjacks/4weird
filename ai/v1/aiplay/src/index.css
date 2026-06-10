@@ -1064,3 +1064,34 @@ textarea:focus {
   border-radius: 4px;
   white-space: nowrap;
 }
+
+/* Collapsible sidebars & transition styling */
+.sidebar {
+  transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), 
+              min-width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), 
+              padding 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), 
+              opacity 0.25s ease, 
+              visibility 0.25s ease,
+              border 0.3s ease;
+  overflow-x: hidden;
+}
+
+.sidebar.collapsed {
+  width: 0px !important;
+  min-width: 0px !important;
+  padding: 0px !important;
+  margin: 0px !important;
+  opacity: 0;
+  visibility: hidden;
+  border: none !important;
+}
+
+.tab-btn, .btn {
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.btn-secondary.active {
+  background: rgba(0, 242, 254, 0.15);
+  border-color: rgba(0, 242, 254, 0.3);
+  color: var(--accent-cyan);
+}

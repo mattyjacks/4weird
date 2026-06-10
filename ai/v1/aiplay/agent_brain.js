@@ -186,6 +186,25 @@ class AgentBrain {
       }
       body = { model, response_format: { type: "json_object" }, messages: [{ role: 'user', content }] };
 
+    } else if (provider === 'gemini') {
+      const model = modelName || 'gemini-2.5-flash';
+      url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const parts = [{ text: prompt }];
+      if (base64Image) {
+        parts.push({
+          inlineData: {
+            mimeType: 'image/jpeg',
+            data: base64Image
+          }
+        });
+      }
+      body = {
+        contents: [{ parts }],
+        generationConfig: {
+          responseMimeType: 'application/json'
+        }
+      };
+
     } else if (provider === 'openrouter') {
       url = 'https://openrouter.ai/api/v1/chat/completions';
       headers['Authorization'] = `Bearer ${apiKey}`;
@@ -230,24 +249,39 @@ class AgentBrain {
     const data = await response.json();
 
     let contentString = '';
-    if (data.choices && data.choices[0] && data.choices[0].message) {
-      contentString = data.choices[0].message.content;
-    } else if (data.message && data.message.content) {
-      contentString = data.message.content;
+    let promptTokens = 0, completionTokens = 0;
+
+    if (provider === 'gemini') {
+      if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
+        contentString = data.candidates[0].content.parts[0].text;
+      } else {
+        throw new Error("Unexpected Gemini API response format");
+      }
+      if (data.usageMetadata) {
+        promptTokens = data.usageMetadata.promptTokenCount || 0;
+        completionTokens = data.usageMetadata.candidatesTokenCount || 0;
+      }
     } else {
-      throw new Error("Unexpected LLM API response format");
+      if (data.choices && data.choices[0] && data.choices[0].message) {
+        contentString = data.choices[0].message.content;
+      } else if (data.message && data.message.content) {
+        contentString = data.message.content;
+      } else {
+        throw new Error("Unexpected LLM API response format");
+      }
+
+      if (data.usage) {
+        promptTokens = data.usage.prompt_tokens || 0;
+        completionTokens = data.usage.completion_tokens || 0;
+      } else if (data.prompt_eval_count !== undefined || data.eval_count !== undefined) {
+        promptTokens = data.prompt_eval_count || 0;
+        completionTokens = data.eval_count || 0;
+      }
     }
 
-    const activeModel = modelName || (provider === 'openai' ? 'gpt-5.4-mini-2026-03-17' : (provider === 'openrouter' ? 'google/gemini-2.5-flash' : 'llama3'));
+    const activeModel = modelName || (provider === 'openai' ? 'gpt-5.4-mini-2026-03-17' : (provider === 'openrouter' ? 'google/gemini-2.5-flash' : (provider === 'gemini' ? 'gemini-2.5-flash' : 'llama3')));
 
-    let promptTokens = 0, completionTokens = 0;
-    if (data.usage) {
-      promptTokens = data.usage.prompt_tokens || 0;
-      completionTokens = data.usage.completion_tokens || 0;
-    } else if (data.prompt_eval_count !== undefined || data.eval_count !== undefined) {
-      promptTokens = data.prompt_eval_count || 0;
-      completionTokens = data.eval_count || 0;
-    } else {
+    if (promptTokens === 0 && completionTokens === 0) {
       promptTokens = Math.round(prompt.length / 4) + (base64Image ? 260 : 0);
       completionTokens = Math.round(contentString.length / 4);
     }
@@ -272,13 +306,36 @@ class AgentBrain {
     const includeMemory = this.config.alwaysSendMemory || isStuck;
     const sessionSummary = this.getSessionSummary();
 
+    // Compact DOM Snapshot
+    const compactDom = (domSnapshot || []).map(el => {
+      const parts = [el.tagName];
+      if (el.id) parts.push(`#${el.id}`);
+      if (el.className) {
+        const firstClass = el.className.split(' ')[0];
+        if (firstClass) parts.push(`.${firstClass}`);
+      }
+      const text = el.innerText || el.placeholder;
+      if (text) parts.push(`("${text.replace(/"/g, "'")}")`);
+      if (el.rect) {
+        parts.push(`[${el.rect.left},${el.rect.top},${el.rect.width},${el.rect.height}]`);
+      }
+      return parts.join('');
+    });
+
+    // Compact Console Logs
+    const compactLogs = (consoleLogs || []).slice(-10).map(log => {
+      if (typeof log === 'string') return log.slice(0, 80);
+      const level = log.level || 'info';
+      const msg = log.message || '';
+      return `[${level}] ${msg.slice(0, 80)}`;
+    });
+
     // --- MEMORY BLOCK (only when needed) ---
     let memoryBlock = '';
     if (includeMemory && this.episodes.length > 0) {
       const recentEps = this.episodes.slice(-5);
       const epLines = recentEps.map((ep, i) => {
-        const ago = Math.round((Date.now() - ep.timestamp) / 1000);
-        return `  Step -${recentEps.length - i}: [${ep.status}] ${ep.action.type} → ${ep.action.target || 'N/A'} | "${ep.reasoning.slice(0, 80).trim()}"`;
+        return `  Step -${recentEps.length - i}: [${ep.status}] ${ep.action.type} → ${ep.action.target || 'N/A'} | path: ${JSON.stringify(ep.reasoning_path || ep.reasoning || '')}`;
       }).join('\n');
       memoryBlock = `
 ## MEMORY — Recent Episode History (last ${recentEps.length} steps)
@@ -292,46 +349,55 @@ ${sessionSummary ? `\nSession stats: ${sessionSummary}` : ''}
     // --- STUCK WARNING ---
     const stuckBlock = isStuck ? `
 ## ⚠️ STUCK WARNING
-The game state has not changed in the last several steps. You are likely looping or blocked.
-Your stuck recovery stage: ${this.stuckRecoveryStage}/3 (0=none, 1=click center, 2=Escape, 3=refresh)
-Take a RECOVERY action: try clicking screen center, pressing Escape, or a new direction key. Do NOT repeat the same action you've been doing.
+The game state has not changed. Recovery stage: ${this.stuckRecoveryStage}/3.
+Take a RECOVERY action: click center, Escape, or refresh.
 ` : '';
 
-    return `## ROLE
-You are an expert AI game QA testing agent. Your job is to play browser-based games, find bugs, and report them. You analyze the current game frame and decide the best next action.
-${memoryBlock}
-## OBSERVATION — Current Game State
-Console Logs (last 10 from game context):
-${JSON.stringify(consoleLogs.slice(-10), null, 2)}
+    return `## ROLE & DECISION ENGINE (BRAID)
+You are an expert AI game QA testing agent. You must make decisions by traversing the following Bounded Reasoning Graph (BRAID):
 
-Interactive DOM elements visible on screen (up to 40):
-${JSON.stringify(domSnapshot, null, 2)}
+Graph:
+(S) Start -> Check if Game Over / Menu?
+  ├─ [Yes] ──> (R_RESTART) Click restart button or press Enter
+  └─ [No] ───> Check if Stuck/Looping?
+        ├─ [Yes] ──> (R_RECOVER) Execute recovery action (Escape, click center, refresh)
+        └─ [No] ────> Check Console Logs for high severity bugs?
+              ├─ [Yes] ──> (R_BUG) Flag bug_report and pause/report
+              └─ [No] ────> Check if interactive DOM has active buttons?
+                    ├─ [Yes] ──> (R_MENU) Click relevant menu button
+                    └─ [No] ────> (R_PLAY) Play game by pressing key or clicking targets
+
+## OBSERVATION
+Console Logs (last 10):
+${compactLogs.join('\n')}
+
+Interactive DOM (up to 40):
+${compactDom.join('\n')}
 ${stuckBlock}
+${memoryBlock}
 ## GOAL — Game Objective
-${this.config.gameRules || "No specific instructions provided. Explore the game: find buttons, start playing, avoid hazards, maximize score, and look for any UI bugs, console errors, or visual glitches."}
+${this.config.gameRules || "Explore the game: find buttons, play, maximize score, look for bugs/errors."}
 
-## TASK — Decide Next Action
+## TASK
 Respond ONLY with a JSON object matching this exact schema:
 {
   "status": "menu | playing | game_over | stuck | unknown",
-  "reasoning": "Brief explanation of what you see and why you chose this action. Max 120 chars.",
+  "reasoning_path": ["S", "No", "No", "No", "R_PLAY"],
   "action": {
     "type": "click | press_key | hold_key | wait | refresh",
-    "target": "For click: 'x,y' coordinates on a 0-1000 scale (e.g. '500,400'). For keys: key name (e.g. 'ArrowLeft', 'Space', 'w'). For wait/refresh: leave empty.",
+    "target": "For click: 'x,y' on 0-1000 scale. For keys: key name. For wait/refresh: leave empty.",
     "duration_ms": 100
   },
-  "next_delay_ms": 1800,
+  "next_delay_ms": 1500,
   "bug_report": {
     "has_bug": false,
-    "description": "Describe any UI bugs, visual glitches, stuck loops, or JS errors you observe.",
+    "description": "Describe any UI bugs or JS errors.",
     "severity": "low | medium | high"
   }
 }
-
 Rules:
-- "next_delay_ms": how long to wait before the NEXT agent step. Use 300-800ms for fast menu/UI interactions. Use 1500-2500ms during active gameplay. Use 500ms for recovery actions.
-- Only report a bug if you actually observe something wrong — don't fabricate bugs.
-- Coordinates are on a 0-1000 scale regardless of actual screen resolution.
+- "reasoning_path": Array representing your exact traversal of the BRAID graph. Do NOT include any other verbose text explanations to save tokens.
+- Coordinates are on 0-1000 scale.
 `;
   }
 
@@ -352,7 +418,22 @@ Rules:
       result = this.runHeuristicFallback(consoleLogs, domSnapshot);
     }
 
-    const action = result.action || this.getStuckRecoveryAction() || { type: 'wait', duration_ms: 500 };
+    let action;
+    if (isStuck) {
+      action = this.getStuckRecoveryAction();
+      if (result) {
+        result.action = action;
+        result.reasoning_path = [...(result.reasoning_path || []), `R_RECOVER_${this.stuckRecoveryStage}`];
+      } else {
+        result = {
+          status: 'stuck',
+          reasoning_path: ['S', 'No', 'Yes', `R_RECOVER_${this.stuckRecoveryStage}`],
+          action
+        };
+      }
+    } else {
+      action = result.action || this.getStuckRecoveryAction() || { type: 'wait', duration_ms: 500 };
+    }
 
     // Update same-action streak tracker for stuck detection
     const actionSig = `${action.type}:${action.target || ''}`;
@@ -360,7 +441,10 @@ Rules:
       this.sameActionStreak++;
     } else {
       this.sameActionStreak = 0;
-      this.stuckRecoveryStage = 0; // Reset recovery if new action taken
+      // If we were stuck but took a recovery action, we don't reset recovery stage until sameActionStreak breaks
+      if (!isStuck) {
+        this.stuckRecoveryStage = 0;
+      }
     }
     this.lastActionType = action.type;
     this.lastActionTarget = action.target;
@@ -378,7 +462,8 @@ Rules:
       screenshotHash: this.simpleHash(screenshotBase64),
       action,
       status: result.status || 'unknown',
-      reasoning: (result.reasoning || '').slice(0, 120)
+      reasoning_path: result.reasoning_path || [],
+      reasoning: result.reasoning || (result.reasoning_path ? result.reasoning_path.join(' -> ') : '')
     });
     if (this.episodes.length > 10) {
       this.episodes.shift();
@@ -404,6 +489,8 @@ Rules:
 
     // Update session memory
     this.updateSessionMemory(action, isStuck);
+
+    result.reasoning = result.reasoning || (result.reasoning_path ? result.reasoning_path.join(' -> ') : '');
 
     return result;
   }

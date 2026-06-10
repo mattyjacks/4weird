@@ -1,6 +1,26 @@
+const { ipcRenderer } = require('electron');
+
 class GameController {
-  // Capture Webview screenshot as base64 JPEG (Token optimized)
+  // Helper to execute Javascript in webview or separate game window
+  async executeJS(webview, code) {
+    const isActive = await ipcRenderer.invoke('is-game-window-active');
+    if (isActive) {
+      return await ipcRenderer.invoke('eval-in-game-window', code);
+    } else if (webview) {
+      return await webview.executeJavaScript(code);
+    }
+    throw new Error("No active game viewport available");
+  }
+
+  // Capture Webview/GameWindow screenshot as base64 JPEG (Token optimized)
   async captureScreenshot(webview) {
+    const isActive = await ipcRenderer.invoke('is-game-window-active');
+    if (isActive) {
+      return await ipcRenderer.invoke('capture-game-screenshot');
+    }
+
+    if (!webview) throw new Error("No active game viewport available");
+
     return new Promise((resolve, reject) => {
       webview.capturePage().then(img => {
         // Resize image to 512px width (preserving aspect ratio) and use 50% JPEG compression
@@ -25,10 +45,11 @@ class GameController {
         const all = document.querySelectorAll('*');
         for (const el of all) {
           const rect = el.getBoundingClientRect();
+          const style = window.getComputedStyle(el);
           const isVisible = rect.width > 0 && rect.height > 0 && 
-                            rect.top >= 0 && rect.left >= 0 &&
-                            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-                            rect.right <= (window.innerWidth || document.documentElement.clientWidth);
+                            style.display !== 'none' && 
+                            style.visibility !== 'hidden' && 
+                            style.opacity !== '0';
           
           if (!isVisible) continue;
           
@@ -58,7 +79,7 @@ class GameController {
     `;
     
     try {
-      return await webview.executeJavaScript(code);
+      return await this.executeJS(webview, code);
     } catch (e) {
       console.error("Failed to query interactive DOM elements:", e);
       return [];
@@ -77,7 +98,7 @@ class GameController {
       })()
     `;
     try {
-      return await webview.executeJavaScript(code);
+      return await this.executeJS(webview, code);
     } catch (e) {
       console.warn("Performance memory metrics not available");
       return { heapLimit: 0, heapUsed: 0, heapTotal: 0 };
@@ -85,9 +106,30 @@ class GameController {
   }
 
   // Execute specified input action (click, keypress, hold)
-  async executeAction(webview, action) {
+  async executeAction(webview, action, nativeProcessName = null) {
     const { type, target, duration_ms } = action;
-    console.log(`Executing Action: ${type} targeting ${target}`);
+    console.log(`Executing Action: ${type} targeting ${target} (native target: ${nativeProcessName || 'none'})`);
+
+    if (nativeProcessName) {
+      if (type === 'click') {
+        let x = 500, y = 500;
+        if (typeof target === 'string' && target.includes(',')) {
+          const parts = target.split(',');
+          x = parseInt(parts[0]);
+          y = parseInt(parts[1]);
+        }
+        return await ipcRenderer.invoke('run-input-sim', ['click', x.toString(), y.toString(), nativeProcessName]);
+      } else if (type === 'press_key') {
+        return await ipcRenderer.invoke('run-input-sim', ['press', target, nativeProcessName]);
+      } else if (type === 'hold_key') {
+        return await ipcRenderer.invoke('run-input-sim', ['hold', target, (duration_ms || 200).toString(), nativeProcessName]);
+      } else if (type === 'refresh') {
+        return await ipcRenderer.invoke('run-input-sim', ['press', 'F5', nativeProcessName]);
+      } else if (type === 'wait') {
+        const waitMs = duration_ms || 500;
+        return new Promise((resolve) => setTimeout(() => resolve(`Waited ${waitMs}ms`), waitMs));
+      }
+    }
 
     if (type === 'click') {
       let x = 0;
@@ -95,8 +137,11 @@ class GameController {
       
       if (typeof target === 'string' && target.includes(',')) {
         const parts = target.split(',');
-        x = parseInt(parts[0]);
-        y = parseInt(parts[1]);
+        // Scale from 0-1000 to actual viewport size
+        const sizeCode = `({ w: window.innerWidth, h: window.innerHeight })`;
+        const size = await this.executeJS(webview, sizeCode);
+        x = Math.round((parseInt(parts[0]) / 1000) * size.w);
+        y = Math.round((parseInt(parts[1]) / 1000) * size.h);
       } else {
         // If coordinate target wasn't given directly, try finding it via selector or click center of screen
         const code = `
@@ -115,14 +160,14 @@ class GameController {
             return null;
           })()
         `;
-        const coords = await webview.executeJavaScript(code);
+        const coords = await this.executeJS(webview, code);
         if (coords) {
           x = coords.x;
           y = coords.y;
         } else {
           // Default: click in center of viewport
           const sizeCode = `({ w: window.innerWidth, h: window.innerHeight })`;
-          const size = await webview.executeJavaScript(sizeCode);
+          const size = await this.executeJS(webview, sizeCode);
           x = size.w / 2;
           y = size.h / 2;
         }
@@ -146,7 +191,7 @@ class GameController {
           return "No element at " + ${x} + "," + ${y};
         })()
       `;
-      return await webview.executeJavaScript(clickCode);
+      return await this.executeJS(webview, clickCode);
 
     } else if (type === 'press_key') {
       const key = target;
@@ -162,7 +207,7 @@ class GameController {
           return "Pressed " + ${JSON.stringify(key)};
         })()
       `;
-      return await webview.executeJavaScript(code);
+      return await this.executeJS(webview, code);
 
     } else if (type === 'hold_key') {
       const key = target;
@@ -178,10 +223,15 @@ class GameController {
           return "Held " + ${JSON.stringify(key)} + " for " + ${duration} + "ms";
         })()
       `;
-      return await webview.executeJavaScript(code);
+      return await this.executeJS(webview, code);
 
     } else if (type === 'refresh') {
-      webview.reload();
+      const isActive = await ipcRenderer.invoke('is-game-window-active');
+      if (isActive) {
+        await ipcRenderer.invoke('reload-game-window');
+      } else if (webview) {
+        webview.reload();
+      }
       return "Reloaded page";
     } else if (type === 'wait') {
       const waitMs = duration_ms || 500;
