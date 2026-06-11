@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Overtake - 4weird Games</title>
+    <meta name="description" content="Race through pseudo-3D routes, unlock cars, and use nitro in Overtake, an HTML5 arcade racer by bytegarage.">
+    <meta name="keywords" content="4weird, Overtake, HTML5 game, browser game, racing game">
+    <meta property="og:title" content="Overtake - 4weird Games">
+    <meta property="og:description" content="A fast pseudo-3D arcade racer with unlockable routes, garage progression, and nitro boosts.">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏁</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://overtake-assets.vercel.app" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Rajdhani:wght@500;600;700&family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../../styles.css">
+    <link rel="stylesheet" href="../_TEMPLATE/game.css">
+    <link rel="stylesheet" href="game.css">
+    <script src="game.json" type="application/json" id="game-metadata"></script>
+</head>
+<body class="TEMPLATE-4weird-game-page overtake-page">
+    <canvas id="TEMPLATE-4weird-starfield"></canvas>
+    <div id="TEMPLATE-4weird-nav-placeholder"></div>
+
+    <header class="TEMPLATE-4weird-game-header">
+        <div class="TEMPLATE-4weird-game-header-inner">
+            <a href="../../../index.html#games" class="TEMPLATE-4weird-back-link">
+                <span class="TEMPLATE-4weird-back-arrow">←</span>
+                <span>Back to 4weird</span>
+            </a>
+            <h1 class="TEMPLATE-4weird-game-title" id="TEMPLATE-4weird-game-title">Overtake</h1>
+            <div class="TEMPLATE-4weird-game-meta" id="TEMPLATE-4weird-game-meta">
+                <span class="TEMPLATE-4weird-game-genre">Racing</span>
+                <span class="TEMPLATE-4weird-separator">•</span>
+                <span class="TEMPLATE-4weird-game-status live">LIVE</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="TEMPLATE-4weird-game-main overtake-main">
+        <div class="TEMPLATE-4weird-game-frame overtake-frame">
+            <div class="overtake-shell" id="overtake-game-root">
+                <main id="app" data-mode="menu" data-menu="main" data-title-image="false">
+                    <canvas id="gameCanvas" width="1280" height="720"></canvas>
+                    <canvas id="miniMapCanvas" width="168" height="168" aria-label="Race minimap" hidden></canvas>
+
+                    <div id="raceTimer" class="race-timer hud-item" aria-live="polite" hidden>
+                        <span>Time</span>
+                        <strong id="hudTimer">0:00.0</strong>
+                    </div>
+
+                    <div id="mapStats" class="map-stats" aria-live="polite" hidden>
+                        <div class="hud-item"><span>Lap</span><strong id="hudLap">1 / 3</strong></div>
+                        <div class="hud-item"><span>Place</span><strong id="hudPlace">1 / 1</strong></div>
+                    </div>
+
+                    <div id="driveHud" class="drive-hud" aria-live="polite" hidden>
+                        <div class="hud-item">
+                            <span>Nitro</span>
+                            <strong id="hudNitro">100%</strong>
+                            <div id="nitroMeter" class="meter"><i id="hudNitroFill"></i><span class="nitro-threshold" aria-hidden="true"></span></div>
+                        </div>
+                        <div id="speedHud" class="hud-item speed-hud">
+                            <span>Speed</span>
+                            <strong id="hudSpeed">0</strong>
+                        </div>
+                    </div>
+
+                    <button id="pauseButton" class="pause-button" type="button" hidden>Pause</button>
+
+                    <div id="countdownOverlay" class="countdown-overlay" aria-live="assertive" hidden>3</div>
+
+                    <div id="touchControls" class="touch-controls" aria-label="Touch driving controls" hidden>
+                        <div class="touch-cluster touch-cluster-left">
+                            <button id="touchBrake" class="touch-button touch-button-small" type="button" aria-label="Brake">Brake</button>
+                            <button id="touchLeft" class="touch-button touch-button-large" type="button" aria-label="Steer left">←</button>
+                        </div>
+                        <div class="touch-cluster touch-cluster-right">
+                            <button id="touchNitro" class="touch-button touch-button-small" type="button" aria-label="Nitro">Nitro</button>
+                            <button id="touchRight" class="touch-button touch-button-large" type="button" aria-label="Steer right">→</button>
+                        </div>
+                    </div>
+
+                    <div class="hud" aria-live="polite">
+                        <div id="hudRouteItem" class="hud-item" hidden><span>Route</span><strong id="hudRoute">Desert</strong></div>
+                    </div>
+
+                    <section id="menuPanel" class="panel">
+                        <div class="panel-header">
+                            <h2 class="panel-title">Overtake</h2>
+                            <div id="panelStatus" class="panel-status">Ready</div>
+                        </div>
+                        <div class="panel-body">
+                            <div id="menuContent" class="menu-content"></div>
+                            <div class="actions">
+                                <button id="backButton" class="secondary" type="button" hidden>Back</button>
+                                <button id="resumeButton" class="secondary" type="button" hidden>Resume</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div id="raceMessage" class="race-message" hidden>
+                        <strong id="raceMessageTitle">Race Complete</strong>
+                        <span id="raceMessageBody">Position 1</span>
+                    </div>
+                </main>
+
+                <div id="loadingScreen" class="loading-screen" role="status" aria-live="polite">
+                    <div class="loading-card">
+                        <div class="loading-title">Overtake</div>
+                        <div class="loading-row">
+                            <span>Loading</span>
+                            <span id="loadingPercent" class="loading-percent">0%</span>
+                        </div>
+                        <div class="loading-track" aria-hidden="true">
+                            <i id="loadingFill" class="loading-fill"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <aside class="TEMPLATE-4weird-game-info-panel">
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>How to Play</h3>
+                <p id="TEMPLATE-4weird-how-to-play">Pick a route, choose a car, then race through pseudo-3D traffic. Finish well to earn coins, unlock faster cars, and open later routes.</p>
+            </div>
+
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>Controls</h3>
+                <ul id="TEMPLATE-4weird-controls-list">
+                    <li><kbd>Arrow Keys</kbd> / <kbd>WASD</kbd> - Drive</li>
+                    <li><kbd>Space</kbd> / <kbd>Shift</kbd> / <kbd>N</kbd> - Nitro</li>
+                    <li><kbd>P</kbd> / <kbd>Esc</kbd> - Pause</li>
+                    <li><kbd>R</kbd> - Restart route</li>
+                </ul>
+            </div>
+
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>Progression</h3>
+                <p>Complete routes to unlock Urban Sprint and Neon Night. Earn coins to buy faster cars in the garage.</p>
+            </div>
+        </aside>
+    </main>
+
+    <section class="TEMPLATE-4weird-credits-section" id="TEMPLATE-4weird-credits">
+        <div class="TEMPLATE-4weird-credits-container">
+            <h2 class="TEMPLATE-4weird-credits-title">Credits</h2>
+            <div class="TEMPLATE-4weird-credits-grid" id="TEMPLATE-4weird-credits-grid"></div>
+        </div>
+    </section>
+
+    <section class="TEMPLATE-4weird-bio-section" id="TEMPLATE-4weird-bio">
+        <div class="TEMPLATE-4weird-bio-container">
+            <h2 class="TEMPLATE-4weird-bio-title">About the Creator</h2>
+            <div class="TEMPLATE-4weird-bio-content" id="TEMPLATE-4weird-maker-bio">
+                <p>Loading bio...</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="TEMPLATE-4weird-more-games">
+        <div class="TEMPLATE-4weird-more-games-container">
+            <h2>More 4weird Games</h2>
+            <a href="../../../index.html#games" class="btn btn-secondary">
+                <span class="btn-emoji">🎯</span> Browse All Games
+            </a>
+        </div>
+    </section>
+
+    <footer class="TEMPLATE-4weird-footer">
+        <div class="TEMPLATE-4weird-footer-content">
+            <p>🎮 <span id="TEMPLATE-4weird-footer-title">Overtake</span> - A 4weird Game</p>
+            <p style="margin-top: 8px;">
+                <a href="../../../privacy-policy.html">Privacy Policy</a>
+                <span class="TEMPLATE-4weird-footer-separator">|</span>
+                <a href="../../../index.html#games">More Games</a>
+                <span class="TEMPLATE-4weird-footer-separator">|</span>
+                <a href="../../../index.html">4weird Home</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="../../../components.js"></script>
+    <script type="module" src="game.js"></script>
+    <script>
+        (function() {
+            'use strict';
+
+            function setText(id, value) {
+                const element = document.getElementById(id);
+                if (element) element.textContent = value;
+            }
+
+            function populate(data) {
+                document.title = data.title + ' - 4weird Games';
+                setText('TEMPLATE-4weird-game-title', data.title);
+                setText('TEMPLATE-4weird-footer-title', data.title);
+                setText('TEMPLATE-4weird-how-to-play', data.instructions);
+
+                const bio = document.getElementById('TEMPLATE-4weird-maker-bio');
+                if (bio) {
+                    bio.textContent = '';
+                    const paragraph = document.createElement('p');
+                    paragraph.textContent = data.maker.bio;
+                    bio.appendChild(paragraph);
+                }
+
+                const grid = document.getElementById('TEMPLATE-4weird-credits-grid');
+                if (grid && data.credits && data.credits.length > 0) {
+                    grid.textContent = '';
+                    data.credits.forEach((credit) => {
+                        const card = document.createElement('div');
+                        card.className = 'TEMPLATE-4weird-credit-card' + (credit.primary ? ' TEMPLATE-4weird-primary' : '');
+
+                        const avatar = document.createElement('div');
+                        avatar.className = 'TEMPLATE-4weird-credit-avatar';
+                        avatar.textContent = credit.avatar || '👤';
+
+                        const name = document.createElement('h3');
+                        name.className = 'TEMPLATE-4weird-credit-name';
+                        name.textContent = credit.name;
+
+                        const role = document.createElement('p');
+                        role.className = 'TEMPLATE-4weird-credit-role';
+                        role.textContent = credit.role;
+
+                        card.append(avatar, name, role);
+
+                        if (credit.url) {
+                            const links = document.createElement('p');
+                            links.className = 'TEMPLATE-4weird-credit-links';
+                            const anchor = document.createElement('a');
+                            anchor.href = credit.url;
+                            anchor.target = '_blank';
+                            anchor.rel = 'noopener';
+                            anchor.textContent = credit.urlLabel || 'Link';
+                            links.appendChild(anchor);
+                            card.appendChild(links);
+                        }
+
+                        grid.appendChild(card);
+                    });
+                }
+            }
+
+            fetch('game.json')
+                .then((response) => response.json())
+                .then(populate)
+                .catch((error) => console.log('Using Overtake defaults:', error));
+        })();
+    </script>
+</body>
+</html>
