@@ -241,6 +241,8 @@
         /* Fallback emoji thumbnails */
         .thumb-serversaver { background: linear-gradient(135deg, #1a1a2e 0%, #4c1d95 50%, #7c3aed 100%); }
         .thumb-serversaver::before { content: '🛡️'; font-size: 5rem; filter: drop-shadow(0 0 20px rgba(139,92,246,0.8)); }
+        .thumb-overtake { background: linear-gradient(135deg, #05070a 0%, #3a1510 48%, #ffcf42 100%); }
+        .thumb-overtake::before { content: '🏁'; font-size: 5rem; filter: drop-shadow(0 0 20px rgba(255,207,66,0.75)); }
         .thumb-demolich { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); }
         .thumb-demolich::before { content: '💀'; font-size: 5rem; filter: drop-shadow(0 0 20px rgba(100,116,139,0.8)); }
         .thumb-fridge { background: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #5eead4 100%); }
@@ -346,7 +348,7 @@
 
     <main class="games-main">
         <h1 class="page-title">All Games</h1>
-        <p class="page-subtitle">Play instantly in your browser — no downloads required</p>
+        <p class="page-subtitle">Play instantly in your browser - no downloads required</p>
 
         <div class="games-grid">
 
@@ -369,6 +371,29 @@
                         <span class="tag">Strategy</span>
                     </div>
                     <a href="/games/html/serversavershield/index.html" class="btn-game">
+                        <span>🎮</span> Play Now
+                    </a>
+                </div>
+            </div>
+
+            <!-- Overtake -->
+            <div class="game-card live">
+                <a class="game-thumbnail" href="/games/html/overtake/index.html" aria-label="Play Overtake">
+                    <div class="thumb-bg thumb-overtake"></div>
+                    <div class="thumb-overlay">
+                        <div class="play-btn-circle">▶️</div>
+                    </div>
+                    <span class="live-badge">Live</span>
+                </a>
+                <div class="game-info">
+                    <h3 class="game-title">🏁 Overtake</h3>
+                    <p class="game-desc">Race through pseudo-3D routes, unlock faster cars, and use nitro boosts to fight for the podium.</p>
+                    <div class="game-tags">
+                        <span class="tag">Racing</span>
+                        <span class="tag">Arcade</span>
+                        <span class="tag">Canvas</span>
+                    </div>
+                    <a href="/games/html/overtake/index.html" class="btn-game">
                         <span>🎮</span> Play Now
                     </a>
                 </div>

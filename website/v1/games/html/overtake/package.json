@@ -1,0 +1,14 @@
+{
+  "name": "overtake",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "python3 -m http.server 4173",
+    "check:js": "node --check game.js",
+    "build": "tsc && cp dist/main.js game.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

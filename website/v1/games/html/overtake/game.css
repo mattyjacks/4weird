@@ -1,0 +1,992 @@
+/* Overtake integration styles for the 4weird game shell. */
+
+.overtake-main {
+  max-width: 1380px;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+  align-items: start;
+}
+
+.overtake-frame {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  min-height: 0;
+  border-radius: 8px;
+  background: #05070a;
+}
+
+.overtake-shell {
+  color-scheme: dark;
+    --font-ui: "Manrope", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-display: "Rajdhani", "Arial Narrow", ui-sans-serif, system-ui, sans-serif;
+    --glass: rgba(255, 255, 255, 0.1);
+    --glass-strong: rgba(255, 255, 255, 0.16);
+    --line: rgba(255, 255, 255, 0.28);
+    --text: #f7fbff;
+    --muted: rgba(247, 251, 255, 0.76);
+    --accent: #ffcf42;
+    --danger: #ff5f5a;
+  container: overtake-shell / size;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #05070a;
+  color: var(--text);
+  font-family: var(--font-ui);
+  isolation: isolate;
+}
+
+.overtake-shell,
+.overtake-shell * {
+  box-sizing: border-box;
+}
+
+@media (max-width: 1100px) {
+  .overtake-main {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .overtake-frame {
+    aspect-ratio: auto;
+    height: clamp(520px, 82vh, 760px);
+  }
+}
+
+@media (max-width: 520px) {
+  .overtake-frame {
+    height: clamp(580px, 86vh, 780px);
+  }
+}
+
+.overtake-shell button {
+  color: inherit;
+  font: inherit;
+}
+
+.overtake-shell [hidden] {
+  display: none !important;
+}
+
+.overtake-shell #app {
+  position: absolute;
+  inset: 0;
+}
+
+.overtake-shell #app::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(180deg, rgba(5, 7, 10, 0.12), rgba(5, 7, 10, 0.36)),
+    var(--menu-title-image, none);
+  background-position: center;
+  background-size: cover;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.overtake-shell #app[data-mode="menu"][data-title-image="true"]::before {
+  opacity: 1;
+}
+
+.overtake-shell #gameCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #05070a;
+}
+
+.overtake-shell #app[data-mode="menu"][data-title-image="true"] #gameCanvas {
+  opacity: 0;
+}
+
+.overtake-shell .loading-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  background:
+    linear-gradient(180deg, rgba(5, 7, 10, 0.9), rgba(5, 7, 10, 0.98)),
+    repeating-linear-gradient(90deg, rgba(255, 207, 66, 0.12) 0 10px, transparent 10px 24px);
+  opacity: 1;
+  transition: opacity 220ms ease;
+}
+
+.overtake-shell .loading-screen.ready {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.overtake-shell .loading-card {
+  display: grid;
+  width: min(360px, 100%);
+  gap: 14px;
+  color: var(--text);
+}
+
+.overtake-shell .loading-title {
+  font-family: var(--font-display);
+  font-size: clamp(44px, 12cqw, 76px);
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  text-shadow: 0 8px 24px rgba(0, 0, 0, 0.42);
+}
+
+.overtake-shell .loading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.overtake-shell .loading-percent {
+  color: var(--accent);
+}
+
+.overtake-shell .loading-track {
+  position: relative;
+  height: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.overtake-shell .loading-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ffcf42, #ff5f5a);
+  transition: width 120ms ease;
+}
+
+.overtake-shell #miniMapCanvas {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 168px;
+  height: 168px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(7, 11, 16, 0.48);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(10px);
+  pointer-events: none;
+}
+
+.overtake-shell .hud {
+  position: absolute;
+  top: 16px;
+  left: 196px;
+  width: 180px;
+  pointer-events: none;
+}
+
+.overtake-shell .race-timer {
+  position: absolute;
+  top: 16px;
+  left: 196px;
+  width: 112px;
+  pointer-events: none;
+}
+
+.overtake-shell .drive-hud {
+  position: absolute;
+  right: 18px;
+  top: 70px;
+  display: grid;
+  width: 150px;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.overtake-shell .pause-button {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  z-index: 8;
+  min-width: 92px;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--glass);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 14px 34px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(16px);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.overtake-shell .pause-button:active {
+  border-color: rgba(255, 255, 255, 0.62);
+  background: var(--glass-strong);
+}
+
+.overtake-shell .touch-controls {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  touch-action: none;
+}
+
+.overtake-shell .touch-cluster {
+  position: absolute;
+  bottom: max(22px, env(safe-area-inset-bottom));
+  display: grid;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.overtake-shell .touch-cluster-left {
+  left: max(18px, env(safe-area-inset-left));
+}
+
+.overtake-shell .touch-cluster-right {
+  right: max(18px, env(safe-area-inset-right));
+}
+
+.overtake-shell .touch-button {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--glass);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 18px 44px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(16px);
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.overtake-shell .touch-button:active,
+.overtake-shell .touch-button.pressed {
+  border-color: rgba(255, 255, 255, 0.62);
+  background: var(--glass-strong);
+}
+
+.overtake-shell .touch-button-small {
+  width: 88px;
+  height: 50px;
+  font-size: 17px;
+  text-transform: uppercase;
+}
+
+.overtake-shell .touch-button-large {
+  width: 88px;
+  height: 78px;
+  font-size: 42px;
+  line-height: 1;
+}
+
+.overtake-shell .map-stats {
+  position: absolute;
+  top: 192px;
+  left: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 168px;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.overtake-shell .hud-item.speed-hud strong {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.overtake-shell .hud-item {
+  min-width: 0;
+  border: 1px solid var(--line);
+  background: rgba(7, 11, 16, 0.5);
+  border-radius: 8px;
+  padding: 8px 10px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+}
+
+.overtake-shell .hud-item span {
+  display: block;
+  color: var(--muted);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.overtake-shell .hud-item strong {
+  display: block;
+  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.overtake-shell .meter {
+  position: relative;
+  height: 5px;
+  margin-top: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.overtake-shell .meter i {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 120ms linear;
+}
+
+.overtake-shell .nitro-threshold {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  left: 25%;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.55);
+}
+
+.overtake-shell .meter.low i {
+  background: var(--danger);
+}
+
+.overtake-shell .meter.low .nitro-threshold {
+  background: var(--danger);
+  box-shadow: 0 0 10px rgba(255, 95, 90, 0.8);
+}
+
+.overtake-shell .panel {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  padding: 28px;
+  pointer-events: none;
+}
+
+.overtake-shell .panel[hidden] {
+  display: none;
+}
+
+.overtake-shell .panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  pointer-events: auto;
+}
+
+.overtake-shell .panel-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 54px;
+  line-height: 0.95;
+  font-weight: 700;
+  text-shadow: 0 4px 28px rgba(0, 0, 0, 0.5);
+  text-transform: uppercase;
+}
+
+.overtake-shell .panel-status {
+  min-width: 120px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--glass);
+  padding: 9px 14px;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.18);
+}
+
+.overtake-shell .panel-body {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: center;
+  min-height: 0;
+  padding: 24px 0 62px;
+  pointer-events: none;
+}
+
+.overtake-shell #app[data-mode="menu"] .panel-body {
+  align-items: end;
+  padding-bottom: 34px;
+}
+
+.overtake-shell .menu-content {
+  width: min(1120px, calc(100% - 44px));
+  max-height: calc(100% - 150px);
+  margin: auto;
+  overflow: auto;
+  pointer-events: auto;
+  scrollbar-width: thin;
+}
+
+.overtake-shell .option-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(190px, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+.overtake-shell .main-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 190px);
+  justify-content: center;
+  gap: 18px;
+}
+
+.overtake-shell .pause-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 190px);
+  justify-content: center;
+  gap: 18px;
+}
+
+.overtake-shell .option-button {
+  min-width: 0;
+  min-height: 118px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--glass);
+  padding: 16px;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  backdrop-filter: blur(16px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 18px 44px rgba(0, 0, 0, 0.2);
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.overtake-shell .option-button:hover {
+  border-color: rgba(255, 255, 255, 0.56);
+  background: var(--glass-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 24px 56px rgba(0, 0, 0, 0.24);
+}
+
+.overtake-shell .option-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.overtake-shell .option-button:disabled:hover {
+  border-color: var(--line);
+}
+
+.overtake-shell .option-button.active {
+  border-color: var(--accent);
+  background: rgba(255, 207, 66, 0.16);
+}
+
+.overtake-shell .option-button.locked {
+  opacity: 0.68;
+}
+
+.overtake-shell .level-card {
+  display: grid;
+  align-content: start;
+}
+
+.overtake-shell .level-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.overtake-shell .level-action {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 10px;
+}
+
+.overtake-shell .level-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.overtake-shell .option-button strong {
+  display: block;
+  overflow-wrap: anywhere;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.overtake-shell .main-menu-grid .option-button {
+  display: grid;
+  align-content: center;
+  text-align: center;
+}
+
+.overtake-shell .main-menu-grid .option-button strong {
+  font-size: 25px;
+}
+
+.overtake-shell .option-button span {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.overtake-shell .meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.overtake-shell .pill {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.overtake-shell .garage-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.overtake-shell .car-card {
+  display: grid;
+  align-content: start;
+  min-height: 314px;
+}
+
+.overtake-shell .car-preview {
+  width: 100%;
+  height: 132px;
+  margin-bottom: 14px;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 18px rgba(0, 0, 0, 0.42));
+  pointer-events: none;
+}
+
+.overtake-shell .car-action {
+  margin-top: 12px;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+
+.overtake-shell .option-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: min(560px, 100%);
+  max-width: 560px;
+  margin: 0 auto 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--glass);
+  padding: 16px;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.2);
+}
+
+.overtake-shell .option-row strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.overtake-shell .option-row span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.overtake-shell .option-range {
+  width: min(220px, 44vw);
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.overtake-shell .actions {
+  display: flex;
+  position: absolute;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  justify-content: center;
+  gap: 10px;
+  pointer-events: auto;
+}
+
+.overtake-shell .primary,
+.overtake-shell .secondary {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--glass);
+  padding: 0 18px;
+  color: var(--text);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-weight: 700;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+
+.overtake-shell .primary {
+  border-color: rgba(255, 207, 66, 0.75);
+  font-weight: 800;
+}
+
+.overtake-shell .secondary {
+  background: var(--glass);
+}
+
+.overtake-shell .race-message {
+  position: absolute;
+  left: 50%;
+  top: 94px;
+  width: min(420px, calc(100% - 28px));
+  transform: translateX(-50%);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.14);
+  padding: 12px 16px;
+  text-align: center;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(14px);
+  pointer-events: none;
+  z-index: 6;
+}
+
+.overtake-shell .race-message[hidden] {
+  display: none;
+}
+
+.overtake-shell .race-message strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.overtake-shell .race-message span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.overtake-shell .countdown-overlay {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 7;
+  min-width: 104px;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 8px;
+  background: rgba(7, 11, 16, 0.58);
+  padding: 8px 18px 10px;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 56px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+  text-align: center;
+  text-shadow: 0 8px 24px rgba(0, 0, 0, 0.42);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 22px 54px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+}
+
+.overtake-shell .countdown-overlay.pulse {
+  animation: countdown-pop 420ms ease-out both;
+}
+
+@keyframes countdown-pop {
+  0% {
+    transform: translate(-50%, -50%) scale(0.78);
+    opacity: 0;
+  }
+
+  45% {
+    transform: translate(-50%, -50%) scale(1.06);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+@container overtake-shell (max-width: 760px) {
+  .overtake-shell #miniMapCanvas {
+    top: 10px;
+    left: 10px;
+    width: 132px;
+    height: 132px;
+  }
+
+  .overtake-shell .hud {
+    top: 10px;
+    left: 152px;
+    width: 128px;
+  }
+
+  .overtake-shell .race-timer {
+    top: 10px;
+    left: 152px;
+    width: 104px;
+  }
+
+  .overtake-shell .map-stats {
+    top: 150px;
+    left: 10px;
+    width: 132px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .overtake-shell .drive-hud {
+    right: 10px;
+    top: 62px;
+    width: 132px;
+  }
+
+  .overtake-shell .pause-button {
+    top: 10px;
+    right: 10px;
+    min-width: 78px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .overtake-shell .hud-item.speed-hud strong {
+    font-size: 24px;
+  }
+
+  .overtake-shell .hud-item {
+    padding: 7px 8px;
+  }
+
+  .overtake-shell .hud-item strong {
+    font-size: 16px;
+  }
+
+  .overtake-shell .panel {
+    padding: 16px;
+  }
+
+  .overtake-shell .panel-header {
+    align-items: flex-start;
+  }
+
+  .overtake-shell .panel-title {
+    font-size: 32px;
+  }
+
+  .overtake-shell .panel-body {
+    grid-template-columns: 1fr;
+    padding: 12px 0 74px;
+  }
+
+  .overtake-shell #app[data-mode="menu"] .panel-body {
+    padding-bottom: 24px;
+  }
+
+  .overtake-shell .menu-content {
+    max-height: calc(100% - 122px);
+  }
+
+  .overtake-shell .option-grid,
+  .overtake-shell .main-menu-grid,
+  .overtake-shell .pause-menu-grid,
+  .overtake-shell .garage-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .overtake-shell .option-button {
+    min-height: 86px;
+  }
+
+  .overtake-shell .car-card {
+    min-height: 252px;
+  }
+
+  .overtake-shell .car-preview {
+    height: 110px;
+  }
+
+  .overtake-shell .actions {
+    bottom: 16px;
+  }
+
+  .overtake-shell .race-message {
+    top: 70px;
+  }
+
+  .overtake-shell .countdown-overlay {
+    min-width: 88px;
+    padding: 7px 14px 9px;
+    font-size: 44px;
+  }
+
+  .overtake-shell .touch-cluster {
+    bottom: max(14px, env(safe-area-inset-bottom));
+    gap: 10px;
+  }
+
+  .overtake-shell .touch-cluster-left {
+    left: max(10px, env(safe-area-inset-left));
+  }
+
+  .overtake-shell .touch-cluster-right {
+    right: max(10px, env(safe-area-inset-right));
+  }
+
+  .overtake-shell .touch-button-small {
+    width: 78px;
+    height: 46px;
+    font-size: 15px;
+  }
+
+  .overtake-shell .touch-button-large {
+    width: 78px;
+    height: 70px;
+    font-size: 36px;
+  }
+}
+
+@container overtake-shell (max-width: 520px) {
+  .overtake-shell #miniMapCanvas {
+    width: 104px;
+    height: 104px;
+  }
+
+  .overtake-shell .hud,
+  .overtake-shell .race-timer {
+    left: 122px;
+    width: 96px;
+  }
+
+  .overtake-shell .map-stats {
+    top: 122px;
+    width: 104px;
+  }
+
+  .overtake-shell .drive-hud {
+    right: 8px;
+    top: 56px;
+    width: 112px;
+  }
+
+  .overtake-shell .pause-button {
+    right: 8px;
+    min-width: 66px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  .overtake-shell .panel {
+    padding: 12px;
+  }
+
+  .overtake-shell .panel-title {
+    font-size: 28px;
+  }
+
+  .overtake-shell .panel-status {
+    min-width: 84px;
+    padding: 7px 10px;
+    font-size: 11px;
+  }
+
+  .overtake-shell .menu-content {
+    width: calc(100% - 20px);
+    max-height: calc(100% - 96px);
+  }
+
+  .overtake-shell .option-button {
+    min-height: 76px;
+    padding: 12px;
+  }
+
+  .overtake-shell .option-button strong {
+    font-size: 18px;
+  }
+
+  .overtake-shell .option-button span {
+    font-size: 12px;
+  }
+
+  .overtake-shell .touch-button-small {
+    width: 66px;
+    height: 40px;
+    font-size: 13px;
+  }
+
+  .overtake-shell .touch-button-large {
+    width: 66px;
+    height: 58px;
+    font-size: 30px;
+  }
+}
