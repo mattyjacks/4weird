@@ -1,0 +1,28 @@
+=====================================================
+GAME SPECS: Cosmic Drift Blocks
+=====================================================
+Core Mechanic: Stealth shadow dashboard platformer
+Visual Theme : Deep ocean hydrothermal vents
+
+HOW TO MAKE IT:
+- Create a single file index.html with HTML5 Canvas.
+- Draw smooth assets (neon vector lines, translucent glides) using Canvas 2D context.
+- Implement the core game loop using requestAnimationFrame.
+- Add keyboard/mouse input listeners matching: Stealth shadow dashboard platformer.
+
+HOW TO MARKET IT:
+- Pitch as a hyper-addictive, browser-based casual game.
+- Capture a 10-second high-score clip demonstrating close-evasion gameplay.
+- Publish on itch.io and share on Twitter/Reddit under modern retro-gaming hubs.
+
+HOW TO TEST IT:
+- Load the index.html directly into 4weird aiplay dashboard.
+- Set the AI Agent goals to explore collectables.
+- Monitor stuck conditions to tune obstacle spawn rates and player velocity vectors.
+
+BRAID ACTION GRAPH FLOW:
+(S) Start -> Check if Danger / Obstacle nearby?
+  ├─ [Yes] ──> (R_EVADE) Evade using core controls (Stealth)
+  └─ [No] ───> Check if target Collectible (vents) visible?
+        ├─ [Yes] ──> (R_COLLECT) Move directly towards it
+        └─ [No] ────> (R_EXPLORE) Maintain default exploration pattern

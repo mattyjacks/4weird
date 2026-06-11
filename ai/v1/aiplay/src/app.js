@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, clipboard, shell } = require('electron');
 const AgentBrain = require('../agent_brain');
 const GameController = require('../game_controller');
 const { AutoCodeSystem } = require('../lib/core');
@@ -18,6 +18,7 @@ const config = require('./modules/config_manager');
 const webview = require('./modules/webview_manager');
 const tracker = require('./modules/tracker_manager');
 const tabs = require('./modules/monitor_tabs');
+const hub = require('./modules/hub_manager');
 
 // Instantiate cores
 const agentBrain = new AgentBrain();
@@ -106,6 +107,8 @@ function queryElements() {
   el.replayStatusText = document.getElementById('replay-status-text');
   el.btnToggleView = document.getElementById('btn-toggle-view');
   el.gameStatusBanner = document.getElementById('game-status-banner');
+  el.btnCopyAllLogs = document.getElementById('btn-copy-all-logs');
+  el.btnCopy50Logs = document.getElementById('btn-copy-50-logs');
   
   el.btnToggleAudio = document.getElementById('btn-toggle-audio');
   el.timelineContainer = document.getElementById('timeline-container');
@@ -202,12 +205,36 @@ document.addEventListener('DOMContentLoaded', () => {
   el.btnCopyPrompt.addEventListener('click', copyPromptToClipboard);
   el.btnSaveReplay.addEventListener('click', saveReplayFile);
   
+  if (el.btnCopyAllLogs) {
+    el.btnCopyAllLogs.addEventListener('click', () => {
+      audio.playClickSound();
+      if (consoleLogs.length === 0) {
+        toastNotifier.show("No logs to copy.", "warning");
+        return;
+      }
+      clipboard.writeText(consoleLogs.join('\n'));
+      toastNotifier.show("All logs copied to clipboard!", "success");
+    });
+  }
+  if (el.btnCopy50Logs) {
+    el.btnCopy50Logs.addEventListener('click', () => {
+      audio.playClickSound();
+      if (consoleLogs.length === 0) {
+        toastNotifier.show("No logs to copy.", "warning");
+        return;
+      }
+      const last50 = consoleLogs.slice(-50);
+      clipboard.writeText(last50.join('\n'));
+      toastNotifier.show(`Last ${last50.length} log lines copied to clipboard!`, "success");
+    });
+  }
+  
   if (el.btnToggleView) {
     el.btnToggleView.addEventListener('click', () => {
       audio.playClickSound();
       const appContainer = document.querySelector('.app-container');
       const isSimple = appContainer.classList.toggle('simple-mode');
-      el.btnToggleView.textContent = isSimple ? '👁️ VIEW: SIMPLE' : '👁️ VIEW: ADVANCED';
+      el.btnToggleView.textContent = isSimple ? '🛠️ Switch to Advanced Layout' : '👁️ Switch to Simple Layout';
       logSystemMessage(`Switched to ${isSimple ? 'Simple' : 'Advanced'} layout.`);
       if (isSimple) {
         tabs.switchTab('logs', el, audio);
@@ -341,16 +368,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   
-  if (el.gameUrlInput.value) {
-    setTimeout(() => {
-      loadGame();
-      crawlFiles();
-    }, 500);
-  } else {
-    updateStatusBanner("Select a game from local demos below or enter a URL", "ready");
-  }
+  // Set up the Hub bindings
+  setupHubBindings();
 
-  logSystemMessage("System dashboard loaded. Enter credentials and select target URL to begin.");
+  logSystemMessage("System dashboard loaded. Welcome Hub ready.");
   setTimeout(populateQuickLaunchGrid, 600);
 });
 
@@ -396,6 +417,7 @@ function loadGame() {
   webview.loadGameUrl(el.gameUrlInput, webviewElement, el.webviewPlaceholder, saveConfigData, crawlFiles, logSystemMessage);
   if (el.gameUrlInput.value) {
     updateStatusBanner("👉 Game ready! Click 'START AI AGENT' to begin playtesting", 'ready');
+    showEditorWorkspace();
   }
 }
 
@@ -655,9 +677,40 @@ async function applyAutoCodeChanges() {
   }
 }
 
+async function captureViewportScreenshot() {
+  const nativeProcess = el.nativeProcessSelect.value;
+  if (nativeProcess) {
+    const nativeShot = await ipcRenderer.invoke('capture-native-screenshot', nativeProcess);
+    if (nativeShot.success) {
+      return nativeShot.base64;
+    }
+    return null;
+  }
+  
+  const isGameWindowActive = await ipcRenderer.invoke('is-game-window-active');
+  if (isGameWindowActive) {
+    try {
+      return await ipcRenderer.invoke('capture-game-screenshot');
+    } catch (e) {
+      console.warn("Failed to capture separate game window", e);
+    }
+  }
+  
+  if (webviewElement) {
+    try {
+      const img = await webviewElement.capturePage();
+      const resized = img.resize({ width: 512 });
+      return resized.toJPEG(50).toString('base64');
+    } catch (e) {
+      console.warn("Failed to capture webview page", e);
+    }
+  }
+  return null;
+}
+
 async function captureManualScreenshot() {
   // Capture screenshot of WebView
-  const imgBase64 = await ipcRenderer.invoke('capture-game-screenshot');
+  const imgBase64 = await captureViewportScreenshot();
   if (imgBase64) {
     autoCodeSystem.addScreenshot(imgBase64);
     renderShotsPreview();
@@ -718,7 +771,7 @@ function openGameDevTools() {
 async function takeManualSnapshot() {
   audio.playClickSound();
   logSystemMessage("Capturing manual screen frame...");
-  const imgBase64 = await ipcRenderer.invoke('capture-game-screenshot');
+  const imgBase64 = await captureViewportScreenshot();
   if (imgBase64) {
     el.brainScreenshot.src = 'data:image/jpeg;base64,' + imgBase64;
     toastNotifier.show("Dashboard snapshot captured!", "success");
@@ -815,22 +868,16 @@ async function executeAgentStep(forceHeuristic = false) {
     let screenshotBase64 = null;
     
     // Handle Native process screenshots vs WebView screenshots
-    const nativeProcess = el.nativeProcessSelect.value;
-    if (nativeProcess) {
-      const nativeShot = await ipcRenderer.invoke('capture-native-screenshot', nativeProcess);
-      if (nativeShot.success) {
-        screenshotBase64 = nativeShot.base64;
-      }
-    } else {
-      screenshotBase64 = await ipcRenderer.invoke('capture-game-screenshot');
-    }
+    screenshotBase64 = await captureViewportScreenshot();
     
     if (!screenshotBase64) return;
+    
+    const nativeProcess = el.nativeProcessSelect.value;
     
     // Send latest state elements to the AI Agent Brain
     let elements = [];
     if (!nativeProcess) {
-      elements = await webviewElement.executeJavaScript('window.getInteractiveDOM ? window.getInteractiveDOM() : []');
+      elements = await gameController.getInteractiveDOM(webviewElement);
     }
     
     // Step decision calculation
@@ -861,8 +908,17 @@ async function executeAgentStep(forceHeuristic = false) {
       
       // Update action mix history tracker
       if (decision.action.type === 'click') {
-        const px = decision.action.params.x;
-        const py = decision.action.params.y;
+        let px = 500;
+        let py = 500;
+        if (decision.action.params && decision.action.params.x !== undefined) {
+          px = decision.action.params.x;
+          py = decision.action.params.y;
+        } else if (typeof decision.action.target === 'string' && decision.action.target.includes(',')) {
+          const parts = decision.action.target.split(',');
+          px = parseInt(parts[0]) || 500;
+          py = parseInt(parts[1]) || 500;
+        }
+        
         drawHeatmapDot(px, py);
         
         // Push click zones
@@ -870,6 +926,11 @@ async function executeAgentStep(forceHeuristic = false) {
         const zoneY = Math.floor(py / 100) * 100;
         const key = `(${zoneX}-${zoneX+99}, ${zoneY}-${zoneY+99})`;
         agentBrain.sessionStats.clickZones[key] = (agentBrain.sessionStats.clickZones[key] || 0) + 1;
+        
+        // Ensure params is populated for gameController
+        if (!decision.action.params) {
+          decision.action.params = { x: px, y: py };
+        }
       } else {
         clearHeatmapCanvas();
       }
@@ -884,12 +945,12 @@ async function executeAgentStep(forceHeuristic = false) {
         if (decision.action.type === 'click') {
           pyArgs.push(decision.action.params.x, decision.action.params.y);
         } else if (decision.action.type === 'keypress') {
-          pyArgs.push(decision.action.params.key);
+          pyArgs.push(decision.action.params ? decision.action.params.key : decision.action.target);
         }
         await ipcRenderer.invoke('run-input-sim', pyArgs);
       } else {
         // Inject into WebView DOM
-        await gameController.injectAction(webviewElement, decision.action);
+        await gameController.executeAction(webviewElement, decision.action);
       }
     }
     
@@ -992,12 +1053,12 @@ window.updateAgentConfig = (config) => {
 };
 
 window.getInteractiveDOM = () => {
-  return webviewElement ? webviewElement.executeJavaScript('window.getInteractiveDOM ? window.getInteractiveDOM() : []') : [];
+  return webviewElement ? gameController.getInteractiveDOM(webviewElement) : [];
 };
 
 window.executeAgentAction = (action) => {
   if (webviewElement) {
-    gameController.injectAction(webviewElement, action);
+    gameController.executeAction(webviewElement, action);
     return { success: true };
   }
   return { success: false, error: "No active window" };
@@ -1007,3 +1068,686 @@ window.triggerAgentStep = () => {
   executeAgentStep(true);
   return { success: true };
 };
+
+// ─── HUB PLANNING & FOLDER DETECTION UTILS ─────────────────────────
+const hubEl = {
+  hubWorkspace: null,
+  editorWorkspace: null,
+  btnGotoHub: null,
+  cardRandomGame: null,
+  cardPlanGame: null,
+  cardOpenFolder: null,
+  pitchResultsPanel: null,
+  chatPlannerPanel: null,
+  pitchGameName: null,
+  pitchTxtOutput: null,
+  pitchBraidOutput: null,
+  btnClosePitch: null,
+  btnClosePlanner: null,
+  plannerChatMessages: null,
+  plannerChoicesRow: null,
+  plannerCustomInput: null,
+  btnPlannerSendCustom: null,
+  plannerSpecPreview: null
+};
+
+let plannerStep = 0;
+let plannerSpecs = {
+  name: '',
+  mechanic: '',
+  theme: '',
+  goal: ''
+};
+let plannerTxtContent = '';
+
+function setupHubBindings() {
+  hubEl.hubWorkspace = document.getElementById('hub-workspace');
+  hubEl.editorWorkspace = document.getElementById('editor-workspace');
+  hubEl.btnGotoHub = document.getElementById('btn-goto-hub');
+  
+  hubEl.cardRandomGame = document.getElementById('card-random-game');
+  hubEl.cardPlanGame = document.getElementById('card-plan-game');
+  hubEl.cardOpenFolder = document.getElementById('card-open-folder');
+  
+  hubEl.pitchResultsPanel = document.getElementById('pitch-results-panel');
+  hubEl.chatPlannerPanel = document.getElementById('chat-planner-panel');
+  
+  hubEl.pitchGameName = document.getElementById('pitch-game-name');
+  hubEl.pitchTxtOutput = document.getElementById('pitch-txt-output');
+  hubEl.pitchBraidOutput = document.getElementById('pitch-braid-output');
+  
+  hubEl.btnClosePitch = document.getElementById('btn-close-pitch');
+  hubEl.btnClosePlanner = document.getElementById('btn-close-planner');
+  
+  hubEl.plannerChatMessages = document.getElementById('planner-chat-messages');
+  hubEl.plannerChoicesRow = document.getElementById('planner-choices-row');
+  hubEl.plannerCustomInput = document.getElementById('planner-custom-input');
+  hubEl.btnPlannerSendCustom = document.getElementById('btn-planner-send-custom');
+  hubEl.plannerSpecPreview = document.getElementById('planner-spec-preview');
+
+  if (hubEl.btnGotoHub) {
+    hubEl.btnGotoHub.addEventListener('click', () => {
+      audio.playClickSound();
+      showHubWorkspace();
+    });
+  }
+
+  if (hubEl.cardRandomGame) {
+    hubEl.cardRandomGame.addEventListener('click', () => {
+      audio.playClickSound();
+      triggerCreateRandomGame();
+    });
+  }
+
+  if (hubEl.cardPlanGame) {
+    hubEl.cardPlanGame.addEventListener('click', () => {
+      audio.playClickSound();
+      triggerInteractivePlanner();
+    });
+  }
+
+  if (hubEl.cardOpenFolder) {
+    hubEl.cardOpenFolder.addEventListener('click', () => {
+      audio.playClickSound();
+      triggerOpenFolderSelector();
+    });
+  }
+
+  const btnImportPlan = document.getElementById('btn-import-plan');
+  if (btnImportPlan) {
+    btnImportPlan.addEventListener('click', () => {
+      audio.playClickSound();
+      const imported = hub.importGamePlan();
+      if (imported) {
+        lastPitchedGame = imported;
+        
+        const grid = document.querySelector('.hub-grid');
+        const hero = document.querySelector('.hub-hero');
+        if (grid) grid.style.display = 'none';
+        if (hero) hero.style.display = 'none';
+
+        hubEl.pitchGameName.textContent = imported.name;
+        hubEl.pitchTxtOutput.value = imported.fileContent;
+        
+        const braidMatch = imported.fileContent.split('5. AGENT BRAID ACTION FLOW GRAPHIC')[1] || 
+                           imported.fileContent.split('AGENT BRAID ACTION FLOW GRAPHIC')[1] || 
+                           imported.fileContent.split('BRAID ACTION DECISION GRAPH')[1] ||
+                           imported.fileContent.split('BRAID ACTION FLOW:')[1];
+        if (braidMatch) {
+          hubEl.pitchBraidOutput.textContent = braidMatch.trim().replace(/^[\r\n]+|=+[\r\n]+|[\r\n]+=+/g, '');
+        } else {
+          hubEl.pitchBraidOutput.textContent = `(S) Start -> Check target visible?\n  ├─ [Yes] ──> Glide / Move towards it\n  └─ [No] ───> Explore canvas`;
+        }
+
+        hubEl.pitchResultsPanel.classList.remove('hidden');
+        toastNotifier.show(`Plan "${imported.name}" imported successfully!`, "success");
+      }
+    });
+  }
+
+  if (hubEl.btnClosePitch) {
+    hubEl.btnClosePitch.addEventListener('click', () => {
+      audio.playClickSound();
+      resetHubViews();
+    });
+  }
+
+  if (hubEl.btnClosePlanner) {
+    hubEl.btnClosePlanner.addEventListener('click', () => {
+      audio.playClickSound();
+      resetHubViews();
+    });
+  }
+
+  if (hubEl.btnPlannerSendCustom) {
+    hubEl.btnPlannerSendCustom.addEventListener('click', () => {
+      processPlannerInput(hubEl.plannerCustomInput.value.trim());
+      hubEl.plannerCustomInput.value = '';
+    });
+  }
+
+  const choiceButtons = hubEl.plannerChoicesRow.querySelectorAll('.choice-btn');
+  choiceButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      processPlannerInput(btn.textContent.trim());
+    });
+  });
+
+  // Pitch panel copy plan button
+  const btnPitchCopy = document.getElementById('btn-pitch-copy');
+  if (btnPitchCopy) {
+    btnPitchCopy.addEventListener('click', () => {
+      audio.playClickSound();
+      if (hubEl.pitchTxtOutput.value) {
+        clipboard.writeText(hubEl.pitchTxtOutput.value);
+        toastNotifier.show("Game plan copied to clipboard!", "success");
+      }
+    });
+  }
+
+  // Pitch panel modify with AI button
+  const btnPitchModify = document.getElementById('btn-pitch-modify');
+  if (btnPitchModify) {
+    btnPitchModify.addEventListener('click', () => {
+      audio.playClickSound();
+      startModifyingPitchedGame();
+    });
+  }
+
+  // Pitch panel open folder button
+  const btnPitchOpenFolder = document.getElementById('btn-pitch-open-folder');
+  if (btnPitchOpenFolder) {
+    btnPitchOpenFolder.addEventListener('click', () => {
+      audio.playClickSound();
+      shell.openPath(hub.plansDir);
+      toastNotifier.show("Opening games_plan folder...", "success");
+    });
+  }
+
+  // Pitch panel open in notepad button
+  const btnPitchOpenNotepad = document.getElementById('btn-pitch-open-notepad');
+  if (btnPitchOpenNotepad) {
+    btnPitchOpenNotepad.addEventListener('click', () => {
+      audio.playClickSound();
+      if (lastPitchedGame && lastPitchedGame.planPath) {
+        shell.openPath(lastPitchedGame.planPath);
+        toastNotifier.show("Opening plan file in editor...", "success");
+      }
+    });
+  }
+
+  // Planner panel copy plan button
+  const btnPlannerCopy = document.getElementById('btn-planner-copy');
+  if (btnPlannerCopy) {
+    btnPlannerCopy.addEventListener('click', () => {
+      audio.playClickSound();
+      if (hubEl.plannerSpecPreview.value) {
+        clipboard.writeText(hubEl.plannerSpecPreview.value);
+        toastNotifier.show("Game plan copied to clipboard!", "success");
+      }
+    });
+  }
+
+  // Planner panel open folder button
+  const btnPlannerOpenFolder = document.getElementById('btn-planner-open-folder');
+  if (btnPlannerOpenFolder) {
+    btnPlannerOpenFolder.addEventListener('click', () => {
+      audio.playClickSound();
+      shell.openPath(hub.plansDir);
+      toastNotifier.show("Opening games_plan folder...", "success");
+    });
+  }
+
+  // Planner panel open in notepad button
+  const btnPlannerOpenNotepad = document.getElementById('btn-planner-open-notepad');
+  if (btnPlannerOpenNotepad) {
+    btnPlannerOpenNotepad.addEventListener('click', () => {
+      audio.playClickSound();
+      if (plannerSpecs.name) {
+        const planPath = path.join(hub.plansDir, `${plannerSpecs.name.replace(/\s+/g, '_')}_plan.txt`);
+        if (fs.existsSync(planPath)) {
+          shell.openPath(planPath);
+          toastNotifier.show("Opening plan file in editor...", "success");
+        } else {
+          toastNotifier.show("No saved plan file found yet. Finish planning first!", "warning");
+        }
+      }
+    });
+  }
+}
+
+let lastPitchedGame = null;
+
+function startModifyingPitchedGame() {
+  if (!lastPitchedGame) return;
+  
+  // Hide pitch panel, show chat planner panel
+  hubEl.pitchResultsPanel.classList.add('hidden');
+  hubEl.chatPlannerPanel.classList.remove('hidden');
+  
+  plannerStep = 1;
+  plannerSpecs = {
+    name: lastPitchedGame.name,
+    mechanic: lastPitchedGame.mechanic,
+    theme: lastPitchedGame.theme,
+    goal: ''
+  };
+  
+  hubEl.plannerChatMessages.innerHTML = '';
+  addAgentChatMessage(`Let's modify the plan for "${plannerSpecs.name}"! I loaded the pitched design spec. Currently, the Core Mechanic is: "${plannerSpecs.mechanic}". What would you like to change or add to the core mechanic?`);
+  updatePlannerChoices(
+    "1. Add gravity drag & deceleration physics",
+    "2. Mouse clicks blast incoming obstacles",
+    "3. Keep current mechanic (Stealth/exploration)"
+  );
+  updateLiveSpecFile();
+}
+
+function showHubWorkspace() {
+  hubEl.hubWorkspace.classList.remove('hidden');
+  hubEl.editorWorkspace.classList.add('hidden');
+  resetHubViews();
+}
+
+function showEditorWorkspace() {
+  hubEl.hubWorkspace.classList.add('hidden');
+  hubEl.editorWorkspace.classList.remove('hidden');
+}
+
+function resetHubViews() {
+  const grid = document.querySelector('.hub-grid');
+  const hero = document.querySelector('.hub-hero');
+  if (grid) grid.style.display = 'grid';
+  if (hero) hero.style.display = 'block';
+
+  hubEl.pitchResultsPanel.classList.add('hidden');
+  hubEl.chatPlannerPanel.classList.add('hidden');
+}
+
+function triggerCreateRandomGame() {
+  const grid = document.querySelector('.hub-grid');
+  const hero = document.querySelector('.hub-hero');
+  if (grid) grid.style.display = 'none';
+  if (hero) hero.style.display = 'none';
+
+  logSystemMessage("Generating Random Viral Spec Sheet...");
+  const pitched = hub.pitchGame();
+  lastPitchedGame = pitched;
+
+  hubEl.pitchGameName.textContent = pitched.name;
+  hubEl.pitchTxtOutput.value = pitched.fileContent;
+  hubEl.pitchBraidOutput.textContent = pitched.braid;
+  
+  hubEl.pitchResultsPanel.classList.remove('hidden');
+  toastNotifier.show("Game pitched successfully!", "success");
+}
+
+function triggerInteractivePlanner() {
+  const grid = document.querySelector('.hub-grid');
+  const hero = document.querySelector('.hub-hero');
+  if (grid) grid.style.display = 'none';
+  if (hero) hero.style.display = 'none';
+
+  hubEl.chatPlannerPanel.classList.remove('hidden');
+  hubEl.plannerChatMessages.innerHTML = '';
+  
+  plannerStep = 0;
+  plannerSpecs = { name: '', mechanic: '', theme: '', goal: '' };
+  plannerTxtContent = '';
+  hubEl.plannerSpecPreview.value = '';
+
+  addAgentChatMessage("Welcome to the HTML Game Planner! Let's start by choosing a Name or concept. What should we name your new game?");
+  updatePlannerChoices(
+    "1. Hyperdrift Slime",
+    "2. Galactic Space Collector",
+    "3. Pixel DeepSea Escape"
+  );
+}
+
+function addAgentChatMessage(text) {
+  const msg = document.createElement('div');
+  msg.className = 'chat-msg agent';
+  msg.textContent = text;
+  hubEl.plannerChatMessages.appendChild(msg);
+  hubEl.plannerChatMessages.scrollTop = hubEl.plannerChatMessages.scrollHeight;
+  audio.playSynth(440, 'triangle', 0.1);
+}
+
+function addUserChatMessage(text) {
+  const msg = document.createElement('div');
+  msg.className = 'chat-msg user';
+  msg.textContent = text;
+  hubEl.plannerChatMessages.appendChild(msg);
+  hubEl.plannerChatMessages.scrollTop = hubEl.plannerChatMessages.scrollHeight;
+  audio.playSynth(550, 'sine', 0.08);
+}
+
+function updatePlannerChoices(c1, c2, c3) {
+  const buttons = hubEl.plannerChoicesRow.querySelectorAll('.choice-btn');
+  buttons[0].textContent = c1;
+  buttons[1].textContent = c2;
+  buttons[2].textContent = c3;
+}
+
+function updateLiveSpecFile() {
+  const braid = `(S) Start -> Check if Danger nearby?
+  ├─ [Yes] ──> Evade using game controls (${plannerSpecs.mechanic || 'Pending choice'})
+  └─ [No] ───> Check if target goal (${plannerSpecs.goal || 'Pending choice'}) visible?
+        ├─ [Yes] ──> Glide / Move towards it
+        └─ [No] ────> Keep default exploring`;
+
+  const is3D = /3D|Three\.js|spatial|perspective|first-person|voxel|cube|sphere/i.test((plannerSpecs.mechanic || '') + " " + (plannerSpecs.theme || ''));
+
+  let platform = "HTML5 Browser (Canvas 2D API)";
+  let fileLayout = `  1. index.html   : Hosts the Canvas DOM layout, high-performance viewport styling, and script tags importing the modules.
+  2. game.js      : The main game engine controller managing requestAnimationFrame, game state transitions, and canvas scaling.
+  3. physics.js   : Game physics containing Euler movement integration, speed limits, and circle-to-circle collision equations.
+  4. assets.js    : Aesthetic drawing library containing custom methods for glow lines, vaporwave grid lines, and particles.
+  5. agent_braid.js: Houses the AI playtest heuristics representing the BRAID diagram below.`;
+
+  let stateVariables = `   - canvas, ctx: DOM controls for Canvas 2D contexts.
+   - player: Object storing location and current movement state.
+   - hazards: Obstacle list containing target vector offsets.`;
+
+  let renderingPhases = `   - Clear Canvas: Redraw solid dark backgrounds matching the theme.
+   - Render Grid Backdrop: Use modern vector lines to match: ${plannerSpecs.theme || 'Pending choice'}.
+   - Draw Avatar: Draw player with custom particle aura.
+   - Scoreboard: Print custom neon status tracker in the top-right corner.`;
+
+  if (is3D) {
+    platform = "HTML5 Browser (3D WebGL API via Three.js library)";
+    fileLayout = `  1. index.html   : Hosts the 3D canvas viewport container, imports Three.js CDN script (https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js), and project modules.
+  2. game.js      : The main game loop and engine orchestration, setting up the THREE.Scene, THREE.PerspectiveCamera, and THREE.WebGLRenderer.
+  3. physics.js   : Calculates 3D physics updates (position vector additions, velocity damping, bounding box or bounding sphere collisions in 3D).
+  4. assets.js    : Manages 3D geometry creation (THREE.BoxGeometry, THREE.SphereGeometry), materials, lights, and animations.
+  5. agent_braid.js: Houses the AI playtest heuristics representing the BRAID diagram below.`;
+
+    stateVariables = `   - scene, camera, renderer: Three.js core rendering components.
+   - playerMesh: THREE.Mesh representing the player's 3D avatar.
+   - hazardMeshes: Array of active hazard meshes moving through the 3D viewport.
+   - collectibleMeshes: Array of meshes representing target goals.`;
+
+    renderingPhases = `   - Clear Viewport: Reset renderer and apply background theme color.
+   - Update 3D Camera: Align PerspectiveCamera to orbit player mesh position.
+   - Draw 3D Avatar/Objects: Rotate meshes and emit Three.js particle groups.
+   - HUD overlay: Print score tracker overlaying the 3D rendering context.`;
+  }
+
+  plannerTxtContent = `================================================================================
+GAME SPECIFICATION SHEET: ${plannerSpecs.name}
+================================================================================
+Status: Under design / draft plan
+Core Mechanic: ${plannerSpecs.mechanic || 'Pending choice'}
+Visual Aesthetic: ${plannerSpecs.theme || 'Pending choice'}
+Winning Goal: ${plannerSpecs.goal || 'Pending choice'}
+Target Platform: ${platform}
+
+--------------------------------------------------------------------------------
+1. DETAILED MECHANICS AND STATE STRUCTURE
+--------------------------------------------------------------------------------
+- Player Physics: Implement simple integration vectors.
+  - Core mechanics matching: ${plannerSpecs.mechanic || 'Pending choice'}.
+- Goal Spawning: Spawn items within safe padding away from canvas margins.
+- Hazard Scalers: Adjust spawn speed dynamically based on current game score.
+
+--------------------------------------------------------------------------------
+2. TECHNICAL ARCHITECTURE & SOURCE FILE LAYOUT (EXPERT BLUEPRINT)
+--------------------------------------------------------------------------------
+As an expert game design architect, I recommend structuring this codebase into multiple modular files to separate concerns, facilitate seamless AI vibe-coding edits, and support clean playtesting injection:
+
+- RECOMMENDED FILE LAYOUT:
+${fileLayout}
+
+A. STATE VARIABLES REQUIRED:
+${stateVariables}
+   - score: Current count of collectable goals acquired.
+
+B. CRITICAL RENDERING PHASES:
+${renderingPhases}
+
+--------------------------------------------------------------------------------
+3. PLAYTESTING & AI AUTOMATION STEPS
+--------------------------------------------------------------------------------
+- Load inside 4weird aiplay debugger using local file paths.
+- Setup AI Agent parameters matching the decision tree below.
+- Verify game loop recovery under active obstacle vectors.
+
+--------------------------------------------------------------------------------
+4. BRAID ACTION DECISION GRAPH
+--------------------------------------------------------------------------------
+${braid}
+
+================================================================================
+`;
+  hubEl.plannerSpecPreview.value = plannerTxtContent;
+}
+
+let plannerHistory = [];
+
+async function callPlannerAI(userInput) {
+  plannerHistory.push({ role: 'user', content: userInput });
+
+  // Fallback dynamic generator if LLM is not configured/key is empty
+  const useFallback = !agentBrain.config.apiKey && agentBrain.config.provider !== 'local';
+  
+  if (useFallback) {
+    const pool = require('./modules/vocabulary_pool');
+    const step = plannerStep;
+    let agentResponse = "";
+    let choices = [];
+    let isCompleted = false;
+
+    if (step === 0) {
+      plannerSpecs.name = userInput.replace(/^\d+\.\s*/, '');
+      plannerStep = 1;
+      agentResponse = `Excellent! "${plannerSpecs.name}" is a great name. Let's decide on the Core Mechanic. What type of gameplay fits this game?`;
+      choices = [
+        "1. " + pool.mechanics[Math.floor(Math.random() * pool.mechanics.length)],
+        "2. " + pool.mechanics[Math.floor(Math.random() * pool.mechanics.length)],
+        "3. " + pool.mechanics[Math.floor(Math.random() * pool.mechanics.length)]
+      ];
+    } else if (step === 1) {
+      plannerSpecs.mechanic = userInput.replace(/^\d+\.\s*/, '');
+      plannerStep = 2;
+      agentResponse = `Got it. For "${plannerSpecs.name}", we are using: "${plannerSpecs.mechanic}". Next, let's pick a Visual Theme / Aesthetic:`;
+      choices = [
+        "1. " + pool.themes[Math.floor(Math.random() * pool.themes.length)],
+        "2. " + pool.themes[Math.floor(Math.random() * pool.themes.length)],
+        "3. " + pool.themes[Math.floor(Math.random() * pool.themes.length)]
+      ];
+    } else if (step === 2) {
+      plannerSpecs.theme = userInput.replace(/^\d+\.\s*/, '');
+      plannerStep = 3;
+      agentResponse = `Perfect choice. With a theme of "${plannerSpecs.theme}", what should be the main Winning Goal or Win/Lose Condition?`;
+      choices = [
+        "1. Collect 50 stardust fragments to win",
+        "2. Survive as long as possible (endless loop)",
+        "3. Clear 10 waves of accelerating hazards"
+      ];
+    } else {
+      plannerSpecs.goal = userInput.replace(/^\d+\.\s*/, '');
+      plannerStep = 4;
+      isCompleted = true;
+      agentResponse = `🎉 Complete! Your plan document has been written to: games_plan/${plannerSpecs.name.replace(/\s+/g, '_')}_plan.txt. You can copy/paste it into Cursor/antigravity or select the folder from the hub view!`;
+      choices = ["Draft Saved", "Spec Completed", "Saved to workspace"];
+    }
+
+    plannerHistory.push({ role: 'assistant', content: agentResponse });
+    return { agentResponse, choices, specs: { ...plannerSpecs }, isCompleted };
+  }
+
+  // Active AI call
+  const systemPrompt = `You are an expert game designer helping a user design a viral browser HTML5 game.
+We are building a specification document. The current spec state is:
+Name: ${plannerSpecs.name || 'Not set'}
+Mechanic: ${plannerSpecs.mechanic || 'Not set'}
+Theme: ${plannerSpecs.theme || 'Not set'}
+Goal: ${plannerSpecs.goal || 'Not set'}
+
+Your task:
+Review the conversation history, then guide the user to design the next part of the game or complete it.
+You MUST respond with a JSON object matching this schema:
+{
+  "agentResponse": "Your helpful response to the user chat",
+  "choices": ["Option 1", "Option 2", "Option 3"],
+  "specs": {
+    "name": "Game Name (update if decided)",
+    "mechanic": "Core Mechanic (update if decided)",
+    "theme": "Visual Theme (update if decided)",
+    "goal": "Main Goal (update if decided)"
+  },
+  "isCompleted": false
+}
+
+Guidelines:
+- Keep responses friendly, creative, and professional.
+- Propose highly engaging and interesting mechanics/themes/goals.
+- Ensure "choices" has exactly 3 elements.
+- Respond ONLY with the JSON block. No markdown, no extra text.`;
+
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...plannerHistory
+  ];
+
+  const promptText = messages.map(m => `${m.role === 'system' ? 'Instructions' : m.role === 'user' ? 'User' : 'Assistant'}:\n${m.content}`).join('\n\n') + '\n\nAssistant Response (JSON ONLY):';
+
+  try {
+    const rawResult = await agentBrain.callLLM(promptText);
+    let cleaned = rawResult.trim();
+    if (cleaned.startsWith('```')) {
+      const lines = cleaned.split('\n');
+      if (lines[0].startsWith('```')) lines.shift();
+      if (lines[lines.length - 1].startsWith('```')) lines.pop();
+      cleaned = lines.join('\n').trim();
+    }
+    const data = JSON.parse(cleaned);
+    
+    plannerSpecs.name = data.specs.name || plannerSpecs.name;
+    plannerSpecs.mechanic = data.specs.mechanic || plannerSpecs.mechanic;
+    plannerSpecs.theme = data.specs.theme || plannerSpecs.theme;
+    plannerSpecs.goal = data.specs.goal || plannerSpecs.goal;
+
+    if (data.isCompleted) {
+      plannerStep = 4;
+    } else {
+      if (!plannerSpecs.name) plannerStep = 0;
+      else if (!plannerSpecs.mechanic) plannerStep = 1;
+      else if (!plannerSpecs.theme) plannerStep = 2;
+      else plannerStep = 3;
+    }
+
+    plannerHistory.push({ role: 'assistant', content: data.agentResponse });
+    return {
+      agentResponse: data.agentResponse,
+      choices: data.choices || [],
+      specs: { ...plannerSpecs },
+      isCompleted: data.isCompleted || false
+    };
+  } catch (err) {
+    console.error("AI Planner call failed, falling back to local pool...", err);
+    // Temporarily trigger fallback Offline logic
+    const pool = require('./modules/vocabulary_pool');
+    const step = plannerStep;
+    let agentResponse = "";
+    let choices = [];
+    let isCompleted = false;
+
+    if (step === 0) {
+      plannerSpecs.name = userInput.replace(/^\d+\.\s*/, '');
+      plannerStep = 1;
+      agentResponse = `Excellent! "${plannerSpecs.name}" is a great name. Let's decide on the Core Mechanic. What type of gameplay fits this game?`;
+      choices = [
+        "1. " + pool.mechanics[Math.floor(Math.random() * pool.mechanics.length)],
+        "2. " + pool.mechanics[Math.floor(Math.random() * pool.mechanics.length)],
+        "3. " + pool.mechanics[Math.floor(Math.random() * pool.mechanics.length)]
+      ];
+    } else if (step === 1) {
+      plannerSpecs.mechanic = userInput.replace(/^\d+\.\s*/, '');
+      plannerStep = 2;
+      agentResponse = `Got it. For "${plannerSpecs.name}", we are using: "${plannerSpecs.mechanic}". Next, let's pick a Visual Theme / Aesthetic:`;
+      choices = [
+        "1. " + pool.themes[Math.floor(Math.random() * pool.themes.length)],
+        "2. " + pool.themes[Math.floor(Math.random() * pool.themes.length)],
+        "3. " + pool.themes[Math.floor(Math.random() * pool.themes.length)]
+      ];
+    } else if (step === 2) {
+      plannerSpecs.theme = userInput.replace(/^\d+\.\s*/, '');
+      plannerStep = 3;
+      agentResponse = `Perfect choice. With a theme of "${plannerSpecs.theme}", what should be the main Winning Goal or Win/Lose Condition?`;
+      choices = [
+        "1. Collect 50 stardust fragments to win",
+        "2. Survive as long as possible (endless loop)",
+        "3. Clear 10 waves of accelerating hazards"
+      ];
+    } else {
+      plannerSpecs.goal = userInput.replace(/^\d+\.\s*/, '');
+      plannerStep = 4;
+      isCompleted = true;
+      agentResponse = `🎉 Complete! Your plan document has been written to: games_plan/${plannerSpecs.name.replace(/\s+/g, '_')}_plan.txt. You can copy/paste it into Cursor/antigravity or select the folder from the hub view!`;
+      choices = ["Draft Saved", "Spec Completed", "Saved to workspace"];
+    }
+
+    plannerHistory.push({ role: 'assistant', content: agentResponse });
+    return { agentResponse, choices, specs: { ...plannerSpecs }, isCompleted };
+  }
+}
+
+async function processPlannerInput(input) {
+  if (!input) return;
+  addUserChatMessage(input);
+
+  const loaderId = addAgentChatMessage("Thinking...");
+  const result = await callPlannerAI(input);
+  
+  // Remove "Thinking..." message
+  const chatMsgs = hubEl.plannerChatMessages.querySelectorAll('.chat-msg');
+  chatMsgs.forEach(msg => {
+    if (msg.textContent.includes("Thinking...")) {
+      msg.remove();
+    }
+  });
+
+  addAgentChatMessage(result.agentResponse);
+  updatePlannerChoices(result.choices[0], result.choices[1], result.choices[2]);
+  updateLiveSpecFile();
+
+  if (result.isCompleted || plannerStep >= 4) {
+    const planPath = path.join(hub.plansDir, `${plannerSpecs.name.replace(/\s+/g, '_')}_plan.txt`);
+    fs.writeFileSync(planPath, plannerTxtContent, 'utf8');
+  }
+}
+
+function triggerOpenFolderSelector() {
+  const selected = hub.selectGameFolder();
+  if (selected) {
+    const { folderPath, gameType } = selected;
+    logSystemMessage(`Opened specific folder: "${folderPath}" (Detected type: ${gameType})`);
+    
+    if (el.nativeProcessSelect) {
+      el.nativeProcessSelect.innerHTML = `<option value="">-- Scan / Select Game Window --</option>`;
+      const opt = document.createElement('option');
+      opt.value = gameType;
+      opt.textContent = `${gameType} Game Workspace - Auto-detected`;
+      opt.selected = true;
+      el.nativeProcessSelect.appendChild(opt);
+    }
+
+    if (gameType === 'HTML') {
+      let indexFile = path.join(folderPath, 'index.html');
+      if (!fs.existsSync(indexFile)) {
+        const list = fs.readdirSync(folderPath);
+        for (const item of list) {
+          const sub = path.join(folderPath, item);
+          if (fs.statSync(sub).isDirectory() && fs.existsSync(path.join(sub, 'index.html'))) {
+            indexFile = path.join(sub, 'index.html');
+            break;
+          }
+        }
+      }
+      
+      if (fs.existsSync(indexFile)) {
+        el.gameUrlInput.value = 'file:///' + indexFile.replace(/\\/g, '/');
+        saveConfigData();
+        loadGame();
+        crawlFiles();
+      }
+    } else {
+      crawlFilesSpecific(folderPath);
+    }
+    
+    showEditorWorkspace();
+    toastNotifier.show(`Loaded workspace of type ${gameType}!`, "success");
+  }
+}
+
+async function crawlFilesSpecific(folderPath) {
+  const scanResult = await ipcRenderer.invoke('scan-directory', folderPath);
+  if (scanResult.success) {
+    sourceFiles = scanResult.files;
+    tabs.renderFileList(el.codeFileList, el.codeContentView, sourceFiles, (file) => {
+      audio.playClickSound();
+    });
+  }
+}
+

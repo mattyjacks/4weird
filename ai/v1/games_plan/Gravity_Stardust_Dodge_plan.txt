@@ -1,0 +1,89 @@
+================================================================================
+GAME SPECIFICATION DRAFT: Gravity Stardust Dodge
+================================================================================
+Target Platform: HTML5 Browser (Canvas 2D API)
+Core Mechanic  : Stealth shadow dashboard platformer
+Visual Theme   : 80s Retro vaporwave grid
+Classification : Non-copyrighted, high-addiction viral potential
+
+--------------------------------------------------------------------------------
+1. GAME CONCEPT & CORE LOOP OVERVIEW
+--------------------------------------------------------------------------------
+"Gravity Stardust Dodge" is designed to be a high-engagement, single-screen HTML5 experience.
+The gameplay leverages the core mechanic of "Stealth shadow dashboard platformer" combined with the aesthetic of "80s Retro vaporwave grid".
+
+- THE CORE GAMEPLAY LOOP:
+  1. The player starts in a safe central zone. Hazards or goals spawn dynamically.
+  2. Utilizing simple controls based on "Stealth shadow dashboard platformer", the player navigates the space.
+  3. Collecting collectible elements matching the "80s Retro vaporwave grid" aesthetic increases the score and level.
+  4. Obstacles/enemies scale in speed, spawn frequency, and complexity over time.
+  5. Collision with hazards triggers an immediate, satisfying Game Over state, with quick-restart action.
+
+--------------------------------------------------------------------------------
+2. TECHNICAL ARCHITECTURE & DEVELOPMENT GUIDE
+--------------------------------------------------------------------------------
+To build this game as a lightweight vibe-coded prototype, construct a single file "index.html" with internal CSS and JavaScript. Use the Canvas 2D API to render smooth neon lines, vector grids, or pixelated assets.
+
+A. STATE VARIABLES REQUIRED:
+   - `canvas`, `ctx`: DOM elements and 2D rendering context.
+   - `player`: Object storing position {x, y}, velocity {vx, vy}, radius, and current control state.
+   - `collectibles`: Array of active collectible objects with position, value, and particle trail states.
+   - `hazards`: Array of obstacles tracking speed vectors and spawn intervals.
+   - `score`: Integer tracking progress.
+   - `gameState`: 'START' | 'PLAYING' | 'GAMEOVER' state controller.
+
+B. CORE FUNCTIONS IMPLEMENTATION LAYOUT:
+   1. `init()`: Query canvas element, set dimension to fill screen, bind event listeners.
+   2. `spawnHazard()`: Calculate random entry points from edges, matching target velocity vector.
+   3. `update(deltaTime)`: 
+      - Update player position based on "Stealth shadow dashboard platformer" physics equations.
+      - Handle bounds collisions (wrap around or bounce).
+      - Check circle-to-circle collisions between Player and Collectibles.
+      - Check circle-to-circle or point-in-polygon collisions between Player and Hazards.
+   4. `draw()`: Clear viewport, render modern backdrop grid, draw collectibles with glowing aura effect, render player avatar, render status text.
+   5. `gameLoop(timestamp)`: Calculate frame time, update state, render screen, request next frame.
+
+C. RECOMMENDED CONTROLS:
+   - Handle keydown and keyup events or pointer actions.
+   - If mechanic is "drifting", implement drift physics (friction coefficient, velocity inertia).
+
+--------------------------------------------------------------------------------
+3. VIRAL MARKETING STRATEGY & PLATFORM CHANNELS
+--------------------------------------------------------------------------------
+To successfully launch and viralize "Gravity Stardust Dodge", follow this distribution checklist:
+
+- SOCIAL MEDIA TEASER CAMPAIGNS:
+  - Record a 10-second clip demonstrating a "close call" evasion maneuver.
+  - Trim with high-contrast text overlay (e.g. "I survived 40 seconds in Gravity Stardust Dodge, can you?").
+  - Post directly on TikTok, YouTube Shorts, and Instagram Reels using tags #vibe-coding #indiedev #html5.
+
+- DISTRIBUTION HUBS:
+  - Publish on itch.io as a web-playable build.
+  - Submit the game link to casual directories like CrazyGames, Poki, and Y8.
+  - Create a GitHub repository to showcase the source code, encouraging forks and custom variations.
+
+- RETENTION MECHANISM:
+  - Share screenshots of the ASCII BRAID diagram below to show how an AI agent solves the game loop.
+  - Add a "Copy Share Score Link" button which copies a URL with base64 encoded score details.
+
+--------------------------------------------------------------------------------
+4. PLAYTESTING & QUALITY ASSURANCE PROTOCOL
+--------------------------------------------------------------------------------
+To verify that "Gravity Stardust Dodge" is fully balanced and free of logic deadlocks:
+
+- AUTOMATED TESTING WITH 4WEIRD AIPLAY:
+  - Load the index.html file into the 4weird playtesting dashboard.
+  - Set the AI Agent heuristic rules matching the decision graph below.
+  - Monitor logs for "stuck" alerts to identify if player movement speed is insufficient to escape hazard spawns.
+  - Run the agent for a continuous session of 10 minutes to verify frame rates (FPS) and memory heap consumption.
+
+--------------------------------------------------------------------------------
+5. AGENT BRAID ACTION FLOW GRAPHIC
+--------------------------------------------------------------------------------
+(S) Start -> Check if Danger / Obstacle nearby?
+  ├─ [Yes] ──> (R_EVADE) Evade using core controls (Stealth)
+  └─ [No] ───> Check if target Collectible (grid) visible?
+        ├─ [Yes] ──> (R_COLLECT) Move directly towards it
+        └─ [No] ────> (R_EXPLORE) Maintain default exploration pattern
+
+================================================================================

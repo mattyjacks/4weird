@@ -1,0 +1,58 @@
+================================================================================
+GAME SPECIFICATION SHEET: Retro Space Evasion
+================================================================================
+Status: Under design / draft plan
+Core Mechanic: Tap Space to jump and change orbit size
+Visual Aesthetic: 80s Cyberpunk Neon Vectorlines
+Winning Goal: Collect 50 stardust fragments to win
+
+--------------------------------------------------------------------------------
+1. DETAILED MECHANICS AND STATE STRUCTURE
+--------------------------------------------------------------------------------
+- Player Physics: Implement simple Euler integration vectors.
+  - Position vectors {x, y} and velocity vectors {vx, vy}.
+  - Core mechanics matching: Tap Space to jump and change orbit size.
+- Goal Spawning: Spawn items within safe padding away from canvas margins.
+- Hazard Scalers: Adjust spawn speed dynamically based on current game score.
+
+--------------------------------------------------------------------------------
+2. TECHNICAL ARCHITECTURE & SOURCE FILE LAYOUT (EXPERT BLUEPRINT)
+--------------------------------------------------------------------------------
+As an expert game design architect, I recommend structuring this codebase into multiple modular files to separate concerns, facilitate seamless AI vibe-coding edits, and support clean playtesting injection:
+
+- RECOMMENDED FILE LAYOUT:
+  1. index.html   : Hosts the Canvas DOM layout, high-performance viewport styling, and script tags importing the modules.
+  2. game.js      : The main game engine controller managing requestAnimationFrame, game state transitions, and canvas scaling.
+  3. physics.js   : Game physics containing Euler movement integration, speed limits, and circle-to-circle collision equations.
+  4. assets.js    : Aesthetic drawing library containing custom methods for glow lines, vaporwave grid lines, and particles.
+  5. agent_braid.js: Houses the AI playtest heuristics representing the BRAID diagram below.
+
+A. STATE VARIABLES REQUIRED:
+   - canvas, ctx: DOM controls for Canvas 2D contexts.
+   - player: Object storing location and current movement state.
+   - score: Current count of collectable goals acquired.
+   - hazards: Obstacle list containing target vector offsets.
+
+B. CRITICAL CANVAS RENDERING PHASES:
+   - Clear Canvas: Redraw solid dark backgrounds matching the theme.
+   - Render Grid Backdrop: Use modern vector lines to match: 80s Cyberpunk Neon Vectorlines.
+   - Draw Avatar: Draw player with custom particle aura.
+   - Scoreboard: Print custom neon status tracker in the top-right corner.
+
+--------------------------------------------------------------------------------
+3. PLAYTESTING & AI AUTOMATION STEPS
+--------------------------------------------------------------------------------
+- Load inside 4weird aiplay debugger using local file paths.
+- Setup AI Agent parameters matching the decision tree below.
+- Verify game loop recovery under active obstacle vectors.
+
+--------------------------------------------------------------------------------
+4. BRAID ACTION DECISION GRAPH
+--------------------------------------------------------------------------------
+(S) Start -> Check if Danger nearby?
+  ├─ [Yes] ──> Evade using game controls (Tap Space to jump and change orbit size)
+  └─ [No] ───> Check if target goal (Collect 50 stardust fragments to win) visible?
+        ├─ [Yes] ──> Glide / Move towards it
+        └─ [No] ────> Keep default exploring
+
+================================================================================

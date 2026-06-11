@@ -1,0 +1,58 @@
+================================================================================
+GAME SPECIFICATION SHEET: Pixel DeepSea Escape
+================================================================================
+Status: Under design / draft plan
+Core Mechanic: Click mouse to blast incoming cosmic rays
+Visual Aesthetic: Deep hydro-ocean bubble matrix
+Winning Goal: Survive as long as possible (endless loop)
+
+--------------------------------------------------------------------------------
+1. DETAILED MECHANICS AND STATE STRUCTURE
+--------------------------------------------------------------------------------
+- Player Physics: Implement simple Euler integration vectors.
+  - Position vectors {x, y} and velocity vectors {vx, vy}.
+  - Core mechanics matching: Click mouse to blast incoming cosmic rays.
+- Goal Spawning: Spawn items within safe padding away from canvas margins.
+- Hazard Scalers: Adjust spawn speed dynamically based on current game score.
+
+--------------------------------------------------------------------------------
+2. TECHNICAL ARCHITECTURE & SOURCE FILE LAYOUT
+--------------------------------------------------------------------------------
+Create index.html with inline scripts to house the prototype application.
+
+A. STATE VARIABLES REQUIRED:
+   - canvas, ctx: DOM controls for Canvas 2D contexts.
+   - player: Object storing location and current movement state.
+   - score: Current count of collectable goals acquired.
+   - hazards: Obstacle list containing target vector offsets.
+
+B. CRITICAL CANVAS RENDERING PHASES:
+   - Clear Canvas: Redraw solid dark backgrounds matching the theme.
+   - Render Grid Backdrop: Use modern vector lines to match: Deep hydro-ocean bubble matrix.
+   - Draw Avatar: Draw player with custom particle aura.
+   - Scoreboard: Print custom neon status tracker in the top-right corner.
+
+--------------------------------------------------------------------------------
+3. DISTRIBUTION, VIRAL MARKETING & COMMUNITY CHANNELS
+--------------------------------------------------------------------------------
+- Showcase the unique agent control decision trees (BRAID graphs) on social platforms.
+- Highlight the gameplay style based on: Deep hydro-ocean bubble matrix in short clips.
+- Share playable preview branches on itch.io or GitHub Pages.
+
+--------------------------------------------------------------------------------
+4. PLAYTESTING & AI AUTOMATION STEPS
+--------------------------------------------------------------------------------
+- Load inside 4weird aiplay debugger using local file paths.
+- Setup AI Agent parameters matching the decision tree below.
+- Verify game loop recovery under active obstacle vectors.
+
+--------------------------------------------------------------------------------
+5. BRAID ACTION DECISION GRAPH
+--------------------------------------------------------------------------------
+(S) Start -> Check if Danger nearby?
+  ├─ [Yes] ──> Evade using game controls (Click mouse to blast incoming cosmic rays)
+  └─ [No] ───> Check if target goal (Survive as long as possible (endless loop)) visible?
+        ├─ [Yes] ──> Glide / Move towards it
+        └─ [No] ────> Keep default exploring
+
+================================================================================

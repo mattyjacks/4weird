@@ -1488,3 +1488,58 @@ textarea:focus {
   box-shadow: 0 0 8px rgba(0, 255, 102, 0.2) !important;
   transform: translateY(-1px);
 }
+
+/* ─── HUB STYLING RULES ───────────────────────────────────────────── */
+.hub-card {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.hub-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent-blue) !important;
+  box-shadow: 0 12px 30px rgba(0, 255, 102, 0.15), var(--shadow-dark) !important;
+}
+
+.hub-card .card-icon {
+  transition: transform 0.3s ease;
+}
+
+.hub-card:hover .card-icon {
+  transform: scale(1.15) rotate(5deg);
+}
+
+/* Chat Planner Layout */
+.chat-layout {
+  height: calc(100% - 40px);
+  min-height: 0;
+}
+
+.chat-dialog {
+  min-height: 0;
+}
+
+.chat-msg {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px;
+  border-radius: 8px;
+  max-width: 85%;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.chat-msg.agent {
+  background: rgba(0, 255, 102, 0.08);
+  border: 1px solid rgba(0, 255, 102, 0.15);
+  color: var(--text-primary);
+  align-self: flex-start;
+}
+
+.chat-msg.user {
+  background: rgba(0, 255, 204, 0.1);
+  border: 1px solid rgba(0, 255, 204, 0.2);
+  color: #fff;
+  align-self: flex-end;
+}
+

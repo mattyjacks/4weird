@@ -1,0 +1,98 @@
+================================================================================
+GAME SPECIFICATION DRAFT: Orbital Drift Painter
+================================================================================
+Target Platform: HTML5 Browser (3D WebGL API via Three.js library)
+Core Mechanic  : Procedural hydrothermal vent explorer
+Visual Theme   : Deep ocean hydrothermal vents
+Classification : Non-copyrighted, high-addiction viral potential
+
+--------------------------------------------------------------------------------
+1. GAME CONCEPT & CORE LOOP OVERVIEW
+--------------------------------------------------------------------------------
+"Orbital Drift Painter" is designed to be a high-engagement, single-screen HTML5 experience.
+The gameplay leverages the core mechanic of "Procedural hydrothermal vent explorer" combined with the aesthetic of "Deep ocean hydrothermal vents".
+
+- THE CORE GAMEPLAY LOOP:
+  1. The player starts in a safe central zone. Hazards or goals spawn dynamically.
+  2. Utilizing simple controls based on "Procedural hydrothermal vent explorer", the player navigates the space.
+  3. Collecting collectible elements matching the "Deep ocean hydrothermal vents" aesthetic increases the score and level.
+  4. Obstacles/enemies scale in speed, spawn frequency, and complexity over time.
+  5. Collision with hazards triggers an immediate, satisfying Game Over state, with quick-restart action.
+
+--------------------------------------------------------------------------------
+2. TECHNICAL ARCHITECTURE & DEVELOPMENT GUIDE (EXPERT BLUEPRINT)
+--------------------------------------------------------------------------------
+As an expert game design architect, I recommend structuring this codebase into multiple modular files to separate concerns, facilitate seamless AI vibe-coding edits, and support clean playtesting injection:
+
+- RECOMMENDED FILE LAYOUT:
+  1. index.html   : Hosts the 3D canvas viewport container, imports Three.js CDN script (https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js), and project modules.
+  2. game.js      : The main game loop and engine orchestration, setting up the THREE.Scene, THREE.PerspectiveCamera, and THREE.WebGLRenderer.
+  3. physics.js   : Calculates 3D physics updates (position vector additions, velocity damping, bounding box or bounding sphere collisions in 3D).
+  4. assets.js    : Manages 3D geometry creation (THREE.BoxGeometry, THREE.SphereGeometry), materials, lights (THREE.AmbientLight, THREE.DirectionalLight), and animations.
+  5. agent_braid.js: Houses the AI playtest heuristics representing the BRAID diagram below.
+
+A. ARCHITECTURAL STATE VARIABLES REQUIRED:
+   - `scene`, `camera`, `renderer`: Three.js core rendering components.
+   - `playerMesh`: THREE.Mesh representing the player's 3D avatar.
+   - `hazardMeshes`: Array of active hazard meshes moving through the 3D viewport.
+   - `collectibleMeshes`: Array of meshes representing stardust/slimes.
+   - `score`: Integer tracking progress.
+   - `gameState`: 'START' | 'PLAYING' | 'GAMEOVER' state controller.
+
+B. CORE FUNCTIONS IMPLEMENTATION LAYOUT:
+   1. `init()` [game.js]: Set up THREE.Scene, THREE.PerspectiveCamera, WebGLRenderer size, attach canvas container to DOM, add lights.
+   2. `spawn3DObstacle()` [game.js]: Instantiate new mesh, place at outer bounding boundaries, assign velocity vector.
+   3. `update(deltaTime)` [physics.js]: Update player's 3D mesh coordinates based on controls, check distance thresholds (bounding sphere collision check) in 3D space.
+   4. `draw()` [assets.js]: Call `renderer.render(scene, camera)` each frame, animate mesh rotations, particle auras.
+   5. `gameLoop(timestamp)` [game.js]: Calculate frame time, update state, render scene, request next frame.
+
+C. RECOMMENDED CONTROLS:
+   - Keyboard: WASD / Arrow keys mapping to 3D movement axes (X/Y or X/Z planes).
+   - Mouse/Pointer: Raycasting to click/select objects in 3D projection space.
+
+--------------------------------------------------------------------------------
+3. PLAYTESTING & QUALITY ASSURANCE PROTOCOL
+--------------------------------------------------------------------------------
+To verify that "Orbital Drift Painter" is fully balanced and free of logic deadlocks:
+
+- AUTOMATED TESTING WITH 4WEIRD AIPLAY:
+  - Load the index.html file into the 4weird playtesting dashboard.
+  - Set the AI Agent heuristic rules matching the decision graph below.
+  - Monitor logs for "stuck" alerts to identify if player movement speed is insufficient to escape hazard spawns.
+  - Run the agent for a continuous session of 10 minutes to verify frame rates (FPS) and memory heap consumption.
+
+--------------------------------------------------------------------------------
+4. AGENT BRAID ACTION FLOW GRAPHIC
+--------------------------------------------------------------------------------
+(S_START) Start Agent Loop
+ ├─ [State Check] ──> Is Game Over?
+ │     ├─ [Yes] ──> (A_RESTART) Wait 1000ms -> Click center screen or press space -> Transition to (S_PLAY)
+ │     └─ [No] ───> Is Menu visible?
+ │           ├─ [Yes] ──> (A_START_GAME) Click "Start Game" coordinates -> Transition to (S_PLAY)
+ │           └─ [No] ───> Continue to Core Play Loop (S_PLAY)
+ │
+ ├─ [Autopilot Fail-Safe] ──> Is Agent Stuck? (Checks: player.x/y velocity = 0 for 60 consecutive frames)
+ │     ├─ [Yes] ──> (R_RECOVER) Back away from nearest wall/obstacle vector (vx = -vx, vy = -vy)
+ │     │     ├─ [Time out reached > 30f] ──> Reset position, trigger jump impulse (Procedural)
+ │     │     └─ [Time out active < 30f] ───> Apply random lateral steering force (90 deg relative to velocity)
+ │     └─ [No] ───> Continue to Hazard Scan
+ │
+ ├─ [Hazard Matrix Scan] ──> Is Hazard / Enemy / Projectile detected in close radius (< 150px)?
+ │     ├─ [Yes] ──> Evaluate Hazard speed and trajectory vector
+ │     │     ├─ [High Speed > 5px/f] ──> (R_FAST_EVADE) Apply hard lateral force matching (Procedural)
+ │     │     │     ├─ [Wall Nearby] ───> Perform immediate bounce steering maneuver
+ │     │     │     └─ [Open Space] ────> Boost velocity vector in opposite direction of hazard
+ │     │     └─ [Low Speed <= 5px/f] ─> (R_SMART_EVADE) Drift around hazard utilizing circle trajectory
+ │     │           ├─ [Double Hazard] ─> Pivot towards exact midpoint between both vectors
+ │     │           └─ [Single Hazard] ─> Maintain normal orbital evasion angles
+ │     └─ [No] ───> Continue to Target Acquisition
+ │
+ ├─ [Target Acquisition] ──> Is Collectible (vents) visible in camera viewport?
+ │     ├─ [Yes] ──> Identify highest density collectible cluster
+ │     │     ├─ [PowerUp Present] ─> (R_COLLECT_SPECIAL) Override standard path -> Seek PowerUp immediately
+ │     │     │     ├─ [Trap Nearby] ──> Evasive approach path (glide around hazard while getting PowerUp)
+ │     │     │     └─ [Safe Path] ────> Direct linear seek velocity approach
+ ├─ [Environment Scan] ──> Are environmental modifiers active? (Wind currents, magnetic fields, low gravity)
+ └─ (S_EXPLORE) Maintain Default Pattern
+
+================================================================================

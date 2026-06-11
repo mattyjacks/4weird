@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="index.css">
 </head>
 <body>
-  <div class="app-container">
+  <div class="app-container simple-mode">
     <!-- TOP HEADER: TITLE & CORE CONTROLS -->
     <header class="main-header glass">
       <div class="header-left">
@@ -23,7 +23,8 @@
       
       <div class="header-center">
         <div class="actions-group">
-          <button id="btn-toggle-view" class="btn btn-secondary" title="Switch between Simple and Advanced layouts">👁️ VIEW: ADVANCED</button>
+          <button id="btn-goto-hub" class="btn btn-secondary" title="Return to Welcome Hub View">🏠 HUB</button>
+          <button id="btn-toggle-view" class="btn btn-secondary" title="Switch between Simple and Advanced layouts">🛠️ Switch to Advanced Layout</button>
           <button id="btn-toggle-agent" class="btn btn-primary btn-large-top disabled" disabled title="Select a game target and click LOAD first">
             <span class="icon">▶</span> START AI AGENT
           </button>
@@ -194,7 +195,114 @@
 
     <!-- CENTER PANEL: GAME VIEWPORT & AGENT MIND -->
     <main class="main-content">
-      <section class="viewport-section glass" style="margin-top: 0;">
+      <!-- HUB WORKSPACE VIEW -->
+      <div class="hub-workspace-view" id="hub-workspace" style="display: flex; flex-direction: column; flex: 1; gap: 16px; overflow-y: auto; padding: 12px 4px;">
+        <div class="hub-hero" style="text-align: center; margin-bottom: 8px;">
+          <h2 style="font-family: var(--font-display); font-size: 1.6rem; color: var(--accent-blue); letter-spacing: 1px; margin-bottom: 6px;">Welcome to 4weird AIPlay</h2>
+          <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 12px;">Select a workspace path below to design, run test, or auto-fix games.</p>
+          <button id="btn-import-plan" class="btn btn-secondary" style="font-size: 0.85rem; padding: 8px 18px;">📂 Import Plan (.txt)</button>
+        </div>
+
+        <div class="hub-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;">
+          <!-- Card 1: Create Random Viral HTML Game -->
+          <div class="hub-card glass" id="card-random-game" style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer;">
+            <div class="card-icon" style="font-size: 2.2rem; filter: drop-shadow(0 0 8px rgba(0, 255, 102, 0.4));">⚡</div>
+            <h3 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Create Random Viral Game</h3>
+            <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4; flex: 1;">Generate an original, randomized non-copyrighted game idea. Automatically creates QA testing guides, and a BRAID decision flowchart.</p>
+            <button class="btn btn-primary btn-full" style="pointer-events: none; margin-top: 8px;">PITCH & GENERATE</button>
+          </div>
+
+          <!-- Card 2: Plan New HTML Game -->
+          <div class="hub-card glass" id="card-plan-game" style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer;">
+            <div class="card-icon" style="font-size: 2.2rem; filter: drop-shadow(0 0 8px rgba(0, 255, 102, 0.4));">💬</div>
+            <h3 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Plan New HTML Game</h3>
+            <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4; flex: 1;">Collaboratively construct a custom game plan using an interactive planner chat, answering multiple choice questions to tailor compile a specs draft.</p>
+            <button class="btn btn-primary btn-full" style="pointer-events: none; margin-top: 8px;">START INTERACTIVE PLANNER</button>
+          </div>
+
+          <!-- Card 3: Open Specific Game Folder -->
+          <div class="hub-card glass" id="card-open-folder" style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer;">
+            <div class="card-icon" style="font-size: 2.2rem; filter: drop-shadow(0 0 8px rgba(0, 255, 102, 0.4));">📁</div>
+            <h3 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Open Specific Game Folder</h3>
+            <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4; flex: 1;">Load a folder path directly. Automatically detects HTML, Roblox, Godot, Unity, or Unreal files and imports them to run visual debugging tests.</p>
+            <button class="btn btn-primary btn-full" style="pointer-events: none; margin-top: 8px;">OPEN FILE EXPLORER</button>
+          </div>
+        </div>
+
+        <!-- RANDOM PITCH RESULTS PANEL -->
+        <div class="pitch-results-panel glass hidden" id="pitch-results-panel" style="padding: 16px; display: flex; flex-direction: column; gap: 12px; flex: 1; min-height: 350px;">
+          <div class="panel-header-row" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 8px;">
+            <h3 style="font-family: var(--font-display); font-size: 1rem; color: var(--accent-cyan); letter-spacing: 1px;">⚡ PITCHED GAME CONCEPT</h3>
+            <button id="btn-close-pitch" class="btn btn-small btn-secondary">Back to Hub</button>
+          </div>
+          <div class="pitch-layout" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; flex: 1; min-height: 0; overflow: hidden;">
+            <div class="pitch-details" style="display: flex; flex-direction: column; gap: 10px; height: 100%; min-height: 0;">
+              <div class="pitch-meta" style="display: flex; align-items: center; gap: 12px;">
+                <span class="pitch-title" id="pitch-game-name" style="font-family: var(--font-display); font-size: 1.3rem; font-weight: bold; color: white;"></span>
+                <span class="pitch-badge" style="background: rgba(0, 255, 102, 0.1); border: 1px solid var(--accent-blue); color: var(--accent-blue); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">HTML5 GAME</span>
+              </div>
+              <div class="form-group" style="flex: 1; display: flex; flex-direction: column; margin-bottom: 0; min-height: 0;">
+                <label style="font-size: 0.75rem; margin-bottom: 4px; font-weight: bold; color: var(--text-secondary);">GAME DESIGN PLAN (.txt)</label>
+                <textarea id="pitch-txt-output" readonly style="flex: 1; font-family: var(--font-mono); font-size: 0.75rem; color: #a5b4fc; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 10px; resize: none; min-height: 0; box-sizing: border-box; overflow-y: auto; line-height: 1.4;"></textarea>
+              </div>
+              <div class="instructions-box" style="padding: 10px; background: rgba(0, 255, 102, 0.05); border: 1px solid rgba(0, 255, 102, 0.2); border-radius: 8px; font-size: 0.8rem; color: var(--text-primary); line-height: 1.4;">
+                💡 <strong>Workspace Saved:</strong> The full design specification document was successfully saved into your local <code>games_plan</code> workspace folder. Copy/paste this spec sheet to any Vibe IDE (Devin, Windsurf, Cursor, Antigravity) to code the game!
+              </div>
+              <div class="pitch-actions-row" style="display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap;">
+                <button id="btn-pitch-copy" class="btn btn-primary btn-small">📋 Copy Plan</button>
+                <button id="btn-pitch-modify" class="btn btn-warning btn-small">🤖 Modify Plan with AI</button>
+                <button id="btn-pitch-open-folder" class="btn btn-secondary btn-small">📁 Open Folder</button>
+                <button id="btn-pitch-open-notepad" class="btn btn-secondary btn-small">📝 Open in Notepad</button>
+              </div>
+            </div>
+            <div class="pitch-braid" style="display: flex; flex-direction: column; height: 100%; min-height: 0;">
+              <label style="font-size: 0.75rem; margin-bottom: 4px; font-weight: bold; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Agent BRAID Decision Tree</label>
+              <pre class="braid-diagram-box" id="pitch-braid-output" style="flex: 1; margin: 0; padding: 12px; background: #030604; border: 1px solid rgba(0, 255, 102, 0.15); border-radius: 8px; font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-cyan); overflow: auto; line-height: 1.4; box-sizing: border-box; min-height: 0;"></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- INTERACTIVE CHAT PLANNER PANEL -->
+        <div class="chat-planner-panel glass hidden" id="chat-planner-panel" style="padding: 16px; display: flex; flex-direction: column; gap: 12px; flex: 1; min-height: 350px;">
+          <div class="panel-header-row" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 8px;">
+            <h3 style="font-family: var(--font-display); font-size: 1rem; color: var(--accent-cyan); letter-spacing: 1px;">💬 INTERACTIVE GAME PLANNER</h3>
+            <button id="btn-close-planner" class="btn btn-small btn-secondary">Back to Hub</button>
+          </div>
+          <div class="chat-layout" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; flex: 1; min-height: 0; overflow: hidden;">
+            <div class="chat-dialog" style="display: flex; flex-direction: column; gap: 12px; height: 100%; min-height: 0;">
+              <div class="chat-messages" id="planner-chat-messages" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; min-height: 0;">
+                <!-- Dynamically filled messages -->
+              </div>
+              <div class="chat-inputs-wrapper" style="display: flex; flex-direction: column; gap: 8px;">
+                <!-- 3-Choice buttons row -->
+                <div class="chat-choices-row" id="planner-choices-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                  <button class="btn btn-secondary btn-small choice-btn" data-choice="0">Choice 1</button>
+                  <button class="btn btn-secondary btn-small choice-btn" data-choice="1">Choice 2</button>
+                  <button class="btn btn-secondary btn-small choice-btn" data-choice="2">Choice 3</button>
+                </div>
+                <!-- Custom text input row -->
+                <div class="chat-custom-row" style="display: flex; gap: 8px;">
+                  <input type="text" id="planner-custom-input" placeholder="Type custom feedback/specification..." style="flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--panel-border); font-size: 0.85rem; padding: 8px 12px; border-radius: 6px; color: white;">
+                  <button id="btn-planner-send-custom" class="btn btn-primary" style="padding: 0 16px; font-size: 0.85rem;">Send</button>
+                </div>
+              </div>
+            </div>
+            <div class="chat-spec-preview" style="display: flex; flex-direction: column; height: 100%; min-height: 0;">
+              <label style="font-size: 0.75rem; margin-bottom: 4px; font-weight: bold; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Live Specs Plan Preview</label>
+              <textarea id="planner-spec-preview" readonly style="flex: 1; background: #030604; font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-primary); border: 1px solid rgba(0, 255, 102, 0.12); border-radius: 8px; resize: none; box-sizing: border-box; padding: 10px; overflow-y: auto; line-height: 1.4; min-height: 0;"></textarea>
+              <div class="planner-actions-row" style="display: flex; gap: 8px; margin-top: 8px;">
+                <button id="btn-planner-copy" class="btn btn-primary btn-small btn-full">📋 Copy Plan</button>
+                <button id="btn-planner-open-folder" class="btn btn-secondary btn-small">📁 Open Folder</button>
+                <button id="btn-planner-open-notepad" class="btn btn-secondary btn-small">📝 Open in Notepad</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EDITOR WORKSPACE VIEW (Hidden initially) -->
+      <div class="editor-workspace-view hidden" id="editor-workspace" style="display: flex; flex-direction: column; flex: 1; gap: 12px; overflow: hidden; width: 100%; height: 100%;">
+        <section class="viewport-section glass" style="margin-top: 0;">
         <div class="viewport-bezel">
            <!-- ELECTRON WEBVIEW COMPONENT -->
           <webview id="game-webview" src="about:blank" style="width: 100%; height: 100%;" partition="persist:gameview" nodeintegrationinsubframes="false"></webview>
@@ -245,7 +353,11 @@
               <button class="tab-btn" id="tab-code">SOURCE CODE EXPLORER</button>
               <button class="tab-btn" id="tab-autocode">🖥️ AUTOCODE IDE</button>
             </div>
-            <button id="btn-clear-logs" class="btn btn-small btn-secondary">Clear</button>
+            <div class="log-actions" id="log-actions-group" style="display: flex; gap: 6px;">
+              <button id="btn-copy-all-logs" class="btn btn-small btn-secondary">Copy All</button>
+              <button id="btn-copy-50-logs" class="btn btn-small btn-secondary">Copy Last 50 Lines</button>
+              <button id="btn-clear-logs" class="btn btn-small btn-secondary">Clear</button>
+            </div>
           </div>
           <div class="card-body log-container" id="log-stream">
             <div class="log-entry system">System initialized. Ready to load game URL...</div>
@@ -372,6 +484,7 @@
           </div>
         </div>
       </section>
+      </div> <!-- Close editor-workspace -->
     </main>
 
     <!-- RIGHT SIDEBAR: BUG TRACKER & MEGA-PROMPT GENERATOR -->

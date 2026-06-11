@@ -1,0 +1,102 @@
+================================================================================
+GAME SPECIFICATION DRAFT: Fluid Reef Runner
+================================================================================
+Target Platform: HTML5 Browser (Canvas 2D API)
+Core Mechanic  : Orbital Gravity drifting
+Visual Theme   : Bioluminescent subterranean mushroom cave
+Classification : Non-copyrighted, high-addiction viral potential
+
+--------------------------------------------------------------------------------
+1. GAME CONCEPT & CORE LOOP OVERVIEW
+--------------------------------------------------------------------------------
+"Fluid Reef Runner" is designed to be a high-engagement, single-screen HTML5 experience.
+The gameplay leverages the core mechanic of "Orbital Gravity drifting" combined with the aesthetic of "Bioluminescent subterranean mushroom cave".
+
+- THE CORE GAMEPLAY LOOP:
+  1. The player starts in a safe central zone. Hazards or goals spawn dynamically.
+  2. Utilizing simple controls based on "Orbital Gravity drifting", the player navigates the space.
+  3. Collecting collectible elements matching the "Bioluminescent subterranean mushroom cave" aesthetic increases the score and level.
+  4. Obstacles/enemies scale in speed, spawn frequency, and complexity over time.
+  5. Collision with hazards triggers an immediate, satisfying Game Over state, with quick-restart action.
+
+--------------------------------------------------------------------------------
+2. TECHNICAL ARCHITECTURE & DEVELOPMENT GUIDE (EXPERT BLUEPRINT)
+--------------------------------------------------------------------------------
+As an expert game design architect, I recommend structuring this codebase into multiple modular files to separate concerns, facilitate seamless AI vibe-coding edits, and support clean playtesting injection:
+
+- RECOMMENDED FILE LAYOUT:
+  1. index.html   : Hosts the Canvas DOM layout, high-performance viewport styling, and script tags importing the modules.
+  2. game.js      : The main game engine controller managing requestAnimationFrame, game state transitions, and canvas scaling.
+  3. physics.js   : Game physics containing Euler movement integration, speed limits, and circle-to-circle collision equations.
+  4. assets.js    : Aesthetic drawing library containing custom methods for glow lines, vaporwave grid lines, and particles.
+  5. agent_braid.js: Houses the AI playtest heuristics representing the BRAID diagram below.
+
+A. ARCHITECTURAL STATE VARIABLES REQUIRED:
+   - `canvas`, `ctx`: DOM elements and 2D rendering context.
+   - `player`: Object storing position {x, y}, velocity {vx, vy}, radius, and current control state.
+   - `collectibles`: Array of active collectible objects with position, value, and particle trail states.
+   - `hazards`: Array of obstacles tracking speed vectors and spawn intervals.
+   - `score`: Integer tracking progress.
+   - `gameState`: 'START' | 'PLAYING' | 'GAMEOVER' state controller.
+
+B. CORE FUNCTIONS IMPLEMENTATION LAYOUT:
+   1. `init()` [game.js]: Query canvas element, set dimension to fill screen, bind event listeners.
+   2. `spawnHazard()` [game.js]: Calculate random entry points from edges, matching target velocity vector.
+   3. `update(deltaTime)` [physics.js]: 
+      - Update player position based on "Orbital Gravity drifting" physics equations.
+      - Handle bounds collisions (wrap around or bounce).
+      - Check circle-to-circle collisions between Player and Collectibles.
+      - Check circle-to-circle or point-in-polygon collisions between Player and Hazards.
+   4. `draw()` [assets.js]: Clear viewport, render modern backdrop grid, draw collectibles with glowing aura effect, render player avatar, render status text.
+   5. `gameLoop(timestamp)` [game.js]: Calculate frame time, update state, render screen, request next frame.
+
+C. RECOMMENDED CONTROLS:
+   - Handle keydown and keyup events or pointer actions.
+   - If mechanic is "drifting", implement drift physics (friction coefficient, velocity inertia).
+
+--------------------------------------------------------------------------------
+3. PLAYTESTING & QUALITY ASSURANCE PROTOCOL
+--------------------------------------------------------------------------------
+To verify that "Fluid Reef Runner" is fully balanced and free of logic deadlocks:
+
+- AUTOMATED TESTING WITH 4WEIRD AIPLAY:
+  - Load the index.html file into the 4weird playtesting dashboard.
+  - Set the AI Agent heuristic rules matching the decision graph below.
+  - Monitor logs for "stuck" alerts to identify if player movement speed is insufficient to escape hazard spawns.
+  - Run the agent for a continuous session of 10 minutes to verify frame rates (FPS) and memory heap consumption.
+
+--------------------------------------------------------------------------------
+4. AGENT BRAID ACTION FLOW GRAPHIC
+--------------------------------------------------------------------------------
+(S_START) Start Agent Loop
+ ├─ [State Check] ──> Is Game Over?
+ │     ├─ [Yes] ──> (A_RESTART) Wait 1000ms -> Click center screen or press space -> Transition to (S_PLAY)
+ │     └─ [No] ───> Is Menu visible?
+ │           ├─ [Yes] ──> (A_START_GAME) Click "Start Game" coordinates -> Transition to (S_PLAY)
+ │           └─ [No] ───> Continue to Core Play Loop (S_PLAY)
+ │
+ ├─ [Autopilot Fail-Safe] ──> Is Agent Stuck? (Checks: player.x/y velocity = 0 for 60 consecutive frames)
+ │     ├─ [Yes] ──> (R_RECOVER) Back away from nearest wall/obstacle vector (vx = -vx, vy = -vy)
+ │     │     ├─ [Time out reached > 30f] ──> Reset position, trigger jump impulse (Orbital)
+ │     │     └─ [Time out active < 30f] ───> Apply random lateral steering force (90 deg relative to velocity)
+ │     └─ [No] ───> Continue to Hazard Scan
+ │
+ ├─ [Hazard Matrix Scan] ──> Is Hazard / Enemy / Projectile detected in close radius (< 150px)?
+ │     ├─ [Yes] ──> Evaluate Hazard speed and trajectory vector
+ │     │     ├─ [High Speed > 5px/f] ──> (R_FAST_EVADE) Apply hard lateral force matching (Orbital)
+ │     │     │     ├─ [Wall Nearby] ───> Perform immediate bounce steering maneuver
+ │     │     │     └─ [Open Space] ────> Boost velocity vector in opposite direction of hazard
+ │     │     └─ [Low Speed <= 5px/f] ─> (R_SMART_EVADE) Drift around hazard utilizing circle trajectory
+ │     │           ├─ [Double Hazard] ─> Pivot towards exact midpoint between both vectors
+ │     │           └─ [Single Hazard] ─> Maintain normal orbital evasion angles
+ │     └─ [No] ───> Continue to Target Acquisition
+ │
+ ├─ [Target Acquisition] ──> Is Collectible (cave) visible in camera viewport?
+ │     ├─ [Yes] ──> Identify highest density collectible cluster
+ │     │     ├─ [PowerUp Present] ─> (R_COLLECT_SPECIAL) Override standard path -> Seek PowerUp immediately
+ │     │     │     ├─ [Trap Nearby] ──> Evasive approach path (glide around hazard while getting PowerUp)
+ │     │     │     └─ [Safe Path] ────> Direct linear seek velocity approach
+ ├─ [Environment Scan] ──> Are environmental modifiers active? (Wind currents, magnetic fields, low gravity)
+ └─ (S_EXPLORE) Maintain Default Pattern
+
+================================================================================

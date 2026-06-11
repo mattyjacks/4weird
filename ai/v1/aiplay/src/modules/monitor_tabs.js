@@ -11,16 +11,22 @@ function switchTab(tab, elements, audioModule, populateAutoCodeSelectCallback) {
   elements.codeStream.classList.add('hidden');
   elements.autocodeStream.classList.add('hidden');
 
+  const logActions = document.getElementById('log-actions-group');
+
   if (tab === 'logs') {
     elements.tabLogs.classList.add('active');
     elements.logStream.classList.remove('hidden');
-  } else if (tab === 'code') {
-    elements.tabCode.classList.add('active');
-    elements.codeStream.classList.remove('hidden');
-  } else if (tab === 'autocode') {
-    elements.tabAutoCode.classList.add('active');
-    elements.autocodeStream.classList.remove('hidden');
-    if (populateAutoCodeSelectCallback) populateAutoCodeSelectCallback();
+    if (logActions) logActions.style.display = 'flex';
+  } else {
+    if (logActions) logActions.style.display = 'none';
+    if (tab === 'code') {
+      elements.tabCode.classList.add('active');
+      elements.codeStream.classList.remove('hidden');
+    } else if (tab === 'autocode') {
+      elements.tabAutoCode.classList.add('active');
+      elements.autocodeStream.classList.remove('hidden');
+      if (populateAutoCodeSelectCallback) populateAutoCodeSelectCallback();
+    }
   }
 }
 
