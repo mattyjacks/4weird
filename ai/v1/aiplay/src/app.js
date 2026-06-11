@@ -524,6 +524,13 @@ function toggleAgentState() {
     logSystemMessage("AI Agent playtesting activated.");
     updateStatusBanner("🤖 AI Agent actively playtesting & scanning for bugs...", 'active');
     
+    // Automatically open the game window if not already active to show the gameplay visual
+    ipcRenderer.invoke('is-game-window-active').then(active => {
+      if (!active && !el.nativeProcessSelect.value) {
+        openExternalGameWindow();
+      }
+    });
+    
     // Initialize session memory
     agentBrain.startSession();
     tracker.updateSessionStatsUI(agentBrain, el);

@@ -121,6 +121,7 @@
             this.frameId = null;
         }
         start() {
+            if (this.frameId !== null && !this.isPaused) return;
             this.lastTime = performance.now();
             this.isPaused = false;
             this.loop(this.lastTime);
@@ -661,6 +662,13 @@
 
         destroy() {
             window.GraveGainGame.scene.remove(this.group3d);
+            this.group3d.traverse((child) => {
+                if (child.geometry) child.geometry.dispose();
+                if (child.material) {
+                    if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+                    else child.material.dispose();
+                }
+            });
         }
     }
 
@@ -695,6 +703,10 @@
         }
         destroy() {
             window.GraveGainGame.scene.remove(this.group3d);
+            if (this.sprite3d.material) {
+                if (this.sprite3d.material.map) this.sprite3d.material.map.dispose();
+                this.sprite3d.material.dispose();
+            }
         }
     }
 
@@ -749,11 +761,10 @@
             this.chunks = [];
         }
         spawnBlood(x, z, hexColor = 0xef4444) {
-            const geo = new THREE.BoxGeometry(2.5, 2.5, 2.5);
             const mat = new THREE.MeshBasicMaterial({ color: hexColor });
 
             for (let i = 0; i < 8; i++) {
-                const mesh = new THREE.Mesh(geo, mat);
+                const mesh = new THREE.Mesh(new THREE.BoxGeometry(2.5, 2.5, 2.5), mat);
                 mesh.position.set(x + (Math.random() * 8 - 4), 16 + Math.random() * 8, z + (Math.random() * 8 - 4));
                 this.scene.add(mesh);
                 this.chunks.push({
@@ -766,11 +777,10 @@
             }
         }
         spawnSparks(x, z, hexColor = 0xffcc4c, count = 10) {
-            const geo = new THREE.BoxGeometry(1.5, 1.5, 1.5);
             const mat = new THREE.MeshBasicMaterial({ color: hexColor });
 
             for (let i = 0; i < count; i++) {
-                const mesh = new THREE.Mesh(geo, mat);
+                const mesh = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.5, 1.5), mat);
                 mesh.position.set(x, 14, z);
                 this.scene.add(mesh);
                 this.chunks.push({
@@ -797,11 +807,17 @@
                 }
             });
             const dead = this.chunks.filter(c => c.life <= 0);
-            dead.forEach(c => this.scene.remove(c.mesh));
+            dead.forEach(c => {
+                this.scene.remove(c.mesh);
+                if (c.mesh.geometry) c.mesh.geometry.dispose();
+            });
             this.chunks = this.chunks.filter(c => c.life > 0);
         }
         clear() {
-            this.chunks.forEach(c => this.scene.remove(c.mesh));
+            this.chunks.forEach(c => {
+                this.scene.remove(c.mesh);
+                if (c.mesh.geometry) c.mesh.geometry.dispose();
+            });
             this.chunks = [];
         }
     }
@@ -875,7 +891,13 @@
                 uusd: state.uusd,
                 quartersLevel: state.quartersLevel,
                 prestige: state.prestige,
-                botanyCrops: state.botanyCrops
+                botanyCrops: state.botanyCrops,
+                playerRace: state.player ? state.player.race : null,
+                playerClass: state.player ? state.player.classType : null,
+                playerHp: state.player ? state.player.hp : null,
+                playerXp: state.player ? state.player.xp : null,
+                playerLevel: state.player ? state.player.level : null,
+                floorIndex: state.floorIndex
             }));
         }
         static load() {
@@ -996,6 +1018,12 @@
                 this.quartersLevel = saved.quartersLevel || 1;
                 this.prestige = saved.prestige || 0;
                 if (saved.botanyCrops) this.botanyCrops = saved.botanyCrops;
+                if (saved.playerRace) this.savedPlayerRace = saved.playerRace;
+                if (saved.playerClass) this.savedPlayerClass = saved.playerClass;
+                if (saved.playerHp !== undefined) this.savedPlayerHp = saved.playerHp;
+                if (saved.playerXp !== undefined) this.savedPlayerXp = saved.playerXp;
+                if (saved.playerLevel !== undefined) this.savedPlayerLevel = saved.playerLevel;
+                if (saved.floorIndex) this.savedFloorIndex = saved.floorIndex;
             }
             this.updateHubQuartersUI();
         }
@@ -1354,13 +1382,27 @@
         // ==========================================
         initRun(race, classType) {
             this.player = new PlayerEntity(race, classType);
-            this.floorIndex = 1;
+            if (this.savedPlayerRace === race && this.savedPlayerClass === classType) {
+                this.player.hp = Math.min(this.player.maxHp, this.savedPlayerHp || this.player.maxHp);
+                this.player.xp = this.savedPlayerXp || 0;
+                this.player.level = this.savedPlayerLevel || 1;
+                this.floorIndex = this.savedFloorIndex || 1;
+            } else {
+                this.floorIndex = 1;
+            }
             this.buildDungeonLayer();
             this.loop.start();
         }
 
         clearScene() {
-            this.mapMeshes.forEach(m => this.scene.remove(m));
+            this.mapMeshes.forEach(m => {
+                this.scene.remove(m);
+                if (m.geometry) m.geometry.dispose();
+                if (m.material) {
+                    if (Array.isArray(m.material)) m.material.forEach(mat => mat.dispose());
+                    else m.material.dispose();
+                }
+            });
             this.mapMeshes = [];
             this.enemies.forEach(e => e.destroy());
             this.enemies = [];
@@ -1698,10 +1740,9 @@
                 this.input.mouse.click = false;
             }
 
-            if (this.input.keys['KeyF'] || this.input.keys['ShiftLeft']) {
+            if (this.input.keys['KeyF']) {
                 this.player.triggerAbility();
                 this.input.keys['KeyF'] = false;
-                this.input.keys['ShiftLeft'] = false;
             }
 
             this.updateHUD();

@@ -878,6 +878,20 @@
     <!-- Filter JS -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const grid = document.getElementById('gamesGrid');
+            const cardsArray = Array.from(grid.querySelectorAll('.game-card'));
+            
+            // Shuffle cards randomly on every load
+            for (let i = cardsArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                const temp = cardsArray[i];
+                cardsArray[i] = cardsArray[j];
+                cardsArray[j] = temp;
+            }
+            
+            // Re-append cards in shuffled order
+            cardsArray.forEach(card => grid.appendChild(card));
+
             const compatFilter = document.getElementById('filter-compat');
             const statusFilter = document.getElementById('filter-status');
             const visibilityFilter = document.getElementById('filter-visibility');

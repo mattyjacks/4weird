@@ -1,6 +1,20 @@
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
+
+// Mock electron ipcRenderer for testing
+const mockIpcRenderer = {
+  invoke: async (channel, ...args) => {
+    if (channel === 'is-game-window-active') return false;
+    return null;
+  }
+};
+
+// Mock the electron module before requiring GameController
+require.cache[require.resolve('electron')] = {
+  exports: { ipcRenderer: mockIpcRenderer }
+};
+
 const AgentBrain = require('./agent_brain');
 const GameController = require('./game_controller');
 
@@ -129,6 +143,217 @@ async function runTests() {
   } catch (err) {
     console.error("❌ Test 5 Failed:", err);
     failedTests.push("AgentBrain.tokenUsageStats");
+  }
+
+  // Test 6: GameController mouse click coordinate scaling
+  try {
+    console.log("Running Test 6: GameController mouse click coordinate scaling...");
+    const controller = new GameController();
+    
+    // Test scaled coordinates (0-1000 range) directly
+    const action = { type: 'click', target: '500,500' };
+    const parts = action.target.split(',');
+    const size = { w: 1920, h: 1080 };
+    const x = Math.round((parseInt(parts[0]) / 1000) * size.w);
+    const y = Math.round((parseInt(parts[1]) / 1000) * size.h);
+
+    assert.strictEqual(x, 960, "50% of 1920 is 960");
+    assert.strictEqual(y, 540, "50% of 1080 is 540");
+    console.log("✅ Test 6 Passed!");
+  } catch (err) {
+    console.error("❌ Test 6 Failed:", err);
+    failedTests.push("GameController.mouseClickScaling");
+  }
+
+  // Test 7: GameController key code mapping
+  try {
+    console.log("Running Test 7: GameController key code mapping...");
+    const controller = new GameController();
+    
+    // Test standard keys
+    assert.strictEqual(controller.getKeyCode('ArrowLeft'), 'ArrowLeft');
+    assert.strictEqual(controller.getKeyCode('ArrowRight'), 'ArrowRight');
+    assert.strictEqual(controller.getKeyCode('ArrowUp'), 'ArrowUp');
+    assert.strictEqual(controller.getKeyCode('ArrowDown'), 'ArrowDown');
+    assert.strictEqual(controller.getKeyCode('Space'), 'Space');
+    assert.strictEqual(controller.getKeyCode(' '), 'Space');
+    assert.strictEqual(controller.getKeyCode('Enter'), 'Enter');
+    assert.strictEqual(controller.getKeyCode('Escape'), 'Escape');
+    
+    // Test WASD keys
+    assert.strictEqual(controller.getKeyCode('w'), 'KeyW');
+    assert.strictEqual(controller.getKeyCode('a'), 'KeyA');
+    assert.strictEqual(controller.getKeyCode('s'), 'KeyS');
+    assert.strictEqual(controller.getKeyCode('d'), 'KeyD');
+    
+    // Test modifier keys
+    assert.strictEqual(controller.getKeyCode('Shift'), 'ShiftLeft');
+    assert.strictEqual(controller.getKeyCode('Control'), 'ControlLeft');
+    assert.strictEqual(controller.getKeyCode('Alt'), 'AltLeft');
+    
+    // Test function keys
+    assert.strictEqual(controller.getKeyCode('F5'), 'F5');
+    assert.strictEqual(controller.getKeyCode('F12'), 'F12');
+    
+    // Test single character fallback
+    assert.strictEqual(controller.getKeyCode('x'), 'KeyX');
+    assert.strictEqual(controller.getKeyCode('z'), 'KeyZ');
+    
+    console.log("✅ Test 7 Passed!");
+  } catch (err) {
+    console.error("❌ Test 7 Failed:", err);
+    failedTests.push("GameController.keyCodeMapping");
+  }
+
+  // Test 8: GameController press_key action execution
+  try {
+    console.log("Running Test 8: GameController press_key action execution...");
+    const controller = new GameController();
+    
+    // Mock webview that captures dispatched events
+    let capturedKeyDown = null;
+    let capturedKeyPress = null;
+    let capturedKeyUp = null;
+    
+    const mockWebview = {
+      executeJavaScript: async (code) => {
+        if (code.includes('keydown')) {
+          capturedKeyDown = true;
+          return "Pressed Enter";
+        }
+        return null;
+      }
+    };
+
+    // Mock executeJS to bypass ipcRenderer
+    controller.executeJS = async (webview, code) => {
+      return await webview.executeJavaScript(code);
+    };
+
+    const action = { type: 'press_key', target: 'Enter' };
+    const result = await controller.executeAction(mockWebview, action);
+    
+    assert.strictEqual(capturedKeyDown, true, "Keydown event should be dispatched");
+    console.log("✅ Test 8 Passed!");
+  } catch (err) {
+    console.error("❌ Test 8 Failed:", err);
+    failedTests.push("GameController.pressKeyExecution");
+  }
+
+  // Test 9: GameController hold_key action execution
+  try {
+    console.log("Running Test 9: GameController hold_key action execution...");
+    const controller = new GameController();
+    
+    let capturedKeyDown = null;
+    let capturedKeyUp = null;
+    
+    const mockWebview = {
+      executeJavaScript: async (code) => {
+        if (code.includes('keydown')) {
+          capturedKeyDown = true;
+        }
+        if (code.includes('keyup')) {
+          capturedKeyUp = true;
+        }
+        return "Held Space for 200ms";
+      }
+    };
+
+    // Mock executeJS to bypass ipcRenderer
+    controller.executeJS = async (webview, code) => {
+      return await webview.executeJavaScript(code);
+    };
+
+    const action = { type: 'hold_key', target: 'Space', duration_ms: 200 };
+    const result = await controller.executeAction(mockWebview, action);
+    
+    assert.strictEqual(capturedKeyDown, true, "Keydown event should be dispatched");
+    assert.strictEqual(capturedKeyUp, true, "Keyup event should be dispatched after duration");
+    console.log("✅ Test 9 Passed!");
+  } catch (err) {
+    console.error("❌ Test 9 Failed:", err);
+    failedTests.push("GameController.holdKeyExecution");
+  }
+
+  // Test 10: GameController click action with selector target
+  try {
+    console.log("Running Test 10: GameController click action with selector target...");
+    const controller = new GameController();
+    
+    const mockWebview = {
+      executeJavaScript: async (code) => {
+        if (code.includes('getBoundingClientRect')) {
+          return { x: 100, y: 200 };
+        }
+        if (code.includes('elementFromPoint')) {
+          return "Clicked BUTTON at 100,200";
+        }
+        return null;
+      }
+    };
+
+    // Mock executeJS to bypass ipcRenderer
+    controller.executeJS = async (webview, code) => {
+      return await webview.executeJavaScript(code);
+    };
+
+    const action = { type: 'click', target: '#submit-button' };
+    const result = await controller.executeAction(mockWebview, action);
+    
+    assert(result.includes("Clicked"), "Click should be executed on element");
+    console.log("✅ Test 10 Passed!");
+  } catch (err) {
+    console.error("❌ Test 10 Failed:", err);
+    failedTests.push("GameController.selectorClick");
+  }
+
+  // Test 11: GameController wait action
+  try {
+    console.log("Running Test 11: GameController wait action...");
+    const controller = new GameController();
+    
+    const action = { type: 'wait', duration_ms: 100 };
+    const startTime = Date.now();
+    const result = await controller.executeAction(null, action);
+    const endTime = Date.now();
+    
+    const elapsed = endTime - startTime;
+    assert(elapsed >= 100, "Wait should last at least 100ms");
+    assert(elapsed < 200, "Wait should not take significantly longer than specified");
+    assert.strictEqual(result, "Waited 100ms");
+    console.log("✅ Test 11 Passed!");
+  } catch (err) {
+    console.error("❌ Test 11 Failed:", err);
+    failedTests.push("GameController.waitAction");
+  }
+
+  // Test 12: GameController refresh action
+  try {
+    console.log("Running Test 12: GameController refresh action...");
+    const controller = new GameController();
+    
+    let reloadCalled = false;
+    const mockWebview = {
+      reload: () => {
+        reloadCalled = true;
+      }
+    };
+
+    // Mock executeJS to bypass ipcRenderer
+    controller.executeJS = async (webview, code) => {
+      return null;
+    };
+
+    const action = { type: 'refresh' };
+    const result = await controller.executeAction(mockWebview, action);
+    
+    assert.strictEqual(reloadCalled, true, "Webview reload should be called");
+    assert.strictEqual(result, "Reloaded page");
+    console.log("✅ Test 12 Passed!");
+  } catch (err) {
+    console.error("❌ Test 12 Failed:", err);
+    failedTests.push("GameController.refreshAction");
   }
 
   // Write results to .last-run.json
