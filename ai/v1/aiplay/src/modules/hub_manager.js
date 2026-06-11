@@ -142,6 +142,20 @@ function pitchGame() {
    - Mouse/Pointer: Raycasting to click/select objects in 3D projection space.`;
   }
 
+  const creativeHooks = [
+    "The camera slowly rotates 360 degrees as score increases, turning the screen upside down at key thresholds.",
+    "Every hazard avoided plays a high-quality chiptune musical note, transforming gameplay into a procedural song generator.",
+    "The viewport renders inside a simulated flickering CRT cabinet screen that wiggles and glitched-flips when collisions are near.",
+    "Each gathered collectible dynamically swaps the entire game's color scheme to a completely different retro palette preset.",
+    "A ghost trail copy of the player replicates actions from exactly 60 frames ago, acting as a dynamic obstacle the player must avoid.",
+    "Collecting specialized items spawns helper mini-drones that orbit the avatar and shoot tiny laser beam particles.",
+    "A slow-motion matrix-style bullet time effect triggers automatically for 2 seconds whenever a hazard gets too close.",
+    "The gravity vector pulls dynamically towards the mouse cursor position, making steering feel like high-velocity space sailing.",
+    "Hazards split into two smaller, faster child obstacles when they bounce off screen boundaries.",
+    "Quantum superposition logic randomly swaps the visual model states of hazards and collectibles when key controls are pressed."
+  ];
+  const viralHook = creativeHooks[Math.floor(Math.random() * creativeHooks.length)];
+
   const fileContent = `================================================================================
 GAME SPECIFICATION DRAFT: ${name}
 ================================================================================
@@ -202,6 +216,11 @@ To verify that "${name}" is fully balanced and free of logic deadlocks:
 4. AGENT BRAID ACTION FLOW GRAPHIC
 --------------------------------------------------------------------------------
 ${braid}
+
+--------------------------------------------------------------------------------
+5. VIRAL HOOK & CREATIVE ANOMALY
+--------------------------------------------------------------------------------
+- ${viralHook}
 
 ================================================================================
 `;

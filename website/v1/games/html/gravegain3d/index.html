@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>GraveGain2D - 4weird Games</title>
-    <meta name="description" content="A premium 2D dark fantasy RPG action rogue-like featuring procedural levels, dynamic lighting, combat systems, starship management hub, and botany station.">
+    <title>GraveGain3D - 4weird Games</title>
+    <meta name="description" content="A premium 3D dark fantasy RPG action rogue-like featuring procedural levels, dynamic 3D lighting, combat systems, starship management hub, and botany station.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../../styles.css">
     <link rel="stylesheet" href="game.css">
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body class="TEMPLATE-4weird-game-page">
     <canvas id="TEMPLATE-4weird-starfield"></canvas>
@@ -60,11 +62,12 @@
                 </div>
             </div>
 
-            <!-- Double Canvas Viewport -->
+            <!-- Canvas Viewport -->
             <div class="canvas-container" id="canvasContainer">
                 <button class="TEMPLATE-4weird-fullscreen-btn" id="gravegain-fullscreen-btn" title="Toggle Fullscreen" style="position: absolute; top: 15px; right: 15px; z-index: 100; background: rgba(10, 10, 15, 0.75); border: 1px solid var(--grave-border); color: var(--grave-text); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: 'Orbitron'; font-size: 0.8rem; transition: all 0.2s ease;">📺 Fullscreen</button>
                 <canvas id="gameCanvas" width="1000" height="600"></canvas>
-                <canvas id="lightingCanvas" width="1000" height="600"></canvas>
+                <div id="hudCrosshair" class="hud-crosshair"></div>
+
 
                 <!-- Mobile controls overlays -->
                 <div class="mobile-joystick-container" id="mobileJoystick">
@@ -84,8 +87,8 @@
         <!-- 1. MAIN MENU SCREEN -->
         <div class="screen-overlay" id="mainMenuScreen">
             <div class="menu-content glass-panel">
-                <h1 class="menu-title">GRAVEGAIN2D</h1>
-                <p class="menu-subtitle">Dark Fantasy Action RPG</p>
+                <h1 class="menu-title">GRAVEGAIN3D</h1>
+                <p class="menu-subtitle">Dark Fantasy Action RPG in 3D</p>
 
                 <!-- Daily Challenges Panel -->
                 <div class="daily-challenges-container">
@@ -238,15 +241,15 @@
                     </div>
 
                     <div>
-                        <label style="display:block; font-size:0.85rem; margin-bottom:5px;">Auto-Pickup Range (Pixels)</label>
-                        <input type="range" id="settingsPickupRange" min="30" max="250" value="100" style="width:100%;">
+                        <label style="display:block; font-size:0.85rem; margin-bottom:5px;">Auto-Pickup Range (Units)</label>
+                        <input type="range" id="settingsPickupRange" min="2" max="10" step="0.5" value="4" style="width:100%;">
                     </div>
 
                     <div>
                         <label style="display:block; font-size:0.85rem; margin-bottom:5px;">Aesthetics Configuration</label>
                         <div style="display:flex; gap:15px; font-size:0.85rem;">
                             <label><input type="checkbox" id="settingsCameraShake" checked> Camera Shake</label>
-                            <label><input type="checkbox" id="settingsCameraLead" checked> Camera Lead</label>
+                            <label><input type="checkbox" id="settingsCameraLead" checked> Camera Orbit Follow</label>
                             <label><input type="checkbox" id="settingsCameraPunch" checked> Camera Punch</label>
                         </div>
                     </div>

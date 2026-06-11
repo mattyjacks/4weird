@@ -402,3 +402,40 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ===== FULLSCREEN MODE ===== */
+.TEMPLATE-4weird-fullscreen-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 100;
+    background: rgba(10, 10, 15, 0.75);
+    border: 1px solid rgba(139, 92, 246, 0.5);
+    color: var(--neon-purple-light);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+}
+
+.TEMPLATE-4weird-fullscreen-btn:hover {
+    background: rgba(139, 92, 246, 0.2);
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
+    border-color: var(--neon-purple-light);
+    color: #fff;
+}
+
+.TEMPLATE-4weird-game-frame:fullscreen {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    border: none;
+}
+
+.TEMPLATE-4weird-game-frame:fullscreen #TEMPLATE-4weird-gameCanvas,
+.TEMPLATE-4weird-game-frame:fullscreen .TEMPLATE-4weird-gameCanvas {
+    width: 100%;
+    height: 100%;
+}

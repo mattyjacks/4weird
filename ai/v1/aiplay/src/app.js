@@ -90,6 +90,7 @@ function queryElements() {
   el.webviewPlaceholder = document.getElementById('webview-placeholder');
   el.btnWebviewReload = document.getElementById('btn-webview-reload');
   el.btnWebviewDevtools = document.getElementById('btn-webview-devtools');
+  el.btnOpenGameWindow = document.getElementById('btn-open-game-window');
   el.btnManualShot = document.getElementById('btn-manual-shot');
   el.btnSimulateHeuristic = document.getElementById('btn-simulate-heuristic');
   el.logStream = document.getElementById('log-stream');
@@ -198,6 +199,9 @@ document.addEventListener('DOMContentLoaded', () => {
   el.btnToggleAgent.addEventListener('click', toggleAgentState);
   el.btnWebviewReload.addEventListener('click', reloadGame);
   el.btnWebviewDevtools.addEventListener('click', openGameDevTools);
+  if (el.btnOpenGameWindow) {
+    el.btnOpenGameWindow.addEventListener('click', openExternalGameWindow);
+  }
   el.btnManualShot.addEventListener('click', takeManualSnapshot);
   el.btnSimulateHeuristic.addEventListener('click', forceHeuristicStep);
   el.btnClearLogs.addEventListener('click', clearLogView);
@@ -366,6 +370,26 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (command === 'reload') {
       reloadGame();
     }
+  });
+
+  ipcRenderer.on('webview-console', (event, { level, message }) => {
+    let type = 'agent';
+    if (level === 2) type = 'warning';
+    if (level === 3) type = 'error';
+    if (level === 3 || message.includes('4weird')) {
+      logSystemMessage(`[Game Window Console] ${message}`, type);
+    }
+  });
+
+  ipcRenderer.on('webview-loaded', () => {
+    logSystemMessage("External Game window successfully loaded.");
+    crawlFiles();
+  });
+
+  ipcRenderer.on('webview-closed', () => {
+    logSystemMessage("External Game window closed. Restoring internal preview.");
+    document.getElementById('gamewindow-active-placeholder').classList.add('hidden');
+    document.getElementById('game-webview').classList.remove('hidden');
   });
   
   // Set up the Hub bindings
@@ -766,6 +790,23 @@ function openGameDevTools() {
   audio.playClickSound();
   webviewElement.openDevTools();
   logSystemMessage("Game DevTools open requested.");
+}
+
+async function openExternalGameWindow() {
+  audio.playClickSound();
+  const url = el.gameUrlInput.value.trim();
+  if (!url) {
+    toastNotifier.show("Load a game URL first.", "warning");
+    return;
+  }
+  logSystemMessage(`Opening external preview window for URL: ${url}`);
+  
+  // Show placeholder, hide webview
+  document.getElementById('gamewindow-active-placeholder').classList.remove('hidden');
+  document.getElementById('game-webview').classList.add('hidden');
+  
+  // Call main process to open window
+  await ipcRenderer.invoke('open-game-window', url);
 }
 
 async function takeManualSnapshot() {

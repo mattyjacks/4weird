@@ -338,6 +338,121 @@
             .logo { font-size: 1.2rem; }
             .games-main { padding: 30px 15px; }
         }
+
+        /* Filter Container */
+        .filter-container {
+            background: rgba(26, 26, 36, 0.5);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+        }
+
+        .filter-select {
+            background: rgba(10, 10, 15, 0.8);
+            color: var(--text-primary);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            font-family: var(--font-body);
+            outline: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%238b5cf6'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        .filter-select:focus {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
+        }
+
+        .filter-stats {
+            width: 100%;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 10px;
+        }
+
+        .filter-stats span {
+            color: var(--neon-cyan);
+            font-weight: 600;
+        }
+
+        /* Card Badges and Info styling */
+        .game-badges {
+            display: flex;
+            gap: 6px;
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            z-index: 3;
+        }
+        .badge-compat {
+            background: rgba(10, 10, 15, 0.85);
+            color: var(--neon-cyan);
+            border: 1px solid rgba(6, 182, 212, 0.4);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .badge-status {
+            background: rgba(10, 10, 15, 0.85);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .badge-status.polished {
+            color: var(--neon-green);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+        .badge-status.rough {
+            color: #f59e0b;
+            border-color: rgba(245, 158, 11, 0.4);
+        }
+        .badge-status.prototype {
+            color: var(--neon-purple-light);
+            border-color: rgba(167, 139, 250, 0.4);
+        }
+        .badge-status.broken {
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -362,17 +477,56 @@
         <h1 class="page-title">All Games</h1>
         <p class="page-subtitle">Play instantly in your browser — no downloads required</p>
 
-        <div class="games-grid">
+        <!-- Filter Bar -->
+        <div class="filter-container">
+            <div class="filter-group">
+                <label for="filter-compat">Compatibility</label>
+                <select id="filter-compat" class="filter-select">
+                    <option value="all">Any Compatibility</option>
+                    <option value="mobile-desktop">Mobile + Desktop</option>
+                    <option value="mobile-only">Mobile Only</option>
+                    <option value="desktop-only">Desktop Only</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filter-status">Status</label>
+                <select id="filter-status" class="filter-select">
+                    <option value="all">Any Status</option>
+                    <option value="polished">Only Polished</option>
+                    <option value="rough">Only Rough</option>
+                    <option value="prototype">Only Prototype</option>
+                    <option value="broken">Only Broken</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filter-visibility">Visibility</label>
+                <select id="filter-visibility" class="filter-select">
+                    <option value="all">Any Visibility</option>
+                    <option value="featured">Featured</option>
+                    <option value="visible">Visible</option>
+                    <option value="hidden">Hidden</option>
+                </select>
+            </div>
+            <div class="filter-stats">
+                Showing <span id="visible-count">12</span> of <span id="total-count">12</span> games
+            </div>
+        </div>
+
+        <div class="games-grid" id="gamesGrid">
 
             <!-- Server Saver Shield -->
-            <div class="game-card live">
+            <div class="game-card live" data-compatibility="mobile-desktop" data-status="polished" data-visibility="featured">
                 <a class="game-thumbnail" href="/games/html/serversavershield/index.html" aria-label="Play Server Saver Shield">
                     <img src="images/thumb_serversavershield.png" alt="Server Saver Shield game screenshot" onerror="this.style.display='none'">
                     <div class="thumb-bg thumb-serversaver"></div>
                     <div class="thumb-overlay">
                         <div class="play-btn-circle">▶️</div>
                     </div>
-                    <span class="live-badge">Live</span>
+                    <div class="game-badges">
+                        <span class="badge-compat">📱+💻 Mobile &amp; PC</span>
+                        <span class="badge-status polished">✨ Polished</span>
+                    </div>
+                    <span class="featured-badge">Featured</span>
                 </a>
                 <div class="game-info">
                     <h3 class="game-title">🛡️ Server Saver Shield</h3>
@@ -389,13 +543,17 @@
             </div>
 
             <!-- AssassinAnimals -->
-            <div class="game-card live">
+            <div class="game-card live" data-compatibility="desktop-only" data-status="polished" data-visibility="featured">
                 <a class="game-thumbnail" href="/games/html/assassinanimals/index.html" aria-label="Play AssassinAnimals">
                     <div class="thumb-bg" style="background: linear-gradient(135deg, #09090e 0%, #1e112a 50%, #ff0055 100%); display: flex; align-items: center; justify-content: center; font-size: 4.5rem;">🐱🦎💀</div>
                     <div class="thumb-overlay">
                         <div class="play-btn-circle">▶️</div>
                     </div>
-                    <span class="live-badge">Live</span>
+                    <div class="game-badges">
+                        <span class="badge-compat">💻 Desktop Only</span>
+                        <span class="badge-status polished">✨ Polished</span>
+                    </div>
+                    <span class="featured-badge">Featured</span>
                 </a>
                 <div class="game-info">
                     <h3 class="game-title">🕶️ AssassinAnimals</h3>
@@ -412,13 +570,17 @@
             </div>
 
             <!-- Battlesharks 2 -->
-            <div class="game-card live">
+            <div class="game-card live" data-compatibility="desktop-only" data-status="polished" data-visibility="featured">
                 <a class="game-thumbnail" href="/games/html/battlesharks2/index.html" aria-label="Play Battlesharks 2">
                     <div class="thumb-bg" style="background: linear-gradient(135deg, #0b1a30 0%, #1e1b4b 50%, #00f2fe 100%); display: flex; align-items: center; justify-content: center; font-size: 4.5rem;">🦈</div>
                     <div class="thumb-overlay">
                         <div class="play-btn-circle">▶️</div>
                     </div>
-                    <span class="live-badge">Live</span>
+                    <div class="game-badges">
+                        <span class="badge-compat">💻 Desktop Only</span>
+                        <span class="badge-status polished">✨ Polished</span>
+                    </div>
+                    <span class="featured-badge">Featured</span>
                 </a>
                 <div class="game-info">
                     <h3 class="game-title">🦈 Battlesharks 2</h3>
@@ -435,13 +597,17 @@
             </div>
 
             <!-- GraveGain2D -->
-            <div class="game-card live">
+            <div class="game-card live" data-compatibility="desktop-only" data-status="polished" data-visibility="featured">
                 <a class="game-thumbnail" href="/games/html/gravegain2d/index.html" aria-label="Play GraveGain2D">
                     <div class="thumb-bg" style="background: linear-gradient(135deg, #180512 0%, #300a1c 50%, #902850 100%); display: flex; align-items: center; justify-content: center; font-size: 4.5rem;">👩‍🚀🧝‍♀️👹</div>
                     <div class="thumb-overlay">
                         <div class="play-btn-circle">▶️</div>
                     </div>
-                    <span class="live-badge">Live</span>
+                    <div class="game-badges">
+                        <span class="badge-compat">💻 Desktop Only</span>
+                        <span class="badge-status polished">✨ Polished</span>
+                    </div>
+                    <span class="featured-badge">Featured</span>
                 </a>
                 <div class="game-info">
                     <h3 class="game-title">⚔️ GraveGain2D</h3>
@@ -458,14 +624,17 @@
             </div>
 
             <!-- Demo Lich Dom -->
-            <div class="game-card live">
+            <div class="game-card live" data-compatibility="desktop-only" data-status="rough" data-visibility="visible">
                 <a class="game-thumbnail" href="/games/html/demolichdom/index.html" aria-label="Play Demo Lichdom">
                     <img src="images/thumb_demolichdom.png" alt="Demo Lichdom game screenshot" onerror="this.style.display='none'">
                     <div class="thumb-bg thumb-demolich"></div>
                     <div class="thumb-overlay">
                         <div class="play-btn-circle">▶️</div>
                     </div>
-                    <span class="live-badge">Live</span>
+                    <div class="game-badges">
+                        <span class="badge-compat">💻 Desktop Only</span>
+                        <span class="badge-status rough">⚡ Rough</span>
+                    </div>
                 </a>
                 <div class="game-info">
                     <h3 class="game-title">💀 Demo Lichdom</h3>
@@ -482,14 +651,17 @@
             </div>
 
             <!-- Fridge Simulator -->
-            <div class="game-card live">
+            <div class="game-card live" data-compatibility="desktop-only" data-status="rough" data-visibility="visible">
                 <a class="game-thumbnail" href="/games/html/fridgesimulator/index.html" aria-label="Play Fridge Simulator">
                     <img src="images/thumb_fridgesimulator.png" alt="Fridge Simulator game screenshot" onerror="this.style.display='none'">
                     <div class="thumb-bg thumb-fridge"></div>
                     <div class="thumb-overlay">
                         <div class="play-btn-circle">▶️</div>
                     </div>
-                    <span class="live-badge">Live</span>
+                    <div class="game-badges">
+                        <span class="badge-compat">💻 Desktop Only</span>
+                        <span class="badge-status rough">⚡ Rough</span>
+                    </div>
                 </a>
                 <div class="game-info">
                     <h3 class="game-title">🥶 Fridge Simulator</h3>
@@ -506,14 +678,17 @@
             </div>
 
             <!-- Discover America -->
-            <div class="game-card live">
+            <div class="game-card live" data-compatibility="mobile-desktop" data-status="rough" data-visibility="visible">
                 <a class="game-thumbnail" href="/games/html/DiscoverAmerica/index.html" aria-label="Play Madi AI: Discover America">
                     <img src="images/thumb_discoveramerica.png" alt="Discover America game screenshot" onerror="this.style.display='none'">
                     <div class="thumb-bg thumb-discover"></div>
                     <div class="thumb-overlay">
                         <div class="play-btn-circle">▶️</div>
                     </div>
-                    <span class="live-badge">Live</span>
+                    <div class="game-badges">
+                        <span class="badge-compat">📱+💻 Mobile &amp; PC</span>
+                        <span class="badge-status rough">⚡ Rough</span>
+                    </div>
                 </a>
                 <div class="game-info">
                     <h3 class="game-title">🗽 Madi AI: Discover America</h3>
@@ -530,13 +705,17 @@
             </div>
 
             <!-- Orbital Drift -->
-            <div class="game-card live">
+            <div class="game-card live" data-compatibility="desktop-only" data-status="polished" data-visibility="featured">
                 <a class="game-thumbnail" href="/games/html/orbitaldrift/index.html" aria-label="Play Orbital Drift">
                     <div class="thumb-bg" style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0891b2 100%); display: flex; align-items: center; justify-content: center;">🛸</div>
                     <div class="thumb-overlay">
                         <div class="play-btn-circle">▶️</div>
                     </div>
-                    <span class="live-badge">Live</span>
+                    <div class="game-badges">
+                        <span class="badge-compat">💻 Desktop Only</span>
+                        <span class="badge-status polished">✨ Polished</span>
+                    </div>
+                    <span class="featured-badge">Featured</span>
                 </a>
                 <div class="game-info">
                     <h3 class="game-title">🛸 Orbital Drift</h3>
@@ -553,13 +732,17 @@
             </div>
 
             <!-- AI-whack-a-mole -->
-            <div class="game-card live">
+            <div class="game-card live" data-compatibility="desktop-only" data-status="polished" data-visibility="featured">
                 <a class="game-thumbnail" href="/games/html/aiwhackamole/index.html" aria-label="Play AI-whack-a-mole">
                     <div class="thumb-bg" style="background: linear-gradient(135deg, #1e1b4b 0%, #311042 50%, #4c1d95 100%); display: flex; align-items: center; justify-content: center;">🤖</div>
                     <div class="thumb-overlay">
                         <div class="play-btn-circle">▶️</div>
                     </div>
-                    <span class="live-badge">Live</span>
+                    <div class="game-badges">
+                        <span class="badge-compat">💻 Desktop Only</span>
+                        <span class="badge-status polished">✨ Polished</span>
+                    </div>
+                    <span class="featured-badge">Featured</span>
                 </a>
                 <div class="game-info">
                     <h3 class="game-title">🤖 AI-whack-a-mole</h3>
@@ -576,13 +759,17 @@
             </div>
 
             <!-- Sound Painter 2 -->
-            <div class="game-card live">
+            <div class="game-card live" data-compatibility="mobile-desktop" data-status="polished" data-visibility="featured">
                 <a class="game-thumbnail" href="/games/html/soundpainter2/index.html" aria-label="Play Sound Painter 2">
                     <div class="thumb-bg" style="background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 50%, #d946ef 100%); display: flex; align-items: center; justify-content: center; font-size: 4.5rem;">🎹</div>
                     <div class="thumb-overlay">
                         <div class="play-btn-circle">▶️</div>
                     </div>
-                    <span class="live-badge">Live</span>
+                    <div class="game-badges">
+                        <span class="badge-compat">📱+💻 Mobile &amp; PC</span>
+                        <span class="badge-status polished">✨ Polished</span>
+                    </div>
+                    <span class="featured-badge">Featured</span>
                 </a>
                 <div class="game-info">
                     <h3 class="game-title">🎹 Sound Painter 2</h3>
@@ -599,13 +786,17 @@
             </div>
 
             <!-- Sound Painter -->
-            <div class="game-card live">
+            <div class="game-card live" data-compatibility="mobile-desktop" data-status="polished" data-visibility="featured">
                 <a class="game-thumbnail" href="/games/html/soundpainter/index.html" aria-label="Play Sound Painter">
                     <div class="thumb-bg" style="background: linear-gradient(135deg, #2d1b4e 0%, #6b21a8 50%, #d946ef 100%); display: flex; align-items: center; justify-content: center; font-size: 4.5rem;">🎨</div>
                     <div class="thumb-overlay">
                         <div class="play-btn-circle">▶️</div>
                     </div>
-                    <span class="live-badge">Live</span>
+                    <div class="game-badges">
+                        <span class="badge-compat">📱+💻 Mobile &amp; PC</span>
+                        <span class="badge-status polished">✨ Polished</span>
+                    </div>
+                    <span class="featured-badge">Featured</span>
                 </a>
                 <div class="game-info">
                     <h3 class="game-title">🎨 Sound Painter</h3>
@@ -622,12 +813,16 @@
             </div>
 
             <!-- Template Demo -->
-            <div class="game-card">
+            <div class="game-card" data-compatibility="mobile-desktop" data-status="prototype" data-visibility="visible">
                 <a class="game-thumbnail" href="/games/html/template-demo/index.html" aria-label="View Template Demo">
                     <img src="images/thumb_templatedemo.png" alt="Template Demo screenshot" onerror="this.style.display='none'">
                     <div class="thumb-bg thumb-template"></div>
                     <div class="thumb-overlay">
                         <div class="play-btn-circle">▶️</div>
+                    </div>
+                    <div class="game-badges">
+                        <span class="badge-compat">📱+💻 Mobile &amp; PC</span>
+                        <span class="badge-status prototype">🧪 Prototype</span>
                     </div>
                 </a>
                 <div class="game-info">
@@ -654,5 +849,75 @@
         </p>
         <p style="margin-top: 10px;">Made with 💜 in New Hampshire</p>
     </footer>
+
+    <!-- Filter JS -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const compatFilter = document.getElementById('filter-compat');
+            const statusFilter = document.getElementById('filter-status');
+            const visibilityFilter = document.getElementById('filter-visibility');
+            const visibleCountEl = document.getElementById('visible-count');
+            const totalCountEl = document.getElementById('total-count');
+            const cards = document.querySelectorAll('.game-card');
+
+            totalCountEl.textContent = cards.length;
+
+            function applyFilters() {
+                const compatValue = compatFilter.value;
+                const statusValue = statusFilter.value;
+                const visibilityValue = visibilityFilter.value;
+
+                let visibleCount = 0;
+
+                cards.forEach(card => {
+                    const cardCompat = card.getAttribute('data-compatibility');
+                    const cardStatus = card.getAttribute('data-status');
+                    const cardVisibility = card.getAttribute('data-visibility');
+
+                    let compatMatch = compatValue === 'all' || cardCompat === compatValue;
+                    
+                    let statusMatch = false;
+                    if (statusValue === 'all') {
+                        statusMatch = true;
+                    } else if (statusValue === 'polished') {
+                        statusMatch = cardStatus === 'polished';
+                    } else if (statusValue === 'rough') {
+                        statusMatch = cardStatus === 'rough';
+                    } else if (statusValue === 'prototype') {
+                        statusMatch = cardStatus === 'prototype';
+                    } else if (statusValue === 'broken') {
+                        statusMatch = cardStatus === 'broken';
+                    }
+                    
+                    let visibilityMatch = false;
+                    if (visibilityValue === 'all') {
+                        visibilityMatch = true;
+                    } else if (visibilityValue === 'featured') {
+                        visibilityMatch = cardVisibility === 'featured';
+                    } else if (visibilityValue === 'visible') {
+                        visibilityMatch = cardVisibility === 'visible' || cardVisibility === 'featured';
+                    } else if (visibilityValue === 'hidden') {
+                        visibilityMatch = cardVisibility === 'hidden';
+                    }
+
+                    if (compatMatch && statusMatch && visibilityMatch) {
+                        card.style.display = '';
+                        visibleCount++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                visibleCountEl.textContent = visibleCount;
+            }
+
+            compatFilter.addEventListener('change', applyFilters);
+            statusFilter.addEventListener('change', applyFilters);
+            visibilityFilter.addEventListener('change', applyFilters);
+
+            // Run initial check
+            applyFilters();
+        });
+    </script>
 </body>
 </html>

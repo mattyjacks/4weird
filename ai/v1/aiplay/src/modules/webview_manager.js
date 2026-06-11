@@ -35,7 +35,7 @@ function loadGameUrl(gameUrlInput, webviewElement, webviewPlaceholder, saveSetti
 
 function populateDemoGames(demoGameSelect) {
   try {
-    const localGamesDir = path.join(__dirname, '..', '..', '..', '..', 'website', 'v1', 'games', 'html');
+    const localGamesDir = path.join(__dirname, '..', '..', '..', '..', '..', 'website', 'v1', 'games', 'html');
     if (fs.existsSync(localGamesDir)) {
       const items = fs.readdirSync(localGamesDir);
       for (const item of items) {
@@ -90,7 +90,7 @@ async function crawlCodeFiles(gameUrlInput, onCompleteCallback) {
   } else {
     const urlParts = currentUrl.split('/');
     const gameName = urlParts[urlParts.length - 2];
-    const localGamesDir = path.join(__dirname, '..', '..', '..', '..', 'website', 'v1', 'games', 'html', gameName);
+    const localGamesDir = path.join(__dirname, '..', '..', '..', '..', '..', 'website', 'v1', 'games', 'html', gameName);
     if (fs.existsSync(localGamesDir)) {
       localGamePath = localGamesDir;
     }

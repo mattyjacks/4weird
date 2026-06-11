@@ -66,6 +66,7 @@
     <main class="TEMPLATE-4weird-game-main">
         <!-- Game Canvas/Frame -->
         <div class="TEMPLATE-4weird-game-frame">
+            <button class="TEMPLATE-4weird-fullscreen-btn" id="TEMPLATE-4weird-fullscreen-btn" title="Toggle Fullscreen">📺 Fullscreen</button>
             <canvas id="TEMPLATE-4weird-gameCanvas"></canvas>
             
             <!-- Game Overlay States -->
@@ -209,6 +210,21 @@
                     }
                 })
                 .catch(err => console.log('Using template defaults:', err));
+            
+            // Fullscreen toggle logic
+            const fullscreenBtn = document.getElementById('TEMPLATE-4weird-fullscreen-btn');
+            const gameFrame = document.querySelector('.TEMPLATE-4weird-game-frame');
+            if (fullscreenBtn && gameFrame) {
+                fullscreenBtn.addEventListener('click', () => {
+                    if (!document.fullscreenElement) {
+                        gameFrame.requestFullscreen().catch(err => {
+                            console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                        });
+                    } else {
+                        document.exitFullscreen();
+                    }
+                });
+            }
         })();
     </script>
 </body>

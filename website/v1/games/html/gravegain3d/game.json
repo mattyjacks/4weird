@@ -1,0 +1,56 @@
+{
+    "title": "GraveGain3D",
+    "slug": "gravegain3d",
+    "description": "A dark fantasy action RPG featuring emoji-based 3D billboard visuals, immersive real-time lighting, procedural dungeons, a dialogue system, and a starship management hub.",
+    "genre": "RPG",
+    "tags": ["HTML5", "Action", "RPG", "Rogue-like", "Three.js", "3D"],
+    "maker": {
+        "name": "Antigravity Dev",
+        "bio": "Specializing in high-fidelity HTML5 game experiences with immersive systems and rich game-feel.",
+        "url": "https://4weird.com",
+        "urlLabel": "4weird"
+    },
+    "credits": [
+        {
+            "name": "Antigravity",
+            "role": "Lead Architect",
+            "avatar": "🧙",
+            "primary": true,
+            "url": "https://4weird.com",
+            "urlLabel": "4weird"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "WASD / Arrow Keys": "Move (Top-down) or Accelerate/Climb (Platformer)",
+            "Space": "Jump (Platformer) / Interact (Top-down)",
+            "Left-Click": "Melee / Primary Skill (Hold for Charge Attack)",
+            "Right-Click": "Block / Projectile Skill",
+            "Shift": "Active Class Ability / Sprint Lunge",
+            "E": "Enter/Exit Sidescroller Buildings",
+            "Escape / P": "Pause Game"
+        },
+        "touch": true,
+        "mouse": true
+    },
+    "instructions": "Choose your race and class, clear procedurally generated 3D dungeon floors, collect Gold, and buy upgrades. Return to the LuckyStarShip hub to grow offline crops, exchange gold, and repair modules.",
+    "technical": {
+        "canvasSize": {"width": 1000, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [
+            {
+                "url": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+                "description": "Three.js 3D Library"
+            }
+        ],
+        "local": ["game.js", "game.css", "lore.js"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-11",
+        "license": "MIT"
+    }
+}

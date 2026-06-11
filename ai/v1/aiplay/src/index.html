@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Space+Grotesk:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="index.css">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' file: data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' file:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com file:; font-src 'self' https://fonts.gstatic.com file:; connect-src 'self' http://localhost:9999 https://api.openai.com https://generativelanguage.googleapis.com https://openrouter.ai; img-src 'self' file: data:; child-src 'self' file:; webview-src 'self' file: *;">
 </head>
 <body>
   <div class="app-container simple-mode">
@@ -30,6 +31,7 @@
           </button>
           <button id="btn-webview-reload" class="btn btn-secondary">🔄 RELOAD</button>
           <button id="btn-webview-devtools" class="btn btn-secondary">🛠 DEVTOOLS</button>
+          <button id="btn-open-game-window" class="btn btn-secondary" title="Launch game preview in a separate window to the right">🖥️ Separate Window</button>
           <button id="btn-manual-shot" class="btn btn-secondary">📸 SNAPSHOT</button>
           <button id="btn-simulate-heuristic" class="btn btn-warning">🧪 FORCE HEURISTIC</button>
         </div>
