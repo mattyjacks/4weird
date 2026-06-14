@@ -631,12 +631,52 @@
       "completion": 99,
       "total": 9381,
       "runId": "run_1781138806833"
+    },
+    {
+      "timestamp": "2026-06-12T13:06:03.461Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9744,
+      "completion": 99,
+      "total": 9843,
+      "runId": "run_1781269557413"
+    },
+    {
+      "timestamp": "2026-06-12T13:06:03.773Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9744,
+      "completion": 99,
+      "total": 9843,
+      "runId": "run_1781269557413"
+    },
+    {
+      "timestamp": "2026-06-12T13:06:05.777Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9747,
+      "completion": 99,
+      "total": 9846,
+      "runId": "run_1781269557413"
+    },
+    {
+      "timestamp": "2026-06-12T13:06:08.397Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9729,
+      "completion": 99,
+      "total": 9828,
+      "runId": "run_1781269557413"
+    },
+    {
+      "timestamp": "2026-06-12T13:06:09.761Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9727,
+      "completion": 99,
+      "total": 9826,
+      "runId": "run_1781269557413"
     }
   ],
   "lifetimeTotals": {
     "gpt-4o-mini": 98363,
-    "total": 327337,
+    "total": 376523,
     "gpt-5.4-nano-2026-03-17": 18462,
-    "gpt-5.4-mini-2026-03-17": 210512
+    "gpt-5.4-mini-2026-03-17": 259698
   }
 }
