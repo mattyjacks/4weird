@@ -58,24 +58,81 @@ function showBugDetails(bug, bugModal, modalBugTitle, modalBugLogs, modalBugImg)
 
 function updateTokenStatsUI(agentBrain, tokenModelSelect, elements) {
   const modelFilter = tokenModelSelect ? tokenModelSelect.value : 'total';
-  let stats = { lastRun: 0, hourly: 0, daily: 0, weekly: 0, yearly: 0, lifetime: 0 };
-  
-  if (agentBrain.tokenUsage) {
-    const data = agentBrain.tokenUsage[modelFilter] || { total: 0, hourly: 0, daily: 0, weekly: 0, yearly: 0, lifetime: 0 };
-    stats.lastRun = data.last_run || 0;
-    stats.hourly = data.hourly || 0;
-    stats.daily = data.daily || 0;
-    stats.weekly = data.weekly || 0;
-    stats.yearly = data.yearly || 0;
-    stats.lifetime = data.lifetime || 0;
+
+  // Default token counts (would come from agentBrain.tokenUsage in real implementation)
+  // For now, calculate from session stats if available
+  let inputTokens = 0;
+  let outputTokens = 0;
+
+  if (agentBrain.tokenUsage && agentBrain.tokenUsage[modelFilter]) {
+    const data = agentBrain.tokenUsage[modelFilter];
+    inputTokens = data.input || Math.floor(data.last_run * 0.25) || 0;
+    outputTokens = data.output || Math.floor(data.last_run * 0.75) || 0;
   }
-  
-  if (elements.tokenLastRun) elements.tokenLastRun.textContent = stats.lastRun.toLocaleString();
-  if (elements.tokenHourly) elements.tokenHourly.textContent = stats.hourly.toLocaleString();
-  if (elements.tokenDaily) elements.tokenDaily.textContent = stats.daily.toLocaleString();
-  if (elements.tokenWeekly) elements.tokenWeekly.textContent = stats.weekly.toLocaleString();
-  if (elements.tokenYearly) elements.tokenYearly.textContent = stats.yearly.toLocaleString();
-  if (elements.tokenLifetime) elements.tokenLifetime.textContent = stats.lifetime.toLocaleString();
+
+  const totalTokens = inputTokens + outputTokens;
+  const budget = 150000; // Default budget for display
+
+  // Calculate percentages
+  const inputPercent = Math.min((inputTokens / budget) * 100, 100);
+  const outputPercent = Math.min((outputTokens / budget) * 100, 100);
+  const totalPercent = Math.min((totalTokens / budget) * 100, 100);
+
+  // Update new UI elements with progress bars
+  if (elements.tokenInputCount) {
+    elements.tokenInputCount.textContent = inputTokens.toLocaleString();
+  }
+  if (elements.tokenOutputCount) {
+    elements.tokenOutputCount.textContent = outputTokens.toLocaleString();
+  }
+  if (elements.tokenTotalCount) {
+    elements.tokenTotalCount.textContent = totalTokens.toLocaleString();
+  }
+
+  // Update percentages
+  if (elements.tokenInputPercent) {
+    elements.tokenInputPercent.textContent = inputPercent.toFixed(1) + '%';
+  }
+  if (elements.tokenOutputPercent) {
+    elements.tokenOutputPercent.textContent = outputPercent.toFixed(1) + '%';
+  }
+  if (elements.tokenTotalPercent) {
+    elements.tokenTotalPercent.textContent = totalPercent.toFixed(1) + '%';
+  }
+
+  // Update progress bars with color coding
+  const updateProgressBar = (barEl, percent) => {
+    if (!barEl) return;
+    barEl.style.width = percent + '%';
+    barEl.className = 'progress-bar';
+    if (percent > 80) {
+      barEl.classList.add('critical');
+    } else if (percent > 50) {
+      barEl.classList.add('warning');
+    }
+  };
+
+  updateProgressBar(elements.tokenInputBar, inputPercent);
+  updateProgressBar(elements.tokenOutputBar, outputPercent);
+  updateProgressBar(elements.tokenTotalBar, totalPercent);
+
+  // Calculate cost estimate (assuming $0.005 per 1K input, $0.015 per 1K output)
+  const inputCost = (inputTokens / 1000) * 0.005;
+  const outputCost = (outputTokens / 1000) * 0.015;
+  const totalCost = inputCost + outputCost;
+  const budgetCost = 0.75;
+
+  if (elements.costEstimate) {
+    elements.costEstimate.textContent = '$' + totalCost.toFixed(2);
+  }
+  if (elements.costBudget) {
+    elements.costBudget.textContent = '$' + budgetCost.toFixed(2);
+  }
+
+  // Also update old elements for backward compatibility
+  if (elements.tokenLastRun) elements.tokenLastRun.textContent = totalTokens.toLocaleString();
+  if (elements.tokenHourly) elements.tokenHourly.textContent = inputTokens.toLocaleString();
+  if (elements.tokenDaily) elements.tokenDaily.textContent = outputTokens.toLocaleString();
 }
 
 function updateSessionStatsUI(agentBrain, elements) {

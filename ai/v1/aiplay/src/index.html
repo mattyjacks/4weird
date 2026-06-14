@@ -12,60 +12,105 @@
 </head>
 <body>
   <div class="app-container simple-mode">
-    <!-- TOP HEADER: TITLE & CORE CONTROLS -->
-    <header class="main-header glass">
-      <div class="header-left">
+
+    <!-- SLIM TOP TITLE BAR -->
+    <header class="title-bar glass">
+      <div class="title-bar-left">
+        <button id="btn-open-nav" class="btn btn-nav-open" title="Open navigation menu" aria-label="Open Menu">
+          <span class="hamburger-icon">☰</span>
+        </button>
         <div class="logo-area">
           <div class="glow-dot active"></div>
           <h1>4WEIRD AIPLAY</h1>
         </div>
         <span class="subtitle">game runner and fixer</span>
       </div>
-      
-      <div class="header-center">
-        <div class="actions-group">
-          <button id="btn-goto-hub" class="btn btn-secondary" title="Return to Welcome Hub View">🏠 HUB</button>
-          <button id="btn-toggle-view" class="btn btn-secondary" title="Switch between Simple and Advanced layouts">🛠️ Switch to Advanced Layout</button>
-          <button id="btn-toggle-agent" class="btn btn-primary btn-large-top disabled" disabled title="Select a game target and click LOAD first">
-            <span class="icon">▶</span> START AI AGENT
-          </button>
-          <button id="btn-webview-reload" class="btn btn-secondary">🔄 RELOAD</button>
-          <button id="btn-webview-devtools" class="btn btn-secondary">🛠 DEVTOOLS</button>
-          <button id="btn-open-game-window" class="btn btn-secondary" title="Launch game preview in a separate window to the right">🖥️ Separate Window</button>
-          <button id="btn-manual-shot" class="btn btn-secondary">📸 SNAPSHOT</button>
-          <button id="btn-simulate-heuristic" class="btn btn-warning">🧪 FORCE HEURISTIC</button>
-        </div>
+      <div class="title-bar-center">
+        <button id="btn-toggle-agent" class="btn btn-primary btn-large-top disabled" disabled title="Select a game target and click LOAD first">
+          <span class="icon">▶</span> START AI AGENT
+        </button>
       </div>
-
-      <div class="header-right">
+      <div class="title-bar-right">
         <div class="metrics-bar">
           <div class="metric">
-            <span class="badge" id="agent-state-badge">IDLE</span>
+            <span class="badge idle" id="agent-state-badge">IDLE</span>
           </div>
           <div class="metric">
-            <span class="label">FPS:</span>
+            <span class="label">FPS</span>
             <span class="value" id="fps-val">--</span>
             <canvas id="fps-chart" width="50" height="18"></canvas>
           </div>
           <div class="metric">
-            <span class="label">HEAP:</span>
+            <span class="label">HEAP</span>
             <span class="value" id="heap-val">-- MB</span>
             <canvas id="heap-chart" width="50" height="18"></canvas>
           </div>
           <div class="metric">
-            <span class="label">STUCK:</span>
+            <span class="label">STUCK</span>
             <span class="value" id="stuck-val">0/3</span>
           </div>
         </div>
         <div class="toggles-group">
           <button id="btn-toggle-left" class="btn btn-secondary btn-small" title="Toggle Configuration Panel">⚙️ Config</button>
-          <button id="btn-toggle-right" class="btn btn-secondary btn-small" title="Toggle Bug Tracker">🐛 Tracker</button>
+          <button id="btn-toggle-right" class="btn btn-secondary btn-small" title="Toggle Bug Tracker">� Tracker</button>
           <button id="btn-toggle-audio" class="btn btn-icon btn-small" title="Toggle Synth Sounds">🔊</button>
         </div>
       </div>
     </header>
 
     <div class="main-body">
+
+      <!-- LEFT NAVIGATION MENU (vertical, hideable) -->
+      <nav class="nav-sidebar glass" id="nav-sidebar">
+        <div class="nav-header">
+          <div class="nav-logo-row">
+            <div class="glow-dot active"></div>
+            <span class="nav-title">MENU</span>
+          </div>
+          <button id="btn-hide-nav" class="btn btn-nav-hide" title="Hide navigation menu" aria-label="Hide Menu">
+            ✕ Hide Menu
+          </button>
+        </div>
+
+        <div class="nav-divider"></div>
+
+        <div class="nav-section-label">AGENT CONTROL</div>
+        <nav class="nav-items-group">
+          <button id="btn-goto-hub" class="nav-item btn btn-secondary" title="Return to Welcome Hub View">
+            <span class="nav-item-icon">🏠</span>
+            <span class="nav-item-label">Hub</span>
+          </button>
+          <button id="btn-toggle-view" class="nav-item btn btn-secondary" title="Switch between Simple and Advanced layouts">
+            <span class="nav-item-icon">🛠️</span>
+            <span class="nav-item-label">Switch to Advanced Layout</span>
+          </button>
+          <button id="btn-simulate-heuristic" class="nav-item btn btn-warning" title="Force heuristic mode for agent decision-making" aria-label="Force Heuristic Mode">
+            <span class="nav-item-icon">🧪</span>
+            <span class="nav-item-label">Force Heuristic</span>
+          </button>
+        </nav>
+
+        <div class="nav-divider"></div>
+        <div class="nav-section-label">GAME WINDOW</div>
+        <nav class="nav-items-group">
+          <button id="btn-webview-reload" class="nav-item btn btn-secondary" title="Reload the current game page" aria-label="Reload Game Page">
+            <span class="nav-item-icon">🔄</span>
+            <span class="nav-item-label">Reload Game</span>
+          </button>
+          <button id="btn-webview-devtools" class="nav-item btn btn-secondary" title="Open browser developer tools" aria-label="Open Developer Tools">
+            <span class="nav-item-icon">🛠</span>
+            <span class="nav-item-label">DevTools</span>
+          </button>
+          <button id="btn-open-game-window" class="nav-item btn btn-secondary" title="Launch game preview in a separate window to the right">
+            <span class="nav-item-icon">�️</span>
+            <span class="nav-item-label">Separate Window</span>
+          </button>
+          <button id="btn-manual-shot" class="nav-item btn btn-secondary" title="Capture manual screenshot of current view" aria-label="Capture Screenshot">
+            <span class="nav-item-icon">�</span>
+            <span class="nav-item-label">Snapshot</span>
+          </button>
+        </nav>
+      </nav>
       <!-- LEFT SIDEBAR: CONTROL & CONFIGURATION -->
       <aside class="sidebar control-panel glass">
       <div class="sidebar-header">
@@ -74,7 +119,12 @@
       </div>
 
       <div class="sidebar-section">
-        <h3>1. LLM ENGINE SETTINGS</h3>
+        <div class="section-header" data-section="llm-settings">
+          <span class="section-toggle">▼</span>
+          <h3>1. LLM ENGINE SETTINGS</h3>
+          <span class="help-icon" title="Configure which AI model to use for game analysis and decision-making">?</span>
+        </div>
+        <div class="section-content" id="llm-settings">
         <div class="form-group">
           <label for="provider-select">Provider</label>
           <select id="provider-select">
@@ -138,10 +188,16 @@
           <label for="model-name">Custom Model Name</label>
           <input type="text" id="model-name" value="gpt-5.4-mini-2026-03-17" placeholder="e.g. custom-model">
         </div>
+        </div>
       </div>
 
       <div class="sidebar-section">
-        <h3>2. GAME TARGET</h3>
+        <div class="section-header" data-section="game-target">
+          <span class="section-toggle">▶</span>
+          <h3>2. GAME TARGET</h3>
+          <span class="help-icon" title="Load a game URL or select from local demos">?</span>
+        </div>
+        <div class="section-content hidden" id="game-target">
         <div class="form-group">
           <label for="game-url">Game Address (URL or local file://)</label>
           <div class="input-row">
@@ -156,10 +212,16 @@
             <!-- Javascript will populate this with website/v1/games/html games -->
           </select>
         </div>
+        </div>
       </div>
 
       <div class="sidebar-section">
-        <h3>3. GAME-SPECIFIC PLAY RULES</h3>
+        <div class="section-header" data-section="game-rules">
+          <span class="section-toggle">▶</span>
+          <h3>3. GAME-SPECIFIC PLAY RULES</h3>
+          <span class="help-icon" title="Define custom rules and behavior for the AI agent">?</span>
+        </div>
+        <div class="section-content hidden" id="game-rules">
         <div class="form-group">
           <textarea id="game-rules" rows="3" placeholder="e.g. Press 'Space' to jump. Move using ArrowRight. Avoid spikes. Click 'Start Game' button at coordinates..."></textarea>
         </div>
@@ -173,10 +235,16 @@
             <span class="toggle-slider"></span>
           </label>
         </div>
+        </div>
       </div>
 
       <div class="sidebar-section">
-        <h3>4. NATIVE ENGINE SCANNER (Roblox/Godot/Unity/Unreal)</h3>
+        <div class="section-header" data-section="native-scanner">
+          <span class="section-toggle">▶</span>
+          <h3>4. NATIVE ENGINE SCANNER</h3>
+          <span class="help-icon" title="Scan running game processes like Roblox, Godot, Unity, or Unreal">?</span>
+        </div>
+        <div class="section-content hidden" id="native-scanner">
         <div class="form-group">
           <label for="native-process">Target Process</label>
           <div class="input-row">
@@ -190,6 +258,7 @@
             <button id="btn-scan-processes" class="btn btn-icon" title="Refresh processes">🔄</button>
           </div>
         </div>
+        </div>
       </div>
 
       <!-- Start AI Agent button moved to top action bar -->
@@ -198,7 +267,7 @@
     <!-- CENTER PANEL: GAME VIEWPORT & AGENT MIND -->
     <main class="main-content">
       <!-- HUB WORKSPACE VIEW -->
-      <div class="hub-workspace-view" id="hub-workspace" style="display: flex; flex-direction: column; flex: 1; gap: 16px; overflow-y: auto; padding: 12px 4px;">
+      <div class="hub-workspace-view" id="hub-workspace" style="display: flex; flex-direction: column; flex: 1; gap: 16px; overflow-y: auto; padding: 12px 4px; position: relative; z-index: 1; pointer-events: auto;">
         <div class="hub-hero" style="text-align: center; margin-bottom: 8px;">
           <h2 style="font-family: var(--font-display); font-size: 1.6rem; color: var(--accent-blue); letter-spacing: 1px; margin-bottom: 6px;">Welcome to 4weird AIPlay</h2>
           <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 12px;">Select a workspace path below to design, run test, or auto-fix games.</p>
@@ -207,7 +276,7 @@
 
         <div class="hub-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;">
           <!-- Card 1: Create Random Viral HTML Game -->
-          <div class="hub-card glass" id="card-random-game" style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer;">
+          <div class="hub-card glass" id="card-random-game" style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer; pointer-events: auto;">
             <div class="card-icon" style="font-size: 2.2rem; filter: drop-shadow(0 0 8px rgba(0, 255, 102, 0.4));">⚡</div>
             <h3 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Create Random Viral Game</h3>
             <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4; flex: 1;">Generate an original, randomized non-copyrighted game idea. Automatically creates QA testing guides, and a BRAID decision flowchart.</p>
@@ -215,18 +284,18 @@
           </div>
 
           <!-- Card 2: Plan New HTML Game -->
-          <div class="hub-card glass" id="card-plan-game" style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer;">
+          <div class="hub-card glass" id="card-plan-game" style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer; pointer-events: auto;">
             <div class="card-icon" style="font-size: 2.2rem; filter: drop-shadow(0 0 8px rgba(0, 255, 102, 0.4));">💬</div>
             <h3 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Plan New HTML Game</h3>
             <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4; flex: 1;">Collaboratively construct a custom game plan using an interactive planner chat, answering multiple choice questions to tailor compile a specs draft.</p>
             <button class="btn btn-primary btn-full" style="pointer-events: none; margin-top: 8px;">START INTERACTIVE PLANNER</button>
           </div>
 
-          <!-- Card 3: Open Specific Game Folder -->
-          <div class="hub-card glass" id="card-open-folder" style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer;">
+          <!-- Card 3: Open Specific Folder -->
+          <div class="hub-card glass" id="card-open-folder" style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer; pointer-events: auto;">
             <div class="card-icon" style="font-size: 2.2rem; filter: drop-shadow(0 0 8px rgba(0, 255, 102, 0.4));">📁</div>
-            <h3 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Open Specific Game Folder</h3>
-            <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4; flex: 1;">Load a folder path directly. Automatically detects HTML, Roblox, Godot, Unity, or Unreal files and imports them to run visual debugging tests.</p>
+            <h3 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Open Specific Folder</h3>
+            <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4; flex: 1;">Load any folder path directly. Automatically detects and deploys HTML5 games, web apps (Next.js, Astro, React, Vue), websites, Roblox, Godot, Unity, or Unreal projects for visual debugging and testing.</p>
             <button class="btn btn-primary btn-full" style="pointer-events: none; margin-top: 8px;">OPEN FILE EXPLORER</button>
           </div>
         </div>
@@ -501,18 +570,50 @@
       </div>
 
       <div class="sidebar-header border-top">
-        <h2>TOKEN MONITOR</h2>
+        <h2>TOKEN USAGE</h2>
       </div>
-      <div class="token-stats-box">
-        <div class="token-grid">
-          <div class="token-row"><span>Last Run</span><span id="token-last-run">0</span></div>
-          <div class="token-row"><span>Hourly</span><span id="token-hourly">0</span></div>
-          <div class="token-row"><span>Daily</span><span id="token-daily">0</span></div>
-          <div class="token-row"><span>Weekly</span><span id="token-weekly">0</span></div>
-          <div class="token-row"><span>Yearly</span><span id="token-yearly">0</span></div>
-          <div class="token-row"><span>Lifetime</span><span id="token-lifetime">0</span></div>
+      <div class="token-monitor-section">
+        <div class="token-row-input">
+          <div class="token-label">
+            <span class="label">Input Tokens</span>
+            <span class="value" id="token-input-count">0</span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar" id="token-input-bar"></div>
+          </div>
+          <span class="token-percent" id="token-input-percent">0%</span>
         </div>
-        <div class="form-group" style="margin-top: 8px; margin-bottom: 0;">
+
+        <div class="token-row-output">
+          <div class="token-label">
+            <span class="label">Output Tokens</span>
+            <span class="value" id="token-output-count">0</span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar" id="token-output-bar"></div>
+          </div>
+          <span class="token-percent" id="token-output-percent">0%</span>
+        </div>
+
+        <div class="token-row-total">
+          <div class="token-label">
+            <span class="label">Total This Session</span>
+            <span class="value" id="token-total-count">0</span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar" id="token-total-bar"></div>
+          </div>
+          <span class="token-percent" id="token-total-percent">0%</span>
+        </div>
+
+        <div class="cost-estimate">
+          <span class="label">Est. Cost:</span>
+          <span class="value" id="cost-estimate">$0.00</span>
+          <span class="label">/ Budget:</span>
+          <span class="value" id="cost-budget">$0.75</span>
+        </div>
+
+        <div class="form-group" style="margin-top: 12px; margin-bottom: 0;">
           <label for="token-model-select">Filter Model</label>
           <select id="token-model-select" style="padding: 6px 10px; font-size: 0.8rem;">
             <option value="total">All Models (Combined)</option>

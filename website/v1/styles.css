@@ -4,6 +4,7 @@
     --bg-secondary: #12121a;
     --bg-tertiary: #1a1a25;
     --bg-card: rgba(26, 26, 37, 0.8);
+    --neon-cyan: #06b6d4;
     --neon-purple: #8b5cf6;
     --neon-purple-light: #a78bfa;
     --neon-purple-dark: #7c3aed;
@@ -804,5 +805,108 @@ body {
     
     .TEMPLATE-4weird-credits-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+/* ===== ACADEMY SECTION ===== */
+.academy {
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+    border-top: 1px solid rgba(6, 182, 212, 0.2);
+    border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.academy-content {
+    background: rgba(10, 10, 15, 0.6);
+    border: 2px solid rgba(6, 182, 212, 0.2);
+    border-radius: 16px;
+    padding: 50px;
+    backdrop-filter: blur(10px);
+}
+
+.academy-text h3 {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    color: var(--neon-cyan);
+    font-family: var(--font-display);
+}
+
+.academy-text > p {
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+    line-height: 1.8;
+    margin-bottom: 30px;
+}
+
+.academy-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.feature-item {
+    display: flex;
+    gap: 15px;
+    padding: 20px;
+    background: rgba(6, 182, 212, 0.05);
+    border: 1px solid rgba(6, 182, 212, 0.15);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+    background: rgba(6, 182, 212, 0.1);
+    border-color: rgba(6, 182, 212, 0.3);
+    transform: translateY(-3px);
+}
+
+.feature-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.feature-item h4 {
+    color: var(--neon-cyan);
+    margin-bottom: 5px;
+    font-size: 1.05rem;
+}
+
+.feature-item p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.academy-cta {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 30px;
+}
+
+.academy-cta .btn {
+    flex: 1;
+    min-width: 200px;
+}
+
+@media (max-width: 768px) {
+    .academy-content {
+        padding: 30px;
+    }
+
+    .academy-text h3 {
+        font-size: 1.4rem;
+    }
+
+    .academy-features {
+        grid-template-columns: 1fr;
+    }
+
+    .academy-cta {
+        flex-direction: column;
+    }
+
+    .academy-cta .btn {
+        min-width: unset;
     }
 }

@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4weird Academy - Learn AI Coding & Game Development</title>
+    <meta name="description" content="4weird Academy: Remote coding camp for kids, teens, and adults. Learn AI, web development, game making, and business skills. Expert instructors from around the world.">
+    <meta name="keywords" content="coding camp, AI education, game development, web development, remote learning, kids coding">
+    <meta property="og:title" content="4weird Academy - Learn AI Coding & Game Development">
+    <meta property="og:description" content="Remote coding camp teaching AI, web development, game making, and business skills.">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .academy-hero {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .academy-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(6, 182, 212, 0.05) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .academy-hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .academy-hero h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--neon-cyan) 0%, var(--neon-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .academy-hero p {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .video-container {
+            max-width: 900px;
+            margin: 60px auto;
+            padding: 0 20px;
+        }
+
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(6, 182, 212, 0.2);
+            border: 2px solid rgba(6, 182, 212, 0.3);
+        }
+
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .academy-section {
+            padding: 80px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .academy-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            color: var(--neon-cyan);
+            text-align: center;
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .benefit-card {
+            background: rgba(6, 182, 212, 0.05);
+            border: 2px solid rgba(6, 182, 212, 0.2);
+            border-radius: 12px;
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .benefit-card:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .benefit-card .emoji {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .benefit-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--neon-cyan);
+        }
+
+        .benefit-card p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .curriculum-section {
+            background: rgba(139, 92, 246, 0.05);
+            border: 2px solid rgba(139, 92, 246, 0.2);
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 60px;
+        }
+
+        .curriculum-section h3 {
+            color: var(--neon-purple);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .curriculum-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .curriculum-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--neon-purple);
+        }
+
+        .curriculum-item strong {
+            color: var(--neon-purple);
+        }
+
+        .pricing-section {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(6, 182, 212, 0.05) 100%);
+            border: 2px solid rgba(34, 197, 94, 0.2);
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 60px;
+            text-align: center;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .price-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(34, 197, 94, 0.3);
+            border-radius: 12px;
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .price-card:hover {
+            border-color: var(--neon-green);
+            box-shadow: 0 10px 30px rgba(34, 197, 94, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .price-card h4 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--neon-green);
+        }
+
+        .price-amount {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--neon-green);
+            margin-bottom: 10px;
+        }
+
+        .price-duration {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border: 2px solid rgba(6, 182, 212, 0.3);
+            border-radius: 12px;
+            padding: 60px 40px;
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .cta-section h2 {
+            margin-bottom: 20px;
+        }
+
+        .cta-section p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--neon-cyan) 0%, var(--neon-purple) 100%);
+            color: #000;
+            padding: 15px 40px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .cta-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.4);
+        }
+
+        .instructors-section {
+            background: rgba(139, 92, 246, 0.05);
+            border: 2px solid rgba(139, 92, 246, 0.2);
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 60px;
+        }
+
+        .instructors-section h3 {
+            color: var(--neon-purple);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .instructors-section p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .privacy-note {
+            background: rgba(34, 197, 94, 0.05);
+            border: 2px solid rgba(34, 197, 94, 0.2);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .privacy-note p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .privacy-note strong {
+            color: var(--neon-green);
+        }
+
+        @media (max-width: 768px) {
+            .academy-hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .academy-hero p {
+                font-size: 1.1rem;
+            }
+
+            .academy-section h2 {
+                font-size: 2rem;
+            }
+
+            .curriculum-list {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Particle Canvas Background -->
+    <canvas id="starfield"></canvas>
+
+    <!-- Navigation placeholder - injected by components.js -->
+    <div id="nav-placeholder"></div>
+
+    <!-- Academy Hero Section -->
+    <section class="academy-hero">
+        <div class="academy-hero-content">
+            <h1>4weird Academy</h1>
+            <p>Learn AI, Coding, Game Development & Business Skills from Expert Instructors Around the World</p>
+        </div>
+    </section>
+
+    <!-- Intro Video Section -->
+    <section class="video-container">
+        <div class="video-wrapper">
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/PUraJfke9sQ" title="Making Games with AI in 10 Minutes" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        </div>
+    </section>
+
+    <!-- About Academy Section -->
+    <section class="academy-section">
+        <h2>What is 4weird Academy?</h2>
+        <p style="font-size: 1.1rem; color: var(--text-secondary); line-height: 1.8; max-width: 900px; margin: 0 auto 60px; text-align: center;">
+            4weird Academy is a <strong>remote coding camp</strong> for kids, teenagers, and adults who want to master the skills of the digital age. Whether you're interested in building websites, creating games, leveraging AI, or starting your own online business, our expert instructors from around the world are here to guide you every step of the way.
+        </p>
+
+        <h2 style="margin-top: 80px;">What You'll Learn</h2>
+        <div class="curriculum-section">
+            <h3>Core Curriculum</h3>
+            <div class="curriculum-list">
+                <div class="curriculum-item">
+                    <strong>🤖 Artificial Intelligence</strong>
+                    <p>Harness AI tools and techniques to accelerate your development and solve real-world problems.</p>
+                </div>
+                <div class="curriculum-item">
+                    <strong>🌐 Web Development</strong>
+                    <p>Build stunning, responsive websites and web applications using modern frameworks and best practices.</p>
+                </div>
+                <div class="curriculum-item">
+                    <strong>🎮 Game Development</strong>
+                    <p>Create games for any platform - HTML5, Roblox, Godot, and more. Learn game design, mechanics, and monetization.</p>
+                </div>
+                <div class="curriculum-item">
+                    <strong>💼 Business & Marketing</strong>
+                    <p>Learn how to market your skills, build a personal brand, and launch your own tech business.</p>
+                </div>
+                <div class="curriculum-item">
+                    <strong>🗄️ Databases & Backend</strong>
+                    <p>Master server-side development, databases, APIs, and cloud infrastructure.</p>
+                </div>
+                <div class="curriculum-item">
+                    <strong>💰 Roblox Business</strong>
+                    <p>Build and monetize games on the Roblox platform - a multi-billion dollar ecosystem.</p>
+                </div>
+            </div>
+        </div>
+
+        <h2 style="margin-top: 80px;">Why Choose 4weird Academy?</h2>
+        <div class="benefits-grid">
+            <div class="benefit-card">
+                <span class="emoji">🌍</span>
+                <h3>Global Instructors</h3>
+                <p>Learn from expert coders and developers from all over the world. Diverse perspectives, proven expertise.</p>
+            </div>
+            <div class="benefit-card">
+                <span class="emoji">💻</span>
+                <h3>Hands-On Learning</h3>
+                <p>Build real projects from day one. Learn by doing, not just watching lectures.</p>
+            </div>
+            <div class="benefit-card">
+                <span class="emoji">🚀</span>
+                <h3>Career Ready Skills</h3>
+                <p>Gain skills that are in high demand. Build a portfolio that impresses employers and clients.</p>
+            </div>
+            <div class="benefit-card">
+                <span class="emoji">👨-👩-👧-👦</span>
+                <h3>For All Ages</h3>
+                <p>Whether you're 10 or 50, we have programs tailored to your skill level and interests.</p>
+            </div>
+            <div class="benefit-card">
+                <span class="emoji">🏠</span>
+                <h3>Learn from Home</h3>
+                <p>100% remote. No travel needed. Learn at your own pace with flexible scheduling.</p>
+            </div>
+            <div class="benefit-card">
+                <span class="emoji">💡</span>
+                <h3>Real-World Impact</h3>
+                <p>Learn skills that solve real problems. Help your family and friends with custom software and websites.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Real Benefit Section -->
+    <section class="academy-section">
+        <h2>The Real Benefit: Empower Your Future</h2>
+        <div style="background: rgba(6, 182, 212, 0.05); border: 2px solid rgba(6, 182, 212, 0.2); border-radius: 12px; padding: 40px; max-width: 900px; margin: 0 auto;">
+            <p style="font-size: 1.1rem; color: var(--text-secondary); line-height: 1.8; margin-bottom: 20px;">
+                Once your child (or you!) learns coding, the possibilities are endless. You can:
+            </p>
+            <ul style="font-size: 1.1rem; color: var(--text-secondary); line-height: 1.8; list-style: none; padding: 0;">
+                <li style="margin-bottom: 15px;"><strong style="color: var(--neon-cyan);">✨ Build Custom Software</strong> - Solve problems for your parents, friends, and their parents with tailored solutions.</li>
+                <li style="margin-bottom: 15px;"><strong style="color: var(--neon-cyan);">🌐 Create Websites</strong> - Build professional websites for local businesses and entrepreneurs.</li>
+                <li style="margin-bottom: 15px;"><strong style="color: var(--neon-cyan);">🎮 Develop Games</strong> - Create games that entertain millions on platforms like Roblox.</li>
+                <li style="margin-bottom: 15px;"><strong style="color: var(--neon-cyan);">💼 Start a Business</strong> - Launch your own freelance business or tech startup.</li>
+                <li style="margin-bottom: 15px;"><strong style="color: var(--neon-cyan);">🤖 Leverage AI</strong> - Use cutting-edge AI tools to work smarter and faster.</li>
+                <li style="margin-bottom: 15px;"><strong style="color: var(--neon-cyan);">💰 Earn Money</strong> - Turn your skills into a sustainable income stream.</li>
+            </ul>
+            <p style="font-size: 1.1rem; color: var(--text-secondary); line-height: 1.8; margin-top: 20px; font-style: italic;">
+                Coding isn't just a skill - it's a superpower that opens doors to unlimited opportunities.
+            </p>
+        </div>
+    </section>
+
+    <!-- Instructors Section -->
+    <section class="academy-section">
+        <div class="instructors-section">
+            <h3>🌟 Our Instructors</h3>
+            <p>
+                Our teaching team is composed of talented coders and developers from all over the world. We offer two tiers of instruction to fit your budget:
+            </p>
+            <ul style="list-style: none; padding: 0; color: var(--text-secondary); line-height: 1.8;">
+                <li style="margin-bottom: 15px;"><strong style="color: var(--neon-purple);">Expert USA Instructors:</strong> Super experienced, pure coders from the United States with proven track records.</li>
+                <li style="margin-bottom: 15px;"><strong style="color: var(--neon-purple);">International Instructors:</strong> Good coders from any country who are passionate about teaching and sharing knowledge.</li>
+            </ul>
+            <p style="margin-top: 20px; font-style: italic;">
+                All instructors are carefully vetted to ensure the highest quality education for our students.
+            </p>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="academy-section">
+        <div class="pricing-section">
+            <h2>Simple, Transparent Pricing</h2>
+            <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 40px;">
+                Choose the instructor tier that fits your needs. All sessions are 1 hour of focused, personalized instruction.
+            </p>
+            <div class="pricing-grid">
+                <div class="price-card">
+                    <h4>🇺🇸 Expert USA Instructor</h4>
+                    <div class="price-amount">$100</div>
+                    <div class="price-duration">per 1-hour session</div>
+                    <p style="color: var(--text-secondary); line-height: 1.6;">
+                        Super experienced pure coders from the USA. Ideal for advanced learners and specialized topics.
+                    </p>
+                </div>
+                <div class="price-card">
+                    <h4>🌍 International Instructor</h4>
+                    <div class="price-amount">$50</div>
+                    <div class="price-duration">per 1-hour session</div>
+                    <p style="color: var(--text-secondary); line-height: 1.6;">
+                        Good coders from around the world. Great for beginners and general programming concepts.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Privacy Section -->
+    <section class="academy-section">
+        <div class="privacy-note">
+            <p>
+                <strong>🔒 Your Child's Privacy is Protected</strong>
+            </p>
+            <p style="margin-top: 15px;">
+                We take privacy seriously. All sessions are secure, and we follow strict data protection protocols. Your child's information is never shared with third parties.
+            </p>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="academy-section">
+        <div class="cta-section">
+            <h2>Ready to Start Learning?</h2>
+            <p>
+                Whether you're a curious kid, a motivated teen, or an adult looking to upskill, 4weird Academy is here to help you master the future of technology.
+            </p>
+            <p style="font-size: 1.2rem; font-weight: 600; color: var(--neon-cyan); margin-bottom: 30px;">
+                Email us today to schedule your first session!
+            </p>
+            <a href="mailto:Matt@MattyJacks.com?subject=4weird%20Academy%20-%20I%20Want%20to%20Learn!" class="cta-button">
+                📧 Email: Matt@MattyJacks.com
+            </a>
+            <p style="margin-top: 30px; color: var(--text-secondary); font-size: 0.95rem;">
+                Include your name, age (if applicable), and what you'd like to learn. We'll get back to you within 24 hours!
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer placeholder - injected by components.js -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <script src="../components.js"></script>
+    <script src="../script.js"></script>
+</body>
+</html>

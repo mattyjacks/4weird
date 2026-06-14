@@ -671,12 +671,84 @@
       "completion": 99,
       "total": 9826,
       "runId": "run_1781269557413"
+    },
+    {
+      "timestamp": "2026-06-14T01:23:27.866Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9680,
+      "completion": 99,
+      "total": 9779,
+      "runId": "run_1781400202515"
+    },
+    {
+      "timestamp": "2026-06-14T01:23:28.745Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9680,
+      "completion": 99,
+      "total": 9779,
+      "runId": "run_1781400202515"
+    },
+    {
+      "timestamp": "2026-06-14T01:23:30.750Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9685,
+      "completion": 99,
+      "total": 9784,
+      "runId": "run_1781400202515"
+    },
+    {
+      "timestamp": "2026-06-14T01:23:32.630Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9676,
+      "completion": 99,
+      "total": 9775,
+      "runId": "run_1781400202515"
+    },
+    {
+      "timestamp": "2026-06-14T01:23:34.467Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9674,
+      "completion": 99,
+      "total": 9773,
+      "runId": "run_1781400202515"
+    },
+    {
+      "timestamp": "2026-06-14T01:23:37.039Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9899,
+      "completion": 111,
+      "total": 10010,
+      "runId": "run_1781400202515"
+    },
+    {
+      "timestamp": "2026-06-14T01:23:38.475Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9899,
+      "completion": 112,
+      "total": 10011,
+      "runId": "run_1781400202515"
+    },
+    {
+      "timestamp": "2026-06-14T01:23:40.430Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9669,
+      "completion": 99,
+      "total": 9768,
+      "runId": "run_1781400202515"
+    },
+    {
+      "timestamp": "2026-06-14T01:23:42.709Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9669,
+      "completion": 107,
+      "total": 9776,
+      "runId": "run_1781400202515"
     }
   ],
   "lifetimeTotals": {
     "gpt-4o-mini": 98363,
-    "total": 376523,
+    "total": 464978,
     "gpt-5.4-nano-2026-03-17": 18462,
-    "gpt-5.4-mini-2026-03-17": 259698
+    "gpt-5.4-mini-2026-03-17": 348153
   }
 }

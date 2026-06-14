@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Play & Debug Web Apps - 4weird aiplay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .feature-hero {
+      background: linear-gradient(135deg, rgba(0, 255, 102, 0.1) 0%, rgba(0, 255, 204, 0.05) 100%);
+      padding: 60px 20px;
+      text-align: center;
+      border-bottom: 1px solid rgba(0, 255, 102, 0.2);
+    }
+
+    .feature-hero h1 {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #00ff66, #00ffcc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .feature-hero p {
+      font-size: 1.2rem;
+      color: #82a88e;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      padding: 60px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .feature-card {
+      background: rgba(10, 24, 16, 0.7);
+      border: 1px solid rgba(0, 255, 102, 0.2);
+      border-radius: 12px;
+      padding: 30px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(0, 255, 102, 0.4);
+      box-shadow: 0 8px 32px rgba(0, 255, 102, 0.1);
+      transform: translateY(-4px);
+    }
+
+    .feature-icon {
+      font-size: 3rem;
+      margin-bottom: 15px;
+    }
+
+    .feature-card h3 {
+      font-size: 1.3rem;
+      margin-bottom: 12px;
+      color: #e6f7ec;
+    }
+
+    .feature-card p {
+      color: #82a88e;
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+
+    .feature-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .feature-list li {
+      padding: 8px 0;
+      color: #82a88e;
+      font-size: 0.95rem;
+    }
+
+    .feature-list li:before {
+      content: "✓ ";
+      color: #39ff14;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    .frameworks-section {
+      background: rgba(10, 24, 16, 0.5);
+      padding: 60px 20px;
+      border-top: 1px solid rgba(0, 255, 102, 0.2);
+      border-bottom: 1px solid rgba(0, 255, 102, 0.2);
+    }
+
+    .frameworks-section h2 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 40px;
+      color: #e6f7ec;
+    }
+
+    .frameworks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .framework-badge {
+      background: rgba(0, 255, 102, 0.08);
+      border: 1px solid rgba(0, 255, 102, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .framework-badge:hover {
+      background: rgba(0, 255, 102, 0.12);
+      border-color: rgba(0, 255, 102, 0.4);
+      transform: scale(1.05);
+    }
+
+    .framework-badge .icon {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .framework-badge .name {
+      color: #e6f7ec;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .usage-section {
+      padding: 60px 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .usage-section h2 {
+      font-size: 2rem;
+      margin-bottom: 30px;
+      color: #e6f7ec;
+    }
+
+    .usage-step {
+      margin-bottom: 40px;
+      padding: 20px;
+      background: rgba(0, 255, 102, 0.05);
+      border-left: 3px solid #39ff14;
+      border-radius: 8px;
+    }
+
+    .usage-step h3 {
+      color: #39ff14;
+      margin-bottom: 12px;
+      font-size: 1.2rem;
+    }
+
+    .usage-step p {
+      color: #82a88e;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+
+    .code-block {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(0, 255, 102, 0.2);
+      border-radius: 6px;
+      padding: 15px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: #39ff14;
+      margin: 10px 0;
+    }
+
+    .cta-section {
+      background: linear-gradient(135deg, rgba(0, 255, 102, 0.1) 0%, rgba(0, 255, 204, 0.05) 100%);
+      padding: 60px 20px;
+      text-align: center;
+      border-top: 1px solid rgba(0, 255, 102, 0.2);
+    }
+
+    .cta-section h2 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #e6f7ec;
+    }
+
+    .cta-section p {
+      color: #82a88e;
+      margin-bottom: 30px;
+      font-size: 1.1rem;
+    }
+
+    .btn-cta {
+      display: inline-block;
+      padding: 12px 32px;
+      background: linear-gradient(135deg, #00ff66, #00ffcc);
+      color: #050b07;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .btn-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 255, 102, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation placeholder - injected by components.js -->
+  <div id="nav-placeholder"></div>
+
+  <!-- Hero Section -->
+  <section class="feature-hero">
+    <h1>🚀 Play & Debug Web Apps</h1>
+    <p>Beautiful, efficient web app testing and debugging. Support for any framework, any file structure.</p>
+  </section>
+
+  <!-- Features Grid -->
+  <section class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📁</div>
+        <h3>Website Player</h3>
+        <p>Play static HTML/CSS/JS websites instantly. No build step required.</p>
+        <ul class="feature-list">
+          <li>Zero configuration</li>
+          <li>Live reload</li>
+          <li>Built-in HTTP server</li>
+          <li>Perfect for prototypes</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Web App Debugger</h3>
+        <p>Debug modern web frameworks with auto-detection and smart launching.</p>
+        <ul class="feature-list">
+          <li>Framework auto-detection</li>
+          <li>Dev server management</li>
+          <li>Port conflict resolution</li>
+          <li>Live console output</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <h3>Smart Detection</h3>
+        <p>Automatically identifies your project type and framework.</p>
+        <ul class="feature-list">
+          <li>Reads package.json</li>
+          <li>Scans config files</li>
+          <li>Detects entry points</li>
+          <li>Classifies project type</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🎨</div>
+        <h3>Beautiful UI</h3>
+        <p>Modern glassmorphism design with intuitive controls.</p>
+        <ul class="feature-list">
+          <li>Project browser</li>
+          <li>Server status panel</li>
+          <li>Live console</li>
+          <li>Framework badges</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🛠️</div>
+        <h3>Developer Tools</h3>
+        <p>Access to DevTools, reload, and server logs.</p>
+        <ul class="feature-list">
+          <li>Chrome DevTools</li>
+          <li>Hot reload</li>
+          <li>Server logs</li>
+          <li>Performance metrics</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📦</div>
+        <h3>Any File Structure</h3>
+        <p>Works with any project layout and organization.</p>
+        <ul class="feature-list">
+          <li>Monorepos</li>
+          <li>Nested projects</li>
+          <li>Custom structures</li>
+          <li>Mixed frameworks</li>
+        </ul>
+      </div>
+    </section>
+
+  <!-- Supported Frameworks -->
+  <section class="frameworks-section">
+    <h2>🌟 Supported Frameworks</h2>
+    <div class="frameworks-grid">
+      <div class="framework-badge">
+        <span class="icon">▲</span>
+        <span class="name">Next.js</span>
+      </div>
+      <div class="framework-badge">
+        <span class="icon">⭐</span>
+        <span class="name">Astro</span>
+      </div>
+      <div class="framework-badge">
+        <span class="icon">⚡</span>
+        <span class="name">Vite</span>
+      </div>
+      <div class="framework-badge">
+        <span class="icon">⚛</span>
+        <span class="name">React</span>
+      </div>
+      <div class="framework-badge">
+        <span class="icon">💚</span>
+        <span class="name">Vue</span>
+      </div>
+      <div class="framework-badge">
+        <span class="icon">🔥</span>
+        <span class="name">Svelte</span>
+      </div>
+      <div class="framework-badge">
+        <span class="icon">🟢</span>
+        <span class="name">Node.js</span>
+      </div>
+      <div class="framework-badge">
+        <span class="icon">📄</span>
+        <span class="name">Static HTML</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Usage Guide -->
+  <section class="usage-section">
+    <h2>📖 How to Use</h2>
+
+    <div class="usage-step">
+      <h3>Step 1: Load Your Project</h3>
+      <p>Click "Add Project" or paste your project folder path into the Quick Launch panel.</p>
+      <div class="code-block">C:\Users\YourName\Projects\my-nextjs-app</div>
+      <p>aiplay will automatically detect your framework and project type.</p>
+    </div>
+
+    <div class="usage-step">
+      <h3>Step 2: Start the Server</h3>
+      <p>Click the "Start" button on your project card. aiplay will:</p>
+      <ul class="feature-list">
+        <li>Launch the dev server</li>
+        <li>Find an available port</li>
+        <li>Display server status</li>
+        <li>Show live output</li>
+      </ul>
+    </div>
+
+    <div class="usage-step">
+      <h3>Step 3: Open & Debug</h3>
+      <p>Click "Open" to view your app in the built-in webview, or access DevTools for debugging.</p>
+      <div class="code-block">http://localhost:3000</div>
+      <p>Use the console panel to monitor server output in real-time.</p>
+    </div>
+
+    <div class="usage-step">
+      <h3>Step 4: Manage & Reload</h3>
+      <p>Use the server status panel to reload, view logs, or stop the server.</p>
+      <ul class="feature-list">
+        <li>🔄 Reload - Hot reload your app</li>
+        <li>📋 Logs - View server output</li>
+        <li>🔧 DevTools - Open Chrome DevTools</li>
+        <li>⏹ Stop - Stop the dev server</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <h2>Ready to Play & Debug?</h2>
+    <p>Download aiplay and start testing your web apps beautifully and efficiently.</p>
+    <a href="https://github.com/mattyjacks/4weird" class="btn-cta">Get aiplay on GitHub</a>
+  </section>
+
+  <!-- Footer placeholder - injected by components.js -->
+  <div id="TEMPLATE-4weird-footer-placeholder"></div>
+
+  <!-- Shared Components -->
+  <script src="components.js"></script>
+
+  <!-- Mobile Menu Toggle Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const navToggle = document.getElementById('navToggle');
+      const navMenu = document.getElementById('navMenu');
+
+      if (navToggle && navMenu) {
+        navToggle.addEventListener('click', function() {
+          navMenu.classList.toggle('active');
+        });
+
+        // Close menu when clicking a link
+        navMenu.querySelectorAll('.nav-link').forEach(link => {
+          link.addEventListener('click', function() {
+            navMenu.classList.remove('active');
+          });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

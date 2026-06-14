@@ -1,0 +1,59 @@
+================================================================================
+GAME SPECIFICATION SHEET: The abyss
+================================================================================
+Status: Under design / draft plan
+Core Mechanic: 3D voxel building constructor block matching
+Visual Aesthetic: Abstract geometric cubist shapes matrix
+Winning Goal: Clear 10 waves of accelerating hazards
+Target Platform: HTML5 Browser (3D WebGL API via Three.js library)
+
+--------------------------------------------------------------------------------
+1. DETAILED MECHANICS AND STATE STRUCTURE
+--------------------------------------------------------------------------------
+- Player Physics: Implement simple integration vectors.
+  - Core mechanics matching: 3D voxel building constructor block matching.
+- Goal Spawning: Spawn items within safe padding away from canvas margins.
+- Hazard Scalers: Adjust spawn speed dynamically based on current game score.
+
+--------------------------------------------------------------------------------
+2. TECHNICAL ARCHITECTURE & SOURCE FILE LAYOUT (EXPERT BLUEPRINT)
+--------------------------------------------------------------------------------
+As an expert game design architect, I recommend structuring this codebase into multiple modular files to separate concerns, facilitate seamless AI vibe-coding edits, and support clean playtesting injection:
+
+- RECOMMENDED FILE LAYOUT:
+  1. index.html   : Hosts the 3D canvas viewport container, imports Three.js CDN script (https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js), and project modules.
+  2. game.js      : The main game loop and engine orchestration, setting up the THREE.Scene, THREE.PerspectiveCamera, and THREE.WebGLRenderer.
+  3. physics.js   : Calculates 3D physics updates (position vector additions, velocity damping, bounding box or bounding sphere collisions in 3D).
+  4. assets.js    : Manages 3D geometry creation (THREE.BoxGeometry, THREE.SphereGeometry), materials, lights, and animations.
+  5. agent_braid.js: Houses the AI playtest heuristics representing the BRAID diagram below.
+
+A. STATE VARIABLES REQUIRED:
+   - scene, camera, renderer: Three.js core rendering components.
+   - playerMesh: THREE.Mesh representing the player's 3D avatar.
+   - hazardMeshes: Array of active hazard meshes moving through the 3D viewport.
+   - collectibleMeshes: Array of meshes representing target goals.
+   - score: Current count of collectable goals acquired.
+
+B. CRITICAL RENDERING PHASES:
+   - Clear Viewport: Reset renderer and apply background theme color.
+   - Update 3D Camera: Align PerspectiveCamera to orbit player mesh position.
+   - Draw 3D Avatar/Objects: Rotate meshes and emit Three.js particle groups.
+   - HUD overlay: Print score tracker overlaying the 3D rendering context.
+
+--------------------------------------------------------------------------------
+3. PLAYTESTING & AI AUTOMATION STEPS
+--------------------------------------------------------------------------------
+- Load inside 4weird aiplay debugger using local file paths.
+- Setup AI Agent parameters matching the decision tree below.
+- Verify game loop recovery under active obstacle vectors.
+
+--------------------------------------------------------------------------------
+4. BRAID ACTION DECISION GRAPH
+--------------------------------------------------------------------------------
+(S) Start -> Check if Danger nearby?
+  ├─ [Yes] ──> Evade using game controls (3D voxel building constructor block matching)
+  └─ [No] ───> Check if target goal (Clear 10 waves of accelerating hazards) visible?
+        ├─ [Yes] ──> Glide / Move towards it
+        └─ [No] ────> Keep default exploring
+
+================================================================================

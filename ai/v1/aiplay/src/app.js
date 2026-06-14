@@ -131,6 +131,19 @@ function queryElements() {
   el.tokenYearly = document.getElementById('token-yearly');
   el.tokenLifetime = document.getElementById('token-lifetime');
   el.tokenModelSelect = document.getElementById('token-model-select');
+
+  // New token monitor elements with progress bars
+  el.tokenInputCount = document.getElementById('token-input-count');
+  el.tokenOutputCount = document.getElementById('token-output-count');
+  el.tokenTotalCount = document.getElementById('token-total-count');
+  el.tokenInputPercent = document.getElementById('token-input-percent');
+  el.tokenOutputPercent = document.getElementById('token-output-percent');
+  el.tokenTotalPercent = document.getElementById('token-total-percent');
+  el.tokenInputBar = document.getElementById('token-input-bar');
+  el.tokenOutputBar = document.getElementById('token-output-bar');
+  el.tokenTotalBar = document.getElementById('token-total-bar');
+  el.costEstimate = document.getElementById('cost-estimate');
+  el.costBudget = document.getElementById('cost-budget');
   
   el.bugModal = document.getElementById('bug-modal');
   el.modalBugTitle = document.getElementById('modal-bug-title');
@@ -238,7 +251,12 @@ document.addEventListener('DOMContentLoaded', () => {
       audio.playClickSound();
       const appContainer = document.querySelector('.app-container');
       const isSimple = appContainer.classList.toggle('simple-mode');
-      el.btnToggleView.textContent = isSimple ? '🛠️ Switch to Advanced Layout' : '👁️ Switch to Simple Layout';
+      const navLabelEl = el.btnToggleView.querySelector('.nav-item-label') || el.btnToggleView;
+      if (navLabelEl === el.btnToggleView) {
+        el.btnToggleView.textContent = isSimple ? '🛠️ Switch to Advanced Layout' : '👁️ Switch to Simple Layout';
+      } else {
+        navLabelEl.textContent = isSimple ? 'Switch to Advanced Layout' : 'Switch to Simple Layout';
+      }
       logSystemMessage(`Switched to ${isSimple ? 'Simple' : 'Advanced'} layout.`);
       if (isSimple) {
         tabs.switchTab('logs', el, audio);
@@ -328,6 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   setupAutoCodeEventListeners();
+  setupCollapsibleSections();
 
   const btnToggleLeft = document.getElementById('btn-toggle-left');
   const btnToggleRight = document.getElementById('btn-toggle-right');
@@ -349,6 +368,28 @@ document.addEventListener('DOMContentLoaded', () => {
       audio.playClickSound();
     });
   }
+
+  const navSidebar = document.getElementById('nav-sidebar');
+  const btnHideNav = document.getElementById('btn-hide-nav');
+  const btnOpenNav = document.getElementById('btn-open-nav');
+  const appContainer = document.querySelector('.app-container');
+
+  function hideNav() {
+    if (navSidebar) navSidebar.classList.add('nav-hidden');
+    if (appContainer) appContainer.classList.add('nav-is-hidden');
+    audio.playClickSound();
+  }
+
+  function showNav() {
+    if (navSidebar) {
+      navSidebar.classList.remove('nav-hidden');
+      if (appContainer) appContainer.classList.remove('nav-is-hidden');
+    }
+    audio.playClickSound();
+  }
+
+  if (btnHideNav) btnHideNav.addEventListener('click', hideNav);
+  if (btnOpenNav) btnOpenNav.addEventListener('click', showNav);
 
   el.toggleMemory.addEventListener('change', () => {
     agentBrain.config.alwaysSendMemory = el.toggleMemory.checked;
@@ -539,6 +580,52 @@ function toggleAgentState() {
     executionTimer = setInterval(executeAgentStep, 2000);
     fpsInterval = setInterval(updatePerformanceMetrics, 1000);
   }
+}
+
+// Collapsible sidebar sections
+function setupCollapsibleSections() {
+  const headers = document.querySelectorAll('.section-header');
+
+  // Load saved preferences from localStorage
+  const savedPrefs = JSON.parse(localStorage.getItem('sectionPrefs') || '{}');
+
+  headers.forEach(header => {
+    const sectionId = header.dataset.section;
+    const content = document.getElementById(sectionId);
+    const toggle = header.querySelector('.section-toggle');
+
+    // Apply saved preferences (default: first section open, others closed)
+    const isOpen = savedPrefs[sectionId] !== undefined ? savedPrefs[sectionId] : (sectionId === 'llm-settings');
+
+    if (!isOpen) {
+      content.classList.add('hidden');
+      toggle.textContent = '▶';
+    }
+
+    header.addEventListener('click', (e) => {
+      // Don't toggle if clicking on the help icon
+      if (e.target.classList.contains('help-icon')) return;
+
+      const isCurrentlyOpen = !content.classList.contains('hidden');
+
+      if (isCurrentlyOpen) {
+        content.classList.add('hidden');
+        toggle.textContent = '▶';
+      } else {
+        content.classList.remove('hidden');
+        toggle.textContent = '▼';
+      }
+
+      // Save preference
+      savedPrefs[sectionId] = !isCurrentlyOpen;
+      localStorage.setItem('sectionPrefs', JSON.stringify(savedPrefs));
+
+      // Play click sound if audio is enabled
+      if (el.audioToggle && el.audioToggle.checked) {
+        audio.playClickSound();
+      }
+    });
+  });
 }
 
 // AutoCode IDE event listeners integration
@@ -923,9 +1010,12 @@ async function executeAgentStep(forceHeuristic = false) {
     const nativeProcess = el.nativeProcessSelect.value;
     
     // Send latest state elements to the AI Agent Brain
+    const isExternalWindow = await ipcRenderer.invoke('is-game-window-active');
     let elements = [];
-    if (!nativeProcess) {
+    if (!nativeProcess && !isExternalWindow) {
       elements = await gameController.getInteractiveDOM(webviewElement);
+    } else if (!nativeProcess && isExternalWindow) {
+      elements = await gameController.getInteractiveDOM(null);
     }
     
     // Step decision calculation
@@ -1002,12 +1092,7 @@ async function executeAgentStep(forceHeuristic = false) {
       }
     }
     
-    // Poll console errors for bugs
-    let hasConsoleCrash = false;
-    if (!nativeProcess) {
-      const logs = await webviewElement.executeJavaScript('console.error');
-      // If stack contains crash signals
-    }
+    // Poll console errors for bugs (collected via console-message event listener)
     
     // Sync session display stats
     tracker.updateSessionStatsUI(agentBrain, el);
@@ -1047,12 +1132,30 @@ function updatePerformanceMetrics() {
   
   el.fpsVal.textContent = currentFps;
   el.stuckVal.textContent = `${agentBrain.stuckCounter}/3`;
-  
+
+  // Color code FPS value
+  if (currentFps > 30) {
+    el.fpsVal.className = 'value healthy';
+  } else if (currentFps > 15) {
+    el.fpsVal.className = 'value warning';
+  } else {
+    el.fpsVal.className = 'value critical';
+  }
+
   const processStats = process.getProcessMemoryInfo();
   processStats.then((stats) => {
     const mb = Math.round(stats.private / 1024 / 1024);
     el.heapVal.textContent = `${mb} MB`;
-    
+
+    // Color code HEAP value
+    if (mb < 500) {
+      el.heapVal.className = 'value healthy';
+    } else if (mb < 800) {
+      el.heapVal.className = 'value warning';
+    } else {
+      el.heapVal.className = 'value critical';
+    }
+
     // Draw Sparkline Canvas
     drawSparkline(document.getElementById('fps-chart'), currentFps, 120, fpsHistory);
     drawSparkline(document.getElementById('heap-chart'), mb, 300, heapHistory);
@@ -1156,6 +1259,12 @@ function setupHubBindings() {
   hubEl.cardRandomGame = document.getElementById('card-random-game');
   hubEl.cardPlanGame = document.getElementById('card-plan-game');
   hubEl.cardOpenFolder = document.getElementById('card-open-folder');
+
+  // Debug: Log hub card elements
+  console.log('[DEBUG] Hub Card Elements:');
+  console.log('  cardRandomGame:', hubEl.cardRandomGame ? 'FOUND' : 'NOT FOUND');
+  console.log('  cardPlanGame:', hubEl.cardPlanGame ? 'FOUND' : 'NOT FOUND');
+  console.log('  cardOpenFolder:', hubEl.cardOpenFolder ? 'FOUND' : 'NOT FOUND');
   
   hubEl.pitchResultsPanel = document.getElementById('pitch-results-panel');
   hubEl.chatPlannerPanel = document.getElementById('chat-planner-panel');
@@ -1181,21 +1290,24 @@ function setupHubBindings() {
   }
 
   if (hubEl.cardRandomGame) {
-    hubEl.cardRandomGame.addEventListener('click', () => {
+    hubEl.cardRandomGame.addEventListener('click', (e) => {
+      console.log('[DEBUG] Card 1 (Random Game) clicked!', e.target);
       audio.playClickSound();
       triggerCreateRandomGame();
     });
   }
 
   if (hubEl.cardPlanGame) {
-    hubEl.cardPlanGame.addEventListener('click', () => {
+    hubEl.cardPlanGame.addEventListener('click', (e) => {
+      console.log('[DEBUG] Card 2 (Plan Game) clicked!', e.target);
       audio.playClickSound();
       triggerInteractivePlanner();
     });
   }
 
   if (hubEl.cardOpenFolder) {
-    hubEl.cardOpenFolder.addEventListener('click', () => {
+    hubEl.cardOpenFolder.addEventListener('click', (e) => {
+      console.log('[DEBUG] Card 3 (Open Folder) clicked!', e.target);
       audio.playClickSound();
       triggerOpenFolderSelector();
     });

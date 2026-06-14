@@ -64,7 +64,36 @@ Current lineup:
 
 ---
 
-## 🛠️ Tech Stack
+## � Play & Debug Web Apps
+
+**NEW:** aiplay now supports playing and debugging websites and web apps with any framework!
+
+### Website Player
+Play static HTML/CSS/JS websites instantly with zero configuration. Perfect for prototypes and simple projects.
+
+### Web App Debugger
+Debug modern web frameworks with automatic detection and smart dev server launching.
+
+**Supported Frameworks:**
+- Next.js, Astro, Vite, React, Vue, Svelte
+- Node.js servers, custom npm scripts
+- Static HTML/CSS/JS projects
+- Any file structure
+
+**Features:**
+- 🔍 Framework auto-detection
+- ⚡ One-click launch
+- 🎨 Beautiful UI with framework badges
+- 📺 Live server console output
+- 🔧 Chrome DevTools integration
+- 🔄 Hot reload support
+- 📊 Server status monitoring
+
+See [web-apps.html](website/v1/web-apps.html) for detailed usage guide.
+
+---
+
+## �🛠️ Tech Stack
 
 | Requirement | Specification |
 |-------------|---------------|
