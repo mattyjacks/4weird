@@ -6,6 +6,8 @@ const http = require('http');
 
 let mainWindow;
 
+const isHeadless = process.argv.includes('--headless');
+
 function createWindow() {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { x, y, width, height } = primaryDisplay.workArea;
@@ -20,6 +22,7 @@ function createWindow() {
     y: ideY,
     width: ideWidth,
     height: ideHeight,
+    show: !isHeadless,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -32,11 +35,17 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, 'src', 'index.html'));
 
-  // Ensure window is focused and ready for interaction
-  mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
-    mainWindow.focus();
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow.webContents.send('cli-args', process.argv);
   });
+
+  // Ensure window is focused and ready for interaction
+  if (!isHeadless) {
+    mainWindow.once('ready-to-show', () => {
+      mainWindow.show();
+      mainWindow.focus();
+    });
+  }
 
   // Open external links in default browser
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -236,13 +245,16 @@ ipcMain.handle('open-game-window', async (event, url) => {
   if (gameWindow) {
     gameWindow.setBounds({ x: gameX, y: gameY, width: gameWidth, height: gameHeight });
     gameWindow.loadURL(url);
-    gameWindow.focus();
+    if (!isHeadless) {
+      gameWindow.focus();
+    }
   } else {
     gameWindow = new BrowserWindow({
       x: gameX,
       y: gameY,
       width: gameWidth,
       height: gameHeight,
+      show: !isHeadless,
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,

@@ -743,12 +743,676 @@
       "completion": 107,
       "total": 9776,
       "runId": "run_1781400202515"
+    },
+    {
+      "timestamp": "2026-06-15T21:58:50.686Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9595,
+      "completion": 99,
+      "total": 9694,
+      "runId": "run_1781560725450"
+    },
+    {
+      "timestamp": "2026-06-15T21:58:51.483Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9595,
+      "completion": 99,
+      "total": 9694,
+      "runId": "run_1781560725450"
+    },
+    {
+      "timestamp": "2026-06-15T21:58:53.520Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9591,
+      "completion": 99,
+      "total": 9690,
+      "runId": "run_1781560725450"
+    },
+    {
+      "timestamp": "2026-06-15T21:58:55.446Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9592,
+      "completion": 99,
+      "total": 9691,
+      "runId": "run_1781560725450"
+    },
+    {
+      "timestamp": "2026-06-15T21:58:58.109Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9569,
+      "completion": 99,
+      "total": 9668,
+      "runId": "run_1781560725450"
+    },
+    {
+      "timestamp": "2026-06-15T21:59:00.445Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9569,
+      "completion": 99,
+      "total": 9668,
+      "runId": "run_1781560725450"
+    },
+    {
+      "timestamp": "2026-06-15T21:59:35.096Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9595,
+      "completion": 107,
+      "total": 9702,
+      "runId": "run_1781560770443"
+    },
+    {
+      "timestamp": "2026-06-15T21:59:38.154Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9595,
+      "completion": 99,
+      "total": 9694,
+      "runId": "run_1781560770443"
+    },
+    {
+      "timestamp": "2026-06-15T21:59:38.676Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9591,
+      "completion": 99,
+      "total": 9690,
+      "runId": "run_1781560770443"
+    },
+    {
+      "timestamp": "2026-06-15T21:59:40.642Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9592,
+      "completion": 99,
+      "total": 9691,
+      "runId": "run_1781560770443"
+    },
+    {
+      "timestamp": "2026-06-15T21:59:42.689Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9577,
+      "completion": 99,
+      "total": 9676,
+      "runId": "run_1781560770443"
+    },
+    {
+      "timestamp": "2026-06-15T21:59:44.049Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9569,
+      "completion": 99,
+      "total": 9668,
+      "runId": "run_1781560770443"
+    },
+    {
+      "timestamp": "2026-06-15T22:01:34.516Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9595,
+      "completion": 99,
+      "total": 9694,
+      "runId": "run_1781560889551"
+    },
+    {
+      "timestamp": "2026-06-15T22:01:36.428Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9595,
+      "completion": 99,
+      "total": 9694,
+      "runId": "run_1781560889551"
+    },
+    {
+      "timestamp": "2026-06-15T22:01:38.007Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9591,
+      "completion": 99,
+      "total": 9690,
+      "runId": "run_1781560889551"
+    },
+    {
+      "timestamp": "2026-06-15T22:01:39.606Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9592,
+      "completion": 99,
+      "total": 9691,
+      "runId": "run_1781560889551"
+    },
+    {
+      "timestamp": "2026-06-15T22:01:41.692Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9577,
+      "completion": 99,
+      "total": 9676,
+      "runId": "run_1781560889551"
+    },
+    {
+      "timestamp": "2026-06-15T22:01:44.335Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9569,
+      "completion": 99,
+      "total": 9668,
+      "runId": "run_1781560889551"
+    },
+    {
+      "timestamp": "2026-06-15T22:06:22.162Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9641,
+      "completion": 99,
+      "total": 9740,
+      "runId": "run_1781561176731"
+    },
+    {
+      "timestamp": "2026-06-15T22:06:23.042Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9641,
+      "completion": 99,
+      "total": 9740,
+      "runId": "run_1781561176731"
+    },
+    {
+      "timestamp": "2026-06-15T22:06:25.261Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9637,
+      "completion": 99,
+      "total": 9736,
+      "runId": "run_1781561176731"
+    },
+    {
+      "timestamp": "2026-06-15T22:06:27.445Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9638,
+      "completion": 99,
+      "total": 9737,
+      "runId": "run_1781561176731"
+    },
+    {
+      "timestamp": "2026-06-15T22:06:29.508Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9623,
+      "completion": 99,
+      "total": 9722,
+      "runId": "run_1781561176731"
+    },
+    {
+      "timestamp": "2026-06-15T22:06:31.106Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9615,
+      "completion": 99,
+      "total": 9714,
+      "runId": "run_1781561176731"
+    },
+    {
+      "timestamp": "2026-06-15T22:08:11.146Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9641,
+      "completion": 99,
+      "total": 9740,
+      "runId": "run_1781561287164"
+    },
+    {
+      "timestamp": "2026-06-15T22:08:13.010Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9637,
+      "completion": 99,
+      "total": 9736,
+      "runId": "run_1781561287164"
+    },
+    {
+      "timestamp": "2026-06-15T22:08:16.234Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9638,
+      "completion": 107,
+      "total": 9745,
+      "runId": "run_1781561287164"
+    },
+    {
+      "timestamp": "2026-06-15T22:08:17.510Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9638,
+      "completion": 99,
+      "total": 9737,
+      "runId": "run_1781561287164"
+    },
+    {
+      "timestamp": "2026-06-15T22:08:19.326Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9623,
+      "completion": 99,
+      "total": 9722,
+      "runId": "run_1781561287164"
+    },
+    {
+      "timestamp": "2026-06-15T22:08:21.435Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9615,
+      "completion": 99,
+      "total": 9714,
+      "runId": "run_1781561287164"
+    },
+    {
+      "timestamp": "2026-06-15T22:08:45.111Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9641,
+      "completion": 99,
+      "total": 9740,
+      "runId": "run_1781561320938"
+    },
+    {
+      "timestamp": "2026-06-15T22:08:46.714Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9641,
+      "completion": 99,
+      "total": 9740,
+      "runId": "run_1781561320938"
+    },
+    {
+      "timestamp": "2026-06-15T22:08:49.290Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9629,
+      "completion": 99,
+      "total": 9728,
+      "runId": "run_1781561320938"
+    },
+    {
+      "timestamp": "2026-06-15T22:08:51.025Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9629,
+      "completion": 99,
+      "total": 9728,
+      "runId": "run_1781561320938"
+    },
+    {
+      "timestamp": "2026-06-15T22:08:52.773Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9635,
+      "completion": 99,
+      "total": 9734,
+      "runId": "run_1781561320938"
+    },
+    {
+      "timestamp": "2026-06-15T22:08:55.337Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9633,
+      "completion": 99,
+      "total": 9732,
+      "runId": "run_1781561320938"
+    },
+    {
+      "timestamp": "2026-06-15T22:09:18.466Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9641,
+      "completion": 99,
+      "total": 9740,
+      "runId": "run_1781561354195"
+    },
+    {
+      "timestamp": "2026-06-15T22:09:20.433Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9641,
+      "completion": 99,
+      "total": 9740,
+      "runId": "run_1781561354195"
+    },
+    {
+      "timestamp": "2026-06-15T22:09:22.304Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9635,
+      "completion": 99,
+      "total": 9734,
+      "runId": "run_1781561354195"
+    },
+    {
+      "timestamp": "2026-06-15T22:09:25.108Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9638,
+      "completion": 99,
+      "total": 9737,
+      "runId": "run_1781561354195"
+    },
+    {
+      "timestamp": "2026-06-15T22:09:26.118Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9633,
+      "completion": 99,
+      "total": 9732,
+      "runId": "run_1781561354195"
+    },
+    {
+      "timestamp": "2026-06-15T22:09:29.183Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9639,
+      "completion": 99,
+      "total": 9738,
+      "runId": "run_1781561354195"
+    },
+    {
+      "timestamp": "2026-06-15T22:10:47.390Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9641,
+      "completion": 99,
+      "total": 9740,
+      "runId": "run_1781561443201"
+    },
+    {
+      "timestamp": "2026-06-15T22:10:48.910Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9641,
+      "completion": 106,
+      "total": 9747,
+      "runId": "run_1781561443201"
+    },
+    {
+      "timestamp": "2026-06-15T22:10:51.015Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9638,
+      "completion": 99,
+      "total": 9737,
+      "runId": "run_1781561443201"
+    },
+    {
+      "timestamp": "2026-06-15T22:10:53.132Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9633,
+      "completion": 99,
+      "total": 9732,
+      "runId": "run_1781561443201"
+    },
+    {
+      "timestamp": "2026-06-15T22:10:55.022Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9639,
+      "completion": 99,
+      "total": 9738,
+      "runId": "run_1781561443201"
+    },
+    {
+      "timestamp": "2026-06-15T22:10:57.134Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9639,
+      "completion": 99,
+      "total": 9738,
+      "runId": "run_1781561443201"
+    },
+    {
+      "timestamp": "2026-06-15T22:19:26.930Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9640,
+      "completion": 99,
+      "total": 9739,
+      "runId": "run_1781561962243"
+    },
+    {
+      "timestamp": "2026-06-15T22:19:28.550Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9640,
+      "completion": 99,
+      "total": 9739,
+      "runId": "run_1781561962243"
+    },
+    {
+      "timestamp": "2026-06-15T22:19:30.235Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9648,
+      "completion": 99,
+      "total": 9747,
+      "runId": "run_1781561962243"
+    },
+    {
+      "timestamp": "2026-06-15T22:19:32.276Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9633,
+      "completion": 99,
+      "total": 9732,
+      "runId": "run_1781561962243"
+    },
+    {
+      "timestamp": "2026-06-15T22:19:34.445Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9639,
+      "completion": 99,
+      "total": 9738,
+      "runId": "run_1781561962243"
+    },
+    {
+      "timestamp": "2026-06-15T22:19:37.218Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9639,
+      "completion": 99,
+      "total": 9738,
+      "runId": "run_1781561962243"
+    },
+    {
+      "timestamp": "2026-06-15T22:19:38.282Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9639,
+      "completion": 99,
+      "total": 9738,
+      "runId": "run_1781561962243"
+    },
+    {
+      "timestamp": "2026-06-15T22:19:40.135Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9554,
+      "completion": 98,
+      "total": 9652,
+      "runId": "run_1781561962243"
+    },
+    {
+      "timestamp": "2026-06-15T22:19:42.024Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9550,
+      "completion": 98,
+      "total": 9648,
+      "runId": "run_1781561962243"
+    },
+    {
+      "timestamp": "2026-06-15T22:19:44.604Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9546,
+      "completion": 98,
+      "total": 9644,
+      "runId": "run_1781561962243"
+    },
+    {
+      "timestamp": "2026-06-15T22:19:46.897Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9546,
+      "completion": 98,
+      "total": 9644,
+      "runId": "run_1781561962243"
+    },
+    {
+      "timestamp": "2026-06-15T22:19:48.958Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9542,
+      "completion": 98,
+      "total": 9640,
+      "runId": "run_1781561962243"
+    },
+    {
+      "timestamp": "2026-06-15T22:19:49.900Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9536,
+      "completion": 98,
+      "total": 9634,
+      "runId": "run_1781561962243"
+    },
+    {
+      "timestamp": "2026-06-15T22:19:52.301Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9795,
+      "completion": 97,
+      "total": 9892,
+      "runId": "run_1781561962243"
+    },
+    {
+      "timestamp": "2026-06-15T22:19:54.763Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9540,
+      "completion": 98,
+      "total": 9638,
+      "runId": "run_1781561962243"
+    },
+    {
+      "timestamp": "2026-06-15T22:19:57.387Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9595,
+      "completion": 90,
+      "total": 9685,
+      "runId": "run_1781561962243"
+    },
+    {
+      "timestamp": "2026-06-15T22:19:57.965Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9595,
+      "completion": 90,
+      "total": 9685,
+      "runId": "run_1781561962243"
+    },
+    {
+      "timestamp": "2026-06-15T22:20:00.030Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9586,
+      "completion": 90,
+      "total": 9676,
+      "runId": "run_1781561962243"
+    },
+    {
+      "timestamp": "2026-06-15T22:20:01.906Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9577,
+      "completion": 90,
+      "total": 9667,
+      "runId": "run_1781561962243"
+    },
+    {
+      "timestamp": "2026-06-15T22:20:04.173Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9582,
+      "completion": 90,
+      "total": 9672,
+      "runId": "run_1781561962243"
+    },
+    {
+      "timestamp": "2026-06-15T22:20:06.326Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9821,
+      "completion": 90,
+      "total": 9911,
+      "runId": "run_1781561962243"
+    },
+    {
+      "timestamp": "2026-06-15T22:22:07.902Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9640,
+      "completion": 99,
+      "total": 9739,
+      "runId": "run_1781562124034"
+    },
+    {
+      "timestamp": "2026-06-15T22:22:11.881Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9648,
+      "completion": 99,
+      "total": 9747,
+      "runId": "run_1781562124034"
+    },
+    {
+      "timestamp": "2026-06-15T22:22:13.002Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9648,
+      "completion": 107,
+      "total": 9755,
+      "runId": "run_1781562124034"
+    },
+    {
+      "timestamp": "2026-06-15T22:22:15.214Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9638,
+      "completion": 99,
+      "total": 9737,
+      "runId": "run_1781562124034"
+    },
+    {
+      "timestamp": "2026-06-15T22:22:16.216Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9633,
+      "completion": 99,
+      "total": 9732,
+      "runId": "run_1781562124034"
+    },
+    {
+      "timestamp": "2026-06-15T22:22:18.368Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9633,
+      "completion": 99,
+      "total": 9732,
+      "runId": "run_1781562124034"
+    },
+    {
+      "timestamp": "2026-06-15T22:22:19.819Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9864,
+      "completion": 99,
+      "total": 9963,
+      "runId": "run_1781562124034"
+    },
+    {
+      "timestamp": "2026-06-15T22:22:22.633Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9643,
+      "completion": 99,
+      "total": 9742,
+      "runId": "run_1781562124034"
+    },
+    {
+      "timestamp": "2026-06-15T22:22:23.674Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9643,
+      "completion": 99,
+      "total": 9742,
+      "runId": "run_1781562124034"
+    },
+    {
+      "timestamp": "2026-06-15T22:22:26.288Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9643,
+      "completion": 99,
+      "total": 9742,
+      "runId": "run_1781562124034"
+    },
+    {
+      "timestamp": "2026-06-15T22:22:28.158Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9643,
+      "completion": 99,
+      "total": 9742,
+      "runId": "run_1781562124034"
+    },
+    {
+      "timestamp": "2026-06-15T22:22:30.468Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9639,
+      "completion": 99,
+      "total": 9738,
+      "runId": "run_1781562124034"
+    },
+    {
+      "timestamp": "2026-06-15T22:22:32.146Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9639,
+      "completion": 99,
+      "total": 9738,
+      "runId": "run_1781562124034"
+    },
+    {
+      "timestamp": "2026-06-15T22:22:34.075Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9639,
+      "completion": 99,
+      "total": 9738,
+      "runId": "run_1781562124034"
     }
   ],
   "lifetimeTotals": {
     "gpt-4o-mini": 98363,
-    "total": 464978,
+    "total": 1271801,
     "gpt-5.4-nano-2026-03-17": 18462,
-    "gpt-5.4-mini-2026-03-17": 348153
+    "gpt-5.4-mini-2026-03-17": 1154976
   }
 }

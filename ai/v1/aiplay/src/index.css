@@ -1798,7 +1798,7 @@ textarea:focus {
 }
 
 /* Nav is hidden in simple-mode by default; show open button */
-.simple-mode .nav-sidebar {
+.simple-mode.nav-is-hidden .nav-sidebar {
   width: 0 !important;
   min-width: 0 !important;
   padding: 0 !important;

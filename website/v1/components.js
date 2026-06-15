@@ -393,6 +393,249 @@
         }, 100);
     }
 
+    function injectOtherGames() {
+        // Only inject on game pages
+        const isGamePage = document.body.classList.contains('TEMPLATE-4weird-game-page') || 
+                           window.location.pathname.includes('/games/html/');
+        if (!isGamePage) return;
+
+        // Detect current game ID from path
+        const pathParts = window.location.pathname.split('/');
+        const currentGameId = pathParts.find((part, index) => pathParts[index - 1] === 'html') || '';
+
+        // Define all games
+        const games = [
+            { id: 'serversavershield', title: 'Server Saver Shield', emoji: '🛡️', path: 'serversavershield', desc: 'Defend servers from cyber attacks! Strategic security management meets arcade shooter.', tags: ['Strategy', 'Shooter'], bg: 'linear-gradient(135deg, #0f172a 0%, #111827 50%, #06b6d4 100%)' },
+            { id: 'overtake', title: 'Overtake', emoji: '🏁', path: 'overtake', desc: 'Race through pseudo-3D routes, unlock faster cars, and use nitro boosts.', tags: ['Racing', 'Arcade'], bg: 'linear-gradient(135deg, #05070a 0%, #3a1510 48%, #ffcf42 100%)' },
+            { id: 'assassinanimals', title: 'AssassinAnimals', emoji: '🕶️', path: 'assassinanimals', desc: 'Control mutated animal operatives in a stealth rogue-like complex.', tags: ['Stealth', 'Action'], bg: 'linear-gradient(135deg, #09090e 0%, #1e112a 50%, #ff0055 100%)' },
+            { id: 'battlesharks2', title: 'Battlesharks 2', emoji: '🦈', path: 'battlesharks2', desc: 'Command a genetically modified combat shark and evolve cybernetic weapons.', tags: ['Action', 'Arcade'], bg: 'linear-gradient(135deg, #0b1a30 0%, #1e1b4b 50%, #00f2fe 100%)' },
+            { id: 'gravegain2d', title: 'GraveGain2D', emoji: '⚔️', path: 'gravegain2d', desc: 'A premium 2D dark fantasy RPG action rogue-like with offline mechanics.', tags: ['Action', 'RPG'], bg: 'linear-gradient(135deg, #180512 0%, #300a1c 50%, #902850 100%)' },
+            { id: 'gravegain3d', title: 'GraveGain3D', emoji: '🏰', path: 'gravegain3d', desc: 'A 3D dungeon crawler/action game in a dark fantasy setting.', tags: ['Action', '3D'], bg: 'linear-gradient(135deg, #1e1b4b 0%, #0d1527 50%, #7c3aed 100%)' },
+            { id: 'demolichdom', title: 'Demo Lichdom', emoji: '💀', path: 'demolichdom', desc: 'Navigate the treacherous politics of undead lords.', tags: ['Strategy', 'Dark Fantasy'], bg: 'linear-gradient(135deg, #0d0d12 0%, #1c1524 50%, #8b5cf6 100%)' },
+            { id: 'fridgesimulator', title: 'Fridge Simulator', emoji: '🥶', path: 'fridgesimulator', desc: 'Manage your fridge, feed your family, save the world.', tags: ['Simulation', 'Strategy'], bg: 'linear-gradient(135deg, #06151f 0%, #0f2d37 50%, #38bdf8 100%)' },
+            { id: 'DiscoverAmerica', title: 'Madi AI: Discover America', emoji: '🗽', path: 'DiscoverAmerica', desc: 'Explore American history through interactive puzzles and adventures.', tags: ['Adventure', 'Puzzle'], bg: 'linear-gradient(135deg, #051c12 0%, #0a3a24 50%, #10b981 100%)' },
+            { id: 'orbitaldrift', title: 'Orbital Drift', emoji: '🛸', path: 'orbitaldrift', desc: 'Control your orbit in a beautiful 3D space field and master the rhythm.', tags: ['Arcade', '3D'], bg: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0891b2 100%)' },
+            { id: 'aiwhackamole', title: 'AI-whack-a-mole', emoji: '🤖', path: 'aiwhackamole', desc: 'Whack the misaligned/dangerous AIs and spare the user-aligned ones.', tags: ['Arcade', '3D'], bg: 'linear-gradient(135deg, #1e1b4b 0%, #311042 50%, #4c1d95 100%)' },
+            { id: 'soundpainter2', title: 'Sound Painter 2', emoji: '🎹', path: 'soundpainter2', desc: 'An advanced, in-depth music production studio.', tags: ['Music', 'Creative'], bg: 'linear-gradient(135deg, #1e1b4b 0%, #4c1d95 50%, #d946ef 100%)' },
+            { id: 'soundpainter', title: 'Sound Painter', emoji: '🎨', path: 'soundpainter', desc: 'Click tiles to paint music and color. Pure creative expression.', tags: ['Music', 'Creative'], bg: 'linear-gradient(135deg, #2d1b4e 0%, #6b21a8 50%, #d946ef 100%)' }
+        ];
+
+        // Determine Featured Game: Overtake. If currently on Overtake, use Server Saver Shield
+        let featuredGameId = 'overtake';
+        if (currentGameId.toLowerCase() === 'overtake') {
+            featuredGameId = 'serversavershield';
+        }
+        const featuredGame = games.find(g => g.id === featuredGameId);
+
+        // Get candidate random games (exclude current and featured)
+        const remainingGames = games.filter(g => g.id.toLowerCase() !== currentGameId.toLowerCase() && g.id !== featuredGameId);
+
+        // Shuffle and pick 2 random games
+        const shuffled = remainingGames.sort(() => 0.5 - Math.random());
+        const selectedRandom = shuffled.slice(0, 2);
+
+        // We now have 3 games to display: featuredGame, selectedRandom[0], selectedRandom[1]
+        const displayGames = [
+            { ...featuredGame, isFeatured: true },
+            ...selectedRandom.map(g => ({ ...g, isFeatured: false }))
+        ];
+
+        // Build the HTML for the cards
+        const cardsHtml = displayGames.map(g => {
+            const url = `../${g.path}/index.html`;
+            return `
+                <div class="TEMPLATE-4weird-other-game-card ${g.isFeatured ? 'featured' : ''}" style="background: ${g.bg};">
+                    ${g.isFeatured ? '<span class="TEMPLATE-4weird-other-game-badge">Featured Game</span>' : ''}
+                    <div class="TEMPLATE-4weird-other-game-emoji">${g.emoji}</div>
+                    <div class="TEMPLATE-4weird-other-game-info">
+                        <h4 class="TEMPLATE-4weird-other-game-title">${g.title}</h4>
+                        <p class="TEMPLATE-4weird-other-game-desc">${g.desc}</p>
+                        <div class="TEMPLATE-4weird-other-game-tags">
+                            ${g.tags.map(t => `<span class="TEMPLATE-4weird-other-game-tag">${t}</span>`).join('')}
+                        </div>
+                        <a href="${url}" class="TEMPLATE-4weird-other-game-btn">Play Now</a>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        const otherGamesHTML = `
+            <section class="TEMPLATE-4weird-other-games-section">
+                <h3 class="TEMPLATE-4weird-other-games-header">Other Games</h3>
+                <div class="TEMPLATE-4weird-other-games-grid">
+                    ${cardsHtml}
+                </div>
+                <div style="margin-top: 40px;">
+                    <a href="../../../index.html#games" class="TEMPLATE-4weird-back-link">
+                        <span class="TEMPLATE-4weird-back-arrow">🎯</span>
+                        <span>Browse All Games</span>
+                    </a>
+                </div>
+            </section>
+        `;
+
+        // Inject styles dynamically if not already present
+        if (!document.getElementById('TEMPLATE-4weird-other-games-styles')) {
+            const style = document.createElement('style');
+            style.id = 'TEMPLATE-4weird-other-games-styles';
+            style.textContent = `
+                .TEMPLATE-4weird-other-games-section {
+                    background: #06060c;
+                    border-top: 1px solid rgba(139, 92, 246, 0.2);
+                    padding: 60px 20px;
+                    text-align: center;
+                    font-family: 'Inter', sans-serif;
+                    color: #ffffff;
+                    width: 100%;
+                    box-sizing: border-box;
+                }
+                .TEMPLATE-4weird-other-games-header {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 2rem;
+                    margin-top: 0;
+                    margin-bottom: 40px;
+                    color: #00f2fe;
+                    text-transform: uppercase;
+                    letter-spacing: 2px;
+                    text-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+                }
+                .TEMPLATE-4weird-other-games-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                    gap: 25px;
+                    max-width: 1100px;
+                    margin: 0 auto;
+                }
+                .TEMPLATE-4weird-other-game-card {
+                    border-radius: 16px;
+                    padding: 24px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: space-between;
+                    position: relative;
+                    min-height: 320px;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    overflow: hidden;
+                    text-align: center;
+                    box-sizing: border-box;
+                }
+                .TEMPLATE-4weird-other-game-card:hover {
+                    transform: translateY(-8px);
+                    border-color: #00f2fe;
+                    box-shadow: 0 15px 40px rgba(0, 242, 254, 0.25);
+                }
+                .TEMPLATE-4weird-other-game-card.featured {
+                    border: 2px solid #ffcf42;
+                    box-shadow: 0 10px 35px rgba(255, 207, 66, 0.2);
+                }
+                .TEMPLATE-4weird-other-game-card.featured:hover {
+                    border-color: #ffcf42;
+                    box-shadow: 0 15px 45px rgba(255, 207, 66, 0.45);
+                }
+                .TEMPLATE-4weird-other-game-badge {
+                    position: absolute;
+                    top: 12px;
+                    right: 12px;
+                    background: #ffcf42;
+                    color: #000000;
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 0.7rem;
+                    font-weight: 700;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    text-transform: uppercase;
+                }
+                .TEMPLATE-4weird-other-game-emoji {
+                    font-size: 4rem;
+                    margin-bottom: 15px;
+                    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));
+                    transition: transform 0.3s ease;
+                }
+                .TEMPLATE-4weird-other-game-card:hover .TEMPLATE-4weird-other-game-emoji {
+                    transform: scale(1.1) rotate(5deg);
+                }
+                .TEMPLATE-4weird-other-game-info {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    width: 100%;
+                    flex-grow: 1;
+                }
+                .TEMPLATE-4weird-other-game-title {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 1.3rem;
+                    margin: 0 0 10px 0;
+                    color: #ffffff;
+                }
+                .TEMPLATE-4weird-other-game-desc {
+                    font-size: 0.9rem;
+                    color: rgba(255, 255, 255, 0.7);
+                    margin: 0 0 15px 0;
+                    line-height: 1.5;
+                    flex-grow: 1;
+                }
+                .TEMPLATE-4weird-other-game-tags {
+                    display: flex;
+                    gap: 8px;
+                    margin-bottom: 20px;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                }
+                .TEMPLATE-4weird-other-game-tag {
+                    font-size: 0.75rem;
+                    background: rgba(255, 255, 255, 0.1);
+                    color: rgba(255, 255, 255, 0.9);
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                }
+                .TEMPLATE-4weird-other-game-btn {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 0.9rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    color: #ffffff;
+                    background: rgba(255, 255, 255, 0.1);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    padding: 10px 24px;
+                    border-radius: 6px;
+                    text-decoration: none;
+                    transition: all 0.2s ease;
+                    width: 100%;
+                    box-sizing: border-box;
+                }
+                .TEMPLATE-4weird-other-game-card:hover .TEMPLATE-4weird-other-game-btn {
+                    background: #ffffff;
+                    color: #000000;
+                    border-color: #ffffff;
+                }
+                .TEMPLATE-4weird-other-game-card.featured:hover .TEMPLATE-4weird-other-game-btn {
+                    background: #ffcf42;
+                    color: #000000;
+                    border-color: #ffcf42;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        const existingMoreGames = document.querySelector('.TEMPLATE-4weird-more-games');
+        if (existingMoreGames) {
+            existingMoreGames.outerHTML = otherGamesHTML;
+        } else {
+            // Find footer placeholder or footer and insert before it
+            const footerPlaceholder = document.getElementById('TEMPLATE-4weird-footer-placeholder') || 
+                                      document.getElementById('footer-placeholder');
+            if (footerPlaceholder) {
+                const container = document.createElement('div');
+                container.innerHTML = otherGamesHTML;
+                footerPlaceholder.parentNode.insertBefore(container.firstElementChild, footerPlaceholder);
+            }
+        }
+    }
+
     // Initialize on DOM ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
@@ -405,6 +648,7 @@
         injectFooter();
         injectAnalytics();
         injectDebugHUD();
+        injectOtherGames();
     }
 
     // Expose for manual use
@@ -413,6 +657,7 @@
         injectFooter,
         injectAnalytics,
         injectDebugHUD,
+        injectOtherGames,
         config: SITE_CONFIG
     };
 })();

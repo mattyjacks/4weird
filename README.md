@@ -64,14 +64,26 @@ Current lineup:
 
 ---
 
-## � Play & Debug Web Apps
+## 🤖 Play & Debug Web Apps
 
-**NEW:** aiplay now supports playing and debugging websites and web apps with any framework!
+**NEW:** `aiplay` now supports playing and debugging websites and web apps with any framework! It is an Electron-based runtime application coupled with agentic LLM support for automated playtesting and debugging.
 
-### Website Player
+### 🚀 How to Run AIPlay
+```bash
+# Navigate to the aiplay directory
+cd ai/v1/aiplay
+
+# Install dependencies
+npm install
+
+# Start the Electron application
+npm start
+```
+
+### 🌐 Website Player
 Play static HTML/CSS/JS websites instantly with zero configuration. Perfect for prototypes and simple projects.
 
-### Web App Debugger
+### 🔧 Web App Debugger
 Debug modern web frameworks with automatic detection and smart dev server launching.
 
 **Supported Frameworks:**
@@ -81,19 +93,18 @@ Debug modern web frameworks with automatic detection and smart dev server launch
 - Any file structure
 
 **Features:**
-- 🔍 Framework auto-detection
-- ⚡ One-click launch
-- 🎨 Beautiful UI with framework badges
-- 📺 Live server console output
-- 🔧 Chrome DevTools integration
-- 🔄 Hot reload support
-- 📊 Server status monitoring
+- 🔍 **Framework Auto-Detection**: Automatically identifies project structure, package manager scripts, and entry points.
+- ⚡ **One-Click Launch**: Auto-resolves port conflicts and boots up the dev server with live output streaming.
+- 🎨 **Beautiful UI**: Colorful framework badges, server status indicators, and custom developer layout.
+- 🔧 **Chrome DevTools Integration**: Inspect elements, debug JavaScript console messages, and view network traffic directly inside the app.
+- 🔄 **Hot Reload Support**: Seamless live updates during editing and debugging.
+- 📊 **Server Status Monitoring**: Real-time console logs and server lifecycle management.
 
-See [web-apps.html](website/v1/web-apps.html) for detailed usage guide.
+See [web-apps.html](website/v1/web-apps.html) for the detailed usage guide.
 
 ---
 
-## �🛠️ Tech Stack
+## 🛠️ Tech Stack
 
 | Requirement | Specification |
 |-------------|---------------|
@@ -130,4 +141,11 @@ website/v1/games/html/yourgame/
 
 ---
 
+## 📜 License
+
+This project is open source but not free. A private license applies: we reserve all rights to the games.
+
+---
+
 *Do and/or DIE TRYING!!!*
+

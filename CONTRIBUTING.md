@@ -224,7 +224,7 @@ By contributing, you confirm:
 - Your submission is your original work OR properly licensed
 - You grant 4weird the right to host and showcase your game
 - **You retain full ownership** of your game and code
-- Your game stays open source in this repo (MIT license)
+- Your game stays open source in this repo under our private license (all rights reserved)
 
 ---
 

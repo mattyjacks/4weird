@@ -62,11 +62,17 @@
                 <div class="friendslop-4weird-overlay-content">
                     <h2>🍝 FriendSlop</h2>
                     <p>Feed your friends slop and build your vibe meter!</p>
-                    <button class="btn btn-primary" id="friendslop-4weird-start-btn">
-                        <span class="btn-emoji">🎮</span> Start Game
-                    </button>
+                    <div style="display: flex; gap: 12px; justify-content: center; margin-bottom: 15px;">
+                        <button class="btn btn-primary" id="friendslop-4weird-start-btn">
+                            <span class="btn-emoji">👤</span> 1 Player
+                        </button>
+                        <button class="btn btn-secondary" id="friendslop-4weird-coop-btn" style="border: 2px solid #ff00ff; color: #ff00ff; background: transparent;">
+                            <span class="btn-emoji">👥</span> Co-op Mode
+                        </button>
+                    </div>
                     <div class="friendslop-4weird-controls-hint">
-                        <p><strong>Controls:</strong> Arrow Keys/WASD to move, Space/Click to throw</p>
+                        <p style="margin-bottom: 5px;"><strong>P1 (🤖):</strong> Arrow Keys to move, Space to throw</p>
+                        <p><strong>P2 (🦊):</strong> WASD to move, Shift/W to throw</p>
                     </div>
                 </div>
             </div>
@@ -83,7 +89,7 @@
                 <div class="friendslop-4weird-overlay-content">
                     <h2>Game Over</h2>
                     <p class="friendslop-4weird-final-score">Score: <span id="friendslop-4weird-final-score">0</span></p>
-                    <p class="friendslop-4weird-daily-rank">Daily Rank: <span id="friendslop-4weird-daily-rank">-</span></p>
+                    <p class="friendslop-4weird-daily-rank">Wave Reached: <span id="friendslop-4weird-daily-rank">-</span></p>
                     <button class="btn btn-primary" id="friendslop-4weird-play-again-btn">Play Again</button>
                     <button class="btn btn-secondary" id="friendslop-4weird-share-btn">📤 Share Score</button>
                 </div>
@@ -99,10 +105,14 @@
             
             <div class="friendslop-4weird-panel-section">
                 <h3>Controls</h3>
-                <ul id="friendslop-4weird-controls-list">
-                    <li><kbd>Arrow Keys</kbd> / <kbd>WASD</kbd> - Move</li>
-                    <li><kbd>Space</kbd> / <kbd>Click</kbd> - Throw</li>
-                    <li><kbd>P</kbd> / <kbd>Esc</kbd> - Pause</li>
+                <ul id="friendslop-4weird-controls-list" style="line-height: 1.6; font-size: 0.9rem;">
+                    <li><strong>Player 1 (🤖)</strong></li>
+                    <li>Move: <kbd>Arrow Keys</kbd></li>
+                    <li>Throw: <kbd>Space</kbd> / <kbd>Click</kbd></li>
+                    <li style="margin-top: 5px;"><strong>Player 2 (🦊)</strong></li>
+                    <li>Move: <kbd>W A S D</kbd></li>
+                    <li>Throw: <kbd>Shift</kbd> / <kbd>W</kbd></li>
+                    <li style="margin-top: 5px;"><kbd>P</kbd> / <kbd>Esc</kbd> - Pause</li>
                 </ul>
             </div>
             

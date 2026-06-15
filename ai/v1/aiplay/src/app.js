@@ -260,6 +260,9 @@ document.addEventListener('DOMContentLoaded', () => {
       logSystemMessage(`Switched to ${isSimple ? 'Simple' : 'Advanced'} layout.`);
       if (isSimple) {
         tabs.switchTab('logs', el, audio);
+        hideNav();
+      } else {
+        showNav();
       }
     });
   }
@@ -438,6 +441,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   logSystemMessage("System dashboard loaded. Welcome Hub ready.");
   setTimeout(populateQuickLaunchGrid, 600);
+
+  // Listen for command line arguments from the main process
+  ipcRenderer.on('cli-args', (event, argv) => {
+    window.cliArgs = argv;
+    const gameArgIndex = argv.indexOf('--game');
+    if (gameArgIndex !== -1 && gameArgIndex + 1 < argv.length) {
+      const gameName = argv[gameArgIndex + 1];
+      logSystemMessage(`Command-line request: Auto-loading game "${gameName}"`);
+      setTimeout(() => {
+        const options = Array.from(el.demoGameSelect.options);
+        const matchedOpt = options.find(opt => opt.textContent.toLowerCase() === gameName.toLowerCase());
+        if (matchedOpt) {
+          el.demoGameSelect.value = matchedOpt.value;
+          selectDemo();
+          if (argv.includes('--start-agent')) {
+            logSystemMessage("Command-line request: Auto-starting AI Agent in 1.5 seconds");
+            setTimeout(() => {
+              if (!isRunning) toggleAgentState();
+            }, 1500);
+          }
+        } else {
+          logSystemMessage(`Game "${gameName}" not found in demo games list.`, 'error');
+        }
+      }, 1200);
+    }
+  });
 });
 
 function saveConfigData() {
@@ -856,11 +885,25 @@ function renderShotsPreview() {
 }
 
 // WebView messages interception
+let lastManualCaptureTime = 0;
+
 function setupWebviewListeners() {
   webviewElement.addEventListener('console-message', (e) => {
     let type = 'agent';
     if (e.level === 2) type = 'warning';
     if (e.level === 3) type = 'error';
+    
+    // Check for user action log to trigger screenshot
+    if (e.message.includes('[4weird-user-action]')) {
+      if (el.autocodeCaptureOnPlay && el.autocodeCaptureOnPlay.checked) {
+        const now = Date.now();
+        if (now - lastManualCaptureTime >= 1000) {
+          lastManualCaptureTime = now;
+          captureManualScreenshot();
+        }
+      }
+      return; // Do not log user action in system console logs
+    }
     
     // Strip webview logs from system logs but preserve errors
     if (e.level === 3 || e.message.includes('4weird')) {
@@ -871,6 +914,17 @@ function setupWebviewListeners() {
   webviewElement.addEventListener('did-finish-load', () => {
     logSystemMessage("Game window viewport successfully loaded.");
     crawlFiles();
+    
+    // Inject user action tracking script
+    webviewElement.executeJavaScript(`
+      (() => {
+        const handler = (e) => {
+          console.log('[4weird-user-action] ' + e.type);
+        };
+        window.addEventListener('keydown', handler);
+        window.addEventListener('mousedown', handler);
+      })()
+    `).catch(err => console.error("Failed to inject tracking script:", err));
   });
 }
 
@@ -995,6 +1049,86 @@ function clearHeatmapCanvas() {
   ctx.clearRect(0, 0, el.heatmapCanvas.width, el.heatmapCanvas.height);
 }
 
+async function runFriendSlopAutoplay() {
+  try {
+    const gameState = await webviewElement.executeJavaScript(`
+      (() => {
+        if (typeof game === 'undefined') return null;
+        return {
+          state: game.state,
+          playerX: game.players && game.players.length > 0 ? (game.players[0].x + game.players[0].width / 2) : 400,
+          slops: game.slop ? game.slop.map(s => ({ x: s.x + s.width / 2, y: s.y + s.height / 2, speed: s.speed })) : [],
+          hazards: game.hazards ? game.hazards.map(h => ({ x: h.x + h.width / 2, y: h.y + h.height / 2 })) : [],
+          friends: game.friends ? game.friends.map(f => ({ x: f.x + f.width / 2, y: f.y + f.height / 2 })) : []
+        };
+      })()
+    `);
+
+    if (!gameState) return null;
+
+    let type = 'wait';
+    let target = '';
+    let reasoning = 'Autoplay: waiting...';
+
+    if (gameState.state === 'start') {
+      type = 'click';
+      target = '#friendslop-4weird-start-btn';
+      reasoning = 'Autoplay: Clicking Single Player start button';
+    } else if (gameState.state === 'game_over') {
+      type = 'click';
+      target = '#friendslop-4weird-play-again-btn';
+      reasoning = 'Autoplay: Clicking Play Again button';
+    } else if (gameState.state === 'paused') {
+      type = 'click';
+      target = '#friendslop-4weird-resume-btn';
+      reasoning = 'Autoplay: Clicking Resume button';
+    } else if (gameState.state === 'playing') {
+      // Find the closest slop that is above the player
+      const validSlops = gameState.slops.filter(s => s.y < 500); // player is around y=520
+      if (validSlops.length > 0) {
+        validSlops.sort((a, b) => b.y - a.y); // lowest slop first
+        const targetSlop = validSlops[0];
+        const dx = targetSlop.x - gameState.playerX;
+        
+        if (Math.abs(dx) > 15) {
+          type = 'press_key';
+          target = dx < 0 ? 'ArrowLeft' : 'ArrowRight';
+          reasoning = `Autoplay: Moving player towards closest falling slop at X: ${Math.round(targetSlop.x)}`;
+        } else {
+          type = 'press_key';
+          target = ' ';
+          reasoning = 'Autoplay: Aligned with slop! Throwing to feed friends!';
+        }
+      } else {
+        if (Math.random() < 0.3) {
+          type = 'press_key';
+          target = ' ';
+          reasoning = 'Autoplay: No slops, throwing blindly';
+        } else {
+          const dx = 400 - gameState.playerX;
+          if (Math.abs(dx) > 20) {
+            type = 'press_key';
+            target = dx < 0 ? 'ArrowLeft' : 'ArrowRight';
+            reasoning = 'Autoplay: Returning to center';
+          } else {
+            type = 'wait';
+            reasoning = 'Autoplay: Idling in center';
+          }
+        }
+      }
+    }
+
+    return {
+      status: gameState.state,
+      reasoning,
+      action: { type, target, duration_ms: 100 }
+    };
+  } catch (err) {
+    console.error("Autoplay script failed", err);
+    return null;
+  }
+}
+
 // Periodic task simulator: evaluates latest page layout and executes action choice
 async function executeAgentStep(forceHeuristic = false) {
   if (!isRunning && !forceHeuristic) return;
@@ -1019,11 +1153,23 @@ async function executeAgentStep(forceHeuristic = false) {
     }
     
     // Step decision calculation
-    const decision = await agentBrain.chooseNextAction(screenshotBase64, elements, forceHeuristic, consoleLogs);
+    const url = el.gameUrlInput.value;
+    const isFriendSlop = url && url.includes('friendslop');
+    let decision = null;
+    
+    const isAutoplayRequested = (window.cliArgs && window.cliArgs.includes('--autoplay')) || !agentBrain.config.apiKey;
+    if (isFriendSlop && isAutoplayRequested) {
+      decision = await runFriendSlopAutoplay();
+    }
+    
+    if (!decision) {
+      decision = await agentBrain.chooseNextAction(screenshotBase64, elements, forceHeuristic, consoleLogs);
+    }
     
     // Update live view overlay and reasoning
     el.brainScreenshot.src = 'data:image/jpeg;base64,' + screenshotBase64;
     el.brainReasoning.innerHTML = `<strong>Action reasoning:</strong><br>${decision.reasoning}`;
+    logSystemMessage(`Decision reasoning: ${decision.reasoning}`);
     
     // Save to timeline tracker history
     timelineHistory.push({
@@ -1087,8 +1233,8 @@ async function executeAgentStep(forceHeuristic = false) {
         }
         await ipcRenderer.invoke('run-input-sim', pyArgs);
       } else {
-        // Inject into WebView DOM
-        await gameController.executeAction(webviewElement, decision.action);
+        const actionResult = await gameController.executeAction(webviewElement, decision.action);
+        logSystemMessage(`Action result: ${actionResult}`);
       }
     }
     

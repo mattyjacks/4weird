@@ -29,7 +29,8 @@ class FriendSlop {
         this.dailySeed = this.getDailySeed();
         document.getElementById('friendslop-4weird-high-score').textContent = Math.floor(this.highScore);
         
-        this.player = new Player(canvas.width / 2, canvas.height - 80);
+        this.isCoop = false;
+        this.players = [];
         this.friends = [];
         this.slop = [];
         this.hazards = [];
@@ -49,8 +50,22 @@ class FriendSlop {
         return seed;
     }
     
+    initPlayers() {
+        this.players = [];
+        if (this.isCoop) {
+            this.players.push(new Player(canvas.width / 3 - 20, canvas.height - 80, '🤖', { left: ['ArrowLeft'], right: ['ArrowRight'], throw: [' '] }));
+            this.players.push(new Player((canvas.width * 2) / 3 - 20, canvas.height - 80, '🦊', { left: ['a', 'A'], right: ['d', 'D'], throw: ['w', 'W', 'Shift'] }));
+        } else {
+            this.players.push(new Player(canvas.width / 2 - 20, canvas.height - 80, '🤖', { left: ['ArrowLeft', 'a', 'A'], right: ['ArrowRight', 'd', 'D'], throw: [' ', 'w', 'W'] }));
+        }
+    }
+    
     setupEventListeners() {
-        document.getElementById('friendslop-4weird-start-btn').addEventListener('click', () => this.start());
+        document.getElementById('friendslop-4weird-start-btn').addEventListener('click', () => this.start(false));
+        const coopBtn = document.getElementById('friendslop-4weird-coop-btn');
+        if (coopBtn) {
+            coopBtn.addEventListener('click', () => this.start(true));
+        }
         document.getElementById('friendslop-4weird-resume-btn').addEventListener('click', () => this.resume());
         document.getElementById('friendslop-4weird-restart-btn').addEventListener('click', () => this.restart());
         document.getElementById('friendslop-4weird-play-again-btn').addEventListener('click', () => this.restart());
@@ -61,6 +76,8 @@ class FriendSlop {
         canvas.addEventListener('click', () => this.handleClick());
         canvas.addEventListener('touchstart', (e) => this.handleTouch(e));
         canvas.addEventListener('touchmove', (e) => this.handleTouchMove(e));
+        canvas.addEventListener('touchend', (e) => this.handleTouchEnd(e));
+        canvas.addEventListener('touchcancel', (e) => this.handleTouchEnd(e));
     }
     
     handleKeyDown(e) {
@@ -68,23 +85,30 @@ class FriendSlop {
             this.togglePause();
         }
         if (this.state === GAME_STATE.PLAYING) {
-            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') this.player.moveLeft = true;
-            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') this.player.moveRight = true;
-            if (e.key === ' ') {
-                e.preventDefault();
-                this.player.throw();
+            for (let player of this.players) {
+                if (player.controls.left.includes(e.key)) player.moveLeft = true;
+                if (player.controls.right.includes(e.key)) player.moveRight = true;
+                if (player.controls.throw.includes(e.key)) {
+                    if (e.key === ' ') e.preventDefault();
+                    player.throw();
+                }
             }
         }
     }
     
     handleKeyUp(e) {
-        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') this.player.moveLeft = false;
-        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') this.player.moveRight = false;
+        if (this.state === GAME_STATE.PLAYING) {
+            for (let player of this.players) {
+                if (player.controls.left.includes(e.key)) player.moveLeft = false;
+                if (player.controls.right.includes(e.key)) player.moveRight = false;
+            }
+        }
     }
     
     handleClick() {
         if (this.state === GAME_STATE.PLAYING) {
-            this.player.throw();
+            const p1 = this.players[0];
+            if (p1) p1.throw();
         }
     }
     
@@ -94,14 +118,17 @@ class FriendSlop {
             const rect = canvas.getBoundingClientRect();
             const x = touch.clientX - rect.left;
             
-            if (x < canvas.width / 3) {
-                this.player.moveLeft = true;
-                this.player.moveRight = false;
-            } else if (x > (canvas.width * 2) / 3) {
-                this.player.moveRight = true;
-                this.player.moveLeft = false;
-            } else {
-                this.player.throw();
+            const p1 = this.players[0];
+            if (p1) {
+                if (x < canvas.width / 3) {
+                    p1.moveLeft = true;
+                    p1.moveRight = false;
+                } else if (x > (canvas.width * 2) / 3) {
+                    p1.moveRight = true;
+                    p1.moveLeft = false;
+                } else {
+                    p1.throw();
+                }
             }
         }
     }
@@ -112,19 +139,34 @@ class FriendSlop {
             const rect = canvas.getBoundingClientRect();
             const x = touch.clientX - rect.left;
             
-            if (x < canvas.width / 3) {
-                this.player.moveLeft = true;
-                this.player.moveRight = false;
-            } else if (x > (canvas.width * 2) / 3) {
-                this.player.moveRight = true;
-                this.player.moveLeft = false;
+            const p1 = this.players[0];
+            if (p1) {
+                if (x < canvas.width / 3) {
+                    p1.moveLeft = true;
+                    p1.moveRight = false;
+                } else if (x > (canvas.width * 2) / 3) {
+                    p1.moveRight = true;
+                    p1.moveLeft = false;
+                }
             }
         }
     }
     
-    start() {
+    handleTouchEnd(e) {
+        if (this.state === GAME_STATE.PLAYING) {
+            for (let player of this.players) {
+                player.moveLeft = false;
+                player.moveRight = false;
+            }
+        }
+    }
+    
+    start(coop = false) {
+        console.log("FriendSlop game started. Coop mode:", coop);
+        this.isCoop = coop;
         this.state = GAME_STATE.PLAYING;
         document.getElementById('friendslop-4weird-start-screen').classList.add('hidden');
+        this.initPlayers();
     }
     
     togglePause() {
@@ -142,13 +184,14 @@ class FriendSlop {
     }
     
     restart() {
+        console.log("FriendSlop game restarted.");
         this.state = GAME_STATE.PLAYING;
         this.score = 0;
         this.combo = 0;
         this.vibeMeter = 100;
         this.time = 0;
         this.wave = 1;
-        this.player = new Player(canvas.width / 2, canvas.height - 80);
+        this.initPlayers();
         this.friends = [];
         this.slop = [];
         this.hazards = [];
@@ -156,6 +199,7 @@ class FriendSlop {
         this.projectiles = [];
         this.spawnFriends();
         document.getElementById('friendslop-4weird-game-over-screen').classList.add('hidden');
+        document.getElementById('friendslop-4weird-pause-screen').classList.add('hidden');
     }
     
     spawnFriends() {
@@ -194,8 +238,10 @@ class FriendSlop {
         // Wave progression
         this.wave = Math.floor(this.time / 300) + 1;
         
-        // Update player
-        this.player.update();
+        // Update players
+        for (let player of this.players) {
+            player.update();
+        }
         
         // Spawn entities
         this.spawnSlop();
@@ -212,15 +258,20 @@ class FriendSlop {
                 continue;
             }
             
-            // Check collision with player
-            if (this.player.collidesWith(this.slop[i])) {
-                this.slop.splice(i, 1);
-                this.score += 10 * (1 + this.combo * 0.1);
-                this.combo++;
-                this.vibeMeter = Math.min(100, this.vibeMeter + 2);
-                this.createParticles(this.player.x, this.player.y, '✨');
-                continue;
+            // Check collision with players
+            let hitPlayer = false;
+            for (let player of this.players) {
+                if (player.collidesWith(this.slop[i])) {
+                    this.slop.splice(i, 1);
+                    this.score += 10 * (1 + this.combo * 0.1);
+                    this.combo++;
+                    this.vibeMeter = Math.min(100, this.vibeMeter + 2);
+                    this.createParticles(player.x, player.y, '✨');
+                    hitPlayer = true;
+                    break;
+                }
             }
+            if (hitPlayer) continue;
             
             // Check collision with friends
             for (let friend of this.friends) {
@@ -245,14 +296,16 @@ class FriendSlop {
                 continue;
             }
             
-            // Check collision with player
-            if (this.player.collidesWith(this.hazards[i])) {
-                this.hazards.splice(i, 1);
-                this.vibeMeter -= 15;
-                this.combo = 0;
-                this.createParticles(this.player.x, this.player.y, '💥');
-                this.screenShake();
-                continue;
+            // Check collision with players
+            for (let player of this.players) {
+                if (player.collidesWith(this.hazards[i])) {
+                    this.hazards.splice(i, 1);
+                    this.vibeMeter -= 15;
+                    this.combo = 0;
+                    this.createParticles(player.x, player.y, '💥');
+                    this.screenShake();
+                    break;
+                }
             }
         }
         
@@ -304,6 +357,7 @@ class FriendSlop {
         if (this.score > this.highScore) {
             this.highScore = this.score;
             localStorage.setItem('friendslop-high-score', this.highScore);
+            document.getElementById('friendslop-4weird-high-score').textContent = Math.floor(this.highScore);
         }
     }
     
@@ -394,8 +448,10 @@ class FriendSlop {
             particle.draw(ctx);
         }
         
-        // Draw player
-        this.player.draw(ctx);
+        // Draw players
+        for (let player of this.players) {
+            player.draw(ctx);
+        }
         
         // Draw HUD
         this.drawHUD();
@@ -439,9 +495,11 @@ class FriendSlop {
 
 // Player class
 class Player {
-    constructor(x, y) {
+    constructor(x, y, emoji, controls) {
         this.x = x;
         this.y = y;
+        this.emoji = emoji;
+        this.controls = controls;
         this.width = 40;
         this.height = 40;
         this.speed = 5;
@@ -470,7 +528,7 @@ class Player {
         ctx.font = '40px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('🤖', this.x + this.width / 2, this.y + this.height / 2);
+        ctx.fillText(this.emoji, this.x + this.width / 2, this.y + this.height / 2);
     }
 }
 
