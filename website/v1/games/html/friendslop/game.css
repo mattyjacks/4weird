@@ -1,0 +1,449 @@
+/* FriendSlop Game Styles */
+
+.friendslop-4weird-game-page {
+    background: linear-gradient(135deg, #0f0f1e 0%, #1a0f2e 100%);
+    color: #fff;
+}
+
+.friendslop-4weird-game-header {
+    background: rgba(15, 15, 30, 0.8);
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid #ff00ff;
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.friendslop-4weird-game-header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.friendslop-4weird-back-link {
+    color: #00ffff;
+    text-decoration: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.friendslop-4weird-back-link:hover {
+    color: #ff00ff;
+    transform: translateX(-4px);
+}
+
+.friendslop-4weird-back-arrow {
+    font-size: 1.5rem;
+}
+
+.friendslop-4weird-game-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0;
+    background: linear-gradient(90deg, #00ffff, #ff00ff, #00ff00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+}
+
+.friendslop-4weird-game-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.9rem;
+    color: #00ffff;
+}
+
+.friendslop-4weird-game-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    background: rgba(0, 255, 0, 0.2);
+    border: 1px solid #00ff00;
+    font-weight: 600;
+}
+
+.friendslop-4weird-separator {
+    color: #666;
+}
+
+.friendslop-4weird-game-main {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 2rem;
+}
+
+.friendslop-4weird-game-frame {
+    position: relative;
+    background: #000;
+    border: 3px solid #00ffff;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(255, 0, 255, 0.1);
+    aspect-ratio: 4 / 3;
+    max-width: 100%;
+}
+
+#friendslop-4weird-gameCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.friendslop-4weird-fullscreen-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 50;
+    padding: 0.5rem 1rem;
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid #00ffff;
+    color: #00ffff;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.friendslop-4weird-fullscreen-btn:hover {
+    background: rgba(0, 255, 255, 0.2);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.friendslop-4weird-game-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    backdrop-filter: blur(5px);
+}
+
+.friendslop-4weird-game-overlay.hidden {
+    display: none;
+}
+
+.friendslop-4weird-overlay-content {
+    text-align: center;
+    background: rgba(15, 15, 30, 0.95);
+    padding: 2rem;
+    border-radius: 10px;
+    border: 2px solid #ff00ff;
+    max-width: 400px;
+    box-shadow: 0 0 30px rgba(255, 0, 255, 0.3);
+}
+
+.friendslop-4weird-overlay-content h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem;
+    margin: 0 0 1rem 0;
+    color: #00ffff;
+}
+
+.friendslop-4weird-overlay-content p {
+    margin: 1rem 0;
+    color: #ccc;
+    line-height: 1.6;
+}
+
+.friendslop-4weird-controls-hint {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #666;
+    font-size: 0.9rem;
+}
+
+.friendslop-4weird-final-score {
+    font-size: 1.5rem;
+    color: #00ff00;
+    font-weight: 700;
+}
+
+.friendslop-4weird-daily-rank {
+    font-size: 1rem;
+    color: #ffff00;
+    margin: 0.5rem 0;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    margin: 0.5rem;
+}
+
+.btn-primary {
+    background: linear-gradient(90deg, #00ffff, #00ff00);
+    color: #000;
+}
+
+.btn-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+}
+
+.btn-secondary {
+    background: rgba(255, 0, 255, 0.2);
+    color: #ff00ff;
+    border: 1px solid #ff00ff;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 0, 255, 0.3);
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.4);
+}
+
+.btn-emoji {
+    margin-right: 0.5rem;
+}
+
+.friendslop-4weird-game-info-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.friendslop-4weird-panel-section {
+    background: rgba(15, 15, 30, 0.6);
+    border: 1px solid #00ffff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+}
+
+.friendslop-4weird-panel-section h3 {
+    margin: 0 0 1rem 0;
+    color: #00ffff;
+    font-family: 'Orbitron', monospace;
+    font-size: 1.1rem;
+}
+
+.friendslop-4weird-panel-section p {
+    margin: 0;
+    color: #ccc;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.friendslop-4weird-panel-section ul {
+    margin: 0;
+    padding-left: 1.5rem;
+    list-style: none;
+}
+
+.friendslop-4weird-panel-section li {
+    margin: 0.5rem 0;
+    color: #ccc;
+    font-size: 0.9rem;
+}
+
+.friendslop-4weird-panel-section kbd {
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid #00ffff;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-family: monospace;
+    color: #00ffff;
+}
+
+.friendslop-4weird-high-score {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ff00ff;
+    margin: 0;
+}
+
+.friendslop-4weird-daily-seed {
+    font-size: 0.85rem;
+    color: #ffff00;
+    margin: 0;
+}
+
+.friendslop-4weird-credits-section {
+    max-width: 1200px;
+    margin: 4rem auto;
+    padding: 2rem;
+}
+
+.friendslop-4weird-credits-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #00ffff;
+}
+
+.friendslop-4weird-credits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.friendslop-4weird-credit-card {
+    background: rgba(15, 15, 30, 0.6);
+    border: 1px solid #00ffff;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.friendslop-4weird-credit-card:hover {
+    border-color: #ff00ff;
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+    transform: translateY(-5px);
+}
+
+.friendslop-4weird-credit-card.friendslop-4weird-primary {
+    border-color: #ff00ff;
+    background: rgba(255, 0, 255, 0.05);
+}
+
+.friendslop-4weird-credit-avatar {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.friendslop-4weird-credit-name {
+    margin: 0 0 0.5rem 0;
+    color: #00ffff;
+    font-family: 'Orbitron', monospace;
+}
+
+.friendslop-4weird-credit-role {
+    margin: 0 0 1rem 0;
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.friendslop-4weird-credit-links a {
+    color: #00ff00;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.friendslop-4weird-credit-links a:hover {
+    color: #ff00ff;
+}
+
+.friendslop-4weird-bio-section {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: rgba(15, 15, 30, 0.6);
+    border: 1px solid #00ffff;
+    border-radius: 8px;
+}
+
+.friendslop-4weird-bio-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.5rem;
+    color: #00ffff;
+    margin-bottom: 1rem;
+}
+
+.friendslop-4weird-bio-content p {
+    color: #ccc;
+    line-height: 1.8;
+    margin: 0;
+}
+
+.friendslop-4weird-more-games {
+    max-width: 1200px;
+    margin: 4rem auto;
+    padding: 2rem;
+    text-align: center;
+}
+
+.friendslop-4weird-more-games h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.8rem;
+    color: #00ffff;
+    margin-bottom: 1.5rem;
+}
+
+.friendslop-4weird-footer {
+    background: rgba(15, 15, 30, 0.8);
+    border-top: 2px solid #ff00ff;
+    padding: 2rem;
+    margin-top: 4rem;
+    text-align: center;
+}
+
+.friendslop-4weird-footer-content p {
+    margin: 0;
+    color: #888;
+}
+
+.friendslop-4weird-footer-content a {
+    color: #00ffff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.friendslop-4weird-footer-content a:hover {
+    color: #ff00ff;
+}
+
+.friendslop-4weird-footer-separator {
+    color: #666;
+    margin: 0 0.5rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .friendslop-4weird-game-header-inner {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .friendslop-4weird-game-title {
+        font-size: 1.8rem;
+    }
+
+    .friendslop-4weird-game-main {
+        grid-template-columns: 1fr;
+    }
+
+    .friendslop-4weird-game-info-panel {
+        order: 2;
+    }
+
+    .friendslop-4weird-game-frame {
+        order: 1;
+    }
+
+    .friendslop-4weird-overlay-content {
+        padding: 1.5rem;
+        max-width: 90%;
+    }
+
+    .friendslop-4weird-overlay-content h2 {
+        font-size: 1.5rem;
+    }
+
+    .btn {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+    }
+}

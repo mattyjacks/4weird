@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>FriendSlop - 4weird Games</title>
+    <meta name="description" content="Feed your friends chaotic slop and dodge cringe. A viral arcade game about vibes, combos, and absurd physics.">
+    <meta name="keywords" content="4weird, FriendSlop, HTML5 game, browser game, arcade, multiplayer">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="FriendSlop - 4weird Games">
+    <meta property="og:description" content="Feed your friends slop and build your vibe meter! A chaotic arcade game.">
+    <meta property="og:type" content="website">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍝</text></svg>">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Base Styles -->
+    <link rel="stylesheet" href="../../../styles.css">
+    <link rel="stylesheet" href="game.css">
+    
+    <!-- Game Metadata -->
+    <script src="game.json" type="application/json" id="game-metadata"></script>
+</head>
+<body class="friendslop-4weird-game-page">
+    <!-- Background -->
+    <canvas id="friendslop-4weird-starfield"></canvas>
+    
+    <!-- Navigation placeholder -->
+    <div id="friendslop-4weird-nav-placeholder"></div>
+    
+    <!-- Game Header Bar -->
+    <header class="friendslop-4weird-game-header">
+        <div class="friendslop-4weird-game-header-inner">
+            <a href="/" class="friendslop-4weird-back-link">
+                <span class="friendslop-4weird-back-arrow">←</span>
+                <span>Back to 4weird</span>
+            </a>
+            <h1 class="friendslop-4weird-game-title" id="friendslop-4weird-game-title">FriendSlop</h1>
+            <div class="friendslop-4weird-game-meta" id="friendslop-4weird-game-meta">
+                <span class="friendslop-4weird-game-genre">Arcade</span>
+                <span class="friendslop-4weird-separator">•</span>
+                <span class="friendslop-4weird-game-status live">LIVE</span>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Game Container -->
+    <main class="friendslop-4weird-game-main">
+        <!-- Game Canvas/Frame -->
+        <div class="friendslop-4weird-game-frame">
+            <button class="friendslop-4weird-fullscreen-btn" id="friendslop-4weird-fullscreen-btn" title="Toggle Fullscreen">📺 Fullscreen</button>
+            <canvas id="friendslop-4weird-gameCanvas"></canvas>
+            
+            <!-- Game Overlay States -->
+            <div class="friendslop-4weird-game-overlay" id="friendslop-4weird-start-screen">
+                <div class="friendslop-4weird-overlay-content">
+                    <h2>🍝 FriendSlop</h2>
+                    <p>Feed your friends slop and build your vibe meter!</p>
+                    <button class="btn btn-primary" id="friendslop-4weird-start-btn">
+                        <span class="btn-emoji">🎮</span> Start Game
+                    </button>
+                    <div class="friendslop-4weird-controls-hint">
+                        <p><strong>Controls:</strong> Arrow Keys/WASD to move, Space/Click to throw</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="friendslop-4weird-game-overlay hidden" id="friendslop-4weird-pause-screen">
+                <div class="friendslop-4weird-overlay-content">
+                    <h2>Paused</h2>
+                    <button class="btn btn-primary" id="friendslop-4weird-resume-btn">Resume</button>
+                    <button class="btn btn-secondary" id="friendslop-4weird-restart-btn">Restart</button>
+                </div>
+            </div>
+            
+            <div class="friendslop-4weird-game-overlay hidden" id="friendslop-4weird-game-over-screen">
+                <div class="friendslop-4weird-overlay-content">
+                    <h2>Game Over</h2>
+                    <p class="friendslop-4weird-final-score">Score: <span id="friendslop-4weird-final-score">0</span></p>
+                    <p class="friendslop-4weird-daily-rank">Daily Rank: <span id="friendslop-4weird-daily-rank">-</span></p>
+                    <button class="btn btn-primary" id="friendslop-4weird-play-again-btn">Play Again</button>
+                    <button class="btn btn-secondary" id="friendslop-4weird-share-btn">📤 Share Score</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Game Info Panel -->
+        <aside class="friendslop-4weird-game-info-panel">
+            <div class="friendslop-4weird-panel-section">
+                <h3>How to Play</h3>
+                <p id="friendslop-4weird-how-to-play">Feed your friends slop and dodge cringe! Catch falling slop and throw it at your friends to build combos. Avoid hazards to keep your vibe meter high. Survive longer waves for bigger scores!</p>
+            </div>
+            
+            <div class="friendslop-4weird-panel-section">
+                <h3>Controls</h3>
+                <ul id="friendslop-4weird-controls-list">
+                    <li><kbd>Arrow Keys</kbd> / <kbd>WASD</kbd> - Move</li>
+                    <li><kbd>Space</kbd> / <kbd>Click</kbd> - Throw</li>
+                    <li><kbd>P</kbd> / <kbd>Esc</kbd> - Pause</li>
+                </ul>
+            </div>
+            
+            <div class="friendslop-4weird-panel-section">
+                <h3>High Score</h3>
+                <p class="friendslop-4weird-high-score" id="friendslop-4weird-high-score">0</p>
+            </div>
+            
+            <div class="friendslop-4weird-panel-section">
+                <h3>Daily Challenge</h3>
+                <p class="friendslop-4weird-daily-seed" id="friendslop-4weird-daily-seed">Seed: -</p>
+            </div>
+        </aside>
+    </main>
+    
+    <!-- Credits Section -->
+    <section class="friendslop-4weird-credits-section" id="friendslop-4weird-credits">
+        <div class="friendslop-4weird-credits-container">
+            <h2 class="friendslop-4weird-credits-title">Credits</h2>
+            
+            <div class="friendslop-4weird-credits-grid" id="friendslop-4weird-credits-grid">
+                <div class="friendslop-4weird-credit-card friendslop-4weird-primary">
+                    <div class="friendslop-4weird-credit-avatar">🎮</div>
+                    <h3 class="friendslop-4weird-credit-name" id="friendslop-4weird-maker-name">Matt</h3>
+                    <p class="friendslop-4weird-credit-role">Game Developer</p>
+                    <p class="friendslop-4weird-credit-links">
+                        <a href="https://4weird.games" target="_blank" rel="noopener" id="friendslop-4weird-maker-link">4weird Games</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Maker Bio Section -->
+    <section class="friendslop-4weird-bio-section" id="friendslop-4weird-bio">
+        <div class="friendslop-4weird-bio-container">
+            <h2 class="friendslop-4weird-bio-title">About the Creator</h2>
+            <div class="friendslop-4weird-bio-content" id="friendslop-4weird-maker-bio">
+                <p>Building viral indieslop games for 2026. FriendSlop is a chaotic celebration of friend groups, bad decisions, and the pursuit of main character energy. Inspired by the golden age of couch co-op chaos and the meme economy.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- More Games -->
+    <section class="friendslop-4weird-more-games">
+        <div class="friendslop-4weird-more-games-container">
+            <h2>More 4weird Games</h2>
+            <a href="../../../index.html#games" class="btn btn-secondary">
+                <span class="btn-emoji">🎯</span> Browse All Games
+            </a>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="friendslop-4weird-footer">
+        <div class="friendslop-4weird-footer-content">
+            <p>🍝 <span id="friendslop-4weird-footer-title">FriendSlop</span> — A 4weird Game</p>
+            <p style="margin-top: 8px;">
+                <a href="../../../privacy-policy.html">Privacy Policy</a>
+                <span class="friendslop-4weird-footer-separator">|</span>
+                <a href="../../../index.html#games">More Games</a>
+                <span class="friendslop-4weird-footer-separator">|</span>
+                <a href="/">4weird Home</a>
+            </p>
+        </div>
+    </footer>
+    
+    <!-- Scripts -->
+    <script src="../../../components.js"></script>
+    <script src="game.js"></script>
+    <script>
+        (function() {
+            fetch('game.json')
+                .then(r => r.json())
+                .then(data => {
+                    document.title = data.title + ' - 4weird Games';
+                    document.getElementById('friendslop-4weird-game-title').textContent = data.title;
+                    document.getElementById('friendslop-4weird-maker-name').textContent = data.maker.name;
+                    document.getElementById('friendslop-4weird-maker-bio').innerHTML = '<p>' + data.maker.bio + '</p>';
+                    
+                    if (data.maker.url) {
+                        const link = document.getElementById('friendslop-4weird-maker-link');
+                        link.href = data.maker.url;
+                        link.textContent = data.maker.urlLabel || 'Portfolio';
+                    }
+                    
+                    if (data.credits && data.credits.length > 0) {
+                        const grid = document.getElementById('friendslop-4weird-credits-grid');
+                        grid.innerHTML = data.credits.map(c => `
+                            <div class="friendslop-4weird-credit-card ${c.primary ? 'friendslop-4weird-primary' : ''}">
+                                <div class="friendslop-4weird-credit-avatar">${c.avatar || '👤'}</div>
+                                <h3 class="friendslop-4weird-credit-name">${c.name}</h3>
+                                <p class="friendslop-4weird-credit-role">${c.role}</p>
+                                ${c.url ? `<p class="friendslop-4weird-credit-links"><a href="${c.url}" target="_blank" rel="noopener">${c.urlLabel || 'Link'}</a></p>` : ''}
+                            </div>
+                        `).join('');
+                    }
+                })
+                .catch(err => console.log('Using template defaults:', err));
+            
+            const fullscreenBtn = document.getElementById('friendslop-4weird-fullscreen-btn');
+            const gameFrame = document.querySelector('.friendslop-4weird-game-frame');
+            if (fullscreenBtn && gameFrame) {
+                fullscreenBtn.addEventListener('click', () => {
+                    if (!document.fullscreenElement) {
+                        gameFrame.requestFullscreen().catch(err => {
+                            console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                        });
+                    } else {
+                        document.exitFullscreen();
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

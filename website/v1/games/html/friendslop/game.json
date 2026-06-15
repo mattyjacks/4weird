@@ -1,0 +1,47 @@
+{
+    "title": "FriendSlop",
+    "slug": "friendslop",
+    "description": "Feed your friends chaotic slop and dodge cringe. A meme-forward arcade game about vibes, combos, and absurd physics.",
+    "genre": "Arcade",
+    "tags": ["HTML5", "Action", "Arcade", "Multiplayer", "Casual"],
+    "maker": {
+        "name": "Matt",
+        "bio": "Building viral indieslop games for 2026. FriendSlop is a chaotic celebration of friend groups, bad decisions, and the pursuit of main character energy. Inspired by the golden age of couch co-op chaos and the meme economy.",
+        "url": "https://4weird.games",
+        "urlLabel": "4weird Games"
+    },
+    "credits": [
+        {
+            "name": "Matt",
+            "role": "Game Designer & Developer",
+            "avatar": "🎮",
+            "primary": true,
+            "url": "https://4weird.games",
+            "urlLabel": "4weird Games"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "Arrow Keys / WASD": "Move",
+            "Space / Click": "Throw Slop",
+            "P or Esc": "Pause"
+        },
+        "touch": true,
+        "mouse": true
+    },
+    "instructions": "Feed your friends slop and build your vibe meter! Catch falling slop and throw it at your friends to rack up combos. Avoid the cringe hazards or lose vibe. The longer you survive, the more chaotic it gets. Reach the top of the daily leaderboard!",
+    "technical": {
+        "canvasSize": {"width": 800, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [],
+        "local": ["game.js", "game.css"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-15",
+        "license": "MIT"
+    }
+}
