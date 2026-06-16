@@ -1,0 +1,52 @@
+{
+    "title": "The Revenue Jungle",
+    "slug": "the-revenue-jungle",
+    "description": "Navigate the dense jungle of manual processes, bad data, and slow decisions. How far can you leap?",
+    "genre": "Arcade Runner",
+    "tags": ["HTML5", "Action", "Three.js", "Adventure"],
+    "maker": {
+        "name": "Madi AI Creative Team",
+        "bio": "Building the future of autonomous revenue engines.",
+        "url": "https://madi.ai",
+        "urlLabel": "Website"
+    },
+    "credits": [
+        {
+            "name": "Madi AI Team",
+            "role": "Game Creators",
+            "avatar": "🐆",
+            "primary": true,
+            "url": "https://madi.ai",
+            "urlLabel": "Website"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "Space / Up Arrow": "Jump",
+            "P / Esc": "Pause"
+        },
+        "touch": true,
+        "mouse": true
+    },
+    "instructions": "Avoid vines (Manual Processes), quicksand (Bad Data), and fog (Slow Decisions) by jumping at the correct moment. Collect gold coins (Revenue) for points!",
+    "technical": {
+        "canvasSize": {"width": 800, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [
+            {
+                "type": "script",
+                "url": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+                "description": "Three.js Library"
+            }
+        ],
+        "local": ["game.js", "game.css"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-16",
+        "license": "Private"
+    }
+}

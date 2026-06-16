@@ -1,0 +1,52 @@
+{
+    "title": "The Cave of Bottlenecks",
+    "slug": "the-cave-of-bottlenecks",
+    "description": "Identify bottlenecks, remove them, grow! Shine the Green Cat's AI light cone on stalactites of Hiring Delays and CRM Complexity to clear the cave path.",
+    "genre": "Puzzler",
+    "tags": ["HTML5", "Puzzle", "Three.js", "Adventure"],
+    "maker": {
+        "name": "Madi AI Creative Team",
+        "bio": "Building the future of autonomous revenue engines.",
+        "url": "https://madi.ai",
+        "urlLabel": "Website"
+    },
+    "credits": [
+        {
+            "name": "Madi AI Team",
+            "role": "Game Creators",
+            "avatar": "🦇",
+            "primary": true,
+            "url": "https://madi.ai",
+            "urlLabel": "Website"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "A / D or Arrow Keys": "Steer searchlight Left / Right",
+            "P / Esc": "Pause"
+        },
+        "touch": true,
+        "mouse": true
+    },
+    "instructions": "Steer the Green Cat's light beam left and right. Shine the beam directly on the red stalactites representing business Bottlenecks. Hold the light on them to dissolve them!",
+    "technical": {
+        "canvasSize": {"width": 800, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [
+            {
+                "type": "script",
+                "url": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+                "description": "Three.js Library"
+            }
+        ],
+        "local": ["game.js", "game.css"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-16",
+        "license": "Private"
+    }
+}

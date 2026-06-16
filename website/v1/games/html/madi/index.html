@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script id="ga-script" async src="https://www.googletagmanager.com/gtag/js?id=G-KZ03RW8P96"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-KZ03RW8P96');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MADI AI Adventure Series - 4weird Games</title>
+    <meta name="description" content="Play the MADI AI Adventure Series - interactive browser mini-games built with Three.js.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦁</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../../styles.css">
+    
+    <style>
+        :root {
+            --bg-primary: #06050b;
+            --bg-secondary: #0c0a17;
+            --bg-card: #141126;
+            --neon-purple: #8b5cf6;
+            --neon-purple-light: #a78bfa;
+            --neon-green: #10b981;
+            --neon-cyan: #06b6d4;
+            --text-primary: #f5f5f5;
+            --text-secondary: #9ca3af;
+            --font-display: 'Orbitron', sans-serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .madi-header {
+            background: rgba(6, 5, 11, 0.95);
+            border-bottom: 2px solid rgba(139, 92, 246, 0.3);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        .logo span { font-size: 1.8rem; }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--neon-purple-light);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: var(--neon-purple);
+            transform: translateX(-3px);
+        }
+
+        .madi-main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        .page-title {
+            font-family: var(--font-display);
+            font-size: 2.8rem;
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+        }
+
+        .game-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--neon-purple);
+            box-shadow: 0 10px 40px rgba(139, 92, 246, 0.3);
+        }
+
+        .game-card-content {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .game-emoji {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .game-title {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .game-desc {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            flex-grow: 1;
+        }
+
+        .game-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 15px;
+            margin-top: auto;
+        }
+
+        .game-genre {
+            font-size: 0.8rem;
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .play-btn {
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-cyan));
+            color: #fff;
+            padding: 8px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: opacity 0.2s;
+        }
+
+        .play-btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="madi-header">
+        <div class="header-container">
+            <a href="../../" class="logo">
+                <span>🦁</span> MADI AI
+            </a>
+            <a href="../../" class="back-link">
+                ← Back to 4weird
+            </a>
+        </div>
+    </header>
+
+    <main class="madi-main">
+        <h1 class="page-title">MADI AI Adventure Series</h1>
+        <p class="page-subtitle">
+            Explore 10 stylized 3D browser games powered by Three.js. Navigate pipelines, resolve business bottlenecks, scale summits, and build market leadership.
+        </p>
+
+        <div class="games-grid">
+            
+            <div class="game-card">
+                <div class="game-card-content">
+                    <span class="game-emoji">🐆</span>
+                    <h2 class="game-title">The Revenue Jungle</h2>
+                    <p class="game-desc">Navigate paths illuminated by AI, leaping over manual process vines and bad data quicksand.</p>
+                    <div class="game-meta">
+                        <span class="game-genre">Arcade Runner</span>
+                        <a href="the-revenue-jungle/" class="play-btn">Play</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-content">
+                    <span class="game-emoji">🏛️</span>
+                    <h2 class="game-title">Temple of Lost Revenue</h2>
+                    <p class="game-desc">Traverse ancient corridors to uncover lost deals, missing CRM leads, and unanswered files.</p>
+                    <div class="game-meta">
+                        <span class="game-genre">Maze Puzzle</span>
+                        <a href="temple-of-lost-revenue/" class="play-btn">Play</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-content">
+                    <span class="game-emoji">🏔️</span>
+                    <h2 class="game-title">The Pipeline Mountain</h2>
+                    <p class="game-desc">Scale integration platforms to reach the Revenue Summit, dodging red spreadsheets.</p>
+                    <div class="game-meta">
+                        <span class="game-genre">3D Platformer</span>
+                        <a href="the-pipeline-mountain/" class="play-btn">Play</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-content">
+                    <span class="game-emoji">⚡</span>
+                    <h2 class="game-title">The Speed Portal</h2>
+                    <p class="game-desc">Race inside a high-speed wireframe tunnel, dodging approval delays and meetings.</p>
+                    <div class="game-meta">
+                        <span class="game-genre">Tunnel Racer</span>
+                        <a href="the-speed-portal/" class="play-btn">Play</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-content">
+                    <span class="game-emoji">🐉</span>
+                    <h2 class="game-title">The Revenue Dragon</h2>
+                    <p class="game-desc">Engage in a voxel-style boss fight against the monstrous Dragon of delay.</p>
+                    <div class="game-meta">
+                        <span class="game-genre">Boss Battle</span>
+                        <a href="the-revenue-dragon/" class="play-btn">Play</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-content">
+                    <span class="game-emoji">🔍</span>
+                    <h2 class="game-title">Lost City of Customers</h2>
+                    <p class="game-desc">Use a 3D radar system to discover and target hidden customer networks.</p>
+                    <div class="game-meta">
+                        <span class="game-genre">Scanner Hunt</span>
+                        <a href="the-lost-city-of-customers/" class="play-btn">Play</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-content">
+                    <span class="game-emoji">🧠</span>
+                    <h2 class="game-title">The AI Expedition</h2>
+                    <p class="game-desc">Link node pipelines to route data packages without traffic bottlenecks.</p>
+                    <div class="game-meta">
+                        <span class="game-genre">Network Puzzle</span>
+                        <a href="the-ai-expedition/" class="play-btn">Play</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-content">
+                    <span class="game-emoji">🦇</span>
+                    <h2 class="game-title">Cave of Bottlenecks</h2>
+                    <p class="game-desc">Rotate laser guides to melt stalactites representing hiring delays and CRM complexities.</p>
+                    <div class="game-meta">
+                        <span class="game-genre">Puzzler</span>
+                        <a href="the-cave-of-bottlenecks/" class="play-btn">Play</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-content">
+                    <span class="game-emoji">💎</span>
+                    <h2 class="game-title">Treasure Hunters</h2>
+                    <p class="game-desc">Drop claw grapples to haul in gold-like revenue and meeting packages.</p>
+                    <div class="game-meta">
+                        <span class="game-genre">Claw Grabber</span>
+                        <a href="treasure-hunters/" class="play-btn">Play</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-content">
+                    <span class="game-emoji">🗺️</span>
+                    <h2 class="game-title">The MADI AI Universe</h2>
+                    <p class="game-desc">Our flagship interactive orbit map connecting all regions of the Adventure series.</p>
+                    <div class="game-meta">
+                        <span class="game-genre">Interactive Hub</span>
+                        <a href="the-madi-ai-universe/" class="play-btn">Play</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Founder & Contributor Section -->
+        <section style="margin-top: 60px; padding: 40px; background: var(--bg-card); border-radius: 20px; border: 1px solid rgba(139, 92, 246, 0.25); display: grid; grid-template-columns: 1fr; gap: 30px;">
+            <div style="border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 20px;">
+                <h2 style="font-family: var(--font-display); font-size: 1.8rem; background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;">Founder & Contributor</h2>
+                <h3 style="color: var(--neon-purple-light); font-size: 1.1rem; margin-bottom: 15px;">Corey Giroux — AI, Revenue Growth & Business Systems Consultant</h3>
+                <p style="color: var(--text-secondary); line-height: 1.6; max-width: 900px;">
+                    We help contributors, teams, executives & businesses build modern revenue engines using AI, orchestration, enablement, devices, apps & experts to match the speed of demand. Unify your team, activate customer intelligence, and Compound growth.
+                </p>
+                <div style="margin-top: 20px;">
+                    <a href="https://www.linkedin.com/in/corey-giroux-054a7648/" target="_blank" rel="noopener" class="back-link" style="display: inline-flex; align-items: center; gap: 8px;">
+                        🔗 Connect on LinkedIn
+                    </a>
+                </div>
+            </div>
+            
+            <div>
+                <h4 style="font-family: var(--font-display); color: var(--neon-green); margin-bottom: 15px;">Ecosystem Partners & Affiliations</h4>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <span style="background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 8px; font-weight: 500; font-size: 0.9rem;">liveswitch.com</span>
+                    <span style="background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 8px; font-weight: 500; font-size: 0.9rem;">seamless.ai</span>
+                    <span style="background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 8px; font-weight: 500; font-size: 0.9rem;">gohighlevel.com</span>
+                    <span style="background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 8px; font-weight: 500; font-size: 0.9rem;">peakline.ai</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+</body>
+</html>

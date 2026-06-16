@@ -1,0 +1,131 @@
+/* Game-specific styles extending template.css */
+
+.TEMPLATE-4weird-game-frame {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    height: 600px;
+    margin: 0 auto;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #020105;
+    box-shadow: 0 0 30px rgba(167, 139, 250, 0.2);
+    border: 2px solid rgba(167, 139, 250, 0.3);
+}
+
+#TEMPLATE-4weird-gameCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Glassmorphism overlays */
+.TEMPLATE-4weird-game-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(2, 1, 5, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #f5f5f5;
+    z-index: 10;
+}
+
+.TEMPLATE-4weird-game-overlay.hidden {
+    display: none !important;
+}
+
+.TEMPLATE-4weird-overlay-content {
+    text-align: center;
+    max-width: 500px;
+    padding: 30px;
+    border-radius: 24px;
+    background: rgba(20, 10, 30, 0.6);
+    border: 1px solid rgba(167, 139, 250, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.TEMPLATE-4weird-overlay-content h2 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.2rem;
+    margin-bottom: 15px;
+    background: linear-gradient(135deg, #a78bfa, #c084fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.TEMPLATE-4weird-overlay-content p {
+    font-size: 1.1rem;
+    color: #d1d5db;
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+.btn {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    padding: 12px 30px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+    color: #020105;
+    box-shadow: 0 4px 15px rgba(167, 139, 250, 0.4);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(167, 139, 250, 0.6);
+}
+
+/* Controls & hints styling */
+.TEMPLATE-4weird-controls-hint {
+    margin-top: 25px;
+    font-size: 0.9rem;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.TEMPLATE-4weird-controls-hint p {
+    margin: 0;
+    color: #9ca3af;
+}
+
+/* Custom interactive Labels during play */
+.cave-hud {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    gap: 20px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #fff;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.hud-item {
+    background: rgba(20, 10, 30, 0.7);
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(167, 139, 250, 0.3);
+    backdrop-filter: blur(4px);
+}

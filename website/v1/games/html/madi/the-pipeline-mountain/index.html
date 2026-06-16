@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>The Pipeline Mountain - 4weird Games</title>
+    <meta name="description" content="Climb the Pipeline Mountain with Three.js.">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏔️</text></svg>">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Base Styles -->
+    <link rel="stylesheet" href="../../../../styles.css">
+    <link rel="stylesheet" href="game.css">
+    
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Game Metadata -->
+    <script src="game.json" type="application/json" id="game-metadata"></script>
+</head>
+<body class="TEMPLATE-4weird-game-page">
+    
+    <canvas id="TEMPLATE-4weird-starfield" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:-1; pointer-events:none;"></canvas>
+    
+    <div id="TEMPLATE-4weird-nav-placeholder"></div>
+    
+    <header class="TEMPLATE-4weird-game-header">
+        <div class="TEMPLATE-4weird-game-header-inner">
+            <a href="../../" class="TEMPLATE-4weird-back-link">
+                <span class="TEMPLATE-4weird-back-arrow">←</span>
+                <span>Back to Games</span>
+            </a>
+            <h1 class="TEMPLATE-4weird-game-title" id="TEMPLATE-4weird-game-title">The Pipeline Mountain</h1>
+            <div class="TEMPLATE-4weird-game-meta">
+                <span class="TEMPLATE-4weird-game-genre">Climber</span>
+                <span class="TEMPLATE-4weird-separator">•</span>
+                <span class="TEMPLATE-4weird-game-status live" style="background:#38bdf8; color:#0a0a0f;">LIVE</span>
+            </div>
+        </div>
+    </header>
+    
+    <main class="TEMPLATE-4weird-game-main" style="max-width: 1200px; margin: 40px auto; padding: 0 24px; display: grid; grid-template-columns: 1fr; gap: 30px; align-items: start;">
+        <div class="TEMPLATE-4weird-game-frame">
+            <button class="TEMPLATE-4weird-fullscreen-btn" id="TEMPLATE-4weird-fullscreen-btn" style="position:absolute; top:15px; right:15px; z-index:11; background:rgba(20,20,30,0.7); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 12px; border-radius:6px; cursor:pointer;" title="Toggle Fullscreen">📺 Fullscreen</button>
+            <canvas id="TEMPLATE-4weird-gameCanvas"></canvas>
+            
+            <div class="mountain-hud">
+                <div class="hud-item">Altitude: <span id="game-alt">0m</span></div>
+                <div class="hud-item">Gold Medals: <span id="game-medals">0</span></div>
+            </div>
+            
+            <div class="TEMPLATE-4weird-game-overlay" id="TEMPLATE-4weird-start-screen">
+                <div class="TEMPLATE-4weird-overlay-content">
+                    <h2>The Pipeline Mountain</h2>
+                    <p>Start climbing! Steer left and right to jump on the next integration platform. Beware of falling red spreadsheets and disconnected files!</p>
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-start-btn">
+                        <span class="btn-emoji">🎮</span> Climb Summit
+                    </button>
+                    <div class="TEMPLATE-4weird-controls-hint">
+                        <p><strong>Controls:</strong> Press <strong>A / D</strong> or <strong>Left / Right Arrows</strong> to steer. Jumps automatically.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="TEMPLATE-4weird-pause-screen">
+                <div class="TEMPLATE-4weird-overlay-content">
+                    <h2>Paused</h2>
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-resume-btn">Resume</button>
+                    <button class="btn btn-secondary" id="TEMPLATE-4weird-restart-btn">Restart</button>
+                </div>
+            </div>
+            
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="TEMPLATE-4weird-game-over-screen">
+                <div class="TEMPLATE-4weird-overlay-content">
+                    <h2>Peak Over</h2>
+                    <p class="TEMPLATE-4weird-final-score">Altitude Reached: <span id="final-alt-val">0m</span></p>
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-play-again-btn">Play Again</button>
+                </div>
+            </div>
+        </div>
+        
+        <aside class="TEMPLATE-4weird-game-info-panel" style="background:rgba(20,20,30,0.5); padding:24px; border-radius:16px; border:1px solid rgba(56,189,248,0.15);">
+            <div style="margin-bottom:20px;">
+                <h3 style="font-family:'Orbitron'; color:#38bdf8; margin-bottom:8px;">How to Play</h3>
+                <p style="color:#d1d5db; line-height:1.6;">Steer the player to align with platforms as you jump upward. Each platform represents stable data systems. Avoid falling off or landing in manual spreadsheets.</p>
+            </div>
+            <div style="margin-bottom:20px;">
+                <h3 style="font-family:'Orbitron'; color:#38bdf8; margin-bottom:8px;">MADI AI Message</h3>
+                <blockquote style="border-left: 4px solid #38bdf8; padding-left: 12px; color: #818cf8; font-style: italic; font-weight: 500;">
+                    "Every Great Revenue Journey Starts With Better Systems."
+                </blockquote>
+            </div>
+        </aside>
+    </main>
+    
+    <script src="../../../../components.js"></script>
+    <script src="game.js"></script>
+    <script>
+        const fullscreenBtn = document.getElementById('TEMPLATE-4weird-fullscreen-btn');
+        const gameFrame = document.querySelector('.TEMPLATE-4weird-game-frame');
+        if (fullscreenBtn && gameFrame) {
+            fullscreenBtn.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    gameFrame.requestFullscreen().catch(err => {
+                        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                    });
+                } else {
+                    document.exitFullscreen();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
