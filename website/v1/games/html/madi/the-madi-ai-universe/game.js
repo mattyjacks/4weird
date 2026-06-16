@@ -53,10 +53,10 @@ function setupRegions() {
     const regionGeo = new THREE.CylinderGeometry(0.8, 1.0, 0.4, 6);
     
     const data = [
-        { x: -3.5, y: 1.5, color: 0x10b981, name: 'Revenue Jungle', url: '../the-revenue-jungle/' },
-        { x: 3.5, y: 1.5, color: 0xf59e0b, name: 'Temple of Lost Revenue', url: '../temple-of-lost-revenue/' },
-        { x: -3.5, y: -1.5, color: 0x38bdf8, name: 'Pipeline Mountain', url: '../the-pipeline-mountain/' },
-        { x: 3.5, y: -1.5, color: 0x06b6d4, name: 'Speed Portal', url: '../the-speed-portal/' }
+        { x: -3.5, y: 1.5, color: 0x10b981, name: 'Revenue Jungle', url: '/games/html/madi/the-revenue-jungle/' },
+        { x: 3.5, y: 1.5, color: 0xf59e0b, name: 'Temple of Lost Revenue', url: '/games/html/madi/temple-of-lost-revenue/' },
+        { x: -3.5, y: -1.5, color: 0x38bdf8, name: 'Pipeline Mountain', url: '/games/html/madi/the-pipeline-mountain/' },
+        { x: 3.5, y: -1.5, color: 0x06b6d4, name: 'Speed Portal', url: '/games/html/madi/the-speed-portal/' }
     ];
 
     data.forEach(d => {
