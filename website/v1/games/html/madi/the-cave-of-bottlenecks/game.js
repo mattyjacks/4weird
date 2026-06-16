@@ -59,6 +59,26 @@ function init() {
     restartBtn.addEventListener('click', resetGame);
     playAgainBtn.addEventListener('click', resetGame);
 
+    // Mobile Virtual controls rotation
+    const btnLeft = document.getElementById('btn-left');
+    const btnRight = document.getElementById('btn-right');
+
+    const setLeft = (e) => { e.preventDefault(); rotateDir = 1; };
+    const setRight = (e) => { e.preventDefault(); rotateDir = -1; };
+    const clearMove = (e) => { e.preventDefault(); rotateDir = 0; };
+
+    btnLeft.addEventListener('mousedown', setLeft);
+    btnLeft.addEventListener('touchstart', setLeft);
+    btnLeft.addEventListener('mouseup', clearMove);
+    btnLeft.addEventListener('touchend', clearMove);
+    btnLeft.addEventListener('mouseleave', clearMove);
+
+    btnRight.addEventListener('mousedown', setRight);
+    btnRight.addEventListener('touchstart', setRight);
+    btnRight.addEventListener('mouseup', clearMove);
+    btnRight.addEventListener('touchend', clearMove);
+    btnRight.addEventListener('mouseleave', clearMove);
+
     window.addEventListener('resize', onWindowResize);
     onWindowResize();
 

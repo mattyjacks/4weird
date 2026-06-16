@@ -43,6 +43,11 @@ function init() {
 
     // Event listeners
     canvas.addEventListener('click', onCanvasClick);
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        onCanvasClick({ clientX: touch.clientX, clientY: touch.clientY });
+    }, { passive: false });
     startBtn.addEventListener('click', startGame);
     resumeBtn.addEventListener('click', resumeGame);
     restartBtn.addEventListener('click', resetGame);

@@ -81,6 +81,10 @@ function init() {
     // Event listeners
     window.addEventListener('keydown', onKeyDown);
     canvas.addEventListener('click', jump);
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        jump();
+    }, { passive: false });
     startBtn.addEventListener('click', startGame);
     resumeBtn.addEventListener('click', resumeGame);
     restartBtn.addEventListener('click', resetGame);

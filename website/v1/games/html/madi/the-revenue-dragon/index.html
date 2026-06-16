@@ -86,6 +86,22 @@
                     <button class="btn btn-primary" id="TEMPLATE-4weird-play-again-btn">Re-engage</button>
                 </div>
             </div>
+            <!-- Virtual Mobile Controls -->
+            <div id="mobile-controls" style="display: none; position: absolute; bottom: 20px; left: 0; width: 100%; justify-content: space-between; padding: 0 30px; box-sizing: border-box; z-index: 9; align-items: center;">
+                <div style="display: flex; gap: 10px;">
+                    <button id="btn-left" style="width: 55px; height: 55px; background: rgba(239, 68, 68, 0.6); border: 1px solid #ef4444; color: white; font-size: 1.3rem; border-radius: 50%; font-weight: bold; cursor: pointer;">◀</button>
+                    <button id="btn-right" style="width: 55px; height: 55px; background: rgba(239, 68, 68, 0.6); border: 1px solid #ef4444; color: white; font-size: 1.3rem; border-radius: 50%; font-weight: bold; cursor: pointer;">▶</button>
+                </div>
+                <button id="btn-fire" style="width: 65px; height: 65px; background: rgba(239, 68, 68, 0.8); border: 2px solid #ef4444; color: white; font-size: 1.1rem; border-radius: 50%; font-weight: bold; cursor: pointer; text-transform: uppercase;">Fire</button>
+            </div>
+            
+            <style>
+                @media (pointer: coarse) {
+                    #mobile-controls {
+                        display: flex !important;
+                    }
+                }
+            </style>
         </div>
         
         <aside class="TEMPLATE-4weird-game-info-panel" style="background:rgba(20,20,30,0.5); padding:24px; border-radius:16px; border:1px solid rgba(239,68,68,0.15);">

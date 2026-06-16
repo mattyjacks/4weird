@@ -42,6 +42,13 @@ function init() {
     // Event listeners
     canvas.addEventListener('mousemove', onMouseMove);
     canvas.addEventListener('click', onClick);
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        // Simulate mouse move to highlight and then trigger click
+        onMouseMove({ clientX: touch.clientX, clientY: touch.clientY });
+        onClick({ clientX: touch.clientX, clientY: touch.clientY });
+    }, { passive: false });
 
     window.addEventListener('resize', onWindowResize);
     onWindowResize();

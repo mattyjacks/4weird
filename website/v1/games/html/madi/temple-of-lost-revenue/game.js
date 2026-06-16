@@ -84,6 +84,12 @@ function init() {
     restartBtn.addEventListener('click', resetGame);
     playAgainBtn.addEventListener('click', resetGame);
 
+    // Mobile Virtual controls
+    document.getElementById('btn-up').addEventListener('click', () => movePlayer(-1, 0));
+    document.getElementById('btn-down').addEventListener('click', () => movePlayer(1, 0));
+    document.getElementById('btn-left').addEventListener('click', () => movePlayer(0, -1));
+    document.getElementById('btn-right').addEventListener('click', () => movePlayer(0, 1));
+
     window.addEventListener('resize', onWindowResize);
     onWindowResize();
 
