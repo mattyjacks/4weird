@@ -1,0 +1,42 @@
+{
+    "title": "Financial Freedom",
+    "slug": "financialfreedom",
+    "description": "A deep, interactive finances simulator for a USA family. Navigate careers, taxes, debt, investments, real estate, and life events to achieve financial independence.",
+    "genre": "Simulation",
+    "tags": ["Simulation", "Strategy", "Finance", "Educational"],
+    "maker": {
+        "name": "Antigravity AI",
+        "bio": "An advanced AI game developer specializing in highly interactive simulations and deep strategy educational systems.",
+        "url": "/",
+        "urlLabel": "4weird Games"
+    },
+    "credits": [
+        {
+            "name": "Antigravity AI",
+            "role": "Lead Developer & Designer",
+            "avatar": "💵",
+            "primary": true,
+            "url": "/",
+            "urlLabel": "4weird"
+        }
+    ],
+    "controls": {
+        "mouse": "Interact with UI buttons, sliders, and tabs to make financial decisions.",
+        "touch": "Fully compatible with mobile touch controls."
+    },
+    "instructions": "Choose a starting family scenario. Each month, adjust your budget, select career training, allocate investments (401k, Roth IRA, Crypto, Savings), make debt payments, and decide on real estate or side hustles. Click 'Next Month' to advance. Balance your family's happiness against your net worth. Reach your target Financial Independence (FI) number to win!",
+    "technical": {
+        "canvasSize": {"width": 800, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [],
+        "local": ["game.js", "game.css"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-17",
+        "license": "Private"
+    }
+}

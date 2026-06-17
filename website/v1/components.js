@@ -405,6 +405,8 @@
 
         // Define all games
         const games = [
+            { id: 'venturemechanically', title: 'Exit Waterfall Machine', emoji: '💧', path: 'venturemechanically', desc: 'An interactive cap table simulator. Learn why a large startup acquisition can leave founders and employees with absolutely nothing.', tags: ['Simulation', 'Educational'], bg: 'linear-gradient(135deg, #09090e 0%, #1e112a 50%, #00f2fe 100%)' },
+            { id: 'financialfreedom', title: 'Financial Freedom', emoji: '💵', path: 'financialfreedom', desc: 'A deep, interactive finances simulator for a USA family. Navigate careers, taxes, debt, investments, real estate, and life events.', tags: ['Simulation', 'Strategy'], bg: 'linear-gradient(135deg, #1e3a8a 0%, #0d9488 50%, #10b981 100%)' },
             { id: 'serversavershield', title: 'Server Saver Shield', emoji: '🛡️', path: 'serversavershield', desc: 'Defend servers from cyber attacks! Strategic security management meets arcade shooter.', tags: ['Strategy', 'Shooter'], bg: 'linear-gradient(135deg, #0f172a 0%, #111827 50%, #06b6d4 100%)' },
             { id: 'overtake', title: 'Overtake', emoji: '🏁', path: 'overtake', desc: 'Race through pseudo-3D routes, unlock faster cars, and use nitro boosts.', tags: ['Racing', 'Arcade'], bg: 'linear-gradient(135deg, #05070a 0%, #3a1510 48%, #ffcf42 100%)' },
             { id: 'assassinanimals', title: 'AssassinAnimals', emoji: '🕶️', path: 'assassinanimals', desc: 'Control mutated animal operatives in a stealth rogue-like complex.', tags: ['Stealth', 'Action'], bg: 'linear-gradient(135deg, #09090e 0%, #1e112a 50%, #ff0055 100%)' },

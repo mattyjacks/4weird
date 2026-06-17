@@ -1,0 +1,722 @@
+/* Custom Styles for Financial Freedom Game */
+
+:root {
+    --primary-bg: #090e1a;
+    --card-bg: rgba(17, 24, 39, 0.7);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    
+    /* Financial accents */
+    --accent-emerald: #10b981;
+    --accent-emerald-glow: rgba(16, 185, 129, 0.2);
+    --accent-cyan: #06b6d4;
+    --accent-cyan-glow: rgba(6, 182, 212, 0.2);
+    --accent-rose: #f43f5e;
+    --accent-amber: #f59e0b;
+    --accent-violet: #8b5cf6;
+    
+    /* Glassmorphism settings */
+    --glass-blur: blur(12px);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.TEMPLATE-4weird-game-frame {
+    background-color: var(--primary-bg) !important;
+    display: flex;
+    flex-direction: column;
+    padding: 0 !important;
+    overflow: hidden;
+    min-height: 650px;
+    height: auto !important;
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    box-shadow: var(--glass-shadow);
+    position: relative;
+}
+
+#TEMPLATE-4weird-gameCanvas {
+    display: none !important; /* We will use standard HTML elements for our deep simulation dashboard */
+}
+
+/* App Header & Overview Bar */
+.game-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    max-height: 800px;
+}
+
+.overview-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.metric-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    backdrop-filter: var(--glass-blur);
+    border-radius: 12px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+}
+
+.metric-card.cash::before { background-color: var(--accent-emerald); }
+.metric-card.networth::before { background-color: var(--accent-cyan); }
+.metric-card.credit::before { background-color: var(--accent-amber); }
+.metric-card.happiness::before { background-color: var(--accent-violet); }
+
+.metric-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.metric-change {
+    font-size: 0.75rem;
+    margin-top: 4px;
+}
+
+.change-positive { color: var(--accent-emerald); }
+.change-negative { color: var(--accent-rose); }
+
+/* Main Gameplay Tabs */
+.game-tabs {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+    scrollbar-width: none;
+}
+
+.game-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn.active {
+    color: var(--text-primary);
+    background: var(--accent-cyan-glow);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+}
+
+/* Tab Panels */
+.tab-panel {
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Split screen layout for Dashboard */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.game-card-panel {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    backdrop-filter: var(--glass-blur);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--glass-shadow);
+}
+
+.panel-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 8px;
+}
+
+/* Progress bar UI elements */
+.progress-bar-container {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 9999px;
+    height: 12px;
+    width: 100%;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-emerald));
+    height: 100%;
+    border-radius: 9999px;
+    transition: width 0.3s ease;
+}
+
+.fi-progress-wrapper {
+    margin-top: 16px;
+}
+
+.fi-progress-text {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+/* Control Controls */
+.budget-slider-group {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.slider-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.slider-label-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+}
+
+.slider-input {
+    width: 100%;
+    height: 6px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.1);
+    outline: none;
+    -webkit-appearance: none;
+    accent-color: var(--accent-cyan);
+}
+
+/* Actions List & Grid */
+.actions-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.action-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s ease;
+}
+
+.action-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.action-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.action-title {
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.action-desc {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.action-cost {
+    font-size: 0.8rem;
+    color: var(--accent-amber);
+    font-weight: 600;
+}
+
+/* Budget allocation pie charts and lists */
+.budget-summary-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.budget-summary-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.01);
+    border-radius: 6px;
+}
+
+/* Interactive SVG graph */
+.svg-chart-container {
+    width: 100%;
+    height: 200px;
+    position: relative;
+    margin-top: 10px;
+}
+
+.svg-chart {
+    width: 100%;
+    height: 100%;
+}
+
+.chart-line {
+    fill: none;
+    stroke: var(--accent-cyan);
+    stroke-width: 3;
+    stroke-linecap: round;
+}
+
+.chart-area {
+    fill: url(#chart-gradient);
+    opacity: 0.3;
+}
+
+.chart-grid {
+    stroke: rgba(255, 255, 255, 0.05);
+    stroke-width: 1;
+}
+
+/* Game footer control bar */
+.turn-control-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--card-border);
+}
+
+.energy-badge {
+    background: rgba(139, 92, 246, 0.2);
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    color: #c084fc;
+    padding: 8px 16px;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.next-month-btn {
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-emerald));
+    color: #fff;
+    border: none;
+    padding: 12px 28px;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    transition: all 0.2s ease;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.next-month-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
+.next-month-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Family Profile Select Overlay */
+.profile-selection-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--primary-bg);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    box-sizing: border-box;
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    max-width: 900px;
+    width: 100%;
+    margin-top: 24px;
+}
+
+.profile-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.profile-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent-cyan);
+    box-shadow: 0 10px 20px rgba(6, 182, 212, 0.15);
+}
+
+.profile-emoji {
+    font-size: 2.5rem;
+}
+
+.profile-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.profile-details {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.profile-income {
+    color: var(--accent-emerald);
+    font-weight: 600;
+}
+
+/* Event Dialog Overlay */
+.event-modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    z-index: 20;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.event-modal-content {
+    background: #111827;
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    max-width: 500px;
+    width: 100%;
+    padding: 24px;
+    box-shadow: var(--glass-shadow);
+    text-align: center;
+    animation: scaleIn 0.25s ease-out;
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.event-emoji {
+    font-size: 3rem;
+    margin-bottom: 12px;
+}
+
+.event-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.event-description {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.event-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.event-btn {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--card-border);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-primary);
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.event-btn:hover {
+    background: var(--accent-cyan-glow);
+    border-color: var(--accent-cyan);
+}
+
+.glossary-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.glossary-card:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.glossary-term {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--accent-cyan);
+    margin-bottom: 4px;
+}
+
+.glossary-definition {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+/* Mini achievements ticker */
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.achievement-pill {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 8px;
+    text-align: center;
+    font-size: 0.75rem;
+    opacity: 0.4;
+    transition: opacity 0.3s, border-color 0.3s;
+}
+
+.achievement-pill.unlocked {
+    opacity: 1;
+    border-color: var(--accent-amber);
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.achievement-emoji {
+    font-size: 1.25rem;
+    margin-bottom: 2px;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.btn-emerald {
+    background: var(--accent-emerald);
+    color: #fff;
+    border: none;
+}
+.btn-emerald:hover {
+    opacity: 0.9;
+}
+.btn-rose {
+    background: var(--accent-rose);
+    color: #fff;
+    border: none;
+}
+.btn-rose:hover {
+    opacity: 0.9;
+}
+.btn-cyan {
+    background: var(--accent-cyan);
+    color: #fff;
+    border: none;
+}
+.btn-cyan:hover {
+    opacity: 0.9;
+}
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--card-border);
+    color: var(--text-primary);
+}
+.btn-outline:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Alert styles for general alerts */
+.game-alert {
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.game-alert.info {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+}
+.game-alert.warning {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    color: #fde047;
+}
+
+/* Input group layouts */
+.input-row-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+}
+.input-number-field {
+    width: 90px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--card-border);
+    color: var(--text-primary);
+    border-radius: 6px;
+    padding: 6px;
+    text-align: right;
+    outline: none;
+}
+.input-number-field:focus {
+    border-color: var(--accent-cyan);
+}
+
+/* End Game Overlays */
+.end-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(9, 14, 26, 0.95);
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    box-sizing: border-box;
+    text-align: center;
+}
+.end-title {
+    font-size: 2.5rem;
+    font-family: 'Orbitron', sans-serif;
+    margin-bottom: 16px;
+}
+.end-subtitle {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+    max-width: 600px;
+    line-height: 1.6;
+}
+.restart-btn {
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+    color: #fff;
+    border: none;
+    padding: 14px 32px;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    transition: all 0.2s ease;
+}
+.restart-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+}

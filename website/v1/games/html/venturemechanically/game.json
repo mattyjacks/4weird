@@ -1,0 +1,53 @@
+{
+    "title": "Exit Waterfall Machine",
+    "slug": "venturemechanically",
+    "description": "An interactive cap table simulator and educational game. Learn why a large startup exit can leave founders and employees with absolutely nothing.",
+    "genre": "Simulation",
+    "tags": ["Simulation", "Strategy", "Educational", "Business"],
+    "maker": {
+        "name": "4weird Games",
+        "bio": "Inspired by Ron Wiener's article on Venture Mechanics. We build fun, interactive browser simulators to demystify complex startup topics.",
+        "url": "https://www.linkedin.com/in/ronwiener/",
+        "urlLabel": "Ron Wiener's LinkedIn"
+    },
+    "credits": [
+        {
+            "name": "Ron Wiener",
+            "role": "Original Article Author",
+            "avatar": "✍️",
+            "primary": true,
+            "url": "https://www.venturemechanics.com/blog/sold-for-a-fortune-took-home-nothing-what-founders-learn-too-late-about-startup-exits",
+            "urlLabel": "Venture Mechanics Blog"
+        },
+        {
+            "name": "4weird Games",
+            "role": "Game Developer",
+            "avatar": "🎮",
+            "primary": false,
+            "url": "/",
+            "urlLabel": "4weird Home"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "Mouse Click / Touch": "Interact with UI and sliders"
+        },
+        "touch": true,
+        "mouse": true
+    },
+    "instructions": "Configure your startup's funding rounds, debt, and liquidation preferences in Sandbox mode, then adjust the Exit Slider to watch the cash flow down the waterfall. Play Scenario mode to solve real-world startup capital challenges!",
+    "technical": {
+        "canvasSize": {"width": 800, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [],
+        "local": ["game.js", "game.css"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-17",
+        "license": "Private"
+    }
+}

@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Financial Freedom - 4weird Games</title>
+    <meta name="description" content="Manage income, taxes, investments, debt, and life milestones to achieve Financial Independence in the USA.">
+    <meta name="keywords" content="4weird, Financial Freedom, browser game, finance simulator">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Financial Freedom - 4weird Games">
+    <meta property="og:description" content="USA Family Finance Simulator">
+    <meta property="og:type" content="website">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💵</text></svg>">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Base Styles -->
+    <link rel="stylesheet" href="../../../styles.css">
+    <link rel="stylesheet" href="game.css">
+    
+    <!-- Game Metadata -->
+    <script src="game.json" type="application/json" id="game-metadata"></script>
+</head>
+<body class="TEMPLATE-4weird-game-page">
+    <!-- Background Canvas -->
+    <canvas id="TEMPLATE-4weird-starfield"></canvas>
+    
+    <!-- Navigation placeholder - injected by components.js -->
+    <div id="TEMPLATE-4weird-nav-placeholder"></div>
+    
+    <!-- Game Header Bar -->
+    <header class="TEMPLATE-4weird-game-header">
+        <div class="TEMPLATE-4weird-game-header-inner">
+            <a href="/" class="TEMPLATE-4weird-back-link">
+                <span class="TEMPLATE-4weird-back-arrow">←</span>
+                <span>Back to 4weird</span>
+            </a>
+            <h1 class="TEMPLATE-4weird-game-title" id="TEMPLATE-4weird-game-title">Financial Freedom</h1>
+            <div class="TEMPLATE-4weird-game-meta">
+                <span class="TEMPLATE-4weird-game-genre">Simulation</span>
+                <span class="TEMPLATE-4weird-separator">•</span>
+                <span class="TEMPLATE-4weird-game-status live">LIVE</span>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Game Container -->
+    <main class="TEMPLATE-4weird-game-main" style="display: block;">
+        <div class="TEMPLATE-4weird-game-frame">
+            
+            <!-- Selection Screen Overlay -->
+            <div class="profile-selection-overlay" id="profile-overlay">
+                <h2 style="font-family: 'Orbitron', sans-serif; font-size: 2rem; margin-bottom: 8px;">💵 Financial Freedom</h2>
+                <p style="color: var(--text-secondary); text-align: center; max-width: 600px;">
+                    Select a USA family scenario. Plan budget, invest, manage debt interest rates, navigate IRS tax brackets, and strive for the ultimate retirement goal: <strong>Financial Independence</strong>!
+                </p>
+                <div class="profile-grid" id="profile-cards">
+                    <!-- Loaded dynamically in JS -->
+                </div>
+            </div>
+            
+            <!-- Event Dialogue Overlay -->
+            <div class="event-modal hidden" id="event-modal-overlay" style="display: none;">
+                <!-- Filled dynamically -->
+            </div>
+            
+            <!-- Win screen overlay -->
+            <div class="end-screen" id="win-screen" style="display: none;">
+                <div class="event-emoji">🏝️</div>
+                <h2 class="end-title" style="color: var(--accent-emerald);">FINANCIAL INDEPENDENCE!</h2>
+                <p class="end-subtitle">
+                    Congratulations! You reached your Financial Freedom goal! Your investments generate enough income to cover your living costs forever.
+                </p>
+                <div style="margin-bottom: 24px;">
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">FINAL NET WORTH:</div>
+                    <div style="font-size: 2rem; font-weight: 700; color: var(--text-primary);" id="win-nw">$0</div>
+                    <div style="font-size: 1rem; color: var(--accent-cyan); margin-top: 8px;" id="win-timeline">Achieved in 12 years</div>
+                </div>
+                <button class="restart-btn" id="restart-game-btn">Play Again</button>
+            </div>
+            
+            <!-- Lose/Bankruptcy screen overlay -->
+            <div class="end-screen" id="lose-screen" style="display: none;">
+                <div class="event-emoji">💥</div>
+                <h2 class="end-title" style="color: var(--accent-rose);">BANKRUPTCY TRIGGERED</h2>
+                <p class="end-subtitle">
+                    Your cash reserves went below zero and you were unable to cover your debt interest payments. You file Chapter 7 bankruptcy. Your debts are settled but your assets are liquidated, and your credit score is reset.
+                </p>
+                <button class="restart-btn" id="restart-game-btn2">Restructure & Retry</button>
+            </div>
+            
+            <!-- Core Game Dashboard Wrapper -->
+            <div class="game-container">
+                <!-- Metrics Bar -->
+                <section class="overview-bar">
+                    <div class="metric-card cash">
+                        <div class="metric-label">Emergency Cash</div>
+                        <div class="metric-value" id="val-cash">$0</div>
+                        <div class="metric-change" id="cash-rate">HYSA Interest 4.2%</div>
+                    </div>
+                    <div class="metric-card networth">
+                        <div class="metric-label">Net Worth</div>
+                        <div class="metric-value" id="val-networth">$0</div>
+                        <div class="metric-change" id="nw-rate">Assets - Liabilities</div>
+                    </div>
+                    <div class="metric-card credit">
+                        <div class="metric-label">Credit Score</div>
+                        <div class="metric-value" id="val-credit">650</div>
+                        <div class="metric-change">Determines Loan Rates</div>
+                    </div>
+                    <div class="metric-card happiness">
+                        <div class="metric-label">Family Happiness</div>
+                        <div class="metric-value" id="val-happiness">100%</div>
+                        <div class="metric-change">Keep above 20% to avoid stress</div>
+                    </div>
+                </section>
+                
+                <!-- Game Tabs navigation -->
+                <nav class="game-tabs">
+                    <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
+                    <button class="tab-btn" data-tab="budget">💸 Budget Allocator</button>
+                    <button class="tab-btn" data-tab="career">💼 Career & Gigs</button>
+                    <button class="tab-btn" data-tab="investing">📈 Investments</button>
+                    <button class="tab-btn" data-tab="debt">🏡 Debt & Housing</button>
+                    <button class="tab-btn" data-tab="tax">🏛️ Taxes & Insurance</button>
+                    <button class="tab-btn" data-tab="glossary">📖 Terms & Achievements</button>
+                </nav>
+                
+                <!-- Panel 1: Dashboard -->
+                <div class="tab-panel active" id="panel-dashboard">
+                    <div class="dashboard-grid">
+                        <div class="game-card-panel">
+                            <h3 class="panel-title">Asset Allocation</h3>
+                            <div class="budget-summary-list">
+                                <div class="budget-summary-item">
+                                    <span>Stocks (S&P 500 Index)</span>
+                                    <span style="font-weight:600; color:var(--accent-cyan);" id="val-stocks">$0</span>
+                                </div>
+                                <div class="budget-summary-item">
+                                    <span>Retirement 401(k) (Pre-tax)</span>
+                                    <span style="font-weight:600;" id="val-401k">$0</span>
+                                </div>
+                                <div class="budget-summary-item">
+                                    <span>Retirement Roth IRA</span>
+                                    <span style="font-weight:600;" id="val-roth">$0</span>
+                                </div>
+                                <div class="budget-summary-item">
+                                    <span>Health Savings Account (HSA)</span>
+                                    <span style="font-weight:600;" id="val-hsa">$0</span>
+                                </div>
+                                <div class="budget-summary-item">
+                                    <span>Crypto Assets (High-risk)</span>
+                                    <span style="font-weight:600; color:var(--accent-rose);" id="val-crypto">$0</span>
+                                </div>
+                            </div>
+                            
+                            <h3 class="panel-title" style="margin-top: 20px;">Outstanding Liabilities</h3>
+                            <div class="budget-summary-list">
+                                <div class="budget-summary-item">
+                                    <span>Student Loans</span>
+                                    <span style="font-weight:600; color:var(--accent-rose);" id="val-debt-student">$0</span>
+                                </div>
+                                <div class="budget-summary-item">
+                                    <span>Credit Card Debt</span>
+                                    <span style="font-weight:600; color:var(--accent-rose);" id="val-debt-cc">$0</span>
+                                </div>
+                                <div class="budget-summary-item">
+                                    <span>Auto Loans</span>
+                                    <span style="font-weight:600; color:var(--accent-rose);" id="val-debt-auto">$0</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="game-card-panel">
+                            <h3 class="panel-title">Net Worth Growth Trajectory</h3>
+                            <div class="svg-chart-container">
+                                <svg class="svg-chart" id="nw-chart-svg"></svg>
+                            </div>
+                            
+                            <div class="fi-progress-wrapper">
+                                <div class="fi-progress-text">
+                                    <span>Financial Freedom Goal Progress</span>
+                                    <strong id="fi-pct-lbl">0%</strong>
+                                </div>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" id="fi-progress-bar" style="width: 0%;"></div>
+                                </div>
+                                <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px; text-align: center;">
+                                    Target FI Number (25x expenses): <strong id="fi-goal-amt" style="color:var(--accent-cyan);">$0</strong>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Panel 2: Budget -->
+                <div class="tab-panel" id="panel-budget">
+                    <div class="dashboard-grid">
+                        <div class="game-card-panel">
+                            <h3 class="panel-title">Pre-Tax Allocations & Income</h3>
+                            
+                            <div class="input-row-group">
+                                <span>Gross Base Monthly Salary</span>
+                                <strong id="gross-income-lbl">$0</strong>
+                            </div>
+                            
+                            <div class="input-row-group">
+                                <span>Pre-Tax 401(k) Percentage</span>
+                                <select id="401k-pct" class="input-number-field" style="width: 120px;">
+                                    <option value="0">0%</option>
+                                    <option value="2">2%</option>
+                                    <option value="4" selected>4% (Match Target)</option>
+                                    <option value="6">6%</option>
+                                    <option value="10">10%</option>
+                                    <option value="15">15%</option>
+                                </select>
+                            </div>
+                            
+                            <div class="input-row-group">
+                                <span>Employer 401(k) Matching</span>
+                                <span style="font-size: 0.8rem;" id="match-status">✅ Full Match Captured</span>
+                            </div>
+                            
+                            <h3 class="panel-title" style="margin-top: 20px;">Post-Tax Savings Accounts</h3>
+                            
+                            <div class="input-row-group">
+                                <span>Roth IRA Monthly Deposit ($)</span>
+                                <input type="number" id="roth-amount" class="input-number-field" value="0" step="50" min="0">
+                            </div>
+                            
+                            <div class="input-row-group">
+                                <span>HSA Monthly Deposit ($)</span>
+                                <input type="number" id="hsa-amount" class="input-number-field" value="0" step="50" min="0">
+                            </div>
+                            
+                            <div class="game-alert info" style="margin-top: 10px;">
+                                HSA requires choosing a High Deductible Health Plan (HDHP) in the Taxes & Insurance panel.
+                            </div>
+                        </div>
+                        
+                        <div class="game-card-panel">
+                            <h3 class="panel-title">Discretionary Monthly Budget</h3>
+                            
+                            <div class="budget-slider-group">
+                                <div class="slider-item">
+                                    <div class="slider-label-row">
+                                        <span>Fun & Entertainment</span>
+                                        <strong id="val-fun">$300</strong>
+                                    </div>
+                                    <input type="range" id="slider-fun" class="slider-input" min="50" max="1500" value="300" step="50">
+                                </div>
+                                
+                                <div class="slider-item">
+                                    <div class="slider-label-row">
+                                        <span>Groceries & Dining Out</span>
+                                        <strong id="val-groceries">$500</strong>
+                                    </div>
+                                    <input type="range" id="slider-groceries" class="slider-input" min="200" max="1500" value="500" step="50">
+                                </div>
+                                
+                                <div class="slider-item">
+                                    <div class="slider-label-row">
+                                        <span>Home Utilities & Subs</span>
+                                        <strong id="val-utilities">$300</strong>
+                                    </div>
+                                    <input type="range" id="slider-utilities" class="slider-input" min="100" max="1000" value="300" step="50">
+                                </div>
+                            </div>
+                            
+                            <h3 class="panel-title">Cash Flow Calculations</h3>
+                            <div class="budget-summary-list">
+                                <div class="budget-summary-item">
+                                    <span>IRS Est. Income Tax Withheld</span>
+                                    <span id="tax-withheld-lbl">$0</span>
+                                </div>
+                                <div class="budget-summary-item">
+                                    <span>Fixed Bills & Cost of Living</span>
+                                    <span id="fixed-bills-lbl">$0</span>
+                                </div>
+                                <div class="budget-summary-item">
+                                    <span>Minimum Debt Interest Payments</span>
+                                    <span id="min-debt-lbl">$0</span>
+                                </div>
+                                <div class="budget-summary-item">
+                                    <span>Discretionary Spending Sum</span>
+                                    <span id="discretionary-lbl">$0</span>
+                                </div>
+                                <div class="budget-summary-item" style="border-top: 1px solid var(--card-border); padding-top: 10px;">
+                                    <strong>Net Monthly Surplus Cashflow</strong>
+                                    <strong id="net-surplus-lbl" style="font-family: 'Orbitron', sans-serif;">$0</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Panel 3: Careers & Side Hustles -->
+                <div class="tab-panel" id="panel-career">
+                    <div class="dashboard-grid">
+                        <div class="game-card-panel">
+                            <h3 class="panel-title">Employment Information</h3>
+                            <div class="budget-summary-list" style="margin-bottom: 20px;">
+                                <div class="budget-summary-item">
+                                    <span>Current Profession</span>
+                                    <span id="career-title-lbl">Teacher</span>
+                                </div>
+                                <div class="budget-summary-item">
+                                    <span>Monthly Base salary</span>
+                                    <span id="career-salary-lbl" style="color:var(--accent-emerald); font-weight:600;">$0</span>
+                                </div>
+                            </div>
+                            
+                            <h3 class="panel-title">Invest in Human Capital</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
+                                Enrolling in advanced training increases promotion probability, higher career levels, and base salary bumps of 25%.
+                            </p>
+                            <div style="margin-bottom: 15px;">
+                                <div style="font-size:0.8rem; margin-bottom:4px;" id="training-status">Available Course: Professional Certification ($1,200).</div>
+                            </div>
+                            <button class="btn btn-cyan" id="training-btn">Invest in Course ($1,200)</button>
+                        </div>
+                        
+                        <div class="game-card-panel">
+                            <h3 class="panel-title">Side Hustles & Mental Load</h3>
+                            <div class="budget-summary-list" style="margin-bottom: 20px;">
+                                <div class="budget-summary-item">
+                                    <span>Active Hustle</span>
+                                    <span id="hustle-status-lbl">None</span>
+                                </div>
+                                <div class="budget-summary-item">
+                                    <span>Projected Hustle Income</span>
+                                    <span>+$400/mo</span>
+                                </div>
+                            </div>
+                            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom: 16px;">
+                                Doing rideshare gigs increases your income surplus, but drains 20 monthly mental energy points, which reduces happy metrics over time.
+                            </p>
+                            <button class="btn btn-emerald" id="start-hustle-btn">Start Rideshare Hustle</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Panel 4: Investments -->
+                <div class="tab-panel" id="panel-investing">
+                    <div class="dashboard-grid">
+                        <div class="game-card-panel">
+                            <h3 class="panel-title">Liquid Capital Asset Purchase</h3>
+                            <div class="input-row-group">
+                                <span>Purchase / Trade Amount ($)</span>
+                                <input type="number" id="trade-amount" class="input-number-field" value="500" step="100">
+                            </div>
+                            <div class="budget-summary-list" style="margin-top: 15px; margin-bottom: 20px;">
+                                <button class="btn btn-cyan" id="buy-stock-btn" style="margin-bottom: 8px;">Buy S&P 500 stocks</button>
+                                <button class="btn btn-rose" id="buy-crypto-btn">Buy Crypto tokens</button>
+                            </div>
+                            
+                            <div class="game-alert info">
+                                📈 <strong>S&P 500 Index:</strong> Tends to grow ~8% annualized over a long period with moderate volatility.
+                            </div>
+                            <div class="game-alert warning" style="margin-top: 10px;">
+                                💥 <strong>Crypto Asset Warning:</strong> High volatility! You can double your money or lose 90% of it in a single economic shift.
+                            </div>
+                        </div>
+                        
+                        <div class="game-card-panel">
+                            <h3 class="panel-title">Asset Growth Details</h3>
+                            <div class="budget-summary-list">
+                                <div class="budget-summary-item">
+                                    <span>Stock Accumulation</span>
+                                    <span id="info-stocks">Long-term wealth compound</span>
+                                </div>
+                                <div class="budget-summary-item">
+                                    <span>Tax-advantaged Accounts</span>
+                                    <span>401(k) / Roth IRA grow tax-free</span>
+                                </div>
+                                <div class="budget-summary-item">
+                                    <span>Emergency cash buffer</span>
+                                    <span>HYSA compounds at 4.2% risk-free</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Panel 5: Debt & Real Estate -->
+                <div class="tab-panel" id="panel-debt">
+                    <div class="dashboard-grid">
+                        <div class="game-card-panel">
+                            <h3 class="panel-title">Debt Optimization Strategy</h3>
+                            <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                                <button class="btn-sm btn-cyan" id="btn-strat-avalanche">Avalanche (Highest Rate)</button>
+                                <button class="btn-sm btn-outline" id="btn-strat-snowball">Snowball (Smallest Balance)</button>
+                            </div>
+                            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom: 16px;">
+                                The <strong>Avalanche</strong> strategy focuses all extra income on high interest liabilities (e.g. credit card debt at 22%). The <strong>Snowball</strong> strategy targets small loans first.
+                            </p>
+                            
+                            <h3 class="panel-title">Overpay Outstanding Principal</h3>
+                            <div class="input-row-group">
+                                <span>Extra Payment Amount ($)</span>
+                                <input type="number" id="extra-debt-amount" class="input-number-field" value="1000" step="250">
+                            </div>
+                            <button class="btn btn-rose" id="pay-extra-debt-btn" style="width: 100%; margin-top: 10px;">Apply Extra Principal Payment</button>
+                        </div>
+                        
+                        <div class="game-card-panel">
+                            <h3 class="panel-title">Real Estate Ownership</h3>
+                            <div class="budget-summary-list" style="margin-bottom: 20px;">
+                                <div class="budget-summary-item">
+                                    <span>Primary Residence status</span>
+                                    <span id="house-status-lbl">Renting</span>
+                                </div>
+                                <div class="budget-summary-item">
+                                    <span>Associated Liabilities</span>
+                                    <span id="house-mortgage-lbl">None</span>
+                                </div>
+                            </div>
+                            
+                            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom: 16px;">
+                                Purchase a family home for $250,000. Downpayment requirement is 6% ($15,000). Owning builds equity but incurs mortgage payments and upkeep bills.
+                            </p>
+                            <button class="btn btn-emerald" id="buy-home-btn">Purchase Primary Home ($15,000 Down)</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Panel 6: Taxes & Insurance -->
+                <div class="tab-panel" id="panel-tax">
+                    <div class="dashboard-grid">
+                        <div class="game-card-panel">
+                            <h3 class="panel-title">Healthcare & HSA Strategy</h3>
+                            <div class="input-row-group">
+                                <span>Health Insurance Plan</span>
+                                <select id="health-ins-type" class="input-number-field" style="width: 160px;">
+                                    <option value="PPO">PPO ($150/mo, low copay)</option>
+                                    <option value="HDHP">HDHP ($80/mo, unlocks HSA)</option>
+                                </select>
+                            </div>
+                            <p style="font-size:0.85rem; color:var(--text-secondary); margin-top: 10px;">
+                                High Deductible Health Plans (HDHP) lower premiums and allow you to make tax-exempt contributions to a Health Savings Account (HSA).
+                            </p>
+                            
+                            <h3 class="panel-title" style="margin-top: 20px;">Estate Security & Protection</h3>
+                            <div class="input-row-group">
+                                <span>Life Insurance Policy</span>
+                                <select id="life-ins-type" class="input-number-field" style="width: 160px;">
+                                    <option value="None">None</option>
+                                    <option value="Term">Term Policy ($40/mo)</option>
+                                    <option value="Whole">Whole Life ($250/mo)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="game-card-panel">
+                            <h3 class="panel-title">Tax Mitigation & Charity</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 15px;">
+                                Donate cash to charitable community funds. Reduces tax brackets calculation and increases family happiness.
+                            </p>
+                            <button class="btn btn-emerald" id="donate-btn">Donate $500 to Charity</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Panel 7: Glossary -->
+                <div class="tab-panel" id="panel-glossary">
+                    <div class="dashboard-grid">
+                        <div class="game-card-panel">
+                            <h3 class="panel-title">🏆 Financial Milestones</h3>
+                            <div class="achievements-grid" id="achievements-grid">
+                                <!-- Generated Dynamically -->
+                            </div>
+                        </div>
+                        
+                        <div class="game-card-panel">
+                            <h3 class="panel-title">📚 Finance Glossary</h3>
+                            <div id="glossary-container">
+                                <!-- Generated Dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Footer & Control Bar -->
+                <section class="turn-control-bar">
+                    <div>
+                        <span id="game-timeline" style="font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 1.1rem; color: var(--text-primary);">Timeline: Year 0, Month 1</span>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; display: flex; gap: 10px;">
+                            <span class="energy-badge">🧠 <span id="energy-val">100/100</span> Energy</span>
+                            <span style="display:flex; align-items:center; color: var(--accent-cyan); font-weight:600;">Current Cycle: <span id="cycle-lbl" style="margin-left:4px;">Normal</span></span>
+                        </div>
+                    </div>
+                    
+                    <button class="next-month-btn" id="next-month-btn">Next Month ➔</button>
+                </section>
+                
+                <!-- Simple logs section for quick events check -->
+                <section style="margin-top: 20px;">
+                    <h4 style="font-size: 0.85rem; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 10px;">Live Financial Feed</h4>
+                    <div id="events-log-list">
+                        <!-- Messages go here -->
+                    </div>
+                </section>
+            </div>
+            
+        </div>
+        
+        <!-- Game Info Panel -->
+        <aside class="TEMPLATE-4weird-game-info-panel">
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>Financial Freedom</h3>
+                <p>Learn to navigate compound interest, stock portfolios, real estate mortgages, health insurance options, tax brackets, and debt management to reach early retirement.</p>
+            </div>
+            
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>Simulated Systems</h3>
+                <ul>
+                    <li>IRS income tax calculations</li>
+                    <li>S&P 500 Market Bull/Bear dynamics</li>
+                    <li>Mortgage and compound interest math</li>
+                    <li>HSA & pre-tax matches</li>
+                </ul>
+            </div>
+        </aside>
+    </main>
+    
+    <!-- Credits -->
+    <section class="TEMPLATE-4weird-credits-section" id="TEMPLATE-4weird-credits">
+        <div class="TEMPLATE-4weird-credits-container">
+            <h2 class="TEMPLATE-4weird-credits-title">Credits</h2>
+            <div class="TEMPLATE-4weird-credits-grid" id="TEMPLATE-4weird-credits-grid">
+                <div class="TEMPLATE-4weird-credit-card TEMPLATE-4weird-primary">
+                    <div class="TEMPLATE-4weird-credit-avatar">💵</div>
+                    <h3 class="TEMPLATE-4weird-credit-name" id="TEMPLATE-4weird-maker-name">Antigravity AI</h3>
+                    <p class="TEMPLATE-4weird-credit-role">Lead Developer & Designer</p>
+                    <p class="TEMPLATE-4weird-credit-links">
+                        <a href="/" target="_blank" rel="noopener" id="TEMPLATE-4weird-maker-link">4weird Games</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Maker Bio -->
+    <section class="TEMPLATE-4weird-bio-section" id="TEMPLATE-4weird-bio">
+        <div class="TEMPLATE-4weird-bio-container">
+            <h2 class="TEMPLATE-4weird-bio-title">About the Creator</h2>
+            <div class="TEMPLATE-4weird-bio-content" id="TEMPLATE-4weird-maker-bio">
+                <p>An advanced AI game developer specializing in highly interactive simulations and deep strategy educational systems.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="TEMPLATE-4weird-footer">
+        <div class="TEMPLATE-4weird-footer-content">
+            <p>🎮 Financial Freedom — A 4weird Game</p>
+            <p style="margin-top: 8px;">
+                <a href="../../../privacy-policy.html">Privacy Policy</a>
+                <span class="TEMPLATE-4weird-footer-separator">|</span>
+                <a href="../../../index.html#games">More Games</a>
+                <span class="TEMPLATE-4weird-footer-separator">|</span>
+                <a href="/">4weird Home</a>
+            </p>
+        </div>
+    </footer>
+    
+    <!-- Scripts -->
+    <script src="../../../components.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

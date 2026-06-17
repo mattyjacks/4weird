@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Exit Waterfall Machine - 4weird Games</title>
+    <meta name="description" content="An interactive cap table simulator and game inspired by Ron Wiener's blog post. See how liquidation preferences, debt, and participation shape founder payouts.">
+    <meta name="keywords" content="4weird, Exit Waterfall Machine, Cap Table, Startups, Liquidation Preference, Venture Debt">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Exit Waterfall Machine - 4weird Games">
+    <meta property="og:description" content="Simulate startup acquisition payout waterfalls in real-time.">
+    <meta property="og:type" content="website">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💧</text></svg>">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Base Styles -->
+    <link rel="stylesheet" href="../../../styles.css">
+    <link rel="stylesheet" href="game.css?v=2">
+    
+    <!-- Game Metadata -->
+    <script src="game.json" type="application/json" id="game-metadata"></script>
+</head>
+<body class="TEMPLATE-4weird-game-page">
+    <!-- Background Canvas -->
+    <canvas id="TEMPLATE-4weird-starfield"></canvas>
+    
+    <!-- Navigation placeholder -->
+    <div id="TEMPLATE-4weird-nav-placeholder"></div>
+    
+    <!-- Game Header Bar -->
+    <header class="TEMPLATE-4weird-game-header">
+        <div class="TEMPLATE-4weird-game-header-inner">
+            <a href="/" class="TEMPLATE-4weird-back-link">
+                <span class="TEMPLATE-4weird-back-arrow">←</span>
+                <span>Back to 4weird</span>
+            </a>
+            <h1 class="TEMPLATE-4weird-game-title" id="TEMPLATE-4weird-game-title">Exit Waterfall Machine</h1>
+            <div class="TEMPLATE-4weird-game-meta" id="TEMPLATE-4weird-game-meta">
+                <span class="TEMPLATE-4weird-game-genre">Simulation</span>
+                <span class="TEMPLATE-4weird-separator">•</span>
+                <span class="TEMPLATE-4weird-game-status live">LIVE</span>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Game Container -->
+    <main class="waterfall-game-main-wrapper" style="display: block; margin-top: 20px;">
+        <div class="waterfall-game-main">
+            <!-- Visualizer & Game Area -->
+            <div class="waterfall-game-frame">
+            <div class="machine-container">
+                <!-- Top Exit Display -->
+                <div class="machine-header">
+                    <div class="exit-billboard">
+                        <div class="exit-amount-display" id="exit-amount-val">$100.0M</div>
+                        <div class="exit-vibes-tag">#EXITVIBES</div>
+                    </div>
+                </div>
+                
+                <!-- Main Animated Canvas Visualizer -->
+                <canvas id="waterfall-gameCanvas"></canvas>
+                
+                <div class="billboard-caption">The headline price is <span>not</span> your payout.</div>
+                
+                <!-- Exit Value Slider -->
+                <div class="exit-slider-container">
+                    <div class="slider-label-row">
+                        <span>EXIT PROCEEDS:</span>
+                        <span id="slider-max-indicator">$1,000M</span>
+                    </div>
+                    <input type="range" min="0" max="1000" value="100" class="exit-range-input" id="exit-slider">
+                </div>
+            </div>
+            
+            <!-- Scenario Win Popup -->
+            <div class="scenario-complete-popup" id="scenario-complete-popup">
+                <div class="popup-emoji">🏆</div>
+                <div class="popup-title">Scenario Mastered!</div>
+                <div class="popup-message">You configured the waterfall perfectly to achieve the milestone payout.</div>
+                <button class="btn btn-primary" id="btn-close-popup">Continue Sandbox</button>
+            </div>
+        </div>
+        
+        <!-- Controls & Knowledge Base Panel -->
+        <aside class="TEMPLATE-4weird-game-info-panel" style="padding: 0; margin: 0;">
+            <!-- Disclaimer -->
+            <div class="disclaimer-banner" style="margin: 15px; border-radius: 8px;">
+                <span>⚠️ <strong>Disclaimer:</strong> This educational simulation game was not approved by <a href="https://www.linkedin.com/in/ronwiener/" target="_blank" rel="noopener">Ron Wiener</a> and is just a demo. Read the original article on <a href="https://www.venturemechanics.com/blog/sold-for-a-fortune-took-home-nothing-what-founders-learn-too-late-about-startup-exits" target="_blank" rel="noopener">Venture Mechanics</a>.</span>
+            </div>
+
+            <!-- Tabs -->
+            <div class="control-tabs">
+                <button class="tab-btn active" data-tab="tab-sandbox">Sandbox Mode</button>
+                <button class="tab-btn" data-tab="tab-scenarios">Challenges</button>
+                <button class="tab-btn" data-tab="tab-handbook">Founder's Handbook</button>
+            </div>
+            
+            <!-- Tab Contents -->
+            <!-- 1. Sandbox Control Tab -->
+            <div class="tab-content active" id="tab-sandbox">
+                <div class="input-group">
+                    <div class="input-group-title">Senior Debt</div>
+                    <div class="control-row">
+                        <label for="input-debt">Venture / Structured Debt ($M)</label>
+                        <input type="number" id="input-debt" value="10" min="0" max="200" class="input-num sandbox-control">
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <div class="input-group-title">Series A Preferred</div>
+                    <div class="control-row">
+                        <label for="input-seriesA-preferred">Capital Raised ($M)</label>
+                        <input type="number" id="input-seriesA-preferred" value="20" min="0" max="300" class="input-num sandbox-control">
+                    </div>
+                    <div class="control-row">
+                        <label for="input-seriesA-multiple">Liquidation Preference Multiple</label>
+                        <input type="number" id="input-seriesA-multiple" value="1.0" step="0.5" min="1.0" max="5.0" class="input-num sandbox-control">
+                    </div>
+                    <div class="control-row">
+                        <label for="input-seriesA-participating">Participating Rights (Double Dip)</label>
+                        <input type="checkbox" id="input-seriesA-participating" class="input-checkbox sandbox-control">
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <div class="input-group-title">Series B Preferred (Senior)</div>
+                    <div class="control-row">
+                        <label for="input-seriesB-preferred">Capital Raised ($M)</label>
+                        <input type="number" id="input-seriesB-preferred" value="30" min="0" max="300" class="input-num sandbox-control">
+                    </div>
+                    <div class="control-row">
+                        <label for="input-seriesB-multiple">Liquidation Preference Multiple</label>
+                        <input type="number" id="input-seriesB-multiple" value="1.0" step="0.5" min="1.0" max="5.0" class="input-num sandbox-control">
+                    </div>
+                    <div class="control-row">
+                        <label for="input-seriesB-participating">Participating Rights (Double Dip)</label>
+                        <input type="checkbox" id="input-seriesB-participating" class="input-checkbox sandbox-control">
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <div class="input-group-title">Common Equity Pool</div>
+                    <div class="control-row">
+                        <label for="input-common-ownership">Common Stock Pool Share (%)</label>
+                        <input type="number" id="input-common-ownership" value="40" min="1" max="100" class="input-num sandbox-control">
+                    </div>
+                    <div class="control-row" style="font-size: 0.8rem; color: var(--text-secondary);">
+                        Note: Common pool represents the founders + employees.
+                    </div>
+                </div>
+
+                <!-- Scenario Action Container -->
+                <div id="sc-terms-offer-btns" style="display: none; margin-top: 15px;">
+                    <div style="font-size: 0.9rem; margin-bottom: 10px; font-weight: bold; color: var(--neon-blue);">Make Your Selection:</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <button class="action-btn" id="btn-select-offer-a" style="background: linear-gradient(135deg, #00ff87 0%, #60efff 100%);">Select Offer A (Clean)</button>
+                        <button class="action-btn" id="btn-select-offer-b" style="background: linear-gradient(135deg, #ff3366 0%, #ffaa00 100%);">Select Offer B (Structured)</button>
+                    </div>
+                </div>
+
+                <div id="sc-secondary-btn-container" style="display: none; margin-top: 15px;">
+                    <button class="action-btn" id="btn-take-secondary">💰 Take $1.5M Secondary</button>
+                    <div style="font-size: 0.8rem; text-align: center; margin-top: 5px; color: var(--text-secondary);">
+                        Secondary Status: <strong id="secondary-status-txt">None</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 2. Challenge Scenario Tab -->
+            <div class="tab-content" id="tab-scenarios">
+                <div class="scenario-list">
+                    <div class="scenario-card" id="sc-fanduel">
+                        <div class="scenario-header">
+                            <span class="scenario-title">1. The FanDuel Wipeout</span>
+                            <span class="scenario-difficulty diff-medium">Medium</span>
+                        </div>
+                        <div class="scenario-desc">Learn the scale-fund paradox where late preference stacks wipe out common stock completely.</div>
+                        <div class="scenario-objective">🎯 Find exit value where Common gets $1M+</div>
+                    </div>
+                    
+                    <div class="scenario-card" id="sc-terms_vs_valuation">
+                        <div class="scenario-header">
+                            <span class="scenario-title">2. Valuation vs. Clean Terms</span>
+                            <span class="scenario-difficulty diff-hard">Hard</span>
+                        </div>
+                        <div class="scenario-desc">Compare two term sheets: $60M valuation clean vs. $100M valuation structured with debt.</div>
+                        <div class="scenario-objective">🎯 Choose the offer that pays founders at $70M exit</div>
+                    </div>
+                    
+                    <div class="scenario-card" id="sc-debt_trap">
+                        <div class="scenario-header">
+                            <span class="scenario-title">3. The Debt Trap</span>
+                            <span class="scenario-difficulty diff-easy">Easy</span>
+                        </div>
+                        <div class="scenario-desc">Examine how venture debt stacks senior to preferred stock and common equity in a down exit.</div>
+                        <div class="scenario-objective">🎯 Experience the $25M exit split</div>
+                    </div>
+                    
+                    <div class="scenario-card" id="sc-secondary_rescue">
+                        <div class="scenario-header">
+                            <span class="scenario-title">4. Secondary Rescue</span>
+                            <span class="scenario-difficulty diff-medium">Medium</span>
+                        </div>
+                        <div class="scenario-desc">Experience how taking modest secondary liquidity during growth de-risks founder lifelines.</div>
+                        <div class="scenario-objective">🎯 Take secondary and verify the exit payout</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 3. Handbook Knowledge Center -->
+            <div class="tab-content" id="tab-handbook">
+                <div class="handbook-article">
+                    <div class="handbook-card">
+                        <h4>1. Underestimating Liquidation Preferences</h4>
+                        <p>A participating preference or multiple preference stacks debt-like liabilities senior to common equity. In typical exits, common receives $0 because preferred terms devour the entire price tag.</p>
+                    </div>
+                    <div class="handbook-card">
+                        <h4>2. Raising Excess Capital</h4>
+                        <p>Oversized rounds increase the minimum exit threshold required for founders to see any return. Valuation optics should never override cap table efficiency.</p>
+                    </div>
+                    <div class="handbook-card">
+                        <h4>3. Casual Debt Layering</h4>
+                        <p>Venture debt resides at the top of the priority stack. When growth stalls, senior debt drains liquidity first, shutting out all classes below.</p>
+                    </div>
+                    <div class="handbook-card">
+                        <h4>4. Loss of Exit Control</h4>
+                        <p>Governance and drag-along rights can allow board majorities to force mediocre sale actions against founder alignment thresholds.</p>
+                    </div>
+                    <div class="handbook-card">
+                        <h4>5. Failure to Model Cascades</h4>
+                        <p>Founders fail to explicitly run exit waterfalls at lower values ($50M, $100M) before signing financing term sheets.</p>
+                    </div>
+                    <div class="handbook-card">
+                        <h4>6. Rejecting Early Secondary</h4>
+                        <p>Taking modest secondary de-risks founders, reduces board friction, and avoids full personal illiquidity wipeouts.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Waterfall statistics display -->
+            <div class="waterfall-stats-card">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-title">Senior Debt Payout</span>
+                        <span class="stat-value color-debt" id="payout-debt">$0.0M</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-title">Preferred Stock Payout</span>
+                        <span class="stat-value color-pref" id="payout-pref">$0.0M</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-title">Common Stock Payout</span>
+                        <span class="stat-value color-common" id="payout-common">$0.0M</span>
+                    </div>
+                </div>
+                
+                <div id="waterfall-warning-box" style="display: none; margin-top: 15px; padding: 10px; border-radius: 6px; background: rgba(255, 51, 102, 0.1); border: 1px solid rgba(255, 51, 102, 0.2); font-size: 0.85rem; color: #ff80a0;">
+                    ⚠️ FOUNDER WIPEOUT WARNING
+                </div>
+                
+                <!-- Detailed Audit list -->
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.85rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span style="color: var(--text-secondary);">Senior Debt Paid:</span>
+                        <span id="detail-debt-payout" class="color-debt">$0.0M</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span style="color: var(--text-secondary);">Series B Pref Paid:</span>
+                        <span id="detail-seriesB-payout" class="color-pref">$0.0M</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span style="color: var(--text-secondary);">Series A Pref Paid:</span>
+                        <span id="detail-seriesA-payout" class="color-pref">$0.0M</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span style="color: var(--text-secondary);">Founder Common Pool:</span>
+                        <span id="detail-founders-payout" class="color-common">$0.0M</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer links inside aside panel -->
+            <div class="info-links">
+                <a href="https://www.venturemechanics.com/blog/sold-for-a-fortune-took-home-nothing-what-founders-learn-too-late-about-startup-exits" target="_blank" rel="noopener">Read the Blog Article</a>
+                <a href="https://www.linkedin.com/feed/update/urn:li:activity:7473035749563486208/" target="_blank" rel="noopener">LinkedIn Thread</a>
+            </div>
+        </aside>
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="TEMPLATE-4weird-footer">
+        <div class="TEMPLATE-4weird-footer-content">
+            <p>🎮 Exit Waterfall Machine - A 4weird Game Demo</p>
+            <p style="margin-top: 8px;">
+                <a href="../../../privacy-policy.html">Privacy Policy</a>
+                <span class="TEMPLATE-4weird-footer-separator">|</span>
+                <a href="../../../index.html#games">More Games</a>
+                <span class="TEMPLATE-4weird-footer-separator">|</span>
+                <a href="/">4weird Home</a>
+            </p>
+        </div>
+    </footer>
+    
+    <!-- Scripts -->
+    <script src="../../../components.js"></script>
+    <script src="game.js"></script>
+    <script>
+        // Start the game loop
+        (function() {
+            window.Game.init();
+        })();
+    </script>
+</body>
+</html>
