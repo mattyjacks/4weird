@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initContactForm();
     initParallax();
     initStickyNav();
+    initRandomGameButton();
 });
 
 // ===== STARFIELD BACKGROUND =====
@@ -272,4 +273,100 @@ function initStickyNav() {
             ticking = true;
         }
     }, { passive: true });
+}
+
+// ===== PLAY RANDOM GOOD GAME FEATURE =====
+function initRandomGameButton() {
+    const btn = document.getElementById('btn-random-game');
+    if (!btn) return;
+
+    btn.addEventListener('click', () => {
+        // Prevent double clicks
+        if (btn.classList.contains('loading')) return;
+
+        // Retrieve game list from window.FourWeirdComponents.games
+        const games = window.FourWeirdComponents?.games;
+        if (!games || games.length === 0) {
+            console.error('Games data not found!');
+            // Fallback redirect if games array doesn't exist
+            window.location.href = 'games/index.html';
+            return;
+        }
+
+        // Get featured games
+        let candidates = games.filter(g => g.featured);
+        if (candidates.length === 0) {
+            // Fallback to all games if no featured list
+            candidates = games;
+        }
+
+        // Exclude the last played game to avoid picking the same twice consecutively
+        const lastPlayedId = localStorage.getItem('last_played_game_id');
+        if (candidates.length > 1 && lastPlayedId) {
+            candidates = candidates.filter(g => g.id !== lastPlayedId);
+        }
+
+        // Weighted random selection
+        const totalWeight = candidates.reduce((sum, g) => sum + (g.weight || 1), 0);
+        let randomNum = Math.random() * totalWeight;
+        let selectedGame = candidates[candidates.length - 1]; // Default fallback
+
+        for (const game of candidates) {
+            if (randomNum < (game.weight || 1)) {
+                selectedGame = game;
+                break;
+            }
+            randomNum -= (game.weight || 1);
+        }
+
+        // Store selected game ID as last played
+        localStorage.setItem('last_played_game_id', selectedGame.id);
+
+        const gameUrl = `games/html/${selectedGame.path}/index.html`;
+
+        // Start preloading the game in background
+        const prefetchLink = document.createElement('link');
+        prefetchLink.rel = 'prefetch';
+        prefetchLink.href = gameUrl;
+        document.head.appendChild(prefetchLink);
+
+        // Also load in a hidden iframe to warm up browser cache/execution
+        const prefetchIframe = document.createElement('iframe');
+        prefetchIframe.src = gameUrl;
+        prefetchIframe.style.display = 'none';
+        document.body.appendChild(prefetchIframe);
+
+        // UI Transition
+        btn.classList.add('loading');
+        const btnText = btn.querySelector('.btn-text');
+        const btnEmoji = btn.querySelector('.shuffle-icon');
+
+        // Slot machine slot animation: cycle emojis and names rapidly
+        let cycles = 0;
+        const maxCycles = 12;
+        const intervalTime = 100; // ms
+
+        const cycleInterval = setInterval(() => {
+            const tempGame = games[Math.floor(Math.random() * games.length)];
+            if (btnEmoji) btnEmoji.textContent = tempGame.emoji;
+            if (btnText) btnText.textContent = `Loading ${tempGame.title}...`;
+            cycles++;
+
+            if (cycles >= maxCycles) {
+                clearInterval(cycleInterval);
+                // Final destination state
+                if (btnEmoji) btnEmoji.textContent = selectedGame.emoji;
+                if (btnText) btnText.textContent = `Launching ${selectedGame.title}!`;
+                
+                // Add page fade-out effect and navigate
+                setTimeout(() => {
+                    document.body.style.transition = 'opacity 0.4s ease';
+                    document.body.style.opacity = '0';
+                    setTimeout(() => {
+                        window.location.href = gameUrl;
+                    }, 400);
+                }, 200);
+            }
+        }, intervalTime);
+    });
 }

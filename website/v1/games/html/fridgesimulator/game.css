@@ -35,7 +35,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    padding-top: 70px; /* account for fixed navbar */
+    padding-top: var(--navbar-height); /* account for fixed navbar */
 }
 
 .header {
@@ -94,8 +94,8 @@ body {
     flex-direction: column;
     background: radial-gradient(ellipse at center, #1a1a3e 0%, #0a0a0f 70%);
     overflow: hidden;
-    height: calc(100vh - 70px);
-    max-height: calc(100vh - 70px);
+    height: calc(100vh - var(--navbar-height));
+    max-height: calc(100vh - var(--navbar-height));
 }
 
 .game-main {

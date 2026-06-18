@@ -1,5 +1,6 @@
-// Core System - Premium Autonomous Solar System & Quest Simulation
-// Visual and telemetry refinements: volumetric solar halos, orbit path lines, moons, engine thruster trails, and AU HUD telemetry.
+// Core System - Premium Autonomous 3D Spaceship & Solar System Simulation (Three.js Version)
+// Implements 3D WebGL rendering, custom modular ship loading, obstacle avoidance,
+// flocking behaviors, volumetric solar halo, parallax starfields, and engine trails.
 
 import { ShipBuilder } from './ship-builder.js';
 
@@ -30,78 +31,63 @@ class SpaceSoundSystem {
 
   playLaser() {
     if (this.muted) return;
-    this.initContext();
-    const ctx = this.ctx;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(800, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.15);
-    
-    gain.gain.setValueAtTime(0.08, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.15);
-    
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.15);
+    try {
+      this.initContext();
+      const ctx = this.ctx;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(600, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.12);
+      
+      gain.gain.setValueAtTime(0.03, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.12);
+    } catch (e) {
+      // Audio issue ignored
+    }
   }
 
   playExplosion() {
     if (this.muted) return;
-    this.initContext();
-    const ctx = this.ctx;
-    
-    const bufferSize = ctx.sampleRate * 0.4;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
+    try {
+      this.initContext();
+      const ctx = this.ctx;
+      const bufferSize = ctx.sampleRate * 0.35;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+      
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(300, ctx.currentTime);
+      filter.frequency.exponentialRampToValueAtTime(10, ctx.currentTime + 0.35);
+      
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      
+      noise.start();
+      noise.stop(ctx.currentTime + 0.35);
+    } catch (e) {
+      // Audio issues ignored
     }
-    
-    const noise = ctx.createBufferSource();
-    noise.buffer = buffer;
-    
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(400, ctx.currentTime);
-    filter.frequency.exponentialRampToValueAtTime(10, ctx.currentTime + 0.4);
-    
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.25, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-    
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-    
-    noise.start();
-    noise.stop(ctx.currentTime + 0.4);
-  }
-
-  playShieldHit() {
-    if (this.muted) return;
-    this.initContext();
-    const ctx = this.ctx;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(1200, ctx.currentTime);
-    osc.frequency.linearRampToValueAtTime(600, ctx.currentTime + 0.1);
-    
-    gain.gain.setValueAtTime(0.12, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-    
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.1);
   }
 }
-
-const isFullscreenSim = typeof window !== 'undefined' && (window.location.pathname.includes('spaceships.html') || window.location.search.includes('fullscreen=true'));
 
 class SpaceGameCore {
   constructor() {
@@ -110,1888 +96,518 @@ class SpaceGameCore {
       running: false,
       loading: false,
       error: null,
-      cameraMode: 'chase' // dynamic, chase, top, side
+      cameraMode: 'chase' // chase, top, side, orbit
     };
     
     this.systems = new Map();
     this.soundSystem = new SpaceSoundSystem();
     this.timeScale = 1.0;
-    this.credits = 0;
+    this.credits = 1250;
     
     this.config = {
-      maxShips: 5,
-      maxProjectiles: 100,
-      targetFPS: 60,
-      loadingTimeout: 5000
+      maxShips: 7,
+      targetFPS: 60
     };
     
     this.performance = {
       frameCount: 0,
       lastTime: 0,
-      fps: 0,
+      fps: 60,
       loadTime: 0
     };
+
+    // Three.js Core components
+    this.renderer = null;
+    this.scene = null;
+    this.camera = null;
+    this.lights = [];
+
+    // Entities
+    this.ships = [];
+    this.aliens = [];
+    this.projectiles = [];
+    this.particles = [];
+    this.planets = [];
+    this.asteroids = [];
+    this.dust = null;
+
+    // Sun reference & lights
+    this.sun = null;
+    this.sunLight = null;
+    this.sunGlowShells = [];
+
+    // Background Nebula plates
+    this.nebulae = [];
+
+    // Controls state
+    this.keys = {};
+    this.creditsTimer = 0;
+
+    // Autonomous steering helper waypoints
+    this.wanderTarget = new THREE.Vector3(200, 0, 100);
+    this.wanderAngle = 0;
+
+    this.animationFrameId = null;
   }
 
   async initialize(canvasId = 'starfield') {
-    if (this.state.initialized) {
-      console.warn('SpaceGameCore already initialized');
-      return true;
-    }
-
+    if (this.state.initialized) return true;
     this.state.loading = true;
     const startTime = performance.now();
 
     try {
-      await this.initializeRenderer(canvasId);
-      await this.initializeScene();
-      await this.initializeSystems();
-      await this.initializeContent();
-      
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) {
+        throw new Error(`Canvas with ID '${canvasId}' not found.`);
+      }
+
+      // 1. Initialize WebGL Renderer
+      this.renderer = new THREE.WebGLRenderer({
+        canvas: canvas,
+        alpha: true,
+        antialias: true,
+        powerPreference: "high-performance"
+      });
+      this.renderer.setSize(window.innerWidth, window.innerHeight);
+      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      this.renderer.setClearColor(0x05030a, 1);
+
+      // 2. Initialize Scene & Camera
+      this.scene = new THREE.Scene();
+      this.scene.fog = new THREE.FogExp2(0x05030a, 0.002);
+
+      this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.5, 2000);
+      this.camera.position.set(0, 80, 220);
+
+      // 3. Initialize Lighting
+      const ambientLight = new THREE.AmbientLight(0x1a1a2e, 1.2);
+      this.scene.add(ambientLight);
+      this.lights.push(ambientLight);
+
+      // 4. Initialize Environments & Entities
+      this.initEnvironment();
+      this.initEntities();
+
+      // Keyboard & resize listeners
+      window.addEventListener('resize', this.handleResize);
+      window.addEventListener('keydown', this.handleKeyDown);
+      window.addEventListener('keyup', this.handleKeyUp);
+      document.addEventListener('visibilitychange', this.handleVisibilityChange);
+
       this.state.initialized = true;
       this.state.loading = false;
       this.performance.loadTime = performance.now() - startTime;
       
-      console.log(`SpaceGameCore initialized in ${this.performance.loadTime.toFixed(2)}ms`);
       return true;
-      
-    } catch (error) {
-      this.state.error = error;
+    } catch (e) {
+      this.state.error = e;
       this.state.loading = false;
-      console.error('SpaceGameCore initialization failed:', error);
-      this.fallback();
+      console.error('[SpaceGameCore] WebGL Init failed:', e);
       return false;
     }
   }
 
-  async initializeRenderer(canvasId) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) {
-      throw new Error(`Canvas with id '${canvasId}' not found`);
+  handleResize = () => {
+    if (this.camera && this.renderer) {
+      this.camera.aspect = window.innerWidth / window.innerHeight;
+      this.camera.updateProjectionMatrix();
+      this.renderer.setSize(window.innerWidth, window.innerHeight);
     }
+  };
 
-    const renderer = new THREE.WebGLRenderer({
-      canvas: canvas,
-      alpha: true,
-      antialias: true,
-      powerPreference: "high-performance"
-    });
-    
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(0x05030a, 1);
-    renderer.shadowMap.enabled = false;
-    
-    this.systems.set('renderer', renderer);
-  }
-
-  async initializeScene() {
-    const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x05030a, 0.0025);
-    
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.5, 800);
-    camera.position.set(0, 45, 110);
-    
-    this.systems.set('scene', scene);
-    this.systems.set('camera', camera);
-  }
-
-  async initializeSystems() {
-    const systems = [
-      'SpaceDustSystem',
-      'LightingSystem',
-      'StarfieldSystem',
-      'SolarSystemSystem',
-      'ShipSystem',
-      'AlienSystem',
-      'ProjectileSystem',
-      'ExplosionSystem',
-      'QuestSystem',
-      'InputSystem',
-      'UISystem'
-    ];
-
-    for (const SystemClass of systems) {
-      try {
-        const system = await this.createSystem(SystemClass);
-        system.core = this; // Dynamically inject core engine reference
-        this.systems.set(SystemClass.toLowerCase(), system);
-      } catch (error) {
-        console.warn(`Failed to initialize ${SystemClass}:`, error);
-      }
+  handleKeyDown = (e) => {
+    this.keys[e.key.toLowerCase()] = true;
+    if (e.key === ' ' || e.code === 'Space') {
+      e.preventDefault();
+      this.fireLaser(this.ships[0]);
     }
-  }
+  };
 
-  async createSystem(systemName) {
-    switch (systemName) {
-      case 'SpaceDustSystem':
-        return new SpaceDustSystem(this.systems.get('scene'));
-      case 'LightingSystem':
-        return new LightingSystem(this.systems.get('scene'));
-      case 'StarfieldSystem':
-        return new StarfieldSystem(this.systems.get('scene'));
-      case 'SolarSystemSystem':
-        return new SolarSystemSystem(this.systems.get('scene'));
-      case 'ShipSystem':
-        return new ShipSystem(this.systems.get('scene'), this.config.maxShips);
-      case 'AlienSystem':
-        return new AlienSystem(this.systems.get('scene'));
-      case 'ProjectileSystem':
-        return new ProjectileSystem(this.systems.get('scene'));
-      case 'ExplosionSystem':
-        return new ExplosionSystem(this.systems.get('scene'));
-      case 'QuestSystem':
-        return new QuestSystem(this.systems.get('scene'), this);
-      case 'InputSystem':
-        return new InputSystem();
-      case 'UISystem':
-        return new UISystem(this);
-      default:
-        throw new Error(`Unknown system: ${systemName}`);
-    }
-  }
+  handleKeyUp = (e) => {
+    this.keys[e.key.toLowerCase()] = false;
+  };
 
-  async initializeContent() {
-    const shipSystem = this.systems.get('shipsystem');
-    if (shipSystem) {
-      await shipSystem.spawnFleet();
-    }
-    const questSystem = this.systems.get('questsystem');
-    if (questSystem) {
-      questSystem.generateQuest();
-    }
-  }
-
-  start() {
-    if (!this.state.initialized) {
-      console.error('Cannot start: System not initialized');
-      return false;
-    }
-
-    if (this.state.running) {
-      console.warn('System already running');
-      return true;
-    }
-
-    this.state.running = true;
-    this.performance.lastTime = performance.now();
-    this.gameLoop();
-    return true;
-  }
-
-  stop() {
-    this.state.running = false;
-    if (this.animationId) {
-      cancelAnimationFrame(this.animationId);
-    }
-  }
-
-  gameLoop() {
-    if (!this.state.running) return;
-
-    const currentTime = performance.now();
-    const deltaTime = Math.min((currentTime - this.performance.lastTime) / 1000, 0.1);
-    this.performance.lastTime = currentTime;
-
-    this.performance.frameCount++;
-    if (this.performance.frameCount % 30 === 0) {
-      this.performance.fps = Math.round(1 / deltaTime);
-    }
-
-    this.update(deltaTime);
-    this.updateCamera(deltaTime);
-    this.render();
-
-    this.animationId = requestAnimationFrame(() => this.gameLoop());
-  }
-
-  render() {
-    const renderer = this.systems.get('renderer');
-    const scene = this.systems.get('scene');
-    const camera = this.systems.get('camera');
-
-    if (renderer && scene && camera) {
-      renderer.render(scene, camera);
-    }
-  }
-
-  update(deltaTime) {
-    // 5x simulated speedup factor * time dilation multiplier
-    const scaledDt = deltaTime * 5.0 * (this.timeScale || 1.0);
-
-    // Local visual-only updates
-    const spaceDustSystem = this.systems.get('spacedustsystem');
-    if (spaceDustSystem) spaceDustSystem.update(scaledDt);
-
-    const starfieldSystem = this.systems.get('starfieldsystem');
-    if (starfieldSystem) starfieldSystem.update(scaledDt);
-
-    const explosionSystem = this.systems.get('explosionsystem');
-    if (explosionSystem) explosionSystem.update(scaledDt);
-
-    const shipSystem = this.systems.get('shipsystem');
-    const alienSystem = this.systems.get('aliensystem');
-
-    // Smooth linear interpolation (LERP) for ships and aliens positions
-    if (shipSystem && shipSystem.ships) {
-      shipSystem.ships.forEach(ship => {
-        if (ship.targetPosition) {
-          ship.position.lerp(ship.targetPosition, scaledDt * 2.0);
-        }
-      });
-    }
-    if (alienSystem && alienSystem.aliens) {
-      alienSystem.aliens.forEach(alien => {
-        if (alien.targetPosition) {
-          alien.position.lerp(alien.targetPosition, scaledDt * 2.0);
-        }
-      });
-    }
-
-    // Exhaust particle trails updates
-    [shipSystem, alienSystem].forEach(system => {
-      if (!system) return;
-      const items = system.ships || system.aliens;
-      if (!items) return;
-      items.forEach(item => {
-        if (item.particlePoints) {
-          const pGeom = item.particlePoints.geometry;
-          const positions = pGeom.attributes.position.array;
-          const lifes = item.particleLifes;
-          const particleCount = lifes.length;
-          
-          for (let pIdx = 0; pIdx < particleCount; pIdx++) {
-            lifes[pIdx] -= scaledDt * 2.0;
-            if (lifes[pIdx] <= 0) {
-              positions[pIdx * 3] = (Math.random() - 0.5) * 0.4;
-              positions[pIdx * 3 + 1] = (Math.random() - 0.5) * 0.4;
-              positions[pIdx * 3 + 2] = item.isBoss ? 7.0 : 3.0;
-              lifes[pIdx] = 1.0 + Math.random() * 0.5;
-            } else {
-              positions[pIdx * 3] += (Math.random() - 0.5) * 0.05;
-              positions[pIdx * 3 + 1] += (Math.random() - 0.5) * 0.05;
-              positions[pIdx * 3 + 2] += 12 * scaledDt;
-            }
-          }
-          pGeom.attributes.position.needsUpdate = true;
-        }
-      });
-    });
-
-    // Initialize Worker if not done yet
-    if (!this.worker) {
-      this.initWorker();
-    }
-
-    // Pass calculations to worker if it is ready
-    if (this.worker && !this.workerBusy) {
-      this.workerBusy = true;
-
-      const projSystem = this.systems.get('projectilesystem');
-      const solarSystem = this.systems.get('solarsystemsystem');
-      const questSystem = this.systems.get('questsystem');
-      const inputSystem = this.systems.get('inputsystem');
-      const keysPressed = inputSystem ? inputSystem.keys : {};
-
-      const shipData = [];
-      if (shipSystem) {
-        shipSystem.ships.forEach((ship, id) => {
-          shipData.push({
-            id: id,
-            pos: { x: ship.position.x, y: ship.position.y, z: ship.position.z },
-            dir: ship.mesh ? { x: 0, y: 0, z: -1 } : null,
-            offset: { x: ship.baseOffset.x, y: ship.baseOffset.y, z: ship.baseOffset.z }
-          });
-        });
-      }
-
-      const alienData = [];
-      if (alienSystem) {
-        alienSystem.aliens.forEach((alien, id) => {
-          alienData.push({
-            id: id,
-            pos: { x: alien.position.x, y: alien.position.y, z: alien.position.z },
-            speed: alien.speed,
-            health: alien.health,
-            isBoss: alien.isBoss || false
-          });
-        });
-      }
-
-      const projData = [];
-      if (projSystem) {
-        projSystem.projectiles.forEach((proj, idx) => {
-          projData.push({
-            idx: idx,
-            pos: { x: proj.position.x, y: proj.position.y, z: proj.position.z },
-            dir: { x: proj.direction.x, y: proj.direction.y, z: proj.direction.z },
-            speed: proj.speed,
-            faction: proj.faction,
-            life: proj.life
-          });
-        });
-      }
-
-      const planetData = [];
-      if (solarSystem) {
-        solarSystem.planets.forEach((planet, id) => {
-          const moons = [];
-          planet.moons.forEach((m, mIdx) => {
-            moons.push({ id: mIdx, angle: m.angle, speed: m.speed, distance: m.distance });
-          });
-          planetData.push({
-            id: id,
-            angle: planet.angle,
-            speed: planet.speed,
-            distance: planet.distance,
-            moons: moons
-          });
-        });
-      }
-
-      const targetPos = questSystem && questSystem.targetPosition ? { 
-        x: questSystem.targetPosition.x, 
-        y: questSystem.targetPosition.y, 
-        z: questSystem.targetPosition.z 
-      } : null;
-
-      this.worker.postMessage({
-        type: 'simulate',
-        data: {
-          deltaTime: scaledDt,
-          ships: shipData,
-          aliens: alienData,
-          projectiles: projData,
-          planets: planetData,
-          targetPos: targetPos,
-          keys: keysPressed
-        }
-      });
-    }
-
-    // Handle weapons shooting and Quest timer updates
-    this.runFiringLogic(scaledDt);
-
-    // Update UI system
-    const uiSystem = this.systems.get('uisystem');
-    if (uiSystem) uiSystem.update(deltaTime);
-  }
-
-  initWorker() {
-    const workerCode = `
-      self.onmessage = function(e) {
-        const { type, data } = e.data;
-        if (type === 'simulate') {
-          const { deltaTime, ships, aliens, projectiles, planets, targetPos, keys } = data;
-          
-          const shipUpdates = [];
-          const lead = ships.find(s => s.id === 'ship_0');
-          if (lead) {
-            let dx = lead.dir ? lead.dir.x : 0;
-            let dy = lead.dir ? lead.dir.y : 0;
-            let dz = lead.dir ? lead.dir.z : -1;
-            
-            const hasSteerKeys = keys && (keys.KeyA || keys.KeyD || keys.KeyW || keys.KeyS || keys.ArrowLeft || keys.ArrowRight || keys.ArrowUp || keys.ArrowDown);
-            
-            if (hasSteerKeys) {
-              if (keys.KeyA || keys.ArrowLeft) {
-                const angle = -1.8 * deltaTime;
-                const tx = dx * Math.cos(angle) - dz * Math.sin(angle);
-                const tz = dx * Math.sin(angle) + dz * Math.cos(angle);
-                dx = tx;
-                dz = tz;
-              }
-              if (keys.KeyD || keys.ArrowRight) {
-                const angle = 1.8 * deltaTime;
-                const tx = dx * Math.cos(angle) - dz * Math.sin(angle);
-                const tz = dx * Math.sin(angle) + dz * Math.cos(angle);
-                dx = tx;
-                dz = tz;
-              }
-              if (keys.KeyW || keys.ArrowUp) {
-                dy += 1.5 * deltaTime;
-              }
-              if (keys.KeyS || keys.ArrowDown) {
-                dy -= 1.5 * deltaTime;
-              }
-              
-              const len = Math.sqrt(dx*dx + dy*dy + dz*dz) || 1;
-              lead.dir = { x: dx/len, y: dy/len, z: dz/len };
-              
-              lead.pos.x += lead.dir.x * 48 * deltaTime;
-              lead.pos.y += lead.dir.y * 48 * deltaTime;
-              lead.pos.z += lead.dir.z * 48 * deltaTime;
-            } else if (targetPos) {
-              const ndx = targetPos.x - lead.pos.x;
-              const ndy = targetPos.y - lead.pos.y;
-              const ndz = targetPos.z - lead.pos.z;
-              const dist = Math.sqrt(ndx*ndx + ndy*ndy + ndz*ndz);
-              if (dist > 5) {
-                const nx = ndx / dist;
-                const ny = ndy / dist;
-                const nz = ndz / dist;
-                lead.pos.x += nx * 32 * deltaTime;
-                lead.pos.y += ny * 32 * deltaTime;
-                lead.pos.z += nz * 32 * deltaTime;
-                lead.dir = { x: nx, y: ny, z: nz };
-              }
-            }
-            shipUpdates.push({ id: lead.id, pos: lead.pos, dir: lead.dir });
-            
-            ships.forEach(s => {
-              if (s.id === 'ship_0') return;
-              const tx = lead.pos.x + s.offset.x;
-              const ty = lead.pos.y + s.offset.y;
-              const tz = lead.pos.z + s.offset.z;
-              s.pos.x += (tx - s.pos.x) * 2.5 * deltaTime;
-              s.pos.y += (ty - s.pos.y) * 2.5 * deltaTime;
-              s.pos.z += (tz - s.pos.z) * 2.5 * deltaTime;
-              shipUpdates.push({ id: s.id, pos: s.pos });
-            });
-          }
-          
-          const alienUpdates = [];
-          aliens.forEach(alien => {
-            if (lead) {
-              const dx = lead.pos.x - alien.pos.x;
-              const dy = lead.pos.y - alien.pos.y;
-              const dz = lead.pos.z - alien.pos.z;
-              const dist = Math.sqrt(dx*dx + dy*dy + dz*dz) || 1;
-              const nx = dx / dist;
-              const ny = dy / dist;
-              const nz = dz / dist;
-              alien.pos.x += nx * alien.speed * deltaTime;
-              alien.pos.y += ny * alien.speed * deltaTime;
-              alien.pos.z += nz * alien.speed * deltaTime;
-              alien.dir = { x: nx, y: ny, z: nz };
-            } else {
-              alien.pos.z += alien.speed * deltaTime;
-              alien.dir = { x: 0, y: 0, z: 1 };
-            }
-            alienUpdates.push({ id: alien.id, pos: alien.pos, dir: alien.dir });
-          });
-          
-          const planetUpdates = [];
-          planets.forEach(p => {
-            p.angle += p.speed * deltaTime;
-            const moons = [];
-            p.moons.forEach(m => {
-              m.angle += m.speed * deltaTime;
-              moons.push({ id: m.id, angle: m.angle });
-            });
-            planetUpdates.push({ id: p.id, angle: p.angle, moons: moons });
-          });
-          
-          const projUpdates = [];
-          const collisions = [];
-          
-          // Collision Bounds against Sun & Planets
-          const sunPos = { x: 0, y: 0, z: -50 };
-          const sunRadius = 40.0;
-          
-          ships.forEach(ship => {
-            const sdx = ship.pos.x - sunPos.x;
-            const sdy = ship.pos.y - sunPos.y;
-            const sdz = ship.pos.z - sunPos.z;
-            const sdist = Math.sqrt(sdx*sdx + sdy*sdy + sdz*sdz);
-            if (sdist < sunRadius + 2.0) {
-              collisions.push({ type: 'sun_collision', shipId: ship.id, pos: { ...ship.pos } });
-            }
-            
-            planets.forEach(p => {
-              const px = sunPos.x + Math.cos(p.angle) * p.distance;
-              const py = 0;
-              const pz = sunPos.z + Math.sin(p.angle) * p.distance;
-              const pdx = ship.pos.x - px;
-              const pdy = ship.pos.y - py;
-              const pdz = ship.pos.z - pz;
-              const pdist = Math.sqrt(pdx*pdx + pdy*pdy + pdz*pdz);
-              
-              let pRadius = 15;
-              if (p.id === 'planet_1') pRadius = 14;
-              else if (p.id === 'planet_2') pRadius = 20;
-              else if (p.id === 'planet_3') pRadius = 32;
-              else if (p.id === 'planet_4') pRadius = 18;
-              
-              if (pdist < pRadius + 2.0) {
-                collisions.push({ type: 'planet_collision', shipId: ship.id, pos: { ...ship.pos } });
-              }
-            });
-          });
-
-          projectiles.forEach(proj => {
-            proj.pos.x += proj.dir.x * proj.speed * deltaTime;
-            proj.pos.y += proj.dir.y * proj.speed * deltaTime;
-            proj.pos.z += proj.dir.z * proj.speed * deltaTime;
-            proj.life -= deltaTime;
-            
-            let destroyed = proj.life <= 0;
-            if (!destroyed) {
-              if (proj.faction === 'human') {
-                aliens.forEach(alien => {
-                  if (destroyed || alien.health <= 0) return;
-                  const dx = proj.pos.x - alien.pos.x;
-                  const dy = proj.pos.y - alien.pos.y;
-                  const dz = proj.pos.z - alien.pos.z;
-                  const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
-                  const hitRadius = alien.isBoss ? 45.0 : 15.0;
-                  if (dist < hitRadius) {
-                    collisions.push({
-                      type: 'alien_hit',
-                      alienId: alien.id,
-                      pos: { ...proj.pos }
-                    });
-                    alien.health -= 25;
-                    destroyed = true;
-                  }
-                });
-              } else {
-                ships.forEach(ship => {
-                  if (destroyed) return;
-                  const dx = proj.pos.x - ship.pos.x;
-                  const dy = proj.pos.y - ship.pos.y;
-                  const dz = proj.pos.z - ship.pos.z;
-                  const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
-                  if (dist < 10.0) {
-                    collisions.push({
-                      type: 'human_hit',
-                      shipId: ship.id,
-                      pos: { ...proj.pos }
-                    });
-                    destroyed = true;
-                  }
-                });
-              }
-            }
-            projUpdates.push({
-              idx: proj.idx,
-              pos: proj.pos,
-              life: proj.life,
-              destroyed: destroyed
-            });
-          });
-          
-          self.postMessage({
-            type: 'results',
-            ships: shipUpdates,
-            aliens: alienUpdates,
-            planets: planetUpdates,
-            projectiles: projUpdates,
-            collisions: collisions
-          });
-        }
-      };
-    `;
-    
-    const blob = new Blob([workerCode], { type: 'application/javascript' });
-    this.worker = new Worker(URL.createObjectURL(blob));
-    this.workerBusy = false;
-    
-    this.worker.onmessage = (e) => {
-      this.workerBusy = false;
-      const { type, ships, aliens, planets, projectiles, collisions } = e.data;
-      if (type !== 'results') return;
-      
-      const shipSystem = this.systems.get('shipsystem');
-      const alienSystem = this.systems.get('aliensystem');
-      const projSystem = this.systems.get('projectilesystem');
-      const solarSystem = this.systems.get('solarsystemsystem');
-      const explosionSystem = this.systems.get('explosionsystem');
-      const questSystem = this.systems.get('questsystem');
-      
-      // Update ships (sets targets for smooth LERP interpolation)
-      if (shipSystem && ships) {
-        ships.forEach(s => {
-          const ship = shipSystem.ships.get(s.id);
-          if (ship) {
-            if (ship.targetPosition) {
-              ship.targetPosition.set(s.pos.x, s.pos.y, s.pos.z);
-            }
-            if (s.dir) {
-              const targetRot = new THREE.Quaternion().setFromUnitVectors(
-                new THREE.Vector3(0, 0, -1),
-                new THREE.Vector3(s.dir.x, s.dir.y, s.dir.z)
-              );
-              ship.mesh.quaternion.copy(targetRot);
-            } else {
-              const lead = shipSystem.ships.get('ship_0');
-              if (lead) ship.mesh.quaternion.copy(lead.mesh.quaternion);
-            }
-            
-            // Pulse engine thruster trails
-            if (ship.trail) {
-              const scale = 0.8 + Math.sin(Date.now() * 0.05 + ship.position.x) * 0.15;
-              ship.trail.scale.set(1, 1, scale);
-            }
-            // Fade shields
-            if (ship.shieldFlashTime > 0) {
-              ship.shieldFlashTime -= 0.05 * 5.0;
-              ship.shield.material.opacity = Math.max(0, ship.shieldFlashTime);
-            }
-          }
-        });
-      }
-      
-      // Update aliens (sets targets for smooth LERP interpolation)
-      if (alienSystem && aliens) {
-        aliens.forEach(a => {
-          const alien = alienSystem.aliens.get(a.id);
-          if (alien) {
-            if (alien.targetPosition) {
-              alien.targetPosition.set(a.pos.x, a.pos.y, a.pos.z);
-            }
-            if (a.dir) {
-              const targetRot = new THREE.Quaternion().setFromUnitVectors(
-                new THREE.Vector3(0, 0, -1),
-                new THREE.Vector3(a.dir.x, a.dir.y, a.dir.z)
-              );
-              alien.mesh.quaternion.copy(targetRot);
-            }
-            if (alien.trail) {
-              const scale = 0.8 + Math.sin(Date.now() * 0.05 + alien.speed) * 0.15;
-              alien.trail.scale.set(1, 1, scale);
-            }
-          }
-        });
-      }
-      
-      // Update planets
-      if (solarSystem && planets) {
-        const time = Date.now() * 0.005;
-        solarSystem.glowShells.forEach((shell, idx) => {
-          const pulse = 1.0 + Math.sin(time * 1.5 + idx) * 0.03;
-          shell.scale.setScalar(pulse);
-        });
-
-        planets.forEach(p => {
-          const planet = solarSystem.planets.get(p.id);
-          if (planet) {
-            planet.angle = p.angle;
-            planet.group.position.set(
-              solarSystem.sun.position.x + Math.cos(planet.angle) * planet.distance,
-              0,
-              solarSystem.sun.position.z + Math.sin(planet.angle) * planet.distance
-            );
-            planet.mesh.rotation.y += 0.02 * 5.0;
-            
-            p.moons.forEach(m => {
-              const moon = planet.moons[m.id];
-              if (moon) {
-                moon.angle = m.angle;
-                moon.mesh.position.set(
-                  Math.cos(moon.angle) * moon.distance,
-                  0,
-                  Math.sin(moon.angle) * moon.distance
-                );
-                moon.mesh.rotation.y += 0.04 * 5.0;
-              }
-            });
-          }
-        });
-      }
-      
-      // Update projectiles
-      if (projSystem && projectiles) {
-        projectiles.forEach(p => {
-          const proj = projSystem.projectiles[p.idx];
-          if (proj) {
-            proj.position.set(p.pos.x, p.pos.y, p.pos.z);
-            proj.life = p.life;
-            if (p.destroyed) {
-              proj.life = 0;
-            }
-          }
-        });
-        
-        for (let i = projSystem.projectiles.length - 1; i >= 0; i--) {
-          const proj = projSystem.projectiles[i];
-          if (proj.life <= 0) {
-            projSystem.removeProjectile(proj, i);
-          }
-        }
-      }
-      
-      // Handle collisions
-      if (collisions) {
-        collisions.forEach(col => {
-          if (col.type === 'alien_hit') {
-            const alien = alienSystem ? alienSystem.aliens.get(col.alienId) : null;
-            if (alien) {
-              if (explosionSystem) explosionSystem.createExplosion(new THREE.Vector3(col.pos.x, col.pos.y, col.pos.z), 0x39ff14);
-              this.soundSystem.playExplosion();
-              alien.health -= 25;
-              if (alienSystem) alienSystem.flashAlien(alien);
-              if (alien.health <= 0) {
-                if (explosionSystem) explosionSystem.createExplosion(alien.position, 0xff0055, true);
-                if (alienSystem) alienSystem.destroyAlien(alien, col.alienId);
-                if (questSystem) questSystem.registerEnemyKill();
-              }
-            }
-          } else if (col.type === 'human_hit') {
-            const ship = shipSystem ? shipSystem.ships.get(col.shipId) : null;
-            if (ship) {
-              if (explosionSystem) explosionSystem.createExplosion(new THREE.Vector3(col.pos.x, col.pos.y, col.pos.z), 0xff3300);
-              this.soundSystem.playShieldHit();
-              if (shipSystem) shipSystem.flashShield(ship);
-            }
-          } else if (col.type === 'sun_collision' || col.type === 'planet_collision') {
-            const ship = shipSystem ? shipSystem.ships.get(col.shipId) : null;
-            if (ship) {
-              if (ship.shieldFlashTime <= 0) {
-                if (explosionSystem) explosionSystem.createExplosion(ship.position, 0xffaa00, true);
-                this.soundSystem.playExplosion();
-                ship.shieldFlashTime = 1.5;
-                if (col.shipId === 'ship_0') {
-                  ship.targetPosition.set(0, 0, 100);
-                  ship.position.set(0, 0, 100);
-                }
-              }
-            }
-          }
-        });
-      }
-    };
-  }
-
-  runFiringLogic(deltaTime) {
-    const shipSystem = this.systems.get('shipsystem');
-    const alienSystem = this.systems.get('aliensystem');
-    const projSystem = this.systems.get('projectilesystem');
-    const questSystem = this.systems.get('questsystem');
-
-    if (!shipSystem || !alienSystem || !projSystem || !questSystem) return;
-
-    const leadShip = shipSystem.getLeadShip();
-    if (!leadShip) return;
-
-    // Manual Player shooting (Spacebar) in fullscreen mode
-    const inputSystem = this.systems.get('inputsystem');
-    if (isFullscreenSim && inputSystem && inputSystem.keys['Space']) {
-      const lead = shipSystem.ships.get('ship_0');
-      if (lead) {
-        if (!lead.lastManualShot) lead.lastManualShot = 0;
-        if (Date.now() - lead.lastManualShot > 150) {
-          const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(lead.mesh.quaternion);
-          const target = new THREE.Vector3().copy(lead.position).add(forward.multiplyScalar(300));
-          projSystem.fire(lead.position, target, 'human');
-          lead.lastManualShot = Date.now();
-        }
-      }
-    }
-
-    // Autopilot ships shooting raiders
-    shipSystem.ships.forEach((ship, id) => {
-      if (!ship.lastShot) ship.lastShot = 0;
-      const nextShotDelay = (1200 + Math.random() * 1000) / 5.0;
-      if (Date.now() - ship.lastShot > nextShotDelay) {
-        const target = alienSystem.getNearestAlien(ship.position);
-        if (target && ship.position.distanceTo(target.position) < 250) {
-          projSystem.fire(ship.position, target.position, 'human');
-          ship.lastShot = Date.now();
-        }
-      }
-    });
-
-    // Alien firing logic
-    alienSystem.aliens.forEach((alien, id) => {
-      if (!alien.lastShot) alien.lastShot = 0;
-      const nextShotDelay = (1800 + Math.random() * 1500) / 5.0;
-      if (Date.now() - alien.lastShot > nextShotDelay) {
-        const targetShip = shipSystem.getRandomShip();
-        if (targetShip) {
-          if (alien.isBoss) {
-            // Boss shoots 3 spread projectiles
-            projSystem.fire(alien.position, targetShip.position, 'alien');
-            const leftOffset = new THREE.Vector3(-15, 0, -10).applyQuaternion(alien.mesh.quaternion);
-            const rightOffset = new THREE.Vector3(15, 0, -10).applyQuaternion(alien.mesh.quaternion);
-            projSystem.fire(new THREE.Vector3().copy(alien.position).add(leftOffset), targetShip.position, 'alien');
-            projSystem.fire(new THREE.Vector3().copy(alien.position).add(rightOffset), targetShip.position, 'alien');
-          } else {
-            projSystem.fire(alien.position, targetShip.position, 'alien');
-          }
-          alien.lastShot = Date.now();
-        }
-      }
-    });
-
-    if (questSystem) questSystem.update(deltaTime);
-  }
-
-  updateCamera(deltaTime) {
-    const camera = this.systems.get('camera');
-    const shipSystem = this.systems.get('shipsystem');
-    if (!camera || !shipSystem) return;
-
-    const leadShip = shipSystem.getLeadShip();
-    if (!leadShip) return;
-
-    const targetPos = new THREE.Vector3();
-    const lookTarget = new THREE.Vector3();
-
-    if (this.state.cameraMode === 'chase') {
-      // Rotate chase offset relative to the ship's actual heading
-      const backOffset = new THREE.Vector3(0, 3.5, 16);
-      backOffset.applyQuaternion(leadShip.quaternion);
-      targetPos.copy(leadShip.position).add(backOffset);
-
-      const lookOffset = new THREE.Vector3(0, 0.8, -25);
-      lookOffset.applyQuaternion(leadShip.quaternion);
-      lookTarget.copy(leadShip.position).add(lookOffset);
-
-      // Speed-based FOV effect
-      const targetFOV = 64; // Slightly wider for chase mode speed feeling
-      if (camera.fov !== targetFOV) {
-        camera.fov = THREE.MathUtils.lerp(camera.fov, targetFOV, deltaTime * 2.0);
-        camera.updateProjectionMatrix();
-      }
-    } else if (this.state.cameraMode === 'top') {
-      targetPos.copy(leadShip.position).add(new THREE.Vector3(0, 100, -10));
-      lookTarget.copy(leadShip.position);
-      if (camera.fov !== 60) {
-        camera.fov = THREE.MathUtils.lerp(camera.fov, 60, deltaTime * 2.0);
-        camera.updateProjectionMatrix();
-      }
-    } else if (this.state.cameraMode === 'side') {
-      targetPos.copy(leadShip.position).add(new THREE.Vector3(70, 8, -10));
-      lookTarget.copy(leadShip.position);
-      if (camera.fov !== 60) {
-        camera.fov = THREE.MathUtils.lerp(camera.fov, 60, deltaTime * 2.0);
-        camera.updateProjectionMatrix();
-      }
+  handleVisibilityChange = () => {
+    if (document.hidden) {
+      this.stop();
     } else {
-      const time = Date.now() * 0.00015;
-      const radius = 150;
-      targetPos.set(Math.sin(time) * radius, 65, Math.cos(time) * radius - 50);
-      lookTarget.copy(leadShip.position);
-      if (camera.fov !== 60) {
-        camera.fov = THREE.MathUtils.lerp(camera.fov, 60, deltaTime * 2.0);
-        camera.updateProjectionMatrix();
-      }
+      this.start();
     }
-
-    camera.position.lerp(targetPos, deltaTime * 2.5);
-    
-    const currentLook = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion).add(camera.position);
-    const lerpedLook = currentLook.lerp(lookTarget, deltaTime * 2.5);
-    camera.lookAt(lerpedLook);
-  }
-
-  simulateCombat(deltaTime) {
-    const shipSystem = this.systems.get('shipsystem');
-    const alienSystem = this.systems.get('aliensystem');
-    const projSystem = this.systems.get('projectilesystem');
-    const explosionSystem = this.systems.get('explosionsystem');
-    const questSystem = this.systems.get('questsystem');
-
-    if (!shipSystem || !alienSystem || !projSystem || !explosionSystem || !questSystem) return;
-
-    // Autopilot ships shooting raiders
-    shipSystem.ships.forEach((ship, id) => {
-      if (!ship.lastShot) ship.lastShot = 0;
-      if (Date.now() - ship.lastShot > 1200 + Math.random() * 1000) {
-        const target = alienSystem.getNearestAlien(ship.position);
-        if (target && ship.position.distanceTo(target.position) < 80) {
-          projSystem.fire(ship.position, target.position, 'human');
-          ship.lastShot = Date.now();
-        }
-      }
-    });
-
-    // Alien firing logic
-    alienSystem.aliens.forEach((alien, id) => {
-      if (!alien.lastShot) alien.lastShot = 0;
-      if (Date.now() - alien.lastShot > 1800 + Math.random() * 1500) {
-        const targetShip = shipSystem.getRandomShip();
-        if (targetShip) {
-          projSystem.fire(alien.position, targetShip.position, 'alien');
-          alien.lastShot = Date.now();
-        }
-      }
-    });
-
-    // Check collisions
-    projSystem.projectiles.forEach((proj, idx) => {
-      if (proj.faction === 'human') {
-        alienSystem.aliens.forEach((alien, aId) => {
-          if (proj.position.distanceTo(alien.position) < 5.0) {
-            explosionSystem.createExplosion(proj.position, 0x39ff14);
-            projSystem.removeProjectile(proj, idx);
-            
-            alien.health -= 25;
-            alienSystem.flashAlien(alien);
-
-            if (alien.health <= 0) {
-              explosionSystem.createExplosion(alien.position, 0xff0055, true);
-              alienSystem.destroyAlien(alien, aId);
-              questSystem.registerEnemyKill();
-            }
-          }
-        });
-      } else {
-        shipSystem.ships.forEach((ship, sId) => {
-          if (proj.position.distanceTo(ship.position) < 4.0) {
-            explosionSystem.createExplosion(proj.position, 0xff3300);
-            projSystem.removeProjectile(proj, idx);
-            shipSystem.flashShield(ship);
-          }
-        });
-      }
-    });
-  }
-
-  fallback() {
-    const canvas = document.getElementById('starfield');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const stars = [];
-    for (let i = 0; i < 150; i++) {
-      stars.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        z: Math.random() * canvas.width,
-        color: Math.random() < 0.5 ? '#00f2fe' : '#8b5cf6'
-      });
-    }
-
-    const animate2D = () => {
-      if (this.state.initialized) return;
-      ctx.fillStyle = '#05030a';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      stars.forEach(star => {
-        star.z -= 2;
-        if (star.z <= 0) {
-          star.z = canvas.width;
-          star.x = Math.random() * canvas.width;
-          star.y = Math.random() * canvas.height;
-        }
-
-        const k = 128.0 / star.z;
-        const px = (star.x - canvas.width / 2) * k + canvas.width / 2;
-        const py = (star.y - canvas.height / 2) * k + canvas.height / 2;
-        const size = (1 - star.z / canvas.width) * 3;
-
-        if (px >= 0 && px <= canvas.width && py >= 0 && py <= canvas.height) {
-          ctx.beginPath();
-          ctx.arc(px, py, Math.max(0.2, size), 0, Math.PI * 2);
-          ctx.fillStyle = star.color;
-          ctx.fill();
-        }
-      });
-
-      requestAnimationFrame(animate2D);
-    };
-
-    animate2D();
-  }
+  };
 
   getSystem(name) {
-    return this.systems.get(name.toLowerCase());
-  }
-
-  getStatus() {
-    return {
-      state: this.state,
-      performance: this.performance,
-      systems: Array.from(this.systems.keys()),
-      config: this.config
-    };
-  }
-
-  destroy() {
-    this.stop();
-    if (this.worker) {
-      this.worker.terminate();
-      this.worker = null;
+    if (name === 'audiosystem') {
+      return this.soundSystem;
     }
-    for (const [name, system] of this.systems) {
-      if (system && typeof system.destroy === 'function') {
-        try {
-          system.destroy();
-        } catch (error) {
-          console.error(`Error destroying ${name}:`, error);
-        }
-      }
-    }
-    const renderer = this.systems.get('renderer');
-    if (renderer) {
-      renderer.dispose();
-    }
-    this.systems.clear();
-    this.state.initialized = false;
-  }
-}
-
-
-// Space Dust System (Dynamic Speed Particles)
-class SpaceDustSystem {
-  constructor(scene) {
-    this.scene = scene;
-    this.dust = null;
-    this.particleCount = 600;
-    this.initialize();
+    return null;
   }
 
-  initialize() {
-    const geometry = new THREE.BufferGeometry();
-    const positions = [];
-    const colors = [];
-
-    for (let i = 0; i < this.particleCount; i++) {
-      positions.push(
-        (Math.random() - 0.5) * 400,
-        (Math.random() - 0.5) * 150,
-        (Math.random() - 0.5) * 600
-      );
-
-      const color = new THREE.Color();
-      if (Math.random() < 0.5) {
-        color.setHSL(0.5, 0.9, 0.85); // Cyan
-      } else {
-        color.setHSL(0.8, 0.9, 0.85); // Purple
-      }
-      colors.push(color.r, color.g, color.b);
-    }
-
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-
-    const material = new THREE.PointsMaterial({
-      size: 1.0,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.8,
-      blending: THREE.AdditiveBlending
-    });
-
-    this.dust = new THREE.Points(geometry, material);
-    this.scene.add(this.dust);
-  }
-
-  update(deltaTime) {
-    if (!this.dust) return;
-
-    const positions = this.dust.geometry.attributes.position.array;
-    const core = this.core;
-    const shipSystem = core ? core.getSystem('shipsystem') : null;
-    const leadShip = shipSystem ? shipSystem.getLeadShip() : null;
-
-    let speedVec = new THREE.Vector3(0, 0, 1);
-    if (leadShip) {
-      const forwardVec = new THREE.Vector3(0, 0, -1).applyQuaternion(leadShip.quaternion);
-      speedVec.copy(forwardVec).multiplyScalar(-1);
-    }
-
-    const speed = 120;
-    for (let i = 0; i < positions.length; i += 3) {
-      positions[i] += speedVec.x * speed * deltaTime;
-      positions[i + 1] += speedVec.y * speed * deltaTime;
-      positions[i + 2] += speedVec.z * speed * deltaTime;
-
-      const pz = positions[i + 2];
-      const relativeZ = leadShip ? pz - leadShip.position.z : pz;
-      
-      if (relativeZ > 300) {
-        positions[i] = leadShip ? leadShip.position.x + (Math.random() - 0.5) * 400 : (Math.random() - 0.5) * 400;
-        positions[i + 1] = leadShip ? leadShip.position.y + (Math.random() - 0.5) * 150 : (Math.random() - 0.5) * 150;
-        positions[i + 2] = leadShip ? leadShip.position.z - 300 : -300;
-      } else if (relativeZ < -300) {
-        positions[i] = leadShip ? leadShip.position.x + (Math.random() - 0.5) * 400 : (Math.random() - 0.5) * 400;
-        positions[i + 1] = leadShip ? leadShip.position.y + (Math.random() - 0.5) * 150 : (Math.random() - 0.5) * 150;
-        positions[i + 2] = leadShip ? leadShip.position.z + 300 : 300;
-      }
-    }
-
-    this.dust.geometry.attributes.position.needsUpdate = true;
-  }
-
-  destroy() {
-    if (this.dust) {
-      this.scene.remove(this.dust);
-      this.dust.geometry.dispose();
-      this.dust.material.dispose();
-      this.dust = null;
-    }
-  }
-}
-
-// Lighting System
-class LightingSystem {
-  constructor(scene) {
-    this.scene = scene;
-    this.lights = [];
-    this.initialize();
-  }
-
-  initialize() {
-    const ambientLight = new THREE.AmbientLight(0x130a24, 1.2);
-    this.scene.add(ambientLight);
-    this.lights.push(ambientLight);
-
-    const sunLight = new THREE.DirectionalLight(0xffa500, 1.5);
-    sunLight.position.set(0, 100, -50);
-    this.scene.add(sunLight);
-    this.lights.push(sunLight);
-  }
-
-  update(deltaTime) {}
-
-  destroy() {
-    this.lights.forEach(light => this.scene.remove(light));
-    this.lights = [];
-  }
-}
-
-// Starfield System
-class StarfieldSystem {
-  constructor(scene) {
-    this.scene = scene;
-    this.stars = null;
-    this.nebulae = [];
-    this.initialize();
-  }
-
-  initialize() {
-    const geometry = new THREE.BufferGeometry();
-    const positions = [];
-    const colors = [];
-
-    for (let i = 0; i < 3000; i++) {
-      positions.push(
-        (Math.random() - 0.5) * 1200,
-        (Math.random() - 0.5) * 800,
-        (Math.random() - 0.5) * 1200
-      );
-
-      const color = new THREE.Color();
-      const choice = Math.random();
-      if (choice < 0.35) color.setHSL(0.6, 0.8, 0.85); // Light blue
-      else if (choice < 0.65) color.setHSL(0.85, 0.8, 0.75); // Magenta
-      else color.setHSL(0.1, 0.2, 0.95); // Warm white
-      
-      colors.push(color.r, color.g, color.b);
-    }
-
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-
-    const material = new THREE.PointsMaterial({
-      size: 1.4,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.85,
-      sizeAttenuation: true
-    });
-
-    this.stars = new THREE.Points(geometry, material);
-    this.scene.add(this.stars);
-
-    const nebulaGeom = new THREE.PlaneGeometry(350, 350);
-    const nebulaColors = [0x5f27cd, 0x00d2d3, 0xff9f43];
-    for (let i = 0; i < 3; i++) {
-      const nebulaMat = new THREE.MeshBasicMaterial({
-        color: nebulaColors[i],
-        transparent: true,
-        opacity: 0.045 + (i * 0.015),
-        blending: THREE.AdditiveBlending,
-        side: THREE.DoubleSide,
-        depthWrite: false
-      });
-      const mesh = new THREE.Mesh(nebulaGeom, nebulaMat);
-      mesh.position.set((i - 1) * 80, (i - 1) * 30, -250 - i * 60);
-      mesh.rotation.z = i * Math.PI / 4;
-      this.scene.add(mesh);
-      this.nebulae.push(mesh);
-    }
-  }
-
-  update(deltaTime) {
-    if (this.stars) this.stars.rotation.y += deltaTime * 0.005;
-    this.nebulae.forEach((neb, idx) => {
-      neb.rotation.z += deltaTime * (0.008 * (idx + 1));
-    });
-  }
-
-  destroy() {
-    if (this.stars) {
-      this.scene.remove(this.stars);
-      this.stars.geometry.dispose();
-      this.stars.material.dispose();
-    }
-    this.nebulae.forEach(neb => {
-      this.scene.remove(neb);
-      neb.geometry.dispose();
-      neb.material.dispose();
-    });
-    this.nebulae = [];
-  }
-}
-
-// Procedural Solar System (Sun + Glow Halos + Orbit Lines + 4 Planets + Moons)
-class SolarSystemSystem {
-  constructor(scene) {
-    this.scene = scene;
-    this.planets = new Map();
-    this.solarGroup = new THREE.Group();
-    this.scene.add(this.solarGroup);
-    this.glowShells = [];
-    this.moons = [];
-    this.initialize();
-  }
-
-  createGlowTexture() {
+  // Create nebula gradient texture procedurally
+  createNebulaTexture(color1, color2) {
     const canvas = document.createElement('canvas');
-    canvas.width = 64;
-    canvas.height = 64;
+    canvas.width = 512;
+    canvas.height = 512;
     const ctx = canvas.getContext('2d');
-    const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-    grad.addColorStop(0, 'rgba(255, 230, 160, 1)');
-    grad.addColorStop(0.2, 'rgba(255, 150, 60, 0.5)');
-    grad.addColorStop(0.5, 'rgba(255, 90, 20, 0.15)');
+
+    const grad = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
+    grad.addColorStop(0, color1);
+    grad.addColorStop(0.5, color2);
     grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 64, 64);
+    ctx.fillRect(0, 0, 512, 512);
+
     return new THREE.CanvasTexture(canvas);
   }
 
-  initialize() {
-    // 1. Central Sun
-    const sunGeom = new THREE.SphereGeometry(40, 24, 24);
-    const sunMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
+  initEnvironment() {
+    // 1. Pulsing Glowing Sun
+    const sunGeom = new THREE.SphereGeometry(38, 32, 32);
+    const sunMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
     this.sun = new THREE.Mesh(sunGeom, sunMat);
-    this.sun.position.set(0, 0, -50);
-    this.solarGroup.add(this.sun);
+    this.scene.add(this.sun);
 
-    // Dynamic flare glow sprite
-    const spriteMat = new THREE.SpriteMaterial({
-      map: this.createGlowTexture(),
-      color: 0xffaa00,
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      opacity: 0.8
-    });
-    const glowSprite = new THREE.Sprite(spriteMat);
-    glowSprite.scale.set(180, 180, 1.0);
-    glowSprite.position.copy(this.sun.position);
-    this.solarGroup.add(glowSprite);
-
-    // Volumetric glow shells for sun
-    const glowConfigs = [
-      { radius: 50.0, color: 0xff7700, opacity: 0.18 },
-      { radius: 68.0, color: 0xff3300, opacity: 0.09 }
-    ];
-    glowConfigs.forEach(gc => {
-      const glowGeom = new THREE.SphereGeometry(gc.radius, 16, 16);
-      const glowMat = new THREE.MeshBasicMaterial({
-        color: gc.color,
+    // Glowing sun shells
+    const glowColors = [0xff6600, 0xffaa00, 0xffea00];
+    glowColors.forEach((color, idx) => {
+      const shellGeom = new THREE.SphereGeometry(38 * (1.1 + idx * 0.15), 32, 32);
+      const shellMat = new THREE.MeshBasicMaterial({
+        color: color,
         transparent: true,
-        opacity: gc.opacity,
+        opacity: 0.25 - idx * 0.07,
         blending: THREE.AdditiveBlending,
-        side: THREE.DoubleSide
+        side: THREE.BackSide
       });
-      const shell = new THREE.Mesh(glowGeom, glowMat);
-      shell.position.copy(this.sun.position);
-      this.solarGroup.add(shell);
-      this.glowShells.push(shell);
+      const shell = new THREE.Mesh(shellGeom, shellMat);
+      this.sun.add(shell);
+      this.sunGlowShells.push(shell);
     });
 
-    this.sunLight = new THREE.PointLight(0xffddaa, 3.5, 2500);
-    this.sunLight.position.copy(this.sun.position);
-    this.solarGroup.add(this.sunLight);
+    this.sunLight = new THREE.PointLight(0xffd580, 2.5, 1200, 0.5);
+    this.scene.add(this.sunLight);
 
-    // 2. Planets
-    const planetConfigs = [
-      { id: 'planet_1', name: 'Kepler-42', radius: 14, distance: 220, speed: 0.08, color: 0x0abde3,
-        moons: [{ radius: 2.2, distance: 28, speed: 1.0, color: 0x95afc0 }]
-      },
-      { id: 'planet_2', name: 'Vulcan', radius: 20, distance: 390, speed: 0.05, color: 0xee5253, moons: [] },
-      { id: 'planet_3', name: 'Poseidon', radius: 32, distance: 560, speed: 0.03, color: 0x5f27cd, hasRings: true,
-        moons: [
-          { radius: 3.5, distance: 48, speed: 0.8, color: 0xdf9ffb },
-          { radius: 2.0, distance: 60, speed: 0.5, color: 0x7ed6df }
-        ]
-      },
-      { id: 'planet_4', name: 'Cimmeria', radius: 18, distance: 750, speed: 0.015, color: 0xffffff, moons: [] }
+    // 2. Parallax background starfields
+    const starsCount = 600;
+    const starGeoms = [new THREE.BufferGeometry(), new THREE.BufferGeometry(), new THREE.BufferGeometry()];
+    const starMats = [
+      new THREE.PointsMaterial({ color: 0xffffff, size: 1.5, transparent: true, opacity: 0.8 }),
+      new THREE.PointsMaterial({ color: 0x00f2fe, size: 2.0, transparent: true, opacity: 0.6 }),
+      new THREE.PointsMaterial({ color: 0xa855f7, size: 1.0, transparent: true, opacity: 0.9 })
     ];
 
-    planetConfigs.forEach(config => {
-      const planetGroup = new THREE.Group();
-      
-      const geom = new THREE.SphereGeometry(config.radius, 16, 16);
+    starGeoms.forEach((geom, idx) => {
+      const positions = new Float32Array(starsCount * 3);
+      for (let i = 0; i < starsCount * 3; i += 3) {
+        const radius = 600 + idx * 200 + Math.random() * 200;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(Math.random() * 2 - 1);
+        positions[i] = radius * Math.sin(phi) * Math.cos(theta);
+        positions[i + 1] = radius * Math.sin(phi) * Math.sin(theta);
+        positions[i + 2] = radius * Math.cos(phi);
+      }
+      geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const points = new THREE.Points(geom, starMats[idx]);
+      this.scene.add(points);
+    });
+
+    // 3. Floating Nebulae Planes
+    const nebConfigs = [
+      { color1: 'rgba(139, 92, 246, 0.25)', color2: 'rgba(6, 182, 212, 0.05)', pos: new THREE.Vector3(-300, -100, -500), size: 500 },
+      { color1: 'rgba(16, 185, 129, 0.20)', color2: 'rgba(139, 92, 246, 0.03)', pos: new THREE.Vector3(400, 150, -400), size: 600 }
+    ];
+
+    nebConfigs.forEach(conf => {
+      const tex = this.createNebulaTexture(conf.color1, conf.color2);
+      const geom = new THREE.PlaneGeometry(conf.size, conf.size);
+      const mat = new THREE.MeshBasicMaterial({
+        map: tex,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      });
+      const mesh = new THREE.Mesh(geom, mat);
+      mesh.position.copy(conf.pos);
+      mesh.lookAt(new THREE.Vector3(0, 0, 0));
+      this.scene.add(mesh);
+      this.nebulae.push(mesh);
+    });
+
+    // 4. Planets orbiting around sun
+    const planetTypes = [
+      { name: 'Planet 1', dist: 280, radius: 14, speed: 0.0006, color: 0xec4899, roughness: 0.4 },
+      { name: 'Planet 2', dist: 420, radius: 20, speed: 0.0004, color: 0x06b6d4, roughness: 0.2 },
+      { name: 'Planet 3', dist: 580, radius: 28, speed: 0.00025, color: 0x10b981, roughness: 0.5, rings: true },
+      { name: 'Planet 4', dist: 750, radius: 18, speed: 0.00018, color: 0xf59e0b, roughness: 0.6 }
+    ];
+
+    planetTypes.map((t, idx) => {
+      const geom = new THREE.SphereGeometry(t.radius, 32, 32);
       const mat = new THREE.MeshStandardMaterial({
-        color: config.color,
+        color: t.color,
+        roughness: t.roughness,
+        metalness: 0.1,
+        flatShading: false
+      });
+      const mesh = new THREE.Mesh(geom, mat);
+      mesh.position.set(t.dist, 0, 0);
+      this.scene.add(mesh);
+
+      let ringsMesh = null;
+      if (t.rings) {
+        const ringGeom = new THREE.RingGeometry(t.radius * 1.3, t.radius * 2.0, 64);
+        const ringMat = new THREE.MeshStandardMaterial({
+          color: 0x10b981,
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.4
+        });
+        ringsMesh = new THREE.Mesh(ringGeom, ringMat);
+        ringsMesh.rotation.x = Math.PI / 2;
+        mesh.add(ringsMesh);
+      }
+
+      this.planets.push({
+        ...t,
+        mesh: mesh,
+        angle: Math.random() * Math.PI * 2,
+        moons: Array.from({ length: idx % 2 }, () => {
+          const mRadius = 3 + Math.random() * 2;
+          const mGeom = new THREE.SphereGeometry(mRadius, 16, 16);
+          const mMat = new THREE.MeshStandardMaterial({ color: 0x7f8c8d });
+          const mMesh = new THREE.Mesh(mGeom, mMat);
+          this.scene.add(mMesh);
+          return {
+            mesh: mMesh,
+            dist: t.radius * 2.3 + Math.random() * 8,
+            radius: mRadius,
+            speed: 0.0025 + Math.random() * 0.003,
+            angle: Math.random() * Math.PI * 2
+          };
+        })
+      });
+    });
+
+    // 5. Orbit Lines
+    planetTypes.forEach(p => {
+      const orbitGeom = new THREE.BufferGeometry();
+      const points = [];
+      const steps = 120;
+      for (let i = 0; i <= steps; i++) {
+        const theta = (i / steps) * Math.PI * 2;
+        points.push(new THREE.Vector3(p.dist * Math.cos(theta), 0, p.dist * Math.sin(theta)));
+      }
+      orbitGeom.setFromPoints(points);
+      const orbitLine = new THREE.Line(orbitGeom, new THREE.LineBasicMaterial({ color: 0x00f2fe, transparent: true, opacity: 0.06 }));
+      this.scene.add(orbitLine);
+    });
+
+    // 6. Jagged Asteroids
+    for (let i = 0; i < 25; i++) {
+      const dist = 320 + Math.random() * 300;
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 6 + Math.random() * 9;
+      
+      const geom = new THREE.DodecahedronGeometry(radius, 1);
+      const mat = new THREE.MeshStandardMaterial({
+        color: 0x475569,
+        roughness: 0.9,
         metalness: 0.2,
-        roughness: 0.8,
         flatShading: true
       });
-      const planetMesh = new THREE.Mesh(geom, mat);
-      planetGroup.add(planetMesh);
-
-      // Orbital Path Ring (Tactical map look)
-      const orbitGeom = new THREE.TorusGeometry(config.distance, 0.06, 3, 64);
-      const orbitMat = new THREE.MeshBasicMaterial({
-        color: config.color,
-        transparent: true,
-        opacity: 0.09
-      });
-      const orbitLine = new THREE.Mesh(orbitGeom, orbitMat);
-      orbitLine.position.copy(this.sun.position);
-      orbitLine.rotation.x = Math.PI / 2;
-      this.solarGroup.add(orbitLine);
-
-      if (config.hasRings) {
-        const ringGeom = new THREE.TorusGeometry(config.radius * 1.8, 0.4, 4, 32);
-        const ringMat = new THREE.MeshBasicMaterial({
-          color: 0xffbe76,
-          transparent: true,
-          opacity: 0.5,
-          wireframe: true
-        });
-        const ring = new THREE.Mesh(ringGeom, ringMat);
-        ring.rotation.x = Math.PI / 2.5;
-        planetGroup.add(ring);
-      }
-
-      // Spawn Moons
-      const moonDataList = [];
-      config.moons.forEach(mConfig => {
-        const mGeom = new THREE.SphereGeometry(mConfig.radius, 8, 8);
-        const mMat = new THREE.MeshStandardMaterial({
-          color: mConfig.color,
-          roughness: 0.9,
-          flatShading: true
-        });
-        const mMesh = new THREE.Mesh(mGeom, mMat);
-        
-        const mAngle = Math.random() * Math.PI * 2;
-        mMesh.position.set(
-          Math.cos(mAngle) * mConfig.distance,
-          0,
-          Math.sin(mAngle) * mConfig.distance
-        );
-        planetGroup.add(mMesh);
-
-        moonDataList.push({
-          mesh: mMesh,
-          distance: mConfig.distance,
-          speed: mConfig.speed,
-          angle: mAngle
-        });
-      });
-
-      const angle = Math.random() * Math.PI * 2;
-      planetGroup.position.set(
-        this.sun.position.x + Math.cos(angle) * config.distance,
-        0,
-        this.sun.position.z + Math.sin(angle) * config.distance
+      const mesh = new THREE.Mesh(geom, mat);
+      mesh.position.set(
+        dist * Math.cos(angle),
+        (Math.random() - 0.5) * 80,
+        dist * Math.sin(angle)
       );
-
-      this.solarGroup.add(planetGroup);
-      this.planets.set(config.id, {
-        group: planetGroup,
-        mesh: planetMesh,
-        name: config.name,
-        distance: config.distance,
-        speed: config.speed,
-        angle: angle,
-        moons: moonDataList
+      this.scene.add(mesh);
+      this.asteroids.push({
+        mesh: mesh,
+        radius: radius,
+        rotationSpeed: new THREE.Vector3(Math.random() * 0.015, Math.random() * 0.015, Math.random() * 0.015)
       });
+    }
+
+    // 7. Space Dust/Ambient particles
+    const dustCount = 350;
+    const dustGeom = new THREE.BufferGeometry();
+    const dustPos = new Float32Array(dustCount * 3);
+    for (let i = 0; i < dustCount * 3; i += 3) {
+      dustPos[i] = (Math.random() - 0.5) * 900;
+      dustPos[i + 1] = (Math.random() - 0.5) * 400;
+      dustPos[i + 2] = (Math.random() - 0.5) * 900;
+    }
+    dustGeom.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+    const dustMat = new THREE.PointsMaterial({
+      color: 0xffffff,
+      size: 0.8,
+      transparent: true,
+      opacity: 0.4
     });
+    this.dust = new THREE.Points(dustGeom, dustMat);
+    this.scene.add(this.dust);
   }
 
-  update(deltaTime) {
-    // Pulse Sun Halos
-    const time = Date.now() * 0.001;
-    this.glowShells.forEach((shell, idx) => {
-      const pulse = 1.0 + Math.sin(time * 1.5 + idx) * 0.03;
-      shell.scale.setScalar(pulse);
-    });
+  initEntities() {
+    this.ships = [];
+    this.aliens = [];
+    this.projectiles = [];
+    this.particles = [];
 
-    this.planets.forEach(planet => {
-      planet.angle += planet.speed * deltaTime;
-      planet.group.position.set(
-        this.sun.position.x + Math.cos(planet.angle) * planet.distance,
-        0,
-        this.sun.position.z + Math.sin(planet.angle) * planet.distance
-      );
-      planet.mesh.rotation.y += deltaTime * 0.4;
-
-      // Update Moons
-      planet.moons.forEach(moon => {
-        moon.angle += moon.speed * deltaTime;
-        moon.mesh.position.set(
-          Math.cos(moon.angle) * moon.distance,
-          0,
-          Math.sin(moon.angle) * moon.distance
-        );
-        moon.mesh.rotation.y += deltaTime * 0.8;
-      });
-    });
-  }
-
-  destroy() {
-    this.scene.remove(this.solarGroup);
-    this.planets.clear();
-    this.glowShells = [];
-  }
-}
-
-// Ship System (Autonomous with Exhaust Trails)
-class ShipSystem {
-  constructor(scene, maxShips) {
-    this.scene = scene;
-    this.maxShips = maxShips;
-    this.ships = new Map();
-    this.group = new THREE.Group();
-    this.scene.add(this.group);
-  }
-
-  async spawnFleet() {
-    const offsets = [
-      [0, 0, 0],
-      [-10, 1, 6],
-      [10, 1, 6],
-      [-18, -1, 12],
-      [18, -1, 12]
+    // Colors & speeds for humans
+    const humanShipProfiles = [
+      { colorHex: 0x06b6d4, color: '#06b6d4', size: 20, maxSpeed: 210 },
+      { colorHex: 0x8b5cf6, color: '#8b5cf6', size: 24, maxSpeed: 170 },
+      { colorHex: 0x10b981, color: '#10b981', size: 18, maxSpeed: 250 },
+      { colorHex: 0xa855f7, color: '#a855f7', size: 22, maxSpeed: 190 },
+      { colorHex: 0xf43f5e, color: '#f43f5e', size: 21, maxSpeed: 200 }
     ];
 
-    for (let i = 0; i < Math.min(offsets.length, this.maxShips); i++) {
-      const id = `ship_${i}`;
-      const ship = ShipBuilder.buildShip('human', 0.15 + i * 0.5);
-      ship.position.set(offsets[i][0], offsets[i][1], offsets[i][2]);
-      this.group.add(ship);
+    // Create fleet of human ships
+    for (let i = 0; i < this.config.maxShips; i++) {
+      const profile = humanShipProfiles[i % humanShipProfiles.length];
+      const offsetAngle = (i / this.config.maxShips) * Math.PI * 2;
+      const startDist = 300 + Math.random() * 50;
 
-      // Shield mesh
-      const shieldGeom = new THREE.SphereGeometry(3.5, 12, 12);
-      const shieldMat = new THREE.MeshBasicMaterial({
-        color: 0x00f2fe,
-        wireframe: true,
-        transparent: true,
-        opacity: 0
-      });
-      const shield = new THREE.Mesh(shieldGeom, shieldMat);
-      ship.add(shield);
-
-      // Engine Thruster trail mesh
-      const trailGeom = new THREE.ConeGeometry(0.4, 2.5, 5);
-      trailGeom.rotateX(Math.PI / 2);
-      const trailMat = new THREE.MeshBasicMaterial({
-        color: 0x00f2fe,
-        transparent: true,
-        opacity: 0.8
-      });
-      const trail = new THREE.Mesh(trailGeom, trailMat);
-      trail.position.set(0, 0, 3.2); // position behind engines
-      ship.add(trail);
-
-      // Particle trail setup
-      const particleCount = 40;
-      const pGeometry = new THREE.BufferGeometry();
-      const pPositions = new Float32Array(particleCount * 3);
-      const pLifes = new Float32Array(particleCount);
-      for (let pIdx = 0; pIdx < particleCount; pIdx++) {
-        pPositions[pIdx * 3] = 0;
-        pPositions[pIdx * 3 + 1] = 0;
-        pPositions[pIdx * 3 + 2] = 3.2;
-        pLifes[pIdx] = Math.random();
-      }
-      pGeometry.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
+      // BUILD SHIP WITH PREMADE modular structures
+      const shipMesh = ShipBuilder.buildShip('human', 0.1 + i * 0.45);
       
-      const pMaterial = new THREE.PointsMaterial({
-        color: 0x00f2fe,
-        size: 0.7,
-        transparent: true,
-        opacity: 0.8,
-        blending: THREE.AdditiveBlending
-      });
-      const pPoints = new THREE.Points(pGeometry, pMaterial);
-      ship.add(pPoints);
+      // Make them BIGLY VISIBLE! (Scale up by 3x)
+      shipMesh.scale.set(3.2, 3.2, 3.2);
+      this.scene.add(shipMesh);
 
-      this.ships.set(id, {
-        mesh: ship,
-        shield: shield,
-        trail: trail,
-        position: ship.position,
-        targetPosition: ship.position.clone(),
-        particlePoints: pPoints,
-        particleLifes: pLifes,
-        baseOffset: new THREE.Vector3(...offsets[i]),
-        shieldFlashTime: 0,
-        lastShot: 0
-      });
-    }
-  }
-
-  getLeadShip() {
-    const lead = this.ships.get('ship_0');
-    return lead ? lead.mesh : null;
-  }
-
-  getRandomShip() {
-    const arr = Array.from(this.ships.values());
-    if (arr.length === 0) return null;
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
-
-  flashShield(shipData) {
-    shipData.shieldFlashTime = 1.0;
-  }
-
-  update(deltaTime) {
-    const core = this.core;
-    const questSystem = core ? core.getSystem('questsystem') : null;
-    const lead = this.ships.get('ship_0');
-
-    if (lead && questSystem && questSystem.targetPosition) {
-      const target = questSystem.targetPosition;
-      const dir = new THREE.Vector3().copy(target).sub(lead.position);
-      const dist = dir.length();
-
-      if (dist > 5) {
-        dir.normalize();
-        lead.position.addScaledVector(dir, 32 * deltaTime);
-        
-        const targetRot = new THREE.Quaternion().setFromUnitVectors(
-          new THREE.Vector3(0, 0, -1),
-          dir
-        );
-        lead.mesh.quaternion.slerp(targetRot, deltaTime * 3);
-      } else {
-        lead.mesh.rotation.y += deltaTime * 0.2;
-      }
-    }
-
-    if (lead) {
-      this.ships.forEach((ship, id) => {
-        if (id === 'ship_0') return;
-        const targetPos = new THREE.Vector3().copy(lead.position).add(ship.baseOffset);
-        ship.position.lerp(targetPos, deltaTime * 2.5);
-        ship.mesh.quaternion.copy(lead.mesh.quaternion);
-      });
-    }
-
-    // Pulse engine thruster trails
-    const time = Date.now() * 0.05;
-    this.ships.forEach(ship => {
-      // Scales trail to simulate thruster exhaust vibrations
-      const scale = 0.85 + Math.sin(time) * 0.15 + Math.random() * 0.1;
-      ship.trail.scale.set(1, 1, scale);
-      
-      // Update shields
-      if (ship.shieldFlashTime > 0) {
-        ship.shieldFlashTime -= deltaTime * 2.5;
-        ship.shield.material.opacity = Math.max(ship.shieldFlashTime * 0.3, 0);
-      } else {
-        ship.shield.material.opacity = 0;
-      }
-    });
-  }
-
-  destroy() {
-    this.ships.forEach(ship => this.group.remove(ship.mesh));
-    this.scene.remove(this.group);
-    this.ships.clear();
-  }
-}
-
-// Alien System
-class AlienSystem {
-  constructor(scene) {
-    this.scene = scene;
-    this.aliens = new Map();
-    this.group = new THREE.Group();
-    this.scene.add(this.group);
-  }
-
-  async spawnWave(centerPos = new THREE.Vector3(0, 0, -80)) {
-    this.aliens.forEach(alien => this.group.remove(alien.mesh));
-    this.aliens.clear();
-
-    for (let i = 0; i < 3; i++) {
-      const id = `alien_${Date.now()}_${i}`;
-      const alienMesh = ShipBuilder.buildShip('alien', Math.random());
-      
-      const spawnPos = new THREE.Vector3().copy(centerPos).add(new THREE.Vector3(
+      shipMesh.position.set(
+        startDist * Math.cos(offsetAngle),
         (Math.random() - 0.5) * 40,
-        (Math.random() - 0.5) * 10,
-        (Math.random() - 0.5) * 40 - 50
-      ));
-      alienMesh.position.copy(spawnPos);
-      this.group.add(alienMesh);
+        startDist * Math.sin(offsetAngle)
+      );
 
-      // Add warning red thruster trail
-      const trailGeom = new THREE.ConeGeometry(0.3, 2.0, 5);
-      trailGeom.rotateX(Math.PI / 2);
-      const trailMat = new THREE.MeshBasicMaterial({
-        color: 0xff3300,
-        transparent: true,
-        opacity: 0.8
+      this.ships.push({
+        id: `ship_${i}`,
+        mesh: shipMesh,
+        pos: shipMesh.position, // Direct link to position vector
+        vel: new THREE.Vector3(-Math.sin(offsetAngle) * profile.maxSpeed * 0.6, 0, Math.cos(offsetAngle) * profile.maxSpeed * 0.6),
+        color: profile.color,
+        colorHex: profile.colorHex,
+        size: profile.size,
+        maxSpeed: profile.maxSpeed,
+        boostTimer: 0,
+        boostActive: false,
+        shootCooldown: 0,
+        trail: [],
+        trailMesh: this.createTrailMesh(profile.color)
       });
-      const trail = new THREE.Mesh(trailGeom, trailMat);
-      trail.position.set(0, 0, 2.8);
-      alienMesh.add(trail);
+    }
 
-      // Particle trail setup
-      const particleCount = 30;
-      const pGeometry = new THREE.BufferGeometry();
-      const pPositions = new Float32Array(particleCount * 3);
-      const pLifes = new Float32Array(particleCount);
-      for (let pIdx = 0; pIdx < particleCount; pIdx++) {
-        pPositions[pIdx * 3] = 0;
-        pPositions[pIdx * 3 + 1] = 0;
-        pPositions[pIdx * 3 + 2] = 2.8;
-        pLifes[pIdx] = Math.random();
-      }
-      pGeometry.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
+    // Alien Interceptors
+    for (let i = 0; i < 3; i++) {
+      const offsetAngle = Math.random() * Math.PI * 2;
       
-      const pMaterial = new THREE.PointsMaterial({
-        color: 0xff3300,
-        size: 0.6,
-        transparent: true,
-        opacity: 0.8,
-        blending: THREE.AdditiveBlending
-      });
-      const pPoints = new THREE.Points(pGeometry, pMaterial);
-      alienMesh.add(pPoints);
+      const alienMesh = ShipBuilder.buildShip('alien', Math.random());
+      // Make aliens bigly visible as well!
+      alienMesh.scale.set(3.0, 3.0, 3.0);
+      this.scene.add(alienMesh);
 
-      this.aliens.set(id, {
+      alienMesh.position.set(
+        500 * Math.cos(offsetAngle),
+        (Math.random() - 0.5) * 60,
+        500 * Math.sin(offsetAngle)
+      );
+
+      this.aliens.push({
+        id: `alien_${i}`,
         mesh: alienMesh,
-        trail: trail,
-        position: alienMesh.position,
-        targetPosition: alienMesh.position.clone(),
-        particlePoints: pPoints,
-        particleLifes: pLifes,
-        speed: 10 + Math.random() * 6,
-        health: 60,
-        maxHealth: 60,
-        lastShot: 0
+        pos: alienMesh.position,
+        vel: new THREE.Vector3(0, 0, 0),
+        colorHex: 0xf43f5e,
+        color: '#f43f5e',
+        size: 20,
+        maxSpeed: 170,
+        health: 100,
+        shootCooldown: Math.random() * 2.0,
+        trail: [],
+        trailMesh: this.createTrailMesh('#f43f5e')
       });
     }
   }
 
-  async spawnBoss(centerPos = new THREE.Vector3(0, 0, -80)) {
-    this.aliens.forEach(alien => this.group.remove(alien.mesh));
-    this.aliens.clear();
-
-    const id = 'alien_mothership';
-    const alienMesh = new THREE.Group();
+  createTrailMesh(color) {
+    const geometry = new THREE.BufferGeometry();
+    const maxTrailPoints = 30;
+    const positions = new Float32Array(maxTrailPoints * 3);
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     
-    const bodyGeom = new THREE.CylinderGeometry(15, 15, 4, 12);
-    const bodyMat = new THREE.MeshStandardMaterial({
-      color: 0x18181a,
-      metalness: 0.9,
-      roughness: 0.2,
-      flatShading: true
-    });
-    const body = new THREE.Mesh(bodyGeom, bodyMat);
-    body.rotation.x = Math.PI / 2;
-    alienMesh.add(body);
-
-    const domeGeom = new THREE.SphereGeometry(8, 12, 12, 0, Math.PI * 2, 0, Math.PI / 2);
-    const domeMat = new THREE.MeshBasicMaterial({ color: 0xff00ff, wireframe: true });
-    const dome = new THREE.Mesh(domeGeom, domeMat);
-    dome.position.y = 2.1;
-    dome.rotation.x = -Math.PI / 2;
-    alienMesh.add(dome);
-
-    const wingGeom = new THREE.BoxGeometry(32, 1, 8);
-    const wing = new THREE.Mesh(wingGeom, bodyMat);
-    alienMesh.add(wing);
-
-    const trailGeom = new THREE.ConeGeometry(2.0, 10.0, 6);
-    trailGeom.rotateX(Math.PI / 2);
-    const trailMat = new THREE.MeshBasicMaterial({
-      color: 0xff00ff,
+    const material = new THREE.LineBasicMaterial({
+      color: color,
       transparent: true,
-      opacity: 0.7
+      opacity: 0.6,
+      blending: THREE.AdditiveBlending,
+      linewidth: 3 // Line thickness is browser implementation dependent
     });
-    const trail = new THREE.Mesh(trailGeom, trailMat);
-    trail.position.set(0, 0, 7);
-    alienMesh.add(trail);
 
-    // Particle trail setup
-    const particleCount = 60;
-    const pGeometry = new THREE.BufferGeometry();
-    const pPositions = new Float32Array(particleCount * 3);
-    const pLifes = new Float32Array(particleCount);
-    for (let pIdx = 0; pIdx < particleCount; pIdx++) {
-      pPositions[pIdx * 3] = 0;
-      pPositions[pIdx * 3 + 1] = 0;
-      pPositions[pIdx * 3 + 2] = 7;
-      pLifes[pIdx] = Math.random();
+    const line = new THREE.Line(geometry, material);
+    this.scene.add(line);
+    return line;
+  }
+
+  updateTrail(ship) {
+    const trailPositions = ship.trail;
+    trailPositions.push(ship.pos.clone());
+    if (trailPositions.length > 30) {
+      trailPositions.shift();
     }
-    pGeometry.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
-    
-    const pMaterial = new THREE.PointsMaterial({
-      color: 0xff00ff,
-      size: 1.5,
-      transparent: true,
-      opacity: 0.9,
+
+    const posAttr = ship.trailMesh.geometry.attributes.position;
+    for (let i = 0; i < 30; i++) {
+      const pt = trailPositions[Math.min(i, trailPositions.length - 1)] || ship.pos;
+      posAttr.setXYZ(i, pt.x, pt.y, pt.z);
+    }
+    posAttr.needsUpdate = true;
+  }
+
+  fireLaser(ship) {
+    if (!ship) return;
+
+    // Laser flight vector
+    const dir = new THREE.Vector3(0, 0, -1);
+    dir.applyQuaternion(ship.mesh.quaternion).normalize();
+
+    // Laser offset positions (dual barrel)
+    const right = new THREE.Vector3(1, 0, 0).applyQuaternion(ship.mesh.quaternion).normalize();
+    const lPos = ship.pos.clone().addScaledVector(right, -ship.size * 0.45);
+    const rPos = ship.pos.clone().addScaledVector(right, ship.size * 0.45);
+
+    const laserGeom = new THREE.BoxGeometry(0.8, 0.8, 12);
+    const laserMat = new THREE.MeshBasicMaterial({
+      color: ship.colorHex,
       blending: THREE.AdditiveBlending
     });
-    const pPoints = new THREE.Points(pGeometry, pMaterial);
-    alienMesh.add(pPoints);
 
-    const spawnPos = new THREE.Vector3().copy(centerPos).add(new THREE.Vector3(0, 0, -120));
-    alienMesh.position.copy(spawnPos);
-    this.group.add(alienMesh);
+    const createProj = (startPos) => {
+      const mesh = new THREE.Mesh(laserGeom, laserMat);
+      mesh.position.copy(startPos);
+      mesh.quaternion.copy(ship.mesh.quaternion);
+      this.scene.add(mesh);
 
-    this.aliens.set(id, {
-      mesh: alienMesh,
-      trail: trail,
-      position: alienMesh.position,
-      targetPosition: alienMesh.position.clone(),
-      particlePoints: pPoints,
-      particleLifes: pLifes,
-      speed: 6,
-      health: 500,
-      maxHealth: 500,
-      lastShot: 0,
-      isBoss: true
-    });
+      this.projectiles.push({
+        mesh: mesh,
+        dir: dir.clone(),
+        speed: 750,
+        faction: ship.id.startsWith('alien') ? 'alien' : 'human',
+        life: 2.0
+      });
+    };
+
+    createProj(lPos);
+    createProj(rPos);
+
+    this.soundSystem.playLaser();
   }
 
-  getNearestAlien(pos) {
-    let nearest = null;
-    let minDist = Infinity;
-    this.aliens.forEach(alien => {
-      const dist = pos.distanceTo(alien.position);
-      if (dist < minDist) {
-        minDist = dist;
-        nearest = alien;
-      }
-    });
-    return nearest;
-  }
+  spawnExplosion(pos, colorHex, count = 20) {
+    this.soundSystem.playExplosion();
 
-  flashAlien(alien) {
-    alien.mesh.traverse(child => {
-      if (child.isMesh && child.material) {
-        const origColor = child.material.color.getHex();
-        child.material.color.setHex(0xffffff);
-        setTimeout(() => {
-          if (child.material) child.material.color.setHex(origColor);
-        }, 100);
-      }
-    });
-  }
-
-  destroyAlien(alien, id) {
-    this.group.remove(alien.mesh);
-    this.aliens.delete(id);
-  }
-
-  update(deltaTime) {
-    const core = this.core;
-    const shipSystem = core ? core.getSystem('shipsystem') : null;
-    const target = shipSystem ? shipSystem.getLeadShip() : null;
-
-    this.aliens.forEach((alien, id) => {
-      // Pulse trail
-      const scale = 0.8 + Math.sin(Date.now() * 0.05 + alien.speed) * 0.15;
-      alien.trail.scale.set(1, 1, scale);
-
-      if (target) {
-        const dir = new THREE.Vector3().copy(target.position).sub(alien.position).normalize();
-        alien.position.addScaledVector(dir, alien.speed * deltaTime);
-
-        const targetRot = new THREE.Quaternion().setFromUnitVectors(
-          new THREE.Vector3(0, 0, -1),
-          dir
-        );
-        alien.mesh.quaternion.slerp(targetRot, deltaTime * 2);
-      } else {
-        alien.position.z += alien.speed * deltaTime;
-      }
-    });
-  }
-
-  destroy() {
-    this.aliens.forEach(alien => this.group.remove(alien.mesh));
-    this.scene.remove(this.group);
-    this.aliens.clear();
-  }
-}
-
-// Projectile System
-class ProjectileSystem {
-  constructor(scene) {
-    this.scene = scene;
-    this.projectiles = [];
-    this.group = new THREE.Group();
-    this.scene.add(this.group);
-  }
-
-  fire(origin, target, faction) {
-    const dir = new THREE.Vector3().copy(target).sub(origin).normalize();
-    const geom = new THREE.CylinderGeometry(0.12, 0.12, 2.2, 5);
-    geom.rotateX(Math.PI / 2);
-    
-    const color = faction === 'human' ? 0x00f2fe : 0xff3300;
-    const mat = new THREE.MeshBasicMaterial({ color: color });
-    const mesh = new THREE.Mesh(geom, mat);
-    
-    mesh.position.copy(origin);
-    mesh.lookAt(new THREE.Vector3().copy(origin).add(dir));
-    this.group.add(mesh);
-
-    if (this.core && this.core.soundSystem) {
-      this.core.soundSystem.playLaser();
-    }
-
-    this.projectiles.push({
-      mesh: mesh,
-      position: mesh.position,
-      direction: dir,
-      speed: 130,
-      faction: faction,
-      life: 2.0
-    });
-  }
-
-  removeProjectile(proj, idx) {
-    this.group.remove(proj.mesh);
-    proj.mesh.geometry.dispose();
-    proj.mesh.material.dispose();
-    this.projectiles.splice(idx, 1);
-  }
-
-  update(deltaTime) {
-    for (let i = this.projectiles.length - 1; i >= 0; i--) {
-      const proj = this.projectiles[i];
-      proj.position.addScaledVector(proj.direction, proj.speed * deltaTime);
-      proj.life -= deltaTime;
-
-      if (proj.life <= 0) {
-        this.removeProjectile(proj, i);
-      }
-    }
-  }
-
-  destroy() {
-    this.projectiles.forEach(proj => {
-      this.group.remove(proj.mesh);
-      proj.mesh.geometry.dispose();
-      proj.mesh.material.dispose();
-    });
-    this.scene.remove(this.group);
-    this.projectiles = [];
-  }
-}
-
-// Explosion System
-class ExplosionSystem {
-  constructor(scene) {
-    this.scene = scene;
-    this.explosions = [];
-  }
-
-  createExplosion(pos, colorHex, large = false) {
-    const count = large ? 50 : 16;
-    const geom = new THREE.BufferGeometry();
+    const pGeom = new THREE.BufferGeometry();
     const positions = new Float32Array(count * 3);
     const velocities = [];
 
@@ -2000,611 +616,553 @@ class ExplosionSystem {
       positions[i * 3 + 1] = pos.y;
       positions[i * 3 + 2] = pos.z;
 
-      const angle1 = Math.random() * Math.PI * 2;
-      const angle2 = Math.random() * Math.PI;
-      const force = large ? (6 + Math.random() * 20) : (4 + Math.random() * 8);
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 25 + Math.random() * 70;
+      const pitch = (Math.random() - 0.5) * Math.PI;
 
       velocities.push(new THREE.Vector3(
-        Math.cos(angle1) * Math.sin(angle2) * force,
-        Math.sin(angle1) * Math.sin(angle2) * force,
-        Math.cos(angle2) * force
+        speed * Math.cos(angle) * Math.cos(pitch),
+        speed * Math.sin(pitch),
+        speed * Math.sin(angle) * Math.cos(pitch)
       ));
     }
 
-    geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    const mat = new THREE.PointsMaterial({
+    pGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const pMat = new THREE.PointsMaterial({
       color: colorHex,
-      size: large ? 0.7 : 0.35,
+      size: 3.5,
       transparent: true,
       opacity: 1.0,
       blending: THREE.AdditiveBlending
     });
 
-    const points = new THREE.Points(geom, mat);
+    const points = new THREE.Points(pGeom, pMat);
     this.scene.add(points);
 
-    let shockwave = null;
-    if (large) {
-      const ringGeom = new THREE.RingGeometry(0.1, 1.2, 12);
-      const ringMat = new THREE.MeshBasicMaterial({
-        color: colorHex,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.8,
-        blending: THREE.AdditiveBlending
-      });
-      shockwave = new THREE.Mesh(ringGeom, ringMat);
-      shockwave.position.copy(pos);
-      shockwave.rotation.x = Math.PI / 2;
-      this.scene.add(shockwave);
-    }
-
-    this.explosions.push({
+    this.particles.push({
       points: points,
       velocities: velocities,
-      positions: positions,
-      shockwave: shockwave,
-      life: large ? 0.7 : 0.4,
-      maxLife: large ? 0.7 : 0.4
+      alpha: 1.0,
+      decay: 0.95 + Math.random() * 0.9
     });
   }
 
-  update(deltaTime) {
-    for (let i = this.explosions.length - 1; i >= 0; i--) {
-      const exp = this.explosions[i];
-      exp.life -= deltaTime;
-
-      if (exp.life <= 0) {
-        this.scene.remove(exp.points);
-        exp.points.geometry.dispose();
-        exp.points.material.dispose();
-        if (exp.shockwave) {
-          this.scene.remove(exp.shockwave);
-          exp.shockwave.geometry.dispose();
-          exp.shockwave.material.dispose();
-        }
-        this.explosions.splice(i, 1);
-        continue;
-      }
-
-      const posArr = exp.positions;
-      for (let j = 0; j < exp.velocities.length; j++) {
-        const vel = exp.velocities[j];
-        posArr[j * 3] += vel.x * deltaTime;
-        posArr[j * 3 + 1] += vel.y * deltaTime;
-        posArr[j * 3 + 2] += vel.z * deltaTime;
-      }
-      exp.points.geometry.attributes.position.needsUpdate = true;
-      exp.points.material.opacity = exp.life / exp.maxLife;
-
-      if (exp.shockwave) {
-        const scale = 1 + (1 - exp.life / exp.maxLife) * 12;
-        exp.shockwave.scale.set(scale, scale, 1);
-        exp.shockwave.material.opacity = exp.life / exp.maxLife;
-      }
-    }
-  }
-
-  destroy() {
-    this.explosions.forEach(exp => {
-      this.scene.remove(exp.points);
-      if (exp.shockwave) this.scene.remove(exp.shockwave);
-    });
-    this.explosions = [];
-  }
-}
-
-// Quest System
-class QuestSystem {
-  constructor(scene, core) {
-    this.scene = scene;
-    this.core = core;
-    this.activeQuest = null;
-    this.questHistory = [];
-    this.targetPosition = new THREE.Vector3(0, 0, -40);
-    this.questProgress = 0;
-    this.questTimer = 0;
-    this.enemyKills = 0;
-    this.anomalyMesh = null;
-  }
-
-  generateQuest() {
-    const solarSystem = this.core ? this.core.getSystem('solarsystemsystem') : null;
-    if (!solarSystem) return;
-
-    const planetIds = Array.from(solarSystem.planets.keys());
-    const targetPlanetId = planetIds[Math.floor(Math.random() * planetIds.length)];
-    const planet = solarSystem.planets.get(targetPlanetId);
-
-    const questTypes = [
-      {
-        type: 'PATROL',
-        title: `PATROL ${planet.name.toUpperCase()}`,
-        desc: `Perform high-orbit security scans around world ${planet.name}.`,
-        duration: 12
-      },
-      {
-        type: 'DEFEND',
-        title: `DEFEND COLONY: ${planet.name.toUpperCase()}`,
-        desc: `Intercept incoming hostile pirate raiding fleets targeting ${planet.name}.`,
-        duration: 20
-      },
-      {
-        type: 'SCAN',
-        title: `SCAN NEBULA ANOMALY`,
-        desc: `Deploy sensor vectors to investigate spatial energy signatures.`,
-        duration: 10
-      },
-      {
-        type: 'BOSS',
-        title: `DEFEAT ALIEN MOTHERSHIP`,
-        desc: `A massive spatial distortion detected! Intercept and destroy the Alien Mothership.`,
-        duration: 35
-      }
-    ];
-
-    const chosen = questTypes[Math.floor(Math.random() * questTypes.length)];
-    this.activeQuest = {
-      type: chosen.type,
-      title: chosen.title,
-      description: chosen.desc,
-      targetPlanetId: targetPlanetId,
-      duration: chosen.duration,
-      planetName: planet.name
-    };
-
-    this.questProgress = 0;
-    this.questTimer = 0;
-    this.enemyKills = 0;
-
-    if (chosen.type === 'SCAN') {
-      this.targetPosition.set(
-        (Math.random() - 0.5) * 500,
-        (Math.random() - 0.5) * 40,
-        -300 - Math.random() * 300
-      );
-      this.createAnomalyVisual(this.targetPosition);
-    } else {
-      this.targetPosition.copy(planet.group.position);
-    }
-
-    if (chosen.type === 'DEFEND') {
-      const alienSys = this.core.getSystem('aliensystem');
-      if (alienSys) {
-        alienSys.spawnWave(planet.group.position);
-      }
-    }
-
-    if (chosen.type === 'BOSS') {
-      const alienSys = this.core.getSystem('aliensystem');
-      if (alienSys) {
-        alienSys.spawnBoss(planet.group.position);
-      }
-    }
-
-    console.log(`NEW QUEST INITIATED: ${chosen.title}`);
-  }
-
-  createAnomalyVisual(pos) {
-    this.cleanupAnomaly();
-
-    const geom = new THREE.SphereGeometry(3.0, 8, 8);
-    const mat = new THREE.MeshBasicMaterial({
-      color: 0xda70d6,
-      wireframe: true,
-      transparent: true,
-      opacity: 0.6
-    });
-    this.anomalyMesh = new THREE.Mesh(geom, mat);
-    this.anomalyMesh.position.copy(pos);
-    this.scene.add(this.anomalyMesh);
-  }
-
-  cleanupAnomaly() {
-    if (this.anomalyMesh) {
-      this.scene.remove(this.anomalyMesh);
-      this.anomalyMesh.geometry.dispose();
-      this.anomalyMesh.material.dispose();
-      this.anomalyMesh = null;
-    }
-  }
-
-  registerEnemyKill() {
-    this.enemyKills++;
-  }
-
-  update(deltaTime) {
-    if (!this.activeQuest) return;
-
-    const solarSystem = this.core ? this.core.getSystem('solarsystemsystem') : null;
-    const shipSystem = this.core ? this.core.getSystem('shipsystem') : null;
-
-    if (solarSystem && shipSystem) {
-      const lead = shipSystem.getLeadShip();
-
-      if (this.activeQuest.type !== 'SCAN') {
-        const planet = solarSystem.planets.get(this.activeQuest.targetPlanetId);
-        if (planet) {
-          this.targetPosition.copy(planet.group.position);
-        }
-      }
-
-      if (lead) {
-        const distToTarget = lead.position.distanceTo(this.targetPosition);
-        
-        if (this.activeQuest.type === 'SCAN') {
-          if (this.anomalyMesh) {
-            this.anomalyMesh.rotation.y += deltaTime * 0.6;
-            this.anomalyMesh.scale.setScalar(1 + Math.sin(Date.now() * 0.005) * 0.15);
-          }
-
-          if (distToTarget < 15) {
-            this.questTimer += deltaTime;
-            this.questProgress = Math.min((this.questTimer / this.activeQuest.duration) * 100, 100);
-
-            const projSys = this.core.getSystem('projectilesystem');
-            if (projSys && Math.random() < 0.1) {
-              projSys.fire(lead.position, this.targetPosition, 'human');
-            }
-          }
-        } else if (this.activeQuest.type === 'PATROL') {
-          if (distToTarget < 20) {
-            this.questTimer += deltaTime;
-            this.questProgress = Math.min((this.questTimer / this.activeQuest.duration) * 100, 100);
-
-            const angle = Date.now() * 0.001;
-            const orbitDist = 18;
-            this.targetPosition.add(new THREE.Vector3(Math.cos(angle) * orbitDist, 0, Math.sin(angle) * orbitDist));
-          }
-        } else if (this.activeQuest.type === 'DEFEND') {
-          const alienSys = this.core.getSystem('aliensystem');
-          if (alienSys) {
-            if (alienSys.aliens.size === 0 || this.enemyKills >= 3) {
-              this.questProgress = 100;
-            } else {
-              this.questProgress = (this.enemyKills / 3) * 100;
-            }
-          }
-        } else if (this.activeQuest.type === 'BOSS') {
-          const alienSys = this.core.getSystem('aliensystem');
-          if (alienSys) {
-            const boss = alienSys.aliens.get('alien_mothership');
-            if (!boss || boss.health <= 0) {
-              this.questProgress = 100;
-            } else {
-              this.questProgress = ((boss.maxHealth - boss.health) / boss.maxHealth) * 100;
-            }
-          }
-        }
-
-        if (this.questProgress >= 100) {
-          this.cleanupAnomaly();
-          this.questHistory.unshift(`✓ Completed: ${this.activeQuest.title}`);
-          if (this.questHistory.length > 3) this.questHistory.pop();
-          
-          if (this.core) {
-            this.core.credits = (this.core.credits || 0) + 150;
-            if (this.core.soundSystem && !this.core.soundSystem.muted) {
-              this.core.soundSystem.playShieldHit();
-            }
-          }
-          
-          this.generateQuest();
-        }
-      }
-    }
-  }
-
-  destroy() {
-    this.cleanupAnomaly();
-  }
-}
-
-// Input System
-class InputSystem {
-  constructor() {
-    this.keys = {};
+  spawnThrustParticle(pos, vel, colorHex) {
+    const backward = vel.clone().normalize().negate();
+    const speed = 20 + Math.random() * 45;
     
-    window.addEventListener('keydown', (e) => {
-      this.keys[e.code] = true;
+    // Slight randomized exhaust dispersion
+    const dir = backward.add(new THREE.Vector3(
+      (Math.random() - 0.5) * 0.25,
+      (Math.random() - 0.5) * 0.25,
+      (Math.random() - 0.5) * 0.25
+    )).normalize();
+
+    const sparkGeom = new THREE.BufferGeometry();
+    const positions = new Float32Array(3);
+    positions[0] = pos.x + dir.x * -10;
+    positions[1] = pos.y + dir.y * -10;
+    positions[2] = pos.z + dir.z * -10;
+    sparkGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+    const sparkMat = new THREE.PointsMaterial({
+      color: colorHex,
+      size: 2.2,
+      transparent: true,
+      opacity: 0.9,
+      blending: THREE.AdditiveBlending
     });
 
-    window.addEventListener('keyup', (e) => {
-      this.keys[e.code] = false;
-    });
+    const points = new THREE.Points(sparkGeom, sparkMat);
+    this.scene.add(points);
 
-    window.addEventListener('resize', () => {
-      const core = this.core;
-      if (core) {
-        const renderer = core.getSystem('renderer');
-        const camera = core.getSystem('camera');
-        if (renderer && camera) {
-          camera.aspect = window.innerWidth / window.innerHeight;
-          camera.updateProjectionMatrix();
-          renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-      }
+    this.particles.push({
+      points: points,
+      velocities: [dir.multiplyScalar(speed)],
+      alpha: 0.9,
+      decay: 2.2 + Math.random() * 1.5
     });
   }
-  update(deltaTime) {}
-  destroy() {
-    this.keys = {};
-  }
-}
 
-// UI System
-class UISystem {
-  constructor(core) {
-    this.core = core;
-    this.elements = new Map();
-    this.initialize();
+  start() {
+    if (this.state.running) return;
+    this.state.running = true;
+    this.performance.lastTime = performance.now();
+    this.animate();
   }
 
-  initialize() {
-    if (!isFullscreenSim) {
-      return;
-    }
-    this.injectTelemetryCSS();
-    this.createFPSCounter();
-    this.createResetButton();
-    this.createMissionControlFeed();
-  }
-
-  injectTelemetryCSS() {
-    if (document.getElementById('sim-telemetry-css')) return;
-    const style = document.createElement('style');
-    style.id = 'sim-telemetry-css';
-    style.textContent = `
-      #hero {
-        position: relative !important;
-      }
-      .beacon-dot {
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        margin-right: 6px;
-        box-shadow: 0 0 8px currentColor;
-        animation: beacon-pulse 1.2s infinite ease-in-out;
-      }
-      @keyframes beacon-pulse {
-        0%, 100% { transform: scale(0.8); opacity: 0.5; }
-        50% { transform: scale(1.3); opacity: 1; }
-      }
-      
-      /* Mobile CSS Overrides */
-      @media (max-width: 768px) {
-        #fps-counter {
-          top: 10px !important;
-          left: 10px !important;
-          font-size: 10px !important;
-          padding: 4px 8px !important;
-        }
-        #btn-reset-simulation {
-          top: 10px !important;
-          right: 10px !important;
-          font-size: 10px !important;
-          padding: 6px 12px !important;
-        }
-        #mission-log-feed {
-          bottom: 15px !important;
-          left: 15px !important;
-          right: 15px !important;
-          width: calc(100% - 30px) !important;
-          padding: 10px 14px !important;
-          border-radius: 8px !important;
-        }
-        #mission-log-feed #quest-desc,
-        #mission-log-feed #quest-distance,
-        #mission-log-feed #quest-progress-bar {
-          margin-bottom: 8px !important;
-        }
-        #mission-log-feed #quest-history-list {
-          max-height: 45px;
-          overflow-y: auto;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  createFPSCounter() {
-    const fpsElement = document.createElement('div');
-    fpsElement.id = 'fps-counter';
-    fpsElement.style.cssText = `
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      color: #00f2fe;
-      font-family: 'Orbitron', monospace;
-      font-size: 13px;
-      z-index: 1000;
-      background: rgba(10, 5, 25, 0.65);
-      border: 1px solid rgba(0, 242, 254, 0.25);
-      backdrop-filter: blur(8px);
-      padding: 6px 12px;
-      border-radius: 4px;
-      box-shadow: 0 0 15px rgba(0, 242, 254, 0.1);
-    `;
-    const container = document.getElementById('hero') || document.body;
-    container.appendChild(fpsElement);
-    this.elements.set('fps', fpsElement);
-  }
-
-  createResetButton() {
-    const btn = document.createElement('button');
-    btn.id = 'btn-reset-simulation';
-    btn.style.cssText = `
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      z-index: 1000;
-      background: rgba(20, 10, 40, 0.7);
-      border: 1px solid #00f2fe;
-      color: #00f2fe;
-      font-family: 'Orbitron', sans-serif;
-      font-weight: 700;
-      font-size: 12px;
-      letter-spacing: 1px;
-      padding: 10px 20px;
-      border-radius: 6px;
-      cursor: pointer;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
-      transition: all 0.2s ease;
-    `;
-    btn.textContent = 'RESET SPACE SIMULATION';
-
-    btn.addEventListener('mouseover', () => {
-      btn.style.background = '#00f2fe';
-      btn.style.color = '#05030a';
-      btn.style.boxShadow = '0 0 25px #00f2fe';
-    });
-
-    btn.addEventListener('mouseout', () => {
-      btn.style.background = 'rgba(20, 10, 40, 0.7)';
-      btn.style.color = '#00f2fe';
-      btn.style.boxShadow = '0 0 15px rgba(0, 242, 254, 0.2)';
-    });
-
-    btn.addEventListener('click', () => {
-      console.log('RESETTING SPACE SIMULATION...');
-      const gameMain = window.game;
-      if (gameMain) {
-        gameMain.destroy();
-        gameMain.init();
-      }
-    });
-
-    const container = document.getElementById('hero') || document.body;
-    container.appendChild(btn);
-    this.elements.set('resetBtn', btn);
-  }
-
-  createMissionControlFeed() {
-    const feed = document.createElement('div');
-    feed.id = 'mission-log-feed';
-    feed.style.cssText = `
-      position: absolute;
-      bottom: 25px;
-      left: 25px;
-      z-index: 1000;
-      background: rgba(10, 5, 25, 0.75);
-      border: 1px solid rgba(139, 92, 246, 0.35);
-      backdrop-filter: blur(12px);
-      padding: 18px;
-      border-radius: 12px;
-      color: white;
-      font-family: 'Inter', sans-serif;
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
-      width: 310px;
-      transition: all 0.3s ease;
-    `;
-
-    feed.innerHTML = `
-      <div style="font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 1.5px; color: #a78bfa; margin-bottom: 12px; border-bottom: 1px solid rgba(139,92,246,0.2); padding-bottom: 6px;">
-        📡 MISSION CONTROL LOG
-      </div>
-      
-      <div style="display: flex; align-items: center; margin-bottom: 4px;">
-        <span id="beacon-indicator" class="beacon-dot" style="color: #00f2fe;"></span>
-        <span id="quest-title" style="font-family: 'Orbitron'; font-weight: 700; font-size: 11px; color: #00f2fe;">
-          LOADING QUEST DATA...
-        </span>
-      </div>
-      
-      <div id="quest-desc" style="font-size: 11px; color: #94a3b8; line-height: 1.4; margin-bottom: 6px;">
-        Initializing hyperdrive link.
-      </div>
-
-      <div id="quest-distance" style="font-family: 'Orbitron'; font-size: 10px; color: #a78bfa; margin-bottom: 12px;">
-        DISTANCE: -- AU
-      </div>
-
-      <div style="background: rgba(255,255,255,0.06); height: 5px; border-radius: 3px; overflow: hidden; margin-bottom: 16px;">
-        <div id="quest-progress-bar" style="background: #00f2fe; width: 0%; height: 100%; transition: width 0.1s;"></div>
-      </div>
-
-      <div style="font-family: 'Orbitron', sans-serif; font-size: 9px; color: #64748b; margin-bottom: 6px;">COMPLETED MISSIONS:</div>
-      <div id="quest-history-list" style="font-size: 10px; color: #10b981; line-height: 1.5;">
-        <div style="color: #64748b;">(no records yet)</div>
-      </div>
-    `;
-
-    const container = document.getElementById('hero') || document.body;
-    container.appendChild(feed);
-    this.elements.set('feed', feed);
-  }
-
-  update(deltaTime) {
-    const core = this.core;
-    if (!core) return;
-
-    if (this.elements.has('fps')) {
-      const fpsElement = this.elements.get('fps');
-      fpsElement.textContent = `FPS: ${core.performance.fps} | Load: ${core.performance.loadTime.toFixed(0)}ms`;
-    }
-
-    const creditsEl = document.getElementById('hud-credits');
-    if (creditsEl) {
-      creditsEl.textContent = `${core.credits || 0} CR`;
-    }
-
-    const questSystem = core.getSystem('questsystem');
-    const shipSystem = core.getSystem('shipsystem');
-    if (questSystem && questSystem.activeQuest && shipSystem) {
-      const q = questSystem.activeQuest;
-      
-      const titleEl = document.getElementById('quest-title');
-      const descEl = document.getElementById('quest-desc');
-      const distEl = document.getElementById('quest-distance');
-      const beaconEl = document.getElementById('beacon-indicator');
-      const barEl = document.getElementById('quest-progress-bar');
-      const historyEl = document.getElementById('quest-history-list');
-
-      if (titleEl) titleEl.textContent = q.title;
-      if (descEl) descEl.textContent = q.description;
-      if (barEl) barEl.style.width = `${questSystem.questProgress.toFixed(0)}%`;
-
-      // Live AU Telemetry
-      const lead = shipSystem.getLeadShip();
-      if (lead && distEl) {
-        const d = lead.position.distanceTo(questSystem.targetPosition);
-        if (d < 18) {
-          distEl.textContent = 'STATUS: OPERATIONAL RANGE';
-          distEl.style.color = '#10b981';
-        } else {
-          distEl.textContent = `DISTANCE: ${(d / 10).toFixed(1)} AU`;
-          distEl.style.color = '#a78bfa';
-        }
-      }
-
-      // Beacon Dot Pulsing Color
-      if (beaconEl) {
-        if (q.type === 'SCAN') beaconEl.style.color = '#da70d6';
-        else if (q.type === 'DEFEND') beaconEl.style.color = '#ff3300';
-        else beaconEl.style.color = '#00f2fe';
-      }
-
-      if (historyEl) {
-        if (questSystem.questHistory.length > 0) {
-          historyEl.innerHTML = questSystem.questHistory.map(h => `<div style="margin-bottom:3px;">${h}</div>`).join('');
-        } else {
-          historyEl.innerHTML = `<div style="color: #64748b;">(no records yet)</div>`;
-        }
-      }
+  stop() {
+    this.state.running = false;
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
     }
   }
 
   destroy() {
-    this.elements.forEach(element => {
-      if (element.parentNode) {
-        element.parentNode.removeChild(element);
+    this.stop();
+    window.removeEventListener('resize', this.handleResize);
+    window.removeEventListener('keydown', this.handleKeyDown);
+    window.removeEventListener('keyup', this.handleKeyUp);
+    document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+
+    // Dispose entities
+    this.ships.forEach(s => {
+      this.scene.remove(s.mesh);
+      this.scene.remove(s.trailMesh);
+    });
+    this.aliens.forEach(al => {
+      this.scene.remove(al.mesh);
+      this.scene.remove(al.trailMesh);
+    });
+    this.projectiles.forEach(p => this.scene.remove(p.mesh));
+    this.particles.forEach(pt => this.scene.remove(pt.points));
+    this.planets.forEach(pl => {
+      this.scene.remove(pl.mesh);
+      pl.moons.forEach(m => this.scene.remove(m.mesh));
+    });
+    this.asteroids.forEach(ast => this.scene.remove(ast.mesh));
+
+    this.state.initialized = false;
+  }
+
+  getStatus() {
+    return {
+      initialized: this.state.initialized,
+      running: this.state.running,
+      fps: Math.round(this.performance.fps),
+      shipsCount: this.ships.length,
+      particlesCount: this.particles.length
+    };
+  }
+
+  animate = (currentTime = performance.now()) => {
+    if (!this.state.running) return;
+
+    this.animationFrameId = requestAnimationFrame(this.animate);
+
+    let dt = (currentTime - this.performance.lastTime) / 1000;
+    if (dt > 0.1) dt = 0.1;
+    this.performance.lastTime = currentTime;
+
+    this.performance.fps = this.performance.fps * 0.95 + (1 / (dt || 0.016)) * 0.05;
+
+    const activeDt = dt * this.timeScale;
+
+    this.update(activeDt);
+    this.renderer.render(this.scene, this.camera);
+  };
+
+  update(dt) {
+    if (dt <= 0) return;
+
+    // Credit logic updates
+    this.creditsTimer += dt;
+    if (this.creditsTimer > 1.5) {
+      this.credits += Math.floor(Math.random() * 8) + 4;
+      this.creditsTimer = 0;
+      const creditsEl = document.getElementById('hud-credits');
+      if (creditsEl) {
+        creditsEl.textContent = `${this.credits} CR`;
+      }
+    }
+
+    // 1. Orbit Planets & Moons
+    this.planets.forEach(p => {
+      p.angle += p.speed * dt;
+      p.mesh.position.set(p.dist * Math.cos(p.angle), 0, p.dist * Math.sin(p.angle));
+
+      // Rotate planet
+      p.mesh.rotation.y += 0.005;
+
+      p.moons.forEach(m => {
+        m.angle += m.speed * dt;
+        m.mesh.position.set(
+          p.mesh.position.x + m.dist * Math.cos(m.angle),
+          Math.sin(m.angle) * 4.0,
+          p.mesh.position.z + m.dist * Math.sin(m.angle)
+        );
+      });
+    });
+
+    // 2. Rotate Asteroids
+    this.asteroids.forEach(a => {
+      a.mesh.rotation.x += a.rotationSpeed.x;
+      a.mesh.rotation.y += a.rotationSpeed.y;
+      a.mesh.rotation.z += a.rotationSpeed.z;
+    });
+
+    // 3. Pulse Sun and Glow Halos
+    const timeVal = performance.now() * 0.003;
+    const sunScale = 1.0 + 0.035 * Math.sin(timeVal);
+    this.sun.scale.set(sunScale, sunScale, sunScale);
+    this.sunGlowShells.forEach((shell, idx) => {
+      const pulse = 1.0 + 0.05 * Math.sin(timeVal + idx * Math.PI * 0.3);
+      shell.scale.set(pulse, pulse, pulse);
+    });
+
+    // 4. Update Autonomous Waypoint / Wander target
+    this.wanderAngle += 0.28 * dt;
+    const wanderRadius = 450;
+    this.wanderTarget.set(
+      wanderRadius * Math.cos(this.wanderAngle),
+      40 * Math.sin(this.wanderAngle * 0.7),
+      wanderRadius * Math.sin(this.wanderAngle * 0.5) * Math.cos(this.wanderAngle)
+    );
+
+    // 5. Update Human Fleet Flocking & Avoidance
+    this.ships.forEach((ship, idx) => {
+      const isLead = idx === 0;
+      const steer = new THREE.Vector3(0, 0, 0);
+
+      // Keyboard steering controls for lead ship (Override Autopilot)
+      let manualSteering = false;
+      if (isLead) {
+        let yawChange = 0;
+        let pitchChange = 0;
+
+        if (this.keys['w'] || this.keys['arrowup']) {
+          pitchChange = -1.8;
+          manualSteering = true;
+        }
+        if (this.keys['s'] || this.keys['arrowdown']) {
+          pitchChange = 1.8;
+          manualSteering = true;
+        }
+        if (this.keys['a'] || this.keys['arrowleft']) {
+          yawChange = -2.2;
+          manualSteering = true;
+        }
+        if (this.keys['d'] || this.keys['arrowright']) {
+          yawChange = 2.2;
+          manualSteering = true;
+        }
+
+        if (manualSteering) {
+          const currentForward = ship.vel.clone().normalize();
+          const right = new THREE.Vector3(0, 1, 0).cross(currentForward).normalize();
+          const up = currentForward.clone().cross(right).normalize();
+
+          if (yawChange !== 0) {
+            currentForward.addScaledVector(right, yawChange * dt);
+          }
+          if (pitchChange !== 0) {
+            currentForward.addScaledVector(up, pitchChange * dt);
+          }
+          currentForward.normalize();
+          const targetSp = ship.boostActive ? ship.maxSpeed * 1.5 : ship.maxSpeed;
+          ship.vel.copy(currentForward).multiplyScalar(targetSp);
+        }
+      }
+
+      if (!isLead || !manualSteering) {
+        // Target: Wander point or lead ship
+        const target = isLead ? this.wanderTarget : this.ships[0].pos;
+        const toTarget = target.clone().sub(ship.pos);
+        if (toTarget.lengthSq() > 100) {
+          steer.add(toTarget.normalize().multiplyScalar(1.4));
+        }
+
+        // Flocking behaviors (Separation, Cohesion, Alignment)
+        const separation = new THREE.Vector3();
+        const cohesion = new THREE.Vector3();
+        const alignment = new THREE.Vector3();
+        let neighbors = 0;
+
+        this.ships.forEach((other, oIdx) => {
+          if (idx === oIdx) return;
+          const d = ship.pos.distanceTo(other.pos);
+          if (d < 180) {
+            neighbors++;
+            if (d < 45) {
+              const diff = ship.pos.clone().sub(other.pos).normalize();
+              separation.addScaledVector(diff, 60 / (d || 1));
+            }
+            cohesion.add(other.pos);
+            alignment.add(other.vel);
+          }
+        });
+
+        if (neighbors > 0) {
+          cohesion.divideScalar(neighbors).sub(ship.pos).normalize();
+          steer.addScaledVector(cohesion, 0.75);
+
+          alignment.divideScalar(neighbors).normalize();
+          steer.addScaledVector(alignment, 0.55);
+        }
+        steer.add(separation);
+      }
+
+      // SUN AVOIDANCE STEERING FORCE (CRITICAL FIX)
+      const distToSun = ship.pos.length();
+      const sunAvoidRadius = 165;
+      if (distToSun < sunAvoidRadius) {
+        const repel = ship.pos.clone().normalize();
+        const orbitDir = repel.clone().cross(new THREE.Vector3(0, 1, 0)).normalize();
+        const factor = Math.pow(1.0 - distToSun / sunAvoidRadius, 2);
+        
+        steer.addScaledVector(repel, factor * 85.0);
+        steer.addScaledVector(orbitDir, factor * 45.0);
+      }
+
+      // Obstacle avoidance for planets
+      this.planets.forEach(p => {
+        const d = ship.pos.distanceTo(p.mesh.position);
+        const avoidR = p.radius * 2.5 + 20;
+        if (d < avoidR) {
+          const repel = ship.pos.clone().sub(p.mesh.position).normalize();
+          const factor = (1.0 - d / avoidR);
+          steer.addScaledVector(repel, factor * 110.0);
+        }
+      });
+
+      // Avoid asteroids
+      this.asteroids.forEach(a => {
+        const d = ship.pos.distanceTo(a.mesh.position);
+        const avoidR = a.radius * 2.2 + 15;
+        if (d < avoidR) {
+          const repel = ship.pos.clone().sub(a.mesh.position).normalize();
+          const factor = (1.0 - d / avoidR);
+          steer.addScaledVector(repel, factor * 90.0);
+        }
+      });
+
+      // Integrate velocity & position
+      if (steer.lengthSq() > 0.001) {
+        steer.normalize().multiplyScalar(ship.maxSpeed * 0.16);
+        ship.vel.addScaledVector(steer, dt);
+      }
+
+      // Cap speed boundaries
+      let speed = ship.vel.length();
+      const speedLimit = ship.boostActive ? ship.maxSpeed * 1.5 : ship.maxSpeed;
+      if (speed > speedLimit) {
+        ship.vel.normalize().multiplyScalar(speedLimit);
+      } else if (speed < 60) {
+        ship.vel.normalize().multiplyScalar(80);
+      }
+
+      ship.pos.addScaledVector(ship.vel, dt);
+
+      // Handle Rotations to face flight direction
+      if (ship.vel.lengthSq() > 0.1) {
+        // Build rotation matrix looking towards velocity direction
+        const targetRotation = new THREE.Matrix4().lookAt(
+          ship.pos,
+          ship.pos.clone().add(ship.vel),
+          new THREE.Vector3(0, 1, 0)
+        );
+        const targetQuaternion = new THREE.Quaternion().setFromRotationMatrix(targetRotation);
+        ship.mesh.quaternion.slerp(targetQuaternion, 7.5 * dt);
+      }
+
+      // Occasional boost cycle
+      ship.boostTimer -= dt;
+      if (ship.boostTimer <= 0) {
+        ship.boostActive = !ship.boostActive;
+        ship.boostTimer = ship.boostActive ? 1.5 + Math.random() * 2 : 4 + Math.random() * 5;
+      }
+
+      // Update light trails
+      this.updateTrail(ship);
+
+      // Spark engine particles
+      if (Math.random() < 0.38) {
+        this.spawnThrustParticle(ship.pos, ship.vel, ship.colorHex);
+      }
+
+      // Weapon targeting Skirmish triggers
+      ship.shootCooldown -= dt;
+      if (ship.shootCooldown <= 0) {
+        const targetAlien = this.aliens.find(al => ship.pos.distanceToSquared(al.pos) < 250000);
+        if (targetAlien) {
+          this.fireLaser(ship);
+          ship.shootCooldown = 0.8 + Math.random() * 1.0;
+        }
       }
     });
-    this.elements.clear();
-    const style = document.getElementById('sim-telemetry-css');
-    if (style) style.remove();
+
+    // 6. Update Aliens AI
+    this.aliens.forEach(al => {
+      const lead = this.ships[0];
+      if (lead) {
+        const toLead = lead.pos.clone().sub(al.pos);
+        const dist = toLead.length();
+        let steer = new THREE.Vector3();
+
+        if (dist > 350) {
+          steer.copy(toLead).normalize();
+        } else if (dist < 150) {
+          steer.copy(toLead).normalize().negate().multiplyScalar(1.2);
+        } else {
+          // Orbit flight behavior
+          steer.copy(toLead).normalize().cross(new THREE.Vector3(0, 1, 0)).normalize();
+        }
+
+        // Avoid Sun
+        const distToSun = al.pos.length();
+        if (distToSun < 165) {
+          const repel = al.pos.clone().normalize();
+          steer.addScaledVector(repel, 3.2);
+        }
+
+        al.vel.addScaledVector(steer, al.maxSpeed * 0.28 * dt);
+      }
+
+      // Speed caps
+      const speed = al.vel.length();
+      if (speed > al.maxSpeed) {
+        al.vel.normalize().multiplyScalar(al.maxSpeed);
+      }
+
+      al.pos.addScaledVector(al.vel, dt);
+
+      // Face flight orientation
+      if (al.vel.lengthSq() > 0.1) {
+        const targetRotation = new THREE.Matrix4().lookAt(
+          al.pos,
+          al.pos.clone().add(al.vel),
+          new THREE.Vector3(0, 1, 0)
+        );
+        const targetQuaternion = new THREE.Quaternion().setFromRotationMatrix(targetRotation);
+        al.mesh.quaternion.slerp(targetQuaternion, 7.5 * dt);
+      }
+
+      this.updateTrail(al);
+
+      if (Math.random() < 0.25) {
+        this.spawnThrustParticle(al.pos, al.vel, al.colorHex);
+      }
+
+      // Reverse weapon fire triggers
+      al.shootCooldown -= dt;
+      if (al.shootCooldown <= 0 && lead) {
+        if (al.pos.distanceToSquared(lead.pos) < 220000) {
+          this.fireLaser(al);
+          al.shootCooldown = 1.6 + Math.random() * 2.0;
+        }
+      }
+    });
+
+    // 7. Update Projectiles
+    const nextProjectiles = [];
+    this.projectiles.forEach(p => {
+      p.mesh.position.addScaledVector(p.dir, p.speed * dt);
+      p.life -= dt;
+
+      let destroyed = p.life <= 0;
+
+      if (!destroyed) {
+        if (p.faction === 'human') {
+          for (let i = this.aliens.length - 1; i >= 0; i--) {
+            const al = this.aliens[i];
+            if (p.mesh.position.distanceToSquared(al.pos) < (al.size * 2.2) ** 2) {
+              destroyed = true;
+              this.spawnExplosion(p.mesh.position, al.colorHex, 20);
+              al.health -= 35;
+              if (al.health <= 0) {
+                const angle = Math.random() * Math.PI * 2;
+                al.pos.set(600 * Math.cos(angle), (Math.random() - 0.5) * 80, 600 * Math.sin(angle));
+                al.vel.set(0, 0, 0);
+                al.health = 100;
+                this.credits += 250;
+                this.spawnExplosion(al.pos, 0xf43f5e, 40);
+              }
+              break;
+            }
+          }
+        } else {
+          for (let i = 0; i < this.ships.length; i++) {
+            const sh = this.ships[i];
+            if (p.mesh.position.distanceToSquared(sh.pos) < (sh.size * 2.2) ** 2) {
+              destroyed = true;
+              this.spawnExplosion(p.mesh.position, 0xffffff, 10);
+              this.spawnExplosion(sh.pos, sh.colorHex, 15);
+              break;
+            }
+          }
+        }
+      }
+
+      if (destroyed) {
+        this.scene.remove(p.mesh);
+      } else {
+        nextProjectiles.push(p);
+      }
+    });
+    this.projectiles = nextProjectiles;
+
+    // 8. Update Particles
+    const nextParticles = [];
+    this.particles.forEach(p => {
+      const posAttr = p.points.geometry.attributes.position;
+      const count = posAttr.count;
+
+      p.alpha -= p.decay * dt;
+      p.points.material.opacity = p.alpha;
+
+      for (let i = 0; i < count; i++) {
+        const vx = p.velocities[i].x;
+        const vy = p.velocities[i].y;
+        const vz = p.velocities[i].z;
+
+        posAttr.setXYZ(
+          i,
+          posAttr.getX(i) + vx * dt,
+          posAttr.getY(i) + vy * dt,
+          posAttr.getZ(i) + vz * dt
+        );
+      }
+      posAttr.needsUpdate = true;
+
+      if (p.alpha <= 0) {
+        this.scene.remove(p.points);
+      } else {
+        nextParticles.push(p);
+      }
+    });
+    this.particles = nextParticles;
+
+    // 9. Update Camera positioning
+    this.updateCamera(dt);
+  }
+
+  updateCamera(dt) {
+    const leadShip = this.ships[0];
+    if (!leadShip) return;
+
+    let targetCamPos = new THREE.Vector3(0, 80, 220);
+    let targetCamLook = new THREE.Vector3(0, 0, 0);
+
+    const mode = this.state.cameraMode;
+
+    if (mode === 'chase') {
+      const forwardVec = leadShip.vel.clone().normalize();
+      targetCamPos.copy(leadShip.pos).addScaledVector(forwardVec, -170);
+      targetCamPos.y += 48;
+      targetCamLook.copy(leadShip.pos).addScaledVector(forwardVec, 55);
+    } else if (mode === 'top') {
+      targetCamPos.set(leadShip.pos.x, 380, leadShip.pos.z + 15);
+      targetCamLook.copy(leadShip.pos);
+    } else if (mode === 'side') {
+      const forwardVec = leadShip.vel.clone().normalize();
+      const sideVec = new THREE.Vector3(0, 1, 0).cross(forwardVec).normalize();
+      targetCamPos.copy(leadShip.pos).addScaledVector(sideVec, 160);
+      targetCamPos.y += 35;
+      targetCamLook.copy(leadShip.pos);
+    } else if (mode === 'orbit') {
+      const timeVal = performance.now() * 0.0001;
+      const dist = 580;
+      targetCamPos.set(dist * Math.cos(timeVal), 150, dist * Math.sin(timeVal));
+      targetCamLook.copy(leadShip.pos).multiplyScalar(0.4);
+    }
+
+    this.camera.position.lerp(targetCamPos, 5.0 * dt);
+    
+    // Smooth camera lookAt transition using a helper target
+    const currentLook = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion).add(this.camera.position);
+    currentLook.lerp(targetCamLook, 5.0 * dt);
+    this.camera.lookAt(currentLook);
   }
 }
 

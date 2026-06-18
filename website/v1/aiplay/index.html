@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>4WEIRD AIPLAY // Autonomous Agent QA Sandbox</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- CRT Scanline Overlay Effect -->
+  <div class="scanlines"></div>
+
+  <div class="app-wrapper">
+    <!-- TOP STATUS BAR -->
+    <header class="status-bar">
+      <div class="bar-left">
+        <span class="system-tag">SYS.STATUS: <span class="pulse-green">ONLINE</span></span>
+        <span class="divider">|</span>
+        <span class="title">4WEIRD AIPLAY // CORE_V2.0</span>
+      </div>
+      <div class="bar-center">
+        <div class="status-indicator-badge">
+          <span class="badge-dot pulse-idle" id="agent-state-dot"></span>
+          <span id="agent-state-text">IDLE</span>
+        </div>
+      </div>
+      <div class="bar-right">
+        <span class="audio-toggle-btn" id="audio-toggle" title="Toggle System Synth Sounds">🔊 SOUND: ON</span>
+        <span class="divider">|</span>
+        <span class="time-display" id="system-time">00:00:00</span>
+      </div>
+    </header>
+
+    <div class="main-layout">
+      <!-- LEFT SIDEBAR: AGENT SETUP & CONFIGURE -->
+      <aside class="panel config-panel">
+        <div class="panel-header">
+          <span class="panel-icon">🔧</span>
+          <h2>AGENT ORCHESTRATION</h2>
+        </div>
+        <div class="panel-content">
+          
+          <div class="control-group">
+            <label for="game-target">TARGET GAME ADDRESS</label>
+            <div class="input-inline">
+              <input type="text" id="game-target" placeholder="http:// or local filepath..." value="../games/html/orbitaldrift/index.html">
+              <button id="btn-load" class="neon-btn">LOAD</button>
+            </div>
+            <div class="select-wrapper">
+              <select id="preset-games">
+                <option value="">-- Preset Local Demos --</option>
+                <option value="../games/html/orbitaldrift/index.html">Orbital Drift</option>
+                <option value="../games/html/venturemechanically/index.html">Venture Mechanically (Exit Waterfall)</option>
+                <option value="../games/html/financialfreedom/index.html">Financial Freedom Simulator</option>
+                <option value="../games/html/aiwhackamole/index.html">AI Whack-A-Mole</option>
+                <option value="../games/html/assassinanimals/index.html">Assassin Animals</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label for="agent-model">AI ENGINE PROVIDER</label>
+            <select id="agent-model">
+              <option value="gemini-1.5-pro">Gemini 1.5 Pro (Google Cloud)</option>
+              <option value="gemini-1.5-flash">Gemini 1.5 Flash (Lightweight)</option>
+              <option value="gpt-4o">GPT-4o (OpenAI Cloud)</option>
+              <option value="claude-3.5-sonnet">Claude 3.5 Sonnet (Anthropic)</option>
+              <option value="local-ollama">Local Llama-3 (Ollama Proxy)</option>
+              <option value="heuristic-only">Heuristic / Rule-Based Solver</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="api-key">API KEY (IF APPLICABLE)</label>
+            <input type="password" id="api-key" placeholder="••••••••••••••••••••" value="sk-aiplay-demo-key-1337">
+          </div>
+
+          <div class="control-group">
+            <label for="test-rules">BEHAVIORAL RULES / MANUAL PROMPT</label>
+            <textarea id="test-rules" placeholder="Enter objectives for the agent. E.g., 'Click buttons, test extreme boundary inputs, click exit, wait for crashes'"></textarea>
+          </div>
+
+          <div class="control-group">
+            <label>RATE LIMITER & CONCURRENCY</label>
+            <div class="metrics-grid">
+              <div>
+                <span class="sub-label">MAX STEPS</span>
+                <input type="number" id="max-steps" value="100" min="5" max="1000">
+              </div>
+              <div>
+                <span class="sub-label">INTERVAL (MS)</span>
+                <input type="number" id="step-interval" value="1500" min="500" max="10000">
+              </div>
+            </div>
+          </div>
+
+          <div class="agent-actions">
+            <button id="btn-start" class="action-btn start-btn">▶ INITIATE TEST RUN</button>
+            <div class="action-btn-row">
+              <button id="btn-pause" class="action-btn pause-btn" disabled>⏸ PAUSE</button>
+              <button id="btn-stop" class="action-btn stop-btn" disabled>⏹ STOP & REPORT</button>
+            </div>
+          </div>
+
+        </div>
+      </aside>
+
+      <!-- CENTER PANEL: GAME VIEWPORT & SYSTEM TERMINAL -->
+      <main class="center-stage">
+        <!-- Game Viewport Frame -->
+        <section class="panel viewport-panel">
+          <div class="panel-header viewport-header">
+            <div class="header-left">
+              <span class="panel-icon">🎮</span>
+              <h2>GAME RUNTIME INSTANCE</h2>
+            </div>
+            <div class="header-right">
+              <button id="btn-reload-game" class="mini-btn" title="Reload iframe target">RELOAD</button>
+              <button id="btn-mute-game" class="mini-btn" title="Mute iframe audio">MUTE</button>
+            </div>
+          </div>
+          <div class="viewport-body">
+            <div class="iframe-container" id="game-frame-container">
+              <!-- Web Iframe Sandbox -->
+              <iframe id="game-iframe" src="about:blank" allow="autoplay; keyboard; clipboard-read; clipboard-write"></iframe>
+              
+              <!-- Cross-origin Warning Banner -->
+              <div id="origin-warning" class="viewport-overlay hidden">
+                <div class="overlay-card">
+                  <span class="overlay-icon">⚠️</span>
+                  <h3>CROSS-ORIGIN SANDBOX RESTRICTION</h3>
+                  <p>The target game is loaded from another domain. Input simulation will fall back to coordinate matching over browser postMessage channel.</p>
+                  <button id="btn-warning-dismiss" class="mini-btn">ACKNOWLEDGE</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Bottom Cyberpunk Monospace Terminal -->
+        <section class="panel terminal-panel">
+          <div class="panel-header">
+            <span class="panel-icon">💻</span>
+            <h2>AGENT THINKING PROCESS & EXECUTION LOGS</h2>
+            <div class="header-right">
+              <button id="btn-clear-terminal" class="mini-btn">CLEAR</button>
+            </div>
+          </div>
+          <div class="terminal-body" id="terminal-log">
+            <div class="term-line system">[SYSTEM] Initializing 4weird AIPlay dashboard...</div>
+            <div class="term-line system">[SYSTEM] Ready. Select a game target and click 'INITIATE TEST RUN'.</div>
+          </div>
+          <div class="terminal-input-row">
+            <span class="prompt-symbol">aiplay$</span>
+            <input type="text" id="terminal-input" placeholder="Type command (e.g. /step, /click 100 200, /state, /reload) or ask agent...">
+          </div>
+        </section>
+      </main>
+
+      <!-- RIGHT SIDEBAR: BUG TRACKER & REAL-TIME STATS -->
+      <aside class="panel stats-panel">
+        <div class="panel-header">
+          <span class="panel-icon">📊</span>
+          <h2>TELEMETRY & DEFECTS</h2>
+        </div>
+        <div class="panel-content">
+          <!-- Real-Time Metrics -->
+          <div class="telemetry-box">
+            <h3>PERFORMANCE METRICS</h3>
+            <div class="telemetry-grid">
+              <div class="telemetry-item">
+                <span class="label">FPS</span>
+                <span class="value" id="val-fps">--</span>
+                <canvas id="chart-fps" width="80" height="24"></canvas>
+              </div>
+              <div class="telemetry-item">
+                <span class="label">HEAP</span>
+                <span class="value" id="val-heap">-- MB</span>
+                <canvas id="chart-heap" width="80" height="24"></canvas>
+              </div>
+            </div>
+            <div class="telemetry-metrics-list">
+              <div class="metric-row">
+                <span>TIME ELAPSED:</span>
+                <span id="stat-elapsed" class="term-green">00:00</span>
+              </div>
+              <div class="metric-row">
+                <span>STEPS INJECTED:</span>
+                <span id="stat-steps" class="term-green">0 / 0</span>
+              </div>
+              <div class="metric-row">
+                <span>ACTIONS / MIN (APM):</span>
+                <span id="stat-apm" class="term-green">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bug Tracker List -->
+          <div class="bug-tracker-box">
+            <div class="box-header">
+              <h3>DETECTED BUGS / COGNITIVE EXCEPTIONS</h3>
+              <span class="count-pill" id="bug-counter">0</span>
+            </div>
+            <div class="bug-list" id="bug-list-container">
+              <div class="no-bugs-msg">No structural defects identified yet.</div>
+            </div>
+          </div>
+
+          <div class="report-box">
+            <button id="btn-view-report" class="action-btn report-btn" disabled>📋 GENERATE SESSION REPORT</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- POPUP MODAL: QA SESSION REPORT -->
+  <div class="modal-overlay hidden" id="report-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📋 QA EXECUTION TEST REPORT</h2>
+        <span class="modal-close" id="btn-close-report">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="report-summary-grid">
+          <div class="summary-card">
+            <span class="card-num" id="rep-steps">0</span>
+            <span class="card-label">STEPS COMPLETED</span>
+          </div>
+          <div class="summary-card alert-card">
+            <span class="card-num" id="rep-bugs">0</span>
+            <span class="card-label">BUGS REPORTED</span>
+          </div>
+          <div class="summary-card">
+            <span class="card-num" id="rep-fps">--</span>
+            <span class="card-label">AVERAGE FPS</span>
+          </div>
+          <div class="summary-card">
+            <span class="card-num" id="rep-duration">0s</span>
+            <span class="card-label">TOTAL TIME</span>
+          </div>
+        </div>
+
+        <div class="report-section">
+          <h3>TELEMETRY OVERVIEW</h3>
+          <div class="report-charts">
+            <div class="chart-container">
+              <span class="chart-title">FPS Timeline Graph</span>
+              <div class="mock-chart-canvas" id="rep-fps-chart-box">
+                <!-- SVG or Canvas injected -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="report-section">
+          <h3>LOGGED DEFECT DETAILS</h3>
+          <div class="report-bug-list" id="rep-bug-list-details">
+            <!-- Bug details list -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-export-json" class="neon-btn">EXPORT JSON</button>
+        <button id="btn-export-pdf" class="neon-btn">EXPORT CSV</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP MODAL: BUG DETAILED LIGHTBOX -->
+  <div class="modal-overlay hidden" id="bug-modal">
+    <div class="modal-content bug-detail-content">
+      <div class="modal-header">
+        <h2 id="bug-detail-title">BUG DETAIL: CONSOLE_ERROR</h2>
+        <span class="modal-close" id="btn-close-bug">&times;</span>
+      </div>
+      <div class="modal-body bug-detail-body">
+        <div class="detail-columns">
+          <div class="detail-left">
+            <div class="detail-field">
+              <span class="field-lbl">TIMESTAMP:</span>
+              <span id="bug-detail-time" class="term-green">--</span>
+            </div>
+            <div class="detail-field">
+              <span class="field-lbl">DESCRIPTION:</span>
+              <div id="bug-detail-desc" class="term-green">--</div>
+            </div>
+            <div class="detail-field">
+              <span class="field-lbl">STACK TRACE / DIAGNOSTIC CONSOLE:</span>
+              <pre id="bug-detail-stack" class="stack-box">--</pre>
+            </div>
+          </div>
+          <div class="detail-right">
+            <span class="field-lbl">ENVIRONMENT FRAME CAPTURE:</span>
+            <div class="bug-detail-img-box">
+              <img id="bug-detail-img" src="" alt="Bug screen capture">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-solve-mega" class="action-btn report-btn">⚡ EXPORT MEGA-PROMPT FOR ANTIGRAVITY</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script File -->
+  <script src="app.js"></script>
+</body>
+</html>

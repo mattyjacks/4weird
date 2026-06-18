@@ -16,6 +16,8 @@
     --text-muted: #6b7280;
     --font-display: 'Orbitron', sans-serif;
     --font-body: 'Inter', sans-serif;
+    --navbar-height: 70px;
+    --game-header-height: 70px;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; font-size: 16px; }
@@ -62,7 +64,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 70px;
+    height: var(--navbar-height);
     padding: 0 24px;
 }
 .logo {
@@ -380,10 +382,13 @@ body {
 .reveal { opacity: 0; transform: translateY(30px); transition: 0.6s ease; }
 .reveal.active { opacity: 1; transform: translateY(0); }
 @media (max-width: 768px) {
+    :root {
+        --navbar-height: 60px;
+    }
     .nav-toggle { display: flex; }
     .nav-menu {
         position: fixed;
-        top: 70px;
+        top: var(--navbar-height);
         left: 0;
         width: 100%;
         flex-direction: column;
@@ -402,6 +407,14 @@ body {
     .footer-links { flex-wrap: wrap; justify-content: center; }
 }
 
+/* Smart Sticky Header Transitions & Compact Variables */
+.navbar {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
+}
+.navbar.nav-hidden {
+    transform: translateY(-100%);
+}
+
 /* ===== TEMPLATE-4weird GAME PAGE STYLES ===== */
 /* Namespaced to avoid conflicts with game-specific CSS */
 
@@ -409,17 +422,82 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    padding-top: 70px;
+    padding-top: var(--navbar-height) !important;
 }
 
 .TEMPLATE-4weird-game-header {
-    position: sticky;
-    top: 70px;
+    position: sticky !important;
+    top: var(--navbar-height) !important;
     z-index: 100;
     background: rgba(10, 10, 15, 0.95);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid rgba(139, 92, 246, 0.2);
     padding: 15px 0;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), top 0.3s ease, background 0.3s ease;
+}
+
+.TEMPLATE-4weird-game-header.nav-hidden {
+    transform: translateY(calc(-1 * (var(--navbar-height) + 100%))) !important;
+}
+
+/* Mobile Landscape Optimizations */
+@media (max-height: 480px) and (orientation: landscape) {
+    :root {
+        --navbar-height: 48px;
+        --game-header-height: 44px;
+    }
+    
+    .nav-container {
+        padding: 0 16px;
+    }
+    
+    .logo {
+        gap: 6px;
+        font-size: 1.1rem;
+    }
+    
+    .logo-emoji {
+        font-size: 1.2rem;
+    }
+    
+    /* Hide non-essential nav menu items on game pages to maximize landscape space */
+    .TEMPLATE-4weird-game-page .nav-menu {
+        display: none !important;
+    }
+    
+    .TEMPLATE-4weird-game-header {
+        padding: 8px 0;
+    }
+    
+    .TEMPLATE-4weird-game-header-inner {
+        padding: 0 16px;
+        gap: 12px;
+    }
+    
+    .TEMPLATE-4weird-back-link {
+        padding: 4px 10px;
+        font-size: 0.8rem;
+    }
+    
+    .TEMPLATE-4weird-game-title {
+        font-size: 1.1rem;
+    }
+    
+    .TEMPLATE-4weird-game-meta {
+        font-size: 0.8rem;
+        gap: 6px;
+    }
+    
+    .TEMPLATE-4weird-game-main {
+        padding: 12px 16px;
+        gap: 12px;
+    }
+    
+    .TEMPLATE-4weird-game-frame {
+        aspect-ratio: auto;
+        height: 72vh;
+        min-height: 220px;
+    }
 }
 
 .TEMPLATE-4weird-game-header-inner {
@@ -908,5 +986,75 @@ body {
 
     .academy-cta .btn {
         min-width: unset;
+    }
+}
+
+/* ==========================================================================
+   Play Random Good Game Button Custom Neon Styling
+   ========================================================================== */
+.btn-random-game {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--neon-purple-dark) 0%, var(--neon-purple) 50%, var(--neon-cyan) 100%);
+    border: 2px solid var(--neon-cyan);
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.4), 0 0 30px rgba(139, 92, 246, 0.2);
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-random-game::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: 0.5s;
+}
+
+.btn-random-game:hover {
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 0 0 25px rgba(6, 182, 212, 0.8), 0 0 40px rgba(139, 92, 246, 0.6);
+    border-color: #ffffff;
+}
+
+.btn-random-game:hover::before {
+    left: 100%;
+}
+
+.btn-random-game:active {
+    transform: translateY(-1px) scale(0.98);
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.6);
+}
+
+/* Spin animation for loading state */
+.btn-random-game.loading .shuffle-icon {
+    display: inline-block;
+    animation: spin 0.8s linear infinite;
+}
+
+/* Pulsing effect during loading */
+.btn-random-game.loading {
+    pointer-events: none;
+    animation: neon-pulse 1.2s ease-in-out infinite alternate;
+    background: linear-gradient(135deg, var(--neon-purple-dark) 0%, var(--neon-cyan) 100%);
+    border-color: #ffffff;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes neon-pulse {
+    0% {
+        box-shadow: 0 0 15px rgba(6, 182, 212, 0.4), 0 0 30px rgba(139, 92, 246, 0.2);
+        opacity: 0.9;
+    }
+    100% {
+        box-shadow: 0 0 30px rgba(6, 182, 212, 0.9), 0 0 50px rgba(139, 92, 246, 0.7);
+        opacity: 1;
+        filter: brightness(1.2);
     }
 }

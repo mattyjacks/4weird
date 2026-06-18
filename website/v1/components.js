@@ -21,6 +21,25 @@
         ]
     };
 
+    const ALL_GAMES = [
+        { id: 'venturemechanically', title: 'Exit Waterfall Machine', emoji: '💧', path: 'venturemechanically', desc: 'An interactive cap table simulator. Learn why a large startup acquisition can leave founders and employees with absolutely nothing.', tags: ['Simulation', 'Educational'], bg: 'linear-gradient(135deg, #09090e 0%, #1e112a 50%, #00f2fe 100%)', featured: true, weight: 10 },
+        { id: 'financialfreedom', title: 'Financial Freedom', emoji: '💵', path: 'financialfreedom', desc: 'A deep, interactive finances simulator for a USA family. Navigate careers, taxes, debt, investments, real estate, and life events.', tags: ['Simulation', 'Strategy'], bg: 'linear-gradient(135deg, #1e3a8a 0%, #0d9488 50%, #10b981 100%)', featured: true, weight: 10 },
+        { id: 'serversavershield', title: 'Server Saver Shield', emoji: '🛡️', path: 'serversavershield', desc: 'Defend servers from cyber attacks! Strategic security management meets arcade shooter.', tags: ['Strategy', 'Shooter'], bg: 'linear-gradient(135deg, #0f172a 0%, #111827 50%, #06b6d4 100%)', featured: true, weight: 7 },
+        { id: 'overtake', title: 'Overtake', emoji: '🏁', path: 'overtake', desc: 'Race through pseudo-3D routes, unlock faster cars, and use nitro boosts.', tags: ['Racing', 'Arcade'], bg: 'linear-gradient(135deg, #05070a 0%, #3a1510 48%, #ffcf42 100%)', featured: true, weight: 8 },
+        { id: 'assassinanimals', title: 'AssassinAnimals', emoji: '🕶️', path: 'assassinanimals', desc: 'Control mutated animal operatives in a stealth rogue-like complex.', tags: ['Stealth', 'Action'], bg: 'linear-gradient(135deg, #09090e 0%, #1e112a 50%, #ff0055 100%)', featured: true, weight: 9 },
+        { id: 'battlesharks2', title: 'Battlesharks 2', emoji: '🦈', path: 'battlesharks2', desc: 'Command a genetically modified combat shark and evolve cybernetic weapons.', tags: ['Action', 'Arcade'], bg: 'linear-gradient(135deg, #0b1a30 0%, #1e1b4b 50%, #00f2fe 100%)', featured: true, weight: 7 },
+        { id: 'gravegain2d', title: 'GraveGain2D', emoji: '⚔️', path: 'gravegain2d', desc: 'A premium 2D dark fantasy RPG action rogue-like with offline mechanics.', tags: ['Action', 'RPG'], bg: 'linear-gradient(135deg, #180512 0%, #300a1c 50%, #902850 100%)', featured: false, weight: 4 },
+        { id: 'gravegain3d', title: 'GraveGain3D', emoji: '🏰', path: 'gravegain3d', desc: 'A 3D dungeon crawler/action game in a dark fantasy setting.', tags: ['Action', '3D'], bg: 'linear-gradient(135deg, #1e1b4b 0%, #0d1527 50%, #7c3aed 100%)', featured: true, weight: 7 },
+        { id: 'demolichdom', title: 'Demo Lichdom', emoji: '💀', path: 'demolichdom', desc: 'Navigate the treacherous politics of undead lords.', tags: ['Strategy', 'Dark Fantasy'], bg: 'linear-gradient(135deg, #0d0d12 0%, #1c1524 50%, #8b5cf6 100%)', featured: false, weight: 3 },
+        { id: 'fridgesimulator', title: 'Fridge Simulator', emoji: '🥶', path: 'fridgesimulator', desc: 'Manage your fridge, feed your family, save the world.', tags: ['Simulation', 'Strategy'], bg: 'linear-gradient(135deg, #06151f 0%, #0f2d37 50%, #38bdf8 100%)', featured: false, weight: 3 },
+        { id: 'DiscoverAmerica', title: 'Madi AI: Discover America', emoji: '🗽', path: 'DiscoverAmerica', desc: 'Explore American history through interactive puzzles and adventures.', tags: ['Adventure', 'Puzzle'], bg: 'linear-gradient(135deg, #051c12 0%, #0a3a24 50%, #10b981 100%)', featured: false, weight: 2 },
+        { id: 'orbitaldrift', title: 'Orbital Drift', emoji: '🛸', path: 'orbitaldrift', desc: 'Control your orbit in a beautiful 3D space field and master the rhythm.', tags: ['Arcade', '3D'], bg: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0891b2 100%)', featured: true, weight: 8 },
+        { id: 'aiwhackamole', title: 'AI-whack-a-mole', emoji: '🤖', path: 'aiwhackamole', desc: 'Whack the misaligned/dangerous AIs and spare the user-aligned ones.', tags: ['Arcade', '3D'], bg: 'linear-gradient(135deg, #1e1b4b 0%, #311042 50%, #4c1d95 100%)', featured: false, weight: 4 },
+        { id: 'soundpainter2', title: 'Sound Painter 2', emoji: '🎹', path: 'soundpainter2', desc: 'An advanced, in-depth music production studio.', tags: ['Music', 'Creative'], bg: 'linear-gradient(135deg, #1e1b4b 0%, #4c1d95 50%, #d946ef 100%)', featured: true, weight: 6 },
+        { id: 'soundpainter', title: 'Sound Painter', emoji: '🎨', path: 'soundpainter', desc: 'Click tiles to paint music and color. Pure creative expression.', tags: ['Music', 'Creative'], bg: 'linear-gradient(135deg, #2d1b4e 0%, #6b21a8 50%, #d946ef 100%)', featured: false, weight: 4 }
+    ];
+
+
     let basePath = '';
     const scriptTag = document.querySelector('script[src*="components.js"]');
     if (scriptTag) {
@@ -405,24 +424,8 @@
         const pathParts = window.location.pathname.split('/');
         const currentGameId = pathParts.find((part, index) => pathParts[index - 1] === 'html') || '';
 
-        // Define all games
-        const games = [
-            { id: 'venturemechanically', title: 'Exit Waterfall Machine', emoji: '💧', path: 'venturemechanically', desc: 'An interactive cap table simulator. Learn why a large startup acquisition can leave founders and employees with absolutely nothing.', tags: ['Simulation', 'Educational'], bg: 'linear-gradient(135deg, #09090e 0%, #1e112a 50%, #00f2fe 100%)' },
-            { id: 'financialfreedom', title: 'Financial Freedom', emoji: '💵', path: 'financialfreedom', desc: 'A deep, interactive finances simulator for a USA family. Navigate careers, taxes, debt, investments, real estate, and life events.', tags: ['Simulation', 'Strategy'], bg: 'linear-gradient(135deg, #1e3a8a 0%, #0d9488 50%, #10b981 100%)' },
-            { id: 'serversavershield', title: 'Server Saver Shield', emoji: '🛡️', path: 'serversavershield', desc: 'Defend servers from cyber attacks! Strategic security management meets arcade shooter.', tags: ['Strategy', 'Shooter'], bg: 'linear-gradient(135deg, #0f172a 0%, #111827 50%, #06b6d4 100%)' },
-            { id: 'overtake', title: 'Overtake', emoji: '🏁', path: 'overtake', desc: 'Race through pseudo-3D routes, unlock faster cars, and use nitro boosts.', tags: ['Racing', 'Arcade'], bg: 'linear-gradient(135deg, #05070a 0%, #3a1510 48%, #ffcf42 100%)' },
-            { id: 'assassinanimals', title: 'AssassinAnimals', emoji: '🕶️', path: 'assassinanimals', desc: 'Control mutated animal operatives in a stealth rogue-like complex.', tags: ['Stealth', 'Action'], bg: 'linear-gradient(135deg, #09090e 0%, #1e112a 50%, #ff0055 100%)' },
-            { id: 'battlesharks2', title: 'Battlesharks 2', emoji: '🦈', path: 'battlesharks2', desc: 'Command a genetically modified combat shark and evolve cybernetic weapons.', tags: ['Action', 'Arcade'], bg: 'linear-gradient(135deg, #0b1a30 0%, #1e1b4b 50%, #00f2fe 100%)' },
-            { id: 'gravegain2d', title: 'GraveGain2D', emoji: '⚔️', path: 'gravegain2d', desc: 'A premium 2D dark fantasy RPG action rogue-like with offline mechanics.', tags: ['Action', 'RPG'], bg: 'linear-gradient(135deg, #180512 0%, #300a1c 50%, #902850 100%)' },
-            { id: 'gravegain3d', title: 'GraveGain3D', emoji: '🏰', path: 'gravegain3d', desc: 'A 3D dungeon crawler/action game in a dark fantasy setting.', tags: ['Action', '3D'], bg: 'linear-gradient(135deg, #1e1b4b 0%, #0d1527 50%, #7c3aed 100%)' },
-            { id: 'demolichdom', title: 'Demo Lichdom', emoji: '💀', path: 'demolichdom', desc: 'Navigate the treacherous politics of undead lords.', tags: ['Strategy', 'Dark Fantasy'], bg: 'linear-gradient(135deg, #0d0d12 0%, #1c1524 50%, #8b5cf6 100%)' },
-            { id: 'fridgesimulator', title: 'Fridge Simulator', emoji: '🥶', path: 'fridgesimulator', desc: 'Manage your fridge, feed your family, save the world.', tags: ['Simulation', 'Strategy'], bg: 'linear-gradient(135deg, #06151f 0%, #0f2d37 50%, #38bdf8 100%)' },
-            { id: 'DiscoverAmerica', title: 'Madi AI: Discover America', emoji: '🗽', path: 'DiscoverAmerica', desc: 'Explore American history through interactive puzzles and adventures.', tags: ['Adventure', 'Puzzle'], bg: 'linear-gradient(135deg, #051c12 0%, #0a3a24 50%, #10b981 100%)' },
-            { id: 'orbitaldrift', title: 'Orbital Drift', emoji: '🛸', path: 'orbitaldrift', desc: 'Control your orbit in a beautiful 3D space field and master the rhythm.', tags: ['Arcade', '3D'], bg: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0891b2 100%)' },
-            { id: 'aiwhackamole', title: 'AI-whack-a-mole', emoji: '🤖', path: 'aiwhackamole', desc: 'Whack the misaligned/dangerous AIs and spare the user-aligned ones.', tags: ['Arcade', '3D'], bg: 'linear-gradient(135deg, #1e1b4b 0%, #311042 50%, #4c1d95 100%)' },
-            { id: 'soundpainter2', title: 'Sound Painter 2', emoji: '🎹', path: 'soundpainter2', desc: 'An advanced, in-depth music production studio.', tags: ['Music', 'Creative'], bg: 'linear-gradient(135deg, #1e1b4b 0%, #4c1d95 50%, #d946ef 100%)' },
-            { id: 'soundpainter', title: 'Sound Painter', emoji: '🎨', path: 'soundpainter', desc: 'Click tiles to paint music and color. Pure creative expression.', tags: ['Music', 'Creative'], bg: 'linear-gradient(135deg, #2d1b4e 0%, #6b21a8 50%, #d946ef 100%)' }
-        ];
+        // Use the globally defined games list
+        const games = ALL_GAMES;
 
         // Determine Featured Game: Overtake. If currently on Overtake, use Server Saver Shield
         let featuredGameId = 'overtake';
@@ -640,6 +643,42 @@
         }
     }
 
+    function initSmartScrollHeader() {
+        const isGamePage = document.body.classList.contains('TEMPLATE-4weird-game-page') || 
+                           window.location.pathname.includes('/games/html/');
+        if (!isGamePage) return;
+
+        let lastScrollY = window.scrollY;
+        let ticking = false;
+
+        function updateHeaders() {
+            const currentScrollY = window.scrollY;
+            const navbar = document.getElementById('navbar');
+            const gameHeader = document.querySelector('.TEMPLATE-4weird-game-header');
+            const scrollThreshold = 80;
+
+            if (navbar) {
+                if (currentScrollY > lastScrollY && currentScrollY > scrollThreshold) {
+                    navbar.classList.add('nav-hidden');
+                    if (gameHeader) gameHeader.classList.add('nav-hidden');
+                } else if (currentScrollY < lastScrollY || currentScrollY <= scrollThreshold) {
+                    navbar.classList.remove('nav-hidden');
+                    if (gameHeader) gameHeader.classList.remove('nav-hidden');
+                }
+            }
+            
+            lastScrollY = Math.max(0, currentScrollY);
+            ticking = false;
+        }
+
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                window.requestAnimationFrame(updateHeaders);
+                ticking = true;
+            }
+        }, { passive: true });
+    }
+
     // Initialize on DOM ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
@@ -653,6 +692,7 @@
         injectAnalytics();
         injectDebugHUD();
         injectOtherGames();
+        initSmartScrollHeader();
     }
 
     // Expose for manual use
@@ -662,6 +702,7 @@
         injectAnalytics,
         injectDebugHUD,
         injectOtherGames,
-        config: SITE_CONFIG
+        config: SITE_CONFIG,
+        games: ALL_GAMES
     };
 })();
