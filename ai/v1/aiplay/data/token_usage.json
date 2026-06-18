@@ -1855,12 +1855,92 @@
       "completion": 98,
       "total": 9373,
       "runId": "run_1781821851230"
+    },
+    {
+      "timestamp": "2026-06-18T23:47:44.213Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9678,
+      "completion": 99,
+      "total": 9777,
+      "runId": "run_1781826458607"
+    },
+    {
+      "timestamp": "2026-06-18T23:47:45.235Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9678,
+      "completion": 99,
+      "total": 9777,
+      "runId": "run_1781826458607"
+    },
+    {
+      "timestamp": "2026-06-18T23:47:46.936Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9681,
+      "completion": 99,
+      "total": 9780,
+      "runId": "run_1781826458607"
+    },
+    {
+      "timestamp": "2026-06-18T23:47:48.533Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9693,
+      "completion": 99,
+      "total": 9792,
+      "runId": "run_1781826458607"
+    },
+    {
+      "timestamp": "2026-06-18T23:47:51.096Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9683,
+      "completion": 99,
+      "total": 9782,
+      "runId": "run_1781826458607"
+    },
+    {
+      "timestamp": "2026-06-18T23:47:52.659Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9683,
+      "completion": 99,
+      "total": 9782,
+      "runId": "run_1781826458607"
+    },
+    {
+      "timestamp": "2026-06-18T23:47:54.724Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9678,
+      "completion": 99,
+      "total": 9777,
+      "runId": "run_1781826458607"
+    },
+    {
+      "timestamp": "2026-06-18T23:47:56.827Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9683,
+      "completion": 99,
+      "total": 9782,
+      "runId": "run_1781826458607"
+    },
+    {
+      "timestamp": "2026-06-18T23:47:59.082Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9683,
+      "completion": 99,
+      "total": 9782,
+      "runId": "run_1781826458607"
+    },
+    {
+      "timestamp": "2026-06-18T23:48:00.726Z",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "prompt": 9683,
+      "completion": 99,
+      "total": 9782,
+      "runId": "run_1781826458607"
     }
   ],
   "lifetimeTotals": {
     "gpt-4o-mini": 98363,
-    "total": 1815339,
+    "total": 1913152,
     "gpt-5.4-nano-2026-03-17": 18462,
-    "gpt-5.4-mini-2026-03-17": 1698514
+    "gpt-5.4-mini-2026-03-17": 1796327
   }
 }

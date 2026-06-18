@@ -1179,9 +1179,9 @@ body.a11y-high-contrast .game-card {
 }
 
 /* Colorblindness Filters */
-body.a11y-protanopia { filter: url('#protanopia-filter') !important; }
-body.a11y-deuteranopia { filter: url('#deuteranopia-filter') !important; }
-body.a11y-tritanopia { filter: url('#tritanopia-filter') !important; }
+body.a11y-protanopia > *:not(#a11y-toggle-btn):not(#a11y-settings-panel):not(.a11y-calibration-overlay):not(#webgazerGazeDot):not(#a11y-svg-filters):not(#a11y-announcer) { filter: url('#protanopia-filter') !important; }
+body.a11y-deuteranopia > *:not(#a11y-toggle-btn):not(#a11y-settings-panel):not(.a11y-calibration-overlay):not(#webgazerGazeDot):not(#a11y-svg-filters):not(#a11y-announcer) { filter: url('#deuteranopia-filter') !important; }
+body.a11y-tritanopia > *:not(#a11y-toggle-btn):not(#a11y-settings-panel):not(.a11y-calibration-overlay):not(#webgazerGazeDot):not(#a11y-svg-filters):not(#a11y-announcer) { filter: url('#tritanopia-filter') !important; }
 
 /* Accessible Game Speed Announcement */
 .a11y-announcement-sr {
