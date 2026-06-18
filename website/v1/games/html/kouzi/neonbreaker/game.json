@@ -1,0 +1,70 @@
+{
+    "title": "Neon Breaker",
+    "slug": "neon-breaker",
+    "description": "A modern take on the classic brick breaker game with neon visuals. Smash through glowing bricks with your ball, collect power-ups, and clear all levels. Satisfying destruction with cyberpunk flair.",
+    "genre": "Arcade",
+    "tags": [
+        "HTML5",
+        "Neon",
+        "Brick Breaker",
+        "Arcade",
+        "KouziTech",
+        "4weird"
+    ],
+    "maker": {
+        "name": "KouziTech",
+        "bio": "KouziTech is an AI-first game studio pushing the boundaries of generative AI in game development. Every game is designed, built, and polished using AI-assisted workflows \u2014 proving that high-quality games can be created faster than ever before. We specialize in HTML5 browser games that work everywhere: no downloads, no installations, no plugins. Just click and play.",
+        "url": "../index.html",
+        "urlLabel": "More KouziTech Games"
+    },
+    "credits": [
+        {
+            "name": "KouziTech AI Studio",
+            "role": "Game Developer",
+            "avatar": "\u26a1",
+            "primary": true,
+            "url": "../index.html",
+            "urlLabel": "More Games"
+        },
+        {
+            "name": "4weird",
+            "role": "Publisher",
+            "avatar": "\ud83c\udfae",
+            "primary": false,
+            "url": "../../../index.html",
+            "urlLabel": "4weird Games"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "\u2190 \u2192 / A D": "Move paddle",
+            "Space": "Launch ball / Start",
+            "P or Esc": "Pause"
+        },
+        "touch": true,
+        "mouse": false
+    },
+    "instructions": "Use your paddle to bounce the ball and break all the neon bricks. Collect power-ups like multi-ball, bigger paddle, and laser. Don't let the ball fall below your paddle. Use left/right arrow keys or A/D to move the paddle. Press Space to launch the ball and P to pause.",
+    "technical": {
+        "canvasSize": {
+            "width": 400,
+            "height": 600
+        },
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [],
+        "local": [
+            "game.js",
+            "game.css"
+        ]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-18",
+        "license": "MIT"
+    },
+    "stage": "prototype",
+    "visible": true
+}

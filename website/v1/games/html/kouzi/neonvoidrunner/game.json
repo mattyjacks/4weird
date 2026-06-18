@@ -1,0 +1,70 @@
+{
+    "title": "Neon Void Runner",
+    "slug": "neon-void-runner",
+    "description": "A fast-paced endless runner with stunning neon cyberpunk visuals. Navigate through a glowing digital void, dodge obstacles, and survive as long as you can. Speed increases over time \u2014 how far can you go?",
+    "genre": "Endless Runner",
+    "tags": [
+        "HTML5",
+        "Neon",
+        "Runner",
+        "Arcade",
+        "KouziTech",
+        "4weird"
+    ],
+    "maker": {
+        "name": "KouziTech",
+        "bio": "KouziTech is an AI-first game studio pushing the boundaries of generative AI in game development. Every game is designed, built, and polished using AI-assisted workflows \u2014 proving that high-quality games can be created faster than ever before. We specialize in HTML5 browser games that work everywhere: no downloads, no installations, no plugins. Just click and play.",
+        "url": "../index.html",
+        "urlLabel": "More KouziTech Games"
+    },
+    "credits": [
+        {
+            "name": "KouziTech AI Studio",
+            "role": "Game Developer",
+            "avatar": "\u26a1",
+            "primary": true,
+            "url": "../index.html",
+            "urlLabel": "More Games"
+        },
+        {
+            "name": "4weird",
+            "role": "Publisher",
+            "avatar": "\ud83c\udfae",
+            "primary": false,
+            "url": "../../../index.html",
+            "urlLabel": "4weird Games"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "Arrow Keys / WASD": "Move left/right",
+            "Space": "Start / Restart",
+            "P or Esc": "Pause"
+        },
+        "touch": true,
+        "mouse": false
+    },
+    "instructions": "Control your neon ship through an endless void. Dodge glowing obstacles and collect power-ups. The longer you survive, the faster it gets. Use arrow keys or WASD to move left and right. Press Space to start and P to pause. Challenge yourself to beat your high score!",
+    "technical": {
+        "canvasSize": {
+            "width": 400,
+            "height": 600
+        },
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [],
+        "local": [
+            "game.js",
+            "game.css"
+        ]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-18",
+        "license": "MIT"
+    },
+    "stage": "prototype",
+    "visible": true
+}

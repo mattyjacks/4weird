@@ -1,0 +1,70 @@
+{
+    "title": "Neon Snake",
+    "slug": "neon-snake",
+    "description": "Classic snake game reimagined with neon cyberpunk visuals. Collect glowing food orbs to grow longer while avoiding walls and your own body. Simple, addictive, and visually stunning.",
+    "genre": "Arcade",
+    "tags": [
+        "HTML5",
+        "Neon",
+        "Snake",
+        "Arcade",
+        "KouziTech",
+        "4weird"
+    ],
+    "maker": {
+        "name": "KouziTech",
+        "bio": "KouziTech is an AI-first game studio pushing the boundaries of generative AI in game development. Every game is designed, built, and polished using AI-assisted workflows \u2014 proving that high-quality games can be created faster than ever before. We specialize in HTML5 browser games that work everywhere: no downloads, no installations, no plugins. Just click and play.",
+        "url": "../index.html",
+        "urlLabel": "More KouziTech Games"
+    },
+    "credits": [
+        {
+            "name": "KouziTech AI Studio",
+            "role": "Game Developer",
+            "avatar": "\u26a1",
+            "primary": true,
+            "url": "../index.html",
+            "urlLabel": "More Games"
+        },
+        {
+            "name": "4weird",
+            "role": "Publisher",
+            "avatar": "\ud83c\udfae",
+            "primary": false,
+            "url": "../../../index.html",
+            "urlLabel": "4weird Games"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "Arrow Keys / WASD": "Change direction",
+            "Space": "Start / Restart",
+            "P or Esc": "Pause"
+        },
+        "touch": true,
+        "mouse": false
+    },
+    "instructions": "Control the neon snake to collect glowing food orbs. Each food makes you longer and increases your score. Avoid hitting the walls and your own body. Use arrow keys or WASD to change direction. Press Space to start/restart and P to pause. How long can you grow?",
+    "technical": {
+        "canvasSize": {
+            "width": 400,
+            "height": 600
+        },
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [],
+        "local": [
+            "game.js",
+            "game.css"
+        ]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-18",
+        "license": "MIT"
+    },
+    "stage": "prototype",
+    "visible": true
+}

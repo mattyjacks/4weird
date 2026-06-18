@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Neon Series by KouziTech - 4weird Games</title>
+    <meta name="description" content="5 neon-themed arcade games created by KouziTech AI game studio. Pure HTML5, no downloads, play instantly in your browser.">
+    <meta name="keywords" content="4weird, neon games, arcade, HTML5 games, KouziTech, AI games">
+    
+    <meta property="og:title" content="Neon Series by KouziTech - 4weird Games">
+    <meta property="og:description" content="5 neon-themed arcade games. Pure HTML5, play instantly.">
+    <meta property="og:type" content="website">
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../../../styles.css">
+    <style>
+        .kouzi-collection {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .kouzi-hero {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 60px 20px;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.1) 0%, rgba(255, 0, 255, 0.1) 100%);
+            border-radius: 20px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+        
+        .kouzi-hero h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .kouzi-hero p {
+            font-size: 1.2rem;
+            color: #a0a0a0;
+            max-width: 600px;
+            margin: 0 auto 24px;
+        }
+        
+        .kouzi-tag {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(0, 255, 255, 0.2);
+            color: #00ffff;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 60px;
+        }
+        
+        .game-card {
+            background: rgba(20, 20, 30, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(0, 255, 255, 0.5);
+            box-shadow: 0 20px 40px rgba(0, 255, 255, 0.15);
+        }
+        
+        .game-card-preview {
+            height: 180px;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-card-preview::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, rgba(0, 255, 255, 0.1) 0%, transparent 70%);
+        }
+        
+        .game-card-content {
+            padding: 20px;
+        }
+        
+        .game-card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        
+        .game-card p {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        
+        .game-card-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .game-card-tag {
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            font-size: 0.75rem;
+            color: #aaa;
+        }
+        
+        .kouzi-about {
+            background: rgba(20, 20, 30, 0.6);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .kouzi-about h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 16px;
+            color: #fff;
+        }
+        
+        .kouzi-about p {
+            color: #aaa;
+            line-height: 1.8;
+            margin-bottom: 16px;
+        }
+        
+        .kouzi-contact {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(255, 0, 255, 0.1) 0%, rgba(0, 255, 255, 0.1) 100%);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 0, 255, 0.2);
+        }
+        
+        .kouzi-contact h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+        
+        .kouzi-contact p {
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+        
+        .kouzi-contact a {
+            display: inline-block;
+            padding: 12px 32px;
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            color: #000;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-family: 'Orbitron', sans-serif;
+            transition: transform 0.2s;
+        }
+        
+        .kouzi-contact a:hover {
+            transform: scale(1.05);
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #00ffff;
+            text-decoration: none;
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body class="TEMPLATE-4weird-game-page">
+    <canvas id="TEMPLATE-4weird-starfield"></canvas>
+    <div id="TEMPLATE-4weird-nav-placeholder"></div>
+    
+    <div class="kouzi-collection">
+        <a href="../../../index.html" class="back-link">
+            <span>←</span>
+            <span>Back to 4weird</span>
+        </a>
+        
+        <div class="kouzi-hero">
+            <span class="kouzi-tag">Collection</span>
+            <h1>NEON SERIES</h1>
+            <p>5 arcade games crafted with neon aesthetics and pure HTML5. Built by KouziTech AI game studio for 4weird.</p>
+            <span class="kouzi-tag" style="background: rgba(255, 0, 255, 0.2); color: #ff00ff;">All Games Free • No Downloads</span>
+        </div>
+        
+        <div class="games-grid">
+            <a href="neonvoidrunner/index.html" class="game-card">
+                <div class="game-card-preview">🚀</div>
+                <div class="game-card-content">
+                    <h3>Neon Void Runner</h3>
+                    <p>Dodge obstacles and survive the void in this cyberpunk endless runner.</p>
+                    <div class="game-card-meta">
+                        <span class="game-card-tag">Arcade</span>
+                        <span class="game-card-tag">Endless</span>
+                        <span class="game-card-tag">Fast Paced</span>
+                    </div>
+                </div>
+            </a>
+            
+            <a href="neonsnake/index.html" class="game-card">
+                <div class="game-card-preview">🐍</div>
+                <div class="game-card-content">
+                    <h3>Neon Snake</h3>
+                    <p>Classic snake reimagined with glowing neon visuals and special power-ups.</p>
+                    <div class="game-card-meta">
+                        <span class="game-card-tag">Classic</span>
+                        <span class="game-card-tag">Puzzle</span>
+                        <span class="game-card-tag">High Score</span>
+                    </div>
+                </div>
+            </a>
+            
+            <a href="neonbreaker/index.html" class="game-card">
+                <div class="game-card-preview">💎</div>
+                <div class="game-card-content">
+                    <h3>Neon Breaker</h3>
+                    <p>Break bricks with neon glow effects and multiple power-ups to discover.</p>
+                    <div class="game-card-meta">
+                        <span class="game-card-tag">Arkanoid</span>
+                        <span class="game-card-tag">Powerups</span>
+                        <span class="game-card-tag">Casual</span>
+                    </div>
+                </div>
+            </a>
+            
+            <a href="neoninvaders/index.html" class="game-card">
+                <div class="game-card-preview">👾</div>
+                <div class="game-card-content">
+                    <h3>Neon Invaders</h3>
+                    <p>Space shooter with wave progression, shield mechanics, and boss fights.</p>
+                    <div class="game-card-meta">
+                        <span class="game-card-tag">Shooter</span>
+                        <span class="game-card-tag">Waves</span>
+                        <span class="game-card-tag">Retro</span>
+                    </div>
+                </div>
+            </a>
+            
+            <a href="neonracer/index.html" class="game-card">
+                <div class="game-card-preview">🏎️</div>
+                <div class="game-card-content">
+                    <h3>Neon Racer</h3>
+                    <p>Weave through traffic at increasing speeds in this cyberpunk racing game.</p>
+                    <div class="game-card-meta">
+                        <span class="game-card-tag">Racing</span>
+                        <span class="game-card-tag">Dodging</span>
+                        <span class="game-card-tag">Endless</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <div class="kouzi-about">
+            <h2>About KouziTech</h2>
+            <p><strong>KouziTech</strong> is an AI-first game studio pushing the boundaries of what's possible with generative AI in game development. Every game in the Neon Series was designed, built, and polished using AI-assisted workflows — proving that high-quality games can be created faster than ever before.</p>
+            <p>We specialize in HTML5 browser games that work everywhere — no downloads, no installations, no plugins. Just click and play.</p>
+            <p>Our AI agents handle everything from game mechanics to visual design, allowing us to iterate at superhuman speeds while maintaining quality. The Neon Series is just the beginning — we're building the future of AI-powered entertainment.</p>
+        </div>
+        
+        <div class="kouzi-contact">
+            <h2>Want AI Games for Your Business?</h2>
+            <p>Custom branded games, AI game development, or interactive experiences for your audience. We build fast, we build quality, we build with AI.</p>
+            <a href="mailto:99kouzi@coze.email?subject=Custom%20AI%20Game%20Project&body=I%20found%20you%20from%20the%20Neon%20Series%20on%204weird%20and%20I%27m%20interested%20in...">
+                📧 Email Us
+            </a>
+        </div>
+    </div>
+    
+    <footer class="TEMPLATE-4weird-footer">
+        <div class="TEMPLATE-4weird-footer-content">
+            <p>⚡ Neon Series by KouziTech — Published on 4weird</p>
+            <p style="margin-top: 8px;">
+                <a href="../../../index.html#games">More Games</a>
+                <span class="TEMPLATE-4weird-footer-separator">|</span>
+                <a href="/">4weird Home</a>
+            </p>
+        </div>
+    </footer>
+    
+    <script src="../../../components.js"></script>
+</body>
+</html>

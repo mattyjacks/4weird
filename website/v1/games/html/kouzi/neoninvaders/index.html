@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<!--
+    4weird Game - Neon Invaders
+    Part of the Neon Arcade series
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Neon Invaders - 4weird Games</title>
+    <meta name="description" content="Cyberpunk space invader shooter with neon visuals. Battle waves of neon enemies in this classic arcade reimagining.">
+    <meta name="keywords" content="4weird, Neon Invaders, space shooter, arcade, neon, cyberpunk, HTML5 game, browser game">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Neon Invaders - 4weird Games">
+    <meta property="og:description" content="Cyberpunk space invader shooter with neon visuals. Battle waves of neon enemies.">
+    <meta property="og:type" content="website">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👾</text></svg>">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Base Styles -->
+    <link rel="stylesheet" href="../../../styles.css">
+    <link rel="stylesheet" href="game.css">
+    
+    <!-- Game Metadata -->
+    <script src="game.json" type="application/json" id="game-metadata"></script>
+</head>
+<body class="TEMPLATE-4weird-game-page">
+    <!-- Background -->
+    <canvas id="TEMPLATE-4weird-starfield"></canvas>
+    
+    <!-- Navigation placeholder - injected by components.js -->
+    <div id="TEMPLATE-4weird-nav-placeholder"></div>
+    
+    <!-- Game Header Bar -->
+    <header class="TEMPLATE-4weird-game-header">
+        <div class="TEMPLATE-4weird-game-header-inner">
+            <a href="/" class="TEMPLATE-4weird-back-link">
+                <span class="TEMPLATE-4weird-back-arrow">←</span>
+                <span>Back to 4weird</span>
+            </a>
+            <h1 class="TEMPLATE-4weird-game-title" id="TEMPLATE-4weird-game-title">Neon Invaders</h1>
+            <div class="TEMPLATE-4weird-game-meta" id="TEMPLATE-4weird-game-meta">
+                <span class="TEMPLATE-4weird-game-genre">Shooter</span>
+                <span class="TEMPLATE-4weird-separator">•</span>
+                <span class="TEMPLATE-4weird-game-status live">LIVE</span>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Game Container -->
+    <main class="TEMPLATE-4weird-game-main">
+        <!-- Game Canvas/Frame -->
+        <div class="TEMPLATE-4weird-game-frame">
+            <button class="TEMPLATE-4weird-fullscreen-btn" id="TEMPLATE-4weird-fullscreen-btn" title="Toggle Fullscreen">📺 Fullscreen</button>
+            <canvas id="TEMPLATE-4weird-gameCanvas"></canvas>
+            
+            <!-- Start Screen -->
+            <div class="TEMPLATE-4weird-game-overlay" id="TEMPLATE-4weird-start-screen">
+                <div class="TEMPLATE-4weird-overlay-content">
+                    <h2>Neon Invaders</h2>
+                    <p>Cyberpunk space invader shooter. Survive as long as you can against waves of neon enemies.</p>
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-start-btn">
+                        <span class="btn-emoji">🎮</span> Start Game
+                    </button>
+                    <div class="TEMPLATE-4weird-controls-hint">
+                        <p><strong>Controls:</strong> Arrow Keys / WASD to move, Space to shoot, P / Esc to pause</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pause Screen -->
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="TEMPLATE-4weird-pause-screen">
+                <div class="TEMPLATE-4weird-overlay-content">
+                    <h2>Paused</h2>
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-resume-btn">Resume</button>
+                    <button class="btn btn-secondary" id="TEMPLATE-4weird-restart-btn">Restart</button>
+                </div>
+            </div>
+            
+            <!-- Game Over Screen -->
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="TEMPLATE-4weird-game-over-screen">
+                <div class="TEMPLATE-4weird-overlay-content">
+                    <h2>Game Over</h2>
+                    <p class="TEMPLATE-4weird-final-score">Score: <span id="TEMPLATE-4weird-final-score">0</span></p>
+                    <p style="margin: 8px 0; color: #aaa; font-size: 0.9em;">Wave Reached: <span id="TEMPLATE-4weird-final-wave">1</span></p>
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-play-again-btn">Play Again</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Game Info Panel -->
+        <aside class="TEMPLATE-4weird-game-info-panel">
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>How to Play</h3>
+                <p id="TEMPLATE-4weird-how-to-play">
+                    Control your neon spaceship and destroy waves of enemy invaders. Collect power-ups to gain triple shot, shields, and extra lives. Survive as long as possible and rack up the highest score!
+                </p>
+            </div>
+            
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>Controls</h3>
+                <ul id="TEMPLATE-4weird-controls-list">
+                    <li><kbd>← →</kbd> / <kbd>A D</kbd> - Move left/right</li>
+                    <li><kbd>↑ ↓</kbd> / <kbd>W S</kbd> - Move up/down</li>
+                    <li><kbd>Space</kbd> - Shoot</li>
+                    <li><kbd>P</kbd> / <kbd>Esc</kbd> - Pause</li>
+                </ul>
+            </div>
+            
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>High Score</h3>
+                <p class="TEMPLATE-4weird-high-score" id="TEMPLATE-4weird-high-score">0</p>
+            </div>
+        </aside>
+    </main>
+    
+    <!-- Credits Section -->
+    <section class="TEMPLATE-4weird-credits-section" id="TEMPLATE-4weird-credits">
+        <div class="TEMPLATE-4weird-credits-container">
+            <h2 class="TEMPLATE-4weird-credits-title">Credits</h2>
+            
+            <div class="TEMPLATE-4weird-credits-grid" id="TEMPLATE-4weird-credits-grid">
+                <!-- Populated from game.json -->
+                <div class="TEMPLATE-4weird-credit-card TEMPLATE-4weird-primary">
+                    <div class="TEMPLATE-4weird-credit-avatar">🎨</div>
+                    <h3 class="TEMPLATE-4weird-credit-name" id="TEMPLATE-4weird-maker-name">Neon Arcade</h3>
+                    <p class="TEMPLATE-4weird-credit-role">Game Developer</p>
+                    <p class="TEMPLATE-4weird-credit-links">
+                        <a href="https://4weird.games" target="_blank" rel="noopener" id="TEMPLATE-4weird-maker-link">Portfolio</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Maker Bio Section -->
+    <section class="TEMPLATE-4weird-bio-section" id="TEMPLATE-4weird-bio">
+        <div class="TEMPLATE-4weird-bio-container">
+            <h2 class="TEMPLATE-4weird-bio-title">About the Creator</h2>
+            <div class="TEMPLATE-4weird-bio-content" id="TEMPLATE-4weird-maker-bio">
+                <p>Neon Arcade is a game studio specializing in vibrant, retro-inspired arcade games with a modern cyberpunk aesthetic. We believe in quick-to-learn, hard-to-master gameplay that keeps you coming back for just one more run.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- More Games -->
+    <section class="TEMPLATE-4weird-more-games">
+        <div class="TEMPLATE-4weird-more-games-container">
+            <h2>More 4weird Games</h2>
+            <a href="../../../index.html#games" class="btn btn-secondary">
+                <span class="btn-emoji">🎯</span> Browse All Games
+            </a>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    
+    <section class="more-kouzi-games">
+        <div class="container">
+            <h2 class="section-title">More Neon Arcade Games</h2>
+            <p class="section-subtitle">Explore the full Neon Series by KouziTech — all free, no downloads required.</p>
+            <div class="games-grid">
+                
+                <a href="../neonvoidrunner/index.html" class="mini-game-card">
+                    <span class="emoji">🚀</span>
+                    <h3>Neon Void Runner</h3>
+                    <p>Fast-paced endless runner through a glowing digital void.</p>
+                </a>
+                <a href="../neonsnake/index.html" class="mini-game-card">
+                    <span class="emoji">🐍</span>
+                    <h3>Neon Snake</h3>
+                    <p>Classic snake reimagined with cyberpunk neon visuals.</p>
+                </a>
+                <a href="../neonbreaker/index.html" class="mini-game-card">
+                    <span class="emoji">🧱</span>
+                    <h3>Neon Breaker</h3>
+                    <p>Smash through neon bricks in this arcade classic.</p>
+                </a>
+                <a href="../neonracer/index.html" class="mini-game-card">
+                    <span class="emoji">🏎️</span>
+                    <h3>Neon Racer</h3>
+                    <p>High-speed racing through a neon cyberpunk cityscape.</p>
+                </a>
+            </div>
+            <div class="view-all-btn">
+                <a href="../index.html" class="btn btn-primary">
+                    <span>⚡</span> View All Neon Games
+                </a>
+            </div>
+        </div>
+    </section>
+    
+    <section class="kouzi-cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>🎮 Custom AI Games for Your Business</h2>
+                <p>Need a branded game for your website, marketing campaign, or event? KouziTech specializes in AI-powered HTML5 game development. Fast turnaround, stunning visuals, and fully customized to your brand.</p>
+                <a href="mailto:99kouzi@coze.email?subject=Custom%20Game%20Development%20Inquiry&body=Hi%20KouziTech%2C%0A%0AI%27m%20interested%20in%20custom%20game%20development.%20Here%27s%20what%20I%20need%3A%0A%0A-%20Project%20type%3A%20%5Bdescribe%5D%0A-%20Timeline%3A%20%5Bwhen%20do%20you%20need%20it%3F%5D%0A-%20Budget%3A%20%5Brange%5D%0A-%20Other%20details%3A%20%5B...%5D%0A%0ALooking%20forward%20to%20hearing%20from%20you%21" 
+                   class="btn btn-secondary" target="_blank" rel="noopener">
+                    <span>📧</span> Get a Free Quote
+                </a>
+            </div>
+        </div>
+    </section>
+    
+    <style>
+        .more-kouzi-games {
+            padding: 60px 20px;
+            background: linear-gradient(180deg, rgba(10,10,20,0) 0%, rgba(0,255,255,0.03) 50%, rgba(10,10,20,0) 100%);
+        }
+        
+        .more-kouzi-games .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 12px;
+            background: linear-gradient(90deg, #0ff, #f0f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .section-subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+        
+        .more-kouzi-games .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .mini-game-card {
+            background: rgba(20, 20, 35, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 24px 16px;
+            text-align: center;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+        }
+        
+        .mini-game-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 255, 255, 0.5);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.15);
+        }
+        
+        .mini-game-card .emoji {
+            font-size: 3rem;
+            margin-bottom: 12px;
+            display: block;
+        }
+        
+        .mini-game-card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        
+        .mini-game-card p {
+            font-size: 0.85rem;
+            color: #888;
+            margin: 0;
+            line-height: 1.4;
+        }
+        
+        .view-all-btn {
+            text-align: center;
+        }
+        
+        .kouzi-cta {
+            padding: 60px 20px;
+        }
+        
+        .kouzi-cta .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .cta-content {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(0, 255, 255, 0.1) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .cta-content h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 16px;
+            color: #fff;
+        }
+        
+        .cta-content p {
+            color: #aaa;
+            margin-bottom: 24px;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(6, 182, 212, 0.3);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #0ff;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: rgba(0, 255, 255, 0.5);
+        }
+        
+        @media (max-width: 600px) {
+            .section-title {
+                font-size: 1.5rem;
+            }
+            
+            .cta-content {
+                padding: 30px 20px;
+            }
+            
+            .cta-content h2 {
+                font-size: 1.4rem;
+            }
+            
+            .more-kouzi-games .games-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            
+            .mini-game-card {
+                padding: 16px 12px;
+            }
+            
+            .mini-game-card .emoji {
+                font-size: 2rem;
+            }
+            
+            .mini-game-card h3 {
+                font-size: 0.9rem;
+            }
+            
+            .mini-game-card p {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+
+    <footer class="TEMPLATE-4weird-footer">
+        <div class="TEMPLATE-4weird-footer-content">
+            <p>🎮 <span id="TEMPLATE-4weird-footer-title">Neon Invaders</span> — A 4weird Game</p>
+            <p style="margin-top: 8px;">
+                <a href="../../../privacy-policy.html">Privacy Policy</a>
+                <span class="TEMPLATE-4weird-footer-separator">|</span>
+                <a href="../../../index.html#games">More Games</a>
+                <span class="TEMPLATE-4weird-footer-separator">|</span>
+                <a href="/">4weird Home</a>
+            </p>
+        </div>
+    </footer>
+    
+    <!-- Scripts -->
+    <script src="../../../components.js"></script>
+    <script src="game.js"></script>
+    <script>
+        // Load game metadata and populate template
+        (function() {
+            fetch('game.json')
+                .then(r => r.json())
+                .then(data => {
+                    document.title = data.title + ' - 4weird Games';
+                    document.getElementById('TEMPLATE-4weird-game-title').textContent = data.title;
+                    document.getElementById('TEMPLATE-4weird-maker-name').textContent = data.maker.name;
+                    document.getElementById('TEMPLATE-4weird-maker-bio').innerHTML = '<p>' + data.maker.bio + '</p>';
+                    
+                    if (data.maker.url) {
+                        const link = document.getElementById('TEMPLATE-4weird-maker-link');
+                        link.href = data.maker.url;
+                        link.textContent = data.maker.urlLabel || 'Portfolio';
+                    }
+                    
+                    // Update credits grid
+                    if (data.credits && data.credits.length > 0) {
+                        const grid = document.getElementById('TEMPLATE-4weird-credits-grid');
+                        grid.innerHTML = data.credits.map(c => `
+                            <div class="TEMPLATE-4weird-credit-card ${c.primary ? 'TEMPLATE-4weird-primary' : ''}">
+                                <div class="TEMPLATE-4weird-credit-avatar">${c.avatar || '👤'}</div>
+                                <h3 class="TEMPLATE-4weird-credit-name">${c.name}</h3>
+                                <p class="TEMPLATE-4weird-credit-role">${c.role}</p>
+                                ${c.url ? `<p class="TEMPLATE-4weird-credit-links"><a href="${c.url}" target="_blank" rel="noopener">${c.urlLabel || 'Link'}</a></p>` : ''}
+                            </div>
+                        `).join('');
+                    }
+                })
+                .catch(err => console.log('Using template defaults:', err));
+            
+            // Fullscreen toggle
+            const fullscreenBtn = document.getElementById('TEMPLATE-4weird-fullscreen-btn');
+            const gameFrame = document.querySelector('.TEMPLATE-4weird-game-frame');
+            if (fullscreenBtn && gameFrame) {
+                fullscreenBtn.addEventListener('click', () => {
+                    if (!document.fullscreenElement) {
+                        gameFrame.requestFullscreen().catch(err => {
+                            console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                        });
+                    } else {
+                        document.exitFullscreen();
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+</html>
