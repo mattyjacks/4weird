@@ -1,53 +1,59 @@
 {
-    "title": "Your Game Title",
-    "slug": "yourgame",
-    "description": "A short punchy description of your game (1-2 sentences).",
+    "title": "Neon Grid Runner",
+    "slug": "neonracer",
+    "description": "Dodge cyber obstacles, collect battery cores, and survive the digital grid in this high-speed neon runner.",
     "genre": "Arcade",
-    "tags": ["HTML5", "Action", "Arcade"],
+    "tags": ["HTML5", "Action", "Cyberpunk", "Retro"],
     "maker": {
-        "name": "Your Name",
-        "bio": "Write a brief bio about yourself as a game developer. What inspires you? What is your style? Keep it under 200 words.",
-        "url": "https://yourwebsite.com",
-        "urlLabel": "Portfolio"
+        "name": "Antigravity",
+        "bio": "Specialist in building premium, sensory-rich retro-futuristic arcade experiences with high-fidelity web audio synth engines.",
+        "url": "https://4weird.com",
+        "urlLabel": "4weird Games"
     },
     "credits": [
         {
-            "name": "Your Name",
-            "role": "Game Developer",
-            "avatar": "🎨",
+            "name": "Antigravity",
+            "role": "Lead Developer & UI Designer",
+            "avatar": "🤖",
             "primary": true,
-            "url": "https://yourwebsite.com",
-            "urlLabel": "Portfolio"
+            "url": "https://4weird.com",
+            "urlLabel": "4weird"
+        },
+        {
+            "name": "MattyJacks",
+            "role": "Producer & Platform Architect",
+            "avatar": "👑",
+            "primary": false,
+            "url": "https://mattyjacks.com",
+            "urlLabel": "MattyJacks"
         }
     ],
     "controls": {
         "keyboard": {
-            "Arrow Keys / WASD": "Move",
-            "Space": "Action/Shoot",
-            "P or Esc": "Pause"
+            "Arrow Keys / WASD": "Steer ship",
+            "Space / Click": "Activate boost trail",
+            "P / Esc": "Pause System"
         },
-        "touch": true,
-        "mouse": false
+        "touch": {
+            "joystick": "Analog steering",
+            "dpad": "Digital grid movement",
+            "button_a": "Activate Boost"
+        },
+        "mouse": true
     },
-    "instructions": "Explain how to play your game. What is the objective? What should players do?",
+    "instructions": "Use WASD or the Virtual Joystick to navigate left/right/up/down. Collect luminous battery cores to keep your shield powered. Avoid collision with incoming firewall barriers. Tap Space or the Virtual Boost button to deploy a speed hack trail, multiplying score but increasing hazards!",
     "technical": {
         "canvasSize": {"width": 800, "height": 600},
         "targetFPS": 60,
         "mobileOptimized": true
     },
     "assets": {
-        "external": [
-            {
-                "type": "image",
-                "url": "https://example.com/sprite.png",
-                "description": "Player sprite (hosted externally due to size)"
-            }
-        ],
+        "external": [],
         "local": ["game.js", "game.css"]
     },
     "meta": {
-        "version": "1.0.0",
-        "created": "2026-06-07",
-        "license": "MIT"
+        "version": "2.0.0",
+        "created": "2026-06-18",
+        "license": "Private - All Rights Reserved"
     }
 }

@@ -7,32 +7,111 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
       gtag('config', 'G-KZ03RW8P96');
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>All Games - 4weird Games</title>
-    <meta name="description" content="Play all 4weird Games - HTML5 browser games with no downloads required.">
+    <meta name="description" content="Play all 4weird Games - premium HTML5 browser games with no downloads required. High-performance, mobile-responsive arcade and strategy gameplay.">
+    <link rel="canonical" href="https://4weird.com/games/">
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#8b5cf6">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="All Games - 4weird Games">
+    <meta property="og:description" content="Play premium HTML5 browser games with no downloads required.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://4weird.com/games/">
+    <meta property="og:image" content="https://4weird.com/games/images/thumb_serversavershield.png">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="All Games - 4weird Games">
+    <meta name="twitter:description" content="Play premium HTML5 browser games with no downloads required.">
+    <meta name="twitter:image" content="https://4weird.com/games/images/thumb_serversavershield.png">
+
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../styles.css">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [{
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://4weird.com/"
+      },{
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Games",
+        "item": "https://4weird.com/games/"
+      }]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemCollection",
+      "name": "4weird Games Library",
+      "description": "A collection of AI-powered HTML5 browser games.",
+      "numberOfItems": 5,
+      "itemListElement": [
+        {
+          "@type": "SoftwareApplication",
+          "name": "Server Saver Shield",
+          "operatingSystem": "All",
+          "applicationCategory": "GameApplication",
+          "browserRequirements": "Requires HTML5 and Javascript support.",
+          "offers": {
+            "@type": "Offer",
+            "price": "0.00",
+            "priceCurrency": "USD"
+          }
+        },
+        {
+          "@type": "SoftwareApplication",
+          "name": "Overtake",
+          "operatingSystem": "All",
+          "applicationCategory": "GameApplication",
+          "browserRequirements": "Requires HTML5 and Javascript support.",
+          "offers": {
+            "@type": "Offer",
+            "price": "0.00",
+            "priceCurrency": "USD"
+          }
+        }
+      ]
+    }
+    </script>
     <style>
         :root {
-            --bg-primary: #0a0a0f;
-            --bg-secondary: #12121a;
-            --bg-card: #1a1a24;
-            --neon-purple: #8b5cf6;
-            --neon-purple-light: #a78bfa;
-            --neon-green: #10b981;
-            --neon-cyan: #06b6d4;
-            --text-primary: #f5f5f5;
-            --text-secondary: #9ca3af;
-            --text-muted: #6b7280;
+            --bg-primary: #050508;
+            --bg-secondary: #0c0c14;
+            --bg-card: rgba(20, 20, 35, 0.6);
+            --bg-card-hover: rgba(30, 30, 50, 0.85);
+            --neon-purple: #9d4edd;
+            --neon-purple-glow: rgba(157, 78, 221, 0.4);
+            --neon-cyan: #00f2fe;
+            --neon-cyan-glow: rgba(0, 242, 254, 0.4);
+            --neon-pink: #ff007f;
+            --neon-pink-glow: rgba(255, 0, 127, 0.4);
+            --neon-green: #39ff14;
+            --neon-green-glow: rgba(57, 255, 20, 0.4);
+            --neon-yellow: #ffe600;
+            --neon-yellow-glow: rgba(255, 230, 0, 0.4);
+            --text-primary: #f5f6f9;
+            --text-secondary: #a0a5c0;
+            --text-muted: #626784;
             --font-display: 'Orbitron', sans-serif;
             --font-body: 'Inter', sans-serif;
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -42,17 +121,34 @@
             background: var(--bg-primary);
             color: var(--text-primary);
             min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(at 10% 20%, rgba(157, 78, 221, 0.15) 0px, transparent 50%),
+                radial-gradient(at 90% 80%, rgba(0, 242, 254, 0.12) 0px, transparent 50%);
+            background-attachment: fixed;
         }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-card);
+            border: 2px solid var(--bg-primary);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon-purple); }
 
         /* Header */
         .games-header {
-            background: rgba(10, 10, 15, 0.95);
-            border-bottom: 2px solid rgba(139, 92, 246, 0.3);
+            background: rgba(5, 5, 8, 0.8);
+            border-bottom: 1px solid var(--glass-border);
             padding: 20px 0;
             position: sticky;
             top: 0;
             z-index: 100;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
         }
 
         .header-container {
@@ -71,11 +167,16 @@
             color: var(--text-primary);
             text-decoration: none;
             font-family: var(--font-display);
-            font-weight: 700;
-            font-size: 1.5rem;
-            transition: opacity 0.2s;
+            font-weight: 800;
+            font-size: 1.6rem;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--neon-purple-glow);
+            transition: all 0.3s ease;
         }
-        .logo:hover { opacity: 0.85; }
+        .logo:hover {
+            color: var(--neon-cyan);
+            text-shadow: 0 0 15px var(--neon-cyan-glow);
+        }
         .logo span { font-size: 1.8rem; }
 
         .back-link {
@@ -83,109 +184,557 @@
             align-items: center;
             gap: 8px;
             padding: 10px 20px;
-            background: rgba(139, 92, 246, 0.1);
-            color: var(--neon-purple-light);
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
             text-decoration: none;
             font-weight: 600;
-            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .back-link:hover {
-            background: rgba(139, 92, 246, 0.2);
+            background: rgba(157, 78, 221, 0.15);
             border-color: var(--neon-purple);
-            transform: translateX(-3px);
+            box-shadow: 0 0 15px var(--neon-purple-glow);
+            transform: translateY(-2px);
         }
 
-        /* Main Content */
-        .games-main {
+        /* Hero / Featured Slider */
+        .featured-hero {
             max-width: 1400px;
-            margin: 0 auto;
-            padding: 40px 24px;
+            margin: 40px auto 20px auto;
+            padding: 0 24px;
         }
 
-        .page-title {
+        .section-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
             font-family: var(--font-display);
-            font-size: 2.5rem;
-            text-align: center;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(to bottom, var(--neon-pink), var(--neon-purple));
+            border-radius: 2px;
+        }
+
+        .carousel-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .carousel-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+
+        .carousel-btn:hover {
+            background: var(--neon-purple);
+            border-color: var(--neon-purple);
+            box-shadow: 0 0 15px var(--neon-purple-glow);
+            transform: scale(1.05);
+        }
+
+        .carousel-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            background: rgba(10, 10, 20, 0.4);
+            box-shadow: var(--glass-glow);
+            height: 400px;
+        }
+
+        .carousel-track {
+            display: flex;
+            height: 100%;
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .carousel-slide {
+            min-width: 100%;
+            height: 100%;
+            display: flex;
+            position: relative;
+            text-decoration: none;
+            color: inherit;
+            overflow: hidden;
+        }
+
+        .carousel-img-wrapper {
+            flex: 1.2;
+            height: 100%;
+            position: relative;
+            background: #000;
+        }
+
+        .carousel-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.8;
+            transition: transform 8s ease, filter 0.5s ease;
+        }
+
+        .carousel-slide:hover .carousel-img {
+            transform: scale(1.08);
+            opacity: 0.9;
+        }
+
+        .carousel-img-fallback {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8rem;
+            position: relative;
+            opacity: 0.85;
+            transition: transform 8s ease;
+        }
+
+        .carousel-slide:hover .carousel-img-fallback {
+            transform: scale(1.1);
+        }
+
+        .carousel-slide-info {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: linear-gradient(90deg, rgba(12, 12, 20, 0.95) 0%, rgba(12, 12, 20, 0.8) 100%);
+            border-left: 1px solid var(--glass-border);
+            z-index: 2;
+        }
+
+        .carousel-badge {
+            align-self: flex-start;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+            color: #fff;
+            box-shadow: 0 0 15px var(--neon-pink-glow);
+        }
+
+        .carousel-title {
+            font-family: var(--font-display);
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #fff 30%, var(--text-secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
-        .page-subtitle {
-            text-align: center;
+        .carousel-desc {
             color: var(--text-secondary);
-            font-size: 1.1rem;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .carousel-meta {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            align-items: center;
+        }
+
+        .carousel-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .carousel-meta-icon {
+            color: var(--neon-cyan);
+        }
+
+        .carousel-btn-play {
+            align-self: flex-start;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, var(--neon-cyan), #00c6ff);
+            color: #050508;
+            font-weight: 700;
+            font-family: var(--font-display);
+            letter-spacing: 1px;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px var(--neon-cyan-glow);
+        }
+
+        .carousel-btn-play:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 0 35px var(--neon-cyan-glow);
+            filter: brightness(1.1);
+        }
+
+        .carousel-indicators {
+            position: absolute;
+            bottom: 20px;
+            right: 40px;
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .carousel-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .carousel-dot.active {
+            background: var(--neon-cyan);
+            width: 30px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px var(--neon-cyan-glow);
+        }
+
+        /* Discovery & Filters */
+        .discovery-panel {
+            max-width: 1400px;
+            margin: 40px auto 0 auto;
+            padding: 0 24px;
+        }
+
+        .filter-controls-card {
+            background: rgba(12, 12, 20, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: var(--glass-glow);
             margin-bottom: 40px;
         }
 
-        /* Games Grid */
+        /* Search and Sort row */
+        .search-sort-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .search-bar-wrapper {
+            flex: 1;
+            position: relative;
+            min-width: 280px;
+        }
+
+        .search-input {
+            width: 100%;
+            background: rgba(5, 5, 8, 0.7);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 16px 50px 16px 55px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--neon-purple);
+            box-shadow: 0 0 15px rgba(157, 78, 221, 0.25);
+            background: rgba(5, 5, 8, 0.9);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            pointer-events: none;
+            transition: color 0.3s ease;
+        }
+
+        .search-input:focus ~ .search-icon {
+            color: var(--neon-purple);
+        }
+
+        .search-clear-btn {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: none;
+            transition: color 0.2s;
+        }
+
+        .search-clear-btn:hover {
+            color: var(--neon-pink);
+        }
+
+        .sort-select-wrapper {
+            width: 240px;
+            position: relative;
+        }
+
+        .select-input {
+            width: 100%;
+            background: rgba(5, 5, 8, 0.7);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 16px 45px 16px 20px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a0a5c0'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 20px center;
+            background-size: 16px;
+        }
+
+        .select-input:focus {
+            border-color: var(--neon-purple);
+            box-shadow: 0 0 15px rgba(157, 78, 221, 0.25);
+        }
+
+        /* Categories Section */
+        .categories-label {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .category-buttons-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .category-chip {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+        }
+
+        .category-chip:hover {
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .category-chip.active {
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            color: #050508;
+            font-weight: 700;
+            border-color: transparent;
+            box-shadow: 0 0 20px var(--neon-purple-glow);
+        }
+
+        /* Secondary Filters dropdowns */
+        .secondary-filters-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 25px;
+            align-items: center;
+        }
+
+        .dropdown-filter-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .dropdown-filter-group label {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        .stats-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-left: auto;
+        }
+
+        .stats-text span {
+            color: var(--neon-cyan);
+            font-weight: 700;
+            font-family: var(--font-display);
+        }
+
+        /* Grid */
+        .games-grid-section {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px 60px 24px;
+        }
+
         .games-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 30px;
         }
 
-        /* ─── Game Card ─── */
+        /* Redesigned Game Card */
         .game-card {
             background: var(--bg-card);
             border-radius: 20px;
             overflow: hidden;
-            border: 1px solid rgba(139, 92, 246, 0.2);
-            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid var(--glass-border);
             display: flex;
             flex-direction: column;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            transform-origin: center;
+            opacity: 1;
         }
 
         .game-card:hover {
             transform: translateY(-8px);
+            background: var(--bg-card-hover);
             border-color: var(--neon-purple);
-            box-shadow: 0 10px 40px rgba(139, 92, 246, 0.25);
+            box-shadow: 0 10px 30px var(--neon-purple-glow);
         }
 
-        .game-card.live { border-color: rgba(16, 185, 129, 0.4); }
-        .game-card.live:hover { border-color: var(--neon-green); box-shadow: 0 10px 40px rgba(16, 185, 129, 0.2); }
+        .game-card.live-card:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 10px 30px var(--neon-cyan-glow);
+        }
 
-        /* ─── Thumbnail / Screenshot Area ─── */
-        .game-thumbnail {
-            height: 200px;
+        .game-card-thumb-wrapper {
             position: relative;
+            height: 200px;
+            width: 100%;
             overflow: hidden;
-            cursor: pointer;
-            display: block;
-            text-decoration: none;
+            background: #08080f;
         }
 
-        /* Actual screenshot image fills the area */
-        .game-thumbnail img {
+        .game-card-img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            display: block;
-            transition: transform 0.4s ease, filter 0.3s ease;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), filter 0.3s ease;
         }
 
-        /* Fallback gradient when no image */
-        .game-thumbnail .thumb-bg {
+        .game-card:hover .game-card-img {
+            transform: scale(1.08);
+            filter: brightness(0.6);
+        }
+
+        .game-card-fallback-thumb {
             position: absolute;
             inset: 0;
-            width: 100%;
-            height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 4rem;
+            font-size: 5rem;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), filter 0.3s ease;
         }
 
-        /* Hover overlay with ▶️ play button */
-        .thumb-overlay {
+        .game-card:hover .game-card-fallback-thumb {
+            transform: scale(1.1);
+            filter: brightness(0.6);
+        }
+
+        /* Gradients for fallbacks */
+        .grad-serversaver { background: linear-gradient(135deg, #15092a 0%, #3b137a 100%); }
+        .grad-overtake { background: linear-gradient(135deg, #2a0b08 0%, #7c2415 100%); }
+        .grad-assassinanimals { background: linear-gradient(135deg, #09202a 0%, #115664 100%); }
+        .grad-battlesharks2 { background: linear-gradient(135deg, #09252a 0%, #0d6d7e 100%); }
+        .grad-gravegain2d { background: linear-gradient(135deg, #25091a 0%, #68153c 100%); }
+        .grad-gravegain3d { background: linear-gradient(135deg, #18092a 0%, #4c117b 100%); }
+        .grad-demolich { background: linear-gradient(135deg, #1e1e24 0%, #3a3b45 100%); }
+        .grad-fridge { background: linear-gradient(135deg, #092521 0%, #156d60 100%); }
+        .grad-venture { background: linear-gradient(135deg, #091c2c 0%, #134e7c 100%); }
+        .grad-financial { background: linear-gradient(135deg, #092c1c 0%, #137c4e 100%); }
+        .grad-discover { background: linear-gradient(135deg, #2c2909 0%, #766d13 100%); }
+        .grad-orbital { background: linear-gradient(135deg, #0c1a2f 0%, #0e4b85 100%); }
+        .grad-aiwhack { background: linear-gradient(135deg, #1e092c 0%, #58137c 100%); }
+        .grad-sound2 { background: linear-gradient(135deg, #25092c 0%, #6e137c 100%); }
+        .grad-sound { background: linear-gradient(135deg, #2c0920 0%, #7c1356 100%); }
+        .grad-template { background: linear-gradient(135deg, #1a1b24 0%, #3e4152 100%); }
+        .grad-madi { background: linear-gradient(135deg, #080f25 0%, #1e3a8a 100%); }
+        .grad-neon { background: linear-gradient(135deg, #1f0b2a 0%, #8b5cf6 100%); }
+        .grad-friendslop { background: linear-gradient(135deg, #2c0f1e 0%, #9d174d 100%); }
+
+        /* Card Badges and Overlays */
+        .card-play-overlay {
             position: absolute;
             inset: 0;
-            background: rgba(0, 0, 0, 0.55);
+            background: rgba(0, 0, 0, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -194,266 +743,366 @@
             z-index: 2;
         }
 
-        .play-btn-circle {
-            width: 72px;
-            height: 72px;
+        .game-card:hover .card-play-overlay {
+            opacity: 1;
+        }
+
+        .card-play-btn {
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
-            background: rgba(139, 92, 246, 0.9);
+            background: var(--neon-purple);
+            color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
-            box-shadow: 0 0 30px rgba(139, 92, 246, 0.7), 0 0 60px rgba(139, 92, 246, 0.3);
+            font-size: 1.5rem;
+            box-shadow: 0 0 25px var(--neon-purple-glow);
             transform: scale(0.8);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .game-thumbnail:hover .thumb-overlay { opacity: 1; }
-        .game-thumbnail:hover img { transform: scale(1.06); filter: brightness(0.7); }
-        .game-thumbnail:hover .thumb-bg { filter: brightness(0.7); }
-        .game-thumbnail:hover .play-btn-circle {
+        .game-card.live-card .card-play-btn {
+            background: var(--neon-cyan);
+            color: #050508;
+            box-shadow: 0 0 25px var(--neon-cyan-glow);
+        }
+
+        .game-card:hover .card-play-btn {
             transform: scale(1);
-            box-shadow: 0 0 40px rgba(139, 92, 246, 0.9), 0 0 80px rgba(139, 92, 246, 0.4);
         }
 
-        /* Badge */
-        .live-badge {
+        .card-badge-top-left {
             position: absolute;
-            top: 12px;
-            right: 12px;
-            background: var(--neon-green);
-            color: #0a0a0f;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            top: 15px;
+            left: 15px;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .card-badge-top-right {
+            position: absolute;
+            top: 15px;
+            right: 15px;
             z-index: 3;
         }
 
-        .featured-badge {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: linear-gradient(135deg, #f59e0b, #ef4444);
-            color: white;
-            padding: 4px 12px;
+        .compat-pill {
+            background: rgba(5, 5, 8, 0.85);
+            backdrop-filter: blur(4px);
+            color: var(--neon-cyan);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            padding: 4px 10px;
             border-radius: 20px;
             font-size: 0.7rem;
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            z-index: 3;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        /* Fallback emoji thumbnails */
-        .thumb-serversaver { background: linear-gradient(135deg, #1a1a2e 0%, #4c1d95 50%, #7c3aed 100%); }
-        .thumb-serversaver::before { content: '🛡️'; font-size: 5rem; filter: drop-shadow(0 0 20px rgba(139,92,246,0.8)); }
-        .thumb-overtake { background: linear-gradient(135deg, #05070a 0%, #3a1510 48%, #ffcf42 100%); }
-        .thumb-overtake::before { content: '🏁'; font-size: 5rem; filter: drop-shadow(0 0 20px rgba(255,207,66,0.75)); }
-        .thumb-demolich { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); }
-        .thumb-demolich::before { content: '💀'; font-size: 5rem; filter: drop-shadow(0 0 20px rgba(100,116,139,0.8)); }
-        .thumb-fridge { background: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #5eead4 100%); }
-        .thumb-fridge::before { content: '🥶'; font-size: 5rem; filter: drop-shadow(0 0 20px rgba(94,234,212,0.8)); }
-        .thumb-discover { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%); }
-        .thumb-discover::before { content: '🗽'; font-size: 5rem; filter: drop-shadow(0 0 20px rgba(96,165,250,0.8)); }
-        .thumb-template { background: linear-gradient(135deg, #312e81 0%, #6366f1 50%, #818cf8 100%); }
-        .thumb-template::before { content: '📋'; font-size: 5rem; filter: drop-shadow(0 0 20px rgba(99,102,241,0.8)); }
+        .status-pill {
+            background: rgba(5, 5, 8, 0.85);
+            backdrop-filter: blur(4px);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            border: 1px solid transparent;
+        }
 
-        /* ─── Card Info ─── */
-        .game-info {
-            padding: 20px;
+        .status-pill.polished { color: var(--neon-green); border-color: rgba(57, 255, 20, 0.3); }
+        .status-pill.rough { color: var(--neon-yellow); border-color: rgba(255, 230, 0, 0.3); }
+        .status-pill.prototype { color: var(--neon-purple-light); border-color: rgba(157, 78, 221, 0.3); }
+
+        .featured-pill {
+            background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 10px var(--neon-pink-glow);
+        }
+
+        .new-pill {
+            background: linear-gradient(135deg, var(--neon-green), #00ba13);
+            color: #050508;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 10px var(--neon-green-glow);
+        }
+
+        /* Card Content */
+        .game-card-content {
+            padding: 24px;
             flex: 1;
             display: flex;
             flex-direction: column;
         }
 
-        .game-title {
+        .game-card-title {
             font-family: var(--font-display);
-            font-size: 1.2rem;
-            margin-bottom: 10px;
+            font-size: 1.25rem;
+            font-weight: 700;
             color: var(--text-primary);
+            margin-bottom: 8px;
+            transition: color 0.3s;
         }
 
-        .game-desc {
-            color: var(--text-secondary);
+        .game-card:hover .game-card-title {
+            color: var(--neon-cyan);
+        }
+
+        .game-card-desc {
             font-size: 0.9rem;
+            color: var(--text-secondary);
             line-height: 1.5;
-            margin-bottom: 15px;
-            flex: 1;
-        }
-
-        .game-tags {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
             margin-bottom: 16px;
+            flex: 1;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
-        .tag {
-            background: rgba(139, 92, 246, 0.15);
-            color: var(--neon-purple-light);
-            padding: 4px 10px;
+        .game-card-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .tag-pill {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            padding: 3px 8px;
             border-radius: 6px;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-weight: 500;
         }
 
-        .btn-game {
-            display: inline-flex;
+        .game-card-footer {
+            display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px 20px;
-            background: linear-gradient(135deg, var(--neon-purple), #7c3aed);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
+            justify-content: space-between;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 16px;
+            margin-top: auto;
         }
 
-        .btn-game:hover {
-            transform: scale(1.02);
-            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+        .card-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .card-stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .card-stat-item span.star-icon {
+            color: var(--neon-yellow);
+        }
+
+        .card-stat-item span.play-icon {
+            color: var(--neon-cyan);
+        }
+
+        .card-action-btn {
+            background: linear-gradient(135deg, var(--neon-purple), #7c3aed);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .game-card.live-card .card-action-btn {
+            background: linear-gradient(135deg, var(--neon-cyan), #00a2ff);
+            color: #050508;
+            font-weight: 700;
+        }
+
+        .game-card:hover .card-action-btn {
+            transform: scale(1.05);
+        }
+
+        /* Recommendation Section */
+        .recommendations-section {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px 60px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 60px;
+            display: none;
+        }
+
+        .recommendations-section.active {
+            display: block;
+        }
+
+        /* Pagination & Empty States */
+        .load-more-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .load-more-btn {
+            background: transparent;
+            border: 2px solid var(--neon-purple);
+            color: var(--text-primary);
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 16px 40px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(157, 78, 221, 0.1);
+        }
+
+        .load-more-btn:hover {
+            background: var(--neon-purple);
+            box-shadow: 0 0 20px var(--neon-purple-glow);
+            transform: translateY(-2px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 24px;
+            background: rgba(12, 12, 20, 0.4);
+            border: 1px dashed var(--glass-border);
+            border-radius: 24px;
+            grid-column: 1 / -1;
+            display: none;
+        }
+
+        .empty-state-title {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            color: var(--neon-pink);
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px var(--neon-pink-glow);
+        }
+
+        .empty-state-desc {
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+            font-size: 1.05rem;
+        }
+
+        .empty-state-suggestions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .empty-suggestion-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            color: var(--neon-cyan);
+            padding: 8px 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .empty-suggestion-btn:hover {
+            border-color: var(--neon-cyan);
+            background: rgba(0, 242, 254, 0.08);
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+        }
+
+        /* Loading Skeleton States */
+        .grid-loader {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            grid-column: 1 / -1;
+        }
+
+        .cyber-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(157, 78, 221, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--neon-purple);
+            border-right-color: var(--neon-cyan);
+            animation: spin 1s infinite linear;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         /* Footer */
         .games-footer {
             text-align: center;
-            padding: 40px 24px;
-            border-top: 1px solid rgba(139, 92, 246, 0.2);
+            padding: 60px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
             color: var(--text-muted);
             font-size: 0.9rem;
+            background: #030306;
         }
 
-        .games-footer a { color: var(--neon-purple-light); text-decoration: none; }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .page-title { font-size: 1.8rem; }
-            .games-grid { grid-template-columns: 1fr; }
-            .header-container { flex-wrap: wrap; gap: 15px; }
-            .logo { font-size: 1.2rem; }
-            .games-main { padding: 30px 15px; }
-        }
-
-        /* Filter Container */
-        .filter-container {
-            background: rgba(26, 26, 36, 0.5);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(139, 92, 246, 0.2);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 40px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            min-width: 200px;
-        }
-
-        .filter-group label {
-            font-family: var(--font-display);
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-secondary);
-        }
-
-        .filter-select {
-            background: rgba(10, 10, 15, 0.8);
-            color: var(--text-primary);
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            border-radius: 8px;
-            padding: 10px 16px;
-            font-size: 0.9rem;
-            font-family: var(--font-body);
-            outline: none;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            appearance: none;
-            -webkit-appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%238b5cf6'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            background-size: 16px;
-            padding-right: 40px;
-        }
-
-        .filter-select:focus {
-            border-color: var(--neon-cyan);
-            box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
-        }
-
-        .filter-stats {
-            width: 100%;
-            text-align: center;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            margin-top: 10px;
-        }
-
-        .filter-stats span {
-            color: var(--neon-cyan);
-            font-weight: 600;
-        }
-
-        /* Card Badges and Info styling */
-        .game-badges {
-            display: flex;
-            gap: 6px;
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            z-index: 3;
-        }
-        .badge-compat {
-            background: rgba(10, 10, 15, 0.85);
-            color: var(--neon-cyan);
-            border: 1px solid rgba(6, 182, 212, 0.4);
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
-        .badge-status {
-            background: rgba(10, 10, 15, 0.85);
-            color: #f59e0b;
-            border: 1px solid rgba(245, 158, 11, 0.4);
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
-        .badge-status.polished {
-            color: var(--neon-green);
-            border-color: rgba(16, 185, 129, 0.4);
-        }
-        .badge-status.rough {
-            color: #f59e0b;
-            border-color: rgba(245, 158, 11, 0.4);
-        }
-        .badge-status.prototype {
+        .games-footer a {
             color: var(--neon-purple-light);
-            border-color: rgba(167, 139, 250, 0.4);
+            text-decoration: none;
+            transition: color 0.3s;
         }
-        .badge-status.broken {
-            color: #ef4444;
-            border-color: rgba(239, 68, 68, 0.4);
+        .games-footer a:hover {
+            color: var(--neon-cyan);
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 992px) {
+            .carousel-container {
+                height: auto;
+            }
+            .carousel-slide {
+                flex-direction: column;
+            }
+            .carousel-img-wrapper {
+                height: 250px;
+            }
+            .carousel-slide-info {
+                padding: 30px;
+                border-left: none;
+                border-top: 1px solid var(--glass-border);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .logo { font-size: 1.3rem; }
+            .carousel-title { font-size: 1.7rem; }
+            .carousel-desc { font-size: 0.95rem; }
+            .games-grid { grid-template-columns: 1fr; }
+            .header-container { flex-direction: column; gap: 15px; }
+            .search-sort-row { flex-direction: column; }
+            .sort-select-wrapper { width: 100%; }
+            .secondary-filters-row { flex-direction: column; align-items: stretch; gap: 15px; }
+            .stats-text { margin-left: 0; text-align: center; }
         }
     </style>
 </head>
@@ -461,11 +1110,10 @@
     <header class="games-header">
         <div class="header-container">
             <a href="/" class="logo">
-                <span>🎮</span>
-                4weird Games
+                <span>🎮</span> 4weird Games
             </a>
             <div style="display:flex; gap: 15px; align-items: center;">
-                <a href="/tech.html" class="back-link" style="background: rgba(6, 182, 212, 0.1); color: var(--neon-cyan); border-color: rgba(6, 182, 212, 0.3);">
+                <a href="/tech.html" class="back-link">
                     ⚡ Technology
                 </a>
                 <a href="/" class="back-link">
@@ -475,505 +1123,126 @@
         </div>
     </header>
 
-    <main class="games-main">
-        <h1 class="page-title">All Games</h1>
-        <p class="page-subtitle">Play instantly in your browser - no downloads required</p>
-
-        <!-- Filter Bar -->
-        <div class="filter-container">
-            <div class="filter-group">
-                <label for="filter-compat">Compatibility</label>
-                <select id="filter-compat" class="filter-select">
-                    <option value="all">Any Compatibility</option>
-                    <option value="mobile-desktop">Mobile + Desktop</option>
-                    <option value="mobile-only">Mobile Only</option>
-                    <option value="desktop-only">Desktop Only</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="filter-status">Status</label>
-                <select id="filter-status" class="filter-select">
-                    <option value="all">Any Status</option>
-                    <option value="polished">Only Polished</option>
-                    <option value="rough">Only Rough</option>
-                    <option value="prototype">Only Prototype</option>
-                    <option value="broken">Only Broken</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="filter-visibility">Visibility</label>
-                <select id="filter-visibility" class="filter-select">
-                    <option value="all">Any Visibility</option>
-                    <option value="featured">Featured</option>
-                    <option value="visible">Visible</option>
-                    <option value="hidden">Hidden</option>
-                </select>
-            </div>
-            <div class="filter-stats">
-                Showing <span id="visible-count">12</span> of <span id="total-count">12</span> games
+    <!-- Featured Games Section (Carousel) -->
+    <section class="featured-hero">
+        <div class="section-header-row">
+            <h2 class="section-title">Featured Content</h2>
+            <div class="carousel-controls">
+                <button class="carousel-btn" id="carousel-prev" aria-label="Previous featured game">←</button>
+                <button class="carousel-btn" id="carousel-next" aria-label="Next featured game">→</button>
             </div>
         </div>
+        <div class="carousel-container">
+            <div class="carousel-track" id="carouselTrack">
+                <!-- Dynamically populated -->
+            </div>
+            <div class="carousel-indicators" id="carouselIndicators">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </section>
 
+    <!-- Filters and Discovery -->
+    <section class="discovery-panel">
+        <div class="filter-controls-card">
+            
+            <!-- Search & Sort -->
+            <div class="search-sort-row">
+                <div class="search-bar-wrapper">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search games by title, description or tags..." aria-label="Search games">
+                    <span class="search-icon">🔍</span>
+                    <button class="search-clear-btn" id="searchClearBtn" aria-label="Clear search">✕</button>
+                </div>
+                <div class="sort-select-wrapper">
+                    <select class="select-input" id="sortSelect" aria-label="Sort options">
+                        <option value="popular">🔥 Most Popular</option>
+                        <option value="rated">⭐ Highest Rated</option>
+                        <option value="newest">📅 Newest Releases</option>
+                        <option value="alpha">🔤 Alphabetical (A-Z)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="categories-label">
+                <span>🏷️</span> Categories
+            </div>
+            <div class="category-buttons-list" id="categoriesList">
+                <button class="category-chip active" data-category="all">All Games</button>
+                <button class="category-chip" data-category="arcade">Arcade</button>
+                <button class="category-chip" data-category="puzzle">Puzzle</button>
+                <button class="category-chip" data-category="action">Action</button>
+                <button class="category-chip" data-category="racing">Racing</button>
+                <button class="category-chip" data-category="strategy">Strategy</button>
+                <button class="category-chip" data-category="creative">Creative</button>
+                <button class="category-chip" data-category="3d">3D</button>
+                <button class="category-chip" data-category="neon series">Neon Series</button>
+                <button class="category-chip" data-category="accessible">Accessible</button>
+            </div>
+
+            <!-- Secondary Metadata Filters -->
+            <div class="secondary-filters-row">
+                <div class="dropdown-filter-group">
+                    <label for="filter-compat">Device:</label>
+                    <select id="filter-compat" class="select-input" style="padding: 10px 40px 10px 15px; border-radius: 10px; font-size: 0.9rem;">
+                        <option value="all">Any Device Compatibility</option>
+                        <option value="mobile-desktop">Mobile &amp; Desktop</option>
+                        <option value="desktop-only">Desktop Only</option>
+                    </select>
+                </div>
+                <div class="dropdown-filter-group">
+                    <label for="filter-status">State:</label>
+                    <select id="filter-status" class="select-input" style="padding: 10px 40px 10px 15px; border-radius: 10px; font-size: 0.9rem;">
+                        <option value="all">Any Development State</option>
+                        <option value="polished">Polished</option>
+                        <option value="rough">Rough</option>
+                        <option value="prototype">Prototype</option>
+                    </select>
+                </div>
+                <div class="stats-text">
+                    Showing <span id="visible-count">0</span> of <span id="total-count">0</span> modules
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Main Games Grid -->
+    <section class="games-grid-section">
         <div class="games-grid" id="gamesGrid">
+            <!-- Loading indicator -->
+            <div class="grid-loader" id="gridLoader">
+                <div class="cyber-spinner"></div>
+            </div>
 
-            <!-- Server Saver Shield -->
-            <div class="game-card live" data-compatibility="mobile-desktop" data-status="polished" data-visibility="featured">
-                <a class="game-thumbnail" href="/games/html/serversavershield/index.html" aria-label="Play Server Saver Shield">
-                    <img src="images/thumb_serversavershield.png" alt="Server Saver Shield game screenshot" onerror="this.style.display='none'">
-                    <div class="thumb-bg thumb-serversaver"></div>
-                    <div class="thumb-overlay">
-                        <div class="play-btn-circle">▶️</div>
-                    </div>
-                    <div class="game-badges">
-                        <span class="badge-compat">📱+💻 Mobile &amp; PC</span>
-                        <span class="badge-status polished">✨ Polished</span>
-                    </div>
-                    <span class="featured-badge">Featured</span>
-                </a>
-                <div class="game-info">
-                    <h3 class="game-title">🛡️ Server Saver Shield</h3>
-                    <p class="game-desc">Defend servers from cyber attacks! Strategic security management meets arcade shooter. Hire staff, upgrade weapons, survive 10 waves.</p>
-                    <div class="game-tags">
-                        <span class="tag">Arcade</span>
-                        <span class="tag">Shooter</span>
-                        <span class="tag">Strategy</span>
-                    </div>
-                    <a href="/games/html/serversavershield/index.html" class="btn-game">
-                        <span>🎮</span> Play Now
-                    </a>
+            <!-- Empty state -->
+            <div class="empty-state" id="emptyState">
+                <h3 class="empty-state-title">SYSTEM OFFLINE: NO MATCHES FOUND</h3>
+                <p class="empty-state-desc">Your search parameters did not return any gaming modules. Try resetting filters.</p>
+                <div class="empty-state-suggestions">
+                    <button class="empty-suggestion-btn" onclick="resetFilters()">Reset All Filters</button>
+                    <button class="empty-suggestion-btn" onclick="setSearchCategory('arcade')">Try Arcade</button>
+                    <button class="empty-suggestion-btn" onclick="setSearchCategory('3d')">Try 3D Scenes</button>
                 </div>
             </div>
 
-            <!-- Overtake -->
-            <div class="game-card live">
-                <a class="game-thumbnail" href="/games/html/overtake/index.html" aria-label="Play Overtake">
-                    <div class="thumb-bg thumb-overtake"></div>
-                    <div class="thumb-overlay">
-                        <div class="play-btn-circle">▶️</div>
-                    </div>
-                    <span class="live-badge">Live</span>
-                </a>
-                <div class="game-info">
-                    <h3 class="game-title">🏁 Overtake</h3>
-                    <p class="game-desc">Race through pseudo-3D routes, unlock faster cars, and use nitro boosts to fight for the podium.</p>
-                    <div class="game-tags">
-                        <span class="tag">Racing</span>
-                        <span class="tag">Arcade</span>
-                        <span class="tag">Canvas</span>
-                    </div>
-                    <a href="/games/html/overtake/index.html" class="btn-game">
-                        <span>🎮</span> Play Now
-                    </a>
-                </div>
-            </div>
-
-            <!-- AssassinAnimals -->
-            <div class="game-card live" data-compatibility="desktop-only" data-status="polished" data-visibility="featured">
-                <a class="game-thumbnail" href="/games/html/assassinanimals/index.html" aria-label="Play AssassinAnimals">
-                    <div class="thumb-bg" style="background: linear-gradient(135deg, #09090e 0%, #1e112a 50%, #ff0055 100%); display: flex; align-items: center; justify-content: center; font-size: 4.5rem;">🐱🦎💀</div>
-                    <div class="thumb-overlay">
-                        <div class="play-btn-circle">▶️</div>
-                    </div>
-                    <div class="game-badges">
-                        <span class="badge-compat">💻 Desktop Only</span>
-                        <span class="badge-status polished">✨ Polished</span>
-                    </div>
-                    <span class="featured-badge">Featured</span>
-                </a>
-                <div class="game-info">
-                    <h3 class="game-title">🕶️ AssassinAnimals</h3>
-                    <p class="game-desc">Control 9 mutated animal operatives in a stealth rogue-like complex. Evade vision cones, steal disguises, drag bodies, throw coin distractions, and assassinate VIP targets!</p>
-                    <div class="game-tags">
-                        <span class="tag">Stealth</span>
-                        <span class="tag">Rogue-like</span>
-                        <span class="tag">Action</span>
-                    </div>
-                    <a href="/games/html/assassinanimals/index.html" class="btn-game">
-                        <span>🎮</span> Play Now
-                    </a>
-                </div>
-            </div>
-
-            <!-- Battlesharks 2 -->
-            <div class="game-card live" data-compatibility="desktop-only" data-status="polished" data-visibility="featured">
-                <a class="game-thumbnail" href="/games/html/battlesharks2/index.html" aria-label="Play Battlesharks 2">
-                    <div class="thumb-bg" style="background: linear-gradient(135deg, #0b1a30 0%, #1e1b4b 50%, #00f2fe 100%); display: flex; align-items: center; justify-content: center; font-size: 4.5rem;">🦈</div>
-                    <div class="thumb-overlay">
-                        <div class="play-btn-circle">▶️</div>
-                    </div>
-                    <div class="game-badges">
-                        <span class="badge-compat">💻 Desktop Only</span>
-                        <span class="badge-status polished">✨ Polished</span>
-                    </div>
-                    <span class="featured-badge">Featured</span>
-                </a>
-                <div class="game-info">
-                    <h3 class="game-title">🦈 Battlesharks 2</h3>
-                    <p class="game-desc">Command a genetically modified combat shark in the BS-07 Aquarium Complex. Devour marine life, harvest cyber debris, and evolve cybernetic weapons!</p>
-                    <div class="game-tags">
-                        <span class="tag">Action</span>
-                        <span class="tag">Arcade</span>
-                        <span class="tag">Upgrade</span>
-                    </div>
-                    <a href="/games/html/battlesharks2/index.html" class="btn-game">
-                        <span>🎮</span> Play Now
-                    </a>
-                </div>
-            </div>
-
-            <!-- GraveGain2D -->
-            <div class="game-card live" data-compatibility="desktop-only" data-status="polished" data-visibility="featured">
-                <a class="game-thumbnail" href="/games/html/gravegain2d/index.html" aria-label="Play GraveGain2D">
-                    <div class="thumb-bg" style="background: linear-gradient(135deg, #180512 0%, #300a1c 50%, #902850 100%); display: flex; align-items: center; justify-content: center; font-size: 4.5rem;">👩‍🚀🧝‍♀️👹</div>
-                    <div class="thumb-overlay">
-                        <div class="play-btn-circle">▶️</div>
-                    </div>
-                    <div class="game-badges">
-                        <span class="badge-compat">💻 Desktop Only</span>
-                        <span class="badge-status polished">✨ Polished</span>
-                    </div>
-                    <span class="featured-badge">Featured</span>
-                </a>
-                <div class="game-info">
-                    <h3 class="game-title">⚔️ GraveGain2D</h3>
-                    <p class="game-desc">A premium 2D dark fantasy RPG action rogue-like. Explore procedurally generated layers, experience dynamic lighting, grow crops offline in the Botany Station, and manage your quarters.</p>
-                    <div class="game-tags">
-                        <span class="tag">Action</span>
-                        <span class="tag">RPG</span>
-                        <span class="tag">Rogue-like</span>
-                    </div>
-                    <a href="/games/html/gravegain2d/index.html" class="btn-game">
-                        <span>🎮</span> Play Now
-                    </a>
-                </div>
-            </div>
-
-            <!-- Demo Lich Dom -->
-            <div class="game-card live" data-compatibility="desktop-only" data-status="rough" data-visibility="visible">
-                <a class="game-thumbnail" href="/games/html/demolichdom/index.html" aria-label="Play Demo Lichdom">
-                    <img src="images/thumb_demolichdom.png" alt="Demo Lichdom game screenshot" onerror="this.style.display='none'">
-                    <div class="thumb-bg thumb-demolich"></div>
-                    <div class="thumb-overlay">
-                        <div class="play-btn-circle">▶️</div>
-                    </div>
-                    <div class="game-badges">
-                        <span class="badge-compat">💻 Desktop Only</span>
-                        <span class="badge-status rough">⚡ Rough</span>
-                    </div>
-                </a>
-                <div class="game-info">
-                    <h3 class="game-title">💀 Demo Lichdom</h3>
-                    <p class="game-desc">Navigate the treacherous politics of undead lords. Strategy and action combined in this dark fantasy adventure.</p>
-                    <div class="game-tags">
-                        <span class="tag">Strategy</span>
-                        <span class="tag">Action</span>
-                        <span class="tag">Dark Fantasy</span>
-                    </div>
-                    <a href="/games/html/demolichdom/index.html" class="btn-game">
-                        <span>🎮</span> Play Now
-                    </a>
-                </div>
-            </div>
-
-            <!-- Fridge Simulator -->
-            <div class="game-card live" data-compatibility="desktop-only" data-status="rough" data-visibility="visible">
-                <a class="game-thumbnail" href="/games/html/fridgesimulator/index.html" aria-label="Play Fridge Simulator">
-                    <img src="images/thumb_fridgesimulator.png" alt="Fridge Simulator game screenshot" onerror="this.style.display='none'">
-                    <div class="thumb-bg thumb-fridge"></div>
-                    <div class="thumb-overlay">
-                        <div class="play-btn-circle">▶️</div>
-                    </div>
-                    <div class="game-badges">
-                        <span class="badge-compat">💻 Desktop Only</span>
-                        <span class="badge-status rough">⚡ Rough</span>
-                    </div>
-                </a>
-                <div class="game-info">
-                    <h3 class="game-title">🥶 Fridge Simulator</h3>
-                    <p class="game-desc">Manage your fridge, feed your family, save the world. A quirky simulation game about household logistics and global impact.</p>
-                    <div class="game-tags">
-                        <span class="tag">Simulation</span>
-                        <span class="tag">Strategy</span>
-                        <span class="tag">Casual</span>
-                    </div>
-                    <a href="/games/html/fridgesimulator/index.html" class="btn-game">
-                        <span>🎮</span> Play Now
-                    </a>
-                </div>
-            </div>
-
-            <!-- Exit Waterfall Machine -->
-            <div class="game-card live" data-compatibility="mobile-desktop" data-status="polished" data-visibility="visible">
-                <a class="game-thumbnail" href="/games/html/venturemechanically/index.html" aria-label="Play Exit Waterfall Machine">
-                    <div class="thumb-bg" style="background: linear-gradient(135deg, #09090e 0%, #1e112a 50%, #00f2fe 100%); display: flex; align-items: center; justify-content: center; font-size: 3rem;">💧</div>
-                    <div class="thumb-overlay">
-                        <div class="play-btn-circle">▶️</div>
-                    </div>
-                    <div class="game-badges">
-                        <span class="badge-compat">📱+💻 Mobile &amp; PC</span>
-                        <span class="badge-status polished">💎 Polished</span>
-                    </div>
-                </a>
-                <div class="game-info">
-                    <h3 class="game-title">💧 Exit Waterfall Machine</h3>
-                    <p class="game-desc">An interactive cap table simulator. Learn why a large startup acquisition can leave founders and employees with absolutely nothing.</p>
-                    <div class="game-tags">
-                        <span class="tag">Simulation</span>
-                        <span class="tag">Strategy</span>
-                        <span class="tag">Educational</span>
-                    </div>
-                    <a href="/games/html/venturemechanically/index.html" class="btn-game">
-                        <span>🎮</span> Play Now
-                    </a>
-                </div>
-            </div>
-
-            <!-- Financial Freedom -->
-            <div class="game-card live" data-compatibility="mobile-desktop" data-status="polished" data-visibility="visible">
-                <a class="game-thumbnail" href="/games/html/financialfreedom/index.html" aria-label="Play Financial Freedom">
-                    <div class="thumb-bg" style="background: linear-gradient(135deg, #1e3a8a 0%, #0d9488 50%, #10b981 100%); display: flex; align-items: center; justify-content: center; font-size: 3rem;">💸</div>
-                    <div class="thumb-overlay">
-                        <div class="play-btn-circle">▶️</div>
-                    </div>
-                    <div class="game-badges">
-                        <span class="badge-compat">📱+💻 Mobile &amp; PC</span>
-                        <span class="badge-status polished">💎 Polished</span>
-                    </div>
-                </a>
-                <div class="game-info">
-                    <h3 class="game-title">💵 Financial Freedom</h3>
-                    <p class="game-desc">A deep, interactive finances simulator for a USA family. Navigate careers, taxes, debt, investments, real estate, and life events to achieve financial independence.</p>
-                    <div class="game-tags">
-                        <span class="tag">Simulation</span>
-                        <span class="tag">Strategy</span>
-                        <span class="tag">Finance</span>
-                    </div>
-                    <a href="/games/html/financialfreedom/index.html" class="btn-game">
-                        <span>🎮</span> Play Now
-                    </a>
-                </div>
-            </div>
-
-            <!-- Discover America -->
-            <div class="game-card live" data-compatibility="mobile-desktop" data-status="rough" data-visibility="visible">
-                <a class="game-thumbnail" href="/games/html/DiscoverAmerica/index.html" aria-label="Play Madi AI: Discover America">
-                    <img src="images/thumb_discoveramerica.png" alt="Discover America game screenshot" onerror="this.style.display='none'">
-                    <div class="thumb-bg thumb-discover"></div>
-                    <div class="thumb-overlay">
-                        <div class="play-btn-circle">▶️</div>
-                    </div>
-                    <div class="game-badges">
-                        <span class="badge-compat">📱+💻 Mobile &amp; PC</span>
-                        <span class="badge-status rough">⚡ Rough</span>
-                    </div>
-                </a>
-                <div class="game-info">
-                    <h3 class="game-title">🗽 Madi AI: Discover America</h3>
-                    <p class="game-desc">Explore American history through interactive puzzles and adventures. Educational gameplay meets engaging storytelling.</p>
-                    <div class="game-tags">
-                        <span class="tag">Adventure</span>
-                        <span class="tag">Puzzle</span>
-                        <span class="tag">Educational</span>
-                    </div>
-                    <a href="/games/html/DiscoverAmerica/index.html" class="btn-game">
-                        <span>🎮</span> Play Now
-                    </a>
-                </div>
-            </div>
-
-            <!-- Orbital Drift -->
-            <div class="game-card live" data-compatibility="desktop-only" data-status="polished" data-visibility="featured">
-                <a class="game-thumbnail" href="/games/html/orbitaldrift/index.html" aria-label="Play Orbital Drift">
-                    <div class="thumb-bg" style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0891b2 100%); display: flex; align-items: center; justify-content: center;">🛸</div>
-                    <div class="thumb-overlay">
-                        <div class="play-btn-circle">▶️</div>
-                    </div>
-                    <div class="game-badges">
-                        <span class="badge-compat">💻 Desktop Only</span>
-                        <span class="badge-status polished">✨ Polished</span>
-                    </div>
-                    <span class="featured-badge">Featured</span>
-                </a>
-                <div class="game-info">
-                    <h3 class="game-title">🛸 Orbital Drift</h3>
-                    <p class="game-desc">Control your orbit in a beautiful 3D space field. Collect golden stardust, dodge cosmic debris, and master the orbital rhythm!</p>
-                    <div class="game-tags">
-                        <span class="tag">Arcade</span>
-                        <span class="tag">3D</span>
-                        <span class="tag">Three.js</span>
-                    </div>
-                    <a href="/games/html/orbitaldrift/index.html" class="btn-game">
-                        <span>🎮</span> Play Now
-                    </a>
-                </div>
-            </div>
-
-            <!-- AI-whack-a-mole -->
-            <div class="game-card live" data-compatibility="desktop-only" data-status="polished" data-visibility="featured">
-                <a class="game-thumbnail" href="/games/html/aiwhackamole/index.html" aria-label="Play AI-whack-a-mole">
-                    <div class="thumb-bg" style="background: linear-gradient(135deg, #1e1b4b 0%, #311042 50%, #4c1d95 100%); display: flex; align-items: center; justify-content: center;">🤖</div>
-                    <div class="thumb-overlay">
-                        <div class="play-btn-circle">▶️</div>
-                    </div>
-                    <div class="game-badges">
-                        <span class="badge-compat">💻 Desktop Only</span>
-                        <span class="badge-status polished">✨ Polished</span>
-                    </div>
-                    <span class="featured-badge">Featured</span>
-                </a>
-                <div class="game-info">
-                    <h3 class="game-title">🤖 AI-whack-a-mole</h3>
-                    <p class="game-desc">Defend the server framework in immersive 3D! Whack the misaligned/dangerous AIs and spare the user-aligned ones.</p>
-                    <div class="game-tags">
-                        <span class="tag">Arcade</span>
-                        <span class="tag">3D</span>
-                        <span class="tag">Three.js</span>
-                    </div>
-                    <a href="/games/html/aiwhackamole/index.html" class="btn-game">
-                        <span>🎮</span> Play Now
-                    </a>
-                </div>
-            </div>
-
-            <!-- Sound Painter 2 -->
-            <div class="game-card live" data-compatibility="mobile-desktop" data-status="polished" data-visibility="featured">
-                <a class="game-thumbnail" href="/games/html/soundpainter2/index.html" aria-label="Play Sound Painter 2">
-                    <div class="thumb-bg" style="background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 50%, #d946ef 100%); display: flex; align-items: center; justify-content: center; font-size: 4.5rem;">🎹</div>
-                    <div class="thumb-overlay">
-                        <div class="play-btn-circle">▶️</div>
-                    </div>
-                    <div class="game-badges">
-                        <span class="badge-compat">📱+💻 Mobile &amp; PC</span>
-                        <span class="badge-status polished">✨ Polished</span>
-                    </div>
-                    <span class="featured-badge">Featured</span>
-                </a>
-                <div class="game-info">
-                    <h3 class="game-title">🎹 Sound Painter 2</h3>
-                    <p class="game-desc">An advanced, in-depth music production studio. Sequence custom synth lines, bass grooves, chords, and dynamic drums, tweak FX controls, and share compositions via URL.</p>
-                    <div class="game-tags">
-                        <span class="tag">Music Studio</span>
-                        <span class="tag">Creative</span>
-                        <span class="tag">Audio Synth</span>
-                    </div>
-                    <a href="/games/html/soundpainter2/index.html" class="btn-game">
-                        <span>🎹</span> Play Now
-                    </a>
-                </div>
-            </div>
-
-            <!-- Sound Painter -->
-            <div class="game-card live" data-compatibility="mobile-desktop" data-status="polished" data-visibility="featured">
-                <a class="game-thumbnail" href="/games/html/soundpainter/index.html" aria-label="Play Sound Painter">
-                    <div class="thumb-bg" style="background: linear-gradient(135deg, #2d1b4e 0%, #6b21a8 50%, #d946ef 100%); display: flex; align-items: center; justify-content: center; font-size: 4.5rem;">🎨</div>
-                    <div class="thumb-overlay">
-                        <div class="play-btn-circle">▶️</div>
-                    </div>
-                    <div class="game-badges">
-                        <span class="badge-compat">📱+💻 Mobile &amp; PC</span>
-                        <span class="badge-status polished">✨ Polished</span>
-                    </div>
-                    <span class="featured-badge">Featured</span>
-                </a>
-                <div class="game-info">
-                    <h3 class="game-title">🎨 Sound Painter</h3>
-                    <p class="game-desc">Click tiles to paint music and color. Create unique audio-visual patterns and explore infinite combinations of sound and art. No wrong answers, just pure creative expression.</p>
-                    <div class="game-tags">
-                        <span class="tag">Music</span>
-                        <span class="tag">Creative</span>
-                        <span class="tag">Art</span>
-                    </div>
-                    <a href="/games/html/soundpainter/index.html" class="btn-game">
-                        <span>🎨</span> Play Now
-                    </a>
-                </div>
-            </div>
-
-            <!-- Template Demo -->
-            <div class="game-card" data-compatibility="mobile-desktop" data-status="prototype" data-visibility="visible">
-                <a class="game-thumbnail" href="/games/html/template-demo/index.html" aria-label="View Template Demo">
-                    <img src="images/thumb_templatedemo.png" alt="Template Demo screenshot" onerror="this.style.display='none'">
-                    <div class="thumb-bg thumb-template"></div>
-                    <div class="thumb-overlay">
-                        <div class="play-btn-circle">▶️</div>
-                    </div>
-                    <div class="game-badges">
-                        <span class="badge-compat">📱+💻 Mobile &amp; PC</span>
-                        <span class="badge-status prototype">🧪 Prototype</span>
-                    </div>
-                </a>
-                <div class="game-info">
-                    <h3 class="game-title">📋 Template Demo</h3>
-                    <p class="game-desc">See how 4weird games work. A complete example showing the standardized structure, shared components, credits, and maker bio sections.</p>
-                    <div class="game-tags">
-                        <span class="tag">HTML5</span>
-                        <span class="tag">Demo</span>
-                        <span class="tag">Reference</span>
-                    </div>
-                    <a href="/games/html/template-demo/index.html" class="btn-game" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
-                        <span>📋</span> View Template
-                    </a>
-                </div>
-            </div>
-
-            <!-- MADI AI Adventure Series -->
-            <div class="game-card live" data-compatibility="desktop-only" data-status="polished" data-visibility="featured">
-                <a class="game-thumbnail" href="/games/html/madi/" aria-label="Play MADI AI Adventure Series">
-                    <div class="thumb-bg" style="background: linear-gradient(135deg, #06050b 0%, #1e1b4b 50%, #8b5cf6 100%); display: flex; align-items: center; justify-content: center; font-size: 4.5rem;">🦁</div>
-                    <div class="thumb-overlay">
-                        <div class="play-btn-circle">▶️</div>
-                    </div>
-                    <div class="game-badges">
-                        <span class="badge-compat">💻 Desktop Only</span>
-                        <span class="badge-status polished">✨ Polished</span>
-                    </div>
-                    <span class="featured-badge">Featured</span>
-                </a>
-                <div class="game-info">
-                    <h3 class="game-title">🦁 MADI AI Adventure Series</h3>
-                    <p class="game-desc">10 interactive 3D browser games powered by Three.js. Navigate pipelines, solve bottlenecks, scale mountains, and build market leadership in this AI-themed adventure collection.</p>
-                    <div class="game-tags">
-                        <span class="tag">3D</span>
-                        <span class="tag">Adventure</span>
-                        <span class="tag">Strategy</span>
-                        <span class="tag">10 Games</span>
-                    </div>
-                    <a href="/games/html/madi/" class="btn-game" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
-                        <span>🎮</span> View All MADI Games
-                    </a>
-                </div>
-            </div>
-
-            <!-- Neon Arcade Series by KouziTech -->
-            <div class="game-card live" data-compatibility="mobile-desktop" data-status="prototype" data-visibility="featured">
-                <a class="game-thumbnail" href="/games/html/kouzi/" aria-label="Play Neon Arcade Series">
-                    <div class="thumb-bg" style="background: linear-gradient(135deg, #0a0a1a 0%, #0ff 50%, #f0f 100%); display: flex; align-items: center; justify-content: center; font-size: 4.5rem;">⚡</div>
-                    <div class="thumb-overlay">
-                        <div class="play-btn-circle">▶️</div>
-                    </div>
-                    <div class="game-badges">
-                        <span class="badge-compat">📱+💻 Mobile &amp; PC</span>
-                        <span class="badge-status prototype">🔬 Prototype</span>
-                    </div>
-                    <span class="featured-badge">NEW</span>
-                </a>
-                <div class="game-info">
-                    <h3 class="game-title">⚡ Neon Arcade Series</h3>
-                    <p class="game-desc">5 classic arcade games reimagined with stunning cyberpunk neon visuals. Snake, Breakout, Invaders, Runner, and Racing — all in pure HTML5 with no downloads required.</p>
-                    <div class="game-tags">
-                        <span class="tag">Arcade</span>
-                        <span class="tag">Neon</span>
-                        <span class="tag">HTML5</span>
-                        <span class="tag">5 Games</span>
-                    </div>
-                    <a href="/games/html/kouzi/" class="btn-game" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">
-                        <span>🎮</span> View All Neon Games
-                    </a>
-                </div>
-            </div>
-
+            <!-- Game cards injected dynamically -->
         </div>
-    </main>
+
+        <div class="load-more-container" id="loadMoreContainer">
+            <button class="load-more-btn" id="loadMoreBtn">LOAD NEXT MODULES</button>
+        </div>
+    </section>
+
+    <!-- Recommendations Section ("You might also like") -->
+    <section class="recommendations-section" id="recommendationsSection">
+        <div class="section-header-row" style="margin-bottom: 30px;">
+            <h2 class="section-title">You Might Also Like</h2>
+        </div>
+        <div class="games-grid" id="recommendationsGrid">
+            <!-- Recommended cards injected dynamically -->
+        </div>
+    </section>
 
     <footer class="games-footer">
         <p>🎮 4weird Games - A <a href="https://mattyjacks.com" target="_blank" rel="noopener">MattyJacks.com</a> Company</p>
@@ -983,88 +1252,744 @@
         <p style="margin-top: 10px;">Made with 💜 in New Hampshire</p>
     </footer>
 
-    <!-- Filter JS -->
+    <!-- Vanilla Javascript Logic -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const grid = document.getElementById('gamesGrid');
-            const cardsArray = Array.from(grid.querySelectorAll('.game-card'));
-            
-            // Shuffle cards randomly on every load
-            for (let i = cardsArray.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                const temp = cardsArray[i];
-                cardsArray[i] = cardsArray[j];
-                cardsArray[j] = temp;
+        const GAMES_DATA = [
+            {
+                title: "Server Saver Shield",
+                path: "/games/html/serversavershield/index.html",
+                description: "Defend servers from cyber attacks! Strategic security management meets arcade shooter. Hire staff, upgrade weapons, survive 10 waves.",
+                categories: ["Arcade", "Action", "Strategy"],
+                tags: ["Arcade", "Shooter", "Strategy", "Cyberpunk"],
+                rating: 4.8,
+                playCount: 12500,
+                releaseDate: "2026-05-10",
+                featured: true,
+                compatibility: "mobile-desktop",
+                status: "polished",
+                emoji: "🛡️",
+                image: "images/thumb_serversavershield.png"
+            },
+            {
+                title: "Overtake",
+                path: "/games/html/overtake/index.html",
+                description: "Race through pseudo-3D routes, unlock faster cars, and use nitro boosts to fight for the podium.",
+                categories: ["Racing", "Arcade"],
+                tags: ["Racing", "Arcade", "Canvas", "3D"],
+                rating: 4.5,
+                playCount: 8200,
+                releaseDate: "2026-04-12",
+                featured: false,
+                compatibility: "mobile-desktop",
+                status: "polished",
+                emoji: "🏁",
+                image: ""
+            },
+            {
+                title: "AssassinAnimals",
+                path: "/games/html/assassinanimals/index.html",
+                description: "Control 9 mutated animal operatives in a stealth rogue-like complex. Evade vision cones, steal disguises, drag bodies, throw coin distractions, and assassinate VIP targets!",
+                categories: ["Action", "Strategy"],
+                tags: ["Stealth", "Rogue-like", "Action"],
+                rating: 4.9,
+                playCount: 15100,
+                releaseDate: "2026-06-01",
+                featured: true,
+                compatibility: "desktop-only",
+                status: "polished",
+                emoji: "🕶️",
+                image: ""
+            },
+            {
+                title: "Battlesharks 2",
+                path: "/games/html/battlesharks2/index.html",
+                description: "Command a genetically modified combat shark in the BS-07 Aquarium Complex. Devour marine life, harvest cyber debris, and evolve cybernetic weapons!",
+                categories: ["Action", "Arcade"],
+                tags: ["Action", "Arcade", "Upgrade"],
+                rating: 4.7,
+                playCount: 9800,
+                releaseDate: "2026-05-20",
+                featured: true,
+                compatibility: "desktop-only",
+                status: "polished",
+                emoji: "🦈",
+                image: ""
+            },
+            {
+                title: "GraveGain2D",
+                path: "/games/html/gravegain2d/index.html",
+                description: "A premium 2D dark fantasy RPG action rogue-like. Explore procedurally generated layers, experience dynamic lighting, grow crops offline in the Botany Station, and manage your quarters.",
+                categories: ["Action", "Strategy"],
+                tags: ["Action", "RPG", "Rogue-like"],
+                rating: 4.8,
+                playCount: 11200,
+                releaseDate: "2026-06-08",
+                featured: true,
+                compatibility: "desktop-only",
+                status: "polished",
+                emoji: "⚔️",
+                image: ""
+            },
+            {
+                title: "GraveGain3D",
+                path: "/games/html/gravegain3d/index.html",
+                description: "A dark fantasy action RPG featuring emoji-based 3D billboard visuals, immersive real-time lighting, procedural dungeons, dialogue system, and space management.",
+                categories: ["Action", "3D"],
+                tags: ["Action", "RPG", "Rogue-like", "Three.js", "3D"],
+                rating: 4.9,
+                playCount: 7400,
+                releaseDate: "2026-06-11",
+                featured: false,
+                compatibility: "desktop-only",
+                status: "polished",
+                emoji: "🏰",
+                image: ""
+            },
+            {
+                title: "Demo Lichdom",
+                path: "/games/html/demolichdom/index.html",
+                description: "Navigate the treacherous politics of undead lords. Strategy and action combined in this dark fantasy adventure.",
+                categories: ["Strategy", "Action"],
+                tags: ["Strategy", "Action", "Dark Fantasy"],
+                rating: 4.2,
+                playCount: 3100,
+                releaseDate: "2026-03-15",
+                featured: false,
+                compatibility: "desktop-only",
+                status: "rough",
+                emoji: "💀",
+                image: "images/thumb_demolichdom.png"
+            },
+            {
+                title: "Fridge Simulator",
+                path: "/games/html/fridgesimulator/index.html",
+                description: "Manage your fridge, feed your family, save the world. A quirky simulation game about household logistics and global impact.",
+                categories: ["Strategy", "Creative"],
+                tags: ["Simulation", "Strategy", "Casual"],
+                rating: 4.4,
+                playCount: 5500,
+                releaseDate: "2026-04-20",
+                featured: false,
+                compatibility: "desktop-only",
+                status: "rough",
+                emoji: "🥶",
+                image: "images/thumb_fridgesimulator.png"
+            },
+            {
+                title: "Exit Waterfall Machine",
+                path: "/games/html/venturemechanically/index.html",
+                description: "An interactive cap table simulator. Learn why a large startup acquisition can leave founders and employees with absolutely nothing.",
+                categories: ["Strategy", "Accessible"],
+                tags: ["Simulation", "Strategy", "Educational", "Accessible"],
+                rating: 4.7,
+                playCount: 6700,
+                releaseDate: "2026-06-17",
+                featured: false,
+                compatibility: "mobile-desktop",
+                status: "polished",
+                emoji: "💧",
+                image: ""
+            },
+            {
+                title: "Financial Freedom",
+                path: "/games/html/financialfreedom/index.html",
+                description: "A deep, interactive finances simulator for a USA family. Navigate careers, taxes, debt, investments, real estate, and life events to achieve financial independence.",
+                categories: ["Strategy", "Accessible"],
+                tags: ["Simulation", "Strategy", "Finance", "Accessible"],
+                rating: 4.9,
+                playCount: 14300,
+                releaseDate: "2026-06-17",
+                featured: false,
+                compatibility: "mobile-desktop",
+                status: "polished",
+                emoji: "💵",
+                image: ""
+            },
+            {
+                title: "Madi AI: Discover America",
+                path: "/games/html/DiscoverAmerica/index.html",
+                description: "Explore American history through interactive puzzles and adventures. Educational gameplay meets engaging storytelling.",
+                categories: ["Puzzle", "Accessible"],
+                tags: ["Adventure", "Puzzle", "Educational", "Accessible"],
+                rating: 4.3,
+                playCount: 4200,
+                releaseDate: "2026-06-12",
+                featured: false,
+                compatibility: "mobile-desktop",
+                status: "rough",
+                emoji: "🗽",
+                image: "images/thumb_discoveramerica.png"
+            },
+            {
+                title: "Orbital Drift",
+                path: "/games/html/orbitaldrift/index.html",
+                description: "Control your orbit in a beautiful 3D space field. Collect golden stardust, dodge cosmic debris, and master the orbital rhythm!",
+                categories: ["Arcade", "3D"],
+                tags: ["Arcade", "3D", "Three.js"],
+                rating: 4.6,
+                playCount: 10500,
+                releaseDate: "2026-05-30",
+                featured: true,
+                compatibility: "desktop-only",
+                status: "polished",
+                emoji: "🛸",
+                image: ""
+            },
+            {
+                title: "AI Whack-a-Mole",
+                path: "/games/html/aiwhackamole/index.html",
+                description: "Defend the server framework in immersive 3D! Whack the misaligned/dangerous AIs and spare the user-aligned ones.",
+                categories: ["Arcade", "3D"],
+                tags: ["Arcade", "3D", "Three.js"],
+                rating: 4.5,
+                playCount: 8900,
+                releaseDate: "2026-06-05",
+                featured: true,
+                compatibility: "desktop-only",
+                status: "polished",
+                emoji: "🤖",
+                image: ""
+            },
+            {
+                title: "Sound Painter 2",
+                path: "/games/html/soundpainter2/index.html",
+                description: "An advanced, in-depth music production studio. Sequence custom synth lines, bass grooves, chords, and dynamic drums, tweak FX controls.",
+                categories: ["Creative", "Accessible"],
+                tags: ["Music Studio", "Creative", "Audio Synth", "Accessible"],
+                rating: 4.8,
+                playCount: 16200,
+                releaseDate: "2026-06-03",
+                featured: true,
+                compatibility: "mobile-desktop",
+                status: "polished",
+                emoji: "🎹",
+                image: ""
+            },
+            {
+                title: "Sound Painter",
+                path: "/games/html/soundpainter/index.html",
+                description: "Click tiles to paint music and color. Create unique audio-visual patterns and explore infinite combinations of sound and art.",
+                categories: ["Creative", "Accessible"],
+                tags: ["Music", "Creative", "Art", "Accessible"],
+                rating: 4.7,
+                playCount: 19400,
+                releaseDate: "2026-02-10",
+                featured: true,
+                compatibility: "mobile-desktop",
+                status: "polished",
+                emoji: "🎨",
+                image: ""
+            },
+            {
+                title: "Template Demo",
+                path: "/games/html/template-demo/index.html",
+                description: "See how 4weird games work. A complete example showing the standardized structure, shared components, credits, and maker bio sections.",
+                categories: ["Creative"],
+                tags: ["HTML5", "Demo", "Reference"],
+                rating: 4.0,
+                playCount: 1200,
+                releaseDate: "2026-01-01",
+                featured: false,
+                compatibility: "mobile-desktop",
+                status: "prototype",
+                emoji: "📋",
+                image: "images/thumb_templatedemo.png"
+            },
+            {
+                title: "MADI AI Adventure Series",
+                path: "/games/html/madi/",
+                description: "10 interactive 3D browser games powered by Three.js. Navigate pipelines, solve bottlenecks, scale mountains, and build market leadership.",
+                categories: ["Action", "3D", "Strategy"],
+                tags: ["3D", "Adventure", "Strategy", "10 Games"],
+                rating: 4.9,
+                playCount: 22100,
+                releaseDate: "2026-06-16",
+                featured: true,
+                compatibility: "desktop-only",
+                status: "polished",
+                emoji: "🦁",
+                image: ""
+            },
+            {
+                title: "Neon Arcade Series",
+                path: "/games/html/kouzi/",
+                description: "5 classic arcade games reimagined with stunning cyberpunk neon visuals. Snake, Breakout, Invaders, Runner, and Racing.",
+                categories: ["Arcade", "Neon Series"],
+                tags: ["Arcade", "Neon", "HTML5", "5 Games"],
+                rating: 4.8,
+                playCount: 25500,
+                releaseDate: "2026-06-18",
+                featured: true,
+                compatibility: "mobile-desktop",
+                status: "polished",
+                emoji: "⚡",
+                image: ""
+            },
+            {
+                title: "FriendSlop",
+                path: "/games/html/friendslop/index.html",
+                description: "Feed your friends chaotic slop and dodge cringe. A meme-forward arcade game about vibes, combos, and absurd physics.",
+                categories: ["Arcade", "Action"],
+                tags: ["HTML5", "Action", "Arcade", "Multiplayer", "Casual"],
+                rating: 4.6,
+                playCount: 4500,
+                releaseDate: "2026-06-15",
+                featured: false,
+                compatibility: "mobile-desktop",
+                status: "polished",
+                emoji: "🐷",
+                image: ""
             }
-            
-            // Re-append cards in shuffled order
-            cardsArray.forEach(card => grid.appendChild(card));
+        ];
 
-            const compatFilter = document.getElementById('filter-compat');
-            const statusFilter = document.getElementById('filter-status');
-            const visibilityFilter = document.getElementById('filter-visibility');
+        // State variables
+        let activeCategories = new Set();
+        let searchKeyword = "";
+        let sortBy = "popular";
+        let filterCompat = "all";
+        let filterStatus = "all";
+        let displayLimit = 6;
+        const itemsPerPage = 6;
+
+        // Carousel state
+        let currentCarouselIndex = 0;
+        let carouselInterval = null;
+        let featuredGames = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Setup featured carousel
+            setupCarousel();
+
+            // Setup Event Listeners
+            document.getElementById('searchInput').addEventListener('input', handleSearch);
+            document.getElementById('searchClearBtn').addEventListener('click', clearSearch);
+            document.getElementById('sortSelect').addEventListener('change', handleSort);
+            document.getElementById('filter-compat').addEventListener('change', handleCompatFilter);
+            document.getElementById('filter-status').addEventListener('change', handleStatusFilter);
+            document.getElementById('loadMoreBtn').addEventListener('click', loadMoreGames);
+
+            // Category buttons setup
+            const catChips = document.querySelectorAll('.category-chip');
+            catChips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    const category = chip.getAttribute('data-category');
+                    toggleCategory(category, chip);
+                });
+            });
+
+            // Initial Render
+            renderGamesList();
+        });
+
+        // Setup Carousel
+        function setupCarousel() {
+            featuredGames = GAMES_DATA.filter(g => g.featured);
+            const track = document.getElementById('carouselTrack');
+            const indicatorsContainer = document.getElementById('carouselIndicators');
+            
+            track.innerHTML = "";
+            indicatorsContainer.innerHTML = "";
+
+            featuredGames.forEach((game, idx) => {
+                // Determine grad class
+                const slug = game.title.replace(/[^a-zA-Z0-9]/g, '').toLowerCase().substring(0, 12);
+                
+                const slide = document.createElement('a');
+                slide.className = "carousel-slide";
+                slide.href = game.path;
+                
+                let thumbContent = "";
+                if (game.image) {
+                    thumbContent = `<img src="${game.image}" class="carousel-img" alt="${game.title}" onerror="this.parentElement.innerHTML='<div class=&quot;carousel-img-fallback grad-${slug}&quot;>${game.emoji}</div>'">`;
+                } else {
+                    thumbContent = `<div class="carousel-img-fallback grad-${slug}">${game.emoji}</div>`;
+                }
+
+                slide.innerHTML = `
+                    <div class="carousel-img-wrapper">
+                        ${thumbContent}
+                    </div>
+                    <div class="carousel-slide-info">
+                        <span class="carousel-badge">Featured Game</span>
+                        <h3 class="carousel-title">${game.title}</h3>
+                        <p class="carousel-desc">${game.description}</p>
+                        <div class="carousel-meta">
+                            <span><strong class="carousel-meta-icon">⭐</strong> ${game.rating.toFixed(1)} Rating</span>
+                            <span><strong class="carousel-meta-icon">👁️</strong> ${(game.playCount / 1000).toFixed(1)}k Plays</span>
+                            <span><strong class="carousel-meta-icon">💻</strong> ${game.compatibility === 'mobile-desktop' ? 'Mobile + PC' : 'PC Only'}</span>
+                        </div>
+                        <span class="carousel-btn-play">🕹️ PLAY MODULE</span>
+                    </div>
+                `;
+                track.appendChild(slide);
+
+                // Dot indicator
+                const dot = document.createElement('div');
+                dot.className = `carousel-dot ${idx === 0 ? 'active' : ''}`;
+                dot.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    setCarouselIndex(idx);
+                });
+                indicatorsContainer.appendChild(dot);
+            });
+
+            // Setup buttons
+            document.getElementById('carousel-prev').addEventListener('click', () => {
+                navigateCarousel(-1);
+            });
+            document.getElementById('carousel-next').addEventListener('click', () => {
+                navigateCarousel(1);
+            });
+
+            startCarouselAutoPlay();
+        }
+
+        function setCarouselIndex(idx) {
+            const track = document.getElementById('carouselTrack');
+            const dots = document.querySelectorAll('.carousel-dot');
+            currentCarouselIndex = idx;
+            
+            track.style.transform = `translateX(-${currentCarouselIndex * 100}%)`;
+            
+            dots.forEach((dot, index) => {
+                if (index === currentCarouselIndex) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+            
+            // Reset autoplay timer
+            startCarouselAutoPlay();
+        }
+
+        function navigateCarousel(direction) {
+            if (featuredGames.length === 0) return;
+            let targetIdx = currentCarouselIndex + direction;
+            if (targetIdx < 0) {
+                targetIdx = featuredGames.length - 1;
+            } else if (targetIdx >= featuredGames.length) {
+                targetIdx = 0;
+            }
+            setCarouselIndex(targetIdx);
+        }
+
+        function startCarouselAutoPlay() {
+            if (carouselInterval) clearInterval(carouselInterval);
+            carouselInterval = setInterval(() => {
+                navigateCarousel(1);
+            }, 6000);
+        }
+
+        // Filtering Actions
+        function handleSearch(e) {
+            searchKeyword = e.target.value.toLowerCase().trim();
+            const clearBtn = document.getElementById('searchClearBtn');
+            clearBtn.style.display = searchKeyword ? 'block' : 'none';
+            displayLimit = itemsPerPage;
+            renderGamesList();
+        }
+
+        function clearSearch() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.value = "";
+            searchKeyword = "";
+            document.getElementById('searchClearBtn').style.display = 'none';
+            displayLimit = itemsPerPage;
+            renderGamesList();
+        }
+
+        function handleSort(e) {
+            sortBy = e.target.value;
+            renderGamesList();
+        }
+
+        function handleCompatFilter(e) {
+            filterCompat = e.target.value;
+            displayLimit = itemsPerPage;
+            renderGamesList();
+        }
+
+        function handleStatusFilter(e) {
+            filterStatus = e.target.value;
+            displayLimit = itemsPerPage;
+            renderGamesList();
+        }
+
+        function toggleCategory(category, buttonEl) {
+            displayLimit = itemsPerPage;
+            const allChip = document.querySelector('.category-chip[data-category="all"]');
+
+            if (category === "all") {
+                activeCategories.clear();
+                document.querySelectorAll('.category-chip').forEach(chip => chip.classList.remove('active'));
+                allChip.classList.add('active');
+            } else {
+                allChip.classList.remove('active');
+                if (activeCategories.has(category)) {
+                    activeCategories.delete(category);
+                    buttonEl.classList.remove('active');
+                } else {
+                    activeCategories.add(category);
+                    buttonEl.classList.add('active');
+                }
+
+                // If nothing is selected, default back to all
+                if (activeCategories.size === 0) {
+                    allChip.classList.add('active');
+                }
+            }
+            renderGamesList();
+        }
+
+        function resetFilters() {
+            activeCategories.clear();
+            searchKeyword = "";
+            filterCompat = "all";
+            filterStatus = "all";
+            sortBy = "popular";
+            displayLimit = itemsPerPage;
+
+            // Update UI elements
+            document.getElementById('searchInput').value = "";
+            document.getElementById('searchClearBtn').style.display = 'none';
+            document.getElementById('sortSelect').value = "popular";
+            document.getElementById('filter-compat').value = "all";
+            document.getElementById('filter-status').value = "all";
+
+            document.querySelectorAll('.category-chip').forEach(chip => {
+                if (chip.getAttribute('data-category') === 'all') {
+                    chip.classList.add('active');
+                } else {
+                    chip.classList.remove('active');
+                }
+            });
+
+            renderGamesList();
+        }
+
+        function setSearchCategory(cat) {
+            resetFilters();
+            const chip = document.querySelector(`.category-chip[data-category="${cat}"]`);
+            if (chip) {
+                toggleCategory(cat, chip);
+            }
+        }
+
+        function loadMoreGames() {
+            displayLimit += itemsPerPage;
+            renderGamesList();
+        }
+
+        // Master Render function
+        function renderGamesList() {
+            const grid = document.getElementById('gamesGrid');
             const visibleCountEl = document.getElementById('visible-count');
             const totalCountEl = document.getElementById('total-count');
-            const cards = document.querySelectorAll('.game-card');
+            const loadMoreBtn = document.getElementById('loadMoreContainer');
+            const emptyState = document.getElementById('emptyState');
+            
+            // Remove previous cards except loader and empty state
+            const previousCards = grid.querySelectorAll('.game-card');
+            previousCards.forEach(card => card.remove());
 
-            totalCountEl.textContent = cards.length;
+            // 1. Filter
+            let filtered = GAMES_DATA.filter(game => {
+                // Category match (if categories are selected, game must match at least one)
+                let categoryMatch = true;
+                if (activeCategories.size > 0) {
+                    categoryMatch = game.categories.some(cat => activeCategories.has(cat.toLowerCase()));
+                }
 
-            function applyFilters() {
-                const compatValue = compatFilter.value;
-                const statusValue = statusFilter.value;
-                const visibilityValue = visibilityFilter.value;
+                // Search keyword match
+                let searchMatch = true;
+                if (searchKeyword) {
+                    const titleMatch = game.title.toLowerCase().includes(searchKeyword);
+                    const descMatch = game.description.toLowerCase().includes(searchKeyword);
+                    const tagsMatch = game.tags.some(tag => tag.toLowerCase().includes(searchKeyword));
+                    searchMatch = titleMatch || descMatch || tagsMatch;
+                }
 
-                let visibleCount = 0;
+                // Device Compatibility match
+                let compatMatch = true;
+                if (filterCompat !== "all") {
+                    compatMatch = game.compatibility === filterCompat;
+                }
 
-                cards.forEach(card => {
-                    const cardCompat = card.getAttribute('data-compatibility');
-                    const cardStatus = card.getAttribute('data-status');
-                    const cardVisibility = card.getAttribute('data-visibility');
+                // Status match
+                let statusMatch = true;
+                if (filterStatus !== "all") {
+                    statusMatch = game.status === filterStatus;
+                }
 
-                    let compatMatch = compatValue === 'all' || cardCompat === compatValue;
-                    
-                    let statusMatch = false;
-                    if (statusValue === 'all') {
-                        statusMatch = true;
-                    } else if (statusValue === 'polished') {
-                        statusMatch = cardStatus === 'polished';
-                    } else if (statusValue === 'rough') {
-                        statusMatch = cardStatus === 'rough';
-                    } else if (statusValue === 'prototype') {
-                        statusMatch = cardStatus === 'prototype';
-                    } else if (statusValue === 'broken') {
-                        statusMatch = cardStatus === 'broken';
-                    }
-                    
-                    let visibilityMatch = false;
-                    if (visibilityValue === 'all') {
-                        visibilityMatch = true;
-                    } else if (visibilityValue === 'featured') {
-                        visibilityMatch = cardVisibility === 'featured';
-                    } else if (visibilityValue === 'visible') {
-                        visibilityMatch = cardVisibility === 'visible' || cardVisibility === 'featured';
-                    } else if (visibilityValue === 'hidden') {
-                        visibilityMatch = cardVisibility === 'hidden';
-                    }
+                return categoryMatch && searchMatch && compatMatch && statusMatch;
+            });
 
-                    if (compatMatch && statusMatch && visibilityMatch) {
-                        card.style.display = '';
-                        visibleCount++;
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
+            // 2. Sort
+            filtered.sort((a, b) => {
+                if (sortBy === "popular") {
+                    return b.playCount - a.playCount;
+                } else if (sortBy === "rated") {
+                    return b.rating - a.rating;
+                } else if (sortBy === "newest") {
+                    return new Date(b.releaseDate) - new Date(a.releaseDate);
+                } else if (sortBy === "alpha") {
+                    return a.title.localeCompare(b.title);
+                }
+                return 0;
+            });
 
-                visibleCountEl.textContent = visibleCount;
+            // Update Counts
+            visibleCountEl.textContent = Math.min(displayLimit, filtered.length);
+            totalCountEl.textContent = GAMES_DATA.length;
+
+            // Handle empty state
+            if (filtered.length === 0) {
+                emptyState.style.display = "block";
+                loadMoreBtn.style.display = "none";
+                document.getElementById('recommendationsSection').classList.remove('active');
+                return;
+            } else {
+                emptyState.style.display = "none";
             }
 
-            compatFilter.addEventListener('change', applyFilters);
-            statusFilter.addEventListener('change', applyFilters);
-            visibilityFilter.addEventListener('change', applyFilters);
+            // Slice for pagination
+            const paginated = filtered.slice(0, displayLimit);
 
-            // Run initial check
-            applyFilters();
-        });
+            // Create and append game cards
+            paginated.forEach(game => {
+                const card = createGameCard(game);
+                grid.appendChild(card);
+            });
+
+            // Hide/Show Load More
+            if (filtered.length > displayLimit) {
+                loadMoreBtn.style.display = "flex";
+            } else {
+                loadMoreBtn.style.display = "none";
+            }
+
+            // Update recommendations
+            renderRecommendations(filtered);
+        }
+
+        // Create HTML structure for a Game Card
+        function createGameCard(game) {
+            const card = document.createElement('div');
+            const isPolished = game.status === 'polished';
+            
+            // Custom card color variants (live neon glow matches compatibility)
+            card.className = `game-card ${game.compatibility === 'mobile-desktop' ? 'live-card' : ''}`;
+
+            // Check if game is within 14 days of current date (2026-06-18)
+            const releaseDate = new Date(game.releaseDate);
+            const currentDate = new Date("2026-06-18");
+            const timeDiff = Math.abs(currentDate.getTime() - releaseDate.getTime());
+            const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+            const isRecent = diffDays <= 14;
+
+            // Generate clean slugs for fallback gradient classes
+            const slug = game.title.replace(/[^a-zA-Z0-9]/g, '').toLowerCase().substring(0, 12);
+
+            let thumbContent = "";
+            if (game.image) {
+                thumbContent = `<img src="${game.image}" class="game-card-img" alt="${game.title}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                                <div class="game-card-fallback-thumb grad-${slug}" style="display:none;">${game.emoji}</div>`;
+            } else {
+                thumbContent = `<div class="game-card-fallback-thumb grad-${slug}">${game.emoji}</div>`;
+            }
+
+            // Format tags
+            const tagsHTML = game.tags.map(t => `<span class="tag-pill">${t}</span>`).join('');
+
+            // Set up top badges
+            let badgesLeftHTML = "";
+            if (game.featured) {
+                badgesLeftHTML += `<span class="featured-pill">Featured</span>`;
+            }
+            if (isRecent) {
+                badgesLeftHTML += `<span class="new-pill">NEW</span>`;
+            }
+
+            const compatLabel = game.compatibility === 'mobile-desktop' ? '📱+💻 Multi' : '💻 PC';
+            
+            card.innerHTML = `
+                <div class="game-card-thumb-wrapper">
+                    ${thumbContent}
+                    <div class="card-play-overlay">
+                        <div class="card-play-btn">▶</div>
+                    </div>
+                    <div class="card-badge-top-left">
+                        ${badgesLeftHTML}
+                    </div>
+                    <div class="card-badge-top-right">
+                        <span class="compat-pill">${compatLabel}</span>
+                    </div>
+                </div>
+                <div class="game-card-content">
+                    <h3 class="game-card-title">${game.title}</h3>
+                    <p class="game-card-desc">${game.description}</p>
+                    <div class="game-card-tags">
+                        ${tagsHTML}
+                    </div>
+                    <div class="game-card-footer">
+                        <div class="card-stats">
+                            <div class="card-stat-item">
+                                <span class="star-icon">⭐</span>
+                                <strong>${game.rating.toFixed(1)}</strong>
+                            </div>
+                            <div class="card-stat-item">
+                                <span class="play-icon">👁️</span>
+                                <span>${(game.playCount / 1000).toFixed(1)}k</span>
+                            </div>
+                        </div>
+                        <a href="${game.path}" class="card-action-btn">PLAY</a>
+                    </div>
+                </div>
+            `;
+
+            // Make whole card clickable, excluding the play link if clicked directly
+            card.style.cursor = "pointer";
+            card.addEventListener('click', (e) => {
+                if (e.target.tagName !== 'A') {
+                    window.location.href = game.path;
+                }
+            });
+
+            return card;
+        }
+
+        // Render Recommendations based on dynamic relevance
+        function renderRecommendations(currentlyVisible) {
+            const section = document.getElementById('recommendationsSection');
+            const grid = document.getElementById('recommendationsGrid');
+            grid.innerHTML = "";
+
+            if (GAMES_DATA.length <= 3) {
+                section.classList.remove('active');
+                return;
+            }
+
+            // Exclude games that are currently shown in the main view
+            const currentlyVisibleTitles = new Set(currentlyVisible.slice(0, displayLimit).map(g => g.title));
+            const pool = GAMES_DATA.filter(g => !currentlyVisibleTitles.has(g.title));
+
+            if (pool.length === 0) {
+                section.classList.remove('active');
+                return;
+            }
+
+            // Sort pool by highest rating or pick random matching ones
+            const sortedPool = [...pool].sort((a, b) => b.rating - a.rating);
+            const selected = sortedPool.slice(0, 3);
+
+            selected.forEach(game => {
+                const card = createGameCard(game);
+                grid.appendChild(card);
+            });
+
+            section.classList.add('active');
+        }
     </script>
 </body>
 </html>

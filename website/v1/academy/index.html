@@ -3,315 +3,1231 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>4weird Academy - Learn AI Coding & Game Development</title>
-    <meta name="description" content="4weird Academy: Remote coding camp for kids, teens, and adults. Learn AI, web development, game making, and business skills. Expert instructors from around the world.">
-    <meta name="keywords" content="coding camp, AI education, game development, web development, remote learning, kids coding">
-    <meta property="og:title" content="4weird Academy - Learn AI Coding & Game Development">
-    <meta property="og:description" content="Remote coding camp teaching AI, web development, game making, and business skills.">
+    <title>4weird Academy - Decode Your Future</title>
+    <meta name="description" content="4weird Academy: Remote coding camp for kids, teens, and adults. Master AI, web development, game design, and digital business with global experts.">
+    <meta name="keywords" content="coding camp, AI education, game development, web development, remote learning, kids coding, python, roblox, godot">
+    <link rel="canonical" href="https://4weird.com/academy/">
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#8b5cf6">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="4weird Academy - Decode Your Future">
+    <meta property="og:description" content="Premium 1-on-1 coding mentorship teaching AI, game design, web development, and business skills.">
     <meta property="og:type" content="website">
+    <meta property="og:url" content="https://4weird.com/academy/">
+    <meta property="og:image" content="https://4weird.com/games/images/thumb_serversavershield.png">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="4weird Academy">
+    <meta name="twitter:description" content="Premium 1-on-1 coding mentorship teaching AI, game design, and web development.">
+    <meta name="twitter:image" content="https://4weird.com/games/images/thumb_serversavershield.png">
+
     <link rel="stylesheet" href="../styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        .academy-hero {
-            background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
-            padding: 80px 20px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
+        /* CSS resets & custom variables tailored for Academy */
+        :root {
+            --academy-font: 'Outfit', sans-serif;
+            --code-font: 'Fira Code', monospace;
+            --glow-cyan: 0 0 15px rgba(6, 182, 212, 0.4);
+            --glow-purple: 0 0 15px rgba(139, 92, 246, 0.4);
+            --glow-green: 0 0 15px rgba(16, 185, 129, 0.4);
+            --border-glow: 1px solid rgba(139, 92, 246, 0.3);
+            --card-gradient: linear-gradient(135deg, rgba(26, 26, 37, 0.8) 0%, rgba(18, 18, 26, 0.95) 100%);
         }
 
-        .academy-hero::before {
+        body {
+            font-family: var(--academy-font);
+        }
+
+        .academy-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* --- HERO SECTION --- */
+        .cyber-hero {
+            position: relative;
+            padding: 160px 0 100px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            min-height: 90vh;
+        }
+
+        .cyber-hero::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 20% 50%, rgba(6, 182, 212, 0.05) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
-            pointer-events: none;
+            top: 10%;
+            left: 5%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, transparent 70%);
+            z-index: 1;
+            filter: blur(40px);
         }
 
-        .academy-hero-content {
+        .cyber-hero::after {
+            content: '';
+            position: absolute;
+            bottom: 15%;
+            right: 5%;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
+            z-index: 1;
+            filter: blur(50px);
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 60px;
+            align-items: center;
             position: relative;
-            z-index: 2;
-            max-width: 900px;
-            margin: 0 auto;
+            z-index: 5;
         }
 
-        .academy-hero h1 {
-            font-size: 3.5rem;
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            padding: 6px 16px;
+            border-radius: 100px;
+            color: var(--neon-purple-light);
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 24px;
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.15);
+        }
+
+        .hero-badge .pulse {
+            width: 8px;
+            height: 8px;
+            background-color: var(--neon-green);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: var(--glow-green);
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0% { transform: scale(0.9); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.5; }
+        }
+
+        .hero-title-main {
+            font-family: var(--font-display);
+            font-size: clamp(2.8rem, 6vw, 4.5rem);
             font-weight: 900;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, var(--neon-cyan) 0%, var(--neon-purple) 100%);
+            line-height: 1.1;
+            margin-bottom: 24px;
+            letter-spacing: -1px;
+        }
+
+        .gradient-cyan-purple {
+            background: linear-gradient(135deg, var(--neon-cyan) 0%, #a78bfa 50%, var(--neon-purple) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
-        .academy-hero p {
-            font-size: 1.3rem;
+        .hero-description {
+            font-size: 1.25rem;
             color: var(--text-secondary);
-            margin-bottom: 30px;
-            line-height: 1.6;
+            line-height: 1.7;
+            margin-bottom: 40px;
+            max-width: 650px;
         }
 
-        .video-container {
-            max-width: 900px;
-            margin: 60px auto;
-            padding: 0 20px;
+        .audience-labels {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
         }
 
-        .video-wrapper {
-            position: relative;
-            width: 100%;
-            padding-bottom: 56.25%;
-            height: 0;
-            overflow: hidden;
+        .audience-tag {
+            background: rgba(26, 26, 37, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .audience-tag:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: var(--glow-cyan);
+            transform: translateY(-2px);
+        }
+
+        .hero-ctas {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .hero-primary-btn {
+            background: linear-gradient(135deg, var(--neon-cyan) 0%, var(--neon-purple) 100%);
+            color: #050508;
+            padding: 16px 36px;
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 1.05rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-radius: 10px;
+            text-decoration: none;
+            box-shadow: 0 4px 25px rgba(6, 182, 212, 0.35);
+            transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .hero-primary-btn:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 8px 30px rgba(139, 92, 246, 0.5);
+            color: #ffffff;
+        }
+
+        .hero-secondary-btn {
+            background: rgba(26, 26, 37, 0.6);
+            color: var(--text-primary);
+            border: 2px solid var(--neon-purple);
+            padding: 14px 32px;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .hero-secondary-btn:hover {
+            background: var(--neon-purple);
+            box-shadow: var(--glow-purple);
+            transform: translateY(-3px);
+        }
+
+        /* Interactive Coding Widget */
+        .terminal-widget {
+            background: rgba(10, 10, 15, 0.9);
+            border: 2px solid var(--neon-cyan);
+            box-shadow: var(--glow-cyan);
             border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(6, 182, 212, 0.2);
-            border: 2px solid rgba(6, 182, 212, 0.3);
+            overflow: hidden;
+            font-family: var(--code-font);
+            width: 100%;
+            transition: all 0.4s ease;
         }
 
-        .video-wrapper iframe {
+        .terminal-header {
+            background: rgba(26, 26, 37, 0.8);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(6, 182, 212, 0.2);
+        }
+
+        .terminal-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot-red { background-color: #ef4444; }
+        .dot-yellow { background-color: #eab308; }
+        .dot-green { background-color: #22c55e; }
+
+        .terminal-title {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .terminal-body {
+            padding: 24px;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .code-line {
+            line-height: 1.6;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            color: #e5e7eb;
+        }
+
+        .code-keyword { color: #f472b6; }
+        .code-func { color: #60a5fa; }
+        .code-str { color: #34d399; }
+        .code-comment { color: #9ca3af; font-style: italic; }
+
+        .terminal-actions {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .terminal-run-btn {
+            background: var(--neon-cyan);
+            border: none;
+            border-radius: 6px;
+            color: #000;
+            font-family: var(--font-display);
+            font-weight: 800;
+            padding: 8px 18px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .terminal-run-btn:hover {
+            transform: scale(1.05);
+            box-shadow: var(--glow-cyan);
+        }
+
+        .terminal-status {
+            font-size: 0.85rem;
+            color: var(--neon-green-light);
+            display: none;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* --- COURSE TRACKS SECTION --- */
+        .section-header-wrap {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .tracks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .track-card {
+            background: var(--card-gradient);
+            border: 2px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 36px 30px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+            overflow: hidden;
+        }
+
+        .track-card::before {
+            content: '';
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
-            border: none;
+            height: 4px;
+            background: transparent;
+            transition: background 0.3s ease;
         }
 
-        .academy-section {
-            padding: 80px 20px;
-            max-width: 1200px;
-            margin: 0 auto;
+        .track-card.active, .track-card:hover {
+            border-color: var(--neon-purple);
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(139, 92, 246, 0.15);
         }
 
-        .academy-section h2 {
-            font-size: 2.5rem;
-            margin-bottom: 40px;
-            color: var(--neon-cyan);
-            text-align: center;
+        .track-card.track-ai:hover, .track-card.track-ai.active { border-color: var(--neon-cyan); box-shadow: 0 12px 30px rgba(6, 182, 212, 0.15); }
+        .track-card.track-web:hover, .track-card.track-web.active { border-color: var(--neon-purple); box-shadow: 0 12px 30px rgba(139, 92, 246, 0.15); }
+        .track-card.track-game:hover, .track-card.track-game.active { border-color: var(--neon-green); box-shadow: 0 12px 30px rgba(16, 185, 129, 0.15); }
+        .track-card.track-biz:hover, .track-card.track-biz.active { border-color: #f43f5e; box-shadow: 0 12px 30px rgba(244, 63, 94, 0.15); }
+
+        .track-card.track-ai::before { background: var(--neon-cyan); }
+        .track-card.track-web::before { background: var(--neon-purple); }
+        .track-card.track-game::before { background: var(--neon-green); }
+        .track-card.track-biz::before { background: #f43f5e; }
+
+        .track-icon {
+            font-size: 3rem;
+            margin-bottom: 24px;
+            display: inline-block;
         }
 
-        .benefits-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-            margin-bottom: 60px;
+        .track-title {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #fff;
         }
 
-        .benefit-card {
-            background: rgba(6, 182, 212, 0.05);
-            border: 2px solid rgba(6, 182, 212, 0.2);
-            border-radius: 12px;
-            padding: 30px;
-            transition: all 0.3s ease;
-        }
-
-        .benefit-card:hover {
-            border-color: var(--neon-cyan);
-            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.2);
-            transform: translateY(-5px);
-        }
-
-        .benefit-card .emoji {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-            display: block;
-        }
-
-        .benefit-card h3 {
-            font-size: 1.3rem;
-            margin-bottom: 15px;
-            color: var(--neon-cyan);
-        }
-
-        .benefit-card p {
+        .track-desc {
             color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .track-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 16px;
+        }
+
+        .track-level {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 700;
+        }
+
+        .track-action {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--neon-cyan);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Detail Pane */
+        .track-detail-pane {
+            background: rgba(18, 18, 26, 0.95);
+            border: 2px solid rgba(139, 92, 246, 0.2);
+            border-radius: 16px;
+            padding: 40px;
+            margin-top: 30px;
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .track-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        .detail-pane-title {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .detail-tagline {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
             line-height: 1.6;
         }
 
-        .curriculum-section {
-            background: rgba(139, 92, 246, 0.05);
-            border: 2px solid rgba(139, 92, 246, 0.2);
-            border-radius: 12px;
-            padding: 40px;
-            margin-bottom: 60px;
-        }
-
-        .curriculum-section h3 {
-            color: var(--neon-purple);
-            margin-bottom: 20px;
-            font-size: 1.5rem;
-        }
-
-        .curriculum-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
+        .tech-logos {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
             margin-bottom: 30px;
         }
 
-        .curriculum-item {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid var(--neon-purple);
+        .tech-pill {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
         }
 
-        .curriculum-item strong {
-            color: var(--neon-purple);
+        .modules-list {
+            list-style: none;
         }
 
-        .pricing-section {
-            background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(6, 182, 212, 0.05) 100%);
-            border: 2px solid rgba(34, 197, 94, 0.2);
-            border-radius: 12px;
-            padding: 40px;
+        .module-item {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            align-items: flex-start;
+        }
+
+        .module-num {
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--neon-purple-light);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            flex-shrink: 0;
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+        }
+
+        .module-text h5 {
+            font-size: 1.05rem;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .module-text p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- HOW IT WORKS --- */
+        .timeline-section {
+            position: relative;
+            padding: 100px 0;
+        }
+
+        .timeline-wrap {
+            position: relative;
+            max-width: 900px;
+            margin: 60px auto 0;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, var(--neon-cyan), var(--neon-purple), var(--neon-green));
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+
+        .timeline-step {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
             margin-bottom: 60px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .timeline-step:nth-child(even) .step-content {
+            grid-column: 2;
+        }
+
+        .timeline-step:nth-child(even) .step-visual {
+            grid-column: 1;
+            text-align: right;
+        }
+
+        .step-content {
+            background: var(--card-gradient);
+            border: var(--border-glow);
+            border-radius: 12px;
+            padding: 30px;
+            position: relative;
+        }
+
+        .step-badge {
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: var(--neon-cyan);
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .timeline-step:nth-child(2) .step-badge { color: var(--neon-purple-light); }
+        .timeline-step:nth-child(3) .step-badge { color: var(--neon-green-light); }
+
+        .step-content h4 {
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+
+        .step-content p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .step-visual {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .step-node {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background: var(--bg-primary);
+            border: 4px solid var(--neon-cyan);
+            border-radius: 50%;
+            box-shadow: var(--glow-cyan);
+            z-index: 5;
+        }
+
+        .timeline-step:nth-child(2) .step-node { border-color: var(--neon-purple); box-shadow: var(--glow-purple); }
+        .timeline-step:nth-child(3) .step-node { border-color: var(--neon-green); box-shadow: var(--glow-green); }
+
+        .step-icon-big {
+            font-size: 4rem;
+            opacity: 0.2;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-step:hover .step-icon-big {
+            opacity: 0.8;
+            transform: scale(1.1);
+        }
+
+        /* --- INSTRUCTORS SECTION --- */
+        .instructor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 30px;
+        }
+
+        .instructor-card {
+            background: var(--card-gradient);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .instructor-card:hover {
+            border-color: rgba(6, 182, 212, 0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(6, 182, 212, 0.1);
+        }
+
+        .instructor-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            position: relative;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            padding: 3px;
+        }
+
+        .avatar-inner {
+            background: var(--bg-primary);
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .flag-badge {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: rgba(10, 10, 15, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        .instructor-card h4 {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            margin-bottom: 6px;
+            color: #fff;
+        }
+
+        .instructor-role {
+            font-size: 0.85rem;
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .instructor-bio {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* --- SOCIAL PROOF & GLOBAL STATS --- */
+        .stats-strip {
+            background: rgba(139, 92, 246, 0.04);
+            border-top: 1px solid rgba(139, 92, 246, 0.1);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+            padding: 50px 0;
+            margin: 60px 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
             text-align: center;
         }
 
-        .pricing-grid {
+        .stat-card h3 {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 900;
+            color: var(--neon-green-light);
+            margin-bottom: 8px;
+            text-shadow: var(--glow-green);
+        }
+
+        .stat-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+        }
+
+        .testimonials-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 30px;
             margin-top: 40px;
         }
 
-        .price-card {
-            background: rgba(0, 0, 0, 0.3);
-            border: 2px solid rgba(34, 197, 94, 0.3);
-            border-radius: 12px;
+        .testimonial-card {
+            background: var(--card-gradient);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
             padding: 30px;
-            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
         }
 
-        .price-card:hover {
-            border-color: var(--neon-green);
-            box-shadow: 0 10px 30px rgba(34, 197, 94, 0.2);
-            transform: translateY(-5px);
-        }
-
-        .price-card h4 {
-            font-size: 1.3rem;
-            margin-bottom: 15px;
-            color: var(--neon-green);
-        }
-
-        .price-amount {
+        .quote-icon {
             font-size: 2.5rem;
-            font-weight: 900;
-            color: var(--neon-green);
-            margin-bottom: 10px;
+            color: rgba(6, 182, 212, 0.15);
+            position: absolute;
+            top: 20px;
+            left: 20px;
         }
 
-        .price-duration {
-            color: var(--text-secondary);
-            margin-bottom: 20px;
-        }
-
-        .cta-section {
-            background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
-            border: 2px solid rgba(6, 182, 212, 0.3);
-            border-radius: 12px;
-            padding: 60px 40px;
-            text-align: center;
-            margin-bottom: 60px;
-        }
-
-        .cta-section h2 {
-            margin-bottom: 20px;
-        }
-
-        .cta-section p {
-            font-size: 1.1rem;
-            color: var(--text-secondary);
-            margin-bottom: 30px;
+        .testimonial-text {
+            font-style: italic;
+            color: var(--text-primary);
             line-height: 1.6;
+            font-size: 0.98rem;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 2;
         }
 
-        .cta-button {
-            display: inline-block;
-            background: linear-gradient(135deg, var(--neon-cyan) 0%, var(--neon-purple) 100%);
-            color: #000;
-            padding: 15px 40px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .author-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--neon-cyan);
+            border: 1.5px solid var(--neon-cyan);
+        }
+
+        .author-info h5 {
+            color: #fff;
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+        }
+
+        .author-info p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* --- PRICING SECTION --- */
+        .pricing-tier-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .price-tier-card {
+            background: var(--card-gradient);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px 30px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
         }
 
-        .cta-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.4);
+        .price-tier-card.featured {
+            border: 2px solid var(--neon-purple);
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.2);
+            transform: scale(1.03);
         }
 
-        .instructors-section {
-            background: rgba(139, 92, 246, 0.05);
-            border: 2px solid rgba(139, 92, 246, 0.2);
-            border-radius: 12px;
-            padding: 40px;
-            margin-bottom: 60px;
+        .featured-tag {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-purple-dark));
+            color: #fff;
+            padding: 6px 18px;
+            border-radius: 100px;
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: var(--glow-purple);
         }
 
-        .instructors-section h3 {
-            color: var(--neon-purple);
-            margin-bottom: 20px;
+        .tier-name {
+            font-family: var(--font-display);
             font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #fff;
         }
 
-        .instructors-section p {
+        .tier-price {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--neon-cyan);
+            margin: 20px 0 10px;
+            display: flex;
+            align-items: baseline;
+        }
+
+        .tier-price-period {
+            font-size: 1rem;
             color: var(--text-secondary);
-            line-height: 1.6;
-            margin-bottom: 15px;
+            font-weight: 400;
+            margin-left: 6px;
         }
 
-        .privacy-note {
-            background: rgba(34, 197, 94, 0.05);
-            border: 2px solid rgba(34, 197, 94, 0.2);
-            border-radius: 12px;
-            padding: 30px;
+        .price-tier-card.featured .tier-price {
+            color: var(--neon-purple-light);
+        }
+
+        .tier-desc {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        .tier-features {
+            list-style: none;
+            margin-bottom: 36px;
+        }
+
+        .tier-features li {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tier-features li::before {
+            content: '✓';
+            color: var(--neon-green-light);
+            font-weight: bold;
+        }
+
+        .tier-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 14px 28px;
             text-align: center;
-            margin-bottom: 60px;
+            border-radius: 10px;
+            font-family: var(--font-display);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-decoration: none;
+            transition: all 0.3s ease;
         }
 
-        .privacy-note p {
-            color: var(--text-secondary);
+        .price-tier-card.featured .tier-btn {
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-purple-dark));
+            border: none;
+            box-shadow: var(--glow-purple);
+        }
+
+        .price-tier-card.featured .tier-btn:hover {
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .tier-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .guarantee-wrap {
+            max-width: 650px;
+            margin: 50px auto 0;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: rgba(16, 185, 129, 0.05);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            padding: 24px;
+            border-radius: 12px;
+        }
+
+        .guarantee-icon {
+            font-size: 2.8rem;
+            color: var(--neon-green-light);
+            text-shadow: var(--glow-green);
+        }
+
+        .guarantee-text h5 {
+            color: #fff;
             font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        .guarantee-text p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* --- FAQ SECTION --- */
+        .faq-accordion {
+            max-width: 800px;
+            margin: 50px auto 0;
+        }
+
+        .faq-item {
+            background: var(--card-gradient);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .faq-question {
+            padding: 22px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .faq-question h4 {
+            font-size: 1.05rem;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .faq-icon {
+            font-size: 1.2rem;
+            color: var(--neon-cyan);
+            transition: transform 0.3s ease;
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            padding: 0 30px;
+        }
+
+        .faq-answer p {
+            padding-bottom: 22px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
             line-height: 1.6;
         }
 
-        .privacy-note strong {
-            color: var(--neon-green);
+        .faq-item.active {
+            border-color: rgba(6, 182, 212, 0.3);
         }
 
-        @media (max-width: 768px) {
-            .academy-hero h1 {
-                font-size: 2.5rem;
-            }
+        .faq-item.active .faq-icon {
+            transform: rotate(45deg);
+        }
 
-            .academy-hero p {
-                font-size: 1.1rem;
-            }
+        /* --- FINAL CTA & SIGNUP FORM --- */
+        .cyber-signup-section {
+            padding: 100px 0;
+        }
 
-            .academy-section h2 {
-                font-size: 2rem;
-            }
+        .signup-card {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);
+            border: 2px solid rgba(6, 182, 212, 0.3);
+            border-radius: 24px;
+            padding: 60px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(6, 182, 212, 0.1);
+        }
 
-            .curriculum-list {
+        .signup-card::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            left: -20%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.2) 0%, transparent 65%);
+            filter: blur(40px);
+            z-index: 1;
+        }
+
+        .signup-info {
+            position: relative;
+            z-index: 5;
+        }
+
+        .signup-info h3 {
+            font-family: var(--font-display);
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #fff;
+            margin-bottom: 16px;
+        }
+
+        .signup-info p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .trust-badge-mini {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--neon-cyan);
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .cyber-form {
+            position: relative;
+            z-index: 5;
+            background: rgba(10, 10, 15, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 36px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            background: rgba(26, 26, 37, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #fff;
+            font-family: var(--academy-font);
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus {
+            border-color: var(--neon-cyan);
+            outline: none;
+            box-shadow: var(--glow-cyan);
+            background: rgba(26, 26, 37, 1);
+        }
+
+        .form-submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            color: #000;
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .form-submit-btn:hover {
+            box-shadow: 0 0 25px rgba(6, 182, 212, 0.45);
+            transform: translateY(-2px);
+            color: #fff;
+        }
+
+        /* Form success panel */
+        .form-success-message {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: var(--neon-green-light);
+            text-shadow: var(--glow-green);
+            margin-bottom: 20px;
+        }
+
+        .form-success-message h4 {
+            font-family: var(--font-display);
+            font-size: 1.6rem;
+            color: #fff;
+            margin-bottom: 12px;
+        }
+
+        .form-success-message p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        /* --- RESPONSIVE ADJUSTMENTS --- */
+        @media (max-width: 992px) {
+            .hero-grid {
                 grid-template-columns: 1fr;
+                gap: 40px;
+                text-align: center;
             }
 
-            .pricing-grid {
+            .hero-description {
+                margin: 0 auto 40px;
+            }
+
+            .audience-labels, .hero-ctas {
+                justify-content: center;
+            }
+
+            .timeline-line {
+                left: 30px;
+            }
+
+            .timeline-step {
                 grid-template-columns: 1fr;
+                gap: 20px;
+                padding-left: 60px;
+            }
+
+            .timeline-step:nth-child(even) .step-content {
+                grid-column: 1;
+            }
+
+            .timeline-step:nth-child(even) .step-visual {
+                grid-column: 1;
+                text-align: left;
+            }
+
+            .step-node {
+                left: 30px;
+                top: 30px;
+            }
+
+            .step-visual {
+                display: none;
+            }
+
+            .signup-card {
+                grid-template-columns: 1fr;
+                padding: 40px;
+                gap: 40px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
             }
         }
     </style>
@@ -323,188 +1239,646 @@
     <!-- Navigation placeholder - injected by components.js -->
     <div id="nav-placeholder"></div>
 
-    <!-- Academy Hero Section -->
-    <section class="academy-hero">
-        <div class="academy-hero-content">
-            <h1>4weird Academy</h1>
-            <p>Learn AI, Coding, Game Development & Business Skills from Expert Instructors Around the World</p>
-        </div>
-    </section>
-
-    <!-- Intro Video Section -->
-    <section class="video-container">
-        <div class="video-wrapper">
-            <iframe width="560" height="315" src="https://www.youtube.com/embed/PUraJfke9sQ" title="Making Games with AI in 10 Minutes" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-        </div>
-    </section>
-
-    <!-- About Academy Section -->
-    <section class="academy-section">
-        <h2>What is 4weird Academy?</h2>
-        <p style="font-size: 1.1rem; color: var(--text-secondary); line-height: 1.8; max-width: 900px; margin: 0 auto 60px; text-align: center;">
-            4weird Academy is a <strong>remote coding camp</strong> for kids, teenagers, and adults who want to master the skills of the digital age. Whether you're interested in building websites, creating games, leveraging AI, or starting your own online business, our expert instructors from around the world are here to guide you every step of the way.
-        </p>
-
-        <h2 style="margin-top: 80px;">What You'll Learn</h2>
-        <div class="curriculum-section">
-            <h3>Core Curriculum</h3>
-            <div class="curriculum-list">
-                <div class="curriculum-item">
-                    <strong>🤖 Artificial Intelligence</strong>
-                    <p>Harness AI tools and techniques to accelerate your development and solve real-world problems.</p>
+    <!-- Cyberpunk Hero Section -->
+    <section class="cyber-hero">
+        <div class="academy-container">
+            <div class="hero-grid">
+                <div class="hero-content-left">
+                    <div class="hero-badge">
+                        <span class="pulse"></span> 4weird academy intake 2026
+                    </div>
+                    <h1 class="hero-title-main">Decode Your Future. <br><span class="gradient-cyan-purple">Master AI & Coding</span></h1>
+                    <p class="hero-description">
+                        An elite, remote 1-on-1 coding mentorship designed to take absolute beginners to high-performance developers. Create web apps, design custom AI solutions, and launch profitable games.
+                    </p>
+                    <div class="audience-labels">
+                        <span class="audience-tag">👶 Kids (7-12)</span>
+                        <span class="audience-tag">⚡ Teens (13-17)</span>
+                        <span class="audience-tag">🚀 Adults (18+)</span>
+                    </div>
+                    <div class="hero-ctas">
+                        <a href="#enroll" class="hero-primary-btn">Enroll Now</a>
+                        <a href="#tracks" class="hero-secondary-btn">Explore Tracks</a>
+                    </div>
                 </div>
-                <div class="curriculum-item">
-                    <strong>🌐 Web Development</strong>
-                    <p>Build stunning, responsive websites and web applications using modern frameworks and best practices.</p>
+                <div class="hero-content-right">
+                    <!-- Interactive Terminal Code Simulation -->
+                    <div class="terminal-widget">
+                        <div class="terminal-header">
+                            <div class="terminal-dots">
+                                <span class="terminal-dot dot-red"></span>
+                                <span class="terminal-dot dot-yellow"></span>
+                                <span class="terminal-dot dot-green"></span>
+                            </div>
+                            <span class="terminal-title">AI_TESTER.PY</span>
+                        </div>
+                        <div class="terminal-body">
+                            <div class="code-container">
+                                <div class="code-line"><span class="code-keyword">import</span> space_academy <span class="code-keyword">as</span> acad</div>
+                                <div class="code-line"><span class="code-keyword">import</span> ai_helper</div>
+                                <div class="code-line"><span class="code-comment"># Initialize AI Mascot</span></div>
+                                <div class="code-line">student = acad.Student(name=<span class="code-str">"You"</span>)</div>
+                                <div class="code-line">mascot = ai_helper.Mascot(<span class="code-str">"BlueCat"</span>)</div>
+                                <div class="code-line"></div>
+                                <div class="code-line">student.learn(skills=[<span class="code-str">"Python"</span>, <span class="code-str">"AI"</span>, <span class="code-str">"WebGL"</span>])</div>
+                                <div class="code-line">status = student.deploy_project(mascot)</div>
+                                <div class="code-line"><span class="code-func">print</span>(f<span class="code-str">"Launch Status: {status}"</span>)</div>
+                            </div>
+                            <div class="terminal-actions">
+                                <button class="terminal-run-btn" id="runCodeBtn">
+                                    ▶ Run Script
+                                </button>
+                                <div class="terminal-status" id="terminalStatus">
+                                    ⚡ [Launch Success: Game Active!]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="curriculum-item">
-                    <strong>🎮 Game Development</strong>
-                    <p>Create games for any platform - HTML5, Roblox, Godot, and more. Learn game design, mechanics, and monetization.</p>
-                </div>
-                <div class="curriculum-item">
-                    <strong>💼 Business & Marketing</strong>
-                    <p>Learn how to market your skills, build a personal brand, and launch your own tech business.</p>
-                </div>
-                <div class="curriculum-item">
-                    <strong>🗄️ Databases & Backend</strong>
-                    <p>Master server-side development, databases, APIs, and cloud infrastructure.</p>
-                </div>
-                <div class="curriculum-item">
-                    <strong>💰 Roblox Business</strong>
-                    <p>Build and monetize games on the Roblox platform - a multi-billion dollar ecosystem.</p>
-                </div>
-            </div>
-        </div>
-
-        <h2 style="margin-top: 80px;">Why Choose 4weird Academy?</h2>
-        <div class="benefits-grid">
-            <div class="benefit-card">
-                <span class="emoji">🌍</span>
-                <h3>Global Instructors</h3>
-                <p>Learn from expert coders and developers from all over the world. Diverse perspectives, proven expertise.</p>
-            </div>
-            <div class="benefit-card">
-                <span class="emoji">💻</span>
-                <h3>Hands-On Learning</h3>
-                <p>Build real projects from day one. Learn by doing, not just watching lectures.</p>
-            </div>
-            <div class="benefit-card">
-                <span class="emoji">🚀</span>
-                <h3>Career Ready Skills</h3>
-                <p>Gain skills that are in high demand. Build a portfolio that impresses employers and clients.</p>
-            </div>
-            <div class="benefit-card">
-                <span class="emoji">👨-👩-👧-👦</span>
-                <h3>For All Ages</h3>
-                <p>Whether you're 10 or 50, we have programs tailored to your skill level and interests.</p>
-            </div>
-            <div class="benefit-card">
-                <span class="emoji">🏠</span>
-                <h3>Learn from Home</h3>
-                <p>100% remote. No travel needed. Learn at your own pace with flexible scheduling.</p>
-            </div>
-            <div class="benefit-card">
-                <span class="emoji">💡</span>
-                <h3>Real-World Impact</h3>
-                <p>Learn skills that solve real problems. Help your family and friends with custom software and websites.</p>
             </div>
         </div>
     </section>
 
-    <!-- The Real Benefit Section -->
-    <section class="academy-section">
-        <h2>The Real Benefit: Empower Your Future</h2>
-        <div style="background: rgba(6, 182, 212, 0.05); border: 2px solid rgba(6, 182, 212, 0.2); border-radius: 12px; padding: 40px; max-width: 900px; margin: 0 auto;">
-            <p style="font-size: 1.1rem; color: var(--text-secondary); line-height: 1.8; margin-bottom: 20px;">
-                Once your child (or you!) learns coding, the possibilities are endless. You can:
-            </p>
-            <ul style="font-size: 1.1rem; color: var(--text-secondary); line-height: 1.8; list-style: none; padding: 0;">
-                <li style="margin-bottom: 15px;"><strong style="color: var(--neon-cyan);">✨ Build Custom Software</strong> - Solve problems for your parents, friends, and their parents with tailored solutions.</li>
-                <li style="margin-bottom: 15px;"><strong style="color: var(--neon-cyan);">🌐 Create Websites</strong> - Build professional websites for local businesses and entrepreneurs.</li>
-                <li style="margin-bottom: 15px;"><strong style="color: var(--neon-cyan);">🎮 Develop Games</strong> - Create games that entertain millions on platforms like Roblox.</li>
-                <li style="margin-bottom: 15px;"><strong style="color: var(--neon-cyan);">💼 Start a Business</strong> - Launch your own freelance business or tech startup.</li>
-                <li style="margin-bottom: 15px;"><strong style="color: var(--neon-cyan);">🤖 Leverage AI</strong> - Use cutting-edge AI tools to work smarter and faster.</li>
-                <li style="margin-bottom: 15px;"><strong style="color: var(--neon-cyan);">💰 Earn Money</strong> - Turn your skills into a sustainable income stream.</li>
-            </ul>
-            <p style="font-size: 1.1rem; color: var(--text-secondary); line-height: 1.8; margin-top: 20px; font-style: italic;">
-                Coding isn't just a skill - it's a superpower that opens doors to unlimited opportunities.
-            </p>
+    <!-- Interactive Course tracks / Categories Section -->
+    <section class="section" id="tracks">
+        <div class="academy-container">
+            <div class="section-header-wrap">
+                <span class="section-emoji">🛠️</span>
+                <h2 class="section-title">CHOOSE YOUR PROTOCOL</h2>
+                <p class="section-subtitle">We focus on real-world practical skills. Click a track below to see the complete learning curriculum.</p>
+            </div>
+
+            <div class="tracks-grid">
+                <!-- AI & Coding Card -->
+                <div class="track-card track-ai active" onclick="selectTrack('ai')">
+                    <span class="track-icon">🤖</span>
+                    <h3 class="track-title">AI & Python</h3>
+                    <p class="track-desc">Harness machine learning models, automate tasks, write complex Python scripts, and master prompt engineering.</p>
+                    <div class="track-meta">
+                        <span class="track-level">Beginner-Friendly</span>
+                        <span class="track-action">Curriculum →</span>
+                    </div>
+                </div>
+                <!-- Web Dev Card -->
+                <div class="track-card track-web" onclick="selectTrack('web')">
+                    <span class="track-icon">🌐</span>
+                    <h3 class="track-title">Web Dev</h3>
+                    <p class="track-desc">Build gorgeous interactive sites and scalable applications using HTML5, CSS3, modern JavaScript, and web components.</p>
+                    <div class="track-meta">
+                        <span class="track-level">All Skill Levels</span>
+                        <span class="track-action">Curriculum →</span>
+                    </div>
+                </div>
+                <!-- Game Dev Card -->
+                <div class="track-card track-game" onclick="selectTrack('game')">
+                    <span class="track-icon">🎮</span>
+                    <h3 class="track-title">Game Dev</h3>
+                    <p class="track-desc">Create 2D and 3D playable games. Code mechanics in Lua, JavaScript, or GDScript, and export to Web/Roblox.</p>
+                    <div class="track-meta">
+                        <span class="track-level">Beginner to Pro</span>
+                        <span class="track-action">Curriculum →</span>
+                    </div>
+                </div>
+                <!-- Business Skills Card -->
+                <div class="track-card track-biz" onclick="selectTrack('biz')">
+                    <span class="track-icon">💼</span>
+                    <h3 class="track-title">Digital Business</h3>
+                    <p class="track-desc">Monetize your creations. Learn freelancing, marketing, project launch strategies, and Roblox economy mechanics.</p>
+                    <div class="track-meta">
+                        <span class="track-level">Intermediate</span>
+                        <span class="track-action">Curriculum →</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail Pane -->
+            <!-- AI Detail -->
+            <div class="track-detail-pane" id="detail-ai" style="display: block;">
+                <div class="track-detail-grid">
+                    <div>
+                        <h4 class="detail-pane-title" style="color: var(--neon-cyan)">Artificial Intelligence & Python</h4>
+                        <p class="detail-tagline">Learn how to make artificial intelligence work for you. Solve complex mathematical models, build automated agents, and streamline coding workflows.</p>
+                        <div class="tech-logos">
+                            <span class="tech-pill">Python</span>
+                            <span class="tech-pill">OpenAI API</span>
+                            <span class="tech-pill">Pandas</span>
+                            <span class="tech-pill">Prompt Engineering</span>
+                            <span class="tech-pill">Jupyter</span>
+                        </div>
+                    </div>
+                    <div>
+                        <ul class="modules-list">
+                            <li class="module-item">
+                                <div class="module-num">01</div>
+                                <div class="module-text">
+                                    <h5>Python Essentials</h5>
+                                    <p>Variables, loops, logic, and standard libraries for automation.</p>
+                                </div>
+                            </li>
+                            <li class="module-item">
+                                <div class="module-num">02</div>
+                                <div class="module-text">
+                                    <h5>AI Integrations & APIs</h5>
+                                    <p>Connect scripts to OpenAI, Midjourney, and NLP models.</p>
+                                </div>
+                            </li>
+                            <li class="module-item">
+                                <div class="module-num">03</div>
+                                <div class="module-text">
+                                    <h5>Building AI Assistants</h5>
+                                    <p>Deploy a working virtual mascot helper that speaks with you.</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Web Dev Detail -->
+            <div class="track-detail-pane" id="detail-web">
+                <div class="track-detail-grid">
+                    <div>
+                        <h4 class="detail-pane-title" style="color: var(--neon-purple-light)">Modern Web Development</h4>
+                        <p class="detail-tagline">Master the structural skeleton of the internet. From premium styling with CSS custom properties to logic execution using Javascript.</p>
+                        <div class="tech-logos">
+                            <span class="tech-pill">HTML5 / CSS3</span>
+                            <span class="tech-pill">JavaScript ES6+</span>
+                            <span class="tech-pill">Responsive Design</span>
+                            <span class="tech-pill">Three.js</span>
+                            <span class="tech-pill">Git / GitHub</span>
+                        </div>
+                    </div>
+                    <div>
+                        <ul class="modules-list">
+                            <li class="module-item">
+                                <div class="module-num">01</div>
+                                <div class="module-text">
+                                    <h5>Semantic Web Interfaces</h5>
+                                    <p>Create clean, fast, and SEO-optimized structures with modern grids and layouts.</p>
+                                </div>
+                            </li>
+                            <li class="module-item">
+                                <div class="module-num">02</div>
+                                <div class="module-text">
+                                    <h5>Dynamic User Interactions</h5>
+                                    <p>Handle data bindings, scroll micro-animations, and client-side states.</p>
+                                </div>
+                            </li>
+                            <li class="module-item">
+                                <div class="module-num">03</div>
+                                <div class="module-text">
+                                    <h5>3D Graphics & Canvas</h5>
+                                    <p>Render interactive elements using WebGL overlays to wow users instantly.</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Dev Detail -->
+            <div class="track-detail-pane" id="detail-game">
+                <div class="track-detail-grid">
+                    <div>
+                        <h4 class="detail-pane-title" style="color: var(--neon-green-light)">Interactive Game Design</h4>
+                        <p class="detail-tagline">Stop just playing games and start making them. Program mechanics, player physics, collision grids, and export gameplay natively.</p>
+                        <div class="tech-logos">
+                            <span class="tech-pill">Lua / Roblox Studio</span>
+                            <span class="tech-pill">Canvas 2D</span>
+                            <span class="tech-pill">Godot Engine</span>
+                            <span class="tech-pill">Game Physics</span>
+                            <span class="tech-pill">Sound FX Design</span>
+                        </div>
+                    </div>
+                    <div>
+                        <ul class="modules-list">
+                            <li class="module-item">
+                                <div class="module-num">01</div>
+                                <div class="module-text">
+                                    <h5>Core Game Logic</h5>
+                                    <p>Configure states, control nodes, and setup sprite controls.</p>
+                                </div>
+                            </li>
+                            <li class="module-item">
+                                <div class="module-num">02</div>
+                                <div class="module-text">
+                                    <h5>Multiplayer Architectures</h5>
+                                    <p>Synchronize game states and server-client parameters in Roblox.</p>
+                                </div>
+                            </li>
+                            <li class="module-item">
+                                <div class="module-num">03</div>
+                                <div class="module-text">
+                                    <h5>Publishing & Optimization</h5>
+                                    <p>Compile game builds for mobile, desktop, and standard web servers.</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Digital Business Detail -->
+            <div class="track-detail-pane" id="detail-biz">
+                <div class="track-detail-grid">
+                    <div>
+                        <h4 class="detail-pane-title" style="color: #f43f5e">Digital Business & Branding</h4>
+                        <p class="detail-tagline">Learn how to make a living using your technical superpowers. Build a business, design professional pitches, and handle clients.</p>
+                        <div class="tech-logos">
+                            <span class="tech-pill">Freelance Platforms</span>
+                            <span class="tech-pill">Branding / Identity</span>
+                            <span class="tech-pill">Sales Funnels</span>
+                            <span class="tech-pill">Robux Monetization</span>
+                            <span class="tech-pill">Personal Portfolio</span>
+                        </div>
+                    </div>
+                    <div>
+                        <ul class="modules-list">
+                            <li class="module-item">
+                                <div class="module-num">01</div>
+                                <div class="module-text">
+                                    <h5>Personal Branding</h5>
+                                    <p>Establish a sleek portfolio showing your projects to attract real inquiries.</p>
+                                </div>
+                            </li>
+                            <li class="module-item">
+                                <div class="module-num">02</div>
+                                <div class="module-text">
+                                    <h5>Monetizing Games</h5>
+                                    <p>Add virtual items, passes, and premium content systems inside game platforms.</p>
+                                </div>
+                            </li>
+                            <li class="module-item">
+                                <div class="module-num">03</div>
+                                <div class="module-text">
+                                    <h5>Client Relationship Protocol</h5>
+                                    <p>How to communicate, write contracts, and quote development projects.</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="timeline-section" id="how-it-works">
+        <div class="academy-container">
+            <div class="section-header-wrap">
+                <span class="section-emoji">⚙️</span>
+                <h2 class="section-title">HOW THE CAMPS OPERATE</h2>
+                <p class="section-subtitle">A streamlined, straightforward roadmap to your digital development transformation.</p>
+            </div>
+
+            <div class="timeline-wrap">
+                <div class="timeline-line"></div>
+
+                <!-- Step 1 -->
+                <div class="timeline-step">
+                    <span class="step-node"></span>
+                    <div class="step-content">
+                        <span class="step-badge">STEP 01</span>
+                        <h4>Initiate & Tailor Track</h4>
+                        <p>We consult with you or your child to understand your goals, interests, and current coding level. We then select your specialized curriculum.</p>
+                    </div>
+                    <div class="step-visual">
+                        <span class="step-icon-big">🗺️</span>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="timeline-step">
+                    <span class="step-node"></span>
+                    <div class="step-visual">
+                        <span class="step-icon-big">📞</span>
+                    </div>
+                    <div class="step-content">
+                        <span class="step-badge">STEP 02</span>
+                        <h4>1-on-1 Interactive Mentoring</h4>
+                        <p>Receive scheduled, one-hour personal coding camp sessions via secure video links. Write code together with your dedicated instructor in real time.</p>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="timeline-step">
+                    <span class="step-node"></span>
+                    <div class="step-content">
+                        <span class="step-badge">STEP 03</span>
+                        <h4>Launch Live Projects</h4>
+                        <p>Build working, playable games, dynamic websites, or functional AI scripts. Add them directly to your personal portfolio and present them to the world.</p>
+                    </div>
+                    <div class="step-visual">
+                        <span class="step-icon-big">🚀</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
     <!-- Instructors Section -->
-    <section class="academy-section">
-        <div class="instructors-section">
-            <h3>🌟 Our Instructors</h3>
-            <p>
-                Our teaching team is composed of talented coders and developers from all over the world. We offer two tiers of instruction to fit your budget:
-            </p>
-            <ul style="list-style: none; padding: 0; color: var(--text-secondary); line-height: 1.8;">
-                <li style="margin-bottom: 15px;"><strong style="color: var(--neon-purple);">Expert USA Instructors:</strong> Super experienced, pure coders from the United States with proven track records.</li>
-                <li style="margin-bottom: 15px;"><strong style="color: var(--neon-purple);">International Instructors:</strong> Good coders from any country who are passionate about teaching and sharing knowledge.</li>
-            </ul>
-            <p style="margin-top: 20px; font-style: italic;">
-                All instructors are carefully vetted to ensure the highest quality education for our students.
-            </p>
-        </div>
-    </section>
+    <section class="section" id="instructors">
+        <div class="academy-container">
+            <div class="section-header-wrap">
+                <span class="section-emoji">🎓</span>
+                <h2 class="section-title">MEET THE MENTORS</h2>
+                <p class="section-subtitle">Real-world coding professionals teaching students from across the globe.</p>
+            </div>
 
-    <!-- Pricing Section -->
-    <section class="academy-section">
-        <div class="pricing-section">
-            <h2>Simple, Transparent Pricing</h2>
-            <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 40px;">
-                Choose the instructor tier that fits your needs. All sessions are 1 hour of focused, personalized instruction.
-            </p>
-            <div class="pricing-grid">
-                <div class="price-card">
-                    <h4>🇺🇸 Expert USA Instructor</h4>
-                    <div class="price-amount">$100</div>
-                    <div class="price-duration">per 1-hour session</div>
-                    <p style="color: var(--text-secondary); line-height: 1.6;">
-                        Super experienced pure coders from the USA. Ideal for advanced learners and specialized topics.
-                    </p>
+            <div class="instructor-grid">
+                <!-- Instructor 1 -->
+                <div class="instructor-card">
+                    <div class="instructor-avatar">
+                        <div class="avatar-inner">MJ</div>
+                        <span class="flag-badge">🇺🇸</span>
+                    </div>
+                    <h4>MattyJacks</h4>
+                    <p class="instructor-role">Lead Architect</p>
+                    <p class="instructor-bio">Full-stack web engineer and game designer. Specializes in Roblox Studio systems, Three.js, and startup architecture.</p>
                 </div>
-                <div class="price-card">
-                    <h4>🌍 International Instructor</h4>
-                    <div class="price-amount">$50</div>
-                    <div class="price-duration">per 1-hour session</div>
-                    <p style="color: var(--text-secondary); line-height: 1.6;">
-                        Good coders from around the world. Great for beginners and general programming concepts.
-                    </p>
+                <!-- Instructor 2 -->
+                <div class="instructor-card">
+                    <div class="instructor-avatar">
+                        <div class="avatar-inner">AC</div>
+                        <span class="flag-badge">🇸🇬</span>
+                    </div>
+                    <h4>Aria Chen</h4>
+                    <p class="instructor-role">Creative Dev Expert</p>
+                    <p class="instructor-bio">Frontend engineer specializing in interactive design, user interfaces, vector animations, and reactive frameworks.</p>
+                </div>
+                <!-- Instructor 3 -->
+                <div class="instructor-card">
+                    <div class="instructor-avatar">
+                        <div class="avatar-inner">DM</div>
+                        <span class="flag-badge">🇬🇧</span>
+                    </div>
+                    <h4>Devon Miller</h4>
+                    <p class="instructor-role">Game Engine Coach</p>
+                    <p class="instructor-bio">Experienced game studio developer focusing on Godot mechanics, physics configurations, and sound integrations.</p>
+                </div>
+                <!-- Instructor 4 -->
+                <div class="instructor-card">
+                    <div class="instructor-avatar">
+                        <div class="avatar-inner">YT</div>
+                        <span class="flag-badge">🇯🇵</span>
+                    </div>
+                    <h4>Yuki Tanaka</h4>
+                    <p class="instructor-role">AI Engineer</p>
+                    <p class="instructor-bio">Machine learning consultant and Python dev. Enjoys building customized chatbots and automation scripts for students.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Privacy Section -->
-    <section class="academy-section">
-        <div class="privacy-note">
-            <p>
-                <strong>🔒 Your Child's Privacy is Protected</strong>
-            </p>
-            <p style="margin-top: 15px;">
-                We take privacy seriously. All sessions are secure, and we follow strict data protection protocols. Your child's information is never shared with third parties.
-            </p>
+    <!-- Global Stats Strip -->
+    <section class="stats-strip">
+        <div class="academy-container">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>50+</h3>
+                    <p>Countries Represented</p>
+                </div>
+                <div class="stat-card">
+                    <h3>2,400+</h3>
+                    <p>Camps Completed</p>
+                </div>
+                <div class="stat-card">
+                    <h3>100%</h3>
+                    <p>Satisfaction Rating</p>
+                </div>
+            </div>
         </div>
     </section>
 
-    <!-- CTA Section -->
-    <section class="academy-section">
-        <div class="cta-section">
-            <h2>Ready to Start Learning?</h2>
-            <p>
-                Whether you're a curious kid, a motivated teen, or an adult looking to upskill, 4weird Academy is here to help you master the future of technology.
-            </p>
-            <p style="font-size: 1.2rem; font-weight: 600; color: var(--neon-cyan); margin-bottom: 30px;">
-                Email us today to schedule your first session!
-            </p>
-            <a href="mailto:Matt@MattyJacks.com?subject=4weird%20Academy%20-%20I%20Want%20to%20Learn!" class="cta-button">
-                📧 Email: Matt@MattyJacks.com
-            </a>
-            <p style="margin-top: 30px; color: var(--text-secondary); font-size: 0.95rem;">
-                Include your name, age (if applicable), and what you'd like to learn. We'll get back to you within 24 hours!
-            </p>
+    <!-- Testimonials Section -->
+    <section class="section" id="social-proof">
+        <div class="academy-container">
+            <div class="section-header-wrap">
+                <span class="section-emoji">💬</span>
+                <h2 class="section-title">STUDENT ENCOUNTERS</h2>
+                <p class="section-subtitle">See what our global community of young coders and adult developers have achieved.</p>
+            </div>
+
+            <div class="testimonials-grid">
+                <!-- Card 1 -->
+                <div class="testimonial-card">
+                    <span class="quote-icon">“</span>
+                    <p class="testimonial-text">
+                        "I wanted to learn how to write script plugins for my Roblox games. My instructor made Lua scripting so easy to understand. I added custom models to my server in the very first week!"
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">L</div>
+                        <div class="author-info">
+                            <h5>Leo, Age 14</h5>
+                            <p>Roblox Creator • USA 🇺🇸</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 2 -->
+                <div class="testimonial-card">
+                    <span class="quote-icon">“</span>
+                    <p class="testimonial-text">
+                        "As an adult switching paths, 4weird Academy gave me the structure I needed. I constructed my complete business portfolio and landing pages with custom javascript assets."
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">S</div>
+                        <div class="author-info">
+                            <h5>Sarah, Age 23</h5>
+                            <p>Freelance Web Dev • Canada 🇨🇦</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 3 -->
+                <div class="testimonial-card">
+                    <span class="quote-icon">“</span>
+                    <p class="testimonial-text">
+                        "The Python and AI sessions are super fun. I can train my mascot model using APIs, and it gives hilarious responses on my custom dashboard website. My friends loved it!"
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">K</div>
+                        <div class="author-info">
+                            <h5>Kenji, Age 11</h5>
+                            <p>AI Track Student • Japan 🇯🇵</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing / Tiers Section -->
+    <section class="section" id="pricing">
+        <div class="academy-container">
+            <div class="section-header-wrap">
+                <span class="section-emoji">💳</span>
+                <h2 class="section-title">TRANSPARENT MENTORSHIP TIERS</h2>
+                <p class="section-subtitle">Select the coaching arrangement that best fits your goals. Zero hidden contract terms.</p>
+            </div>
+
+            <div class="pricing-tier-container">
+                <!-- Tier 1 -->
+                <div class="price-tier-card">
+                    <div>
+                        <h4 class="tier-name">International Coach</h4>
+                        <p class="tier-desc">Vetted, passionate instructors from around the world. Excellent for beginners, fundamentals, and general coding practice.</p>
+                        <div class="tier-price">$50 <span class="tier-price-period">/ 1-Hour Session</span></div>
+                    </div>
+                    <div>
+                        <ul class="tier-features">
+                            <li>1-on-1 personalized instruction</li>
+                            <li>Interactive projects dashboard</li>
+                            <li>Weekly review assignments</li>
+                            <li>Access to code repository template</li>
+                        </ul>
+                        <a href="#enroll" class="tier-btn" onclick="selectTierForm('International Coach')">Choose Tier</a>
+                    </div>
+                </div>
+
+                <!-- Tier 2 (Featured) -->
+                <div class="price-tier-card featured">
+                    <div class="featured-tag">MOST POPULAR</div>
+                    <div>
+                        <h4 class="tier-name">Expert USA Mentor</h4>
+                        <p class="tier-desc">Highly experienced software builders located in the USA. Best for advanced topics, project optimization, and career guidance.</p>
+                        <div class="tier-price">$100 <span class="tier-price-period">/ 1-Hour Session</span></div>
+                    </div>
+                    <div>
+                        <ul class="tier-features">
+                            <li>All International Coach features</li>
+                            <li>Elite developers from the US</li>
+                            <li>Priority chat channel access</li>
+                            <li>Personalized portfolio reviews</li>
+                            <li>Specialized AI & Engine pipelines</li>
+                        </ul>
+                        <a href="#enroll" class="tier-btn" onclick="selectTierForm('Expert USA Mentor')">Choose Tier</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guarantee Badge -->
+            <div class="guarantee-wrap">
+                <span class="guarantee-icon">🛡️</span>
+                <div class="guarantee-text">
+                    <h5>100% Satisfaction Guarantee</h5>
+                    <p>If you aren't completely satisfied with your first session, notify us within 24 hours and we'll issue a full refund. Your peace of mind is absolute.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Accordion Section -->
+    <section class="section" id="faq">
+        <div class="academy-container">
+            <div class="section-header-wrap">
+                <span class="section-emoji">❓</span>
+                <h2 class="section-title">FREQUENTLY ANSWERED SCHEMAS</h2>
+                <p class="section-subtitle">Find immediate resolutions regarding curriculum schedules and setups.</p>
+            </div>
+
+            <div class="faq-accordion">
+                <!-- Item 1 -->
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <h4>What ages do you teach?</h4>
+                        <span class="faq-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>We teach students of all ages! Our curriculum is broken down into structured tracks tailored for Kids (7-12), Teens (13-17), and Adults (18+). The instructors adapt the complexity of the projects to match the learner's skill level.</p>
+                    </div>
+                </div>
+                <!-- Item 2 -->
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <h4>Do I need prior coding experience?</h4>
+                        <span class="faq-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>No prior coding experience is required! Most of our students start from absolute scratch. We will teach you the underlying logic patterns before moving onto real software architecture.</p>
+                    </div>
+                </div>
+                <!-- Item 3 -->
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <h4>How are sessions scheduled and hosted?</h4>
+                        <span class="faq-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Sessions are 100% remote. They are hosted over secure, interactive video channels like Google Meet, Zoom, or Discord. We support collaborative code editors so instructors can see and help correct the student's code in real time. Scheduling is flexible to align with school or work hours.</p>
+                    </div>
+                </div>
+                <!-- Item 4 -->
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <h4>How do we communicate outside sessions?</h4>
+                        <span class="faq-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Students and parents have a direct line to instructors via email and dedicated support channels. Expert tier students also receive priority messaging channels for help with code bugs and project support.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA & Form Section -->
+    <section class="cyber-signup-section" id="enroll">
+        <div class="academy-container">
+            <div class="signup-card">
+                <div class="signup-info">
+                    <h3>Ready to Begin your Coding Protocol?</h3>
+                    <p>Fill out our intake request questionnaire. MattyJacks or one of our tech mentors will contact you to arrange a free planning call.</p>
+                    <div class="trust-badge-mini">
+                        🔒 HIPAA & COPPA Compliant Privacy Protected
+                    </div>
+                </div>
+
+                <div class="signup-form-wrapper">
+                    <!-- Signup Form -->
+                    <form class="cyber-form" id="academyIntakeForm" onsubmit="handleIntakeSubmit(event)">
+                        <div class="form-group">
+                            <label for="studentName">Student Name</label>
+                            <input type="text" id="studentName" class="form-input" placeholder="e.g. Liam Smith" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contactEmail">Contact Email</label>
+                            <input type="email" id="contactEmail" class="form-input" placeholder="e.g. parent@domain.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="studentAge">Student Age / Tier</label>
+                            <select id="studentAge" class="form-select">
+                                <option value="Kids (7-12)">Kids (7-12)</option>
+                                <option value="Teens (13-17)">Teens (13-17)</option>
+                                <option value="Adult (18+)">Adult (18+)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="selectedTrack">Desired Focus</label>
+                            <select id="selectedTrack" class="form-select">
+                                <option value="AI & Python">AI & Python Automation</option>
+                                <option value="Web Development">Modern Web Development</option>
+                                <option value="Game Design & Dev">Game Dev (Roblox/Godot)</option>
+                                <option value="Digital Business">Digital Business & Marketing</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="coachTier">Coaching Tier</label>
+                            <select id="coachTier" class="form-select">
+                                <option value="Expert USA Mentor">Expert USA Mentor ($100/session)</option>
+                                <option value="International Coach">International Coach ($50/session)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="form-submit-btn">Initiate Connection</button>
+                    </form>
+
+                    <!-- Success Message Panel -->
+                    <div class="form-success-message" id="successPanel">
+                        <span class="success-icon">🛸</span>
+                        <h4>INTAKE RECEIVED</h4>
+                        <p>Initial connection logs recorded successfully. Our system leads will email you at <strong id="submittedEmailVal" style="color: var(--neon-cyan)">parent@domain.com</strong> within 24 hours to coordinate your first trial camp session.</p>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">Decrypted route confirmed. Welcome to the academy!</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -514,5 +1888,106 @@
     <!-- Scripts -->
     <script src="../components.js"></script>
     <script src="../script.js"></script>
+    <script>
+        // Interactive terminal widget run button simulation
+        const runCodeBtn = document.getElementById('runCodeBtn');
+        const terminalStatus = document.getElementById('terminalStatus');
+        
+        if (runCodeBtn && terminalStatus) {
+            runCodeBtn.addEventListener('click', () => {
+                runCodeBtn.innerText = '⌛ Executing...';
+                terminalStatus.style.display = 'none';
+                
+                setTimeout(() => {
+                    runCodeBtn.innerText = '▶ Run Script';
+                    terminalStatus.style.display = 'inline-flex';
+                    terminalStatus.classList.add('flash-effect');
+                }, 1200);
+            });
+        }
+
+        // Course Tracks curriculum selection
+        function selectTrack(trackId) {
+            // Remove active status from all cards
+            document.querySelectorAll('.track-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            // Hide all detail panels
+            document.querySelectorAll('.track-detail-pane').forEach(panel => {
+                panel.style.display = 'none';
+            });
+            
+            // Add active class to clicked card
+            const clickedCard = document.querySelector(`.track-${trackId}`);
+            if (clickedCard) {
+                clickedCard.classList.add('active');
+            }
+            
+            // Show corresponding detail panel
+            const activePanel = document.getElementById(`detail-${trackId}`);
+            if (activePanel) {
+                activePanel.style.display = 'block';
+            }
+        }
+
+        // Tiers CTA auto selector
+        function selectTierForm(tierName) {
+            const coachTierSelect = document.getElementById('coachTier');
+            if (coachTierSelect) {
+                coachTierSelect.value = tierName;
+            }
+        }
+
+        // FAQ Toggle Accordion
+        function toggleFaq(element) {
+            const item = element.parentElement;
+            const answer = item.querySelector('.faq-answer');
+            const isActive = item.classList.contains('active');
+            
+            // Close all items first
+            document.querySelectorAll('.faq-item').forEach(faq => {
+                faq.classList.remove('active');
+                faq.querySelector('.faq-answer').style.maxHeight = null;
+            });
+            
+            // Open clicked item if it was closed
+            if (!isActive) {
+                item.classList.add('active');
+                answer.style.maxHeight = answer.scrollHeight + "px";
+            }
+        }
+
+        // Intake Form Submissions Mock Handler
+        function handleIntakeSubmit(event) {
+            event.preventDefault();
+            const studentName = document.getElementById('studentName').value;
+            const contactEmail = document.getElementById('contactEmail').value;
+            const studentAge = document.getElementById('studentAge').value;
+            const selectedTrack = document.getElementById('selectedTrack').value;
+            const coachTier = document.getElementById('coachTier').value;
+
+            // Display submitted details in success panel
+            const emailSpan = document.getElementById('submittedEmailVal');
+            if (emailSpan) {
+                emailSpan.innerText = contactEmail;
+            }
+
+            // Hide form and show success message
+            const form = document.getElementById('academyIntakeForm');
+            const successPanel = document.getElementById('successPanel');
+            if (form && successPanel) {
+                form.style.display = 'none';
+                successPanel.style.display = 'block';
+            }
+
+            // Also fire a pre-filled client mail client trigger as secondary backup helper
+            const mailtoUrl = `mailto:Matt@MattyJacks.com?subject=4weird Academy Intake: ${studentName}&body=Intake Form Submission details:%0D%0A- Student: ${studentName}%0D%0A- Age Bracket: ${studentAge}%0D%0A- Track Focus: ${selectedTrack}%0D%0A- Mentorship Level: ${coachTier}%0D%0A- Contact Email: ${contactEmail}%0D%0A%0D%0APlease contact us to schedule the planning call.`;
+            
+            // Open in small timeout to not interrupt the gorgeous UI transition
+            setTimeout(() => {
+                window.location.href = mailtoUrl;
+            }, 1500);
+        }
+    </script>
 </body>
 </html>

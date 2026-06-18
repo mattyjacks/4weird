@@ -1,23 +1,21 @@
 <!DOCTYPE html>
 <!--
-    4weird Game Template
+    4weird Game Template (Cyberpunk Edition)
     Copy this folder to create a new game: website/v1/games/html/YOURGAME/
     
     Required files in your game folder:
     - index.html (this file, customized)
     - game.js (your game logic)
     - game.css (your game styles)
-    - game.json (metadata for credits and bio)
-    
-    Max size: 10MB total. Large assets must be hosted externally.
+    - game.json (metadata for credits, controls, and bios)
 -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>GAME_TITLE - 4weird Games</title>
-    <meta name="description" content="GAME_DESCRIPTION. A pure HTML5 game by GAME_MAKER for 4weird Games.">
-    <meta name="keywords" content="4weird, GAME_TITLE, HTML5 game, browser game, GAME_GENRE">
+    <meta name="description" content="GAME_DESCRIPTION. A premium retro cyberpunk HTML5 game by GAME_MAKER for 4weird Games.">
+    <meta name="keywords" content="4weird, GAME_TITLE, HTML5 game, browser game, retro, cyberpunk, GAME_GENRE">
     
     <!-- Open Graph -->
     <meta property="og:title" content="GAME_TITLE - 4weird Games">
@@ -30,7 +28,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Base Styles -->
     <link rel="stylesheet" href="../../../styles.css">
@@ -40,8 +38,8 @@
     <script src="game.json" type="application/json" id="game-metadata"></script>
 </head>
 <body class="TEMPLATE-4weird-game-page">
-    <!-- Background -->
-    <canvas id="TEMPLATE-4weird-starfield"></canvas>
+    <!-- Cyberpunk ambient styling grids -->
+    <div class="cyber-bg-dots"></div>
     
     <!-- Navigation placeholder - injected by components.js -->
     <div id="TEMPLATE-4weird-nav-placeholder"></div>
@@ -51,74 +49,172 @@
         <div class="TEMPLATE-4weird-game-header-inner">
             <a href="/" class="TEMPLATE-4weird-back-link">
                 <span class="TEMPLATE-4weird-back-arrow">←</span>
-                <span>Back to 4weird</span>
+                <span>Systems Exit</span>
             </a>
             <h1 class="TEMPLATE-4weird-game-title" id="TEMPLATE-4weird-game-title">GAME_TITLE</h1>
             <div class="TEMPLATE-4weird-game-meta" id="TEMPLATE-4weird-game-meta">
-                <span class="TEMPLATE-4weird-game-genre">GAME_GENRE</span>
-                <span class="TEMPLATE-4weird-separator">•</span>
-                <span class="TEMPLATE-4weird-game-status live">LIVE</span>
+                <span class="TEMPLATE-4weird-game-genre" id="TEMPLATE-4weird-game-genre">GAME_GENRE</span>
+                <span class="TEMPLATE-4weird-game-status live">ONLINE</span>
             </div>
         </div>
     </header>
     
     <!-- Main Game Container -->
     <main class="TEMPLATE-4weird-game-main">
-        <!-- Game Canvas/Frame -->
+        <!-- Game Canvas Frame -->
         <div class="TEMPLATE-4weird-game-frame">
-            <button class="TEMPLATE-4weird-fullscreen-btn" id="TEMPLATE-4weird-fullscreen-btn" title="Toggle Fullscreen">📺 Fullscreen</button>
+            <!-- Fullscreen trigger -->
+            <button class="TEMPLATE-4weird-fullscreen-btn" id="TEMPLATE-4weird-fullscreen-btn" title="Toggle Fullscreen">📺 Expand screen</button>
+            
+            <!-- Real-time game HUD -->
+            <div id="game-hud" class="hidden">
+                <!-- Score panel -->
+                <div class="hud-item">
+                    <span class="hud-label">CORES CAPTURED</span>
+                    <span id="hud-score" class="hud-value">0</span>
+                </div>
+                <!-- Health/Shield integrity -->
+                <div class="hud-item hud-integrity-container">
+                    <span class="hud-label">SHIELD INTEGRITY</span>
+                    <div class="integrity-bar-bg">
+                        <div id="hud-integrity-bar" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <!-- System status stats -->
+                <div class="hud-item">
+                    <span class="hud-label">LEVEL / LIVES</span>
+                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                        <span class="hud-value" style="font-size: 1rem; margin-right: 15px;">Lvl <span id="hud-level-val">1</span></span>
+                        <div id="hud-lives-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Virtual Joystick/Controls overlay (Mobile Viewports Only) -->
+            <div class="mobile-touch-controls" id="mobile-touch-controls-overlay">
+                <!-- Left side: Joystick -->
+                <div class="joystick-container">
+                    <span class="hud-label" style="font-size: 0.55rem; opacity: 0.6;">Steering Axis</span>
+                    <div class="joystick-base" id="joystick-zone">
+                        <div class="joystick-knob"></div>
+                    </div>
+                </div>
+                
+                <!-- Center: Directional D-pad fallback -->
+                <div class="dpad-container">
+                    <div class="dpad-btn" id="dpad-up">▲</div>
+                    <div class="dpad-btn" id="dpad-left">◀</div>
+                    <div class="dpad-center"></div>
+                    <div class="dpad-btn" id="dpad-right">▶</div>
+                    <div class="dpad-btn" id="dpad-down">▼</div>
+                </div>
+                
+                <!-- Right side: Action Boost -->
+                <div class="touch-action-container">
+                    <span class="hud-label" style="font-size: 0.55rem; opacity: 0.6;">Action Systems</span>
+                    <button class="touch-action-btn" data-action="boost">Boost</button>
+                </div>
+            </div>
+
             <canvas id="TEMPLATE-4weird-gameCanvas"></canvas>
             
-            <!-- Game Overlay States -->
+            <!-- Loading Screen with Spinner -->
+            <div class="TEMPLATE-4weird-loading-screen" id="TEMPLATE-4weird-loading-screen">
+                <div class="spinner"></div>
+                <h3 style="font-family: var(--font-cyber); letter-spacing: 2px; color: var(--neon-cyan); font-size: 0.9rem;">INITIALIZING VIRTUAL GRID...</h3>
+            </div>
+
+            <!-- Game Start Overlay -->
             <div class="TEMPLATE-4weird-game-overlay" id="TEMPLATE-4weird-start-screen">
                 <div class="TEMPLATE-4weird-overlay-content">
-                    <h2>GAME_TITLE</h2>
-                    <p>GAME_SHORT_DESCRIPTION</p>
+                    <h2 id="start-overlay-title">GAME_TITLE</h2>
+                    <p id="start-overlay-desc">GAME_SHORT_DESCRIPTION</p>
                     <button class="btn btn-primary" id="TEMPLATE-4weird-start-btn">
-                        <span class="btn-emoji">🎮</span> Start Game
+                        <span class="btn-emoji">🎮</span> LOAD CORE
                     </button>
-                    <div class="TEMPLATE-4weird-controls-hint">
-                        <p><strong>Controls:</strong> GAME_CONTROLS</p>
+                    <div class="TEMPLATE-4weird-controls-hint" id="start-overlay-hint">
+                        <p>Use keyboard controls or virtual analog controls to interact.</p>
                     </div>
                 </div>
             </div>
             
+            <!-- Game Pause Overlay -->
             <div class="TEMPLATE-4weird-game-overlay hidden" id="TEMPLATE-4weird-pause-screen">
                 <div class="TEMPLATE-4weird-overlay-content">
-                    <h2>Paused</h2>
-                    <button class="btn btn-primary" id="TEMPLATE-4weird-resume-btn">Resume</button>
-                    <button class="btn btn-secondary" id="TEMPLATE-4weird-restart-btn">Restart</button>
+                    <h2>SYSTEMS HALTED</h2>
+                    <p style="margin-bottom: 20px;">Virtual matrix sequence currently frozen.</p>
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-resume-btn">RESUME SYSTEM</button>
+                    <button class="btn btn-secondary" id="TEMPLATE-4weird-restart-btn">RELOAD CORE</button>
                 </div>
             </div>
             
+            <!-- Game Over Overlay -->
             <div class="TEMPLATE-4weird-game-overlay hidden" id="TEMPLATE-4weird-game-over-screen">
                 <div class="TEMPLATE-4weird-overlay-content">
-                    <h2>Game Over</h2>
-                    <p class="TEMPLATE-4weird-final-score">Score: <span id="TEMPLATE-4weird-final-score">0</span></p>
-                    <button class="btn btn-primary" id="TEMPLATE-4weird-play-again-btn">Play Again</button>
+                    <h2 style="color: var(--neon-magenta); text-shadow: var(--glow-magenta);">SYSTEM BREACH</h2>
+                    <p>Core power depletion or structural failure detected.</p>
+                    <p class="TEMPLATE-4weird-final-score">SCORE: <span id="TEMPLATE-4weird-final-score-val">0</span></p>
+                    <p style="font-family: var(--font-cyber); font-size: 0.8rem; margin-top: -15px; margin-bottom: 25px; color: var(--neon-yellow);">HIGH SCORE: <span id="TEMPLATE-4weird-gameover-highscore">0</span></p>
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-play-again-btn">RETRY RUN</button>
                 </div>
             </div>
         </div>
         
-        <!-- Game Info Panel -->
+        <!-- Game Info Panel (Glassmorphism Sidebar) -->
         <aside class="TEMPLATE-4weird-game-info-panel">
+            <!-- Sound FX Board -->
+            <div class="TEMPLATE-4weird-panel-section sound-panel">
+                <h3><span>🔊</span> Audio Synth</h3>
+                <button class="sound-toggle-btn" id="TEMPLATE-4weird-mute-btn">🔊 Sound</button>
+            </div>
+
+            <!-- High score -->
+            <div class="TEMPLATE-4weird-panel-section high-score-section">
+                <h3><span>🏆</span> High Score</h3>
+                <p class="TEMPLATE-4weird-high-score" id="TEMPLATE-4weird-high-score">0</p>
+            </div>
+
+            <!-- How to Play -->
             <div class="TEMPLATE-4weird-panel-section">
-                <h3>How to Play</h3>
+                <h3><span>📖</span> Instruction Log</h3>
                 <p id="TEMPLATE-4weird-how-to-play">GAME_INSTRUCTIONS</p>
             </div>
             
+            <!-- Controls reference with layout tab selector -->
             <div class="TEMPLATE-4weird-panel-section">
-                <h3>Controls</h3>
-                <ul id="TEMPLATE-4weird-controls-list">
-                    <li><kbd>Arrow Keys</kbd> / <kbd>WASD</kbd> - Move</li>
-                    <li><kbd>Space</kbd> - Action</li>
-                    <li><kbd>P</kbd> / <kbd>Esc</kbd> - Pause</li>
-                </ul>
+                <h3><span>⌨️</span> Control Schemes</h3>
+                <div class="controls-tabs">
+                    <button class="tab-btn active" data-tab="keyboard-controls-content">Keyboard</button>
+                    <button class="tab-btn" data-tab="touch-controls-content">Touch Overlay</button>
+                </div>
+                
+                <!-- Keyboard layout contents -->
+                <div class="controls-tab-content active" id="keyboard-controls-content">
+                    <ul id="TEMPLATE-4weird-keyboard-controls-list">
+                        <li><span>Steer Avatar</span> <kbd>WASD / Arrows</kbd></li>
+                        <li><span>Speed Boost</span> <kbd>Spacebar</kbd></li>
+                        <li><span>Pause Sequence</span> <kbd>P / Escape</kbd></li>
+                    </ul>
+                </div>
+                
+                <!-- Touch layout contents -->
+                <div class="controls-tab-content" id="touch-controls-content">
+                    <ul id="TEMPLATE-4weird-touch-controls-list">
+                        <li><span>Steer Ship</span> <span>Virtual Joystick</span></li>
+                        <li><span>Speed Boost</span> <span>Action button (Right)</span></li>
+                        <li><span>Grid movement</span> <span>Digital D-Pad (Center)</span></li>
+                    </ul>
+                </div>
             </div>
-            
-            <div class="TEMPLATE-4weird-panel-section">
-                <h3>High Score</h3>
-                <p class="TEMPLATE-4weird-high-score" id="TEMPLATE-4weird-high-score">0</p>
+
+            <!-- Share buttons panel -->
+            <div class="TEMPLATE-4weird-panel-section share-section">
+                <h3><span>🔗</span> Share Matrix</h3>
+                <div class="share-buttons">
+                    <button class="share-btn copy" onclick="copyGameLink()">📂 Copy Code</button>
+                    <a class="share-btn twitter" id="share-twitter" href="#" target="_blank" rel="noopener">🐦 Twitter/X</a>
+                    <a class="share-btn reddit" id="share-reddit" href="#" target="_blank" rel="noopener">👾 Reddit</a>
+                </div>
             </div>
         </aside>
     </main>
@@ -126,7 +222,7 @@
     <!-- Credits Section -->
     <section class="TEMPLATE-4weird-credits-section" id="TEMPLATE-4weird-credits">
         <div class="TEMPLATE-4weird-credits-container">
-            <h2 class="TEMPLATE-4weird-credits-title">Credits</h2>
+            <h2 class="TEMPLATE-4weird-credits-title">Development Crew</h2>
             
             <div class="TEMPLATE-4weird-credits-grid" id="TEMPLATE-4weird-credits-grid">
                 <!-- Populated from game.json -->
@@ -145,48 +241,80 @@
     <!-- Maker Bio Section -->
     <section class="TEMPLATE-4weird-bio-section" id="TEMPLATE-4weird-bio">
         <div class="TEMPLATE-4weird-bio-container">
-            <h2 class="TEMPLATE-4weird-bio-title">About the Creator</h2>
+            <h2 class="TEMPLATE-4weird-bio-title">System Creator Bio</h2>
             <div class="TEMPLATE-4weird-bio-content" id="TEMPLATE-4weird-maker-bio">
                 <p>MAKER_BIO_TEXT</p>
             </div>
         </div>
     </section>
     
-    <!-- More Games -->
+    <!-- More Games Carousel Section -->
     <section class="TEMPLATE-4weird-more-games">
         <div class="TEMPLATE-4weird-more-games-container">
-            <h2>More 4weird Games</h2>
-            <a href="../../../index.html#games" class="btn btn-secondary">
-                <span class="btn-emoji">🎯</span> Browse All Games
-            </a>
+            <div class="TEMPLATE-4weird-more-games-header">
+                <h2>Network Grid Nodes (More Games)</h2>
+                <div class="carousel-nav">
+                    <button class="carousel-nav-btn" id="carousel-prev" aria-label="Previous Games">◀</button>
+                    <button class="carousel-nav-btn" id="carousel-next" aria-label="Next Games">▶</button>
+                </div>
+            </div>
+            <div class="carousel-wrapper">
+                <div class="carousel-track" id="more-games-carousel-track">
+                    <!-- Loaded dynamically from components.js -->
+                </div>
+            </div>
         </div>
     </section>
     
-    <!-- Footer -->
-    <footer class="TEMPLATE-4weird-footer">
-        <div class="TEMPLATE-4weird-footer-content">
-            <p>🎮 <span id="TEMPLATE-4weird-footer-title">GAME_TITLE</span> — A 4weird Game</p>
-            <p style="margin-top: 8px;">
-                <a href="../../../privacy-policy.html">Privacy Policy</a>
-                <span class="TEMPLATE-4weird-footer-separator">|</span>
-                <a href="../../../index.html#games">More Games</a>
-                <span class="TEMPLATE-4weird-footer-separator">|</span>
-                <a href="/">4weird Home</a>
-            </p>
-        </div>
-    </footer>
+    <!-- Footer placeholder - injected by components.js -->
+    <div id="TEMPLATE-4weird-footer-placeholder"></div>
     
     <!-- Scripts -->
     <script src="../../../components.js"></script>
     <script src="game.js"></script>
     <script>
-        // Load game metadata and populate template
+        // Load game metadata and populate template fields
         (function() {
             fetch('game.json')
                 .then(r => r.json())
                 .then(data => {
                     document.title = data.title + ' - 4weird Games';
+                    
+                    // Main title tags
                     document.getElementById('TEMPLATE-4weird-game-title').textContent = data.title;
+                    document.getElementById('start-overlay-title').textContent = data.title;
+                    
+                    // Genre and descriptions
+                    document.getElementById('TEMPLATE-4weird-game-genre').textContent = data.genre;
+                    document.getElementById('start-overlay-desc').textContent = data.description;
+                    document.getElementById('TEMPLATE-4weird-how-to-play').innerHTML = data.instructions;
+                    
+                    // Set keyboard instructions hint
+                    if (data.controls && data.controls.keyboard) {
+                        const hintList = Object.entries(data.controls.keyboard)
+                            .map(([k, desc]) => `<p><strong>${desc}:</strong> <kbd>${k}</kbd></p>`)
+                            .join('');
+                        document.getElementById('start-overlay-hint').innerHTML = hintList;
+                        
+                        // Populate the aside sidebar list
+                        const listHtml = Object.entries(data.controls.keyboard)
+                            .map(([k, desc]) => `<li><span>${desc}</span> <kbd>${k}</kbd></li>`)
+                            .join('');
+                        document.getElementById('TEMPLATE-4weird-keyboard-controls-list').innerHTML = listHtml;
+                    }
+
+                    // Set touch controls instructions details
+                    if (data.controls && data.controls.touch) {
+                        const touchListHtml = Object.entries(data.controls.touch)
+                            .map(([ctrlType, desc]) => {
+                                const friendlyType = ctrlType.toUpperCase().replace('_', ' ');
+                                return `<li><span>${desc}</span> <span>${friendlyType}</span></li>`;
+                            })
+                            .join('');
+                        document.getElementById('TEMPLATE-4weird-touch-controls-list').innerHTML = touchListHtml;
+                    }
+
+                    // Credits developer bios and details
                     document.getElementById('TEMPLATE-4weird-maker-name').textContent = data.maker.name;
                     document.getElementById('TEMPLATE-4weird-maker-bio').innerHTML = '<p>' + data.maker.bio + '</p>';
                     
@@ -196,7 +324,7 @@
                         link.textContent = data.maker.urlLabel || 'Portfolio';
                     }
                     
-                    // Update credits grid with all contributors
+                    // Update credits cards dynamic grid
                     if (data.credits && data.credits.length > 0) {
                         const grid = document.getElementById('TEMPLATE-4weird-credits-grid');
                         grid.innerHTML = data.credits.map(c => `
@@ -208,8 +336,14 @@
                             </div>
                         `).join('');
                     }
+
+                    // Social Share links updates
+                    const encodedUrl = encodeURIComponent(window.location.href);
+                    const encodedTitle = encodeURIComponent(`Check out ${data.title} on 4weird Games! 🎮🚀`);
+                    document.getElementById('share-twitter').href = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`;
+                    document.getElementById('share-reddit').href = `https://www.reddit.com/submit?url=${encodedUrl}&title=${encodedTitle}`;
                 })
-                .catch(err => console.log('Using template defaults:', err));
+                .catch(err => console.log('Template metadata fetch error:', err));
             
             // Fullscreen toggle logic
             const fullscreenBtn = document.getElementById('TEMPLATE-4weird-fullscreen-btn');
@@ -220,11 +354,27 @@
                         gameFrame.requestFullscreen().catch(err => {
                             console.error(`Error attempting to enable fullscreen: ${err.message}`);
                         });
+                        fullscreenBtn.textContent = "📺 Normal screen";
                     } else {
                         document.exitFullscreen();
+                        fullscreenBtn.textContent = "📺 Expand screen";
                     }
                 });
             }
+
+            // Tabs UI Interaction script for Controls Sidebar
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.controls-tab-content');
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    btn.classList.add('active');
+                    const targetContent = document.getElementById(btn.getAttribute('data-tab'));
+                    if (targetContent) targetContent.classList.add('active');
+                });
+            });
         })();
     </script>
 </body>

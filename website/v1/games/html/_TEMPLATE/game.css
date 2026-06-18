@@ -1,199 +1,413 @@
 /**
  * Game Page Styles - 4weird Games Template
- * Extends main styles.css variables and utilities
- * Use only CSS variables from root for consistency
+ * Cyberpunk/Matrix High-Fidelity Retro Neon Redesign
  */
 
-/* ===== GAME PAGE LAYOUT ===== */
+/* ===== 1. THEME VARIABLES ===== */
+:root {
+    --cyber-black: #050508;
+    --cyber-dark: #0a0a0f;
+    --cyber-dark-blue: #0f0f1a;
+    --cyber-gray: #1a1a26;
+    --cyber-panel: rgba(10, 10, 15, 0.75);
+    
+    --neon-cyan: #00f2fe;
+    --neon-magenta: #ff0077;
+    --neon-yellow: #fcf003;
+    --neon-purple: #8b5cf6;
+    
+    --glow-cyan: 0 0 10px rgba(0, 242, 254, 0.5), 0 0 20px rgba(0, 242, 254, 0.3);
+    --glow-magenta: 0 0 10px rgba(255, 0, 119, 0.5), 0 0 20px rgba(255, 0, 119, 0.3);
+    --glow-yellow: 0 0 10px rgba(252, 240, 3, 0.5), 0 0 20px rgba(252, 240, 3, 0.3);
+    --glow-purple: 0 0 10px rgba(139, 92, 246, 0.5), 0 0 20px rgba(139, 92, 246, 0.3);
+
+    --border-cyber: 1px solid rgba(0, 242, 254, 0.2);
+    --border-cyber-purple: 1px solid rgba(139, 92, 246, 0.3);
+    
+    --font-cyber: 'Orbitron', 'Inter', sans-serif;
+}
+
+/* ===== 2. LAYOUT & CORE RESET ===== */
 .TEMPLATE-4weird-game-page {
+    background-color: var(--cyber-black);
+    color: #e2e8f0;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    padding-top: 70px; /* account for fixed navbar height */
+    padding-top: var(--navbar-height, 70px);
+    position: relative;
+    overflow-x: hidden;
+    font-family: 'Inter', sans-serif;
 }
 
-/* ===== GAME HEADER ===== */
+/* Scanlines/Matrix ambient grid effect */
+.TEMPLATE-4weird-game-page::before {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 999;
+    background-size: 100% 4px, 6px 100%;
+    pointer-events: none;
+}
+
+/* Background animated glow matrix */
+.cyber-bg-dots {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image: radial-gradient(rgba(139, 92, 246, 0.15) 1px, transparent 1px);
+    background-size: 30px 30px;
+    z-index: -2;
+    pointer-events: none;
+}
+
+/* ===== 3. GAME HEADER ===== */
 .TEMPLATE-4weird-game-header {
+    background: linear-gradient(180deg, rgba(5, 5, 8, 0.95) 0%, rgba(10, 10, 15, 0.8) 100%);
+    backdrop-filter: blur(12px);
+    border-bottom: 2px solid var(--neon-purple);
+    box-shadow: 0 5px 20px rgba(139, 92, 246, 0.2);
     position: sticky;
-    top: 70px; /* sticks just under the fixed navbar */
+    top: 0;
     z-index: 100;
-    background: rgba(10, 10, 15, 0.95);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(139, 92, 246, 0.2);
-    padding: 15px 0;
+    padding: 10px 0;
 }
 
 .TEMPLATE-4weird-game-header-inner {
-    max-width: 1200px;
+    max-width: 1300px;
     margin: 0 auto;
-    padding: 0 24px;
+    padding: 0 20px;
     display: flex;
     align-items: center;
-    gap: 20px;
+    justify-content: space-between;
     flex-wrap: wrap;
+    gap: 15px;
 }
 
-.TEMPLATE-4weird-game-header .back-link,
 .TEMPLATE-4weird-back-link {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    color: var(--neon-purple-light);
+    color: var(--neon-cyan);
     text-decoration: none;
-    font-weight: 500;
-    transition: 0.3s ease;
+    font-family: var(--font-cyber);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
     padding: 8px 16px;
-    border-radius: 8px;
-    background: rgba(139, 92, 246, 0.1);
-    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 4px;
+    background: rgba(0, 242, 254, 0.05);
+    border: var(--border-cyber);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: inset 0 0 5px rgba(0, 242, 254, 0.1);
 }
 
-.TEMPLATE-4weird-back-link:hover,
-.TEMPLATE-4weird-game-header .back-link:hover {
-    color: var(--neon-green-light);
-    border-color: var(--neon-green);
-    transform: translateX(-3px);
-}
-
-.TEMPLATE-4weird-back-arrow {
-    font-size: 1.2rem;
+.TEMPLATE-4weird-back-link:hover {
+    color: #fff;
+    background: var(--neon-cyan);
+    border-color: var(--neon-cyan);
+    box-shadow: var(--glow-cyan);
+    transform: translateX(-4px);
 }
 
 .TEMPLATE-4weird-game-title {
-    font-family: var(--font-display);
-    font-size: 1.5rem;
+    font-family: var(--font-cyber);
+    font-size: 1.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #fff;
+    text-shadow: var(--glow-purple);
     margin: 0;
-    background: linear-gradient(135deg, var(--text-primary), var(--neon-purple-light));
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    animation: neonPulse 2s infinite alternate;
 }
 
 .TEMPLATE-4weird-game-meta {
-    margin-left: auto;
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 0.9rem;
+    gap: 12px;
 }
 
 .TEMPLATE-4weird-game-genre {
-    color: var(--neon-green-light);
-    font-weight: 500;
-}
-
-.TEMPLATE-4weird-separator {
-    color: var(--text-muted);
-}
-
-.TEMPLATE-4weird-game-status {
-    padding: 4px 12px;
-    border-radius: 20px;
+    font-family: var(--font-cyber);
+    color: var(--neon-cyan);
     font-size: 0.75rem;
-    font-weight: 700;
     text-transform: uppercase;
+    font-weight: 700;
     letter-spacing: 1px;
+    border: 1px solid rgba(0, 242, 254, 0.4);
+    padding: 4px 10px;
+    border-radius: 4px;
 }
 
 .TEMPLATE-4weird-game-status.live {
-    background: var(--neon-green);
-    color: var(--bg-primary);
+    font-family: var(--font-cyber);
+    background: var(--neon-magenta);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 4px 12px;
+    border-radius: 4px;
+    box-shadow: var(--glow-magenta);
+    animation: cyberBlink 1.5s infinite;
 }
 
-/* ===== GAME MAIN LAYOUT ===== */
+/* ===== 4. MAIN LAYOUT GRID ===== */
 .TEMPLATE-4weird-game-main {
     flex: 1;
-    max-width: 1200px;
+    max-width: 1300px;
     margin: 0 auto;
-    padding: 30px 24px;
-    display: grid;
-    grid-template-columns: 1fr 300px;
-    gap: 30px;
     width: 100%;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
 }
 
-@media (max-width: 900px) {
-    .TEMPLATE-4weird-game-main {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* ===== GAME FRAME ===== */
+/* ===== 5. GAME VIEWPORT FRAME ===== */
 .TEMPLATE-4weird-game-frame {
     position: relative;
-    background: var(--bg-card);
-    border-radius: 20px;
-    border: 1px solid rgba(139, 92, 246, 0.2);
+    background: #030305;
+    border-radius: 12px;
+    border: 2px solid var(--neon-purple);
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.15), inset 0 0 20px rgba(0, 0, 0, 0.8);
     overflow: hidden;
     aspect-ratio: 4/3;
+    display: flex;
+    flex-direction: column;
 }
 
-#TEMPLATE-4weird-gameCanvas,
-.TEMPLATE-4weird-gameCanvas {
+.TEMPLATE-4weird-game-frame::after {
+    content: "SYSTEM ACTIVE";
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    font-family: var(--font-cyber);
+    font-size: 0.6rem;
+    color: rgba(139, 92, 246, 0.5);
+    letter-spacing: 2px;
+    pointer-events: none;
+}
+
+#TEMPLATE-4weird-gameCanvas {
     width: 100%;
     height: 100%;
     display: block;
-    background: var(--bg-tertiary);
+    background: radial-gradient(circle, #08080f 0%, #030305 100%);
 }
 
-/* ===== GAME OVERLAYS ===== */
+/* ===== 6. REAL-TIME GAME HUD ===== */
+#game-hud {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.hud-item {
+    background: rgba(5, 5, 8, 0.8);
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    box-shadow: inset 0 0 10px rgba(139, 92, 246, 0.2);
+    border-radius: 6px;
+    padding: 8px 16px;
+    display: flex;
+    flex-direction: column;
+    backdrop-filter: blur(8px);
+}
+
+.hud-label {
+    font-family: var(--font-cyber);
+    font-size: 0.65rem;
+    color: var(--neon-cyan);
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+}
+
+.hud-value {
+    font-family: var(--font-cyber);
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: var(--glow-cyan);
+}
+
+/* Integrity Health Bar styling */
+.hud-integrity-container {
+    width: 160px;
+}
+
+.integrity-bar-bg {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+#hud-integrity-bar {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #10b981, #34d399);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+    transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#hud-lives-container {
+    display: flex;
+    gap: 5px;
+    margin-top: 3px;
+}
+
+.hud-life-icon {
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.hud-life-icon.active {
+    color: var(--neon-yellow);
+    text-shadow: var(--glow-yellow);
+}
+
+.hud-life-icon.depleted {
+    color: rgba(255, 255, 255, 0.15);
+    text-shadow: none;
+}
+
+/* ===== 7. GAME STATE OVERLAYS ===== */
 .TEMPLATE-4weird-game-overlay {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(10, 10, 15, 0.95);
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(4, 4, 6, 0.92);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 10;
+    backdrop-filter: blur(10px);
+    transition: opacity 0.3s ease;
 }
 
 .TEMPLATE-4weird-game-overlay.hidden {
-    display: none;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .TEMPLATE-4weird-overlay-content {
     text-align: center;
-    padding: 40px;
+    max-width: 480px;
+    padding: 30px;
+    border-radius: 12px;
+    background: rgba(10, 10, 15, 0.6);
+    border: var(--border-cyber-purple);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 0 30px rgba(139, 92, 246, 0.05);
 }
 
 .TEMPLATE-4weird-overlay-content h2 {
-    font-family: var(--font-display);
-    font-size: 2rem;
+    font-family: var(--font-cyber);
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: 2px;
     margin-bottom: 15px;
-    color: var(--neon-purple-light);
+    color: #fff;
+    text-shadow: var(--glow-cyan);
 }
 
 .TEMPLATE-4weird-overlay-content p {
-    color: var(--text-secondary);
-    margin-bottom: 30px;
+    font-size: 0.95rem;
+    color: #a0aec0;
+    line-height: 1.6;
+    margin-bottom: 25px;
 }
 
 .TEMPLATE-4weird-controls-hint {
-    margin-top: 30px;
-    padding: 20px;
-    background: rgba(139, 92, 246, 0.1);
-    border-radius: 10px;
-    border: 1px solid rgba(139, 92, 246, 0.2);
+    margin-top: 25px;
+    padding: 15px;
+    background: rgba(0, 242, 254, 0.04);
+    border: var(--border-cyber);
+    border-radius: 8px;
+    font-size: 0.85rem;
 }
 
 .TEMPLATE-4weird-controls-hint kbd {
-    background: var(--bg-tertiary);
-    padding: 4px 8px;
+    background: #1e1e2d;
+    border: 1px solid #4a5568;
+    box-shadow: 0 2px 0 #4a5568;
+    color: #fff;
+    padding: 2px 6px;
     border-radius: 4px;
     font-family: monospace;
-    font-size: 0.85rem;
-    border: 1px solid rgba(139, 92, 246, 0.3);
+    font-size: 0.8rem;
+    margin: 0 3px;
 }
 
 .TEMPLATE-4weird-final-score {
+    font-family: var(--font-cyber);
     font-size: 1.5rem;
-    color: var(--neon-green-light);
+    color: var(--neon-yellow);
+    text-shadow: var(--glow-yellow);
+    margin: 15px 0 25px;
+    font-weight: 700;
 }
 
-/* ===== INFO PANEL ===== */
+/* Buttons style */
+.btn {
+    font-family: var(--font-cyber);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 12px 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--neon-purple), #7c3aed);
+    color: #fff;
+    border: 1px solid var(--neon-purple);
+    box-shadow: var(--glow-purple);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #7c3aed, var(--neon-purple));
+    box-shadow: 0 0 25px var(--neon-purple);
+    transform: scale(1.05);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #fff;
+    color: #fff;
+}
+
+.btn-emoji {
+    margin-right: 8px;
+    font-size: 1.1rem;
+}
+
+/* Pause and Game Over screens overlays adjustments */
+#TEMPLATE-4weird-pause-screen .btn,
+#TEMPLATE-4weird-game-over-screen .btn {
+    margin: 5px;
+    width: 180px;
+}
+
+/* ===== 8. HIGH-TECH INFO SIDEBAR ===== */
 .TEMPLATE-4weird-game-info-panel {
     display: flex;
     flex-direction: column;
@@ -201,241 +415,649 @@
 }
 
 .TEMPLATE-4weird-panel-section {
-    background: var(--bg-card);
-    border-radius: 16px;
-    padding: 25px;
-    border: 1px solid rgba(139, 92, 246, 0.15);
+    background: var(--cyber-panel);
+    border: var(--border-cyber-purple);
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.4), inset 0 0 15px rgba(139, 92, 246, 0.03);
+    border-radius: 12px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Tech circuit aesthetics */
+.TEMPLATE-4weird-panel-section::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 4px; height: 100%;
+    background: var(--neon-purple);
+    box-shadow: var(--glow-purple);
+}
+
+.TEMPLATE-4weird-panel-section.high-score-section::before {
+    background: var(--neon-yellow);
+    box-shadow: var(--glow-yellow);
 }
 
 .TEMPLATE-4weird-panel-section h3 {
-    font-family: var(--font-display);
+    font-family: var(--font-cyber);
     font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
     margin-bottom: 15px;
-    color: var(--neon-purple-light);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.TEMPLATE-4weird-panel-section p, .TEMPLATE-4weird-panel-section li {
-    color: var(--text-secondary);
+.TEMPLATE-4weird-panel-section p {
+    color: #a0aec0;
     font-size: 0.9rem;
-    line-height: 1.7;
+    line-height: 1.6;
+}
+
+/* Tabs switcher for Controls */
+.controls-tabs {
+    display: flex;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 15px;
+}
+
+.tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    color: #718096;
+    font-family: var(--font-cyber);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 8px 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+    color: var(--neon-cyan);
+    border-bottom: 2px solid var(--neon-cyan);
+}
+
+.controls-tab-content {
+    display: none;
+}
+
+.controls-tab-content.active {
+    display: block;
 }
 
 .TEMPLATE-4weird-panel-section ul {
     list-style: none;
-    padding: 0;
 }
 
 .TEMPLATE-4weird-panel-section li {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 10px;
     padding: 8px 0;
-    border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.85rem;
+    color: #cbd5e0;
 }
 
 .TEMPLATE-4weird-panel-section li:last-child {
     border-bottom: none;
 }
 
+.TEMPLATE-4weird-panel-section kbd {
+    background: #1a1a24;
+    border: 1px solid #4a5568;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.75rem;
+    margin-left: 5px;
+}
+
+/* Score animation */
 .TEMPLATE-4weird-high-score {
-    font-family: var(--font-display);
-    font-size: 2rem;
-    color: var(--neon-green);
+    font-family: var(--font-cyber);
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--neon-yellow);
+    text-shadow: var(--glow-yellow);
     text-align: center;
+    letter-spacing: 2px;
 }
 
-/* ===== CREDITS SECTION ===== */
-.TEMPLATE-4weird-credits-section {
-    background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-    padding: 80px 0;
+/* Sound controller panel */
+.sound-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.TEMPLATE-4weird-credits-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 0 24px;
-}
-
-.TEMPLATE-4weird-credits-title {
-    font-family: var(--font-display);
-    font-size: 2rem;
-    text-align: center;
-    margin-bottom: 40px;
+.sound-toggle-btn {
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.4);
     color: var(--neon-purple-light);
-}
-
-.TEMPLATE-4weird-credits-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 25px;
-}
-
-.TEMPLATE-4weird-credit-card {
-    background: var(--bg-card);
-    border-radius: 16px;
-    padding: 30px;
-    text-align: center;
-    border: 1px solid rgba(139, 92, 246, 0.2);
-    transition: 0.3s ease;
-}
-
-.TEMPLATE-4weird-credit-card:hover {
-    transform: translateY(-5px);
-    border-color: var(--neon-purple);
-}
-
-.TEMPLATE-4weird-credit-card.primary,
-.TEMPLATE-4weird-credit-card.TEMPLATE-4weird-primary {
-    border-color: var(--neon-green);
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(139, 92, 246, 0.05));
-}
-
-.TEMPLATE-4weird-credit-avatar,
-.TEMPLATE-4weird-credit-icon {
-    font-size: 3rem;
-    margin-bottom: 15px;
-}
-
-.TEMPLATE-4weird-credit-name {
-    font-family: var(--font-display);
-    font-size: 1.2rem;
-    margin-bottom: 8px;
-}
-
-.TEMPLATE-4weird-credit-role {
-    color: var(--neon-purple-light);
-    font-size: 0.9rem;
-    margin-bottom: 15px;
-}
-
-.TEMPLATE-4weird-credit-links a {
-    color: var(--neon-green);
-    text-decoration: none;
-    font-size: 0.9rem;
-}
-
-.TEMPLATE-4weird-credit-links a:hover {
-    color: var(--neon-green-light);
-}
-
-/* ===== BIO SECTION ===== */
-.TEMPLATE-4weird-bio-section {
-    background: var(--bg-secondary);
-    padding: 60px 0;
-}
-
-.TEMPLATE-4weird-bio-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 0 24px;
-}
-
-.TEMPLATE-4weird-bio-title {
-    font-family: var(--font-display);
-    font-size: 1.5rem;
-    margin-bottom: 25px;
-    color: var(--neon-green-light);
-}
-
-.TEMPLATE-4weird-bio-content p {
-    color: var(--text-secondary);
-    line-height: 1.9;
-    font-size: 1rem;
-}
-
-/* ===== MORE GAMES ===== */
-.TEMPLATE-4weird-more-games {
-    background: var(--bg-primary);
-    padding: 60px 0;
-    text-align: center;
-}
-
-.TEMPLATE-4weird-more-games-container {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 0 24px;
-}
-
-.TEMPLATE-4weird-more-games h2 {
-    font-family: var(--font-display);
-    font-size: 1.8rem;
-    margin-bottom: 30px;
-    color: var(--text-primary);
-}
-
-/* ===== BUTTONS ===== */
-.TEMPLATE-4weird-btn-game {
-    padding: 12px 30px;
-    font-size: 1rem;
-}
-
-/* ===== MOBILE ADJUSTMENTS ===== */
-@media (max-width: 768px) {
-    .TEMPLATE-4weird-game-header-inner {
-        flex-direction: column;
-        text-align: center;
-        gap: 15px;
-    }
-    
-    .TEMPLATE-4weird-game-meta {
-        margin-left: 0;
-    }
-    
-    .TEMPLATE-4weird-game-title {
-        font-size: 1.2rem;
-    }
-    
-    .TEMPLATE-4weird-game-frame {
-        aspect-ratio: auto;
-        min-height: 300px;
-    }
-    
-    .TEMPLATE-4weird-overlay-content {
-        padding: 20px;
-    }
-    
-    .TEMPLATE-4weird-overlay-content h2 {
-        font-size: 1.5rem;
-    }
-    
-    .TEMPLATE-4weird-credits-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* ===== FULLSCREEN MODE ===== */
-.TEMPLATE-4weird-fullscreen-btn {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    z-index: 100;
-    background: rgba(10, 10, 15, 0.75);
-    border: 1px solid rgba(139, 92, 246, 0.5);
-    color: var(--neon-purple-light);
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-family: var(--font-display);
+    font-family: var(--font-cyber);
     font-size: 0.8rem;
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 700;
     transition: all 0.2s ease;
 }
 
-.TEMPLATE-4weird-fullscreen-btn:hover {
-    background: rgba(139, 92, 246, 0.2);
-    box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
-    border-color: var(--neon-purple-light);
+.sound-toggle-btn.active {
+    background: var(--neon-magenta);
+    border-color: var(--neon-magenta);
+    color: #fff;
+    box-shadow: var(--glow-magenta);
+}
+
+/* ===== 9. MOBILE TOUCH CONTROLS OVERLAY ===== */
+.mobile-touch-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    z-index: 9;
+    pointer-events: none; /* Let clicks pass through empty spaces */
+}
+
+/* Joystick visualizer */
+.joystick-container {
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.joystick-base {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: rgba(10, 10, 15, 0.7);
+    border: 2px solid var(--neon-cyan);
+    position: relative;
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.2), inset 0 0 15px rgba(0, 242, 254, 0.1);
+}
+
+.joystick-knob {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--neon-cyan), #00a8cc);
+    position: absolute;
+    top: calc(50% - 22px);
+    left: calc(50% - 22px);
+    cursor: pointer;
+    box-shadow: var(--glow-cyan);
+    transition: transform 0.05s ease-out;
+}
+
+/* Action button right side */
+.touch-action-container {
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.touch-action-btn {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: rgba(255, 0, 119, 0.25);
+    border: 2px solid var(--neon-magenta);
+    color: #fff;
+    font-family: var(--font-cyber);
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px rgba(255, 0, 119, 0.2);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.touch-action-btn:active {
+    background: var(--neon-magenta);
+    box-shadow: var(--glow-magenta);
+    transform: scale(0.9);
+}
+
+/* Mobile directional D-Pad styles */
+.dpad-container {
+    pointer-events: auto;
+    position: relative;
+    width: 110px;
+    height: 110px;
+}
+
+.dpad-btn {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    background: rgba(139, 92, 246, 0.25);
+    border: 1px solid var(--neon-purple);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: all 0.15s ease;
+}
+
+.dpad-btn:active {
+    background: var(--neon-purple);
+    box-shadow: var(--glow-purple);
+}
+
+#dpad-up { top: 0; left: 37px; }
+#dpad-left { top: 37px; left: 0; }
+#dpad-down { bottom: 0; left: 37px; }
+#dpad-right { top: 37px; right: 0; }
+
+.dpad-center {
+    position: absolute;
+    top: 37px;
+    left: 37px;
+    width: 36px;
+    height: 36px;
+    background: rgba(10, 10, 15, 0.8);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 4px;
+}
+
+/* Hide touch overlays by default on desktops */
+@media (min-width: 901px) {
+    .mobile-touch-controls {
+        display: none !important;
+    }
+}
+
+/* ===== 10. CAROUSEL & SHARE BUTTONS ===== */
+/* Share container */
+.share-section {
+    padding: 10px 0;
+    margin-top: 10px;
+}
+
+.share-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.share-btn {
+    flex: 1;
+    min-width: 120px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #cbd5e0;
+    font-family: var(--font-cyber);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.share-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #fff;
     color: #fff;
 }
 
+.share-btn.copy:hover {
+    border-color: var(--neon-cyan);
+    color: var(--neon-cyan);
+    background: rgba(0, 242, 254, 0.05);
+}
+
+.share-btn.copy.copied {
+    background: rgba(16, 185, 129, 0.1) !important;
+    border-color: #10b981 !important;
+    color: #10b981 !important;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+
+.share-btn.twitter:hover {
+    border-color: #1da1f2;
+    color: #1da1f2;
+    background: rgba(29, 161, 242, 0.05);
+}
+
+.share-btn.reddit:hover {
+    border-color: #ff4500;
+    color: #ff4500;
+    background: rgba(255, 69, 0, 0.05);
+}
+
+/* More Games Carousel section */
+.TEMPLATE-4weird-more-games {
+    background: var(--cyber-dark);
+    border-top: 2px solid var(--neon-purple);
+    padding: 50px 0;
+}
+
+.TEMPLATE-4weird-more-games-container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.TEMPLATE-4weird-more-games-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.TEMPLATE-4weird-more-games h2 {
+    font-family: var(--font-cyber);
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    color: #fff;
+    margin: 0;
+}
+
+.carousel-nav {
+    display: flex;
+    gap: 10px;
+}
+
+.carousel-nav-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(139, 92, 246, 0.1);
+    border: var(--border-cyber-purple);
+    color: var(--neon-purple-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.carousel-nav-btn:hover {
+    background: var(--neon-purple);
+    color: #fff;
+    box-shadow: var(--glow-purple);
+}
+
+.carousel-wrapper {
+    overflow: hidden;
+    width: 100%;
+    position: relative;
+    padding: 10px 0;
+}
+
+.carousel-track {
+    display: flex;
+    gap: 20px;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.carousel-card {
+    flex: 0 0 250px;
+    min-height: 280px;
+    background: var(--cyber-panel);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+}
+
+.carousel-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--neon-cyan);
+    box-shadow: 0 8px 30px rgba(0, 242, 254, 0.15);
+}
+
+.carousel-card-emoji {
+    font-size: 2.2rem;
+    margin-bottom: 15px;
+}
+
+.carousel-card h3 {
+    font-family: var(--font-cyber);
+    font-size: 1rem;
+    color: #fff;
+    margin: 0 0 10px;
+    text-transform: uppercase;
+}
+
+.carousel-card p {
+    font-size: 0.8rem;
+    color: #a0aec0;
+    line-height: 1.5;
+    margin: 0 0 15px;
+    flex-grow: 1;
+}
+
+.carousel-tags {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.carousel-tag {
+    font-family: var(--font-cyber);
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #cbd5e0;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.carousel-play-btn {
+    width: 100%;
+    text-align: center;
+    background: rgba(0, 242, 254, 0.08);
+    border: var(--border-cyber);
+    color: var(--neon-cyan);
+    font-family: var(--font-cyber);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 10px 0;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    box-shadow: inset 0 0 5px rgba(0, 242, 254, 0.05);
+}
+
+.carousel-play-btn:hover {
+    background: var(--neon-cyan);
+    color: #000;
+    box-shadow: var(--glow-cyan);
+}
+
+/* ===== 11. FOOTER & MISC ===== */
+.TEMPLATE-4weird-footer {
+    background: var(--cyber-black);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 30px 0;
+    text-align: center;
+    font-size: 0.85rem;
+    color: #718096;
+}
+
+.TEMPLATE-4weird-footer a {
+    color: var(--neon-purple-light);
+    text-decoration: none;
+}
+
+.TEMPLATE-4weird-footer a:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+/* Fullscreen Toggle Button */
+.TEMPLATE-4weird-fullscreen-btn {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    z-index: 5;
+    background: rgba(5, 5, 8, 0.8);
+    border: 1px solid rgba(0, 242, 254, 0.4);
+    color: var(--neon-cyan);
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: var(--font-cyber);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(8px);
+    pointer-events: auto;
+}
+
+.TEMPLATE-4weird-fullscreen-btn:hover {
+    background: var(--neon-cyan);
+    color: #000;
+    box-shadow: var(--glow-cyan);
+}
+
+/* Fullscreen mode layouts overrides */
 .TEMPLATE-4weird-game-frame:fullscreen {
     width: 100vw;
     height: 100vh;
     border-radius: 0;
     border: none;
+    aspect-ratio: auto;
 }
 
-.TEMPLATE-4weird-game-frame:fullscreen #TEMPLATE-4weird-gameCanvas,
-.TEMPLATE-4weird-game-frame:fullscreen .TEMPLATE-4weird-gameCanvas {
+.TEMPLATE-4weird-game-frame:fullscreen #TEMPLATE-4weird-gameCanvas {
     width: 100%;
     height: 100%;
+}
+
+/* Loading spinner */
+.TEMPLATE-4weird-loading-screen {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: var(--cyber-black);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    transition: opacity 0.5s ease;
+}
+
+.TEMPLATE-4weird-loading-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 3px solid rgba(0, 242, 254, 0.1);
+    border-top: 3px solid var(--neon-cyan);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    box-shadow: var(--glow-cyan);
+}
+
+/* ===== 12. ANIMATIONS ===== */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes neonPulse {
+    0% { text-shadow: 0 0 5px rgba(139, 92, 246, 0.2), 0 0 10px rgba(139, 92, 246, 0.2); }
+    100% { text-shadow: 0 0 10px rgba(139, 92, 246, 0.6), 0 0 20px rgba(139, 92, 246, 0.4); }
+}
+
+@keyframes cyberBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+/* ===== 13. RESPONSIVE COMPACT MEDIA ===== */
+@media (max-width: 900px) {
+    .TEMPLATE-4weird-game-main {
+        grid-template-columns: 1fr;
+        padding: 15px;
+    }
+    
+    .TEMPLATE-4weird-game-frame {
+        aspect-ratio: auto;
+        height: 50vh;
+        min-height: 350px;
+    }
+}
+
+@media (max-width: 600px) {
+    .TEMPLATE-4weird-game-header-inner {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .TEMPLATE-4weird-game-title {
+        font-size: 1.4rem;
+        text-align: center;
+    }
+    
+    .TEMPLATE-4weird-game-meta {
+        justify-content: center;
+    }
+
+    .hud-integrity-container {
+        width: 100px;
+    }
+
+    .TEMPLATE-4weird-game-frame {
+        height: 60vh;
+        min-height: 300px;
+    }
+
+    .mobile-touch-controls {
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+    }
 }

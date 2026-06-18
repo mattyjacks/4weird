@@ -243,12 +243,18 @@ function initParallax() {
     const hero = document.querySelector('.hero');
     if (!hero) return;
 
+    let ticking = false;
+
     window.addEventListener('scroll', () => {
-        const scrolled = window.pageYOffset;
-        const rate = scrolled * 0.3;
-        
-        if (scrolled < window.innerHeight) {
-            hero.style.transform = `translateY(${rate}px)`;
+        if (!ticking) {
+            requestAnimationFrame(() => {
+                const scrolled = window.pageYOffset;
+                if (scrolled < window.innerHeight) {
+                    hero.style.transform = `translateY(${scrolled * 0.3}px)`;
+                }
+                ticking = false;
+            });
+            ticking = true;
         }
     }, { passive: true });
 }

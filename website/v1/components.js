@@ -74,6 +74,7 @@
                     <li><a href="${basePath}games/html/madi/" class="nav-link">MADI AI</a></li>
                     <li><a href="${basePath}tech.html" class="nav-link">Technology</a></li>
                     <li><a href="${basePath}academy/index.html" class="nav-link">Academy</a></li>
+                    <li><button class="nav-link" id="nav-a11y-trigger" style="background:none; border:none; cursor:pointer;" aria-label="Accessibility settings">♿ Accessibility</button></li>
                     <li><a href="${isRoot ? '#contribute' : basePath + 'index.html#contribute'}" class="nav-link">Contribute</a></li>
                     <li><a href="${isRoot ? '#contact' : basePath + 'index.html#contact'}" class="nav-link nav-cta">Contact MattyJacks</a></li>
                 </ul>
@@ -88,9 +89,25 @@
             const toggle = document.getElementById('navToggle');
             const menu = document.getElementById('navMenu');
             if (toggle && menu) {
-                toggle.addEventListener('click', () => {
-                    menu.classList.toggle('active');
+                const toggleAction = () => {
+                    const active = menu.classList.toggle('active');
                     toggle.classList.toggle('active');
+                    toggle.setAttribute('aria-expanded', active ? 'true' : 'false');
+                };
+                toggle.addEventListener('click', toggleAction);
+                toggle.addEventListener('keydown', (e) => {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        toggleAction();
+                    }
+                });
+            }
+            
+            const navA11yBtn = document.getElementById('nav-a11y-trigger');
+            if (navA11yBtn) {
+                navA11yBtn.addEventListener('click', () => {
+                    const btn = document.getElementById('a11y-toggle-btn');
+                    if (btn) btn.click();
                 });
             }
         }, 0);
@@ -153,9 +170,85 @@
             document.head.appendChild(gaConfig);
         }
 
-        // Proprietary tracking placeholder
-        console.log('[4weird] Proprietary tracking initialized');
+        // Initialize Web Vitals and auto-event tracking
+        initWebVitals();
+        initAutomaticGameTracking();
+        console.log('[4weird] Performance tracking & Web Vitals initialized');
     }
+
+    function initWebVitals() {
+        if ('PerformanceObserver' in window) {
+            try {
+                // CLS
+                let clsValue = 0;
+                const clsObserver = new PerformanceObserver((entryList) => {
+                    for (const entry of entryList.getEntries()) {
+                        if (!entry.hadRecentInput) {
+                            clsValue += entry.value;
+                        }
+                    }
+                    if (window.gtag) {
+                        window.gtag('event', 'web_vitals_cls', { value: clsValue, non_interaction: true });
+                    }
+                });
+                clsObserver.observe({ type: 'layout-shift', buffered: true });
+
+                // LCP
+                const lcpObserver = new PerformanceObserver((entryList) => {
+                    const entries = entryList.getEntries();
+                    if (entries.length > 0) {
+                        const lastEntry = entries[entries.length - 1];
+                        if (window.gtag) {
+                            window.gtag('event', 'web_vitals_lcp', { value: lastEntry.startTime, non_interaction: true });
+                        }
+                    }
+                });
+                lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
+
+                // FID
+                const fidObserver = new PerformanceObserver((entryList) => {
+                    const entries = entryList.getEntries();
+                    if (entries.length > 0 && window.gtag) {
+                        window.gtag('event', 'web_vitals_fid', { value: entries[0].processingStart - entries[0].startTime, non_interaction: true });
+                    }
+                });
+                fidObserver.observe({ type: 'first-input', buffered: true });
+            } catch (e) {
+                console.warn('[4weird] Web Vitals monitoring failed to init:', e);
+            }
+        }
+    }
+
+    function initAutomaticGameTracking() {
+        document.addEventListener('click', (e) => {
+            const anchor = e.target.closest('a');
+            if (anchor && anchor.href) {
+                try {
+                    const url = new URL(anchor.href, window.location.href);
+                    if (url.pathname.includes('/games/html/')) {
+                        const parts = url.pathname.split('/');
+                        const htmlIndex = parts.indexOf('html');
+                        if (htmlIndex !== -1 && parts[htmlIndex + 1]) {
+                            const gameId = parts[htmlIndex + 1];
+                            window.FourWeirdTrackGamePlay(gameId, 'click');
+                        }
+                    }
+                } catch (err) {
+                    // Ignore URL parsing exceptions
+                }
+            }
+        });
+    }
+
+    window.FourWeirdTrackGamePlay = function(gameId, actionType = 'play') {
+        console.log(`[4weird] Track event: game_play -> ${gameId} (${actionType})`);
+        if (window.gtag) {
+            window.gtag('event', 'game_play', {
+                'game_id': gameId,
+                'action_type': actionType
+            });
+        }
+    };
 
     // Global Time-Dilation / Speed Hack logic
     let speedMultiplier = 1.0;
@@ -690,9 +783,37 @@
         injectNavbar();
         injectFooter();
         injectAnalytics();
-        injectDebugHUD();
-        injectOtherGames();
-        initSmartScrollHeader();
+        
+        // Defer non-critical elements to idle/timeout
+        const deferInjections = () => {
+            injectDebugHUD();
+            injectOtherGames();
+            initSmartScrollHeader();
+            injectAccessibility();
+        };
+
+        if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(deferInjections, { timeout: 2000 });
+        } else {
+            setTimeout(deferInjections, 100);
+        }
+
+        // Register Service Worker for offline play and asset caching
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register(`${basePath}sw.js`)
+                    .then(reg => console.log('[4weird] Service Worker registered:', reg.scope))
+                    .catch(err => console.warn('[4weird] Service Worker registration failed:', err));
+            });
+        }
+    }
+
+    function injectAccessibility() {
+        if (document.getElementById('a11y-suite-script')) return;
+        const script = document.createElement('script');
+        script.id = 'a11y-suite-script';
+        script.src = `${basePath}accessibility.js`;
+        document.body.appendChild(script);
     }
 
     // Expose for manual use
@@ -702,6 +823,7 @@
         injectAnalytics,
         injectDebugHUD,
         injectOtherGames,
+        injectAccessibility,
         config: SITE_CONFIG,
         games: ALL_GAMES
     };

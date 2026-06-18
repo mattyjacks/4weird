@@ -6,13 +6,60 @@
     <title>4weird Games - Future Forward Fun</title>
     <meta name="description" content="4weird Games is an AI-powered game development studio based in New Hampshire, owned by MattyJacks.com. We create games using HTML, Roblox Studio, and Godot.">
     <meta name="keywords" content="4weird, games, AI gaming, HTML5 games, Roblox, Godot, MattyJacks">
+    <link rel="canonical" href="https://4weird.com/">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#8b5cf6">
+
+    <!-- Open Graph / Facebook -->
     <meta property="og:title" content="4weird Games - Future Forward Fun">
-    <meta property="og:description" content="AI-powered indie game studio. We build the future of play.">
+    <meta property="og:description" content="AI-powered indie game studio. We build the future of play. No downloads required.">
     <meta property="og:type" content="website">
+    <meta property="og:url" content="https://4weird.com/">
+    <meta property="og:image" content="https://4weird.com/games/images/thumb_serversavershield.png">
+    <meta property="og:site_name" content="4weird Games">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="4weird Games - Future Forward Fun">
+    <meta name="twitter:description" content="AI-powered indie game studio. We build the future of play.">
+    <meta name="twitter:image" content="https://4weird.com/games/images/thumb_serversavershield.png">
+
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "4weird Games",
+      "url": "https://4weird.com",
+      "logo": "https://4weird.com/games/images/thumb_serversavershield.png",
+      "parentOrganization": {
+        "@type": "Organization",
+        "name": "MattyJacks.com",
+        "url": "https://mattyjacks.com"
+      },
+      "sameAs": [
+        "https://github.com/mattyjacks/4weird"
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "4weird Games",
+      "url": "https://4weird.com",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://4weird.com/games/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
 </head>
 <body>
     <!-- Particle Canvas Background -->
@@ -125,7 +172,7 @@
             <div class="aiplay-showcase reveal" style="margin-top: 50px; background: rgba(139, 92, 246, 0.05); padding: 30px; border-radius: 20px; border: 1px solid rgba(139, 92, 246, 0.2);">
                 <div style="display: flex; gap: 40px; align-items: center; flex-wrap: wrap;">
                     <div style="flex: 1 1 400px; position: relative; border-radius: 12px; overflow: hidden; border: 1px solid rgba(0, 242, 254, 0.3); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);">
-                        <img src="images/4weird aiplay 1 - Screenshot 2026-06-10 163239.jpg" alt="4weird AIPlay Interface Screenshot" style="width: 100%; height: auto; display: block;">
+                        <img src="images/4weird aiplay 1 - Screenshot 2026-06-10 163239.jpg" alt="4weird AIPlay Interface Screenshot" width="1280" height="720" loading="lazy" style="width: 100%; height: auto; display: block;">
                         <div style="position: absolute; bottom: 10px; right: 10px; background: rgba(10, 10, 15, 0.85); color: var(--neon-purple-light); font-family: var(--font-display); font-size: 0.75rem; padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(139, 92, 246, 0.3);">
                             AIPlay Environment
                         </div>
@@ -209,7 +256,7 @@
                 <!-- Server Saver Shield -->
                 <div class="game-card reveal live featured">
                     <div class="game-thumbnail">
-                        <img src="games/images/thumb_serversavershield.png" alt="Server Saver Shield game screenshot" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;">
+                        <img src="games/images/thumb_serversavershield.png" alt="Server Saver Shield game screenshot" width="400" height="250" loading="lazy" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;">
                         <div class="thumb-bg thumb-serversaver"></div>
                         <div class="thumb-overlay">
                             <span class="play-btn">▶️</span>
