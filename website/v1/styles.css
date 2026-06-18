@@ -156,7 +156,37 @@ body {
 }
 .typewriter { color: var(--neon-green); }
 .cursor { animation: blink 1s step-end infinite; color: var(--neon-purple); }
-.hero-subtitle { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 40px; }
+.hero-subtitle { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 20px; }
+.hero-founded-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 40px;
+    background: rgba(6, 182, 212, 0.08);
+    border: 1px solid rgba(6, 182, 212, 0.25);
+    padding: 6px 16px;
+    border-radius: 20px;
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.05);
+}
+.badge-beta {
+    background: linear-gradient(135deg, var(--neon-cyan), #0891b2);
+    color: #0a0a0f;
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    box-shadow: 0 0 8px rgba(6, 182, 212, 0.3);
+}
+.founded-date {
+    font-size: 0.9rem;
+    color: var(--neon-cyan);
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
 .hero-cta { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
 .btn {
     display: inline-flex;

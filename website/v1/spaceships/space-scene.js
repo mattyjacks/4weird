@@ -24,6 +24,19 @@ let fleetGroup, alienGroup, stationGroup;
 let starField, nebulaPlanes = [];
 let projectiles = [], debrisList = [], explosions = [], tractorBeams = [];
 
+// Epic Upgrade Systems
+let epicPlanets = [];
+let asteroidMesh;
+const asteroidCount = 120;
+let asteroidData = [];
+let speedLines;
+const speedLineCount = 150;
+let speedLineData = [];
+let engineParticles = [];
+let trails = new Map();
+let cameraShake = 0.0;
+let nebulaSphere;
+
 // Web Workers
 let boidsWorker, physicsWorker;
 let boidsWorkerBusy = false;
@@ -74,14 +87,15 @@ export function initSpaceBackground() {
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.shadowMap.enabled = false; // Disabled for resource efficiency
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   // Create Scene
   scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x05030a, 0.0035);
+  scene.fog = new THREE.FogExp2(0x0a0a16, 0.002); // Adjusted for better depth perception
 
   // Perspective Camera
-  camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.5, 500);
+  camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.5, 600);
   camera.position.set(0, 10, 35);
 
   // Group setups
@@ -92,23 +106,48 @@ export function initSpaceBackground() {
   scene.add(alienGroup);
   scene.add(stationGroup);
 
-  // Setup Lights
-  ambientLight = new THREE.AmbientLight(0x1a1230, 1.2);
+  // Setup Lights - Cinematic Lighting Upgrade
+  ambientLight = new THREE.AmbientLight(0x0f172a, 1.5); // Cool blue ambient fill
   scene.add(ambientLight);
 
-  // Main star light (cyan sun)
-  sunLight = new THREE.DirectionalLight(0x00f2fe, 1.8);
-  sunLight.position.set(100, 80, 50);
+  // Main star light (warm cinematic sun casting shadows)
+  sunLight = new THREE.DirectionalLight(0xffecd1, 2.5);
+  sunLight.position.set(120, 80, 60);
+  sunLight.castShadow = true;
+  sunLight.shadow.mapSize.width = 1024;
+  sunLight.shadow.mapSize.height = 1024;
+  sunLight.shadow.camera.near = 0.5;
+  sunLight.shadow.camera.far = 600;
+  const d = 150;
+  sunLight.shadow.camera.left = -d;
+  sunLight.shadow.camera.right = d;
+  sunLight.shadow.camera.top = d;
+  sunLight.shadow.camera.bottom = -d;
   scene.add(sunLight);
 
-  // Secondary soft purple backlight
-  const purpleLight = new THREE.DirectionalLight(0xbd00ff, 0.9);
-  purpleLight.position.set(-80, -40, -50);
-  scene.add(purpleLight);
+  // Rim lighting to make planets pop against the space background
+  const rimLight = new THREE.DirectionalLight(0x00f2fe, 1.5);
+  rimLight.position.set(-100, -50, -200);
+  scene.add(rimLight);
+
+  // Sun lens flare / glow effect
+  const sunSpriteMat = new THREE.SpriteMaterial({
+    map: createSunGlowTexture(),
+    blending: THREE.AdditiveBlending,
+    transparent: true,
+    opacity: 0.9
+  });
+  const sunSprite = new THREE.Sprite(sunSpriteMat);
+  sunSprite.scale.set(150, 150, 1);
+  sunSprite.position.set(240, 160, 120);
+  scene.add(sunSprite);
 
   // Build Deep Space Environment
   createStarField();
-  createNebulae();
+  createEpicNebulaSphere();
+  createEpicPlanets();
+  createAsteroidField();
+  createSpeedLines();
 
   // Create Human Squadron (5 modular ships)
   spawnHumanFleet();
@@ -379,6 +418,21 @@ function spawnHumanFleet() {
     // Use voxel damage system for realistic ship construction
     const mesh = voxelDamageSystem.createVoxelShip("human", id);
     mesh.position.fromArray(formation[i]);
+
+    // Make human ships extra bright and emissive, and cast shadows
+    mesh.traverse(child => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+        if (child.material) {
+          const colorHex = i === 0 ? 0x00f2fe : 0xbd00ff;
+          child.material.emissive = new THREE.Color(colorHex);
+          child.material.emissiveIntensity = 2.2;
+          child.material.needsUpdate = true;
+        }
+      }
+    });
+
     fleetGroup.add(mesh);
 
     // Create AI for this ship
@@ -411,13 +465,12 @@ function spawnHumanFleet() {
       }
     });
 
-    // Add Engine Thruster point light to one of the ships for visual lighting
-    if (i === 0) {
-      const thrusterLight = new THREE.PointLight(0x00f6ff, 1.5, 15);
-      // Position light behind exhaust nozzle
-      thrusterLight.position.set(0, 0, 2);
-      mesh.add(thrusterLight);
-    }
+    // Add Engine Thruster point light to ALL human ships for visual lighting
+    const engineColor = i === 0 ? 0x00f2fe : 0xbd00ff;
+    const thrusterLight = new THREE.PointLight(engineColor, 3.5, 20);
+    // Position light behind exhaust nozzle
+    thrusterLight.position.set(0, 0, 2.5);
+    mesh.add(thrusterLight);
   }
 }
 
@@ -500,22 +553,536 @@ function spawnSpaceStation() {
   currentStation = station;
 }
 
+// ===== EPIC UPGRADE HELPERS & FUNCTIONS =====
+
+function createPlanetTexture(type) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+
+  if (type === 'earth') {
+    // Water base
+    ctx.fillStyle = '#0f3b5f';
+    ctx.fillRect(0, 0, 512, 256);
+
+    // Green continents
+    ctx.fillStyle = '#1e824c';
+    for (let k = 0; k < 12; k++) {
+      let x = Math.random() * 512;
+      let y = Math.random() * 256;
+      let r = 30 + Math.random() * 50;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#27ae60';
+      ctx.beginPath();
+      ctx.arc(x + (Math.random() - 0.5) * 40, y + (Math.random() - 0.5) * 40, r * 0.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Clouds
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    for (let k = 0; k < 6; k++) {
+      ctx.beginPath();
+      let y = 40 + Math.random() * 170;
+      ctx.ellipse(256, y, 200 + Math.random() * 100, 10 + Math.random() * 20, Math.random() * 0.2 - 0.1, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else if (type === 'gas') {
+    const grad = ctx.createLinearGradient(0, 0, 0, 256);
+    grad.addColorStop(0, '#d35400');
+    grad.addColorStop(0.15, '#e67e22');
+    grad.addColorStop(0.3, '#f39c12');
+    grad.addColorStop(0.45, '#d35400');
+    grad.addColorStop(0.6, '#e67e22');
+    grad.addColorStop(0.75, '#c0392b');
+    grad.addColorStop(0.9, '#f39c12');
+    grad.addColorStop(1, '#d35400');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 512, 256);
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.07)';
+    for (let y = 10; y < 246; y += 15) {
+      if (Math.random() > 0.5) {
+        ctx.fillRect(0, y, 512, 4 + Math.random() * 6);
+      }
+    }
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    for (let y = 20; y < 246; y += 20) {
+      if (Math.random() > 0.5) {
+        ctx.fillRect(0, y, 512, 5 + Math.random() * 8);
+      }
+    }
+  } else if (type === 'desert') {
+    ctx.fillStyle = '#a04000';
+    ctx.fillRect(0, 0, 512, 256);
+
+    for (let k = 0; k < 40; k++) {
+      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(78, 30, 0, 0.4)' : 'rgba(214, 137, 16, 0.3)';
+      ctx.beginPath();
+      ctx.arc(Math.random() * 512, Math.random() * 256, 10 + Math.random() * 25, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    for (let k = 0; k < 15; k++) {
+      let cx = Math.random() * 512;
+      let cy = Math.random() * 256;
+      let r = 8 + Math.random() * 12;
+
+      ctx.fillStyle = 'rgba(40, 15, 0, 0.7)';
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = 'rgba(230, 126, 34, 0.6)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(cx - 1, cy - 1, r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  return texture;
+}
+
+function createRingTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 4;
+  const ctx = canvas.getContext('2d');
+  
+  const grad = ctx.createLinearGradient(0, 0, 256, 0);
+  grad.addColorStop(0, 'rgba(211, 84, 0, 0)');
+  grad.addColorStop(0.2, 'rgba(230, 126, 34, 0.8)');
+  grad.addColorStop(0.4, 'rgba(241, 196, 15, 0.6)');
+  grad.addColorStop(0.5, 'rgba(230, 126, 34, 0.1)'); // Gap in ring
+  grad.addColorStop(0.6, 'rgba(230, 126, 34, 0.9)');
+  grad.addColorStop(0.8, 'rgba(211, 84, 0, 0.7)');
+  grad.addColorStop(1, 'rgba(211, 84, 0, 0)');
+
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 256, 4);
+
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createSunGlowTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+  
+  const grad = ctx.createRadialGradient(128, 128, 5, 128, 128, 120);
+  grad.addColorStop(0, 'rgba(255, 254, 240, 1.0)');
+  grad.addColorStop(0.2, 'rgba(255, 220, 150, 0.6)');
+  grad.addColorStop(0.5, 'rgba(255, 150, 50, 0.2)');
+  grad.addColorStop(1, 'rgba(255, 150, 50, 0.0)');
+  
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(128, 128, 120, 0, Math.PI * 2);
+  ctx.fill();
+  
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createEpicPlanets() {
+  // 1. Blue Earth-like planet
+  const earthGeom = new THREE.SphereGeometry(25, 32, 32);
+  const earthMat = new THREE.MeshPhongMaterial({
+    map: createPlanetTexture('earth'),
+    shininess: 25,
+    bumpScale: 0.15
+  });
+  const earth = new THREE.Mesh(earthGeom, earthMat);
+  earth.position.set(-100, -25, -200);
+  earth.castShadow = true;
+  earth.receiveShadow = true;
+  scene.add(earth);
+
+  // Atmosphere glow for Earth-like planet
+  const glowMaterial = new THREE.ShaderMaterial({
+    vertexShader: `
+      varying vec3 vNormal;
+      void main() {
+        vNormal = normalize(normalMatrix * normal);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vNormal;
+      void main() {
+        float intensity = pow(0.65 - dot(vNormal, vec3(0, 0, 1.0)), 2.0);
+        gl_FragColor = vec4(0.3, 0.6, 1.0, 1.0) * intensity;
+      }
+    `,
+    blending: THREE.AdditiveBlending,
+    side: THREE.BackSide,
+    transparent: true
+  });
+  const atmosphereGlow = new THREE.Mesh(new THREE.SphereGeometry(27, 32, 32), glowMaterial);
+  earth.add(atmosphereGlow);
+
+  // 2. Gas Giant with Rings (Saturn-style)
+  const gasGeom = new THREE.SphereGeometry(40, 32, 32);
+  const gasMat = new THREE.MeshPhongMaterial({
+    map: createPlanetTexture('gas'),
+    shininess: 10
+  });
+  const gasGiant = new THREE.Mesh(gasGeom, gasMat);
+  gasGiant.position.set(140, 30, -500);
+  gasGiant.castShadow = true;
+  gasGiant.receiveShadow = true;
+  scene.add(gasGiant);
+
+  // Rings
+  const ringGeom = new THREE.RingGeometry(55, 90, 64);
+  // Map texture coordinates to ring radius
+  const pos = ringGeom.attributes.position;
+  const v3 = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    v3.fromBufferAttribute(pos, i);
+    const radius = v3.length();
+    const u = (radius - 55) / (90 - 55);
+    ringGeom.attributes.uv.setXY(i, u, 0.5);
+  }
+  ringGeom.attributes.uv.needsUpdate = true;
+
+  const ringMat = new THREE.MeshStandardMaterial({
+    map: createRingTexture(),
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.8,
+    roughness: 0.6
+  });
+  const rings = new THREE.Mesh(ringGeom, ringMat);
+  rings.rotation.x = Math.PI / 2.5;
+  rings.rotation.y = Math.PI / 8;
+  gasGiant.add(rings);
+
+  // 3. Rocky desert planet
+  const desertGeom = new THREE.SphereGeometry(18, 32, 32);
+  const desertMat = new THREE.MeshPhongMaterial({
+    map: createPlanetTexture('desert'),
+    shininess: 5
+  });
+  const desert = new THREE.Mesh(desertGeom, desertMat);
+  desert.position.set(-90, 40, -800);
+  desert.castShadow = true;
+  desert.receiveShadow = true;
+  scene.add(desert);
+
+  epicPlanets.push(
+    { mesh: earth, rotSpeed: 0.03, startZ: -200, lateralX: -100, depthZ: 900 },
+    { mesh: gasGiant, rotSpeed: 0.015, startZ: -500, lateralX: 140, depthZ: 900 },
+    { mesh: desert, rotSpeed: 0.02, startZ: -800, lateralX: -90, depthZ: 900 }
+  );
+}
+
+function updateEpicPlanets(dt) {
+  epicPlanets.forEach(p => {
+    p.mesh.rotation.y += p.rotSpeed * dt;
+    
+    // Wrap planets when they go behind the camera
+    if (p.mesh.position.z > camera.position.z + 100.0) {
+      p.mesh.position.z -= p.depthZ;
+    }
+  });
+}
+
+function createEpicNebulaSphere() {
+  const geom = new THREE.SphereGeometry(450, 32, 32);
+  const tex = createNebulaTexture();
+  const mat = new THREE.MeshBasicMaterial({
+    map: tex,
+    side: THREE.BackSide,
+    transparent: true,
+    opacity: 0.6,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+  nebulaSphere = new THREE.Mesh(geom, mat);
+  scene.add(nebulaSphere);
+}
+
+function createNebulaTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, 512, 512);
+
+  const colors = [
+    { c: 'rgba(139, 92, 246, 0.45)', x: 120, y: 150, r: 200 },
+    { c: 'rgba(6, 182, 212, 0.35)', x: 380, y: 350, r: 240 },
+    { c: 'rgba(236, 72, 153, 0.3)', x: 300, y: 150, r: 180 }
+  ];
+
+  colors.forEach(col => {
+    const grad = ctx.createRadialGradient(col.x, col.y, 10, col.x, col.y, col.r);
+    grad.addColorStop(0, col.c);
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(col.x, col.y, col.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createAsteroidField() {
+  const geom = new THREE.DodecahedronGeometry(1.5, 1);
+  const posAttr = geom.attributes.position;
+  const tempV = new THREE.Vector3();
+  for (let i = 0; i < posAttr.count; i++) {
+    tempV.fromBufferAttribute(posAttr, i);
+    tempV.add(new THREE.Vector3(
+      (Math.random() - 0.5) * 0.4,
+      (Math.random() - 0.5) * 0.4,
+      (Math.random() - 0.5) * 0.4
+    ));
+    posAttr.setXYZ(i, tempV.x, tempV.y, tempV.z);
+  }
+  geom.computeVertexNormals();
+
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0x5a5450,
+    roughness: 0.9,
+    metalness: 0.1
+  });
+
+  asteroidMesh = new THREE.InstancedMesh(geom, mat, asteroidCount);
+  asteroidMesh.castShadow = true;
+  asteroidMesh.receiveShadow = true;
+  scene.add(asteroidMesh);
+
+  const dummy = new THREE.Object3D();
+  for (let i = 0; i < asteroidCount; i++) {
+    const x = (Math.random() - 0.5) * 350.0;
+    const y = (Math.random() - 0.5) * 180.0;
+    const z = (Math.random() - 0.5) * 1000.0;
+    const scale = 1.0 + Math.random() * 4.0;
+    
+    dummy.position.set(x, y, z);
+    dummy.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+    dummy.scale.set(scale, scale, scale);
+    dummy.updateMatrix();
+    asteroidMesh.setMatrixAt(i, dummy.matrix);
+
+    asteroidData.push({
+      position: new THREE.Vector3(x, y, z),
+      rotation: new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, 0),
+      rotSpeed: new THREE.Vector3(
+        (Math.random() - 0.5) * 0.5,
+        (Math.random() - 0.5) * 0.5,
+        (Math.random() - 0.5) * 0.5
+      ),
+      scale: new THREE.Vector3(scale, scale, scale)
+    });
+  }
+  asteroidMesh.instanceMatrix.needsUpdate = true;
+}
+
+function updateAsteroidField(dt) {
+  if (!asteroidMesh) return;
+  const dummy = new THREE.Object3D();
+  
+  for (let i = 0; i < asteroidCount; i++) {
+    const data = asteroidData[i];
+    data.rotation.x += data.rotSpeed.x * dt;
+    data.rotation.y += data.rotSpeed.y * dt;
+    data.rotation.z += data.rotSpeed.z * dt;
+
+    if (data.position.z > camera.position.z + 100.0) {
+      data.position.z -= 1000.0;
+    }
+
+    dummy.position.copy(data.position);
+    dummy.rotation.copy(data.rotation);
+    dummy.scale.copy(data.scale);
+    dummy.updateMatrix();
+    asteroidMesh.setMatrixAt(i, dummy.matrix);
+  }
+  asteroidMesh.instanceMatrix.needsUpdate = true;
+}
+
+function createSpeedLines() {
+  const geom = new THREE.BufferGeometry();
+  const positions = new Float32Array(speedLineCount * 3 * 2);
+  geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  
+  const mat = new THREE.LineBasicMaterial({
+    color: 0x00f2fe,
+    transparent: true,
+    opacity: 0.4,
+    blending: THREE.AdditiveBlending
+  });
+  
+  speedLines = new THREE.LineSegments(geom, mat);
+  scene.add(speedLines);
+  
+  for (let i = 0; i < speedLineCount; i++) {
+    speedLineData.push({
+      x: (Math.random() - 0.5) * 40.0,
+      y: (Math.random() - 0.5) * 20.0,
+      z: -Math.random() * 100.0,
+      length: 2.0 + Math.random() * 5.0,
+      speed: 120.0 + Math.random() * 60.0
+    });
+  }
+}
+
+function updateSpeedLines(dt) {
+  if (!speedLines) return;
+  const posAttr = speedLines.geometry.attributes.position;
+  
+  for (let i = 0; i < speedLineCount; i++) {
+    const line = speedLineData[i];
+    line.z += line.speed * dt;
+    
+    if (line.z > 10.0) {
+      line.z = -120.0 - Math.random() * 50.0;
+      line.x = (Math.random() - 0.5) * 60.0;
+      line.y = (Math.random() - 0.5) * 30.0;
+    }
+    
+    const startLocal = new THREE.Vector3(line.x, line.y, line.z);
+    const endLocal = new THREE.Vector3(line.x, line.y, line.z + line.length);
+    
+    const startWorld = camera.localToWorld(startLocal);
+    const endWorld = camera.localToWorld(endLocal);
+    
+    posAttr.setXYZ(i * 2, startWorld.x, startWorld.y, startWorld.z);
+    posAttr.setXYZ(i * 2 + 1, endWorld.x, endWorld.y, endWorld.z);
+  }
+  posAttr.needsUpdate = true;
+}
+
+function spawnEngineParticle(pos, dir, colorHex) {
+  const geom = new THREE.SphereGeometry(0.2, 4, 4);
+  const mat = new THREE.MeshBasicMaterial({
+    color: colorHex || 0x00f2fe,
+    transparent: true,
+    opacity: 0.8,
+    blending: THREE.AdditiveBlending
+  });
+  const mesh = new THREE.Mesh(geom, mat);
+  mesh.position.copy(pos);
+  scene.add(mesh);
+
+  engineParticles.push({
+    mesh: mesh,
+    velocity: new THREE.Vector3()
+      .copy(dir)
+      .multiplyScalar(-6.0)
+      .add(new THREE.Vector3(
+        (Math.random() - 0.5) * 1.5,
+        (Math.random() - 0.5) * 1.5,
+        (Math.random() - 0.5) * 1.5
+      )),
+    life: 0.4 + Math.random() * 0.3,
+    maxLife: 0.7
+  });
+}
+
+function updateEngineParticles(dt) {
+  engineParticles = engineParticles.filter(p => {
+    p.life -= dt;
+    if (p.life <= 0) {
+      scene.remove(p.mesh);
+      return false;
+    }
+    p.mesh.position.addScaledVector(p.velocity, dt);
+    
+    const ratio = p.life / p.maxLife;
+    p.mesh.scale.set(ratio, ratio, ratio);
+    p.mesh.material.opacity = ratio;
+    
+    return true;
+  });
+}
+
+function updateTrails(shipId, currentPos, colorHex) {
+  let trail = trails.get(shipId);
+  if (!trail) {
+    const geom = new THREE.BufferGeometry();
+    const maxPoints = 25;
+    const positions = new Float32Array(maxPoints * 3);
+    const colors = new Float32Array(maxPoints * 3);
+    
+    geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    
+    const mat = new THREE.LineBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.8,
+      vertexColors: true,
+      blending: THREE.AdditiveBlending
+    });
+    
+    const line = new THREE.Line(geom, mat);
+    scene.add(line);
+    
+    trail = {
+      line: line,
+      history: [],
+      maxPoints: maxPoints
+    };
+    trails.set(shipId, trail);
+  }
+
+  trail.history.push(currentPos.clone());
+  if (trail.history.length > trail.maxPoints) {
+    trail.history.shift();
+  }
+
+  const posAttr = trail.line.geometry.attributes.position;
+  const colorAttr = trail.line.geometry.attributes.color;
+  const len = trail.history.length;
+  
+  const baseColor = new THREE.Color(colorHex || 0x00f2fe);
+  
+  for (let i = 0; i < trail.maxPoints; i++) {
+    const histIdx = Math.min(i, len - 1);
+    if (len > 0) {
+      const p = trail.history[histIdx];
+      posAttr.setXYZ(i, p.x, p.y, p.z);
+    }
+    
+    const ratio = i / (trail.maxPoints - 1);
+    const c = baseColor.clone().multiplyScalar(ratio);
+    colorAttr.setXYZ(i, c.r, c.g, c.b);
+  }
+  
+  posAttr.needsUpdate = true;
+  colorAttr.needsUpdate = true;
+}
+
 // ===== GRAPHICS & PARTICLES =====
 
 function createStarField() {
-  const count = 3500; // Increased star count for better density
+  const count = 6000; // Increased star count for better density
   const geom = new THREE.BufferGeometry();
   const positions = new Float32Array(count * 3);
   const sizes = new Float32Array(count);
   const colors = new Float32Array(count * 3); // Add color variation
 
   for (let i = 0; i < count * 3; i += 3) {
-    positions[i] = (Math.random() - 0.5) * 800.0; // Even larger range for X
-    positions[i + 1] = (Math.random() - 0.5) * 400.0; // Even larger range for Y
-    positions[i + 2] = (Math.random() - 0.5) * 800.0; // Full 360 degree range for Z
+    positions[i] = (Math.random() - 0.5) * 1000.0; // Even larger range for X
+    positions[i + 1] = (Math.random() - 0.5) * 500.0; // Even larger range for Y
+    positions[i + 2] = (Math.random() - 0.5) * 1000.0; // Full 360 degree range for Z
     
     // Variable star sizes for depth perception
-    const depth = Math.abs(positions[i + 2]) / 400.0;
+    const depth = Math.abs(positions[i + 2]) / 500.0;
     sizes[i/3] = 0.3 + Math.random() * 2.0 * (1.0 - depth * 0.5);
     
     // Color variation - slight blue/white tints
@@ -549,7 +1116,8 @@ function createStarField() {
     transparent: true,
     opacity: 0.9,
     sizeAttenuation: true,
-    vertexColors: true
+    vertexColors: true,
+    blending: THREE.AdditiveBlending
   });
 
   starField = new THREE.Points(geom, mat);
@@ -589,6 +1157,8 @@ function createWarpFlare(pos) {
   const flare = new THREE.Mesh(flareGeom, flareMat);
   flare.position.fromArray(pos);
   scene.add(flare);
+
+  cameraShake = 0.5; // Trigger camera shake on warp in
 
   explosions.push({
     mesh: flare,
@@ -748,6 +1318,7 @@ function destroyAlien(alien) {
 // ===== WEAPONS FIRING =====
 
 function fireHumanWeapon(ship, typeIdx) {
+  cameraShake = Math.min(cameraShake + 0.05, 0.3); // Add camera shake on firing
   const id = "laser_" + Date.now() + "_" + Math.random();
   const origin = new THREE.Vector3().copy(ship.mesh.position);
   
@@ -1042,8 +1613,23 @@ function triggerStationSale(ship, stationPos) {
 function animate(timestamp) {
   requestAnimationFrame(animate);
 
-  const dt = Math.min((timestamp - lastTime) / 1000, 0.1) || 0.016;
+  // Slow down the overall simulation speed slightly (dt multiplier)
+  const dt = (Math.min((timestamp - lastTime) / 1000, 0.1) || 0.016) * 0.75;
   lastTime = timestamp;
+
+  // Camera Shake Decay
+  cameraShake = Math.max(0, cameraShake - dt * 2.5);
+
+  // Update Epic Planets, Nebula, Asteroids, Speedlines, and Particles
+  updateEpicPlanets(dt);
+  updateAsteroidField(dt);
+  updateSpeedLines(dt);
+  updateEngineParticles(dt);
+  if (nebulaSphere) {
+    nebulaSphere.position.copy(camera.position);
+    nebulaSphere.rotation.z += 0.005 * dt;
+    nebulaSphere.rotation.y += 0.002 * dt;
+  }
 
   // Slow environment rotation and center starfield around camera
   if (starField) {
@@ -1057,6 +1643,22 @@ function animate(timestamp) {
     if (p.position.z > camera.position.z + 50.0) {
       p.position.z -= 300.0;
     }
+  });
+
+  // Spawning Engine Particles & Trails for Human Fleet
+  activeHumanShips.forEach(ship => {
+    const nozzleLocal = new THREE.Vector3(0, 0, 2.5);
+    const nozzleWorld = ship.mesh.localToWorld(nozzleLocal.clone());
+    const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(ship.mesh.quaternion);
+    
+    const colorHex = ship.ai.role === 'leader' ? 0x00f2fe : 0xbd00ff;
+    
+    spawnEngineParticle(nozzleWorld, dir, colorHex);
+    
+    const leftEngineLocal = new THREE.Vector3(-1.2, 0, 2.2);
+    const rightEngineLocal = new THREE.Vector3(1.2, 0, 2.2);
+    updateTrails(ship.id + "_left", ship.mesh.localToWorld(leftEngineLocal), colorHex);
+    updateTrails(ship.id + "_right", ship.mesh.localToWorld(rightEngineLocal), colorHex);
   });
 
   // Calculate average fleet Z first to use for cleanup and station interactions
@@ -1387,7 +1989,14 @@ function updateCamera(dt, timestamp) {
 
   // Smoothly interpolate camera position and lookAt target
   const destCamPos = new THREE.Vector3().copy(fleetPos).add(cameraTargetOffset);
-  camera.position.lerp(destCamPos, 0.05);
+  camera.position.lerp(destCamPos, 0.04); // Slightly slower for smoother follow
+
+  // Apply subtle camera shake
+  if (cameraShake > 0.005) {
+    camera.position.x += (Math.random() - 0.5) * cameraShake;
+    camera.position.y += (Math.random() - 0.5) * cameraShake;
+    camera.position.z += (Math.random() - 0.5) * cameraShake;
+  }
 
   // Build lookAt rotation
   const tempMatrix = new THREE.Matrix4();
@@ -1398,7 +2007,7 @@ function updateCamera(dt, timestamp) {
   const rollQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), cameraCurrentRoll);
   targetRotation.multiply(rollQuat);
 
-  camera.quaternion.slerp(targetRotation, 0.05);
+  camera.quaternion.slerp(targetRotation, 0.04);
 }
 
 function onWindowResize() {

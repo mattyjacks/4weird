@@ -29,6 +29,8 @@
                 console.error('Failed to parse a11y settings', e);
             }
         }
+        // Eye tracking is opt-in only, do not auto-start on page load
+        settings.eyeTracking = false;
     }
 
     // Save settings to localStorage
@@ -175,6 +177,13 @@
             }
             if (!canvas.hasAttribute('aria-label')) {
                 canvas.setAttribute('aria-label', 'Game canvas. Use arrow keys or WASD to navigate.');
+            }
+        });
+
+        // Escape key listener to exit eye tracking/calibration
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && calibrationOverlay) {
+                cancelCalibration();
             }
         });
     }
@@ -369,6 +378,47 @@
         return false;
     }
 
+    let calibrationTimeout = null;
+
+    function cancelCalibration() {
+        if (calibrationTimeout) {
+            clearTimeout(calibrationTimeout);
+            calibrationTimeout = null;
+        }
+        if (calibrationOverlay) {
+            calibrationOverlay.remove();
+            calibrationOverlay = null;
+        }
+        settings.eyeTracking = false;
+        saveSettings();
+        stopEyeTracking();
+    }
+
+    function showCalibrationFailedScreen() {
+        if (calibrationTimeout) {
+            clearTimeout(calibrationTimeout);
+            calibrationTimeout = null;
+        }
+        const points = calibrationOverlay.querySelectorAll('.a11y-calibration-point');
+        points.forEach(pt => pt.remove());
+        const hud = calibrationOverlay.querySelector('.a11y-calibration-hud');
+        if (hud) hud.remove();
+
+        const failedContainer = document.createElement('div');
+        failedContainer.className = 'a11y-calibration-instructions';
+        failedContainer.innerHTML = `
+            <h2>Calibration Failed</h2>
+            <p>We couldn't complete the eye tracking calibration in time (10s).</p>
+            <p>Please ensure your face is well-lit, centered in the camera preview, and that you are looking at the targets.</p>
+            <button class="btn btn-primary a11y-calibration-btn" id="fail-exit-btn">Return to Normal Mouse Mode</button>
+        `;
+        calibrationOverlay.appendChild(failedContainer);
+
+        document.getElementById('fail-exit-btn').addEventListener('click', () => {
+            cancelCalibration();
+        });
+    }
+
     // Calibration Overlay Flow
     function showCalibrationOverlay() {
         if (calibrationOverlay) {
@@ -382,8 +432,10 @@
             <div class="a11y-calibration-instructions">
                 <h2>Eye Tracking Calibration</h2>
                 <p>Welcome! Let's calibrate your camera for eye tracking.</p>
-                <p><strong>Instructions:</strong> Look directly at each red target dot on the screen and click it. Each point requires 5 clicks while looking directly at it. When a point turns green, it is fully calibrated.</p>
+                <p><strong>Instructions:</strong> Look at the red dot and follow it. Press ESC at any time to exit.</p>
+                <p>Look directly at each red target dot on the screen and click it. Each point requires 5 clicks while looking directly at it. When a point turns green, it is fully calibrated.</p>
                 <button class="btn btn-primary a11y-calibration-btn" id="start-cal-btn">Start Calibration</button>
+                <button class="btn btn-secondary a11y-calibration-btn" id="welcome-exit-btn" style="margin-left: 10px;">Exit Eye Tracking</button>
             </div>
         `;
 
@@ -394,11 +446,52 @@
             if (instr) instr.remove();
             startCalibrationPoints();
         });
+
+        document.getElementById('welcome-exit-btn').addEventListener('click', () => {
+            cancelCalibration();
+        });
     }
 
     function startCalibrationPoints() {
         calibrationPointsLeft = 9;
         const counts = Array(9).fill(0);
+
+        // Always visible HUD during calibration with Exit button and ESC instruction
+        const hud = document.createElement('div');
+        hud.className = 'a11y-calibration-hud';
+        hud.style.position = 'absolute';
+        hud.style.top = '30%';
+        hud.style.left = '50%';
+        hud.style.transform = 'translate(-50%, -50%)';
+        hud.style.textAlign = 'center';
+        hud.style.zIndex = '100003';
+        hud.style.pointerEvents = 'auto';
+        hud.style.maxWidth = '90%';
+        hud.style.width = '400px';
+        hud.style.padding = '20px';
+        hud.style.background = 'var(--bg-secondary)';
+        hud.style.border = '2px solid var(--neon-cyan)';
+        hud.style.borderRadius = '16px';
+        hud.style.boxShadow = '0 0 30px rgba(0, 242, 254, 0.3)';
+        hud.style.color = 'var(--text-primary)';
+        
+        hud.innerHTML = `
+            <p style="margin: 0 0 15px 0; font-size: 1rem; line-height: 1.4; color: var(--text-secondary);">Look at the red dot and follow it.<br>Press <strong>ESC</strong> at any time to exit.</p>
+            <button class="btn btn-secondary" id="exit-eye-tracking-btn">Exit Eye Tracking</button>
+        `;
+        calibrationOverlay.appendChild(hud);
+
+        document.getElementById('exit-eye-tracking-btn').addEventListener('click', () => {
+            cancelCalibration();
+        });
+
+        // Start 10-second calibration timeout
+        if (calibrationTimeout) clearTimeout(calibrationTimeout);
+        calibrationTimeout = setTimeout(() => {
+            if (calibrationOverlay && calibrationPointsLeft > 0) {
+                showCalibrationFailedScreen();
+            }
+        }, 10000);
 
         for (let i = 1; i <= 9; i++) {
             const pt = document.createElement('div');
@@ -422,10 +515,14 @@
                     
                     calibrationPointsLeft--;
                     if (calibrationPointsLeft <= 0) {
+                        if (calibrationTimeout) clearTimeout(calibrationTimeout);
                         // All points calibrated
                         setTimeout(() => {
-                            calibrationOverlay.classList.remove('active');
-                            calibrationOverlay.remove();
+                            if (calibrationOverlay) {
+                                calibrationOverlay.classList.remove('active');
+                                calibrationOverlay.remove();
+                                calibrationOverlay = null;
+                            }
                             localStorage.setItem('4weird_gazer_calibrated', 'true');
                             announceToScreenReader("Calibration complete! Eye tracking is active.");
                         }, 500);
