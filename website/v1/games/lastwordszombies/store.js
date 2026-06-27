@@ -1,4 +1,4 @@
-export const StoreItems = {
+const StoreItems = {
   blood: [
     { name: "Neon Green", id: "default", price: 0, color: "#00ff66" },
     { name: "Plasma Blue", id: "plasma", price: 50, color: "#00ccff" },
@@ -16,7 +16,7 @@ export const StoreItems = {
   ]
 };
 
-export function setupStore(stateManager, audioManager) {
+function setupStore(stateManager, audioManager) {
   const container = document.getElementById('store-items-container');
   const storeCoins = document.getElementById('store-coins');
   

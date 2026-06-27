@@ -1,4 +1,4 @@
-export class TypingController {
+class TypingController {
   constructor(stateManager, audioManager, particleManager) {
     this.state = stateManager;
     this.audio = audioManager;

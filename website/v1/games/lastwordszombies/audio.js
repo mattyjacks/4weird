@@ -1,4 +1,4 @@
-export class AudioManager {
+class AudioManager {
   constructor(stateManager) {
     this.state = stateManager;
     this.ctx = null;

@@ -71,6 +71,7 @@ website/v1/games/html/your-game-name/
 - ✅ Pure HTML5 + vanilla JS (no frameworks, no build step)
 - ✅ Max 10MB total per game
 - ✅ Large files (audio, video, big images) hosted externally & linked
+- ✅ Uses the dynamic header and footer template placeholders (`TEMPLATE-4weird-nav-placeholder` and `TEMPLATE-4weird-footer-placeholder`) and links `components.js` relative path
 - ✅ Uses `TEMPLATE-4weird-*` classes for template elements
 - ✅ Includes `game.json` with your credits and bio
 - ✅ Opens directly in browser (no server needed)
@@ -183,7 +184,8 @@ git push origin game/your-game-name
 
 Before submitting, verify:
 
-- [ ] Uses `TEMPLATE-4weird-*` classes for template elements
+- [ ] Uses standard header and footer placeholders (`TEMPLATE-4weird-nav-placeholder` and `TEMPLATE-4weird-footer-placeholder`) and imports `components.js` (this automatically provides navbar, footer, and the Privacy Policy link)
+- [ ] Uses `TEMPLATE-4weird-` classes for template elements
 - [ ] `game.json` populated with your info
 - [ ] No em/en dashes in code (use hyphens `-` only)
 - [ ] All paths relative (`../../` not `/`)

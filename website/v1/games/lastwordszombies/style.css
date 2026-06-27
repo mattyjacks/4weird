@@ -19,10 +19,13 @@
   user-select: none;
 }
 
-body, html {
+html {
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  background-color: var(--color-bg);
+}
+
+body {
   background-color: var(--color-bg);
   font-family: var(--font-family-default);
   color: var(--color-text);

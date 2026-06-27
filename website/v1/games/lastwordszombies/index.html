@@ -4,22 +4,41 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Last Words Zombies | 3D Typing Survival</title>
+  <link rel="stylesheet" href="../../styles.css">
   <link rel="stylesheet" href="style.css">
   <!-- Load Inter and Outfit Fonts from Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Outfit:wght@400;600;900&display=swap" rel="stylesheet">
-  <!-- Import map for Three.js -->
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-      }
-    }
-  </script>
+  <!-- Three.js Library -->
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+  <!-- Game Scripts -->
+  <script src="state.js"></script>
+  <script src="audio.js"></script>
+  <script src="particles.js"></script>
+  <script src="zombie.js"></script>
+  <script src="typing.js"></script>
+  <script src="store.js"></script>
 </head>
-<body>
+<body class="TEMPLATE-4weird-game-page">
+  <!-- Navigation placeholder - injected by components.js -->
+  <div id="TEMPLATE-4weird-nav-placeholder"></div>
+  
+  <!-- Game Header Bar -->
+  <header class="TEMPLATE-4weird-game-header">
+    <div class="TEMPLATE-4weird-game-header-inner">
+      <a href="/" class="TEMPLATE-4weird-back-link">
+        <span class="TEMPLATE-4weird-back-arrow">←</span>
+        <span>Systems Exit</span>
+      </a>
+      <h1 class="TEMPLATE-4weird-game-title" id="TEMPLATE-4weird-game-title">Last Words Zombies</h1>
+      <div class="TEMPLATE-4weird-game-meta" id="TEMPLATE-4weird-game-meta">
+        <span class="TEMPLATE-4weird-game-genre" id="TEMPLATE-4weird-game-genre">Typing Survival</span>
+        <span class="TEMPLATE-4weird-game-status live">ONLINE</span>
+      </div>
+    </div>
+  </header>
+
   <!-- Game Container -->
   <div id="game-container" class="cyberpunk-theme">
     
@@ -125,6 +144,11 @@
       </section>
     </div>
   </div>
-  <script type="module" src="app.js"></script>
+  
+  <!-- Footer placeholder - injected by components.js -->
+  <div id="TEMPLATE-4weird-footer-placeholder"></div>
+
+  <script src="../../components.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

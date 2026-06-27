@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+
 
 class Particle {
   constructor(scene, position, color, velocity, size, decay) {
@@ -103,7 +103,7 @@ class ShockwaveRing {
   }
 }
 
-export class ParticleManager {
+class ParticleManager {
   constructor(scene, stateManager) {
     this.scene = scene;
     this.state = stateManager;

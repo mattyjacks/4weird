@@ -1,6 +1,4 @@
-import * as THREE from 'three';
-
-export class Zombie {
+class Zombie {
   constructor(scene, word, speed, spawnZ, fontTheme) {
     this.scene = scene;
     this.word = word;

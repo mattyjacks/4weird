@@ -1,11 +1,3 @@
-import * as THREE from 'three';
-import { StateManager, GameState } from './state.js';
-import { AudioManager } from './audio.js';
-import { ParticleManager } from './particles.js';
-import { Zombie } from './zombie.js';
-import { TypingController } from './typing.js';
-import { setupStore } from './store.js';
-
 class GameApp {
   constructor() {
     // 1. Core State & Audio

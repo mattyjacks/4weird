@@ -1,11 +1,11 @@
-export const GameState = {
+const GameState = {
   MENU: 'menu',
   PLAYING: 'playing',
   PAUSED: 'paused',
   GAME_OVER: 'game_over'
 };
 
-export class StateManager {
+class StateManager {
   constructor() {
     this.currentState = GameState.MENU;
     
