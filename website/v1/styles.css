@@ -288,7 +288,9 @@ body {
 .thumb-demolichdom { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%); position: relative; }
 .thumb-demolichdom::before { content: '🧙‍♂️ ⚔️ 🏰 💀'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; letter-spacing: 10px; animation: float 3s ease-in-out infinite; }
 .thumb-serversaver { background: linear-gradient(135deg, #0f0f23 0%, #1e3a5f 50%, #0d47a1 100%); position: relative; }
-.thumb-serversaver::before { content: '�️ 🤖 🖥️ 🔥'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; letter-spacing: 8px; animation: float 3s ease-in-out infinite; }
+.thumb-serversaver::before { content: '️ 🤖 🖥️ 🔥'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; letter-spacing: 8px; animation: float 3s ease-in-out infinite; }
+.thumb-semestersurvival { background: linear-gradient(135deg, #09132e 0%, #1e3a8a 50%, #06b6d4 100%); position: relative; }
+.thumb-semestersurvival::before { content: '🎓 🏃‍♂️ 📚 🪙'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; letter-spacing: 8px; animation: float 3s ease-in-out infinite; }
 .thumb-overtake { background: linear-gradient(135deg, #05070a 0%, #3a1510 48%, #ffcf42 100%); position: relative; }
 .thumb-overtake::before { content: '🏁 🏎️ ⚡'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; letter-spacing: 10px; animation: float 3s ease-in-out infinite; }
 .thumb-placeholder-2 { background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%); position: relative; }

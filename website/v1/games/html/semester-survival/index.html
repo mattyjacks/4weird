@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Semester Survival - 4weird Games</title>
+    <meta name="description" content="Survive 8 semesters of lectures, exams, portal downs, and empty wallets to graduate in this premium 3D runner.">
+    <meta name="keywords" content="4weird, Semester Survival, HTML5 game, browser game, retro, 3D, three.js, university">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Semester Survival - 4weird Games">
+    <meta property="og:description" content="Survive university life, avoid SUPPs, dodge deadlines, and walk the graduation stage!">
+    <meta property="og:type" content="website">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Base Styles -->
+    <link rel="stylesheet" href="../../../styles.css">
+    <link rel="stylesheet" href="game.css">
+    
+    <!-- Game Metadata -->
+    <script src="game.json" type="application/json" id="game-metadata"></script>
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body class="TEMPLATE-4weird-game-page">
+    <div class="cyber-bg-dots"></div>
+    
+    <!-- Navigation placeholder -->
+    <div id="TEMPLATE-4weird-nav-placeholder"></div>
+    
+    <!-- Game Header Bar -->
+    <header class="TEMPLATE-4weird-game-header">
+        <div class="TEMPLATE-4weird-game-header-inner">
+            <a href="../../../index.html#games" class="TEMPLATE-4weird-back-link">
+                <span class="TEMPLATE-4weird-back-arrow">←</span>
+                <span>University Exit</span>
+            </a>
+            <h1 class="TEMPLATE-4weird-game-title" id="TEMPLATE-4weird-game-title">Semester Survival</h1>
+            <div class="TEMPLATE-4weird-game-meta" id="TEMPLATE-4weird-game-meta">
+                <span class="TEMPLATE-4weird-game-genre" id="TEMPLATE-4weird-game-genre">3D Endless Runner</span>
+                <span class="TEMPLATE-4weird-game-status live">CAMPUS ONLINE</span>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Game Container -->
+    <main class="TEMPLATE-4weird-game-main">
+        <!-- Game Canvas Frame -->
+        <div class="TEMPLATE-4weird-game-frame">
+            <button class="TEMPLATE-4weird-fullscreen-btn" id="TEMPLATE-4weird-fullscreen-btn" title="Toggle Fullscreen">📺 Expand screen</button>
+            
+            <!-- Real-time game HUD -->
+            <div id="game-hud" class="hidden">
+                <!-- Semester & Distance -->
+                <div class="hud-item">
+                    <span class="hud-label" id="hud-semester-title">SEMESTER 1</span>
+                    <span id="hud-distance" class="hud-value">0m</span>
+                </div>
+                <!-- GPA Gauge -->
+                <div class="hud-item hud-integrity-container">
+                    <span class="hud-label">CURRENT GPA: <span id="hud-gpa-val">4.00</span></span>
+                    <div class="integrity-bar-bg gpa-bg">
+                        <div id="hud-gpa-bar" class="gpa-bar" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <!-- Energy Gauge -->
+                <div class="hud-item hud-integrity-container">
+                    <span class="hud-label">ENERGY: <span id="hud-energy-percent">100</span>%</span>
+                    <div class="integrity-bar-bg energy-bg">
+                        <div id="hud-energy-bar" class="energy-bar" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <!-- Coins / Study Tokens -->
+                <div class="hud-item">
+                    <span class="hud-label">POCKET MONEY</span>
+                    <span id="hud-coins" class="hud-value">🪙 0</span>
+                </div>
+                <!-- Boss Health Bar (Hidden unless boss active) -->
+                <div id="boss-hud-container" class="hidden">
+                    <span class="hud-label text-danger" id="boss-title">BOSS: FIRST CAT</span>
+                    <div class="integrity-bar-bg boss-bg">
+                        <div id="boss-health-bar" class="boss-health-bar" style="width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Virtual Controls (Mobile Only) -->
+            <div class="mobile-touch-controls" id="mobile-touch-controls-overlay">
+                <div class="mobile-swipe-zone" id="mobile-swipe-zone">
+                    <span class="swipe-hint">Swipe to Move / Jump / Slide</span>
+                </div>
+                <div class="mobile-buttons-container">
+                    <button class="mobile-action-btn" id="btn-left">◀ Lane</button>
+                    <button class="mobile-action-btn" id="btn-jump">▲ Jump</button>
+                    <button class="mobile-action-btn" id="btn-slide">▼ Slide</button>
+                    <button class="mobile-action-btn" id="btn-right">Lane ▶</button>
+                </div>
+            </div>
+
+            <!-- Canvas for Three.js -->
+            <canvas id="TEMPLATE-4weird-gameCanvas"></canvas>
+            
+            <!-- Loading Screen -->
+            <div class="TEMPLATE-4weird-loading-screen" id="TEMPLATE-4weird-loading-screen">
+                <div class="spinner"></div>
+                <h3 style="font-family: var(--font-cyber); letter-spacing: 2px; color: var(--neon-cyan); font-size: 0.9rem; margin-top: 15px;">DOWNLOADING CAMPUS DATA...</h3>
+            </div>
+
+            <!-- Game Start / Main Menu Screen -->
+            <div class="TEMPLATE-4weird-game-overlay" id="TEMPLATE-4weird-start-screen">
+                <div class="TEMPLATE-4weird-overlay-content main-menu-content">
+                    <h2 class="game-logo">SEMESTER SURVIVAL</h2>
+                    <p class="game-tagline">Graduation is the goal. University has other plans.</p>
+                    
+                    <div class="menu-navigation">
+                        <button class="btn btn-primary" id="btn-start-run">
+                            <span class="btn-emoji">🎮</span> START RUN
+                        </button>
+                        <button class="btn btn-secondary" id="btn-open-shop">
+                            <span class="btn-emoji">🛒</span> SHOP & UPGRADES
+                        </button>
+                        <button class="btn btn-secondary" id="btn-open-achievements">
+                            <span class="btn-emoji">🏆</span> STATS & BADGES
+                        </button>
+                        <button class="btn btn-secondary" id="btn-open-settings">
+                            <span class="btn-emoji">⚙️</span> SETTINGS
+                        </button>
+                    </div>
+
+                    <!-- Current Semester Summary Card -->
+                    <div class="current-status-card">
+                        <p><strong>Current Standing:</strong> Semester <span id="menu-current-semester">1</span></p>
+                        <p><strong>Standing GPA:</strong> <span id="menu-standing-gpa">4.00</span></p>
+                        <p><strong>Pocket Balance:</strong> 🪙 <span id="menu-pocket-money">0</span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Shop / Upgrades Screen -->
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="overlay-shop">
+                <div class="TEMPLATE-4weird-overlay-content shop-content">
+                    <h2>CAMPUS SHOP</h2>
+                    <div class="shop-tabs">
+                        <button class="shop-tab-btn active" id="tab-upgrades">Upgrades</button>
+                        <button class="shop-tab-btn" id="tab-characters">Characters</button>
+                    </div>
+
+                    <!-- Upgrades List -->
+                    <div class="shop-tab-pane active" id="pane-upgrades">
+                        <div class="upgrades-grid" id="upgrades-list-container">
+                            <!-- Populated dynamically by UI module -->
+                        </div>
+                    </div>
+
+                    <!-- Characters List -->
+                    <div class="shop-tab-pane" id="pane-characters">
+                        <div class="characters-grid" id="characters-list-container">
+                            <!-- Populated dynamically by UI module -->
+                        </div>
+                    </div>
+
+                    <div class="shop-footer">
+                        <span class="money-display">Pocket Money: 🪙 <span id="shop-money-val">0</span></span>
+                        <button class="btn btn-secondary" id="btn-close-shop">Back to Menu</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats & Achievements / Badges Screen -->
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="overlay-achievements">
+                <div class="TEMPLATE-4weird-overlay-content achievements-content">
+                    <h2>ACADEMIC RECORD</h2>
+                    
+                    <div class="achievements-layout">
+                        <!-- Stats Column -->
+                        <div class="stats-panel">
+                            <h3>Lifetime Transcript</h3>
+                            <div class="stats-list" id="stats-list-container">
+                                <!-- Populated dynamically by UI module -->
+                            </div>
+                        </div>
+
+                        <!-- Badges/Achievements Column -->
+                        <div class="badges-panel">
+                            <h3>Earned Badges</h3>
+                            <div class="badges-grid" id="badges-grid-container">
+                                <!-- Populated dynamically by UI module -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="shop-footer">
+                        <button class="btn btn-secondary" id="btn-close-achievements">Back to Menu</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Screen -->
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="overlay-settings">
+                <div class="TEMPLATE-4weird-overlay-content settings-content">
+                    <h2>SETTINGS</h2>
+                    
+                    <div class="settings-list">
+                        <div class="setting-item">
+                            <label for="setting-sound">Sound Effects & Synth</label>
+                            <input type="checkbox" id="setting-sound" checked>
+                        </div>
+                        <div class="setting-item">
+                            <label for="setting-premium">Sandbox Premium Account</label>
+                            <input type="checkbox" id="setting-premium">
+                        </div>
+                        <div class="setting-item">
+                            <label for="setting-controls">Control Layout</label>
+                            <select id="setting-controls">
+                                <option value="swipe">Touch Swipes</option>
+                                <option value="buttons">Touch Buttons</option>
+                            </select>
+                        </div>
+                        <div class="setting-item danger-section">
+                            <button class="btn btn-danger" id="btn-reset-progress">RESET ACADEMIC PROGRESS</button>
+                        </div>
+                    </div>
+
+                    <div class="shop-footer">
+                        <button class="btn btn-secondary" id="btn-close-settings">Back to Menu</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pause Overlay -->
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="TEMPLATE-4weird-pause-screen">
+                <div class="TEMPLATE-4weird-overlay-content">
+                    <h2>LECTURE PAUSED</h2>
+                    <p style="margin-bottom: 20px;">The time-space continuum of the lecture is suspended.</p>
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-resume-btn">RESUME RUN</button>
+                    <button class="btn btn-secondary" id="TEMPLATE-4weird-restart-btn">ABANDON SEMESTER</button>
+                </div>
+            </div>
+            
+            <!-- FAIL STATE A: SUPP (Academic Probation) -->
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="fail-overlay-supp">
+                <div class="TEMPLATE-4weird-overlay-content fail-panel supp-panel">
+                    <h2 class="fail-header text-danger">SUPPLEMENTARY ASSIGNED</h2>
+                    <div class="fail-body">
+                        <p class="fail-message">"Your GPA fell below the academic minimum. You have been assigned a SUPP."</p>
+                        <p class="fail-stats">Final GPA: <span id="fail-supp-gpa">0.00</span> | Semester: <span id="fail-supp-semester">1</span></p>
+                        
+                        <div class="supp-options">
+                            <button class="btn btn-primary" id="btn-supp-pay">
+                                Pay SUPP Fee (🪙 100)
+                            </button>
+                            <button class="btn btn-secondary" id="btn-supp-mercy">
+                                Use Dean's Mercy (<span id="supp-mercy-count">0</span> left)
+                            </button>
+                            <button class="btn btn-secondary" id="btn-supp-ad">
+                                Wait for Class Rep (Simulate Ad)
+                            </button>
+                            <button class="btn btn-danger" id="btn-supp-repeat">
+                                Repeat Semester (Reset run)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAIL STATE B: BURNOUT / stress (Energy depletion) -->
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="fail-overlay-burnout">
+                <div class="TEMPLATE-4weird-overlay-content fail-panel burnout-panel">
+                    <h2 class="fail-header text-warning">STRESS BURNOUT COLLAPSE</h2>
+                    <div class="fail-body">
+                        <p class="fail-message" id="fail-burnout-msg">"You collapsed from stress. Slept for 48 hours straight."</p>
+                        <p class="fail-stats">Distance Survived: <span id="fail-burnout-dist">0m</span></p>
+                        <div class="revive-options">
+                            <button class="btn btn-primary btn-revive">Revive (🪙 50 / Free Premium)</button>
+                            <button class="btn btn-secondary btn-fail-exit">Back to Campus</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAIL STATE C: PORTAL CRASH (Academic Disqualification) -->
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="fail-overlay-portal">
+                <div class="TEMPLATE-4weird-overlay-content fail-panel portal-panel">
+                    <h2 class="fail-header text-danger">PORTAL ERROR: SUBMISSION FAILED</h2>
+                    <div class="fail-body">
+                        <p class="fail-message">"The portal crashed before your submission could be registered. GPA vanished."</p>
+                        <p class="fail-stats">Current Balance: 🪙 <span id="fail-portal-coins">0</span></p>
+                        <div class="revive-options">
+                            <button class="btn btn-primary btn-revive">Submit Hardcopy (🪙 50 / Free Premium)</button>
+                            <button class="btn btn-secondary btn-fail-exit">Back to Campus</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAIL STATE D: SUDDEN INCIDENTS (E.g. Caught by invigilator, sleep in class) -->
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="fail-overlay-incident">
+                <div class="TEMPLATE-4weird-overlay-content fail-panel incident-panel">
+                    <h2 class="fail-header text-danger">ACADEMIC INCIDENT REPORTED</h2>
+                    <div class="fail-body">
+                        <p class="fail-message" id="fail-incident-msg">"Caught sleeping in class. GPA dropped instantly."</p>
+                        <p class="fail-stats">GPA at Incident: <span id="fail-incident-gpa">0.00</span></p>
+                        <div class="revive-options">
+                            <button class="btn btn-primary btn-revive">Appeal to Lecturer (🪙 50 / Free Premium)</button>
+                            <button class="btn btn-secondary btn-fail-exit">Back to Campus</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VICTORY GRADUATION CELEBRATION -->
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="victory-overlay">
+                <div class="TEMPLATE-4weird-overlay-content victory-panel">
+                    <h1 class="victory-header">CONGRATULATIONS, COMRADE!</h1>
+                    <h2 class="victory-sub">YOU HAVE GRADUATED</h2>
+                    <div class="victory-body">
+                        <p class="victory-degree">Degree Classification:</p>
+                        <h3 id="victory-class-text" class="degree-classification">FIRST CLASS HONOURS</h3>
+                        
+                        <div class="victory-stats-grid">
+                            <div class="vic-stat"><span>Cumulative GPA</span><strong id="vic-gpa">4.00</strong></div>
+                            <div class="vic-stat"><span>Distance Covered</span><strong id="vic-dist">10,000m</strong></div>
+                            <div class="vic-stat"><span>Pocket Money Left</span><strong id="vic-coins">🪙 500</strong></div>
+                            <div class="vic-stat"><span>CATs Survived</span><strong id="vic-cats">8/8</strong></div>
+                            <div class="vic-stat"><span>Badges Unlocked</span><strong id="vic-badges">0/18</strong></div>
+                            <div class="vic-stat"><span>Skins Owned</span><strong id="vic-skins">0/10</strong></div>
+                        </div>
+
+                        <p class="endless-unlock-notice">🎉 Endless Alumni Mode is now unlocked! Run forever as a campus legend.</p>
+
+                        <div class="victory-buttons">
+                            <button class="btn btn-primary" id="btn-victory-endless">PLAY ENDLESS ALUMNI</button>
+                            <button class="btn btn-secondary" id="btn-victory-menu">MAIN MENU</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SATIRICAL AD SIMULATION OVERLAY -->
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="ad-overlay">
+                <div class="ad-card">
+                    <div class="ad-header">
+                        <span class="ad-badge">SPONSORED AD</span>
+                        <span class="ad-timer" id="ad-timer-val">5s</span>
+                    </div>
+                    <div class="ad-content">
+                        <h3 id="ad-title">TRY MAMAS ROLEX</h3>
+                        <p id="ad-desc">Fuel your exams with hot, double-egg rolex. Best price on campus!</p>
+                        <div class="ad-visual" id="ad-emoji">🍳🌯</div>
+                    </div>
+                    <div class="ad-footer">
+                        <button class="btn btn-primary hidden" id="btn-close-ad">Skip Ad</button>
+                        <span class="ad-wait-text" id="ad-wait-lbl">Please wait...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Game Info Panel (Glassmorphic Sidebar) -->
+        <aside class="TEMPLATE-4weird-game-info-panel">
+            <!-- Sound FX Board -->
+            <div class="TEMPLATE-4weird-panel-section sound-panel">
+                <h3><span>🔊</span> Audio Synth</h3>
+                <button class="sound-toggle-btn" id="TEMPLATE-4weird-mute-btn">🔊 Sound On</button>
+            </div>
+
+            <!-- High score -->
+            <div class="TEMPLATE-4weird-panel-section high-score-section">
+                <h3><span>🏆</span> High Score</h3>
+                <p class="TEMPLATE-4weird-high-score" id="TEMPLATE-4weird-high-score">0m</p>
+            </div>
+
+            <!-- How to Play -->
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3><span>📖</span> Student Handbook</h3>
+                <p id="TEMPLATE-4weird-how-to-play">Dodge academic hazards (red exam papers, portal screens, deadlines) and collect items (coffee, cash, cards). Switch lanes with A/D, W to jump, S to slide. Boss fights occur near the end of each semester!</p>
+            </div>
+            
+            <!-- Controls reference with layout tab selector -->
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3><span>⌨️</span> Controls</h3>
+                <div class="controls-tabs">
+                    <button class="tab-btn active" data-tab="keyboard-controls-content">Keyboard</button>
+                    <button class="tab-btn" data-tab="touch-controls-content">Touch Controls</button>
+                </div>
+                
+                <!-- Keyboard layout contents -->
+                <div class="controls-tab-content active" id="keyboard-controls-content">
+                    <ul id="TEMPLATE-4weird-keyboard-controls-list">
+                        <li><span>Switch Lane</span> <kbd>A / D</kbd> or <kbd>← / →</kbd></li>
+                        <li><span>Jump Obstacle</span> <kbd>W</kbd> or <kbd>↑</kbd></li>
+                        <li><span>Slide Obstacle</span> <kbd>S</kbd> or <kbd>↓</kbd></li>
+                        <li><span>Pause Game</span> <kbd>P</kbd> or <kbd>Escape</kbd></li>
+                    </ul>
+                </div>
+                
+                <!-- Touch layout contents -->
+                <div class="controls-tab-content" id="touch-controls-content">
+                    <ul id="TEMPLATE-4weird-touch-controls-list">
+                        <li><span>Switch Lane</span> <span>Swipe Left/Right or buttons</span></li>
+                        <li><span>Jump Obstacle</span> <span>Swipe Up or Jump button</span></li>
+                        <li><span>Slide Obstacle</span> <span>Swipe Down or Slide button</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Share buttons panel -->
+            <div class="TEMPLATE-4weird-panel-section share-section">
+                <h3><span>🔗</span> Brag Transcript</h3>
+                <div class="share-buttons">
+                    <button class="share-btn copy" onclick="copyGameLink()">📂 Copy Link</button>
+                    <a class="share-btn twitter" id="share-twitter" href="#" target="_blank" rel="noopener">🐦 Tweet/X</a>
+                    <a class="share-btn reddit" id="share-reddit" href="#" target="_blank" rel="noopener">👾 Reddit</a>
+                </div>
+            </div>
+        </aside>
+    </main>
+    
+    <!-- Credits Section -->
+    <section class="TEMPLATE-4weird-credits-section" id="TEMPLATE-4weird-credits">
+        <div class="TEMPLATE-4weird-credits-container">
+            <h2 class="TEMPLATE-4weird-credits-title">Development Crew</h2>
+            <div class="TEMPLATE-4weird-credits-grid" id="TEMPLATE-4weird-credits-grid">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </section>
+    
+    <!-- Maker Bio Section -->
+    <section class="TEMPLATE-4weird-bio-section" id="TEMPLATE-4weird-bio">
+        <div class="TEMPLATE-4weird-bio-container">
+            <h2 class="TEMPLATE-4weird-bio-title">System Creator Bio</h2>
+            <div class="TEMPLATE-4weird-bio-content" id="TEMPLATE-4weird-maker-bio">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </section>
+    
+    <!-- More Games Carousel Section -->
+    <section class="TEMPLATE-4weird-more-games">
+        <div class="TEMPLATE-4weird-more-games-container">
+            <div class="TEMPLATE-4weird-more-games-header">
+                <h2>Network Grid Nodes (More Games)</h2>
+                <div class="carousel-nav">
+                    <button class="carousel-nav-btn" id="carousel-prev" aria-label="Previous Games">◀</button>
+                    <button class="carousel-nav-btn" id="carousel-next" aria-label="Next Games">▶</button>
+                </div>
+            </div>
+            <div class="carousel-wrapper">
+                <div class="carousel-track" id="more-games-carousel-track">
+                    <!-- Loaded dynamically from components.js -->
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer placeholder - injected by components.js -->
+    <div id="TEMPLATE-4weird-footer-placeholder"></div>
+    
+    <!-- Game Scripts -->
+    <script src="../../../components.js"></script>
+    <script src="sound.js"></script>
+    <script src="state.js"></script>
+    <script src="controls.js"></script>
+    <script src="renderer.js"></script>
+    <script src="ui.js"></script>
+    <script src="game.js"></script>
+    
+    <script>
+        function copyGameLink() {
+            navigator.clipboard.writeText(window.location.href);
+            alert("Game link copied to clipboard! 📋");
+        }
+    </script>
+</body>
+</html>
