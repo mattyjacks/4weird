@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Last Words: Cyber Breach - 4weird Games</title>
+    <meta name="description" content="A high-intensity 3D cyberpunk typing survival game. Decrypt invading rogue cyborg units before they compromise your mainframe terminal.">
+    <meta name="keywords" content="4weird, Last Words: Cyber Breach, HTML5 game, browser game, retro, cyberpunk, Typing, Survival">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Last Words: Cyber Breach - 4weird Games">
+    <meta property="og:description" content="Decrypt approaching rogue cyber-units before they breach your mainframe terminal.">
+    <meta property="og:type" content="website">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Base Styles -->
+    <link rel="stylesheet" href="../../../styles.css">
+    <link rel="stylesheet" href="game.css">
+    
+    <!-- Three.js Library -->
+    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+    
+    <!-- Game Metadata (loaded for credits/bio) -->
+    <script src="game.json" type="application/json" id="game-metadata"></script>
+</head>
+<body class="TEMPLATE-4weird-game-page">
+    <!-- Cyberpunk ambient styling grids -->
+    <div class="cyber-bg-dots"></div>
+    
+    <!-- Navigation placeholder - injected by components.js -->
+    <div id="TEMPLATE-4weird-nav-placeholder"></div>
+    
+    <!-- Game Header Bar -->
+    <header class="TEMPLATE-4weird-game-header">
+        <div class="TEMPLATE-4weird-game-header-inner">
+            <a href="/" class="TEMPLATE-4weird-back-link">
+                <span class="TEMPLATE-4weird-back-arrow">←</span>
+                <span>Systems Exit</span>
+            </a>
+            <h1 class="TEMPLATE-4weird-game-title" id="TEMPLATE-4weird-game-title">Last Words: Cyber Breach</h1>
+            <div class="TEMPLATE-4weird-game-meta" id="TEMPLATE-4weird-game-meta">
+                <span class="TEMPLATE-4weird-game-genre" id="TEMPLATE-4weird-game-genre">Action</span>
+                <span class="TEMPLATE-4weird-game-status live">ONLINE</span>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Game Container -->
+    <main class="TEMPLATE-4weird-game-main">
+        <!-- Game Canvas Frame -->
+        <div class="TEMPLATE-4weird-game-frame">
+            <!-- Fullscreen trigger -->
+            <button class="TEMPLATE-4weird-fullscreen-btn" id="TEMPLATE-4weird-fullscreen-btn" title="Toggle Fullscreen">📺 Expand screen</button>
+            
+            <!-- Real-time game HUD -->
+            <div id="game-hud" class="hidden">
+                <!-- Score panel -->
+                <div class="hud-item">
+                    <span class="hud-label">DECRYPT SCORE</span>
+                    <span id="score-val" class="hud-value">0</span>
+                </div>
+                <!-- Health/Shield integrity -->
+                <div class="hud-item hud-integrity-container">
+                    <span class="hud-label">SHIELD INTEGRITY</span>
+                    <div class="integrity-bar-bg">
+                        <div id="health-bar-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <!-- System status stats -->
+                <div class="hud-item">
+                    <span class="hud-label">WAVE / UNITS</span>
+                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                        <span class="hud-value" style="font-size: 0.9rem; margin-right: 12px;">Wv <span id="wave-val">1</span></span>
+                        <span class="hud-value" style="font-size: 0.9rem; margin-right: 12px;">Cyborgs: <span id="zombie-count">0</span></span>
+                        <span class="hud-value" style="font-size: 0.9rem;">Combo: <span id="combo-val">1.0</span>x</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WebGL Game Canvas -->
+            <div id="canvas-container" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1;"></div>
+
+            <!-- Loading Screen with Spinner -->
+            <div class="TEMPLATE-4weird-loading-screen" id="TEMPLATE-4weird-loading-screen">
+                <div class="spinner"></div>
+                <h3 style="font-family: var(--font-cyber); letter-spacing: 2px; color: var(--neon-cyan); font-size: 0.9rem;">INITIALIZING ENCRYPTION GRID...</h3>
+            </div>
+
+            <!-- Game Start Overlay -->
+            <div class="TEMPLATE-4weird-game-overlay" id="TEMPLATE-4weird-start-screen">
+                <div class="TEMPLATE-4weird-overlay-content">
+                    <h2 id="start-overlay-title">Last Words: Cyber Breach</h2>
+                    <p id="start-overlay-desc">Decrypt rogue cyber units before they compromise your terminal.</p>
+                    
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-start-btn" style="margin-bottom: 12px;">
+                        <span class="btn-emoji">🎮</span> LOAD SEQUENCER
+                    </button>
+                    
+                    <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
+                        <button class="btn btn-secondary" id="btn-custom-store" style="flex: 1; padding: 10px 15px;">🛒 Black Market [I]</button>
+                        <button class="btn btn-secondary" id="btn-custom-settings" style="flex: 1; padding: 10px 15px;">⚙️ Settings</button>
+                    </div>
+                    
+                    <div class="TEMPLATE-4weird-controls-hint" id="start-overlay-hint">
+                        <p>Type matching characters to lock-on and overload invading cyborgs.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Game Pause Overlay -->
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="TEMPLATE-4weird-pause-screen">
+                <div class="TEMPLATE-4weird-overlay-content">
+                    <h2>SYSTEMS HALTED</h2>
+                    <p style="margin-bottom: 20px;">Mainframe sequencer decryption frozen.</p>
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-resume-btn">RESUME SYSTEM</button>
+                    <button class="btn btn-secondary" id="TEMPLATE-4weird-restart-btn" style="margin-top: 10px; width: 100%;">QUIT TO TERMINAL</button>
+                </div>
+            </div>
+            
+            <!-- Game Over Overlay -->
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="TEMPLATE-4weird-game-over-screen">
+                <div class="TEMPLATE-4weird-overlay-content">
+                    <h2 style="color: var(--neon-magenta); text-shadow: var(--glow-magenta);">SYSTEM BREACHED</h2>
+                    <p>Terminal compromised. Mainframe data has been wiped.</p>
+                    <p class="TEMPLATE-4weird-final-score">SCORE: <span id="TEMPLATE-4weird-final-score-val">0</span></p>
+                    <p style="font-family: var(--font-cyber); font-size: 0.8rem; margin-top: -15px; margin-bottom: 25px; color: var(--neon-yellow);">HIGH SCORE: <span id="TEMPLATE-4weird-gameover-highscore">0</span></p>
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-play-again-btn">REBOOT SYSTEM</button>
+                </div>
+            </div>
+
+            <!-- Black Market Store Overlay -->
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="custom-store-screen">
+                <div class="TEMPLATE-4weird-overlay-content" style="max-width: 500px; width: 95%;">
+                    <h2 style="color: var(--neon-cyan); text-shadow: var(--glow-cyan); margin-bottom: 5px;">BLACK MARKET</h2>
+                    <div class="currency-display" style="font-family: var(--font-cyber); color: var(--neon-yellow); font-size: 1.2rem; margin-bottom: 15px;">CREDITS: <span id="store-coins">0</span></div>
+                    
+                    <div class="store-tabs" style="display: flex; gap: 8px; margin-bottom: 15px; background: rgba(0, 0, 0, 0.4); padding: 4px; border-radius: 6px;">
+                        <button class="tab-btn active" data-tab="blood" style="flex: 1; padding: 8px; font-family: var(--font-cyber); font-size: 0.75rem; background: transparent; color: #fff; border: none; cursor: pointer; border-radius: 4px;">PLASMA</button>
+                        <button class="tab-btn" data-tab="fonts" style="flex: 1; padding: 8px; font-family: var(--font-cyber); font-size: 0.75rem; background: transparent; color: #fff; border: none; cursor: pointer; border-radius: 4px;">FONTS</button>
+                        <button class="tab-btn" data-tab="music" style="flex: 1; padding: 8px; font-family: var(--font-cyber); font-size: 0.75rem; background: transparent; color: #fff; border: none; cursor: pointer; border-radius: 4px;">SOUNDS</button>
+                    </div>
+                    
+                    <div class="store-grid" id="store-items-container" style="max-height: 250px; overflow-y: auto; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; text-align: left;">
+                        <!-- Dynamically populated via JS -->
+                    </div>
+                    
+                    <button id="btn-store-back" class="btn btn-secondary" style="width: 100%;">BACK TO TERMINAL</button>
+                </div>
+            </div>
+
+            <!-- Settings Overlay -->
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="custom-settings-screen">
+                <div class="TEMPLATE-4weird-overlay-content" style="max-width: 400px; width: 95%;">
+                    <h2 style="color: var(--neon-cyan); text-shadow: var(--glow-cyan); margin-bottom: 20px;">SYSTEM SETTINGS</h2>
+                    
+                    <div class="settings-list" style="display: flex; flex-direction: column; gap: 20px; text-align: left; margin-bottom: 25px;">
+                        <div class="setting-item" style="display: flex; flex-direction: column; gap: 8px;">
+                            <label for="slider-sfx" style="font-family: var(--font-cyber); font-size: 0.8rem; color: #fff;">SFX Volume</label>
+                            <input type="range" id="slider-sfx" min="0" max="1" step="0.1" value="0.8" style="width: 100%; accent-color: var(--neon-cyan);">
+                        </div>
+                        <div class="setting-item" style="display: flex; flex-direction: column; gap: 8px;">
+                            <label for="slider-music" style="font-family: var(--font-cyber); font-size: 0.8rem; color: #fff;">Music Sequencer Volume</label>
+                            <input type="range" id="slider-music" min="0" max="1" step="0.1" value="0.7" style="width: 100%; accent-color: var(--neon-cyan);">
+                        </div>
+                        <div class="setting-item" style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                            <label for="chk-particles" style="font-family: var(--font-cyber); font-size: 0.8rem; color: #fff;">Ultra Particles</label>
+                            <input type="checkbox" id="chk-particles" checked style="width: 20px; height: 20px; accent-color: var(--neon-cyan);">
+                        </div>
+                    </div>
+                    
+                    <button id="btn-settings-back" class="btn btn-secondary" style="width: 100%;">CLOSE SETTINGS</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Game Info Panel (Glassmorphism Sidebar) -->
+        <aside class="TEMPLATE-4weird-game-info-panel">
+            <!-- Sound FX Board -->
+            <div class="TEMPLATE-4weird-panel-section sound-panel">
+                <h3><span>🔊</span> Audio Synth</h3>
+                <button class="sound-toggle-btn" id="TEMPLATE-4weird-mute-btn">🔊 Sound</button>
+            </div>
+
+            <!-- High score -->
+            <div class="TEMPLATE-4weird-panel-section high-score-section">
+                <h3><span>🏆</span> High Score</h3>
+                <p class="TEMPLATE-4weird-high-score" id="TEMPLATE-4weird-high-score">0</p>
+            </div>
+
+            <!-- How to Play -->
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3><span>📖</span> Decryption Protocol</h3>
+                <p id="TEMPLATE-4weird-how-to-play">Loading instructions...</p>
+            </div>
+            
+            <!-- Controls reference with layout tab selector -->
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3><span>⌨️</span> Decryption Input</h3>
+                <div class="controls-tabs">
+                    <button class="tab-btn active" data-tab="keyboard-controls-content">Keyboard</button>
+                </div>
+                
+                <!-- Keyboard layout contents -->
+                <div class="controls-tab-content active" id="keyboard-controls-content">
+                    <ul id="TEMPLATE-4weird-keyboard-controls-list">
+                        <!-- Loaded dynamically -->
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Share buttons panel -->
+            <div class="TEMPLATE-4weird-panel-section share-section">
+                <h3><span>🔗</span> Share Terminal</h3>
+                <div class="share-buttons">
+                    <button class="share-btn copy" onclick="copyGameLink()">📂 Copy Code</button>
+                    <a class="share-btn twitter" id="share-twitter" href="#" target="_blank" rel="noopener">🐦 Twitter/X</a>
+                    <a class="share-btn reddit" id="share-reddit" href="#" target="_blank" rel="noopener">👾 Reddit</a>
+                </div>
+            </div>
+        </aside>
+    </main>
+    
+    <!-- Credits Section -->
+    <section class="TEMPLATE-4weird-credits-section" id="TEMPLATE-4weird-credits">
+        <div class="TEMPLATE-4weird-credits-container">
+            <h2 class="TEMPLATE-4weird-credits-title">Development Crew</h2>
+            <div class="TEMPLATE-4weird-credits-grid" id="TEMPLATE-4weird-credits-grid">
+                <!-- Populated from game.json -->
+            </div>
+        </div>
+    </section>
+    
+    <!-- Maker Bio Section -->
+    <section class="TEMPLATE-4weird-bio-section" id="TEMPLATE-4weird-bio">
+        <div class="TEMPLATE-4weird-bio-container">
+            <h2 class="TEMPLATE-4weird-bio-title">System Creator Bio</h2>
+            <div class="TEMPLATE-4weird-bio-content" id="TEMPLATE-4weird-maker-bio">
+                <!-- Populated from game.json -->
+            </div>
+        </div>
+    </section>
+    
+    <!-- More Games Carousel Section -->
+    <section class="TEMPLATE-4weird-more-games">
+        <div class="TEMPLATE-4weird-more-games-container">
+            <div class="TEMPLATE-4weird-more-games-header">
+                <h2>Network Grid Nodes (More Games)</h2>
+                <div class="carousel-nav">
+                    <button class="carousel-nav-btn" id="carousel-prev" aria-label="Previous Games">◀</button>
+                    <button class="carousel-nav-btn" id="carousel-next" aria-label="Next Games">▶</button>
+                </div>
+            </div>
+            <div class="carousel-wrapper">
+                <div class="carousel-track" id="more-games-carousel-track">
+                    <!-- Loaded dynamically from components.js -->
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer placeholder - injected by components.js -->
+    <div id="TEMPLATE-4weird-footer-placeholder"></div>
+    
+    <!-- Scripts -->
+    <script src="../../../components.js"></script>
+    <script src="game.js"></script>
+    <script>
+        // Load game metadata and populate template fields
+        (function() {
+            fetch('game.json')
+                .then(r => r.json())
+                .then(data => {
+                    document.title = data.title + ' - 4weird Games';
+                    
+                    // Main title tags
+                    document.getElementById('TEMPLATE-4weird-game-title').textContent = data.title;
+                    document.getElementById('start-overlay-title').textContent = data.title;
+                    
+                    // Genre and descriptions
+                    document.getElementById('TEMPLATE-4weird-game-genre').textContent = data.genre;
+                    document.getElementById('start-overlay-desc').textContent = data.description;
+                    document.getElementById('TEMPLATE-4weird-how-to-play').innerHTML = data.instructions;
+                    
+                    // Set keyboard instructions hint
+                    if (data.controls && data.controls.keyboard) {
+                        const hintList = Object.entries(data.controls.keyboard)
+                            .map(([k, desc]) => `<p><strong>${desc}:</strong> <kbd>${k}</kbd></p>`)
+                            .join('');
+                        document.getElementById('start-overlay-hint').innerHTML = hintList;
+                        
+                        // Populate the aside sidebar list
+                        const listHtml = Object.entries(data.controls.keyboard)
+                            .map(([k, desc]) => `<li><span>${desc}</span> <kbd>${k}</kbd></li>`)
+                            .join('');
+                        document.getElementById('TEMPLATE-4weird-keyboard-controls-list').innerHTML = listHtml;
+                    }
+
+                    // Credits developer bios and details
+                    document.getElementById('TEMPLATE-4weird-maker-name').textContent = data.maker.name;
+                    document.getElementById('TEMPLATE-4weird-maker-bio').innerHTML = '<p>' + data.maker.bio + '</p>';
+                    
+                    if (data.maker.url) {
+                        const link = document.getElementById('TEMPLATE-4weird-maker-link');
+                        if (link) {
+                            link.href = data.maker.url;
+                            link.textContent = data.maker.urlLabel || 'Portfolio';
+                        }
+                    }
+                    
+                    // Update credits cards dynamic grid
+                    if (data.credits && data.credits.length > 0) {
+                        const grid = document.getElementById('TEMPLATE-4weird-credits-grid');
+                        grid.innerHTML = data.credits.map(c => `
+                            <div class="TEMPLATE-4weird-credit-card ${c.primary ? 'TEMPLATE-4weird-primary' : ''}">
+                                <div class="TEMPLATE-4weird-credit-avatar">${c.avatar || '👤'}</div>
+                                <h3 class="TEMPLATE-4weird-credit-name">${c.name}</h3>
+                                <p class="TEMPLATE-4weird-credit-role">${c.role}</p>
+                                ${c.url ? `<p class="TEMPLATE-4weird-credit-links"><a href="${c.url}" target="_blank" rel="noopener">${c.urlLabel || 'Link'}</a></p>` : ''}
+                            </div>
+                        `).join('');
+                    }
+
+                    // Social Share links updates
+                    const encodedUrl = encodeURIComponent(window.location.href);
+                    const encodedTitle = encodeURIComponent(`Check out ${data.title} on 4weird Games! 🎮🚀`);
+                    document.getElementById('share-twitter').href = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`;
+                    document.getElementById('share-reddit').href = `https://www.reddit.com/submit?url=${encodedUrl}&title=${encodedTitle}`;
+                })
+                .catch(err => console.log('Template metadata fetch error:', err));
+            
+            // Fullscreen toggle logic
+            const fullscreenBtn = document.getElementById('TEMPLATE-4weird-fullscreen-btn');
+            const gameFrame = document.querySelector('.TEMPLATE-4weird-game-frame');
+            if (fullscreenBtn && gameFrame) {
+                fullscreenBtn.addEventListener('click', () => {
+                    if (!document.fullscreenElement) {
+                        gameFrame.requestFullscreen().catch(err => {
+                            console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                        });
+                        fullscreenBtn.textContent = "📺 Normal screen";
+                    } else {
+                        document.exitFullscreen();
+                        fullscreenBtn.textContent = "📺 Expand screen";
+                    }
+                });
+            }
+
+            // Tabs UI Interaction script for Controls Sidebar
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.controls-tab-content');
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    btn.classList.add('active');
+                    const targetContent = document.getElementById(btn.getAttribute('data-tab'));
+                    if (targetContent) targetContent.classList.add('active');
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

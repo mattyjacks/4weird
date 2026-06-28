@@ -1,0 +1,57 @@
+{
+    "title": "Last Words: Cyber Breach",
+    "slug": "lastwordszombies",
+    "description": "A high-intensity 3D cyberpunk typing survival game. Decrypt approaching rogue cyber-units before they breach your mainframe terminal.",
+    "genre": "Action",
+    "tags": ["HTML5", "Action", "Cyberpunk", "Typing", "Survival"],
+    "maker": {
+        "name": "Antigravity",
+        "bio": "Specialist in building premium, sensory-rich retro-futuristic arcade experiences with high-fidelity web audio synth engines.",
+        "url": "https://4weird.com",
+        "urlLabel": "4weird Games"
+    },
+    "credits": [
+        {
+            "name": "Antigravity",
+            "role": "Lead Developer & UI Designer",
+            "avatar": "🤖",
+            "primary": true,
+            "url": "https://4weird.com",
+            "urlLabel": "4weird"
+        },
+        {
+            "name": "MattyJacks",
+            "role": "Platform Architect",
+            "avatar": "👑",
+            "primary": false,
+            "url": "https://mattyjacks.com",
+            "urlLabel": "MattyJacks"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "A-Z Keys": "Type matching characters to lock-on and decrypt rogue cyborgs",
+            "Escape": "Toggle Pause System",
+            "I Key": "Access Black Market Store (from Menu)"
+        },
+        "touch": {
+            "keyboard": "Requires standard physical/virtual keyboard input"
+        },
+        "mouse": true
+    },
+    "instructions": "Rogue cyborg units are breaching the containment grid! Type the first letter of an approaching unit's code to lock-on, then complete the full sequence to trigger payload overload. Successful decrypts release energy shockwaves that push back and stun adjacent units. Protect your terminal shield integrity at all costs!",
+    "technical": {
+        "canvasSize": {"width": 800, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": false
+    },
+    "assets": {
+        "external": ["https://unpkg.com/three@0.160.0/build/three.min.js"],
+        "local": ["game.js", "game.css"]
+    },
+    "meta": {
+        "version": "2.0.0",
+        "created": "2026-06-28",
+        "license": "Private - All Rights Reserved"
+    }
+}
