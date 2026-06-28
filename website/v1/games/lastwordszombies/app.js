@@ -8,9 +8,9 @@ class GameApp {
     this.container = document.getElementById('canvas-container');
     this.scene = new THREE.Scene();
     
-    // Cyberpunk ambient fog
-    this.scene.background = new THREE.Color(0x020205);
-    this.scene.fog = new THREE.FogExp2(0x020205, 0.025);
+    // School corridor ambient lighting/fog
+    this.scene.background = new THREE.Color(0xededeb);
+    this.scene.fog = new THREE.FogExp2(0xededeb, 0.018);
     
     this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 200);
     // Camera is positioned at the start of the corridor facing down -Z
@@ -60,11 +60,10 @@ class GameApp {
     const corridorWidth = 6.0;
     const corridorHeight = 4.0;
     
-    // Floor
+    // Floor (Linoleum grey tiles)
     const floorGeo = new THREE.PlaneGeometry(corridorWidth, corridorLength);
     const floorMat = new THREE.MeshLambertMaterial({ 
-      color: 0x111115,
-      roughness: 0.9
+      color: 0xc2c2bd
     });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
@@ -72,41 +71,70 @@ class GameApp {
     floor.receiveShadow = true;
     this.scene.add(floor);
     
-    // Ceiling
+    // Ceiling (Off-white classroom acoustic tiles)
     const ceilingGeo = new THREE.PlaneGeometry(corridorWidth, corridorLength);
-    const ceilingMat = new THREE.MeshLambertMaterial({ color: 0x0c0c10 });
+    const ceilingMat = new THREE.MeshLambertMaterial({ color: 0xededeb });
     const ceiling = new THREE.Mesh(ceilingGeo, ceilingMat);
     ceiling.rotation.x = Math.PI / 2;
     ceiling.position.set(0, corridorHeight - 1.2, -corridorLength / 2 + 10);
     this.scene.add(ceiling);
     
-    // Left Wall
+    // Left Wall (School cream beige)
     const leftWallGeo = new THREE.PlaneGeometry(corridorLength, corridorHeight);
-    const leftWallMat = new THREE.MeshLambertMaterial({ color: 0x09090d });
+    const leftWallMat = new THREE.MeshLambertMaterial({ color: 0xf0ede6 });
     const leftWall = new THREE.Mesh(leftWallGeo, leftWallMat);
     leftWall.rotation.y = Math.PI / 2;
     leftWall.position.set(-corridorWidth / 2, corridorHeight / 2 - 1.2, -corridorLength / 2 + 10);
     leftWall.receiveShadow = true;
     this.scene.add(leftWall);
     
-    // Right Wall
+    // Right Wall (School cream beige)
     const rightWall = leftWall.clone();
     rightWall.rotation.y = -Math.PI / 2;
     rightWall.position.set(corridorWidth / 2, corridorHeight / 2 - 1.2, -corridorLength / 2 + 10);
     this.scene.add(rightWall);
+
+    // Add Lockers along the left and right walls (alternating blue, green, red colors)
+    const lockerWidth = 0.8;
+    const lockerHeight = 2.2;
+    const lockerDepth = 0.25;
+    const lockerColors = [0x2563eb, 0x16a34a, 0xdc2626]; // blue, green, red
+    
+    for (let z = 5; z > -corridorLength + 10; z -= 1.8) {
+      // Don't place a locker directly on the archway/light positions (every 12 units starting at 10)
+      if (Math.abs((z - 10) % 12) < 1.2) continue;
+      // Skip placing lockers where classroom doors are going to be placed (every 24 units)
+      if (Math.abs((z - 2) % 24) < 1.5 || Math.abs((z - 14) % 24) < 1.5) continue;
+      
+      const color = lockerColors[Math.abs(Math.floor(z)) % lockerColors.length];
+      
+      this.createDetailedLocker(-corridorWidth / 2 + lockerDepth / 2, lockerHeight / 2 - 1.2, z, lockerWidth, lockerHeight, lockerDepth, color);
+      this.createDetailedLocker(corridorWidth / 2 - lockerDepth / 2, lockerHeight / 2 - 1.2, z, lockerWidth, lockerHeight, lockerDepth, color);
+    }
+    
+    // Add classroom doors along the corridor walls (every 24 units, staggered)
+    for (let z = 2.0; z > -corridorLength + 10; z -= 24.0) {
+      this.createClassroomDoor(z, true, corridorWidth);
+      this.createClassroomDoor(z - 12.0, false, corridorWidth);
+    }
     
     // Add metallic structural beams / archways along the corridor (every 12 units)
     for (let z = 10; z > -corridorLength + 10; z -= 12) {
       this.createArchway(z, corridorWidth, corridorHeight);
       this.createCeilingLight(z, corridorHeight);
+      
+      // Add a school clock to every second archway beam
+      if (Math.abs(z - 10) % 24 === 0) {
+        this.createCeilingClock(z, corridorHeight);
+      }
     }
     
-    // Ambient global light
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.05);
+    // Ambient global light (Bright school hallway lighting)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
     this.scene.add(ambientLight);
     
-    // Directional light down the corridor
-    const dirLight = new THREE.DirectionalLight(0x00ccff, 0.2);
+    // Directional light down the corridor (fluorescent day white)
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
     dirLight.position.set(0, 3, 5);
     this.scene.add(dirLight);
   }
@@ -114,7 +142,7 @@ class GameApp {
   createArchway(z, width, height) {
     const beamThickness = 0.25;
     const beamDepth = 0.4;
-    const material = new THREE.MeshLambertMaterial({ color: 0x181822 });
+    const material = new THREE.MeshLambertMaterial({ color: 0x5c4033 });
     
     const archGroup = new THREE.Group();
     
@@ -140,25 +168,188 @@ class GameApp {
   createCeilingLight(z, height) {
     // 3D Neon bulb model
     const bulbGeo = new THREE.CylinderGeometry(0.04, 0.04, 2.0, 8);
-    const bulbMat = new THREE.MeshBasicMaterial({ color: 0x00ccff });
+    const bulbMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
     
     const bulb = new THREE.Mesh(bulbGeo, bulbMat);
     bulb.rotation.z = Math.PI / 2;
     bulb.position.set(0, height - 1.25, z);
     
     // Add real PointLight
-    // Randomize light color: blue, green, pink
-    const colors = [0x00ff66, 0x00ccff, 0xff0055];
-    const lightColor = colors[Math.abs(z) % colors.length];
+    const lightColor = 0xfffaed; // Warm fluorescent white
     bulbMat.color.setHex(lightColor);
     
-    const light = new THREE.PointLight(lightColor, 1.5, 12);
+    const light = new THREE.PointLight(lightColor, 25.0, 12);
     light.position.set(0, height - 1.4, z);
     
     this.scene.add(bulb);
     this.scene.add(light);
     
-    this.lights.push({ bulb, light, baseIntensity: 1.5, zOffset: z });
+    this.lights.push({ bulb, light, baseIntensity: 25.0, zOffset: z });
+  }
+
+  createDetailedLocker(x, y, z, width, height, depth, color) {
+    const lockerGroup = new THREE.Group();
+    
+    // Determine wall orientation (left wall faces right (+X), right wall faces left (-X))
+    const isLeftWall = x < 0;
+    const direction = isLeftWall ? 1 : -1;
+    
+    // 1. Kickplate / Base (dark slate gray bottom block, height 0.15)
+    const baseHeight = 0.15;
+    const baseMat = new THREE.MeshLambertMaterial({ color: 0x1e293b }); 
+    const lockerBase = new THREE.Mesh(new THREE.BoxGeometry(depth * 0.95, baseHeight, width), baseMat);
+    lockerBase.position.set(-direction * 0.01, -height / 2 + baseHeight / 2, 0);
+    lockerGroup.add(lockerBase);
+    
+    // 2. Locker Main Frame (outer steel cabinet body)
+    const frameHeight = height - baseHeight;
+    const frameMat = new THREE.MeshLambertMaterial({ color: 0x334155 }); // steel gray frame
+    const lockerFrame = new THREE.Mesh(new THREE.BoxGeometry(depth, frameHeight, width), frameMat);
+    lockerFrame.position.set(0, -height / 2 + baseHeight + frameHeight / 2, 0);
+    lockerFrame.castShadow = true;
+    lockerFrame.receiveShadow = true;
+    lockerGroup.add(lockerFrame);
+    
+    // 3. Recessed Door Panel
+    // Sits slightly inside the front of the frame
+    const doorWidth = width - 0.06;
+    const doorHeight = frameHeight - 0.08;
+    const doorDepth = 0.03;
+    const doorMat = new THREE.MeshLambertMaterial({ color: color });
+    const lockerDoor = new THREE.Mesh(new THREE.BoxGeometry(doorDepth, doorHeight, doorWidth), doorMat);
+    
+    const doorY = -height / 2 + baseHeight + frameHeight / 2;
+    const frontOffset = isLeftWall ? depth / 2 + doorDepth / 2 - 0.005 : -depth / 2 - doorDepth / 2 + 0.005;
+    lockerDoor.position.set(frontOffset, doorY, 0);
+    lockerGroup.add(lockerDoor);
+    
+    // 4. Locker Louver Vents (recessed slits on the front)
+    const ventMat = new THREE.MeshLambertMaterial({ color: 0x0f172a }); // slate-900 (almost black)
+    const ventWidth = doorWidth * 0.6;
+    const ventHeight = 0.015;
+    const ventDepth = 0.01;
+    const ventGeo = new THREE.BoxGeometry(ventDepth, ventHeight, ventWidth);
+    
+    const ventFrontOffset = frontOffset + (isLeftWall ? doorDepth / 2 + 0.002 : -doorDepth / 2 - 0.002);
+    
+    for (let i = 0; i < 3; i++) {
+      // Top Vents
+      const topVent = new THREE.Mesh(ventGeo, ventMat);
+      topVent.position.set(ventFrontOffset, doorY + doorHeight / 2 - 0.2 - i * 0.04, 0);
+      lockerGroup.add(topVent);
+      
+      // Bottom Vents
+      const bottomVent = new THREE.Mesh(ventGeo, ventMat);
+      bottomVent.position.set(ventFrontOffset, doorY - doorHeight / 2 + 0.2 + i * 0.04, 0);
+      lockerGroup.add(bottomVent);
+    }
+    
+    // 5. Door Latch Recess (metallic indentation box)
+    const recessWidth = 0.06;
+    const recessHeight = 0.25;
+    const recessDepth = 0.008;
+    const recess = new THREE.Mesh(new THREE.BoxGeometry(recessDepth, recessHeight, recessWidth), ventMat);
+    const handleZ = doorWidth * 0.22;
+    recess.position.set(ventFrontOffset, doorY, handleZ);
+    lockerGroup.add(recess);
+    
+    // 6. Chrome Latch Handle
+    const chromeMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.8, roughness: 0.2 });
+    const handle = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.12, 0.02), chromeMat);
+    handle.position.set(ventFrontOffset + (isLeftWall ? 0.005 : -0.005), doorY, handleZ);
+    lockerGroup.add(handle);
+    
+    // 7. Locker Number Plate
+    const plateWidth = 0.12;
+    const plateHeight = 0.05;
+    const plateDepth = 0.005;
+    const plateMat = new THREE.MeshStandardMaterial({ color: 0xe5e7eb, metalness: 0.5 });
+    const numPlate = new THREE.Mesh(new THREE.BoxGeometry(plateDepth, plateHeight, plateWidth), plateMat);
+    numPlate.position.set(ventFrontOffset, doorY + doorHeight / 2 - 0.08, 0);
+    lockerGroup.add(numPlate);
+    
+    // Position full locker group
+    lockerGroup.position.set(x, y, z);
+    this.scene.add(lockerGroup);
+  }
+
+  createClassroomDoor(z, isLeft, corridorWidth) {
+    const doorGroup = new THREE.Group();
+    const doorWidth = 1.3;
+    const doorHeight = 2.7;
+    const doorThickness = 0.05;
+    
+    // Door panel (dark wooden color)
+    const doorMat = new THREE.MeshLambertMaterial({ color: 0x8b5a2b });
+    const door = new THREE.Mesh(new THREE.BoxGeometry(doorThickness, doorHeight, doorWidth), doorMat);
+    door.position.set(0, doorHeight / 2 - 1.2, 0);
+    doorGroup.add(door);
+    
+    // Door Frame (trim around it)
+    const frameMat = new THREE.MeshLambertMaterial({ color: 0x5c4033 });
+    const frameLeft = new THREE.Mesh(new THREE.BoxGeometry(0.06, doorHeight, 0.06), frameMat);
+    frameLeft.position.set(0, doorHeight / 2 - 1.2, -doorWidth / 2 - 0.03);
+    const frameRight = frameLeft.clone();
+    frameRight.position.z = doorWidth / 2 + 0.03;
+    
+    const frameTop = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, doorWidth + 0.12), frameMat);
+    frameTop.position.set(0, doorHeight - 1.2 + 0.03, 0);
+    
+    doorGroup.add(frameLeft);
+    doorGroup.add(frameRight);
+    doorGroup.add(frameTop);
+    
+    // Window on the door (little glass view panel)
+    const glassMat = new THREE.MeshBasicMaterial({ color: 0xc2dfef }); // pale blue glass tint
+    const windowMesh = new THREE.Mesh(new THREE.BoxGeometry(doorThickness + 0.01, 0.6, 0.3), glassMat);
+    windowMesh.position.set(0, doorHeight - 1.2 - 0.5, 0);
+    doorGroup.add(windowMesh);
+    
+    // Doorknob (brass sphere)
+    const brassMat = new THREE.MeshLambertMaterial({ color: 0xd4af37 });
+    const knob = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), brassMat);
+    knob.position.set(isLeft ? 0.05 : -0.05, 1.0 - 1.2, doorWidth / 2 - 0.15);
+    doorGroup.add(knob);
+    
+    // Position the door group on either the left or right wall
+    const xPos = isLeft ? -corridorWidth / 2 + doorThickness / 2 : corridorWidth / 2 - doorThickness / 2;
+    doorGroup.position.set(xPos, 0, z);
+    
+    this.scene.add(doorGroup);
+  }
+
+  createCeilingClock(z, height) {
+    const clockGroup = new THREE.Group();
+    
+    // Clock frame (black cylinder)
+    const frameMat = new THREE.MeshLambertMaterial({ color: 0x111115 });
+    const frame = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.08, 24), frameMat);
+    frame.rotation.x = Math.PI / 2;
+    clockGroup.add(frame);
+    
+    // Clock face (white cylinder)
+    const faceMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const face = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.09, 24), faceMat);
+    face.rotation.x = Math.PI / 2;
+    clockGroup.add(face);
+    
+    // Hands (thin black rectangular boxes)
+    const handMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+    const hourHand = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 0.16), handMat);
+    hourHand.position.set(0, 0.05, 0.03);
+    hourHand.rotation.z = Math.PI / 6; // set time to ~2 o'clock
+    
+    const minuteHand = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.02, 0.22), handMat);
+    minuteHand.position.set(0, 0.08, 0.03);
+    minuteHand.rotation.z = Math.PI / 3;
+    
+    clockGroup.add(hourHand);
+    clockGroup.add(minuteHand);
+    
+    // Hang it just below the top crossbeam of the archway (height - 1.2)
+    clockGroup.position.set(0, height - 1.2 - 0.5, z - 0.22); // slightly in front of archway Z
+    
+    this.scene.add(clockGroup);
   }
 
   bindEvents() {
@@ -473,5 +664,5 @@ class GameApp {
 
 // Instantiate game app on load
 window.addEventListener('load', () => {
-  new GameApp();
+  window.game = new GameApp();
 });

@@ -50,28 +50,28 @@ class Zombie {
     this.head.position.set(0, 1.25, 0);
     this.group.add(this.head);
     
-    // 3. Glowing Eyes
+    // 3. Glowing Eyes (facing player at positive Z)
     const eyeGeo = new THREE.BoxGeometry(0.1, 0.08, 0.1);
     const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
     
     this.leftEye = new THREE.Mesh(eyeGeo, eyeMat);
-    this.leftEye.position.set(-0.15, 1.3, -0.22);
+    this.leftEye.position.set(-0.15, 1.3, 0.22);
     
     this.rightEye = new THREE.Mesh(eyeGeo, eyeMat);
-    this.rightEye.position.set(0.15, 1.3, -0.22);
+    this.rightEye.position.set(0.15, 1.3, 0.22);
     
     this.group.add(this.leftEye);
     this.group.add(this.rightEye);
     
-    // 4. Arms (pointing straight forward in zombie style)
+    // 4. Arms (pointing straight forward towards player at positive Z)
     const armGeo = new THREE.BoxGeometry(0.15, 0.15, 0.7);
     const armMat = new THREE.MeshLambertMaterial({ color: 0x3e6b4d });
     
     this.leftArm = new THREE.Mesh(armGeo, armMat);
-    this.leftArm.position.set(-0.4, 0.8, -0.3);
+    this.leftArm.position.set(-0.4, 0.8, 0.3);
     
     this.rightArm = new THREE.Mesh(armGeo, armMat);
-    this.rightArm.position.set(0.4, 0.8, -0.3);
+    this.rightArm.position.set(0.4, 0.8, 0.3);
     
     this.group.add(this.leftArm);
     this.group.add(this.rightArm);
@@ -92,10 +92,13 @@ class Zombie {
     
     const spriteMaterial = new THREE.SpriteMaterial({
       map: this.labelTexture,
-      transparent: true
+      transparent: true,
+      depthTest: false,
+      depthWrite: false
     });
     
     this.labelSprite = new THREE.Sprite(spriteMaterial);
+    this.labelSprite.renderOrder = 999;
     
     // Scale label sprite
     this.labelSprite.scale.set(2.0, 0.5, 1.0);
@@ -174,13 +177,18 @@ class Zombie {
         this.isStunned = false;
       }
     } else {
-      // Normal path: advance forward (decrease Z towards player camera at 0)
-      this.worldZ -= this.speed * dt;
+      // Normal path: advance forward (increase Z towards player camera at 5.0)
+      this.worldZ += this.speed * dt;
     }
     
     // Apply physical knockback forces
     this.worldX += this.vx * dt;
     this.worldZ += this.vz * dt;
+    
+    // Ensure labels are readable from distance (keep a minimum screen size)
+    const dist = Math.abs(5.0 - this.worldZ);
+    const scaleFactor = Math.max(1.0, dist / 10.0);
+    this.labelSprite.scale.set(2.0 * scaleFactor, 0.5 * scaleFactor, 1.0);
     
     // Drag/Friction to settle forces
     this.vx *= Math.pow(0.1, dt);

@@ -18,12 +18,12 @@ class TypingController {
     
     if (!this.currentTarget) {
       // Find candidate zombies (closest first on Z-axis)
-      // Closer zombies have smaller Z values (approaching 0)
-      const matches = zombies.filter(z => z.word.toLowerCase().startsWith(letter) && z.worldZ > 2.0);
+      // Closer zombies have larger Z values (approaching 5.0)
+      const matches = zombies.filter(z => z.word.toLowerCase().startsWith(letter) && z.worldZ < 4.8);
       
       if (matches.length > 0) {
-        // Sort by Z coordinate (smaller Z = closer to camera)
-        matches.sort((a, b) => a.worldZ - b.worldZ);
+        // Sort by Z coordinate (larger Z = closer to camera)
+        matches.sort((a, b) => b.worldZ - a.worldZ);
         
         this.currentTarget = matches[0];
         this.typedBuffer = letter;
