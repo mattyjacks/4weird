@@ -497,7 +497,8 @@ function populateQuickLaunchGrid() {
   options.forEach(opt => {
     const btn = document.createElement('button');
     btn.className = 'btn btn-secondary btn-small quick-launch-btn';
-    btn.textContent = `🎮 Launch ${opt.textContent}`;
+    const isPage = opt.dataset.type === 'page';
+    btn.textContent = isPage ? `📄 View ${opt.textContent}` : `🎮 Play ${opt.textContent}`;
     btn.addEventListener('click', () => {
       audio.playClickSound();
       el.demoGameSelect.value = opt.value;
