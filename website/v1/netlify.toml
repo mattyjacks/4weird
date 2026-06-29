@@ -6,6 +6,11 @@
   NODE_VERSION = "18"
 
 [[redirects]]
+  from = "/html/*"
+  to = "/games/html/:splat"
+  status = 301
+
+[[redirects]]
   from = "/games/*"
   to = "/games/:splat"
   status = 200
