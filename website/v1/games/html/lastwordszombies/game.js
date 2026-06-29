@@ -471,51 +471,58 @@ class Zombie {
     this.group = new THREE.Group();
     this.group.position.set(this.worldX, this.worldY, this.worldZ);
     
-    // Low-poly cyborg design
-    // 1. Torso (Dark carbon shell)
+    // Low-poly zombie cyborg design
+    // 1. Torso (Decaying green flesh base)
     const torsoGeo = new THREE.BoxGeometry(0.7, 1.0, 0.4);
-    const torsoMat = new THREE.MeshLambertMaterial({ color: 0x21252d });
+    const torsoMat = new THREE.MeshLambertMaterial({ color: 0x2e543a });
     this.torso = new THREE.Mesh(torsoGeo, torsoMat);
     this.torso.position.y = 0.5;
     this.group.add(this.torso);
     
-    // 1b. Glowing Cyber Reactor Core on chest
-    const coreGeo = new THREE.BoxGeometry(0.3, 0.3, 0.1);
+    // 1b. Cyborg chestplate armor (covering left half of torso)
+    const armorGeo = new THREE.BoxGeometry(0.4, 0.9, 0.44);
+    const armorMat = new THREE.MeshLambertMaterial({ color: 0x474f5d });
+    this.armor = new THREE.Mesh(armorGeo, armorMat);
+    this.armor.position.set(0.18, 0.5, 0.01);
+    this.group.add(this.armor);
+    
+    // 1c. Glowing Cyber Reactor Core on chest
+    const coreGeo = new THREE.BoxGeometry(0.2, 0.2, 0.1);
     const coreMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc }); // Neon cyan core
     this.core = new THREE.Mesh(coreGeo, coreMat);
-    this.core.position.set(0, 0.5, 0.21);
+    this.core.position.set(0.18, 0.5, 0.23);
     this.group.add(this.core);
     
-    // 2. Head (Dark metal alloy)
+    // 2. Head (Decaying green flesh base)
     const headGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-    const headMat = new THREE.MeshLambertMaterial({ color: 0x2d323f });
+    const headMat = new THREE.MeshLambertMaterial({ color: 0x3d6b4c });
     this.head = new THREE.Mesh(headGeo, headMat);
     this.head.position.set(0, 1.25, 0);
     this.group.add(this.head);
     
-    // 2b. Chrome plating on half of the face
+    // 2b. Cybernetic chrome plating on half of the face
     const plateGeo = new THREE.BoxGeometry(0.28, 0.52, 0.52);
     const plateMat = new THREE.MeshLambertMaterial({ color: 0x8a95a5 });
     this.chromePlate = new THREE.Mesh(plateGeo, plateMat);
     this.chromePlate.position.set(0.12, 1.25, 0.01);
     this.group.add(this.chromePlate);
     
-    // 3. Cybernetic Glowing Visor (instead of eyes)
-    const visorGeo = new THREE.BoxGeometry(0.42, 0.08, 0.1);
-    const visorMat = new THREE.MeshBasicMaterial({ color: 0xff0055 }); // Hot pink visor
+    // 3. Cybernetic Glowing Single Visor (on the cybernetic half of face)
+    const visorGeo = new THREE.BoxGeometry(0.2, 0.08, 0.1);
+    const visorMat = new THREE.MeshBasicMaterial({ color: 0xff0055 }); // Hot pink laser eye
     this.visor = new THREE.Mesh(visorGeo, visorMat);
-    this.visor.position.set(0, 1.3, 0.22);
+    this.visor.position.set(0.12, 1.3, 0.27);
     this.group.add(this.visor);
     
-    // 4. Arms
+    // 4. Arms (Hydraulic cybernetic left arm vs decayed green right arm)
     const armGeo = new THREE.BoxGeometry(0.15, 0.15, 0.7);
-    const hydraulicArmMat = new THREE.MeshLambertMaterial({ color: 0x8a95a5 }); // steel left arm
-    const wireArmMat = new THREE.MeshLambertMaterial({ color: 0x1b1b22 }); // carbon right arm
+    const hydraulicArmMat = new THREE.MeshLambertMaterial({ color: 0x8a95a5 }); // Steel left arm
+    const decayArmMat = new THREE.MeshLambertMaterial({ color: 0x3d6b4c }); // Flesh right arm
     
     this.leftArm = new THREE.Mesh(armGeo, hydraulicArmMat);
     this.leftArm.position.set(-0.4, 0.8, 0.3);
     
-    this.rightArm = new THREE.Mesh(armGeo, wireArmMat);
+    this.rightArm = new THREE.Mesh(armGeo, decayArmMat);
     this.rightArm.position.set(0.4, 0.8, 0.3);
     
     this.group.add(this.leftArm);
@@ -666,8 +673,8 @@ class Zombie {
         this.torso.material.color.setHex(0xff0055); // pink highlight
         this.head.material.color.setHex(0xff0055);
       } else {
-        this.torso.material.color.setHex(0x21252d); // carbon
-        this.head.material.color.setHex(0x2d323f); // alloy
+        this.torso.material.color.setHex(0x2e543a); // decaying green torso
+        this.head.material.color.setHex(0x3d6b4c); // decaying green head
       }
       this.updateLabelTexture();
     }
