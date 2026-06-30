@@ -1,5 +1,5 @@
 {
-    "title": "Last Words: Cyber Breach",
+    "title": "Last Words Zombies",
     "slug": "lastwordszombies",
     "description": "A high-intensity 3D cyberpunk typing survival game. Decrypt approaching rogue cyber-units before they breach your mainframe terminal.",
     "genre": "Action",
@@ -30,7 +30,7 @@
     ],
     "controls": {
         "keyboard": {
-            "A-Z Keys": "Type matching characters to lock-on and decrypt rogue cyborgs",
+            "A-Z Keys": "Type matching characters to lock-on and decrypt rogue zombies",
             "Escape": "Toggle Pause System",
             "I Key": "Access Black Market Store (from Menu)"
         },
@@ -39,7 +39,7 @@
         },
         "mouse": true
     },
-    "instructions": "Rogue cyborg units are breaching the containment grid! Type the first letter of an approaching unit's code to lock-on, then complete the full sequence to trigger payload overload. Successful decrypts release energy shockwaves that push back and stun adjacent units. Protect your terminal shield integrity at all costs!",
+    "instructions": "Rogue zombie units are breaching the containment grid! Type the first letter of an approaching unit's code to lock-on, then complete the full sequence to trigger payload overload. Successful decrypts release energy shockwaves that push back and stun adjacent units. Protect your terminal shield integrity at all costs!",
     "technical": {
         "canvasSize": {"width": 800, "height": 600},
         "targetFPS": 60,

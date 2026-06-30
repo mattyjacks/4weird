@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Last Words: Cyber Breach - 4weird Games</title>
-    <meta name="description" content="A high-intensity 3D cyberpunk typing survival game. Decrypt invading rogue cyborg units before they compromise your mainframe terminal.">
-    <meta name="keywords" content="4weird, Last Words: Cyber Breach, HTML5 game, browser game, retro, cyberpunk, Typing, Survival">
+    <title>Last Words Zombies - 4weird Games</title>
+    <meta name="description" content="A high-intensity 3D cyberpunk typing survival game. Decrypt invading rogue zombie units before they compromise your mainframe terminal.">
+    <meta name="keywords" content="4weird, Last Words Zombies, HTML5 game, browser game, retro, cyberpunk, Typing, Survival">
     
     <!-- Open Graph -->
-    <meta property="og:title" content="Last Words: Cyber Breach - 4weird Games">
+    <meta property="og:title" content="Last Words Zombies - 4weird Games">
     <meta property="og:description" content="Decrypt approaching rogue cyber-units before they breach your mainframe terminal.">
     <meta property="og:type" content="website">
     
@@ -22,7 +22,7 @@
     
     <!-- Base Styles -->
     <link rel="stylesheet" href="../../../styles.css">
-    <link rel="stylesheet" href="game.css">
+    <link rel="stylesheet" href="game.css?v=2">
     
     <!-- Three.js Library -->
     <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
@@ -44,7 +44,7 @@
                 <span class="TEMPLATE-4weird-back-arrow">←</span>
                 <span>Systems Exit</span>
             </a>
-            <h1 class="TEMPLATE-4weird-game-title" id="TEMPLATE-4weird-game-title">Last Words: Cyber Breach</h1>
+            <h1 class="TEMPLATE-4weird-game-title" id="TEMPLATE-4weird-game-title">Last Words Zombies</h1>
             <div class="TEMPLATE-4weird-game-meta" id="TEMPLATE-4weird-game-meta">
                 <span class="TEMPLATE-4weird-game-genre" id="TEMPLATE-4weird-game-genre">Action</span>
                 <span class="TEMPLATE-4weird-game-status live">ONLINE</span>
@@ -78,7 +78,7 @@
                     <span class="hud-label">WAVE / UNITS</span>
                     <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
                         <span class="hud-value" style="font-size: 0.9rem; margin-right: 12px;">Wv <span id="wave-val">1</span></span>
-                        <span class="hud-value" style="font-size: 0.9rem; margin-right: 12px;">Cyborgs: <span id="zombie-count">0</span></span>
+                        <span class="hud-value" style="font-size: 0.9rem; margin-right: 12px;">Zombies: <span id="zombie-count">0</span></span>
                         <span class="hud-value" style="font-size: 0.9rem;">Combo: <span id="combo-val">1.0</span>x</span>
                     </div>
                 </div>
@@ -86,6 +86,15 @@
 
             <!-- WebGL Game Canvas -->
             <div id="canvas-container" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1;"></div>
+
+            <!-- Hidden mobile input capturing keystrokes -->
+            <input type="text" id="mobile-game-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text" style="position: absolute; left: -9999px; top: -9999px; opacity: 0; z-index: -1;">
+
+            <!-- Mobile Keyboard Floating Trigger -->
+            <button id="mobile-keyboard-btn" class="mobile-keyboard-trigger" style="display: none;" title="Toggle Keyboard">⌨️ TYPE</button>
+
+            <!-- Speed Up Button Overlay -->
+            <button id="game-speed-btn" class="game-speed-trigger" style="display: none;" title="Speed Up Zombies">⚡ SPEED UP [SHIFT]</button>
 
             <!-- Loading Screen with Spinner -->
             <div class="TEMPLATE-4weird-loading-screen" id="TEMPLATE-4weird-loading-screen">
@@ -96,10 +105,30 @@
             <!-- Game Start Overlay -->
             <div class="TEMPLATE-4weird-game-overlay" id="TEMPLATE-4weird-start-screen">
                 <div class="TEMPLATE-4weird-overlay-content">
-                    <h2 id="start-overlay-title">Last Words: Cyber Breach</h2>
+                    <h2 id="start-overlay-title">Last Words Zombies</h2>
                     <p id="start-overlay-desc">Decrypt rogue cyber units before they compromise your terminal.</p>
                     
-                    <button class="btn btn-primary" id="TEMPLATE-4weird-start-btn" style="margin-bottom: 12px;">
+                    <!-- Difficulty Selection -->
+                    <div class="difficulty-select-container" style="margin-bottom: 18px; width: 100%; text-align: center;">
+                        <span style="font-family: var(--font-cyber); font-size: 0.75rem; color: #8a99ad; display: block; margin-bottom: 8px; letter-spacing: 1px;">PROTOCOL THREAT LEVEL</span>
+                        <div class="difficulty-options" style="display: flex; gap: 8px; justify-content: center;">
+                            <button class="btn btn-diff" id="btn-diff-easy" data-diff="easy" style="flex: 1; padding: 8px 5px; font-family: var(--font-cyber); font-size: 0.75rem;">EASY</button>
+                            <button class="btn btn-diff active" id="btn-diff-normal" data-diff="normal" style="flex: 1; padding: 8px 5px; font-family: var(--font-cyber); font-size: 0.75rem;">NORMAL</button>
+                            <button class="btn btn-diff" id="btn-diff-hard" data-diff="hard" style="flex: 1; padding: 8px 5px; font-family: var(--font-cyber); font-size: 0.75rem;">HARD</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Level Selection -->
+                    <div class="level-select-container" style="margin-bottom: 22px; width: 100%; text-align: center;">
+                        <span style="font-family: var(--font-cyber); font-size: 0.75rem; color: #8a99ad; display: block; margin-bottom: 8px; letter-spacing: 1px;">SECTOR MAP (LEVEL)</span>
+                        <div class="level-options" style="display: flex; gap: 8px; justify-content: center;">
+                            <button class="btn btn-level active" id="btn-level-hallway" data-level="hallway" style="flex: 1; padding: 8px 5px; font-family: var(--font-cyber); font-size: 0.75rem;">HALLWAY</button>
+                            <button class="btn btn-level" id="btn-level-city" data-level="city" style="flex: 1; padding: 8px 5px; font-family: var(--font-cyber); font-size: 0.75rem;">CITY</button>
+                            <button class="btn btn-level" id="btn-level-graveyard" data-level="graveyard" style="flex: 1; padding: 8px 5px; font-family: var(--font-cyber); font-size: 0.75rem;">GRAVEYARD</button>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-start-btn" style="margin-bottom: 12px; width: 100%;">
                         <span class="btn-emoji">🎮</span> LOAD SEQUENCER
                     </button>
                     
@@ -109,7 +138,7 @@
                     </div>
                     
                     <div class="TEMPLATE-4weird-controls-hint" id="start-overlay-hint">
-                        <p>Type matching characters to lock-on and overload invading cyborgs.</p>
+                        <p>Type matching characters to lock-on and overload invading zombies.</p>
                     </div>
                 </div>
             </div>
@@ -176,6 +205,20 @@
                     </div>
                     
                     <button id="btn-settings-back" class="btn btn-secondary" style="width: 100%;">CLOSE SETTINGS</button>
+                </div>
+            </div>
+
+            <!-- Wave Cleared / Glossary Screen -->
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="wave-cleared-screen" style="z-index: 999;">
+                <div class="TEMPLATE-4weird-overlay-content" style="max-width: 500px; width: 95%; display: flex; flex-direction: column; max-height: 80vh;">
+                    <h2 style="color: var(--neon-cyan); text-shadow: var(--glow-cyan); margin-bottom: 5px;">WAVE <span id="cleared-wave-num">1</span> DECRYPTED</h2>
+                    <p style="font-family: var(--font-cyber); font-size: 0.8rem; color: var(--neon-yellow); margin-bottom: 15px;">UNITS GLOSSARY DEFINITIONS</p>
+                    
+                    <div id="wave-word-definitions" class="definitions-container" style="flex: 1; overflow-y: auto; margin-bottom: 20px; text-align: left; display: flex; flex-direction: column; gap: 15px; padding-right: 8px;">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                    
+                    <button class="btn btn-primary" id="btn-next-wave" style="width: 100%;">START NEXT WAVE</button>
                 </div>
             </div>
         </div>
@@ -270,7 +313,14 @@
     
     <!-- Scripts -->
     <script src="../../../components.js"></script>
-    <script src="game.js"></script>
+    <script src="dictionary.js?v=2"></script>
+    <script src="state.js?v=2"></script>
+    <script src="audio.js?v=2"></script>
+    <script src="particles.js?v=2"></script>
+    <script src="zombie.js?v=2"></script>
+    <script src="typing.js?v=2"></script>
+    <script src="store.js?v=2"></script>
+    <script src="game.js?v=2"></script>
     <script>
         // Load game metadata and populate template fields
         (function() {
@@ -303,7 +353,10 @@
                     }
 
                     // Credits developer bios and details
-                    document.getElementById('TEMPLATE-4weird-maker-name').textContent = data.maker.name;
+                    const makerNameEl = document.getElementById('TEMPLATE-4weird-maker-name');
+                    if (makerNameEl) {
+                        makerNameEl.textContent = data.maker.name;
+                    }
                     document.getElementById('TEMPLATE-4weird-maker-bio').innerHTML = '<p>' + data.maker.bio + '</p>';
                     
                     if (data.maker.url) {

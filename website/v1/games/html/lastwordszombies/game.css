@@ -972,3 +972,141 @@
   transform: translateY(-1px);
   box-shadow: var(--glow-purple);
 }
+
+/* ===== 15. DIFFICULTY LEVEL STYLES ===== */
+.btn-diff {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #a0aec0;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.btn-diff:hover {
+  background: rgba(0, 242, 254, 0.08);
+  border-color: var(--neon-cyan);
+  color: #fff;
+}
+.btn-diff.active {
+  background: rgba(0, 242, 254, 0.15);
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+  font-weight: 700;
+}
+
+/* ===== 15.5 LEVEL SELECTION STYLES ===== */
+.btn-level {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #a0aec0;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.btn-level:hover {
+  background: rgba(189, 0, 255, 0.08);
+  border-color: var(--neon-magenta);
+  color: #fff;
+}
+.btn-level.active {
+  background: rgba(189, 0, 255, 0.15);
+  border-color: var(--neon-magenta);
+  color: var(--neon-magenta);
+  box-shadow: 0 0 10px rgba(189, 0, 255, 0.3);
+  font-weight: 700;
+}
+
+/* ===== 16. MOBILE KEYBOARD TRIGGER ===== */
+.mobile-keyboard-trigger {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+  color: #020205;
+  border: none;
+  border-radius: 30px;
+  font-family: var(--font-cyber);
+  font-size: 0.9rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mobile-keyboard-trigger:active {
+  transform: scale(0.95);
+  box-shadow: 0 0 5px rgba(0, 242, 254, 0.2);
+}
+
+/* ===== 17. GLOSSARY/DEFINITIONS CONTAINER ===== */
+.definitions-container {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) rgba(0, 0, 0, 0.1);
+}
+.word-def-entry {
+  background: rgba(255, 255, 255, 0.02);
+  border-left: 3px solid var(--neon-cyan);
+  padding: 10px 15px;
+  border-radius: 0 6px 6px 0;
+}
+.word-def-title {
+  font-family: var(--font-cyber);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--neon-cyan);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+.word-def-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #e2e8f0;
+}
+.word-def-list li {
+  margin-bottom: 4px;
+}
+
+/* ===== 18. GAME SPEED TRIGGER ===== */
+.game-speed-trigger {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 60, 0, 0.15);
+  border: 1px solid rgb(255, 85, 0);
+  border-radius: 30px;
+  color: rgb(255, 120, 50);
+  font-family: var(--font-cyber);
+  font-size: 0.85rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 15px rgba(255, 85, 0, 0.3);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.game-speed-trigger:hover {
+  background: rgba(255, 60, 0, 0.25);
+  box-shadow: 0 0 20px rgba(255, 85, 0, 0.5);
+  color: #fff;
+}
+
+.game-speed-trigger.active {
+  background: rgba(255, 60, 0, 0.55);
+  border-color: rgb(255, 120, 50);
+  color: #fff;
+  box-shadow: 0 0 25px rgba(255, 60, 0, 0.7);
+  transform: scale(0.95);
+}

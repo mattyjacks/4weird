@@ -1,1082 +1,4 @@
 // ==========================================
-// 1. GAME STATE MANAGER
-// ==========================================
-const GameState = {
-  MENU: 'menu',
-  PLAYING: 'playing',
-  PAUSED: 'paused',
-  GAME_OVER: 'game_over'
-};
-
-class StateManager {
-  constructor() {
-    this.currentState = GameState.MENU;
-    
-    // Core game metrics
-    this.score = 0;
-    this.wave = 1;
-    this.zombiesInWave = 0;
-    this.zombiesKilled = 0;
-    this.zombiesActive = 0;
-    this.health = 100;
-    this.combo = 1.0;
-    this.comboTimer = 0;
-    this.comboThreshold = 2.5; // seconds to keep combo
-    this.coinsEarnedThisRun = 0;
-    
-    // Settings and Customizations (Load from localStorage)
-    this.coins = parseInt(localStorage.getItem('gg_coins') || '0', 10);
-    this.sfxVolume = parseFloat(localStorage.getItem('gg_sfx_vol') || '0.8');
-    this.musicVolume = parseFloat(localStorage.getItem('gg_music_vol') || '0.5');
-    this.ultraParticles = localStorage.getItem('gg_ultra_particles') !== 'false';
-    
-    // Equipped Upgrades
-    this.equippedBlood = localStorage.getItem('gg_eq_blood') || 'default';
-    this.equippedFont = localStorage.getItem('gg_eq_font') || 'default';
-    this.equippedMusic = localStorage.getItem('gg_eq_music') || 'default';
-    
-    // Owned items list (JSON string)
-    const ownedDefaults = ['default'];
-    this.ownedItems = JSON.parse(localStorage.getItem('gg_owned') || JSON.stringify(ownedDefaults));
-  }
-
-  setGameState(state) {
-    this.currentState = state;
-    
-    // Clean up UI screens - template screens
-    document.getElementById('TEMPLATE-4weird-loading-screen').classList.add('hidden');
-    document.getElementById('TEMPLATE-4weird-start-screen').classList.add('hidden');
-    document.getElementById('TEMPLATE-4weird-pause-screen').classList.add('hidden');
-    document.getElementById('TEMPLATE-4weird-game-over-screen').classList.add('hidden');
-    document.getElementById('custom-store-screen').classList.add('hidden');
-    document.getElementById('custom-settings-screen').classList.add('hidden');
-    document.getElementById('game-hud').classList.add('hidden');
-    
-    switch (state) {
-      case GameState.MENU:
-        document.getElementById('TEMPLATE-4weird-start-screen').classList.remove('hidden');
-        break;
-      case GameState.PLAYING:
-        document.getElementById('game-hud').classList.remove('hidden');
-        break;
-      case GameState.PAUSED:
-        document.getElementById('game-hud').classList.remove('hidden');
-        document.getElementById('TEMPLATE-4weird-pause-screen').classList.remove('hidden');
-        break;
-      case GameState.GAME_OVER:
-        document.getElementById('TEMPLATE-4weird-game-over-screen').classList.remove('hidden');
-        document.getElementById('TEMPLATE-4weird-final-score-val').innerText = this.score;
-        
-        // Update high score!
-        const savedHighScore = parseInt(localStorage.getItem('gg_high_score') || '0', 10);
-        if (this.score > savedHighScore) {
-            localStorage.setItem('gg_high_score', this.score);
-            document.getElementById('TEMPLATE-4weird-high-score').innerText = this.score;
-            document.getElementById('TEMPLATE-4weird-gameover-highscore').innerText = this.score;
-        } else {
-            document.getElementById('TEMPLATE-4weird-high-score').innerText = savedHighScore;
-            document.getElementById('TEMPLATE-4weird-gameover-highscore').innerText = savedHighScore;
-        }
-        
-        document.getElementById('coins-earned').innerText = this.coinsEarnedThisRun;
-        break;
-    }
-  }
-
-  addScore(points) {
-    const earned = Math.floor(points * this.combo);
-    this.score += earned;
-    document.getElementById('score-val').innerText = this.score;
-    
-    // Increment combo
-    this.combo = Math.min(5.0, parseFloat((this.combo + 0.1).toFixed(1)));
-    this.comboTimer = this.comboThreshold;
-    this.updateComboHUD();
-  }
-
-  resetCombo() {
-    this.combo = 1.0;
-    this.comboTimer = 0;
-    this.updateComboHUD();
-  }
-
-  updateCombo(dt) {
-    if (this.currentState !== GameState.PLAYING) return;
-    if (this.combo > 1.0) {
-      this.comboTimer -= dt;
-      if (this.comboTimer <= 0) {
-        this.resetCombo();
-      }
-    }
-  }
-
-  updateComboHUD() {
-    const valSpan = document.getElementById('combo-val');
-    valSpan.innerText = this.combo.toFixed(1);
-    
-    // Animate HUD indicator based on combo multiplier
-    if (this.combo >= 3.0) {
-      valSpan.style.color = '#ff0077';
-    } else if (this.combo >= 2.0) {
-      valSpan.style.color = '#00f2fe';
-    } else {
-      valSpan.style.color = '#00ff66';
-    }
-  }
-
-  addCoins(amount) {
-    this.coins += amount;
-    this.coinsEarnedThisRun += amount;
-    localStorage.setItem('gg_coins', this.coins);
-    
-    const storeCoinsSpan = document.getElementById('store-coins');
-    if (storeCoinsSpan) storeCoinsSpan.innerText = this.coins;
-  }
-
-  saveSettings() {
-    localStorage.setItem('gg_sfx_vol', this.sfxVolume);
-    localStorage.setItem('gg_music_vol', this.musicVolume);
-    localStorage.setItem('gg_ultra_particles', this.ultraParticles);
-  }
-
-  buyItem(itemId, price) {
-    if (this.coins >= price && !this.ownedItems.includes(itemId)) {
-      this.coins -= price;
-      localStorage.setItem('gg_coins', this.coins);
-      
-      this.ownedItems.push(itemId);
-      localStorage.setItem('gg_owned', JSON.stringify(this.ownedItems));
-      return true;
-    }
-    return false;
-  }
-
-  equipItem(category, itemId) {
-    if (!this.ownedItems.includes(itemId)) return false;
-    
-    if (category === 'blood') {
-      this.equippedBlood = itemId;
-      localStorage.setItem('gg_eq_blood', itemId);
-    } else if (category === 'fonts') {
-      this.equippedFont = itemId;
-      localStorage.setItem('gg_eq_font', itemId);
-    } else if (category === 'music') {
-      this.equippedMusic = itemId;
-      localStorage.setItem('gg_eq_music', itemId);
-    }
-    return true;
-  }
-}
-
-// ==========================================
-// 2. PROCEDURAL SYNTH AUDIO ENGINE
-// ==========================================
-class AudioManager {
-  constructor(stateManager) {
-    this.state = stateManager;
-    this.ctx = null;
-    this.muted = false;
-    
-    // Nodes
-    this.masterSFXGain = null;
-    this.masterMusicGain = null;
-    
-    // Music Sequencer state
-    this.musicIntervalId = null;
-    this.beatIndex = 0;
-    this.tempo = 100; // BPM
-  }
-
-  init() {
-    if (this.ctx) return;
-    
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    this.ctx = new AudioContextClass();
-    
-    // Create Gain nodes
-    this.masterSFXGain = this.ctx.createGain();
-    this.masterSFXGain.gain.setValueAtTime(this.muted ? 0 : this.state.sfxVolume, this.ctx.currentTime);
-    this.masterSFXGain.connect(this.ctx.destination);
-    
-    this.masterMusicGain = this.ctx.createGain();
-    this.masterMusicGain.gain.setValueAtTime(this.muted ? 0 : this.state.musicVolume, this.ctx.currentTime);
-    this.masterMusicGain.connect(this.ctx.destination);
-    
-    this.startSynthMusic();
-  }
-
-  setSFXVolume(val) {
-    this.state.sfxVolume = val;
-    this.state.saveSettings();
-    if (this.masterSFXGain && this.ctx && !this.muted) {
-      this.masterSFXGain.gain.setValueAtTime(val, this.ctx.currentTime);
-    }
-  }
-
-  setMusicVolume(val) {
-    this.state.musicVolume = val;
-    this.state.saveSettings();
-    if (this.masterMusicGain && this.ctx && !this.muted) {
-      this.masterMusicGain.gain.setValueAtTime(val, this.ctx.currentTime);
-    }
-  }
-
-  toggleMute() {
-    if (!this.ctx) return false;
-    if (this.ctx.state === 'suspended') this.ctx.resume();
-    
-    this.muted = !this.muted;
-    if (this.muted) {
-      this.masterSFXGain.gain.setValueAtTime(0, this.ctx.currentTime);
-      this.masterMusicGain.gain.setValueAtTime(0, this.ctx.currentTime);
-    } else {
-      this.masterSFXGain.gain.setValueAtTime(this.state.sfxVolume, this.ctx.currentTime);
-      this.masterMusicGain.gain.setValueAtTime(this.state.musicVolume, this.ctx.currentTime);
-    }
-    return this.muted;
-  }
-
-  stopAll() {
-    if (this.musicIntervalId) {
-      clearInterval(this.musicIntervalId);
-      this.musicIntervalId = null;
-    }
-  }
-
-  playSFX(type) {
-    if (!this.ctx) return;
-    if (this.ctx.state === 'suspended') this.ctx.resume();
-    if (this.muted) return;
-    
-    const t = this.ctx.currentTime;
-    
-    if (type === 'type') {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(300 + Math.random() * 200, t);
-      osc.frequency.exponentialRampToValueAtTime(100, t + 0.04);
-      
-      gain.gain.setValueAtTime(0.08, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
-      
-      osc.connect(gain);
-      gain.connect(this.masterSFXGain);
-      osc.start(t);
-      osc.stop(t + 0.05);
-    } 
-    else if (type === 'explosion') {
-      const bufferSize = this.ctx.sampleRate * 0.6;
-      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        data[i] = Math.random() * 2 - 1;
-      }
-      
-      const noise = this.ctx.createBufferSource();
-      noise.buffer = buffer;
-      
-      const filter = this.ctx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(400, t);
-      filter.frequency.exponentialRampToValueAtTime(20, t + 0.5);
-      
-      const gain = this.ctx.createGain();
-      gain.gain.setValueAtTime(0.8, t);
-      gain.gain.linearRampToValueAtTime(0.3, t + 0.1);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
-      
-      const sub = this.ctx.createOscillator();
-      const subGain = this.ctx.createGain();
-      sub.type = 'sine';
-      sub.frequency.setValueAtTime(65, t);
-      sub.frequency.linearRampToValueAtTime(30, t + 0.4);
-      
-      subGain.gain.setValueAtTime(0.6, t);
-      subGain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
-      
-      noise.connect(filter);
-      filter.connect(gain);
-      gain.connect(this.masterSFXGain);
-      
-      sub.connect(subGain);
-      subGain.connect(this.masterSFXGain);
-      
-      noise.start(t);
-      noise.stop(t + 0.6);
-      
-      sub.start(t);
-      sub.stop(t + 0.5);
-    }
-    else if (type === 'error') {
-      const osc1 = this.ctx.createOscillator();
-      const osc2 = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      
-      osc1.type = 'sawtooth';
-      osc1.frequency.setValueAtTime(130, t);
-      
-      osc2.type = 'sawtooth';
-      osc2.frequency.setValueAtTime(133, t);
-      
-      gain.gain.setValueAtTime(0.18, t);
-      gain.gain.linearRampToValueAtTime(0.1, t + 0.15);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
-      
-      osc1.connect(gain);
-      osc2.connect(gain);
-      gain.connect(this.masterSFXGain);
-      
-      osc1.start(t);
-      osc2.start(t);
-      osc1.stop(t + 0.26);
-      osc2.stop(t + 0.26);
-    }
-    else if (type === 'hurt') {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(220, t);
-      osc.frequency.linearRampToValueAtTime(80, t + 0.2);
-      
-      gain.gain.setValueAtTime(0.25, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
-      
-      osc.connect(gain);
-      gain.connect(this.masterSFXGain);
-      
-      osc.start(t);
-      osc.stop(t + 0.22);
-    }
-  }
-
-  startSynthMusic() {
-    if (this.musicIntervalId) clearInterval(this.musicIntervalId);
-    
-    const stepDuration = 60 / this.tempo / 2; // eighth notes
-    this.beatIndex = 0;
-    
-    this.musicIntervalId = setInterval(() => {
-      if (this.muted || this.state.currentState === 'paused' || this.state.musicVolume === 0) return;
-      if (!this.ctx) return;
-      
-      const t = this.ctx.currentTime;
-      const theme = this.state.equippedMusic;
-      
-      let baseScale = [55, 65.41, 73.42, 82.41]; // A1, C2, D2, E2
-      if (theme === 'industrial') {
-        baseScale = [48.99, 58.27, 65.41, 69.30]; // G1, A#1, C2, C#2
-      }
-      
-      const step = this.beatIndex % 8;
-      
-      // Base bass notes (every beat)
-      if (step % 2 === 0) {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        
-        osc.type = theme === 'industrial' ? 'sawtooth' : 'triangle';
-        
-        const chordIndex = Math.floor(this.beatIndex / 16) % 4;
-        let baseFreq = baseScale[0];
-        if (chordIndex === 1) baseFreq = baseScale[1];
-        if (chordIndex === 2) baseFreq = baseScale[3];
-        if (chordIndex === 3) baseFreq = baseScale[2];
-        
-        osc.frequency.setValueAtTime(baseFreq, t);
-        osc.frequency.linearRampToValueAtTime(baseFreq * 0.98, t + 0.2);
-        
-        const filter = this.ctx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(theme === 'industrial' ? 300 : 150, t);
-        
-        gain.gain.setValueAtTime(0.2, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
-        
-        osc.connect(filter);
-        filter.connect(gain);
-        gain.connect(this.masterMusicGain);
-        
-        osc.start(t);
-        osc.stop(t + 0.40);
-      }
-      
-      // Arpeggiator melody notes (on specific beats)
-      const arpBeats = [0, 3, 5, 6];
-      if (arpBeats.includes(step)) {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        
-        osc.type = 'sine';
-        
-        const chordIndex = Math.floor(this.beatIndex / 16) % 4;
-        let noteFreq = baseScale[chordIndex] * 4; // Up two octaves
-        
-        if (step === 3) noteFreq *= 1.25; // Minor third
-        if (step === 5) noteFreq *= 1.5;  // Perfect fifth
-        if (step === 6) noteFreq *= 1.875; // Minor seventh
-        
-        osc.frequency.setValueAtTime(noteFreq, t);
-        
-        gain.gain.setValueAtTime(0.05, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
-        
-        osc.connect(gain);
-        gain.connect(this.masterMusicGain);
-        
-        osc.start(t);
-        osc.stop(t + 0.20);
-      }
-      
-      this.beatIndex++;
-    }, stepDuration * 1000);
-  }
-}
-
-// ==========================================
-// 3. LOW-POLY CYBORG MODEL
-// ==========================================
-class Zombie {
-  constructor(scene, word, speed, spawnZ, fontTheme) {
-    this.scene = scene;
-    this.word = word;
-    this.speed = speed;
-    
-    // Status states
-    this.isDead = false;
-    this.isTargeted = false;
-    this.typedLength = 0;
-    this.isStunned = false;
-    this.stunDuration = 0;
-    
-    // Physics variables
-    this.vx = 0;
-    this.vy = 0;
-    this.vz = 0;
-    
-    // Boundary offsets
-    this.worldX = (Math.random() - 0.5) * 4.0;
-    this.worldY = -1.2;
-    this.worldZ = spawnZ;
-    this.animTime = Math.random() * 100;
-    this.fontTheme = fontTheme;
-    
-    this.createModel();
-    this.createLabel();
-  }
-
-  createModel() {
-    this.group = new THREE.Group();
-    this.group.position.set(this.worldX, this.worldY, this.worldZ);
-    
-    // Low-poly zombie cyborg design
-    // 1. Torso (Decaying green flesh base)
-    const torsoGeo = new THREE.BoxGeometry(0.7, 1.0, 0.4);
-    const torsoMat = new THREE.MeshLambertMaterial({ color: 0x2e543a });
-    this.torso = new THREE.Mesh(torsoGeo, torsoMat);
-    this.torso.position.y = 0.5;
-    this.group.add(this.torso);
-    
-    // 1b. Cyborg chestplate armor (covering left half of torso)
-    const armorGeo = new THREE.BoxGeometry(0.4, 0.9, 0.44);
-    const armorMat = new THREE.MeshLambertMaterial({ color: 0x474f5d });
-    this.armor = new THREE.Mesh(armorGeo, armorMat);
-    this.armor.position.set(0.18, 0.5, 0.01);
-    this.group.add(this.armor);
-    
-    // 1c. Glowing Cyber Reactor Core on chest
-    const coreGeo = new THREE.BoxGeometry(0.2, 0.2, 0.1);
-    const coreMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc }); // Neon cyan core
-    this.core = new THREE.Mesh(coreGeo, coreMat);
-    this.core.position.set(0.18, 0.5, 0.23);
-    this.group.add(this.core);
-    
-    // 2. Head (Decaying green flesh base)
-    const headGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-    const headMat = new THREE.MeshLambertMaterial({ color: 0x3d6b4c });
-    this.head = new THREE.Mesh(headGeo, headMat);
-    this.head.position.set(0, 1.25, 0);
-    this.group.add(this.head);
-    
-    // 2b. Cybernetic chrome plating on half of the face
-    const plateGeo = new THREE.BoxGeometry(0.28, 0.52, 0.52);
-    const plateMat = new THREE.MeshLambertMaterial({ color: 0x8a95a5 });
-    this.chromePlate = new THREE.Mesh(plateGeo, plateMat);
-    this.chromePlate.position.set(0.12, 1.25, 0.01);
-    this.group.add(this.chromePlate);
-    
-    // 3. Cybernetic Glowing Single Visor (on the cybernetic half of face)
-    const visorGeo = new THREE.BoxGeometry(0.2, 0.08, 0.1);
-    const visorMat = new THREE.MeshBasicMaterial({ color: 0xff0055 }); // Hot pink laser eye
-    this.visor = new THREE.Mesh(visorGeo, visorMat);
-    this.visor.position.set(0.12, 1.3, 0.27);
-    this.group.add(this.visor);
-    
-    // 4. Arms (Hydraulic cybernetic left arm vs decayed green right arm)
-    const armGeo = new THREE.BoxGeometry(0.15, 0.15, 0.7);
-    const hydraulicArmMat = new THREE.MeshLambertMaterial({ color: 0x8a95a5 }); // Steel left arm
-    const decayArmMat = new THREE.MeshLambertMaterial({ color: 0x3d6b4c }); // Flesh right arm
-    
-    this.leftArm = new THREE.Mesh(armGeo, hydraulicArmMat);
-    this.leftArm.position.set(-0.4, 0.8, 0.3);
-    
-    this.rightArm = new THREE.Mesh(armGeo, decayArmMat);
-    this.rightArm.position.set(0.4, 0.8, 0.3);
-    
-    this.group.add(this.leftArm);
-    this.group.add(this.rightArm);
-    
-    this.scene.add(this.group);
-  }
-
-  createLabel() {
-    this.labelCanvas = document.createElement('canvas');
-    this.labelCanvas.width = 512;
-    this.labelCanvas.height = 128;
-    this.labelCtx = this.labelCanvas.getContext('2d');
-    
-    this.labelTexture = new THREE.CanvasTexture(this.labelCanvas);
-    this.labelTexture.minFilter = THREE.LinearFilter;
-    
-    const spriteMaterial = new THREE.SpriteMaterial({
-      map: this.labelTexture,
-      transparent: true,
-      depthTest: false,
-      depthWrite: false
-    });
-    
-    this.labelSprite = new THREE.Sprite(spriteMaterial);
-    this.labelSprite.renderOrder = 999;
-    
-    this.labelSprite.scale.set(2.0, 0.5, 1.0);
-    this.labelSprite.position.set(0, 1.9, 0);
-    
-    this.group.add(this.labelSprite);
-    this.updateLabelTexture();
-  }
-
-  updateLabelTexture() {
-    const ctx = this.labelCtx;
-    const w = this.labelCanvas.width;
-    const h = this.labelCanvas.height;
-    
-    ctx.clearRect(0, 0, w, h);
-    
-    let fontName = 'Orbitron, sans-serif';
-    if (this.fontTheme === 'pixel') fontName = 'Courier New, monospace';
-    if (this.fontTheme === 'cyber') fontName = 'Arial Black, sans-serif';
-    
-    ctx.font = `bold 44px ${fontName}`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    
-    const typedText = this.word.substring(0, this.typedLength);
-    const remainingText = this.word.substring(this.typedLength);
-    
-    const typedWidth = ctx.measureText(typedText).width;
-    const remainingWidth = ctx.measureText(remainingText).width;
-    const totalWidth = typedWidth + remainingWidth;
-    
-    let startX = (w - totalWidth) / 2;
-    
-    ctx.fillStyle = 'rgba(5, 5, 12, 0.85)';
-    ctx.strokeStyle = this.isTargeted ? 'rgba(255, 0, 119, 0.7)' : 'rgba(0, 242, 254, 0.3)';
-    ctx.lineWidth = 4;
-    
-    const rectX = (w - totalWidth - 40) / 2;
-    const rectWidth = totalWidth + 40;
-    const rectHeight = 64;
-    const rectY = (h - rectHeight) / 2;
-    
-    ctx.beginPath();
-    ctx.roundRect(rectX, rectY, rectWidth, rectHeight, 12);
-    ctx.fill();
-    ctx.stroke();
-    
-    ctx.textAlign = 'left';
-    
-    // Highlight typed characters in neon green
-    ctx.fillStyle = '#00ff66';
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = '#00ff66';
-    ctx.fillText(typedText, startX, h / 2);
-    
-    // Remaining in white
-    ctx.fillStyle = '#ffffff';
-    ctx.shadowBlur = 0;
-    ctx.fillText(remainingText, startX + typedWidth, h / 2);
-    
-    this.labelTexture.needsUpdate = true;
-  }
-
-  update(dt, playerZ) {
-    this.animTime += dt;
-    
-    if (this.isStunned) {
-      this.stunDuration -= dt;
-      if (this.stunDuration <= 0) {
-        this.isStunned = false;
-      }
-    } else {
-      if (this.spawnPhase) {
-        this.spawnPhaseTimer -= dt;
-        const directionSign = this.spawnDoorX < 0 ? 1 : -1;
-        this.worldX += directionSign * 2.2 * dt; // walk inward
-        this.worldZ += this.speed * 0.5 * dt; // slow forward movement
-        
-        if (this.spawnPhaseTimer <= 0) {
-          this.spawnPhase = false;
-        }
-      } else {
-        this.worldZ += this.speed * dt;
-      }
-    }
-    
-    // Apply physical forces
-    this.worldX += this.vx * dt;
-    this.worldZ += this.vz * dt;
-    
-    const dist = Math.abs(5.0 - this.worldZ);
-    const scaleFactor = Math.max(1.0, dist / 10.0);
-    this.labelSprite.scale.set(2.0 * scaleFactor, 0.5 * scaleFactor, 1.0);
-    
-    this.vx *= Math.pow(0.1, dt);
-    this.vz *= Math.pow(0.1, dt);
-    
-    if (!this.spawnPhase) {
-      if (this.worldX > 2.2) this.worldX = 2.2;
-      if (this.worldX < -2.2) this.worldX = -2.2;
-    }
-    
-    if (!this.isStunned) {
-      const wobble = Math.sin(this.animTime * 8);
-      const bobbing = Math.cos(this.animTime * 16) * 0.05;
-      
-      this.head.position.y = 1.25 + bobbing;
-      this.leftArm.rotation.x = wobble * 0.3;
-      this.rightArm.rotation.x = -wobble * 0.3;
-      
-      this.group.rotation.y = wobble * 0.05;
-    } else {
-      this.group.rotation.z = Math.sin(this.animTime * 40) * 0.1;
-    }
-    
-    this.group.position.set(this.worldX, this.worldY, this.worldZ);
-  }
-
-  setTargeted(targeted) {
-    if (this.isTargeted !== targeted) {
-      this.isTargeted = targeted;
-      if (targeted) {
-        this.torso.material.color.setHex(0xff0055); // pink highlight
-        this.head.material.color.setHex(0xff0055);
-      } else {
-        this.torso.material.color.setHex(0x2e543a); // decaying green torso
-        this.head.material.color.setHex(0x3d6b4c); // decaying green head
-      }
-      this.updateLabelTexture();
-    }
-  }
-
-  setTypedLength(len) {
-    if (this.typedLength !== len) {
-      this.typedLength = len;
-      this.updateLabelTexture();
-    }
-  }
-
-  destroy() {
-    this.scene.remove(this.group);
-    this.group.traverse(child => {
-      if (child.isMesh || child.isSprite) {
-        if (child.geometry) child.geometry.dispose();
-        if (child.material) {
-          if (Array.isArray(child.material)) {
-            child.material.forEach(m => m.dispose());
-          } else {
-            child.material.dispose();
-          }
-        }
-      }
-    });
-  }
-}
-
-// ==========================================
-// 4. PARTICLE SPLATTER ENGINE
-// ==========================================
-class Particle {
-  constructor(scene, position, color, velocity, size, decay) {
-    this.scene = scene;
-    const geometry = new THREE.BoxGeometry(size, size, size);
-    const material = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(color),
-      transparent: true,
-      opacity: 1.0
-    });
-    
-    this.mesh = new THREE.Mesh(geometry, material);
-    this.mesh.position.copy(position);
-    
-    this.mesh.position.x += (Math.random() - 0.5) * 0.5;
-    this.mesh.position.y += (Math.random() - 0.5) * 0.5;
-    this.mesh.position.z += (Math.random() - 0.5) * 0.5;
-    
-    this.scene.add(this.mesh);
-    
-    this.velocity = velocity;
-    this.gravity = -9.8;
-    this.life = 1.0;
-    this.decay = decay;
-  }
-
-  update(dt) {
-    this.velocity.y += this.gravity * dt;
-    this.mesh.position.addScaledVector(this.velocity, dt);
-    
-    this.mesh.rotation.x += this.velocity.y * dt * 0.5;
-    this.mesh.rotation.y += this.velocity.x * dt * 0.5;
-    
-    this.life -= this.decay * dt;
-    this.mesh.material.opacity = Math.max(0, this.life);
-    
-    const scale = Math.max(0.1, this.life);
-    this.mesh.scale.set(scale, scale, scale);
-    
-    return this.life > 0;
-  }
-
-  destroy() {
-    this.scene.remove(this.mesh);
-    this.mesh.geometry.dispose();
-    this.mesh.material.dispose();
-  }
-}
-
-class ShockwaveRing {
-  constructor(scene, position, color) {
-    this.scene = scene;
-    const geometry = new THREE.RingGeometry(0.1, 0.2, 16);
-    const material = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(color),
-      side: THREE.DoubleSide,
-      transparent: true,
-      opacity: 0.8
-    });
-    
-    this.mesh = new THREE.Mesh(geometry, material);
-    this.mesh.position.copy(position);
-    this.scene.add(this.mesh);
-    
-    this.radius = 0.2;
-    this.maxRadius = 3.5;
-    this.life = 1.0;
-    this.speed = 8.0;
-  }
-
-  update(dt) {
-    this.radius += this.speed * dt;
-    this.mesh.geometry.dispose();
-    this.mesh.geometry = new THREE.RingGeometry(this.radius * 0.8, this.radius, 16);
-    
-    this.life -= 2.0 * dt;
-    this.mesh.material.opacity = Math.max(0, this.life);
-    
-    return this.life > 0;
-  }
-
-  destroy() {
-    this.scene.remove(this.mesh);
-    this.mesh.geometry.dispose();
-    this.mesh.material.dispose();
-  }
-}
-
-class ParticleManager {
-  constructor(scene, stateManager) {
-    this.scene = scene;
-    this.state = stateManager;
-    this.particles = [];
-    this.rings = [];
-  }
-
-  spawnExplosion(position, colorName) {
-    let hexColor = '#00ff66';
-    if (colorName === 'plasma') hexColor = '#00ccff';
-    if (colorName === 'inferno') hexColor = '#ff0055';
-    if (colorName === 'void') hexColor = '#bb00ff';
-    
-    const count = this.state.ultraParticles ? 40 : 15;
-    
-    for (let i = 0; i < count; i++) {
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos((Math.random() * 2) - 1);
-      
-      const speed = 2.0 + Math.random() * 6.0;
-      const vx = speed * Math.sin(phi) * Math.cos(theta);
-      const vy = speed * Math.sin(phi) * Math.sin(theta) + 2.0;
-      const vz = speed * Math.cos(phi);
-      
-      const size = 0.08 + Math.random() * 0.15;
-      const decay = 0.8 + Math.random() * 1.0;
-      
-      const p = new Particle(
-        this.scene,
-        position,
-        hexColor,
-        new THREE.Vector3(vx, vy, vz),
-        size,
-        decay
-      );
-      this.particles.push(p);
-    }
-    
-    const ring = new ShockwaveRing(this.scene, position, hexColor);
-    this.rings.push(ring);
-  }
-
-  update(dt) {
-    for (let i = this.particles.length - 1; i >= 0; i--) {
-      const active = this.particles[i].update(dt);
-      if (!active) {
-        this.particles[i].destroy();
-        this.particles.splice(i, 1);
-      }
-    }
-    for (let i = this.rings.length - 1; i >= 0; i--) {
-      const active = this.rings[i].update(dt);
-      if (!active) {
-        this.rings[i].destroy();
-        this.rings.splice(i, 1);
-      }
-    }
-  }
-
-  clear() {
-    this.particles.forEach(p => p.destroy());
-    this.rings.forEach(r => r.destroy());
-    this.particles = [];
-    this.rings = [];
-  }
-}
-
-// ==========================================
-// 5. DECRYPTION INPUT CONTROLLER
-// ==========================================
-class TypingController {
-  constructor(stateManager, audioManager, particleManager) {
-    this.state = stateManager;
-    this.audio = audioManager;
-    this.particles = particleManager;
-    this.currentTarget = null;
-    this.typedBuffer = "";
-  }
-
-  handleInput(key, zombies) {
-    if (this.state.currentState !== GameState.PLAYING) return;
-    
-    const letter = key.toLowerCase();
-    if (!/^[a-z]$/.test(letter)) return;
-    
-    this.audio.playSFX('type');
-    
-    if (!this.currentTarget) {
-      const matches = zombies.filter(z => z.word.toLowerCase().startsWith(letter) && z.worldZ < 4.8);
-      if (matches.length > 0) {
-        matches.sort((a, b) => b.worldZ - a.worldZ);
-        this.currentTarget = matches[0];
-        this.typedBuffer = letter;
-        this.currentTarget.setTargeted(true);
-        this.currentTarget.setTypedLength(1);
-      }
-    } else {
-      const nextChar = this.currentTarget.word[this.typedBuffer.length].toLowerCase();
-      if (letter === nextChar) {
-        this.typedBuffer += letter;
-        this.currentTarget.setTypedLength(this.typedBuffer.length);
-        
-        if (this.typedBuffer.length === this.currentTarget.word.length) {
-          this.triggerExplosion(this.currentTarget, zombies);
-          this.currentTarget = null;
-          this.typedBuffer = "";
-        }
-      } else {
-        this.currentTarget.setTargeted(false);
-        this.currentTarget.setTypedLength(0);
-        this.currentTarget = null;
-        this.typedBuffer = "";
-        this.audio.playSFX('error');
-      }
-    }
-  }
-
-  triggerExplosion(zombie, zombies) {
-    const explosionPos = zombie.group.position.clone();
-    this.particles.spawnExplosion(explosionPos, this.state.equippedBlood);
-    this.audio.playSFX('explosion');
-    
-    this.state.addScore(100);
-    this.state.addCoins(1);
-    
-    zombie.isDead = true;
-    
-    zombies.forEach(z => {
-      if (z === zombie || z.isDead) return;
-      
-      const dx = z.worldX - zombie.worldX;
-      const dz = z.worldZ - zombie.worldZ;
-      const dist = Math.sqrt(dx * dx + dz * dz);
-      
-      const maxRadius = 8.0;
-      if (dist < maxRadius) {
-        const force = 18.0 * (1 - dist / maxRadius);
-        const angle = Math.atan2(dz, dx);
-        
-        z.vx += Math.cos(angle) * force;
-        z.vz += Math.sin(angle) * force * 1.5;
-        
-        z.isStunned = true;
-        z.stunDuration = 1.0;
-        this.state.addScore(15);
-      }
-    });
-  }
-
-  reset() {
-    if (this.currentTarget) {
-      this.currentTarget.setTargeted(false);
-      this.currentTarget.setTypedLength(0);
-    }
-    this.currentTarget = null;
-    this.typedBuffer = "";
-  }
-}
-
-// ==========================================
-// 6. BLACK MARKET CUSTOM STORE MANAGER
-// ==========================================
-const StoreItems = {
-  blood: [
-    { name: "Neon Green", id: "default", price: 0, color: "#00ff66" },
-    { name: "Plasma Blue", id: "plasma", price: 50, color: "#00ccff" },
-    { name: "Inferno Red", id: "inferno", price: 100, color: "#ff0055" },
-    { name: "Void Purple", id: "void", price: 180, color: "#bb00ff" }
-  ],
-  fonts: [
-    { name: "Cyber Decrypt", id: "default", cssClass: "font-outfit" },
-    { name: "Retro Terminal", id: "pixel", price: 30, cssClass: "font-pixel" },
-    { name: "Vapor Neon", id: "cyber", price: 80, cssClass: "font-cyber" }
-  ],
-  music: [
-    { name: "Dark Synth", id: "default", price: 0 },
-    { name: "Industrial Bass", id: "industrial", price: 120 }
-  ]
-};
-
-function setupStore(stateManager, audioManager) {
-  const container = document.getElementById('store-items-container');
-  const storeCoins = document.getElementById('store-coins');
-  
-  function render() {
-    container.innerHTML = '';
-    storeCoins.innerText = stateManager.coins;
-    
-    const activeTabButton = document.querySelector('.store-tabs .tab-btn.active');
-    if (!activeTabButton) return;
-    
-    const category = activeTabButton.dataset.tab;
-    const items = StoreItems[category];
-    
-    items.forEach(item => {
-      const card = document.createElement('div');
-      card.className = 'store-card';
-      
-      const isOwned = stateManager.ownedItems.includes(item.id);
-      let isEquipped = false;
-      if (category === 'blood') isEquipped = stateManager.equippedBlood === item.id;
-      if (category === 'fonts') isEquipped = stateManager.equippedFont === item.id;
-      if (category === 'music') isEquipped = stateManager.equippedMusic === item.id;
-      
-      let priceLabel = '';
-      if (isEquipped) {
-        priceLabel = 'EQUIPPED';
-      } else if (isOwned) {
-        priceLabel = 'OWNED';
-      } else {
-        priceLabel = `${item.price} Credits`;
-      }
-      
-      let btnText = 'Buy';
-      let btnClass = 'btn-buy';
-      let btnDisabled = false;
-      
-      if (isEquipped) {
-        btnText = 'Equipped';
-        btnDisabled = true;
-      } else if (isOwned) {
-        btnText = 'Equip';
-        btnClass = 'btn-equip';
-      } else if (stateManager.coins < item.price) {
-        btnDisabled = true;
-      }
-      
-      let indicator = '';
-      if (category === 'blood') {
-        indicator = `<span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:${item.color}; margin-right:8px; box-shadow: 0 0 6px ${item.color}"></span>`;
-      }
-      
-      card.innerHTML = `
-        <div class="store-card-info">
-          <h3 style="color:#fff;">${indicator}${item.name}</h3>
-          <p>${priceLabel}</p>
-        </div>
-        <button class="${btnClass}" ${btnDisabled ? 'disabled' : ''}>
-          ${btnText}
-        </button>
-      `;
-      
-      const actionButton = card.querySelector('button');
-      actionButton.addEventListener('click', () => {
-        if (!isOwned) {
-          if (stateManager.buyItem(item.id, item.price)) {
-            audioManager.playSFX('type');
-            stateManager.equipItem(category, item.id);
-            render();
-          } else {
-            audioManager.playSFX('error');
-          }
-        } else {
-          stateManager.equipItem(category, item.id);
-          audioManager.playSFX('type');
-          
-          if (category === 'music') {
-            audioManager.startSynthMusic();
-          }
-          render();
-        }
-      });
-      
-      container.appendChild(card);
-    });
-  }
-  
-  document.querySelectorAll('.store-tabs .tab-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      document.querySelectorAll('.store-tabs .tab-btn').forEach(b => b.classList.remove('active'));
-      e.target.classList.add('active');
-      audioManager.playSFX('type');
-      render();
-    });
-  });
-  
-  return {
-    render
-  };
-}
-
-// ==========================================
 // 7. CORE 3D GAME APP
 // ==========================================
 class GameApp {
@@ -1094,10 +16,15 @@ class GameApp {
     this.camera = new THREE.PerspectiveCamera(60, this.container.clientWidth / this.container.clientHeight, 0.1, 200);
     this.camera.position.set(0, 0.2, 5.0);
     
-    // FIXING THE LIGHTING:
-    // Add player flashlight/spotlight attached directly to camera view!
-    this.flashlight = new THREE.PointLight(0x00f2fe, 25.0, 18.0, 1.5);
-    this.camera.add(this.flashlight);
+    // Add player spotlight
+    this.flashlight = new THREE.SpotLight(0x00f2fe, 50.0, 35.0, Math.PI / 4.5, 0.6, 1.0);
+    this.flashlight.castShadow = true;
+    this.flashlight.shadow.mapSize.width = 1024;
+    this.flashlight.shadow.mapSize.height = 1024;
+    this.flashlight.shadow.camera.near = 0.5;
+    this.flashlight.shadow.camera.far = 35;
+    this.flashlight.shadow.bias = -0.001;
+    this.createPlayerHands();
     this.scene.add(this.camera);
     
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -1113,6 +40,8 @@ class GameApp {
     this.spawnDoors = [];
     this.lights = [];
     this.corridorGirders = [];
+    this.levelMeshes = [];
+    this.isSpeedUpActive = false;
     
     this.lastTime = 0;
     this.spawnTimer = 0;
@@ -1121,7 +50,7 @@ class GameApp {
     this.shakeIntensity = 0;
     this.shakeDecay = 4.0;
     
-    this.build3DCorridor();
+    this.buildLevelScene();
     this.bindEvents();
     
     this.storeController = setupStore(this.state, this.audio);
@@ -1134,42 +63,108 @@ class GameApp {
     requestAnimationFrame((t) => this.loop(t));
   }
 
-  build3DCorridor() {
+  addLevelMesh(obj) {
+    this.scene.add(obj);
+    this.levelMeshes.push(obj);
+    return obj;
+  }
+
+  buildLevelScene() {
+    // Clear old level meshes
+    if (this.levelMeshes) {
+      this.levelMeshes.forEach(mesh => {
+        this.scene.remove(mesh);
+        if (mesh.geometry) mesh.geometry.dispose();
+        if (mesh.material) {
+          if (Array.isArray(mesh.material)) {
+            mesh.material.forEach(m => m.dispose());
+          } else {
+            mesh.material.dispose();
+          }
+        }
+      });
+    }
+    
+    this.levelMeshes = [];
+    this.spawnDoors = [];
+    this.lights = [];
+    this.corridorGirders = [];
+    
+    const level = this.state.selectedLevel || 'hallway';
+    
+    if (level === 'city') {
+      this.scene.background = new THREE.Color(0x05050c);
+      if (this.scene.fog) {
+        this.scene.fog.color.setHex(0x05050c);
+        this.scene.fog.density = 0.02;
+      }
+      this.buildCity();
+    } else if (level === 'graveyard') {
+      this.scene.background = new THREE.Color(0x08040d);
+      if (this.scene.fog) {
+        this.scene.fog.color.setHex(0x08040d);
+        this.scene.fog.density = 0.028;
+      }
+      this.buildGraveyard();
+    } else {
+      // Default: Hallway
+      this.scene.background = new THREE.Color(0x030308);
+      if (this.scene.fog) {
+        this.scene.fog.color.setHex(0x030308);
+        this.scene.fog.density = 0.022;
+      }
+      this.buildHallway();
+    }
+  }
+
+  buildHallway() {
     const corridorLength = 170;
     const corridorWidth = 6.0;
     const corridorHeight = 4.0;
     
     // Floor
     const floorGeo = new THREE.PlaneGeometry(corridorWidth, corridorLength);
-    const floorMat = new THREE.MeshLambertMaterial({ color: 0x111218 });
+    const floorMat = new THREE.MeshStandardMaterial({ 
+      color: 0x0f1118, 
+      roughness: 0.18, 
+      metalness: 0.7 
+    });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
     floor.position.set(0, -1.2, -corridorLength / 2 + 10);
     floor.receiveShadow = true;
-    this.scene.add(floor);
+    this.addLevelMesh(floor);
     
     // Ceiling
     const ceilingGeo = new THREE.PlaneGeometry(corridorWidth, corridorLength);
-    const ceilingMat = new THREE.MeshLambertMaterial({ color: 0x08080c });
+    const ceilingMat = new THREE.MeshStandardMaterial({ 
+      color: 0x08080c, 
+      roughness: 0.5, 
+      metalness: 0.3 
+    });
     const ceiling = new THREE.Mesh(ceilingGeo, ceilingMat);
     ceiling.rotation.x = Math.PI / 2;
     ceiling.position.set(0, corridorHeight - 1.2, -corridorLength / 2 + 10);
-    this.scene.add(ceiling);
+    this.addLevelMesh(ceiling);
     
     // Left Wall
     const leftWallGeo = new THREE.PlaneGeometry(corridorLength, corridorHeight);
-    const leftWallMat = new THREE.MeshLambertMaterial({ color: 0x0c0d12 });
+    const leftWallMat = new THREE.MeshStandardMaterial({ 
+      color: 0x0a0c10, 
+      roughness: 0.35, 
+      metalness: 0.5 
+    });
     const leftWall = new THREE.Mesh(leftWallGeo, leftWallMat);
     leftWall.rotation.y = Math.PI / 2;
     leftWall.position.set(-corridorWidth / 2, corridorHeight / 2 - 1.2, -corridorLength / 2 + 10);
     leftWall.receiveShadow = true;
-    this.scene.add(leftWall);
+    this.addLevelMesh(leftWall);
     
     // Right Wall
     const rightWall = leftWall.clone();
     rightWall.rotation.y = -Math.PI / 2;
     rightWall.position.set(corridorWidth / 2, corridorHeight / 2 - 1.2, -corridorLength / 2 + 10);
-    this.scene.add(rightWall);
+    this.addLevelMesh(rightWall);
 
     // Server Racks
     const rackWidth = 0.8;
@@ -1202,15 +197,211 @@ class GameApp {
       }
     }
     
-    // FIXING THE LIGHTING:
-    // Add ambient blue fill light to prevent black voids in the corridor walls
+    // Add ambient fill light
     const ambientLight = new THREE.AmbientLight(0x0a1128, 0.45);
-    this.scene.add(ambientLight);
+    this.addLevelMesh(ambientLight);
     
-    // Add bright blue directional lighting down the corridor
+    // Add directional lighting down the corridor
     const dirLight = new THREE.DirectionalLight(0x00f2fe, 0.65);
     dirLight.position.set(0, 3, 5);
-    this.scene.add(dirLight);
+    this.addLevelMesh(dirLight);
+  }
+
+  buildCity() {
+    const roadLength = 170;
+    const roadWidth = 6.0;
+    
+    // Road (asphalt)
+    const roadGeo = new THREE.PlaneGeometry(roadWidth, roadLength);
+    const roadMat = new THREE.MeshStandardMaterial({ 
+      color: 0x121217, 
+      roughness: 0.8, 
+      metalness: 0.1 
+    });
+    const road = new THREE.Mesh(roadGeo, roadMat);
+    road.rotation.x = -Math.PI / 2;
+    road.position.set(0, -1.2, -roadLength / 2 + 10);
+    road.receiveShadow = true;
+    this.addLevelMesh(road);
+    
+    // Skyscrapers & Building Facades
+    const bColors = [0x08090f, 0x050608];
+    const windowMat = new THREE.MeshBasicMaterial({ color: 0xffcc33, transparent: true, opacity: 0.8 });
+    
+    for (let z = 10; z > -roadLength + 10; z -= 12) {
+      if (Math.abs((z - 2) % 24) < 1.5 || Math.abs((z - 14) % 24) < 1.5) {
+        // Leave gaps for alleyway doors
+        this.createClassroomDoor(z, true, roadWidth);
+        this.createClassroomDoor(z - 12.0, false, roadWidth);
+        continue;
+      }
+      
+      // Building Left
+      const bLeftGeo = new THREE.BoxGeometry(4.0, 15.0, 10.0);
+      const bLeftMat = new THREE.MeshStandardMaterial({ color: bColors[Math.abs(Math.floor(z)) % 2], roughness: 0.5 });
+      const bLeft = new THREE.Mesh(bLeftGeo, bLeftMat);
+      bLeft.position.set(-roadWidth / 2 - 2.0, 7.5 - 1.2, z);
+      this.addLevelMesh(bLeft);
+      
+      // Add glowing windows on left building
+      for (let w = 0; w < 4; w++) {
+        const wMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.15, 0.25), windowMat);
+        wMesh.position.set(-roadWidth / 2 - 0.01, 1.0 + w * 2.0, z - 3 + w * 2);
+        wMesh.rotation.y = Math.PI / 2;
+        this.addLevelMesh(wMesh);
+      }
+      
+      // Building Right
+      const bRight = bLeft.clone();
+      bRight.position.x = roadWidth / 2 + 2.0;
+      this.addLevelMesh(bRight);
+      
+      // Add glowing windows on right building
+      for (let w = 0; w < 4; w++) {
+        const wMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.15, 0.25), windowMat);
+        wMesh.position.set(roadWidth / 2 + 0.01, 1.0 + w * 2.0, z + 3 - w * 2);
+        wMesh.rotation.y = -Math.PI / 2;
+        this.addLevelMesh(wMesh);
+      }
+      
+      // Neon streetlights acting as flicker lights
+      const streetlightGeo = new THREE.CylinderGeometry(0.02, 0.02, 3.2, 8);
+      const streetlightMat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.8 });
+      const streetlightL = new THREE.Mesh(streetlightGeo, streetlightMat);
+      streetlightL.position.set(-roadWidth / 2 + 0.1, 1.6 - 1.2, z);
+      this.addLevelMesh(streetlightL);
+      
+      const lightBulb = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff00ff }));
+      lightBulb.position.set(-roadWidth / 2 + 0.1, 3.2 - 1.2, z);
+      this.addLevelMesh(lightBulb);
+      
+      const light = new THREE.PointLight(0xff00ff, 45.0, 15.0);
+      light.position.set(-roadWidth / 2 + 0.1, 3.0 - 1.2, z);
+      this.addLevelMesh(light);
+      this.lights.push({ bulb: lightBulb, light, baseIntensity: 45.0, zOffset: z });
+    }
+    
+    // Ambient night lighting
+    const ambientLight = new THREE.AmbientLight(0x0f0b18, 0.45);
+    this.addLevelMesh(ambientLight);
+    
+    // Directional sky light
+    const dirLight = new THREE.DirectionalLight(0x8b5cf6, 0.55);
+    dirLight.position.set(0, 5, 5);
+    this.addLevelMesh(dirLight);
+  }
+
+  buildGraveyard() {
+    const roadLength = 170;
+    const roadWidth = 6.0;
+    
+    // Ground (grass/dirt)
+    const groundGeo = new THREE.PlaneGeometry(roadWidth, roadLength);
+    const groundMat = new THREE.MeshStandardMaterial({ 
+      color: 0x090e09, 
+      roughness: 0.95, 
+      metalness: 0.05 
+    });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.set(0, -1.2, -roadLength / 2 + 10);
+    ground.receiveShadow = true;
+    this.addLevelMesh(ground);
+    
+    // Spooky Purple Digital Moon
+    const moonGeo = new THREE.RingGeometry(0.1, 6.0, 32);
+    const moonMat = new THREE.MeshBasicMaterial({ color: 0x9d00ff, side: THREE.DoubleSide });
+    const moon = new THREE.Mesh(moonGeo, moonMat);
+    moon.position.set(0, 8.0, -110);
+    this.addLevelMesh(moon);
+    
+    // Crypt doors / tombs
+    for (let z = 2.0; z > -roadLength + 10; z -= 24.0) {
+      this.createClassroomDoor(z, true, roadWidth);
+      this.createClassroomDoor(z - 12.0, false, roadWidth);
+    }
+    
+    // Tombstones, iron fences, and spooky cyber-trees
+    const fenceMat = new THREE.MeshStandardMaterial({ color: 0x1a1a24, metalness: 0.8, roughness: 0.3 });
+    const crossMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.9 });
+    
+    for (let z = 10; z > -roadLength + 10; z -= 6.0) {
+      if (Math.abs((z - 2) % 24) < 1.5 || Math.abs((z - 14) % 24) < 1.5) continue;
+      
+      // Gothic Fence Pillars
+      const pillarGeo = new THREE.BoxGeometry(0.2, 2.0, 0.2);
+      const pillarL = new THREE.Mesh(pillarGeo, fenceMat);
+      pillarL.position.set(-roadWidth / 2, 1.0 - 1.2, z);
+      this.addLevelMesh(pillarL);
+      
+      const pillarR = pillarL.clone();
+      pillarR.position.x = roadWidth / 2;
+      this.addLevelMesh(pillarR);
+      
+      // Spooky cyber tree every 18 units
+      if (Math.abs(z) % 18 === 0) {
+        const treeGroup = new THREE.Group();
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.08, 3.0, 8), new THREE.MeshStandardMaterial({ color: 0x111116 }));
+        trunk.position.set(0, 1.5, 0);
+        treeGroup.add(trunk);
+        
+        const leaves = new THREE.Mesh(new THREE.SphereGeometry(0.6, 6, 6), new THREE.MeshBasicMaterial({ color: 0x00ffcc, wireframe: true }));
+        leaves.position.set(0, 3.0, 0);
+        treeGroup.add(leaves);
+        
+        treeGroup.position.set(-roadWidth / 2 - 1.0, -1.2, z);
+        this.addLevelMesh(treeGroup);
+      }
+      
+      // Holographic Gravestones
+      const stoneGeo = new THREE.BoxGeometry(0.15, 0.8, 0.45);
+      const stoneMat = new THREE.MeshStandardMaterial({ color: 0x22222a, roughness: 0.9 });
+      
+      // Left Tombstone
+      const stoneL = new THREE.Mesh(stoneGeo, stoneMat);
+      stoneL.position.set(-roadWidth / 2 + 0.6, 0.4 - 1.2, z);
+      this.addLevelMesh(stoneL);
+      // Glowing cross on left stone
+      const crossVertL = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.3, 0.05), crossMat);
+      crossVertL.position.set(-roadWidth / 2 + 0.68, 0.45 - 1.2, z);
+      this.addLevelMesh(crossVertL);
+      const crossHorizL = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.05, 0.18), crossMat);
+      crossHorizL.position.set(-roadWidth / 2 + 0.68, 0.5 - 1.2, z);
+      this.addLevelMesh(crossHorizL);
+      
+      // Right Tombstone
+      const stoneR = new THREE.Mesh(stoneGeo, stoneMat);
+      stoneR.position.set(roadWidth / 2 - 0.6, 0.4 - 1.2, z - 2.0);
+      this.addLevelMesh(stoneR);
+      // Glowing cross on right stone
+      const crossVertR = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.3, 0.05), crossMat);
+      crossVertR.position.set(roadWidth / 2 - 0.68, 0.45 - 1.2, z - 2.0);
+      this.addLevelMesh(crossVertR);
+      const crossHorizR = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.05, 0.18), crossMat);
+      crossHorizR.position.set(roadWidth / 2 - 0.68, 0.5 - 1.2, z - 2.0);
+      this.addLevelMesh(crossHorizR);
+      
+      // Spooky green ground lights
+      if (Math.abs(z) % 12 === 0) {
+        const lightBulb = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), new THREE.MeshBasicMaterial({ color: 0x00ff88 }));
+        lightBulb.position.set(roadWidth / 2 - 0.4, 0.05 - 1.2, z);
+        this.addLevelMesh(lightBulb);
+        
+        const light = new THREE.PointLight(0x00ff88, 30.0, 10.0);
+        light.position.set(roadWidth / 2 - 0.4, 0.2 - 1.2, z);
+        this.addLevelMesh(light);
+        this.lights.push({ bulb: lightBulb, light, baseIntensity: 30.0, zOffset: z });
+      }
+    }
+    
+    // Spooky graveyard ground ambient glow
+    const ambientLight = new THREE.AmbientLight(0x0d0818, 0.4);
+    this.addLevelMesh(ambientLight);
+    
+    // Cool purple moonlight
+    const dirLight = new THREE.DirectionalLight(0xa855f7, 0.5);
+    dirLight.position.set(0, 6, 6);
+    this.addLevelMesh(dirLight);
   }
 
   createArchway(z, width, height) {
@@ -1242,7 +433,7 @@ class GameApp {
     neonLiningR.position.x = width / 2 - beamThickness - 0.01;
     archGroup.add(neonLiningR);
     
-    this.scene.add(archGroup);
+    this.addLevelMesh(archGroup);
     this.corridorGirders.push(archGroup);
   }
 
@@ -1254,13 +445,11 @@ class GameApp {
     bulb.rotation.z = Math.PI / 2;
     bulb.position.set(0, height - 1.25, z);
     
-    // FIXING THE LIGHTING:
-    // Greatly increase PointLight intensity (45.0) and range (16.0) for visual clarity
     const light = new THREE.PointLight(0x00ff88, 45.0, 16.0);
     light.position.set(0, height - 1.4, z);
     
-    this.scene.add(bulb);
-    this.scene.add(light);
+    this.addLevelMesh(bulb);
+    this.addLevelMesh(light);
     
     this.lights.push({ bulb, light, baseIntensity: 45.0, zOffset: z });
   }
@@ -1300,7 +489,7 @@ class GameApp {
     }
     
     rackGroup.position.set(x, y, z);
-    this.scene.add(rackGroup);
+    this.addLevelMesh(rackGroup);
   }
 
   createClassroomDoor(z, isLeft, corridorWidth) {
@@ -1336,7 +525,7 @@ class GameApp {
     const xPos = isLeft ? -corridorWidth / 2 + doorThickness / 2 : corridorWidth / 2 - doorThickness / 2;
     doorGroup.position.set(xPos, 0, z);
     
-    this.scene.add(doorGroup);
+    this.addLevelMesh(doorGroup);
     
     this.spawnDoors.push({
       group: doorGroup,
@@ -1362,9 +551,8 @@ class GameApp {
     
     const holoRingMat = new THREE.MeshBasicMaterial({ 
       color: 0x00ffcc, 
-      side: THREE.DoubleSide,
-      transparent: true,
-      opacity: 0.5
+      transparent: true, 
+      opacity: 0.5 
     });
     
     const ring1 = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.22, 24), holoRingMat);
@@ -1381,7 +569,217 @@ class GameApp {
     clockGroup.add(crossBar2);
     
     clockGroup.position.set(0, height - 1.25, z);
-    this.scene.add(clockGroup);
+    this.addLevelMesh(clockGroup);
+  }
+
+  createPlayerHands() {
+    this.handsGroup = new THREE.Group();
+    
+    const suitMat = new THREE.MeshLambertMaterial({ color: 0x111115 }); // dark sleeve
+    const skinMat = new THREE.MeshLambertMaterial({ color: 0x2b1e17 }); // dark leather glove
+    
+    // 1. KEYBOARD GROUP (Held in center, tilted towards player)
+    this.keyboardGroup = new THREE.Group();
+    this.keyboardGroup.position.set(0, -0.22, -0.45);
+    this.keyboardGroup.rotation.set(Math.PI / 4.2, 0, 0);
+    
+    // Keyboard Base
+    const kbBaseMat = new THREE.MeshStandardMaterial({ color: 0x16161c, roughness: 0.6, metalness: 0.4 });
+    const kbBase = new THREE.Mesh(
+      new THREE.BoxGeometry(0.28, 0.015, 0.12),
+      kbBaseMat
+    );
+    this.keyboardGroup.add(kbBase);
+    
+    // Glowing stripes on sides
+    const stripeMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe });
+    const stripeL = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.016, 0.122), stripeMat);
+    stripeL.position.set(-0.141, 0, 0);
+    const stripeR = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.016, 0.122), stripeMat);
+    stripeR.position.set(0.141, 0, 0);
+    this.keyboardGroup.add(stripeL);
+    this.keyboardGroup.add(stripeR);
+    
+    // Spotlight attached to hands group pointing down the corridor
+    this.flashlight.position.set(0, -0.15, -0.45);
+    this.handsGroup.add(this.flashlight);
+    
+    const lightTarget = new THREE.Object3D();
+    lightTarget.position.set(0, -0.15, -10.0);
+    this.handsGroup.add(lightTarget);
+    this.flashlight.target = lightTarget;
+    
+    // Volumetric Cone attached to hands group pointing forward
+    const volumetricGeo = new THREE.CylinderGeometry(0.015, 1.2, 5.0, 16, 1, true);
+    const volumetricMat = new THREE.MeshBasicMaterial({
+      color: 0x00f2fe,
+      transparent: true,
+      opacity: 0.07,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+    const volumetricCone = new THREE.Mesh(volumetricGeo, volumetricMat);
+    volumetricCone.rotation.x = -Math.PI / 2;
+    volumetricCone.position.set(0, -0.15, -2.95);
+    this.handsGroup.add(volumetricCone);
+    
+    // Create QWERTY keys layout
+    const rows = [
+      ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+      ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
+      ['z', 'x', 'c', 'v', 'b', 'n', 'm']
+    ];
+    
+    const keyW = 0.02;
+    const keyH = 0.006;
+    const keyD = 0.016;
+    const keySpacing = 0.024;
+    
+    const keyColors = [0x00f2fe, 0xff0055, 0x00ffcc, 0xbd00ff];
+    this.qwertyKeyMeshes = {};
+    this.keyboardKeys = [];
+    
+    for (let r = 0; r < rows.length; r++) {
+      const rowKeys = rows[r];
+      const rowZ = -0.03 + r * 0.03;
+      const rowWidth = (rowKeys.length - 1) * keySpacing;
+      const startX = -rowWidth / 2;
+      
+      for (let c = 0; c < rowKeys.length; c++) {
+        const char = rowKeys[c];
+        const kColor = keyColors[(r + c) % keyColors.length];
+        const keyMat = new THREE.MeshStandardMaterial({
+          color: kColor,
+          emissive: kColor,
+          emissiveIntensity: 0.5,
+          roughness: 0.5
+        });
+        const keyMesh = new THREE.Mesh(
+          new THREE.BoxGeometry(keyW, keyH, keyD),
+          keyMat
+        );
+        const kx = startX + c * keySpacing;
+        keyMesh.position.set(kx, 0.009, rowZ);
+        
+        this.keyboardGroup.add(keyMesh);
+        this.qwertyKeyMeshes[char] = keyMesh;
+        this.keyboardKeys.push(keyMesh);
+      }
+    }
+    
+    this.handsGroup.add(this.keyboardGroup);
+    
+    // 2. LEFT ARM (holding the left side of the keyboard)
+    const leftArmGroup = new THREE.Group();
+    const leftSleeve = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.02, 0.03, 0.25, 8),
+      suitMat
+    );
+    leftSleeve.rotation.x = Math.PI / 2;
+    leftSleeve.position.set(0, 0, 0.125);
+    leftArmGroup.add(leftSleeve);
+    const leftGlove = new THREE.Mesh(
+      new THREE.BoxGeometry(0.035, 0.035, 0.05),
+      skinMat
+    );
+    leftGlove.position.set(0, 0, 0);
+    leftArmGroup.add(leftGlove);
+    
+    leftArmGroup.position.set(-0.14, 0, 0.02);
+    leftArmGroup.rotation.set(Math.PI / 4, 0, Math.PI / 6);
+    this.keyboardGroup.add(leftArmGroup);
+    
+    // 3. RIGHT ARM (pokes keys, idle holds the right side)
+    this.rightArmGroup = new THREE.Group();
+    const rightSleeve = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.02, 0.03, 0.3, 8),
+      suitMat
+    );
+    rightSleeve.rotation.x = Math.PI / 2.2;
+    rightSleeve.position.set(0, -0.01, 0.12);
+    this.rightArmGroup.add(rightSleeve);
+    const rightGlove = new THREE.Mesh(
+      new THREE.BoxGeometry(0.035, 0.035, 0.05),
+      skinMat
+    );
+    rightGlove.position.set(0, 0.015, -0.03);
+    this.rightArmGroup.add(rightGlove);
+    
+    this.rightArmIdlePos = new THREE.Vector3(0.14, -0.22, -0.42);
+    this.rightArmGroup.position.copy(this.rightArmIdlePos);
+    this.rightArmGroup.rotation.set(-Math.PI / 8, -Math.PI / 10, -Math.PI / 18);
+    this.handsGroup.add(this.rightArmGroup);
+    
+    this.camera.add(this.handsGroup);
+    
+    this.pokeTimer = 0.0;
+    this.pokeDuration = 0.18;
+    this.targetPokeCamPos = new THREE.Vector3();
+  }
+
+  animateKeyboardPress(char) {
+    if (!char) return;
+    const lowerChar = char.toLowerCase();
+    const keyMesh = this.qwertyKeyMeshes[lowerChar];
+    
+    if (keyMesh) {
+      if (this.keyboardGroup) {
+        this.keyboardGroup.scale.set(1.05, 1.05, 1.05);
+      }
+      
+      const origIntensity = keyMesh.material.emissiveIntensity;
+      keyMesh.material.emissiveIntensity = 2.5;
+      keyMesh.position.y = 0.005;
+      setTimeout(() => {
+        keyMesh.material.emissiveIntensity = origIntensity;
+        keyMesh.position.y = 0.009;
+      }, 75);
+      
+      this.keyboardGroup.updateMatrix();
+      this.targetPokeCamPos.copy(keyMesh.position).applyMatrix4(this.keyboardGroup.matrix);
+      this.pokeTimer = this.pokeDuration;
+    }
+  }
+
+  isTouchDevice() {
+    return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
+  }
+
+  populateGlossary() {
+    const container = document.getElementById('wave-word-definitions');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    if (this.state.waveWords.size === 0) {
+      container.innerHTML = '<p style="color: #718096; font-family: var(--font-cyber);">No words decrypted in this wave.</p>';
+      return;
+    }
+    
+    this.state.waveWords.forEach(word => {
+      const lowerWord = word.toLowerCase();
+      const defs = WORD_DEFINITIONS[lowerWord] || ["n. No definition found in cyber database."];
+      
+      const entryDiv = document.createElement('div');
+      entryDiv.className = 'word-def-entry';
+      
+      const title = document.createElement('div');
+      title.className = 'word-def-title';
+      title.innerText = word;
+      
+      const list = document.createElement('ul');
+      list.className = 'word-def-list';
+      
+      defs.forEach(def => {
+        const li = document.createElement('li');
+        li.innerText = def;
+        list.appendChild(li);
+      });
+      
+      entryDiv.appendChild(title);
+      entryDiv.appendChild(list);
+      container.appendChild(entryDiv);
+    });
   }
 
   bindEvents() {
@@ -1397,6 +795,9 @@ class GameApp {
       } else if (this.state.currentState === GameState.PLAYING) {
         if (e.key === 'Escape') {
           this.togglePause();
+        } else if (e.key === 'Shift' || e.key === ' ') {
+          e.preventDefault();
+          this.setSpeedUp(true);
         } else {
           this.typing.handleInput(e.key, this.zombies);
         }
@@ -1405,6 +806,75 @@ class GameApp {
           this.togglePause();
         }
       }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (e.key === 'Shift' || e.key === ' ') {
+        this.setSpeedUp(false);
+      }
+    });
+
+    // Mobile Keyboard Support
+    const mobileInput = document.getElementById('mobile-game-input');
+    const mobileBtn = document.getElementById('mobile-keyboard-btn');
+    
+    if (this.isTouchDevice() && mobileBtn) {
+      mobileBtn.style.display = 'flex';
+      
+      // Focus when clicking container
+      this.container.addEventListener('click', () => {
+        if (this.state.currentState === GameState.PLAYING) {
+          mobileInput.focus();
+        }
+      });
+    }
+
+    if (mobileBtn) {
+      mobileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        mobileInput.focus();
+      });
+    }
+
+    if (mobileInput) {
+      mobileInput.addEventListener('input', (e) => {
+        const val = e.target.value;
+        if (val.length > 0) {
+          for (let i = 0; i < val.length; i++) {
+            this.typing.handleInput(val[i], this.zombies);
+          }
+          e.target.value = '';
+        }
+      });
+    }
+
+    // Difficulty selection bindings
+    const diffBtns = document.querySelectorAll('.btn-diff');
+    diffBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        diffBtns.forEach(b => b.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+        const diff = e.currentTarget.getAttribute('data-diff');
+        this.state.difficulty = diff;
+        if (diff === 'easy') {
+          this.state.difficultyMultiplier = 0.6;
+        } else if (diff === 'hard') {
+          this.state.difficultyMultiplier = 1.4;
+        } else {
+          this.state.difficultyMultiplier = 1.0;
+        }
+      });
+    });
+
+    // Level selection bindings
+    const levelBtns = document.querySelectorAll('.btn-level');
+    levelBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        levelBtns.forEach(b => b.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+        const lvl = e.currentTarget.getAttribute('data-level');
+        this.state.selectedLevel = lvl;
+      });
     });
     
     // Connect to template navigation buttons
@@ -1417,10 +887,46 @@ class GameApp {
     document.getElementById('TEMPLATE-4weird-resume-btn').addEventListener('click', () => this.togglePause());
     document.getElementById('TEMPLATE-4weird-restart-btn').addEventListener('click', () => this.quitToMenu());
     
+    // Wave Cleared Glossary button
+    document.getElementById('btn-next-wave').addEventListener('click', () => {
+      this.state.wave++;
+      document.getElementById('wave-val').innerText = this.state.wave;
+      this.calculateWaveBudget();
+      this.triggerCameraShake(0.2);
+      this.state.waveWords.clear();
+      this.state.setGameState(GameState.PLAYING);
+      if (this.isTouchDevice() && mobileInput) {
+        mobileInput.focus();
+      }
+    });
+
     // Mute button handler
     document.getElementById('TEMPLATE-4weird-mute-btn').addEventListener('click', (e) => {
         this.toggleMute(e.target);
     });
+
+    // Speed Up Button click-and-hold bindings
+    const speedBtn = document.getElementById('game-speed-btn');
+    if (speedBtn) {
+      const startSpeedUp = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.setSpeedUp(true);
+      };
+      const stopSpeedUp = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.setSpeedUp(false);
+      };
+      
+      speedBtn.addEventListener('mousedown', startSpeedUp);
+      speedBtn.addEventListener('mouseup', stopSpeedUp);
+      speedBtn.addEventListener('mouseleave', stopSpeedUp);
+      
+      speedBtn.addEventListener('touchstart', startSpeedUp, { passive: false });
+      speedBtn.addEventListener('touchend', stopSpeedUp, { passive: false });
+      speedBtn.addEventListener('touchcancel', stopSpeedUp, { passive: false });
+    }
   }
 
   toggleMute(btn) {
@@ -1435,27 +941,41 @@ class GameApp {
     }
   }
 
+  setSpeedUp(isActive) {
+    this.isSpeedUpActive = isActive;
+    const speedBtn = document.getElementById('game-speed-btn');
+    if (speedBtn) {
+      if (isActive) {
+        speedBtn.classList.add('active');
+      } else {
+        speedBtn.classList.remove('active');
+      }
+    }
+  }
+
   initSettingsUI() {
     const sfxSlider = document.getElementById('slider-sfx');
     const musicSlider = document.getElementById('slider-music');
     const particleCheckbox = document.getElementById('chk-particles');
     
-    sfxSlider.value = this.state.sfxVolume;
-    musicSlider.value = this.state.musicVolume;
-    particleCheckbox.checked = this.state.ultraParticles;
-    
-    sfxSlider.addEventListener('input', (e) => {
-      this.audio.setSFXVolume(parseFloat(e.target.value));
-    });
-    
-    musicSlider.addEventListener('input', (e) => {
-      this.audio.setMusicVolume(parseFloat(e.target.value));
-    });
-    
-    particleCheckbox.addEventListener('change', (e) => {
-      this.state.ultraParticles = e.target.checked;
-      this.state.saveSettings();
-    });
+    if (sfxSlider && musicSlider && particleCheckbox) {
+      sfxSlider.value = this.state.sfxVolume;
+      musicSlider.value = this.state.musicVolume;
+      particleCheckbox.checked = this.state.ultraParticles;
+      
+      sfxSlider.addEventListener('input', (e) => {
+        this.audio.setSFXVolume(parseFloat(e.target.value));
+      });
+      
+      musicSlider.addEventListener('input', (e) => {
+        this.audio.setMusicVolume(parseFloat(e.target.value));
+      });
+      
+      particleCheckbox.addEventListener('change', (e) => {
+        this.state.ultraParticles = e.target.checked;
+        this.state.saveSettings();
+      });
+    }
   }
 
   resizeCanvas() {
@@ -1470,9 +990,13 @@ class GameApp {
   startGame() {
     this.audio.init();
     
+    this.typing.reset();
     this.zombies.forEach(z => z.destroy());
     this.zombies = [];
     this.particles.clear();
+    
+    this.lastTime = 0;
+    this.setSpeedUp(false);
     
     this.state.score = 0;
     this.state.wave = 1;
@@ -1481,17 +1005,22 @@ class GameApp {
     this.state.coinsEarnedThisRun = 0;
     this.state.health = 100;
     this.state.resetCombo();
+    this.state.waveWords.clear();
     
     document.getElementById('score-val').innerText = '0';
     document.getElementById('wave-val').innerText = '1';
     document.getElementById('health-bar-fill').style.width = '100%';
-    
-    this.typing.reset();
+    this.buildLevelScene();
     this.calculateWaveBudget();
     
     this.spawnTimer = 0;
     this.state.setGameState(GameState.PLAYING);
     this.resizeCanvas();
+    
+    const mobileInput = document.getElementById('mobile-game-input');
+    if (this.isTouchDevice() && mobileInput) {
+      mobileInput.focus();
+    }
   }
 
   calculateWaveBudget() {
@@ -1562,21 +1091,23 @@ class GameApp {
   }
 
   update(dt) {
+    const activeDt = this.isSpeedUpActive ? dt * 3.0 : dt;
+
     // 0. Update door slide animations
     this.spawnDoors.forEach(door => {
       if (door.state === 'opening') {
-        door.slideProgress = Math.min(1.0, door.slideProgress + dt * 4.0);
+        door.slideProgress = Math.min(1.0, door.slideProgress + activeDt * 4.0);
         if (door.slideProgress >= 1.0) {
           door.state = 'open';
           door.timer = 1.0;
         }
       } else if (door.state === 'open') {
-        door.timer -= dt;
+        door.timer -= activeDt;
         if (door.timer <= 0) {
           door.state = 'closing';
         }
       } else if (door.state === 'closing') {
-        door.slideProgress = Math.max(0.0, door.slideProgress - dt * 2.0);
+        door.slideProgress = Math.max(0.0, door.slideProgress - activeDt * 2.0);
         if (door.slideProgress <= 0.0) {
           door.state = 'closed';
           door.statusLightMat.color.setHex(0xff0055);
@@ -1588,7 +1119,7 @@ class GameApp {
     });
 
     // 1. Spawner Logic
-    this.spawnTimer += dt;
+    this.spawnTimer += activeDt;
     const spawnInterval = Math.max(1.0, 3.5 - this.state.wave * 0.25);
     
     const totalSpawned = this.state.zombiesKilled + this.zombies.length;
@@ -1601,7 +1132,7 @@ class GameApp {
     // 2. Update Zombies
     for (let i = this.zombies.length - 1; i >= 0; i--) {
       const z = this.zombies[i];
-      z.update(dt);
+      z.update(activeDt);
       
       if (z.worldZ >= 4.8) {
         this.state.health = Math.max(0, this.state.health - 20);
@@ -1638,26 +1169,31 @@ class GameApp {
     }
     
     if (this.state.zombiesKilled >= this.state.zombiesInWave && this.zombies.length === 0) {
-      this.state.wave++;
-      document.getElementById('wave-val').innerText = this.state.wave;
-      this.calculateWaveBudget();
+      this.populateGlossary();
+      this.state.setGameState(GameState.GLOSSARY);
       this.triggerCameraShake(0.2);
     }
     
-    this.state.updateCombo(dt);
-    this.particles.update(dt);
+    this.state.updateCombo(activeDt);
+    this.particles.update(activeDt);
   }
 
   spawnZombie() {
-    const shortWords = ["run", "die", "zap", "hex", "web", "glitch", "neon", "code", "byte", "bot"];
-    const midWords = ["vector", "zombie", "shader", "linear", "render", "matrix", "cypher", "binary", "system", "flicker"];
-    const longWords = ["javascript", "stereoscope", "development", "antigravity", "perspective", "monetization", "customization"];
+    let wordList = SHORT_WORDS;
+    const rand = Math.random();
     
-    let wordList = shortWords;
-    if (this.state.wave >= 5) {
-      wordList = longWords;
-    } else if (this.state.wave >= 3) {
-      wordList = midWords;
+    if (this.state.wave === 1) {
+      wordList = rand < 0.7 ? SHORT_WORDS : MID_WORDS;
+    } else if (this.state.wave === 2) {
+      wordList = rand < 0.4 ? SHORT_WORDS : MID_WORDS;
+    } else if (this.state.wave === 3) {
+      if (rand < 0.15) wordList = SHORT_WORDS;
+      else if (rand < 0.85) wordList = MID_WORDS;
+      else wordList = LONG_WORDS;
+    } else if (this.state.wave === 4) {
+      wordList = rand < 0.5 ? MID_WORDS : LONG_WORDS;
+    } else {
+      wordList = rand < 0.1 ? MID_WORDS : LONG_WORDS;
     }
     
     const activeStartChars = this.zombies.map(z => z.word[0].toLowerCase());
@@ -1668,7 +1204,7 @@ class GameApp {
     }
     
     const word = candidates[Math.floor(Math.random() * candidates.length)];
-    const speed = 1.8 + this.state.wave * 0.22;
+    const speed = (1.8 + this.state.wave * 0.22) * this.state.difficultyMultiplier;
     
     const validDoors = this.spawnDoors.filter(d => d.z < -10 && d.z > -80);
     let selectedDoor = null;
@@ -1714,6 +1250,40 @@ class GameApp {
       
       l.light.intensity = intensity;
     });
+    
+    const time = this.flickerTimer * 2.2;
+    
+    // Bobbing / breathing animation for keyboard
+    if (this.keyboardGroup) {
+      this.keyboardGroup.position.y = -0.22 + Math.sin(time) * 0.008;
+      this.keyboardGroup.position.x = Math.cos(time * 0.5) * 0.005;
+      
+      // Keyboard press scale decay
+      if (this.keyboardGroup.scale.x > 1.0) {
+        const decay = dt * 1.5;
+        this.keyboardGroup.scale.x = Math.max(1.0, this.keyboardGroup.scale.x - decay);
+        this.keyboardGroup.scale.y = Math.max(1.0, this.keyboardGroup.scale.y - decay);
+        this.keyboardGroup.scale.z = Math.max(1.0, this.keyboardGroup.scale.z - decay);
+      }
+    }
+    
+    // Right arm poke/idle handling
+    if (this.rightArmGroup) {
+      if (this.pokeTimer > 0) {
+        this.pokeTimer -= dt;
+        const progress = 1.0 - (this.pokeTimer / this.pokeDuration);
+        const factor = Math.sin(progress * Math.PI);
+        
+        this.rightArmGroup.position.copy(this.rightArmIdlePos).lerp(this.targetPokeCamPos, factor);
+        this.rightArmGroup.rotation.z = (-Math.PI / 18) * factor;
+        this.rightArmGroup.rotation.x = (-Math.PI / 12) * factor;
+      } else {
+        this.rightArmGroup.position.copy(this.rightArmIdlePos);
+        this.rightArmGroup.position.y += Math.sin(time - 0.5) * 0.006;
+        this.rightArmGroup.position.x += Math.cos(time * 0.5 - 0.5) * 0.004;
+        this.rightArmGroup.rotation.set(-Math.PI / 8, -Math.PI / 10, -Math.PI / 18);
+      }
+    }
     
     if (this.shakeIntensity > 0) {
       this.shakeIntensity -= this.shakeDecay * dt;
