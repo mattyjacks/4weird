@@ -283,6 +283,8 @@ body {
 .game-card.live:hover { box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
 .game-card.featured { grid-column: span 1; border: 2px solid var(--neon-purple); background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(16, 185, 129, 0.1)); }
 .game-card.featured:hover { transform: translateY(-12px); box-shadow: 0 0 30px rgba(139, 92, 246, 0.4); }
+.game-card.main-featured { grid-column: span 1; border: 2px solid var(--neon-cyan); background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(139, 92, 246, 0.1)); }
+.game-card.main-featured:hover { transform: translateY(-12px); box-shadow: 0 0 30px rgba(6, 182, 212, 0.5); }
 .game-thumbnail { position: relative; height: 200px; overflow: hidden; }
 .thumb-bg { width: 100%; height: 100%; background-size: cover; background-position: center; }
 .thumb-demolichdom { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%); position: relative; }
@@ -293,6 +295,8 @@ body {
 .thumb-semestersurvival::before { content: '🎓 🏃‍♂️ 📚 🪙'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; letter-spacing: 8px; animation: float 3s ease-in-out infinite; }
 .thumb-overtake { background: linear-gradient(135deg, #05070a 0%, #3a1510 48%, #ffcf42 100%); position: relative; }
 .thumb-overtake::before { content: '🏁 🏎️ ⚡'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; letter-spacing: 10px; animation: float 3s ease-in-out infinite; }
+.thumb-lastwordszombies { background: linear-gradient(135deg, #09090e 0%, #0f1016 50%, #00ffcc 100%); position: relative; }
+.thumb-lastwordszombies::before { content: '🤖 🧟 👾 💥'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; letter-spacing: 8px; animation: float 3s ease-in-out infinite; }
 .thumb-placeholder-2 { background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%); position: relative; }
 .thumb-placeholder-2::before { content: '🎭'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 4rem; opacity: 0.5; }
 .thumb-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s ease; }

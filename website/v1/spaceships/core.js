@@ -174,15 +174,21 @@ class SpaceGameCore {
 
       // 2. Initialize Scene & Camera
       this.scene = new THREE.Scene();
-      this.scene.fog = new THREE.FogExp2(0x05030a, 0.002);
+      this.scene.fog = new THREE.FogExp2(0x05030a, 0.0005);
 
       this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.5, 2000);
       this.camera.position.set(0, 80, 220);
 
       // 3. Initialize Lighting
-      const ambientLight = new THREE.AmbientLight(0x1a1a2e, 1.2);
+      const ambientLight = new THREE.AmbientLight(0xddecff, 2.8);
       this.scene.add(ambientLight);
       this.lights.push(ambientLight);
+
+      // Add a DirectionalLight for global highlight illumination
+      const dirLight = new THREE.DirectionalLight(0xffffff, 2.2);
+      dirLight.position.set(200, 300, 200);
+      this.scene.add(dirLight);
+      this.lights.push(dirLight);
 
       // 4. Initialize Environments & Entities
       this.initEnvironment();
@@ -283,16 +289,16 @@ class SpaceGameCore {
       this.sunGlowShells.push(shell);
     });
 
-    this.sunLight = new THREE.PointLight(0xffd580, 2.5, 1200, 0.5);
+    this.sunLight = new THREE.PointLight(0xffe6b3, 5.0, 1500, 0.5);
     this.scene.add(this.sunLight);
 
     // 2. Parallax background starfields
     const starsCount = 600;
     const starGeoms = [new THREE.BufferGeometry(), new THREE.BufferGeometry(), new THREE.BufferGeometry()];
     const starMats = [
-      new THREE.PointsMaterial({ color: 0xffffff, size: 1.5, transparent: true, opacity: 0.8 }),
-      new THREE.PointsMaterial({ color: 0x00f2fe, size: 2.0, transparent: true, opacity: 0.6 }),
-      new THREE.PointsMaterial({ color: 0xa855f7, size: 1.0, transparent: true, opacity: 0.9 })
+      new THREE.PointsMaterial({ color: 0xffffff, size: 2.8, transparent: true, opacity: 0.95 }),
+      new THREE.PointsMaterial({ color: 0x00f2fe, size: 3.5, transparent: true, opacity: 0.85 }),
+      new THREE.PointsMaterial({ color: 0xa855f7, size: 2.0, transparent: true, opacity: 0.95 })
     ];
 
     starGeoms.forEach((geom, idx) => {
@@ -312,8 +318,9 @@ class SpaceGameCore {
 
     // 3. Floating Nebulae Planes
     const nebConfigs = [
-      { color1: 'rgba(139, 92, 246, 0.25)', color2: 'rgba(6, 182, 212, 0.05)', pos: new THREE.Vector3(-300, -100, -500), size: 500 },
-      { color1: 'rgba(16, 185, 129, 0.20)', color2: 'rgba(139, 92, 246, 0.03)', pos: new THREE.Vector3(400, 150, -400), size: 600 }
+      { color1: 'rgba(139, 92, 246, 0.65)', color2: 'rgba(6, 182, 212, 0.15)', pos: new THREE.Vector3(-300, -100, -500), size: 800 },
+      { color1: 'rgba(16, 185, 129, 0.55)', color2: 'rgba(139, 92, 246, 0.10)', pos: new THREE.Vector3(400, 150, -400), size: 900 },
+      { color1: 'rgba(6, 182, 212, 0.60)', color2: 'rgba(236, 72, 153, 0.20)', pos: new THREE.Vector3(0, -200, -600), size: 1000 }
     ];
 
     nebConfigs.forEach(conf => {
