@@ -837,11 +837,27 @@ class GameApp {
     }
 
     if (mobileInput) {
+      mobileInput.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Spacebar') {
+          // Trigger speed up or stun payload
+          this.setSpeedUp(true);
+        }
+      });
+      mobileInput.addEventListener('keyup', (e) => {
+        if (e.key === ' ' || e.key === 'Spacebar') {
+          this.setSpeedUp(false);
+        }
+      });
       mobileInput.addEventListener('input', (e) => {
         const val = e.target.value;
         if (val.length > 0) {
           for (let i = 0; i < val.length; i++) {
-            this.typing.handleInput(val[i], this.zombies);
+            const char = val[i];
+            if (char === ' ') {
+              // Spacebar can trigger speed up / payload
+              continue;
+            }
+            this.typing.handleInput(char, this.zombies);
           }
           e.target.value = '';
         }
@@ -887,8 +903,24 @@ class GameApp {
     document.getElementById('TEMPLATE-4weird-resume-btn').addEventListener('click', () => this.togglePause());
     document.getElementById('TEMPLATE-4weird-restart-btn').addEventListener('click', () => this.quitToMenu());
     
+    // View wave definitions from game over screen
+    document.getElementById('btn-gameover-definitions').addEventListener('click', () => {
+      this.populateGlossary();
+      // Temporarily change button to restart/reboot
+      const btnNext = document.getElementById('btn-next-wave');
+      btnNext.innerText = 'REBOOT SYSTEM';
+      btnNext.dataset.gameOverReboot = 'true';
+      this.state.setGameState(GameState.GLOSSARY);
+    });
+
     // Wave Cleared Glossary button
-    document.getElementById('btn-next-wave').addEventListener('click', () => {
+    document.getElementById('btn-next-wave').addEventListener('click', (e) => {
+      if (e.currentTarget.dataset.gameOverReboot === 'true') {
+        e.currentTarget.dataset.gameOverReboot = 'false';
+        e.currentTarget.innerText = 'START NEXT WAVE';
+        this.startGame();
+        return;
+      }
       this.state.wave++;
       document.getElementById('wave-val').innerText = this.state.wave;
       this.calculateWaveBudget();
@@ -1006,6 +1038,13 @@ class GameApp {
     this.state.health = 100;
     this.state.resetCombo();
     this.state.waveWords.clear();
+    
+    // Ensure the Next Wave button is reset back to default
+    const btnNext = document.getElementById('btn-next-wave');
+    if (btnNext) {
+      btnNext.dataset.gameOverReboot = 'false';
+      btnNext.innerText = 'START NEXT WAVE';
+    }
     
     document.getElementById('score-val').innerText = '0';
     document.getElementById('wave-val').innerText = '1';

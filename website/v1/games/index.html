@@ -1613,7 +1613,7 @@
 
         // Setup Carousel
         function setupCarousel() {
-            featuredGames = GAMES_DATA.filter(g => g.featured);
+            featuredGames = GAMES_DATA.filter(g => g.title === "Last Words Zombies");
             const track = document.getElementById('carouselTrack');
             const indicatorsContainer = document.getElementById('carouselIndicators');
             
@@ -1670,6 +1670,15 @@
             document.getElementById('carousel-next').addEventListener('click', () => {
                 navigateCarousel(1);
             });
+
+            // Hide carousel navigation controls as they are not needed for a single featured game
+            const controls = document.querySelector('.carousel-controls');
+            if (controls) {
+                controls.style.display = 'none';
+            }
+            if (indicatorsContainer) {
+                indicatorsContainer.style.display = 'none';
+            }
 
             startCarouselAutoPlay();
         }

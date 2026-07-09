@@ -57,7 +57,7 @@ class StateManager {
     document.getElementById('TEMPLATE-4weird-game-over-screen').classList.add('hidden');
     document.getElementById('custom-store-screen').classList.add('hidden');
     document.getElementById('custom-settings-screen').classList.add('hidden');
-    document.getElementById('wave-cleared-screen').classList.add('hidden');
+    document.getElementById('wave-cleared-screen').style.display = 'none';
     document.getElementById('game-hud').classList.add('hidden');
     
     const speedBtn = document.getElementById('game-speed-btn');
@@ -77,7 +77,7 @@ class StateManager {
         break;
       case GameState.GLOSSARY:
         document.getElementById('cleared-wave-num').innerText = this.wave;
-        document.getElementById('wave-cleared-screen').classList.remove('hidden');
+        document.getElementById('wave-cleared-screen').style.display = 'flex';
         break;
       case GameState.GAME_OVER:
         const screenEl = document.getElementById('TEMPLATE-4weird-game-over-screen');

@@ -155,12 +155,14 @@
             
             <!-- Game Over Overlay -->
             <div class="TEMPLATE-4weird-game-overlay hidden" id="TEMPLATE-4weird-game-over-screen">
-                <div class="TEMPLATE-4weird-overlay-content">
-                    <h2 style="color: var(--neon-magenta); text-shadow: var(--glow-magenta);">SYSTEM BREACHED</h2>
-                    <p>Terminal compromised. Mainframe data has been wiped.</p>
-                    <p class="TEMPLATE-4weird-final-score">SCORE: <span id="TEMPLATE-4weird-final-score-val">0</span></p>
-                    <p style="font-family: var(--font-cyber); font-size: 0.8rem; margin-top: -15px; margin-bottom: 25px; color: var(--neon-yellow);">HIGH SCORE: <span id="TEMPLATE-4weird-gameover-highscore">0</span></p>
-                    <button class="btn btn-primary" id="TEMPLATE-4weird-play-again-btn">REBOOT SYSTEM</button>
+                <div class="TEMPLATE-4weird-overlay-content" style="max-width: 500px; width: 95%; display: flex; flex-direction: column; max-height: 90vh;">
+                    <h2 style="color: var(--neon-magenta); text-shadow: var(--glow-magenta); margin-bottom: 5px;">SYSTEM BREACHED</h2>
+                    <p style="margin-bottom: 10px;">Terminal compromised. Mainframe data has been wiped.</p>
+                    <p class="TEMPLATE-4weird-final-score" style="margin-bottom: 10px;">SCORE: <span id="TEMPLATE-4weird-final-score-val">0</span></p>
+                    <p style="font-family: var(--font-cyber); font-size: 0.8rem; margin-bottom: 20px; color: var(--neon-yellow);">HIGH SCORE: <span id="TEMPLATE-4weird-gameover-highscore">0</span></p>
+                    
+                    <button class="btn btn-secondary" id="btn-gameover-definitions" style="width: 100%; margin-bottom: 10px;">VIEW WAVE DEFINITIONS</button>
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-play-again-btn" style="width: 100%;">REBOOT SYSTEM</button>
                 </div>
             </div>
 
@@ -209,16 +211,16 @@
             </div>
 
             <!-- Wave Cleared / Glossary Screen -->
-            <div class="TEMPLATE-4weird-game-overlay hidden" id="wave-cleared-screen" style="z-index: 999;">
-                <div class="TEMPLATE-4weird-overlay-content" style="max-width: 500px; width: 95%; display: flex; flex-direction: column; max-height: 80vh;">
+            <div class="TEMPLATE-4weird-game-overlay" id="wave-cleared-screen" style="z-index: 999; display: none;">
+                <div class="TEMPLATE-4weird-overlay-content" style="max-width: 500px; width: 95%; display: flex; flex-direction: column; max-height: 90vh; overflow-y: auto;">
                     <h2 style="color: var(--neon-cyan); text-shadow: var(--glow-cyan); margin-bottom: 5px;">WAVE <span id="cleared-wave-num">1</span> DECRYPTED</h2>
                     <p style="font-family: var(--font-cyber); font-size: 0.8rem; color: var(--neon-yellow); margin-bottom: 15px;">UNITS GLOSSARY DEFINITIONS</p>
                     
-                    <div id="wave-word-definitions" class="definitions-container" style="flex: 1; overflow-y: auto; margin-bottom: 20px; text-align: left; display: flex; flex-direction: column; gap: 15px; padding-right: 8px;">
+                    <div id="wave-word-definitions" class="definitions-container" style="flex: 1; overflow-y: visible; margin-bottom: 20px; text-align: left; display: flex; flex-direction: column; gap: 15px; padding-right: 8px;">
                         <!-- Populated dynamically via JS -->
                     </div>
                     
-                    <button class="btn btn-primary" id="btn-next-wave" style="width: 100%;">START NEXT WAVE</button>
+                    <button class="btn btn-primary" id="btn-next-wave" style="width: 100%; flex-shrink: 0;">START NEXT WAVE</button>
                 </div>
             </div>
         </div>
