@@ -266,6 +266,8 @@
     z-index: 10;
     backdrop-filter: blur(10px);
     transition: opacity 0.3s ease;
+    overflow-y: auto;
+    padding: 20px 0;
 }
 
 .TEMPLATE-4weird-game-overlay.hidden {
@@ -283,6 +285,7 @@
     border: var(--border-cyber-purple);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 0 30px rgba(139, 92, 246, 0.05);
     z-index: 11;
+    margin: auto;
 }
 
 .TEMPLATE-4weird-overlay-content h2 {
