@@ -285,18 +285,24 @@ function initUI() {
     window.addEventListener('keyup', handleKeyUp);
 
     container = document.getElementById('game-container');
-    container.addEventListener('mousedown', () => { if (gameActive && !isPaused) setThrust(true); });
-    container.addEventListener('mouseup', () => { setThrust(false); });
-    container.addEventListener('mouseleave', () => { setThrust(false); });
+    const canvas = document.getElementById('TEMPLATE-4weird-gameCanvas');
+    canvas.addEventListener('mousedown', () => { if (gameActive && !isPaused) setThrust(true); });
+    canvas.addEventListener('mouseup', () => { setThrust(false); });
+    canvas.addEventListener('mouseleave', () => { setThrust(false); });
     
-    container.addEventListener('touchstart', (e) => { 
+    canvas.addEventListener('touchstart', (e) => { 
         if (gameActive && !isPaused) {
             e.preventDefault();
             setThrust(true); 
         }
     }, { passive: false });
     
-    container.addEventListener('touchend', (e) => { 
+    canvas.addEventListener('touchend', (e) => { 
+        e.preventDefault();
+        setThrust(false); 
+    }, { passive: false });
+    
+    canvas.addEventListener('touchcancel', (e) => { 
         e.preventDefault();
         setThrust(false); 
     }, { passive: false });
