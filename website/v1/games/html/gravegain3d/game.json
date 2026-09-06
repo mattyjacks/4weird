@@ -46,7 +46,7 @@
                 "description": "Three.js 3D Library"
             }
         ],
-        "local": ["engine/config.js", "engine/persistence.js", "engine/camera-controller.js", "world/collision.js", "engine/game-runtime.js", "engine/graphics-bridge.js", "engine/graphics-worker.js", "engine/performance-manager.js", "ui/combat-text.js", "game.css", "lore.js"]
+        "local": ["engine/config.js", "engine/persistence.js", "engine/camera-controller.js", "world/collision.js", "world/dungeon-generator.js", "audio/sound-engine.js", "input/input-manager.js", "graphics/procedural-textures.js", "graphics/particle-system.js", "entities/projectile.js", "engine/game-runtime.js", "engine/graphics-bridge.js", "engine/graphics-worker.js", "engine/performance-manager.js", "ui/combat-text.js", "game.css", "lore.js"]
     },
     "meta": {
         "version": "1.0.0",
