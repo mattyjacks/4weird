@@ -906,7 +906,9 @@
                     pickupRange: state.autoPickupRange,
                     cameraShake: document.getElementById('settingsCameraShake')?.checked,
                     cameraLead: document.getElementById('settingsCameraLead')?.checked,
-                    cameraPunch: document.getElementById('settingsCameraPunch')?.checked
+                    cameraPunch: document.getElementById('settingsCameraPunch')?.checked,
+                    controlMode: state.controlMode,
+                    gameSpeed: state.gameSpeed
                 }
             }));
         }
@@ -1151,6 +1153,11 @@
             this.prestige = 0;
             this.floorIndex = 1;
             this.difficultyMultiplierSetting = 'normal';
+            this.controlMode = 'realtime';
+            this.gameSpeed = 1;
+            this.chronoScale = 0.04;
+            this.turnCount = 1;
+            this.lastTurnInputAt = 0;
 
             // Active Game Variables
             this.player = null;
@@ -1195,6 +1202,8 @@
                     this.difficultyMultiplierSetting = saved.settings.difficulty || 'normal';
                     this.audio.masterVolume = Number.isFinite(saved.settings.volume) ? saved.settings.volume : 0.8;
                     this.autoPickupRange = saved.settings.pickupRange || 100;
+                    this.controlMode = saved.settings.controlMode || 'realtime';
+                    this.gameSpeed = saved.settings.gameSpeed || 1;
                     document.getElementById('settingsDifficulty').value = this.difficultyMultiplierSetting;
                     document.getElementById('settingsMasterVol').value = Math.round(this.audio.masterVolume * 100);
                     document.getElementById('settingsPickupRange').value = this.autoPickupRange;
@@ -1205,6 +1214,7 @@
                 }
             }
             this.updateHubQuartersUI();
+            this.setControlMode(this.controlMode);
         }
 
         saveState() {
@@ -1361,6 +1371,10 @@
             });
 
             document.getElementById('btnGenerateCircuit').addEventListener('click', () => this.generateRepairMiniGame());
+            document.querySelectorAll('.btn-mode').forEach(btn => btn.addEventListener('click', () => this.setControlMode(btn.dataset.mode)));
+            document.querySelectorAll('.btn-speed').forEach(btn => btn.addEventListener('click', () => this.setGameSpeed(btn.dataset.speed)));
+            document.getElementById('btnWaitTurn').addEventListener('click', () => this.executeTurnAction('wait'));
+            document.getElementById('mobileWaitBtn').addEventListener('touchstart', (e) => { e.preventDefault(); this.executeTurnAction('wait'); });
 
             // Game over button
             document.getElementById('btnGoToMenu').addEventListener('click', () => {
@@ -1686,19 +1700,103 @@
             }
         }
 
+        setControlMode(mode) {
+            this.controlMode = ['realtime', 'chrono', 'turnbased'].includes(mode) ? mode : 'realtime';
+            this.chronoScale = this.controlMode === 'chrono' ? 0.04 : 1;
+            document.querySelectorAll('.btn-mode').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === this.controlMode));
+            document.getElementById('speedSelectorGroup')?.classList.toggle('hidden', this.controlMode !== 'realtime');
+            document.getElementById('chronoDisplayGroup')?.classList.toggle('hidden', this.controlMode !== 'chrono');
+            document.getElementById('turnDisplayGroup')?.classList.toggle('hidden', this.controlMode !== 'turnbased');
+            document.getElementById('mobileWaitBtn')?.classList.toggle('hidden', this.controlMode !== 'turnbased');
+            this.turnCount = 1;
+            const counter = document.getElementById('hudTurnCounter');
+            if (counter) counter.textContent = 'Turn 1';
+        }
+
+        setGameSpeed(speed) {
+            this.gameSpeed = Math.max(0.5, Math.min(2, Number(speed) || 1));
+            document.querySelectorAll('.btn-speed').forEach(btn => btn.classList.toggle('active', Number(btn.dataset.speed) === this.gameSpeed));
+        }
+
+        executeTurnAction(action) {
+            if (this.controlMode !== 'turnbased' || !this.player || this.player.isDead) return;
+            const steps = { up:[0,-48], down:[0,48], left:[-48,0], right:[48,0] };
+            if (steps[action]) {
+                const [dx, dy] = steps[action];
+                this.player.angle = Math.atan2(dy, dx);
+                this.physics.moveEntityWithCollision(this.player, dx, dy, this.dungeon);
+            } else if (action === 'attack') this.triggerMeleeSwing();
+            else if (action === 'ability') this.player.triggerAbility();
+            else if (action === 'wait') this.player.stamina = Math.min(this.player.maxStamina, this.player.stamina + 25);
+            this.enemies.forEach(enemy => enemy.update(0.35, this.player, this.physics, this.dungeon));
+            this.enemies = this.enemies.filter(e => {
+                if (e.hp > 0) return true;
+                this.gold += 10;
+                this.runGold += 10;
+                this.runKills++;
+                this.player.xp += 5;
+                this.updateChallengeProgress('slay', 1);
+                this.updateChallengeProgress('gold', 10);
+                this.vfx.spawnBlood(e.x, e.y, e.bloodColor);
+                this.vfx.spawnGore(e.x, e.y);
+                this.audio.play('hit');
+                return false;
+            });
+            this.loot.forEach(l => {
+                if (Math.hypot(this.player.x - l.x, this.player.y - l.y) < this.player.radius + l.radius + 42) {
+                    this.gold += l.value;
+                    this.runGold += l.value;
+                    this.updateChallengeProgress('gold', l.value);
+                    l.picked = true;
+                    this.audio.play('loot');
+                }
+            });
+            this.loot = this.loot.filter(l => !l.picked);
+            const safespace = this.dungeon.rooms.find(r => r.type === 'safespace');
+            if (safespace && Math.hypot(this.player.x - (safespace.cx * 48 + 24), this.player.y - (safespace.cy * 48 + 24)) < 40) {
+                this.floorIndex++;
+                this.buildDungeonLayer();
+            }
+            this.turnCount++;
+            const counter = document.getElementById('hudTurnCounter');
+            if (counter) counter.textContent = `Turn ${this.turnCount}`;
+            this.updateHUD();
+        }
+
         // ==========================================
         // REVENUE & PHYSICS LOOP UPDATE
         // ==========================================
         update(dt) {
+            if (!this.player) return;
+            if (this.controlMode === 'turnbased') {
+                const keys = this.input.keys;
+                const joy = this.input.joystick;
+                const canUseJoy = joy.active && Math.hypot(joy.x, joy.y) > 0.65 && Date.now() - this.lastTurnInputAt > 240;
+                let joyAction = null;
+                if (canUseJoy) joyAction = Math.abs(joy.y) > Math.abs(joy.x) ? (joy.y < 0 ? 'up' : 'down') : (joy.x < 0 ? 'left' : 'right');
+                const action = keys['KeyW'] || keys['ArrowUp'] ? 'up' : keys['KeyS'] || keys['ArrowDown'] ? 'down' : keys['KeyA'] || keys['ArrowLeft'] ? 'left' : keys['KeyD'] || keys['ArrowRight'] ? 'right' : keys['Space'] ? 'wait' : this.input.mouse.click ? 'attack' : keys['KeyF'] || keys['ShiftLeft'] ? 'ability' : joyAction;
+                if (action) { ['KeyW','KeyS','KeyA','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','KeyF','ShiftLeft'].forEach(k => keys[k] = false); this.input.mouse.click = false; this.lastTurnInputAt = Date.now(); this.executeTurnAction(action); }
+                this.camera.update(dt, this.player.x, this.player.y, 0, 0, false, false);
+                return;
+            }
+            let effectiveDt = dt * (this.controlMode === 'realtime' ? this.gameSpeed : 1);
+            if (this.controlMode === 'chrono') {
+                const keys = this.input.keys;
+                const active = this.input.mouse.click || this.input.mouse.rightClick || this.input.joystick.active || ['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyF','ShiftLeft'].some(k => keys[k]);
+                this.chronoScale += ((active ? 1 : 0.04) - this.chronoScale) * 0.22;
+                effectiveDt = dt * this.chronoScale;
+                const badge = document.getElementById('chronoStatusBadge');
+                if (badge) badge.textContent = this.chronoScale > 0.25 ? `TIME FLOWING ${Math.round(this.chronoScale * 100)}%` : 'TIME FROZEN';
+            }
             const useShake = document.getElementById('settingsCameraShake').checked;
             const useLead = document.getElementById('settingsCameraLead').checked;
             const usePunch = document.getElementById('settingsCameraPunch').checked;
 
             // Update player
-            this.player.update(dt, this.input.keys, this.input, this.physics, this.dungeon);
+            this.player.update(effectiveDt, this.input.keys, this.input, this.physics, this.dungeon);
 
             // Update enemies
-            this.enemies.forEach(e => e.update(dt, this.player, this.physics, this.dungeon));
+            this.enemies.forEach(e => e.update(effectiveDt, this.player, this.physics, this.dungeon));
 
             // Clean up dead skeletons
             this.enemies = this.enemies.filter(e => {
@@ -1720,7 +1818,7 @@
 
             // Update loot pickup
             this.loot.forEach(l => {
-                l.update(dt, this.player, this.autoPickupRange);
+                l.update(effectiveDt, this.player, this.autoPickupRange);
                 const dist = Math.hypot(this.player.x - l.x, this.player.y - l.y);
                 if (dist < this.player.radius + l.radius) {
                     this.gold += l.value;
@@ -1738,10 +1836,10 @@
             this.loot = this.loot.filter(l => !l.picked);
 
             // Camera bounds
-            this.camera.update(dt, this.player.x, this.player.y, this.player.vx, this.player.vy, useLead, usePunch);
+            this.camera.update(effectiveDt, this.player.x, this.player.y, this.player.vx, this.player.vy, useLead, usePunch);
 
             // Update VFX
-            this.vfx.update(dt);
+            this.vfx.update(effectiveDt);
 
             // Check if player reaches stairs (End Zone/Stairs: safespace room center)
             const safespace = this.dungeon.rooms.find(r => r.type === 'safespace');

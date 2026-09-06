@@ -60,6 +60,24 @@
                 </div>
             </div>
 
+            <div class="control-modes-bar glass-panel" id="controlModesBar" aria-label="Game tempo controls">
+                <div class="mode-selector-group">
+                    <span class="mode-label">🕹️ MODE</span>
+                    <button class="btn-mode active" data-mode="realtime">⚡ Realtime</button>
+                    <button class="btn-mode" data-mode="chrono">⏳ Chrono-Lock</button>
+                    <button class="btn-mode" data-mode="turnbased">🎲 Turn-Based</button>
+                </div>
+                <div class="speed-selector-group" id="speedSelectorGroup">
+                    <span class="mode-label">SPEED</span>
+                    <button class="btn-speed" data-speed="0.5">0.5x</button>
+                    <button class="btn-speed active" data-speed="1">1x</button>
+                    <button class="btn-speed" data-speed="1.5">1.5x</button>
+                    <button class="btn-speed" data-speed="2">2x</button>
+                </div>
+                <div class="chrono-display-group hidden" id="chronoDisplayGroup"><span class="chrono-badge" id="chronoStatusBadge">TIME FROZEN</span><span>Act to advance time</span></div>
+                <div class="turn-display-group hidden" id="turnDisplayGroup"><span id="hudTurnCounter">Turn 1</span><button class="btn-game btn-wait-turn" id="btnWaitTurn">⏳ Wait</button><span id="hudTurnPhase">YOUR TURN</span></div>
+            </div>
+
             <!-- Double Canvas Viewport -->
             <div class="canvas-container" id="canvasContainer">
                 <button class="TEMPLATE-4weird-fullscreen-btn" id="gravegain-fullscreen-btn" title="Toggle Fullscreen" style="position: absolute; top: 15px; right: 15px; z-index: 100; background: rgba(10, 10, 15, 0.75); border: 1px solid var(--grave-border); color: var(--grave-text); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: 'Orbitron'; font-size: 0.8rem; transition: all 0.2s ease;">📺 Fullscreen</button>
@@ -73,6 +91,7 @@
                 <button class="mobile-action-button" id="mobileAttackBtn" aria-label="Attack">⚔️</button>
                 <button class="mobile-action-button mobile-block-button" id="mobileBlockBtn" aria-label="Block">🛡️</button>
                 <button class="mobile-action-button mobile-ability-button" id="mobileAbilityBtn" aria-label="Use class ability">✦</button>
+                <button class="mobile-action-button mobile-wait-button" id="mobileWaitBtn" aria-label="Wait turn">⏳</button>
             </div>
 
             <!-- Bottom action row -->
