@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>GraveGain3D - 4weird Games</title>
     <meta name="description" content="A premium 3D dark fantasy RPG action rogue-like featuring procedural levels, dynamic 3D lighting, combat systems, starship management hub, and botany station.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,6 +12,13 @@
     <link rel="stylesheet" href="game.css">
     <!-- Three.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="engine/config.js"></script>
+    <script src="engine/persistence.js"></script>
+    <script src="engine/camera-controller.js"></script>
+    <script src="world/collision.js"></script>
+    <script src="engine/graphics-bridge.js"></script>
+    <script src="engine/performance-manager.js"></script>
+    <script src="ui/combat-text.js"></script>
 </head>
 <body class="TEMPLATE-4weird-game-page">
     <canvas id="TEMPLATE-4weird-starfield"></canvas>
@@ -105,8 +112,9 @@
 
             <!-- Canvas Viewport -->
             <div class="canvas-container" id="canvasContainer">
-                <button class="TEMPLATE-4weird-fullscreen-btn" id="gravegain-fullscreen-btn" title="Toggle Fullscreen">📺 Fullscreen</button>
+                <button class="TEMPLATE-4weird-fullscreen-btn desktop-only" id="gravegain-fullscreen-btn" title="Toggle Fullscreen">📺 Fullscreen</button>
                 <canvas id="gameCanvas" width="1000" height="600"></canvas>
+                <canvas id="effectsCanvas" aria-hidden="true"></canvas>
                 <div id="hudCrosshair" class="hud-crosshair"></div>
 
                 <!-- Boss Health Bar -->
@@ -134,6 +142,50 @@
                 <!-- HUD Notification / Event Banner -->
                 <div id="hudNotification" class="hud-notification hidden"></div>
 
+                <!-- Mobile Top Mini-HUD Overlay (only shown on touch devices) -->
+                <div class="mobile-mini-hud" id="mobileMiniHud">
+                    <div class="mmh-stat">
+                        <span class="mmh-icon">❤️</span>
+                        <div class="mmh-bar-wrap"><div class="mmh-bar mmh-hp" id="mmhHpBar"></div></div>
+                        <span class="mmh-val" id="mmhHpText">100</span>
+                    </div>
+                    <div class="mmh-stat">
+                        <span class="mmh-icon">⚡</span>
+                        <div class="mmh-bar-wrap"><div class="mmh-bar mmh-sta" id="mmhStaBar"></div></div>
+                        <span class="mmh-val" id="mmhStaText">100</span>
+                    </div>
+                    <div class="mmh-center">
+                        <span class="mmh-floor" id="mmhFloor">L1</span>
+                        <span class="mmh-mode-badge" id="mmhModeBadge">⚡</span>
+                    </div>
+                    <div class="mmh-stat">
+                        <span class="mmh-icon">🪙</span>
+                        <span class="mmh-val" id="mmhGold">0</span>
+                    </div>
+                    <button class="mmh-settings-btn" id="mmhSettingsBtn" title="Settings">⚙️</button>
+                </div>
+
+                <!-- Mobile Mode Settings Panel -->
+                <div class="mobile-mode-panel hidden" id="mobileModePanel">
+                    <div class="mmp-title">🕹️ CONTROL MODE</div>
+                    <div class="mmp-modes">
+                        <button class="mmp-mode-btn active" data-mode="realtime">⚡<br><span>Realtime</span></button>
+                        <button class="mmp-mode-btn" data-mode="chrono">⏳<br><span>Chrono</span></button>
+                        <button class="mmp-mode-btn" data-mode="turnbased">🎲<br><span>Turn-Based</span></button>
+                    </div>
+                    <div class="mmp-speeds" id="mmpSpeeds">
+                        <div class="mmp-label">⏩ SPEED</div>
+                        <div class="mmp-speed-row">
+                            <button class="mmp-speed-btn" data-speed="0.25">0.25x</button>
+                            <button class="mmp-speed-btn" data-speed="0.5">0.5x</button>
+                            <button class="mmp-speed-btn active" data-speed="1.0">1x</button>
+                            <button class="mmp-speed-btn" data-speed="1.5">1.5x</button>
+                            <button class="mmp-speed-btn" data-speed="2.0">2x</button>
+                        </div>
+                    </div>
+                    <button class="mmp-close-btn" id="mmpCloseBtn">✕ Close</button>
+                </div>
+
                 <!-- Mobile Controls Overlay -->
                 <div class="mobile-touch-look-zone" id="mobileTouchLookZone"></div>
                 <div class="mobile-joystick-container" id="mobileJoystick">
@@ -147,10 +199,18 @@
                     <button class="mobile-action-btn btn-potion" id="mobilePotionBtn" title="Drink Potion">🧪<span id="mobilePotionCount">1</span></button>
                     <button class="mobile-action-btn btn-wait hidden" id="mobileWaitBtn" title="Wait Turn (Turn-based mode)">⏳</button>
                 </div>
+
+                <!-- Mobile Turn/Chrono Status Badge (bottom center) -->
+                <div class="mobile-status-bar hidden" id="mobileStatusBar">
+                    <span id="mobileStatusText">YOUR TURN</span>
+                </div>
+
+                <!-- Mobile Pause Button (top-right corner) -->
+                <button class="mobile-pause-btn" id="mobilePauseBtn" title="Pause">⏸</button>
             </div>
 
-            <!-- Bottom action row -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+            <!-- Bottom action row (desktop only) -->
+            <div class="desktop-bottom-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
                 <div style="display: flex; gap: 10px;">
                     <button class="btn-game" id="btnPause">⏸️ Pause</button>
                     <span id="controlsHint" class="controls-hint desktop-only">Controls: WASD Move | Mouse Look | Left-Click Attack | Right-Click Block | F Ability | Space Jump | Q Potion</span>
@@ -463,7 +523,7 @@
 
     <script src="../../../components.js"></script>
     <script src="lore.js"></script>
-    <script src="game.js"></script>
+    <script src="engine/game-runtime.js"></script>
     <script>
         (function() {
             fetch('game.json')

@@ -46,7 +46,7 @@
                 "description": "Three.js 3D Library"
             }
         ],
-        "local": ["game.js", "game.css", "lore.js"]
+        "local": ["engine/config.js", "engine/persistence.js", "engine/camera-controller.js", "world/collision.js", "engine/game-runtime.js", "engine/graphics-bridge.js", "engine/graphics-worker.js", "engine/performance-manager.js", "ui/combat-text.js", "game.css", "lore.js"]
     },
     "meta": {
         "version": "1.0.0",

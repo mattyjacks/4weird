@@ -18,6 +18,28 @@
         MAGE: 'mage'
     };
 
+    const DifficultyData = window.GraveGainConfig?.difficulty || {
+        normal: { hpMultiplier: 1, damageMultiplier: 1, xpMultiplier: 1, lootMultiplier: 1 }
+    };
+
+    // Pointer lock is optional (and commonly unavailable inside embedded game
+    // players). Never let a rejected lock request break the rest of the game.
+    function requestPointerLockSafely(element) {
+        if (!element?.requestPointerLock || document.body.classList.contains('touch-enabled')) return;
+        try {
+            const request = element.requestPointerLock();
+            if (request && typeof request.catch === 'function') request.catch(() => {});
+        } catch (_) { /* Mouse-look simply remains unlocked. */ }
+    }
+
+    function exitPointerLockSafely() {
+        if (!document.exitPointerLock || !document.pointerLockElement) return;
+        try {
+            const request = document.exitPointerLock();
+            if (request && typeof request.catch === 'function') request.catch(() => {});
+        } catch (_) { /* Already unlocked or unsupported by the host. */ }
+    }
+
     const RaceData = {
         [Race.HUMAN]: {
             name: 'Human',
@@ -561,49 +583,7 @@
     // =========================================================================
     // 4. FLOATING COMBAT TEXT & NOTIFICATIONS
     // =========================================================================
-    class CombatTextManager {
-        constructor(containerEl, camera) {
-            this.container = containerEl;
-            this.camera = camera;
-        }
-
-        spawnText(worldX, worldY, worldZ, text, type = 'damage') {
-            if (!this.container) return;
-
-            // Project 3D coordinate to 2D screen coordinates
-            const pos = new THREE.Vector3(worldX, worldY + 14, worldZ);
-            pos.project(this.camera);
-
-            // If behind camera view, don't show
-            if (pos.z > 1.0) return;
-
-            const rect = this.container.getBoundingClientRect();
-            const sx = (pos.x * 0.5 + 0.5) * rect.width;
-            const sy = (-(pos.y * 0.5) + 0.5) * rect.height;
-
-            const div = document.createElement('div');
-            div.className = `combat-text ${type}`;
-            div.style.left = `${sx}px`;
-            div.style.top = `${sy}px`;
-            div.textContent = text;
-            this.container.appendChild(div);
-
-            setTimeout(() => {
-                if (div.parentNode) div.parentNode.removeChild(div);
-            }, 850);
-        }
-
-        showBanner(text, duration = 2500) {
-            const banner = document.getElementById('hudNotification');
-            if (!banner) return;
-            banner.textContent = text;
-            banner.classList.remove('hidden');
-            clearTimeout(this.bannerTimer);
-            this.bannerTimer = setTimeout(() => {
-                banner.classList.add('hidden');
-            }, duration);
-        }
-    }
+    const CombatTextManager = window.GraveGainCombatTextManager;
 
     // =========================================================================
     // 5. INPUT MANAGER & FULL MOBILE CONTROLS
@@ -648,7 +628,7 @@
 
             container.addEventListener('mousedown', (e) => {
                 if (document.pointerLockElement !== container) {
-                    container.requestPointerLock();
+                    requestPointerLockSafely(container);
                 } else {
                     if (e.button === 0) {
                         this.mouse.click = true;
@@ -679,17 +659,35 @@
 
         setupMobileControls() {
             const isTouchSupported = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-            if (isTouchSupported) {
+            const isNarrowViewport = window.innerWidth <= 900;
+            const isPointerCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+            if (isTouchSupported || isNarrowViewport || isPointerCoarse) {
                 document.body.classList.add('touch-enabled');
             }
+            // Also watch for resize to toggle mobile layout
+            window.addEventListener('resize', () => {
+                const nowNarrow = window.innerWidth <= 900;
+                const nowTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+                const nowCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+                if (nowNarrow || nowTouch || nowCoarse) {
+                    document.body.classList.add('touch-enabled');
+                } else {
+                    document.body.classList.remove('touch-enabled');
+                }
+            });
 
-            // Virtual Analog Joystick
+            // Virtual analog joystick. Track the initiating pointer so a second
+            // finger used for looking or attacking cannot hijack movement.
             const joystickContainer = document.getElementById('mobileJoystick');
             const knob = document.getElementById('mobileJoystickKnob');
 
             if (joystickContainer && knob) {
+                let joystickPointerId = null;
                 const onJoyStart = (e) => {
-                    const touch = e.targetTouches ? e.targetTouches[0] : e;
+                    if (joystickPointerId !== null) return;
+                    e.preventDefault();
+                    joystickPointerId = e.pointerId;
+                    joystickContainer.setPointerCapture?.(e.pointerId);
                     const rect = joystickContainer.getBoundingClientRect();
                     this.joystick.active = true;
                     this.joystick.originX = rect.left + rect.width / 2;
@@ -698,10 +696,10 @@
                 };
 
                 const onJoyMove = (e) => {
-                    if (!this.joystick.active) return;
-                    const touch = e.targetTouches ? e.targetTouches[0] : e;
-                    const dx = touch.clientX - this.joystick.originX;
-                    const dy = touch.clientY - this.joystick.originY;
+                    if (!this.joystick.active || e.pointerId !== joystickPointerId) return;
+                    e.preventDefault();
+                    const dx = e.clientX - this.joystick.originX;
+                    const dy = e.clientY - this.joystick.originY;
                     const maxRadius = 45;
                     const dist = Math.hypot(dx, dy);
 
@@ -717,36 +715,43 @@
                     }
                 };
 
-                const onJoyEnd = () => {
+                const onJoyEnd = (e) => {
+                    if (e.pointerId !== joystickPointerId) return;
                     this.joystick.active = false;
                     this.joystick.x = 0;
                     this.joystick.y = 0;
+                    joystickPointerId = null;
                     knob.style.transform = 'translate(-50%, -50%)';
                 };
 
-                joystickContainer.addEventListener('touchstart', onJoyStart, { passive: false });
-                window.addEventListener('touchmove', onJoyMove, { passive: false });
-                window.addEventListener('touchend', onJoyEnd, { passive: false });
-                window.addEventListener('touchcancel', onJoyEnd, { passive: false });
+                joystickContainer.addEventListener('pointerdown', onJoyStart);
+                joystickContainer.addEventListener('pointermove', onJoyMove);
+                joystickContainer.addEventListener('pointerup', onJoyEnd);
+                joystickContainer.addEventListener('pointercancel', onJoyEnd);
+                joystickContainer.addEventListener('lostpointercapture', onJoyEnd);
             }
 
             // Mobile Touch Look Gesture
             const lookZone = document.getElementById('mobileTouchLookZone');
             if (lookZone) {
-                lookZone.addEventListener('touchstart', (e) => {
-                    const touch = e.targetTouches[0];
+                let lookPointerId = null;
+                lookZone.addEventListener('pointerdown', (e) => {
+                    if (lookPointerId !== null) return;
+                    e.preventDefault();
+                    lookPointerId = e.pointerId;
+                    lookZone.setPointerCapture?.(e.pointerId);
                     this.touchLook.active = true;
-                    this.touchLook.lastX = touch.clientX;
-                    this.touchLook.lastY = touch.clientY;
-                }, { passive: true });
+                    this.touchLook.lastX = e.clientX;
+                    this.touchLook.lastY = e.clientY;
+                });
 
-                lookZone.addEventListener('touchmove', (e) => {
-                    if (!this.touchLook.active || !window.GraveGainGame || !window.GraveGainGame.player) return;
-                    const touch = e.targetTouches[0];
-                    const dx = touch.clientX - this.touchLook.lastX;
-                    const dy = touch.clientY - this.touchLook.lastY;
-                    this.touchLook.lastX = touch.clientX;
-                    this.touchLook.lastY = touch.clientY;
+                lookZone.addEventListener('pointermove', (e) => {
+                    if (e.pointerId !== lookPointerId || !this.touchLook.active || !window.GraveGainGame || !window.GraveGainGame.player) return;
+                    e.preventDefault();
+                    const dx = e.clientX - this.touchLook.lastX;
+                    const dy = e.clientY - this.touchLook.lastY;
+                    this.touchLook.lastX = e.clientX;
+                    this.touchLook.lastY = e.clientY;
 
                     const p = window.GraveGainGame.player;
                     const sens = this.lookSensitivity * 1.5;
@@ -755,11 +760,16 @@
                     p.pitch -= moveY * sens;
                     p.pitch = Math.max(-Math.PI / 2.3, Math.min(Math.PI / 2.3, p.pitch));
                     this.lastLookDelta = (this.lastLookDelta || 0) + Math.abs(dx) + Math.abs(dy);
-                }, { passive: true });
+                });
 
-                lookZone.addEventListener('touchend', () => {
+                const endLook = (e) => {
+                    if (e.pointerId !== lookPointerId) return;
                     this.touchLook.active = false;
-                }, { passive: true });
+                    lookPointerId = null;
+                };
+                lookZone.addEventListener('pointerup', endLook);
+                lookZone.addEventListener('pointercancel', endLook);
+                lookZone.addEventListener('lostpointercapture', endLook);
             }
 
             // Mobile Action Buttons
@@ -771,53 +781,73 @@
             const waitBtn = document.getElementById('mobileWaitBtn');
 
             if (attackBtn) {
-                attackBtn.addEventListener('touchstart', (e) => {
+                attackBtn.addEventListener('pointerdown', (e) => {
                     e.preventDefault();
                     this.mouse.click = true;
+                });
+                attackBtn.addEventListener('click', (e) => {
+                    if (e.detail === 0) this.mouse.click = true;
                 });
             }
 
             if (blockBtn) {
-                blockBtn.addEventListener('touchstart', (e) => {
+                blockBtn.addEventListener('pointerdown', (e) => {
                     e.preventDefault();
                     this.mouse.isBlocking = true;
                     this.mouse.rightClick = true;
                 });
-                blockBtn.addEventListener('touchend', (e) => {
-                    e.preventDefault();
+                const endBlock = () => {
                     this.mouse.isBlocking = false;
+                };
+                blockBtn.addEventListener('pointerup', endBlock);
+                blockBtn.addEventListener('pointercancel', endBlock);
+                blockBtn.addEventListener('lostpointercapture', endBlock);
+                blockBtn.addEventListener('click', (e) => {
+                    if (e.detail !== 0) return;
+                    this.mouse.rightClick = true;
+                    this.mouse.isBlocking = true;
+                    requestAnimationFrame(() => { this.mouse.isBlocking = false; });
                 });
             }
 
             if (abilityBtn) {
-                abilityBtn.addEventListener('touchstart', (e) => {
+                abilityBtn.addEventListener('pointerdown', (e) => {
                     e.preventDefault();
                     this.keys['KeyF'] = true;
+                });
+                abilityBtn.addEventListener('click', (e) => {
+                    if (e.detail === 0) this.keys['KeyF'] = true;
                 });
             }
 
             if (jumpBtn) {
-                jumpBtn.addEventListener('touchstart', (e) => {
+                jumpBtn.addEventListener('pointerdown', (e) => {
                     e.preventDefault();
                     this.keys['Space'] = true;
+                });
+                jumpBtn.addEventListener('click', (e) => {
+                    if (e.detail === 0) this.keys['Space'] = true;
                 });
             }
 
             if (potionBtn) {
-                potionBtn.addEventListener('touchstart', (e) => {
+                potionBtn.addEventListener('pointerdown', (e) => {
                     e.preventDefault();
                     if (window.GraveGainGame) window.GraveGainGame.usePotion();
+                });
+                potionBtn.addEventListener('click', (e) => {
+                    if (e.detail === 0 && window.GraveGainGame) window.GraveGainGame.usePotion();
                 });
             }
 
             if (waitBtn) {
-                waitBtn.addEventListener('touchstart', (e) => {
+                waitBtn.addEventListener('pointerdown', (e) => {
                     e.preventDefault();
                     if (window.GraveGainGame) window.GraveGainGame.executeTurnAction('wait');
                 });
                 waitBtn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    if (window.GraveGainGame) window.GraveGainGame.executeTurnAction('wait');
+                    if (e.detail === 0 && window.GraveGainGame) window.GraveGainGame.executeTurnAction('wait');
                 });
             }
         }
@@ -1297,9 +1327,9 @@
             this.type = typeData.type || 'skeleton';
             this.isBoss = !!typeData.isBoss;
 
-            this.maxHp = typeData.hp * difficultyScale;
+            this.maxHp = typeData.hp * difficultyScale * (typeData.hpMultiplier || 1);
             this.hp = this.maxHp;
-            this.dmg = typeData.dmg * difficultyScale;
+            this.dmg = typeData.dmg * difficultyScale * (typeData.damageMultiplier || 1);
             this.speed = typeData.speed;
             this.scale = typeData.scale || 1.0;
             this.bloodColor = typeData.bloodColor || 0xddddcc;
@@ -1663,94 +1693,17 @@
     // =========================================================================
     // 12. PHYSICS CONTROLLER
     // =========================================================================
-    class PhysicsController {
-        moveEntityWithCollision(ent, dx, dy, tilemap) {
-            if (!tilemap) {
-                ent.x += dx;
-                ent.y += dy;
-                return;
-            }
-            const ox = ent.x;
-            const oy = ent.y;
-
-            ent.x += dx;
-            if (this.isColliding(ent.x, ent.y, ent.radius, tilemap)) {
-                ent.x = ox;
-            }
-
-            ent.y += dy;
-            if (this.isColliding(ent.x, ent.y, ent.radius, tilemap)) {
-                ent.y = oy;
-            }
-        }
-
-        isColliding(x, y, radius, tilemap) {
-            if (!tilemap || !tilemap.grid) return false;
-            const pts = [
-                { x: x - radius, y: y - radius },
-                { x: x + radius, y: y - radius },
-                { x: x - radius, y: y + radius },
-                { x: x + radius, y: y + radius }
-            ];
-            for (const p of pts) {
-                const tx = Math.floor(p.x / 48);
-                const ty = Math.floor(p.y / 48);
-                if (tx < 0 || tx >= tilemap.gridSize || ty < 0 || ty >= tilemap.gridSize) return true;
-                const cell = tilemap.grid[tx][ty];
-                if (cell === 1 || cell === 6) return true;
-            }
-            return false;
-        }
-    }
+    const PhysicsController = window.GraveGainPhysicsController;
 
     // =========================================================================
     // 13. CAMERA CONTROLLER
     // =========================================================================
-    class CameraController {
-        constructor() {
-            this.shake = 0;
-            this.punchX = 0;
-            this.punchY = 0;
-        }
-
-        applyShake(amt) {
-            this.shake = Math.min(this.shake + amt, 14);
-        }
-
-        applyPunch(vy, vx = 0) {
-            this.punchY += vy;
-            this.punchX += vx;
-        }
-
-        update(dt) {
-            if (this.shake > 0) this.shake = Math.max(0, this.shake - 25 * dt);
-            this.punchX -= this.punchX * 10 * dt;
-            this.punchY -= this.punchY * 10 * dt;
-        }
-    }
+    const CameraController = window.GraveGainCameraController;
 
     // =========================================================================
     // 14. SAVE SYSTEM
     // =========================================================================
-    class SaveSystem {
-        static save(game) {
-            localStorage.setItem('GraveGain3D_Save_V2', JSON.stringify({
-                gold: game.gold,
-                uusd: game.uusd,
-                quartersLevel: game.quartersLevel,
-                armoryRanks: game.armoryRanks,
-                botanyCrops: game.botanyCrops
-            }));
-        }
-
-        static load() {
-            const data = localStorage.getItem('GraveGain3D_Save_V2');
-            if (data) {
-                try { return JSON.parse(data); } catch(e) { return null; }
-            }
-            return null;
-        }
-    }
+    const SaveSystem = window.GraveGainSaveSystem;
 
     // =========================================================================
     // 15. MAIN GRAVEGAIN3D GAME ENGINE
@@ -1762,8 +1715,11 @@
 
             this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, powerPreference: 'high-performance' });
             this.renderer.setSize(this.container.clientWidth || 1000, this.container.clientHeight || 600);
-            this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            this.performance = new window.GraveGainPerformanceManager(this.renderer);
             this.renderer.shadowMap.enabled = false;
+            this.graphics = new window.GraveGainGraphicsBridge(
+                document.getElementById('effectsCanvas'), this.container
+            );
 
             this.scene = new THREE.Scene();
             this.scene.background = new THREE.Color(0x04030a);
@@ -1809,6 +1765,7 @@
             this.quartersLevel = 1;
             this.floorIndex = 1;
             this.difficulty = 'normal';
+            this.kills = 0;
             this.armoryRanks = { health: 0, damage: 0, speed: 0, potions: 0, greed: 0 };
 
             this.botanyCrops = [
@@ -1864,9 +1821,13 @@
                 this.camera3d.aspect = w / h;
                 this.camera3d.updateProjectionMatrix();
                 this.renderer.setSize(w, h);
+                this.graphics.resize();
             };
             window.addEventListener('resize', onResize);
             document.addEventListener('fullscreenchange', onResize);
+            document.addEventListener('visibilitychange', () => {
+                this.graphics.setActive(!document.hidden);
+            });
         }
 
         loadSave() {
@@ -1877,7 +1838,10 @@
                 this.quartersLevel = data.quartersLevel || 1;
                 if (data.armoryRanks) this.armoryRanks = data.armoryRanks;
                 if (data.botanyCrops) this.botanyCrops = data.botanyCrops;
+                if (DifficultyData[data.difficulty]) this.difficulty = data.difficulty;
             }
+            const difficultySelect = document.getElementById('settingsDifficulty');
+            if (difficultySelect) difficultySelect.value = this.difficulty;
             this.updateHubQuartersUI();
             this.renderArmory();
         }
@@ -1888,8 +1852,10 @@
 
         startLoop() {
             const frame = (t) => {
-                const dt = Math.min((t - this.lastFrameTime) / 1000, 0.1);
+                const frameMs = t - this.lastFrameTime;
+                const dt = Math.min(frameMs / 1000, 0.1);
                 this.lastFrameTime = t;
+                this.performance.sample(frameMs);
 
                 if (!this.isPaused) {
                     this.update(dt);
@@ -1904,6 +1870,7 @@
         initRun(race, classType) {
             this.player = new PlayerEntity(race, classType, this.armoryRanks);
             this.floorIndex = 1;
+            this.kills = 0;
             this.turnCount = 1;
             this.isTurnProcessing = false;
             this.chronoScale = 1.0;
@@ -2025,6 +1992,7 @@
 
             // Spawn Torches, Props & Enemies in rooms
             const diffScale = 1.0 + (this.floorIndex * 0.18);
+            const difficulty = DifficultyData[this.difficulty] || DifficultyData.normal;
 
             this.dungeon.rooms.forEach((room) => {
                 // Spawn torch on room wall
@@ -2051,7 +2019,9 @@
                         speed: 75,
                         scale: 2.5,
                         isBoss: true,
-                        attackInterval: 1.4
+                        attackInterval: 1.4,
+                        hpMultiplier: difficulty.hpMultiplier,
+                        damageMultiplier: difficulty.damageMultiplier
                     }, room.cx * 48 + 24, room.cy * 48 + 24, diffScale);
                     this.scene.add(boss.group3d);
                     this.enemies.push(boss);
@@ -2097,6 +2067,9 @@
                     } else if (rand < 0.85) {
                         eData = { name: 'Skeleton Necromancer', hp: 45, dmg: 18, speed: 70, scale: 1.0, type: 'mage' };
                     }
+
+                    eData.hpMultiplier = difficulty.hpMultiplier;
+                    eData.damageMultiplier = difficulty.damageMultiplier;
 
                     const enemy = new EnemyEntity(eData, ex, ey, diffScale);
                     this.scene.add(enemy.group3d);
@@ -2222,6 +2195,7 @@
             // Trigger hitstop & audio
             this.hitstop = 0.04;
             this.vfx.spawnBlood(enemy.x, enemy.y, enemy.bloodColor);
+            this.emitGraphicsBurst(enemy.x, enemy.y, isCrit ? '#fbbf24' : '#ef4444', isCrit ? 1.5 : 0.8);
             this.audio.playSfx(isCrit ? 'crit' : 'hit');
 
             // Crosshair hit indicator
@@ -2354,12 +2328,12 @@
                     }
                     screen.classList.add('hidden');
                     this.isPaused = false;
-                    this.container.requestPointerLock();
+                    requestPointerLockSafely(this.container);
                 });
             });
 
             screen.classList.remove('hidden');
-            document.exitPointerLock();
+            exitPointerLockSafely();
         }
 
         setControlMode(mode) {
@@ -2375,29 +2349,53 @@
                 card.classList.toggle('selected', card.dataset.mode === mode);
             });
 
+            // Update Mobile Mode Panel buttons
+            document.querySelectorAll('.mmp-mode-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.mode === mode);
+            });
+
             const speedGroup = document.getElementById('speedSelectorGroup');
             const turnGroup = document.getElementById('turnDisplayGroup');
             const chronoGroup = document.getElementById('chronoDisplayGroup');
             const mobileWait = document.getElementById('mobileWaitBtn');
             const controlsHint = document.getElementById('controlsHint');
+            const mmpSpeeds = document.getElementById('mmpSpeeds');
+            const mmhModeBadge = document.getElementById('mmhModeBadge');
+            const mobileStatusBar = document.getElementById('mobileStatusBar');
+            const mobileStatusText = document.getElementById('mobileStatusText');
 
             if (mode === 'realtime') {
                 if (speedGroup) speedGroup.classList.remove('hidden');
                 if (turnGroup) turnGroup.classList.add('hidden');
                 if (chronoGroup) chronoGroup.classList.add('hidden');
                 if (mobileWait) mobileWait.classList.add('hidden');
+                if (mmpSpeeds) mmpSpeeds.style.display = 'flex';
+                if (mmhModeBadge) mmhModeBadge.textContent = '⚡ RT';
+                if (mobileStatusBar) mobileStatusBar.classList.add('hidden');
                 if (controlsHint) controlsHint.textContent = 'Controls: WASD Move | Mouse Look | Left-Click Attack | Right-Click Block | F Ability | Space Jump | Q Potion';
             } else if (mode === 'chrono') {
                 if (speedGroup) speedGroup.classList.add('hidden');
                 if (turnGroup) turnGroup.classList.add('hidden');
                 if (chronoGroup) chronoGroup.classList.remove('hidden');
                 if (mobileWait) mobileWait.classList.add('hidden');
+                if (mmpSpeeds) mmpSpeeds.style.display = 'none';
+                if (mmhModeBadge) mmhModeBadge.textContent = '⏳ CHR';
+                if (mobileStatusBar) {
+                    mobileStatusBar.classList.remove('hidden');
+                    if (mobileStatusText) mobileStatusText.textContent = 'TIME FROZEN';
+                }
                 if (controlsHint) controlsHint.textContent = 'Chrono-Lock: Time moves ONLY when you move, look, or attack! Freeze still to dodge.';
             } else if (mode === 'turnbased') {
                 if (speedGroup) speedGroup.classList.add('hidden');
                 if (turnGroup) turnGroup.classList.remove('hidden');
                 if (chronoGroup) chronoGroup.classList.add('hidden');
                 if (mobileWait) mobileWait.classList.remove('hidden');
+                if (mmpSpeeds) mmpSpeeds.style.display = 'none';
+                if (mmhModeBadge) mmhModeBadge.textContent = '🎲 TB';
+                if (mobileStatusBar) {
+                    mobileStatusBar.classList.remove('hidden');
+                    if (mobileStatusText) mobileStatusText.textContent = 'YOUR TURN';
+                }
                 if (controlsHint) controlsHint.textContent = 'Turn-Based: WASD Step (1 tile) | Left-Click Attack | ⏳ Wait Turn (Space / Button) | Q Potion';
                 this.turnCount = 1;
                 const turnCounter = document.getElementById('hudTurnCounter');
@@ -2511,6 +2509,8 @@
                 phaseBadge.textContent = 'ENEMY TURN';
                 phaseBadge.className = 'turn-phase-badge enemy-phase';
             }
+            const mobileStatusText2 = document.getElementById('mobileStatusText');
+            if (mobileStatusText2) mobileStatusText2.textContent = 'ENEMY TURN ⚔️';
 
             setTimeout(() => {
                 if (!this.player || this.player.isDead) {
@@ -2588,10 +2588,12 @@
                 this.enemies.forEach(e => {
                     if (e.hp <= 0) {
                         const greedMult = this.armoryRanks.greed ? (1.0 + this.armoryRanks.greed * 0.25) : 1.0;
-                        const goldGain = Math.round((e.isBoss ? 150 : 15) * greedMult);
-                        const xpGain = e.isBoss ? 120 : 25;
+                        const difficulty = DifficultyData[this.difficulty] || DifficultyData.normal;
+                        const goldGain = Math.round((e.isBoss ? 150 : 15) * greedMult * difficulty.lootMultiplier);
+                        const xpGain = Math.round((e.isBoss ? 120 : 25) * difficulty.xpMultiplier);
 
                         this.gold += goldGain;
+                        this.kills++;
                         this.player.addXp(xpGain);
                         this.vfx.spawnBlood(e.x, e.y, e.bloodColor);
 
@@ -2619,6 +2621,8 @@
                     phaseBadge.textContent = 'YOUR TURN';
                     phaseBadge.className = 'turn-phase-badge player-phase';
                 }
+                const mobileStatusTextEnd = document.getElementById('mobileStatusText');
+                if (mobileStatusTextEnd) mobileStatusTextEnd.textContent = `YOUR TURN (T${this.turnCount})`;
                 this.isTurnProcessing = false;
                 this.updateHUD();
                 this.drawMinimap();
@@ -2660,13 +2664,16 @@
                 }
 
                 const badge = document.getElementById('chronoStatusBadge');
+                const mobileSt = document.getElementById('mobileStatusText');
                 if (badge) {
                     if (this.chronoScale > 0.25) {
                         badge.textContent = `TIME FLOWING (${Math.round(this.chronoScale * 100)}%)`;
                         badge.className = 'chrono-badge flowing';
+                        if (mobileSt) mobileSt.textContent = `⏩ ${Math.round(this.chronoScale * 100)}%`;
                     } else {
                         badge.textContent = 'TIME FROZEN';
                         badge.className = 'chrono-badge frozen';
+                        if (mobileSt) mobileSt.textContent = '❄️ FROZEN';
                     }
                 }
             } else if (this.controlMode === 'turnbased') {
@@ -2740,10 +2747,12 @@
                 this.enemies.forEach(e => {
                     if (e.hp <= 0) {
                         const greedMult = this.armoryRanks.greed ? (1.0 + this.armoryRanks.greed * 0.25) : 1.0;
-                        const goldGain = Math.round((e.isBoss ? 150 : 15) * greedMult);
-                        const xpGain = e.isBoss ? 120 : 25;
+                        const difficulty = DifficultyData[this.difficulty] || DifficultyData.normal;
+                        const goldGain = Math.round((e.isBoss ? 150 : 15) * greedMult * difficulty.lootMultiplier);
+                        const xpGain = Math.round((e.isBoss ? 120 : 25) * difficulty.xpMultiplier);
 
                         this.gold += goldGain;
+                        this.kills++;
                         this.player.addXp(xpGain);
                         this.vfx.spawnBlood(e.x, e.y, e.bloodColor);
 
@@ -2862,9 +2871,10 @@
             }
 
             // Torches gentle flicker
+            const dynamicLights = document.getElementById('settingsDynamicLights').checked;
             this.torches.forEach(t => {
                 const f = Math.sin(Date.now() * 0.008 + t.seed);
-                t.light.intensity = t.baseIntensity + f * 0.4;
+                t.light.intensity = dynamicLights ? t.baseIntensity + f * 0.4 : t.baseIntensity;
             });
 
             // Camera orientation & follow
@@ -3003,10 +3013,40 @@
             document.getElementById('hudGoldText').textContent = this.gold;
             document.getElementById('hudUusdText').textContent = this.uusd;
             document.getElementById('hudFloorText').textContent = `Layer ${this.floorIndex}`;
+
+            // === Mobile Mini-HUD Updates ===
+            const hpPct = Math.max(0, (this.player.hp / this.player.maxHp) * 100);
+            const staPct = (this.player.stamina / this.player.maxStamina) * 100;
+            const mmhHp = document.getElementById('mmhHpBar');
+            const mmhSta = document.getElementById('mmhStaBar');
+            const mmhHpTxt = document.getElementById('mmhHpText');
+            const mmhStaTxt = document.getElementById('mmhStaText');
+            const mmhGold = document.getElementById('mmhGold');
+            const mmhFloor = document.getElementById('mmhFloor');
+
+            if (mmhHp) mmhHp.style.width = `${hpPct}%`;
+            if (mmhSta) mmhSta.style.width = `${staPct}%`;
+            if (mmhHpTxt) mmhHpTxt.textContent = Math.round(this.player.hp);
+            if (mmhStaTxt) mmhStaTxt.textContent = Math.round(this.player.stamina);
+            if (mmhGold) mmhGold.textContent = this.gold;
+            if (mmhFloor) mmhFloor.textContent = `L${this.floorIndex}`;
         }
 
         render() {
             this.renderer.render(this.scene, this.camera3d);
+        }
+
+        emitGraphicsBurst(worldX, worldZ, color = '#ffcc4c', strength = 1) {
+            if (!this.graphics.enabled) return;
+            const point = new THREE.Vector3(worldX, 16, worldZ).project(this.camera3d);
+            if (point.z < -1 || point.z > 1) return;
+            const rect = this.container.getBoundingClientRect();
+            this.graphics.burst(
+                (point.x * 0.5 + 0.5) * rect.width,
+                (-point.y * 0.5 + 0.5) * rect.height,
+                color,
+                strength
+            );
         }
 
         togglePause() {
@@ -3014,12 +3054,15 @@
                 document.getElementById('pauseScreen').classList.add('hidden');
                 this.container.classList.remove('paused');
                 this.isPaused = false;
-                this.container.requestPointerLock();
+                // Only request pointer lock on desktop (not touch devices)
+                if (!document.body.classList.contains('touch-enabled')) {
+                    requestPointerLockSafely(this.container);
+                }
             } else {
                 this.isPaused = true;
                 this.container.classList.add('paused');
                 document.getElementById('pauseScreen').classList.remove('hidden');
-                document.exitPointerLock();
+                exitPointerLockSafely();
             }
         }
 
@@ -3033,6 +3076,7 @@
 
             document.getElementById('goRaceClass').textContent = `${this.player.race.toUpperCase()} ${this.player.classType.toUpperCase()}`;
             document.getElementById('goFloor').textContent = `Layer ${this.floorIndex}`;
+            document.getElementById('goKills').textContent = this.kills;
             document.getElementById('goGold').textContent = this.gold;
             document.getElementById('goXp').textContent = this.player.xp;
 
@@ -3067,6 +3111,8 @@
 
             document.getElementById('btnSaveSettings').addEventListener('click', () => {
                 this.audio.masterVolume = document.getElementById('settingsMasterVol').value / 100;
+                const requestedDifficulty = document.getElementById('settingsDifficulty').value;
+                this.difficulty = DifficultyData[requestedDifficulty] ? requestedDifficulty : 'normal';
                 this.input.lookSensitivity = (parseFloat(document.getElementById('settingsMouseSens').value) || 3.5) * 0.00065;
                 this.input.invertY = document.getElementById('settingsInvertY').checked;
 
@@ -3076,7 +3122,11 @@
                 } else if (touchMode === 'never') {
                     document.body.classList.remove('touch-enabled');
                 } else {
-                    if (('ontouchstart' in window) || navigator.maxTouchPoints > 0) {
+                    const shouldUseTouchUi = ('ontouchstart' in window) ||
+                        navigator.maxTouchPoints > 0 ||
+                        window.innerWidth <= 900 ||
+                        (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+                    if (shouldUseTouchUi) {
                         document.body.classList.add('touch-enabled');
                     } else {
                         document.body.classList.remove('touch-enabled');
@@ -3084,6 +3134,7 @@
                 }
 
                 document.getElementById('settingsScreen').classList.add('hidden');
+                this.saveSave();
             });
 
             document.getElementById('btnCharSelectBack').addEventListener('click', () => {
@@ -3132,6 +3183,71 @@
                     this.setControlMode(mode);
                 });
             });
+
+            // === MOBILE PANEL UI WIRING ===
+            const mobileModePanel = document.getElementById('mobileModePanel');
+            const mmhSettingsBtn = document.getElementById('mmhSettingsBtn');
+            const mmpCloseBtn = document.getElementById('mmpCloseBtn');
+            const mobilePauseBtn = document.getElementById('mobilePauseBtn');
+
+            if (mmhSettingsBtn && mobileModePanel) {
+                mmhSettingsBtn.addEventListener('click', () => {
+                    mobileModePanel.classList.toggle('hidden');
+                });
+                mmhSettingsBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    mobileModePanel.classList.toggle('hidden');
+                });
+            }
+
+            if (mmpCloseBtn && mobileModePanel) {
+                mmpCloseBtn.addEventListener('click', () => {
+                    mobileModePanel.classList.add('hidden');
+                });
+                mmpCloseBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    mobileModePanel.classList.add('hidden');
+                });
+            }
+
+            // Mobile mode buttons
+            document.querySelectorAll('.mmp-mode-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const mode = e.currentTarget.dataset.mode;
+                    this.setControlMode(mode);
+                    if (mobileModePanel) mobileModePanel.classList.add('hidden');
+                });
+                btn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    const mode = e.currentTarget.dataset.mode;
+                    this.setControlMode(mode);
+                    if (mobileModePanel) mobileModePanel.classList.add('hidden');
+                });
+            });
+
+            // Mobile speed buttons
+            document.querySelectorAll('.mmp-speed-btn').forEach(btn => {
+                const applySpeed = (e) => {
+                    e.preventDefault();
+                    const speed = e.currentTarget.dataset.speed;
+                    this.setGameSpeed(speed);
+                    // sync mmp-speed-btn active states
+                    document.querySelectorAll('.mmp-speed-btn').forEach(b => {
+                        b.classList.toggle('active', parseFloat(b.dataset.speed) === this.gameSpeed);
+                    });
+                };
+                btn.addEventListener('click', applySpeed);
+                btn.addEventListener('touchstart', applySpeed);
+            });
+
+            // Mobile pause button
+            if (mobilePauseBtn) {
+                mobilePauseBtn.addEventListener('click', () => this.togglePause());
+                mobilePauseBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.togglePause();
+                });
+            }
 
             document.getElementById('btnLeaveHub').addEventListener('click', () => {
                 document.getElementById('hubScreen').classList.add('hidden');
@@ -3186,14 +3302,21 @@
             // Quarters Upgrade
             document.getElementById('btnUpgradeQuarters').addEventListener('click', () => {
                 if (this.quartersLevel < 6) {
-                    const cost = QuartersUpgrades[this.quartersLevel - 1].cost;
+                    // The displayed next-level cost belongs to the next entry,
+                    // not the current level's historical purchase price.
+                    const cost = QuartersUpgrades[this.quartersLevel].cost;
                     if (this.uusd >= cost) {
                         this.uusd -= cost;
                         this.quartersLevel++;
                         this.audio.playSfx('levelup');
                         this.updateHubQuartersUI();
+                        this.saveSave();
                     }
                 }
+            });
+
+            document.getElementById('btnGenerateCircuit').addEventListener('click', () => {
+                this.generateRepairMiniGame();
             });
 
             // Potion Drink Buttons
@@ -3210,7 +3333,7 @@
                 document.getElementById('pauseScreen').classList.add('hidden');
                 document.getElementById('gameMain').classList.add('hidden');
                 document.getElementById('mainMenuScreen').classList.remove('hidden');
-                document.exitPointerLock();
+                exitPointerLockSafely();
                 this.saveSave();
             });
 
@@ -3220,7 +3343,7 @@
                 this.audio.stopAmbientMusic();
                 document.getElementById('gameMain').classList.add('hidden');
                 document.getElementById('mainMenuScreen').classList.remove('hidden');
-                document.exitPointerLock();
+                exitPointerLockSafely();
                 this.saveSave();
             });
 
