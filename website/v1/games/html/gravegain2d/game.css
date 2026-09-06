@@ -520,6 +520,7 @@
     background: rgba(220, 30, 80, 0.3);
     border: 2px solid rgba(220, 30, 80, 0.6);
     border-radius: 50%;
+    padding: 0;
     display: none;
     justify-content: center;
     align-items: center;
@@ -527,6 +528,20 @@
     color: white;
     touch-action: none;
     z-index: 50;
+}
+
+.mobile-block-button {
+    bottom: 118px;
+    right: 26px;
+    background: rgba(35, 110, 180, 0.32);
+    border-color: rgba(84, 180, 255, 0.7);
+}
+
+.mobile-ability-button {
+    bottom: 32px;
+    right: 118px;
+    background: rgba(129, 66, 222, 0.35);
+    border-color: rgba(184, 125, 255, 0.8);
 }
 
 /* ===== FULLSCREEN MODE ===== */
@@ -541,4 +556,66 @@
 .canvas-container:fullscreen #lightingCanvas {
     width: 100%;
     height: 100%;
+}
+
+@media (max-width: 800px), (pointer: coarse) {
+    .game-wrapper {
+        margin: 58px auto 20px;
+        padding: 0 10px;
+    }
+
+    .game-hud {
+        align-items: stretch;
+        padding: 10px;
+        gap: 8px;
+        flex-direction: column;
+    }
+
+    .hud-group {
+        justify-content: space-between;
+        gap: 6px;
+    }
+
+    .hud-stat { min-width: 0; flex: 1; }
+    .hud-bar-container { width: 100%; height: 7px; }
+    .hud-label { font-size: 0.62rem; letter-spacing: 0.04em; }
+    .hud-value { font-size: 0.72rem; }
+
+    .canvas-container {
+        height: min(68vh, 620px);
+        min-height: 390px;
+        border-radius: 8px;
+    }
+
+    .mobile-joystick-container, .mobile-action-button { display: flex; }
+    .mobile-joystick-container { display: block; opacity: 0.9; }
+    .TEMPLATE-4weird-fullscreen-btn { top: 8px !important; right: 8px !important; font-size: 0.65rem !important; padding: 5px 8px !important; }
+
+    .screen-overlay { position: fixed; inset: 0; width: 100vw; height: 100dvh; overflow-y: auto; align-items: flex-start; padding: 12px 0 32px; box-sizing: border-box; }
+    .menu-content { width: calc(100% - 24px); padding: 22px 16px; margin: auto; box-sizing: border-box; }
+    .menu-title { font-size: 2rem; letter-spacing: 1px; }
+    .menu-subtitle { margin-bottom: 18px; font-size: 0.72rem; }
+    .btn-game { min-height: 44px; padding: 11px 14px; font-size: 0.78rem; }
+    .char-card { padding: 10px 7px; }
+    .char-emoji { font-size: 1.75rem; margin-bottom: 4px; }
+    .char-name { font-size: 0.9rem; }
+    .char-desc { font-size: 0.66rem; }
+    .class-select { grid-template-columns: repeat(2, 1fr); }
+    .hub-header { align-items: flex-start; flex-direction: column; gap: 12px; }
+    .hub-tabs { width: 100%; overflow-x: auto; gap: 2px; padding-bottom: 4px; }
+    .hub-tab-btn { white-space: nowrap; padding: 8px 10px; font-size: 0.74rem; }
+    .botany-grid { grid-template-columns: 1fr; }
+    .stat-row { font-size: 0.78rem; gap: 12px; }
+    #tab-lore > div[style*="height"] { height: auto !important; min-height: 320px; flex-direction: column; gap: 10px !important; }
+    #loreList { width: auto !important; max-height: 140px; }
+    #loreReader { min-height: 200px; }
+}
+
+@media (max-width: 420px) {
+    .canvas-container { min-height: 350px; height: 62vh; }
+    .mobile-joystick-container { width: 86px; height: 86px; bottom: 20px; left: 18px; }
+    .mobile-joystick-knob { width: 34px; height: 34px; }
+    .mobile-action-button { width: 58px; height: 58px; font-size: 1.25rem; bottom: 20px; right: 18px; }
+    .mobile-block-button { bottom: 88px; right: 18px; }
+    .mobile-ability-button { bottom: 20px; right: 88px; }
 }

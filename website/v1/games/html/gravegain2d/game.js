@@ -136,7 +136,7 @@
         constructor() {
             this.keys = {};
             this.mouse = { x: 0, y: 0, click: false, rightClick: false, angle: 0 };
-            this.joystick = { active: false, startX: 0, startY: 0, curX: 0, curY: 0, x: 0, y: 0 };
+            this.joystick = { active: false, touchId: null, startX: 0, startY: 0, curX: 0, curY: 0, x: 0, y: 0 };
             this.setupListeners();
         }
         setupListeners() {
@@ -150,10 +150,17 @@
                 this.keys[e.code] = false;
             });
             const container = document.getElementById('canvasContainer');
-            container.addEventListener('mousemove', (e) => {
+            const toGamePoint = (event) => {
                 const rect = container.getBoundingClientRect();
-                this.mouse.x = e.clientX - rect.left;
-                this.mouse.y = e.clientY - rect.top;
+                return {
+                    x: (event.clientX - rect.left) * (1000 / rect.width),
+                    y: (event.clientY - rect.top) * (600 / rect.height)
+                };
+            };
+            container.addEventListener('mousemove', (e) => {
+                const point = toGamePoint(e);
+                this.mouse.x = point.x;
+                this.mouse.y = point.y;
             });
             container.addEventListener('mousedown', (e) => {
                 if (e.button === 0) this.mouse.click = true;
@@ -173,7 +180,11 @@
             const joystickKnob = joystickEl.querySelector('.mobile-joystick-knob');
 
             container.addEventListener('touchstart', (e) => {
-                const touch = e.touches[0];
+                const touch = Array.from(e.changedTouches).find(t => {
+                    const rect = container.getBoundingClientRect();
+                    return t.clientX - rect.left < rect.width / 2;
+                });
+                if (!touch || this.joystick.active) return;
                 const rect = container.getBoundingClientRect();
                 const tx = touch.clientX - rect.left;
                 const ty = touch.clientY - rect.top;
@@ -181,6 +192,7 @@
                 // Left half triggers virtual joystick
                 if (tx < rect.width / 2) {
                     this.joystick.active = true;
+                    this.joystick.touchId = touch.identifier;
                     this.joystick.startX = touch.clientX;
                     this.joystick.startY = touch.clientY;
                     joystickEl.style.display = 'block';
@@ -192,7 +204,8 @@
 
             container.addEventListener('touchmove', (e) => {
                 if (!this.joystick.active) return;
-                const touch = e.touches[0];
+                const touch = Array.from(e.touches).find(t => t.identifier === this.joystick.touchId);
+                if (!touch) return;
                 const dx = touch.clientX - this.joystick.startX;
                 const dy = touch.clientY - this.joystick.startY;
                 const dist = Math.min(Math.hypot(dx, dy), 50);
@@ -205,20 +218,20 @@
                 joystickKnob.style.top = (50 + this.joystick.y * 50) + '%';
             }, { passive: true });
 
-            container.addEventListener('touchend', () => {
-                this.joystick.active = false;
-                this.joystick.x = 0;
-                this.joystick.y = 0;
-                joystickEl.style.display = 'none';
+            container.addEventListener('touchend', (e) => {
+                if (Array.from(e.changedTouches).some(t => t.identifier === this.joystick.touchId)) {
+                    this.joystick.active = false;
+                    this.joystick.touchId = null;
+                    this.joystick.x = 0;
+                    this.joystick.y = 0;
+                    joystickEl.style.display = 'none';
+                }
             });
 
             // Mobile Action Buttons
             const attackBtn = document.getElementById('mobileAttackBtn');
             const blockBtn = document.getElementById('mobileBlockBtn');
-            if (window.innerWidth < 800) {
-                attackBtn.style.display = 'flex';
-                blockBtn.style.display = 'flex';
-            }
+            const abilityBtn = document.getElementById('mobileAbilityBtn');
             attackBtn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 this.mouse.click = true;
@@ -232,6 +245,13 @@
             });
             blockBtn.addEventListener('touchend', () => {
                 this.mouse.rightClick = false;
+            });
+            abilityBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.keys['KeyF'] = true;
+            });
+            abilityBtn.addEventListener('touchend', () => {
+                this.keys['KeyF'] = false;
             });
         }
     }
@@ -528,6 +548,8 @@
             // Angle alignment
             if (this.inPlatformer) {
                 this.angle = this.vx >= 0 ? 0 : Math.PI;
+            } else if (input.joystick.active && (Math.abs(input.joystick.x) > 0.15 || Math.abs(input.joystick.y) > 0.15)) {
+                this.angle = Math.atan2(input.joystick.y, input.joystick.x);
             } else {
                 this.angle = Math.atan2(input.mouse.y - (this.y - window.GraveGainGame.camera.getOffsets().y), input.mouse.x - (this.x - window.GraveGainGame.camera.getOffsets().x));
             }
@@ -877,7 +899,15 @@
                 uusd: state.uusd,
                 quartersLevel: state.quartersLevel,
                 prestige: state.prestige,
-                botanyCrops: state.botanyCrops
+                botanyCrops: state.botanyCrops,
+                settings: {
+                    difficulty: state.difficultyMultiplierSetting,
+                    volume: state.audio.masterVolume,
+                    pickupRange: state.autoPickupRange,
+                    cameraShake: document.getElementById('settingsCameraShake')?.checked,
+                    cameraLead: document.getElementById('settingsCameraLead')?.checked,
+                    cameraPunch: document.getElementById('settingsCameraPunch')?.checked
+                }
             }));
         }
         static load() {
@@ -1130,6 +1160,8 @@
             this.alertLevel = 0; // scaled by minutes
             this.sessionStart = 0;
             this.autoPickupRange = 100;
+            this.runKills = 0;
+            this.runGold = 0;
 
             // Attack Sweep visual queues
             this.attackSweep = null; // {x, y, radius, startAngle, endAngle, time}
@@ -1159,6 +1191,18 @@
                 this.quartersLevel = saved.quartersLevel || 1;
                 this.prestige = saved.prestige || 0;
                 if (saved.botanyCrops) this.botanyCrops = saved.botanyCrops;
+                if (saved.settings) {
+                    this.difficultyMultiplierSetting = saved.settings.difficulty || 'normal';
+                    this.audio.masterVolume = Number.isFinite(saved.settings.volume) ? saved.settings.volume : 0.8;
+                    this.autoPickupRange = saved.settings.pickupRange || 100;
+                    document.getElementById('settingsDifficulty').value = this.difficultyMultiplierSetting;
+                    document.getElementById('settingsMasterVol').value = Math.round(this.audio.masterVolume * 100);
+                    document.getElementById('settingsPickupRange').value = this.autoPickupRange;
+                    ['CameraShake', 'CameraLead', 'CameraPunch'].forEach(key => {
+                        const savedValue = saved.settings[`camera${key.replace('Camera', '')}`];
+                        if (typeof savedValue === 'boolean') document.getElementById(`settings${key}`).checked = savedValue;
+                    });
+                }
             }
             this.updateHubQuartersUI();
         }
@@ -1237,6 +1281,7 @@
                 this.difficultyMultiplierSetting = document.getElementById('settingsDifficulty').value;
                 this.audio.masterVolume = document.getElementById('settingsMasterVol').value / 100;
                 this.autoPickupRange = parseInt(document.getElementById('settingsPickupRange').value) || 100;
+                this.saveState();
                 document.getElementById('settingsScreen').classList.add('hidden');
             });
 
@@ -1247,8 +1292,8 @@
             });
 
             document.getElementById('btnCharSelectStart').addEventListener('click', () => {
-                const selRace = document.querySelector('.char-card.selected').dataset.race;
-                const selClass = document.querySelector('.class-btn.selected').dataset.class;
+                const selRace = document.querySelector('.char-card.selected')?.dataset.race || Race.HUMAN;
+                const selClass = document.querySelector('.class-btn.selected')?.dataset.class || ClassType.WARRIOR;
                 document.getElementById('charSelectScreen').classList.add('hidden');
                 document.getElementById('gameMain').classList.remove('hidden');
                 this.initRun(selRace, selClass);
@@ -1314,6 +1359,8 @@
                     }
                 }
             });
+
+            document.getElementById('btnGenerateCircuit').addEventListener('click', () => this.generateRepairMiniGame());
 
             // Game over button
             document.getElementById('btnGoToMenu').addEventListener('click', () => {
@@ -1532,6 +1579,8 @@
             this.player = new PlayerEntity(race, classType);
             this.floorIndex = 1;
             this.sessionStart = Date.now();
+            this.runKills = 0;
+            this.runGold = 0;
             this.buildDungeonLayer();
             this.loop.start();
         }
@@ -1605,6 +1654,8 @@
             this.enemies = this.enemies.filter(e => {
                 if (e.hp <= 0) {
                     this.gold += 15;
+                    this.runGold += 15;
+                    this.runKills++;
                     this.player.xp += 10;
                     this.updateChallengeProgress('slay', 1);
                     this.updateChallengeProgress('gold', 15);
@@ -1653,6 +1704,8 @@
             this.enemies = this.enemies.filter(e => {
                 if (e.hp <= 0) {
                     this.gold += 10;
+                    this.runGold += 10;
+                    this.runKills++;
                     this.player.xp += 5;
                     this.updateChallengeProgress('slay', 1);
                     this.updateChallengeProgress('gold', 10);
@@ -1671,6 +1724,7 @@
                 const dist = Math.hypot(this.player.x - l.x, this.player.y - l.y);
                 if (dist < this.player.radius + l.radius) {
                     this.gold += l.value;
+                    this.runGold += l.value;
                     this.updateChallengeProgress('gold', l.value);
                     if (l.type === 'item') {
                         this.player.xp += 30;
@@ -2033,7 +2087,9 @@
 
             document.getElementById('goRaceClass').textContent = this.player.race.toUpperCase() + ' ' + this.player.classType.toUpperCase();
             document.getElementById('goFloor').textContent = 'Layer ' + this.floorIndex;
-            document.getElementById('goGold').textContent = this.gold;
+            document.getElementById('goKills').textContent = this.runKills;
+            document.getElementById('goGold').textContent = this.runGold;
+            document.getElementById('goXp').textContent = Math.round(this.player.xp || 0);
 
             this.audio.speakFallback('Game Over. Run Terminated.');
             this.saveState();
