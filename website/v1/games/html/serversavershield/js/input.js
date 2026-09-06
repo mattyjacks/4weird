@@ -82,6 +82,43 @@ function initInput() {
     window.addEventListener('keyup', (e) => {
         keysPressed[e.key.toLowerCase()] = false;
     });
+
+    // Setup Virtual Touch Controls for Mobile
+    const dpadBtns = document.querySelectorAll('.dpad-btn');
+    dpadBtns.forEach(btn => {
+        const dir = btn.getAttribute('data-dir');
+        const handleStart = (e) => {
+            e.preventDefault();
+            if (dir === 'up') keysPressed['arrowup'] = true;
+            if (dir === 'down') keysPressed['arrowdown'] = true;
+            if (dir === 'left') keysPressed['arrowleft'] = true;
+            if (dir === 'right') keysPressed['arrowright'] = true;
+        };
+        const handleEnd = (e) => {
+            e.preventDefault();
+            if (dir === 'up') keysPressed['arrowup'] = false;
+            if (dir === 'down') keysPressed['arrowdown'] = false;
+            if (dir === 'left') keysPressed['arrowleft'] = false;
+            if (dir === 'right') keysPressed['arrowright'] = false;
+        };
+        btn.addEventListener('touchstart', handleStart, { passive: false });
+        btn.addEventListener('touchend', handleEnd, { passive: false });
+        btn.addEventListener('mousedown', handleStart);
+        btn.addEventListener('mouseup', handleEnd);
+    });
+
+    const touchFire = document.getElementById('touchFireBtn');
+    if (touchFire) {
+        touchFire.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isShooting = !isShooting;
+            touchFire.classList.toggle('active', isShooting);
+        }, { passive: false });
+        touchFire.addEventListener('click', (e) => {
+            isShooting = !isShooting;
+            touchFire.classList.toggle('active', isShooting);
+        });
+    }
 }
 
 // Update player position based on keyboard input

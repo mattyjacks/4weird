@@ -22,19 +22,23 @@
     ],
     "controls": {
         "keyboard": {
-            "Arrow Keys / WASD": "Steer Animal / Move",
-            "Left-Click / Space": "Primary Attack (Slash / Bite / Punch)",
-            "Shift / F / E": "Activate Special Ability",
+            "Arrow Keys / WASD": "Move Operative",
+            "Left-Click / Space": "Strike Attack / Lethal Execution",
+            "Right-Click / Q": "Toss Coin (Distract Guards)",
+            "E": "Silent Takedown / Steal Uniform / Interact",
+            "G": "Drag Neutralized Body",
+            "Shift / F": "Activate Signature Ability",
+            "1 / 2 / 3": "Deploy Gadget (Medkit / Tranq Dart / Smoke Bomb)",
             "P / Esc": "Pause Mission"
         },
-        "touch": false,
+        "touch": true,
         "mouse": true
     },
-    "instructions": "Infiltrate high-security facilities. Evade guard vision cones and security systems. Hack terminals or pickpocket guards to find the Keycard, then reach the Elevator to advance. Collect DNA splices from targets and chests to purchase genetic mutations.",
+    "instructions": "Infiltrate high-security complexes. Evade guard vision cones and security systems. Perform silent takedowns from behind or strike targets. Hack terminals to override cameras or pickpocket targets for the Keycard, then reach the Elevator to advance. Collect DNA splices to purchase powerful mutations.",
     "technical": {
         "canvasSize": {"width": 1000, "height": 600},
         "targetFPS": 60,
-        "mobileOptimized": false
+        "mobileOptimized": true
     },
     "assets": {
         "external": [],

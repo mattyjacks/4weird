@@ -319,8 +319,8 @@
   const AIRSTRIKE_STUN = 1.25;
   const POWERUP_FLAGS: Record<PowerupKind, boolean> = {
     nitro: true,
-    shield: false,
-    airstrike: false,
+    shield: true,
+    airstrike: true,
   };
   const POWERUP_SLOT_SPACING = 26;
   const POWERUP_SLOT_CHANCE = 0.55;

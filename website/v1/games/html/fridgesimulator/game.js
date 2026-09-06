@@ -196,42 +196,149 @@ function generateShopStocks() {
     });
 }
 
+let audioCtx = null;
+let soundMuted = false;
+
 function initAudio() {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
     return audioCtx;
 }
 
+window.addEventListener('pointerdown', () => { if (!soundMuted) initAudio(); }, { once: true });
+window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'SET_GAME_SPEED') {
+        const spd = parseFloat(e.data.speed);
+        if (!isNaN(spd) && spd > 0) window.gameSpeedMultiplier = spd;
+    }
+});
+
+function toggleSound() {
+    soundMuted = !soundMuted;
+    const btn = document.getElementById('btnSoundToggle');
+    if (btn) {
+        btn.textContent = soundMuted ? '🔇 Sound: OFF' : '🔊 Sound: ON';
+        btn.style.color = soundMuted ? '#ef4444' : '#10b981';
+    }
+}
+
 function playSound(type) {
+    if (soundMuted) return;
     try {
-        const audioCtx = initAudio();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        const now = audioCtx.currentTime;
+        const ctx = initAudio();
+        if (!ctx) return;
+        const now = ctx.currentTime;
         
         switch(type) {
-            case 'buy':
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(400, now);
-                osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
-                gain.gain.setValueAtTime(0.1, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                osc.start(now);
-                osc.stop(now + 0.15);
+            case 'buy': {
+                const o1 = ctx.createOscillator();
+                const g1 = ctx.createGain();
+                o1.connect(g1); g1.connect(ctx.destination);
+                o1.type = 'sine';
+                o1.frequency.setValueAtTime(880, now);
+                o1.frequency.setValueAtTime(1320, now + 0.08);
+                g1.gain.setValueAtTime(0.18, now);
+                g1.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                o1.start(now); o1.stop(now + 0.25);
                 break;
-            case 'death':
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(100, now);
-                osc.frequency.exponentialRampToValueAtTime(50, now + 0.5);
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
-                osc.start(now);
-                osc.stop(now + 0.6);
+            }
+            case 'stock': {
+                const o = ctx.createOscillator();
+                const g = ctx.createGain();
+                o.connect(g); g.connect(ctx.destination);
+                o.type = 'triangle';
+                o.frequency.setValueAtTime(220, now);
+                o.frequency.exponentialRampToValueAtTime(60, now + 0.12);
+                g.gain.setValueAtTime(0.2, now);
+                g.gain.exponentialRampToValueAtTime(0.01, now + 0.14);
+                o.start(now); o.stop(now + 0.14);
                 break;
+            }
+            case 'feed': {
+                const o = ctx.createOscillator();
+                const g = ctx.createGain();
+                o.connect(g); g.connect(ctx.destination);
+                o.type = 'triangle';
+                o.frequency.setValueAtTime(300, now);
+                o.frequency.linearRampToValueAtTime(450, now + 0.06);
+                o.frequency.linearRampToValueAtTime(320, now + 0.12);
+                g.gain.setValueAtTime(0.15, now);
+                g.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                o.start(now); o.stop(now + 0.15);
+                break;
+            }
+            case 'autofeed': {
+                [440, 554.37, 659.25, 880].forEach((freq, i) => {
+                    const o = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    o.connect(g); g.connect(ctx.destination);
+                    o.type = 'sine';
+                    o.frequency.setValueAtTime(freq, now + i * 0.05);
+                    g.gain.setValueAtTime(0.12, now + i * 0.05);
+                    g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.18);
+                    o.start(now + i * 0.05); o.stop(now + i * 0.05 + 0.18);
+                });
+                break;
+            }
+            case 'nextday': {
+                [261.63, 329.63, 392.00, 523.25].forEach((f, idx) => {
+                    const o = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    o.connect(g); g.connect(ctx.destination);
+                    o.type = 'sine';
+                    o.frequency.setValueAtTime(f, now + idx * 0.04);
+                    g.gain.setValueAtTime(0.12, now + idx * 0.04);
+                    g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.04 + 0.4);
+                    o.start(now + idx * 0.04); o.stop(now + idx * 0.04 + 0.4);
+                });
+                break;
+            }
+            case 'unlock': {
+                [523.25, 659.25, 783.99, 1046.50].forEach((f, idx) => {
+                    const o = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    o.connect(g); g.connect(ctx.destination);
+                    o.type = 'triangle';
+                    o.frequency.setValueAtTime(f, now + idx * 0.08);
+                    g.gain.setValueAtTime(0.18, now + idx * 0.08);
+                    g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.35);
+                    o.start(now + idx * 0.08); o.stop(now + idx * 0.08 + 0.35);
+                });
+                break;
+            }
+            case 'death': {
+                const o = ctx.createOscillator();
+                const g = ctx.createGain();
+                o.connect(g); g.connect(ctx.destination);
+                o.type = 'sawtooth';
+                o.frequency.setValueAtTime(160, now);
+                o.frequency.exponentialRampToValueAtTime(45, now + 0.6);
+                g.gain.setValueAtTime(0.25, now);
+                g.gain.exponentialRampToValueAtTime(0.01, now + 0.7);
+                o.start(now); o.stop(now + 0.7);
+                break;
+            }
         }
     } catch(e) {}
+}
+
+function showToast(message, color = '#00f2fe') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = 'game-toast';
+    toast.style.borderColor = color;
+    toast.style.boxShadow = `0 0 15px ${color}40`;
+    toast.innerHTML = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.classList.add('fade-out');
+        setTimeout(() => toast.remove(), 400);
+    }, 2400);
 }
 
 function startGame() {
@@ -289,12 +396,19 @@ function buyFood(emoji) {
         money -= finalPrice;
         inventory[emoji] = (inventory[emoji] || 0) + 1;
         playSound('buy');
+        const fStats = FOOD_STATS[emoji];
+        showToast(`🛒 Bought ${emoji} ${fStats ? fStats.name : ''} (-$${finalPrice})`, '#39ff14');
         render();
+    } else {
+        playSound('death');
+        showToast(`❌ Not enough funds for ${emoji} ($${finalPrice})!`, '#ef4444');
     }
 }
 
 function nextDay() {
     if (!gameRunning || gamePaused) return;
+    
+    playSound('nextday');
     
     // Visual feedback - button animation
     const nextDayBtn = document.getElementById('btnNextDay');
@@ -395,6 +509,8 @@ function nextDay() {
                 hunger: Array(data.familySize).fill(100),
                 nutrition: Array(data.familySize).fill(null).map(() => [20, 20, 20])
             };
+            playSound('unlock');
+            showToast(`🌍 ${data.name} unlocked! Budget +$${data.budget}`, '#f59e0b');
         }
     });
     
@@ -403,12 +519,16 @@ function nextDay() {
     
     if (aliveCount === 0) {
         gameRunning = false;
+        playSound('death');
+        showToast('💀 All families have perished!', '#ef4444');
         document.getElementById('finalDays').textContent = day;
         document.getElementById('finalDeaths').textContent = deaths;
         document.getElementById('finalMoney').textContent = '$' + money;
         document.getElementById('gameOverScreen').classList.remove('hidden');
     } else if (day >= 30) {
         gameRunning = false;
+        playSound('victory');
+        showToast('🏆 Global Food Hero Victory Achieved!', '#39ff14');
         document.getElementById('victoryDays').textContent = day;
         document.getElementById('victoryPopulation').textContent = aliveCount;
         document.getElementById('victoryMoney').textContent = '$' + money;
@@ -587,7 +707,7 @@ function addToFridge(countryKey, slot) {
             delete inventory[selectedFood];
             selectedFood = null;
         }
-        playSound('buy');
+        playSound('stock');
         render();
     }
 }
@@ -598,8 +718,46 @@ function removeFromFridge(countryKey, slot) {
     if (food) {
         delete country.fridge[slot];
         inventory[food] = (inventory[food] || 0) + 1;
-        playSound('buy');
+        playSound('stock');
         render();
+    }
+}
+
+function autoStockFridges() {
+    if (!gameRunning || gamePaused) return;
+    let stockedCount = 0;
+    const invKeys = Object.keys(inventory).filter(k => inventory[k] > 0);
+    if (invKeys.length === 0) {
+        showToast('🎒 Inventory empty! Buy food from shops first.', '#f59e0b');
+        return;
+    }
+
+    Object.entries(countries).forEach(([key, country]) => {
+        for (let slot = 0; slot < 12; slot++) {
+            if (!country.fridge[slot]) {
+                // Prioritize preference
+                let chosenFood = invKeys.find(f => inventory[f] > 0 && country.preferences.includes(f));
+                if (!chosenFood) {
+                    chosenFood = invKeys.find(f => inventory[f] > 0);
+                }
+                if (chosenFood) {
+                    country.fridge[slot] = chosenFood;
+                    inventory[chosenFood]--;
+                    if (inventory[chosenFood] <= 0) {
+                        delete inventory[chosenFood];
+                    }
+                    stockedCount++;
+                }
+            }
+        }
+    });
+
+    if (stockedCount > 0) {
+        playSound('autofeed');
+        showToast(`⚡ Auto-stocked ${stockedCount} items into fridges!`, '#10b981');
+        render();
+    } else {
+        showToast('Fridges are already full!', '#f59e0b');
     }
 }
 
@@ -626,6 +784,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnRestart').addEventListener('click', startGame);
     document.getElementById('btnPlayAgain').addEventListener('click', startGame);
 
+    const soundBtn = document.getElementById('btnSoundToggle');
+    if (soundBtn) {
+        soundBtn.addEventListener('click', toggleSound);
+    }
+
+    const quickStockBtn = document.getElementById('btnQuickStock');
+    if (quickStockBtn) {
+        quickStockBtn.addEventListener('click', autoStockFridges);
+    }
+
     const pauseBtn = document.getElementById('btnPause');
     if (pauseBtn) {
         pauseBtn.addEventListener('click', togglePause);
@@ -635,9 +803,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
             if (gameRunning) togglePause();
         }
+        if (e.key === 'm' || e.key === 'M') {
+            toggleSound();
+        }
         // Next Day keyboard shortcuts
         if ((e.key === ' ' || e.key === 'n' || e.key === 'N') && gameRunning && !gamePaused) {
-            // Prevent scrolling with space
             if (e.key === ' ') e.preventDefault();
             nextDay();
         }

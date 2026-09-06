@@ -269,6 +269,19 @@ class Game {
             this.mouse.down = false;
         }, { passive: false });
 
+        const tryInitAudio = () => initAudio();
+        window.addEventListener('pointerdown', tryInitAudio, { once: true });
+        window.addEventListener('keydown', tryInitAudio, { once: true });
+
+        const btnCast = document.getElementById('btnCastMobile');
+        if (btnCast) {
+            btnCast.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (this.state === STATE.PLAYING) this.castSpell();
+            }, { passive: false });
+        }
+
         document.getElementById('btnSummonMobile').addEventListener('touchstart', (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -805,16 +818,49 @@ class Game {
                     const xpGain = 3 * this.phase;
                     this.player.xp += xpGain;
                     this.score += 15;
+                    this.shake = 6;
+                    this.shakeTime = 8;
                     this.addRipple(b.x, b.y + 30);
                     this.spawnParticles(p.x, p.y, '💥', 4);
+                    this.spawnParticles(p.x, p.y, '✨', 3);
                     this.addScorePop(p.x, p.y - 15, '+15', '#8b5cf6');
                     this.addScorePop(p.x + (Math.random()-0.5)*40, p.y + (Math.random()-0.5)*20, `-${p.damage} HP`, '#a78bfa');
                     playSound('hit');
                     if (!p.piercing) deadProjectiles.add(pi);
                 }
             });
+
+            this.enemies.forEach(e => {
+                if (e.hp <= 0 || deadProjectiles.has(pi)) return;
+                const dist = Math.hypot(p.x - e.x, p.y - e.y);
+                if (dist < 30) {
+                    e.hp -= p.damage;
+                    this.player.xp += 4;
+                    this.score += 25;
+                    this.shake = 4;
+                    this.shakeTime = 6;
+                    this.spawnParticles(p.x, p.y, '💥', 4);
+                    this.spawnParticles(e.x, e.y, '💀', 2);
+                    this.addScorePop(e.x, e.y - 15, `-${p.damage}`, '#ef4444');
+                    playSound('hit');
+                    if (e.hp <= 0) {
+                        this.spawnParticles(e.x, e.y, '✨', 8);
+                        this.spawnParticles(e.x, e.y, '💀', 4);
+                        playSound('enemydeath');
+                        this.combo++;
+                        this.comboTimer = 120;
+                        if (this.combo > this.maxCombo) this.maxCombo = this.combo;
+                        const bonus = this.combo >= 3 ? this.combo * 15 : 60;
+                        this.score += bonus;
+                        this.addScorePop(e.x, e.y - 30, (this.combo >= 3 ? 'COMBO x' + this.combo + '! ' : '') + 'SOUL HARVEST +' + bonus, '#a855f7');
+                        if (this.combo >= 3) playSound('combo');
+                    }
+                    if (!p.piercing) deadProjectiles.add(pi);
+                }
+            });
         });
         this.projectiles = this.projectiles.filter((_, i) => !deadProjectiles.has(i));
+        this.enemies = this.enemies.filter(e => e.hp > 0);
 
         this.particles = this.particles.filter(p => {
             p.x += p.vx;
@@ -1097,6 +1143,15 @@ class Game {
 
 const game = new Game();
 window.game = game;
+
+window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SET_GAME_SPEED') {
+        const speed = parseFloat(event.data.speed);
+        if (!isNaN(speed) && speed > 0) {
+            game.speedMultiplier = speed;
+        }
+    }
+});
 
 // ===== DEVELOPER DEBUGGING API =====
 window.gameDebug = {

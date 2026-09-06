@@ -67,8 +67,17 @@
         // Dyslexia-Friendly Font
         body.classList.toggle('a11y-dyslexic', settings.dyslexiaFont);
 
-        // Game Speed global
-        window.gameSpeedMultiplier = parseFloat(settings.gameSpeed) || 1.0;
+        // Game Speed global & iframe broadcast
+        const speed = parseFloat(settings.gameSpeed) || 1.0;
+        window.gameSpeedMultiplier = speed;
+        try {
+            const iframes = document.querySelectorAll('iframe');
+            iframes.forEach(iframe => {
+                if (iframe.contentWindow) {
+                    iframe.contentWindow.postMessage({ type: 'SET_GAME_SPEED', speed: speed }, '*');
+                }
+            });
+        } catch (e) {}
         announceToScreenReader(`Game speed set to ${settings.gameSpeed}x`);
 
         // Eye Tracking status
@@ -690,15 +699,44 @@
             document.getElementById('a11y-speed-val').textContent = settings.gameSpeed;
             saveSettings();
         });
+
+        // Trap keyboard focus inside panel when active
+        panel.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                togglePanel();
+                return;
+            }
+            if (e.key === 'Tab') {
+                const focusable = panel.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                if (focusable.length === 0) return;
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+                if (e.shiftKey && document.activeElement === first) {
+                    e.preventDefault();
+                    last.focus();
+                } else if (!e.shiftKey && document.activeElement === last) {
+                    e.preventDefault();
+                    first.focus();
+                }
+            }
+        });
     }
 
+    let lastActiveTrigger = null;
     function togglePanel() {
         const isActive = panel.classList.toggle('active');
         widgetToggle.classList.toggle('active', isActive);
         if (isActive) {
-            panel.querySelector('.a11y-panel-close').focus();
+            lastActiveTrigger = document.activeElement || widgetToggle;
+            const closeBtn = panel.querySelector('.a11y-panel-close');
+            if (closeBtn) closeBtn.focus();
         } else {
-            widgetToggle.focus();
+            if (lastActiveTrigger && typeof lastActiveTrigger.focus === 'function') {
+                lastActiveTrigger.focus();
+            } else {
+                widgetToggle.focus();
+            }
         }
     }
 

@@ -21,6 +21,7 @@ document.getElementById('TEMPLATE-4weird-high-score').textContent = highScore + 
 let audioCtx = null;
 function initAudio() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 function playSound(freq, duration, type = 'square', volume = 0.08) {
     if (!audioCtx) return;
@@ -602,3 +603,32 @@ function drawStartScreen() {
 }
 
 drawStartScreen();
+
+window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SET_GAME_SPEED') {
+        const s = parseFloat(event.data.speed);
+        if (!isNaN(s) && s > 0) {
+            window.speedMultiplier = s;
+        }
+    }
+});
+
+// ===== DEVELOPER DEBUGGING API =====
+window.gameDebug = {
+    name: "Neon Void Runner",
+    getScore: () => Math.floor(distance),
+    setScore: (s) => { distance = s; },
+    getHealth: () => 100,
+    setHealth: () => {},
+    win: () => {
+        distance += 500;
+    },
+    lose: () => {
+        gameOver();
+    },
+    godMode: false,
+    toggleGodMode: function() {
+        this.godMode = !this.godMode;
+        return this.godMode;
+    }
+};

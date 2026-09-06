@@ -50,12 +50,23 @@
         highScore: parseInt(localStorage.getItem('soundpainter_tilesCount') || '0')
     };
 
-    // Initialize Audio Context
+    // Initialize Audio Context safely upon user gesture
     function initAudio() {
         if (!audioContext) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
         }
+        if (audioContext && audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
     }
+
+    window.addEventListener('pointerdown', initAudio, { once: true });
+    window.addEventListener('message', (e) => {
+        if (e.data && e.data.type === 'SET_GAME_SPEED') {
+            const spd = parseFloat(e.data.speed);
+            if (!isNaN(spd) && spd > 0) window.gameSpeedMultiplier = spd;
+        }
+    });
 
     // Resize canvas for high DPI
     function resizeCanvas() {

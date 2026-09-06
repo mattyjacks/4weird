@@ -124,6 +124,8 @@
             const rect = this.canvas.parentElement.getBoundingClientRect();
             this.camera.aspect = rect.width / rect.height;
             this.camera.updateProjectionMatrix();
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            this.renderer.setPixelRatio(dpr);
             this.renderer.setSize(rect.width, rect.height);
         }
 

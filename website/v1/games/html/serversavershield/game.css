@@ -949,3 +949,104 @@ body {
         font-size: 2rem;
     }
 }
+
+/* Mobile Virtual Touch Controls */
+.mobile-touch-controls {
+    display: none;
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
+    justify-content: space-between;
+    align-items: flex-end;
+    pointer-events: none;
+    z-index: 50;
+}
+
+@media (max-width: 900px), (pointer: coarse) {
+    .mobile-touch-controls {
+        display: flex;
+    }
+}
+
+.virtual-dpad {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: auto;
+    background: rgba(15, 23, 42, 0.6);
+    padding: 8px;
+    border-radius: 20px;
+    border: 1px solid rgba(0, 242, 254, 0.3);
+    backdrop-filter: blur(8px);
+}
+
+.dpad-mid {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dpad-center {
+    width: 38px;
+    height: 38px;
+    background: rgba(0, 242, 254, 0.1);
+    border-radius: 50%;
+}
+
+.dpad-btn {
+    width: 44px;
+    height: 44px;
+    background: rgba(30, 41, 59, 0.85);
+    border: 1px solid rgba(0, 242, 254, 0.4);
+    color: var(--neon-cyan);
+    font-size: 1.2rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    transition: background 0.1s, transform 0.1s;
+}
+
+.dpad-btn:active {
+    background: var(--neon-cyan);
+    color: #000;
+    transform: scale(0.92);
+}
+
+.virtual-actions {
+    pointer-events: auto;
+}
+
+.touch-fire-btn {
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border: 3px solid #ffffff;
+    color: #ffffff;
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 800;
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    transition: transform 0.1s, box-shadow 0.2s;
+}
+
+.touch-fire-btn:active, .touch-fire-btn.active {
+    transform: scale(0.92);
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    box-shadow: 0 0 25px rgba(34, 197, 94, 0.7);
+}

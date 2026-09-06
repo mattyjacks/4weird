@@ -696,9 +696,24 @@ function spawnEngineTrail(pos) {
     });
 }
 
+// Speed scale and delta clamping against tab throttling
+window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'SET_GAME_SPEED') {
+        const speed = parseFloat(e.data.speed);
+        if (!isNaN(speed) && speed > 0) window.gameSpeedMultiplier = speed;
+    }
+});
+
+let lastFrameTime = performance.now();
+
 // Main Game Frame Logic
-function animate() {
+function animate(currentTime = performance.now()) {
     requestAnimationFrame(animate);
+
+    const rawDelta = (currentTime - lastFrameTime) / 1000;
+    lastFrameTime = currentTime;
+    // Clamp delta to 0.1s to prevent huge jumps when switching tabs
+    const delta = Math.min(rawDelta, 0.1);
 
     // Background stars parallax drift
     if (starfieldStars) {

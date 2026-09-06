@@ -8,6 +8,79 @@ const ctx = canvas.getContext('2d');
 canvas.width = 800;
 canvas.height = 600;
 
+// Zero-dependency Procedural Audio Engine
+let audioCtx = null;
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+window.addEventListener('pointerdown', initAudio, { once: true });
+window.addEventListener('keydown', initAudio, { once: true });
+
+function playSlopSound(type) {
+    if (!audioCtx) return;
+    try {
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        switch (type) {
+            case 'catch':
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                osc.start(now);
+                osc.stop(now + 0.12);
+                break;
+            case 'feed':
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(600, now + 0.08);
+                osc.frequency.exponentialRampToValueAtTime(900, now + 0.16);
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now);
+                osc.stop(now + 0.2);
+                break;
+            case 'hazard':
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.linearRampToValueAtTime(70, now + 0.25);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                osc.start(now);
+                osc.stop(now + 0.25);
+                break;
+            case 'throw':
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(300, now + 0.08);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+                break;
+            case 'gameover':
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(350, now);
+                osc.frequency.exponentialRampToValueAtTime(60, now + 0.6);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.65);
+                osc.start(now);
+                osc.stop(now + 0.65);
+                break;
+        }
+    } catch (e) {}
+}
+
 // Game states
 const GAME_STATE = {
     START: 'start',
@@ -267,6 +340,7 @@ class FriendSlop {
                     this.combo++;
                     this.vibeMeter = Math.min(100, this.vibeMeter + 2);
                     this.createParticles(player.x, player.y, '✨');
+                    playSlopSound('catch');
                     hitPlayer = true;
                     break;
                 }
@@ -281,6 +355,7 @@ class FriendSlop {
                     this.combo += 2;
                     this.vibeMeter = Math.min(100, this.vibeMeter + 5);
                     this.createParticles(friend.x, friend.y, '🎉');
+                    playSlopSound('feed');
                     friend.bounce();
                     break;
                 }
@@ -303,6 +378,7 @@ class FriendSlop {
                     this.vibeMeter -= 15;
                     this.combo = 0;
                     this.createParticles(player.x, player.y, '💥');
+                    playSlopSound('hazard');
                     this.screenShake();
                     break;
                 }
@@ -326,6 +402,7 @@ class FriendSlop {
                     this.combo += 3;
                     this.vibeMeter = Math.min(100, this.vibeMeter + 8);
                     this.createParticles(friend.x, friend.y, '💥');
+                    playSlopSound('feed');
                     friend.bounce();
                     break;
                 }
@@ -375,6 +452,7 @@ class FriendSlop {
     
     gameOver() {
         this.state = GAME_STATE.GAME_OVER;
+        playSlopSound('gameover');
         document.getElementById('friendslop-4weird-final-score').textContent = Math.floor(this.score);
         document.getElementById('friendslop-4weird-daily-rank').textContent = `Wave: ${this.wave}`;
         document.getElementById('friendslop-4weird-game-over-screen').classList.remove('hidden');
@@ -515,6 +593,7 @@ class Player {
     throw() {
         const projectile = new Projectile(this.x + this.width / 2, this.y, 0, -10);
         game.projectiles.push(projectile);
+        playSlopSound('throw');
     }
     
     collidesWith(entity) {
@@ -680,4 +759,37 @@ class Particle {
 let game;
 window.addEventListener('load', () => {
     game = new FriendSlop();
+    window.game = game;
 });
+
+window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SET_GAME_SPEED') {
+        const speed = parseFloat(event.data.speed);
+        if (!isNaN(speed) && speed > 0 && game) {
+            game.speedMultiplier = speed;
+        }
+    }
+});
+
+// ===== DEVELOPER DEBUGGING API =====
+window.gameDebug = {
+    name: "FriendSlop",
+    getScore: () => game ? game.score : 0,
+    setScore: (s) => { if (game) game.score = s; },
+    getHealth: () => game ? game.vibeMeter : 0,
+    setHealth: (h) => { if (game) game.vibeMeter = Math.max(0, Math.min(100, h)); },
+    win: () => {
+        if (game) {
+            game.score += 2500;
+            game.wave += 5;
+        }
+    },
+    lose: () => {
+        if (game) game.gameOver();
+    },
+    godMode: false,
+    toggleGodMode: function() {
+        this.godMode = !this.godMode;
+        return this.godMode;
+    }
+};

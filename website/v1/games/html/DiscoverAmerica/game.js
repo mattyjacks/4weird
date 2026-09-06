@@ -710,11 +710,30 @@ function leavePuzzle() {
 /* ---------------------------------------------------------------------
    EVENT WIRING
 --------------------------------------------------------------------- */
-el.btnStart.addEventListener('click', startGame);
-el.btnVictoryRestart.addEventListener('click', startGame);
+const tryInitAudio = () => initAudio();
+window.addEventListener('pointerdown', tryInitAudio, { once: true });
+window.addEventListener('keydown', tryInitAudio, { once: true });
+
+el.btnStart.addEventListener('click', () => {
+    initAudio();
+    startGame();
+});
+el.btnVictoryRestart.addEventListener('click', () => {
+    initAudio();
+    startGame();
+});
 el.btnReset.addEventListener('click', resetPuzzle);
 el.btnSubmit.addEventListener('click', submitPuzzle);
 el.btnLeave.addEventListener('click', leavePuzzle);
+
+window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SET_GAME_SPEED') {
+        const speed = parseFloat(event.data.speed);
+        if (!isNaN(speed) && speed > 0) {
+            Game.speedMultiplier = speed;
+        }
+    }
+});
 
 /* Keep avatar pinned to its node on resize */
 window.addEventListener('resize', () => {

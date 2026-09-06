@@ -44,9 +44,17 @@
                         </div>
                         <span class="hud-value" id="hudResourceText">0/100</span>
                     </div>
+                    <div class="hud-stat">
+                        <span class="hud-label">⭐ XP <span class="badge-level" id="hudLevelBadge">LV 1</span></span>
+                        <div class="hud-bar-container">
+                            <div class="hud-bar bar-xp" id="hudXpBar"></div>
+                        </div>
+                        <span class="hud-value" id="hudXpText">0/100</span>
+                    </div>
                 </div>
 
                 <div class="hud-group">
+                    <button class="btn-potion" id="btnUsePotion" title="Drink Healing Potion (Key Q)">🧪 <span id="hudPotionCount">1</span></button>
                     <div class="hud-stat">
                         <span class="hud-label">🪙 Gold</span>
                         <span class="hud-value gold-display" id="hudGoldText">0</span>
@@ -62,24 +70,91 @@
                 </div>
             </div>
 
+            <!-- Control Mode & Speed Controller Bar -->
+            <div class="control-modes-bar glass-panel" id="controlModesBar">
+                <div class="mode-selector-group">
+                    <span class="mode-label">🕹️ MODE:</span>
+                    <button class="btn-mode active" data-mode="realtime" id="btnModeRealtime" title="Realtime Action RPG with variable speed scaling">⚡ Realtime</button>
+                    <button class="btn-mode" data-mode="chrono" id="btnModeChrono" title="Superhot Style: Time moves ONLY when you move or attack">⏳ Chrono-Lock</button>
+                    <button class="btn-mode" data-mode="turnbased" id="btnModeTurnbased" title="Classic Turn-Based: Discrete actions and enemy turns">🎲 Turn-Based</button>
+                </div>
+
+                <!-- Variable Speed Selector (Realtime mode) -->
+                <div class="speed-selector-group" id="speedSelectorGroup">
+                    <span class="speed-label">⏩ SPEED:</span>
+                    <button class="btn-speed" data-speed="0.25">0.25x</button>
+                    <button class="btn-speed" data-speed="0.5">0.5x</button>
+                    <button class="btn-speed active" data-speed="1.0">1.0x</button>
+                    <button class="btn-speed" data-speed="1.5">1.5x</button>
+                    <button class="btn-speed" data-speed="2.0">2.0x</button>
+                </div>
+
+                <!-- Turn-Based Action Display (Turn-Based mode) -->
+                <div class="turn-display-group hidden" id="turnDisplayGroup">
+                    <span class="turn-counter" id="hudTurnCounter">Turn 1</span>
+                    <button class="btn-game btn-wait-turn" id="btnWaitTurn" title="Pass / Wait Turn (Space or Click)">⏳ Wait Turn</button>
+                    <span class="turn-phase-badge player-phase" id="hudTurnPhase">YOUR TURN</span>
+                </div>
+
+                <!-- Chrono Indicator (Superhot mode) -->
+                <div class="chrono-display-group hidden" id="chronoDisplayGroup">
+                    <span class="chrono-badge" id="chronoStatusBadge">TIME FROZEN</span>
+                    <span class="chrono-tip">Move, look, or attack to advance time</span>
+                </div>
+            </div>
+
             <!-- Canvas Viewport -->
             <div class="canvas-container" id="canvasContainer">
-                <button class="TEMPLATE-4weird-fullscreen-btn" id="gravegain-fullscreen-btn" title="Toggle Fullscreen" style="position: absolute; top: 15px; right: 15px; z-index: 100; background: rgba(10, 10, 15, 0.75); border: 1px solid var(--grave-border); color: var(--grave-text); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: 'Orbitron'; font-size: 0.8rem; transition: all 0.2s ease;">📺 Fullscreen</button>
+                <button class="TEMPLATE-4weird-fullscreen-btn" id="gravegain-fullscreen-btn" title="Toggle Fullscreen">📺 Fullscreen</button>
                 <canvas id="gameCanvas" width="1000" height="600"></canvas>
                 <div id="hudCrosshair" class="hud-crosshair"></div>
 
-
-                <!-- Mobile controls overlays -->
-                <div class="mobile-joystick-container" id="mobileJoystick">
-                    <div class="mobile-joystick-knob"></div>
+                <!-- Boss Health Bar -->
+                <div id="bossBarContainer" class="boss-bar-container hidden">
+                    <div class="boss-title-row">
+                        <span class="boss-skull">💀</span>
+                        <span id="bossName" class="boss-name">ANCIENT BONE GOLIATH</span>
+                        <span class="boss-skull">💀</span>
+                    </div>
+                    <div class="boss-bar-frame">
+                        <div id="bossHpBar" class="boss-hp-bar"></div>
+                    </div>
+                    <div id="bossHpText" class="boss-hp-text">500 / 500</div>
                 </div>
-                <div class="mobile-action-button" id="mobileAttackBtn">⚔️</div>
-                <div class="mobile-action-button" id="mobileBlockBtn" style="bottom: 110px; right: 30px;">🛡️</div>
+
+                <!-- Holographic Minimap Radar -->
+                <div class="hud-minimap-container" id="minimapContainer">
+                    <canvas id="hudMinimap" width="130" height="130"></canvas>
+                    <div class="minimap-label">RADAR SCAN</div>
+                </div>
+
+                <!-- Floating Combat Text Overlay -->
+                <div id="combatTextContainer" class="combat-text-container"></div>
+
+                <!-- HUD Notification / Event Banner -->
+                <div id="hudNotification" class="hud-notification hidden"></div>
+
+                <!-- Mobile Controls Overlay -->
+                <div class="mobile-touch-look-zone" id="mobileTouchLookZone"></div>
+                <div class="mobile-joystick-container" id="mobileJoystick">
+                    <div class="mobile-joystick-knob" id="mobileJoystickKnob"></div>
+                </div>
+                <div class="mobile-action-buttons" id="mobileActionButtons">
+                    <button class="mobile-action-btn btn-attack" id="mobileAttackBtn" title="Attack">⚔️</button>
+                    <button class="mobile-action-btn btn-block" id="mobileBlockBtn" title="Block / Defend">🛡️</button>
+                    <button class="mobile-action-btn btn-ability" id="mobileAbilityBtn" title="Class Ability">⚡<span id="mobileAbilityCd"></span></button>
+                    <button class="mobile-action-btn btn-jump" id="mobileJumpBtn" title="Jump">🦘</button>
+                    <button class="mobile-action-btn btn-potion" id="mobilePotionBtn" title="Drink Potion">🧪<span id="mobilePotionCount">1</span></button>
+                    <button class="mobile-action-btn btn-wait hidden" id="mobileWaitBtn" title="Wait Turn (Turn-based mode)">⏳</button>
+                </div>
             </div>
 
             <!-- Bottom action row -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-                <button class="btn-game" id="btnPause">⏸️ Pause</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-game" id="btnPause">⏸️ Pause</button>
+                    <span id="controlsHint" class="controls-hint desktop-only">Controls: WASD Move | Mouse Look | Left-Click Attack | Right-Click Block | F Ability | Space Jump | Q Potion</span>
+                </div>
                 <button class="btn-game btn-primary" id="btnReturnToHub">🚀 Return to Starship</button>
             </div>
         </div>
@@ -122,6 +197,28 @@
                     <!-- Populated by JS -->
                 </div>
 
+                <!-- Control Mode Selector in Char Select -->
+                <div style="margin: 15px 0 10px 0;">
+                    <div style="font-family:'Orbitron',sans-serif; font-size:0.85rem; color:var(--grave-gold); margin-bottom:8px;">TEMPORAL SIMULATION MODE</div>
+                    <div class="mode-select-grid" id="charModeSelectGrid">
+                        <div class="char-mode-card selected" data-mode="realtime">
+                            <span class="mode-card-icon">⚡</span>
+                            <div class="mode-card-title">Realtime Action</div>
+                            <div class="mode-card-desc">Fluid combat with variable speed scaling (0.25x - 2.0x).</div>
+                        </div>
+                        <div class="char-mode-card" data-mode="chrono">
+                            <span class="mode-card-icon">⏳</span>
+                            <div class="mode-card-title">Chrono-Lock</div>
+                            <div class="mode-card-desc">Superhot style: Time moves ONLY when you move or attack.</div>
+                        </div>
+                        <div class="char-mode-card" data-mode="turnbased">
+                            <span class="mode-card-icon">🎲</span>
+                            <div class="mode-card-title">Turn-Based</div>
+                            <div class="mode-card-desc">Classic grid RPG: Each step or attack executes 1 discrete turn.</div>
+                        </div>
+                    </div>
+                </div>
+
                 <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
                     <button class="btn-game" id="btnCharSelectBack">← Main Menu</button>
                     <button class="btn-game btn-primary" id="btnCharSelectStart">🚀 Deploy to Dungeon</button>
@@ -141,6 +238,7 @@
                         <button class="hub-tab-btn active" data-tab="quarters">🏠 Quarters</button>
                         <button class="hub-tab-btn" data-tab="botany">🌱 Botany Station</button>
                         <button class="hub-tab-btn" data-tab="repair">🔧 Repair Station</button>
+                        <button class="hub-tab-btn" data-tab="armory">🛡️ Armory Upgrades</button>
                         <button class="hub-tab-btn" data-tab="exchange">🪙 Exchange</button>
                         <button class="hub-tab-btn" data-tab="lore">📖 Lore Codex</button>
                     </div>
@@ -178,6 +276,15 @@
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span id="repairStatus" style="font-size: 0.85rem; color: var(--grave-text-muted);">Status: Ready for calibration</span>
                         <button class="btn-game" id="btnGenerateCircuit">⚡ New Circuit Calibration</button>
+                    </div>
+                </div>
+
+                <!-- Armory Tab -->
+                <div class="hub-pane" id="tab-armory">
+                    <h3 style="margin-top: 0; color: var(--grave-gold);">Starship Engineering Armory</h3>
+                    <p style="font-size: 0.9rem;">Invest synthesized $UUSD into permanent genetic and technological suit augmentations.</p>
+                    <div class="armory-grid" id="armoryGrid">
+                        <!-- Filled by JS -->
                     </div>
                 </div>
 
@@ -225,7 +332,7 @@
                 <h2 class="menu-title" style="font-size: 2rem;">Engine Settings</h2>
                 <p class="menu-subtitle">Configurations Manager</p>
 
-                <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; max-height: 350px; overflow-y: auto; padding-right: 10px;">
+                <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; max-height: 380px; overflow-y: auto; padding-right: 10px;">
                     <div>
                         <label style="display:block; font-size:0.85rem; margin-bottom:5px;">Difficulty Multiplier</label>
                         <select id="settingsDifficulty" style="width:100%; padding:8px; background:rgba(0,0,0,0.5); border:1px solid var(--grave-border); color:white; border-radius:5px;">
@@ -236,21 +343,35 @@
                     </div>
 
                     <div>
+                        <label style="display:block; font-size:0.85rem; margin-bottom:5px;">Touch Controls (Mobile)</label>
+                        <select id="settingsTouchMode" style="width:100%; padding:8px; background:rgba(0,0,0,0.5); border:1px solid var(--grave-border); color:white; border-radius:5px;">
+                            <option value="auto" selected>Auto-detect Touch Screen</option>
+                            <option value="always">Always Enable On-screen Controls</option>
+                            <option value="never">Desktop Only (Hide Touch Controls)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="display:block; font-size:0.85rem; margin-bottom:5px;">Look / Aim Sensitivity</label>
+                        <input type="range" id="settingsMouseSens" min="1" max="10" step="0.5" value="3.5" style="width:100%;">
+                    </div>
+
+                    <div>
                         <label style="display:block; font-size:0.85rem; margin-bottom:5px;">Master Volume</label>
                         <input type="range" id="settingsMasterVol" min="0" max="100" value="80" style="width:100%;">
                     </div>
 
                     <div>
                         <label style="display:block; font-size:0.85rem; margin-bottom:5px;">Auto-Pickup Range (Units)</label>
-                        <input type="range" id="settingsPickupRange" min="2" max="10" step="0.5" value="4" style="width:100%;">
+                        <input type="range" id="settingsPickupRange" min="2" max="12" step="0.5" value="5" style="width:100%;">
                     </div>
 
                     <div>
-                        <label style="display:block; font-size:0.85rem; margin-bottom:5px;">Aesthetics Configuration</label>
-                        <div style="display:flex; gap:15px; font-size:0.85rem;">
+                        <label style="display:block; font-size:0.85rem; margin-bottom:5px;">Aesthetics & Effects</label>
+                        <div style="display:flex; flex-wrap:wrap; gap:15px; font-size:0.85rem;">
                             <label><input type="checkbox" id="settingsCameraShake" checked> Camera Shake</label>
-                            <label><input type="checkbox" id="settingsCameraLead" checked> Camera Orbit Follow</label>
-                            <label><input type="checkbox" id="settingsCameraPunch" checked> Camera Punch</label>
+                            <label><input type="checkbox" id="settingsDynamicLights" checked> Dynamic Torches</label>
+                            <label><input type="checkbox" id="settingsInvertY"> Invert Y-Axis</label>
                         </div>
                     </div>
 
@@ -298,6 +419,21 @@
                 </div>
 
                 <button class="btn-game btn-primary" id="btnGoToMenu">Return to Main Menu</button>
+            </div>
+        </div>
+
+        <!-- 7. LEVEL UP PERK SELECTION SCREEN (ROGUELIKE UPGRADES) -->
+        <div class="screen-overlay hidden" id="levelUpScreen">
+            <div class="menu-content glass-panel level-up-panel" style="max-width: 820px;">
+                <div class="level-up-header">
+                    <span class="level-up-sparkle">✨</span>
+                    <h2 class="menu-title level-up-title" style="font-size: 2.2rem; margin: 0;">SOUL RESONANCE</h2>
+                    <span class="level-up-sparkle">✨</span>
+                </div>
+                <p class="menu-subtitle" style="margin-bottom: 20px;">Assimilate an enhanced combat perk</p>
+                <div class="perk-cards-grid" id="perkCardsGrid">
+                    <!-- Populated dynamically -->
+                </div>
             </div>
         </div>
     </div>

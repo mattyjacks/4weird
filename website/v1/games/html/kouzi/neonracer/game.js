@@ -22,6 +22,7 @@ document.getElementById('TEMPLATE-4weird-high-score').textContent = highScore + 
 let audioCtx = null;
 function initAudio() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 function playSound(freq, duration, type = 'square', volume = 0.06) {
     if (!audioCtx) return;
@@ -554,3 +555,33 @@ function drawStartScreen() {
 }
 
 drawStartScreen();
+
+window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SET_GAME_SPEED') {
+        const s = parseFloat(event.data.speed);
+        if (!isNaN(s) && s > 0) {
+            window.speedMultiplier = s;
+        }
+    }
+});
+
+// ===== DEVELOPER DEBUGGING API =====
+window.gameDebug = {
+    name: "Neon Racer",
+    getScore: () => score,
+    setScore: (s) => { score = s; document.getElementById('TEMPLATE-4weird-score').textContent = score + 'm'; },
+    getHealth: () => 100,
+    setHealth: () => {},
+    win: () => {
+        score += 500;
+        document.getElementById('TEMPLATE-4weird-score').textContent = score + 'm';
+    },
+    lose: () => {
+        gameOver();
+    },
+    godMode: false,
+    toggleGodMode: function() {
+        this.godMode = !this.godMode;
+        return this.godMode;
+    }
+};

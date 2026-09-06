@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥷</text></svg>">
     <link rel="stylesheet" href="../../../styles.css">
     <link rel="stylesheet" href="game.css">
 </head>
@@ -65,37 +66,93 @@
                 </div>
             </div>
 
+            <!-- Tactical Gadget Inventory & Silent Assassin Rating -->
+            <div class="tactical-subbar">
+                <div class="gadget-bar" id="gadgetBar">
+                    <button class="gadget-slot" id="slotMedkit" title="Press 1: Adrenaline Medkit (+50 HP)">
+                        <span class="slot-key">1</span>
+                        <span class="slot-icon">💉</span>
+                        <span class="slot-name">Medkit</span>
+                        <span class="slot-count" id="countMedkit">1</span>
+                    </button>
+                    <button class="gadget-slot" id="slotTranq" title="Press 2: Tranquilizer Dart (Silent Knockout)">
+                        <span class="slot-key">2</span>
+                        <span class="slot-icon">💤</span>
+                        <span class="slot-name">Tranq Dart</span>
+                        <span class="slot-count" id="countTranq">2</span>
+                    </button>
+                    <button class="gadget-slot" id="slotSmoke" title="Press 3: Smoke Bomb (Blinds Vision Cones)">
+                        <span class="slot-key">3</span>
+                        <span class="slot-icon">💨</span>
+                        <span class="slot-name">Smoke Bomb</span>
+                        <span class="slot-count" id="countSmoke">1</span>
+                    </button>
+                </div>
+                <div class="sa-rating-badge" id="hudSABadge">
+                    <span class="sa-icon">👑</span>
+                    <span class="sa-label">RATING:</span>
+                    <strong class="sa-status highlight-green" id="hudSAText">SILENT ASSASSIN</strong>
+                </div>
+            </div>
+
             <!-- Viewport Container -->
             <div class="viewport-container" id="viewportContainer">
                 <canvas id="gameCanvas" width="1000" height="600"></canvas>
                 
+                <!-- On-Screen Context Interaction Prompt -->
+                <div class="context-prompt hidden" id="contextPrompt">
+                    <span class="prompt-badge" id="promptKey">E</span>
+                    <span class="prompt-text" id="promptText">SILENT TAKEDOWN</span>
+                </div>
+
                 <!-- On-Screen Alarm Flash -->
                 <div class="alarm-overlay hidden" id="alarmOverlay">
                     <div class="alarm-banner">🚨 COMPLEX ALERT 🚨</div>
                     <div class="alarm-sub">BODY DISCOVERED OR COVER BLOWN! GUARDS RESPONDING</div>
                 </div>
 
+                <!-- Touch Controls (Visible on mobile/touch screens or when toggled) -->
+                <div class="touch-controls-container hidden" id="touchControlsContainer">
+                    <div class="touch-joystick-zone" id="touchJoystickZone">
+                        <div class="joystick-base" id="joystickBase">
+                            <div class="joystick-thumb" id="joystickThumb"></div>
+                        </div>
+                    </div>
+                    <div class="touch-buttons-zone" id="touchButtonsZone">
+                        <button class="touch-btn touch-btn-interact" id="btnTouchInteract" title="Interact / Takedown">🖐️<br><span>Action [E]</span></button>
+                        <button class="touch-btn touch-btn-coin" id="btnTouchCoin" title="Toss Coin">🪙<br><span>Distract</span></button>
+                        <button class="touch-btn touch-btn-ability" id="btnTouchAbility" title="Special Ability">⚡<br><span>Ability</span></button>
+                        <button class="touch-btn touch-btn-attack" id="btnTouchAttack" title="Strike Attack">⚔️<br><span>Strike</span></button>
+                    </div>
+                </div>
+
                 <!-- Floating Ability Hint -->
                 <div class="ability-hint-panel">
-                    <span><strong>Left-Click</strong>: Strike</span>
+                    <span><strong>Click / Space</strong>: Strike</span>
                     <span class="separator">|</span>
-                    <span><strong>Right-Click</strong>: Throw Coin (Distract)</span>
+                    <span><strong>Right-Click / Q</strong>: Distract Coin</span>
                     <span class="separator">|</span>
-                    <span><strong>E</strong>: Interact (Disguise / Hide Body)</span>
+                    <span><strong>E</strong>: Takedown / Uniform / Hack</span>
                     <span class="separator">|</span>
                     <span><strong>G</strong>: Drag Body</span>
                     <span class="separator">|</span>
-                    <span><strong>SHIFT</strong>: Active Skill</span>
+                    <span><strong>SHIFT / F</strong>: Ability</span>
+                    <span class="separator">|</span>
+                    <span><strong>1-3</strong>: Gadgets</span>
                 </div>
             </div>
 
             <!-- Action buttons bottom -->
             <div class="action-row">
                 <button class="btn btn-secondary" id="btnPauseGame">⏸️ Pause</button>
+                <button class="btn btn-secondary" id="btnToggleSound">🔊 Sound: ON</button>
+                <button class="btn btn-secondary" id="btnToggleTouch">📱 Touch Controls</button>
                 <div class="run-stats-brief">
-                    <span>VIP Targets Left: <strong id="hudGuardsLeft" class="highlight-pink">0</strong></span>
+                    <span>VIP Targets: <strong id="hudGuardsLeft" class="highlight-pink">0</strong></span>
                     <span class="separator">|</span>
                     <span>Disguise: <strong id="hudDisguiseText">NONE</strong></span>
+                    <span class="separator">|</span>
+                    <span>Score: <strong id="hudScoreText" class="highlight-cyan">0</strong></span>
                 </div>
             </div>
         </div>
@@ -210,11 +267,14 @@
                         <div class="guide-rules-content">
                             <h3>🕶️ The Silent Assassin Protocol</h3>
                             <ul>
-                                <li><strong>Target Assassinations:</strong> Each floor contains red-haloed **VIP Target Scientists**. Eliminate them to retrieve the exit keycard.</li>
-                                <li><strong>Disguise Systems:</strong> Press **E** near neutralized guards to steal their security uniforms. Guards won't detect you unless you run, attack, or meet **Enforcer Guards** (marked with a white dot over their heads).</li>
-                                <li><strong>Hiding Bodies:</strong> Neutralized guards leave bodies. If another guard spots a body, they sound a permanent alert. Stand near a body, press **G** to drag it, and walk to a metal **Dumpster Bin** to hide it forever.</li>
-                                <li><strong>Sound Distractions:</strong> Press **Right-Click** to toss a coin. Nearby guards hear it and leave their patrol routes to inspect the noise, setting up perfect sneak executions.</li>
-                                <li><strong>Silent Assassin Rating:</strong> Retain your rating by eliminating *only* the targets, hiding all bodies, and avoiding alarms. Non-target kills incur severe penalties!</li>
+                                <li><strong>Target Assassinations:</strong> Each floor contains red-haloed VIP Target Scientists. Eliminate them or hack security terminals to retrieve the exit keycard.</li>
+                                <li><strong>Silent Takedowns:</strong> Sneak up behind any guard and press <strong>E</strong> or <strong>Space</strong> to execute a silent takedown. Non-lethal pacifications do not break your Silent Assassin rating!</li>
+                                <li><strong>Disguise Systems:</strong> Press <strong>E</strong> near neutralized guards to steal their uniforms. Regular guards will ignore you unless you sprint, attack, or get too close to white-dot Enforcers.</li>
+                                <li><strong>Hiding Bodies:</strong> Guards notice bodies on sight and raise alarms. Stand near a body, press <strong>G</strong> to drag it, and dump it into a metal dumpster or locker.</li>
+                                <li><strong>Distractions:</strong> Press <strong>Right-Click</strong> or <strong>Q</strong> to toss a coin. Guards investigate the sound, leaving vulnerable gaps in patrols.</li>
+                                <li><strong>Stealth Cover & Foliage:</strong> Stand inside cyber-plants, bushes, or behind server racks to enter Concealed state (reduces detection range by 80%).</li>
+                                <li><strong>Tactical Gadgets:</strong> Collect and use emergency equipment: [1] Adrenaline Medkit (+50 HP), [2] Tranq Dart (silent ranged sleep), [3] Smoke Bomb (breaks vision lines).</li>
+                                <li><strong>Silent Assassin Rating:</strong> Maintain your rating by neutralizing only required targets or pacifying silently, hiding all bodies, and preventing full alarms for massive bonus points!</li>
                             </ul>
                         </div>
                     </div>

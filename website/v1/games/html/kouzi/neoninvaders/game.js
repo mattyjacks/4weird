@@ -26,6 +26,9 @@ function initAudio() {
     if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
 }
 
 function playSound(frequency, duration, type = 'square', volume = 0.1) {
@@ -739,3 +742,34 @@ if (document.readyState === 'loading') {
 } else {
     setupTouchControls();
 }
+
+window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SET_GAME_SPEED') {
+        const speed = parseFloat(event.data.speed);
+        if (!isNaN(speed) && speed > 0) {
+            window.speedMultiplier = speed;
+        }
+    }
+});
+
+// ===== DEVELOPER DEBUGGING API =====
+window.gameDebug = {
+    name: "Neon Invaders",
+    getScore: () => score,
+    setScore: (s) => { score = s; document.getElementById('TEMPLATE-4weird-score').textContent = score; },
+    getHealth: () => lives,
+    setHealth: (h) => { lives = h; document.getElementById('TEMPLATE-4weird-lives').textContent = lives; },
+    win: () => {
+        score += 2000;
+        level++;
+        document.getElementById('TEMPLATE-4weird-level').textContent = level;
+    },
+    lose: () => {
+        gameOver();
+    },
+    godMode: false,
+    toggleGodMode: function() {
+        this.godMode = !this.godMode;
+        return this.godMode;
+    }
+};

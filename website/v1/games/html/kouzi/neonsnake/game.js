@@ -22,6 +22,7 @@ document.getElementById('TEMPLATE-4weird-high-score').textContent = highScore;
 let audioCtx = null;
 function initAudio() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 function playSound(freq, duration, type = 'square', volume = 0.08) {
     if (!audioCtx) return;
@@ -532,3 +533,33 @@ function drawStartScreen() {
 }
 
 drawStartScreen();
+
+window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SET_GAME_SPEED') {
+        const speed = parseFloat(event.data.speed);
+        if (!isNaN(speed) && speed > 0) {
+            window.speedMultiplier = speed;
+        }
+    }
+});
+
+// ===== DEVELOPER DEBUGGING API =====
+window.gameDebug = {
+    name: "Neon Snake",
+    getScore: () => score,
+    setScore: (s) => { score = s; document.getElementById('TEMPLATE-4weird-score').textContent = score; },
+    getHealth: () => 100,
+    setHealth: () => {},
+    win: () => {
+        score += 500;
+        document.getElementById('TEMPLATE-4weird-score').textContent = score;
+    },
+    lose: () => {
+        gameOver();
+    },
+    godMode: false,
+    toggleGodMode: function() {
+        this.godMode = !this.godMode;
+        return this.godMode;
+    }
+};

@@ -318,9 +318,15 @@
     }
 
     function initAudio() {
-        if (audioCtx) return;
+        if (audioCtx) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return;
+        }
         
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
         
         // 1. Create Master Output Chain
         masterAnalyser = audioCtx.createAnalyser();
@@ -1256,6 +1262,8 @@
     }
 
     function setupEventListeners() {
+        window.addEventListener('pointerdown', initAudio, { once: true });
+
         // Start Overlay
         document.getElementById('btn-start-studio').addEventListener('click', () => {
             initAudio();

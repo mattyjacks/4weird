@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Fridge Simulator - 4weird Games</title>
     <meta name="description" content="Manage fridges for multiple countries. Buy food, balance nutrition, feed families or they starve. Pure HTML5 simulation game.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥶</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -36,7 +37,13 @@
                     <span class="hud-label">💀 Deaths</span>
                     <span class="hud-value" id="hudDeaths">0</span>
                 </div>
+                <div class="hud-stat" style="border: none; padding: 0;">
+                    <button class="btn btn-secondary" id="btnSoundToggle" style="padding: 6px 12px; font-size: 0.8rem;" title="Mute/Unmute Sound (M)">🔊 Sound: ON</button>
+                </div>
             </div>
+
+            <!-- Floating Toast Container -->
+            <div id="toastContainer" class="toast-container"></div>
 
             <!-- Game Content -->
             <div class="game-content">
@@ -71,6 +78,7 @@
             <!-- Action Buttons -->
             <div class="action-buttons">
                 <button class="btn btn-primary" id="btnNextDay" title="Press SPACE or N">➡️ Next Day <small style="opacity:0.7;font-size:0.7em">(Space/N)</small></button>
+                <button class="btn btn-secondary" id="btnQuickStock" title="Auto-stock inventory food into empty fridge slots">⚡ Auto-Stock Fridges</button>
                 <button class="btn btn-secondary" id="btnPause">⏸️ Pause</button>
             </div>
         </div>

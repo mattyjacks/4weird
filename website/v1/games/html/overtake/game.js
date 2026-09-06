@@ -87,8 +87,8 @@
     const AIRSTRIKE_STUN = 1.25;
     const POWERUP_FLAGS = {
         nitro: true,
-        shield: false,
-        airstrike: false,
+        shield: true,
+        airstrike: true,
     };
     const POWERUP_SLOT_SPACING = 26;
     const POWERUP_SLOT_CHANCE = 0.55;
@@ -3199,6 +3199,14 @@
         bindTouchButton(touchRight, "arrowright");
         bindTouchButton(touchBrake, "arrowdown");
         bindTouchButton(touchNitro, "n");
+        window.addEventListener("message", (event) => {
+            if (event.data && event.data.type === "SET_GAME_SPEED") {
+                const speed = parseFloat(event.data.speed);
+                if (!isNaN(speed) && speed > 0) {
+                    timeScale = speed;
+                }
+            }
+        });
     }
     function bindTouchButton(button, key) {
         function press(event) {

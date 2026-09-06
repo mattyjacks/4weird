@@ -18,8 +18,15 @@
     <link rel="stylesheet" href="../../../styles.css">
     <link rel="stylesheet" href="game.css">
     
-    <!-- Three.js Library -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+    
+    <!-- Three.js Library with failover check -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        if (typeof THREE === 'undefined') {
+            document.write('<script src="https://unpkg.com/three@0.128.0/build/three.min.js"><\/script>');
+        }
+    </script>
     
     <!-- Game Metadata (loaded for credits/bio) -->
     <script src="game.json" type="application/json" id="game-metadata"></script>

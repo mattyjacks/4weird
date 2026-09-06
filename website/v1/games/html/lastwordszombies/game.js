@@ -785,7 +785,21 @@ class GameApp {
   bindEvents() {
     window.addEventListener('resize', () => this.resizeCanvas());
     
+    window.addEventListener('message', (e) => {
+      if (e.data && e.data.type === 'SET_GAME_SPEED') {
+        const speed = parseFloat(e.data.speed);
+        if (!isNaN(speed) && speed > 0) {
+          this.gameTimeScale = speed;
+        }
+      }
+    });
+
     window.addEventListener('keydown', (e) => {
+      // Do not trap browser navigation/dev shortcuts
+      if (e.ctrlKey || e.metaKey || e.altKey || e.key.startsWith('F') || e.key === 'Tab') {
+        return;
+      }
+
       if (this.state.currentState === GameState.MENU) {
         if (e.key === 'Enter') {
           this.startGame();

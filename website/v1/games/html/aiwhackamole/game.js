@@ -40,34 +40,51 @@ const finalScoreVal = document.getElementById('TEMPLATE-4weird-final-score-val')
 const gameOverReason = document.getElementById('game-over-reason');
 const bubblesContainer = document.getElementById('bubbles-container');
 
-// Sound synthesis helper (Web Audio API) for arcade sound effects
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playSound(type) {
-    if (audioCtx.state === 'suspended') {
+// Sound synthesis helper (Web Audio API) for arcade sound effects - deferred until user gesture
+let audioCtx = null;
+function getAudioContext() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
         audioCtx.resume();
     }
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
+    return audioCtx;
+}
+
+window.addEventListener('pointerdown', () => getAudioContext(), { once: true });
+window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'SET_GAME_SPEED') {
+        const spd = parseFloat(e.data.speed);
+        if (!isNaN(spd) && spd > 0) window.gameSpeedMultiplier = spd;
+    }
+});
+
+function playSound(type) {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
     osc.connect(gain);
-    gain.connect(audioCtx.destination);
+    gain.connect(ctx.destination);
 
     if (type === 'whack-bad') {
         // High pitched retro ping
-        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.15);
-        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+        osc.frequency.setValueAtTime(400, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1000, ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.16);
+        osc.stop(ctx.currentTime + 0.16);
     } else if (type === 'whack-good') {
         // Harsh error buzz
         osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-        osc.frequency.setValueAtTime(100, audioCtx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.frequency.setValueAtTime(150, ctx.currentTime);
+        osc.frequency.setValueAtTime(100, ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.31);
+        osc.stop(ctx.currentTime + 0.31);
     } else if (type === 'escape') {
         // Decrescendo swoosh/alarm
         osc.type = 'sine';

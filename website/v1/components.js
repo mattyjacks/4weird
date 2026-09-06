@@ -71,7 +71,7 @@
                     <span></span>
                 </button>
                 <ul class="nav-menu" id="navMenu">
-                    <li><a href="https://4weird.com/games" class="nav-link">Games</a></li>
+                    <li><a href="${basePath}games/index.html" class="nav-link">Games</a></li>
                     <li><a href="${basePath}games/html/madi/" class="nav-link">MADI AI</a></li>
                     <li><a href="${basePath}tech.html" class="nav-link">Technology</a></li>
                     <li><a href="${basePath}academy/index.html" class="nav-link">Academy</a></li>
@@ -129,18 +129,18 @@
                         <p class="footer-tagline">${SITE_CONFIG.tagline}</p>
                     </div>
                     <div class="footer-links">
-                        <a href="https://4weird.com/games" class="footer-link">Games</a>
+                        <a href="${basePath}games/index.html" class="footer-link">Games</a>
                         <a href="${basePath}games/html/madi/" class="footer-link">MADI AI</a>
                         <a href="${basePath}academy/index.html" class="footer-link">Academy</a>
                         <a href="${isRoot ? '#contribute' : basePath + 'index.html#contribute'}" class="footer-link">Contribute</a>
                         <a href="${isRoot ? '#contact' : basePath + 'index.html#contact'}" class="footer-link">Contact MattyJacks</a>
                         <a href="${basePath}privacy-policy.html" class="footer-link">Privacy Policy</a>
-                        <a href="https://github.com/mattyjacks/4weird" target="_blank" rel="noopener" class="footer-link">GitHub</a>
+                        <a href="https://github.com/mattyjacks/4weird" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
                     </div>
                 </div>
                 <div class="footer-bottom">
                     <p class="footer-copyright">
-                        &copy; 2025 ${SITE_CONFIG.name}. A <a href="https://mattyjacks.com" target="_blank" rel="noopener">${SITE_CONFIG.company}</a> Company.
+                        &copy; 2026 ${SITE_CONFIG.name}. A <a href="https://mattyjacks.com" target="_blank" rel="noopener noreferrer">${SITE_CONFIG.company}</a> Company.
                     </p>
                     <p class="footer-location">${SITE_CONFIG.location} &bull; Global Freelancers &bull; Started ${SITE_CONFIG.started}</p>
                     <p class="footer-slogan">Do and/or DIE TRYING!!!</p>

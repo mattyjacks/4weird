@@ -10,9 +10,13 @@ const sfx = {
     bgmInterval: null,
     
     init() {
-        if (this.ctx) return;
+        if (this.ctx) {
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            return;
+        }
         try {
             this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
             this.muted = localStorage.getItem('battlesharks2_muted') === 'true';
             this.startBGM();
         } catch (e) {
@@ -2160,6 +2164,15 @@ function render(timestamp) {
         ctx.fillText(notificationText, canvas.width / 2, 52);
     }
 }
+
+window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SET_GAME_SPEED') {
+        const speed = parseFloat(event.data.speed);
+        if (!isNaN(speed) && speed > 0 && typeof state !== 'undefined') {
+            state.speedMultiplier = speed;
+        }
+    }
+});
 
 // ===== DEVELOPER DEBUGGING API =====
 window.gameDebug = {
