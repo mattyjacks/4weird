@@ -1,6 +1,16 @@
 (function () {
     'use strict';
 
+    // Input owns its pointer-lock request so it has no dependency on the
+    // runtime's private helpers after code splitting.
+    function requestPointerLockSafely(element) {
+        if (!element?.requestPointerLock || document.body.classList.contains('touch-enabled')) return;
+        try {
+            const request = element.requestPointerLock();
+            if (request && typeof request.catch === 'function') request.catch(() => {});
+        } catch (_) { /* Embedded players may deny pointer lock. */ }
+    }
+
 class InputManager {
     constructor() {
         this.keys = {};
