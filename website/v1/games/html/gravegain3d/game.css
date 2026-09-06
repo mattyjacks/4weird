@@ -210,16 +210,17 @@
 
 /* Screen Overlays */
 .screen-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    /* Menus must not inherit the zero-height wrapper used before a run starts. */
+    position: fixed;
+    inset: 0;
     background: rgba(5, 3, 10, 0.85);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 100;
+    padding: 24px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    z-index: 1000;
     opacity: 1;
     transition: opacity 0.3s ease;
 }
@@ -237,6 +238,15 @@
     max-width: 600px;
     padding: 40px;
     text-align: center;
+    box-sizing: border-box;
+    max-height: calc(100dvh - 48px);
+    overflow-y: auto;
+}
+
+/* Character selection has more content than the title/settings overlays. */
+#charSelectScreen .menu-content {
+    width: min(100%, 980px) !important;
+    max-width: 980px !important;
 }
 
 .menu-title {
@@ -304,6 +314,20 @@
     grid-template-columns: repeat(4, 1fr);
     gap: 15px;
     margin: 20px 0;
+}
+
+@media (max-width: 980px) {
+    #charSelectScreen .menu-content {
+        width: min(100%, 760px) !important;
+    }
+
+    .char-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .mode-select-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
 }
 
 @media (max-width: 600px) {
