@@ -1,4 +1,15 @@
 [
-  "[18:24:34] [SYSTEM] System dashboard loaded. Welcome Hub ready.",
-  "[18:24:35] [SYSTEM] Game window viewport successfully loaded."
+  "[18:39:22] [SYSTEM] System dashboard loaded. Welcome Hub ready.",
+  "[18:39:22] [SYSTEM] Game window viewport successfully loaded.",
+  "[18:39:22] [SYSTEM] Command-line request: Auto-loading game \"gravegain3d\"",
+  "[18:39:23] [SYSTEM] Loading game URL: file:///C:/GitHub5/4weird/website/v1/games/html/gravegain3d/index.html",
+  "[18:39:24] [AGENT] [Game Console] [4weird] Performance tracking & Web Vitals initialized",
+  "[18:39:24] [SYSTEM] Game window viewport successfully loaded.",
+  "[18:39:24] [AGENT] [Game Console] [4weird] Service Worker registered: file:///C:/GitHub5/4weird/website/v1/",
+  "[18:39:27] [AGENT] [Game Window Console] [4weird] Performance tracking & Web Vitals initialized",
+  "[18:39:27] [SYSTEM] External Game window successfully loaded.",
+  "[18:39:27] [AGENT] [Game Window Console] [4weird] Service Worker registered: http://localhost:8888/",
+  "[18:40:15] [AGENT] [Game Window Console] [4weird] Performance tracking & Web Vitals initialized",
+  "[18:40:16] [SYSTEM] External Game window successfully loaded.",
+  "[18:40:16] [AGENT] [Game Window Console] [4weird] Service Worker registered: http://localhost:8888/"
 ]

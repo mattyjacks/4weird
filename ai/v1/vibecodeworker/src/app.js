@@ -829,7 +829,10 @@ function toggleAgentState() {
     el.agentStateBadge.className = 'badge paused';
     logSystemMessage("AI Agent playtesting paused.");
     updateStatusBanner("⏸️ Playtest paused. Click 'START AI AGENT' to resume", 'ready');
-    
+
+    // Human is back in charge: park the virtual bot mouse.
+    try { gameController.setBotControl(webviewElement, false); } catch (_) {}
+
     clearInterval(executionTimer);
     clearInterval(fpsInterval);
   } else {
@@ -849,7 +852,10 @@ function toggleAgentState() {
     
     agentBrain.startSession();
     tracker.updateSessionStatsUI(agentBrain, el);
-    
+
+    // Bot takes the mouse: show the robot-emoji cursor in the test window.
+    try { gameController.setBotControl(webviewElement, true); } catch (_) {}
+
     executionTimer = setInterval(executeAgentStep, 2000);
     fpsInterval = setInterval(updatePerformanceMetrics, 1000);
   }

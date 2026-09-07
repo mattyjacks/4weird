@@ -20,7 +20,8 @@ const {
   evalInGameWindow,
   captureGameScreenshot,
   reloadGameWindow,
-  openGameDevTools
+  openGameDevTools,
+  setBotControlInGameWindow
 } = require('./src/main_process/game_window_manager');
 const { discoverGames } = require('./src/main_process/game_discovery');
 const { LocalAPIServer } = require('./lib/api_server');
@@ -191,6 +192,10 @@ ipcMain.handle('open-game-devtools', async (event) => {
 
 ipcMain.handle('is-game-window-active', () => {
   return isGameWindowActive();
+});
+
+ipcMain.handle('set-bot-control', async (event, on) => {
+  return await setBotControlInGameWindow(on !== false);
 });
 
 const { launchDeepSeekHarnessWeb, runSelfImprovementCycle } = require('./lib/deepseek_harness');

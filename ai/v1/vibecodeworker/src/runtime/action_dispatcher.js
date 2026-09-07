@@ -3,6 +3,7 @@
  */
 const { ipcRenderer } = require('electron');
 const { getKeyCode } = require('./input_mapper');
+const botCursor = require('./bot_cursor');
 
 async function executeAction(controller, webview, action, nativeProcessName = null) {
   if (!action || !action.type) return "No action specified";
@@ -40,20 +41,43 @@ async function executeAction(controller, webview, action, nativeProcessName = nu
         const parts = target.split(',');
         const nx = Math.max(0, Math.min(1000, parseInt(parts[0], 10) || 500));
         const ny = Math.max(0, Math.min(1000, parseInt(parts[1], 10) || 500));
+        // params.gameAction routes canvas clicks inside GraveGain3D through
+        // the bot input API (aim + attack, no pointer lock needed).
+        const gameAction = (action.params && action.params.gameAction) || null;
+        const clickLabel = gameAction === 'attack' ? 'attack' : (gameAction === 'aim' ? 'aim' : ('click ' + target));
         const clickCode = `
           (() => {
+            ${botCursor.moveCursorJS(nx, ny, clickLabel)}
             const x = Math.round((${nx} / 1000) * window.innerWidth);
             const y = Math.round((${ny} / 1000) * window.innerHeight);
-            const el = document.elementFromPoint(x, y);
-            if (el) {
-              el.focus && el.focus();
-              const options = { bubbles: true, cancelable: true, clientX: x, clientY: y };
-              el.dispatchEvent(new MouseEvent('mousedown', options));
-              el.dispatchEvent(new MouseEvent('click', options));
-              el.dispatchEvent(new MouseEvent('mouseup', options));
-              return "Clicked " + el.tagName + " at " + x + "," + y;
-            }
-            return "No element at " + x + "," + y;
+            const nx = ${nx}, ny = ${ny};
+            const gameAction = ${JSON.stringify(gameAction)};
+            const doClick = () => {
+              if (gameAction && window.GraveGainBotInput) {
+                ${botCursor.flashClickJS(nx, ny)}
+                if (gameAction === 'attack') return window.GraveGainBotInput.click(nx, ny, 'attack');
+                if (gameAction === 'aim') {
+                  window.GraveGainBotInput.move(nx, ny, 'aim');
+                  window.GraveGainBotInput.lookToward(nx, ny);
+                  return 'Bot aimed at ' + nx + ',' + ny;
+                }
+              }
+              const el = document.elementFromPoint(x, y);
+              if (el) {
+                el.focus && el.focus();
+                const options = { bubbles: true, cancelable: true, clientX: x, clientY: y };
+                el.dispatchEvent(new MouseEvent('mousedown', options));
+                el.dispatchEvent(new MouseEvent('click', options));
+                el.dispatchEvent(new MouseEvent('mouseup', options));
+                ${botCursor.flashClickJS(nx, ny)}
+                return "Clicked " + el.tagName + " at " + x + "," + y;
+              }
+              return "No element at " + x + "," + y;
+            };
+            // Let the visible bot cursor glide to the target before landing.
+            return new Promise((resolve) => setTimeout(() => {
+              try { resolve(doClick()); } catch (e) { resolve('Click failed: ' + e.message); }
+            }, ${botCursor.CLICK_GLIDE_MS}));
           })()
         `;
         return await controller.executeJS(webview, clickCode);
@@ -85,16 +109,28 @@ async function executeAction(controller, webview, action, nativeProcessName = nu
             x = Math.round(window.innerWidth / 2);
             y = Math.round(window.innerHeight / 2);
           }
+          ${botCursor.moveCursorToPxJS('x', 'y', 'targetStr')}
           const hit = document.elementFromPoint(x, y) || el;
-          if (hit) {
-            hit.focus && hit.focus();
-            const options = { bubbles: true, cancelable: true, clientX: x, clientY: y };
-            hit.dispatchEvent(new MouseEvent('mousedown', options));
-            hit.dispatchEvent(new MouseEvent('click', options));
-            hit.dispatchEvent(new MouseEvent('mouseup', options));
-            return "Clicked " + hit.tagName + " at " + x + "," + y;
-          }
-          return "No element at " + x + "," + y;
+          const doClick = () => {
+            if (hit) {
+              hit.focus && hit.focus();
+              const options = { bubbles: true, cancelable: true, clientX: x, clientY: y };
+              hit.dispatchEvent(new MouseEvent('mousedown', options));
+              hit.dispatchEvent(new MouseEvent('click', options));
+              hit.dispatchEvent(new MouseEvent('mouseup', options));
+              // Cursor already glided to (x, y) above; flash the hit.
+              const ring = document.createElement('div');
+              ring.style.cssText = 'position:fixed;z-index:999998;pointer-events:none;width:14px;height:14px;' +
+                'margin:-7px 0 0 -7px;border-radius:50%;border:3px solid #c084fc;left:' + x + 'px;top:' + y + 'px;';
+              document.body.appendChild(ring);
+              setTimeout(() => ring.remove(), 350);
+              return "Clicked " + hit.tagName + " at " + x + "," + y;
+            }
+            return "No element at " + x + "," + y;
+          };
+          return new Promise((resolve) => setTimeout(() => {
+            try { resolve(doClick()); } catch (e) { resolve('Click failed: ' + e.message); }
+          }, ${botCursor.CLICK_GLIDE_MS}));
         })()
       `;
       const first = await controller.executeJS(webview, selectorCode);
@@ -103,10 +139,13 @@ async function executeAction(controller, webview, action, nativeProcessName = nu
       // string directly (single roundtrip). If we got coordinates, dispatch
       // the click in a second call that only contains elementFromPoint.
       if (first && typeof first === 'object' && typeof first.x === 'number' && typeof first.y === 'number') {
+        const fx = Math.round(first.x);
+        const fy = Math.round(first.y);
         const fallbackClick = `
           (() => {
-            const x = ${Math.round(first.x)};
-            const y = ${Math.round(first.y)};
+            const x = ${fx};
+            const y = ${fy};
+            ${botCursor.moveCursorToPxJS('x', 'y', JSON.stringify('click ' + target))}
             const el = document.elementFromPoint(x, y);
             if (el) {
               return "Clicked " + el.tagName + " at " + x + "," + y;
@@ -119,10 +158,25 @@ async function executeAction(controller, webview, action, nativeProcessName = nu
       return first;
     }
 
+    case 'move_mouse': {
+      // Glide the visible bot cursor without clicking (aiming, hovering).
+      const coords = botCursor.parseActionCoords(action) || { nx: 500, ny: 500 };
+      const label = (action.params && action.params.label) || (action.params && action.params.gameAction) || 'move';
+      return await controller.executeJS(webview, botCursor.moveCursorJS(coords.nx, coords.ny, label));
+    }
+
+    case 'bot_control': {
+      // Explicitly show/hide the bot cursor: target 'on' (bot drives) / 'off'.
+      const on = target === 'on' || target === true ||
+        (action.params && (action.params.enabled === true || action.params.state === 'on'));
+      return await controller.executeJS(webview, botCursor.setBotControlJS(on));
+    }
+
     case 'press_key': {
       const codeStr = getKeyCode(target);
       const script = `
         (() => {
+          ${botCursor.labelCursorJS('keyboard ' + target)}
           const eDown = new KeyboardEvent('keydown', { key: '${target}', code: '${codeStr}', bubbles: true });
           const ePress = new KeyboardEvent('keypress', { key: '${target}', code: '${codeStr}', bubbles: true });
           const eUp = new KeyboardEvent('keyup', { key: '${target}', code: '${codeStr}', bubbles: true });
@@ -144,6 +198,7 @@ async function executeAction(controller, webview, action, nativeProcessName = nu
       const codeStr = getKeyCode(target);
       const script = `
         (() => {
+          ${botCursor.labelCursorJS('hold ' + target + ' ' + duration + 'ms')}
           const eDown = new KeyboardEvent('keydown', { key: '${target}', code: '${codeStr}', bubbles: true });
           window.dispatchEvent(eDown);
           document.dispatchEvent(eDown);

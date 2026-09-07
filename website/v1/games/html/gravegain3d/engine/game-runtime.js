@@ -1992,6 +1992,21 @@
                     }
                     return false;
                 },
+                // ---- Virtual bot-mouse API (routed via GraveGainBotInput) ----
+                look: (dx = 0, dy = 0) => {
+                    if (window.GraveGainBotInput) return window.GraveGainBotInput.look(dx, dy);
+                    return false;
+                },
+                attackAt: (nx = 500, ny = 500) => {
+                    // Aim the view at a normalized screen point, then attack.
+                    if (window.GraveGainBotInput) return window.GraveGainBotInput.click(nx, ny, 'attack');
+                    return false;
+                },
+                setBotControl: (on) => {
+                    if (window.GraveGainBotInput) window.GraveGainBotInput.setBotControl(on);
+                    if (window.GraveGainBotCursor) window.GraveGainBotCursor.setBotControl(on);
+                    return true;
+                },
                 ability: () => {
                     if (gg.player && !gg.isPaused) {
                         gg.player.triggerAbility();

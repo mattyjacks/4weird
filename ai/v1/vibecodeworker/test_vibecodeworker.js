@@ -1128,6 +1128,77 @@ async function runTests() {
     failedTests.push("Handoff.routes");
   }
 
+  // Test 31: Virtual bot mouse module + dispatcher routing
+  try {
+    console.log("Running Test 31: Virtual bot mouse cursor + action routing...");
+    const botCursor = require('./src/runtime/bot_cursor');
+
+    // Overlay snippet carries the robot-emoji cursor id on every page
+    const ensure = botCursor.ensureCursorJS();
+    assert(ensure.includes('vibe-bot-cursor'), "Ensure snippet must create the bot cursor overlay");
+    assert(ensure.includes('u{1F916}'), "Overlay must include the robot emoji badge");
+
+    // Coordinate parsing from both action shapes
+    assert.deepStrictEqual(botCursor.parseActionCoords({ type: 'click', target: '100,200' }), { nx: 100, ny: 200 }, "Must parse x,y target");
+    assert.deepStrictEqual(botCursor.parseActionCoords({ type: 'click', params: { x: 10, y: 20 } }), { nx: 10, ny: 20 }, "Must parse params coords");
+    assert.strictEqual(botCursor.parseActionCoords({ type: 'click', target: '#btnPlay' }), null, "Selector targets have no coords");
+
+    // Dispatcher routes every bot click through the visible cursor first
+    const gameCtrl = new GameController();
+    let lastScript = '';
+    gameCtrl.executeJS = async (webview, code) => { lastScript = code; return "Clicked CANVAS at 256,384"; };
+
+    await gameCtrl.executeAction(null, { type: 'click', target: '256,384', params: { x: 256, y: 384, gameAction: 'attack' } });
+    assert(lastScript.includes('vibe-bot-cursor') || lastScript.includes('GraveGainBotCursor'), "Click script must drive the bot cursor");
+    assert(lastScript.includes('elementFromPoint'), "Click script must still dispatch at element");
+    assert(lastScript.includes('GraveGainBotInput'), "Attack clicks must route via GraveGainBotInput");
+
+    // move_mouse glides the cursor without clicking
+    await gameCtrl.executeAction(null, { type: 'move_mouse', target: '700,100', params: { label: 'aim' } });
+    assert(lastScript.includes('700') && lastScript.includes('100'), "move_mouse must carry coordinates");
+    assert(!lastScript.includes('elementFromPoint'), "move_mouse must not dispatch clicks");
+
+    // bot_control toggles the robot cursor explicitly
+    await gameCtrl.executeAction(null, { type: 'bot_control', target: 'off' });
+    assert(lastScript.includes('bot_control off'), "bot_control must toggle the overlay");
+
+    // Keyboard actions label the cursor (still single-script keydown/keyup)
+    await gameCtrl.executeAction(null, { type: 'press_key', target: 'f' });
+    assert(lastScript.includes('keydown'), "press_key must still dispatch keydown");
+    assert(lastScript.includes('vibe-bot') || lastScript.includes('GraveGainBotCursor'), "press_key must label the cursor");
+
+    console.log("✅ Test 31 Passed!");
+  } catch (err) {
+    console.error("❌ Test 31 Failed:", err);
+    failedTests.push("BotCursor.routing");
+  }
+
+  // Test 32: GraveGain3D bot-cursor contract (static file checks)
+  try {
+    console.log("Running Test 32: GraveGain3D bot input + cursor wiring...");
+    const gameDir = path.join(__dirname, '..', '..', '..', 'website', 'v1', 'games', 'html', 'gravegain3d');
+    const botCursorSrc = fs.readFileSync(path.join(gameDir, 'ui', 'bot-cursor.js'), 'utf8');
+    const inputMgrSrc = fs.readFileSync(path.join(gameDir, 'input', 'input-manager.js'), 'utf8');
+    const indexSrc = fs.readFileSync(path.join(gameDir, 'index.html'), 'utf8');
+    const gameJson = JSON.parse(fs.readFileSync(path.join(gameDir, 'game.json'), 'utf8'));
+
+    assert(botCursorSrc.includes('GraveGainBotCursor'), "Must define the visible cursor overlay");
+    assert(botCursorSrc.includes('GraveGainBotInput'), "Must define the bot input API");
+    for (const api of ['lookToward', 'projectEnemy', 'attack', 'press', 'click', 'setBotControl']) {
+      assert(botCursorSrc.includes(api), `Bot input API must include ${api}`);
+    }
+    assert(botCursorSrc.includes('GraveGainStoryEngine'), "Must carry the solo-copy story fallback");
+    assert(inputMgrSrc.includes('isTrusted === false') || inputMgrSrc.includes('botDriven'), "Synthetic/bot presses must bypass the pointer-lock trap");
+    assert(inputMgrSrc.includes('botAttack'), "InputManager must expose bot helpers");
+    assert(indexSrc.includes('ui/bot-cursor.js'), "index.html must load bot-cursor.js");
+    assert(gameJson.assets.local.includes('ui/bot-cursor.js'), "game.json must list bot-cursor.js");
+
+    console.log("✅ Test 32 Passed!");
+  } catch (err) {
+    console.error("❌ Test 32 Failed:", err);
+    failedTests.push("GraveGain3D.botCursor");
+  }
+
   // Write results to .last-run.json
   const resultsPath = path.join(__dirname, '..', '..', '..', 'test-results', '.last-run.json');
   const status = failedTests.length === 0 ? "passed" : "failed";

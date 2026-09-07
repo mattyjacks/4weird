@@ -50,7 +50,13 @@ class InputManager {
         container.addEventListener('contextmenu', (e) => e.preventDefault());
 
         container.addEventListener('mousedown', (e) => {
-            if (document.pointerLockElement !== container) {
+            // Bot/synthetic presses (virtual mouse, autoplay, playtests) must
+            // act as real attacks even without pointer lock, which embedded
+            // players and headless test windows routinely deny. Human first
+            // clicks still request pointer lock as before.
+            const botDriven = e.isTrusted === false ||
+                (window.GraveGainBotInput && window.GraveGainBotInput.isBotControl());
+            if (document.pointerLockElement !== container && !botDriven) {
                 requestPointerLockSafely(container);
             } else {
                 if (e.button === 0) {
@@ -61,6 +67,35 @@ class InputManager {
                 }
             }
         });
+
+        // Programmatic look/attack for the virtual bot mouse. Routes through
+        // the same flags the per-frame loop polls, so bot + human share one
+        // input path (see ui/bot-cursor.js GraveGainBotInput for the driver).
+        this.botLook = (dx, dy) => {
+            if (window.GraveGainBotInput) return window.GraveGainBotInput.look(dx, dy);
+            return false;
+        };
+        this.botAttack = () => {
+            if (!window.GraveGainGame || !window.GraveGainGame.player) return false;
+            this.mouse.click = true;
+            return true;
+        };
+        this.botBlock = (on) => {
+            this.mouse.isBlocking = on !== false;
+            this.mouse.rightClick = on !== false;
+        };
+        this.botPress = (code, holdMs) => {
+            if (code === 'KeyQ' && window.GraveGainGame) {
+                window.GraveGainGame.usePotion();
+                return;
+            }
+            if (code === 'KeyF' && window.GraveGainGame && window.GraveGainGame.player) {
+                window.GraveGainGame.player.triggerAbility();
+                return;
+            }
+            this.keys[code] = true;
+            setTimeout(() => { this.keys[code] = false; }, holdMs || 220);
+        };
 
         window.addEventListener('mouseup', (e) => {
             if (e.button === 2) {

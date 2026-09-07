@@ -50,6 +50,20 @@ class GameController {
     return await executeAction(this, webview, action, nativeProcessName);
   }
 
+  // Show/hide the robot-emoji bot cursor wherever the game is displayed
+  // (separate test window when open, else the embedded webview).
+  async setBotControl(webview, on) {
+    try {
+      const active = await ipcRenderer.invoke('is-game-window-active');
+      if (active) {
+        return await ipcRenderer.invoke('set-bot-control', on !== false);
+      }
+    } catch (_) { /* fall through to webview path */ }
+    if (!webview) return 'no viewport';
+    const botCursor = require('./src/runtime/bot_cursor');
+    return await this.executeJS(webview, botCursor.setBotControlJS(on !== false));
+  }
+
   // Convert key strings to standard KeyboardEvent codes
   getKeyCode(key) {
     return getKeyCode(key);

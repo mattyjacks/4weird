@@ -43,6 +43,12 @@ async function openGameWindow(url, isHeadless, mainWindow, onConsoleLog) {
     });
 
     win.webContents.on('did-finish-load', () => {
+      // Seed the virtual bot-mouse overlay in the test window so it is
+      // present (hidden until the bot acts) before any agent step runs.
+      try {
+        const botCursor = require('../runtime/bot_cursor');
+        win.webContents.executeJavaScript(botCursor.ensureCursorJS()).catch(() => {});
+      } catch (_) { /* overlay is best-effort; clicks still work without it */ }
       if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('webview-loaded');
       }
@@ -136,6 +142,23 @@ function openGameDevTools() {
   return false;
 }
 
+// Show/hide the robot-emoji bot cursor in the test window. The worker
+// asserts bot control on every bot action; call with false when the human
+// takes over or the agent stops.
+async function setBotControlInGameWindow(on) {
+  if (!isGameWindowActive()) return { success: false, error: 'Game window is not open' };
+  try {
+    const botCursor = require('../runtime/bot_cursor');
+    const res = await withGameTimeout(
+      gameWindow.webContents.executeJavaScript(botCursor.setBotControlJS(on)),
+      'Game window bot cursor'
+    );
+    return { success: true, result: res };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
 module.exports = {
   getGameWindow,
   isGameWindowActive,
@@ -143,5 +166,6 @@ module.exports = {
   evalInGameWindow,
   captureGameScreenshot,
   reloadGameWindow,
-  openGameDevTools
+  openGameDevTools,
+  setBotControlInGameWindow
 };

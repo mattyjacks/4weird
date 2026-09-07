@@ -84,6 +84,13 @@ async function runGraveGain3DAutoplay(webviewElement, executeJSHelper = null) {
             }
           }
 
+          // Project the nearest enemy to normalized screen coords so the
+          // virtual bot mouse can aim at it (0-1000 space, like actions).
+          let enemyScreen = null;
+          try {
+            if (window.GraveGainBotInput) enemyScreen = window.GraveGainBotInput.projectEnemy();
+          } catch (e) { enemyScreen = null; }
+
           return {
             isMainMenuVisible,
             isCharSelectVisible,
@@ -93,6 +100,7 @@ async function runGraveGain3DAutoplay(webviewElement, executeJSHelper = null) {
             player: playerInfo,
             nearestEnemy,
             nearestLoot,
+            enemyScreen,
             totalEnemies: enemiesInfo.length
           };
         } catch (e) {
@@ -156,10 +164,11 @@ async function runGraveGain3DAutoplay(webviewElement, executeJSHelper = null) {
         };
       }
 
-      // If an enemy is within engagement range
-      // NOTE: Space is jump/turn-wait, NOT melee (mouse.click triggers
-      // triggerMeleeAttack). Use class ability (F) for close combat so the
-      // agent doesn't bunny-hop in front of enemies.
+      // Mouse-driven combat via the virtual bot mouse (see ui/bot-cursor.js
+      // GraveGainBotInput + action_dispatcher gameAction routing). The robot
+      // cursor glides onto the enemy on screen, aims the view, and attacks -
+      // no pointer lock required. F ability stays for point-blank range.
+      // NOTE: Space is jump/turn-wait, NOT melee.
       if (enemy) {
         if (enemy.dist < 70) {
           return {
@@ -167,8 +176,25 @@ async function runGraveGain3DAutoplay(webviewElement, executeJSHelper = null) {
             reasoning: `Autoplay: Close combat with ${enemy.name} (${Math.round(enemy.dist)}px)! Unleashing class ability (F)`,
             action: { type: 'press_key', target: 'f' }
           };
+        }
+        const scr = gameState.enemyScreen;
+        if (scr && scr.onScreen) {
+          const sx = Math.max(0, Math.min(1000, scr.x));
+          const sy = Math.max(0, Math.min(1000, scr.y));
+          if (enemy.dist < 420) {
+            return {
+              status: 'playing',
+              reasoning: `Autoplay: Aiming bot mouse at ${enemy.name} (screen ${sx},${sy}, ${Math.round(enemy.dist)}px) - attack!`,
+              action: { type: 'click', target: `${sx},${sy}`, params: { x: sx, y: sy, gameAction: 'attack' } }
+            };
+          }
+          return {
+            status: 'playing',
+            reasoning: `Autoplay: Tracking ${enemy.name} with bot mouse (screen ${sx},${sy}) while closing ${Math.round(enemy.dist)}px`,
+            action: { type: 'click', target: `${sx},${sy}`, params: { x: sx, y: sy, gameAction: 'aim' } }
+          };
         } else if (enemy.dist < 320) {
-          // Advance towards enemy
+          // Enemy off-screen: advance towards it
           const moveKey = Math.random() < 0.8 ? 'w' : (Math.random() < 0.5 ? 'a' : 'd');
           return {
             status: 'playing',

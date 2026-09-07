@@ -301,9 +301,10 @@
             if (!grid || !window.GraveGainStoryMissions) return;
 
             const missions = window.GraveGainStoryMissions;
+            const storyEngine = window.GraveGainStoryEngine || { isUnlocked: () => true, getProgress: () => ({ stars: {} }) };
             grid.innerHTML = missions.map(m => {
-                const unlocked = window.GraveGainStoryEngine.isUnlocked(m.id);
-                const progress = window.GraveGainStoryEngine.getProgress();
+                const unlocked = storyEngine.isUnlocked(m.id);
+                const progress = storyEngine.getProgress();
                 const stars = progress.stars[m.id] || 0;
                 const isSelected = this.game.selectedStoryMissionId === m.id;
 
@@ -329,7 +330,7 @@
         }
 
         selectStoryMission(missionId) {
-            if (!window.GraveGainStoryEngine.isUnlocked(missionId)) return;
+            if (window.GraveGainStoryEngine && !window.GraveGainStoryEngine.isUnlocked(missionId)) return;
             this.game.selectedStoryMissionId = missionId;
             this.renderStoryMissionsList();
         }
