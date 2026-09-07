@@ -1199,6 +1199,131 @@ async function runTests() {
     failedTests.push("GraveGain3D.botCursor");
   }
 
+  // Test 33: AI Vision Mirror (state, detection, endpoint wiring)
+  try {
+    console.log("Running Test 33: AI Vision Mirror state + detection...");
+    const visionState = require('./src/runtime/vision_state');
+    const visionDetect = require('./src/runtime/vision_detect');
+
+    // Pointer recording clamps to the 0-1000 bot action space
+    visionState.reset();
+    visionState.recordPointer(627, 554, 'attack', true);
+    let snap = visionState.getSnapshot();
+    assert.strictEqual(snap.pointer.x, 627, "Pointer x must be recorded");
+    assert.strictEqual(snap.pointer.label, 'attack', "Pointer label must be recorded");
+    assert.strictEqual(snap.pointer.visible, true, "Pointer visibility must be recorded");
+    visionState.recordPointer(-50, 5000, 'oob');
+    snap = visionState.getSnapshot();
+    assert.strictEqual(snap.pointer.x, 0, "Pointer x must clamp to 0");
+    assert.strictEqual(snap.pointer.y, 1000, "Pointer y must clamp to 1000");
+    assert(snap.path.length >= 2, "Pointer path must accumulate for the trail");
+
+    // Key history + action trail are capped ring buffers
+    for (let i = 0; i < 20; i++) visionState.recordKeys('k' + i, 'press');
+    for (let i = 0; i < 20; i++) visionState.recordAction('action ' + i);
+    snap = visionState.getSnapshot();
+    assert(snap.keys.length <= visionState.MAX_KEYS, "Keys must be capped");
+    assert(snap.trail.length <= visionState.MAX_TRAIL, "Trail must be capped");
+    assert.strictEqual(snap.keys[0].key, 'k19', "Keys must be newest-first");
+    visionState.reset();
+    assert.strictEqual(visionState.getSnapshot().trail.length, 0, "Reset must clear trail");
+
+    // Detection script covers both worlds: game enemies + any website DOM
+    const script = visionDetect.buildDetectScript(40);
+    assert(script.includes('GraveGainGame'), "Detect script must have the game-enemy branch");
+    assert(script.includes('camera3d'), "Game branch must project through the 3D camera");
+    assert(script.includes('querySelectorAll'), "Detect script must have the generic DOM branch");
+    assert(script.includes('button, a, input'), "DOM branch must scan interactive elements");
+    assert(script.includes('vibe-bot-cursor'), "Detect script must read out the bot cursor");
+    assert(script.includes('JSON.stringify'), "Detect script must return JSON");
+
+    // Response parsing is tolerant (string, object, garbage)
+    const parsed = visionDetect.parseDetectResponse('{"source":"dom","cursor":null,"objects":[{"x":1,"y":2}]}');
+    assert.strictEqual(parsed.source, 'dom', "Must parse JSON string responses");
+    assert.strictEqual(parsed.objects.length, 1, "Must keep detected objects");
+    assert.strictEqual(visionDetect.parseDetectResponse({ source: 'game', objects: [] }).source, 'game', "Must pass through objects");
+    assert.strictEqual(visionDetect.parseDetectResponse('not json{{{').source, 'error', "Garbage must yield error source");
+    assert.strictEqual(visionDetect.parseDetectResponse(null).objects.length, 0, "Null must yield empty objects");
+
+    // HTTP + UI wiring exists
+    const routesSrc = fs.readFileSync(path.join(__dirname, 'lib', 'api', 'routes.js'), 'utf8');
+    assert(routesSrc.includes('/api/vision/state'), "Routes must expose /api/vision/state");
+    const apiServerSrc = fs.readFileSync(path.join(__dirname, 'lib', 'api_server.js'), 'utf8');
+    assert(apiServerSrc.includes('getVisionState'), "API server must default getVisionState");
+    const dispatcherSrc = fs.readFileSync(path.join(__dirname, 'src', 'runtime', 'action_dispatcher.js'), 'utf8');
+    assert(dispatcherSrc.includes('vision-state-push'), "Dispatcher must push vision snapshots");
+    const mirrorSrc = fs.readFileSync(path.join(__dirname, 'src', 'components', 'vision_mirror.js'), 'utf8');
+    assert(mirrorSrc.includes('vision-mirror-canvas'), "Mirror component must render to the mirror canvas");
+    const dashSrc = fs.readFileSync(path.join(__dirname, 'src', 'index.html'), 'utf8');
+    assert(dashSrc.includes('vision-mirror-panel'), "Dashboard must contain the vision mirror panel");
+
+    console.log("✅ Test 33 Passed!");
+  } catch (err) {
+    console.error("❌ Test 33 Failed:", err);
+    failedTests.push("VisionMirror.wiring");
+  }
+
+  // Test 34: Agent self-healing (no self-alarm loop, sane coords, visible cursor)
+  try {
+    console.log("Running Test 34: Agent self-alarm immunity + coord clamp...");
+    const { scanForBugs } = require('./lib/brain/bug_scanner');
+
+    // The agent's own alarm line must never be filed as a bug (it caused
+    // a self-perpetuating CRASH/EXCEPTION entry every step).
+    const brain = { bugs: [], replayActions: [], sessionStats: { bugsFound: 0 } };
+    const alarmLogs = [{ level: 3, message: '[18:58:35] [ERROR] ⚠️ CRASH / EXCEPTION BUG IDENTIFIED!' }];
+    assert.strictEqual(scanForBugs(brain, null, alarmLogs), false, "Self-alarm lines must not file bugs");
+    assert.strictEqual(brain.bugs.length, 0, "Self-alarm must leave the bug log untouched");
+
+    // Identical recurring errors (timestamps/coords stripped) file once,
+    // then stay quiet under the refire cooldown.
+    const noisy = [{ level: 'error', message: 'Error: gl failed at 12,44 [19:00:01]' }];
+    assert.strictEqual(scanForBugs(brain, null, noisy), true, "First occurrence must file");
+    assert.strictEqual(brain.bugs.length, 1, "One bug filed");
+    const noisy2 = [{ level: 'error', message: 'Error: gl failed at 99,12 [19:00:03]' }];
+    assert.strictEqual(scanForBugs(brain, null, noisy2), false, "Same signature must cool down");
+    assert.strictEqual(brain.bugs.length, 1, "No duplicate filed");
+    assert(brain.bugs[0].description.includes('<n>'), "Stored description must be normalized");
+
+    // Garbage off-viewport coords are clamped in the dispatched click script
+    const gameCtrl2 = new GameController();
+    let lastScript2 = '';
+    gameCtrl2.executeJS = async (webview, code) => { lastScript2 = code; return 'ok'; };
+    await gameCtrl2.executeAction(null, { type: 'click', target: '-9888.5,38' });
+    assert(!lastScript2.includes('(-9888 / 1000)'), "Click math must not use raw off-screen coords");
+    assert(lastScript2.includes('Math.round((0 / 1000)'), "Click x must clamp to 0 in-page");
+
+    // Every bot move asserts bot control so the robot cursor stays visible
+    const botCursor2 = require('./src/runtime/bot_cursor');
+    assert(botCursor2.moveCursorJS(100, 100, 't').includes('setBotControl(true)'), "moveCursorJS must assert bot control");
+    assert(botCursor2.labelCursorJS('t').includes('setBotControl(true)'), "labelCursorJS must assert bot control");
+
+    // DOM inspector skips fully off-viewport elements (source of -9888px targets)
+    const domSrc = fs.readFileSync(path.join(__dirname, 'src', 'runtime', 'dom_inspector.js'), 'utf8');
+    assert(domSrc.includes('innerWidth') && domSrc.includes('onScreen'), "DOM inspector must filter off-viewport elements");
+
+    console.log("✅ Test 34 Passed!");
+  } catch (err) {
+    console.error("❌ Test 34 Failed:", err);
+    failedTests.push("Agent.selfHealing");
+  }
+
+  // Test 35: --max-ticks cap parsing + renderer enforcement wiring
+  try {
+    console.log("Running Test 35: max-ticks cap...");
+    const { parseWorkerArgs } = require('./lib/smart_log');
+    assert.strictEqual(parseWorkerArgs(['node', 'x', '--max-ticks', '50']).maxTicks, 50, "--max-ticks 50 must parse");
+    assert.strictEqual(parseWorkerArgs(['node', 'x', '--ticks', '3']).maxTicks, 3, "--ticks alias must parse");
+    assert.strictEqual(parseWorkerArgs(['node', 'x']).maxTicks, 0, "Default must be unlimited (0)");
+    const appSrc = fs.readFileSync(path.join(__dirname, 'src', 'app.js'), 'utf8');
+    assert(appSrc.includes('cliMaxTicks'), "Dashboard must read the tick cap from CLI args");
+    assert(appSrc.includes('Tick cap reached'), "Dashboard must auto-pause at the cap");
+    console.log("✅ Test 35 Passed!");
+  } catch (err) {
+    console.error("❌ Test 35 Failed:", err);
+    failedTests.push("Agent.maxTicks");
+  }
+
   // Write results to .last-run.json
   const resultsPath = path.join(__dirname, '..', '..', '..', 'test-results', '.last-run.json');
   const status = failedTests.length === 0 ? "passed" : "failed";

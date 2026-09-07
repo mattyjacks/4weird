@@ -69,6 +69,10 @@ function moveCursorJS(nx, ny, label) {
     (() => {
       ${ensureCursorJS()}
       if (window.GraveGainBotCursor) {
+        // An explicit bot move IS bot control: assert it so the cursor
+        // stays visible (opacity rides on the 'on' class) instead of
+        // moving invisibly after pauses, reloads, or control resets.
+        window.GraveGainBotCursor.setBotControl(true);
         window.GraveGainBotCursor.move(${nx}, ${ny}, ${safeLabel});
       } else {
         const c = document.getElementById('${CURSOR_ID}');
@@ -108,7 +112,7 @@ function labelCursorJS(text) {
   return `
     (() => {
       ${ensureCursorJS()}
-      if (window.GraveGainBotCursor) window.GraveGainBotCursor.label(${safe});
+      if (window.GraveGainBotCursor) { window.GraveGainBotCursor.setBotControl(true); window.GraveGainBotCursor.label(${safe}); }
       else {
         window.__vibeBotControl = true;
         const c = document.getElementById('${CURSOR_ID}');
@@ -131,6 +135,7 @@ function moveCursorToPxJS(xExpr, yExpr, labelExpr) {
       const __nx = Math.max(0, Math.min(1000, Math.round((${xExpr}) / window.innerWidth * 1000)));
       const __ny = Math.max(0, Math.min(1000, Math.round((${yExpr}) / window.innerHeight * 1000)));
       if (window.GraveGainBotCursor) {
+        window.GraveGainBotCursor.setBotControl(true);
         window.GraveGainBotCursor.move(__nx, __ny, (${labelExpr}));
       } else {
         const c = document.getElementById('${CURSOR_ID}');

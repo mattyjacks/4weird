@@ -262,6 +262,7 @@ function parseWorkerArgs(argv) {
     handoffReason: 'exit handoff',
     heal: false,
     healIterations: 3,
+    maxTicks: 0, // --max-ticks N: auto-pause the agent after N steps (0 = unlimited)
     handoffOnly: false, // --handoff: print latest/generate handoff and exit
     enableGpu: false,
     extra: [],
@@ -276,6 +277,7 @@ function parseWorkerArgs(argv) {
     else if (a === '--handoff') out.handoffOnly = true;
     else if (a === '--heal') out.heal = true;
     else if (a === '--heal-iterations' && args[i + 1]) out.healIterations = parseInt(args[++i], 10) || 3;
+    else if ((a === '--max-ticks' || a === '--ticks') && args[i + 1]) out.maxTicks = Math.max(0, parseInt(args[++i], 10) || 0);
     else if (a === '--enable-gpu') out.enableGpu = true;
     else out.extra.push(a);
   }

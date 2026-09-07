@@ -198,6 +198,37 @@ ipcMain.handle('set-bot-control', async (event, on) => {
   return await setBotControlInGameWindow(on !== false);
 });
 
+// AI Vision Mirror state: the dashboard renderer pushes a snapshot on
+// every bot action (fire-and-forget). Cached here so the HTTP API
+// (/api/vision/state) and headless tooling can read pointer/keys/trail.
+let lastVisionSnapshot = null;
+ipcMain.on('vision-state-push', (_event, snapshot) => {
+  if (snapshot && typeof snapshot === 'object') lastVisionSnapshot = snapshot;
+});
+
+// Mirror loop heartbeat from the dashboard renderer (proves the panel's
+// screenshot + detect + render loop is alive; surfaced in vision state).
+let lastMirrorTick = null;
+ipcMain.on('vision-mirror-tick', (_event, beat) => {
+  if (beat && typeof beat === 'object') lastMirrorTick = beat;
+});
+
+function getVisionSnapshot() {
+  return {
+    ...(lastVisionSnapshot || {
+      pointer: { x: 500, y: 500, label: 'idle', visible: false, ts: 0 },
+      keys: [],
+      trail: [],
+      path: []
+    }),
+    gameWindowActive: isGameWindowActive(),
+    mirror: lastMirrorTick,
+    ts: Date.now()
+  };
+}
+
+ipcMain.handle('get-vision-state', async () => getVisionSnapshot());
+
 const { launchDeepSeekHarnessWeb, runSelfImprovementCycle } = require('./lib/deepseek_harness');
 
 ipcMain.handle('launch-deepseek-harness', async (event, opts) => {
@@ -261,6 +292,8 @@ function createLocalApiServer(port) {
       },
 
       getLogs: async () => [],
+
+      getVisionState: async () => getVisionSnapshot(),
 
       getGameState: async () => {
         const gameWin = getGameWindow();

@@ -1,5 +1,100 @@
 [
   {
+    "timestamp": "2026-09-07T23:08:44.475Z",
+    "filePath": "C:\\GitHub5\\4weird\\ai\\v1\\vibecodeworker\\data\\temp_test_game.js",
+    "prompt": "Fix the following bug identified during playtesting in temp_test_game.js:\nBug Type: MISSING_STATE_EXPOSURE\nSeverity: medium\nDescription: Game state not exposed on window in temp_test_game.js\n\n\n\nModify the code to resolve the problem completely while preserving existing features.",
+    "model": "gpt-4o-mini",
+    "usage": {
+      "promptTokens": 1200,
+      "completionTokens": 350,
+      "totalTokens": 1550
+    },
+    "cost": {
+      "cost": 0.00038999999999999994,
+      "formatted": "$0.04c",
+      "inputTokens": 81,
+      "outputTokens": 2000,
+      "model": "gpt-4o-mini"
+    },
+    "success": true
+  },
+  {
+    "timestamp": "2026-09-07T23:03:54.440Z",
+    "filePath": "C:\\GitHub5\\4weird\\ai\\v1\\vibecodeworker\\data\\temp_test_game.js",
+    "prompt": "Fix the following bug identified during playtesting in temp_test_game.js:\nBug Type: MISSING_STATE_EXPOSURE\nSeverity: medium\nDescription: Game state not exposed on window in temp_test_game.js\n\n\n\nModify the code to resolve the problem completely while preserving existing features.",
+    "model": "gpt-4o-mini",
+    "usage": {
+      "promptTokens": 1200,
+      "completionTokens": 350,
+      "totalTokens": 1550
+    },
+    "cost": {
+      "cost": 0.00038999999999999994,
+      "formatted": "$0.04c",
+      "inputTokens": 81,
+      "outputTokens": 2000,
+      "model": "gpt-4o-mini"
+    },
+    "success": true
+  },
+  {
+    "timestamp": "2026-09-07T23:03:33.915Z",
+    "filePath": "C:\\GitHub5\\4weird\\ai\\v1\\vibecodeworker\\data\\temp_test_game.js",
+    "prompt": "Fix the following bug identified during playtesting in temp_test_game.js:\nBug Type: MISSING_STATE_EXPOSURE\nSeverity: medium\nDescription: Game state not exposed on window in temp_test_game.js\n\n\n\nModify the code to resolve the problem completely while preserving existing features.",
+    "model": "gpt-4o-mini",
+    "usage": {
+      "promptTokens": 1200,
+      "completionTokens": 350,
+      "totalTokens": 1550
+    },
+    "cost": {
+      "cost": 0.00038999999999999994,
+      "formatted": "$0.04c",
+      "inputTokens": 81,
+      "outputTokens": 2000,
+      "model": "gpt-4o-mini"
+    },
+    "success": true
+  },
+  {
+    "timestamp": "2026-09-07T23:03:28.820Z",
+    "filePath": "C:\\GitHub5\\4weird\\ai\\v1\\vibecodeworker\\data\\temp_test_game.js",
+    "prompt": "Fix the following bug identified during playtesting in temp_test_game.js:\nBug Type: MISSING_STATE_EXPOSURE\nSeverity: medium\nDescription: Game state not exposed on window in temp_test_game.js\n\n\n\nModify the code to resolve the problem completely while preserving existing features.",
+    "model": "gpt-4o-mini",
+    "usage": {
+      "promptTokens": 1200,
+      "completionTokens": 350,
+      "totalTokens": 1550
+    },
+    "cost": {
+      "cost": 0.00038999999999999994,
+      "formatted": "$0.04c",
+      "inputTokens": 81,
+      "outputTokens": 2000,
+      "model": "gpt-4o-mini"
+    },
+    "success": true
+  },
+  {
+    "timestamp": "2026-09-07T22:50:52.401Z",
+    "filePath": "C:\\GitHub5\\4weird\\ai\\v1\\vibecodeworker\\data\\temp_test_game.js",
+    "prompt": "Fix the following bug identified during playtesting in temp_test_game.js:\nBug Type: MISSING_STATE_EXPOSURE\nSeverity: medium\nDescription: Game state not exposed on window in temp_test_game.js\n\n\n\nModify the code to resolve the problem completely while preserving existing features.",
+    "model": "gpt-4o-mini",
+    "usage": {
+      "promptTokens": 1200,
+      "completionTokens": 350,
+      "totalTokens": 1550
+    },
+    "cost": {
+      "cost": 0.00038999999999999994,
+      "formatted": "$0.04c",
+      "inputTokens": 81,
+      "outputTokens": 2000,
+      "model": "gpt-4o-mini"
+    },
+    "success": true
+  },
+  {
     "timestamp": "2026-09-07T22:40:42.369Z",
     "filePath": "C:\\GitHub5\\4weird\\ai\\v1\\vibecodeworker\\data\\temp_test_game.js",
     "prompt": "Fix the following bug identified during playtesting in temp_test_game.js:\nBug Type: MISSING_STATE_EXPOSURE\nSeverity: medium\nDescription: Game state not exposed on window in temp_test_game.js\n\n\n\nModify the code to resolve the problem completely while preserving existing features.",

@@ -33,6 +33,7 @@ class LocalAPIServer {
       getGameState: options.getGameState || (async () => ({})),
       executeAction: options.executeAction || (async (action) => ({ success: false })),
       evalJavaScript: options.evalJavaScript || (async (script) => ({ success: false })),
+      getVisionState: options.getVisionState || (async () => ({ gameWindowActive: false, pointer: null, keys: [], trail: [], path: [] })),
       reloadGame: options.reloadGame || (async () => ({ success: false })),
       ...options.handlers
     };

@@ -97,6 +97,14 @@ async function handleApiRequest(context, req, res, pathname, parsedUrl, readBody
     return sendJSON(200, { success: true, activeGame: appState.activeGame, state });
   }
 
+  // ─── GET /api/vision/state ───────────────────────────
+  // AI Vision Mirror: bot pointer, recent keys, action trail. Read-only.
+  if (pathname === '/api/vision/state') {
+    if (req.method !== 'GET') return sendText(405, 'Method Not Allowed');
+    const vision = await handlers.getVisionState();
+    return sendJSON(200, { success: true, vision });
+  }
+
   // ─── POST /api/game/action ───────────────────────────
   if (pathname === '/api/game/action' || pathname === '/action') {
     if (req.method !== 'POST') return sendText(405, 'Method Not Allowed');
@@ -362,7 +370,7 @@ async function handleApiRequest(context, req, res, pathname, parsedUrl, readBody
   // 404 handler
   return sendJSON(404, {
     success: false,
-    error: `Endpoint '${pathname}' not found. Available endpoints: /api/status, /api/games, /api/game/launch, /api/game/screenshot, /api/game/logs, /api/game/state, /api/game/action, /api/game/eval, /api/game/patch, /api/bugs, /api/autocode/fix, /api/autocode/report, /api/opencode/status, /api/opencode/export, /api/opencode/fix, /api/opencode/heal, /api/opencode/heal/:id, /api/opencode/heal-test, /api/opencode/revert, /api/opencode/handoff, /api/dashboard`
+    error: `Endpoint '${pathname}' not found. Available endpoints: /api/status, /api/games, /api/game/launch, /api/game/screenshot, /api/game/logs, /api/game/state, /api/game/action, /api/game/eval, /api/game/patch, /api/vision/state, /api/bugs, /api/autocode/fix, /api/autocode/report, /api/opencode/status, /api/opencode/export, /api/opencode/fix, /api/opencode/heal, /api/opencode/heal/:id, /api/opencode/heal-test, /api/opencode/revert, /api/opencode/handoff, /api/dashboard`
   });
 }
 

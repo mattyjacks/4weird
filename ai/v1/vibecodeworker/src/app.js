@@ -39,6 +39,9 @@ const {
   saveReplayTrace
 } = require('./components/timeline_scrubber_view');
 const { HubUIController } = require('./components/hub_ui_controller');
+const { initVisionMirror } = require('./components/vision_mirror');
+const visionState = require('./runtime/vision_state');
+const { buildDetectScript, parseDetectResponse } = require('./runtime/vision_detect');
 const { executeAgentStep: runAgentStep } = require('./runtime/agent_step_executor');
 const { UltralightWebEngine } = require('./runtime/ultralight_engine');
 
@@ -89,6 +92,9 @@ let el = {};
 
 // Hub UI Controller instance
 let hubUI = null;
+
+// AI Vision Mirror instance (dashboard panel mirroring the test window)
+let visionMirror = null;
 
 function queryElements() {
   el.providerSelect = document.getElementById('provider-select');
@@ -675,7 +681,19 @@ document.addEventListener('DOMContentLoaded', () => {
     logSystemMessage("External Game window closed. Restoring internal preview.");
     document.getElementById('gamewindow-active-placeholder').classList.add('hidden');
     document.getElementById('game-webview').classList.remove('hidden');
+    if (visionMirror) visionMirror.idle();
   });
+
+  // AI Vision Mirror: exact live mirror of the test window (game or
+  // website) with object recognition, bot-mouse trail, and key HUD.
+  visionMirror = initVisionMirror({
+    ipcRenderer,
+    visionState,
+    buildDetectScript,
+    parseDetectResponse,
+    log: (msg) => logSystemMessage('[Vision] ' + msg)
+  });
+  visionMirror.start();
   
   // Initialize Hub Controller
   const hubEl = {
@@ -841,7 +859,7 @@ function toggleAgentState() {
     el.btnToggleAgent.className = 'btn btn-warning btn-large-top';
     el.agentStateBadge.textContent = 'ACTIVE';
     el.agentStateBadge.className = 'badge active';
-    logSystemMessage("AI Agent playtesting activated.");
+    logSystemMessage("AI Agent playtesting activated." + (cliMaxTicks() > 0 ? ` Tick cap: ${cliMaxTicks()}.` : ''));
     updateStatusBanner("🤖 AI Agent actively playtesting & scanning for bugs...", 'active');
     
     ipcRenderer.invoke('is-game-window-active').then(active => {
@@ -1201,7 +1219,27 @@ function clearHeatmapCanvas() {
   scrubberClearHeatmapCanvas(el.heatmapCanvas);
 }
 
+// --max-ticks N / --ticks N caps an agent run at N steps, then auto-pauses.
+// Default (no flag) is unlimited. Used for bounded smoke-test runs.
+function cliMaxTicks() {
+  try {
+    const argv = window.cliArgs || [];
+    for (let i = 0; i < argv.length; i++) {
+      if ((argv[i] === '--max-ticks' || argv[i] === '--ticks') && argv[i + 1]) {
+        return Math.max(0, parseInt(argv[i + 1], 10) || 0);
+      }
+    }
+  } catch (_) {}
+  return 0;
+}
+
 async function executeAgentStep(forceHeuristic = false) {
+  const maxTicks = cliMaxTicks();
+  if (!forceHeuristic && maxTicks > 0 && agentBrain.sessionStats.steps >= maxTicks && isRunning) {
+    logSystemMessage(`Tick cap reached (${agentBrain.sessionStats.steps}/${maxTicks}) - auto-pausing agent.`);
+    toggleAgentState();
+    return;
+  }
   await runAgentStep({
     forceHeuristic,
     isRunning,

@@ -4,6 +4,18 @@
 const { ipcRenderer } = require('electron');
 const { getKeyCode } = require('./input_mapper');
 const botCursor = require('./bot_cursor');
+const visionState = require('./vision_state');
+
+// Every bot action is mirrored to the AI Vision Mirror: record locally
+// (same renderer process, read directly by the mirror panel) and push a
+// snapshot to the main process for the /api/vision/state HTTP endpoint.
+function pushVision() {
+  try {
+    if (ipcRenderer && typeof ipcRenderer.send === 'function') {
+      ipcRenderer.send('vision-state-push', visionState.getSnapshot());
+    }
+  } catch (_) { /* mirror is best-effort; actions must never fail on it */ }
+}
 
 async function executeAction(controller, webview, action, nativeProcessName = null) {
   if (!action || !action.type) return "No action specified";
@@ -38,13 +50,20 @@ async function executeAction(controller, webview, action, nativeProcessName = nu
       // the page. The old path did 2 sequential executeJS calls (size query
       // + click), doubling IPC latency on every agent click step.
       if (typeof target === 'string' && target.includes(',')) {
-        const parts = target.split(',');
-        const nx = Math.max(0, Math.min(1000, parseInt(parts[0], 10) || 500));
-        const ny = Math.max(0, Math.min(1000, parseInt(parts[1], 10) || 500));
+        // Heuristics sometimes emit off-viewport coords (e.g. from hidden
+        // carousel items). Clamp so the cursor, the page click, and the
+        // vision trail all agree on a real on-screen point.
+        const rawNx = parseInt((target.split(',')[0] || ''), 10);
+        const rawNy = parseInt((target.split(',')[1] || ''), 10);
+        const nx = Math.max(0, Math.min(1000, Number.isFinite(rawNx) ? rawNx : 500));
+        const ny = Math.max(0, Math.min(1000, Number.isFinite(rawNy) ? rawNy : 500));
         // params.gameAction routes canvas clicks inside GraveGain3D through
         // the bot input API (aim + attack, no pointer lock needed).
         const gameAction = (action.params && action.params.gameAction) || null;
         const clickLabel = gameAction === 'attack' ? 'attack' : (gameAction === 'aim' ? 'aim' : ('click ' + target));
+        visionState.recordPointer(nx, ny, clickLabel, true);
+        visionState.recordAction('click ' + clickLabel + ' @ ' + nx + ',' + ny);
+        pushVision();
         const clickCode = `
           (() => {
             ${botCursor.moveCursorJS(nx, ny, clickLabel)}
@@ -83,6 +102,8 @@ async function executeAction(controller, webview, action, nativeProcessName = nu
         return await controller.executeJS(webview, clickCode);
       }
 
+      visionState.recordAction('click ' + target);
+      pushVision();
       const selectorCode = `
         (() => {
           const targetStr = ${JSON.stringify(target)};
@@ -162,6 +183,9 @@ async function executeAction(controller, webview, action, nativeProcessName = nu
       // Glide the visible bot cursor without clicking (aiming, hovering).
       const coords = botCursor.parseActionCoords(action) || { nx: 500, ny: 500 };
       const label = (action.params && action.params.label) || (action.params && action.params.gameAction) || 'move';
+      visionState.recordPointer(coords.nx, coords.ny, label, true);
+      visionState.recordAction('move ' + label + ' @ ' + coords.nx + ',' + coords.ny);
+      pushVision();
       return await controller.executeJS(webview, botCursor.moveCursorJS(coords.nx, coords.ny, label));
     }
 
@@ -169,10 +193,16 @@ async function executeAction(controller, webview, action, nativeProcessName = nu
       // Explicitly show/hide the bot cursor: target 'on' (bot drives) / 'off'.
       const on = target === 'on' || target === true ||
         (action.params && (action.params.enabled === true || action.params.state === 'on'));
+      visionState.setPointerVisible(on);
+      visionState.recordAction('bot_control ' + (on ? 'on' : 'off'));
+      pushVision();
       return await controller.executeJS(webview, botCursor.setBotControlJS(on));
     }
 
     case 'press_key': {
+      visionState.recordKeys(target, 'press');
+      visionState.recordAction('press ' + target);
+      pushVision();
       const codeStr = getKeyCode(target);
       const script = `
         (() => {
@@ -195,6 +225,9 @@ async function executeAction(controller, webview, action, nativeProcessName = nu
     }
 
     case 'hold_key': {
+      visionState.recordKeys(target, 'hold ' + duration + 'ms');
+      visionState.recordAction('hold ' + target + ' ' + duration + 'ms');
+      pushVision();
       const codeStr = getKeyCode(target);
       const script = `
         (() => {
@@ -216,6 +249,8 @@ async function executeAction(controller, webview, action, nativeProcessName = nu
     case 'type_text': {
       const textToType = (action.params && action.params.text) ? action.params.text : (target || '');
       const selector = (action.params && action.params.selector) ? action.params.selector : null;
+      visionState.recordAction('type "' + String(textToType).slice(0, 40) + '"' + (selector ? ' into ' + selector : ''));
+      pushVision();
       const script = `
         (() => {
           let el = null;

@@ -84,6 +84,9 @@
     function moveCursor(nx, ny, label) {
         var el = ensureCursor();
         humanOverride = false;
+        // An explicit bot move is bot control by definition: assert it so
+        // the cursor stays visible even if control was reset or never set.
+        botControl = true;
         el.style.left = nx_to_px(nx) + 'px';
         el.style.top = ny_to_py(ny) + 'px';
         if (typeof label === 'string' && cursorLabelEl) cursorLabelEl.textContent = label;

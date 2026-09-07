@@ -23,12 +23,30 @@ function saveBugs(brain, bugsPath) {
 }
 
 const MAX_BUGS = 100;
+// Same recurring error must not be re-filed more often than this, so a
+// chatty page (or the agent's own alarm line) can never flood the log.
+const BUG_REFIRE_COOLDOWN_MS = 5 * 60 * 1000;
+// The agent's own alarm line - filing it as a bug makes the detector
+// detect itself every step (self-alarm loop). Never file it.
+const SELF_ALARM_MARKER = 'CRASH / EXCEPTION BUG IDENTIFIED';
+
+function normalizeSignature(msg) {
+  return String(msg || '')
+    .replace(/^\[\d{1,2}:\d{2}(:\d{2})?\]\s*/, '') // dashboard [HH:MM:SS] prefix
+    .replace(/\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z?\b/g, '<ts>') // ISO stamps
+    .replace(/\b\d+,\d+\b/g, '<xy>') // coords like 0,37 / -9888,38
+    .replace(/\b\d+(\.\d+)?(px|ms|s)?\b/g, '<n>') // bare numbers
+    .slice(0, 150);
+}
 
 function scanForBugs(brain, screenshotBase64, consoleLogs) {
   const beforeCount = brain.bugs.length;
+  const now = Date.now();
+  if (!brain._bugSigTimes) brain._bugSigTimes = {};
   const errorLogs = (consoleLogs || []).filter(log => {
     const msg = typeof log === 'string' ? log : (log.message || '');
     if (msg.includes('Electron Security Warning') || msg.includes('Content Security Policy')) return false;
+    if (msg.includes(SELF_ALARM_MARKER)) return false;
 
     if (typeof log === 'string') {
       const lower = log.toLowerCase();
@@ -45,11 +63,18 @@ function scanForBugs(brain, screenshotBase64, consoleLogs) {
   if (errorLogs.length > 0) {
     const lastErr = errorLogs[errorLogs.length - 1];
     const msg = typeof lastErr === 'string' ? lastErr : lastErr.message;
+    const signature = normalizeSignature(msg);
+
+    // Cooldown per normalized signature: recurring identical errors
+    // (timestamps/coords stripped) file once, then stay quiet.
+    const lastFiled = brain._bugSigTimes[signature] || 0;
+    if (now - lastFiled < BUG_REFIRE_COOLDOWN_MS) return false;
+    brain._bugSigTimes[signature] = now;
 
     const bugEntry = {
       timestamp: new Date().toISOString(),
       type: 'Console Error',
-      description: msg.slice(0, 150),
+      description: signature,
       severity: 'high',
       consoleLogs: errorLogs.slice(-5).map(l => typeof l === 'string' ? l.slice(0, 300) : (l.message || '').slice(0, 300)),
       screenshot: screenshotBase64 ? `data:image/jpeg;base64,${screenshotBase64}` : '',

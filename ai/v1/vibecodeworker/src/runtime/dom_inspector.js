@@ -14,10 +14,15 @@ async function getInteractiveDOM(controller, webview) {
       const candidates = document.querySelectorAll(
         'button, a, input, select, textarea, canvas, [role="button"], [onclick], [data-captcha], [tabindex]:not([tabindex="-1"])'
       );
+      const vw = window.innerWidth || 1, vh = window.innerHeight || 1;
+      const onScreen = (r) => r.bottom > 0 && r.top < vh && r.right > 0 && r.left < vw;
       for (let i = 0; i < candidates.length && out.length < 40; i++) {
         const el = candidates[i];
         const rect = el.getBoundingClientRect();
         if (rect.width <= 0 || rect.height <= 0) continue;
+        // Skip fully off-viewport elements (hidden carousel items etc):
+        // their centers become garbage click coords like -9888,38.
+        if (!onScreen(rect)) continue;
         const style = window.getComputedStyle(el);
         if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') continue;
 
@@ -44,6 +49,7 @@ async function getInteractiveDOM(controller, webview) {
           if (el.onclick == null && el.getAttribute('role') !== 'button') continue;
           const rect = el.getBoundingClientRect();
           if (rect.width <= 0 || rect.height <= 0) continue;
+          if (!onScreen(rect)) continue;
           out.push({
             tagName: el.tagName,
             id: el.id || '',
