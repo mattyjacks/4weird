@@ -1,0 +1,51 @@
+{
+  "name": "vibecodeworker-4weird",
+  "version": "2.0.0",
+  "description": "4WEIRD VIBECODEWORKER - Autonomous Agentic QA Sandbox & Self-Healing Suite Desktop Application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node test_vibecodeworker.js",
+    "dist": "electron-builder --win portable --dir",
+    "build:exe": "electron-builder --win portable",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build && copy src-tauri\\target\\release\\vibecodeworker-4weird.exe src-tauri\\target\\release\\4weird-vibecodeworker.exe",
+    "tauri:build:win": "tauri build --target x86_64-pc-windows-msvc",
+    "tauri:build:mac": "tauri build --target universal-apple-darwin",
+    "tauri:build:linux": "tauri build --target x86_64-unknown-linux-gnu"
+  },
+  "build": {
+    "appId": "com.fourweird.vibecodeworker",
+    "productName": "4WEIRD VIBECODEWORKER",
+    "win": {
+      "target": [
+        "portable"
+      ]
+    },
+    "portable": {
+      "artifactName": "vibecodeworker-4weird.exe"
+    },
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!dist/*",
+      "!scratch/*"
+    ]
+  },
+  "keywords": [
+    "tauri",
+    "desktop",
+    "vibecodeworker",
+    "4weird",
+    "antigravity"
+  ],
+  "author": "4WEIRD Team",
+  "license": "ISC",
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0",
+    "electron": "^31.0.0",
+    "electron-builder": "^26.15.3"
+  }
+}

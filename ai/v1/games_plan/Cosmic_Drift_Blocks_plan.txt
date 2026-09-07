@@ -16,7 +16,7 @@ HOW TO MARKET IT:
 - Publish on itch.io and share on Twitter/Reddit under modern retro-gaming hubs.
 
 HOW TO TEST IT:
-- Load the index.html directly into 4weird aiplay dashboard.
+- Load the index.html directly into 4weird VibeCodeWorker dashboard.
 - Set the AI Agent goals to explore collectables.
 - Monitor stuck conditions to tune obstacle spawn rates and player velocity vectors.
 

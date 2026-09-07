@@ -1,0 +1,17 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default capabilities for 4WEIRD VibeCodeWorker desktop application",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default",
+    "notification:default",
+    "notification:allow-notify",
+    "dialog:default",
+    "dialog:allow-save",
+    "dialog:allow-open",
+    "dialog:allow-message"
+  ]
+}

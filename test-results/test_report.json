@@ -109,8 +109,8 @@
       "screenshot": "C:\\Users\\ventu\\.gemini\\antigravity\\brain\\8bb3ad9c-adaf-4412-80cc-0d31065a68a6\\screenshots\\website__accessibility_info.png"
     },
     {
-      "name": "Website: Aiplay Hub",
-      "url": "http://localhost:8888/aiplay/index.html",
+      "name": "Website: VibeCodeWorker Hub",
+      "url": "http://localhost:8888/VibeCodeWorker/index.html",
       "status": "passed",
       "errors": [],
       "logs": [
@@ -121,7 +121,7 @@
           "sourceId": "node:electron/js2c/sandbox_bundle"
         }
       ],
-      "screenshot": "C:\\Users\\ventu\\.gemini\\antigravity\\brain\\8bb3ad9c-adaf-4412-80cc-0d31065a68a6\\screenshots\\website__aiplay_hub.png"
+      "screenshot": "C:\\Users\\ventu\\.gemini\\antigravity\\brain\\8bb3ad9c-adaf-4412-80cc-0d31065a68a6\\screenshots\\website__VibeCodeWorker_hub.png"
     },
     {
       "name": "Website: Games Hub",

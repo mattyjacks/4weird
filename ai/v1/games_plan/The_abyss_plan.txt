@@ -43,7 +43,7 @@ B. CRITICAL RENDERING PHASES:
 --------------------------------------------------------------------------------
 3. PLAYTESTING & AI AUTOMATION STEPS
 --------------------------------------------------------------------------------
-- Load inside 4weird aiplay debugger using local file paths.
+- Load inside 4weird VibeCodeWorker debugger using local file paths.
 - Setup AI Agent parameters matching the decision tree below.
 - Verify game loop recovery under active obstacle vectors.
 

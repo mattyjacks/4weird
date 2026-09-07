@@ -1,0 +1,16 @@
+[package]
+name = "vibecodeworker-4weird"
+version = "2.0.0"
+description = "4WEIRD VIBECODEWORKER - Autonomous Agentic QA Sandbox & Self-Healing Suite"
+authors = ["4WEIRD Team"]
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-notification = "2"
+tauri-plugin-dialog = "2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"

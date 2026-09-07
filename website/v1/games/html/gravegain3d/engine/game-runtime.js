@@ -1886,7 +1886,7 @@
         window.GraveGainGame = new GraveGainGame();
     });
 
-    // Universal AIPlay & Game Runner integration bindings
+    // Universal VibeCodeWorker & Game Runner integration bindings
     Object.defineProperty(window, 'game', {
         configurable: true,
         get: () => {

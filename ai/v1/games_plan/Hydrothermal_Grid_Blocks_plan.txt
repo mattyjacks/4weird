@@ -71,7 +71,7 @@ To successfully launch and viralize "Hydrothermal Grid Blocks", follow this dist
 --------------------------------------------------------------------------------
 To verify that "Hydrothermal Grid Blocks" is fully balanced and free of logic deadlocks:
 
-- AUTOMATED TESTING WITH 4WEIRD AIPLAY:
+- AUTOMATED TESTING WITH 4WEIRD VibeCodeWorker:
   - Load the index.html file into the 4weird playtesting dashboard.
   - Set the AI Agent heuristic rules matching the decision graph below.
   - Monitor logs for "stuck" alerts to identify if player movement speed is insufficient to escape hazard spawns.

@@ -66,18 +66,20 @@ Current lineup:
 
 ---
 
-## 🤖 4WEIRD AIPLAY: Autonomous Agentic Web & Game QA Platform
+---
 
-**[4weird AIPlay](ai/v1/aiplay)** is an enterprise-grade autonomous playtesting, QA auditing, and self-healing runtime created by **Matt Jackson ([mattyjacks.com](https://mattyjacks.com))**. It turns visual models into active playtesters and web QA engineers that navigate sites, audit UI/UX, sniff backend errors, and auto-fix code.
+## 🤖 4WEIRD VIBECODEWORKER: Autonomous Agentic Web & Game QA Platform
+
+**[4weird VibeCodeWorker](ai/v1/vibecodeworker)** (`vibecodeworker-4weird`) is an enterprise-grade autonomous playtesting, QA auditing, and self-healing runtime created by **Matt Jackson ([mattyjacks.com](https://mattyjacks.com))**. It turns visual models into active playtesters and web QA engineers that navigate sites, audit UI/UX, sniff backend errors, and auto-fix code.
 
 ### 🌟 Key Superpowers:
 1. **🌐 Test Any Website or SaaS Application**:
-   - Point AIPlay at any URL (SaaS, eCommerce, internal tools, landing pages).
+   - Point VibeCodeWorker at any URL (SaaS, eCommerce, internal tools, landing pages).
    - **UI/UX Heuristic Audits**: Visual hierarchy, responsiveness, accessibility, dead-end discovery.
    - **Backend & Network Error Sniffer**: Detects failed REST/GraphQL payloads, 4xx/5xx drops, and JS exceptions.
    - **Synthetic Form & Flow Automation**: Types into inputs, clicks buttons, scrolls pages, and validates form funnels.
 2. **🛡️ Human-in-the-Loop (HITL) CAPTCHA Resolution**:
-   - When encountering Cloudflare Turnstile, Google reCAPTCHA, or hCaptcha, AIPlay immediately pauses execution, alerts the user to solve the barrier in the viewport, and **seamlessly resumes autonomous QA the instant it is solved**.
+   - When encountering Cloudflare Turnstile, Google reCAPTCHA, or hCaptcha, VibeCodeWorker immediately pauses execution, alerts the user to solve the barrier in the viewport, and **seamlessly resumes autonomous QA the instant it is solved**.
 3. **⚡ Ultralight WebKit Engine & Native Game Scanning**:
    - Integrated lightweight WebKit GPU runtime (`ultralight-sdk`) for fast headless telemetry.
    - Process scanner hooks directly into native games (Roblox, Godot, Unity, Unreal).
@@ -89,7 +91,7 @@ Current lineup:
 
 ### 💼 Business Model & Monetization: The Triple-Engine Architecture
 
-4weird AIPlay is built around a sustainable, developer-friendly economic model:
+4weird VibeCodeWorker is built around a sustainable, developer-friendly economic model:
 
 1. **🔑 Bring Your Own Key (BYOK)**:
    - Connect OpenAI, Anthropic, Google Gemini, or OpenRouter API keys directly. Complete privacy, zero markup on your direct provider accounts.
@@ -102,18 +104,23 @@ Current lineup:
      - **Ultra GPU Node** (8 vCPU, 16GB RAM, RTX GPU): \$0.747 / hr
    - All compute instances include a transparent **15% orchestration margin** covering autoscaling, WebRTC low-latency streaming, and fleet health checks.
 
-### 🚀 How to Run AIPlay
+### 🚀 How to Run VibeCodeWorker
 ```bash
-# Navigate to the aiplay directory
-cd ai/v1/aiplay
+# Navigate to the vibecodeworker directory
+cd ai/v1/vibecodeworker
 
 # Install dependencies & run tests
 npm install
 npm test
 
-# Start the Electron application
+# Start the desktop application
 npm start
+
+# Or build native desktop Windows executable via Tauri
+npm run tauri:build
 ```
+
+Executable output: **`vibecodeworker-4weird.exe`**
 
 Visit **[mattyjacks.com](https://mattyjacks.com)** to learn more about the creator and enterprise partnership opportunities.
 
@@ -160,7 +167,7 @@ website/v1/games/html/yourgame/
 
 Explore specific components, sub-projects, and game architectures across the repository:
 
-- **[AIPlay Web App Player & Debugger](ai/v1/aiplay/README_WEB_APP_FEATURES.md)** (`ai/v1/aiplay/README_WEB_APP_FEATURES.md`)  
+- **[VibeCodeWorker Web App Player & Debugger](ai/v1/VibeCodeWorker/README_WEB_APP_FEATURES.md)** (`ai/v1/VibeCodeWorker/README_WEB_APP_FEATURES.md`)  
   Complete documentation index for the Electron-based runtime, static site player, framework auto-detection, and agentic debugging tools.
 - **[Overtake Game README](website/v1/games/html/overtake/README.md)** (`website/v1/games/html/overtake/README.md`)  
   Out Run / Horizon Chase style pseudo-3D canvas racer: run instructions, controls, project structure, and external asset hosting details.
