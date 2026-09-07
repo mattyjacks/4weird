@@ -442,6 +442,134 @@ async function runTests() {
     failedTests.push("GraveGain3D.autoplayHeuristic");
   }
 
+  // Test 16: AutoCode Direct AI Coding Fix, VibeCode, Diff generation & Token/Cost Reporting
+  try {
+    console.log("Running Test 16: AutoCode Direct AI Coding Fix, Token Tracking & Cost Reporting...");
+    const { AutoCodeSystem } = require('./lib/core');
+    const autoCode = new AutoCodeSystem();
+
+    // Verify screenshot helpers
+    assert.strictEqual(autoCode.screenshots.length, 0);
+    autoCode.addScreenshot("sample_base64_data");
+    assert.strictEqual(autoCode.screenshots.length, 1);
+    autoCode.clearScreenshots();
+    assert.strictEqual(autoCode.screenshots.length, 0);
+
+    autoCode.updateConfig({
+      modelName: 'gpt-4o-mini',
+      budgetLimit: 0.20,
+      maxOutputTokens: 2000
+    });
+
+    // Mock callLLM to verify token recording & cost generation
+    autoCode.callLLM = async (prompt, model) => {
+      const activeModel = model || 'gpt-4o-mini';
+      const promptTokens = 1200;
+      const completionTokens = 350;
+      const { calculateCost, formatCost } = require('./lib/pricing');
+      const cost = calculateCost(activeModel, promptTokens, completionTokens);
+      const { recordTokenUsage } = require('./lib/brain/token_tracker');
+      recordTokenUsage(autoCode, activeModel, promptTokens, completionTokens);
+      return {
+        content: `// Patched Game Code\nconsole.log("Bug resolved autonomously through AIPlay direct tokens");\nwindow.gameState = { active: true, score: 100 };`,
+        model: activeModel,
+        provider: 'openai',
+        usage: { promptTokens, completionTokens, totalTokens: 1550 },
+        cost,
+        costFormatted: formatCost(cost)
+      };
+    };
+
+    const dummyFile = path.join(__dirname, 'data', 'temp_test_game.js');
+    fs.writeFileSync(dummyFile, 'console.log("Original bugged game code");', 'utf8');
+
+    const result = await autoCode.autoFixBug({
+      bug: {
+        title: "Test State Exposure Bug",
+        type: "MISSING_STATE_EXPOSURE",
+        description: "Game state not exposed on window in temp_test_game.js",
+        severity: "medium"
+      },
+      sourceFiles: [{ path: dummyFile, content: 'console.log("Original bugged game code");' }],
+      targetFile: dummyFile
+    });
+
+    assert.strictEqual(result.success, true, "autoFixBug should succeed");
+    assert(result.diff.length > 0, "Diff should be generated");
+    assert(result.usage.totalTokens > 0, "Tokens should be tracked in result");
+    assert(result.cost.cost > 0 || result.cost > 0, "Cost should be calculated");
+    assert(result.modifiedContent.includes("Bug resolved autonomously"), "Modified content should contain AI fix");
+
+    // Apply the fix and verify disk writing
+    const applied = autoCode.applyChanges(dummyFile, result.modifiedContent);
+    assert.strictEqual(applied, true, "applyChanges should write to disk");
+    const updatedDiskContent = fs.readFileSync(dummyFile, 'utf8');
+    assert(updatedDiskContent.includes("Bug resolved autonomously"), "Disk file should reflect applied fix");
+
+    // Clean up temporary file
+    if (fs.existsSync(dummyFile)) fs.unlinkSync(dummyFile);
+
+    // Verify report was logged
+    const reportFile = path.join(autoCode.dataDir, 'autocode_fix_report.json');
+    assert(fs.existsSync(reportFile), "autocode_fix_report.json should exist");
+    const reports = JSON.parse(fs.readFileSync(reportFile, 'utf8'));
+    assert(reports.length > 0, "Reports list should have at least 1 entry");
+
+    console.log("✅ Test 16 Passed!");
+  } catch (err) {
+    console.error("❌ Test 16 Failed:", err);
+    failedTests.push("AutoCode.directAIFixAndCostReporting");
+  }
+
+  // Test 17: Environment Variable Resolution for OPENAI_API_KEY and OPENROUTER_API_KEY
+  try {
+    console.log("Running Test 17: Environment Variable Resolution (OPENAI_API_KEY & OPENROUTER_API_KEY)...");
+    const { AutoCodeSystem } = require('./lib/core');
+    const autoCode = new AutoCodeSystem();
+
+    // Case A: OPENROUTER_API_KEY
+    process.env.OPENROUTER_API_KEY = "sk-or-v1-mock-test-key-456";
+    autoCode.updateConfig({ provider: 'openrouter', apiKey: '' });
+    
+    // Intercept fetch to check headers
+    const originalFetch = global.fetch;
+    let interceptedAuth = '';
+    let interceptedUrl = '';
+    global.fetch = async (url, opts) => {
+      interceptedUrl = url;
+      interceptedAuth = opts.headers['Authorization'];
+      return {
+        ok: true,
+        json: async () => ({
+          choices: [{ message: { content: 'console.log("ok");' } }],
+          usage: { prompt_tokens: 100, completion_tokens: 50 }
+        })
+      };
+    };
+
+    const resOpenRouter = await autoCode.callLLM("test prompt", "google/gemini-2.5-flash");
+    assert.strictEqual(interceptedAuth, "Bearer sk-or-v1-mock-test-key-456", "Should use process.env.OPENROUTER_API_KEY");
+    assert(interceptedUrl.includes("openrouter.ai"), "Should call openrouter endpoint");
+    assert.strictEqual(resOpenRouter.usage.totalTokens, 150, "Should report total tokens");
+
+    // Case B: OPENAI_API_KEY
+    process.env.OPENAI_API_KEY = "sk-proj-mock-test-key-123";
+    autoCode.updateConfig({ provider: 'openai', apiKey: '' });
+    const resOpenAI = await autoCode.callLLM("test prompt", "gpt-4o-mini");
+    assert.strictEqual(interceptedAuth, "Bearer sk-proj-mock-test-key-123", "Should use process.env.OPENAI_API_KEY");
+    assert(interceptedUrl.includes("openai.com"), "Should call openai endpoint");
+
+    // Restore fetch and clean env mocks
+    global.fetch = originalFetch;
+    delete process.env.OPENROUTER_API_KEY;
+    delete process.env.OPENAI_API_KEY;
+
+    console.log("✅ Test 17 Passed!");
+  } catch (err) {
+    console.error("❌ Test 17 Failed:", err);
+    failedTests.push("AutoCode.environmentVariableResolution");
+  }
+
   // Write results to .last-run.json
   const resultsPath = path.join(__dirname, '..', '..', '..', 'test-results', '.last-run.json');
   const status = failedTests.length === 0 ? "passed" : "failed";

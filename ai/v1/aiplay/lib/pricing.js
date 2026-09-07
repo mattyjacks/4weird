@@ -5,6 +5,15 @@
 
 // Model pricing per 1M tokens (in USD)
 const MODEL_PRICING = {
+  // GPT-5.6 Series
+  'gpt-5.6-luna': {
+    name: 'GPT-5.6 Luna',
+    inputRate: 2.00,
+    outputRate: 8.00,
+    cacheInputRate: 1.00,
+    tier: 2,
+    description: 'Ultra fast and capable default model'
+  },
   // GPT-5.5 Series
   'gpt-5.5': {
     name: 'GPT-5.5',
@@ -38,6 +47,72 @@ const MODEL_PRICING = {
     cacheInputRate: 15.00,
     tier: 5,
     description: 'Premium model for complex tasks'
+  },
+  'gpt-5.4-mini-2026-03-17': {
+    name: 'GPT-5.4 Mini',
+    inputRate: 0.15,
+    outputRate: 0.60,
+    cacheInputRate: 0.075,
+    tier: 1,
+    description: 'Fast and affordable'
+  },
+  'gpt-5.4-mini': {
+    name: 'GPT-5.4 Mini',
+    inputRate: 0.15,
+    outputRate: 0.60,
+    cacheInputRate: 0.075,
+    tier: 1,
+    description: 'Fast and affordable'
+  },
+  'gpt-5.4-nano': {
+    name: 'GPT-5.4 Nano',
+    inputRate: 0.05,
+    outputRate: 0.20,
+    cacheInputRate: 0.025,
+    tier: 1,
+    description: 'Ultra-lightweight fast model'
+  },
+  // Gemini Series
+  'gemini-2.5-flash': {
+    name: 'Gemini 2.5 Flash',
+    inputRate: 0.075,
+    outputRate: 0.30,
+    cacheInputRate: 0.0375,
+    tier: 1,
+    description: 'High-speed Gemini model'
+  },
+  'gemini-2.5-pro': {
+    name: 'Gemini 2.5 Pro',
+    inputRate: 1.25,
+    outputRate: 5.00,
+    cacheInputRate: 0.625,
+    tier: 3,
+    description: 'Advanced reasoning Gemini model'
+  },
+  // OpenRouter Models
+  'google/gemini-2.5-flash': {
+    name: 'Gemini 2.5 Flash (OpenRouter)',
+    inputRate: 0.075,
+    outputRate: 0.30,
+    cacheInputRate: 0.0375,
+    tier: 1,
+    description: 'OpenRouter Gemini 2.5 Flash'
+  },
+  'google/gemini-2.5-pro': {
+    name: 'Gemini 2.5 Pro (OpenRouter)',
+    inputRate: 1.25,
+    outputRate: 5.00,
+    cacheInputRate: 0.625,
+    tier: 3,
+    description: 'OpenRouter Gemini 2.5 Pro'
+  },
+  'openai/gpt-4o-mini': {
+    name: 'GPT-4o Mini (OpenRouter)',
+    inputRate: 0.15,
+    outputRate: 0.60,
+    cacheInputRate: 0.075,
+    tier: 1,
+    description: 'OpenRouter GPT-4o Mini'
   },
   // GPT-4o Series
   'gpt-4o': {
@@ -77,10 +152,12 @@ const MODEL_TIER_ORDER = [
  * @returns {number} Cost in USD
  */
 function calculateCost(model, inputTokens, outputTokens, useCache = false) {
-  const pricing = MODEL_PRICING[model];
-  if (!pricing) {
-    throw new Error(`Unknown model: ${model}`);
-  }
+  const pricing = MODEL_PRICING[model] || {
+    inputRate: 0.50,
+    outputRate: 1.50,
+    cacheInputRate: 0.25,
+    tier: 1
+  };
 
   const inputRate = useCache ? pricing.cacheInputRate : pricing.inputRate;
   const inputCost = (inputTokens / 1000000) * inputRate;

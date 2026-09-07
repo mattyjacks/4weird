@@ -101,6 +101,18 @@ class AIPlayClient {
   async getDashboard() {
     return await this._request('/api/dashboard');
   }
+
+  async autoFixBug(fixOptions = {}) {
+    return await this._request('/api/autocode/fix', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(fixOptions)
+    });
+  }
+
+  async getFixReports() {
+    return await this._request('/api/autocode/report');
+  }
 }
 
 module.exports = { AIPlayClient };

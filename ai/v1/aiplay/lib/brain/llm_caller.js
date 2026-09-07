@@ -3,7 +3,28 @@
  */
 
 async function callLLM(brain, prompt, base64Image = null) {
-  const { provider, apiKey, endpointUrl, modelName } = brain.config;
+  let { provider, apiKey, endpointUrl, modelName } = brain.config;
+
+  // Resolve API key from environment variables if not configured
+  if (!apiKey || apiKey === 'YOUR_OPENAI_API_KEY') {
+    if (provider === 'openai' && process.env.OPENAI_API_KEY) {
+      apiKey = process.env.OPENAI_API_KEY;
+    } else if (provider === 'openrouter' && process.env.OPENROUTER_API_KEY) {
+      apiKey = process.env.OPENROUTER_API_KEY;
+    } else if (provider === 'gemini' && process.env.GEMINI_API_KEY) {
+      apiKey = process.env.GEMINI_API_KEY;
+    } else if (!provider || provider === 'openai') {
+      // Auto-fallback check
+      if (process.env.OPENAI_API_KEY) {
+        apiKey = process.env.OPENAI_API_KEY;
+        provider = 'openai';
+      } else if (process.env.OPENROUTER_API_KEY) {
+        apiKey = process.env.OPENROUTER_API_KEY;
+        provider = 'openrouter';
+      }
+    }
+  }
+
   let url = '';
   let headers = { 'Content-Type': 'application/json' };
   let body = {};
@@ -11,7 +32,7 @@ async function callLLM(brain, prompt, base64Image = null) {
   if (provider === 'openai') {
     url = 'https://api.openai.com/v1/chat/completions';
     headers['Authorization'] = `Bearer ${apiKey}`;
-    const realModel = 'gpt-4o-mini';
+    const realModel = modelName || 'gpt-4o-mini';
 
     const content = [{ type: 'text', text: prompt }];
     if (base64Image) {

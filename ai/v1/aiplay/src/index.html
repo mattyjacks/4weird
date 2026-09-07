@@ -13,7 +13,7 @@
 <body>
   <div class="app-container simple-mode nav-is-hidden">
 
-    <!-- SLIM TOP TITLE BAR -->
+    <!-- SLIM TOP TITLE BAR WITH CLEAN DROPDOWNS -->
     <header class="title-bar glass">
       <div class="title-bar-left">
         <button id="btn-open-nav" class="btn btn-nav-open" title="Open navigation menu" aria-label="Open Menu">
@@ -23,13 +23,98 @@
           <div class="glow-dot active"></div>
           <h1>4WEIRD AIPLAY</h1>
         </div>
-        <span class="subtitle">game runner and fixer</span>
+
+        <!-- SIMPLE HEADER DROPDOWNS -->
+        <div class="header-menu-group">
+          <!-- 1. GAME MENU -->
+          <div class="menu-dropdown">
+            <button class="menu-dropdown-btn btn btn-secondary btn-small" id="menu-game-btn">
+              🎮 Game ▾
+            </button>
+            <div class="menu-dropdown-content menu-panel-solid" id="menu-game-content">
+              <div class="menu-group-title">QUICK LOAD</div>
+              <button class="menu-item" id="menu-item-load-game">
+                <span class="menu-icon">📂</span> Load Selected Game
+              </button>
+              <button class="menu-item" id="menu-item-reload-game">
+                <span class="menu-icon">🔄</span> Reload Game Window
+              </button>
+              <button class="menu-item" id="menu-item-ext-window">
+                <span class="menu-icon">🖥️</span> Open in Separate Window
+              </button>
+              <button class="menu-item" id="menu-item-devtools">
+                <span class="menu-icon">🛠️</span> Open Game DevTools
+              </button>
+              <button class="menu-item" id="menu-item-snapshot">
+                <span class="menu-icon">📸</span> Take Viewport Snapshot
+              </button>
+              <div class="menu-divider"></div>
+              <div class="menu-group-title">WORKSPACE HUB</div>
+              <button class="menu-item" id="menu-item-goto-hub">
+                <span class="menu-icon">🏠</span> Welcome Hub / New Game
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. AI & TOOLS MENU -->
+          <div class="menu-dropdown">
+            <button class="menu-dropdown-btn btn btn-secondary btn-small" id="menu-tools-btn">
+              🤖 AI & Tools ▾
+            </button>
+            <div class="menu-dropdown-content menu-panel-solid" id="menu-tools-content">
+              <div class="menu-group-title">AUTONOMOUS FIXER</div>
+              <button class="menu-item" id="menu-item-direct-fix">
+                <span class="menu-icon">⚡</span> Run AI Coding Fix (Direct)
+              </button>
+              <button class="menu-item" id="menu-item-heuristic">
+                <span class="menu-icon">🧪</span> Force Heuristic Step
+              </button>
+              <button class="menu-item" id="menu-item-mega-prompt">
+                <span class="menu-icon">📋</span> Generate Mega-Prompt
+              </button>
+              <div class="menu-divider"></div>
+              <div class="menu-group-title">SESSION DATA</div>
+              <button class="menu-item" id="menu-item-save-replay">
+                <span class="menu-icon">💾</span> Save Replay Recording
+              </button>
+              <button class="menu-item" id="menu-item-copy-logs">
+                <span class="menu-icon">📑</span> Copy Recent Logs
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. VIEW & PANELS MENU -->
+          <div class="menu-dropdown">
+            <button class="menu-dropdown-btn btn btn-secondary btn-small" id="menu-view-btn">
+              ⚙️ Options ▾
+            </button>
+            <div class="menu-dropdown-content menu-panel-solid" id="menu-view-content">
+              <div class="menu-group-title">LAYOUT & SOUND</div>
+              <button class="menu-item" id="menu-item-toggle-layout">
+                <span class="menu-icon">👁️</span> <span id="menu-layout-label">Switch to Advanced Layout</span>
+              </button>
+              <button class="menu-item" id="menu-item-toggle-audio">
+                <span class="menu-icon">🔊</span> <span id="menu-audio-label">Toggle Audio Sounds</span>
+              </button>
+              <div class="menu-divider"></div>
+              <div class="menu-group-title">SIDEBAR PANELS</div>
+              <button class="menu-item" id="menu-item-toggle-config">
+                <span class="menu-icon">⚙️</span> Toggle Config Panel
+              </button>
+              <button class="menu-item" id="menu-item-toggle-tracker">
+                <span class="menu-icon">🐞</span> Toggle Bug Tracker Panel
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
+
       <div class="title-bar-center">
         <button id="btn-toggle-agent" class="btn btn-primary btn-large-top disabled" disabled title="Select a game target and click LOAD first">
           <span class="icon">▶</span> START AI AGENT
         </button>
       </div>
+
       <div class="title-bar-right">
         <div class="metrics-bar">
           <div class="metric">
@@ -52,7 +137,7 @@
         </div>
         <div class="toggles-group">
           <button id="btn-toggle-left" class="btn btn-secondary btn-small" title="Toggle Configuration Panel">⚙️ Config</button>
-          <button id="btn-toggle-right" class="btn btn-secondary btn-small" title="Toggle Bug Tracker">� Tracker</button>
+          <button id="btn-toggle-right" class="btn btn-secondary btn-small" title="Toggle Bug Tracker">🐞 Tracker</button>
           <button id="btn-toggle-audio" class="btn btn-icon btn-small" title="Toggle Synth Sounds">🔊</button>
         </div>
       </div>
@@ -622,14 +707,31 @@
       </div>
 
       <div class="sidebar-header border-top">
-        <h2>MEGA-PROMPT GENERATOR</h2>
+        <h2>MEGA-PROMPT & DIRECT FIXER</h2>
       </div>
 
       <div class="prompt-generator-box">
-        <p class="box-desc">Generate an automated mega-prompt bundling screenshots, error logs, and game files to feed into code generation tools (Antigravity/Devin) for automated bug resolution.</p>
-        <button id="btn-generate-prompt" class="btn btn-primary btn-full">
-          ⚡ GENERATE AI BUG-FIX PROMPT
-        </button>
+        <p class="box-desc">Generate a prompt or run coding fixes directly using AI tokens (OpenAI / OpenRouter API keys) without quota limits.</p>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button id="btn-run-direct-fix" class="btn btn-warning btn-full" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700;">
+            🤖 RUN AI CODING FIX (DIRECT TOKENS)
+          </button>
+          <button id="btn-generate-prompt" class="btn btn-secondary btn-full">
+            📋 GENERATE PROMPT FOR EXTERNAL TOOLS
+          </button>
+        </div>
+
+        <div class="prompt-output-wrapper hidden" id="direct-fix-status-container" style="margin-top: 10px; background: rgba(0, 242, 254, 0.05); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 6px; padding: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-weight: bold; font-size: 0.8rem; color: var(--accent-cyan);">Fix Report & Tokens</span>
+            <span id="direct-fix-cost-badge" style="font-family: var(--font-mono); font-size: 0.75rem; color: #10b981;">$0.0000</span>
+          </div>
+          <div id="direct-fix-status-text" style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; margin-bottom: 8px;">Waiting for action...</div>
+          <div style="display: flex; gap: 6px;">
+            <button id="btn-view-direct-diff" class="btn btn-small btn-primary hidden" style="flex: 1;">Inspect Diff in AutoCode</button>
+            <button id="btn-apply-direct-fix" class="btn btn-small btn-primary hidden" style="flex: 1; background: #10b981; border-color: #10b981;">Apply to File</button>
+          </div>
+        </div>
         
         <div class="prompt-output-wrapper hidden" id="prompt-output-container">
           <div class="prompt-actions">

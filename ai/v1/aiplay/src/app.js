@@ -208,6 +208,14 @@ function queryElements() {
   el.autocodeDiffContainer = document.getElementById('autocode-diff-container');
   el.btnDiscardChanges = document.getElementById('btn-discard-changes');
   el.btnApplyChanges = document.getElementById('btn-apply-changes');
+
+  // Direct AI Fix & Token Report elements
+  el.btnRunDirectFix = document.getElementById('btn-run-direct-fix');
+  el.directFixStatusContainer = document.getElementById('direct-fix-status-container');
+  el.directFixCostBadge = document.getElementById('direct-fix-cost-badge');
+  el.directFixStatusText = document.getElementById('direct-fix-status-text');
+  el.btnViewDirectDiff = document.getElementById('btn-view-direct-diff');
+  el.btnApplyDirectFix = document.getElementById('btn-apply-direct-fix');
 }
 
 // Coordinate setups on DOM load
@@ -240,6 +248,15 @@ document.addEventListener('DOMContentLoaded', () => {
   el.btnClearLogs.addEventListener('click', clearLogView);
   el.btnGeneratePrompt.addEventListener('click', generateMegaPrompt);
   el.btnCopyPrompt.addEventListener('click', copyPromptToClipboard);
+  if (el.btnRunDirectFix) {
+    el.btnRunDirectFix.addEventListener('click', runDirectAIFix);
+  }
+  if (el.btnViewDirectDiff) {
+    el.btnViewDirectDiff.addEventListener('click', inspectDirectDiff);
+  }
+  if (el.btnApplyDirectFix) {
+    el.btnApplyDirectFix.addEventListener('click', applyDirectFix);
+  }
   el.btnSaveReplay.addEventListener('click', () => {
     saveReplayTrace({ replaysDir, timelineHistory, el, audio, toastNotifier, logSystemMessage });
   });
@@ -427,6 +444,100 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnHideNav) btnHideNav.addEventListener('click', hideNav);
   if (btnOpenNav) btnOpenNav.addEventListener('click', showNav);
+
+  // --- HEADER DROPDOWN MENUS CONTROLLER ---
+  const dropdowns = document.querySelectorAll('.menu-dropdown');
+  dropdowns.forEach(dd => {
+    const btn = dd.querySelector('.menu-dropdown-btn');
+    if (btn) {
+      btn.addEventListener('click', (e) => {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+        }
+        audio.playClickSound();
+        const wasActive = dd.classList.contains('active');
+        dropdowns.forEach(d => d.classList.remove('active'));
+        if (!wasActive) {
+          dd.classList.add('active');
+        }
+      });
+    }
+  });
+
+  // Close dropdowns when clicking outside
+  window.addEventListener('click', (e) => {
+    if (!e.target.closest('.menu-dropdown')) {
+      dropdowns.forEach(d => d.classList.remove('active'));
+    }
+  });
+
+  // Wire Dropdown Items
+  const wireMenuItem = (id, callback) => {
+    const item = document.getElementById(id);
+    if (item) {
+      item.addEventListener('click', () => {
+        dropdowns.forEach(d => d.classList.remove('active'));
+        callback();
+      });
+    }
+  };
+
+  wireMenuItem('menu-item-load-game', () => loadGame());
+  wireMenuItem('menu-item-reload-game', () => reloadGame());
+  wireMenuItem('menu-item-ext-window', () => openExternalGameWindow());
+  wireMenuItem('menu-item-devtools', () => openGameDevTools());
+  wireMenuItem('menu-item-snapshot', () => takeManualSnapshot());
+  wireMenuItem('menu-item-goto-hub', () => {
+    if (hubUI) {
+      audio.playClickSound();
+      hubUI.showHubWorkspace();
+    }
+  });
+
+  wireMenuItem('menu-item-direct-fix', () => runDirectAIFix());
+  wireMenuItem('menu-item-heuristic', () => forceHeuristicStep());
+  wireMenuItem('menu-item-mega-prompt', () => generateMegaPrompt());
+  wireMenuItem('menu-item-save-replay', () => {
+    saveReplayTrace({ replaysDir, timelineHistory, el, audio, toastNotifier, logSystemMessage });
+  });
+  wireMenuItem('menu-item-copy-logs', () => {
+    if (el.btnCopy50Logs) el.btnCopy50Logs.click();
+  });
+
+  wireMenuItem('menu-item-toggle-layout', () => {
+    if (el.btnToggleView) el.btnToggleView.click();
+    const isSimple = appContainer.classList.contains('simple-mode');
+    const menuLayoutLabel = document.getElementById('menu-layout-label');
+    if (menuLayoutLabel) {
+      menuLayoutLabel.textContent = isSimple ? 'Switch to Advanced Layout' : 'Switch to Simple Layout';
+    }
+  });
+
+  wireMenuItem('menu-item-toggle-audio', () => {
+    toggleAudioSetting();
+    const menuAudioLabel = document.getElementById('menu-audio-label');
+    if (menuAudioLabel) {
+      menuAudioLabel.textContent = audio.getAudioEnabled() ? 'Mute Sounds (Currently ON)' : 'Unmute Sounds (Currently OFF)';
+    }
+  });
+
+  wireMenuItem('menu-item-toggle-config', () => {
+    if (leftSidebar) {
+      leftSidebar.classList.toggle('collapsed');
+      if (btnToggleLeft) btnToggleLeft.classList.toggle('active');
+      audio.playClickSound();
+    }
+  });
+
+  wireMenuItem('menu-item-toggle-tracker', () => {
+    if (rightSidebar) {
+      rightSidebar.classList.toggle('collapsed');
+      if (btnToggleRight) btnToggleRight.classList.toggle('active');
+      audio.playClickSound();
+    }
+  });
 
   el.toggleMemory.addEventListener('change', () => {
     agentBrain.config.alwaysSendMemory = el.toggleMemory.checked;
@@ -778,11 +889,101 @@ function forceHeuristicStep() {
   executeAgentStep(true);
 }
 
-function generateMegaPrompt() {
+let pendingDirectFix = null;
+
+async function runDirectAIFix() {
   audio.playClickSound();
-  const prompt = agentBrain.generateMegaPrompt(el.gameUrlInput.value, sourceFiles);
-  el.megaPromptOutput.value = prompt;
-  el.promptOutputContainer.classList.remove('hidden');
+  if (sourceFiles.length === 0) {
+    toastNotifier.show("Load a game demo first to index source files.", "warning");
+    return;
+  }
+
+  // Check if we have an active bug or general playtest findings
+  const targetBug = agentBrain.bugs.length > 0 ? agentBrain.bugs[0] : {
+    type: 'Code Polish / Optimization',
+    description: 'Auto-detected game optimization and bug prevention based on playtest trace.',
+    severity: 'medium'
+  };
+
+  el.directFixStatusContainer.classList.remove('hidden');
+  el.directFixStatusText.innerHTML = `⏳ <strong>Analyzing codebase & dispatching AI Fix...</strong><br>Using direct AI tokens (no Antigravity/Codex quota limits).`;
+  el.btnRunDirectFix.classList.add('btn-loading');
+  logSystemMessage(`Initiating direct AI coding fix via AI tokens on "${targetBug.title || targetBug.type}"...`);
+
+  try {
+    const fixResult = await autoCodeSystem.autoFixBug({
+      bug: targetBug,
+      sourceFiles,
+      customInstruction: "Provide robust, clean code modifications to fix this issue directly in the file."
+    });
+
+    if (fixResult.success) {
+      pendingDirectFix = fixResult;
+      const costStr = fixResult.cost?.formatted || (fixResult.cost?.cost ? `$${fixResult.cost.cost.toFixed(4)}` : '$0.0000');
+      const tokens = fixResult.usage ? `${fixResult.usage.totalTokens} tokens (${fixResult.usage.promptTokens} in / ${fixResult.usage.completionTokens} out)` : '';
+      
+      el.directFixCostBadge.textContent = costStr;
+      el.directFixStatusText.innerHTML = `✅ <strong>Fix Proposed for ${path.basename(fixResult.filePath)}!</strong><br>` +
+        `Model: <code>${fixResult.model}</code><br>` +
+        `Tokens: <strong>${tokens}</strong> | Cost: <strong>${costStr}</strong>`;
+
+      el.btnViewDirectDiff.classList.remove('hidden');
+      el.btnApplyDirectFix.classList.remove('hidden');
+
+      // Update token stats widget
+      tracker.updateTokenStatsUI(agentBrain, el.tokenModelSelect, el);
+      logSystemMessage(`Direct AI Fix generated successfully! Cost: ${costStr} | ${tokens}`);
+      toastNotifier.show(`Direct AI Fix generated (${costStr})`, "success");
+
+      // Auto-load into AutoCode IDE diff view for immediate review
+      if (el.autocodeFileSelect) {
+        el.autocodeFileSelect.value = fixResult.filePath;
+        if (el.autocodeCostVal) el.autocodeCostVal.textContent = costStr;
+        renderAutoCodeDiff(el, fixResult.diff);
+        el.autocodeDiffSection.classList.remove('hidden');
+      }
+    } else {
+      el.directFixStatusText.innerHTML = `❌ <strong>AI Fix Failed:</strong> ${fixResult.error}`;
+      logSystemMessage(`Direct AI Fix failed: ${fixResult.error}`, 'error');
+      toastNotifier.show(fixResult.error, "error");
+    }
+  } catch (err) {
+    el.directFixStatusText.innerHTML = `❌ <strong>Exception:</strong> ${err.message}`;
+    logSystemMessage(`Direct AI Fix runtime error: ${err.message}`, 'error');
+    toastNotifier.show(err.message, "error");
+  } finally {
+    el.btnRunDirectFix.classList.remove('btn-loading');
+  }
+}
+
+function inspectDirectDiff() {
+  audio.playClickSound();
+  tabs.switchTab('autocode', el, audio);
+  if (pendingDirectFix) {
+    if (el.autocodeFileSelect) el.autocodeFileSelect.value = pendingDirectFix.filePath;
+    renderAutoCodeDiff(el, pendingDirectFix.diff);
+    el.autocodeDiffSection.classList.remove('hidden');
+  }
+}
+
+async function applyDirectFix() {
+  if (!pendingDirectFix) return;
+  audio.playClickSound();
+  logSystemMessage(`Applying Direct AI Fix to ${pendingDirectFix.filePath}...`);
+
+  try {
+    const success = autoCodeSystem.applyChanges(pendingDirectFix.filePath, pendingDirectFix.modifiedContent);
+    if (success) {
+      logSystemMessage(`Direct AI Fix applied and saved to disk.`);
+      toastNotifier.show("Fix applied successfully to file!", "success");
+      el.directFixStatusText.innerHTML = `💾 <strong>Successfully applied fix to ${path.basename(pendingDirectFix.filePath)}!</strong>`;
+      el.btnApplyDirectFix.classList.add('hidden');
+      el.autocodeDiffSection.classList.add('hidden');
+      crawlFiles();
+    }
+  } catch (err) {
+    logSystemMessage(`Failed to apply direct fix: ${err.message}`, 'error');
+  }
 }
 
 function copyPromptToClipboard() {

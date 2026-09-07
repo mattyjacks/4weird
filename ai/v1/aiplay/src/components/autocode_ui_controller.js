@@ -139,7 +139,13 @@ async function triggerAutoCodeVibe({
     const file = sourceFiles.find(f => f.path === filePath);
     const result = await autoCodeSystem.vibeCode(filePath, file.content, prompt);
     if (result.success) {
-      logSystemMessage(`AutoCode modifications proposed successfully!`);
+      const costStr = result.cost?.formatted || (result.cost?.cost ? `$${result.cost.cost.toFixed(4)}` : '$0.0000');
+      const tokensStr = result.usage ? `${result.usage.totalTokens} tokens (${result.usage.promptTokens} in / ${result.usage.completionTokens} out)` : '';
+      logSystemMessage(`AutoCode modifications proposed successfully! Model: ${result.model} | Cost: ${costStr} | ${tokensStr}`);
+      if (el.autocodeCostVal) {
+        el.autocodeCostVal.textContent = costStr;
+      }
+      toastNotifier.show(`AI Fix generated (${costStr}, ${result.usage?.totalTokens || 0} tokens)`, "success");
       renderAutoCodeDiff(el, result.diff);
       el.autocodeDiffSection.classList.remove('hidden');
     } else {

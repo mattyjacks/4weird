@@ -141,6 +141,36 @@ async function debugGames() {
       });
     }
 
+    // Option to run direct AI coding fixes using AI tokens (OPENAI_API_KEY / OPENROUTER_API_KEY)
+    if (process.env.AUTO_FIX_BUGS === 'true' && result.bugsFound.length > 0) {
+      console.log(`  [AI AutoFix] Attempting direct AI token bug fix on ${game.title}...`);
+      try {
+        const { AutoCodeSystem } = require('./lib/core');
+        const autoCode = new AutoCodeSystem();
+        const primaryBug = result.bugsFound[0];
+        const targetAbsFile = path.join(fullGameDir, primaryBug.file);
+        
+        const fixResult = await autoCode.autoFixBug({
+          bug: primaryBug,
+          targetFile: targetAbsFile,
+          customInstruction: `Fix ${primaryBug.type}: ${primaryBug.description}`
+        });
+
+        if (fixResult.success) {
+          autoCode.applyChanges(targetAbsFile, fixResult.modifiedContent);
+          result.fixed = true;
+          result.fixDetails = {
+            model: fixResult.model,
+            tokens: fixResult.usage,
+            cost: fixResult.cost
+          };
+          console.log(`  [AI AutoFix Success] Patched ${primaryBug.file} using ${fixResult.model}. Cost: ${fixResult.cost?.formatted || '$0.00'}`);
+        }
+      } catch (fixErr) {
+        console.warn(`  [AI AutoFix Failed] ${fixErr.message}`);
+      }
+    }
+
     auditReport.push(result);
   }
 

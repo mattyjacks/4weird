@@ -1935,12 +1935,189 @@
       "completion": 99,
       "total": 9782,
       "runId": "run_1781826458607"
+    },
+    {
+      "timestamp": "2026-09-07T03:17:33.025Z",
+      "model": "google/gemini-2.5-flash",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788751053024"
+    },
+    {
+      "timestamp": "2026-09-07T03:17:33.027Z",
+      "model": "gpt-4o-mini",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788751053024"
+    },
+    {
+      "timestamp": "2026-09-07T03:17:40.017Z",
+      "model": "google/gemini-2.5-flash",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788751060015"
+    },
+    {
+      "timestamp": "2026-09-07T03:17:40.019Z",
+      "model": "gpt-4o-mini",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788751060015"
+    },
+    {
+      "timestamp": "2026-09-07T03:18:01.620Z",
+      "model": "gpt-4o-mini",
+      "prompt": 1200,
+      "completion": 350,
+      "total": 1550,
+      "runId": "autocode_1788751081617"
+    },
+    {
+      "timestamp": "2026-09-07T03:18:01.647Z",
+      "model": "google/gemini-2.5-flash",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788751081644"
+    },
+    {
+      "timestamp": "2026-09-07T03:18:01.649Z",
+      "model": "gpt-4o-mini",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788751081644"
+    },
+    {
+      "timestamp": "2026-09-07T03:18:16.067Z",
+      "model": "gpt-4o-mini",
+      "prompt": 1200,
+      "completion": 350,
+      "total": 1550,
+      "runId": "autocode_1788751096064"
+    },
+    {
+      "timestamp": "2026-09-07T03:18:16.072Z",
+      "model": "google/gemini-2.5-flash",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788751096071"
+    },
+    {
+      "timestamp": "2026-09-07T03:18:16.073Z",
+      "model": "gpt-4o-mini",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788751096071"
+    },
+    {
+      "timestamp": "2026-09-07T03:26:39.798Z",
+      "model": "gpt-4o-mini",
+      "prompt": 1200,
+      "completion": 350,
+      "total": 1550,
+      "runId": "autocode_1788751599792"
+    },
+    {
+      "timestamp": "2026-09-07T03:26:39.827Z",
+      "model": "google/gemini-2.5-flash",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788751599824"
+    },
+    {
+      "timestamp": "2026-09-07T03:26:39.829Z",
+      "model": "gpt-4o-mini",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788751599824"
+    },
+    {
+      "timestamp": "2026-09-07T03:29:36.337Z",
+      "model": "gpt-4o-mini",
+      "prompt": 1200,
+      "completion": 350,
+      "total": 1550,
+      "runId": "autocode_1788751776333"
+    },
+    {
+      "timestamp": "2026-09-07T03:29:36.343Z",
+      "model": "google/gemini-2.5-flash",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788751776342"
+    },
+    {
+      "timestamp": "2026-09-07T03:29:36.345Z",
+      "model": "gpt-4o-mini",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788751776342"
+    },
+    {
+      "timestamp": "2026-09-07T03:30:39.389Z",
+      "model": "gpt-4o-mini",
+      "prompt": 1200,
+      "completion": 350,
+      "total": 1550,
+      "runId": "autocode_1788751839387"
+    },
+    {
+      "timestamp": "2026-09-07T03:30:39.394Z",
+      "model": "google/gemini-2.5-flash",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788751839393"
+    },
+    {
+      "timestamp": "2026-09-07T03:30:39.396Z",
+      "model": "gpt-4o-mini",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788751839393"
+    },
+    {
+      "timestamp": "2026-09-07T03:45:00.260Z",
+      "model": "gpt-4o-mini",
+      "prompt": 1200,
+      "completion": 350,
+      "total": 1550,
+      "runId": "autocode_1788752700257"
+    },
+    {
+      "timestamp": "2026-09-07T03:45:00.265Z",
+      "model": "google/gemini-2.5-flash",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788752700264"
+    },
+    {
+      "timestamp": "2026-09-07T03:45:00.267Z",
+      "model": "gpt-4o-mini",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788752700264"
     }
   ],
   "lifetimeTotals": {
-    "gpt-4o-mini": 98363,
-    "total": 1913152,
+    "gpt-4o-mini": 108863,
+    "total": 1924852,
     "gpt-5.4-nano-2026-03-17": 18462,
-    "gpt-5.4-mini-2026-03-17": 1796327
+    "gpt-5.4-mini-2026-03-17": 1796327,
+    "google/gemini-2.5-flash": 1200
   }
 }

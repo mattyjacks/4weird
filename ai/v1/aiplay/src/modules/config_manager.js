@@ -52,9 +52,11 @@ function handleProviderChange(providerSelect, modelSelect, localUrlGroup, apiKey
   } else {
     localUrlGroup.classList.add('hidden');
     if (val === 'gemini') {
-      apiKeyInput.placeholder = "Enter Gemini API Key";
+      apiKeyInput.placeholder = process.env.GEMINI_API_KEY ? "Using process.env.GEMINI_API_KEY" : "Enter Gemini API Key";
+    } else if (val === 'openrouter') {
+      apiKeyInput.placeholder = process.env.OPENROUTER_API_KEY ? "Using process.env.OPENROUTER_API_KEY" : "Enter OpenRouter API Key";
     } else {
-      apiKeyInput.placeholder = "Enter API Key";
+      apiKeyInput.placeholder = process.env.OPENAI_API_KEY ? "Using process.env.OPENAI_API_KEY" : "Enter OpenAI API Key";
     }
   }
   
@@ -85,8 +87,16 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     settings.modelName = 'gpt-5.4-mini-2026-03-17';
   }
 
-  elements.providerSelect.value = settings.provider || 'openai';
+  const prov = settings.provider || 'openai';
+  elements.providerSelect.value = prov;
   elements.apiKeyInput.value = settings.apiKey || '';
+  if (!elements.apiKeyInput.value) {
+    if (prov === 'openrouter' && process.env.OPENROUTER_API_KEY) {
+      elements.apiKeyInput.placeholder = "Using process.env.OPENROUTER_API_KEY";
+    } else if (prov === 'openai' && process.env.OPENAI_API_KEY) {
+      elements.apiKeyInput.placeholder = "Using process.env.OPENAI_API_KEY";
+    }
+  }
   elements.localUrlInput.value = settings.localUrl || 'http://localhost:11434/api/chat';
   
   populateModelsDropdown(elements.providerSelect, elements.modelSelect);

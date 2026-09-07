@@ -146,10 +146,38 @@ async function handleApiRequest(context, req, res, pathname, parsedUrl, readBody
     });
   }
 
+  // ─── POST /api/autocode/fix ─────────────────────────
+  if (pathname === '/api/autocode/fix') {
+    if (req.method !== 'POST') return sendText(405, 'Method Not Allowed');
+    const body = await readBody();
+    const { AutoCodeSystem } = require('../core');
+    const autoCode = new AutoCodeSystem();
+    const result = await autoCode.autoFixBug({
+      bug: body.bug || { description: body.instruction || body.description },
+      sourceFiles: body.sourceFiles || [],
+      targetFile: body.targetFile || body.filePath,
+      customInstruction: body.customInstruction || body.instruction
+    });
+    return sendJSON(result.success ? 200 : 500, result);
+  }
+
+  // ─── GET /api/autocode/report ────────────────────────
+  if (pathname === '/api/autocode/report') {
+    const fs = require('fs');
+    const reportFile = path.join(context.dataDir, 'autocode_fix_report.json');
+    let reports = [];
+    if (fs.existsSync(reportFile)) {
+      try {
+        reports = JSON.parse(fs.readFileSync(reportFile, 'utf8'));
+      } catch (e) {}
+    }
+    return sendJSON(200, { success: true, count: reports.length, reports });
+  }
+
   // 404 handler
   return sendJSON(404, {
     success: false,
-    error: `Endpoint '${pathname}' not found. Available endpoints: /api/status, /api/games, /api/game/launch, /api/game/screenshot, /api/game/logs, /api/game/state, /api/game/action, /api/game/eval, /api/game/patch, /api/bugs, /api/dashboard`
+    error: `Endpoint '${pathname}' not found. Available endpoints: /api/status, /api/games, /api/game/launch, /api/game/screenshot, /api/game/logs, /api/game/state, /api/game/action, /api/game/eval, /api/game/patch, /api/bugs, /api/autocode/fix, /api/autocode/report, /api/dashboard`
   });
 }
 
