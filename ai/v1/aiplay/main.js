@@ -330,6 +330,59 @@ ipcMain.handle('is-game-window-active', () => {
   return gameWindow !== null;
 });
 
+// Ensure static server is running for game files
+const WEBSITE_V1_DIR = path.join(__dirname, '..', '..', '..', 'website', 'v1');
+const STATIC_PORT = 8888;
+
+function startStaticServer(port, docRoot) {
+  try {
+    const server = http.createServer((req, res) => {
+      let rawPath = new URL(req.url, `http://localhost:${port}`).pathname;
+      let filePath = path.join(docRoot, decodeURIComponent(rawPath));
+
+      try {
+        if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
+          filePath = path.join(filePath, 'index.html');
+        }
+      } catch (e) {}
+
+      if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('404 Not Found');
+        return;
+      }
+
+      const ext = path.extname(filePath).toLowerCase();
+      const mimeTypes = {
+        '.html': 'text/html',
+        '.css': 'text/css',
+        '.js': 'text/javascript',
+        '.json': 'application/json',
+        '.png': 'image/png',
+        '.jpg': 'image/jpeg',
+        '.gif': 'image/gif',
+        '.svg': 'image/svg+xml',
+        '.wav': 'audio/wav',
+        '.mp3': 'audio/mpeg'
+      };
+      res.writeHead(200, { 'Content-Type': mimeTypes[ext] || 'application/octet-stream' });
+      fs.createReadStream(filePath).pipe(res);
+    });
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.log(`[StaticServer] Port ${port} is already in use, assuming active host`);
+      } else {
+        console.error('[StaticServer] Error:', err);
+      }
+    });
+    server.listen(port);
+    return server;
+  } catch (e) {
+    console.warn('[StaticServer] Could not initialize static host:', e.message);
+  }
+}
+startStaticServer(STATIC_PORT, WEBSITE_V1_DIR);
+
 // Import Local API Server module
 const { LocalAPIServer } = require('./lib/api_server');
 
@@ -339,8 +392,7 @@ const localApiServer = new LocalAPIServer({
   runtimeMode: 'electron',
   handlers: {
     getGames: async () => {
-      const websiteV1Dir = path.join(__dirname, '..', '..', 'website', 'v1');
-      const gamesDir = path.join(websiteV1Dir, 'games');
+      const gamesDir = path.join(WEBSITE_V1_DIR, 'games');
       const games = [];
       
       if (fs.existsSync(path.join(gamesDir, 'html'))) {
@@ -359,8 +411,8 @@ const localApiServer = new LocalAPIServer({
               title: meta.title || item,
               maker: meta.maker || meta.author || '4weird',
               description: meta.description || '',
-              url: `http://localhost:8888/games/html/${item}/index.html`,
-              path: path.relative(websiteV1Dir, itemPath)
+              url: `http://localhost:${STATIC_PORT}/games/html/${item}/index.html`,
+              path: path.relative(WEBSITE_V1_DIR, itemPath)
             });
           }
         }
@@ -369,7 +421,7 @@ const localApiServer = new LocalAPIServer({
     },
 
     launchGame: async (gameId) => {
-      const url = gameId.startsWith('http') ? gameId : `http://localhost:8888/games/html/${gameId}/index.html`;
+      const url = gameId.startsWith('http') ? gameId : `http://localhost:${STATIC_PORT}/games/html/${gameId}/index.html`;
       const primaryDisplay = screen.getPrimaryDisplay();
       const { x, y, width, height } = primaryDisplay.workArea;
       const ideWidth = Math.floor(width / 2);

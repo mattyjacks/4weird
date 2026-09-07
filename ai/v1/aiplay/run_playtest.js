@@ -12,11 +12,12 @@ if (!fs.existsSync(SCREENSHOT_DIR)) {
 
 // Read args
 const headless = process.argv.includes('--headless');
-console.log(`Starting playtest. Mode: ${headless ? 'HEADLESS' : 'HEADFUL'}`);
+const targetGame = process.argv.find(a => !a.startsWith('-') && a !== process.argv[0] && a !== process.argv[1]) || 'gravegain3d';
+console.log(`Starting playtest for target game: ${targetGame}. Mode: ${headless ? 'HEADLESS' : 'HEADFUL'}`);
 
 // Start Electron process
 const electronCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
-const args = ['electron', '.', '--game', 'friendslop', '--autoplay'];
+const args = ['electron', '.', '--game', targetGame, '--autoplay'];
 if (headless) {
   args.push('--headless');
 }

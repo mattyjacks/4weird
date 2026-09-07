@@ -20,6 +20,21 @@ const tracker = require('./modules/tracker_manager');
 const tabs = require('./modules/monitor_tabs');
 const hub = require('./modules/hub_manager');
 
+// Import modular runtime & UI components
+const { drawSparkline: renderSparkline } = require('./components/metrics_sparkline');
+const { drawHeatmapDot: scrubberDrawHeatmapDot, clearHeatmapCanvas: scrubberClearHeatmapCanvas } = require('./components/scrubber_controller');
+const { scanNativeProcesses } = require('./components/native_process_scanner');
+const { populateQuickLaunchGrid } = require('./components/quick_launcher');
+const { setupCollapsibleSections } = require('./components/collapsible_sections');
+const { updateStatusBanner: setStatusBanner } = require('./components/status_banner');
+const { logSystemMessage: writeSystemLog } = require('./components/system_logger');
+const { runFriendSlopAutoplay: friendSlopAI } = require('./runtime/friend_slop_autoplay');
+const { captureViewportScreenshot: captureScreen } = require('./runtime/viewport_screenshot');
+const { renderAutoCodeDiff: displayCodeDiff, estimateCost: calcCost } = require('./runtime/autocode_bridge');
+const { callPlannerAI: queryPlannerAI } = require('./runtime/planner_ai_handler');
+const { generateSpecSheet: buildSpecSheet } = require('./runtime/spec_sheet_builder');
+const { crawlWorkspaceDirectory } = require('./runtime/workspace_crawler');
+
 // Instantiate cores
 const agentBrain = new AgentBrain();
 const gameController = new GameController();
@@ -448,14 +463,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const gameArgIndex = argv.indexOf('--game');
     if (gameArgIndex !== -1 && gameArgIndex + 1 < argv.length) {
       const gameName = argv[gameArgIndex + 1];
+      const normalizedTarget = gameName.toLowerCase().replace(/[^a-z0-9]/g, '');
       logSystemMessage(`Command-line request: Auto-loading game "${gameName}"`);
       setTimeout(() => {
         const options = Array.from(el.demoGameSelect.options);
-        const matchedOpt = options.find(opt => opt.textContent.toLowerCase() === gameName.toLowerCase());
+        const matchedOpt = options.find(opt => {
+          const textNorm = (opt.textContent || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          const valNorm = (opt.value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          return textNorm.includes(normalizedTarget) || valNorm.includes(normalizedTarget);
+        });
         if (matchedOpt) {
           el.demoGameSelect.value = matchedOpt.value;
           selectDemo();
-          if (argv.includes('--start-agent')) {
+          if (argv.includes('--start-agent') || argv.includes('--autoplay')) {
             logSystemMessage("Command-line request: Auto-starting AI Agent in 1.5 seconds");
             setTimeout(() => {
               if (!isRunning) toggleAgentState();
@@ -474,14 +494,7 @@ function saveConfigData() {
 }
 
 function updateStatusBanner(text, type = 'ready') {
-  if (!el.gameStatusBanner) return;
-  el.gameStatusBanner.textContent = text;
-  el.gameStatusBanner.className = 'game-status-banner';
-  if (type === 'ready') {
-    el.gameStatusBanner.classList.add('banner-ready');
-  } else if (type === 'active') {
-    el.gameStatusBanner.classList.add('banner-active');
-  }
+  setStatusBanner(el.gameStatusBanner, text, type);
 }
 
 function populateQuickLaunchGrid() {
@@ -548,21 +561,7 @@ function selectBugCard(bug) {
 
 // System logging helper
 function logSystemMessage(message, type = 'system') {
-  const entry = document.createElement('div');
-  entry.className = `log-entry ${type}`;
-  
-  const timestamp = new Date().toLocaleTimeString([], { hour12: false });
-  entry.innerHTML = `<span style="opacity: 0.5;">[${timestamp}]</span> ${message}`;
-  
-  el.logStream.appendChild(entry);
-  el.logStream.scrollTop = el.logStream.scrollHeight;
-  
-  consoleLogs.push(`[${timestamp}] [${type.toUpperCase()}] ${message}`);
-  
-  // Update remote server data logging
-  try {
-    fs.writeFileSync(path.join(dataDir, 'live_logs.json'), JSON.stringify(consoleLogs.slice(-200), null, 2));
-  } catch (e) {}
+  writeSystemLog(el.logStream, consoleLogs, dataDir, message, type);
 }
 
 function clearLogView() {
@@ -1027,27 +1026,11 @@ function resumeFromScrub() {
 }
 
 function drawHeatmapDot(x, y) {
-  const ctx = el.heatmapCanvas.getContext('2d');
-  const parentWidth = el.heatmapCanvas.parentElement.clientWidth;
-  const parentHeight = el.heatmapCanvas.parentElement.clientHeight;
-  el.heatmapCanvas.width = parentWidth;
-  el.heatmapCanvas.height = parentHeight;
-  
-  const scaleX = (x / 1000) * parentWidth;
-  const scaleY = (y / 1000) * parentHeight;
-
-  ctx.beginPath();
-  ctx.arc(scaleX, scaleY, 12, 0, 2 * Math.PI, false);
-  ctx.fillStyle = 'rgba(0, 255, 102, 0.4)';
-  ctx.fill();
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = '#00ff66';
-  ctx.stroke();
+  scrubberDrawHeatmapDot(el.heatmapCanvas, x, y);
 }
 
 function clearHeatmapCanvas() {
-  const ctx = el.heatmapCanvas.getContext('2d');
-  ctx.clearRect(0, 0, el.heatmapCanvas.width, el.heatmapCanvas.height);
+  scrubberClearHeatmapCanvas(el.heatmapCanvas);
 }
 
 async function runFriendSlopAutoplay() {
@@ -1310,24 +1293,7 @@ function updatePerformanceMetrics() {
 }
 
 function drawSparkline(canvas, val, maxRange, historyArr) {
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  historyArr.push(val);
-  if (historyArr.length > 20) historyArr.shift();
-  
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.beginPath();
-  ctx.lineWidth = 1.5;
-  ctx.strokeStyle = '#00ff66';
-  
-  const step = canvas.width / 19;
-  historyArr.forEach((h, idx) => {
-    const x = idx * step;
-    const y = canvas.height - (h / maxRange) * canvas.height;
-    if (idx === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
-  ctx.stroke();
+  renderSparkline(canvas, val, maxRange, historyArr);
 }
 
 // Expose state getters for HTTP server scrapers

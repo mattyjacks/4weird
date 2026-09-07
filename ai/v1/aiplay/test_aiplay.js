@@ -356,6 +356,41 @@ async function runTests() {
     failedTests.push("GameController.refreshAction");
   }
 
+  // Test 13: Local API Server game discovery & GraveGain3D availability
+  try {
+    console.log("Running Test 13: Local API Server game discovery & GraveGain3D endpoint verification...");
+    const { discoverGames } = require('./start_api_server');
+    const games = discoverGames();
+    assert(Array.isArray(games) && games.length > 0, "Games list should not be empty");
+    
+    const gravegain3d = games.find(g => g.id.toLowerCase() === 'gravegain3d');
+    assert(gravegain3d, "GraveGain3D must be discovered by AIPlay API server");
+    assert(gravegain3d.url.includes('gravegain3d'), "GraveGain3D URL must point to gravegain3d");
+    assert(fs.existsSync(gravegain3d.absPath), "GraveGain3D directory path must exist on disk");
+    console.log("✅ Test 13 Passed!");
+  } catch (err) {
+    console.error("❌ Test 13 Failed:", err);
+    failedTests.push("LocalAPIServer.discoverGraveGain3D");
+  }
+
+  // Test 14: GraveGain3D runtime bindings and window.game contract verification
+  try {
+    console.log("Running Test 14: GraveGain3D runtime binding & window.game contract validation...");
+    const gameRuntimePath = path.join(__dirname, '..', '..', '..', 'website', 'v1', 'games', 'html', 'gravegain3d', 'engine', 'game-runtime.js');
+    assert(fs.existsSync(gameRuntimePath), "GraveGain3D game-runtime.js must exist");
+    const runtimeCode = fs.readFileSync(gameRuntimePath, 'utf8');
+
+    assert(runtimeCode.includes("Object.defineProperty(window, 'game'"), "Must expose window.game property");
+    assert(runtimeCode.includes("Object.defineProperty(window, 'gameState'"), "Must expose window.gameState property");
+    assert(runtimeCode.includes("startQuickRun"), "Must expose startQuickRun helper for automated AIPlay launch");
+    assert(runtimeCode.includes("attack:"), "Must expose attack helper for AIPlay actions");
+    assert(runtimeCode.includes("usePotion:"), "Must expose usePotion helper for AIPlay actions");
+    console.log("✅ Test 14 Passed!");
+  } catch (err) {
+    console.error("❌ Test 14 Failed:", err);
+    failedTests.push("GraveGain3D.runtimeBindings");
+  }
+
   // Write results to .last-run.json
   const resultsPath = path.join(__dirname, '..', '..', '..', 'test-results', '.last-run.json');
   const status = failedTests.length === 0 ? "passed" : "failed";

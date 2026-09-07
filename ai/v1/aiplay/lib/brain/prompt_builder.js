@@ -1,0 +1,144 @@
+/**
+ * Brain Structured Chain-of-Thought (BRAID) & Mega-Prompt Builder
+ */
+const path = require('path');
+
+function buildPrompt(brain, consoleLogs, domSnapshot, isStuck) {
+  const includeMemory = brain.config.alwaysSendMemory || isStuck;
+  const sessionSummary = brain.getSessionSummary();
+
+  const compactDom = (domSnapshot || []).map(el => {
+    const parts = [el.tagName];
+    if (el.id) parts.push(`#${el.id}`);
+    if (el.className) {
+      const firstClass = el.className.split(' ')[0];
+      if (firstClass) parts.push(`.${firstClass}`);
+    }
+    const text = el.innerText || el.placeholder;
+    if (text) parts.push(`("${text.replace(/"/g, "'")}")`);
+    if (el.rect) {
+      parts.push(`[${el.rect.left},${el.rect.top},${el.rect.width},${el.rect.height}]`);
+    }
+    return parts.join('');
+  });
+
+  const compactLogs = (consoleLogs || []).slice(-10).map(log => {
+    if (typeof log === 'string') return log.slice(0, 80);
+    const level = log.level || 'info';
+    const msg = log.message || '';
+    return `[${level}] ${msg.slice(0, 80)}`;
+  });
+
+  let memoryBlock = '';
+  if (includeMemory && brain.episodes.length > 0) {
+    const recentEps = brain.episodes.slice(-5);
+    const epLines = recentEps.map((ep, i) => {
+      return `  Step -${recentEps.length - i}: [${ep.status}] ${ep.action.type} -> ${ep.action.target || 'N/A'} | path: ${JSON.stringify(ep.reasoning_path || ep.reasoning || '')}`;
+    }).join('\n');
+    memoryBlock = `\n## MEMORY — Recent Episode History (last ${recentEps.length} steps)\n${epLines}${sessionSummary ? `\nSession stats: ${sessionSummary}` : ''}\n`;
+  } else if (sessionSummary && isStuck) {
+    memoryBlock = `\n## SESSION STATS\n${sessionSummary}\n`;
+  }
+
+  const stuckBlock = isStuck ? `\n## ⚠️ STUCK WARNING\nThe game state has not changed. Recovery stage: ${brain.stuckRecoveryStage}/3.\nTake a RECOVERY action: click center, Escape, or refresh.\n` : '';
+
+  return `## ROLE & DECISION ENGINE (BRAID)
+You are an expert AI game QA testing agent. You must make decisions by traversing the following Bounded Reasoning Graph (BRAID):
+
+Graph:
+(S) Start -> Check if Game Over / Menu?
+  ├─ [Yes] ──> (R_RESTART) Click restart button or press Enter
+  └─ [No] ───> Check if Stuck/Looping?
+        ├─ [Yes] ──> (R_RECOVER) Execute recovery action (Escape, click center, refresh)
+        └─ [No] ────> Check Console Logs for high severity bugs?
+              ├─ [Yes] ──> (R_BUG) Flag bug_report and pause/report
+              └─ [No] ────> Check if interactive DOM has active buttons?
+                    ├─ [Yes] ──> (R_MENU) Click relevant menu button
+                    └─ [No] ────> (R_PLAY) Play game by pressing key or clicking targets
+
+## OBSERVATION
+Console Logs (last 10):
+${compactLogs.join('\n')}
+
+Interactive DOM (up to 40):
+${compactDom.join('\n')}
+${stuckBlock}
+${memoryBlock}
+## GOAL — Game Objective
+${brain.config.gameRules || "Explore the game: find buttons, play, maximize score, look for bugs/errors."}
+
+## TASK
+Respond ONLY with a JSON object matching this exact schema:
+{
+  "status": "menu | playing | game_over | stuck | unknown",
+  "reasoning_path": ["S", "No", "No", "No", "R_PLAY"],
+  "action": {
+    "type": "click | press_key | hold_key | wait | refresh",
+    "target": "For click: 'x,y' on 0-1000 scale. For keys: key name. For wait/refresh: leave empty.",
+    "duration_ms": 100
+  },
+  "next_delay_ms": 1500,
+  "bug_report": {
+    "has_bug": false,
+    "description": "Describe any UI bugs or JS errors.",
+    "severity": "low | medium | high"
+  }
+}
+Rules:
+- "reasoning_path": Array representing your exact traversal of the BRAID graph. Do NOT include any other verbose text explanations to save tokens.
+- Coordinates are on 0-1000 scale.
+`;
+}
+
+function generateMegaPrompt(brain, localGamePath = '', files = []) {
+  let filesContext = '';
+  if (files && files.length > 0) {
+    filesContext = files.map(f => {
+      return `### File: ${f.path}\n\`\`\`${path.extname(f.path).substring(1)}\n${f.content}\n\`\`\`\n`;
+    }).join('\n');
+  }
+
+  const bugReportsMarkdown = brain.bugs.length > 0
+    ? brain.bugs.map((b, idx) => {
+        const logsStr = b.consoleLogs 
+          ? (b.consoleLogs.map(l => typeof l === 'string' ? l : (l.message || '')).join('\n') || 'None')
+          : 'None';
+        return `#### Bug #${idx+1} [${b.severity ? b.severity.toUpperCase() : 'HIGH'}]
+  - **Timestamp**: ${b.timestamp}
+  - **Description**: ${b.description}
+  - **Actions Leading Up**: ${JSON.stringify(b.actionTakenBeforeBug || [])}
+  - **Errors/Console**: 
+  \`\`\`
+  ${logsStr}
+  \`\`\``;
+      }).join('\n\n')
+    : "No bugs explicitly flagged by the agent yet.";
+
+  return `# Game Bug Resolution Task
+
+You are an expert game developer agent. Your task is to fix the bugs and add the requested features/improvements noted during our automated AI playtest run.
+
+## Game Context
+- **Target Source Directory**: ${localGamePath || "Remote URL"}
+- **Playtest Replay Actions**: ${JSON.stringify(brain.replayActions.slice(-20))}
+
+## Logged Bugs & Glitches
+${bugReportsMarkdown}
+
+## Game Codebase Context
+Below are the source files of the game:
+
+${filesContext || "*No code files were auto-detected. Please locate and modify code files manually based on the logs.*"}
+
+## Instructions
+1. Review the logged bugs and compare them with the code snippets above.
+2. Locate the logic errors or visual glitches (e.g. infinite loops, broken state-updates, missing event boundaries).
+3. Apply code fixes directly to resolve the bugs.
+4. Verify the gameplay runs normally without exceptions.
+`;
+}
+
+module.exports = {
+  buildPrompt,
+  generateMegaPrompt
+};

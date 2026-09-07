@@ -43,6 +43,13 @@ function startStaticServer(port, docRoot) {
     res.writeHead(200, { 'Content-Type': mimeTypes[ext] || 'application/octet-stream' });
     fs.createReadStream(filePath).pipe(res);
   });
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.log(`Static port ${port} already in use, reusing existing server.`);
+    } else {
+      console.error('Static server error:', err);
+    }
+  });
   server.listen(port);
   return server;
 }

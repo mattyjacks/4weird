@@ -2897,6 +2897,86 @@
         window.GraveGainGame = new GraveGainGame();
     });
 
+    // Universal AIPlay & Game Runner integration bindings
+    Object.defineProperty(window, 'game', {
+        configurable: true,
+        get: () => {
+            const gg = window.GraveGainGame;
+            if (!gg) return null;
+            return {
+                instance: gg,
+                get score() { return gg.gold || 0; },
+                get isGameOver() {
+                    const goScreen = document.getElementById('gameOverScreen');
+                    return (goScreen && !goScreen.classList.contains('hidden')) || (gg.player ? gg.player.isDead : false);
+                },
+                get player() {
+                    if (!gg.player) return null;
+                    return {
+                        x: gg.player.x,
+                        y: gg.player.y,
+                        hp: gg.player.hp,
+                        maxHp: gg.player.maxHp,
+                        stamina: gg.player.stamina,
+                        level: gg.player.level,
+                        xp: gg.player.xp,
+                        race: gg.player.race,
+                        classType: gg.player.classType
+                    };
+                },
+                get floor() { return gg.floorIndex || 1; },
+                get kills() { return gg.kills || 0; },
+                get inDungeon() {
+                    const gameMain = document.getElementById('gameMain');
+                    return gameMain && !gameMain.classList.contains('hidden') && !gg.isPaused;
+                },
+                startQuickRun: (race = 'human', classType = 'warrior', mode = 'realtime') => {
+                    const mainMenu = document.getElementById('mainMenuScreen');
+                    const charSelect = document.getElementById('charSelectScreen');
+                    const gameMain = document.getElementById('gameMain');
+                    if (mainMenu) mainMenu.classList.add('hidden');
+                    if (charSelect) charSelect.classList.add('hidden');
+                    if (gameMain) gameMain.classList.remove('hidden');
+                    gg.setControlMode(mode);
+                    gg.initRun(race, classType);
+                    return true;
+                },
+                attack: () => {
+                    if (gg.player && !gg.isPaused) {
+                        gg.performMeleeAttack();
+                        return true;
+                    }
+                    return false;
+                },
+                usePotion: () => {
+                    if (gg.usePotion) {
+                        gg.usePotion();
+                        return true;
+                    }
+                    return false;
+                }
+            };
+        }
+    });
+
+    Object.defineProperty(window, 'gameState', {
+        configurable: true,
+        get: () => {
+            const gg = window.GraveGainGame;
+            return {
+                title: document.title,
+                url: window.location.href,
+                canvas: !!document.querySelector('#gameCanvas'),
+                score: gg ? gg.gold : 0,
+                isGameOver: window.game ? window.game.isGameOver : false,
+                playerState: window.game ? window.game.player : null,
+                floor: gg ? gg.floorIndex : 1,
+                enemiesCount: gg && gg.enemies ? gg.enemies.length : 0,
+                activeMode: gg ? gg.controlMode : 'realtime'
+            };
+        }
+    });
+
     window.gameDebug = {
         name: "GraveGain3D (Complete FPS Edition)",
         getScore: () => window.GraveGainGame ? window.GraveGainGame.gold : 0,
