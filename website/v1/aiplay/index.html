@@ -54,7 +54,7 @@
         </div>
         <div class="model-active-badge">
           <span class="sparkle-icon">⚡</span>
-          <span id="active-model-display">Local GPU (WebGPU In-Browser)</span>
+          <span id="active-model-display">GPT-5.6 Luna (OpenAI)</span>
         </div>
         <div class="tauri-desktop-badge" id="tauri-desktop-badge" style="display: none;" title="Running natively via Tauri v2 Desktop Shell">
           <span class="tauri-icon">🖥️</span>
@@ -113,6 +113,7 @@
                   <option value="../games/html/assassinanimals/index.html">🦎 Assassin Animals (Stealth Rogue-like)</option>
                   <option value="../games/html/battlesharks2/index.html">🦈 Battlesharks 2 (Cyber Ocean)</option>
                   <option value="../games/html/gravegain2d/index.html">👹 GraveGain2D (Dark Fantasy RPG)</option>
+                  <option value="../games/html/gravegain3d/index.html">⚔️ GraveGain3D (Dungeon Roguelike)</option>
                   <option value="../games/html/orbitaldrift/index.html" selected>🛸 Orbital Drift (3D Arcade)</option>
                   <option value="../games/html/aiwhackamole/index.html">🔨 AI Whack-A-Mole (Three.js)</option>
                   <option value="../games/html/soundpainter2/index.html">🎹 Sound Painter 2 (Music Synth Studio)</option>
@@ -132,10 +133,10 @@
             <div class="control-group">
               <label for="agent-model">ANTIGRAVITY LLM ENGINE</label>
               <select id="agent-model">
-                <option value="local-webgpu-inbrowser" selected>Local GPU (WebGPU In-Browser Inference - DEFAULT)</option>
+                <option value="gpt-5.6-luna" selected>GPT-5.6 Luna (OpenAI - DEFAULT)</option>
+                <option value="local-webgpu-inbrowser">Local GPU (WebGPU In-Browser Inference - Large Systems)</option>
                 <option value="local-gpu-ollama">Local GPU (Ollama / Llama-3 / Qwen)</option>
                 <option value="local-gpu-lmstudio">Local GPU (LM Studio / Local Server)</option>
-                <option value="gpt-5.6-luna">GPT-5.6 Luna (Next-Gen OpenAI)</option>
                 <option value="gemini-3.6-flash">Gemini 3.6 Flash (Low Latency / Pair Program)</option>
                 <option value="antigravity-deepmind-copilot">Google Antigravity Co-Pilot (Deep Mind Agent)</option>
                 <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deep Reasoning)</option>

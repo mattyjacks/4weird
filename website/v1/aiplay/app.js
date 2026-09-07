@@ -22,7 +22,7 @@
     audioEnabled: true,
     actionCount: 0,
     tokenCount: 14820,
-    currentModel: 'Local GPU (WebGPU In-Browser Inference - DEFAULT)',
+    currentModel: 'GPT-5.6 Luna (OpenAI - DEFAULT)',
     heatmapEnabled: true,
     heatmapPoints: [],
     visionFramesAnalyzed: 0,
@@ -1642,6 +1642,83 @@ export class Analytics {
     }
   }
 
+  // Deterministic controller for the supported GraveGain3D integration.  The
+  // generic fuzzer below is useful for unknown games, but it should never be
+  // responsible for advancing a game whose screens and controls we know.
+  function runGraveGain3DStep() {
+    const frame = el.gameIframe;
+    if (!frame || !/gravegain3d/i.test(frame.src || '')) return null;
+
+    try {
+      const win = frame.contentWindow;
+      const doc = frame.contentDocument || (win && win.document);
+      if (!win || !doc) return null;
+      const visible = (id) => {
+        const node = doc.getElementById(id);
+        return node && !node.classList.contains('hidden');
+      };
+      const click = (selector) => {
+        const node = doc.querySelector(selector);
+        if (node) node.click();
+        return !!node;
+      };
+      const key = (value) => {
+        const normalized = value === ' ' ? 'Space' : value;
+        const code = normalized === 'Space' ? 'Space' : `Key${normalized.toUpperCase()}`;
+        ['keydown', 'keyup'].forEach(type => {
+          const event = new win.KeyboardEvent(type, { key: value, code, bubbles: true, cancelable: true });
+          win.dispatchEvent(event);
+          doc.dispatchEvent(event);
+        });
+      };
+
+      if (visible('mainMenuScreen')) {
+        return click('#btnPlay')
+          ? 'GRAVEGAIN3D: menu detected — selecting Endless Dungeon Run.'
+          : 'GRAVEGAIN3D: menu is visible; waiting for the run control.';
+      }
+      if (visible('charSelectScreen')) {
+        // GraveGain provides safe defaults; deploy them immediately so an
+        // unattended run cannot stall at character selection.
+        return click('#btnCharSelectStart, #btnStartRun')
+          ? 'GRAVEGAIN3D: character setup detected — deploying the default infiltrator.'
+          : 'GRAVEGAIN3D: character setup is loading; waiting one step.';
+      }
+      if (visible('gameOverScreen')) {
+        return click('#btnTryAgain, #btnGameOverReturn')
+          ? 'GRAVEGAIN3D: defeat screen detected — restarting the run.'
+          : 'GRAVEGAIN3D: defeat screen is visible; waiting for restart control.';
+      }
+      if (visible('levelUpScreen')) {
+        return click('.perk-card button, .perk-card')
+          ? 'GRAVEGAIN3D: level-up detected — selecting the first available perk.'
+          : 'GRAVEGAIN3D: level-up screen is visible; waiting for perks.';
+      }
+
+      const game = win.GraveGainGame || win.game;
+      const player = game && game.player;
+      if (player) {
+        if (player.hp < player.maxHp * 0.45 && (player.potions || 0) > 0) {
+          key('q');
+          return `GRAVEGAIN3D: low health (${Math.round(player.hp)}/${Math.round(player.maxHp)}) — drinking potion.`;
+        }
+        const enemies = Array.isArray(game.enemies) ? game.enemies.filter(enemy => enemy && enemy.hp > 0) : [];
+        const nearby = enemies.some(enemy => Math.hypot(enemy.x - player.x, enemy.y - player.y) < 85);
+        if (nearby) {
+          key(' ');
+          return 'GRAVEGAIN3D: enemy in melee range — attacking.';
+        }
+        key('w');
+        return enemies.length
+          ? 'GRAVEGAIN3D: enemy acquired — advancing into engagement range.'
+          : 'GRAVEGAIN3D: no enemy visible — advancing through the dungeon.';
+      }
+    } catch (error) {
+      log(`GRAVEGAIN3D controller recovery: ${error.message}`, 'warning');
+    }
+    return null;
+  }
+
   // Execute Autonomous Agent Step
   function executeAgentStep() {
     if (state.currentStep >= state.maxSteps) {
@@ -1684,6 +1761,16 @@ export class Analytics {
       if (state.internalGameBrain.discoveredButtons.restart.length > 0) {
         try { state.internalGameBrain.discoveredButtons.restart[0].click(); } catch(e){}
       }
+    }
+
+    const graveGainActionLog = runGraveGain3DStep();
+    if (graveGainActionLog) {
+      log(graveGainActionLog, 'info');
+      recordReplaySnapshot('gravegain3d', 0, 0, graveGainActionLog);
+      renderReasoningTree();
+      updateRSOLoop(isGameOver);
+      if (state.currentStep % 3 === 0) runLunaVisionScan(true);
+      return;
     }
 
     // Action selection using active RSO fuzzWeights
@@ -2857,8 +2944,8 @@ ${bug.stack}
       el.btnSelectModeWeb.addEventListener('click', () => {
         synth.playSuccess();
         if (el.agentModel) el.agentModel.value = 'local-webgpu-inbrowser';
-        state.currentModel = 'Local GPU (WebGPU In-Browser Inference)';
-        if (el.activeModelDisplay) el.activeModelDisplay.textContent = 'Local GPU (WebGPU In-Browser)';
+        state.currentModel = 'Local GPU (WebGPU In-Browser Inference - Large Systems)';
+        if (el.activeModelDisplay) el.activeModelDisplay.textContent = 'Local GPU (WebGPU - Large Systems)';
         if (el.btnSelectMode) el.btnSelectMode.textContent = '⚙️ MODE: RUN WEB';
         el.modeSelectionModal.classList.add('hidden');
         log("[MODE SWITCH] Activated 'RUN WEB' (WebGPU In-Browser Client Inference).", "system");
@@ -2882,8 +2969,8 @@ ${bug.stack}
       el.btnSelectModeRemote.addEventListener('click', () => {
         synth.playSuccess();
         if (el.agentModel) el.agentModel.value = 'gpt-5.6-luna';
-        state.currentModel = 'GPT-5.6 Luna (Next-Gen OpenAI)';
-        if (el.activeModelDisplay) el.activeModelDisplay.textContent = 'GPT-5.6 Luna (Cloud Cluster)';
+        state.currentModel = 'GPT-5.6 Luna (OpenAI - DEFAULT)';
+        if (el.activeModelDisplay) el.activeModelDisplay.textContent = 'GPT-5.6 Luna (OpenAI)';
         if (el.btnSelectMode) el.btnSelectMode.textContent = '⚙️ MODE: RUN REMOTE';
         el.modeSelectionModal.classList.add('hidden');
         log("[MODE SWITCH] Activated 'RUN REMOTE' (Cloud AI Engine Cluster).", "system");

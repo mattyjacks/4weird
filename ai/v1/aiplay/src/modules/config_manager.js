@@ -6,6 +6,7 @@ const configFilePath = path.join(__dirname, '..', '..', 'config.json');
 
 const modelsByProvider = {
   openai: [
+    { value: 'gpt-5.6-luna', text: 'GPT-5.6 Luna (Default)' },
     { value: 'gpt-5.4-mini-2026-03-17', text: 'GPT-5.4 Mini' },
     { value: 'gpt-4o-mini', text: 'GPT-4o Mini' },
     { value: 'gpt-4o', text: 'GPT-4o (Standard)' },
@@ -90,7 +91,7 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
   
   populateModelsDropdown(elements.providerSelect, elements.modelSelect);
   
-  const savedModel = settings.modelName || 'gpt-5.4-mini-2026-03-17';
+  const savedModel = settings.modelName || 'gpt-5.6-luna';
   const hasModelInSelect = Array.from(elements.modelSelect.options).some(opt => opt.value === savedModel);
   if (hasModelInSelect) {
     elements.modelSelect.value = savedModel;

@@ -284,6 +284,8 @@
     border: 1px solid var(--grave-border);
     border-radius: 8px;
     background: rgba(10, 5, 20, 0.5);
+    color: var(--grave-text);
+    font: inherit;
     text-align: center;
     transition: all 0.2s ease;
 }
@@ -292,6 +294,19 @@
     border-color: var(--grave-gold);
     background: rgba(255, 204, 76, 0.1);
     transform: scale(1.03);
+}
+
+.daily-reward {
+    display: block;
+    margin-top: 2px;
+    color: var(--grave-gold);
+    font-size: 0.7rem;
+}
+
+.daily-claim-btn {
+    min-height: 30px;
+    padding: 5px 8px;
+    font-size: 0.68rem;
 }
 
 .char-emoji {
@@ -505,9 +520,13 @@
 .daily-challenge-item {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    gap: 10px;
     font-size: 0.85rem;
     margin: 8px 0;
 }
+
+.daily-challenge-item > span { min-width: 0; }
 
 /* Mobile Touch Controls */
 .mobile-joystick-container {
@@ -639,6 +658,8 @@
     .botany-grid { grid-template-columns: 1fr; }
     .stat-row { font-size: 0.78rem; gap: 12px; }
     .mission-tracker { font-size: .7rem; }
+    .daily-challenge-item { align-items: flex-start; font-size: 0.75rem; }
+    .daily-claim-btn { flex: 0 0 auto; min-height: 36px; }
     #tab-lore > div[style*="height"] { height: auto !important; min-height: 320px; flex-direction: column; gap: 10px !important; }
     #loreList { width: auto !important; max-height: 140px; }
     #loreReader { min-height: 200px; }

@@ -31,6 +31,7 @@ if (!process.argv.includes('--enable-gpu')) {
   // the whole app when the host has no compatible graphics DLL.
   app.commandLine.appendSwitch('disable-gpu');
   app.commandLine.appendSwitch('disable-gpu-compositing');
+  app.commandLine.appendSwitch('in-process-gpu');
 }
 
 function createWindow() {

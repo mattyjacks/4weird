@@ -22,13 +22,13 @@
     ],
     "controls": {
         "keyboard": {
-            "WASD / Arrow Keys": "Move (Top-down) or Accelerate/Climb (Platformer)",
-            "Space": "Jump (Platformer) / Interact (Top-down)",
-            "Left-Click": "Melee / Primary Skill (Hold for Charge Attack)",
-            "Right-Click": "Block / Projectile Skill",
-            "Shift": "Active Class Ability / Sprint Lunge",
+            "WASD / Arrow Keys": "Move through the dungeon",
+            "Space": "Dodge roll / wait a turn in Turn-Based mode",
+            "Left-Click": "Melee attack",
+            "Right-Click": "Timed block",
+            "F": "Use your race ability",
+            "Shift": "Sprint while moving; use race ability while standing still",
             "1 / 2 / 3": "Select Realtime, Chrono-Lock, or Turn-Based play from the game interface",
-            "E": "Enter/Exit Sidescroller Buildings",
             "Escape / P": "Pause Game"
         },
         "touch": {

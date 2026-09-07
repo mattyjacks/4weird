@@ -928,6 +928,8 @@
                 quartersLevel: state.quartersLevel,
                 prestige: state.prestige,
                 botanyCrops: state.botanyCrops,
+                dailyChallengeDate: state.dailyChallengeDate,
+                dailyChallenges: state.dailyChallenges,
                 settings: {
                     difficulty: state.difficultyMultiplierSetting,
                     volume: state.audio.masterVolume,
@@ -1186,6 +1188,8 @@
             this.turnCount = 1;
             this.lastTurnInputAt = 0;
             this.isDialogueActive = false;
+            this.dailyChallengeDate = null;
+            this.dailyChallenges = null;
 
             // Active Game Variables
             this.player = null;
@@ -1221,11 +1225,22 @@
         loadState() {
             const saved = SaveSystem.load();
             if (saved) {
-                this.gold = saved.gold || 0;
-                this.uusd = saved.uusd || 0;
-                this.quartersLevel = saved.quartersLevel || 1;
-                this.prestige = saved.prestige || 0;
-                if (saved.botanyCrops) this.botanyCrops = saved.botanyCrops;
+                this.gold = Math.max(0, Number(saved.gold) || 0);
+                this.uusd = Math.max(0, Number(saved.uusd) || 0);
+                this.quartersLevel = Math.min(QuartersUpgrades.length, Math.max(1, Math.floor(Number(saved.quartersLevel) || 1)));
+                this.prestige = Math.max(0, Number(saved.prestige) || 0);
+                this.dailyChallengeDate = typeof saved.dailyChallengeDate === 'string' ? saved.dailyChallengeDate : null;
+                this.dailyChallenges = Array.isArray(saved.dailyChallenges) ? saved.dailyChallenges : null;
+                if (Array.isArray(saved.botanyCrops)) {
+                    this.botanyCrops = saved.botanyCrops
+                        .slice(0, this.getBotanySlotLimit())
+                        .map(crop => {
+                            const seed = BotanySeeds.find(item => item.id === crop?.seedId);
+                            return seed
+                                ? { seedId: seed.id, startTime: Math.max(0, Number(crop.startTime) || 0), growthTime: seed.time, capacity: seed.space }
+                                : { seedId: null, startTime: 0, growthTime: 0, capacity: 0 };
+                        });
+                }
                 if (saved.settings) {
                     this.difficultyMultiplierSetting = saved.settings.difficulty || 'normal';
                     this.audio.masterVolume = Number.isFinite(saved.settings.volume) ? saved.settings.volume : 0.8;
@@ -1257,16 +1272,25 @@
 
         generateDailyChallenges() {
             const dateStr = new Date().toDateString();
+            if (this.dailyChallengeDate === dateStr && Array.isArray(this.dailyChallenges) && this.dailyChallenges.length === 3) {
+                this.dailyChallenges.forEach((challenge, index) => {
+                    challenge.rewardGold = Number(challenge.rewardGold) || [75, 125, 150][index];
+                    challenge.rewardUusd = Number(challenge.rewardUusd) || [25, 50, 75][index];
+                    challenge.claimed = Boolean(challenge.claimed);
+                });
+                return;
+            }
             // Deterministic hash based on date string
             let hash = 0;
             for (let i = 0; i < dateStr.length; i++) {
                 hash = dateStr.charCodeAt(i) + ((hash << 5) - hash);
             }
             this.dailyChallenges = [
-                { id: 1, desc: 'Slay ' + (Math.abs(hash % 20) + 15) + ' undead creatures.', target: Math.abs(hash % 20) + 15, current: 0, done: false },
-                { id: 2, desc: 'Collect ' + (Math.abs((hash >> 2) % 300) + 200) + ' dungeon Gold.', target: Math.abs((hash >> 2) % 300) + 200, current: 0, done: false },
-                { id: 3, desc: 'Reach Layer ' + (Math.abs((hash >> 4) % 3) + 3) + ' depth.', target: Math.abs((hash >> 4) % 3) + 3, current: 1, done: false }
+                { id: 1, desc: 'Slay ' + (Math.abs(hash % 20) + 15) + ' undead creatures.', target: Math.abs(hash % 20) + 15, current: 0, done: false, claimed: false, rewardGold: 75, rewardUusd: 25 },
+                { id: 2, desc: 'Collect ' + (Math.abs((hash >> 2) % 300) + 200) + ' dungeon Gold.', target: Math.abs((hash >> 2) % 300) + 200, current: 0, done: false, claimed: false, rewardGold: 125, rewardUusd: 50 },
+                { id: 3, desc: 'Reach Layer ' + (Math.abs((hash >> 4) % 3) + 3) + ' depth.', target: Math.abs((hash >> 4) % 3) + 3, current: 1, done: false, claimed: false, rewardGold: 150, rewardUusd: 75 }
             ];
+            this.dailyChallengeDate = dateStr;
         }
 
         renderDailyChallenges() {
@@ -1274,13 +1298,27 @@
             if (!el) return;
             el.innerHTML = this.dailyChallenges.map(c => `
                 <div class="daily-challenge-item">
-                    <span>${c.desc}</span>
-                    <strong style="color: ${c.done ? 'var(--grave-purple-glow)' : 'var(--grave-text)'}">${c.current} / ${c.target}</strong>
+                    <span>${c.desc}<small class="daily-reward"> +${c.rewardGold}g / +${c.rewardUusd}$</small></span>
+                    ${c.done && !c.claimed
+                        ? `<button type="button" class="btn-game daily-claim-btn" onclick="window.GraveGainGame.claimDailyChallenge(${c.id})">Claim</button>`
+                        : `<strong style="color: ${c.done ? 'var(--grave-purple-glow)' : 'var(--grave-text)'}">${c.claimed ? '✓ Claimed' : `${c.current} / ${c.target}`}</strong>`}
                 </div>
             `).join('');
         }
 
+        claimDailyChallenge(id) {
+            const challenge = this.dailyChallenges?.find(item => item.id === id);
+            if (!challenge || !challenge.done || challenge.claimed) return;
+            challenge.claimed = true;
+            this.gold += challenge.rewardGold;
+            this.uusd += challenge.rewardUusd;
+            this.audio.play('loot');
+            this.renderDailyChallenges();
+            this.saveState();
+        }
+
         updateChallengeProgress(type, amt) {
+            const completedBefore = this.dailyChallenges.filter(challenge => challenge.done).length;
             if (type === 'slay') {
                 this.dailyChallenges[0].current = Math.min(this.dailyChallenges[0].target, this.dailyChallenges[0].current + amt);
                 if (this.dailyChallenges[0].current >= this.dailyChallenges[0].target) this.dailyChallenges[0].done = true;
@@ -1294,6 +1332,7 @@
                 if (this.dailyChallenges[2].current >= this.dailyChallenges[2].target) this.dailyChallenges[2].done = true;
             }
             this.renderDailyChallenges();
+            if (this.dailyChallenges.filter(challenge => challenge.done).length > completedBefore) this.saveState();
         }
 
         setupUIListeners() {
@@ -1470,11 +1509,11 @@
             raceGrid.innerHTML = Object.keys(RaceData).map((key, i) => {
                 const race = RaceData[key];
                 return `
-                    <div class="char-card ${i === 0 ? 'selected' : ''}" data-race="${key}">
+                    <button type="button" class="char-card ${i === 0 ? 'selected' : ''}" data-race="${key}" aria-pressed="${i === 0}">
                         <span class="char-emoji">${race.emoji}</span>
                         <div class="char-name">${race.name}</div>
                         <div class="char-desc">${race.desc}</div>
-                    </div>
+                    </button>
                 `;
             }).join('');
 
@@ -1484,6 +1523,7 @@
                 card.addEventListener('click', () => {
                     cards.forEach(c => c.classList.remove('selected'));
                     card.classList.add('selected');
+                    cards.forEach(c => c.setAttribute('aria-pressed', String(c === card)));
                 });
             });
 
@@ -1514,6 +1554,11 @@
             } else {
                 document.getElementById('hubQuartersCost').textContent = 'MAX LEVEL REACHED';
             }
+            const upgradeButton = document.getElementById('btnUpgradeQuarters');
+            upgradeButton.disabled = this.quartersLevel >= QuartersUpgrades.length;
+            upgradeButton.textContent = this.quartersLevel >= QuartersUpgrades.length
+                ? '✓ Maximum Quarters Reached'
+                : '🔧 Purchase Expansion Upgrade';
         }
 
         // ==========================================
@@ -1728,7 +1773,7 @@
                     const rx = ex * 48 + 24;
                     const ry = ey * 48 + 24;
 
-                    const enemyData = EnemyTypes[Math.floor(Math.random() * EnemyTypes.length)];
+                    const enemyData = this.getAmbientEnemyType();
                     this.enemies.push(this.createEnemy(enemyData, rx, ry, diffScale));
                 }
 
@@ -1753,6 +1798,22 @@
 
             this.updateChallengeProgress('depth', this.floorIndex);
             this.updateHUD();
+        }
+
+        getAmbientEnemyType() {
+            const standard = EnemyTypes.filter(enemy => enemy.type === 'standard');
+            const skulls = EnemyTypes.filter(enemy => enemy.type === 'exploding');
+            const elites = EnemyTypes.filter(enemy => enemy.type === 'elite');
+            const bosses = EnemyTypes.filter(enemy => enemy.type === 'boss');
+            const pool = [...standard];
+
+            if (this.floorIndex >= 2) pool.push(...skulls);
+            if (this.floorIndex >= 3) pool.push(...elites);
+            // Bosses remain uncommon ambient threats. Story bosses are spawned by their mission objective.
+            if (this.floorIndex >= 6 && Math.random() < Math.min(0.03 + this.floorIndex * 0.005, 0.08)) {
+                return bosses[Math.floor(Math.random() * bosses.length)];
+            }
+            return pool[Math.floor(Math.random() * pool.length)];
         }
 
         populateMissionTargets() {
@@ -1910,15 +1971,18 @@
 
         executeTurnAction(action) {
             if (this.controlMode !== 'turnbased' || !this.player || this.player.isDead) return;
+            this.advanceTurnState(0.35);
             const steps = { up:[0,-48], down:[0,48], left:[-48,0], right:[48,0] };
             if (steps[action]) {
                 const [dx, dy] = steps[action];
                 this.player.angle = Math.atan2(dy, dx);
                 this.physics.moveEntityWithCollision(this.player, dx, dy, this.dungeon);
             } else if (action === 'attack') this.triggerMeleeSwing();
+            else if (action === 'block') this.activateBlock();
             else if (action === 'ability') this.player.triggerAbility();
             else if (action === 'wait') this.player.stamina = Math.min(this.player.maxStamina, this.player.stamina + 25);
             this.enemies.forEach(enemy => enemy.update(0.35, this.player, this.physics, this.dungeon));
+            if (action === 'block') this.player.perfectBlockWindow = 0;
             this.enemies = this.enemies.filter(e => {
                 if (e.hp > 0) return true;
                 const rewards = this.getScaledRewards(10, 5);
@@ -1960,6 +2024,27 @@
             this.updateHUD();
         }
 
+        advanceTurnState(dt) {
+            const player = this.player;
+            player.levelUpFlash = Math.max(0, player.levelUpFlash - dt);
+            player.bloodlust = player.bloodlust.filter(time => Date.now() - time < 5000);
+            if (!player.stoneForm) player.hp = Math.min(player.maxHp, player.hp + player.hpRegen * dt);
+            player.stamina = Math.min(player.maxStamina, player.stamina + 15 * dt);
+            if (player.race === Race.ELF) player.mana = Math.min(player.maxMana, player.mana + 2 * dt);
+            if (player.race === Race.ORC) player.rage = Math.max(0, player.rage - 4 * dt);
+            if (player.race === Race.HUMAN) {
+                player.shieldCooldown = Math.max(0, player.shieldCooldown - dt);
+                if (player.shieldCooldown === 0) player.shieldBubble = Math.min(20, player.shieldBubble + 2 * dt);
+            }
+            if (player.stoneForm) {
+                player.stoneDuration -= dt;
+                if (player.stoneDuration <= 0) player.stoneForm = false;
+            }
+            player.dodgeTime = Math.max(0, player.dodgeTime - dt);
+            player.perfectBlockWindow = Math.max(0, player.perfectBlockWindow - dt);
+            player.blockCooldown = Math.max(0, player.blockCooldown - dt);
+        }
+
         // ==========================================
         // REVENUE & PHYSICS LOOP UPDATE
         // ==========================================
@@ -1974,8 +2059,8 @@
                 const canUseJoy = joy.active && Math.hypot(joy.x, joy.y) > 0.65 && Date.now() - this.lastTurnInputAt > 240;
                 let joyAction = null;
                 if (canUseJoy) joyAction = Math.abs(joy.y) > Math.abs(joy.x) ? (joy.y < 0 ? 'up' : 'down') : (joy.x < 0 ? 'left' : 'right');
-                const action = keys['KeyW'] || keys['ArrowUp'] ? 'up' : keys['KeyS'] || keys['ArrowDown'] ? 'down' : keys['KeyA'] || keys['ArrowLeft'] ? 'left' : keys['KeyD'] || keys['ArrowRight'] ? 'right' : keys['Space'] ? 'wait' : this.input.mouse.click ? 'attack' : keys['KeyF'] || keys['ShiftLeft'] ? 'ability' : joyAction;
-                if (action) { ['KeyW','KeyS','KeyA','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','KeyF','ShiftLeft'].forEach(k => keys[k] = false); this.input.mouse.click = false; this.lastTurnInputAt = Date.now(); this.executeTurnAction(action); }
+                const action = keys['KeyW'] || keys['ArrowUp'] ? 'up' : keys['KeyS'] || keys['ArrowDown'] ? 'down' : keys['KeyA'] || keys['ArrowLeft'] ? 'left' : keys['KeyD'] || keys['ArrowRight'] ? 'right' : keys['Space'] ? 'wait' : this.input.mouse.click ? 'attack' : this.input.mouse.rightClick ? 'block' : keys['KeyF'] || keys['ShiftLeft'] ? 'ability' : joyAction;
+                if (action) { ['KeyW','KeyS','KeyA','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','KeyF','ShiftLeft'].forEach(k => keys[k] = false); this.input.mouse.click = false; this.input.mouse.rightClick = false; this.lastTurnInputAt = Date.now(); this.executeTurnAction(action); }
                 this.camera.update(dt, this.player.x, this.player.y, 0, 0, false, false);
                 return;
             }
@@ -2063,11 +2148,14 @@
                 this.input.mouse.click = false;
             }
 
-            if (this.input.keys['KeyF'] || this.input.keys['ShiftLeft']) {
+            const usingMovementKey = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].some(key => this.input.keys[key]);
+            if (this.input.keys['KeyF'] || (this.input.keys['ShiftLeft'] && !usingMovementKey)) {
                 this.player.triggerAbility();
                 this.input.keys['KeyF'] = false;
                 this.input.keys['ShiftLeft'] = false;
             }
+
+            if (this.input.mouse.rightClick) this.activateBlock();
 
             this.updateHUD();
         }
@@ -2104,6 +2192,15 @@
                     }
                 }
             });
+        }
+
+        activateBlock() {
+            if (!this.player || this.player.blockCooldown > 0) return false;
+            this.player.perfectBlockWindow = 0.22;
+            this.player.blockCooldown = 0.45;
+            this.audio.play('block');
+            this.vfx.spawnPerfectBlockVFX(this.player.x, this.player.y);
+            return true;
         }
 
         updateHUD() {
@@ -2528,7 +2625,7 @@
             document.getElementById('goGold').textContent = this.runGold + (missionComplete ? this.currentMission.rewardGold : 0);
             document.getElementById('goXp').textContent = Math.round(this.player.xp || 0);
 
-            this.audio.speakFallback('Game Over. Run Terminated.');
+            this.audio.speakFallback(missionComplete ? 'Mission complete. Rewards secured.' : (victory ? 'Run completed. Safespace reached.' : 'Game over. Run terminated.'));
             this.saveState();
         }
     }
@@ -2543,9 +2640,16 @@
 window.gameDebug = {
     name: "Grave Gain 2D",
     getScore: () => window.GraveGainGame ? window.GraveGainGame.gold : 0,
-    setScore: (g) => { if (window.GraveGainGame) { window.GraveGainGame.gold = g; window.GraveGainGame.player.gold = g; } },
-    getHealth: () => window.GraveGainGame ? window.GraveGainGame.player.hp : 0,
-    setHealth: (h) => { if (window.GraveGainGame) window.GraveGainGame.player.hp = h; },
+    setScore: (g) => {
+        if (!window.GraveGainGame) return;
+        window.GraveGainGame.gold = Math.max(0, Number(g) || 0);
+        if (window.GraveGainGame.player) window.GraveGainGame.player.gold = window.GraveGainGame.gold;
+    },
+    getHealth: () => window.GraveGainGame?.player ? window.GraveGainGame.player.hp : 0,
+    setHealth: (h) => {
+        if (!window.GraveGainGame?.player) return;
+        window.GraveGainGame.player.hp = Math.max(0, Math.min(window.GraveGainGame.player.maxHp, Number(h) || 0));
+    },
     win: () => {
         if (window.GraveGainGame) window.GraveGainGame.gameOver(true);
     },
