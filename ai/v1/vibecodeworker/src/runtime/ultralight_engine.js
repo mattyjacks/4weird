@@ -19,6 +19,9 @@ const EventEmitter = require('events');
 class UltralightWebEngine extends EventEmitter {
   constructor(options = {}) {
     super();
+    // Canonical web-engine identity: Ultralight is the DEFAULT main driver.
+    this.engineId = 'ultralight';
+    this.isDefaultEngine = true;
     this.name = 'Ultralight WebKit-Core';
     this.version = options.version || '1.4.0-embed';
     this.license = 'Royalty-Free / BSD-Derivative';
@@ -168,11 +171,52 @@ class UltralightWebEngine extends EventEmitter {
   }
 
   /**
+   * Backend detection: real `ultralight-sdk` binding when installed,
+   * otherwise embedded-compat mode over the active Electron viewport.
+   * Never throws — compat mode keeps QA telemetry working with zero deps.
+   */
+  getBackendInfo() {
+    let backend = 'compat';
+    try {
+      require.resolve('ultralight-sdk');
+      backend = 'ultralight-sdk';
+    } catch (_) { backend = 'compat'; }
+    return {
+      engineId: this.engineId || 'ultralight',
+      backend,
+      fullSupport: backend !== 'compat',
+      hint: backend === 'compat'
+        ? 'Compat mode: telemetry via active viewport. Install native binding with: npm install --save ultralight-sdk (see https://ultralig.ht)'
+        : 'Using ultralight-sdk native binding',
+    };
+  }
+
+  /**
+   * Evaluate JS in the active viewport (compat path). Native SDK path can
+   * override by passing a targetExecutor with evalJS/executeJS.
+   */
+  async evalJS(script, targetExecutor = null) {
+    if (targetExecutor && targetExecutor.evalJS) return await targetExecutor.evalJS(script);
+    if (targetExecutor && targetExecutor.executeJS) return await targetExecutor.executeJS(script);
+    throw new Error('No viewport executor bound for Ultralight evalJS (pass active GameController/webview executor)');
+  }
+
+  async captureScreenshot(targetExecutor = null) {
+    if (targetExecutor && targetExecutor.captureScreenshot) {
+      return await targetExecutor.captureScreenshot();
+    }
+    return null;
+  }
+
+  /**
    * Export performance metrics
    */
   getMetrics() {
     return {
       engine: this.name,
+      engineId: this.engineId || 'ultralight',
+      isDefaultEngine: true,
+      backend: this.getBackendInfo().backend,
       license: this.license,
       currentUrl: this.currentUrl,
       consoleErrors: this.consoleLogs.filter(l => l.level === 'error').length,

@@ -42,6 +42,13 @@ async function main() {
   let activeGameUrl = null;
   const consoleLogs = [];
 
+  // Headless unified engine manager (ultralight default; no viewport needed
+  // for telemetry-only passes, chromium headless when deps are installed).
+  const { WebEngineManager } = require('./src/runtime/web_engine_manager');
+  const validHeadless = ['ultralight', 'electron', 'chromium'];
+  const configuredHeadless = validHeadless.includes(process.env.VIBE_WEB_ENGINE) ? process.env.VIBE_WEB_ENGINE : 'ultralight';
+  const headlessEngines = new WebEngineManager({ activeEngine: configuredHeadless });
+
   if (process.env.VIBE_API_TOKEN) {
     console.log('[API Server] Token auth ENABLED (VIBE_API_TOKEN set). Mutating /api calls require X-Vibe-Auth.');
   } else {
@@ -70,7 +77,16 @@ async function main() {
       getGameState: async () => ({ activeGameId, activeGameUrl }),
       executeAction: async (action) => ({ success: true, actionExecuted: action }),
       evalJavaScript: async (script) => ({ success: true, note: 'Stand-alone mode evaluation' }),
-      reloadGame: async () => ({ success: true, reloaded: true })
+      reloadGame: async () => ({ success: true, reloaded: true }),
+      // Unified web engines in headless mode: ultralight default drives
+      // telemetry; chromium uses playwright/puppeteer when installed.
+      getEngines: async () => headlessEngines.describeEngines(),
+      setEngine: async (engineId) => headlessEngines.setActiveEngine(engineId),
+      runMultiEngineQA: async ({ url, engines, actions } = {}) => {
+        const target = url || activeGameUrl;
+        if (!target) return { success: false, error: 'No URL provided and no active game' };
+        return await headlessEngines.runMultiEngineQA(target, { engines, actions });
+      },
     }
   });
 

@@ -43,13 +43,23 @@ const { initVisionMirror } = require('./components/vision_mirror');
 const visionState = require('./runtime/vision_state');
 const { buildDetectScript, parseDetectResponse } = require('./runtime/vision_detect');
 const { executeAgentStep: runAgentStep } = require('./runtime/agent_step_executor');
-const { UltralightWebEngine } = require('./runtime/ultralight_engine');
+const { WebEngineManager, DEFAULT_ENGINE } = require('./runtime/web_engine_manager');
 
 // Instantiate cores
 const agentBrain = new AgentBrain();
 const gameController = new GameController();
 const autoCodeSystem = new AutoCodeSystem();
-const ultralightEngine = new UltralightWebEngine();
+// Unified web-engine driver: Ultralight is the default main engine.
+// Electron = current setup viewport, Chromium = standalone headless.
+// Bound lazily to GameController + live <webview> so compat fallbacks work.
+const webEngineManager = new WebEngineManager({
+  activeEngine: DEFAULT_ENGINE,
+  getController: () => gameController,
+  getWebview: () => webviewElement,
+});
+// Back-compat alias: legacy `ultralightEngine` references now resolve to the
+// Ultralight member of the unified manager (still the default driver).
+const ultralightEngine = webEngineManager.ultralight;
 
 // QOL Helper Classes
 const promptHistory = new PromptHistory(20);
@@ -247,6 +257,11 @@ function queryElements() {
   // Network & Local REST API Server Port
   el.serverPortInput = document.getElementById('server-port');
   el.btnSavePort = document.getElementById('btn-save-port');
+
+  // Unified web engine selector (ultralight default | electron | chromium)
+  el.webEngineSelect = document.getElementById('web-engine-select');
+  el.webEngineStatus = document.getElementById('web-engine-status');
+  el.btnMultiEngineQA = document.getElementById('btn-multi-engine-qa');
 }
 
 // Coordinate setups on DOM load
@@ -584,20 +599,14 @@ document.addEventListener('DOMContentLoaded', () => {
   wireMenuItem('menu-item-direct-fix', () => runDirectAIFix());
   wireMenuItem('menu-item-ultralight', async () => {
     audio.playClickSound();
-    const url = el.gameUrlInput ? el.gameUrlInput.value.trim() : '';
-    logSystemMessage(`[Ultralight Engine] Initializing headless web automation pass on: ${url || 'active target'}`);
-    toastNotifier.show("Ultralight Web Auto-QA running...", "info");
-    
-    // Listen for engine bug detections and log forward
-    ultralightEngine.on('bug_detected', (bug) => {
-      agentBrain.bugs.unshift(bug);
-      tracker.renderBugs(el.bugsContainer, el.bugCountBadge, agentBrain, selectBugCard);
-      logSystemMessage(`[Ultralight QA Defect] ${bug.type}: ${bug.description}`, 'error');
-    });
-
-    const metrics = ultralightEngine.getMetrics();
-    logSystemMessage(`[Ultralight Engine] Viewport active. Rendered WebKit metrics: ${JSON.stringify(metrics)}`);
-    toastNotifier.show("Ultralight Web QA completed: Target verified", "success");
+    await runActiveEngineQA();
+  });
+  wireMenuItem('menu-item-engine-ultralight', () => setWebEngine('ultralight'));
+  wireMenuItem('menu-item-engine-electron', () => setWebEngine('electron'));
+  wireMenuItem('menu-item-engine-chromium', () => setWebEngine('chromium'));
+  wireMenuItem('menu-item-engine-multi', async () => {
+    audio.playClickSound();
+    await runMultiEngineQA();
   });
   wireMenuItem('menu-item-heuristic', () => forceHeuristicStep());
   wireMenuItem('menu-item-mega-prompt', () => generateMegaPrompt());
@@ -649,7 +658,8 @@ document.addEventListener('DOMContentLoaded', () => {
   
   el.btnCloseModal.addEventListener('click', () => el.bugModal.classList.add('hidden'));
   el.bugModal.classList.add('hidden');
-  
+
+  setupWebEngineControls();
   setupWebviewListeners();
 
   ipcRenderer.on('agent-control', (event, { command }) => {
@@ -775,6 +785,125 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+// ── Unified Web Engine controls (ultralight default | electron | chromium) ──
+let webEngineBugForwarding = false;
+
+function buildViewportExecutor() {
+  return {
+    navigate: async (url) => {
+      try {
+        const res = await ipcRenderer.invoke('open-game-window', url);
+        return res;
+      } catch (err) {
+        if (webviewElement) webviewElement.src = url;
+        return { success: true, url };
+      }
+    },
+    getInteractiveDOM: async () => gameController.getInteractiveDOM(webviewElement),
+    executeAction: async (action) => gameController.executeAction(webviewElement, action),
+    executeJS: async (code) => gameController.executeJS(webviewElement, code),
+    captureScreenshot: async () => gameController.captureScreenshot(webviewElement),
+  };
+}
+
+function refreshWebEngineStatus() {
+  if (!el.webEngineStatus) return;
+  const active = webEngineManager.activeEngineId;
+  const info = webEngineManager.describeEngines().find((e) => e.id === active);
+  const backend = info && info.backend ? info.backend.backend : 'unknown';
+  el.webEngineStatus.textContent = `Active: ${active} (${backend}) · default: ultralight`;
+}
+
+function setWebEngine(id) {
+  const res = webEngineManager.setActiveEngine(id);
+  if (!res.success) {
+    toastNotifier.show(res.error, 'error');
+    logSystemMessage(`[Web Engine] ${res.error}`, 'error');
+    return res;
+  }
+  if (el.webEngineSelect) el.webEngineSelect.value = id;
+  saveConfigData();
+  refreshWebEngineStatus();
+  logSystemMessage(`[Web Engine] Driving engine switched to ${id}${id === 'ultralight' ? ' (main/default)' : ''}.`);
+  toastNotifier.show(`Web engine: ${id}`, 'success');
+  return res;
+}
+
+async function runActiveEngineQA() {
+  const url = el.gameUrlInput ? el.gameUrlInput.value.trim() : '';
+  const active = webEngineManager.activeEngineId;
+  logSystemMessage(`[${active} Engine] Initializing web automation pass on: ${url || 'active target'}`);
+  toastNotifier.show(`${active} Web Auto-QA running...`, 'info');
+  try {
+    const executor = buildViewportExecutor();
+    const engine = webEngineManager.getActiveEngine();
+    if (url) await engine.navigate(url, executor);
+    try {
+      const dom = await engine.getInteractiveDOM(executor);
+      logSystemMessage(`[${active} Engine] Interactive elements: ${Array.isArray(dom) ? dom.length : 0}`);
+    } catch (e) {
+      logSystemMessage(`[${active} Engine] DOM snapshot unavailable: ${e.message}`, 'warning');
+    }
+    const metrics = engine.getMetrics();
+    logSystemMessage(`[${active} Engine] Metrics: ${JSON.stringify(metrics)}`);
+    toastNotifier.show(`${active} Web QA completed: Target verified`, 'success');
+    return metrics;
+  } catch (err) {
+    logSystemMessage(`[${active} Engine] QA pass failed: ${err.message}`, 'error');
+    toastNotifier.show(`${active} QA failed`, 'error');
+    return null;
+  }
+}
+
+async function runMultiEngineQA() {
+  const url = el.gameUrlInput ? el.gameUrlInput.value.trim() : '';
+  if (!url) {
+    toastNotifier.show('Load a target URL first.', 'warning');
+    return null;
+  }
+  logSystemMessage('[Multi-Engine QA] Running ultralight + electron + chromium passes...');
+  toastNotifier.show('Multi-engine QA running...', 'info');
+  const executor = buildViewportExecutor();
+  const { success, summary, results } = await webEngineManager.runMultiEngineQA(url, {
+    executorProvider: () => executor,
+  });
+  if (!success) {
+    logSystemMessage('[Multi-Engine QA] Failed to complete.', 'error');
+    return null;
+  }
+  for (const [id, r] of Object.entries(results)) {
+    logSystemMessage(`[Multi-Engine QA] ${id}: success=${r.success} dom=${r.domCount} consoleErr=${r.consoleErrors} netFail=${r.networkFailures} bugs=${r.diagnosedBugs} loadMs=${r.loadTime}`, r.success ? 'system' : 'error');
+  }
+  logSystemMessage(`[Multi-Engine QA] ${summary.note}`, summary.diverged ? 'warning' : 'system');
+  toastNotifier.show(summary.diverged ? 'Multi-engine QA: divergences found' : 'Multi-engine QA: all engines agree', summary.diverged ? 'warning' : 'success');
+  return { summary, results };
+}
+
+function setupWebEngineControls() {
+  // Forward engine bug telemetry into the bug tracker exactly once.
+  if (!webEngineBugForwarding) {
+    webEngineBugForwarding = true;
+    webEngineManager.on('bug_detected', (bug) => {
+      agentBrain.bugs.unshift(bug);
+      tracker.renderBugs(el.bugsContainer, el.bugCountBadge, agentBrain, selectBugCard);
+      logSystemMessage(`[${bug.engine || 'engine'} QA Defect] ${bug.type}: ${bug.description}`, 'error');
+    });
+  }
+  // Restore persisted engine choice (config.loadConfig already set the select).
+  try {
+    if (el.webEngineSelect && ['ultralight', 'electron', 'chromium'].includes(el.webEngineSelect.value)) {
+      webEngineManager.setActiveEngine(el.webEngineSelect.value);
+    }
+  } catch (_) { /* default ultralight stays active */ }
+  refreshWebEngineStatus();
+  if (el.webEngineSelect) {
+    el.webEngineSelect.addEventListener('change', () => setWebEngine(el.webEngineSelect.value));
+  }
+  if (el.btnMultiEngineQA) {
+    el.btnMultiEngineQA.addEventListener('click', () => runMultiEngineQA());
+  }
+}
 
 function saveConfigData() {
   config.saveConfig(el, audio, agentBrain, autoCodeSystem, dataDir);

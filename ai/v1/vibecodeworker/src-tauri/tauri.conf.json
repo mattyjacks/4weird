@@ -11,9 +11,10 @@
   },
   "app": {
     "withGlobalTauri": true,
-    "windows": [
+      "windows": [
       {
         "title": "4WEIRD VIBECODEWORKER // Antigravity 2.0 Agentic QA Sandbox & Self-Healing Suite",
+        "url": "hub.html",
         "width": 1440,
         "height": 900,
         "resizable": true,

@@ -185,6 +185,13 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     elements.serverPortInput.value = settings.serverPort || 42069;
   }
 
+  // Unified web engine selection: ultralight (default/main) | electron | chromium.
+  if (elements.webEngineSelect) {
+    const valid = ['ultralight', 'electron', 'chromium'];
+    const saved = valid.includes(settings.webEngine) ? settings.webEngine : 'ultralight';
+    elements.webEngineSelect.value = saved;
+  }
+
   // OpenCode.ai bridge (optional) — applied defensively so older configs still load.
   try {
     const { applyOpenCodeSettings } = require('../components/opencode_ui_controller');
@@ -234,6 +241,9 @@ function saveConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     autoCodeMaxShots: elements.autocodeMaxShots ? parseInt(elements.autocodeMaxShots.value) : 2,
     autoCodeCaptureOnPlay: elements.autocodeCaptureOnPlay ? elements.autocodeCaptureOnPlay.checked : false,
     serverPort: elements.serverPortInput ? (parseInt(elements.serverPortInput.value) || 42069) : 42069,
+    webEngine: elements.webEngineSelect && ['ultralight', 'electron', 'chromium'].includes(elements.webEngineSelect.value)
+      ? elements.webEngineSelect.value
+      : 'ultralight',
     // Preserve the OpenCode bridge block (managed by its own panel; never wiped).
     opencode: readExistingOpenCodeBlock(elements)
   };

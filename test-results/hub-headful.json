@@ -1,0 +1,70 @@
+{
+  "ok": true,
+  "stages": [
+    {
+      "name": "hub boots, splash lifts",
+      "ok": true,
+      "detail": "splashGone=true hub=visible"
+    },
+    {
+      "name": "status clock ticks",
+      "ok": true,
+      "detail": "clock=19:49:25"
+    },
+    {
+      "name": "open catalogue",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "catalogue lists games",
+      "ok": true,
+      "detail": "modal=visible games=13"
+    },
+    {
+      "name": "game launches to editor",
+      "ok": true,
+      "detail": "src=http://127.0.0.1:8899/games/html/orbitaldrift/index.html hub=hidden"
+    },
+    {
+      "name": "options overlay opens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "agent starts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "agent steps advance",
+      "ok": true,
+      "detail": "state=ACTIVE PLAY steps=8 / 50"
+    },
+    {
+      "name": "terminal /help responds",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "agent stops",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "back to IDLE",
+      "ok": true,
+      "detail": "state=IDLE"
+    }
+  ],
+  "errors": [],
+  "shots": [
+    "C:\\GitHub5\\4weird\\test-results\\screenshots\\hub-01-boot.png",
+    "C:\\GitHub5\\4weird\\test-results\\screenshots\\hub-02-catalogue.png",
+    "C:\\GitHub5\\4weird\\test-results\\screenshots\\hub-03-launched.png",
+    "C:\\GitHub5\\4weird\\test-results\\screenshots\\hub-04-options.png",
+    "C:\\GitHub5\\4weird\\test-results\\screenshots\\hub-05-running.png",
+    "C:\\GitHub5\\4weird\\test-results\\screenshots\\hub-06-terminal.png",
+    "C:\\GitHub5\\4weird\\test-results\\screenshots\\hub-07-stopped.png"
+  ]
+}

@@ -260,6 +260,59 @@ function getConfiguredPort() {
   return parseInt(process.env.VIBECODEWORKER_PORT || process.env.PORT || 42069);
 }
 
+// Unified web engine driver (main process side): ultralight default,
+// electron current-setup viewport, chromium standalone. Headless API runs
+// without a renderer, so compat executors delegate to the game window.
+function getConfiguredEngine() {
+  const valid = ['ultralight', 'electron', 'chromium'];
+  if (process.env.VIBE_WEB_ENGINE && valid.includes(process.env.VIBE_WEB_ENGINE)) {
+    return process.env.VIBE_WEB_ENGINE;
+  }
+  try {
+    const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf8'));
+    if (cfg.webEngine && valid.includes(cfg.webEngine)) return cfg.webEngine;
+  } catch (e) {}
+  return 'ultralight';
+}
+
+const { WebEngineManager } = require('./src/runtime/web_engine_manager');
+const webEngineManager = new WebEngineManager({ activeEngine: getConfiguredEngine() });
+webEngineManager.on('bug_detected', (bug) => {
+  if (localApiServer) localApiServer.addConsoleLog('error', `[${bug.engine || 'engine'}] ${bug.type}: ${bug.description}`, 'web-engine');
+});
+
+function buildMainExecutor() {
+  return {
+    navigate: async (url) => openGameWindow(url, isHeadless, mainWindow),
+    getInteractiveDOM: async () => {
+      const win = getGameWindow();
+      if (!win || win.isDestroyed()) return [];
+      const stateStr = await win.webContents.executeJavaScript(`JSON.stringify((() => {
+        const out = [];
+        const cands = document.querySelectorAll('button, a, input, select, textarea, canvas, [role="button"]');
+        for (let i = 0; i < cands.length && out.length < 40; i++) {
+          const el = cands[i]; const r = el.getBoundingClientRect();
+          if (r.width <= 0 || r.height <= 0) continue;
+          out.push({ tagName: el.tagName, id: el.id || '', innerText: (el.innerText || '').slice(0,50), rect: { left: Math.round(r.left), top: Math.round(r.top), width: Math.round(r.width), height: Math.round(r.height) } });
+        }
+        return out;
+      })())`);
+      return JSON.parse(stateStr);
+    },
+    executeAction: async (action) => {
+      const win = getGameWindow() || mainWindow;
+      if (!win || win.isDestroyed()) return { success: false, error: 'No active window' };
+      if (action.type === 'click') {
+        const x = action.x || 100; const y = action.y || 100;
+        win.webContents.sendInputEvent({ type: 'mouseDown', x, y, button: 'left', clickCount: 1 });
+        win.webContents.sendInputEvent({ type: 'mouseUp', x, y, button: 'left', clickCount: 1 });
+        return { success: true, action: 'click', x, y };
+      }
+      return { success: false, error: `Unsupported action type: ${action.type}` };
+    },
+  };
+}
+
 let currentApiPort = getConfiguredPort();
 
 // Initialize Local API Server connected to Electron windows & handlers
@@ -351,6 +404,31 @@ function createLocalApiServer(port) {
           return { success: true };
         }
         return { success: false, error: 'Game window not open' };
+      },
+
+      getEngines: async () => webEngineManager.describeEngines(),
+
+      setEngine: async (engineId) => {
+        const res = webEngineManager.setActiveEngine(engineId);
+        if (res.success) {
+          try {
+            const cfgPath = path.join(__dirname, 'config.json');
+            const cfg = fs.existsSync(cfgPath) ? JSON.parse(fs.readFileSync(cfgPath, 'utf8')) : {};
+            cfg.webEngine = webEngineManager.activeEngineId;
+            fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2), 'utf8');
+          } catch (_) { /* persist best-effort */ }
+        }
+        return res;
+      },
+
+      runMultiEngineQA: async ({ url, engines, actions } = {}) => {
+        const target = url || (getGameWindow() ? getGameWindow().webContents.getURL() : null);
+        if (!target) return { success: false, error: 'No URL provided and no game window open' };
+        return await webEngineManager.runMultiEngineQA(target, {
+          engines,
+          actions,
+          executorProvider: () => buildMainExecutor(),
+        });
       }
     }
   });
@@ -381,4 +459,30 @@ ipcMain.handle('set-api-server-port', async (event, newPort) => {
     console.error(`[Main] Failed to switch port to ${targetPort}:`, err);
     return { success: false, error: err.message };
   }
+});
+
+// Unified web engine IPC: renderer (dashboard) switches drivers & runs QA.
+ipcMain.handle('get-web-engines', async () => webEngineManager.describeEngines());
+
+ipcMain.handle('set-web-engine', async (event, engineId) => {
+  const res = webEngineManager.setActiveEngine(engineId);
+  if (res.success) {
+    try {
+      const cfgPath = path.join(__dirname, 'config.json');
+      const cfg = fs.existsSync(cfgPath) ? JSON.parse(fs.readFileSync(cfgPath, 'utf8')) : {};
+      cfg.webEngine = webEngineManager.activeEngineId;
+      fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2), 'utf8');
+    } catch (_) { /* persist best-effort */ }
+  }
+  return res;
+});
+
+ipcMain.handle('run-multi-engine-qa', async (event, opts = {}) => {
+  const target = opts.url || (isGameWindowActive() ? getGameWindow().webContents.getURL() : null);
+  if (!target) return { success: false, error: 'No URL provided and no game window open' };
+  return await webEngineManager.runMultiEngineQA(target, {
+    engines: opts.engines,
+    actions: opts.actions,
+    executorProvider: () => buildMainExecutor(),
+  });
 });

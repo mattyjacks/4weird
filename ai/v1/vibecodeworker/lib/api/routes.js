@@ -367,10 +367,55 @@ async function handleApiRequest(context, req, res, pathname, parsedUrl, readBody
     return sendJSON(res.success ? 200 : 500, res);
   }
 
+  // ─── GET /api/engine ─────────────────────────────
+  // Unified web engine drivers: ultralight (default/main), electron (current
+  // setup), chromium (standalone). Reports active engine + backends.
+  if (pathname === '/api/engine') {
+    if (typeof handlers.getEngines !== 'function') {
+      return sendJSON(200, {
+        success: true, activeEngine: 'ultralight', defaultEngine: 'ultralight',
+        engines: ['ultralight', 'electron', 'chromium'],
+        note: 'Host runner has no engine handlers bound (headless SDK mode).',
+      });
+    }
+    const engines = await handlers.getEngines();
+    const active = Array.isArray(engines) ? (engines.find((e) => e.active) || {}).id || 'ultralight' : 'ultralight';
+    return sendJSON(200, { success: true, activeEngine: active, defaultEngine: 'ultralight', engines });
+  }
+
+  // ─── POST /api/engine/switch ─────────────────────────
+  // Body: { engine: 'ultralight' | 'electron' | 'chromium' }
+  if (pathname === '/api/engine/switch') {
+    if (req.method !== 'POST') return sendText(405, 'Method Not Allowed');
+    const body = await readBody();
+    const engine = body.engine || body.engineId;
+    if (!engine) return sendJSON(400, { success: false, error: "Missing 'engine' (ultralight|electron|chromium)" });
+    if (typeof handlers.setEngine !== 'function') {
+      return sendJSON(501, { success: false, error: 'Host runner does not support engine switching' });
+    }
+    const result = await handlers.setEngine(engine);
+    return sendJSON(result.success ? 200 : 400, result);
+  }
+
+  // ─── POST /api/engine/multi-qa ───────────────────────
+  // Smart cross-engine pass: same URL on ultralight + electron + chromium.
+  // Body: { url?, engines?: string[], actions?: object[] }
+  if (pathname === '/api/engine/multi-qa') {
+    if (req.method !== 'POST') return sendText(405, 'Method Not Allowed');
+    const body = await readBody();
+    if (typeof handlers.runMultiEngineQA !== 'function') {
+      return sendJSON(501, { success: false, error: 'Host runner does not support multi-engine QA' });
+    }
+    const result = await handlers.runMultiEngineQA({
+      url: body.url, engines: body.engines, actions: body.actions,
+    });
+    return sendJSON(result.success ? 200 : 500, result);
+  }
+
   // 404 handler
   return sendJSON(404, {
     success: false,
-    error: `Endpoint '${pathname}' not found. Available endpoints: /api/status, /api/games, /api/game/launch, /api/game/screenshot, /api/game/logs, /api/game/state, /api/game/action, /api/game/eval, /api/game/patch, /api/vision/state, /api/bugs, /api/autocode/fix, /api/autocode/report, /api/opencode/status, /api/opencode/export, /api/opencode/fix, /api/opencode/heal, /api/opencode/heal/:id, /api/opencode/heal-test, /api/opencode/revert, /api/opencode/handoff, /api/dashboard`
+    error: `Endpoint '${pathname}' not found. Available endpoints: /api/status, /api/games, /api/game/launch, /api/game/screenshot, /api/game/logs, /api/game/state, /api/game/action, /api/game/eval, /api/game/patch, /api/vision/state, /api/bugs, /api/engine, /api/engine/switch, /api/engine/multi-qa, /api/autocode/fix, /api/autocode/report, /api/opencode/status, /api/opencode/export, /api/opencode/fix, /api/opencode/heal, /api/opencode/heal/:id, /api/opencode/heal-test, /api/opencode/revert, /api/opencode/handoff, /api/dashboard`
   });
 }
 

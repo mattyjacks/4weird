@@ -92,6 +92,7 @@ export function initDOM() {
   el.audioToggle = document.getElementById('audio-toggle');
   el.systemTime = document.getElementById('system-time');
   el.tauriDesktopBadge = document.getElementById('tauri-desktop-badge');
+  el.activeModelDisplay = document.getElementById('active-model-display');
   el.btnSelectMode = document.getElementById('btn-select-mode');
   el.modeSelectionModal = document.getElementById('mode-selection-modal');
   el.btnCloseModeModal = document.getElementById('btn-close-mode-modal');

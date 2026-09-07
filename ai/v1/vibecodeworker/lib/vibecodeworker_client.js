@@ -112,7 +112,6 @@ class VibeCodeWorkerClient {
   async getBugs() {
     return await this._request('/api/bugs');
   }
-
   async reportBug(bugData) {
     return await this._request('/api/bugs', {
       method: 'POST',
@@ -135,6 +134,27 @@ class VibeCodeWorkerClient {
 
   async getFixReports() {
     return await this._request('/api/autocode/report');
+  }
+
+  // ── Unified web engine drivers (ultralight default | electron | chromium) ──
+  async getEngines() {
+    return await this._request('/api/engine');
+  }
+
+  async setEngine(engine) {
+    return await this._request('/api/engine/switch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ engine })
+    });
+  }
+
+  async runMultiEngineQA({ url, engines, actions } = {}) {
+    return await this._request('/api/engine/multi-qa', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url, engines, actions })
+    });
   }
 }
 

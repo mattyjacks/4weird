@@ -9,7 +9,7 @@ import { log, updatePerformanceMetrics, initAuthCheck, setupAuthEventListeners }
 import { updateSubagentsUI, resumeAllSubagents, pauseAllSubagents, terminateAllSubagents, openDispatchSubagentModal, confirmDispatchSubagent, openSendMessageModal, confirmSendMessage, openReassignModal, confirmReassign, togglePauseSubagent, terminateSubagent } from './modules/subagents_manager.js';
 import { discoverGameBrain } from './modules/game_brain.js';
 import { openLocalGpuDrawer, testLocalGpuConnection, setupPhoneRemoteInteractions } from './modules/gpu_remote.js';
-import { renderReasoningTree, renderSourceCodeView, updatePatchDrawerUI, showBugLightbox, exportMarkdownReport, switchReportTab, generateReportSummary } from './modules/defect_healer.js';
+import { renderReasoningTree, renderSourceCodeView, updatePatchDrawerUI, showBugLightbox, exportMarkdownReport, switchReportTab, generateReportSummary, triggerDetectedBug } from './modules/defect_healer.js';
 import { glideAgentCursorAndInteract, runLunaVisionScan, setDeviceView, toggleReplayPlay, toggleReplayLiveMode, stepReplayPrev, stepReplayNext, updateReplayUI } from './modules/viewport_manager.js';
 import { HubManager } from './modules/hub_manager.js';
 import { loadGameTarget, initiateTesting, pauseTesting, stopTesting, executeAgentStep, autoRunEverything } from './modules/agent_runner.js';
@@ -566,7 +566,8 @@ function initApp() {
   hubInstance.init();
 
   applyLayoutMode();
-  hubInstance.showEditorView();
+  hubInstance.showHubView();
+  if (typeof window.__vcwReady === 'function') window.__vcwReady();
 
   if (isTauriRuntime()) {
     if (el.tauriDesktopBadge) el.tauriDesktopBadge.style.display = 'inline-flex';

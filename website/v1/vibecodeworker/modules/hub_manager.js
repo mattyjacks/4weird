@@ -77,6 +77,12 @@ export class HubManager {
     const cardPlan = document.getElementById('card-plan-game');
     if (cardPlan) cardPlan.addEventListener('click', () => this.startInteractivePlanner());
 
+    const cardDesktop = document.getElementById('card-desktop-game');
+    if (cardDesktop) cardDesktop.addEventListener('click', () => {
+      synth.playClick();
+      log('[HUB] Native window capture lives in the Electron build — run launch_vibecodeworker.bat to attach to a running Windows game.', 'warning');
+    });
+
     const cardOpen = document.getElementById('card-open-folder');
     if (cardOpen) cardOpen.addEventListener('click', () => {
       synth.playClick();

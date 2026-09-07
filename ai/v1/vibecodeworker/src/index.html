@@ -11,6 +11,8 @@
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Space+Grotesk:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="index.css">
+  <!-- Shared hub theme: same source as the Tauri/website hub (website/v1/vibecodeworker/hub-shared.css) -->
+  <link rel="stylesheet" href="../../../website/v1/vibecodeworker/hub-shared.css">
   <meta http-equiv="Content-Security-Policy"
     content="default-src 'self' file: data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' file:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com file:; font-src 'self' https://fonts.gstatic.com file:; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.openai.com https://api.deepseek.com https://generativelanguage.googleapis.com https://openrouter.ai; img-src 'self' file: data:; child-src 'self' file:; frame-src 'self' file: http://localhost:* http://127.0.0.1:*;">
 </head>
@@ -72,7 +74,19 @@
                 <span class="menu-icon">⚡</span> Run AI Coding Fix (Direct)
               </button>
               <button class="menu-item" id="menu-item-ultralight">
-                <span class="menu-icon">🌐</span> Ultralight Web Auto-QA
+                <span class="menu-icon">🌐</span> Run Active Engine QA
+              </button>
+              <button class="menu-item" id="menu-item-engine-ultralight">
+                <span class="menu-icon">⚡</span> Use Ultralight (main)
+              </button>
+              <button class="menu-item" id="menu-item-engine-electron">
+                <span class="menu-icon">🖥️</span> Use Electron (current setup)
+              </button>
+              <button class="menu-item" id="menu-item-engine-chromium">
+                <span class="menu-icon">🧩</span> Use Chromium standalone
+              </button>
+              <button class="menu-item" id="menu-item-engine-multi">
+                <span class="menu-icon">🔬</span> Multi-Engine QA (all 3)
               </button>
               <button class="menu-item" id="menu-item-heuristic">
                 <span class="menu-icon">🧪</span> Force Heuristic Step
@@ -382,6 +396,16 @@
               </div>
               <span class="field-hint">Default: 42069. Used by CLI scripts, test runners, and SDKs.</span>
             </div>
+            <div class="form-group">
+              <label for="web-engine-select">Web Engine Driver (default: Ultralight)</label>
+              <select id="web-engine-select">
+                <option value="ultralight">⚡ Ultralight (main / default)</option>
+                <option value="electron">🖥️ Electron (current setup)</option>
+                <option value="chromium">🧩 Chromium standalone</option>
+              </select>
+              <span class="field-hint" id="web-engine-status">Active: ultralight · default: ultralight</span>
+              <button id="btn-multi-engine-qa" class="btn btn-secondary btn-small" style="margin-top: 6px;">🔬 Run Multi-Engine QA (all 3)</button>
+            </div>
           </div>
         </div>
 
@@ -403,16 +427,14 @@
               Import Plan (.txt)</button>
           </div>
 
-          <div class="hub-grid"
-            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;">
+          <div class="hub-grid">
             <!-- Card 1: Load 4weird Games -->
-            <div class="hub-card glass" id="card-load-4weird"
-              style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer; pointer-events: auto;">
-              <div class="card-icon" style="font-size: 2.2rem; filter: drop-shadow(0 0 8px rgba(0, 255, 102, 0.4));">🎮
+            <div class="hub-card glass" id="card-load-4weird">
+              <div class="card-icon">🎮
               </div>
-              <h3 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Load
+              <h3>Load
                 4weird Games</h3>
-              <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4; flex: 1;">Instant access to
+              <p>Instant access to
                 the complete 4weird HTML5 and WebGL catalogue. Select, play, and unleash autonomous QA agents in
                 seconds.</p>
               <button class="btn btn-primary btn-full" style="pointer-events: none; margin-top: 8px;">BROWSE
@@ -420,13 +442,12 @@
             </div>
 
             <!-- Card 2: Test Any Website -->
-            <div class="hub-card glass" id="card-test-website"
-              style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer; pointer-events: auto;">
-              <div class="card-icon" style="font-size: 2.2rem; filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.4));">🌐
+            <div class="hub-card glass" id="card-test-website">
+              <div class="card-icon" style="filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.4));">🌐
               </div>
-              <h3 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Test
+              <h3>Test
                 Any Website</h3>
-              <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4; flex: 1;">Analyze any live
+              <p>Analyze any live
                 URL or SaaS app: UX/UI heuristic audit, backend network errors, form flows, dead link crawling, and
                 CAPTCHA HITL.</p>
               <button class="btn btn-primary btn-full" style="pointer-events: none; margin-top: 8px;">AUDIT ANY
@@ -434,13 +455,12 @@
             </div>
 
             <!-- Card 3: Cloud Fleet Remote Execution -->
-            <div class="hub-card glass" id="card-cloud-fleet"
-              style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer; pointer-events: auto;">
-              <div class="card-icon" style="font-size: 2.2rem; filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.4));">☁️
+            <div class="hub-card glass" id="card-cloud-fleet">
+              <div class="card-icon" style="filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.4));">☁️
               </div>
-              <h3 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">4weird
+              <h3>4weird
                 Cloud Fleet</h3>
-              <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4; flex: 1;">Run high-load web
+              <p>Run high-load web
                 testing on rented cloud machines (AWS EC2 style). Stream seamlessly to low-power laptops, tablets, or
                 phones.</p>
               <button class="btn btn-secondary btn-full" style="pointer-events: none; margin-top: 8px;">RENT COMPUTE
@@ -448,13 +468,12 @@
             </div>
 
             <!-- Card 4: Create Random Viral HTML Game -->
-            <div class="hub-card glass" id="card-random-game"
-              style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer; pointer-events: auto;">
-              <div class="card-icon" style="font-size: 2.2rem; filter: drop-shadow(0 0 8px rgba(0, 255, 102, 0.4));">⚡
+            <div class="hub-card glass" id="card-random-game">
+              <div class="card-icon">⚡
               </div>
-              <h3 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Create
+              <h3>Create
                 Random Viral Game</h3>
-              <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4; flex: 1;">Generate an
+              <p>Generate an
                 original, randomized non-copyrighted game idea. Automatically creates QA testing guides, and a BRAID
                 decision flowchart.</p>
               <button class="btn btn-primary btn-full" style="pointer-events: none; margin-top: 8px;">PITCH &
@@ -462,13 +481,12 @@
             </div>
 
             <!-- Card 5: Plan New HTML Game -->
-            <div class="hub-card glass" id="card-plan-game"
-              style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer; pointer-events: auto;">
-              <div class="card-icon" style="font-size: 2.2rem; filter: drop-shadow(0 0 8px rgba(0, 255, 102, 0.4));">💬
+            <div class="hub-card glass" id="card-plan-game">
+              <div class="card-icon">💬
               </div>
-              <h3 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Plan
+              <h3>Plan
                 New HTML Game</h3>
-              <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4; flex: 1;">Collaboratively
+              <p>Collaboratively
                 construct a custom game plan using an interactive planner chat, answering multiple choice questions to
                 tailor compile a specs draft.</p>
               <button class="btn btn-primary btn-full" style="pointer-events: none; margin-top: 8px;">START INTERACTIVE
@@ -476,13 +494,12 @@
             </div>
 
             <!-- Card 6: Open Specific Folder -->
-            <div class="hub-card glass" id="card-open-folder"
-              style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer; pointer-events: auto;">
-              <div class="card-icon" style="font-size: 2.2rem; filter: drop-shadow(0 0 8px rgba(0, 255, 102, 0.4));">📁
+            <div class="hub-card glass" id="card-open-folder">
+              <div class="card-icon">📁
               </div>
-              <h3 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Open
+              <h3>Open
                 Specific Folder</h3>
-              <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4; flex: 1;">Load any folder
+              <p>Load any folder
                 path directly. Automatically detects and deploys HTML5 games, web apps (Next.js, Astro, React, Vue),
                 websites, Roblox, Godot, Unity, or Unreal projects.</p>
               <button class="btn btn-primary btn-full" style="pointer-events: none; margin-top: 8px;">OPEN FILE
@@ -491,9 +508,9 @@
 
             <div class="hub-card glass" id="card-desktop-game"
               style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer; pointer-events: auto; border-color: rgba(0, 242, 254, 0.36);">
-              <div class="card-icon" style="font-size: 2.2rem;">🖥️</div>
-              <h3 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Work on Desktop Game</h3>
-              <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4; flex: 1;">Attach to a running Windows game, capture its selected window, and run a supervised playtest. Built for modded games, Unity, Unreal, Godot, and more.</p>
+              <div class="card-icon">🖥️</div>
+              <h3>Work on Desktop Game</h3>
+              <p>Attach to a running Windows game, capture its selected window, and run a supervised playtest. Built for modded games, Unity, Unreal, Godot, and more.</p>
               <button class="btn btn-primary btn-full" style="pointer-events: none; margin-top: 8px;">SELECT GAME WINDOW</button>
             </div>
           </div>

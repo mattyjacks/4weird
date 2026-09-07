@@ -8,10 +8,11 @@
     "start:cloud": "node start_api_server.js",
     "heal": "node heal_worker.js",
     "test": "node test_vibecodeworker.js",
+    "test:headful": "node test_hub_headful.js",
     "dist": "electron-builder --win portable --dir",
     "build:exe": "electron-builder --win portable",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build && copy src-tauri\\target\\release\\vibecodeworker-4weird.exe src-tauri\\target\\release\\4weird-vibecodeworker.exe",
+    "tauri:build": "tauri build",
     "tauri:build:win": "tauri build --target x86_64-pc-windows-msvc",
     "tauri:build:mac": "tauri build --target universal-apple-darwin",
     "tauri:build:linux": "tauri build --target x86_64-unknown-linux-gnu"
