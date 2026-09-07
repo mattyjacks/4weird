@@ -54,7 +54,15 @@ function frame(time) {
         ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = 'source-over';
     }
-    self.requestAnimationFrame(frame);
+    scheduleFrame(frame);
+}
+
+function scheduleFrame(cb) {
+    if (typeof self.requestAnimationFrame === 'function') {
+        self.requestAnimationFrame(cb);
+    } else {
+        setTimeout(() => cb(performance.now()), 16);
+    }
 }
 
 self.onmessage = (event) => {
@@ -62,7 +70,7 @@ self.onmessage = (event) => {
     if (message.type === 'init') {
         canvas = message.canvas;
         ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
-        self.requestAnimationFrame(frame);
+        scheduleFrame(frame);
     } else if (message.type === 'resize') {
         resize(message.width, message.height, message.pixelRatio);
     } else if (message.type === 'burst') {

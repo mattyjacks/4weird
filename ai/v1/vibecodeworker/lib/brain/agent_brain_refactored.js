@@ -180,6 +180,10 @@ class AgentBrain {
       action,
       status: result.status
     });
+    // Bound replay memory for long runs (was unbounded: +1 per step forever).
+    if (this.replayActions.length > 500) {
+      this.replayActions.splice(0, this.replayActions.length - 500);
+    }
 
     this.episodes.push({
       timestamp: Date.now(),
@@ -195,8 +199,8 @@ class AgentBrain {
 
     if (result.bug_report && result.bug_report.has_bug) {
       const desc = result.bug_report.description || '';
-      const isFakeBug = desc.toLowerCase().includes('interactive element') || 
-                        desc.toLowerCase().includes('stuck') || 
+      const isFakeBug = desc.toLowerCase().includes('interactive element') ||
+                        desc.toLowerCase().includes('stuck') ||
                         desc.toLowerCase().includes('electron security') ||
                         desc.toLowerCase().includes('no elements');
       if (!isFakeBug) {
@@ -208,13 +212,17 @@ class AgentBrain {
           consoleLogs: (consoleLogs || []).filter(l => {
             const msg = typeof l === 'string' ? l : (l.message || '');
             return !msg.includes('Electron Security Warning');
-          }),
-          screenshot: `data:image/jpeg;base64,${screenshotBase64}`,
+          }).slice(-5),
+          screenshot: screenshotBase64 ? `data:image/jpeg;base64,${screenshotBase64}` : '',
+          screenshotBytes: typeof screenshotBase64 === 'string' ? screenshotBase64.length : 0,
           actionTakenBeforeBug: this.replayActions.slice(-3)
         };
         const isDuplicate = this.bugs.some(b => b.description === bugEntry.description);
         if (!isDuplicate) {
           this.bugs.push(bugEntry);
+          while (this.bugs.length > 100) {
+            this.bugs.shift();
+          }
           if (this.sessionStats) this.sessionStats.bugsFound++;
         }
       }
@@ -280,6 +288,10 @@ class AgentBrain {
   }
 
   endCurrentRun() {
+    try {
+      const { flushSessionMemory } = require('./session_memory');
+      flushSessionMemory(this);
+    } catch (e) {}
     this.activeRunId = null;
   }
 

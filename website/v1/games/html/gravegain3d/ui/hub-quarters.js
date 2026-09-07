@@ -238,6 +238,10 @@
             };
             const stopDrag = () => { isDragging = false; };
 
+            if (this._repairCleanup) {
+                try { this._repairCleanup(); } catch (_) {}
+                this._repairCleanup = null;
+            }
             comp.addEventListener('mousedown', startDrag);
             window.addEventListener('mousemove', moveDrag);
             window.addEventListener('mouseup', stopDrag);
@@ -245,6 +249,12 @@
             comp.addEventListener('touchstart', startDrag, { passive: true });
             window.addEventListener('touchmove', moveDrag, { passive: true });
             window.addEventListener('touchend', stopDrag);
+            this._repairCleanup = () => {
+                window.removeEventListener('mousemove', moveDrag);
+                window.removeEventListener('mouseup', stopDrag);
+                window.removeEventListener('touchmove', moveDrag);
+                window.removeEventListener('touchend', stopDrag);
+            };
         }
 
         renderLoreList() {

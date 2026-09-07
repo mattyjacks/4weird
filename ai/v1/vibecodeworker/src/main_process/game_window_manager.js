@@ -7,7 +7,16 @@ function getGameWindow() {
 }
 
 function isGameWindowActive() {
-  return gameWindow !== null;
+  return !!gameWindow && !gameWindow.isDestroyed();
+}
+
+function withGameTimeout(promise, label, ms = 8000) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms / 1000}s`)), ms);
+  });
+  return Promise.race([Promise.resolve().then(() => promise), timeout])
+    .finally(() => clearTimeout(timer));
 }
 
 async function openGameWindow(url, isHeadless, mainWindow, onConsoleLog) {
@@ -20,9 +29,47 @@ async function openGameWindow(url, isHeadless, mainWindow, onConsoleLog) {
   const gameX = x + ideWidth;
   const gameY = y;
 
-  if (gameWindow) {
+  const attachListeners = (win) => {
+    if (win._vibeListenersAttached) return;
+    win._vibeListenersAttached = true;
+    // Forward console events and load state back to dashboard (mainWindow)
+    win.webContents.on('console-message', (event, level, message, line, sourceId) => {
+      if (typeof onConsoleLog === 'function') {
+        onConsoleLog(level, message, line, sourceId);
+      }
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('webview-console', { level, message });
+      }
+    });
+
+    win.webContents.on('did-finish-load', () => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('webview-loaded');
+      }
+    });
+
+    win.webContents.on('did-fail-load', (e, errorCode, errorDescription, validatedURL) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('webview-fail-load', { errorCode, errorDescription, validatedURL });
+      }
+    });
+
+    win.on('closed', () => {
+      gameWindow = null;
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('webview-closed');
+      }
+    });
+  };
+
+  if (isGameWindowActive()) {
     gameWindow.setBounds({ x: gameX, y: gameY, width: gameWidth, height: gameHeight });
-    gameWindow.loadURL(url);
+    attachListeners(gameWindow);
+    try {
+      await gameWindow.loadURL(url);
+    } catch (err) {
+      return { success: false, url, error: err.message };
+    }
     if (!isHeadless) {
       gameWindow.focus();
     }
@@ -40,50 +87,32 @@ async function openGameWindow(url, isHeadless, mainWindow, onConsoleLog) {
       },
       title: "AI Playtest Target Game Window"
     });
-    gameWindow.loadURL(url);
-
-    // Forward console events and load state back to dashboard (mainWindow)
-    gameWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
-      if (typeof onConsoleLog === 'function') {
-        onConsoleLog(level, message, line, sourceId);
-      }
-      if (mainWindow) {
-        mainWindow.webContents.send('webview-console', { level, message });
-      }
-    });
-
-    gameWindow.webContents.on('did-finish-load', () => {
-      if (mainWindow) {
-        mainWindow.webContents.send('webview-loaded');
-      }
-    });
-
-    gameWindow.webContents.on('did-fail-load', (e, errorCode, errorDescription, validatedURL) => {
-      if (mainWindow) {
-        mainWindow.webContents.send('webview-fail-load', { errorCode, errorDescription, validatedURL });
-      }
-    });
-
-    gameWindow.on('closed', () => {
-      gameWindow = null;
-      if (mainWindow) {
-        mainWindow.webContents.send('webview-closed');
-      }
-    });
+    attachListeners(gameWindow);
+    try {
+      await gameWindow.loadURL(url);
+    } catch (err) {
+      return { success: false, url, error: err.message };
+    }
   }
   return { success: true, url };
 }
 
 async function evalInGameWindow(script) {
-  if (gameWindow) {
-    return await gameWindow.webContents.executeJavaScript(script);
+  if (isGameWindowActive()) {
+    return await withGameTimeout(
+      gameWindow.webContents.executeJavaScript(script),
+      'Game window eval'
+    );
   }
   throw new Error("Game window is not open");
 }
 
 async function captureGameScreenshot() {
-  if (gameWindow) {
-    const img = await gameWindow.webContents.capturePage();
+  if (isGameWindowActive()) {
+    const img = await withGameTimeout(
+      gameWindow.webContents.capturePage(),
+      'Game window screenshot'
+    );
     const resized = img.resize({ width: 512 });
     const jpegBuffer = resized.toJPEG(50);
     return jpegBuffer.toString('base64');
@@ -92,11 +121,11 @@ async function captureGameScreenshot() {
 }
 
 function reloadGameWindow() {
-  if (gameWindow) {
+  if (isGameWindowActive()) {
     gameWindow.webContents.reload();
-    return true;
+    return { success: true };
   }
-  return false;
+  return { success: false, error: 'Game window is not open' };
 }
 
 function openGameDevTools() {

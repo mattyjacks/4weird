@@ -309,12 +309,20 @@ Output format:
     }
 
     this.log(`Sending AutoCode LLM Request to ${provider} using model ${model || 'default'}`);
-    
-    const response = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body)
-    });
+
+    const abortController = new AbortController();
+    const fetchTimeout = setTimeout(() => abortController.abort(), 60000);
+    let response;
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+        signal: abortController.signal
+      });
+    } finally {
+      clearTimeout(fetchTimeout);
+    }
 
     if (!response.ok) {
       const errText = await response.text();
@@ -573,32 +581,51 @@ Modify the code to resolve the problem completely while preserving existing feat
     });
   }
 
-  // Diff Generation
-  generateDiff(original, modified) {
+  // Diff Generation (bounded: unchanged runs collapsed, capped entries)
+  generateDiff(original, modified, maxEntries = 2000) {
     if (!original || !modified) return null;
 
     const originalLines = original.split('\n');
     const modifiedLines = modified.split('\n');
     const diff = [];
+    let unchangedRun = 0;
+
+    const flushUnchanged = () => {
+      if (unchangedRun > 0) {
+        diff.push({ type: 'unchanged', line: -1, content: `... ${unchangedRun} unchanged lines ...` });
+        unchangedRun = 0;
+      }
+    };
 
     let i = 0, j = 0;
-    while (i < originalLines.length || j < modifiedLines.length) {
+    while ((i < originalLines.length || j < modifiedLines.length) && diff.length < maxEntries) {
       if (i >= originalLines.length) {
+        flushUnchanged();
         diff.push({ type: 'add', line: j + 1, content: modifiedLines[j] });
         j++;
       } else if (j >= modifiedLines.length) {
+        flushUnchanged();
         diff.push({ type: 'remove', line: i + 1, content: originalLines[i] });
         i++;
       } else if (originalLines[i] === modifiedLines[j]) {
-        diff.push({ type: 'unchanged', line: i + 1, content: originalLines[i] });
+        unchangedRun++;
         i++;
         j++;
       } else {
+        flushUnchanged();
         diff.push({ type: 'remove', line: i + 1, content: originalLines[i] });
-        diff.push({ type: 'add', line: j + 1, content: modifiedLines[j] });
+        if (diff.length < maxEntries) {
+          diff.push({ type: 'add', line: j + 1, content: modifiedLines[j] });
+        }
         i++;
         j++;
       }
+    }
+
+    if ((i < originalLines.length || j < modifiedLines.length) && diff.length >= maxEntries) {
+      diff.push({ type: 'unchanged', line: -1, content: '... diff truncated ...' });
+    } else {
+      flushUnchanged();
     }
 
     return diff;

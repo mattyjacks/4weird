@@ -45,6 +45,14 @@ class Projectile {
             this.dead = true;
         }
     }
+
+    dispose() {
+        if (this.mesh) {
+            if (this.mesh.geometry) this.mesh.geometry.dispose();
+            if (this.mesh.material) this.mesh.material.dispose();
+            this.mesh = null;
+        }
+    }
 }
 
 class DungeonProp {

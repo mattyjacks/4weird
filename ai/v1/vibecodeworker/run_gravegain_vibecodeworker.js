@@ -23,47 +23,20 @@ async function runGraveGainVibeCodeWorkerSession() {
   console.log("🚀 STARTING GRAVEGAIN 3D VIBECODEWORKER AUTONOMOUS SESSION");
   console.log("===============================================================");
 
-  // 1. Ensure static file server is available
+  // 1. Ensure static file server is available (shared hardened module with
+  // path-traversal protection, ETag caching, and stream error handling)
   let staticServer = null;
   try {
-    const http = require('http');
-    staticServer = http.createServer((req, res) => {
-      let rawPath = new URL(req.url, `http://localhost:${STATIC_PORT}`).pathname;
-      let filePath = path.join(WEBSITE_V1_DIR, decodeURIComponent(rawPath));
-      try {
-        if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
-          filePath = path.join(filePath, 'index.html');
-        }
-      } catch (e) { }
-
-      if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
-        res.writeHead(404, { 'Content-Type': 'text/plain' });
-        res.end('404 Not Found');
-        return;
-      }
-      const ext = path.extname(filePath).toLowerCase();
-      const mimeTypes = {
-        '.html': 'text/html',
-        '.css': 'text/css',
-        '.js': 'text/javascript',
-        '.json': 'application/json',
-        '.png': 'image/png',
-        '.jpg': 'image/jpeg'
-      };
-      res.writeHead(200, { 'Content-Type': mimeTypes[ext] || 'application/octet-stream' });
-      fs.createReadStream(filePath).pipe(res);
-    });
-    staticServer.on('error', (err) => {
-      if (err.code === 'EADDRINUSE') {
-        console.log(`[StaticServer] Port ${STATIC_PORT} already in use, reusing existing host.`);
-      }
-    });
-    staticServer.listen(STATIC_PORT);
+    const { startStaticServer } = require('./src/main_process/static_server');
+    staticServer = startStaticServer(STATIC_PORT, WEBSITE_V1_DIR);
   } catch (e) {
     console.warn("[StaticServer] Warning:", e.message);
   }
 
   // 2. Launch Local API Server with GraveGain 3D handlers
+  // SMOKE-TEST MODE: handlers below simulate game state so the runner works
+  // headless without Electron. For real playtesting use Electron
+  // (main.js handlers read the live game window via window.game).
   let activeGameId = null;
   let activeGameUrl = null;
   const consoleLogs = [];
@@ -187,10 +160,10 @@ async function runGraveGainVibeCodeWorkerSession() {
   const res2 = await client.pressKey('KeyW');
   console.log(`[VibeCodeWorker Action 2] Result: ${res2.success}`);
 
-  // Action 3: Attack nearby monster
-  const act3 = { type: 'keydown', key: 'Space', description: 'Perform melee attack' };
+  // Action 3: Class ability in close combat (Space is jump/wait, NOT melee)
+  const act3 = { type: 'keydown', key: 'KeyF', description: 'Activate class ability' };
   replayEngine.recordAction(act3, 'Strike skeleton');
-  const res3 = await client.pressKey('Space');
+  const res3 = await client.pressKey('KeyF');
   console.log(`[VibeCodeWorker Action 3] Result: ${res3.success}`);
 
   // Action 4: Trigger class ability

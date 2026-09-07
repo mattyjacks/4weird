@@ -318,7 +318,7 @@
             this.loot.forEach(l => l.destroy());
             this.loot = [];
 
-            this.projectiles.forEach(p => this.scene.remove(p.mesh));
+            this.projectiles.forEach(p => { this.scene.remove(p.mesh); p.dispose(); });
             this.projectiles = [];
 
             this.vfx.clear();
@@ -350,6 +350,34 @@
             const waterMat = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, transparent: true, opacity: 0.75, roughness: 0.1 });
             const poisonMat = new THREE.MeshStandardMaterial({ color: 0x15803d, transparent: true, opacity: 0.7, roughness: 0.2 });
 
+            // Instanced tile layer: one draw call per material instead of one
+            // Mesh per tile (a 70x70 grid created thousands of meshes before).
+            // frustumCulled is off because a single instanced mesh spans the
+            // whole dungeon and r128 cannot compute its bounds reliably.
+            let wallCount = 0, openCount = 0, waterCount = 0, poisonCount = 0;
+            for (let x = 0; x < this.dungeon.gridSize; x++) {
+                for (let y = 0; y < this.dungeon.gridSize; y++) {
+                    const tile = this.dungeon.grid[x][y];
+                    if (tile === 1) wallCount++;
+                    else {
+                        openCount++;
+                        if (tile === 2) waterCount++;
+                        else if (tile === 3) poisonCount++;
+                    }
+                }
+            }
+
+            const wallInst = wallCount > 0 ? new THREE.InstancedMesh(wallGeo, wallMat, wallCount) : null;
+            const floorInst = openCount > 0 ? new THREE.InstancedMesh(floorGeo, floorMat, openCount) : null;
+            const ceilInst = openCount > 0 ? new THREE.InstancedMesh(ceilGeo, ceilMat, openCount) : null;
+            const waterInst = waterCount > 0 ? new THREE.InstancedMesh(floorGeo, waterMat, waterCount) : null;
+            const poisonInst = poisonCount > 0 ? new THREE.InstancedMesh(floorGeo, poisonMat, poisonCount) : null;
+            [wallInst, floorInst, ceilInst, waterInst, poisonInst].forEach(inst => {
+                if (inst) inst.frustumCulled = false;
+            });
+
+            const dummy = new THREE.Object3D();
+            let wi = 0, oi = 0, wai = 0, poi = 0;
             for (let x = 0; x < this.dungeon.gridSize; x++) {
                 for (let y = 0; y < this.dungeon.gridSize; y++) {
                     const tile = this.dungeon.grid[x][y];
@@ -357,41 +385,43 @@
                     const ty = y * 48 + 24;
 
                     if (tile === 1) {
-                        const wall = new THREE.Mesh(wallGeo, wallMat);
-                        wall.position.set(tx, 36, ty);
-                        this.scene.add(wall);
-                        this.mapMeshes.push(wall);
+                        dummy.position.set(tx, 36, ty);
+                        dummy.rotation.set(0, 0, 0);
+                        dummy.updateMatrix();
+                        wallInst.setMatrixAt(wi++, dummy.matrix);
                     } else {
                         // Floor
-                        const floor = new THREE.Mesh(floorGeo, floorMat);
-                        floor.rotation.x = -Math.PI / 2;
-                        floor.position.set(tx, 0, ty);
-                        this.scene.add(floor);
-                        this.mapMeshes.push(floor);
+                        dummy.position.set(tx, 0, ty);
+                        dummy.rotation.set(-Math.PI / 2, 0, 0);
+                        dummy.updateMatrix();
+                        floorInst.setMatrixAt(oi, dummy.matrix);
 
                         // Ceiling
-                        const ceiling = new THREE.Mesh(ceilGeo, ceilMat);
-                        ceiling.rotation.x = Math.PI / 2;
-                        ceiling.position.set(tx, 72, ty);
-                        this.scene.add(ceiling);
-                        this.mapMeshes.push(ceiling);
+                        dummy.position.set(tx, 72, ty);
+                        dummy.rotation.set(Math.PI / 2, 0, 0);
+                        dummy.updateMatrix();
+                        ceilInst.setMatrixAt(oi++, dummy.matrix);
 
                         if (tile === 2) {
-                            const water = new THREE.Mesh(floorGeo, waterMat);
-                            water.rotation.x = -Math.PI / 2;
-                            water.position.set(tx, 0.4, ty);
-                            this.scene.add(water);
-                            this.mapMeshes.push(water);
+                            dummy.position.set(tx, 0.4, ty);
+                            dummy.rotation.set(-Math.PI / 2, 0, 0);
+                            dummy.updateMatrix();
+                            waterInst.setMatrixAt(wai++, dummy.matrix);
                         } else if (tile === 3) {
-                            const poison = new THREE.Mesh(floorGeo, poisonMat);
-                            poison.rotation.x = -Math.PI / 2;
-                            poison.position.set(tx, 0.4, ty);
-                            this.scene.add(poison);
-                            this.mapMeshes.push(poison);
+                            dummy.position.set(tx, 0.4, ty);
+                            dummy.rotation.set(-Math.PI / 2, 0, 0);
+                            dummy.updateMatrix();
+                            poisonInst.setMatrixAt(poi++, dummy.matrix);
                         }
                     }
                 }
             }
+            [wallInst, floorInst, ceilInst, waterInst, poisonInst].forEach(inst => {
+                if (!inst) return;
+                inst.instanceMatrix.needsUpdate = true;
+                this.scene.add(inst);
+                this.mapMeshes.push(inst);
+            });
 
             // Spawn Torches, Props & Enemies in rooms
             const diffScale = 1.0 + (this.floorIndex * 0.18);
@@ -709,8 +739,13 @@
             const grid = document.getElementById('perkCardsGrid');
             if (!screen || !grid) return;
 
-            // Pick 3 random distinct perks
+            // Pick 3 random distinct perks (guard: exhausted pool must not softlock)
             const pool = RoguelikePerks.filter(p => !this.player.hasPerk(p.id));
+            if (pool.length === 0) {
+                screen.classList.add('hidden');
+                this.isPaused = false;
+                return;
+            }
             const shuffled = [...pool].sort(() => 0.5 - Math.random());
             const selected = shuffled.slice(0, 3);
 
@@ -925,11 +960,12 @@
                     return;
                 }
 
-                // Advance projectiles
+                // Advance projectiles: one turn equals 0.35s of realtime
+                // flight, stepped through the same update() the realtime
+                // loop uses so gravity, wall collision, and lifetime expiry
+                // behave identically in both modes.
                 this.projectiles.forEach(p => {
-                    p.x += p.vx * 0.35;
-                    p.z += p.vz * 0.35;
-                    p.mesh.position.set(p.x, p.y, p.z);
+                    p.update(0.35, this.dungeon);
                     if (p.isPlayer) {
                         this.enemies.forEach(e => {
                             const dist = Math.hypot(e.x - p.x, e.y - p.z);
@@ -946,7 +982,7 @@
                         }
                     }
                 });
-                this.projectiles.filter(p => p.dead).forEach(p => this.scene.remove(p.mesh));
+                this.projectiles.filter(p => p.dead).forEach(p => { this.scene.remove(p.mesh); p.dispose(); });
                 this.projectiles = this.projectiles.filter(p => !p.dead);
 
                 // Enemies take turn
@@ -1212,7 +1248,7 @@
                         }
                     }
                 });
-                this.projectiles.filter(p => p.dead).forEach(p => this.scene.remove(p.mesh));
+                this.projectiles.filter(p => p.dead).forEach(p => { this.scene.remove(p.mesh); p.dispose(); });
                 this.projectiles = this.projectiles.filter(p => !p.dead);
 
                 // Update Loot Pickups
@@ -1883,7 +1919,22 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-        window.GraveGainGame = new GraveGainGame();
+        if (!window.THREE) {
+            const msg = document.createElement('div');
+            msg.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#04030a;color:#f5e6c8;font-family:sans-serif;font-size:1rem;text-align:center;padding:2rem;z-index:9999;';
+            msg.textContent = 'GraveGain3D could not load the Three.js 3D library (both CDN sources unreachable). Check your connection and reload.';
+            document.body.appendChild(msg);
+            return;
+        }
+        try {
+            window.GraveGainGame = new GraveGainGame();
+        } catch (err) {
+            const msg = document.createElement('div');
+            msg.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#04030a;color:#f5e6c8;font-family:sans-serif;font-size:1rem;text-align:center;padding:2rem;z-index:9999;';
+            msg.textContent = 'GraveGain3D failed to start WebGL (' + (err && err.message ? err.message : err) + '). Try a browser with hardware acceleration enabled.';
+            document.body.appendChild(msg);
+            throw err;
+        }
     });
 
     // Universal VibeCodeWorker & Game Runner integration bindings

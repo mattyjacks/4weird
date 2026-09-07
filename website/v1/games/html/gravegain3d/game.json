@@ -43,10 +43,14 @@
         "external": [
             {
                 "url": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
-                "description": "Three.js 3D Library"
+                "description": "Three.js 3D Library (primary CDN)"
+            },
+            {
+                "url": "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js",
+                "description": "Three.js 3D Library (fallback mirror)"
             }
         ],
-        "local": ["engine/config.js", "engine/persistence.js", "engine/camera-controller.js", "world/collision.js", "world/dungeon-generator.js", "audio/sound-engine.js", "input/input-manager.js", "graphics/procedural-textures.js", "graphics/particle-system.js", "entities/projectile.js", "engine/game-runtime.js", "engine/graphics-bridge.js", "engine/graphics-worker.js", "engine/performance-manager.js", "ui/combat-text.js", "game.css", "lore.js"]
+        "local": ["../gravegain_shared_missions.js", "engine/config.js", "engine/persistence.js", "engine/camera-controller.js", "world/collision.js", "world/dungeon-generator.js", "audio/sound-engine.js", "input/input-manager.js", "graphics/procedural-textures.js", "graphics/particle-system.js", "entities/projectile.js", "engine/game-data.js", "entities/weapon-factory.js", "entities/player.js", "entities/enemy.js", "engine/game-runtime.js", "engine/graphics-bridge.js", "engine/graphics-worker.js", "engine/performance-manager.js", "ui/hub-quarters.js", "ui/combat-text.js", "game.css", "lore.js"]
     },
     "meta": {
         "version": "1.0.0",

@@ -238,8 +238,15 @@ class InputManager {
                 e.preventDefault();
                 this.keys['KeyF'] = true;
             });
+            const clearAbility = () => { this.keys['KeyF'] = false; };
+            abilityBtn.addEventListener('pointerup', clearAbility);
+            abilityBtn.addEventListener('pointercancel', clearAbility);
+            abilityBtn.addEventListener('lostpointercapture', clearAbility);
             abilityBtn.addEventListener('click', (e) => {
-                if (e.detail === 0) this.keys['KeyF'] = true;
+                if (e.detail === 0) {
+                    this.keys['KeyF'] = true;
+                    requestAnimationFrame(clearAbility);
+                }
             });
         }
 
@@ -248,8 +255,15 @@ class InputManager {
                 e.preventDefault();
                 this.keys['Space'] = true;
             });
+            const clearJump = () => { this.keys['Space'] = false; };
+            jumpBtn.addEventListener('pointerup', clearJump);
+            jumpBtn.addEventListener('pointercancel', clearJump);
+            jumpBtn.addEventListener('lostpointercapture', clearJump);
             jumpBtn.addEventListener('click', (e) => {
-                if (e.detail === 0) this.keys['Space'] = true;
+                if (e.detail === 0) {
+                    this.keys['Space'] = true;
+                    requestAnimationFrame(clearJump);
+                }
             });
         }
 

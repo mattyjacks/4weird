@@ -126,15 +126,35 @@ class LocalAPIServer {
           this.logRequest(req.method, pathname, statusCode, Date.now() - startTime);
         };
 
+        // Bounded body reader: Buffer chunks (no O(n^2) string concat),
+        // 1MB cap so /api/game/patch and /api/autocode/fix can't OOM the host.
+        const MAX_BODY_BYTES = 1024 * 1024;
         const readBody = () => new Promise((resBody) => {
-          let body = '';
-          req.on('data', chunk => body += chunk.toString());
+          const chunks = [];
+          let received = 0;
+          let rejected = false;
+          req.on('data', (chunk) => {
+            if (rejected) return;
+            received += chunk.length;
+            if (received > MAX_BODY_BYTES) {
+              rejected = true;
+              resBody({ _raw: '', _error: 'Request body exceeds 1MB limit' });
+              try { req.destroy(); } catch (e) {}
+              return;
+            }
+            chunks.push(chunk);
+          });
           req.on('end', () => {
+            if (rejected) return;
             try {
+              const body = chunks.length ? Buffer.concat(chunks).toString('utf8') : '';
               resBody(body ? JSON.parse(body) : {});
             } catch (e) {
-              resBody({ _raw: body, _error: e.message });
+              resBody({ _raw: '', _error: e.message });
             }
+          });
+          req.on('error', () => {
+            if (!rejected) resBody({});
           });
         });
 

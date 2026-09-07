@@ -17,13 +17,45 @@ function loadSessionMemory(brain) {
   }
 }
 
-function saveSessionMemory(brain) {
+// Throttle disk writes: the agent loop calls updateSessionMemory every step
+// (~every 2s). Writing synchronously each time blocks the loop on I/O.
+// We persist at most once per SAVE_THROTTLE_MS or every SAVE_EVERY_STEPS.
+const SAVE_THROTTLE_MS = 2000;
+const SAVE_EVERY_STEPS = 10;
+
+function saveSessionMemory(brain, force = false) {
   if (!brain.dataDir) return;
+  if (!brain._sessionMem) return;
+  const now = Date.now();
+  const steps = brain._sessionMem.totalSteps || 0;
+
+  if (!force) {
+    const lastSave = brain._sessionMemLastSave || 0;
+    const stepsSinceSave = steps - (brain._sessionMemLastSavedStep || 0);
+    const throttledByTime = now - lastSave < SAVE_THROTTLE_MS;
+    const throttledBySteps = stepsSinceSave < SAVE_EVERY_STEPS && stepsSinceSave > 0;
+    // Save when EITHER throttle window expired OR step batch filled.
+    // Skip only while both windows are still closed.
+    if (throttledByTime && throttledBySteps) {
+      brain._sessionMemDirty = true;
+      return;
+    }
+  }
+
   try {
     const p = path.join(brain.dataDir, 'session_memory.json');
-    fs.writeFileSync(p, JSON.stringify(brain._sessionMem, null, 2), 'utf8');
+    fs.writeFileSync(p, JSON.stringify(brain._sessionMem), 'utf8');
+    brain._sessionMemLastSave = now;
+    brain._sessionMemLastSavedStep = steps;
+    brain._sessionMemDirty = false;
   } catch (e) {
     console.error('Failed to save session_memory.json', e);
+  }
+}
+
+function flushSessionMemory(brain) {
+  if (brain && brain._sessionMemDirty) {
+    saveSessionMemory(brain, true);
   }
 }
 
@@ -39,6 +71,9 @@ function initSessionMemory(brain) {
     clickHeatmapZones: {},
     topActions: []
   };
+  brain._sessionMemLastSave = 0;
+  brain._sessionMemLastSavedStep = 0;
+  brain._sessionMemDirty = false;
 }
 
 function updateSessionMemory(brain, action, wasStuck) {
@@ -88,6 +123,7 @@ function getSessionSummary(brain) {
 module.exports = {
   loadSessionMemory,
   saveSessionMemory,
+  flushSessionMemory,
   initSessionMemory,
   updateSessionMemory,
   getSessionSummary

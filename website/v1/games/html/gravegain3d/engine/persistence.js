@@ -3,14 +3,16 @@
 
     class GraveGainSaveSystem {
         static save(game) {
-            localStorage.setItem('GraveGain3D_Save_V2', JSON.stringify({
-                gold: game.gold,
-                uusd: game.uusd,
-                quartersLevel: game.quartersLevel,
-                armoryRanks: game.armoryRanks,
-                botanyCrops: game.botanyCrops,
-                difficulty: game.difficulty
-            }));
+            try {
+                localStorage.setItem('GraveGain3D_Save_V2', JSON.stringify({
+                    gold: game.gold,
+                    uusd: game.uusd,
+                    quartersLevel: game.quartersLevel,
+                    armoryRanks: game.armoryRanks,
+                    botanyCrops: game.botanyCrops,
+                    difficulty: game.difficulty
+                }));
+            } catch (_) { /* blocked storage (private mode) must not crash game over/save paths */ }
         }
 
         static load() {

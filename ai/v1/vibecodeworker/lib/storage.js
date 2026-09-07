@@ -34,8 +34,12 @@ function getEncryptedCredentialsFilePath() {
 /**
  * Derives a hardware- and user-bound 256-bit encryption key for this machine.
  * Prevents copied credential files from being decrypted on other computers.
+ * Cached: PBKDF2 with 100k iterations costs ~50-100ms, so derive once per process.
  */
+let _cachedMasterKey = null;
 function getMachineMasterKey() {
+  if (_cachedMasterKey) return _cachedMasterKey;
+
   const machineFingerprint = [
     os.hostname(),
     os.userInfo().username,
@@ -43,7 +47,13 @@ function getMachineMasterKey() {
     os.arch()
   ].join(':');
 
-  return crypto.pbkdf2Sync(machineFingerprint, '4weird-vibe-security-salt-2026', 100000, 32, 'sha256');
+  _cachedMasterKey = crypto.pbkdf2Sync(machineFingerprint, '4weird-vibe-security-salt-2026', 100000, 32, 'sha256');
+  return _cachedMasterKey;
+}
+
+// Test hook: allow clearing the cached key (e.g. in unit tests that mock os.userInfo).
+function _clearMasterKeyCache() {
+  _cachedMasterKey = null;
 }
 
 /**
@@ -78,11 +88,36 @@ function decryptSecret(encryptedPayload) {
 /**
  * Load saved API credentials from local user profile directory.
  * Supports both encrypted (.enc) and backwards-compatible (.json) with auto-encryption migration.
+ * Cached by file mtime so hot paths (getResolvedApiKey per LLM call) avoid
+ * a file read + AES-GCM decrypt on every invocation.
  * @returns {Object} Key-value map of credentials by provider or global
  */
+let _credsCache = null;
+let _credsCacheStamp = '';
+
+function _credsFileStamp(encPath, jsonPath) {
+  try {
+    const encStat = fs.existsSync(encPath) ? fs.statSync(encPath) : null;
+    const jsonStat = fs.existsSync(jsonPath) ? fs.statSync(jsonPath) : null;
+    return `${encStat ? `${encStat.mtimeMs}:${encStat.size}` : 'noenc'}|${jsonStat ? `${jsonStat.mtimeMs}:${jsonStat.size}` : 'nojson'}`;
+  } catch (e) {
+    return '';
+  }
+}
+
 function loadCredentials(skipMigration = false) {
   const encPath = getEncryptedCredentialsFilePath();
   const jsonPath = getCredentialsFilePath();
+
+  // Fast path: return cached copy when neither backing file changed.
+  if (!skipMigration && _credsCache) {
+    const stamp = _credsFileStamp(encPath, jsonPath);
+    if (stamp && stamp === _credsCacheStamp) {
+      return { ..._credsCache };
+    }
+  }
+
+  let result = null;
 
   // 1. Try reading encrypted storage first
   if (fs.existsSync(encPath)) {
@@ -90,7 +125,7 @@ function loadCredentials(skipMigration = false) {
       const rawEnc = fs.readFileSync(encPath, 'utf8').trim();
       const decrypted = decryptSecret(rawEnc);
       if (decrypted) {
-        return JSON.parse(decrypted);
+        result = JSON.parse(decrypted);
       }
     } catch (err) {
       console.error('[Credentials Security] Failed to decrypt credentials store:', err.message);
@@ -98,20 +133,35 @@ function loadCredentials(skipMigration = false) {
   }
 
   // 2. Migration fallback: read legacy plain JSON if present, then auto-encrypt & wipe plain text
-  if (!skipMigration && fs.existsSync(jsonPath)) {
+  if (!result && !skipMigration && fs.existsSync(jsonPath)) {
     try {
       const data = fs.readFileSync(jsonPath, 'utf8');
       const creds = JSON.parse(data);
       // Auto-encrypt into .enc without re-triggering migration
       saveCredentials(creds, true);
       try { fs.unlinkSync(jsonPath); } catch (e) {}
-      return creds;
+      result = creds;
     } catch (err) {
       console.error(`[Credentials] Failed to load plain credentials from ${jsonPath}:`, err.message);
     }
   }
 
-  return {};
+  result = result || {};
+  if (!skipMigration) {
+    _credsCache = { ...result };
+    try {
+      _credsCacheStamp = _credsFileStamp(encPath, jsonPath);
+    } catch (e) {
+      _credsCacheStamp = '';
+    }
+  }
+  return { ...result };
+}
+
+// Test hook: clear the credentials cache.
+function _clearCredentialsCache() {
+  _credsCache = null;
+  _credsCacheStamp = '';
 }
 
 /**
@@ -131,6 +181,13 @@ function saveCredentials(credentials, isMigrating = false) {
     const updated = { ...current, ...credentials, updatedAt: new Date().toISOString() };
     const encrypted = encryptSecret(JSON.stringify(updated, null, 2));
     fs.writeFileSync(encPath, encrypted, { encoding: 'utf8', mode: 0o600 });
+    // Refresh cache so subsequent loads hit memory instead of disk.
+    _credsCache = { ...updated };
+    try {
+      _credsCacheStamp = _credsFileStamp(encPath, getCredentialsFilePath());
+    } catch (e) {
+      _credsCacheStamp = '';
+    }
     return true;
   } catch (err) {
     console.error(`[Credentials Security] Failed to save encrypted credentials to ${encPath}:`, err.message);
@@ -196,5 +253,7 @@ module.exports = {
   getResolvedApiKey,
   encryptSecret,
   decryptSecret,
-  maskApiKey
+  maskApiKey,
+  _clearMasterKeyCache,
+  _clearCredentialsCache
 };

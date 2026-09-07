@@ -45,6 +45,11 @@ class DungeonGenerator {
             }
         }
 
+        const hasExit = rooms.some(r => r.type === 'safespace' || r.type === 'boss');
+        if (!hasExit && rooms.length > 1) {
+            rooms[rooms.length - 1].type = (floorNum % 3 === 0) ? 'boss' : 'safespace';
+        }
+
         for (let i = 0; i < rooms.length - 1; i++) {
             this.digCorridor(grid, rooms[i].cx, rooms[i].cy, rooms[i + 1].cx, rooms[i + 1].cy);
         }
@@ -60,6 +65,16 @@ class DungeonGenerator {
             }
         });
 
+        if (rooms.length === 0) {
+            const fx = Math.floor(this.gridSize / 2) - 5;
+            const fy = Math.floor(this.gridSize / 2) - 5;
+            rooms.push({ x: fx, y: fy, w: 10, h: 10, cx: fx + 5, cy: fy + 5, type: 'spawn' });
+            for (let rx = fx; rx < fx + 10; rx++) {
+                for (let ry = fy; ry < fy + 10; ry++) {
+                    grid[rx][ry] = 0;
+                }
+            }
+        }
         const spawnRoom = rooms.find(r => r.type === 'spawn') || rooms[0];
         return { grid, rooms, spawnRoom, gridSize: this.gridSize };
     }

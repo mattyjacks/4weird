@@ -4,13 +4,28 @@
  */
 
 class VibeCodeWorkerClient {
-  constructor(baseUrl = 'http://127.0.0.1:42069') {
+  constructor(baseUrl = 'http://127.0.0.1:42069', clientOptions = {}) {
     this.baseUrl = baseUrl.replace(/\/$/, '');
+    this.timeoutMs = clientOptions.timeoutMs || 10000;
   }
 
   async _request(endpoint, options = {}) {
+    const { timeoutMs, ...fetchOptions } = options;
+    const timeout = timeoutMs || this.timeoutMs;
     const url = `${this.baseUrl}${endpoint}`;
-    const res = await fetch(url, options);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+    let res;
+    try {
+      res = await fetch(url, { ...fetchOptions, signal: controller.signal });
+    } catch (err) {
+      if (err && err.name === 'AbortError') {
+        throw new Error(`[VibeCodeWorkerClient] Request timed out after ${timeout}ms at ${endpoint}`);
+      }
+      throw err;
+    } finally {
+      clearTimeout(timer);
+    }
     if (!res.ok) {
       const text = await res.text();
       throw new Error(`[VibeCodeWorkerClient] ${res.status} ${res.statusText} at ${endpoint}: ${text}`);

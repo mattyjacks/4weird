@@ -15,6 +15,7 @@ class ParticleSystem {
             this.scene.add(mesh);
             this.chunks.push({
                 mesh,
+                mat,
                 vx: (Math.random() * 2 - 1) * 140,
                 vy: 80 + Math.random() * 120,
                 vz: (Math.random() * 2 - 1) * 140,
@@ -31,6 +32,7 @@ class ParticleSystem {
             this.scene.add(mesh);
             this.chunks.push({
                 mesh,
+                mat,
                 vx: (Math.random() * 2 - 1) * 100,
                 vy: 100 + Math.random() * 80,
                 vz: (Math.random() * 2 - 1) * 100,
@@ -54,18 +56,22 @@ class ParticleSystem {
         });
 
         const dead = this.chunks.filter(c => c.life <= 0);
+        const liveMats = new Set(this.chunks.filter(c => c.life > 0).map(c => c.mat));
         dead.forEach(c => {
             this.scene.remove(c.mesh);
             if (c.mesh.geometry) c.mesh.geometry.dispose();
+            if (c.mat && !liveMats.has(c.mat)) c.mat.dispose();
         });
         this.chunks = this.chunks.filter(c => c.life > 0);
     }
 
     clear() {
+        const mats = new Set(this.chunks.map(c => c.mat));
         this.chunks.forEach(c => {
             this.scene.remove(c.mesh);
             if (c.mesh.geometry) c.mesh.geometry.dispose();
         });
+        mats.forEach(m => { try { m.dispose(); } catch (_) {} });
         this.chunks = [];
     }
 }

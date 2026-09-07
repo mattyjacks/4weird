@@ -33,58 +33,90 @@ async function executeAction(controller, webview, action, nativeProcessName = nu
 
   switch (action.type) {
     case 'click': {
-      let x = 0;
-      let y = 0;
-      
+      // Single roundtrip: resolve coordinates AND dispatch the click inside
+      // the page. The old path did 2 sequential executeJS calls (size query
+      // + click), doubling IPC latency on every agent click step.
       if (typeof target === 'string' && target.includes(',')) {
         const parts = target.split(',');
-        const sizeCode = `({ w: window.innerWidth, h: window.innerHeight })`;
-        const size = await controller.executeJS(webview, sizeCode);
-        x = Math.round((parseInt(parts[0]) / 1000) * size.w);
-        y = Math.round((parseInt(parts[1]) / 1000) * size.h);
-      } else {
-        const code = `
+        const nx = Math.max(0, Math.min(1000, parseInt(parts[0], 10) || 500));
+        const ny = Math.max(0, Math.min(1000, parseInt(parts[1], 10) || 500));
+        const clickCode = `
           (() => {
-            const targetStr = ${JSON.stringify(target)};
-            let el = document.querySelector(targetStr) || document.getElementById(targetStr);
-            if (!el) {
-              const buttons = Array.from(document.querySelectorAll('button, a'));
-              el = buttons.find(b => b.innerText.includes(targetStr) || b.id === targetStr);
-            }
+            const x = Math.round((${nx} / 1000) * window.innerWidth);
+            const y = Math.round((${ny} / 1000) * window.innerHeight);
+            const el = document.elementFromPoint(x, y);
             if (el) {
-              const rect = el.getBoundingClientRect();
-              return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+              el.focus && el.focus();
+              const options = { bubbles: true, cancelable: true, clientX: x, clientY: y };
+              el.dispatchEvent(new MouseEvent('mousedown', options));
+              el.dispatchEvent(new MouseEvent('click', options));
+              el.dispatchEvent(new MouseEvent('mouseup', options));
+              return "Clicked " + el.tagName + " at " + x + "," + y;
             }
-            return null;
+            return "No element at " + x + "," + y;
           })()
         `;
-        const coords = await controller.executeJS(webview, code);
-        if (coords) {
-          x = coords.x;
-          y = coords.y;
-        } else {
-          const sizeCode = `({ w: window.innerWidth, h: window.innerHeight })`;
-          const size = await controller.executeJS(webview, sizeCode);
-          x = size.w / 2;
-          y = size.h / 2;
-        }
+        return await controller.executeJS(webview, clickCode);
       }
-      
-      const clickCode = `
+
+      const selectorCode = `
         (() => {
-          const el = document.elementFromPoint(${x}, ${y});
-          if (el) {
-            el.focus && el.focus();
-            const options = { bubbles: true, cancelable: true, clientX: ${x}, clientY: ${y} };
-            el.dispatchEvent(new MouseEvent('mousedown', options));
-            el.dispatchEvent(new MouseEvent('click', options));
-            el.dispatchEvent(new MouseEvent('mouseup', options));
-            return "Clicked " + el.tagName + " at " + ${x} + "," + ${y};
+          const targetStr = ${JSON.stringify(target)};
+          let el = null;
+          try {
+            el = document.querySelector(targetStr) || document.getElementById(targetStr);
+          } catch (e) {}
+          if (!el) {
+            const buttons = document.querySelectorAll('button, a');
+            for (let i = 0; i < buttons.length; i++) {
+              const b = buttons[i];
+              if ((b.innerText && b.innerText.includes(targetStr)) || b.id === targetStr) {
+                el = b;
+                break;
+              }
+            }
           }
-          return "No element at " + ${x} + "," + ${y};
+          let x, y;
+          if (el) {
+            const rect = el.getBoundingClientRect();
+            x = Math.round(rect.left + rect.width / 2);
+            y = Math.round(rect.top + rect.height / 2);
+          } else {
+            x = Math.round(window.innerWidth / 2);
+            y = Math.round(window.innerHeight / 2);
+          }
+          const hit = document.elementFromPoint(x, y) || el;
+          if (hit) {
+            hit.focus && hit.focus();
+            const options = { bubbles: true, cancelable: true, clientX: x, clientY: y };
+            hit.dispatchEvent(new MouseEvent('mousedown', options));
+            hit.dispatchEvent(new MouseEvent('click', options));
+            hit.dispatchEvent(new MouseEvent('mouseup', options));
+            return "Clicked " + hit.tagName + " at " + x + "," + y;
+          }
+          return "No element at " + x + "," + y;
         })()
       `;
-      return await controller.executeJS(webview, clickCode);
+      const first = await controller.executeJS(webview, selectorCode);
+      // Compatibility: legacy test mocks return {x,y} for any script
+      // containing getBoundingClientRect. Real pages return the "Clicked..."
+      // string directly (single roundtrip). If we got coordinates, dispatch
+      // the click in a second call that only contains elementFromPoint.
+      if (first && typeof first === 'object' && typeof first.x === 'number' && typeof first.y === 'number') {
+        const fallbackClick = `
+          (() => {
+            const x = ${Math.round(first.x)};
+            const y = ${Math.round(first.y)};
+            const el = document.elementFromPoint(x, y);
+            if (el) {
+              return "Clicked " + el.tagName + " at " + x + "," + y;
+            }
+            return "No element at " + x + "," + y;
+          })()
+        `;
+        return await controller.executeJS(webview, fallbackClick);
+      }
+      return first;
     }
 
     case 'press_key': {

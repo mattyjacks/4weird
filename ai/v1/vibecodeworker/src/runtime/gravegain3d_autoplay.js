@@ -114,12 +114,12 @@ async function runGraveGain3DAutoplay(webviewElement, executeJSHelper = null) {
       };
     }
 
-    // 2. Game Over screen active -> Click Try Again / Return
+    // 2. Game Over screen active -> Return to menu (real id: #btnGoToMenu)
     if (gameState.isGameOverVisible) {
       return {
         status: 'game_over',
-        reasoning: 'Autoplay: Reviving after defeat via Try Again button',
-        action: { type: 'click', target: '#btnTryAgain, #btnGameOverReturn' }
+        reasoning: 'Autoplay: Returning to menu after defeat via Go-To-Menu button',
+        action: { type: 'click', target: '#btnGoToMenu, #btnTryAgain, #btnGameOverReturn' }
       };
     }
 
@@ -133,11 +133,12 @@ async function runGraveGain3DAutoplay(webviewElement, executeJSHelper = null) {
     }
 
     // 4. Character Selection screen active -> Choose race/class and deploy
+    // Real deploy button is #btnCharSelectStart; keep legacy ids as fallback.
     if (gameState.isCharSelectVisible) {
       return {
         status: 'char_select',
-        reasoning: 'Autoplay: Launching infiltrator quick run via Start Dungeon Run',
-        action: { type: 'click', target: '#btnStartRun, .char-card' }
+        reasoning: 'Autoplay: Launching infiltrator quick run via Deploy to Dungeon',
+        action: { type: 'click', target: '#btnCharSelectStart, #btnStartRun, .char-card' }
       };
     }
 
@@ -156,23 +157,16 @@ async function runGraveGain3DAutoplay(webviewElement, executeJSHelper = null) {
       }
 
       // If an enemy is within engagement range
+      // NOTE: Space is jump/turn-wait, NOT melee (mouse.click triggers
+      // triggerMeleeAttack). Use class ability (F) for close combat so the
+      // agent doesn't bunny-hop in front of enemies.
       if (enemy) {
         if (enemy.dist < 70) {
-          // Melee strike distance: attack!
-          const useAbility = Math.random() < 0.25;
-          if (useAbility) {
-            return {
-              status: 'playing',
-              reasoning: `Autoplay: Close combat with ${enemy.name} (${Math.round(enemy.dist)}px)! Unleashing class ability (F)`,
-              action: { type: 'press_key', target: 'f' }
-            };
-          } else {
-            return {
-              status: 'playing',
-              reasoning: `Autoplay: Engaging ${enemy.name} at close range (${Math.round(enemy.dist)}px)! Striking weapon`,
-              action: { type: 'press_key', target: ' ' }
-            };
-          }
+          return {
+            status: 'playing',
+            reasoning: `Autoplay: Close combat with ${enemy.name} (${Math.round(enemy.dist)}px)! Unleashing class ability (F)`,
+            action: { type: 'press_key', target: 'f' }
+          };
         } else if (enemy.dist < 320) {
           // Advance towards enemy
           const moveKey = Math.random() < 0.8 ? 'w' : (Math.random() < 0.5 ? 'a' : 'd');
@@ -194,11 +188,11 @@ async function runGraveGain3DAutoplay(webviewElement, executeJSHelper = null) {
       };
     }
 
-    // Fallback: Click center or press space
+    // Fallback: move forward (Space is jump/wait, not an attack)
     return {
       status: 'exploring',
       reasoning: 'Autoplay: Generic exploration fallback',
-      action: { type: 'press_key', target: ' ' }
+      action: { type: 'press_key', target: 'w' }
     };
 
   } catch (err) {
