@@ -330,243 +330,140 @@ ipcMain.handle('is-game-window-active', () => {
   return gameWindow !== null;
 });
 
-// Start local HTTP server on port 9999 for external AI Agent scraping and control
-const server = http.createServer(async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+// Import Local API Server module
+const { LocalAPIServer } = require('./lib/api_server');
 
-  if (req.method === 'OPTIONS') {
-    res.writeHead(204);
-    res.end();
-    return;
-  }
-
-  const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
-  const pathname = parsedUrl.pathname;
-
-  if (pathname === '/screenshot') {
-    if (!mainWindow) {
-      res.writeHead(500, { 'Content-Type': 'text/plain' });
-      res.end('Electron window not initialized');
-      return;
-    }
-    try {
-      const targetParam = parsedUrl.searchParams.get('target');
-      const targetWindow = targetParam === 'dashboard' ? mainWindow : (gameWindow || mainWindow);
-      const img = await targetWindow.webContents.capturePage();
-      res.writeHead(200, { 'Content-Type': 'image/png' });
-      res.end(img.toPNG());
-    } catch (e) {
-      res.writeHead(500, { 'Content-Type': 'text/plain' });
-      res.end(`Screenshot capture failed: ${e.message}`);
-    }
-  } else if (pathname === '/data') {
-    try {
-      const dataDir = path.join(__dirname, 'data');
-      const configPath = path.join(__dirname, 'config.json');
+// Initialize Local API Server connected to Electron windows & handlers
+const localApiServer = new LocalAPIServer({
+  port: 9999,
+  runtimeMode: 'electron',
+  handlers: {
+    getGames: async () => {
+      const websiteV1Dir = path.join(__dirname, '..', '..', 'website', 'v1');
+      const gamesDir = path.join(websiteV1Dir, 'games');
+      const games = [];
       
-      const payload = {
-        timestamp: new Date().toISOString(),
-        config: {},
-        bugs: [],
-        tokenUsage: {},
-        liveLogs: []
-      };
+      if (fs.existsSync(path.join(gamesDir, 'html'))) {
+        const htmlItems = fs.readdirSync(path.join(gamesDir, 'html'));
+        for (const item of htmlItems) {
+          if (item.startsWith('_') || item === 'images') continue;
+          const itemPath = path.join(gamesDir, 'html', item);
+          if (fs.statSync(itemPath).isDirectory()) {
+            const jsonPath = path.join(itemPath, 'game.json');
+            let meta = { title: item, maker: '4weird' };
+            if (fs.existsSync(jsonPath)) {
+              try { meta = { ...meta, ...JSON.parse(fs.readFileSync(jsonPath, 'utf8')) }; } catch (e) {}
+            }
+            games.push({
+              id: item,
+              title: meta.title || item,
+              maker: meta.maker || meta.author || '4weird',
+              description: meta.description || '',
+              url: `http://localhost:8888/games/html/${item}/index.html`,
+              path: path.relative(websiteV1Dir, itemPath)
+            });
+          }
+        }
+      }
+      return games;
+    },
 
-      if (fs.existsSync(configPath)) {
-        payload.config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-      }
-      
-      const bugsPath = path.join(dataDir, 'bugs_log.json');
-      if (fs.existsSync(bugsPath)) {
-        payload.bugs = JSON.parse(fs.readFileSync(bugsPath, 'utf8'));
-      }
+    launchGame: async (gameId) => {
+      const url = gameId.startsWith('http') ? gameId : `http://localhost:8888/games/html/${gameId}/index.html`;
+      const primaryDisplay = screen.getPrimaryDisplay();
+      const { x, y, width, height } = primaryDisplay.workArea;
+      const ideWidth = Math.floor(width / 2);
 
-      const tokenPath = path.join(dataDir, 'token_usage.json');
-      if (fs.existsSync(tokenPath)) {
-        payload.tokenUsage = JSON.parse(fs.readFileSync(tokenPath, 'utf8'));
-      }
-
-      const logsPath = path.join(dataDir, 'live_logs.json');
-      if (fs.existsSync(logsPath)) {
-        payload.liveLogs = JSON.parse(fs.readFileSync(logsPath, 'utf8'));
-      }
-
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(payload, null, 2));
-    } catch (e) {
-      res.writeHead(500, { 'Content-Type': 'text/plain' });
-      res.end(`Failed to retrieve data payload: ${e.message}`);
-    }
-  } else if (pathname === '/control') {
-    if (req.method !== 'POST') {
-      res.writeHead(405, { 'Content-Type': 'text/plain' });
-      res.end('Method Not Allowed. Use POST.');
-      return;
-    }
-    
-    let body = '';
-    req.on('data', chunk => {
-      body += chunk.toString();
-    });
-    
-    req.on('end', () => {
-      try {
-        const params = JSON.parse(body);
-        const command = params.command;
-        
-        if (!['start', 'pause', 'reload'].includes(command)) {
-          res.writeHead(400, { 'Content-Type': 'text/plain' });
-          res.end('Invalid command. Use "start", "pause", or "reload".');
-          return;
-        }
-        
-        if (mainWindow) {
-          mainWindow.webContents.send('agent-control', { command });
-          res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ success: true, message: `Command '${command}' dispatched successfully` }));
-        } else {
-          res.writeHead(500, { 'Content-Type': 'text/plain' });
-          res.end('Main window not available');
-        }
-      } catch (err) {
-        res.writeHead(400, { 'Content-Type': 'text/plain' });
-        res.end(`Bad Request: ${err.message}`);
-      }
-    });
-  } else if (pathname === '/eval') {
-    if (req.method !== 'POST') {
-      res.writeHead(405, { 'Content-Type': 'text/plain' });
-      res.end('Method Not Allowed. Use POST.');
-      return;
-    }
-    
-    let body = '';
-    req.on('data', chunk => {
-      body += chunk.toString();
-    });
-    
-    req.on('end', async () => {
-      try {
-        const params = JSON.parse(body);
-        const script = params.script;
-        
-        const targetWindow = gameWindow || mainWindow;
-        if (targetWindow) {
-          const result = await targetWindow.webContents.executeJavaScript(script);
-          res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ success: true, result }));
-        } else {
-          res.writeHead(500, { 'Content-Type': 'text/plain' });
-          res.end('No active window available');
-        }
-      } catch (err) {
-        res.writeHead(500, { 'Content-Type': 'text/plain' });
-        res.end(`Execution Error: ${err.message}`);
-      }
-    });
-  } else if (pathname === '/status') {
-    if (!mainWindow) {
-      res.writeHead(500, { 'Content-Type': 'text/plain' });
-      res.end('Electron window not initialized');
-      return;
-    }
-    try {
-      const status = await mainWindow.webContents.executeJavaScript('window.getAgentStatus()');
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(status, null, 2));
-    } catch (e) {
-      res.writeHead(500, { 'Content-Type': 'text/plain' });
-      res.end(`Failed to get status: ${e.message}`);
-    }
-  } else if (pathname === '/config') {
-    if (req.method !== 'POST') {
-      res.writeHead(405, { 'Content-Type': 'text/plain' });
-      res.end('Method Not Allowed. Use POST.');
-      return;
-    }
-    let body = '';
-    req.on('data', chunk => { body += chunk.toString(); });
-    req.on('end', async () => {
-      try {
-        const config = JSON.parse(body);
-        if (mainWindow) {
-          const result = await mainWindow.webContents.executeJavaScript(`window.updateAgentConfig(${JSON.stringify(config)})`);
-          res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ success: true, result }));
-        } else {
-          res.writeHead(500, { 'Content-Type': 'text/plain' });
-          res.end('Main window not available');
-        }
-      } catch (err) {
-        res.writeHead(400, { 'Content-Type': 'text/plain' });
-        res.end(`Bad Request: ${err.message}`);
-      }
-    });
-  } else if (pathname === '/elements') {
-    if (!mainWindow) {
-      res.writeHead(500, { 'Content-Type': 'text/plain' });
-      res.end('Electron window not initialized');
-      return;
-    }
-    try {
-      const elements = await mainWindow.webContents.executeJavaScript('window.getInteractiveDOM()');
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(elements, null, 2));
-    } catch (e) {
-      res.writeHead(500, { 'Content-Type': 'text/plain' });
-      res.end(`Failed to get interactive DOM elements: ${e.message}`);
-    }
-  } else if (pathname === '/action') {
-    if (req.method !== 'POST') {
-      res.writeHead(405, { 'Content-Type': 'text/plain' });
-      res.end('Method Not Allowed. Use POST.');
-      return;
-    }
-    let body = '';
-    req.on('data', chunk => { body += chunk.toString(); });
-    req.on('end', async () => {
-      try {
-        const action = JSON.parse(body);
-        if (mainWindow) {
-          const result = await mainWindow.webContents.executeJavaScript(`window.executeAgentAction(${JSON.stringify(action)})`);
-          res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ success: true, result }));
-        } else {
-          res.writeHead(500, { 'Content-Type': 'text/plain' });
-          res.end('Main window not available');
-        }
-      } catch (err) {
-        res.writeHead(400, { 'Content-Type': 'text/plain' });
-        res.end(`Bad Request: ${err.message}`);
-      }
-    });
-  } else if (pathname === '/step') {
-    if (req.method !== 'POST') {
-      res.writeHead(405, { 'Content-Type': 'text/plain' });
-      res.end('Method Not Allowed. Use POST.');
-      return;
-    }
-    try {
-      if (mainWindow) {
-        const result = await mainWindow.webContents.executeJavaScript('window.triggerAgentStep()');
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, result }));
+      if (gameWindow) {
+        gameWindow.loadURL(url);
       } else {
-        res.writeHead(500, { 'Content-Type': 'text/plain' });
-        res.end('Main window not available');
+        gameWindow = new BrowserWindow({
+          x: x + ideWidth,
+          y,
+          width: width - ideWidth,
+          height,
+          show: !isHeadless,
+          webPreferences: { nodeIntegration: true, contextIsolation: false, devTools: true },
+          title: `AI Playtest - ${gameId}`
+        });
+        gameWindow.loadURL(url);
+
+        gameWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+          localApiServer.addConsoleLog(level === 2 ? 'error' : (level === 1 ? 'warn' : 'info'), message, 'game_window');
+          if (mainWindow) mainWindow.webContents.send('webview-console', { level, message, line, sourceId });
+        });
+
+        gameWindow.on('closed', () => { gameWindow = null; });
       }
-    } catch (err) {
-      res.writeHead(500, { 'Content-Type': 'text/plain' });
-      res.end(`Step Execution Error: ${err.message}`);
+      return { success: true, url };
+    },
+
+    captureScreenshot: async (target) => {
+      const win = (target === 'dashboard' || !gameWindow) ? mainWindow : gameWindow;
+      if (!win) return null;
+      const img = await win.webContents.capturePage();
+      return img.toPNG();
+    },
+
+    getLogs: async () => {
+      return [];
+    },
+
+    getGameState: async () => {
+      if (!gameWindow) return { active: false };
+      try {
+        const stateStr = await gameWindow.webContents.executeJavaScript(`
+          JSON.stringify({
+            title: document.title,
+            url: window.location.href,
+            canvas: !!document.querySelector('canvas'),
+            score: window.score || (window.game && window.game.score) || 0,
+            isGameOver: window.isGameOver || (window.game && window.game.isGameOver) || false,
+            playerState: window.player ? { x: window.player.x, y: window.player.y, hp: window.player.hp } : null
+          })
+        `);
+        return JSON.parse(stateStr);
+      } catch (e) {
+        return { active: true, error: e.message };
+      }
+    },
+
+    executeAction: async (action) => {
+      const win = gameWindow || mainWindow;
+      if (!win) return { success: false, error: 'No active window' };
+
+      if (action.type === 'click') {
+        const x = action.x || 100;
+        const y = action.y || 100;
+        win.webContents.sendInputEvent({ type: 'mouseDown', x, y, button: 'left', clickCount: 1 });
+        win.webContents.sendInputEvent({ type: 'mouseUp', x, y, button: 'left', clickCount: 1 });
+        return { success: true, action: 'click', x, y };
+      } else if (action.type === 'keydown' || action.type === 'keyup') {
+        win.webContents.sendInputEvent({ type: action.type, keyCode: action.key || action.code });
+        return { success: true, action: action.type, key: action.key };
+      }
+      return { success: false, error: `Unsupported action type: ${action.type}` };
+    },
+
+    evalJavaScript: async (script) => {
+      const win = gameWindow || mainWindow;
+      if (!win) throw new Error('No window available for javascript execution');
+      return await win.webContents.executeJavaScript(script);
+    },
+
+    reloadGame: async () => {
+      if (gameWindow) {
+        gameWindow.webContents.reload();
+        return { success: true };
+      }
+      return { success: false, error: 'Game window not open' };
     }
-  } else {
-    res.writeHead(404, { 'Content-Type': 'text/plain' });
-    res.end('Endpoint not found. Use /screenshot, /data, /control, /eval, /status, /config, /elements, /action, or /step.');
   }
 });
 
-server.listen(9999, '127.0.0.1', () => {
-  console.log('AI control HTTP server listening on http://localhost:9999');
+localApiServer.start().then(() => {
+  console.log('[Main] Integrated AIPlay Local REST API Server active on http://localhost:9999');
+}).catch(err => {
+  console.error('[Main] Failed to start Local REST API Server:', err);
 });
+

@@ -1,31 +1,68 @@
-# Dependencies
+# ==========================================
+# 4WEIRD GAMES & AIPLAY - GITIGNORE CONFIG
+# ==========================================
+
+# 1. Dependency Directories
 node_modules/
+**/node_modules/
+jspm_packages/
+web_modules/
+
+# 2. Rust & Tauri Build Artifacts
+target/
+**/target/
+**/src-tauri/target/
+**/src-tauri/gen/
+
+# 3. Build & Distribution Outputs
+dist/
+**/dist/
+build/
+**/build/
+out/
+**/out/
+.next/
+.astro/
+.vercel/
+
+# 4. Binary Bundles & Installers
+*.exe
+*.msi
+*.dmg
+*.app
+*.AppImage
+*.deb
+*.rpm
+*.zip
+*.tar.gz
+*.tgz
+
+# 5. Logs & Temporary Files
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+logs/
+temp/
+**/data/replays/
+*.sys
+*.tmp
+*.bak
 
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage directory used by tools like istanbul
-coverage/
-
-# Environment variables
+# 6. Environment & Secret Keys
 .env
 .env.local
-.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+config.json
+**/config.json
+*.pem
+*.key
 
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS files
+# 7. Operating System Metadata
 .DS_Store
 .DS_Store?
 ._*
@@ -33,16 +70,26 @@ coverage/
 .Trashes
 ehthumbs.db
 Thumbs.db
+desktop.ini
 
-# Logs
-logs
-*.log
+# 8. IDE & Editor Files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.swp
+*.swo
 
-# Build outputs
-dist/
-build/
-
-# Temporary files
-tmp/
-temp/
-*.tmp
+# 9. Test Coverage & Cache
+coverage/
+*.lcov
+.nyc_output
+.cache/
+.parcel-cache/
+.eslintcache

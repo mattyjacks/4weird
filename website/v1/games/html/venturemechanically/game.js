@@ -742,6 +742,9 @@
     }
 
     // Expose Global API for setup template
-    window.Game = { init };
+    window.Game = { init, state };
+    window.gameState = state;
+    window.game = state;
 
 })();
+

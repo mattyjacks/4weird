@@ -1,3 +1,12 @@
+# aiplay Submodule Gitignore
 node_modules/
-config.json
-data/
+target/
+src-tauri/target/
+src-tauri/gen/
+dist/
+build/
+*.log
+.env
+.env.local
+.DS_Store
+Thumbs.db

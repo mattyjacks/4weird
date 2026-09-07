@@ -3,248 +3,557 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>4WEIRD AIPLAY // Autonomous Agent QA Sandbox</title>
-  <meta name="description" content="Access the autonomous agent QA sandbox. Watch LLM agents execute real-time automated playtesting, simulation actions, and self-healing bug fixes.">
+  <title>4WEIRD AIPLAY // Antigravity 2.0 Agentic QA Sandbox & Self-Healing Suite</title>
+  <meta name="description" content="Access the Antigravity 2.0 autonomous agent QA sandbox. Watch LLM agents execute real-time playtesting, subagent orchestration, and self-healing git diff bug fixes.">
   <link rel="canonical" href="https://4weird.com/aiplay/">
   <link rel="manifest" href="../manifest.json">
-  <meta name="theme-color" content="#8b5cf6">
+  <meta name="theme-color" content="#00f2fe">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="4WEIRD AIPLAY // Autonomous Agent QA Sandbox">
-  <meta property="og:description" content="Watch LLM agents execute automated playtesting and self-healing bug fixes.">
+  <meta property="og:title" content="4WEIRD AIPLAY // Antigravity 2.0 Agentic QA Sandbox">
+  <meta property="og:description" content="Watch Antigravity 2.0 LLM agents execute automated playtesting, subagent orchestration, and self-healing git patch fixes.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://4weird.com/aiplay/">
   <meta property="og:image" content="https://4weird.com/games/images/thumb_serversavershield.png">
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="4WEIRD AIPLAY">
-  <meta name="twitter:description" content="Autonomous agent QA sandbox interface.">
+  <meta name="twitter:title" content="4WEIRD AIPLAY // Antigravity 2.0">
+  <meta name="twitter:description" content="Autonomous agent QA sandbox & self-healing bug resolver interface.">
   <meta name="twitter:image" content="https://4weird.com/games/images/thumb_serversavershield.png">
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Outfit:wght@400;600;700;800&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+  
   <!-- Stylesheet -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- CRT Scanline Overlay Effect -->
+  <!-- CRT & Cyber Matrix Background FX -->
   <div class="scanlines"></div>
+  <div class="cyber-glow-bg"></div>
 
   <div class="app-wrapper">
-    <!-- TOP STATUS BAR -->
+    <!-- ANTIGRAVITY TOP STATUS BAR -->
     <header class="status-bar">
       <div class="bar-left">
+        <span class="brand-logo">4WEIRD AIPLAY</span>
+        <span class="divider">|</span>
         <span class="system-tag">SYS.STATUS: <span class="pulse-green">ONLINE</span></span>
         <span class="divider">|</span>
-        <span class="title">4WEIRD AIPLAY // CORE_V2.0</span>
+        <span class="title">// CORE_V2.5</span>
       </div>
       <div class="bar-center">
+        <button class="autorun-super-btn" id="btn-autorun-everything" title="Configure & Launch Autonomous QA Playtest in 1-Click">⚡ AUTO-RUN EVERYTHING</button>
+        <span class="divider">|</span>
         <div class="status-indicator-badge">
           <span class="badge-dot pulse-idle" id="agent-state-dot"></span>
           <span id="agent-state-text">IDLE</span>
         </div>
+        <div class="model-active-badge">
+          <span class="sparkle-icon">⚡</span>
+          <span id="active-model-display">Local GPU (WebGPU In-Browser)</span>
+        </div>
+        <div class="tauri-desktop-badge" id="tauri-desktop-badge" style="display: none;" title="Running natively via Tauri v2 Desktop Shell">
+          <span class="tauri-icon">🖥️</span>
+          <span>DESKTOP TAURI RUNTIME</span>
+        </div>
       </div>
       <div class="bar-right">
-        <span class="audio-toggle-btn" id="audio-toggle" title="Toggle System Synth Sounds">🔊 SOUND: ON</span>
+        <button class="top-nav-btn" id="btn-phone-link" title="Open Phone Remote Controller & Linking QR Code">📱 PHONE LINK</button>
+        <span class="divider">|</span>
+        <button class="top-nav-btn" id="btn-select-mode" title="Select Execution Mode (Run Web / Run Local / Run Remote)">⚙️ MODE: RUN WEB</button>
+        <span class="divider">|</span>
+        <button class="top-nav-btn" id="btn-gpu-config" title="Local GPU / Local LLM Settings Drawer">🎮 LOCAL GPU CONFIG</button>
+        <span class="divider">|</span>
+        <button class="top-nav-btn" id="btn-quick-patch" title="View Current Patch Drawer">⚡ DIFF DRAWER</button>
+        <span class="divider">|</span>
+        <button class="top-nav-btn" id="btn-auth-lock" title="Password Security Status">🔒 SECURITY</button>
+        <span class="divider">|</span>
+        <span class="audio-toggle-btn" id="audio-toggle" title="Toggle Synth Sound Engine">🔊 SYNTH: ON</span>
         <span class="divider">|</span>
         <span class="time-display" id="system-time">00:00:00</span>
       </div>
     </header>
 
-    <div class="main-layout">
-      <!-- LEFT SIDEBAR: AGENT SETUP & CONFIGURE -->
-      <aside class="panel config-panel">
+    <div class="main-layout" id="main-layout">
+      <!-- LEFT SIDEBAR: ANTIGRAVITY SIDECAR & CONTROLS -->
+      <aside class="panel config-panel" id="config-panel">
         <div class="panel-header">
-          <span class="panel-icon">🔧</span>
-          <h2>AGENT ORCHESTRATION</h2>
+          <div class="header-tab active" id="tab-btn-config" data-tab="tab-config">
+            <span class="panel-icon">🔧</span> ORCHESTRATOR
+          </div>
+          <div class="header-tab" id="tab-btn-brain" data-tab="tab-brain">
+            <span class="panel-icon">🧠</span> BRAIN
+          </div>
+          <div class="header-tab" id="tab-btn-tree" data-tab="tab-tree">
+            <span class="panel-icon">🌳</span> REASONING TREE
+          </div>
+          <button id="btn-toggle-left-sidebar" class="sidebar-toggle-btn" title="Toggle Left Sidebar">◀ Collapse</button>
         </div>
+        
         <div class="panel-content">
-          
-          <div class="control-group">
-            <label for="game-target">TARGET GAME ADDRESS</label>
-            <div class="input-inline">
-              <input type="text" id="game-target" placeholder="http:// or local filepath..." value="../games/html/orbitaldrift/index.html">
-              <button id="btn-load" class="neon-btn">LOAD</button>
+          <!-- TAB 1: ORCHESTRATOR & TARGET SELECTION -->
+          <div id="tab-config" class="tab-pane active">
+            <div class="control-group">
+              <label for="game-target">TARGET GAME ADDRESS / PATH</label>
+              <div class="input-inline">
+                <input type="text" id="game-target" placeholder="http:// or local filepath..." value="../games/html/orbitaldrift/index.html">
+                <button id="btn-load" class="neon-btn">LOAD</button>
+              </div>
+              <div class="select-wrapper">
+                <select id="preset-games">
+                  <option value="">-- Select 4WEIRD Game Presets --</option>
+                  <option value="../games/html/lastwordszombies/index.html">🔥 Last Words Zombies (Cyberpunk 3D)</option>
+                  <option value="../games/html/semester-survival/index.html">🎓 Semester Survival (3D Runner)</option>
+                  <option value="../games/html/serversavershield/index.html">🛡️ Server Saver Shield</option>
+                  <option value="../games/html/overtake/index.html">🏎️ Overtake (Pseudo-3D Racing)</option>
+                  <option value="../games/html/assassinanimals/index.html">🦎 Assassin Animals (Stealth Rogue-like)</option>
+                  <option value="../games/html/battlesharks2/index.html">🦈 Battlesharks 2 (Cyber Ocean)</option>
+                  <option value="../games/html/gravegain2d/index.html">👹 GraveGain2D (Dark Fantasy RPG)</option>
+                  <option value="../games/html/orbitaldrift/index.html" selected>🛸 Orbital Drift (3D Arcade)</option>
+                  <option value="../games/html/aiwhackamole/index.html">🔨 AI Whack-A-Mole (Three.js)</option>
+                  <option value="../games/html/soundpainter2/index.html">🎹 Sound Painter 2 (Music Synth Studio)</option>
+                  <option value="../games/html/venturemechanically/index.html">💧 Venture Mechanically</option>
+                  <option value="../games/html/financialfreedom/index.html">📈 Financial Freedom Simulator</option>
+                </select>
+              </div>
+              <div class="toggle-control-row" style="margin-top: 6px; display: flex; align-items: center; gap: 8px;">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="auto-start-toggle" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+                <span class="toggle-label" style="font-family: var(--font-mono); font-size: 10px; color: var(--neon-cyan);">⚡ Auto-Start Agent on Target Load</span>
+              </div>
             </div>
-            <div class="select-wrapper">
-              <select id="preset-games">
-                <option value="">-- Preset Local Demos --</option>
-                <option value="../games/html/orbitaldrift/index.html">Orbital Drift</option>
-                <option value="../games/html/venturemechanically/index.html">Venture Mechanically (Exit Waterfall)</option>
-                <option value="../games/html/financialfreedom/index.html">Financial Freedom Simulator</option>
-                <option value="../games/html/aiwhackamole/index.html">AI Whack-A-Mole</option>
-                <option value="../games/html/assassinanimals/index.html">Assassin Animals</option>
+
+            <div class="control-group">
+              <label for="agent-model">ANTIGRAVITY LLM ENGINE</label>
+              <select id="agent-model">
+                <option value="local-webgpu-inbrowser" selected>Local GPU (WebGPU In-Browser Inference - DEFAULT)</option>
+                <option value="local-gpu-ollama">Local GPU (Ollama / Llama-3 / Qwen)</option>
+                <option value="local-gpu-lmstudio">Local GPU (LM Studio / Local Server)</option>
+                <option value="gpt-5.6-luna">GPT-5.6 Luna (Next-Gen OpenAI)</option>
+                <option value="gemini-3.6-flash">Gemini 3.6 Flash (Low Latency / Pair Program)</option>
+                <option value="antigravity-deepmind-copilot">Google Antigravity Co-Pilot (Deep Mind Agent)</option>
+                <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deep Reasoning)</option>
+                <option value="claude-3.5-sonnet">Claude 3.5 Sonnet (Anthropic)</option>
+                <option value="gpt-4o">GPT-4o (OpenAI Cloud)</option>
+                <option value="heuristic-solver">Heuristic Boundary Solver (Rules Only)</option>
               </select>
             </div>
-          </div>
 
-          <div class="control-group">
-            <label for="agent-model">AI ENGINE PROVIDER</label>
-            <select id="agent-model">
-              <option value="gemini-1.5-pro">Gemini 1.5 Pro (Google Cloud)</option>
-              <option value="gemini-1.5-flash">Gemini 1.5 Flash (Lightweight)</option>
-              <option value="gpt-4o">GPT-4o (OpenAI Cloud)</option>
-              <option value="claude-3.5-sonnet">Claude 3.5 Sonnet (Anthropic)</option>
-              <option value="local-ollama">Local Llama-3 (Ollama Proxy)</option>
-              <option value="heuristic-only">Heuristic / Rule-Based Solver</option>
-            </select>
-          </div>
+            <div class="control-group">
+              <label for="test-rules">PROMPT OBJECTIVE / RULES</label>
+              <textarea id="test-rules" placeholder="Enter custom objectives for the agent. E.g., 'Execute extreme touch inputs, test boundary collisions, monitor memory leaks, generate patches for exceptions'"></textarea>
+            </div>
 
-          <div class="control-group">
-            <label for="api-key">API KEY (IF APPLICABLE)</label>
-            <input type="password" id="api-key" placeholder="••••••••••••••••••••" value="sk-aiplay-demo-key-1337">
-          </div>
-
-          <div class="control-group">
-            <label for="test-rules">BEHAVIORAL RULES / MANUAL PROMPT</label>
-            <textarea id="test-rules" placeholder="Enter objectives for the agent. E.g., 'Click buttons, test extreme boundary inputs, click exit, wait for crashes'"></textarea>
-          </div>
-
-          <div class="control-group">
-            <label>RATE LIMITER & CONCURRENCY</label>
-            <div class="metrics-grid">
-              <div>
-                <span class="sub-label">MAX STEPS</span>
-                <input type="number" id="max-steps" value="100" min="5" max="1000">
+            <div class="control-group">
+              <label>RUN CONSTRAINTS & ACCELERATION</label>
+              <div class="metrics-grid">
+                <div>
+                  <span class="sub-label">MAX STEPS</span>
+                  <input type="number" id="max-steps" value="100" min="5" max="1000">
+                </div>
+                <div>
+                  <span class="sub-label">INTERVAL (MS)</span>
+                  <input type="number" id="step-interval" value="1200" min="300" max="10000">
+                </div>
               </div>
-              <div>
-                <span class="sub-label">INTERVAL (MS)</span>
-                <input type="number" id="step-interval" value="1500" min="500" max="10000">
+            </div>
+
+            <div class="agent-actions">
+              <button id="btn-start" class="action-btn start-btn pulsing-start-btn">▶ INITIATE AGENT RUN</button>
+              <div class="action-btn-row">
+                <button id="btn-pause" class="action-btn pause-btn" disabled>⏸ PAUSE</button>
+                <button id="btn-stop" class="action-btn stop-btn" disabled>⏹ STOP & REPORT</button>
+              </div>
+            </div>
+
+            <!-- INTERACTIVE SUBAGENT ORCHESTRATOR CONTROLS -->
+            <div class="control-group subagent-orchestrator-group">
+              <label>SUBAGENT ORCHESTRATOR CONTROLS</label>
+              <button id="btn-dispatch-subagent-left" class="action-btn dispatch-btn">+ DISPATCH SUBAGENT</button>
+              <div class="subagent-global-controls">
+                <button id="btn-resume-all-left" class="orchestrator-control-btn resume" title="Resume all subagents">▶ RESUME ALL</button>
+                <button id="btn-pause-all-left" class="orchestrator-control-btn pause" title="Pause all subagents">⏸ PAUSE ALL</button>
+                <button id="btn-terminate-all-left" class="orchestrator-control-btn terminate" title="Terminate all subagents">⏹ TERMINATE ALL</button>
+                <button id="btn-send-msg-left" class="orchestrator-control-btn message" title="Broadcast message to subagents">💬 SEND MSG</button>
+              </div>
+            </div>
+
+            <!-- Quick Slash Commands Bar -->
+            <div class="slash-commands-shortcut">
+              <span class="sub-label">POPULAR SLASH COMMANDS</span>
+              <div class="slash-pills">
+                <button class="slash-pill" data-cmd="/goal">/goal</button>
+                <button class="slash-pill" data-cmd="/boost">/boost</button>
+                <button class="slash-pill" data-cmd="/solve">/solve</button>
+                <button class="slash-pill" data-cmd="/subagent">/subagent</button>
+                <button class="slash-pill" data-cmd="/diff">/diff</button>
               </div>
             </div>
           </div>
 
-          <div class="agent-actions">
-            <button id="btn-start" class="action-btn start-btn">▶ INITIATE TEST RUN</button>
-            <div class="action-btn-row">
-              <button id="btn-pause" class="action-btn pause-btn" disabled>⏸ PAUSE</button>
-              <button id="btn-stop" class="action-btn stop-btn" disabled>⏹ STOP & REPORT</button>
+          <!-- TAB 2: AGENT BRAIN TELEMETRY -->
+          <div id="tab-brain" class="tab-pane hidden">
+            <!-- RECURSIVE SELF-OPTIMIZATION (RSO) STATUS CARD -->
+            <div class="brain-card rso-card" id="rso-status-card">
+              <h3>🔁 RECURSIVE SELF-OPTIMIZATION (GEN #<span id="rso-gen-num">1</span>)</h3>
+              <div class="brain-stat-row">
+                <span>POLICY EFFICIENCY REWARD:</span>
+                <span class="term-green" id="rso-reward-val">0.00</span>
+              </div>
+              <div class="brain-stat-row">
+                <span>ACTIONS SUCCEEDED:</span>
+                <span class="term-cyan" id="rso-actions-succ">0</span>
+              </div>
+              <div class="brain-stat-row">
+                <span>DEFECTS FOUND:</span>
+                <span class="term-yellow" id="rso-defects-found">0</span>
+              </div>
+              <div class="brain-stat-row">
+                <span>EXPLORATION POLICY:</span>
+                <span class="term-purple" id="rso-policy-name">BALANCED_EXPLORATION</span>
+              </div>
+              <div class="brain-stat-row">
+                <span>INTERVAL TUNING:</span>
+                <span class="term-cyan" id="rso-interval-speed">1200 ms</span>
+              </div>
+              <div class="brain-stat-row">
+                <span>FUZZING WEIGHTS:</span>
+                <span class="term-green" id="rso-fuzz-weights">Keys: 40% | Click: 40% | Wait: 20%</span>
+              </div>
+            </div>
+
+            <!-- AUTOMAGIC INTERNAL GAME BRAIN STATUS CARD -->
+            <div class="brain-card game-brain-card" id="game-brain-status-card">
+              <h3>🧠 INTERNAL GAME BRAIN STATE</h3>
+              <div class="brain-stat-row">
+                <span>GAME STAGE:</span>
+                <span class="term-green" id="brain-game-stage">MENU</span>
+              </div>
+              <div class="brain-stat-row">
+                <span>DETECTED CONTROLS:</span>
+                <span class="term-cyan" id="brain-detected-controls">Space, Arrows, WASD, Pointer</span>
+              </div>
+              <div class="brain-stat-row">
+                <span>TARGET OBJECTIVES:</span>
+                <span class="term-yellow" id="brain-target-objectives">Auto-Navigate, Fuzz Inputs, Auto-Restart</span>
+              </div>
+              <div class="brain-stat-row">
+                <span>HIGH SCORE POLICY:</span>
+                <span class="term-purple" id="brain-highscore-policy">MAXIMIZE_SCORE</span>
+              </div>
+              <div class="brain-stat-row">
+                <span>PLAYSTYLE STRATEGY:</span>
+                <span class="term-green" id="brain-playstyle-strategy">BALANCED_EXPLORATION</span>
+              </div>
+            </div>
+
+            <div class="brain-card">
+              <h3>AGENT REASONING CONTEXT</h3>
+              <div class="brain-stat-row">
+                <span>ACTIVE MODEL:</span>
+                <span class="term-cyan" id="brain-model-name">GPT-5.6 Luna</span>
+              </div>
+              <div class="brain-stat-row">
+                <span>ESTIMATED TOKENS:</span>
+                <span class="term-green" id="brain-token-count">14,820 / 1,000,000</span>
+              </div>
+              <div class="brain-stat-row">
+                <span>CONTEXT WINDOW:</span>
+                <span class="term-purple">Antigravity Hybrid Retrieval</span>
+              </div>
+              <div class="brain-stat-row">
+                <span>SYSTEM PROMPT:</span>
+                <span class="term-yellow">Antigravity Autonomous Pair Programmer</span>
+              </div>
+            </div>
+
+            <!-- GPT-5.6 LUNA VISION SYSTEM PROMPT & INSTRUCTION SET CARD -->
+            <div class="brain-card vision-prompt-card">
+              <h3>📷 GPT-5.6 LUNA VISION SYSTEM PROMPT & INSTRUCTION SET</h3>
+              <div class="vision-prompt-body">
+                <div class="prompt-code-box">
+<pre class="prompt-text"><code>[SYSTEM PROMPT: GPT-5.6 LUNA MULTIMODAL VISION ENGINE]
+1. Real-Time Viewport Analysis: Capture high-speed frame buffers at 60 FPS in 12ms windows during playtest loops.
+2. Spatial Anomaly Recognition: Detect pixel-level rendering glitches, collision boundary misalignments, sprite z-indexing errors, and UI component clipping.
+3. Code AST Traceability: Map detected visual artifacts to underlying source files (HTML/CSS/JS) and line coordinates.
+4. Self-Healing Patch Synthesis: Generate unified git patch blocks with step-by-step root cause analysis for every confirmed visual defect.</code></pre>
+                </div>
+              </div>
+            </div>
+
+            <div class="brain-thought-box">
+              <span class="sub-label">LIVE REASONING TRAJECTORY</span>
+              <div id="brain-thought-stream" class="thought-stream">
+                <p class="thought-line system">[AGENT BRAIN] System initialized. Ready to construct execution graph...</p>
+              </div>
             </div>
           </div>
 
+          <!-- TAB 3: AGENT REASONING TREE -->
+          <div id="tab-tree" class="tab-pane hidden">
+            <div class="brain-card tree-card">
+              <div class="tree-card-header">
+                <h3>🌳 HIERARCHICAL REASONING TREE</h3>
+                <span class="tree-status-badge pulse-green">GRAPH LIVE</span>
+              </div>
+              <div id="reasoning-tree-container" class="tree-container">
+                <!-- Dynamically populated via JS -->
+              </div>
+            </div>
+          </div>
         </div>
       </aside>
 
-      <!-- CENTER PANEL: GAME VIEWPORT & SYSTEM TERMINAL -->
-      <main class="center-stage">
+      <!-- CENTER STAGE VIEWPORT, SOURCE CODE & CYBERPUNK TERMINAL -->
+      <main class="center-stage" id="center-stage">
+        <!-- Stage Tabs Header -->
+        <div class="stage-nav-bar">
+          <div class="stage-tabs-left">
+            <button id="stage-tab-viewport" class="stage-nav-tab active"><span class="panel-icon">🎮</span> GAME VIEWPORT</button>
+            <button id="stage-tab-source" class="stage-nav-tab"><span class="panel-icon">📄</span> SOURCE CODE</button>
+          </div>
+          <div class="stage-tabs-right">
+            <span class="shortcut-tip">Shortcuts: <code>Space</code> Pause/Resume | <code>Ctrl+Enter</code> Run | <code>/</code> Terminal | <code>Esc</code> Close</span>
+          </div>
+        </div>
+
         <!-- Game Viewport Frame -->
-        <section class="panel viewport-panel">
+        <section class="panel viewport-panel" id="stage-viewport-panel">
           <div class="panel-header viewport-header">
             <div class="header-left">
               <span class="panel-icon">🎮</span>
               <h2>GAME RUNTIME INSTANCE</h2>
+              <span class="res-badge" id="viewport-res">100% (Native)</span>
             </div>
             <div class="header-right">
-              <button id="btn-reload-game" class="mini-btn" title="Reload iframe target">RELOAD</button>
-              <button id="btn-mute-game" class="mini-btn" title="Mute iframe audio">MUTE</button>
+              <button id="btn-luna-vision-scan" class="mini-btn-accent" title="Trigger GPT-5.6 Luna Multimodal Vision Scan">📷 GPT-5.6 LUNA VISION SCAN</button>
+              <span class="divider-sm"></span>
+              <button id="btn-device-autofit" class="mini-btn active-device" title="Auto-Fit resolution scale">⚡ AUTO-FIT</button>
+              <button id="btn-device-desktop" class="mini-btn" title="Desktop resolution">💻 DESKTOP</button>
+              <button id="btn-device-tablet" class="mini-btn" title="Tablet resolution">📱 TABLET</button>
+              <button id="btn-device-mobile" class="mini-btn" title="Mobile resolution">📲 MOBILE</button>
+              <span class="divider-sm"></span>
+              <button id="btn-toggle-heatmap" class="mini-btn" title="Toggle action heatmap overlay">🔥 HEATMAP: ON</button>
+              <button id="btn-reload-game" class="mini-btn" title="Reload target frame">RELOAD</button>
+              <button id="btn-mute-game" class="mini-btn" title="Mute target audio">MUTE</button>
             </div>
           </div>
           <div class="viewport-body">
             <div class="iframe-container" id="game-frame-container">
+              <!-- Animated Synthetic Agent Cursor Reticle -->
+              <div id="agent-cursor" class="agent-cursor-reticle">
+                <div class="cursor-ring"></div>
+                <div class="cursor-dot"></div>
+                <div class="cursor-crosshair ch-top"></div>
+                <div class="cursor-crosshair ch-bottom"></div>
+                <div class="cursor-crosshair ch-left"></div>
+                <div class="cursor-crosshair ch-right"></div>
+                <span class="cursor-tag">ANTIGRAVITY BOT</span>
+              </div>
+
+              <!-- Floating Auto-Heal Toast Notification -->
+              <div id="auto-heal-toast" class="auto-heal-toast hidden">
+                <div class="toast-left">
+                  <span class="toast-icon">🚨</span>
+                  <div class="toast-text">
+                    <strong id="toast-bug-title">DEFECT DETECTED</strong>
+                    <span id="toast-bug-desc">Uncaught TypeError in player.js</span>
+                  </div>
+                </div>
+                <div class="toast-right" style="display: flex; align-items: center; gap: 8px;">
+                  <button id="btn-toast-autoheal" class="toast-heal-btn">⚡ AUTO-HEAL PATCH</button>
+                  <span id="btn-close-toast" class="toast-close" title="Dismiss" style="cursor: pointer; color: var(--text-secondary); font-size: 16px; line-height: 1; margin-left: 4px;">&times;</span>
+                </div>
+              </div>
+
+              <!-- Interactive Action Overlay Canvas for rendering click ripples & heatmap -->
+              <canvas id="action-overlay-canvas"></canvas>
+              
+              <!-- GPT-5.6 Luna Multimodal Vision Analysis Overlay Canvas -->
+              <canvas id="vision-overlay-canvas" class="vision-overlay-canvas"></canvas>
+              <div id="vision-scan-badge" class="vision-scan-badge hidden">
+                <span class="pulse-cyan">📷 GPT-5.6 LUNA VISION SCANNING...</span>
+              </div>
+              
               <!-- Web Iframe Sandbox -->
-              <iframe id="game-iframe" src="about:blank" allow="autoplay; keyboard; clipboard-read; clipboard-write"></iframe>
+              <iframe id="game-iframe" src="about:blank" allow="autoplay; clipboard-read; clipboard-write"></iframe>
               
               <!-- Cross-origin Warning Banner -->
               <div id="origin-warning" class="viewport-overlay hidden">
                 <div class="overlay-card">
                   <span class="overlay-icon">⚠️</span>
                   <h3>CROSS-ORIGIN SANDBOX RESTRICTION</h3>
-                  <p>The target game is loaded from another domain. Input simulation will fall back to coordinate matching over browser postMessage channel.</p>
+                  <p>Target loaded from external origin. Input simulation uses coordinate postMessage mapping.</p>
                   <button id="btn-warning-dismiss" class="mini-btn">ACKNOWLEDGE</button>
                 </div>
               </div>
             </div>
           </div>
+
+          <!-- REPLAY TIMELINE SCRUBBER SLIDER -->
+          <div class="replay-timeline-bar" id="replay-timeline">
+            <div class="replay-controls-left">
+              <button id="btn-replay-prev" class="replay-btn" title="Step Back (Previous Snapshot)">◀◀ STEP</button>
+              <button id="btn-replay-play" class="replay-btn" title="Play / Pause Replay Loop">▶ PLAY</button>
+              <button id="btn-replay-next" class="replay-btn" title="Step Forward (Next Snapshot)">STEP ▶▶</button>
+              <button id="btn-replay-live" class="replay-btn live-btn active" title="Switch to Live Tracking">🔴 LIVE</button>
+            </div>
+            <div class="replay-scrubber-center">
+              <span class="replay-icon">🎞️</span>
+              <input type="range" id="replay-scrubber" min="0" max="0" value="0" step="1">
+            </div>
+            <div class="replay-status-right">
+              <span class="replay-step-info" id="replay-step-info">STEP 0 / 0 [LIVE]</span>
+            </div>
+          </div>
         </section>
 
-        <!-- Bottom Cyberpunk Monospace Terminal -->
+        <!-- SOURCE CODE PANEL -->
+        <section class="panel source-panel hidden" id="stage-source-panel">
+          <div class="panel-header source-header">
+            <div class="header-left">
+              <span class="panel-icon">📄</span>
+              <h2 id="source-file-title">SOURCE CODE INSPECTOR: orbitaldrift.js</h2>
+              <span class="res-badge term-cyan" id="source-line-count">124 Lines</span>
+            </div>
+            <div class="header-right">
+              <select id="source-file-select" class="source-select">
+                <option value="orbitaldrift.js" selected>orbitaldrift.js (Target Main)</option>
+                <option value="player.js">player.js (Entity Core)</option>
+                <option value="physics.js">physics.js (Collision System)</option>
+                <option value="analytics.js">analytics.js (Telemetry Channel)</option>
+              </select>
+              <button id="btn-copy-source" class="mini-btn-accent">📋 COPY SOURCE</button>
+            </div>
+          </div>
+          <div class="source-body">
+            <div class="source-code-wrapper" id="source-code-wrapper">
+              <div class="line-numbers" id="source-line-numbers"></div>
+              <pre class="source-code-content" id="source-code-content"></pre>
+            </div>
+          </div>
+        </section>
+
+        <!-- Cyberpunk Monospace Terminal with Slash Commands -->
         <section class="panel terminal-panel">
           <div class="panel-header">
-            <span class="panel-icon">💻</span>
-            <h2>AGENT THINKING PROCESS & EXECUTION LOGS</h2>
+            <div class="header-left">
+              <span class="panel-icon">💻</span>
+              <h2>ANTIGRAVITY 2.0 LIVE REASONING & EXECUTION LOGS</h2>
+            </div>
             <div class="header-right">
               <button id="btn-clear-terminal" class="mini-btn">CLEAR</button>
             </div>
           </div>
           <div class="terminal-body" id="terminal-log">
-            <div class="term-line system">[SYSTEM] Initializing 4weird AIPlay dashboard...</div>
-            <div class="term-line system">[SYSTEM] Ready. Select a game target and click 'INITIATE TEST RUN'.</div>
+            <div class="term-line system">[SYSTEM] Initializing 4weird AIPlay + Antigravity 2.0 Melded Suite...</div>
+            <div class="term-line system">[SYSTEM] Ready. Type /help to view slash commands or click 'INITIATE AGENT RUN'.</div>
           </div>
           <div class="terminal-input-row">
-            <span class="prompt-symbol">aiplay$</span>
-            <input type="text" id="terminal-input" placeholder="Type command (e.g. /step, /click 100 200, /state, /reload) or ask agent...">
+            <span class="prompt-symbol">antigravity$</span>
+            <input type="text" id="terminal-input" placeholder="Type command (/goal, /boost, /solve, /subagent, /diff, /step, /click x y) or instruct agent...">
+            <button id="btn-terminal-send" class="terminal-send-btn">EXECUTE</button>
           </div>
         </section>
       </main>
 
-      <!-- RIGHT SIDEBAR: BUG TRACKER & REAL-TIME STATS -->
-      <aside class="panel stats-panel">
+      <!-- RIGHT SIDEBAR: AUX TELEMETRY & SUBAGENTS & DEFECTS -->
+      <aside class="panel stats-panel" id="stats-panel">
         <div class="panel-header">
-          <span class="panel-icon">📊</span>
-          <h2>TELEMETRY & DEFECTS</h2>
-        </div>
-        <div class="panel-content">
-          <!-- Real-Time Metrics -->
-          <div class="telemetry-box">
-            <h3>PERFORMANCE METRICS</h3>
-            <div class="telemetry-grid">
-              <div class="telemetry-item">
-                <span class="label">FPS</span>
-                <span class="value" id="val-fps">--</span>
-                <canvas id="chart-fps" width="80" height="24"></canvas>
-              </div>
-              <div class="telemetry-item">
-                <span class="label">HEAP</span>
-                <span class="value" id="val-heap">-- MB</span>
-                <canvas id="chart-heap" width="80" height="24"></canvas>
-              </div>
-            </div>
-            <div class="telemetry-metrics-list">
-              <div class="metric-row">
-                <span>TIME ELAPSED:</span>
-                <span id="stat-elapsed" class="term-green">00:00</span>
-              </div>
-              <div class="metric-row">
-                <span>STEPS INJECTED:</span>
-                <span id="stat-steps" class="term-green">0 / 0</span>
-              </div>
-              <div class="metric-row">
-                <span>ACTIONS / MIN (APM):</span>
-                <span id="stat-apm" class="term-green">0</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Bug Tracker List -->
-          <div class="bug-tracker-box">
-            <div class="box-header">
-              <h3>DETECTED BUGS / COGNITIVE EXCEPTIONS</h3>
-              <span class="count-pill" id="bug-counter">0</span>
-            </div>
-            <div class="bug-list" id="bug-list-container">
-              <div class="no-bugs-msg">No structural defects identified yet.</div>
-            </div>
-          </div>
-
-          <div class="report-box">
-            <button id="btn-view-report" class="action-btn report-btn" disabled>📋 GENERATE SESSION REPORT</button>
+          <button id="btn-toggle-right-sidebar" class="sidebar-toggle-btn" title="Toggle Right Sidebar">Collapse ▶</button>
+          <div class="header-title-wrapper" style="display:flex; align-items:center; gap:6px;">
+            <span class="panel-icon">📊</span>
+            <h2>AUX TELEMETRY & SUBAGENTS</h2>
           </div>
         </div>
-      </aside>
-    </div>
-  </div>
+      <div class="panel-content">
+        <!-- Real-Time Metrics Sparklines -->
+        <div class="telemetry-box">
+          <h3>PERFORMANCE & HEAP MONITOR</h3>
+          <div class="telemetry-grid">
+            <div class="telemetry-item">
+              <span class="label">FPS</span>
+              <span class="value" id="val-fps">60</span>
+              <canvas id="chart-fps" width="80" height="24"></canvas>
+            </div>
+            <div class="telemetry-item">
+              <span class="label">HEAP</span>
+              <span class="value" id="val-heap">38.5 MB</span>
+              <canvas id="chart-heap" width="80" height="24"></canvas>
+            </div>
+          </div>
+          <div class="telemetry-metrics-list">
+            <div class="metric-row">
+              <span>ELAPSED TIME:</span>
+              <span id="stat-elapsed" class="term-green">00:00</span>
+            </div>
+            <div class="metric-row">
+              <span>AGENT STEPS:</span>
+              <span id="stat-steps" class="term-green">0 / 100</span>
+            </div>
+            <div class="metric-row">
+              <span>ACTIONS / MIN (APM):</span>
+              <span id="stat-apm" class="term-green">0</span>
+            </div>
+          </div>
+        </div>
 
-  <!-- POPUP MODAL: QA SESSION REPORT -->
-  <div class="modal-overlay hidden" id="report-modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>📋 QA EXECUTION TEST REPORT</h2>
-        <span class="modal-close" id="btn-close-report">&times;</span>
+        <!-- Active Subagents Monitor -->
+        <div class="subagent-box">
+          <div class="box-header">
+            <h3>PARALLEL SUBAGENTS</h3>
+            <button id="btn-spawn-subagent" class="mini-btn-accent">+ DISPATCH SUBAGENT</button>
+          </div>
+          <div class="subagent-global-toolbar">
+            <button id="btn-resume-all-aux" class="mini-orchestrator-btn resume" title="Resume All">▶ RESUME ALL</button>
+            <button id="btn-pause-all-aux" class="mini-orchestrator-btn pause" title="Pause All">⏸ PAUSE ALL</button>
+            <button id="btn-terminate-all-aux" class="mini-orchestrator-btn terminate" title="Terminate All">⏹ TERMINATE ALL</button>
+            <button id="btn-send-msg-aux" class="mini-orchestrator-btn message" title="Send Message">💬 SEND MSG</button>
+          </div>
+          <div class="subagent-list" id="subagent-list-container">
+            <!-- Populated dynamically with GPT-5.6 Luna subagents -->
+          </div>
+        </div>
+
+        <!-- Detected Bugs Tracker List -->
+        <div class="bug-tracker-box">
+          <div class="box-header">
+            <h3>DETECTED DEFECTS</h3>
+            <span class="count-pill" id="bug-counter">0</span>
+          </div>
+          <div class="bug-list" id="bug-list-container">
+            <div class="no-bugs-msg">No structural defects identified yet.</div>
+          </div>
+        </div>
+
+        <div class="report-box">
+          <button id="btn-view-report" class="action-btn report-btn" disabled>📋 GENERATE SESSION REPORT</button>
+        </div>
       </div>
-      <div class="modal-body">
+    </aside>
+  </div>
+</div>
+
+<!-- POPUP MODAL: QA SESSION REPORT -->
+<div class="modal-overlay hidden" id="report-modal">
+  <div class="modal-content report-modal-large">
+    <div class="modal-header">
+      <h2>📋 ANTIGRAVITY QA SESSION EXECUTION ARTIFACT</h2>
+      <span class="modal-close" id="btn-close-report">&times;</span>
+    </div>
+    <div class="report-tab-nav">
+      <button id="rep-tab-btn-summary" class="report-tab-btn active">📊 SUMMARY & TELEMETRY</button>
+      <button id="rep-tab-btn-preview" class="report-tab-btn">📝 LIVE MARKDOWN REPORT PREVIEW</button>
+    </div>
+    <div class="modal-body">
+      <!-- REPORT PANE 1: SUMMARY -->
+      <div id="rep-pane-summary" class="rep-tab-pane">
         <div class="report-summary-grid">
           <div class="summary-card">
             <span class="card-num" id="rep-steps">0</span>
@@ -252,7 +561,7 @@
           </div>
           <div class="summary-card alert-card">
             <span class="card-num" id="rep-bugs">0</span>
-            <span class="card-label">BUGS REPORTED</span>
+            <span class="card-label">BUGS IDENTIFIED</span>
           </div>
           <div class="summary-card">
             <span class="card-num" id="rep-fps">--</span>
@@ -265,36 +574,57 @@
         </div>
 
         <div class="report-section">
-          <h3>TELEMETRY OVERVIEW</h3>
-          <div class="report-charts">
-            <div class="chart-container">
-              <span class="chart-title">FPS Timeline Graph</span>
-              <div class="mock-chart-canvas" id="rep-fps-chart-box">
-                <!-- SVG or Canvas injected -->
-              </div>
+          <h3>GPT-5.6 LUNA VISION TELEMETRY & DIAGNOSTICS</h3>
+          <div class="vision-telemetry-grid">
+            <div class="v-card">
+              <span class="v-lbl">FRAMES ANALYZED</span>
+              <span class="v-val" id="rep-v-frames">0</span>
+            </div>
+            <div class="v-card">
+              <span class="v-lbl">VISION LATENCY</span>
+              <span class="v-val term-green" id="rep-v-latency">12 ms / frame</span>
+            </div>
+            <div class="v-card">
+              <span class="v-lbl">VISUAL ANOMALY RATE</span>
+              <span class="v-val term-yellow" id="rep-v-anomalies">0.0%</span>
+            </div>
+            <div class="v-card">
+              <span class="v-lbl">BOUNDING PRECISION</span>
+              <span class="v-val term-cyan">99.4%</span>
             </div>
           </div>
         </div>
 
         <div class="report-section">
-          <h3>LOGGED DEFECT DETAILS</h3>
-          <div class="report-bug-list" id="rep-bug-list-details">
-            <!-- Bug details list -->
-          </div>
+          <h3>LOGGED DEFECT DETAILS & ROOT CAUSE ANALYSIS</h3>
+          <div class="report-bug-list" id="rep-bug-list-details"></div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button id="btn-export-json" class="neon-btn">EXPORT JSON</button>
-        <button id="btn-export-pdf" class="neon-btn">EXPORT CSV</button>
+
+      <!-- REPORT PANE 2: LIVE MARKDOWN REPORT PREVIEW -->
+      <div id="rep-pane-preview" class="rep-tab-pane hidden">
+        <div class="markdown-preview-box">
+          <div class="markdown-preview-header">
+            <span>📝 GENERATED MARKDOWN BUG REPORT (.MD)</span>
+            <button id="btn-copy-markdown-preview" class="mini-btn-accent">📋 COPY MARKDOWN</button>
+          </div>
+          <pre class="markdown-preview-code"><code id="rep-markdown-code">Compiling report...</code></pre>
+        </div>
       </div>
     </div>
+    <div class="modal-footer">
+      <button id="btn-export-markdown" class="neon-btn-green">📥 EXPORT FULL BUG REPORT (.MD)</button>
+      <button id="btn-export-json" class="neon-btn">EXPORT JSON</button>
+      <button id="btn-export-pdf" class="neon-btn">EXPORT CSV</button>
+    </div>
   </div>
+</div>
 
-  <!-- POPUP MODAL: BUG DETAILED LIGHTBOX -->
+  <!-- POPUP MODAL: BUG DETAILED LIGHTBOX & AUTO-PATCH GENERATOR -->
   <div class="modal-overlay hidden" id="bug-modal">
     <div class="modal-content bug-detail-content">
       <div class="modal-header">
-        <h2 id="bug-detail-title">BUG DETAIL: CONSOLE_ERROR</h2>
+        <h2 id="bug-detail-title">DEFECT TELEMETRY & AUTO-PATCH GENERATOR</h2>
         <span class="modal-close" id="btn-close-bug">&times;</span>
       </div>
       <div class="modal-body bug-detail-body">
@@ -309,20 +639,374 @@
               <div id="bug-detail-desc" class="term-green">--</div>
             </div>
             <div class="detail-field">
-              <span class="field-lbl">STACK TRACE / DIAGNOSTIC CONSOLE:</span>
+              <span class="field-lbl">STACK TRACE / CONSOLE LOG:</span>
               <pre id="bug-detail-stack" class="stack-box">--</pre>
             </div>
           </div>
           <div class="detail-right">
-            <span class="field-lbl">ENVIRONMENT FRAME CAPTURE:</span>
+            <span class="field-lbl">ENVIRONMENT CAPTURE:</span>
             <div class="bug-detail-img-box">
               <img id="bug-detail-img" src="" alt="Bug screen capture" width="640" height="360" loading="lazy">
             </div>
           </div>
         </div>
+
+        <!-- ANTIGRAVITY LIVE GIT DIFF PATCH PREVIEW -->
+        <div class="diff-section">
+          <h3>⚡ ANTIGRAVITY SELF-HEALING AUTO-PATCH (LIVE DIFF)</h3>
+          <div class="diff-box" id="diff-box-container">
+            <div class="diff-header">
+              <span class="diff-file" id="diff-file-name">src/player.js</span>
+              <span class="diff-status">GENERATED BY GEMINI 3.6 FLASH</span>
+            </div>
+            <pre class="diff-code" id="diff-code-content">
+<span class="diff-del">-   if (player.update) player.update();</span>
+<span class="diff-add">+   if (player && typeof player.update === 'function') {</span>
+<span class="diff-add">+     player.update();</span>
+<span class="diff-add">+   } else {</span>
+<span class="diff-add">+     console.warn('[Antigravity Patch] Safeguarded undefined player instance.');</span>
+<span class="diff-add">+   }</span>
+            </pre>
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
-        <button id="btn-solve-mega" class="action-btn report-btn">⚡ EXPORT MEGA-PROMPT FOR ANTIGRAVITY</button>
+        <button id="btn-apply-hotpatch" class="neon-btn-green">🔥 SIMULATE HOT-PATCH</button>
+        <button id="btn-solve-mega" class="action-btn report-btn">⚡ COPY ANTIGRAVITY MEGA-PROMPT</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DRAWER: QUICK GIT DIFF PATCH DRAWER -->
+  <div class="drawer-overlay hidden" id="patch-drawer">
+    <div class="drawer-content">
+      <div class="drawer-header">
+        <h2>⚡ ANTIGRAVITY 2.0 PATCH DRAWER</h2>
+        <span class="modal-close" id="btn-close-drawer">&times;</span>
+      </div>
+      <div class="drawer-body">
+        <p>Review current self-healing patches generated during the active playtest session:</p>
+        <div id="drawer-patches-list">
+          <div class="patch-card">
+            <h4>Patch #1: Safeguard Player Null Reference</h4>
+            <pre class="diff-code">
+<span class="diff-del">-  player.update(dt);</span>
+<span class="diff-add">+  if (player && player.update) player.update(dt);</span>
+            </pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DRAWER: LOCAL GPU / LOCAL LLM DEBUG CONFIGURATION -->
+  <div class="drawer-overlay hidden" id="gpu-settings-drawer">
+    <div class="drawer-content gpu-drawer-content">
+      <div class="drawer-header">
+        <h2>🎮 LOCAL GPU / LOCAL LLM DEBUG CONFIGURATION</h2>
+        <span class="modal-close" id="btn-close-gpu-drawer">&times;</span>
+      </div>
+      <div class="drawer-body">
+        <div class="control-group" style="margin-bottom: 12px;">
+          <label for="gpu-endpoint-input">LOCAL GPU HOST ENDPOINT</label>
+          <input type="text" id="gpu-endpoint-input" value="http://localhost:11434" placeholder="e.g. http://localhost:11434 (Ollama) or http://localhost:1234 (LM Studio)">
+        </div>
+        <div class="control-group" style="margin-bottom: 12px;">
+          <label for="gpu-model-select">MODEL NAME PICKER</label>
+          <select id="gpu-model-select">
+            <option value="llama3:8b" selected>llama3:8b (Meta Llama 3 8B Instruct)</option>
+            <option value="qwen2.5-coder">qwen2.5-coder (Qwen 2.5 Coder 7B/14B)</option>
+            <option value="mistral:7b">mistral:7b (Mistral 7B Instruct)</option>
+            <option value="phi-3">phi-3 (Microsoft Phi-3 Mini)</option>
+          </select>
+        </div>
+        
+        <div class="control-group" style="margin-bottom: 12px;">
+          <label>GPU VRAM TELEMETRY MONITOR</label>
+          <div class="gpu-telemetry-grid">
+            <div class="gpu-telemetry-card">
+              <span class="gpu-lbl">VRAM ALLOCATION</span>
+              <span class="gpu-val term-cyan" id="gpu-vram-usage">6.4 GB / 12.0 GB</span>
+            </div>
+            <div class="gpu-telemetry-card">
+              <span class="gpu-lbl">LAYER OFFLOAD STATUS</span>
+              <span class="gpu-val term-green" id="gpu-offload-status">33/33 Layers (GPU Direct)</span>
+            </div>
+            <div class="gpu-telemetry-card">
+              <span class="gpu-lbl">INFERENCE SPEED</span>
+              <span class="gpu-val term-yellow" id="gpu-tokens-speed">48.2 tokens/sec</span>
+            </div>
+            <div class="gpu-telemetry-card">
+              <span class="gpu-lbl">BACKEND API MODE</span>
+              <span class="gpu-val term-purple" id="gpu-backend-mode">Ollama REST / Native WebGPU</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-group" style="margin-top: 10px;">
+          <button id="btn-test-gpu-connection" class="neon-btn-green" style="width: 100%;">⚡ TEST LOCAL GPU CONNECTION</button>
+        </div>
+
+        <div id="gpu-test-result" class="gpu-test-result-box hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP MODAL: DISPATCH SUBAGENT -->
+  <div class="modal-overlay hidden" id="dispatch-subagent-modal">
+    <div class="modal-content dispatch-modal">
+      <div class="modal-header">
+        <h2>🚀 DISPATCH AUTONOMOUS SUBAGENT</h2>
+        <span class="modal-close" id="btn-close-dispatch-modal">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="control-group">
+          <label for="subagent-role-select">SUBAGENT ROLE PRESET</label>
+          <select id="subagent-role-select">
+            <option value="DOM Fuzzer">🔨 DOM Fuzzer (Event & Input Fuzzer)</option>
+            <option value="Memory Auditor">🧠 Memory Auditor (Heap & Leak Profiler)</option>
+            <option value="Visual Glitch Detector">👁️ Visual Glitch Detector (Pixel & Canvas Inspector)</option>
+            <option value="Network Stress Test">🌐 Network Stress Test (CORS & Channel Monitor)</option>
+            <option value="AST Code Inspector">🔍 AST Code Inspector (Source Traceability)</option>
+            <option value="Custom Role">⚡ Custom Subagent Role</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label for="subagent-name-input">SUBAGENT NAME / IDENTIFIER</label>
+          <input type="text" id="subagent-name-input" placeholder="e.g. DOM Fuzzer #1" value="DOM Fuzzer">
+        </div>
+        <div class="control-group">
+          <label for="subagent-prompt-input">TARGET PROMPT / OBJECTIVE</label>
+          <textarea id="subagent-prompt-input" placeholder="Enter objective for this subagent (e.g. 'Fuzz touch inputs, check boundary bounds, generate diffs on crash')">Execute targeted stress testing and anomaly detection on active runtime target.</textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-confirm-dispatch-subagent" class="neon-btn-green">🚀 DISPATCH SUBAGENT</button>
+        <button id="btn-cancel-dispatch-subagent" class="neon-btn">CANCEL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP MODAL: SUBAGENT LOG INSPECTOR -->
+  <div class="modal-overlay hidden" id="subagent-log-modal">
+    <div class="modal-content subagent-log-content">
+      <div class="modal-header">
+        <h2 id="subagent-log-title">📋 SUBAGENT LOG INSPECTOR</h2>
+        <span class="modal-close" id="btn-close-subagent-log-modal">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="subagent-meta-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-family: var(--font-mono); font-size: 11px; margin-bottom: 10px; background: rgba(0,242,254,0.05); padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+          <div><strong>ROLE:</strong> <span id="subagent-log-role" class="term-cyan">--</span></div>
+          <div><strong>STATUS:</strong> <span id="subagent-log-status" class="term-green">--</span></div>
+          <div style="grid-column: span 2;"><strong>TARGET PROMPT:</strong> <span id="subagent-log-prompt" class="term-yellow">--</span></div>
+        </div>
+        <div class="control-group">
+          <label>LIVE SUBAGENT EVENT STREAM</label>
+          <div id="subagent-log-stream" class="subagent-log-stream-box" style="height: 180px; overflow-y: auto; background: #010408; border: 1px solid var(--border-color); border-radius: 4px; padding: 8px; font-family: var(--font-mono); font-size: 10px; line-height: 1.5; color: var(--neon-cyan);"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-subagent-reassign-task" class="neon-btn">✏️ RE-ASSIGN TASK</button>
+        <button id="btn-subagent-toggle-pause" class="neon-btn">⏸ PAUSE SUBAGENT</button>
+        <button id="btn-subagent-terminate" class="action-btn stop-btn">⏹ TERMINATE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP MODAL: SEND MESSAGE TO SUBAGENTS -->
+  <div class="modal-overlay hidden" id="subagent-message-modal">
+    <div class="modal-content broadcast-modal">
+      <div class="modal-header">
+        <h2>💬 SEND MESSAGE / BROADCAST PROMPT</h2>
+        <span class="modal-close" id="btn-close-message-modal">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="control-group">
+          <label for="message-target-select">RECIPIENT SUBAGENT</label>
+          <select id="message-target-select">
+            <option value="all">🌐 ALL ACTIVE SUBAGENTS (BROADCAST)</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label for="subagent-message-input">MESSAGE / DIRECTIVE PROMPT</label>
+          <textarea id="subagent-message-input" placeholder="Enter directive or prompt to send to subagents..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-confirm-send-message" class="neon-btn-green">💬 TRANSMIT DIRECTIVE</button>
+        <button id="btn-cancel-send-message" class="neon-btn">CANCEL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP MODAL: RE-ASSIGN SUBAGENT TASK -->
+  <div class="modal-overlay hidden" id="subagent-reassign-modal">
+    <div class="modal-content reassign-modal">
+      <div class="modal-header">
+        <h2 id="reassign-modal-title">✏️ RE-ASSIGN SUBAGENT TASK</h2>
+        <span class="modal-close" id="btn-close-reassign-modal">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="control-group">
+          <label for="reassign-prompt-input">NEW PROMPT OBJECTIVE</label>
+          <textarea id="reassign-prompt-input" placeholder="Enter new task objective..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-confirm-reassign" class="neon-btn-green">🔄 UPDATE TASK</button>
+        <button id="btn-cancel-reassign" class="neon-btn">CANCEL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP MODAL: EXECUTION MODE SELECTION (RUN WEB / RUN LOCAL / RUN REMOTE) -->
+  <div class="modal-overlay hidden" id="mode-selection-modal">
+    <div class="modal-content mode-selection-modal-card" style="max-width: 780px;">
+      <div class="modal-header">
+        <h2>🚀 SELECT EXECUTION MODE</h2>
+        <span class="modal-close" id="btn-close-mode-modal">&times;</span>
+      </div>
+      <div class="modal-body">
+        <p style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); margin-bottom: 16px;">
+          Choose how 4WEIRD AIPlay executes LLM reasoning, game discovery, and self-healing playtesting:
+        </p>
+        
+        <div class="modes-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+          <!-- MODE 1: RUN WEB -->
+          <div class="mode-card active-mode-card" id="mode-card-web" style="background: rgba(0, 242, 254, 0.08); border: 2px solid var(--neon-cyan); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; cursor: pointer; transition: all 0.2s;">
+            <div style="font-size: 24px; margin-bottom: 8px;">⚡</div>
+            <h3 style="font-family: var(--font-mono); font-size: 13px; color: var(--neon-cyan); margin-bottom: 6px;">RUN WEB</h3>
+            <span style="font-size: 9px; font-family: var(--font-mono); background: rgba(0, 242, 254, 0.2); color: var(--neon-cyan); padding: 2px 6px; border-radius: 10px; width: fit-content; margin-bottom: 10px; font-weight: bold;">DEFAULT / RECOMMENDED</span>
+            <p style="font-size: 11px; color: var(--text-primary); line-height: 1.4; flex: 1;">
+              Runs 100% in-browser using WebGPU acceleration on your graphics card. Zero API key, zero backend server required, ultra-fast client-side execution.
+            </p>
+            <button class="neon-btn-green" style="margin-top: 14px; width: 100%;" id="btn-select-mode-web">SELECT RUN WEB</button>
+          </div>
+
+          <!-- MODE 2: RUN LOCAL -->
+          <div class="mode-card" id="mode-card-local" style="background: rgba(157, 78, 221, 0.06); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; cursor: pointer; transition: all 0.2s;">
+            <div style="font-size: 24px; margin-bottom: 8px;">💻</div>
+            <h3 style="font-family: var(--font-mono); font-size: 13px; color: var(--neon-purple); margin-bottom: 6px;">RUN LOCAL</h3>
+            <span style="font-size: 9px; font-family: var(--font-mono); background: rgba(157, 78, 221, 0.2); color: var(--neon-purple); padding: 2px 6px; border-radius: 10px; width: fit-content; margin-bottom: 10px; font-weight: bold;">HARDWARE GPU SERVER</span>
+            <p style="font-size: 11px; color: var(--text-primary); line-height: 1.4; flex: 1;">
+              Connects to a local hardware GPU server running Ollama (<code style="color:var(--neon-cyan)">localhost:11434</code>) or LM Studio (<code style="color:var(--neon-cyan)">localhost:1234</code>). Dedicated VRAM & CUDA.
+            </p>
+            <button class="neon-btn" style="margin-top: 14px; width: 100%; border-color: var(--neon-purple); color: var(--neon-purple);" id="btn-select-mode-local">SELECT RUN LOCAL</button>
+          </div>
+
+          <!-- MODE 3: RUN REMOTE -->
+          <div class="mode-card" id="mode-card-remote" style="background: rgba(0, 255, 102, 0.04); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; cursor: pointer; transition: all 0.2s;">
+            <div style="font-size: 24px; margin-bottom: 8px;">🌐</div>
+            <h3 style="font-family: var(--font-mono); font-size: 13px; color: var(--neon-green); margin-bottom: 6px;">RUN REMOTE</h3>
+            <span style="font-size: 9px; font-family: var(--font-mono); background: rgba(0, 255, 102, 0.15); color: var(--neon-green); padding: 2px 6px; border-radius: 10px; width: fit-content; margin-bottom: 10px; font-weight: bold;">CLOUD AI CLUSTER</span>
+            <p style="font-size: 11px; color: var(--text-primary); line-height: 1.4; flex: 1;">
+              Dispatches reasoning to cloud AI clusters (Gemini 3.6 Flash, GPT-5.6 Luna, Claude 3.5 Sonnet). Deepest reasoning depth without local compute requirements.
+            </p>
+            <button class="neon-btn" style="margin-top: 14px; width: 100%; border-color: var(--neon-green); color: var(--neon-green);" id="btn-select-mode-remote">SELECT RUN REMOTE</button>
+          </div>
+        </div>
+      </div>
+  <!-- POPUP MODAL / DRAWER: PHONE REMOTE CONTROLLER & QR CODE LINKING -->
+  <div class="modal-overlay hidden" id="phone-remote-modal">
+    <div class="modal-content phone-remote-modal-card" style="max-width: 650px;">
+      <div class="modal-header">
+        <h2>📱 PHONE REMOTE CONTROLLER & LOCAL GPU LINK</h2>
+        <span class="modal-close" id="btn-close-phone-remote-modal">&times;</span>
+      </div>
+      <div class="modal-body">
+        <!-- QR Code & Link Info Section -->
+        <div class="qr-link-section" style="display: flex; gap: 16px; background: rgba(0, 242, 254, 0.05); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; margin-bottom: 16px; align-items: center;">
+          <div class="qr-canvas-container" style="background: #fff; padding: 8px; border-radius: 6px; display: flex; align-items: center; justify-content: center; width: 140px; height: 140px; flex-shrink: 0;">
+            <div id="qr-code-display" style="width: 124px; height: 124px; display: flex; align-items: center; justify-content: center;">
+              <!-- QR SVG or img generated dynamically -->
+            </div>
+          </div>
+          <div class="qr-details" style="flex: 1; font-family: var(--font-mono); display: flex; flex-direction: column; gap: 6px;">
+            <div style="font-size: 10px; color: var(--text-secondary); letter-spacing: 0.5px;">PAIRING STATUS: <span class="term-green pulse-green" id="phone-remote-status">ONLINE & SYNCED (LOCAL GPU)</span></div>
+            <div style="font-size: 11px; color: var(--neon-cyan); font-weight: bold;">LINKING CODE:</div>
+            <div style="font-size: 18px; font-weight: bold; letter-spacing: 2px; color: #fff; background: rgba(1, 4, 8, 0.8); border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 4px;" id="phone-linking-code">---- ---- ---- ----</div>
+            <div style="font-size: 10px; color: var(--text-secondary); word-break: break-all;" id="phone-linking-url">https://4weird.com/linkqr/----------------/</div>
+            <div style="display: flex; gap: 8px; margin-top: 4px;">
+              <button class="neon-btn-green" id="btn-regen-qr-code" style="font-size: 9px; padding: 4px 8px;">🔄 REGENERATE CODE</button>
+              <button class="neon-btn" id="btn-copy-linking-url" style="font-size: 9px; padding: 4px 8px;">📋 COPY LINK</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile Remote Controller Interface simulation -->
+        <div class="mobile-remote-interface" style="background: #040810; border: 1px solid rgba(0, 242, 254, 0.3); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed rgba(0, 242, 254, 0.2); padding-bottom: 8px;">
+            <span style="font-family: var(--font-title); font-size: 11px; color: var(--neon-cyan);">🎮 MOBILE REMOTE CONTROL CONSOLE</span>
+            <span style="font-family: var(--font-mono); font-size: 9px; color: var(--neon-purple); background: rgba(157,78,221,0.15); padding: 2px 6px; border-radius: 4px;" id="phone-gpu-mode-badge">⚡ LOCAL GPU: ACTIVE</span>
+          </div>
+
+          <!-- Phone Remote Control Action Buttons -->
+          <div class="phone-remote-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+            <button class="action-btn start-btn" id="remote-btn-start" style="padding: 10px 4px; font-size: 10px;">▶ START RUN</button>
+            <button class="action-btn pause-btn" id="remote-btn-pause" style="padding: 10px 4px; font-size: 10px;">⏸ PAUSE</button>
+            <button class="neon-btn-green" id="remote-btn-vision" style="padding: 10px 4px; font-size: 10px;">📷 VISION SCAN</button>
+            <button class="neon-btn" id="remote-btn-heal" style="padding: 10px 4px; font-size: 10px; border-color: var(--neon-yellow); color: var(--neon-yellow);">⚡ AUTO-HEAL</button>
+            <button class="neon-btn" id="remote-btn-select-game" style="padding: 10px 4px; font-size: 10px; grid-column: span 2; border-color: var(--neon-purple); color: var(--neon-purple);">🎮 SELECT GAME</button>
+          </div>
+
+          <!-- Touchpad Crosshair Area -->
+          <div class="touchpad-container" style="background: rgba(1, 4, 8, 0.9); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; text-align: center;">
+            <div style="font-family: var(--font-mono); font-size: 9px; color: var(--text-secondary); margin-bottom: 6px;">🎯 TOUCHPAD CROSSHAIR (DISPATCH FUZZER INPUT TO DESKTOP GPU)</div>
+            <div id="remote-touchpad" style="width: 100%; height: 120px; background: radial-gradient(circle at center, rgba(0,242,254,0.1) 0%, rgba(0,0,0,0.8) 70%); border: 1px dashed var(--border-color); border-radius: 6px; position: relative; cursor: crosshair; display: flex; align-items: center; justify-content: center; overflow: hidden; user-select: none;">
+              <div id="remote-crosshair-pointer" style="position: absolute; width: 16px; height: 16px; border: 2px solid var(--neon-cyan); border-radius: 50%; transform: translate(-50%, -50%); top: 50%; left: 50%; pointer-events: none; transition: top 0.05s, left 0.05s;">
+                <div style="position: absolute; top: 50%; left: -6px; width: 28px; height: 1px; background: var(--neon-cyan); transform: translateY(-50%);"></div>
+                <div style="position: absolute; left: 50%; top: -6px; height: 28px; width: 1px; background: var(--neon-cyan); transform: translateX(-50%);"></div>
+              </div>
+              <span style="font-family: var(--font-mono); font-size: 9px; color: rgba(255,255,255,0.3); pointer-events: none;">SWIPE / TAP TO DIRECT DESKTOP AGENT</span>
+            </div>
+          </div>
+
+          <!-- Stream Live Metrics back to Linked Phone UI -->
+          <div class="phone-live-telemetry" style="background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px; font-family: var(--font-mono); font-size: 10px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">
+              <span>DESKTOP GPU STREAM:</span>
+              <span class="term-cyan" id="phone-stream-fps">FPS: 60</span>
+              <span class="term-green" id="phone-stream-heap">HEAP: 42 MB</span>
+              <span class="term-yellow" id="phone-stream-step">STEP: 0/100</span>
+            </div>
+            <div id="phone-stream-log-feed" style="height: 48px; overflow-y: auto; color: var(--text-secondary); font-size: 9px; line-height: 1.3;">
+              [PHONE REMOTE] Connected to desktop local GPU pipeline. Ready for commands...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLEEK CYBERPUNK PASSWORD AUTH OVERLAY FOR VERCEL / PHONE ACCESS -->
+  <div class="auth-overlay-backdrop hidden" id="auth-overlay">
+    <div class="auth-card" style="background: rgba(18, 24, 36, 0.95); border: 2px solid var(--neon-cyan); box-shadow: 0 0 30px rgba(0, 242, 254, 0.3), inset 0 0 15px rgba(0, 242, 254, 0.1); border-radius: 12px; padding: 28px; width: 380px; max-width: 90vw; display: flex; flex-direction: column; gap: 16px; text-align: center; position: relative;">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+        <div style="font-size: 36px; text-shadow: var(--neon-cyan-glow);">🔒</div>
+        <h2 style="font-family: var(--font-title); font-size: 16px; color: var(--neon-cyan); letter-spacing: 1.5px;">4WEIRD AIPLAY // SECURITY CHECKPOINT</h2>
+        <p style="font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary); line-height: 1.4;">
+          PASSWORD PROTECTION ACTIVE (VERCEL / PHONE REMOTE)<br>Enter security key to access Antigravity 2.0 Agentic QA Sandbox.
+        </p>
+      </div>
+
+      <form id="auth-form" style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; flex-direction: column; gap: 4px; text-align: left;">
+          <label for="auth-password-input" style="font-family: var(--font-mono); font-size: 9px; color: var(--neon-cyan); letter-spacing: 0.5px;">ACCESS PASSWORD / SECRET KEY</label>
+          <input type="password" id="auth-password-input" placeholder="Enter password..." autocomplete="current-password" style="width: 100%; padding: 10px; background: #010408; border: 1px solid var(--border-color); border-radius: 6px; color: #fff; font-family: var(--font-mono); font-size: 13px; outline: none; transition: border-color 0.2s;">
+        </div>
+        
+        <div id="auth-error-msg" style="font-family: var(--font-mono); font-size: 10px; color: var(--system-error); display: none;">
+          ⚠️ Invalid password key. Access denied.
+        </div>
+
+        <button type="submit" id="btn-submit-auth" class="neon-btn-green" style="padding: 10px; font-size: 12px; margin-top: 4px; width: 100%;">
+          🔓 UNLOCK AIPLAY INTERFACE
+        </button>
+      </form>
+      
+      <div style="font-family: var(--font-mono); font-size: 9px; color: var(--text-secondary); border-top: 1px solid rgba(0, 242, 254, 0.15); padding-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+        <span>ENV: VERCEL_AIPLAY_AUTH</span>
+        <span class="term-cyan">STATUS: LOCKED</span>
       </div>
     </div>
   </div>

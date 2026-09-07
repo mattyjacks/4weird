@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="game.css">
     <!-- Three.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="../gravegain_shared_missions.js"></script>
     <script src="engine/config.js"></script>
     <script src="engine/persistence.js"></script>
     <script src="engine/camera-controller.js"></script>
@@ -241,9 +242,41 @@
                 </div>
 
                 <div class="btn-group">
-                    <button class="btn-game btn-primary" id="btnPlay">⚔️ Initiate Run</button>
+                    <button class="btn-game btn-primary" id="btnStoryMode" style="background: linear-gradient(135deg, #a855f7, #6366f1); border-color: #c084fc;">📜 10-Mission Campaign</button>
+                    <button class="btn-game" id="btnPlay">⚔️ Endless Dungeon Run</button>
                     <button class="btn-game" id="btnEnterHub">🚀 Visit LuckyStarShip</button>
                     <button class="btn-game" id="btnOpenSettings">⚙️ Engine Configurations</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1B. STORY MISSION SELECT SCREEN -->
+        <div class="screen-overlay hidden" id="storyMissionScreen">
+            <div class="menu-content glass-panel" style="max-width: 900px; text-align: left;">
+                <h2 class="menu-title" style="font-size: 2rem; margin-bottom: 5px;">📜 Story Campaign (10 Missions)</h2>
+                <p class="menu-subtitle" style="text-align: left; margin-bottom: 15px;">MoonRock Colonial Defense - Shared 2D & 3D Progress</p>
+                <div class="story-missions-grid" id="storyMissionsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; max-height: 420px; overflow-y: auto; padding-right: 8px;">
+                    <!-- Filled dynamically by JS -->
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+                    <button class="btn-game" id="btnStoryBack">← Main Menu</button>
+                    <button class="btn-game btn-primary" id="btnStartStoryMission" disabled>⚔️ Launch Selected Mission</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- STORY DIALOGUE CUTSCENE MODAL -->
+        <div class="screen-overlay hidden" id="storyDialogueScreen" style="background: rgba(0,0,0,0.85); z-index: 9999;">
+            <div class="menu-content glass-panel" style="max-width: 700px; border: 2px solid var(--grave-gold);">
+                <div style="display: flex; gap: 20px; align-items: center; text-align: left;">
+                    <div id="dialoguePortrait" style="font-size: 3.5rem; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 12px; border: 1px solid var(--grave-border);">🤖</div>
+                    <div style="flex: 1;">
+                        <h3 id="dialogueSpeaker" style="margin: 0 0 5px 0; color: var(--grave-gold); font-family: 'Orbitron'; font-size: 1.2rem;">Speaker Name</h3>
+                        <p id="dialogueText" style="font-size: 1rem; line-height: 1.5; color: white; margin: 0; min-height: 60px;">Dialogue message text goes here...</p>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+                    <button class="btn-game btn-primary" id="btnNextDialogue">Continue ➔</button>
                 </div>
             </div>
         </div>

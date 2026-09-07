@@ -256,3 +256,8 @@ function animate() {
 
     renderer.render(scene, camera);
 }
+
+
+// Expose AIPlay state
+window.gameState = { title: "the-cave-of-bottlenecks", get active() { return typeof gameActive !== "undefined" ? gameActive : true; } };
+window.game = window.gameState;

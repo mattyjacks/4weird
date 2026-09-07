@@ -1,0 +1,170 @@
+[
+  {
+    "gameId": "aiwhackamole",
+    "title": "AI-whack-a-mole",
+    "url": "http://localhost:8888/games/html/aiwhackamole/index.html",
+    "path": "games\\html\\aiwhackamole",
+    "bugsFound": [],
+    "fixed": false
+  },
+  {
+    "gameId": "assassinanimals",
+    "title": "AssassinAnimals",
+    "url": "http://localhost:8888/games/html/assassinanimals/index.html",
+    "path": "games\\html\\assassinanimals",
+    "bugsFound": [],
+    "fixed": false
+  },
+  {
+    "gameId": "battlesharks2",
+    "title": "Battlesharks 2",
+    "url": "http://localhost:8888/games/html/battlesharks2/index.html",
+    "path": "games\\html\\battlesharks2",
+    "bugsFound": [],
+    "fixed": false
+  },
+  {
+    "gameId": "demolichdom",
+    "title": "Demo Lichdom",
+    "url": "http://localhost:8888/games/html/demolichdom/index.html",
+    "path": "games\\html\\demolichdom",
+    "bugsFound": [],
+    "fixed": false
+  },
+  {
+    "gameId": "DiscoverAmerica",
+    "title": "Madi AI: Discover America",
+    "url": "http://localhost:8888/games/html/DiscoverAmerica/index.html",
+    "path": "games\\html\\DiscoverAmerica",
+    "bugsFound": [],
+    "fixed": false
+  },
+  {
+    "gameId": "financialfreedom",
+    "title": "Financial Freedom",
+    "url": "http://localhost:8888/games/html/financialfreedom/index.html",
+    "path": "games\\html\\financialfreedom",
+    "bugsFound": [],
+    "fixed": false
+  },
+  {
+    "gameId": "fridgesimulator",
+    "title": "Fridge Simulator",
+    "url": "http://localhost:8888/games/html/fridgesimulator/index.html",
+    "path": "games\\html\\fridgesimulator",
+    "bugsFound": [],
+    "fixed": false
+  },
+  {
+    "gameId": "friendslop",
+    "title": "FriendSlop",
+    "url": "http://localhost:8888/games/html/friendslop/index.html",
+    "path": "games\\html\\friendslop",
+    "bugsFound": [],
+    "fixed": false
+  },
+  {
+    "gameId": "gravegain2d",
+    "title": "GraveGain2D",
+    "url": "http://localhost:8888/games/html/gravegain2d/index.html",
+    "path": "games\\html\\gravegain2d",
+    "bugsFound": [],
+    "fixed": false
+  },
+  {
+    "gameId": "gravegain3d",
+    "title": "GraveGain3D",
+    "url": "http://localhost:8888/games/html/gravegain3d/index.html",
+    "path": "games\\html\\gravegain3d",
+    "bugsFound": [],
+    "fixed": false
+  },
+  {
+    "gameId": "kouzi",
+    "title": "kouzi",
+    "url": "http://localhost:8888/games/html/kouzi/index.html",
+    "path": "games\\html\\kouzi",
+    "bugsFound": [],
+    "fixed": false
+  },
+  {
+    "gameId": "lastwordszombies",
+    "title": "Last Words Zombies",
+    "url": "http://localhost:8888/games/html/lastwordszombies/index.html",
+    "path": "games\\html\\lastwordszombies",
+    "bugsFound": [],
+    "fixed": false
+  },
+  {
+    "gameId": "madi",
+    "title": "madi",
+    "url": "http://localhost:8888/games/html/madi/index.html",
+    "path": "games\\html\\madi",
+    "bugsFound": [],
+    "fixed": false
+  },
+  {
+    "gameId": "orbitaldrift",
+    "title": "Orbital Drift",
+    "url": "http://localhost:8888/games/html/orbitaldrift/index.html",
+    "path": "games\\html\\orbitaldrift",
+    "bugsFound": [],
+    "fixed": false
+  },
+  {
+    "gameId": "overtake",
+    "title": "Overtake",
+    "url": "http://localhost:8888/games/html/overtake/index.html",
+    "path": "games\\html\\overtake",
+    "bugsFound": [],
+    "fixed": false
+  },
+  {
+    "gameId": "semester-survival",
+    "title": "Semester Survival",
+    "url": "http://localhost:8888/games/html/semester-survival/index.html",
+    "path": "games\\html\\semester-survival",
+    "bugsFound": [],
+    "fixed": false
+  },
+  {
+    "gameId": "serversavershield",
+    "title": "Server Saver Shield",
+    "url": "http://localhost:8888/games/html/serversavershield/index.html",
+    "path": "games\\html\\serversavershield",
+    "bugsFound": [],
+    "fixed": false
+  },
+  {
+    "gameId": "soundpainter",
+    "title": "Sound Painter",
+    "url": "http://localhost:8888/games/html/soundpainter/index.html",
+    "path": "games\\html\\soundpainter",
+    "bugsFound": [],
+    "fixed": false
+  },
+  {
+    "gameId": "soundpainter2",
+    "title": "Sound Painter 2",
+    "url": "http://localhost:8888/games/html/soundpainter2/index.html",
+    "path": "games\\html\\soundpainter2",
+    "bugsFound": [],
+    "fixed": false
+  },
+  {
+    "gameId": "template-demo",
+    "title": "Template Demo",
+    "url": "http://localhost:8888/games/html/template-demo/index.html",
+    "path": "games\\html\\template-demo",
+    "bugsFound": [],
+    "fixed": false
+  },
+  {
+    "gameId": "venturemechanically",
+    "title": "Exit Waterfall Machine",
+    "url": "http://localhost:8888/games/html/venturemechanically/index.html",
+    "path": "games\\html\\venturemechanically",
+    "bugsFound": [],
+    "fixed": false
+  }
+]

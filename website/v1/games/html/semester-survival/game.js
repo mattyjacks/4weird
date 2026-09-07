@@ -502,6 +502,9 @@
 
     window.addEventListener('DOMContentLoaded', () => {
         window.SemesterSurvivalEngine = new GameEngine();
+        window.game = window.SemesterSurvivalEngine;
+        window.gameState = window.game;
         window.SemesterSurvivalEngine.init();
     });
 })();
+

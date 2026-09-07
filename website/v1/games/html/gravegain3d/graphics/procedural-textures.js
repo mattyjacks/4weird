@@ -176,6 +176,66 @@ class ProceduralTextures {
         sprite.scale.set(24, 24, 1);
         return sprite;
     }
+    static createMetalShipTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 256;
+        const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 256, 256);
+
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(4, 4, 248, 248);
+        ctx.strokeRect(16, 16, 224, 224);
+
+        // Rivets
+        ctx.fillStyle = '#94a3b8';
+        const dots = [10, 128, 246];
+        dots.forEach(x => {
+            dots.forEach(y => {
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        });
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        return tex;
+    }
+
+    static createElvenGroveTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 256;
+        const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = '#064e3b';
+        ctx.fillRect(0, 0, 256, 256);
+
+        // Bioluminescent vines
+        ctx.strokeStyle = '#34d399';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(0, 40);
+        ctx.quadraticCurveTo(128, 200, 256, 80);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#a7f3d0';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(30, 0);
+        ctx.quadraticCurveTo(200, 128, 60, 256);
+        ctx.stroke();
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        return tex;
+    }
 }
 
     window.GraveGainProceduralTextures = ProceduralTextures;

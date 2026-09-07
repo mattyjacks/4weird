@@ -312,3 +312,8 @@ function animate() {
 
     renderer.render(scene, camera);
 }
+
+
+// Expose AIPlay state
+window.gameState = { title: "temple-of-lost-revenue", get active() { return typeof gameActive !== "undefined" ? gameActive : true; } };
+window.game = window.gameState;

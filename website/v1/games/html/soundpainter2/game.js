@@ -1445,4 +1445,8 @@
     // Build the grid interface (Lead track active by default)
     buildSequencerUI();
 
+    window.gameState = { title: "Sound Painter 2", activeTrack, bpm, isPlaying: false };
+    window.game = window.gameState;
+
 })();
+

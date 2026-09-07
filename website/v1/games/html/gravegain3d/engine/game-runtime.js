@@ -998,7 +998,20 @@
 
             this.audio.startAmbientMusic();
             this.buildDungeonLayer();
-            this.combatText.showBanner(`LAYER 1 - DEPLOYED`);
+
+            if (this.selectedStoryMissionId && window.GraveGainStoryMissions) {
+                const mission = window.GraveGainStoryEngine.getMission(this.selectedStoryMissionId);
+                if (mission) {
+                    this.currentMission = JSON.parse(JSON.stringify(mission)); // Clone mission
+                    this.combatText.showBanner(`STORY: ${mission.title}`);
+                    this.playDialogueSequence(mission.dialogueBefore, () => {
+                        this.audio.speak(`Mission Goal: ${mission.objectives[0].desc}`);
+                    });
+                }
+            } else {
+                this.currentMission = null;
+                this.combatText.showBanner(`LAYER 1 - DEPLOYED`);
+            }
             this.audio.playSfx('spell', 1.0);
         }
 
@@ -1710,6 +1723,11 @@
                         this.player.addXp(xpGain);
                         this.vfx.spawnBlood(e.x, e.y, e.bloodColor);
 
+                        // Check Story Mission objectives
+                        if (this.currentMission) {
+                            this.checkStoryObjectives(e);
+                        }
+
                         const loot = new LootItem(e.x, e.y, (Math.random() < 0.25 ? 'potion' : 'gold'), goldGain);
                         this.scene.add(loot.group3d);
                         this.loot.push(loot);
@@ -2204,7 +2222,35 @@
         // =========================================================================
         setupUI() {
             // Main menu buttons
+            const btnStoryMode = document.getElementById('btnStoryMode');
+            if (btnStoryMode) {
+                btnStoryMode.addEventListener('click', () => {
+                    document.getElementById('mainMenuScreen').classList.add('hidden');
+                    document.getElementById('storyMissionScreen').classList.remove('hidden');
+                    this.renderStoryMissionsList();
+                });
+            }
+
+            const btnStoryBack = document.getElementById('btnStoryBack');
+            if (btnStoryBack) {
+                btnStoryBack.addEventListener('click', () => {
+                    document.getElementById('storyMissionScreen').classList.add('hidden');
+                    document.getElementById('mainMenuScreen').classList.remove('hidden');
+                });
+            }
+
+            const btnStartStoryMission = document.getElementById('btnStartStoryMission');
+            if (btnStartStoryMission) {
+                btnStartStoryMission.addEventListener('click', () => {
+                    if (!this.selectedStoryMissionId) return;
+                    document.getElementById('storyMissionScreen').classList.add('hidden');
+                    document.getElementById('charSelectScreen').classList.remove('hidden');
+                    this.renderCharSelect();
+                });
+            }
+
             document.getElementById('btnPlay').addEventListener('click', () => {
+                this.selectedStoryMissionId = null; // Standard Endless Run
                 document.getElementById('mainMenuScreen').classList.add('hidden');
                 document.getElementById('charSelectScreen').classList.remove('hidden');
                 this.renderCharSelect();
@@ -2709,6 +2755,126 @@
                     }
                 });
             }
+        }
+
+        // =========================================================================
+        // 17. SHARED STORY CAMPAIGN METHODS (10 MISSIONS)
+        // =========================================================================
+        renderStoryMissionsList() {
+            const grid = document.getElementById('storyMissionsGrid');
+            const btnLaunch = document.getElementById('btnStartStoryMission');
+            if (!grid || !window.GraveGainStoryMissions) return;
+
+            const missions = window.GraveGainStoryMissions;
+            grid.innerHTML = missions.map(m => {
+                const unlocked = window.GraveGainStoryEngine.isUnlocked(m.id);
+                const progress = window.GraveGainStoryEngine.getProgress();
+                const stars = progress.stars[m.id] || 0;
+                const isSelected = this.selectedStoryMissionId === m.id;
+
+                const starStr = unlocked ? '⭐'.repeat(stars) + '☆'.repeat(3 - stars) : '🔒 Locked';
+                return `
+                    <div class="glass-panel story-card ${unlocked ? '' : 'disabled'} ${isSelected ? 'selected' : ''}" 
+                         style="padding: 12px; border: 1px solid ${isSelected ? 'var(--grave-gold)' : 'var(--grave-border)'}; border-radius: 8px; cursor: ${unlocked ? 'pointer' : 'not-allowed'}; opacity: ${unlocked ? 1 : 0.6}; background: ${isSelected ? 'rgba(168,85,247,0.2)' : 'rgba(0,0,0,0.4)'};"
+                         onclick="window.GraveGainGame.selectStoryMission(${m.id})">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--grave-gold);">${m.location}</div>
+                        <h4 style="margin: 4px 0; font-family: 'Orbitron'; font-size: 0.95rem; color: white;">${m.title}</h4>
+                        <p style="font-size: 0.78rem; color: var(--grave-text-muted); margin: 4px 0 8px 0;">${m.subtitle}</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
+                            <span>${starStr}</span>
+                            <span class="highlight-gold">+${m.rewardGold}g | +${m.rewardUusd}$</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (btnLaunch) {
+                btnLaunch.disabled = !this.selectedStoryMissionId;
+            }
+        }
+
+        checkStoryObjectives(enemyKilled) {
+            if (!this.currentMission || !this.currentMission.objectives) return;
+            let allComplete = true;
+
+            this.currentMission.objectives.forEach(obj => {
+                if (obj.current < obj.count) {
+                    if (obj.id === 'slay_boss' && enemyKilled.isBoss) {
+                        obj.current++;
+                    } else if (obj.id === 'slay_all' || obj.id === 'survive_waves' || obj.id === 'slay_minions') {
+                        obj.current++;
+                    } else if (obj.id === 'slay_skulls' && enemyKilled.type === 'skull') {
+                        obj.current++;
+                    } else if (obj.id === 'slay_elites' && enemyKilled.scale >= 1.5) {
+                        obj.current++;
+                    }
+                    this.combatText.spawnText(this.player.x, 25, this.player.y, `Goal: ${obj.current}/${obj.count}`, 'xp');
+                }
+                if (obj.current < obj.count) allComplete = false;
+            });
+
+            if (allComplete && !this.currentMission.completed) {
+                this.currentMission.completed = true;
+                this.gold += this.currentMission.rewardGold;
+                this.uusd += this.currentMission.rewardUusd;
+
+                window.GraveGainStoryEngine.completeMission(this.currentMission.id, 3);
+                this.saveSave();
+
+                this.combatText.showBanner(`🏆 MISSION COMPLETED! 🏆`);
+                this.playDialogueSequence(this.currentMission.dialogueAfter, () => {
+                    this.gameOver(true);
+                });
+            }
+        }
+
+        selectStoryMission(missionId) {
+            if (!window.GraveGainStoryEngine.isUnlocked(missionId)) return;
+            this.selectedStoryMissionId = missionId;
+            this.renderStoryMissionsList();
+        }
+
+        playDialogueSequence(dialogueList, onComplete) {
+            if (!dialogueList || dialogueList.length === 0) {
+                if (onComplete) onComplete();
+                return;
+            }
+
+            const dialogueScreen = document.getElementById('storyDialogueScreen');
+            const portrait = document.getElementById('dialoguePortrait');
+            const speaker = document.getElementById('dialogueSpeaker');
+            const text = document.getElementById('dialogueText');
+            const nextBtn = document.getElementById('btnNextDialogue');
+
+            if (!dialogueScreen) {
+                if (onComplete) onComplete();
+                return;
+            }
+
+            dialogueScreen.classList.remove('hidden');
+            let idx = 0;
+
+            const showLine = () => {
+                const item = dialogueList[idx];
+                portrait.textContent = item.portrait || '🤖';
+                speaker.textContent = item.speaker;
+                text.textContent = item.text;
+                this.audio.speak(`${item.speaker} says: ${item.text}`);
+            };
+
+            const handleNext = () => {
+                idx++;
+                if (idx < dialogueList.length) {
+                    showLine();
+                } else {
+                    nextBtn.removeEventListener('click', handleNext);
+                    dialogueScreen.classList.add('hidden');
+                    if (onComplete) onComplete();
+                }
+            };
+
+            nextBtn.onclick = handleNext;
+            showLine();
         }
 
         viewLoreEntry(id) {

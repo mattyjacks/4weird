@@ -3250,8 +3250,11 @@
         bindEvents();
         syncMapBgm();
         render(performance.now() / 1000);
+        window.gameState = { title: "Overtake", level: currentLevelId, speed, score: points };
+        window.game = window.gameState;
         hideLoadingScreen();
         requestAnimationFrame(frame);
     }
     void loadAssets().finally(init);
 })();
+

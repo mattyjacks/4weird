@@ -1177,3 +1177,11 @@ function drawNetWorthChart() {
         ${lineElement}
     `;
 }
+
+// Expose state for AIPlay API inspection
+window.gameState = {
+    get state() { return typeof state !== 'undefined' ? state : null; },
+    PROFILES
+};
+window.game = window.gameState;
+

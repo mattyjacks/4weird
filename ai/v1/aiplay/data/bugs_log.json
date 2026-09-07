@@ -1,5 +1,230 @@
 [
   {
+    "id": "BUG-1788733295022",
+    "gameId": "madi",
+    "title": "[madi] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in treasure-hunters\\game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:35.022Z"
+  },
+  {
+    "id": "BUG-1788733295020",
+    "gameId": "madi",
+    "title": "[madi] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in the-speed-portal\\game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:35.020Z"
+  },
+  {
+    "id": "BUG-1788733295018",
+    "gameId": "madi",
+    "title": "[madi] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in the-revenue-jungle\\game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:35.018Z"
+  },
+  {
+    "id": "BUG-1788733295015",
+    "gameId": "madi",
+    "title": "[madi] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in the-revenue-dragon\\game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:35.015Z"
+  },
+  {
+    "id": "BUG-1788733295011",
+    "gameId": "madi",
+    "title": "[madi] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in the-pipeline-mountain\\game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:35.011Z"
+  },
+  {
+    "id": "BUG-1788733295007",
+    "gameId": "madi",
+    "title": "[madi] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in the-madi-ai-universe\\game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:35.007Z"
+  },
+  {
+    "id": "BUG-1788733295005",
+    "gameId": "madi",
+    "title": "[madi] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in the-lost-city-of-customers\\game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:35.005Z"
+  },
+  {
+    "id": "BUG-1788733295002",
+    "gameId": "madi",
+    "title": "[madi] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in the-cave-of-bottlenecks\\game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:35.002Z"
+  },
+  {
+    "id": "BUG-1788733294999",
+    "gameId": "madi",
+    "title": "[madi] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in the-ai-expedition\\game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:34.999Z"
+  },
+  {
+    "id": "BUG-1788733294996",
+    "gameId": "madi",
+    "title": "[madi] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in temple-of-lost-revenue\\game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:34.996Z"
+  },
+  {
+    "id": "BUG-1788733275152",
+    "gameId": "venturemechanically",
+    "title": "[Exit Waterfall Machine] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:15.152Z"
+  },
+  {
+    "id": "BUG-1788733275145",
+    "gameId": "soundpainter2",
+    "title": "[Sound Painter 2] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:15.145Z"
+  },
+  {
+    "id": "BUG-1788733275119",
+    "gameId": "semester-survival",
+    "title": "[Semester Survival] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:15.119Z"
+  },
+  {
+    "id": "BUG-1788733275111",
+    "gameId": "overtake",
+    "title": "[Overtake] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:15.111Z"
+  },
+  {
+    "id": "BUG-1788733275105",
+    "gameId": "madi",
+    "title": "[madi] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in treasure-hunters\\game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:15.105Z"
+  },
+  {
+    "id": "BUG-1788733275103",
+    "gameId": "madi",
+    "title": "[madi] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in the-speed-portal\\game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:15.103Z"
+  },
+  {
+    "id": "BUG-1788733275101",
+    "gameId": "madi",
+    "title": "[madi] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in the-revenue-jungle\\game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:15.101Z"
+  },
+  {
+    "id": "BUG-1788733275098",
+    "gameId": "madi",
+    "title": "[madi] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in the-revenue-dragon\\game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:15.098Z"
+  },
+  {
+    "id": "BUG-1788733275095",
+    "gameId": "madi",
+    "title": "[madi] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in the-pipeline-mountain\\game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:15.095Z"
+  },
+  {
+    "id": "BUG-1788733275092",
+    "gameId": "madi",
+    "title": "[madi] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in the-madi-ai-universe\\game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:15.092Z"
+  },
+  {
+    "id": "BUG-1788733275090",
+    "gameId": "madi",
+    "title": "[madi] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in the-lost-city-of-customers\\game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:15.090Z"
+  },
+  {
+    "id": "BUG-1788733275088",
+    "gameId": "madi",
+    "title": "[madi] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in the-cave-of-bottlenecks\\game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:15.088Z"
+  },
+  {
+    "id": "BUG-1788733275085",
+    "gameId": "madi",
+    "title": "[madi] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in the-ai-expedition\\game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:15.085Z"
+  },
+  {
+    "id": "BUG-1788733275082",
+    "gameId": "madi",
+    "title": "[madi] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in temple-of-lost-revenue\\game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:15.082Z"
+  },
+  {
+    "id": "BUG-1788733275033",
+    "gameId": "financialfreedom",
+    "title": "[Financial Freedom] MISSING_STATE_EXPOSURE",
+    "description": "Game state is not exposed on window for AI agent inspection in game.js",
+    "severity": "medium",
+    "status": "open",
+    "timestamp": "2026-09-06T22:21:15.033Z"
+  },
+  {
     "timestamp": "2026-06-10T00:27:35.593Z",
     "description": "The game appears to be stuck due to a lack of interactive elements, preventing any input actions from being executed.",
     "severity": "high",

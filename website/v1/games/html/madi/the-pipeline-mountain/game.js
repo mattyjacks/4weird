@@ -282,3 +282,8 @@ function animate() {
 
     renderer.render(scene, camera);
 }
+
+
+// Expose AIPlay state
+window.gameState = { title: "the-pipeline-mountain", get active() { return typeof gameActive !== "undefined" ? gameActive : true; } };
+window.game = window.gameState;

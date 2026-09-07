@@ -1,0 +1,20 @@
+{
+  "runId": "run_1781826458607",
+  "startTime": "2026-06-18T23:47:38.608Z",
+  "totalSteps": 10,
+  "bugsFound": 0,
+  "stuckEvents": 0,
+  "recoveries": 0,
+  "actionTypeCounts": {
+    "click": 10,
+    "press_key": 0,
+    "hold_key": 0,
+    "wait": 0,
+    "refresh": 0
+  },
+  "clickHeatmapZones": {
+    "4_6": 4,
+    "4_4": 6
+  },
+  "topActions": []
+}
