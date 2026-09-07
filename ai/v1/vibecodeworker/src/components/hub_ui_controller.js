@@ -80,6 +80,25 @@ class HubUIController {
       });
     }
 
+    const cardDesktopGame = document.getElementById('card-desktop-game');
+    if (cardDesktopGame) {
+      cardDesktopGame.addEventListener('click', () => {
+        audio.playClickSound();
+        if (this.el.gameRulesInput) {
+          this.el.gameRulesInput.value = 'Desktop-game playtest: keep actions conservative; verify menus, movement, camera, and responsiveness in the selected game window.';
+        }
+        this.saveConfigData();
+        this.showEditorWorkspace();
+        const appContainer = document.querySelector('.app-container');
+        if (appContainer) appContainer.classList.add('options-open');
+        const scanner = document.getElementById('native-scanner');
+        if (scanner) scanner.classList.remove('hidden');
+        document.getElementById('btn-scan-processes')?.click();
+        this.toastNotifier.show('Choose a game window, then start a supervised desktop playtest.', 'info');
+        this.logSystemMessage('[Desktop Game Mode] Window scan started. Select a target before starting the agent.');
+      });
+    }
+
     // Modal Close Buttons
     const btnCloseGames = document.getElementById('btn-close-games-modal');
     if (btnCloseGames) {
@@ -355,7 +374,10 @@ class HubUIController {
 
     if (list) {
       list.innerHTML = '';
-      const websiteV1Dir = path.join(__dirname, '..', '..', '..', '..', '..', 'website', 'v1');
+      const packagedWebsite = path.join(process.resourcesPath || '', 'website', 'v1');
+      const websiteV1Dir = fs.existsSync(packagedWebsite)
+        ? packagedWebsite
+        : path.join(__dirname, '..', '..', '..', '..', '..', 'website', 'v1');
       const gamesDir = path.join(websiteV1Dir, 'games');
       const items = [];
 

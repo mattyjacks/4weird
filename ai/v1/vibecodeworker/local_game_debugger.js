@@ -1,13 +1,13 @@
 /**
  * Automated Local API Game Debugger & Fixer
- * Uses the Local REST API (http://localhost:9999) to audit games, detect bugs, apply fixes, and report results.
+ * Uses the Local REST API (http://localhost:42069) to audit games, detect bugs, apply fixes, and report results.
  */
 
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
 
-const API_BASE = 'http://127.0.0.1:9999';
+const API_BASE = 'http://127.0.0.1:42069';
 
 async function fetchJSON(urlPath, options = {}) {
   const url = `${API_BASE}${urlPath}`;
@@ -35,7 +35,7 @@ async function debugGames() {
     const status = await fetchJSON('/api/status');
     console.log('[API Status]', status.system, '| Mode:', status.runtimeMode, '| Active Game:', status.activeGame);
   } catch (err) {
-    console.error('[API Error] Local API Server is not responding on http://127.0.0.1:9999:', err.message);
+    console.error('[API Error] Local API Server is not responding on http://127.0.0.1:42069:', err.message);
     process.exit(1);
   }
 

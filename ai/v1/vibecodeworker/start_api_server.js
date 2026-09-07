@@ -8,7 +8,7 @@ const { startStaticServer } = require('./src/main_process/static_server');
 const { discoverGames: scanGames } = require('./src/main_process/game_discovery');
 
 const WEBSITE_V1_DIR = path.join(__dirname, '..', '..', '..', 'website', 'v1');
-const PORT = process.env.PORT || 9999;
+const PORT = process.env.PORT || 42069;
 const STATIC_PORT = 8888;
 
 function discoverGames() {

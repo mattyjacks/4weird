@@ -11,6 +11,11 @@
       "permanent": true
     },
     {
+      "source": "/vibecodeworker/docs",
+      "destination": "/vibecodeworker/docs/",
+      "permanent": true
+    },
+    {
       "source": "/pricing",
       "destination": "/pricing/",
       "permanent": true

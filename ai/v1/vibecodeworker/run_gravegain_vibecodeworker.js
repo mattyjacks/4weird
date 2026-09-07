@@ -13,7 +13,7 @@ const { VibeCodeWorkerClient } = require('./lib/vibecodeworker_client');
 const { discoverGames } = require('./start_api_server');
 const { ReplayEngine } = require('./lib/replay_engine');
 
-const PORT = 9999;
+const PORT = 42069;
 const STATIC_PORT = 8888;
 const WEBSITE_V1_DIR = path.join(__dirname, '..', '..', 'website', 'v1');
 const TAURI_EXE_PATH = path.join(__dirname, 'src-tauri', 'target', 'release', 'vibecodeworker-4weird.exe');

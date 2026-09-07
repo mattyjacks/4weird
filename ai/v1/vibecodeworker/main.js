@@ -72,6 +72,14 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, 'src', 'index.html'));
 
+  // Renderer failures otherwise stay hidden inside Electron DevTools and make
+  // the dashboard appear to have dead controls. Keep them visible to the host
+  // log so startup and button-binding failures are diagnosable.
+  mainWindow.webContents.on('console-message', (_event, level, message, line, sourceId) => {
+    const prefix = level >= 2 ? 'error' : 'info';
+    console[ prefix === 'error' ? 'error' : 'log'](`[Dashboard ${prefix}] ${message} (${sourceId}:${line})`);
+  });
+
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.webContents.send('cli-args', process.argv);
   });
@@ -151,13 +159,15 @@ ipcMain.handle('is-game-window-active', () => {
 });
 
 // Ensure static server is running for game files
-const WEBSITE_V1_DIR = path.join(__dirname, '..', '..', '..', 'website', 'v1');
+const WEBSITE_V1_DIR = app.isPackaged
+  ? path.join(process.resourcesPath, 'website', 'v1')
+  : path.join(__dirname, '..', '..', '..', 'website', 'v1');
 const STATIC_PORT = 8888;
 startStaticServer(STATIC_PORT, WEBSITE_V1_DIR);
 
 // Initialize Local API Server connected to Electron windows & handlers
 const localApiServer = new LocalAPIServer({
-  port: 9999,
+  port: 42069,
   runtimeMode: 'electron',
   handlers: {
     getGames: async () => {
@@ -242,7 +252,7 @@ const localApiServer = new LocalAPIServer({
 });
 
 localApiServer.start().then(() => {
-  console.log('[Main] Integrated VibeCodeWorker Local REST API Server active on http://localhost:9999');
+  console.log('[Main] Integrated VibeCodeWorker Local REST API Server active on http://localhost:42069');
 }).catch(err => {
   console.error('[Main] Failed to start Local REST API Server:', err);
 });

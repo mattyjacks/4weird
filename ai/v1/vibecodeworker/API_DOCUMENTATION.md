@@ -6,7 +6,7 @@ The **VibeCodeWorker Local REST API** allows AI agents (such as Gemini), CLI scr
 
 ## 🚀 Quick Start
 
-The API server runs by default on `http://127.0.0.1:9999`.
+The API server runs by default on `http://127.0.0.1:42069`.
 
 ### Start API Server Standalone:
 ```bash
@@ -27,7 +27,7 @@ npm start
 Returns API health, active game, runtime mode, uptime, and memory usage.
 
 ```bash
-curl http://127.0.0.1:9999/api/status
+curl http://127.0.0.1:42069/api/status
 ```
 
 ---
@@ -36,7 +36,7 @@ curl http://127.0.0.1:9999/api/status
 Discovers and returns all 21 games with metadata, paths, and local URLs.
 
 ```bash
-curl http://127.0.0.1:9999/api/games
+curl http://127.0.0.1:42069/api/games
 ```
 
 ---
@@ -45,7 +45,7 @@ curl http://127.0.0.1:9999/api/games
 Launches a target game in the game runner or iframe viewport.
 
 ```bash
-curl -X POST http://127.0.0.1:9999/api/game/launch \
+curl -X POST http://127.0.0.1:42069/api/game/launch \
      -H "Content-Type: application/json" \
      -d '{"gameId": "friendslop"}'
 ```
@@ -55,8 +55,8 @@ curl -X POST http://127.0.0.1:9999/api/game/launch \
 ### 4. `GET /api/game/screenshot`
 Captures real-time game viewport screenshot.
 
-- Binary PNG: `curl http://127.0.0.1:9999/api/game/screenshot`
-- Base64 JSON: `curl "http://127.0.0.1:9999/api/game/screenshot?format=json"`
+- Binary PNG: `curl http://127.0.0.1:42069/api/game/screenshot`
+- Base64 JSON: `curl "http://127.0.0.1:42069/api/game/screenshot?format=json"`
 
 ---
 
@@ -64,7 +64,7 @@ Captures real-time game viewport screenshot.
 Returns JS console logs, warnings, errors, and uncaught exceptions.
 
 ```bash
-curl http://127.0.0.1:9999/api/game/logs
+curl http://127.0.0.1:42069/api/game/logs
 ```
 
 ---
@@ -73,7 +73,7 @@ curl http://127.0.0.1:9999/api/game/logs
 Queries current DOM elements, canvas context, and global JS scope (`window.gameState`, `window.game`).
 
 ```bash
-curl http://127.0.0.1:9999/api/game/state
+curl http://127.0.0.1:42069/api/game/state
 ```
 
 ---
@@ -82,7 +82,7 @@ curl http://127.0.0.1:9999/api/game/state
 Sends mouse clicks, key presses, or touch inputs to the game.
 
 ```bash
-curl -X POST http://127.0.0.1:9999/api/game/action \
+curl -X POST http://127.0.0.1:42069/api/game/action \
      -H "Content-Type: application/json" \
      -d '{"type": "click", "x": 300, "y": 200}'
 ```
@@ -93,7 +93,7 @@ curl -X POST http://127.0.0.1:9999/api/game/action \
 Executes JavaScript inside the active game context.
 
 ```bash
-curl -X POST http://127.0.0.1:9999/api/game/eval \
+curl -X POST http://127.0.0.1:42069/api/game/eval \
      -H "Content-Type: application/json" \
      -d '{"script": "return window.game ? window.game.score : 0;"}'
 ```
@@ -104,7 +104,7 @@ curl -X POST http://127.0.0.1:9999/api/game/eval \
 Patches source code of a game file and triggers live hot-reload. Creates a timestamped `.bak` backup.
 
 ```bash
-curl -X POST http://127.0.0.1:9999/api/game/patch \
+curl -X POST http://127.0.0.1:42069/api/game/patch \
      -H "Content-Type: application/json" \
      -d '{
        "filePath": "website/v1/games/html/friendslop/game.js",
@@ -119,7 +119,7 @@ curl -X POST http://127.0.0.1:9999/api/game/patch \
 Returns consolidated live status, games, bug reports, and recent action logs.
 
 ```bash
-curl http://127.0.0.1:9999/api/dashboard
+curl http://127.0.0.1:42069/api/dashboard
 ```
 
 ---
@@ -129,7 +129,7 @@ curl http://127.0.0.1:9999/api/dashboard
 ```javascript
 const { VibeCodeWorkerClient } = require('./lib/VibeCodeWorker_client');
 
-const client = new VibeCodeWorkerClient('http://127.0.0.1:9999');
+const client = new VibeCodeWorkerClient('http://127.0.0.1:42069');
 
 async function run() {
   // Launch game

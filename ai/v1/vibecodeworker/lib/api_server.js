@@ -11,7 +11,7 @@ const { handleApiRequest } = require('./api/routes');
 
 class LocalAPIServer {
   constructor(options = {}) {
-    this.port = options.port || 9999;
+    this.port = options.port || 42069;
     this.host = options.host || '127.0.0.1';
     this.server = null;
     this.appState = {

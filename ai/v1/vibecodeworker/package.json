@@ -31,6 +31,12 @@
     "asarUnpack": [
       "input_sim.py"
     ],
+    "extraResources": [
+      {
+        "from": "../../../website/v1",
+        "to": "website/v1"
+      }
+    ],
     "files": [
       "**/*",
       "!dist/*",

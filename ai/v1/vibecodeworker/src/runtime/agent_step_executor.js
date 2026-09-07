@@ -141,13 +141,33 @@ async function executeAgentStep({
       agentBrain.sessionStats.actionMix[decision.action.type] = (agentBrain.sessionStats.actionMix[decision.action.type] || 0) + 1;
 
       if (nativeProcess) {
-        const pyArgs = [decision.action.type];
+        // Native input is handled by the Python bridge. The agent uses web
+        // action names, so translate them to the bridge's native vocabulary
+        // and always include the selected window title.
+        const actionType = decision.action.type;
+        let pyArgs = null;
         if (decision.action.type === 'click') {
-          pyArgs.push(decision.action.params.x, decision.action.params.y);
-        } else if (decision.action.type === 'keypress') {
-          pyArgs.push(decision.action.params ? decision.action.params.key : decision.action.target);
+          const x = decision.action.params?.x ?? 500;
+          const y = decision.action.params?.y ?? 500;
+          pyArgs = ['click', String(x), String(y), nativeProcess];
+        } else if (actionType === 'keypress' || actionType === 'press_key') {
+          const key = decision.action.params?.key || decision.action.target;
+          pyArgs = ['press', String(key || 'space'), nativeProcess];
+        } else if (actionType === 'hold_key') {
+          const key = decision.action.params?.key || decision.action.target;
+          const duration = decision.action.duration_ms || 200;
+          pyArgs = ['hold', String(key || 'space'), String(duration), nativeProcess];
+        } else if (actionType === 'wait') {
+          const duration = decision.action.duration_ms || 500;
+          await new Promise(resolve => setTimeout(resolve, duration));
         }
-        await ipcRenderer.invoke('run-input-sim', pyArgs);
+        if (pyArgs) {
+          const actionResult = await ipcRenderer.invoke('run-input-sim', pyArgs);
+          if (!actionResult?.success) {
+            throw new Error(actionResult?.error || 'Native input command failed');
+          }
+          logSystemMessage(`Native action result: ${actionResult.stdout || 'completed'}`);
+        }
       } else {
         const actionResult = await gameController.executeAction(webviewElement, decision.action);
         logSystemMessage(`Action result: ${actionResult}`);

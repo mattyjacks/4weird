@@ -7,18 +7,18 @@ const { ReplayEngine } = require('./lib/replay_engine');
 
 async function testSDK() {
   console.log('=== TESTING VIBECODEWORKER CLIENT SDK & REPLAY ENGINE ===');
-  const client = new VibeCodeWorkerClient('http://127.0.0.1:9999');
+  const client = new VibeCodeWorkerClient('http://127.0.0.1:42069');
 
   let server = null;
   // If server is not reachable, start a local test server
   try {
     await client.getStatus();
   } catch (e) {
-    console.log('[SDK Test] Server not running, starting ephemeral server on port 9999...');
+    console.log('[SDK Test] Server not running, starting ephemeral server on port 42069...');
     const { LocalAPIServer } = require('./lib/api_server');
     const { discoverGames } = require('./start_api_server');
     server = new LocalAPIServer({
-      port: 9999,
+      port: 42069,
       runtimeMode: 'test_runner',
       handlers: {
         getGames: async () => discoverGames(),

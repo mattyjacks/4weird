@@ -661,9 +661,16 @@ document.addEventListener('DOMContentLoaded', () => {
     el
   });
   hubUI.setupBindings();
+  hubUI.showHubWorkspace();
 
   logSystemMessage("System dashboard loaded. Welcome Hub ready.");
-  setTimeout(() => populateQuickLaunchGrid(el.demoGameSelect, selectDemo, audio), 600);
+  setTimeout(() => {
+    populateQuickLaunchGrid(
+      document.getElementById('quick-launch-grid'),
+      el.demoGameSelect,
+      () => selectDemo()
+    );
+  }, 600);
 
   // Listen for CLI arguments
   ipcRenderer.on('cli-args', (event, argv) => {
@@ -1030,6 +1037,16 @@ async function applyDirectFix() {
   } catch (err) {
     logSystemMessage(`Failed to apply direct fix: ${err.message}`, 'error');
   }
+}
+
+function generateMegaPrompt() {
+  audio.playClickSound();
+  const localGamePath = webview.fileUrlToPath ? webview.fileUrlToPath(el.gameUrlInput.value) : '';
+  const prompt = agentBrain.generateMegaPrompt(localGamePath, sourceFiles);
+  el.megaPromptOutput.value = prompt;
+  el.promptOutputContainer.classList.remove('hidden');
+  logSystemMessage('Generated a repair prompt from the current playtest evidence.');
+  toastNotifier.show('Repair prompt generated.', 'success');
 }
 
 function copyPromptToClipboard() {

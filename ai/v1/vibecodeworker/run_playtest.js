@@ -34,7 +34,7 @@ function postJSON(urlPath, data) {
     const payload = JSON.stringify(data);
     const req = http.request({
       hostname: '127.0.0.1',
-      port: 9999,
+      port: 42069,
       path: urlPath,
       method: 'POST',
       headers: {
@@ -55,7 +55,7 @@ function postJSON(urlPath, data) {
 // Helper to download screenshot
 function saveScreenshot(filename) {
   return new Promise((resolve, reject) => {
-    http.get('http://127.0.0.1:9999/screenshot?target=game', (res) => {
+    http.get('http://127.0.0.1:42069/screenshot?target=game', (res) => {
       if (res.statusCode !== 200) {
         reject(new Error(`Failed to get screenshot: ${res.statusCode}`));
         return;

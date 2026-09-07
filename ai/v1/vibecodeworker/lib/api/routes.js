@@ -6,6 +6,21 @@ const { handlePatchFile } = require('./patch_handler');
 async function handleApiRequest(context, req, res, pathname, parsedUrl, readBody, sendJSON, sendText, rootDir) {
   const { appState, handlers, bugStore } = context;
 
+  // The API base URL is commonly opened in a browser while setting up the
+  // desktop app. Return a useful health response instead of an alarming 404.
+  if (pathname === '/') {
+    return sendJSON(200, {
+      success: true,
+      system: '4weird VibeCodeWorker Local API Server',
+      message: 'VibeCodeWorker is running. Use the desktop app for the playtest workspace.',
+      links: {
+        status: '/api/status',
+        dashboard: '/api/dashboard',
+        games: '/api/games'
+      }
+    });
+  }
+
   // ─── GET /api/status ─────────────────────────────────
   if (pathname === '/api/status' || pathname === '/status') {
     return sendJSON(200, {

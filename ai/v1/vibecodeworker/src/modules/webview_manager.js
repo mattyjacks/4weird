@@ -47,7 +47,10 @@ function populateDemoGames(demoGameSelect) {
       demoGameSelect.appendChild(defaultOpt);
     }
 
-    const websiteV1Dir = path.join(__dirname, '..', '..', '..', '..', '..', 'website', 'v1');
+    const packagedWebsite = path.join(process.resourcesPath || '', 'website', 'v1');
+    const websiteV1Dir = fs.existsSync(packagedWebsite)
+      ? packagedWebsite
+      : path.join(__dirname, '..', '..', '..', '..', '..', 'website', 'v1');
     if (!fs.existsSync(websiteV1Dir)) return;
 
     // 1. Scan for Pages
@@ -189,7 +192,11 @@ async function crawlCodeFiles(gameUrlInput, onCompleteCallback) {
   } else {
     const urlParts = currentUrl.split('/');
     const gameName = urlParts[urlParts.length - 2];
-    const localGamesDir = path.join(__dirname, '..', '..', '..', '..', '..', 'website', 'v1', 'games', 'html', gameName);
+    const packagedWebsite = path.join(process.resourcesPath || '', 'website', 'v1');
+    const websiteV1Dir = fs.existsSync(packagedWebsite)
+      ? packagedWebsite
+      : path.join(__dirname, '..', '..', '..', '..', '..', 'website', 'v1');
+    const localGamesDir = path.join(websiteV1Dir, 'games', 'html', gameName);
     if (fs.existsSync(localGamesDir)) {
       localGamePath = localGamesDir;
     }

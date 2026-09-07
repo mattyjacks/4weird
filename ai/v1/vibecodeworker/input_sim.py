@@ -1,5 +1,7 @@
 import sys
 import time
+import ctypes
+from ctypes import wintypes
 
 def install_pyautogui():
     import subprocess
@@ -21,17 +23,39 @@ except ImportError:
 # PyAutoGUI fail-safe is ENABLED: move mouse to upper-left corner to abort.
 pyautogui.FAILSAFE = True
 
+def find_window(window_title):
+    """Return a visible top-level window whose title exactly or partially matches."""
+    if not window_title:
+        return None
+    user32 = ctypes.windll.user32
+    exact = user32.FindWindowW(None, window_title)
+    if exact:
+        return exact
+
+    match = None
+    def enum_callback(hwnd, _):
+        nonlocal match
+        if not user32.IsWindowVisible(hwnd):
+            return True
+        length = user32.GetWindowTextLengthW(hwnd)
+        if not length:
+            return True
+        title = ctypes.create_unicode_buffer(length + 1)
+        user32.GetWindowTextW(hwnd, title, length + 1)
+        if window_title.lower() in title.value.lower():
+            match = hwnd
+            return False
+        return True
+
+    callback = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_int, ctypes.c_int)(enum_callback)
+    user32.EnumWindows(callback, 0)
+    return match
+
 def activate_window(window_title):
     if not window_title:
         return False
     try:
-        import ctypes
-        # Find window by title
-        hwnd = ctypes.windll.user32.FindWindowW(None, window_title)
-        if not hwnd:
-            # Try to match substring in window titles (optional, but FindWindowW needs exact match)
-            # For simplicity, we assume exact match or look for it
-            pass
+        hwnd = find_window(window_title)
         if hwnd:
             if ctypes.windll.user32.IsIconic(hwnd):
                 ctypes.windll.user32.ShowWindow(hwnd, 9) # SW_RESTORE (restore/un-minimize)
@@ -46,6 +70,25 @@ def activate_window(window_title):
     except Exception as e:
         print(f"Error activating window: {e}", file=sys.stderr)
     return False
+
+def target_window_rect(window_title):
+    """Return the selected window's screen rect, or None when unavailable."""
+    if not window_title:
+        return None
+    hwnd = find_window(window_title)
+    if not hwnd:
+        return None
+    rect = wintypes.RECT()
+    if not ctypes.windll.user32.GetWindowRect(hwnd, ctypes.byref(rect)):
+        return None
+    return rect.left, rect.top, rect.right, rect.bottom
+
+def normalized_key(key):
+    aliases = {
+        'Space': 'space', ' ': 'space', 'Enter': 'enter', 'Escape': 'esc',
+        'Shift': 'shift', 'Control': 'ctrl', 'Alt': 'alt'
+    }
+    return aliases.get(key, key.lower() if len(key) == 1 or key.upper().startswith('F') else key.lower())
 
 def print_help():
     print("Usage:")
@@ -70,8 +113,9 @@ def main():
                 sys.exit(1)
             x, y = int(sys.argv[2]), int(sys.argv[3])
             
-            if len(sys.argv) >= 5:
-                activate_window(" ".join(sys.argv[4:]))
+            window_title = " ".join(sys.argv[4:]) if len(sys.argv) >= 5 else ''
+            if window_title:
+                activate_window(window_title)
                 
             # If coordinates are scaled (0-1000), we can map to screen resolution
             # Or we can treat them as screen coordinates if the window is maximized.
@@ -79,9 +123,15 @@ def main():
             # We map to the target window rect, or screen size. Let's map to active window bounds if possible!
             # Let's keep it simple: we scale to current screen width/height if target coordinates are 0-1000.
             if x <= 1000 and y <= 1000:
-                sw, sh = pyautogui.size()
-                x = int((x / 1000.0) * sw)
-                y = int((y / 1000.0) * sh)
+                rect = target_window_rect(window_title)
+                if rect:
+                    left, top, right, bottom = rect
+                    x = left + int((x / 1000.0) * (right - left))
+                    y = top + int((y / 1000.0) * (bottom - top))
+                else:
+                    sw, sh = pyautogui.size()
+                    x = int((x / 1000.0) * sw)
+                    y = int((y / 1000.0) * sh)
                 
             pyautogui.click(x, y)
             print(f"Successfully clicked at ({x}, {y})")
@@ -90,7 +140,7 @@ def main():
             if len(sys.argv) < 3:
                 print("Error: press command requires a key name")
                 sys.exit(1)
-            key = sys.argv[2]
+            key = normalized_key(sys.argv[2])
             if len(sys.argv) >= 4:
                 activate_window(" ".join(sys.argv[3:]))
             pyautogui.press(key)
@@ -111,7 +161,7 @@ def main():
             if len(sys.argv) < 4:
                 print("Error: hold command requires a key and duration in ms")
                 sys.exit(1)
-            key = sys.argv[2]
+            key = normalized_key(sys.argv[2])
             duration = float(sys.argv[3]) / 1000.0
             if len(sys.argv) >= 5:
                 activate_window(" ".join(sys.argv[4:]))
@@ -172,4 +222,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
