@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "4WEIRD VIBECODEWORKER",
+  "productName": "vibecodeworker-4weird",
   "version": "2.0.0",
   "identifier": "com.fourweird.vibecodeworker",
   "build": {
