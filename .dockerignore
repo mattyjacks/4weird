@@ -1,0 +1,23 @@
+# Repo-root Docker context ignore — keeps `docker build -f ai/v1/vibecodeworker/Dockerfile .`
+# fast by excluding everything the headless image never needs.
+.git
+node_modules
+**/node_modules
+**/src-tauri/target
+**/src-tauri/gen
+dist
+**/dist
+test-results
+temp
+*.log
+.env
+**/data/replays
+**/data/test_temp_*
+.opencode
+*.bak_*
+.DS_Store
+Thumbs.db
+# The image only needs ai/ + website/:
+ai/v1/vibecodeworker/scratch
+website/v1/.next
+website/v1/node_modules

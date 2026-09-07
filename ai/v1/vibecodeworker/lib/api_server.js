@@ -67,6 +67,16 @@ class LocalAPIServer {
     if (this.appState.recentActions.length > 50) {
       this.appState.recentActions.pop();
     }
+    // SmartLog file mirror: error statuses + every state-changing call, so
+    // headless/cloud runs leave an AI-readable trail without console spam.
+    try {
+      const smartlog = require('./smart_log').getSharedLog();
+      if (status >= 400) {
+        smartlog.log(status >= 500 ? 'error' : 'warn', 'api', `${method} ${pathname} -> ${status} (${durationMs}ms)`);
+      } else if (method !== 'GET' && method !== 'OPTIONS' && pathname.startsWith('/api/')) {
+        smartlog.log('info', 'action', `${method} ${pathname} -> ${status} (${durationMs}ms)`);
+      }
+    } catch (e) { /* logging must never break serving */ }
   }
 
   addConsoleLog(level, message, source = 'game') {
@@ -107,12 +117,34 @@ class LocalAPIServer {
         const pathname = parsedUrl.pathname;
 
         // Security: Block non-local external origins from mutating the host machine or executing code
-        if (origin && !isLocalOrigin && (pathname.startsWith('/api/game/patch') || pathname.startsWith('/api/game/eval') || pathname.startsWith('/api/autocode/fix'))) {
+        const EXECUTION_PATHS = ['/api/game/patch', '/api/game/eval', '/api/autocode/fix',
+          '/api/opencode/fix', '/api/opencode/heal', '/api/opencode/heal-test', '/api/opencode/revert'];
+        if (origin && !isLocalOrigin && EXECUTION_PATHS.some(p => pathname.startsWith(p))) {
           res.writeHead(403, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: false, error: 'Forbidden: Untrusted external origin not authorized for execution endpoints' }));
           this.logRequest(req.method, pathname, 403, Date.now() - startTime);
           return;
         }
+
+        // Cloud token auth (optional): when VIBE_API_TOKEN is set, every
+        // state-changing API call must present it as X-Vibe-Auth or a
+        // Bearer token. Read-only GETs (status/dashboard/health) stay open
+        // so load-balancer and Docker HEALTHCHECK probes keep working.
+        // Local loopback clients without an Origin header are always allowed
+        // (desktop app, local tests, curl on the box).
+        const apiToken = process.env.VIBE_API_TOKEN || '';
+        const isBypassClient = isLocalClient && !origin;
+        if (apiToken && !isBypassClient && req.method !== 'GET' && req.method !== 'OPTIONS' && pathname.startsWith('/api/')) {
+          const presented = req.headers['x-vibe-auth'] || String(req.headers['authorization'] || '').replace(/^Bearer\s+/i, '');
+          if (presented !== apiToken) {
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, error: 'Unauthorized: valid X-Vibe-Auth token required' }));
+            this.logRequest(req.method, pathname, 401, Date.now() - startTime);
+            return;
+          }
+        }
+
+
 
         const sendJSON = (statusCode, data) => {
           res.writeHead(statusCode, { 'Content-Type': 'application/json' });

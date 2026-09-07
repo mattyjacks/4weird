@@ -185,6 +185,12 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     elements.serverPortInput.value = settings.serverPort || 42069;
   }
 
+  // OpenCode.ai bridge (optional) — applied defensively so older configs still load.
+  try {
+    const { applyOpenCodeSettings } = require('../components/opencode_ui_controller');
+    applyOpenCodeSettings(elements, settings);
+  } catch (e) { /* dashboard works fine without the bridge panel */ }
+
   agentBrain.updateConfig({ dataDir });
   agentBrain.loadSessionMemory();
 
@@ -227,7 +233,9 @@ function saveConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     autoCodeEnableShots: elements.autocodeEnableShots ? elements.autocodeEnableShots.checked : false,
     autoCodeMaxShots: elements.autocodeMaxShots ? parseInt(elements.autocodeMaxShots.value) : 2,
     autoCodeCaptureOnPlay: elements.autocodeCaptureOnPlay ? elements.autocodeCaptureOnPlay.checked : false,
-    serverPort: elements.serverPortInput ? (parseInt(elements.serverPortInput.value) || 42069) : 42069
+    serverPort: elements.serverPortInput ? (parseInt(elements.serverPortInput.value) || 42069) : 42069,
+    // Preserve the OpenCode bridge block (managed by its own panel; never wiped).
+    opencode: readExistingOpenCodeBlock(elements)
   };
   localStorage.setItem('ai_debugger_settings', JSON.stringify(settings));
 
@@ -274,6 +282,28 @@ function saveConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     maxScreenshots: settings.autoCodeMaxShots,
     captureOnPlay: settings.autoCodeCaptureOnPlay
   });
+}
+
+// Read the live OpenCode panel controls, falling back to whatever is already
+// on disk so saveConfig never wipes the bridge block when the panel is absent.
+function readExistingOpenCodeBlock(elements) {
+  let onDisk = {};
+  try {
+    if (fs.existsSync(configFilePath)) {
+      const raw = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
+      if (raw && raw.opencode) onDisk = raw.opencode;
+    }
+  } catch (e) { /* defaults below */ }
+  const block = {
+    enabled: !!(elements.opencodeEnable ? elements.opencodeEnable.checked : onDisk.enabled),
+    mode: elements.opencodeMode ? elements.opencodeMode.value : (onDisk.mode || 'cli'),
+    model: onDisk.model || '',
+    agent: onDisk.agent || 'build',
+    autoApprove: onDisk.autoApprove !== false,
+    timeoutMs: onDisk.timeoutMs || 600000,
+    serverUrl: onDisk.serverUrl || 'http://127.0.0.1:4096',
+  };
+  return block;
 }
 
 module.exports = {

@@ -1,0 +1,25 @@
+# Render.com deploy for VibeCodeWorker (~$7/mo Starter; free tier sleeps — fine for demos).
+# New > Blueprint > point at the repo. Then set VIBE_API_TOKEN in the dashboard.
+services:
+  - type: web
+    name: vibecodeworker
+    runtime: docker
+    dockerfilePath: ./ai/v1/vibecodeworker/deploy/Dockerfile.fly
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /api/status
+    disk:
+      name: vibe-data
+      mountPath: /app/ai/v1/vibecodeworker/data
+      sizeGB: 1
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 42069
+      - key: OPENCODE_ENABLED
+        value: true
+      - key: OPENCODE_MODE
+        value: cli
+      - key: VIBE_API_TOKEN
+        generateValue: true

@@ -5,6 +5,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
+    "start:cloud": "node start_api_server.js",
+    "heal": "node heal_worker.js",
     "test": "node test_vibecodeworker.js",
     "dist": "electron-builder --win portable --dir",
     "build:exe": "electron-builder --win portable",

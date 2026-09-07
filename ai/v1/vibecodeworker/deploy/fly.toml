@@ -1,0 +1,34 @@
+# Fly.io deploy for VibeCodeWorker (alternative to a droplet, ~$5-7/mo with volume).
+# From ai/v1/vibecodeworker with repo root as build context:
+#   fly launch --dockerfile deploy/Dockerfile.fly --no-deploy
+#   fly volumes create vibe_data --size 1
+#   fly secrets set VIBE_API_TOKEN=$(openssl rand -hex 24)
+#   fly deploy
+app = "vibecodeworker"
+primary_region = "iad"
+
+[build]
+  dockerfile = "deploy/Dockerfile.fly"
+
+[http_service]
+  internal_port = 42069
+  force_https = true
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+[[mounts]]
+  source = "vibe_data"
+  destination = "/app/ai/v1/vibecodeworker/data"
+
+[env]
+  HOST = "0.0.0.0"
+  PORT = "42069"
+  OPENCODE_ENABLED = "true"
+  OPENCODE_MODE = "cli"

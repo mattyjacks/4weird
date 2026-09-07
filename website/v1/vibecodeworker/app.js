@@ -13,6 +13,7 @@ import { renderReasoningTree, renderSourceCodeView, updatePatchDrawerUI, showBug
 import { glideAgentCursorAndInteract, runLunaVisionScan, setDeviceView, toggleReplayPlay, toggleReplayLiveMode, stepReplayPrev, stepReplayNext, updateReplayUI } from './modules/viewport_manager.js';
 import { HubManager } from './modules/hub_manager.js';
 import { loadGameTarget, initiateTesting, pauseTesting, stopTesting, executeAgentStep, autoRunEverything } from './modules/agent_runner.js';
+import { initTauriSmartLog, smartFileLog } from './modules/tauri_smart_log.js';
 
 let hubInstance = null;
 
@@ -569,6 +570,8 @@ function initApp() {
 
   if (isTauriRuntime()) {
     if (el.tauriDesktopBadge) el.tauriDesktopBadge.style.display = 'inline-flex';
+    // File logging + CLI/headfull control (logs → %APPDATA%/vibecodeworker/logs).
+    initTauriSmartLog({ loadGameTarget, initiateTesting }).catch(() => {});
     invokeTauriCommand('get_gpu_info').then(info => {
       if (info) {
         state.gpuSettings.renderer = info.renderer || state.gpuSettings.renderer;

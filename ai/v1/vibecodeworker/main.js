@@ -1,6 +1,14 @@
 const { app, BrowserWindow, ipcMain, shell, screen } = require('electron');
 const path = require('path');
 
+// SmartLog: file-backed structured logs + AI handoffs (see lib/smart_log.js).
+// Log dir: %APPDATA%/vibecodeworker/logs (win) — every console.* line lands there.
+const { getSharedLog, teeConsole, parseWorkerArgs } = require('./lib/smart_log');
+const smartlog = getSharedLog('electron-main');
+teeConsole(smartlog);
+const cliOpts = parseWorkerArgs(process.argv);
+smartlog.info(`VibeCodeWorker boot (headfull=${cliOpts.headfull} headless=${cliOpts.headless} game=${cliOpts.game || 'none'})`, { category: 'lifecycle' });
+
 // Modular helper imports
 const { runInputSimulator, scanWindowsProcesses, captureNativeScreenshot } = require('./src/main_process/native_runner');
 const { scanSourceDirectory } = require('./src/main_process/file_scanner');
@@ -18,7 +26,9 @@ const { discoverGames } = require('./src/main_process/game_discovery');
 const { LocalAPIServer } = require('./lib/api_server');
 
 let mainWindow;
-const isHeadless = process.argv.includes('--headless');
+// --headfull (explicit visible window) wins over --headless so CLI runs like
+// `electron . --headfull --game gravegain3d --autoplay` always show the UI.
+const isHeadless = process.argv.includes('--headless') && !cliOpts.headfull;
 const RENDERER_OPERATION_TIMEOUT_MS = 8000;
 
 function withRendererTimeout(operation, label) {
@@ -81,7 +91,20 @@ function createWindow() {
   });
 
   mainWindow.webContents.on('did-finish-load', () => {
-    mainWindow.webContents.send('cli-args', process.argv);
+    // Forward normalized CLI opts (game/autoplay/headfull) to the dashboard,
+    // which already handles --game / --start-agent via this channel.
+    const forwarded = [...process.argv];
+    if (cliOpts.game && !forwarded.includes('--game')) forwarded.push('--game', cliOpts.game);
+    if (cliOpts.autoplay && !forwarded.includes('--start-agent')) forwarded.push('--start-agent');
+    mainWindow.webContents.send('cli-args', forwarded);
+    smartlog.info('Dashboard loaded, CLI args forwarded', { category: 'lifecycle' });
+    if (cliOpts.handoffOnly) {
+      setTimeout(() => {
+        const p = writeExitHandoff('cli --handoff smoke run');
+        console.log(`[SmartLog] Handoff: ${p || 'FAILED'}`);
+        app.quit();
+      }, 3000);
+    }
   });
 
   if (!isHeadless) {
@@ -111,7 +134,19 @@ app.whenReady().then(() => {
   });
 });
 
+function writeExitHandoff(reason) {
+  try {
+    const res = smartlog.writeHandoff({ reason });
+    if (res.success) {
+      console.log(`[SmartLog] Handoff written: ${res.path}`);
+      return res.path;
+    }
+  } catch (e) {}
+  return null;
+}
+
 app.on('window-all-closed', () => {
+  if (cliOpts.handoffOnExit || cliOpts.handoffOnly) writeExitHandoff(cliOpts.handoffReason || 'electron exit');
   if (process.platform !== 'darwin') {
     app.quit();
   }
@@ -205,8 +240,10 @@ function createLocalApiServer(port) {
 
       launchGame: async (gameId) => {
         const url = gameId.startsWith('http') ? gameId : `http://localhost:${STATIC_PORT}/games/html/${gameId}/index.html`;
+        smartlog.info(`Launching game: ${gameId}`, { category: 'game' });
         return await openGameWindow(url, isHeadless, mainWindow, (level, message, line, sourceId) => {
           if (localApiServer) localApiServer.addConsoleLog(level === 2 ? 'error' : (level === 1 ? 'warn' : 'info'), message, 'game_window');
+          if (level >= 1) smartlog.log(level >= 2 ? 'error' : 'warn', 'game', `[${gameId}] ${message}`, { line, sourceId });
         });
       },
 

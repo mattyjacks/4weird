@@ -12,7 +12,7 @@
     rel="stylesheet">
   <link rel="stylesheet" href="index.css">
   <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self' file: data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' file:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com file:; font-src 'self' https://fonts.gstatic.com file:; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.openai.com https://api.deepseek.com https://generativelanguage.googleapis.com https://openrouter.ai; img-src 'self' file: data:; child-src 'self' file:; webview-src 'self' file: *;">
+    content="default-src 'self' file: data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' file:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com file:; font-src 'self' https://fonts.gstatic.com file:; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.openai.com https://api.deepseek.com https://generativelanguage.googleapis.com https://openrouter.ai; img-src 'self' file: data:; child-src 'self' file:; frame-src 'self' file: http://localhost:* http://127.0.0.1:*;">
 </head>
 
 <body>
@@ -1079,6 +1079,48 @@
               <button id="btn-copy-prompt" class="btn btn-small btn-secondary">Copy</button>
             </div>
             <textarea id="mega-prompt-output" readonly></textarea>
+          </div>
+        </div>
+
+        <div class="sidebar-header border-top">
+          <h2>OPENCODE.AI BRIDGE <span style="font-size: 0.65rem; opacity: 0.7;">(OPTIONAL)</span></h2>
+        </div>
+
+        <div class="prompt-generator-box">
+          <p class="box-desc">Export bug reports to OpenCode, let its agent edit code directly, then self-heal:
+            test → fix → re-test. Requires the <code>opencode</code> binary (or <code>opencode serve</code>).</p>
+          <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+            <label style="font-size: 0.8rem; display: flex; gap: 6px; align-items: center;">
+              <input type="checkbox" id="opencode-enable" /> Enable OpenCode
+            </label>
+            <select id="opencode-mode" style="flex: 1; font-size: 0.8rem;" title="CLI runs `opencode run` per fix; server uses a long-lived `opencode serve`">
+              <option value="cli">CLI mode (`opencode run`)</option>
+              <option value="server">Server mode (`opencode serve`)</option>
+            </select>
+          </div>
+          <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 8px; font-size: 0.8rem;">
+            <span id="opencode-status-dot">⚪</span>
+            <span id="opencode-status-text" style="color: var(--text-secondary);">Checking…</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button id="btn-opencode-status" class="btn btn-secondary btn-full btn-small">🔄 CHECK OPENCODE STATUS</button>
+            <button id="btn-opencode-export" class="btn btn-secondary btn-full">📤 EXPORT BUGS TO OPENCODE</button>
+            <button id="btn-opencode-fix" class="btn btn-primary btn-full"
+              style="font-weight: 700; background: linear-gradient(135deg, #7c3aed, #4c1d95); border-color: #a78bfa;">
+              🛠️ FIX BUGS WITH OPENCODE
+            </button>
+            <button id="btn-opencode-heal" class="btn btn-warning btn-full" style="font-weight: 700;">
+              ♻️ SELF-HEAL LOOP (TEST → FIX → RE-TEST)
+            </button>
+            <button id="btn-smart-handoff" class="btn btn-secondary btn-full btn-small"
+              title="Write a smart-log handoff file (%APPDATA%/vibecodeworker/logs) to paste into any vibecoding tool">
+              📋 WRITE SMART-LOG HANDOFF
+            </button>
+            <div id="smart-handoff-path"
+              style="font-size: 0.7rem; font-family: var(--font-mono); color: var(--text-secondary); word-break: break-all;"></div>
+            <input id="opencode-heal-cmd" type="text" value="node test_vibecodeworker.js"
+              title="Test command the heal loop runs each iteration"
+              style="font-size: 0.75rem; font-family: var(--font-mono); width: 100%; box-sizing: border-box;" />
           </div>
         </div>
 

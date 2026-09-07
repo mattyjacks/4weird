@@ -1,0 +1,9 @@
+node_modules
+dist
+scratch
+src-tauri/target
+data/*.log
+data/test_temp_*
+test-results
+.opencode
+*.bak_*

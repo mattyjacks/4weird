@@ -215,6 +215,19 @@ function queryElements() {
   el.btnDiscardChanges = document.getElementById('btn-discard-changes');
   el.btnApplyChanges = document.getElementById('btn-apply-changes');
 
+  // OpenCode.ai Bridge elements (optional integration)
+  el.opencodeEnable = document.getElementById('opencode-enable');
+  el.opencodeMode = document.getElementById('opencode-mode');
+  el.opencodeStatusDot = document.getElementById('opencode-status-dot');
+  el.opencodeStatusText = document.getElementById('opencode-status-text');
+  el.btnOpencodeStatus = document.getElementById('btn-opencode-status');
+  el.btnOpencodeExport = document.getElementById('btn-opencode-export');
+  el.btnOpencodeFix = document.getElementById('btn-opencode-fix');
+  el.btnOpencodeHeal = document.getElementById('btn-opencode-heal');
+  el.opencodeHealCmd = document.getElementById('opencode-heal-cmd');
+  el.btnSmartHandoff = document.getElementById('btn-smart-handoff');
+  el.smartHandoffPath = document.getElementById('smart-handoff-path');
+
   // Direct AI Fix & Token Report elements
   el.btnSelfImproveDsh = document.getElementById('btn-self-improve-dsh');
   el.btnLaunchDshWeb = document.getElementById('btn-launch-dsh-web');
@@ -454,6 +467,16 @@ document.addEventListener('DOMContentLoaded', () => {
     crawlFiles,
     renderShotsPreview,
     captureManualScreenshot
+  });
+
+  const { setupOpenCodeEventListeners } = require('./components/opencode_ui_controller');
+  setupOpenCodeEventListeners({
+    el,
+    agentBrain,
+    audio,
+    toastNotifier,
+    logSystemMessage,
+    saveConfigData
   });
 
   setupCollapsibleSections();

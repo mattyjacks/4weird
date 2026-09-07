@@ -889,6 +889,245 @@ async function runTests() {
     failedTests.push("Security.superSecureDefenses");
   }
 
+  // Test 27: OpenCode.ai Bridge (offline-safe: no binary, no network)
+  try {
+    console.log("Running Test 27: OpenCode Bridge export/prompt/heal plumbing...");
+    const bridge = require('./lib/opencode_bridge');
+
+    // Defaults: disabled, CLI mode, workspace = repo root
+    delete process.env.OPENCODE_ENABLED;
+    const defaults = bridge.getOpenCodeConfig({});
+    assert.strictEqual(defaults.enabled, false, "Bridge must be disabled by default");
+    assert.strictEqual(defaults.mode, 'cli', "Default mode should be cli");
+    assert(fs.existsSync(defaults.workspaceRoot), "Workspace root should exist");
+
+    // Env override
+    process.env.OPENCODE_ENABLED = '1';
+    assert.strictEqual(bridge.getOpenCodeConfig({}).enabled, true, "OPENCODE_ENABLED=1 should enable");
+    delete process.env.OPENCODE_ENABLED;
+
+    // Missing binary degrades gracefully (never throws)
+    const missing = bridge.detectOpenCode('definitely-not-a-real-binary-xyz');
+    assert.strictEqual(missing.available, false, "Bogus binary must report unavailable");
+    assert(missing.hint && missing.hint.includes('opencode.ai'), "Should include install hint");
+
+    // Prompt builder carries bugs + hard rules
+    const bugs = [{ id: 'BUG-T1', gameId: 'gravegain3d', title: 'Crash on load', description: 'null ref', severity: 'high', consoleLogs: ['TypeError: x'] }];
+    const prompt = bridge.buildBugFixPrompt({ bugs, gameId: 'gravegain3d' });
+    assert(prompt.includes('Crash on load'), "Prompt must include bug title");
+    assert(prompt.includes('MUST pass'), "Prompt must include verification rule");
+
+    // Export writes md + json, truncates huge screenshots
+    const big = { ...bugs[0], id: 'BUG-T2', screenshot: 'A'.repeat(5000) };
+    const exported = bridge.exportBugReport({ bugs: [bugs[0], big], gameId: 'gravegain3d' });
+    assert.strictEqual(exported.success, true, "Export should succeed");
+    assert.strictEqual(exported.bugCount, 2, "Export should count both bugs");
+    assert(fs.existsSync(exported.mdPath), "Markdown report must exist");
+    assert(fs.existsSync(exported.jsonPath), "JSON report must exist");
+    const payload = JSON.parse(fs.readFileSync(exported.jsonPath, 'utf8'));
+    assert(payload.bugs[1].screenshot.length < 5000, "Screenshots must be truncated in JSON");
+
+    // fixBugs with no bugs refuses cleanly (no opencode spawn attempted)
+    const noBugs = await bridge.fixBugs({ bugs: [] });
+    assert.strictEqual(noBugs.success, false, "fixBugs with no bugs must fail cleanly");
+
+    // Shell runner + failure extractor
+    const echoRes = await bridge.runShellCommand('echo test-ok', __dirname, 15000);
+    assert.strictEqual(echoRes.exitCode, 0, "echo should exit 0");
+    assert(echoRes.output.includes('test-ok'), "Should capture stdout");
+    const fails = bridge.extractFailuresFromOutput('ok line\nFAIL boom\nError: bad\n0 failures');
+    assert(fails.some(f => f.includes('FAIL boom')), "Should extract FAIL lines");
+
+    // Self-heal loop with an injected passing runner → 'healed' without touching disk
+    const { runId } = bridge.startHealCycle({
+      bugs: [], gameId: 'gravegain3d', testCommand: 'probe', dir: __dirname,
+      maxIterations: 2, testRunner: async () => ({ exitCode: 0, output: 'all green' })
+    });
+    let run = null;
+    for (let i = 0; i < 50; i++) {
+      await new Promise(r => setTimeout(r, 100));
+      run = bridge.getHealRun(runId);
+      if (run && run.status !== 'running') break;
+    }
+    assert(run && run.status === 'healed', "Passing tests should heal immediately");
+
+    // Cleanup export artifacts
+    fs.unlinkSync(exported.mdPath);
+    fs.unlinkSync(exported.jsonPath);
+
+    console.log("✅ Test 27 Passed!");
+  } catch (err) {
+    console.error("❌ Test 27 Failed:", err);
+    failedTests.push("OpenCode.bridge");
+  }
+
+  // Test 28: Cloud token auth + /api/opencode/* routing
+  try {
+    console.log("Running Test 28: Cloud token auth + OpenCode routes...");
+    const { LocalAPIServer } = require('./lib/api_server');
+    const cloudPort = 42071;
+    const prevToken = process.env.VIBE_API_TOKEN;
+    process.env.VIBE_API_TOKEN = 'test-token-123';
+
+    const server = new LocalAPIServer({ port: cloudPort });
+    await server.start();
+    const extHeaders = { Origin: 'https://external.example' };
+
+    // Health stays open for probes even with a token set
+    let res = await fetch(`http://127.0.0.1:${cloudPort}/api/status`);
+    assert.strictEqual(res.status, 200, "GET /api/status must stay open (probes)");
+
+    // Local no-origin clients (desktop app, on-box curl) keep working
+    res = await fetch(`http://127.0.0.1:${cloudPort}/api/opencode/status`);
+    assert.strictEqual(res.status, 200, "Local callers bypass token auth");
+    const statusBody = await res.json();
+    assert(statusBody.opencode && typeof statusBody.opencode.available === 'boolean', "Status must carry opencode object");
+
+    // Remote/origin callers without a token are rejected…
+    res = await fetch(`http://127.0.0.1:${cloudPort}/api/opencode/status`, { method: 'POST', headers: extHeaders, body: '{}' });
+    assert.strictEqual(res.status, 401, "Mutating call without token must be 401");
+
+    // …and accepted with X-Vibe-Auth (empty bug store → clean 400, proves routing)
+    res = await fetch(`http://127.0.0.1:${cloudPort}/api/opencode/export`, {
+      method: 'POST', headers: { ...extHeaders, 'Content-Type': 'application/json', 'X-Vibe-Auth': 'test-token-123' },
+      body: JSON.stringify({ gameId: 'no-such-game-xyz' })
+    });
+    assert.strictEqual(res.status, 400, "Export with no matching bugs must be 400");
+    const exportBody = await res.json();
+    assert(exportBody.error && exportBody.error.includes('No bugs'), "Should explain empty export");
+
+    // heal-test guardrail rejects non-test commands even with a valid token.
+    // (External origins are stopped earlier with 403 by the origin block;
+    //  on-box callers reach the guardrail itself.)
+    res = await fetch(`http://127.0.0.1:${cloudPort}/api/opencode/heal-test`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Vibe-Auth': 'test-token-123' },
+      body: JSON.stringify({ testCommand: 'rm -rf /' })
+    });
+    assert.strictEqual(res.status, 400, "heal-test must reject non-test commands");
+
+    // …while a real test command executes and reports back
+    res = await fetch(`http://127.0.0.1:${cloudPort}/api/opencode/heal-test`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Vibe-Auth': 'test-token-123' },
+      body: JSON.stringify({ testCommand: 'echo test-ok-remote' })
+    });
+    assert.strictEqual(res.status, 200, "heal-test should run test commands");
+    const healBody = await res.json();
+    assert.strictEqual(healBody.exitCode, 0, "echo must exit 0");
+    assert(healBody.output.includes('test-ok-remote'), "Should return command output");
+
+    await server.stop();
+    if (prevToken === undefined) delete process.env.VIBE_API_TOKEN;
+    else process.env.VIBE_API_TOKEN = prevToken;
+
+    console.log("✅ Test 28 Passed!");
+  } catch (err) {
+    console.error("❌ Test 28 Failed:", err);
+    failedTests.push("Cloud.tokenAuth");
+    try { delete process.env.VIBE_API_TOKEN; } catch (e) {}
+  }
+
+  // Test 29: SmartLog file logging + AI handoff briefs
+  try {
+    console.log("Running Test 29: SmartLog file logging + handoff...");
+    const smart = require('./lib/smart_log');
+    const tmpDir = path.join(__dirname, 'data', 'test_smartlog_' + Date.now());
+    const slog = new smart.SmartLog({ dir: tmpDir, source: 'test' });
+
+    assert(fs.existsSync(tmpDir), "SmartLog must create its log dir");
+    slog.info('boot ok', { category: 'lifecycle' });
+    slog.error('Error: something broke code=5000', { category: 'game', stack: 'Error: something broke\n at x (y.js:9)' });
+    slog.error('Error: something broke code=7777', { category: 'game' }); // same cluster (ids normalize)
+    const dayFile = path.join(tmpDir, 'vibe-' + new Date().toISOString().slice(0, 10) + '.jsonl');
+    assert(fs.existsSync(dayFile), "Daily JSONL file must exist");
+
+    const handoff = slog.writeHandoff({ reason: 'test handoff', bugs: [{ id: 'B-1', title: 'T', severity: 'low' }] });
+    assert.strictEqual(handoff.success, true, "Handoff must succeed");
+    assert(fs.existsSync(handoff.path), "Handoff file must exist");
+    assert(handoff.markdown.includes('x2'), "Repeated errors must cluster with count");
+    assert(handoff.markdown.includes('B-1'), "Handoff must include open bugs");
+    const latest = slog.readLatestHandoff();
+    assert.strictEqual(latest.success, true, "Latest handoff must be readable");
+
+    // CLI arg parsing: --headfull wins over --headless
+    const parsed = smart.parseWorkerArgs(['node', 'x', '--headless', '--headfull', '--game', 'g', '--autoplay']);
+    assert.strictEqual(parsed.headfull, true, "--headfull must win");
+    assert.strictEqual(parsed.headless, false, "--headless must be cleared");
+    assert.strictEqual(parsed.game, 'g', "Game must parse");
+    assert.strictEqual(parsed.autoplay, true, "Autoplay must parse");
+
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    console.log("✅ Test 29 Passed!");
+  } catch (err) {
+    console.error("❌ Test 29 Failed:", err);
+    failedTests.push("SmartLog.handoff");
+  }
+
+  // Test 30: Handoff API + heal-run persistence + bridge auto-feed
+  try {
+    console.log("Running Test 30: Handoff routes + heal persistence...");
+    const { LocalAPIServer } = require('./lib/api_server');
+    const bridge = require('./lib/opencode_bridge');
+    const smart = require('./lib/smart_log');
+    const hPort = 42072;
+
+    // Seed one log row so the handoff has content
+    smart.getSharedLog('test-30').error('Error: probe failure', { category: 'game' });
+
+    const server = new LocalAPIServer({ port: hPort });
+    await server.start();
+
+    // POST generates a fresh handoff (includes bug-store bugs)
+    let res = await fetch(`http://127.0.0.1:${hPort}/api/opencode/handoff`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason: 'test-30', includeBugs: false })
+    });
+    assert.strictEqual(res.status, 200, "POST handoff must succeed");
+    const gen = await res.json();
+    assert(gen.path && gen.markdown.includes('test-30'), "Generated handoff must carry the reason");
+
+    // GET serves the latest handoff back
+    res = await fetch(`http://127.0.0.1:${hPort}/api/opencode/handoff`);
+    assert.strictEqual(res.status, 200, "GET handoff must succeed");
+    const latest = await res.json();
+    assert(latest.markdown.length > 100, "Handoff markdown must be served");
+
+    // Auto-feed: bridge attaches the handoff to fix prompts when present
+    assert(bridge.getLatestHandoffMarkdown() !== null, "Handoff markdown must be available to the bridge");
+
+    // Heal-run persistence: a failing-then-passing loop writes a .heal.json file
+    let calls = 0;
+    const { runId } = bridge.startHealCycle({
+      bugs: [], gameId: 'test-30', testCommand: 'probe', dir: __dirname, maxIterations: 3,
+      testRunner: async () => (++calls === 1
+        ? { exitCode: 1, output: 'FAIL first pass' }
+        : { exitCode: 0, output: 'all green' }),
+    });
+    // Stub the fix step by enabling a fake binary? No — fix will fail gracefully
+    // (opencode missing), run ends 'fix_failed' and still persists. Just wait.
+    let run = null;
+    for (let i = 0; i < 100; i++) {
+      await new Promise(r => setTimeout(r, 100));
+      run = bridge.getHealRun(runId);
+      if (run && run.status !== 'running') break;
+    }
+    assert(run && run.status !== 'running', "Heal run must finish");
+    const healFile = path.join(smart.getLogDir(), `${runId}.heal.json`);
+    assert(fs.existsSync(healFile), "Heal run JSON must persist to the log dir");
+    const persisted = JSON.parse(fs.readFileSync(healFile, 'utf8'));
+    assert(persisted.history.length >= 1, "Persisted run must include iteration history");
+    fs.unlinkSync(healFile);
+    for (const h of (run.history || [])) {
+      try { if (h.exported && h.exported.mdPath && fs.existsSync(h.exported.mdPath)) fs.unlinkSync(h.exported.mdPath); } catch (e) {}
+      try { if (h.exported && h.exported.jsonPath && fs.existsSync(h.exported.jsonPath)) fs.unlinkSync(h.exported.jsonPath); } catch (e) {}
+    }
+
+    await server.stop();
+    console.log("✅ Test 30 Passed!");
+  } catch (err) {
+    console.error("❌ Test 30 Failed:", err);
+    failedTests.push("Handoff.routes");
+  }
+
   // Write results to .last-run.json
   const resultsPath = path.join(__dirname, '..', '..', '..', 'test-results', '.last-run.json');
   const status = failedTests.length === 0 ? "passed" : "failed";
