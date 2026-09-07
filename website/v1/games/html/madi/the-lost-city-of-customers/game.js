@@ -137,7 +137,7 @@ function triggerScanPulse(point) {
 
     // Create scan wave representation
     if (scanWave) scene.remove(scanWave);
-    
+
     const ringGeo = new THREE.RingGeometry(0.1, 0.3, 32);
     const ringMat = new THREE.MeshBasicMaterial({ color: 0x34d399, side: THREE.DoubleSide, transparent: true, opacity: 0.8 });
     scanWave = new THREE.Mesh(ringGeo, ringMat);
@@ -246,6 +246,6 @@ function animate() {
 }
 
 
-// Expose AIPlay state
+// Expose VibeCodeWorker state
 window.gameState = { title: "the-lost-city-of-customers", get active() { return typeof gameActive !== "undefined" ? gameActive : true; } };
 window.game = window.gameState;

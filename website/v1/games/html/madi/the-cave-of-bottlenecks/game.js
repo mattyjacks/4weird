@@ -229,7 +229,7 @@ function animate() {
                     // Is illuminated! Shrink/destroy
                     stal.hp -= 40 * delta;
                     stal.mesh.material.emissive.setHex(0xffaa22); // glow orange-gold
-                    
+
                     // Shrink scale
                     const newScale = Math.max(0.1, stal.hp / 100);
                     stal.mesh.scale.set(newScale, newScale, newScale);
@@ -258,6 +258,6 @@ function animate() {
 }
 
 
-// Expose AIPlay state
+// Expose VibeCodeWorker state
 window.gameState = { title: "the-cave-of-bottlenecks", get active() { return typeof gameActive !== "undefined" ? gameActive : true; } };
 window.game = window.gameState;

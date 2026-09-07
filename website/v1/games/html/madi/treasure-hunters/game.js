@@ -108,7 +108,7 @@ function spawnTreasures() {
     for (let i = 0; i < 6; i++) {
         const isGold = Math.random() > 0.3;
         const mesh = new THREE.Mesh(isGold ? goldGeo : rockGeo, isGold ? goldMat : rockMat);
-        
+
         // Random layout below the crane (Y <= 1)
         const rx = (Math.random() * 8) - 4;
         const ry = (Math.random() * 5) - 3; // -3 to 2
@@ -278,6 +278,6 @@ function animate() {
 }
 
 
-// Expose AIPlay state
+// Expose VibeCodeWorker state
 window.gameState = { title: "treasure-hunters", get active() { return typeof gameActive !== "undefined" ? gameActive : true; } };
 window.game = window.gameState;

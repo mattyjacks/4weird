@@ -121,7 +121,7 @@ function generatePlatforms(startY, count) {
     for (let i = 0; i < count; i++) {
         const y = startY + i * 3.5 + 2;
         const x = (Math.random() * 8) - 4; // limit range -4 to 4
-        
+
         // Randomize platform type
         const isSpreadsheet = Math.random() > 0.85;
         const platform = new THREE.Mesh(platformGeo, isSpreadsheet ? spreadsheetMat : systemMat);
@@ -284,6 +284,6 @@ function animate() {
 }
 
 
-// Expose AIPlay state
+// Expose VibeCodeWorker state
 window.gameState = { title: "the-pipeline-mountain", get active() { return typeof gameActive !== "undefined" ? gameActive : true; } };
 window.game = window.gameState;

@@ -124,7 +124,7 @@ function createJungleFloor() {
 function createMascots() {
     // 1. Blue Cat (Action - Runs on floor)
     const blueGroup = new THREE.Group();
-    
+
     // Body
     const bodyGeo = new THREE.BoxGeometry(1.2, 0.8, 0.8);
     const blueMat = new THREE.MeshPhongMaterial({ color: 0x3b82f6, shininess: 50 });
@@ -155,7 +155,7 @@ function createMascots() {
     // 2. Green Cat (Intelligence - Flies ahead)
     const greenGroup = new THREE.Group();
     const greenMat = new THREE.MeshPhongMaterial({ color: 0x10b981, emissive: 0x022c22, shininess: 50 });
-    
+
     // Body
     const gBodyGeo = new THREE.SphereGeometry(0.4, 16, 16);
     const gBody = new THREE.Mesh(gBodyGeo, greenMat);
@@ -238,7 +238,7 @@ function resetGame() {
     blueCat.position.y = 0;
     isJumping = false;
     jumpVelocity = 0;
-    
+
     scoreSpan.textContent = '0';
     revenueSpan.textContent = '$0';
 
@@ -329,7 +329,7 @@ function animate() {
         for (let i = obstacles.length - 1; i >= 0; i--) {
             const obs = obstacles[i];
             obs.mesh.position.x -= baseSpeed;
-            
+
             // Spin/float obstacles
             if (obs.type === 'vine') {
                 obs.mesh.rotation.y += delta;
@@ -379,6 +379,6 @@ function animate() {
 }
 
 
-// Expose AIPlay state
+// Expose VibeCodeWorker state
 window.gameState = { title: "the-revenue-jungle", get active() { return typeof gameActive !== "undefined" ? gameActive : true; } };
 window.game = window.gameState;

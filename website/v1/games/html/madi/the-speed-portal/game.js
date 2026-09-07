@@ -311,6 +311,6 @@ function animate() {
 }
 
 
-// Expose AIPlay state
+// Expose VibeCodeWorker state
 window.gameState = { title: "the-speed-portal", get active() { return typeof gameActive !== "undefined" ? gameActive : true; } };
 window.game = window.gameState;

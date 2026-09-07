@@ -58,7 +58,7 @@ function init() {
 
 function setupRegions() {
     const regionGeo = new THREE.CylinderGeometry(0.8, 1.0, 0.4, 6);
-    
+
     const data = [
         { x: -3.5, y: 1.5, color: 0x10b981, name: 'Revenue Jungle', url: '/games/html/madi/the-revenue-jungle/' },
         { x: 3.5, y: 1.5, color: 0xf59e0b, name: 'Temple of Lost Revenue', url: '/games/html/madi/temple-of-lost-revenue/' },
@@ -144,6 +144,6 @@ function animate() {
 }
 
 
-// Expose AIPlay state
+// Expose VibeCodeWorker state
 window.gameState = { title: "the-madi-ai-universe", get active() { return typeof gameActive !== "undefined" ? gameActive : true; } };
 window.game = window.gameState;

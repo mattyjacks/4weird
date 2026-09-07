@@ -11,17 +11,17 @@ let gameActive = false;
 
 // Maze grid map: 1 = wall, 0 = path, 2 = item
 const mazeGrid = [
-    [1,1,1,1,1,1,1,1,1,1,1],
-    [1,0,0,0,1,0,0,0,0,2,1],
-    [1,0,1,0,1,0,1,1,1,0,1],
-    [1,2,1,0,0,0,0,0,1,0,1],
-    [1,1,1,1,1,0,1,0,1,0,1],
-    [1,0,0,0,0,2,1,0,0,0,1],
-    [1,0,1,1,1,1,1,1,1,2,1],
-    [1,0,0,0,0,0,1,0,0,0,1],
-    [1,1,1,0,1,0,1,0,1,1,1],
-    [1,2,0,0,1,0,0,0,0,0,1],
-    [1,1,1,1,1,1,1,1,1,1,1]
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 1, 0, 0, 0, 0, 2, 1],
+    [1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1],
+    [1, 2, 1, 0, 0, 0, 0, 0, 1, 0, 1],
+    [1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 2, 1, 0, 0, 0, 1],
+    [1, 0, 1, 1, 1, 1, 1, 1, 1, 2, 1],
+    [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+    [1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1],
+    [1, 2, 0, 0, 1, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ];
 const gridRows = mazeGrid.length;
 const gridCols = mazeGrid[0].length;
@@ -54,7 +54,7 @@ function init() {
     camera = new THREE.PerspectiveCamera(50, 800 / 600, 0.1, 100);
     // Position camera for an isometric overview look
     camera.position.set(0, 18, 15);
-    
+
     const canvas = document.getElementById('TEMPLATE-4weird-gameCanvas');
     renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
     renderer.setSize(canvas.clientWidth, canvas.clientHeight);
@@ -100,7 +100,7 @@ function buildMaze() {
     // Shared geometries and materials
     const wallGeo = new THREE.BoxGeometry(cellSize, 4, cellSize);
     const wallMat = new THREE.MeshStandardMaterial({ color: 0x2e1f15, roughness: 0.9, metalness: 0.1 });
-    
+
     const floorGeo = new THREE.BoxGeometry(cellSize, 0.2, cellSize);
     const floorMat = new THREE.MeshStandardMaterial({ color: 0x1a120b, roughness: 0.8 });
 
@@ -234,7 +234,7 @@ function movePlayer(dr, dc) {
         if (mazeGrid[targetR][targetC] !== 1) {
             playerGridPos.r = targetR;
             playerGridPos.c = targetC;
-            
+
             // Adjust player rotation to face movement direction
             if (dr === 0 && dc > 0) player.rotation.y = 0;
             else if (dr === 0 && dc < 0) player.rotation.y = Math.PI;
@@ -314,6 +314,6 @@ function animate() {
 }
 
 
-// Expose AIPlay state
+// Expose VibeCodeWorker state
 window.gameState = { title: "temple-of-lost-revenue", get active() { return typeof gameActive !== "undefined" ? gameActive : true; } };
 window.game = window.gameState;
