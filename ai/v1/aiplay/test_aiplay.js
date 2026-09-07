@@ -570,6 +570,44 @@ async function runTests() {
     failedTests.push("AutoCode.environmentVariableResolution");
   }
 
+  // Test 18: Ultralight Web Engine Automation & Bug Telemetry
+  try {
+    console.log("Running Test 18: Ultralight Web Engine Automation & Bug Telemetry...");
+    const { UltralightWebEngine } = require('./src/runtime/ultralight_engine');
+    const engine = new UltralightWebEngine();
+    assert.strictEqual(engine.name, 'Ultralight WebKit-Core');
+    assert.strictEqual(engine.options.viewportWidth, 1280);
+
+    // Test navigation event
+    let navFired = false;
+    engine.on('navigating', (ev) => { if (ev.url === 'http://localhost:8888/games/html/orbitaldrift/index.html') navFired = true; });
+    await engine.navigate('http://localhost:8888/games/html/orbitaldrift/index.html');
+    assert.strictEqual(navFired, true, "Engine should fire navigation event");
+
+    // Test console error detection into Bug Tracker
+    let bugCaught = null;
+    engine.on('bug_detected', (bug) => { bugCaught = bug; });
+    engine.logConsole('error', 'Uncaught TypeError: Cannot read property of undefined at script.js:42');
+    assert.notStrictEqual(bugCaught, null, "Should flag console error as detected defect");
+    assert.strictEqual(bugCaught.type, 'Web Console Exception');
+
+    // Test network failure telemetry
+    let netBugCaught = null;
+    engine.on('bug_detected', (bug) => { if (bug.type.includes('Network')) netBugCaught = bug; });
+    engine.logNetwork({ url: 'http://localhost:8888/assets/sprites/player.png', status: 404 });
+    assert.notStrictEqual(netBugCaught, null, "Should flag 404 network failure as detected defect");
+
+    const metrics = engine.getMetrics();
+    assert.strictEqual(metrics.consoleErrors, 1);
+    assert.strictEqual(metrics.networkFailures, 1);
+    assert.strictEqual(metrics.diagnosedBugs, 2);
+
+    console.log("✅ Test 18 Passed!");
+  } catch (err) {
+    console.error("❌ Test 18 Failed:", err);
+    failedTests.push("UltralightWebEngine.telemetryAndAutomation");
+  }
+
   // Write results to .last-run.json
   const resultsPath = path.join(__dirname, '..', '..', '..', 'test-results', '.last-run.json');
   const status = failedTests.length === 0 ? "passed" : "failed";

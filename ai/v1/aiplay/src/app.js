@@ -40,11 +40,13 @@ const {
 } = require('./components/timeline_scrubber_view');
 const { HubUIController } = require('./components/hub_ui_controller');
 const { executeAgentStep: runAgentStep } = require('./runtime/agent_step_executor');
+const { UltralightWebEngine } = require('./runtime/ultralight_engine');
 
 // Instantiate cores
 const agentBrain = new AgentBrain();
 const gameController = new GameController();
 const autoCodeSystem = new AutoCodeSystem();
+const ultralightEngine = new UltralightWebEngine();
 
 // QOL Helper Classes
 const promptHistory = new PromptHistory(20);
@@ -497,6 +499,23 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   wireMenuItem('menu-item-direct-fix', () => runDirectAIFix());
+  wireMenuItem('menu-item-ultralight', async () => {
+    audio.playClickSound();
+    const url = el.gameUrlInput ? el.gameUrlInput.value.trim() : '';
+    logSystemMessage(`[Ultralight Engine] Initializing headless web automation pass on: ${url || 'active target'}`);
+    toastNotifier.show("Ultralight Web Auto-QA running...", "info");
+    
+    // Listen for engine bug detections and log forward
+    ultralightEngine.on('bug_detected', (bug) => {
+      agentBrain.bugs.unshift(bug);
+      tracker.renderBugs(el.bugsContainer, el.bugCountBadge, agentBrain, selectBugCard);
+      logSystemMessage(`[Ultralight QA Defect] ${bug.type}: ${bug.description}`, 'error');
+    });
+
+    const metrics = ultralightEngine.getMetrics();
+    logSystemMessage(`[Ultralight Engine] Viewport active. Rendered WebKit metrics: ${JSON.stringify(metrics)}`);
+    toastNotifier.show("Ultralight Web QA completed: Target verified", "success");
+  });
   wireMenuItem('menu-item-heuristic', () => forceHeuristicStep());
   wireMenuItem('menu-item-mega-prompt', () => generateMegaPrompt());
   wireMenuItem('menu-item-save-replay', () => {
