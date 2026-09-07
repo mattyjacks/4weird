@@ -102,6 +102,10 @@ function queryElements() {
   
   el.gameUrlInput = document.getElementById('game-url');
   el.btnLoadUrl = document.getElementById('btn-load-url');
+  el.quickGameUrl = document.getElementById('quick-game-url');
+  el.quickGameRules = document.getElementById('quick-game-rules');
+  el.btnQuickLoad = document.getElementById('btn-quick-load');
+  el.btnQuickRun = document.getElementById('btn-quick-run');
   el.demoGameSelect = document.getElementById('demo-game-select');
   el.gameRulesInput = document.getElementById('game-rules');
   el.btnToggleAgent = document.getElementById('btn-toggle-agent');
@@ -238,6 +242,31 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   
   el.btnLoadUrl.addEventListener('click', loadGame);
+  if (el.quickGameUrl) {
+    el.quickGameUrl.value = el.gameUrlInput.value;
+    el.quickGameUrl.addEventListener('input', () => { el.gameUrlInput.value = el.quickGameUrl.value; });
+    el.gameUrlInput.addEventListener('input', () => { el.quickGameUrl.value = el.gameUrlInput.value; });
+  }
+  if (el.quickGameRules) {
+    el.quickGameRules.value = el.gameRulesInput.value;
+    el.quickGameRules.addEventListener('input', () => { el.gameRulesInput.value = el.quickGameRules.value; });
+    el.gameRulesInput.addEventListener('input', () => { el.quickGameRules.value = el.gameRulesInput.value; });
+  }
+  if (el.btnQuickLoad) el.btnQuickLoad.addEventListener('click', () => {
+    if (el.quickGameUrl) el.gameUrlInput.value = el.quickGameUrl.value.trim();
+    if (el.quickGameRules) el.gameRulesInput.value = el.quickGameRules.value.trim();
+    loadGame();
+  });
+  if (el.btnQuickRun) el.btnQuickRun.addEventListener('click', () => {
+    if (el.quickGameUrl) el.gameUrlInput.value = el.quickGameUrl.value.trim();
+    if (el.quickGameRules) el.gameRulesInput.value = el.quickGameRules.value.trim();
+    if (!el.gameUrlInput.value) {
+      toastNotifier.show('Choose a target before starting a playtest.', 'warning');
+      return;
+    }
+    if (!webviewElement.src || webviewElement.src === 'about:blank') loadGame();
+    if (!isRunning) toggleAgentState();
+  });
   el.demoGameSelect.addEventListener('change', selectDemo);
   el.btnToggleAgent.addEventListener('click', toggleAgentState);
   el.btnWebviewReload.addEventListener('click', reloadGame);
@@ -291,20 +320,14 @@ document.addEventListener('DOMContentLoaded', () => {
     el.btnToggleView.addEventListener('click', () => {
       audio.playClickSound();
       const appContainer = document.querySelector('.app-container');
-      const isSimple = appContainer.classList.toggle('simple-mode');
+      const isOpen = appContainer.classList.toggle('options-open');
       const navLabelEl = el.btnToggleView.querySelector('.nav-item-label') || el.btnToggleView;
       if (navLabelEl === el.btnToggleView) {
-        el.btnToggleView.textContent = isSimple ? '🛠️ Switch to Advanced Layout' : '👁️ Switch to Simple Layout';
+        el.btnToggleView.textContent = isOpen ? '✕ Close detailed options' : '🛠️ Open detailed options';
       } else {
-        navLabelEl.textContent = isSimple ? 'Switch to Advanced Layout' : 'Switch to Simple Layout';
+        navLabelEl.textContent = isOpen ? 'Close detailed options' : 'Open detailed options';
       }
-      logSystemMessage(`Switched to ${isSimple ? 'Simple' : 'Advanced'} layout.`);
-      if (isSimple) {
-        tabs.switchTab('logs', el, audio);
-        hideNav();
-      } else {
-        showNav();
-      }
+      logSystemMessage(`${isOpen ? 'Opened' : 'Closed'} detailed options.`);
     });
   }
   
@@ -527,10 +550,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   wireMenuItem('menu-item-toggle-layout', () => {
     if (el.btnToggleView) el.btnToggleView.click();
-    const isSimple = appContainer.classList.contains('simple-mode');
+    const isOpen = appContainer.classList.contains('options-open');
     const menuLayoutLabel = document.getElementById('menu-layout-label');
     if (menuLayoutLabel) {
-      menuLayoutLabel.textContent = isSimple ? 'Switch to Advanced Layout' : 'Switch to Simple Layout';
+      menuLayoutLabel.textContent = isOpen ? 'Close detailed options' : 'Open detailed options';
     }
   });
 
@@ -683,6 +706,8 @@ function updateStatusBanner(text, type = 'ready') {
 }
 
 function loadGame() {
+  if (el.quickGameUrl && el.quickGameUrl.value !== el.gameUrlInput.value) el.quickGameUrl.value = el.gameUrlInput.value;
+  if (el.quickGameRules && el.quickGameRules.value !== el.gameRulesInput.value) el.quickGameRules.value = el.gameRulesInput.value;
   webview.loadGameUrl(el.gameUrlInput, webviewElement, el.webviewPlaceholder, saveConfigData, crawlFiles, logSystemMessage);
   if (el.gameUrlInput.value) {
     updateStatusBanner("👉 Game ready! Click 'START AI AGENT' to begin playtesting", 'ready');
@@ -694,9 +719,11 @@ function selectDemo() {
   const val = el.demoGameSelect.value;
   if (val) {
     el.gameUrlInput.value = val;
+    if (el.quickGameUrl) el.quickGameUrl.value = val;
     saveConfigData();
     loadGame();
     webview.loadGameMeta(val, el.gameRulesInput, saveConfigData, logSystemMessage);
+    if (el.quickGameRules) el.quickGameRules.value = el.gameRulesInput.value;
   }
 }
 

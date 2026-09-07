@@ -16,10 +16,12 @@ import { loadGameTarget, initiateTesting, pauseTesting, stopTesting, executeAgen
 
 let hubInstance = null;
 
-function toggleSimpleMode() {
+function toggleOptions() {
   synth.playClick();
-  state.isSimpleMode = !state.isSimpleMode;
-  applyLayoutMode();
+  const container = document.querySelector('.app-wrapper') || document.body;
+  container.classList.toggle('options-open');
+  const label = document.getElementById('menu-layout-label');
+  if (label) label.textContent = container.classList.contains('options-open') ? 'Close options' : 'Options';
 }
 
 function applyLayoutMode() {
@@ -29,13 +31,13 @@ function applyLayoutMode() {
 
   if (state.isSimpleMode) {
     container.classList.add('simple-mode');
-    if (label) label.textContent = 'Switch to Advanced Layout';
-    if (btnView) btnView.textContent = '🛠️ Switch to Advanced Layout';
-    log("[LAYOUT] Simple Mode active (clean game view + minimalist controls).", "system");
+    if (label) label.textContent = 'Options';
+    if (btnView) btnView.textContent = '🛠️ Open options';
+    log("[LAYOUT] Focused workspace active. Detailed controls are available in Options.", "system");
   } else {
     container.classList.remove('simple-mode');
-    if (label) label.textContent = 'Switch to Simple Layout';
-    if (btnView) btnView.textContent = '👁️ Switch to Simple Layout';
+    if (label) label.textContent = 'Options';
+    if (btnView) btnView.textContent = '👁️ Open options';
     log("[LAYOUT] Advanced Mode active (full cyber telemetry & orchestrator).", "system");
   }
 }
@@ -137,6 +139,7 @@ function selectPreset() {
   const val = el.presetGames.value;
   if (val) {
     el.gameTarget.value = val;
+    if (el.quickTarget) el.quickTarget.value = val;
     loadGameTarget();
   }
 }
@@ -189,6 +192,24 @@ function bindKeyboardShortcuts() {
 
 function bindEvents() {
   if (el.btnLoad) el.btnLoad.addEventListener('click', () => loadGameTarget());
+  if (el.quickTarget && el.gameTarget) {
+    el.quickTarget.value = el.gameTarget.value;
+    el.quickTarget.addEventListener('input', () => {
+      el.gameTarget.value = el.quickTarget.value;
+      state.gameLoaded = false;
+    });
+  }
+  if (el.quickObjective && el.testRules) {
+    el.quickObjective.value = el.testRules.value;
+    el.quickObjective.addEventListener('input', () => { el.testRules.value = el.quickObjective.value; });
+  }
+  if (el.btnQuickLoad) el.btnQuickLoad.addEventListener('click', () => loadGameTarget());
+  if (el.btnQuickRun) el.btnQuickRun.addEventListener('click', () => {
+    if (el.quickTarget && el.gameTarget) el.gameTarget.value = el.quickTarget.value.trim();
+    if (el.quickObjective && el.testRules) el.testRules.value = el.quickObjective.value.trim();
+    initiateTesting();
+  });
+  if (el.btnQuickPause) el.btnQuickPause.addEventListener('click', pauseTesting);
   if (el.presetGames) el.presetGames.addEventListener('change', selectPreset);
 
   if (el.btnLunaVisionScan) el.btnLunaVisionScan.addEventListener('click', () => runLunaVisionScan(false));
@@ -488,8 +509,8 @@ function bindEvents() {
 
   // Header Layout Toggle button
   const topLayoutToggle = document.getElementById('btn-top-layout-toggle');
-  if (topLayoutToggle) topLayoutToggle.addEventListener('click', toggleSimpleMode);
-  if (el.btnToggleView) el.btnToggleView.addEventListener('click', toggleSimpleMode);
+  if (topLayoutToggle) topLayoutToggle.addEventListener('click', toggleOptions);
+  if (el.btnToggleView) el.btnToggleView.addEventListener('click', toggleOptions);
 
   setupPhoneRemoteInteractions({
     onStartAgent: () => {
@@ -544,7 +565,7 @@ function initApp() {
   hubInstance.init();
 
   applyLayoutMode();
-  hubInstance.showHubView();
+  hubInstance.showEditorView();
 
   if (isTauriRuntime()) {
     if (el.tauriDesktopBadge) el.tauriDesktopBadge.style.display = 'inline-flex';

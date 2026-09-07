@@ -42,9 +42,9 @@
       <div class="bar-left">
         <span class="brand-logo">4WEIRD VIBECODEWORKER</span>
         <span class="divider">|</span>
-        <button class="top-nav-btn hub-highlight-btn" id="btn-top-hub" title="Go to Welcome Hub Home">🏠 HOME / HUB</button>
+        <button class="top-nav-btn hub-highlight-btn" id="btn-top-hub" title="Browse workspaces and starter flows">⌂ WORKSPACES</button>
         <span class="divider">|</span>
-        <button class="top-nav-btn" id="btn-top-layout-toggle" title="Toggle Simple / Advanced layout mode">👁️ <span id="menu-layout-label">Switch to Advanced Layout</span></button>
+        <button class="top-nav-btn" id="btn-top-layout-toggle" title="Show or hide detailed agent controls">☰ <span id="menu-layout-label">Options</span></button>
         <span class="divider">|</span>
         <span class="system-tag">SYS.STATUS: <span class="pulse-green">ONLINE</span></span>
       </div>
@@ -326,6 +326,28 @@
             <span class="shortcut-tip">Shortcuts: <code>Space</code> Pause/Resume | <code>Ctrl+Enter</code> Run | <code>/</code> Terminal | <code>Esc</code> Close</span>
           </div>
         </div>
+
+        <!-- Default workspace: only the choices needed to begin a useful run. -->
+        <section class="quick-run-card" aria-label="Quick test setup">
+          <div class="quick-run-intro">
+            <span class="eyebrow">AUTONOMOUS QA</span>
+            <strong>Test a game or website</strong>
+            <span>Choose a target, describe what matters, then run.</span>
+          </div>
+          <div class="quick-run-fields">
+            <label for="quick-target">Target
+              <input id="quick-target" type="text" placeholder="Paste a URL or local HTML path">
+            </label>
+            <label for="quick-objective">What should the agent check?
+              <input id="quick-objective" type="text" placeholder="For example: menus, keyboard controls, visual glitches">
+            </label>
+          </div>
+          <div class="quick-run-actions">
+            <button id="btn-quick-load" class="quiet-action">Load preview</button>
+            <button id="btn-quick-run" class="primary-action">Run test <span>→</span></button>
+            <button id="btn-quick-pause" class="quiet-action" disabled>Pause</button>
+          </div>
+        </section>
 
         <!-- Game Viewport Frame -->
         <section class="panel viewport-panel" id="stage-viewport-panel">

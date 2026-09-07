@@ -2,13 +2,21 @@ const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
+function getInputSimulatorPath(baseDir) {
+  // Electron packages application sources into app.asar. Python cannot execute
+  // a script from inside that archive, so use the explicitly unpacked copy in
+  // production and the project copy while developing.
+  const packaged = path.join(process.resourcesPath || '', 'app.asar.unpacked', 'input_sim.py');
+  return fs.existsSync(packaged) ? packaged : path.join(baseDir, 'input_sim.py');
+}
+
 /**
  * Execute python input simulator script.
  */
 function runInputSimulator(args, baseDir = __dirname) {
   return new Promise((resolve) => {
     const pythonPath = process.platform === 'win32' ? 'python' : 'python3';
-    const scriptPath = path.join(baseDir, 'input_sim.py');
+    const scriptPath = getInputSimulatorPath(baseDir);
 
     console.log(`Spawning: ${pythonPath} ${scriptPath} ${args.join(' ')}`);
     const pyProcess = spawn(pythonPath, [scriptPath, ...args]);
@@ -81,7 +89,7 @@ function captureNativeScreenshot(tempDir, windowTitle, baseDir = __dirname) {
   return new Promise((resolve) => {
     const tempFile = path.join(tempDir, `vibecodeworker_shot_${Date.now()}.jpg`);
     const pythonPath = process.platform === 'win32' ? 'python' : 'python3';
-    const scriptPath = path.join(baseDir, 'input_sim.py');
+    const scriptPath = getInputSimulatorPath(baseDir);
     const args = ['screenshot', tempFile];
     if (windowTitle) {
       args.push(windowTitle);

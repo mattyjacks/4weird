@@ -28,6 +28,9 @@
     "directories": {
       "output": "dist"
     },
+    "asarUnpack": [
+      "input_sim.py"
+    ],
     "files": [
       "**/*",
       "!dist/*",

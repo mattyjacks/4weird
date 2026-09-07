@@ -189,6 +189,8 @@ export function loadGameTarget() {
   const url = el.gameTarget ? el.gameTarget.value.trim() : '';
   if (!url) return;
 
+  if (el.quickTarget && el.quickTarget.value !== url) el.quickTarget.value = url;
+
   log(`Loading sandbox iframe target: ${url}`, "system");
   el.gameIframe.src = url;
   state.gameLoaded = true;
@@ -214,6 +216,11 @@ export function loadGameTarget() {
 }
 
 export function initiateTesting() {
+  if (!state.gameLoaded && el.gameTarget && el.gameTarget.value.trim()) loadGameTarget();
+  if (!state.gameLoaded) {
+    log("Choose a target before starting a test run.", "warning");
+    return;
+  }
   synth.playSuccess();
   state.isRunning = true;
   state.isPaused = false;
@@ -237,6 +244,11 @@ export function initiateTesting() {
   if (el.btnPause) el.btnPause.disabled = false;
   if (el.btnStop) el.btnStop.disabled = false;
   if (el.btnViewReport) el.btnViewReport.disabled = true;
+  if (el.btnQuickRun) el.btnQuickRun.disabled = true;
+  if (el.btnQuickPause) {
+    el.btnQuickPause.disabled = false;
+    el.btnQuickPause.textContent = 'Pause';
+  }
 
   if (el.agentStateDot) el.agentStateDot.className = "badge-dot pulse-active";
   if (el.agentStateText) el.agentStateText.textContent = "ACTIVE PLAY";
@@ -261,6 +273,7 @@ export function pauseTesting() {
   if (state.isPaused) {
     state.isPaused = false;
     if (el.btnPause) el.btnPause.textContent = "⏸ PAUSE";
+    if (el.btnQuickPause) el.btnQuickPause.textContent = 'Pause';
     if (el.agentStateDot) el.agentStateDot.className = "badge-dot pulse-active";
     if (el.agentStateText) el.agentStateText.textContent = "ACTIVE PLAY";
     log("Testing session resumed.", "system");
@@ -268,6 +281,7 @@ export function pauseTesting() {
   } else {
     state.isPaused = true;
     if (el.btnPause) el.btnPause.textContent = "▶ RESUME";
+    if (el.btnQuickPause) el.btnQuickPause.textContent = 'Resume';
     if (el.agentStateDot) el.agentStateDot.className = "badge-dot pulse-paused";
     if (el.agentStateText) el.agentStateText.textContent = "PAUSED";
     log("Testing session suspended.", "system");
@@ -292,6 +306,11 @@ export function stopTesting() {
   }
   if (el.btnStop) el.btnStop.disabled = true;
   if (el.btnViewReport) el.btnViewReport.disabled = false;
+  if (el.btnQuickRun) el.btnQuickRun.disabled = false;
+  if (el.btnQuickPause) {
+    el.btnQuickPause.disabled = true;
+    el.btnQuickPause.textContent = 'Pause';
+  }
 
   if (el.agentStateDot) el.agentStateDot.className = "badge-dot pulse-idle";
   if (el.agentStateText) el.agentStateText.textContent = "IDLE";

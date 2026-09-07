@@ -298,6 +298,10 @@
 /* ==========================================================================
    SIMPLE MODE (CLEAN BROWSER VIEWPORT & ZERO CLUTTER)
    ========================================================================== */
+.quick-run-card {
+  display: none;
+}
+
 .simple-mode .config-panel,
 .simple-mode .stats-panel,
 .simple-mode .terminal-panel {
@@ -307,13 +311,89 @@
 .simple-mode .center-stage {
   flex: 1;
   width: 100%;
+  min-height: 0;
 }
 
 .simple-mode .viewport-panel {
   flex: 1;
-  height: 100%;
+  height: auto;
+  min-height: 0;
   border: 1px solid var(--neon-cyan);
   box-shadow: 0 0 20px rgba(0, 242, 254, 0.15);
+}
+
+/* A focused default workspace. Detailed controls stay available in Options. */
+.simple-mode .quick-run-card {
+  display: grid;
+  grid-template-columns: minmax(175px, .8fr) minmax(280px, 1.45fr) auto;
+  align-items: end;
+  gap: 16px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  background: linear-gradient(120deg, rgba(0, 242, 254, .12), rgba(124, 58, 237, .11));
+  border: 1px solid rgba(148, 163, 184, .3);
+  border-radius: 12px;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, .16);
+}
+
+.quick-run-intro { display: flex; flex-direction: column; gap: 3px; }
+.quick-run-intro strong { font-size: 16px; letter-spacing: -.2px; color: #f8fafc; }
+.quick-run-intro span:last-child { color: #b5c1d2; font-size: 11px; line-height: 1.4; }
+.eyebrow { color: var(--neon-cyan); font-family: var(--font-mono); font-size: 9px; font-weight: 800; letter-spacing: 1.1px; }
+.quick-run-fields { display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px; }
+.quick-run-fields label { display: flex; flex-direction: column; gap: 5px; color: #aebdce; font-family: var(--font-mono); font-size: 9px; font-weight: 700; letter-spacing: .45px; }
+.quick-run-fields input { width: 100%; min-width: 0; padding: 9px 10px; color: #f8fafc; background: rgba(3, 8, 18, .7); border: 1px solid rgba(148, 163, 184, .32); border-radius: 7px; outline: none; font: 11px var(--font-mono); }
+.quick-run-fields input:focus { border-color: var(--neon-cyan); box-shadow: 0 0 0 3px rgba(0, 242, 254, .12); }
+.quick-run-actions { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.primary-action, .quiet-action { border-radius: 7px; padding: 9px 12px; cursor: pointer; font: 700 10px var(--font-mono); transition: transform .15s, background .15s, border-color .15s; }
+.primary-action { color: #05121a; border: 1px solid var(--neon-cyan); background: var(--neon-cyan); box-shadow: 0 6px 16px rgba(0, 242, 254, .2); }
+.primary-action:hover { transform: translateY(-1px); background: #77f8ff; }
+.quiet-action { color: #dbe7f5; border: 1px solid rgba(148, 163, 184, .4); background: rgba(15, 23, 42, .6); }
+.quiet-action:hover:not(:disabled) { border-color: var(--neon-cyan); color: var(--neon-cyan); }
+.quiet-action:disabled { opacity: .42; cursor: not-allowed; }
+
+/* Options opens the existing full orchestrator without throwing away any tools. */
+.simple-mode.options-open .config-panel {
+  display: flex !important;
+  position: fixed;
+  z-index: 9000;
+  left: 18px;
+  top: 54px;
+  bottom: 18px;
+  width: min(390px, calc(100vw - 36px));
+  max-width: none;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .62), 0 0 0 1px rgba(0, 242, 254, .18);
+}
+
+.simple-mode.options-open .stats-panel {
+  display: flex !important;
+  position: fixed;
+  z-index: 9000;
+  right: 18px;
+  top: 54px;
+  bottom: 18px;
+  width: min(330px, calc(100vw - 36px));
+  max-width: none;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .62), 0 0 0 1px rgba(0, 242, 254, .18);
+}
+
+.simple-mode.options-open .terminal-panel {
+  display: flex !important;
+  position: fixed;
+  z-index: 8999;
+  left: 426px;
+  right: 366px;
+  bottom: 18px;
+  height: 210px;
+  min-width: 280px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .58);
+}
+
+@media (max-width: 900px) {
+  .simple-mode .quick-run-card { grid-template-columns: 1fr; gap: 11px; }
+  .quick-run-fields { grid-template-columns: 1fr; }
+  .simple-mode.options-open .stats-panel,
+  .simple-mode.options-open .terminal-panel { display: none !important; }
 }
 
 /* Clean Iframe & Viewport Styling */

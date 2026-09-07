@@ -16,6 +16,11 @@ export function initDOM() {
   el.btnStart = document.getElementById('btn-start');
   el.btnPause = document.getElementById('btn-pause');
   el.btnStop = document.getElementById('btn-stop');
+  el.quickTarget = document.getElementById('quick-target');
+  el.quickObjective = document.getElementById('quick-objective');
+  el.btnQuickLoad = document.getElementById('btn-quick-load');
+  el.btnQuickRun = document.getElementById('btn-quick-run');
+  el.btnQuickPause = document.getElementById('btn-quick-pause');
 
   el.gameIframe = document.getElementById('game-iframe');
   el.iframeContainer = document.getElementById('game-frame-container');

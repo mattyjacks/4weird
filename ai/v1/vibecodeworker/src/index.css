@@ -1828,6 +1828,53 @@ textarea:focus {
   flex: 1 !important;
 }
 
+/* The default view stays focused; Options reveals the original full toolkit. */
+.simple-mode.options-open .sidebar {
+  width: 300px !important;
+  min-width: 300px !important;
+  padding: 16px !important;
+  margin: 0 !important;
+  opacity: 1;
+  visibility: visible;
+  border: 1px solid var(--panel-border) !important;
+}
+
+.simple-mode.options-open #btn-toggle-left,
+.simple-mode.options-open #btn-toggle-right,
+.simple-mode.options-open #tab-code,
+.simple-mode.options-open #tab-autocode {
+  display: inline-flex !important;
+}
+
+.simple-mode.options-open .monitor-card.flex-1 {
+  display: flex !important;
+}
+
+.quick-run-deck {
+  display: grid;
+  grid-template-columns: minmax(180px, .9fr) minmax(190px, 1fr) minmax(210px, 1.2fr) auto;
+  align-items: end;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid rgba(0, 255, 204, .25);
+  border-radius: 12px;
+  background: linear-gradient(115deg, rgba(0, 255, 204, .11), rgba(110, 65, 186, .12));
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .18);
+}
+
+.quick-run-copy { display: flex; flex-direction: column; gap: 4px; }
+.quick-run-copy span, .quick-run-deck label { color: var(--text-secondary); font: 600 .65rem var(--font-mono); letter-spacing: .7px; text-transform: uppercase; }
+.quick-run-copy span { color: var(--accent-cyan); }
+.quick-run-copy strong { color: #f8fafc; font: 600 .95rem var(--font-display); line-height: 1.25; }
+.quick-run-deck label { display: flex; flex-direction: column; gap: 5px; }
+.quick-run-deck input { width: 100%; min-width: 0; color: #f8fafc; background: rgba(2, 9, 16, .68); border: 1px solid rgba(148, 163, 184, .35); border-radius: 7px; padding: 9px 10px; font: .76rem var(--font-mono); outline: none; }
+.quick-run-deck input:focus { border-color: var(--accent-cyan); box-shadow: 0 0 0 3px rgba(0, 255, 204, .11); }
+.quick-run-actions { display: flex; gap: 7px; white-space: nowrap; }
+
+@media (max-width: 1100px) {
+  .quick-run-deck { grid-template-columns: 1fr 1fr; }
+}
+
 /* ─── STATUS BANNER & QUICK LAUNCH STYLES ───────────────────────── */
 .game-status-banner {
   position: absolute;
@@ -2443,4 +2490,3 @@ textarea:focus {
   background: rgba(255, 255, 255, 0.08);
   margin: 4px 6px;
 }
-
