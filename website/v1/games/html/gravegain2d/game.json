@@ -27,16 +27,17 @@
             "Left-Click": "Melee / Primary Skill (Hold for Charge Attack)",
             "Right-Click": "Block / Projectile Skill",
             "Shift": "Active Class Ability / Sprint Lunge",
+            "1 / 2 / 3": "Select Realtime, Chrono-Lock, or Turn-Based play from the game interface",
             "E": "Enter/Exit Sidescroller Buildings",
             "Escape / P": "Pause Game"
         },
         "touch": {
             "left side": "Movement joystick and facing direction",
-            "right side": "Attack, block, and class ability buttons"
+            "right side": "Attack, block, class ability, and turn wait buttons"
         },
         "mouse": true
     },
-    "instructions": "Choose your race and class, clear procedurally generated dungeon floors, collect Gold, and buy upgrades. Return to the LuckyStarShip hub to grow offline crops, exchange gold, and repair modules.",
+    "instructions": "Choose a race, class, and temporal mode: Realtime, Chrono-Lock, or Turn-Based. Play a 10-mission campaign or endless procedural runs, collect Gold, and develop your LuckyStarShip through botany, exchange, repairs, and lore.",
     "technical": {
         "canvasSize": {"width": 1000, "height": 600},
         "targetFPS": 60,
@@ -47,7 +48,7 @@
         "local": ["game.js", "game.css"]
     },
     "meta": {
-        "version": "1.1.0",
+        "version": "1.2.0",
         "created": "2026-06-08",
         "license": "MIT"
     }

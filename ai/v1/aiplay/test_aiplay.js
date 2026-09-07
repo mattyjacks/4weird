@@ -391,6 +391,57 @@ async function runTests() {
     failedTests.push("GraveGain3D.runtimeBindings");
   }
 
+  // Test 15: GraveGain3D Autoplay Heuristic Controller
+  try {
+    console.log("Running Test 15: GraveGain3D Autoplay Heuristic Controller...");
+    const { runGraveGain3DAutoplay } = require('./src/runtime/gravegain3d_autoplay');
+    assert(typeof runGraveGain3DAutoplay === 'function', "runGraveGain3DAutoplay must be exported as a function");
+
+    // Test menu scenario
+    const mockWebviewMenu = {
+      executeJavaScript: async (code) => {
+        return { isMainMenuVisible: true };
+      }
+    };
+    const menuDecision = await runGraveGain3DAutoplay(mockWebviewMenu);
+    assert.strictEqual(menuDecision.status, 'menu', "Should detect menu state");
+    assert.strictEqual(menuDecision.action.target, '#btnPlay', "Should target play button");
+
+    // Test playing & combat scenario
+    const mockWebviewCombat = {
+      executeJavaScript: async (code) => {
+        return {
+          isInDungeon: true,
+          player: { hp: 100, maxHp: 100, potions: 2, gold: 50 },
+          nearestEnemy: { name: 'Skeleton Warrior', dist: 45 },
+          totalEnemies: 3
+        };
+      }
+    };
+    const combatDecision = await runGraveGain3DAutoplay(mockWebviewCombat);
+    assert.strictEqual(combatDecision.status, 'playing', "Should detect playing state");
+    assert(combatDecision.action.type === 'press_key', "Should issue combat key action");
+
+    // Test potion healing scenario
+    const mockWebviewPotion = {
+      executeJavaScript: async (code) => {
+        return {
+          isInDungeon: true,
+          player: { hp: 25, maxHp: 100, potions: 2, gold: 50 },
+          nearestEnemy: null,
+          totalEnemies: 0
+        };
+      }
+    };
+    const potionDecision = await runGraveGain3DAutoplay(mockWebviewPotion);
+    assert.strictEqual(potionDecision.action.target, 'q', "Should consume potion (key Q) when low health");
+
+    console.log("✅ Test 15 Passed!");
+  } catch (err) {
+    console.error("❌ Test 15 Failed:", err);
+    failedTests.push("GraveGain3D.autoplayHeuristic");
+  }
+
   // Write results to .last-run.json
   const resultsPath = path.join(__dirname, '..', '..', '..', 'test-results', '.last-run.json');
   const status = failedTests.length === 0 ? "passed" : "failed";

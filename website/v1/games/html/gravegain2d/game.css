@@ -45,13 +45,24 @@
 /* Container & Layout */
 .game-wrapper {
     position: relative;
+    width: calc(100% - 40px);
     max-width: 1100px;
     margin: 80px auto 40px auto;
     padding: 0 20px;
     display: flex;
     flex-direction: column;
     gap: 20px;
+    min-height: 660px;
 }
+
+.run-mode-select { margin: 4px 0 22px; }
+.run-mode-label { color: var(--grave-gold); font: 700 .76rem 'Orbitron', sans-serif; letter-spacing: .08em; margin-bottom: 9px; }
+.mode-card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+.char-mode-card { min-height: 106px; padding: 10px; border: 1px solid var(--grave-border); border-radius: 8px; background: rgba(0,0,0,.3); color: var(--grave-text); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; font-family: var(--grave-font); }
+.char-mode-card > span { font-size: 1.25rem; }
+.char-mode-card > strong { font-size: .8rem; }
+.char-mode-card > small { color: var(--grave-text-muted); font-size: .65rem; line-height: 1.25; }
+.char-mode-card.selected { border-color: var(--grave-gold); background: rgba(255,204,76,.11); box-shadow: 0 0 16px rgba(255,204,76,.14); }
 
 /* HUD System */
 .game-hud {
@@ -118,6 +129,7 @@
     font-family: 'Orbitron', monospace;
     text-shadow: 0 0 4px rgba(255, 255, 255, 0.3);
 }
+.hud-xp { color: var(--grave-text-muted); font: 700 .63rem 'Orbitron', monospace; white-space: nowrap; }
 
 .gold-display {
     color: var(--grave-gold);
@@ -148,6 +160,8 @@
 .btn-mode.active, .btn-speed.active { background:linear-gradient(135deg,var(--grave-crimson),var(--grave-purple)); border-color:rgba(255,255,255,.35); color:#fff; }
 .chrono-display-group, .turn-display-group { color:var(--grave-gold); font-size:.75rem; font-weight:700; }
 .chrono-badge { border:1px solid var(--grave-gold); border-radius:999px; padding:4px 8px; color:var(--grave-gold); }
+.mission-tracker { display:flex; justify-content:space-between; gap:12px; padding:9px 13px; border:1px solid rgba(255,204,76,.35); border-radius:8px; background:rgba(255,204,76,.08); color:var(--grave-text); font-size:.78rem; }
+.mission-tracker > span:first-child { color:var(--grave-gold); font-weight:800; white-space:nowrap; }
 .btn-wait-turn { min-height:0; padding:7px 10px; font-size:.7rem; }
 .hidden { display:none !important; }
 
@@ -328,6 +342,7 @@
     gap: 15px;
     margin: 15px 0;
 }
+.botany-capacity { color: var(--grave-gold); font-size: .8rem; font-weight: 700; }
 
 .plant-slot {
     padding: 12px;
@@ -572,6 +587,7 @@
 @media (max-width: 800px), (pointer: coarse) {
     .game-wrapper {
         margin: 58px auto 20px;
+        width: calc(100% - 20px);
         padding: 0 10px;
     }
 
@@ -591,6 +607,7 @@
     .hud-bar-container { width: 100%; height: 7px; }
     .hud-label { font-size: 0.62rem; letter-spacing: 0.04em; }
     .hud-value { font-size: 0.72rem; }
+    .hud-xp { font-size: 0.56rem; }
 
     .canvas-container {
         height: min(68vh, 620px);
@@ -605,6 +622,7 @@
     .screen-overlay { position: fixed; inset: 0; width: 100vw; height: 100dvh; overflow-y: auto; align-items: flex-start; padding: 12px 0 32px; box-sizing: border-box; }
     .menu-content { width: calc(100% - 24px); padding: 22px 16px; margin: auto; box-sizing: border-box; }
     .menu-title { font-size: 2rem; letter-spacing: 1px; }
+    #storyMissionScreen .menu-title { font-size: 1.55rem !important; line-height: 1.2; }
     .menu-subtitle { margin-bottom: 18px; font-size: 0.72rem; }
     .btn-game { min-height: 44px; padding: 11px 14px; font-size: 0.78rem; }
     .char-card { padding: 10px 7px; }
@@ -612,11 +630,15 @@
     .char-name { font-size: 0.9rem; }
     .char-desc { font-size: 0.66rem; }
     .class-select { grid-template-columns: repeat(2, 1fr); }
+    .mode-card-grid { grid-template-columns: 1fr; }
+    .char-mode-card { min-height: 0; display: grid; grid-template-columns: 28px 1fr; text-align: left; align-items: center; }
+    .char-mode-card > span { grid-row: span 2; }
     .hub-header { align-items: flex-start; flex-direction: column; gap: 12px; }
     .hub-tabs { width: 100%; overflow-x: auto; gap: 2px; padding-bottom: 4px; }
     .hub-tab-btn { white-space: nowrap; padding: 8px 10px; font-size: 0.74rem; }
     .botany-grid { grid-template-columns: 1fr; }
     .stat-row { font-size: 0.78rem; gap: 12px; }
+    .mission-tracker { font-size: .7rem; }
     #tab-lore > div[style*="height"] { height: auto !important; min-height: 320px; flex-direction: column; gap: 10px !important; }
     #loreList { width: auto !important; max-height: 140px; }
     #loreReader { min-height: 200px; }

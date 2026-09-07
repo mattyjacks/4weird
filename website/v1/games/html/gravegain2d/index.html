@@ -54,8 +54,9 @@
                         <span class="hud-value uusd-display" id="hudUusdText">0</span>
                     </div>
                     <div class="hud-stat">
-                        <span class="hud-label">🏢 Floor</span>
+                        <span class="hud-label">🏢 Floor / Level</span>
                         <span class="hud-value highlight-cyan" id="hudFloorText">Layer 1</span>
+                        <span class="hud-xp" id="hudXpText">0 / 50 XP</span>
                     </div>
                 </div>
             </div>
@@ -63,9 +64,9 @@
             <div class="control-modes-bar glass-panel" id="controlModesBar" aria-label="Game tempo controls">
                 <div class="mode-selector-group">
                     <span class="mode-label">🕹️ MODE</span>
-                    <button class="btn-mode active" data-mode="realtime">⚡ Realtime</button>
-                    <button class="btn-mode" data-mode="chrono">⏳ Chrono-Lock</button>
-                    <button class="btn-mode" data-mode="turnbased">🎲 Turn-Based</button>
+                    <button class="btn-mode active" data-mode="realtime" aria-pressed="true">⚡ Realtime</button>
+                    <button class="btn-mode" data-mode="chrono" aria-pressed="false">⏳ Chrono-Lock</button>
+                    <button class="btn-mode" data-mode="turnbased" aria-pressed="false">🎲 Turn-Based</button>
                 </div>
                 <div class="speed-selector-group" id="speedSelectorGroup">
                     <span class="mode-label">SPEED</span>
@@ -76,6 +77,9 @@
                 </div>
                 <div class="chrono-display-group hidden" id="chronoDisplayGroup"><span class="chrono-badge" id="chronoStatusBadge">TIME FROZEN</span><span>Act to advance time</span></div>
                 <div class="turn-display-group hidden" id="turnDisplayGroup"><span id="hudTurnCounter">Turn 1</span><button class="btn-game btn-wait-turn" id="btnWaitTurn">⏳ Wait</button><span id="hudTurnPhase">YOUR TURN</span></div>
+            </div>
+            <div class="mission-tracker hidden" id="missionTracker" aria-live="polite">
+                <span>📜 CAMPAIGN</span><span id="missionObjectiveText">Objective</span>
             </div>
 
             <!-- Double Canvas Viewport -->
@@ -171,6 +175,15 @@
                     <!-- Populated by JS -->
                 </div>
 
+                <div class="run-mode-select" aria-label="Choose simulation mode">
+                    <div class="run-mode-label">TEMPORAL SIMULATION MODE</div>
+                    <div class="mode-card-grid" id="charModeSelectGrid">
+                        <button class="char-mode-card selected" data-mode="realtime" aria-pressed="true"><span>⚡</span><strong>Realtime</strong><small>Fluid action with adjustable speed.</small></button>
+                        <button class="char-mode-card" data-mode="chrono" aria-pressed="false"><span>⏳</span><strong>Chrono-Lock</strong><small>Time freezes until you act.</small></button>
+                        <button class="char-mode-card" data-mode="turnbased" aria-pressed="false"><span>🎲</span><strong>Turn-Based</strong><small>One move, attack, or wait per turn.</small></button>
+                    </div>
+                </div>
+
                 <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
                     <button class="btn-game" id="btnCharSelectBack">← Main Menu</button>
                     <button class="btn-game btn-primary" id="btnCharSelectStart">🚀 Deploy to Dungeon</button>
@@ -212,6 +225,7 @@
                 <div class="hub-pane" id="tab-botany">
                     <h3 style="margin-top: 0; color: var(--grave-gold);">Offline Botany Incubators</h3>
                     <p style="font-size: 0.9rem;">Grow exotic plants that synthesize Gold or $UUSD. Crops grow in real-time even offline!</p>
+                    <div class="botany-capacity" id="botanyCapacityText">Incubator capacity loading…</div>
                     <div class="botany-grid" id="botanyGrid">
                         <!-- Filled by JS -->
                     </div>
@@ -303,15 +317,6 @@
                         </div>
                     </div>
 
-                    <div>
-                        <label style="display:block; font-size:0.85rem; margin-bottom:5px;">ElevenLabs API Key (TTS Synthesis Cache)</label>
-                        <input type="password" id="settingsElevenLabsKey" placeholder="sk-..." style="width:100%; padding:8px; background:rgba(0,0,0,0.5); border:1px solid var(--grave-border); color:white; border-radius:5px;">
-                    </div>
-
-                    <div>
-                        <label style="display:block; font-size:0.85rem; margin-bottom:5px;">OpenAI API Key (TTS Synthesis Cache)</label>
-                        <input type="password" id="settingsOpenAIKey" placeholder="sk-..." style="width:100%; padding:8px; background:rgba(0,0,0,0.5); border:1px solid var(--grave-border); color:white; border-radius:5px;">
-                    </div>
                 </div>
 
                 <div style="display: flex; justify-content: flex-end;">

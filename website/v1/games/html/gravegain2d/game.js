@@ -145,6 +145,10 @@
                 if (e.code === 'KeyP' || e.code === 'Escape') {
                     if (window.GraveGainGame) window.GraveGainGame.togglePause();
                 }
+                if (window.GraveGainGame && ['Digit1', 'Digit2', 'Digit3'].includes(e.code)) {
+                    const mode = { Digit1: 'realtime', Digit2: 'chrono', Digit3: 'turnbased' }[e.code];
+                    window.GraveGainGame.setControlMode(mode);
+                }
             });
             window.addEventListener('keyup', (e) => {
                 this.keys[e.code] = false;
@@ -475,6 +479,8 @@
             this.gold = 0;
             this.xp = 0;
             this.level = 1;
+            this.nextLevelXp = 50;
+            this.levelUpFlash = 0;
             this.isDead = false;
             this.dodgeTime = 0;
             this.perfectBlockWindow = 0;
@@ -492,8 +498,30 @@
             this.hoverTime = 0;
         }
 
+        gainXp(amount) {
+            this.xp += Math.max(0, amount);
+            let leveledUp = false;
+            while (this.xp >= this.nextLevelXp) {
+                this.level++;
+                this.nextLevelXp += 50 + (this.level - 1) * 25;
+                this.maxHp += 10;
+                this.hp = this.maxHp;
+                this.maxStamina += 5;
+                this.stamina = this.maxStamina;
+                this.speed += 5;
+                this.levelUpFlash = 1.5;
+                leveledUp = true;
+            }
+            if (leveledUp && window.GraveGainGame) {
+                window.GraveGainGame.audio.play('ability');
+                window.GraveGainGame.vfx.spawnNatureBurstVFX(this.x, this.y);
+            }
+            return leveledUp;
+        }
+
         update(dt, keys, input, physics, tilemap) {
             if (this.isDead) return;
+            this.levelUpFlash = Math.max(0, this.levelUpFlash - dt);
 
             const now = Date.now();
             // Bloodlust stack cleanup
@@ -929,7 +957,6 @@
         constructor() {
             this.ctx = null;
             this.masterVolume = 0.8;
-            this.apiKeys = { elevenlabs: '', openai: '' };
         }
         initCtx() {
             if (!this.ctx) {
@@ -1158,6 +1185,7 @@
             this.chronoScale = 0.04;
             this.turnCount = 1;
             this.lastTurnInputAt = 0;
+            this.isDialogueActive = false;
 
             // Active Game Variables
             this.player = null;
@@ -1332,6 +1360,8 @@
             document.getElementById('btnCharSelectStart').addEventListener('click', () => {
                 const selRace = document.querySelector('.char-card.selected')?.dataset.race || Race.HUMAN;
                 const selClass = document.querySelector('.class-btn.selected')?.dataset.class || ClassType.WARRIOR;
+                const selMode = document.querySelector('.char-mode-card.selected')?.dataset.mode || this.controlMode;
+                this.setControlMode(selMode);
                 document.getElementById('charSelectScreen').classList.add('hidden');
                 document.getElementById('gameMain').classList.remove('hidden');
                 this.initRun(selRace, selClass);
@@ -1372,6 +1402,7 @@
                     this.audio.play('loot');
                     document.getElementById('exchangeGoldBalance').textContent = this.gold + ' Gold';
                     document.getElementById('exchangeUusdBalance').textContent = this.uusd + ' $UUSD';
+                    this.saveState();
                 }
             });
 
@@ -1382,18 +1413,21 @@
                     this.audio.play('loot');
                     document.getElementById('exchangeGoldBalance').textContent = this.gold + ' Gold';
                     document.getElementById('exchangeUusdBalance').textContent = this.uusd + ' $UUSD';
+                    this.saveState();
                 }
             });
 
             // Quarters upgrade trigger
             document.getElementById('btnUpgradeQuarters').addEventListener('click', () => {
                 if (this.quartersLevel < 6) {
-                    const cost = QuartersUpgrades[this.quartersLevel - 1].cost;
+                    const cost = QuartersUpgrades[this.quartersLevel].cost;
                     if (this.uusd >= cost) {
                         this.uusd -= cost;
                         this.quartersLevel++;
                         this.audio.play('ability');
                         this.updateHubQuartersUI();
+                        this.renderBotany();
+                        this.saveState();
                     }
                 }
             });
@@ -1403,6 +1437,7 @@
             document.querySelectorAll('.btn-speed').forEach(btn => btn.addEventListener('click', () => this.setGameSpeed(btn.dataset.speed)));
             document.getElementById('btnWaitTurn').addEventListener('click', () => this.executeTurnAction('wait'));
             document.getElementById('mobileWaitBtn').addEventListener('touchstart', (e) => { e.preventDefault(); this.executeTurnAction('wait'); });
+            document.querySelectorAll('.char-mode-card').forEach(btn => btn.addEventListener('click', () => this.setControlMode(btn.dataset.mode)));
 
             // Game over button
             document.getElementById('btnGoToMenu').addEventListener('click', () => {
@@ -1467,6 +1502,7 @@
         }
 
         updateHubQuartersUI() {
+            this.ensureBotanySlots();
             document.getElementById('hubQuartersLevel').textContent = 'Level ' + this.quartersLevel;
             const upgrade = QuartersUpgrades[this.quartersLevel - 1];
             document.getElementById('hubQuartersSize').textContent = upgrade.size;
@@ -1483,9 +1519,29 @@
         // ==========================================
         // BOTANY REAL-TIME SIMULATION
         // ==========================================
+        getBotanySlotLimit() {
+            return Math.min(4 + (this.quartersLevel - 1) * 2, 12);
+        }
+
+        ensureBotanySlots() {
+            while (this.botanyCrops.length < this.getBotanySlotLimit()) {
+                this.botanyCrops.push({ seedId: null, startTime: 0, growthTime: 0, capacity: 0 });
+            }
+        }
+
+        getBotanySpaceUsed() {
+            return this.botanyCrops.reduce((used, crop) => {
+                const seed = crop.seedId && BotanySeeds.find(s => s.id === crop.seedId);
+                return used + (seed ? seed.space : 0);
+            }, 0);
+        }
+
         renderBotany() {
             const grid = document.getElementById('botanyGrid');
             const now = Math.floor(Date.now() / 1000);
+            this.ensureBotanySlots();
+            const capacity = QuartersUpgrades[this.quartersLevel - 1].capacity;
+            document.getElementById('botanyCapacityText').textContent = `Incubators: ${this.botanyCrops.length}/${this.getBotanySlotLimit()} · Growing space: ${this.getBotanySpaceUsed()}/${capacity}`;
 
             grid.innerHTML = this.botanyCrops.map((crop, index) => {
                 if (crop.seedId === null) {
@@ -1524,7 +1580,8 @@
 
         plantSeed(slotIndex, seedId) {
             const seed = BotanySeeds.find(s => s.id === seedId);
-            if (this.uusd >= 20) {
+            const capacity = QuartersUpgrades[this.quartersLevel - 1].capacity;
+            if (seed && this.uusd >= 20 && this.getBotanySpaceUsed() + seed.space <= capacity) {
                 this.uusd -= 20;
                 this.botanyCrops[slotIndex] = {
                     seedId: seed.id,
@@ -1533,6 +1590,7 @@
                 };
                 this.audio.play('loot');
                 this.renderBotany();
+                this.saveState();
             }
         }
 
@@ -1543,6 +1601,7 @@
             this.botanyCrops[slotIndex] = { seedId: null, startTime: 0, growthTime: 0 };
             this.audio.play('loot');
             this.renderBotany();
+            this.saveState();
         }
 
         // ==========================================
@@ -1619,22 +1678,23 @@
         // ==========================================
         initRun(race, classType) {
             this.player = new PlayerEntity(race, classType);
-            this.floorIndex = 1;
+            const mission = this.selectedStoryMissionId && window.GraveGainStoryEngine
+                ? window.GraveGainStoryEngine.getMission(this.selectedStoryMissionId) : null;
+            this.currentMission = mission ? JSON.parse(JSON.stringify(mission)) : null;
+            this.floorIndex = this.currentMission?.minFloor || 1;
             this.sessionStart = Date.now();
             this.runKills = 0;
             this.runGold = 0;
             this.buildDungeonLayer();
 
-            if (this.selectedStoryMissionId && window.GraveGainStoryMissions) {
-                const mission = window.GraveGainStoryEngine.getMission(this.selectedStoryMissionId);
-                if (mission) {
-                    this.currentMission = JSON.parse(JSON.stringify(mission));
-                    this.playDialogueSequence(mission.dialogueBefore, () => {
-                        this.audio.speakFallback(`Mission Goal: ${mission.objectives[0].desc}`);
+            if (this.currentMission) {
+                this.updateMissionUI();
+                this.playDialogueSequence(this.currentMission.dialogueBefore, () => {
+                    this.audio.speakFallback(`Mission Goal: ${this.currentMission.objectives[0].desc}`);
                     });
-                }
             } else {
                 this.currentMission = null;
+                this.updateMissionUI();
             }
 
             this.loop.start();
@@ -1669,7 +1729,7 @@
                     const ry = ey * 48 + 24;
 
                     const enemyData = EnemyTypes[Math.floor(Math.random() * EnemyTypes.length)];
-                    this.enemies.push(new EnemyEntity(enemyData, rx, ry, diffScale));
+                    this.enemies.push(this.createEnemy(enemyData, rx, ry, diffScale));
                 }
 
                 // Spawn gold/chests
@@ -1689,13 +1749,86 @@
                 }
             });
 
+            if (this.currentMission) this.populateMissionTargets();
+
             this.updateChallengeProgress('depth', this.floorIndex);
             this.updateHUD();
         }
 
+        populateMissionTargets() {
+            const openTiles = [];
+            for (let x = 0; x < this.dungeon.gridSize; x++) {
+                for (let y = 0; y < this.dungeon.gridSize; y++) {
+                    if (this.dungeon.grid[x][y] !== 0) continue;
+                    const px = x * 48 + 24;
+                    const py = y * 48 + 24;
+                    if (Math.hypot(px - this.player.x, py - this.player.y) > 300) openTiles.push([px, py]);
+                }
+            }
+            const spawn = (type, count) => {
+                for (let i = 0; i < count && openTiles.length; i++) {
+                    const index = Math.floor(Math.random() * openTiles.length);
+                    const [x, y] = openTiles.splice(index, 1)[0];
+                    this.enemies.push(this.createEnemy(type, x, y, 1 + this.floorIndex * 0.1));
+                }
+            };
+            const standard = EnemyTypes.find(e => e.type === 'standard');
+            const elite = EnemyTypes.find(e => e.type === 'elite');
+            const skull = EnemyTypes.find(e => e.type === 'exploding');
+            const boss = EnemyTypes.find(e => e.type === 'boss');
+            this.currentMission.objectives.forEach(objective => {
+                if (objective.id === 'slay_boss') spawn(boss, objective.count);
+                else if (objective.id === 'slay_skulls') spawn(skull, objective.count);
+                else if (objective.id === 'slay_elites') spawn(elite, objective.count);
+                else if (objective.id === 'slay_all' || objective.id === 'slay_minions' || objective.id === 'survive_waves') spawn(standard, objective.count);
+                else if (objective.id === 'collect_ore') {
+                    for (let i = 0; i < objective.count && openTiles.length; i++) {
+                        const index = Math.floor(Math.random() * openTiles.length);
+                        const [x, y] = openTiles.splice(index, 1)[0];
+                        this.loot.push(new LootItem(x, y, 'item', 100));
+                    }
+                }
+            });
+        }
+
+        getDifficultyProfile() {
+            return {
+                easy: { hp: 0.6, damage: 0.5, xp: 0.75, loot: 1.5 },
+                normal: { hp: 1, damage: 1, xp: 1, loot: 1 },
+                nightmare: { hp: 2.5, damage: 2, xp: 2.5, loot: 0.6 }
+            }[this.difficultyMultiplierSetting] || { hp: 1, damage: 1, xp: 1, loot: 1 };
+        }
+
+        createEnemy(typeData, x, y, floorScale) {
+            const difficulty = this.getDifficultyProfile();
+            return new EnemyEntity({
+                ...typeData,
+                hp: typeData.hp * difficulty.hp,
+                dmg: typeData.dmg * difficulty.damage
+            }, x, y, floorScale);
+        }
+
+        getScaledRewards(gold, xp = 0) {
+            const difficulty = this.getDifficultyProfile();
+            return { gold: Math.max(1, Math.round(gold * difficulty.loot)), xp: Math.max(1, Math.round(xp * difficulty.xp)) };
+        }
+
+        updateMissionUI() {
+            const tracker = document.getElementById('missionTracker');
+            const text = document.getElementById('missionObjectiveText');
+            if (!tracker || !text) return;
+            if (!this.currentMission) {
+                tracker.classList.add('hidden');
+                return;
+            }
+            const objectives = this.currentMission.objectives || [];
+            text.textContent = objectives.map(obj => `${obj.desc}: ${obj.current}/${obj.count}`).join('  •  ');
+            tracker.classList.remove('hidden');
+        }
+
         spawnMinorSkull(x, y) {
             const skullData = EnemyTypes.find(e => e.emoji === '👻');
-            this.enemies.push(new EnemyEntity(skullData, x, y, 1.0));
+            this.enemies.push(this.createEnemy(skullData, x, y, 1.0));
         }
 
         dealAoEDamage(x, y, radius, dmg) {
@@ -1708,12 +1841,14 @@
             });
             this.enemies = this.enemies.filter(e => {
                 if (e.hp <= 0) {
-                    this.gold += 15;
-                    this.runGold += 15;
+                    const rewards = this.getScaledRewards(15, 10);
+                    this.gold += rewards.gold;
+                    this.runGold += rewards.gold;
                     this.runKills++;
-                    this.player.xp += 10;
+                    this.player.gainXp(rewards.xp);
+                    if (this.currentMission) this.checkStoryObjectives(e);
                     this.updateChallengeProgress('slay', 1);
-                    this.updateChallengeProgress('gold', 15);
+                    this.updateChallengeProgress('gold', rewards.gold);
                     this.vfx.spawnGore(e.x, e.y);
                     this.audio.play('hit');
                     return false;
@@ -1732,6 +1867,7 @@
         }
 
         togglePause() {
+            if (!this.player || document.getElementById('gameMain').classList.contains('hidden')) return;
             if (this.loop.isPaused) {
                 document.getElementById('pauseScreen').classList.add('hidden');
                 this.loop.start();
@@ -1744,7 +1880,16 @@
         setControlMode(mode) {
             this.controlMode = ['realtime', 'chrono', 'turnbased'].includes(mode) ? mode : 'realtime';
             this.chronoScale = this.controlMode === 'chrono' ? 0.04 : 1;
-            document.querySelectorAll('.btn-mode').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === this.controlMode));
+            document.querySelectorAll('.btn-mode').forEach(btn => {
+                const selected = btn.dataset.mode === this.controlMode;
+                btn.classList.toggle('active', selected);
+                btn.setAttribute('aria-pressed', String(selected));
+            });
+            document.querySelectorAll('.char-mode-card').forEach(btn => {
+                const selected = btn.dataset.mode === this.controlMode;
+                btn.classList.toggle('selected', selected);
+                btn.setAttribute('aria-pressed', String(selected));
+            });
             document.getElementById('speedSelectorGroup')?.classList.toggle('hidden', this.controlMode !== 'realtime');
             document.getElementById('chronoDisplayGroup')?.classList.toggle('hidden', this.controlMode !== 'chrono');
             document.getElementById('turnDisplayGroup')?.classList.toggle('hidden', this.controlMode !== 'turnbased');
@@ -1756,7 +1901,11 @@
 
         setGameSpeed(speed) {
             this.gameSpeed = Math.max(0.5, Math.min(2, Number(speed) || 1));
-            document.querySelectorAll('.btn-speed').forEach(btn => btn.classList.toggle('active', Number(btn.dataset.speed) === this.gameSpeed));
+            document.querySelectorAll('.btn-speed').forEach(btn => {
+                const selected = Number(btn.dataset.speed) === this.gameSpeed;
+                btn.classList.toggle('active', selected);
+                btn.setAttribute('aria-pressed', String(selected));
+            });
         }
 
         executeTurnAction(action) {
@@ -1772,12 +1921,14 @@
             this.enemies.forEach(enemy => enemy.update(0.35, this.player, this.physics, this.dungeon));
             this.enemies = this.enemies.filter(e => {
                 if (e.hp > 0) return true;
-                this.gold += 10;
-                this.runGold += 10;
+                const rewards = this.getScaledRewards(10, 5);
+                this.gold += rewards.gold;
+                this.runGold += rewards.gold;
                 this.runKills++;
-                this.player.xp += 5;
+                this.player.gainXp(rewards.xp);
+                if (this.currentMission) this.checkStoryObjectives(e);
                 this.updateChallengeProgress('slay', 1);
-                this.updateChallengeProgress('gold', 10);
+                this.updateChallengeProgress('gold', rewards.gold);
                 this.vfx.spawnBlood(e.x, e.y, e.bloodColor);
                 this.vfx.spawnGore(e.x, e.y);
                 this.audio.play('hit');
@@ -1785,9 +1936,14 @@
             });
             this.loot.forEach(l => {
                 if (Math.hypot(this.player.x - l.x, this.player.y - l.y) < this.player.radius + l.radius + 42) {
-                    this.gold += l.value;
-                    this.runGold += l.value;
-                    this.updateChallengeProgress('gold', l.value);
+                    const lootValue = Math.max(1, Math.round(l.value * this.getDifficultyProfile().loot));
+                    this.gold += lootValue;
+                    this.runGold += lootValue;
+                    this.updateChallengeProgress('gold', lootValue);
+                    if (l.type === 'item') {
+                        this.player.gainXp(this.getScaledRewards(0, 30).xp);
+                        if (this.currentMission) this.checkStoryObjectives(null, 'ore');
+                    }
                     l.picked = true;
                     this.audio.play('loot');
                 }
@@ -1809,6 +1965,9 @@
         // ==========================================
         update(dt) {
             if (!this.player) return;
+            if (this.isDialogueActive) {
+                return;
+            }
             if (this.controlMode === 'turnbased') {
                 const keys = this.input.keys;
                 const joy = this.input.joystick;
@@ -1842,13 +2001,14 @@
             // Clean up dead skeletons
             this.enemies = this.enemies.filter(e => {
                 if (e.hp <= 0) {
-                    this.gold += 10;
-                    this.runGold += 10;
+                    const rewards = this.getScaledRewards(10, 5);
+                    this.gold += rewards.gold;
+                    this.runGold += rewards.gold;
                     this.runKills++;
-                    this.player.xp += 5;
+                    this.player.gainXp(rewards.xp);
                     if (this.currentMission) this.checkStoryObjectives(e);
                     this.updateChallengeProgress('slay', 1);
-                    this.updateChallengeProgress('gold', 10);
+                    this.updateChallengeProgress('gold', rewards.gold);
                     this.vfx.spawnBlood(e.x, e.y, e.bloodColor);
                     this.vfx.spawnGore(e.x, e.y);
                     this.audio.play('hit');
@@ -1863,12 +2023,14 @@
                 l.update(effectiveDt, this.player, this.autoPickupRange);
                 const dist = Math.hypot(this.player.x - l.x, this.player.y - l.y);
                 if (dist < this.player.radius + l.radius) {
-                    this.gold += l.value;
-                    this.runGold += l.value;
-                    this.updateChallengeProgress('gold', l.value);
+                    const lootValue = Math.max(1, Math.round(l.value * this.getDifficultyProfile().loot));
+                    this.gold += lootValue;
+                    this.runGold += lootValue;
+                    this.updateChallengeProgress('gold', lootValue);
                     if (l.type === 'item') {
-                        this.player.xp += 30;
+                        this.player.gainXp(this.getScaledRewards(0, 30).xp);
                         this.audio.speakFallback('Vocal log recovered.');
+                        if (this.currentMission) this.checkStoryObjectives(null, 'ore');
                     }
                     l.picked = true;
                     this.audio.play('loot');
@@ -1977,7 +2139,8 @@
 
             document.getElementById('hudGoldText').textContent = this.gold;
             document.getElementById('hudUusdText').textContent = this.uusd;
-            document.getElementById('hudFloorText').textContent = 'Layer ' + this.floorIndex;
+            document.getElementById('hudFloorText').textContent = `L${this.floorIndex} · Lv${this.player.level}`;
+            document.getElementById('hudXpText').textContent = `${Math.round(this.player.xp)} / ${this.player.nextLevelXp} XP`;
         }
 
         // ==========================================
@@ -2089,6 +2252,16 @@
                     ctx.beginPath();
                     ctx.arc(this.player.x - offset.x, this.player.y - offset.y, 25, 0, Math.PI * 2);
                     ctx.stroke();
+                }
+
+                if (this.player.levelUpFlash > 0) {
+                    ctx.save();
+                    ctx.globalAlpha = Math.min(1, this.player.levelUpFlash * 1.5);
+                    ctx.fillStyle = '#facc15';
+                    ctx.font = 'bold 18px Orbitron, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`LEVEL ${this.player.level}!`, this.player.x - offset.x, this.player.y - offset.y - 40 - (1.5 - this.player.levelUpFlash) * 22);
+                    ctx.restore();
                 }
             }
 
@@ -2216,9 +2389,9 @@
 
                 const starStr = unlocked ? '⭐'.repeat(stars) + '☆'.repeat(3 - stars) : '🔒 Locked';
                 return `
-                    <div class="glass-panel story-card ${unlocked ? '' : 'disabled'} ${isSelected ? 'selected' : ''}" 
-                         style="padding: 12px; border: 1px solid ${isSelected ? 'var(--grave-gold)' : 'var(--grave-border)'}; border-radius: 8px; cursor: ${unlocked ? 'pointer' : 'not-allowed'}; opacity: ${unlocked ? 1 : 0.6}; background: ${isSelected ? 'rgba(168,85,247,0.2)' : 'rgba(0,0,0,0.4)'};"
-                         onclick="window.GraveGainGame.selectStoryMission(${m.id})">
+                    <button type="button" class="glass-panel story-card ${unlocked ? '' : 'disabled'} ${isSelected ? 'selected' : ''}"
+                         style="padding: 12px; width: 100%; text-align: left; font-family: var(--grave-font); color: var(--grave-text); border: 1px solid ${isSelected ? 'var(--grave-gold)' : 'var(--grave-border)'}; border-radius: 8px; cursor: ${unlocked ? 'pointer' : 'not-allowed'}; opacity: ${unlocked ? 1 : 0.6}; background: ${isSelected ? 'rgba(168,85,247,0.2)' : 'rgba(0,0,0,0.4)'};"
+                         ${unlocked ? `onclick="window.GraveGainGame.selectStoryMission(${m.id})"` : 'disabled'}>
                         <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--grave-gold);">${m.location}</div>
                         <h4 style="margin: 4px 0; font-family: 'Orbitron'; font-size: 0.95rem; color: white;">${m.title}</h4>
                         <p style="font-size: 0.78rem; color: var(--grave-text-muted); margin: 4px 0 8px 0;">${m.subtitle}</p>
@@ -2226,7 +2399,7 @@
                             <span>${starStr}</span>
                             <span class="highlight-gold">+${m.rewardGold}g | +${m.rewardUusd}$</span>
                         </div>
-                    </div>
+                    </button>
                 `;
             }).join('');
 
@@ -2258,6 +2431,7 @@
                 return;
             }
 
+            this.isDialogueActive = true;
             dialogueScreen.classList.remove('hidden');
             let idx = 0;
 
@@ -2276,6 +2450,7 @@
                 } else {
                     nextBtn.removeEventListener('click', handleNext);
                     dialogueScreen.classList.add('hidden');
+                    this.isDialogueActive = false;
                     if (onComplete) onComplete();
                 }
             };
@@ -2284,24 +2459,28 @@
             showLine();
         }
 
-        checkStoryObjectives(enemyKilled) {
+        checkStoryObjectives(enemyKilled, collectedItem = null) {
             if (!this.currentMission || !this.currentMission.objectives) return;
             let allComplete = true;
 
             this.currentMission.objectives.forEach(obj => {
                 if (obj.current < obj.count) {
-                    if (obj.id === 'slay_boss' && enemyKilled.type === 'boss') {
+                    if (obj.id === 'collect_ore' && collectedItem === 'ore') {
                         obj.current++;
-                    } else if (obj.id === 'slay_all' || obj.id === 'survive_waves' || obj.id === 'slay_minions') {
+                    } else if (obj.id === 'slay_boss' && enemyKilled?.type === 'boss') {
                         obj.current++;
-                    } else if (obj.id === 'slay_skulls' && enemyKilled.type === 'exploding') {
+                    } else if (enemyKilled && (obj.id === 'slay_all' || obj.id === 'survive_waves' || obj.id === 'slay_minions')) {
                         obj.current++;
-                    } else if (obj.id === 'slay_elites' && enemyKilled.type === 'elite') {
+                    } else if (obj.id === 'slay_skulls' && enemyKilled?.type === 'exploding') {
+                        obj.current++;
+                    } else if (obj.id === 'slay_elites' && enemyKilled?.type === 'elite') {
                         obj.current++;
                     }
                 }
                 if (obj.current < obj.count) allComplete = false;
             });
+
+            this.updateMissionUI();
 
             if (allComplete && !this.currentMission.completed) {
                 this.currentMission.completed = true;
@@ -2337,13 +2516,16 @@
             document.getElementById('gameMain').classList.add('hidden');
             document.getElementById('gameOverScreen').classList.remove('hidden');
 
-            document.getElementById('gameOverTitle').textContent = victory ? 'RUN COMPLETED' : 'RUN TERMINATED';
-            document.getElementById('gameOverSub').textContent = victory ? 'Safespace terminal extracted' : 'Vitals flatlined';
+            const missionComplete = victory && this.currentMission?.completed;
+            document.getElementById('gameOverTitle').textContent = missionComplete ? 'MISSION COMPLETE' : (victory ? 'RUN COMPLETED' : 'RUN TERMINATED');
+            document.getElementById('gameOverSub').textContent = missionComplete
+                ? `${this.currentMission.title} secured — campaign rewards transmitted.`
+                : (victory ? 'Safespace terminal extracted' : 'Vitals flatlined');
 
             document.getElementById('goRaceClass').textContent = this.player.race.toUpperCase() + ' ' + this.player.classType.toUpperCase();
             document.getElementById('goFloor').textContent = 'Layer ' + this.floorIndex;
             document.getElementById('goKills').textContent = this.runKills;
-            document.getElementById('goGold').textContent = this.runGold;
+            document.getElementById('goGold').textContent = this.runGold + (missionComplete ? this.currentMission.rewardGold : 0);
             document.getElementById('goXp').textContent = Math.round(this.player.xp || 0);
 
             this.audio.speakFallback('Game Over. Run Terminated.');

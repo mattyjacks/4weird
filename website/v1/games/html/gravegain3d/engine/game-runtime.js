@@ -4,23 +4,16 @@
     // =========================================================================
     // 1. DATA STRUCTURES, CONFIGURATIONS & ENUMS
     // =========================================================================
-    const Race = {
-        HUMAN: 'human',
-        ELF: 'elf',
-        DWARF: 'dwarf',
-        ORC: 'orc'
-    };
-
-    const ClassType = {
-        WARRIOR: 'warrior',
-        TANK: 'tank',
-        SUPPORT: 'support',
-        MAGE: 'mage'
-    };
-
-    const DifficultyData = window.GraveGainConfig?.difficulty || {
-        normal: { hpMultiplier: 1, damageMultiplier: 1, xpMultiplier: 1, lootMultiplier: 1 }
-    };
+    const GameData = window.GraveGainGameData || {};
+    const Race = GameData.Race;
+    const ClassType = GameData.ClassType;
+    const DifficultyData = GameData.DifficultyData;
+    const RaceData = GameData.RaceData;
+    const ClassData = GameData.ClassData;
+    const QuartersUpgrades = GameData.QuartersUpgrades;
+    const BotanySeeds = GameData.BotanySeeds;
+    const ArmoryUpgrades = GameData.ArmoryUpgrades;
+    const RoguelikePerks = GameData.RoguelikePerks;
 
     // Pointer lock is optional (and commonly unavailable inside embedded game
     // players). Never let a rejected lock request break the rest of the game.
@@ -39,134 +32,6 @@
             if (request && typeof request.catch === 'function') request.catch(() => {});
         } catch (_) { /* Already unlocked or unsupported by the host. */ }
     }
-
-    const RaceData = {
-        [Race.HUMAN]: {
-            name: 'Human',
-            emoji: '👩‍🚀',
-            color: 0x4c7fff,
-            maxHp: 110,
-            hpRegen: 1.2,
-            stamina: 110,
-            speed: 245,
-            desc: 'Balanced infiltrator. Shield Wall ability (absorbs 25 dmg) & Jetpack thrusters (hold Space in air).'
-        },
-        [Race.ELF]: {
-            name: 'Elf',
-            emoji: '🧝‍♀️',
-            color: 0x4cff7f,
-            maxHp: 85,
-            hpRegen: 3.5,
-            stamina: 100,
-            speed: 265,
-            desc: 'Agile spellweaver. Nature Burst AoE spell, 100 Mana (+3/s regen), and Graceful Glide mechanics.'
-        },
-        [Race.DWARF]: {
-            name: 'Dwarf',
-            emoji: '⛏️',
-            color: 0xffcc4c,
-            maxHp: 160,
-            hpRegen: 2.2,
-            stamina: 120,
-            speed: 200,
-            desc: 'Stout juggernaut. Stone Form temporary invulnerability, Double Jump, and Poison immunity.'
-        },
-        [Race.ORC]: {
-            name: 'Orc',
-            emoji: '👹',
-            color: 0xff4c4c,
-            maxHp: 210,
-            hpRegen: 3.0,
-            stamina: 110,
-            speed: 220,
-            desc: 'Fierce berserker. Generates Rage when taking/dealing damage, unleashing explosive Rage Burst AoE.'
-        }
-    };
-
-    const ClassData = {
-        [ClassType.WARRIOR]: {
-            title: 'Warrior',
-            desc: 'Master of swordplay. 3-hit slicing combo, crisp shield parry (Right Click), and Whirlwind attack.',
-            weaponName: 'Steel Longsword & Shield',
-            baseDmg: 20,
-            attackSpeed: 0.28,
-            critChance: 0.15,
-            critMult: 2.0,
-            range: 68
-        },
-        [ClassType.MAGE]: {
-            title: 'Mage',
-            desc: 'Wielder of astral energy. Fires homing Arcane Bolts (Left Click), Frost Nova freeze (Right Click), and Meteor Storm.',
-            weaponName: 'Celestial Arcane Staff',
-            baseDmg: 26,
-            attackSpeed: 0.38,
-            critChance: 0.20,
-            critMult: 2.2,
-            range: 450
-        },
-        [ClassType.TANK]: {
-            title: 'Tank',
-            desc: 'Heavy fortress. Warhammer crush with massive knockback, Bulwark Stance (Right Click 90% block), and Ground Stomp.',
-            weaponName: 'Spiked Warhammer & Tower Shield',
-            baseDmg: 32,
-            attackSpeed: 0.45,
-            critChance: 0.10,
-            critMult: 1.8,
-            range: 75
-        },
-        [ClassType.SUPPORT]: {
-            title: 'Support',
-            desc: 'Combat chemist. Rapid bio-darts (Left Click), Healing/Toxic Mist Flask (Right Click), and Nanite Swarm.',
-            weaponName: 'Magitech Chem-Gun',
-            baseDmg: 14,
-            attackSpeed: 0.18,
-            critChance: 0.12,
-            critMult: 1.7,
-            range: 400
-        }
-    };
-
-    const QuartersUpgrades = [
-        { level: 1, size: '400x300 px', capacity: 100, cost: 250 },
-        { level: 2, size: '600x400 px', capacity: 150, cost: 500 },
-        { level: 3, size: '800x500 px', capacity: 200, cost: 900 },
-        { level: 4, size: '1000x600 px', capacity: 250, cost: 1400 },
-        { level: 5, size: '1200x700 px', capacity: 300, cost: 2000 },
-        { level: 6, size: '1400x800 px', capacity: 350, cost: 2500 }
-    ];
-
-    const BotanySeeds = [
-        { id: 'cannabis', name: 'Cannabis Sativa', space: 15, time: 60, yield: 3, value: 60, emoji: '🌿' },
-        { id: 'mushroom', name: 'Magic Mushroom', space: 8, time: 45, yield: 2, value: 85, emoji: '🍄' },
-        { id: 'bloodrose', name: 'Blood Rose', space: 10, time: 30, yield: 1, value: 140, emoji: '🌹' },
-        { id: 'sparkite', name: 'Sparkite Spore', space: 12, time: 90, yield: 4, value: 110, emoji: '⚡' }
-    ];
-
-    const ArmoryUpgrades = [
-        { id: 'health', name: 'Genetic Hull Infusion', icon: '🧬', desc: '+25 Starting Max HP per rank.', baseCost: 150, mult: 1.8, maxRank: 5 },
-        { id: 'damage', name: 'Plasma Weapon Tuning', icon: '⚡', desc: '+15% Weapon & Spell Damage per rank.', baseCost: 200, mult: 2.0, maxRank: 5 },
-        { id: 'speed', name: 'Kinetic Leg Servos', icon: '🏃', desc: '+10% Movement & Sprint speed per rank.', baseCost: 150, mult: 1.8, maxRank: 5 },
-        { id: 'potions', name: 'Nanite Flask Satchel', icon: '🧪', desc: 'Start runs with +1 Healing Potion per rank.', baseCost: 250, mult: 2.2, maxRank: 3 },
-        { id: 'greed', name: 'Matter Synthesizer', icon: '🪙', desc: '+25% Dungeon Gold and $UUSD yields.', baseCost: 180, mult: 1.9, maxRank: 5 }
-    ];
-
-    const RoguelikePerks = [
-        { id: 'vampiric', name: 'Vampiric Leech', rarity: 'rare', icon: '🩸', desc: 'Heal 15% of all damage dealt to enemies.' },
-        { id: 'lightning', name: 'Chain Lightning', rarity: 'rare', icon: '⚡', desc: 'Attacks discharge lightning arcing to 2 nearby enemies for 18 damage.' },
-        { id: 'pyromancy', name: 'Infernal Brand', rarity: 'common', icon: '🔥', desc: 'Attacks ignite foes for 8 burn damage per second for 3 seconds.' },
-        { id: 'frostbite', name: 'Frostbite Shards', rarity: 'common', icon: '❄️', desc: 'Hits chill enemies, slowing their movement and attack speed by 35%.' },
-        { id: 'titan', name: 'Titan Vitality', rarity: 'epic', icon: '❤️', desc: '+50 Max HP and instantly restore all health to maximum.' },
-        { id: 'swift', name: 'Warp Strides', rarity: 'common', icon: '👟', desc: '+25% Movement Speed and 40% reduced stamina consumption.' },
-        { id: 'critfury', name: 'Critical Carnage', rarity: 'rare', icon: '🎯', desc: '+20% Critical Hit Chance and +50% Critical Damage.' },
-        { id: 'ironclad', name: 'Carbide Plating', rarity: 'common', icon: '🛡️', desc: 'Take 20% reduced damage from all enemies and traps.' },
-        { id: 'magnet', name: 'Soul Harvester', rarity: 'common', icon: '🧲', desc: '+100% Auto-pickup range and +40% Gold & XP drops.' },
-        { id: 'executioner', name: 'Grim Reaper', rarity: 'legendary', icon: '💀', desc: 'Instantly execute any non-boss enemy that drops below 25% HP.' },
-        { id: 'orb_havoc', name: 'Orbiting Glaive', rarity: 'epic', icon: '🔮', desc: 'Summon a mystical orb that orbits you, dealing 25 damage to enemies it touches.' },
-        { id: 'cleave', name: 'Shockwave Cleave', rarity: 'rare', icon: '💥', desc: 'Attacks unleash a forward shockwave damaging enemies in a wider arc.' },
-        { id: 'goldrush', name: 'Midas Fury', rarity: 'epic', icon: '🪙', desc: 'Gain +1% damage for every 20 Gold currently in your inventory.' },
-        { id: 'alchemical', name: 'Toxic Catalyst', rarity: 'rare', icon: '🧪', desc: 'Enemies slain burst into a cloud of toxic fumes, poisoning nearby foes.' },
-        { id: 'overclock', name: 'Adrenaline Rush', rarity: 'legendary', icon: '⏳', desc: 'Killing an enemy grants +40% Attack Speed and +30% Movement Speed for 4s.' }
-    ];
 
     // =========================================================================
     // 2. PROCEDURAL CANVAS TEXTURE GENERATOR
@@ -191,102 +56,7 @@
     // =========================================================================
     // 6. 3D FIRST-PERSON WEAPON BUILDER
     // =========================================================================
-    class WeaponFactory {
-        static buildWeapon(classType) {
-            const group = new THREE.Group();
-
-            if (classType === ClassType.WARRIOR) {
-                // Steel Longsword
-                const swordGroup = new THREE.Group();
-                const hilt = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.6, 4.0, 8), new THREE.MeshStandardMaterial({ color: 0x3d271d, roughness: 0.8 }));
-                hilt.position.set(0, -2.0, 0);
-                swordGroup.add(hilt);
-
-                const guard = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.8, 1.2), new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.8, roughness: 0.3 }));
-                swordGroup.add(guard);
-
-                const blade = new THREE.Mesh(new THREE.BoxGeometry(1.0, 14.0, 0.3), new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.95, roughness: 0.15 }));
-                blade.position.set(0, 7.0, 0);
-                swordGroup.add(blade);
-
-                swordGroup.position.set(2.8, -2.8, -6.5);
-                swordGroup.rotation.set(-Math.PI / 4, 0, -Math.PI / 7);
-                group.add(swordGroup);
-                group.mainHand = swordGroup;
-
-                // Shield in Offhand
-                const shieldGroup = new THREE.Group();
-                const shieldPlate = new THREE.Mesh(new THREE.BoxGeometry(4.5, 7.0, 0.6), new THREE.MeshStandardMaterial({ color: 0x801020, metalness: 0.4, roughness: 0.5 }));
-                const shieldRim = new THREE.Mesh(new THREE.BoxGeometry(4.9, 7.4, 0.4), new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.8, roughness: 0.2 }));
-                shieldRim.position.z = -0.1;
-                shieldGroup.add(shieldPlate);
-                shieldGroup.add(shieldRim);
-
-                shieldGroup.position.set(-3.2, -3.2, -6.0);
-                shieldGroup.rotation.set(0, Math.PI / 6, 0);
-                group.add(shieldGroup);
-                group.offHand = shieldGroup;
-
-            } else if (classType === ClassType.MAGE) {
-                // Astral Staff
-                const staffGroup = new THREE.Group();
-                const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 18.0, 8), new THREE.MeshStandardMaterial({ color: 0x2d1a38, roughness: 0.7 }));
-                staffGroup.add(shaft);
-
-                const tip = new THREE.Mesh(new THREE.OctahedronGeometry(1.6, 0), new THREE.MeshStandardMaterial({ color: 0xa855f7, emissive: 0x7e22ce, emissiveIntensity: 0.8, roughness: 0.1 }));
-                tip.position.set(0, 9.5, 0);
-                staffGroup.add(tip);
-
-                staffGroup.position.set(2.6, -3.0, -7.0);
-                staffGroup.rotation.set(-Math.PI / 5, 0, -Math.PI / 9);
-                group.add(staffGroup);
-                group.mainHand = staffGroup;
-                group.gemTip = tip;
-
-            } else if (classType === ClassType.TANK) {
-                // Spiked Warhammer
-                const hammerGroup = new THREE.Group();
-                const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.7, 12.0, 8), new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.8 }));
-                handle.position.set(0, -3.0, 0);
-                hammerGroup.add(handle);
-
-                const hammerHead = new THREE.Mesh(new THREE.BoxGeometry(4.0, 4.0, 6.0), new THREE.MeshStandardMaterial({ color: 0x374151, metalness: 0.85, roughness: 0.3 }));
-                hammerHead.position.set(0, 4.0, 0);
-                hammerGroup.add(hammerHead);
-
-                hammerGroup.position.set(2.9, -2.9, -6.8);
-                hammerGroup.rotation.set(-Math.PI / 4.2, 0, -Math.PI / 6);
-                group.add(hammerGroup);
-                group.mainHand = hammerGroup;
-
-                // Tower Shield
-                const shieldGroup = new THREE.Group();
-                const plate = new THREE.Mesh(new THREE.BoxGeometry(5.5, 9.5, 0.8), new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.9, roughness: 0.2 }));
-                shieldGroup.add(plate);
-                shieldGroup.position.set(-3.5, -3.2, -6.0);
-                shieldGroup.rotation.set(0, Math.PI / 5, 0);
-                group.add(shieldGroup);
-                group.offHand = shieldGroup;
-
-            } else {
-                // Support Magitech Chem-Gun
-                const gunGroup = new THREE.Group();
-                const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.0, 10.0, 8), new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.3 }));
-                barrel.rotation.x = Math.PI / 2;
-                gunGroup.add(barrel);
-
-                const flask = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 4.0, 8), new THREE.MeshStandardMaterial({ color: 0x22c55e, emissive: 0x16a34a, emissiveIntensity: 0.7, transparent: true, opacity: 0.8 }));
-                flask.position.set(0, 1.2, -1.0);
-                gunGroup.add(flask);
-
-                gunGroup.position.set(2.4, -2.5, -6.5);
-                group.add(gunGroup);
-                group.mainHand = gunGroup;
-            }
-
-            return group;
-        }
-    }
+    const WeaponFactory = window.GraveGainWeaponFactory;
 
     // =========================================================================
     // 7. PROJECTILES & ENVIRONMENT PROPS
@@ -295,506 +65,11 @@
     const DungeonProp = window.GraveGainDungeonProp;
 
     // =========================================================================
-    // 8. PLAYER ENTITY
+    // 8. ENTITIES: PLAYER, ENEMIES, LOOT
     // =========================================================================
-    class PlayerEntity {
-        constructor(race, classType, permanentStats = {}) {
-            this.race = race;
-            this.classType = classType;
-            const rData = RaceData[race];
-            const cData = ClassData[classType];
-
-            this.x = 0;
-            this.y = 0; // mapped to 3D z
-            this.yElevation = 0;
-            this.vx = 0;
-            this.vy = 0;
-            this.radius = 16;
-
-            this.yaw = 0;
-            this.pitch = 0;
-
-            const bonusHp = permanentStats.health ? permanentStats.health * 25 : 0;
-            this.maxHp = rData.maxHp + bonusHp;
-            this.hp = this.maxHp;
-            this.hpRegen = rData.hpRegen;
-            this.stamina = rData.stamina;
-            this.maxStamina = rData.stamina;
-
-            const speedBonus = permanentStats.speed ? (1.0 + permanentStats.speed * 0.1) : 1.0;
-            this.speed = rData.speed * speedBonus;
-
-            this.mana = race === Race.ELF ? 100 : 0;
-            this.maxMana = 100;
-            this.rage = 0;
-            this.shieldBubble = 0;
-            this.shieldCooldown = 0;
-            this.stoneForm = false;
-            this.stoneDuration = 0;
-
-            // Combat & stats
-            this.level = 1;
-            this.xp = 0;
-            this.xpNext = 60;
-            this.isDead = false;
-            this.isBlocking = false;
-            this.parryWindow = 0;
-
-            this.potions = 1 + (permanentStats.potions || 0);
-            this.perks = [];
-
-            // Movement physics
-            this.grounded = true;
-            this.platVy = 0;
-            this.doubleJumpsLeft = 0;
-            this.abilityCooldown = 0;
-        }
-
-        update(dt, input, physics, tilemap) {
-            if (this.isDead) return;
-
-            // Health & stamina regeneration
-            if (!this.stoneForm) {
-                this.hp = Math.min(this.maxHp, this.hp + this.hpRegen * dt);
-            }
-            if (this.race === Race.ELF) {
-                this.mana = Math.min(this.maxMana, this.mana + 3.0 * dt);
-            }
-            if (this.race === Race.ORC) {
-                this.rage = Math.max(0, this.rage - 3.0 * dt);
-            }
-            if (this.race === Race.HUMAN) {
-                if (this.shieldCooldown > 0) this.shieldCooldown -= dt;
-                else this.shieldBubble = Math.min(25.0, this.shieldBubble + 2.5 * dt);
-            }
-
-            if (this.stoneForm) {
-                this.stoneDuration -= dt;
-                if (this.stoneDuration <= 0) this.stoneForm = false;
-            }
-
-            if (this.parryWindow > 0) this.parryWindow -= dt;
-            if (this.abilityCooldown > 0) this.abilityCooldown -= dt;
-
-            // Movement vector relative to look yaw
-            let moveX = 0;
-            let moveZ = 0;
-
-            if (input.keys['KeyW'] || input.keys['ArrowUp']) moveZ -= 1;
-            if (input.keys['KeyS'] || input.keys['ArrowDown']) moveZ += 1;
-            if (input.keys['KeyA'] || input.keys['ArrowLeft']) moveX -= 1;
-            if (input.keys['KeyD'] || input.keys['ArrowRight']) moveX += 1;
-
-            // Mobile virtual joystick input
-            if (input.joystick.active) {
-                moveX += input.joystick.x;
-                moveZ += input.joystick.y;
-            }
-
-            let currentSpeed = this.speed;
-            if (this.hasPerk('swift')) currentSpeed *= 1.25;
-
-            const isRunning = (input.keys['ShiftLeft'] || input.keys['ShiftRight']) && this.stamina > 5;
-            if (isRunning) {
-                currentSpeed *= 1.4;
-                const cost = this.hasPerk('swift') ? 12 : 20;
-                this.stamina = Math.max(0, this.stamina - cost * dt);
-            } else {
-                this.stamina = Math.min(this.maxStamina, this.stamina + 18 * dt);
-            }
-
-            if (this.isBlocking) {
-                currentSpeed *= 0.55;
-            }
-
-            const moveLen = Math.hypot(moveX, moveZ);
-            if (moveLen > 0.05) {
-                const normX = moveX / Math.max(1, moveLen);
-                const normZ = moveZ / Math.max(1, moveLen);
-
-                const cosYaw = Math.cos(this.yaw);
-                const sinYaw = Math.sin(this.yaw);
-                this.vx = (normX * cosYaw - normZ * sinYaw) * currentSpeed;
-                this.vy = (normX * sinYaw + normZ * cosYaw) * currentSpeed;
-            } else {
-                this.vx = 0;
-                this.vy = 0;
-            }
-
-            // Hazard floor effects
-            const tx = Math.floor(this.x / 48);
-            const ty = Math.floor(this.y / 48);
-            if (tilemap && tilemap.grid && tilemap.grid[tx]) {
-                const cell = tilemap.grid[tx][ty];
-                if (cell === 2) { // Water
-                    this.vx *= 0.6;
-                    this.vy *= 0.6;
-                } else if (cell === 3 && this.race !== Race.DWARF) { // Poison
-                    this.takeDamage(10 * dt, 'poison');
-                } else if (cell === 4) { // Fire
-                    this.takeDamage(15 * dt, 'fire');
-                }
-            }
-
-            // Jump & Vertical physics
-            if (input.keys['Space'] && this.grounded) {
-                this.platVy = 280;
-                this.grounded = false;
-                this.doubleJumpsLeft = this.race === Race.DWARF ? 1 : 0;
-                input.keys['Space'] = false;
-                if (window.GraveGainGame) window.GraveGainGame.audio.playSfx('swing', 1.4);
-            } else if (input.keys['Space'] && !this.grounded && this.race === Race.DWARF && this.doubleJumpsLeft > 0) {
-                this.platVy = 230;
-                this.doubleJumpsLeft--;
-                input.keys['Space'] = false;
-                if (window.GraveGainGame) window.GraveGainGame.audio.playSfx('swing', 1.7);
-            } else if (input.keys['Space'] && !this.grounded && this.race === Race.HUMAN && this.stamina > 5) {
-                this.platVy = Math.min(180, this.platVy + 400 * dt);
-                this.stamina = Math.max(0, this.stamina - 30 * dt);
-            }
-
-            if (!this.grounded) {
-                this.platVy -= 750 * dt;
-                this.yElevation += this.platVy * dt;
-                if (this.yElevation <= 0) {
-                    this.yElevation = 0;
-                    this.platVy = 0;
-                    this.grounded = true;
-                }
-            }
-
-            physics.moveEntityWithCollision(this, this.vx * dt, this.vy * dt, tilemap);
-        }
-
-        hasPerk(id) {
-            return this.perks.some(p => p.id === id);
-        }
-
-        takeDamage(dmg, type = 'normal') {
-            if (window.gameDebug?.godMode || this.stoneForm || this.isDead) return;
-
-            // Blocking logic
-            if (this.isBlocking) {
-                if (this.parryWindow > 0) {
-                    // Perfect Parry!
-                    if (window.GraveGainGame) {
-                        window.GraveGainGame.combatText.spawnText(this.x, 20, this.y, 'PARRIED!', 'block');
-                        window.GraveGainGame.audio.playSfx('block', 1.3);
-                        window.GraveGainGame.vfx.spawnSparks(this.x, this.y, 0x38bdf8, 20);
-                    }
-                    return;
-                }
-                const blockPercent = this.classType === ClassType.TANK ? 0.90 : 0.75;
-                dmg *= (1.0 - blockPercent);
-                if (window.GraveGainGame) {
-                    window.GraveGainGame.combatText.spawnText(this.x, 20, this.y, 'BLOCKED!', 'block');
-                    window.GraveGainGame.audio.playSfx('block');
-                }
-            }
-
-            if (this.hasPerk('ironclad')) {
-                dmg *= 0.80;
-            }
-
-            if (this.race === Race.ORC) {
-                this.rage = Math.min(100, this.rage + dmg * 0.8);
-            }
-
-            if (this.shieldBubble > 0) {
-                const absorbed = Math.min(this.shieldBubble, dmg);
-                this.shieldBubble -= absorbed;
-                dmg -= absorbed;
-                this.shieldCooldown = 5.0;
-            }
-
-            this.hp = Math.max(0, this.hp - dmg);
-
-            if (window.GraveGainGame) {
-                window.GraveGainGame.cameraController.applyShake(6);
-                window.GraveGainGame.audio.playSfx('hit', 0.8);
-                window.GraveGainGame.combatText.spawnText(this.x, 20, this.y, `-${Math.round(dmg)}`, 'player-dmg');
-            }
-
-            if (this.hp <= 0 && !this.isDead) {
-                this.isDead = true;
-                if (window.GraveGainGame) window.GraveGainGame.gameOver(false);
-            }
-        }
-
-        addXp(amt) {
-            this.xp += amt;
-            if (window.GraveGainGame) {
-                window.GraveGainGame.combatText.spawnText(this.x, 20, this.y, `+${amt} XP`, 'xp');
-            }
-            if (this.xp >= this.xpNext) {
-                this.xp -= this.xpNext;
-                this.level++;
-                this.xpNext = Math.floor(this.xpNext * 1.55);
-                if (window.GraveGainGame) window.GraveGainGame.triggerLevelUp();
-            }
-        }
-
-        triggerAbility() {
-            if (this.abilityCooldown > 0) return;
-            this.abilityCooldown = 7.0;
-
-            const game = window.GraveGainGame;
-            if (!game) return;
-
-            if (this.race === Race.HUMAN) {
-                this.shieldBubble = 35.0;
-                game.audio.playSfx('spell', 1.2);
-                game.vfx.spawnSparks(this.x, this.y, 0x00d2ff, 25);
-                game.combatText.spawnText(this.x, 20, this.y, 'SHIELD WALL!', 'heal');
-            } else if (this.race === Race.ELF) {
-                game.audio.playSfx('spell', 1.5);
-                game.vfx.spawnSparks(this.x, this.y, 0x4cff7f, 35);
-                game.dealAoEDamage(this.x, this.y, 160, 45, 'nature');
-                game.combatText.spawnText(this.x, 20, this.y, 'NATURE BURST!', 'heal');
-            } else if (this.race === Race.DWARF) {
-                this.stoneForm = true;
-                this.stoneDuration = 5.0;
-                game.audio.playSfx('block', 0.8);
-                game.vfx.spawnSparks(this.x, this.y, 0xffcc4c, 30);
-                game.combatText.spawnText(this.x, 20, this.y, 'STONE FORM!', 'block');
-            } else if (this.race === Race.ORC) {
-                const burstDmg = 35 + this.rage * 0.75;
-                this.rage = 0;
-                game.audio.playSfx('explode', 1.1);
-                game.cameraController.applyShake(10);
-                game.vfx.spawnSparks(this.x, this.y, 0xff4c4c, 40);
-                game.dealAoEDamage(this.x, this.y, 180, burstDmg, 'rage');
-                game.combatText.spawnText(this.x, 20, this.y, 'RAGE BURST!', 'crit');
-            }
-        }
-    }
-
-    // =========================================================================
-    // 9. ENEMY ENTITIES & BOSSES
-    // =========================================================================
-    class EnemyEntity {
-        constructor(typeData, x, y, difficultyScale = 1.0) {
-            this.name = typeData.name;
-            this.x = x;
-            this.y = y; // mapped to 3D z
-            this.radius = 16;
-            this.angle = 0;
-            this.type = typeData.type || 'skeleton';
-            this.isBoss = !!typeData.isBoss;
-
-            this.maxHp = typeData.hp * difficultyScale * (typeData.hpMultiplier || 1);
-            this.hp = this.maxHp;
-            this.dmg = typeData.dmg * difficultyScale * (typeData.damageMultiplier || 1);
-            this.speed = typeData.speed;
-            this.scale = typeData.scale || 1.0;
-            this.bloodColor = typeData.bloodColor || 0xddddcc;
-
-            this.kx = 0;
-            this.ky = 0;
-            this.state = 'idle';
-            this.spawnX = x;
-            this.spawnY = y;
-            this.attackTimer = 0;
-            this.attackInterval = typeData.attackInterval || 1.0;
-
-            this.group3d = new THREE.Group();
-            this.group3d.scale.set(this.scale, this.scale, this.scale);
-
-            this.buildModel(typeData);
-        }
-
-        buildModel(typeData) {
-            const boneMat = new THREE.MeshStandardMaterial({ color: this.bloodColor, roughness: 0.8 });
-            const eyeColor = this.isBoss ? 0xff0044 : (typeData.type === 'mage' ? 0x9333ea : 0xff2222);
-            const eyeMat = new THREE.MeshBasicMaterial({ color: eyeColor });
-
-            if (this.type === 'skull') {
-                // Flying flaming skull
-                this.skull = new THREE.Mesh(new THREE.BoxGeometry(8, 8, 8), boneMat);
-                this.skull.position.y = 18;
-                this.group3d.add(this.skull);
-
-                const jaw = new THREE.Mesh(new THREE.BoxGeometry(6, 4, 6), boneMat);
-                jaw.position.set(0, -5, 1);
-                this.skull.add(jaw);
-
-                const le = new THREE.Mesh(new THREE.SphereGeometry(1.0, 6, 6), eyeMat);
-                le.position.set(-2, 1, 4.2);
-                this.skull.add(le);
-                const re = new THREE.Mesh(new THREE.SphereGeometry(1.0, 6, 6), eyeMat);
-                re.position.set(2, 1, 4.2);
-                this.skull.add(re);
-
-                // Add flame sprite halo
-                const flame = ProceduralTextures.createTorchFlameSprite();
-                flame.position.y = 18;
-                flame.scale.set(20, 20, 1);
-                this.group3d.add(flame);
-            } else {
-                // Standard humanoid skeleton structure
-                this.torso = new THREE.Mesh(new THREE.BoxGeometry(8, 14, 5), boneMat);
-                this.torso.position.y = 16;
-                this.group3d.add(this.torso);
-
-                this.skull = new THREE.Mesh(new THREE.BoxGeometry(6, 6, 6), boneMat);
-                this.skull.position.set(0, 10, 0);
-                this.torso.add(this.skull);
-
-                // Eyes
-                const le = new THREE.Mesh(new THREE.SphereGeometry(0.8, 6, 6), eyeMat);
-                le.position.set(-1.8, 1, 3.1);
-                this.skull.add(le);
-                const re = new THREE.Mesh(new THREE.SphereGeometry(0.8, 6, 6), eyeMat);
-                re.position.set(1.8, 1, 3.1);
-                this.skull.add(re);
-
-                // Limbs
-                this.leftLeg = new THREE.Mesh(new THREE.BoxGeometry(2.2, 12, 2.2), boneMat);
-                this.leftLeg.position.set(-3, -8, 0);
-                this.group3d.add(this.leftLeg);
-
-                this.rightLeg = new THREE.Mesh(new THREE.BoxGeometry(2.2, 12, 2.2), boneMat);
-                this.rightLeg.position.set(3, -8, 0);
-                this.group3d.add(this.rightLeg);
-
-                this.leftArm = new THREE.Mesh(new THREE.BoxGeometry(2, 11, 2), boneMat);
-                this.leftArm.position.set(-6, 3, 0);
-                this.torso.add(this.leftArm);
-
-                this.rightArm = new THREE.Mesh(new THREE.BoxGeometry(2, 11, 2), boneMat);
-                this.rightArm.position.set(6, 3, 0);
-                this.torso.add(this.rightArm);
-
-                // Extra accessories
-                if (this.isBoss) {
-                    const crown = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 3.8, 3, 8), new THREE.MeshStandardMaterial({ color: 0xd97706, metalness: 0.9 }));
-                    crown.position.set(0, 4, 0);
-                    this.skull.add(crown);
-                } else if (typeData.armored) {
-                    const helm = new THREE.Mesh(new THREE.BoxGeometry(7, 4, 7), new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.8 }));
-                    helm.position.set(0, 2, 0);
-                    this.skull.add(helm);
-                }
-            }
-        }
-
-        update(dt, player, physics, tilemap, game) {
-            const dist = Math.hypot(player.x - this.x, player.y - this.y);
-
-            // Decay knockback
-            this.x += this.kx * dt;
-            this.y += this.ky * dt;
-            this.kx -= this.kx * 8 * dt;
-            this.ky -= this.ky * 8 * dt;
-
-            // Attack cooldown
-            if (this.attackTimer > 0) this.attackTimer -= dt;
-
-            // AI states
-            if (dist < 450 && this.state === 'idle') {
-                this.state = 'chase';
-            }
-
-            if (this.state === 'chase') {
-                this.angle = Math.atan2(player.y - this.y, player.x - this.x);
-
-                if (this.type === 'mage' && dist < 320 && dist > 140) {
-                    // Ranged attacker keeps distance and casts shadow skull
-                    if (this.attackTimer <= 0) {
-                        this.attackTimer = 2.4;
-                        const forwardX = Math.cos(this.angle);
-                        const forwardY = Math.sin(this.angle);
-                        game.spawnProjectile(this.x, 18, this.y, forwardX * 220, 0, forwardY * 220, this.dmg, false, 0x9333ea, 'magic');
-                        game.audio.playSfx('spell', 0.8);
-                    }
-                } else {
-                    // Melee pursuit
-                    const vx = Math.cos(this.angle) * this.speed * dt;
-                    const vy = Math.sin(this.angle) * this.speed * dt;
-                    physics.moveEntityWithCollision(this, vx, vy, tilemap);
-
-                    // Melee attack range check
-                    if (dist < this.radius + player.radius + 12) {
-                        if (this.attackTimer <= 0) {
-                            this.attackTimer = this.attackInterval;
-                            player.takeDamage(this.dmg);
-
-                            if (this.type === 'skull') {
-                                // Kamikaze explosion
-                                game.vfx.spawnSparks(this.x, this.y, 0xff4422, 30);
-                                game.audio.playSfx('explode');
-                                this.hp = 0;
-                            }
-                        }
-                    }
-                }
-
-                // Walking oscillation animation
-                if (this.leftLeg && this.rightLeg) {
-                    const cycle = Date.now() * 0.01 * (this.speed / 80);
-                    this.leftLeg.rotation.x = Math.sin(cycle) * 0.65;
-                    this.rightLeg.rotation.x = -Math.sin(cycle) * 0.65;
-                    this.leftArm.rotation.x = -Math.sin(cycle) * 0.45;
-                    this.rightArm.rotation.x = Math.sin(cycle) * 0.45;
-                }
-            }
-
-            this.group3d.position.set(this.x, 0, this.y);
-            this.group3d.rotation.y = -this.angle + Math.PI / 2;
-        }
-
-        destroy() {
-            if (window.GraveGainGame) {
-                window.GraveGainGame.scene.remove(this.group3d);
-            }
-            this.group3d.traverse((child) => {
-                if (child.geometry) child.geometry.dispose();
-                if (child.material) {
-                    if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
-                    else child.material.dispose();
-                }
-            });
-        }
-    }
-
-    // =========================================================================
-    // 10. LOOT ITEMS & PARTICLE SYSTEM
-    // =========================================================================
-    class LootItem {
-        constructor(x, y, type = 'gold', value = 15) {
-            this.x = x;
-            this.y = y;
-            this.type = type;
-            this.value = value;
-            this.radius = 12;
-            this.pulse = Math.random() * Math.PI;
-
-            this.group3d = new THREE.Group();
-            const emoji = type === 'gold' ? '🪙' : (type === 'potion' ? '🧪' : '📜');
-            this.sprite = ProceduralTextures.createEmojiSprite(emoji, 64);
-            this.sprite.position.y = 8;
-            this.group3d.add(this.sprite);
-            this.group3d.position.set(x, 0, y);
-        }
-
-        update(dt, player, range) {
-            this.pulse += 5 * dt;
-            this.sprite.position.y = 8 + Math.sin(this.pulse) * 3;
-
-            const dist = Math.hypot(player.x - this.x, player.y - this.y);
-            if (dist < range) {
-                const angle = Math.atan2(player.y - this.y, player.x - this.x);
-                const pullSpeed = 340 * dt;
-                this.x += Math.cos(angle) * pullSpeed;
-                this.y += Math.sin(angle) * pullSpeed;
-                this.group3d.position.set(this.x, 0, this.y);
-            }
-        }
-
-        destroy() {
-            if (window.GraveGainGame) window.GraveGainGame.scene.remove(this.group3d);
-        }
-    }
+    const PlayerEntity = window.GraveGainPlayerEntity;
+    const EnemyEntity = window.GraveGainEnemyEntity;
+    const LootItem = window.GraveGainLootItem;
 
     const ParticleSystem = window.GraveGainParticleSystem;
 
@@ -840,15 +115,16 @@
 
             this.camera3d = new THREE.PerspectiveCamera(68, (this.container.clientWidth || 1000) / (this.container.clientHeight || 600), 2, 900);
 
-            // Lighting
-            this.ambientLight = new THREE.AmbientLight(0x18102a, 0.4);
+            // Enhanced 3D Atmospheric Lighting
+            this.ambientLight = new THREE.AmbientLight(0x2d1f4d, 0.65);
             this.scene.add(this.ambientLight);
 
-            this.playerLantern = new THREE.PointLight(0xffeedd, 2.0, 160, 1.4);
+            // Player lantern with subtle warm dynamic aura
+            this.playerLantern = new THREE.PointLight(0xffecd2, 2.4, 210, 1.2);
             this.scene.add(this.playerLantern);
 
-            // Flashlight
-            this.flashlight = new THREE.SpotLight(0xfff0d0, 3.5, 300, Math.PI / 6, 0.6, 1.2);
+            // Tactical flashlight with smooth penumbra & specular reach
+            this.flashlight = new THREE.SpotLight(0xfff7e6, 4.2, 360, Math.PI / 5.5, 0.75, 1.1);
             this.scene.add(this.flashlight);
             this.flashlightTarget = new THREE.Object3D();
             this.scene.add(this.flashlightTarget);
@@ -864,6 +140,7 @@
             this.physics = new PhysicsController();
             this.vfx = new ParticleSystem(this.scene);
             this.combatText = new CombatTextManager(document.getElementById('combatTextContainer'), this.camera3d);
+            this.hubController = window.GraveGainHubQuartersController ? new window.GraveGainHubQuartersController(this) : null;
 
             // Textures cache
             this.textures = {
@@ -1298,6 +575,10 @@
                     }
                 });
             }
+        }
+
+        performMeleeAttack() {
+            return this.triggerMeleeAttack();
         }
 
         applyHitToEnemy(enemy, baseDmg, dir) {
@@ -2513,284 +1794,43 @@
         }
 
         renderCharSelect() {
-            const raceGrid = document.getElementById('raceGrid');
-            raceGrid.innerHTML = Object.keys(RaceData).map((key, i) => {
-                const race = RaceData[key];
-                return `
-                    <div class="char-card ${i === 0 ? 'selected' : ''}" data-race="${key}">
-                        <span class="char-emoji">${race.emoji}</span>
-                        <div class="char-name">${race.name}</div>
-                        <div class="char-desc">${race.desc}</div>
-                    </div>
-                `;
-            }).join('');
-
-            raceGrid.querySelectorAll('.char-card').forEach(card => {
-                card.addEventListener('click', () => {
-                    raceGrid.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
-                    card.classList.add('selected');
-                });
-            });
-
-            const classGrid = document.getElementById('classGrid');
-            classGrid.innerHTML = Object.values(ClassType).map((cls, i) => {
-                const c = ClassData[cls];
-                return `<button class="class-btn ${i === 0 ? 'selected' : ''}" data-class="${cls}">${c.title.toUpperCase()}</button>`;
-            }).join('');
-
-            classGrid.querySelectorAll('.class-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    classGrid.querySelectorAll('.class-btn').forEach(b => b.classList.remove('selected'));
-                    btn.classList.add('selected');
-                });
-            });
+            if (this.hubController) return this.hubController.renderCharSelect();
         }
 
         updateHubQuartersUI() {
-            document.getElementById('hubQuartersLevel').textContent = `Level ${this.quartersLevel}`;
-            const upgrade = QuartersUpgrades[this.quartersLevel - 1];
-            document.getElementById('hubQuartersSize').textContent = upgrade.size;
-            document.getElementById('hubQuartersCapacity').textContent = `${upgrade.capacity} Space`;
-
-            if (this.quartersLevel < 6) {
-                const nextUpgrade = QuartersUpgrades[this.quartersLevel];
-                document.getElementById('hubQuartersCost').textContent = `${nextUpgrade.cost} $UUSD`;
-            } else {
-                document.getElementById('hubQuartersCost').textContent = 'MAX LEVEL REACHED';
-            }
+            if (this.hubController) return this.hubController.updateHubQuartersUI();
         }
 
         renderArmory() {
-            const grid = document.getElementById('armoryGrid');
-            if (!grid) return;
-
-            grid.innerHTML = ArmoryUpgrades.map(u => {
-                const rank = this.armoryRanks[u.id] || 0;
-                const cost = Math.round(u.baseCost * Math.pow(u.mult, rank));
-                const isMax = rank >= u.maxRank;
-
-                return `
-                    <div class="armory-card">
-                        <div class="armory-header">
-                            <span class="armory-icon">${u.icon}</span>
-                            <div>
-                                <div class="armory-title">${u.name}</div>
-                                <div class="armory-level">Rank ${rank} / ${u.maxRank}</div>
-                            </div>
-                        </div>
-                        <div class="armory-desc">${u.desc}</div>
-                        <div class="armory-footer">
-                            <span class="highlight-cyan" style="font-size:0.85rem;">${isMax ? 'MAX RANK' : `${cost} $UUSD`}</span>
-                            ${isMax ? '' : `<button class="btn-game btn-primary" style="font-size:0.75rem; padding:6px 12px;" onclick="window.GraveGainGame.buyArmoryUpgrade('${u.id}')">Upgrade</button>`}
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            if (this.hubController) return this.hubController.renderArmory();
         }
 
         buyArmoryUpgrade(upgradeId) {
-            const u = ArmoryUpgrades.find(item => item.id === upgradeId);
-            if (!u) return;
-
-            const rank = this.armoryRanks[u.id] || 0;
-            if (rank >= u.maxRank) return;
-
-            const cost = Math.round(u.baseCost * Math.pow(u.mult, rank));
-            if (this.uusd >= cost) {
-                this.uusd -= cost;
-                this.armoryRanks[u.id] = rank + 1;
-                this.audio.playSfx('levelup');
-                this.renderArmory();
-                this.saveSave();
-            }
+            if (this.hubController) return this.hubController.buyArmoryUpgrade(upgradeId);
         }
 
         renderBotany() {
-            const grid = document.getElementById('botanyGrid');
-            if (!grid) return;
-            const now = Math.floor(Date.now() / 1000);
-
-            grid.innerHTML = this.botanyCrops.map((crop, index) => {
-                if (!crop.seedId) {
-                    return `
-                        <div class="plant-slot">
-                            <strong>[Empty Hydroponic Slot]</strong>
-                            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">
-                                ${BotanySeeds.map(s => `
-                                    <button class="btn-game" style="font-size:0.75rem; padding:5px 10px;" onclick="window.GraveGainGame.plantSeed(${index}, '${s.id}')">
-                                        Plant ${s.emoji} ${s.name} (25 $UUSD)
-                                    </button>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    const seed = BotanySeeds.find(s => s.id === crop.seedId);
-                    const elapsed = now - crop.startTime;
-                    const percent = Math.min(100, Math.floor((elapsed / crop.growthTime) * 100));
-                    const isReady = percent >= 100;
-
-                    return `
-                        <div class="plant-slot">
-                            <div class="plant-info">
-                                <span>${seed.emoji} ${seed.name}</span>
-                                <strong>${percent}%</strong>
-                            </div>
-                            <div class="plant-progress-bg">
-                                <div class="plant-progress-fill" style="width: ${percent}%;"></div>
-                            </div>
-                            ${isReady ? `
-                                <button class="btn-game btn-primary" style="font-size:0.8rem; padding:6px 12px; margin-top:5px;" onclick="window.GraveGainGame.harvestCrop(${index})">
-                                    🌾 Harvest (+${seed.yield * seed.value} $UUSD)
-                                </button>
-                            ` : `
-                                <span style="font-size:0.75rem; color:var(--grave-text-muted);">Matures in ${Math.max(0, crop.growthTime - elapsed)}s</span>
-                            `}
-                        </div>
-                    `;
-                }
-            }).join('');
+            if (this.hubController) return this.hubController.renderBotany();
         }
 
         plantSeed(slotIndex, seedId) {
-            const seed = BotanySeeds.find(s => s.id === seedId);
-            if (this.uusd >= 25) {
-                this.uusd -= 25;
-                this.botanyCrops[slotIndex] = {
-                    seedId: seed.id,
-                    startTime: Math.floor(Date.now() / 1000),
-                    growthTime: seed.time
-                };
-                this.audio.playSfx('loot');
-                this.renderBotany();
-                this.saveSave();
-            }
+            if (this.hubController) return this.hubController.plantSeed(slotIndex, seedId);
         }
 
         harvestCrop(slotIndex) {
-            const crop = this.botanyCrops[slotIndex];
-            const seed = BotanySeeds.find(s => s.id === crop.seedId);
-            this.uusd += seed.yield * seed.value;
-            this.botanyCrops[slotIndex] = { seedId: null, startTime: 0, growthTime: 0 };
-            this.audio.playSfx('loot');
-            this.renderBotany();
-            this.saveSave();
+            if (this.hubController) return this.hubController.harvestCrop(slotIndex);
         }
 
         generateRepairMiniGame() {
-            const area = document.getElementById('repairCircuitArea');
-            if (!area) return;
-            area.innerHTML = '';
-            document.getElementById('repairStatus').textContent = 'Status: Ready for calibration';
-
-            const termX = 240;
-            const termY = 90;
-
-            const target = document.createElement('div');
-            target.className = 'circuit-node terminal';
-            target.style.left = `${termX}px`;
-            target.style.top = `${termY}px`;
-            target.textContent = '🎯';
-            area.appendChild(target);
-
-            const comp = document.createElement('div');
-            comp.className = 'circuit-node component';
-            comp.style.left = '40px';
-            comp.style.top = '90px';
-            comp.textContent = '💠';
-            area.appendChild(comp);
-
-            let isDragging = false;
-            const startDrag = () => { isDragging = true; };
-            const moveDrag = (e) => {
-                if (!isDragging) return;
-                const rect = area.getBoundingClientRect();
-                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-                let px = Math.max(16, Math.min(rect.width - 16, clientX - rect.left));
-                let py = Math.max(16, Math.min(rect.height - 16, clientY - rect.top));
-
-                comp.style.left = `${px}px`;
-                comp.style.top = `${py}px`;
-
-                if (Math.hypot(px - termX, py - termY) < 22) {
-                    isDragging = false;
-                    comp.style.left = `${termX}px`;
-                    comp.style.top = `${termY}px`;
-                    document.getElementById('repairStatus').textContent = 'Status: Circuit calibrated! +50 $UUSD awarded!';
-                    this.uusd += 50;
-                    this.audio.playSfx('block');
-                    this.saveSave();
-                }
-            };
-            const stopDrag = () => { isDragging = false; };
-
-            comp.addEventListener('mousedown', startDrag);
-            window.addEventListener('mousemove', moveDrag);
-            window.addEventListener('mouseup', stopDrag);
-
-            comp.addEventListener('touchstart', startDrag, { passive: true });
-            window.addEventListener('touchmove', moveDrag, { passive: true });
-            window.addEventListener('touchend', stopDrag);
+            if (this.hubController) return this.hubController.generateRepairMiniGame();
         }
 
         renderLoreList() {
-            const listEl = document.getElementById('loreList');
-            if (!listEl || !window.GraveGainLore) return;
-
-            const allLore = window.GraveGainLore.getAll();
-            listEl.innerHTML = Object.keys(allLore).map(key => {
-                const item = allLore[key];
-                return `<button class="class-btn" style="text-align: left; padding: 8px; font-size: 0.8rem; width: 100%;" onclick="window.GraveGainGame.viewLoreEntry('${item.id}')">${item.title}</button>`;
-            }).join('');
-
-            const speakBtn = document.getElementById('btnSpeakLore');
-            if (speakBtn && !speakBtn.dataset.bound) {
-                speakBtn.dataset.bound = 'true';
-                speakBtn.addEventListener('click', () => {
-                    const currentId = speakBtn.dataset.currentId;
-                    if (currentId) {
-                        const item = window.GraveGainLore.get(currentId);
-                        if (item) this.audio.speak(item.content);
-                    }
-                });
-            }
+            if (this.hubController) return this.hubController.renderLoreList();
         }
 
-        // =========================================================================
-        // 17. SHARED STORY CAMPAIGN METHODS (10 MISSIONS)
-        // =========================================================================
         renderStoryMissionsList() {
-            const grid = document.getElementById('storyMissionsGrid');
-            const btnLaunch = document.getElementById('btnStartStoryMission');
-            if (!grid || !window.GraveGainStoryMissions) return;
-
-            const missions = window.GraveGainStoryMissions;
-            grid.innerHTML = missions.map(m => {
-                const unlocked = window.GraveGainStoryEngine.isUnlocked(m.id);
-                const progress = window.GraveGainStoryEngine.getProgress();
-                const stars = progress.stars[m.id] || 0;
-                const isSelected = this.selectedStoryMissionId === m.id;
-
-                const starStr = unlocked ? '⭐'.repeat(stars) + '☆'.repeat(3 - stars) : '🔒 Locked';
-                return `
-                    <div class="glass-panel story-card ${unlocked ? '' : 'disabled'} ${isSelected ? 'selected' : ''}" 
-                         style="padding: 12px; border: 1px solid ${isSelected ? 'var(--grave-gold)' : 'var(--grave-border)'}; border-radius: 8px; cursor: ${unlocked ? 'pointer' : 'not-allowed'}; opacity: ${unlocked ? 1 : 0.6}; background: ${isSelected ? 'rgba(168,85,247,0.2)' : 'rgba(0,0,0,0.4)'};"
-                         onclick="window.GraveGainGame.selectStoryMission(${m.id})">
-                        <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--grave-gold);">${m.location}</div>
-                        <h4 style="margin: 4px 0; font-family: 'Orbitron'; font-size: 0.95rem; color: white;">${m.title}</h4>
-                        <p style="font-size: 0.78rem; color: var(--grave-text-muted); margin: 4px 0 8px 0;">${m.subtitle}</p>
-                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
-                            <span>${starStr}</span>
-                            <span class="highlight-gold">+${m.rewardGold}g | +${m.rewardUusd}$</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            if (btnLaunch) {
-                btnLaunch.disabled = !this.selectedStoryMissionId;
-            }
+            if (this.hubController) return this.hubController.renderStoryMissionsList();
         }
 
         checkStoryObjectives(enemyKilled) {
@@ -2829,67 +1869,16 @@
         }
 
         selectStoryMission(missionId) {
-            if (!window.GraveGainStoryEngine.isUnlocked(missionId)) return;
-            this.selectedStoryMissionId = missionId;
-            this.renderStoryMissionsList();
+            if (this.hubController) return this.hubController.selectStoryMission(missionId);
         }
 
         playDialogueSequence(dialogueList, onComplete) {
-            if (!dialogueList || dialogueList.length === 0) {
-                if (onComplete) onComplete();
-                return;
-            }
-
-            const dialogueScreen = document.getElementById('storyDialogueScreen');
-            const portrait = document.getElementById('dialoguePortrait');
-            const speaker = document.getElementById('dialogueSpeaker');
-            const text = document.getElementById('dialogueText');
-            const nextBtn = document.getElementById('btnNextDialogue');
-
-            if (!dialogueScreen) {
-                if (onComplete) onComplete();
-                return;
-            }
-
-            dialogueScreen.classList.remove('hidden');
-            let idx = 0;
-
-            const showLine = () => {
-                const item = dialogueList[idx];
-                portrait.textContent = item.portrait || '🤖';
-                speaker.textContent = item.speaker;
-                text.textContent = item.text;
-                this.audio.speak(`${item.speaker} says: ${item.text}`);
-            };
-
-            const handleNext = () => {
-                idx++;
-                if (idx < dialogueList.length) {
-                    showLine();
-                } else {
-                    nextBtn.removeEventListener('click', handleNext);
-                    dialogueScreen.classList.add('hidden');
-                    if (onComplete) onComplete();
-                }
-            };
-
-            nextBtn.onclick = handleNext;
-            showLine();
+            if (this.hubController) return this.hubController.playDialogueSequence(dialogueList, onComplete);
+            if (onComplete) onComplete();
         }
 
         viewLoreEntry(id) {
-            const item = window.GraveGainLore ? window.GraveGainLore.get(id) : null;
-            if (!item) return;
-
-            document.getElementById('loreTitle').textContent = item.title;
-            document.getElementById('loreCategory').textContent = `Category: ${item.category.replace('_', ' ')}`;
-            document.getElementById('loreContent').textContent = item.content;
-
-            const speakBtn = document.getElementById('btnSpeakLore');
-            if (speakBtn) {
-                speakBtn.style.display = 'block';
-                speakBtn.dataset.currentId = id;
-            }
+            if (this.hubController) return this.hubController.viewLoreEntry(id);
         }
     }
 
@@ -2943,7 +1932,18 @@
                 },
                 attack: () => {
                     if (gg.player && !gg.isPaused) {
-                        gg.performMeleeAttack();
+                        if (typeof gg.triggerMeleeAttack === 'function') {
+                            gg.triggerMeleeAttack();
+                        } else if (typeof gg.performMeleeAttack === 'function') {
+                            gg.performMeleeAttack();
+                        }
+                        return true;
+                    }
+                    return false;
+                },
+                ability: () => {
+                    if (gg.player && !gg.isPaused) {
+                        gg.player.triggerAbility();
                         return true;
                     }
                     return false;
