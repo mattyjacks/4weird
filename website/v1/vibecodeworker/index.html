@@ -29,6 +29,7 @@
   
   <!-- Stylesheet -->
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style_hub_simple.css">
 </head>
 <body>
   <!-- CRT & Cyber Matrix Background FX -->
@@ -41,12 +42,14 @@
       <div class="bar-left">
         <span class="brand-logo">4WEIRD VIBECODEWORKER</span>
         <span class="divider">|</span>
-        <span class="system-tag">SYS.STATUS: <span class="pulse-green">ONLINE</span></span>
+        <button class="top-nav-btn hub-highlight-btn" id="btn-top-hub" title="Go to Welcome Hub Home">🏠 HOME / HUB</button>
         <span class="divider">|</span>
-        <span class="title">// CORE_V2.5</span>
+        <button class="top-nav-btn" id="btn-top-layout-toggle" title="Toggle Simple / Advanced layout mode">👁️ <span id="menu-layout-label">Switch to Advanced Layout</span></button>
+        <span class="divider">|</span>
+        <span class="system-tag">SYS.STATUS: <span class="pulse-green">ONLINE</span></span>
       </div>
       <div class="bar-center">
-        <button class="autorun-super-btn" id="btn-autorun-everything" title="Configure & Launch Autonomous QA Playtest in 1-Click">⚡ AUTO-RUN EVERYTHING</button>
+        <button class="autorun-super-btn" id="btn-autorun-everything" title="Configure & Launch Autonomous QA Playtest in 1-Click">⚡ AUTO-RUN</button>
         <span class="divider">|</span>
         <div class="status-indicator-badge">
           <span class="badge-dot pulse-idle" id="agent-state-dot"></span>
@@ -54,25 +57,25 @@
         </div>
         <div class="model-active-badge">
           <span class="sparkle-icon">⚡</span>
-          <span id="active-model-display">GPT-5.6 Luna (OpenAI)</span>
+          <span id="active-model-display">GPT-5.6 Luna</span>
         </div>
         <div class="tauri-desktop-badge" id="tauri-desktop-badge" style="display: none;" title="Running natively via Tauri v2 Desktop Shell">
           <span class="tauri-icon">🖥️</span>
-          <span>DESKTOP TAURI RUNTIME</span>
+          <span>DESKTOP TAURI</span>
         </div>
       </div>
       <div class="bar-right">
-        <button class="top-nav-btn" id="btn-phone-link" title="Open Phone Remote Controller & Linking QR Code">📱 PHONE LINK</button>
+        <button class="top-nav-btn" id="btn-phone-link" title="Open Phone Remote Controller & Linking QR Code">📱 PHONE</button>
         <span class="divider">|</span>
         <button class="top-nav-btn" id="btn-select-mode" title="Select Execution Mode (Run Web / Run Local / Run Remote)">⚙️ MODE: RUN WEB</button>
         <span class="divider">|</span>
-        <button class="top-nav-btn" id="btn-gpu-config" title="Local GPU / Local LLM Settings Drawer">🎮 LOCAL GPU CONFIG</button>
+        <button class="top-nav-btn" id="btn-gpu-config" title="Local GPU / Local LLM Settings Drawer">🎮 LOCAL GPU</button>
         <span class="divider">|</span>
-        <button class="top-nav-btn" id="btn-quick-patch" title="View Current Patch Drawer">⚡ DIFF DRAWER</button>
+        <button class="top-nav-btn" id="btn-quick-patch" title="View Current Patch Drawer">⚡ DIFFS</button>
         <span class="divider">|</span>
         <button class="top-nav-btn" id="btn-auth-lock" title="Password Security Status">🔒 SECURITY</button>
         <span class="divider">|</span>
-        <span class="audio-toggle-btn" id="audio-toggle" title="Toggle Synth Sound Engine">🔊 SYNTH: ON</span>
+        <span class="audio-toggle-btn" id="audio-toggle" title="Toggle Synth Sound Engine">🔊</span>
         <span class="divider">|</span>
         <span class="time-display" id="system-time">00:00:00</span>
       </div>
@@ -533,16 +536,165 @@
           </div>
         </div>
 
-        <div class="report-box">
-          <button id="btn-view-report" class="action-btn report-btn" disabled>📋 GENERATE SESSION REPORT</button>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       WELCOME HUB WORKSPACE (CLEAN HOME INTERFACE WITH RICH FEATURES)
+       ========================================================================== -->
+  <div class="hub-workspace" id="hub-workspace">
+    <div class="hub-hero">
+      <div class="glow-dot active"></div>
+      <h2>Welcome to 4weird VibeCodeWorker</h2>
+      <p>Select a workspace card below to design, run test, audit any website, or launch autonomous AI QA agents.</p>
+    </div>
+
+    <div class="hub-grid">
+      <!-- Card 1: Load 4weird Games -->
+      <div class="hub-card" id="card-load-4weird">
+        <div class="card-icon">🎮</div>
+        <h3>Load 4weird Games</h3>
+        <p>Instant access to the complete 4weird HTML5 and WebGL catalogue. Select, play, and unleash autonomous QA agents in seconds.</p>
+        <button class="hub-card-btn">BROWSE GAMES</button>
+      </div>
+
+      <!-- Card 2: Test Any Website -->
+      <div class="hub-card" id="card-test-website">
+        <div class="card-icon">🌐</div>
+        <h3>Test Any Website</h3>
+        <p>Analyze any live URL or web app: UX/UI heuristic audit, backend network errors, form flows, dead link crawling, and input fuzzing.</p>
+        <button class="hub-card-btn">AUDIT ANY URL</button>
+      </div>
+
+      <!-- Card 3: Cloud Fleet & WebGPU -->
+      <div class="hub-card" id="card-cloud-fleet">
+        <div class="card-icon">☁️</div>
+        <h3>Cloud Fleet & WebGPU</h3>
+        <p>Run high-load web testing on rented cloud nodes or native in-browser WebGPU hardware offload. Stream seamlessly to any device.</p>
+        <button class="hub-card-btn secondary">RENT COMPUTE NODE</button>
+      </div>
+
+      <!-- Card 4: Create Random Viral Game -->
+      <div class="hub-card" id="card-random-game">
+        <div class="card-icon">⚡</div>
+        <h3>Create Random Viral Game</h3>
+        <p>Generate an original, randomized non-copyrighted game idea. Automatically creates QA testing guides and a BRAID decision flowchart.</p>
+        <button class="hub-card-btn">PITCH & GENERATE</button>
+      </div>
+
+      <!-- Card 5: Plan New HTML Game -->
+      <div class="hub-card" id="card-plan-game">
+        <div class="card-icon">💬</div>
+        <h3>Plan New HTML Game</h3>
+        <p>Collaboratively construct a custom game plan using an interactive planner dialog, tailoring requirements into a compiled specification.</p>
+        <button class="hub-card-btn">START PLANNER</button>
+      </div>
+
+      <!-- Card 6: Open Specific Workspace -->
+      <div class="hub-card" id="card-open-folder">
+        <div class="card-icon">📁</div>
+        <h3>Open Specific Folder / Path</h3>
+        <p>Load any folder or file path directly. Automatically detects and deploys HTML5 games, web apps (Next.js, Astro, React), or projects.</p>
+        <button class="hub-card-btn">OPEN WORKSPACE</button>
+      </div>
+    </div>
+
+    <!-- HUB MODAL 1: 4WEIRD GAMES CATALOGUE -->
+    <div class="hub-panel-modal hidden" id="modal-4weird-games">
+      <div class="hub-modal-header">
+        <h3>🎮 4WEIRD GAMES CATALOGUE</h3>
+        <button id="btn-close-games-modal" class="mini-btn">✕ Close</button>
+      </div>
+      <p class="hub-modal-sub">Click any title to load into the VibeCodeWorker viewport and launch autonomous playtesting:</p>
+      <div class="modal-games-grid" id="modal-games-list"></div>
+    </div>
+
+    <!-- HUB MODAL 2: TEST ANY WEBSITE -->
+    <div class="hub-panel-modal hidden" id="modal-test-website">
+      <div class="hub-modal-header">
+        <h3>🌐 TEST ANY WEBSITE OR WEB APP</h3>
+        <button id="btn-close-website-modal" class="mini-btn">✕ Close</button>
+      </div>
+      <div class="control-group">
+        <label>Target Website URL (HTTP / HTTPS / Localhost)</label>
+        <input type="text" id="input-custom-website-url" placeholder="https://example.com or http://localhost:3000">
+      </div>
+      <div class="control-group">
+        <label>Select QA Goal Preset</label>
+        <div class="website-goals-grid">
+          <button class="mini-btn website-goal-btn active" data-goal="UI/UX Heuristic Audit: Evaluate usability, font contrast, layout responsiveness, and accessibility dead ends.">🎨 UI/UX Audit</button>
+          <button class="mini-btn website-goal-btn" data-goal="Backend & Network API Error Sniffer: Intercept console warnings, 4xx/5xx network responses, and failed REST/GraphQL payloads.">🐞 API & Error Sniffer</button>
+          <button class="mini-btn website-goal-btn" data-goal="Synthetic Form & Flow Automation: Automatically find inputs, complete form funnels, submit data, and inspect validation feedback.">📝 Form & Flow Automation</button>
         </div>
       </div>
-    </aside>
-  </div>
-</div>
+      <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+        <button id="btn-start-website-audit" class="neon-btn-green">🚀 Launch Autonomous Web QA</button>
+      </div>
+    </div>
 
-<!-- POPUP MODAL: QA SESSION REPORT -->
-<div class="modal-overlay hidden" id="report-modal">
+    <!-- HUB MODAL 3: CLOUD FLEET COMPUTE RENTAL -->
+    <div class="hub-panel-modal hidden" id="modal-cloud-fleet">
+      <div class="hub-modal-header">
+        <h3 style="color: var(--neon-purple);">☁️ 4WEIRD CLOUD FLEET COMPUTE ORCHESTRATION</h3>
+        <button id="btn-close-fleet-modal" class="mini-btn">✕ Close</button>
+      </div>
+      <p class="hub-modal-sub">Offload compute-heavy WebKit and 3D playtesting to ephemeral cloud nodes. Stream the viewport directly to your device.</p>
+      <div class="fleet-tiers-grid">
+        <div class="fleet-tier-card">
+          <h4>Micro (Eco)</h4>
+          <p>1 vCPU • 2GB RAM<br>Headless SwiftShader</p>
+          <div class="fleet-price">$0.046 / hr</div>
+          <button class="mini-btn" style="width:100%;">Provision Node</button>
+        </div>
+        <div class="fleet-tier-card active">
+          <h4 style="color: var(--neon-cyan);">Standard (General)</h4>
+          <p>4 vCPU • 8GB RAM<br>WebGL Hardware Accel</p>
+          <div class="fleet-price">$0.184 / hr</div>
+          <button class="mini-btn-accent" style="width:100%;">Provision Node</button>
+        </div>
+        <div class="fleet-tier-card">
+          <h4 style="color: var(--neon-purple);">Ultra GPU (Extreme)</h4>
+          <p>8 vCPU • 16GB RAM<br>NVIDIA RTX Cloud GPU</p>
+          <div class="fleet-price">$0.747 / hr</div>
+          <button class="mini-btn" style="width:100%;">Provision Node</button>
+        </div>
+      </div>
+      <div class="fleet-status-bar">Fleet Status: Ready (0 active instances). Orchestration Margin: 15% platform management fee.</div>
+    </div>
+
+    <!-- HUB MODAL 4: RANDOM PITCH RESULTS PANEL -->
+    <div class="hub-panel-modal hidden" id="pitch-results-panel">
+      <div class="hub-modal-header">
+        <h3>⚡ PITCHED GAME CONCEPT</h3>
+        <button id="btn-close-pitch" class="mini-btn">Back to Hub</button>
+      </div>
+      <div class="pitch-layout">
+        <div class="pitch-details">
+          <div class="pitch-meta">
+            <span class="pitch-title" id="pitch-game-name">Neon Vortex Runner</span>
+          </div>
+          <div id="pitch-game-desc" class="pitch-desc-box"></div>
+          <button id="btn-load-pitched-concept" class="neon-btn-green" style="margin-top: 10px;">▶ LOAD CONCEPT INTO SANDBOX</button>
+        </div>
+        <div class="pitch-braid-box">
+          <h4 style="color: var(--neon-cyan); font-family: var(--font-mono); font-size: 10px; margin-bottom: 6px;">🧠 AGENT DECISION TREE (BRAID SPEC)</h4>
+          <pre id="pitch-braid-diagram" class="braid-code"></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- HUB MODAL 5: INTERACTIVE GAME PLANNER -->
+    <div class="hub-panel-modal hidden" id="modal-game-planner">
+      <div class="hub-modal-header">
+        <h3>💬 INTERACTIVE GAME PLANNER</h3>
+        <button id="btn-close-planner" class="mini-btn">✕ Close</button>
+      </div>
+      <div id="planner-step-container"></div>
+    </div>
+  </div>
+
+  <!-- POPUP MODAL: QA SESSION REPORT -->
+  <div class="modal-overlay hidden" id="report-modal">
   <div class="modal-content report-modal-large">
     <div class="modal-header">
       <h2>📋 ANTIGRAVITY QA SESSION EXECUTION ARTIFACT</h2>
@@ -1012,7 +1164,7 @@
     </div>
   </div>
 
-  <!-- Script File -->
-  <script src="app.js"></script>
+  <!-- Script File (ES Modules) -->
+  <script type="module" src="app.js"></script>
 </body>
 </html>
