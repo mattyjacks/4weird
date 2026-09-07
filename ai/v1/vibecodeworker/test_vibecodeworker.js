@@ -709,6 +709,29 @@ async function runTests() {
     failedTests.push("CloudFleetOrchestrator.provisioningAndBilling");
   }
 
+  // Test 22: SDK key presses must release the key after sending it.
+  try {
+    console.log("Running Test 22: VibeCodeWorker SDK pressKey key-up pairing...");
+    const { VibeCodeWorkerClient } = require('./lib/vibecodeworker_client');
+    const client = new VibeCodeWorkerClient();
+    const requests = [];
+    client._request = async (endpoint, options) => {
+      requests.push({ endpoint, action: JSON.parse(options.body) });
+      return { success: true };
+    };
+
+    await client.pressKey('Space');
+    assert.deepStrictEqual(requests, [
+      { endpoint: '/api/game/action', action: { type: 'keydown', key: 'Space' } },
+      { endpoint: '/api/game/action', action: { type: 'keyup', key: 'Space' } }
+    ]);
+    await assert.rejects(() => client.pressKey(''), /requires a key/);
+    console.log("✅ Test 22 Passed!");
+  } catch (err) {
+    console.error("❌ Test 22 Failed:", err);
+    failedTests.push("VibeCodeWorkerClient.pressKey");
+  }
+
   // Write results to .last-run.json
   const resultsPath = path.join(__dirname, '..', '..', '..', 'test-results', '.last-run.json');
   const status = failedTests.length === 0 ? "passed" : "failed";

@@ -19,6 +19,17 @@ const { LocalAPIServer } = require('./lib/api_server');
 
 let mainWindow;
 const isHeadless = process.argv.includes('--headless');
+const RENDERER_OPERATION_TIMEOUT_MS = 8000;
+
+function withRendererTimeout(operation, label) {
+  let timeoutId;
+  const timeout = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(`${label} timed out after ${RENDERER_OPERATION_TIMEOUT_MS / 1000}s`)), RENDERER_OPERATION_TIMEOUT_MS);
+  });
+
+  return Promise.race([Promise.resolve().then(operation), timeout])
+    .finally(() => clearTimeout(timeoutId));
+}
 
 // VIBECODEWORKER is a debugger first: it must still open on machines where Electron's
 // GPU subprocess cannot load.  Opt into native GPU rendering with --enable-gpu
@@ -163,8 +174,8 @@ const localApiServer = new LocalAPIServer({
     captureScreenshot: async (target) => {
       const gameWin = getGameWindow();
       const win = (target === 'dashboard' || !gameWin) ? mainWindow : gameWin;
-      if (!win) return null;
-      const img = await win.webContents.capturePage();
+      if (!win || win.isDestroyed()) return null;
+      const img = await withRendererTimeout(() => win.webContents.capturePage(), 'Screenshot capture');
       return img.toPNG();
     },
 
@@ -172,9 +183,9 @@ const localApiServer = new LocalAPIServer({
 
     getGameState: async () => {
       const gameWin = getGameWindow();
-      if (!gameWin) return { active: false };
+      if (!gameWin || gameWin.isDestroyed()) return { active: false };
       try {
-        const stateStr = await gameWin.webContents.executeJavaScript(`
+        const stateStr = await withRendererTimeout(() => gameWin.webContents.executeJavaScript(`
           JSON.stringify({
             title: document.title,
             url: window.location.href,
@@ -183,7 +194,7 @@ const localApiServer = new LocalAPIServer({
             isGameOver: window.isGameOver || (window.game && window.game.isGameOver) || false,
             playerState: window.player ? { x: window.player.x, y: window.player.y, hp: window.player.hp } : null
           })
-        `);
+        `), 'Game state inspection');
         return JSON.parse(stateStr);
       } catch (e) {
         return { active: true, error: e.message };
@@ -192,7 +203,11 @@ const localApiServer = new LocalAPIServer({
 
     executeAction: async (action) => {
       const win = getGameWindow() || mainWindow;
-      if (!win) return { success: false, error: 'No active window' };
+      if (!win || win.isDestroyed()) return { success: false, error: 'No active window' };
+
+      if (!action || typeof action.type !== 'string') {
+        return { success: false, error: 'Action must include a type' };
+      }
 
       if (action.type === 'click') {
         const x = action.x || 100;
@@ -201,7 +216,9 @@ const localApiServer = new LocalAPIServer({
         win.webContents.sendInputEvent({ type: 'mouseUp', x, y, button: 'left', clickCount: 1 });
         return { success: true, action: 'click', x, y };
       } else if (action.type === 'keydown' || action.type === 'keyup') {
-        win.webContents.sendInputEvent({ type: action.type, keyCode: action.key || action.code });
+        const keyCode = action.key || action.code;
+        if (!keyCode) return { success: false, error: 'Keyboard action must include key or code' };
+        win.webContents.sendInputEvent({ type: action.type, keyCode });
         return { success: true, action: action.type, key: action.key };
       }
       return { success: false, error: `Unsupported action type: ${action.type}` };
@@ -209,8 +226,8 @@ const localApiServer = new LocalAPIServer({
 
     evalJavaScript: async (script) => {
       const win = getGameWindow() || mainWindow;
-      if (!win) throw new Error('No window available for javascript execution');
-      return await win.webContents.executeJavaScript(script);
+      if (!win || win.isDestroyed()) throw new Error('No window available for javascript execution');
+      return await withRendererTimeout(() => win.webContents.executeJavaScript(script), 'JavaScript evaluation');
     },
 
     reloadGame: async () => {

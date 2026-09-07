@@ -9,7 +9,15 @@ function startStaticServer(port, docRoot) {
   try {
     const server = http.createServer((req, res) => {
       let rawPath = new URL(req.url, `http://localhost:${port}`).pathname;
-      let filePath = path.join(docRoot, decodeURIComponent(rawPath));
+      let filePath = path.resolve(docRoot, `.${decodeURIComponent(rawPath)}`);
+
+      // Do not let a local QA server expose files outside its intended web root.
+      const rootWithSeparator = `${path.resolve(docRoot)}${path.sep}`;
+      if (filePath !== path.resolve(docRoot) && !filePath.startsWith(rootWithSeparator)) {
+        res.writeHead(403, { 'Content-Type': 'text/plain' });
+        res.end('403 Forbidden');
+        return;
+      }
 
       try {
         if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {

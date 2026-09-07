@@ -63,10 +63,18 @@ class VibeCodeWorkerClient {
   }
 
   async pressKey(key) {
-    return await this._request('/api/game/action', {
+    if (!key) throw new Error('[VibeCodeWorkerClient] pressKey requires a key');
+    const options = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+    };
+    await this._request('/api/game/action', {
+      ...options,
       body: JSON.stringify({ type: 'keydown', key })
+    });
+    return await this._request('/api/game/action', {
+      ...options,
+      body: JSON.stringify({ type: 'keyup', key })
     });
   }
 

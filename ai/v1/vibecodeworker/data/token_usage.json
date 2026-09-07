@@ -2303,13 +2303,61 @@
       "completion": 50,
       "total": 150,
       "runId": "autocode_1788755671675"
+    },
+    {
+      "timestamp": "2026-09-07T20:20:41.589Z",
+      "model": "gpt-4o-mini",
+      "prompt": 1200,
+      "completion": 350,
+      "total": 1550,
+      "runId": "autocode_1788812441586"
+    },
+    {
+      "timestamp": "2026-09-07T20:20:41.613Z",
+      "model": "google/gemini-2.5-flash",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788812441611"
+    },
+    {
+      "timestamp": "2026-09-07T20:20:41.615Z",
+      "model": "gpt-4o-mini",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788812441611"
+    },
+    {
+      "timestamp": "2026-09-07T20:23:54.770Z",
+      "model": "gpt-4o-mini",
+      "prompt": 1200,
+      "completion": 350,
+      "total": 1550,
+      "runId": "autocode_1788812634768"
+    },
+    {
+      "timestamp": "2026-09-07T20:23:54.774Z",
+      "model": "google/gemini-2.5-flash",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788812634773"
+    },
+    {
+      "timestamp": "2026-09-07T20:23:54.776Z",
+      "model": "gpt-4o-mini",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788812634773"
     }
   ],
   "lifetimeTotals": {
-    "gpt-4o-mini": 122463,
-    "total": 1939652,
+    "gpt-4o-mini": 125863,
+    "total": 1943352,
     "gpt-5.4-nano-2026-03-17": 18462,
     "gpt-5.4-mini-2026-03-17": 1796327,
-    "google/gemini-2.5-flash": 2400
+    "google/gemini-2.5-flash": 2700
   }
 }
