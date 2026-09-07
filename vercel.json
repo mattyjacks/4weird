@@ -6,6 +6,11 @@
       "permanent": true
     },
     {
+      "source": "/vibecodeworker/preview",
+      "destination": "/vibecodeworker/preview/",
+      "permanent": true
+    },
+    {
       "source": "/html/:path*",
       "destination": "/games/html/:path*",
       "permanent": true

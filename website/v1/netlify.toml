@@ -11,6 +11,11 @@
   status = 301
 
 [[redirects]]
+  from = "/vibecodeworker/preview"
+  to = "/vibecodeworker/preview/"
+  status = 301
+
+[[redirects]]
   from = "/vibecodeworker"
   to = "/vibecodeworker/overview.html"
   status = 200
