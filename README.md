@@ -64,43 +64,58 @@ Current lineup:
 
 ---
 
-## 🤖 Play & Debug Web Apps
+---
 
-**NEW:** `aiplay` now supports playing and debugging websites and web apps with any framework! It is an Electron-based runtime application coupled with agentic LLM support for automated playtesting and debugging.
+## 🤖 4WEIRD AIPLAY: Autonomous Agentic Web & Game QA Platform
+
+**[4weird AIPlay](ai/v1/aiplay)** is an enterprise-grade autonomous playtesting, QA auditing, and self-healing runtime created by **Matt Jackson ([mattyjacks.com](https://mattyjacks.com))**. It turns visual models into active playtesters and web QA engineers that navigate sites, audit UI/UX, sniff backend errors, and auto-fix code.
+
+### 🌟 Key Superpowers:
+1. **🌐 Test Any Website or SaaS Application**:
+   - Point AIPlay at any URL (SaaS, eCommerce, internal tools, landing pages).
+   - **UI/UX Heuristic Audits**: Visual hierarchy, responsiveness, accessibility, dead-end discovery.
+   - **Backend & Network Error Sniffer**: Detects failed REST/GraphQL payloads, 4xx/5xx drops, and JS exceptions.
+   - **Synthetic Form & Flow Automation**: Types into inputs, clicks buttons, scrolls pages, and validates form funnels.
+2. **🛡️ Human-in-the-Loop (HITL) CAPTCHA Resolution**:
+   - When encountering Cloudflare Turnstile, Google reCAPTCHA, or hCaptcha, AIPlay immediately pauses execution, alerts the user to solve the barrier in the viewport, and **seamlessly resumes autonomous QA the instant it is solved**.
+3. **⚡ Ultralight WebKit Engine & Native Game Scanning**:
+   - Integrated lightweight WebKit GPU runtime (`ultralight-sdk`) for fast headless telemetry.
+   - Process scanner hooks directly into native games (Roblox, Godot, Unity, Unreal).
+4. **☁️ 4weird Cloud Fleet Compute Orchestration (AWS EC2 Style)**:
+   - **Democratized QA on Budget Hardware**: Developers on \$50 Android phones, chromebooks, or low-spec laptops can rent ephemeral cloud compute instances (*Micro*, *Standard*, *Ultra GPU*).
+   - Remote machines handle heavy headless WebKit instances and WebGL rendering while streaming the interactive viewport back to client devices with near-zero latency.
+
+---
+
+### 💼 Business Model & Monetization: The Triple-Engine Architecture
+
+4weird AIPlay is built around a sustainable, developer-friendly economic model:
+
+1. **🔑 Bring Your Own Key (BYOK)**:
+   - Connect OpenAI, Anthropic, Google Gemini, or OpenRouter API keys directly. Complete privacy, zero markup on your direct provider accounts.
+2. **🔄 Managed 4weird AI Proxy (LiteLLM / OpenRouter Gateway)**:
+   - Users subscribe to the unified 4weird API Gateway. We orchestrate model failover, rate limits, caching, and model auto-routing with a transparent **10% premium** on underlying model tokens.
+3. **🖥️ Ephemeral Cloud Compute Rental**:
+   - Rent orchestrated compute fleets by the second or hour (AWS EC2 style):
+     - **Micro Node** (1 vCPU, 2GB RAM): \$0.046 / hr
+     - **Standard Node** (4 vCPU, 8GB RAM, WebGL Accel): \$0.184 / hr
+     - **Ultra GPU Node** (8 vCPU, 16GB RAM, RTX GPU): \$0.747 / hr
+   - All compute instances include a transparent **15% orchestration margin** covering autoscaling, WebRTC low-latency streaming, and fleet health checks.
 
 ### 🚀 How to Run AIPlay
 ```bash
 # Navigate to the aiplay directory
 cd ai/v1/aiplay
 
-# Install dependencies
+# Install dependencies & run tests
 npm install
+npm test
 
 # Start the Electron application
 npm start
 ```
 
-### 🌐 Website Player
-Play static HTML/CSS/JS websites instantly with zero configuration. Perfect for prototypes and simple projects.
-
-### 🔧 Web App Debugger
-Debug modern web frameworks with automatic detection and smart dev server launching.
-
-**Supported Frameworks:**
-- Next.js, Astro, Vite, React, Vue, Svelte
-- Node.js servers, custom npm scripts
-- Static HTML/CSS/JS projects
-- Any file structure
-
-**Features:**
-- 🔍 **Framework Auto-Detection**: Automatically identifies project structure, package manager scripts, and entry points.
-- ⚡ **One-Click Launch**: Auto-resolves port conflicts and boots up the dev server with live output streaming.
-- 🎨 **Beautiful UI**: Colorful framework badges, server status indicators, and custom developer layout.
-- 🔧 **Chrome DevTools Integration**: Inspect elements, debug JavaScript console messages, and view network traffic directly inside the app.
-- 🔄 **Hot Reload Support**: Seamless live updates during editing and debugging.
-- 📊 **Server Status Monitoring**: Real-time console logs and server lifecycle management.
-
-See [web-apps.html](website/v1/web-apps.html) for the detailed usage guide.
+Visit **[mattyjacks.com](https://mattyjacks.com)** to learn more about the creator and enterprise partnership opportunities.
 
 ---
 

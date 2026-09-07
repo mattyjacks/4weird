@@ -126,6 +126,48 @@ async function executeAction(controller, webview, action, nativeProcessName = nu
       return await controller.executeJS(webview, script);
     }
 
+    case 'type_text': {
+      const textToType = (action.params && action.params.text) ? action.params.text : (target || '');
+      const selector = (action.params && action.params.selector) ? action.params.selector : null;
+      const script = `
+        (() => {
+          let el = null;
+          if (${JSON.stringify(selector)}) {
+            el = document.querySelector(${JSON.stringify(selector)});
+          }
+          if (!el) {
+            el = document.activeElement;
+          }
+          if (!el || el === document.body) {
+            const inputs = Array.from(document.querySelectorAll('input:not([type="hidden"]), textarea'));
+            if (inputs.length > 0) el = inputs[0];
+          }
+          if (el) {
+            el.focus && el.focus();
+            el.value = ${JSON.stringify(textToType)};
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+            return 'Typed into ' + (el.id ? '#' + el.id : el.tagName) + ': ' + ${JSON.stringify(textToType)};
+          }
+          return 'No target input element found to type into';
+        })()
+      `;
+      return await controller.executeJS(webview, script);
+    }
+
+    case 'scroll': {
+      const direction = (action.params && action.params.direction) ? action.params.direction : (target || 'down');
+      const amount = (action.params && action.params.amount) ? action.params.amount : 400;
+      const scrollY = direction === 'up' ? -amount : amount;
+      const script = `
+        (() => {
+          window.scrollBy({ top: ${scrollY}, left: 0, behavior: 'smooth' });
+          return 'Scrolled ' + ${JSON.stringify(direction)} + ' by ' + ${amount} + 'px';
+        })()
+      `;
+      return await controller.executeJS(webview, script);
+    }
+
     case 'wait':
       await new Promise(r => setTimeout(r, duration));
       return `Waited ${duration}ms`;

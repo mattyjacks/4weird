@@ -608,6 +608,107 @@ async function runTests() {
     failedTests.push("UltralightWebEngine.telemetryAndAutomation");
   }
 
+  // Test 19: CaptchaDetector HITL Challenge Detection & Resolution
+  try {
+    console.log("Running Test 19: CaptchaDetector HITL Challenge Detection & Resolution...");
+    const { CaptchaDetector } = require('./src/runtime/captcha_detector');
+    const detector = new CaptchaDetector();
+
+    // Mock controller that simulates a Cloudflare Turnstile challenge
+    let challengeActive = true;
+    const mockController = {
+      executeJS: async (webview, code) => {
+        if (challengeActive) {
+          return { detected: true, type: 'Cloudflare Turnstile', selector: '.cf-turnstile' };
+        }
+        return { detected: false, type: 'none', selector: null };
+      }
+    };
+
+    const statusInitial = await detector.checkDOMForCaptcha(mockController, null);
+    assert.strictEqual(statusInitial.detected, true, "Should detect Cloudflare Turnstile challenge");
+    assert.strictEqual(statusInitial.type, 'Cloudflare Turnstile');
+
+    // Simulate resolution after 50ms
+    setTimeout(() => { challengeActive = false; }, 50);
+    const resolution = await detector.waitForResolution(mockController, null, 2000, 20);
+    assert.strictEqual(resolution.resolved, true, "Should report resolved once challenge cleared");
+
+    console.log("✅ Test 19 Passed!");
+  } catch (err) {
+    console.error("❌ Test 19 Failed:", err);
+    failedTests.push("CaptchaDetector.detectionAndResolution");
+  }
+
+  // Test 20: Web Automation Action Dispatcher (type_text and scroll)
+  try {
+    console.log("Running Test 20: Web Automation Action Dispatcher (type_text and scroll)...");
+    const gameCtrl = new GameController();
+    let lastEvaluatedScript = '';
+    gameCtrl.executeJS = async (webview, code) => {
+      lastEvaluatedScript = code;
+      return "mock_executed";
+    };
+
+    // Test type_text action
+    const typeAction = {
+      type: 'type_text',
+      params: { selector: '#email-input', text: 'tester@4weird.com' }
+    };
+    await gameCtrl.executeAction(null, typeAction);
+    assert.ok(lastEvaluatedScript.includes('#email-input'), "Script must query selector #email-input");
+    assert.ok(lastEvaluatedScript.includes('tester@4weird.com'), "Script must include input text");
+
+    // Test scroll action
+    const scrollAction = {
+      type: 'scroll',
+      params: { direction: 'down', amount: 500 }
+    };
+    await gameCtrl.executeAction(null, scrollAction);
+    assert.ok(lastEvaluatedScript.includes('window.scrollBy'), "Script must call window.scrollBy");
+    assert.ok(lastEvaluatedScript.includes('500'), "Script must specify scroll delta");
+
+    console.log("✅ Test 20 Passed!");
+  } catch (err) {
+    console.error("❌ Test 20 Failed:", err);
+    failedTests.push("GameController.webActionDispatcher");
+  }
+
+  // Test 21: CloudFleetOrchestrator Ephemeral Provisioning & Billing Calculation
+  try {
+    console.log("Running Test 21: CloudFleetOrchestrator Ephemeral Provisioning & Billing Calculation...");
+    const { CloudFleetOrchestrator } = require('./src/runtime/cloud_fleet_orchestrator');
+    const orchestrator = new CloudFleetOrchestrator({ orchestrationFeePercent: 15 });
+
+    // Validate rate calculation with 15% platform premium
+    const stdRates = orchestrator.calculateBilledRate('standard');
+    assert.strictEqual(stdRates.baseHourlyCost, 0.16);
+    assert.strictEqual(stdRates.billedHourly, 0.184); // 0.16 * 1.15 = 0.184
+    assert.strictEqual(stdRates.orchestrationFeePercent, 15);
+
+    // Provision an ephemeral standard node
+    const instance = await orchestrator.provisionInstance('standard', { targetUrl: 'https://example.com' });
+    assert.ok(instance.id.startsWith('node-'), "Instance ID should be generated");
+    assert.strictEqual(instance.status, 'ready');
+    assert.ok(instance.streamUrl.includes(instance.id), "Stream URL should include node ID");
+
+    // Record 60 seconds of usage
+    const tick = orchestrator.recordUsageTick(instance.id, 60);
+    assert.strictEqual(tick.totalActiveSeconds, 60);
+    assert.ok(tick.currentCostUSD > 0, "Current cost should increment");
+
+    // Terminate instance and get final receipt
+    const receipt = await orchestrator.terminateInstance(instance.id);
+    assert.strictEqual(receipt.id, instance.id);
+    assert.strictEqual(receipt.totalActiveSeconds, 60);
+    assert.strictEqual(orchestrator.getActiveInstances().length, 0, "Active instances list should be empty after termination");
+
+    console.log("✅ Test 21 Passed!");
+  } catch (err) {
+    console.error("❌ Test 21 Failed:", err);
+    failedTests.push("CloudFleetOrchestrator.provisioningAndBilling");
+  }
+
   // Write results to .last-run.json
   const resultsPath = path.join(__dirname, '..', '..', '..', 'test-results', '.last-run.json');
   const status = failedTests.length === 0 ? "passed" : "failed";

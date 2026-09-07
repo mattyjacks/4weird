@@ -73,8 +73,8 @@ Respond ONLY with a JSON object matching this exact schema:
   "status": "menu | playing | game_over | stuck | unknown",
   "reasoning_path": ["S", "No", "No", "No", "R_PLAY"],
   "action": {
-    "type": "click | press_key | hold_key | wait | refresh",
-    "target": "For click: 'x,y' on 0-1000 scale. For keys: key name. For wait/refresh: leave empty.",
+    "type": "click | press_key | hold_key | type_text | scroll | wait | refresh",
+    "target": "For click: 'x,y' on 0-1000 scale or selector. For keys: key name. For type_text: text to enter. For scroll: 'up' or 'down'. For wait/refresh: leave empty.",
     "duration_ms": 100
   },
   "next_delay_ms": 1500,

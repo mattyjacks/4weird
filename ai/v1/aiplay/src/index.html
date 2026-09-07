@@ -363,7 +363,31 @@
         </div>
 
         <div class="hub-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;">
-          <!-- Card 1: Create Random Viral HTML Game -->
+          <!-- Card 1: Load 4weird Games -->
+          <div class="hub-card glass" id="card-load-4weird" style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer; pointer-events: auto;">
+            <div class="card-icon" style="font-size: 2.2rem; filter: drop-shadow(0 0 8px rgba(0, 255, 102, 0.4));">🎮</div>
+            <h3 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Load 4weird Games</h3>
+            <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4; flex: 1;">Instant access to the complete 4weird HTML5 and WebGL catalogue. Select, play, and unleash autonomous QA agents in seconds.</p>
+            <button class="btn btn-primary btn-full" style="pointer-events: none; margin-top: 8px;">BROWSE GAMES</button>
+          </div>
+
+          <!-- Card 2: Test Any Website -->
+          <div class="hub-card glass" id="card-test-website" style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer; pointer-events: auto;">
+            <div class="card-icon" style="font-size: 2.2rem; filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.4));">🌐</div>
+            <h3 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Test Any Website</h3>
+            <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4; flex: 1;">Analyze any live URL or SaaS app: UX/UI heuristic audit, backend network errors, form flows, dead link crawling, and CAPTCHA HITL.</p>
+            <button class="btn btn-primary btn-full" style="pointer-events: none; margin-top: 8px;">AUDIT ANY URL</button>
+          </div>
+
+          <!-- Card 3: Cloud Fleet Remote Execution -->
+          <div class="hub-card glass" id="card-cloud-fleet" style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer; pointer-events: auto;">
+            <div class="card-icon" style="font-size: 2.2rem; filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.4));">☁️</div>
+            <h3 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">4weird Cloud Fleet</h3>
+            <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4; flex: 1;">Run high-load web testing on rented cloud machines (AWS EC2 style). Stream seamlessly to low-power laptops, tablets, or phones.</p>
+            <button class="btn btn-secondary btn-full" style="pointer-events: none; margin-top: 8px;">RENT COMPUTE NODE</button>
+          </div>
+
+          <!-- Card 4: Create Random Viral HTML Game -->
           <div class="hub-card glass" id="card-random-game" style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer; pointer-events: auto;">
             <div class="card-icon" style="font-size: 2.2rem; filter: drop-shadow(0 0 8px rgba(0, 255, 102, 0.4));">⚡</div>
             <h3 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Create Random Viral Game</h3>
@@ -371,7 +395,7 @@
             <button class="btn btn-primary btn-full" style="pointer-events: none; margin-top: 8px;">PITCH & GENERATE</button>
           </div>
 
-          <!-- Card 2: Plan New HTML Game -->
+          <!-- Card 5: Plan New HTML Game -->
           <div class="hub-card glass" id="card-plan-game" style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer; pointer-events: auto;">
             <div class="card-icon" style="font-size: 2.2rem; filter: drop-shadow(0 0 8px rgba(0, 255, 102, 0.4));">💬</div>
             <h3 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Plan New HTML Game</h3>
@@ -379,12 +403,81 @@
             <button class="btn btn-primary btn-full" style="pointer-events: none; margin-top: 8px;">START INTERACTIVE PLANNER</button>
           </div>
 
-          <!-- Card 3: Open Specific Folder -->
+          <!-- Card 6: Open Specific Folder -->
           <div class="hub-card glass" id="card-open-folder" style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer; pointer-events: auto;">
             <div class="card-icon" style="font-size: 2.2rem; filter: drop-shadow(0 0 8px rgba(0, 255, 102, 0.4));">📁</div>
             <h3 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Open Specific Folder</h3>
-            <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4; flex: 1;">Load any folder path directly. Automatically detects and deploys HTML5 games, web apps (Next.js, Astro, React, Vue), websites, Roblox, Godot, Unity, or Unreal projects for visual debugging and testing.</p>
+            <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4; flex: 1;">Load any folder path directly. Automatically detects and deploys HTML5 games, web apps (Next.js, Astro, React, Vue), websites, Roblox, Godot, Unity, or Unreal projects.</p>
             <button class="btn btn-primary btn-full" style="pointer-events: none; margin-top: 8px;">OPEN FILE EXPLORER</button>
+          </div>
+        </div>
+
+        <!-- MODAL: LOAD 4WEIRD GAMES PICKER -->
+        <div class="hub-panel-modal glass hidden" id="modal-4weird-games" style="padding: 20px; display: flex; flex-direction: column; gap: 16px; min-height: 320px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 8px;">
+            <h3 style="font-family: var(--font-display); font-size: 1.1rem; color: var(--accent-cyan);">🎮 4WEIRD GAMES CATALOGUE</h3>
+            <button id="btn-close-games-modal" class="btn btn-small btn-secondary">✕ Close</button>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">Click any title to load into the AIPlay viewport and launch autonomous playtesting:</p>
+          <div class="modal-games-grid" id="modal-games-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; max-height: 380px; overflow-y: auto;">
+            <!-- Injected dynamically via JS -->
+          </div>
+        </div>
+
+        <!-- MODAL: TEST ANY WEBSITE -->
+        <div class="hub-panel-modal glass hidden" id="modal-test-website" style="padding: 20px; display: flex; flex-direction: column; gap: 16px; min-height: 320px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 8px;">
+            <h3 style="font-family: var(--font-display); font-size: 1.1rem; color: var(--accent-cyan);">🌐 TEST ANY WEBSITE OR WEB APP</h3>
+            <button id="btn-close-website-modal" class="btn btn-small btn-secondary">✕ Close</button>
+          </div>
+          <div class="form-group" style="margin-bottom: 8px;">
+            <label style="font-size: 0.8rem; color: var(--text-secondary); font-weight: bold;">Target Website URL (HTTP / HTTPS / Localhost)</label>
+            <input type="text" id="input-custom-website-url" placeholder="https://example.com or http://localhost:3000" style="padding: 10px; font-size: 0.9rem; background: rgba(0,0,0,0.5); border: 1px solid var(--panel-border); border-radius: 6px; color: white; width: 100%; box-sizing: border-box;">
+          </div>
+          <div class="form-group" style="margin-bottom: 8px;">
+            <label style="font-size: 0.8rem; color: var(--text-secondary); font-weight: bold;">Select QA Goal Preset</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+              <button class="btn btn-secondary btn-small website-goal-btn active" data-goal="UI/UX Heuristic Audit: Evaluate usability, font contrast, layout responsiveness, and accessibility dead ends.">🎨 UI/UX Audit</button>
+              <button class="btn btn-secondary btn-small website-goal-btn" data-goal="Backend & Network API Error Sniffer: Intercept console warnings, 4xx/5xx network responses, and failed REST/GraphQL payloads.">🐞 API & Error Sniffer</button>
+              <button class="btn btn-secondary btn-small website-goal-btn" data-goal="Synthetic Form & Flow Automation: Automatically find inputs, complete form funnels, submit data, and inspect validation feedback.">📝 Form & Flow Automation</button>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px;">
+            <button id="btn-start-website-audit" class="btn btn-primary" style="padding: 10px 24px; font-size: 0.9rem;">🚀 Launch Autonomous Web QA</button>
+          </div>
+        </div>
+
+        <!-- MODAL: CLOUD FLEET COMPUTE RENTAL -->
+        <div class="hub-panel-modal glass hidden" id="modal-cloud-fleet" style="padding: 20px; display: flex; flex-direction: column; gap: 16px; min-height: 320px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 8px;">
+            <h3 style="font-family: var(--font-display); font-size: 1.1rem; color: #a855f7;">☁️ 4WEIRD CLOUD FLEET COMPUTE ORCHESTRATION</h3>
+            <button id="btn-close-fleet-modal" class="btn btn-small btn-secondary">✕ Close</button>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">
+            Offload compute-heavy WebKit, Ultralight, and 3D playtesting to ephemeral cloud nodes (AWS EC2 style). Stream the viewport directly to your device. Lowers battery drain and lets budget hardware run enterprise-grade automation.
+          </p>
+          <div class="fleet-tiers-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+            <div class="fleet-tier-card glass" style="padding: 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; text-align: center;">
+              <h4 style="margin: 0 0 6px 0; color: #fff;">Micro (Eco)</h4>
+              <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px;">1 vCPU • 2GB RAM<br>Headless SwiftShader</p>
+              <div style="font-size: 0.9rem; font-weight: bold; color: #10b981; margin-bottom: 10px;">$0.046 / hr</div>
+              <button class="btn btn-secondary btn-small btn-full btn-provision-node" data-tier="micro">Provision Node</button>
+            </div>
+            <div class="fleet-tier-card glass active" style="padding: 12px; border: 1px solid var(--accent-cyan); border-radius: 8px; text-align: center;">
+              <h4 style="margin: 0 0 6px 0; color: var(--accent-cyan);">Standard (General)</h4>
+              <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px;">4 vCPU • 8GB RAM<br>WebGL Hardware Accel</p>
+              <div style="font-size: 0.9rem; font-weight: bold; color: #10b981; margin-bottom: 10px;">$0.184 / hr</div>
+              <button class="btn btn-primary btn-small btn-full btn-provision-node" data-tier="standard">Provision Node</button>
+            </div>
+            <div class="fleet-tier-card glass" style="padding: 12px; border: 1px solid rgba(168,85,247,0.4); border-radius: 8px; text-align: center;">
+              <h4 style="margin: 0 0 6px 0; color: #c084fc;">Ultra GPU (Extreme)</h4>
+              <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px;">8 vCPU • 16GB RAM<br>NVIDIA RTX Cloud GPU</p>
+              <div style="font-size: 0.9rem; font-weight: bold; color: #10b981; margin-bottom: 10px;">$0.747 / hr</div>
+              <button class="btn btn-secondary btn-small btn-full btn-provision-node" data-tier="ultra-gpu">Provision Node</button>
+            </div>
+          </div>
+          <div id="fleet-active-status" style="font-size: 0.8rem; font-family: var(--font-mono); padding: 8px 12px; background: rgba(0,0,0,0.4); border-radius: 6px; color: #a5b4fc;">
+            Fleet Status: Ready (0 active instances). Orchestration Margin: 15% platform management fee.
           </div>
         </div>
 

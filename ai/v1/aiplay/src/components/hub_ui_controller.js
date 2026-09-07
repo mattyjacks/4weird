@@ -8,6 +8,7 @@ const { shell, clipboard } = require('electron');
 const hub = require('../modules/hub_manager');
 const { generateSpecSheet } = require('../runtime/spec_sheet_builder');
 const { callPlannerAI } = require('../runtime/planner_ai_handler');
+const { CloudFleetOrchestrator } = require('../runtime/cloud_fleet_orchestrator');
 
 class HubUIController {
   constructor({
@@ -32,12 +33,14 @@ class HubUIController {
     this.crawlFiles = crawlFiles;
     this.showEditorWorkspace = showEditorWorkspace;
     this.el = el;
+    this.cloudFleet = new CloudFleetOrchestrator();
 
     this.plannerStep = 0;
     this.plannerSpecs = { name: '', mechanic: '', theme: '', goal: '' };
     this.plannerTxtContent = '';
     this.plannerHistory = [];
     this.lastPitchedGame = null;
+    this.selectedWebsiteGoal = 'UI/UX Heuristic Audit: Evaluate usability, font contrast, layout responsiveness, and accessibility dead ends.';
   }
 
   setupBindings() {
@@ -49,6 +52,114 @@ class HubUIController {
         this.showHubWorkspace();
       });
     }
+
+    // New Card 1: Load 4weird Games
+    const cardLoad4weird = document.getElementById('card-load-4weird');
+    if (cardLoad4weird) {
+      cardLoad4weird.addEventListener('click', () => {
+        audio.playClickSound();
+        this.open4weirdGamesModal();
+      });
+    }
+
+    // New Card 2: Test Any Website
+    const cardTestWebsite = document.getElementById('card-test-website');
+    if (cardTestWebsite) {
+      cardTestWebsite.addEventListener('click', () => {
+        audio.playClickSound();
+        this.openTestWebsiteModal();
+      });
+    }
+
+    // New Card 3: Cloud Fleet
+    const cardCloudFleet = document.getElementById('card-cloud-fleet');
+    if (cardCloudFleet) {
+      cardCloudFleet.addEventListener('click', () => {
+        audio.playClickSound();
+        this.openCloudFleetModal();
+      });
+    }
+
+    // Modal Close Buttons
+    const btnCloseGames = document.getElementById('btn-close-games-modal');
+    if (btnCloseGames) {
+      btnCloseGames.addEventListener('click', () => {
+        audio.playClickSound();
+        this.resetHubViews();
+      });
+    }
+
+    const btnCloseWebsite = document.getElementById('btn-close-website-modal');
+    if (btnCloseWebsite) {
+      btnCloseWebsite.addEventListener('click', () => {
+        audio.playClickSound();
+        this.resetHubViews();
+      });
+    }
+
+    const btnCloseFleet = document.getElementById('btn-close-fleet-modal');
+    if (btnCloseFleet) {
+      btnCloseFleet.addEventListener('click', () => {
+        audio.playClickSound();
+        this.resetHubViews();
+      });
+    }
+
+    // Website Goal selector buttons
+    const goalBtns = document.querySelectorAll('.website-goal-btn');
+    goalBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        audio.playClickSound();
+        goalBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.selectedWebsiteGoal = btn.dataset.goal;
+      });
+    });
+
+    // Start Website Audit Button
+    const btnStartWebsiteAudit = document.getElementById('btn-start-website-audit');
+    if (btnStartWebsiteAudit) {
+      btnStartWebsiteAudit.addEventListener('click', () => {
+        const input = document.getElementById('input-custom-website-url');
+        const url = input ? input.value.trim() : '';
+        if (!url) {
+          this.toastNotifier.show("Please enter a valid website URL", "warning");
+          return;
+        }
+        audio.playClickSound();
+        this.el.gameUrlInput.value = url.startsWith('http') ? url : `https://${url}`;
+        if (this.el.gameRulesInput) {
+          this.el.gameRulesInput.value = this.selectedWebsiteGoal;
+        }
+        this.agentBrain.updateConfig({ gameRules: this.selectedWebsiteGoal });
+        this.saveConfigData();
+        this.loadGame();
+        this.showEditorWorkspace();
+        this.toastNotifier.show(`Loaded website audit target: ${url}`, "success");
+        this.logSystemMessage(`[Web QA Mode] Goal configured: ${this.selectedWebsiteGoal}`);
+      });
+    }
+
+    // Cloud Fleet Provision Buttons
+    const provisionBtns = document.querySelectorAll('.btn-provision-node');
+    provisionBtns.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const tier = btn.dataset.tier || 'standard';
+        audio.playClickSound();
+        this.toastNotifier.show(`Provisioning remote ${tier.toUpperCase()} cloud node...`, "info");
+        try {
+          const inst = await this.cloudFleet.provisionInstance(tier);
+          const statusDiv = document.getElementById('fleet-active-status');
+          if (statusDiv) {
+            statusDiv.innerHTML = `🟢 <strong>Active Node Provisioned:</strong> <code>${inst.id}</code> (${inst.tierDetails.name}) • Rate: $${inst.rateInfo.billedHourly}/hr • Stream: <code>${inst.streamUrl}</code>`;
+          }
+          this.toastNotifier.show(`Remote node ${inst.id} is ready! Stream connected.`, "success");
+          this.logSystemMessage(`[Cloud Fleet] Orchestrated remote instance: ${inst.id} (${inst.tierDetails.name}) at $${inst.rateInfo.billedHourly}/hr with 15% platform orchestration margin.`);
+        } catch (err) {
+          this.toastNotifier.show(`Provisioning failed: ${err.message}`, "error");
+        }
+      });
+    });
 
     if (hubEl.cardRandomGame) {
       hubEl.cardRandomGame.addEventListener('click', () => {
@@ -220,6 +331,98 @@ class HubUIController {
 
     this.hubEl.pitchResultsPanel.classList.add('hidden');
     this.hubEl.chatPlannerPanel.classList.add('hidden');
+
+    const modalGames = document.getElementById('modal-4weird-games');
+    const modalWebsite = document.getElementById('modal-test-website');
+    const modalFleet = document.getElementById('modal-cloud-fleet');
+    if (modalGames) modalGames.classList.add('hidden');
+    if (modalWebsite) modalWebsite.classList.add('hidden');
+    if (modalFleet) modalFleet.classList.add('hidden');
+  }
+
+  hideHubGrid() {
+    const grid = document.querySelector('.hub-grid');
+    const hero = document.querySelector('.hub-hero');
+    if (grid) grid.style.display = 'none';
+    if (hero) hero.style.display = 'none';
+  }
+
+  open4weirdGamesModal() {
+    this.hideHubGrid();
+    const modalGames = document.getElementById('modal-4weird-games');
+    const list = document.getElementById('modal-games-list');
+    if (modalGames) modalGames.classList.remove('hidden');
+
+    if (list) {
+      list.innerHTML = '';
+      const websiteV1Dir = path.join(__dirname, '..', '..', '..', '..', '..', 'website', 'v1');
+      const gamesDir = path.join(websiteV1Dir, 'games');
+      const items = [];
+
+      if (fs.existsSync(gamesDir)) {
+        const direct = fs.readdirSync(gamesDir);
+        for (const item of direct) {
+          const sub = path.join(gamesDir, item);
+          if (fs.statSync(sub).isDirectory() && item !== 'html' && item !== 'images') {
+            const idx = path.join(sub, 'index.html');
+            if (fs.existsSync(idx)) {
+              items.push({ name: item.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '), path: idx });
+            }
+          }
+        }
+        const htmlDir = path.join(gamesDir, 'html');
+        if (fs.existsSync(htmlDir)) {
+          const htmlSubs = fs.readdirSync(htmlDir);
+          for (const subItem of htmlSubs) {
+            const sub = path.join(htmlDir, subItem);
+            if (fs.statSync(sub).isDirectory() && !subItem.startsWith('_')) {
+              const idx = path.join(sub, 'index.html');
+              if (fs.existsSync(idx)) {
+                items.push({ name: subItem.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '), path: idx });
+              }
+            }
+          }
+        }
+      }
+
+      items.forEach(game => {
+        const card = document.createElement('div');
+        card.className = 'modal-game-item glass';
+        card.style.padding = '12px';
+        card.style.borderRadius = '8px';
+        card.style.border = '1px solid rgba(0,255,102,0.2)';
+        card.style.cursor = 'pointer';
+        card.style.display = 'flex';
+        card.style.flexDirection = 'column';
+        card.style.gap = '6px';
+        card.innerHTML = `
+          <div style="font-weight: bold; color: #fff; font-size: 0.9rem;">🎮 ${game.name}</div>
+          <div style="font-size: 0.7rem; color: var(--accent-cyan);">HTML5 / WebGL</div>
+        `;
+        card.addEventListener('click', () => {
+          this.audio.playClickSound();
+          this.el.gameUrlInput.value = 'file:///' + game.path.replace(/\\/g, '/');
+          this.saveConfigData();
+          this.loadGame();
+          this.crawlFiles();
+          this.showEditorWorkspace();
+          this.toastNotifier.show(`Loaded "${game.name}"!`, "success");
+        });
+        list.appendChild(card);
+      });
+    }
+  }
+
+  openTestWebsiteModal() {
+    this.hideHubGrid();
+    const modalWebsite = document.getElementById('modal-test-website');
+    if (modalWebsite) modalWebsite.classList.remove('hidden');
+  }
+
+  openCloudFleetModal() {
+    this.hideHubGrid();
+    const modalFleet = document.getElementById('modal-cloud-fleet');
+    if (modalFleet) modalFleet.classList.remove('hidden');
   }
 
   triggerCreateRandomGame() {

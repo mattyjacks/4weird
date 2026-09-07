@@ -2,6 +2,9 @@
  * Agent Step Executor & Autoplay coordinator
  */
 const { ipcRenderer } = require('electron');
+const { CaptchaDetector } = require('./captcha_detector');
+const captchaDetector = new CaptchaDetector();
+let isCaptchaResolving = false;
 
 async function executeAgentStep({
   forceHeuristic = false,
@@ -25,8 +28,41 @@ async function executeAgentStep({
   logSystemMessage
 }) {
   if (!isRunning && !forceHeuristic) return;
+  if (isCaptchaResolving) return;
 
   try {
+    // 1. Check for Active CAPTCHAs (Cloudflare Turnstile, reCAPTCHA, hCaptcha)
+    const captchaStatus = await captchaDetector.checkDOMForCaptcha(gameController, webviewElement);
+    if (captchaStatus && captchaStatus.detected) {
+      isCaptchaResolving = true;
+      audio.playBugAlertSound();
+      logSystemMessage(`⚠️ [CAPTCHA Detected] ${captchaStatus.type} encountered! Pausing agent for human resolution...`, 'warning');
+      
+      const banner = document.getElementById('game-status-banner');
+      if (banner) {
+        banner.textContent = `🚨 CAPTCHA (${captchaStatus.type}) detected! Please solve it in the viewport. Agent will resume automatically...`;
+        banner.style.background = 'rgba(234, 179, 8, 0.9)';
+        banner.style.color = '#000';
+      }
+
+      // Wait for user to solve captcha in viewport
+      const resolution = await captchaDetector.waitForResolution(gameController, webviewElement, 120000);
+      isCaptchaResolving = false;
+
+      if (resolution.resolved) {
+        audio.playClickSound();
+        logSystemMessage(`✅ [CAPTCHA Solved] Verification challenge cleared in ${(resolution.elapsedMs / 1000).toFixed(1)}s. Seamlessly resuming agent!`, 'success');
+        if (banner) {
+          banner.textContent = 'Agent running...';
+          banner.style.background = '';
+          banner.style.color = '';
+        }
+      } else {
+        logSystemMessage(`⏱️ [CAPTCHA Timeout] Challenge resolution timed out after 120s.`, 'warning');
+        return;
+      }
+    }
+
     const screenshotBase64 = await captureViewportScreenshot();
     if (!screenshotBase64) return;
 

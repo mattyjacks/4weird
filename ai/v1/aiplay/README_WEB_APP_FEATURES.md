@@ -14,29 +14,23 @@
 
 ---
 
-## 📦 What's New
+## 📦 What's New: Autonomous Agentic Web QA & Cloud Fleet
 
-Two **HUGE** new features added to aiplay:
+### 🌐 Test Any Website & Web App (Autonomous QA)
+Point AIPlay at any URL for autonomous UX/UI heuristics, backend error sniffing, and synthetic form automation.
 
-### 🌐 Website Player
-Play static HTML/CSS/JS websites instantly with zero configuration.
+### 🛡️ Human-in-the-Loop (HITL) CAPTCHA Detection
+Auto-detects Cloudflare Turnstile, Google reCAPTCHA, and hCaptcha, pauses the agent, lets the human solve the challenge in the viewport, and automatically resumes seamlessly.
 
-**Features:**
-- Zero-config static site hosting
-- Live reload
-- Beautiful UI
-- One-click launch
+### ☁️ 4weird Cloud Fleet Compute Orchestration (AWS EC2 Style)
+Rent ephemeral cloud compute instances (*Micro*, *Standard*, *Ultra GPU*) so lower-end devices (budget laptops, tablets, mobile browsers) can offload WebKit instances and stream execution with near-zero latency.
 
-### 🚀 Web App Debugger
-Debug modern web frameworks with automatic framework detection.
+### 💼 Triple-Engine Monetization & BYOK
+1. **BYOK**: Bring Your Own Key for OpenAI, Anthropic, Gemini, OpenRouter with zero markup.
+2. **Managed Proxy**: 1-click subscription with 10% token routing margin.
+3. **Cloud Compute Rental**: Ephemeral nodes with transparent 15% platform orchestration margin.
 
-**Features:**
-- Framework auto-detection
-- Dev server management
-- Port conflict resolution
-- Live console output
-- DevTools integration
-- Hot reload support
+**Creator & Studio:** Built by Matt Jackson ([mattyjacks.com](https://mattyjacks.com)).
 
 ---
 
