@@ -141,6 +141,25 @@ website/v1/games/html/yourgame/
 
 ---
 
+## 📚 Documentation & Sub-Project READMEs
+
+Explore specific components, sub-projects, and game architectures across the repository:
+
+- **[AIPlay Web App Player & Debugger](ai/v1/aiplay/README_WEB_APP_FEATURES.md)** (`ai/v1/aiplay/README_WEB_APP_FEATURES.md`)  
+  Complete documentation index for the Electron-based runtime, static site player, framework auto-detection, and agentic debugging tools.
+- **[Overtake Game README](website/v1/games/html/overtake/README.md)** (`website/v1/games/html/overtake/README.md`)  
+  Out Run / Horizon Chase style pseudo-3D canvas racer: run instructions, controls, project structure, and external asset hosting details.
+- **[Server Saver Shield Modular Architecture](website/v1/games/html/serversavershield/js/README.md)** (`website/v1/games/html/serversavershield/js/README.md`)  
+  Architecture and component breakdown for the refactored modular game systems (entities, audio, game loop, collision, UI).
+- **[Spaceships Game Clean Architecture](website/v1/spaceships/README.md)** (`website/v1/spaceships/README.md`)  
+  Clean architecture overview, system design (starfield, lighting, ships, input), controls, and performance optimizations.
+- **Additional Repository Docs:**
+  - **[CONTRIBUTING.md](CONTRIBUTING.md)**: Guidelines for adding and submitting new games.
+  - **[CODING_STANDARD.md](CODING_STANDARD.md)**: Coding standards, conventions, and practices.
+  - **[DEPLOY.md](DEPLOY.md)**: Deployment and release workflows.
+
+---
+
 ## 📜 License
 
 This project is open source but not free. A private license applies: we reserve all rights to the games.
