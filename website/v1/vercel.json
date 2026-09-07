@@ -1,9 +1,24 @@
 {
   "redirects": [
     {
+      "source": "/vcw",
+      "destination": "/vibecodeworker",
+      "permanent": true
+    },
+    {
       "source": "/html/:path*",
       "destination": "/games/html/:path*",
       "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/vibecodeworker",
+      "destination": "/vibecodeworker/overview.html"
+    },
+    {
+      "source": "/vibecodeworker/",
+      "destination": "/vibecodeworker/overview.html"
     }
   ]
 }
