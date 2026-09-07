@@ -158,6 +158,16 @@ ipcMain.handle('is-game-window-active', () => {
   return isGameWindowActive();
 });
 
+const { launchDeepSeekHarnessWeb, runSelfImprovementCycle } = require('./lib/deepseek_harness');
+
+ipcMain.handle('launch-deepseek-harness', async (event, opts) => {
+  return await launchDeepSeekHarnessWeb(opts);
+});
+
+ipcMain.handle('run-self-improvement', async (event, params) => {
+  return await runSelfImprovementCycle(null, params);
+});
+
 // Ensure static server is running for game files
 const WEBSITE_V1_DIR = app.isPackaged
   ? path.join(process.resourcesPath, 'website', 'v1')
@@ -165,94 +175,135 @@ const WEBSITE_V1_DIR = app.isPackaged
 const STATIC_PORT = 8888;
 startStaticServer(STATIC_PORT, WEBSITE_V1_DIR);
 
-// Initialize Local API Server connected to Electron windows & handlers
-const localApiServer = new LocalAPIServer({
-  port: 42069,
-  runtimeMode: 'electron',
-  handlers: {
-    getGames: async () => {
-      return discoverGames(WEBSITE_V1_DIR, STATIC_PORT);
-    },
+const fs = require('fs');
 
-    launchGame: async (gameId) => {
-      const url = gameId.startsWith('http') ? gameId : `http://localhost:${STATIC_PORT}/games/html/${gameId}/index.html`;
-      return await openGameWindow(url, isHeadless, mainWindow, (level, message, line, sourceId) => {
-        localApiServer.addConsoleLog(level === 2 ? 'error' : (level === 1 ? 'warn' : 'info'), message, 'game_window');
-      });
-    },
-
-    captureScreenshot: async (target) => {
-      const gameWin = getGameWindow();
-      const win = (target === 'dashboard' || !gameWin) ? mainWindow : gameWin;
-      if (!win || win.isDestroyed()) return null;
-      const img = await withRendererTimeout(() => win.webContents.capturePage(), 'Screenshot capture');
-      return img.toPNG();
-    },
-
-    getLogs: async () => [],
-
-    getGameState: async () => {
-      const gameWin = getGameWindow();
-      if (!gameWin || gameWin.isDestroyed()) return { active: false };
-      try {
-        const stateStr = await withRendererTimeout(() => gameWin.webContents.executeJavaScript(`
-          JSON.stringify({
-            title: document.title,
-            url: window.location.href,
-            canvas: !!document.querySelector('canvas'),
-            score: window.score || (window.game && window.game.score) || 0,
-            isGameOver: window.isGameOver || (window.game && window.game.isGameOver) || false,
-            playerState: window.player ? { x: window.player.x, y: window.player.y, hp: window.player.hp } : null
-          })
-        `), 'Game state inspection');
-        return JSON.parse(stateStr);
-      } catch (e) {
-        return { active: true, error: e.message };
-      }
-    },
-
-    executeAction: async (action) => {
-      const win = getGameWindow() || mainWindow;
-      if (!win || win.isDestroyed()) return { success: false, error: 'No active window' };
-
-      if (!action || typeof action.type !== 'string') {
-        return { success: false, error: 'Action must include a type' };
-      }
-
-      if (action.type === 'click') {
-        const x = action.x || 100;
-        const y = action.y || 100;
-        win.webContents.sendInputEvent({ type: 'mouseDown', x, y, button: 'left', clickCount: 1 });
-        win.webContents.sendInputEvent({ type: 'mouseUp', x, y, button: 'left', clickCount: 1 });
-        return { success: true, action: 'click', x, y };
-      } else if (action.type === 'keydown' || action.type === 'keyup') {
-        const keyCode = action.key || action.code;
-        if (!keyCode) return { success: false, error: 'Keyboard action must include key or code' };
-        win.webContents.sendInputEvent({ type: action.type, keyCode });
-        return { success: true, action: action.type, key: action.key };
-      }
-      return { success: false, error: `Unsupported action type: ${action.type}` };
-    },
-
-    evalJavaScript: async (script) => {
-      const win = getGameWindow() || mainWindow;
-      if (!win || win.isDestroyed()) throw new Error('No window available for javascript execution');
-      return await withRendererTimeout(() => win.webContents.executeJavaScript(script), 'JavaScript evaluation');
-    },
-
-    reloadGame: async () => {
-      const gameWin = getGameWindow();
-      if (gameWin) {
-        gameWin.webContents.reload();
-        return { success: true };
-      }
-      return { success: false, error: 'Game window not open' };
+// Read initial configured port or default to 42069
+function getConfiguredPort() {
+  const cfgPath = path.join(__dirname, 'config.json');
+  try {
+    if (fs.existsSync(cfgPath)) {
+      const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+      if (cfg.serverPort) return parseInt(cfg.serverPort);
     }
-  }
-});
+  } catch (e) {}
+  return parseInt(process.env.VIBECODEWORKER_PORT || process.env.PORT || 42069);
+}
 
+let currentApiPort = getConfiguredPort();
+
+// Initialize Local API Server connected to Electron windows & handlers
+let localApiServer = null;
+
+function createLocalApiServer(port) {
+  return new LocalAPIServer({
+    port: port || 42069,
+    runtimeMode: 'electron',
+    handlers: {
+      getGames: async () => {
+        return discoverGames(WEBSITE_V1_DIR, STATIC_PORT);
+      },
+
+      launchGame: async (gameId) => {
+        const url = gameId.startsWith('http') ? gameId : `http://localhost:${STATIC_PORT}/games/html/${gameId}/index.html`;
+        return await openGameWindow(url, isHeadless, mainWindow, (level, message, line, sourceId) => {
+          if (localApiServer) localApiServer.addConsoleLog(level === 2 ? 'error' : (level === 1 ? 'warn' : 'info'), message, 'game_window');
+        });
+      },
+
+      captureScreenshot: async (target) => {
+        const gameWin = getGameWindow();
+        const win = (target === 'dashboard' || !gameWin) ? mainWindow : gameWin;
+        if (!win || win.isDestroyed()) return null;
+        const img = await withRendererTimeout(() => win.webContents.capturePage(), 'Screenshot capture');
+        return img.toPNG();
+      },
+
+      getLogs: async () => [],
+
+      getGameState: async () => {
+        const gameWin = getGameWindow();
+        if (!gameWin || gameWin.isDestroyed()) return { active: false };
+        try {
+          const stateStr = await withRendererTimeout(() => gameWin.webContents.executeJavaScript(`
+            JSON.stringify({
+              title: document.title,
+              url: window.location.href,
+              canvas: !!document.querySelector('canvas'),
+              score: window.score || (window.game && window.game.score) || 0,
+              isGameOver: window.isGameOver || (window.game && window.game.isGameOver) || false,
+              playerState: window.player ? { x: window.player.x, y: window.player.y, hp: window.player.hp } : null
+            })
+          `), 'Game state inspection');
+          return JSON.parse(stateStr);
+        } catch (e) {
+          return { active: true, error: e.message };
+        }
+      },
+
+      executeAction: async (action) => {
+        const win = getGameWindow() || mainWindow;
+        if (!win || win.isDestroyed()) return { success: false, error: 'No active window' };
+
+        if (!action || typeof action.type !== 'string') {
+          return { success: false, error: 'Action must include a type' };
+        }
+
+        if (action.type === 'click') {
+          const x = action.x || 100;
+          const y = action.y || 100;
+          win.webContents.sendInputEvent({ type: 'mouseDown', x, y, button: 'left', clickCount: 1 });
+          win.webContents.sendInputEvent({ type: 'mouseUp', x, y, button: 'left', clickCount: 1 });
+          return { success: true, action: 'click', x, y };
+        } else if (action.type === 'keydown' || action.type === 'keyup') {
+          const keyCode = action.key || action.code;
+          if (!keyCode) return { success: false, error: 'Keyboard action must include key or code' };
+          win.webContents.sendInputEvent({ type: action.type, keyCode });
+          return { success: true, action: action.type, key: action.key };
+        }
+        return { success: false, error: `Unsupported action type: ${action.type}` };
+      },
+
+      evalJavaScript: async (script) => {
+        const win = getGameWindow() || mainWindow;
+        if (!win || win.isDestroyed()) throw new Error('No window available for javascript execution');
+        return await withRendererTimeout(() => win.webContents.executeJavaScript(script), 'JavaScript evaluation');
+      },
+
+      reloadGame: async () => {
+        const gameWin = getGameWindow();
+        if (gameWin) {
+          gameWin.webContents.reload();
+          return { success: true };
+        }
+        return { success: false, error: 'Game window not open' };
+      }
+    }
+  });
+}
+
+localApiServer = createLocalApiServer(currentApiPort);
 localApiServer.start().then(() => {
-  console.log('[Main] Integrated VibeCodeWorker Local REST API Server active on http://localhost:42069');
+  console.log(`[Main] Integrated VibeCodeWorker Local REST API Server active on http://localhost:${currentApiPort}`);
 }).catch(err => {
   console.error('[Main] Failed to start Local REST API Server:', err);
+});
+
+ipcMain.handle('set-api-server-port', async (event, newPort) => {
+  const targetPort = parseInt(newPort) || 42069;
+  if (targetPort === currentApiPort && localApiServer && localApiServer.server) {
+    return { success: true, port: targetPort, message: 'Port already active' };
+  }
+  try {
+    if (localApiServer) {
+      await localApiServer.stop();
+    }
+    currentApiPort = targetPort;
+    localApiServer = createLocalApiServer(currentApiPort);
+    await localApiServer.start();
+    console.log(`[Main] Restarted Local REST API Server on http://localhost:${currentApiPort}`);
+    return { success: true, port: currentApiPort };
+  } catch (err) {
+    console.error(`[Main] Failed to switch port to ${targetPort}:`, err);
+    return { success: false, error: err.message };
+  }
 });

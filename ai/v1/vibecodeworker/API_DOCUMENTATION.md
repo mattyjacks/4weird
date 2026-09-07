@@ -6,11 +6,14 @@ The **VibeCodeWorker Local REST API** allows AI agents (such as Gemini), CLI scr
 
 ## 🚀 Quick Start
 
-The API server runs by default on `http://127.0.0.1:42069`.
+The API server runs by default on port `42069` (`http://127.0.0.1:42069`), but is fully configurable:
+- **Desktop UI**: Change the port live under **Config Panel > 5. API SERVER & NETWORK**
+- **Configuration File**: Set `"serverPort": 42069` in `config.json`
+- **Environment Variable**: Set `PORT=42069` or `VIBECODEWORKER_PORT=42069`
 
 ### Start API Server Standalone:
 ```bash
-node ai/v1/VibeCodeWorker/start_api_server.js
+PORT=42069 node ai/v1/VibeCodeWorker/start_api_server.js
 ```
 
 ### Start with Electron GUI:

@@ -2423,13 +2423,279 @@
       "completion": 50,
       "total": 150,
       "runId": "autocode_1788814317339"
+    },
+    {
+      "timestamp": "2026-09-07T21:01:51.912Z",
+      "model": "gpt-4o-mini",
+      "prompt": 1200,
+      "completion": 350,
+      "total": 1550,
+      "runId": "autocode_1788814911909"
+    },
+    {
+      "timestamp": "2026-09-07T21:01:51.918Z",
+      "model": "google/gemini-2.5-flash",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788814911916"
+    },
+    {
+      "timestamp": "2026-09-07T21:01:51.920Z",
+      "model": "gpt-4o-mini",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788814911916"
+    },
+    {
+      "timestamp": "2026-09-07T21:12:02.911Z",
+      "model": "gpt-4o-mini",
+      "prompt": 1200,
+      "completion": 350,
+      "total": 1550,
+      "runId": "autocode_1788815522909"
+    },
+    {
+      "timestamp": "2026-09-07T21:12:02.918Z",
+      "model": "google/gemini-2.5-flash",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788815522916"
+    },
+    {
+      "timestamp": "2026-09-07T21:12:02.921Z",
+      "model": "gpt-4o-mini",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788815522916"
+    },
+    {
+      "timestamp": "2026-09-07T21:12:03.054Z",
+      "model": "deepseek-reasoner",
+      "prompt": 200,
+      "completion": 100,
+      "total": 300,
+      "runId": "autocode_1788815523053"
+    },
+    {
+      "timestamp": "2026-09-07T21:12:03.055Z",
+      "model": "meta/muse-spark-1.3-contributor",
+      "prompt": 200,
+      "completion": 100,
+      "total": 300,
+      "runId": "autocode_1788815523053"
+    },
+    {
+      "timestamp": "2026-09-07T21:12:31.574Z",
+      "model": "gpt-4o-mini",
+      "prompt": 1200,
+      "completion": 350,
+      "total": 1550,
+      "runId": "autocode_1788815551571"
+    },
+    {
+      "timestamp": "2026-09-07T21:12:31.581Z",
+      "model": "google/gemini-2.5-flash",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788815551579"
+    },
+    {
+      "timestamp": "2026-09-07T21:12:31.583Z",
+      "model": "gpt-4o-mini",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788815551579"
+    },
+    {
+      "timestamp": "2026-09-07T21:12:31.714Z",
+      "model": "deepseek-reasoner",
+      "prompt": 200,
+      "completion": 100,
+      "total": 300,
+      "runId": "autocode_1788815551712"
+    },
+    {
+      "timestamp": "2026-09-07T21:12:31.715Z",
+      "model": "meta/muse-spark-1.3-contributor",
+      "prompt": 200,
+      "completion": 100,
+      "total": 300,
+      "runId": "autocode_1788815551712"
+    },
+    {
+      "timestamp": "2026-09-07T21:15:08.832Z",
+      "model": "gpt-4o-mini",
+      "prompt": 1200,
+      "completion": 350,
+      "total": 1550,
+      "runId": "autocode_1788815708829"
+    },
+    {
+      "timestamp": "2026-09-07T21:15:08.838Z",
+      "model": "google/gemini-2.5-flash",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788815708836"
+    },
+    {
+      "timestamp": "2026-09-07T21:15:08.841Z",
+      "model": "gpt-4o-mini",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788815708836"
+    },
+    {
+      "timestamp": "2026-09-07T21:15:08.973Z",
+      "model": "deepseek-reasoner",
+      "prompt": 200,
+      "completion": 100,
+      "total": 300,
+      "runId": "autocode_1788815708973"
+    },
+    {
+      "timestamp": "2026-09-07T21:15:08.975Z",
+      "model": "meta/muse-spark-1.3-contributor",
+      "prompt": 200,
+      "completion": 100,
+      "total": 300,
+      "runId": "autocode_1788815708973"
+    },
+    {
+      "timestamp": "2026-09-07T21:15:16.251Z",
+      "model": "gpt-4o-mini",
+      "prompt": 1200,
+      "completion": 350,
+      "total": 1550,
+      "runId": "autocode_1788815716247"
+    },
+    {
+      "timestamp": "2026-09-07T21:15:16.270Z",
+      "model": "google/gemini-2.5-flash",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788815716268"
+    },
+    {
+      "timestamp": "2026-09-07T21:15:16.272Z",
+      "model": "gpt-4o-mini",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788815716268"
+    },
+    {
+      "timestamp": "2026-09-07T21:15:16.378Z",
+      "model": "deepseek-reasoner",
+      "prompt": 200,
+      "completion": 100,
+      "total": 300,
+      "runId": "autocode_1788815716376"
+    },
+    {
+      "timestamp": "2026-09-07T21:15:16.379Z",
+      "model": "meta/muse-spark-1.3-contributor",
+      "prompt": 200,
+      "completion": 100,
+      "total": 300,
+      "runId": "autocode_1788815716376"
+    },
+    {
+      "timestamp": "2026-09-07T21:17:11.104Z",
+      "model": "gpt-4o-mini",
+      "prompt": 1200,
+      "completion": 350,
+      "total": 1550,
+      "runId": "autocode_1788815831101"
+    },
+    {
+      "timestamp": "2026-09-07T21:17:11.109Z",
+      "model": "google/gemini-2.5-flash",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788815831108"
+    },
+    {
+      "timestamp": "2026-09-07T21:17:11.111Z",
+      "model": "gpt-4o-mini",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788815831108"
+    },
+    {
+      "timestamp": "2026-09-07T21:18:32.352Z",
+      "model": "deepseek-reasoner",
+      "prompt": 200,
+      "completion": 100,
+      "total": 300,
+      "runId": "autocode_1788815912351"
+    },
+    {
+      "timestamp": "2026-09-07T21:18:32.355Z",
+      "model": "meta/muse-spark-1.3-contributor",
+      "prompt": 200,
+      "completion": 100,
+      "total": 300,
+      "runId": "autocode_1788815912351"
+    },
+    {
+      "timestamp": "2026-09-07T21:19:22.664Z",
+      "model": "gpt-4o-mini",
+      "prompt": 1200,
+      "completion": 350,
+      "total": 1550,
+      "runId": "autocode_1788815962661"
+    },
+    {
+      "timestamp": "2026-09-07T21:19:22.670Z",
+      "model": "google/gemini-2.5-flash",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788815962668"
+    },
+    {
+      "timestamp": "2026-09-07T21:19:22.672Z",
+      "model": "gpt-4o-mini",
+      "prompt": 100,
+      "completion": 50,
+      "total": 150,
+      "runId": "autocode_1788815962668"
+    },
+    {
+      "timestamp": "2026-09-07T21:19:22.977Z",
+      "model": "deepseek-reasoner",
+      "prompt": 200,
+      "completion": 100,
+      "total": 300,
+      "runId": "autocode_1788815962975"
+    },
+    {
+      "timestamp": "2026-09-07T21:19:22.978Z",
+      "model": "meta/muse-spark-1.3-contributor",
+      "prompt": 200,
+      "completion": 100,
+      "total": 300,
+      "runId": "autocode_1788815962975"
     }
   ],
   "lifetimeTotals": {
-    "gpt-4o-mini": 130963,
-    "total": 1948902,
+    "gpt-4o-mini": 142863,
+    "total": 1965452,
     "gpt-5.4-nano-2026-03-17": 18462,
     "gpt-5.4-mini-2026-03-17": 1796327,
-    "google/gemini-2.5-flash": 3150
+    "google/gemini-2.5-flash": 4200,
+    "deepseek-reasoner": 1800,
+    "meta/muse-spark-1.3-contributor": 1800
   }
 }

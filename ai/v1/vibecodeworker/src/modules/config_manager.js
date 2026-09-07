@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { ipcRenderer } = require('electron');
+const { loadCredentials, saveCredentials, getResolvedApiKey } = require('../../lib/storage');
 
 const configFilePath = path.join(__dirname, '..', '..', 'config.json');
 
@@ -12,12 +13,26 @@ const modelsByProvider = {
     { value: 'gpt-4o', text: 'GPT-4o (Standard)' },
     { value: 'custom', text: 'Custom...' }
   ],
+  deepseek: [
+    { value: 'deepseek-chat', text: 'DeepSeek Chat V3 (Default)' },
+    { value: 'deepseek-reasoner', text: 'DeepSeek Reasoner R1 (Reasoning)' },
+    { value: 'deepseek-v4-flash', text: 'DeepSeek V4 Flash (Fast & Cheap)' },
+    { value: 'deepseek-v4-pro', text: 'DeepSeek V4 Pro (Complex)' },
+    { value: 'deepseek-v4-flash-vision-exp', text: 'DeepSeek V4 Flash Vision' },
+    { value: 'custom', text: 'Custom...' }
+  ],
+  meta: [
+    { value: 'meta/muse-spark-1.3-contributor', text: 'Muse Spark 1.3 Contributor (Meta 1M)' },
+    { value: 'muse-spark-1.3-contributor', text: 'Muse Spark 1.3 Contributor (Direct)' },
+    { value: 'custom', text: 'Custom...' }
+  ],
   gemini: [
     { value: 'gemini-2.5-flash', text: 'Gemini 2.5 Flash' },
     { value: 'gemini-2.5-pro', text: 'Gemini 2.5 Pro' },
     { value: 'custom', text: 'Custom...' }
   ],
   openrouter: [
+    { value: 'meta/muse-spark-1.3-contributor', text: 'Muse Spark 1.3 Contributor (Meta)' },
     { value: 'google/gemini-2.5-flash', text: 'Gemini 2.5 Flash' },
     { value: 'google/gemini-2.5-pro', text: 'Gemini 2.5 Pro' },
     { value: 'openai/gpt-4o-mini', text: 'GPT-4o Mini' },
@@ -51,13 +66,23 @@ function handleProviderChange(providerSelect, modelSelect, localUrlGroup, apiKey
     apiKeyInput.placeholder = "Not required for local (optional)";
   } else {
     localUrlGroup.classList.add('hidden');
-    if (val === 'gemini') {
+    if (val === 'deepseek') {
+      apiKeyInput.placeholder = process.env.DEEPSEEK_API_KEY ? "Using process.env.DEEPSEEK_API_KEY" : "Enter DeepSeek API Key";
+    } else if (val === 'meta') {
+      apiKeyInput.placeholder = (process.env.META_API_KEY || process.env.OPENROUTER_API_KEY) ? "Using process.env (META_API_KEY / OPENROUTER_API_KEY)" : "Enter Meta / OpenRouter API Key";
+    } else if (val === 'gemini') {
       apiKeyInput.placeholder = process.env.GEMINI_API_KEY ? "Using process.env.GEMINI_API_KEY" : "Enter Gemini API Key";
     } else if (val === 'openrouter') {
       apiKeyInput.placeholder = process.env.OPENROUTER_API_KEY ? "Using process.env.OPENROUTER_API_KEY" : "Enter OpenRouter API Key";
     } else {
       apiKeyInput.placeholder = process.env.OPENAI_API_KEY ? "Using process.env.OPENAI_API_KEY" : "Enter OpenAI API Key";
     }
+  }
+
+  // Load key specific to selected provider from persistent storage
+  const savedKey = getResolvedApiKey(val);
+  if (savedKey) {
+    apiKeyInput.value = savedKey;
   }
   
   if (!skipSave) {
@@ -89,9 +114,16 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
 
   const prov = settings.provider || 'openai';
   elements.providerSelect.value = prov;
-  elements.apiKeyInput.value = settings.apiKey || '';
+
+  // Resolve API key from OS-level persistent storage across builds
+  const resolvedKey = getResolvedApiKey(prov, settings.apiKey);
+  elements.apiKeyInput.value = resolvedKey || '';
   if (!elements.apiKeyInput.value) {
-    if (prov === 'openrouter' && process.env.OPENROUTER_API_KEY) {
+    if (prov === 'deepseek' && process.env.DEEPSEEK_API_KEY) {
+      elements.apiKeyInput.placeholder = "Using process.env.DEEPSEEK_API_KEY";
+    } else if (prov === 'meta' && (process.env.META_API_KEY || process.env.OPENROUTER_API_KEY)) {
+      elements.apiKeyInput.placeholder = "Using process.env.META_API_KEY";
+    } else if (prov === 'openrouter' && process.env.OPENROUTER_API_KEY) {
       elements.apiKeyInput.placeholder = "Using process.env.OPENROUTER_API_KEY";
     } else if (prov === 'openai' && process.env.OPENAI_API_KEY) {
       elements.apiKeyInput.placeholder = "Using process.env.OPENAI_API_KEY";
@@ -101,7 +133,7 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
   
   populateModelsDropdown(elements.providerSelect, elements.modelSelect);
   
-  const savedModel = settings.modelName || 'gpt-5.6-luna';
+  const savedModel = settings.modelName || (prov === 'deepseek' ? 'deepseek-chat' : (prov === 'meta' ? 'meta/muse-spark-1.3-contributor' : 'gpt-5.6-luna'));
   const hasModelInSelect = Array.from(elements.modelSelect.options).some(opt => opt.value === savedModel);
   if (hasModelInSelect) {
     elements.modelSelect.value = savedModel;
@@ -149,6 +181,10 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
   if (elements.autocodeMaxShots) elements.autocodeMaxShots.value = settings.autoCodeMaxShots || 2;
   if (elements.autocodeCaptureOnPlay) elements.autocodeCaptureOnPlay.checked = settings.autoCodeCaptureOnPlay || false;
 
+  if (elements.serverPortInput) {
+    elements.serverPortInput.value = settings.serverPort || 42069;
+  }
+
   agentBrain.updateConfig({ dataDir });
   agentBrain.loadSessionMemory();
 
@@ -190,9 +226,21 @@ function saveConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     autoCodeCompressShots: elements.autocodeCompressShots ? elements.autocodeCompressShots.checked : true,
     autoCodeEnableShots: elements.autocodeEnableShots ? elements.autocodeEnableShots.checked : false,
     autoCodeMaxShots: elements.autocodeMaxShots ? parseInt(elements.autocodeMaxShots.value) : 2,
-    autoCodeCaptureOnPlay: elements.autocodeCaptureOnPlay ? elements.autocodeCaptureOnPlay.checked : false
+    autoCodeCaptureOnPlay: elements.autocodeCaptureOnPlay ? elements.autocodeCaptureOnPlay.checked : false,
+    serverPort: elements.serverPortInput ? (parseInt(elements.serverPortInput.value) || 42069) : 42069
   };
   localStorage.setItem('ai_debugger_settings', JSON.stringify(settings));
+
+  // Persist API key to OS-level storage across builds
+  if (settings.apiKey) {
+    const credUpdate = { apiKey: settings.apiKey, provider: settings.provider };
+    if (settings.provider === 'deepseek') credUpdate.deepseekApiKey = settings.apiKey;
+    else if (settings.provider === 'meta') credUpdate.metaApiKey = settings.apiKey;
+    else if (settings.provider === 'openai') credUpdate.openaiApiKey = settings.apiKey;
+    else if (settings.provider === 'gemini') credUpdate.geminiApiKey = settings.apiKey;
+    else if (settings.provider === 'openrouter') credUpdate.openrouterApiKey = settings.apiKey;
+    saveCredentials(credUpdate);
+  }
 
   try {
     fs.writeFileSync(configFilePath, JSON.stringify(settings, null, 2), 'utf8');

@@ -163,6 +163,39 @@ website/v1/games/html/yourgame/
 
 ---
 
+## 🤖 VibeCodeWorker AI Engine & API Keys
+
+The **4weird VibeCodeWorker** (`ai/v1/vibecodeworker`) is an autonomous QA playtesting sandbox, auto-code debugger, and self-improving agent suite.
+
+### 🔑 API Key Requirements: Only 1 Minimum Key Needed!
+> **IMPORTANT:** You **DO NOT** need keys for every model. VibeCodeWorker only requires **A MINIMUM OF 1 API KEY** of your choice to be fully functional (or use a free local Ollama endpoint without any API key at all).
+
+Supported AI engines & keys:
+1. **DeepSeek (`DEEPSEEK_API_KEY`)**:
+   - Native **DeepSeek Harness (`dsh`)** self-improvement loops.
+   - Models: `deepseek-chat` (V3), `deepseek-reasoner` (R1), `deepseek-v4-flash`, `deepseek-v4-pro`, `deepseek-v4-flash-vision-exp`.
+   - Sign up: [DeepSeek Platform](https://platform.deepseek.com)
+2. **Meta Muse Spark (`META_API_KEY` or `OPENROUTER_API_KEY`)**:
+   - Model: `meta/muse-spark-1.3-contributor` — ultra-low cost ($0.10/1M in, $0.20/1M out) multimodal reasoning with a massive 1,048,576 token context.
+3. **OpenAI (`OPENAI_API_KEY`)**:
+   - Flagship default models: `gpt-5.6-luna`, `gpt-5.4-mini`, `gpt-4o-mini`, `gpt-4o`.
+   - Sign up: [OpenAI Platform](https://platform.openai.com)
+4. **Google Gemini (`GEMINI_API_KEY`)**:
+   - Models: `gemini-2.5-flash`, `gemini-2.5-pro`.
+5. **Local Models (Free / No Key)**:
+   - Ollama / LM Studio at `http://localhost:11434/api/chat`.
+
+### 🛡️ Persistent Build-Consistent Local Key Storage
+Any API key you input into VibeCodeWorker is stored locally in your operating system's personal profile directory:
+- **Windows**: `%APPDATA%\vibecodeworker\credentials.json`
+- **macOS/Linux**: `~/.vibecodeworker/credentials.json`
+
+Keys are **never baked into the `.exe`** and **never overwritten** when new builds, desktop installers, or updates are deployed.
+
+You can also create a `.env` file in the repository root or in `ai/v1/vibecodeworker/` based on `.env.example`.
+
+---
+
 ## 📚 Documentation & Sub-Project READMEs
 
 Explore specific components, sub-projects, and game architectures across the repository:

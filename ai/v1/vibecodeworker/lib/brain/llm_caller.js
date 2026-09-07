@@ -2,13 +2,21 @@
  * LLM Provider API Caller and Heuristic Fallbacks
  */
 
+const { getResolvedApiKey } = require('../storage');
+
 async function callLLM(brain, prompt, base64Image = null) {
   let { provider, apiKey, endpointUrl, modelName } = brain.config;
 
-  // Resolve API key from environment variables if not configured
+  // Resolve API key from local persistent credentials or environment
+  apiKey = getResolvedApiKey(provider, apiKey);
+
   if (!apiKey || apiKey === 'YOUR_OPENAI_API_KEY') {
     if (provider === 'openai' && process.env.OPENAI_API_KEY) {
       apiKey = process.env.OPENAI_API_KEY;
+    } else if (provider === 'deepseek' && process.env.DEEPSEEK_API_KEY) {
+      apiKey = process.env.DEEPSEEK_API_KEY;
+    } else if (provider === 'meta' && (process.env.META_API_KEY || process.env.OPENROUTER_API_KEY)) {
+      apiKey = process.env.META_API_KEY || process.env.OPENROUTER_API_KEY;
     } else if (provider === 'openrouter' && process.env.OPENROUTER_API_KEY) {
       apiKey = process.env.OPENROUTER_API_KEY;
     } else if (provider === 'gemini' && process.env.GEMINI_API_KEY) {
@@ -18,6 +26,12 @@ async function callLLM(brain, prompt, base64Image = null) {
       if (process.env.OPENAI_API_KEY) {
         apiKey = process.env.OPENAI_API_KEY;
         provider = 'openai';
+      } else if (process.env.DEEPSEEK_API_KEY) {
+        apiKey = process.env.DEEPSEEK_API_KEY;
+        provider = 'deepseek';
+      } else if (process.env.META_API_KEY) {
+        apiKey = process.env.META_API_KEY;
+        provider = 'meta';
       } else if (process.env.OPENROUTER_API_KEY) {
         apiKey = process.env.OPENROUTER_API_KEY;
         provider = 'openrouter';
@@ -32,13 +46,39 @@ async function callLLM(brain, prompt, base64Image = null) {
   if (provider === 'openai') {
     url = 'https://api.openai.com/v1/chat/completions';
     headers['Authorization'] = `Bearer ${apiKey}`;
-    const realModel = modelName || 'gpt-4o-mini';
+    const realModel = modelName || 'gpt-5.6-luna';
 
     const content = [{ type: 'text', text: prompt }];
     if (base64Image) {
       content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } });
     }
     body = { model: realModel, response_format: { type: "json_object" }, messages: [{ role: 'user', content }] };
+
+  } else if (provider === 'deepseek') {
+    url = 'https://api.deepseek.com/chat/completions';
+    headers['Authorization'] = `Bearer ${apiKey}`;
+    const realModel = modelName || 'deepseek-chat';
+
+    const content = [{ type: 'text', text: prompt }];
+    if (base64Image) {
+      content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } });
+    }
+    body = { model: realModel, messages: [{ role: 'user', content }] };
+
+  } else if (provider === 'meta') {
+    // Meta Model API or OpenRouter-compatible endpoint for Muse Spark 1.3 Contributor
+    const realModel = modelName || 'meta/muse-spark-1.3-contributor';
+    const isMetaDirect = endpointUrl && endpointUrl.includes('meta.ai');
+    url = isMetaDirect ? endpointUrl : (endpointUrl || 'https://openrouter.ai/api/v1/chat/completions');
+    headers['Authorization'] = `Bearer ${apiKey}`;
+    headers['HTTP-Referer'] = 'https://github.com/mattyjacks/4weird';
+    headers['X-Title'] = '4weird VibeCodeWorker';
+
+    const content = [{ type: 'text', text: prompt }];
+    if (base64Image) {
+      content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } });
+    }
+    body = { model: realModel, messages: [{ role: 'user', content }] };
 
   } else if (provider === 'gemini') {
     const model = modelName || 'gemini-2.5-flash';
@@ -64,7 +104,7 @@ async function callLLM(brain, prompt, base64Image = null) {
     headers['Authorization'] = `Bearer ${apiKey}`;
     headers['HTTP-Referer'] = 'https://github.com/mattyjacks/4weird';
     headers['X-Title'] = 'AI Game Debugger';
-    const model = modelName || 'google/gemini-2.5-flash';
+    const model = modelName || 'meta/muse-spark-1.3-contributor';
     const content = [{ type: 'text', text: prompt }];
     if (base64Image) {
       content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } });
@@ -139,7 +179,9 @@ async function callLLM(brain, prompt, base64Image = null) {
     completionTokens = Math.round(contentString.length / 4);
   }
 
-  brain.recordTokenUsage(activeModel, promptTokens, completionTokens);
+  if (brain && typeof brain.recordTokenUsage === 'function') {
+    brain.recordTokenUsage(activeModel, promptTokens, completionTokens);
+  }
   try {
     return JSON.parse(contentString);
   } catch (e) {

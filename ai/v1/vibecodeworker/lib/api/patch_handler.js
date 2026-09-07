@@ -11,7 +11,23 @@ async function handlePatchFile(body, rootDir, reloadGameHandler, logHandler) {
     return { status: 400, data: { success: false, error: 'Missing filePath parameter' } };
   }
 
-  const absPath = path.isAbsolute(filePath) ? filePath : path.join(rootDir, filePath);
+  const absPath = path.resolve(path.isAbsolute(filePath) ? filePath : path.join(rootDir, filePath));
+  const resolvedRoot = path.resolve(rootDir);
+
+  // Security: Prevent directory traversal outside the workspace
+  const rel = path.relative(resolvedRoot, absPath);
+  const isInsideWorkspace = !rel.startsWith('..') && !path.isAbsolute(rel);
+  if (!isInsideWorkspace) {
+    return { status: 403, data: { success: false, error: 'Security Exception: Target file path is outside authorized workspace root' } };
+  }
+
+  // Security: Prohibit patching sensitive system, credential or executable binaries
+  const normalizedLower = absPath.toLowerCase();
+  const prohibitedPatterns = ['.env', 'credentials.', 'id_rsa', '.git', 'node_modules', '.exe', '.bat', '.cmd', '.ps1', '.sh'];
+  if (prohibitedPatterns.some(pat => normalizedLower.endsWith(pat) || normalizedLower.includes(path.sep + pat))) {
+    return { status: 403, data: { success: false, error: 'Security Exception: Cannot patch protected system, credential, or executable files' } };
+  }
+
   if (!fs.existsSync(absPath)) {
     return { status: 404, data: { success: false, error: `File not found: ${absPath}` } };
   }

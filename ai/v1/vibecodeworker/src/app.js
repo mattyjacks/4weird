@@ -216,12 +216,18 @@ function queryElements() {
   el.btnApplyChanges = document.getElementById('btn-apply-changes');
 
   // Direct AI Fix & Token Report elements
+  el.btnSelfImproveDsh = document.getElementById('btn-self-improve-dsh');
+  el.btnLaunchDshWeb = document.getElementById('btn-launch-dsh-web');
   el.btnRunDirectFix = document.getElementById('btn-run-direct-fix');
   el.directFixStatusContainer = document.getElementById('direct-fix-status-container');
   el.directFixCostBadge = document.getElementById('direct-fix-cost-badge');
   el.directFixStatusText = document.getElementById('direct-fix-status-text');
   el.btnViewDirectDiff = document.getElementById('btn-view-direct-diff');
   el.btnApplyDirectFix = document.getElementById('btn-apply-direct-fix');
+
+  // Network & Local REST API Server Port
+  el.serverPortInput = document.getElementById('server-port');
+  el.btnSavePort = document.getElementById('btn-save-port');
 }
 
 // Coordinate setups on DOM load
@@ -279,6 +285,12 @@ document.addEventListener('DOMContentLoaded', () => {
   el.btnClearLogs.addEventListener('click', clearLogView);
   el.btnGeneratePrompt.addEventListener('click', generateMegaPrompt);
   el.btnCopyPrompt.addEventListener('click', copyPromptToClipboard);
+  if (el.btnSelfImproveDsh) {
+    el.btnSelfImproveDsh.addEventListener('click', runDeepSeekSelfImprovement);
+  }
+  if (el.btnLaunchDshWeb) {
+    el.btnLaunchDshWeb.addEventListener('click', launchDshWebGui);
+  }
   if (el.btnRunDirectFix) {
     el.btnRunDirectFix.addEventListener('click', runDirectAIFix);
   }
@@ -287,6 +299,25 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   if (el.btnApplyDirectFix) {
     el.btnApplyDirectFix.addEventListener('click', applyDirectFix);
+  }
+  if (el.btnSavePort) {
+    el.btnSavePort.addEventListener('click', async () => {
+      audio.playClickSound();
+      const newPort = parseInt(el.serverPortInput.value) || 42069;
+      saveConfigData();
+      try {
+        const res = await ipcRenderer.invoke('set-api-server-port', newPort);
+        if (res && res.success) {
+          toastNotifier.show(`API Server port updated to ${res.port}!`, 'success');
+          logSystemMessage(`Local REST API Server restarted on port ${res.port}`, 'success');
+        } else {
+          toastNotifier.show(`Failed to change port: ${res?.error || 'Unknown error'}`, 'error');
+          logSystemMessage(`Failed to change API port: ${res?.error}`, 'error');
+        }
+      } catch (err) {
+        toastNotifier.show(`Port error: ${err.message}`, 'error');
+      }
+    });
   }
   el.btnSaveReplay.addEventListener('click', () => {
     saveReplayTrace({ replaysDir, timelineHistory, el, audio, toastNotifier, logSystemMessage });
@@ -1006,6 +1037,83 @@ async function runDirectAIFix() {
     toastNotifier.show(err.message, "error");
   } finally {
     el.btnRunDirectFix.classList.remove('btn-loading');
+  }
+}
+
+async function runDeepSeekSelfImprovement() {
+  audio.playClickSound();
+  el.directFixStatusContainer.classList.remove('hidden');
+  el.directFixStatusText.innerHTML = `⚡ <strong>Dispatching DeepSeek Harness (dsh) Self-Improvement Loop...</strong><br>Analyzing engine telemetry, bottlenecks & generating precision codebase upgrade.`;
+  if (el.btnSelfImproveDsh) el.btnSelfImproveDsh.classList.add('btn-loading');
+  logSystemMessage("Starting DeepSeek Harness autonomous self-improvement cycle...");
+
+  try {
+    const { runSelfImprovementCycle } = require('../lib/deepseek_harness');
+    const result = await runSelfImprovementCycle(agentBrain, {
+      targetFile: path.join(__dirname, 'app.js'),
+      goal: "Self-improve VibeCodeWorker runtime: optimize playtesting loop, eliminate stuck states, enhance model efficiency and resilience."
+    });
+
+    if (result && result.success) {
+      el.directFixCostBadge.textContent = 'DeepSeek Harness';
+      el.directFixStatusText.innerHTML = `✅ <strong>DeepSeek Self-Improvement Cycle Complete!</strong><br>` +
+        `Model: <code>${result.model}</code> | Confidence: <strong>${Math.round(result.confidenceScore * 100)}%</strong><br>` +
+        `Summary: <em>${result.changesSummary}</em><br>` +
+        `Analysis: <span>${result.analysis}</span>`;
+      
+      logSystemMessage(`DeepSeek Harness self-improvement successful: ${result.changesSummary}`, 'success');
+      toastNotifier.show("DeepSeek Self-Improvement synthesized successfully!", "success");
+
+      // Generate a diff against the target file and display in AutoCode
+      if (result.improvedCode && el.autocodeFileSelect) {
+        const currentContent = fs.readFileSync(result.targetFile, 'utf8');
+        const diff = autoCodeSystem.generateDiff(currentContent, result.improvedCode);
+        pendingDirectFix = {
+          filePath: result.targetFile,
+          modifiedContent: result.improvedCode,
+          diff
+        };
+        el.btnViewDirectDiff.classList.remove('hidden');
+        el.btnApplyDirectFix.classList.remove('hidden');
+      }
+    } else {
+      el.directFixStatusText.innerHTML = `❌ <strong>DeepSeek Harness Notice:</strong> ${result?.error || 'Self-improvement cycle completed with notices.'}`;
+      logSystemMessage(`DeepSeek Harness: ${result?.error || 'Completed with notice'}`, 'warning');
+    }
+  } catch (err) {
+    el.directFixStatusText.innerHTML = `❌ <strong>Harness Exception:</strong> ${err.message}`;
+    logSystemMessage(`DeepSeek Harness error: ${err.message}`, 'error');
+    toastNotifier.show(err.message, "error");
+  } finally {
+    if (el.btnSelfImproveDsh) el.btnSelfImproveDsh.classList.remove('btn-loading');
+  }
+}
+
+async function launchDshWebGui() {
+  audio.playClickSound();
+  logSystemMessage("Launching DeepSeek Harness interactive Web GUI (npx @deepseek-ai/dsh web)...");
+  toastNotifier.show("Launching DeepSeek Harness Web GUI...", "info");
+
+  try {
+    const { launchDeepSeekHarnessWeb } = require('../lib/deepseek_harness');
+    const res = await launchDeepSeekHarnessWeb({
+      apiKey: el.apiKeyInput.value,
+      workspaceDir: path.resolve(__dirname, '..'),
+      port: 3080
+    });
+
+    if (res.success) {
+      logSystemMessage(`DeepSeek Harness Web GUI active at ${res.url}`, 'success');
+      toastNotifier.show(`Harness Web GUI active on ${res.url}`, 'success');
+      const { shell } = require('electron');
+      shell.openExternal(res.url);
+    } else {
+      logSystemMessage(`Failed to launch DeepSeek Harness: ${res.error}`, 'error');
+      toastNotifier.show(`Harness error: ${res.error}`, 'error');
+    }
+  } catch (e) {
+    logSystemMessage(`Harness spawn failed: ${e.message}`, 'error');
+    toastNotifier.show(e.message, "error");
   }
 }
 

@@ -14,6 +14,7 @@ const { calculateCost, formatCost } = require('./pricing');
 const { classifyTaskComplexity, selectModelForComplexity, estimateTokens } = require('./complexity');
 const { minifyCode, buildCachedContext, truncateToTokens } = require('./minimization');
 const { recordTokenUsage } = require('./brain/token_tracker');
+const { getResolvedApiKey } = require('./storage');
 
 class AutoCodeSystem {
   constructor() {
@@ -210,13 +211,17 @@ Output format:
 
   async callLLM(prompt, model) {
     let provider = this.config.provider || 'openai';
-    let apiKey = this.config.apiKey || '';
+    let apiKey = getResolvedApiKey(provider, this.config.apiKey);
     const endpointUrl = this.config.endpointUrl || '';
 
     // Auto-resolve API keys from environment variables
     if (!apiKey || apiKey === 'YOUR_OPENAI_API_KEY') {
       if (provider === 'openai' && process.env.OPENAI_API_KEY) {
         apiKey = process.env.OPENAI_API_KEY;
+      } else if (provider === 'deepseek' && process.env.DEEPSEEK_API_KEY) {
+        apiKey = process.env.DEEPSEEK_API_KEY;
+      } else if (provider === 'meta' && (process.env.META_API_KEY || process.env.OPENROUTER_API_KEY)) {
+        apiKey = process.env.META_API_KEY || process.env.OPENROUTER_API_KEY;
       } else if (provider === 'openrouter' && process.env.OPENROUTER_API_KEY) {
         apiKey = process.env.OPENROUTER_API_KEY;
       } else if (provider === 'gemini' && process.env.GEMINI_API_KEY) {
@@ -225,6 +230,12 @@ Output format:
         if (process.env.OPENAI_API_KEY) {
           apiKey = process.env.OPENAI_API_KEY;
           provider = 'openai';
+        } else if (process.env.DEEPSEEK_API_KEY) {
+          apiKey = process.env.DEEPSEEK_API_KEY;
+          provider = 'deepseek';
+        } else if (process.env.META_API_KEY) {
+          apiKey = process.env.META_API_KEY;
+          provider = 'meta';
         } else if (process.env.OPENROUTER_API_KEY) {
           apiKey = process.env.OPENROUTER_API_KEY;
           provider = 'openrouter';
@@ -244,7 +255,25 @@ Output format:
       url = 'https://api.openai.com/v1/chat/completions';
       headers['Authorization'] = `Bearer ${apiKey}`;
       body = {
-        model: model || 'gpt-4o-mini',
+        model: model || 'gpt-5.6-luna',
+        messages: [{ role: 'user', content: promptText }]
+      };
+    } else if (provider === 'deepseek') {
+      url = 'https://api.deepseek.com/chat/completions';
+      headers['Authorization'] = `Bearer ${apiKey}`;
+      body = {
+        model: model || 'deepseek-chat',
+        messages: [{ role: 'user', content: promptText }]
+      };
+    } else if (provider === 'meta') {
+      const activeModel = model || 'meta/muse-spark-1.3-contributor';
+      const isMetaDirect = endpointUrl && endpointUrl.includes('meta.ai');
+      url = isMetaDirect ? endpointUrl : (endpointUrl || 'https://openrouter.ai/api/v1/chat/completions');
+      headers['Authorization'] = `Bearer ${apiKey}`;
+      headers['HTTP-Referer'] = 'https://github.com/mattyjacks/4weird';
+      headers['X-Title'] = 'AutoCode IDE';
+      body = {
+        model: activeModel,
         messages: [{ role: 'user', content: promptText }]
       };
     } else if (provider === 'gemini') {
@@ -259,7 +288,7 @@ Output format:
       headers['HTTP-Referer'] = 'https://github.com/mattyjacks/4weird';
       headers['X-Title'] = 'AutoCode IDE';
       body = {
-        model: model || 'google/gemini-2.5-flash',
+        model: model || 'meta/muse-spark-1.3-contributor',
         messages: [{ role: 'user', content: promptText }]
       };
     } else if (provider === 'local') {

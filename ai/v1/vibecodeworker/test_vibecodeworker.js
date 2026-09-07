@@ -732,6 +732,163 @@ async function runTests() {
     failedTests.push("VibeCodeWorkerClient.pressKey");
   }
 
+  // Test 23: Persistent Local Credentials Storage Across Builds
+  try {
+    console.log("Running Test 23: Persistent Local Credentials Storage...");
+    const { saveCredentials, loadCredentials, getResolvedApiKey, getCredentialsFilePath } = require('./lib/storage');
+    
+    // Save sample keys
+    const testSaved = saveCredentials({
+      deepseekApiKey: 'sk-dsh-test-12345',
+      metaApiKey: 'meta-muse-test-67890',
+      openaiApiKey: 'sk-luna-test-abcdef'
+    });
+    assert.strictEqual(testSaved, true, "saveCredentials should succeed");
+
+    const creds = loadCredentials();
+    assert.strictEqual(creds.deepseekApiKey, 'sk-dsh-test-12345', "Should persist deepseekApiKey");
+    assert.strictEqual(creds.metaApiKey, 'meta-muse-test-67890', "Should persist metaApiKey");
+    assert.strictEqual(creds.openaiApiKey, 'sk-luna-test-abcdef', "Should persist openaiApiKey");
+
+    // Test resolution function
+    assert.strictEqual(getResolvedApiKey('deepseek'), 'sk-dsh-test-12345', "getResolvedApiKey for deepseek should return stored key");
+    assert.strictEqual(getResolvedApiKey('meta'), 'meta-muse-test-67890', "getResolvedApiKey for meta should return stored key");
+    assert.strictEqual(getResolvedApiKey('openai'), 'sk-luna-test-abcdef', "getResolvedApiKey for openai should return stored key");
+
+    console.log("✅ Test 23 Passed!");
+  } catch (err) {
+    console.error("❌ Test 23 Failed:", err);
+    failedTests.push("Storage.persistentCredentials");
+  }
+
+  // Test 24: DeepSeek & Meta Muse Spark Provider and Self-Improvement Cycle
+  try {
+    console.log("Running Test 24: DeepSeek & Meta Providers and Self-Improvement Cycle...");
+    const { AutoCodeSystem } = require('./lib/core');
+    const autoCode = new AutoCodeSystem();
+
+    // Mock fetch for LLM call testing
+    const originalFetch = global.fetch;
+    let lastUrl = '';
+    let lastBody = null;
+    let lastAuth = '';
+
+    global.fetch = async (url, opts) => {
+      lastUrl = url;
+      lastBody = JSON.parse(opts.body);
+      lastAuth = opts.headers['Authorization'];
+      return {
+        ok: true,
+        json: async () => ({
+          choices: [{
+            message: {
+              content: JSON.stringify({
+                analysis: "Engine event loop optimization",
+                changesSummary: "Added adaptive tick rate",
+                improvedCode: "// Improved code here",
+                confidenceScore: 0.98
+              })
+            }
+          }],
+          usage: { prompt_tokens: 200, completion_tokens: 100 }
+        })
+      };
+    };
+
+    // DeepSeek callLLM verification
+    autoCode.updateConfig({ provider: 'deepseek', apiKey: 'sk-deepseek-mock' });
+    const dsResult = await autoCode.callLLM("Analyze engine performance", "deepseek-reasoner");
+    assert(lastUrl.includes("api.deepseek.com"), "Should target api.deepseek.com");
+    assert.strictEqual(lastAuth, "Bearer sk-deepseek-mock", "Should pass DeepSeek bearer token");
+    assert.strictEqual(lastBody.model, "deepseek-reasoner", "Should send deepseek-reasoner model");
+
+    // Meta Muse Spark callLLM verification
+    autoCode.updateConfig({ provider: 'meta', apiKey: 'meta-token-mock' });
+    const metaResult = await autoCode.callLLM("Test prompt", "meta/muse-spark-1.3-contributor");
+    assert(lastUrl.includes("openrouter.ai") || lastUrl.includes("meta.ai"), "Should target Meta / OpenRouter endpoint");
+    assert.strictEqual(lastBody.model, "meta/muse-spark-1.3-contributor", "Should specify muse-spark model");
+
+    // Test self improvement loop invocation
+    const { runSelfImprovementCycle } = require('./lib/deepseek_harness');
+    const selfImproveResult = await runSelfImprovementCycle(null, {
+      goal: "Enhance engine throughput and test coverage."
+    });
+    assert.strictEqual(selfImproveResult.success, true, "Self-improvement cycle should complete successfully");
+    assert(selfImproveResult.analysis.length > 0, "Self-improvement should yield analysis");
+    assert.strictEqual(selfImproveResult.changesSummary, "Added adaptive tick rate", "Should parse changes summary");
+
+    // Restore fetch
+    global.fetch = originalFetch;
+
+    console.log("✅ Test 24 Passed!");
+  } catch (err) {
+    console.error("❌ Test 24 Failed:", err);
+    failedTests.push("DeepSeek.harnessAndProviders");
+  }
+
+  // Test 25: Configurable Local REST API Server Port (Default 42069, dynamic change)
+  try {
+    console.log("Running Test 25: Configurable Local REST API Server Port...");
+    const { LocalAPIServer } = require('./lib/api_server');
+
+    // Test default port 42069
+    const defaultServer = new LocalAPIServer();
+    assert.strictEqual(defaultServer.port, 42069, "Default port should be 42069");
+
+    // Test custom port specification
+    const customPort = 42070;
+    const customServer = new LocalAPIServer({ port: customPort });
+    assert.strictEqual(customServer.port, 42070, "Custom port should be accepted");
+
+    // Start and stop server on dynamic port
+    await customServer.start();
+    const res = await fetch(`http://127.0.0.1:${customPort}/api/status`);
+    assert.strictEqual(res.ok, true, "Should respond on custom configured port");
+    const statusData = await res.json();
+    assert.strictEqual(statusData.success, true, "Status should report success: true");
+    assert.strictEqual(statusData.system, '4weird VibeCodeWorker Local API Server');
+    await customServer.stop();
+
+    console.log("✅ Test 25 Passed!");
+  } catch (err) {
+    console.error("❌ Test 25 Failed:", err);
+    failedTests.push("ApiServer.configurablePort");
+  }
+
+  // Test 26: Super Secure Hardening (Path Traversal, Protected Files, Origin Isolation)
+  try {
+    console.log("Running Test 26: Super Secure Hardening Defenses...");
+    const { handlePatchFile } = require('./lib/api/patch_handler');
+    const rootDir = path.resolve(__dirname, '..', '..', '..');
+
+    // Attempt path traversal outside workspace
+    const traversalResult = await handlePatchFile({
+      filePath: '../../../../etc/passwd',
+      fullContent: 'malicious'
+    }, rootDir);
+    assert.strictEqual(traversalResult.status, 403, "Should reject traversal with 403");
+    assert(traversalResult.data.error.includes("Security Exception"), "Should return Security Exception");
+
+    // Attempt to patch a sensitive protected file (.env)
+    const envResult = await handlePatchFile({
+      filePath: '.env',
+      fullContent: 'STOLEN_KEY=123'
+    }, rootDir);
+    assert.strictEqual(envResult.status, 403, "Should reject patching .env with 403");
+
+    // Attempt to patch credentials file
+    const credResult = await handlePatchFile({
+      filePath: 'credentials.enc',
+      fullContent: 'malicious'
+    }, rootDir);
+    assert.strictEqual(credResult.status, 403, "Should reject patching credentials with 403");
+
+    console.log("✅ Test 26 Passed!");
+  } catch (err) {
+    console.error("❌ Test 26 Failed:", err);
+    failedTests.push("Security.superSecureDefenses");
+  }
+
   // Write results to .last-run.json
   const resultsPath = path.join(__dirname, '..', '..', '..', 'test-results', '.last-run.json');
   const status = failedTests.length === 0 ? "passed" : "failed";

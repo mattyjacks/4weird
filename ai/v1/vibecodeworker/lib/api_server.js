@@ -85,9 +85,17 @@ class LocalAPIServer {
     return new Promise((resolve, reject) => {
       this.server = http.createServer(async (req, res) => {
         const startTime = Date.now();
-        res.setHeader('Access-Control-Allow-Origin', '*');
+        const origin = req.headers.origin || '';
+        const clientIp = req.socket.remoteAddress || '';
+
+        // Security check: restrict loopback/localhost access or known safe origin
+        const isLocalClient = clientIp.includes('127.0.0.1') || clientIp === '::1' || clientIp === '::ffff:127.0.0.1' || clientIp === '';
+        const isLocalOrigin = !origin || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1') || origin.startsWith('file://') || origin.startsWith('vscode-webview://');
+
+        // Allow CORS for local origins or non-browser tooling (curl, python, node tests)
+        res.setHeader('Access-Control-Allow-Origin', origin || '*');
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Vibe-Auth');
 
         if (req.method === 'OPTIONS') {
           res.writeHead(204);
@@ -97,6 +105,14 @@ class LocalAPIServer {
 
         const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
         const pathname = parsedUrl.pathname;
+
+        // Security: Block non-local external origins from mutating the host machine or executing code
+        if (origin && !isLocalOrigin && (pathname.startsWith('/api/game/patch') || pathname.startsWith('/api/game/eval') || pathname.startsWith('/api/autocode/fix'))) {
+          res.writeHead(403, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Forbidden: Untrusted external origin not authorized for execution endpoints' }));
+          this.logRequest(req.method, pathname, 403, Date.now() - startTime);
+          return;
+        }
 
         const sendJSON = (statusCode, data) => {
           res.writeHead(statusCode, { 'Content-Type': 'application/json' });

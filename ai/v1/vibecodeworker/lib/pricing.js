@@ -114,6 +114,64 @@ const MODEL_PRICING = {
     tier: 1,
     description: 'OpenRouter GPT-4o Mini'
   },
+  // Meta Series
+  'meta/muse-spark-1.3-contributor': {
+    name: 'Muse Spark 1.3 Contributor (Meta)',
+    inputRate: 0.10,
+    outputRate: 0.20,
+    cacheInputRate: 0.05,
+    tier: 1,
+    description: 'Ultra-low cost 1M context multimodal reasoning model by Meta'
+  },
+  'muse-spark-1.3-contributor': {
+    name: 'Muse Spark 1.3 Contributor (Meta)',
+    inputRate: 0.10,
+    outputRate: 0.20,
+    cacheInputRate: 0.05,
+    tier: 1,
+    description: 'Ultra-low cost 1M context multimodal reasoning model by Meta'
+  },
+  // DeepSeek Series
+  'deepseek-chat': {
+    name: 'DeepSeek Chat (V3)',
+    inputRate: 0.14,
+    outputRate: 0.28,
+    cacheInputRate: 0.014,
+    tier: 1,
+    description: 'General purpose flagship chat model'
+  },
+  'deepseek-reasoner': {
+    name: 'DeepSeek Reasoner (R1)',
+    inputRate: 0.55,
+    outputRate: 2.19,
+    cacheInputRate: 0.14,
+    tier: 3,
+    description: 'Specialized deep logic and reasoning model'
+  },
+  'deepseek-v4-flash': {
+    name: 'DeepSeek V4 Flash',
+    inputRate: 0.05,
+    outputRate: 0.20,
+    cacheInputRate: 0.0125,
+    tier: 1,
+    description: 'Ultra token-efficient high-speed model for DeepSeek Harness'
+  },
+  'deepseek-v4-pro': {
+    name: 'DeepSeek V4 Pro',
+    inputRate: 0.50,
+    outputRate: 2.00,
+    cacheInputRate: 0.125,
+    tier: 3,
+    description: 'High-performance complex reasoning model'
+  },
+  'deepseek-v4-flash-vision-exp': {
+    name: 'DeepSeek V4 Flash Vision',
+    inputRate: 0.10,
+    outputRate: 0.40,
+    cacheInputRate: 0.025,
+    tier: 1,
+    description: 'Experimental multimodal image processing model'
+  },
   // GPT-4o Series
   'gpt-4o': {
     name: 'GPT-4o',
