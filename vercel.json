@@ -11,6 +11,11 @@
       "permanent": true
     },
     {
+      "source": "/pricing",
+      "destination": "/pricing/",
+      "permanent": true
+    },
+    {
       "source": "/html/:path*",
       "destination": "/games/html/:path*",
       "permanent": true
