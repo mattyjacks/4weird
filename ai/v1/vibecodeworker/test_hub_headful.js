@@ -63,6 +63,7 @@ async function main() {
     `n.scrollIntoView({block:'nearest'}); n.click(); return 'clicked'; })()`
   );
 
+  await win.webContents.session.clearCache();
   await win.loadURL(`http://127.0.0.1:${STATIC_PORT}/vibecodeworker/hub.html?headfultest=1`);
   await new Promise(r => setTimeout(r, 3500));
 

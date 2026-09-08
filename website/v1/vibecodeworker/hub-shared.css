@@ -256,7 +256,10 @@ body {
   flex-direction: column;
   gap: 12px;
   min-height: 0;
+  flex: 0 0 auto;
 }
+#config-panel { width: 300px; }
+#stats-panel { width: 272px; }
 .stage {
   flex: 1;
   min-width: 0;
@@ -284,18 +287,22 @@ body {
 .stage-panel {
   flex: 1;
   min-height: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  overflow: hidden;
 }
 .game-frame {
   position: relative;
-  flex: 1;
-  min-height: 280px;
+  flex: none;
+  margin: auto;
+  min-height: 0;
   background: #000;
   border: 1px solid var(--hub-border);
-  border-radius: 8px;
+  border-radius: 10px;
   overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55), 0 0 24px rgba(0, 255, 102, 0.06);
 }
 .game-frame iframe {
   position: absolute;

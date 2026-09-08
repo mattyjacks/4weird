@@ -184,6 +184,41 @@ export function setupIframeErrorListeners() {
   } catch (e) { }
 }
 
+/* Device content boxes (layout px). The frame keeps this aspect ratio and only
+   ever shrinks to fit — transform scale is coordinate-safe because the agent
+   cursor, overlay canvases and elementFromPoint all work in container px. */
+const DEVICE_BOXES = {
+  autofit: { w: 1280, h: 800, label: 'Auto-Fit' },
+  desktop: { w: 1280, h: 800, label: 'Desktop' },
+  tablet: { w: 1024, h: 640, label: 'Tablet' },
+  mobile: { w: 390, h: 700, label: 'Mobile' }
+};
+
+export function fitGameFrame() {
+  const c = el.iframeContainer;
+  if (!c) return;
+  const parent = c.parentElement;
+  const availW = parent ? parent.clientWidth : window.innerWidth;
+  const availH = parent ? parent.clientHeight : window.innerHeight;
+  if (!availW || !availH) return;
+  const box = DEVICE_BOXES[state.deviceMode] || DEVICE_BOXES.autofit;
+  const pad = 8;
+  const s = Math.min(1, (availW - pad) / box.w, (availH - pad) / box.h);
+  const scale = Math.max(0.2, s);
+  state.viewportScale = scale;
+  c.style.width = box.w + 'px';
+  c.style.height = box.h + 'px';
+  c.style.flex = 'none';
+  c.style.margin = 'auto';
+  c.style.transformOrigin = 'center center';
+  c.style.transform = 'scale(' + scale.toFixed(3) + ')';
+  if (el.gameIframe) {
+    el.gameIframe.style.width = '100%';
+    el.gameIframe.style.height = '100%';
+  }
+  if (el.viewportRes) el.viewportRes.textContent = box.w + ' x ' + box.h + ' (' + Math.round(scale * 100) + '%)';
+}
+
 export function setDeviceView(mode) {
   synth.playClick();
   if (el.btnDeviceAutofit) el.btnDeviceAutofit.classList.remove('active-device');
@@ -191,43 +226,26 @@ export function setDeviceView(mode) {
   if (el.btnDevTablet) el.btnDevTablet.classList.remove('active-device');
   if (el.btnDevMobile) el.btnDevMobile.classList.remove('active-device');
 
-  const parent = el.iframeContainer ? el.iframeContainer.parentElement : null;
-  const bodyWidth = parent ? parent.clientWidth : window.innerWidth;
-  const bodyHeight = parent ? parent.clientHeight : window.innerHeight;
+  state.deviceMode = DEVICE_BOXES[mode] ? mode : 'autofit';
+  if (state.deviceMode === 'autofit' && el.btnDeviceAutofit) el.btnDeviceAutofit.classList.add('active-device');
+  if (state.deviceMode === 'desktop' && el.btnDevDesktop) el.btnDevDesktop.classList.add('active-device');
+  if (state.deviceMode === 'tablet' && el.btnDevTablet) el.btnDevTablet.classList.add('active-device');
+  if (state.deviceMode === 'mobile' && el.btnDevMobile) el.btnDevMobile.classList.add('active-device');
+  fitGameFrame();
+}
 
-  if (mode === 'autofit') {
-    if (el.btnDeviceAutofit) el.btnDeviceAutofit.classList.add('active-device');
-    el.iframeContainer.style.width = '100%';
-    el.iframeContainer.style.height = '100%';
-    el.iframeContainer.style.transform = 'scale(1)';
-    el.gameIframe.style.width = '100%';
-    el.gameIframe.style.height = '100%';
-    if (el.viewportRes) el.viewportRes.textContent = 'Auto-Fit (100%)';
-  } else if (mode === 'desktop') {
-    if (el.btnDevDesktop) el.btnDevDesktop.classList.add('active-device');
-    el.iframeContainer.style.width = '100%';
-    el.iframeContainer.style.height = '100%';
-    el.iframeContainer.style.transform = 'scale(1)';
-    if (el.viewportRes) el.viewportRes.textContent = '100% (Native)';
-  } else if (mode === 'tablet') {
-    if (el.btnDevTablet) el.btnDevTablet.classList.add('active-device');
-    el.iframeContainer.style.width = '768px';
-    el.iframeContainer.style.height = '500px';
-    const scaleX = bodyWidth < 768 ? bodyWidth / 768 : 1;
-    const scaleY = bodyHeight < 500 ? bodyHeight / 500 : 1;
-    const scale = Math.min(scaleX, scaleY);
-    el.iframeContainer.style.transform = scale < 1 ? `scale(${scale.toFixed(2)})` : 'scale(1)';
-    if (el.viewportRes) el.viewportRes.textContent = `768 x 500 (${Math.round(scale * 100)}%)`;
-  } else if (mode === 'mobile') {
-    if (el.btnDevMobile) el.btnDevMobile.classList.add('active-device');
-    el.iframeContainer.style.width = '375px';
-    el.iframeContainer.style.height = '550px';
-    const scaleX = bodyWidth < 375 ? bodyWidth / 375 : 1;
-    const scaleY = bodyHeight < 550 ? bodyHeight / 550 : 1;
-    const scale = Math.min(scaleX, scaleY);
-    el.iframeContainer.style.transform = scale < 1 ? `scale(${scale.toFixed(2)})` : 'scale(1)';
-    if (el.viewportRes) el.viewportRes.textContent = `375 x 550 (${Math.round(scale * 100)}%)`;
+let fittingBound = false;
+export function initViewportFitting() {
+  if (fittingBound) return;
+  fittingBound = true;
+  if (!state.deviceMode) state.deviceMode = 'autofit';
+  window.addEventListener('resize', () => fitGameFrame());
+  const parent = el.iframeContainer && el.iframeContainer.parentElement;
+  if (parent && window.ResizeObserver) {
+    new ResizeObserver(() => fitGameFrame()).observe(parent);
   }
+  if (el.gameIframe) el.gameIframe.addEventListener('load', () => fitGameFrame());
+  fitGameFrame();
 }
 
 export function runLunaVisionScan(isAutomated = false) {

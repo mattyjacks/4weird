@@ -10,7 +10,7 @@ import { updateSubagentsUI, resumeAllSubagents, pauseAllSubagents, terminateAllS
 import { discoverGameBrain } from './modules/game_brain.js';
 import { openLocalGpuDrawer, testLocalGpuConnection, setupPhoneRemoteInteractions } from './modules/gpu_remote.js';
 import { renderReasoningTree, renderSourceCodeView, updatePatchDrawerUI, showBugLightbox, exportMarkdownReport, switchReportTab, generateReportSummary, triggerDetectedBug } from './modules/defect_healer.js';
-import { glideAgentCursorAndInteract, runLunaVisionScan, setDeviceView, toggleReplayPlay, toggleReplayLiveMode, stepReplayPrev, stepReplayNext, updateReplayUI } from './modules/viewport_manager.js';
+import { glideAgentCursorAndInteract, runLunaVisionScan, setDeviceView, initViewportFitting, toggleReplayPlay, toggleReplayLiveMode, stepReplayPrev, stepReplayNext, updateReplayUI } from './modules/viewport_manager.js';
 import { HubManager } from './modules/hub_manager.js';
 import { loadGameTarget, initiateTesting, pauseTesting, stopTesting, executeAgentStep, autoRunEverything } from './modules/agent_runner.js';
 import { initTauriSmartLog, smartFileLog } from './modules/tauri_smart_log.js';
@@ -566,6 +566,7 @@ function initApp() {
   hubInstance.init();
 
   applyLayoutMode();
+  initViewportFitting();
   hubInstance.showHubView();
   if (typeof window.__vcwReady === 'function') window.__vcwReady();
 
