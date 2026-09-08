@@ -13,6 +13,17 @@ function fileUrlToPath(fileUrl) {
   return p;
 }
 
+// The bundled 4weird catalog is served through the VibeCodeWorker static
+// server. Using HTTP here avoids Chromium's restricted file:// guest-view
+// path, while preserving file:// URLs for arbitrary user projects.
+function localGameUrl(filePath) {
+  const normalized = filePath.replace(/\\/g, '/');
+  const marker = '/website/v1/';
+  const idx = normalized.toLowerCase().indexOf(marker);
+  if (idx !== -1) return `http://127.0.0.1:8888/${normalized.slice(idx + marker.length)}`;
+  return 'file:///' + normalized;
+}
+
 function loadGameUrl(gameUrlInput, webviewElement, webviewPlaceholder, saveSettingsCallback, crawlCallback, logCallback) {
   const url = gameUrlInput.value.trim();
   if (!url) return;
@@ -71,7 +82,7 @@ function populateDemoGames(demoGameSelect) {
 
         pagesList.push({
           name: name,
-          path: 'file:///' + fullPath.replace(/\\/g, '/')
+          path: localGameUrl(fullPath)
         });
       } else if (stat.isDirectory() && ['academy', 'vibecodeworker', 'VibeCodeWorker'].includes(item)) {
         const indexFile = path.join(fullPath, 'index.html');
@@ -80,7 +91,7 @@ function populateDemoGames(demoGameSelect) {
           if (item === 'vibecodeworker') name = 'VibeCodeWorker';
           pagesList.push({
             name: `${name} Hub`,
-            path: 'file:///' + indexFile.replace(/\\/g, '/')
+            path: localGameUrl(indexFile)
           });
         }
       }
@@ -116,7 +127,7 @@ function populateDemoGames(demoGameSelect) {
           if (fs.existsSync(indexFile)) {
             gamesList.push({
               name: item.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-              path: 'file:///' + indexFile.replace(/\\/g, '/')
+            path: localGameUrl(indexFile)
             });
           }
         }
@@ -134,7 +145,7 @@ function populateDemoGames(demoGameSelect) {
             if (fs.existsSync(indexFile)) {
               gamesList.push({
                 name: item.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-                path: 'file:///' + indexFile.replace(/\\/g, '/')
+              path: localGameUrl(indexFile)
               });
             }
           }

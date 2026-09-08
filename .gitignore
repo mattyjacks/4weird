@@ -93,3 +93,11 @@ coverage/
 .cache/
 .parcel-cache/
 .eslintcache
+
+# 10. Local VibeCodeWorker runtime artifacts
+ai/v1/vibecodeworker/.vibecodeworker-user-data/
+ai/v1/vibecodeworker/data/autocode_fix_report.json
+ai/v1/vibecodeworker/data/bugs_log.json
+ai/v1/vibecodeworker/data/live_logs.json
+ai/v1/vibecodeworker/data/token_usage.json
+test-results/vibecodeworker-api-loop/

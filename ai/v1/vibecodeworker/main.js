@@ -1,6 +1,13 @@
 const { app, BrowserWindow, ipcMain, shell, screen } = require('electron');
 const path = require('path');
 
+// Keep the runner self-contained on locked-down Windows hosts. The default
+// roaming Electron profile can be unreadable, which prevents the game guest
+// window from loading before a playtest even starts.
+const localElectronData = path.join(__dirname, '.vibecodeworker-user-data');
+app.setPath('userData', localElectronData);
+app.setPath('cache', path.join(localElectronData, 'cache'));
+
 // SmartLog: file-backed structured logs + AI handoffs (see lib/smart_log.js).
 // Log dir: %APPDATA%/vibecodeworker/logs (win) — every console.* line lands there.
 const { getSharedLog, teeConsole, parseWorkerArgs } = require('./lib/smart_log');

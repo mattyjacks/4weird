@@ -14,10 +14,15 @@
         const isGamePage = () => document.body?.classList.contains('TEMPLATE-4weird-game-page');
         const blockPageScroll = (event) => {
             if (!isGamePage()) return;
-            if (event.code === 'Space' || event.key === ' ') event.preventDefault();
+            if (event.code === 'Space' || event.key === ' ' || event.key === 'Spacebar' || event.key === 'Space') {
+                event.preventDefault();
+            }
         };
         window.addEventListener('keydown', blockPageScroll, { capture: true, passive: false });
         window.addEventListener('keypress', blockPageScroll, { capture: true, passive: false });
+        window.addEventListener('keyup', blockPageScroll, { capture: true, passive: false });
+        document.addEventListener('keydown', blockPageScroll, { capture: true, passive: false });
+        document.addEventListener('keypress', blockPageScroll, { capture: true, passive: false });
     }
 
     installGameSpaceScrollGuard();
