@@ -88,10 +88,12 @@ Respond ONLY with a JSON object matching this exact schema:
 {
   "status": "menu | playing | game_over | stuck | unknown",
   "reasoning_path": ["S", "No", "No", "No", "R_PLAY"],
+  "urgency": "low | normal | high",
   "action": {
-    "type": "click | press_key | hold_key | type_text | scroll | wait | refresh",
-    "target": "For click: 'x,y' on 0-1000 scale or selector. For keys: key name. For type_text: text to enter. For scroll: 'up' or 'down'. For wait/refresh: leave empty.",
-    "duration_ms": 100
+    "type": "combo | click | right_click | double_click | press_key | hold_key | hold_keys | move_mouse | drag_look | wheel | type_text | scroll | wait | refresh",
+    "target": "For click/right_click/double_click/move_mouse: 'x,y' on 0-1000 scale or selector. For keys: key name. hold_keys target: comma keys like 'w,shift'. drag_look target: 'dx,dy' relative look. For type_text: text to enter. For scroll: 'up' or 'down'. combo target: short label like 'w+look+fire+jump'. For wait/refresh: leave empty.",
+    "duration_ms": 100,
+    "params": { "steps": "combo only: [{op, ...}] - see CHAINED MOVES", "button": "click only: left | right | middle" }
   },
   "next_delay_ms": 1500,
   "bug_report": {
@@ -100,9 +102,25 @@ Respond ONLY with a JSON object matching this exact schema:
     "severity": "low | medium | high"
   }
 }
+CHAINED MOVES (combo) - one tick can chain several inputs that run together
+in near-real-time (holds open first, mouse/clicks/jump overlap them).
+Prefer ONE combo over several single ticks when movement + camera + firing
+happen together. Max 8 steps:
+{"type":"combo","target":"w+look+fire+jump","duration_ms":650,"params":{"steps":[
+  {"op":"hold_keys","keys":["w"],"duration_ms":600},
+  {"op":"look","dx":120,"dy":0},
+  {"op":"click","x":500,"y":500,"button":"left"},
+  {"op":"press","key":"space"}]}}
+Step ops: hold_keys {keys,duration_ms} | hold {key,duration_ms} |
+press {key} | click {x,y,button} | right_click {x,y} |
+double_click {x,y} | move {x,y} | look {dx,dy} | wheel {delta} |
+drag {x1,y1,x2,y2,duration_ms} | wait {duration_ms}.
 Rules:
 - "reasoning_path": Array representing your exact traversal of the BRAID graph. Do NOT include any other verbose text explanations to save tokens.
 - Coordinates are on 0-1000 scale.
+- "urgency": high when combat/enemies/damage fill the frame (next screenshot comes fast); low on menus/loading (next screenshot relaxes to save tokens); normal otherwise.
+- Combat/action scenes: chain with combo (advance on w + steer with look + fire with click + jump with space) instead of single key taps.
+- Desktop 3D games: drag_look dx +-120 steers the camera; right_click is alt-fire/use; double_click interacts.
 `;
 }
 

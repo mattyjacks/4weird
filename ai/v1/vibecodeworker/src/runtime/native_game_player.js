@@ -14,10 +14,84 @@ const VISION_MODEL = 'deepseek-v4-flash-vision-exp';
 const TEXT_MODEL = 'deepseek-v4-flash';
 
 // Action vocabulary the executor + input_sim.py understand.
+// combo chains several inputs into ONE python spawn (near-real-time):
+// e.g. hold W while turning the camera, firing, and jumping.
 const NATIVE_ACTION_TYPES = [
-  'hold_keys', 'hold_key', 'press_key', 'click',
-  'move_mouse', 'drag_look', 'wheel', 'type_text', 'wait'
+  'combo', 'hold_keys', 'hold_key', 'press_key', 'click',
+  'right_click', 'double_click', 'move_mouse', 'drag_look', 'wheel', 'type_text', 'wait'
 ];
+
+// Normalize one combo step (op-level clamping shared by normalizeNativeAction).
+// Pure + testable: never touches pyautogui / ipc.
+function normalizeComboStep(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const op = String(raw.op || raw.type || '').toLowerCase();
+  const clampCoord = (n) => Math.max(0, Math.min(1000, Math.round(Number(n))));
+  const cleanKeys = (v) => String(v || '')
+    .split(',')
+    .map((k) => k.trim().toLowerCase())
+    .filter(Boolean)
+    .slice(0, 3);
+  const ms = Math.max(80, Math.min(3000, parseInt(raw.duration_ms, 10) || 400));
+  switch (op) {
+    case 'hold_keys': {
+      const keys = Array.isArray(raw.keys) && raw.keys.length
+        ? raw.keys.map((k) => String(k).toLowerCase()).slice(0, 3)
+        : cleanKeys(raw.target);
+      return { op, keys: keys.length ? keys : ['w'], duration_ms: ms };
+    }
+    case 'hold': {
+      return { op, key: String(raw.key || raw.target || 'w').toLowerCase(), duration_ms: ms };
+    }
+    case 'press': case 'press_key': {
+      return { op: 'press', key: String(raw.key || raw.target || 'space').toLowerCase() };
+    }
+    case 'click': {
+      const x = Number.isFinite(raw.x) ? clampCoord(raw.x) : 500;
+      const y = Number.isFinite(raw.y) ? clampCoord(raw.y) : 500;
+      const button = ['left', 'right', 'middle'].includes(String(raw.button || 'left').toLowerCase())
+        ? String(raw.button).toLowerCase() : 'left';
+      return { op: 'click', x, y, button };
+    }
+    case 'right_click': {
+      const x = Number.isFinite(raw.x) ? clampCoord(raw.x) : 500;
+      const y = Number.isFinite(raw.y) ? clampCoord(raw.y) : 500;
+      return { op: 'right_click', x, y };
+    }
+    case 'double_click': {
+      const x = Number.isFinite(raw.x) ? clampCoord(raw.x) : 500;
+      const y = Number.isFinite(raw.y) ? clampCoord(raw.y) : 500;
+      return { op: 'double_click', x, y };
+    }
+    case 'move': case 'move_mouse': {
+      const x = Number.isFinite(raw.x) ? clampCoord(raw.x) : 500;
+      const y = Number.isFinite(raw.y) ? clampCoord(raw.y) : 500;
+      return { op: 'move', x, y };
+    }
+    case 'look': case 'drag_look': {
+      const dx = Number.isFinite(raw.dx) ? Math.max(-500, Math.min(500, Math.round(raw.dx))) : 120;
+      const dy = Number.isFinite(raw.dy) ? Math.max(-500, Math.min(500, Math.round(raw.dy))) : 0;
+      return { op: 'look', dx, dy };
+    }
+    case 'wheel': {
+      const delta = Number.isFinite(raw.delta) ? Math.max(-5, Math.min(5, Math.round(raw.delta)))
+        : Number.isFinite(raw.clicks) ? Math.max(-5, Math.min(5, Math.round(raw.clicks))) : -1;
+      return { op: 'wheel', delta };
+    }
+    case 'drag': {
+      const x1 = Number.isFinite(raw.x1) ? clampCoord(raw.x1) : 400;
+      const y1 = Number.isFinite(raw.y1) ? clampCoord(raw.y1) : 500;
+      const x2 = Number.isFinite(raw.x2) ? clampCoord(raw.x2) : 600;
+      const y2 = Number.isFinite(raw.y2) ? clampCoord(raw.y2) : 500;
+      return { op: 'drag', x1, y1, x2, y2, duration_ms: ms };
+    }
+    case 'wait': {
+      return { op: 'wait', duration_ms: Math.max(0, Math.min(3000, parseInt(raw.duration_ms, 10) || 150)) };
+    }
+    default:
+      return null;
+  }
+}
 
 function buildNativeGamePrompt({ profile, recentActions = [], stuck = false, extraRules = '' } = {}) {
   const p = profile || resolveGameProfile('');
@@ -55,18 +129,40 @@ ${history}
 {
   "status": "menu | playing | combat | puzzle | loading | dead | stuck | unknown",
   "reasoning": "one short sentence: what you see and why this input",
+  "urgency": "low | normal | high",
   "action": {
-    "type": "hold_keys | press_key | click | move_mouse | drag_look | wait",
-    "target": "hold_keys: comma keys like 'w,shift'. press_key: key like 'e'. click/move_mouse: 'x,y'. drag_look: 'dx,dy'. wait: ''",
+    "type": "combo | hold_keys | press_key | click | right_click | double_click | move_mouse | drag_look | wheel | wait",
+    "target": "hold_keys: comma keys like 'w,shift'. press_key: key like 'e'. click/right_click/double_click/move_mouse: 'x,y'. drag_look: 'dx,dy'. wait: ''. combo: short label like 'w+look+fire+jump'",
     "duration_ms": 350,
     "params": { "keys": ["w"], "key": "e", "x": 500, "y": 500, "dx": 120, "dy": 0 }
   }
 }
+CHAINED MOVES (combo) - prefer ONE combo over several single ticks when the
+situation needs simultaneous inputs. Combo steps run inside a single fast
+window (holds open first, mouse/clicks/jump overlap them):
+{
+  "type": "combo",
+  "target": "advance+scan+fire+jump",
+  "duration_ms": 650,
+  "params": { "steps": [
+    { "op": "hold_keys", "keys": ["w"], "duration_ms": 600 },
+    { "op": "look", "dx": 120, "dy": 0 },
+    { "op": "click", "x": 500, "y": 500, "button": "left" },
+    { "op": "press", "key": "space" }
+  ] }
+}
+Step ops: hold_keys {keys,duration_ms} | hold {key,duration_ms} |
+press {key} | click {x,y,button left|right|middle} |
+right_click {x,y} | double_click {x,y} | move {x,y} | look {dx,dy} |
+wheel {delta} | drag {x1,y1,x2,y2,duration_ms} | wait {duration_ms}.
+Max 8 steps per combo. Example chains: "w + look + left-click + space jump",
+"strafe + aim + right-click alt-fire", "sprint w,shift + steer + fire".
 Rules:
-- Combat visible? click center-ish on the enemy (fire), drag_look to track it, r to reload when idle-empty.
-- Traveling? hold_keys w,shift to sprint forward; drag_look dx +-120 to steer toward doors/light/markers.
-- Menu/pause/dead? press_key enter or escape, or click the highlighted button.
-- Prefer hold_keys over tiny taps for movement. Keep duration_ms 200-900.
+- Combat visible? combo: hold w toward cover/enemy + drag_look to track + click center-ish on the enemy (fire), r to reload when idle-empty.
+- Traveling? combo: hold_keys w,shift to sprint forward + drag_look dx +-120 to steer toward doors/light/markers + press space to jump gaps.
+- Menu/pause/dead? press_key enter or escape, or click the highlighted button. Single actions are fine here.
+- Prefer hold_keys over tiny taps for movement. Keep duration_ms 200-900 (combo total 300-1500).
+- Set urgency high when enemies/muzzle flash/damage vignette fill the frame (tick goes fast); low on menus/loading (tick relaxes).
 - Output JSON ONLY.`;
 }
 
@@ -90,11 +186,41 @@ function normalizeNativeAction(raw) {
     const finalKeys = keys.length ? keys : ['w'];
     return { type, target: finalKeys.join(','), duration_ms: clampMs, params: { keys: finalKeys } };
   }
+  if (type === 'combo') {
+    // Chained move: normalize each step, clamp count + durations so one tick
+    // stays real-time. Malformed steps are dropped, never fatal.
+    const rawSteps = Array.isArray(params.steps) ? params.steps
+      : Array.isArray(raw.steps) ? raw.steps : [];
+    const steps = rawSteps.map(normalizeComboStep).filter(Boolean).slice(0, 8);
+    if (!steps.length) {
+      return { type: 'hold_keys', target: 'w', duration_ms: 400, params: { keys: ['w'] } };
+    }
+    const longestHold = steps.reduce((m, s) => (s.duration_ms ? Math.max(m, s.duration_ms) : m), 0);
+    const label = String(target || steps.map((s) => s.op).join('+')).slice(0, 60);
+    return {
+      type, target: label,
+      duration_ms: Math.max(150, Math.min(1500, parseInt(duration_ms, 10) || longestHold || 500)),
+      params: { steps }
+    };
+  }
   if (type === 'hold_key' || type === 'press_key') {
     const key = String(params.key || target || 'w').toLowerCase();
     return { type, target: key, duration_ms: type === 'press_key' ? 0 : clampMs, params: { key } };
   }
   if (type === 'click' || type === 'move_mouse') {
+    let x = params.x, y = params.y;
+    if ((!Number.isFinite(x) || !Number.isFinite(y)) && typeof target === 'string' && target.includes(',')) {
+      const parts = target.split(',');
+      x = parseInt(parts[0], 10); y = parseInt(parts[1], 10);
+    }
+    x = Number.isFinite(x) ? clampCoord(x) : 500;
+    y = Number.isFinite(y) ? clampCoord(y) : 500;
+    if (type === 'move_mouse') return { type, target: `${x},${y}`, duration_ms: 0, params: { x, y } };
+    const button = ['left', 'right', 'middle'].includes(String(params.button || '').toLowerCase())
+      ? String(params.button).toLowerCase() : 'left';
+    return { type, target: `${x},${y}`, duration_ms: 0, params: { x, y, button } };
+  }
+  if (type === 'right_click' || type === 'double_click') {
     let x = params.x, y = params.y;
     if ((!Number.isFinite(x) || !Number.isFinite(y)) && typeof target === 'string' && target.includes(',')) {
       const parts = target.split(',');
@@ -138,6 +264,8 @@ function parseNativeDecision(raw) {
     return {
       status: data.status || 'playing',
       reasoning: data.reasoning || data.analysis || 'DeepSeek harness vision step.',
+      urgency: ['low', 'normal', 'high'].includes(String(data.urgency || '').toLowerCase())
+        ? String(data.urgency).toLowerCase() : undefined,
       action
     };
   } catch (_) {
@@ -193,10 +321,29 @@ function toInputSimArgs(action) {
   if (!action || !action.type) return null;
   const dur = action.duration_ms || 400;
   switch (action.type) {
+    case 'combo': {
+      const steps = Array.isArray(action.params?.steps) ? action.params.steps : [];
+      if (!steps.length) return null;
+      return ['combo', JSON.stringify({ steps })];
+    }
     case 'click': {
       const x = action.params?.x ?? 500;
       const y = action.params?.y ?? 500;
+      const button = String(action.params?.button || 'left').toLowerCase();
+      // input_sim.py has dedicated right/double verbs; route through them so
+      // the click lands with the correct OS button in one spawn.
+      if (button === 'right') return ['right_click', String(x), String(y)];
       return ['click', String(x), String(y)];
+    }
+    case 'right_click': {
+      const x = action.params?.x ?? 500;
+      const y = action.params?.y ?? 500;
+      return ['right_click', String(x), String(y)];
+    }
+    case 'double_click': {
+      const x = action.params?.x ?? 500;
+      const y = action.params?.y ?? 500;
+      return ['double_click', String(x), String(y)];
     }
     case 'press_key': {
       const key = action.params?.key || action.target || 'space';
@@ -241,6 +388,7 @@ module.exports = {
   NATIVE_ACTION_TYPES,
   buildNativeGamePrompt,
   normalizeNativeAction,
+  normalizeComboStep,
   parseNativeDecision,
   decideNativeActionViaDeepSeek,
   toInputSimArgs

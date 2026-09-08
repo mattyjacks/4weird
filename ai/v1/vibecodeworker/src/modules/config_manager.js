@@ -42,6 +42,10 @@ const modelsByProvider = {
   local: [
     { value: 'llama3', text: 'Llama 3' },
     { value: 'mistral', text: 'Mistral' },
+    { value: 'qwen3:8b', text: 'Qwen3 8B — fast generalist (recommended local default)' },
+    { value: 'qwen2.5vl:7b', text: 'Qwen2.5-VL 7B — vision (screenshots)' },
+    { value: 'qwen2.5-coder:7b', text: 'Qwen2.5-Coder 7B — code patches' },
+    { value: 'deepseek-r1:8b', text: 'DeepSeek-R1 8B — reasoning' },
     { value: 'custom', text: 'Custom...' }
   ]
 };
@@ -226,6 +230,13 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     }
   }
 
+  // Local-model orchestration roles (dashboard "Local models" panel).
+  // Elements are optional — the panel may be absent in minimal builds.
+  try {
+    const { applyLocalModelsSettings } = require('../components/ollama_ui_controller');
+    applyLocalModelsSettings(elements, settings);
+  } catch (e) { /* dashboard works fine without the local-models panel */ }
+
   // OpenCode.ai bridge (optional) — applied defensively so older configs still load.
   try {
     const { applyOpenCodeSettings } = require('../components/opencode_ui_controller');
@@ -290,6 +301,8 @@ function saveConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     audioVoiceId: elements.audioVoiceId ? elements.audioVoiceId.value : '21m00Tcm4TlvDq8ikWAM',
     audioCommentary: elements.toggleAudioCommentary ? elements.toggleAudioCommentary.checked : false,
     audioNarrateBugs: elements.toggleAudioNarrateBugs ? elements.toggleAudioNarrateBugs.checked : false,
+    // Local-model role assignments (owned by the dashboard panel; never wiped).
+    localModels: readLocalModelsBlock(elements),
     // Preserve the OpenCode bridge block (managed by its own panel; never wiped).
     opencode: readExistingOpenCodeBlock(elements)
   };
@@ -397,6 +410,52 @@ function saveApiKeyBundle(keys = {}) {
   return saveCredentials(update)
     ? { success: true, saved: Object.keys(update).map((field) => field.replace('ApiKey', '')) }
     : { success: false, error: 'The encrypted key store could not be updated.' };
+}
+
+// Read the live Local-models panel controls, falling back to whatever is
+// already on disk so saveConfig never wipes role assignments when the panel
+// is absent. Validation lives in lib/model_roles.js (normalizeLocalModels).
+function readLocalModelsBlock(elements) {
+  let onDisk = null;
+  try {
+    if (fs.existsSync(configFilePath)) {
+      const raw = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
+      if (raw && raw.localModels) onDisk = raw.localModels;
+    }
+  } catch (e) { /* defaults below */ }
+  try {
+    const { normalizeLocalModels, ROLE_NAMES } = require('../../lib/model_roles');
+    const roles = {};
+    let touched = false;
+    for (const name of ROLE_NAMES) {
+      const providerEl = elements[`roleProvider_${name}`];
+      const modelEl = elements[`roleModel_${name}`];
+      if (providerEl || modelEl) touched = true;
+      const diskRole = (onDisk && onDisk.roles && onDisk.roles[name]) || {};
+      roles[name] = {
+        provider: providerEl && providerEl.value ? providerEl.value : (diskRole.provider || 'local'),
+        model: modelEl && modelEl.value.trim() ? modelEl.value.trim() : (diskRole.model || ''),
+      };
+    }
+    const urlEl = elements.ollamaUrlInput;
+    const autoEl = elements.ollamaAutoStart;
+    const merged = {
+      ollamaUrl: urlEl && urlEl.value.trim()
+        ? urlEl.value.trim()
+        : ((onDisk && onDisk.ollamaUrl) || 'http://127.0.0.1:11434'),
+      autoStart: autoEl ? !!autoEl.checked : (onDisk ? onDisk.autoStart !== false : true),
+      roles,
+    };
+    void touched;
+    return normalizeLocalModels(merged);
+  } catch (e) {
+    try {
+      const { normalizeLocalModels } = require('../../lib/model_roles');
+      return normalizeLocalModels(onDisk);
+    } catch (_) {
+      return onDisk || {};
+    }
+  }
 }
 
 // Read the live OpenCode panel controls, falling back to whatever is already

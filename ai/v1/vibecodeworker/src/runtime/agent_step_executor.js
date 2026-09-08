@@ -6,11 +6,16 @@ const { CaptchaDetector } = require('./captcha_detector');
 const { NativeGameDirector } = require('./native_game_director');
 const { resolveGameProfile } = require('./native_game_profiles');
 const { decideNativeActionViaDeepSeek, normalizeNativeAction, toInputSimArgs } = require('./native_game_player');
+const { simpleHash } = require('../../lib/brain/stuck_detector');
+const { classifyUrgency, computeNextDelay, frameDeltaLevel, midProbePlan } = require('./adaptive_tick');
 const captchaDetector = new CaptchaDetector();
 let isCaptchaResolving = false;
 const nativeDirector = new NativeGameDirector();
 // Short rolling history so the vision model does not repeat failing moves.
 const nativeActionHistory = [];
+// Last pre-tick frame signature for the adaptive tick planner: sizing the
+// NEXT delay from how fast the screen is changing costs one hash, no pixels.
+let lastPreFrame = null;
 function pushNativeHistory(action) {
   if (!action) return;
   nativeActionHistory.push(action);
@@ -40,8 +45,8 @@ async function executeAgentStep({
   thinkingOutLoud,
   commentaryApiKey
 }) {
-  if (!isRunning && !forceHeuristic) return;
-  if (isCaptchaResolving) return;
+  if (!isRunning && !forceHeuristic) return null;
+  if (isCaptchaResolving) return null;
 
   try {
     // 1. Check for Active CAPTCHAs (Cloudflare Turnstile, reCAPTCHA, hCaptcha)
@@ -72,7 +77,7 @@ async function executeAgentStep({
         }
       } else {
         logSystemMessage(`⏱️ [CAPTCHA Timeout] Challenge resolution timed out after 120s.`, 'warning');
-        return;
+        return null;
       }
     }
 
@@ -88,7 +93,12 @@ async function executeAgentStep({
     }
 
     const screenshotBase64 = await captureViewportScreenshot();
-    if (!screenshotBase64) return;
+    if (!screenshotBase64) return null;
+    // Frame-change signal for the adaptive tick: compare this pre-frame
+    // against the previous tick's (hash + byte size, no pixel decode).
+    const preFrame = { hash: simpleHash(screenshotBase64), bytes: screenshotBase64.length };
+    const frameDelta = frameDeltaLevel(lastPreFrame, preFrame);
+    lastPreFrame = preFrame;
     const isExternalWindow = await ipcRenderer.invoke('is-game-window-active');
     let elements = [];
     if (!nativeProcess && !isExternalWindow) {
@@ -181,11 +191,44 @@ async function executeAgentStep({
     el.timelineTime.textContent = `Tick: ${timelineHistory.length}/${timelineHistory.length}`;
     el.timelineContainer.classList.remove('hidden');
 
+    // Urgency for this tick: explicit model vote wins, else infer from
+    // status/reasoning so combat snaps the follow-up tick even when the
+    // model forgets to set urgency.
+    const tickUrgency = classifyUrgency({
+      status: decision.status,
+      reasoning: decision.reasoning,
+      urgency: decision.urgency
+    });
+    // Staggered mid-action probe: long holds/combos arm a screenshot halfway
+    // through execution. A sudden frame change surfaces here instead of a
+    // full slow tick later - the follow-up delay shortens accordingly.
+    const probePlan = decision.action ? midProbePlan(decision.action) : { probe: false, probeDelayMs: 0 };
+    let midFrame = null;
+    let probeTimer = null;
+    let midDelta = 1;
+    if (probePlan.probe && typeof captureViewportScreenshot === 'function') {
+      probeTimer = setTimeout(async () => {
+        try {
+          const mid = await captureViewportScreenshot();
+          if (mid) {
+            midFrame = { hash: simpleHash(mid), bytes: mid.length };
+            midDelta = frameDeltaLevel(preFrame, midFrame);
+            if (midDelta >= 2) {
+              logSystemMessage(`Mid-action probe: screen changed sharply during ${decision.action.type} - next tick will hurry.`, 'action');
+            }
+          }
+        } catch (_) { /* probes are best-effort; the step still runs */ }
+      }, probePlan.probeDelayMs);
+      if (probeTimer.unref) probeTimer.unref();
+    }
+
+    const execT0 = Date.now();
     if (decision.action) {
       audio.playAgentActionSound();
       logSystemMessage(`Executing action: ${decision.action.type} -> ${JSON.stringify(decision.action.params || {})}`, 'action');
 
-      if (decision.action.type === 'click' || decision.action.type === 'move_mouse') {
+      if (decision.action.type === 'click' || decision.action.type === 'move_mouse' ||
+          decision.action.type === 'right_click' || decision.action.type === 'double_click') {
         let px = 500;
         let py = 500;
         if (decision.action.params && decision.action.params.x !== undefined) {
@@ -207,12 +250,26 @@ async function executeAgentStep({
         if (!decision.action.params) {
           decision.action.params = { x: px, y: py };
         }
+      } else if (decision.action.type === 'combo' && decision.action.params && Array.isArray(decision.action.params.steps)) {
+        // Heatmap the combo's click-ish steps so the trail stays truthful.
+        for (const step of decision.action.params.steps) {
+          if ((step.op === 'click' || step.op === 'right_click' || step.op === 'double_click' || step.op === 'move') &&
+              Number.isFinite(step.x) && Number.isFinite(step.y)) {
+            drawHeatmapDot(step.x, step.y);
+          }
+        }
       } else {
         clearHeatmapCanvas();
       }
 
       agentBrain.sessionStats.steps += 1;
       agentBrain.sessionStats.actionMix[decision.action.type] = (agentBrain.sessionStats.actionMix[decision.action.type] || 0) + 1;
+      if (decision.action.type === 'combo' && decision.action.params && Array.isArray(decision.action.params.steps)) {
+        for (const step of decision.action.params.steps) {
+          const k = 'combo:' + (step.op || '?');
+          agentBrain.sessionStats.actionMix[k] = (agentBrain.sessionStats.actionMix[k] || 0) + 1;
+        }
+      }
 
       if (nativeProcess) {
         // Native input is handled by the Python bridge. Normalize the vision
@@ -245,6 +302,8 @@ async function executeAgentStep({
         logSystemMessage(`Action result: ${actionResult}`);
       }
     }
+    const execMs = Date.now() - execT0;
+    if (probeTimer) clearTimeout(probeTimer);
 
     tracker.updateSessionStatsUI(agentBrain, el);
 
@@ -262,8 +321,34 @@ async function executeAgentStep({
 
     tracker.updateTokenStatsUI(agentBrain, el.tokenModelSelect, el);
 
+    // Adaptive follow-up tick: action cost + urgency + frame motion + the
+    // wall time execution already consumed. The scheduler (app.js) waits
+    // this long before the next screenshot - fast in combat, relaxed in menus.
+    const tickHint = {
+      tickDelayMs: computeNextDelay({
+        action: decision.action || {},
+        status: decision.status,
+        reasoning: decision.reasoning,
+        urgency: tickUrgency,
+        llmDelay: decision.next_delay_ms,
+        execMs,
+        frameDelta: Math.max(frameDelta, midDelta),
+        stuck: false
+      }),
+      urgency: tickUrgency,
+      frameDelta,
+      midDelta,
+      execMs,
+      probed: probePlan.probe && !!midFrame
+    };
+    // Scheduler + tests read the hint off the decision; the return value is
+    // the contract for headless callers.
+    decision.tickHint = tickHint;
+    return tickHint;
+
   } catch (err) {
     logSystemMessage(`Autopilot step execution failed: ${err.message}`, 'warning');
+    return null;
   }
 }
 

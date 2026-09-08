@@ -1339,6 +1339,23 @@ body.game-focus .stage-grid {
   border: 1px solid rgba(255,255,255,0.1);
 }
 
+/* Ollama status pill states (data-kind set by ollama_ui_controller.js) */
+#ollama-status-pill[data-kind="ok"] {
+  background: rgba(0, 255, 102, 0.15);
+  color: #00FF66;
+  border-color: #00FF66;
+}
+#ollama-status-pill[data-kind="warn"] {
+  background: rgba(255, 193, 7, 0.15);
+  color: #FFC107;
+  border-color: #FFC107;
+}
+#ollama-status-pill[data-kind="err"] {
+  background: rgba(255, 70, 70, 0.15);
+  color: #FF6B6B;
+  border-color: #FF6B6B;
+}
+
 /* Agent State Badge Styling */
 #agent-state-badge.idle {
   background: rgba(100, 100, 100, 0.2);

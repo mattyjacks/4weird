@@ -116,6 +116,8 @@ def normalized_key(key):
 def print_help():
     print("Usage:")
     print("  python input_sim.py click <x> <y> [window_title]")
+    print("  python input_sim.py right_click <x> <y> [window_title]")
+    print("  python input_sim.py double_click <x> <y> [window_title]")
     print("  python input_sim.py press <key> [window_title]")
     print("  python input_sim.py type <text> [window_title]")
     print("  python input_sim.py hold <key> <duration_ms> [window_title]")
@@ -124,8 +126,144 @@ def print_help():
     print("  python input_sim.py look <dx> <dy> [window_title]   (FPS mouse-look, relative px)")
     print("  python input_sim.py wheel <clicks> [window_title]   (weapon switch / zoom)")
     print("  python input_sim.py drag <x1> <y1> <x2> <y2> <duration_ms> [window_title]")
+    print("  python input_sim.py combo <steps_json> [window_title]  (chained inputs, one spawn)")
+    print("    steps_json example: {\"steps\": [{\"op\": \"hold_keys\", \"keys\": [\"w\"], \"duration_ms\": 600}, {\"op\": \"look\", \"dx\": 120, \"dy\": 0}, {\"op\": \"click\", \"x\": 500, \"y\": 500}, {\"op\": \"press\", \"key\": \"space\"}]}")
+    print("    ops: hold_keys|hold|press|click|right_click|double_click|move|look|wheel|wait|drag")
     print("  python input_sim.py screenshot <dest_path> [window_title]")
     print("  python input_sim.py overlay <window_title>")
+
+def do_click_at(x, y, window_title, button='left', clicks=1):
+    """Click helper shared by click/right_click/double_click/combo steps."""
+    x, y = normalized_to_window(x, y, window_title)
+    pyautogui.click(x, y, button=button, clicks=clicks, interval=0.05 if clicks > 1 else 0.0)
+    return x, y
+
+def execute_combo_steps(steps, window_title):
+    """Execute chained inputs in near-real-time with a single window activation.
+
+    Sustained holds (hold_keys/hold) are keyed DOWN up front so mouse-look,
+    clicks, and jump presses overlap the movement window - e.g. W held while
+    the camera turns, then left-click fires and space jumps, all inside one
+    ~600ms window instead of 4 separate python spawns (~1.2s+ overhead).
+    Returns (results_list, total_elapsed_ms).
+    """
+    import json as _json
+    if isinstance(steps, str):
+        steps = _json.loads(steps)
+    if isinstance(steps, dict) and 'steps' in steps:
+        steps = steps['steps']
+    if not isinstance(steps, list):
+        raise ValueError('combo steps must be a list or {"steps": [...]}')
+    # Normalize + clamp: max 8 steps, durations bounded so one tick stays realtime.
+    steps = steps[:8]
+    t0 = time.time()
+    held = []  # [(key, release_at)]
+    results = []
+    now = lambda: time.time()
+
+    def key_down(k):
+        k = normalized_key(k)
+        pyautogui.keyDown(k)
+        return k
+
+    def key_up(k):
+        try:
+            pyautogui.keyUp(k)
+        except Exception:
+            pass
+
+    # Phase 1: key down every sustained hold immediately (overlap window opens).
+    max_hold_s = 0.0
+    for s in steps:
+        if not isinstance(s, dict):
+            continue
+        op = str(s.get('op', '')).lower()
+        if op in ('hold_keys',):
+            keys = [normalized_key(k) for k in (s.get('keys') or str(s.get('target', 'w')).split(',')) if str(k).strip()]
+            keys = keys[:3] or ['w']
+            dur_s = max(0.08, min(3.0, float(s.get('duration_ms', 400)) / 1000.0))
+            max_hold_s = max(max_hold_s, dur_s)
+            for k in keys:
+                kd = key_down(k)
+                held.append((kd, t0 + dur_s))
+        elif op in ('hold',):
+            k = normalized_key(s.get('key') or s.get('target') or 'w')
+            dur_s = max(0.08, min(3.0, float(s.get('duration_ms', 400)) / 1000.0))
+            max_hold_s = max(max_hold_s, dur_s)
+            held.append((key_down(k), t0 + dur_s))
+
+    # Phase 2: instant + mouse ops execute inside the hold window, fast path.
+    for s in steps:
+        if not isinstance(s, dict):
+            continue
+        op = str(s.get('op', '')).lower()
+        try:
+            if op == 'press':
+                k = normalized_key(s.get('key') or s.get('target') or 'space')
+                pyautogui.press(k)
+                results.append(f"press {k}")
+            elif op == 'click':
+                x = int(s.get('x', 500) if s.get('x') is not None else 500)
+                y = int(s.get('y', 500) if s.get('y') is not None else 500)
+                button = str(s.get('button', 'left')).lower()
+                if button not in ('left', 'right', 'middle'):
+                    button = 'left'
+                rx, ry = do_click_at(x, y, window_title, button=button)
+                results.append(f"click {button} ({rx},{ry})")
+            elif op == 'right_click':
+                x = int(s.get('x', 500) if s.get('x') is not None else 500)
+                y = int(s.get('y', 500) if s.get('y') is not None else 500)
+                rx, ry = do_click_at(x, y, window_title, button='right')
+                results.append(f"right_click ({rx},{ry})")
+            elif op == 'double_click':
+                x = int(s.get('x', 500) if s.get('x') is not None else 500)
+                y = int(s.get('y', 500) if s.get('y') is not None else 500)
+                button = str(s.get('button', 'left')).lower()
+                if button not in ('left', 'right', 'middle'):
+                    button = 'left'
+                rx, ry = do_click_at(x, y, window_title, button=button, clicks=2)
+                results.append(f"double_click {button} ({rx},{ry})")
+            elif op == 'move':
+                x = int(s.get('x', 500) if s.get('x') is not None else 500)
+                y = int(s.get('y', 500) if s.get('y') is not None else 500)
+                rx, ry = normalized_to_window(x, y, window_title)
+                pyautogui.moveTo(rx, ry, duration=0.08)
+                results.append(f"move ({rx},{ry})")
+            elif op == 'look':
+                dx = max(-500, min(500, int(s.get('dx', 0))))
+                dy = max(-500, min(500, int(s.get('dy', 0))))
+                pyautogui.moveRel(dx, dy, duration=0.08)
+                results.append(f"look ({dx},{dy})")
+            elif op == 'wheel':
+                clicks = max(-5, min(5, int(s.get('delta', s.get('clicks', -1)))))
+                if clicks != 0:
+                    pyautogui.scroll(clicks)
+                results.append(f"wheel {clicks}")
+            elif op == 'drag':
+                x1, y1 = int(s.get('x1', s.get('x', 400))), int(s.get('y1', s.get('y', 500)))
+                x2, y2 = int(s.get('x2', 600)), int(s.get('y2', s.get('y', 500)))
+                dur = max(0.05, min(2.0, float(s.get('duration_ms', 300)) / 1000.0))
+                x1, y1 = normalized_to_window(x1, y1, window_title)
+                x2, y2 = normalized_to_window(x2, y2, window_title)
+                pyautogui.moveTo(x1, y1)
+                pyautogui.dragTo(x2, y2, duration=dur)
+                results.append(f"drag ({x1},{y1})->({x2},{y2})")
+            elif op == 'wait':
+                ms = max(0, min(3000, int(s.get('duration_ms', s.get('ms', 150)))))
+                time.sleep(ms / 1000.0)
+                results.append(f"wait {ms}ms")
+            # hold_keys/hold already handled in phase 1; nothing to do here.
+        except Exception as e:
+            results.append(f"{op} failed: {e}")
+    # Phase 3: keep the combo window open until the longest hold expires,
+    # then release everything in reverse (avoids stuck keys on failure).
+    remaining = (t0 + max_hold_s) - now() if max_hold_s > 0 else 0
+    if remaining > 0:
+        time.sleep(remaining)
+    for k, _ in reversed(held):
+        key_up(k)
+    elapsed_ms = int((now() - t0) * 1000)
+    return results, elapsed_ms
 
 def report_window_bounds(window_title):
     hwnd = find_window(window_title)
@@ -172,6 +310,49 @@ def main():
                 
             pyautogui.click(x, y)
             print(f"Successfully clicked at ({x}, {y})")
+
+        elif cmd == "right_click":
+            if len(sys.argv) < 4:
+                print("Error: right_click command requires x and y coordinates")
+                sys.exit(1)
+            x, y = int(sys.argv[2]), int(sys.argv[3])
+            window_title = " ".join(sys.argv[4:]) if len(sys.argv) >= 5 else ''
+            if window_title:
+                activate_window(window_title)
+            rx, ry = do_click_at(x, y, window_title, button='right')
+            print(f"Successfully right-clicked at ({rx}, {ry})")
+
+        elif cmd == "double_click":
+            if len(sys.argv) < 4:
+                print("Error: double_click command requires x and y coordinates")
+                sys.exit(1)
+            x, y = int(sys.argv[2]), int(sys.argv[3])
+            window_title = " ".join(sys.argv[4:]) if len(sys.argv) >= 5 else ''
+            if window_title:
+                activate_window(window_title)
+            rx, ry = do_click_at(x, y, window_title, button='left', clicks=2)
+            print(f"Successfully double-clicked at ({rx}, {ry})")
+
+        elif cmd == "combo":
+            # Chained inputs in one spawn: combo '<steps_json>' [window_title]
+            # The window title may itself contain spaces, so treat the LAST
+            # argv as JSON and everything after as the title. JSON always
+            # starts with { or [ which a window title never does.
+            if len(sys.argv) < 3:
+                print("Error: combo command requires a steps JSON payload")
+                sys.exit(1)
+            import json as _combo_json
+            steps_arg = sys.argv[2]
+            window_title = " ".join(sys.argv[3:]) if len(sys.argv) >= 4 else ''
+            try:
+                payload = _combo_json.loads(steps_arg)
+            except Exception as e:
+                print(f"Error: combo steps must be valid JSON: {e}", file=sys.stderr)
+                sys.exit(1)
+            if window_title:
+                activate_window(window_title)
+            results, elapsed_ms = execute_combo_steps(payload, window_title)
+            print(f"Successfully executed combo ({len(results)} steps, {elapsed_ms}ms): {'; '.join(results)}")
 
         elif cmd == "move":
             if len(sys.argv) < 4:

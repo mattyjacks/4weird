@@ -84,10 +84,19 @@ let agentScheduleTimer = null;
 let invalidTestedApiKeyProviders = [];
 
 function adaptiveAgentDelay() {
+  // Urgency-aware tick: the executor returns a computed delay each step
+  // (action cost + combat/menu urgency + frame motion - exec time already
+  // spent). Use it when fresh; fall back to the cheap static map only for
+  // the very first tick or when a step returns no hint.
+  if (lastTickHint && Date.now() - lastTickHint.ts < 15000 &&
+      Number.isFinite(lastTickHint.delayMs)) {
+    return lastTickHint.delayMs;
+  }
   const latest = timelineHistory[timelineHistory.length - 1];
   const type = latest?.action?.type;
-  if (type === 'hold_key' || type === 'move_mouse') return 280;
-  if (type === 'click' || type === 'press_key') return 420;
+  if (type === 'combo') return 400;
+  if (type === 'hold_key' || type === 'hold_keys' || type === 'move_mouse' || type === 'drag_look') return 280;
+  if (type === 'click' || type === 'right_click' || type === 'double_click' || type === 'press_key') return 420;
   if (type === 'wait') return 220;
   return 650;
 }
@@ -100,6 +109,8 @@ function scheduleAgentStep() {
     scheduleAgentStep();
   }, adaptiveAgentDelay());
 }
+// Fresh adaptive hint from the last executor tick ({ delayMs, urgency }).
+let lastTickHint = null;
 let frameCount = 0;
 let currentFps = 60;
 let lastFpsUpdate = Date.now();
@@ -648,6 +659,13 @@ document.addEventListener('DOMContentLoaded', () => {
     logSystemMessage,
     saveConfigData
   });
+
+  // Local models (Ollama): status pill, install/start, per-role model picks.
+  // Best-effort — the dashboard must boot even when this panel is absent.
+  try {
+    const { setupOllamaEventListeners } = require('./components/ollama_ui_controller');
+    setupOllamaEventListeners({ el, logSystemMessage, saveConfigData });
+  } catch (e) { console.error('Ollama panel init failed', e); }
 
   setupCollapsibleSections();
 
@@ -1481,8 +1499,15 @@ async function captureViewportScreenshot() {
   
   if (webviewElement) {
     try {
+      // Staggered screenshot budget: combat keeps full 512px detail, quiet
+      // menus drop to 384px so slow ticks also cost fewer tokens.
+      let shotWidth = 512;
+      try {
+        const { screenshotBudget } = require('./runtime/adaptive_tick');
+        shotWidth = screenshotBudget(lastTickHint?.urgency || 'normal').width;
+      } catch (_) { /* budget is best-effort */ }
       const img = await webviewElement.capturePage();
-      const resized = img.resize({ width: 512 });
+      const resized = img.resize({ width: shotWidth });
       return resized.toJPEG(50).toString('base64');
     } catch (e) {
       console.warn("Failed to capture webview page", e);
@@ -1889,16 +1914,16 @@ function cliMaxTicks() {
 }
 
 async function executeAgentStep(forceHeuristic = false) {
-  if (agentStepBusy && !forceHeuristic) return;
+  if (agentStepBusy && !forceHeuristic) return null;
   if (!forceHeuristic) agentStepBusy = true;
   try {
   const maxTicks = cliMaxTicks();
   if (!forceHeuristic && maxTicks > 0 && agentBrain.sessionStats.steps >= maxTicks && isRunning) {
     logSystemMessage(`Tick cap reached (${agentBrain.sessionStats.steps}/${maxTicks}) - auto-pausing agent.`);
     toggleAgentState();
-    return;
+    return null;
   }
-  await runAgentStep({
+  const tickHint = await runAgentStep({
     forceHeuristic,
     isRunning,
     el,
@@ -1921,6 +1946,12 @@ async function executeAgentStep(forceHeuristic = false) {
     thinkingOutLoud,
     commentaryApiKey: () => el.apiKeyInput?.value || agentBrain.config.apiKey || ''
   });
+  // Feed the adaptive scheduler: the executor sized the next tick from the
+  // action just run + screen urgency + frame motion.
+  if (tickHint && Number.isFinite(tickHint.tickDelayMs)) {
+    lastTickHint = { delayMs: tickHint.tickDelayMs, urgency: tickHint.urgency || 'normal', ts: Date.now() };
+  }
+  return tickHint || null;
   } finally {
     if (!forceHeuristic) agentStepBusy = false;
   }

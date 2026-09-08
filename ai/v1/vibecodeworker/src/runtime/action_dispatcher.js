@@ -63,7 +63,289 @@ async function executeAction(controller, webview, action, nativeProcessName = nu
   }
 
   switch (action.type) {
+    case 'combo': {
+      // Chained inputs in near-real-time. Native path collapses to ONE
+      // input_sim.py spawn (see toInputSimArgs 'combo'); the webview path
+      // collapses to ONE executeJS roundtrip with overlapping holds.
+      if (nativeProcessName) {
+        try {
+          const { normalizeNativeAction, toInputSimArgs } = require('./native_game_player');
+          const normalized = normalizeNativeAction(action);
+          const pyArgs = toInputSimArgs(normalized);
+          if (pyArgs) {
+            pyArgs.push(nativeProcessName);
+            const steps = (normalized.params && normalized.params.steps) || [];
+            visionState.recordKeys(steps.filter((s) => s.op === 'hold_keys').map((s) => s.keys.join('+')).join(' ') || 'combo', 'combo');
+            visionState.recordAction('combo ' + (normalized.target || steps.map((s) => s.op).join('+')));
+            pushVision();
+            return await ipcRenderer.invoke('run-input-sim', pyArgs);
+          }
+          return 'Native combo has no steps to execute';
+        } catch (e) {
+          return `Native combo failed: ${e.message}`;
+        }
+      }
+      const rawSteps = (action.params && action.params.steps) || action.steps || [];
+      let steps = rawSteps;
+      try {
+        const { normalizeComboStep } = require('./native_game_player');
+        const normed = rawSteps.map(normalizeComboStep).filter(Boolean);
+        if (normed.length) steps = normed;
+      } catch (_) { /* web-only caller without player module: use raw steps */ }
+      steps = (Array.isArray(steps) ? steps : []).slice(0, 8);
+      if (!steps.length) return 'Combo has no steps to execute';
+      const label = String(action.target || steps.map((s) => s.op).join('+')).slice(0, 60);
+      visionState.recordAction('combo ' + label + ' (' + steps.length + ' steps)');
+      pushVision();
+      const comboScript = `
+        (() => {
+          const steps = ${JSON.stringify(steps)};
+          const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+          const keyCode = (k) => {
+            const m = { arrowleft: 'ArrowLeft', arrowright: 'ArrowRight', arrowup: 'ArrowUp', arrowdown: 'ArrowDown', ' ': 'Space', space: 'Space', enter: 'Enter', escape: 'Escape', shift: 'ShiftLeft', control: 'ControlLeft', alt: 'AltLeft' };
+            const low = String(k || '').toLowerCase();
+            if (m[low]) return m[low];
+            if (low.length === 1) return 'Key' + low.toUpperCase();
+            return k;
+          };
+          const down = (k) => {
+            const ev = new KeyboardEvent('keydown', { key: k, code: keyCode(k), bubbles: true });
+            window.dispatchEvent(ev); document.dispatchEvent(ev);
+          };
+          const up = (k) => {
+            const ev = new KeyboardEvent('keyup', { key: k, code: keyCode(k), bubbles: true });
+            window.dispatchEvent(ev); document.dispatchEvent(ev);
+          };
+          const clickAt = (nx, ny, button) => {
+            const x = Math.round((nx / 1000) * window.innerWidth);
+            const y = Math.round((ny / 1000) * window.innerHeight);
+            const btn = button === 'right' ? 2 : (button === 'middle' ? 1 : 0);
+            const opts = { bubbles: true, cancelable: true, clientX: x, clientY: y, button: btn, buttons: btn === 0 ? 1 : btn === 2 ? 2 : 4 };
+            const el = document.elementFromPoint(x, y);
+            if (window.GraveGainBotInput && btn === 0) { try { window.GraveGainBotInput.click(nx, ny, 'attack'); } catch (_) {} }
+            if (el) {
+              el.focus && el.focus();
+              el.dispatchEvent(new MouseEvent('mousedown', opts));
+              el.dispatchEvent(new MouseEvent('mouseup', opts));
+              el.dispatchEvent(new MouseEvent('click', opts));
+              return 'hit ' + el.tagName;
+            }
+            return 'no element';
+          };
+          return (async () => {
+            const held = [];
+            const t0 = Date.now();
+            let longest = 0;
+            for (const s of steps) {
+              if (s.op === 'hold_keys' && Array.isArray(s.keys)) {
+                longest = Math.max(longest, s.duration_ms || 400);
+                for (const k of s.keys) { down(k); held.push({ k, until: t0 + (s.duration_ms || 400) }); }
+              } else if (s.op === 'hold' && s.key) {
+                longest = Math.max(longest, s.duration_ms || 400);
+                down(s.key); held.push({ k: s.key, until: t0 + (s.duration_ms || 400) });
+              }
+            }
+            const log = [];
+            for (const s of steps) {
+              try {
+                if (s.op === 'press' && s.key) { down(s.key); await sleep(40); up(s.key); log.push('press ' + s.key); }
+                else if (s.op === 'click') { log.push('click:' + clickAt(s.x ?? 500, s.y ?? 500, s.button || 'left')); }
+                else if (s.op === 'right_click') { log.push('right:' + clickAt(s.x ?? 500, s.y ?? 500, 'right')); }
+                else if (s.op === 'double_click') {
+                  clickAt(s.x ?? 500, s.y ?? 500, 'left'); await sleep(60);
+                  log.push('dbl:' + clickAt(s.x ?? 500, s.y ?? 500, 'left'));
+                }
+                else if (s.op === 'move') {
+                  const x = Math.round(((s.x ?? 500) / 1000) * window.innerWidth);
+                  const y = Math.round(((s.y ?? 500) / 1000) * window.innerHeight);
+                  window.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: x, clientY: y }));
+                  log.push('move ' + s.x + ',' + s.y);
+                }
+                else if (s.op === 'look') {
+                  const dx = s.dx || 0, dy = s.dy || 0;
+                  if (window.GraveGainBotInput && window.GraveGainBotInput.lookToward) {
+                    try { window.GraveGainBotInput.lookToward(500 + dx, 500 + dy); } catch (_) {}
+                  }
+                  window.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: window.innerWidth / 2 + dx, clientY: window.innerHeight / 2 + dy }));
+                  log.push('look ' + dx + ',' + dy);
+                }
+                else if (s.op === 'wheel') {
+                  window.dispatchEvent(new WheelEvent('wheel', { bubbles: true, deltaY: (s.delta || 0) > 0 ? -100 : 100 }));
+                  log.push('wheel ' + s.delta);
+                }
+                else if (s.op === 'wait') { await sleep(Math.max(0, Math.min(3000, s.duration_ms || 150))); log.push('wait'); }
+                // hold_keys/hold already opened above; keep the gap tiny.
+                await sleep(25);
+              } catch (e) { log.push(s.op + ' failed'); }
+            }
+            const remain = longest - (Date.now() - t0);
+            if (remain > 0) await sleep(remain);
+            for (const h of held.reverse()) { try { up(h.k); } catch (_) {} }
+            return 'Combo (' + steps.length + ' steps, ' + (Date.now() - t0) + 'ms): ' + log.join('; ');
+          })();
+        })()
+      `;
+      return await controller.executeJS(webview, comboScript);
+    }
+
+    case 'hold_keys': {
+      // Multi-key hold (W+Shift sprint, W+A strafe): all keys go down
+      // together, release together after duration - one roundtrip.
+      const keys = (action.params && action.params.keys) || String(target || 'w').split(',');
+      const clean = keys.map((k) => String(k).trim()).filter(Boolean).slice(0, 3);
+      const finalKeys = clean.length ? clean : ['w'];
+      visionState.recordKeys(finalKeys.join('+'), 'hold ' + duration + 'ms');
+      visionState.recordAction('hold_keys ' + finalKeys.join('+') + ' ' + duration + 'ms');
+      pushVision();
+      if (nativeProcessName) {
+        try {
+          const { normalizeNativeAction, toInputSimArgs } = require('./native_game_player');
+          const pyArgs = toInputSimArgs(normalizeNativeAction(action));
+          if (pyArgs) { pyArgs.push(nativeProcessName); return await ipcRenderer.invoke('run-input-sim', pyArgs); }
+        } catch (_) { /* fall through to webview path */ }
+      }
+      const holdScript = `
+        (() => {
+          const keys = ${JSON.stringify(finalKeys)};
+          const codeOf = (k) => {
+            const low = String(k).toLowerCase();
+            const m = { arrowleft: 'ArrowLeft', arrowright: 'ArrowRight', arrowup: 'ArrowUp', arrowdown: 'ArrowDown', ' ': 'Space', space: 'Space', enter: 'Enter', escape: 'Escape', shift: 'ShiftLeft', control: 'ControlLeft', alt: 'AltLeft' };
+            if (m[low]) return m[low];
+            return low.length === 1 ? 'Key' + low.toUpperCase() : k;
+          };
+          for (const k of keys) {
+            const ev = new KeyboardEvent('keydown', { key: k, code: codeOf(k), bubbles: true });
+            window.dispatchEvent(ev); document.dispatchEvent(ev);
+          }
+          setTimeout(() => {
+            for (const k of keys) {
+              const ev = new KeyboardEvent('keyup', { key: k, code: codeOf(k), bubbles: true });
+              window.dispatchEvent(ev); document.dispatchEvent(ev);
+            }
+          }, ${duration});
+          return 'Held ' + keys.join('+') + ' for ' + ${duration} + 'ms';
+        })()
+      `;
+      return await controller.executeJS(webview, holdScript);
+    }
+
+    case 'right_click':
+    case 'double_click': {
+      const isRight = action.type === 'right_click';
+      let nx = 500, ny = 500;
+      if (action.params && Number.isFinite(Number(action.params.x))) {
+        nx = Number(action.params.x); ny = Number(action.params.y);
+      } else if (typeof target === 'string' && target.includes(',')) {
+        nx = parseInt(target.split(',')[0], 10) || 500;
+        ny = parseInt(target.split(',')[1], 10) || 500;
+      }
+      nx = Math.max(0, Math.min(1000, nx)); ny = Math.max(0, Math.min(1000, ny));
+      visionState.recordPointer(nx, ny, action.type, true);
+      visionState.recordAction(action.type + ' @ ' + nx + ',' + ny);
+      pushVision();
+      if (nativeProcessName) {
+        try {
+          const { normalizeNativeAction, toInputSimArgs } = require('./native_game_player');
+          const pyArgs = toInputSimArgs(normalizeNativeAction(action));
+          if (pyArgs) { pyArgs.push(nativeProcessName); return await ipcRenderer.invoke('run-input-sim', pyArgs); }
+        } catch (_) { /* fall through */ }
+      }
+      const btnScript = `
+        (() => {
+          const nx = ${nx}, ny = ${ny};
+          const x = Math.round((nx / 1000) * window.innerWidth);
+          const y = Math.round((ny / 1000) * window.innerHeight);
+          const fire = () => {
+            const el = document.elementFromPoint(x, y);
+            if (!el) return 'No element at ' + x + ',' + y;
+            el.focus && el.focus();
+            ${isRight
+              ? `const opts = { bubbles: true, cancelable: true, clientX: x, clientY: y, button: 2, buttons: 2 };
+                 el.dispatchEvent(new MouseEvent('mousedown', opts));
+                 el.dispatchEvent(new MouseEvent('mouseup', opts));
+                 el.dispatchEvent(new MouseEvent('contextmenu', opts));
+                 return 'Right-clicked ' + el.tagName + ' at ' + x + ',' + y;`
+              : `const mk = () => ({ bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0, buttons: 1 });
+                 el.dispatchEvent(new MouseEvent('mousedown', mk()));
+                 el.dispatchEvent(new MouseEvent('mouseup', mk()));
+                 el.dispatchEvent(new MouseEvent('click', mk()));
+                 el.dispatchEvent(new MouseEvent('mousedown', mk()));
+                 el.dispatchEvent(new MouseEvent('mouseup', mk()));
+                 el.dispatchEvent(new MouseEvent('click', mk()));
+                 el.dispatchEvent(new MouseEvent('dblclick', mk()));
+                 return 'Double-clicked ' + el.tagName + ' at ' + x + ',' + y;`}
+          };
+          ${botCursor.moveCursorJS(nx, ny, action.type)}
+          return new Promise((resolve) => setTimeout(() => {
+            try { resolve(fire()); } catch (e) { resolve('${action.type} failed: ' + e.message); }
+          }, ${botCursor.CLICK_GLIDE_MS}));
+        })()
+      `;
+      return await controller.executeJS(webview, btnScript);
+    }
+
+    case 'drag_look': {
+      // FPS camera turn. Native: relative look via input_sim. Webview: aim
+      // through the bot API when present, else synthesize mousemove.
+      let dx = 120, dy = 0;
+      if (action.params && (Number.isFinite(Number(action.params.dx)) || Number.isFinite(Number(action.params.dy)))) {
+        dx = Number(action.params.dx) || 0; dy = Number(action.params.dy) || 0;
+      } else if (typeof target === 'string' && target.includes(',')) {
+        dx = parseInt(target.split(',')[0], 10) || 0; dy = parseInt(target.split(',')[1], 10) || 0;
+      }
+      dx = Math.max(-500, Math.min(500, Math.round(dx)));
+      dy = Math.max(-500, Math.min(500, Math.round(dy)));
+      visionState.recordAction('drag_look ' + dx + ',' + dy);
+      pushVision();
+      if (nativeProcessName) {
+        try {
+          const { normalizeNativeAction, toInputSimArgs } = require('./native_game_player');
+          const pyArgs = toInputSimArgs(normalizeNativeAction(action));
+          if (pyArgs) { pyArgs.push(nativeProcessName); return await ipcRenderer.invoke('run-input-sim', pyArgs); }
+        } catch (_) { /* fall through */ }
+      }
+      return await controller.executeJS(webview, `
+        (() => {
+          const dx = ${dx}, dy = ${dy};
+          if (window.GraveGainBotInput && window.GraveGainBotInput.lookToward) {
+            try { window.GraveGainBotInput.lookToward(500 + dx, 500 + dy); return 'Looked toward ' + (500 + dx) + ',' + (500 + dy); } catch (_) {}
+          }
+          window.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: window.innerWidth / 2 + dx, clientY: window.innerHeight / 2 + dy }));
+          return 'Dragged look by ' + dx + ',' + dy;
+        })()
+      `);
+    }
+
+    case 'wheel': {
+      const delta = (action.params && Number.isFinite(Number(action.params.delta)))
+        ? Math.max(-5, Math.min(5, Math.round(Number(action.params.delta)))) : -1;
+      visionState.recordAction('wheel ' + delta);
+      pushVision();
+      if (nativeProcessName) {
+        try {
+          const { normalizeNativeAction, toInputSimArgs } = require('./native_game_player');
+          const pyArgs = toInputSimArgs(normalizeNativeAction(action));
+          if (pyArgs) { pyArgs.push(nativeProcessName); return await ipcRenderer.invoke('run-input-sim', pyArgs); }
+        } catch (_) { /* fall through */ }
+      }
+      return await controller.executeJS(webview, `
+        (() => {
+          window.dispatchEvent(new WheelEvent('wheel', { bubbles: true, deltaY: ${delta} > 0 ? -100 : 100 }));
+          return 'Wheeled ' + ${delta};
+        })()
+      `);
+    }
+
     case 'click': {
+      // params.button 'right' routes to the right-click path (context menu +
+      // button-2 events) instead of a plain left click.
+      if (!nativeProcessName && action.params && String(action.params.button || '').toLowerCase() === 'right') {
+        action = { ...action, type: 'right_click' };
+        // Fall through to right_click by re-dispatching one case down is not
+        // possible in a switch, so handle it inline via the shared path below.
+        // Simplest correct route: rename and restart the switch body.
+        return executeAction(controller, webview, action, nativeProcessName);
+      }
       // Single roundtrip: resolve coordinates AND dispatch the click inside
       // the page. The old path did 2 sequential executeJS calls (size query
       // + click), doubling IPC latency on every agent click step.

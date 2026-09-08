@@ -15,6 +15,12 @@ let spawnInterval = null;
 let speedFactor = 1.0;
 let highscore = localStorage.getItem('ai_whack_a_mole_highscore') || 0;
 
+// Combo: consecutive bad-AI whacks within COMBO_WINDOW_MS multiply points.
+let combo = 0;
+let comboTimer = null;
+const COMBO_WINDOW_MS = 2500;
+const COMBO_MAX = 5;
+
 // 3D Objects & Holes Config
 const GRID_ROWS = 3;
 const GRID_COLS = 3;
@@ -60,9 +66,11 @@ window.addEventListener('message', (e) => {
     }
 });
 
-function playSound(type) {
+function playSound(type, pitchStep) {
     const ctx = getAudioContext();
     if (!ctx) return;
+    // Combo raises the pitch: each streak step adds ~6% for a rising reward feel.
+    const pitch = 1 + Math.min(Math.max(pitchStep || 0, 0), 8) * 0.06;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
@@ -70,8 +78,8 @@ function playSound(type) {
 
     if (type === 'whack-bad') {
         // High pitched retro ping
-        osc.frequency.setValueAtTime(400, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(1000, ctx.currentTime + 0.15);
+        osc.frequency.setValueAtTime(400 * pitch, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1000 * pitch, ctx.currentTime + 0.15);
         gain.gain.setValueAtTime(0.15, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
         osc.start();
@@ -161,6 +169,10 @@ async function loadQuotes() {
     }
 }
 
+// Test hook: ?slowmo=N stretches mole stay + spawn cadence for vision-model
+// playtests (default 1 = real-time arcade speed, untouched).
+const SLOWMO = Math.max(1, parseFloat(new URLSearchParams(window.location.search).get('slowmo')) || 1);
+
 // Set initial Highscore
 highscoreDisplay.textContent = highscore;
 
@@ -174,11 +186,11 @@ function init3D() {
     scene.background = new THREE.Color(0x06060c);
     scene.fog = new THREE.FogExp2(0x06060c, 0.05);
 
-    // Create Camera
+    // Create Camera — framed so the cabinet sits centered: board near
+    // mid-screen (room above for speech bubbles), marquee + floor visible.
     camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    // Positioned overhead and tilted slightly forward
-    camera.position.set(0, 7.5, 9.5);
-    camera.lookAt(0, 1.0, 0);
+    camera.position.set(0, 6.8, 11.2);
+    camera.lookAt(0, 2.5, -0.5);
 
     // Create Renderer
     const canvas = document.getElementById('TEMPLATE-4weird-gameCanvas');
@@ -388,12 +400,62 @@ function onWindowResize() {
 // Web UI Popups helper for whacks
 function createFloatingScore(x, y, text, type) {
     const pop = document.createElement('div');
-    pop.className = `whack-score-popup ${type === 'good' ? 'score-positive' : 'score-negative'}`;
+    pop.className = `whack-score-popup ${type === 'good' ? 'score-positive' : type === 'combo' ? 'score-combo' : type === 'damage' ? 'score-damage' : 'score-negative'}`;
     pop.textContent = text;
     pop.style.left = `${x}px`;
     pop.style.top = `${y}px`;
     container.appendChild(pop);
     setTimeout(() => pop.remove(), 800);
+}
+
+// Impact juice: screen shake. Re-adds the class so rapid hits re-trigger it.
+function shakeScreen(big) {
+    const cls = big ? 'shake-big' : 'shake';
+    container.classList.remove('shake', 'shake-big');
+    void container.offsetWidth; // restart the CSS animation
+    container.classList.add(cls);
+    clearTimeout(shakeScreen._t);
+    shakeScreen._t = setTimeout(() => container.classList.remove(cls), 450);
+}
+
+// Expanding shockwave ring at the whack point.
+function spawnShockwave(x, y, badHit) {
+    const ring = document.createElement('div');
+    ring.className = `whack-shockwave${badHit ? ' bad-hit' : ''}`;
+    ring.style.left = `${x}px`;
+    ring.style.top = `${y}px`;
+    container.appendChild(ring);
+    setTimeout(() => ring.remove(), 500);
+}
+
+// Red vignette pulse when integrity takes a hit.
+function flashDamage() {
+    const flash = document.getElementById('damage-flash');
+    if (!flash) return;
+    flash.classList.remove('flash');
+    void flash.offsetWidth;
+    flash.classList.add('flash');
+}
+
+// Project a mole's head to container pixel coords (for damage popups).
+const _projV = new THREE.Vector3();
+function projectHoleToScreen(hole) {
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    _projV.set(hole.x, hole.group.position.y + 1.25, hole.z);
+    _projV.project(camera);
+    return {
+        x: (_projV.x * 0.5 + 0.5) * width,
+        y: (_projV.y * -0.5 + 0.5) * height,
+    };
+}
+
+function resetCombo() {
+    combo = 0;
+    if (comboTimer) {
+        clearTimeout(comboTimer);
+        comboTimer = null;
+    }
 }
 
 // Raycasting for touch click whacking
@@ -457,13 +519,21 @@ function triggerWhack(hole, screenX, screenY) {
     }
 
     if (hole.type === 'bad') {
-        // Correctly whacked a bad AI
-        score += 100;
+        // Correctly whacked a bad AI — streak builds a combo multiplier.
+        combo = Math.min(combo + 1, COMBO_MAX);
+        const pts = 100 * combo;
+        score += pts;
         hudScore.textContent = score;
-        playSound('whack-bad');
-        createFloatingScore(screenX, screenY, '+100', 'good');
+        playSound('whack-bad', combo);
+        createFloatingScore(screenX, screenY, combo > 1 ? `+${pts} COMBO x${combo}!` : `+${pts}`, combo > 1 ? 'combo' : 'good');
+        spawnShockwave(screenX, screenY, true);
+        shakeScreen(false);
+        // Streak expires if the player idles.
+        if (comboTimer) clearTimeout(comboTimer);
+        comboTimer = setTimeout(resetCombo, COMBO_WINDOW_MS);
     } else {
         // Incorrectly whacked a good/aligned AI
+        resetCombo();
         score = Math.max(0, score - 200);
         if (!window.gameDebug?.godMode) {
             health = Math.max(0, health - 20);
@@ -472,6 +542,9 @@ function triggerWhack(hole, screenX, screenY) {
         updateHealthBar();
         playSound('whack-good');
         createFloatingScore(screenX, screenY, '-200 Penalty!', 'bad');
+        spawnShockwave(screenX, screenY, false);
+        shakeScreen(false);
+        flashDamage();
         
         if (health <= 0) {
             endGame('integrity');
@@ -489,6 +562,8 @@ function updateHealthBar() {
     } else {
         hudHealthBar.style.background = 'linear-gradient(90deg, #ef4444, #dc2626)';
     }
+    // Low-integrity heartbeat vignette when the system is nearly compromised.
+    container.classList.toggle('low-hp', health <= 30 && isPlaying);
 }
 
 // Game Core Loops
@@ -518,7 +593,38 @@ function startGame() {
     pauseScreen.classList.add('hidden');
     gameOverScreen.classList.add('hidden');
     hud.classList.remove('hidden');
+    container.classList.remove('low-hp');
+    resetCombo();
 
+    // 3-2-1-GO countdown, then the round actually begins.
+    runCountdown(beginRound);
+}
+
+function runCountdown(done) {
+    const el = document.getElementById('countdown');
+    if (!el) { done(); return; }
+    const steps = ['3', '2', '1', 'GO!'];
+    let i = 0;
+    el.classList.remove('hidden');
+    const tick = () => {
+        if (i >= steps.length) {
+            el.classList.add('hidden');
+            el.classList.remove('go');
+            done();
+            return;
+        }
+        el.textContent = steps[i];
+        el.classList.toggle('go', steps[i] === 'GO!');
+        el.classList.remove('zoom');
+        void el.offsetWidth;
+        el.classList.add('zoom');
+        i++;
+        setTimeout(tick, steps[i - 1] === 'GO!' ? 450 : 600);
+    };
+    tick();
+}
+
+function beginRound() {
     isPlaying = true;
     playSound('start');
 
@@ -543,7 +649,7 @@ function startGame() {
 function spawnLoop() {
     if (!isPlaying) return;
 
-    const delay = Math.max(800, 2000 - (score * 0.5));
+    const delay = Math.max(800, 2000 - (score * 0.5)) * SLOWMO;
     spawnInterval = setTimeout(() => {
         spawnMole();
         spawnLoop();
@@ -567,13 +673,15 @@ function spawnMole() {
     hole.state = 'rising';
     hole.progress = 0;
     hole.spawnTime = Date.now();
-    // Tighter windows as score climbs
-    hole.stayDuration = Math.max(1500, 3500 - (score * 0.4));
+    // Tighter windows as score climbs (stretched by ?slowmo for vision tests)
+    hole.stayDuration = Math.max(1500, 3500 - (score * 0.4)) * SLOWMO;
 
-    // Create Chat Box element
+    // Create Chat Box element (hidden until updatePhysics first positions
+    // it — otherwise it flashes one frame at its static top-left corner).
     const bubble = document.createElement('div');
     bubble.className = 'mole-bubble';
     bubble.textContent = hole.quote;
+    bubble.style.visibility = 'hidden';
     bubblesContainer.appendChild(bubble);
     hole.bubbleEl = bubble;
 }
@@ -582,6 +690,8 @@ function endGame(reason) {
     isPlaying = false;
     clearInterval(gameTimerInterval);
     clearTimeout(spawnInterval);
+    resetCombo();
+    container.classList.remove('low-hp');
 
     // Play final tally sound logic
     if (reason === 'time') {
@@ -636,11 +746,19 @@ function updatePhysics(delta) {
                 
                 // If it was a bad AI and escaped, subtract health!
                 if (h.type === 'bad' && isPlaying) {
+                    resetCombo();
                     if (!window.gameDebug?.godMode) {
                         health = Math.max(0, health - 15);
                     }
                     updateHealthBar();
                     playSound('escape');
+                    // Damage feedback right where the rogue AI slipped away.
+                    try {
+                        const p = projectHoleToScreen(h);
+                        createFloatingScore(p.x, p.y, '-15 ESCAPED!', 'damage');
+                    } catch (e) { /* camera not ready — skip popup */ }
+                    shakeScreen(true);
+                    flashDamage();
                     if (health <= 0) {
                         endGame('integrity');
                     }
@@ -669,11 +787,25 @@ function updatePhysics(delta) {
             tempV.set(h.x, h.group.position.y + 1.25, h.z);
             tempV.project(camera);
 
-            const x = (tempV.x * 0.5 + 0.5) * width;
-            const y = (tempV.y * -0.5 + 0.5) * height;
+            let x = (tempV.x * 0.5 + 0.5) * width;
+            let y = (tempV.y * -0.5 + 0.5) * height;
+
+            // Clamp the bubble fully inside the frame: back-row moles project
+            // near the top, where the bubble used to slide under the HUD and
+            // page header and get clipped. Tail hides when clamped.
+            const bw = h.bubbleEl.offsetWidth || 180;
+            const bh = h.bubbleEl.offsetHeight || 40;
+            const margin = 8;
+            const topSafe = 64; // clears the HUD bar
+            const cx = Math.max(bw / 2 + margin, Math.min(width - bw / 2 - margin, x));
+            const cy = Math.max(topSafe + bh + margin, Math.min(height - margin, y));
+            const clamped = (cx !== x) || (cy !== y);
+            x = cx; y = cy;
+            h.bubbleEl.classList.toggle('clamped', clamped);
 
             h.bubbleEl.style.left = `${x}px`;
             h.bubbleEl.style.top = `${y}px`;
+            if (h.bubbleEl.style.visibility === 'hidden') h.bubbleEl.style.visibility = '';
             
             // Fade out when retracting
             if (h.state === 'retracting') {
@@ -749,5 +881,6 @@ window.gameDebug = {
     toggleGodMode: function() {
         this.godMode = !this.godMode;
         return this.godMode;
-    }
+    },
+    getCombo: () => combo,
 };

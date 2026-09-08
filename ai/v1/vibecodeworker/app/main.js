@@ -197,6 +197,31 @@ app.whenReady().then(() => {
   if (!hasSingleInstanceLock) return;
   createWindow();
 
+  // Ollama auto-start (best-effort, never blocks boot): when the user left
+  // autoStart on and Ollama is installed but the server is down, bring
+  // `ollama serve` up in the background. Installs are NEVER automatic here —
+  // those need explicit consent via the .bat --install-ollama flag or the
+  // dashboard INSTALL button.
+  setImmediate(async () => {
+    try {
+      let autoStart = true;
+      try {
+        const cfgPath = path.join(projectRoot, 'config', 'default.json');
+        if (fs.existsSync(cfgPath)) {
+          const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+          if (cfg && cfg.localModels && typeof cfg.localModels.autoStart === 'boolean') {
+            autoStart = cfg.localModels.autoStart;
+          }
+        }
+      } catch (_) { /* default stays on */ }
+      if (!autoStart) return;
+      const res = await ollamaManager.ensureReady({ baseUrl: ollamaBaseUrl(), autoInstall: false, startTimeoutMs: 25000 });
+      smartlog.info(`Ollama boot check: ${res.ok ? `ready (${(res.models || []).length} models)` : (res.error || res.stage)}`, { category: 'ollama' });
+    } catch (e) {
+      smartlog.info(`Ollama boot check skipped: ${e.message}`, { category: 'ollama' });
+    }
+  });
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
@@ -819,6 +844,89 @@ ipcMain.handle('set-api-server-port', async (event, newPort) => {
   } catch (err) {
     console.error(`[Main] Failed to switch port to ${targetPort}:`, err);
     return { success: false, error: err.message };
+  }
+});
+
+// Local models (Ollama) IPC: status, install, server control, model pulls.
+// Install is explicit-consent only (renderer confirms first — ~700MB+
+// download). Everything else is safe to call any time; failures return
+// { ok:false } and never break the dashboard.
+const ollamaManager = require('../lib/ollama_manager');
+
+function ollamaBaseUrl() {
+  try {
+    const cfgPath = path.join(projectRoot, 'config', 'default.json');
+    if (fs.existsSync(cfgPath)) {
+      const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+      const fromCfg = cfg && cfg.localModels && cfg.localModels.ollamaUrl;
+      if (typeof fromCfg === 'string' && /^https?:\/\//.test(fromCfg.trim())) {
+        return fromCfg.trim().replace(/\/+$/, '');
+      }
+    }
+  } catch (_) { /* fall through to default */ }
+  return ollamaManager.defaultBaseUrl();
+}
+
+ipcMain.handle('ollama-status', async () => {
+  try {
+    const baseUrl = ollamaBaseUrl();
+    const up = await ollamaManager.isServerUp(baseUrl, 5000);
+    if (up.ok) return { ok: true, success: true, installed: true, server: true, models: up.models, baseUrl };
+    const found = ollamaManager.detectOllama();
+    return {
+      ok: false, success: false, installed: found.ok, server: false,
+      models: [], baseUrl, error: up.error, manual: found.ok ? undefined : ollamaManager.manualInstallHint(),
+    };
+  } catch (e) {
+    return { ok: false, success: false, error: e.message };
+  }
+});
+
+ipcMain.handle('ollama-install', async () => {
+  try {
+    const res = await ollamaManager.installOllama({
+      onProgress: (msg) => console.log(`[Ollama] ${msg}`),
+      timeoutMs: 900000,
+    });
+    if (res.ok) {
+      const started = await ollamaManager.startServer({ binary: res.binary, baseUrl: ollamaBaseUrl(), timeoutMs: 45000 });
+      return { ...res, success: true, server: started.ok };
+    }
+    smartlog.info(`Ollama install failed: ${res.error}`, { category: 'ollama' });
+    return { ...res, success: false };
+  } catch (e) {
+    return { ok: false, success: false, error: e.message };
+  }
+});
+
+ipcMain.handle('ollama-start-server', async () => {
+  try {
+    const res = await ollamaManager.startServer({ baseUrl: ollamaBaseUrl(), timeoutMs: 45000 });
+    return { ...res, success: res.ok };
+  } catch (e) {
+    return { ok: false, success: false, error: e.message };
+  }
+});
+
+ipcMain.handle('ollama-list-models', async () => {
+  try {
+    const models = await ollamaManager.listModels(ollamaBaseUrl(), 8000);
+    return { ok: true, success: true, models };
+  } catch (e) {
+    return { ok: false, success: false, error: e.message, models: [] };
+  }
+});
+
+ipcMain.handle('ollama-pull-model', async (_event, model) => {
+  try {
+    const res = await ollamaManager.ensureModel(model, {
+      baseUrl: ollamaBaseUrl(),
+      allowPull: true,
+      onProgress: (msg) => console.log(`[Ollama] ${msg}`),
+    });
+    return { ...res, success: res.ok };
+  } catch (e) {
+    return { ok: false, success: false, error: e.message };
   }
 });
 

@@ -47,6 +47,19 @@ class AutoCodeConfig {
     this.audioSttModel = 'scribe_v1';
     this.audioCommentary = false; // speak agent thinking-out-loud via TTS
     this.audioNarrateBugs = false; // speak bug alerts via TTS
+
+    // Local-model orchestration (Ollama role assignments — see lib/model_roles.js).
+    // Defaults are suggestions only; the dashboard "Local models" panel owns them.
+    this.localModels = {
+      ollamaUrl: 'http://127.0.0.1:11434',
+      autoStart: true,
+      roles: {
+        agent: { provider: 'local', model: 'qwen3:8b' },
+        vision: { provider: 'local', model: 'qwen2.5vl:7b' },
+        coder: { provider: 'local', model: 'qwen2.5-coder:7b' },
+        reasoner: { provider: 'local', model: 'deepseek-r1:8b' }
+      }
+    };
   }
 
   update(newConfig) {

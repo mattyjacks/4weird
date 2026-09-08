@@ -15,7 +15,11 @@
     width: 100%;
     height: 100%;
     display: block;
-    cursor: crosshair;
+    /* Sledgehammer cursor (head = hotspot). Swung pose while pressed. */
+    cursor: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'><line x1='20' y1='58' x2='42' y2='32' stroke='%23a06a35' stroke-width='9' stroke-linecap='round'/><line x1='20' y1='58' x2='42' y2='32' stroke='%235d3a17' stroke-width='9' stroke-linecap='round' stroke-dasharray='3 5' opacity='0.6'/><g transform='rotate(-35 45 25)'><rect x='31' y='17' width='28' height='16' rx='3' fill='%2394a3b8' stroke='%23334155' stroke-width='2'/><rect x='31' y='17' width='28' height='6' rx='3' fill='%23e2e8f0'/></g></svg>") 45 22, pointer;
+}
+#TEMPLATE-4weird-gameCanvas:active {
+    cursor: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'><g transform='rotate(28 20 58)'><line x1='20' y1='58' x2='42' y2='32' stroke='%23a06a35' stroke-width='9' stroke-linecap='round'/><line x1='20' y1='58' x2='42' y2='32' stroke='%235d3a17' stroke-width='9' stroke-linecap='round' stroke-dasharray='3 5' opacity='0.6'/><g transform='rotate(-35 45 25)'><rect x='31' y='17' width='28' height='16' rx='3' fill='%2394a3b8' stroke='%23334155' stroke-width='2'/><rect x='31' y='17' width='28' height='6' rx='3' fill='%23e2e8f0'/></g></g></svg>") 45 22, pointer;
 }
 
 /* Bubbles overlay container */
@@ -64,6 +68,11 @@
     border-color: rgba(18, 18, 26, 0.85) transparent;
     display: block;
     width: 0;
+}
+
+/* Tail hides when the bubble is clamped inside the frame (no mole to point at) */
+.mole-bubble.clamped::after {
+    display: none;
 }
 
 @keyframes bubble-bounce {
@@ -185,6 +194,125 @@
 .score-negative {
     color: #ef4444;
     text-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+}
+
+/* Combo callouts: bigger, gold, extra punch */
+.whack-score-popup.score-combo {
+    color: #fbbf24;
+    font-size: 26px;
+    text-shadow: 0 0 12px rgba(251, 191, 36, 0.8), 0 2px 5px rgba(0,0,0,0.5);
+}
+
+/* Damage callouts when a bad AI escapes */
+.whack-score-popup.score-damage {
+    color: #f87171;
+    font-size: 16px;
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.7);
+}
+
+/* Screen shake on impacts (re-triggered from JS by re-adding the class) */
+#game-container.shake {
+    animation: container-shake 0.22s linear;
+}
+#game-container.shake-big {
+    animation: container-shake 0.38s linear;
+}
+@keyframes container-shake {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(-6px, 3px); }
+    40% { transform: translate(5px, -4px); }
+    60% { transform: translate(-4px, -3px); }
+    80% { transform: translate(3px, 2px); }
+}
+
+/* Expanding shockwave ring at the whack point */
+.whack-shockwave {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 3px solid rgba(16, 185, 129, 0.9);
+    box-shadow: 0 0 18px rgba(16, 185, 129, 0.7), inset 0 0 12px rgba(16, 185, 129, 0.5);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 20;
+    animation: shockwave-expand 0.45s ease-out forwards;
+}
+.whack-shockwave.bad-hit {
+    border-color: rgba(251, 191, 36, 0.95);
+    box-shadow: 0 0 22px rgba(251, 191, 36, 0.8), inset 0 0 12px rgba(251, 191, 36, 0.5);
+}
+@keyframes shockwave-expand {
+    0% { opacity: 1; width: 24px; height: 24px; }
+    100% { opacity: 0; width: 130px; height: 130px; }
+}
+
+/* Red flash vignette when integrity takes a hit */
+#damage-flash {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 18;
+    opacity: 0;
+    background: radial-gradient(ellipse at center, transparent 45%, rgba(239, 68, 68, 0.55) 100%);
+}
+#damage-flash.flash {
+    animation: damage-flash-pulse 0.5s ease-out;
+}
+@keyframes damage-flash-pulse {
+    0% { opacity: 0; }
+    25% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Low-integrity heartbeat: pulsing red vignette + throbbing health bar */
+#game-container.low-hp::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 17;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(239, 68, 68, 0.4) 100%);
+    animation: low-hp-pulse 1s ease-in-out infinite;
+}
+@keyframes low-hp-pulse {
+    0%, 100% { opacity: 0.35; }
+    50% { opacity: 1; }
+}
+#game-container.low-hp #hud-health-bar {
+    animation: low-hp-bar 0.8s ease-in-out infinite;
+}
+@keyframes low-hp-bar {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.8); }
+}
+
+/* 3-2-1-GO countdown overlay */
+#countdown {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 30;
+    pointer-events: none;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 110px;
+    font-weight: 800;
+    color: #22d3ee;
+    text-shadow: 0 0 30px rgba(34, 211, 238, 0.8), 0 4px 10px rgba(0,0,0,0.6);
+}
+#countdown.go {
+    color: #10b981;
+    text-shadow: 0 0 34px rgba(16, 185, 129, 0.9), 0 4px 10px rgba(0,0,0,0.6);
+}
+#countdown.zoom {
+    animation: countdown-zoom 0.55s ease-out;
+}
+@keyframes countdown-zoom {
+    0% { opacity: 0; transform: scale(2.2); }
+    30% { opacity: 1; transform: scale(1); }
+    100% { opacity: 1; transform: scale(0.95); }
 }
 
 @keyframes popup-float {

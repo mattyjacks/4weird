@@ -9,6 +9,8 @@
     "heal": "node workers/heal_worker.js",
     "test": "node tests/test_vibecodeworker.js",
     "test:rules": "node tests/test_game_rules.js",
+    "test:ollama": "node tests/test_ollama_models.js",
+    "ollama:ensure": "node scripts/node/ensure_ollama.js",
     "test:e2e:whackamole": "node tests/test_aiwhackamole_e2e.js",
     "test:native": "node tests/test_native_hl2.js",
     "test:traces": "node tests/run_trace_tests.js",

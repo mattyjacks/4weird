@@ -313,6 +313,113 @@
         </div>
 
         <div class="sidebar-section">
+          <div class="section-header" data-section="local-models">
+            <span class="section-toggle">▶</span>
+            <h3>1B. LOCAL MODELS (OLLAMA)</h3>
+            <span class="help-icon" title="Run models on your own machine and assign one per job: decisions, vision, coding, deep reasoning">?</span>
+          </div>
+          <div class="section-content hidden" id="local-models">
+            <div class="form-group">
+              <label>Ollama status <span class="badge" id="ollama-status-pill" data-kind="">Checking…</span></label>
+              <div class="input-row">
+                <button id="btn-ollama-status" class="btn btn-secondary">REFRESH</button>
+                <button id="btn-ollama-start" class="btn btn-secondary" title="Start `ollama serve` when installed but stopped">START</button>
+                <button id="btn-ollama-install" class="btn btn-secondary" title="One-time ~700MB+ download + silent install (asks first)">INSTALL</button>
+              </div>
+              <span class="field-hint" id="ollama-installed-models">Checking installed models…</span>
+            </div>
+
+            <div class="form-group">
+              <label for="ollama-url">Ollama URL</label>
+              <input type="text" id="ollama-url" value="http://127.0.0.1:11434" placeholder="e.g. http://127.0.0.1:11434">
+            </div>
+
+            <div class="form-group toggle-row">
+              <label for="ollama-auto-start" title="Start `ollama serve` automatically on app boot when installed">
+                ⚡ Auto-start Ollama server
+              </label>
+              <label class="toggle-switch">
+                <input type="checkbox" id="ollama-auto-start" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label for="role-model-agent" title="Everyday playtest decisions, planning, tool calls">🤖 Agent — decisions</label>
+              <div class="input-row">
+                <select id="role-provider-agent" title="Provider for the agent role">
+                  <option value="local" selected>Local (Ollama)</option>
+                  <option value="deepseek">DeepSeek</option>
+                  <option value="meta">Meta</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="gemini">Gemini</option>
+                  <option value="openrouter">OpenRouter</option>
+                </select>
+                <input type="text" id="role-model-agent" list="role-suggest-agent" value="qwen3:8b" placeholder="e.g. qwen3:8b">
+              </div>
+              <datalist id="role-suggest-agent"></datalist>
+            </div>
+
+            <div class="form-group">
+              <label for="role-model-vision" title="Sees game frames and screenshots — needs a vision-capable model">👁️ Vision — screenshots</label>
+              <div class="input-row">
+                <select id="role-provider-vision" title="Provider for the vision role">
+                  <option value="local" selected>Local (Ollama)</option>
+                  <option value="deepseek">DeepSeek</option>
+                  <option value="meta">Meta</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="gemini">Gemini</option>
+                  <option value="openrouter">OpenRouter</option>
+                </select>
+                <input type="text" id="role-model-vision" list="role-suggest-vision" value="qwen2.5vl:7b" placeholder="e.g. qwen2.5vl:7b">
+              </div>
+              <datalist id="role-suggest-vision"></datalist>
+            </div>
+
+            <div class="form-group">
+              <label for="role-model-coder" title="Autocode patches, code review, heal-worker edits">🧑‍💻 Coder — patches</label>
+              <div class="input-row">
+                <select id="role-provider-coder" title="Provider for the coder role">
+                  <option value="local" selected>Local (Ollama)</option>
+                  <option value="deepseek">DeepSeek</option>
+                  <option value="meta">Meta</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="gemini">Gemini</option>
+                  <option value="openrouter">OpenRouter</option>
+                </select>
+                <input type="text" id="role-model-coder" list="role-suggest-coder" value="qwen2.5-coder:7b" placeholder="e.g. qwen2.5-coder:7b">
+              </div>
+              <datalist id="role-suggest-coder"></datalist>
+            </div>
+
+            <div class="form-group">
+              <label for="role-model-reasoner" title="Slow deep diagnosis, self-improvement, root-cause analysis">🧠 Reasoner — diagnosis</label>
+              <div class="input-row">
+                <select id="role-provider-reasoner" title="Provider for the reasoner role">
+                  <option value="local" selected>Local (Ollama)</option>
+                  <option value="deepseek">DeepSeek</option>
+                  <option value="meta">Meta</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="gemini">Gemini</option>
+                  <option value="openrouter">OpenRouter</option>
+                </select>
+                <input type="text" id="role-model-reasoner" list="role-suggest-reasoner" value="deepseek-r1:8b" placeholder="e.g. deepseek-r1:8b">
+              </div>
+              <datalist id="role-suggest-reasoner"></datalist>
+            </div>
+
+            <div class="form-group">
+              <label for="ollama-pull-name">Pull a model</label>
+              <div class="input-row">
+                <input type="text" id="ollama-pull-name" placeholder="e.g. qwen3:8b">
+                <button id="btn-ollama-pull" class="btn btn-secondary">PULL</button>
+              </div>
+              <span class="field-hint" id="ollama-pull-status">Downloads from the Ollama registry into local storage.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
           <div class="section-header" data-section="game-target">
             <span class="section-toggle">▶</span>
             <h3>2. GAME TARGET</h3>
