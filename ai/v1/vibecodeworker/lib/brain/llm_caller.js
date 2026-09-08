@@ -3,6 +3,7 @@
  */
 
 const { getResolvedApiKey } = require('../storage');
+const { isMetaDirectUrl } = require('../meta_endpoint');
 
 function selectDeepSeekModel(requestedModel, hasImage, prompt) {
   // Vision input is accepted only by the documented vision model. Keep image
@@ -109,7 +110,7 @@ async function callLLM(brain, prompt, base64Image = null, audioInput = null) {
   } else if (provider === 'meta') {
     // Meta Model API or OpenRouter-compatible endpoint for Muse Spark 1.3 Contributor
     const realModel = modelName || 'meta-llama/llama-4-scout-17b-16e-instruct';
-    const isMetaDirect = endpointUrl && endpointUrl.includes('meta.ai');
+    const isMetaDirect = isMetaDirectUrl(endpointUrl);
     url = isMetaDirect ? endpointUrl : (endpointUrl || 'https://openrouter.ai/api/v1/chat/completions');
     headers['Authorization'] = `Bearer ${apiKey}`;
     headers['HTTP-Referer'] = 'https://github.com/mattyjacks/4weird';

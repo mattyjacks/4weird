@@ -880,8 +880,9 @@ document.addEventListener('DOMContentLoaded', () => {
       el.apiKeyTestResults.textContent = 'Testing entered keys…';
     }
     try {
-      // Pass the configured endpoint so a Meta-direct key can be live-tested
-      // against the user's meta.ai endpoint instead of OpenRouter.
+      // Pass the configured endpoint so a Meta-direct key is live-tested
+      // against the user's own Meta endpoint when set, otherwise the
+      // universal Meta Llama API URL (same for everybody).
       const response = await ipcRenderer.invoke('test-api-keys', {
         ...keys,
         endpointUrl: el.localUrlInput?.value || agentBrain.config.endpointUrl || ''
@@ -1590,6 +1591,15 @@ function setupWebviewListeners() {
         window.addEventListener('mousedown', handler);
       })()
     `).catch(err => console.error("Failed to inject tracking script:", err));
+    // Website debugging: guest error hook (JS exceptions, promise
+    // rejections, failed resources, fetch/XHR failures). Forwards through
+    // console.error so the console-message pipeline + bug scanner see them.
+    // Best-effort: must never break game targets or block the load handler.
+    try {
+      const { buildGuestErrorHookScript } = require('./runtime/website_debugger');
+      webviewElement.executeJavaScript(buildGuestErrorHookScript())
+        .catch(err => console.error("Failed to inject debug hook:", err));
+    } catch (err) { console.error("Debug hook unavailable:", err); }
   });
 }
 

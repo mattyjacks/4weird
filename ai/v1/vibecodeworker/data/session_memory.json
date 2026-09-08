@@ -1,1 +1,1 @@
-{"runId":"run_1788888379675","startTime":"2026-09-08T17:26:19.675Z","totalSteps":29,"bugsFound":0,"stuckEvents":0,"recoveries":0,"actionTypeCounts":{"click":26,"press_key":2,"hold_key":0,"wait":0,"refresh":0},"clickHeatmapZones":{"4_5":9,"0_0":8,"3_0":1,"5_0":6,"0_1":1,"9_7":1},"topActions":[]}
+{"runId":"run_1788900752816","startTime":"2026-09-08T20:52:32.816Z","totalSteps":11,"bugsFound":0,"stuckEvents":0,"recoveries":0,"actionTypeCounts":{"click":4,"press_key":1,"hold_key":0,"wait":0,"refresh":0},"clickHeatmapZones":{"8_0":1,"6_0":1,"6_7":1},"topActions":[]}

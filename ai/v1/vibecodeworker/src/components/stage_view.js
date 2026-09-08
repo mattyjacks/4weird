@@ -826,7 +826,7 @@ function initStageView(deps) {
     const btn = $('btn-takeover'), st = $('takeover-status');
     if (btn) {
       btn.classList.toggle('live', !!live);
-      btn.innerHTML = live ? '⏹ End takeover — AI takes notes' : '🙋 Take over — I play, AI watches';
+      btn.innerHTML = live ? '⏹ End takeover — AI takes notes' : '🙋 Take Over: You Play, AI Watches';
     }
     if (st) {
       st.classList.toggle('live', !!live);

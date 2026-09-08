@@ -1,6 +1,14 @@
 # Thinking digest
 Short action-level conclusions; verbose prompts and hidden reasoning are intentionally excluded.
 
-- 3:18:00 PM · exploring · click → 497,500: Offline explorer (no API key): trying interactive element CANVAS "TEMPLATE-4weird-starfield" (1/14). Add an API key for smart decisions.
-- 3:18:06 PM · exploring · click → 69,32: Offline explorer (no API key): trying interactive element A "🎮 4weirdGames" (2/14). Add an API key for smart decisions.
-- 3:18:12 PM · exploring · click → 534,32: Offline explorer (no API key): trying interactive element A "Games" (3/13). Add an API key for smart decisions.
+- 4:53:11 PM · menu · click → 867,30: S -> No -> No -> No -> R_MENU
+- 4:54:09 PM · playing · click → 688,30: S -> No -> No -> No -> R_MENU
+- 4:54:30 PM · menu · press_key → Enter: S -> Yes -> R_RESTART
+- 4:54:55 PM · menu · click → #btnPlay: S -> Yes -> R_RESTART
+- 4:56:12 PM · menu · click → 617,768: S -> Yes -> R_RESTART
+- 4:57:16 PM · playing · combo → w+look+fire+jump: S -> No -> No -> No -> No -> R_PLAY
+- 4:57:35 PM · playing · combo → w+look+fire: S -> No -> No -> No -> No -> R_PLAY
+- 4:57:43 PM · playing · combo → w+look+fire+jump: S -> No -> No -> No -> R_PLAY
+- 4:58:08 PM · playing · combo → w+look+fire: S -> No -> No -> No -> R_PLAY
+- 4:58:17 PM · playing · combo → w+look+fire+jump: S -> No -> No -> No -> No -> R_PLAY
+- 4:58:54 PM · playing · combo → w+look+fire: S -> No -> No -> No -> No -> R_PLAY

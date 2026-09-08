@@ -42,6 +42,7 @@ const {
 const { discoverGames } = require('../src/main_process/game_discovery');
 const { LocalAPIServer } = require('../lib/api_server');
 const { getResolvedApiKey } = require('../lib/storage');
+const { META_DIRECT_ENDPOINT_URL, META_DIRECT_MODEL, isMetaDirectUrl } = require('../lib/meta_endpoint');
 
 let mainWindow;
 // --headfull (explicit visible window) wins over --headless so CLI runs like
@@ -308,7 +309,8 @@ ipcMain.handle('launch-steam-game', async (_event, options = {}) => {
 ipcMain.handle('test-api-keys', async (_event, suppliedKeys = {}) => {
   const prompt = 'Hello, World! Respond in 1 word.';
   // Renderer sends its configured endpoint URL alongside the keys so a
-  // Meta-direct key can be live-tested against meta.ai (see below).
+  // Meta-direct key can be live-tested against the user's own endpoint when
+  // set, otherwise against the universal Meta Llama API URL (see below).
   const metaEndpointUrl = String(suppliedKeys.endpointUrl || '').trim();
   const providers = [
     { name: 'openai', key: String(suppliedKeys.openai || '').trim(), url: 'https://api.openai.com/v1/responses', model: 'gpt-5.6-luna', body: () => ({ model: 'gpt-5.6-luna', input: prompt, max_output_tokens: 16, store: false }) },
@@ -337,13 +339,12 @@ ipcMain.handle('test-api-keys', async (_event, suppliedKeys = {}) => {
       }
     }
     // The Meta slot accepts either an OpenRouter key (sk-or-v1-…) or a
-    // Meta-direct key for a user-configured meta.ai endpoint. A Meta-direct
-    // key is tested against that endpoint, never against OpenRouter, where
-    // it would produce a false 401.
+    // Meta-direct key for Meta's Llama API. A Meta-direct key is tested
+    // against the user's configured Meta endpoint when set, otherwise the
+    // universal Meta URL (same for everybody) — never against OpenRouter,
+    // where it would produce a false 401.
     const isMetaDirectKey = provider.name === 'meta' && !provider.key.startsWith('sk-or-v1-');
-    if (isMetaDirectKey && (!metaEndpointUrl.startsWith('http') || !metaEndpointUrl.includes('meta.ai'))) {
-      return { provider: provider.name, status: 'error', detail: 'Meta-direct key: set your meta.ai endpoint URL in settings to live-test it here. Key was not removed.' };
-    }
+    const metaDirectUrl = isMetaDirectUrl(metaEndpointUrl) ? metaEndpointUrl : META_DIRECT_ENDPOINT_URL;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 20000);
     try {
@@ -352,8 +353,10 @@ ipcMain.handle('test-api-keys', async (_event, suppliedKeys = {}) => {
       let body = provider.body();
       if (isMetaDirectKey) {
         // Mirror runtime behavior (llm_caller.js): Bearer auth only, no
-        // OpenRouter headers, OpenAI-compatible chat body.
-        url = metaEndpointUrl;
+        // OpenRouter headers, OpenAI-compatible chat body. The Llama API
+        // uses native model ids, not the OpenRouter slug.
+        url = metaDirectUrl;
+        body = { model: META_DIRECT_MODEL, max_tokens: 16, messages: [{ role: 'user', content: prompt }] };
       } else {
         if (provider.name === 'meta' || provider.name === 'openrouter') {
           headers['HTTP-Referer'] = 'https://github.com/mattyjacks/4weird';

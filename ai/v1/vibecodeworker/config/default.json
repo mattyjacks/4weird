@@ -2,8 +2,8 @@
   "provider": "deepseek",
   "localUrl": "http://localhost:11434/api/chat",
   "modelName": "deepseek-v4-flash",
-  "gameRules": "Desktop-game playtest: keep actions conservative; verify menus, movement, camera, and responsiveness in the selected game window.",
-  "gameUrl": "file:///C:/GitHub5/4weird/website/v1/games/html/aiwhackamole/index.html",
+  "gameRules": "Game: GraveGain3D\nGenre: RPG\nAbout: A dark fantasy action RPG featuring emoji-based 3D billboard visuals, immersive real-time lighting, procedural dungeons, a dialogue system, and a starship management hub.\nHow to play: Choose your race and class, clear procedurally generated 3D dungeon floors, collect Gold, and buy upgrades. Return to the LuckyStarShip hub to grow offline crops, exchange gold, and repair modules.\nControls: WASD / Arrow Keys: Move (Top-down) or Accelerate/Climb (Platformer); Space: Jump (Platformer) / Interact (Top-down); Left-Click: Melee / Primary Skill (Hold for Charge Attack); Right-Click: Block / Projectile Skill; Shift: Active Class Ability / Sprint Lunge; E: Enter/Exit Sidescroller Buildings; Escape / P: Pause Game; touch; mouse",
+  "gameUrl": "file:///C:/GitHub5/4weird/website/v1/games/html/gravegain3d/index.html",
   "isAudioEnabled": false,
   "alwaysSendMemory": false,
   "autoChooseModel": false,
@@ -21,19 +21,31 @@
   "serverPort": 42069,
   "webEngine": "ultralight",
   "audioChannelMode": "mono",
+  "audioVoiceId": "21m00Tcm4TlvDq8ikWAM",
+  "audioCommentary": false,
+  "audioNarrateBugs": false,
   "localModels": {
     "ollamaUrl": "http://127.0.0.1:11434",
     "autoStart": true,
     "roles": {
-      "agent": { "provider": "local", "model": "qwen3:8b" },
-      "vision": { "provider": "local", "model": "qwen2.5vl:7b" },
-      "coder": { "provider": "local", "model": "qwen2.5-coder:7b" },
-      "reasoner": { "provider": "local", "model": "deepseek-r1:8b" }
+      "agent": {
+        "provider": "local",
+        "model": "qwen3:8b"
+      },
+      "vision": {
+        "provider": "local",
+        "model": "qwen2.5vl:7b"
+      },
+      "coder": {
+        "provider": "local",
+        "model": "qwen2.5-coder:7b"
+      },
+      "reasoner": {
+        "provider": "local",
+        "model": "deepseek-r1:8b"
+      }
     }
   },
-  "audioVoiceId": "21m00Tcm4TlvDq8ikWAM",
-  "audioCommentary": false,
-  "audioNarrateBugs": false,
   "opencode": {
     "enabled": false,
     "mode": "cli",

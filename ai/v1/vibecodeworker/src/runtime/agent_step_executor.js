@@ -311,6 +311,22 @@ async function executeAgentStep({
       captureManualScreenshot();
     }
 
+    // Website debugging: throttled on-page audit (broken images, dead
+    // links, unlabeled inputs, ...) for http(s) targets. Findings fold into
+    // consoleLogs so the bug scan below files them. Skipped for native games
+    // (no webview guest) and best-effort everywhere else.
+    if (!nativeProcess) {
+      try {
+        await require('./website_debugger').maybeAuditWebsite({
+          gameController,
+          webviewElement,
+          url: el.gameUrlInput ? el.gameUrlInput.value : '',
+          consoleLogs,
+          logSystemMessage,
+        });
+      } catch (_) { /* audits never break the step */ }
+    }
+
     const isNewBugFound = agentBrain.scanForBugs(screenshotBase64, consoleLogs);
     if (isNewBugFound) {
       audio.playBugAlertSound();

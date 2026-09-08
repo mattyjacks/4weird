@@ -77,7 +77,10 @@ function scanForBugs(brain, screenshotBase64, consoleLogs) {
 
     if (typeof log === 'string') {
       const lower = log.toLowerCase();
-      return lower.includes('error') || lower.includes('exception') || lower.includes('failed to load');
+      // [4weird-site-audit] carries no 'error' word but is always fileable;
+      // the guest/net/resource markers already contain 'error'.
+      return lower.includes('error') || lower.includes('exception') || lower.includes('failed to load')
+        || lower.includes('[4weird-site-audit]');
     }
     return log.level === 3 || (log.message && (
       log.message.includes('Error') ||

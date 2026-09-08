@@ -15,6 +15,7 @@ const { classifyTaskComplexity, selectModelForComplexity, estimateTokens } = req
 const { minifyCode, buildCachedContext, truncateToTokens } = require('./minimization');
 const { recordTokenUsage } = require('./brain/token_tracker');
 const { getResolvedApiKey } = require('./storage');
+const { isMetaDirectUrl } = require('./meta_endpoint');
 
 class AutoCodeSystem {
   constructor() {
@@ -267,7 +268,7 @@ Output format:
       };
     } else if (provider === 'meta') {
       const activeModel = model || 'meta-llama/llama-4-scout-17b-16e-instruct';
-      const isMetaDirect = endpointUrl && endpointUrl.includes('meta.ai');
+      const isMetaDirect = isMetaDirectUrl(endpointUrl);
       url = isMetaDirect ? endpointUrl : (endpointUrl || 'https://openrouter.ai/api/v1/chat/completions');
       headers['Authorization'] = `Bearer ${apiKey}`;
       headers['HTTP-Referer'] = 'https://github.com/mattyjacks/4weird';
