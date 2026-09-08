@@ -167,7 +167,7 @@ async function main() {
   })()`);
   stage('stage: PURE pane locks 16:9', Math.abs(paneRatio - 16 / 9) < 0.06, `ratio=${Number(paneRatio).toFixed(3)}`);
   const aiCanvas = await run(`(() => { const c = document.getElementById('ai-view-canvas'); return c ? c.width + 'x' + c.height : 'missing'; })()`);
-  stage('stage: AI canvas is 960x540', aiCanvas === '960x540', aiCanvas);
+  stage('stage: AI canvas is 480x270', aiCanvas === '480x270', aiCanvas);
   const guestSize = await guest('window.innerWidth + "x" + window.innerHeight');
   stage('stage: render surface is true 1920x1080', guestSize === '1920x1080', guestSize);
   await sleep(2600); // let the AI mirror loop paint a frame

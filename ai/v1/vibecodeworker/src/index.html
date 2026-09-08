@@ -858,13 +858,14 @@
                       <button class="vision-toggle active" id="ai-toggle-boxes" title="Object recognition boxes">🎯</button>
                       <button class="vision-toggle active" id="ai-toggle-trail" title="Mouse trail + cursor">🖱️</button>
                       <button class="vision-toggle active" id="ai-toggle-heat" title="Click heatmap">🔥</button>
+                      <button class="vision-toggle active" id="ai-toggle-decay" title="Fade stale hotspots over time">⏳</button>
                       <button class="vision-toggle active" id="ai-toggle-keys" title="Key press HUD">⌨️</button>
                       <button class="vision-toggle active" id="ai-toggle-mirror" title="Pause/resume AI view">⏸️</button>
                     </span>
                   </div>
                   <div class="ai-canvas-wrap">
-                    <canvas id="ai-view-canvas" width="960" height="540"></canvas>
-                    <div class="vision-live-badge"><span class="vision-dot"></span><span id="ai-view-live-label">AI VIEW · 960×540</span></div>
+                    <canvas id="ai-view-canvas" width="480" height="270"></canvas>
+                    <div class="vision-live-badge"><span class="vision-dot"></span><span id="ai-view-live-label">AI VIEW · 480×270</span></div>
                   </div>
                   <div class="ai-view-foot">
                     <div class="vision-keys" id="ai-view-keys"></div>
@@ -913,6 +914,7 @@
               <button id="btn-takeover" class="btn btn-small btn-secondary" title="Pause the agent and play the game yourself while the AI watches, records your inputs and takes notes">🙋 Take over — I play, AI watches</button>
               <span class="takeover-status" id="takeover-status">AI drives. Take over anytime to show it how it's done.</span>
               <button id="btn-takeover-clear-heat" class="btn btn-small btn-secondary" title="Clear the AI click-heatmap">🧹 Clear heat</button>
+              <button id="btn-takeover-gen-test" class="btn btn-small btn-secondary" title="Generate a regression test from your last takeover trace (tiny digest test + runtime-only data fixture)">🧪 Generate test</button>
             </div>
             <!-- DISPLAY CONTROLS: HD windowed / fullscreen + smart game framing -->
             <div class="viewport-toolbar" id="viewport-display-toolbar">

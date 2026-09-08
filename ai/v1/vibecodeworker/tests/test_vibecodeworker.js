@@ -1387,8 +1387,10 @@ async function runTests() {
     const sv = require(path.join(projectRoot, 'src', 'components', 'stage_view'));
     assert.strictEqual(sv.HD_W, 1920, "Render surface width must be 1920");
     assert.strictEqual(sv.HD_H, 1080, "Render surface height must be 1080");
-    assert.strictEqual(sv.AI_W, 960, "AI pane canvas must be 960 wide (50% projection)");
-    assert.strictEqual(sv.AI_H, 540, "AI pane canvas must be 540 tall (16:9)");
+    assert.strictEqual(sv.AI_W, 480, "AI pane canvas must be 480 wide (compact 480p mirror)");
+    assert.strictEqual(sv.AI_H, 270, "AI pane canvas must be 270 tall (16:9)");
+    assert(sv.MIRROR_TICK_MS <= 500, "Mirror tick must be fast (<=500ms)");
+    assert.strictEqual(sv.HEAT_COLS * sv.HEAT_ROWS <= 576, true, "Heat grid must stay compact (<=576 cells)");
     assert(Math.abs(sv.computePureScale(960) - 0.5) < 1e-9, "960px pane must shrink 1920 exactly 50%");
     assert.strictEqual(sv.computePureScale(0), 1, "Zero-width pane must fall back to scale 1");
     assert.deepStrictEqual(sv.normToGuest(500, 500), { x: 960, y: 540 }, "Centre of action space must map to guest centre");
@@ -1417,6 +1419,58 @@ async function runTests() {
     assert.strictEqual(drained.length, 3, "Drain parser must keep move/click/key and drop junk");
     assert.deepStrictEqual(sv.parseDrainedEvents('not-json'), [], "Drain parser must survive garbage");
 
+    // Fast overlay path: worker + box culling + pre-scaled heat cells.
+    const culled = sv.cullObjects([
+      { x: 100, y: 100, w: 50, h: 50, kind: 'button', label: 'Big' },
+      { x: -10, y: 100, w: 20, h: 20, kind: 'link', label: 'Offscreen' },
+      { x: 500, y: 500, w: 10, h: 10, kind: 'other', label: 'Small' }
+    ], 24);
+    assert.strictEqual(culled.length, 2, "Cull must drop off-screen boxes");
+    assert.strictEqual(culled[0].label, 'Big', "Cull must keep biggest first");
+    assert(sv.cullObjects('junk', 24).length === 0, "Cull must survive garbage");
+    const heatArr = new Array(sv.HEAT_COLS * sv.HEAT_ROWS).fill(0);
+    heatArr[0] = 2; heatArr[5] = 4;
+    const hv = sv.heatActiveCells(heatArr, sv.HEAT_COLS, sv.HEAT_ROWS);
+    assert.strictEqual(hv.max, 4, "Heat view must report max");
+    assert.strictEqual(hv.cells.length, 2, "Heat view must list only active cells");
+    assert.deepStrictEqual(sv.heatActiveCells(new Array(sv.HEAT_COLS * sv.HEAT_ROWS).fill(0)).cells, [], "Empty heat must yield no cells");
+    // Heat alpha bucketing: one fillStyle per bucket, not per cell.
+    const buckets = sv.bucketHeatCellsByAlpha([
+      { col: 0, row: 0, a: 0.31 }, { col: 1, row: 0, a: 0.34 }, { col: 2, row: 0, a: 0.58 }
+    ]);
+    assert.strictEqual(buckets.size, 2, "Nearby alphas must quantize into shared buckets");
+    assert.strictEqual(buckets.get(0.3).length, 2, "0.31 + 0.34 must share the 0.3 bucket");
+    assert.strictEqual(sv.bucketHeatCellsByAlpha([]).size, 0, "Empty cells must yield no buckets");
+    // Stale-hotspot fade: exponential decay, epsilon zeroing, safe no-ops.
+    assert.strictEqual(sv.HEAT_DECAY_MS, 10000, "Decay interval must be 10s");
+    assert.strictEqual(sv.HEAT_DECAY_FACTOR, 0.5, "Decay must halve the grid per interval");
+    const decayGrid = [4, 0.4, 0, 2];
+    const faded = sv.decayHeatValues(decayGrid, 0.5, 0.5);
+    assert.strictEqual(faded.decayed, true, "Valid factor must decay");
+    assert.deepStrictEqual(decayGrid, [2, 0, 0, 1], "Cells must halve, whispers below epsilon must zero");
+    assert.strictEqual(faded.cleared, 1, "Must report cleared cells");
+    assert.strictEqual(faded.active, 2, "Must report surviving cells");
+    const untouched = [5, 5];
+    assert.strictEqual(sv.decayHeatValues(untouched, 1.5, 0.5).decayed, false, "Factor >= 1 must be a no-op");
+    assert.deepStrictEqual(untouched, [5, 5], "No-op decay must leave the grid untouched");
+    const atEps = [1];
+    sv.decayHeatValues(atEps, 0.5, 0.5);
+    assert.deepStrictEqual(atEps, [0.5], "A value landing exactly on epsilon must survive (< is strict)");
+    assert.strictEqual(sv.decayHeatValues('junk', 0.5, 0.5).decayed, false, "Garbage grid must be a no-op");
+    const workerSrc = sv.buildOverlayWorkerScript();
+    assert(workerSrc.includes('self.onmessage'), "Overlay worker must handle messages");
+    assert(workerSrc.includes("'drain'") && workerSrc.includes("'boxes'") && workerSrc.includes("'heat'"), "Worker must cover drain/boxes/heat");
+    const stageSrc = fs.readFileSync(path.join(projectRoot, 'src', 'components', 'stage_view.js'), 'utf8');
+    assert(stageSrc.includes('createImageBitmap'), "Stage must GPU-decode frames via createImageBitmap");
+    assert(stageSrc.includes('new Worker'), "Stage must offload overlay work to a Web Worker");
+    assert(stageSrc.includes('Promise.all'), "Stage must run capture + detection concurrently");
+    assert(stageSrc.includes('desynchronized'), "Stage must use a low-latency canvas context");
+    assert(stageSrc.includes('repaintHeatLayer'), "Stage must repaint heat only on data change");
+    assert(stageSrc.includes('drawImage(layer'), "Stage must blit the cached heat layer in one drawImage");
+    assert(stageSrc.includes('fillRect(arr[i].col, arr[i].row, 1, 1)'), "Heat layer must paint 1px cells on the tiny offscreen canvas");
+    assert(stageSrc.includes('decayHeatValues(heat'), "Stage must fade stale hotspots on a timer");
+    assert(stageSrc.includes("bindToggle('ai-toggle-decay', 'decayHeat')"), "Stage must wire a heat-decay toggle");
+
     // Takeover notes: counts, key ranking, hottest zone, duration.
     const summary = sv.summarizeTakeover({
       startedAt: Date.now() - 65000, endedAt: Date.now(),
@@ -1435,11 +1489,15 @@ async function runTests() {
     const htmlSrc = fs.readFileSync(path.join(projectRoot, 'src', 'index.html'), 'utf8');
     assert(htmlSrc.includes('id="pure-pane"'), "Stage must have a PURE pane");
     assert(htmlSrc.includes('id="ai-view-canvas"'), "Stage must have an AI view canvas");
+    assert(htmlSrc.includes('id="ai-toggle-decay"'), "Stage must have a heat-decay toggle");
+    assert(htmlSrc.includes('width="480" height="270"'), "AI canvas must be the compact 480x270 backing store");
     assert(htmlSrc.includes('id="btn-takeover"'), "Stage must have a takeover button");
     assert(htmlSrc.includes('id="takeover-status"'), "Stage must have a takeover status readout");
     assert(htmlSrc.includes('width:1920px; height:1080px'), "Webview must render a true 1920x1080 surface");
     const appSrc2 = fs.readFileSync(path.join(projectRoot, 'src', 'app.js'), 'utf8');
     assert(appSrc2.includes('initStageView'), "Dashboard must init the playtest stage");
+    assert(appSrc2.includes('resize({ width: 480 })'), "Dashboard must capture a compact 480px AI frame");
+    assert(appSrc2.includes('toJPEG(50)'), "Dashboard must use a compact JPEG quality for the 480p mirror");
     assert(appSrc2.includes('handleGuestLoad'), "Dashboard must re-fit + re-attach on guest load");
     assert(appSrc2.includes('window.humanTakeover'), "Dashboard must expose humanTakeover to the runner brain");
     assert(appSrc2.includes('window.getAIViewMetrics'), "Dashboard must expose AI view metrics");
@@ -1453,6 +1511,82 @@ async function runTests() {
   } catch (err) {
     console.error("❌ Test 37 Failed:", err);
     failedTests.push("Stage.pureAiTakeover");
+  }
+
+  // Test 38: self-generated trace tests stay token-frugal — a tiny digest
+  // test (model-visible) plus a runtime-only data fixture (never in context).
+  try {
+    console.log("Running Test 38: trace test generator (token-frugal)...");
+    const ttg = require(path.join(projectRoot, 'src', 'runtime', 'trace_test_gen'));
+    const sv38 = require(path.join(projectRoot, 'src', 'components', 'stage_view'));
+    const replay = require(path.join(projectRoot, 'tests', 'trace_replay'));
+    const os = require('os');
+    const { execFileSync } = require('child_process');
+    assert.strictEqual(sv38.TRACE_SAMPLE_CAP, ttg.TRACE_SAMPLE_CAP, "Stage ring cap and generator cap must agree");
+    // Generator and shared harness must canonicalize identically, or every
+    // generated integrity hash would fail.
+    for (const c of [[0, 12, 345], [1, 999, 0], [2, 'Space']]) {
+      assert.strictEqual(replay.canonicalSample(c), ttg.canonicalSample(c), "Harness/gen canonical form must match");
+    }
+    assert.strictEqual(replay.fnv1a('m,1,2;c,3,4'), ttg.fnv1a('m,1,2;c,3,4'), "Harness/gen hash must match");
+
+    const makeSession = (n) => {
+      const samples = [];
+      for (let i = 0; i < n; i++) samples.push({ k: 'move', x: (i * 37) % 1000, y: (i * 53) % 1000 });
+      for (let i = 0; i < 30; i++) samples.push({ k: 'click', x: 100 + (i * 11) % 200, y: 300 + (i * 7) % 100 });
+      for (let i = 0; i < 10; i++) samples.push({ k: 'key', key: i % 2 ? 'Space' : 'e', down: true });
+      return {
+        startedAt: 1000, endedAt: 46000, moves: n, clicks: 30,
+        keys: { Space: 5, e: 5 }, zones: {}, distance: 12345.6789, shots: 3, samples
+      };
+    };
+    const heatGrid = new Array(576).fill(0);
+    heatGrid[100] = 12; heatGrid[101] = 4; heatGrid[300] = 7;
+    const big = ttg.buildTraceArtifacts({ session: makeSession(200), heatGrid, game: 'WhackAMole (test)' });
+    const small = ttg.buildTraceArtifacts({ session: makeSession(10), heatGrid, game: 'WhackAMole (test)' });
+
+    // Absolute budget: the reviewable test must fit in ~1k tokens…
+    assert(big.testSource.includes(ttg.TEST_MARKER), "Generated test must carry the trace-test marker");
+    assert(big.testBytes <= ttg.MAX_TEST_SOURCE_BYTES, "Generated test must fit the token budget");
+    assert(big.testBytes < big.dataBytes, "Reviewable test must stay smaller than its runtime-only fixture");
+    // …and stay flat while the trace grows: 20x more samples must barely move it…
+    assert(Math.abs(big.testBytes - small.testBytes) < 512, "Digest test size must stay flat as the trace grows");
+    // …while the bulk lands in the runtime-only fixture instead.
+    const dataBig = JSON.parse(big.dataSource), dataSmall = JSON.parse(small.dataSource);
+    assert(dataBig.samples.length > dataSmall.samples.length * 4, "Fixture must hold the growing sample stream");
+    assert(big.dataBytes > small.dataBytes, "Fixture bytes must grow with the trace");
+    assert(big.testTokens < big.dataTokens, "Reviewable tokens must stay below runtime-only tokens");
+    assert.strictEqual(big.dataFilename, big.testFilename.replace(/\.js$/, '.test.json'), "Fixture name must match its test");
+    const dataObj = dataBig;
+    assert.strictEqual(typeof dataObj._note, 'string', "Fixture must carry the runtime-only note");
+    assert(/never paste/i.test(dataObj._note), "Fixture note must forbid model-context pasting");
+    assert.strictEqual(big.digest.exemplars.length, 4, "Digest must embed only a few exemplars, never the stream");
+
+    // The generated pair must actually run green from any directory.
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'trace-test-'));
+    const tFile = path.join(tmp, big.testFilename), dFile = path.join(tmp, big.dataFilename);
+    fs.writeFileSync(tFile, big.testSource, 'utf8');
+    fs.writeFileSync(dFile, big.dataSource, 'utf8');
+    const env = { ...process.env, VIBECODEWORKER_ROOT: projectRoot };
+    const out = execFileSync(process.execPath, [tFile], { env, encoding: 'utf8' });
+    assert(/PASS trace/.test(out), "Generated test must print its PASS line");
+
+    // Integrity: a tampered fixture must fail (hash catches it, no bulk needed).
+    const tampered = { ...dataObj, samples: dataObj.samples.map((s, i) => (i === 0 ? [1, 999, 999] : s)) };
+    fs.writeFileSync(dFile, JSON.stringify(tampered), 'utf8');
+    let threw = false;
+    try { execFileSync(process.execPath, [tFile], { env, stdio: 'pipe' }); } catch (_) { threw = true; }
+    assert(threw, "Tampered fixture must fail the generated test");
+    fs.rmSync(tmp, { recursive: true, force: true });
+
+    // Refusals: empty sessions produce no test.
+    const emptySession = { ...makeSession(0), moves: 0, clicks: 0, keys: {}, samples: [] };
+    assert.throws(() => ttg.buildTraceArtifacts({ session: emptySession, heatGrid, game: 'x' }), /empty trace/);
+    assert.throws(() => ttg.buildTraceSnapshot({ session: null, heatGrid, game: 'x' }), /needs a session/);
+    console.log("✅ Test 38 Passed!");
+  } catch (err) {
+    console.error("❌ Test 38 Failed:", err);
+    failedTests.push("TraceTestGen.tokenFrugal");
   }
   const resultsPath = path.join(projectRoot, '..', '..', '..', 'test-results', '.last-run.json');
   const status = failedTests.length === 0 ? "passed" : "failed";

@@ -985,8 +985,11 @@ document.addEventListener('DOMContentLoaded', () => {
     captureAI: async () => {
       if (!webviewElement) return null;
       try {
+        // Compact 480p mirror: quarters the 960px pixel traffic so the AI
+        // pane stays fluid headless or headful. JPEG q50 is plenty for
+        // boxes/trails/heat at this size.
         const img = await webviewElement.capturePage();
-        return img.resize({ width: 960 }).toJPEG(60).toString('base64');
+        return img.resize({ width: 480 }).toJPEG(50).toString('base64');
       } catch (_) { return null; }
     },
     visionState,
@@ -999,6 +1002,27 @@ document.addEventListener('DOMContentLoaded', () => {
     setBotControl: (on) => { try { gameController.setBotControl(webviewElement, on); } catch (_) {} }
   });
   stageView.start();
+  // Self-generated trace tests: after a takeover, the 🧪 button freezes the
+  // last session into a tiny digest test + a runtime-only data fixture
+  // (tests/generated/). The test file is the whole reviewable surface; the
+  // fixture is never pasted into model context.
+  document.getElementById('btn-takeover-gen-test')?.addEventListener('click', async () => {
+    try {
+      const input = stageView.getLastTraceInput?.();
+      if (!input) { toastNotifier.show('Take over and play first — there is no trace to test yet.', 'info'); return; }
+      const { buildTraceArtifacts } = require('./runtime/trace_test_gen');
+      const game = (el.quickGameUrl?.value || 'takeover').replace(/^Native window — /, '').slice(0, 80);
+      const art = buildTraceArtifacts({ session: input.session, heatGrid: input.heatGrid, game });
+      const res = await ipcRenderer.invoke('save-trace-test', {
+        testFilename: art.testFilename, testSource: art.testSource,
+        dataFilename: art.dataFilename, dataSource: art.dataSource
+      });
+      if (!res?.success) throw new Error(res?.error || 'save rejected');
+      logSystemMessage(`🧪 Trace test saved: ${art.testFilename} (~${art.testTokens} tokens reviewable) + runtime fixture ${art.dataFilename} (~${art.dataTokens} tokens, never sent to the model). Run: npm run test:traces`, 'success');
+    } catch (e) {
+      toastNotifier.show(`Trace test failed: ${e.message}`, 'warning');
+    }
+  });
   // Runner-brain / CLI API for the takeover mode.
   window.humanTakeover = () => stageView.toggleTakeover();
   window.isHumanTakeover = () => stageView.isTakeover();

@@ -223,6 +223,39 @@ app.on('window-all-closed', () => {
 });
 
 // IPC Handlers
+// Self-generated trace tests: the renderer composes a tiny digest test +
+// runtime-only data fixture (see src/runtime/trace_test_gen.js). Filenames are
+// allow-listed, sizes capped, and the pair is written to tests/generated/.
+ipcMain.handle('save-trace-test', async (_event, payload = {}) => {
+  try {
+    const fs = require('fs');
+    const { testFilename, testSource, dataFilename, dataSource } = payload;
+    const nameRe = /^trace-\d{8}-\d{6}-[a-z0-9-]{1,24}\.(js|test\.json)$/;
+    if (typeof testFilename !== 'string' || !nameRe.test(testFilename) || !testFilename.endsWith('.js')) {
+      throw new Error('rejected: bad test filename');
+    }
+    const expectData = testFilename.replace(/\.js$/, '.test.json');
+    if (dataFilename !== expectData) throw new Error('rejected: fixture name must match the test');
+    if (typeof testSource !== 'string' || !testSource.includes('VIBECODEWORKER-TRACE-TEST v1')) {
+      throw new Error('rejected: missing trace-test marker');
+    }
+    if (Buffer.byteLength(testSource, 'utf8') > 4096) throw new Error('rejected: test exceeds the token budget (4KB)');
+    if (typeof dataSource !== 'string') throw new Error('rejected: bad fixture payload');
+    const data = JSON.parse(dataSource);
+    if (!data || data.v !== 1 || !Array.isArray(data.samples) || !data.samples.length) {
+      throw new Error('rejected: fixture has no samples');
+    }
+    if (Buffer.byteLength(dataSource, 'utf8') > 262144) throw new Error('rejected: fixture exceeds 256KB');
+    const dir = path.join(projectRoot, 'tests', 'generated');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, testFilename), testSource, 'utf8');
+    fs.writeFileSync(path.join(dir, dataFilename), dataSource, 'utf8');
+    return { success: true, testFile: testFilename, dataFile: dataFilename };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
 ipcMain.handle('run-input-sim', async (event, args) => {
   return await runInputSimulator(args, projectRoot);
 });

@@ -9,6 +9,10 @@
  *   node run_hl2_playtest.js --game hl2-ep2 --steps 50
  *   node run_hl2_playtest.js --game "Doom Eternal" --steps 50 --dry-run  (any game works)
  *
+ * Safety: live inputs are sent ONLY when the target window/process is found;
+ * otherwise the script forces --dry-run automatically (decisions + bridge
+ * argv are printed, nothing is executed).
+ *
  * Env: DEEPSEEK_API_KEY (or use --heuristic for offline bandit fallback).
  */
 const { spawnSync } = require('child_process');
@@ -50,6 +54,28 @@ function runBridge(pyArgs, windowTitle) {
   return { ok: res.status === 0, out: ((res.stdout || '') + (res.stderr || '')).slice(0, 300) };
 }
 
+// Safety: input_sim.py screenshots the whole desktop (exit 0) when the
+// target window is missing, so a failed screenshot can NOT be used to detect
+// "game not running" — without this check the loop would send REAL inputs to
+// whatever window has focus. Verify the target exists first via the overlay
+// command (throws "Window not found") or the process list, and force dry-run
+// when it is absent so only decisions are printed, never executed.
+function targetWindowPresent(query) {
+  const py = path.join(projectRoot, 'scripts', 'python', 'input_sim.py');
+  const res = spawnSync('python', [py, 'overlay', query], { encoding: 'utf8', timeout: 15000 });
+  return res.status === 0;
+}
+
+function targetProcessRunning(processNames) {
+  try {
+    const res = spawnSync('tasklist', ['/FO', 'CSV', '/NH'], { encoding: 'utf8', timeout: 15000 });
+    const out = String(res.stdout || '').toLowerCase();
+    return (processNames || []).some((n) => n && out.includes(String(n).toLowerCase()));
+  } catch (_) {
+    return false;
+  }
+}
+
 async function main() {
   const args = parseArgs(process.argv);
   if (args.listGames) {
@@ -60,6 +86,20 @@ async function main() {
   const profile = resolveGameProfile(query);
   console.log(`[hl2-demo] Profile: ${profile.id} - ${profile.name} (query: "${query}")`);
   console.log(`[hl2-demo] Goal: ${profile.goal.slice(0, 160)}...`);
+
+  // Never send real inputs unless the target is actually on screen. Profile
+  // ids (e.g. "hl2-ep2") are checked against the process list; title queries
+  // are checked against visible window titles.
+  if (!args.dryRun) {
+    const looksLikeId = !!args.game && /^(hl2-ep2|hl2-generic|generic-fps|generic-game|peggle-deluxe)$/i.test(args.game);
+    const present = looksLikeId
+      ? targetProcessRunning(profile.processNames)
+      : (targetWindowPresent(query) || targetProcessRunning(profile.processNames));
+    if (!present) {
+      args.dryRun = true;
+      console.log(`[hl2-demo] Target "${query}" is not running — forcing --dry-run (decisions printed, NO inputs sent). Start the game first for a live run.`);
+    }
+  }
 
   const brain = new AgentBrain();
   brain.updateConfig({
