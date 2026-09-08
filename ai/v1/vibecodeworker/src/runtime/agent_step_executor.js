@@ -76,10 +76,19 @@ async function executeAgentStep({
       }
     }
 
+    // Frame the real play area before the screenshot so the brain sees the
+    // GAME (not the page header) at full size. Native games own their own
+    // window and skip this; the embedded webview path is the one that can
+    // otherwise show a header sliver.
+    const nativeProcess = el.nativeProcessSelect.value;
+    if (!nativeProcess) {
+      try {
+        await require('./display_manager').ensureGameVisible({ webviewElement, gameController });
+      } catch (_) { /* framing is best-effort; the step still runs */ }
+    }
+
     const screenshotBase64 = await captureViewportScreenshot();
     if (!screenshotBase64) return;
-
-    const nativeProcess = el.nativeProcessSelect.value;
     const isExternalWindow = await ipcRenderer.invoke('is-game-window-active');
     let elements = [];
     if (!nativeProcess && !isExternalWindow) {

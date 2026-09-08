@@ -1,23 +1,15 @@
 # Gameplay discoveries
 Automatically distilled from completed playtest decisions.
 
-1. press_key → r: [hl2-ep2 offline fallback: LLM API Call failed: 401 - {"error":{"message":"Authentication Fails, Your api key: ****2345 is invalid","type":"authentication_error","param":null,"code":"invalid_request_error"}}] FPS route:
-2. press_key → ArrowUp: Offline explorer (no API key): no interactive elements found, probing keyboard.
-3. press_key → d: Offline explorer (no API key): no interactive elements found, probing keyboard.
-4. press_key → Space: Offline explorer (no API key): no interactive elements found, probing keyboard.
-5. click → 500,500: Offline explorer (no API key): scrolling to discover content below the fold.
-6. press_key → ArrowRight: Offline explorer (no API key): no interactive elements found, probing keyboard.
-7. press_key → Enter: Offline explorer (no API key): keyboard probe to explore page.
-8. hold_keys → w,space: [hl2-ep2 offline fallback: LLM API Call failed: 401 - {"error":{"message":"Authentication Fails, Your api key: ****2345 is invalid","type":"authentication_error","param":null,"code":"invalid_request_error"}}] FPS route:
-9. press_key → e: [hl2-ep2 offline fallback: LLM API Call failed: 401 - {"error":{"message":"Authentication Fails, Your api key: ****2345 is invalid","type":"authentication_error","param":null,"code":"invalid_request_error"}}] FPS route:
-10. click → 500,500: [hl2-ep2 offline fallback: LLM API Call failed: 401 - {"error":{"message":"Authentication Fails, Your api key: ****2345 is invalid","type":"authentication_error","param":null,"code":"invalid_request_error"}}] FPS route:
-11. hold_keys → w,a: [hl2-ep2 offline fallback: LLM API Call failed: 401 - {"error":{"message":"Authentication Fails, Your api key: ****2345 is invalid","type":"authentication_error","param":null,"code":"invalid_request_error"}}] FPS route:
-12. press_key → enter: Episode Two startup: New Game is selected, so begin a fresh campaign.
-13. Bug found (high): [SYSTEM] [Vision] vision detect failed: Error invoking remote method 'eval-in-game-window': Error: Game window is not open
-14. press_key → enter: Episode Two startup: accept the default difficulty and continue into the new campaign.
-15. hold_keys → w,shift: [hl2-ep2 offline fallback: LLM API Call failed: 401 - {"error":{"message":"Authentication Fails, Your api key: ****2345 is invalid","type":"authentication_error","param":null,"code":"invalid_request_error"}}] FPS route:
-16. press_key → r: [hl2-ep2 offline fallback: LLM API Call failed: 401 - {"error":{"message":"Authentication Fails, Your api key: ****2345 is invalid","type":"authentication_error","param":null,"code":"invalid_request_error"}}] FPS route:
-17. click → 500,500: [hl2-ep2 offline fallback: LLM API Call failed: 401 - {"error":{"message":"Authentication Fails, Your api key: ****2345 is invalid","type":"authentication_error","param":null,"code":"invalid_request_error"}}] FPS route:
-18. press_key → e: [hl2-ep2 offline fallback: LLM API Call failed: 401 - {"error":{"message":"Authentication Fails, Your api key: ****2345 is invalid","type":"authentication_error","param":null,"code":"invalid_request_error"}}] FPS route:
-19. move_mouse → 420,500: [hl2-ep2 offline fallback: LLM API Call failed: 401 - {"error":{"message":"Authentication Fails, Your api key: ****2345 is invalid","type":"authentication_error","param":null,"code":"invalid_request_error"}}] FPS route:
-20. hold_keys → w,shift: [hl2-ep2 offline fallback: LLM API Call failed: 401 - {"error":{"message":"Authentication Fails, Your api key: ****2345 is invalid","type":"authentication_error","param":null,"code":"invalid_request_error"}}] FPS route: 
+1. Observed canvas control “TEMPLATE-4weird-starfield” at 496,500.
+2. Observed a control “🎮 4weirdGames” at 75,68.
+3. Observed a control “← Back to 4weird” at 120,227.
+4. Observed canvas control “TEMPLATE-4weird-gameCanvas” at 372,1000.
+5. Observed button control “🛠️” at 960,879.
+6. Observed button control “♿” at 955,859.
+7. click → 496,500: Offline explorer (no API key): trying interactive element CANVAS "TEMPLATE-4weird-starfield" (1/6). Add an API key for smart decisions.
+8. Observed a control “🎮 4weirdGames” at 75,82.
+9. Observed a control “← Back to 4weird” at 120,274.
+10. Observed button control “🛠️” at 960,853.
+11. Observed button control “♿” at 955,829.
+12. click → 75,82: Offline explorer (no API key): trying interactive element A "🎮 4weirdGames" (2/6). Add an API key for smart decisions.

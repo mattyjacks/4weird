@@ -700,6 +700,23 @@ textarea:focus {
   display: flex;
   gap: 12px;
   margin-top: 12px;
+  align-items: center;
+}
+
+.display-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+}
+
+.display-readout {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--accent-cyan);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* AI VISION MIRROR: live mirror of the test window + AI overlays */

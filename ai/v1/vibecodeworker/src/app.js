@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const { ipcRenderer, clipboard } = require('electron');
-const AgentBrain = require('../agent_brain');
-const GameController = require('../game_controller');
+const AgentBrain = require('../automation/agent_brain');
+const GameController = require('../automation/game_controller');
 const { AutoCodeSystem } = require('../lib/core');
 const {
   PromptHistory,
@@ -16,6 +16,7 @@ const {
 const audio = require('./modules/audio_synthesizer');
 const config = require('./modules/config_manager');
 const webview = require('./modules/webview_manager');
+const rules = require('./modules/game_rules');
 const tracker = require('./modules/tracker_manager');
 const tabs = require('./modules/monitor_tabs');
 
@@ -43,6 +44,7 @@ const { initVisionMirror } = require('./components/vision_mirror');
 const visionState = require('./runtime/vision_state');
 const { buildDetectScript, parseDetectResponse } = require('./runtime/vision_detect');
 const { executeAgentStep: runAgentStep } = require('./runtime/agent_step_executor');
+const displayManager = require('./runtime/display_manager');
 const { WebEngineManager, DEFAULT_ENGINE } = require('./runtime/web_engine_manager');
 const { ThinkingOutLoud } = require('./runtime/thinking_out_loud');
 
@@ -856,7 +858,12 @@ document.addEventListener('DOMContentLoaded', () => {
       el.apiKeyTestResults.textContent = 'Testing entered keys…';
     }
     try {
-      const response = await ipcRenderer.invoke('test-api-keys', keys);
+      // Pass the configured endpoint so a Meta-direct key can be live-tested
+      // against the user's meta.ai endpoint instead of OpenRouter.
+      const response = await ipcRenderer.invoke('test-api-keys', {
+        ...keys,
+        endpointUrl: el.localUrlInput?.value || agentBrain.config.endpointUrl || ''
+      });
       const results = response?.results || [];
       invalidTestedApiKeyProviders = results.filter((result) => result.status === 'invalid').map((result) => result.provider);
       if (el.apiKeyTestResults) {
@@ -902,6 +909,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupWebEngineControls();
   setupWebviewListeners();
+  setupDisplayToolbar();
 
   ipcRenderer.on('agent-control', (event, { command }) => {
     logSystemMessage(`Remote AI Agent command received: '${command}'`);
@@ -1222,6 +1230,43 @@ function updateStatusBanner(text, type = 'ready') {
   setStatusBanner(el.gameStatusBanner, text, type);
 }
 
+function applyGameRulesText(text, sources) {
+  if (!el.gameRulesInput) return;
+  el.gameRulesInput.value = text;
+  if (el.quickGameRules) el.quickGameRules.value = text;
+  saveConfigData();
+  const label = sources && sources.length ? sources.join(' + ') : 'defaults';
+  logSystemMessage(`Game rules ready (${label}).`);
+}
+
+// Resolve this target's rules (game_meta.json > game.json) the moment it
+// loads, then enrich with on-page rules once the guest page is ready. The
+// merged text becomes the agent's Test Focus, so every 4weird HTML game is
+// playtested with its own rules and zero per-game code.
+function refreshGameRules(scrapePage) {
+  const url = String(el.gameUrlInput?.value || '').trim();
+  if (!url || url.startsWith('native://')) return;
+  const dir = rules.gameDirFromUrl(url);
+  const fileRules = rules.resolveFileGameRules(dir);
+  if (fileRules.sources.length) applyGameRulesText(fileRules.text, fileRules.sources);
+  if (!scrapePage || !webviewElement) return;
+  const token = url;
+  const baseSeen = () => new Set(
+    String(el.gameRulesInput?.value || '').split('\n')
+      .map((l) => l.replace(/\s+/g, ' ').trim().toLowerCase()).filter(Boolean)
+  );
+  const onReady = () => {
+    if (String(el.gameUrlInput?.value || '').trim() !== token) return;
+    webviewElement.executeJavaScript(rules.PAGE_RULES_SCRIPT).then((scrape) => {
+      if (String(el.gameUrlInput?.value || '').trim() !== token) return;
+      const page = rules.formatPageRules(scrape, baseSeen());
+      if (!page.text) return;
+      applyGameRulesText(rules.mergeRules(el.gameRulesInput.value, page.text), [...fileRules.sources, ...page.sources]);
+    }).catch(() => { /* file rules already applied; page enrichment is best-effort */ });
+  };
+  webviewElement.addEventListener('did-finish-load', onReady, { once: true });
+}
+
 function loadGame() {
   if (el.nativeProcessSelect?.value || String(el.gameUrlInput?.value || '').startsWith('native://')) {
     if (el.nativeProcessSelect?.value) {
@@ -1238,6 +1283,8 @@ function loadGame() {
   if (el.gameUrlInput.value) {
     updateStatusBanner("👉 Game ready! Click 'START AI AGENT' to begin playtesting", 'ready');
     if (hubUI) hubUI.showEditorWorkspace();
+    // Per-game rules awareness: file rules now, on-page rules on guest load.
+    refreshGameRules(true);
   }
 }
 
@@ -1247,8 +1294,9 @@ function selectDemo() {
     el.gameUrlInput.value = val;
     if (el.quickGameUrl) el.quickGameUrl.value = val;
     saveConfigData();
+    // loadGame() resolves this demo's rules (file + on-page) via
+    // refreshGameRules; the legacy loadGameMeta path is superseded.
     loadGame();
-    webview.loadGameMeta(val, el.gameRulesInput, saveConfigData, logSystemMessage);
     if (el.quickGameRules) el.quickGameRules.value = el.gameRulesInput.value;
   }
 }
@@ -1418,6 +1466,13 @@ function setupWebviewListeners() {
   webviewElement.addEventListener('did-finish-load', () => {
     logSystemMessage("Game window viewport successfully loaded.");
     crawlFiles();
+    // Frame the real play area (not the page header) so the agent's next
+    // screenshot shows the GAME at full size. Best-effort, runs in background.
+    try {
+      displayManager.ensureGameVisible({ webviewElement, gameController, log: (m) => logSystemMessage(m) })
+        .then((m) => { updateDisplayReadout(m); })
+        .catch(() => {});
+    } catch (_) {}
     
     webviewElement.executeJavaScript(`
       (() => {
@@ -1429,6 +1484,54 @@ function setupWebviewListeners() {
       })()
     `).catch(err => console.error("Failed to inject tracking script:", err));
   });
+}
+
+function updateDisplayReadout(m) {
+  try {
+    const readout = document.getElementById('display-readout');
+    if (!readout) return;
+    const metrics = m || displayManager.currentMetrics();
+    if (!metrics || !metrics.ok) {
+      readout.textContent = 'viewport: —';
+      return;
+    }
+    if (metrics.target === 'game-window') {
+      readout.textContent = `viewport: game window ${metrics.width || '?'}x${metrics.height || '?'}${metrics.fullscreen ? ' fullscreen' : ''}`;
+    } else {
+      const play = metrics.play ? ` · play ${metrics.play.width}x${metrics.play.height}` : '';
+      readout.textContent = `viewport: guest ${metrics.guestW}x${metrics.guestH}${play} (${metrics.method || 'webview'})`;
+    }
+  } catch (_) {}
+}
+
+function setupDisplayToolbar() {
+  const bind = (id, fn) => {
+    try {
+      const btn = document.getElementById(id);
+      if (btn) btn.addEventListener('click', fn);
+    } catch (_) {}
+  };
+  bind('btn-display-windowed', async () => {
+    audio.playClickSound();
+    const res = await displayManager.setDisplayMode('windowed', { width: 1920, height: 1080 });
+    logSystemMessage(res && res.success ? `Display: HD window ${res.width}x${res.height}.` : `Display switch failed: ${(res && res.error) || 'unknown'}`);
+  });
+  bind('btn-display-fullscreen', async () => {
+    audio.playClickSound();
+    const res = await displayManager.setDisplayMode('fullscreen');
+    logSystemMessage(res && res.success ? 'Display: fullscreen dashboard.' : `Display switch failed: ${(res && res.error) || 'unknown'}`);
+  });
+  bind('btn-center-game', async () => {
+    audio.playClickSound();
+    const m = await displayManager.ensureGameVisible({ webviewElement, gameController, log: (msg) => logSystemMessage(msg) });
+    updateDisplayReadout(m);
+  });
+  // Seed the readout with the live main-process display config.
+  displayManager.getDisplayConfig().then((cfg) => {
+    if (cfg && (cfg.width || cfg.fullscreen)) {
+      updateDisplayReadout({ ok: true, target: 'webview', guestW: cfg.width, guestH: cfg.height, method: cfg.mode || 'windowed' });
+    }
+  }).catch(() => {});
 }
 
 function reloadGame() {
@@ -1799,3 +1902,14 @@ window.triggerAgentStep = () => {
   executeAgentStep(true);
   return { success: true };
 };
+
+// Display + game-framing API for the operator console, CLI-driven flows,
+// and the dedicated game-runner brain. Lets the runner pick HD windowed,
+// fullscreen, or the separate game window, and re-centre the play area:
+//   await window.setDisplayMode('fullscreen')
+//   await window.setDisplayMode('game-fullscreen')
+//   await window.ensureGameVisible()
+window.setDisplayMode = (mode, opts) => displayManager.setDisplayMode(mode, opts);
+window.getDisplayConfig = () => displayManager.getDisplayConfig();
+window.ensureGameVisible = () => displayManager.ensureGameVisible({ webviewElement, gameController, log: (m) => logSystemMessage(m) });
+window.getGameViewMetrics = () => displayManager.currentMetrics();

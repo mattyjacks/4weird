@@ -31,6 +31,8 @@ const {
   getGameWindow,
   isGameWindowActive,
   openGameWindow,
+  getGameWindowBounds,
+  focusGameWindow,
   evalInGameWindow,
   captureGameScreenshot,
   reloadGameWindow,
@@ -71,21 +73,50 @@ if (!process.argv.includes('--enable-gpu')) {
   app.commandLine.appendSwitch('in-process-gpu');
 }
 
-function createWindow() {
+function resolveDashboardBounds() {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { x, y, width, height } = primaryDisplay.workArea;
+  // Legacy side-by-side layout: dashboard takes the left half so a separate
+  // game window can tile on the right. Default is the full work area (up to
+  // full HD 1920x1080) so the embedded game viewport is as large as possible.
+  if (cliOpts.displayMode === 'split') {
+    const ideWidth = Math.floor(width / 2);
+    return { x, y, width: ideWidth, height, mode: 'split' };
+  }
+  const wantW = cliOpts.windowSize ? cliOpts.windowSize.width : 1920;
+  const wantH = cliOpts.windowSize ? cliOpts.windowSize.height : 1080;
+  const w = Math.max(800, Math.min(wantW, width));
+  const h = Math.max(600, Math.min(wantH, height));
+  return { x: Math.round(x + Math.max(0, (width - w) / 2)), y: Math.round(y + Math.max(0, (height - h) / 2)), width: w, height: h, mode: cliOpts.displayMode || 'windowed' };
+}
 
-  const ideWidth = Math.floor(width / 2);
-  const ideHeight = height;
-  const ideX = x;
-  const ideY = y;
+function currentDisplayConfig() {
+  let bounds = null;
+  try {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      const b = mainWindow.getBounds();
+      bounds = { x: b.x, y: b.y, width: b.width, height: b.height, fullscreen: mainWindow.isFullScreen() };
+    }
+  } catch (_) {}
+  return {
+    ...(bounds || resolveDashboardBounds()),
+    mode: mainWindow && !mainWindow.isDestroyed() && mainWindow.isFullScreen() ? 'fullscreen' : (cliOpts.displayMode || 'windowed'),
+    headless: isHeadless,
+    gameWindowActive: isGameWindowActive(),
+    gameWindow: getGameWindowBounds()
+  };
+}
+
+function createWindow() {
+  const dash = resolveDashboardBounds();
 
   mainWindow = new BrowserWindow({
-    x: ideX,
-    y: ideY,
-    width: ideWidth,
-    height: ideHeight,
+    x: dash.x,
+    y: dash.y,
+    width: dash.width,
+    height: dash.height,
     show: !isHeadless,
+    fullscreen: cliOpts.fullscreen && !isHeadless,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -218,6 +249,9 @@ ipcMain.handle('launch-steam-game', async (_event, options = {}) => {
 
 ipcMain.handle('test-api-keys', async (_event, suppliedKeys = {}) => {
   const prompt = 'Hello, World! Respond in 1 word.';
+  // Renderer sends its configured endpoint URL alongside the keys so a
+  // Meta-direct key can be live-tested against meta.ai (see below).
+  const metaEndpointUrl = String(suppliedKeys.endpointUrl || '').trim();
   const providers = [
     { name: 'openai', key: String(suppliedKeys.openai || '').trim(), url: 'https://api.openai.com/v1/responses', model: 'gpt-5.6-luna', body: () => ({ model: 'gpt-5.6-luna', input: prompt, max_output_tokens: 16, store: false }) },
     { name: 'deepseek', key: String(suppliedKeys.deepseek || '').trim(), url: 'https://api.deepseek.com/chat/completions', model: 'deepseek-v4-flash', body: () => ({ model: 'deepseek-v4-flash', max_tokens: 16, messages: [{ role: 'user', content: prompt }] }) },
@@ -227,19 +261,39 @@ ipcMain.handle('test-api-keys', async (_event, suppliedKeys = {}) => {
   ];
   const results = await Promise.all(providers.map(async (provider) => {
     if (!provider.key) return { provider: provider.name, status: 'skipped', detail: 'No key entered.' };
+    // The Meta slot accepts either an OpenRouter key (sk-or-v1-…) or a
+    // Meta-direct key for a user-configured meta.ai endpoint. A Meta-direct
+    // key is tested against that endpoint, never against OpenRouter, where
+    // it would produce a false 401.
+    const isMetaDirectKey = provider.name === 'meta' && !provider.key.startsWith('sk-or-v1-');
+    if (isMetaDirectKey && (!metaEndpointUrl.startsWith('http') || !metaEndpointUrl.includes('meta.ai'))) {
+      return { provider: provider.name, status: 'error', detail: 'Meta-direct key: set your meta.ai endpoint URL in settings to live-test it here. Key was not removed.' };
+    }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 20000);
     try {
       const headers = { Authorization: `Bearer ${provider.key}`, 'Content-Type': 'application/json' };
-      if (provider.name === 'meta' || provider.name === 'openrouter') {
-        headers['HTTP-Referer'] = 'https://github.com/mattyjacks/4weird';
-        headers['X-Title'] = '4weird VibeCodeWorker';
+      let url = typeof provider.url === 'function' ? provider.url(provider.key) : provider.url;
+      let body = provider.body();
+      if (isMetaDirectKey) {
+        // Mirror runtime behavior (llm_caller.js): Bearer auth only, no
+        // OpenRouter headers, OpenAI-compatible chat body.
+        url = metaEndpointUrl;
+      } else {
+        if (provider.name === 'meta' || provider.name === 'openrouter') {
+          headers['HTTP-Referer'] = 'https://github.com/mattyjacks/4weird';
+          headers['X-Title'] = '4weird VibeCodeWorker';
+        }
       }
-      const response = await fetch(typeof provider.url === 'function' ? provider.url(provider.key) : provider.url, { method: 'POST', headers, body: JSON.stringify(provider.body()), signal: controller.signal });
+      const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body), signal: controller.signal });
       if (response.ok) return { provider: provider.name, status: 'valid', detail: 'Key accepted.' };
       // Only authentication/authorization responses prove that a stored key is bad.
       if (response.status === 401 || response.status === 403) return { provider: provider.name, status: 'invalid', detail: `Authentication rejected (${response.status}).` };
-      return { provider: provider.name, status: 'error', detail: `Provider returned ${response.status}; key was not removed.` };
+      // Anything else (402 billing, 429 rate limit, 404 model, 5xx outage)
+      // says nothing about the key itself, so the key is always kept.
+      if (response.status === 402) return { provider: provider.name, status: 'error', detail: `Key is valid but the account needs payment/quota (provider returned 402 Payment Required). Top up billing and retry. Key was not removed.` };
+      if (response.status === 429) return { provider: provider.name, status: 'error', detail: `Rate limited (429) — key works, slow down and retry. Key was not removed.` };
+      return { provider: provider.name, status: 'error', detail: `Provider returned ${response.status}; the key itself was not judged bad. Key was not removed.` };
     } catch (error) {
       return { provider: provider.name, status: 'error', detail: error.name === 'AbortError' ? 'Timed out; key was not removed.' : 'Connection failed; key was not removed.' };
     } finally {
@@ -301,8 +355,31 @@ ipcMain.handle('scan-directory', async (event, dirPath) => {
   return scanSourceDirectory(dirPath);
 });
 
-ipcMain.handle('open-game-window', async (event, url) => {
-  return await openGameWindow(url, isHeadless, mainWindow);
+ipcMain.handle('open-game-window', async (event, url, options = {}) => {
+  // Renderer may pass (url, { width, height, fullscreen, mode }) or a legacy
+  // bare URL string. The test window defaults to full HD 1920x1080.
+  const opts = (options && typeof options === 'object') ? options : {};
+  const targetUrl = typeof url === 'string' ? url : (url && url.url) || '';
+  const res = await openGameWindow(targetUrl, isHeadless, mainWindow, null, {
+    width: opts.width || (cliOpts.gameWindowSize && cliOpts.gameWindowSize.width) || 1920,
+    height: opts.height || (cliOpts.gameWindowSize && cliOpts.gameWindowSize.height) || 1080,
+    fullscreen: opts.fullscreen || opts.mode === 'fullscreen' || cliOpts.gameFullscreen,
+    mode: opts.mode
+  });
+  // Smart tiling: when the test window opens windowed next to a windowed
+  // dashboard, dock the dashboard to the left half (legacy side-by-side)
+  // unless the caller opts out with { tile: false }.
+  try {
+    if (res && res.success && opts.tile !== false && !isHeadless && mainWindow && !mainWindow.isDestroyed()
+      && !mainWindow.isFullScreen() && !(opts.fullscreen || opts.mode === 'fullscreen' || cliOpts.gameFullscreen)) {
+      const { x, y, width, height } = screen.getPrimaryDisplay().workArea;
+      const half = Math.floor(width / 2);
+      mainWindow.setBounds({ x, y, width: half, height });
+      const gw = getGameWindow();
+      if (gw && !gw.isDestroyed()) gw.setBounds({ x: x + half, y, width: width - half, height });
+    }
+  } catch (_) { /* tiling is best-effort */ }
+  return res;
 });
 
 ipcMain.handle('eval-in-game-window', async (event, script) => {
@@ -323,6 +400,69 @@ ipcMain.handle('open-game-devtools', async (event) => {
 
 ipcMain.handle('is-game-window-active', () => {
   return isGameWindowActive();
+});
+
+ipcMain.handle('focus-game-window', async () => {
+  return focusGameWindow();
+});
+
+ipcMain.handle('get-display-config', async () => {
+  return currentDisplayConfig();
+});
+
+// Runtime display control for the operator toolbar AND the runner brain:
+//   { mode: 'windowed' }                          -> dashboard windowed (HD size)
+//   { mode: 'fullscreen' }                        -> dashboard fullscreen
+//   { mode: 'split' }                             -> legacy left-half dashboard
+//   { mode: 'game-windowed', width, height }      -> test window windowed (default 1920x1080)
+//   { mode: 'game-fullscreen' }                   -> test window fullscreen
+ipcMain.handle('set-display-mode', async (_event, req = {}) => {
+  const mode = String((req && req.mode) || 'windowed').toLowerCase();
+  try {
+    if (mode === 'game-fullscreen' || mode === 'game-windowed') {
+      const gw = getGameWindow();
+      if (!gw || gw.isDestroyed()) return { success: false, error: 'Game window is not open' };
+      if (mode === 'game-fullscreen') {
+        gw.setFullScreen(true);
+        if (!isHeadless) { gw.show(); gw.focus(); }
+      } else {
+        const { width, height } = screen.getPrimaryDisplay().workArea;
+        const w = Math.max(800, Math.min(Number(req.width) || 1920, width));
+        const h = Math.max(600, Math.min(Number(req.height) || 1080, height));
+        try { gw.setFullScreen(false); } catch (_) {}
+        gw.setBounds({ x: Math.round(width - w), y: 0, width: w, height: h });
+        if (!isHeadless) { gw.show(); gw.focus(); }
+      }
+      return { success: true, ...(getGameWindowBounds() || {}) };
+    }
+    if (!mainWindow || mainWindow.isDestroyed()) return { success: false, error: 'Dashboard is not open' };
+    if (mode === 'fullscreen') {
+      mainWindow.setFullScreen(true);
+      cliOpts.displayMode = 'fullscreen';
+    } else if (mode === 'split') {
+      try { mainWindow.setFullScreen(false); } catch (_) {}
+      const { x, y, width, height } = screen.getPrimaryDisplay().workArea;
+      const half = Math.floor(width / 2);
+      mainWindow.setBounds({ x, y, width: half, height });
+      cliOpts.displayMode = 'split';
+    } else {
+      // windowed / hd: explicit HD size (default 1920x1080), centered.
+      try { mainWindow.setFullScreen(false); } catch (_) {}
+      const { x, y, width, height } = screen.getPrimaryDisplay().workArea;
+      const w = Math.max(800, Math.min(Number(req.width) || 1920, width));
+      const h = Math.max(600, Math.min(Number(req.height) || 1080, height));
+      mainWindow.setBounds({
+        x: Math.round(x + Math.max(0, (width - w) / 2)),
+        y: Math.round(y + Math.max(0, (height - h) / 2)),
+        width: w, height: h
+      });
+      cliOpts.displayMode = 'windowed';
+    }
+    if (!isHeadless) { mainWindow.show(); mainWindow.focus(); }
+    return { success: true, ...currentDisplayConfig() };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
 });
 
 ipcMain.handle('set-bot-control', async (event, on) => {

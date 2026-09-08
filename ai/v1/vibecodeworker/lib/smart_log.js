@@ -251,6 +251,14 @@ function pickBugs(bugs) {
 }
 
 /** Parse the headfull/CLI flags shared by Electron main + headless server. */
+function parseDisplaySize(raw) {
+  // Accepts "1920x1080", "1920,1080", "1920 1080". Returns {width,height} or null.
+  const m = String(raw || '').trim().match(/(\d{3,5})\s*[x,\s]\s*(\d{3,5})/);
+  if (!m) return null;
+  const width = Math.max(800, Math.min(7680, parseInt(m[1], 10)));
+  const height = Math.max(600, Math.min(4320, parseInt(m[2], 10)));
+  return { width, height };
+}
 function parseWorkerArgs(argv) {
   const args = Array.isArray(argv) ? argv : process.argv;
   const out = {
@@ -265,6 +273,14 @@ function parseWorkerArgs(argv) {
     maxTicks: 0, // --max-ticks N: auto-pause the agent after N steps (0 = unlimited)
     handoffOnly: false, // --handoff: print latest/generate handoff and exit
     enableGpu: false,
+    // Display controls (dashboard + separate game window). The runner brain
+    // and the viewport toolbar can change these at runtime via the
+    // set-display-mode IPC channel; CLI just seeds the first paint.
+    windowSize: null, // --window-size 1920x1080 (dashboard outer size)
+    fullscreen: false, // --fullscreen (dashboard fullscreen)
+    displayMode: 'windowed', // windowed | fullscreen | split (legacy half-width)
+    gameWindowSize: null, // --game-window-size 1920x1080 (separate test window)
+    gameFullscreen: false, // --game-fullscreen (separate test window fullscreen)
     extra: [],
   };
   for (let i = 2; i < args.length; i++) {
@@ -279,6 +295,18 @@ function parseWorkerArgs(argv) {
     else if (a === '--heal-iterations' && args[i + 1]) out.healIterations = parseInt(args[++i], 10) || 3;
     else if ((a === '--max-ticks' || a === '--ticks') && args[i + 1]) out.maxTicks = Math.max(0, parseInt(args[++i], 10) || 0);
     else if (a === '--enable-gpu') out.enableGpu = true;
+    else if ((a === '--window-size' || a === '--window') && args[i + 1]) out.windowSize = parseDisplaySize(args[++i]);
+    else if (a === '--fullscreen') { out.fullscreen = true; out.displayMode = 'fullscreen'; }
+    else if (a === '--display-mode' && args[i + 1]) {
+      const m = String(args[++i]).toLowerCase();
+      if (m === 'windowed' || m === 'fullscreen' || m === 'split') {
+        out.displayMode = m;
+        if (m === 'fullscreen') out.fullscreen = true;
+      }
+    }
+    else if (a === '--split') out.displayMode = 'split';
+    else if (a === '--game-window-size' && args[i + 1]) out.gameWindowSize = parseDisplaySize(args[++i]);
+    else if (a === '--game-fullscreen') out.gameFullscreen = true;
     else out.extra.push(a);
   }
   return out;

@@ -19,15 +19,24 @@ function withGameTimeout(promise, label, ms = 8000) {
     .finally(() => clearTimeout(timer));
 }
 
-async function openGameWindow(url, isHeadless, mainWindow, onConsoleLog) {
+async function openGameWindow(url, isHeadless, mainWindow, onConsoleLog, options = {}) {
+  // 4th arg historically is the console-forward callback; tolerate an
+  // options object there too (renderer passes { width, height, fullscreen }).
+  if (onConsoleLog && typeof onConsoleLog === 'object') {
+    options = onConsoleLog;
+    onConsoleLog = null;
+  }
+  const opts = options || {};
   const primaryDisplay = screen.getPrimaryDisplay();
   const { x, y, width, height } = primaryDisplay.workArea;
 
-  const ideWidth = Math.floor(width / 2);
-  const gameWidth = width - ideWidth;
-  const gameHeight = height;
-  const gameX = x + ideWidth;
-  const gameY = y;
+  // Default the test window to full HD (1920x1080), clamped to the display.
+  const wantW = Math.max(800, Math.min(Number(opts.width) || 1920, width));
+  const wantH = Math.max(600, Math.min(Number(opts.height) || 1080, height));
+  const gameWidth = (opts.fullscreen || opts.mode === 'fullscreen') ? width : wantW;
+  const gameHeight = (opts.fullscreen || opts.mode === 'fullscreen') ? height : wantH;
+  const gameX = Number.isFinite(Number(opts.x)) ? Number(opts.x) : Math.round(x + Math.max(0, (width - gameWidth) / 2));
+  const gameY = Number.isFinite(Number(opts.y)) ? Number(opts.y) : Math.round(y + Math.max(0, (height - gameHeight) / 2));
 
   const attachListeners = (win) => {
     if (win._vibeListenersAttached) return;
@@ -71,6 +80,11 @@ async function openGameWindow(url, isHeadless, mainWindow, onConsoleLog) {
   if (isGameWindowActive()) {
     gameWindow.setBounds({ x: gameX, y: gameY, width: gameWidth, height: gameHeight });
     attachListeners(gameWindow);
+    if (opts.fullscreen || opts.mode === 'fullscreen') {
+      try { gameWindow.setFullScreen(true); } catch (_) {}
+    } else {
+      try { gameWindow.setFullScreen(false); } catch (_) {}
+    }
     try {
       await gameWindow.loadURL(url);
     } catch (err) {
@@ -86,6 +100,7 @@ async function openGameWindow(url, isHeadless, mainWindow, onConsoleLog) {
       width: gameWidth,
       height: gameHeight,
       show: !isHeadless,
+      fullscreen: !!(opts.fullscreen || opts.mode === 'fullscreen') && !isHeadless,
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
@@ -101,6 +116,27 @@ async function openGameWindow(url, isHeadless, mainWindow, onConsoleLog) {
     }
   }
   return { success: true, url };
+}
+
+function getGameWindowBounds() {
+  if (!isGameWindowActive()) return null;
+  try {
+    const b = gameWindow.getBounds();
+    return { x: b.x, y: b.y, width: b.width, height: b.height, fullscreen: gameWindow.isFullScreen() };
+  } catch (_) {
+    return null;
+  }
+}
+
+function focusGameWindow() {
+  if (!isGameWindowActive()) return { success: false, error: 'Game window is not open' };
+  try {
+    if (gameWindow.isMinimized()) gameWindow.restore();
+    gameWindow.show();
+    gameWindow.focus();
+    gameWindow.moveTop();
+  } catch (_) {}
+  return { success: true, ...(getGameWindowBounds() || {}) };
 }
 
 async function evalInGameWindow(script) {
@@ -163,6 +199,8 @@ module.exports = {
   getGameWindow,
   isGameWindowActive,
   openGameWindow,
+  getGameWindowBounds,
+  focusGameWindow,
   evalInGameWindow,
   captureGameScreenshot,
   reloadGameWindow,

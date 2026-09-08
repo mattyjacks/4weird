@@ -869,6 +869,14 @@
               <input type="range" id="timeline-scrubber" min="0" max="0" value="0">
               <span id="timeline-time">Tick: 0/0</span>
             </div>
+            <!-- DISPLAY CONTROLS: HD windowed / fullscreen + smart game framing -->
+            <div class="viewport-toolbar" id="viewport-display-toolbar">
+              <span class="display-label">DISPLAY</span>
+              <button id="btn-display-windowed" class="btn btn-small btn-secondary" title="Dashboard windowed at 1920x1080">🗔 HD Window</button>
+              <button id="btn-display-fullscreen" class="btn btn-small btn-secondary" title="Dashboard fullscreen">⛶ Fullscreen</button>
+              <button id="btn-center-game" class="btn btn-small btn-secondary" title="Scroll the real play area into the centre of the game view">🎯 Center game</button>
+              <span class="display-readout" id="display-readout">viewport: —</span>
+            </div>
           </section>
 
           <!-- AGENT LOGIC MONITOR & GRAPHICS HEATMAP & CODE VIEWER -->

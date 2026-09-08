@@ -1,9 +1,9 @@
 # VibeCodeWorker internal brain
-Updated: 2026-09-08T17:26:25.498Z
-Run: run_1788888379675
-Target rules: Desktop-game playtest: keep actions conservative; verify menus, movement, camera, and responsiveness in the selected game window.
-Session: Session so far: 3 steps | press_key: 2 (67%)
+Updated: 2026-09-08T18:21:59.912Z
+Run: idle
+Target rules: Game: AI-whack-a-mole Objective: Whack only the Bad (misaligned/dangerous) AIs rising from the arcade machine. Spare the Good (user-aligned) AIs. Controls: Click or Tap a rising AI to whack it. P or Esc pauses the game. Known states: start_screen, playing, paused, game_over Win condition: Score as h
+Session: Session so far: 8 steps | click: 5 (63%), press_key: 2 (25%) | Most-clicked: zone (400-499, 500-599): 2p; zone (0-99, 0-99): 2p; zone (300-399, 0-99): 1p
 Bugs known: 27
-Current takeaway: 1:26:25 PM · native-policy · hold_keys → w,shift: [hl2-ep2 offline fallback: LLM API Call failed: 401 - {"error":{"message":"Authentication Fails, Your api key: ****2345 is invalid","type":"authentication_error","param":null,"code":"invalid_request_error"}}] FPS route: 
+Current takeaway: 2:21:59 PM · exploring · click → 75,82: Offline explorer (no API key): trying interactive element A "🎮 4weirdGames" (2/6). Add an API key for smart decisions.
 
 This is a compact operational summary. See gameplay_discoveries.txt for learned patterns and thinking_digest.txt for recent decisions.

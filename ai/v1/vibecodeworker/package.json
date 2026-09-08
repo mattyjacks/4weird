@@ -8,6 +8,8 @@
     "start:cloud": "node server/start_api_server.js",
     "heal": "node workers/heal_worker.js",
     "test": "node tests/test_vibecodeworker.js",
+    "test:rules": "node tests/test_game_rules.js",
+    "test:e2e:whackamole": "node tests/test_aiwhackamole_e2e.js",
     "test:native": "node tests/test_native_hl2.js",
     "test:all": "node tests/test_vibecodeworker.js; if ($?) { node tests/test_native_hl2.js }",
     "test:headful": "node tests/test_hub_headful.js",

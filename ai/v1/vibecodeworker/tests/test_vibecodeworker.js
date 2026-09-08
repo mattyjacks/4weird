@@ -1330,6 +1330,51 @@ async function runTests() {
     failedTests.push("Agent.maxTicks");
   }
 
+  // Test 36: display flags + smart game framing wiring
+  try {
+    console.log("Running Test 36: display modes + game framing...");
+    const { parseWorkerArgs } = require(path.join(projectRoot, 'lib', 'smart_log'));
+    const p1 = parseWorkerArgs(['node', 'x', '--window-size', '1920x1080']);
+    assert.deepStrictEqual(p1.windowSize, { width: 1920, height: 1080 }, "--window-size must parse");
+    const p2 = parseWorkerArgs(['node', 'x', '--fullscreen']);
+    assert.strictEqual(p2.fullscreen, true, "--fullscreen must set fullscreen");
+    assert.strictEqual(p2.displayMode, 'fullscreen', "--fullscreen must set display mode");
+    const p3 = parseWorkerArgs(['node', 'x', '--display-mode', 'split', '--game-window-size', '1280x720', '--game-fullscreen']);
+    assert.strictEqual(p3.displayMode, 'split', "--display-mode split must parse");
+    assert.deepStrictEqual(p3.gameWindowSize, { width: 1280, height: 720 }, "--game-window-size must parse");
+    assert.strictEqual(p3.gameFullscreen, true, "--game-fullscreen must parse");
+    assert.strictEqual(parseWorkerArgs(['node', 'x']).displayMode, 'windowed', "Default display mode must be windowed");
+
+    // Pure framing script: finds the playfield (game-root ids, button
+    // cluster, canvases), centres it, reports guest + play metrics.
+    const dm = require(path.join(projectRoot, 'src', 'runtime', 'display_manager'));
+    assert.strictEqual(dm.HD_WIDTH, 1920, "HD default width must be 1920");
+    assert.strictEqual(dm.HD_HEIGHT, 1080, "HD default height must be 1080");
+    const script = dm.buildEnsureVisibleScript();
+    assert(script.includes('game-root'), "Framing must look for game-root ids");
+    assert(script.includes('button-cluster'), "Framing must consider the button cluster playfield");
+    assert(script.includes('scrollIntoView'), "Framing must scroll the play area into view");
+    assert(script.includes('guestW') && script.includes('guestH'), "Framing must report guest size");
+    assert(script.includes('fixed') && script.includes('getComputedStyle'), "Framing must skip fullscreen background canvases");
+
+    // Wiring: main process IPC + dashboard HD default + runner API.
+    const mainSrc = fs.readFileSync(path.join(projectRoot, 'app', 'main.js'), 'utf8');
+    assert(mainSrc.includes('set-display-mode'), "Main must expose set-display-mode IPC");
+    assert(mainSrc.includes('get-display-config'), "Main must expose get-display-config IPC");
+    assert(mainSrc.includes('focus-game-window'), "Main must expose focus-game-window IPC");
+    const appSrc = fs.readFileSync(path.join(projectRoot, 'src', 'app.js'), 'utf8');
+    assert(appSrc.includes('window.setDisplayMode'), "Dashboard must expose setDisplayMode to the runner brain");
+    assert(appSrc.includes('window.ensureGameVisible'), "Dashboard must expose ensureGameVisible to the runner brain");
+    assert(appSrc.includes('window.getGameViewMetrics'), "Dashboard must expose getGameViewMetrics to the runner brain");
+    assert(appSrc.includes('btn-center-game'), "Dashboard must wire the Center-game toolbar button");
+    const stepSrc = fs.readFileSync(path.join(projectRoot, 'src', 'runtime', 'agent_step_executor.js'), 'utf8');
+    assert(stepSrc.includes('ensureGameVisible'), "Each agent step must re-frame the play area before the screenshot");
+    console.log("✅ Test 36 Passed!");
+  } catch (err) {
+    console.error("❌ Test 36 Failed:", err);
+    failedTests.push("Display.hdFraming");
+  }
+
   // Write results to .last-run.json
   const resultsPath = path.join(projectRoot, '..', '..', '..', 'test-results', '.last-run.json');
   const status = failedTests.length === 0 ? "passed" : "failed";

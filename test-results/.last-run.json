@@ -1,7 +1,9 @@
 {
   "status": "failed",
   "failedTests": [
-    "Storage.persistentCredentials",
+    "AutoCode.environmentVariableResolution",
+    "ApiServer.configurablePort",
+    "Cloud.tokenAuth",
     "Handoff.routes"
   ]
 }
