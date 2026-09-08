@@ -127,6 +127,20 @@ async function main() {
   stage('guest game page loaded', /whack/i.test(guestTitle), guestTitle);
   const startBtn = await guest(`!!document.getElementById('TEMPLATE-4weird-start-btn')`);
   stage('guest exposes Start button', startBtn === true);
+
+  // --- 3b. HD display + smart framing: the agent must see the GAME ---
+  const dispCfg = await run(`window.getDisplayConfig()`);
+  stage('display: HD windowed dashboard', dispCfg && dispCfg.width >= 1500, `${dispCfg.width}x${dispCfg.height}`);
+  const framed = await run(`window.ensureGameVisible()`);
+  stage('framing: play area found + centered',
+    framed && framed.ok && framed.play && framed.play.width >= 300,
+    framed && framed.play ? `${framed.kind} ${framed.play.width}x${framed.play.height} via ${framed.method}, guest ${framed.guestW}x${framed.guestH}` : JSON.stringify(framed).slice(0, 120));
+  stage('framing: guest is full width, not a sliver',
+    framed && framed.ok && framed.guestW >= 1200 && framed.webviewRect && framed.webviewRect.height >= 400,
+    framed && framed.ok ? `guest ${framed.guestW}x${framed.guestH}, webview ${framed.webviewRect.width}x${framed.webviewRect.height}` : 'no metrics');
+  const modeRes = await run(`window.setDisplayMode('windowed', { width: 1920, height: 1080 })`);
+  stage('runner API: setDisplayMode roundtrip', modeRes && modeRes.success === true, `mode=${modeRes && modeRes.mode}`);
+  await shot('e2e-02b-game-framed.png');
   await shot('e2e-02-game-loaded.png');
 
   // --- 4. Rules awareness: file rules now, on-page enrichment after load ---
