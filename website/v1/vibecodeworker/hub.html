@@ -50,12 +50,11 @@
         <span id="tauri-desktop-badge" class="tauri-badge" style="display:none">DESKTOP TAURI RUNTIME</span>
       </div>
       <div class="bar-center">
-        <button id="btn-top-hub" type="button">HUB</button>
-        <button id="menu-game-btn" type="button" style="display:none">GAME</button>
-        <button id="menu-tools-btn" type="button" style="display:none">TOOLS</button>
+        <div class="seg-toggle" role="tablist" aria-label="Workspace view">
+          <button id="btn-top-hub" type="button" role="tab" aria-selected="true">HUB</button>
+          <button id="btn-top-workspace" type="button" role="tab" aria-selected="false">WORKSPACE</button>
+        </div>
         <button id="btn-toggle-view" type="button">Open options</button>
-        <button id="menu-view-btn" type="button" style="display:none">VIEW</button>
-        <button id="btn-goto-hub" type="button" style="display:none">WELCOME HUB</button>
         <button id="btn-top-layout-toggle" type="button">LAYOUT</button>
         <span id="menu-layout-label">Options</span>
         <span id="active-model-display" class="model-pill">GPT-5.6 Luna</span>
@@ -148,6 +147,7 @@
         <div><strong>02</strong><span>Set a simple, human-readable test goal.</span></div>
         <div><strong>03</strong><span>Review behavior, issues, and repair context.</span></div>
       </div>
+      <p class="kbd-hints"><kbd>Alt+1</kbd> Hub · <kbd>Alt+2</kbd> Workspace · <kbd>Ctrl+Enter</kbd> Run · <kbd>Esc</kbd> Close dialogs</p>
     </section>
 
     <!-- MAIN WORKSPACE -->
@@ -259,6 +259,10 @@
         <div id="stage-viewport-panel" class="stage-panel">
           <div id="game-frame-container" class="game-frame">
             <iframe id="game-iframe" title="playtest target" src="about:blank"></iframe>
+            <div id="stage-empty-hint" class="stage-empty-hint">
+              <strong>No target loaded.</strong>
+              <span>Pick a preset or press LOAD TARGET — then RUN PLAYTEST.</span>
+            </div>
             <div id="agent-cursor" class="agent-cursor hidden"></div>
             <canvas id="action-overlay-canvas" class="overlay-canvas"></canvas>
             <canvas id="vision-overlay-canvas" class="overlay-canvas"></canvas>
@@ -540,6 +544,60 @@
       window.__vcwReady = lift;
       window.addEventListener('load', function () { setTimeout(lift, 900); });
       setTimeout(lift, 6000);
+    })();
+  </script>
+  <script>
+    /* Small-but-powerful workspace ergonomics (no framework needed):
+       dialog semantics, Esc/backdrop dismiss, empty-stage hint, keyboard shortcuts. */
+    (function () {
+      document.querySelectorAll('.modal').forEach(function (m) {
+        m.setAttribute('role', 'dialog');
+        m.setAttribute('aria-modal', 'true');
+      });
+
+      function dismissable(modals) {
+        return modals.filter(function (m) { return m.id !== 'auth-overlay'; });
+      }
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          const open = dismissable(Array.from(document.querySelectorAll('.modal:not(.hidden)')));
+          if (open.length) { open[open.length - 1].classList.add('hidden'); e.preventDefault(); }
+          return;
+        }
+        if (e.altKey && (e.key === '1' || e.key === '2')) {
+          const btn = document.getElementById(e.key === '1' ? 'btn-top-hub' : 'btn-top-workspace');
+          if (btn) { btn.click(); e.preventDefault(); }
+          return;
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+          const tag = ((e.target && e.target.tagName) || '').toLowerCase();
+          const id = (e.target && e.target.id) || '';
+          if (id === 'terminal-input' || id === 'test-rules' || id === 'auth-password-input') return;
+          if (tag === 'select' || tag === 'textarea') return;
+          const hubVisible = !document.getElementById('hub-workspace').classList.contains('hidden');
+          const btn = document.getElementById(hubVisible ? 'btn-quick-run' : 'btn-start');
+          if (btn) { btn.click(); e.preventDefault(); }
+        }
+      });
+      document.addEventListener('click', function (e) {
+        if (e.target && e.target.classList && e.target.classList.contains('modal') && e.target.id !== 'auth-overlay') {
+          e.target.classList.add('hidden');
+        }
+      });
+
+      // Empty-stage hint: visible exactly while no target is framed.
+      var hint = document.getElementById('stage-empty-hint');
+      var frame = document.getElementById('game-iframe');
+      function syncHint() {
+        if (!hint || !frame) return;
+        const src = frame.getAttribute('src') || '';
+        hint.classList.toggle('hidden', !(src === '' || src === 'about:blank'));
+      }
+      if (frame && window.MutationObserver) {
+        new MutationObserver(syncHint).observe(frame, { attributes: true, attributeFilter: ['src'] });
+      }
+      if (frame) frame.addEventListener('load', syncHint);
+      syncHint();
     })();
   </script>
   <script type="module" src="app.js"></script>

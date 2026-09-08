@@ -125,8 +125,14 @@
 
             // Cap delta to prevent massive physics jumps
             const dt = Math.min(delta, 0.1);
-            this.update(dt);
-            this.render();
+            try {
+                this.update(dt);
+                this.render();
+            } catch (err) {
+                // One bad frame must never kill the run: log and keep the loop alive.
+                this.frameErrors = (this.frameErrors || 0) + 1;
+                if (this.frameErrors < 5) console.error('[GraveGain2D] frame error (loop survives):', err);
+            }
 
             this.frameId = requestAnimationFrame((t) => this.loop(t));
         }
@@ -734,6 +740,9 @@
             this.hp = Math.max(0, this.hp - dmg);
             window.GraveGainGame.camera.applyShake(8);
             window.GraveGainGame.audio.play('hit');
+            if (dmg >= 1 && window.GraveGainGame.vfx) {
+                window.GraveGainGame.vfx.spawnFloater(this.x, this.y - 26, '-' + Math.round(dmg), '#f87171');
+            }
 
             if (this.hp <= 0 && !this.isDead) {
                 this.isDead = true;
@@ -748,12 +757,14 @@
                 this.shieldCooldown = 8.0;
                 window.GraveGainGame.audio.play('ability');
                 window.GraveGainGame.vfx.spawnShieldVFX(this.x, this.y);
+                return true;
             } else if (this.race === Race.ELF && this.mana >= 40) {
                 this.mana -= 40;
                 // Nature Burst AoE
                 window.GraveGainGame.audio.play('ability');
                 window.GraveGainGame.vfx.spawnNatureBurstVFX(this.x, this.y);
                 window.GraveGainGame.dealAoEDamage(this.x, this.y, 120, 20);
+                return true;
             } else if (this.race === Race.DWARF && this.stamina >= 50) {
                 this.stamina -= 50;
                 // Stone Form
@@ -761,6 +772,7 @@
                 this.stoneDuration = 4.0; // 4 seconds invincibility
                 window.GraveGainGame.audio.play('ability');
                 window.GraveGainGame.vfx.spawnStoneFormVFX(this.x, this.y);
+                return true;
             } else if (this.race === Race.ORC && this.rage >= 30) {
                 const burstPower = this.rage;
                 this.rage = 0;
@@ -769,7 +781,9 @@
                 window.GraveGainGame.audio.play('ability');
                 window.GraveGainGame.vfx.spawnRageBurstVFX(this.x, this.y);
                 window.GraveGainGame.dealAoEDamage(this.x, this.y, 140, dmg);
+                return true;
             }
+            return false;
         }
     }
 
@@ -804,6 +818,7 @@
         }
 
         update(dt, player, physics, tilemap) {
+            if (this.flash > 0) this.flash -= dt;
             const distToPlayer = Math.hypot(player.x - this.x, player.y - this.y);
             const now = Date.now();
 
@@ -1028,6 +1043,8 @@
             this.bloodSplats = []; // {x, y, radius, color}
             this.goreChunks = []; // {x, y, vx, vy, time}
             this.sparks = []; // {x, y, vx, vy, color, time}
+            this.rings = []; // expanding shockwave rings {x, y, color, radius, maxRadius, life, maxLife}
+            this.floaters = []; // floating combat text {x, y, text, color, life}
             this.maxSplats = 200;
             this.maxGore = 50;
         }
@@ -1067,7 +1084,36 @@
                 });
             }
         }
+        spawnRing(x, y, color = 'white', maxRadius = 60, life = 0.35) {
+            if (this.rings.length > 24) this.rings.shift();
+            this.rings.push({ x, y, color, radius: 8, maxRadius, life, maxLife: life });
+        }
+        spawnFloater(x, y, text, color = '#facc15') {
+            if (this.floaters.length > 40) this.floaters.shift();
+            this.floaters.push({ x, y, text: String(text), color, life: 1.1 });
+        }
+        spawnShieldVFX(x, y) { this.spawnRing(x, y, 'deepskyblue', 46, 0.4); this.spawnSparks(x, y, 'deepskyblue', 10); }
+        spawnNatureBurstVFX(x, y) { this.spawnRing(x, y, '#4ade80', 90, 0.45); this.spawnSparks(x, y, 'green', 14); }
+        spawnStoneFormVFX(x, y) { this.spawnRing(x, y, 'gold', 46, 0.4); this.spawnSparks(x, y, 'gold', 10); }
+        spawnRageBurstVFX(x, y) { this.spawnRing(x, y, '#ef4444', 100, 0.45); this.spawnSparks(x, y, 'orange', 16); }
+        spawnPerfectBlockVFX(x, y) { this.spawnRing(x, y, '#22d3ee', 55, 0.3); this.spawnSparks(x, y, '#22d3ee', 8); }
+        spawnExplosionVFX(x, y) { this.spawnRing(x, y, '#c084fc', 80, 0.4); this.spawnSparks(x, y, 'purple', 16); this.spawnBlood(x, y, 'purple'); }
         update(dt) {
+            // Update shockwave rings
+            this.rings.forEach(r => {
+                r.life -= dt;
+                const t = 1 - Math.max(0, r.life / r.maxLife);
+                r.radius = 8 + (r.maxRadius - 8) * t;
+            });
+            this.rings = this.rings.filter(r => r.life > 0);
+
+            // Update floating combat text
+            this.floaters.forEach(f => {
+                f.life -= dt;
+                f.y -= 34 * dt;
+            });
+            this.floaters = this.floaters.filter(f => f.life > 0);
+
             // Update gore chunks
             this.goreChunks.forEach(g => {
                 g.life -= dt;
@@ -1796,6 +1842,22 @@
 
             if (this.currentMission) this.populateMissionTargets();
 
+            // Starter pack: guarantee first contact inside the opening ticks.
+            // New players spawn alone in the dark; this seeds 2 nearby foes + 1 gold cache.
+            const starters = [];
+            for (let x = 0; x < this.dungeon.gridSize && starters.length < 6; x++) {
+                for (let y = 0; y < this.dungeon.gridSize && starters.length < 6; y++) {
+                    if (this.dungeon.grid[x][y] !== 0) continue;
+                    const px = x * 48 + 24, py = y * 48 + 24;
+                    const d = Math.hypot(px - this.player.x, py - this.player.y);
+                    if (d > 140 && d < 340) starters.push([px, py]);
+                }
+            }
+            starters.slice(0, 2).forEach(([sx, sy]) => {
+                this.enemies.push(this.createEnemy(EnemyTypes[0], sx, sy, diffScale));
+            });
+            if (starters[2]) this.loot.push(new LootItem(starters[2][0], starters[2][1], 'gold', 25));
+
             this.updateChallengeProgress('depth', this.floorIndex);
             this.updateHUD();
         }
@@ -1897,7 +1959,9 @@
                 const dist = Math.hypot(e.x - x, e.y - y);
                 if (dist <= radius) {
                     e.hp -= dmg;
+                    e.flash = 0.15;
                     this.vfx.spawnSparks(e.x, e.y, 'green');
+                    this.vfx.spawnFloater(e.x, e.y - 24, '-' + Math.round(dmg), '#fdba74');
                 }
             });
             this.enemies = this.enemies.filter(e => {
@@ -1911,6 +1975,7 @@
                     this.updateChallengeProgress('slay', 1);
                     this.updateChallengeProgress('gold', rewards.gold);
                     this.vfx.spawnGore(e.x, e.y);
+                    this.vfx.spawnFloater(e.x, e.y - 30, '+' + rewards.gold + 'g', '#fbbf24');
                     this.audio.play('hit');
                     return false;
                 }
@@ -1969,19 +2034,56 @@
             });
         }
 
+        setTurnFeedback(msg) {
+            const phase = document.getElementById('hudTurnPhase');
+            if (phase) phase.textContent = msg || 'YOUR TURN';
+        }
+
+        nearestEnemy(maxDist = Infinity) {
+            let best = null, bd = maxDist;
+            for (const e of this.enemies) {
+                const d = Math.hypot(e.x - this.player.x, e.y - this.player.y);
+                if (d < bd) { bd = d; best = e; }
+            }
+            return best;
+        }
+
         executeTurnAction(action) {
-            if (this.controlMode !== 'turnbased' || !this.player || this.player.isDead) return;
+            if (this.controlMode !== 'turnbased' || !this.player || this.player.isDead) return 'ignored';
+            this.setTurnFeedback('YOUR TURN');
             this.advanceTurnState(0.35);
+            let result = action;
             const steps = { up:[0,-48], down:[0,48], left:[-48,0], right:[48,0] };
             if (steps[action]) {
                 const [dx, dy] = steps[action];
                 this.player.angle = Math.atan2(dy, dx);
+                const ox = this.player.x, oy = this.player.y;
                 this.physics.moveEntityWithCollision(this.player, dx, dy, this.dungeon);
-            } else if (action === 'attack') this.triggerMeleeSwing();
+                if (this.player.x === ox && this.player.y === oy) {
+                    result = 'blocked';
+                    this.setTurnFeedback('🧱 Blocked — pick another way');
+                    this.audio.play('block');
+                } else {
+                    result = 'moved';
+                }
+            } else if (action === 'attack') {
+                // Turn-based has no mouse aim: auto-face the nearest foe in reach first.
+                const tgt = this.nearestEnemy(81);
+                if (tgt) this.player.angle = Math.atan2(tgt.y - this.player.y, tgt.x - this.player.x);
+                result = this.triggerMeleeSwing() > 0 ? 'attack-hit' : 'attack-miss';
+                if (result === 'attack-miss') this.setTurnFeedback('💨 No foe in reach — step closer');
+            }
             else if (action === 'block') this.activateBlock();
-            else if (action === 'ability') this.player.triggerAbility();
-            else if (action === 'wait') this.player.stamina = Math.min(this.player.maxStamina, this.player.stamina + 25);
+            else if (action === 'ability') {
+                result = this.player.triggerAbility() ? 'ability-ok' : 'ability-fail';
+                if (result === 'ability-fail') this.setTurnFeedback('🔋 Ability not ready — need resource');
+            }
+            else if (action === 'wait') {
+                this.player.stamina = Math.min(this.player.maxStamina, this.player.stamina + 25);
+                result = 'wait';
+            }
             this.enemies.forEach(enemy => enemy.update(0.35, this.player, this.physics, this.dungeon));
+            this.vfx.update(0.35);
             if (action === 'block') this.player.perfectBlockWindow = 0;
             this.enemies = this.enemies.filter(e => {
                 if (e.hp > 0) return true;
@@ -1995,6 +2097,7 @@
                 this.updateChallengeProgress('gold', rewards.gold);
                 this.vfx.spawnBlood(e.x, e.y, e.bloodColor);
                 this.vfx.spawnGore(e.x, e.y);
+                this.vfx.spawnFloater(e.x, e.y - 30, '+' + rewards.gold + 'g', '#fbbf24');
                 this.audio.play('hit');
                 return false;
             });
@@ -2022,6 +2125,7 @@
             const counter = document.getElementById('hudTurnCounter');
             if (counter) counter.textContent = `Turn ${this.turnCount}`;
             this.updateHUD();
+            return result;
         }
 
         advanceTurnState(dt) {
@@ -2164,6 +2268,7 @@
             // Melee Sweep sweep matches an arc of angle 120deg
             const angle = this.player.angle;
             const sweepRadius = 65;
+            let hits = 0;
 
             // Attack swipe visual queue
             this.attackSweep = {
@@ -2187,11 +2292,15 @@
 
                     if (diff <= (Math.PI * 120) / 360) {
                         e.hp -= 8;
+                        e.flash = 0.12;
+                        hits++;
                         this.vfx.spawnBlood(e.x, e.y, e.bloodColor);
+                        this.vfx.spawnFloater(e.x, e.y - 24, '-8', '#fecaca');
                         this.audio.play('hit');
                     }
                 }
             });
+            return hits;
         }
 
         activateBlock() {
@@ -2272,12 +2381,27 @@
                         } else if (tile === 2) {
                             ctx.fillStyle = '#1e40af'; // Water
                             ctx.fillRect(screenX, screenY, size, size);
+                            ctx.fillStyle = '#93c5fd';
+                            ctx.font = '20px serif';
+                            ctx.fillText('〜', screenX + 14, screenY + 32);
                         } else if (tile === 3) {
                             ctx.fillStyle = 'rgba(16, 185, 129, 0.4)'; // Poison
                             ctx.fillRect(screenX, screenY, size, size);
+                            ctx.fillStyle = '#6ee7b7';
+                            ctx.font = '18px serif';
+                            ctx.fillText('☠', screenX + 15, screenY + 31);
                         } else if (tile === 4) {
                             ctx.fillStyle = 'rgba(239, 68, 68, 0.4)'; // Fire
                             ctx.fillRect(screenX, screenY, size, size);
+                            ctx.fillStyle = '#fca5a5';
+                            ctx.font = '18px serif';
+                            ctx.fillText('🔥', screenX + 13, screenY + 32);
+                        } else if (tile === 5) {
+                            ctx.fillStyle = 'rgba(125, 211, 252, 0.35)'; // Ice slick (previously invisible!)
+                            ctx.fillRect(screenX, screenY, size, size);
+                            ctx.fillStyle = '#e0f2fe';
+                            ctx.font = '18px serif';
+                            ctx.fillText('❄', screenX + 15, screenY + 31);
                         } else if (tile === 6) {
                             ctx.fillStyle = '#475569'; // Breakable Wall
                             ctx.fillRect(screenX, screenY, size, size);
@@ -2314,6 +2438,51 @@
                 sweep.life -= 0.016; // tick life
                 if (sweep.life <= 0) this.attackSweep = null;
             }
+
+            // Exit stairs beacon: pulsing marker + offscreen edge arrow so players always know the goal
+            const safe = this.dungeon && this.dungeon.rooms.find(r => r.type === 'safespace');
+            if (safe) {
+                const sx = safe.cx * 48 + 24 - offset.x;
+                const sy = safe.cy * 48 + 24 - offset.y;
+                const pulse = 3 + Math.sin(performance.now() / 300) * 2;
+                ctx.save();
+                ctx.strokeStyle = '#facc15';
+                ctx.lineWidth = 2 + pulse * 0.4;
+                ctx.beginPath();
+                ctx.arc(sx, sy, 22 + pulse, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.fillStyle = '#facc15';
+                ctx.font = 'bold 15px Orbitron, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('▼ EXIT', sx, sy - 30);
+                ctx.restore();
+                if (sx < 0 || sx > w || sy < 0 || sy > h) {
+                    const cx = Math.max(30, Math.min(w - 30, sx));
+                    const cy = Math.max(50, Math.min(h - 30, sy));
+                    const ang = Math.atan2(sy - h / 2, sx - w / 2);
+                    ctx.save();
+                    ctx.translate(cx, cy);
+                    ctx.rotate(ang);
+                    ctx.fillStyle = 'rgba(250, 204, 21, 0.9)';
+                    ctx.font = '18px serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('➤', 0, 0);
+                    ctx.restore();
+                }
+            }
+
+            // Shockwave rings (abilities, blocks, explosions)
+            this.vfx.rings.forEach(r => {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, r.life / r.maxLife);
+                ctx.strokeStyle = r.color;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(r.x - offset.x, r.y - offset.y, r.radius, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            });
 
             // Draw Loot items
             this.loot.forEach(l => {
@@ -2375,6 +2544,16 @@
 
                 ctx.restore();
 
+                if (e.flash > 0) {
+                    ctx.save();
+                    ctx.globalAlpha = Math.min(1, e.flash * 6);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(e.x - offset.x, e.y - offset.y, 18, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+
                 // Draw health bar overlay
                 if (e.hp < e.maxHp) {
                     ctx.fillStyle = 'black';
@@ -2393,6 +2572,17 @@
             this.vfx.sparks.forEach(s => {
                 ctx.fillStyle = s.color;
                 ctx.fillRect(s.x - offset.x - 2, s.y - offset.y - 2, 4, 4);
+            });
+
+            // Floating combat text (damage, gold, level-ups)
+            this.vfx.floaters.forEach(f => {
+                ctx.save();
+                ctx.globalAlpha = Math.min(1, f.life);
+                ctx.fillStyle = f.color;
+                ctx.font = 'bold 15px Orbitron, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(f.text, f.x - offset.x, f.y - offset.y);
+                ctx.restore();
             });
 
             // RENDER 2.5D LIGHTING PASS

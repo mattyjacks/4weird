@@ -158,6 +158,22 @@ export class HubManager {
         this.showHubView();
       });
     }
+
+    const workspaceNavBtn = document.getElementById('btn-top-workspace');
+    if (workspaceNavBtn) {
+      workspaceNavBtn.addEventListener('click', () => {
+        synth.playClick();
+        this.showEditorView();
+      });
+    }
+  }
+
+  syncViewTabs() {
+    const isHub = state.currentView === 'hub';
+    const hub = document.getElementById('btn-top-hub');
+    const ws = document.getElementById('btn-top-workspace');
+    if (hub) { hub.classList.toggle('active', isHub); hub.setAttribute('aria-selected', String(isHub)); }
+    if (ws) { ws.classList.toggle('active', !isHub); ws.setAttribute('aria-selected', String(!isHub)); }
   }
 
   showHubView() {
@@ -165,12 +181,14 @@ export class HubManager {
     if (el.hubWorkspace) el.hubWorkspace.classList.remove('hidden');
     if (el.mainLayout) el.mainLayout.classList.add('hub-active');
     this.closeAllModals();
+    this.syncViewTabs();
   }
 
   showEditorView() {
     state.currentView = 'editor';
     if (el.hubWorkspace) el.hubWorkspace.classList.add('hidden');
     if (el.mainLayout) el.mainLayout.classList.remove('hub-active');
+    this.syncViewTabs();
   }
 
   openModal(modalId) {
