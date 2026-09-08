@@ -41,6 +41,21 @@ function buildDetectScript(maxObjects) {
     '    } catch (e0) {}\n' +
     // --- GAME mode: live GraveGain3D dungeon enemies ---
     '    var g = window.GraveGainGame;\n' +
+    // --- GAME mode: GraveGain2D top-down enemies ---
+    '    if (g && g.player && g.camera && g.enemies && document.getElementById("gameCanvas")) {\n' +
+    '      out.source = "game";\n' +
+    '      var c2 = document.getElementById("gameCanvas");\n' +
+    '      var off2 = g.camera.getOffsets();\n' +
+    '      var cw2 = c2.width || 1000, ch2 = c2.height || 600;\n' +
+    '      (g.enemies || []).forEach(function (e) {\n' +
+    '        if (!e || e.hp <= 0 || out.objects.length >= ' + max + ') return;\n' +
+    '        var ex = e.x - off2.x, ey = e.y - off2.y;\n' +
+    '        if (ex < -50 || ex > cw2 + 50 || ey < -50 || ey > ch2 + 50) return;\n' +
+    '        out.objects.push({ x: nx(ex / cw2 * W), y: ny(ey / ch2 * H), w: 42, h: 42,\n' +
+    '          label: (e.name || "enemy") + " " + Math.max(0, Math.round(e.hp)) + "hp", kind: "enemy" });\n' +
+    '      });\n' +
+    '      return JSON.stringify(out);\n' +
+    '    }\n' +
     '    if (g && g.inDungeon && g.player && g.player.hp > 0 && g.camera3d && window.THREE) {\n' +
     '      out.source = "game";\n' +
     '      var canvas = document.getElementById("gameCanvas");\n' +

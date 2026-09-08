@@ -133,7 +133,7 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
   
   populateModelsDropdown(elements.providerSelect, elements.modelSelect);
   
-  const savedModel = settings.modelName || (prov === 'deepseek' ? 'deepseek-chat' : (prov === 'meta' ? 'meta/muse-spark-1.3-contributor' : 'gpt-5.6-luna'));
+  const savedModel = settings.modelName || (prov === 'deepseek' ? 'deepseek-v4-flash' : (prov === 'meta' ? 'meta/muse-spark-1.3-contributor' : 'gpt-5.6-luna'));
   const hasModelInSelect = Array.from(elements.modelSelect.options).some(opt => opt.value === savedModel);
   if (hasModelInSelect) {
     elements.modelSelect.value = savedModel;

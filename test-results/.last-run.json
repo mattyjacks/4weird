@@ -1,4 +1,7 @@
 {
-  "status": "passed",
-  "failedTests": []
+  "status": "failed",
+  "failedTests": [
+    "Storage.persistentCredentials",
+    "Handoff.routes"
+  ]
 }

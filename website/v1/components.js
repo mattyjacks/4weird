@@ -7,6 +7,21 @@
 (function() {
     'use strict';
 
+    // Keep Space available to game input handlers without letting the browser
+    // scroll the game page. Capture-phase preventDefault blocks the browser's
+    // default action while preserving propagation to the active game.
+    function installGameSpaceScrollGuard() {
+        const isGamePage = () => document.body?.classList.contains('TEMPLATE-4weird-game-page');
+        const blockPageScroll = (event) => {
+            if (!isGamePage()) return;
+            if (event.code === 'Space' || event.key === ' ') event.preventDefault();
+        };
+        window.addEventListener('keydown', blockPageScroll, { capture: true, passive: false });
+        window.addEventListener('keypress', blockPageScroll, { capture: true, passive: false });
+    }
+
+    installGameSpaceScrollGuard();
+
     const SITE_CONFIG = {
         name: '4weird Games',
         tagline: 'Future Forward Fun',

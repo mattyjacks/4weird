@@ -74,6 +74,26 @@ let webviewElement = null;
 let consoleLogs = [];
 let executionTimer = null;
 let fpsInterval = null;
+let agentStepBusy = false;
+let agentScheduleTimer = null;
+
+function adaptiveAgentDelay() {
+  const latest = timelineHistory[timelineHistory.length - 1];
+  const type = latest?.action?.type;
+  if (type === 'hold_key' || type === 'move_mouse') return 280;
+  if (type === 'click' || type === 'press_key') return 420;
+  if (type === 'wait') return 220;
+  return 650;
+}
+
+function scheduleAgentStep() {
+  clearTimeout(agentScheduleTimer);
+  if (!isRunning) return;
+  agentScheduleTimer = setTimeout(async () => {
+    await executeAgentStep();
+    scheduleAgentStep();
+  }, adaptiveAgentDelay());
+}
 let frameCount = 0;
 let currentFps = 60;
 let lastFpsUpdate = Date.now();
@@ -980,6 +1000,7 @@ function toggleAgentState() {
     // Human is back in charge: park the virtual bot mouse.
     try { gameController.setBotControl(webviewElement, false); } catch (_) {}
 
+    clearTimeout(agentScheduleTimer);
     clearInterval(executionTimer);
     clearInterval(fpsInterval);
   } else {
@@ -1003,7 +1024,9 @@ function toggleAgentState() {
     // Bot takes the mouse: show the robot-emoji cursor in the test window.
     try { gameController.setBotControl(webviewElement, true); } catch (_) {}
 
-    executionTimer = setInterval(executeAgentStep, 2000);
+    // Adapt cadence to the previous action so cheap movement stays responsive
+    // without overlapping expensive vision/model requests.
+    scheduleAgentStep();
     fpsInterval = setInterval(updatePerformanceMetrics, 1000);
   }
 }
@@ -1355,7 +1378,7 @@ function cliMaxTicks() {
     const argv = window.cliArgs || [];
     for (let i = 0; i < argv.length; i++) {
       if ((argv[i] === '--max-ticks' || argv[i] === '--ticks') && argv[i + 1]) {
-        return Math.max(0, parseInt(argv[i + 1], 10) || 0);
+        return Math.min(20, Math.max(0, parseInt(argv[i + 1], 10) || 0));
       }
     }
   } catch (_) {}
@@ -1363,6 +1386,9 @@ function cliMaxTicks() {
 }
 
 async function executeAgentStep(forceHeuristic = false) {
+  if (agentStepBusy && !forceHeuristic) return;
+  if (!forceHeuristic) agentStepBusy = true;
+  try {
   const maxTicks = cliMaxTicks();
   if (!forceHeuristic && maxTicks > 0 && agentBrain.sessionStats.steps >= maxTicks && isRunning) {
     logSystemMessage(`Tick cap reached (${agentBrain.sessionStats.steps}/${maxTicks}) - auto-pausing agent.`);
@@ -1390,6 +1416,9 @@ async function executeAgentStep(forceHeuristic = false) {
     captureManualScreenshot,
     logSystemMessage
   });
+  } finally {
+    if (!forceHeuristic) agentStepBusy = false;
+  }
 }
 
 function updatePerformanceMetrics() {

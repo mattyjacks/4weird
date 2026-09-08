@@ -400,12 +400,18 @@ async function runTests() {
     // Test menu scenario
     const mockWebviewMenu = {
       executeJavaScript: async (code) => {
-        return { isMainMenuVisible: true };
+        return { isMainMenuVisible: true, menuAction: { x: 640, y: 740 } };
       }
     };
     const menuDecision = await runGraveGain3DAutoplay(mockWebviewMenu);
     assert.strictEqual(menuDecision.status, 'menu', "Should detect menu state");
-    assert.strictEqual(menuDecision.action.target, '#btnPlay', "Should target play button");
+    assert.strictEqual(menuDecision.action.target, '640,740', "Should target the measured play button center, not a selector fallback");
+
+    const mockWebviewUnavailableMenu = {
+      executeJavaScript: async () => ({ isMainMenuVisible: true, menuAction: null })
+    };
+    const unavailableMenuDecision = await runGraveGain3DAutoplay(mockWebviewUnavailableMenu);
+    assert.strictEqual(unavailableMenuDecision.action.type, 'wait', "Should wait when the intended menu control is unavailable instead of clicking center");
 
     // Test playing & combat scenario
     const mockWebviewCombat = {
@@ -420,7 +426,7 @@ async function runTests() {
     };
     const combatDecision = await runGraveGain3DAutoplay(mockWebviewCombat);
     assert.strictEqual(combatDecision.status, 'playing', "Should detect playing state");
-    assert(combatDecision.action.type === 'press_key', "Should issue combat key action");
+    assert.notStrictEqual(combatDecision.action.target, 'f', "Combat autoplay must never substitute the ability key for melee");
 
     // Test potion healing scenario
     const mockWebviewPotion = {

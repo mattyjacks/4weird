@@ -72,7 +72,20 @@ async function executeAction(controller, webview, action, nativeProcessName = nu
             const nx = ${nx}, ny = ${ny};
             const gameAction = ${JSON.stringify(gameAction)};
             const doClick = () => {
-              if (gameAction && window.GraveGainBotInput) {
+            if (gameAction === 'gravegain2d_attack' || gameAction === 'gravegain2d_aim') {
+              const game = window.GraveGainGame;
+              if (game && game.input && game.player) {
+                const gameX = (nx / 1000) * (game.canvas?.width || 1000);
+                const gameY = (ny / 1000) * (game.canvas?.height || 600);
+                game.input.mouse.x = gameX;
+                game.input.mouse.y = gameY;
+                game.player.angle = Math.atan2(gameY - (game.player.y - game.camera.getOffsets().y), gameX - (game.player.x - game.camera.getOffsets().x));
+                if (gameAction === 'gravegain2d_attack') game.input.mouse.click = true;
+                return gameAction === 'gravegain2d_attack' ? 'GraveGain2D melee attack queued' : 'GraveGain2D aim updated';
+              }
+              return 'GraveGain2D input unavailable';
+            }
+            if (gameAction && window.GraveGainBotInput) {
                 ${botCursor.flashClickJS(nx, ny)}
                 if (gameAction === 'attack') return window.GraveGainBotInput.click(nx, ny, 'attack');
                 if (gameAction === 'aim') {
@@ -115,21 +128,21 @@ async function executeAction(controller, webview, action, nativeProcessName = nu
             const buttons = document.querySelectorAll('button, a');
             for (let i = 0; i < buttons.length; i++) {
               const b = buttons[i];
-              if ((b.innerText && b.innerText.includes(targetStr)) || b.id === targetStr) {
+              if (!b.disabled && ((b.innerText && b.innerText.includes(targetStr)) || b.id === targetStr)) {
                 el = b;
                 break;
               }
             }
           }
-          let x, y;
-          if (el) {
-            const rect = el.getBoundingClientRect();
-            x = Math.round(rect.left + rect.width / 2);
-            y = Math.round(rect.top + rect.height / 2);
-          } else {
-            x = Math.round(window.innerWidth / 2);
-            y = Math.round(window.innerHeight / 2);
+          // A missing selector must be a safe no-op. Falling back to the
+          // viewport centre caused stalled menu autoplay to click the same
+          // unrelated DIV forever.
+          if (!el || el.disabled || !el.getClientRects().length) {
+            return 'No actionable element matched ' + targetStr;
           }
+          const rect = el.getBoundingClientRect();
+          const x = Math.round(rect.left + rect.width / 2);
+          const y = Math.round(rect.top + rect.height / 2);
           ${botCursor.moveCursorToPxJS('x', 'y', 'targetStr')}
           const hit = document.elementFromPoint(x, y) || el;
           const doClick = () => {
@@ -229,8 +242,21 @@ async function executeAction(controller, webview, action, nativeProcessName = nu
       visionState.recordAction('hold ' + target + ' ' + duration + 'ms');
       pushVision();
       const codeStr = getKeyCode(target);
+      const aimX = action.params && Number.isFinite(Number(action.params.aimX)) ? Number(action.params.aimX) : null;
+      const aimY = action.params && Number.isFinite(Number(action.params.aimY)) ? Number(action.params.aimY) : null;
+      const aimCode = aimX !== null && aimY !== null ? `
+          if (window.GraveGainGame && window.GraveGainGame.input && window.GraveGainGame.player) {
+            const g = window.GraveGainGame;
+            const ax = (${aimX} / 1000) * (g.canvas?.width || 1000);
+            const ay = (${aimY} / 1000) * (g.canvas?.height || 600);
+            g.input.mouse.x = ax;
+            g.input.mouse.y = ay;
+            g.player.angle = Math.atan2(ay - (g.player.y - g.camera.getOffsets().y), ax - (g.player.x - g.camera.getOffsets().x));
+          }
+        ` : '';
       const script = `
         (() => {
+          ${aimCode}
           ${botCursor.labelCursorJS('hold ' + target + ' ' + duration + 'ms')}
           const eDown = new KeyboardEvent('keydown', { key: '${target}', code: '${codeStr}', bubbles: true });
           window.dispatchEvent(eDown);

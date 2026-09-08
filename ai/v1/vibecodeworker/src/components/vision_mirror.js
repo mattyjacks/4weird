@@ -25,7 +25,8 @@ const KIND_COLORS = {
   other: '#94a3b8'
 };
 
-const MIRROR_TICK_MS = 700;
+// Keep the visual relay responsive without starving the agent loop.
+const MIRROR_TICK_MS = 450;
 
 function initVisionMirror(deps) {
   const ipc = deps.ipcRenderer;
@@ -115,15 +116,15 @@ function initVisionMirror(deps) {
         const h = Math.max(3, ((o.h || 30) / 1000) * r.dh);
         ctx.strokeStyle = color;
         ctx.lineWidth = 1.5;
-        ctx.strokeRect(x, y - h / 2, w, h);
+        ctx.strokeRect(x - w / 2, y - h / 2, w, h);
         const label = String(o.label || o.kind || '').slice(0, 26);
         if (label) {
           ctx.font = '10px monospace';
           const tw = ctx.measureText(label).width;
           ctx.fillStyle = color;
-          ctx.fillRect(x, y - h / 2 - 13, tw + 8, 13);
+          ctx.fillRect(x - w / 2, y - h / 2 - 13, tw + 8, 13);
           ctx.fillStyle = '#05060f';
-          ctx.fillText(label, x + 4, y - h / 2 - 3);
+          ctx.fillText(label, x - w / 2 + 4, y - h / 2 - 3);
         }
       });
     }

@@ -11,7 +11,7 @@ class AutoCodeConfig {
     this.useProForExtreme = false;
 
     // Credentials / API settings
-    this.provider = 'openai';
+    this.provider = 'deepseek';
     this.apiKey = '';
     this.endpointUrl = '';
 

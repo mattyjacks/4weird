@@ -704,23 +704,44 @@ textarea:focus {
 
 /* AI VISION MIRROR: live mirror of the test window + AI overlays */
 .vision-mirror {
-  width: min(680px, 92%);
-  border-radius: 10px;
-  border: 2px solid var(--accent-blue);
+  /* The relay owns the whole primary-window viewport whenever the game runs
+     separately. The game feed remains prominent while the AI layer stays
+     visible and immediately useful. */
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  border: 1px solid rgba(34, 211, 238, 0.95);
   overflow: hidden;
-  box-shadow: var(--shadow-glow);
+  box-shadow: inset 0 0 0 1px rgba(168, 85, 247, 0.42), inset 0 0 32px rgba(34, 211, 238, 0.12);
   background: #05060f;
   text-align: left;
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+}
+
+.vision-mirror::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0.28;
+  background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(97, 243, 255, 0.12) 3px 4px);
+  mix-blend-mode: screen;
 }
 
 .vision-mirror-head {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px;
-  background: rgba(20, 24, 48, 0.95);
+  padding: 5px 7px;
+  background: linear-gradient(90deg, rgba(9, 35, 51, 0.98), rgba(30, 16, 58, 0.98));
   font-family: var(--font-mono);
 }
+
+.vision-title-orb { color: #4ade80; text-shadow: 0 0 8px #4ade80; }
 
 .vision-title {
   font-size: 0.72rem;
@@ -765,7 +786,8 @@ textarea:focus {
 .vision-canvas-wrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  flex: 1 1 auto;
+  min-height: 0;
   background: #000;
 }
 
@@ -811,9 +833,18 @@ textarea:focus {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px;
+  padding: 5px 7px;
   background: rgba(10, 12, 24, 0.95);
   min-height: 30px;
+}
+
+.vision-scale-readout {
+  margin-left: auto;
+  color: #67e8f9;
+  font: 700 0.5rem var(--font-mono);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  opacity: 0.88;
 }
 
 .vision-keys {
