@@ -192,6 +192,33 @@ const MODEL_PRICING = {
     tier: 1,
     description: 'Experimental multimodal image processing model'
   },
+  // ElevenLabs audio (BYOK voice layer — not LLM tokens)
+  'elevenlabs-tts': {
+    name: 'ElevenLabs TTS',
+    inputRate: 300.00,
+    outputRate: 0,
+    cacheInputRate: 300.00,
+    tier: 1,
+    description: 'Approx $0.30 per 1k chars (Creator tier)',
+    unit: 'chars'
+  },
+  'elevenlabs-stt': {
+    name: 'ElevenLabs Scribe STT',
+    inputRate: 0.33,
+    outputRate: 0,
+    cacheInputRate: 0.33,
+    tier: 1,
+    description: 'Approx $0.02 per minute transcribed',
+    unit: 'seconds'
+  },
+  'elevenlabs-audio': {
+    name: 'ElevenLabs Audio (generic)',
+    inputRate: 0.50,
+    outputRate: 1.50,
+    cacheInputRate: 0.25,
+    tier: 1,
+    description: 'Fallback audio cost bucket'
+  },
   // GPT-4o Series
   'gpt-4o': {
     name: 'GPT-4o',

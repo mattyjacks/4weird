@@ -1,15 +1,24 @@
 # Gameplay discoveries
 Automatically distilled from completed playtest decisions.
 
-1. Observed canvas control “TEMPLATE-4weird-starfield” at 496,500.
-2. Observed a control “🎮 4weirdGames” at 75,68.
-3. Observed a control “← Back to 4weird” at 120,227.
-4. Observed canvas control “TEMPLATE-4weird-gameCanvas” at 372,1000.
-5. Observed button control “🛠️” at 960,879.
-6. Observed button control “♿” at 955,859.
-7. click → 496,500: Offline explorer (no API key): trying interactive element CANVAS "TEMPLATE-4weird-starfield" (1/6). Add an API key for smart decisions.
-8. Observed a control “🎮 4weirdGames” at 75,82.
-9. Observed a control “← Back to 4weird” at 120,274.
-10. Observed button control “🛠️” at 960,853.
-11. Observed button control “♿” at 955,829.
-12. click → 75,82: Offline explorer (no API key): trying interactive element A "🎮 4weirdGames" (2/6). Add an API key for smart decisions.
+1. Observed canvas control “TEMPLATE-4weird-starfield” at 497,500.
+2. Observed a control “🎮 4weirdGames” at 69,32.
+3. Observed a control “Games” at 534,32.
+4. Observed a control “MADI AI” at 587,32.
+5. Observed a control “Technology” at 650,32.
+6. Observed a control “Academy” at 715,32.
+7. Observed button control “♿ Accessibility” at 781,32.
+8. Observed a control “Contribute” at 849,32.
+9. Observed a control “Contact MattyJacks” at 933,32.
+10. Observed a control “← Back to 4weird” at 243,101.
+11. Observed canvas control “TEMPLATE-4weird-gameCanvas” at 411,444.
+12. Observed button control “🤖 Start Alignment Protocol” at 411,441.
+13. Observed button control “🛠️” at 972,960.
+14. Observed button control “♿” at 969,954.
+15. click → 497,500: Offline explorer (no API key): trying interactive element CANVAS "TEMPLATE-4weird-starfield" (1/14). Add an API key for smart decisions.
+16. click → 69,32: Offline explorer (no API key): trying interactive element A "🎮 4weirdGames" (2/14). Add an API key for smart decisions.
+17. Observed canvas control “starfield” at 500,500.
+18. Observed button control “🎲 Play Random Good Game” at 437,638.
+19. Observed a control “🎮 View All Games” at 577,638.
+20. Observed a control “🚀 FULLSCREEN SPACE SIM” at 497,719.
+21. click → 534,32: Offline explorer (no API key): trying interactive element A "Games" (3/13). Add an API key for smart decisions.

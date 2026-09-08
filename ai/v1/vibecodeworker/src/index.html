@@ -814,24 +814,62 @@
           </section>
           <section class="viewport-section glass" style="margin-top: 0;">
             <div class="viewport-bezel">
-              <!-- ELECTRON WEBVIEW COMPONENT -->
-              <webview id="game-webview" src="about:blank" style="width: 100%; height: 100%;"
-                partition="persist:gameview" nodeintegrationinsubframes="false"></webview>
+              <!-- DUAL-PANE PLAYTEST STAGE: the game renders once at true
+                   1920x1080 inside the PURE pane (scaled down, ratio kept,
+                   still fully interactive). The AI pane mirrors the same
+                   frame plus the AI overlay: what the agent sees, mouse
+                   trail + heat, clicks, detections, keys. -->
+              <div class="stage-grid" id="stage-grid">
+                <div class="stage-pane pure-pane" id="pure-pane">
+                  <div class="stage-pane-head">
+                    <span class="stage-badge pure">◉ PURE · LIVE GAME</span>
+                    <span class="stage-pane-sub" id="pure-res">1920×1080 · interactive</span>
+                  </div>
+                  <div class="pure-scale-wrap" id="pure-scale-wrap">
+                    <!-- ELECTRON WEBVIEW COMPONENT: fixed 1920x1080 backing
+                         store (headless AND headful), CSS-scaled to fit. -->
+                    <webview id="game-webview" src="about:blank" style="width:1920px; height:1080px;"
+                      partition="persist:gameview" nodeintegrationinsubframes="false"></webview>
+                  </div>
 
-              <div class="game-status-banner" id="game-status-banner">Select a game from local demos below or enter a
-                URL</div>
+                  <div class="game-status-banner" id="game-status-banner">Select a game from local demos below or enter a
+                    URL</div>
 
-              <div class="no-game-placeholder" id="webview-placeholder">
-                <div class="placeholder-icon">🎮</div>
-                <h3>4weird VibeCodeWorker Runner</h3>
-                <p style="margin-bottom: 15px; max-width: 450px;">Select a local demo game to quick-launch and start
-                  playtesting immediately:</p>
-                <div class="quick-launch-grid" id="quick-launch-grid"
-                  style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 15px; max-width: 500px;">
-                  <!-- Javascript will dynamically populate quick launch buttons here -->
+                  <div class="no-game-placeholder" id="webview-placeholder">
+                    <div class="placeholder-icon">🎮</div>
+                    <h3>4weird VibeCodeWorker Runner</h3>
+                    <p style="margin-bottom: 15px; max-width: 450px;">Select a local demo game to quick-launch and start
+                      playtesting immediately:</p>
+                    <div class="quick-launch-grid" id="quick-launch-grid"
+                      style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 15px; max-width: 500px;">
+                      <!-- Javascript will dynamically populate quick launch buttons here -->
+                    </div>
+                    <div style="font-size: 0.8rem; opacity: 0.6; max-width: 400px; line-height: 1.4;">
+                      Or configure a custom address in the Config Panel on the left.
+                    </div>
+                  </div>
                 </div>
-                <div style="font-size: 0.8rem; opacity: 0.6; max-width: 400px; line-height: 1.4;">
-                  Or configure a custom address in the Config Panel on the left.
+
+                <div class="stage-pane ai-pane" id="ai-pane">
+                  <div class="stage-pane-head">
+                    <span class="stage-badge ai">🤖 AI · SEES THIS</span>
+                    <span class="stage-pane-sub" id="ai-view-stats">waiting for game…</span>
+                    <span class="vision-toggles">
+                      <button class="vision-toggle active" id="ai-toggle-boxes" title="Object recognition boxes">🎯</button>
+                      <button class="vision-toggle active" id="ai-toggle-trail" title="Mouse trail + cursor">🖱️</button>
+                      <button class="vision-toggle active" id="ai-toggle-heat" title="Click heatmap">🔥</button>
+                      <button class="vision-toggle active" id="ai-toggle-keys" title="Key press HUD">⌨️</button>
+                      <button class="vision-toggle active" id="ai-toggle-mirror" title="Pause/resume AI view">⏸️</button>
+                    </span>
+                  </div>
+                  <div class="ai-canvas-wrap">
+                    <canvas id="ai-view-canvas" width="960" height="540"></canvas>
+                    <div class="vision-live-badge"><span class="vision-dot"></span><span id="ai-view-live-label">AI VIEW · 960×540</span></div>
+                  </div>
+                  <div class="ai-view-foot">
+                    <div class="vision-keys" id="ai-view-keys"></div>
+                    <div class="vision-action" id="ai-view-action">agent idle</div>
+                  </div>
                 </div>
               </div>
 
@@ -869,11 +907,19 @@
               <input type="range" id="timeline-scrubber" min="0" max="0" value="0">
               <span id="timeline-time">Tick: 0/0</span>
             </div>
+            <!-- HUMAN TAKEOVER: you play in the PURE pane, the AI watches and
+                 takes notes (mouse path, clicks, keys, screenshots). -->
+            <div class="takeover-bar" id="takeover-bar">
+              <button id="btn-takeover" class="btn btn-small btn-secondary" title="Pause the agent and play the game yourself while the AI watches, records your inputs and takes notes">🙋 Take over — I play, AI watches</button>
+              <span class="takeover-status" id="takeover-status">AI drives. Take over anytime to show it how it's done.</span>
+              <button id="btn-takeover-clear-heat" class="btn btn-small btn-secondary" title="Clear the AI click-heatmap">🧹 Clear heat</button>
+            </div>
             <!-- DISPLAY CONTROLS: HD windowed / fullscreen + smart game framing -->
             <div class="viewport-toolbar" id="viewport-display-toolbar">
               <span class="display-label">DISPLAY</span>
               <button id="btn-display-windowed" class="btn btn-small btn-secondary" title="Dashboard windowed at 1920x1080">🗔 HD Window</button>
               <button id="btn-display-fullscreen" class="btn btn-small btn-secondary" title="Dashboard fullscreen">⛶ Fullscreen</button>
+              <button id="btn-display-focus" class="btn btn-small btn-secondary" title="Give the whole dashboard height to the game viewport">🎮 Focus game</button>
               <button id="btn-center-game" class="btn btn-small btn-secondary" title="Scroll the real play area into the centre of the game view">🎯 Center game</button>
               <span class="display-readout" id="display-readout">viewport: —</span>
             </div>

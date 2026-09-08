@@ -20,6 +20,10 @@
   "autoCodeCaptureOnPlay": false,
   "serverPort": 42069,
   "webEngine": "ultralight",
+  "audioChannelMode": "mono",
+  "audioVoiceId": "21m00Tcm4TlvDq8ikWAM",
+  "audioCommentary": false,
+  "audioNarrateBugs": false,
   "opencode": {
     "enabled": false,
     "mode": "cli",

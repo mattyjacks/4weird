@@ -136,12 +136,63 @@ async function main() {
     framed && framed.ok && framed.play && framed.play.width >= 300,
     framed && framed.play ? `${framed.kind} ${framed.play.width}x${framed.play.height} via ${framed.method}, guest ${framed.guestW}x${framed.guestH}` : JSON.stringify(framed).slice(0, 120));
   stage('framing: guest is full width, not a sliver',
-    framed && framed.ok && framed.guestW >= 1200 && framed.webviewRect && framed.webviewRect.height >= 400,
+    framed && framed.ok && framed.guestW >= 1200 && framed.webviewRect && framed.webviewRect.height >= 300,
     framed && framed.ok ? `guest ${framed.guestW}x${framed.guestH}, webview ${framed.webviewRect.width}x${framed.webviewRect.height}` : 'no metrics');
   const modeRes = await run(`window.setDisplayMode('windowed', { width: 1920, height: 1080 })`);
   stage('runner API: setDisplayMode roundtrip', modeRes && modeRes.success === true, `mode=${modeRes && modeRes.mode}`);
   await shot('e2e-02b-game-framed.png');
+
+  // --- 3c. Game-focus: the viewport should own the dashboard height ---
+  const webviewH = () => run(`document.getElementById('game-webview').getBoundingClientRect().height`);
+  const hBefore = await webviewH();
+  const focusRes = await run(`window.setDisplayMode('game-focus')`);
+  await sleep(600);
+  const hAfter = await webviewH();
+  stage('game-focus: viewport grows taller', focusRes && focusRes.success === true && hAfter > hBefore + 150,
+    `${Math.round(hBefore)}px -> ${Math.round(hAfter)}px`);
+  const reframed = await run(`window.ensureGameVisible()`);
+  stage('game-focus: play area still framed', reframed && reframed.ok && reframed.play && reframed.play.width >= 300,
+    reframed && reframed.play ? `${reframed.kind} via ${reframed.method}` : 'no metrics');
+  await shot('e2e-02c-game-focus.png');
+  await run(`window.setDisplayMode('windowed', { width: 1920, height: 1080 })`);
+  await sleep(400);
   await shot('e2e-02-game-loaded.png');
+
+  // --- 3d. Dual-pane stage: PURE live game + AI view, true 1920x1080 surface ---
+  const paneRatio = await run(`(() => {
+    const w = document.getElementById('pure-scale-wrap');
+    if (!w) return 0;
+    const r = w.getBoundingClientRect();
+    return r.height > 0 ? r.width / r.height : 0;
+  })()`);
+  stage('stage: PURE pane locks 16:9', Math.abs(paneRatio - 16 / 9) < 0.06, `ratio=${Number(paneRatio).toFixed(3)}`);
+  const aiCanvas = await run(`(() => { const c = document.getElementById('ai-view-canvas'); return c ? c.width + 'x' + c.height : 'missing'; })()`);
+  stage('stage: AI canvas is 960x540', aiCanvas === '960x540', aiCanvas);
+  const guestSize = await guest('window.innerWidth + "x" + window.innerHeight');
+  stage('stage: render surface is true 1920x1080', guestSize === '1920x1080', guestSize);
+  await sleep(2600); // let the AI mirror loop paint a frame
+  const aiStats = await run(`document.getElementById('ai-view-stats').textContent`);
+  stage('stage: AI view mirrors the game', aiStats && !/waiting for game/.test(aiStats), String(aiStats).slice(0, 90));
+  await shot('e2e-02d-stage.png');
+
+  // --- 3e. Human takeover: AI watches seeded human input + takes notes ---
+  const tk0 = await click('btn-takeover');
+  await sleep(900);
+  const tkStatus = await run(`document.getElementById('takeover-status').textContent`);
+  stage('takeover: goes live', tk0 === 'clicked' && /WATCHING/.test(tkStatus), String(tkStatus).slice(0, 80));
+  await guest(`(window.__takeover.events.push(
+    { t: Date.now(), k: 'move', x: 100, y: 200 },
+    { t: Date.now(), k: 'move', x: 300, y: 400 },
+    { t: Date.now(), k: 'click', x: 300, y: 400, label: 'Start' },
+    { t: Date.now(), k: 'key', key: 'Space', down: true }
+  ), 'seeded')`);
+  await sleep(1600);
+  const tkStatus2 = await run(`document.getElementById('takeover-status').textContent`);
+  stage('takeover: watches human input', /1 clicks/.test(tkStatus2), String(tkStatus2).slice(0, 90));
+  await click('btn-takeover');
+  await sleep(900);
+  const tkLog = await run(`document.getElementById('log-stream').innerText.slice(-900)`);
+  stage('takeover: notes logged on handoff', /Takeover notes/.test(tkLog) && /screenshots:/.test(tkLog), 'notes in log');
 
   // --- 4. Rules awareness: file rules now, on-page enrichment after load ---
   const rulesNow = await run(`document.getElementById('game-rules').value`);
@@ -152,7 +203,7 @@ async function main() {
   const rulesAfter = await run(`document.getElementById('game-rules').value`);
   stage('on-page meta rules merged', /spare good/i.test(rulesAfter),
     `${rulesAfter.split('\n').length} lines`);
-  const logText = await run(`document.getElementById('log-stream').innerText.slice(-600)`);
+  const logText = await run(`document.getElementById('log-stream').innerText.slice(-2500)`);
   stage('rules load logged', /Game rules ready/.test(logText));
 
   // --- 5. Heuristic playtest: real steps, real clicks, $0 LLM ---

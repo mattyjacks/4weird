@@ -1242,6 +1242,7 @@ async function runTests() {
     assert(script.includes('button, a, input'), "DOM branch must scan interactive elements");
     assert(script.includes('vibe-bot-cursor'), "Detect script must read out the bot cursor");
     assert(script.includes('JSON.stringify'), "Detect script must return JSON");
+    assert(script.includes('(r.left + r.right) / 2'), "DOM boxes must report centre coords (both mirrors draw centre-anchored)");
 
     // Response parsing is tolerant (string, object, garbage)
     const parsed = visionDetect.parseDetectResponse('{"source":"dom","cursor":null,"objects":[{"x":1,"y":2}]}');
@@ -1344,6 +1345,8 @@ async function runTests() {
     assert.deepStrictEqual(p3.gameWindowSize, { width: 1280, height: 720 }, "--game-window-size must parse");
     assert.strictEqual(p3.gameFullscreen, true, "--game-fullscreen must parse");
     assert.strictEqual(parseWorkerArgs(['node', 'x']).displayMode, 'windowed', "Default display mode must be windowed");
+    assert.strictEqual(parseWorkerArgs(['node', 'x', '--display-mode', 'game-focus']).displayMode, 'game-focus', "--display-mode game-focus must parse");
+    assert.strictEqual(parseWorkerArgs(['node', 'x', '--split']).displayMode, 'split', "--split shorthand must parse");
 
     // Pure framing script: finds the playfield (game-root ids, button
     // cluster, canvases), centres it, reports guest + play metrics.
@@ -1367,6 +1370,9 @@ async function runTests() {
     assert(appSrc.includes('window.ensureGameVisible'), "Dashboard must expose ensureGameVisible to the runner brain");
     assert(appSrc.includes('window.getGameViewMetrics'), "Dashboard must expose getGameViewMetrics to the runner brain");
     assert(appSrc.includes('btn-center-game'), "Dashboard must wire the Center-game toolbar button");
+    assert(appSrc.includes('game-focus'), "Dashboard must support game-focus display mode");
+    const cssSrc = fs.readFileSync(path.join(projectRoot, 'src', 'index.css'), 'utf8');
+    assert(cssSrc.includes('body.game-focus .monitor-section'), "game-focus must collapse the log panel for a taller viewport");
     const stepSrc = fs.readFileSync(path.join(projectRoot, 'src', 'runtime', 'agent_step_executor.js'), 'utf8');
     assert(stepSrc.includes('ensureGameVisible'), "Each agent step must re-frame the play area before the screenshot");
     console.log("✅ Test 36 Passed!");
@@ -1375,7 +1381,79 @@ async function runTests() {
     failedTests.push("Display.hdFraming");
   }
 
-  // Write results to .last-run.json
+  // Test 37: dual-pane playtest stage (PURE 1920x1080 + AI overlay + takeover)
+  try {
+    console.log("Running Test 37: PURE/AI stage + human takeover...");
+    const sv = require(path.join(projectRoot, 'src', 'components', 'stage_view'));
+    assert.strictEqual(sv.HD_W, 1920, "Render surface width must be 1920");
+    assert.strictEqual(sv.HD_H, 1080, "Render surface height must be 1080");
+    assert.strictEqual(sv.AI_W, 960, "AI pane canvas must be 960 wide (50% projection)");
+    assert.strictEqual(sv.AI_H, 540, "AI pane canvas must be 540 tall (16:9)");
+    assert(Math.abs(sv.computePureScale(960) - 0.5) < 1e-9, "960px pane must shrink 1920 exactly 50%");
+    assert.strictEqual(sv.computePureScale(0), 1, "Zero-width pane must fall back to scale 1");
+    assert.deepStrictEqual(sv.normToGuest(500, 500), { x: 960, y: 540 }, "Centre of action space must map to guest centre");
+    assert.deepStrictEqual(sv.normToGuest(-50, 2000), { x: 0, y: 1080 }, "Out-of-range coords must clamp to the guest frame");
+    const cell = sv.heatCell(500, 500);
+    assert(cell.col >= 0 && cell.col < sv.HEAT_COLS && cell.row >= 0 && cell.row < sv.HEAT_ROWS, "Heat cell must sit inside the grid");
+    assert.strictEqual(sv.heatCell(0, 0).index, 0, "Top-left heat cell must be index 0");
+
+    // Guest recorder contract: installs window.__takeover, streams
+    // normalized move/click/key events, uninstalls cleanly.
+    const rec = sv.buildRecorderScript();
+    assert(rec.includes('__takeover'), "Recorder must own window.__takeover");
+    assert(rec.includes('mousemove') && rec.includes('mousedown'), "Recorder must watch mouse movement + clicks");
+    assert(rec.includes('keydown'), "Recorder must watch keys");
+    assert(rec.includes('clientX') && rec.includes('innerWidth'), "Recorder must normalize to 0-1000 action space");
+    assert(sv.buildDrainScript().includes('splice'), "Drain must remove events as it reads them");
+    assert(sv.buildStopRecorderScript().includes('takeover-stopped'), "Stop must report takeover-stopped");
+    assert(rec.includes('removeEventListener'), "Recorder stop must detach guest listeners");
+    const drained = sv.parseDrainedEvents(JSON.stringify([
+      { t: 1, k: 'move', x: 100, y: 200 },
+      { t: 2, k: 'click', x: 300, y: 400, label: 'Start' },
+      { t: 3, k: 'key', key: 'Space', down: true },
+      { t: 4, k: 'bogus' },
+      'junk'
+    ]));
+    assert.strictEqual(drained.length, 3, "Drain parser must keep move/click/key and drop junk");
+    assert.deepStrictEqual(sv.parseDrainedEvents('not-json'), [], "Drain parser must survive garbage");
+
+    // Takeover notes: counts, key ranking, hottest zone, duration.
+    const summary = sv.summarizeTakeover({
+      startedAt: Date.now() - 65000, endedAt: Date.now(),
+      moves: 120, clicks: 5, distance: 3400,
+      keys: { Space: 4, ArrowRight: 2 },
+      zones: { '(300-399, 400-499)': 3, '(100-199, 100-199)': 2 },
+      shots: 7
+    });
+    assert.strictEqual(summary.clicks, 5, "Summary must count clicks");
+    assert.strictEqual(summary.topKeys[0][0], 'Space', "Summary must rank Space first");
+    assert(summary.topZones[0][0].includes('300-399'), "Summary must find the hottest click zone");
+    assert(summary.lines.some((l) => /Takeover notes/.test(l)), "Summary must log a notes header");
+    assert(summary.lines.some((l) => /screenshots: 7/.test(l)), "Summary must report screenshot count");
+
+    // Wiring: stage markup + dashboard init + runner API.
+    const htmlSrc = fs.readFileSync(path.join(projectRoot, 'src', 'index.html'), 'utf8');
+    assert(htmlSrc.includes('id="pure-pane"'), "Stage must have a PURE pane");
+    assert(htmlSrc.includes('id="ai-view-canvas"'), "Stage must have an AI view canvas");
+    assert(htmlSrc.includes('id="btn-takeover"'), "Stage must have a takeover button");
+    assert(htmlSrc.includes('id="takeover-status"'), "Stage must have a takeover status readout");
+    assert(htmlSrc.includes('width:1920px; height:1080px'), "Webview must render a true 1920x1080 surface");
+    const appSrc2 = fs.readFileSync(path.join(projectRoot, 'src', 'app.js'), 'utf8');
+    assert(appSrc2.includes('initStageView'), "Dashboard must init the playtest stage");
+    assert(appSrc2.includes('handleGuestLoad'), "Dashboard must re-fit + re-attach on guest load");
+    assert(appSrc2.includes('window.humanTakeover'), "Dashboard must expose humanTakeover to the runner brain");
+    assert(appSrc2.includes('window.getAIViewMetrics'), "Dashboard must expose AI view metrics");
+    const cssSrc2 = fs.readFileSync(path.join(projectRoot, 'src', 'index.css'), 'utf8');
+    assert(cssSrc2.includes('.stage-grid'), "CSS must lay out the dual-pane stage");
+    assert(cssSrc2.includes('aspect-ratio: 16 / 9') || cssSrc2.includes('aspect-ratio:16/9'), "Stage panes must lock 16:9");
+    assert(cssSrc2.includes('body.game-focus .stage-grid'), "Focus-game must stack the stage full-width");
+    const cssNoComments = cssSrc2.replace(/\/\*[\s\S]*?\*\//g, '');
+    assert(!/#game-webview\s*\{[^}]*display\s*:\s*block/.test(cssNoComments), "CSS must never display:block the webview (Electron 31 then pins the guest to a 150px sliver)");
+    console.log("✅ Test 37 Passed!");
+  } catch (err) {
+    console.error("❌ Test 37 Failed:", err);
+    failedTests.push("Stage.pureAiTakeover");
+  }
   const resultsPath = path.join(projectRoot, '..', '..', '..', 'test-results', '.last-run.json');
   const status = failedTests.length === 0 ? "passed" : "failed";
   const results = {

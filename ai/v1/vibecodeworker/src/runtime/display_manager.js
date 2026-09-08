@@ -145,12 +145,20 @@ async function getDisplayConfig() {
 // windowed and fullscreen (or an explicit HD size). Callable by the
 // operator (viewport toolbar) and by the runner brain:
 //   await window.setDisplayMode('fullscreen')
+//   await window.setDisplayMode('game-focus')     // webview takes the dashboard
 //   await window.setDisplayMode('game-fullscreen')
 //   await window.setDisplayMode('windowed', { width: 1920, height: 1080 })
 async function setDisplayMode(mode, opts = {}) {
+  const m = String(mode || 'windowed').toLowerCase();
+  try {
+    if (typeof document !== 'undefined' && document.body) {
+      document.body.classList.toggle('game-focus', m === 'game-focus');
+    }
+  } catch (_) {}
+  if (m === 'game-focus') return { success: true, mode: 'game-focus' };
   if (ipc && typeof ipc.invoke === 'function') {
     try {
-      return await ipc.invoke('set-display-mode', { mode, ...(opts || {}) });
+      return await ipc.invoke('set-display-mode', { mode: m, ...(opts || {}) });
     } catch (e) {
       return { success: false, error: e.message };
     }
@@ -189,6 +197,25 @@ async function ensureGameVisible(deps = {}) {
       if (r) webviewRect = { x: Math.round(r.left), y: Math.round(r.top), width: Math.round(r.width), height: Math.round(r.height) };
     } catch (_) {}
     const metrics = { target: 'webview', ok: !!(m && m.ok), ...(m || {}), webviewRect };
+    // The guest viewport resizes a frame behind the webview element (e.g.
+    // right after game-focus mode grows it). If the webview rect moved, give
+    // Chromium a beat and re-read the true guest size so the readout and the
+    // runner brain never report a stale sliver.
+    try {
+      const prev = currentMetrics();
+      const prevH = prev && prev.webviewRect ? prev.webviewRect.height : 0;
+      if (metrics.ok && prevH && webviewRect && Math.abs(webviewRect.height - prevH) > 50) {
+        await new Promise((r) => setTimeout(r, 250));
+        const fresh = await exec('({ w: window.innerWidth || 0, h: window.innerHeight || 0, sx: window.scrollX || 0, sy: window.scrollY || 0 })');
+        if (fresh && fresh.w > 0 && fresh.h > 0) {
+          metrics.guestW = fresh.w;
+          metrics.guestH = fresh.h;
+          metrics.scrollX = fresh.sx;
+          metrics.scrollY = fresh.sy;
+          metrics.resized = true;
+        }
+      }
+    } catch (_) { /* stale metrics are still usable */ }
     if (log && metrics.ok) {
       const play = metrics.play ? `${metrics.play.width}x${metrics.play.height} (${metrics.kind})` : 'n/a';
       log(`Game view: guest ${metrics.guestW}x${metrics.guestH}, play area ${play}, ${metrics.scrolled ? 'centered' : 'already centered'} (${metrics.method}).`);

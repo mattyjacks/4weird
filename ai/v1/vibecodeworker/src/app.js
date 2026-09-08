@@ -41,6 +41,7 @@ const {
 } = require('./components/timeline_scrubber_view');
 const { HubUIController } = require('./components/hub_ui_controller');
 const { initVisionMirror } = require('./components/vision_mirror');
+const { initStageView } = require('./components/stage_view');
 const visionState = require('./runtime/vision_state');
 const { buildDetectScript, parseDetectResponse } = require('./runtime/vision_detect');
 const { executeAgentStep: runAgentStep } = require('./runtime/agent_step_executor');
@@ -130,6 +131,9 @@ let hubUI = null;
 
 // AI Vision Mirror instance (dashboard panel mirroring the test window)
 let visionMirror = null;
+
+// Dual-pane playtest stage (PURE live game + AI vision + human takeover)
+let stageView = null;
 
 function queryElements() {
   el.providerSelect = document.getElementById('provider-select');
@@ -971,6 +975,38 @@ document.addEventListener('DOMContentLoaded', () => {
     log: (msg) => logSystemMessage('[Vision] ' + msg)
   });
   visionMirror.start();
+
+  // Dual-pane playtest stage: PURE is the live 1920x1080 webview (scaled to
+  // its pane), AI is the same frame + overlay. Takeover lets the human play
+  // while the AI watches and takes notes.
+  stageView = initStageView({
+    getWebview: () => webviewElement,
+    executeJS: async (code) => gameController.executeJS(webviewElement, code),
+    captureAI: async () => {
+      if (!webviewElement) return null;
+      try {
+        const img = await webviewElement.capturePage();
+        return img.resize({ width: 960 }).toJPEG(60).toString('base64');
+      } catch (_) { return null; }
+    },
+    visionState,
+    buildDetectScript,
+    parseDetectResponse,
+    log: (msg) => logSystemMessage(msg),
+    toast: (msg, kind) => toastNotifier.show(msg, kind || 'info'),
+    isAgentRunning: () => isRunning,
+    pauseAgent: () => { if (isRunning) toggleAgentState(); },
+    setBotControl: (on) => { try { gameController.setBotControl(webviewElement, on); } catch (_) {} }
+  });
+  stageView.start();
+  // Runner-brain / CLI API for the takeover mode.
+  window.humanTakeover = () => stageView.toggleTakeover();
+  window.isHumanTakeover = () => stageView.isTakeover();
+  window.getAIViewMetrics = () => ({
+    heat: stageView.heatTotal(),
+    takeover: stageView.isTakeover(),
+    session: stageView.getSession()
+  });
   
   // Initialize Hub Controller
   const hubEl = {
@@ -1006,6 +1042,8 @@ document.addEventListener('DOMContentLoaded', () => {
     showEditorWorkspace: () => {
       hubEl.hubWorkspace.classList.add('hidden');
       hubEl.editorWorkspace.classList.remove('hidden');
+      // The PURE pane finally has width — fit the 1920x1080 surface to it.
+      try { if (stageView) stageView.fitPure(); } catch (_) {}
     },
     el
   });
@@ -1038,6 +1076,21 @@ document.addEventListener('DOMContentLoaded', () => {
   // Listen for CLI arguments
   ipcRenderer.on('cli-args', (event, argv) => {
     window.cliArgs = argv;
+    // CLI-seeded display mode: --display-mode game-focus/fullscreen/split,
+    // --fullscreen, --window-size WxH. The main process sizes the window;
+    // renderer-side modes (game-focus class) apply here.
+    const dmIndex = argv.indexOf('--display-mode');
+    const cliDisplayMode = dmIndex !== -1 && dmIndex + 1 < argv.length
+      ? String(argv[dmIndex + 1]).toLowerCase() : null;
+    if (cliDisplayMode === 'game-focus') {
+      setTimeout(() => {
+        displayManager.setDisplayMode('game-focus').then(() => {
+          const btn = document.getElementById('btn-display-focus');
+          if (btn) btn.classList.add('active');
+          logSystemMessage('Display: game-focus from CLI — viewport owns the dashboard.');
+        }).catch(() => {});
+      }, 800);
+    }
     const gameArgIndex = argv.indexOf('--game');
     if (gameArgIndex !== -1 && gameArgIndex + 1 < argv.length) {
       const gameName = argv[gameArgIndex + 1];
@@ -1361,12 +1414,14 @@ function toggleAgentState() {
       toastNotifier.show('No API key: offline explorer mode', 'warning');
     }
     updateStatusBanner("🤖 AI Agent actively playtesting & scanning for bugs...", 'active');
-    
-    ipcRenderer.invoke('is-game-window-active').then(active => {
-      if (!active && !el.nativeProcessSelect.value) {
-        openExternalGameWindow();
-      }
-    });
+
+    // The agent plays INSIDE the workspace PURE pane now (dual-pane stage),
+    // so starting it no longer pops the separate window — that stays a manual
+    // "Separate Window" choice. If the human was mid-takeover, the agent
+    // takes the wheel back and the takeover notes are logged first.
+    if (stageView && stageView.isTakeover()) {
+      stageView.endTakeover().catch(() => {});
+    }
     
     agentBrain.startSession();
     tracker.updateSessionStatsUI(agentBrain, el);
@@ -1466,6 +1521,9 @@ function setupWebviewListeners() {
   webviewElement.addEventListener('did-finish-load', () => {
     logSystemMessage("Game window viewport successfully loaded.");
     crawlFiles();
+    // Re-fit the PURE pane scaler + re-attach the takeover recorder if the
+    // human is mid-takeover (guest navigations wipe injected listeners).
+    try { if (stageView) stageView.handleGuestLoad(); } catch (_) {}
     // Frame the real play area (not the page header) so the agent's next
     // screenshot shows the GAME at full size. Best-effort, runs in background.
     try {
@@ -1520,6 +1578,22 @@ function setupDisplayToolbar() {
     audio.playClickSound();
     const res = await displayManager.setDisplayMode('fullscreen');
     logSystemMessage(res && res.success ? 'Display: fullscreen dashboard.' : `Display switch failed: ${(res && res.error) || 'unknown'}`);
+  });
+  bind('btn-display-focus', async () => {
+    audio.playClickSound();
+    const on = !document.body.classList.contains('game-focus');
+    const res = await displayManager.setDisplayMode(on ? 'game-focus' : 'windowed', { width: 1920, height: 1080 });
+    const btn = document.getElementById('btn-display-focus');
+    if (btn) btn.classList.toggle('active', on);
+    logSystemMessage(res && res.success
+      ? (on ? 'Display: game-focus — viewport owns the dashboard. Toggle Focus game to restore.' : 'Display: windowed dashboard restored.')
+      : `Display switch failed: ${(res && res.error) || 'unknown'}`);
+    if (on) {
+      try {
+        const m = await displayManager.ensureGameVisible({ webviewElement, gameController, log: (msg) => logSystemMessage(msg) });
+        updateDisplayReadout(m);
+      } catch (_) {}
+    }
   });
   bind('btn-center-game', async () => {
     audio.playClickSound();

@@ -206,7 +206,7 @@ function saveCredentials(credentials, isMigrating = false) {
 
 /** Remove provider-specific keys after a confirmed authentication failure. */
 function removeCredentialsForProviders(providers = []) {
-  const fields = { openai: 'openaiApiKey', deepseek: 'deepseekApiKey', gemini: 'geminiApiKey', meta: 'metaApiKey', openrouter: 'openrouterApiKey' };
+  const fields = { openai: 'openaiApiKey', deepseek: 'deepseekApiKey', gemini: 'geminiApiKey', meta: 'metaApiKey', openrouter: 'openrouterApiKey', elevenlabs: 'elevenlabsApiKey' };
   const wanted = providers.filter((provider) => fields[provider]);
   if (!wanted.length) return false;
   const dir = getCredentialsDir();
@@ -248,7 +248,9 @@ const PLACEHOLDER_PATTERNS = [
   /^enter /i,
   /^\*+$/,
   /^test-key/i,
-  /^mock/i
+  /^mock/i,
+  /elevenlabs-key-here/i,
+  /your-elevenlabs/i
 ];
 
 function isPlaceholderKey(key) {
@@ -265,6 +267,7 @@ function readEnvKey(provider) {
   else if (provider === 'openai') raw = process.env.OPENAI_API_KEY || '';
   else if (provider === 'gemini') raw = process.env.GEMINI_API_KEY || '';
   else if (provider === 'openrouter') raw = process.env.OPENROUTER_API_KEY || '';
+  else if (provider === 'elevenlabs') raw = process.env.ELEVENLABS_API_KEY || '';
   raw = (raw || '').trim();
   // A stale placeholder in the shell (e.g. copied from .env.example) must not
   // shadow the good key the user saved in the encrypted store.
@@ -305,6 +308,8 @@ function getResolvedApiKey(provider, fallbackKey = '') {
     stored = clean(creds.geminiApiKey) || (creds.provider === 'gemini' ? clean(creds.apiKey) : '');
   } else if (provider === 'openrouter') {
     stored = clean(creds.openrouterApiKey) || (creds.provider === 'openrouter' ? clean(creds.apiKey) : '');
+  } else if (provider === 'elevenlabs') {
+    stored = clean(creds.elevenlabsApiKey) || (creds.provider === 'elevenlabs' ? clean(creds.apiKey) : '');
   } else {
     stored = clean(creds.apiKey);
   }
@@ -332,7 +337,7 @@ function maskApiKey(key) {
  * Masked display bundle for the API-keys modal. Returns ONLY first8...last4
  * previews (never full secrets) so the UI can show each saved key without
  * exposing it in input values, innerText, or logs.
- * @returns {{openai:string,deepseek:string,gemini:string,meta:string,openrouter:string}}
+ * @returns {{openai:string,deepseek:string,gemini:string,meta:string,openrouter:string,elevenlabs:string}}
  */
 function loadMaskedApiKeyBundle() {
   return {
@@ -340,7 +345,8 @@ function loadMaskedApiKeyBundle() {
     deepseek: maskApiKey(getResolvedApiKey('deepseek')),
     gemini: maskApiKey(getResolvedApiKey('gemini')),
     meta: maskApiKey(getResolvedApiKey('meta')),
-    openrouter: maskApiKey(getResolvedApiKey('openrouter'))
+    openrouter: maskApiKey(getResolvedApiKey('openrouter')),
+    elevenlabs: maskApiKey(getResolvedApiKey('elevenlabs'))
   };
 }
 

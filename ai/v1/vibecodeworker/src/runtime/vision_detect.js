@@ -98,7 +98,7 @@ function buildDetectScript(maxObjects) {
     '      if (!label) label = (el.innerText || "").replace(/\\s+/g, " ").trim();\n' +
     '      if (!label) label = el.id ? "#" + el.id : tag;\n' +
     '      label = String(label).slice(0, 30);\n' +
-    '      out.objects.push({ x: nx(r.left), y: ny(r.top),\n' +
+    '      out.objects.push({ x: nx((r.left + r.right) / 2), y: ny((r.top + r.bottom) / 2),\n' +
     '        w: Math.max(4, nx(r.right) - nx(r.left)), h: Math.max(4, ny(r.bottom) - ny(r.top)),\n' +
     '        label: label, kind: kind });\n' +
     '    }\n' +

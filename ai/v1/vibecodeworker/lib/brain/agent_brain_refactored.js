@@ -157,12 +157,12 @@ class AgentBrain {
     return saveReplay(this, replaysDir);
   }
 
-  async callLLM(prompt, base64Image = null) {
-    return await callLLM(this, prompt, base64Image);
+  async callLLM(prompt, base64Image = null, audioInput = null) {
+    return await callLLM(this, prompt, base64Image, audioInput);
   }
 
-  buildPrompt(consoleLogs, domSnapshot, isStuck) {
-    return buildPrompt(this, consoleLogs, domSnapshot, isStuck);
+  buildPrompt(consoleLogs, domSnapshot, isStuck, audioContext = null) {
+    return buildPrompt(this, consoleLogs, domSnapshot, isStuck, audioContext);
   }
 
   async runBraidSelfImprovementLoop(conversationText) {

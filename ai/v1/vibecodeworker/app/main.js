@@ -257,10 +257,27 @@ ipcMain.handle('test-api-keys', async (_event, suppliedKeys = {}) => {
     { name: 'deepseek', key: String(suppliedKeys.deepseek || '').trim(), url: 'https://api.deepseek.com/chat/completions', model: 'deepseek-v4-flash', body: () => ({ model: 'deepseek-v4-flash', max_tokens: 16, messages: [{ role: 'user', content: prompt }] }) },
     { name: 'gemini', key: String(suppliedKeys.gemini || '').trim(), url: (key) => `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${encodeURIComponent(key)}`, model: 'gemini-3.5-flash-lite', body: () => ({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 16 } }) },
     { name: 'meta', key: String(suppliedKeys.meta || '').trim(), url: 'https://openrouter.ai/api/v1/chat/completions', model: 'meta-llama/llama-4-scout-17b-16e-instruct', body: () => ({ model: 'meta-llama/llama-4-scout-17b-16e-instruct', max_tokens: 16, messages: [{ role: 'user', content: prompt }] }) },
-    { name: 'openrouter', key: String(suppliedKeys.openrouter || '').trim(), url: 'https://openrouter.ai/api/v1/chat/completions', model: 'meta-llama/llama-4-scout-17b-16e-instruct', body: () => ({ model: 'meta-llama/llama-4-scout-17b-16e-instruct', max_tokens: 16, messages: [{ role: 'user', content: prompt }] }) }
+    { name: 'openrouter', key: String(suppliedKeys.openrouter || '').trim(), url: 'https://openrouter.ai/api/v1/chat/completions', model: 'meta-llama/llama-4-scout-17b-16e-instruct', body: () => ({ model: 'meta-llama/llama-4-scout-17b-16e-instruct', max_tokens: 16, messages: [{ role: 'user', content: prompt }] }) },
+    { name: 'elevenlabs', key: String(suppliedKeys.elevenlabs || '').trim(), url: 'https://api.elevenlabs.io/v1/user', model: 'eleven_multilingual_v2', elevenlabs: true }
   ];
   const results = await Promise.all(providers.map(async (provider) => {
     if (!provider.key) return { provider: provider.name, status: 'skipped', detail: 'No key entered.' };
+    // ElevenLabs authenticates with xi-api-key on a GET /v1/user probe —
+    // never POST test traffic that would burn voice credits.
+    if (provider.elevenlabs) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 20000);
+      try {
+        const response = await fetch(provider.url, { headers: { 'xi-api-key': provider.key }, signal: controller.signal });
+        if (response.ok) return { provider: provider.name, status: 'valid', detail: 'Key accepted.' };
+        if (response.status === 401 || response.status === 403) return { provider: provider.name, status: 'invalid', detail: `Authentication rejected (${response.status}).` };
+        return { provider: provider.name, status: 'error', detail: `Provider returned ${response.status}; the key itself was not judged bad. Key was not removed.` };
+      } catch (error) {
+        return { provider: provider.name, status: 'error', detail: error.name === 'AbortError' ? 'Timed out; key was not removed.' : 'Connection failed; key was not removed.' };
+      } finally {
+        clearTimeout(timer);
+      }
+    }
     // The Meta slot accepts either an OpenRouter key (sk-or-v1-…) or a
     // Meta-direct key for a user-configured meta.ai endpoint. A Meta-direct
     // key is tested against that endpoint, never against OpenRouter, where
@@ -306,6 +323,22 @@ ipcMain.handle('test-api-keys', async (_event, suppliedKeys = {}) => {
 ipcMain.handle('generate-commentary-speech', async (_event, options = {}) => {
   const text = String(options.text || '').replace(/\s+/g, ' ').trim().slice(0, 500);
   if (!text) return { success: false, error: 'No commentary text supplied' };
+  // ElevenLabs path (BYOK voice layer): richer voices + personalities.
+  if (options.provider === 'elevenlabs' || options.elevenlabs) {
+    try {
+      const eleven = require('../lib/elevenlabs');
+      const { PERSONALITIES } = require('../lib/audio/voice_director');
+      const personality = PERSONALITIES[options.personality] || PERSONALITIES[options.personality === 'streamer' ? 'streamer' : 'qa'] || PERSONALITIES.streamer;
+      const clip = await eleven.textToSpeech(text, {
+        apiKey: String(options.apiKey || ''),
+        voiceId: options.voice || undefined,
+        ...personality,
+      });
+      return clip;
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
   const apiKey = getResolvedApiKey('openai', String(options.apiKey || ''));
   if (!apiKey) return { success: false, error: 'Add an OpenAI API key or choose System voice' };
   const permittedVoices = new Set(['alloy', 'nova', 'shimmer', 'onyx']);
@@ -336,6 +369,30 @@ ipcMain.handle('generate-commentary-speech', async (_event, options = {}) => {
 
 ipcMain.handle('capture-native-screenshot', async (event, windowTitle) => {
   return await captureNativeScreenshot(app.getPath('temp'), windowTitle, projectRoot);
+});
+
+// ElevenLabs voice layer: generic TTS + offline PCM QA for the dashboard.
+ipcMain.handle('elevenlabs-tts', async (_event, options = {}) => {
+  try {
+    const eleven = require('../lib/elevenlabs');
+    return await eleven.textToSpeech(options.text, {
+      apiKey: String(options.apiKey || ''),
+      voiceId: options.voiceId,
+      modelId: options.modelId,
+    });
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('audio-analyze', async (_event, options = {}) => {
+  try {
+    const { stereoQaVerdict } = require('../lib/audio/voice_director');
+    if (!options.pcm) return { success: false, error: 'Missing pcm ({ mono:[...] } or { left:[...], right:[...] })' };
+    return stereoQaVerdict(options.pcm, { mode: options.mode || 'mono', transcript: options.transcript || null });
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
 });
 
 ipcMain.handle('enable-native-game-overlay', async (_event, windowTitle) => {

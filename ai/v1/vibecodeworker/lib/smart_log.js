@@ -278,7 +278,7 @@ function parseWorkerArgs(argv) {
     // set-display-mode IPC channel; CLI just seeds the first paint.
     windowSize: null, // --window-size 1920x1080 (dashboard outer size)
     fullscreen: false, // --fullscreen (dashboard fullscreen)
-    displayMode: 'windowed', // windowed | fullscreen | split (legacy half-width)
+    displayMode: 'windowed', // windowed | fullscreen | split (legacy half-width) | game-focus
     gameWindowSize: null, // --game-window-size 1920x1080 (separate test window)
     gameFullscreen: false, // --game-fullscreen (separate test window fullscreen)
     extra: [],
@@ -299,7 +299,7 @@ function parseWorkerArgs(argv) {
     else if (a === '--fullscreen') { out.fullscreen = true; out.displayMode = 'fullscreen'; }
     else if (a === '--display-mode' && args[i + 1]) {
       const m = String(args[++i]).toLowerCase();
-      if (m === 'windowed' || m === 'fullscreen' || m === 'split') {
+      if (m === 'windowed' || m === 'fullscreen' || m === 'split' || m === 'game-focus') {
         out.displayMode = m;
         if (m === 'fullscreen') out.fullscreen = true;
       }

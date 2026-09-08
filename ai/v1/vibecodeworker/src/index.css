@@ -719,6 +719,203 @@ textarea:focus {
   text-overflow: ellipsis;
 }
 
+/* GAME-FOCUS MODE: the runner brain (or operator) gives the whole dashboard
+   height to the game viewport so the agent sees the full game, not a sliver.
+   Toggle via window.setDisplayMode('game-focus') / 'windowed'. */
+body.game-focus .monitor-section {
+  display: none;
+}
+
+body.game-focus .viewport-section {
+  min-height: 0;
+  padding: 8px;
+}
+
+body.game-focus .quick-run-deck {
+  display: none;
+}
+
+/* DUAL-PANE PLAYTEST STAGE: PURE (live 1920x1080 webview, CSS-shrunk to the
+   pane, ratio locked) + AI (canvas mirror of the same frame + AI overlay).
+   Both panes are hard 16:9 so the workspace always shows the same-ratio
+   shrunken copy of the fullscreen render, headless or headful. */
+.stage-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.stage-pane {
+  display: flex;
+  flex-direction: column;
+  background: #05060f;
+  border: 1px solid rgba(34, 211, 238, 0.28);
+  border-radius: 10px;
+  overflow: hidden;
+  min-width: 0;
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.7);
+}
+
+.stage-pane-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: linear-gradient(90deg, rgba(9, 35, 51, 0.98), rgba(30, 16, 58, 0.98));
+  font-family: var(--font-mono);
+}
+
+.stage-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.stage-badge.pure {
+  color: #4ade80;
+  text-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+}
+
+.stage-badge.ai {
+  color: #22d3ee;
+  text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+}
+
+.stage-pane-sub {
+  flex: 1;
+  font-size: 0.64rem;
+  color: var(--accent-cyan);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.pure-pane {
+  position: relative;
+  border-color: rgba(74, 222, 128, 0.35);
+}
+
+/* The status banner floats over the game, below the PURE pane header. */
+.pure-pane .game-status-banner {
+  top: 42px;
+  max-width: calc(100% - 24px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pure-scale-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #000;
+}
+
+#game-webview {
+  /* WARNING: never display:block here — in Electron 31 a block webview stops
+     propagating its height to the guest (150px sliver). The default
+     inline-flex sizing tracks width AND height; vertical-align kills the
+     inline baseline gap inside the 16:9 wrap. */
+  vertical-align: top;
+  transform-origin: top left;
+}
+
+.ai-pane {
+  border-color: rgba(34, 211, 238, 0.4);
+}
+
+.ai-canvas-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+}
+
+#ai-view-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.ai-view-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  background: rgba(10, 12, 24, 0.95);
+  min-height: 30px;
+}
+
+.ai-view-foot .vision-action {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: #a5b4fc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 45%;
+}
+
+/* HUMAN TAKEOVER BAR: you play, the AI watches + takes notes. */
+.takeover-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(10, 12, 24, 0.9);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 10px;
+  font-family: var(--font-mono);
+}
+
+.takeover-status {
+  flex: 1;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.takeover-status.live {
+  color: #f87171;
+}
+
+#btn-takeover.live {
+  border-color: #f87171;
+  color: #fca5a5;
+  box-shadow: 0 0 10px rgba(248, 113, 113, 0.35);
+  animation: takeover-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes takeover-pulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(248, 113, 113, 0.25); }
+  50% { box-shadow: 0 0 14px rgba(248, 113, 113, 0.55); }
+}
+
+/* Focus-game mode: stack the stage so the PURE pane owns the full dashboard
+   width (bigger ratio-locked picture), AI view rides below it. */
+body.game-focus .stage-grid {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 1100px) {
+  .stage-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* AI VISION MIRROR: live mirror of the test window + AI overlays */
 .vision-mirror {
   /* The relay owns the whole primary-window viewport whenever the game runs

@@ -14,7 +14,31 @@ function selectDeepSeekModel(requestedModel, hasImage, prompt) {
   return requestedModel;
 }
 
-async function callLLM(brain, prompt, base64Image = null) {
+async function callLLM(brain, prompt, base64Image = null, audioInput = null) {
+  // audioInput (Muse Spark 1.3 ear): { base64, mimeType?, transcript?, report? }
+  // or a raw base64 string. Providers with native audio (meta/openrouter via
+  // OpenRouter) get an input_audio part; every provider gets the transcript +
+  // PCM telemetry appended to the prompt so audio QA works everywhere.
+  let audioBase64 = null;
+  let audioTranscript = null;
+  let audioReportBlock = '';
+  if (audioInput) {
+    if (typeof audioInput === 'string') {
+      audioBase64 = audioInput;
+    } else if (typeof audioInput === 'object') {
+      audioBase64 = audioInput.base64 || audioInput.audioBase64 || null;
+      audioTranscript = audioInput.transcript || audioInput.text || null;
+      if (audioInput.report || audioInput.promptBlock) {
+        try {
+          const { buildAudioQABlock } = require('../audio/audio_analyzer');
+          audioReportBlock = audioInput.promptBlock || buildAudioQABlock(audioInput.report, audioTranscript);
+        } catch (_) {}
+      }
+    }
+    if (audioReportBlock) prompt = `${prompt}\n${audioReportBlock}`;
+    else if (audioTranscript) prompt = `${prompt}\n## AUDIO TRANSCRIPT (STT)\n"${String(audioTranscript).slice(0, 500)}"`;
+  }
+
   let { provider, apiKey, endpointUrl, modelName } = brain.config;
 
   // Resolve API key from local persistent credentials or environment
@@ -62,6 +86,10 @@ async function callLLM(brain, prompt, base64Image = null) {
     if (base64Image) {
       content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } });
     }
+    if (audioBase64) {
+      // OpenAI-compatible audio part (Muse Spark 1.3 via OpenRouter).
+      content.push({ type: 'input_audio', input_audio: { data: audioBase64, format: 'wav' } });
+    }
     body = { model: realModel, response_format: { type: "json_object" }, messages: [{ role: 'user', content }] };
 
   } else if (provider === 'deepseek') {
@@ -91,6 +119,10 @@ async function callLLM(brain, prompt, base64Image = null) {
     if (base64Image) {
       content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } });
     }
+    if (audioBase64) {
+      // Muse Spark 1.3 ear: native audio part next to the screenshot.
+      content.push({ type: 'input_audio', input_audio: { data: audioBase64, format: 'wav' } });
+    }
     body = { model: realModel, messages: [{ role: 'user', content }] };
 
   } else if (provider === 'gemini') {
@@ -111,6 +143,10 @@ async function callLLM(brain, prompt, base64Image = null) {
         responseMimeType: 'application/json'
       }
     };
+    if (audioBase64) {
+      // Gemini native audio: inline wav bytes beside the screenshot pixels.
+      parts.push({ inlineData: { mimeType: 'audio/wav', data: audioBase64 } });
+    }
 
   } else if (provider === 'openrouter') {
     url = 'https://openrouter.ai/api/v1/chat/completions';
@@ -121,6 +157,9 @@ async function callLLM(brain, prompt, base64Image = null) {
     const content = [{ type: 'text', text: prompt }];
     if (base64Image) {
       content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } });
+    }
+    if (audioBase64) {
+      content.push({ type: 'input_audio', input_audio: { data: audioBase64, format: 'wav' } });
     }
     body = { model, messages: [{ role: 'user', content }] };
 
@@ -190,7 +229,7 @@ async function callLLM(brain, prompt, base64Image = null) {
     : (modelName || (provider === 'openai' ? 'gpt-5.6-luna' : (provider === 'openrouter' ? 'meta-llama/llama-4-scout-17b-16e-instruct' : (provider === 'gemini' ? 'gemini-3.5-flash-lite' : 'llama3'))));
 
   if (promptTokens === 0 && completionTokens === 0) {
-    promptTokens = Math.round(prompt.length / 4) + (base64Image ? 260 : 0);
+    promptTokens = Math.round(prompt.length / 4) + (base64Image ? 260 : 0) + (audioBase64 ? Math.round(audioBase64.length / 760) : 0);
     completionTokens = Math.round(contentString.length / 4);
   }
 

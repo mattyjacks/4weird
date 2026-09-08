@@ -3,7 +3,7 @@
  */
 const path = require('path');
 
-function buildPrompt(brain, consoleLogs, domSnapshot, isStuck) {
+function buildPrompt(brain, consoleLogs, domSnapshot, isStuck, audioContext = null) {
   const includeMemory = brain.config.alwaysSendMemory || isStuck;
   const sessionSummary = brain.getSessionSummary();
   const learnedContext = includeMemory && brain.getTextBrainContext ? brain.getTextBrainContext(6) : '';
@@ -43,6 +43,21 @@ function buildPrompt(brain, consoleLogs, domSnapshot, isStuck) {
 
   const stuckBlock = isStuck ? `\n## ⚠️ STUCK WARNING\nThe game state has not changed. Recovery stage: ${brain.stuckRecoveryStage}/3.\nTake a RECOVERY action: click center, Escape, or refresh.\n` : '';
 
+  // Muse Spark 1.3 audio ear: PCM telemetry + STT transcript ride along as a
+  // cheap text block (tokens, not samples). Callers pass either a prebuilt
+  // string or { report, transcript } from lib/audio/audio_analyzer.
+  let audioBlock = '';
+  if (audioContext) {
+    if (typeof audioContext === 'string') {
+      audioBlock = `\n${audioContext}\n`;
+    } else if (audioContext.report || audioContext.promptBlock) {
+      try {
+        const { buildAudioQABlock } = require('../audio/audio_analyzer');
+        audioBlock = `\n${audioContext.promptBlock || buildAudioQABlock(audioContext.report, audioContext.transcript)}\n`;
+      } catch (_) { /* audio block is best-effort */ }
+    }
+  }
+
   return `## ROLE & DECISION ENGINE (BRAID)
 You are an expert AI game QA testing agent. You must make decisions by traversing the following Bounded Reasoning Graph (BRAID):
 
@@ -64,7 +79,7 @@ ${compactLogs.join('\n')}
 Interactive DOM (up to 40):
 ${compactDom.join('\n')}
 ${stuckBlock}
-${memoryBlock}
+${memoryBlock}${audioBlock}
 ## GOAL — Game Objective
 ${brain.config.gameRules || "Explore the game: find buttons, play, maximize score, look for bugs/errors."}
 

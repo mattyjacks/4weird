@@ -38,6 +38,15 @@ class AutoCodeConfig {
     this.chatEnabled = true;
     this.maxChatHistory = 50;
     this.streamingEnabled = true;
+
+    // ElevenLabs audio (BYOK voice layer — never required, always optional)
+    this.elevenlabsApiKey = '';
+    this.audioChannelMode = 'mono'; // 'mono' (default single stream) | 'stereo' (L/R + diff)
+    this.audioVoiceId = '21m00Tcm4TlvDq8ikWAM';
+    this.audioTtsModel = 'eleven_multilingual_v2';
+    this.audioSttModel = 'scribe_v1';
+    this.audioCommentary = false; // speak agent thinking-out-loud via TTS
+    this.audioNarrateBugs = false; // speak bug alerts via TTS
   }
 
   update(newConfig) {

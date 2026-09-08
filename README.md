@@ -184,6 +184,10 @@ Supported AI engines & keys:
    - Models: `gemini-2.5-flash`, `gemini-2.5-pro`.
 5. **Local Models (Free / No Key)**:
    - Ollama / LM Studio at `http://localhost:11434/api/chat`.
+6. **ElevenLabs (`ELEVENLABS_API_KEY`) — optional BYOK voice layer**:
+   - Text-to-speech (spoken bug alerts, streamer commentary, NPC/tutorial VO), Scribe speech-to-text (voice-command playtests, dialogue QA), sound-effect generation (auto-covers for 404'd game audio), and music composition.
+   - Sign up: [ElevenLabs](https://elevenlabs.io). Game-audio QA (`/api/audio/analyze`) works fully offline with no key: **mono** single-stream by default, **stereo** opt-in reports L/R differences (imbalance, correlation, dropouts, phase).
+   - Muse Spark 1.3 hears it too: PCM telemetry + transcripts ride the brain prompt, with native audio parts on supported providers.
 
 ### 🛡️ Persistent Build-Consistent Local Key Storage
 Any API key you input into VibeCodeWorker is stored locally in your operating system's personal profile directory:

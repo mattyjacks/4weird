@@ -33,6 +33,12 @@ const modelsByProvider = {
     { value: 'google/gemini-3.5-flash-lite', text: 'Gemini 3.5 Flash-Lite' },
     { value: 'custom', text: 'Custom...' }
   ],
+  elevenlabs: [
+    { value: 'eleven_multilingual_v2', text: 'Eleven Multilingual v2 — TTS default' },
+    { value: 'eleven_turbo_v2_5', text: 'Eleven Turbo v2.5 — low latency' },
+    { value: 'scribe_v1', text: 'Scribe v1 — speech-to-text' },
+    { value: 'custom', text: 'Custom...' }
+  ],
   local: [
     { value: 'llama3', text: 'Llama 3' },
     { value: 'mistral', text: 'Mistral' },
@@ -84,6 +90,8 @@ function handleProviderChange(providerSelect, modelSelect, localUrlGroup, apiKey
       apiKeyInput.placeholder = process.env.GEMINI_API_KEY ? "Using process.env.GEMINI_API_KEY" : "Enter Gemini API Key";
     } else if (val === 'openrouter') {
       apiKeyInput.placeholder = process.env.OPENROUTER_API_KEY ? "Using process.env.OPENROUTER_API_KEY" : "Enter OpenRouter API Key";
+    } else if (val === 'elevenlabs') {
+      apiKeyInput.placeholder = process.env.ELEVENLABS_API_KEY ? "Using process.env.ELEVENLABS_API_KEY" : "Enter ElevenLabs API Key (voice/TTS/STT)";
     } else {
       apiKeyInput.placeholder = process.env.OPENAI_API_KEY ? "Using process.env.OPENAI_API_KEY" : "Enter OpenAI API Key";
     }
@@ -134,6 +142,8 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
       elements.apiKeyInput.placeholder = "Using process.env.OPENROUTER_API_KEY";
     } else if (prov === 'openai' && process.env.OPENAI_API_KEY) {
       elements.apiKeyInput.placeholder = "Using process.env.OPENAI_API_KEY";
+    } else if (prov === 'elevenlabs' && process.env.ELEVENLABS_API_KEY) {
+      elements.apiKeyInput.placeholder = "Using process.env.ELEVENLABS_API_KEY";
     }
   }
   elements.localUrlInput.value = settings.localUrl || 'http://localhost:11434/api/chat';
@@ -199,6 +209,23 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     elements.webEngineSelect.value = saved;
   }
 
+  // Audio engine: mono (default single stream) | stereo (L/R + diff).
+  if (elements.audioChannelMode) {
+    const valid = ['mono', 'stereo'];
+    elements.audioChannelMode.value = valid.includes(settings.audioChannelMode) ? settings.audioChannelMode : 'mono';
+  }
+  if (elements.audioVoiceId) elements.audioVoiceId.value = settings.audioVoiceId || '21m00Tcm4TlvDq8ikWAM';
+  if (elements.toggleAudioCommentary) elements.toggleAudioCommentary.checked = settings.audioCommentary || false;
+  if (elements.toggleAudioNarrateBugs) elements.toggleAudioNarrateBugs.checked = settings.audioNarrateBugs || false;
+
+  // Standalone ElevenLabs key (voice layer is provider-independent).
+  if (elements.elevenlabsKeyInput) {
+    elements.elevenlabsKeyInput.value = getResolvedApiKey('elevenlabs');
+    if (!elements.elevenlabsKeyInput.value && process.env.ELEVENLABS_API_KEY) {
+      elements.elevenlabsKeyInput.placeholder = "Using process.env.ELEVENLABS_API_KEY";
+    }
+  }
+
   // OpenCode.ai bridge (optional) — applied defensively so older configs still load.
   try {
     const { applyOpenCodeSettings } = require('../components/opencode_ui_controller');
@@ -257,6 +284,12 @@ function saveConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     webEngine: elements.webEngineSelect && ['ultralight', 'electron', 'chromium'].includes(elements.webEngineSelect.value)
       ? elements.webEngineSelect.value
       : 'ultralight',
+    audioChannelMode: elements.audioChannelMode && ['mono', 'stereo'].includes(elements.audioChannelMode.value)
+      ? elements.audioChannelMode.value
+      : 'mono',
+    audioVoiceId: elements.audioVoiceId ? elements.audioVoiceId.value : '21m00Tcm4TlvDq8ikWAM',
+    audioCommentary: elements.toggleAudioCommentary ? elements.toggleAudioCommentary.checked : false,
+    audioNarrateBugs: elements.toggleAudioNarrateBugs ? elements.toggleAudioNarrateBugs.checked : false,
     // Preserve the OpenCode bridge block (managed by its own panel; never wiped).
     opencode: readExistingOpenCodeBlock(elements)
   };
@@ -273,7 +306,12 @@ function saveConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     else if (settings.provider === 'openai') credUpdate.openaiApiKey = apiKey;
     else if (settings.provider === 'gemini') credUpdate.geminiApiKey = apiKey;
     else if (settings.provider === 'openrouter') credUpdate.openrouterApiKey = apiKey;
+    else if (settings.provider === 'elevenlabs') credUpdate.elevenlabsApiKey = apiKey;
     saveCredentials(credUpdate);
+  }
+  // ElevenLabs voice key is provider-independent — always persist when typed.
+  if (elements.elevenlabsKeyInput && elements.elevenlabsKeyInput.value) {
+    saveCredentials({ elevenlabsApiKey: elements.elevenlabsKeyInput.value });
   }
 
   try {
@@ -316,7 +354,8 @@ function loadApiKeyBundle() {
     deepseek: getResolvedApiKey('deepseek'),
     gemini: getResolvedApiKey('gemini'),
     meta: getResolvedApiKey('meta'),
-    openrouter: getResolvedApiKey('openrouter')
+    openrouter: getResolvedApiKey('openrouter'),
+    elevenlabs: getResolvedApiKey('elevenlabs')
   };
 }
 
@@ -328,7 +367,7 @@ function loadMaskedApiKeyBundleForDisplay() {
 }
 
 function hasAnyApiKey() {
-  return ['openai', 'deepseek', 'meta', 'gemini', 'openrouter']
+  return ['openai', 'deepseek', 'meta', 'gemini', 'openrouter', 'elevenlabs']
     .some((provider) => Boolean(getResolvedApiKey(provider)));
 }
 
@@ -344,7 +383,8 @@ function saveApiKeyBundle(keys = {}) {
     ['deepseek', 'deepseekApiKey'],
     ['gemini', 'geminiApiKey'],
     ['meta', 'metaApiKey'],
-    ['openrouter', 'openrouterApiKey']
+    ['openrouter', 'openrouterApiKey'],
+    ['elevenlabs', 'elevenlabsApiKey']
   ];
   for (const [name, field] of entries) {
     const value = String(keys[name] || '').trim();

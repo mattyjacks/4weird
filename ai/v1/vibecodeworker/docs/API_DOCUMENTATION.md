@@ -127,6 +127,57 @@ curl http://127.0.0.1:42069/api/dashboard
 
 ---
 
+## 🔊 Audio Voice Layer (`/api/audio/*` — ElevenLabs BYOK + offline PCM QA)
+
+Set `ELEVENLABS_API_KEY` (or save it in settings) to unlock TTS/STT/SFX/music.
+The PCM analyzer and all `offline: true` endpoints work with no key at all.
+Channel doctrine: **mono** (default single stream, stereo downmixed) or
+**stereo** (keeps L/R and reports the differences: imbalance, correlation,
+one-sided dropouts, phase inversion).
+
+```bash
+# Status + voice catalog
+curl http://127.0.0.1:42069/api/audio/status
+curl http://127.0.0.1:42069/api/audio/voices
+
+# Text-to-speech (spoken bug alerts, streamer commentary, NPC VO)
+curl -X POST http://127.0.0.1:42069/api/audio/tts \
+  -H "Content-Type: application/json" \
+  -d '{"text": "QA alert. High severity bug in gravegain3d."}'
+
+# Offline game-audio QA: pass PCM mono (default) or L/R stereo + mode
+curl -X POST http://127.0.0.1:42069/api/audio/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"pcm": {"mono": [0.1, 0.2, -0.1], "sampleRate": 8000}, "mode": "mono"}'
+
+# Voice command -> game action (offline transcript path, no key needed)
+curl -X POST http://127.0.0.1:42069/api/audio/voice-command \
+  -H "Content-Type: application/json" \
+  -d '{"transcript": "jump!"}'
+# -> {"matched": true, "action": {"type": "press_key", "target": "Space"}}
+
+# NPC + tutorial VO pack planner (offline; "synthesize": true speaks each line)
+curl -X POST http://127.0.0.1:42069/api/audio/npc-pack \
+  -H "Content-Type: application/json" \
+  -d '{"theme": "boss arena", "lineCount": 4}'
+
+# VO/subtitle drift: expected script vs Scribe-heard transcript
+curl -X POST http://127.0.0.1:42069/api/audio/subtitle-check \
+  -H "Content-Type: application/json" \
+  -d '{"expected": "welcome traveler", "heard": "welcome traveler"}'
+
+# Missing-asset cover: 404'd game SFX -> generated placeholder
+curl -X POST http://127.0.0.1:42069/api/audio/cover-missing \
+  -H "Content-Type: application/json" \
+  -d '{"assetUrl": "https://example.com/sfx/coin.wav"}'
+```
+
+Muse Spark 1.3 hears it too: PCM telemetry + STT transcripts ride the brain
+prompt as a cheap text block, and raw audio ships as a native `input_audio`
+part on meta/openrouter/gemini providers.
+
+---
+
 ## 📦 Node.js SDK Usage (`VibeCodeWorker_client.js`)
 
 ```javascript
