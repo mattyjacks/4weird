@@ -184,7 +184,7 @@ function persistOpenCodeSettings(el) {
   try {
     const fs = require('fs');
     const path = require('path');
-    const cfgPath = path.join(__dirname, '..', '..', 'config.json');
+    const cfgPath = path.join(__dirname, '..', '..', 'config', 'default.json');
     let raw = {};
     if (fs.existsSync(cfgPath)) raw = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
     raw.opencode = raw.opencode || {};

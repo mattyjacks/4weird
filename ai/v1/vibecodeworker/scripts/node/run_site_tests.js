@@ -250,7 +250,7 @@ async function testPage(win, page) {
 
 // Main Orchestrator
 app.whenReady().then(async () => {
-  const websiteV1Dir = path.join(__dirname, '..', '..', '..', 'website', 'v1');
+  const websiteV1Dir = path.join(__dirname, '..', '..', '..', '..', 'website', 'v1');
   const server = startServer(8888, websiteV1Dir);
   console.log(`Local test server listening on http://localhost:8888`);
 

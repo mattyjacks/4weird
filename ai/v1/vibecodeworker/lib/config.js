@@ -7,7 +7,7 @@ class AutoCodeConfig {
   constructor() {
     // Model selection
     this.autoChooseModel = false;
-    this.largestModelAllowed = 'gpt-5.4';
+    this.largestModelAllowed = 'gpt-5.6-luna';
     this.useProForExtreme = false;
 
     // Credentials / API settings

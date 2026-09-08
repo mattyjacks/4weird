@@ -42,15 +42,29 @@ function saveSessionMemory(brain, force = false) {
     }
   }
 
-  try {
-    const p = path.join(brain.dataDir, 'session_memory.json');
-    fs.writeFileSync(p, JSON.stringify(brain._sessionMem), 'utf8');
-    brain._sessionMemLastSave = now;
-    brain._sessionMemLastSavedStep = steps;
-    brain._sessionMemDirty = false;
-  } catch (e) {
-    console.error('Failed to save session_memory.json', e);
+  // Coalesce writes while one is in flight. The previous synchronous write
+  // occasionally paused input dispatch on slower disks during a live game.
+  if (brain._sessionMemWriting) {
+    brain._sessionMemDirty = true;
+    return;
   }
+
+  const snapshot = JSON.stringify(brain._sessionMem);
+  const p = path.join(brain.dataDir, 'session_memory.json');
+  brain._sessionMemLastSave = now;
+  brain._sessionMemLastSavedStep = steps;
+  brain._sessionMemDirty = false;
+  brain._sessionMemWriting = true;
+  void fs.promises.writeFile(p, snapshot, 'utf8')
+    .catch((e) => {
+      // Test/session directories may be deleted during teardown. A failed
+      // best-effort persistence write must never interrupt the agent loop.
+      if (e && e.code !== 'ENOENT') console.error('Failed to save session_memory.json', e);
+    })
+    .finally(() => {
+      brain._sessionMemWriting = false;
+      if (brain._sessionMemDirty) saveSessionMemory(brain, true);
+    });
 }
 
 function flushSessionMemory(brain) {
@@ -74,6 +88,7 @@ function initSessionMemory(brain) {
   brain._sessionMemLastSave = 0;
   brain._sessionMemLastSavedStep = 0;
   brain._sessionMemDirty = false;
+  brain._sessionMemWriting = false;
 }
 
 function updateSessionMemory(brain, action, wasStuck) {

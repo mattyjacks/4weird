@@ -112,6 +112,9 @@
             </button>
             <div class="menu-dropdown-content menu-panel-solid" id="menu-view-content">
               <div class="menu-group-title">LAYOUT & SOUND</div>
+              <button class="menu-item" id="menu-item-api-keys">
+                <span class="menu-icon">🔑</span> API Keys
+              </button>
               <button class="menu-item" id="menu-item-toggle-layout">
                 <span class="menu-icon">⚙️</span> <span id="menu-layout-label">Open detailed options</span>
               </button>
@@ -247,7 +250,7 @@
               <select id="provider-select">
                 <option value="deepseek">DeepSeek (Harness / Reasoner / Flash)</option>
                 <option value="meta">Meta (Muse Spark 1.3 Contributor 1M)</option>
-                <option value="openai">OpenAI (ChatGPT 5.6 Luna / GPT-4o)</option>
+                <option value="openai">OpenAI (GPT-5.6 Luna)</option>
                 <option value="gemini">Gemini (Google Cloud)</option>
                 <option value="openrouter">OpenRouter (Multi-model)</option>
                 <option value="local">Local Endpoint (Ollama/LM Studio)</option>
@@ -286,12 +289,10 @@
             <div class="form-group hidden" id="largest-model-group">
               <label for="largest-model-select">Largest Model Allowed</label>
               <select id="largest-model-select">
-                <option value="gpt-5.5-pro">GPT-5.5 Pro ($180/1M out)</option>
-                <option value="gpt-5.5">GPT-5.5 ($30/1M out)</option>
-                <option value="gpt-5.4-pro">GPT-5.4 Pro ($180/1M out)</option>
-                <option value="gpt-5.4" selected>GPT-5.4 ($15/1M out)</option>
-                <option value="gpt-5.4-mini">GPT-5.4 Mini ($4.50/1M out)</option>
-                <option value="gpt-5.4-nano">GPT-5.4 Nano ($1.25/1M out)</option>
+                <option value="gpt-5.6-luna" selected>GPT-5.6 Luna — lowest cost</option>
+                <option value="gpt-5.6-terra">GPT-5.6 Terra — balanced</option>
+                <option value="gpt-5.6-sol">GPT-5.6 Sol — advanced</option>
+                <option value="gpt-6-astra">GPT-6 Astra — maximum capability</option>
               </select>
               <span class="field-hint">Caps auto-selected model tier to control costs</span>
             </div>
@@ -301,12 +302,12 @@
                 <input type="checkbox" id="toggle-pro-extreme">
                 <span>Use Pro for Extreme Complexity</span>
               </label>
-              <span class="field-hint">Uses GPT-5.5-Pro for high complexity tasks (expensive)</span>
+              <span class="field-hint">Uses the selected current model ceiling for complex tasks.</span>
             </div>
 
             <div class="form-group hidden" id="custom-model-group">
               <label for="model-name">Custom Model Name</label>
-              <input type="text" id="model-name" value="gpt-5.4-mini-2026-03-17" placeholder="e.g. custom-model">
+              <input type="text" id="model-name" value="gpt-5.6-luna" placeholder="e.g. custom-model">
             </div>
           </div>
         </div>
@@ -372,6 +373,8 @@
               <div class="input-row">
                 <select id="native-process">
                   <option value="">-- Scan / Select Game Window --</option>
+                  <option value="Half-Life 2">Half-Life 2: Episode Two (hl2.exe) - AI demo</option>
+                  <option value="Peggle Deluxe">Peggle Deluxe - AI demo</option>
                   <option value="RobloxPlayer">RobloxPlayerBeta.exe</option>
                   <option value="Godot">Godot_v4.exe (Godot Game)</option>
                   <option value="Unity">UnityPlayer.dll (Unity Game)</option>
@@ -380,11 +383,71 @@
                 <button id="btn-scan-processes" class="btn btn-icon" title="Refresh processes">🔄</button>
               </div>
             </div>
+            <div class="form-group">
+              <label for="native-window-mode">Window mode</label>
+              <select id="native-window-mode">
+                <option value="exclusive-fullscreen">Full screen (exclusive)</option>
+                <option value="borderless">Borderless windowed</option>
+                <option value="windowed-fullscreen">Full-screen windowed</option>
+                <option value="partial-windowed">Partial windowed</option>
+              </select>
+              <span class="field-hint">All modes use window-relative capture and input, so the agent keeps working if the game is not maximized.</span>
+            </div>
+            <div class="form-group" id="native-window-size-group">
+              <label for="native-window-width">Partial window size</label>
+              <div class="input-row">
+                <input id="native-window-width" type="number" min="640" max="7680" value="1280" aria-label="Window width">
+                <input id="native-window-height" type="number" min="480" max="4320" value="720" aria-label="Window height">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="steam-game">Steam game</label>
+              <select id="steam-game">
+                <option value="220">Half-Life 2</option>
+                <option value="420" selected>Half-Life 2: Episode Two</option>
+                <option value="3483">Peggle Deluxe</option>
+              </select>
+            </div>
+            <div class="form-group toggle-row">
+              <label for="native-start-new-game">Start a fresh game</label>
+              <label class="toggle-switch"><input id="native-start-new-game" type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+            <div class="form-group toggle-row">
+              <label for="native-skip-cutscenes">Skip skippable cinematics and intros</label>
+              <label class="toggle-switch"><input id="native-skip-cutscenes" type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+            <button id="btn-launch-hl2" class="btn btn-secondary btn-small" type="button">▶ Launch selected Steam game with this mode</button>
+          </div>
+        </div>
+        <div class="sidebar-section">
+          <div class="section-header" data-section="thinking-out-loud">
+            <span class="section-toggle">▶</span>
+            <h3>5. THINKING OUT LOUD</h3>
+            <span class="help-icon" title="Short, spoken summaries of completed decisions. Never exposes private prompts or hidden reasoning.">?</span>
+          </div>
+          <div class="section-content hidden" id="thinking-out-loud">
+            <div class="form-group toggle-row">
+              <label for="thinking-out-loud-toggle">Speak short gameplay commentary</label>
+              <label class="toggle-switch"><input id="thinking-out-loud-toggle" type="checkbox"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="form-group">
+              <label for="commentary-personality">Personality</label>
+              <select id="commentary-personality"><option value="tester">Tester — clear, useful playtest insights</option><option value="streamer">Streamer — playful live commentary</option></select>
+            </div>
+            <div class="form-group">
+              <label for="commentary-voice-engine">Voice engine</label>
+              <select id="commentary-voice-engine"><option value="system">System voice (free)</option><option value="openai">OpenAI TTS (uses configured API key)</option></select>
+            </div>
+            <div class="form-group">
+              <label for="commentary-voice">OpenAI voice</label>
+              <select id="commentary-voice"><option value="nova">Nova</option><option value="alloy">Alloy</option><option value="shimmer">Shimmer</option><option value="onyx">Onyx</option></select>
+            </div>
+            <span class="field-hint" id="thinking-out-loud-status">Commentary is off.</span>
           </div>
         <div class="sidebar-section">
           <div class="section-header" data-section="server-settings">
             <span class="section-toggle">▶</span>
-            <h3>5. API SERVER & NETWORK</h3>
+            <h3>6. API SERVER & NETWORK</h3>
             <span class="help-icon" title="Configure VibeCodeWorker Local REST API port (default: 42069)">?</span>
           </div>
           <div class="section-content hidden" id="server-settings">
@@ -423,8 +486,13 @@
               Welcome to 4weird VibeCodeWorker</h2>
             <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 12px;">Select a workspace path
               below to design, run test, or auto-fix games and web apps.</p>
-            <button id="btn-import-plan" class="btn btn-secondary" style="font-size: 0.85rem; padding: 8px 18px;">📂
-              Import Plan (.txt)</button>
+            <div class="hub-hero-actions">
+              <button id="btn-import-plan" class="btn btn-secondary">📂 Import Plan (.txt)</button>
+              <div class="hub-view-switch" role="group" aria-label="Home view layout">
+                <button id="btn-hub-grid-view" class="btn btn-small is-selected" type="button" aria-pressed="true">▦ Grid</button>
+                <button id="btn-hub-list-view" class="btn btn-small btn-secondary" type="button" aria-pressed="false">☷ List</button>
+              </div>
+            </div>
           </div>
 
           <div class="hub-grid">
@@ -1167,7 +1235,61 @@
     </div> <!-- Close main-body -->
   </div>
 
-  <!-- LIGHTBOX / DETAIL MODAL FOR DETECTED BUGS -->
+  <div class="modal hidden" id="missing-api-keys-modal" role="dialog" aria-modal="true" aria-labelledby="missing-api-keys-title">
+    <div class="modal-content glass missing-api-keys-content">
+      <button class="modal-close" id="btn-close-missing-api-keys" aria-label="Ignore API key warning">&times;</button>
+      <div class="missing-api-keys-icon">🔑</div>
+      <h2 id="missing-api-keys-title">Set up an API key to use VibeCodeWorker</h2>
+      <p>VibeCodeWorker requires an API key to work. Add an OpenAI, DeepSeek, Google Gemini, Meta, or OpenRouter key to enable smart game playtesting and commentary.</p>
+      <div class="missing-api-keys-actions">
+        <button id="btn-setup-api-keys" class="btn api-key-setup-button" type="button">Set up API keys</button>
+        <button id="btn-ignore-api-keys-warning" class="btn btn-secondary" type="button">Ignore Warning</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="api-keys-modal" role="dialog" aria-modal="true" aria-labelledby="api-keys-title">
+    <div class="modal-content glass api-keys-modal-content">
+      <button class="modal-close" id="btn-close-api-keys" aria-label="Close API Keys">&times;</button>
+      <h2 id="api-keys-title">API Keys</h2>
+      <p class="api-keys-intro">Add one key per provider. Keys are saved only in this computer’s encrypted VibeCodeWorker key store, outside the app folder, so normal updates keep them.</p>
+      <div class="form-group">
+        <label for="openai-api-key">OpenAI API key</label>
+        <input type="password" id="openai-api-key" autocomplete="off" spellcheck="false" placeholder="Paste an OpenAI API key">
+        <span class="field-hint saved-key-hint" id="openai-api-key-saved" aria-live="polite"></span>
+      </div>
+      <div class="form-group">
+        <label for="deepseek-api-key">DeepSeek API key</label>
+        <input type="password" id="deepseek-api-key" autocomplete="off" spellcheck="false" placeholder="Paste a DeepSeek API key">
+        <span class="field-hint saved-key-hint" id="deepseek-api-key-saved" aria-live="polite"></span>
+      </div>
+      <div class="form-group">
+        <label for="gemini-api-key">Google Gemini API key</label>
+        <input type="password" id="gemini-api-key" autocomplete="off" spellcheck="false" placeholder="Paste a Google Gemini API key">
+        <span class="field-hint saved-key-hint" id="gemini-api-key-saved" aria-live="polite"></span>
+      </div>
+      <div class="form-group">
+        <label for="meta-api-key">Meta API key</label>
+        <input type="password" id="meta-api-key" autocomplete="off" spellcheck="false" placeholder="Paste a Meta API key">
+        <span class="field-hint saved-key-hint" id="meta-api-key-saved" aria-live="polite"></span>
+      </div>
+      <div class="form-group">
+        <label for="openrouter-api-key">OpenRouter API key</label>
+        <input type="password" id="openrouter-api-key" autocomplete="off" spellcheck="false" placeholder="Paste an OpenRouter API key">
+        <span class="field-hint saved-key-hint" id="openrouter-api-key-saved" aria-live="polite"></span>
+      </div>
+      <div class="api-keys-actions">
+        <span id="api-keys-status" class="field-hint" aria-live="polite">Keys are never written to config.json.</span>
+        <button id="btn-save-api-keys" class="btn btn-primary" type="button">Save keys securely</button>
+      </div>
+      <div class="api-key-test-actions">
+        <button id="btn-test-api-keys" class="btn btn-secondary" type="button">Test API Keys</button>
+        <button id="btn-clear-invalid-api-keys" class="btn btn-secondary" type="button" disabled>Clear Invalid API Keys</button>
+      </div>
+      <div id="api-key-test-results" class="api-key-test-results hidden" aria-live="polite"></div>
+    </div>
+  </div>
+
   <div class="modal hidden" id="bug-modal">
     <div class="modal-content glass">
       <span class="modal-close" id="btn-close-modal">&times;</span>

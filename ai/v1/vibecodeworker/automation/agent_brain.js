@@ -12,6 +12,6 @@
  *  - lib/brain/agent_brain_refactored.js
  */
 
-const AgentBrain = require('./lib/brain/agent_brain_refactored');
+const AgentBrain = require('../lib/brain/agent_brain_refactored');
 
 module.exports = AgentBrain;

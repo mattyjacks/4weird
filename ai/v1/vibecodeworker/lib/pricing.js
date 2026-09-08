@@ -8,11 +8,23 @@ const MODEL_PRICING = {
   // GPT-5.6 Series
   'gpt-5.6-luna': {
     name: 'GPT-5.6 Luna',
-    inputRate: 2.00,
-    outputRate: 8.00,
-    cacheInputRate: 1.00,
-    tier: 2,
-    description: 'Ultra fast and capable default model'
+    inputRate: 0.20,
+    outputRate: 1.20,
+    cacheInputRate: 0.10,
+    tier: 1,
+    description: 'Current lowest-cost OpenAI model'
+  },
+  'gpt-5.6-terra': {
+    name: 'GPT-5.6 Terra', inputRate: 2.00, outputRate: 12.00, cacheInputRate: 1.00, tier: 2,
+    description: 'Current balanced OpenAI model'
+  },
+  'gpt-5.6-sol': {
+    name: 'GPT-5.6 Sol', inputRate: 4.00, outputRate: 20.00, cacheInputRate: 2.00, tier: 3,
+    description: 'Current advanced OpenAI model'
+  },
+  'gpt-6-astra': {
+    name: 'GPT-6 Astra', inputRate: 10.00, outputRate: 50.00, cacheInputRate: 5.00, tier: 4,
+    description: 'Current flagship OpenAI model'
   },
   // GPT-5.5 Series
   'gpt-5.5': {
@@ -72,7 +84,23 @@ const MODEL_PRICING = {
     tier: 1,
     description: 'Ultra-lightweight fast model'
   },
-  // Gemini Series
+  // Current Gemini Series
+  'gemini-3.5-flash-lite': {
+    name: 'Gemini 3.5 Flash-Lite',
+    inputRate: 0.25,
+    outputRate: 1.50,
+    cacheInputRate: 0.025,
+    tier: 1,
+    description: 'Current lowest-cost stable Gemini tier'
+  },
+  'gemini-3.8-flash': {
+    name: 'Gemini 3.8 Flash',
+    inputRate: 0.75,
+    outputRate: 3.75,
+    cacheInputRate: 0.075,
+    tier: 2,
+    description: 'Newest stable Gemini Flash model'
+  },
   'gemini-2.5-flash': {
     name: 'Gemini 2.5 Flash',
     inputRate: 0.075,
@@ -114,22 +142,14 @@ const MODEL_PRICING = {
     tier: 1,
     description: 'OpenRouter GPT-4o Mini'
   },
-  // Meta Series
-  'meta/muse-spark-1.3-contributor': {
-    name: 'Muse Spark 1.3 Contributor (Meta)',
+  // Current Meta Llama models on OpenRouter
+  'meta-llama/llama-4-scout-17b-16e-instruct': {
+    name: 'Llama 4 Scout (Meta)',
     inputRate: 0.10,
-    outputRate: 0.20,
+    outputRate: 0.30,
     cacheInputRate: 0.05,
     tier: 1,
-    description: 'Ultra-low cost 1M context multimodal reasoning model by Meta'
-  },
-  'muse-spark-1.3-contributor': {
-    name: 'Muse Spark 1.3 Contributor (Meta)',
-    inputRate: 0.10,
-    outputRate: 0.20,
-    cacheInputRate: 0.05,
-    tier: 1,
-    description: 'Ultra-low cost 1M context multimodal reasoning model by Meta'
+    description: 'Current efficient multimodal Llama model'
   },
   // DeepSeek Series
   'deepseek-chat': {
@@ -193,12 +213,10 @@ const MODEL_PRICING = {
 
 // Model tier ordering (lowest to highest)
 const MODEL_TIER_ORDER = [
-  'gpt-4o-mini',
-  'gpt-4o',
-  'gpt-5.4',
-  'gpt-5.5',
-  'gpt-5.4-pro',
-  'gpt-5.5-pro'
+  'gpt-5.6-luna',
+  'gpt-5.6-terra',
+  'gpt-5.6-sol',
+  'gpt-6-astra'
 ];
 
 /**

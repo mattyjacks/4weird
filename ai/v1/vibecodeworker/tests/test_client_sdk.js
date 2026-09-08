@@ -2,8 +2,10 @@
  * SDK & Replay Engine Integration Test Script
  */
 
-const { VibeCodeWorkerClient } = require('./lib/vibecodeworker_client');
-const { ReplayEngine } = require('./lib/replay_engine');
+const path = require('path');
+const projectRoot = path.resolve(__dirname, '..');
+const { VibeCodeWorkerClient } = require(path.join(projectRoot, 'lib', 'vibecodeworker_client'));
+const { ReplayEngine } = require(path.join(projectRoot, 'lib', 'replay_engine'));
 
 async function testSDK() {
   console.log('=== TESTING VIBECODEWORKER CLIENT SDK & REPLAY ENGINE ===');
@@ -15,8 +17,8 @@ async function testSDK() {
     await client.getStatus();
   } catch (e) {
     console.log('[SDK Test] Server not running, starting ephemeral server on port 42069...');
-    const { LocalAPIServer } = require('./lib/api_server');
-    const { discoverGames } = require('./start_api_server');
+    const { LocalAPIServer } = require(path.join(projectRoot, 'lib', 'api_server'));
+    const { discoverGames } = require(path.join(projectRoot, 'server', 'start_api_server'));
     server = new LocalAPIServer({
       port: 42069,
       runtimeMode: 'test_runner',

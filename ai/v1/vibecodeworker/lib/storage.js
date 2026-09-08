@@ -40,9 +40,18 @@ let _cachedMasterKey = null;
 function getMachineMasterKey() {
   if (_cachedMasterKey) return _cachedMasterKey;
 
+  // Some restricted Windows environments cannot resolve os.userInfo()
+  // (uv_os_get_passwd may return ENOMEM). A stable username environment
+  // fallback keeps encrypted local storage available instead of failing the
+  // whole configuration flow.
+  let username = process.env.USERNAME || process.env.USER || 'unknown-user';
+  try {
+    username = os.userInfo().username || username;
+  } catch (_) {}
+
   const machineFingerprint = [
     os.hostname(),
-    os.userInfo().username,
+    username,
     process.platform,
     os.arch()
   ].join(':');
@@ -195,53 +204,144 @@ function saveCredentials(credentials, isMigrating = false) {
   }
 }
 
+/** Remove provider-specific keys after a confirmed authentication failure. */
+function removeCredentialsForProviders(providers = []) {
+  const fields = { openai: 'openaiApiKey', deepseek: 'deepseekApiKey', gemini: 'geminiApiKey', meta: 'metaApiKey', openrouter: 'openrouterApiKey' };
+  const wanted = providers.filter((provider) => fields[provider]);
+  if (!wanted.length) return false;
+  const dir = getCredentialsDir();
+  const encPath = getEncryptedCredentialsFilePath();
+  try {
+    const updated = loadCredentials(true);
+    for (const provider of wanted) {
+      delete updated[fields[provider]];
+      // Remove the legacy generic mirror only when it belongs to this provider.
+      if (updated.provider === provider) {
+        delete updated.provider;
+        delete updated.apiKey;
+      }
+    }
+    updated.updatedAt = new Date().toISOString();
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
+    fs.writeFileSync(encPath, encryptSecret(JSON.stringify(updated, null, 2)), { encoding: 'utf8', mode: 0o600 });
+    _credsCache = { ...updated };
+    _credsCacheStamp = _credsFileStamp(encPath, getCredentialsFilePath());
+    return true;
+  } catch (err) {
+    console.error(`[Credentials Security] Failed to remove invalid credentials: ${err.message}`);
+    return false;
+  }
+}
+
 /**
- * Get active API key for a specified provider, checking credentials file first,
- * then falling back to environment variables or provided fallback.
+ * Placeholder / example values that must NEVER be treated as a real key.
+ * These come from .env.example and docs; using one produces a 401 that
+ * looks exactly like "my key is invalid".
+ */
+const PLACEHOLDER_PATTERNS = [
+  /your-.*-api-key-here/i,
+  /sk-your-/i,
+  /AIzaSyYour/i,
+  /^sk-or-v1-your-/i,
+  /^YOUR_/,
+  /^Using process\.env/,
+  /^enter /i,
+  /^\*+$/,
+  /^test-key/i,
+  /^mock/i
+];
+
+function isPlaceholderKey(key) {
+  if (!key || typeof key !== 'string') return true;
+  const trimmed = key.trim();
+  if (trimmed.length < 8) return true;
+  return PLACEHOLDER_PATTERNS.some((re) => re.test(trimmed));
+}
+
+function readEnvKey(provider) {
+  let raw = '';
+  if (provider === 'deepseek') raw = process.env.DEEPSEEK_API_KEY || '';
+  else if (provider === 'meta') raw = process.env.META_API_KEY || process.env.OPENROUTER_API_KEY || '';
+  else if (provider === 'openai') raw = process.env.OPENAI_API_KEY || '';
+  else if (provider === 'gemini') raw = process.env.GEMINI_API_KEY || '';
+  else if (provider === 'openrouter') raw = process.env.OPENROUTER_API_KEY || '';
+  raw = (raw || '').trim();
+  // A stale placeholder in the shell (e.g. copied from .env.example) must not
+  // shadow the good key the user saved in the encrypted store.
+  if (!raw || isPlaceholderKey(raw)) return '';
+  return raw;
+}
+
+/**
+ * Get active API key for a specified provider.
+ * Priority (fixes "entered it last run but invalid now"):
+ *   1. Explicit typed key (dashboard input / in-memory config)
+ *   2. Encrypted OS store (%APPDATA%/vibecodeworker/credentials.enc)
+ *   3. Environment variable (real values only, placeholders rejected)
  * @param {string} provider - Provider name ('openai', 'deepseek', 'meta', 'openrouter', 'gemini')
  * @param {string} fallbackKey - Optional key from memory/config
  * @returns {string} Resolved API key
  */
 function getResolvedApiKey(provider, fallbackKey = '') {
-  if (fallbackKey && fallbackKey !== 'YOUR_OPENAI_API_KEY' && !fallbackKey.startsWith('Using process.env')) {
-    return fallbackKey;
+  const typed = (fallbackKey || '').trim();
+  if (typed && !isPlaceholderKey(typed)) {
+    return typed;
   }
-
-  // If specific env var is defined, honor it with high priority
-  if (provider === 'deepseek' && process.env.DEEPSEEK_API_KEY) return process.env.DEEPSEEK_API_KEY;
-  if (provider === 'meta' && (process.env.META_API_KEY || process.env.OPENROUTER_API_KEY)) return process.env.META_API_KEY || process.env.OPENROUTER_API_KEY;
-  if (provider === 'openai' && process.env.OPENAI_API_KEY) return process.env.OPENAI_API_KEY;
-  if (provider === 'gemini' && process.env.GEMINI_API_KEY) return process.env.GEMINI_API_KEY;
-  if (provider === 'openrouter' && process.env.OPENROUTER_API_KEY) return process.env.OPENROUTER_API_KEY;
 
   const creds = loadCredentials();
-  
-  if (provider === 'deepseek') {
-    return creds.deepseekApiKey || (creds.provider === 'deepseek' ? creds.apiKey : '') || '';
-  }
-  if (provider === 'meta') {
-    return creds.metaApiKey || creds.openrouterApiKey || (creds.provider === 'meta' ? creds.apiKey : '') || '';
-  }
-  if (provider === 'openai') {
-    return creds.openaiApiKey || (creds.provider === 'openai' ? creds.apiKey : '') || creds.apiKey || '';
-  }
-  if (provider === 'gemini') {
-    return creds.geminiApiKey || (creds.provider === 'gemini' ? creds.apiKey : '') || '';
-  }
-  if (provider === 'openrouter') {
-    return creds.openrouterApiKey || (creds.provider === 'openrouter' ? creds.apiKey : '') || '';
-  }
+  const clean = (v) => {
+    const s = (v || '').trim();
+    return s && !isPlaceholderKey(s) ? s : '';
+  };
 
-  return creds.apiKey || '';
+  let stored = '';
+  if (provider === 'deepseek') {
+    stored = clean(creds.deepseekApiKey) || (creds.provider === 'deepseek' ? clean(creds.apiKey) : '');
+  } else if (provider === 'meta') {
+    stored = clean(creds.metaApiKey) || clean(creds.openrouterApiKey) || (creds.provider === 'meta' ? clean(creds.apiKey) : '');
+  } else if (provider === 'openai') {
+    stored = clean(creds.openaiApiKey) || (creds.provider === 'openai' ? clean(creds.apiKey) : '') || clean(creds.apiKey);
+  } else if (provider === 'gemini') {
+    stored = clean(creds.geminiApiKey) || (creds.provider === 'gemini' ? clean(creds.apiKey) : '');
+  } else if (provider === 'openrouter') {
+    stored = clean(creds.openrouterApiKey) || (creds.provider === 'openrouter' ? clean(creds.apiKey) : '');
+  } else {
+    stored = clean(creds.apiKey);
+  }
+  if (stored) return stored;
+
+  // Last resort: real (non-placeholder) environment variable.
+  return readEnvKey(provider);
 }
 
 /**
- * Mask an API key for safe UI display and log printing (e.g. "sk-abc...1234")
+ * Mask an API key for safe UI display and log printing (e.g. "sk-abc123...wxyz").
+ * Shows the first 8 and last 4 characters only; the middle stays hidden so the
+ * full secret is never rendered, logged, or placed in the DOM. Short/placeholder
+ * values return a fixed mask so their length is not leaked.
  */
 function maskApiKey(key) {
   if (!key || typeof key !== 'string') return '';
-  if (key.length <= 8) return '********';
-  return `${key.slice(0, 4)}...${key.slice(-4)}`;
+  const trimmed = key.trim();
+  if (!trimmed || isPlaceholderKey(trimmed)) return '';
+  if (trimmed.length <= 12) return '********';
+  return `${trimmed.slice(0, 8)}...${trimmed.slice(-4)}`;
+}
+
+/**
+ * Masked display bundle for the API-keys modal. Returns ONLY first8...last4
+ * previews (never full secrets) so the UI can show each saved key without
+ * exposing it in input values, innerText, or logs.
+ * @returns {{openai:string,deepseek:string,gemini:string,meta:string,openrouter:string}}
+ */
+function loadMaskedApiKeyBundle() {
+  return {
+    openai: maskApiKey(getResolvedApiKey('openai')),
+    deepseek: maskApiKey(getResolvedApiKey('deepseek')),
+    gemini: maskApiKey(getResolvedApiKey('gemini')),
+    meta: maskApiKey(getResolvedApiKey('meta')),
+    openrouter: maskApiKey(getResolvedApiKey('openrouter'))
+  };
 }
 
 module.exports = {
@@ -250,10 +350,14 @@ module.exports = {
   getEncryptedCredentialsFilePath,
   loadCredentials,
   saveCredentials,
+  removeCredentialsForProviders,
   getResolvedApiKey,
   encryptSecret,
   decryptSecret,
   maskApiKey,
+  loadMaskedApiKeyBundle,
+  isPlaceholderKey,
+  readEnvKey,
   _clearMasterKeyCache,
   _clearCredentialsCache
 };

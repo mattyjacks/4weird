@@ -189,6 +189,18 @@ export function loadGameTarget() {
   const url = el.gameTarget ? el.gameTarget.value.trim() : '';
   if (!url) return;
 
+  if (url === 'desktop://steam/220') {
+    state.gameLoaded = false;
+    if (el.gameIframe) el.gameIframe.src = 'about:blank';
+    const hint = document.getElementById('stage-empty-hint');
+    if (hint) {
+      hint.classList.remove('hidden');
+      hint.innerHTML = '<strong>Half-Life 2 is a desktop mission.</strong><span>Launch it in Steam, then attach its window in the native desktop build. Browser preview cannot capture or control a Steam game.</span>';
+    }
+    log('[HL2] Waiting for native desktop attachment. No browser iframe will be used for a Steam game.', 'warning');
+    return;
+  }
+
   if (el.quickTarget && el.quickTarget.value !== url) el.quickTarget.value = url;
 
   log(`Loading sandbox iframe target: ${url}`, "system");

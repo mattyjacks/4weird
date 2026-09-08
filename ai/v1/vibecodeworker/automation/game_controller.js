@@ -1,7 +1,7 @@
 const { ipcRenderer } = require('electron');
-const { executeAction } = require('./src/runtime/action_dispatcher');
-const { getInteractiveDOM, getPerformanceMetrics } = require('./src/runtime/dom_inspector');
-const { getKeyCode } = require('./src/runtime/input_mapper');
+const { executeAction } = require('../src/runtime/action_dispatcher');
+const { getInteractiveDOM, getPerformanceMetrics } = require('../src/runtime/dom_inspector');
+const { getKeyCode } = require('../src/runtime/input_mapper');
 
 class GameController {
   // Helper to execute Javascript in webview or separate game window
@@ -60,7 +60,7 @@ class GameController {
       }
     } catch (_) { /* fall through to webview path */ }
     if (!webview) return 'no viewport';
-    const botCursor = require('./src/runtime/bot_cursor');
+    const botCursor = require('../src/runtime/bot_cursor');
     return await this.executeJS(webview, botCursor.setBotControlJS(on !== false));
   }
 
@@ -71,4 +71,3 @@ class GameController {
 }
 
 module.exports = GameController;
-

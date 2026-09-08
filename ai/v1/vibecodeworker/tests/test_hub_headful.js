@@ -22,7 +22,7 @@ function stage(name, ok, detail) {
 }
 
 async function main() {
-  const { startStaticServer } = require('./src/main_process/static_server');
+  const { startStaticServer } = require(path.join(__dirname, '..', 'src', 'main_process', 'static_server'));
   const staticServer = startStaticServer(STATIC_PORT, WEBSITE_V1_DIR);
   console.log(`[headful] static site at http://127.0.0.1:${STATIC_PORT}/vibecodeworker/hub.html`);
 
@@ -140,7 +140,7 @@ async function main() {
   const isElectron = !!(process.versions && process.versions.electron);
   if (!isElectron) {
     const { spawnSync } = require('child_process');
-    const electronBin = path.join(__dirname, 'node_modules', 'electron', 'dist', 'electron.exe');
+    const electronBin = path.join(__dirname, '..', 'node_modules', 'electron', 'dist', 'electron.exe');
     const r = spawnSync(electronBin, [__filename, '--headful-test'], { stdio: 'inherit' });
     process.exit(r.status === null ? 1 : r.status);
   } else {

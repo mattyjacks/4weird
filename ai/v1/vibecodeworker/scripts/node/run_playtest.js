@@ -2,6 +2,7 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
+const projectRoot = path.resolve(__dirname, '..', '..');
 
 const ARTIFACTS_DIR = 'C:\\Users\\ventu\\.gemini\\antigravity\\brain\\ecb08d1b-e9a9-4456-9936-a49b02e38a04';
 const SCREENSHOT_DIR = path.join(ARTIFACTS_DIR, 'screenshots');
@@ -23,7 +24,7 @@ if (headless) {
 }
 
 const child = spawn(electronCmd, args, {
-  cwd: __dirname,
+  cwd: projectRoot,
   stdio: 'inherit',
   shell: true
 });

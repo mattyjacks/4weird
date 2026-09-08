@@ -20,7 +20,7 @@ const { spawn } = require('child_process');
 
 let smartlog = null;
 try {
-  const sl = require('./lib/smart_log');
+  const sl = require('../lib/smart_log');
   smartlog = sl.getSharedLog('heal-worker');
   sl.teeConsole(smartlog);
 } catch (e) { /* stdout protocol still works without file logging */ }
@@ -77,7 +77,7 @@ async function main() {
   const opts = parseArgs(process.argv);
   if (opts.handoff && !opts.testCommand) {
     try {
-      const sl = require('./lib/smart_log');
+      const sl = require('../lib/smart_log');
       const res = sl.getSharedLog('heal-worker').writeHandoff({ reason: 'heal_worker --handoff' });
       console.log(res.success ? res.path : ('HANDOFF FAILED: ' + res.error));
       console.log(JSON.stringify({ healWorker: true, exitCode: res.success ? 0 : 1, output: res.success ? res.path : res.error }));

@@ -1,0 +1,129 @@
+/**
+ * Native game player tests: any-game profiles + DeepSeek harness vision path.
+ * Run: node test_native_hl2.js
+ * Offline-safe: vision decisions use a mocked brain.callLLM (no network).
+ */
+const assert = require('assert');
+const path = require('path');
+const projectRoot = path.resolve(__dirname, '..');
+
+const { resolveGameProfile, getProfile, listProfiles, registerGameProfile } = require(path.join(projectRoot, 'src', 'runtime', 'native_game_profiles'));
+const player = require(path.join(projectRoot, 'src', 'runtime', 'native_game_player'));
+const { NativeGameDirector } = require(path.join(projectRoot, 'src', 'runtime', 'native_game_director'));
+
+async function runTests() {
+  console.log('=== NATIVE GAME PLAYER TESTS (HL2 demo of play-any-game) ===');
+  const failed = [];
+
+  try {
+    console.log('Test 1: HL2 Episode Two resolves from any HL2 query...');
+    assert.strictEqual(resolveGameProfile('Half-Life 2').id, 'hl2-ep2');
+    assert.strictEqual(resolveGameProfile('HALF-LIFE 2: Episode Two').id, 'hl2-ep2');
+    assert.strictEqual(resolveGameProfile('hl2').id, 'hl2-ep2');
+    assert.strictEqual(resolveGameProfile('hl2.exe').id, 'hl2-ep2');
+    assert.strictEqual(resolveGameProfile('hl2-ep2').id, 'hl2-ep2');
+    assert.strictEqual(resolveGameProfile('Peggle Deluxe').id, 'peggle-deluxe');
+    assert.strictEqual(resolveGameProfile('peggle.exe').id, 'peggle-deluxe');
+    const hl2 = getProfile('hl2-ep2');
+    assert(hl2.controls.forward === 'w' && hl2.controls.use === 'e' && hl2.controls.reload === 'r');
+    assert(hl2.goal.length > 20);
+    console.log('PASS Test 1');
+  } catch (e) { console.error('FAIL Test 1:', e.message); failed.push('profiles.hl2'); }
+
+  try {
+    console.log('Test 2: any-game fallback registry...');
+    assert.strictEqual(resolveGameProfile('Doom Eternal').genre, 'fps');
+    assert.strictEqual(resolveGameProfile('Some Random Indie Game XYZ').id, 'generic-game');
+    assert(listProfiles().some((p) => p.id === 'hl2-ep2'));
+    registerGameProfile({ id: 'demo-custom', name: 'Demo Custom', windowTitlePatterns: [/demo custom/i] });
+    assert.strictEqual(resolveGameProfile('Demo Custom Deluxe').id, 'demo-custom');
+    console.log('PASS Test 2');
+  } catch (e) { console.error('FAIL Test 2:', e.message); failed.push('profiles.generic'); }
+
+  try {
+    console.log('Test 3: prompt builder carries profile + history + stuck...');
+    const prompt = player.buildNativeGamePrompt({
+      profile: getProfile('hl2-ep2'),
+      recentActions: [{ type: 'hold_keys', target: 'w,shift' }],
+      stuck: true,
+      extraRules: 'test rules'
+    });
+    assert(prompt.includes('Half-Life 2: Episode Two'));
+    assert(prompt.includes('STUCK WARNING'));
+    assert(prompt.includes('w,shift'));
+    assert(prompt.includes('JSON ONLY') || prompt.includes('ONLY with JSON'));
+    console.log('PASS Test 3');
+  } catch (e) { console.error('FAIL Test 3:', e.message); failed.push('player.prompt'); }
+
+  try {
+    console.log('Test 4: action normalization clamps safely...');
+    assert.deepStrictEqual(player.normalizeNativeAction({ type: 'click', params: { x: 9999, y: -5 } }).params, { x: 1000, y: 0 });
+    assert.deepStrictEqual(player.normalizeNativeAction({ type: 'hold_keys', target: 'W, SHIFT' }).params, { keys: ['w', 'shift'] });
+    assert.deepStrictEqual(player.normalizeNativeAction({ type: 'drag_look', target: '999,999' }).params, { dx: 500, dy: 500 });
+    assert.strictEqual(player.normalizeNativeAction({ type: 'nonsense' }).type, 'hold_keys');
+    assert.deepStrictEqual(player.toInputSimArgs({ type: 'drag_look', params: { dx: 120, dy: -30 } }), ['look', '120', '-30']);
+    assert.deepStrictEqual(player.toInputSimArgs({ type: 'hold_keys', params: { keys: ['w', 'shift'] }, duration_ms: 650 }), ['hold_keys', 'w,shift', '650']);
+    assert.deepStrictEqual(player.toInputSimArgs({ type: 'click', params: { x: 500, y: 500 } }), ['click', '500', '500']);
+    assert.strictEqual(player.toInputSimArgs({ type: 'wait' }), null);
+    console.log('PASS Test 4');
+  } catch (e) { console.error('FAIL Test 4:', e.message); failed.push('player.normalize'); }
+
+  try {
+    console.log('Test 5: DeepSeek harness vision decision (mocked LLM)...');
+    const calls = [];
+    const mockBrain = {
+      config: { provider: 'deepseek', modelName: 'deepseek-auto' },
+      callLLM: async (prompt, shot) => {
+        calls.push({ prompt, shotLen: String(shot).length });
+        return { status: 'combat', reasoning: 'Enemy center-screen, firing.', action: { type: 'click', target: '500,480', params: { x: 500, y: 480 } } };
+      }
+    };
+    const decision = await player.decideNativeActionViaDeepSeek(mockBrain, {
+      screenshotBase64: Buffer.from('fake-frame').toString('base64'),
+      windowTitle: 'Half-Life 2',
+      recentActions: []
+    });
+    assert.strictEqual(decision.profile, 'hl2-ep2');
+    assert.strictEqual(decision.action.type, 'click');
+    assert(calls[0].prompt.includes('Half-Life 2'));
+    assert.strictEqual(mockBrain.config.modelName, 'deepseek-auto', 'model override must restore');
+    // String-JSON tolerant parse
+    const parsed = player.parseNativeDecision('noise {"status":"playing","reasoning":"go","action":{"type":"press_key","target":"e"}} tail');
+    assert.strictEqual(parsed.action.target, 'e');
+    console.log('PASS Test 5');
+  } catch (e) { console.error('FAIL Test 5:', e.message); failed.push('player.vision'); }
+
+  try {
+    console.log('Test 6: deepseek_harness.decideNativeGameAction entry point...');
+    const { decideNativeGameAction } = require(path.join(projectRoot, 'lib', 'deepseek_harness'));
+    const mockBrain = {
+      config: { provider: 'deepseek', modelName: 'deepseek-auto' },
+      callLLM: async () => ({ status: 'playing', reasoning: 'Advancing.', action: { type: 'hold_keys', target: 'w,shift', duration_ms: 650 } })
+    };
+    const d = await decideNativeGameAction(mockBrain, {
+      screenshotBase64: Buffer.from('frame').toString('base64'),
+      windowTitle: 'Half-Life 2'
+    });
+    assert.strictEqual(d.profile, 'hl2-ep2');
+    assert.strictEqual(d.action.params.keys.join(','), 'w,shift');
+    console.log('PASS Test 6');
+  } catch (e) { console.error('FAIL Test 6:', e.message); failed.push('harness.native'); }
+
+  try {
+    console.log('Test 7: offline bandit still works for HL2 titles...');
+    const director = new NativeGameDirector();
+    director.setTarget('Half-Life 2');
+    const d = director.choose('frame-bytes');
+    assert(d && d.action && typeof d.action.type === 'string');
+    console.log('PASS Test 7');
+  } catch (e) { console.error('FAIL Test 7:', e.message); failed.push('director.fallback'); }
+
+  if (failed.length) {
+    console.error(`\n${failed.length} FAILED: ${failed.join(', ')}`);
+    process.exit(1);
+  }
+  console.log('\nAll native game player tests passed.');
+}
+
+if (require.main === module) runTests().catch((e) => { console.error(e); process.exit(1); });
+module.exports = { runTests };

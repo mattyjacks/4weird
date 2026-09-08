@@ -9,6 +9,26 @@ const { loadBugs, saveBugs, scanForBugs } = require('./bug_scanner');
 const { callLLM, runHeuristicFallback } = require('./llm_caller');
 const { getReplayLog, saveReplay } = require('./replay_recorder');
 const { runBraidSelfImprovementLoop } = require('./braid_flow');
+const { startTextBrain, recordTextBrainEpisode, recordDomDiscoveries, recordTextBrainBug, getTextBrainContext, flushTextBrain } = require('./brain_text_memory');
+
+// Quantize click coords to a coarse grid so 1-2px jitter (111,29 vs 111,30
+// vs 111,31 from subpixel rounding) still counts as the same repeated action.
+// Without this the loop detector never fires on marketing pages.
+function quantizeActionSignature(action) {
+  if (!action || !action.type) return 'none:';
+  const target = action.target || '';
+  if (typeof target === 'string' && target.includes(',')) {
+    const parts = target.split(',');
+    const x = parseInt(parts[0], 10);
+    const y = parseInt(parts[1], 10);
+    if (Number.isFinite(x) && Number.isFinite(y)) {
+      const qx = Math.round(x / 50) * 50;
+      const qy = Math.round(y / 50) * 50;
+      return `${action.type}:${qx},${qy}`;
+    }
+  }
+  return `${action.type}:${String(target).slice(0, 40)}`;
+}
 
 class AgentBrain {
   constructor() {
@@ -104,8 +124,29 @@ class AgentBrain {
     return updateSessionMemory(this, action, wasStuck);
   }
 
+  recordExternalDecision(decision, { domSnapshot = [], wasStuck = false } = {}) {
+    if (!decision || !decision.action) return;
+    const episode = {
+      timestamp: Date.now(),
+      screenshotHash: 'external-native-decision',
+      action: decision.action,
+      status: decision.status || 'unknown',
+      reasoning_path: decision.reasoning_path || [],
+      reasoning: decision.reasoning || ''
+    };
+    this.episodes.push(episode);
+    if (this.episodes.length > 10) this.episodes.shift();
+    this.updateSessionMemory(decision.action, wasStuck);
+    recordDomDiscoveries(this, domSnapshot);
+    recordTextBrainEpisode(this, episode, null);
+  }
+
   getSessionSummary() {
     return getSessionSummary(this);
+  }
+
+  getTextBrainContext(limit) {
+    return getTextBrainContext(this, limit);
   }
 
   getReplayLog() {
@@ -163,8 +204,8 @@ class AgentBrain {
       action = result.action || this.getStuckRecoveryAction() || { type: 'wait', duration_ms: 500 };
     }
 
-    const actionSig = `${action.type}:${action.target || ''}`;
-    if (actionSig === `${this.lastActionType}:${this.lastActionTarget || ''}`) {
+    const actionSig = quantizeActionSignature(action);
+    if (actionSig === quantizeActionSignature({ type: this.lastActionType, target: this.lastActionTarget })) {
       this.sameActionStreak++;
     } else {
       this.sameActionStreak = 0;
@@ -185,18 +226,20 @@ class AgentBrain {
       this.replayActions.splice(0, this.replayActions.length - 500);
     }
 
-    this.episodes.push({
+    const episode = {
       timestamp: Date.now(),
       screenshotHash: this.simpleHash(screenshotBase64),
       action,
       status: result.status || 'unknown',
       reasoning_path: result.reasoning_path || [],
       reasoning: result.reasoning || (result.reasoning_path ? result.reasoning_path.join(' -> ') : '')
-    });
+    };
+    this.episodes.push(episode);
     if (this.episodes.length > 10) {
       this.episodes.shift();
     }
 
+    let newBug = null;
     if (result.bug_report && result.bug_report.has_bug) {
       const desc = result.bug_report.description || '';
       const isFakeBug = desc.toLowerCase().includes('interactive element') ||
@@ -220,6 +263,7 @@ class AgentBrain {
         const isDuplicate = this.bugs.some(b => b.description === bugEntry.description);
         if (!isDuplicate) {
           this.bugs.push(bugEntry);
+          newBug = bugEntry;
           while (this.bugs.length > 100) {
             this.bugs.shift();
           }
@@ -229,6 +273,8 @@ class AgentBrain {
     }
 
     this.updateSessionMemory(action, isStuck);
+    recordDomDiscoveries(this, domSnapshot);
+    recordTextBrainEpisode(this, episode, newBug);
     result.reasoning = result.reasoning || (result.reasoning_path ? result.reasoning_path.join(' -> ') : '');
     return result;
   }
@@ -242,7 +288,10 @@ class AgentBrain {
   }
 
   scanForBugs(screenshotBase64, consoleLogs) {
-    return scanForBugs(this, screenshotBase64, consoleLogs);
+    const before = this.bugs.length;
+    const found = scanForBugs(this, screenshotBase64, consoleLogs);
+    if (found && this.bugs.length > before) recordTextBrainBug(this, this.bugs[this.bugs.length - 1]);
+    return found;
   }
 
   generateMegaPrompt(localGamePath = '', files = []) {
@@ -258,7 +307,7 @@ class AgentBrain {
   }
 
   runHeuristicFallback(consoleLogs, domSnapshot) {
-    return runHeuristicFallback(consoleLogs, domSnapshot);
+    return runHeuristicFallback(consoleLogs, domSnapshot, this);
   }
 
   simpleHash(str) {
@@ -272,7 +321,10 @@ class AgentBrain {
     this.stuckRecoveryStage = 0;
     this.lastActionType = null;
     this.lastActionTarget = null;
+    this._heuristicCursor = 0;
+    this._lastHeuristicTarget = null;
     this.initSessionMemory();
+    startTextBrain(this);
   }
 
   startSession() {
@@ -292,6 +344,7 @@ class AgentBrain {
       const { flushSessionMemory } = require('./session_memory');
       flushSessionMemory(this);
     } catch (e) {}
+    flushTextBrain(this);
     this.activeRunId = null;
   }
 

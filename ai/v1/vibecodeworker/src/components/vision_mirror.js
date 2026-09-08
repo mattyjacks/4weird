@@ -33,6 +33,7 @@ function initVisionMirror(deps) {
   const visionState = deps.visionState;
   const buildDetectScript = deps.buildDetectScript;
   const parseDetectResponse = deps.parseDetectResponse;
+  const captureFrame = typeof deps.captureFrame === 'function' ? deps.captureFrame : null;
   const log = deps.log || (() => {});
 
   const state = {
@@ -200,7 +201,7 @@ function initVisionMirror(deps) {
     try {
       // Frame: exact screenshot of the test window (game or website).
       try {
-        const b64 = await ipc.invoke('capture-game-screenshot');
+        const b64 = captureFrame ? await captureFrame() : await ipc.invoke('capture-game-screenshot');
         if (b64) {
           const img = new Image();
           img.onload = () => {

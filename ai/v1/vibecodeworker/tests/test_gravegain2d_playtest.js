@@ -4,7 +4,7 @@ const ROOT = path.join(__dirname, "..", "..", "..");
 const SHOT = path.join(ROOT, "test-results", "screenshots");
 const PORT = 8901;
 async function main() {
-  const { startStaticServer } = require("./src/main_process/static_server");
+  const { startStaticServer } = require(path.join(__dirname, "..", "src", "main_process", "static_server"));
   startStaticServer(PORT, path.join(ROOT, "website", "v1"));
   if (!fs.existsSync(SHOT)) fs.mkdirSync(SHOT, { recursive: true });
   const { app, BrowserWindow } = require("electron");
@@ -63,5 +63,5 @@ async function main() {
   app.exit(0);
 }
 const isE = !!(process.versions && process.versions.electron);
-if (!isE) { const { spawnSync } = require("child_process"); const r = spawnSync(path.join(__dirname, "node_modules", "electron", "dist", "electron.exe"), [__filename], { stdio: "inherit" }); process.exit(r.status ?? 1); }
+if (!isE) { const { spawnSync } = require("child_process"); const r = spawnSync(path.join(__dirname, "..", "node_modules", "electron", "dist", "electron.exe"), [__filename], { stdio: "inherit" }); process.exit(r.status ?? 1); }
 else main().catch(e => { console.error("fatal", e); require("electron").app.exit(1); });

@@ -44,11 +44,13 @@ const visionState = require('./runtime/vision_state');
 const { buildDetectScript, parseDetectResponse } = require('./runtime/vision_detect');
 const { executeAgentStep: runAgentStep } = require('./runtime/agent_step_executor');
 const { WebEngineManager, DEFAULT_ENGINE } = require('./runtime/web_engine_manager');
+const { ThinkingOutLoud } = require('./runtime/thinking_out_loud');
 
 // Instantiate cores
 const agentBrain = new AgentBrain();
 const gameController = new GameController();
 const autoCodeSystem = new AutoCodeSystem();
+const thinkingOutLoud = new ThinkingOutLoud({ ipcRenderer });
 // Unified web-engine driver: Ultralight is the default main engine.
 // Electron = current setup viewport, Chromium = standalone headless.
 // Bound lazily to GameController + live <webview> so compat fallbacks work.
@@ -76,6 +78,7 @@ let executionTimer = null;
 let fpsInterval = null;
 let agentStepBusy = false;
 let agentScheduleTimer = null;
+let invalidTestedApiKeyProviders = [];
 
 function adaptiveAgentDelay() {
   const latest = timelineHistory[timelineHistory.length - 1];
@@ -129,12 +132,48 @@ let visionMirror = null;
 function queryElements() {
   el.providerSelect = document.getElementById('provider-select');
   el.apiKeyInput = document.getElementById('api-key');
+  el.missingApiKeysModal = document.getElementById('missing-api-keys-modal');
+  el.btnSetupApiKeys = document.getElementById('btn-setup-api-keys');
+  el.btnIgnoreApiKeysWarning = document.getElementById('btn-ignore-api-keys-warning');
+  el.btnCloseMissingApiKeys = document.getElementById('btn-close-missing-api-keys');
+  el.apiKeysModal = document.getElementById('api-keys-modal');
+  el.openaiApiKey = document.getElementById('openai-api-key');
+  el.deepseekApiKey = document.getElementById('deepseek-api-key');
+  el.geminiApiKey = document.getElementById('gemini-api-key');
+  el.metaApiKey = document.getElementById('meta-api-key');
+  el.openrouterApiKey = document.getElementById('openrouter-api-key');
+  el.openaiApiKeySaved = document.getElementById('openai-api-key-saved');
+  el.deepseekApiKeySaved = document.getElementById('deepseek-api-key-saved');
+  el.geminiApiKeySaved = document.getElementById('gemini-api-key-saved');
+  el.metaApiKeySaved = document.getElementById('meta-api-key-saved');
+  el.openrouterApiKeySaved = document.getElementById('openrouter-api-key-saved');
+  el.apiKeysStatus = document.getElementById('api-keys-status');
+  el.btnSaveApiKeys = document.getElementById('btn-save-api-keys');
+  el.btnCloseApiKeys = document.getElementById('btn-close-api-keys');
+  el.btnTestApiKeys = document.getElementById('btn-test-api-keys');
+  el.btnClearInvalidApiKeys = document.getElementById('btn-clear-invalid-api-keys');
+  el.apiKeyTestResults = document.getElementById('api-key-test-results');
   el.localUrlGroup = document.getElementById('local-url-group');
   el.localUrlInput = document.getElementById('local-url');
   el.modelNameInput = document.getElementById('model-name');
   el.modelSelect = document.getElementById('model-select');
   el.customModelGroup = document.getElementById('custom-model-group');
   el.nativeProcessSelect = document.getElementById('native-process');
+  el.nativeWindowMode = document.getElementById('native-window-mode');
+  el.nativeWindowWidth = document.getElementById('native-window-width');
+  el.nativeWindowHeight = document.getElementById('native-window-height');
+  el.nativeWindowSizeGroup = document.getElementById('native-window-size-group');
+  el.steamGame = document.getElementById('steam-game');
+  el.nativeStartNewGame = document.getElementById('native-start-new-game');
+  el.nativeSkipCutscenes = document.getElementById('native-skip-cutscenes');
+  el.btnLaunchHl2 = document.getElementById('btn-launch-hl2');
+  el.btnHubGridView = document.getElementById('btn-hub-grid-view');
+  el.btnHubListView = document.getElementById('btn-hub-list-view');
+  el.thinkingOutLoudToggle = document.getElementById('thinking-out-loud-toggle');
+  el.commentaryPersonality = document.getElementById('commentary-personality');
+  el.commentaryVoiceEngine = document.getElementById('commentary-voice-engine');
+  el.commentaryVoice = document.getElementById('commentary-voice');
+  el.thinkingOutLoudStatus = document.getElementById('thinking-out-loud-status');
   
   el.gameUrlInput = document.getElementById('game-url');
   el.btnLoadUrl = document.getElementById('btn-load-url');
@@ -288,8 +327,14 @@ function queryElements() {
 document.addEventListener('DOMContentLoaded', () => {
   webviewElement = document.getElementById('game-webview');
   queryElements();
+  thinkingOutLoud.attach(el);
   
   config.loadConfig(el, audio, agentBrain, autoCodeSystem, dataDir);
+  // A missing key makes the agent fall back to a limited local explorer, so
+  // make the requirement explicit before the user starts a playtest.
+  setTimeout(() => {
+    if (!config.hasAnyApiKey()) el.missingApiKeysModal?.classList.remove('hidden');
+  }, 0);
   webview.populateDemoGames(el.demoGameSelect);
   
   agentBrain.loadBugs(bugsLogPath);
@@ -318,6 +363,11 @@ document.addEventListener('DOMContentLoaded', () => {
     loadGame();
   });
   if (el.btnQuickRun) el.btnQuickRun.addEventListener('click', () => {
+    if (el.nativeProcessSelect?.value) {
+      if (el.quickGameRules) el.gameRulesInput.value = el.quickGameRules.value.trim();
+      if (!isRunning) toggleAgentState();
+      return;
+    }
     if (el.quickGameUrl) el.gameUrlInput.value = el.quickGameUrl.value.trim();
     if (el.quickGameRules) el.gameRulesInput.value = el.quickGameRules.value.trim();
     if (!el.gameUrlInput.value) {
@@ -417,6 +467,43 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   const btnScanProcesses = document.getElementById('btn-scan-processes');
+  const nativeMissionName = () => Number(el.steamGame?.value) === 420
+    ? 'Half-Life 2: Episode Two'
+    : Number(el.steamGame?.value) === 3483 ? 'Peggle Deluxe' : 'Half-Life 2';
+  const nativeMissionUrl = () => {
+    const appId = Number(el.steamGame?.value);
+    if (appId === 420) return 'native://steam/420/half-life-2-episode-two';
+    if (appId === 3483) return 'native://steam/3483/peggle-deluxe';
+    return 'native://steam/220/half-life-2';
+  };
+  const activateNativeMission = (windowTitle) => {
+    const gameName = nativeMissionName();
+    const nativeUrl = nativeMissionUrl();
+    // A native game has no browser URL. Replace the previous web target in
+    // the dashboard with the selected Steam game and its live window.
+    if (el.gameUrlInput) el.gameUrlInput.value = nativeUrl;
+    if (el.quickGameUrl) {
+      el.quickGameUrl.value = `Native window — ${gameName}`;
+      el.quickGameUrl.readOnly = true;
+      el.quickGameUrl.setAttribute('aria-label', `Native playtest target: ${gameName}`);
+    }
+    if (el.quickGameRules && !el.quickGameRules.value.trim()) {
+      el.quickGameRules.value = `Play ${gameName}; advance safely, report discoveries, and recover from menus or loading screens.`;
+      if (el.gameRulesInput) el.gameRulesInput.value = el.quickGameRules.value;
+    }
+    const copy = document.querySelector('.quick-run-copy');
+    if (copy) {
+      const label = copy.querySelector('span');
+      const title = copy.querySelector('strong');
+      if (label) label.textContent = 'NATIVE GAME PLAYTEST';
+      if (title) title.textContent = `${gameName} — attached to “${windowTitle}”`;
+    }
+    const banner = document.getElementById('game-status-banner');
+    if (banner) banner.textContent = `Native target active: ${gameName}. The AI Relay below mirrors the live game window.`;
+    document.getElementById('gamewindow-active-placeholder')?.classList.remove('hidden');
+    webviewElement?.classList.add('hidden');
+    saveConfigData();
+  };
   if (btnScanProcesses) {
     btnScanProcesses.addEventListener('click', async () => {
       audio.playClickSound();
@@ -443,16 +530,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
   el.nativeProcessSelect.addEventListener('change', () => {
     if (el.nativeProcessSelect.value) {
+      activateNativeMission(el.nativeProcessSelect.value);
       el.btnToggleAgent.classList.remove('disabled');
       el.btnToggleAgent.removeAttribute('disabled');
       logSystemMessage(`Native target selected: "${el.nativeProcessSelect.value}". AI Play button is active.`);
+      ipcRenderer.invoke('enable-native-game-overlay', el.nativeProcessSelect.value)
+        .then(result => logSystemMessage(result?.success
+          ? `Native overlay active for "${el.nativeProcessSelect.value}".`
+          : `Native overlay could not start: ${result?.error || 'unknown error'}`, result?.success ? 'success' : 'warning'))
+        .catch(err => logSystemMessage(`Native overlay error: ${err.message}`, 'warning'));
     } else {
+      if (el.quickGameUrl) {
+        el.quickGameUrl.readOnly = false;
+        el.quickGameUrl.removeAttribute('aria-label');
+      }
       if (!webviewElement.src || webviewElement.src === 'about:blank') {
         el.btnToggleAgent.classList.add('disabled');
         el.btnToggleAgent.setAttribute('disabled', 'true');
       }
     }
   });
+
+  const syncNativeWindowControls = () => {
+    const partial = el.nativeWindowMode && el.nativeWindowMode.value === 'partial-windowed';
+    if (el.nativeWindowSizeGroup) el.nativeWindowSizeGroup.classList.toggle('hidden', !partial);
+  };
+  if (el.nativeWindowMode) {
+    el.nativeWindowMode.addEventListener('change', syncNativeWindowControls);
+    syncNativeWindowControls();
+  }
+
+  if (el.btnLaunchHl2) {
+    el.btnLaunchHl2.addEventListener('click', async () => {
+      const mode = el.nativeWindowMode ? el.nativeWindowMode.value : 'exclusive-fullscreen';
+      const appId = parseInt(el.steamGame?.value, 10) || 420;
+      const gameName = appId === 420 ? 'Half-Life 2: Episode Two' : appId === 3483 ? 'Peggle Deluxe' : 'Half-Life 2';
+      const width = Math.max(640, parseInt(el.nativeWindowWidth?.value, 10) || 1280);
+      const height = Math.max(480, parseInt(el.nativeWindowHeight?.value, 10) || 720);
+      try {
+        const result = await ipcRenderer.invoke('launch-steam-game', { appId, mode, width, height });
+        if (!result?.success) throw new Error(result?.error || 'Steam did not accept the launch request');
+        logSystemMessage(`${gameName} launch requested in ${result.modeLabel}. When its window appears, scan and select it to attach the agent.`, 'success');
+      } catch (error) {
+        logSystemMessage(`Could not launch ${gameName}: ${error.message}`, 'warning');
+      }
+    });
+  }
 
   el.modelSelect.addEventListener('change', () => {
     if (el.modelSelect.value === 'custom') {
@@ -636,6 +759,7 @@ document.addEventListener('DOMContentLoaded', () => {
   wireMenuItem('menu-item-copy-logs', () => {
     if (el.btnCopy50Logs) el.btnCopy50Logs.click();
   });
+  wireMenuItem('menu-item-api-keys', () => openApiKeysModal());
 
   wireMenuItem('menu-item-toggle-layout', () => {
     if (el.btnToggleView) el.btnToggleView.click();
@@ -678,6 +802,103 @@ document.addEventListener('DOMContentLoaded', () => {
   
   el.btnCloseModal.addEventListener('click', () => el.bugModal.classList.add('hidden'));
   el.bugModal.classList.add('hidden');
+  if (el.btnCloseApiKeys) el.btnCloseApiKeys.addEventListener('click', () => el.apiKeysModal?.classList.add('hidden'));
+  if (el.btnSetupApiKeys) el.btnSetupApiKeys.addEventListener('click', () => {
+    el.missingApiKeysModal?.classList.add('hidden');
+    openApiKeysModal();
+  });
+  const dismissMissingApiKeysWarning = () => el.missingApiKeysModal?.classList.add('hidden');
+  if (el.btnIgnoreApiKeysWarning) el.btnIgnoreApiKeysWarning.addEventListener('click', dismissMissingApiKeysWarning);
+  if (el.btnCloseMissingApiKeys) el.btnCloseMissingApiKeys.addEventListener('click', dismissMissingApiKeysWarning);
+  if (el.btnSaveApiKeys) el.btnSaveApiKeys.addEventListener('click', () => {
+    const result = config.saveApiKeyBundle({
+      openai: el.openaiApiKey?.value,
+      deepseek: el.deepseekApiKey?.value,
+      gemini: el.geminiApiKey?.value,
+      meta: el.metaApiKey?.value,
+      openrouter: el.openrouterApiKey?.value
+    });
+    if (!result.success) {
+      if (el.apiKeysStatus) el.apiKeysStatus.textContent = result.error;
+      toastNotifier.show(result.error, 'warning');
+      return;
+    }
+    const keys = config.loadApiKeyBundle();
+    const activeKey = keys[el.providerSelect?.value] || '';
+    if (activeKey) {
+      el.apiKeyInput.value = activeKey;
+      agentBrain.updateConfig({ apiKey: activeKey });
+    }
+    // Secure refresh: clear typed secrets from the DOM and show only
+    // first-8...last-4 previews so full keys never linger in input values.
+    refreshMaskedApiKeyDisplay();
+    if (el.apiKeysStatus) el.apiKeysStatus.textContent = `Saved ${result.saved.join(', ')} key${result.saved.length === 1 ? '' : 's'} securely.`;
+    toastNotifier.show('API keys saved securely', 'success');
+    logSystemMessage(`Saved API key settings for ${result.saved.join(', ')}.`, 'success');
+  });
+  if (el.btnTestApiKeys) el.btnTestApiKeys.addEventListener('click', async () => {
+    // Empty modal inputs mean "keep saved key": merge typed values over the
+    // encrypted store so saved keys can be tested without ever displaying them.
+    const stored = config.loadApiKeyBundle();
+    const pick = (typed, saved) => (typed || '').trim() || saved || '';
+    const keys = {
+      openai: pick(el.openaiApiKey?.value, stored.openai),
+      deepseek: pick(el.deepseekApiKey?.value, stored.deepseek),
+      gemini: pick(el.geminiApiKey?.value, stored.gemini),
+      meta: pick(el.metaApiKey?.value, stored.meta),
+      openrouter: pick(el.openrouterApiKey?.value, stored.openrouter)
+    };
+    invalidTestedApiKeyProviders = [];
+    el.btnTestApiKeys.disabled = true;
+    if (el.btnClearInvalidApiKeys) el.btnClearInvalidApiKeys.disabled = true;
+    if (el.apiKeyTestResults) {
+      el.apiKeyTestResults.classList.remove('hidden');
+      el.apiKeyTestResults.textContent = 'Testing entered keys…';
+    }
+    try {
+      const response = await ipcRenderer.invoke('test-api-keys', keys);
+      const results = response?.results || [];
+      invalidTestedApiKeyProviders = results.filter((result) => result.status === 'invalid').map((result) => result.provider);
+      if (el.apiKeyTestResults) {
+        el.apiKeyTestResults.innerHTML = '';
+        results.forEach((result) => {
+          const line = document.createElement('div');
+          line.className = `api-key-test-result-${result.status}`;
+          line.textContent = `${result.provider.toUpperCase()}: ${result.detail}`;
+          el.apiKeyTestResults.appendChild(line);
+        });
+      }
+      if (el.btnClearInvalidApiKeys) el.btnClearInvalidApiKeys.disabled = invalidTestedApiKeyProviders.length === 0;
+    } catch (error) {
+      if (el.apiKeyTestResults) el.apiKeyTestResults.textContent = `Could not run key checks: ${error.message}`;
+    } finally {
+      el.btnTestApiKeys.disabled = false;
+    }
+  });
+  if (el.btnClearInvalidApiKeys) el.btnClearInvalidApiKeys.addEventListener('click', () => {
+    if (!invalidTestedApiKeyProviders.length) return;
+    if (!config.clearInvalidApiKeyProviders(invalidTestedApiKeyProviders)) {
+      toastNotifier.show('Could not clear invalid API keys.', 'error');
+      return;
+    }
+    invalidTestedApiKeyProviders.forEach((provider) => {
+      const input = provider === 'openai' ? el.openaiApiKey
+        : provider === 'deepseek' ? el.deepseekApiKey
+          : provider === 'gemini' ? el.geminiApiKey
+          : provider === 'openrouter' ? el.openrouterApiKey
+            : el.metaApiKey;
+      if (input) input.value = '';
+      if (el.providerSelect?.value === provider) {
+        el.apiKeyInput.value = '';
+        agentBrain.updateConfig({ apiKey: '' });
+      }
+    });
+    if (el.apiKeyTestResults) el.apiKeyTestResults.textContent = 'Confirmed invalid API key entries cleared.';
+    invalidTestedApiKeyProviders = [];
+    el.btnClearInvalidApiKeys.disabled = true;
+    refreshMaskedApiKeyDisplay();
+    toastNotifier.show('Invalid API keys cleared', 'success');
+  });
 
   setupWebEngineControls();
   setupWebviewListeners();
@@ -691,6 +912,21 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (command === 'reload') {
       reloadGame();
     }
+  });
+
+  ipcRenderer.on('native-game-autodetected', (_event, title) => {
+    if (!title || !el.nativeProcessSelect) return;
+    let option = Array.from(el.nativeProcessSelect.options).find(o => o.value === title);
+    if (!option) {
+      option = document.createElement('option');
+      option.value = title;
+      option.textContent = `hl2 — "${title}"`;
+      el.nativeProcessSelect.appendChild(option);
+    }
+    el.nativeProcessSelect.value = title;
+    el.nativeProcessSelect.dispatchEvent(new Event('change'));
+    logSystemMessage(`HL2 attached as native target: "${title}". Starting native play policy.`, 'success');
+    if (!isRunning) toggleAgentState();
   });
 
   ipcRenderer.on('webview-console', (event, { level, message }) => {
@@ -721,6 +957,9 @@ document.addEventListener('DOMContentLoaded', () => {
     visionState,
     buildDetectScript,
     parseDetectResponse,
+    // Native games are captured from their selected game window, not the
+    // browser preview that may have been open before attachment.
+    captureFrame: captureViewportScreenshot,
     log: (msg) => logSystemMessage('[Vision] ' + msg)
   });
   visionMirror.start();
@@ -764,6 +1003,20 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   hubUI.setupBindings();
   hubUI.showHubWorkspace();
+
+  const hubGrid = document.querySelector('.hub-grid');
+  const setHubLayout = (layout) => {
+    const list = layout === 'list';
+    hubGrid?.classList.toggle('hub-list-view', list);
+    el.btnHubGridView?.classList.toggle('is-selected', !list);
+    el.btnHubListView?.classList.toggle('is-selected', list);
+    el.btnHubGridView?.setAttribute('aria-pressed', String(!list));
+    el.btnHubListView?.setAttribute('aria-pressed', String(list));
+    localStorage.setItem('vibecodeworker.homeLayout', list ? 'list' : 'grid');
+  };
+  setHubLayout(localStorage.getItem('vibecodeworker.homeLayout') || 'grid');
+  el.btnHubGridView?.addEventListener('click', () => setHubLayout('grid'));
+  el.btnHubListView?.addEventListener('click', () => setHubLayout('list'));
 
   logSystemMessage("System dashboard loaded. Welcome Hub ready.");
   setTimeout(() => {
@@ -929,11 +1182,56 @@ function saveConfigData() {
   config.saveConfig(el, audio, agentBrain, autoCodeSystem, dataDir);
 }
 
+function paintSavedKeyHint(input, hintEl, masked, label) {
+  if (input) {
+    // Never place the full secret in the DOM: inputs stay blank and only
+    // accept a replacement key. The masked preview goes in placeholder/hint.
+    input.value = '';
+    input.placeholder = masked
+      ? `Saved ${masked} — enter a new key to replace`
+      : `Paste ${label} API key`;
+  }
+  if (hintEl) hintEl.textContent = masked ? `Saved: ${masked}` : 'Not set';
+}
+
+function refreshMaskedApiKeyDisplay() {
+  const masked = config.loadMaskedApiKeyBundleForDisplay();
+  paintSavedKeyHint(el.openaiApiKey, el.openaiApiKeySaved, masked.openai, 'an OpenAI');
+  paintSavedKeyHint(el.deepseekApiKey, el.deepseekApiKeySaved, masked.deepseek, 'a DeepSeek');
+  paintSavedKeyHint(el.geminiApiKey, el.geminiApiKeySaved, masked.gemini, 'a Google Gemini');
+  paintSavedKeyHint(el.metaApiKey, el.metaApiKeySaved, masked.meta, 'a Meta');
+  paintSavedKeyHint(el.openrouterApiKey, el.openrouterApiKeySaved, masked.openrouter, 'an OpenRouter');
+}
+
+function openApiKeysModal() {
+  // Secure display: show only first-8...last-4 previews. Full keys stay in
+  // the encrypted OS store + in-memory config and are never written into
+  // input values, hint text, logs, or placeholders.
+  refreshMaskedApiKeyDisplay();
+  if (el.apiKeysStatus) el.apiKeysStatus.textContent = 'Keys stay in the encrypted per-user store, not config.json. Leave a field blank to keep its saved key.';
+  invalidTestedApiKeyProviders = [];
+  if (el.btnClearInvalidApiKeys) el.btnClearInvalidApiKeys.disabled = true;
+  if (el.apiKeyTestResults) {
+    el.apiKeyTestResults.textContent = '';
+    el.apiKeyTestResults.classList.add('hidden');
+  }
+  el.apiKeysModal?.classList.remove('hidden');
+}
+
 function updateStatusBanner(text, type = 'ready') {
   setStatusBanner(el.gameStatusBanner, text, type);
 }
 
 function loadGame() {
+  if (el.nativeProcessSelect?.value || String(el.gameUrlInput?.value || '').startsWith('native://')) {
+    if (el.nativeProcessSelect?.value) {
+      const gameName = Number(el.steamGame?.value) === 420 ? 'Half-Life 2: Episode Two' : 'the selected native game';
+      updateStatusBanner(`🎮 Native game ready: ${gameName}. Click 'START AI AGENT' to begin playtesting.`, 'ready');
+      return;
+    }
+    toastNotifier.show('Select the running native game window in Native Engine Scanner first.', 'warning');
+    return;
+  }
   if (el.quickGameUrl && el.quickGameUrl.value !== el.gameUrlInput.value) el.quickGameUrl.value = el.gameUrlInput.value;
   if (el.quickGameRules && el.quickGameRules.value !== el.gameRulesInput.value) el.quickGameRules.value = el.gameRulesInput.value;
   webview.loadGameUrl(el.gameUrlInput, webviewElement, el.webviewPlaceholder, saveConfigData, crawlFiles, logSystemMessage);
@@ -1010,6 +1308,10 @@ function toggleAgentState() {
     el.agentStateBadge.textContent = 'ACTIVE';
     el.agentStateBadge.className = 'badge active';
     logSystemMessage("AI Agent playtesting activated." + (cliMaxTicks() > 0 ? ` Tick cap: ${cliMaxTicks()}.` : ''));
+    if (!agentBrain.config.apiKey) {
+      logSystemMessage("No API key set — running offline explorer (clicks/scrolls/keys, no smart decisions). Add a key in Settings for full AI playtesting.", 'warning');
+      toastNotifier.show('No API key: offline explorer mode', 'warning');
+    }
     updateStatusBanner("🤖 AI Agent actively playtesting & scanning for bugs...", 'active');
     
     ipcRenderer.invoke('is-game-window-active').then(active => {
@@ -1414,7 +1716,9 @@ async function executeAgentStep(forceHeuristic = false) {
     bugsLogPath,
     captureViewportScreenshot,
     captureManualScreenshot,
-    logSystemMessage
+    logSystemMessage,
+    thinkingOutLoud,
+    commentaryApiKey: () => el.apiKeyInput?.value || agentBrain.config.apiKey || ''
   });
   } finally {
     if (!forceHeuristic) agentStepBusy = false;

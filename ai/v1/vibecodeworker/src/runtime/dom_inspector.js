@@ -26,6 +26,13 @@ async function getInteractiveDOM(controller, webview) {
         const style = window.getComputedStyle(el);
         if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') continue;
 
+        // PATCH-GUARD: normalized nx/ny coords.
+        // Normalized 0-1000 coords: the agent (LLM + heuristics) always speaks
+        // 0-1000, the dispatcher converts back to CSS pixels. Storing nx/ny
+        // here fixes the old page-pixel vs normalized mismatch that made the
+        // offline fallback click the wrong spot (e.g. logo loop at 111,30).
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
         out.push({
           tagName: el.tagName,
           id: el.id || '',
@@ -37,7 +44,9 @@ async function getInteractiveDOM(controller, webview) {
             top: Math.round(rect.top),
             width: Math.round(rect.width),
             height: Math.round(rect.height)
-          }
+          },
+          nx: Math.max(0, Math.min(1000, Math.round((cx / vw) * 1000))),
+          ny: Math.max(0, Math.min(1000, Math.round((cy / vh) * 1000)))
         });
       }
       // Cheap fallback: if nothing matched (e.g. canvas-only game), report

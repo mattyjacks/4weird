@@ -145,7 +145,7 @@ async function debugGames() {
     if (process.env.AUTO_FIX_BUGS === 'true' && result.bugsFound.length > 0) {
       console.log(`  [AI AutoFix] Attempting direct AI token bug fix on ${game.title}...`);
       try {
-        const { AutoCodeSystem } = require('./lib/core');
+        const { AutoCodeSystem } = require('../lib/core');
         const autoCode = new AutoCodeSystem();
         const primaryBug = result.bugsFound[0];
         const targetAbsFile = path.join(fullGameDir, primaryBug.file);
@@ -174,7 +174,7 @@ async function debugGames() {
     auditReport.push(result);
   }
 
-  const dataDir = path.join(__dirname, 'data');
+  const dataDir = path.join(__dirname, '..', 'data');
   if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
   const reportPath = path.join(dataDir, 'api_debug_report.json');
   fs.writeFileSync(reportPath, JSON.stringify(auditReport, null, 2), 'utf8');

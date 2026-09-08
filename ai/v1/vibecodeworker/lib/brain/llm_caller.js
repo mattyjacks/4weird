@@ -4,6 +4,16 @@
 
 const { getResolvedApiKey } = require('../storage');
 
+function selectDeepSeekModel(requestedModel, hasImage, prompt) {
+  // Vision input is accepted only by the documented vision model. Keep image
+  // interpretation there, and use Flash for text-only planning/replay work.
+  if (hasImage) return 'deepseek-v4-flash-vision-exp';
+  if (!requestedModel || requestedModel === 'deepseek-auto') return 'deepseek-v4-flash';
+  // Preserve an explicit Reasoner choice for deliberate long-form diagnosis.
+  if (requestedModel === 'deepseek-reasoner' && /diagnos|architect|root cause|self-improv/i.test(prompt || '')) return requestedModel;
+  return requestedModel;
+}
+
 async function callLLM(brain, prompt, base64Image = null) {
   let { provider, apiKey, endpointUrl, modelName } = brain.config;
 
@@ -57,17 +67,20 @@ async function callLLM(brain, prompt, base64Image = null) {
   } else if (provider === 'deepseek') {
     url = 'https://api.deepseek.com/chat/completions';
     headers['Authorization'] = `Bearer ${apiKey}`;
-    const realModel = modelName || 'deepseek-chat';
+    const realModel = selectDeepSeekModel(modelName, !!base64Image, prompt);
 
     const content = [{ type: 'text', text: prompt }];
     if (base64Image) {
       content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } });
     }
     body = { model: realModel, messages: [{ role: 'user', content }] };
+    // Low detail keeps rapid frame-to-frame play affordable; action decisions
+    // generally do not need original-resolution pixels.
+    if (base64Image) content[1].image_url.detail = 'low';
 
   } else if (provider === 'meta') {
     // Meta Model API or OpenRouter-compatible endpoint for Muse Spark 1.3 Contributor
-    const realModel = modelName || 'meta/muse-spark-1.3-contributor';
+    const realModel = modelName || 'meta-llama/llama-4-scout-17b-16e-instruct';
     const isMetaDirect = endpointUrl && endpointUrl.includes('meta.ai');
     url = isMetaDirect ? endpointUrl : (endpointUrl || 'https://openrouter.ai/api/v1/chat/completions');
     headers['Authorization'] = `Bearer ${apiKey}`;
@@ -81,7 +94,7 @@ async function callLLM(brain, prompt, base64Image = null) {
     body = { model: realModel, messages: [{ role: 'user', content }] };
 
   } else if (provider === 'gemini') {
-    const model = modelName || 'gemini-2.5-flash';
+    const model = modelName || 'gemini-3.5-flash-lite';
     url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     const parts = [{ text: prompt }];
     if (base64Image) {
@@ -104,7 +117,7 @@ async function callLLM(brain, prompt, base64Image = null) {
     headers['Authorization'] = `Bearer ${apiKey}`;
     headers['HTTP-Referer'] = 'https://github.com/mattyjacks/4weird';
     headers['X-Title'] = 'AI Game Debugger';
-    const model = modelName || 'meta/muse-spark-1.3-contributor';
+    const model = modelName || 'meta-llama/llama-4-scout-17b-16e-instruct';
     const content = [{ type: 'text', text: prompt }];
     if (base64Image) {
       content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } });
@@ -172,7 +185,9 @@ async function callLLM(brain, prompt, base64Image = null) {
     }
   }
 
-  const activeModel = modelName || (provider === 'openai' ? 'gpt-5.4-mini-2026-03-17' : (provider === 'openrouter' ? 'google/gemini-2.5-flash' : (provider === 'gemini' ? 'gemini-2.5-flash' : 'llama3')));
+  const activeModel = provider === 'deepseek'
+    ? selectDeepSeekModel(modelName, !!base64Image, prompt)
+    : (modelName || (provider === 'openai' ? 'gpt-5.6-luna' : (provider === 'openrouter' ? 'meta-llama/llama-4-scout-17b-16e-instruct' : (provider === 'gemini' ? 'gemini-3.5-flash-lite' : 'llama3'))));
 
   if (promptTokens === 0 && completionTokens === 0) {
     promptTokens = Math.round(prompt.length / 4) + (base64Image ? 260 : 0);
@@ -193,29 +208,91 @@ async function callLLM(brain, prompt, base64Image = null) {
   }
 }
 
-function runHeuristicFallback(consoleLogs, domSnapshot) {
-  console.log("Heuristic Fallback triggered!");
-  let type = 'wait';
-  let target = '';
+// Round-robin cursor so the offline fallback never hammers clickables[0]
+// (the old logo-loop at 111,30 on mattyjacks.com). State lives on the brain
+// when available, with a module-level fallback for standalone callers.
+let fallbackCursor = 0;
+let fallbackCalls = 0;
 
-  if (domSnapshot && domSnapshot.length > 0) {
-    const clickables = domSnapshot.filter(el => ['BUTTON', 'A', 'INPUT'].includes(el.tagName));
-    if (clickables.length > 0) {
-      type = 'click';
-      target = clickables[0].rect
-        ? `${clickables[0].rect.left + clickables[0].rect.width / 2},${clickables[0].rect.top + clickables[0].rect.height / 2}`
-        : clickables[0].id || clickables[0].tagName;
-    }
-  } else {
-    const fallbacks = ['Space', 'ArrowRight', 'ArrowUp', 'w', 'd'];
-    type = 'press_key';
-    target = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+function toNormalizedTarget(el) {
+  if (Number.isFinite(el.nx) && Number.isFinite(el.ny)) {
+    return `${Math.round(el.nx)},${Math.round(el.ny)}`;
+  }
+  // Legacy snapshots without nx/ny: rect is CSS pixels, not 0-1000. Without a
+  // viewport size we cannot convert exactly, so fall back to a selector/id
+  // (dispatcher resolves it in-page) instead of emitting wrong coords.
+  if (el.id) return `#${el.id}`;
+  if (el.innerText) return el.innerText.slice(0, 30);
+  return el.tagName || '';
+}
+
+function runHeuristicFallback(consoleLogs, domSnapshot, brain = null) {
+  console.log("Heuristic Fallback triggered!");
+  fallbackCalls += 1;
+  const callCount = fallbackCalls;
+
+  // Every 5th offline step: scroll to explore long pages (marketing sites like
+  // mattyjacks.com are mostly below the fold). Every 9th: keyboard probe.
+  if (callCount % 9 === 0) {
+    const keys = ['Tab', 'Enter', 'ArrowDown', 'Space'];
+    const key = keys[Math.floor(callCount / 9) % keys.length];
+    return {
+      status: 'exploring',
+      reasoning: "Offline explorer (no API key): keyboard probe to explore page.",
+      action: { type: 'press_key', target: key, duration_ms: 200 },
+      next_delay_ms: 1000,
+      bug_report: { has_bug: false }
+    };
+  }
+  if (callCount % 5 === 0) {
+    return {
+      status: 'exploring',
+      reasoning: "Offline explorer (no API key): scrolling to discover content below the fold.",
+      action: { type: 'scroll', target: 'down', duration_ms: 200, params: { direction: 'down', amount: 600 } },
+      next_delay_ms: 1000,
+      bug_report: { has_bug: false }
+    };
   }
 
+  if (domSnapshot && domSnapshot.length > 0) {
+    const clickables = domSnapshot.filter(el => ['BUTTON', 'A', 'INPUT', 'SELECT', 'TEXTAREA', 'CANVAS'].includes(el.tagName));
+    const pool = clickables.length > 0 ? clickables : domSnapshot;
+    // Round-robin through the pool, skipping whatever we clicked last time.
+    const cursor = brain && Number.isFinite(brain._heuristicCursor) ? brain._heuristicCursor : fallbackCursor;
+    const lastTarget = brain ? brain._lastHeuristicTarget : null;
+    let pick = null;
+    for (let i = 0; i < pool.length; i++) {
+      const candidate = pool[(cursor + i) % pool.length];
+      const target = toNormalizedTarget(candidate);
+      if (target && target !== lastTarget) {
+        pick = candidate;
+        if (brain) {
+          brain._heuristicCursor = (cursor + i + 1) % pool.length;
+          brain._lastHeuristicTarget = target;
+        } else {
+          fallbackCursor = (cursor + i + 1) % pool.length;
+        }
+        break;
+      }
+    }
+    if (!pick) pick = pool[cursor % pool.length];
+    const target = toNormalizedTarget(pick);
+    const label = pick.innerText || pick.id || pick.tagName;
+    return {
+      status: 'exploring',
+      reasoning: `Offline explorer (no API key): trying interactive element ${pick.tagName} "${String(label).slice(0, 40)}" (${pool.indexOf(pick) + 1}/${pool.length}). Add an API key for smart decisions.`,
+      action: { type: 'click', target, duration_ms: 200 },
+      next_delay_ms: 1000,
+      bug_report: { has_bug: false }
+    };
+  }
+
+  const fallbacks = ['Space', 'ArrowRight', 'ArrowUp', 'w', 'd'];
+  const key = fallbacks[Math.floor(Math.random() * fallbacks.length)];
   return {
-    status: 'stuck',
-    reasoning: "API call failed. Falling back to default explorer heuristics.",
-    action: { type, target, duration_ms: 200 },
+    status: 'exploring',
+    reasoning: "Offline explorer (no API key): no interactive elements found, probing keyboard.",
+    action: { type: 'press_key', target: key, duration_ms: 200 },
     next_delay_ms: 1000,
     bug_report: { has_bug: false }
   };

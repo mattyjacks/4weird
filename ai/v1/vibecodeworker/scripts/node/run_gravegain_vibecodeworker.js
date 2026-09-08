@@ -8,15 +8,16 @@
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
-const { LocalAPIServer } = require('./lib/api_server');
-const { VibeCodeWorkerClient } = require('./lib/vibecodeworker_client');
-const { discoverGames } = require('./start_api_server');
-const { ReplayEngine } = require('./lib/replay_engine');
+const projectRoot = path.resolve(__dirname, '..', '..');
+const { LocalAPIServer } = require(path.join(projectRoot, 'lib', 'api_server'));
+const { VibeCodeWorkerClient } = require(path.join(projectRoot, 'lib', 'vibecodeworker_client'));
+const { discoverGames } = require(path.join(projectRoot, 'server', 'start_api_server'));
+const { ReplayEngine } = require(path.join(projectRoot, 'lib', 'replay_engine'));
 
 const PORT = 42069;
 const STATIC_PORT = 8888;
-const WEBSITE_V1_DIR = path.join(__dirname, '..', '..', 'website', 'v1');
-const TAURI_EXE_PATH = path.join(__dirname, 'src-tauri', 'target', 'release', 'vibecodeworker-4weird.exe');
+const WEBSITE_V1_DIR = path.join(projectRoot, '..', '..', '..', 'website', 'v1');
+const TAURI_EXE_PATH = path.join(projectRoot, 'src-tauri', 'target', 'release', 'vibecodeworker-4weird.exe');
 
 async function runGraveGainVibeCodeWorkerSession() {
   console.log("===============================================================");
@@ -27,7 +28,7 @@ async function runGraveGainVibeCodeWorkerSession() {
   // path-traversal protection, ETag caching, and stream error handling)
   let staticServer = null;
   try {
-    const { startStaticServer } = require('./src/main_process/static_server');
+    const { startStaticServer } = require(path.join(projectRoot, 'src', 'main_process', 'static_server'));
     staticServer = startStaticServer(STATIC_PORT, WEBSITE_V1_DIR);
   } catch (e) {
     console.warn("[StaticServer] Warning:", e.message);

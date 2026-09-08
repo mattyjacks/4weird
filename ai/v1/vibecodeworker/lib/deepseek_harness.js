@@ -137,8 +137,8 @@ INSTRUCTIONS:
   try {
     response = await callLLM(tempBrain, selfImprovementPrompt);
   } catch (e) {
-    // Fallback to deepseek-chat if reasoner is busy or rate limited
-    tempBrain.config.modelName = 'deepseek-chat';
+    // Keep the Harness loop on the fast V4 path if Reasoner is unavailable.
+    tempBrain.config.modelName = 'deepseek-v4-flash';
     response = await callLLM(tempBrain, selfImprovementPrompt);
   }
 
@@ -166,7 +166,39 @@ INSTRUCTIONS:
   };
 }
 
+/**
+ * Decide the next input for ANY native desktop game from a live screenshot.
+ * DeepSeek Harness (dsh) fast vision path: vision model sees the frame,
+ * text model never does. HL2: Episode Two is the default demo profile.
+ *
+ * @param {Object} brain - AgentBrain-like { config, callLLM }
+ * @param {Object} opts - { screenshotBase64, windowTitle, profileId, recentActions, stuck, extraRules }
+ */
+async function decideNativeGameAction(brain, {
+  screenshotBase64,
+  windowTitle = '',
+  profileId = '',
+  profile = null,
+  recentActions = [],
+  stuck = false,
+  extraRules = ''
+} = {}) {
+  const { resolveGameProfile, getProfile } = require('../src/runtime/native_game_profiles');
+  const player = require('../src/runtime/native_game_player');
+  const resolved = profile || (profileId ? getProfile(profileId) : resolveGameProfile(windowTitle));
+  const operatorRules = [resolved.goal, extraRules].filter(Boolean).join(' ');
+  return player.decideNativeActionViaDeepSeek(brain, {
+    screenshotBase64,
+    windowTitle,
+    profile: resolved,
+    recentActions,
+    stuck,
+    extraRules: operatorRules
+  });
+}
+
 module.exports = {
   launchDeepSeekHarnessWeb,
-  runSelfImprovementCycle
+  runSelfImprovementCycle,
+  decideNativeGameAction
 };

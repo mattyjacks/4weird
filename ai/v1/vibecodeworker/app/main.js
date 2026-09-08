@@ -1,25 +1,32 @@
 const { app, BrowserWindow, ipcMain, shell, screen } = require('electron');
 const path = require('path');
+const projectRoot = path.resolve(__dirname, '..');
 
 // Keep the runner self-contained on locked-down Windows hosts. The default
 // roaming Electron profile can be unreadable, which prevents the game guest
 // window from loading before a playtest even starts.
-const localElectronData = path.join(__dirname, '.vibecodeworker-user-data');
+const localElectronData = path.join(projectRoot, '.vibecodeworker-user-data');
 app.setPath('userData', localElectronData);
 app.setPath('cache', path.join(localElectronData, 'cache'));
 
+// Both batch entry points intentionally converge on this Electron app. Keep a
+// second click, a stale shortcut, or a concurrent batch invocation from making
+// a duplicate dashboard; instead, bring the existing one back to the front.
+const hasSingleInstanceLock = app.requestSingleInstanceLock();
+if (!hasSingleInstanceLock) app.quit();
+
 // SmartLog: file-backed structured logs + AI handoffs (see lib/smart_log.js).
 // Log dir: %APPDATA%/vibecodeworker/logs (win) — every console.* line lands there.
-const { getSharedLog, teeConsole, parseWorkerArgs } = require('./lib/smart_log');
+const { getSharedLog, teeConsole, parseWorkerArgs } = require('../lib/smart_log');
 const smartlog = getSharedLog('electron-main');
 teeConsole(smartlog);
 const cliOpts = parseWorkerArgs(process.argv);
 smartlog.info(`VibeCodeWorker boot (headfull=${cliOpts.headfull} headless=${cliOpts.headless} game=${cliOpts.game || 'none'})`, { category: 'lifecycle' });
 
 // Modular helper imports
-const { runInputSimulator, scanWindowsProcesses, captureNativeScreenshot } = require('./src/main_process/native_runner');
-const { scanSourceDirectory } = require('./src/main_process/file_scanner');
-const { startStaticServer } = require('./src/main_process/static_server');
+const { runInputSimulator, scanWindowsProcesses, captureNativeScreenshot, configureNativeGameOverlay, buildSteamRunUrl } = require('../src/main_process/native_runner');
+const { scanSourceDirectory } = require('../src/main_process/file_scanner');
+const { startStaticServer } = require('../src/main_process/static_server');
 const {
   getGameWindow,
   isGameWindowActive,
@@ -29,9 +36,10 @@ const {
   reloadGameWindow,
   openGameDevTools,
   setBotControlInGameWindow
-} = require('./src/main_process/game_window_manager');
-const { discoverGames } = require('./src/main_process/game_discovery');
-const { LocalAPIServer } = require('./lib/api_server');
+} = require('../src/main_process/game_window_manager');
+const { discoverGames } = require('../src/main_process/game_discovery');
+const { LocalAPIServer } = require('../lib/api_server');
+const { getResolvedApiKey } = require('../lib/storage');
 
 let mainWindow;
 // --headfull (explicit visible window) wins over --headless so CLI runs like
@@ -85,10 +93,10 @@ function createWindow() {
       devTools: true
     },
     title: "4weird vibecodeworker - game runner and fixer",
-    icon: path.join(__dirname, 'src', 'icon.png')
+    icon: path.join(projectRoot, 'src', 'icon.png')
   });
 
-  mainWindow.loadFile(path.join(__dirname, 'src', 'index.html'));
+  mainWindow.loadFile(path.join(projectRoot, 'src', 'index.html'));
 
   // Renderer failures otherwise stay hidden inside Electron DevTools and make
   // the dashboard appear to have dead controls. Keep them visible to the host
@@ -105,6 +113,21 @@ function createWindow() {
     if (cliOpts.game && !forwarded.includes('--game')) forwarded.push('--game', cliOpts.game);
     if (cliOpts.autoplay && !forwarded.includes('--start-agent')) forwarded.push('--start-agent');
     mainWindow.webContents.send('cli-args', forwarded);
+    // Opt in automatically when HL2 is already running. The renderer receives
+    // the exact title and therefore never falls back to its web preview.
+    scanWindowsProcesses().then(async (scan) => {
+      const hl2 = (scan.processes || []).find(p => String(p.ProcessName || '').toLowerCase() === 'hl2');
+      if (!hl2) return;
+      const overlay = await configureNativeGameOverlay(hl2.MainWindowTitle, projectRoot);
+      if (overlay.success) {
+        const match = String(overlay.stdout || '').match(/Overlay bounds:\s*(-?\d+),(-?\d+),(\d+),(\d+)/);
+        if (match) mainWindow.setBounds({ x: Number(match[1]), y: Number(match[2]), width: Number(match[3]), height: Number(match[4]) });
+        mainWindow.setAlwaysOnTop(true, 'screen-saver');
+        // Opaque dashboard: never let the game bleed through the window.
+        mainWindow.setOpacity(1.0);
+        mainWindow.webContents.send('native-game-autodetected', hl2.MainWindowTitle);
+      }
+    }).catch(err => smartlog.warn(`HL2 auto-attach failed: ${err.message}`, { category: 'native-game' }));
     smartlog.info('Dashboard loaded, CLI args forwarded', { category: 'lifecycle' });
     if (cliOpts.handoffOnly) {
       setTimeout(() => {
@@ -132,7 +155,15 @@ function createWindow() {
   });
 }
 
+app.on('second-instance', () => {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.show();
+  mainWindow.focus();
+});
+
 app.whenReady().then(() => {
+  if (!hasSingleInstanceLock) return;
   createWindow();
 
   app.on('activate', () => {
@@ -162,15 +193,108 @@ app.on('window-all-closed', () => {
 
 // IPC Handlers
 ipcMain.handle('run-input-sim', async (event, args) => {
-  return await runInputSimulator(args, __dirname);
+  return await runInputSimulator(args, projectRoot);
 });
 
 ipcMain.handle('scan-processes', async (event) => {
   return await scanWindowsProcesses();
 });
 
+ipcMain.handle('launch-steam-game', async (_event, options = {}) => {
+  try {
+    const launch = buildSteamRunUrl(options.appId, options);
+    await shell.openExternal(launch.url);
+    const labels = {
+      'exclusive-fullscreen': 'full screen',
+      borderless: 'borderless windowed',
+      'windowed-fullscreen': 'full-screen windowed',
+      'partial-windowed': `partial windowed (${options.width || 1280}×${options.height || 720})`
+    };
+    return { success: true, mode: launch.mode, modeLabel: labels[launch.mode], args: launch.args };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('test-api-keys', async (_event, suppliedKeys = {}) => {
+  const prompt = 'Hello, World! Respond in 1 word.';
+  const providers = [
+    { name: 'openai', key: String(suppliedKeys.openai || '').trim(), url: 'https://api.openai.com/v1/responses', model: 'gpt-5.6-luna', body: () => ({ model: 'gpt-5.6-luna', input: prompt, max_output_tokens: 16, store: false }) },
+    { name: 'deepseek', key: String(suppliedKeys.deepseek || '').trim(), url: 'https://api.deepseek.com/chat/completions', model: 'deepseek-v4-flash', body: () => ({ model: 'deepseek-v4-flash', max_tokens: 16, messages: [{ role: 'user', content: prompt }] }) },
+    { name: 'gemini', key: String(suppliedKeys.gemini || '').trim(), url: (key) => `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${encodeURIComponent(key)}`, model: 'gemini-3.5-flash-lite', body: () => ({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 16 } }) },
+    { name: 'meta', key: String(suppliedKeys.meta || '').trim(), url: 'https://openrouter.ai/api/v1/chat/completions', model: 'meta-llama/llama-4-scout-17b-16e-instruct', body: () => ({ model: 'meta-llama/llama-4-scout-17b-16e-instruct', max_tokens: 16, messages: [{ role: 'user', content: prompt }] }) },
+    { name: 'openrouter', key: String(suppliedKeys.openrouter || '').trim(), url: 'https://openrouter.ai/api/v1/chat/completions', model: 'meta-llama/llama-4-scout-17b-16e-instruct', body: () => ({ model: 'meta-llama/llama-4-scout-17b-16e-instruct', max_tokens: 16, messages: [{ role: 'user', content: prompt }] }) }
+  ];
+  const results = await Promise.all(providers.map(async (provider) => {
+    if (!provider.key) return { provider: provider.name, status: 'skipped', detail: 'No key entered.' };
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 20000);
+    try {
+      const headers = { Authorization: `Bearer ${provider.key}`, 'Content-Type': 'application/json' };
+      if (provider.name === 'meta' || provider.name === 'openrouter') {
+        headers['HTTP-Referer'] = 'https://github.com/mattyjacks/4weird';
+        headers['X-Title'] = '4weird VibeCodeWorker';
+      }
+      const response = await fetch(typeof provider.url === 'function' ? provider.url(provider.key) : provider.url, { method: 'POST', headers, body: JSON.stringify(provider.body()), signal: controller.signal });
+      if (response.ok) return { provider: provider.name, status: 'valid', detail: 'Key accepted.' };
+      // Only authentication/authorization responses prove that a stored key is bad.
+      if (response.status === 401 || response.status === 403) return { provider: provider.name, status: 'invalid', detail: `Authentication rejected (${response.status}).` };
+      return { provider: provider.name, status: 'error', detail: `Provider returned ${response.status}; key was not removed.` };
+    } catch (error) {
+      return { provider: provider.name, status: 'error', detail: error.name === 'AbortError' ? 'Timed out; key was not removed.' : 'Connection failed; key was not removed.' };
+    } finally {
+      clearTimeout(timer);
+    }
+  }));
+  return { success: true, results };
+});
+
+ipcMain.handle('generate-commentary-speech', async (_event, options = {}) => {
+  const text = String(options.text || '').replace(/\s+/g, ' ').trim().slice(0, 500);
+  if (!text) return { success: false, error: 'No commentary text supplied' };
+  const apiKey = getResolvedApiKey('openai', String(options.apiKey || ''));
+  if (!apiKey) return { success: false, error: 'Add an OpenAI API key or choose System voice' };
+  const permittedVoices = new Set(['alloy', 'nova', 'shimmer', 'onyx']);
+  const voice = permittedVoices.has(options.voice) ? options.voice : 'nova';
+  try {
+    const response = await fetch('https://api.openai.com/v1/audio/speech', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini-tts',
+        voice,
+        input: text,
+        response_format: 'mp3',
+        instructions: options.personality === 'streamer'
+          ? 'Deliver this as upbeat, witty video-game stream commentary. Keep it natural.'
+          : 'Deliver this as calm, concise software playtest commentary.'
+      })
+    });
+    if (!response.ok) {
+      const detail = (await response.text()).slice(0, 240);
+      return { success: false, error: `OpenAI TTS ${response.status}: ${detail}` };
+    }
+    return { success: true, mimeType: 'audio/mpeg', audioBase64: Buffer.from(await response.arrayBuffer()).toString('base64') };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
 ipcMain.handle('capture-native-screenshot', async (event, windowTitle) => {
-  return await captureNativeScreenshot(app.getPath('temp'), windowTitle, __dirname);
+  return await captureNativeScreenshot(app.getPath('temp'), windowTitle, projectRoot);
+});
+
+ipcMain.handle('enable-native-game-overlay', async (_event, windowTitle) => {
+  const result = await configureNativeGameOverlay(windowTitle, projectRoot);
+  if (!result.success || !mainWindow) return result;
+  const match = String(result.stdout || '').match(/Overlay bounds:\s*(-?\d+),(-?\d+),(\d+),(\d+)/);
+  if (match) {
+    mainWindow.setBounds({ x: Number(match[1]), y: Number(match[2]), width: Number(match[3]), height: Number(match[4]) });
+  }
+  mainWindow.setAlwaysOnTop(true, 'screen-saver');
+  // Opaque dashboard: never let the game bleed through the window.
+  mainWindow.setOpacity(1.0);
+  return { ...result, overlay: true };
 });
 
 ipcMain.handle('scan-directory', async (event, dirPath) => {
@@ -236,7 +360,7 @@ function getVisionSnapshot() {
 
 ipcMain.handle('get-vision-state', async () => getVisionSnapshot());
 
-const { launchDeepSeekHarnessWeb, runSelfImprovementCycle } = require('./lib/deepseek_harness');
+const { launchDeepSeekHarnessWeb, runSelfImprovementCycle } = require('../lib/deepseek_harness');
 
 ipcMain.handle('launch-deepseek-harness', async (event, opts) => {
   return await launchDeepSeekHarnessWeb(opts);
@@ -249,7 +373,7 @@ ipcMain.handle('run-self-improvement', async (event, params) => {
 // Ensure static server is running for game files
 const WEBSITE_V1_DIR = app.isPackaged
   ? path.join(process.resourcesPath, 'website', 'v1')
-  : path.join(__dirname, '..', '..', '..', 'website', 'v1');
+  : path.join(projectRoot, '..', '..', '..', 'website', 'v1');
 const STATIC_PORT = 8888;
 startStaticServer(STATIC_PORT, WEBSITE_V1_DIR);
 
@@ -257,7 +381,7 @@ const fs = require('fs');
 
 // Read initial configured port or default to 42069
 function getConfiguredPort() {
-  const cfgPath = path.join(__dirname, 'config.json');
+  const cfgPath = path.join(projectRoot, 'config', 'default.json');
   try {
     if (fs.existsSync(cfgPath)) {
       const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
@@ -276,13 +400,13 @@ function getConfiguredEngine() {
     return process.env.VIBE_WEB_ENGINE;
   }
   try {
-    const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf8'));
+    const cfg = JSON.parse(fs.readFileSync(path.join(projectRoot, 'config', 'default.json'), 'utf8'));
     if (cfg.webEngine && valid.includes(cfg.webEngine)) return cfg.webEngine;
   } catch (e) {}
   return 'ultralight';
 }
 
-const { WebEngineManager } = require('./src/runtime/web_engine_manager');
+const { WebEngineManager } = require('../src/runtime/web_engine_manager');
 const webEngineManager = new WebEngineManager({ activeEngine: getConfiguredEngine() });
 webEngineManager.on('bug_detected', (bug) => {
   if (localApiServer) localApiServer.addConsoleLog('error', `[${bug.engine || 'engine'}] ${bug.type}: ${bug.description}`, 'web-engine');
@@ -419,7 +543,7 @@ function createLocalApiServer(port) {
         const res = webEngineManager.setActiveEngine(engineId);
         if (res.success) {
           try {
-            const cfgPath = path.join(__dirname, 'config.json');
+            const cfgPath = path.join(projectRoot, 'config', 'default.json');
             const cfg = fs.existsSync(cfgPath) ? JSON.parse(fs.readFileSync(cfgPath, 'utf8')) : {};
             cfg.webEngine = webEngineManager.activeEngineId;
             fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2), 'utf8');
@@ -475,7 +599,7 @@ ipcMain.handle('set-web-engine', async (event, engineId) => {
   const res = webEngineManager.setActiveEngine(engineId);
   if (res.success) {
     try {
-      const cfgPath = path.join(__dirname, 'config.json');
+      const cfgPath = path.join(projectRoot, 'config', 'default.json');
       const cfg = fs.existsSync(cfgPath) ? JSON.parse(fs.readFileSync(cfgPath, 'utf8')) : {};
       cfg.webEngine = webEngineManager.activeEngineId;
       fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2), 'utf8');

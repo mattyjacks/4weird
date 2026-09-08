@@ -24,23 +24,41 @@ async function executeAction(controller, webview, action, nativeProcessName = nu
   console.log(`Executing Action: ${action.type} targeting ${target} (native target: ${nativeProcessName || 'none'})`);
 
   if (nativeProcessName) {
-    if (action.type === 'click') {
-      let x = 500, y = 500;
-      if (typeof target === 'string' && target.includes(',')) {
-        const parts = target.split(',');
-        x = parseInt(parts[0]);
-        y = parseInt(parts[1]);
-      }
-      return await ipcRenderer.invoke('run-input-sim', ['click', x.toString(), y.toString(), nativeProcessName]);
-    } else if (action.type === 'press_key') {
-      return await ipcRenderer.invoke('run-input-sim', ['press', target, nativeProcessName]);
-    } else if (action.type === 'hold_key') {
-      return await ipcRenderer.invoke('run-input-sim', ['hold', target, (duration || 200).toString(), nativeProcessName]);
-    } else if (action.type === 'refresh') {
+    // Universal native bridge: any game action -> input_sim.py argv.
+    // Covers vision-player types (hold_keys, drag_look, wheel, ...) plus legacy aliases.
+    if (action.type === 'keypress') action = { ...action, type: 'press_key' };
+    if (action.type === 'refresh') {
       return await ipcRenderer.invoke('run-input-sim', ['press', 'F5', nativeProcessName]);
-    } else if (action.type === 'wait') {
+    }
+    if (action.type === 'wait') {
       const waitMs = duration || 500;
       return new Promise((resolve) => setTimeout(() => resolve(`Waited ${waitMs}ms`), waitMs));
+    }
+    try {
+      const { normalizeNativeAction, toInputSimArgs } = require('./native_game_player');
+      const normalized = normalizeNativeAction(action);
+      const pyArgs = toInputSimArgs(normalized);
+      if (pyArgs) {
+        pyArgs.push(nativeProcessName);
+        return await ipcRenderer.invoke('run-input-sim', pyArgs);
+      }
+      return `Native action ${action.type} has no bridge mapping`;
+    } catch (_) {
+      // Minimal fallback when the player module is unavailable (tests mock ipcRenderer).
+      if (action.type === 'click') {
+        let x = 500, y = 500;
+        if (typeof target === 'string' && target.includes(',')) {
+          const parts = target.split(',');
+          x = parseInt(parts[0]);
+          y = parseInt(parts[1]);
+        }
+        return await ipcRenderer.invoke('run-input-sim', ['click', x.toString(), y.toString(), nativeProcessName]);
+      } else if (action.type === 'press_key') {
+        return await ipcRenderer.invoke('run-input-sim', ['press', target, nativeProcessName]);
+      } else if (action.type === 'hold_key') {
+        return await ipcRenderer.invoke('run-input-sim', ['hold', target, (duration || 200).toString(), nativeProcessName]);
+      }
+      return `Unknown native action type: ${action.type}`;
     }
   }
 

@@ -360,7 +360,7 @@
   left: 18px;
   top: 54px;
   bottom: 18px;
-  width: min(390px, calc(100vw - 36px));
+  width: min(360px, calc(100vw - 36px));
   max-width: none;
   box-shadow: 0 24px 70px rgba(0, 0, 0, .62), 0 0 0 1px rgba(0, 242, 254, .18);
 }
@@ -372,7 +372,7 @@
   right: 18px;
   top: 54px;
   bottom: 18px;
-  width: min(330px, calc(100vw - 36px));
+  width: min(286px, calc(100vw - 36px));
   max-width: none;
   box-shadow: 0 24px 70px rgba(0, 0, 0, .62), 0 0 0 1px rgba(0, 242, 254, .18);
 }
@@ -389,11 +389,106 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, .58);
 }
 
+/* ========================================================================
+   MISSION CONTROL — ADVANCED MODE WITHOUT THE WALL OF CONTROLS
+   The default remains a calm game stage. Opening Mission Control exposes
+   three clearly named work surfaces, not a full dashboard of competing data.
+   ======================================================================== */
+.simple-mode.options-open::after {
+  content: "MISSION CONTROL  ·  Setup on the left  ·  Evidence on the right  ·  Activity below";
+  position: fixed;
+  z-index: 8998;
+  top: 62px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 7px 12px;
+  border: 1px solid rgba(0, 255, 102, .25);
+  border-radius: 999px;
+  background: rgba(5, 14, 8, .9);
+  color: var(--neon-cyan);
+  font: 700 9px var(--font-mono);
+  letter-spacing: .6px;
+  pointer-events: none;
+}
+
+.simple-mode.options-open .config-panel,
+.simple-mode.options-open .stats-panel,
+.simple-mode.options-open .terminal-panel {
+  border-color: rgba(0, 255, 102, .30);
+  background: rgba(5, 14, 8, .97);
+  backdrop-filter: blur(22px);
+}
+
+.simple-mode.options-open .config-panel::before,
+.simple-mode.options-open .stats-panel::before {
+  display: block;
+  padding: 14px 14px 0;
+  color: #effff4;
+  font: 800 14px var(--font-display);
+  letter-spacing: -.2px;
+}
+.simple-mode.options-open .config-panel::before { content: "Mission setup"; }
+.simple-mode.options-open .stats-panel::before { content: "Evidence"; }
+
+.simple-mode.options-open .config-panel > .panel-block:first-of-type {
+  border-color: rgba(0, 255, 102, .34);
+  background: rgba(0, 255, 102, .055);
+}
+.simple-mode.options-open .config-panel > .panel-block:nth-of-type(2) {
+  border-color: rgba(0, 255, 204, .20);
+}
+.simple-mode.options-open .config-panel > .panel-block:nth-of-type(2)::before {
+  content: "Playtest controls";
+  color: var(--neon-cyan);
+  font: 700 9px var(--font-mono);
+  letter-spacing: .9px;
+}
+.simple-mode.options-open .config-panel > .panel-block:nth-of-type(n+3) {
+  opacity: .84;
+}
+.simple-mode.options-open .config-panel > .panel-block:nth-of-type(n+3):hover { opacity: 1; }
+
+.simple-mode.options-open .stats-panel h3 { margin-top: 10px; }
+.simple-mode.options-open .stat-grid { grid-template-columns: repeat(3, 1fr); }
+.simple-mode.options-open .stat-grid span {
+  padding: 7px 4px;
+  border: 1px solid rgba(0, 255, 102, .10);
+  border-radius: 6px;
+  text-align: center;
+}
+.simple-mode.options-open .stats-panel canvas { width: 100%; height: 44px; opacity: .72; }
+.simple-mode.options-open .terminal-panel::before {
+  content: "Activity  ·  Ask the agent, inspect a step, or use /help";
+  color: var(--text-secondary);
+  font: 700 9px var(--font-mono);
+  letter-spacing: .5px;
+}
+.simple-mode.options-open .terminal-log { height: 110px; }
+
+.featured-game-card {
+  position: relative;
+  border-color: rgba(0, 255, 102, .52) !important;
+  background: linear-gradient(145deg, rgba(0, 255, 102, .12), rgba(7, 15, 10, .86)) !important;
+  box-shadow: 0 14px 34px rgba(0, 255, 102, .12) !important;
+}
+.card-kicker { color: var(--hub-accent); font: 800 9px var(--font-mono); letter-spacing: 1px; }
+.featured-game-card .card-icon { font-family: Georgia, serif; font-size: 42px; color: var(--hub-accent); }
+.mission-copy { color: var(--hub-text); line-height: 1.55; }
+.mission-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.mission-steps span { padding: 10px; border: 1px solid var(--hub-border); border-radius: 8px; color: var(--hub-text-dim); font-size: 11px; }
+.mission-steps b { display: block; margin-bottom: 5px; color: var(--hub-accent); font: 800 12px var(--font-mono); }
+.mission-label { display: flex; flex-direction: column; gap: 6px; color: var(--hub-text-dim); font: 800 9px var(--font-mono); letter-spacing: .7px; }
+.mission-label textarea { width: 100%; min-height: 78px; }
+.mission-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.mission-note { color: var(--hub-text-dim); font-size: 10px; line-height: 1.45; }
+
 @media (max-width: 900px) {
   .simple-mode .quick-run-card { grid-template-columns: 1fr; gap: 11px; }
   .quick-run-fields { grid-template-columns: 1fr; }
   .simple-mode.options-open .stats-panel,
   .simple-mode.options-open .terminal-panel { display: none !important; }
+  .simple-mode.options-open::after { content: "MISSION CONTROL"; }
+  .mission-steps { grid-template-columns: 1fr; }
 }
 
 /* Clean Iframe & Viewport Styling */

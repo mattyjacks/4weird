@@ -1,10 +1,10 @@
 # Local dev: VibeCodeWorker headless API + static game host.
-# Run from the REPO ROOT:  docker compose -f ai/v1/vibecodeworker/docker-compose.yml up --build
+# Run from the REPO ROOT:  docker compose -f ai/v1/vibecodeworker/deploy/docker/docker-compose.yml up --build
 services:
   vibecodeworker:
     build:
       context: ../../..
-      dockerfile: ai/v1/vibecodeworker/Dockerfile
+      dockerfile: ai/v1/vibecodeworker/deploy/docker/Dockerfile
       args:
         INSTALL_OPENCODE: "true"
     ports:

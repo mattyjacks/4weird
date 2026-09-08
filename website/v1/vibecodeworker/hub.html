@@ -54,9 +54,9 @@
           <button id="btn-top-hub" type="button" role="tab" aria-selected="true">HUB</button>
           <button id="btn-top-workspace" type="button" role="tab" aria-selected="false">WORKSPACE</button>
         </div>
-        <button id="btn-toggle-view" type="button">Open options</button>
-        <button id="btn-top-layout-toggle" type="button">LAYOUT</button>
-        <span id="menu-layout-label">Options</span>
+        <button id="btn-toggle-view" type="button">MISSION CONTROL</button>
+        <button id="btn-top-layout-toggle" type="button">MISSION CONTROL</button>
+        <span id="menu-layout-label">Focused view</span>
         <span id="active-model-display" class="model-pill">GPT-5.6 Luna</span>
         <span class="api-pill">API 127.0.0.1:42069</span>
       </div>
@@ -98,6 +98,13 @@
       </div>
 
       <div class="hub-grid">
+        <button id="card-half-life-2" type="button" class="hub-card featured-game-card">
+          <span class="card-kicker">STEAM DESKTOP</span>
+          <span class="card-icon">λ</span>
+          <h3>Play Half-Life 2</h3>
+          <p>Launch your Steam copy, then attach a supervised playtest mission built for movement, combat, menus, and visual stability.</p>
+          <span class="hub-card-btn">SET UP HL2 MISSION</span>
+        </button>
         <button id="card-load-4weird" type="button" class="hub-card">
           <span class="card-icon">🎮</span>
           <h3>Load 4weird Games</h3>
@@ -137,7 +144,7 @@
         <button id="card-desktop-game" type="button" class="hub-card">
           <span class="card-icon">🖥️</span>
           <h3>Work on Desktop Game</h3>
-          <p>Attach to a running Windows game and run a supervised playtest. Native window capture lives in the Electron build.</p>
+          <p>Attach a running Windows game for a supervised playtest. Choose a window, a test objective, and the level of agent control.</p>
           <span class="hub-card-btn secondary">SELECT GAME WINDOW</span>
         </button>
       </div>
@@ -528,6 +535,18 @@
         <input id="auth-password-input" type="password">
         <span id="auth-error-msg"></span>
       </form>
+    </div>
+  </div>
+
+  <!-- HALF-LIFE 2 DESKTOP MISSION -->
+  <div id="modal-half-life-2" class="modal hidden">
+    <div class="modal-card hub-panel-modal hl2-mission-card">
+      <div class="hub-modal-header"><div><span class="card-kicker">STEAM APP 220</span><h3>Half-Life 2 mission</h3></div><button id="btn-close-hl2-modal" type="button">CLOSE</button></div>
+      <p class="mission-copy">VibeCodeWorker cannot put a Steam game inside the browser. This mission keeps that honest: launch your licensed copy in Steam, then attach its desktop window for supervised play.</p>
+      <div class="mission-steps"><span><b>1</b> Launch Half-Life 2</span><span><b>2</b> Keep the game window visible</span><span><b>3</b> Attach and start the mission</span></div>
+      <label class="mission-label">TEST FOCUS<textarea id="hl2-objective" rows="3">Play through the opening safely. Check movement, aim, interaction prompts, menus, performance stutter, and visual glitches. Pause for anything destructive or unclear.</textarea></label>
+      <div class="mission-actions"><button id="btn-launch-hl2" type="button" class="primary-action">LAUNCH IN STEAM</button><button id="btn-attach-hl2" type="button" class="quiet-action">HL2 IS RUNNING — ATTACH</button></div>
+      <p class="mission-note">Desktop capture is available in the native desktop build. Browser preview mode will prepare the mission and show the attachment requirement.</p>
     </div>
   </div>
 

@@ -1,0 +1,32 @@
+{
+  "provider": "deepseek",
+  "localUrl": "http://localhost:11434/api/chat",
+  "modelName": "deepseek-v4-flash",
+  "gameRules": "Desktop-game playtest: keep actions conservative; verify menus, movement, camera, and responsiveness in the selected game window.",
+  "gameUrl": "native://steam/420/half-life-2-episode-two",
+  "isAudioEnabled": false,
+  "alwaysSendMemory": false,
+  "autoChooseModel": false,
+  "largestModelAllowed": "gpt-5.6-luna",
+  "useProForExtreme": false,
+  "autoCodeBudget": 0.05,
+  "autoCodeMaxIn": 30000,
+  "autoCodeMaxOut": 4000,
+  "autoCodeCacheTokens": true,
+  "autoCodeMinifyCode": true,
+  "autoCodeCompressShots": true,
+  "autoCodeEnableShots": false,
+  "autoCodeMaxShots": 2,
+  "autoCodeCaptureOnPlay": false,
+  "serverPort": 42069,
+  "webEngine": "ultralight",
+  "opencode": {
+    "enabled": false,
+    "mode": "cli",
+    "model": "",
+    "agent": "build",
+    "autoApprove": true,
+    "timeoutMs": 600000,
+    "serverUrl": "http://127.0.0.1:4096"
+  }
+}

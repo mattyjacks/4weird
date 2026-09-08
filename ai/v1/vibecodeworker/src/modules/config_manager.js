@@ -1,41 +1,36 @@
 const fs = require('fs');
 const path = require('path');
 const { ipcRenderer } = require('electron');
-const { loadCredentials, saveCredentials, getResolvedApiKey } = require('../../lib/storage');
+const { loadCredentials, saveCredentials, getResolvedApiKey, isPlaceholderKey, removeCredentialsForProviders, maskApiKey, loadMaskedApiKeyBundle } = require('../../lib/storage');
 
-const configFilePath = path.join(__dirname, '..', '..', 'config.json');
+const configFilePath = path.join(__dirname, '..', '..', 'config', 'default.json');
 
 const modelsByProvider = {
   openai: [
-    { value: 'gpt-5.6-luna', text: 'GPT-5.6 Luna (Default)' },
-    { value: 'gpt-5.4-mini-2026-03-17', text: 'GPT-5.4 Mini' },
-    { value: 'gpt-4o-mini', text: 'GPT-4o Mini' },
-    { value: 'gpt-4o', text: 'GPT-4o (Standard)' },
+    { value: 'gpt-5.6-luna', text: 'GPT-5.6 Luna — current lowest-cost tier (Default)' },
+    { value: 'gpt-5.6-terra', text: 'GPT-5.6 Terra — balanced' },
+    { value: 'gpt-5.6-sol', text: 'GPT-5.6 Sol — advanced work' },
     { value: 'custom', text: 'Custom...' }
   ],
   deepseek: [
-    { value: 'deepseek-chat', text: 'DeepSeek Chat V3 (Default)' },
-    { value: 'deepseek-reasoner', text: 'DeepSeek Reasoner R1 (Reasoning)' },
-    { value: 'deepseek-v4-flash', text: 'DeepSeek V4 Flash (Fast & Cheap)' },
+    { value: 'deepseek-v4-flash', text: 'DeepSeek V4 Flash — current low-cost tier (Default)' },
     { value: 'deepseek-v4-pro', text: 'DeepSeek V4 Pro (Complex)' },
     { value: 'deepseek-v4-flash-vision-exp', text: 'DeepSeek V4 Flash Vision' },
     { value: 'custom', text: 'Custom...' }
   ],
   meta: [
-    { value: 'meta/muse-spark-1.3-contributor', text: 'Muse Spark 1.3 Contributor (Meta 1M)' },
-    { value: 'muse-spark-1.3-contributor', text: 'Muse Spark 1.3 Contributor (Direct)' },
+    { value: 'meta-llama/llama-4-scout-17b-16e-instruct', text: 'Llama 4 Scout — current efficient Meta model (Default)' },
+    { value: 'meta-llama/llama-4-maverick-17b-128e-instruct', text: 'Llama 4 Maverick — higher capability' },
     { value: 'custom', text: 'Custom...' }
   ],
   gemini: [
-    { value: 'gemini-2.5-flash', text: 'Gemini 2.5 Flash' },
-    { value: 'gemini-2.5-pro', text: 'Gemini 2.5 Pro' },
+    { value: 'gemini-3.5-flash-lite', text: 'Gemini 3.5 Flash-Lite — current lowest-cost tier (Default)' },
+    { value: 'gemini-3.8-flash', text: 'Gemini 3.8 Flash — newest Flash model' },
     { value: 'custom', text: 'Custom...' }
   ],
   openrouter: [
-    { value: 'meta/muse-spark-1.3-contributor', text: 'Muse Spark 1.3 Contributor (Meta)' },
-    { value: 'google/gemini-2.5-flash', text: 'Gemini 2.5 Flash' },
-    { value: 'google/gemini-2.5-pro', text: 'Gemini 2.5 Pro' },
-    { value: 'openai/gpt-4o-mini', text: 'GPT-4o Mini' },
+    { value: 'meta-llama/llama-4-scout-17b-16e-instruct', text: 'Llama 4 Scout — current efficient Meta model (Default)' },
+    { value: 'google/gemini-3.5-flash-lite', text: 'Gemini 3.5 Flash-Lite' },
     { value: 'custom', text: 'Custom...' }
   ],
   local: [
@@ -55,6 +50,21 @@ function populateModelsDropdown(providerSelect, modelSelect) {
     opt.textContent = m.text;
     modelSelect.appendChild(opt);
   });
+}
+
+function defaultModelForProvider(provider) {
+  return (modelsByProvider[provider] || modelsByProvider.openai)[0].value;
+}
+
+function migrateLegacyDefaultModel(provider, modelName) {
+  const legacyDefaults = {
+    openai: new Set(['gpt-4o', 'gpt-4o-mini', 'gpt-5.4-mini-2026-03-17', 'gpt-5.4-mini', 'gpt-5.4-nano']),
+    deepseek: new Set(['deepseek-auto', 'deepseek-chat', 'deepseek-reasoner']),
+    meta: new Set(['meta/muse-spark-1.3-contributor', 'muse-spark-1.3-contributor']),
+    gemini: new Set(['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-2.5-pro']),
+    openrouter: new Set(['meta/muse-spark-1.3-contributor', 'google/gemini-2.5-flash', 'google/gemini-2.5-pro', 'openai/gpt-4o-mini'])
+  };
+  return legacyDefaults[provider]?.has(modelName) ? defaultModelForProvider(provider) : modelName;
 }
 
 function handleProviderChange(providerSelect, modelSelect, localUrlGroup, apiKeyInput, customModelGroup, modelNameInput, skipSave = false, onSaveCallback) {
@@ -108,11 +118,8 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     settings = JSON.parse(localStorage.getItem('ai_debugger_settings') || '{}');
   }
 
-  if (settings.modelName === 'gpt-5.4-nano-2026-03-17') {
-    settings.modelName = 'gpt-5.4-mini-2026-03-17';
-  }
-
   const prov = settings.provider || 'openai';
+  settings.modelName = migrateLegacyDefaultModel(prov, settings.modelName || '');
   elements.providerSelect.value = prov;
 
   // Resolve API key from OS-level persistent storage across builds
@@ -133,7 +140,7 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
   
   populateModelsDropdown(elements.providerSelect, elements.modelSelect);
   
-  const savedModel = settings.modelName || (prov === 'deepseek' ? 'deepseek-v4-flash' : (prov === 'meta' ? 'meta/muse-spark-1.3-contributor' : 'gpt-5.6-luna'));
+  const savedModel = settings.modelName || defaultModelForProvider(prov);
   const hasModelInSelect = Array.from(elements.modelSelect.options).some(opt => opt.value === savedModel);
   if (hasModelInSelect) {
     elements.modelSelect.value = savedModel;
@@ -145,8 +152,8 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     elements.modelNameInput.value = savedModel;
   }
 
-  elements.gameRulesInput.value = settings.gameRules || '';
-  elements.gameUrlInput.value = settings.gameUrl || '';
+  elements.gameRulesInput.value = settings.gameRules || 'Website audit: explore nav, scroll the full page, try key CTAs/forms, report real JS errors. Ignore cross-origin iframe and permissions-policy noise.';
+  elements.gameUrlInput.value = settings.gameUrl || 'https://mattyjacks.com';
   audioModule.setAudioEnabled(settings.isAudioEnabled || false);
   document.getElementById('btn-toggle-audio').textContent = audioModule.getAudioEnabled() ? '🔊' : '🔇';
 
@@ -165,7 +172,7 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     }
   }
   if (elements.largestModelSelect) {
-    elements.largestModelSelect.value = settings.largestModelAllowed || 'gpt-5.4';
+    elements.largestModelSelect.value = settings.largestModelAllowed || 'gpt-5.6-luna';
   }
   if (elements.toggleProExtreme) {
     elements.toggleProExtreme.checked = settings.useProForExtreme || false;
@@ -198,12 +205,19 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     applyOpenCodeSettings(elements, settings);
   } catch (e) { /* dashboard works fine without the bridge panel */ }
 
-  agentBrain.updateConfig({ dataDir });
+  agentBrain.updateConfig({
+    dataDir,
+    provider: prov,
+    apiKey: elements.apiKeyInput.value || '',
+    endpointUrl: elements.localUrlInput.value || '',
+    modelName: elements.modelNameInput.value || '',
+    gameRules: elements.gameRulesInput.value || ''
+  });
   agentBrain.loadSessionMemory();
 
   autoCodeSystem.updateConfig({
     autoChooseModel: settings.autoChooseModel || false,
-    largestModelAllowed: settings.largestModelAllowed || 'gpt-5.4',
+    largestModelAllowed: settings.largestModelAllowed || 'gpt-5.6-luna',
     useProForExtreme: settings.useProForExtreme || false,
     budgetLimit: settings.autoCodeBudget || 0.05,
     maxInputTokens: settings.autoCodeMaxIn || 30000,
@@ -221,7 +235,6 @@ function saveConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
   const modelToSave = elements.modelSelect.value === 'custom' ? elements.modelNameInput.value : elements.modelSelect.value;
   const settings = {
     provider: elements.providerSelect.value,
-    apiKey: elements.apiKeyInput.value,
     localUrl: elements.localUrlInput.value,
     modelName: modelToSave,
     gameRules: elements.gameRulesInput.value,
@@ -229,7 +242,7 @@ function saveConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     isAudioEnabled: audioModule.getAudioEnabled(),
     alwaysSendMemory: elements.toggleMemory ? elements.toggleMemory.checked : false,
     autoChooseModel: elements.toggleAutoChoose ? elements.toggleAutoChoose.checked : false,
-    largestModelAllowed: elements.largestModelSelect ? elements.largestModelSelect.value : 'gpt-5.4',
+    largestModelAllowed: elements.largestModelSelect ? elements.largestModelSelect.value : 'gpt-5.6-luna',
     useProForExtreme: elements.toggleProExtreme ? elements.toggleProExtreme.checked : false,
     autoCodeBudget: elements.autocodeBudget ? parseFloat(elements.autocodeBudget.value) : 0.05,
     autoCodeMaxIn: elements.autocodeMaxIn ? parseInt(elements.autocodeMaxIn.value) : 30000,
@@ -247,16 +260,19 @@ function saveConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     // Preserve the OpenCode bridge block (managed by its own panel; never wiped).
     opencode: readExistingOpenCodeBlock(elements)
   };
+  // Keys live exclusively in the encrypted, user-profile credential store.
+  // Do not place them in config.json, localStorage, or a Git worktree.
   localStorage.setItem('ai_debugger_settings', JSON.stringify(settings));
 
   // Persist API key to OS-level storage across builds
-  if (settings.apiKey) {
-    const credUpdate = { apiKey: settings.apiKey, provider: settings.provider };
-    if (settings.provider === 'deepseek') credUpdate.deepseekApiKey = settings.apiKey;
-    else if (settings.provider === 'meta') credUpdate.metaApiKey = settings.apiKey;
-    else if (settings.provider === 'openai') credUpdate.openaiApiKey = settings.apiKey;
-    else if (settings.provider === 'gemini') credUpdate.geminiApiKey = settings.apiKey;
-    else if (settings.provider === 'openrouter') credUpdate.openrouterApiKey = settings.apiKey;
+  const apiKey = elements.apiKeyInput.value;
+  if (apiKey) {
+    const credUpdate = {};
+    if (settings.provider === 'deepseek') credUpdate.deepseekApiKey = apiKey;
+    else if (settings.provider === 'meta') credUpdate.metaApiKey = apiKey;
+    else if (settings.provider === 'openai') credUpdate.openaiApiKey = apiKey;
+    else if (settings.provider === 'gemini') credUpdate.geminiApiKey = apiKey;
+    else if (settings.provider === 'openrouter') credUpdate.openrouterApiKey = apiKey;
     saveCredentials(credUpdate);
   }
 
@@ -268,7 +284,7 @@ function saveConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
 
   agentBrain.updateConfig({
     provider: settings.provider,
-    apiKey: settings.apiKey,
+    apiKey,
     endpointUrl: settings.localUrl,
     modelName: settings.modelName,
     gameRules: settings.gameRules,
@@ -292,6 +308,55 @@ function saveConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     maxScreenshots: settings.autoCodeMaxShots,
     captureOnPlay: settings.autoCodeCaptureOnPlay
   });
+}
+
+function loadApiKeyBundle() {
+  return {
+    openai: getResolvedApiKey('openai'),
+    deepseek: getResolvedApiKey('deepseek'),
+    gemini: getResolvedApiKey('gemini'),
+    meta: getResolvedApiKey('meta'),
+    openrouter: getResolvedApiKey('openrouter')
+  };
+}
+
+// Display-only bundle: first 8 + last 4 per key, never full secrets.
+// Use this for any UI text/placeholder; keep loadApiKeyBundle() for
+// authenticated IPC calls and never render its values.
+function loadMaskedApiKeyBundleForDisplay() {
+  return loadMaskedApiKeyBundle();
+}
+
+function hasAnyApiKey() {
+  return ['openai', 'deepseek', 'meta', 'gemini', 'openrouter']
+    .some((provider) => Boolean(getResolvedApiKey(provider)));
+}
+
+function clearInvalidApiKeyProviders(providers) {
+  return removeCredentialsForProviders(providers);
+}
+
+function saveApiKeyBundle(keys = {}) {
+  const update = {};
+  const invalid = [];
+  const entries = [
+    ['openai', 'openaiApiKey'],
+    ['deepseek', 'deepseekApiKey'],
+    ['gemini', 'geminiApiKey'],
+    ['meta', 'metaApiKey'],
+    ['openrouter', 'openrouterApiKey']
+  ];
+  for (const [name, field] of entries) {
+    const value = String(keys[name] || '').trim();
+    if (!value) continue;
+    if (isPlaceholderKey(value)) invalid.push(name);
+    else update[field] = value;
+  }
+  if (invalid.length) return { success: false, error: `Replace the example/placeholder ${invalid.join(', ')} key.` };
+  if (!Object.keys(update).length) return { success: false, error: 'Enter at least one API key to save.' };
+  return saveCredentials(update)
+    ? { success: true, saved: Object.keys(update).map((field) => field.replace('ApiKey', '')) }
+    : { success: false, error: 'The encrypted key store could not be updated.' };
 }
 
 // Read the live OpenCode panel controls, falling back to whatever is already
@@ -318,8 +383,16 @@ function readExistingOpenCodeBlock(elements) {
 
 module.exports = {
   modelsByProvider,
+  defaultModelForProvider,
+  migrateLegacyDefaultModel,
   populateModelsDropdown,
   handleProviderChange,
   loadConfig,
-  saveConfig
+  saveConfig,
+  loadApiKeyBundle,
+  loadMaskedApiKeyBundleForDisplay,
+  maskApiKey,
+  hasAnyApiKey,
+  clearInvalidApiKeyProviders,
+  saveApiKeyBundle
 };

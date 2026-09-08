@@ -1,6 +1,7 @@
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
+const projectRoot = path.resolve(__dirname, '..');
 
 // Mock electron ipcRenderer for testing
 const mockIpcRenderer = {
@@ -15,8 +16,8 @@ require.cache[require.resolve('electron')] = {
   exports: { ipcRenderer: mockIpcRenderer }
 };
 
-const AgentBrain = require('./agent_brain');
-const GameController = require('./game_controller');
+const AgentBrain = require(path.join(projectRoot, 'automation', 'agent_brain'));
+const GameController = require(path.join(projectRoot, 'automation', 'game_controller'));
 
 async function runTests() {
   console.log("=== STARTING VIBECODEWORKER AUTOMATED TEST SUITE ===");
@@ -117,7 +118,7 @@ async function runTests() {
   try {
     console.log("Running Test 5: AgentBrain token usage stats tracking (1,500 tokens)...");
     const brain = new AgentBrain();
-    const tempDir = path.join(__dirname, 'data', 'test_temp_' + Date.now());
+    const tempDir = path.join(projectRoot, 'data', 'test_temp_' + Date.now());
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
     }
@@ -133,11 +134,10 @@ async function runTests() {
     assert.strictEqual(stats.models['gpt-5.4-mini-2026-03-17'].lifetime, 1500, "Model specific lifetime tokens should be 1,500");
 
     // Cleanup temp files & folder
-    const usageFile = path.join(tempDir, 'token_usage.json');
-    if (fs.existsSync(usageFile)) fs.unlinkSync(usageFile);
-    const sessionFile = path.join(tempDir, 'session_memory.json');
-    if (fs.existsSync(sessionFile)) fs.unlinkSync(sessionFile);
-    fs.rmdirSync(tempDir);
+    // The automatic internal brain owns a small text-memory directory too.
+    // Remove the isolated test fixture recursively instead of assuming a flat
+    // data folder.
+    fs.rmSync(tempDir, { recursive: true, force: true });
 
     console.log("✅ Test 5 Passed!");
   } catch (err) {
@@ -359,7 +359,7 @@ async function runTests() {
   // Test 13: Local API Server game discovery & GraveGain3D availability
   try {
     console.log("Running Test 13: Local API Server game discovery & GraveGain3D endpoint verification...");
-    const { discoverGames } = require('./start_api_server');
+    const { discoverGames } = require(path.join(projectRoot, 'server', 'start_api_server'));
     const games = discoverGames();
     assert(Array.isArray(games) && games.length > 0, "Games list should not be empty");
 
@@ -376,7 +376,7 @@ async function runTests() {
   // Test 14: GraveGain3D runtime bindings and window.game contract verification
   try {
     console.log("Running Test 14: GraveGain3D runtime binding & window.game contract validation...");
-    const gameRuntimePath = path.join(__dirname, '..', '..', '..', 'website', 'v1', 'games', 'html', 'gravegain3d', 'engine', 'game-runtime.js');
+    const gameRuntimePath = path.join(projectRoot, '..', '..', '..', 'website', 'v1', 'games', 'html', 'gravegain3d', 'engine', 'game-runtime.js');
     assert(fs.existsSync(gameRuntimePath), "GraveGain3D game-runtime.js must exist");
     const runtimeCode = fs.readFileSync(gameRuntimePath, 'utf8');
 
@@ -394,7 +394,7 @@ async function runTests() {
   // Test 15: GraveGain3D Autoplay Heuristic Controller
   try {
     console.log("Running Test 15: GraveGain3D Autoplay Heuristic Controller...");
-    const { runGraveGain3DAutoplay } = require('./src/runtime/gravegain3d_autoplay');
+    const { runGraveGain3DAutoplay } = require(path.join(projectRoot, 'src', 'runtime', 'gravegain3d_autoplay'));
     assert(typeof runGraveGain3DAutoplay === 'function', "runGraveGain3DAutoplay must be exported as a function");
 
     // Test menu scenario
@@ -451,7 +451,7 @@ async function runTests() {
   // Test 16: AutoCode Direct AI Coding Fix, VibeCode, Diff generation & Token/Cost Reporting
   try {
     console.log("Running Test 16: AutoCode Direct AI Coding Fix, Token Tracking & Cost Reporting...");
-    const { AutoCodeSystem } = require('./lib/core');
+    const { AutoCodeSystem } = require(path.join(projectRoot, 'lib', 'core'));
     const autoCode = new AutoCodeSystem();
 
     // Verify screenshot helpers
@@ -472,9 +472,9 @@ async function runTests() {
       const activeModel = model || 'gpt-4o-mini';
       const promptTokens = 1200;
       const completionTokens = 350;
-      const { calculateCost, formatCost } = require('./lib/pricing');
+      const { calculateCost, formatCost } = require(path.join(projectRoot, 'lib', 'pricing'));
       const cost = calculateCost(activeModel, promptTokens, completionTokens);
-      const { recordTokenUsage } = require('./lib/brain/token_tracker');
+      const { recordTokenUsage } = require(path.join(projectRoot, 'lib', 'brain', 'token_tracker'));
       recordTokenUsage(autoCode, activeModel, promptTokens, completionTokens);
       return {
         content: `// Patched Game Code\nconsole.log("Bug resolved autonomously through VibeCodeWorker direct tokens");\nwindow.gameState = { active: true, score: 100 };`,
@@ -486,7 +486,7 @@ async function runTests() {
       };
     };
 
-    const dummyFile = path.join(__dirname, 'data', 'temp_test_game.js');
+    const dummyFile = path.join(projectRoot, 'data', 'temp_test_game.js');
     fs.writeFileSync(dummyFile, 'console.log("Original bugged game code");', 'utf8');
 
     const result = await autoCode.autoFixBug({
@@ -530,7 +530,7 @@ async function runTests() {
   // Test 17: Environment Variable Resolution for OPENAI_API_KEY and OPENROUTER_API_KEY
   try {
     console.log("Running Test 17: Environment Variable Resolution (OPENAI_API_KEY & OPENROUTER_API_KEY)...");
-    const { AutoCodeSystem } = require('./lib/core');
+    const { AutoCodeSystem } = require(path.join(projectRoot, 'lib', 'core'));
     const autoCode = new AutoCodeSystem();
 
     // Case A: OPENROUTER_API_KEY
@@ -579,7 +579,7 @@ async function runTests() {
   // Test 18: Ultralight Web Engine Automation & Bug Telemetry
   try {
     console.log("Running Test 18: Ultralight Web Engine Automation & Bug Telemetry...");
-    const { UltralightWebEngine } = require('./src/runtime/ultralight_engine');
+    const { UltralightWebEngine } = require(path.join(projectRoot, 'src', 'runtime', 'ultralight_engine'));
     const engine = new UltralightWebEngine();
     assert.strictEqual(engine.name, 'Ultralight WebKit-Core');
     assert.strictEqual(engine.options.viewportWidth, 1280);
@@ -617,7 +617,7 @@ async function runTests() {
   // Test 19: CaptchaDetector HITL Challenge Detection & Resolution
   try {
     console.log("Running Test 19: CaptchaDetector HITL Challenge Detection & Resolution...");
-    const { CaptchaDetector } = require('./src/runtime/captcha_detector');
+    const { CaptchaDetector } = require(path.join(projectRoot, 'src', 'runtime', 'captcha_detector'));
     const detector = new CaptchaDetector();
 
     // Mock controller that simulates a Cloudflare Turnstile challenge
@@ -683,7 +683,7 @@ async function runTests() {
   // Test 21: CloudFleetOrchestrator Ephemeral Provisioning & Billing Calculation
   try {
     console.log("Running Test 21: CloudFleetOrchestrator Ephemeral Provisioning & Billing Calculation...");
-    const { CloudFleetOrchestrator } = require('./src/runtime/cloud_fleet_orchestrator');
+    const { CloudFleetOrchestrator } = require(path.join(projectRoot, 'src', 'runtime', 'cloud_fleet_orchestrator'));
     const orchestrator = new CloudFleetOrchestrator({ orchestrationFeePercent: 15 });
 
     // Validate rate calculation with 15% platform premium
@@ -718,7 +718,7 @@ async function runTests() {
   // Test 22: SDK key presses must release the key after sending it.
   try {
     console.log("Running Test 22: VibeCodeWorker SDK pressKey key-up pairing...");
-    const { VibeCodeWorkerClient } = require('./lib/vibecodeworker_client');
+    const { VibeCodeWorkerClient } = require(path.join(projectRoot, 'lib', 'vibecodeworker_client'));
     const client = new VibeCodeWorkerClient();
     const requests = [];
     client._request = async (endpoint, options) => {
@@ -741,7 +741,7 @@ async function runTests() {
   // Test 23: Persistent Local Credentials Storage Across Builds
   try {
     console.log("Running Test 23: Persistent Local Credentials Storage...");
-    const { saveCredentials, loadCredentials, getResolvedApiKey, getCredentialsFilePath } = require('./lib/storage');
+    const { saveCredentials, loadCredentials, getResolvedApiKey, getCredentialsFilePath } = require(path.join(projectRoot, 'lib', 'storage'));
     
     // Save sample keys
     const testSaved = saveCredentials({
@@ -770,7 +770,7 @@ async function runTests() {
   // Test 24: DeepSeek & Meta Muse Spark Provider and Self-Improvement Cycle
   try {
     console.log("Running Test 24: DeepSeek & Meta Providers and Self-Improvement Cycle...");
-    const { AutoCodeSystem } = require('./lib/core');
+    const { AutoCodeSystem } = require(path.join(projectRoot, 'lib', 'core'));
     const autoCode = new AutoCodeSystem();
 
     // Mock fetch for LLM call testing
@@ -815,7 +815,7 @@ async function runTests() {
     assert.strictEqual(lastBody.model, "meta/muse-spark-1.3-contributor", "Should specify muse-spark model");
 
     // Test self improvement loop invocation
-    const { runSelfImprovementCycle } = require('./lib/deepseek_harness');
+    const { runSelfImprovementCycle } = require(path.join(projectRoot, 'lib', 'deepseek_harness'));
     const selfImproveResult = await runSelfImprovementCycle(null, {
       goal: "Enhance engine throughput and test coverage."
     });
@@ -835,7 +835,7 @@ async function runTests() {
   // Test 25: Configurable Local REST API Server Port (Default 42069, dynamic change)
   try {
     console.log("Running Test 25: Configurable Local REST API Server Port...");
-    const { LocalAPIServer } = require('./lib/api_server');
+    const { LocalAPIServer } = require(path.join(projectRoot, 'lib', 'api_server'));
 
     // Test default port 42069
     const defaultServer = new LocalAPIServer();
@@ -864,8 +864,8 @@ async function runTests() {
   // Test 26: Super Secure Hardening (Path Traversal, Protected Files, Origin Isolation)
   try {
     console.log("Running Test 26: Super Secure Hardening Defenses...");
-    const { handlePatchFile } = require('./lib/api/patch_handler');
-    const rootDir = path.resolve(__dirname, '..', '..', '..');
+    const { handlePatchFile } = require(path.join(projectRoot, 'lib', 'api', 'patch_handler'));
+    const rootDir = path.resolve(projectRoot, '..', '..', '..');
 
     // Attempt path traversal outside workspace
     const traversalResult = await handlePatchFile({
@@ -898,7 +898,7 @@ async function runTests() {
   // Test 27: OpenCode.ai Bridge (offline-safe: no binary, no network)
   try {
     console.log("Running Test 27: OpenCode Bridge export/prompt/heal plumbing...");
-    const bridge = require('./lib/opencode_bridge');
+    const bridge = require(path.join(projectRoot, 'lib', 'opencode_bridge'));
 
     // Defaults: disabled, CLI mode, workspace = repo root
     delete process.env.OPENCODE_ENABLED;
@@ -970,7 +970,7 @@ async function runTests() {
   // Test 28: Cloud token auth + /api/opencode/* routing
   try {
     console.log("Running Test 28: Cloud token auth + OpenCode routes...");
-    const { LocalAPIServer } = require('./lib/api_server');
+    const { LocalAPIServer } = require(path.join(projectRoot, 'lib', 'api_server'));
     const cloudPort = 42071;
     const prevToken = process.env.VIBE_API_TOKEN;
     process.env.VIBE_API_TOKEN = 'test-token-123';
@@ -1035,8 +1035,8 @@ async function runTests() {
   // Test 29: SmartLog file logging + AI handoff briefs
   try {
     console.log("Running Test 29: SmartLog file logging + handoff...");
-    const smart = require('./lib/smart_log');
-    const tmpDir = path.join(__dirname, 'data', 'test_smartlog_' + Date.now());
+    const smart = require(path.join(projectRoot, 'lib', 'smart_log'));
+    const tmpDir = path.join(projectRoot, 'data', 'test_smartlog_' + Date.now());
     const slog = new smart.SmartLog({ dir: tmpDir, source: 'test' });
 
     assert(fs.existsSync(tmpDir), "SmartLog must create its log dir");
@@ -1071,9 +1071,9 @@ async function runTests() {
   // Test 30: Handoff API + heal-run persistence + bridge auto-feed
   try {
     console.log("Running Test 30: Handoff routes + heal persistence...");
-    const { LocalAPIServer } = require('./lib/api_server');
-    const bridge = require('./lib/opencode_bridge');
-    const smart = require('./lib/smart_log');
+    const { LocalAPIServer } = require(path.join(projectRoot, 'lib', 'api_server'));
+    const bridge = require(path.join(projectRoot, 'lib', 'opencode_bridge'));
+    const smart = require(path.join(projectRoot, 'lib', 'smart_log'));
     const hPort = 42072;
 
     // Seed one log row so the handoff has content
@@ -1137,7 +1137,7 @@ async function runTests() {
   // Test 31: Virtual bot mouse module + dispatcher routing
   try {
     console.log("Running Test 31: Virtual bot mouse cursor + action routing...");
-    const botCursor = require('./src/runtime/bot_cursor');
+    const botCursor = require(path.join(projectRoot, 'src', 'runtime', 'bot_cursor'));
 
     // Overlay snippet carries the robot-emoji cursor id on every page
     const ensure = botCursor.ensureCursorJS();
@@ -1182,7 +1182,7 @@ async function runTests() {
   // Test 32: GraveGain3D bot-cursor contract (static file checks)
   try {
     console.log("Running Test 32: GraveGain3D bot input + cursor wiring...");
-    const gameDir = path.join(__dirname, '..', '..', '..', 'website', 'v1', 'games', 'html', 'gravegain3d');
+    const gameDir = path.join(projectRoot, '..', '..', '..', 'website', 'v1', 'games', 'html', 'gravegain3d');
     const botCursorSrc = fs.readFileSync(path.join(gameDir, 'ui', 'bot-cursor.js'), 'utf8');
     const inputMgrSrc = fs.readFileSync(path.join(gameDir, 'input', 'input-manager.js'), 'utf8');
     const indexSrc = fs.readFileSync(path.join(gameDir, 'index.html'), 'utf8');
@@ -1208,8 +1208,8 @@ async function runTests() {
   // Test 33: AI Vision Mirror (state, detection, endpoint wiring)
   try {
     console.log("Running Test 33: AI Vision Mirror state + detection...");
-    const visionState = require('./src/runtime/vision_state');
-    const visionDetect = require('./src/runtime/vision_detect');
+    const visionState = require(path.join(projectRoot, 'src', 'runtime', 'vision_state'));
+    const visionDetect = require(path.join(projectRoot, 'src', 'runtime', 'vision_detect'));
 
     // Pointer recording clamps to the 0-1000 bot action space
     visionState.reset();
@@ -1252,15 +1252,15 @@ async function runTests() {
     assert.strictEqual(visionDetect.parseDetectResponse(null).objects.length, 0, "Null must yield empty objects");
 
     // HTTP + UI wiring exists
-    const routesSrc = fs.readFileSync(path.join(__dirname, 'lib', 'api', 'routes.js'), 'utf8');
+    const routesSrc = fs.readFileSync(path.join(projectRoot, 'lib', 'api', 'routes.js'), 'utf8');
     assert(routesSrc.includes('/api/vision/state'), "Routes must expose /api/vision/state");
-    const apiServerSrc = fs.readFileSync(path.join(__dirname, 'lib', 'api_server.js'), 'utf8');
+    const apiServerSrc = fs.readFileSync(path.join(projectRoot, 'lib', 'api_server.js'), 'utf8');
     assert(apiServerSrc.includes('getVisionState'), "API server must default getVisionState");
-    const dispatcherSrc = fs.readFileSync(path.join(__dirname, 'src', 'runtime', 'action_dispatcher.js'), 'utf8');
+    const dispatcherSrc = fs.readFileSync(path.join(projectRoot, 'src', 'runtime', 'action_dispatcher.js'), 'utf8');
     assert(dispatcherSrc.includes('vision-state-push'), "Dispatcher must push vision snapshots");
-    const mirrorSrc = fs.readFileSync(path.join(__dirname, 'src', 'components', 'vision_mirror.js'), 'utf8');
+    const mirrorSrc = fs.readFileSync(path.join(projectRoot, 'src', 'components', 'vision_mirror.js'), 'utf8');
     assert(mirrorSrc.includes('vision-mirror-canvas'), "Mirror component must render to the mirror canvas");
-    const dashSrc = fs.readFileSync(path.join(__dirname, 'src', 'index.html'), 'utf8');
+    const dashSrc = fs.readFileSync(path.join(projectRoot, 'src', 'index.html'), 'utf8');
     assert(dashSrc.includes('vision-mirror-panel'), "Dashboard must contain the vision mirror panel");
 
     console.log("✅ Test 33 Passed!");
@@ -1272,7 +1272,7 @@ async function runTests() {
   // Test 34: Agent self-healing (no self-alarm loop, sane coords, visible cursor)
   try {
     console.log("Running Test 34: Agent self-alarm immunity + coord clamp...");
-    const { scanForBugs } = require('./lib/brain/bug_scanner');
+    const { scanForBugs } = require(path.join(projectRoot, 'lib', 'brain', 'bug_scanner'));
 
     // The agent's own alarm line must never be filed as a bug (it caused
     // a self-perpetuating CRASH/EXCEPTION entry every step).
@@ -1300,12 +1300,12 @@ async function runTests() {
     assert(lastScript2.includes('Math.round((0 / 1000)'), "Click x must clamp to 0 in-page");
 
     // Every bot move asserts bot control so the robot cursor stays visible
-    const botCursor2 = require('./src/runtime/bot_cursor');
+    const botCursor2 = require(path.join(projectRoot, 'src', 'runtime', 'bot_cursor'));
     assert(botCursor2.moveCursorJS(100, 100, 't').includes('setBotControl(true)'), "moveCursorJS must assert bot control");
     assert(botCursor2.labelCursorJS('t').includes('setBotControl(true)'), "labelCursorJS must assert bot control");
 
     // DOM inspector skips fully off-viewport elements (source of -9888px targets)
-    const domSrc = fs.readFileSync(path.join(__dirname, 'src', 'runtime', 'dom_inspector.js'), 'utf8');
+    const domSrc = fs.readFileSync(path.join(projectRoot, 'src', 'runtime', 'dom_inspector.js'), 'utf8');
     assert(domSrc.includes('innerWidth') && domSrc.includes('onScreen'), "DOM inspector must filter off-viewport elements");
 
     console.log("✅ Test 34 Passed!");
@@ -1317,11 +1317,11 @@ async function runTests() {
   // Test 35: --max-ticks cap parsing + renderer enforcement wiring
   try {
     console.log("Running Test 35: max-ticks cap...");
-    const { parseWorkerArgs } = require('./lib/smart_log');
+    const { parseWorkerArgs } = require(path.join(projectRoot, 'lib', 'smart_log'));
     assert.strictEqual(parseWorkerArgs(['node', 'x', '--max-ticks', '50']).maxTicks, 50, "--max-ticks 50 must parse");
     assert.strictEqual(parseWorkerArgs(['node', 'x', '--ticks', '3']).maxTicks, 3, "--ticks alias must parse");
     assert.strictEqual(parseWorkerArgs(['node', 'x']).maxTicks, 0, "Default must be unlimited (0)");
-    const appSrc = fs.readFileSync(path.join(__dirname, 'src', 'app.js'), 'utf8');
+    const appSrc = fs.readFileSync(path.join(projectRoot, 'src', 'app.js'), 'utf8');
     assert(appSrc.includes('cliMaxTicks'), "Dashboard must read the tick cap from CLI args");
     assert(appSrc.includes('Tick cap reached'), "Dashboard must auto-pause at the cap");
     console.log("✅ Test 35 Passed!");
@@ -1331,7 +1331,7 @@ async function runTests() {
   }
 
   // Write results to .last-run.json
-  const resultsPath = path.join(__dirname, '..', '..', '..', 'test-results', '.last-run.json');
+  const resultsPath = path.join(projectRoot, '..', '..', '..', 'test-results', '.last-run.json');
   const status = failedTests.length === 0 ? "passed" : "failed";
   const results = {
     status,

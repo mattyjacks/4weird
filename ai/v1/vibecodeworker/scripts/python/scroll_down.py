@@ -1,9 +1,31 @@
 import os
 import sys
 
+# Markers proving a live file already contains the post-fix logic (offline
+# explorer round-robin, benign-noise filter, quantized stuck detection,
+# normalized nx/ny coords). The generator must never overwrite those fixes
+# with its embedded copies.
+PATCH_GUARD_MARKERS = [
+    "Offline explorer",
+    "BENIGN_PATTERNS",
+    "quantizeActionSignature",
+    "_heuristicCursor",
+    "isBenignNoise",
+    "PATCH-GUARD",
+]
+
 def write_file(rel_path, content):
     full_path = os.path.join(os.path.dirname(__file__), rel_path)
     os.makedirs(os.path.dirname(full_path), exist_ok=True)
+    if os.path.exists(full_path):
+        try:
+            with open(full_path, "r", encoding="utf-8") as f:
+                existing = f.read()
+            if any(m in existing for m in PATCH_GUARD_MARKERS):
+                print(f"Skipped (already patched): {rel_path}")
+                return
+        except OSError:
+            pass
     with open(full_path, "w", encoding="utf-8") as f:
         f.write(content)
     print(f"Generated: {rel_path}")
@@ -67,11 +89,58 @@ function saveBugs(brain, bugsPath) {
   }
 }
 
+const MAX_BUGS = 100;
+// Same recurring error must not be re-filed more often than this, so a
+// chatty page (or the agent's own alarm line) can never flood the log.
+const BUG_REFIRE_COOLDOWN_MS = 5 * 60 * 1000;
+// Benign third-party / browser noise that must never file a CRASH bug.
+// Seen on mattyjacks.com: Instagram + BirchCreek iframe + permissions policy.
+const BENIGN_PATTERNS = [
+  'Electron Security Warning',
+  'Content Security Policy',
+  'compute-pressure',
+  'Permissions policy violation',
+  'Blocked a frame with origin',
+  "Failed to read a named property 'href' from 'Location'",
+  'Protocols, domains, and ports must match',
+  'ResizeObserver loop',
+  'third-party cookie',
+  'Third-party cookie',
+  'favicon.ico',
+  'net::ERR_BLOCKED_BY_CLIENT',
+  'net::ERR_ABORTED',
+  'chrome-extension://',
+  'Unrecognized feature:',
+  'websocket was closed',
+  'WebSocket connection'
+];
+
+function isBenignNoise(msg) {
+  if (!msg) return false;
+  return BENIGN_PATTERNS.some(p => msg.includes(p));
+}
+
+// The agent's own alarm line - filing it as a bug makes the detector
+// detect itself every step (self-alarm loop). Never file it.
+const SELF_ALARM_MARKER = 'CRASH / EXCEPTION BUG IDENTIFIED';
+
+function normalizeSignature(msg) {
+  return String(msg || '')
+    .replace(/^\\[\\d{1,2}:\\d{2}(:\\d{2})?\\]\\s*/, '') // dashboard [HH:MM:SS] prefix
+    .replace(/\\b\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z?\\b/g, '<ts>') // ISO stamps
+    .replace(/\\b\\d+,\\d+\\b/g, '<xy>') // coords like 0,37 / -9888,38
+    .replace(/\\b\\d+(\\.\\d+)?(px|ms|s)?\\b/g, '<n>') // bare numbers
+    .slice(0, 150);
+}
+
 function scanForBugs(brain, screenshotBase64, consoleLogs) {
   const beforeCount = brain.bugs.length;
+  const now = Date.now();
+  if (!brain._bugSigTimes) brain._bugSigTimes = {};
   const errorLogs = (consoleLogs || []).filter(log => {
     const msg = typeof log === 'string' ? log : (log.message || '');
-    if (msg.includes('Electron Security Warning') || msg.includes('Content Security Policy')) return false;
+    if (isBenignNoise(msg)) return false;
+    if (msg.includes(SELF_ALARM_MARKER)) return false;
 
     if (typeof log === 'string') {
       const lower = log.toLowerCase();
@@ -88,20 +157,32 @@ function scanForBugs(brain, screenshotBase64, consoleLogs) {
   if (errorLogs.length > 0) {
     const lastErr = errorLogs[errorLogs.length - 1];
     const msg = typeof lastErr === 'string' ? lastErr : lastErr.message;
+    const signature = normalizeSignature(msg);
+
+    // Cooldown per normalized signature: recurring identical errors
+    // (timestamps/coords stripped) file once, then stay quiet.
+    const lastFiled = brain._bugSigTimes[signature] || 0;
+    if (now - lastFiled < BUG_REFIRE_COOLDOWN_MS) return false;
+    brain._bugSigTimes[signature] = now;
 
     const bugEntry = {
       timestamp: new Date().toISOString(),
       type: 'Console Error',
-      description: msg.slice(0, 150),
+      description: signature,
       severity: 'high',
-      consoleLogs: errorLogs.map(l => typeof l === 'string' ? l : l.message),
-      screenshot: `data:image/jpeg;base64,${screenshotBase64}`,
+      consoleLogs: errorLogs.slice(-5).map(l => typeof l === 'string' ? l.slice(0, 300) : (l.message || '').slice(0, 300)),
+      screenshot: screenshotBase64 ? `data:image/jpeg;base64,${screenshotBase64}` : '',
+      screenshotBytes: typeof screenshotBase64 === 'string' ? screenshotBase64.length : 0,
       actionTakenBeforeBug: brain.replayActions.slice(-3)
     };
 
     const isDuplicate = brain.bugs.some(b => b.description === bugEntry.description);
     if (!isDuplicate) {
       brain.bugs.push(bugEntry);
+      // Bound memory: drop oldest bugs (and their base64 screenshots) first.
+      while (brain.bugs.length > MAX_BUGS) {
+        brain.bugs.shift();
+      }
       if (brain.sessionStats) brain.sessionStats.bugsFound++;
     }
   }
@@ -120,8 +201,53 @@ write_file("lib/brain/llm_caller.js", """/**
  * LLM Provider API Caller and Heuristic Fallbacks
  */
 
+const { getResolvedApiKey } = require('../storage');
+
+function selectDeepSeekModel(requestedModel, hasImage, prompt) {
+  // Vision input is accepted only by the documented vision model. Keep image
+  // interpretation there, and use Flash for text-only planning/replay work.
+  if (hasImage) return 'deepseek-v4-flash-vision-exp';
+  if (!requestedModel || requestedModel === 'deepseek-auto') return 'deepseek-v4-flash';
+  // Preserve an explicit Reasoner choice for deliberate long-form diagnosis.
+  if (requestedModel === 'deepseek-reasoner' && /diagnos|architect|root cause|self-improv/i.test(prompt || '')) return requestedModel;
+  return requestedModel;
+}
+
 async function callLLM(brain, prompt, base64Image = null) {
-  const { provider, apiKey, endpointUrl, modelName } = brain.config;
+  let { provider, apiKey, endpointUrl, modelName } = brain.config;
+
+  // Resolve API key from local persistent credentials or environment
+  apiKey = getResolvedApiKey(provider, apiKey);
+
+  if (!apiKey || apiKey === 'YOUR_OPENAI_API_KEY') {
+    if (provider === 'openai' && process.env.OPENAI_API_KEY) {
+      apiKey = process.env.OPENAI_API_KEY;
+    } else if (provider === 'deepseek' && process.env.DEEPSEEK_API_KEY) {
+      apiKey = process.env.DEEPSEEK_API_KEY;
+    } else if (provider === 'meta' && (process.env.META_API_KEY || process.env.OPENROUTER_API_KEY)) {
+      apiKey = process.env.META_API_KEY || process.env.OPENROUTER_API_KEY;
+    } else if (provider === 'openrouter' && process.env.OPENROUTER_API_KEY) {
+      apiKey = process.env.OPENROUTER_API_KEY;
+    } else if (provider === 'gemini' && process.env.GEMINI_API_KEY) {
+      apiKey = process.env.GEMINI_API_KEY;
+    } else if (!provider || provider === 'openai') {
+      // Auto-fallback check
+      if (process.env.OPENAI_API_KEY) {
+        apiKey = process.env.OPENAI_API_KEY;
+        provider = 'openai';
+      } else if (process.env.DEEPSEEK_API_KEY) {
+        apiKey = process.env.DEEPSEEK_API_KEY;
+        provider = 'deepseek';
+      } else if (process.env.META_API_KEY) {
+        apiKey = process.env.META_API_KEY;
+        provider = 'meta';
+      } else if (process.env.OPENROUTER_API_KEY) {
+        apiKey = process.env.OPENROUTER_API_KEY;
+        provider = 'openrouter';
+      }
+    }
+  }
+
   let url = '';
   let headers = { 'Content-Type': 'application/json' };
   let body = {};
@@ -129,13 +255,42 @@ async function callLLM(brain, prompt, base64Image = null) {
   if (provider === 'openai') {
     url = 'https://api.openai.com/v1/chat/completions';
     headers['Authorization'] = `Bearer ${apiKey}`;
-    const realModel = 'gpt-4o-mini';
+    const realModel = modelName || 'gpt-5.6-luna';
 
     const content = [{ type: 'text', text: prompt }];
     if (base64Image) {
       content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } });
     }
     body = { model: realModel, response_format: { type: "json_object" }, messages: [{ role: 'user', content }] };
+
+  } else if (provider === 'deepseek') {
+    url = 'https://api.deepseek.com/chat/completions';
+    headers['Authorization'] = `Bearer ${apiKey}`;
+    const realModel = selectDeepSeekModel(modelName, !!base64Image, prompt);
+
+    const content = [{ type: 'text', text: prompt }];
+    if (base64Image) {
+      content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } });
+    }
+    body = { model: realModel, messages: [{ role: 'user', content }] };
+    // Low detail keeps rapid frame-to-frame play affordable; action decisions
+    // generally do not need original-resolution pixels.
+    if (base64Image) content[1].image_url.detail = 'low';
+
+  } else if (provider === 'meta') {
+    // Meta Model API or OpenRouter-compatible endpoint for Muse Spark 1.3 Contributor
+    const realModel = modelName || 'meta/muse-spark-1.3-contributor';
+    const isMetaDirect = endpointUrl && endpointUrl.includes('meta.ai');
+    url = isMetaDirect ? endpointUrl : (endpointUrl || 'https://openrouter.ai/api/v1/chat/completions');
+    headers['Authorization'] = `Bearer ${apiKey}`;
+    headers['HTTP-Referer'] = 'https://github.com/mattyjacks/4weird';
+    headers['X-Title'] = '4weird VibeCodeWorker';
+
+    const content = [{ type: 'text', text: prompt }];
+    if (base64Image) {
+      content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } });
+    }
+    body = { model: realModel, messages: [{ role: 'user', content }] };
 
   } else if (provider === 'gemini') {
     const model = modelName || 'gemini-2.5-flash';
@@ -161,7 +316,7 @@ async function callLLM(brain, prompt, base64Image = null) {
     headers['Authorization'] = `Bearer ${apiKey}`;
     headers['HTTP-Referer'] = 'https://github.com/mattyjacks/4weird';
     headers['X-Title'] = 'AI Game Debugger';
-    const model = modelName || 'google/gemini-2.5-flash';
+    const model = modelName || 'meta/muse-spark-1.3-contributor';
     const content = [{ type: 'text', text: prompt }];
     if (base64Image) {
       content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } });
@@ -229,14 +384,18 @@ async function callLLM(brain, prompt, base64Image = null) {
     }
   }
 
-  const activeModel = modelName || (provider === 'openai' ? 'gpt-5.4-mini-2026-03-17' : (provider === 'openrouter' ? 'google/gemini-2.5-flash' : (provider === 'gemini' ? 'gemini-2.5-flash' : 'llama3')));
+  const activeModel = provider === 'deepseek'
+    ? selectDeepSeekModel(modelName, !!base64Image, prompt)
+    : (modelName || (provider === 'openai' ? 'gpt-5.4-mini-2026-03-17' : (provider === 'openrouter' ? 'google/gemini-2.5-flash' : (provider === 'gemini' ? 'gemini-2.5-flash' : 'llama3'))));
 
   if (promptTokens === 0 && completionTokens === 0) {
     promptTokens = Math.round(prompt.length / 4) + (base64Image ? 260 : 0);
     completionTokens = Math.round(contentString.length / 4);
   }
 
-  brain.recordTokenUsage(activeModel, promptTokens, completionTokens);
+  if (brain && typeof brain.recordTokenUsage === 'function') {
+    brain.recordTokenUsage(activeModel, promptTokens, completionTokens);
+  }
   try {
     return JSON.parse(contentString);
   } catch (e) {
@@ -248,29 +407,91 @@ async function callLLM(brain, prompt, base64Image = null) {
   }
 }
 
-function runHeuristicFallback(consoleLogs, domSnapshot) {
-  console.log("Heuristic Fallback triggered!");
-  let type = 'wait';
-  let target = '';
+// Round-robin cursor so the offline fallback never hammers clickables[0]
+// (the old logo-loop at 111,30 on mattyjacks.com). State lives on the brain
+// when available, with a module-level fallback for standalone callers.
+let fallbackCursor = 0;
+let fallbackCalls = 0;
 
-  if (domSnapshot && domSnapshot.length > 0) {
-    const clickables = domSnapshot.filter(el => ['BUTTON', 'A', 'INPUT'].includes(el.tagName));
-    if (clickables.length > 0) {
-      type = 'click';
-      target = clickables[0].rect
-        ? `${clickables[0].rect.left + clickables[0].rect.width / 2},${clickables[0].rect.top + clickables[0].rect.height / 2}`
-        : clickables[0].id || clickables[0].tagName;
-    }
-  } else {
-    const fallbacks = ['Space', 'ArrowRight', 'ArrowUp', 'w', 'd'];
-    type = 'press_key';
-    target = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+function toNormalizedTarget(el) {
+  if (Number.isFinite(el.nx) && Number.isFinite(el.ny)) {
+    return `${Math.round(el.nx)},${Math.round(el.ny)}`;
+  }
+  // Legacy snapshots without nx/ny: rect is CSS pixels, not 0-1000. Without a
+  // viewport size we cannot convert exactly, so fall back to a selector/id
+  // (dispatcher resolves it in-page) instead of emitting wrong coords.
+  if (el.id) return `#${el.id}`;
+  if (el.innerText) return el.innerText.slice(0, 30);
+  return el.tagName || '';
+}
+
+function runHeuristicFallback(consoleLogs, domSnapshot, brain = null) {
+  console.log("Heuristic Fallback triggered!");
+  fallbackCalls += 1;
+  const callCount = fallbackCalls;
+
+  // Every 5th offline step: scroll to explore long pages (marketing sites like
+  // mattyjacks.com are mostly below the fold). Every 9th: keyboard probe.
+  if (callCount % 9 === 0) {
+    const keys = ['Tab', 'Enter', 'ArrowDown', 'Space'];
+    const key = keys[Math.floor(callCount / 9) % keys.length];
+    return {
+      status: 'exploring',
+      reasoning: "Offline explorer (no API key): keyboard probe to explore page.",
+      action: { type: 'press_key', target: key, duration_ms: 200 },
+      next_delay_ms: 1000,
+      bug_report: { has_bug: false }
+    };
+  }
+  if (callCount % 5 === 0) {
+    return {
+      status: 'exploring',
+      reasoning: "Offline explorer (no API key): scrolling to discover content below the fold.",
+      action: { type: 'scroll', target: 'down', duration_ms: 200, params: { direction: 'down', amount: 600 } },
+      next_delay_ms: 1000,
+      bug_report: { has_bug: false }
+    };
   }
 
+  if (domSnapshot && domSnapshot.length > 0) {
+    const clickables = domSnapshot.filter(el => ['BUTTON', 'A', 'INPUT', 'SELECT', 'TEXTAREA', 'CANVAS'].includes(el.tagName));
+    const pool = clickables.length > 0 ? clickables : domSnapshot;
+    // Round-robin through the pool, skipping whatever we clicked last time.
+    const cursor = brain && Number.isFinite(brain._heuristicCursor) ? brain._heuristicCursor : fallbackCursor;
+    const lastTarget = brain ? brain._lastHeuristicTarget : null;
+    let pick = null;
+    for (let i = 0; i < pool.length; i++) {
+      const candidate = pool[(cursor + i) % pool.length];
+      const target = toNormalizedTarget(candidate);
+      if (target && target !== lastTarget) {
+        pick = candidate;
+        if (brain) {
+          brain._heuristicCursor = (cursor + i + 1) % pool.length;
+          brain._lastHeuristicTarget = target;
+        } else {
+          fallbackCursor = (cursor + i + 1) % pool.length;
+        }
+        break;
+      }
+    }
+    if (!pick) pick = pool[cursor % pool.length];
+    const target = toNormalizedTarget(pick);
+    const label = pick.innerText || pick.id || pick.tagName;
+    return {
+      status: 'exploring',
+      reasoning: `Offline explorer (no API key): trying interactive element ${pick.tagName} "${String(label).slice(0, 40)}" (${pool.indexOf(pick) + 1}/${pool.length}). Add an API key for smart decisions.`,
+      action: { type: 'click', target, duration_ms: 200 },
+      next_delay_ms: 1000,
+      bug_report: { has_bug: false }
+    };
+  }
+
+  const fallbacks = ['Space', 'ArrowRight', 'ArrowUp', 'w', 'd'];
+  const key = fallbacks[Math.floor(Math.random() * fallbacks.length)];
   return {
-    status: 'stuck',
-    reasoning: "API call failed. Falling back to default explorer heuristics.",
-    action: { type, target, duration_ms: 200 },
+    status: 'exploring',
+    reasoning: "Offline explorer (no API key): no interactive elements found, probing keyboard.",
+    action: { type: 'press_key', target: key, duration_ms: 200 },
     next_delay_ms: 1000,
     bug_report: { has_bug: false }
   };
@@ -484,6 +705,25 @@ const { callLLM, runHeuristicFallback } = require('./llm_caller');
 const { getReplayLog, saveReplay } = require('./replay_recorder');
 const { runBraidSelfImprovementLoop } = require('./braid_flow');
 
+// Quantize click coords to a coarse grid so 1-2px jitter (111,29 vs 111,30
+// vs 111,31 from subpixel rounding) still counts as the same repeated action.
+// Without this the loop detector never fires on marketing pages.
+function quantizeActionSignature(action) {
+  if (!action || !action.type) return 'none:';
+  const target = action.target || '';
+  if (typeof target === 'string' && target.includes(',')) {
+    const parts = target.split(',');
+    const x = parseInt(parts[0], 10);
+    const y = parseInt(parts[1], 10);
+    if (Number.isFinite(x) && Number.isFinite(y)) {
+      const qx = Math.round(x / 50) * 50;
+      const qy = Math.round(y / 50) * 50;
+      return `${action.type}:${qx},${qy}`;
+    }
+  }
+  return `${action.type}:${String(target).slice(0, 40)}`;
+}
+
 class AgentBrain {
   constructor() {
     this.episodes = [];
@@ -637,8 +877,8 @@ class AgentBrain {
       action = result.action || this.getStuckRecoveryAction() || { type: 'wait', duration_ms: 500 };
     }
 
-    const actionSig = `${action.type}:${action.target || ''}`;
-    if (actionSig === `${this.lastActionType}:${this.lastActionTarget || ''}`) {
+    const actionSig = quantizeActionSignature(action);
+    if (actionSig === quantizeActionSignature({ type: this.lastActionType, target: this.lastActionTarget })) {
       this.sameActionStreak++;
     } else {
       this.sameActionStreak = 0;
@@ -654,6 +894,10 @@ class AgentBrain {
       action,
       status: result.status
     });
+    // Bound replay memory for long runs (was unbounded: +1 per step forever).
+    if (this.replayActions.length > 500) {
+      this.replayActions.splice(0, this.replayActions.length - 500);
+    }
 
     this.episodes.push({
       timestamp: Date.now(),
@@ -669,8 +913,8 @@ class AgentBrain {
 
     if (result.bug_report && result.bug_report.has_bug) {
       const desc = result.bug_report.description || '';
-      const isFakeBug = desc.toLowerCase().includes('interactive element') || 
-                        desc.toLowerCase().includes('stuck') || 
+      const isFakeBug = desc.toLowerCase().includes('interactive element') ||
+                        desc.toLowerCase().includes('stuck') ||
                         desc.toLowerCase().includes('electron security') ||
                         desc.toLowerCase().includes('no elements');
       if (!isFakeBug) {
@@ -682,13 +926,17 @@ class AgentBrain {
           consoleLogs: (consoleLogs || []).filter(l => {
             const msg = typeof l === 'string' ? l : (l.message || '');
             return !msg.includes('Electron Security Warning');
-          }),
-          screenshot: `data:image/jpeg;base64,${screenshotBase64}`,
+          }).slice(-5),
+          screenshot: screenshotBase64 ? `data:image/jpeg;base64,${screenshotBase64}` : '',
+          screenshotBytes: typeof screenshotBase64 === 'string' ? screenshotBase64.length : 0,
           actionTakenBeforeBug: this.replayActions.slice(-3)
         };
         const isDuplicate = this.bugs.some(b => b.description === bugEntry.description);
         if (!isDuplicate) {
           this.bugs.push(bugEntry);
+          while (this.bugs.length > 100) {
+            this.bugs.shift();
+          }
           if (this.sessionStats) this.sessionStats.bugsFound++;
         }
       }
@@ -724,7 +972,7 @@ class AgentBrain {
   }
 
   runHeuristicFallback(consoleLogs, domSnapshot) {
-    return runHeuristicFallback(consoleLogs, domSnapshot);
+    return runHeuristicFallback(consoleLogs, domSnapshot, this);
   }
 
   simpleHash(str) {
@@ -738,6 +986,8 @@ class AgentBrain {
     this.stuckRecoveryStage = 0;
     this.lastActionType = null;
     this.lastActionTarget = null;
+    this._heuristicCursor = 0;
+    this._lastHeuristicTarget = null;
     this.initSessionMemory();
   }
 
@@ -754,6 +1004,10 @@ class AgentBrain {
   }
 
   endCurrentRun() {
+    try {
+      const { flushSessionMemory } = require('./session_memory');
+      flushSessionMemory(this);
+    } catch (e) {}
     this.activeRunId = null;
   }
 
@@ -926,37 +1180,71 @@ module.exports = {
 # 9. src/runtime/dom_inspector.js
 write_file("src/runtime/dom_inspector.js", """/**
  * Viewport DOM and Performance Metrics Inspector
+ * Optimized: targeted selectors instead of querySelectorAll('*'), single
+ * getComputedStyle per element, early exit after 40 hits.
  */
 
 async function getInteractiveDOM(controller, webview) {
   const code = `
     (() => {
-      const interactiveTags = ['BUTTON', 'A', 'INPUT', 'SELECT', 'TEXTAREA', 'CANVAS'];
-      const elements = [];
-      
-      const all = document.querySelectorAll('*');
-      for (const el of all) {
+      const out = [];
+      // Targeted selectors cover buttons/links/inputs + ARIA buttons.
+      // The old '*' scan + double getComputedStyle was O(N) over the whole
+      // DOM on every agent step (seconds on large pages).
+      const candidates = document.querySelectorAll(
+        'button, a, input, select, textarea, canvas, [role="button"], [onclick], [data-captcha], [tabindex]:not([tabindex="-1"])'
+      );
+      const vw = window.innerWidth || 1, vh = window.innerHeight || 1;
+      const onScreen = (r) => r.bottom > 0 && r.top < vh && r.right > 0 && r.left < vw;
+      for (let i = 0; i < candidates.length && out.length < 40; i++) {
+        const el = candidates[i];
         const rect = el.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) continue;
+        // Skip fully off-viewport elements (hidden carousel items etc):
+        // their centers become garbage click coords like -9888,38.
+        if (!onScreen(rect)) continue;
         const style = window.getComputedStyle(el);
-        const isVisible = rect.width > 0 && rect.height > 0 && 
-                          style.display !== 'none' && 
-                          style.visibility !== 'hidden' && 
-                          style.opacity !== '0';
-        
-        if (!isVisible) continue;
-        
-        const isClickable = interactiveTags.includes(el.tagName) || 
-                            el.onclick != null || 
-                            el.getAttribute('role') === 'button' ||
-                            window.getComputedStyle(el).cursor === 'pointer';
-                            
-        if (isClickable) {
-          elements.push({
+        if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') continue;
+
+        // PATCH-GUARD: normalized nx/ny coords.
+        // Normalized 0-1000 coords: the agent (LLM + heuristics) always speaks
+        // 0-1000, the dispatcher converts back to CSS pixels. Storing nx/ny
+        // here fixes the old page-pixel vs normalized mismatch that made the
+        // offline fallback click the wrong spot (e.g. logo loop at 111,30).
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        out.push({
+          tagName: el.tagName,
+          id: el.id || '',
+          className: typeof el.className === 'string' ? el.className : '',
+          innerText: (el.innerText || '').slice(0, 50).trim(),
+          placeholder: el.placeholder || '',
+          rect: {
+            left: Math.round(rect.left),
+            top: Math.round(rect.top),
+            width: Math.round(rect.width),
+            height: Math.round(rect.height)
+          },
+          nx: Math.max(0, Math.min(1000, Math.round((cx / vw) * 1000))),
+          ny: Math.max(0, Math.min(1000, Math.round((cy / vh) * 1000)))
+        });
+      }
+      // Cheap fallback: if nothing matched (e.g. canvas-only game), report
+      // at most a few pointer-cursor elements without scanning everything.
+      if (out.length === 0) {
+        const all = document.querySelectorAll('div, span');
+        for (let i = 0; i < all.length && out.length < 10; i++) {
+          const el = all[i];
+          if (el.onclick == null && el.getAttribute('role') !== 'button') continue;
+          const rect = el.getBoundingClientRect();
+          if (rect.width <= 0 || rect.height <= 0) continue;
+          if (!onScreen(rect)) continue;
+          out.push({
             tagName: el.tagName,
             id: el.id || '',
-            className: el.className || '',
+            className: typeof el.className === 'string' ? el.className : '',
             innerText: (el.innerText || '').slice(0, 50).trim(),
-            placeholder: el.placeholder || '',
+            placeholder: '',
             rect: {
               left: Math.round(rect.left),
               top: Math.round(rect.top),
@@ -966,10 +1254,10 @@ async function getInteractiveDOM(controller, webview) {
           });
         }
       }
-      return elements.slice(0, 40);
+      return out;
     })()
   `;
-  
+
   try {
     return await controller.executeJS(webview, code);
   } catch (e) {

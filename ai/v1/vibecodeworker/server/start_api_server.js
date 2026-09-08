@@ -3,10 +3,10 @@
  */
 
 const path = require('path');
-const { LocalAPIServer } = require('./lib/api_server');
-const { startStaticServer } = require('./src/main_process/static_server');
-const { discoverGames: scanGames } = require('./src/main_process/game_discovery');
-const { getSharedLog, teeConsole, parseWorkerArgs } = require('./lib/smart_log');
+const { LocalAPIServer } = require('../lib/api_server');
+const { startStaticServer } = require('../src/main_process/static_server');
+const { discoverGames: scanGames } = require('../src/main_process/game_discovery');
+const { getSharedLog, teeConsole, parseWorkerArgs } = require('../lib/smart_log');
 
 const cliOpts = parseWorkerArgs(process.argv);
 const smartlog = getSharedLog('headless-server');
@@ -21,7 +21,7 @@ if (cliOpts.handoffOnly) {
   process.exit(res.success ? 0 : 1);
 }
 
-const WEBSITE_V1_DIR = path.join(__dirname, '..', '..', '..', 'website', 'v1');
+const WEBSITE_V1_DIR = path.join(__dirname, '..', '..', '..', '..', 'website', 'v1');
 // Cloud-ready: PORT/HOST from env (droplet, Fly, Render all inject PORT).
 // HOST defaults to 0.0.0.0 so containers and droplets serve externally;
 // set HOST=127.0.0.1 for loopback-only desktop use.
@@ -44,7 +44,7 @@ async function main() {
 
   // Headless unified engine manager (ultralight default; no viewport needed
   // for telemetry-only passes, chromium headless when deps are installed).
-  const { WebEngineManager } = require('./src/runtime/web_engine_manager');
+  const { WebEngineManager } = require('../src/runtime/web_engine_manager');
   const validHeadless = ['ultralight', 'electron', 'chromium'];
   const configuredHeadless = validHeadless.includes(process.env.VIBE_WEB_ENGINE) ? process.env.VIBE_WEB_ENGINE : 'ultralight';
   const headlessEngines = new WebEngineManager({ activeEngine: configuredHeadless });

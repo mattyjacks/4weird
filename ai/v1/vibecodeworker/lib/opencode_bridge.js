@@ -54,7 +54,7 @@ function getOpenCodeConfig(fileConfig) {
   let cfg = { ...DEFAULTS };
   try {
     if (!fileConfig) {
-      const cfgPath = path.join(vibecodeworkerDir(), 'config.json');
+      const cfgPath = path.join(vibecodeworkerDir(), 'config', 'default.json');
       if (fs.existsSync(cfgPath)) {
         const raw = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
         if (raw && raw.opencode) fileConfig = raw.opencode;
@@ -174,7 +174,7 @@ function buildBugFixPrompt({ bugs, gameId, instructions, testCommand, extraConte
     '- Preserve every public contract the test harness relies on (e.g. `window.game`, `gameState`, debug hooks, DOM ids referenced by autoplay scripts).',
     '- Do not rename files, move files, or add new runtime dependencies.',
     '- Keep changes scoped to the reported bugs; no refactors, no feature work.',
-    `- After editing, the verification command MUST pass: \`${testCommand || 'node test_vibecodeworker.js (from ai/v1/vibecodeworker)'}\`.`,
+    `- After editing, the verification command MUST pass: \`${testCommand || 'node tests/test_vibecodeworker.js (from ai/v1/vibecodeworker)'}\`.`,
     '- If a bug cannot be fixed safely, leave the code untouched for that item and explain why at the end.',
     '',
     `## Game: ${gameId || 'unknown'}`,
@@ -499,7 +499,7 @@ function startHealCycle({ bugs, gameId, instructions, testCommand, dir, maxItera
   const run = {
     runId, status: 'running', gameId: gameId || 'unknown',
     iteration: 0, maxIterations, instance: typeof instance === 'object' ? 'remote' : instance,
-    testCommand: testCommand || 'node test_vibecodeworker.js',
+    testCommand: testCommand || 'node tests/test_vibecodeworker.js',
     targetDir: dir || config.workspaceRoot,
     history: [], startedAt: new Date().toISOString(), finishedAt: null,
   };
@@ -593,7 +593,7 @@ async function runHealTestStep({ run, instance, testRunner, config }) {
 
 function runFreshInstanceTest({ run, config }) {
   return new Promise((resolve) => {
-    const workerPath = path.join(vibecodeworkerDir(), 'heal_worker.js');
+    const workerPath = path.join(vibecodeworkerDir(), 'workers', 'heal_worker.js');
     const args = [workerPath, '--test-command', run.testCommand, '--dir', run.targetDir];
     const child = spawn(process.execPath, args, { cwd: run.targetDir, timeout: 300000 });
     let out = '';

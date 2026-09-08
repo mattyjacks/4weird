@@ -6,8 +6,8 @@ function getInputSimulatorPath(baseDir) {
   // Electron packages application sources into app.asar. Python cannot execute
   // a script from inside that archive, so use the explicitly unpacked copy in
   // production and the project copy while developing.
-  const packaged = path.join(process.resourcesPath || '', 'app.asar.unpacked', 'input_sim.py');
-  return fs.existsSync(packaged) ? packaged : path.join(baseDir, 'input_sim.py');
+  const packaged = path.join(process.resourcesPath || '', 'app.asar.unpacked', 'scripts', 'python', 'input_sim.py');
+  return fs.existsSync(packaged) ? packaged : path.join(baseDir, 'scripts', 'python', 'input_sim.py');
 }
 
 /**
@@ -118,8 +118,38 @@ function captureNativeScreenshot(tempDir, windowTitle, baseDir = __dirname) {
   });
 }
 
+function configureNativeGameOverlay(windowTitle, baseDir = __dirname) {
+  return runInputSimulator(['overlay', windowTitle], baseDir);
+}
+
+/**
+ * Steam supports Source-engine launch arguments in its run protocol. Keep the
+ * mapping in the main process so the renderer cannot construct arbitrary
+ * external URLs. Window-relative capture in input_sim.py works for every mode.
+ */
+function buildSteamRunUrl(appId, { mode = 'exclusive-fullscreen', width = 1280, height = 720 } = {}) {
+  const safeAppId = Number(appId);
+  if (!Number.isInteger(safeAppId) || safeAppId <= 0) throw new Error('Invalid Steam app id');
+  const safeWidth = Math.min(7680, Math.max(640, Math.round(Number(width) || 1280)));
+  const safeHeight = Math.min(4320, Math.max(480, Math.round(Number(height) || 720)));
+  const argsByMode = {
+    'exclusive-fullscreen': ['-fullscreen'],
+    borderless: ['-windowed', '-noborder'],
+    'windowed-fullscreen': ['-windowed', '-noborder', '-w', String(safeWidth), '-h', String(safeHeight)],
+    'partial-windowed': ['-windowed', '-w', String(safeWidth), '-h', String(safeHeight)]
+  };
+  const args = argsByMode[mode] || argsByMode['exclusive-fullscreen'];
+  return {
+    url: `steam://run/${safeAppId}//${encodeURIComponent(args.join(' '))}`,
+    mode: Object.prototype.hasOwnProperty.call(argsByMode, mode) ? mode : 'exclusive-fullscreen',
+    args
+  };
+}
+
 module.exports = {
   runInputSimulator,
   scanWindowsProcesses,
-  captureNativeScreenshot
+  captureNativeScreenshot,
+  configureNativeGameOverlay,
+  buildSteamRunUrl
 };

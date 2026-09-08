@@ -1,7 +1,7 @@
 # VibeCodeWorker — cloud / headless image.
 #
 # Build from the REPO ROOT so both the worker and the games it serves are included:
-#   docker build -f ai/v1/vibecodeworker/Dockerfile -t vibecodeworker:latest .
+#   docker build -f ai/v1/vibecodeworker/deploy/docker/Dockerfile -t vibecodeworker:latest .
 #
 # Runtime has ZERO npm dependencies (pure Node 22 stdlib), so the image is tiny
 # and `npm install` is never needed inside it.
@@ -46,4 +46,4 @@ EXPOSE 42069 8888
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||'42069')+'/api/status').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
 
-CMD ["node", "start_api_server.js"]
+CMD ["node", "server/start_api_server.js"]

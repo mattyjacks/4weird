@@ -3,7 +3,7 @@ const fs = require('fs');
 const { spawnSync } = require('child_process');
 
 if (!(process.versions && process.versions.electron)) {
-  const electron = path.join(__dirname, 'node_modules', 'electron', 'dist', 'electron.exe');
+  const electron = path.join(__dirname, '..', 'node_modules', 'electron', 'dist', 'electron.exe');
   process.exit(spawnSync(electron, ['--disable-gpu', __filename], { stdio: 'inherit' }).status || 0);
 }
 
@@ -18,7 +18,7 @@ const out = path.join(root, 'test-results', 'gravegain2d-space-builds');
 fs.mkdirSync(out, { recursive: true });
 
 (async () => {
-  const { startStaticServer } = require('./src/main_process/static_server');
+  const { startStaticServer } = require(path.join(__dirname, '..', 'src', 'main_process', 'static_server'));
   const server = startStaticServer(8901, path.join(root, 'website', 'v1'));
   const { app, BrowserWindow } = require('electron');
   await app.whenReady();

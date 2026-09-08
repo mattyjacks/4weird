@@ -62,6 +62,36 @@ export class HubManager {
   }
 
   bindHubEvents() {
+    const cardHalfLife = document.getElementById('card-half-life-2');
+    if (cardHalfLife) cardHalfLife.addEventListener('click', () => this.openModal('modal-half-life-2'));
+
+    const closeHl2 = document.getElementById('btn-close-hl2-modal');
+    if (closeHl2) closeHl2.addEventListener('click', () => this.closeModal('modal-half-life-2'));
+
+    const launchHl2 = document.getElementById('btn-launch-hl2');
+    if (launchHl2) launchHl2.addEventListener('click', () => {
+      synth.playClick();
+      // Steam owns the launch and licensing flow. The protocol opens only when the user chooses it.
+      window.location.href = 'steam://rungameid/220';
+      log('[HL2] Steam launch requested for Half-Life 2 (App 220).', 'system');
+    });
+
+    const attachHl2 = document.getElementById('btn-attach-hl2');
+    if (attachHl2) attachHl2.addEventListener('click', () => {
+      synth.playSuccess();
+      const objective = document.getElementById('hl2-objective');
+      const rules = objective && objective.value.trim()
+        ? objective.value.trim()
+        : 'Play through the opening safely. Check movement, aim, interaction prompts, menus, performance stutter, and visual glitches.';
+      if (el.gameTarget) el.gameTarget.value = 'desktop://steam/220';
+      if (el.quickTarget) el.quickTarget.value = 'Half-Life 2 — Steam desktop window';
+      if (el.testRules) el.testRules.value = rules;
+      if (el.quickObjective) el.quickObjective.value = rules;
+      this.closeAllModals();
+      this.showEditorView();
+      log('[HL2] Mission prepared. Attach the running Half-Life 2 window in the native desktop build before starting.', 'system');
+    });
+
     const cardLoad = document.getElementById('card-load-4weird');
     if (cardLoad) cardLoad.addEventListener('click', () => this.openModal('modal-4weird-games'));
 
@@ -205,7 +235,7 @@ export class HubManager {
   }
 
   closeAllModals() {
-    ['modal-4weird-games', 'modal-test-website', 'modal-cloud-fleet', 'pitch-results-panel', 'modal-game-planner'].forEach(id => {
+    ['modal-4weird-games', 'modal-test-website', 'modal-cloud-fleet', 'pitch-results-panel', 'modal-game-planner', 'modal-half-life-2'].forEach(id => {
       const m = document.getElementById(id);
       if (m) m.classList.add('hidden');
     });

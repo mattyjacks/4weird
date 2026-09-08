@@ -114,13 +114,13 @@ class AutoCodeSystem {
     }
 
     if (!this.config.autoChooseModel) {
-      return this.config.largestModelAllowed || 'gpt-4o-mini';
+      return this.config.largestModelAllowed || 'gpt-5.6-luna';
     }
 
     const complexity = classifyTaskComplexity(instruction);
     const selectedModel = selectModelForComplexity(
       complexity,
-      this.config.largestModelAllowed || 'gpt-4o-mini',
+      this.config.largestModelAllowed || 'gpt-5.6-luna',
       this.config.useProForExtreme
     );
 
@@ -262,11 +262,11 @@ Output format:
       url = 'https://api.deepseek.com/chat/completions';
       headers['Authorization'] = `Bearer ${apiKey}`;
       body = {
-        model: model || 'deepseek-chat',
+        model: model || 'deepseek-v4-flash',
         messages: [{ role: 'user', content: promptText }]
       };
     } else if (provider === 'meta') {
-      const activeModel = model || 'meta/muse-spark-1.3-contributor';
+      const activeModel = model || 'meta-llama/llama-4-scout-17b-16e-instruct';
       const isMetaDirect = endpointUrl && endpointUrl.includes('meta.ai');
       url = isMetaDirect ? endpointUrl : (endpointUrl || 'https://openrouter.ai/api/v1/chat/completions');
       headers['Authorization'] = `Bearer ${apiKey}`;
@@ -277,7 +277,7 @@ Output format:
         messages: [{ role: 'user', content: promptText }]
       };
     } else if (provider === 'gemini') {
-      const activeModel = model || 'gemini-2.5-flash';
+      const activeModel = model || 'gemini-3.5-flash-lite';
       url = `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent?key=${apiKey}`;
       body = {
         contents: [{ parts: [{ text: promptText }] }]
@@ -288,7 +288,7 @@ Output format:
       headers['HTTP-Referer'] = 'https://github.com/mattyjacks/4weird';
       headers['X-Title'] = 'AutoCode IDE';
       body = {
-        model: model || 'meta/muse-spark-1.3-contributor',
+        model: model || 'meta-llama/llama-4-scout-17b-16e-instruct',
         messages: [{ role: 'user', content: promptText }]
       };
     } else if (provider === 'local') {
@@ -367,7 +367,7 @@ Output format:
       completionTokens = Math.round(contentString.length / 4);
     }
 
-    const activeModel = model || (provider === 'openrouter' ? 'google/gemini-2.5-flash' : 'gpt-4o-mini');
+    const activeModel = model || (provider === 'openrouter' ? 'meta-llama/llama-4-scout-17b-16e-instruct' : 'gpt-5.6-luna');
     const cost = calculateCost(activeModel, promptTokens, completionTokens, this.config.useCacheTokens);
 
     // Record token usage to token_usage.json

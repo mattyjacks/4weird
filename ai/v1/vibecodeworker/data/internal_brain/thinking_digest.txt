@@ -1,0 +1,6 @@
+# Thinking digest
+Short action-level conclusions; verbose prompts and hidden reasoning are intentionally excluded.
+
+- 1:26:21 PM · native-policy · press_key → enter: Episode Two startup: New Game is selected, so begin a fresh campaign.
+- 1:26:23 PM · native-policy · press_key → enter: Episode Two startup: accept the default difficulty and continue into the new campaign.
+- 1:26:25 PM · native-policy · hold_keys → w,shift: [hl2-ep2 offline fallback: LLM API Call failed: 401 - {"error":{"message":"Authentication Fails, Your api key: ****2345 is invalid","type":"authentication_error","param":null,"code":"invalid_request_error"}}] FPS route: 

@@ -26,6 +26,33 @@ const MAX_BUGS = 100;
 // Same recurring error must not be re-filed more often than this, so a
 // chatty page (or the agent's own alarm line) can never flood the log.
 const BUG_REFIRE_COOLDOWN_MS = 5 * 60 * 1000;
+// Benign third-party / browser noise that must never file a CRASH bug.
+// Seen on mattyjacks.com: Instagram + BirchCreek iframe + permissions policy.
+const BENIGN_PATTERNS = [
+  'Electron Security Warning',
+  'Content Security Policy',
+  'compute-pressure',
+  'Permissions policy violation',
+  'Blocked a frame with origin',
+  "Failed to read a named property 'href' from 'Location'",
+  'Protocols, domains, and ports must match',
+  'ResizeObserver loop',
+  'third-party cookie',
+  'Third-party cookie',
+  'favicon.ico',
+  'net::ERR_BLOCKED_BY_CLIENT',
+  'net::ERR_ABORTED',
+  'chrome-extension://',
+  'Unrecognized feature:',
+  'websocket was closed',
+  'WebSocket connection'
+];
+
+function isBenignNoise(msg) {
+  if (!msg) return false;
+  return BENIGN_PATTERNS.some(p => msg.includes(p));
+}
+
 // The agent's own alarm line - filing it as a bug makes the detector
 // detect itself every step (self-alarm loop). Never file it.
 const SELF_ALARM_MARKER = 'CRASH / EXCEPTION BUG IDENTIFIED';
@@ -45,7 +72,7 @@ function scanForBugs(brain, screenshotBase64, consoleLogs) {
   if (!brain._bugSigTimes) brain._bugSigTimes = {};
   const errorLogs = (consoleLogs || []).filter(log => {
     const msg = typeof log === 'string' ? log : (log.message || '');
-    if (msg.includes('Electron Security Warning') || msg.includes('Content Security Policy')) return false;
+    if (isBenignNoise(msg)) return false;
     if (msg.includes(SELF_ALARM_MARKER)) return false;
 
     if (typeof log === 'string') {

@@ -5,8 +5,8 @@
  * has been refactored into modular files in the lib/ directory.
  * 
  * For new code, import directly from lib/:
- *   const { AutoCodeSystem } = require('./lib/core');
- *   const { PromptHistory } = require('./lib/qol');
+ *   const { AutoCodeSystem } = require('../lib/core');
+ *   const { PromptHistory } = require('../lib/qol');
  */
 
-module.exports = require('./lib/index');
+module.exports = require('../lib/index');

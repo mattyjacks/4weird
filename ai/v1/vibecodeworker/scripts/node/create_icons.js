@@ -95,7 +95,7 @@ function createIcnsBuffer(pngBuf) {
   return Buffer.concat([header, totalLen, iconChunk]);
 }
 
-const iconsDir = path.join(__dirname, 'src-tauri', 'icons');
+const iconsDir = path.join(__dirname, '..', '..', 'src-tauri', 'icons');
 if (!fs.existsSync(iconsDir)) {
   fs.mkdirSync(iconsDir, { recursive: true });
 }

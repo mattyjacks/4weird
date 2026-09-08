@@ -22,7 +22,7 @@ function toggleOptions() {
   const container = document.querySelector('.app-wrapper') || document.body;
   container.classList.toggle('options-open');
   const label = document.getElementById('menu-layout-label');
-  if (label) label.textContent = container.classList.contains('options-open') ? 'Close options' : 'Options';
+  if (label) label.textContent = container.classList.contains('options-open') ? 'Close mission control' : 'Focused view';
 }
 
 function applyLayoutMode() {

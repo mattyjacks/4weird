@@ -74,9 +74,9 @@ function selectModelForComplexity(complexity, largestAllowed, useProForExtreme =
 
   // Model selection map
   const selectionMap = {
-    low: 'gpt-4o-mini',
-    medium: maxTier >= 3 ? 'gpt-5.4' : 'gpt-4o',
-    high: useProForExtreme && maxTier >= 5 ? 'gpt-5.5-pro' : 'gpt-5.5'
+    low: 'gpt-5.6-luna',
+    medium: maxTier >= 2 ? 'gpt-5.6-terra' : 'gpt-5.6-luna',
+    high: useProForExtreme && maxTier >= 4 ? 'gpt-6-astra' : 'gpt-5.6-sol'
   };
 
   let selected = selectionMap[complexity];

@@ -6,6 +6,7 @@ const path = require('path');
 function buildPrompt(brain, consoleLogs, domSnapshot, isStuck) {
   const includeMemory = brain.config.alwaysSendMemory || isStuck;
   const sessionSummary = brain.getSessionSummary();
+  const learnedContext = includeMemory && brain.getTextBrainContext ? brain.getTextBrainContext(6) : '';
 
   const compactDom = (domSnapshot || []).map(el => {
     const parts = [el.tagName];
@@ -35,9 +36,9 @@ function buildPrompt(brain, consoleLogs, domSnapshot, isStuck) {
     const epLines = recentEps.map((ep, i) => {
       return `  Step -${recentEps.length - i}: [${ep.status}] ${ep.action.type} -> ${ep.action.target || 'N/A'} | path: ${JSON.stringify(ep.reasoning_path || ep.reasoning || '')}`;
     }).join('\n');
-    memoryBlock = `\n## MEMORY — Recent Episode History (last ${recentEps.length} steps)\n${epLines}${sessionSummary ? `\nSession stats: ${sessionSummary}` : ''}\n`;
+    memoryBlock = `\n## MEMORY — Recent Episode History (last ${recentEps.length} steps)\n${epLines}${sessionSummary ? `\nSession stats: ${sessionSummary}` : ''}${learnedContext ? `\nLearned gameplay discoveries:\n${learnedContext}` : ''}\n`;
   } else if (sessionSummary && isStuck) {
-    memoryBlock = `\n## SESSION STATS\n${sessionSummary}\n`;
+    memoryBlock = `\n## SESSION STATS\n${sessionSummary}${learnedContext ? `\nLearned gameplay discoveries:\n${learnedContext}` : ''}\n`;
   }
 
   const stuckBlock = isStuck ? `\n## ⚠️ STUCK WARNING\nThe game state has not changed. Recovery stage: ${brain.stuckRecoveryStage}/3.\nTake a RECOVERY action: click center, Escape, or refresh.\n` : '';
