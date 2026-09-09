@@ -57,7 +57,10 @@ if [ "$GAME_ID" = "xonotic" ]; then
       cp -a "$(dirname "$FOUND")"/. "$XONOTIC_ROOT"/
       chmod +x "$XONOTIC_ROOT"/xonotic-linux64-sdl
     fi
-    DISPLAY=:1 "$XONOTIC_ROOT/xonotic-linux64-sdl" -nohome -userdir "$XONOTIC_ROOT/user" +map dm_run +bot_number 5 &
+    # The client resolves data relative to its launch directory in this
+    # headless setup. Pin the official extracted directory explicitly so the
+    # native client can find data*.pk3 rather than dropping into its error UI.
+    DISPLAY=:1 "$XONOTIC_ROOT/xonotic-linux64-sdl" -basedir "$XONOTIC_ROOT" -nohome -userdir "$XONOTIC_ROOT/user" +map dm_run +bot_number 5 &
   fi
 else
   GODOT_INSTALL_ROOT="$GODOT_ROOT" node server/install_godot.js

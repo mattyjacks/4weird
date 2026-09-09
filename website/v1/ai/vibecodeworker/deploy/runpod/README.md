@@ -97,6 +97,21 @@ Finally apply the animated top/bottom brand marquee with
 and event log remain beside the videos so the hosted UI can expose both the
 clean Gameplay cut and the diagnostic cuts from one synchronized source.
 
+## Phone control
+
+The same `LocalAPIServer` powers desktop, cloud, and phone controls. Open
+`/vibecodeworker/phone.html` on a phone, enter the pod API URL and its
+`VIBE_API_TOKEN`, then use the action pad or touch surface. The page calls
+only `/api/status` and `/api/game/action`; it stores the endpoint only in the
+phone browser's session storage and never persists the token.
+
+For a Runpod pod, expose the API port and use its proxy URL, for example
+`https://<pod-id>-42069.proxy.runpod.net`. Set a high-entropy `VIBE_API_TOKEN`
+before exposing the port; state-changing API requests are rejected without it.
+For a local desktop, keep the default loopback host unless you deliberately
+provide a protected LAN or tunnel URL. Do not use `localhost` from a phone:
+on a phone it refers to the phone, not the desktop.
+
 When `VCW_AUTO_RECORD=1` is set (the web runner sets it whenever a layout is
 requested), `capture_cloud_session.sh` performs those steps automatically after
 the visible browser session ends.
