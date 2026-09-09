@@ -28,21 +28,38 @@ function probeDuration(ffprobe, file) {
 }
 async function synthesizeOpenAiNarration(text, outputPath, voice = process.env.OPENAI_TTS_VOICE || 'nova') {
   const apiKey = getResolvedApiKey('openai', process.env.OPENAI_API_KEY || '');
-  if (!apiKey) throw new Error('OpenAI API key is not configured. Add it in VibeCodeWorker or set OPENAI_API_KEY.');
-  const response = await fetch('https://api.openai.com/v1/audio/speech', {
-    method: 'POST', headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'gpt-4o-mini-tts', voice, input: text.slice(0, 4096), response_format: 'mp3', instructions: voice === 'ash' ? 'Deliver serious, concise, focused software testing analysis.' : 'You are Valley, a fun female game streamer. Be witty, playful, and react naturally to gameplay.' })
-  });
-  if (!response.ok) throw new Error(`OpenAI TTS ${response.status}: ${(await response.text()).slice(0, 240)}`);
-  const bytes = Buffer.from(await response.arrayBuffer());
-  if (bytes.length < 128) throw new Error('OpenAI TTS returned an empty audio file.');
-  fs.writeFileSync(outputPath, bytes);
+  try {
+    if (!apiKey) throw new Error('OpenAI key unavailable');
+    const response = await fetch('https://api.openai.com/v1/audio/speech', {
+      method: 'POST', headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'gpt-4o-mini-tts', voice, input: text.slice(0, 4096), response_format: 'mp3', instructions: voice === 'ash' ? 'Deliver serious, concise, focused software testing analysis.' : 'You are Valley, a fun female game streamer. Be witty, playful, and react naturally to gameplay.' })
+    });
+    if (!response.ok) throw new Error(`OpenAI TTS ${response.status}`);
+    const bytes = Buffer.from(await response.arrayBuffer());
+    if (bytes.length < 128) throw new Error('empty OpenAI audio');
+    fs.writeFileSync(outputPath, bytes);
+    return 'openai';
+  } catch (error) {
+    // Offline/local fallback: Windows SAPI, with gender selected by output role.
+    const wav = `${outputPath}.sapi.wav`;
+    const encoded = Buffer.from(text.slice(0, 4096), 'utf8').toString('base64');
+    const gender = voice === 'ash' ? 'Male' : 'Female';
+    const vbs = `${outputPath}.sapi.vbs`;
+    const escapedText = text.slice(0, 4096).replace(/"/g, '""').replace(/\r?\n/g, ' ');
+    const escapedWav = wav.replace(/\\/g, '/').replace(/"/g, '""');
+    fs.writeFileSync(vbs, `Set voice = CreateObject("SAPI.SpVoice")\nSet stream = CreateObject("SAPI.SpFileStream")\nstream.Open "${escapedWav}", 3, False\nSet voice.AudioOutputStream = stream\nvoice.Rate = 0\nvoice.Volume = 100\nFor Each v In voice.GetVoices()\n If InStr(LCase(v.GetAttribute("Gender")), LCase("${gender}")) > 0 Then Set voice.Voice = v: Exit For\nNext\nvoice.Speak "${escapedText}"\nstream.Close\n`);
+    await run('cscript.exe', ['//nologo', vbs]);
+    try { fs.unlinkSync(vbs); } catch (_) {}
+    await run(mediaMogulFfmpeg(ROOT), ['-y', '-i', wav, '-c:a', 'libmp3lame', '-q:a', '3', outputPath]);
+    try { fs.unlinkSync(wav); } catch (_) {}
+    return `windows-sapi-${gender.toLowerCase()}`;
+  }
 }
 (async () => {
   const base = input.slice(0, -path.extname(input).length);
   const audio = `${base}.voiceover.mp3`;
   const mp4 = `${base}.mp4`;
-  await synthesizeOpenAiNarration(narration, audio, process.env.OPENAI_TTS_VOICE || 'nova');
+  const voiceProvider = await synthesizeOpenAiNarration(narration, audio, process.env.OPENAI_TTS_VOICE || 'nova');
   const ffmpeg = mediaMogulFfmpeg(ROOT);
   if (!fs.existsSync(ffmpeg)) throw new Error(`MediaMogul FFmpeg was not found: ${ffmpeg}`);
   const ffprobe = ffmpeg.replace(/ffmpeg(?:\.exe)?$/i, 'ffprobe.exe');
@@ -58,7 +75,7 @@ async function synthesizeOpenAiNarration(text, outputPath, voice = process.env.O
   const manifest = `${base}.json`;
   if (fs.existsSync(manifest)) {
     const data = JSON.parse(fs.readFileSync(manifest, 'utf8'));
-    data.voiceover = { path: audio, text: narration };
+    data.voiceover = { path: audio, text: narration, provider: voiceProvider, voice: process.env.OPENAI_TTS_VOICE || 'nova' };
     data.finalVideo = { path: mp4, producer: 'MediaMogul', pausedForCommentarySeconds: Number(extra.toFixed(3)), pauseOverlay: extra > 0.25 ? pauseText : null };
     fs.writeFileSync(manifest, JSON.stringify(data, null, 2));
   }

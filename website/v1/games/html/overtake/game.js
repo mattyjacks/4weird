@@ -3132,7 +3132,23 @@
         updateVisualPlayerX(dt);
         updateEngineSound(dt);
         render(now / 1000);
+        if (new URLSearchParams(window.location.search).get("playtest") === "1") drawRecorderHud();
         requestAnimationFrame(frame);
+    }
+    function drawRecorderHud() {
+        if (mode !== "race" && mode !== "countdown") return;
+        ctx.save();
+        ctx.fillStyle = "rgba(4,12,24,.82)";
+        ctx.fillRect(14, 14, 250, 88);
+        ctx.strokeStyle = "#5ae6ff";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(14, 14, 250, 88);
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 16px Consolas, monospace";
+        ctx.fillText(`LAP ${player.lap}/${getRaceLaps()}`, 28, 40);
+        ctx.fillText(`SPEED ${Math.round(player.speed)}`, 28, 64);
+        ctx.fillText(`PLACE ${calculatePlace()}/${opponents.length + 1}`, 28, 88);
+        ctx.restore();
     }
     function updateVisualPlayerX(dt) {
         if (mode !== "race") {
