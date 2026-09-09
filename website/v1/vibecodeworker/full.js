@@ -3,8 +3,8 @@
    ships with this site), GitHub raw as fallback. */
 (function () {
   'use strict';
-  var MANIFEST_URL = '../ai/manifest.json';
-  var LOCAL_BASE = '../ai/';
+  var MANIFEST_URL = '/ai/manifest.json';
+  var LOCAL_BASE = '/ai/';
   var GH_BASE = 'https://raw.githubusercontent.com/mattyjacks/4weird/main/website/v1/ai/';
   var texts = {};
   var current = '';

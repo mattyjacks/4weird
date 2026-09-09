@@ -43,16 +43,22 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://4weird.com/vcw/web/run</loc>
+    <loc>https://4weird.com/vcw/web/run/</loc>
     <lastmod>2026-09-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://4weird.com/vcw/web/full</loc>
+    <loc>https://4weird.com/vcw/web/full/</loc>
     <lastmod>2026-09-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://4weird.com/vcw/web/demo/</loc>
+    <lastmod>2026-09-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://4weird.com/pricing/</loc>

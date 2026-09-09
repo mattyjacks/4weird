@@ -18,18 +18,18 @@
   var bar = document.createElement('div');
   bar.className = 'vcw-nav';
   bar.innerHTML =
-    '<a class="vcw-brand" href="overview.html">4WEIRD <b>/ VIBECODEWORKER</b></a>' +
+    '<a class="vcw-brand" href="/vibecodeworker/">4WEIRD <b>/ VIBECODEWORKER</b></a>' +
     '<div class="vcw-links">' +
-    link('overview.html', 'Overview', 'overview') +
-    link('run.html', 'Cloud Run', 'run') +
-    link('full.html', 'Full Web', 'full') +
-    link('hub.html', 'Workspace', 'hub') +
-    link('docs/index.html', 'Docs', 'docs') +
+    link('/vibecodeworker/', 'Overview', 'overview') +
+    link('/vcw/web/run/', 'Cloud Run', 'run') +
+    link('/vcw/web/full/', 'Full Web', 'full') +
+    link('/vibecodeworker/hub.html', 'Workspace', 'hub') +
+    link('/vibecodeworker/docs/', 'Docs', 'docs') +
     link('https://github.com/mattyjacks/4weird', 'GitHub', '', true) +
     '</div>' +
     '<div class="vcw-mode">' +
-    mode('run.html', 'Run', 'run') +
-    mode('full.html', 'Full', 'full') +
+    mode('/vcw/web/run/', 'Run', 'run') +
+    mode('/vcw/web/full/', 'Full', 'full') +
     '</div>';
   document.body.insertBefore(bar, document.body.firstChild);
   var rule = document.createElement('hr');

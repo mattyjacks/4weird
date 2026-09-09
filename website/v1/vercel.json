@@ -7,7 +7,17 @@
     },
     {
       "source": "/vibecodeworker/preview",
-      "destination": "/vibecodeworker/preview/",
+      "destination": "/vibecodeworker/demo/",
+      "permanent": true
+    },
+    {
+      "source": "/vibecodeworker/preview/:path*",
+      "destination": "/vibecodeworker/demo/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/vcw/web/demo",
+      "destination": "/vcw/web/demo/",
       "permanent": true
     },
     {
@@ -32,6 +42,10 @@
       "destination": "/vibecodeworker/run.html"
     },
     {
+      "source": "/vcw/web/run/",
+      "destination": "/vibecodeworker/run.html"
+    },
+    {
       "source": "/vibecodeworker/run",
       "destination": "/vibecodeworker/run.html"
     },
@@ -40,8 +54,24 @@
       "destination": "/vibecodeworker/full.html"
     },
     {
+      "source": "/vcw/web/full/",
+      "destination": "/vibecodeworker/full.html"
+    },
+    {
       "source": "/vibecodeworker/full",
       "destination": "/vibecodeworker/full.html"
+    },
+    {
+      "source": "/vcw/web/demo/",
+      "destination": "/vibecodeworker/demo/index.html"
+    },
+    {
+      "source": "/vibecodeworker/demo",
+      "destination": "/vibecodeworker/demo/index.html"
+    },
+    {
+      "source": "/vibecodeworker/demo/",
+      "destination": "/vibecodeworker/demo/index.html"
     },
     {
       "source": "/vibecodeworker",
