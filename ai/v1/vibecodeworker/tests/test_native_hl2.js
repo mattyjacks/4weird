@@ -57,7 +57,7 @@ async function runTests() {
 
   try {
     console.log('Test 4: action normalization clamps safely...');
-    assert.deepStrictEqual(player.normalizeNativeAction({ type: 'click', params: { x: 9999, y: -5 } }).params, { x: 1000, y: 0 });
+    assert.deepStrictEqual(player.normalizeNativeAction({ type: 'click', params: { x: 9999, y: -5 } }).params, { x: 1000, y: 0, button: 'left' });
     assert.deepStrictEqual(player.normalizeNativeAction({ type: 'hold_keys', target: 'W, SHIFT' }).params, { keys: ['w', 'shift'] });
     assert.deepStrictEqual(player.normalizeNativeAction({ type: 'drag_look', target: '999,999' }).params, { dx: 500, dy: 500 });
     assert.strictEqual(player.normalizeNativeAction({ type: 'nonsense' }).type, 'hold_keys');
@@ -117,6 +117,44 @@ async function runTests() {
     assert(d && d.action && typeof d.action.type === 'string');
     console.log('PASS Test 7');
   } catch (e) { console.error('FAIL Test 7:', e.message); failed.push('director.fallback'); }
+
+  try {
+    console.log('Test 8: Episode Two end-to-end play path (launch + startup + bridge)...');
+    // Steam AppId wiring: CLI --launch must resolve to 420 for Episode Two.
+    assert.strictEqual(getProfile('hl2-ep2').steamAppId, 420);
+    assert.strictEqual(getProfile('peggle-deluxe').steamAppId, 3483);
+    // Profile id as director target must still take the FPS route (not generic).
+    const ep2Director = new NativeGameDirector();
+    ep2Director.setTarget('hl2-ep2');
+    const startup1 = ep2Director.chooseStartup('hl2-ep2', true);
+    assert(startup1 && startup1.action.type === 'press_key', 'EP2 fresh run starts with Enter');
+    const startup2 = ep2Director.chooseStartup('hl2-ep2', true);
+    assert(startup2 && startup2.action.type === 'press_key', 'EP2 fresh run confirms difficulty');
+    assert.strictEqual(ep2Director.chooseStartup('hl2-ep2', true), null, 'startup queue is exactly 2 steps');
+    // Offline FPS bandit emits window-relative combos the bridge can run in one spawn.
+    const offline = ep2Director.choose('ep2-frame-1');
+    assert(offline && offline.action, 'offline director must return an action');
+    const offlineArgs = player.toInputSimArgs(player.normalizeNativeAction(offline.action));
+    assert(Array.isArray(offlineArgs) || offlineArgs === null, 'offline action must map to bridge argv or local wait');
+    // Middle-mouse alt-fire routes to a dedicated bridge verb (not silent left-click).
+    assert.deepStrictEqual(
+      player.toInputSimArgs({ type: 'click', params: { x: 500, y: 500, button: 'middle' } }),
+      ['middle_click', '500', '500']
+    );
+    assert.deepStrictEqual(
+      player.normalizeNativeAction({ type: 'combo', target: 'x', duration_ms: 500, params: { steps: [{ op: 'middle_click', x: 500, y: 500 }] } }).params.steps[0],
+      { op: 'click', x: 500, y: 500, button: 'middle' }
+    );
+    // CLI parsing: --game hl2-ep2 --launch --steps N drives a live run.
+    const { parseArgs } = require(path.join(projectRoot, 'scripts', 'node', 'run_hl2_playtest'));
+    const parsed = parseArgs(['node', 'run_hl2_playtest.js', '--game', 'hl2-ep2', '--launch', '--steps', '200']);
+    assert.strictEqual(parsed.game, 'hl2-ep2');
+    assert.strictEqual(parsed.launch, true);
+    assert.strictEqual(parsed.steps, 200);
+    assert.strictEqual(parsed.newGame, true);
+    assert.strictEqual(resolveGameProfile('hl2-ep2').id, 'hl2-ep2');
+    console.log('PASS Test 8');
+  } catch (e) { console.error('FAIL Test 8:', e.message); failed.push('hl2.ep2.e2e'); }
 
   if (failed.length) {
     console.error(`\n${failed.length} FAILED: ${failed.join(', ')}`);

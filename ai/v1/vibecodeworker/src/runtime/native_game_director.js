@@ -1,5 +1,5 @@
 /** Local, bounded policy for a user-selected native game window. */
-const FPS_TITLES = /half[- ]?life|portal|source|doom|quake|unreal|fps|shooter/i;
+const FPS_TITLES = /half[- ]?life|portal|source|doom|quake|unreal|fps|shooter|combine|antlion|alyx|hl2|ep2|episode/i;
 const PEGGLE_TITLES = /peggle/i;
 
 function fingerprint(frame = '') {
@@ -43,12 +43,21 @@ class NativeGameDirector {
       ['aim-right', () => action('click', '630,300', 0, 'Peggle shot: aim into the right-side peg cluster.', { x: 630, y: 300 })],
       ['wait-ball', () => action('wait', '', 900, 'Peggle: let the launched ball finish resolving before choosing another shot.')]
     ] : fps ? [
-      ['advance', () => action('hold_keys', 'w,shift', 650, 'FPS route: advance while sprinting.', { keys: ['w', 'shift'] })],
+      ['advance', () => action('combo', 'sprint+scan', 650, 'FPS route: sprint forward while scanning for exits.', { steps: [
+        { op: 'hold_keys', keys: ['w', 'shift'], duration_ms: 600 },
+        { op: 'look', dx: this.tick % 2 ? -120 : 120, dy: 0 }
+      ] })],
       ['scan', () => action('move_mouse', this.tick % 2 ? '420,500' : '580,500', 0, 'FPS route: scan for a target or exit.', { x: this.tick % 2 ? 420 : 580, y: 500 })],
       ['interact', () => action('press_key', 'e', 0, 'FPS route: use the nearby object.', { key: 'e' })],
-      ['jump', () => action('hold_keys', 'w,space', 350, 'FPS route: advance and jump over an obstacle.', { keys: ['w', 'space'] })],
+      ['jump', () => action('combo', 'advance+jump', 450, 'FPS route: sprint forward and jump the obstacle.', { steps: [
+        { op: 'hold_keys', keys: ['w'], duration_ms: 400 },
+        { op: 'press', key: 'space' }
+      ] })],
       ['strafe', () => action('hold_keys', this.tick % 2 ? 'w,a' : 'w,d', 450, 'FPS route: vary the route with a diagonal strafe.', { keys: this.tick % 2 ? ['w', 'a'] : ['w', 'd'] })],
-      ['fire', () => action('click', '500,500', 0, 'FPS route: fire at the crosshair.', { x: 500, y: 500 })],
+      ['fire', () => action('combo', 'track+fire', 500, 'FPS route: track center-screen threat and fire.', { steps: [
+        { op: 'look', dx: 60, dy: 0 },
+        { op: 'click', x: 500, y: 500, button: 'left' }
+      ] })],
       ['reload', () => action('press_key', 'r', 0, 'FPS route: reload weapon.', { key: 'r' })]
     ] : [
       ['confirm', () => action('press_key', 'enter', 0, 'Generic route: confirm focused state.', { key: 'enter' })],

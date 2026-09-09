@@ -7,7 +7,10 @@
  * Usage:
  *   node run_hl2_playtest.js --window "Half-Life 2" --steps 200 --dry-run
  *   node run_hl2_playtest.js --game hl2-ep2 --steps 50
+ *   node run_hl2_playtest.js --game hl2-ep2 --launch --steps 200
  *   node run_hl2_playtest.js --game "Doom Eternal" --steps 50 --dry-run  (any game works)
+ * Flags: --launch (Steam launch AppId 420), --no-new-game (skip New Game
+ * startup), --mode <exclusive-fullscreen|borderless|windowed-fullscreen|partial-windowed>
  *
  * Safety: live inputs are sent ONLY when the target window/process is found;
  * otherwise the script forces --dry-run automatically (decisions + bridge
@@ -24,7 +27,7 @@ const { decideNativeActionViaDeepSeek, toInputSimArgs } = require(path.join(proj
 const { NativeGameDirector } = require(path.join(projectRoot, 'src', 'runtime', 'native_game_director'));
 
 function parseArgs(argv) {
-  const out = { window: 'Half-Life 2', game: '', steps: 20, dryRun: false, heuristic: false, delayMs: 400 };
+  const out = { window: 'Half-Life 2', game: '', steps: 20, dryRun: false, heuristic: false, delayMs: 400, launch: false, newGame: true, mode: 'exclusive-fullscreen' };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--window') out.window = argv[++i] || out.window;
@@ -34,6 +37,10 @@ function parseArgs(argv) {
     else if (a === '--heuristic') out.heuristic = true;
     else if (a === '--delay') out.delayMs = Math.max(0, parseInt(argv[++i], 10) || 0);
     else if (a === '--list-games') { out.listGames = true; }
+    else if (a === '--launch') out.launch = true;
+    else if (a === '--no-new-game') out.newGame = false;
+    else if (a === '--new-game') out.newGame = true;
+    else if (a === '--mode') out.mode = argv[++i] || out.mode;
   }
   return out;
 }
@@ -87,17 +94,39 @@ async function main() {
   console.log(`[hl2-demo] Profile: ${profile.id} - ${profile.name} (query: "${query}")`);
   console.log(`[hl2-demo] Goal: ${profile.goal.slice(0, 160)}...`);
 
+  // Optional Steam launch: `node run_hl2_playtest.js --game hl2-ep2 --launch`
+  // opens Episode Two (AppId 420) via the steam://run protocol before attaching.
+  if (args.launch && !args.dryRun) {
+    try {
+      const { buildSteamRunUrl } = require(path.join(projectRoot, 'src', 'main_process', 'native_runner'));
+      const appId = profile.steamAppId || 420;
+      const launch = buildSteamRunUrl(appId, { mode: args.mode });
+      console.log(`[hl2-demo] Launching Steam game ${appId} (${profile.name}) via ${launch.url} ...`);
+      const { shell } = process.versions.electron ? require('electron') : {};
+      if (shell && shell.openExternal) await shell.openExternal(launch.url);
+      else {
+        const { execSync } = require('child_process');
+        execSync(`start "" "${launch.url}"`, { stdio: 'ignore' });
+      }
+      console.log('[hl2-demo] Waiting 12s for the game window to appear...');
+      await new Promise((r) => setTimeout(r, 12000));
+    } catch (e) {
+      console.log(`[hl2-demo] Steam launch failed (${e.message}), continuing to attach check.`);
+    }
+  }
+
   // Never send real inputs unless the target is actually on screen. Profile
   // ids (e.g. "hl2-ep2") are checked against the process list; title queries
   // are checked against visible window titles.
   if (!args.dryRun) {
-    const looksLikeId = !!args.game && /^(hl2-ep2|hl2-generic|generic-fps|generic-game|peggle-deluxe)$/i.test(args.game);
+    const knownIds = new Set(listProfiles().map((p) => String(p.id).toLowerCase()));
+    const looksLikeId = !!args.game && knownIds.has(String(args.game).toLowerCase());
     const present = looksLikeId
       ? targetProcessRunning(profile.processNames)
       : (targetWindowPresent(query) || targetProcessRunning(profile.processNames));
     if (!present) {
       args.dryRun = true;
-      console.log(`[hl2-demo] Target "${query}" is not running — forcing --dry-run (decisions printed, NO inputs sent). Start the game first for a live run.`);
+      console.log(`[hl2-demo] Target "${query}" is not running — forcing --dry-run (decisions printed, NO inputs sent). Start the game first for a live run (or re-run with --launch).`);
     }
   }
 
@@ -115,6 +144,18 @@ async function main() {
   const fs = require('fs');
   const tmpShot = path.join(os.tmpdir(), `hl2-demo-shot-${Date.now()}.jpg`);
   const history = [];
+  // Fresh-run startup: Episode Two opens on menus/intros, so the first ticks
+  // press Enter through New Game + difficulty (mirrors the dashboard flow).
+  const startupQueue = [];
+  if (args.newGame) {
+    let s = null;
+    // chooseStartup returns at most 2 sequenced actions for hl2-ep2.
+    for (let i = 0; i < 2; i++) {
+      s = director.chooseStartup(profile.id, true);
+      if (!s) break;
+      startupQueue.push(s);
+    }
+  }
 
   for (let step = 1; step <= args.steps; step++) {
     let shot = null;
@@ -129,8 +170,13 @@ async function main() {
     }
 
     let decision = null;
+    if (startupQueue.length) {
+      decision = startupQueue.shift();
+      decision.profile = profile.id;
+      decision.status = decision.status || 'menu';
+    }
     const hasKey = !!(process.env.DEEPSEEK_API_KEY || brain.config.apiKey);
-    if (hasKey && !args.heuristic) {
+    if (!decision && hasKey && !args.heuristic) {
       try {
         decision = await decideNativeActionViaDeepSeek(brain, {
           screenshotBase64: shot,

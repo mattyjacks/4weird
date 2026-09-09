@@ -117,6 +117,7 @@ def print_help():
     print("Usage:")
     print("  python input_sim.py click <x> <y> [window_title]")
     print("  python input_sim.py right_click <x> <y> [window_title]")
+    print("  python input_sim.py middle_click <x> <y> [window_title]")
     print("  python input_sim.py double_click <x> <y> [window_title]")
     print("  python input_sim.py press <key> [window_title]")
     print("  python input_sim.py type <text> [window_title]")
@@ -215,6 +216,11 @@ def execute_combo_steps(steps, window_title):
                 y = int(s.get('y', 500) if s.get('y') is not None else 500)
                 rx, ry = do_click_at(x, y, window_title, button='right')
                 results.append(f"right_click ({rx},{ry})")
+            elif op == 'middle_click':
+                x = int(s.get('x', 500) if s.get('x') is not None else 500)
+                y = int(s.get('y', 500) if s.get('y') is not None else 500)
+                rx, ry = do_click_at(x, y, window_title, button='middle')
+                results.append(f"middle_click ({rx},{ry})")
             elif op == 'double_click':
                 x = int(s.get('x', 500) if s.get('x') is not None else 500)
                 y = int(s.get('y', 500) if s.get('y') is not None else 500)
@@ -321,6 +327,17 @@ def main():
                 activate_window(window_title)
             rx, ry = do_click_at(x, y, window_title, button='right')
             print(f"Successfully right-clicked at ({rx}, {ry})")
+
+        elif cmd == "middle_click":
+            if len(sys.argv) < 4:
+                print("Error: middle_click command requires x and y coordinates")
+                sys.exit(1)
+            x, y = int(sys.argv[2]), int(sys.argv[3])
+            window_title = " ".join(sys.argv[4:]) if len(sys.argv) >= 5 else ''
+            if window_title:
+                activate_window(window_title)
+            rx, ry = do_click_at(x, y, window_title, button='middle')
+            print(f"Successfully middle-clicked at ({rx}, {ry})")
 
         elif cmd == "double_click":
             if len(sys.argv) < 4:

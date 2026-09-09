@@ -48,23 +48,31 @@ class Zombie {
     this.group = new THREE.Group();
     this.group.position.set(this.worldX, this.worldY, this.worldZ);
     
-    // 1. Torso (Ragged shirt color)
-    const torsoGeo = new THREE.BoxGeometry(0.7, 0.9, 0.4);
-    const torsoMat = new THREE.MeshStandardMaterial({ color: this.shirtColor, roughness: 0.9 });
+    // Layered, low-poly body: readable at distance without a costly character asset.
+    const torsoGeo = new THREE.CylinderGeometry(0.31, 0.4, 0.9, 7);
+    const torsoMat = new THREE.MeshStandardMaterial({ color: this.shirtColor, roughness: 0.82, metalness: 0.08 });
     this.torso = new THREE.Mesh(torsoGeo, torsoMat);
     this.torso.position.y = 0.55;
     this.group.add(this.torso);
     
-    // 2. Head (Decaying green flesh color)
-    const headGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-    const headMat = new THREE.MeshStandardMaterial({ color: this.fleshColor, roughness: 0.9 });
+    // A faceted head, jaw, and exposed neck give the zombies a stronger silhouette.
+    const headGeo = new THREE.IcosahedronGeometry(0.31, 1);
+    const headMat = new THREE.MeshStandardMaterial({ color: this.fleshColor, roughness: 0.78, metalness: 0.04 });
     this.head = new THREE.Mesh(headGeo, headMat);
     this.head.position.set(0, 1.25, 0);
     this.group.add(this.head);
+
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 0.22, 6), headMat);
+    neck.position.set(0, 0.98, 0);
+    this.group.add(neck);
+    const jaw = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.11, 0.28), new THREE.MeshStandardMaterial({ color: 0x233c2b, roughness: 1 }));
+    jaw.position.set(0, 1.08, 0.14);
+    jaw.rotation.x = -0.14;
+    this.group.add(jaw);
     
     // 2b. Two separate glowing red eyes
-    const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-    const eyeGeo = new THREE.BoxGeometry(0.06, 0.06, 0.06);
+    const eyeMat = new THREE.MeshStandardMaterial({ color: 0xff174d, emissive: 0xff002d, emissiveIntensity: 2.8, roughness: 0.25 });
+    const eyeGeo = new THREE.SphereGeometry(0.045, 8, 6);
     
     this.eyeL = new THREE.Mesh(eyeGeo, eyeMat);
     this.eyeL.position.set(-0.12, 1.3, 0.26);
@@ -73,6 +81,14 @@ class Zombie {
     this.eyeR = new THREE.Mesh(eyeGeo, eyeMat);
     this.eyeR.position.set(0.12, 1.3, 0.26);
     this.group.add(this.eyeR);
+
+    // Torn shirt panel and a faint bio-luminescent wound keep the model legible in dark levels.
+    const wound = new THREE.Mesh(
+      new THREE.CircleGeometry(0.11, 8),
+      new THREE.MeshBasicMaterial({ color: 0x78ff8a, transparent: true, opacity: 0.8 })
+    );
+    wound.position.set(0.13, 0.57, 0.205);
+    this.group.add(wound);
     
     // 3. Arms (Low-poly sleeves and flesh hands stretching forward)
     const sleeveGeo = new THREE.BoxGeometry(0.14, 0.14, 0.45);
@@ -143,6 +159,12 @@ class Zombie {
     this.group.add(this.rightLeg);
     
     this.scene.add(this.group);
+    this.group.traverse(child => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
   }
 
   createLabel() {

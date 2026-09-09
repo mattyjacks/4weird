@@ -528,22 +528,31 @@ async function runTests() {
   }
 
   // Test 17: Environment Variable Resolution for OPENAI_API_KEY and OPENROUTER_API_KEY
+  const _t17OriginalFetch = global.fetch;
   try {
     console.log("Running Test 17: Environment Variable Resolution (OPENAI_API_KEY & OPENROUTER_API_KEY)...");
     const { AutoCodeSystem } = require(path.join(projectRoot, 'lib', 'core'));
+    const storage = require(path.join(projectRoot, 'lib', 'storage'));
     const autoCode = new AutoCodeSystem();
+
+    // Isolate from Test 23's persistent credential store: stored keys outrank
+    // env vars by design, so stash + clear openai/openrouter before asserting
+    // env fallback, then restore afterwards.
+    let stashedCreds = {};
+    try { stashedCreds = storage.loadCredentials() || {}; } catch (_) {}
+    try { storage.removeCredentialsForProviders(['openai', 'openrouter']); } catch (_) {}
+    try { storage._clearCredentialsCache(); } catch (_) {}
 
     // Case A: OPENROUTER_API_KEY
     process.env.OPENROUTER_API_KEY = "sk-or-v1-mock-test-key-456";
     autoCode.updateConfig({ provider: 'openrouter', apiKey: '' });
 
     // Intercept fetch to check headers
-    const originalFetch = global.fetch;
     let interceptedAuth = '';
     let interceptedUrl = '';
     global.fetch = async (url, opts) => {
       interceptedUrl = url;
-      interceptedAuth = opts.headers['Authorization'];
+      interceptedAuth = (opts && opts.headers && opts.headers['Authorization']) || '';
       return {
         ok: true,
         json: async () => ({
@@ -565,8 +574,14 @@ async function runTests() {
     assert.strictEqual(interceptedAuth, "Bearer sk-proj-mock-test-key-123", "Should use process.env.OPENAI_API_KEY");
     assert(interceptedUrl.includes("openai.com"), "Should call openai endpoint");
 
-    // Restore fetch and clean env mocks
-    global.fetch = originalFetch;
+    // Restore stashed credentials (Test 23 data) so later tests see them.
+    try {
+      const toRestore = {};
+      if (stashedCreds.openaiApiKey) toRestore.openaiApiKey = stashedCreds.openaiApiKey;
+      if (stashedCreds.openrouterApiKey) toRestore.openrouterApiKey = stashedCreds.openrouterApiKey;
+      if (Object.keys(toRestore).length) storage.saveCredentials(toRestore);
+      else storage._clearCredentialsCache();
+    } catch (_) {}
     delete process.env.OPENROUTER_API_KEY;
     delete process.env.OPENAI_API_KEY;
 
@@ -574,6 +589,11 @@ async function runTests() {
   } catch (err) {
     console.error("❌ Test 17 Failed:", err);
     failedTests.push("AutoCode.environmentVariableResolution");
+  } finally {
+    // Always restore fetch: a leaked mock breaks Tests 25/28/30 (real localhost calls).
+    global.fetch = _t17OriginalFetch;
+    try { delete process.env.OPENROUTER_API_KEY; } catch (_) {}
+    try { delete process.env.OPENAI_API_KEY; } catch (_) {}
   }
 
   // Test 18: Ultralight Web Engine Automation & Bug Telemetry
@@ -768,13 +788,14 @@ async function runTests() {
   }
 
   // Test 24: DeepSeek & Meta Muse Spark Provider and Self-Improvement Cycle
+  const _t24OriginalFetch = global.fetch;
   try {
     console.log("Running Test 24: DeepSeek & Meta Providers and Self-Improvement Cycle...");
     const { AutoCodeSystem } = require(path.join(projectRoot, 'lib', 'core'));
     const autoCode = new AutoCodeSystem();
 
     // Mock fetch for LLM call testing
-    const originalFetch = global.fetch;
+    const originalFetch = _t24OriginalFetch;
     let lastUrl = '';
     let lastBody = null;
     let lastAuth = '';
@@ -830,6 +851,8 @@ async function runTests() {
   } catch (err) {
     console.error("❌ Test 24 Failed:", err);
     failedTests.push("DeepSeek.harnessAndProviders");
+  } finally {
+    global.fetch = _t24OriginalFetch;
   }
 
   // Test 25: Configurable Local REST API Server Port (Default 42069, dynamic change)

@@ -17,7 +17,7 @@ class GameApp {
     this.camera.position.set(0, 0.2, 5.0);
     
     // Add player spotlight
-    this.flashlight = new THREE.SpotLight(0x00f2fe, 50.0, 35.0, Math.PI / 4.5, 0.6, 1.0);
+    this.flashlight = new THREE.SpotLight(0x8eefff, 18.0, 30.0, Math.PI / 5, 0.55, 1.2);
     this.flashlight.castShadow = true;
     this.flashlight.shadow.mapSize.width = 1024;
     this.flashlight.shadow.mapSize.height = 1024;
@@ -27,10 +27,14 @@ class GameApp {
     this.createPlayerHands();
     this.scene.add(this.camera);
     
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
     this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.outputEncoding = THREE.sRGBEncoding;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 0.62;
     this.container.appendChild(this.renderer.domElement);
     
     this.particles = new ParticleManager(this.scene, this.state);
@@ -42,6 +46,7 @@ class GameApp {
     this.corridorGirders = [];
     this.levelMeshes = [];
     this.isSpeedUpActive = false;
+    this.gameTimeScale = 1;
     
     this.lastTime = 0;
     this.spawnTimer = 0;
@@ -198,12 +203,14 @@ class GameApp {
     }
     
     // Add ambient fill light
-    const ambientLight = new THREE.AmbientLight(0x0a1128, 0.45);
+    const ambientLight = new THREE.HemisphereLight(0x18304d, 0x050609, 0.22);
     this.addLevelMesh(ambientLight);
     
     // Add directional lighting down the corridor
-    const dirLight = new THREE.DirectionalLight(0x00f2fe, 0.65);
+    const dirLight = new THREE.DirectionalLight(0x8eefff, 0.32);
     dirLight.position.set(0, 3, 5);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.set(1024, 1024);
     this.addLevelMesh(dirLight);
   }
 
@@ -275,18 +282,18 @@ class GameApp {
       lightBulb.position.set(-roadWidth / 2 + 0.1, 3.2 - 1.2, z);
       this.addLevelMesh(lightBulb);
       
-      const light = new THREE.PointLight(0xff00ff, 45.0, 15.0);
+      const light = new THREE.PointLight(0xff00ff, 9.0, 11.0);
       light.position.set(-roadWidth / 2 + 0.1, 3.0 - 1.2, z);
       this.addLevelMesh(light);
-      this.lights.push({ bulb: lightBulb, light, baseIntensity: 45.0, zOffset: z });
+      this.lights.push({ bulb: lightBulb, light, baseIntensity: 9.0, zOffset: z });
     }
     
     // Ambient night lighting
-    const ambientLight = new THREE.AmbientLight(0x0f0b18, 0.45);
+    const ambientLight = new THREE.HemisphereLight(0x1b2450, 0x0b0610, 0.2);
     this.addLevelMesh(ambientLight);
     
     // Directional sky light
-    const dirLight = new THREE.DirectionalLight(0x8b5cf6, 0.55);
+    const dirLight = new THREE.DirectionalLight(0xa78bfa, 0.28);
     dirLight.position.set(0, 5, 5);
     this.addLevelMesh(dirLight);
   }
@@ -387,19 +394,19 @@ class GameApp {
         lightBulb.position.set(roadWidth / 2 - 0.4, 0.05 - 1.2, z);
         this.addLevelMesh(lightBulb);
         
-        const light = new THREE.PointLight(0x00ff88, 30.0, 10.0);
+        const light = new THREE.PointLight(0x00ff88, 7.0, 8.0);
         light.position.set(roadWidth / 2 - 0.4, 0.2 - 1.2, z);
         this.addLevelMesh(light);
-        this.lights.push({ bulb: lightBulb, light, baseIntensity: 30.0, zOffset: z });
+        this.lights.push({ bulb: lightBulb, light, baseIntensity: 7.0, zOffset: z });
       }
     }
     
     // Spooky graveyard ground ambient glow
-    const ambientLight = new THREE.AmbientLight(0x0d0818, 0.4);
+    const ambientLight = new THREE.HemisphereLight(0x2a173d, 0x030804, 0.18);
     this.addLevelMesh(ambientLight);
     
     // Cool purple moonlight
-    const dirLight = new THREE.DirectionalLight(0xa855f7, 0.5);
+    const dirLight = new THREE.DirectionalLight(0xc084fc, 0.25);
     dirLight.position.set(0, 6, 6);
     this.addLevelMesh(dirLight);
   }
@@ -445,13 +452,13 @@ class GameApp {
     bulb.rotation.z = Math.PI / 2;
     bulb.position.set(0, height - 1.25, z);
     
-    const light = new THREE.PointLight(0x00ff88, 45.0, 16.0);
+    const light = new THREE.PointLight(0x00ff88, 10.0, 12.0);
     light.position.set(0, height - 1.4, z);
     
     this.addLevelMesh(bulb);
     this.addLevelMesh(light);
     
-    this.lights.push({ bulb, light, baseIntensity: 45.0, zOffset: z });
+    this.lights.push({ bulb, light, baseIntensity: 10.0, zOffset: z });
   }
 
   createDetailedServerRack(x, y, z, width, height, depth, color) {
@@ -1066,7 +1073,8 @@ class GameApp {
     this.buildLevelScene();
     this.calculateWaveBudget();
     
-    this.spawnTimer = 0;
+    // Spawn immediately so a new run never presents an empty corridor for seconds.
+    this.spawnTimer = Number.MAX_SAFE_INTEGER;
     this.state.setGameState(GameState.PLAYING);
     this.resizeCanvas();
     
@@ -1144,7 +1152,7 @@ class GameApp {
   }
 
   update(dt) {
-    const activeDt = this.isSpeedUpActive ? dt * 3.0 : dt;
+    const activeDt = (this.isSpeedUpActive ? dt * 3.0 : dt) * this.gameTimeScale;
 
     // 0. Update door slide animations
     this.spawnDoors.forEach(door => {
@@ -1266,14 +1274,15 @@ class GameApp {
     }
     
     let spawnX = (Math.random() - 0.5) * 4.0;
-    let spawnZ = -70.0;
+    // Deep enough for the scene to breathe, close enough to be playable.
+    let spawnZ = -24.0;
     
     if (selectedDoor) {
       selectedDoor.state = 'opening';
       selectedDoor.statusLightMat.color.setHex(0x00ffcc);
       
       spawnX = selectedDoor.x;
-      spawnZ = selectedDoor.z;
+      spawnZ = Math.max(selectedDoor.z, -30.0);
     }
     
     const z = new Zombie(this.scene, word, speed, spawnZ, this.state.equippedFont);

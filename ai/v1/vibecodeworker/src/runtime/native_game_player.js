@@ -58,6 +58,11 @@ function normalizeComboStep(raw) {
       const y = Number.isFinite(raw.y) ? clampCoord(raw.y) : 500;
       return { op: 'right_click', x, y };
     }
+    case 'middle_click': {
+      const x = Number.isFinite(raw.x) ? clampCoord(raw.x) : 500;
+      const y = Number.isFinite(raw.y) ? clampCoord(raw.y) : 500;
+      return { op: 'click', x, y, button: 'middle' };
+    }
     case 'double_click': {
       const x = Number.isFinite(raw.x) ? clampCoord(raw.x) : 500;
       const y = Number.isFinite(raw.y) ? clampCoord(raw.y) : 500;
@@ -330,9 +335,10 @@ function toInputSimArgs(action) {
       const x = action.params?.x ?? 500;
       const y = action.params?.y ?? 500;
       const button = String(action.params?.button || 'left').toLowerCase();
-      // input_sim.py has dedicated right/double verbs; route through them so
-      // the click lands with the correct OS button in one spawn.
+      // input_sim.py has dedicated right/middle/double verbs; route through
+      // them so the click lands with the correct OS button in one spawn.
       if (button === 'right') return ['right_click', String(x), String(y)];
+      if (button === 'middle') return ['middle_click', String(x), String(y)];
       return ['click', String(x), String(y)];
     }
     case 'right_click': {
