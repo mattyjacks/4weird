@@ -419,10 +419,19 @@ async function handleApiRequest(context, req, res, pathname, parsedUrl, readBody
     return sendJSON(result.success ? 200 : 500, result);
   }
 
+  // ─── Runpod cloud game + model runs (BYOK, 55 min cap, per second) ────
+  // Public page calls api.runpod.io directly so keys never touch our servers.
+  // These local endpoints are a convenience for the desktop app only.
+  if (pathname.startsWith('/api/cloud/')) {
+    const { handleCloudRequest } = require('./cloud_routes');
+    const handled = await handleCloudRequest(pathname, req, readBody, sendJSON, sendText);
+    if (handled !== null) return handled;
+  }
+
   // 404 handler
   return sendJSON(404, {
     success: false,
-    error: `Endpoint '${pathname}' not found. Available endpoints: /api/status, /api/games, /api/game/launch, /api/game/screenshot, /api/game/logs, /api/game/state, /api/game/action, /api/game/eval, /api/game/patch, /api/vision/state, /api/bugs, /api/audio/status, /api/audio/voices, /api/audio/tts, /api/audio/stt, /api/audio/sfx, /api/audio/music, /api/audio/analyze, /api/audio/narrate-bug, /api/audio/commentary, /api/audio/voice-command, /api/audio/npc-pack, /api/audio/cover-missing, /api/audio/subtitle-check, /api/audio/sfx-hint, /api/engine, /api/engine/switch, /api/engine/multi-qa, /api/autocode/fix, /api/autocode/report, /api/opencode/status, /api/opencode/export, /api/opencode/fix, /api/opencode/heal, /api/opencode/heal/:id, /api/opencode/heal-test, /api/opencode/revert, /api/opencode/handoff, /api/dashboard`
+    error: `Endpoint '${pathname}' not found. Available endpoints: /api/status, /api/games, /api/game/launch, /api/game/screenshot, /api/game/logs, /api/game/state, /api/game/action, /api/game/eval, /api/game/patch, /api/vision/state, /api/bugs, /api/audio/status, /api/audio/voices, /api/audio/tts, /api/audio/stt, /api/audio/sfx, /api/audio/music, /api/audio/analyze, /api/audio/narrate-bug, /api/audio/commentary, /api/audio/voice-command, /api/audio/npc-pack, /api/audio/cover-missing, /api/audio/subtitle-check, /api/audio/sfx-hint, /api/engine, /api/engine/switch, /api/engine/multi-qa, /api/cloud/models, /api/cloud/estimate, /api/cloud/launch, /api/cloud/status, /api/cloud/stop, /api/autocode/fix, /api/autocode/report, /api/opencode/status, /api/opencode/export, /api/opencode/fix, /api/opencode/heal, /api/opencode/heal/:id, /api/opencode/heal-test, /api/opencode/revert, /api/opencode/handoff, /api/dashboard`
   });
 }
 

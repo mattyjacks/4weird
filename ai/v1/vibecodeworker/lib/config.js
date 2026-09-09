@@ -48,6 +48,16 @@ class AutoCodeConfig {
     this.audioCommentary = false; // speak agent thinking-out-loud via TTS
     this.audioNarrateBugs = false; // speak bug alerts via TTS
 
+    // Runpod cloud game + model runs (BYOK, 55 min cap, per second billing).
+    // Key is never stored here; it arrives per request via x-runpod-key.
+    this.cloud = {
+      maxMinutes: 55,
+      billing: 'per-second',
+      gameVramGB: 5,
+      minGpuGB: 16,
+      defaultGpuId: 'NVIDIA RTX 2000 Ada Generation'
+    };
+
     // Local-model orchestration (Ollama role assignments — see lib/model_roles.js).
     // Defaults are suggestions only; the dashboard "Local models" panel owns them.
     this.localModels = {

@@ -28,6 +28,10 @@
   ],
   "rewrites": [
     {
+      "source": "/vibecodeworker/run",
+      "destination": "/vibecodeworker/run.html"
+    },
+    {
       "source": "/vibecodeworker",
       "destination": "/vibecodeworker/overview.html"
     },

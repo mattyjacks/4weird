@@ -20,6 +20,13 @@
   "autoCodeCaptureOnPlay": false,
   "serverPort": 42069,
   "webEngine": "ultralight",
+  "cloud": {
+    "maxMinutes": 55,
+    "billing": "per-second",
+    "gameVramGB": 5,
+    "minGpuGB": 16,
+    "defaultGpuId": "NVIDIA RTX 2000 Ada Generation"
+  },
   "audioChannelMode": "mono",
   "audioVoiceId": "21m00Tcm4TlvDq8ikWAM",
   "audioCommentary": false,

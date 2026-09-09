@@ -106,7 +106,7 @@ class LocalAPIServer {
         // Allow CORS for local origins or non-browser tooling (curl, python, node tests)
         res.setHeader('Access-Control-Allow-Origin', origin || '*');
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Vibe-Auth');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Vibe-Auth, X-Runpod-Key');
 
         if (req.method === 'OPTIONS') {
           res.writeHead(204);
@@ -119,7 +119,8 @@ class LocalAPIServer {
 
         // Security: Block non-local external origins from mutating the host machine or executing code
         const EXECUTION_PATHS = ['/api/game/patch', '/api/game/eval', '/api/autocode/fix',
-          '/api/opencode/fix', '/api/opencode/heal', '/api/opencode/heal-test', '/api/opencode/revert'];
+          '/api/opencode/fix', '/api/opencode/heal', '/api/opencode/heal-test', '/api/opencode/revert',
+          '/api/cloud/launch', '/api/cloud/stop', '/api/cloud/status'];
         if (origin && !isLocalOrigin && EXECUTION_PATHS.some(p => pathname.startsWith(p))) {
           res.writeHead(403, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: false, error: 'Forbidden: Untrusted external origin not authorized for execution endpoints' }));
