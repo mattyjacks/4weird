@@ -121,6 +121,8 @@
     var mem = Number(opt.dataset.memory) || 16;
     state.hourly = Number(opt.dataset.price) || 0;
     var game = $('run-game').value || 'snake-canvas';
+    var inputMode = $('run-input-mode').value || 'desktop';
+    var videoLayout = $('run-video-layout').value || 'both';
     log('Launching ' + game + ' on ' + gpuId + ' with ' + MODEL_FOR(mem) + '...');
     try {
       var data = await cloudRequest('/launch', {
@@ -128,7 +130,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: ('vibe-cloud-' + Date.now().toString(36)).slice(0, 48), gpuId: gpuId,
-          gpuMemoryGB: mem, gameId: game, openSourceGameId: game
+          gpuMemoryGB: mem, gameId: game, openSourceGameId: game, inputMode: inputMode, videoLayout: videoLayout
         })
       });
       state.podId = data.podId;

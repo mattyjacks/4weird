@@ -43,6 +43,10 @@ async function run() {
   assert.strictEqual(spec.billing, 'per-second');
   assert.strictEqual(spec.body.env.VIBE_MAX_MINUTES, '55');
   assert.strictEqual(spec.body.env.VIBE_MODEL, 'qwen2.5vl:14b');
+  const layoutSpec = cloud.buildPodSpec({ gpuId: 'NVIDIA GeForce RTX 4090', gpuMemoryGB: 24, gameId: 'snake-canvas', inputMode: 'mobile', videoLayout: 'both' });
+  assert.strictEqual(layoutSpec.body.env.VCW_INPUT_MODE, 'mobile');
+  assert.strictEqual(layoutSpec.body.env.VCW_VIDEO_LAYOUT, 'both');
+  assert.strictEqual(layoutSpec.body.env.VCW_AUTO_RECORD, '1');
   assert.strictEqual(spec.body.env.VIBE_OPEN_SOURCE_GAME_ID, 'snake-canvas');
   assert.strictEqual(spec.openSourceGame.license, 'MIT');
   assert.ok(spec.body.ports.includes('6901/http') && spec.body.ports.includes('6902/http'), 'dual desktop ports are exposed');

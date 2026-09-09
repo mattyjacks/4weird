@@ -6,6 +6,8 @@ GODOT_ROOT="${GODOT_INSTALL_ROOT:-/opt/godot}"
 GODOT_PROJECT_ROOT=/workspace/godot-demo-projects
 GAME_ID="${VIBE_OPEN_SOURCE_GAME_ID:-snake-canvas}"
 GAME_ENTRY="${VIBE_OPEN_SOURCE_GAME_ENTRY:-index.html}"
+INPUT_MODE="${VCW_INPUT_MODE:-desktop}"
+VIDEO_LAYOUT="${VCW_VIDEO_LAYOUT:-both}"
 mkdir -p "$GAME_ROOT"
 case "$GAME_ID" in
   snake-canvas) GAME_REPO=https://github.com/adrianov/snake.git ;;
@@ -25,6 +27,7 @@ if [ ! -f "$GODOT_PROJECT_ROOT/2d/dodge_the_creeps/project.godot" ]; then
 fi
 
 cd /opt/vcw/website/v1/ai/vibecodeworker
+echo "VCW capture mode: ${INPUT_MODE}; requested layouts: ${VIDEO_LAYOUT}"
 GODOT_INSTALL_ROOT="$GODOT_ROOT" node server/install_godot.js
 GODOT_BIN="$(find "$GODOT_ROOT" -type f -name 'Godot_*_linux.x86_64' -print -quit)"
 if [ -z "$GODOT_BIN" ]; then echo 'Godot install did not produce a Linux executable' >&2; exit 70; fi
@@ -37,6 +40,14 @@ x11vnc -display :2 -forever -shared -nopw -rfbport 5902 &
 websockify --web=/usr/share/novnc 6901 localhost:5901 &
 websockify --web=/usr/share/novnc 6902 localhost:5902 &
 DISPLAY=:1 "$GODOT_BIN" --path "$GODOT_PROJECT_ROOT/2d/dodge_the_creeps" &
-DISPLAY=:2 google-chrome --no-sandbox --disable-dev-shm-usage --app="http://127.0.0.1:8888/vibecodeworker/hub.html" &
+if [ "$INPUT_MODE" = "mobile" ]; then
+  CHROME_VIEWPORT='--window-size=430,900 --force-device-scale-factor=1'
+else
+  CHROME_VIEWPORT='--window-size=1440,900'
+fi
+DISPLAY=:2 google-chrome --no-sandbox --disable-dev-shm-usage $CHROME_VIEWPORT --app="http://127.0.0.1:8888/vibecodeworker/hub.html" &
+if [ "${VCW_AUTO_RECORD:-0}" = "1" ]; then
+  VCW_CAPTURE_ENTRY="${VCW_CAPTURE_ENTRY:-games/html/overtake/index.html}" VCW_CAPTURE_NAME="${VIBE_GAME:-cloud-session}" "$PWD/deploy/runpod/capture_cloud_session.sh" &
+fi
 trap 'kill "$API_PID" 2>/dev/null || true' EXIT INT TERM
 wait "$API_PID"

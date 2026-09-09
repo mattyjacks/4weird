@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, shell, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { execFile } = require('child_process');
 const projectRoot = path.resolve(__dirname, '..');
 
 // Keep the runner self-contained on locked-down Windows hosts. The default
@@ -859,6 +860,11 @@ function createLocalApiServer(port) {
       startVideoRecording: async (options) => await startPlaytestRecording(projectRoot, options, mainWindow),
       stopVideoRecording: async () => await stopPlaytestRecording(projectRoot),
       getVideoRecordingStatus: async () => getPlaytestRecordingStatus(projectRoot),
+      exportVideoLayouts: async ({ input, inputMode = 'desktop' } = {}) => {
+        if (!input || !fs.existsSync(input)) return { success: false, error: 'A captured gameplay MP4 path is required' };
+        const exporter = inputMode === 'mobile' ? 'scripts/node/export_mobile_testing.js' : 'scripts/node/export_testing_layouts.js';
+        return await new Promise((resolve) => execFile(process.execPath, [path.join(projectRoot, exporter), input], { cwd: projectRoot, windowsHide: true, env: { ...process.env, VCW_INPUT_MODE: inputMode } }, (error, stdout, stderr) => resolve(error ? { success: false, error: stderr || error.message } : { success: true, inputMode, output: stdout.trim() })));
+      },
 
       evalJavaScript: async (script) => {
         const win = getGameWindow() || mainWindow;

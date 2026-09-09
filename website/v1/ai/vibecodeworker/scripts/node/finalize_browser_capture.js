@@ -26,12 +26,12 @@ function probeDuration(ffprobe, file) {
     child.on('error', reject); child.on('close', code => code === 0 ? resolve(Number(out.trim())) : reject(new Error('ffprobe failed')));
   });
 }
-async function synthesizeOpenAiNarration(text, outputPath) {
+async function synthesizeOpenAiNarration(text, outputPath, voice = process.env.OPENAI_TTS_VOICE || 'nova') {
   const apiKey = getResolvedApiKey('openai', process.env.OPENAI_API_KEY || '');
   if (!apiKey) throw new Error('OpenAI API key is not configured. Add it in VibeCodeWorker or set OPENAI_API_KEY.');
   const response = await fetch('https://api.openai.com/v1/audio/speech', {
     method: 'POST', headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'gpt-4o-mini-tts', voice: 'nova', input: text.slice(0, 4096), response_format: 'mp3', instructions: 'Deliver this as upbeat, witty video-game stream commentary. Keep it natural.' })
+    body: JSON.stringify({ model: 'gpt-4o-mini-tts', voice, input: text.slice(0, 4096), response_format: 'mp3', instructions: voice === 'ash' ? 'Deliver serious, concise, focused software testing analysis.' : 'You are Valley, a fun female game streamer. Be witty, playful, and react naturally to gameplay.' })
   });
   if (!response.ok) throw new Error(`OpenAI TTS ${response.status}: ${(await response.text()).slice(0, 240)}`);
   const bytes = Buffer.from(await response.arrayBuffer());
@@ -42,7 +42,7 @@ async function synthesizeOpenAiNarration(text, outputPath) {
   const base = input.slice(0, -path.extname(input).length);
   const audio = `${base}.voiceover.mp3`;
   const mp4 = `${base}.mp4`;
-  await synthesizeOpenAiNarration(narration, audio);
+  await synthesizeOpenAiNarration(narration, audio, process.env.OPENAI_TTS_VOICE || 'nova');
   const ffmpeg = mediaMogulFfmpeg(ROOT);
   if (!fs.existsSync(ffmpeg)) throw new Error(`MediaMogul FFmpeg was not found: ${ffmpeg}`);
   const ffprobe = ffmpeg.replace(/ffmpeg(?:\.exe)?$/i, 'ffprobe.exe');
@@ -53,7 +53,8 @@ async function synthesizeOpenAiNarration(text, outputPath) {
   const videoFilter = extra > 0.25
     ? `tpad=stop_mode=clone:stop_duration=${extra.toFixed(3)},drawbox=x=8:y=8:w=iw-16:h=ih-16:color=red@0.95:t=8,drawbox=x=18:y=18:w=112:h=112:color=black@0.72:t=fill,drawtext=text='||':fontcolor=white:fontsize=72:x=43:y=29,drawtext=text='${pauseText}':fontcolor=white:fontsize=28:x=(w-text_w)/2:y=h-58`
     : 'null';
-  await run(ffmpeg, ['-y', '-i', input, '-i', audio, '-filter:v', videoFilter, '-filter:a', 'apad', '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k', '-shortest', '-movflags', '+faststart', mp4]);
+  const normalizedVideoFilter = videoFilter === 'null' ? 'scale=trunc(iw/2)*2:trunc(ih/2)*2' : `${videoFilter},scale=trunc(iw/2)*2:trunc(ih/2)*2`;
+  await run(ffmpeg, ['-y', '-i', input, '-i', audio, '-filter:v', normalizedVideoFilter, '-filter:a', 'apad', '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k', '-shortest', '-movflags', '+faststart', mp4]);
   const manifest = `${base}.json`;
   if (fs.existsSync(manifest)) {
     const data = JSON.parse(fs.readFileSync(manifest, 'utf8'));

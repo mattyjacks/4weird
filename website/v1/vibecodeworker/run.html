@@ -33,6 +33,8 @@
         <div><label>GPU (cheapest available default)</label><select id="run-gpu"></select></div>
       </div>
       <div class="run-row">
+        <div><label>Input mode</label><select id="run-input-mode"><option value="desktop">Desktop — mouse + keyboard</option><option value="mobile">Mobile — touch + vertical</option></select></div>
+        <div><label>Testing video layouts</label><select id="run-video-layout"><option value="both">TestingH + TestingV</option><option value="testingH">TestingH only</option><option value="testingV">TestingV only</option></select></div>
         <button class="run-btn" id="run-refresh">Refresh cheapest available</button>
         <button class="run-btn" id="run-launch">Launch cloud run</button>
         <button class="run-btn danger" id="run-stop">Stop (ends billing)</button>

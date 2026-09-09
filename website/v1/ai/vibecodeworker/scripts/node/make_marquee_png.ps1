@@ -1,0 +1,3 @@
+param([string]$Out,[int]$Width=3000)
+Add-Type -AssemblyName System.Drawing
+$bmp=New-Object Drawing.Bitmap $Width,44; $g=[Drawing.Graphics]::FromImage($bmp);$g.Clear([Drawing.Color]::Transparent);try{$font=New-Object Drawing.Font('Baloo 2',20,[Drawing.FontStyle]::Bold)}catch{$font=New-Object Drawing.Font('Arial',20,[Drawing.FontStyle]::Bold)};$text='4weird.com   Shop.MattyJacks.com   VibeCodeWorker.com   MattyJacks.com   ';$path=New-Object Drawing2D.GraphicsPath;$path.AddString($text,$font.FontFamily,[int]$font.Style,20,1,12);$g.DrawPath((New-Object Drawing.Pen([Drawing.Color]::Black,2)),$path);$g.FillPath([Drawing.Brushes]::White,$path);$bmp.Save($Out,[Drawing.Imaging.ImageFormat]::Png);$g.Dispose();$bmp.Dispose()

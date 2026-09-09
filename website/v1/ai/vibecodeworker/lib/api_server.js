@@ -39,6 +39,7 @@ class LocalAPIServer {
       startVideoRecording: options.startVideoRecording || (async () => ({ success: false, error: 'Video recording requires the VibeCodeWorker desktop runtime' })),
       stopVideoRecording: options.stopVideoRecording || (async () => ({ success: false, error: 'Video recording requires the VibeCodeWorker desktop runtime' })),
       getVideoRecordingStatus: options.getVideoRecordingStatus || (async () => ({ recording: false, available: false, reason: 'Video recording requires the VibeCodeWorker desktop runtime' })),
+      exportVideoLayouts: options.exportVideoLayouts || (async () => ({ success: false, error: 'Video layout export requires the VibeCodeWorker runtime' })),
       reloadGame: options.reloadGame || (async () => ({ success: false })),
       ...options.handlers
     };

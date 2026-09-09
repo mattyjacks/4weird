@@ -32,3 +32,32 @@ docker buildx build --platform linux/amd64 \
 ```
 
 Set `VIBE_CLOUD_IMAGE=ghcr.io/<owner>/vibecodeworker-cloud:2.0.0` for the local VCW API process. A launched run returns both noVNC URLs under `desktops.game` and `desktops.agent`.
+
+## Video layout handoff
+
+The web runner forwards two optional launch fields into the pod environment:
+
+- `inputMode=desktop|mobile` → `VCW_INPUT_MODE`
+- `videoLayout=testingH|testingV|both` → `VCW_VIDEO_LAYOUT`
+
+The capture worker should write its source gameplay take as
+`data/browser-captures/<session>.mp4`, then invoke:
+
+```bash
+node scripts/node/export_testing_layouts.js data/browser-captures/<session>.mp4
+```
+
+For a touch-first run use:
+
+```bash
+node scripts/node/export_mobile_testing.js data/browser-captures/<session>.mp4
+```
+
+Finally apply the animated top/bottom brand marquee with
+`node scripts/node/apply_marquee_branding.js <layout>.mp4`. The layout manifest
+and event log remain beside the videos so the hosted UI can expose both the
+clean Gameplay cut and the diagnostic cuts from one synchronized source.
+
+When `VCW_AUTO_RECORD=1` is set (the web runner sets it whenever a layout is
+requested), `capture_cloud_session.sh` performs those steps automatically after
+the visible browser session ends.

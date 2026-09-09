@@ -233,6 +233,9 @@ function buildPodSpec(args = {}) {
       VIBE_AGENT_DESKTOP_PORT: '6902'
     }
   };
+  if (args.inputMode === 'mobile' || args.inputMode === 'desktop') body.env.VCW_INPUT_MODE = args.inputMode;
+  if (args.videoLayout === 'testingH' || args.videoLayout === 'testingV' || args.videoLayout === 'both') body.env.VCW_VIDEO_LAYOUT = args.videoLayout;
+  if (args.videoLayout) body.env.VCW_AUTO_RECORD = '1';
   if (openSourceGame) {
     body.env.VIBE_OPEN_SOURCE_GAME_ID = openSourceGame.id;
     body.env.VIBE_OPEN_SOURCE_GAME_ENTRY = openSourceGame.entry;

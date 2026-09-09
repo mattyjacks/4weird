@@ -111,6 +111,11 @@ async function handleApiRequest(context, req, res, pathname, parsedUrl, readBody
     const result = await handlers.stopVideoRecording();
     return sendJSON(result.success ? 200 : 500, result);
   }
+  if (pathname === '/api/game/video/layouts') {
+    if (req.method !== 'POST') return sendText(405, 'Method Not Allowed');
+    const result = await handlers.exportVideoLayouts(await readBody());
+    return sendJSON(result.success ? 200 : 500, result);
+  }
 
   // ─── GET /api/vision/state ───────────────────────────
   // AI Vision Mirror: bot pointer, recent keys, action trail. Read-only.
@@ -453,7 +458,7 @@ async function handleApiRequest(context, req, res, pathname, parsedUrl, readBody
   // 404 handler
   return sendJSON(404, {
     success: false,
-    error: `Endpoint '${pathname}' not found. Available endpoints: /api/status, /api/games, /api/game/launch, /api/game/screenshot, /api/game/logs, /api/game/state, /api/game/action, /api/game/eval, /api/game/patch, /api/game/video/status, /api/game/video/start, /api/game/video/stop, /api/vision/state, /api/bugs, /api/audio/status, /api/audio/voices, /api/audio/tts, /api/audio/stt, /api/audio/sfx, /api/audio/music, /api/audio/analyze, /api/audio/narrate-bug, /api/audio/commentary, /api/audio/voice-command, /api/audio/npc-pack, /api/audio/cover-missing, /api/audio/subtitle-check, /api/audio/sfx-hint, /api/engine, /api/engine/switch, /api/engine/multi-qa, /api/cloud/models, /api/cloud/estimate, /api/cloud/launch, /api/cloud/status, /api/cloud/stop, /api/autocode/fix, /api/autocode/report, /api/opencode/status, /api/opencode/export, /api/opencode/fix, /api/opencode/heal, /api/opencode/heal/:id, /api/opencode/heal-test, /api/opencode/revert, /api/opencode/handoff, /api/dashboard`
+    error: `Endpoint '${pathname}' not found. Available endpoints: /api/status, /api/games, /api/game/launch, /api/game/screenshot, /api/game/logs, /api/game/state, /api/game/action, /api/game/eval, /api/game/patch, /api/game/video/status, /api/game/video/start, /api/game/video/stop, /api/game/video/layouts, /api/vision/state, /api/bugs, /api/audio/status, /api/audio/voices, /api/audio/tts, /api/audio/stt, /api/audio/sfx, /api/audio/music, /api/audio/analyze, /api/audio/narrate-bug, /api/audio/commentary, /api/audio/voice-command, /api/audio/npc-pack, /api/audio/cover-missing, /api/audio/subtitle-check, /api/audio/sfx-hint, /api/engine, /api/engine/switch, /api/engine/multi-qa, /api/cloud/models, /api/cloud/estimate, /api/cloud/launch, /api/cloud/status, /api/cloud/stop, /api/autocode/fix, /api/autocode/report, /api/opencode/status, /api/opencode/export, /api/opencode/fix, /api/opencode/heal, /api/opencode/heal/:id, /api/opencode/heal-test, /api/opencode/revert, /api/opencode/handoff, /api/dashboard`
   });
 }
 

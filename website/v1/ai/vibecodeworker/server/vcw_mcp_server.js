@@ -11,6 +11,7 @@ const rawTools = [
   ['vcw_get_logs', 'Read recent VCW and game logs.', 'GET', '/api/game/logs', {}],
   ['vcw_launch_game', 'Launch one discovered game by id.', 'POST', '/api/game/launch', { gameId: { type: 'string', description: 'Exact VCW game id' } }],
   ['vcw_send_action', 'Send one supervised input action to the active target.', 'POST', '/api/game/action', { type: { type: 'string' }, x: { type: 'number' }, y: { type: 'number' }, key: { type: 'string' } }],
+  ['vcw_export_testing_layouts', 'Export synchronized TestingH and TestingV diagnostic videos from a gameplay MP4.', 'POST', '/api/game/video/layouts', { input: { type: 'string', description: 'Absolute gameplay MP4 path' }, inputMode: { type: 'string', enum: ['desktop', 'mobile'] } }],
   ['vcw_godot_status', 'Read Godot runtime and cloud desktop status.', 'GET', '/api/godot/status', {}],
   ['vcw_godot_release', 'Read the latest official stable Godot release available to this computer.', 'GET', '/api/godot/release', {}],
   ['vcw_godot_install', 'Install the latest official stable Godot release on this VCW computer.', 'POST', '/api/godot/install', {}],
