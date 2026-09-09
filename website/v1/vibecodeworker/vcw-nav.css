@@ -8,7 +8,7 @@
   color: #fff; text-decoration: none; font-weight: 800;
   font-size: 15px; letter-spacing: 2px; white-space: nowrap;
 }
-.vcw-brand b { color: #00f2fe; font-weight: 800; }
+.vcw-brand b { color: #39ff88; font-weight: 800; }
 .vcw-links { display: flex; gap: 4px; flex-wrap: wrap; margin-left: auto; }
 .vcw-links a {
   color: #9ca3af; text-decoration: none; font-size: 12px; letter-spacing: 1px;
@@ -17,14 +17,14 @@
 }
 .vcw-links a:hover { color: #fff; border-color: #333; }
 .vcw-links a.active {
-  color: #00f2fe; border-color: rgba(0, 242, 254, .4);
-  background: rgba(0, 242, 254, .07);
+  color: #39ff88; border-color: rgba(57, 255, 136, .4);
+  background: rgba(57, 255, 136, .07);
 }
-.vcw-links a.ext { color: #7df6ff; }
+.vcw-links a.ext { color: #83ffaf; }
 .vcw-mode {
-  display: flex; border: 1px solid rgba(0, 242, 254, .4); border-radius: 10px;
+  display: flex; border: 1px solid rgba(57, 255, 136, .4); border-radius: 10px;
   overflow: hidden; font-size: 12px; letter-spacing: 1px;
 }
 .vcw-mode a { color: #9ca3af; text-decoration: none; padding: 7px 14px; text-transform: uppercase; }
-.vcw-mode a.active { background: rgba(0, 242, 254, .15); color: #fff; }
+.vcw-mode a.active { background: rgba(57, 255, 136, .15); color: #fff; }
 .vcw-rule { max-width: 1100px; margin: 0 auto; border: none; border-top: 1px solid #1c2333; }

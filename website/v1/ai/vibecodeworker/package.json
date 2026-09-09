@@ -6,6 +6,7 @@
   "scripts": {
     "start": "electron .",
     "start:cloud": "node server/start_api_server.js",
+    "mcp": "node server/vcw_mcp_server.js",
     "heal": "node workers/heal_worker.js",
     "test": "node tests/test_vibecodeworker.js",
     "test:rules": "node tests/test_game_rules.js",

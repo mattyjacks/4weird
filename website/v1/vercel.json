@@ -2,7 +2,17 @@
   "redirects": [
     {
       "source": "/vcw",
-      "destination": "/vibecodeworker",
+      "destination": "/vcw/",
+      "permanent": true
+    },
+    {
+      "source": "/vibecodeworker",
+      "destination": "/vcw/",
+      "permanent": true
+    },
+    {
+      "source": "/vibecodeworker/",
+      "destination": "/vcw/",
       "permanent": true
     },
     {
@@ -37,6 +47,18 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/vcw/",
+      "destination": "/vibecodeworker/overview.html"
+    },
+    {
+      "source": "/vcw/web/hub",
+      "destination": "/vibecodeworker/hub.html"
+    },
+    {
+      "source": "/vcw/web/hub/",
+      "destination": "/vibecodeworker/hub.html"
+    },
     {
       "source": "/vcw/web/run",
       "destination": "/vibecodeworker/run.html"

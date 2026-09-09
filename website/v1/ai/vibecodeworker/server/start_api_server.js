@@ -22,11 +22,10 @@ if (cliOpts.handoffOnly) {
 }
 
 const WEBSITE_V1_DIR = path.join(__dirname, '..', '..', '..');
-// Cloud-ready: PORT/HOST from env (droplet, Fly, Render all inject PORT).
-// HOST defaults to 0.0.0.0 so containers and droplets serve externally;
-// set HOST=127.0.0.1 for loopback-only desktop use.
+// Local-first: the desktop control plane stays on loopback unless an operator
+// explicitly sets HOST=0.0.0.0 for a managed/cloud deployment.
 const PORT = process.env.PORT || process.env.VIBECODEWORKER_PORT || 42069;
-const HOST = process.env.HOST || process.env.VIBECODEWORKER_HOST || '0.0.0.0';
+const HOST = process.env.HOST || process.env.VIBECODEWORKER_HOST || '127.0.0.1';
 const STATIC_PORT = process.env.STATIC_PORT || 8888;
 
 function discoverGames() {
