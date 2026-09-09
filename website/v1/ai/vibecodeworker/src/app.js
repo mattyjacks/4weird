@@ -184,6 +184,7 @@ function queryElements() {
   el.nativeStartNewGame = document.getElementById('native-start-new-game');
   el.nativeSkipCutscenes = document.getElementById('native-skip-cutscenes');
   el.btnLaunchHl2 = document.getElementById('btn-launch-hl2');
+  el.btnNarratedBugHunt = document.getElementById('btn-narrated-bug-hunt');
   el.btnHubGridView = document.getElementById('btn-hub-grid-view');
   el.btnHubListView = document.getElementById('btn-hub-list-view');
   el.thinkingOutLoudToggle = document.getElementById('thinking-out-loud-toggle');
@@ -1046,6 +1047,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // into an MP4 when stopped. The same control works for embedded games and
   // separate Electron game windows.
   const videoButton = document.getElementById('btn-video-record');
+  const narratedBugHuntButton = el.btnNarratedBugHunt;
   const videoStatus = document.getElementById('video-recording-status');
   videoButton?.addEventListener('click', async () => {
     try {
@@ -1070,6 +1072,34 @@ document.addEventListener('DOMContentLoaded', () => {
       videoStatus.textContent = `Video error: ${e.message}`;
       toastNotifier.show(`Video recording failed: ${e.message}`, 'warning');
     } finally { if (videoButton) videoButton.disabled = false; }
+  });
+  narratedBugHuntButton?.addEventListener('click', async () => {
+    const url = String(el.gameUrlInput?.value || '').trim();
+    if (!url) {
+      toastNotifier.show('Choose a 4weird game first.', 'warning');
+      return;
+    }
+    try {
+      narratedBugHuntButton.disabled = true;
+      videoStatus.textContent = 'Opening visible game…';
+      // GameController automatically drives this window once it exists; the
+      // webview remains only as the dashboard's inspection surface.
+      const opened = await ipcRenderer.invoke('open-game-window', url, { width: 1280, height: 720, mode: 'windowed', tile: false });
+      if (!opened?.success) throw new Error(opened?.error || 'Could not open the game window');
+      const name = (url.split('/').filter(Boolean).pop() || '4weird-game').replace(/\.[^.]+$/, '');
+      const narration = `This is an AI-led bug hunt in ${name}. The agent is playing the live game in this visible window, checking controls and game flow, and recording errors and suspicious behavior for repair. Watch the cursor as it explores the game.`;
+      const recording = await ipcRenderer.invoke('start-playtest-recording', { name, fps: 10, voiceoverText: narration });
+      if (!recording?.success) throw new Error(recording?.error || 'Could not start recording');
+      videoButton.textContent = '⏹ Stop & make video';
+      videoStatus.textContent = recording.voiceoverPath ? 'Recording with voiceover' : 'Recording — narration will be added if available';
+      logSystemMessage(`Narrated MediaMogul bug hunt started in a visible game window: ${name}.`, 'success');
+      if (!isRunning) toggleAgentState();
+    } catch (error) {
+      videoStatus.textContent = `Video error: ${error.message}`;
+      toastNotifier.show(`Could not start bug hunt: ${error.message}`, 'warning');
+    } finally {
+      narratedBugHuntButton.disabled = false;
+    }
   });
   // Runner-brain / CLI API for the takeover mode.
   window.humanTakeover = () => stageView.toggleTakeover();

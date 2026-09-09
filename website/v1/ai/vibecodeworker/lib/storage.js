@@ -250,7 +250,13 @@ const PLACEHOLDER_PATTERNS = [
   /^test-key/i,
   /^mock/i,
   /elevenlabs-key-here/i,
-  /your-elevenlabs/i
+  /your-elevenlabs/i,
+  // Test/demo fixtures that have appeared in local credential stores. They
+  // look key-shaped, but are deliberately non-secret values used by tests.
+  /^sk-luna(?:-|$)/i,
+  /^sk-dsh(?:-|$)/i,
+  /^meta-muse?(?:-|$)/i,
+  /(?:^|-)(?:test|fixture|example)(?:-|$)/i
 ];
 
 function isPlaceholderKey(key) {

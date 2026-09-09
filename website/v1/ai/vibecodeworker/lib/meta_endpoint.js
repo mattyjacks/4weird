@@ -9,9 +9,9 @@
 
 const META_DIRECT_ENDPOINT_URL = 'https://api.llama.com/v1/chat/completions';
 
-// Native Llama API model id (the OpenRouter slug
-// `meta-llama/llama-4-scout-17b-16e-instruct` only exists on OpenRouter).
-const META_DIRECT_MODEL = 'Llama-4-Scout-17B-16E-Instruct';
+// Meta's hosted model id. OpenRouter uses the namespaced equivalent
+// `meta/muse-spark-1.3-contributor`; direct Meta API calls use the bare id.
+const META_DIRECT_MODEL = 'muse-spark-1.3-contributor';
 
 // A user-supplied endpoint counts as Meta-direct when it points at Meta's
 // hosts (legacy `meta.ai` entries or the universal `llama.com` API).

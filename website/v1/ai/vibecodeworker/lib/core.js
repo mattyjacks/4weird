@@ -267,7 +267,7 @@ Output format:
         messages: [{ role: 'user', content: promptText }]
       };
     } else if (provider === 'meta') {
-      const activeModel = model || 'meta-llama/llama-4-scout-17b-16e-instruct';
+      const activeModel = model || 'muse-spark-1.3-contributor';
       const isMetaDirect = isMetaDirectUrl(endpointUrl);
       url = isMetaDirect ? endpointUrl : (endpointUrl || 'https://openrouter.ai/api/v1/chat/completions');
       headers['Authorization'] = `Bearer ${apiKey}`;
@@ -289,7 +289,7 @@ Output format:
       headers['HTTP-Referer'] = 'https://github.com/mattyjacks/4weird';
       headers['X-Title'] = 'AutoCode IDE';
       body = {
-        model: model || 'meta-llama/llama-4-scout-17b-16e-instruct',
+        model: model || 'muse-spark-1.3-contributor',
         messages: [{ role: 'user', content: promptText }]
       };
     } else if (provider === 'local') {

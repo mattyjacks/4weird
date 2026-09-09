@@ -1,4 +1,6 @@
-const CACHE_NAME = '4weird-v1-cache';
+// Bump whenever a deployed game bundle changes.  This lets a repaired game
+// replace a previously cached module instead of leaving players on stale code.
+const CACHE_NAME = '4weird-v2-cache';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

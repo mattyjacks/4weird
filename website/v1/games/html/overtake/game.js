@@ -1120,6 +1120,10 @@
         setLoadingProgress(0);
         const jobs = assetFiles.map((file) => new Promise((resolve) => {
             const image = new Image();
+            // Overtake draws CDN art into the live canvas. Requesting it in
+            // CORS mode keeps the canvas origin-clean, which is required for
+            // browser capture (and for any screenshot/vision QA tooling).
+            image.crossOrigin = "anonymous";
             image.onload = () => {
                 image
                     .decode()
@@ -3250,7 +3254,16 @@
         bindEvents();
         syncMapBgm();
         render(performance.now() / 1000);
-        window.gameState = { title: "Overtake", level: currentLevelId, speed, score: points };
+        // Expose the live state used by the QA player. The old snapshot used
+        // three identifiers that do not exist in this module
+        // (currentLevelId/speed/points), which threw during boot and left the
+        // fully-loaded overlay over the playable game.
+        window.gameState = {
+            title: "Overtake",
+            get level() { return selectedMapId; },
+            get speed() { return player.speed; },
+            get score() { return save.coins; },
+        };
         window.game = window.gameState;
         hideLoadingScreen();
         requestAnimationFrame(frame);

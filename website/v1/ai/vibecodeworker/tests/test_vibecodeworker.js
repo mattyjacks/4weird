@@ -765,21 +765,21 @@ async function runTests() {
     
     // Save sample keys
     const testSaved = saveCredentials({
-      deepseekApiKey: 'sk-dsh-test-12345',
-      metaApiKey: 'meta-muse-test-67890',
-      openaiApiKey: 'sk-luna-test-abcdef'
+      deepseekApiKey: 'sk-deepseek-abcdefghijklmnopqrstuvwxyz',
+      metaApiKey: 'meta-abcdefghijklmnopqrstuvwxyz',
+      openaiApiKey: 'sk-proj-abcdefghijklmnopqrstuvwxyz'
     });
     assert.strictEqual(testSaved, true, "saveCredentials should succeed");
 
     const creds = loadCredentials();
-    assert.strictEqual(creds.deepseekApiKey, 'sk-dsh-test-12345', "Should persist deepseekApiKey");
-    assert.strictEqual(creds.metaApiKey, 'meta-muse-test-67890', "Should persist metaApiKey");
-    assert.strictEqual(creds.openaiApiKey, 'sk-luna-test-abcdef', "Should persist openaiApiKey");
+    assert.strictEqual(creds.deepseekApiKey, 'sk-deepseek-abcdefghijklmnopqrstuvwxyz', "Should persist deepseekApiKey");
+    assert.strictEqual(creds.metaApiKey, 'meta-abcdefghijklmnopqrstuvwxyz', "Should persist metaApiKey");
+    assert.strictEqual(creds.openaiApiKey, 'sk-proj-abcdefghijklmnopqrstuvwxyz', "Should persist openaiApiKey");
 
     // Test resolution function
-    assert.strictEqual(getResolvedApiKey('deepseek'), 'sk-dsh-test-12345', "getResolvedApiKey for deepseek should return stored key");
-    assert.strictEqual(getResolvedApiKey('meta'), 'meta-muse-test-67890', "getResolvedApiKey for meta should return stored key");
-    assert.strictEqual(getResolvedApiKey('openai'), 'sk-luna-test-abcdef', "getResolvedApiKey for openai should return stored key");
+    assert.strictEqual(getResolvedApiKey('deepseek'), 'sk-deepseek-abcdefghijklmnopqrstuvwxyz', "getResolvedApiKey for deepseek should return stored key");
+    assert.strictEqual(getResolvedApiKey('meta'), 'meta-abcdefghijklmnopqrstuvwxyz', "getResolvedApiKey for meta should return stored key");
+    assert.strictEqual(getResolvedApiKey('openai'), 'sk-proj-abcdefghijklmnopqrstuvwxyz', "getResolvedApiKey for openai should return stored key");
 
     console.log("✅ Test 23 Passed!");
   } catch (err) {

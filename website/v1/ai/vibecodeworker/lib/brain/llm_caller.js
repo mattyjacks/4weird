@@ -81,6 +81,7 @@ async function callLLM(brain, prompt, base64Image = null, audioInput = null) {
   if (provider === 'openai') {
     url = 'https://api.openai.com/v1/chat/completions';
     headers['Authorization'] = `Bearer ${apiKey}`;
+    if (isMetaDirect) headers['x-api-key'] = apiKey;
     const realModel = modelName || 'gpt-5.6-luna';
 
     const content = [{ type: 'text', text: prompt }];
@@ -109,7 +110,7 @@ async function callLLM(brain, prompt, base64Image = null, audioInput = null) {
 
   } else if (provider === 'meta') {
     // Meta Model API or OpenRouter-compatible endpoint for Muse Spark 1.3 Contributor
-    const realModel = modelName || 'meta-llama/llama-4-scout-17b-16e-instruct';
+    const realModel = modelName || 'muse-spark-1.3-contributor';
     const isMetaDirect = isMetaDirectUrl(endpointUrl);
     url = isMetaDirect ? endpointUrl : (endpointUrl || 'https://openrouter.ai/api/v1/chat/completions');
     headers['Authorization'] = `Bearer ${apiKey}`;
@@ -154,7 +155,7 @@ async function callLLM(brain, prompt, base64Image = null, audioInput = null) {
     headers['Authorization'] = `Bearer ${apiKey}`;
     headers['HTTP-Referer'] = 'https://github.com/mattyjacks/4weird';
     headers['X-Title'] = 'AI Game Debugger';
-    const model = modelName || 'meta-llama/llama-4-scout-17b-16e-instruct';
+    const model = modelName || 'meta/muse-spark-1.3-contributor';
     const content = [{ type: 'text', text: prompt }];
     if (base64Image) {
       content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } });

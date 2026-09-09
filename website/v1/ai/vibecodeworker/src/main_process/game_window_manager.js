@@ -1,5 +1,6 @@
 const { BrowserWindow, screen } = require('electron');
 const { MediaMogulPlaytestRecorder } = require('../../lib/mediamogul_video_recorder');
+const { synthesizeWindowsNarration } = require('../../lib/mediamogul_voiceover');
 
 let gameWindow = null;
 let playtestRecorder = null;
@@ -8,6 +9,7 @@ function getPlaytestRecorder(projectRoot, fallbackWindow) {
   if (!playtestRecorder) {
     playtestRecorder = new MediaMogulPlaytestRecorder({
       projectRoot,
+      createVoiceover: synthesizeWindowsNarration,
       capturePage: async () => {
         const target = isGameWindowActive() ? gameWindow : fallbackWindow;
         if (!target || target.isDestroyed()) throw new Error('Game surface is not open');
@@ -59,6 +61,9 @@ async function openGameWindow(url, isHeadless, mainWindow, onConsoleLog, options
     win._vibeListenersAttached = true;
     // Forward console events and load state back to dashboard (mainWindow)
     win.webContents.on('console-message', (event, level, message, line, sourceId) => {
+      if (level >= 2) {
+        recordPlaytestEvent(null, { type: 'game-console-error', level, message: String(message).slice(0, 500), line, sourceId });
+      }
       if (typeof onConsoleLog === 'function') {
         onConsoleLog(level, message, line, sourceId);
       }

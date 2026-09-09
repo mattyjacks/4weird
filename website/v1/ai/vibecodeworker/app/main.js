@@ -406,6 +406,10 @@ ipcMain.handle('test-api-keys', async (_event, suppliedKeys = {}) => {
       let url = typeof provider.url === 'function' ? provider.url(provider.key) : provider.url;
       let body = provider.body();
       if (isMetaDirectKey) {
+        // Meta's hosted API documents Bearer auth, while some account/API
+        // gateway versions also expect the token in x-api-key. Sending both
+        // is compatible and avoids a false 401 for valid LLM_ credentials.
+        headers['x-api-key'] = provider.key;
         // Mirror runtime behavior (llm_caller.js): Bearer auth only, no
         // OpenRouter headers, OpenAI-compatible chat body. The Llama API
         // uses native model ids, not the OpenRouter slug.
@@ -420,7 +424,15 @@ ipcMain.handle('test-api-keys', async (_event, suppliedKeys = {}) => {
       const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body), signal: controller.signal });
       if (response.ok) return { provider: provider.name, status: 'valid', detail: 'Key accepted.' };
       // Only authentication/authorization responses prove that a stored key is bad.
-      if (response.status === 401 || response.status === 403) return { provider: provider.name, status: 'invalid', detail: `Authentication rejected (${response.status}).` };
+      if (response.status === 401 || response.status === 403) {
+        // Meta-direct tokens are accepted by more than one Llama service and
+        // some accounts reject this probe's model/route even when the token
+        // itself is valid. Never label or clear a Meta key based on that
+        // ambiguous response; the user can configure the exact endpoint in
+        // settings and use the token there.
+        if (isMetaDirectKey) return { provider: provider.name, status: 'error', detail: `Meta endpoint rejected this probe (${response.status}); key was not removed. Check the Meta endpoint/model settings.` };
+        return { provider: provider.name, status: 'invalid', detail: `Authentication rejected (${response.status}).` };
+      }
       // Anything else (402 billing, 429 rate limit, 404 model, 5xx outage)
       // says nothing about the key itself, so the key is always kept.
       if (response.status === 402) return { provider: provider.name, status: 'error', detail: `Key is valid but the account needs payment/quota (provider returned 402 Payment Required). Top up billing and retry. Key was not removed.` };
@@ -569,6 +581,9 @@ ipcMain.handle('stop-playtest-recording', async () => {
   return await stopPlaytestRecording(projectRoot);
 });
 ipcMain.handle('get-playtest-recording-status', async () => getPlaytestRecordingStatus(projectRoot));
+ipcMain.on('playtest-recording-event', (_event, event = {}) => {
+  recordPlaytestEvent(projectRoot, event);
+});
 
 ipcMain.handle('reload-game-window', async (event) => {
   return reloadGameWindow();

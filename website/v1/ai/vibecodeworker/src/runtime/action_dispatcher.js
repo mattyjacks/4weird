@@ -19,6 +19,15 @@ function pushVision() {
 
 async function executeAction(controller, webview, action, nativeProcessName = null) {
   if (!action || !action.type) return "No action specified";
+  // The recorder lives in Electron's main process.  Emit a compact action
+  // breadcrumb before execution so the MediaMogul manifest describes what
+  // the on-screen AI actually attempted, including failed attempts.
+  try {
+    ipcRenderer.send('playtest-recording-event', {
+      type: 'action',
+      action: { type: action.type, target: action.target, params: action.params || null, duration_ms: action.duration_ms || null }
+    });
+  } catch (_) { /* recording is optional */ }
   const target = action.target;
   const duration = action.duration_ms || 100;
   console.log(`Executing Action: ${action.type} targeting ${target} (native target: ${nativeProcessName || 'none'})`);

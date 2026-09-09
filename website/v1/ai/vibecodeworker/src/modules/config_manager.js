@@ -19,7 +19,7 @@ const modelsByProvider = {
     { value: 'custom', text: 'Custom...' }
   ],
   meta: [
-    { value: 'meta-llama/llama-4-scout-17b-16e-instruct', text: 'Llama 4 Scout — current efficient Meta model (Default)' },
+    { value: 'muse-spark-1.3-contributor', text: 'Muse Spark 1.3 Contributor — current Meta model (Default)' },
     { value: 'meta-llama/llama-4-maverick-17b-128e-instruct', text: 'Llama 4 Maverick — higher capability' },
     { value: 'custom', text: 'Custom...' }
   ],
@@ -29,7 +29,7 @@ const modelsByProvider = {
     { value: 'custom', text: 'Custom...' }
   ],
   openrouter: [
-    { value: 'meta-llama/llama-4-scout-17b-16e-instruct', text: 'Llama 4 Scout — current efficient Meta model (Default)' },
+    { value: 'meta/muse-spark-1.3-contributor', text: 'Muse Spark 1.3 Contributor — current Meta model (Default)' },
     { value: 'google/gemini-3.5-flash-lite', text: 'Gemini 3.5 Flash-Lite' },
     { value: 'custom', text: 'Custom...' }
   ],

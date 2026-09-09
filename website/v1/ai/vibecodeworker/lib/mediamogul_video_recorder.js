@@ -32,17 +32,18 @@ function run(command, args) {
 }
 
 class MediaMogulPlaytestRecorder {
-  constructor({ projectRoot, capturePage, outputRoot }) {
+  constructor({ projectRoot, capturePage, outputRoot, createVoiceover }) {
     this.projectRoot = projectRoot;
     this.capturePage = capturePage;
     this.outputRoot = outputRoot || path.join(projectRoot, 'data', 'playtest-videos');
+    this.createVoiceover = createVoiceover || null;
     this.session = null;
   }
 
   status() {
     if (!this.session) return { recording: false };
     const s = this.session;
-    return { recording: true, sessionId: s.id, frameCount: s.frameCount, fps: s.fps, startedAt: s.startedAt, outputDir: s.outputDir };
+    return { recording: true, sessionId: s.id, frameCount: s.frameCount, fps: s.fps, startedAt: s.startedAt, outputDir: s.outputDir, voiceoverPath: s.voiceoverPath };
   }
 
   async start(options = {}) {
@@ -53,7 +54,16 @@ class MediaMogulPlaytestRecorder {
     const outputDir = path.join(this.outputRoot, id);
     const framesDir = path.join(outputDir, 'frames');
     fs.mkdirSync(framesDir, { recursive: true });
-    const session = this.session = { id, fps, outputDir, framesDir, frameCount: 0, startedAt: new Date().toISOString(), startedMs: Date.now(), events: [], busy: false, timer: null };
+    const session = this.session = { id, fps, outputDir, framesDir, frameCount: 0, startedAt: new Date().toISOString(), startedMs: Date.now(), events: [], busy: false, timer: null, voiceoverText: String(options.voiceoverText || '').trim(), voiceoverPath: null };
+    if (session.voiceoverText && this.createVoiceover) {
+      try {
+        session.voiceoverPath = await this.createVoiceover(session.voiceoverText, path.join(outputDir, 'playtest-voiceover.wav'));
+        session.events.push({ atMs: 0, type: 'voiceover-ready', path: session.voiceoverPath });
+      } catch (error) {
+        // A video is still useful if the local TTS service is unavailable.
+        session.events.push({ atMs: 0, type: 'voiceover-error', message: error.message });
+      }
+    }
     const capture = async () => {
       if (!this.session || this.session !== session || session.busy) return;
       session.busy = true;
@@ -82,7 +92,7 @@ class MediaMogulPlaytestRecorder {
     this.session = null;
     clearInterval(session.timer);
     while (session.busy) await new Promise((resolve) => setTimeout(resolve, 20));
-    const manifest = { schema: 'mediamogul.playtest.v1', producer: 'VibeCodeWorker + MediaMogul', sessionId: session.id, startedAt: session.startedAt, endedAt: new Date().toISOString(), durationMs: Date.now() - session.startedMs, fps: session.fps, frameCount: session.frameCount, events: session.events };
+    const manifest = { schema: 'mediamogul.playtest.v1', producer: 'VibeCodeWorker + MediaMogul', sessionId: session.id, startedAt: session.startedAt, endedAt: new Date().toISOString(), durationMs: Date.now() - session.startedMs, fps: session.fps, frameCount: session.frameCount, voiceover: session.voiceoverPath ? { text: session.voiceoverText, path: session.voiceoverPath } : null, events: session.events };
     const manifestPath = path.join(session.outputDir, 'playtest-manifest.json');
     fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
     if (!session.frameCount) return { success: false, error: 'No frames were captured', manifestPath, outputDir: session.outputDir };
@@ -90,8 +100,16 @@ class MediaMogulPlaytestRecorder {
     if (!fs.existsSync(ffmpeg)) return { success: false, error: 'MediaMogul FFmpeg is unavailable', manifestPath, outputDir: session.outputDir };
     const videoPath = path.join(session.outputDir, `${session.id}.mp4`);
     try {
-      await run(ffmpeg, ['-y', '-framerate', String(session.fps), '-i', path.join(session.framesDir, 'frame-%06d.png'), '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', videoPath]);
-      return { success: true, videoPath, manifestPath, outputDir: session.outputDir, frameCount: session.frameCount, durationMs: manifest.durationMs, mediaMogulFfmpeg: ffmpeg };
+      const encodeArgs = ['-y', '-framerate', String(session.fps), '-i', path.join(session.framesDir, 'frame-%06d.png')];
+      if (session.voiceoverPath && fs.existsSync(session.voiceoverPath)) encodeArgs.push('-i', session.voiceoverPath);
+      encodeArgs.push('-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p');
+      // Do not loop a short narration: that repeats the same sentence through
+      // a long playtest.  `apad` keeps silence after the one spoken take so
+      // `-shortest` ends on the captured video instead of truncating it.
+      if (session.voiceoverPath && fs.existsSync(session.voiceoverPath)) encodeArgs.push('-filter:a', 'apad', '-c:a', 'aac', '-b:a', '160k', '-shortest');
+      encodeArgs.push('-movflags', '+faststart', videoPath);
+      await run(ffmpeg, encodeArgs);
+      return { success: true, videoPath, voiceoverPath: session.voiceoverPath, manifestPath, outputDir: session.outputDir, frameCount: session.frameCount, durationMs: manifest.durationMs, mediaMogulFfmpeg: ffmpeg };
     } catch (error) {
       return { success: false, error: error.message, manifestPath, outputDir: session.outputDir, frameCount: session.frameCount };
     }
