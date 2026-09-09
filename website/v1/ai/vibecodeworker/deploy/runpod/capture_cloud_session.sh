@@ -32,7 +32,7 @@ else
   SERVER_PID=$!
   trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
   sleep 1
-  URL="http://127.0.0.1:${PORT}/${ENTRY}?record=1&recordName=${NAME}&recordSeconds=${SECONDS}"
+  URL="http://127.0.0.1:${PORT}/${ENTRY}?playtest=1&record=1&recordName=${NAME}&recordSeconds=${SECONDS}"
   DISPLAY=${DISPLAY:-:2} google-chrome --no-sandbox --disable-dev-shm-usage --app="$URL" &
   BROWSER_PID=$!
   sleep 3

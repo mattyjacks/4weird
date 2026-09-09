@@ -3266,6 +3266,11 @@
         };
         window.game = window.gameState;
         hideLoadingScreen();
+        // Automated/headful playtests must begin in the race, not on the menu.
+        // The recorder can then exercise the same keyboard controls a player uses.
+        if (new URLSearchParams(window.location.search).get("playtest") === "1") {
+            setTimeout(() => startRace(selectedMapId, selectedRaceDirection), 250);
+        }
         requestAnimationFrame(frame);
     }
     void loadAssets().finally(init);
