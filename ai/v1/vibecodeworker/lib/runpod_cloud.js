@@ -167,7 +167,7 @@ function redactError(msg) {
 }
 
 async function runpodFetch(apiKey, pathName, opts = {}) {
-  if (!/^\/(pods|gpus)([/?].*)?$/.test(pathName)) throw new Error('blocked path');
+  if (!/^\/(pods|catalog\/gpus)([/?].*)?$/.test(pathName)) throw new Error('blocked path');
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), Number(opts.timeoutMs || 20000));
   try {

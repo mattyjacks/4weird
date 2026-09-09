@@ -75,10 +75,14 @@
     saveKey(key);
     log('Checking live GPU stock...');
     try {
-      var res = await fetch(BASE + '/gpus?include=AVAILABILITY&product=POD', {
+      var res = await fetch(BASE + '/catalog/gpus?include=AVAILABILITY&product=POD', {
         headers: { Authorization: 'Bearer ' + key }
       });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
+      if (!res.ok) {
+        var t = '';
+        try { t = (await res.text()).slice(0, 160); } catch (e) {}
+        throw new Error('HTTP ' + res.status + (t ? ' ' + t : ''));
+      }
       var data = await res.json();
       var gpus = data.gpus || data || [];
       var ok = gpus.filter(function (g) {
@@ -95,7 +99,12 @@
       }
     } catch (e) {
       fillGpus(FALLBACK_GPUS);
-      log('Catalog check failed, kept fallback order.');
+      var msg = String((e && e.message) || e);
+      if (msg.indexOf('Failed to fetch') !== -1 || msg.indexOf('TypeError') !== -1) {
+        log('Catalog blocked by browser CORS. Use the desktop app proxy (npm run start:cloud) or try again.');
+      } else {
+        log('Catalog check failed (' + msg.slice(0, 120) + '), kept fallback order.');
+      }
     }
   }
 
@@ -123,7 +132,11 @@
           env: { VIBE_GAME: game, VIBE_MODEL: MODEL_FOR(mem), VIBE_MAX_MINUTES: '55', VIBE_MODE: 'cloud-game-plus-model' }
         })
       });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
+      if (!res.ok) {
+        var err = '';
+        try { err = (await res.text()).slice(0, 200); } catch (e2) {}
+        throw new Error('HTTP ' + res.status + (err ? ' ' + err : ''));
+      }
       var data = await res.json();
       var pod = data.pod || data;
       state.podId = pod.id || pod.podId;
@@ -138,7 +151,12 @@
         if (state.podId) stopRun('55 minute cap reached, auto stopped');
       }, MAX_SECONDS * 1000);
     } catch (e) {
-      log('Launch failed. Check key and stock, then retry.');
+      var m = String((e && e.message) || e);
+      if (m.indexOf('Failed to fetch') !== -1) {
+        log('Launch blocked by browser CORS. Run the desktop app proxy: npm run start:cloud, then use the desktop Cloud panel.');
+      } else {
+        log('Launch failed (' + m.slice(0, 160) + '). Check key and stock, then retry.');
+      }
     }
   }
 
