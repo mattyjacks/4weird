@@ -3,10 +3,10 @@
    --------------------------------------------------------------------------
    Consumed by BOTH frontends so the hubs stay identical:
      - Tauri/website hub:  website/v1/vibecodeworker/hub.html
-     - Electron/CLI hub:   ai/v1/vibecodeworker/src/index.html
+     - Electron/CLI hub:   website/v1/ai/vibecodeworker/src/index.html
                            (via ../../../website/v1/vibecodeworker/hub-shared.css)
    Clean green glassmorphism matching the Electron dashboard. Values below
-   mirror ai/v1/vibecodeworker/src/index.css tokens, so loading this file in
+   mirror website/v1/ai/vibecodeworker/src/index.css tokens, so loading this file in
    Electron changes nothing there, while the website hub inherits the green.
    ========================================================================== */
 
@@ -35,7 +35,7 @@
   --font-display: 'Space Grotesk', 'Outfit', sans-serif;
 }
 
-/* Grid backdrop, same values as the Electron dashboard (ai/v1/vibecodeworker/src/index.css). */
+/* Grid backdrop, same values as the Electron dashboard (website/v1/ai/vibecodeworker/src/index.css). */
 body {
   background-color: var(--hub-bg);
   background-image:

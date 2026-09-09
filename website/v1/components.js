@@ -97,6 +97,7 @@
                     <li><a href="${basePath}academy/index.html" class="nav-link">Academy</a></li>
                     <li><button class="nav-link" id="nav-a11y-trigger" style="background:none; border:none; cursor:pointer;" aria-label="Accessibility settings">♿ Accessibility</button></li>
                     <li><a href="${isRoot ? '#contribute' : basePath + 'index.html#contribute'}" class="nav-link">Contribute</a></li>
+                    <li><a href="https://github.com/mattyjacks/4weird" target="_blank" rel="noopener noreferrer" class="nav-link">GitHub</a></li>
                     <li><a href="${isRoot ? '#contact' : basePath + 'index.html#contact'}" class="nav-link nav-cta">Contact MattyJacks</a></li>
                 </ul>
             </div>

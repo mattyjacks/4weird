@@ -94,10 +94,19 @@ coverage/
 .parcel-cache/
 .eslintcache
 
-# 10. Local VibeCodeWorker runtime artifacts
-ai/v1/vibecodeworker/.vibecodeworker-user-data/
-ai/v1/vibecodeworker/data/autocode_fix_report.json
-ai/v1/vibecodeworker/data/bugs_log.json
-ai/v1/vibecodeworker/data/live_logs.json
-ai/v1/vibecodeworker/data/token_usage.json
-test-results/vibecodeworker-api-loop/
+# 10. Local VibeCodeWorker runtime artifacts (regenerated at runtime - never commit)
+.vibecodeworker-user-data/
+**/.vibecodeworker-user-data/
+website/v1/ai/vibecodeworker/data/
+**/data/autocode_fix_report.json
+**/data/bugs_log.json
+**/data/live_logs.json
+**/data/token_usage.json
+**/data/api_debug_report.json
+**/data/test_smartlog_*/
+test-results/
+__pycache__/
+*.pyc
+*.pyo
+credentials.json
+**/credentials.json

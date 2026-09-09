@@ -1,3 +1,0 @@
-{"ts":"2026-09-07T22:21:31.016Z","session":"sess_mtrt239k_nmv7w","source":"test","level":"info","category":"lifecycle","message":"boot ok","extra":{"category":"lifecycle"}}
-{"ts":"2026-09-07T22:21:31.017Z","session":"sess_mtrt239k_nmv7w","source":"test","level":"error","category":"game","message":"Error: something broke code=500","extra":{"category":"game","stack":"Error: something broke\n at x (y.js:9)"}}
-{"ts":"2026-09-07T22:21:31.017Z","session":"sess_mtrt239k_nmv7w","source":"test","level":"error","category":"game","message":"Error: something broke code=777","extra":{"category":"game"}}

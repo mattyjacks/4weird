@@ -70,7 +70,7 @@ Current lineup:
 
 ## 🤖 4WEIRD VIBECODEWORKER: Autonomous Agentic Web & Game QA Platform
 
-**[4weird VibeCodeWorker](ai/v1/vibecodeworker)** (`vibecodeworker-4weird`) is an enterprise-grade autonomous playtesting, QA auditing, and self-healing runtime created by **Matt Jackson ([mattyjacks.com](https://mattyjacks.com))**. It turns visual models into active playtesters and web QA engineers that navigate sites, audit UI/UX, sniff backend errors, and auto-fix code.
+**[4weird VibeCodeWorker](website/v1/ai/vibecodeworker)** (`vibecodeworker-4weird`) is an enterprise-grade autonomous playtesting, QA auditing, and self-healing runtime created by **Matt Jackson ([mattyjacks.com](https://mattyjacks.com))**. It turns visual models into active playtesters and web QA engineers that navigate sites, audit UI/UX, sniff backend errors, and auto-fix code.
 
 ### 🌟 Key Superpowers:
 1. **🌐 Test Any Website or SaaS Application**:
@@ -107,7 +107,7 @@ Current lineup:
 ### 🚀 How to Run VibeCodeWorker
 ```bash
 # Navigate to the vibecodeworker directory
-cd ai/v1/vibecodeworker
+cd website/v1/ai/vibecodeworker
 
 # Install dependencies & run tests
 npm install
@@ -165,7 +165,7 @@ website/v1/games/html/yourgame/
 
 ## 🤖 VibeCodeWorker AI Engine & API Keys
 
-The **4weird VibeCodeWorker** (`ai/v1/vibecodeworker`) is an autonomous QA playtesting sandbox, auto-code debugger, and self-improving agent suite.
+The **4weird VibeCodeWorker** (`website/v1/ai/vibecodeworker`) is an autonomous QA playtesting sandbox, auto-code debugger, and self-improving agent suite.
 
 ### 🔑 API Key Requirements: Only 1 Minimum Key Needed!
 > **IMPORTANT:** You **DO NOT** need keys for every model. VibeCodeWorker only requires **A MINIMUM OF 1 API KEY** of your choice to be fully functional (or use a free local Ollama endpoint without any API key at all).
@@ -196,7 +196,7 @@ Any API key you input into VibeCodeWorker is stored locally in your operating sy
 
 Keys are **never baked into the `.exe`** and **never overwritten** when new builds, desktop installers, or updates are deployed.
 
-You can also create a `.env` file in the repository root or in `ai/v1/vibecodeworker/` based on `.env.example`.
+You can also create a `.env` file in the repository root or in `website/v1/ai/vibecodeworker/` based on `.env.example`.
 
 ---
 
@@ -204,7 +204,7 @@ You can also create a `.env` file in the repository root or in `ai/v1/vibecodewo
 
 Explore specific components, sub-projects, and game architectures across the repository:
 
-- **[VibeCodeWorker Web App Player & Debugger](ai/v1/VibeCodeWorker/README_WEB_APP_FEATURES.md)** (`ai/v1/VibeCodeWorker/README_WEB_APP_FEATURES.md`)  
+- **[VibeCodeWorker Web App Player & Debugger](website/v1/ai/vibecodeworker/README_WEB_APP_FEATURES.md)** (`website/v1/ai/vibecodeworker/README_WEB_APP_FEATURES.md`)  
   Complete documentation index for the Electron-based runtime, static site player, framework auto-detection, and agentic debugging tools.
 - **[Overtake Game README](website/v1/games/html/overtake/README.md)** (`website/v1/games/html/overtake/README.md`)  
   Out Run / Horizon Chase style pseudo-3D canvas racer: run instructions, controls, project structure, and external asset hosting details.

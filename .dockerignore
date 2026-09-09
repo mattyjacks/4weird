@@ -1,4 +1,4 @@
-# Repo-root Docker context ignore — keeps `docker build -f ai/v1/vibecodeworker/Dockerfile .`
+# Repo-root Docker context ignore — keeps `docker build -f website/v1/ai/vibecodeworker/Dockerfile .`
 # fast by excluding everything the headless image never needs.
 .git
 node_modules
@@ -17,7 +17,7 @@ temp
 *.bak_*
 .DS_Store
 Thumbs.db
-# The image only needs ai/ + website/:
-ai/v1/vibecodeworker/scratch
+# The image only needs the app + website/:
+website/v1/ai/vibecodeworker/scratch
 website/v1/.next
 website/v1/node_modules

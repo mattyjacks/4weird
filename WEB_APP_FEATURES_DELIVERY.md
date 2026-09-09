@@ -113,7 +113,7 @@ Debug modern web frameworks with **automatic framework detection** and **smart d
 ## 📁 File Structure
 
 ```
-ai/v1/VibeCodeWorker/
+website/v1/ai/vibecodeworker/
 ├── lib/
 │   ├── framework_detector.js      ⭐ NEW
 │   ├── dev_server.js              ⭐ NEW
@@ -147,7 +147,7 @@ README.md                           ✨ UPDATED (feature section)
 5. Debug with DevTools
 
 ### For Developers
-See `ai/v1/VibeCodeWorker/WEB_APP_INTEGRATION.md` for complete integration guide.
+See `website/v1/ai/vibecodeworker/WEB_APP_INTEGRATION.md` for complete integration guide.
 
 ---
 
@@ -260,11 +260,11 @@ All modules are **production-ready** with:
 ## 🎯 Next Steps
 
 1. **Review Documentation**
-   - Start with `ai/v1/VibeCodeWorker/README_WEB_APP_FEATURES.md`
-   - Read `ai/v1/VibeCodeWorker/WEB_APP_QUICK_START.md`
+   - Start with `website/v1/ai/vibecodeworker/README_WEB_APP_FEATURES.md`
+   - Read `website/v1/ai/vibecodeworker/WEB_APP_QUICK_START.md`
 
 2. **Integrate into App**
-   - Follow `ai/v1/VibeCodeWorker/WEB_APP_INTEGRATION.md`
+   - Follow `website/v1/ai/vibecodeworker/WEB_APP_INTEGRATION.md`
    - Add IPC handlers in main.js
    - Insert UI components in app.js
 
@@ -297,7 +297,7 @@ This delivery includes:
 
 ## 📞 Documentation Index
 
-All documentation is in `ai/v1/VibeCodeWorker/`:
+All documentation is in `website/v1/ai/vibecodeworker/`:
 
 1. **README_WEB_APP_FEATURES.md** - Start here!
 2. **WEB_APP_QUICK_START.md** - User guide

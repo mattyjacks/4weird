@@ -1,9 +1,0 @@
-{
-  "status": "failed",
-  "failedTests": [
-    "AutoCode.environmentVariableResolution",
-    "ApiServer.configurablePort",
-    "Cloud.tokenAuth",
-    "Handoff.routes"
-  ]
-}
