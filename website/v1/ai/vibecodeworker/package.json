@@ -23,6 +23,8 @@
     "test:cloud": "node tests/test_runpod_cloud.js",
     "test:godot": "node tests/test_godot_runtime.js",
     "test:all": "node scripts/node/run_all_tests.js",
+    "test:utils": "node tests/test_vcw_utils.js",
+    "lint": "node --check lib/vcw_utils.js && node --check lib/config.js && node --check lib/pricing.js && node --check lib/api_server.js && node --check lib/core.js && echo LINT_OK",
     "test:headful": "node tests/test_hub_headful.js",
     "record:bug-hunts": "electron scripts/node/run_narrated_bug_hunts.js",
     "record:taglish": "electron scripts/node/run_narrated_bug_hunts.js taglish-translate",
@@ -92,9 +94,11 @@
   ],
   "author": "4WEIRD Team",
   "license": "ISC",
+  "engines": { "node": ">=18.0.0" },
+  "private": false,
   "devDependencies": {
     "@tauri-apps/cli": "^2.0.0",
-    "electron": "^31.0.0",
+    "electron": "^44.3.0",
     "electron-builder": "^26.15.3"
   }
 }

@@ -60,12 +60,13 @@ class SmartLog {
   }
 
   log(level, category, message, extra) {
+    const allowed = ['debug', 'info', 'warn', 'error'];
     const row = {
       ts: new Date().toISOString(),
       session: this.sessionId,
-      source: this.source,
-      level: level || 'info',
-      category: category || 'general',
+      source: String(this.source || 'vibecodeworker').slice(0, 64),
+      level: allowed.includes(level) ? level : 'info',
+      category: String(category || 'general').slice(0, 64),
       message: String(message == null ? '' : message).slice(0, 4000),
       ...(extra && typeof extra === 'object' ? { extra: JSON.parse(JSON.stringify(extra).slice(0, 4000)) } : {}),
     };
@@ -91,6 +92,21 @@ class SmartLog {
   info(msg, extra) { return this.log('info', (extra && extra.category) || 'general', msg, extra); }
   warn(msg, extra) { return this.log('warn', (extra && extra.category) || 'general', msg, extra); }
   error(msg, extra) { return this.log('error', (extra && extra.category) || 'general', msg, extra); }
+  debug(msg, extra) { return this.log('debug', (extra && extra.category) || 'general', msg, extra); }
+
+  getTail(n = 50) {
+    const cap = Math.min(500, Math.max(1, Number(n) || 50));
+    return this.ring.slice(-cap);
+  }
+
+  clearRing() {
+    this.ring.length = 0;
+    return true;
+  }
+
+  countByLevel(level) {
+    return this.ring.filter((r) => r.level === level).length;
+  }
 
   _prune() {
     try {

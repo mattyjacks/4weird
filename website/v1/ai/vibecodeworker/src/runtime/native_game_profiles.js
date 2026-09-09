@@ -106,11 +106,11 @@ const PROFILES = [
       extra: { '1-9': 'weapon selection', tab: 'scoreboard', enter: 'chat/confirm', escape: 'pause/menu', q: 'previous weapon', 'mouse wheel': 'next/previous weapon' }
     },
     startup: [
-      'Click the Xonotic window to capture the mouse, then press Escape only if a menu is visible.',
-      'If the arena is not running, use the local bot arena already supplied by the cloud launcher or select Practice/Singleplayer.',
-      'Use short W/A/D/Space bursts before firing so movement and mouse-look are visibly exercised.'
+      'FIRST RUN SHOWS A Welcome DIALOG WITH A Name FIELD: double-click the Name box, type VibeCodeWorker, press Enter, then click Save settings. If the name is rejected, retry as VibeCodeWorker1, VCW_Player, VibeCoder, VCWorker01, Player_VCW, then VCW_Player2+ (sanitized [A-Za-z0-9_], max 16 chars, never repeat).',
+      'After saving, the local bot arena (+map dm_run, 5 bots) is already supplied by the cloud launcher: press Escape only if a menu still covers the view, then play.',
+      'Click the Xonotic window to capture the mouse. Use short W/A/D/Space bursts before firing so movement and mouse-look are visibly exercised.'
     ],
-    visionHints: 'Xonotic HUD: health and armor are bottom-left, ammo and weapon are bottom-right, crosshair is centered. Look for bot silhouettes, weapon pickups, damage flashes, kill feed, scoreboard, and map geometry. Prefer short movement bursts and controlled mouse-look; never hold a key indefinitely.'
+    visionHints: 'Xonotic HUD: health and armor are bottom-left, ammo and weapon are bottom-right, crosshair is centered. A Welcome dialog with a Name label means STOP moving and do name entry first (VibeCodeWorker, then variations). In the arena look for bot silhouettes, weapon pickups, damage flashes, kill feed, scoreboard, and map geometry. Prefer short movement bursts and controlled mouse-look; never hold a key indefinitely.'
   },
   {
     id: 'hl2-generic',

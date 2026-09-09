@@ -123,12 +123,24 @@ async function openGameWindow(url, isHeadless, mainWindow, onConsoleLog, options
       show: !isHeadless,
       fullscreen: !!(opts.fullscreen || opts.mode === 'fullscreen') && !isHeadless,
       webPreferences: {
-        nodeIntegration: true,
-        contextIsolation: false,
+        // Security: the guest window loads arbitrary playtest targets
+        // (user games, external SaaS URLs). It must never get Node.js.
+        // Main-side automation (executeJavaScript, capturePage) keeps
+        // working; it does not depend on in-guest Node integration.
+        nodeIntegration: false,
+        contextIsolation: true,
+        sandbox: true,
+        webSecurity: true,
+        allowRunningInsecureContent: false,
         devTools: true
       },
       title: "AI Playtest Target Game Window"
     });
+    // Least privilege for untrusted guest content: no device/media
+    // permissions, and popups stay inside the guest window instead of
+    // reaching the OS handler.
+    gameWindow.webContents.session.setPermissionRequestHandler((_wc, _permission, callback) => callback(false));
+    gameWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
     attachListeners(gameWindow);
     try {
       await gameWindow.loadURL(url);

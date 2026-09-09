@@ -9,10 +9,17 @@ const { URL } = require('url');
 const { ApiBugStore } = require('./api/bug_store');
 const { handleApiRequest } = require('./api/routes');
 
+const { isValidPort } = require('./vcw_utils');
+
 class LocalAPIServer {
   constructor(options = {}) {
-    this.port = options.port || 42069;
-    this.host = options.host || '127.0.0.1';
+    const requestedPort = Number(options.port || 42069);
+    this.port = isValidPort(requestedPort) ? requestedPort : 42069;
+    this.host = typeof options.host === 'string' && options.host.length < 256 ? options.host : '127.0.0.1';
+    this.requestTimeoutMs = 30000;
+    this.rateLimitWindowMs = 60000;
+    this.rateLimitMax = 120;
+    this._rateHits = new Map();
     this.server = null;
     this.appState = {
       startTime: Date.now(),
@@ -110,10 +117,37 @@ class LocalAPIServer {
         const isTrustedVcwOrigin = origin === 'https://4weird.com' || origin === 'https://www.4weird.com';
         const isLocalOrigin = !origin || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1') || origin.startsWith('file://') || origin.startsWith('vscode-webview://') || isTrustedVcwOrigin;
 
-        // Allow CORS for local origins or non-browser tooling (curl, python, node tests)
-        res.setHeader('Access-Control-Allow-Origin', origin || '*');
+        // CORS: echo back only origins we trust (loopback, file, vscode
+        // webview, or the production site). Anything else gets no
+        // Access-Control-Allow-Origin header, so browsers withhold the
+        // response from foreign pages. Never emit a reflected-origin or '*'
+        // value alongside credential-style auth headers.
+        if (isLocalOrigin) {
+          res.setHeader('Access-Control-Allow-Origin', origin || '*');
+          res.setHeader('Vary', 'Origin');
+        }
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Vibe-Auth, X-Runpod-Key');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Vibe-Auth, X-Runpod-Key, X-Request-Id');
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('X-Frame-Options', 'DENY');
+        res.setHeader('Referrer-Policy', 'no-referrer');
+        res.setHeader('X-Request-Id', `${Date.now().toString(36)}-${Math.floor(Math.random() * 1e6)}`);
+
+        // Per-IP rate limit: 120 req/min (in-memory, loopback-friendly).
+        try {
+          const now = Date.now();
+          const key = String(clientIp || 'unknown');
+          const hits = (this._rateHits.get(key) || []).filter((t) => now - t < this.rateLimitWindowMs);
+          hits.push(now);
+          this._rateHits.set(key, hits);
+          if (hits.length > this.rateLimitMax) {
+            res.writeHead(429, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, error: 'Rate limited: slow down and retry' }));
+            this.logRequest(req.method, pathname, 429, Date.now() - startTime);
+            return;
+          }
+          if (this._rateHits.size > 1000) this._rateHits.clear();
+        } catch (_) { /* rate limiting must never break serving */ }
 
         if (req.method === 'OPTIONS') {
           res.writeHead(204);
@@ -121,11 +155,19 @@ class LocalAPIServer {
           return;
         }
 
+        if (req.url && req.url.length > 8192) {
+          res.writeHead(414, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Request URI too long' }));
+          this.logRequest(req.method, String(req.method), 414, Date.now() - startTime);
+          return;
+        }
         const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
         const pathname = parsedUrl.pathname;
 
-        // Security: Block non-local external origins from mutating the host machine or executing code
-        const EXECUTION_PATHS = ['/api/game/patch', '/api/game/eval', '/api/game/video/start', '/api/game/video/stop', '/api/autocode/fix',
+        // Security: Block non-local external origins from mutating the host machine or executing code.
+        // Both canonical paths and their short aliases (/eval, /action) are
+        // covered so an alias cannot bypass the origin guard.
+        const EXECUTION_PATHS = ['/api/game/patch', '/api/game/eval', '/eval', '/api/game/action', '/action', '/api/game/video/start', '/api/game/video/stop', '/api/autocode/fix',
           '/api/opencode/fix', '/api/opencode/heal', '/api/opencode/heal-test', '/api/opencode/revert',
           '/api/cloud/launch', '/api/cloud/stop', '/api/cloud/status', '/api/cloud/games/download',
           '/api/godot/install', '/api/godot/action'];
@@ -204,10 +246,15 @@ class LocalAPIServer {
           const rootDir = path.join(__dirname, '..');
           await handleApiRequest(this, req, res, pathname, parsedUrl, readBody, sendJSON, sendText, rootDir);
         } catch (err) {
-          sendJSON(500, { success: false, error: err.message, stack: err.stack });
+          const prod = process.env.NODE_ENV === 'production';
+          sendJSON(500, prod
+            ? { success: false, error: err && err.message ? String(err.message).slice(0, 500) : 'Internal error' }
+            : { success: false, error: err.message, stack: String(err.stack || '').slice(0, 2000) });
         }
       });
 
+      this.server.requestTimeout = this.requestTimeoutMs;
+      this.server.headersTimeout = this.requestTimeoutMs + 5000;
       this.server.listen(this.port, this.host, () => {
         console.log(`[LocalAPIServer] Listening on http://${this.host}:${this.port}`);
         resolve(this);
@@ -220,10 +267,23 @@ class LocalAPIServer {
     });
   }
 
+  getHealth() {
+    return {
+      ok: true,
+      uptimeSec: Math.round((Date.now() - this.appState.startTime) / 1000),
+      apiRequests: this.appState.apiRequests,
+      bugs: this.bugStore ? this.bugStore.getBugs().length : 0,
+      host: this.host,
+      port: this.port
+    };
+  }
+
   stop() {
     return new Promise((resolve) => {
       if (this.server) {
+        const force = setTimeout(() => { try { this.server.closeAllConnections(); } catch (_) {} resolve(); }, 5000);
         this.server.close(() => {
+          clearTimeout(force);
           console.log('[LocalAPIServer] Stopped');
           resolve();
         });

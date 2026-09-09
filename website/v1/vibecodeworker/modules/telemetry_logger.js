@@ -24,7 +24,17 @@ export function log(message, type = 'system') {
   const time = new Date().toLocaleTimeString([], { hour12: false });
   const div = document.createElement('div');
   div.className = `term-line ${type}`;
-  div.innerHTML = `<span style="opacity: 0.4;">[${time}]</span> [${type.toUpperCase()}] ${message}`;
+  // Security: never interpret log content as HTML. Game console output and
+  // bug text are attacker-influenced, and this dashboard runs with Node
+  // integration, so an innerHTML sink here would be a direct RCE primitive.
+  const timeSpan = document.createElement('span');
+  timeSpan.style.opacity = '0.4';
+  timeSpan.textContent = `[${time}]`;
+  const typeSpan = document.createElement('span');
+  typeSpan.textContent = ` [${type.toUpperCase()}] `;
+  const msgSpan = document.createElement('span');
+  msgSpan.textContent = String(message);
+  div.append(timeSpan, typeSpan, msgSpan);
 
   if (el.terminalLog) {
     el.terminalLog.appendChild(div);
@@ -121,15 +131,12 @@ export function initAuthCheck() {
     requiredPassword = process.env.VIBECODEWORKER_AUTH_PASSWORD || process.env.VibeCodeWorker_AUTH_PASSWORD;
   } else if (window.VIBECODEWORKER_AUTH_PASSWORD || window.VibeCodeWorker_AUTH_PASSWORD) {
     requiredPassword = window.VIBECODEWORKER_AUTH_PASSWORD || window.VibeCodeWorker_AUTH_PASSWORD;
-  } else {
-    const params = new URLSearchParams(window.location.search);
-    if (params.has('VIBECODEWORKER_AUTH_PASSWORD') || params.has('VibeCodeWorker_AUTH_PASSWORD')) {
-      requiredPassword = params.get('VIBECODEWORKER_AUTH_PASSWORD') || params.get('VibeCodeWorker_AUTH_PASSWORD');
-    } else if (params.get('auth') === 'true' || params.has('lock')) {
-      requiredPassword = localStorage.getItem('VIBECODEWORKER_AUTH_PASSWORD') || localStorage.getItem('VibeCodeWorker_AUTH_PASSWORD') || '4weird2026';
-    } else if (localStorage.getItem('VIBECODEWORKER_AUTH_PASSWORD') || localStorage.getItem('VibeCodeWorker_AUTH_PASSWORD')) {
-      requiredPassword = localStorage.getItem('VIBECODEWORKER_AUTH_PASSWORD') || localStorage.getItem('VibeCodeWorker_AUTH_PASSWORD');
-    }
+  } else if (localStorage.getItem('VIBECODEWORKER_AUTH_PASSWORD') || localStorage.getItem('VibeCodeWorker_AUTH_PASSWORD')) {
+    // Security: passwords are only honored from an explicit operator action
+    // (env var, injected constant, or the lock dialog). They are never read
+    // from URL query params (which leak into history, logs, and Referer
+    // headers) and there is no hardcoded default password.
+    requiredPassword = localStorage.getItem('VIBECODEWORKER_AUTH_PASSWORD') || localStorage.getItem('VibeCodeWorker_AUTH_PASSWORD');
   }
 
   if (requiredPassword) {
@@ -157,7 +164,9 @@ export function initAuthCheck() {
 export function handleAuthSubmit(e) {
   if (e) e.preventDefault();
   const inputVal = el.authPasswordInput ? el.authPasswordInput.value.trim() : '';
-  const targetPassword = state.authPassword || localStorage.getItem('VIBECODEWORKER_AUTH_PASSWORD') || localStorage.getItem('VibeCodeWorker_AUTH_PASSWORD') || '4weird2026';
+  // Security: no fallback default password. Auth only engages when the
+  // operator has configured one; otherwise there is nothing to guess.
+  const targetPassword = state.authPassword || localStorage.getItem('VIBECODEWORKER_AUTH_PASSWORD') || localStorage.getItem('VibeCodeWorker_AUTH_PASSWORD') || '';
 
   if (inputVal === targetPassword || !targetPassword) {
     sessionStorage.setItem('vibecodeworker_authenticated', 'true');
@@ -192,7 +201,7 @@ export function setupAuthEventListeners() {
           initAuthCheck();
         }
       } else if (!state.authPassword) {
-        const p = prompt('Set simulated Vercel environment password (process.env.VIBECODEWORKER_AUTH_PASSWORD):', '4weird2026');
+        const p = prompt('Set a session password for VibeCodeWorker (stored only in this browser profile):', '');
         if (p) {
           localStorage.setItem('VIBECODEWORKER_AUTH_PASSWORD', p);
           sessionStorage.removeItem('vibecodeworker_authenticated');

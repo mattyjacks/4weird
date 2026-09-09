@@ -254,19 +254,28 @@ const MODEL_TIER_ORDER = [
  * @param {boolean} useCache - Whether cached input pricing applies
  * @returns {number} Cost in USD
  */
+const FALLBACK_PRICING = {
+  inputRate: 0.50,
+  outputRate: 1.50,
+  cacheInputRate: 0.25,
+  tier: 1
+};
+
+function sanitizeTokenCount(n) {
+  const v = Number(n);
+  if (!Number.isFinite(v) || v < 0) return 0;
+  return Math.min(v, 100000000);
+}
+
 function calculateCost(model, inputTokens, outputTokens, useCache = false) {
-  const pricing = MODEL_PRICING[model] || {
-    inputRate: 0.50,
-    outputRate: 1.50,
-    cacheInputRate: 0.25,
-    tier: 1
-  };
+  const pricing = MODEL_PRICING[model] || FALLBACK_PRICING;
 
   const inputRate = useCache ? pricing.cacheInputRate : pricing.inputRate;
-  const inputCost = (inputTokens / 1000000) * inputRate;
-  const outputCost = (outputTokens / 1000000) * pricing.outputRate;
+  const inputCost = (sanitizeTokenCount(inputTokens) / 1000000) * inputRate;
+  const outputCost = (sanitizeTokenCount(outputTokens) / 1000000) * pricing.outputRate;
 
-  return inputCost + outputCost;
+  const total = inputCost + outputCost;
+  return Number.isFinite(total) ? total : 0;
 }
 
 /**
@@ -275,10 +284,12 @@ function calculateCost(model, inputTokens, outputTokens, useCache = false) {
  * @returns {string} Formatted cost string
  */
 function formatCost(cost) {
-  if (cost < 0.01) {
-    return `$${(cost * 100).toFixed(2)}c`;
+  const v = Number(cost);
+  if (!Number.isFinite(v) || v < 0) return '$0.0000';
+  if (v < 0.01) {
+    return `$${(v * 100).toFixed(2)}c`;
   }
-  return `$${cost.toFixed(4)}`;
+  return `$${v.toFixed(4)}`;
 }
 
 /**
@@ -310,12 +321,28 @@ function getModelsByTier(maxTier) {
   });
 }
 
+function listModelsByTier() {
+  return Object.entries(MODEL_PRICING)
+    .map(([id, p]) => ({ id, name: p.name, tier: p.tier, inputRate: p.inputRate, outputRate: p.outputRate }))
+    .sort((a, b) => a.tier - b.tier || a.inputRate - b.inputRate);
+}
+
+function estimateCostForCharacters(model, inputChars, outputChars, useCache = false) {
+  const inputTokens = Math.ceil(Number(inputChars || 0) / 4);
+  const outputTokens = Math.ceil(Number(outputChars || 0) / 4);
+  return calculateCost(model, inputTokens, outputTokens, useCache);
+}
+
 module.exports = {
   MODEL_PRICING,
   MODEL_TIER_ORDER,
+  FALLBACK_PRICING,
   calculateCost,
   formatCost,
+  sanitizeTokenCount,
   getModelPricing,
   getAvailableModels,
-  getModelsByTier
+  getModelsByTier,
+  listModelsByTier,
+  estimateCostForCharacters
 };

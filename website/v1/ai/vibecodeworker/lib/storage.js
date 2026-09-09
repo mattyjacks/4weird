@@ -65,6 +65,28 @@ function _clearMasterKeyCache() {
   _cachedMasterKey = null;
 }
 
+function sanitizeKeyPreview(key) {
+  if (typeof key !== 'string' || key.length < 8) return '***';
+  return `${key.slice(0, 3)}...${key.slice(-2)} (${key.length} chars)`;
+}
+
+function isPlausibleApiKey(key) {
+  if (typeof key !== 'string') return false;
+  const t = key.trim();
+  if (t.length < 8 || t.length > 512) return false;
+  if (/^(sk-your|your-|xxx|test|placeholder)/i.test(t)) return false;
+  return true;
+}
+
+function maskCredentialsForLog(creds) {
+  const out = {};
+  if (!creds || typeof creds !== 'object') return out;
+  for (const k of Object.keys(creds)) {
+    out[k] = sanitizeKeyPreview(creds[k]);
+  }
+  return out;
+}
+
 /**
  * Encrypt arbitrary plain text using AES-256-GCM.
  */
@@ -374,6 +396,9 @@ module.exports = {
   loadMaskedApiKeyBundle,
   isPlaceholderKey,
   readEnvKey,
+  sanitizeKeyPreview,
+  isPlausibleApiKey,
+  maskCredentialsForLog,
   _clearMasterKeyCache,
   _clearCredentialsCache
 };

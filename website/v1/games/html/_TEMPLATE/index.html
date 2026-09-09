@@ -273,73 +273,157 @@
     <script src="../../../components.js"></script>
     <script src="game.js"></script>
     <script>
-        // Load game metadata and populate template fields
+        // Load game metadata and populate template fields.
+        // Security: game.json is contributor-supplied content. Every string
+        // from it is inserted via textContent / DOM nodes (never innerHTML),
+        // and every URL is restricted to http(s) so a crafted game.json
+        // cannot inject markup or javascript: links into the page.
         (function() {
+            function setText(id, value) {
+                var element = document.getElementById(id);
+                if (element) element.textContent = value == null ? '' : String(value);
+            }
+
+            function safeUrl(raw) {
+                try {
+                    var parsed = new URL(String(raw), window.location.href);
+                    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return parsed.href;
+                } catch (e) { /* fall through */ }
+                return null;
+            }
+
+            function setBio(elementId, bio) {
+                var bioEl = document.getElementById(elementId);
+                if (!bioEl) return;
+                bioEl.textContent = '';
+                var paragraph = document.createElement('p');
+                paragraph.textContent = bio == null ? '' : String(bio);
+                bioEl.appendChild(paragraph);
+            }
+
+            function renderCredits(gridId, credits) {
+                var grid = document.getElementById(gridId);
+                if (!grid || !credits || !credits.length) return;
+                grid.textContent = '';
+                credits.forEach(function(c) {
+                    var card = document.createElement('div');
+                    card.className = 'TEMPLATE-4weird-credit-card' + (c.primary ? ' TEMPLATE-4weird-primary' : '');
+
+                    var avatar = document.createElement('div');
+                    avatar.className = 'TEMPLATE-4weird-credit-avatar';
+                    avatar.textContent = c.avatar || '👤';
+
+                    var name = document.createElement('h3');
+                    name.className = 'TEMPLATE-4weird-credit-name';
+                    name.textContent = c.name || '';
+
+                    var role = document.createElement('p');
+                    role.className = 'TEMPLATE-4weird-credit-role';
+                    role.textContent = c.role || '';
+
+                    card.append(avatar, name, role);
+
+                    var href = c.url ? safeUrl(c.url) : null;
+                    if (href) {
+                        var links = document.createElement('p');
+                        links.className = 'TEMPLATE-4weird-credit-links';
+                        var anchor = document.createElement('a');
+                        anchor.href = href;
+                        anchor.target = '_blank';
+                        anchor.rel = 'noopener';
+                        anchor.textContent = c.urlLabel || 'Link';
+                        links.appendChild(anchor);
+                        card.appendChild(links);
+                    }
+
+                    grid.appendChild(card);
+                });
+            }
+
+            function renderControlList(elementId, entries, itemTag) {
+                var container = document.getElementById(elementId);
+                if (!container) return;
+                container.textContent = '';
+                entries.forEach(function(entry) {
+                    var item = document.createElement(itemTag);
+                    var desc = document.createElement(itemTag === 'li' ? 'span' : 'strong');
+                    desc.textContent = entry.desc;
+                    var key = document.createElement(itemTag === 'li' ? 'kbd' : 'kbd');
+                    key.textContent = entry.key;
+                    if (itemTag === 'p') {
+                        item.append(desc, ': ', key);
+                    } else {
+                        item.append(desc, ' ', key);
+                    }
+                    container.appendChild(item);
+                });
+            }
+
             fetch('game.json')
                 .then(r => r.json())
                 .then(data => {
                     document.title = data.title + ' - 4weird Games';
                     
                     // Main title tags
-                    document.getElementById('TEMPLATE-4weird-game-title').textContent = data.title;
-                    document.getElementById('start-overlay-title').textContent = data.title;
+                    setText('TEMPLATE-4weird-game-title', data.title);
+                    setText('start-overlay-title', data.title);
                     
                     // Genre and descriptions
-                    document.getElementById('TEMPLATE-4weird-game-genre').textContent = data.genre;
-                    document.getElementById('start-overlay-desc').textContent = data.description;
-                    document.getElementById('TEMPLATE-4weird-how-to-play').innerHTML = data.instructions;
+                    setText('TEMPLATE-4weird-game-genre', data.genre);
+                    setText('start-overlay-desc', data.description);
+                    setText('TEMPLATE-4weird-how-to-play', data.instructions);
                     
                     // Set keyboard instructions hint
                     if (data.controls && data.controls.keyboard) {
-                        const hintList = Object.entries(data.controls.keyboard)
-                            .map(([k, desc]) => `<p><strong>${desc}:</strong> <kbd>${k}</kbd></p>`)
-                            .join('');
-                        document.getElementById('start-overlay-hint').innerHTML = hintList;
+                        var kbEntries = Object.entries(data.controls.keyboard)
+                            .map(([k, desc]) => ({ key: String(k), desc: String(desc) }));
+                        renderControlList('start-overlay-hint', kbEntries, 'p');
                         
                         // Populate the aside sidebar list
-                        const listHtml = Object.entries(data.controls.keyboard)
-                            .map(([k, desc]) => `<li><span>${desc}</span> <kbd>${k}</kbd></li>`)
-                            .join('');
-                        document.getElementById('TEMPLATE-4weird-keyboard-controls-list').innerHTML = listHtml;
+                        renderControlList('TEMPLATE-4weird-keyboard-controls-list', kbEntries, 'li');
                     }
 
                     // Set touch controls instructions details
-                    if (data.controls && data.controls.touch) {
-                        const touchListHtml = Object.entries(data.controls.touch)
-                            .map(([ctrlType, desc]) => {
-                                const friendlyType = ctrlType.toUpperCase().replace('_', ' ');
-                                return `<li><span>${desc}</span> <span>${friendlyType}</span></li>`;
-                            })
-                            .join('');
-                        document.getElementById('TEMPLATE-4weird-touch-controls-list').innerHTML = touchListHtml;
+                    if (data.controls && data.controls.touch && typeof data.controls.touch === 'object') {
+                        var touchEntries = Object.entries(data.controls.touch)
+                            .map(([ctrlType, desc]) => ({
+                                key: String(ctrlType).toUpperCase().replace('_', ' '),
+                                desc: String(desc)
+                            }));
+                        var touchContainer = document.getElementById('TEMPLATE-4weird-touch-controls-list');
+                        if (touchContainer) {
+                            touchContainer.textContent = '';
+                            touchEntries.forEach(function(entry) {
+                                var item = document.createElement('li');
+                                var desc = document.createElement('span');
+                                desc.textContent = entry.desc;
+                                var kind = document.createElement('span');
+                                kind.textContent = entry.key;
+                                item.append(desc, ' ', kind);
+                                touchContainer.appendChild(item);
+                            });
+                        }
                     }
 
                     // Credits developer bios and details
-                    document.getElementById('TEMPLATE-4weird-maker-name').textContent = data.maker.name;
-                    document.getElementById('TEMPLATE-4weird-maker-bio').innerHTML = '<p>' + data.maker.bio + '</p>';
+                    setText('TEMPLATE-4weird-maker-name', data.maker && data.maker.name);
+                    setBio('TEMPLATE-4weird-maker-bio', data.maker && data.maker.bio);
                     
-                    if (data.maker.url) {
-                        const link = document.getElementById('TEMPLATE-4weird-maker-link');
-                        link.href = data.maker.url;
-                        link.textContent = data.maker.urlLabel || 'Portfolio';
+                    if (data.maker && data.maker.url) {
+                        var href = safeUrl(data.maker.url);
+                        var link = document.getElementById('TEMPLATE-4weird-maker-link');
+                        if (link && href) {
+                            link.href = href;
+                            link.textContent = data.maker.urlLabel || 'Portfolio';
+                        }
                     }
                     
                     // Update credits cards dynamic grid
-                    if (data.credits && data.credits.length > 0) {
-                        const grid = document.getElementById('TEMPLATE-4weird-credits-grid');
-                        grid.innerHTML = data.credits.map(c => `
-                            <div class="TEMPLATE-4weird-credit-card ${c.primary ? 'TEMPLATE-4weird-primary' : ''}">
-                                <div class="TEMPLATE-4weird-credit-avatar">${c.avatar || '👤'}</div>
-                                <h3 class="TEMPLATE-4weird-credit-name">${c.name}</h3>
-                                <p class="TEMPLATE-4weird-credit-role">${c.role}</p>
-                                ${c.url ? `<p class="TEMPLATE-4weird-credit-links"><a href="${c.url}" target="_blank" rel="noopener">${c.urlLabel || 'Link'}</a></p>` : ''}
-                            </div>
-                        `).join('');
-                    }
+                    renderCredits('TEMPLATE-4weird-credits-grid', data.credits);
 
                     // Social Share links updates
                     const encodedUrl = encodeURIComponent(window.location.href);
-                    const encodedTitle = encodeURIComponent(`Check out ${data.title} on 4weird Games! 🎮🚀`);
+                    const encodedTitle = encodeURIComponent(`Check out ${data.title} on 4weird Games!`);
                     document.getElementById('share-twitter').href = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`;
                     document.getElementById('share-reddit').href = `https://www.reddit.com/submit?url=${encodedUrl}&title=${encodedTitle}`;
                 })

@@ -178,6 +178,15 @@ async function main() {
       if (!s) break;
       startupQueue.push(s);
     }
+    // Xonotic first run lands on the Welcome name dialog: claim the name
+    // field as VibeCodeWorker (director cycles variations on rejection),
+    // confirm, and save before the FPS loop starts.
+    if (profile.id === 'xonotic' && typeof director.chooseNameEntry === 'function') {
+      for (let i = 0; i < 4; i++) {
+        const n = director.chooseNameEntry(profile.id);
+        if (n) { n.profile = profile.id; startupQueue.push(n); }
+      }
+    }
   }
 
   for (let step = 1; step <= args.steps; step++) {

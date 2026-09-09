@@ -221,8 +221,38 @@ function createWindow() {
   }
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
+    // Security: only http(s) links may reach the OS handler. This blocks
+    // crafted file:, javascript:, or custom-protocol URLs from escaping
+    // the dashboard (which runs with Node integration by design).
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        shell.openExternal(url);
+      }
+    } catch (_) { /* malformed URL: stay in the app */ }
     return { action: 'deny' };
+  });
+
+  // Least privilege for the dashboard surface: it is a local control plane
+  // and needs no geolocation, media, notifications, or HID access.
+  mainWindow.webContents.session.setPermissionRequestHandler((_wc, _permission, callback) => callback(false));
+
+  // Keep the privileged dashboard window on local content. Remote navigation
+  // (e.g. a link that targets this window) is opened in the OS browser after
+  // the same http(s) validation instead of gaining Node integration.
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    try {
+      const parsed = new URL(url);
+      const isLocalFile = parsed.protocol === 'file:';
+      const isLoopback = (parsed.protocol === 'http:' || parsed.protocol === 'https:')
+        && (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1' || parsed.hostname === '[::1]');
+      if (isLocalFile || isLoopback) return;
+    } catch (_) { /* fall through to deny */ }
+    event.preventDefault();
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') shell.openExternal(url);
+    } catch (_) {}
   });
 
   mainWindow.on('closed', () => {
@@ -1022,6 +1052,17 @@ ipcMain.handle('ollama-pull-model', async (_event, model) => {
     return { ok: false, success: false, error: e.message };
   }
 });
+
+// Lifecycle hardening: never lose window placement, never die silently.
+process.on('uncaughtException', (err) => {
+  try { smartlog.error(`uncaughtException: ${err && err.stack ? err.stack.slice(0, 2000) : err}`, { category: 'lifecycle' }); } catch (_) {}
+  console.error('[VibeCodeWorker] uncaughtException:', err && err.message ? err.message : err);
+});
+process.on('unhandledRejection', (reason) => {
+  try { smartlog.error(`unhandledRejection: ${String(reason && reason.stack ? reason.stack : reason).slice(0, 2000)}`, { category: 'lifecycle' }); } catch (_) {}
+  console.error('[VibeCodeWorker] unhandledRejection:', reason);
+});
+app.on('before-quit', () => { try { saveWindowBounds(); } catch (_) {} });
 
 // Unified web engine IPC: renderer (dashboard) switches drivers & runs QA.
 ipcMain.handle('get-web-engines', async () => webEngineManager.describeEngines());

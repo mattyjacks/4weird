@@ -221,7 +221,13 @@
                             const links = document.createElement('p');
                             links.className = 'TEMPLATE-4weird-credit-links';
                             const anchor = document.createElement('a');
-                            anchor.href = credit.url;
+                            // Security: game.json URLs are contributor-supplied;
+                            // allow http(s) only so javascript: URLs cannot run.
+                            try {
+                                const parsed = new URL(String(credit.url), window.location.href);
+                                if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') throw new Error('blocked');
+                                anchor.href = parsed.href;
+                            } catch (e) { anchor.href = '#'; anchor.setAttribute('aria-disabled', 'true'); }
                             anchor.target = '_blank';
                             anchor.rel = 'noopener';
                             anchor.textContent = credit.urlLabel || 'Link';

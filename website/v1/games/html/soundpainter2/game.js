@@ -1413,16 +1413,33 @@
         };
 
         function apply(data) {
-            document.getElementById('TEMPLATE-4weird-maker-bio').innerHTML = '<p>' + data.maker.bio + '</p>';
+            // Security: game.json is contributor-supplied; insert as text,
+            // never innerHTML.
+            var bioEl = document.getElementById('TEMPLATE-4weird-maker-bio');
+            if (bioEl) {
+                bioEl.textContent = '';
+                var bioP = document.createElement('p');
+                bioP.textContent = (data.maker && data.maker.bio) || '';
+                bioEl.appendChild(bioP);
+            }
             const grid = document.getElementById('TEMPLATE-4weird-credits-grid');
             if (data.credits && data.credits.length > 0 && grid) {
-                grid.innerHTML = data.credits.map(c => `
-                    <div class="TEMPLATE-4weird-credit-card ${c.primary ? 'TEMPLATE-4weird-primary' : ''}">
-                        <div class="TEMPLATE-4weird-credit-avatar">${c.avatar || '👤'}</div>
-                        <h3 class="TEMPLATE-4weird-credit-name">${c.name}</h3>
-                        <p class="TEMPLATE-4weird-credit-role">${c.role}</p>
-                    </div>
-                `).join('');
+                grid.textContent = '';
+                data.credits.forEach(c => {
+                    const card = document.createElement('div');
+                    card.className = 'TEMPLATE-4weird-credit-card' + (c.primary ? ' TEMPLATE-4weird-primary' : '');
+                    const avatar = document.createElement('div');
+                    avatar.className = 'TEMPLATE-4weird-credit-avatar';
+                    avatar.textContent = c.avatar || '👤';
+                    const name = document.createElement('h3');
+                    name.className = 'TEMPLATE-4weird-credit-name';
+                    name.textContent = c.name || '';
+                    const role = document.createElement('p');
+                    role.className = 'TEMPLATE-4weird-credit-role';
+                    role.textContent = c.role || '';
+                    card.append(avatar, name, role);
+                    grid.appendChild(card);
+                });
             }
         }
 

@@ -167,7 +167,14 @@ export function renderSubagentLogStream(sub) {
   sub.logs.forEach(l => {
     const div = document.createElement('div');
     div.style.marginBottom = '4px';
-    div.innerHTML = `<span style="opacity:0.5;">[${l.time}]</span> ${l.message}`;
+    // Security: log text is untrusted (agent output). Build DOM nodes with
+    // textContent instead of innerHTML so markup can never execute.
+    const timeSpan = document.createElement('span');
+    timeSpan.style.opacity = '0.5';
+    timeSpan.textContent = `[${l.time}] `;
+    const msgSpan = document.createElement('span');
+    msgSpan.textContent = String(l.message);
+    div.append(timeSpan, msgSpan);
     el.subagentLogStream.appendChild(div);
   });
   el.subagentLogStream.scrollTop = el.subagentLogStream.scrollHeight;

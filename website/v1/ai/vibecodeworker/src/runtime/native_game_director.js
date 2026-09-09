@@ -1,6 +1,16 @@
 /** Local, bounded policy for a user-selected native game window. */
-const FPS_TITLES = /half[- ]?life|portal|source|doom|quake|unreal|fps|shooter|combine|antlion|alyx|hl2|ep2|episode/i;
+const FPS_TITLES = /half[- ]?life|portal|source|doom|quake|unreal|fps|shooter|combine|antlion|alyx|hl2|ep2|episode|xonotic|arena/i;
 const PEGGLE_TITLES = /peggle/i;
+
+// Name-field geometry per profile (0-1000 normalized). Xonotic's Welcome
+// dialog: Name input left-center, Save settings bottom-center.
+const NAME_FIELD_GEOMETRY = {
+  xonotic: { field: { x: 380, y: 460 }, save: { x: 500, y: 895 } },
+  default: { field: { x: 500, y: 400 }, save: { x: 500, y: 850 } }
+};
+function nameGeometryFor(profileId) {
+  return NAME_FIELD_GEOMETRY[profileId] || NAME_FIELD_GEOMETRY.default;
+}
 
 function fingerprint(frame = '') {
   let h = 2166136261;
@@ -14,8 +24,32 @@ function action(type, target, duration_ms, reasoning, params = {}) {
 
 class NativeGameDirector {
   constructor() { this.reset(); }
-  reset() { this.title = ''; this.tick = 0; this.startupTick = 0; this.previous = 0; this.last = null; this.lastFrame = 0; this.still = 0; this.fpsCycle = 0; this.arms = new Map(); }
+  reset() { this.title = ''; this.tick = 0; this.startupTick = 0; this.previous = 0; this.last = null; this.lastFrame = 0; this.still = 0; this.fpsCycle = 0; this.arms = new Map(); this.nameAttempt = 0; this.nameStep = 0; }
   setTarget(title) { if (title !== this.title) { this.reset(); this.title = title || ''; } }
+  // Intelligent name entry: one action per call, 4-step cycle per candidate
+  // (focus field -> type candidate -> confirm -> save). Each full cycle
+  // advances to the next variation so a rejected name is never retried.
+  chooseNameEntry(profileId = '') {
+    let candidate = 'VibeCodeWorker';
+    try {
+      const player = require('./native_game_player');
+      candidate = player.getPlayerNameCandidate(this.nameAttempt);
+    } catch (_) { candidate = `VibeCodeWorker${this.nameAttempt > 0 ? this.nameAttempt : ''}`; }
+    const geo = nameGeometryFor(profileId);
+    const phase = this.nameStep % 4;
+    this.nameStep++;
+    if (phase === 3 && this.nameStep % 4 === 0) this.nameAttempt++;
+    if (phase === 0) {
+      return action('double_click', `${geo.field.x},${geo.field.y}`, 0, `Name entry: focus the name field for "${candidate}" (attempt ${this.nameAttempt + 1}).`, { x: geo.field.x, y: geo.field.y });
+    }
+    if (phase === 1) {
+      return { action: { type: 'type_text', target: candidate, duration_ms: 0, params: { text: candidate } }, reasoning: `Name entry: type "${candidate}" (attempt ${this.nameAttempt + 1}; sanitized, never a repeat).`, status: 'native-policy' };
+    }
+    if (phase === 2) {
+      return action('press_key', 'enter', 0, `Name entry: confirm "${candidate}" with Enter.`, { key: 'enter' });
+    }
+    return action('click', `${geo.save.x},${geo.save.y}`, 0, `Name entry: click Save/Confirm for "${candidate}" then advance; next rejection tries a new variation.`, { x: geo.save.x, y: geo.save.y });
+  }
   chooseStartup(profileId, startFresh = false) {
     if (profileId === 'peggle-deluxe' && startFresh && this.startupTick === 0) {
       this.startupTick++;

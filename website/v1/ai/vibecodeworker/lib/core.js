@@ -44,6 +44,9 @@ class AutoCodeSystem {
   }
 
   addScreenshot(base64) {
+    if (typeof base64 !== 'string' || base64.length < 1 || base64.length > 15 * 1024 * 1024) {
+      throw new Error('Invalid screenshot payload (must be a 1B-15MB string)');
+    }
     if (!this.config.enableScreenshots) {
       this.config.enableScreenshots = true;
       this.screenshotQueue.enable(this.config.maxScreenshots || 2);
@@ -64,11 +67,49 @@ class AutoCodeSystem {
     return this;
   }
 
-  log(message) {
-    console.log(`[AutoCode] ${message}`);
+  log(message, level = 'info') {
+    const ts = new Date().toISOString();
+    const line = `[AutoCode] [${level}] ${ts} ${String(message == null ? '' : message).slice(0, 2000)}`;
+    console.log(line);
     if (this.onLog) {
-      this.onLog(message);
+      try { this.onLog(message, level); } catch (_) { /* callbacks must never break core */ }
     }
+    return line;
+  }
+
+  getStatus() {
+    return {
+      ok: true,
+      runId: this.activeRunId,
+      isProcessing: Boolean(this.isProcessing),
+      targetFile: this.config.targetFile || null,
+      screenshots: this.screenshotQueue ? this.screenshotQueue.size : 0,
+      configValid: typeof this.config.isValid === 'function' ? this.config.isValid() : true,
+      uptimeSec: Math.round(process.uptime())
+    };
+  }
+
+  dispose() {
+    try { this.clearScreenshots(); } catch (_) {}
+    this.proposedChanges = null;
+    this.currentFileContent = null;
+    this.isProcessing = false;
+    this.onCostUpdate = null;
+    this.onDiffGenerated = null;
+    this.onError = null;
+    this.onLog = null;
+    return true;
+  }
+
+  beginProcessing(label = 'task') {
+    if (this.isProcessing) throw new Error(`Already processing (new request: ${String(label).slice(0, 120)})`);
+    this.isProcessing = true;
+    return true;
+  }
+
+  endProcessing() {
+    this.isProcessing = false;
+    return true;
   }
 
   updateConfig(newConfig) {
@@ -90,15 +131,23 @@ class AutoCodeSystem {
 
   // Project Management
   async loadProject(projectPath) {
-    this.project = new MultiFileProject(projectPath);
+    if (typeof projectPath !== 'string' || !projectPath.trim() || projectPath.includes('..')) {
+      throw new Error('Invalid projectPath (must be a non-empty path without "..")');
+    }
+    this.project = new MultiFileProject(projectPath.slice(0, 1024));
     const summary = await this.project.loadProject();
     this.log(`Loaded project: ${summary.fileCount} files`);
     return summary;
   }
 
   loadFile(filePath, content) {
+    if (typeof filePath !== 'string' || !filePath.trim() || filePath.length > 1024) {
+      throw new Error('Invalid filePath');
+    }
+    if (typeof content !== 'string' || content.length > 2 * 1024 * 1024) {
+      throw new Error('File content too large (2MB cap)');
+    }
     this.config.targetFile = filePath;
-    this.currentFileContent = content;
 
     if (this.config.minifyCode) {
       this.currentFileContent = minifyCode(content);

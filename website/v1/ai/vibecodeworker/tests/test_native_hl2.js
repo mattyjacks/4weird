@@ -156,6 +156,68 @@ async function runTests() {
     console.log('PASS Test 8');
   } catch (e) { console.error('FAIL Test 8:', e.message); failed.push('hl2.ep2.e2e'); }
 
+  try {
+    console.log('Test 9: Xonotic takes the FPS route with a fire combo (single-kill capable)...');
+    assert.strictEqual(resolveGameProfile('xonotic').id, 'xonotic');
+    assert.strictEqual(resolveGameProfile('xonotic').genre, 'arena-fps');
+    const xonDirector = new NativeGameDirector();
+    xonDirector.setTarget('xonotic');
+    const seen = new Set();
+    for (let i = 0; i < 8; i += 1) {
+      const d = xonDirector.choose(`xonotic-frame-${i}`);
+      assert(d && d.action, 'xonotic director must return an action');
+      seen.add(d.action.type);
+    }
+    assert(seen.has('combo') || seen.has('hold_keys'), 'xonotic must use FPS movement combos, not generic probes');
+    const fireDirector = new NativeGameDirector();
+    fireDirector.setTarget('xonotic');
+    let fired = false;
+    for (let i = 0; i < 8; i += 1) {
+      const d = fireDirector.choose(`xonotic-kill-frame-${i}`);
+      const argv = player.toInputSimArgs(player.normalizeNativeAction(d.action));
+      const flat = JSON.stringify(argv || '');
+      if (flat.includes('click') || flat.includes('500')) fired = true;
+    }
+    assert(fired, 'xonotic FPS route must emit a center-screen fire action within one route cycle');
+    console.log('PASS Test 9');
+  } catch (e) { console.error('FAIL Test 9:', e.message); failed.push('xonotic.fps.kill'); }
+
+  try {
+    console.log('Test 10: name-field intelligence (VibeCodeWorker first, variations, bridge-ready)...');
+    assert.strictEqual(player.getPlayerNameCandidate(0), 'VibeCodeWorker');
+    assert.strictEqual(player.getPlayerNameCandidate(1), 'VibeCodeWorker1');
+    assert.strictEqual(player.getPlayerNameCandidate(2), 'VCW_Player');
+    const later = player.getPlayerNameCandidate(99);
+    assert(/^VCW_Player\d+$/.test(later), 'late attempts stay numbered, never repeat');
+    assert.strictEqual(player.sanitizePlayerName('Bad Name!!##', 16), 'BadName');
+    assert.strictEqual(player.sanitizePlayerName('VibeCodeWorkerSuperLongName', 16).length <= 16, true);
+    // Combo steps can now carry typed text to the bridge in one spawn.
+    const typed = player.normalizeNativeAction({ type: 'combo', target: 'name', duration_ms: 500, params: { steps: [{ op: 'type', text: 'VibeCodeWorker' }] } });
+    assert.strictEqual(typed.params.steps[0].op, 'type');
+    assert.strictEqual(typed.params.steps[0].text, 'VibeCodeWorker');
+    // Director cycles focus -> type -> confirm -> save, advancing the candidate each round.
+    const nameDirector = new NativeGameDirector();
+    nameDirector.setTarget('xonotic');
+    const n0 = nameDirector.chooseNameEntry('xonotic');
+    assert.strictEqual(n0.action.type, 'double_click', 'name entry starts by focusing the field');
+    const n1 = nameDirector.chooseNameEntry('xonotic');
+    assert.strictEqual(n1.action.type, 'type_text');
+    assert.strictEqual(n1.action.params.text, 'VibeCodeWorker');
+    const n2 = nameDirector.chooseNameEntry('xonotic');
+    assert.strictEqual(n2.action.type, 'press_key');
+    const n3 = nameDirector.chooseNameEntry('xonotic');
+    assert.strictEqual(n3.action.type, 'click', 'name entry ends the round on Save');
+    const n4 = nameDirector.chooseNameEntry('xonotic');
+    assert.strictEqual(n4.action.type, 'double_click');
+    const n5 = nameDirector.chooseNameEntry('xonotic');
+    assert.strictEqual(n5.action.params.text, 'VibeCodeWorker1', 'rejected names advance, never repeat');
+    // Vision prompt teaches every game the same rule.
+    const xonPrompt = player.buildNativeGamePrompt({ profile: getProfile('xonotic') });
+    assert(xonPrompt.includes('VibeCodeWorker'), 'prompt names the first-try identity');
+    assert(xonPrompt.includes('NAME ENTRY'), 'prompt carries the name-entry section');
+    console.log('PASS Test 10');
+  } catch (e) { console.error('FAIL Test 10:', e.message); failed.push('name.entry'); }
+
   if (failed.length) {
     console.error(`\n${failed.length} FAILED: ${failed.join(', ')}`);
     process.exit(1);

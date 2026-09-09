@@ -1617,7 +1617,19 @@
                 
                 let thumbContent = "";
                 if (game.image) {
-                    thumbContent = `<img src="${game.image}" class="carousel-img" alt="${game.title}" onerror="this.parentElement.innerHTML='<div class=&quot;carousel-img-fallback grad-${slug}&quot;>${game.emoji}</div>'">`;
+                    // Security: no inline onerror handler that re-parses
+                    // HTML. The error fallback swaps in a text-only node.
+                    const img = document.createElement('img');
+                    img.src = game.image;
+                    img.className = 'carousel-img';
+                    img.alt = game.title;
+                    img.addEventListener('error', () => {
+                        const fallback = document.createElement('div');
+                        fallback.className = 'carousel-img-fallback grad-' + slug;
+                        fallback.textContent = game.emoji;
+                        img.replaceWith(fallback);
+                    });
+                    thumbContent = img.outerHTML;
                 } else {
                     thumbContent = `<div class="carousel-img-fallback grad-${slug}">${game.emoji}</div>`;
                 }

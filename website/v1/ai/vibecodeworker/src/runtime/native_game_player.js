@@ -21,6 +21,35 @@ const NATIVE_ACTION_TYPES = [
   'right_click', 'double_click', 'move_mouse', 'drag_look', 'wheel', 'type_text', 'wait'
 ];
 
+// Player identity: whenever ANY game shows a name / nickname / profile field,
+// the worker claims it as VibeCodeWorker first, then falls back intelligently
+// (numbered, shortened, sanitized) if the game rejects the previous attempt.
+const PLAYER_NAME_CANDIDATES = [
+  'VibeCodeWorker',
+  'VibeCodeWorker1',
+  'VCW_Player',
+  'VibeCoder',
+  'VCWorker01',
+  'Player_VCW'
+];
+
+// Xonotic-style name fields accept [A-Za-z0-9_] and cap length (~16).
+// Sanitize so a rejected attempt degrades gracefully instead of re-sending
+// the same illegal string forever.
+function sanitizePlayerName(name, maxLen = 16) {
+  const clean = String(name || '').replace(/[^A-Za-z0-9_]/g, '').slice(0, maxLen);
+  return clean || 'VCW_Player';
+}
+
+// attempt is 0-based: 0 -> VibeCodeWorker, then ordered variations, then
+// numbered VCW_Player_N with shortening so we never repeat a failed name.
+function getPlayerNameCandidate(attempt = 0) {
+  const i = Math.max(0, Math.floor(Number(attempt) || 0));
+  if (i < PLAYER_NAME_CANDIDATES.length) return sanitizePlayerName(PLAYER_NAME_CANDIDATES[i]);
+  const n = i - PLAYER_NAME_CANDIDATES.length + 2;
+  return sanitizePlayerName(`VCW_Player${n}`);
+}
+
 // Normalize one combo step (op-level clamping shared by normalizeNativeAction).
 // Pure + testable: never touches pyautogui / ipc.
 function normalizeComboStep(raw) {
@@ -93,6 +122,11 @@ function normalizeComboStep(raw) {
     case 'wait': {
       return { op: 'wait', duration_ms: Math.max(0, Math.min(3000, parseInt(raw.duration_ms, 10) || 150)) };
     }
+    case 'type': case 'type_text': {
+      const text = String(raw.text || raw.target || '').slice(0, 120);
+      if (!text) return null;
+      return { op: 'type', text };
+    }
     default:
       return null;
   }
@@ -123,6 +157,14 @@ move forward=${c.forward || 'w'} back=${c.back || 's'} left=${c.left || 'a'} rig
 ## STARTUP / RECOVERY CHEATSHEET
 ${startup || '- Click to focus, Enter past menus, Escape resumes pause.'}
 ${stuck ? '\n## STUCK WARNING\nThe frame has not changed for several ticks. Do something different: turn 90+ degrees, jump+sprint forward, or press Escape then resume.\n' : ''}
+## NAME ENTRY (any game, any name/nickname/profile field)
+If the screen shows a name field (Welcome screen, "enter your player name",
+"Name:" label, nickname box, profile setup): the field OWNS this tick.
+1. Double-click the name field to select any existing text, then type_text "${getPlayerNameCandidate(0)}" (attempt 1).
+2. If the previous tick already typed a name and the screen did not advance,
+   the game rejected it: use the next variation in order ${PLAYER_NAME_CANDIDATES.join(' -> ')} -> VCW_Player2, VCW_Player3, ... (sanitized [A-Za-z0-9_], max 16 chars, never repeat a failed name).
+3. After typing, press_key enter, then click Save/Confirm/Continue (bottom of the dialog).
+4. Never leave a name screen with the field empty, and never stall on it doing movement keys.
 ## VISION NOTES
 ${p.visionHints || 'Aim center-screen, follow exits and markers, shoot visible enemies.'}
 Coordinates are 0-1000 normalized (500,500 = screen center, crosshair home).
@@ -392,6 +434,9 @@ module.exports = {
   VISION_MODEL,
   TEXT_MODEL,
   NATIVE_ACTION_TYPES,
+  PLAYER_NAME_CANDIDATES,
+  sanitizePlayerName,
+  getPlayerNameCandidate,
   buildNativeGamePrompt,
   normalizeNativeAction,
   normalizeComboStep,

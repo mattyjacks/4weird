@@ -129,7 +129,7 @@ def print_help():
     print("  python input_sim.py drag <x1> <y1> <x2> <y2> <duration_ms> [window_title]")
     print("  python input_sim.py combo <steps_json> [window_title]  (chained inputs, one spawn)")
     print("    steps_json example: {\"steps\": [{\"op\": \"hold_keys\", \"keys\": [\"w\"], \"duration_ms\": 600}, {\"op\": \"look\", \"dx\": 120, \"dy\": 0}, {\"op\": \"click\", \"x\": 500, \"y\": 500}, {\"op\": \"press\", \"key\": \"space\"}]}")
-    print("    ops: hold_keys|hold|press|click|right_click|double_click|move|look|wheel|wait|drag")
+    print("    ops: hold_keys|hold|press|click|right_click|double_click|move|look|wheel|wait|drag|type")
     print("  python input_sim.py screenshot <dest_path> [window_title]")
     print("  python input_sim.py overlay <window_title>")
 
@@ -258,6 +258,13 @@ def execute_combo_steps(steps, window_title):
                 ms = max(0, min(3000, int(s.get('duration_ms', s.get('ms', 150)))))
                 time.sleep(ms / 1000.0)
                 results.append(f"wait {ms}ms")
+            elif op in ('type', 'type_text'):
+                text = str(s.get('text', s.get('target', '')))[:120]
+                if text:
+                    pyautogui.write(text, interval=0.02)
+                    results.append(f"type {text}")
+                else:
+                    results.append("type skipped: empty text")
             # hold_keys/hold already handled in phase 1; nothing to do here.
         except Exception as e:
             results.append(f"{op} failed: {e}")

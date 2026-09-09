@@ -39,7 +39,6 @@ class DevServer {
         this.process = spawn(command, args, {
           cwd: this.projectPath,
           stdio: ['ignore', 'pipe', 'pipe'],
-          shell: true,
           detached: false
         });
 
@@ -228,9 +227,27 @@ class StaticServer {
         const mime = require('mime-types');
 
         this.server = http.createServer((req, res) => {
-          let filePath = path.join(this.projectPath, req.url === '/' ? 'index.html' : req.url);
-
-          if (!filePath.startsWith(this.projectPath)) {
+          // Security: serve only GET/HEAD, strip query/hash, decode once,
+          // and confine the resolved path to the project root. The raw
+          // startsWith check it replaces was bypassable with `..` segments
+          // and with query strings appended to req.url.
+          if (req.method !== 'GET' && req.method !== 'HEAD') {
+            res.writeHead(405);
+            res.end('Method Not Allowed');
+            return;
+          }
+          let pathname;
+          try {
+            pathname = decodeURIComponent(String(req.url || '/').split('?')[0].split('#')[0]);
+          } catch (e) {
+            res.writeHead(400);
+            res.end('Bad Request');
+            return;
+          }
+          const relPath = path.normalize(pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, ''));
+          let filePath = path.join(this.projectPath, relPath);
+          const rel = path.relative(this.projectPath, filePath);
+          if (rel.startsWith('..') || path.isAbsolute(rel)) {
             res.writeHead(403);
             res.end('Forbidden');
             return;

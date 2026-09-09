@@ -330,6 +330,7 @@
     <script src="typing.js?v=2"></script>
     <script src="store.js?v=2"></script>
     <script src="game.js?v=3"></script>
+    <script src="../game-meta.js"></script>
     <script>
         // Load game metadata and populate template fields
         (function() {
@@ -342,52 +343,49 @@
                     document.getElementById('TEMPLATE-4weird-game-title').textContent = data.title;
                     document.getElementById('start-overlay-title').textContent = data.title;
                     
-                    // Genre and descriptions
+                    // Genre and descriptions (textContent: game.json is
+                    // contributor-supplied, never interpreted as HTML)
                     document.getElementById('TEMPLATE-4weird-game-genre').textContent = data.genre;
                     document.getElementById('start-overlay-desc').textContent = data.description;
-                    document.getElementById('TEMPLATE-4weird-how-to-play').innerHTML = data.instructions;
+                    document.getElementById('TEMPLATE-4weird-how-to-play').textContent = data.instructions;
                     
                     // Set keyboard instructions hint
                     if (data.controls && data.controls.keyboard) {
-                        const hintList = Object.entries(data.controls.keyboard)
-                            .map(([k, desc]) => `<p><strong>${desc}:</strong> <kbd>${k}</kbd></p>`)
-                            .join('');
-                        document.getElementById('start-overlay-hint').innerHTML = hintList;
+                        var kbHint = document.getElementById('start-overlay-hint');
+                        kbHint.textContent = '';
+                        Object.entries(data.controls.keyboard).forEach(([k, desc]) => {
+                            var p = document.createElement('p');
+                            var strong = document.createElement('strong');
+                            strong.textContent = String(desc);
+                            var kbd = document.createElement('kbd');
+                            kbd.textContent = String(k);
+                            p.append(strong, ': ', kbd);
+                            kbHint.appendChild(p);
+                        });
                         
                         // Populate the aside sidebar list
-                        const listHtml = Object.entries(data.controls.keyboard)
-                            .map(([k, desc]) => `<li><span>${desc}</span> <kbd>${k}</kbd></li>`)
-                            .join('');
-                        document.getElementById('TEMPLATE-4weird-keyboard-controls-list').innerHTML = listHtml;
+                        var kbList = document.getElementById('TEMPLATE-4weird-keyboard-controls-list');
+                        kbList.textContent = '';
+                        Object.entries(data.controls.keyboard).forEach(([k, desc]) => {
+                            var li = document.createElement('li');
+                            var span = document.createElement('span');
+                            span.textContent = String(desc);
+                            var kbd2 = document.createElement('kbd');
+                            kbd2.textContent = String(k);
+                            li.append(span, ' ', kbd2);
+                            kbList.appendChild(li);
+                        });
                     }
 
-                    // Credits developer bios and details
+                    // Credits developer bios and details (safe helpers: no
+                    // innerHTML, http(s)-only URLs)
                     const makerNameEl = document.getElementById('TEMPLATE-4weird-maker-name');
                     if (makerNameEl) {
                         makerNameEl.textContent = data.maker.name;
                     }
-                    document.getElementById('TEMPLATE-4weird-maker-bio').innerHTML = '<p>' + data.maker.bio + '</p>';
-                    
-                    if (data.maker.url) {
-                        const link = document.getElementById('TEMPLATE-4weird-maker-link');
-                        if (link) {
-                            link.href = data.maker.url;
-                            link.textContent = data.maker.urlLabel || 'Portfolio';
-                        }
-                    }
-                    
-                    // Update credits cards dynamic grid
-                    if (data.credits && data.credits.length > 0) {
-                        const grid = document.getElementById('TEMPLATE-4weird-credits-grid');
-                        grid.innerHTML = data.credits.map(c => `
-                            <div class="TEMPLATE-4weird-credit-card ${c.primary ? 'TEMPLATE-4weird-primary' : ''}">
-                                <div class="TEMPLATE-4weird-credit-avatar">${c.avatar || '👤'}</div>
-                                <h3 class="TEMPLATE-4weird-credit-name">${c.name}</h3>
-                                <p class="TEMPLATE-4weird-credit-role">${c.role}</p>
-                                ${c.url ? `<p class="TEMPLATE-4weird-credit-links"><a href="${c.url}" target="_blank" rel="noopener">${c.urlLabel || 'Link'}</a></p>` : ''}
-                            </div>
-                        `).join('');
-                    }
+                    window.FourWeirdMeta.setBio('TEMPLATE-4weird-maker-bio', data.maker && data.maker.bio);
+                    window.FourWeirdMeta.setMakerLink('TEMPLATE-4weird-maker-link', data.maker && data.maker.url, data.maker && data.maker.urlLabel);
+                    window.FourWeirdMeta.renderCredits('TEMPLATE-4weird-credits-grid', data.credits);
 
                     // Social Share links updates
                     const encodedUrl = encodeURIComponent(window.location.href);
