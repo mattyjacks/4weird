@@ -17,6 +17,7 @@ const OUTPUT = path.join(ROOT, 'data', 'narrated-bug-hunts');
 const { startStaticServer } = require(path.join(ROOT, 'src', 'main_process', 'static_server'));
 const { MediaMogulPlaytestRecorder } = require(path.join(ROOT, 'lib', 'mediamogul_video_recorder'));
 const { synthesizeWindowsNarration } = require(path.join(ROOT, 'lib', 'mediamogul_voiceover'));
+const { triageConsoleMessage } = require(path.join(ROOT, 'lib', 'console_triage'));
 
 // Capture must remain available on machines without a working GPU process
 // (common on inexpensive desktops and freshly provisioned cloud hosts).
@@ -154,13 +155,17 @@ const sessions = [
 async function runSession(spec) {
   const win = new BrowserWindow({ width: 1280, height: 720, show: true, title: `AI Bug Hunt — ${spec.id}`, webPreferences: { contextIsolation: true } });
   const errors = [];
-  win.webContents.on('console-message', (_event, level, message, line, sourceId) => {
-    if (level >= 2 && !/Electron Security Warning/.test(message)) errors.push({ level, message, line, sourceId });
-  });
   const selectedUrl = Array.isArray(spec.urls) && spec.urls.length
     ? spec.urls[Math.floor(Math.random() * spec.urls.length)]
     : spec.url;
   if (!selectedUrl) throw new Error(`${spec.id}: no target URL configured`);
+  const observedConsole = [];
+  win.webContents.on('console-message', (_event, level, message, line, sourceId) => {
+    const triage = triageConsoleMessage({ level, message, sourceId, targetUrl: selectedUrl });
+    const entry = { level, message, line, sourceId, ...triage };
+    observedConsole.push(entry);
+    if (triage.actionable) errors.push(entry);
+  });
   const loadTarget = /^https?:/i.test(selectedUrl) ? selectedUrl : `http://127.0.0.1:${PORT}${selectedUrl}`;
   // Ad-heavy public game portals can leave a document loading forever while
   // third-party pixels redirect or fail TLS. Continue into the visible page
@@ -175,13 +180,13 @@ async function runSession(spec) {
   if (!started.success) throw new Error(`${spec.id}: ${started.error}`);
   recorder.recordEvent({ type: 'session-start', game: spec.id, targetUrl: selectedUrl, mode: 'headful', repairPolicy: 'stop on browser error; retain exact evidence for the source repair' });
   const observation = await spec.play(win, event => recorder.recordEvent(event));
-  for (const error of errors) recorder.recordEvent({ type: 'bug-found', ...error });
-  recorder.recordEvent({ type: errors.length ? 'repair-needed' : 'verification-pass', observation, browserErrors: errors.length });
+  for (const entry of observedConsole) recorder.recordEvent({ type: entry.actionable ? 'bug-found' : 'console-context', ...entry });
+  recorder.recordEvent({ type: errors.length ? 'repair-needed' : 'verification-pass', observation, browserErrors: errors.length, consoleContext: observedConsole.length - errors.length });
   await sleep(1200);
   const result = await recorder.stop();
   win.destroy();
   if (!result.success) throw new Error(`${spec.id}: ${result.error}`);
-  return { game: spec.id, targetUrl: selectedUrl, ...result, browserErrors: errors };
+  return { game: spec.id, targetUrl: selectedUrl, ...result, browserErrors: errors, consoleContext: observedConsole.filter((entry) => !entry.actionable) };
 }
 
 async function main() {
