@@ -95,6 +95,24 @@ const PROFILES = [
       'Blue gravity-gun glow means a throwable object is held. Prefer center-screen threats first.'
   },
   {
+    id: 'xonotic', name: 'Xonotic', genre: 'arena-fps',
+    processNames: ['xonotic-linux64-sdl', 'xonotic-linux64-glx', 'xonotic.exe', 'xonotic'],
+    windowTitlePatterns: [/xonotic/i],
+    description: 'Fast GPL arena shooter running natively or through the cloud desktop.',
+    goal: 'Start or join the local bot arena, move continuously, acquire weapons, engage visible bots, and capture reproducible movement, aiming, and combat issues.',
+    controls: {
+      forward: 'w', back: 's', left: 'a', right: 'd', jump: 'space', crouch: 'c', sprint: 'shift',
+      use: 'e', reload: 'r', fireHint: 'left mouse click', altFireHint: 'right mouse click',
+      extra: { '1-9': 'weapon selection', tab: 'scoreboard', enter: 'chat/confirm', escape: 'pause/menu', q: 'previous weapon', 'mouse wheel': 'next/previous weapon' }
+    },
+    startup: [
+      'Click the Xonotic window to capture the mouse, then press Escape only if a menu is visible.',
+      'If the arena is not running, use the local bot arena already supplied by the cloud launcher or select Practice/Singleplayer.',
+      'Use short W/A/D/Space bursts before firing so movement and mouse-look are visibly exercised.'
+    ],
+    visionHints: 'Xonotic HUD: health and armor are bottom-left, ammo and weapon are bottom-right, crosshair is centered. Look for bot silhouettes, weapon pickups, damage flashes, kill feed, scoreboard, and map geometry. Prefer short movement bursts and controlled mouse-look; never hold a key indefinitely.'
+  },
+  {
     id: 'hl2-generic',
     name: 'Half-Life 2 / Source FPS (generic)',
     genre: 'fps',

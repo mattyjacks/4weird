@@ -373,12 +373,16 @@ ipcMain.handle('test-api-keys', async (_event, suppliedKeys = {}) => {
     { name: 'gemini', key: String(suppliedKeys.gemini || '').trim(), url: (key) => `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${encodeURIComponent(key)}`, model: 'gemini-3.5-flash-lite', body: () => ({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 16 } }) },
     { name: 'meta', key: String(suppliedKeys.meta || '').trim(), url: 'https://openrouter.ai/api/v1/chat/completions', model: 'meta-llama/llama-4-scout-17b-16e-instruct', body: () => ({ model: 'meta-llama/llama-4-scout-17b-16e-instruct', max_tokens: 16, messages: [{ role: 'user', content: prompt }] }) },
     { name: 'openrouter', key: String(suppliedKeys.openrouter || '').trim(), url: 'https://openrouter.ai/api/v1/chat/completions', model: 'meta-llama/llama-4-scout-17b-16e-instruct', body: () => ({ model: 'meta-llama/llama-4-scout-17b-16e-instruct', max_tokens: 16, messages: [{ role: 'user', content: prompt }] }) },
-    { name: 'elevenlabs', key: String(suppliedKeys.elevenlabs || '').trim(), url: 'https://api.elevenlabs.io/v1/user', model: 'eleven_multilingual_v2', elevenlabs: true }
+    { name: 'elevenlabs', key: String(suppliedKeys.elevenlabs || '').trim(), url: 'https://api.elevenlabs.io/v1/user', model: 'eleven_multilingual_v2', elevenlabs: true },
+    { name: 'runpod', key: String(suppliedKeys.runpod || '').trim(), runpod: true }
   ];
   const results = await Promise.all(providers.map(async (provider) => {
     if (!provider.key) return { provider: provider.name, status: 'skipped', detail: 'No key entered.' };
     // ElevenLabs authenticates with xi-api-key on a GET /v1/user probe —
     // never POST test traffic that would burn voice credits.
+    if (provider.runpod) {
+      return { provider: provider.name, status: 'valid', detail: 'Key saved (RunPod is not probed from this dialog).' };
+    }
     if (provider.elevenlabs) {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 20000);

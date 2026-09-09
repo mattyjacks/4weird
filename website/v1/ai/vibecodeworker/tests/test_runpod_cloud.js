@@ -51,6 +51,12 @@ async function run() {
   assert.strictEqual(spec.openSourceGame.license, 'MIT');
   assert.ok(spec.body.ports.includes('6901/http') && spec.body.ports.includes('6902/http'), 'dual desktop ports are exposed');
   assert.ok(!spec.body.ports.includes('22/tcp'), 'no SSH exposed by default');
+  const xonoticDesktop = cloud.buildPodSpec({ gpuId: 'NVIDIA RTX 4090', gpuMemoryGB: 24, openSourceGameId: 'xonotic', xonoticMode: 'desktop' });
+  assert.strictEqual(xonoticDesktop.body.env.VIBE_XONOTIC_MODE, 'desktop');
+  const xonoticWeb = cloud.buildPodSpec({ gpuId: 'NVIDIA RTX 4090', gpuMemoryGB: 24, openSourceGameId: 'xonotic', xonoticMode: 'web' });
+  assert.strictEqual(xonoticWeb.body.env.VIBE_XONOTIC_MODE, 'web');
+  assert.strictEqual(xonoticWeb.openSourceGame.kind, 'desktop+browser');
+  assert.throws(() => cloud.buildPodSpec({ gpuId: 'NVIDIA RTX 4090', openSourceGameId: 'xonotic', xonoticMode: 'arbitrary-url' }), /Invalid xonoticMode/);
   assert.throws(() => cloud.buildPodSpec({ gpuId: 'bad;id' }), /Invalid gpuId/);
   assert.throws(() => cloud.buildPodSpec({ gpuId: 'NVIDIA RTX A4000', openSourceGameId: 'arbitrary-url' }), /Unsupported/);
   // Cloud routes exist and never echo keys.

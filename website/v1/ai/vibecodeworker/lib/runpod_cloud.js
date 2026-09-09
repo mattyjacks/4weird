@@ -19,7 +19,10 @@
  * - All ids and tags are allow listed before use. Fail closed on bad input.
  */
 
-const RUNPOD_API_BASE = String(process.env.RUNPOD_API_BASE || 'https://api.runpod.io/v2').replace(/\/+$/, '');
+// RunPod's current Pod control plane is REST v1 (rest.runpod.io). The older
+// api.runpod.io/v2 endpoint accepts a different schema and returns 400 for pod
+// creation, so keep the base explicit and overridable for test doubles.
+const RUNPOD_API_BASE = String(process.env.RUNPOD_API_BASE || 'https://rest.runpod.io/v1').replace(/\/+$/, '');
 const { getOpenSourceGame } = require('./open_source_games');
 
 // Hard cap: 55 minutes. Pods auto terminate at this age.
@@ -73,6 +76,10 @@ function isSafePodId(v) {
 
 function isSafeGameId(v) {
   return typeof v === 'string' && /^[a-z0-9-]{2,60}$/.test(v);
+}
+
+function isSafeXonoticMode(v) {
+  return v === undefined || v === null || v === 'desktop' || v === 'web';
 }
 
 function isSafeModelTag(v) {
@@ -170,7 +177,7 @@ function redactError(msg) {
 }
 
 async function runpodFetch(apiKey, pathName, opts = {}) {
-  if (!/^\/(pods|catalog\/gpus)([/?].*)?$/.test(pathName)) throw new Error('blocked path');
+  if (!/^\/(pods|gpus)([/?].*)?$/.test(pathName)) throw new Error('blocked path');
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), Number(opts.timeoutMs || 20000));
   try {
@@ -189,6 +196,9 @@ async function runpodFetch(apiKey, pathName, opts = {}) {
     }
     if (!res.ok) {
       const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
+      if (res.status === 403) {
+        throw new Error(`runpod ${pathName} rejected this credential (403). The key can read Runpod resources but is not allowed to create or mutate Pods.`);
+      }
       throw new Error(`runpod ${pathName} failed: ${String(msg).slice(0, 200)}`);
     }
     return data;
@@ -220,10 +230,19 @@ function buildPodSpec(args = {}) {
   const diskGB = Math.min(Math.max(parseInt(args.diskGB, 10) || 40, 20), 500);
   const body = {
     name: sanitizeName(args.name),
-    image: isSafeImage(args.image || '') ? args.image : DEFAULT_IMAGE,
-    gpu: { id: args.gpuId, count: gpuCount },
+    imageName: isSafeImage(args.image || '') ? args.image : DEFAULT_IMAGE,
+    computeType: 'GPU',
+    cloudType: 'SECURE',
+    gpuTypeIds: [args.gpuId],
+    gpuTypePriority: 'custom',
+    gpuCount,
     ports: ['6901/http', '6902/http', '8888/http', '42069/http'],
-    disk: diskGB,
+    containerDiskInGb: diskGB,
+    volumeInGb: 20,
+    volumeMountPath: '/workspace',
+    minVCPUPerGPU: 2,
+    minRAMPerGPU: 8,
+    supportPublicIp: true,
     env: {
       VIBE_GAME: gameId,
       VIBE_MODEL: model.tag,
@@ -239,6 +258,10 @@ function buildPodSpec(args = {}) {
   if (openSourceGame) {
     body.env.VIBE_OPEN_SOURCE_GAME_ID = openSourceGame.id;
     body.env.VIBE_OPEN_SOURCE_GAME_ENTRY = openSourceGame.entry;
+    if (openSourceGame.id === 'xonotic') {
+      if (!isSafeXonoticMode(args.xonoticMode)) throw new Error('Invalid xonoticMode');
+      body.env.VIBE_XONOTIC_MODE = args.xonoticMode || 'desktop';
+    }
   }
   if (args.dataCenterId) {
     if (!isSafeDataCenter(args.dataCenterId)) throw new Error('Invalid dataCenterId');
@@ -280,7 +303,7 @@ async function startCloudRun(args = {}) {
 async function getCloudGpuCatalog(opts = {}) {
   const apiKey = resolveApiKey(opts);
   if (!apiKey) throw new Error('Missing Runpod API key');
-  const data = await runpodFetch(apiKey, '/catalog/gpus?include=AVAILABILITY&product=POD');
+  const data = await runpodFetch(apiKey, '/gpus');
   const gpus = Array.isArray(data && data.gpus) ? data.gpus : (Array.isArray(data) ? data : []);
   return gpus.filter((gpu) => isSafeGpuId(gpu && gpu.id)).map((gpu) => ({
     id: gpu.id,
@@ -327,5 +350,6 @@ module.exports = {
   isSafeGpuId,
   isSafePodId,
   isSafeGameId,
-  isSafeModelTag
+  isSafeModelTag,
+  isSafeXonoticMode
 };

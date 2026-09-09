@@ -9,7 +9,11 @@ const { spawn } = require('child_process');
 const OPEN_SOURCE_GAMES = Object.freeze([
   { id: 'snake-canvas', name: 'Snake Canvas', repository: 'https://github.com/adrianov/snake.git', license: 'MIT', kind: 'browser', entry: 'index.html' },
   { id: 'underrun', name: 'Underrun', repository: 'https://github.com/phoboslab/underrun.git', license: 'MIT', kind: 'browser', entry: 'index-debug.html' },
-  { id: 'games-hub', name: 'Games Hub', repository: 'https://github.com/sausi-7/games.git', license: 'MIT', kind: 'browser', entry: 'index.html' }
+  { id: 'games-hub', name: 'Games Hub', repository: 'https://github.com/sausi-7/games.git', license: 'MIT', kind: 'browser', entry: 'index.html' },
+  // Xonotic's native client is GPLv3+ and the browser client is a public
+  // WebAssembly/WebGL port. Keep the URL fixed and allow-listed: callers may
+  // choose the surface, but can never turn this into an arbitrary URL proxy.
+  { id: 'xonotic', name: 'Xonotic', repository: 'https://github.com/xonotic/xonotic.git', license: 'GPL-3.0-or-later', kind: 'desktop+browser', entry: 'xonotic-linux64-sdl', webUrl: 'https://dpgame.xonotic.workers.dev/' }
 ]);
 
 function getOpenSourceGame(id) {

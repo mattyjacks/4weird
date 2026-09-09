@@ -2,12 +2,29 @@
 
 The image starts two isolated noVNC browser desktops on the same GPU pod:
 
-- `6901/http`: playable official Godot demo under test.
+- `6901/http`: playable game under test (Godot or Xonotic).
 - `6902/http`: VCW agent workspace.
 - `8888/http`: static games host.
 - `42069/http`: VCW API.
 
-At startup it downloads one allow-listed source game: Snake Canvas, Underrun, or Games Hub. The source URLs and licenses are defined in `lib/open_source_games.js`; no arbitrary repository URL is accepted.
+At startup it downloads one allow-listed source game: Snake Canvas, Underrun, Games Hub, or Xonotic. The source URLs and licenses are defined in `lib/open_source_games.js`; no arbitrary repository URL is accepted.
+
+Xonotic supports both surfaces from the same image. Set `openSourceGameId=xonotic`
+and `xonoticMode=desktop` to download the official Xonotic 0.8.6 Linux client and
+run a bot-filled `dm_run` arena on the game desktop. Set `xonoticMode=web` to open
+the allow-listed WebAssembly/WebGL browser client on that desktop. In both cases
+the agent desktop remains available on port 6902 and the game desktop on port 6901.
+
+The launch request body is intentionally small and the same for the web and desktop
+VCW clients; only the surface changes:
+
+```json
+{ "openSourceGameId": "xonotic", "xonoticMode": "desktop", "gameId": "xonotic" }
+```
+
+```json
+{ "openSourceGameId": "xonotic", "xonoticMode": "web", "gameId": "xonotic" }
+```
 
 It also downloads the latest stable Godot engine from the official
 `godotengine/godot-builds` release feed and starts the official
@@ -29,6 +46,15 @@ Build and publish the image before launching a cloud run:
 docker buildx build --platform linux/amd64 \
   -f website/v1/ai/vibecodeworker/deploy/runpod/Dockerfile \
   -t ghcr.io/<owner>/vibecodeworker-cloud:2.0.0 --push .
+```
+
+On Windows, the checked-in PowerShell helper performs the same linux/amd64 build
+and push after Docker Desktop is running:
+
+```powershell
+./website/v1/ai/vibecodeworker/deploy/runpod/publish-image.ps1 `
+  -Image ghcr.io/<owner>/vibecodeworker-cloud `
+  -Tag xonotic-0.1.0
 ```
 
 Set `VIBE_CLOUD_IMAGE=ghcr.io/<owner>/vibecodeworker-cloud:2.0.0` for the local VCW API process. A launched run returns both noVNC URLs under `desktops.game` and `desktops.agent`.

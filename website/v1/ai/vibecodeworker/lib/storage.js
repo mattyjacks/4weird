@@ -206,7 +206,7 @@ function saveCredentials(credentials, isMigrating = false) {
 
 /** Remove provider-specific keys after a confirmed authentication failure. */
 function removeCredentialsForProviders(providers = []) {
-  const fields = { openai: 'openaiApiKey', deepseek: 'deepseekApiKey', gemini: 'geminiApiKey', meta: 'metaApiKey', openrouter: 'openrouterApiKey', elevenlabs: 'elevenlabsApiKey' };
+  const fields = { openai: 'openaiApiKey', deepseek: 'deepseekApiKey', gemini: 'geminiApiKey', meta: 'metaApiKey', openrouter: 'openrouterApiKey', elevenlabs: 'elevenlabsApiKey', runpod: 'runpodApiKey' };
   const wanted = providers.filter((provider) => fields[provider]);
   if (!wanted.length) return false;
   const dir = getCredentialsDir();
@@ -274,6 +274,7 @@ function readEnvKey(provider) {
   else if (provider === 'gemini') raw = process.env.GEMINI_API_KEY || '';
   else if (provider === 'openrouter') raw = process.env.OPENROUTER_API_KEY || '';
   else if (provider === 'elevenlabs') raw = process.env.ELEVENLABS_API_KEY || '';
+  else if (provider === 'runpod') raw = process.env.RUNPOD_API_KEY || '';
   raw = (raw || '').trim();
   // A stale placeholder in the shell (e.g. copied from .env.example) must not
   // shadow the good key the user saved in the encrypted store.
@@ -316,6 +317,8 @@ function getResolvedApiKey(provider, fallbackKey = '') {
     stored = clean(creds.openrouterApiKey) || (creds.provider === 'openrouter' ? clean(creds.apiKey) : '');
   } else if (provider === 'elevenlabs') {
     stored = clean(creds.elevenlabsApiKey) || (creds.provider === 'elevenlabs' ? clean(creds.apiKey) : '');
+  } else if (provider === 'runpod') {
+    stored = clean(creds.runpodApiKey) || (creds.provider === 'runpod' ? clean(creds.apiKey) : '');
   } else {
     stored = clean(creds.apiKey);
   }
@@ -352,7 +355,8 @@ function loadMaskedApiKeyBundle() {
     gemini: maskApiKey(getResolvedApiKey('gemini')),
     meta: maskApiKey(getResolvedApiKey('meta')),
     openrouter: maskApiKey(getResolvedApiKey('openrouter')),
-    elevenlabs: maskApiKey(getResolvedApiKey('elevenlabs'))
+    elevenlabs: maskApiKey(getResolvedApiKey('elevenlabs')),
+    runpod: maskApiKey(getResolvedApiKey('runpod'))
   };
 }
 

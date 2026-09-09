@@ -368,7 +368,8 @@ function loadApiKeyBundle() {
     gemini: getResolvedApiKey('gemini'),
     meta: getResolvedApiKey('meta'),
     openrouter: getResolvedApiKey('openrouter'),
-    elevenlabs: getResolvedApiKey('elevenlabs')
+    elevenlabs: getResolvedApiKey('elevenlabs'),
+    runpod: getResolvedApiKey('runpod')
   };
 }
 
@@ -380,7 +381,7 @@ function loadMaskedApiKeyBundleForDisplay() {
 }
 
 function hasAnyApiKey() {
-  return ['openai', 'deepseek', 'meta', 'gemini', 'openrouter', 'elevenlabs']
+  return ['openai', 'deepseek', 'meta', 'gemini', 'openrouter', 'elevenlabs', 'runpod']
     .some((provider) => Boolean(getResolvedApiKey(provider)));
 }
 
@@ -397,7 +398,8 @@ function saveApiKeyBundle(keys = {}) {
     ['gemini', 'geminiApiKey'],
     ['meta', 'metaApiKey'],
     ['openrouter', 'openrouterApiKey'],
-    ['elevenlabs', 'elevenlabsApiKey']
+    ['elevenlabs', 'elevenlabsApiKey'],
+    ['runpod', 'runpodApiKey']
   ];
   for (const [name, field] of entries) {
     const value = String(keys[name] || '').trim();
