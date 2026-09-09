@@ -295,7 +295,8 @@ function buildPodSpec(args = {}) {
       VIBE_AGENT_DESKTOP_PORT: '6902',
       VIBE_GPU_MEMORY_GB: String(Number(args.gpuMemoryGB) || 24),
       OLLAMA_URL: 'http://127.0.0.1:11434',
-      VCW_CAPTURE_FPS: String(Number(args.gpuMemoryGB || 24) >= 48 ? 60 : Number(args.gpuMemoryGB || 24) >= 24 ? 45 : 30)
+      VCW_CAPTURE_FPS: String(Number(args.gpuMemoryGB || 24) >= 48 ? 60 : Number(args.gpuMemoryGB || 24) >= 24 ? 45 : 30),
+      VCW_CAPTURE_NAME: sanitizeName(args.name)
     }
   };
   if (bootstrap) {
@@ -371,6 +372,12 @@ async function startCloudRun(args = {}) {
     desktops: podId ? {
       game: `https://${podId}-6901.proxy.runpod.net/vnc.html?autoconnect=true&resize=scale`,
       agent: `https://${podId}-6902.proxy.runpod.net/vnc.html?autoconnect=true&resize=scale`
+    } : null,
+    recordings: podId ? {
+      gameplay: `https://${podId}-8888.proxy.runpod.net/ai/vibecodeworker/data/browser-captures/${sanitizeName(launchArgs.name)}.mp4`,
+      testingH: `https://${podId}-8888.proxy.runpod.net/ai/vibecodeworker/data/browser-captures/${sanitizeName(launchArgs.name)}.testingH.mp4`,
+      testingV: `https://${podId}-8888.proxy.runpod.net/ai/vibecodeworker/data/browser-captures/${sanitizeName(launchArgs.name)}.testingV.mp4`,
+      manifest: `https://${podId}-8888.proxy.runpod.net/ai/vibecodeworker/data/browser-captures/${sanitizeName(launchArgs.name)}.manifest.json`
     } : null
   };
 }
