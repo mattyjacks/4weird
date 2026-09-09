@@ -20,6 +20,15 @@
 
 const PROFILES = [
   {
+    id: 'godot', name: 'Godot Game', genre: 'engine-runtime',
+    processNames: ['godot', 'godot.exe', 'godot_v4'], windowTitlePatterns: [/godot/i],
+    description: 'A Godot 4 project running locally or in the VCW cloud desktop.',
+    goal: 'Play the selected Godot project: dismiss the start screen, observe after every small input, and capture reproducible bugs.',
+    controls: { forward: 'w or up', back: 's or down', left: 'a or left', right: 'd or right', jump: 'space', crouch: 'n/a', sprint: 'n/a', use: 'enter', reload: 'r', fireHint: 'project-specific', altFireHint: 'project-specific', extra: { escape: 'pause/back', arrows: '2D movement/menu selection' } },
+    startup: ['Press Enter once to dismiss a focused Godot start screen.', 'Use brief key taps first; Godot projects have intentionally different input maps.'],
+    visionHints: 'Observe UI prompts before deciding controls; use arrow keys or WASD and Space only when the scene supports them.'
+  },
+  {
     id: 'peggle-deluxe',
     name: 'Peggle Deluxe',
     genre: 'pachinko-puzzle',

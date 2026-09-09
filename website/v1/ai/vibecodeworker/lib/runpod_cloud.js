@@ -13,13 +13,14 @@
  * SECURITY (BYOK, super secure):
  * - Runpod key comes per call via opts.runpodKey or RUNPOD_API_KEY env only.
  * - Never written to disk, never baked into builds, never logged, never in URL.
- * - Browser callers keep it in sessionStorage only and call api.runpod.io
- *   directly, so the key never touches 4weird servers (see run.js).
+ * - Browser callers keep it in sessionStorage and pass it only to their
+ *   loopback VCW control plane, which forwards it to Runpod (see run.js).
  * - Base URL is fixed at module load from env, never from request bodies (SSRF).
  * - All ids and tags are allow listed before use. Fail closed on bad input.
  */
 
 const RUNPOD_API_BASE = String(process.env.RUNPOD_API_BASE || 'https://api.runpod.io/v2').replace(/\/+$/, '');
+const { getOpenSourceGame } = require('./open_source_games');
 
 // Hard cap: 55 minutes. Pods auto terminate at this age.
 const MAX_RUN_MINUTES = 55;
@@ -31,7 +32,9 @@ const DEFAULT_OVERHEAD_GB = 2;
 const MIN_USABLE_GPU_GB = 16;
 
 // Base image default. Override per call with opts.image.
-const DEFAULT_IMAGE = 'runpod/pytorch:2.4.0-py11-cuda12.4.1-devel-ubuntu22.04';
+// Built from deploy/runpod/Dockerfile and pushed by the operator. Override for
+// a private registry without accepting an image name from the browser.
+const DEFAULT_IMAGE = String(process.env.VIBE_CLOUD_IMAGE || 'ghcr.io/mattyjacks/vibecodeworker-cloud:2.0.0');
 
 /**
  * Open source multimodal ladder for Ollama, biggest first.
@@ -204,6 +207,8 @@ async function runpodFetch(apiKey, pathName, opts = {}) {
 function buildPodSpec(args = {}) {
   if (!isSafeGpuId(args.gpuId)) throw new Error('Invalid gpuId');
   const gameId = isSafeGameId(args.gameId || 'gravegain3d') ? args.gameId : 'gravegain3d';
+  const openSourceGame = args.openSourceGameId ? getOpenSourceGame(args.openSourceGameId) : null;
+  if (args.openSourceGameId && !openSourceGame) throw new Error('Unsupported open-source game id');
   let model = null;
   if (args.modelTag) {
     if (!isSafeModelTag(args.modelTag)) throw new Error('Invalid modelTag');
@@ -217,20 +222,26 @@ function buildPodSpec(args = {}) {
     name: sanitizeName(args.name),
     image: isSafeImage(args.image || '') ? args.image : DEFAULT_IMAGE,
     gpu: { id: args.gpuId, count: gpuCount },
-    ports: ['8888/http', '42069/http'],
+    ports: ['6901/http', '6902/http', '8888/http', '42069/http'],
     disk: diskGB,
     env: {
       VIBE_GAME: gameId,
       VIBE_MODEL: model.tag,
       VIBE_MAX_MINUTES: String(MAX_RUN_MINUTES),
-      VIBE_MODE: 'cloud-game-plus-model'
+      VIBE_MODE: 'cloud-game-plus-model',
+      VIBE_GAME_DESKTOP_PORT: '6901',
+      VIBE_AGENT_DESKTOP_PORT: '6902'
     }
   };
+  if (openSourceGame) {
+    body.env.VIBE_OPEN_SOURCE_GAME_ID = openSourceGame.id;
+    body.env.VIBE_OPEN_SOURCE_GAME_ENTRY = openSourceGame.entry;
+  }
   if (args.dataCenterId) {
     if (!isSafeDataCenter(args.dataCenterId)) throw new Error('Invalid dataCenterId');
     body.dataCenterIds = [args.dataCenterId];
   }
-  return { body, model, maxMinutes: MAX_RUN_MINUTES, billing: 'per-second' };
+  return { body, model, openSourceGame, maxMinutes: MAX_RUN_MINUTES, billing: 'per-second' };
 }
 
 /** Start a cloud run: create the pod, return pod id + model pick + cap. */
@@ -247,11 +258,34 @@ async function startCloudRun(args = {}) {
     podId: podId || null,
     model: spec.model,
     gameId: String(args.gameId || 'gravegain3d'),
+    openSourceGame: spec.openSourceGame,
     maxMinutes: MAX_RUN_MINUTES,
     maxSeconds: MAX_RUN_SECONDS,
     billing: 'per-second, auto terminate at 55 minutes',
-    proxy: podId ? `https://${podId}-8888.proxy.runpod.net` : null
+    proxy: podId ? `https://${podId}-8888.proxy.runpod.net` : null,
+    desktops: podId ? {
+      game: `https://${podId}-6901.proxy.runpod.net/vnc.html?autoconnect=true&resize=scale`,
+      agent: `https://${podId}-6902.proxy.runpod.net/vnc.html?autoconnect=true&resize=scale`
+    } : null
   };
+}
+
+/**
+ * Read the live catalog through the local control plane. This keeps Runpod's
+ * API out of browser CORS and keeps a BYOK credential in process memory only.
+ */
+async function getCloudGpuCatalog(opts = {}) {
+  const apiKey = resolveApiKey(opts);
+  if (!apiKey) throw new Error('Missing Runpod API key');
+  const data = await runpodFetch(apiKey, '/catalog/gpus?include=AVAILABILITY&product=POD');
+  const gpus = Array.isArray(data && data.gpus) ? data.gpus : (Array.isArray(data) ? data : []);
+  return gpus.filter((gpu) => isSafeGpuId(gpu && gpu.id)).map((gpu) => ({
+    id: gpu.id,
+    memory: Number(gpu.memory) || 0,
+    secure: gpu.secure === true,
+    availability: String(gpu.availability || 'NONE'),
+    price: { secure: Number(gpu.price && gpu.price.secure) || 0 }
+  }));
 }
 
 async function getCloudRunStatus(podId, opts = {}) {
@@ -282,6 +316,7 @@ module.exports = {
   pickCheapestAvailableGpu,
   estimateCost,
   maxBillableCost,
+  getCloudGpuCatalog,
   buildPodSpec,
   startCloudRun,
   getCloudRunStatus,

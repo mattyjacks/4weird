@@ -38,13 +38,17 @@ async function run() {
   assert.strictEqual(cloud.isSafeGpuId('NVIDIA GeForce RTX 4090'), true);
   assert.strictEqual(cloud.isSafeGpuId('x; rm -rf'), false);
   // Pod spec carries the 55 min cap, per second billing, no SSH port.
-  const spec = cloud.buildPodSpec({ gpuId: 'NVIDIA GeForce RTX 4090', gpuMemoryGB: 24, gameId: 'gravegain3d' });
+  const spec = cloud.buildPodSpec({ gpuId: 'NVIDIA GeForce RTX 4090', gpuMemoryGB: 24, gameId: 'snake-canvas', openSourceGameId: 'snake-canvas' });
   assert.strictEqual(spec.maxMinutes, 55);
   assert.strictEqual(spec.billing, 'per-second');
   assert.strictEqual(spec.body.env.VIBE_MAX_MINUTES, '55');
   assert.strictEqual(spec.body.env.VIBE_MODEL, 'qwen2.5vl:14b');
+  assert.strictEqual(spec.body.env.VIBE_OPEN_SOURCE_GAME_ID, 'snake-canvas');
+  assert.strictEqual(spec.openSourceGame.license, 'MIT');
+  assert.ok(spec.body.ports.includes('6901/http') && spec.body.ports.includes('6902/http'), 'dual desktop ports are exposed');
   assert.ok(!spec.body.ports.includes('22/tcp'), 'no SSH exposed by default');
   assert.throws(() => cloud.buildPodSpec({ gpuId: 'bad;id' }), /Invalid gpuId/);
+  assert.throws(() => cloud.buildPodSpec({ gpuId: 'NVIDIA RTX A4000', openSourceGameId: 'arbitrary-url' }), /Unsupported/);
   // Cloud routes exist and never echo keys.
   const routes = require('../lib/api/cloud_routes');
   assert.strictEqual(typeof routes.handleCloudRequest, 'function');

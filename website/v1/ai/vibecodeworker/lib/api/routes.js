@@ -420,11 +420,18 @@ async function handleApiRequest(context, req, res, pathname, parsedUrl, readBody
   }
 
   // ─── Runpod cloud game + model runs (BYOK, 55 min cap, per second) ────
-  // Public page calls api.runpod.io directly so keys never touch our servers.
-  // These local endpoints are a convenience for the desktop app only.
+  // The public page calls the loopback VCW control plane, which forwards BYOK
+  // calls without persistence and returns dual-desktop pod URLs.
   if (pathname.startsWith('/api/cloud/')) {
     const { handleCloudRequest } = require('./cloud_routes');
     const handled = await handleCloudRequest(pathname, req, readBody, sendJSON, sendText);
+    if (handled !== null) return handled;
+  }
+
+  // ─── Godot stable runtime + cloud input bridge ───────────────────────
+  if (pathname.startsWith('/api/godot/')) {
+    const { handleGodotRequest } = require('./godot_routes');
+    const handled = await handleGodotRequest(pathname, req, readBody, sendJSON, sendText);
     if (handled !== null) return handled;
   }
 

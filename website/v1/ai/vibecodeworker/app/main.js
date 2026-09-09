@@ -44,6 +44,7 @@ const { discoverGames } = require('../src/main_process/game_discovery');
 const { LocalAPIServer } = require('../lib/api_server');
 const { getResolvedApiKey } = require('../lib/storage');
 const { META_DIRECT_ENDPOINT_URL, META_DIRECT_MODEL, isMetaDirectUrl } = require('../lib/meta_endpoint');
+const { installLatestStableGodot } = require('../lib/godot_runtime');
 
 let mainWindow;
 // Desktop playtests are always visible. parseWorkerArgs also treats the
@@ -322,6 +323,17 @@ ipcMain.handle('save-trace-test', async (_event, payload = {}) => {
 
 ipcMain.handle('run-input-sim', async (event, args) => {
   return await runInputSimulator(args, projectRoot);
+});
+
+// Native desktop entry point for the same official stable installer used by
+// the cloud image. The renderer gets an IPC capability, never a download URL.
+ipcMain.handle('install-godot-latest', async () => {
+  try {
+    const root = path.join(app.getPath('userData'), 'godot');
+    return { success: true, godot: await installLatestStableGodot({ installRoot: root }) };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
 });
 
 ipcMain.handle('scan-processes', async (event) => {

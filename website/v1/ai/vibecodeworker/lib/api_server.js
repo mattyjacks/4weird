@@ -101,7 +101,8 @@ class LocalAPIServer {
 
         // Security check: restrict loopback/localhost access or known safe origin
         const isLocalClient = clientIp.includes('127.0.0.1') || clientIp === '::1' || clientIp === '::ffff:127.0.0.1' || clientIp === '';
-        const isLocalOrigin = !origin || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1') || origin.startsWith('file://') || origin.startsWith('vscode-webview://');
+        const isTrustedVcwOrigin = origin === 'https://4weird.com' || origin === 'https://www.4weird.com';
+        const isLocalOrigin = !origin || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1') || origin.startsWith('file://') || origin.startsWith('vscode-webview://') || isTrustedVcwOrigin;
 
         // Allow CORS for local origins or non-browser tooling (curl, python, node tests)
         res.setHeader('Access-Control-Allow-Origin', origin || '*');
@@ -120,7 +121,8 @@ class LocalAPIServer {
         // Security: Block non-local external origins from mutating the host machine or executing code
         const EXECUTION_PATHS = ['/api/game/patch', '/api/game/eval', '/api/autocode/fix',
           '/api/opencode/fix', '/api/opencode/heal', '/api/opencode/heal-test', '/api/opencode/revert',
-          '/api/cloud/launch', '/api/cloud/stop', '/api/cloud/status'];
+          '/api/cloud/launch', '/api/cloud/stop', '/api/cloud/status', '/api/cloud/games/download',
+          '/api/godot/install', '/api/godot/action'];
         if (origin && !isLocalOrigin && EXECUTION_PATHS.some(p => pathname.startsWith(p))) {
           res.writeHead(403, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: false, error: 'Forbidden: Untrusted external origin not authorized for execution endpoints' }));

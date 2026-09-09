@@ -19,17 +19,17 @@
     .run-btn.danger { border-color: #ff5470; background: rgba(255,84,112,.1); }
     .run-mono { font-family: monospace; font-size: 13px; }
     #run-log { white-space: pre-wrap; max-height: 260px; overflow-y: auto; }
-    #run-view { width: 100%; height: 420px; border: 1px solid #333; border-radius: 10px; background: #000; }
+    .run-desktops { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; } .run-desktops h4{margin:0 0 8px}.run-desktops iframe { width:100%; height:420px; border:1px solid #333; border-radius:10px; background:#000; } @media(max-width:760px){.run-desktops{grid-template-columns:1fr}}
   </style>
 </head>
 <body data-vcw="run">
   <div class="run-wrap">
     <h1>Cloud Run</h1>
-    <p>Low spec device? Rent a cloud GPU with your own Runpod key. Game and model share one box for low latency. Hard cap 55 minutes. Billed per second. Key stays in this tab only.</p>
+    <p>Low spec device? Rent a cloud GPU with your own Runpod key. Game and model share one box for low latency. Hard cap 55 minutes. Billed per second. Key stays in this tab only and is sent only to the local VCW control plane.</p>
     <div class="run-card">
       <div class="run-row">
         <div><label>Runpod API key (BYOK, session only)</label><input id="run-key" type="password" autocomplete="off" placeholder="rpa_..."></div>
-        <div><label>Game</label><select id="run-game"><option value="gravegain3d">GraveGain 3D</option><option value="gravegain2d">GraveGain 2D</option></select></div>
+        <div><label>Open-source game (downloaded on the pod)</label><select id="run-game"><option value="snake-canvas">Snake Canvas — MIT</option><option value="underrun">Underrun — MIT</option><option value="games-hub">Games Hub (142 browser games) — MIT</option></select></div>
         <div><label>GPU (cheapest available default)</label><select id="run-gpu"></select></div>
       </div>
       <div class="run-row">
@@ -41,7 +41,7 @@
       <div class="run-mono" id="run-status">Idle. Max 55:00. Per second billing.</div>
       <div class="run-mono" id="run-cost">Cost: $0.0000</div>
     </div>
-    <div class="run-card"><h3>Live viewport</h3><iframe id="run-view" title="Cloud game viewport" sandbox="allow-scripts allow-same-origin"></iframe></div>
+    <div class="run-card"><h3>Dual cloud desktops</h3><p class="run-mono">The game and the VCW agent run in separate browser desktops on the same pod. Both streams appear after the pod is ready.</p><div class="run-desktops"><section><h4>Game under test</h4><iframe id="run-game-view" title="Cloud game desktop" sandbox="allow-scripts allow-same-origin"></iframe></section><section><h4>VCW agent workspace</h4><iframe id="run-agent-view" title="Cloud agent desktop" sandbox="allow-scripts allow-same-origin"></iframe></section></div></div>
     <div class="run-card"><h3>Log (key never appears here)</h3><div class="run-mono" id="run-log"></div></div>
   </div>
   <script src="/vibecodeworker/vcw-nav.js"></script>

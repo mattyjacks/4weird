@@ -1,8 +1,8 @@
 'use strict';
 /* Cloud Run BYOK page. Key lives in sessionStorage only, never in URL or logs.
-   Browser calls api.runpod.io directly so the key never touches 4weird servers. */
+   A loopback-only local control plane calls Runpod, avoiding browser CORS. */
 (function () {
-  var BASE = 'https://api.runpod.io/v2';
+  var LOCAL_API = 'http://127.0.0.1:42069/api/cloud';
   var MAX_SECONDS = 55 * 60;
   var state = { podId: null, hourly: 0, startedAt: 0, timer: null, key: null };
 
@@ -69,22 +69,29 @@
   }
   fillGpus(FALLBACK_GPUS);
 
+  async function cloudRequest(path, options) {
+    var key = getKey();
+    var opts = options || {};
+    var headers = Object.assign({ 'X-Runpod-Key': key }, opts.headers || {});
+    var res;
+    try {
+      res = await fetch(LOCAL_API + path, Object.assign({}, opts, { headers: headers }));
+    } catch (e) {
+      throw new Error('Local VCW control plane is unavailable. Start the desktop app or run npm run start:cloud.');
+    }
+    var data = await res.json().catch(function () { return {}; });
+    if (!res.ok || data.success === false) throw new Error(data.error || ('HTTP ' + res.status));
+    return data;
+  }
+
   async function refreshCheapest() {
     var key = getKey();
     if (!key) { log('Paste your Runpod key first.'); return; }
     saveKey(key);
     log('Checking live GPU stock...');
     try {
-      var res = await fetch(BASE + '/catalog/gpus?include=AVAILABILITY&product=POD', {
-        headers: { Authorization: 'Bearer ' + key }
-      });
-      if (!res.ok) {
-        var t = '';
-        try { t = (await res.text()).slice(0, 160); } catch (e) {}
-        throw new Error('HTTP ' + res.status + (t ? ' ' + t : ''));
-      }
-      var data = await res.json();
-      var gpus = data.gpus || data || [];
+      var data = await cloudRequest('/catalog', { method: 'GET' });
+      var gpus = data.gpus || [];
       var ok = gpus.filter(function (g) {
         return g.secure === true && String(g.availability) !== 'NONE' && Number(g.memory) >= 16 && g.price && Number(g.price.secure) > 0;
       }).map(function (g) {
@@ -100,11 +107,7 @@
     } catch (e) {
       fillGpus(FALLBACK_GPUS);
       var msg = String((e && e.message) || e);
-      if (msg.indexOf('Failed to fetch') !== -1 || msg.indexOf('TypeError') !== -1) {
-        log('Catalog blocked by browser CORS. Use the desktop app proxy (npm run start:cloud) or try again.');
-      } else {
-        log('Catalog check failed (' + msg.slice(0, 120) + '), kept fallback order.');
-      }
+      log('Catalog check failed (' + msg.slice(0, 160) + '), kept fallback order.');
     }
   }
 
@@ -117,31 +120,22 @@
     var gpuId = sel.value;
     var mem = Number(opt.dataset.memory) || 16;
     state.hourly = Number(opt.dataset.price) || 0;
-    var game = $('run-game').value || 'gravegain3d';
+    var game = $('run-game').value || 'snake-canvas';
     log('Launching ' + game + ' on ' + gpuId + ' with ' + MODEL_FOR(mem) + '...');
     try {
-      var res = await fetch(BASE + '/pods', {
+      var data = await cloudRequest('/launch', {
         method: 'POST',
-        headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: ('vibe-cloud-' + Date.now().toString(36)).slice(0, 48),
-          image: 'runpod/pytorch:2.4.0-py11-cuda12.4.1-devel-ubuntu22.04',
-          gpu: { id: gpuId, count: 1 },
-          ports: ['8888/http', '42069/http'],
-          disk: 40,
-          env: { VIBE_GAME: game, VIBE_MODEL: MODEL_FOR(mem), VIBE_MAX_MINUTES: '55', VIBE_MODE: 'cloud-game-plus-model' }
+          name: ('vibe-cloud-' + Date.now().toString(36)).slice(0, 48), gpuId: gpuId,
+          gpuMemoryGB: mem, gameId: game, openSourceGameId: game
         })
       });
-      if (!res.ok) {
-        var err = '';
-        try { err = (await res.text()).slice(0, 200); } catch (e2) {}
-        throw new Error('HTTP ' + res.status + (err ? ' ' + err : ''));
-      }
-      var data = await res.json();
-      var pod = data.pod || data;
-      state.podId = pod.id || pod.podId;
+      state.podId = data.podId;
+      if (!state.podId) throw new Error('Runpod did not return a pod id');
       state.startedAt = Date.now();
-      $('run-view').src = 'https://' + state.podId + '-8888.proxy.runpod.net';
+      $('run-game-view').src = (data.desktops && data.desktops.game) || ('https://' + state.podId + '-6901.proxy.runpod.net/vnc.html?autoconnect=true&resize=scale');
+      $('run-agent-view').src = (data.desktops && data.desktops.agent) || ('https://' + state.podId + '-6902.proxy.runpod.net/vnc.html?autoconnect=true&resize=scale');
       log('Pod ' + state.podId + ' created. Max cost $' + ((state.hourly / 3600) * MAX_SECONDS).toFixed(4) + '.');
       clearInterval(state.timer);
       state.timer = setInterval(setCost, 1000);
@@ -152,11 +146,7 @@
       }, MAX_SECONDS * 1000);
     } catch (e) {
       var m = String((e && e.message) || e);
-      if (m.indexOf('Failed to fetch') !== -1) {
-        log('Launch blocked by browser CORS. Run the desktop app proxy: npm run start:cloud, then use the desktop Cloud panel.');
-      } else {
-        log('Launch failed (' + m.slice(0, 160) + '). Check key and stock, then retry.');
-      }
+      log('Launch failed (' + m.slice(0, 160) + '). Check the local control plane, key, and stock, then retry.');
     }
   }
 
@@ -165,9 +155,10 @@
     if (!state.podId) { setStatus('Idle.'); return; }
     try {
       if (key) {
-        await fetch(BASE + '/pods/' + encodeURIComponent(state.podId), {
+        await cloudRequest('/stop', {
           method: 'DELETE',
-          headers: { Authorization: 'Bearer ' + key }
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ podId: state.podId })
         });
       }
     } catch (e) {}
@@ -175,7 +166,8 @@
     log('Stopped pod ' + state.podId + '. ' + (reason || 'Billing ended.'));
     state.podId = null;
     state.startedAt = 0;
-    $('run-view').src = 'about:blank';
+    $('run-game-view').src = 'about:blank';
+    $('run-agent-view').src = 'about:blank';
     setCost();
     setStatus('Idle. Max 55:00. Per second billing.');
   }
@@ -184,11 +176,4 @@
   $('run-launch').addEventListener('click', launchRun);
   $('run-stop').addEventListener('click', function () { stopRun('Stopped by user.'); });
   $('run-forget').addEventListener('click', forgetKey);
-  window.addEventListener('beforeunload', function () {
-    if (state.podId && state.key) {
-      try {
-        navigator.sendBeacon(BASE + '/pods/' + encodeURIComponent(state.podId) + '?_method=DELETE', '');
-      } catch (e) {}
-    }
-  });
 })();

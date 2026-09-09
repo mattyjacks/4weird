@@ -11,6 +11,11 @@ const rawTools = [
   ['vcw_get_logs', 'Read recent VCW and game logs.', 'GET', '/api/game/logs', {}],
   ['vcw_launch_game', 'Launch one discovered game by id.', 'POST', '/api/game/launch', { gameId: { type: 'string', description: 'Exact VCW game id' } }],
   ['vcw_send_action', 'Send one supervised input action to the active target.', 'POST', '/api/game/action', { type: { type: 'string' }, x: { type: 'number' }, y: { type: 'number' }, key: { type: 'string' } }],
+  ['vcw_godot_status', 'Read Godot runtime and cloud desktop status.', 'GET', '/api/godot/status', {}],
+  ['vcw_godot_release', 'Read the latest official stable Godot release available to this computer.', 'GET', '/api/godot/release', {}],
+  ['vcw_godot_install', 'Install the latest official stable Godot release on this VCW computer.', 'POST', '/api/godot/install', {}],
+  ['vcw_godot_screenshot', 'Capture the current cloud Godot desktop for the next play decision.', 'GET', '/api/godot/screenshot', {}],
+  ['vcw_godot_action', 'Send one allow-listed keyboard action to the cloud Godot desktop.', 'POST', '/api/godot/action', { type: { type: 'string', enum: ['tap', 'keydown', 'keyup'] }, key: { type: 'string', enum: ['up', 'down', 'left', 'right', 'space', 'enter', 'escape', 'w', 'a', 's', 'd', 'r'] } }],
   ['vcw_create_bug', 'Record a human-reviewable bug report.', 'POST', '/api/bugs', { title: { type: 'string' }, description: { type: 'string' }, severity: { type: 'string', enum: ['low', 'medium', 'high', 'critical'] } }],
   ['vcw_generate_handoff', 'Write a portable AI handoff brief.', 'POST', '/api/opencode/handoff', { reason: { type: 'string' } }]
 ];

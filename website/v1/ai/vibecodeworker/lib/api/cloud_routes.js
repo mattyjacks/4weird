@@ -7,13 +7,14 @@
  * - Estimate + model ladder are public, no key needed.
  * - Launch, status, stop are LOOPBACK ONLY unless VIBE_API_TOKEN is set and
  *   presented. External web origins are blocked one layer up in api_server.js
- *   via EXECUTION_PATHS. The public 4weird.com/run page calls api.runpod.io
- *   directly from the browser so the Runpod key never touches our servers.
+ *   via EXECUTION_PATHS. The public page calls the user's loopback VCW API,
+ *   which forwards the key directly to Runpod without persistence.
  * - Runpod key arrives via x-runpod-key header only. Never query params
  *   (they land in logs), never persisted, never echoed back.
  */
 
 const cloud = require('../runpod_cloud');
+const openSourceGames = require('../open_source_games');
 
 // Tiny in memory brake: max 10 cloud mutating calls per minute per process.
 let windowStart = Date.now();
@@ -36,6 +37,37 @@ function readRunpodKey(req) {
 }
 
 async function handleCloudRequest(pathname, req, readBody, sendJSON, sendText) {
+  if (pathname === '/api/cloud/games') {
+    if (req.method !== 'GET') return sendText(405, 'Method Not Allowed');
+    return sendJSON(200, { success: true, games: openSourceGames.OPEN_SOURCE_GAMES });
+  }
+
+  if (pathname === '/api/cloud/games/download') {
+    if (req.method !== 'POST') return sendText(405, 'Method Not Allowed');
+    const body = await readBody();
+    try {
+      const result = await openSourceGames.downloadOpenSourceGame(body.gameId);
+      return sendJSON(200, result);
+    } catch (e) {
+      return sendJSON(400, { success: false, error: String(e.message || e).slice(0, 200) });
+    }
+  }
+
+  // The browser calls this local endpoint instead of api.runpod.io directly.
+  // It is deliberately key-gated even though it is read-only, because catalog
+  // availability is an authenticated Runpod resource.
+  if (pathname === '/api/cloud/catalog') {
+    if (req.method !== 'GET') return sendText(405, 'Method Not Allowed');
+    const runpodKey = readRunpodKey(req);
+    if (!runpodKey) return sendJSON(401, { success: false, error: 'Missing x-runpod-key header' });
+    try {
+      const gpus = await cloud.getCloudGpuCatalog({ runpodKey });
+      return sendJSON(200, { success: true, gpus });
+    } catch (e) {
+      return sendJSON(502, { success: false, error: String(e.message || e).slice(0, 200) });
+    }
+  }
+
   // Public: biggest fitting model for a VRAM size. No key needed.
   if (pathname === '/api/cloud/models') {
     const mem = Number((await readBody()).gpuMemoryGB || 24);
