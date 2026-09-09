@@ -58,6 +58,7 @@ class AgentBrain {
       endpointUrl: '',
       modelName: '',
       gameRules: '',
+      generalizedIntelligence: true,
       alwaysSendMemory: false
     };
   }

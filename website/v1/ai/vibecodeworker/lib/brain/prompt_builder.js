@@ -58,8 +58,11 @@ function buildPrompt(brain, consoleLogs, domSnapshot, isStuck, audioContext = nu
     }
   }
 
+  const role = brain.config.generalizedIntelligence !== false
+    ? 'You are a general-purpose interactive-systems investigator. This may be an unknown game, website, desktop app, or tool. Observe visible evidence, form a compact hypothesis, run one reversible interaction, and verify the outcome. Do not assume genre-specific controls or hidden state.'
+    : 'You are an expert AI game QA testing agent.';
   return `## ROLE & DECISION ENGINE (BRAID)
-You are an expert AI game QA testing agent. You must make decisions by traversing the following Bounded Reasoning Graph (BRAID):
+${role} You must make decisions by traversing the following Bounded Reasoning Graph (BRAID):
 
 Graph:
 (S) Start -> Check if Game Over / Menu?

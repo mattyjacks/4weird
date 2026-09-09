@@ -14,9 +14,11 @@ rem ---- Launcher-only flags (stripped before forwarding to the app) ----
 rem   --no-ollama / --skip-ollama : skip the Ollama preflight entirely
 rem   --install-ollama            : full auto-install (~700MB+, explicit consent)
 rem   --no-pause                  : never pause on error (CI / shortcuts)
+rem   --software                  : disable native GPU rendering (safe fallback)
 set "VIBE_SKIP_OLLAMA=0"
 set "VIBE_INSTALL_OLLAMA=0"
 set "VIBE_NO_PAUSE=0"
+set "VIBE_SOFTWARE=0"
 set "VIBE_APP_ARGS="
 :parse_args
 if "%~1"=="" goto args_done
@@ -24,6 +26,7 @@ if /i "%~1"=="--no-ollama" set "VIBE_SKIP_OLLAMA=1" & shift & goto parse_args
 if /i "%~1"=="--skip-ollama" set "VIBE_SKIP_OLLAMA=1" & shift & goto parse_args
 if /i "%~1"=="--install-ollama" set "VIBE_INSTALL_OLLAMA=1" & shift & goto parse_args
 if /i "%~1"=="--no-pause" set "VIBE_NO_PAUSE=1" & shift & goto parse_args
+if /i "%~1"=="--software" set "VIBE_SOFTWARE=1" & shift & goto parse_args
 set "VIBE_APP_ARGS=%VIBE_APP_ARGS% %1"
 shift
 goto parse_args
@@ -87,6 +90,11 @@ if "%VIBE_SKIP_OLLAMA%"=="1" (
 
 rem ---- 3. Launch (single-instance lock lives in app/main.js) ----
 echo [launcher] Starting VibeCodeWorker desktop app...
+rem Native GPU is preferred for headful game windows and canvas capture. The
+rem app retains its software-rendering fallback when --software is supplied.
+if "%VIBE_SOFTWARE%"=="0" set "VIBE_APP_ARGS= --enable-gpu%VIBE_APP_ARGS%"
+if "%VIBE_SOFTWARE%"=="0" echo [launcher] GPU rendering enabled for headful playtests.
+if "%VIBE_SOFTWARE%"=="1" echo [launcher] Software rendering requested.
 "%ELECTRON_BIN%" "%APP_MAIN%"%VIBE_APP_ARGS%
 set "VIBE_EXIT_CODE=%ERRORLEVEL%"
 if not "%VIBE_EXIT_CODE%"=="0" (

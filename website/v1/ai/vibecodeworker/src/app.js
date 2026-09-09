@@ -94,9 +94,9 @@ function adaptiveAgentDelay() {
   }
   const latest = timelineHistory[timelineHistory.length - 1];
   const type = latest?.action?.type;
-  if (type === 'combo') return 400;
-  if (type === 'hold_key' || type === 'hold_keys' || type === 'move_mouse' || type === 'drag_look') return 280;
-  if (type === 'click' || type === 'right_click' || type === 'double_click' || type === 'press_key') return 420;
+  if (type === 'combo') return 300;
+  if (type === 'hold_key' || type === 'hold_keys' || type === 'move_mouse' || type === 'drag_look') return 200;
+  if (type === 'click' || type === 'right_click' || type === 'double_click' || type === 'press_key') return 260;
   if (type === 'wait') return 220;
   return 650;
 }
@@ -207,6 +207,7 @@ function queryElements() {
   el.btnHubQuickDemo = document.getElementById('btn-hub-quick-demo');
   el.demoGameSelect = document.getElementById('demo-game-select');
   el.gameRulesInput = document.getElementById('game-rules');
+  el.generalizedIntelligence = document.getElementById('generalized-intelligence');
   el.btnToggleAgent = document.getElementById('btn-toggle-agent');
   el.agentStateBadge = document.getElementById('agent-state-badge');
   el.fpsVal = document.getElementById('fps-val');
@@ -1056,9 +1057,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   if (el.btnQuickDemo) el.btnQuickDemo.addEventListener('click', async () => {
-    const target = '../../../games/html/overtake/index.html?playtest=1';
-    if (el.quickGameUrl) el.quickGameUrl.value = target;
-    if (el.gameUrlInput) el.gameUrlInput.value = target;
+    const overtakeOption = Array.from(el.demoGameSelect?.options || []).find(opt => /overtake/i.test(`${opt.textContent} ${opt.value}`));
+    const target = overtakeOption?.value || 'http://127.0.0.1:8888/games/html/overtake/index.html?playtest=1';
+    if (overtakeOption) { el.demoGameSelect.value = target; selectDemo(); }
+    const playtestTarget = `${el.gameUrlInput?.value || target}${(el.gameUrlInput?.value || target).includes('?') ? '&' : '?'}playtest=1`;
+    if (el.quickGameUrl) el.quickGameUrl.value = playtestTarget;
+    if (el.gameUrlInput) el.gameUrlInput.value = playtestTarget;
     if (el.quickGameRules) el.quickGameRules.value = 'Play the race, exercise throttle, steering, nitro, laps, and recovery; create Gameplay and Testing videos.';
     if (el.gameRulesInput) el.gameRulesInput.value = el.quickGameRules.value;
     el.btnQuickDemo.disabled = true;
@@ -1106,7 +1110,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } finally { if (videoButton) videoButton.disabled = false; }
   });
   narratedBugHuntButton?.addEventListener('click', async () => {
-    const url = String(el.gameUrlInput?.value || '').trim();
+    const url = String(el.gameUrlInput?.value || el.quickGameUrl?.value || '').trim();
     if (!url) {
       toastNotifier.show('Choose a 4weird game first.', 'warning');
       return;

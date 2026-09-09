@@ -348,6 +348,12 @@
             // Fullscreen toggle logic
             const fullscreenBtn = document.getElementById('TEMPLATE-4weird-fullscreen-btn');
             const gameFrame = document.querySelector('.TEMPLATE-4weird-game-frame');
+            if (gameFrame) {
+                gameFrame.id = gameFrame.id || 'game-anchor';
+                // Put the playable surface in the center of the viewport on
+                // every visit, while leaving the fixed navigation visible.
+                requestAnimationFrame(() => gameFrame.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' }));
+            }
             if (fullscreenBtn && gameFrame) {
                 fullscreenBtn.addEventListener('click', () => {
                     if (!document.fullscreenElement) {

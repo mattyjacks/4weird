@@ -3274,11 +3274,39 @@
         // three identifiers that do not exist in this module
         // (currentLevelId/speed/points), which threw during boot and left the
         // fully-loaded overlay over the playable game.
+        // Read-only telemetry contract for automated playtests.  It exposes
+        // gameplay facts, never setters, so an agent has to drive through the
+        // same keyboard path as a person instead of cheating by mutating state.
+        // Keeping this compact also makes it suitable for fast local reflex
+        // control when a cloud model has not seen Overtake before.
+        function getPlaytestTelemetry() {
+            const aheadOfPlayer = (position) => positiveModulo(position - player.position, trackLength);
+            const traffic = [];
+            for (const car of opponents) {
+                const distanceAhead = aheadOfPlayer(car.position);
+                if (distanceAhead <= 300 || distanceAhead >= trackLength - 40) {
+                    traffic.push({ x: car.offset, distanceAhead, kind: "rival" });
+                }
+            }
+            for (const item of powerups) {
+                if (raceTime >= item.respawnAt) {
+                    const distanceAhead = aheadOfPlayer(item.position);
+                    if (distanceAhead <= 300) traffic.push({ x: item.offset, distanceAhead, kind: "powerup" });
+                }
+            }
+            return Object.freeze({
+                title: "Overtake", mode, level: selectedMapId, lap: player.lap,
+                playerX: player.x, playerPosition: player.position, speed: player.speed,
+                nitro: NITRO_MAX ? player.nitro / NITRO_MAX : 0,
+                traffic: Object.freeze(traffic)
+            });
+        }
         window.gameState = {
             title: "Overtake",
             get level() { return selectedMapId; },
             get speed() { return player.speed; },
             get score() { return save.coins; },
+            snapshot: getPlaytestTelemetry,
         };
         window.game = window.gameState;
         hideLoadingScreen();

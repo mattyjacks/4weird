@@ -8,6 +8,7 @@ const { resolveGameProfile } = require('./native_game_profiles');
 const { decideNativeActionViaDeepSeek, normalizeNativeAction, toInputSimArgs } = require('./native_game_player');
 const { simpleHash } = require('../../lib/brain/stuck_detector');
 const { classifyUrgency, computeNextDelay, frameDeltaLevel, midProbePlan } = require('./adaptive_tick');
+const { decideOvertake } = require('../../lib/brain/overtake_reflex');
 const captchaDetector = new CaptchaDetector();
 let isCaptchaResolving = false;
 const nativeDirector = new NativeGameDirector();
@@ -108,10 +109,25 @@ async function executeAgentStep({
     }
 
     const url = el.gameUrlInput.value;
+    const isOvertake = /(?:^|[\\/])overtake(?:[\\/]|$)|overtake/i.test(url || '');
     const isFriendSlop = url && url.includes('friendslop');
     const isGraveGain = url && url.toLowerCase().includes('gravegain');
     let decision = null;
     let usedBrainDecision = false;
+
+    // Overtake publishes a deliberately read-only telemetry snapshot.  Use a
+    // local reflex tree for frame-critical steering; a remote model's network
+    // round trip is inappropriate for this loop and is still available for
+    // unfamiliar games, failures, and code-level QA.  The snapshot call is a
+    // single webview round trip and gracefully falls back to BRAID if absent.
+    if (isOvertake && !nativeProcess) {
+      try {
+        const telemetry = await gameController.executeJS(webviewElement,
+          'window.gameState && typeof window.gameState.snapshot === "function" ? window.gameState.snapshot() : null');
+        decision = decideOvertake(telemetry || {});
+        if (decision) decision.reasoning += ' Local bitwise telemetry policy; no model round trip.';
+      } catch (_) { /* Older/remote Overtake builds continue through BRAID. */ }
+    }
 
     if (nativeProcess) {
       // Universal path: ANY game via DeepSeek harness vision (HL2:EP2 is the demo).

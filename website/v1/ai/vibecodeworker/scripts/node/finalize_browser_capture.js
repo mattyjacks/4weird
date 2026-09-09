@@ -71,7 +71,10 @@ async function synthesizeOpenAiNarration(text, outputPath, voice = process.env.O
     ? `tpad=stop_mode=clone:stop_duration=${extra.toFixed(3)},drawbox=x=8:y=8:w=iw-16:h=ih-16:color=red@0.95:t=8,drawbox=x=18:y=18:w=112:h=112:color=black@0.72:t=fill,drawtext=text='||':fontcolor=white:fontsize=72:x=43:y=29,drawtext=text='${pauseText}':fontcolor=white:fontsize=28:x=(w-text_w)/2:y=h-58`
     : 'null';
   const normalizedVideoFilter = videoFilter === 'null' ? 'scale=trunc(iw/2)*2:trunc(ih/2)*2' : `${videoFilter},scale=trunc(iw/2)*2:trunc(ih/2)*2`;
-  await run(ffmpeg, ['-y', '-i', input, '-i', audio, '-filter:v', normalizedVideoFilter, '-filter:a', 'apad', '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k', '-shortest', '-movflags', '+faststart', mp4]);
+  // Browser captures can contain their own game/system audio.  Map only the
+  // captured video and the generated narration so those streams never stack
+  // and make the voice painfully loud.
+  await run(ffmpeg, ['-y', '-i', input, '-i', audio, '-map', '0:v:0', '-map', '1:a:0', '-filter:v', normalizedVideoFilter, '-filter:a', 'apad', '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k', '-shortest', '-movflags', '+faststart', mp4]);
   const manifest = `${base}.json`;
   if (fs.existsSync(manifest)) {
     const data = JSON.parse(fs.readFileSync(manifest, 'utf8'));

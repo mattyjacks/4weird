@@ -102,7 +102,11 @@ class MediaMogulPlaytestRecorder {
     try {
       const encodeArgs = ['-y', '-framerate', String(session.fps), '-i', path.join(session.framesDir, 'frame-%06d.png')];
       if (session.voiceoverPath && fs.existsSync(session.voiceoverPath)) encodeArgs.push('-i', session.voiceoverPath);
-      encodeArgs.push('-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p');
+      // Browser content bounds can be odd (for example 1264x655 after a
+      // window frame is removed). H.264's yuv420p encoder requires even
+      // dimensions, so pad only the trailing edge when needed. This keeps
+      // every desktop/cloud capture encodable without distorting gameplay.
+      encodeArgs.push('-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2', '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p');
       // Do not loop a short narration: that repeats the same sentence through
       // a long playtest.  `apad` keeps silence after the one spoken take so
       // `-shortest` ends on the captured video instead of truncating it.

@@ -167,6 +167,7 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
   }
 
   elements.gameRulesInput.value = settings.gameRules || 'Website audit: explore nav, scroll the full page, try key CTAs/forms, report real JS errors. Ignore cross-origin iframe and permissions-policy noise.';
+  if (elements.generalizedIntelligence) elements.generalizedIntelligence.checked = settings.generalizedIntelligence !== false;
   elements.gameUrlInput.value = settings.gameUrl || 'https://mattyjacks.com';
   audioModule.setAudioEnabled(settings.isAudioEnabled || false);
   document.getElementById('btn-toggle-audio').textContent = audioModule.getAudioEnabled() ? '🔊' : '🔇';
@@ -249,7 +250,8 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     apiKey: elements.apiKeyInput.value || '',
     endpointUrl: elements.localUrlInput.value || '',
     modelName: elements.modelNameInput.value || '',
-    gameRules: elements.gameRulesInput.value || ''
+    gameRules: elements.gameRulesInput.value || '',
+    generalizedIntelligence: elements.generalizedIntelligence ? elements.generalizedIntelligence.checked : true
   });
   agentBrain.loadSessionMemory();
 
@@ -276,6 +278,7 @@ function saveConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     localUrl: elements.localUrlInput.value,
     modelName: modelToSave,
     gameRules: elements.gameRulesInput.value,
+    generalizedIntelligence: elements.generalizedIntelligence ? elements.generalizedIntelligence.checked : true,
     gameUrl: elements.gameUrlInput.value,
     isAudioEnabled: audioModule.getAudioEnabled(),
     alwaysSendMemory: elements.toggleMemory ? elements.toggleMemory.checked : false,
@@ -339,6 +342,7 @@ function saveConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     endpointUrl: settings.localUrl,
     modelName: settings.modelName,
     gameRules: settings.gameRules,
+    generalizedIntelligence: settings.generalizedIntelligence !== false,
     dataDir: dataDir
   });
 

@@ -12,7 +12,10 @@
  * discovered a full slow tick later. Pure Node - safe to require in tests.
  */
 
-const MIN_DELAY_MS = 200;
+// Keep the loop responsive between decisions. Input execution and model
+// latency still provide natural back-pressure; this floor avoids an extra
+// quarter-second of dead air after every fast action.
+const MIN_DELAY_MS = 120;
 const MAX_DELAY_MS = 2500;
 
 const HIGH_HINTS = /combat|enemy|enemies|boss|firing|fire at|muzzle|damage|hit points|low hp|health low|chase|attack/i;
@@ -78,12 +81,12 @@ function baseDelayForAction(action = {}) {
     case 'right_click':
     case 'double_click':
     case 'press_key':
-      return 380;
+      return 220;
     case 'move_mouse':
     case 'drag_look':
     case 'wheel':
     case 'scroll':
-      return 300;
+      return 180;
     case 'type_text':
       return 600;
     case 'bot_control':
@@ -142,7 +145,7 @@ function midProbePlan(action = {}) {
     action.type === 'hold_key' || action.type === 'wait';
   if (!longType || dur < 600) return { probe: false, probeDelayMs: 0 };
   // Probe halfway through, capped so the follow-up tick stays real-time.
-  return { probe: true, probeDelayMs: Math.min(800, Math.round(dur / 2)) };
+  return { probe: true, probeDelayMs: Math.min(400, Math.round(dur / 2)) };
 }
 
 function shouldProbeMidAction(action = {}) {
@@ -152,9 +155,9 @@ function shouldProbeMidAction(action = {}) {
 // Screenshot budget hint per urgency: high keeps full detail (combat needs
 // pixels), low shrinks to save tokens on static menus.
 function screenshotBudget(urgency = 'normal') {
-  if (urgency === 'high') return { width: 512, quality: 50 };
-  if (urgency === 'low') return { width: 384, quality: 40 };
-  return { width: 512, quality: 50 };
+  if (urgency === 'high') return { width: 448, quality: 45 };
+  if (urgency === 'low') return { width: 320, quality: 35 };
+  return { width: 448, quality: 45 };
 }
 
 module.exports = {

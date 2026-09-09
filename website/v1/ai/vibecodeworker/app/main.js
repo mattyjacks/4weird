@@ -713,7 +713,7 @@ ipcMain.handle('run-self-improvement', async (event, params) => {
 // Ensure static server is running for game files
 const WEBSITE_V1_DIR = app.isPackaged
   ? path.join(process.resourcesPath, 'website', 'v1')
-  : path.join(projectRoot, '..', '..', '..', 'website', 'v1');
+  : path.join(projectRoot, '..', '..', '..', '..', 'website', 'v1');
 const STATIC_PORT = 8888;
 startStaticServer(STATIC_PORT, WEBSITE_V1_DIR);
 

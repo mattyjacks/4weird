@@ -1,9 +1,9 @@
 {
-  "provider": "deepseek",
+  "provider": "meta",
   "localUrl": "http://localhost:11434/api/chat",
-  "modelName": "deepseek-v4-flash",
-  "gameRules": "Game: FriendSlop\nGenre: Arcade\nAbout: Feed your friends chaotic slop and dodge cringe. A meme-forward arcade game about vibes, combos, and absurd physics.\nHow to play: Feed your friends slop and build your vibe meter! Catch falling slop and throw it at your friends to rack up combos. Avoid the cringe hazards or lose vibe. The longer you survive, the more chaotic it gets. Reach the top of the daily leaderboard!\nControls: Arrow Keys / WASD: Move; Space / Click: Throw Slop; P or Esc: Pause; touch; mouse",
-  "gameUrl": "http://127.0.0.1:8888/games/html/friendslop/index.html",
+  "modelName": "muse-spark-1.3-contributor",
+  "gameRules": "Game: Overtake\nGenre: Racing\nAbout: A fast pseudo-3D arcade racer with unlockable routes, garage progression, and nitro boosts.\nHow to play: Pick a route, choose a car, then race through pseudo-3D traffic. Finish well to earn coins, unlock faster cars, and open later routes. Use nitro when the bar has charge, collect nitro refills on the road, and avoid losing speed in collisions.\nControls: Arrow Keys / WASD: Steer, accelerate, and brake; Space / Shift / N: Use nitro; P / Esc: Pause; R: Restart current route; touch; mouse\nHow to play (on-page): Pick a route, choose a car, then race through pseudo-3D traffic. Finish well to earn coins, unlock faster cars, and open later routes. Use nitro when the bar has charge, collect nitro refills on the road, and avoid losing speed in collisions.\nArrow Keys / WASD - Drive Space / Shift / N - Nitro P / Esc - Pause R - Restart route",
+  "gameUrl": "http://127.0.0.1:8888/games/html/overtake/index.html?playtest=1",
   "isAudioEnabled": false,
   "alwaysSendMemory": false,
   "autoChooseModel": false,
