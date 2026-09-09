@@ -11,7 +11,9 @@ GAME_ID=${VIBE_OPEN_SOURCE_GAME_ID:-}
 GAME_MODE=${VIBE_XONOTIC_MODE:-desktop}
 CAPTURE_FPS=${VCW_CAPTURE_FPS:-30}
 STAMP=$(date -u +%Y%m%d-%H%M%S)
-GAME_NAME=${GAME_ID:-xonotic}
+# Keep the public filename tied to the requested game even though this
+# recorder is launched from a wrapper that does not export its local GAME_ID.
+GAME_NAME=${VIBE_OPEN_SOURCE_GAME_ID:-${GAME_ID:-xonotic}}
 OUTPUT_STEM="${GAME_NAME}-${STAMP}"
 if [ "$GAME_ID" = "xonotic" ]; then
   # Capture the actual Xonotic display for both native and browser modes.
