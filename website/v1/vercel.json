@@ -36,6 +36,14 @@
       "destination": "/vibecodeworker/run.html"
     },
     {
+      "source": "/vcw/web/full",
+      "destination": "/vibecodeworker/full.html"
+    },
+    {
+      "source": "/vibecodeworker/full",
+      "destination": "/vibecodeworker/full.html"
+    },
+    {
       "source": "/vibecodeworker",
       "destination": "/vibecodeworker/overview.html"
     },

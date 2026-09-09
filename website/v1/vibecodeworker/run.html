@@ -7,6 +7,7 @@
   <meta name="description" content="Rent a Runpod cloud box with your own API key. Game plus local multimodal model on one GPU, 55 minute cap, per second billing.">
   <link rel="canonical" href="https://4weird.com/vcw/web/run">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="vcw-nav.css">
   <style>
     .run-wrap { max-width: 900px; margin: 24px auto; padding: 20px; }
     .run-card { border: 1px solid var(--border-color, #222); border-radius: 12px; padding: 18px; margin-bottom: 16px; background: rgba(255,255,255,.02); }
@@ -20,7 +21,7 @@
     #run-view { width: 100%; height: 420px; border: 1px solid #333; border-radius: 10px; background: #000; }
   </style>
 </head>
-<body>
+<body data-vcw="run">
   <div class="run-wrap">
     <h1>Cloud Run</h1>
     <p>Low spec device? Rent a cloud GPU with your own Runpod key. Game and model share one box for low latency. Hard cap 55 minutes. Billed per second. Key stays in this tab only.</p>
@@ -42,6 +43,7 @@
     <div class="run-card"><h3>Live viewport</h3><iframe id="run-view" title="Cloud game viewport" sandbox="allow-scripts allow-same-origin"></iframe></div>
     <div class="run-card"><h3>Log (key never appears here)</h3><div class="run-mono" id="run-log"></div></div>
   </div>
+  <script src="vcw-nav.js"></script>
   <script src="run.js"></script>
 </body>
 </html>

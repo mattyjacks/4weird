@@ -17,21 +17,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="overview.css">
+  <link rel="stylesheet" href="vcw-nav.css">
 </head>
-<body>
+<body data-vcw="overview">
   <div class="aurora aurora-one"></div>
   <div class="aurora aurora-two"></div>
 
-  <header class="site-header shell">
-    <a class="wordmark" href="/" aria-label="4weird home">4<span>weird</span></a>
-    <nav aria-label="Page navigation">
-      <a href="#how-it-works">How it works</a>
-      <a href="#capabilities">Capabilities</a>
-      <a href="#control">Your control</a>
-      <a href="#pricing">Pricing</a>
-    </nav>
-    <a class="header-action" href="docs/">Read the manual <span>↗</span></a>
-  </header>
+  <script src="vcw-nav.js"></script>
 
   <main>
     <section class="hero shell">
@@ -43,7 +35,11 @@
           <a class="button primary" href="preview/">Try the safe preview <span>→</span></a>
           <a class="button quiet" href="#how-it-works">See the workflow <span>↓</span></a>
         </div>
-        <p class="shortcut">Short link: <code>4weird.com/vcw</code></p>
+        <div class="hero-actions">
+          <a class="button primary" href="run.html">Cloud Run <span>→</span></a>
+          <a class="button quiet" href="full.html">Full web version <span>→</span></a>
+        </div>
+        <p class="shortcut">Short links: <code>4weird.com/vcw</code> · <code>/vcw/web/run</code> · <code>/vcw/web/full</code></p>
       </div>
 
       <div class="hero-product" aria-label="VibeCodeWorker interface preview">

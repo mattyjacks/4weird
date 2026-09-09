@@ -31,6 +31,21 @@
   status = 200
 
 [[redirects]]
+  from = "/vcw/web/full"
+  to = "/vibecodeworker/full.html"
+  status = 200
+
+[[redirects]]
+  from = "/vcw/web/full/"
+  to = "/vibecodeworker/full.html"
+  status = 200
+
+[[redirects]]
+  from = "/vibecodeworker/full"
+  to = "/vibecodeworker/full.html"
+  status = 200
+
+[[redirects]]
   from = "/vibecodeworker/run"
   to = "/vibecodeworker/run.html"
   status = 200
