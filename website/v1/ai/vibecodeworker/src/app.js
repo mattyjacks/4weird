@@ -204,6 +204,7 @@ function queryElements() {
   el.btnQuickLoad = document.getElementById('btn-quick-load');
   el.btnQuickRun = document.getElementById('btn-quick-run');
   el.btnQuickDemo = document.getElementById('btn-quick-demo');
+  el.btnHubQuickDemo = document.getElementById('btn-hub-quick-demo');
   el.demoGameSelect = document.getElementById('demo-game-select');
   el.gameRulesInput = document.getElementById('game-rules');
   el.btnToggleAgent = document.getElementById('btn-toggle-agent');
@@ -1069,6 +1070,10 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (error) {
       toastNotifier.show(`Quick Demo failed: ${error.message}`, 'warning');
     } finally { setTimeout(() => { el.btnQuickDemo.disabled = false; }, 1500); }
+  });
+  if (el.btnHubQuickDemo) el.btnHubQuickDemo.addEventListener('click', () => {
+    hubUI?.showEditorWorkspace();
+    setTimeout(() => el.btnQuickDemo?.click(), 120);
   });
   // MediaMogul records the rendered playtest surface and encodes the result
   // into an MP4 when stopped. The same control works for embedded games and
