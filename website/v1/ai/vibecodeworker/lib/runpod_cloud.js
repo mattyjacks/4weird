@@ -273,7 +273,9 @@ function buildPodSpec(args = {}) {
   const bootstrap = args.bypassDocker === true || (args.openSourceGameId === 'xonotic' && args.bypassDocker !== false);
   const body = {
     name: sanitizeName(args.name),
-    imageName: bootstrap ? 'runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04' : (isSafeImage(args.image || '') ? args.image : DEFAULT_IMAGE),
+    // This tag matches RunPod's published PyTorch image family and the tested
+    // Dockerfile base; avoid the unavailable py3.11 alias during bootstrap.
+    imageName: bootstrap ? 'runpod/pytorch:2.4.0-py11-cuda12.4.1-devel-ubuntu22.04' : (isSafeImage(args.image || '') ? args.image : DEFAULT_IMAGE),
     computeType: 'GPU',
     cloudType: 'SECURE',
     gpuTypeIds: [args.gpuId],
