@@ -7,6 +7,7 @@
  * Usage:
  *   node run_hl2_playtest.js --window "Half-Life 2" --steps 200 --dry-run
  *   node run_hl2_playtest.js --game hl2-ep2 --steps 50
+ *   node run_hl2_playtest.js --game hl2-ep2 --unpause --steps 120
  *   node run_hl2_playtest.js --game hl2-ep2 --launch --steps 200
  *   node run_hl2_playtest.js --game "Doom Eternal" --steps 50 --dry-run  (any game works)
  * Flags: --launch (Steam launch AppId 420), --no-new-game (skip New Game
@@ -27,7 +28,7 @@ const { decideNativeActionViaDeepSeek, toInputSimArgs } = require(path.join(proj
 const { NativeGameDirector } = require(path.join(projectRoot, 'src', 'runtime', 'native_game_director'));
 
 function parseArgs(argv) {
-  const out = { window: 'Half-Life 2', game: '', steps: 20, dryRun: false, heuristic: false, delayMs: 400, launch: false, newGame: true, mode: 'exclusive-fullscreen' };
+  const out = { window: 'Half-Life 2', game: '', steps: 20, dryRun: false, heuristic: false, delayMs: 400, launch: false, newGame: true, unpause: false, headless: false, mode: 'exclusive-fullscreen' };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--window') out.window = argv[++i] || out.window;
@@ -40,6 +41,8 @@ function parseArgs(argv) {
     else if (a === '--launch') out.launch = true;
     else if (a === '--no-new-game') out.newGame = false;
     else if (a === '--new-game') out.newGame = true;
+    else if (a === '--unpause') out.unpause = true;
+    else if (a === '--headless') out.headless = true;
     else if (a === '--mode') out.mode = argv[++i] || out.mode;
   }
   return out;
@@ -94,6 +97,14 @@ async function main() {
   console.log(`[hl2-demo] Profile: ${profile.id} - ${profile.name} (query: "${query}")`);
   console.log(`[hl2-demo] Goal: ${profile.goal.slice(0, 160)}...`);
 
+  // A hidden game-control loop is unsafe: it can keep moving the system
+  // pointer after the operator has lost sight of the target. Keep its policy
+  // and reporting available, but never send live input in headless mode.
+  if (args.headless) {
+    args.dryRun = true;
+    console.log('[hl2-demo] --headless requested: forcing --dry-run; no mouse or keyboard input will be sent. Use the visible desktop runner for live playtests.');
+  }
+
   // Optional Steam launch: `node run_hl2_playtest.js --game hl2-ep2 --launch`
   // opens Episode Two (AppId 420) via the steam://run protocol before attaching.
   if (args.launch && !args.dryRun) {
@@ -128,6 +139,18 @@ async function main() {
       args.dryRun = true;
       console.log(`[hl2-demo] Target "${query}" is not running — forcing --dry-run (decisions printed, NO inputs sent). Start the game first for a live run (or re-run with --launch).`);
     }
+  }
+
+  // Opt-in recovery for a session the operator knows is paused.  Keep this
+  // explicit: Escape toggles the Source pause menu, so it must never be sent
+  // blindly during normal gameplay.
+  if (args.unpause && !args.dryRun) {
+    const resumed = runBridge(['press', 'escape'], query);
+    if (!resumed.ok) {
+      throw new Error(`unpause failed: ${resumed.out}`);
+    }
+    console.log('[hl2-demo] Unpause requested: Escape sent to the verified game window.');
+    await new Promise((r) => setTimeout(r, 500));
   }
 
   const brain = new AgentBrain();

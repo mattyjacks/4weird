@@ -14,7 +14,7 @@ function action(type, target, duration_ms, reasoning, params = {}) {
 
 class NativeGameDirector {
   constructor() { this.reset(); }
-  reset() { this.title = ''; this.tick = 0; this.startupTick = 0; this.previous = 0; this.last = null; this.lastFrame = 0; this.still = 0; this.arms = new Map(); }
+  reset() { this.title = ''; this.tick = 0; this.startupTick = 0; this.previous = 0; this.last = null; this.lastFrame = 0; this.still = 0; this.fpsCycle = 0; this.arms = new Map(); }
   setTarget(title) { if (title !== this.title) { this.reset(); this.title = title || ''; } }
   chooseStartup(profileId, startFresh = false) {
     if (profileId === 'peggle-deluxe' && startFresh && this.startupTick === 0) {
@@ -65,10 +65,22 @@ class NativeGameDirector {
       ['action', () => action('press_key', 'space', 0, 'Generic route: trigger primary action.', { key: 'space' })],
       ['click', () => action('click', '500,500', 0, 'Generic route: activate center target.', { x: 500, y: 500 })]
     ];
-    const exploration = Math.random() < 0.22;
+    // The offline vision fallback has no semantic frame understanding.  A
+    // bandit therefore tends to reward a zero-effect mouse scan and repeats
+    // it forever.  For FPS games use a bounded route that always includes
+    // movement and interaction; the normal still-frame recovery above still
+    // sends Escape when the game appears paused or otherwise stuck.
     let selected = options[0];
-    if (exploration) selected = options[Math.floor(Math.random() * options.length)];
-    else selected = options.reduce((best, item) => this.score(item[0]) > this.score(best[0]) ? item : best);
+    if (fps) {
+      const route = ['advance', 'strafe', 'interact', 'advance', 'jump', 'fire', 'advance', 'reload'];
+      const next = route[this.fpsCycle % route.length];
+      this.fpsCycle++;
+      selected = options.find(([name]) => name === next) || options[0];
+    } else {
+      const exploration = Math.random() < 0.22;
+      if (exploration) selected = options[Math.floor(Math.random() * options.length)];
+      else selected = options.reduce((best, item) => this.score(item[0]) > this.score(best[0]) ? item : best);
+    }
     if (!this.arms.has(selected[0])) this.arms.set(selected[0], { n: 0, reward: 0 });
     this.last = selected[0];
     return selected[1]();

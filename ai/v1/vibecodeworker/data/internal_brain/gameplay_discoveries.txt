@@ -1,83 +1,83 @@
 # Gameplay discoveries
 Automatically distilled from completed playtest decisions.
 
-1. Observed a control “🤖 FEATURED GAME Last Words Zombies A high-intens” at 497,94.
-2. Observed input control “Search games by title, description or tags...” at 430,369.
-3. Observed select control “🔥 Most Popular ⭐ Highest Rated 📅 Newest Releases” at 771,368.
-4. Observed button control “All Games” at 191,465.
-5. Observed button control “Arcade” at 249,465.
-6. Observed button control “Puzzle” at 300,465.
-7. Observed button control “Action” at 351,465.
-8. Observed button control “Racing” at 402,465.
-9. Observed button control “Strategy” at 457,465.
-10. Observed button control “Creative” at 514,465.
-11. Observed button control “3D” at 560,465.
-12. Observed button control “Neon Series” at 614,465.
-13. Observed button control “Accessible” at 682,465.
-14. Observed select control “Any Device Compatibility Mobile & Desktop Desktop” at 320,547.
-15. Observed select control “Any Development State Polished Rough Prototype” at 606,547.
-16. Observed a control “PLAY” at 339,387.
-17. Observed a control “PLAY” at 579,387.
-18. Observed a control “PLAY” at 819,387.
-19. Observed a control “PLAY” at 339,882.
-20. Observed a control “PLAY” at 579,882.
-21. Observed a control “PLAY” at 819,882.
-22. Observed button control “LOAD NEXT MODULES” at 497,986.
-23. click → 579,882: Offline explorer (no API key): trying interactive element A "PLAY" (5/7). Add an API key for smart decisions.
-24. press_key → Space: Offline explorer (no API key): keyboard probe to explore page.
-25. press_key → w: Offline explorer (no API key): no interactive elements found, probing keyboard.
-26. press_key → ArrowUp: Offline explorer (no API key): no interactive elements found, probing keyboard.
-27. click → 500,500: Offline explorer (no API key): no interactive elements found, probing keyboard.
-28. press_key → d: Offline explorer (no API key): no interactive elements found, probing keyboard.
-29. press_key → Enter: S -> Yes -> R_RESTART
-30. Observed a control “flex items-center logo-3d-inner” at 135,28.
-31. Observed button control “Shop Anything 🛒” at 688,30.
-32. Observed button control “Future 🌌” at 761,30.
-33. Observed div control “Contact” at 818,30.
-34. Observed a control “Contact” at 818,30.
-35. Observed button control “More” at 867,30.
-36. Observed a control “HIRE RANICEL ($12/HR)” at 192,675.
-37. Observed a control “VISIT RANICEL.COM ↗” at 337,675.
-38. Observed a control “Privacy Policy” at 208,959.
-39. Observed button control “Delicious! 😄” at 775,946.
-40. click → 867,30: S -> No -> No -> No -> R_MENU
-41. Observed a control “flex items-center logo-3d-inner” at 135,30.
-42. Observed a control “HIRE RANICEL ($12/HR)” at 192,693.
-43. Observed a control “VISIT RANICEL.COM ↗” at 337,693.
-44. click → 688,30: S -> No -> No -> No -> R_MENU
-45. Bug found (medium): The 'More' button in the top navigation did not produce any visible dropdown or response after being clicked at viewport coordinates (1665,32). This is a potential usability dead end.
-46. Observed canvas control “TEMPLATE-4weird-starfield” at 497,500.
-47. Observed a control “🎮 4weirdGames” at 69,32.
-48. Observed a control “Games” at 551,32.
-49. Observed a control “MADI AI” at 603,32.
-50. Observed a control “Technology” at 662,32.
-51. Observed a control “Academy” at 724,32.
-52. Observed button control “♿ Accessibility” at 789,32.
-53. Observed a control “Contribute” at 856,32.
-54. Observed a control “Contact MattyJacks” at 936,32.
-55. Observed button control “📜 10-MISSION CAMPAIGN” at 497,504.
-56. Observed button control “⚔️ ENDLESS DUNGEON RUN” at 497,565.
-57. Observed button control “🚀 VISIT LUCKYSTARSHIP” at 497,627.
-58. Observed button control “⚙️ ENGINE CONFIGURATIONS” at 497,688.
-59. Observed a control “4weird” at 497,535.
-60. Observed button control “🛠️” at 972,960.
-61. Observed button control “♿” at 969,954.
-62. click → #btnPlay: S -> Yes -> R_RESTART
-63. Observed button control “WARRIOR” at 320,543.
-64. Observed button control “TANK” at 438,543.
-65. Observed button control “SUPPORT” at 557,543.
-66. Observed button control “MAGE” at 675,543.
-67. Observed button control “← MAIN MENU” at 379,768.
-68. Observed button control “🚀 DEPLOY TO DUNGEON” at 616,768.
-69. click → 617,768: S -> Yes -> R_RESTART
-70. Observed button control “🧪 1” at 617,183.
-71. Observed button control “⚡ Realtime” at 304,248.
-72. Observed button control “⏳ Chrono-Lock” at 372,248.
-73. Observed button control “🎲 Turn-Based” at 446,248.
-74. Observed button control “0.25x” at 632,248.
-75. Observed button control “0.5x” at 665,248.
-76. Observed button control “1.0x” at 693,248.
-77. combo → w+look+fire+jump: S -> No -> No -> No -> No -> R_PLAY
-78. combo → w+look+fire: S -> No -> No -> No -> No -> R_PLAY
-79. combo → w+look+fire+jump: S -> No -> No -> No -> R_PLAY
-80. combo → w+look+fire: S -> No -> No -> No -> R_PLAY
+1. Observed button control “Racing” at 402,465.
+2. Observed button control “Strategy” at 457,465.
+3. Observed button control “Creative” at 514,465.
+4. Observed button control “3D” at 560,465.
+5. Observed button control “Neon Series” at 614,465.
+6. Observed button control “Accessible” at 682,465.
+7. Observed select control “Any Device Compatibility Mobile & Desktop Desktop” at 320,547.
+8. Observed select control “Any Development State Polished Rough Prototype” at 606,547.
+9. Observed a control “PLAY” at 339,387.
+10. Observed a control “PLAY” at 579,387.
+11. Observed a control “PLAY” at 819,387.
+12. Observed a control “PLAY” at 339,882.
+13. Observed a control “PLAY” at 579,882.
+14. Observed a control “PLAY” at 819,882.
+15. Observed button control “LOAD NEXT MODULES” at 497,986.
+16. click → 579,882: Offline explorer (no API key): trying interactive element A "PLAY" (5/7). Add an API key for smart decisions.
+17. press_key → Space: Offline explorer (no API key): keyboard probe to explore page.
+18. press_key → w: Offline explorer (no API key): no interactive elements found, probing keyboard.
+19. press_key → ArrowUp: Offline explorer (no API key): no interactive elements found, probing keyboard.
+20. click → 500,500: Offline explorer (no API key): no interactive elements found, probing keyboard.
+21. press_key → d: Offline explorer (no API key): no interactive elements found, probing keyboard.
+22. press_key → Enter: S -> Yes -> R_RESTART
+23. Observed a control “flex items-center logo-3d-inner” at 135,28.
+24. Observed button control “Shop Anything 🛒” at 688,30.
+25. Observed button control “Future 🌌” at 761,30.
+26. Observed div control “Contact” at 818,30.
+27. Observed a control “Contact” at 818,30.
+28. Observed button control “More” at 867,30.
+29. Observed a control “HIRE RANICEL ($12/HR)” at 192,675.
+30. Observed a control “VISIT RANICEL.COM ↗” at 337,675.
+31. Observed a control “Privacy Policy” at 208,959.
+32. Observed button control “Delicious! 😄” at 775,946.
+33. click → 867,30: S -> No -> No -> No -> R_MENU
+34. Observed a control “flex items-center logo-3d-inner” at 135,30.
+35. Observed a control “HIRE RANICEL ($12/HR)” at 192,693.
+36. Observed a control “VISIT RANICEL.COM ↗” at 337,693.
+37. click → 688,30: S -> No -> No -> No -> R_MENU
+38. Bug found (medium): The 'More' button in the top navigation did not produce any visible dropdown or response after being clicked at viewport coordinates (1665,32). This is a potential usability dead end.
+39. Observed canvas control “TEMPLATE-4weird-starfield” at 497,500.
+40. Observed a control “🎮 4weirdGames” at 69,32.
+41. Observed a control “Games” at 551,32.
+42. Observed a control “MADI AI” at 603,32.
+43. Observed a control “Technology” at 662,32.
+44. Observed a control “Academy” at 724,32.
+45. Observed button control “♿ Accessibility” at 789,32.
+46. Observed a control “Contribute” at 856,32.
+47. Observed a control “Contact MattyJacks” at 936,32.
+48. Observed button control “📜 10-MISSION CAMPAIGN” at 497,504.
+49. Observed button control “⚔️ ENDLESS DUNGEON RUN” at 497,565.
+50. Observed button control “🚀 VISIT LUCKYSTARSHIP” at 497,627.
+51. Observed button control “⚙️ ENGINE CONFIGURATIONS” at 497,688.
+52. Observed a control “4weird” at 497,535.
+53. Observed button control “🛠️” at 972,960.
+54. Observed button control “♿” at 969,954.
+55. click → #btnPlay: S -> Yes -> R_RESTART
+56. Observed button control “WARRIOR” at 320,543.
+57. Observed button control “TANK” at 438,543.
+58. Observed button control “SUPPORT” at 557,543.
+59. Observed button control “MAGE” at 675,543.
+60. Observed button control “← MAIN MENU” at 379,768.
+61. Observed button control “🚀 DEPLOY TO DUNGEON” at 616,768.
+62. click → 617,768: S -> Yes -> R_RESTART
+63. Observed button control “🧪 1” at 617,183.
+64. Observed button control “⚡ Realtime” at 304,248.
+65. Observed button control “⏳ Chrono-Lock” at 372,248.
+66. Observed button control “🎲 Turn-Based” at 446,248.
+67. Observed button control “0.25x” at 632,248.
+68. Observed button control “0.5x” at 665,248.
+69. Observed button control “1.0x” at 693,248.
+70. combo → w+look+fire+jump: S -> No -> No -> No -> No -> R_PLAY
+71. combo → w+look+fire: S -> No -> No -> No -> No -> R_PLAY
+72. combo → w+look+fire+jump: S -> No -> No -> No -> R_PLAY
+73. combo → w+look+fire: S -> No -> No -> No -> R_PLAY
+74. press_key → enter: Episode Two startup: New Game is selected, so begin a fresh campaign.
+75. press_key → enter: Episode Two startup: accept the default difficulty and continue into the new campaign.
+76. combo → sprint+scan: [hl2-ep2 offline fallback: LLM API Call failed: 401 - {"error":{"message":"Authentication Fails, Your api key: ****2345 is invalid","type":"authentication_error","param":null,"code":"invalid_request_error"}}] FPS route: 
+77. hold_keys → w,a: [hl2-ep2 offline fallback: LLM API Call failed: 401 - {"error":{"message":"Authentication Fails, Your api key: ****2345 is invalid","type":"authentication_error","param":null,"code":"invalid_request_error"}}] FPS route: 
+78. combo → advance+jump: [hl2-ep2 offline fallback: LLM API Call failed: 401 - {"error":{"message":"Authentication Fails, Your api key: ****2345 is invalid","type":"authentication_error","param":null,"code":"invalid_request_error"}}] FPS route: 
+79. press_key → e: [hl2-ep2 offline fallback: LLM API Call failed: 401 - {"error":{"message":"Authentication Fails, Your api key: ****2345 is invalid","type":"authentication_error","param":null,"code":"invalid_request_error"}}] FPS route: 
+80. move_mouse → 580,500: [hl2-ep2 offline fallback: LLM API Call failed: 401 - {"error":{"message":"Authentication Fails, Your api key: ****2345 is invalid","type":"authentication_error","param":null,"code":"invalid_request_error"}}] FPS route: 

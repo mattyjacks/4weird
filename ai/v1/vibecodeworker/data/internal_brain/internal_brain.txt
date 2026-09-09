@@ -1,9 +1,9 @@
 # VibeCodeWorker internal brain
-Updated: 2026-09-08T20:58:54.187Z
-Run: run_1788900752816
+Updated: 2026-09-09T00:36:24.986Z
+Run: run_1788914130491
 Target rules: Game: GraveGain3D Genre: RPG About: A dark fantasy action RPG featuring emoji-based 3D billboard visuals, immersive real-time lighting, procedural dungeons, a dialogue system, and a starship management hub. How to play: Choose your race and class, clear procedurally generated 3D dungeon floors, coll
-Session: Session so far: 11 steps | click: 4 (36%), press_key: 1 (9%) | Most-clicked: zone (800-899, 0-99): 1p; zone (600-699, 0-99): 1p; zone (600-699, 700-799): 1p
-Bugs known: 28
-Current takeaway: 4:58:54 PM · playing · combo → w+look+fire: S -> No -> No -> No -> No -> R_PLAY
+Session: Session so far: 20 steps | press_key: 3 (15%)
+Bugs known: 27
+Current takeaway: 8:36:24 PM · native-policy · combo → sprint+scan: [hl2-ep2 offline fallback: LLM API Call failed: 401 - {"error":{"message":"Authentication Fails, Your api key: ****2345 is invalid","type":"authentication_error","param":null,"code":"invalid_request_error"}}] FPS route: 
 
 This is a compact operational summary. See gameplay_discoveries.txt for learned patterns and thinking_digest.txt for recent decisions.

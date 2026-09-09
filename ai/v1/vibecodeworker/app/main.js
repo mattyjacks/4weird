@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, shell, screen } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const projectRoot = path.resolve(__dirname, '..');
 
 // Keep the runner self-contained on locked-down Windows hosts. The default
@@ -45,10 +46,40 @@ const { getResolvedApiKey } = require('../lib/storage');
 const { META_DIRECT_ENDPOINT_URL, META_DIRECT_MODEL, isMetaDirectUrl } = require('../lib/meta_endpoint');
 
 let mainWindow;
-// --headfull (explicit visible window) wins over --headless so CLI runs like
-// `electron . --headfull --game gravegain3d --autoplay` always show the UI.
-const isHeadless = process.argv.includes('--headless') && !cliOpts.headfull;
+// Desktop playtests are always visible. parseWorkerArgs also treats the
+// legacy --headless flag as non-operative so a background run cannot keep
+// steering the mouse without an operator-visible window.
+const isHeadless = false;
 const RENDERER_OPERATION_TIMEOUT_MS = 8000;
+const windowStatePath = path.join(localElectronData, 'window-state.json');
+
+function readSavedWindowBounds() {
+  try {
+    const saved = JSON.parse(fs.readFileSync(windowStatePath, 'utf8'));
+    if (!saved || !Number.isFinite(saved.x) || !Number.isFinite(saved.y)
+      || !Number.isFinite(saved.width) || !Number.isFinite(saved.height)) return null;
+    const displays = screen.getAllDisplays();
+    const stillVisible = displays.some(({ workArea }) =>
+      saved.x < workArea.x + workArea.width && saved.x + saved.width > workArea.x
+      && saved.y < workArea.y + workArea.height && saved.y + saved.height > workArea.y);
+    if (!stillVisible) return null;
+    return {
+      x: Math.round(saved.x), y: Math.round(saved.y),
+      width: Math.max(800, Math.round(saved.width)),
+      height: Math.max(600, Math.round(saved.height))
+    };
+  } catch (_) {
+    return null;
+  }
+}
+
+function saveWindowBounds() {
+  try {
+    if (!mainWindow || mainWindow.isDestroyed() || mainWindow.isMaximized() || mainWindow.isFullScreen()) return;
+    fs.mkdirSync(localElectronData, { recursive: true });
+    fs.writeFileSync(windowStatePath, JSON.stringify(mainWindow.getBounds()));
+  } catch (_) { /* Saving window placement must never prevent exit. */ }
+}
 
 function withRendererTimeout(operation, label) {
   let timeoutId;
@@ -83,6 +114,12 @@ function resolveDashboardBounds() {
   if (cliOpts.displayMode === 'split') {
     const ideWidth = Math.floor(width / 2);
     return { x, y, width: ideWidth, height, mode: 'split' };
+  }
+  // An explicit size is a launch instruction; otherwise reopen where the
+  // operator last left the dashboard.
+  if (!cliOpts.windowSize) {
+    const saved = readSavedWindowBounds();
+    if (saved) return { ...saved, mode: cliOpts.displayMode || 'windowed' };
   }
   const wantW = cliOpts.windowSize ? cliOpts.windowSize.width : 1920;
   const wantH = cliOpts.windowSize ? cliOpts.windowSize.height : 1080;
@@ -185,6 +222,7 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+  mainWindow.on('close', saveWindowBounds);
 }
 
 app.on('second-instance', () => {
@@ -634,8 +672,6 @@ const WEBSITE_V1_DIR = app.isPackaged
   : path.join(projectRoot, '..', '..', '..', 'website', 'v1');
 const STATIC_PORT = 8888;
 startStaticServer(STATIC_PORT, WEBSITE_V1_DIR);
-
-const fs = require('fs');
 
 // Read initial configured port or default to 42069
 function getConfiguredPort() {

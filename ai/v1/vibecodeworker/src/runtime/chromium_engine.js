@@ -35,7 +35,9 @@ class ChromiumEngine extends EventEmitter {
     this.options = Object.assign({
       viewportWidth: 1280,
       viewportHeight: 720,
-      headless: true,
+      // Browser-based QA should be observable and immediately interruptible.
+      // The standalone API host does not instantiate an interactive page.
+      headless: false,
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) 4Weird-VibeCodeWorker/2.0 Chromium'
     }, options);
 

@@ -262,8 +262,11 @@ function parseDisplaySize(raw) {
 function parseWorkerArgs(argv) {
   const args = Array.isArray(argv) ? argv : process.argv;
   const out = {
+    // Playtests are deliberately visible by default. A hidden test runner can
+    // still emit real pointer input while giving the operator no obvious way
+    // to observe or stop it.
     headless: false,
-    headfull: false, // explicit visible-window request (overrides --headless)
+    headfull: true,
     game: null,
     autoplay: false,
     handoffOnExit: false,
@@ -285,7 +288,10 @@ function parseWorkerArgs(argv) {
   };
   for (let i = 2; i < args.length; i++) {
     const a = args[i];
-    if (a === '--headless') out.headless = true;
+    // Keep this legacy flag non-operative for desktop playtests. The local
+    // API server remains a separate, non-interactive process; Electron game
+    // tests must always have a visible window.
+    if (a === '--headless') out.headless = false;
     else if (a === '--headfull') { out.headfull = true; out.headless = false; }
     else if (a === '--game' && args[i + 1]) out.game = args[++i];
     else if (a === '--autoplay' || a === '--start-agent') out.autoplay = true;
