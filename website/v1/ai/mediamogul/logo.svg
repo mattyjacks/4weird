@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f111a"/>
+      <stop offset="50%" stop-color="#151828"/>
+      <stop offset="100%" stop-color="#090a10"/>
+    </linearGradient>
+
+    <!-- Small 'v' gradient: Cyan to Royal Blue -->
+    <linearGradient id="vSmallGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+
+    <!-- Big 'V' gradient: Electric Violet to Hot Pink -->
+    <linearGradient id="vBigGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e879f9"/>
+      <stop offset="40%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+
+    <!-- Border highlight gradient -->
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.2"/>
+      <stop offset="50%" stop-color="#6366f1" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.6"/>
+    </linearGradient>
+
+    <!-- Glow filters -->
+    <filter id="cyanGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="purpleGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="14" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Squircle Base -->
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="url(#bgGrad)" stroke="url(#borderGrad)" stroke-width="4"/>
+
+  <!-- Ambient Glow Behind Monogram -->
+  <circle cx="210" cy="230" r="90" fill="#06b6d4" opacity="0.15" filter="blur(30px)"/>
+  <circle cx="310" cy="200" r="110" fill="#a855f7" opacity="0.2" filter="blur(35px)"/>
+
+  <g id="monogram" transform="translate(10, -5)">
+    <!-- Big 'V' (Right/Back) -->
+    <path d="M 275 140
+             C 285 140 294 148 298 158
+             L 348 285
+             L 402 158
+             C 406 148 415 140 426 140
+             C 440 140 450 153 445 166
+             L 368 335
+             C 362 348 348 357 333 357
+             C 319 357 306 348 299 335
+             L 255 235
+             L 282 200
+             L 298 245
+             L 333 325
+             L 396 172
+             L 352 172
+             L 316 260
+             Z"
+          fill="url(#vBigGrad)"
+          filter="url(#purpleGlow)"/>
+
+    <!-- Small 'v' (Left/Front) -->
+    <path d="M 160 185
+             C 170 185 178 191 183 200
+             L 230 300
+             L 278 200
+             C 283 191 291 185 301 185
+             C 315 185 325 197 320 210
+             L 249 350
+             C 243 361 232 368 220 368
+             C 208 368 197 361 191 350
+             L 142 209
+             C 137 197 146 185 160 185 Z"
+          fill="url(#vSmallGrad)"
+          filter="url(#cyanGlow)"/>
+  </g>
+
+  <!-- Typography "MediaMogul" -->
+  <text x="256" y="425" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Outfit', 'Inter', sans-serif" font-weight="800" font-size="46" letter-spacing="0.5" fill="#ffffff">
+    <tspan fill="#38bdf8">Media</tspan><tspan fill="#e879f9">Mogul</tspan>
+  </text>
+  <text x="256" y="452" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="600" font-size="14" letter-spacing="4" fill="#818cf8" opacity="0.85">
+    AI STUDIO &amp; COPILOT
+  </text>
+</svg>

@@ -1042,6 +1042,35 @@ document.addEventListener('DOMContentLoaded', () => {
       toastNotifier.show(`Trace test failed: ${e.message}`, 'warning');
     }
   });
+  // MediaMogul records the rendered playtest surface and encodes the result
+  // into an MP4 when stopped. The same control works for embedded games and
+  // separate Electron game windows.
+  const videoButton = document.getElementById('btn-video-record');
+  const videoStatus = document.getElementById('video-recording-status');
+  videoButton?.addEventListener('click', async () => {
+    try {
+      const active = await ipcRenderer.invoke('get-playtest-recording-status');
+      if (!active?.recording) {
+        const name = (el.gameUrlInput?.value || 'playtest').split('/').filter(Boolean).pop().replace(/\.[^.]+$/, '');
+        const result = await ipcRenderer.invoke('start-playtest-recording', { name, fps: 10 });
+        if (!result?.success) throw new Error(result?.error || 'Could not start recording');
+        videoButton.textContent = '⏹ Stop & make video';
+        videoStatus.textContent = `Recording at ${result.fps} fps`;
+        logSystemMessage('MediaMogul video recording started.', 'success');
+      } else {
+        videoButton.disabled = true;
+        videoStatus.textContent = 'Making MP4…';
+        const result = await ipcRenderer.invoke('stop-playtest-recording');
+        if (!result?.success) throw new Error(result?.error || 'Could not create video');
+        videoButton.textContent = '⏺ Record video';
+        videoStatus.textContent = `Video ready (${result.frameCount} frames)`;
+        logSystemMessage(`MediaMogul video ready: ${result.videoPath}`, 'success');
+      }
+    } catch (e) {
+      videoStatus.textContent = `Video error: ${e.message}`;
+      toastNotifier.show(`Video recording failed: ${e.message}`, 'warning');
+    } finally { if (videoButton) videoButton.disabled = false; }
+  });
   // Runner-brain / CLI API for the takeover mode.
   window.humanTakeover = () => stageView.toggleTakeover();
   window.isHumanTakeover = () => stageView.isTakeover();

@@ -69,6 +69,14 @@ class VibeCodeWorkerClient {
     return await this._request('/api/game/state');
   }
 
+  async getVideoRecordingStatus() { return await this._request('/api/game/video/status'); }
+  async startVideoRecording(options = {}) {
+    return await this._request('/api/game/video/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(options) });
+  }
+  async stopVideoRecording() {
+    return await this._request('/api/game/video/stop', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' , timeoutMs: 120000 });
+  }
+
   async click(x, y) {
     return await this._request('/api/game/action', {
       method: 'POST',

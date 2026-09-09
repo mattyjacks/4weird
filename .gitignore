@@ -110,3 +110,16 @@ __pycache__/
 *.pyo
 credentials.json
 **/credentials.json
+
+# 11. MediaMogul local runtime and generated media
+# Shotcut is a downloaded, platform-specific editor runtime (~thousands of
+# binaries). MediaMogul's install scripts restore it; do not version it.
+website/v1/ai/mediamogul/shotcut/
+# Downloaded/generated B-roll and local render/session output are machine
+# artifacts, not source assets. Keep reusable source graphics outside broll/.
+website/v1/ai/mediamogul/broll/
+website/v1/ai/mediamogul/exports/
+website/v1/ai/mediamogul/recordings/
+website/v1/ai/mediamogul/sessions/
+website/v1/ai/mediamogul/*_frame.jpg
+website/v1/ai/mediamogul/vision_critique_report.md

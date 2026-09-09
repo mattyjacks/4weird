@@ -1,6 +1,22 @@
 const { BrowserWindow, screen } = require('electron');
+const { MediaMogulPlaytestRecorder } = require('../../lib/mediamogul_video_recorder');
 
 let gameWindow = null;
+let playtestRecorder = null;
+
+function getPlaytestRecorder(projectRoot, fallbackWindow) {
+  if (!playtestRecorder) {
+    playtestRecorder = new MediaMogulPlaytestRecorder({
+      projectRoot,
+      capturePage: async () => {
+        const target = isGameWindowActive() ? gameWindow : fallbackWindow;
+        if (!target || target.isDestroyed()) throw new Error('Game surface is not open');
+        return await target.webContents.capturePage();
+      }
+    });
+  }
+  return playtestRecorder;
+}
 
 function getGameWindow() {
   return gameWindow;
@@ -170,6 +186,15 @@ function reloadGameWindow() {
   return { success: false, error: 'Game window is not open' };
 }
 
+async function startPlaytestRecording(projectRoot, options, fallbackWindow) {
+  return await getPlaytestRecorder(projectRoot, fallbackWindow).start(options);
+}
+async function stopPlaytestRecording(projectRoot) {
+  return await getPlaytestRecorder(projectRoot).stop();
+}
+function getPlaytestRecordingStatus() { return playtestRecorder ? playtestRecorder.status() : { recording: false }; }
+function recordPlaytestEvent(projectRoot, event) { if (playtestRecorder) playtestRecorder.recordEvent(event); }
+
 function openGameDevTools() {
   if (gameWindow) {
     gameWindow.webContents.openDevTools();
@@ -206,4 +231,5 @@ module.exports = {
   reloadGameWindow,
   openGameDevTools,
   setBotControlInGameWindow
+  , startPlaytestRecording, stopPlaytestRecording, getPlaytestRecordingStatus, recordPlaytestEvent
 };

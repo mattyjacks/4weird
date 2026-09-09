@@ -34,6 +34,11 @@ class LocalAPIServer {
       executeAction: options.executeAction || (async (action) => ({ success: false })),
       evalJavaScript: options.evalJavaScript || (async (script) => ({ success: false })),
       getVisionState: options.getVisionState || (async () => ({ gameWindowActive: false, pointer: null, keys: [], trail: [], path: [] })),
+      // Video capture needs Electron's rendered game surface. Keep the
+      // standalone API explicit rather than failing with a missing handler.
+      startVideoRecording: options.startVideoRecording || (async () => ({ success: false, error: 'Video recording requires the VibeCodeWorker desktop runtime' })),
+      stopVideoRecording: options.stopVideoRecording || (async () => ({ success: false, error: 'Video recording requires the VibeCodeWorker desktop runtime' })),
+      getVideoRecordingStatus: options.getVideoRecordingStatus || (async () => ({ recording: false, available: false, reason: 'Video recording requires the VibeCodeWorker desktop runtime' })),
       reloadGame: options.reloadGame || (async () => ({ success: false })),
       ...options.handlers
     };
@@ -119,7 +124,7 @@ class LocalAPIServer {
         const pathname = parsedUrl.pathname;
 
         // Security: Block non-local external origins from mutating the host machine or executing code
-        const EXECUTION_PATHS = ['/api/game/patch', '/api/game/eval', '/api/autocode/fix',
+        const EXECUTION_PATHS = ['/api/game/patch', '/api/game/eval', '/api/game/video/start', '/api/game/video/stop', '/api/autocode/fix',
           '/api/opencode/fix', '/api/opencode/heal', '/api/opencode/heal-test', '/api/opencode/revert',
           '/api/cloud/launch', '/api/cloud/stop', '/api/cloud/status', '/api/cloud/games/download',
           '/api/godot/install', '/api/godot/action'];

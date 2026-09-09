@@ -1,0 +1,68 @@
+1
+00:00:00,800 --> 00:00:03,800
+Welcome to Matty Jacks. I am Renisa,
+
+2
+00:00:03,800 --> 00:00:06,200
+the team leader of the company,
+
+3
+00:00:06,200 --> 00:00:08,800
+and we're building the future of web at the speed of thought.
+
+4
+00:00:09,000 --> 00:00:13,200
+Traditional web creation is broken — it's slow, it's expensive,
+
+5
+00:00:13,200 --> 00:00:17,000
+and by the time you launch, your idea is outdated.
+
+6
+00:00:17,200 --> 00:00:21,500
+That's why we shifted to an AI-first development approach.
+
+7
+00:00:21,500 --> 00:00:24,200
+We call it VibeCoding.
+
+8
+00:00:24,200 --> 00:00:27,500
+We don't just type out syntax for months.
+
+9
+00:00:27,500 --> 00:00:31,000
+We use state-of-the-art agentic LLMs
+
+10
+00:00:31,000 --> 00:00:35,200
+to generate, debug, and patch complex web applications at real-time.
+
+11
+00:00:35,500 --> 00:00:39,500
+With the guidance of our CEO Matthew, our global team
+
+12
+00:00:39,500 --> 00:00:43,500
+combines human expertise and AI efficiency.
+
+13
+00:00:43,500 --> 00:00:48,000
+Whether you need a sleek landing page, a custom web application,
+
+14
+00:00:48,000 --> 00:00:51,500
+or an automated setup,
+
+15
+00:00:51,500 --> 00:00:56,500
+we turn your idea to production-ready platforms in weeks, not years.
+
+16
+00:00:56,800 --> 00:01:00,500
+Stop waiting for legacy development. Let's build your next digital asset today.
+
+17
+00:01:00,500 --> 00:01:06,000
+Head on to mattyjax.com and grab a dev contract.
+

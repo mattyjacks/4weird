@@ -1,0 +1,7 @@
+# MediaMogul Companion Dependencies
+# MediaMogul is designed to run out-of-the-box using Python standard libraries (urllib, tkinter, json, subprocess).
+# FFmpeg is automatically loaded from your Shotcut installation (C:\Program Files\Shotcut\ffmpeg.exe).
+#
+# Optional enhancements:
+# pillow>=10.0.0
+# openai>=1.0.0

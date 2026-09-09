@@ -14,6 +14,7 @@
     "test:ollama": "node tests/test_ollama_models.js",
     "ollama:ensure": "node scripts/node/ensure_ollama.js",
     "test:e2e:whackamole": "node tests/test_aiwhackamole_e2e.js",
+    "test:video": "node tests/test_mediamogul_video_recorder.js",
     "test:native": "node tests/test_native_hl2.js",
     "test:traces": "node tests/run_trace_tests.js",
     "test:cloud": "node tests/test_runpod_cloud.js",
@@ -49,6 +50,10 @@
       "scripts/python/input_sim.py"
     ],
     "extraResources": [
+      {
+        "from": "../mediamogul/shotcut/ffmpeg.exe",
+        "to": "mediamogul/ffmpeg.exe"
+      },
       {
         "from": "../..",
         "to": "website/v1",

@@ -36,6 +36,10 @@ const {
   focusGameWindow,
   evalInGameWindow,
   captureGameScreenshot,
+  startPlaytestRecording,
+  stopPlaytestRecording,
+  getPlaytestRecordingStatus,
+  recordPlaytestEvent,
   reloadGameWindow,
   openGameDevTools,
   setBotControlInGameWindow
@@ -558,6 +562,14 @@ ipcMain.handle('capture-game-screenshot', async (event) => {
   return await captureGameScreenshot();
 });
 
+ipcMain.handle('start-playtest-recording', async (_event, options = {}) => {
+  return await startPlaytestRecording(projectRoot, options, mainWindow);
+});
+ipcMain.handle('stop-playtest-recording', async () => {
+  return await stopPlaytestRecording(projectRoot);
+});
+ipcMain.handle('get-playtest-recording-status', async () => getPlaytestRecordingStatus(projectRoot));
+
 ipcMain.handle('reload-game-window', async (event) => {
   return reloadGameWindow();
 });
@@ -813,6 +825,7 @@ function createLocalApiServer(port) {
           return { success: false, error: 'Action must include a type' };
         }
 
+        recordPlaytestEvent(projectRoot, { type: 'action', action });
         if (action.type === 'click') {
           const x = action.x || 100;
           const y = action.y || 100;
@@ -827,6 +840,10 @@ function createLocalApiServer(port) {
         }
         return { success: false, error: `Unsupported action type: ${action.type}` };
       },
+
+      startVideoRecording: async (options) => await startPlaytestRecording(projectRoot, options, mainWindow),
+      stopVideoRecording: async () => await stopPlaytestRecording(projectRoot),
+      getVideoRecordingStatus: async () => getPlaytestRecordingStatus(projectRoot),
 
       evalJavaScript: async (script) => {
         const win = getGameWindow() || mainWindow;
