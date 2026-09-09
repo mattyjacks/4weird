@@ -12,7 +12,9 @@ const { MediaMogulPlaytestRecorder, mediaMogulFfmpeg } = require('../lib/mediamo
   const out = fs.mkdtempSync(path.join(os.tmpdir(), 'vcw-mediamogul-test-'));
   const sample = path.join(out, 'sample.png');
   const voiceSample = path.join(out, 'voice-sample.wav');
-  execFileSync(ffmpeg, ['-y', '-f', 'lavfi', '-i', 'color=c=blue:s=32x32', '-frames:v', '1', sample], { stdio: 'ignore' });
+  // Browser capture bounds are not guaranteed to be even. H.264 yuv420p
+  // rejects odd dimensions unless the recorder pads them first.
+  execFileSync(ffmpeg, ['-y', '-f', 'lavfi', '-i', 'color=c=blue:s=31x33', '-frames:v', '1', sample], { stdio: 'ignore' });
   execFileSync(ffmpeg, ['-y', '-f', 'lavfi', '-i', 'sine=frequency=660:sample_rate=44100:duration=1', voiceSample], { stdio: 'ignore' });
   const PNG = fs.readFileSync(sample);
   const recorder = new MediaMogulPlaytestRecorder({
