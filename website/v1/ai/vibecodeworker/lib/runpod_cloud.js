@@ -256,9 +256,9 @@ async function runpodFetch(apiKey, pathName, opts = {}) {
  */
 function buildPodSpec(args = {}) {
   if (!isSafeGpuId(args.gpuId)) throw new Error('Invalid gpuId');
-  const gameId = isSafeGameId(args.gameId || 'gravegain3d') ? args.gameId : 'gravegain3d';
   const openSourceGame = args.openSourceGameId ? getOpenSourceGame(args.openSourceGameId) : null;
   if (args.openSourceGameId && !openSourceGame) throw new Error('Unsupported open-source game id');
+  const gameId = openSourceGame ? openSourceGame.id : (isSafeGameId(args.gameId || 'gravegain3d') ? args.gameId : 'gravegain3d');
   let model = null;
   if (args.modelTag) {
     if (!isSafeModelTag(args.modelTag)) throw new Error('Invalid modelTag');
