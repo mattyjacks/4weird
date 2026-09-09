@@ -293,6 +293,7 @@ function buildPodSpec(args = {}) {
       VIBE_MODE: 'cloud-game-plus-model',
       VIBE_GAME_DESKTOP_PORT: '6901',
       VIBE_AGENT_DESKTOP_PORT: '6902',
+      VIBE_GPU_MEMORY_GB: String(Number(args.gpuMemoryGB) || 24),
       OLLAMA_URL: 'http://127.0.0.1:11434',
       VCW_CAPTURE_FPS: String(Number(args.gpuMemoryGB || 24) >= 48 ? 60 : Number(args.gpuMemoryGB || 24) >= 24 ? 45 : 30)
     }
