@@ -123,6 +123,11 @@
     var game = $('run-game').value || 'snake-canvas';
     var inputMode = $('run-input-mode').value || 'desktop';
     var videoLayout = $('run-video-layout').value || 'both';
+    var controlToken = ($('run-control-token').value || '').trim();
+    if (controlToken && !/^[A-Za-z0-9._~-]{24,256}$/.test(controlToken)) {
+      log('Phone control token must be 24–256 URL-safe characters. Nothing launched.');
+      return;
+    }
     log('Launching ' + game + ' on ' + gpuId + ' with ' + MODEL_FOR(mem) + '...');
     try {
       var data = await cloudRequest('/launch', {
@@ -130,7 +135,8 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: ('vibe-cloud-' + Date.now().toString(36)).slice(0, 48), gpuId: gpuId,
-          gpuMemoryGB: mem, autoSelectGpu: true, gameId: game, openSourceGameId: game, inputMode: inputMode, videoLayout: videoLayout
+          gpuMemoryGB: mem, autoSelectGpu: true, gameId: game, openSourceGameId: game, inputMode: inputMode, videoLayout: videoLayout,
+          controlToken: controlToken || undefined
         })
       });
       state.podId = data.podId;
@@ -143,6 +149,9 @@
       clearInterval(state.timer);
       state.timer = setInterval(setCost, 1000);
       setCost();
+      if (data.phone && data.phone.endpoint) {
+        log('Phone endpoint ready after pod boot: ' + data.phone.endpoint + ' — open the phone controller and enter this endpoint plus the token you chose.');
+      }
       // Hard client side auto stop at 55 minutes.
       setTimeout(function () {
         if (state.podId) stopRun('55 minute cap reached, auto stopped');

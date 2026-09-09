@@ -54,6 +54,10 @@ async function run() {
   assert.strictEqual(layoutSpec.body.env.VCW_INPUT_MODE, 'mobile');
   assert.strictEqual(layoutSpec.body.env.VCW_VIDEO_LAYOUT, 'both');
   assert.strictEqual(layoutSpec.body.env.VCW_AUTO_RECORD, '1');
+  const token = 'phone-control-token-abcdefghijklmnopqrstuvwxyz';
+  const phoneSpec = cloud.buildPodSpec({ gpuId: 'NVIDIA GeForce RTX 4090', gpuMemoryGB: 24, controlToken: token });
+  assert.strictEqual(phoneSpec.body.env.VIBE_API_TOKEN, token, 'phone token is injected only into pod environment');
+  assert.throws(() => cloud.buildPodSpec({ gpuId: 'NVIDIA GeForce RTX 4090', controlToken: 'too-short' }), /Invalid controlToken/);
   assert.strictEqual(spec.body.env.VIBE_OPEN_SOURCE_GAME_ID, 'snake-canvas');
   assert.strictEqual(spec.openSourceGame.license, 'MIT');
   assert.ok(spec.body.ports.includes('6901/http') && spec.body.ports.includes('6902/http'), 'dual desktop ports are exposed');

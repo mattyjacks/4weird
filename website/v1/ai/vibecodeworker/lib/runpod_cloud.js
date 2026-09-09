@@ -109,6 +109,13 @@ function isSafeImage(v) {
   return typeof v === 'string' && /^[a-z0-9][a-z0-9._/:@-]{4,160}$/i.test(v);
 }
 
+// This value becomes an environment variable on a newly-created pod. Keep it
+// constrained so a caller cannot smuggle multiline shell/env syntax through
+// a Runpod request. Empty means phone control is disabled.
+function isSafeControlToken(v) {
+  return typeof v === 'string' && /^[A-Za-z0-9._~-]{24,256}$/.test(v);
+}
+
 function sanitizeName(v) {
   const s = String(v || '').toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').slice(0, 48);
   return s || `vibe-cloud-${Date.now().toString(36)}`;
@@ -308,6 +315,10 @@ function buildPodSpec(args = {}) {
   if (args.inputMode === 'mobile' || args.inputMode === 'desktop') body.env.VCW_INPUT_MODE = args.inputMode;
   if (args.videoLayout === 'testingH' || args.videoLayout === 'testingV' || args.videoLayout === 'both') body.env.VCW_VIDEO_LAYOUT = args.videoLayout;
   if (args.videoLayout) body.env.VCW_AUTO_RECORD = '1';
+  if (args.controlToken !== undefined && args.controlToken !== '') {
+    if (!isSafeControlToken(args.controlToken)) throw new Error('Invalid controlToken: use 24-256 URL-safe characters');
+    body.env.VIBE_API_TOKEN = args.controlToken;
+  }
   if (openSourceGame) {
     body.env.VIBE_OPEN_SOURCE_GAME_ID = openSourceGame.id;
     body.env.VIBE_OPEN_SOURCE_GAME_ENTRY = openSourceGame.entry;
@@ -375,6 +386,10 @@ async function startCloudRun(args = {}) {
     desktops: podId ? {
       game: `https://${podId}-6901.proxy.runpod.net/vnc.html?autoconnect=true&resize=scale`,
       agent: `https://${podId}-6902.proxy.runpod.net/vnc.html?autoconnect=true&resize=scale`
+    } : null,
+    phone: podId ? {
+      endpoint: `https://${podId}-42069.proxy.runpod.net`,
+      controller: 'https://4weird.com/vibecodeworker/phone.html'
     } : null,
     recordings: podId ? {
       index: `https://${podId}-8888.proxy.runpod.net/ai/vibecodeworker/data/browser-captures/recordings/index.json`,
@@ -447,5 +462,6 @@ module.exports = {
   isSafePodId,
   isSafeGameId,
   isSafeModelTag,
-  isSafeXonoticMode
+  isSafeXonoticMode,
+  isSafeControlToken
 };

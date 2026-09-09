@@ -105,6 +105,9 @@ website/v1/ai/vibecodeworker/data/
 **/data/api_debug_report.json
 **/data/test_smartlog_*/
 test-results/
+# Tests redirect APPDATA here so their encrypted local credentials never
+# appear as a source change or reach a remote repository.
+website/v1/ai/vibecodeworker/.test-appdata/
 __pycache__/
 *.pyc
 *.pyo
