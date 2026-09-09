@@ -203,6 +203,7 @@ function queryElements() {
   el.quickGameRules = document.getElementById('quick-game-rules');
   el.btnQuickLoad = document.getElementById('btn-quick-load');
   el.btnQuickRun = document.getElementById('btn-quick-run');
+  el.btnQuickDemo = document.getElementById('btn-quick-demo');
   el.demoGameSelect = document.getElementById('demo-game-select');
   el.gameRulesInput = document.getElementById('game-rules');
   el.btnToggleAgent = document.getElementById('btn-toggle-agent');
@@ -1052,6 +1053,22 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {
       toastNotifier.show(`Trace test failed: ${e.message}`, 'warning');
     }
+  });
+  if (el.btnQuickDemo) el.btnQuickDemo.addEventListener('click', async () => {
+    const target = '../../../games/html/overtake/index.html?playtest=1';
+    if (el.quickGameUrl) el.quickGameUrl.value = target;
+    if (el.gameUrlInput) el.gameUrlInput.value = target;
+    if (el.quickGameRules) el.quickGameRules.value = 'Play the race, exercise throttle, steering, nitro, laps, and recovery; create Gameplay and Testing videos.';
+    if (el.gameRulesInput) el.gameRulesInput.value = el.quickGameRules.value;
+    el.btnQuickDemo.disabled = true;
+    try {
+      loadGame();
+      await new Promise(resolve => setTimeout(resolve, 900));
+      if (el.btnNarratedBugHunt) el.btnNarratedBugHunt.click();
+      toastNotifier.show('Quick Demo started: Overtake Gameplay + Testing recording.', 'success');
+    } catch (error) {
+      toastNotifier.show(`Quick Demo failed: ${error.message}`, 'warning');
+    } finally { setTimeout(() => { el.btnQuickDemo.disabled = false; }, 1500); }
   });
   // MediaMogul records the rendered playtest surface and encodes the result
   // into an MP4 when stopped. The same control works for embedded games and
