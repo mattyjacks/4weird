@@ -364,7 +364,7 @@ async function startCloudRun(args = {}) {
     podId: podId || null,
     model: spec.model,
     gpu: { id: launchArgs.gpuId, memoryGB: Number(launchArgs.gpuMemoryGB) || null, autoSelected: launchArgs.gpuId !== args.gpuId },
-    gameId: String(launchArgs.gameId || 'gravegain3d'),
+    gameId: spec.openSourceGame ? spec.openSourceGame.id : String(launchArgs.gameId || 'gravegain3d'),
     openSourceGame: spec.openSourceGame,
     maxMinutes: MAX_RUN_MINUTES,
     maxSeconds: MAX_RUN_SECONDS,
