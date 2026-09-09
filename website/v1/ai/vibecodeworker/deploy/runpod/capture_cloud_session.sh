@@ -13,14 +13,14 @@ CAPTURE_FPS=${VCW_CAPTURE_FPS:-30}
 STAMP=$(date -u +%Y%m%d-%H%M%S)
 GAME_NAME=${GAME_ID:-xonotic}
 OUTPUT_STEM="${GAME_NAME}-${STAMP}"
-if [ "$GAME_ID" = "xonotic" ] && [ "$GAME_MODE" = "desktop" ]; then
-  # Capture the native Xonotic display while sending real focused input.
+if [ "$GAME_ID" = "xonotic" ]; then
+  # Capture the actual Xonotic display for both native and browser modes.
   DISPLAY=${DISPLAY:-:1} ffmpeg -y -loglevel error -video_size 1440x900 -framerate "$CAPTURE_FPS" \
     -f x11grab -i "${DISPLAY:-:1}.0" -t "$SECONDS" "$CAPTURE_DIR/${NAME}.mp4" &
   RECORDER_PID=$!
   sleep 2
   if command -v xdotool >/dev/null 2>&1; then
-    WID=$(xdotool search --name 'Xonotic' 2>/dev/null | head -n1 || true)
+    WID=$(xdotool search --name 'Xonotic' 2>/dev/null | head -n1 || xdotool search --onlyvisible 2>/dev/null | head -n1 || true)
     [ -n "$WID" ] && xdotool windowactivate "$WID" || true
     for key in w w a w d space w a d w; do xdotool keydown "$key"; sleep .35; xdotool keyup "$key"; done
   fi
