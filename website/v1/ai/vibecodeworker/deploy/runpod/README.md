@@ -9,6 +9,19 @@ The image starts two isolated noVNC browser desktops on the same GPU pod:
 
 At startup it downloads one allow-listed source game: Snake Canvas, Underrun, Games Hub, or Xonotic. The source URLs and licenses are defined in `lib/open_source_games.js`; no arbitrary repository URL is accepted.
 
+For Xonotic, the Docker-free RunPod bootstrap installs Ollama, starts its local
+server, and pulls the selected vision model before the playtest begins. This
+ensures a rented pod does not enter gameplay until its open model is ready.
+
+Before renting, VCW reads RunPod's live GPU catalog. If the requested GPU is
+unavailable, it selects the strongest available secure GPU with at least 16 GB
+VRAM and automatically resizes the open vision model (Qwen or the compatible
+fallback) for that card. If no qualifying GPU is available, no billable pod is
+created. Xonotic can bootstrap directly from RunPod's public PyTorch image, so
+Docker Desktop is optional for this workflow. Unattended launches default to a
+$1.00/hour GPU ceiling; set `maxHourlyPrice` explicitly to opt into H100/B200-
+class rentals.
+
 Xonotic supports both surfaces from the same image. Set `openSourceGameId=xonotic`
 and `xonoticMode=desktop` to download the official Xonotic 0.8.6 Linux client and
 run a bot-filled `dm_run` arena on the game desktop. Set `xonoticMode=web` to open

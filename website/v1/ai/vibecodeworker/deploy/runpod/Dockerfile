@@ -4,7 +4,7 @@ FROM runpod/pytorch:2.4.0-py11-cuda12.4.1-devel-ubuntu22.04
 
 USER root
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    xvfb x11vnc novnc websockify git ca-certificates curl unzip xdotool scrot \
+    xvfb x11vnc novnc websockify git ca-certificates curl unzip xdotool scrot ffmpeg \
     libgl1 libegl1 libxrandr2 libxi6 libxinerama1 libxcursor1 libasound2 fonts-liberation \
   && curl -fsSL https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -o /tmp/chrome.deb \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y /tmp/chrome.deb \

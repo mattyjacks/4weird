@@ -29,6 +29,12 @@ async function run() {
   const cheap = cloud.pickCheapestAvailableGpu(catalog);
   assert.strictEqual(cheap.id, 'NVIDIA RTX 2000 Ada Generation');
   assert.strictEqual(cheap.source, 'live-catalog');
+  const best = cloud.pickBestAvailableGpu(catalog);
+  assert.strictEqual(best.id, 'NVIDIA GeForce RTX 4090');
+  assert.deepStrictEqual(cloud.rankAvailableGpus(catalog).slice(0, 2).map((g) => g.id), ['NVIDIA GeForce RTX 4090', 'NVIDIA RTX 2000 Ada Generation']);
+  assert.strictEqual(cloud.pickBestAvailableGpu(catalog, { maxHourlyPrice: 0.3 }).id, 'NVIDIA RTX 2000 Ada Generation');
+  assert.strictEqual(cloud.GPU_CAPABILITY_ORDER[0].id, 'NVIDIA B200');
+  assert.strictEqual(cloud.GPU_CAPABILITY_ORDER[0].memory, 180);
   // Empty catalog falls back safely, never throws.
   const fb = cloud.pickCheapestAvailableGpu([]);
   assert.ok(cloud.isSafeGpuId(fb.id));
@@ -43,6 +49,7 @@ async function run() {
   assert.strictEqual(spec.billing, 'per-second');
   assert.strictEqual(spec.body.env.VIBE_MAX_MINUTES, '55');
   assert.strictEqual(spec.body.env.VIBE_MODEL, 'qwen2.5vl:14b');
+  assert.strictEqual(spec.body.env.VCW_CAPTURE_FPS, '45');
   const layoutSpec = cloud.buildPodSpec({ gpuId: 'NVIDIA GeForce RTX 4090', gpuMemoryGB: 24, gameId: 'snake-canvas', inputMode: 'mobile', videoLayout: 'both' });
   assert.strictEqual(layoutSpec.body.env.VCW_INPUT_MODE, 'mobile');
   assert.strictEqual(layoutSpec.body.env.VCW_VIDEO_LAYOUT, 'both');
@@ -55,6 +62,10 @@ async function run() {
   assert.strictEqual(xonoticDesktop.body.env.VIBE_XONOTIC_MODE, 'desktop');
   const xonoticWeb = cloud.buildPodSpec({ gpuId: 'NVIDIA RTX 4090', gpuMemoryGB: 24, openSourceGameId: 'xonotic', xonoticMode: 'web' });
   assert.strictEqual(xonoticWeb.body.env.VIBE_XONOTIC_MODE, 'web');
+  const bootstrap = cloud.buildPodSpec({ gpuId: 'NVIDIA RTX 2000 Ada Generation', openSourceGameId: 'xonotic', xonoticMode: 'desktop', videoLayout: 'both', bypassDocker: true });
+  assert.match(bootstrap.body.imageName, /runpod\/pytorch/);
+  assert.ok(bootstrap.body.dockerStartCmd.join(' ').includes('git clone'));
+  assert.strictEqual(bootstrap.body.env.OLLAMA_URL, 'http://127.0.0.1:11434');
   assert.strictEqual(xonoticWeb.openSourceGame.kind, 'desktop+browser');
   assert.throws(() => cloud.buildPodSpec({ gpuId: 'NVIDIA RTX 4090', openSourceGameId: 'xonotic', xonoticMode: 'arbitrary-url' }), /Invalid xonoticMode/);
   assert.throws(() => cloud.buildPodSpec({ gpuId: 'bad;id' }), /Invalid gpuId/);

@@ -108,12 +108,14 @@ async function handleCloudRequest(pathname, req, readBody, sendJSON, sendText) {
         let gpus = Array.isArray(body.gpus) ? body.gpus : null;
         let gpuPick = null;
         if (!body.gpuId && gpus) {
-          gpuPick = cloud.pickCheapestAvailableGpu(gpus, { minGB: body.minGB });
-          body.gpuId = gpuPick.id;
-          body.gpuMemoryGB = gpuPick.memory;
+          gpuPick = cloud.pickBestAvailableGpu(gpus, { minGB: body.minGB, maxHourlyPrice: body.maxHourlyPrice });
+          if (gpuPick) {
+            body.gpuId = gpuPick.id;
+            body.gpuMemoryGB = gpuPick.memory;
+          }
         }
         const result = await cloud.startCloudRun({ ...body, runpodKey });
-        return sendJSON(200, { ...result, gpu: gpuPick });
+        return sendJSON(200, gpuPick ? { ...result, gpu: gpuPick } : result);
       }
       if (pathname === '/api/cloud/status') {
         const body = req.method === 'POST' ? await readBody() : {};

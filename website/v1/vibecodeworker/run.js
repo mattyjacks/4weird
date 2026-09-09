@@ -96,10 +96,10 @@
         return g.secure === true && String(g.availability) !== 'NONE' && Number(g.memory) >= 16 && g.price && Number(g.price.secure) > 0;
       }).map(function (g) {
         return { id: g.id, memory: Number(g.memory), price: Number(g.price.secure) };
-      }).sort(function (a, b) { return a.price - b.price; });
+      }).sort(function (a, b) { return b.memory - a.memory || a.price - b.price; });
       if (ok.length) {
         fillGpus(ok.slice(0, 8));
-        log('Cheapest available: ' + ok[0].id + ' $' + ok[0].price + '/hr.');
+        log('Best available: ' + ok[0].id + ' (' + ok[0].memory + 'GB) $' + ok[0].price + '/hr.');
       } else {
         fillGpus(FALLBACK_GPUS);
         log('No live stock matched, kept fallback order.');
@@ -130,7 +130,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: ('vibe-cloud-' + Date.now().toString(36)).slice(0, 48), gpuId: gpuId,
-          gpuMemoryGB: mem, gameId: game, openSourceGameId: game, inputMode: inputMode, videoLayout: videoLayout
+          gpuMemoryGB: mem, autoSelectGpu: true, gameId: game, openSourceGameId: game, inputMode: inputMode, videoLayout: videoLayout
         })
       });
       state.podId = data.podId;
@@ -138,7 +138,8 @@
       state.startedAt = Date.now();
       $('run-game-view').src = (data.desktops && data.desktops.game) || ('https://' + state.podId + '-6901.proxy.runpod.net/vnc.html?autoconnect=true&resize=scale');
       $('run-agent-view').src = (data.desktops && data.desktops.agent) || ('https://' + state.podId + '-6902.proxy.runpod.net/vnc.html?autoconnect=true&resize=scale');
-      log('Pod ' + state.podId + ' created. Max cost $' + ((state.hourly / 3600) * MAX_SECONDS).toFixed(4) + '.');
+      if (data.gpu) { state.hourly = Number(opt.dataset.price) || state.hourly; log('Pod ' + state.podId + ' created on ' + data.gpu.id + ' (' + data.gpu.memoryGB + 'GB). Model: ' + ((data.model && data.model.tag) || MODEL_FOR(data.gpu.memoryGB)) + '.'); }
+      else log('Pod ' + state.podId + ' created. Max cost $' + ((state.hourly / 3600) * MAX_SECONDS).toFixed(4) + '.');
       clearInterval(state.timer);
       state.timer = setInterval(setCost, 1000);
       setCost();

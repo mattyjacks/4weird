@@ -66,6 +66,21 @@ const FALLBACK_GPU_ORDER = [
   { id: 'NVIDIA A40', memory: 48, price: 0.49 }
 ];
 
+// RunPod's REST v1 API currently publishes GPU types in its schema, but not a
+// live /gpus listing. These are capability estimates used only to order probes;
+// the create request is the authority on actual availability and price.
+const GPU_CAPABILITY_ORDER = [
+  { id: 'NVIDIA B200', memory: 180, price: 4.00 },
+  { id: 'NVIDIA H100 80GB HBM3', memory: 80, price: 2.49 },
+  { id: 'NVIDIA A100 80GB PCIe', memory: 80, price: 1.64 },
+  { id: 'NVIDIA L40S', memory: 48, price: 0.89 },
+  { id: 'NVIDIA A40', memory: 48, price: 0.49 },
+  { id: 'NVIDIA RTX 6000 Ada Generation', memory: 48, price: 0.89 },
+  { id: 'NVIDIA GeForce RTX 4090', memory: 24, price: 0.74 },
+  { id: 'NVIDIA RTX 2000 Ada Generation', memory: 16, price: 0.24 },
+  { id: 'NVIDIA RTX A4000', memory: 16, price: 0.25 }
+];
+
 function isSafeGpuId(v) {
   return typeof v === 'string' && /^[A-Za-z0-9][A-Za-z0-9 .+_-]{2,80}$/.test(v);
 }
@@ -155,6 +170,29 @@ function pickCheapestAvailableGpu(gpus, opts = {}) {
   return { id: fb.id, memory: fb.memory, price: fb.price, availability: 'UNKNOWN', source: 'fallback' };
 }
 
+/** Pick the most capable currently-rentable GPU, with an optional hourly cap. */
+function pickBestAvailableGpu(gpus, opts = {}) {
+  const minGB = Number(opts.minGB || MIN_USABLE_GPU_GB);
+  const maxHourly = Number(opts.maxHourlyPrice || 0);
+  const usable = (Array.isArray(gpus) ? gpus : []).filter((g) => {
+    const price = g && g.price && Number(g.price.secure);
+    return g && isSafeGpuId(g.id) && g.secure === true && String(g.availability || 'NONE') !== 'NONE' && Number(g.memory) >= minGB && Number.isFinite(price) && price > 0 && (!maxHourly || price <= maxHourly);
+  });
+  usable.sort((a, b) => Number(b.memory) - Number(a.memory) || Number(a.price.secure) - Number(b.price.secure));
+  if (!usable.length) return null;
+  const g = usable[0];
+  return { id: g.id, memory: Number(g.memory), price: Number(g.price.secure), availability: String(g.availability), source: 'live-catalog-performance' };
+}
+
+function rankAvailableGpus(gpus, opts = {}) {
+  const minGB = Number(opts.minGB || MIN_USABLE_GPU_GB);
+  const maxHourly = Number(opts.maxHourlyPrice || 0);
+  return (Array.isArray(gpus) ? gpus : []).filter((g) => {
+    const price = g && g.price && Number(g.price.secure);
+    return g && isSafeGpuId(g.id) && g.secure === true && String(g.availability || 'NONE') !== 'NONE' && Number(g.memory) >= minGB && Number.isFinite(price) && price > 0 && (!maxHourly || price <= maxHourly);
+  }).sort((a, b) => Number(b.memory) - Number(a.memory) || Number(a.price.secure) - Number(b.price.secure));
+}
+
 /** Per second cost from an hourly price. Runpod bills per second. */
 function estimateCost(hourlyPrice, seconds) {
   const rate = Number(hourlyPrice) || 0;
@@ -195,11 +233,13 @@ async function runpodFetch(apiKey, pathName, opts = {}) {
       data = { raw: text.slice(0, 200) };
     }
     if (!res.ok) {
-      const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
+      const rawMsg = data && (data.error || data.message || data.detail);
+      const msg = rawMsg && typeof rawMsg === 'object' ? JSON.stringify(rawMsg) : rawMsg;
       if (res.status === 403) {
         throw new Error(`runpod ${pathName} rejected this credential (403). The key can read Runpod resources but is not allowed to create or mutate Pods.`);
       }
-      throw new Error(`runpod ${pathName} failed: ${String(msg).slice(0, 200)}`);
+      const safeDetail = msg || (data ? JSON.stringify(data) : `HTTP ${res.status}`);
+      throw new Error(`runpod ${pathName} failed: ${String(safeDetail).slice(0, 200)}`);
     }
     return data;
   } catch (e) {
@@ -228,9 +268,12 @@ function buildPodSpec(args = {}) {
   }
   const gpuCount = Math.min(Math.max(parseInt(args.gpuCount, 10) || 1, 1), 8);
   const diskGB = Math.min(Math.max(parseInt(args.diskGB, 10) || 40, 20), 500);
+  // Xonotic can run directly from RunPod's public CUDA image, so local Docker
+  // is bypassed by default for this workflow. Callers may explicitly disable it.
+  const bootstrap = args.bypassDocker === true || (args.openSourceGameId === 'xonotic' && args.bypassDocker !== false);
   const body = {
     name: sanitizeName(args.name),
-    imageName: isSafeImage(args.image || '') ? args.image : DEFAULT_IMAGE,
+    imageName: bootstrap ? 'runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04' : (isSafeImage(args.image || '') ? args.image : DEFAULT_IMAGE),
     computeType: 'GPU',
     cloudType: 'SECURE',
     gpuTypeIds: [args.gpuId],
@@ -249,9 +292,14 @@ function buildPodSpec(args = {}) {
       VIBE_MAX_MINUTES: String(MAX_RUN_MINUTES),
       VIBE_MODE: 'cloud-game-plus-model',
       VIBE_GAME_DESKTOP_PORT: '6901',
-      VIBE_AGENT_DESKTOP_PORT: '6902'
+      VIBE_AGENT_DESKTOP_PORT: '6902',
+      OLLAMA_URL: 'http://127.0.0.1:11434',
+      VCW_CAPTURE_FPS: String(Number(args.gpuMemoryGB || 24) >= 48 ? 60 : Number(args.gpuMemoryGB || 24) >= 24 ? 45 : 30)
     }
   };
+  if (bootstrap) {
+    body.dockerStartCmd = ['bash', '-lc', 'apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends xvfb x11vnc novnc websockify git ca-certificates curl unzip xdotool scrot ffmpeg libgl1 libegl1 libxrandr2 libxi6 libxinerama1 libxcursor1 libasound2 fonts-liberation nodejs npm && curl -fsSL https://ollama.com/install.sh | sh && (ollama serve >/tmp/ollama.log 2>&1 &) && for i in $(seq 1 30); do curl -sf http://127.0.0.1:11434/api/tags >/dev/null && break; sleep 2; done && if ! ollama pull "$VIBE_MODEL"; then export VIBE_MODEL=qwen2.5vl:7b; ollama pull "$VIBE_MODEL"; fi && curl -fsSL https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -o /tmp/chrome.deb && DEBIAN_FRONTEND=noninteractive apt-get install -y /tmp/chrome.deb && rm -f /tmp/chrome.deb && rm -rf /var/lib/apt/lists/* && rm -rf /opt/vcw && git clone --depth 1 "${VIBE_BOOTSTRAP_REPO:-https://github.com/mattyjacks/4weird.git}" /opt/vcw && if [ -n "${VIBE_BOOTSTRAP_REF:-}" ]; then git -C /opt/vcw fetch --depth 1 origin "$VIBE_BOOTSTRAP_REF" && git -C /opt/vcw checkout FETCH_HEAD; fi && chmod 755 /opt/vcw/website/v1/ai/vibecodeworker/deploy/runpod/start-dual-desktop.sh /opt/vcw/website/v1/ai/vibecodeworker/deploy/runpod/capture_cloud_session.sh && exec /opt/vcw/website/v1/ai/vibecodeworker/deploy/runpod/start-dual-desktop.sh'];
+  }
   if (args.inputMode === 'mobile' || args.inputMode === 'desktop') body.env.VCW_INPUT_MODE = args.inputMode;
   if (args.videoLayout === 'testingH' || args.videoLayout === 'testingV' || args.videoLayout === 'both') body.env.VCW_VIDEO_LAYOUT = args.videoLayout;
   if (args.videoLayout) body.env.VCW_AUTO_RECORD = '1';
@@ -274,8 +322,37 @@ function buildPodSpec(args = {}) {
 async function startCloudRun(args = {}) {
   const apiKey = resolveApiKey(args);
   if (!apiKey) throw new Error('Missing Runpod API key (pass runpodKey or set RUNPOD_API_KEY)');
-  const spec = buildPodSpec(args);
-  const created = await runpodFetch(apiKey, '/pods', { method: 'POST', body: spec.body });
+  let launchArgs = { ...args };
+  let candidates = [];
+  // Resolve live capacity before creating anything. If a requested GPU is
+  // unavailable, automatically use the strongest available secure GPU and
+  // rescale the open model to its VRAM.
+  if (!args.gpuId || args.autoSelectGpu !== false) {
+    const catalog = await getCloudGpuCatalog({ runpodKey: apiKey });
+    // Keep unattended runs bounded by default; callers may explicitly raise
+    // maxHourlyPrice when they want H100/B200-class inference.
+    const ranked = rankAvailableGpus(catalog, { minGB: MIN_USABLE_GPU_GB, maxHourlyPrice: args.maxHourlyPrice || 1.0 });
+    const requested = ranked.find((g) => g.id === args.gpuId);
+    candidates = requested ? [requested, ...ranked.filter((g) => g.id !== requested.id)] : ranked;
+    if (!candidates.length) throw new Error('RunPod has no currently available secure GPU with at least 16GB VRAM');
+    launchArgs = { ...launchArgs, gpuId: candidates[0].id, gpuMemoryGB: candidates[0].memory };
+    if (!args.modelTag) launchArgs.modelTag = selectCloudModel(candidates[0].memory, { gameVramGB: args.gameVramGB }).tag;
+  }
+  let spec;
+  let created;
+  for (let i = 0; i < Math.max(1, Math.min(candidates.length || 1, 4)); i += 1) {
+    if (candidates[i]) {
+      launchArgs = { ...launchArgs, gpuId: candidates[i].id, gpuMemoryGB: candidates[i].memory };
+      if (!args.modelTag) launchArgs.modelTag = selectCloudModel(candidates[i].memory, { gameVramGB: args.gameVramGB }).tag;
+    }
+    spec = buildPodSpec(launchArgs);
+    try {
+      created = await runpodFetch(apiKey, '/pods', { method: 'POST', body: spec.body });
+      break;
+    } catch (e) {
+      if (!/no instances currently available|no instances available/i.test(String(e.message || e)) || i >= 3 || !candidates[i + 1]) throw e;
+    }
+  }
   const pod = created && (created.pod || created);
   const podId = pod && (pod.id || pod.podId);
   if (podId && !isSafePodId(String(podId))) throw new Error('Runpod returned an unsafe pod id');
@@ -283,7 +360,8 @@ async function startCloudRun(args = {}) {
     success: true,
     podId: podId || null,
     model: spec.model,
-    gameId: String(args.gameId || 'gravegain3d'),
+    gpu: { id: launchArgs.gpuId, memoryGB: Number(launchArgs.gpuMemoryGB) || null, autoSelected: launchArgs.gpuId !== args.gpuId },
+    gameId: String(launchArgs.gameId || 'gravegain3d'),
     openSourceGame: spec.openSourceGame,
     maxMinutes: MAX_RUN_MINUTES,
     maxSeconds: MAX_RUN_SECONDS,
@@ -303,8 +381,14 @@ async function startCloudRun(args = {}) {
 async function getCloudGpuCatalog(opts = {}) {
   const apiKey = resolveApiKey(opts);
   if (!apiKey) throw new Error('Missing Runpod API key');
-  const data = await runpodFetch(apiKey, '/gpus');
-  const gpus = Array.isArray(data && data.gpus) ? data.gpus : (Array.isArray(data) ? data : []);
+  let gpus;
+  try {
+    const data = await runpodFetch(apiKey, '/gpus');
+    gpus = Array.isArray(data && data.gpus) ? data.gpus : (Array.isArray(data) ? data : []);
+  } catch (e) {
+    if (!/path.*does not exist|GET request/i.test(String(e.message || e))) throw e;
+    gpus = GPU_CAPABILITY_ORDER.map((g) => ({ ...g, secure: true, availability: 'UNKNOWN', price: { secure: g.price } }));
+  }
   return gpus.filter((gpu) => isSafeGpuId(gpu && gpu.id)).map((gpu) => ({
     id: gpu.id,
     memory: Number(gpu.memory) || 0,
@@ -338,8 +422,11 @@ module.exports = {
   DEFAULT_IMAGE,
   MODEL_LADDER,
   FALLBACK_GPU_ORDER,
+  GPU_CAPABILITY_ORDER,
   selectCloudModel,
   pickCheapestAvailableGpu,
+  pickBestAvailableGpu,
+  rankAvailableGpus,
   estimateCost,
   maxBillableCost,
   getCloudGpuCatalog,
