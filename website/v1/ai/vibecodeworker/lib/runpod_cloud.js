@@ -376,10 +376,8 @@ async function startCloudRun(args = {}) {
       agent: `https://${podId}-6902.proxy.runpod.net/vnc.html?autoconnect=true&resize=scale`
     } : null,
     recordings: podId ? {
-      gameplay: `https://${podId}-8888.proxy.runpod.net/ai/vibecodeworker/data/browser-captures/${sanitizeName(launchArgs.name)}.mp4`,
-      testingH: `https://${podId}-8888.proxy.runpod.net/ai/vibecodeworker/data/browser-captures/${sanitizeName(launchArgs.name)}.testingH.mp4`,
-      testingV: `https://${podId}-8888.proxy.runpod.net/ai/vibecodeworker/data/browser-captures/${sanitizeName(launchArgs.name)}.testingV.mp4`,
-      manifest: `https://${podId}-8888.proxy.runpod.net/ai/vibecodeworker/data/browser-captures/${sanitizeName(launchArgs.name)}.manifest.json`
+      index: `https://${podId}-8888.proxy.runpod.net/ai/vibecodeworker/data/browser-captures/recordings/index.json`,
+      naming: 'gamename-timestamp-testingH|testingV|gameplay-vibecodeworker.mp4'
     } : null
   };
 }

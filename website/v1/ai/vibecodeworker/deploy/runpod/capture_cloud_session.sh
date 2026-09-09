@@ -10,6 +10,9 @@ mkdir -p "$CAPTURE_DIR"
 GAME_ID=${VIBE_OPEN_SOURCE_GAME_ID:-}
 GAME_MODE=${VIBE_XONOTIC_MODE:-desktop}
 CAPTURE_FPS=${VCW_CAPTURE_FPS:-30}
+STAMP=$(date -u +%Y%m%d-%H%M%S)
+GAME_NAME=${GAME_ID:-xonotic}
+OUTPUT_STEM="${GAME_NAME}-${STAMP}"
 if [ "$GAME_ID" = "xonotic" ] && [ "$GAME_MODE" = "desktop" ]; then
   # Capture the native Xonotic display while sending real focused input.
   DISPLAY=${DISPLAY:-:1} ffmpeg -y -loglevel error -video_size 1440x900 -framerate "$CAPTURE_FPS" \
@@ -57,4 +60,14 @@ if [ -n "${BASE:-}" ] && [ -f "$BASE" ]; then
     node "$ROOT/scripts/node/export_testing_layouts.js" "$BASE" || true
     for layout in testingH testingV; do node "$ROOT/scripts/node/apply_marquee_branding.js" "$CAPTURE_DIR/${NAME}.${layout}.mp4" || true; done
   fi
+  # Normalize final deliverables to the public MediaMogul naming contract.
+  FINAL_DIR="$CAPTURE_DIR/recordings"
+  mkdir -p "$FINAL_DIR"
+  cp -f "$BASE" "$FINAL_DIR/${OUTPUT_STEM}-gameplay-vibecodeworker.mp4"
+  for layout in testingH testingV; do
+    if [ -f "$CAPTURE_DIR/${NAME}.${layout}.mp4" ]; then
+      cp -f "$CAPTURE_DIR/${NAME}.${layout}.mp4" "$FINAL_DIR/${OUTPUT_STEM}-${layout}-vibecodeworker.mp4"
+    fi
+  done
+  node -e "const fs=require('fs');const path=require('path');const d=process.argv[1],stem=process.argv[2];const files=fs.readdirSync(d).filter(f=>f.startsWith(stem+'-')&&f.endsWith('.mp4'));fs.writeFileSync(path.join(d,'index.json'),JSON.stringify({game:process.env.GAME_NAME||'xonotic',timestamp:stem.split('-').slice(-2).join('-'),files},null,2));" "$FINAL_DIR" "$OUTPUT_STEM"
 fi
