@@ -35,9 +35,10 @@
         started: '6/6/26',
         location: 'New Hampshire, USA',
         navItems: [
-            { href: '#games', label: 'Games', activeOn: ['index.html', 'games.html'] },
-            { href: '#contribute', label: 'Contribute', activeOn: ['contribute.html'] },
-            { href: '#contact', label: 'Contact MattyJacks', activeOn: ['contact.html'], cta: true }
+            { href: 'games/index.html', label: 'Games' },
+            { href: 'vibecodeworker/', label: 'VibeCodeWorker' },
+            { href: 'https://github.com/mattyjacks/4weird', label: 'GitHub' },
+            { href: '#contact', label: 'Contact MattyJacks', cta: true }
         ]
     };
 
@@ -92,12 +93,7 @@
                 </button>
                 <ul class="nav-menu" id="navMenu">
                     <li><a href="${basePath}games/index.html" class="nav-link">Games</a></li>
-                    <li><a href="${basePath}games/html/madi/" class="nav-link">MADI AI</a></li>
-                    <li><a href="${basePath}tech.html" class="nav-link">Technology</a></li>
-                    <li><a href="${basePath}academy/index.html" class="nav-link">Academy</a></li>
                     <li><a href="${basePath}vibecodeworker/" class="nav-link">VibeCodeWorker</a></li>
-                    <li><button class="nav-link" id="nav-a11y-trigger" style="background:none; border:none; cursor:pointer;" aria-label="Accessibility settings">♿ Accessibility</button></li>
-                    <li><a href="${isRoot ? '#contribute' : basePath + 'index.html#contribute'}" class="nav-link">Contribute</a></li>
                     <li><a href="https://github.com/mattyjacks/4weird" target="_blank" rel="noopener noreferrer" class="nav-link">GitHub</a></li>
                     <li><a href="${isRoot ? '#contact' : basePath + 'index.html#contact'}" class="nav-link nav-cta">Contact MattyJacks</a></li>
                 </ul>
@@ -152,12 +148,9 @@
                     </div>
                     <div class="footer-links">
                         <a href="${basePath}games/index.html" class="footer-link">Games</a>
-                        <a href="${basePath}games/html/madi/" class="footer-link">MADI AI</a>
-                        <a href="${basePath}academy/index.html" class="footer-link">Academy</a>
-                        <a href="${isRoot ? '#contribute' : basePath + 'index.html#contribute'}" class="footer-link">Contribute</a>
-                        <a href="${isRoot ? '#contact' : basePath + 'index.html#contact'}" class="footer-link">Contact MattyJacks</a>
-                        <a href="${basePath}privacy-policy.html" class="footer-link">Privacy Policy</a>
+                        <a href="${basePath}vibecodeworker/" class="footer-link">VibeCodeWorker</a>
                         <a href="https://github.com/mattyjacks/4weird" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+                        <a href="${isRoot ? '#contact' : basePath + 'index.html#contact'}" class="footer-link">Contact MattyJacks</a>
                     </div>
                 </div>
                 <div class="footer-bottom">
