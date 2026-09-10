@@ -1,5 +1,7 @@
 'use strict';
 const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
 const cloud = require('../lib/runpod_cloud');
 
 async function run() {
@@ -50,6 +52,7 @@ async function run() {
   assert.strictEqual(spec.body.env.VIBE_MAX_MINUTES, '55');
   assert.strictEqual(spec.body.env.VIBE_MODEL, 'qwen2.5vl:14b');
   assert.strictEqual(spec.body.env.VCW_CAPTURE_FPS, '45');
+  assert.strictEqual(spec.body.env.VCW_CAPTURE_SECONDS, '420');
   const layoutSpec = cloud.buildPodSpec({ gpuId: 'NVIDIA GeForce RTX 4090', gpuMemoryGB: 24, gameId: 'snake-canvas', inputMode: 'mobile', videoLayout: 'both' });
   assert.strictEqual(layoutSpec.body.env.VCW_INPUT_MODE, 'mobile');
   assert.strictEqual(layoutSpec.body.env.VCW_VIDEO_LAYOUT, 'both');
@@ -69,11 +72,16 @@ async function run() {
   const bootstrap = cloud.buildPodSpec({ gpuId: 'NVIDIA RTX 2000 Ada Generation', openSourceGameId: 'xonotic', xonoticMode: 'desktop', videoLayout: 'both', bypassDocker: true });
   assert.match(bootstrap.body.imageName, /runpod\/pytorch/);
   assert.ok(bootstrap.body.dockerStartCmd.join(' ').includes('git clone'));
+  assert.ok(bootstrap.body.dockerStartCmd.join(' ').includes('espeak-ng'), 'cloud image includes offline narration voices');
   assert.strictEqual(bootstrap.body.env.OLLAMA_URL, 'http://127.0.0.1:11434');
   assert.strictEqual(xonoticWeb.openSourceGame.kind, 'desktop+browser');
   assert.throws(() => cloud.buildPodSpec({ gpuId: 'NVIDIA RTX 4090', openSourceGameId: 'xonotic', xonoticMode: 'arbitrary-url' }), /Invalid xonoticMode/);
   assert.throws(() => cloud.buildPodSpec({ gpuId: 'bad;id' }), /Invalid gpuId/);
   assert.throws(() => cloud.buildPodSpec({ gpuId: 'NVIDIA RTX A4000', openSourceGameId: 'arbitrary-url' }), /Unsupported/);
+
+  const launcher = fs.readFileSync(path.join(__dirname, '..', 'deploy', 'runpod', 'start-dual-desktop.sh'), 'utf8');
+  assert.match(launcher, /VIBE_MAX_MINUTES/);
+  assert.match(launcher, /VCW budget deadline reached/);
   // Cloud routes exist and never echo keys.
   const routes = require('../lib/api/cloud_routes');
   assert.strictEqual(typeof routes.handleCloudRequest, 'function');

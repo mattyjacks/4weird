@@ -20,12 +20,9 @@ if [ "$GAME_ID" = "xonotic" ]; then
   DISPLAY=${DISPLAY:-:1} ffmpeg -y -loglevel error -video_size 1440x900 -framerate "$CAPTURE_FPS" \
     -f x11grab -i "${DISPLAY:-:1}.0" -t "$SECONDS" "$CAPTURE_DIR/${NAME}.mp4" &
   RECORDER_PID=$!
-  sleep 2
-  if command -v xdotool >/dev/null 2>&1; then
-    WID=$(xdotool search --name 'Xonotic' 2>/dev/null | head -n1 || xdotool search --onlyvisible 2>/dev/null | head -n1 || true)
-    [ -n "$WID" ] && xdotool windowactivate "$WID" || true
-    for key in w w a w d space w a d w; do xdotool keydown "$key"; sleep .35; xdotool keyup "$key"; done
-  fi
+  # Gameplay input belongs exclusively to the VibeCodeWorker agent.  This
+  # recorder deliberately observes the game surface only; it must never add
+  # synthetic movement or firing that could be mistaken for agent behavior.
   wait "$RECORDER_PID" || true
 else
   node "$ROOT/scripts/node/headful_browser_record_server.js" "$PORT" &
@@ -63,12 +60,16 @@ if [ -n "${BASE:-}" ] && [ -f "$BASE" ]; then
     for layout in testingH testingV; do node "$ROOT/scripts/node/apply_marquee_branding.js" "$CAPTURE_DIR/${NAME}.${layout}.mp4" || true; done
   fi
   # Normalize final deliverables to the public MediaMogul naming contract.
+  # Voice roles are intentional: gameplay has female commentary; diagnostic
+  # Testing exports have male narration.  The script uses an offline Linux
+  # synthesizer installed by the cloud bootstrap, so it does not consume a
+  # second paid API budget.
   FINAL_DIR="$CAPTURE_DIR/recordings"
   mkdir -p "$FINAL_DIR"
-  cp -f "$BASE" "$FINAL_DIR/${OUTPUT_STEM}-gameplay-vibecodeworker.mp4"
+  node "$ROOT/scripts/node/add_role_narration.js" "$BASE" "$FINAL_DIR/${OUTPUT_STEM}-gameplay-vibecodeworker.mp4" female "VibeCodeWorker enters the Xonotic arena, starts the singleplayer match, and records the first two confirmed eliminations."
   for layout in testingH testingV; do
     if [ -f "$CAPTURE_DIR/${NAME}.${layout}.mp4" ]; then
-      cp -f "$CAPTURE_DIR/${NAME}.${layout}.mp4" "$FINAL_DIR/${OUTPUT_STEM}-${layout}-vibecodeworker.mp4"
+      node "$ROOT/scripts/node/add_role_narration.js" "$CAPTURE_DIR/${NAME}.${layout}.mp4" "$FINAL_DIR/${OUTPUT_STEM}-${layout}-vibecodeworker.mp4" male "Testing export. VibeCodeWorker verifies menu navigation, arena entry, combat input, and the first two confirmed Xonotic kills."
     fi
   done
   node -e "const fs=require('fs');const path=require('path');const d=process.argv[1],stem=process.argv[2];const files=fs.readdirSync(d).filter(f=>f.startsWith(stem+'-')&&f.endsWith('.mp4'));fs.writeFileSync(path.join(d,'index.json'),JSON.stringify({game:process.env.GAME_NAME||'xonotic',timestamp:stem.split('-').slice(-2).join('-'),files},null,2));" "$FINAL_DIR" "$OUTPUT_STEM"

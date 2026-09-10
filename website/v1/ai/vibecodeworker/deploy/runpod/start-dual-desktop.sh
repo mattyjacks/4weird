@@ -11,6 +11,15 @@ XONOTIC_ROOT="${XONOTIC_INSTALL_ROOT:-/workspace/xonotic}"
 XONOTIC_VERSION="${XONOTIC_VERSION:-0.8.6}"
 INPUT_MODE="${VCW_INPUT_MODE:-desktop}"
 VIDEO_LAYOUT="${VCW_VIDEO_LAYOUT:-both}"
+# A cloud pod is billable until its container exits.  VIBE_MAX_MINUTES comes
+# from the Runpod launch policy, so enforce it in the container rather than
+# merely advertising the cap in the control-plane response.
+MAX_MINUTES="${VIBE_MAX_MINUTES:-55}"
+if ! [[ "$MAX_MINUTES" =~ ^[1-9][0-9]{0,2}$ ]]; then
+  echo "Invalid VIBE_MAX_MINUTES: $MAX_MINUTES" >&2
+  exit 64
+fi
+MAX_SECONDS=$((MAX_MINUTES * 60))
 mkdir -p "$GAME_ROOT"
 case "$GAME_ID" in
   snake-canvas) GAME_REPO=https://github.com/adrianov/snake.git ;;
@@ -60,14 +69,16 @@ if [ "$GAME_ID" = "xonotic" ]; then
     # The client resolves data relative to its launch directory in this
     # headless setup. Pin the official extracted directory explicitly so the
     # native client can find data*.pk3 rather than dropping into its error UI.
-    # finalrage ships in the stock 0.8.6 client (dm_run does not), so boot
-    # straight into a real bot arena instead of a missing-map error.
-    DISPLAY=:1 "$XONOTIC_ROOT/xonotic-linux64-sdl" -basedir "$XONOTIC_ROOT" -nohome -userdir "$XONOTIC_ROOT/user" +map finalrage +bot_number 5 &
+    # Start at the genuine client menu.  The cloud-native VibeCodeWorker pilot
+    # below must visibly navigate into a singleplayer arena; do not shortcut
+    # the objective by passing a map command on the process command line.
+    DISPLAY=:1 "$XONOTIC_ROOT/xonotic-linux64-sdl" -basedir "$XONOTIC_ROOT" -nohome -userdir "$XONOTIC_ROOT/user" &
     # The desktop has no window manager, so nothing ever focuses the game
     # window and XTEST keys would go nowhere while pointer clicks still land.
     # Keep keyboard focus pinned to the Xonotic client so the cloud input
     # bridge (xdotool key) reaches the game. Harmless when already focused.
     ( sleep 45; while true; do DISPLAY=:1 xdotool search --onlyvisible --name Xonotic windowfocus >/dev/null 2>&1; DISPLAY=:1 xdotool search --onlyvisible --classname xonotic windowfocus >/dev/null 2>&1; sleep 60; done ) &
+    node "$PWD/scripts/node/xonotic_vcw_agent.js" &
   fi
 else
   GODOT_INSTALL_ROOT="$GODOT_ROOT" node server/install_godot.js
@@ -84,5 +95,11 @@ DISPLAY=:2 google-chrome --no-sandbox --disable-dev-shm-usage $CHROME_VIEWPORT -
 if [ "${VCW_AUTO_RECORD:-0}" = "1" ]; then
   VCW_CAPTURE_ENTRY="${VCW_CAPTURE_ENTRY:-games/html/overtake/index.html}" VCW_CAPTURE_NAME="${VIBE_GAME:-cloud-session}" "$PWD/deploy/runpod/capture_cloud_session.sh" &
 fi
-trap 'kill "$API_PID" 2>/dev/null || true' EXIT INT TERM
+# This exits the entrypoint at the agreed budget deadline, which transitions
+# the Runpod pod out of RUNNING and stops GPU-time billing.  It is deliberately
+# independent of the recording/agent processes so a hung child cannot overrun
+# the cap.
+( sleep "$MAX_SECONDS"; echo "VCW budget deadline reached after ${MAX_MINUTES} minutes" >&2; kill -TERM "$$" ) &
+WATCHDOG_PID=$!
+trap 'kill "$WATCHDOG_PID" "$API_PID" 2>/dev/null || true' EXIT INT TERM
 wait "$API_PID"
