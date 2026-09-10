@@ -9,7 +9,7 @@
 // committing ~8 MB of duplicated bundles.
 //
 // Idempotent: destinations are removed and re-copied on every run.
-import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, rmSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 // slug -> legacy path under public/games/html/
@@ -66,7 +66,30 @@ for (const [slug, legacyPath] of bundles) {
   rmSync(dest, { recursive: true, force: true });
   mkdirSync(join(root, "public", "games"), { recursive: true });
   cpSync(source, dest, { recursive: true });
+  normalizeRuntime(join(dest, "index.html"), slug);
   synced += 1;
+}
+
+// Post-copy fixups applied ONLY to the generated bundle (the tracked source
+// under public/games/html/ stays byte-identical for old-v1 parity):
+//  1. game-meta.js is referenced relatively ("../game-meta.js" or, from the
+//     nested kouzi/madi trees, "../../game-meta.js"). That resolves inside
+//     public/games/html/ but 404s once the bundle is served one level higher
+//     at /games/<slug>/. Rewrite to the absolute canonical path.
+//  2. Inject the v2 runtime bridge (public/games/html/runtime-bridge.js) so
+//     the play shell's ready/save/error handshake works in every game.
+function normalizeRuntime(indexFile, slug) {
+  let html = readFileSync(indexFile, "utf8");
+  html = html.split('src="../game-meta.js"').join('src="/games/html/game-meta.js"');
+  html = html.split("src='../game-meta.js'").join("src='/games/html/game-meta.js'");
+  html = html.split('src="../../game-meta.js"').join('src="/games/html/game-meta.js"');
+  html = html.split("src='../../game-meta.js'").join("src='/games/html/game-meta.js'");
+  if (!html.includes("runtime-bridge.js")) {
+    const tag = `<script src="/games/html/runtime-bridge.js" data-slug="${slug}"></script>`;
+    if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${tag}</body>`);
+    else html += tag;
+  }
+  writeFileSync(indexFile, html);
 }
 
 if (missing.length) {

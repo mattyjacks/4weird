@@ -12,4 +12,17 @@ const indexCount = (await files(join(process.cwd(), "public", "games", "html")))
 if (indexCount < 1) { console.error("No static game entrypoints found."); process.exit(1); }
 const canonicalCount = (await files(join(process.cwd(), "public", "games"))).filter((name) => /^([^/]+)\/index\.html$/.test(name)).length;
 if (canonicalCount < 33) { console.error(`Expected at least 33 canonical slug bundles, found ${canonicalCount}.`); process.exit(1); }
+// The sync step injects the v2 runtime bridge and absolutizes game-meta.js
+// into the generated canonical bundles (the tracked sources stay relative so
+// old-v1 parity holds). Every canonical entrypoint must carry the bridge and
+// must not contain a relative game-meta reference, which 404s at
+// /games/<slug>/ and leaves the play shell stuck on "Loading...".
+const canonicalShells = (await files(join(process.cwd(), "public", "games"))).filter((name) => /^([^/]+)\/index\.html$/.test(name));
+const unbridged = []; const relativeMeta = [];
+for (const name of canonicalShells) {
+  const html = await readFile(join(process.cwd(), "public", "games", name), "utf8");
+  if (!html.includes("/games/html/runtime-bridge.js")) unbridged.push(name);
+  if (html.includes('"../game-meta.js"') || html.includes("'../game-meta.js") || html.includes('"../../game-meta.js"') || html.includes("'../../game-meta.js")) relativeMeta.push(name);
+}
+if (unbridged.length || relativeMeta.length) { console.error(JSON.stringify({ unbridged, relativeMeta }, null, 2)); process.exit(1); }
 console.log(`Catalog runtime integrity OK: ${indexCount} legacy entrypoints, ${canonicalCount} canonical bundles; ${paths.length} literal paths checked.`);

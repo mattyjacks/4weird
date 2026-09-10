@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SiteHeader } from "@/components/site/site-header";
 import { ClanBrowser } from "@/components/clans/clan-browser";
 
 export const metadata: Metadata = {
@@ -13,7 +12,7 @@ export const dynamic = "force-dynamic";
 export default function ClansPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      <SiteHeader />
+      
       <section className="mx-auto max-w-4xl px-5 py-20">
         <Link className="text-cyan-300 hover:underline" href="/">
           ← Home

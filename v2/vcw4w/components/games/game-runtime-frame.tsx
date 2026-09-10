@@ -12,9 +12,34 @@ type RuntimeEvent = {
   score?: number;
 };
 
+// First-party hosts the shell and the static game bundles can be served
+// from. Kept in sync with public/games/html/runtime-bridge.js.
+const TRUSTED_GAME_ORIGINS = [
+  "https://4weird.com",
+  "https://www.4weird.com",
+  "https://4weird.games",
+  "https://www.4weird.games",
+];
+
+function originOf(src: string) {
+  try {
+    return new URL(src, window.location.href).origin;
+  } catch {
+    return window.location.origin;
+  }
+}
+
 export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: string; src: string }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const loadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // The bundle can end up on the apex/www counterpart of the shell's origin
+  // (Vercel redirects apex -> www, so a cached apex shell frames a www
+  // bundle). Track the runtime's actual origin from its messages and accept
+  // handshakes from any first-party host instead of the shell origin only.
+  const runtimeOrigin = useRef<string | null>(null);
+  const postToRuntime = (message: Record<string, unknown>) => {
+    frame.current?.contentWindow?.postMessage(message, runtimeOrigin.current ?? originOf(src));
+  };
   const [status, setStatus] = useState("Loading original HTML runtime…");
   const [score, setScore] = useState<number | null>(null);
   const [showTouchPad, setShowTouchPad] = useState(false);
@@ -22,16 +47,21 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
   const sendKey = (key: string, pressed: boolean) => {
     const target = frame.current?.contentWindow;
     if (!target) return;
-    const event = new KeyboardEvent(pressed ? "keydown" : "keyup", { key, code: key === " " ? "Space" : `Arrow${key.replace("Arrow", "")}`, bubbles: true });
-    target.dispatchEvent(event);
-    target.document?.dispatchEvent(event);
+    try {
+      const event = new KeyboardEvent(pressed ? "keydown" : "keyup", { key, code: key === " " ? "Space" : `Arrow${key.replace("Arrow", "")}`, bubbles: true });
+      target.dispatchEvent(event);
+      target.document?.dispatchEvent(event);
+    } catch {
+      // Cross-origin runtime (apex/www redirect): synthetic keys cannot be
+      // dispatched. The touch pad stays visible but inert rather than throwing.
+    }
   };
 
   const resetSave = async () => {
     if (!window.confirm("Reset this game's cloud save? This cannot be undone.")) return;
     const response = await fetch(`/api/saves?game=${encodeURIComponent(slug)}&slot=1`, { method: "DELETE", credentials: "include" });
     setStatus(response.ok ? "Cloud save reset." : "Unable to reset cloud save.");
-    if (response.ok) frame.current?.contentWindow?.postMessage({ version: 1, type: "reset", slug }, new URL(src, window.location.href).origin);
+    if (response.ok) postToRuntime({ version: 1, type: "reset", slug });
   };
 
   useEffect(() => {
@@ -43,7 +73,15 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
   const prepareRuntime = () => {
     if (loadTimer.current) clearTimeout(loadTimer.current);
     setStatus("");
-    const document = frame.current?.contentDocument;
+    // Same-origin only: after an apex/www redirect the document is
+    // cross-origin and this access throws. The status is already cleared
+    // above, so swallow and let the postMessage handshake do the rest.
+    let document: Document | undefined;
+    try {
+      document = frame.current?.contentDocument ?? undefined;
+    } catch {
+      return;
+    }
     if (!document || document.getElementById("fourweird-v2-runtime-shell")) return;
     const style = document.createElement("style");
     style.id = "fourweird-v2-runtime-shell";
@@ -69,9 +107,11 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
   }, []);
 
   useEffect(() => {
-    const origin = new URL(src, window.location.href).origin;
+    const expected = originOf(src);
     const onMessage = (event: MessageEvent<RuntimeEvent>) => {
-      if (event.origin !== origin || event.source !== frame.current?.contentWindow || !event.data || event.data.version !== 1) return;
+      if ((event.origin !== expected && !TRUSTED_GAME_ORIGINS.includes(event.origin)) || event.source !== frame.current?.contentWindow || !event.data || event.data.version !== 1) return;
+      runtimeOrigin.current = event.origin;
+      const origin = event.origin;
       const payload = event.data;
       if (payload.type === "score" && Number.isFinite(payload.score)) {
         setScore(payload.score!);
@@ -105,9 +145,8 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
   }, [slug, src]);
 
   const command = (type: "pause" | "resume" | "fullscreen") => {
-    const origin = new URL(src, window.location.href).origin;
     if (type === "fullscreen") void frame.current?.requestFullscreen?.();
-    frame.current?.contentWindow?.postMessage({ version: 1, type, slug }, origin);
+    postToRuntime({ version: 1, type, slug });
   };
 
   const padButton = (label: string, key: string, className = "") => <button type="button" aria-label={label} className={`grid h-12 w-12 touch-none place-items-center rounded-full border border-cyan-100/40 bg-slate-950/85 text-lg text-cyan-50 active:bg-cyan-400 active:text-black ${className}`} onPointerDown={(event) => { event.preventDefault(); sendKey(key, true); }} onPointerUp={() => sendKey(key, false)} onPointerCancel={() => sendKey(key, false)} onPointerLeave={() => sendKey(key, false)}>{label}</button>;

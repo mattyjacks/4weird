@@ -1,6 +1,79 @@
 import Link from "next/link";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 
+const COLUMNS = [
+  {
+    label: "Play",
+    links: [
+      { href: "/games", label: "Games" },
+      { href: "/leaderboards", label: "Leaderboards" },
+      { href: "/clans", label: "Clans" },
+      { href: "/lobbies", label: "Lobbies" },
+    ],
+  },
+  {
+    label: "Build",
+    links: [
+      { href: "/agents", label: "AI Agents" },
+      { href: "/teams", label: "UnitUnite" },
+      { href: "/vibecodeworker", label: "VibeCodeWorker" },
+      { href: "/web-apps", label: "Web Apps" },
+    ],
+  },
+  {
+    label: "Explore",
+    links: [
+      { href: "/spaceships", label: "Spaceships" },
+      { href: "/academy", label: "Academy" },
+      { href: "/tech", label: "Technology" },
+      { href: "/pricing", label: "Pricing" },
+    ],
+  },
+  {
+    label: "Trust",
+    links: [
+      { href: "/terms", label: "Terms of Use" },
+      { href: "/privacy", label: "Privacy Policy" },
+      { href: "/my/rights", label: "My Privacy Rights" },
+      { href: "/accessibility", label: "Accessibility" },
+    ],
+  },
+];
+
 export function SiteFooter() {
-  return <footer className="border-t border-white/10 bg-slate-950 px-5 py-10 text-center text-sm text-slate-400"><nav aria-label="Footer navigation" className="mb-4 flex flex-wrap justify-center gap-x-5 gap-y-2"><Link className="font-semibold text-cyan-200 underline-offset-4 hover:underline" href="/terms">Terms of Use</Link><Link className="font-semibold text-cyan-200 underline-offset-4 hover:underline" href="/privacy">Privacy Policy</Link><Link href="/my/rights">My Privacy Rights</Link><Link href="/accessibility">Accessibility</Link><Link href="/games">Games</Link><Link href="/pricing">Pricing</Link><Link href="/tech">Technology</Link></nav><div className="mb-4 flex items-center justify-center gap-2"><span>Theme</span><ThemeSwitcher /></div><p>© 2026 MattyJacks LLC · 4weird Games · New Hampshire, USA</p></footer>;
+  return (
+    <footer className="border-t border-white/10 bg-slate-950 px-4 py-10 text-sm text-slate-400 sm:px-5">
+      <div className="mx-auto grid max-w-6xl gap-8 text-left sm:grid-cols-2 lg:grid-cols-5">
+        <div className="lg:col-span-1">
+          <p className="text-base font-black text-white">
+            🎮 4weird<span className="text-cyan-300">Games</span>
+          </p>
+          <p className="mt-3 max-w-xs text-sm leading-relaxed">
+            Future Forward Fun — strange, joyful arcade experiments, AI agents, and team cloud.
+          </p>
+          <div className="mt-4 flex items-center gap-2">
+            <span>Theme</span>
+            <ThemeSwitcher />
+          </div>
+        </div>
+        {COLUMNS.map((col) => (
+          <nav key={col.label} aria-label={`Footer — ${col.label}`}>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">{col.label}</p>
+            <ul className="mt-3 space-y-2">
+              {col.links.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="transition hover:text-white hover:underline underline-offset-4">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))}
+      </div>
+      <p className="mx-auto mt-8 max-w-6xl border-t border-white/10 pt-5 text-center text-xs sm:text-sm">
+        © 2026 MattyJacks LLC · 4weird Games · New Hampshire, USA · 100 Vibe Coins = exactly $1.00
+      </p>
+    </footer>
+  );
 }

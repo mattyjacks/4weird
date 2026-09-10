@@ -57,6 +57,13 @@ export function dailyBonusForStreak(streakDays: number): number {
 export const REFERRAL_INVITER_COINS = 25;
 export const REFERRAL_INVITEE_COINS = 25;
 
+/**
+ * Self-Hosted BYOK plan: flat platform subscription plus a reduced metered
+ * premium on the customer's own at-cost provider bills (keys stay with them).
+ */
+export const SELF_HOSTED_MONTHLY_CENTS = 42000;
+export const SELF_HOSTED_COMPUTE_CUT_PCT = 15;
+
 /** Split a workspace compute charge (gross, cut INCLUDED) into platform/provider. */
 export function workspaceComputeSplit(grossCoins: number): { gross: number; cut: number; provider: number } {
   const gross = Math.max(0, Math.floor(grossCoins));

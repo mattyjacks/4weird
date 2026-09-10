@@ -3,6 +3,7 @@ import { ThemeProvider } from "next-themes";
 import { Suspense } from "react";
 import { GoogleAnalytics } from "@/components/site/google-analytics";
 import { SiteFooter } from "@/components/site/site-footer";
+import { SiteHeader } from "@/components/site/site-header";
 import "./globals.css";
 
 const defaultUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -31,8 +32,13 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <div id="main-content">{children}</div>
-          <SiteFooter />
+          <div className="flex min-h-screen flex-col bg-slate-950">
+            <SiteHeader />
+            <div id="main-content" className="flex-1">
+              {children}
+            </div>
+            <SiteFooter />
+          </div>
         </ThemeProvider>
         <Suspense fallback={null}>
           <GoogleAnalytics />

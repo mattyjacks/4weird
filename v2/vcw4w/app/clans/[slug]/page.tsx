@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SiteHeader } from "@/components/site/site-header";
 import { ClanPage } from "@/components/clans/clan-page";
 import { ModerationNote } from "@/components/clans/moderation-note";
 
@@ -15,7 +14,7 @@ export default async function ClanSlugPage({ params }: { params: Promise<{ slug:
   const { slug } = await params;
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      <SiteHeader />
+      
       <section className="mx-auto max-w-4xl space-y-8 px-5 py-20">
         <Link className="text-cyan-300 hover:underline" href="/clans">
           ← All clans

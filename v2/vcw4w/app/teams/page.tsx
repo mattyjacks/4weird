@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/site/site-header";
 import { TeamWorkspace } from "@/components/teams/team-workspace";
 import { UNITUNITE_BLURB, UNITUNITE_NAME, UNITUNITE_TAGLINE } from "@/lib/unitunite";
 
@@ -11,7 +10,7 @@ export const metadata: Metadata = {
 export default function TeamsPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      <SiteHeader />
+      
       <section className="mx-auto max-w-5xl px-5 py-16">
         <p className="text-sm font-semibold uppercase tracking-widest text-cyan-300">{UNITUNITE_NAME} · {UNITUNITE_TAGLINE}</p>
         <h1 className="mt-2 text-4xl font-black">{UNITUNITE_NAME}</h1>

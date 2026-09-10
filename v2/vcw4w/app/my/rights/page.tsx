@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/site/site-header";
 import { createClient } from "@/lib/supabase/server";
 import { hasEnvVars } from "@/lib/utils";
 import { RightsClient } from "./rights-client";
@@ -18,7 +17,7 @@ export default async function RightsPage() {
   if (!hasEnvVars) {
     return (
       <main className="min-h-screen bg-slate-950 text-white">
-        <SiteHeader />
+        
         <section className="mx-auto max-w-4xl px-5 py-20">
           <h1 className="text-4xl font-black">My privacy rights</h1>
           <p className="mt-4 text-slate-300">
@@ -39,7 +38,7 @@ export default async function RightsPage() {
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      <SiteHeader />
+      
       <section className="mx-auto max-w-4xl px-5 py-20">
         <h1 className="text-4xl font-black">My privacy rights</h1>
         <p className="mt-4 max-w-2xl text-slate-300">

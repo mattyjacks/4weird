@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { SiteHeader } from "@/components/site/site-header";
 import { createClient } from "@/lib/supabase/server";
 import { hasEnvVars } from "@/lib/utils";
 import { BotSetupClient } from "./bot-setup";
@@ -17,7 +16,7 @@ export default async function BotSetupPage() {
   if (!hasEnvVars) {
     return (
       <main className="min-h-screen bg-slate-950 text-white">
-        <SiteHeader />
+        
         <section className="mx-auto max-w-4xl px-5 py-20">
           <h1 className="text-4xl font-black">Bot setup</h1>
           <p className="mt-4 text-slate-300">
@@ -33,7 +32,7 @@ export default async function BotSetupPage() {
   if (!data?.claims) redirect("/auth/login?next=/bot/setup");
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      <SiteHeader />
+      
       <section className="mx-auto max-w-4xl px-5 py-12">
         <p className="text-sm text-slate-400">Signed in as {String(data.claims.email ?? "player")}.</p>
         <h1 className="mt-2 text-4xl font-black">Bot setup</h1>
