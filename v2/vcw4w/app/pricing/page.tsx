@@ -73,6 +73,7 @@ export default function Page() {
               <Check>500 / 1,500 / 5,000 / 25,000 packs + custom 500–100,000</Check>
               <Check>Daily login bonus (5–12 coins) + 25/25 referrals</Check>
               <Check>Cloud saves, leaderboards, clans, agent escrow</Check>
+              <Check>Renting games: 1 coin/load (first hour included) + 1 coin/hr</Check>
             </ul>
             <Link
               href="/account"
@@ -99,6 +100,7 @@ export default function Page() {
               <Check>400 coins ($4.00) of compute = 100 platform / 300 provider</Check>
               <Check>Coin escrow — metered heartbeat never bills above escrow</Check>
               <Check>RunPod / DigitalOcean / custom endpoints, no fake provisioning</Check>
+              <Check>Game AI + Gaming Buddy meter the same way — see /buddy and /my/usage/</Check>
             </ul>
             <Link
               href="/agents"
@@ -130,6 +132,43 @@ export default function Page() {
               Go self-hosted
             </Link>
           </article>
+        </div>
+      </section>
+
+      {/* Renting games */}
+      <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-5 sm:pt-16" aria-label="Renting games">
+        <div className="rounded-3xl border border-white/10 bg-white/[.03] p-6 sm:p-8">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">Renting games</p>
+          <h2 className="mt-2 text-2xl font-black sm:text-3xl">About $0.01 per hour of play</h2>
+          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300">
+            Every game load costs its <strong className="text-white">load fee (default 1 coin)</strong> and the
+            load <strong className="text-white">includes the first hour</strong>. Keep playing and each extra hour
+            costs the <strong className="text-white">hourly rate (default 1 coin/hr)</strong> — AI features meter
+            separately on top. Cached loads (under 1&nbsp;MB of new data) are free, and replaying the same
+            version within 24 hours is never double-billed. Developers set their own rates up to{" "}
+            <strong className="text-white">100 coins/hour</strong> (0 = free game). Every price already includes
+            the 25% platform cut — and a day-1 daily bonus (5 coins) covers a full 5-hour session on its own.
+          </p>
+          <ul className="mt-5 grid gap-2.5 sm:grid-cols-2">
+            <Check>1 coin per load, first hour included — then 1 coin/hr (defaults)</Check>
+            <Check>Cached loads free · same version free for 24h · dev rates 0–100</Check>
+            <Check>Guests play free with skippable ads — no saves, multiplayer, or AI</Check>
+            <Check>Every load, hour, and ad-free session itemized on /my/usage/</Check>
+          </ul>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <Link
+              href="/games"
+              className="rounded-full bg-cyan-300 px-6 py-3 text-center font-bold text-slate-950 transition hover:bg-cyan-200"
+            >
+              Play games
+            </Link>
+            <Link
+              href="/my/usage/"
+              className="rounded-full border border-white/20 px-6 py-3 text-center font-semibold transition hover:bg-white/10"
+            >
+              My usage
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -252,6 +291,26 @@ export default function Page() {
               q: "Can I switch between Cloud and BYOK?",
               a: "Yes — per workspace. Burst on cloud, settle steady work on your own keys. Your coins, saves, clans, and leaderboards follow you.",
             },
+            {
+              q: "How is game AI priced?",
+              a: "Games with required or optional AI (OpenAI dialogue bots, AI directors on rented RunPods, voice lines in 9 voices) meter per token, char, decision, or GPU minute with the same 25% cut included. The Gaming Buddy meters the same way — watch every cent on /my/usage/.",
+            },
+            {
+              q: "What voices does the Gaming Buddy use?",
+              a: "All 9 OpenAI voices: Alloy, Ash, Coral, Echo, Fable, Onyx, Nova, Sage, Shimmer — on tts-1 or tts-1-hd at 0.5x–2.0x speed, 2 coins per 1k chars with the 25% cut included.",
+            },
+            {
+              q: "How does renting games work?",
+              a: "Each load costs the game's load fee (default 1 coin) with the first hour included, then the hourly rate (default 1 coin/hr) — about $0.01 per hour. Cached loads under 1 MB of new data are free, same-version replays are free for 24h, and developers can set 0–100 coins per load/hour. Guests play free with skippable ads instead.",
+            },
+            {
+              q: "Can I really play 5 hours a day for free?",
+              a: "Yes. A 5-hour session on default rates costs exactly 5 coins (1 load including hour one, plus 4 extra hours) — covered by even the day-1 daily bonus of 5 coins. Streaks pay up to 12 a day, and the 100-coin signup trial covers 100 hours.",
+            },
+            {
+              q: "Do guests have to pay or watch ads?",
+              a: "Guests never pay and never need an account: they get free loads every day (IP-limited), then keep playing by viewing instantly-skippable house ads, with an ad banner every 30 minutes. Cloud saves, multiplayer, AI, and Buddy stay signed-in only — which is exactly why signing up beats ad-watching.",
+            },
           ].map((item) => (
             <details
               key={item.q}
@@ -270,6 +329,18 @@ export default function Page() {
             className="rounded-full bg-cyan-300 px-6 py-3 text-center font-bold text-slate-950 transition hover:bg-cyan-200"
           >
             Open account
+          </Link>
+          <Link
+            href="/buddy"
+            className="rounded-full border border-violet-300/50 px-6 py-3 text-center font-semibold text-violet-200 transition hover:bg-violet-300/10"
+          >
+            Meet the Buddy
+          </Link>
+          <Link
+            href="/my/usage/"
+            className="rounded-full border border-white/20 px-6 py-3 text-center font-semibold transition hover:bg-white/10"
+          >
+            My usage
           </Link>
           <Link
             href="/leaderboards"

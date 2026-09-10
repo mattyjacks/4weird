@@ -10,6 +10,7 @@ type RuntimeEvent = {
   data?: unknown;
   message?: string;
   score?: number;
+  bytes?: number;
 };
 
 // First-party hosts the shell and the static game bundles can be served
@@ -115,6 +116,14 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
       const payload = event.data;
       if (payload.type === "score" && Number.isFinite(payload.score)) {
         setScore(payload.score!);
+        return;
+      }
+      if (payload.type === "metering" && Number.isFinite(payload.bytes)) {
+        // Cache accounting from inside the runtime (transferSize is 0 for
+        // cache hits): re-broadcast where the play-metering gate listens.
+        window.dispatchEvent(
+          new CustomEvent("fourweird-metering", { detail: { bytes: Math.max(0, Math.floor(payload.bytes!)), slug } }),
+        );
         return;
       }
       if (payload.type === "ready") {

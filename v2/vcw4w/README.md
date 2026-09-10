@@ -12,7 +12,7 @@ npm run dev
 
 The app runs at `http://localhost:3000` by default. Supabase variables are required for authenticated account features; the public catalog and games remain usable without them.
 
-Optional service settings include `SHOPIFY_STORE_DOMAIN`, `SHOPIFY_ALLOWED_VARIANTS` (comma-separated numeric variant IDs), and `VCW_SERVICE_URL`. Without those settings, the corresponding account/worker screens report explicit configuration states rather than failing silently.
+Optional service settings include `SHOPIFY_STORE_DOMAIN`, `SHOPIFY_ALLOWED_VARIANTS` (comma-separated numeric variant IDs), `VCW_SERVICE_URL`, and `OPENAI_API_KEY` (+ `BUDDY_MODEL`). Without those settings, the corresponding account/worker/buddy screens report explicit configuration states rather than failing silently.
 
 ## Verification
 

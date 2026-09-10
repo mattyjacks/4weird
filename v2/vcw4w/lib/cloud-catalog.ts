@@ -3,10 +3,13 @@
  * Prices are in Vibe Coins (100 coins = $1.00).
  *
  * Pricing rule (one rule everywhere): every price INCLUDES the 25%
- * UnitUnite workspace compute cut (WORKSPACE_COMPUTE_CUT_PCT). The wallet is
+ * UnitUnite workspace compute cut (WORKSPACE_COMPUTE_CUT_PCT) — and the
+ * game-AI catalog below includes the same 25% game-AI cut
+ * (GAME_AI_COMPUTE_CUT_PCT). The wallet is
  * debited the gross; the ledger splits it 25% platform / 75% provider per
- * individual workspace. The cut is never added on top.
+ * individual workspace / game. The cut is never added on top.
  * The org wallet pays; fund it from personal coins via fund_org_wallet.
+ * Game AI pays from personal coins via meter_game_ai_usage.
  *
  * Cost/version policy: everything defaults to the CHEAPEST tier that can do
  * the job and the NEWEST viable runtime (see CHEAPEST_DEFAULTS /
@@ -44,6 +47,11 @@ export const CLOUD_SERVICES: CloudService[] = [
   { key: "vector-db", name: "Vector DB", unit: "db_hr", coinsPerUnit: 11, blurb: "Embeddings + ANN search", category: "AI", tier: "micro-256mb", runtime: "hnsw-newest" },
   { key: "realtime-relay", name: "Realtime Relay", unit: "worker_min", coinsPerUnit: 2, blurb: "Sync + presence fan-out", category: "Network", tier: "shared", runtime: "ws-newest" },
   { key: "inference-api", name: "Inference API", unit: "worker_min", coinsPerUnit: 6, blurb: "Hosted model endpoints", category: "AI", tier: "spot-cheapest", runtime: "models-newest-viable" },
+  { key: "game-ai-dialogue", name: "Game AI Dialogue", unit: "1k_tokens", coinsPerUnit: 3, blurb: "OpenAI NPC dialogue bots (required or optional per game)", category: "Game AI", tier: "cheapest-model", runtime: "openai-newest-viable" },
+  { key: "game-ai-director", name: "Game AI Director", unit: "decision", coinsPerUnit: 2, blurb: "AI game directing on rented RunPods", category: "Game AI", tier: "cheapest-gpu", runtime: "cuda-newest-viable" },
+  { key: "game-ai-tts", name: "Game AI Voice", unit: "1k_chars", coinsPerUnit: 2, blurb: "In-game voice lines in 9 OpenAI voices", category: "Game AI", tier: "cheapest-tts", runtime: "tts-newest-viable" },
+  { key: "buddy-chat", name: "Gaming Buddy Chat", unit: "1k_tokens", coinsPerUnit: 3, blurb: "Universal screen-aware buddy conversation", category: "Game AI", tier: "cheapest-model", runtime: "openai-newest-viable" },
+  { key: "buddy-voice", name: "Gaming Buddy Voice", unit: "1k_chars", coinsPerUnit: 2, blurb: "Buddy speech in 9 OpenAI voices (Alloy→Shimmer)", category: "Game AI", tier: "cheapest-tts", runtime: "tts-newest-viable" },
 ];
 
 /** Cheapest viable default per category (what the UI preselects). */
@@ -54,6 +62,7 @@ export const CHEAPEST_DEFAULTS: Record<string, string> = {
   Network: "edge-cdn",
   DevOps: "ci-actions",
   AI: "inference-api",
+  "Game AI": "game-ai-director",
 };
 
 /**
@@ -70,6 +79,9 @@ export const NEWEST_VIABLE = {
 } as const;
 
 export const WORKSPACE_CUT_NOTE = `Includes ${WORKSPACE_COMPUTE_CUT_PCT}% workspace compute cut — never added on top.`;
+
+/** Game-AI cut note (same 25%, scoped per game + feature kind). */
+export const GAME_AI_CUT_NOTE = `Includes 25% game-AI compute cut — never added on top.`;
 
 export function serviceByKey(key: string): CloudService | undefined {
   return CLOUD_SERVICES.find((s) => s.key === key);

@@ -6,6 +6,7 @@ const COLUMNS = [
     label: "Play",
     links: [
       { href: "/games", label: "Games" },
+      { href: "/buddy", label: "Gaming Buddy" },
       { href: "/leaderboards", label: "Leaderboards" },
       { href: "/clans", label: "Clans" },
       { href: "/lobbies", label: "Lobbies" },
@@ -35,6 +36,7 @@ const COLUMNS = [
       { href: "/terms", label: "Terms of Use" },
       { href: "/privacy", label: "Privacy Policy" },
       { href: "/my/rights", label: "My Privacy Rights" },
+      { href: "/my/usage/", label: "My Compute Usage" },
       { href: "/accessibility", label: "Accessibility" },
     ],
   },

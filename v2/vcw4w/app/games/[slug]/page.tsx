@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { games, getGame } from "@/content/games";
 import { getGameManifest } from "@/content/game-manifests";
+import { GameAiBadge } from "@/components/games/game-ai-badge";
+import { PlayRateBadge } from "@/components/games/play-rate-badge";
 
 export function generateStaticParams() {
   return games.map((g) => ({ slug: g.slug }));
@@ -48,6 +50,8 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
         <p className="mt-10 text-slate-400 sm:mt-12">
           A hand-crafted HTML5 experience. The original game runtime is preserved intact.
         </p>
+        <PlayRateBadge slug={g.slug} />
+        <GameAiBadge slug={g.slug} />
         <section className="mt-8 rounded-2xl border border-white/10 bg-white/[.03] p-5 sm:mt-10 sm:p-6">
           <h2 className="text-lg font-bold sm:text-xl">Runtime manifest</h2>
           <p className="mt-3 break-words text-sm text-slate-400">

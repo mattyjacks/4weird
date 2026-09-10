@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { games, getGame } from "@/content/games";
-import { GameRuntimeFrame } from "@/components/games/game-runtime-frame";
+import { PlayGate } from "@/components/games/play-gate";
+import { PlayRateBadge } from "@/components/games/play-rate-badge";
+import { GameAiBadge } from "@/components/games/game-ai-badge";
+import { GamingBuddy } from "@/components/buddy/gaming-buddy";
 
 export function generateStaticParams() {
   return games.map((game) => ({ slug: game.slug }));
@@ -54,12 +57,11 @@ export default async function PlayPage({
         <h1 className="mt-3 text-2xl font-black sm:text-3xl">
           {game.emoji} Play {game.title}
         </h1>
+        <PlayRateBadge slug={game.slug} />
       </div>
       <div className="mx-auto max-w-6xl px-4 pb-10 sm:px-5">
-        <div className="mt-4 overflow-hidden rounded-2xl border border-white/15 bg-black">
-          <div className="h-[70vh] min-h-[420px] sm:h-[75vh]">
-            <GameRuntimeFrame slug={game.slug} title={game.title} src={src} />
-          </div>
+        <div className="mt-4">
+          <PlayGate slug={game.slug} title={game.title} src={src} />
         </div>
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
           <Link
@@ -74,7 +76,15 @@ export default async function PlayPage({
           >
             Browse all games
           </Link>
+          <Link
+            href="/my/usage/"
+            className="rounded-full border border-white/20 px-5 py-2.5 text-center text-sm font-semibold hover:bg-white/10"
+          >
+            My usage
+          </Link>
         </div>
+        <GameAiBadge slug={game.slug} />
+        <GamingBuddy gameSlug={game.slug} gameTitle={game.title} />
       </div>
     </div>
   );

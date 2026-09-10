@@ -61,6 +61,9 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/api/matches") ||
     request.nextUrl.pathname.startsWith("/api/me") ||
     request.nextUrl.pathname.startsWith("/api/messages") ||
+    request.nextUrl.pathname.startsWith("/api/my") ||
+    request.nextUrl.pathname.startsWith("/api/buddy") ||
+    request.nextUrl.pathname.startsWith("/api/game-ai") ||
     request.nextUrl.pathname.startsWith("/api/presence") ||
     request.nextUrl.pathname.startsWith("/api/saves") ||
     request.nextUrl.pathname.startsWith("/api/settings") ||

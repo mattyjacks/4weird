@@ -1,0 +1,70 @@
+import fs from "node:fs";
+
+const read = (file) => fs.readFileSync(new URL(file, import.meta.url), "utf8");
+const economy = read("../lib/economy.ts");
+const gameAi = read("../lib/game-ai.ts");
+const catalog = read("../lib/cloud-catalog.ts");
+const buddyEngine = read("../lib/buddy-engine.ts");
+const migration = read("../supabase/migrations/20260910160000_game_ai_compute.sql");
+const meter = read("../app/api/game-ai/meter/route.ts");
+const features = read("../app/api/game-ai/features/route.ts");
+const chat = read("../app/api/buddy/chat/route.ts");
+const tts = read("../app/api/buddy/tts/route.ts");
+const usage = read("../app/api/my/usage/route.ts");
+const usagePage = read("../app/my/usage/page.tsx");
+const buddyPage = read("../app/buddy/page.tsx");
+const widget = read("../components/buddy/gaming-buddy.tsx");
+
+// One rule everywhere: the game-AI cut is 25%, same constant in both libs.
+if (!economy.includes("GAME_AI_COMPUTE_CUT_PCT = 25")) throw new Error("Economy must define GAME_AI_COMPUTE_CUT_PCT = 25.");
+if (!economy.includes("gameAiComputeSplit")) throw new Error("Economy must export gameAiComputeSplit.");
+if (!gameAi.includes("GAME_AI_COMPUTE_CUT_PCT = 25")) throw new Error("Game AI lib must pin the 25% cut.");
+if (!gameAi.includes("gameAiSplit")) throw new Error("Game AI lib must export gameAiSplit.");
+if (!gameAi.includes("GAME_AI_FEATURES")) throw new Error("Game AI lib must declare required/optional features.");
+
+// All 9 OpenAI voices present (Alloy -> Shimmer).
+for (const voice of ["alloy", "ash", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer"]) {
+  if (!gameAi.includes(`id: "${voice}"`)) throw new Error(`Voice ${voice} missing from game-ai lib.`);
+}
+if (!gameAi.includes("tts-1-hd") || !gameAi.includes("tts-1")) throw new Error("Buddy TTS models tts-1/tts-1-hd missing.");
+if (!buddyEngine.includes("OBSERVE") || !buddyEngine.includes("VibeCodeWorker")) {
+  throw new Error("Buddy engine must reuse the VibeCodeWorker observe->reason->act loop.");
+}
+
+// Catalog carries the game-AI + buddy services with the 25% note.
+for (const key of ["game-ai-dialogue", "game-ai-director", "game-ai-tts", "buddy-chat", "buddy-voice"]) {
+  if (!catalog.includes(key)) throw new Error(`Cloud catalog missing ${key}.`);
+}
+if (!catalog.includes("Game AI")) throw new Error("Cloud catalog must have a Game AI category.");
+
+// Migration meters with the 25% cut and never fakes a provision.
+for (const token of ["meter_game_ai_usage", "start_buddy_session", "end_buddy_session", "my_compute_usage", "game_ai_usage", "buddy_sessions", "round(", "25 / 100"]) {
+  if (!migration.includes(token)) throw new Error(`Migration missing ${token}.`);
+}
+if (!migration.includes("IF NOT EXISTS") && !migration.includes("if not exists")) throw new Error("Migration must be rerunnable.");
+
+// APIs exist, require auth (features is public by design so play shells
+// render the 25% disclosure without login), and meter through the RPC.
+for (const [name, src] of [["meter", meter], ["chat", chat], ["tts", tts], ["usage", usage]]) {
+  if (!src.includes("Authentication required")) throw new Error(`${name} API must require auth.`);
+}
+if (!features.includes("game_ai_features")) throw new Error("features API must read game_ai_features.");
+if (!meter.includes("meter_game_ai_usage")) throw new Error("Meter API must call meter_game_ai_usage.");
+if (!chat.includes("meter_game_ai_usage") || !chat.includes("OPENAI_API_KEY")) throw new Error("Buddy chat must meter + honor OPENAI_API_KEY.");
+if (!tts.includes("audio/speech") || !tts.includes("speechSynthesis") && !tts.includes("fallback")) {
+  throw new Error("Buddy TTS must proxy OpenAI speech with a browser fallback.");
+}
+if (!usage.includes("my_compute_usage") || !usage.includes("lastHour") || !usage.includes("last24h")) {
+  throw new Error("Usage API must return session/total/last-hour/last-24h via my_compute_usage.");
+}
+if (!usage.includes("serverless-worker") || !usage.includes("functions")) throw new Error("Usage API must break out function runs.");
+
+// Pages: usage shows all four windows + functions; buddy + widget cover 9 voices + spend.
+for (const token of ["Current session", "Total (all time)", "Last 24 hours", "Last hour", "Functions", "byKind", "byGame", "recentGameAi"]) {
+  if (!read("../app/my/usage/usage-client.tsx").includes(token)) throw new Error(`Usage client missing ${token}.`);
+}
+if (!usagePage.includes("/my/usage")) throw new Error("Usage page must be the /my/usage/ route.");
+if (!buddyPage.includes("Gaming Buddy") || !buddyPage.includes("9")) throw new Error("Buddy page must present the universal buddy.");
+if (!widget.includes("BUDDY_VOICES") && !widget.includes("9")) throw new Error("Buddy widget must offer the 9 voices.");
+if (!widget.includes("/api/my/usage")) throw new Error("Buddy widget must show live session/total/24h/1h spend from /api/my/usage.");
+console.log("Game AI + Buddy integrity OK.");

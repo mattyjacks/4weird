@@ -17,6 +17,14 @@ export const SERVICE_CUT_PCT = 25;
  * per individual workspace so each team's ledger shows its own cut.
  */
 export const WORKSPACE_COMPUTE_CUT_PCT = 25;
+/**
+ * Game AI compute cut: games that require or optionally use AI (OpenAI
+ * dialogue bots, AI directors, rented RunPods, inference APIs, Gaming
+ * Buddy) meter with the same 25% cut INCLUDED in the listed price.
+ * Same rate as SERVICE_CUT_PCT by design — one rule everywhere — but scoped
+ * per game + feature kind so /my/usage can attribute every cent.
+ */
+export const GAME_AI_COMPUTE_CUT_PCT = 25;
 export const TRIAL_COINS_DEFAULT = 100;
 export const TRIAL_COINS_MAX = 100;
 
@@ -68,6 +76,13 @@ export const SELF_HOSTED_COMPUTE_CUT_PCT = 15;
 export function workspaceComputeSplit(grossCoins: number): { gross: number; cut: number; provider: number } {
   const gross = Math.max(0, Math.floor(grossCoins));
   const cut = Math.round((gross * WORKSPACE_COMPUTE_CUT_PCT) / 100);
+  return { gross, cut, provider: gross - cut };
+}
+
+/** Split a game-AI compute charge (gross, cut INCLUDED) into platform/provider. */
+export function gameAiComputeSplit(grossCoins: number): { gross: number; cut: number; provider: number } {
+  const gross = Math.max(0, Math.floor(grossCoins));
+  const cut = Math.round((gross * GAME_AI_COMPUTE_CUT_PCT) / 100);
   return { gross, cut, provider: gross - cut };
 }
 

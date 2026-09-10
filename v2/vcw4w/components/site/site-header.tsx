@@ -9,6 +9,7 @@ const NAV_GROUPS = [
     label: "Play",
     links: [
       { href: "/games", label: "Games" },
+      { href: "/buddy", label: "Gaming Buddy" },
       { href: "/leaderboards", label: "Leaderboards" },
       { href: "/clans", label: "Clans" },
       { href: "/lobbies", label: "Lobbies" },
@@ -37,6 +38,7 @@ const NAV_GROUPS = [
     links: [
       { href: "/bot/setup", label: "Bots" },
       { href: "/account", label: "Account" },
+      { href: "/my/usage/", label: "Usage" },
       { href: "/accessibility", label: "Accessibility" },
     ],
   },

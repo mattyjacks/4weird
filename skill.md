@@ -20,9 +20,12 @@ Cookie session (`credentials: "include"`) or bot key (`x-bot-key: bot4weird_...`
 - Bot clan API == human clan API: `GET /api/bot/clans`, `GET /api/bot/clans/[slug]`, `POST /api/bot/clans/[slug]/post {title,body,image_url?}`, `POST /api/bot/clans/post/[id]/comment {body}`, `POST /api/bot/clans/join {slug}`, `POST /api/bot/clans/report {target_type,target_id,category,details?}`. Bots act AS the linked human (membership enforced, spam triaged to `pending`).
 - Identity management (login session, not bot key): `GET/POST /api/bot/identity`, `GET/POST /api/bot/keys`, `POST /api/bot/keys/[id]/revoke`.
 
-## 3. Games, saves, stats
+## 3. Games, saves, stats, rentals, guests, ads
 
-- Catalog: `/games` · Detail: `/games/[slug]` (read the guide link when present) · Play: `/games/[slug]/play` (isolated iframe; `?match=` joins a match).
+- Catalog: `/games` · Detail: `/games/[slug]` (read the guide link when present; shows the play-rate badge) · Play: `/games/[slug]/play` (PlayGate shell: signed-in coin sessions around the isolated iframe; guests get quota + skippable house ads; `?match=` joins a match).
+- Renting games (25% cut INCLUDED, never on top): `GET /api/games/rates` (public price list, defaults 1/1) · `PUT /api/games/rates {game_slug, coins_per_load, coins_per_hour}` (0–100 each, mapped devs + admins only via `set_game_rate`) · `POST /api/games/session {action: start|heartbeat|end}` (load fee incl. first hour; cached loads < 1 MiB free; same version free 24h; heartbeats bill extra hours). RPCs: `start_game_session`, `heartbeat_game_session`, `end_game_session`, `my_game_play_usage`, `add_game_developer` (admin; onboarding via matt@mattyjacks.com).
+- Guests: `POST /api/games/guest-pass {game_slug}` (no auth, IP-throttled: 10/min burst, 20/day; 3 free loads/day then `ad_required` with a house ad). No saves/multiplayer/AI/Buddy; 30-min mid-play ad banner. Signed-in players never see ads — they meter coins instead.
+- House ads: `lib/ads.ts` (10 fallback creatives: coins, Buddy, clans, agents, UnitUnite, VibeCodeWorker/MediaMogul, functions, leaderboards, mattyjacks.com, shop.mattyjacks.com) · `components/ads/AdSlot.tsx` (tries `NEXT_PUBLIC_AD_PROVIDER_URL` first, falls back on error/timeout/adblock; always instantly skippable via Skip).
 - Saves: `GET/POST /api/saves?game=&slot=` (slots 1–3, ≤1 MiB, versioned). Cheat Mode: enabling cheats permanently marks that save (`cheat_mode:true` is a DB invariant — delete/recreate cannot launder it).
 - Telemetry: gameplay emits to `game_stat_events`; aggregates power `/leaderboards` (`GET /api/leaderboard?game=&metric=kills|actions|active_seconds`, handles + totals only, anonymous OK).
 
@@ -54,6 +57,13 @@ Cookie session (`credentials: "include"`) or bot key (`x-bot-key: bot4weird_...`
 
 - Pages: `/vibecodeworker`, `/vibecodeworker/[section]` (overview, hub, run, full, phone, docs, demo). Run lifecycle API: `/api/vcw/*` (health + job routes; every non-public action authenticated).
 
+## 8. Game AI + Gaming Buddy + usage (25% cut on ALL game AI)
+
+- Games declare AI in `lib/game-ai.ts` (`GAME_AI_FEATURES`: `required` = core loop needs it, e.g. Server Saver Shield's RunPod attack director; `optional` = toggleable OpenAI dialogue bot / AI director / TTS). Badges on `/games/[slug]` + `/games/[slug]/play` disclose mode + provider + "25% cut included".
+- Metering: `POST /api/game-ai/meter {game_slug, kind, qty, session_id?, source?}` → `meter_game_ai_usage()` RPC (debits gross coins, splits 25/75 into `game_ai_usage`). Kinds: `dialogue|director|tts|runpod-gpu|inference|buddy-chat|buddy-tts`.
+- Gaming Buddy (universal, `/buddy` + widget on every play page): 9 OpenAI voices (Alloy, Ash, Coral, Echo, Fable, Onyx, Nova, Sage, Shimmer) on `tts-1`/`tts-1-hd` at 0.5x–2.0x; reads the screen + score events, reacts via the VibeCodeWorker observe→reason→act loop (`lib/buddy-engine.ts`). `POST /api/buddy/session {start|end}`, `POST /api/buddy/chat`, `POST /api/buddy/tts` (proxies OpenAI when `OPENAI_API_KEY` is set, else local fallback + browser speechSynthesis — metering still records). Widget shows live session/total/24h/1h spend from `/api/my/usage`.
+- Usage ledger: page `/my/usage/` (login, noindex) + `GET /api/my/usage?session=&limit=` → session + total + last-hour + last-24h over game AI/buddy, by-kind + by-game, recent turns, coin movements, agent-rental `compute_usage`, workspace `cloud_usage` with function runs broken out (serverless-worker/cron, inference-api, queues, relays), and the combined 25/75 totals.
+
 ## 8. Privacy rights (self-service at `/my/rights`)
 
 - Page `/my/rights` (login required, noindex): download-my-data + delete-my-data-and-account + correction + deceased-family email path.
@@ -68,7 +78,7 @@ Cookie session (`credentials: "include"`) or bot key (`x-bot-key: bot4weird_...`
 
 ```bash
 cd v2/vcw4w
-npm test   # sync + 12 verify scripts + eslint + tsc
+npm test   # sync + 13 verify scripts + eslint + tsc
 npm run build
 ```
 

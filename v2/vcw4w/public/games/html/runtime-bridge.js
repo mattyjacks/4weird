@@ -5,7 +5,7 @@
  * scripts/sync-game-bundles.mjs). Speaks the { version: 1 } postMessage
  * protocol the Next.js play shell (GameRuntimeFrame) expects:
  *
- *   game -> host: ready, error, score
+ *   game -> host: ready, error, score, metering
  *   host -> game: host-ready, load, save-ack, pause, resume, reset
  *
  * Why this exists: the preserved v1 game bundles predate the play shell, so
@@ -85,9 +85,30 @@
   // The shell attaches its message listener after first paint; announce on
   // load and once more shortly after so a late listener still handshakes.
   // (The shell dedupes: extra ready pings only re-trigger a save fetch.)
+  //
+  // Metering: report this document's fresh network bytes (transferSize is 0
+  // for cache hits, so a service-worker / HTTP-cached load reports ~0 and
+  // the play-metering API waives the load fee for < 1 MiB of new data).
+  function reportBytes() {
+    var total = 0;
+    try {
+      var nav = performance.getEntriesByType("navigation")[0];
+      if (nav && nav.transferSize) total += nav.transferSize;
+      var res = performance.getEntriesByType("resource");
+      for (var i = 0; i < res.length; i += 1) {
+        total += res[i].transferSize || 0;
+      }
+    } catch (e) {
+      /* performance API unavailable; shell bills the load normally */
+    }
+    post({ type: "metering", bytes: total });
+  }
+
   window.addEventListener("load", function () {
     announceReady();
     setTimeout(announceReady, 1500);
+    // Late assets (audio, levels) land after load; report once settled.
+    setTimeout(reportBytes, 3000);
   });
   if (document.readyState === "complete") announceReady();
 
