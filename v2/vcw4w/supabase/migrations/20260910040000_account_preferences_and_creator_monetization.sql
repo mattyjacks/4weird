@@ -7,6 +7,7 @@ create table if not exists public.account_settings (
  updated_at timestamptz not null default now()
 );
 alter table public.account_settings enable row level security;
+drop policy if exists account_settings_own on public.account_settings;
 create policy account_settings_own on public.account_settings for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
 alter table public.code_submissions add column if not exists monetization_status text not null default 'not_ready' check(monetization_status in ('not_ready','ready','enabled'));
 create or replace function public.set_creator_monetization(p_submission uuid,p_enabled boolean)

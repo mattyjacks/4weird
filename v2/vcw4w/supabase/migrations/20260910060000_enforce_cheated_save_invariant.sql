@@ -12,8 +12,11 @@ create trigger trg_enforce_cheat_save_marker before update on public.game_saves 
 -- A save is intentionally not deletable from the client: delete/recreate
 -- must never be usable as a way to launder a cheated progression file.
 drop policy if exists game_saves_own on public.game_saves;
+drop policy if exists game_saves_read_own on public.game_saves;
 create policy game_saves_read_own on public.game_saves for select to authenticated using(user_id=auth.uid());
+drop policy if exists game_saves_insert_own on public.game_saves;
 create policy game_saves_insert_own on public.game_saves for insert to authenticated with check(user_id=auth.uid());
+drop policy if exists game_saves_update_own on public.game_saves;
 create policy game_saves_update_own on public.game_saves for update to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
 revoke delete on public.game_saves from authenticated;
 grant select,insert,update on public.game_saves to authenticated;

@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient, supabaseServiceRoleKey } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
 import { fail, ok } from "@/lib/api-respond";
+import { TRIAL_COINS_DEFAULT, TRIAL_COINS_MAX } from "@/lib/economy";
 import { clientIp, isEmail, isPassword } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +13,7 @@ async function awardTrial(userId: string, email: string, req: Request): Promise<
   // Fail closed: credits are never issued with an unsalted, reusable IP hash.
   if (!salt || !supabaseServiceRoleKey()) return false;
   const hash = createHash("sha256").update(`${salt}|${clientIp(req)}`).digest("hex");
-  const coins = Math.max(1, Math.min(100, Number(process.env.FREE_TRIAL_VCOINS ?? 20)));
+  const coins = Math.max(1, Math.min(TRIAL_COINS_MAX, Number(process.env.FREE_TRIAL_VCOINS ?? TRIAL_COINS_DEFAULT)));
   const { data } = await serviceClient().rpc("award_signup_credit", {
     p_user: userId,
     p_email: email,

@@ -15,5 +15,13 @@ export async function POST(request: Request) {
   if (!variantPattern.test(variantId)) return NextResponse.json({ error: "A valid product variant is required." }, { status: 400 });
   const allowed = (process.env.SHOPIFY_ALLOWED_VARIANTS ?? "").split(",").map((value) => value.trim()).filter(Boolean);
   if (allowed.length && !allowed.includes(variantId)) return NextResponse.json({ error: "This coin pack is not available." }, { status: 400 });
-  return NextResponse.json({ url: `https://${store}/cart/${encodeURIComponent(variantId)}:1` }, { headers: { "Cache-Control": "private, no-store" } });
+  // Custom amounts ride on a $0.01-per-unit variant: quantity equals coins.
+  const customVariant = (process.env.COIN_CUSTOM_VARIANT ?? "").trim();
+  let qty = 1;
+  if (customVariant && variantId === customVariant) {
+    const wanted = Number(typeof body === "object" && body !== null && "quantity" in body ? (body as { quantity?: unknown }).quantity : NaN);
+    if (!Number.isInteger(wanted) || wanted < 500 || wanted > 100000) return NextResponse.json({ error: "Custom amounts need 500–100000 coins." }, { status: 400 });
+    qty = wanted;
+  }
+  return NextResponse.json({ url: `https://${store}/cart/${encodeURIComponent(variantId)}:${qty}` }, { headers: { "Cache-Control": "private, no-store" } });
 }

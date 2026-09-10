@@ -25,16 +25,25 @@ create table if not exists public.code_submissions (
  id uuid primary key default gen_random_uuid(), owner_id uuid not null references public.profiles(id) on delete cascade, title varchar(80) not null, source text not null check(octet_length(source) <= 262144), status text not null default 'draft' check(status in ('draft','submitted','approved','rejected')), created_at timestamptz not null default now(), updated_at timestamptz not null default now()
 );
 alter table public.friendships enable row level security; alter table public.direct_messages enable row level security; alter table public.game_stat_events enable row level security; alter table public.cheat_settings enable row level security; alter table public.code_submissions enable row level security;
+drop policy if exists friendships_own on public.friendships;
 create policy friendships_own on public.friendships for all to authenticated using(requester_id=auth.uid() or addressee_id=auth.uid()) with check(requester_id=auth.uid() or addressee_id=auth.uid());
+drop policy if exists messages_friends on public.direct_messages;
 create policy messages_friends on public.direct_messages for select to authenticated using(sender_id=auth.uid() or recipient_id=auth.uid());
+drop policy if exists messages_send_to_friend on public.direct_messages;
 create policy messages_send_to_friend on public.direct_messages for insert to authenticated with check(sender_id=auth.uid() and exists(select 1 from public.friendships f where f.status='accepted' and ((f.requester_id=auth.uid() and f.addressee_id=recipient_id) or (f.addressee_id=auth.uid() and f.requester_id=recipient_id))));
+drop policy if exists stats_own on public.game_stat_events;
 create policy stats_own on public.game_stat_events for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
+drop policy if exists cheats_own on public.cheat_settings;
 create policy cheats_own on public.cheat_settings for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
 -- Owners can read and create drafts, but cannot self-approve or alter a submitted
 -- package through the database API. Admin review is a separately audited action.
+drop policy if exists code_owner_read on public.code_submissions;
 create policy code_owner_read on public.code_submissions for select to authenticated using(owner_id=auth.uid());
+drop policy if exists code_owner_draft_insert on public.code_submissions;
 create policy code_owner_draft_insert on public.code_submissions for insert to authenticated with check(owner_id=auth.uid() and status='draft');
+drop policy if exists code_owner_draft_update on public.code_submissions;
 create policy code_owner_draft_update on public.code_submissions for update to authenticated using(owner_id=auth.uid() and status='draft') with check(owner_id=auth.uid() and status in ('draft','submitted'));
+drop policy if exists code_admin_review on public.code_submissions;
 create policy code_admin_review on public.code_submissions for all to authenticated using((auth.jwt() -> 'app_metadata' ->> 'role')='admin') with check((auth.jwt() -> 'app_metadata' ->> 'role')='admin');
 create or replace function public.set_cheat_setting(p_game text,p_slot smallint,p_enabled boolean) returns boolean language plpgsql security definer set search_path=public as $$ begin
  if p_game !~ '^[a-z0-9-]{1,64}$' or p_slot not between 1 and 3 then raise exception 'invalid cheat setting'; end if;

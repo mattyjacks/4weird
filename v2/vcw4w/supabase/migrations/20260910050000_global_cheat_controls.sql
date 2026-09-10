@@ -5,4 +5,5 @@ create table if not exists public.global_cheat_settings (
  enabled boolean not null default false, updated_at timestamptz not null default now()
 );
 alter table public.global_cheat_settings enable row level security;
+drop policy if exists global_cheats_own on public.global_cheat_settings;
 create policy global_cheats_own on public.global_cheat_settings for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());

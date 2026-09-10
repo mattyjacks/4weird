@@ -12,8 +12,16 @@
  *   - /claim   : the caller's Supabase user JWT, validated via auth.getUser.
  *
  * Money rules:
- *   - SKU -> coin amounts live ONLY in COIN_SKU_MAP below. Prices, cart
- *     attributes, and line-item titles from Shopify are never trusted.
+ *   - Buyer price is $0.01 per coin (100 coins = exactly $1.00). That $1.00
+ *     already includes the 25% platform service cut ($0.25 cut, $0.75 coin
+ *     value) — the cut is never added on top of a price.
+ *   - Fixed-pack SKU -> coin amounts live ONLY in COIN_SKU_MAP below.
+ *     Prices, cart attributes, and line-item titles from Shopify are never
+ *     trusted for fixed packs.
+ *   - VIBE-COINS-CUSTOM mints from the VERIFIED PAID line total instead:
+ *     coins = round(line price x quantity in dollars x 100), floored at
+ *     CUSTOM_COINS_MIN and capped at MAX_COINS_PER_ORDER. The HMAC-verified
+ *     Shopify payment is the authority, never the browser.
  *   - shopify_order_id is UNIQUE: retries/redeliveries cannot double-mint.
  *   - coin_ledger.grant_id is UNIQUE: one grant mints exactly one row, even
  *     under concurrent webhook deliveries (second insert fails safe).
@@ -21,11 +29,15 @@
  */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.116.0';
 
+// No 100-coin pack: 100 coins is the free signup trial.
 const COIN_SKU_MAP: Record<string, number> = {
-  'VIBE-COINS-100': 100,
-  'VIBE-COINS-550': 550,
-  'VIBE-COINS-1300': 1300,
+  'VIBE-COINS-500': 500,
+  'VIBE-COINS-1500': 1500,
+  'VIBE-COINS-5000': 5000,
+  'VIBE-COINS-25000': 25000,
 };
+const CUSTOM_SKU = 'VIBE-COINS-CUSTOM';
+const CUSTOM_COINS_MIN = 500;
 const MAX_COINS_PER_ORDER = 100000;
 
 function siteOrigins(): string[] {
@@ -108,14 +120,25 @@ async function handleWebhook(req: Request): Promise<Response> {
     return json(req, 200, { success: true, granted: 0, skipped: 'no buyer email' });
   }
 
-  const items = (order as { line_items?: Array<{ sku?: unknown; quantity?: unknown }> }).line_items ?? [];
+  const items = (order as { line_items?: Array<{ sku?: unknown; quantity?: unknown; price?: unknown }> }).line_items ?? [];
   let coins = 0;
   const skus: string[] = [];
   for (const item of items) {
     const sku = String(item?.sku ?? '');
+    const qty = Math.max(1, Math.min(Number(item?.quantity) || 1, 99));
+    if (sku === CUSTOM_SKU) {
+      // Custom amount: mint from the verified paid line total at $0.01/coin.
+      // Unit price x quantity comes from HMAC-verified Shopify, not the buyer.
+      const unit = Number(item?.price);
+      if (!Number.isFinite(unit) || unit <= 0) continue;
+      const custom = Math.round(unit * qty * 100);
+      if (custom < CUSTOM_COINS_MIN || custom > MAX_COINS_PER_ORDER) continue;
+      coins += custom;
+      skus.push(sku + 'x' + qty + '=' + custom);
+      continue;
+    }
     const per = COIN_SKU_MAP[sku];
     if (!per) continue; // unknown SKU: not ours, never minted
-    const qty = Math.max(1, Math.min(Number(item?.quantity) || 1, 99));
     coins += per * qty;
     skus.push(sku + 'x' + qty);
   }

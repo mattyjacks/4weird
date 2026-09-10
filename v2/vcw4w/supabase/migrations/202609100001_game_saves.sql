@@ -11,9 +11,13 @@ create table if not exists public.game_saves (
 );
 
 alter table public.game_saves enable row level security;
+drop policy if exists "Users can read their own game saves" on public.game_saves;
 create policy "Users can read their own game saves" on public.game_saves for select using (auth.uid() = user_id);
+drop policy if exists "Users can insert their own game saves" on public.game_saves;
 create policy "Users can insert their own game saves" on public.game_saves for insert with check (auth.uid() = user_id);
+drop policy if exists "Users can update their own game saves" on public.game_saves;
 create policy "Users can update their own game saves" on public.game_saves for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Users can delete their own game saves" on public.game_saves;
 create policy "Users can delete their own game saves" on public.game_saves for delete using (auth.uid() = user_id);
 
 create or replace function public.touch_game_save_updated_at()

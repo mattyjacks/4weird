@@ -11,11 +11,17 @@ create table if not exists public.game_matches (
 );
 alter table public.game_match_queue enable row level security; alter table public.game_matches enable row level security;
 drop policy if exists friendships_own on public.friendships;
+drop policy if exists friendships_read_own on public.friendships;
 create policy friendships_read_own on public.friendships for select to authenticated using(requester_id=auth.uid() or addressee_id=auth.uid());
+drop policy if exists friendships_insert_requester on public.friendships;
 create policy friendships_insert_requester on public.friendships for insert to authenticated with check(requester_id=auth.uid());
+drop policy if exists friendships_respond_recipient on public.friendships;
 create policy friendships_respond_recipient on public.friendships for update to authenticated using(addressee_id=auth.uid()) with check(addressee_id=auth.uid());
+drop policy if exists friendships_delete_own on public.friendships;
 create policy friendships_delete_own on public.friendships for delete to authenticated using(requester_id=auth.uid() or addressee_id=auth.uid());
+drop policy if exists queue_own on public.game_match_queue;
 create policy queue_own on public.game_match_queue for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
+drop policy if exists matches_participant on public.game_matches;
 create policy matches_participant on public.game_matches for select to authenticated using(phone_id=auth.uid() or desktop_id=auth.uid());
 
 create or replace function public.quick_match(p_game text,p_platform text)

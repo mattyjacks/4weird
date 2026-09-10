@@ -1,0 +1,558 @@
+﻿
+-- ============================================================================
+-- BUNDLE FILE: 20260910000000_vibe_coins_init.sql
+-- ============================================================================
+-- ============================================================================
+-- Supabase migration (applied by the dashboard GitHub integration on merge
+-- to main): profiles, game saves, Vibe Coins ledger + RLS.
+-- Source of truth for review: supabase/schema.sql (identical body).
+-- Re-runnable: every statement below is IF NOT EXISTS / OR REPLACE /
+-- guarded by a preceding DROP ... IF EXISTS.
+-- ============================================================================
+
+-- ============================================================================
+-- 4weird Games - Supabase schema: profiles, game saves, Vibe Coins ledger.
+-- Run once in the Supabase dashboard: SQL Editor -> New query -> paste -> Run.
+--
+-- Money safety, enforced by the DATABASE (not by client code):
+--  1. coin_grants / coin_ledger have NO client write policies at all. The
+--     browser uses the anon key, so without a policy every INSERT/UPDATE/
+--     DELETE is denied. Only the shopify-coins Edge Function (service_role,
+--     bypasses RLS) can move coins.
+--  2. Balances are always SUM(delta) over the append-only ledger. There is
+--     no balance column to tamper with, and grant_id is UNIQUE so one paid
+--     order can never mint coins twice, even on webhook retries/races.
+--  3. shopify_order_id is UNIQUE: Shopify redeliveries are idempotent.
+-- ============================================================================
+
+-- --------------------------------------------------------------------------
+-- Helpers
+-- --------------------------------------------------------------------------
+create or replace function public.handle_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+-- --------------------------------------------------------------------------
+-- profiles: one row per auth user, created by trigger (never by the client).
+-- --------------------------------------------------------------------------
+create table if not exists public.profiles (
+  id uuid primary key references auth.users (id) on delete cascade,
+  email text,
+  display_name varchar(40) not null default '' check (char_length(display_name) <= 40),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+drop trigger if exists trg_profiles_updated_at on public.profiles;
+create trigger trg_profiles_updated_at
+  before update on public.profiles
+  for each row execute function public.handle_updated_at();
+
+-- Runs as definer (bypasses RLS) so signup works with zero client INSERT.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  wanted text;
+begin
+  wanted := coalesce(nullif(new.raw_user_meta_data ->> 'display_name', ''), split_part(new.email, '@', 1), 'player');
+  insert into public.profiles (id, email, display_name)
+  values (new.id, new.email, substring(wanted from 1 for 40))
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_handle_new_user on auth.users;
+create trigger trg_handle_new_user
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- --------------------------------------------------------------------------
+-- game_saves: per-user, per-game, per-slot JSON saves (max 1 MiB each).
+-- --------------------------------------------------------------------------
+create table if not exists public.game_saves (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  game_slug text not null check (game_slug ~ '^[a-z0-9-]{1,64}$'),
+  slot smallint not null check (slot between 1 and 3),
+  data jsonb not null default '{}'::jsonb check (pg_column_size(data) <= 1048576),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (user_id, game_slug, slot)
+);
+
+drop trigger if exists trg_game_saves_updated_at on public.game_saves;
+create trigger trg_game_saves_updated_at
+  before update on public.game_saves
+  for each row execute function public.handle_updated_at();
+
+-- --------------------------------------------------------------------------
+-- coin_grants: one row per paid Shopify order (or part of one). Audit trail.
+-- user_id stays NULL until the paid-order email is matched to an account.
+-- --------------------------------------------------------------------------
+create table if not exists public.coin_grants (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references public.profiles (id) on delete set null,
+  email text not null check (char_length(email) between 3 and 254),
+  shopify_order_id text not null unique,
+  shopify_order_name text,
+  sku text not null,
+  coins integer not null check (coins > 0 and coins <= 1000000),
+  claimed boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_coin_grants_email on public.coin_grants (lower(email));
+create index if not exists idx_coin_grants_user on public.coin_grants (user_id);
+
+-- --------------------------------------------------------------------------
+-- coin_ledger: append-only. Balance = SUM(delta) WHERE user_id = me.
+-- grant_id UNIQUE: one grant mints exactly one ledger row, ever.
+-- --------------------------------------------------------------------------
+create table if not exists public.coin_ledger (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  delta integer not null check (delta <> 0 and delta >= -1000000 and delta <= 1000000),
+  reason varchar(120) not null check (char_length(reason) <= 120),
+  grant_id uuid unique references public.coin_grants (id) on delete set null,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_coin_ledger_user on public.coin_ledger (user_id, created_at desc);
+
+-- --------------------------------------------------------------------------
+-- Convenience balance function (fixed logic, no arguments to inject).
+-- --------------------------------------------------------------------------
+create or replace function public.get_my_coin_balance()
+returns integer
+language sql
+security definer
+set search_path = public
+as $$
+  select coalesce(sum(delta), 0)::integer from public.coin_ledger where user_id = auth.uid();
+$$;
+grant execute on function public.get_my_coin_balance() to authenticated;
+
+-- ============================================================================
+-- Row Level Security: deny-by-default; each policy below scopes to auth.uid()
+-- (or the JWT email for unclaimed grants). No money-table write policies.
+-- ============================================================================
+alter table public.profiles enable row level security;
+alter table public.game_saves enable row level security;
+alter table public.coin_grants enable row level security;
+alter table public.coin_ledger enable row level security;
+
+-- profiles: read + rename yourself. Creation is trigger-only.
+drop policy if exists profiles_select_own on public.profiles;
+create policy profiles_select_own on public.profiles
+  for select to authenticated using (id = auth.uid());
+drop policy if exists profiles_update_own on public.profiles;
+create policy profiles_update_own on public.profiles
+  for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
+
+-- game_saves: full CRUD on your own rows only.
+drop policy if exists game_saves_own on public.game_saves;
+create policy game_saves_own on public.game_saves
+  for all to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- coin_grants: read your own (by id, or by matching order email while
+-- unclaimed). No INSERT / UPDATE / DELETE policies: client writes denied.
+drop policy if exists coin_grants_select_own on public.coin_grants;
+create policy coin_grants_select_own on public.coin_grants
+  for select to authenticated using (
+    user_id = auth.uid()
+    or (claimed = false and lower(email) = lower(auth.jwt() ->> 'email'))
+  );
+
+-- coin_ledger: read your own rows. No write policies: client writes denied.
+drop policy if exists coin_ledger_select_own on public.coin_ledger;
+create policy coin_ledger_select_own on public.coin_ledger
+  for select to authenticated using (user_id = auth.uid());
+
+-- Explicit table grants (belt + suspenders over RLS deny-by-default).
+revoke all on public.coin_grants from anon, authenticated;
+revoke all on public.coin_ledger from anon, authenticated;
+grant select on public.coin_grants to authenticated;
+grant select on public.coin_ledger to authenticated;
+grant select, update on public.profiles to authenticated;
+grant select, insert, update, delete on public.game_saves to authenticated;
+
+-- ============================================================================
+-- BUNDLE FILE: 202609100001_game_saves.sql
+-- ============================================================================
+create table if not exists public.game_saves (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  game_slug text not null,
+  slot integer not null default 1 check (slot between 1 and 3),
+  schema_version integer not null default 1 check (schema_version > 0),
+  data jsonb not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (user_id, game_slug, slot)
+);
+
+alter table public.game_saves enable row level security;
+drop policy if exists "Users can read their own game saves" on public.game_saves;
+create policy "Users can read their own game saves" on public.game_saves for select using (auth.uid() = user_id);
+drop policy if exists "Users can insert their own game saves" on public.game_saves;
+create policy "Users can insert their own game saves" on public.game_saves for insert with check (auth.uid() = user_id);
+drop policy if exists "Users can update their own game saves" on public.game_saves;
+create policy "Users can update their own game saves" on public.game_saves for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Users can delete their own game saves" on public.game_saves;
+create policy "Users can delete their own game saves" on public.game_saves for delete using (auth.uid() = user_id);
+
+create or replace function public.touch_game_save_updated_at()
+returns trigger language plpgsql as $$ begin new.updated_at = now(); return new; end; $$;
+drop trigger if exists game_saves_updated_at on public.game_saves;
+create trigger game_saves_updated_at before update on public.game_saves for each row execute function public.touch_game_save_updated_at();
+
+-- ============================================================================
+-- BUNDLE FILE: 20260910010000_social_platform_wars.sql
+-- ============================================================================
+-- Social, telemetry, creator submissions, and permanent per-save cheat marking.
+-- Apply after schema.sql. All user data remains protected by RLS.
+alter table public.profiles add column if not exists public_handle varchar(40) unique;
+alter table public.profiles add column if not exists public_playtime boolean not null default true;
+
+create table if not exists public.friendships (
+  id uuid primary key default gen_random_uuid(), requester_id uuid not null references public.profiles(id) on delete cascade,
+  addressee_id uuid not null references public.profiles(id) on delete cascade,
+  status text not null default 'pending' check(status in ('pending','accepted','blocked')),
+  created_at timestamptz not null default now(), updated_at timestamptz not null default now(),
+  check(requester_id <> addressee_id), unique(requester_id, addressee_id)
+);
+create table if not exists public.direct_messages (
+ id uuid primary key default gen_random_uuid(), sender_id uuid not null references public.profiles(id) on delete cascade,
+ recipient_id uuid not null references public.profiles(id) on delete cascade, body varchar(2000) not null check(char_length(trim(body)) between 1 and 2000), created_at timestamptz not null default now(), read_at timestamptz
+);
+create table if not exists public.game_stat_events (
+ id uuid primary key default gen_random_uuid(), user_id uuid not null references public.profiles(id) on delete cascade, game_slug text not null check(game_slug ~ '^[a-z0-9-]{1,64}$'),
+ active_seconds integer not null default 0 check(active_seconds between 0 and 3600), actions integer not null default 0 check(actions between 0 and 100000), kills integer not null default 0 check(kills between 0 and 100000), deaths integer not null default 0 check(deaths between 0 and 100000), created_at timestamptz not null default now()
+);
+create table if not exists public.cheat_settings (
+ user_id uuid not null references public.profiles(id) on delete cascade, game_slug text not null check(game_slug ~ '^[a-z0-9-]{1,64}$'), slot smallint not null check(slot between 1 and 3), enabled boolean not null default false, cheated_at timestamptz, primary key(user_id,game_slug,slot)
+);
+create table if not exists public.code_submissions (
+ id uuid primary key default gen_random_uuid(), owner_id uuid not null references public.profiles(id) on delete cascade, title varchar(80) not null, source text not null check(octet_length(source) <= 262144), status text not null default 'draft' check(status in ('draft','submitted','approved','rejected')), created_at timestamptz not null default now(), updated_at timestamptz not null default now()
+);
+alter table public.friendships enable row level security; alter table public.direct_messages enable row level security; alter table public.game_stat_events enable row level security; alter table public.cheat_settings enable row level security; alter table public.code_submissions enable row level security;
+drop policy if exists friendships_own on public.friendships;
+create policy friendships_own on public.friendships for all to authenticated using(requester_id=auth.uid() or addressee_id=auth.uid()) with check(requester_id=auth.uid() or addressee_id=auth.uid());
+drop policy if exists messages_friends on public.direct_messages;
+create policy messages_friends on public.direct_messages for select to authenticated using(sender_id=auth.uid() or recipient_id=auth.uid());
+drop policy if exists messages_send_to_friend on public.direct_messages;
+create policy messages_send_to_friend on public.direct_messages for insert to authenticated with check(sender_id=auth.uid() and exists(select 1 from public.friendships f where f.status='accepted' and ((f.requester_id=auth.uid() and f.addressee_id=recipient_id) or (f.addressee_id=auth.uid() and f.requester_id=recipient_id))));
+drop policy if exists stats_own on public.game_stat_events;
+create policy stats_own on public.game_stat_events for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
+drop policy if exists cheats_own on public.cheat_settings;
+create policy cheats_own on public.cheat_settings for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
+-- Owners can read and create drafts, but cannot self-approve or alter a submitted
+-- package through the database API. Admin review is a separately audited action.
+drop policy if exists code_owner_read on public.code_submissions;
+create policy code_owner_read on public.code_submissions for select to authenticated using(owner_id=auth.uid());
+drop policy if exists code_owner_draft_insert on public.code_submissions;
+create policy code_owner_draft_insert on public.code_submissions for insert to authenticated with check(owner_id=auth.uid() and status='draft');
+drop policy if exists code_owner_draft_update on public.code_submissions;
+create policy code_owner_draft_update on public.code_submissions for update to authenticated using(owner_id=auth.uid() and status='draft') with check(owner_id=auth.uid() and status in ('draft','submitted'));
+drop policy if exists code_admin_review on public.code_submissions;
+create policy code_admin_review on public.code_submissions for all to authenticated using((auth.jwt() -> 'app_metadata' ->> 'role')='admin') with check((auth.jwt() -> 'app_metadata' ->> 'role')='admin');
+create or replace function public.set_cheat_setting(p_game text,p_slot smallint,p_enabled boolean) returns boolean language plpgsql security definer set search_path=public as $$ begin
+ if p_game !~ '^[a-z0-9-]{1,64}$' or p_slot not between 1 and 3 then raise exception 'invalid cheat setting'; end if;
+ insert into cheat_settings(user_id,game_slug,slot,enabled,cheated_at) values(auth.uid(),p_game,p_slot,p_enabled,case when p_enabled then now() end) on conflict(user_id,game_slug,slot) do update set enabled=excluded.enabled,cheated_at=coalesce(cheat_settings.cheated_at,excluded.cheated_at);
+ if p_enabled then insert into game_saves(user_id,game_slug,slot,data) values(auth.uid(),p_game,p_slot,jsonb_build_object('cheat_mode',true)) on conflict(user_id,game_slug,slot) do update set data=game_saves.data || jsonb_build_object('cheat_mode',true); end if; return p_enabled; end; $$;
+grant execute on function public.set_cheat_setting(text,smallint,boolean) to authenticated;
+
+-- ============================================================================
+-- BUNDLE FILE: 20260910020000_multiplayer_and_social_actions.sql
+-- ============================================================================
+-- Live-match relay, safe aggregate telemetry, and RPC helpers for account UI.
+create table if not exists public.game_match_queue (
+  id uuid primary key default gen_random_uuid(), user_id uuid not null unique references public.profiles(id) on delete cascade,
+  game_slug text not null check(game_slug ~ '^[a-z0-9-]{1,64}$'), platform text not null check(platform in ('phone','desktop')), created_at timestamptz not null default now()
+);
+create table if not exists public.game_matches (
+  id uuid primary key default gen_random_uuid(), game_slug text not null check(game_slug ~ '^[a-z0-9-]{1,64}$'), phone_id uuid not null references public.profiles(id), desktop_id uuid not null references public.profiles(id),
+  phone_state jsonb not null default '{}'::jsonb check(pg_column_size(phone_state)<=4096), desktop_state jsonb not null default '{}'::jsonb check(pg_column_size(desktop_state)<=4096),
+  status text not null default 'active' check(status in ('active','finished','abandoned')), created_at timestamptz not null default now(), finished_at timestamptz,
+  check(phone_id<>desktop_id)
+);
+alter table public.game_match_queue enable row level security; alter table public.game_matches enable row level security;
+drop policy if exists friendships_own on public.friendships;
+drop policy if exists friendships_read_own on public.friendships;
+create policy friendships_read_own on public.friendships for select to authenticated using(requester_id=auth.uid() or addressee_id=auth.uid());
+drop policy if exists friendships_insert_requester on public.friendships;
+create policy friendships_insert_requester on public.friendships for insert to authenticated with check(requester_id=auth.uid());
+drop policy if exists friendships_respond_recipient on public.friendships;
+create policy friendships_respond_recipient on public.friendships for update to authenticated using(addressee_id=auth.uid()) with check(addressee_id=auth.uid());
+drop policy if exists friendships_delete_own on public.friendships;
+create policy friendships_delete_own on public.friendships for delete to authenticated using(requester_id=auth.uid() or addressee_id=auth.uid());
+drop policy if exists queue_own on public.game_match_queue;
+create policy queue_own on public.game_match_queue for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
+drop policy if exists matches_participant on public.game_matches;
+create policy matches_participant on public.game_matches for select to authenticated using(phone_id=auth.uid() or desktop_id=auth.uid());
+
+create or replace function public.quick_match(p_game text,p_platform text)
+returns table(match_id uuid, status text, opponent_platform text)
+language plpgsql security definer set search_path=public as $$
+declare opponent record; mine uuid := auth.uid(); m uuid;
+begin
+  if mine is null or p_game !~ '^[a-z0-9-]{1,64}$' or p_platform not in ('phone','desktop') then raise exception 'invalid match request'; end if;
+  delete from game_match_queue where created_at < now()-interval '2 minutes';
+  select * into opponent from game_match_queue where game_slug=p_game and platform<>p_platform and user_id<>mine order by created_at for update skip locked limit 1;
+  if found then
+    insert into game_matches(game_slug,phone_id,desktop_id) values(p_game,case when p_platform='phone' then mine else opponent.user_id end,case when p_platform='desktop' then mine else opponent.user_id end) returning id into m;
+    delete from game_match_queue where id=opponent.id; delete from game_match_queue where user_id=mine;
+    return query select m,'matched'::text,opponent.platform;
+  end if;
+  insert into game_match_queue(user_id,game_slug,platform) values(mine,p_game,p_platform) on conflict(user_id) do update set game_slug=excluded.game_slug,platform=excluded.platform,created_at=now();
+  return query select null::uuid,'waiting'::text,null::text;
+end; $$;
+
+create or replace function public.update_match_state(p_match uuid,p_state jsonb)
+returns boolean language plpgsql security definer set search_path=public as $$
+begin
+ if pg_column_size(p_state)>4096 or jsonb_typeof(p_state)<>'object' then raise exception 'invalid state'; end if;
+ update game_matches set phone_state=case when phone_id=auth.uid() then p_state else phone_state end,desktop_state=case when desktop_id=auth.uid() then p_state else desktop_state end where id=p_match and status='active' and (phone_id=auth.uid() or desktop_id=auth.uid());
+ return found;
+end; $$;
+create or replace function public.my_friends()
+returns table(id uuid,display_name text,public_handle text,status text,direction text,created_at timestamptz)
+language sql security definer set search_path=public as $$ select f.id,p.display_name,p.public_handle,f.status,case when f.requester_id=auth.uid() then 'outgoing' else 'incoming' end,f.created_at from friendships f join profiles p on p.id=case when f.requester_id=auth.uid() then f.addressee_id else f.requester_id end where f.requester_id=auth.uid() or f.addressee_id=auth.uid() order by f.created_at desc $$;
+create or replace function public.respond_friend_request(p_id uuid,p_accept boolean) returns boolean language plpgsql security definer set search_path=public as $$ begin update friendships set status=case when p_accept then 'accepted' else 'blocked' end where id=p_id and addressee_id=auth.uid() and status='pending'; return found; end; $$;
+create or replace function public.request_friend_by_handle(p_handle text) returns boolean language plpgsql security definer set search_path=public as $$
+declare target uuid;
+begin select id into target from profiles where public_handle=lower(p_handle); if target is null then raise exception 'player not found'; end if; if target=auth.uid() then raise exception 'cannot add yourself'; end if; insert into friendships(requester_id,addressee_id) values(auth.uid(),target); return true; exception when unique_violation then raise exception 'request already exists'; end; $$;
+grant execute on function public.quick_match(text,text),public.update_match_state(uuid,jsonb),public.my_friends(),public.respond_friend_request(uuid,boolean),public.request_friend_by_handle(text) to authenticated;
+create or replace function public.community_stat_averages()
+returns table(active_seconds_per_player numeric,kills_per_minute numeric,deaths_per_minute numeric,actions_per_minute numeric)
+language sql security definer set search_path=public as $$
+ select coalesce(sum(active_seconds)::numeric/nullif(count(distinct user_id),0),0),coalesce(sum(kills)::numeric*60/nullif(sum(active_seconds),0),0),coalesce(sum(deaths)::numeric*60/nullif(sum(active_seconds),0),0),coalesce(sum(actions)::numeric*60/nullif(sum(active_seconds),0),0) from game_stat_events $$;
+grant execute on function public.community_stat_averages() to authenticated;
+
+-- ============================================================================
+-- BUNDLE FILE: 20260910030000_lobbies_analytics_and_trial_credit.sql
+-- ============================================================================
+-- Lobby discovery, aggregate charts, and one privacy-preserving trial credit per IP.
+create table if not exists public.game_lobbies (
+ id uuid primary key default gen_random_uuid(), game_slug text not null check(game_slug ~ '^[a-z0-9-]{1,64}$'), host_id uuid not null references public.profiles(id) on delete cascade,
+ guest_id uuid references public.profiles(id) on delete set null, host_platform text not null check(host_platform in ('phone','desktop')),
+ visibility text not null check(visibility in ('public','friends','private')), join_code varchar(12) not null unique,
+ title varchar(48) not null default 'Platform Wars lobby', status text not null default 'open' check(status in ('open','active','closed')), created_at timestamptz not null default now(), check(guest_id is null or guest_id<>host_id)
+);
+alter table public.game_lobbies add column if not exists host_relay_ping_ms integer not null default 999 check(host_relay_ping_ms between 0 and 5000);
+create table if not exists public.game_presence (
+ user_id uuid not null references public.profiles(id) on delete cascade, game_slug text not null check(game_slug ~ '^[a-z0-9-]{1,64}$'), actor_kind text not null check(actor_kind in ('human','vibecodeworker','bot','unknown')), last_seen_at timestamptz not null default now(), primary key(user_id,game_slug)
+);
+create table if not exists public.signup_ip_credits (
+ id uuid primary key default gen_random_uuid(), user_id uuid not null unique references public.profiles(id) on delete cascade, ip_hash char(64) not null unique, created_at timestamptz not null default now()
+);
+alter table public.game_lobbies enable row level security; alter table public.game_presence enable row level security; alter table public.signup_ip_credits enable row level security;
+drop policy if exists lobbies_participant_read on public.game_lobbies;
+create policy lobbies_participant_read on public.game_lobbies for select to authenticated using(host_id=auth.uid() or guest_id=auth.uid());
+drop policy if exists presence_own on public.game_presence;
+create policy presence_own on public.game_presence for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
+
+create or replace function public.create_lobby(p_game text,p_platform text,p_visibility text,p_title text)
+returns table(lobby_id uuid,join_code text) language plpgsql security definer set search_path=public as $$
+declare code text; lid uuid;
+begin if p_game !~ '^[a-z0-9-]{1,64}$' or p_platform not in ('phone','desktop') or p_visibility not in ('public','friends','private') then raise exception 'invalid lobby'; end if;
+ code:=upper(substr(encode(gen_random_bytes(8),'hex'),1,8)); insert into game_lobbies(game_slug,host_id,host_platform,visibility,join_code,title) values(p_game,auth.uid(),p_platform,p_visibility,code,substring(trim(p_title) from 1 for 48)) returning id into lid; return query select lid,code; end; $$;
+create or replace function public.list_joinable_lobbies(p_game text)
+returns table(id uuid,title text,host_handle text,host_platform text,visibility text,created_at timestamptz)
+language sql security definer set search_path=public as $$ select l.id,l.title,p.public_handle,l.host_platform,l.visibility,l.created_at from game_lobbies l join profiles p on p.id=l.host_id where l.game_slug=p_game and l.status='open' and (l.visibility='public' or (l.visibility='friends' and exists(select 1 from friendships f where f.status='accepted' and ((f.requester_id=auth.uid() and f.addressee_id=l.host_id) or (f.addressee_id=auth.uid() and f.requester_id=l.host_id))))) order by l.created_at desc limit 100 $$;
+create or replace function public.join_lobby(p_lobby uuid,p_code text default null)
+returns table(lobby_id uuid,match_id uuid) language plpgsql security definer set search_path=public as $$
+declare l game_lobbies%rowtype; mid uuid;
+begin select * into l from game_lobbies where id=p_lobby for update; if not found or l.status<>'open' or l.guest_id is not null then raise exception 'lobby unavailable'; end if; if l.host_id=auth.uid() then raise exception 'cannot join your lobby'; end if; if l.visibility='private' and l.join_code<>upper(coalesce(p_code,'')) then raise exception 'bad join code'; end if; if l.visibility='friends' and not exists(select 1 from friendships f where f.status='accepted' and ((f.requester_id=auth.uid() and f.addressee_id=l.host_id) or (f.addressee_id=auth.uid() and f.requester_id=l.host_id))) then raise exception 'friends only'; end if; update game_lobbies set guest_id=auth.uid(),status='active' where id=l.id; insert into game_matches(game_slug,phone_id,desktop_id) values(l.game_slug,case when l.host_platform='phone' then l.host_id else auth.uid() end,case when l.host_platform='desktop' then l.host_id else auth.uid() end) returning id into mid; return query select l.id,mid; end; $$;
+create or replace function public.game_chart_summary()
+returns table(game_slug text,current_humans bigint,current_vibecodeworker bigint,current_bots bigint,active_24h bigint)
+language sql security definer set search_path=public as $$ select game_slug,count(*) filter(where actor_kind='human' and last_seen_at>now()-interval '90 seconds'),count(*) filter(where actor_kind='vibecodeworker' and last_seen_at>now()-interval '90 seconds'),count(*) filter(where actor_kind='bot' and last_seen_at>now()-interval '90 seconds'),count(*) filter(where last_seen_at>now()-interval '24 hours') from game_presence group by game_slug $$;
+create or replace function public.award_signup_credit(p_user uuid,p_email text,p_ip_hash text,p_coins integer)
+returns boolean language plpgsql security definer set search_path=public as $$
+declare grant_uuid uuid;
+begin if p_coins<1 or p_coins>100 then raise exception 'invalid trial credit'; end if; insert into signup_ip_credits(user_id,ip_hash) values(p_user,p_ip_hash); insert into coin_grants(user_id,email,shopify_order_id,shopify_order_name,sku,coins,claimed) values(p_user,p_email,'signup-ip-'||p_ip_hash,'New-account trial','VIBE-TRIAL',p_coins,true) returning id into grant_uuid; insert into coin_ledger(user_id,delta,reason,grant_id) values(p_user,p_coins,'New-account $1 V Coin trial',grant_uuid); return true; exception when unique_violation then return false; end; $$;
+revoke all on function public.create_lobby(text,text,text,text),public.list_joinable_lobbies(text),public.join_lobby(uuid,text),public.game_chart_summary(),public.award_signup_credit(uuid,text,text,integer) from public,anon,authenticated;
+grant execute on function public.create_lobby(text,text,text,text),public.list_joinable_lobbies(text),public.join_lobby(uuid,text) to authenticated;
+grant execute on function public.game_chart_summary() to anon,authenticated;
+create or replace function public.list_all_open_lobbies(p_game text default null)
+returns table(id uuid,game_slug text,title text,host_handle text,host_platform text,visibility text,relay_ping_ms integer,created_at timestamptz)
+language sql security definer set search_path=public as $$ select l.id,l.game_slug,l.title,p.public_handle,l.host_platform,l.visibility,l.host_relay_ping_ms,l.created_at from game_lobbies l join profiles p on p.id=l.host_id where l.status='open' and l.created_at>now()-interval '30 minutes' and (p_game is null or l.game_slug=p_game) and (l.visibility='public' or (l.visibility='friends' and exists(select 1 from friendships f where f.status='accepted' and ((f.requester_id=auth.uid() and f.addressee_id=l.host_id) or (f.addressee_id=auth.uid() and f.requester_id=l.host_id))))) order by l.host_relay_ping_ms,l.created_at limit 200 $$;
+revoke all on function public.list_all_open_lobbies(text) from public,anon,authenticated;
+grant execute on function public.list_all_open_lobbies(text) to authenticated;
+
+-- ============================================================================
+-- BUNDLE FILE: 20260910040000_account_preferences_and_creator_monetization.sql
+-- ============================================================================
+-- Persistent account preferences and a gated creator monetization handoff.
+create table if not exists public.account_settings (
+ user_id uuid primary key references public.profiles(id) on delete cascade,
+ allow_friend_requests boolean not null default true,
+ show_playtime boolean not null default true,
+ marketing_email boolean not null default false,
+ updated_at timestamptz not null default now()
+);
+alter table public.account_settings enable row level security;
+drop policy if exists account_settings_own on public.account_settings;
+create policy account_settings_own on public.account_settings for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
+alter table public.code_submissions add column if not exists monetization_status text not null default 'not_ready' check(monetization_status in ('not_ready','ready','enabled'));
+create or replace function public.set_creator_monetization(p_submission uuid,p_enabled boolean)
+returns boolean language plpgsql security definer set search_path=public as $$
+begin update code_submissions set monetization_status=case when p_enabled then 'ready' else 'not_ready' end where id=p_submission and owner_id=auth.uid() and status='approved'; return found; end; $$;
+revoke all on function public.set_creator_monetization(uuid,boolean) from public,anon,authenticated;
+grant execute on function public.set_creator_monetization(uuid,boolean) to authenticated;
+create or replace function public.request_friend_by_handle(p_handle text) returns boolean language plpgsql security definer set search_path=public as $$
+declare target uuid;
+begin select id into target from profiles where public_handle=lower(p_handle); if target is null then raise exception 'player not found'; end if; if target=auth.uid() then raise exception 'cannot add yourself'; end if; if exists(select 1 from account_settings where user_id=target and allow_friend_requests=false) then raise exception 'player does not accept friend requests'; end if; insert into friendships(requester_id,addressee_id) values(auth.uid(),target); return true; exception when unique_violation then raise exception 'request already exists'; end; $$;
+
+-- ============================================================================
+-- BUNDLE FILE: 20260910050000_global_cheat_controls.sql
+-- ============================================================================
+-- Global AI-testing permission. This does not mark saves; only enabling a
+-- specific game/save does, preserving the permanent per-save audit trail.
+create table if not exists public.global_cheat_settings (
+ user_id uuid primary key references public.profiles(id) on delete cascade,
+ enabled boolean not null default false, updated_at timestamptz not null default now()
+);
+alter table public.global_cheat_settings enable row level security;
+drop policy if exists global_cheats_own on public.global_cheat_settings;
+create policy global_cheats_own on public.global_cheat_settings for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
+
+-- ============================================================================
+-- BUNDLE FILE: 20260910060000_enforce_cheated_save_invariant.sql
+-- ============================================================================
+-- Cheat Mode is a database invariant, not merely an API convention.
+create or replace function public.enforce_cheat_save_marker()
+returns trigger language plpgsql security definer set search_path=public as $$
+begin
+ if coalesce((old.data->>'cheat_mode')::boolean,false) then
+   new.data := new.data || jsonb_build_object('cheat_mode',true);
+ end if;
+ return new;
+end; $$;
+drop trigger if exists trg_enforce_cheat_save_marker on public.game_saves;
+create trigger trg_enforce_cheat_save_marker before update on public.game_saves for each row execute function public.enforce_cheat_save_marker();
+-- A save is intentionally not deletable from the client: delete/recreate
+-- must never be usable as a way to launder a cheated progression file.
+drop policy if exists game_saves_own on public.game_saves;
+drop policy if exists game_saves_read_own on public.game_saves;
+create policy game_saves_read_own on public.game_saves for select to authenticated using(user_id=auth.uid());
+drop policy if exists game_saves_insert_own on public.game_saves;
+create policy game_saves_insert_own on public.game_saves for insert to authenticated with check(user_id=auth.uid());
+drop policy if exists game_saves_update_own on public.game_saves;
+create policy game_saves_update_own on public.game_saves for update to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
+revoke delete on public.game_saves from authenticated;
+grant select,insert,update on public.game_saves to authenticated;
+
+-- ============================================================================
+-- BUNDLE FILE: 20260910070000_daily_and_referrals.sql
+-- ============================================================================
+-- Daily login bonus, referral codes, and referral rewards.
+-- Daily: 5 coins + 1 per consecutive day, capped at 12. One claim per UTC day.
+-- Referral: invitee enters a code once (25 coins each side), invitee unique.
+create table if not exists public.daily_claims (
+ user_id uuid primary key references public.profiles(id) on delete cascade,
+ last_claim_date date not null, streak smallint not null default 1 check(streak between 1 and 3650),
+ updated_at timestamptz not null default now()
+);
+create table if not exists public.referral_codes (
+ user_id uuid primary key references public.profiles(id) on delete cascade,
+ code varchar(8) not null unique check(code ~ '^[A-Z0-9]{8}$'),
+ created_at timestamptz not null default now()
+);
+create table if not exists public.referrals (
+ id uuid primary key default gen_random_uuid(),
+ inviter_id uuid not null references public.profiles(id) on delete cascade,
+ invitee_id uuid not null unique references public.profiles(id) on delete cascade,
+ inviter_coins integer not null default 25 check(inviter_coins between 0 and 1000),
+ invitee_coins integer not null default 25 check(invitee_coins between 0 and 1000),
+ created_at timestamptz not null default now(), check(inviter_id <> invitee_id)
+);
+alter table public.daily_claims enable row level security;
+alter table public.referral_codes enable row level security;
+alter table public.referrals enable row level security;
+drop policy if exists daily_own on public.daily_claims;
+create policy daily_own on public.daily_claims for select to authenticated using(user_id=auth.uid());
+drop policy if exists referral_code_own on public.referral_codes;
+create policy referral_code_own on public.referral_codes for select to authenticated using(user_id=auth.uid());
+drop policy if exists referrals_involved on public.referrals;
+create policy referrals_involved on public.referrals for select to authenticated using(inviter_id=auth.uid() or invitee_id=auth.uid());
+-- Writes go through SECURITY DEFINER RPCs below; no client write policies.
+
+create or replace function public.claim_daily_bonus()
+returns table(coins integer, streak integer) language plpgsql security definer set search_path=public as $$
+declare yester date := (now() at time zone 'utc' - interval '1 day')::date;
+declare today date := (now() at time zone 'utc')::date;
+declare row public.daily_claims%rowtype; declare award integer;
+begin
+ if auth.uid() is null then raise exception 'login required'; end if;
+ select * into row from public.daily_claims where user_id=auth.uid() for update;
+ if found and row.last_claim_date=today then return query select 0, row.streak::integer; end if;
+ if found and row.last_claim_date=yester then row.streak := least(row.streak+1, 3650);
+ else row.streak := 1; end if;
+ award := least(5 + (row.streak-1), 12);
+ insert into public.daily_claims(user_id,last_claim_date,streak,updated_at) values(auth.uid(),today,row.streak,now())
+  on conflict(user_id) do update set last_claim_date=today,streak=row.streak,updated_at=now();
+ insert into public.coin_ledger(user_id,delta,reason) values(auth.uid(),award,'Daily login bonus (day '||row.streak||')');
+ return query select award, row.streak::integer;
+end; $$;
+revoke all on function public.claim_daily_bonus() from public,anon,authenticated;
+grant execute on function public.claim_daily_bonus() to authenticated;
+
+create or replace function public.get_or_create_referral_code()
+returns text language plpgsql security definer set search_path=public as $$
+declare mine text; code text;
+begin
+ if auth.uid() is null then raise exception 'login required'; end if;
+ select referral_codes.code into mine from public.referral_codes where user_id=auth.uid();
+ if mine is not null then return mine; end if;
+ loop code := upper(substr(encode(gen_random_bytes(6),'hex'),1,8));
+  begin insert into public.referral_codes(user_id,code) values(auth.uid(),code); return code;
+  exception when unique_violation then
+   select referral_codes.code into mine from public.referral_codes where user_id=auth.uid();
+   if mine is not null then return mine; end if;
+  end;
+ end loop;
+end; $$;
+revoke all on function public.get_or_create_referral_code() from public,anon,authenticated;
+grant execute on function public.get_or_create_referral_code() to authenticated;
+
+create or replace function public.apply_referral(p_code text)
+returns table(inviter_coins integer, invitee_coins integer) language plpgsql security definer set search_path=public as $$
+declare inviter uuid; code8 text := upper(trim(coalesce(p_code,'')));
+begin
+ if auth.uid() is null then raise exception 'login required'; end if;
+ if code8 !~ '^[A-Z0-9]{8}$' then raise exception 'invalid code'; end if;
+ select referral_codes.user_id into inviter from public.referral_codes where code=code8;
+ if inviter is null then raise exception 'unknown code'; end if;
+ if inviter=auth.uid() then raise exception 'cannot refer yourself'; end if;
+ insert into public.referrals(inviter_id,invitee_id) values(inviter,auth.uid());
+ insert into public.coin_ledger(user_id,delta,reason) values(inviter,25,'Referral reward (invited a player)');
+ insert into public.coin_ledger(user_id,delta,reason) values(auth.uid(),25,'Referral welcome bonus');
+ return query select 25,25;
+ exception when unique_violation then raise exception 'referral already used';
+end; $$;
+revoke all on function public.apply_referral(text) from public,anon,authenticated;
+grant execute on function public.apply_referral(text) to authenticated;
+
+-- Public leaderboard: top 100 summed totals per game with handles only.
+-- Privacy boundary lives here: no user IDs, emails, or session rows escape.
+create or replace function public.leaderboard_top(p_game text, p_metric text)
+returns table(player text, value bigint) language plpgsql security definer set search_path=public as $$
+begin
+ if p_game !~ '^[a-z0-9-]{1,64}$' or p_metric not in ('kills','actions','active_seconds') then raise exception 'invalid leaderboard'; end if;
+ return query execute format(
+  'select coalesce(nullif(p.public_handle,''''), nullif(p.display_name,''''), ''Player''), sum(e.%I)::bigint from public.game_stat_events e join public.profiles p on p.id=e.user_id where e.game_slug=$1 group by p.public_handle, p.display_name having sum(e.%I) > 0 order by sum(e.%I) desc limit 100',
+  p_metric, p_metric, p_metric) using p_game;
+end; $$;
+revoke all on function public.leaderboard_top(text,text) from public,anon,authenticated;
+grant execute on function public.leaderboard_top(text,text) to anon,authenticated;
+

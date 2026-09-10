@@ -13,7 +13,9 @@ create table if not exists public.signup_ip_credits (
  id uuid primary key default gen_random_uuid(), user_id uuid not null unique references public.profiles(id) on delete cascade, ip_hash char(64) not null unique, created_at timestamptz not null default now()
 );
 alter table public.game_lobbies enable row level security; alter table public.game_presence enable row level security; alter table public.signup_ip_credits enable row level security;
+drop policy if exists lobbies_participant_read on public.game_lobbies;
 create policy lobbies_participant_read on public.game_lobbies for select to authenticated using(host_id=auth.uid() or guest_id=auth.uid());
+drop policy if exists presence_own on public.game_presence;
 create policy presence_own on public.game_presence for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
 
 create or replace function public.create_lobby(p_game text,p_platform text,p_visibility text,p_title text)
