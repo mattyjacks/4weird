@@ -1,0 +1,49 @@
+import { createClient } from "@/lib/supabase/server";
+import { hasServerSupabase } from "@/lib/supabase/service";
+import { fail, ok } from "@/lib/api-respond";
+import { isUuid } from "@/lib/validate";
+
+export const dynamic = "force-dynamic";
+
+export async function GET(req: Request) {
+  if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  const u = data?.user;
+  if (!u) return fail("Login required.", 401);
+  const peer = new URL(req.url).searchParams.get("with");
+  if (!isUuid(peer)) return fail("Choose a friend.", 400);
+  const { data: messages, error } = await supabase
+    .from("direct_messages")
+    .select("id,sender_id,recipient_id,body,created_at,read_at")
+    .or(`and(sender_id.eq.${u.id},recipient_id.eq.${peer}),and(sender_id.eq.${peer},recipient_id.eq.${u.id})`)
+    .order("created_at", { ascending: true })
+    .limit(100);
+  if (error) return fail("internal error", 500);
+  return ok({ messages: messages ?? [] });
+}
+
+export async function POST(req: Request) {
+  if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  const u = data?.user;
+  if (!u) return fail("Login required.", 401);
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return fail("Invalid JSON body.", 400);
+  }
+  const input = (body ?? {}) as Record<string, unknown>;
+  const recipient = String(input.recipient_id ?? "");
+  const text = String(input.body ?? "").trim();
+  if (!isUuid(recipient) || !text || text.length > 2000) return fail("Invalid message.", 400);
+  const { data: row, error } = await supabase
+    .from("direct_messages")
+    .insert({ sender_id: u.id, recipient_id: recipient, body: text })
+    .select("id,created_at")
+    .single();
+  if (error) return fail("Messages are only available to friends.", 403);
+  return ok({ message: row });
+}

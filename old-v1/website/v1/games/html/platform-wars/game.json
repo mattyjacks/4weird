@@ -1,0 +1,9 @@
+{
+  "title": "Platform Wars: Phone vs Desktop",
+  "slug": "platform-wars",
+  "description": "A fast cross-platform arena platformer. Phone team uses touch agility; Desktop team uses keyboard precision.",
+  "genre": "Multiplayer Platformer",
+  "controls": {"desktop": "A/D or arrows to move, W/Space to jump, F to dash", "phone": "Use the on-screen controls"},
+  "technical": {"mobileOptimized": true, "targetFPS": 60, "multiplayer": "Quick Match"},
+  "meta": {"version": "1.0.0", "license": "MIT"}
+}

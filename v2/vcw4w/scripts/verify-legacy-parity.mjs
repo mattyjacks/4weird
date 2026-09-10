@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 
-const root = join(process.cwd(), "..", "..", "website", "v1");
+const root = join(process.cwd(), "..", "..", "old-v1", "website", "v1");
 const target = join(process.cwd(), "public");
 const pairs = [["vcw", "vcw"], ["vibecodeworker", "vibecodeworker-legacy"]];
 async function list(dir, base = dir) {

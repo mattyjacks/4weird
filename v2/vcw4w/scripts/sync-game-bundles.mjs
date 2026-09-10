@@ -49,6 +49,7 @@ const bundles = [
   ["the-revenue-jungle", "madi/the-revenue-jungle"],
   ["the-speed-portal", "madi/the-speed-portal"],
   ["treasure-hunters", "madi/treasure-hunters"],
+  ["platform-wars", "platform-wars"],
 ];
 
 const root = process.cwd();

@@ -1,6 +1,6 @@
 // Bump whenever a deployed game bundle changes.  This lets a repaired game
 // replace a previously cached module instead of leaving players on stale code.
-const CACHE_NAME = '4weird-v10-cache';
+const CACHE_NAME = '4weird-v11-cache';
 const ASSETS_TO_CACHE = [
   './',
   './games',
@@ -56,6 +56,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   const requestUrl = new URL(event.request.url);
+  // Next.js Server Component payloads are navigational data, not app-shell
+  // assets. Let the browser own these requests so a cache miss cannot turn a
+  // route transition into an invalid `undefined` service-worker response.
+  if (requestUrl.searchParams.has('_rsc')) {
+    return;
+  }
   if (requestUrl.pathname.startsWith('/api/') || requestUrl.pathname.startsWith('/auth/') || requestUrl.pathname === '/account' || requestUrl.pathname.startsWith('/protected')) {
     return;
   }
@@ -80,8 +86,12 @@ self.addEventListener('fetch', (event) => {
           }
           // Fallback to 404 for pages
           if (event.request.mode === 'navigate') {
-            return caches.match(new URL('/', self.location.origin).toString());
+            return caches.match(new URL('/', self.location.origin).toString())
+              .then((home) => home || Response.error());
           }
+          // respondWith must always settle to a Response. Returning undefined
+          // here caused "Failed to convert value to Response" in production.
+          return Response.error();
         });
       })
   );

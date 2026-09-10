@@ -1,10 +1,62 @@
-import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { hasServerSupabase } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
+import { fail, ok } from "@/lib/api-respond";
+import { cleanDisplayName, cleanHandle } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
+
 const maxRequestBytes = 8192;
-function error(message: string, status: number) { return NextResponse.json({ error: message }, { status, headers: { "Cache-Control": "private, no-store" } }); }
-async function auth() { const supabase = await createClient(); const { data } = await supabase.auth.getUser(); return data.user ? { supabase, user: data.user } : null; }
-export async function GET() { if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) return error("Supabase is not configured.", 503); const ctx = await auth(); if (!ctx) return error("Authentication required.", 401); const { data, error: dbError } = await ctx.supabase.from("profiles").select("display_name,email,created_at").eq("id", ctx.user.id).maybeSingle(); if (dbError) return error("Unable to load profile.", 500); return NextResponse.json({ profile: data }, { headers: { "Cache-Control": "private, no-store" } }); }
-export async function PATCH(request: NextRequest) { if (Number(request.headers.get("content-length") ?? 0) > maxRequestBytes) return error("Profile request is too large.", 413); if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) return error("Supabase is not configured.", 503); const ctx = await auth(); if (!ctx) return error("Authentication required.", 401); const throttle = rateLimit(`profile-patch:${ctx.user.id}`, 20); if (!throttle.allowed) return NextResponse.json({ error: "Too many profile updates. Try again shortly." }, { status: 429, headers: { "Retry-After": String(throttle.retryAfter), "Cache-Control": "private, no-store" } }); let body: unknown; try { body = await request.json(); } catch { return error("Invalid JSON body.", 400); } const rawName = typeof body === "object" && body !== null ? (body as Record<string, unknown>).display_name : undefined; const name = typeof rawName === "string" ? rawName.trim() : ""; if (name.length < 2 || name.length > 40) return error("Display name needs 2-40 characters.", 400); const { error: dbError } = await ctx.supabase.from("profiles").update({ display_name: name }).eq("id", ctx.user.id); if (dbError) return error("Unable to save profile.", 500); return NextResponse.json({ success: true }, { headers: { "Cache-Control": "private, no-store" } }); }
+
+export async function GET() {
+  if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  const u = data?.user;
+  if (!u) return fail("Authentication required.", 401);
+  const { data: row, error } = await supabase
+    .from("profiles")
+    .select("display_name,public_handle,email,created_at")
+    .eq("id", u.id)
+    .maybeSingle();
+  if (error) return fail("Unable to load profile.", 500);
+  return ok({ profile: row ?? null });
+}
+
+export async function PATCH(req: Request) {
+  if (Number(req.headers.get("content-length") ?? 0) > maxRequestBytes) {
+    return fail("Profile request is too large.", 413);
+  }
+  if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  const u = data?.user;
+  if (!u) return fail("Authentication required.", 401);
+  const throttle = rateLimit(`profile-patch:${u.id}`, 20);
+  if (!throttle.allowed) {
+    return fail("Too many profile updates. Try again shortly.", 429, {
+      "Retry-After": String(throttle.retryAfter),
+    });
+  }
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return fail("Invalid JSON body.", 400);
+  }
+  const input = (body ?? {}) as Record<string, unknown>;
+  const name = cleanDisplayName(input.display_name);
+  const handle = input.public_handle === undefined ? undefined : cleanHandle(input.public_handle);
+  if (!name) return fail("Display name needs 2-40 characters.", 400);
+  if (input.public_handle !== undefined && !handle) {
+    return fail("Handle needs 3-40 letters, numbers, _ or -.", 400);
+  }
+  // user_id is forced from the session; RLS re-checks it. A client-supplied
+  // id field is ignored entirely.
+  const { error } = await supabase
+    .from("profiles")
+    .update({ display_name: name, ...(handle !== undefined ? { public_handle: handle } : {}) })
+    .eq("id", u.id);
+  if (error) return fail("That public handle is unavailable.", 409);
+  return ok({});
+}

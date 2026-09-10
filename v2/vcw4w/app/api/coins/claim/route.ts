@@ -1,23 +1,86 @@
-import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import {
+  hasServerSupabase,
+  serviceClient,
+  supabaseAnonKey,
+  supabaseServiceRoleKey,
+  supabaseUrl,
+} from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
+import { fail, ok } from "@/lib/api-respond";
+
 export const dynamic = "force-dynamic";
 
+/**
+ * Attach paid-but-unclaimed coin grants (matched by order email) to the
+ * logged-in account. Same money rules as the webhook: conditional claim +
+ * UNIQUE(grant_id) ledger insert, so concurrent claims cannot double-mint.
+ *
+ * When SUPABASE_SERVICE_ROLE_KEY is configured the claim runs directly
+ * against coin_grants/coin_ledger (legacy auth-app behavior). Otherwise it
+ * proxies to the shopify-coins/claim edge function (v2 behavior).
+ */
 export async function POST() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
+  if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
   const { data: userData, error: userError } = await supabase.auth.getUser();
   const user = userData.user;
-  if (userError || !user) return NextResponse.json({ error: "Authentication required." }, { status: 401, headers: { "Cache-Control": "private, no-store" } });
+  if (userError || !user?.email) return fail("Authentication required.", 401);
+
+  const throttle = rateLimit(`coin-claim:${user.id}`, 3, 60_000);
+  if (!throttle.allowed) {
+    return fail("Too many claim attempts. Try again shortly.", 429, {
+      "Retry-After": String(throttle.retryAfter),
+    });
+  }
+
+  if (supabaseServiceRoleKey()) {
+    try {
+      const db = serviceClient();
+      const { data: pending, error: qErr } = await db
+        .from("coin_grants")
+        .select("id,coins,shopify_order_name")
+        .ilike("email", user.email)
+        .eq("claimed", false);
+      if (qErr) return fail("internal error", 500);
+      let claimed = 0;
+      for (const g of ((pending as { id: string; coins: number; shopify_order_name: string | null }[] | null) ?? [])) {
+        const { data: won } = await db
+          .from("coin_grants")
+          .update({ user_id: user.id, claimed: true })
+          .eq("id", g.id)
+          .eq("claimed", false)
+          .select("id");
+        if (!won || (won as unknown[]).length === 0) continue;
+        const { error: ledgerErr } = await db.from("coin_ledger").insert({
+          user_id: user.id,
+          delta: g.coins,
+          reason: (`Shopify order ${g.shopify_order_name ?? ""}`).slice(0, 120),
+          grant_id: g.id,
+        });
+        if (!ledgerErr) claimed += 1;
+      }
+      return ok({ claimed });
+    } catch {
+      return fail("internal error", 500);
+    }
+  }
+
+  const url = supabaseUrl();
+  const key = supabaseAnonKey();
   const { data: sessionData } = await supabase.auth.getSession();
   const token = sessionData.session?.access_token;
-  if (!token) return NextResponse.json({ error: "Authentication required." }, { status: 401, headers: { "Cache-Control": "private, no-store" } });
-  const throttle = rateLimit(`coin-claim:${user.id}`, 3, 60_000);
-  if (!throttle.allowed) return NextResponse.json({ error: "Too many claim attempts. Try again shortly." }, { status: 429, headers: { "Retry-After": String(throttle.retryAfter), "Cache-Control": "private, no-store" } });
-  const response = await fetch(`${url.replace(/\/$/, "")}/functions/v1/shopify-coins/claim`, { method: "POST", headers: { Authorization: `Bearer ${token}`, apikey: key, "Content-Type": "application/json" }, body: "{}", cache: "no-store" });
+  if (!token) return fail("Authentication required.", 401);
+  const response = await fetch(`${url.replace(/\/$/, "")}/functions/v1/shopify-coins/claim`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, apikey: key, "Content-Type": "application/json" },
+    body: "{}",
+    cache: "no-store",
+  });
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) return NextResponse.json({ error: typeof body.error === "string" ? body.error : "Unable to claim coins." }, { status: response.status >= 400 && response.status < 500 ? response.status : 502, headers: { "Cache-Control": "private, no-store" } });
-  return NextResponse.json({ claimed: Number(body.claimed) || 0 }, { headers: { "Cache-Control": "private, no-store" } });
+  if (!response.ok) {
+    const msg = (body as { error?: unknown }).error;
+    return fail(typeof msg === "string" ? msg : "Unable to claim coins.", response.status >= 400 && response.status < 500 ? response.status : 502);
+  }
+  return ok({ claimed: Number((body as { claimed?: unknown }).claimed) || 0 });
 }

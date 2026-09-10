@@ -1,0 +1,145 @@
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors 'self' https://4weird.com https://www.4weird.com"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin-allow-popups"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/vcw",
+      "destination": "/vcw/",
+      "permanent": true
+    },
+    {
+      "source": "/vibecodeworker",
+      "destination": "/vcw/",
+      "permanent": true
+    },
+    {
+      "source": "/vibecodeworker/",
+      "destination": "/vcw/",
+      "permanent": true
+    },
+    {
+      "source": "/vibecodeworker/preview",
+      "destination": "/vibecodeworker/demo/",
+      "permanent": true
+    },
+    {
+      "source": "/vibecodeworker/preview/:path*",
+      "destination": "/vibecodeworker/demo/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/vcw/web/demo",
+      "destination": "/vcw/web/demo/",
+      "permanent": true
+    },
+    {
+      "source": "/vibecodeworker/docs",
+      "destination": "/vibecodeworker/docs/",
+      "permanent": true
+    },
+    {
+      "source": "/pricing",
+      "destination": "/pricing/",
+      "permanent": true
+    },
+    {
+      "source": "/html/:path*",
+      "destination": "/games/html/:path*",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    { "source": "/lobbies", "destination": "/lobbies/index.html" },
+    { "source": "/lobbies/", "destination": "/lobbies/index.html" },
+    { "source": "/my", "destination": "/my/index.html" },
+    { "source": "/my/:section", "destination": "/my/index.html" },
+    { "source": "/my/:section/", "destination": "/my/index.html" },
+    { "source": "/me", "destination": "/me/index.html" },
+    { "source": "/me/", "destination": "/me/index.html" },
+    {
+      "source": "/vcw/",
+      "destination": "/vibecodeworker/overview.html"
+    },
+    {
+      "source": "/vcw/web/hub",
+      "destination": "/vibecodeworker/hub.html"
+    },
+    {
+      "source": "/vcw/web/hub/",
+      "destination": "/vibecodeworker/hub.html"
+    },
+    {
+      "source": "/vcw/web/run",
+      "destination": "/vibecodeworker/run.html"
+    },
+    {
+      "source": "/vcw/web/run/",
+      "destination": "/vibecodeworker/run.html"
+    },
+    {
+      "source": "/vibecodeworker/run",
+      "destination": "/vibecodeworker/run.html"
+    },
+    {
+      "source": "/vcw/web/full",
+      "destination": "/vibecodeworker/full.html"
+    },
+    {
+      "source": "/vcw/web/full/",
+      "destination": "/vibecodeworker/full.html"
+    },
+    {
+      "source": "/vibecodeworker/full",
+      "destination": "/vibecodeworker/full.html"
+    },
+    {
+      "source": "/vcw/web/demo/",
+      "destination": "/vibecodeworker/demo/index.html"
+    },
+    {
+      "source": "/vibecodeworker/demo",
+      "destination": "/vibecodeworker/demo/index.html"
+    },
+    {
+      "source": "/vibecodeworker/demo/",
+      "destination": "/vibecodeworker/demo/index.html"
+    },
+    {
+      "source": "/vibecodeworker",
+      "destination": "/vibecodeworker/overview.html"
+    },
+    {
+      "source": "/vibecodeworker/",
+      "destination": "/vibecodeworker/overview.html"
+    }
+  ]
+}

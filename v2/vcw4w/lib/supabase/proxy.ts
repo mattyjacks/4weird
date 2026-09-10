@@ -53,8 +53,19 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname === "/account" ||
     request.nextUrl.pathname.startsWith("/protected") ||
     request.nextUrl.pathname.startsWith("/api/account") ||
+    request.nextUrl.pathname.startsWith("/api/admin") ||
+    request.nextUrl.pathname.startsWith("/api/cheats") ||
+    request.nextUrl.pathname.startsWith("/api/code") ||
     request.nextUrl.pathname.startsWith("/api/coins") ||
+    request.nextUrl.pathname.startsWith("/api/lobbies") ||
+    request.nextUrl.pathname.startsWith("/api/matches") ||
+    request.nextUrl.pathname.startsWith("/api/me") ||
+    request.nextUrl.pathname.startsWith("/api/messages") ||
+    request.nextUrl.pathname.startsWith("/api/presence") ||
     request.nextUrl.pathname.startsWith("/api/saves") ||
+    request.nextUrl.pathname.startsWith("/api/settings") ||
+    request.nextUrl.pathname.startsWith("/api/social") ||
+    request.nextUrl.pathname.startsWith("/api/stats") ||
     request.nextUrl.pathname.startsWith("/api/vcw");
 
   if (protectedPath && !user) {

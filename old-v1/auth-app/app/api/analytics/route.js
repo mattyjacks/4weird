@@ -1,0 +1,2 @@
+import { preflight,ok,fail,methodOnly } from '../../../lib/http.js'; import { anonClient } from '../../../lib/supabase.js';
+export async function GET(req){const pre=preflight(req)||methodOnly(req,['GET']);if(pre)return pre;try{const {data,error}=await anonClient().rpc('game_chart_summary');return error?fail(req,500,'Unable to load player counts.'):ok(req,{success:true,games:data||[]});}catch{return fail(req,503,'Analytics temporarily unavailable.')}}
