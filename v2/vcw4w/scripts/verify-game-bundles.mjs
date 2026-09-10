@@ -8,7 +8,9 @@ import { join, relative } from "node:path";
 // are allowed and reported, not failures.
 const source = join(process.cwd(), "..", "..", "old-v1", "website", "v1", "games", "html");
 const destination = join(process.cwd(), "public", "games", "html");
-const ignored = /(?:[\\/]_TEMPLATE(?:[\\/]|$)|[\\/]node_modules(?:[\\/]|$)|[\\/]dist[^\\/]*|[\\/]target(?:[\\/]|$))/;
+// Test-run byproducts (Playwright test-results/, run logs) are not product
+// source: they must neither ship in the deploy nor break parity.
+const ignored = /(?:[\\/]_TEMPLATE(?:[\\/]|$)|[\\/]node_modules(?:[\\/]|$)|[\\/]dist[^\\/]*|[\\/]target(?:[\\/]|$)|[\\/]test-results(?:[\\/]|$)|\.last-run\.json$|\.log$)/;
 async function files(root, current = root) { const output = []; for (const entry of await readdir(current, { withFileTypes: true })) { const full = join(current, entry.name); if (ignored.test(full)) continue; if (entry.isDirectory()) output.push(...await files(root, full)); else output.push(relative(root, full).replaceAll("\\", "/")); } return output; }
 async function hash(root, name) { return createHash("sha256").update(await readFile(join(root, name))).digest("hex"); }
 const [sourceFiles, destinationFiles] = await Promise.all([files(source), files(destination)]);
