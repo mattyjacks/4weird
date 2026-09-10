@@ -8,19 +8,30 @@ emails (per current decision) — read **§5 Tradeoffs** before taking real mone
 
 | Piece | Location | Secrets? |
 |---|---|---|
-| Browser auth + wallet | `website/v1/auth/` + `website/v1/account.html` | Anon key only (public by design) |
-| Local config (your keys) | `website/v1/auth/config.js` (copy from `config.example.js`) | Yes — **gitignored, never commit** |
-| Database + RLS money rules | `supabase/schema.sql` | No |
+| Browser (HTML + `auth-server.js`) | `website/v1/account.html`, `website/v1/auth/` | **None.** No keys, no tokens (httpOnly cookies) |
+| Auth + user-data service | `auth-app/` (Next.js, separate deploy) | All Supabase keys, server-side only |
+| Local non-secret config | `website/v1/auth/config.js` (copy from `config.example.js`) | No — service URL + shop settings only, gitignored anyway |
+| Database + RLS money rules | `supabase/schema.sql` (+ timestamped copy in `supabase/migrations/`, applied by the GitHub integration on merge to main) | No |
 | Shopify fulfillment | `supabase/functions/shopify-coins/index.ts` | service_role + webhook secret live in Supabase secrets, never in repo |
+
+Login flow: `account.html` → `POST auth-app/api/auth/*` → httpOnly session
+cookies → all data routes (`/api/me/*`, `/api/coins/*`, `/api/saves`)
+authorize the cookie session server-side. Reads use the caller's own token
+so Postgres RLS still applies; only coin grant/ledger writes use
+service_role. Page JavaScript never holds anything worth stealing.
 
 ## 1. Create the Supabase project
 
 1. https://supabase.com/dashboard → New project. Save the database password
    in a password manager (you will not need it again for this setup).
-2. Project Settings → API: copy the **Project URL**
-   (`https://YOUR-REF.supabase.co`) and the **anon public** key.
-3. Copy `website/v1/auth/config.example.js` → `website/v1/auth/config.js`
-   and paste the URL + anon key. Leave `variantId` placeholders for now.
+2. Project Settings → API: copy the **Project URL**, the **publishable**
+   key, and the **secret** key into `auth-app/.env` (see
+   `auth-app/.env.example`). Keys live server-side only — never in website
+   files, never in chat, never in git.
+3. Deploy `auth-app/` per `auth-app/README.md` (env vars live there,
+   server-side). Then copy `website/v1/auth/config.example.js` →
+   `website/v1/auth/config.js` and set `AUTH_APP_URL` to the deployed
+   service URL. The browser config holds no keys by design.
 
 ## 2. Auth settings (no confirmation emails)
 

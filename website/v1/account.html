@@ -91,18 +91,14 @@
     <div id="footer-placeholder"></div>
 
     <script src="components.js"></script>
-    <!-- Pinned Supabase client, Subresource Integrity enforced. If the CDN
-         bytes ever differ (hijack or rotation), the browser refuses to run
-         them and the page shows an explicit "unavailable" state. -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"
-            integrity="sha384-iLddHTLokph6Omwoyid4XKxHaWa6w41BnoEj0q5oOrzmYPpHIKt1wyjReA7s//pP"
-            crossorigin="anonymous"></script>
+    <!-- Auth goes through the 4weird-auth service (httpOnly cookies). No
+         Supabase client, tokens, or keys ever load in this page. -->
     <script src="auth/config.js"></script>
-    <script src="auth/supabase-auth.js"></script>
-    <script src="auth/vibe-coins.js"></script>
+    <script src="auth/auth-server.js"></script>
     <script>
-        // Account page controller. Every dynamic string goes through
-        // textContent — auth errors, emails, ledger reasons are untrusted.
+        // Account page controller (server-backed auth). Every dynamic string
+        // goes through textContent — auth errors, emails, ledger reasons are
+        // untrusted. No tokens or keys exist in this page (httpOnly cookies).
         (function () {
             'use strict';
 
@@ -127,10 +123,13 @@
             }
 
             async function refreshWallet() {
-                var bal = await window.FourWeirdCoins.getBalance();
-                if (bal.error && bal.error !== 'NOT_LOGGED_IN') { showStatus(bal.error, true); return; }
+                var bal = await window.FourWeirdServer.getBalance();
+                if (bal.error) {
+                    if (bal.error === 'Login required.') return;
+                    showStatus(bal.error, true); return;
+                }
                 $('coins-balance').textContent = String(bal.balance);
-                var hist = await window.FourWeirdCoins.getHistory(25);
+                var hist = await window.FourWeirdServer.getHistory(25);
                 var tbody = $('history-list');
                 tbody.textContent = '';
                 if (hist.error) { showStatus(hist.error, true); return; }
@@ -160,7 +159,7 @@
             }
 
             async function refreshProfile() {
-                var res = await window.FourWeirdCoins.getProfile();
+                var res = await window.FourWeirdServer.getProfile();
                 if (res.error || !res.profile) return;
                 if (res.profile.display_name) $('profile-name').value = res.profile.display_name;
             }
@@ -168,7 +167,7 @@
             function renderPacks() {
                 var list = $('packs-list');
                 list.textContent = '';
-                var packs = window.FourWeirdCoins.getPacks();
+                var packs = window.FourWeirdServer.getPacks();
                 if (!packs.length) {
                     var note = document.createElement('p');
                     note.textContent = 'Vibe Coins packs are not configured yet (see SUPABASE_SETUP.md).';
@@ -188,7 +187,7 @@
                     btn.type = 'button';
                     btn.textContent = 'Buy on Shopify';
                     btn.addEventListener('click', function () {
-                        var built = window.FourWeirdCoins.buildCheckoutUrl(pack);
+                        var built = window.FourWeirdServer.buildCheckoutUrl(pack);
                         if (built.error) { showStatus(built.error, true); return; }
                         window.location.href = built.url;
                     });
@@ -198,7 +197,8 @@
             }
 
             async function refreshAuthUI() {
-                var user = window.FourWeirdAuth.getUser();
+                var sess = await window.FourWeirdServer.getSession();
+                var user = sess.user || null;
                 var loggedIn = !!user;
                 $('authed-email').textContent = loggedIn ? String(user.email || '') : 'not logged in';
                 $('btn-logout').classList.toggle('hidden', !loggedIn);
@@ -211,49 +211,53 @@
             }
 
             async function boot() {
-                if (!window.FourWeirdAuth || !window.FourWeirdCoins) {
+                if (!window.FourWeirdServer) {
                     showStatus('Auth scripts failed to load. Reload the page.', true);
                     return;
                 }
-                var started = await window.FourWeirdAuth.init();
-                if (!started.client) {
+                var sess = await window.FourWeirdServer.getSession();
+                if (sess.error && sess.error !== 'Login required.') {
                     $('config-warning').classList.remove('hidden');
                     $('auth-card').classList.add('hidden');
-                    showStatus(started.error, true);
+                    showStatus(sess.error, true);
                     return;
                 }
-                window.FourWeirdAuth.onAuthChange(refreshAuthUI);
                 await refreshAuthUI();
             }
 
             $('btn-login').addEventListener('click', async function () {
                 clearStatus(); setBusy(true);
                 try {
-                    var res = await window.FourWeirdAuth.signIn($('login-email').value, $('login-password').value);
+                    var res = await window.FourWeirdServer.signIn($('login-email').value, $('login-password').value);
                     if (res.error) showStatus(res.error, true);
-                    else { showStatus('Logged in.', false); $('login-password').value = ''; }
+                    else { showStatus('Logged in.', false); $('login-password').value = ''; await refreshAuthUI(); }
                 } finally { setBusy(false); }
             });
 
             $('btn-signup').addEventListener('click', async function () {
                 clearStatus(); setBusy(true);
                 try {
-                    var res = await window.FourWeirdAuth.signUp($('login-email').value, $('login-password').value);
+                    var res = await window.FourWeirdServer.signUp($('login-email').value, $('login-password').value);
                     if (res.error) showStatus(res.error, true);
-                    else { showStatus('Account created and logged in.', false); $('login-password').value = ''; }
+                    else {
+                        showStatus(res.user ? 'Account created and logged in.' : (res.note || 'Account created.'), false);
+                        $('login-password').value = '';
+                        await refreshAuthUI();
+                    }
                 } finally { setBusy(false); }
             });
 
             $('btn-logout').addEventListener('click', async function () {
-                await window.FourWeirdAuth.signOut();
+                await window.FourWeirdServer.signOut();
                 $('login-password').value = '';
+                await refreshAuthUI();
                 showStatus('Logged out.', false);
             });
 
             $('btn-save-name').addEventListener('click', async function () {
                 clearStatus(); setBusy(true);
                 try {
-                    var res = await window.FourWeirdCoins.setDisplayName($('profile-name').value);
+                    var res = await window.FourWeirdServer.setDisplayName($('profile-name').value);
                     if (res.error) showStatus(res.error, true);
                     else showStatus('Display name saved.', false);
                 } finally { setBusy(false); }
@@ -262,7 +266,7 @@
             $('btn-claim').addEventListener('click', async function () {
                 clearStatus(); setBusy(true);
                 try {
-                    var res = await window.FourWeirdCoins.claimCoins();
+                    var res = await window.FourWeirdServer.claimCoins();
                     if (res.error) showStatus(res.error, true);
                     else {
                         showStatus(res.claimed > 0 ? ('Attached ' + res.claimed + ' purchase(s) to your account.') : 'No new purchases found for your email.', false);
