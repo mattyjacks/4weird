@@ -205,9 +205,11 @@
                 // Security: bio/credits/links go through FourWeirdMeta
                 // (textContent + http(s)-only URLs) so a crafted game.json
                 // cannot inject HTML or javascript: links.
-                window.FourWeirdMeta.setBio('TEMPLATE-4weird-maker-bio', data.maker && data.maker.bio);
-                window.FourWeirdMeta.setMakerLink('TEMPLATE-4weird-maker-link', data.maker && data.maker.url, data.maker && data.maker.urlLabel);
-                window.FourWeirdMeta.renderCredits('TEMPLATE-4weird-credits-grid', data.credits);
+                // Metadata helpers are progressive enhancement. Never let a
+                // missing helper prevent the actual game from starting.
+                window.FourWeirdMeta?.setBio('TEMPLATE-4weird-maker-bio', data.maker && data.maker.bio);
+                window.FourWeirdMeta?.setMakerLink('TEMPLATE-4weird-maker-link', data.maker && data.maker.url, data.maker && data.maker.urlLabel);
+                window.FourWeirdMeta?.renderCredits('TEMPLATE-4weird-credits-grid', data.credits);
             }
 
             fetch('game.json')

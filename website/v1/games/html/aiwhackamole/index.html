@@ -195,8 +195,10 @@
                 document.getElementById('TEMPLATE-4weird-game-title').textContent = data.title;
                 // Security: bio/credits go through FourWeirdMeta (textContent
                 // + http(s)-only URLs) so a crafted game.json cannot inject HTML.
-                window.FourWeirdMeta.setBio('TEMPLATE-4weird-maker-bio', data.maker && data.maker.bio);
-                window.FourWeirdMeta.renderCredits('TEMPLATE-4weird-credits-grid', data.credits);
+                // Metadata helpers are progressive enhancement. Never let a
+                // missing helper prevent the actual game from starting.
+                window.FourWeirdMeta?.setBio('TEMPLATE-4weird-maker-bio', data.maker && data.maker.bio);
+                window.FourWeirdMeta?.renderCredits('TEMPLATE-4weird-credits-grid', data.credits);
             }
 
             fetch('game.json')

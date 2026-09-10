@@ -1462,7 +1462,9 @@
     // Build the grid interface (Lead track active by default)
     buildSequencerUI();
 
-    window.gameState = { title: "Sound Painter 2", activeTrack, bpm, isPlaying: false };
+    // Keep the exposed state in sync with the sequencer state object. The
+    // previous bare identifiers were never declared and stopped startup.
+    window.gameState = { title: "Sound Painter 2", activeTrack: state.activeTrack, bpm: state.bpm, isPlaying: state.isPlaying };
     window.game = window.gameState;
 
 })();
