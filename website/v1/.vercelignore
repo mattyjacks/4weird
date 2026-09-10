@@ -1,0 +1,15 @@
+# Vercel deployment ignore list for the 4weird static site.
+# Secret-bearing and machine-local files must never reach the CDN, even if
+# they sit inside the published directory (e.g. website/v1/ai/mediamogul/.env
+# holds live API keys). Service config reference:
+# https://vercel.com/docs/projects/project-configuration#vercelignore
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets.json
+**/.vibecodeworker-user-data/
+.vibecodeworker-user-data/

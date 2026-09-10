@@ -16,7 +16,10 @@ class LocalAPIServer {
     const requestedPort = Number(options.port || 42069);
     this.port = isValidPort(requestedPort) ? requestedPort : 42069;
     this.host = typeof options.host === 'string' && options.host.length < 256 ? options.host : '127.0.0.1';
-    this.requestTimeoutMs = 30000;
+    // Loopback desktop control plane: stopping a playtest recording blocks on
+    // the MediaMogul ffmpeg encode (hundreds of PNG frames), which routinely
+    // exceeds 30s. Time out idle sockets, not slow video exports.
+    this.requestTimeoutMs = 180000;
     this.rateLimitWindowMs = 60000;
     this.rateLimitMax = 120;
     this._rateHits = new Map();
@@ -188,7 +191,16 @@ class LocalAPIServer {
         const isBypassClient = isLocalClient && !origin;
         if (apiToken && !isBypassClient && req.method !== 'GET' && req.method !== 'OPTIONS' && pathname.startsWith('/api/')) {
           const presented = req.headers['x-vibe-auth'] || String(req.headers['authorization'] || '').replace(/^Bearer\s+/i, '');
-          if (presented !== apiToken) {
+          // Security: constant-time token comparison — a naive !== leaks the
+          // secret byte-by-byte to a remote timing oracle on cloud binds.
+          let tokenOk = false;
+          try {
+            const crypto = require('crypto');
+            const a = Buffer.from(String(presented), 'utf8');
+            const b = Buffer.from(apiToken, 'utf8');
+            tokenOk = a.length === b.length && crypto.timingSafeEqual(a, b);
+          } catch (e) { tokenOk = false; }
+          if (!tokenOk) {
             res.writeHead(401, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ success: false, error: 'Unauthorized: valid X-Vibe-Auth token required' }));
             this.logRequest(req.method, pathname, 401, Date.now() - startTime);

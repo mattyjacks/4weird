@@ -37,6 +37,7 @@
         navItems: [
             { href: 'games/index.html', label: 'Games' },
             { href: 'vibecodeworker/', label: 'VibeCodeWorker' },
+            { href: 'account.html', label: 'Account' },
             { href: 'https://github.com/mattyjacks/4weird', label: 'GitHub' },
             { href: '#contact', label: 'Contact MattyJacks', cta: true }
         ]
@@ -94,6 +95,7 @@
                 <ul class="nav-menu" id="navMenu">
                     <li><a href="${basePath}games/index.html" class="nav-link">Games</a></li>
                     <li><a href="${basePath}vibecodeworker/" class="nav-link">VibeCodeWorker</a></li>
+                    <li><a href="${basePath}account.html" class="nav-link">Account</a></li>
                     <li><a href="https://github.com/mattyjacks/4weird" target="_blank" rel="noopener noreferrer" class="nav-link">GitHub</a></li>
                     <li><a href="${isRoot ? '#contact' : basePath + 'index.html#contact'}" class="nav-link nav-cta">Contact MattyJacks</a></li>
                 </ul>

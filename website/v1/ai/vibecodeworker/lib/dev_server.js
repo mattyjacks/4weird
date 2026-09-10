@@ -252,6 +252,18 @@ class StaticServer {
             res.end('Forbidden');
             return;
           }
+          // Security: same dotfile/secret refusal as the Electron static
+          // server — project roots routinely contain .env files with keys.
+          // 404 (not 403) so file existence is not confirmed.
+          const segments = rel.split(path.sep);
+          const base = path.basename(filePath).toLowerCase();
+          if (segments.some((seg) => seg.startsWith('.')) ||
+              base === '.env' || base === 'credentials.json' || base === 'secrets.json' ||
+              /\.(pem|key|p12|pfx|asc|gpg)$/i.test(base)) {
+            res.writeHead(404);
+            res.end('Not Found');
+            return;
+          }
 
           fs.stat(filePath, (err, stats) => {
             if (err) {

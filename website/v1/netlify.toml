@@ -75,6 +75,41 @@
   to = "/games/:splat"
   status = 200
 
+# Security: secret-bearing files must never be served, even though they sit
+# inside the published directory (e.g. ai/mediamogul/.env holds live API
+# keys). Netlify has no ignore-by-pattern for outputs, so force-404 them.
+# (Vercel side is covered by .vercelignore.)
+# Exact rule for the known secret file (deterministic), plus suffix
+# wildcards as a backstop for any future ones.
+[[redirects]]
+  from = "/ai/mediamogul/.env"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/*.env"
+  to = "/404.html"
+  status = 404
+  force = true
+[[redirects]]
+  from = "/*.env"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/*.pem"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/*.key"
+  to = "/404.html"
+  status = 404
+  force = true
+
 [[headers]]
   for = "/*"
   [headers.values]

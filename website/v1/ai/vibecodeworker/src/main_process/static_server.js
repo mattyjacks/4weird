@@ -50,6 +50,22 @@ function startStaticServer(port, docRoot) {
         return;
       }
 
+      // Security: never serve dotfiles/dot-directories (.env, .git, editor
+      // state) or known secret-bearing names. The docRoot holds a real
+      // .env with API keys, and this port is reachable by anything the
+      // operator playtests plus (on cloud binds) the network. 404 instead
+      // of 403 so existence is not confirmed.
+      const relSegments = path.relative(resolvedRoot, filePath).split(path.sep);
+      const SECRET_BASENAMES = new Set(['.env', 'credentials.json', 'secrets.json']);
+      const blocked = relSegments.some((seg) => seg.startsWith('.')) ||
+        SECRET_BASENAMES.has(path.basename(filePath).toLowerCase()) ||
+        /\.(pem|key|p12|pfx|asc|gpg)$/i.test(filePath);
+      if (blocked) {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('404 Not Found');
+        return;
+      }
+
       let stat = null;
       try {
         stat = fs.statSync(filePath);

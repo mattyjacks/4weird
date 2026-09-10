@@ -4,9 +4,12 @@ const CACHE_NAME = '4weird-v2-cache';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
+  './account.html',
   './styles.css',
   './components.js',
   './script.js',
+  './auth/supabase-auth.js',
+  './auth/vibe-coins.js',
   './404.html',
   './manifest.json'
 ];

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account &amp; Vibe Coins - 4weird Games</title>
+    <meta name="description" content="Log in to 4weird Games, manage your profile, and buy Vibe Coins.">
+    <!-- Auth + money page: never indexed, never cached as a search entry. -->
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .acct-wrap { max-width: 860px; margin: 0 auto; padding: 90px 20px 60px; }
+        .acct-card { background: var(--bg-secondary); border: 1px solid rgba(139,92,246,.25); border-radius: 14px; padding: 24px; margin-bottom: 22px; }
+        .acct-card h2 { margin-top: 0; font-family: var(--font-display); }
+        .acct-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+        .acct-input { flex: 1 1 220px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.15); color: var(--text-primary); padding: 10px 12px; border-radius: 8px; font-size: 1rem; }
+        .acct-btn { background: var(--neon-purple); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        .acct-btn.secondary { background: rgba(255,255,255,.1); }
+        .acct-btn:disabled { opacity: .5; cursor: not-allowed; }
+        .acct-status { border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; display: none; }
+        .acct-status.show { display: block; }
+        .acct-status.error { background: rgba(255,60,90,.12); border: 1px solid rgba(255,60,90,.5); }
+        .acct-status.ok { background: rgba(16,185,129,.12); border: 1px solid rgba(16,185,129,.5); }
+        .acct-balance { font-size: 2.2rem; font-family: var(--font-display); color: var(--neon-green); }
+        .pack-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-top: 12px; }
+        .pack { border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 16px; text-align: center; }
+        .pack h3 { margin: 0 0 6px; }
+        .pack .price { color: var(--text-secondary); margin-bottom: 12px; }
+        .hist-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: .92rem; }
+        .hist-table th, .hist-table td { text-align: left; padding: 8px; border-bottom: 1px solid rgba(255,255,255,.08); }
+        .hist-pos { color: var(--neon-green); } .hist-neg { color: #ff5c7a; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div id="nav-placeholder"></div>
+
+    <main class="acct-wrap">
+        <h1>Account &amp; Vibe Coins</h1>
+        <p>Log in to save your data, then buy Vibe Coins on our Shopify store to spend across 4weird.</p>
+
+        <div class="acct-status" id="acct-status" role="status"></div>
+        <div class="acct-card hidden" id="config-warning">
+            <h2>Setup needed</h2>
+            <p>Auth is not configured for this deployment yet. See SUPABASE_SETUP.md.</p>
+        </div>
+
+        <section class="acct-card" id="auth-card">
+            <h2>Log in / Sign up</h2>
+            <div class="acct-row">
+                <input class="acct-input" id="login-email" type="email" autocomplete="email" placeholder="you@example.com" maxlength="254">
+                <input class="acct-input" id="login-password" type="password" autocomplete="current-password" placeholder="Password (8+ characters)" maxlength="128">
+            </div>
+            <div class="acct-row">
+                <button class="acct-btn" id="btn-login" type="button">Log in</button>
+                <button class="acct-btn secondary" id="btn-signup" type="button">Create account</button>
+                <button class="acct-btn secondary hidden" id="btn-logout" type="button">Log out</button>
+            </div>
+            <p>Logged in as: <strong id="authed-email">not logged in</strong></p>
+        </section>
+
+        <div id="app-section" class="hidden">
+            <section class="acct-card">
+                <h2>Profile</h2>
+                <div class="acct-row">
+                    <input class="acct-input" id="profile-name" type="text" placeholder="Display name" maxlength="40">
+                    <button class="acct-btn" id="btn-save-name" type="button">Save name</button>
+                </div>
+            </section>
+
+            <section class="acct-card">
+                <h2>Vibe Coins</h2>
+                <div class="acct-balance" id="coins-balance">0</div>
+                <p>Vibe Coins balance. Coins are granted after Shopify checkout completes.</p>
+                <div class="pack-grid" id="packs-list"></div>
+                <div class="acct-row">
+                    <button class="acct-btn secondary" id="btn-claim" type="button">Check for new purchases</button>
+                </div>
+            </section>
+
+            <section class="acct-card">
+                <h2>History</h2>
+                <table class="hist-table">
+                    <thead><tr><th>Date</th><th>Change</th><th>Reason</th></tr></thead>
+                    <tbody id="history-list"></tbody>
+                </table>
+            </section>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="components.js"></script>
+    <!-- Pinned Supabase client, Subresource Integrity enforced. If the CDN
+         bytes ever differ (hijack or rotation), the browser refuses to run
+         them and the page shows an explicit "unavailable" state. -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"
+            integrity="sha384-iLddHTLokph6Omwoyid4XKxHaWa6w41BnoEj0q5oOrzmYPpHIKt1wyjReA7s//pP"
+            crossorigin="anonymous"></script>
+    <script src="auth/config.js"></script>
+    <script src="auth/supabase-auth.js"></script>
+    <script src="auth/vibe-coins.js"></script>
+    <script>
+        // Account page controller. Every dynamic string goes through
+        // textContent — auth errors, emails, ledger reasons are untrusted.
+        (function () {
+            'use strict';
+
+            function $(id) { return document.getElementById(id); }
+
+            var statusEl = $('acct-status');
+            function showStatus(message, isError) {
+                statusEl.textContent = String(message);
+                statusEl.className = 'acct-status show ' + (isError ? 'error' : 'ok');
+            }
+            function clearStatus() {
+                statusEl.textContent = '';
+                statusEl.className = 'acct-status';
+            }
+
+            function setBusy(disabled) {
+                ['btn-login', 'btn-signup', 'btn-logout', 'btn-save-name', 'btn-claim'].forEach(function (id) {
+                    var b = $(id);
+                    if (b) b.disabled = disabled;
+                });
+                document.querySelectorAll('#packs-list button').forEach(function (b) { b.disabled = disabled; });
+            }
+
+            async function refreshWallet() {
+                var bal = await window.FourWeirdCoins.getBalance();
+                if (bal.error && bal.error !== 'NOT_LOGGED_IN') { showStatus(bal.error, true); return; }
+                $('coins-balance').textContent = String(bal.balance);
+                var hist = await window.FourWeirdCoins.getHistory(25);
+                var tbody = $('history-list');
+                tbody.textContent = '';
+                if (hist.error) { showStatus(hist.error, true); return; }
+                if (!hist.rows.length) {
+                    var empty = document.createElement('tr');
+                    var cell = document.createElement('td');
+                    cell.colSpan = 3;
+                    cell.textContent = 'No Vibe Coins movement yet.';
+                    empty.appendChild(cell);
+                    tbody.appendChild(empty);
+                    return;
+                }
+                hist.rows.forEach(function (row) {
+                    var tr = document.createElement('tr');
+                    var date = document.createElement('td');
+                    try { date.textContent = new Date(row.created_at).toLocaleString(); }
+                    catch (e) { date.textContent = String(row.created_at || ''); }
+                    var delta = document.createElement('td');
+                    var d = Number(row.delta) || 0;
+                    delta.textContent = (d > 0 ? '+' : '') + d;
+                    delta.className = d >= 0 ? 'hist-pos' : 'hist-neg';
+                    var reason = document.createElement('td');
+                    reason.textContent = String(row.reason || '');
+                    tr.append(date, delta, reason);
+                    tbody.appendChild(tr);
+                });
+            }
+
+            async function refreshProfile() {
+                var res = await window.FourWeirdCoins.getProfile();
+                if (res.error || !res.profile) return;
+                if (res.profile.display_name) $('profile-name').value = res.profile.display_name;
+            }
+
+            function renderPacks() {
+                var list = $('packs-list');
+                list.textContent = '';
+                var packs = window.FourWeirdCoins.getPacks();
+                if (!packs.length) {
+                    var note = document.createElement('p');
+                    note.textContent = 'Vibe Coins packs are not configured yet (see SUPABASE_SETUP.md).';
+                    list.appendChild(note);
+                    return;
+                }
+                packs.forEach(function (pack) {
+                    var card = document.createElement('div');
+                    card.className = 'pack';
+                    var title = document.createElement('h3');
+                    title.textContent = pack.name + ' — ' + pack.coins + ' Vibe Coins';
+                    var price = document.createElement('div');
+                    price.className = 'price';
+                    price.textContent = pack.price;
+                    var btn = document.createElement('button');
+                    btn.className = 'acct-btn';
+                    btn.type = 'button';
+                    btn.textContent = 'Buy on Shopify';
+                    btn.addEventListener('click', function () {
+                        var built = window.FourWeirdCoins.buildCheckoutUrl(pack);
+                        if (built.error) { showStatus(built.error, true); return; }
+                        window.location.href = built.url;
+                    });
+                    card.append(title, price, btn);
+                    list.appendChild(card);
+                });
+            }
+
+            async function refreshAuthUI() {
+                var user = window.FourWeirdAuth.getUser();
+                var loggedIn = !!user;
+                $('authed-email').textContent = loggedIn ? String(user.email || '') : 'not logged in';
+                $('btn-logout').classList.toggle('hidden', !loggedIn);
+                $('app-section').classList.toggle('hidden', !loggedIn);
+                if (loggedIn) {
+                    await refreshProfile();
+                    renderPacks();
+                    await refreshWallet();
+                }
+            }
+
+            async function boot() {
+                if (!window.FourWeirdAuth || !window.FourWeirdCoins) {
+                    showStatus('Auth scripts failed to load. Reload the page.', true);
+                    return;
+                }
+                var started = await window.FourWeirdAuth.init();
+                if (!started.client) {
+                    $('config-warning').classList.remove('hidden');
+                    $('auth-card').classList.add('hidden');
+                    showStatus(started.error, true);
+                    return;
+                }
+                window.FourWeirdAuth.onAuthChange(refreshAuthUI);
+                await refreshAuthUI();
+            }
+
+            $('btn-login').addEventListener('click', async function () {
+                clearStatus(); setBusy(true);
+                try {
+                    var res = await window.FourWeirdAuth.signIn($('login-email').value, $('login-password').value);
+                    if (res.error) showStatus(res.error, true);
+                    else { showStatus('Logged in.', false); $('login-password').value = ''; }
+                } finally { setBusy(false); }
+            });
+
+            $('btn-signup').addEventListener('click', async function () {
+                clearStatus(); setBusy(true);
+                try {
+                    var res = await window.FourWeirdAuth.signUp($('login-email').value, $('login-password').value);
+                    if (res.error) showStatus(res.error, true);
+                    else { showStatus('Account created and logged in.', false); $('login-password').value = ''; }
+                } finally { setBusy(false); }
+            });
+
+            $('btn-logout').addEventListener('click', async function () {
+                await window.FourWeirdAuth.signOut();
+                $('login-password').value = '';
+                showStatus('Logged out.', false);
+            });
+
+            $('btn-save-name').addEventListener('click', async function () {
+                clearStatus(); setBusy(true);
+                try {
+                    var res = await window.FourWeirdCoins.setDisplayName($('profile-name').value);
+                    if (res.error) showStatus(res.error, true);
+                    else showStatus('Display name saved.', false);
+                } finally { setBusy(false); }
+            });
+
+            $('btn-claim').addEventListener('click', async function () {
+                clearStatus(); setBusy(true);
+                try {
+                    var res = await window.FourWeirdCoins.claimCoins();
+                    if (res.error) showStatus(res.error, true);
+                    else {
+                        showStatus(res.claimed > 0 ? ('Attached ' + res.claimed + ' purchase(s) to your account.') : 'No new purchases found for your email.', false);
+                        await refreshWallet();
+                    }
+                } finally { setBusy(false); }
+            });
+
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+            else boot();
+        })();
+    </script>
+</body>
+</html>

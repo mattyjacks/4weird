@@ -126,8 +126,19 @@ export function testLocalGpuConnection() {
 export function generateLinkingCodeAndQR() {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let rawCode = '';
+  // Security: pairing codes authenticate a phone to the desktop. Math.random
+  // is predictable; crypto.getRandomValues is not (falls back safely).
+  const rand = (n) => {
+    try {
+      const buf = new Uint32Array(1);
+      crypto.getRandomValues(buf);
+      return Number(buf[0]) % n;
+    } catch (e) {
+      return Math.floor(Math.random() * n);
+    }
+  };
   for (let i = 0; i < 16; i++) {
-    rawCode += chars.charAt(Math.floor(Math.random() * chars.length));
+    rawCode += chars.charAt(rand(chars.length));
   }
   const formattedCode = `${rawCode.slice(0, 4)}-${rawCode.slice(4, 8)}-${rawCode.slice(8, 12)}-${rawCode.slice(12, 16)}`;
   const linkUrl = `https://4weird.com/linkqr/${rawCode}/`;

@@ -943,7 +943,8 @@
                     <!-- ELECTRON WEBVIEW COMPONENT: fixed 1920x1080 backing
                          store (headless AND headful), CSS-scaled to fit. -->
                     <webview id="game-webview" src="about:blank" style="width:1920px; height:1080px;"
-                      partition="persist:gameview" nodeintegrationinsubframes="false"></webview>
+                      partition="persist:gameview" nodeintegrationinsubframes="false"
+                      webpreferences="contextIsolation=yes"></webview>
                   </div>
 
                   <div class="game-status-banner" id="game-status-banner">Select a game from local demos below or enter a

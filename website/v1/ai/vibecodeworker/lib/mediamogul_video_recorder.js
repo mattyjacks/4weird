@@ -64,16 +64,23 @@ class MediaMogulPlaytestRecorder {
         session.events.push({ atMs: 0, type: 'voiceover-error', message: error.message });
       }
     }
+    // A hung capturePage (e.g. a stalled compositor under software rendering)
+    // must never wedge the session: bound each capture, record the miss, and
+    // keep the frame loop alive.
+    const captureWithTimeout = (ms = 5000) => Promise.race([
+      Promise.resolve().then(() => this.capturePage()),
+      new Promise((_, reject) => setTimeout(() => reject(new Error(`capturePage timed out after ${ms / 1000}s`)), ms)),
+    ]);
     const capture = async () => {
       if (!this.session || this.session !== session || session.busy) return;
       session.busy = true;
       try {
-        const image = await this.capturePage();
+        const image = await captureWithTimeout();
         if (!image) return;
         const file = path.join(framesDir, `frame-${String(++session.frameCount).padStart(6, '0')}.png`);
         fs.writeFileSync(file, Buffer.isBuffer(image) ? image : image.toPNG());
       } catch (error) {
-        session.events.push({ atMs: Date.now() - session.startedMs, type: 'capture-error', message: error.message });
+        session.events.push({ atMs: Date.now() - session.startedMs, type: 'capture-error', message: String(error && error.message ? error.message : error).slice(0, 300) });
       } finally { session.busy = false; }
     };
     await capture();
@@ -91,7 +98,14 @@ class MediaMogulPlaytestRecorder {
     if (!session) return { success: false, error: 'No playtest recording is running' };
     this.session = null;
     clearInterval(session.timer);
-    while (session.busy) await new Promise((resolve) => setTimeout(resolve, 20));
+    // Never wait forever on an in-flight capture: give it a few seconds to
+    // settle, then encode whatever frames landed so stop() always answers.
+    const busyDeadline = Date.now() + 6000;
+    while (session.busy && Date.now() < busyDeadline) await new Promise((resolve) => setTimeout(resolve, 20));
+    if (session.busy) {
+      session.events.push({ atMs: Date.now() - session.startedMs, type: 'capture-error', message: 'stop proceeded with a capture still in flight' });
+      session.busy = false;
+    }
     const manifest = { schema: 'mediamogul.playtest.v1', producer: 'VibeCodeWorker + MediaMogul', sessionId: session.id, startedAt: session.startedAt, endedAt: new Date().toISOString(), durationMs: Date.now() - session.startedMs, fps: session.fps, frameCount: session.frameCount, voiceover: session.voiceoverPath ? { text: session.voiceoverText, path: session.voiceoverPath } : null, events: session.events };
     const manifestPath = path.join(session.outputDir, 'playtest-manifest.json');
     fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));

@@ -164,6 +164,11 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
+      // Security: the dashboard embeds arbitrary playtest targets in
+      // iframes. Sub-frames must never inherit Node.js, whatever the
+      // Electron default for nodeIntegrationInSubFrames happens to be —
+      // a malicious target with in-frame Node would own the host.
+      nodeIntegrationInSubFrames: false,
       webviewTag: true,
       devTools: true
     },

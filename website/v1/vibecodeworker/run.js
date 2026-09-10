@@ -142,8 +142,20 @@
       state.podId = data.podId;
       if (!state.podId) throw new Error('Runpod did not return a pod id');
       state.startedAt = Date.now();
-      $('run-game-view').src = (data.desktops && data.desktops.game) || ('https://' + state.podId + '-6901.proxy.runpod.net/vnc.html?autoconnect=true&resize=scale');
-      $('run-agent-view').src = (data.desktops && data.desktops.agent) || ('https://' + state.podId + '-6902.proxy.runpod.net/vnc.html?autoconnect=true&resize=scale');
+      // Security: desktop URLs come back from the API (via Runpod). Only
+      // https: targets may become iframe sources — anything else (including
+      // javascript:/data:) falls back to the known-good proxy pattern, and
+      // only for sane pod ids.
+      var podOk = /^[A-Za-z0-9-]{1,64}$/.test(String(state.podId));
+      var httpsUrl = function (u, fallback) {
+        try {
+          var parsed = new URL(String(u));
+          if (parsed.protocol === 'https:') return parsed.href;
+        } catch (e) {}
+        return podOk ? fallback : 'about:blank';
+      };
+      $('run-game-view').src = httpsUrl(data.desktops && data.desktops.game, 'https://' + state.podId + '-6901.proxy.runpod.net/vnc.html?autoconnect=true&resize=scale');
+      $('run-agent-view').src = httpsUrl(data.desktops && data.desktops.agent, 'https://' + state.podId + '-6902.proxy.runpod.net/vnc.html?autoconnect=true&resize=scale');
       if (data.gpu) { state.hourly = Number(opt.dataset.price) || state.hourly; log('Pod ' + state.podId + ' created on ' + data.gpu.id + ' (' + data.gpu.memoryGB + 'GB). Model: ' + ((data.model && data.model.tag) || MODEL_FOR(data.gpu.memoryGB)) + '.'); }
       else log('Pod ' + state.podId + ' created. Max cost $' + ((state.hourly / 3600) * MAX_SECONDS).toFixed(4) + '.');
       clearInterval(state.timer);

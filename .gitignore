@@ -59,6 +59,10 @@ temp/
 .env.production.local
 config.json
 **/config.json
+# 4weird Supabase browser config holds the project URL + anon key for the
+# deployed site. The anon key is public by design, but keeping this file out
+# of git stops a service_role paste-mistake from ever reaching the repo.
+website/v1/auth/config.js
 *.pem
 *.key
 
