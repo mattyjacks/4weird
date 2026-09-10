@@ -5,7 +5,7 @@ class ApiBugStore {
   constructor(dataDir) {
     this.dataDir = dataDir;
     if (!fs.existsSync(this.dataDir)) {
-      fs.mkdirSync(this.dataDir, { recursive: true });
+      fs.mkdirSync(this.dataDir, { recursive: true, mode: 0o700 });
     }
     this.bugsLogPath = path.join(this.dataDir, 'bugs_log.json');
     this.bugs = [];
@@ -25,7 +25,10 @@ class ApiBugStore {
 
   saveBugs() {
     try {
-      fs.writeFileSync(this.bugsLogPath, JSON.stringify(this.bugs, null, 2), 'utf8');
+      // Bug text can contain playtest-target console output; keep the log
+      // owner-only and bounded so the endpoint cannot fill the disk.
+      if (this.bugs.length > 500) this.bugs.length = 500;
+      fs.writeFileSync(this.bugsLogPath, JSON.stringify(this.bugs, null, 2), { encoding: 'utf8', mode: 0o600 });
     } catch (err) {
       console.error('[ApiBugStore] Failed to save bugs log:', err.message);
     }

@@ -6,13 +6,54 @@ import { state, el, synth, isTauriRuntime, invokeTauriCommand } from './core_sta
 import { log } from './telemetry_logger.js';
 import { sourceCodeFiles, mockBugPool } from './data_store.js';
 
+// Security: bug text (console errors, exceptions, rejection reasons) comes
+// from the playtest target page, which may be an arbitrary third-party site.
+// This dashboard runs with Node integration in the desktop build, so any
+// unescaped interpolation of that text into innerHTML is a direct XSS-to-RCE
+// primitive. Escape EVERYTHING; the only markup ever restored is the two
+// fixed diff-highlight spans (exact match, no attributes allowed through).
+export function escapeHtml(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Restores exactly <span class="diff-del">, <span class="diff-add"> and
+// </span> after escaping. Anything else (event handlers, extra attributes,
+// other tags) stays inert text.
+export function sanitizeDiff(value) {
+  return escapeHtml(value)
+    .replace(/&lt;span class=&quot;(diff-del|diff-add)&quot;&gt;/g, '<span class="$1">')
+    .replace(/&lt;\/span&gt;/g, '</span>');
+}
+
+const DEFAULT_BUG_IMG = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'><rect width='100%' height='100%' fill='%23080204'/><text x='50%23' y='50%23' dominant-baseline='middle' text-anchor='middle' font-family='monospace' fill='%23ff3355' font-size='15'>DEFECT DETECTED</text></svg>";
+
+// Only image protocols may reach <img src>. Data SVGs in <img> cannot run
+// script, and http(s) images are inert pixels; anything else falls back.
+function safeBugImg(raw) {
+  try {
+    const parsed = new URL(String(raw), window.location.href);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:' || parsed.protocol === 'data:') {
+      if (parsed.protocol === 'data:' && !String(raw).startsWith('data:image/')) return DEFAULT_BUG_IMG;
+      return String(raw);
+    }
+  } catch (e) { /* fall through */ }
+  return DEFAULT_BUG_IMG;
+}
+
 export function renderReasoningTree() {
   if (!el.reasoningTreeContainer) return;
 
+  const target = escapeHtml(el.gameTarget ? el.gameTarget.value : 'orbitaldrift.html');
+  const model = escapeHtml(state.currentModel);
   let html = `
     <div class="tree-node node-goal">
       <div class="tree-node-title"><span>🎯 [ROOT GOAL]</span> Autonomous QA Playtesting & Self-Healing</div>
-      <div class="tree-node-desc">Target: ${el.gameTarget ? el.gameTarget.value : 'orbitaldrift.html'} | Model: ${state.currentModel}</div>
+      <div class="tree-node-desc">Target: ${target} | Model: ${model}</div>
     </div>
     
     <div class="tree-node node-hypothesis">
@@ -30,12 +71,12 @@ export function renderReasoningTree() {
     state.bugs.forEach((bug, index) => {
       html += `
         <div class="tree-node node-defect">
-          <div class="tree-node-title"><span>🚨 [DEFECT CAUGHT #${index + 1}]</span> ${bug.id}: ${bug.desc}</div>
-          <div class="tree-node-desc">Target File: ${bug.file} at ${bug.time}</div>
+          <div class="tree-node-title"><span>🚨 [DEFECT CAUGHT #${index + 1}]</span> ${escapeHtml(bug.id)}: ${escapeHtml(bug.desc)}</div>
+          <div class="tree-node-desc">Target File: ${escapeHtml(bug.file)} at ${escapeHtml(bug.time)}</div>
         </div>
         <div class="tree-node node-patch">
           <div class="tree-node-title"><span>🛠️ [GIT PATCH GENERATED]</span> Synthesized Self-Healing Diff</div>
-          <div class="tree-node-desc">${bug.fixDescription || 'Safeguarded target reference in memory.'}</div>
+          <div class="tree-node-desc">${escapeHtml(bug.fixDescription || 'Safeguarded target reference in memory.')}</div>
         </div>
       `;
     });
@@ -102,10 +143,14 @@ export function updatePatchDrawerUI() {
     const card = document.createElement('div');
     card.className = 'patch-card';
     card.style.cssText = 'background: rgba(0, 242, 254, 0.04); border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; margin-bottom: 8px;';
-    card.innerHTML = `
-      <h4 style="font-family: var(--font-mono); font-size: 11px; color: var(--neon-cyan); margin-bottom: 4px;">Patch #${idx + 1}: Fix ${patch.file} (${patch.id})</h4>
-      <pre class="diff-code">${patch.diff}</pre>
-    `;
+    const heading = document.createElement('h4');
+    heading.style.cssText = 'font-family: var(--font-mono); font-size: 11px; color: var(--neon-cyan); margin-bottom: 4px;';
+    heading.textContent = `Patch #${idx + 1}: Fix ${patch.file} (${patch.id})`;
+    const pre = document.createElement('pre');
+    pre.className = 'diff-code';
+    // patch.diff carries page-influenced text: allow only the fixed spans.
+    pre.innerHTML = sanitizeDiff(patch.diff);
+    card.append(heading, pre);
     el.drawerPatchesList.appendChild(card);
   });
 }
@@ -117,9 +162,11 @@ export function showBugLightbox(bug) {
   el.bugDetailTime.textContent = bug.time;
   el.bugDetailDesc.textContent = bug.desc;
   el.bugDetailStack.textContent = bug.stack;
-  el.bugDetailImg.src = bug.img;
+  el.bugDetailImg.src = safeBugImg(bug.img);
   el.diffFileName.textContent = `Target: ${bug.file}`;
-  el.diffCodeContent.innerHTML = bug.diff;
+  // bug.diff may embed page-controlled console text: sanitize, keeping only
+  // the fixed diff-highlight spans.
+  el.diffCodeContent.innerHTML = sanitizeDiff(bug.diff);
 
   el.btnSolveMega.onclick = () => {
     synth.playClick();
@@ -166,13 +213,20 @@ export function triggerDetectedBug(customBug = null) {
 
   const card = document.createElement('div');
   card.className = 'bug-card';
-  card.innerHTML = `
-    <div class="bug-title-row">
-      <span class="bug-type">[${bug.type}]</span>
-      <span class="bug-time">${bug.time}</span>
-    </div>
-    <div class="bug-desc">${bug.desc}</div>
-  `;
+  const titleRow = document.createElement('div');
+  titleRow.className = 'bug-title-row';
+  const typeSpan = document.createElement('span');
+  typeSpan.className = 'bug-type';
+  typeSpan.textContent = `[${bug.type}]`;
+  const timeSpan = document.createElement('span');
+  timeSpan.className = 'bug-time';
+  timeSpan.textContent = bug.time;
+  titleRow.append(typeSpan, timeSpan);
+  const descDiv = document.createElement('div');
+  descDiv.className = 'bug-desc';
+  // bug.desc is page-controlled (console text, error messages): text only.
+  descDiv.textContent = bug.desc;
+  card.append(titleRow, descDiv);
   card.addEventListener('click', () => showBugLightbox(bug));
   if (el.bugListContainer) el.bugListContainer.appendChild(card);
 

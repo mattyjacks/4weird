@@ -123,7 +123,17 @@ export function glideAgentCursorAndInteract(targetX, targetY, callback) {
     } catch (err) {
       try {
         if (el.gameIframe.contentWindow) {
-          el.gameIframe.contentWindow.postMessage({ type: 'VIBECODEWORKER_CLICK', x: targetX, y: targetY }, '*');
+          // Security: address the message at the iframe's own origin so
+          // click coordinates are never broadcast to an unexpected party.
+          // Non-http(s) frames (about:blank, file:, data:) have no stable
+          // origin to target, so '*' is used only there.
+          let targetOrigin = '*';
+          try {
+            const src = el.gameIframe.getAttribute('src') || el.gameIframe.src || '';
+            const parsed = new URL(src, window.location.href);
+            if (parsed.protocol === 'http:' || parsed.protocol === 'https:') targetOrigin = parsed.origin;
+          } catch (e) { /* keep '*' fallback */ }
+          el.gameIframe.contentWindow.postMessage({ type: 'VIBECODEWORKER_CLICK', x: targetX, y: targetY }, targetOrigin);
         }
       } catch (e) { }
     }

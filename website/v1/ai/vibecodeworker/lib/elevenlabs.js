@@ -279,10 +279,21 @@ function toAudioBuffer(input) {
         return Buffer.from(trimmed.replace(/\s/g, ''), 'base64');
       } catch (_) { /* fall through to path */ }
     }
-    // file path
+    // file path (audio assets only)
+    // Security: this input is request-influenced (/api/audio/*). Only files
+    // with audio extensions are readable, and only up to 50MB, so the
+    // parameter cannot be used as an arbitrary local-file read (e.g. for
+    // credential stores) or a memory-exhaustion primitive.
     try {
       const fs = require('fs');
-      if (fs.existsSync(trimmed)) return fs.readFileSync(trimmed);
+      const path = require('path');
+      const AUDIO_EXTENSIONS = new Set(['.wav', '.mp3', '.ogg', '.oga', '.flac', '.m4a', '.aac', '.webm', '.opus', '.mid', '.midi', '.aif', '.aiff']);
+      if (fs.existsSync(trimmed)) {
+        const stat = fs.statSync(trimmed);
+        if (stat.isFile() && stat.size <= 50 * 1024 * 1024 && AUDIO_EXTENSIONS.has(path.extname(trimmed).toLowerCase())) {
+          return fs.readFileSync(trimmed);
+        }
+      }
     } catch (_) {}
     return null;
   }

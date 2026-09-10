@@ -31,6 +31,27 @@ export function testLocalGpuConnection() {
   const hostEndpoint = el.gpuEndpointInput ? el.gpuEndpointInput.value.trim() : 'http://localhost:11434';
   const gpuModelName = el.gpuModelSelect ? el.gpuModelSelect.value : 'llama3:8b';
 
+  // Security: endpoint + model are operator-typed free text. Render them as
+  // text nodes, never innerHTML, so markup in the input cannot execute.
+  const setGpuResult = (title, rows) => {
+    el.gpuTestResult.className = 'gpu-test-result-box success';
+    el.gpuTestResult.textContent = '';
+    const strong = document.createElement('strong');
+    strong.textContent = title;
+    el.gpuTestResult.appendChild(strong);
+    rows.forEach(([label, value]) => {
+      el.gpuTestResult.appendChild(document.createElement('br'));
+      if (value) {
+        if (label) el.gpuTestResult.append(document.createTextNode(label + ' '));
+        const code = document.createElement('code');
+        code.textContent = String(value);
+        el.gpuTestResult.appendChild(code);
+      } else {
+        el.gpuTestResult.append(document.createTextNode(label));
+      }
+    });
+  };
+
   setTimeout(async () => {
     let isWebGpu = selectedModel === 'local-webgpu-inbrowser';
     let webGpuSupported = typeof navigator !== 'undefined' && 'gpu' in navigator;
@@ -40,8 +61,11 @@ export function testLocalGpuConnection() {
         try {
           const adapter = await navigator.gpu.requestAdapter();
           if (adapter) {
-            el.gpuTestResult.className = 'gpu-test-result-box success';
-            el.gpuTestResult.innerHTML = `<strong>✅ WEBGPU DIRECT HARDWARE ACCELERATION ONLINE!</strong><br>Adapter: Hardware GPU Direct Offload Active<br>Precision: FP16 / INT4 Quantized Tensor Cores<br>Local In-Browser Inference Engine Ready.`;
+            setGpuResult('✅ WEBGPU DIRECT HARDWARE ACCELERATION ONLINE!', [
+              ['Adapter: Hardware GPU Direct Offload Active', ''],
+              ['Precision: FP16 / INT4 Quantized Tensor Cores', ''],
+              ['Local In-Browser Inference Engine Ready.', ''],
+            ]);
             state.gpuSettings.backendMode = 'Native WebGPU (In-Browser Shader)';
             state.gpuSettings.vramAllocatedGB = 4.2;
             state.gpuSettings.tokensPerSec = 64.0;
@@ -49,12 +73,18 @@ export function testLocalGpuConnection() {
             throw new Error("WebGPU Adapter request returned null");
           }
         } catch (e) {
-          el.gpuTestResult.className = 'gpu-test-result-box success';
-          el.gpuTestResult.innerHTML = `<strong>⚡ WEBGPU HARDWARE PIPELINE READY!</strong><br>Direct GPU Shader Compute Active.<br>Model: ${gpuModelName}<br>Telemetry: 4.2 GB VRAM / 58.4 tokens/sec.`;
+          setGpuResult('⚡ WEBGPU HARDWARE PIPELINE READY!', [
+            ['Direct GPU Shader Compute Active.', ''],
+            ['Model:', gpuModelName],
+            ['Telemetry: 4.2 GB VRAM / 58.4 tokens/sec.', ''],
+          ]);
         }
       } else {
-        el.gpuTestResult.className = 'gpu-test-result-box success';
-        el.gpuTestResult.innerHTML = `<strong>⚡ WEBGPU FALLBACK MODE ACTIVE</strong><br>Browser WebGPU simulated via WebGL/WASM acceleration.<br>Model: ${gpuModelName}<br>Telemetry: 4.8 GB VRAM / 42.0 tokens/sec.`;
+        setGpuResult('⚡ WEBGPU FALLBACK MODE ACTIVE', [
+          ['Browser WebGPU simulated via WebGL/WASM acceleration.', ''],
+          ['Model:', gpuModelName],
+          ['Telemetry: 4.8 GB VRAM / 42.0 tokens/sec.', ''],
+        ]);
       }
     } else {
       try {
@@ -64,15 +94,26 @@ export function testLocalGpuConnection() {
         clearTimeout(timeoutId);
 
         if (res && res.ok) {
-          el.gpuTestResult.className = 'gpu-test-result-box success';
-          el.gpuTestResult.innerHTML = `<strong>✅ LOCAL GPU HOST CONNECTED!</strong><br>Endpoint: <code>${hostEndpoint}</code><br>Active Model: <code>${gpuModelName}</code><br>CUDA Layers Offloaded: 33/33 (100% GPU VRAM)<br>Inference Latency: ~18ms / token.`;
+          setGpuResult('✅ LOCAL GPU HOST CONNECTED!', [
+            ['Endpoint:', hostEndpoint],
+            ['Active Model:', gpuModelName],
+            ['CUDA Layers Offloaded: 33/33 (100% GPU VRAM)', ''],
+            ['Inference Latency: ~18ms / token.', ''],
+          ]);
         } else {
-          el.gpuTestResult.className = 'gpu-test-result-box success';
-          el.gpuTestResult.innerHTML = `<strong>✅ LOCAL GPU HARDWARE BRIDGE ONLINE!</strong><br>Endpoint Target: <code>${hostEndpoint}</code><br>Selected Model: <code>${gpuModelName}</code><br>GPU VRAM Offload: 6.4 GB / 12.0 GB (CUDA Direct)<br>Local GPU debug connection verified.`;
+          setGpuResult('✅ LOCAL GPU HARDWARE BRIDGE ONLINE!', [
+            ['Endpoint Target:', hostEndpoint],
+            ['Selected Model:', gpuModelName],
+            ['GPU VRAM Offload: 6.4 GB / 12.0 GB (CUDA Direct)', ''],
+            ['Local GPU debug connection verified.', ''],
+          ]);
         }
       } catch (e) {
-        el.gpuTestResult.className = 'gpu-test-result-box success';
-        el.gpuTestResult.innerHTML = `<strong>✅ LOCAL GPU HARDWARE BRIDGE ONLINE!</strong><br>Endpoint Target: <code>${hostEndpoint}</code><br>Selected Model: <code>${gpuModelName}</code><br>GPU VRAM Offload: 6.4 GB / 12.0 GB (CUDA Direct)`;
+        setGpuResult('✅ LOCAL GPU HARDWARE BRIDGE ONLINE!', [
+          ['Endpoint Target:', hostEndpoint],
+          ['Selected Model:', gpuModelName],
+          ['GPU VRAM Offload: 6.4 GB / 12.0 GB (CUDA Direct)', ''],
+        ]);
       }
     }
 

@@ -74,7 +74,15 @@
             const iframes = document.querySelectorAll('iframe');
             iframes.forEach(iframe => {
                 if (iframe.contentWindow) {
-                    iframe.contentWindow.postMessage({ type: 'SET_GAME_SPEED', speed: speed }, '*');
+                    // Security: target each frame's own origin instead of
+                    // broadcasting game-speed state to every origin ('*').
+                    let targetOrigin = '*';
+                    try {
+                        const src = iframe.getAttribute('src') || iframe.src || '';
+                        const parsed = new URL(src, window.location.href);
+                        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') targetOrigin = parsed.origin;
+                    } catch (e) { /* keep '*' fallback for opaque origins */ }
+                    iframe.contentWindow.postMessage({ type: 'SET_GAME_SPEED', speed: speed }, targetOrigin);
                 }
             });
         } catch (e) {}

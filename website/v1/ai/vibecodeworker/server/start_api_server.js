@@ -54,6 +54,15 @@ async function main() {
     console.log('[API Server] Token auth disabled — set VIBE_API_TOKEN before exposing this port to the internet!');
   }
 
+  // Security: this server exposes code-execution endpoints (/api/game/eval,
+  // /api/game/patch, /api/opencode/*). Binding a non-loopback interface
+  // without a token would publish unauthenticated RCE, so refuse to start.
+  const LOOPBACK_HOSTS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1', 'localhost']);
+  if (!LOOPBACK_HOSTS.has(String(HOST)) && !process.env.VIBE_API_TOKEN) {
+    console.error(`[API Server] REFUSING to bind non-loopback host '${HOST}' without VIBE_API_TOKEN. Set VIBE_API_TOKEN to a long random secret, or bind a loopback address.`);
+    process.exit(1);
+  }
+
   const apiServer = new LocalAPIServer({
     port: PORT,
     host: HOST,

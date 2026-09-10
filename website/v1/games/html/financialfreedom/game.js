@@ -477,7 +477,13 @@ function logEvent(sender, message, type = "info") {
 
     const item = document.createElement("div");
     item.className = `game-alert ${type}`;
-    item.innerHTML = `<strong>[${sender}]</strong> ${message}`;
+    // Security: sender/message rendered as text so event content can never
+    // inject markup into the page.
+    const senderEl = document.createElement("strong");
+    senderEl.textContent = `[${sender}]`;
+    const msgEl = document.createElement("span");
+    msgEl.textContent = ` ${message}`;
+    item.append(senderEl, msgEl);
 
     list.prepend(item);
 

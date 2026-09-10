@@ -42,11 +42,25 @@
     const endpoint = $('endpoint'), token = $('token'), status = $('status'), screen = $('screen'), dot = $('dot');
     const params = new URLSearchParams(location.search);
     endpoint.value = params.get('endpoint') || sessionStorage.getItem('vcw-endpoint') || '';
-    token.value = params.get('token') || '';
+    // Security: the control token is a secret. Accept it from the URL once
+    // (QR pairing) then strip it from the address bar so it never persists
+    // in history, synced tabs, or shared links.
+    const urlToken = params.get('token') || '';
+    token.value = urlToken;
+    if (urlToken || params.has('endpoint')) {
+      try {
+        const clean = new URL(location.href);
+        clean.searchParams.delete('token');
+        history.replaceState(null, '', clean.pathname + clean.search + clean.hash);
+      } catch (e) { /* history API unavailable: token field still works */ }
+    }
     const base = () => endpoint.value.trim().replace(/\/+$/, '');
     const show = value => { status.textContent = value; };
     async function api(path, options = {}) {
       if (!base()) throw new Error('Enter the worker API URL first.');
+      // Security: only http(s) worker URLs, so a pasted javascript: or
+      // custom-scheme value cannot turn the token into a leak primitive.
+      if (!/^https?:\/\//i.test(base())) throw new Error('Worker API URL must start with http:// or https://.');
       const headers = { 'Content-Type':'application/json', ...(options.headers || {}) };
       if (token.value.trim()) headers['X-Vibe-Auth'] = token.value.trim();
       const res = await fetch(base() + path, { ...options, headers });

@@ -9,16 +9,30 @@ class ReplayStorage {
     }
   }
 
+  // Security: session ids are request-influenced. They are treated as bare
+  // file names inside replaysDir only — path separators, traversal, and
+  // absolute paths are rejected, and the resolved path is re-confined.
+  sanitizeSessionId(sessionId) {
+    const id = String(sessionId == null ? '' : sessionId);
+    if (!id || id.length > 128) return null;
+    if (id.includes('/') || id.includes('\\') || id.includes('..') || path.isAbsolute(id)) return null;
+    if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(id)) return null;
+    const resolved = path.resolve(this.replaysDir, `${id}.json`);
+    const rel = path.relative(path.resolve(this.replaysDir), resolved);
+    if (rel === '' || rel.startsWith('..') || path.isAbsolute(rel)) return null;
+    return resolved;
+  }
+
   saveSession(session) {
-    const filePath = path.join(this.replaysDir, `${session.id}.json`);
+    const filePath = this.sanitizeSessionId(session && session.id) || path.join(this.replaysDir, `replay_${Date.now()}.json`);
     fs.writeFileSync(filePath, JSON.stringify(session, null, 2), 'utf8');
     return filePath;
   }
 
   loadSession(sessionId) {
-    let filePath = sessionId;
-    if (!filePath.endsWith('.json')) {
-      filePath = path.join(this.replaysDir, `${sessionId}.json`);
+    const filePath = this.sanitizeSessionId(sessionId);
+    if (!filePath) {
+      throw new Error('Replay session file not found: invalid session id');
     }
 
     if (!fs.existsSync(filePath)) {

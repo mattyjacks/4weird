@@ -18,17 +18,29 @@ const { getResolvedApiKey } = require('./storage');
 function launchDeepSeekHarnessWeb({ apiKey = '', workspaceDir = '', port = 3080 } = {}) {
   return new Promise((resolve) => {
     const resolvedKey = apiKey || getResolvedApiKey('deepseek');
-    const targetDir = workspaceDir || path.resolve(__dirname, '..');
+    // Security: port/workspaceDir arrive via IPC from the renderer. Coerce
+    // the port to a bare number and confine the workspace to the worker
+    // tree — spawn runs with shell:true on Windows (needed for npx.cmd),
+    // so no caller-controlled string may reach the command line.
+    const portNum = Number(port);
+    const safePort = Number.isInteger(portNum) && portNum >= 1024 && portNum <= 65535 ? portNum : 3080;
+    const workerRoot = path.resolve(__dirname, '..');
+    let targetDir = workerRoot;
+    if (workspaceDir) {
+      const abs = path.resolve(workspaceDir);
+      const rel = path.relative(workerRoot, abs);
+      if (rel !== '' && !rel.startsWith('..') && !path.isAbsolute(rel)) targetDir = abs;
+    }
 
     const env = {
       ...process.env,
       DEEPSEEK_API_KEY: resolvedKey,
-      DSH_PORT: port.toString()
+      DSH_PORT: safePort.toString()
     };
 
     const isWin = process.platform === 'win32';
     const npmCmd = isWin ? 'npx.cmd' : 'npx';
-    const args = ['@deepseek-ai/dsh', 'web', '--port', port.toString(), '--workspace', targetDir];
+    const args = ['@deepseek-ai/dsh', 'web', '--port', safePort.toString(), '--workspace', targetDir];
 
     console.log(`[DeepSeek Harness] Launching: ${npmCmd} ${args.join(' ')} in ${targetDir}`);
     
@@ -52,7 +64,7 @@ function launchDeepSeekHarnessWeb({ apiKey = '', workspaceDir = '', port = 3080 
       stdout += d.toString();
       if (!resolved && (stdout.includes('http') || stdout.includes('localhost') || stdout.includes('ready') || stdout.includes('running'))) {
         resolved = true;
-        resolve({ success: true, url: `http://localhost:${port}`, pid: spawned.pid, stdout });
+        resolve({ success: true, url: `http://localhost:${safePort}`, pid: spawned.pid, stdout });
       }
     });
 
@@ -71,7 +83,7 @@ function launchDeepSeekHarnessWeb({ apiKey = '', workspaceDir = '', port = 3080 
     setTimeout(() => {
       if (!resolved) {
         resolved = true;
-        resolve({ success: true, url: `http://localhost:${port}`, pid: spawned.pid, stdout, notice: 'Spawned harness server.' });
+        resolve({ success: true, url: `http://localhost:${safePort}`, pid: spawned.pid, stdout, notice: 'Spawned harness server.' });
       }
     }, 4000);
   });

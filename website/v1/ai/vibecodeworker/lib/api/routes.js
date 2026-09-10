@@ -1,7 +1,22 @@
 /**
  * Route dispatcher for VibeCodeWorker Local REST API.
  */
+const path = require('path');
 const { handlePatchFile } = require('./patch_handler');
+
+// Security: request-influenced filesystem paths (bug filePath, targetFile,
+// working dirs) must stay inside the shipped site tree (website/v1), which
+// contains the games and the worker itself — and nothing else sensitive.
+// Credentials live in the OS profile dir, outside this tree, so confining
+// here keeps them unreadable through the API.
+function confineToSiteTree(rootDir, requested) {
+  if (requested == null || requested === '') return null;
+  const siteRoot = path.resolve(rootDir, '..', '..', '..');
+  const abs = path.resolve(siteRoot, String(requested));
+  const rel = path.relative(siteRoot, abs);
+  if (rel === '' || rel.startsWith('..') || path.isAbsolute(rel)) return null;
+  return abs;
+}
 
 async function handleApiRequest(context, req, res, pathname, parsedUrl, readBody, sendJSON, sendText, rootDir) {
   const { appState, handlers, bugStore } = context;
@@ -193,12 +208,22 @@ async function handleApiRequest(context, req, res, pathname, parsedUrl, readBody
   if (pathname === '/api/autocode/fix') {
     if (req.method !== 'POST') return sendText(405, 'Method Not Allowed');
     const body = await readBody();
+    // Security: targetFile is read from disk and its content is returned in
+    // the response. Confine it to the site tree so the endpoint cannot be
+    // used as an arbitrary local-file reader (credentials, SSH keys, ...).
+    const requestedTarget = body.targetFile || body.filePath;
+    if (requestedTarget) {
+      const confined = confineToSiteTree(rootDir, requestedTarget);
+      if (!confined) return sendJSON(403, { success: false, error: 'Security Exception: target file is outside the authorized site tree' });
+      body.targetFile = confined;
+      delete body.filePath;
+    }
     const { AutoCodeSystem } = require('../core');
     const autoCode = new AutoCodeSystem();
     const result = await autoCode.autoFixBug({
       bug: body.bug || { description: body.instruction || body.description },
       sourceFiles: body.sourceFiles || [],
-      targetFile: body.targetFile || body.filePath,
+      targetFile: body.targetFile,
       customInstruction: body.customInstruction || body.instruction
     });
     return sendJSON(result.success ? 200 : 500, result);
@@ -247,8 +272,14 @@ async function handleApiRequest(context, req, res, pathname, parsedUrl, readBody
         if (!fp || seen.has(fp)) continue;
         seen.add(fp);
         try {
-          const abs = path.isAbsolute(fp) ? fp : path.join(rootDir, fp);
-          if (abs.startsWith(path.resolve(rootDir)) && fs.existsSync(abs) && fs.statSync(abs).size < 256 * 1024) {
+          // Security: bug file paths are request-influenced (stored via
+          // POST /api/bugs). Confine reads to the workspace with a
+          // path.relative check — a startsWith prefix test is bypassable
+          // via sibling directories (e.g. "<root>-evil").
+          const abs = path.resolve(path.isAbsolute(fp) ? fp : path.join(rootDir, fp));
+          const rel = path.relative(path.resolve(rootDir), abs);
+          if (rel === '' || rel.startsWith('..') || path.isAbsolute(rel)) continue;
+          if (fs.existsSync(abs) && fs.statSync(abs).isFile() && fs.statSync(abs).size < 256 * 1024) {
             fileContents.push({ path: fp, content: fs.readFileSync(abs, 'utf8').slice(0, 60000) });
           }
         } catch (e) { /* best effort */ }
@@ -280,7 +311,8 @@ async function handleApiRequest(context, req, res, pathname, parsedUrl, readBody
       gameId: body.gameId || appState.activeGame,
       instructions: body.instructions,
       testCommand: body.testCommand,
-      dir: body.dir,
+      // Security: OpenCode edits files under dir — keep it inside the site tree.
+      dir: (body.dir && confineToSiteTree(rootDir, body.dir)) || undefined,
       sessionId: body.sessionId,
     });
     if (typeof context.addConsoleLog === 'function') {
@@ -309,7 +341,8 @@ async function handleApiRequest(context, req, res, pathname, parsedUrl, readBody
       gameId: body.gameId || appState.activeGame,
       instructions: body.instructions,
       testCommand: body.testCommand,
-      dir: body.dir,
+      // Security: the heal loop edits + executes under dir — site tree only.
+      dir: (body.dir && confineToSiteTree(rootDir, body.dir)) || undefined,
       maxIterations: Math.min(parseInt(body.maxIterations, 10) || 3, 10),
       instance,
     });
@@ -337,13 +370,18 @@ async function handleApiRequest(context, req, res, pathname, parsedUrl, readBody
     const bridge = require('../opencode_bridge');
     const command = String(body.testCommand || '').slice(0, 500);
     if (!command) return sendJSON(400, { success: false, error: 'Missing testCommand' });
-    // Guardrail: only allow test-ish commands through this hook.
+    // Guardrail: only single test-ish commands, no shell metacharacters, so
+    // `npm test`-shaped input cannot be turned into chained/redirected shell
+    // (`;`, `&&`, `$()`, backticks, pipes, redirects, ...).
     if (!/test|bench|lint|audit|playtest|gravegain/i.test(command)) {
       return sendJSON(400, { success: false, error: 'heal-test only runs test/bench/lint/audit commands' });
     }
-    const targetDir = (body.dir && String(body.dir).startsWith(path.resolve(rootDir)))
-      ? body.dir
-      : rootDir;
+    if (/[;&|$`><(){}!\n\r]/.test(command) || /\|\|/.test(command) || /&&/.test(command)) {
+      return sendJSON(400, { success: false, error: 'heal-test runs a single command only (no chaining, substitution, or redirects)' });
+    }
+    // Security: working dir must stay inside the site tree (sibling-prefix
+    // startsWith checks are bypassable, so use confinement).
+    const targetDir = (body.dir && confineToSiteTree(rootDir, body.dir)) || rootDir;
     const result = await bridge.runShellCommand(command, targetDir, 300000);
     return sendJSON(200, { success: true, exitCode: result.exitCode, output: result.output });
   }
