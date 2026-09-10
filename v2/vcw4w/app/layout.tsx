@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
+import { Suspense } from "react";
+import { GoogleAnalytics } from "@/components/site/google-analytics";
+import { SiteFooter } from "@/components/site/site-footer";
 import "./globals.css";
 
 const defaultUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -29,7 +32,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <div id="main-content">{children}</div>
+          <SiteFooter />
         </ThemeProvider>
+        <Suspense fallback={null}>
+          <GoogleAnalytics />
+        </Suspense>
       </body>
     </html>
   );

@@ -14,5 +14,5 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function PlayPage({ params }: { params: Promise<{ slug: string }> }) {
   const game = getGame((await params).slug);
   if (!game) notFound();
-  return <main className="min-h-screen bg-black"><div className="flex items-center justify-between px-4 py-3 text-white"><a href={`/games/${game.slug}`}>← {game.title}</a><span className="text-xs text-white/60">Original HTML runtime</span></div><div className="h-[calc(100vh-52px)]"><GameRuntimeFrame slug={game.slug} title={game.title} src={game.runtimePath} /></div></main>;
+  return <main className="h-[100dvh] overflow-hidden bg-black"><div className="flex h-11 items-center justify-between gap-3 overflow-hidden border-b border-white/10 px-3 text-sm text-white"><a href={`/games/${game.slug}`} className="shrink-0 font-semibold">← {game.title}</a><span className="hidden truncate text-xs text-white/60 sm:inline">Touch-ready runtime · rotate for the best view</span></div><div className="h-[calc(100dvh-44px)]"><GameRuntimeFrame slug={game.slug} title={game.title} src={game.runtimePath} /></div></main>;
 }

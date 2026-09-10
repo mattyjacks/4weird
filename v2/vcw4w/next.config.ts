@@ -42,11 +42,6 @@ const nextConfig: NextConfig = {
       { source: "/vcw/web/hub/", destination: "/vibecodeworker/hub", permanent: true },
     ];
   },
-  async rewrites() {
-    const authOrigin = process.env.AUTH_APP_URL;
-    if (!authOrigin) return [];
-    return [{ source: "/auth-api/:path*", destination: `${authOrigin.replace(/\/$/, "")}/:path*` }];
-  },
 };
 
 export default nextConfig;
