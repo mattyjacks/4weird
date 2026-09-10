@@ -1,6 +1,6 @@
 # 4weird v2 (Next.js)
 
-The v2 workspace is the Next.js shell for 4weird. It adds a typed catalog, account/coin/save APIs, metadata pages, and a stable migration boundary around the original v1 experiences.
+The v2 workspace is the Next.js shell for 4weird. It adds a typed catalog, account/coin/save APIs, metadata pages, and a stable migration boundary around the original v1 experiences...
 
 ## Development
 
