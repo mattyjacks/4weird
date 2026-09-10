@@ -876,6 +876,20 @@ function createLocalApiServer(port) {
         }
 
         recordPlaytestEvent(projectRoot, { type: 'action', action });
+        // Normalize the lowercase reflex key names (arrowup, n, ...) and the
+        // renderer's getKeyCode aliases to Electron sendInputEvent keyCodes.
+        const normalizeKeyCode = (key) => {
+          const low = String(key || '').toLowerCase();
+          const aliases = {
+            arrowleft: 'ArrowLeft', arrowright: 'ArrowRight', arrowup: 'ArrowUp', arrowdown: 'ArrowDown',
+            ' ': 'Space', space: 'Space', enter: 'Enter', escape: 'Escape', esc: 'Escape',
+            shift: 'Shift', control: 'Control', ctrl: 'Control', alt: 'Alt', tab: 'Tab', backspace: 'Backspace'
+          };
+          if (aliases[low]) return aliases[low];
+          if (low.length === 1) return low;
+          return String(key);
+        };
+        const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
         if (action.type === 'click') {
           const x = action.x || 100;
           const y = action.y || 100;
@@ -883,10 +897,32 @@ function createLocalApiServer(port) {
           win.webContents.sendInputEvent({ type: 'mouseUp', x, y, button: 'left', clickCount: 1 });
           return { success: true, action: 'click', x, y };
         } else if (action.type === 'keydown' || action.type === 'keyup') {
-          const keyCode = action.key || action.code;
+          const keyCode = normalizeKeyCode(action.key || action.code);
           if (!keyCode) return { success: false, error: 'Keyboard action must include key or code' };
           win.webContents.sendInputEvent({ type: action.type, keyCode });
-          return { success: true, action: action.type, key: action.key };
+          return { success: true, action: action.type, key: keyCode };
+        } else if (action.type === 'press_key' || action.type === 'keypress') {
+          const keyCode = normalizeKeyCode(action.target || action.key || (action.params && action.params.key));
+          if (!keyCode) return { success: false, error: 'press_key must include a target key' };
+          win.webContents.sendInputEvent({ type: 'keyDown', keyCode });
+          if (keyCode.length === 1) win.webContents.sendInputEvent({ type: 'char', keyCode });
+          await sleep(50);
+          win.webContents.sendInputEvent({ type: 'keyUp', keyCode });
+          return { success: true, action: 'press_key', key: keyCode };
+        } else if (action.type === 'hold_key' || action.type === 'hold_keys') {
+          const fromParams = action.params && Array.isArray(action.params.keys) ? action.params.keys : null;
+          const fromTarget = typeof action.target === 'string' ? action.target.split(',') : [action.target || action.key];
+          const keys = (fromParams || fromTarget).map(normalizeKeyCode).filter(Boolean).slice(0, 4);
+          if (!keys.length) return { success: false, error: 'hold_keys must include at least one key' };
+          const duration = Math.max(20, Math.min(5000, Number(action.duration_ms) || 120));
+          for (const keyCode of keys) win.webContents.sendInputEvent({ type: 'keyDown', keyCode });
+          await sleep(duration);
+          for (const keyCode of keys.slice().reverse()) win.webContents.sendInputEvent({ type: 'keyUp', keyCode });
+          return { success: true, action: 'hold_keys', keys, duration_ms: duration };
+        } else if (action.type === 'wait') {
+          const duration = Math.max(0, Math.min(5000, Number(action.duration_ms) || Number(action.target) || 250));
+          await sleep(duration);
+          return { success: true, action: 'wait', duration_ms: duration };
         }
         return { success: false, error: `Unsupported action type: ${action.type}` };
       },
