@@ -30,18 +30,19 @@
     return window.FourWeirdAuthConfig || null;
   }
 
-  // The anon key is a JWT. Decode WITHOUT verifying (verification happens
-  // server-side on every request) purely to confirm it is an anon key and
-  // not a service_role key or garbage. Returns the payload role or ''.
-  function peekKeyRole(key) {
-    try {
-      var parts = String(key).split('.');
-      if (parts.length !== 3) return '';
-      var payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
-      return payload && typeof payload.role === 'string' ? payload.role : '';
-    } catch (e) {
-      return '';
-    }
+  // Supabase ships two key formats: legacy JWT anon keys (payload role
+  // "anon") and new sb_publishable_ keys. Both are public-by-design. The
+  // check below accepts exactly those two and refuses everything else —
+  // notably service_role JWTs and sb_secret_ keys, which bypass all RLS.
+  function clientKeyVerdict(key) {
+    // Returns 'ok', 'refuse-secret', or 'refuse-malformed'.
+    var s = String(key || '');
+    if (/^sb_secret_/i.test(s)) return 'refuse-secret';
+    if (/^sb_publishable_/i.test(s)) return s.length >= 20 ? 'ok' : 'refuse-malformed';
+    var role = peekKeyRole(s);
+    if (role === 'anon') return 'ok';
+    if (role === 'service_role') return 'refuse-secret';
+    return 'refuse-malformed';
   }
 
   function isAllowedSupabaseUrl(url) {
