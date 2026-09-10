@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
 import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { clientIp, isSlug } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +19,14 @@ export async function POST(req: Request) {
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  // Per-account throttle survives IP rotation; the pre-auth IP throttle above stays.
+  const userThrottle = rateLimit(`match-user:${u.id}`, 10);
+  if (!userThrottle.allowed) {
+    return fail("Please wait before matchmaking again.", 429, {
+      "Retry-After": String(userThrottle.retryAfter),
+    });
+  }
   let body: unknown;
   try {
     body = await req.json();

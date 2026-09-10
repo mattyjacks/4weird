@@ -2,12 +2,14 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
 import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { clientIp, isEmail, isPassword } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const throttle = rateLimit(`login:${clientIp(req)}`, 10);
   if (!throttle.allowed) {
     return fail("Too many attempts. Wait a minute and retry.", 429, {
@@ -25,6 +27,13 @@ export async function POST(req: Request) {
   const password = isPassword(input.password);
   // Generic message either way: no oracle for which half was wrong.
   if (!email || !password) return fail("Invalid login credentials.", 401);
+  // Per-account throttle survives IP rotation during credential stuffing.
+  const accountThrottle = rateLimit(`login-email:${email}`, 10);
+  if (!accountThrottle.allowed) {
+    return fail("Too many attempts. Wait a minute and retry.", 429, {
+      "Retry-After": String(accountThrottle.retryAfter),
+    });
+  }
   try {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });

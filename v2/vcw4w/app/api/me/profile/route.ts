@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
 import { fail, ok } from "@/lib/api-respond";
-import { cleanDisplayName, cleanHandle } from "@/lib/validate";
+import { sameOrigin } from "@/lib/csrf";
+import { cleanDisplayName, cleanHandle, jsonBytes } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,7 @@ export async function PATCH(req: Request) {
     return fail("Profile request is too large.", 413);
   }
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
@@ -45,6 +47,8 @@ export async function PATCH(req: Request) {
     return fail("Invalid JSON body.", 400);
   }
   const input = (body ?? {}) as Record<string, unknown>;
+  // content-length is client-controlled: enforce size on the parsed body too.
+  if (jsonBytes(input) > maxRequestBytes) return fail("Profile request is too large.", 413);
   const name = cleanDisplayName(input.display_name);
   const handle = input.public_handle === undefined ? undefined : cleanHandle(input.public_handle);
   if (!name) return fail("Display name needs 2-40 characters.", 400);

@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
+import { rateLimit } from "@/lib/rate-limit";
 import { cleanHandle, isUuid } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
@@ -18,10 +20,17 @@ export async function GET() {
 
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
+  const throttle = rateLimit(`friend-req:${u.id}`, 10);
+  if (!throttle.allowed) {
+    return fail("Too many friend requests. Try again shortly.", 429, {
+      "Retry-After": String(throttle.retryAfter),
+    });
+  }
   let body: unknown;
   try {
     body = await req.json();
@@ -37,10 +46,17 @@ export async function POST(req: Request) {
 
 export async function PATCH(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
+  const throttle = rateLimit(`friend-resp:${u.id}`, 20);
+  if (!throttle.allowed) {
+    return fail("Too many updates. Try again shortly.", 429, {
+      "Retry-After": String(throttle.retryAfter),
+    });
+  }
   let body: unknown;
   try {
     body = await req.json();

@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
 import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { isSlug, isSlot, jsonBytes } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
@@ -39,6 +40,7 @@ export async function GET(req: Request) {
 
 export async function PUT(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
@@ -99,6 +101,7 @@ export async function PUT(req: Request) {
 
 export async function DELETE(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
@@ -109,17 +112,8 @@ export async function DELETE(req: Request) {
       "Retry-After": String(throttle.retryAfter),
     });
   }
-  const q = new URL(req.url).searchParams;
-  const game = q.get("game") ?? "";
-  const slot = Number(q.get("slot") ?? "1");
-  if (!slugPattern.test(game)) return fail("Unknown game slug.", 400);
-  if (!Number.isInteger(slot) || slot < 1 || slot > 3) return fail("Slot must be 1, 2, or 3.", 400);
-  const { error } = await supabase
-    .from("game_saves")
-    .delete()
-    .eq("user_id", u.id)
-    .eq("game_slug", game)
-    .eq("slot", slot);
-  if (error) return fail("Unable to reset game save.", 500);
-  return ok({ ok: true });
+  // Deletes are revoked at the database layer (cheat-marker invariant): a
+  // cheated save must never be laundered via delete/recreate, so the client
+  // cannot delete saves at all.
+  return fail("Cloud saves cannot be reset from the client.", 410);
 }

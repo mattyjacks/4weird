@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
 import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 
 export const dynamic = "force-dynamic";
 
@@ -10,8 +11,9 @@ export const dynamic = "force-dynamic";
  * The claim_daily_bonus() RPC owns the date math and the ledger insert, so
  * concurrent claims settle to a single award. Second claim same day pays 0.
  */
-export async function POST() {
+export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);

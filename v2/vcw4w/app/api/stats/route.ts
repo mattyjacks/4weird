@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
+import { rateLimit } from "@/lib/rate-limit";
 import { isSlug } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
@@ -40,10 +42,17 @@ export async function GET() {
 
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
+  const throttle = rateLimit(`stats:${u.id}`, 60);
+  if (!throttle.allowed) {
+    return fail("Too many telemetry events. Try again shortly.", 429, {
+      "Retry-After": String(throttle.retryAfter),
+    });
+  }
   let body: unknown;
   try {
     body = await req.json();
@@ -60,7 +69,9 @@ export async function POST(req: Request) {
     n("actions") < 0 ||
     n("actions") > 100000 ||
     n("kills") < 0 ||
-    n("deaths") < 0
+    n("kills") > 100000 ||
+    n("deaths") < 0 ||
+    n("deaths") > 100000
   ) {
     return fail("Invalid telemetry.", 400);
   }

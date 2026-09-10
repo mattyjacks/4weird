@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
+import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
@@ -19,15 +21,26 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     .eq("id", id)
     .maybeSingle();
   if (error || !match) return fail("Match not found.", 404);
+  // Defense in depth over the matches_participant RLS policy: never render
+  // a match to a non-participant, even if policies are later relaxed.
+  const m = match as { phone_id?: string; desktop_id?: string };
+  if (m.phone_id !== u.id && m.desktop_id !== u.id) return fail("Match not found.", 404);
   return ok({ match });
 }
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
+  const throttle = rateLimit(`match-state:${u.id}`, 120);
+  if (!throttle.allowed) {
+    return fail("Too many match updates. Try again shortly.", 429, {
+      "Retry-After": String(throttle.retryAfter),
+    });
+  }
   const { id } = await params;
   if (!isUuid(id)) return fail("Invalid match.", 400);
   let body: unknown;

@@ -1,0 +1,88 @@
+import { fail, ok } from "@/lib/api-respond";
+import { botRateLimit, hasBotAuth, invalidCredentials, resolveBotKey } from "@/lib/bot-auth";
+import { serviceClient } from "@/lib/supabase/service";
+import { isSlug } from "@/lib/bot-validate";
+
+export const dynamic = "force-dynamic";
+
+interface ClanRow {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  created_at: string;
+}
+
+interface PostRow {
+  id: string;
+  title: string;
+  body: string;
+  image_url: string | null;
+  status: string;
+  author_id: string;
+  created_at: string;
+}
+
+// GET /api/bot/clans/[slug] — clan + recent published posts. Scope: clans:read.
+export async function GET(req: Request, ctx: { params: Promise<{ slug: string }> }) {
+  if (!hasBotAuth()) return fail("Bot service is not configured.", 503);
+  const throttle = botRateLimit(req, "read");
+  if (!throttle.allowed) {
+    return fail("Rate limited. Try again shortly.", 429, {
+      "Retry-After": String(throttle.retryAfter),
+    });
+  }
+  const bot = await resolveBotKey(req);
+  if (!bot) return fail(invalidCredentials(), 401);
+
+  const slug = isSlug((await ctx.params).slug);
+  if (!slug) return fail("Invalid clan.", 400);
+
+  try {
+    const db = serviceClient();
+    const { data: clanData, error: clanError } = await db
+      .from("clans")
+      .select("id,slug,name,description,created_at")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (clanError) return fail("Unable to load clan.", 500);
+    const clan = clanData as ClanRow | null;
+    if (!clan) return fail("Clan not found.", 404);
+
+    const [{ data: postData }, { data: memberData }, { count: memberCount }] = await Promise.all([
+      db
+        .from("clan_posts")
+        .select("id,title,body,image_url,status,author_id,created_at")
+        .eq("clan_id", clan.id)
+        .eq("status", "published")
+        .order("created_at", { ascending: false })
+        .limit(25),
+      db
+        .from("clan_members")
+        .select("role")
+        .eq("clan_id", clan.id)
+        .eq("user_id", bot.userId)
+        .maybeSingle(),
+      db.from("clan_members").select("clan_id", { count: "exact", head: true }).eq("clan_id", clan.id),
+    ]);
+
+    const posts = ((postData ?? []) as PostRow[]).map((p) => ({
+      id: p.id,
+      title: p.title,
+      body: p.body,
+      image_url: p.image_url,
+      author_id: p.author_id,
+      created_at: p.created_at,
+    }));
+    const member = memberData as { role: string } | null;
+
+    return ok({
+      clan,
+      posts,
+      member_count: memberCount ?? 0,
+      member: member ? { role: member.role } : null,
+    });
+  } catch {
+    return fail("Unable to load clan.", 500);
+  }
+}

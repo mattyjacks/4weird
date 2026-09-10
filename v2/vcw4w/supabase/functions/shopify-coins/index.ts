@@ -109,8 +109,10 @@ async function handleWebhook(req: Request): Promise<Response> {
     return json(req, 400, { success: false, error: 'Malformed payload' });
   }
 
-  const financial = String((order as { financial_status?: unknown }).financial_status ?? '');
-  if (!financial.includes('paid')) return json(req, 200, { success: true, skipped: 'unpaid' });
+  // Exact match only: 'unpaid' CONTAINS 'paid' as a substring, so a
+  // substring test would mint coins for unpaid orders.
+  const financial = String((order as { financial_status?: unknown }).financial_status ?? '').trim().toLowerCase();
+  if (financial !== 'paid') return json(req, 200, { success: true, skipped: 'unpaid' });
 
   const orderId = String((order as { id?: unknown }).id ?? '');
   const orderName = String((order as { name?: unknown }).name ?? '');
@@ -209,7 +211,10 @@ async function handleClaim(req: Request): Promise<Response> {
     .ilike('email', email)
     .eq('claimed', false);
   let claimed = 0;
-  for (const g of (pending ?? []) as Array<{ id: string; coins: number; shopify_order_name: string | null }>) {
+  // Bound the loop: a compromised/stale mailbox with thousands of parked
+  // grants must not turn one claim call into an unbounded write burst.
+  const queue = (((pending ?? []) as Array<{ id: string; coins: number; shopify_order_name: string | null }>)).slice(0, 50);
+  for (const g of queue) {
     // Conditional update: only the first concurrent claimer wins the row.
     const { data: won } = await db.from('coin_grants')
       .update({ user_id: user.id, claimed: true })

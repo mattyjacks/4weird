@@ -1,27 +1,64 @@
-import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
+import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
+import { CUSTOM_COINS_MAX, CUSTOM_COINS_MIN } from "@/lib/economy";
+
+export const dynamic = "force-dynamic";
+
 const variantPattern = /^\d+$/;
+
+/**
+ * Coin checkout: builds a Shopify cart URL for an allowlisted variant.
+ * Fail closed: pack variants must appear in SHOPIFY_ALLOWED_VARIANTS (or the
+ * legacy COIN_PACK_VARIANTS) — an unconfigured allowlist blocks packs rather
+ * than opening checkout to any numeric variant. The custom $0.01/unit
+ * variant is always permitted with quantity == coin count. Money mints only
+ * from the HMAC-verified webhook, never from this URL.
+ */
+function allowedPackVariants(): string[] {
+  const raw = `${process.env.SHOPIFY_ALLOWED_VARIANTS ?? ""},${process.env.COIN_PACK_VARIANTS ?? ""}`;
+  return raw
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
 export async function POST(request: Request) {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+    return fail("Supabase is not configured.", 503);
+  }
+  if (!sameOrigin(request)) return fail("Invalid request origin.", 403);
   const { data } = await (await createClient()).auth.getUser();
-  if (!data.user) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+  if (!data.user) return fail("Authentication required.", 401);
   const throttle = rateLimit(`checkout:${data.user.id}`, 10, 60_000);
-  if (!throttle.allowed) return NextResponse.json({ error: "Too many checkout attempts. Try again shortly." }, { status: 429, headers: { "Retry-After": String(throttle.retryAfter) } });
+  if (!throttle.allowed) {
+    return fail("Too many checkout attempts. Try again shortly.", 429, {
+      "Retry-After": String(throttle.retryAfter),
+    });
+  }
   const store = (process.env.SHOPIFY_STORE_DOMAIN ?? "").trim().toLowerCase();
-  if (!/^[a-z0-9][a-z0-9.-]+\.[a-z]{2,}$/.test(store)) return NextResponse.json({ error: "Shop not configured." }, { status: 503 });
-  let body: unknown; try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid JSON." }, { status: 400 }); }
-  const variantId = typeof body === "object" && body !== null && "variantId" in body ? String((body as { variantId?: unknown }).variantId ?? "") : "";
-  if (!variantPattern.test(variantId)) return NextResponse.json({ error: "A valid product variant is required." }, { status: 400 });
-  const allowed = (process.env.SHOPIFY_ALLOWED_VARIANTS ?? "").split(",").map((value) => value.trim()).filter(Boolean);
-  if (allowed.length && !allowed.includes(variantId)) return NextResponse.json({ error: "This coin pack is not available." }, { status: 400 });
+  if (!/^[a-z0-9][a-z0-9.-]+\.[a-z]{2,}$/.test(store)) return fail("Shop not configured.", 503);
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return fail("Invalid JSON.", 400);
+  }
+  const input = (body ?? {}) as Record<string, unknown>;
+  const variantId = String(input.variantId ?? "");
+  if (!variantPattern.test(variantId)) return fail("A valid product variant is required.", 400);
   // Custom amounts ride on a $0.01-per-unit variant: quantity equals coins.
   const customVariant = (process.env.COIN_CUSTOM_VARIANT ?? "").trim();
   let qty = 1;
   if (customVariant && variantId === customVariant) {
-    const wanted = Number(typeof body === "object" && body !== null && "quantity" in body ? (body as { quantity?: unknown }).quantity : NaN);
-    if (!Number.isInteger(wanted) || wanted < 500 || wanted > 100000) return NextResponse.json({ error: "Custom amounts need 500–100000 coins." }, { status: 400 });
+    const wanted = Number(input.quantity);
+    if (!Number.isInteger(wanted) || wanted < CUSTOM_COINS_MIN || wanted > CUSTOM_COINS_MAX) {
+      return fail(`Custom amounts need ${CUSTOM_COINS_MIN}-${CUSTOM_COINS_MAX} coins.`, 400);
+    }
     qty = wanted;
+  } else if (!allowedPackVariants().includes(variantId)) {
+    return fail("This coin pack is not available.", 400);
   }
-  return NextResponse.json({ url: `https://${store}/cart/${encodeURIComponent(variantId)}:${qty}` }, { headers: { "Cache-Control": "private, no-store" } });
+  return ok({ url: `https://${store}/cart/${encodeURIComponent(variantId)}:${qty}` });
 }

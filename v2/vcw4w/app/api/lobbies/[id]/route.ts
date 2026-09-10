@@ -19,6 +19,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     .eq("id", id)
     .maybeSingle();
   if (error || !lobby) return fail("Lobby not found.", 404);
+  // Defense in depth over the lobbies_participant_read RLS policy.
+  const viewer = lobby as { host_id?: string; guest_id?: string | null };
+  if (viewer.host_id !== u.id && viewer.guest_id !== u.id) return fail("Lobby not found.", 404);
   const typed = lobby as {
     status?: string;
     game_slug?: string;

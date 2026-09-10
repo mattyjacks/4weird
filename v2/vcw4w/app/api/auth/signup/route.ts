@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient, supabaseServiceRoleKey } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
 import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { TRIAL_COINS_DEFAULT, TRIAL_COINS_MAX } from "@/lib/economy";
 import { clientIp, isEmail, isPassword } from "@/lib/validate";
 
@@ -25,6 +26,7 @@ async function awardTrial(userId: string, email: string, req: Request): Promise<
 
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const throttle = rateLimit(`signup:${clientIp(req)}`, 10);
   if (!throttle.allowed) {
     return fail("Too many attempts. Wait a minute and retry.", 429, {
@@ -51,7 +53,8 @@ export async function POST(req: Request) {
       if (/already registered|already exists/i.test(error.message ?? "")) {
         return ok({ user: null, note: "If this email is new, the account was created. Try logging in." });
       }
-      return fail(error.message || "Signup failed.", 400);
+      // Never reflect provider internals: generic failure, no oracle.
+      return fail("Signup failed. Try again.", 400);
     }
     if (data?.session?.user) {
       const trialAwarded = await awardTrial(data.session.user.id, email, req).catch(() => false);

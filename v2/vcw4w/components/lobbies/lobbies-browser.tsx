@@ -75,7 +75,7 @@ export function LobbiesBrowser() {
           alert(String(result.error ?? "Unable to join."));
           return;
         }
-        const slug = esc(result.game_slug) || "platform-wars";
+        const slug = /^[a-z0-9-]{1,64}$/.test(String(result.game_slug ?? "")) ? String(result.game_slug) : "platform-wars";
         const match = esc(result.match_id);
         alert("Joined! Opening the game…");
         router.push(match ? `/games/${slug}/play?match=${encodeURIComponent(match)}` : `/games/${slug}/play`);
@@ -87,13 +87,13 @@ export function LobbiesBrowser() {
   );
 
   useEffect(() => {
+    // Never auto-join from ?join= on page load: a crafted link would force a
+    // signed-in visitor into an attacker's lobby without a user gesture.
+    // Deep links prefill the filter instead; joining stays a button click.
     const q = new URLSearchParams(window.location.search);
-    const joinId = q.get("join");
-    if (/^[0-9a-f-]{36}$/i.test(joinId ?? "")) {
-      void join(joinId as string, q.get("code") ?? "");
-    } else {
-      void load(game);
-    }
+    const hint = q.get("game") ?? "";
+    if (/^[a-z0-9-]{1,64}$/.test(hint)) setGame(hint);
+    void load(/^[a-z0-9-]{1,64}$/.test(hint) ? hint : game);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

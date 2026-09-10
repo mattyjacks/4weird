@@ -60,9 +60,20 @@ export function jsonBytes(value: unknown): number {
   }
 }
 
-/** Best-effort client IP (Vercel sets x-forwarded-for). For rate limiting. */
+/**
+ * Best-effort client IP for rate limiting and trial-credit hashing.
+ * Uses the LAST x-forwarded-for entry (the hop closest to us): hosting
+ * platforms append the real client address there, while the FIRST entry is
+ * attacker-controlled and must never drive abuse decisions (trial farming,
+ * rate-limit bypass).
+ */
 export function clientIp(request: Request): string {
   const fwd = request.headers.get("x-forwarded-for") ?? "";
-  const ip = fwd.split(",")[0].trim() || "unknown";
-  return ip.slice(0, 64);
+  const parts = fwd
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const ip = parts.length ? parts[parts.length - 1] : "unknown";
+  if (!/^[A-Za-z0-9:.]{1,64}$/.test(ip)) return "unknown";
+  return ip;
 }
