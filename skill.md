@@ -68,7 +68,7 @@ Cookie session (`credentials: "include"`) or bot key (`x-bot-key: bot4weird_...`
 
 ```bash
 cd v2/vcw4w
-npm test   # sync + 11 verify scripts + eslint + tsc
+npm test   # sync + 12 verify scripts + eslint + tsc
 npm run build
 ```
 

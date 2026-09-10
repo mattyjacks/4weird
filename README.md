@@ -27,7 +27,7 @@ cd v2/vcw4w
 npm install
 cp .env.example .env.local   # fill Supabase + service keys
 npm run dev                  # http://localhost:3000
-npm test                     # full gate: sync + 11 verify scripts + eslint + tsc
+npm test                     # full gate: sync + 12 verify scripts + eslint + tsc
 npm run build
 ```
 

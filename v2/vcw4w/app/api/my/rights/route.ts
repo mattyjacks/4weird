@@ -119,15 +119,14 @@ export async function GET(req: Request) {
       pick("referrals", "*", { invitee_id: id }, 1),
     ]);
 
-  const [clanMemberships, clanPosts, clanComments, clanReports, clansOwnedA, clansOwnedB, botIdentities, listings, bookings, ledger, grants] =
+  const [clanMemberships, clanPosts, clanComments, clanReports, clansOwned, botIdentities, listings, bookings, ledger, grants] =
     await Promise.all([
       pick("clan_members", "*", { user_id: id }),
       pick("clan_posts", "id,clan_id,title,body,image_url,status,created_at", { author_id: id }),
-      pick("clan_comments", "id,clan_id,post_id,body,status,created_at", { author_id: id }, 500),
+      pick("clan_comments", "id,post_id,body,status,created_at", { author_id: id }, 500),
       pick("clan_reports", "id,target_type,target_id,category,status,created_at", { reporter_id: id }),
       pick("clans", "id,slug,name,description,created_at", { owner_id: id }, 100),
-      pick("clans", "id,slug,name,description,created_at", { created_by: id }, 100),
-      pick("bot_identities", "id,username,human_id,created_at", { user_id: id }, 10),
+      pick("bot_identities", "username,human_id,created_at", { user_id: id }, 10),
       pick("agent_listings", "*", { owner_id: id }, 100),
       pick("rental_bookings", "*", { renter_id: id }, 100),
       pick("coin_ledger", "id,delta,reason,created_at", { user_id: id }, 500),
@@ -135,17 +134,16 @@ export async function GET(req: Request) {
     ]);
 
   // Bot key secrets are NEVER exported (shown once at issue); metadata only.
+  // bot_api_keys is keyed directly by user_id: id,user_id,label,prefix,
+  // created_at,last_used_at,revoked. key_hash is never selected.
   let botKeys: unknown = null;
   try {
-    const ids = ((botIdentities as Array<{ id: string }> | null) ?? []).map((r) => r.id);
-    if (ids.length) {
-      const { data: keys } = await supabase
-        .from("bot_api_keys")
-        .select("id,identity_id,label,key_prefix,created_at,revoked_at")
-        .in("identity_id", ids)
-        .limit(50);
-      botKeys = keys ?? [];
-    } else botKeys = [];
+    const { data: keys, error: keysError } = await supabase
+      .from("bot_api_keys")
+      .select("id,label,prefix,created_at,last_used_at,revoked")
+      .eq("user_id", id)
+      .limit(50);
+    botKeys = keysError ? null : (keys ?? []);
   } catch {
     botKeys = null;
   }
@@ -168,7 +166,7 @@ export async function GET(req: Request) {
     games: { saves, cheatSettings, globalCheats, statEvents, queue, presence, lobbiesHosted: lobbyHost, lobbiesJoined: lobbyGuest, matchesAsPhone: matchesPhone, matchesAsDesktop: matchesDesk },
     social: { friendshipsRequested: friendshipsA, friendshipsReceived: friendshipsB, messagesSent, messagesReceived: messagesGot },
     creator: { submissions },
-    clans: { memberships: clanMemberships, posts: clanPosts, comments: clanComments, reportsFiled: clanReports, clansOwned: [...((clansOwnedA as unknown[] | null) ?? []), ...((clansOwnedB as unknown[] | null) ?? [])] },
+    clans: { memberships: clanMemberships, posts: clanPosts, comments: clanComments, reportsFiled: clanReports, clansOwned },
     bots: { identities: botIdentities, keys: botKeys },
     economy: { balance, ledger, grants, daily, referralCode: refCode, referralsAsInviter: refAsInviter, referralsAsInvitee: refAsInvitee },
     rentals: { listings, bookings },
@@ -323,27 +321,85 @@ export async function POST(req: Request) {
       return fail(`Wait ${Math.ceil((CONFIRM_COOLDOWN_MS - age) / 1000)} more seconds, then confirm again.`, 429);
     }
 
-    // Blockers are checked BEFORE anything is erased.
-    try {
-      for (const col of ["owner_id", "created_by"]) {
-        const { data: owned } = await service.from("clans").select("id").eq(col, u.id).limit(25);
-        const list = (owned as Array<{ id: string }> | null) ?? [];
-        if (!list.length) continue;
-        const { count: others } = await service
-          .from("clan_members")
-          .select("clan_id", { count: "exact", head: true })
-          .in("clan_id", list.map((c) => c.id))
-          .neq("user_id", u.id);
-        if ((others ?? 0) > 0) {
-          await service.from("privacy_requests").update({ status: "denied", note: "shared clan ownership" }).eq("id", row.id);
-          return fail(
-            `You own a clan with other members. Delete it first (or email ${SUPPORT_EMAIL} to transfer ownership), then request deletion again.`,
-            409,
-          );
-        }
+    // Blockers are checked BEFORE anything is erased. clans.owner_id is
+    // the single ownership column (080000 wins; the 090000 created_by
+    // variant never materializes when 080000 applied first). Ownership
+    // queries are fail-closed: any lookup error refuses with guidance
+    // instead of risking other users data.
+    const { data: owned, error: ownedError } = await service.from("clans").select("id").eq("owner_id", u.id).limit(25);
+    if (ownedError) {
+      await service.from("privacy_requests").update({ status: "denied", note: "clan ownership lookup failed" }).eq("id", row.id);
+      return fail(`Could not verify clan ownership. Email ${SUPPORT_EMAIL} and we will finish deletion manually.`, 503);
+    }
+    const ownedList = (owned as Array<{ id: string }> | null) ?? [];
+    if (ownedList.length) {
+      const { count: others, error: othersError } = await service
+        .from("clan_members")
+        .select("clan_id", { count: "exact", head: true })
+        .in("clan_id", ownedList.map((cc) => cc.id))
+        .neq("user_id", u.id);
+      if (othersError) {
+        await service.from("privacy_requests").update({ status: "denied", note: "clan membership lookup failed" }).eq("id", row.id);
+        return fail(`Could not verify clan membership. Email ${SUPPORT_EMAIL} and we will finish deletion manually.`, 503);
       }
-    } catch {
-      // Ownership tables may differ by deployment; fall through to best-effort.
+      if ((others ?? 0) > 0) {
+        await service.from("privacy_requests").update({ status: "denied", note: "shared clan ownership" }).eq("id", row.id);
+        return fail(
+          `You own a clan with other members. Delete it first (or email ${SUPPORT_EMAIL} to transfer ownership), then request deletion again.`,
+          409,
+        );
+      }
+    }
+    // Listings booked by other renters: deleting them would cascade-erase
+    // other users booking rows, so refuse with guidance instead.
+    const { data: myListings, error: listingsError } = await service.from("agent_listings").select("id").eq("owner_id", u.id).limit(50);
+    if (listingsError) {
+      await service.from("privacy_requests").update({ status: "denied", note: "listing lookup failed" }).eq("id", row.id);
+      return fail(`Could not verify rental listings. Email ${SUPPORT_EMAIL} and we will finish deletion manually.`, 503);
+    }
+    const myListingIds = ((myListings as Array<{ id: string }> | null) ?? []).map((ll) => ll.id);
+    if (myListingIds.length) {
+      const { count: foreignBookings, error: bookingsError } = await service
+        .from("rental_bookings")
+        .select("id", { count: "exact", head: true })
+        .in("listing_id", myListingIds)
+        .neq("renter_id", u.id);
+      if (bookingsError) {
+        await service.from("privacy_requests").update({ status: "denied", note: "booking lookup failed" }).eq("id", row.id);
+        return fail(`Could not verify rental bookings. Email ${SUPPORT_EMAIL} and we will finish deletion manually.`, 503);
+      }
+      if ((foreignBookings ?? 0) > 0) {
+        await service.from("privacy_requests").update({ status: "denied", note: "foreign bookings on owned listings" }).eq("id", row.id);
+        return fail(
+          `One of your agent listings has bookings by other users. Clear those bookings first (or email ${SUPPORT_EMAIL}), then confirm deletion.`,
+          409,
+        );
+      }
+    }
+    // Solely-owned orgs with other members cannot cascade either.
+    const { data: myOrgs, error: orgsError } = await service.from("orgs").select("id").eq("owner_id", u.id).limit(25);
+    if (orgsError) {
+      await service.from("privacy_requests").update({ status: "denied", note: "org lookup failed" }).eq("id", row.id);
+      return fail(`Could not verify organizations. Email ${SUPPORT_EMAIL} and we will finish deletion manually.`, 503);
+    }
+    const myOrgIds = ((myOrgs as Array<{ id: string }> | null) ?? []).map((oo) => oo.id);
+    if (myOrgIds.length) {
+      const { count: fellowMembers, error: membersError } = await service
+        .from("org_members")
+        .select("org_id", { count: "exact", head: true })
+        .in("org_id", myOrgIds)
+        .neq("user_id", u.id);
+      if (membersError) {
+        await service.from("privacy_requests").update({ status: "denied", note: "org membership lookup failed" }).eq("id", row.id);
+        return fail(`Could not verify organization members. Email ${SUPPORT_EMAIL} and we will finish deletion manually.`, 503);
+      }
+      if ((fellowMembers ?? 0) > 0) {
+        await service.from("privacy_requests").update({ status: "denied", note: "shared org ownership" }).eq("id", row.id);
+        return fail(
+          `You solely own an organization with other members. Transfer or delete it first (or email ${SUPPORT_EMAIL}), then confirm deletion.`,
+          409,
+        );
+      }
     }
     try {
       const { data: active } = await service
@@ -405,8 +461,8 @@ export async function POST(req: Request) {
     await wipe("clan_posts", "author_id");
     await wipe("clan_members", "user_id");
     // Clans the user solely owns go with the account (cascade clears the rest).
+    // Shared clans were refused above, so this cannot strand other members.
     await wipe("clans", "owner_id");
-    await wipe("clans", "created_by");
 
     // Clan images: remove the user's uploads from storage + index, best-effort.
     try {
@@ -419,24 +475,13 @@ export async function POST(req: Request) {
         await wipe("clan_images", "uploader_id");
       }
     } catch { /* best-effort */ }
-    await wipe("clan_images", "author_id");
 
-    // Bots: metadata + keys (secrets were never stored; hashes die here).
-    try {
-      const { data: idents } = await service.from("bot_identities").select("id").eq("user_id", u.id);
-      const ids = ((idents as Array<{ id: string }> | null) ?? []).map((r) => r.id);
-      for (const kid of ["identity_id", "bot_identity_id", "user_id"]) {
-        try {
-          if (kid === "user_id") await service.from("bot_api_keys").delete().eq("user_id", u.id);
-          else if (ids.length) await service.from("bot_api_keys").delete().in(kid, ids);
-        } catch { /* best-effort */ }
-      }
-    } catch { /* best-effort */ }
+    // Bots: bot_identities is keyed by user_id (PK) and bot_api_keys too.
+    // Secrets were never stored; hashes die here.
+    await wipe("bot_api_keys", "user_id");
     await wipe("bot_identities", "user_id");
-    await wipe("bot_identities", "owner_id");
 
     await wipe("rental_bookings", "renter_id");
-    await wipe("compute_usage", "user_id");
     await wipe("agent_listings", "owner_id");
 
     // Teams/enterprise memberships (orgs solely owned that cannot cascade
@@ -448,9 +493,10 @@ export async function POST(req: Request) {
       ["team_invites", "email"],
       ["project_members", "user_id"],
       ["room_members", "user_id"],
-      ["room_messages", "author_id"],
       ["room_messages", "sender_id"],
       ["team_api_keys", "created_by"],
+      ["org_invites", "created_by"],
+      ["team_invites", "created_by"],
     ] as Array<[string, string]>) {
       try {
         if (col === "email" && u.email) await service.from(table).delete().eq(col, u.email);
