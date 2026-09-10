@@ -87,8 +87,12 @@ function normalizeGodotAction(action = {}) {
 
 async function controlGodotOnLinux(action, display = ':1') {
   const input = normalizeGodotAction(action);
-  const args = ['--display', display, input.type === 'tap' ? 'key' : input.type === 'keydown' ? 'keydown' : 'keyup', input.key];
-  await run('xdotool', args);
+  // xdotool has no --display global option (its synopsis is `xdotool cmd
+  // args...`), so an unknown `--display` argv makes every call exit 1.
+  // The display travels in the environment instead, mirroring
+  // captureGodotOnLinux below.
+  const verb = input.type === 'tap' ? 'key' : input.type;
+  await run('xdotool', [verb, input.key], { env: { ...process.env, DISPLAY: display } });
   return { success: true, action: input, display };
 }
 

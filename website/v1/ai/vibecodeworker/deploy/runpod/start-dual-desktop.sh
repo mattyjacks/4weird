@@ -60,7 +60,14 @@ if [ "$GAME_ID" = "xonotic" ]; then
     # The client resolves data relative to its launch directory in this
     # headless setup. Pin the official extracted directory explicitly so the
     # native client can find data*.pk3 rather than dropping into its error UI.
-    DISPLAY=:1 "$XONOTIC_ROOT/xonotic-linux64-sdl" -basedir "$XONOTIC_ROOT" -nohome -userdir "$XONOTIC_ROOT/user" +map dm_run +bot_number 5 &
+    # finalrage ships in the stock 0.8.6 client (dm_run does not), so boot
+    # straight into a real bot arena instead of a missing-map error.
+    DISPLAY=:1 "$XONOTIC_ROOT/xonotic-linux64-sdl" -basedir "$XONOTIC_ROOT" -nohome -userdir "$XONOTIC_ROOT/user" +map finalrage +bot_number 5 &
+    # The desktop has no window manager, so nothing ever focuses the game
+    # window and XTEST keys would go nowhere while pointer clicks still land.
+    # Keep keyboard focus pinned to the Xonotic client so the cloud input
+    # bridge (xdotool key) reaches the game. Harmless when already focused.
+    ( sleep 45; while true; do DISPLAY=:1 xdotool search --onlyvisible --name Xonotic windowfocus >/dev/null 2>&1; DISPLAY=:1 xdotool search --onlyvisible --classname xonotic windowfocus >/dev/null 2>&1; sleep 60; done ) &
   fi
 else
   GODOT_INSTALL_ROOT="$GODOT_ROOT" node server/install_godot.js
