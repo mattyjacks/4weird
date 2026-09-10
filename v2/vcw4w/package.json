@@ -4,7 +4,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "verify:games": "node scripts/verify-game-bundles.mjs",
+    "verify:catalog": "node scripts/verify-catalog-runtime.mjs",
+    "verify:legacy": "node scripts/verify-legacy-surfaces.mjs",
+    "verify:legacy-parity": "node scripts/verify-legacy-parity.mjs",
+    "test": "npm run verify:games && npm run verify:catalog && npm run verify:legacy && npm run verify:legacy-parity && npm run lint && tsc --noEmit"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.1",

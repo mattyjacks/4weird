@@ -1,0 +1,205 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #0a0a0f;
+    font-family: 'Orbitron', monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+    color: #fff;
+}
+
+.game-container {
+    position: relative;
+    width: 800px;
+    height: 600px;
+}
+
+#gameCanvas {
+    display: block;
+    background: linear-gradient(180deg, #0a0a1a 0%, #0f0f2a 50%, #0a0a1a 100%);
+    border: 2px solid #00ffff;
+    box-shadow: 
+        0 0 20px rgba(0, 255, 255, 0.5),
+        0 0 40px rgba(0, 255, 255, 0.3),
+        inset 0 0 60px rgba(0, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.hud {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 20px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid #00ffff;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.hud-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.hud-item .label {
+    color: #ff00ff;
+    font-size: 10px;
+    text-shadow: 0 0 10px #ff00ff;
+}
+
+.hud-item span:last-child {
+    color: #00ffff;
+    font-size: 18px;
+    font-weight: bold;
+    text-shadow: 0 0 10px #00ffff;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 10, 20, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    backdrop-filter: blur(5px);
+}
+
+.overlay.hidden {
+    display: none;
+}
+
+.title {
+    font-size: 48px;
+    font-weight: 900;
+    color: #00ffff;
+    text-shadow: 
+        0 0 10px #00ffff,
+        0 0 20px #00ffff,
+        0 0 40px #00ffff,
+        0 0 80px #00ffff;
+    margin-bottom: 10px;
+    letter-spacing: 4px;
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+.title.game-over {
+    color: #ff0066;
+    text-shadow: 
+        0 0 10px #ff0066,
+        0 0 20px #ff0066,
+        0 0 40px #ff0066;
+}
+
+.subtitle {
+    color: #ff00ff;
+    font-size: 14px;
+    letter-spacing: 3px;
+    margin-bottom: 40px;
+    text-shadow: 0 0 10px #ff00ff;
+}
+
+.instructions {
+    text-align: center;
+    margin-bottom: 40px;
+    color: #aaa;
+    line-height: 2;
+    font-size: 13px;
+    letter-spacing: 1px;
+}
+
+.instructions p {
+    margin: 5px 0;
+}
+
+.neon-btn {
+    background: transparent;
+    border: 2px solid #00ff00;
+    color: #00ff00;
+    padding: 15px 40px;
+    font-family: 'Orbitron', monospace;
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 3px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 10px #00ff00;
+    box-shadow: 
+        0 0 10px rgba(0, 255, 0, 0.5),
+        inset 0 0 10px rgba(0, 255, 0, 0.1);
+    border-radius: 2px;
+}
+
+.neon-btn:hover {
+    background: rgba(0, 255, 0, 0.2);
+    box-shadow: 
+        0 0 20px rgba(0, 255, 0, 0.8),
+        0 0 40px rgba(0, 255, 0, 0.4),
+        inset 0 0 20px rgba(0, 255, 0, 0.2);
+    transform: scale(1.05);
+}
+
+.neon-btn:active {
+    transform: scale(0.98);
+}
+
+.final-score, .wave-reached {
+    font-size: 20px;
+    margin: 10px 0;
+    color: #fff;
+    letter-spacing: 2px;
+}
+
+.final-score span, .wave-reached span {
+    color: #ffff00;
+    text-shadow: 0 0 10px #ffff00;
+    font-size: 24px;
+}
+
+.wave-title {
+    font-size: 36px;
+    color: #ffff00;
+    text-shadow: 
+        0 0 10px #ffff00,
+        0 0 20px #ffff00,
+        0 0 40px #ffff00;
+    letter-spacing: 4px;
+    animation: pulse 0.5s ease-in-out;
+}
+
+@keyframes glow {
+    from {
+        text-shadow: 
+            0 0 10px #00ffff,
+            0 0 20px #00ffff,
+            0 0 40px #00ffff;
+    }
+    to {
+        text-shadow: 
+            0 0 20px #00ffff,
+            0 0 40px #00ffff,
+            0 0 80px #00ffff,
+            0 0 120px #00ffff;
+    }
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.5); opacity: 0; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}

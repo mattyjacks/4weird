@@ -47,12 +47,18 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
-  if (
-    request.nextUrl.pathname !== "/" &&
-    !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth")
-  ) {
+  // Public marketing pages and static HTML games must remain reachable
+  // anonymously. Authentication is enforced by protected layouts/actions,
+  // while the proxy only refreshes the session cookie for every request.
+  const protectedPath =
+    request.nextUrl.pathname === "/account" ||
+    request.nextUrl.pathname.startsWith("/protected") ||
+    request.nextUrl.pathname.startsWith("/api/account") ||
+    request.nextUrl.pathname.startsWith("/api/coins") ||
+    request.nextUrl.pathname.startsWith("/api/saves") ||
+    request.nextUrl.pathname.startsWith("/api/vcw");
+
+  if (protectedPath && !user) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discover America - Game Guide</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --theme-bg: linear-gradient(135deg, #06121f 0%, #0c1f33 50%, #0d3357 100%);
+            --theme-primary: #06b6d4;
+            --theme-primary-light: #06b6d4;
+            --theme-primary-rgb: 6, 182, 212;
+            --theme-glow: rgba(6, 182, 212, 0.3);
+            --theme-card-bg: rgba(14, 31, 51, 0.95);
+            --theme-section-bg: rgba(14, 31, 51, 0.85);
+        }
+    </style>
+</head>
+<body data-game-title="MADI AI: DISCOVER AMERICA" data-game-emoji="🧭" data-game-tagline="Official Exploration Logbook & Guide">
+    <div class="container">
+
+        <div class="toc">
+            <h3>📋 Quick Navigation</h3>
+            <div class="toc-links">
+                <a href="#ports" class="toc-link">⚓ Voyage Ports (5 Stages)</a>
+                <a href="#sorting" class="toc-link">🧩 Sorting &amp; Categorization</a>
+                <a href="#storms" class="toc-link">⚡ Storm Challenges</a>
+                <a href="#logbook" class="toc-link">📚 Discovered Almanac</a>
+            </div>
+        </div>
+
+        <!-- VOYAGE PORTS -->
+        <section class="section" id="ports">
+            <h2>⚓ VOYAGE PORTS</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">Embark on a voyage from Europe across the ocean to America. Chart your progress at 5 unique ports.</p>
+            <div class="entity-grid">
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🇬🇧</div>
+                        <div>
+                            <div class="entity-name">English Channel</div>
+                            <div class="entity-type">Port 1</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Leaving Dover. Organize supplies into correct cargo holds.</div>
+                    <div class="entity-details">
+                        <p>Pack the ship before leaving Dover. Group items like compasses, dried meats, and lifelines into navigation, sustenance, and crew safety sections.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🌊</div>
+                        <div>
+                            <div class="entity-name">Open Atlantic</div>
+                            <div class="entity-type">Port 2</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Navigate the high seas by sky, wind, and swell patterns.</div>
+                    <div class="entity-details">
+                        <p>Decipher signposts of nature. Sort sunset bearings, trade winds, and water temperature changes into sky, wind, and water bins.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SORTING & CATEGORIZATION -->
+        <section class="section" id="sorting">
+            <h2>🧩 SORTING MECHANICS</h2>
+            <div class="tip-box">
+                <strong>🧩 Sorting Tip:</strong> Sort fragments quickly and accurately. Perfect runs trigger a combo score multiplier and play bonus sound indicators!
+            </div>
+        </section>
+
+    </div>
+
+    <script src="../../../guide-layout.js"></script>
+</body>
+</html>

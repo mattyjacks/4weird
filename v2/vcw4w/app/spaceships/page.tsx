@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function Page() { return <main className="min-h-screen bg-slate-950 text-white"><div className="flex items-center justify-between border-b border-white/10 px-5 py-4"><Link href="/" className="font-bold">← 4weird Games</Link><span className="text-sm text-slate-400">Spaceship Simulation</span></div><iframe title="4weird Spaceship Simulation" src="/spaceships.html" className="h-[calc(100vh-73px)] w-full border-0" allow="fullscreen" /></main>; }

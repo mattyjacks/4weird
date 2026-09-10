@@ -1,0 +1,59 @@
+{
+    "title": "Overtake",
+    "slug": "overtake",
+    "description": "A fast pseudo-3D arcade racer with unlockable routes, garage progression, and nitro boosts.",
+    "genre": "Racing",
+    "tags": ["HTML5", "Racing", "Arcade", "Canvas"],
+    "maker": {
+        "name": "bytegarage",
+        "bio": "bytegarage builds compact browser games with a focus on systems that feel immediate, replayable, and easy to launch. Overtake brings that approach to a dependency-light canvas racer: quick menus, clear car progression, readable routes, responsive touch controls, and an old-school arcade rhythm tuned for short browser sessions. The project uses TypeScript for source clarity and ships a browser-ready JavaScript build so players can race without installing anything.",
+        "url": "",
+        "urlLabel": "Portfolio"
+    },
+    "credits": [
+        {
+            "name": "bytegarage",
+            "role": "Game Developer",
+            "avatar": "🏁",
+            "primary": true,
+            "url": "",
+            "urlLabel": "Portfolio"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "Arrow Keys / WASD": "Steer, accelerate, and brake",
+            "Space / Shift / N": "Use nitro",
+            "P / Esc": "Pause",
+            "R": "Restart current route"
+        },
+        "touch": true,
+        "mouse": true
+    },
+    "instructions": "Pick a route, choose a car, then race through pseudo-3D traffic. Finish well to earn coins, unlock faster cars, and open later routes. Use nitro when the bar has charge, collect nitro refills on the road, and avoid losing speed in collisions.",
+    "technical": {
+        "canvasSize": {"width": 1280, "height": 720},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [
+            {
+                "type": "image-audio",
+                "url": "https://overtake-assets.vercel.app/",
+                "description": "Hosted car, map, UI, and audio assets"
+            },
+            {
+                "type": "font",
+                "url": "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Rajdhani:wght@500;600;700&display=swap",
+                "description": "Game UI fonts"
+            }
+        ],
+        "local": ["game.js", "game.css", "src/main.ts"]
+    },
+    "meta": {
+        "version": "0.1.0",
+        "created": "2026-06-11",
+        "license": "MIT"
+    }
+}

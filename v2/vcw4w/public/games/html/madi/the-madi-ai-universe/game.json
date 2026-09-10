@@ -1,0 +1,48 @@
+{
+    "title": "The MADI AI Universe",
+    "slug": "the-madi-ai-universe",
+    "description": "Your flagship adventure map! Explore the entire MADI AI Universe containing Pipeline Peaks, Revenue Jungle, and Temple of Automation.",
+    "genre": "Interactive 3D Hub",
+    "tags": ["HTML5", "3D Map", "Three.js", "Adventure"],
+    "maker": {
+        "name": "Madi AI Creative Team",
+        "bio": "Building the future of autonomous revenue engines.",
+        "url": "https://madi.ai",
+        "urlLabel": "Website"
+    },
+    "credits": [
+        {
+            "name": "Madi AI Team",
+            "role": "Game Creators",
+            "avatar": "🗺️",
+            "primary": true,
+            "url": "https://madi.ai",
+            "urlLabel": "Website"
+        }
+    ],
+    "controls": {
+        "mouse": "Hover regions to inspect, and Click to load that game!",
+        "touch": "Tap regions to play"
+    },
+    "instructions": "Rotate the interactive 3D globeworld to inspect different zones of the MADI AI universe. Click any glowing sector to immediately play that specific game!",
+    "technical": {
+        "canvasSize": {"width": 800, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [
+            {
+                "type": "script",
+                "url": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+                "description": "Three.js Library"
+            }
+        ],
+        "local": ["game.js", "game.css"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-16",
+        "license": "Private"
+    }
+}

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fridge Simulator - Game Guide</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --theme-bg: linear-gradient(135deg, #0a0a0f 0%, #111827 50%, #061f1d 100%);
+            --theme-primary: #10b981;
+            --theme-primary-light: #34d399;
+            --theme-primary-rgb: 16, 185, 129;
+            --theme-glow: rgba(16, 185, 129, 0.3);
+            --theme-card-bg: rgba(31, 41, 55, 0.95);
+            --theme-section-bg: rgba(17, 24, 39, 0.85);
+        }
+    </style>
+</head>
+<body data-game-title="FRIDGE SIMULATOR" data-game-emoji="🍳" data-game-tagline="Official Game Guide & Resource Almanac">
+    <div class="container">
+
+        <div class="toc">
+            <h3>📋 Quick Navigation</h3>
+            <div class="toc-links">
+                <a href="#countries" class="toc-link">🌍 Managed Countries (5 Types)</a>
+                <a href="#shops" class="toc-link">🛒 Food Suppliers (5 Types)</a>
+                <a href="#nutrition" class="toc-link">🍏 Food &amp; Nutrition</a>
+                <a href="#upgrades" class="toc-link">❄️ Fridge Upgrades</a>
+                <a href="#events" class="toc-link">📰 Daily Events &amp; Strategy</a>
+            </div>
+        </div>
+
+        <!-- COUNTRIES SECTION -->
+        <section class="section" id="countries">
+            <h2>🌍 MANAGED COUNTRIES</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">Each country has distinct population sizes, budget contributions, and food preferences. Unlock them as the days progress.</p>
+            <div class="entity-grid">
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🇺🇸</div>
+                        <div>
+                            <div class="entity-name">USA</div>
+                            <div class="entity-type">Unlocked: Day 1</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Large family with a substantial budget but unhealthy preferences.</div>
+                    <div class="entity-details">
+                        <p>The USA has a family size of 4. They pay up to $300 in taxes each day when all members are alive. Their dietary preferences are fast food items: burgers, pizzas, hotdogs, fries, and donuts. Fulfilling their requests yields high financial returns.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">Size</div><div class="stat-value">4 Members</div></div>
+                        <div class="stat"><div class="stat-label">Max Tax</div><div class="stat-value">$300</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🇯🇵</div>
+                        <div>
+                            <div class="entity-name">Japan</div>
+                            <div class="entity-type">Unlocked: Day 3</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Smaller family, moderate budget, prefers fish and rice.</div>
+                    <div class="entity-details">
+                        <p>Japan unlocks on Day 3 with a family size of 3 and a tax budget of $250. They prefer traditional Japanese items like sushi, ramen, rice, and dango. Balancing their diet is easier due to high base nutrition preferences.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">Size</div><div class="stat-value">3 Members</div></div>
+                        <div class="stat"><div class="stat-label">Max Tax</div><div class="stat-value">$250</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🇮🇳</div>
+                        <div>
+                            <div class="entity-name">India</div>
+                            <div class="entity-type">Unlocked: Day 5</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Very large family, tight budget, prefers vegetarian curries and tea.</div>
+                    <div class="entity-details">
+                        <p>India unlocks on Day 5 with a massive family size of 5 and a lower tax budget of $200. They prefer curry, flatbreads, dumplings, and tea. Feeding them requires high volume, making cheap wholesale buying essential.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">Size</div><div class="stat-value">5 Members</div></div>
+                        <div class="stat"><div class="stat-label">Max Tax</div><div class="stat-value">$200</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SHOPS SECTION -->
+        <section class="section" id="shops">
+            <h2>🛒 FOOD SUPPLIERS</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">Procure ingredients from various suppliers. Balancing price, stock types, and quality is key to efficiency.</p>
+            <div class="entity-grid">
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🏪</div>
+                        <div>
+                            <div class="entity-name">Grocery Store</div>
+                            <div class="entity-type">Reliable Standard</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Always fully stocked at standard prices. Perfect reliability.</div>
+                    <div class="entity-details">
+                        <p>The standard Grocery Store has a 1.0x price multiplier and holds all catalog items. Freshness is always 100%. Use it when you need specific items to fulfill family requests or plug severe nutritional gaps.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">Price</div><div class="stat-value">1.0x</div></div>
+                        <div class="stat"><div class="stat-label">Stock</div><div class="stat-value">Full</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🗑️</div>
+                        <div>
+                            <div class="entity-name">Dumpster</div>
+                            <div class="entity-type">Risky Freebie</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Free food! However, stock is random and freshness starts at 50%.</div>
+                    <div class="entity-details">
+                        <p>Dumpster diving costs $0. However, the items are completely random, and they spawn partially spoiled (50% freshness). Food will rot quickly, and rotten food (0%) increases sickness. Use only in financial emergencies.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">Price</div><div class="stat-value">Free</div></div>
+                        <div class="stat"><div class="stat-label">Freshness</div><div class="stat-value">50%</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- NUTRITION SECTION -->
+        <section class="section" id="nutrition">
+            <h2>🍏 FOOD &amp; NUTRITION</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">Each day, families consume food from their local fridge. Food belongs to one of five nutritional groups, which prevents malnutrition.</p>
+            <div class="entity-grid">
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🍗</div>
+                        <div>
+                            <div class="entity-name">Proteins</div>
+                            <div class="entity-type">Group 1</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Includes meats, fish, eggs, and cheese. Critical for baseline stamina.</div>
+                    <div class="entity-details">
+                        <p>Proteins prevent rapid health degradation. Keep the Protein bar filled to avoid severe starvation penalties. USA and Japan families consume high amounts of proteins.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- UPGRADES SECTION -->
+        <section class="section" id="upgrades">
+            <h2>❄️ FRIDGE UPGRADES</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">Upgrade your storage system to optimize logistics and prevent food waste.</p>
+            <div class="entity-grid">
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">❄️</div>
+                        <div>
+                            <div class="entity-name">Deep Freezer</div>
+                            <div class="entity-type">Anti-Spoilage</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Slows food spoilage rate in all fridges by 50%.</div>
+                    <div class="entity-details">
+                        <p>Purchase the Deep Freezer upgrade to halve the speed at which food items decay. Highly recommended when stocking up via wholesale buying or when holding surplus dumpster food.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- EVENTS & STRATEGY SECTION -->
+        <section class="section" id="events">
+            <h2>📰 DAILY EVENTS &amp; STRATEGY TIPS</h2>
+            <div class="tip-box">
+                <strong>💡 Quick Tip:</strong> Always pay attention to the daily news events. A supply chain event can make certain food groups extremely expensive. Plan ahead by stockpiling food items during discount events!
+            </div>
+        </section>
+
+    </div>
+
+    <script src="../../../guide-layout.js"></script>
+</body>
+</html>

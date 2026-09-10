@@ -1,0 +1,12 @@
+/**
+ * Template Demo - Game Styles
+ * Uses 4weird theme variables from styles.css
+ */
+
+/* No additional styles needed - uses template defaults */
+/* Add game-specific overrides here if needed */
+
+/* Example: custom player glow intensity */
+.game-frame {
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.2);
+}

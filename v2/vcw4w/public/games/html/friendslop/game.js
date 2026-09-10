@@ -1,0 +1,795 @@
+// FriendSlop - A viral indieslop arcade game
+// Feed your friends slop and build your vibe meter!
+
+const canvas = document.getElementById('friendslop-4weird-gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Canvas setup
+canvas.width = 800;
+canvas.height = 600;
+
+// Zero-dependency Procedural Audio Engine
+let audioCtx = null;
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+window.addEventListener('pointerdown', initAudio, { once: true });
+window.addEventListener('keydown', initAudio, { once: true });
+
+function playSlopSound(type) {
+    if (!audioCtx) return;
+    try {
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        switch (type) {
+            case 'catch':
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                osc.start(now);
+                osc.stop(now + 0.12);
+                break;
+            case 'feed':
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(600, now + 0.08);
+                osc.frequency.exponentialRampToValueAtTime(900, now + 0.16);
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now);
+                osc.stop(now + 0.2);
+                break;
+            case 'hazard':
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.linearRampToValueAtTime(70, now + 0.25);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                osc.start(now);
+                osc.stop(now + 0.25);
+                break;
+            case 'throw':
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(300, now + 0.08);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+                break;
+            case 'gameover':
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(350, now);
+                osc.frequency.exponentialRampToValueAtTime(60, now + 0.6);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.65);
+                osc.start(now);
+                osc.stop(now + 0.65);
+                break;
+        }
+    } catch (e) {}
+}
+
+// Game states
+const GAME_STATE = {
+    START: 'start',
+    PLAYING: 'playing',
+    PAUSED: 'paused',
+    GAME_OVER: 'game_over'
+};
+
+// Game class
+class FriendSlop {
+    constructor() {
+        this.state = GAME_STATE.START;
+        this.score = 0;
+        this.combo = 0;
+        this.vibeMeter = 100;
+        this.time = 0;
+        this.wave = 1;
+        this.highScore = parseInt(localStorage.getItem('friendslop-high-score')) || 0;
+        this.dailySeed = this.getDailySeed();
+        document.getElementById('friendslop-4weird-high-score').textContent = Math.floor(this.highScore);
+        
+        this.isCoop = false;
+        this.players = [];
+        this.friends = [];
+        this.slop = [];
+        this.hazards = [];
+        this.particles = [];
+        this.projectiles = [];
+        
+        this.spawnFriends();
+        this.setupEventListeners();
+        this.gameLoop();
+    }
+    
+    getDailySeed() {
+        const today = new Date();
+        const dateStr = today.getFullYear() + '' + (today.getMonth() + 1) + '' + today.getDate();
+        const seed = Math.abs(parseInt(dateStr)) % 10000;
+        document.getElementById('friendslop-4weird-daily-seed').textContent = `Seed: ${seed}`;
+        return seed;
+    }
+    
+    initPlayers() {
+        this.players = [];
+        if (this.isCoop) {
+            this.players.push(new Player(canvas.width / 3 - 20, canvas.height - 80, '🤖', { left: ['ArrowLeft'], right: ['ArrowRight'], throw: [' '] }));
+            this.players.push(new Player((canvas.width * 2) / 3 - 20, canvas.height - 80, '🦊', { left: ['a', 'A'], right: ['d', 'D'], throw: ['w', 'W', 'Shift'] }));
+        } else {
+            this.players.push(new Player(canvas.width / 2 - 20, canvas.height - 80, '🤖', { left: ['ArrowLeft', 'a', 'A'], right: ['ArrowRight', 'd', 'D'], throw: [' ', 'w', 'W'] }));
+        }
+    }
+    
+    setupEventListeners() {
+        document.getElementById('friendslop-4weird-start-btn').addEventListener('click', () => this.start(false));
+        const coopBtn = document.getElementById('friendslop-4weird-coop-btn');
+        if (coopBtn) {
+            coopBtn.addEventListener('click', () => this.start(true));
+        }
+        document.getElementById('friendslop-4weird-resume-btn').addEventListener('click', () => this.resume());
+        document.getElementById('friendslop-4weird-restart-btn').addEventListener('click', () => this.restart());
+        document.getElementById('friendslop-4weird-play-again-btn').addEventListener('click', () => this.restart());
+        document.getElementById('friendslop-4weird-share-btn').addEventListener('click', () => this.shareScore());
+        
+        document.addEventListener('keydown', (e) => this.handleKeyDown(e));
+        document.addEventListener('keyup', (e) => this.handleKeyUp(e));
+        canvas.addEventListener('click', () => this.handleClick());
+        canvas.addEventListener('touchstart', (e) => this.handleTouch(e));
+        canvas.addEventListener('touchmove', (e) => this.handleTouchMove(e));
+        canvas.addEventListener('touchend', (e) => this.handleTouchEnd(e));
+        canvas.addEventListener('touchcancel', (e) => this.handleTouchEnd(e));
+    }
+    
+    handleKeyDown(e) {
+        if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
+            this.togglePause();
+        }
+        if (this.state === GAME_STATE.PLAYING) {
+            for (let player of this.players) {
+                if (player.controls.left.includes(e.key)) player.moveLeft = true;
+                if (player.controls.right.includes(e.key)) player.moveRight = true;
+                if (player.controls.throw.includes(e.key)) {
+                    if (e.key === ' ') e.preventDefault();
+                    player.throw();
+                }
+            }
+        }
+    }
+    
+    handleKeyUp(e) {
+        if (this.state === GAME_STATE.PLAYING) {
+            for (let player of this.players) {
+                if (player.controls.left.includes(e.key)) player.moveLeft = false;
+                if (player.controls.right.includes(e.key)) player.moveRight = false;
+            }
+        }
+    }
+    
+    handleClick() {
+        if (this.state === GAME_STATE.PLAYING) {
+            const p1 = this.players[0];
+            if (p1) p1.throw();
+        }
+    }
+    
+    handleTouch(e) {
+        if (this.state === GAME_STATE.PLAYING) {
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            
+            const p1 = this.players[0];
+            if (p1) {
+                if (x < canvas.width / 3) {
+                    p1.moveLeft = true;
+                    p1.moveRight = false;
+                } else if (x > (canvas.width * 2) / 3) {
+                    p1.moveRight = true;
+                    p1.moveLeft = false;
+                } else {
+                    p1.throw();
+                }
+            }
+        }
+    }
+    
+    handleTouchMove(e) {
+        if (this.state === GAME_STATE.PLAYING) {
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            
+            const p1 = this.players[0];
+            if (p1) {
+                if (x < canvas.width / 3) {
+                    p1.moveLeft = true;
+                    p1.moveRight = false;
+                } else if (x > (canvas.width * 2) / 3) {
+                    p1.moveRight = true;
+                    p1.moveLeft = false;
+                }
+            }
+        }
+    }
+    
+    handleTouchEnd(e) {
+        if (this.state === GAME_STATE.PLAYING) {
+            for (let player of this.players) {
+                player.moveLeft = false;
+                player.moveRight = false;
+            }
+        }
+    }
+    
+    start(coop = false) {
+        console.log("FriendSlop game started. Coop mode:", coop);
+        this.isCoop = coop;
+        this.state = GAME_STATE.PLAYING;
+        document.getElementById('friendslop-4weird-start-screen').classList.add('hidden');
+        this.initPlayers();
+    }
+    
+    togglePause() {
+        if (this.state === GAME_STATE.PLAYING) {
+            this.state = GAME_STATE.PAUSED;
+            document.getElementById('friendslop-4weird-pause-screen').classList.remove('hidden');
+        } else if (this.state === GAME_STATE.PAUSED) {
+            this.resume();
+        }
+    }
+    
+    resume() {
+        this.state = GAME_STATE.PLAYING;
+        document.getElementById('friendslop-4weird-pause-screen').classList.add('hidden');
+    }
+    
+    restart() {
+        console.log("FriendSlop game restarted.");
+        this.state = GAME_STATE.PLAYING;
+        this.score = 0;
+        this.combo = 0;
+        this.vibeMeter = 100;
+        this.time = 0;
+        this.wave = 1;
+        this.initPlayers();
+        this.friends = [];
+        this.slop = [];
+        this.hazards = [];
+        this.particles = [];
+        this.projectiles = [];
+        this.spawnFriends();
+        document.getElementById('friendslop-4weird-game-over-screen').classList.add('hidden');
+        document.getElementById('friendslop-4weird-pause-screen').classList.add('hidden');
+    }
+    
+    spawnFriends() {
+        const friendEmojis = ['😂', '🤪', '🎉', '🔥', '💀'];
+        const spacing = canvas.width / 6;
+        for (let i = 0; i < 5; i++) {
+            const x = spacing + i * spacing;
+            const emoji = friendEmojis[i % friendEmojis.length];
+            this.friends.push(new Friend(x, 80, emoji));
+        }
+    }
+    
+    spawnSlop() {
+        if (Math.random() < 0.02 + this.wave * 0.005) {
+            const x = Math.random() * canvas.width;
+            const slopEmojis = ['🍝', '🍔', '🌮', '🍕', '🥗', '🍜', '🍱'];
+            const emoji = slopEmojis[Math.floor(Math.random() * slopEmojis.length)];
+            this.slop.push(new Slop(x, -30, emoji));
+        }
+    }
+    
+    spawnHazards() {
+        if (Math.random() < 0.008 + this.wave * 0.002) {
+            const x = Math.random() * canvas.width;
+            const hazardEmojis = ['😬', '🤢', '💩', '🚫'];
+            const emoji = hazardEmojis[Math.floor(Math.random() * hazardEmojis.length)];
+            this.hazards.push(new Hazard(x, -30, emoji));
+        }
+    }
+    
+    update() {
+        if (this.state !== GAME_STATE.PLAYING) return;
+        
+        this.time++;
+        
+        // Wave progression
+        this.wave = Math.floor(this.time / 300) + 1;
+        
+        // Update players
+        for (let player of this.players) {
+            player.update();
+        }
+        
+        // Spawn entities
+        this.spawnSlop();
+        this.spawnHazards();
+        
+        // Update slop
+        for (let i = this.slop.length - 1; i >= 0; i--) {
+            this.slop[i].update();
+            
+            if (this.slop[i].y > canvas.height) {
+                this.slop.splice(i, 1);
+                this.vibeMeter -= 5;
+                this.combo = 0;
+                continue;
+            }
+            
+            // Check collision with players
+            let hitPlayer = false;
+            for (let player of this.players) {
+                if (player.collidesWith(this.slop[i])) {
+                    this.slop.splice(i, 1);
+                    this.score += 10 * (1 + this.combo * 0.1);
+                    this.combo++;
+                    this.vibeMeter = Math.min(100, this.vibeMeter + 2);
+                    this.createParticles(player.x, player.y, '✨');
+                    playSlopSound('catch');
+                    hitPlayer = true;
+                    break;
+                }
+            }
+            if (hitPlayer) continue;
+            
+            // Check collision with friends
+            for (let friend of this.friends) {
+                if (friend.collidesWith(this.slop[i])) {
+                    this.slop.splice(i, 1);
+                    this.score += 25 * (1 + this.combo * 0.15);
+                    this.combo += 2;
+                    this.vibeMeter = Math.min(100, this.vibeMeter + 5);
+                    this.createParticles(friend.x, friend.y, '🎉');
+                    playSlopSound('feed');
+                    friend.bounce();
+                    break;
+                }
+            }
+        }
+        
+        // Update hazards
+        for (let i = this.hazards.length - 1; i >= 0; i--) {
+            this.hazards[i].update();
+            
+            if (this.hazards[i].y > canvas.height) {
+                this.hazards.splice(i, 1);
+                continue;
+            }
+            
+            // Check collision with players
+            for (let player of this.players) {
+                if (player.collidesWith(this.hazards[i])) {
+                    this.hazards.splice(i, 1);
+                    this.vibeMeter -= 15;
+                    this.combo = 0;
+                    this.createParticles(player.x, player.y, '💥');
+                    playSlopSound('hazard');
+                    this.screenShake();
+                    break;
+                }
+            }
+        }
+        
+        // Update projectiles
+        for (let i = this.projectiles.length - 1; i >= 0; i--) {
+            this.projectiles[i].update();
+            
+            if (this.projectiles[i].y < 0 || this.projectiles[i].x < 0 || this.projectiles[i].x > canvas.width) {
+                this.projectiles.splice(i, 1);
+                continue;
+            }
+            
+            // Check collision with friends
+            for (let friend of this.friends) {
+                if (friend.collidesWith(this.projectiles[i])) {
+                    this.projectiles.splice(i, 1);
+                    this.score += 50 * (1 + this.combo * 0.2);
+                    this.combo += 3;
+                    this.vibeMeter = Math.min(100, this.vibeMeter + 8);
+                    this.createParticles(friend.x, friend.y, '💥');
+                    playSlopSound('feed');
+                    friend.bounce();
+                    break;
+                }
+            }
+        }
+        
+        // Update particles
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            this.particles[i].update();
+            if (this.particles[i].life <= 0) {
+                this.particles.splice(i, 1);
+            }
+        }
+        
+        // Update friends
+        for (let friend of this.friends) {
+            friend.update();
+        }
+        
+        // Vibe meter decay
+        this.vibeMeter = Math.max(0, this.vibeMeter - 0.1);
+        
+        // Game over condition
+        if (this.vibeMeter <= 0) {
+            this.gameOver();
+        }
+        
+        // Update high score
+        if (this.score > this.highScore) {
+            this.highScore = this.score;
+            localStorage.setItem('friendslop-high-score', this.highScore);
+            document.getElementById('friendslop-4weird-high-score').textContent = Math.floor(this.highScore);
+        }
+    }
+    
+    createParticles(x, y, emoji) {
+        for (let i = 0; i < 5; i++) {
+            const vx = (Math.random() - 0.5) * 8;
+            const vy = (Math.random() - 0.5) * 8 - 2;
+            this.particles.push(new Particle(x, y, vx, vy, emoji));
+        }
+    }
+    
+    screenShake() {
+        this.shakeAmount = 5;
+    }
+    
+    gameOver() {
+        this.state = GAME_STATE.GAME_OVER;
+        playSlopSound('gameover');
+        document.getElementById('friendslop-4weird-final-score').textContent = Math.floor(this.score);
+        document.getElementById('friendslop-4weird-daily-rank').textContent = `Wave: ${this.wave}`;
+        document.getElementById('friendslop-4weird-game-over-screen').classList.remove('hidden');
+    }
+    
+    shareScore() {
+        const text = `I scored ${Math.floor(this.score)} points in FriendSlop! 🍝 Can you beat my score? Play now: https://4weird.games/games/friendslop`;
+        
+        if (navigator.share) {
+            navigator.share({
+                title: 'FriendSlop',
+                text: text,
+                url: window.location.href
+            }).catch(err => console.log('Share failed:', err));
+        } else {
+            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+    }
+    
+    draw() {
+        // Clear canvas
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Apply screen shake
+        if (this.shakeAmount) {
+            const shake = Math.random() * this.shakeAmount - this.shakeAmount / 2;
+            ctx.translate(shake, 0);
+            this.shakeAmount *= 0.9;
+        }
+        
+        // Draw grid background
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.05)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < canvas.width; i += 50) {
+            ctx.beginPath();
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i, canvas.height);
+            ctx.stroke();
+        }
+        for (let i = 0; i < canvas.height; i += 50) {
+            ctx.beginPath();
+            ctx.moveTo(0, i);
+            ctx.lineTo(canvas.width, i);
+            ctx.stroke();
+        }
+        
+        // Draw friends
+        for (let friend of this.friends) {
+            friend.draw(ctx);
+        }
+        
+        // Draw slop
+        for (let slop of this.slop) {
+            slop.draw(ctx);
+        }
+        
+        // Draw hazards
+        for (let hazard of this.hazards) {
+            hazard.draw(ctx);
+        }
+        
+        // Draw projectiles
+        for (let projectile of this.projectiles) {
+            projectile.draw(ctx);
+        }
+        
+        // Draw particles
+        for (let particle of this.particles) {
+            particle.draw(ctx);
+        }
+        
+        // Draw players
+        for (let player of this.players) {
+            player.draw(ctx);
+        }
+        
+        // Draw HUD
+        this.drawHUD();
+    }
+    
+    drawHUD() {
+        ctx.fillStyle = '#00ffff';
+        ctx.font = 'bold 20px Orbitron';
+        ctx.textAlign = 'left';
+        
+        ctx.fillText(`Score: ${Math.floor(this.score)}`, 20, 30);
+        ctx.fillText(`Wave: ${this.wave}`, 20, 60);
+        ctx.fillText(`Combo: ${this.combo}x`, 20, 90);
+        
+        // Vibe meter
+        const meterWidth = 200;
+        const meterHeight = 20;
+        const meterX = canvas.width - meterWidth - 20;
+        const meterY = 20;
+        
+        ctx.fillStyle = '#00ffff';
+        ctx.font = 'bold 12px Orbitron';
+        ctx.textAlign = 'right';
+        ctx.fillText('VIBE', meterX - 10, meterY + 15);
+        
+        ctx.strokeStyle = '#00ffff';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(meterX, meterY, meterWidth, meterHeight);
+        
+        const fillColor = this.vibeMeter > 50 ? '#00ff00' : this.vibeMeter > 25 ? '#ffff00' : '#ff0000';
+        ctx.fillStyle = fillColor;
+        ctx.fillRect(meterX + 2, meterY + 2, (meterWidth - 4) * (this.vibeMeter / 100), meterHeight - 4);
+    }
+    
+    gameLoop() {
+        this.update();
+        this.draw();
+        requestAnimationFrame(() => this.gameLoop());
+    }
+}
+
+// Player class
+class Player {
+    constructor(x, y, emoji, controls) {
+        this.x = x;
+        this.y = y;
+        this.emoji = emoji;
+        this.controls = controls;
+        this.width = 40;
+        this.height = 40;
+        this.speed = 5;
+        this.moveLeft = false;
+        this.moveRight = false;
+    }
+    
+    update() {
+        if (this.moveLeft && this.x > 0) this.x -= this.speed;
+        if (this.moveRight && this.x < canvas.width - this.width) this.x += this.speed;
+    }
+    
+    throw() {
+        const projectile = new Projectile(this.x + this.width / 2, this.y, 0, -10);
+        game.projectiles.push(projectile);
+        playSlopSound('throw');
+    }
+    
+    collidesWith(entity) {
+        return this.x < entity.x + entity.width &&
+               this.x + this.width > entity.x &&
+               this.y < entity.y + entity.height &&
+               this.y + this.height > entity.y;
+    }
+    
+    draw(ctx) {
+        ctx.font = '40px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(this.emoji, this.x + this.width / 2, this.y + this.height / 2);
+    }
+}
+
+// Friend class
+class Friend {
+    constructor(x, y, emoji) {
+        this.x = x;
+        this.y = y;
+        this.emoji = emoji;
+        this.width = 40;
+        this.height = 40;
+        this.bounceAmount = 0;
+    }
+    
+    update() {
+        if (this.bounceAmount > 0) {
+            this.bounceAmount -= 2;
+        }
+    }
+    
+    bounce() {
+        this.bounceAmount = 20;
+    }
+    
+    collidesWith(entity) {
+        return this.x < entity.x + entity.width &&
+               this.x + this.width > entity.x &&
+               this.y < entity.y + entity.height &&
+               this.y + this.height > entity.y;
+    }
+    
+    draw(ctx) {
+        ctx.font = '40px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const offsetY = -this.bounceAmount;
+        ctx.fillText(this.emoji, this.x + this.width / 2, this.y + this.height / 2 + offsetY);
+    }
+}
+
+// Slop class
+class Slop {
+    constructor(x, y, emoji) {
+        this.x = x;
+        this.y = y;
+        this.emoji = emoji;
+        this.width = 30;
+        this.height = 30;
+        this.speed = 2 + Math.random() * 2;
+        this.rotation = Math.random() * Math.PI * 2;
+        this.rotationSpeed = (Math.random() - 0.5) * 0.1;
+    }
+    
+    update() {
+        this.y += this.speed;
+        this.rotation += this.rotationSpeed;
+    }
+    
+    draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+        ctx.rotate(this.rotation);
+        ctx.font = '30px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(this.emoji, 0, 0);
+        ctx.restore();
+    }
+}
+
+// Hazard class
+class Hazard {
+    constructor(x, y, emoji) {
+        this.x = x;
+        this.y = y;
+        this.emoji = emoji;
+        this.width = 35;
+        this.height = 35;
+        this.speed = 1.5 + Math.random() * 1.5;
+    }
+    
+    update() {
+        this.y += this.speed;
+    }
+    
+    draw(ctx) {
+        ctx.font = '35px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(this.emoji, this.x + this.width / 2, this.y + this.height / 2);
+    }
+}
+
+// Projectile class
+class Projectile {
+    constructor(x, y, vx, vy) {
+        this.x = x;
+        this.y = y;
+        this.vx = vx;
+        this.vy = vy;
+        this.width = 20;
+        this.height = 20;
+    }
+    
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += 0.2; // gravity
+    }
+    
+    draw(ctx) {
+        ctx.font = '20px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🍝', this.x, this.y);
+    }
+}
+
+// Particle class
+class Particle {
+    constructor(x, y, vx, vy, emoji) {
+        this.x = x;
+        this.y = y;
+        this.vx = vx;
+        this.vy = vy;
+        this.emoji = emoji;
+        this.life = 30;
+        this.size = 20;
+    }
+    
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += 0.3; // gravity
+        this.life--;
+    }
+    
+    draw(ctx) {
+        ctx.globalAlpha = this.life / 30;
+        ctx.font = `${this.size}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(this.emoji, this.x, this.y);
+        ctx.globalAlpha = 1;
+    }
+}
+
+// Initialize game
+let game;
+window.addEventListener('load', () => {
+    game = new FriendSlop();
+    window.game = game;
+});
+
+window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SET_GAME_SPEED') {
+        const speed = parseFloat(event.data.speed);
+        if (!isNaN(speed) && speed > 0 && game) {
+            game.speedMultiplier = speed;
+        }
+    }
+});
+
+// ===== DEVELOPER DEBUGGING API =====
+window.gameDebug = {
+    name: "FriendSlop",
+    getScore: () => game ? game.score : 0,
+    setScore: (s) => { if (game) game.score = s; },
+    getHealth: () => game ? game.vibeMeter : 0,
+    setHealth: (h) => { if (game) game.vibeMeter = Math.max(0, Math.min(100, h)); },
+    win: () => {
+        if (game) {
+            game.score += 2500;
+            game.wave += 5;
+        }
+    },
+    lose: () => {
+        if (game) game.gameOver();
+    },
+    godMode: false,
+    toggleGodMode: function() {
+        this.godMode = !this.godMode;
+        return this.godMode;
+    }
+};

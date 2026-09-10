@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - System Glitch - 4weird Games</title>
+    <meta name="description" content="The page you are looking for has shifted into another dimension or does not exist.">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #0a0a0f;
+            color: #fff;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+        .error-container {
+            text-align: center;
+            padding: 40px;
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            background: rgba(10, 10, 25, 0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            box-shadow: 0 0 30px rgba(0, 242, 254, 0.15);
+            max-width: 500px;
+            z-index: 10;
+        }
+        .glitch-code {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 8rem;
+            font-weight: 900;
+            line-height: 1;
+            margin: 0;
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+            animation: pulse 2s infinite alternate;
+        }
+        .error-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            margin: 20px 0 10px;
+            color: #ff0055;
+            text-shadow: 0 0 10px rgba(255, 0, 85, 0.3);
+        }
+        .error-desc {
+            color: #9ca3af;
+            font-size: 1rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .btn-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 28px;
+            background: rgba(0, 242, 254, 0.1);
+            color: #00f2fe;
+            border: 1px solid rgba(0, 242, 254, 0.4);
+            border-radius: 8px;
+            text-decoration: none;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.1);
+        }
+        .btn-home:hover {
+            background: #00f2fe;
+            color: #000;
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.5);
+            transform: translateY(-2px);
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); filter: brightness(1); }
+            100% { transform: scale(1.03); filter: brightness(1.2); }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="starfield" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index:-1; pointer-events:none;"></canvas>
+    
+    <div class="error-container">
+        <div class="glitch-code">404</div>
+        <h1 class="error-title">SYSTEM CORRUPTION</h1>
+        <p class="error-desc">The requested sector could not be located in current system coordinates. It may have been purged or relocated.</p>
+        <a href="index.html" class="btn-home">
+            <span>🎮</span> RETURN TO BASE
+        </a>
+    </div>
+
+    <script src="components.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+/* ===== Orbital Drift Custom Styles ===== */
+@import url('../_TEMPLATE/game.css');
+
+/* Custom neon gradients and shadows */
+:root {
+    --neon-yellow: #facc15;
+    --neon-yellow-light: #fef08a;
+    --neon-pink: #f43f5e;
+    --neon-pink-light: #fda4af;
+}
+
+#game-container {
+    position: relative;
+    border-color: rgba(6, 182, 212, 0.4);
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.1);
+    background: #05050a;
+}
+
+#TEMPLATE-4weird-gameCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    background: radial-gradient(circle at center, #0a0a20 0%, #030308 100%);
+}
+
+/* HUD elements */
+#game-hud {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+    z-index: 5;
+    font-family: var(--font-display);
+    color: var(--text-primary);
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+#game-hud.hidden {
+    display: none !important;
+}
+
+.hud-item {
+    background: rgba(10, 10, 18, 0.7);
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    backdrop-filter: blur(5px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 90px;
+}
+
+.hud-label {
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    letter-spacing: 1.5px;
+    margin-bottom: 4px;
+}
+
+.hud-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+/* Integrity / Health Shield Bar */
+.integrity-container {
+    width: 180px;
+}
+
+.integrity-bar-bg {
+    width: 100%;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
+    margin-top: 2px;
+}
+
+#hud-integrity-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-pink) 0%, var(--neon-cyan) 100%);
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.8);
+    transition: width 0.2s ease-out;
+    width: 100%;
+}
+
+.score-container {
+    border-color: rgba(250, 204, 21, 0.3);
+}
+
+#hud-score {
+    color: var(--neon-yellow);
+    text-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
+}
+
+.multiplier-container {
+    border-color: rgba(6, 182, 212, 0.3);
+}
+
+#hud-multiplier {
+    color: var(--neon-cyan);
+    text-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+}
+
+/* Glow Text for start and game over screens */
+.glow-text {
+    font-family: var(--font-display);
+    text-shadow: 0 0 15px rgba(139, 92, 246, 0.8), 0 0 30px rgba(139, 92, 246, 0.4);
+    background: linear-gradient(135deg, #fff 0%, var(--neon-purple-light) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+    letter-spacing: 2px;
+}
+
+.header-fail {
+    text-shadow: 0 0 15px rgba(244, 63, 94, 0.8), 0 0 30px rgba(244, 63, 94, 0.4);
+    background: linear-gradient(135deg, #fff 0%, var(--neon-pink-light) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.TEMPLATE-4weird-final-score {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 15px 0;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 10px rgba(250, 204, 21, 0.4);
+}
+
+/* Key cap style for inline shortcuts */
+kbd {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: monospace;
+    font-size: 0.8rem;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+}
+
+@media (max-width: 600px) {
+    #game-hud {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+    }
+    
+    .hud-item {
+        padding: 6px 10px;
+        min-width: 60px;
+    }
+
+    .hud-value {
+        font-size: 1rem;
+    }
+
+    .integrity-container {
+        width: 100px;
+    }
+}

@@ -1,0 +1,48 @@
+{
+    "title": "Sound Painter",
+    "slug": "soundpainter",
+    "description": "Click tiles to paint music and color. Create unique audio-visual patterns and explore infinite combinations of sound and art.",
+    "genre": "Creative",
+    "tags": ["HTML5", "Creative", "Music", "Interactive", "Art"],
+    "maker": {
+        "name": "WewennJr",
+        "bio": "Independent contributor creating games for the 4weird platform. I build creative, playable experiences using pure HTML5 and vanilla JavaScript. Sound Painter is my exploration of combining music, color, and interactive art into a browser-based game.",
+        "url": "",
+        "urlLabel": ""
+    },
+    "credits": [
+        {
+            "name": "WewennJr",
+            "role": "Game Creator",
+            "avatar": "🦖",
+            "primary": true,
+            "url": "",
+            "urlLabel": ""
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "Click Tiles": "Paint Sound",
+            "R Key": "Reset Grid",
+            "Space": "Play All",
+            "P or Esc": "Pause Music"
+        },
+        "touch": true,
+        "mouse": true
+    },
+    "instructions": "Click any tile to paint it with a unique sound and color. Each column plays a different musical note, each row a different instrument timbre. Create patterns, rhythms, and melodies. Click 'Play All' to hear your creation as a sequence. Mix and explore - every combination is valid. Reset to start fresh.",
+    "technical": {
+        "canvasSize": {"width": 800, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [],
+        "local": ["game.js", "game.css"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-09",
+        "license": "MIT"
+    }
+}

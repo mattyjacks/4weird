@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AI-whack-a-mole - 4weird Games</title>
+    <meta name="description" content="Click/tap rogue bad AIs and save the good AIs in this stunning 3D arcade whack-a-mole game.">
+    <!-- Machine-readable rules for automated playtesters (VibeCodeWorker game-rules convention).
+         Keep to one line: objective first, then controls, win/avoid. -->
+    <meta name="game-rules" content="Whack only Bad (misaligned/dangerous) AIs; spare Good (user-aligned) AIs. Click/Tap a rising AI to whack it. 60-second timer: whacking Bad AIs scores, whacking Good AIs or letting Bad AIs escape reduces integrity.">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <!-- Base Styles -->
+    <link rel="stylesheet" href="../../../styles.css">
+    <link rel="stylesheet" href="game.css">
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+    
+    <!-- Three.js Library with failover check -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        if (typeof THREE === 'undefined') {
+            document.write('<script src="https://unpkg.com/three@0.128.0/build/three.min.js"><\/script>');
+        }
+    </script>
+    
+    <!-- Game Metadata (loaded for credits/bio) -->
+    <script src="game.json" type="application/json" id="game-metadata"></script>
+</head>
+<body class="TEMPLATE-4weird-game-page">
+    <!-- Background Starfield -->
+    <canvas id="TEMPLATE-4weird-starfield"></canvas>
+    
+    <!-- Navigation placeholder - injected by components.js -->
+    <div id="TEMPLATE-4weird-nav-placeholder"></div>
+    
+    <!-- Game Header Bar -->
+    <header class="TEMPLATE-4weird-game-header">
+        <div class="TEMPLATE-4weird-game-header-inner">
+            <a href="/" class="TEMPLATE-4weird-back-link">
+                <span class="TEMPLATE-4weird-back-arrow">←</span>
+                <span>Back to 4weird</span>
+            </a>
+            <h1 class="TEMPLATE-4weird-game-title" id="TEMPLATE-4weird-game-title">AI-whack-a-mole</h1>
+            <div class="TEMPLATE-4weird-game-meta" id="TEMPLATE-4weird-game-meta">
+                <span class="TEMPLATE-4weird-game-genre">Arcade</span>
+                <span class="TEMPLATE-4weird-separator">•</span>
+                <span class="TEMPLATE-4weird-game-status live">LIVE</span>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Game Container -->
+    <main class="TEMPLATE-4weird-game-main">
+        <!-- Game Canvas/Frame -->
+        <div class="TEMPLATE-4weird-game-frame" id="game-container">
+            <!-- 3D Render Canvas -->
+            <canvas id="TEMPLATE-4weird-gameCanvas"></canvas>
+            
+            <!-- Dynamic 2D HTML overlays for chat bubbles -->
+            <div id="bubbles-container"></div>
+
+            <!-- Damage vignette + countdown overlays -->
+            <div id="damage-flash"></div>
+            <div id="countdown" class="hidden"></div>
+            
+            <!-- Real-time HUD -->
+            <div id="game-hud" class="hidden">
+                <div class="hud-item score-container">
+                    <span class="hud-label">SCORE:</span>
+                    <span id="hud-score" class="hud-value">0</span>
+                </div>
+                <div class="hud-item health-container">
+                    <span class="hud-label">INTEGRITY:</span>
+                    <div class="health-bar-bg">
+                        <div id="hud-health-bar" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="hud-item time-container">
+                    <span class="hud-label">TIME:</span>
+                    <span id="hud-time" class="hud-value">60</span>
+                </div>
+            </div>
+
+            <!-- Game Overlay States -->
+            <div class="TEMPLATE-4weird-game-overlay" id="TEMPLATE-4weird-start-screen">
+                <div class="TEMPLATE-4weird-overlay-content">
+                    <h2 class="glow-text">AI WHACK-A-MOLE</h2>
+                    <p>Defend humanity against misaligned algorithms! Read the chat bubbles and whack the rogue AI 🤖 models before they leak your secrets. Do not whack the good, helpful AIs!</p>
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-start-btn">
+                        <span class="btn-emoji">🤖</span> Start Alignment Protocol
+                    </button>
+                    <div class="TEMPLATE-4weird-controls-hint">
+                        <p><strong>Controls:</strong> Left-click / Tap AIs to whack them. Red/creepy texts are bad. Helpful/warm texts are good.</p>
+                        <p>🔨 Chain bad-AI whacks for <strong>COMBO multipliers</strong> (up to x5) — missing lets the streak cool off!</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="TEMPLATE-4weird-pause-screen">
+                <div class="TEMPLATE-4weird-overlay-content">
+                    <h2>PAUSED</h2>
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-resume-btn">Resume</button>
+                    <button class="btn btn-secondary" id="TEMPLATE-4weird-restart-btn">Restart</button>
+                </div>
+            </div>
+            
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="TEMPLATE-4weird-game-over-screen">
+                <div class="TEMPLATE-4weird-overlay-content">
+                    <h2 class="glow-text header-fail">Protocol Ended</h2>
+                    <p id="game-over-reason">System compromised by rogue AI quotes!</p>
+                    <p class="TEMPLATE-4weird-final-score">Final Score: <span id="TEMPLATE-4weird-final-score-val">0</span></p>
+                    <button class="btn btn-primary" id="TEMPLATE-4weird-play-again-btn">Try Again</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Game Info Panel -->
+        <aside class="TEMPLATE-4weird-game-info-panel">
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>How to Play</h3>
+                <p id="TEMPLATE-4weird-how-to-play">Read the chat boxes above the rising 🤖 AIs. 50% are Good AI statements (user-aligned), and 50% are Bad AI statements (misaligned/dangerous). Whack only the Bad AIs. Leaving a Bad AI untouched or whacking a Good AI reduces integrity.</p>
+            </div>
+            
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>Controls</h3>
+                <ul id="TEMPLATE-4weird-controls-list">
+                    <li><kbd>Click</kbd> / <kbd>Tap</kbd> - Whack Mole</li>
+                    <li><kbd>P</kbd> / <kbd>Esc</kbd> - Pause Game</li>
+                </ul>
+            </div>
+            
+            <div class="TEMPLATE-4weird-panel-section">
+                <h3>High Score</h3>
+                <p class="TEMPLATE-4weird-high-score" id="TEMPLATE-4weird-high-score">0</p>
+            </div>
+        </aside>
+    </main>
+    
+    <!-- Credits Section -->
+    <section class="TEMPLATE-4weird-credits-section" id="TEMPLATE-4weird-credits">
+        <div class="TEMPLATE-4weird-credits-container">
+            <h2 class="TEMPLATE-4weird-credits-title">Credits</h2>
+            <div class="TEMPLATE-4weird-credits-grid" id="TEMPLATE-4weird-credits-grid">
+                <!-- Populated from game.json -->
+            </div>
+        </div>
+    </section>
+    
+    <!-- Maker Bio Section -->
+    <section class="TEMPLATE-4weird-bio-section" id="TEMPLATE-4weird-bio">
+        <div class="TEMPLATE-4weird-bio-container">
+            <h2 class="TEMPLATE-4weird-bio-title">About the Creator</h2>
+            <div class="TEMPLATE-4weird-bio-content" id="TEMPLATE-4weird-maker-bio">
+                <p>Loading bio...</p>
+            </div>
+        </div>
+    </section>
+    
+    <div id="TEMPLATE-4weird-footer-placeholder"></div>
+    
+    <!-- Scripts -->
+    <script src="../../../components.js"></script>
+    <script src="game.js"></script>
+    <script src="../game-meta.js"></script>
+    <script>
+        // Load game metadata and populate template credits
+        (function() {
+            const defaults = {
+                "title": "AI-whack-a-mole",
+                "maker": {
+                    "bio": "Crafting premium, interactive 3D browser games that combine retro mechanics with futuristic themes."
+                },
+                "credits": [
+                    {
+                        "name": "Antigravity AI",
+                        "role": "Lead Developer & 3D Designer",
+                        "avatar": "🤖",
+                        "primary": true,
+                        "url": "https://mattyjacks.com",
+                        "urlLabel": "4weird Games"
+                    }
+                ]
+            };
+
+            function populate(data) {
+                document.title = data.title + ' - 4weird Games';
+                document.getElementById('TEMPLATE-4weird-game-title').textContent = data.title;
+                // Security: bio/credits go through FourWeirdMeta (textContent
+                // + http(s)-only URLs) so a crafted game.json cannot inject HTML.
+                window.FourWeirdMeta.setBio('TEMPLATE-4weird-maker-bio', data.maker && data.maker.bio);
+                window.FourWeirdMeta.renderCredits('TEMPLATE-4weird-credits-grid', data.credits);
+            }
+
+            fetch('game.json')
+                .then(r => r.json())
+                .then(populate)
+                .catch(err => {
+                    console.log('Using template defaults:', err);
+                    populate(defaults);
+                });
+        })();
+    </script>
+</body>
+</html>

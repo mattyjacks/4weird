@@ -4,7 +4,7 @@
   "modelName": "muse-spark-1.3-contributor",
   "gameRules": "Game: Overtake\nGenre: Racing\nAbout: A fast pseudo-3D arcade racer with unlockable routes, garage progression, and nitro boosts.\nHow to play: Pick a route, choose a car, then race through pseudo-3D traffic. Finish well to earn coins, unlock faster cars, and open later routes. Use nitro when the bar has charge, collect nitro refills on the road, and avoid losing speed in collisions.\nControls: Arrow Keys / WASD: Steer, accelerate, and brake; Space / Shift / N: Use nitro; P / Esc: Pause; R: Restart current route; touch; mouse\nHow to play (on-page): Pick a route, choose a car, then race through pseudo-3D traffic. Finish well to earn coins, unlock faster cars, and open later routes. Use nitro when the bar has charge, collect nitro refills on the road, and avoid losing speed in collisions.\nArrow Keys / WASD - Drive Space / Shift / N - Nitro P / Esc - Pause R - Restart route",
   "generalizedIntelligence": true,
-  "gameUrl": "http://127.0.0.1:8888/games/html/overtake/index.html",
+  "gameUrl": "http://127.0.0.1:8888/games/html/overtake/index.html?playtest=1",
   "isAudioEnabled": false,
   "alwaysSendMemory": false,
   "autoChooseModel": false,

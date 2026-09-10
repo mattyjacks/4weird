@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4weird Games - Future Forward Fun</title>
+    <meta name="description"
+        content="4weird Games is an AI-powered game development studio based in New Hampshire, owned by MattyJacks.com. We create games using HTML, Roblox Studio, and Godot.">
+    <meta name="keywords" content="4weird, games, AI gaming, HTML5 games, Roblox, Godot, MattyJacks">
+    <link rel="canonical" href="https://4weird.com/">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#8b5cf6">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:title" content="4weird Games - Future Forward Fun">
+    <meta property="og:description"
+        content="AI-powered indie game studio. We build the future of play. No downloads required.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://4weird.com/">
+    <meta property="og:image" content="https://4weird.com/games/images/thumb_serversavershield.png">
+    <meta property="og:site_name" content="4weird Games">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="4weird Games - Future Forward Fun">
+    <meta name="twitter:description" content="AI-powered indie game studio. We build the future of play.">
+    <meta name="twitter:image" content="https://4weird.com/games/images/thumb_serversavershield.png">
+
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "4weird Games",
+      "url": "https://4weird.com",
+      "logo": "https://4weird.com/games/images/thumb_serversavershield.png",
+      "parentOrganization": {
+        "@type": "Organization",
+        "name": "MattyJacks.com",
+        "url": "https://mattyjacks.com"
+      },
+      "sameAs": [
+        "https://github.com/mattyjacks/4weird"
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "4weird Games",
+      "url": "https://4weird.com",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://4weird.com/games/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+</head>
+
+<body>
+    <!-- Particle Canvas Background -->
+    <canvas id="starfield"></canvas>
+
+    <!-- Navigation placeholder - injected by components.js -->
+    <div id="nav-placeholder"></div>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="floating-orbs">
+                <span class="orb">💀</span>
+                <span class="orb">🎮</span>
+                <span class="orb">🤖</span>
+                <span class="orb">🧙</span>
+                <span class="orb">⚔️</span>
+                <span class="orb">🏰</span>
+            </div>
+            <h1 class="hero-title">
+                <span class="title-line">4weird<span class="title-accent">Games</span></span>
+            </h1>
+            <p class="hero-tagline">
+                <span class="typewriter" id="typewriter"></span>
+                <span class="cursor">|</span>
+            </p>
+            <p class="hero-subtitle">Experience the future of gaming with premium, AI-crafted titles playable right now.
+            </p>
+            <div class="hero-founded-info">
+                <span class="badge-beta">Beta</span>
+                <span class="founded-date">Founded June 6, 2026 — built from scratch in weeks</span>
+            </div>
+            <div class="hero-cta">
+                <button id="btn-random-game" class="btn btn-primary btn-random-game">
+                    <span class="btn-emoji shuffle-icon">🎲</span> <span class="btn-text">Play Random Good Game</span>
+                </button>
+                <a href="games/index.html" class="btn btn-secondary">
+                    <span class="btn-emoji">🎮</span> View All Games
+                </a>
+            </div>
+            <div style="margin-top: 35px; display: flex; justify-content: center; opacity: 0.6; transition: opacity 0.3s;"
+                onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">
+                <a href="spaceships.html" target="_blank" rel="noopener noreferrer"
+                    style="font-size: 0.75rem; font-family: var(--font-display); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--neon-cyan); text-decoration: none; border: 1px solid rgba(6, 182, 212, 0.3); padding: 8px 16px; border-radius: 8px; transition: all 0.3s; background: rgba(6, 182, 212, 0.03); display: inline-flex; align-items: center; gap: 6px;"
+                    onmouseover="this.style.borderColor='var(--neon-cyan)'; this.style.boxShadow='0 0 10px rgba(6, 182, 212, 0.3)';"
+                    onmouseout="this.style.borderColor='rgba(6, 182, 212, 0.3)'; this.style.boxShadow='none';">
+                    <span style="font-size: 0.9rem;">🚀</span> Fullscreen Space Sim
+                </a>
+            </div>
+        </div>
+        <div class="hero-scroll">
+            <span class="scroll-arrow">↓</span>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="section about" id="about">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-emoji">⚡</span>
+                <h2 class="section-title">About 4weird</h2>
+                <p class="section-subtitle">Pushing the boundaries of AI-powered game creation</p>
+            </div>
+            <div class="about-grid">
+                <div class="about-card reveal">
+                    <div class="card-icon">🤖</div>
+                    <h3>AI-First Development</h3>
+                    <p>We leverage cutting-edge artificial intelligence to accelerate every aspect of game development -
+                        from procedural generation to AI-assisted art, sound design, and intelligent playtesting
+                        systems.</p>
+                </div>
+                <div class="about-card reveal">
+                    <div class="card-icon">🌎</div>
+                    <h3>Global Talent Network</h3>
+                    <p>Our team spans the globe. Elite freelancers from every continent collaborate to bring ambitious
+                        visions to life, coordinated through our proprietary ecosystem platform.</p>
+                </div>
+                <div class="about-card reveal">
+                    <div class="card-icon">🏔️</div>
+                    <h3>New Hampshire Roots</h3>
+                    <p>Headquartered in New Hampshire, USA, 4weird Games combines small-studio agility with worldwide
+                        reach. Our NH base grounds us while our network elevates us.</p>
+                </div>
+                <div class="about-card reveal parent-company">
+                    <div class="card-icon">🔗</div>
+                    <h3>A MattyJacks.com Company</h3>
+                    <p>4weird Games is proudly owned by <a href="https://mattyjacks.com" target="_blank"
+                            rel="noopener noreferrer">MattyJacks.com</a> - the holding company and outsourcing agency
+                        building the future of technology and talent deployment.</p>
+                    <p class="slogan-highlight">Do and/or DIE TRYING!!!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Section -->
+    <section class="section ai-section" id="ai">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-emoji">🧠</span>
+                <h2 class="section-title">AI-Powered Game Dev</h2>
+                <p class="section-subtitle">The tools we build, the games we ship</p>
+            </div>
+            <div class="ai-grid">
+                <div class="ai-feature reveal">
+                    <div class="ai-icon">🎨</div>
+                    <h3>AI Art Pipelines</h3>
+                    <p>Procedural textures, AI-assisted character design, and automated asset generation workflows that
+                        scale from prototype to production.</p>
+                </div>
+                <div class="ai-feature reveal">
+                    <div class="ai-icon">🎵</div>
+                    <h3>Generative Audio</h3>
+                    <p>Dynamic soundscapes, procedural music systems, and AI-generated SFX that adapt to gameplay in
+                        real-time.</p>
+                </div>
+                <div class="ai-feature reveal">
+                    <div class="ai-icon">🧪</div>
+                    <h3>Intelligent Playtesting</h3>
+                    <p>AI agents that play our games thousands of times, identifying balance issues, bugs, and
+                        optimization opportunities before players do.</p>
+                </div>
+                <div class="ai-feature reveal">
+                    <div class="ai-icon">🛠️</div>
+                    <h3>CryptArtist Studio</h3>
+                    <p>Our in-house desktop creative suite for AI-assisted game development, media production, and
+                        digital art. <a href="https://github.com/mattyjacks/CryptArtistStudio" target="_blank"
+                            rel="noopener noreferrer">Learn more</a></p>
+                </div>
+            </div>
+            <!-- VibeCodeWorker Antigravity 2.0 Showcase -->
+            <div class="vibecodeworker-showcase reveal"
+                style="margin-top: 50px; background: rgba(0, 242, 254, 0.04); padding: 32px; border-radius: 20px; border: 1px solid rgba(0, 242, 254, 0.25); backdrop-filter: blur(10px);">
+                <div style="display: flex; gap: 40px; align-items: center; flex-wrap: wrap;">
+                    <div
+                        style="flex: 1 1 400px; position: relative; border-radius: 12px; overflow: hidden; border: 1px solid rgba(0, 242, 254, 0.4); box-shadow: 0 10px 30px rgba(0, 242, 254, 0.15);">
+                        <img src="images/4weird VibeCodeWorker 1 - Screenshot 2026-06-10 163239.jpg"
+                            alt="4weird VibeCodeWorker Interface Screenshot" width="1280" height="720" loading="lazy"
+                            style="width: 100%; height: auto; display: block;">
+                        <div
+                            style="position: absolute; bottom: 10px; right: 10px; background: rgba(2, 6, 14, 0.9); color: var(--neon-cyan); font-family: monospace; font-size: 0.75rem; padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(0, 242, 254, 0.3);">
+                            Antigravity 2.0 Runtime Sandbox
+                        </div>
+                    </div>
+                    <div style="flex: 1 1 350px;">
+                        <span
+                            style="font-size: 0.8rem; padding: 4px 12px; background: rgba(0, 242, 254, 0.15); color: #00f2fe; border-radius: 12px; font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; display: inline-block; margin-bottom: 15px; border: 1px solid rgba(0, 242, 254, 0.3);">🌌
+                            Antigravity 2.0 Melded Suite</span>
+                        <h3
+                            style="font-family: var(--font-display); font-size: 1.8rem; margin-bottom: 15px; color: var(--text-primary);">
+                            VibeCodeWorker Agentic QA & Self-Healing Suite</h3>
+                        <p
+                            style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; margin-bottom: 20px;">
+                            Demonstrated here is our flagship web & game testing system, <a
+                                href="/vibecodeworker/"
+                                style="color: #00f2fe; text-decoration: none; font-weight: 600;">VibeCodeWorker</a>.
+                            Powered by <strong>Antigravity 2.0</strong>, VibeCodeWorker deploys autonomous pair
+                            programming LLM agents and parallel subagents to execute real-time playtesting, generate
+                            live git diff patches, and self-heal web defects.
+                        </p>
+                        <a href="/vibecodeworker/" class="btn btn-primary"
+                            style="padding: 12px 24px; font-size: 0.95rem; background: linear-gradient(135deg, #00f2fe, #8b5cf6); color: #000; font-weight: 800; border: none; box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);">
+                            <span class="btn-emoji">🌌</span> Launch Antigravity VibeCodeWorker
+                        </a>
+                        <a href="/vibecodeworker/docs/" class="btn btn-secondary"
+                            style="margin-left: 10px; padding: 12px 24px; font-size: 0.95rem;">Read the manual</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack Section -->
+    <section class="section tech" id="tech">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-emoji">⚙️</span>
+                <h2 class="section-title">Our Tech Stack</h2>
+                <p class="section-subtitle">Three engines, infinite possibilities</p>
+            </div>
+            <div class="tech-grid">
+                <div class="tech-card reveal">
+                    <div class="tech-header">
+                        <span class="tech-emoji">🌐</span>
+                        <h3>HTML5 Games</h3>
+                        <span class="tech-tag">Web Native</span>
+                    </div>
+                    <p class="tech-desc">Pure browser-based experiences with zero friction. Instant play, no downloads,
+                        maximum reach. Our HTML titles run everywhere - desktop, mobile, tablet.</p>
+                    <ul class="tech-features">
+                        <li><span class="check">✓</span> Canvas 2D/WebGL rendering</li>
+                        <li><span class="check">✓</span> Web Audio API sound</li>
+                        <li><span class="check">✓</span> Touch + keyboard controls</li>
+                    </ul>
+                </div>
+                <div class="tech-card reveal">
+                    <div class="tech-header">
+                        <span class="tech-emoji">🔷</span>
+                        <h3>Roblox Studio</h3>
+                        <span class="tech-tag">Social Gaming</span>
+                    </div>
+                    <p class="tech-desc">The world's largest gaming platform. We build immersive multiplayer experiences
+                        for millions of concurrent players, leveraging Roblox's massive ecosystem.</p>
+                    <ul class="tech-features">
+                        <li><span class="check">✓</span> Lua scripting expertise</li>
+                        <li><span class="check">✓</span> Multiplayer networking</li>
+                        <li><span class="check">✓</span> Live ops & analytics</li>
+                    </ul>
+                </div>
+                <div class="tech-card reveal">
+                    <div class="tech-header">
+                        <span class="tech-emoji">🎭</span>
+                        <h3>Godot</h3>
+                        <span class="tech-tag">Open Source</span>
+                    </div>
+                    <p class="tech-desc">The future of indie game development. Lightweight, powerful, and completely
+                        open source. Perfect for desktop, mobile, and console exports.</p>
+                    <ul class="tech-features">
+                        <li><span class="check">✓</span> GDScript & C# support</li>
+                        <li><span class="check">✓</span> 2D/3D hybrid engine</li>
+                        <li><span class="check">✓</span> One-click export to all platforms</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Games Section -->
+    <section class="section games" id="games">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-emoji">🎯</span>
+                <h2 class="section-title">Our Games</h2>
+                <p class="section-subtitle">Play them now - no downloads required</p>
+            </div>
+            <div class="games-grid">
+                <!-- Last Words Zombies -->
+                <div class="game-card reveal live main-featured">
+                    <div class="game-thumbnail">
+                        <div class="thumb-bg thumb-lastwordszombies"></div>
+                        <div class="thumb-overlay">
+                            <span class="play-btn">▶️</span>
+                        </div>
+                        <span class="game-badge live-badge"
+                            style="background: var(--neon-cyan); color: #000; font-weight: 800; box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);">MAIN
+                            FEATURED</span>
+                    </div>
+                    <div class="game-info">
+                        <h3 class="game-title">Last Words Zombies</h3>
+                        <p class="game-desc">A high-intensity 3D cyberpunk typing survival game. Decrypt approaching
+                            rogue cyber-units before they breach your mainframe terminal. Lock-on, decrypt, trigger
+                            payloads, and release stuns!</p>
+                        <div class="game-tags">
+                            <span class="tag">HTML5</span>
+                            <span class="tag">3D</span>
+                            <span class="tag">Cyberpunk</span>
+                            <span class="tag">Typing</span>
+                            <span class="tag">Survival</span>
+                        </div>
+                        <a href="games/html/lastwordszombies/index.html" class="btn btn-game"
+                            style="background: linear-gradient(135deg, var(--neon-cyan), #00ffcc); color: #000; font-weight: bold; border: none;">
+                            <span class="btn-emoji">🎮</span> Play Now
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Semester Survival -->
+                <div class="game-card reveal live featured">
+                    <div class="game-thumbnail">
+                        <div class="thumb-bg thumb-semestersurvival"></div>
+                        <div class="thumb-overlay">
+                            <span class="play-btn">▶️</span>
+                        </div>
+                        <span class="game-badge live-badge">NEW</span>
+                    </div>
+                    <div class="game-info">
+                        <h3 class="game-title">Semester Survival</h3>
+                        <p class="game-desc">Survive 8 chaotic semesters of lectures, exams, portal down errors, and
+                            empty wallets. Manage your GPA and energy to graduate as a university legend in this premium
+                            3D runner!</p>
+                        <div class="game-tags">
+                            <span class="tag">HTML5</span>
+                            <span class="tag">3D</span>
+                            <span class="tag">Runner</span>
+                        </div>
+                        <a href="games/html/semester-survival/index.html" class="btn btn-game">
+                            <span class="btn-emoji">🎮</span> Play Now
+                        </a>
+                    </div>
+                </div>
+                <!-- Server Saver Shield -->
+                <div class="game-card reveal live featured">
+                    <div class="game-thumbnail">
+                        <img src="games/images/thumb_serversavershield.png" alt="Server Saver Shield game screenshot"
+                            width="400" height="250" loading="lazy" onerror="this.style.display='none'"
+                            style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;">
+                        <div class="thumb-bg thumb-serversaver"></div>
+                        <div class="thumb-overlay">
+                            <span class="play-btn">▶️</span>
+                        </div>
+                        <span class="game-badge live-badge">FEATURED</span>
+                    </div>
+                    <div class="game-info">
+                        <h3 class="game-title">Server Saver Shield</h3>
+                        <p class="game-desc">Defend the data centers! Cyber attacks, malware bots, and viruses are
+                            targeting our servers. Deploy your shield and save the network! Easy and Hard difficulty
+                            modes, white hat hacker allies, and strategic enemy types.</p>
+                        <div class="game-tags">
+                            <span class="tag">HTML5</span>
+                            <span class="tag">Arcade</span>
+                            <span class="tag">Shooter</span>
+                        </div>
+                        <a href="games/html/serversavershield/index.html" class="btn btn-game">
+                            <span class="btn-emoji">🎮</span> Play Now
+                        </a>
+                    </div>
+                </div>
+
+                <!-- AssassinAnimals -->
+                <div class="game-card reveal live featured">
+                    <div class="game-thumbnail">
+                        <div class="thumb-bg thumb-overtake"></div>
+                        <div class="thumb-overlay">
+                            <span class="play-btn">▶️</span>
+                        </div>
+                        <span class="game-badge live-badge">NEW</span>
+                    </div>
+                    <div class="game-info">
+                        <h3 class="game-title">Overtake</h3>
+                        <p class="game-desc">Race through pseudo-3D routes, unlock faster cars, and use nitro boosts to
+                            fight for the podium.</p>
+                        <div class="game-tags">
+                            <span class="tag">HTML5</span>
+                            <span class="tag">Racing</span>
+                            <span class="tag">Arcade</span>
+                        </div>
+                        <a href="games/html/overtake/index.html" class="btn btn-game">
+                            <span class="btn-emoji">🎮</span> Play Now
+                        </a>
+                    </div>
+                </div>
+                <div class="game-card reveal live">
+                    <div class="game-thumbnail">
+                        <div class="thumb-bg"
+                            style="background: linear-gradient(135deg, #09090e 0%, #1e112a 50%, #ff0055 100%); width:100%; height:100%; display:flex; align-items:center; justify-content:center; position:absolute; top:0; left:0; font-size:4.5rem;">
+                            🐱🦎💀</div>
+                        <div class="thumb-overlay">
+                            <span class="play-btn">▶️</span>
+                        </div>
+                        <span class="game-badge live-badge">FEATURED</span>
+                    </div>
+                    <div class="game-info">
+                        <h3 class="game-title">AssassinAnimals</h3>
+                        <p class="game-desc">Control 9 mutated animal operatives in a stealth rogue-like complex. Evade
+                            vision cones, steal disguises, drag bodies, throw coin distractions, and assassinate VIP
+                            targets!</p>
+                        <div class="game-tags">
+                            <span class="tag">HTML5</span>
+                            <span class="tag">Stealth</span>
+                            <span class="tag">Rogue-like</span>
+                        </div>
+                        <a href="games/html/assassinanimals/index.html" class="btn btn-game">
+                            <span class="btn-emoji">🎮</span> Play Now
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Battlesharks 2 -->
+                <div class="game-card reveal live featured">
+                    <div class="game-thumbnail">
+                        <div class="thumb-bg"
+                            style="background: linear-gradient(135deg, #0b1a30 0%, #1e1b4b 50%, #00f2fe 100%); width:100%; height:100%; display:flex; align-items:center; justify-content:center; position:absolute; top:0; left:0; font-size:4.5rem;">
+                            🦈</div>
+                        <div class="thumb-overlay">
+                            <span class="play-btn">▶️</span>
+                        </div>
+                        <span class="game-badge live-badge">FEATURED</span>
+                    </div>
+                    <div class="game-info">
+                        <h3 class="game-title">Battlesharks 2</h3>
+                        <p class="game-desc">Command a genetically modified combat shark in the BS-07 Aquarium Complex.
+                            Devour marine life, harvest cyber debris, and evolve cybernetic weapons!</p>
+                        <div class="game-tags">
+                            <span class="tag">HTML5</span>
+                            <span class="tag">Action</span>
+                            <span class="tag">Upgrade</span>
+                        </div>
+                        <a href="games/html/battlesharks2/index.html" class="btn btn-game">
+                            <span class="btn-emoji">🎮</span> Play Now
+                        </a>
+                    </div>
+                </div>
+
+                <!-- GraveGain2D -->
+                <div class="game-card reveal live featured">
+                    <div class="game-thumbnail">
+                        <div class="thumb-bg"
+                            style="background: linear-gradient(135deg, #180512 0%, #300a1c 50%, #902850 100%); width:100%; height:100%; display:flex; align-items:center; justify-content:center; position:absolute; top:0; left:0; font-size:4.5rem;">
+                            👩‍🚀🧝‍♀️👹</div>
+                        <div class="thumb-overlay">
+                            <span class="play-btn">▶️</span>
+                        </div>
+                        <span class="game-badge live-badge">FEATURED</span>
+                    </div>
+                    <div class="game-info">
+                        <h3 class="game-title">GraveGain2D</h3>
+                        <p class="game-desc">A premium 2D dark fantasy RPG action rogue-like. Explore procedurally
+                            generated layers, experience dynamic lighting, grow crops offline in the Botany Station, and
+                            manage your quarters.</p>
+                        <div class="game-tags">
+                            <span class="tag">HTML5</span>
+                            <span class="tag">RPG</span>
+                            <span class="tag">Rogue-like</span>
+                        </div>
+                        <a href="games/html/gravegain2d/index.html" class="btn btn-game">
+                            <span class="btn-emoji">🎮</span> Play Now
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Orbital Drift -->
+                <div class="game-card reveal live featured">
+                    <div class="game-thumbnail">
+                        <div class="thumb-bg"
+                            style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0891b2 100%); width:100%; height:100%; display:flex; align-items:center; justify-content:center; position:absolute; top:0; left:0;">
+                            🛸</div>
+                        <div class="thumb-overlay">
+                            <span class="play-btn">▶️</span>
+                        </div>
+                        <span class="game-badge live-badge">FEATURED</span>
+                    </div>
+                    <div class="game-info">
+                        <h3 class="game-title">Orbital Drift</h3>
+                        <p class="game-desc">Dodge cosmic debris and collect glowing stardust in a beautiful, responsive
+                            3D orbit simulator. Control gravity with simple key or touch hold timing!</p>
+                        <div class="game-tags">
+                            <span class="tag">HTML5</span>
+                            <span class="tag">Arcade</span>
+                            <span class="tag">Three.js</span>
+                        </div>
+                        <a href="games/html/orbitaldrift/index.html" class="btn btn-game">
+                            <span class="btn-emoji">🎮</span> Play Now
+                        </a>
+                    </div>
+                </div>
+
+                <!-- AI-whack-a-mole -->
+                <div class="game-card reveal live featured">
+                    <div class="game-thumbnail">
+                        <div class="thumb-bg"
+                            style="background: linear-gradient(135deg, #1e1b4b 0%, #311042 50%, #4c1d95 100%); width:100%; height:100%; display:flex; align-items:center; justify-content:center; position:absolute; top:0; left:0;">
+                            🤖</div>
+                        <div class="thumb-overlay">
+                            <span class="play-btn">▶️</span>
+                        </div>
+                        <span class="game-badge live-badge">FEATURED</span>
+                    </div>
+                    <div class="game-info">
+                        <h3 class="game-title">AI-whack-a-mole</h3>
+                        <p class="game-desc">A gorgeous 3D arcade whack-a-mole game built with Three.js. Read statements
+                            above the rising AI models to whack rogue agents and protect server safety!</p>
+                        <div class="game-tags">
+                            <span class="tag">HTML5</span>
+                            <span class="tag">Arcade</span>
+                            <span class="tag">Three.js</span>
+                        </div>
+                        <a href="games/html/aiwhackamole/index.html" class="btn btn-game">
+                            <span class="btn-emoji">🎮</span> Play Now
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Sound Painter 2 -->
+                <div class="game-card reveal live featured">
+                    <div class="game-thumbnail">
+                        <div class="thumb-bg thumb-soundpainter"
+                            style="background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 50%, #d946ef 100%);"></div>
+                        <div class="thumb-overlay">
+                            <span class="play-btn">🎹</span>
+                        </div>
+                        <span class="game-badge live-badge">FEATURED</span>
+                    </div>
+                    <div class="game-info">
+                        <h3 class="game-title">Sound Painter 2</h3>
+                        <p class="game-desc">An advanced, in-depth music production studio. Sequence custom synth lines,
+                            bass grooves, chords, and dynamic drums, tweak FX controls, and share your compositions via
+                            URL.</p>
+                        <div class="game-tags">
+                            <span class="tag">HTML5</span>
+                            <span class="tag">Creative</span>
+                            <span class="tag">Music Studio</span>
+                        </div>
+                        <a href="games/html/soundpainter2/index.html" class="btn btn-game">
+                            <span class="btn-emoji">🎹</span> Play Now
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Sound Painter -->
+                <div class="game-card reveal live featured">
+                    <div class="game-thumbnail">
+                        <div class="thumb-bg thumb-soundpainter"></div>
+                        <div class="thumb-overlay">
+                            <span class="play-btn">-</span>
+                        </div>
+                        <span class="game-badge live-badge">FEATURED</span>
+                    </div>
+                    <div class="game-info">
+                        <h3 class="game-title">Sound Painter</h3>
+                        <p class="game-desc">Click tiles to paint music and color. Create unique audio-visual patterns
+                            and explore infinite combinations of sound and art. No wrong answers, just pure creative
+                            expression.</p>
+                        <div class="game-tags">
+                            <span class="tag">HTML5</span>
+                            <span class="tag">Creative</span>
+                            <span class="tag">Music</span>
+                        </div>
+                        <a href="games/html/soundpainter/index.html" class="btn btn-game">
+                            <span class="btn-emoji">-</span> Play Now
+                        </a>
+                    </div>
+                </div>
+
+                <!-- MADI AI Adventure Series -->
+                <div class="game-card reveal live featured">
+                    <div class="game-thumbnail">
+                        <div class="thumb-bg"
+                            style="background: linear-gradient(135deg, #06050b 0%, #1e1b4b 50%, #8b5cf6 100%); width:100%; height:100%; display:flex; align-items:center; justify-content:center; position:absolute; top:0; left:0; font-size:4.5rem;">
+                            🦁</div>
+                        <div class="thumb-overlay">
+                            <span class="play-btn">▶️</span>
+                        </div>
+                        <span class="game-badge live-badge">FEATURED</span>
+                    </div>
+                    <div class="game-info">
+                        <h3 class="game-title">MADI AI Adventure Series</h3>
+                        <p class="game-desc">10 interactive 3D browser games powered by Three.js. Navigate pipelines,
+                            solve bottlenecks, scale mountains, and build market leadership in this AI-themed adventure
+                            collection.</p>
+                        <div class="game-tags">
+                            <span class="tag">3D</span>
+                            <span class="tag">Adventure</span>
+                            <span class="tag">Strategy</span>
+                            <span class="tag">10 Games</span>
+                        </div>
+                        <a href="games/html/madi/" class="btn btn-game"
+                            style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                            <span class="btn-emoji">🎮</span> View All Games
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Neon Arcade Series by KouziTech -->
+                <div class="game-card reveal live featured">
+                    <div class="game-thumbnail">
+                        <div class="thumb-bg"
+                            style="background: linear-gradient(135deg, #0a0a1a 0%, #0ff 50%, #f0f 100%); width:100%; height:100%; display:flex; align-items:center; justify-content:center; position:absolute; top:0; left:0; font-size:4.5rem;">
+                            ⚡</div>
+                        <div class="thumb-overlay">
+                            <span class="play-btn">▶️</span>
+                        </div>
+                        <span class="game-badge live-badge">NEW</span>
+                    </div>
+                    <div class="game-info">
+                        <h3 class="game-title">Neon Arcade Series</h3>
+                        <p class="game-desc">5 classic arcade games reimagined with stunning cyberpunk neon visuals.
+                            Snake, Breakout, Invaders, Runner, and Racing — all in pure HTML5 with no downloads
+                            required. Made by KouziTech.</p>
+                        <div class="game-tags">
+                            <span class="tag">Arcade</span>
+                            <span class="tag">Neon</span>
+                            <span class="tag">HTML5</span>
+                            <span class="tag">5 Games</span>
+                        </div>
+                        <a href="games/html/kouzi/" class="btn btn-game"
+                            style="background: linear-gradient(135deg, #06b6d4, #0891b2);">
+                            <span class="btn-emoji">🎮</span> View All Games
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Academy Section -->
+    <section class="section academy" id="academy">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-emoji">🎓</span>
+                <h2 class="section-title">4weird Academy — Coming Soon (Hasn't Started Yet)</h2>
+                <p class="section-subtitle">Learn AI, coding, game development, and business from expert instructors
+                    worldwide</p>
+                <p style="max-width: 700px; margin: 0 auto 20px; background: rgba(244, 63, 94, 0.12); border: 2px solid #f43f5e; border-radius: 10px; padding: 14px 18px; color: #fff; font-size: 0.95rem; line-height: 1.6;"><strong>⚠️ ALL OF THE TEXT ABOUT THE ACADEMY IS DEMO TEXT, and not 100% true.</strong> The Academy hasn't started yet — tracks, instructors, and pricing are preview examples only.</p>
+            </div>
+            <div class="academy-content reveal">
+                <div class="academy-text">
+                    <h3>Master the Skills of the Digital Age (Planned — Not Live Yet)</h3>
+                    <p>4weird Academy <em>will be</em> a remote coding camp for kids, teenagers, and adults who want to learn the
+                        future. Whether you're interested in building websites, creating games, leveraging AI, or
+                        starting your own online business, our expert instructors from around the world are here to
+                        guide you. <strong>Hasn't started yet — details below are demo text.</strong></p>
+                    <div class="academy-features">
+                        <div class="feature-item">
+                            <span class="feature-icon">🤖</span>
+                            <div>
+                                <h4>AI & Coding</h4>
+                                <p>Master artificial intelligence and programming languages</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">🌐</span>
+                            <div>
+                                <h4>Web Development</h4>
+                                <p>Build stunning websites and web applications</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">🎮</span>
+                            <div>
+                                <h4>Game Development</h4>
+                                <p>Create games for any platform - HTML5, Roblox, Godot</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">💼</span>
+                            <div>
+                                <h4>Business Skills</h4>
+                                <p>Learn marketing, databases, and how to build a tech business</p>
+                            </div>
+                        </div>
+                    </div>
+                    <p style="margin-top: 30px; font-weight: 600; color: var(--neon-cyan);">Once you learn coding, you
+                        can solve real problems for your family, friends, and their parents with custom software and
+                        websites.</p>
+                    <div class="academy-cta">
+                        <a href="academy/index.html" class="btn btn-primary">
+                            <span class="btn-emoji">📚</span> Explore Academy
+                        </a>
+                        <a href="mailto:Matt@MattyJacks.com?subject=4weird%20Academy%20Inquiry"
+                            class="btn btn-secondary">
+                            <span class="btn-emoji">📧</span> Email to Learn More
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contribute Section -->
+    <section class="section contribute" id="contribute">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-emoji">🌟</span>
+                <h2 class="section-title">Contribute a Game</h2>
+                <p class="section-subtitle">4weird is open source - ship your own weird game and get it featured here
+                </p>
+            </div>
+            <div class="contribute-grid">
+                <div class="contribute-step reveal">
+                    <div class="step-num">1</div>
+                    <div class="step-icon">🍴</div>
+                    <h3>Fork &amp; Clone</h3>
+                    <p>Fork the repo on GitHub, then clone it locally. No build tools, no frameworks required - just
+                        open and play.</p>
+                </div>
+                <div class="contribute-step reveal">
+                    <div class="step-num">2</div>
+                    <div class="step-icon">🎨</div>
+                    <h3>Build Your Game</h3>
+                    <p>Create a folder under <code>website/v1/games/html/yourgame/</code> with an
+                        <code>index.html</code>, your JS, and CSS. Pure HTML5 - go weird.</p>
+                </div>
+                <div class="contribute-step reveal">
+                    <div class="step-num">3</div>
+                    <div class="step-icon">🔗</div>
+                    <h3>Add a Game Card</h3>
+                    <p>Drop a new card into the Games section of the main page so players can launch your creation in
+                        one click.</p>
+                </div>
+                <div class="contribute-step reveal">
+                    <div class="step-num">4</div>
+                    <div class="step-icon">🚀</div>
+                    <h3>Open a Pull Request</h3>
+                    <p>Push your branch and open a PR. We review fast, give feedback, and ship the weird ones live.</p>
+                </div>
+            </div>
+            <div class="contribute-cta reveal">
+                <p class="contribute-text">Got a weird idea? We want it. Every contributor gets credited.</p>
+                <div class="contribute-buttons">
+                    <a href="https://github.com/mattyjacks/4weird" target="_blank" rel="noopener noreferrer"
+                        class="btn btn-primary">
+                        <span class="btn-emoji">⭐</span> Star on GitHub
+                    </a>
+                    <a href="https://github.com/mattyjacks/4weird/blob/main/CONTRIBUTING.md" target="_blank"
+                        rel="noopener noreferrer" class="btn btn-secondary">
+                        <span class="btn-emoji">📋</span> Contribution Guide
+                    </a>
+                    <a href="https://github.com/mattyjacks/4weird/fork" target="_blank" rel="noopener noreferrer"
+                        class="btn btn-secondary">
+                        <span class="btn-emoji">🍴</span> Fork the Repo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="section team" id="team">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-emoji">👥</span>
+                <h2 class="section-title">Meet the Team</h2>
+                <p class="section-subtitle">A global force of creative talent</p>
+            </div>
+            <div class="team-grid">
+                <div class="team-card reveal founder">
+                    <div class="team-avatar">
+                        <span class="avatar-emoji">👔</span>
+                    </div>
+                    <h3 class="team-name">MattyJacks</h3>
+                    <p class="team-role">CEO & Founder</p>
+                    <p class="team-bio">Visionary leader behind 4weird Games and the MattyJacks.com ecosystem. Based in
+                        New Hampshire, building companies that deploy global talent and ship technology that makes
+                        money.</p>
+                    <a href="https://mattyjacks.com" target="_blank" rel="noopener noreferrer" class="team-link">
+                        <span class="link-emoji">🔗</span> mattyjacks.com
+                    </a>
+                </div>
+                <div class="team-card reveal global-team">
+                    <div class="team-avatar">
+                        <span class="avatar-emoji">🌐</span>
+                    </div>
+                    <h3 class="team-name">Global Freelancers</h3>
+                    <p class="team-role">Development Team</p>
+                    <p class="team-bio">Elite developers, designers, writers, and operators from around the world.
+                        Maximum cost effectiveness through strategic team composition. Handpicked for every project.</p>
+                    <div class="team-stats">
+                        <div class="stat">
+                            <span class="stat-num">50+</span>
+                            <span class="stat-label">Countries</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-num">200+</span>
+                            <span class="stat-label">Freelancers</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="hiring-cta reveal">
+                <p class="hiring-text">Want to join the 4weird team?</p>
+                <a href="#contact" class="btn btn-primary">
+                    <span class="btn-emoji">📧</span> Get in Touch
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="section contact" id="contact">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-emoji">📬</span>
+                <h2 class="section-title">Get in Touch</h2>
+                <p class="section-subtitle">Let's build something weird together</p>
+            </div>
+            <div class="contact-content reveal">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <span class="contact-icon">📧</span>
+                        <div class="contact-details">
+                            <h4>Email</h4>
+                            <p><a href="mailto:Matt@MattyJacks.com">Matt@MattyJacks.com</a></p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-icon">🔗</span>
+                        <div class="contact-details">
+                            <h4>Contact Form</h4>
+                            <p><a href="https://mattyjacks.com/contact" target="_blank"
+                                    rel="noopener noreferrer">MattyJacks.com/contact</a></p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-icon">🏢</span>
+                        <div class="contact-details">
+                            <h4>Parent Company</h4>
+                            <p><a href="https://mattyjacks.com" target="_blank"
+                                    rel="noopener noreferrer">MattyJacks.com</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer placeholder - injected by components.js -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Refactored Spaceships Game -->
+    <script type="module" src="spaceships/main.js?v=11"></script>
+
+    <script src="components.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

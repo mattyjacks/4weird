@@ -1,0 +1,9 @@
+"use client";
+import { useEffect, useRef, useState } from "react";
+
+type RuntimeEvent = { version?: number; type?: string; slot?: number; data?: unknown; message?: string };
+export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: string; src: string }) {
+  const frame = useRef<HTMLIFrameElement>(null); const [status, setStatus] = useState("Loading original HTML runtime…");
+  useEffect(() => { const targetOrigin = new URL(src, window.location.href).origin; const onMessage = (event: MessageEvent<RuntimeEvent>) => { if (event.origin !== targetOrigin || event.source !== frame.current?.contentWindow || !event.data || event.data.version !== 1) return; const payload = event.data; if (payload.type === "ready") { setStatus(""); frame.current?.contentWindow?.postMessage({ version: 1, type: "host-ready", slug }, targetOrigin); } else if (payload.type === "error") setStatus(payload.message || "The game reported a runtime error."); else if (payload.type === "save" && payload.data && typeof payload.data === "object") { const slot = Number.isInteger(payload.slot) && payload.slot! >= 1 && payload.slot! <= 3 ? payload.slot : 1; void fetch("/api/saves", { method: "PUT", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game_slug: slug, slot, data: payload.data }) }).catch(() => setStatus("Cloud save unavailable; local progress is unchanged.")); } }; window.addEventListener("message", onMessage); return () => window.removeEventListener("message", onMessage); }, [slug, src]);
+  return <div className="relative h-full w-full"><p role="status" className={`absolute left-3 top-3 z-10 rounded bg-black/70 px-3 py-1 text-xs text-white/80 ${status ? "" : "sr-only"}`}>{status}</p><iframe ref={frame} title={title} src={src} className="h-full w-full border-0" allow="autoplay; fullscreen" /></div>;
+}

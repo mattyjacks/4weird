@@ -1,0 +1,2 @@
+"use client";
+export default function Error({ reset }: { reset: () => void }) { return <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-black px-6 text-center text-white"><h1 className="text-2xl font-bold">This game hit a runtime error</h1><p className="text-white/70">The original HTML game is preserved, but this session could not start cleanly.</p><button onClick={reset} className="rounded-full bg-cyan-300 px-5 py-2 font-bold text-black">Try again</button></main>; }

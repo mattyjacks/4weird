@@ -1,0 +1,48 @@
+{
+    "title": "The AI Expedition",
+    "slug": "the-ai-expedition",
+    "description": "Explore the new frontier of revenue! Route datasets between AI agents, data lakes, and automations to optimize operations.",
+    "genre": "Network Puzzle",
+    "tags": ["HTML5", "Puzzle", "Three.js", "Strategy"],
+    "maker": {
+        "name": "Madi AI Creative Team",
+        "bio": "Building the future of autonomous revenue engines.",
+        "url": "https://madi.ai",
+        "urlLabel": "Website"
+    },
+    "credits": [
+        {
+            "name": "Madi AI Team",
+            "role": "Game Creators",
+            "avatar": "🧠",
+            "primary": true,
+            "url": "https://madi.ai",
+            "urlLabel": "Website"
+        }
+    ],
+    "controls": {
+        "mouse": "Click nodes to create pipeline connections",
+        "touch": "Tap nodes to link them"
+    },
+    "instructions": "Link data nodes to route information. Click Node A, then click Node B to draw a pipeline. Route packages to clear data traffic and increase efficiency!",
+    "technical": {
+        "canvasSize": {"width": 800, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [
+            {
+                "type": "script",
+                "url": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+                "description": "Three.js Library"
+            }
+        ],
+        "local": ["game.js", "game.css"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-16",
+        "license": "Private"
+    }
+}

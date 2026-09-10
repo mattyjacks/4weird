@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Lich Dom - Game Guide</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --theme-bg: linear-gradient(135deg, #0a0a0f 0%, #1e1b4b 50%, #111827 100%);
+            --theme-primary: #8b5cf6;
+            --theme-primary-light: #a78bfa;
+            --theme-primary-rgb: 139, 92, 246;
+            --theme-glow: rgba(139, 92, 246, 0.3);
+            --theme-card-bg: rgba(30, 30, 45, 0.95);
+            --theme-section-bg: rgba(26, 26, 37, 0.85);
+        }
+    </style>
+</head>
+<body data-game-title="DEMO LICHDOM" data-game-emoji="💀" data-game-tagline="Official Necromancy Guide & Entity Reference">
+    <div class="container">
+
+        <div class="toc">
+            <h3>📋 Quick Navigation</h3>
+            <div class="toc-links">
+                <a href="#demolition" class="toc-link">🏰 Demolition Targets</a>
+                <a href="#spells" class="toc-link">⚡ Necromancy Spells</a>
+                <a href="#upgrades" class="toc-link">⭐ Level Up Upgrades</a>
+                <a href="#powerups" class="toc-link">🧪 Battle Powerups</a>
+                <a href="#enemies" class="toc-link">👮 City Defenders</a>
+            </div>
+        </div>
+
+        <!-- DEMOLITION TARGETS -->
+        <section class="section" id="demolition">
+            <h2>🏰 DEMOLITION TARGETS</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">As a modern demolition contractor, your goal is to destroy target properties. Direct your skeleton army to crush them while dodging defenses.</p>
+            <div class="entity-grid">
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">⛪</div>
+                        <div>
+                            <div class="entity-name">Old Church</div>
+                            <div class="entity-type">Phase 1 Target</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Standard brick structure. No defenses, easy to crush.</div>
+                    <div class="entity-details">
+                        <p>The Old Church has 300 HP and does not fight back. Great for leveling up early. Skeletons deal passive damage to it. Destroying it advances the game to Phase 2.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">HP</div><div class="stat-value">300</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🏭</div>
+                        <div>
+                            <div class="entity-name">Factory</div>
+                            <div class="entity-type">Phase 2 Target</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Reinforced factory. Drops falling bricks.</div>
+                    <div class="entity-details">
+                        <p>The Factory has 500 HP and active defenses. It periodically drops falling bricks (🧱) that damage the player on impact. Dodge them to stay alive.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">HP</div><div class="stat-value">500</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🏙️</div>
+                        <div>
+                            <div class="entity-name">Skyscraper</div>
+                            <div class="entity-type">Phase 3 Boss</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Giant skyscraper boss. Spawns guards and shoots missiles.</div>
+                    <div class="entity-details">
+                        <p>The Skyscraper is the final boss with 1000 HP. It spawns city guards to defend it and periodically launches rocket barrages. It displays a boss health bar at the top center of the screen.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat"><div class="stat-label">HP</div><div class="stat-value">1000</div></div>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SPELLS SECTION -->
+        <section class="section" id="spells">
+            <h2>⚡ NECROMANCY SPELLS</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">Use your spell power to summon minions and directly blast guards and buildings.</p>
+            <div class="entity-grid">
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">💀</div>
+                        <div>
+                            <div class="entity-name">Skull Spell</div>
+                            <div class="entity-type">Mana Cost: 10</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Fires a necro-bolt dealing base 15 damage.</div>
+                    <div class="entity-details">
+                        <p>Your primary ranged attack. Fires a flying skull in the direction of the cursor. Deals damage to guards and buildings. Spends 10 mana.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🦴</div>
+                        <div>
+                            <div class="entity-name">Summon Skeleton</div>
+                            <div class="entity-type">Mana Cost: 25</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Summons a skeleton minion that attacks buildings.</div>
+                    <div class="entity-details">
+                        <p>Summons a loyal skeleton that moves towards the active target building and attacks it repeatedly. Skeletons also distract and fight nearby city guards.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- UPGRADES SECTION -->
+        <section class="section" id="upgrades">
+            <h2>⭐ LEVEL UP UPGRADES</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">Gather XP from destroying buildings and defeating city guards to choose upgrades.</p>
+            <div class="entity-grid">
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🧪</div>
+                        <div>
+                            <div class="entity-name">Acid Skull</div>
+                            <div class="entity-type">Offensive Upgrade</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Adds damage-over-time poison to your primary spells.</div>
+                    <div class="entity-details">
+                        <p>Infuses your spells with corrosive acid. Enemies hit take damage over time, melting guards' shields and building defenses continuously.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- POWERUPS SECTION -->
+        <section class="section" id="powerups">
+            <h2>🧪 BATTLE POWERUPS</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">Powerups occasionally drop from defeated city defenders. Collect them to turn the tide.</p>
+            <div class="entity-grid">
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">⚡</div>
+                        <div>
+                            <div class="entity-name">Mana Overload</div>
+                            <div class="entity-type">Temporary Buff</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Gives infinite mana for 5 seconds.</div>
+                    <div class="entity-details">
+                        <p>Instantly maxes your mana and halts all mana consumption for 5 seconds. Spam skull spells and summon skeletons at will during this period!</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script src="../../../guide-layout.js"></script>
+</body>
+</html>

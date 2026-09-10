@@ -1,0 +1,3 @@
+import Link from "next/link";
+import { MarketingPage } from "@/components/site/marketing-page";
+export default function Page() { return <MarketingPage title="VibeCodeWorker" intro="Evidence-driven QA for the things you build."><p>Run, observe, debug, and improve web experiences through a local-first agentic workflow.</p><div className="flex flex-wrap gap-4"><Link className="inline-block rounded-full bg-cyan-300 px-6 py-3 font-bold text-slate-950" href="/web-apps">Explore the workspace</Link><Link className="inline-block rounded-full border border-white/20 px-6 py-3 font-semibold" href="/vibecodeworker-legacy/docs/index.html">Open original manual</Link></div></MarketingPage>; }

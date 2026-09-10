@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07111f">
+  <title>VibeCodeWorker Remote</title>
+  <style>
+    :root{color-scheme:dark;--bg:#07111f;--card:#0d1b2c;--line:#20435a;--text:#e8f4ff;--muted:#91acc3;--go:#21d794;--warn:#ffc857}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#123454,var(--bg) 45%);color:var(--text);font:16px system-ui,sans-serif;min-height:100vh}.wrap{max-width:560px;margin:auto;padding:20px 16px 42px}h1{font-size:1.55rem;margin:0 0 6px}p{color:var(--muted);line-height:1.45}.card{background:color-mix(in srgb,var(--card) 92%,transparent);border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:14px}label{display:block;font-size:.82rem;color:var(--muted);margin:9px 0 5px}input{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#06101b;color:var(--text);font:inherit}button{min-height:46px;padding:10px 12px;border:1px solid #356682;border-radius:12px;background:#102b40;color:var(--text);font:600 1rem system-ui;touch-action:manipulation}button:active{transform:scale(.98);background:#174564}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.wide{grid-column:span 3}.go{border-color:#218c69;background:#104c3b}.danger{border-color:#9d5360;background:#4c1822}.screen{height:190px;position:relative;border:2px dashed #3a6a86;border-radius:14px;background:#050b12;touch-action:none;overflow:hidden}.screen::after{content:'Tap to send a click to the active target';position:absolute;inset:0;display:grid;place-items:center;color:#6e91aa;font-size:.85rem;pointer-events:none}.dot{position:absolute;width:18px;height:18px;border:2px solid var(--go);border-radius:50%;transform:translate(-50%,-50%);display:none}.status{font:ui-monospace,Consolas,monospace;font-size:.79rem;white-space:pre-wrap;min-height:3.5em;color:#bfe8d8}.note{font-size:.78rem;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>VibeCodeWorker Remote</h1>
+    <p>Control the active local or Runpod worker from your phone. The token stays only in this browser tab.</p>
+    <section class="card">
+      <label for="endpoint">Worker API URL</label>
+      <input id="endpoint" inputmode="url" autocomplete="url" placeholder="https://&lt;pod&gt;-42069.proxy.runpod.net">
+      <label for="token">Control token</label>
+      <input id="token" type="password" autocomplete="off" placeholder="VIBE_API_TOKEN">
+      <p class="note">For a local desktop, use its LAN or tunnel URL—not localhost. Set <code>VIBE_API_TOKEN</code> before exposing a worker outside your device.</p>
+      <div class="grid"><button class="go wide" id="connect">Connect</button></div>
+      <output class="status" id="status">Not connected.</output>
+    </section>
+    <section class="card">
+      <strong>Agent</strong>
+      <div class="grid" style="margin-top:10px"><button class="go" data-key="Space">Start / act</button><button data-key="Escape">Pause</button><button data-key="r">Restart</button></div>
+    </section>
+    <section class="card">
+      <strong>Movement</strong>
+      <div class="grid" style="margin-top:10px"><button></button><button data-key="ArrowUp">▲</button><button></button><button data-key="ArrowLeft">◀</button><button data-key="Space">●</button><button data-key="ArrowRight">▶</button><button></button><button data-key="ArrowDown">▼</button><button></button></div>
+    </section>
+    <section class="card">
+      <strong>Tap target</strong>
+      <div class="screen" id="screen"><i class="dot" id="dot"></i></div>
+      <p class="note">Tap maps to the active target at 0–1000 coordinates. Every command is sent as a normal Vibecodeworker action.</p>
+    </section>
+  </main>
+  <script>
+  (() => {
+    const $ = id => document.getElementById(id);
+    const endpoint = $('endpoint'), token = $('token'), status = $('status'), screen = $('screen'), dot = $('dot');
+    const params = new URLSearchParams(location.search);
+    endpoint.value = params.get('endpoint') || sessionStorage.getItem('vcw-endpoint') || '';
+    // Security: the control token is a secret. Accept it from the URL once
+    // (QR pairing) then strip it from the address bar so it never persists
+    // in history, synced tabs, or shared links.
+    const urlToken = params.get('token') || '';
+    token.value = urlToken;
+    if (urlToken || params.has('endpoint')) {
+      try {
+        const clean = new URL(location.href);
+        clean.searchParams.delete('token');
+        history.replaceState(null, '', clean.pathname + clean.search + clean.hash);
+      } catch (e) { /* history API unavailable: token field still works */ }
+    }
+    const base = () => endpoint.value.trim().replace(/\/+$/, '');
+    const show = value => { status.textContent = value; };
+    async function api(path, options = {}) {
+      if (!base()) throw new Error('Enter the worker API URL first.');
+      // Security: only http(s) worker URLs, so a pasted javascript: or
+      // custom-scheme value cannot turn the token into a leak primitive.
+      if (!/^https?:\/\//i.test(base())) throw new Error('Worker API URL must start with http:// or https://.');
+      const headers = { 'Content-Type':'application/json', ...(options.headers || {}) };
+      if (token.value.trim()) headers['X-Vibe-Auth'] = token.value.trim();
+      const res = await fetch(base() + path, { ...options, headers });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.success === false) throw new Error(data.error || ('HTTP ' + res.status));
+      return data;
+    }
+    async function connect() {
+      try {
+        sessionStorage.setItem('vcw-endpoint', base());
+        show('Connecting…');
+        const data = await api('/api/status');
+        show('Connected\nmode: ' + (data.runtimeMode || 'unknown') + '\nactive target: ' + (data.activeGame || data.activeGameUrl || 'none'));
+      } catch (error) { show('Connection failed: ' + error.message); }
+    }
+    async function action(body) {
+      try { const result = await api('/api/game/action', { method:'POST', body:JSON.stringify(body) }); show('Sent: ' + JSON.stringify(result)); }
+      catch (error) { show('Action failed: ' + error.message); }
+    }
+    $('connect').addEventListener('click', connect);
+    document.querySelectorAll('[data-key]').forEach(button => button.addEventListener('click', () => action({ type:'keydown', key:button.dataset.key }).then(() => action({ type:'keyup', key:button.dataset.key }))));
+    screen.addEventListener('pointerdown', event => {
+      const r = screen.getBoundingClientRect(), x = Math.round(Math.max(0,Math.min(1,(event.clientX-r.left)/r.width))*1000), y = Math.round(Math.max(0,Math.min(1,(event.clientY-r.top)/r.height))*1000);
+      dot.style.display='block'; dot.style.left=(x/10)+'%'; dot.style.top=(y/10)+'%'; action({ type:'click', x, y });
+    });
+  })();
+  </script>
+</body>
+</html>

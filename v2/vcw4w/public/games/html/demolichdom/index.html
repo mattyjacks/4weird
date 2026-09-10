@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Demo Lichdom - 4weird Games</title>
+    <meta name="description" content="Command your skeleton army to demolish buildings as a modern necromancer! Pure HTML5 strategy action.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💀</text></svg>">
+    <link rel="stylesheet" href="../../../styles.css">
+    <link rel="stylesheet" href="game.css">
+</head>
+<body class="TEMPLATE-4weird-game-page">
+    <canvas id="TEMPLATE-4weird-starfield"></canvas>
+    <div id="TEMPLATE-4weird-nav-placeholder"></div>
+
+    <div class="game-container">
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+        
+        <div class="mobile-action-buttons" id="mobileActionButtons" style="display: none; position: absolute; bottom: 20px; right: 20px; gap: 15px; z-index: 100;">
+            <button id="btnCastMobile" class="btn" style="background: rgba(239, 68, 68, 0.85); border: 2px solid #ef4444; border-radius: 50%; width: 65px; height: 65px; font-size: 1.6rem; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">⚡</button>
+            <button id="btnSummonMobile" class="btn" style="background: rgba(139, 92, 246, 0.85); border: 2px solid #8b5cf6; border-radius: 50%; width: 65px; height: 65px; font-size: 1.6rem; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">💀</button>
+            <button id="btnBlinkMobile" class="btn" style="background: rgba(6, 182, 212, 0.85); border: 2px solid #06b6d4; border-radius: 50%; width: 65px; height: 65px; font-size: 1.6rem; display: none; align-items: center; justify-content: center; cursor: pointer; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">👻</button>
+        </div>
+        
+        <div class="hud">
+            <div class="bar-container">
+                <span>❤️</span>
+                <div class="bar"><div class="bar-fill hp-fill" id="hpBar"></div></div>
+            </div>
+            <div class="bar-container">
+                <span>💧</span>
+                <div class="bar"><div class="bar-fill mana-fill" id="manaBar"></div></div>
+            </div>
+            <div class="bar-container">
+                <span>⭐</span>
+                <div class="bar"><div class="bar-fill xp-fill" id="xpBar"></div></div>
+            </div>
+            <div class="bar-container" id="blinkBar" style="display:none">
+                <span>👻</span>
+                <div class="bar"><div class="bar-fill blink-fill" id="blinkBarFill"></div></div>
+            </div>
+        </div>
+        <div class="combo-display" id="comboDisplay"></div>
+
+        <div class="stats">
+            <div><span class="label">Level</span><div class="value" id="levelDisplay">1</div></div>
+            <div><span class="label">Score</span><div class="value" id="scoreDisplay">0</div></div>
+            <div><span class="label">Phase</span><div class="value" id="phaseDisplay">P1 Church</div></div>
+            <div><span class="label">Best</span><div class="value" id="highScoreDisplay">0</div></div>
+        </div>
+
+        <div class="skeleton-count">
+            <span class="emoji">💀</span>
+            <span>Army: <strong id="skeletonCount">0/3</strong></span>
+        </div>
+
+        <div class="controls">
+            <strong>CONTROLS</strong><br>
+            WASD / Arrows: Move<br>
+            Click: Cast Skull Spell<br>
+            S: Summon Skeleton (-25 Mana)<br>
+            Space: Blink (after upgrade)<br>
+            1/2/3: Pick Upgrade<br>
+            P: Pause Game
+        </div>
+
+        <div class="phase-indicator" id="phaseIndicator">PHASE 1</div>
+
+        <div class="overlay" id="mainMenu">
+            <h1>💀 DEMO LICHDOM 🏰</h1>
+            <div class="subtitle">Command the Undead. Demolish the Modern World.</div>
+            <div class="instructions">
+                <div class="instruction"><span class="key">🧙‍♂️</span>You are the Necromancer</div>
+                <div class="instruction"><span class="key">💀</span>Summon Skeleton Army</div>
+                <div class="instruction"><span class="key">🏰</span>Destroy All Buildings</div>
+            </div>
+            <p>You are a necromancer demolition contractor in a modern world. Old buildings must fall. Your skeletons do the work. Use WASD to move, CLICK to cast skull spells, S to summon skeletons.</p>
+            <button class="btn btn-start" onclick="game.start()">⚔️ START DEMOLITION</button>
+            <button class="btn btn-menu" onclick="game.showHowToPlay()">📖 How to Play</button>
+            <a href="guide.html" class="btn btn-menu" style="display: inline-block; margin-top: 10px; text-decoration: none; text-align: center; width: auto; padding: 10px 20px;">📖 Game Guide</a>
+        </div>
+
+        <div class="overlay hidden" id="pauseMenu">
+            <h1>⏸️ PAUSED</h1>
+            <button class="btn btn-start" onclick="game.resume()">▶️ Resume</button>
+            <button class="btn btn-menu" onclick="game.restart()">🔄 Restart</button>
+            <button class="btn btn-menu" onclick="game.toMenu()">📋 Main Menu</button>
+        </div>
+
+        <div class="overlay hidden" id="upgradeMenu">
+            <h1>⭐ LEVEL UP!</h1>
+            <p>Choose your power: <span class="hint">(or press 1, 2, 3)</span></p>
+            <div class="upgrades-grid" id="upgradeOptions"></div>
+        </div>
+
+        <div class="overlay hidden" id="howToPlayMenu">
+            <h1>📖 HOW TO PLAY</h1>
+            <div class="how-to-grid">
+                <div class="how-to-item"><span class="how-icon">🧙‍♂️</span><strong>You are a Necromancer demolition contractor</strong></div>
+                <div class="how-to-item"><span class="how-icon">🏰</span><strong>Destroy 3 buildings to win:</strong> Church, Factory, Skyscraper</div>
+                <div class="how-to-item"><span class="how-icon">WASD</span>Move your necromancer</div>
+                <div class="how-to-item"><span class="how-icon">🖱️</span>Click to cast a skull spell (10 mana)</div>
+                <div class="how-to-item"><span class="how-icon">S</span>Summon a skeleton (25 mana)</div>
+                <div class="how-to-item"><span class="how-icon">Space</span>Blink teleport (after Spectral Dash upgrade)</div>
+                <div class="how-to-item"><span class="how-icon">⭐</span>Kill enemies and damage buildings to earn XP and level up</div>
+                <div class="how-to-item"><span class="how-icon">🧱</span>Dodge falling debris in later phases!</div>
+                <div class="how-to-item"><span class="how-icon">💀</span>Kill enemies fast for combo multiplier bonuses!</div>
+            </div>
+            <button class="btn btn-start" onclick="document.getElementById('howToPlayMenu').classList.add('hidden')">Got it!</button>
+        </div>
+
+        <div class="overlay hidden" id="winScreen">
+            <h1>🏆 VICTORY!</h1>
+            <div class="subtitle">The city lies in ruins. You are the ultimate demolition lich.</div>
+            <div class="end-stats">
+                <div class="end-stat"><span class="end-label">Score</span><span class="end-value" id="finalScore">0</span></div>
+                <div class="end-stat"><span class="end-label">Level</span><span class="end-value" id="finalLevel">1</span></div>
+                <div class="end-stat"><span class="end-label">Time</span><span class="end-value" id="finalTime">0m 0s</span></div>
+                <div class="end-stat"><span class="end-label">Best Combo</span><span class="end-value" id="finalCombo">x0</span></div>
+                <div class="end-stat"><span class="end-label">High Score</span><span class="end-value" id="finalHighScore">0</span></div>
+            </div>
+            <button class="btn btn-start" onclick="game.restart()">🔄 Play Again</button>
+            <button class="btn btn-menu" onclick="window.location.href='/games/index.html'">🏠 All Games</button>
+        </div>
+
+        <div class="overlay hidden" id="loseScreen">
+            <h1>💀 DEFEATED</h1>
+            <div class="subtitle">Your necromantic power was not enough...</div>
+            <div class="end-stats">
+                <div class="end-stat"><span class="end-label">Score</span><span class="end-value" id="deathScore">0</span></div>
+                <div class="end-stat"><span class="end-label">Buildings</span><span class="end-value" id="buildingsDestroyed">0</span>/3</div>
+                <div class="end-stat"><span class="end-label">High Score</span><span class="end-value" id="deathHighScore">0</span></div>
+            </div>
+            <button class="btn btn-start" onclick="game.restart()">🔄 Try Again</button>
+            <button class="btn btn-menu" onclick="game.toMenu()">📋 Main Menu</button>
+        </div>
+    </div>
+
+    <!-- Credits Section -->
+    <section class="TEMPLATE-4weird-credits-section" id="TEMPLATE-4weird-credits">
+        <div class="TEMPLATE-4weird-credits-container">
+            <h2 class="TEMPLATE-4weird-credits-title">Credits</h2>
+            <div class="TEMPLATE-4weird-credits-grid" id="TEMPLATE-4weird-credits-grid">
+                <div class="TEMPLATE-4weird-credit-card TEMPLATE-4weird-primary">
+                    <div class="TEMPLATE-4weird-credit-avatar">🧙‍♂️</div>
+                    <h3 class="TEMPLATE-4weird-credit-name">MattyJacks</h3>
+                    <p class="TEMPLATE-4weird-credit-role">Game Developer &amp; Designer</p>
+                    <p class="TEMPLATE-4weird-credit-links"><a href="https://mattyjacks.com" target="_blank" rel="noopener">mattyjacks.com</a></p>
+                </div>
+                <div class="TEMPLATE-4weird-credit-card">
+                    <div class="TEMPLATE-4weird-credit-avatar">🎮</div>
+                    <h3 class="TEMPLATE-4weird-credit-name">4weird Games</h3>
+                    <p class="TEMPLATE-4weird-credit-role">Publisher</p>
+                    <p class="TEMPLATE-4weird-credit-links"><a href="https://github.com/mattyjacks/4weird" target="_blank" rel="noopener">GitHub</a></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Maker Bio Section -->
+    <section class="TEMPLATE-4weird-bio-section" id="TEMPLATE-4weird-bio">
+        <div class="TEMPLATE-4weird-bio-container">
+            <h2 class="TEMPLATE-4weird-bio-title">About the Creator</h2>
+            <div class="TEMPLATE-4weird-bio-content">
+                <p>Founder of 4weird Games and creator of Demo Lichdom. I specialize in creating quirky browser games that blend unconventional concepts with polished gameplay. As a necromancer demolition contractor in this game, you embody the weird spirit that drives all 4weird creations - unexpected combinations that just work.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- More Games -->
+    <section class="TEMPLATE-4weird-more-games">
+        <div class="TEMPLATE-4weird-more-games-container">
+            <h2>More 4weird Games</h2>
+            <a href="/games/index.html" class="btn btn-secondary">
+                <span class="btn-emoji">🎯</span> Browse All Games
+            </a>
+        </div>
+    </section>
+
+    <div id="TEMPLATE-4weird-footer-placeholder"></div>
+
+    <script src="../../../components.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

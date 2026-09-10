@@ -1,0 +1,55 @@
+{
+    "title": "Madi AI: Discover America",
+    "slug": "discoveramerica",
+    "description": "Sail with Madi AI from the English Channel to the New World. Gather scattered data fragments at each port and organize them correctly to chart the next leg of the voyage.",
+    "genre": "Adventure",
+    "tags": ["HTML5", "Adventure", "Puzzle", "Educational"],
+    "maker": {
+        "name": "MattyJacks",
+        "bio": "Founder of 4weird Games. Madi AI: Discover America combines my love of exploration history with modern AI themes. The Carmen Sandiego-style gameplay teaches sorting and categorization through an engaging narrative. I create games that surprise players with depth beneath accessible surfaces - education disguised as entertainment.",
+        "url": "https://mattyjacks.com",
+        "urlLabel": "mattyjacks.com"
+    },
+    "credits": [
+        {
+            "name": "MattyJacks",
+            "role": "Game Developer & Designer",
+            "avatar": "🧭",
+            "primary": true,
+            "url": "https://mattyjacks.com",
+            "urlLabel": "Website"
+        },
+        {
+            "name": "4weird Games",
+            "role": "Publisher",
+            "avatar": "🎮",
+            "primary": false,
+            "url": "https://github.com/mattyjacks/4weird",
+            "urlLabel": "GitHub"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "Mouse/Touch": "Tap fragments and bins",
+            "Click": "Select fragment, then select bin",
+            "Map": "Tap glowing port to gather data"
+        },
+        "touch": true,
+        "mouse": true
+    },
+    "instructions": "Join Madi AI aboard a wooden ship leaving the English Channel. At each port, gather scattered data fragments and organize them into the correct categories to chart your course. Sort everything correctly to unlock the next leg of your voyage to the New World.",
+    "technical": {
+        "canvasSize": {"width": 800, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [],
+        "local": ["game.js", "game.css", "game.json"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2025-03-01",
+        "license": "MIT"
+    }
+}

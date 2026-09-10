@@ -1,0 +1,523 @@
+/* ==========================================================================
+   4WEIRD VIBECODEWORKER // WELCOME HUB, SIMPLE MODE & BROWSER FIXES
+   ========================================================================== */
+
+/* Status bar consolidation & overflow fixes */
+.status-bar {
+  flex-wrap: nowrap;
+  overflow: hidden;
+  gap: 6px;
+  padding: 0 10px;
+}
+
+.status-bar .bar-left,
+.status-bar .bar-center,
+.status-bar .bar-right {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 6px;
+}
+
+.hub-highlight-btn {
+  background: rgba(0, 242, 254, 0.15) !important;
+  border-color: var(--neon-cyan) !important;
+  color: var(--neon-cyan) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.5px;
+}
+
+.hub-highlight-btn:hover {
+  background: var(--neon-cyan) !important;
+  color: #000 !important;
+  box-shadow: 0 0 12px var(--neon-cyan) !important;
+}
+
+/* App wrapper when Hub is active */
+.main-layout.hub-active {
+  display: none !important;
+}
+
+/* ==========================================================================
+   WELCOME HUB WORKSPACE STYLING
+   ========================================================================== */
+.hub-workspace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 18px 24px;
+  background: rgba(10, 13, 20, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.hub-hero {
+  text-align: center;
+  margin-bottom: 22px;
+  position: relative;
+}
+
+.hub-hero h2 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  color: var(--neon-cyan);
+  text-shadow: var(--neon-cyan-glow);
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.hub-hero p {
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  font-size: 12px;
+  max-width: 650px;
+  margin: 0 auto;
+}
+
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.hub-card {
+  background: rgba(18, 24, 36, 0.7);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  backdrop-filter: blur(10px);
+}
+
+.hub-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 16px rgba(0, 242, 254, 0.25);
+  background: rgba(18, 24, 36, 0.95);
+}
+
+.hub-card .card-icon {
+  font-size: 32px;
+  filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.4));
+}
+
+.hub-card h3 {
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: #fff;
+}
+
+.hub-card p {
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.45;
+  flex: 1;
+}
+
+.hub-card-btn {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 4px;
+  background: transparent;
+  border: 1px solid var(--neon-cyan);
+  color: var(--neon-cyan);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: bold;
+  pointer-events: none;
+  transition: all 0.2s;
+  box-shadow: inset 0 0 6px rgba(0, 242, 254, 0.15);
+}
+
+.hub-card-btn.secondary {
+  border-color: var(--neon-purple);
+  color: var(--neon-purple);
+}
+
+.hub-card:hover .hub-card-btn {
+  background: var(--neon-cyan);
+  color: #000;
+  box-shadow: 0 0 12px var(--neon-cyan);
+}
+
+.hub-card:hover .hub-card-btn.secondary {
+  background: var(--neon-purple);
+  color: #fff;
+  box-shadow: 0 0 12px var(--neon-purple);
+}
+
+/* Hub Modals */
+.hub-panel-modal {
+  background: rgba(14, 18, 28, 0.98);
+  border: 1px solid var(--neon-cyan);
+  box-shadow: 0 0 30px rgba(0, 242, 254, 0.25);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 10px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.hub-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+}
+
+.hub-modal-header h3 {
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--neon-cyan);
+  letter-spacing: 0.5px;
+}
+
+.hub-modal-sub {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.modal-games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.website-goals-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.website-goal-btn.active {
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+  background: rgba(0, 242, 254, 0.15);
+}
+
+.fleet-tiers-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.fleet-tier-card {
+  background: #01050a;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fleet-tier-card.active {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+}
+
+.fleet-price {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--neon-green);
+  margin: 4px 0;
+}
+
+.fleet-status-bar {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  color: var(--neon-purple);
+  border: 1px solid rgba(157, 78, 221, 0.3);
+}
+
+.pitch-layout {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 16px;
+}
+
+.pitch-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pitch-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.pitch-desc-box {
+  background: #01050a;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.braid-code {
+  background: #01050a;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--neon-cyan);
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+/* ==========================================================================
+   SIMPLE MODE (CLEAN BROWSER VIEWPORT & ZERO CLUTTER)
+   ========================================================================== */
+.quick-run-card {
+  display: none;
+}
+
+.simple-mode .config-panel,
+.simple-mode .stats-panel,
+.simple-mode .terminal-panel {
+  display: none !important;
+}
+
+.simple-mode .center-stage {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+}
+
+.simple-mode .viewport-panel {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+  border: 1px solid var(--neon-cyan);
+  box-shadow: 0 0 20px rgba(0, 242, 254, 0.15);
+}
+
+/* A focused default workspace. Detailed controls stay available in Options. */
+.simple-mode .quick-run-card {
+  display: grid;
+  grid-template-columns: minmax(175px, .8fr) minmax(280px, 1.45fr) auto;
+  align-items: end;
+  gap: 16px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  background: linear-gradient(120deg, rgba(0, 242, 254, .12), rgba(124, 58, 237, .11));
+  border: 1px solid rgba(148, 163, 184, .3);
+  border-radius: 12px;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, .16);
+}
+
+.quick-run-intro { display: flex; flex-direction: column; gap: 3px; }
+.quick-run-intro strong { font-size: 16px; letter-spacing: -.2px; color: #f8fafc; }
+.quick-run-intro span:last-child { color: #b5c1d2; font-size: 11px; line-height: 1.4; }
+.eyebrow { color: var(--neon-cyan); font-family: var(--font-mono); font-size: 9px; font-weight: 800; letter-spacing: 1.1px; }
+.quick-run-fields { display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px; }
+.quick-run-fields label { display: flex; flex-direction: column; gap: 5px; color: #aebdce; font-family: var(--font-mono); font-size: 9px; font-weight: 700; letter-spacing: .45px; }
+.quick-run-fields input { width: 100%; min-width: 0; padding: 9px 10px; color: #f8fafc; background: rgba(3, 8, 18, .7); border: 1px solid rgba(148, 163, 184, .32); border-radius: 7px; outline: none; font: 11px var(--font-mono); }
+.quick-run-fields input:focus { border-color: var(--neon-cyan); box-shadow: 0 0 0 3px rgba(0, 242, 254, .12); }
+.quick-run-actions { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.primary-action, .quiet-action { border-radius: 7px; padding: 9px 12px; cursor: pointer; font: 700 10px var(--font-mono); transition: transform .15s, background .15s, border-color .15s; }
+.primary-action { color: #05121a; border: 1px solid var(--neon-cyan); background: var(--neon-cyan); box-shadow: 0 6px 16px rgba(0, 242, 254, .2); }
+.primary-action:hover { transform: translateY(-1px); background: #77f8ff; }
+.quiet-action { color: #dbe7f5; border: 1px solid rgba(148, 163, 184, .4); background: rgba(15, 23, 42, .6); }
+.quiet-action:hover:not(:disabled) { border-color: var(--neon-cyan); color: var(--neon-cyan); }
+.quiet-action:disabled { opacity: .42; cursor: not-allowed; }
+
+/* Options opens the existing full orchestrator without throwing away any tools. */
+.simple-mode.options-open .config-panel {
+  display: flex !important;
+  position: fixed;
+  z-index: 9000;
+  left: 18px;
+  top: 54px;
+  bottom: 18px;
+  width: min(360px, calc(100vw - 36px));
+  max-width: none;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .62), 0 0 0 1px rgba(0, 242, 254, .18);
+}
+
+.simple-mode.options-open .stats-panel {
+  display: flex !important;
+  position: fixed;
+  z-index: 9000;
+  right: 18px;
+  top: 54px;
+  bottom: 18px;
+  width: min(286px, calc(100vw - 36px));
+  max-width: none;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .62), 0 0 0 1px rgba(0, 242, 254, .18);
+}
+
+.simple-mode.options-open .terminal-panel {
+  display: flex !important;
+  position: fixed;
+  z-index: 8999;
+  left: 426px;
+  right: 366px;
+  bottom: 18px;
+  height: 210px;
+  min-width: 280px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .58);
+}
+
+/* ========================================================================
+   MISSION CONTROL — ADVANCED MODE WITHOUT THE WALL OF CONTROLS
+   The default remains a calm game stage. Opening Mission Control exposes
+   three clearly named work surfaces, not a full dashboard of competing data.
+   ======================================================================== */
+.simple-mode.options-open::after {
+  content: "MISSION CONTROL  ·  Setup on the left  ·  Evidence on the right  ·  Activity below";
+  position: fixed;
+  z-index: 8998;
+  top: 62px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 7px 12px;
+  border: 1px solid rgba(0, 255, 102, .25);
+  border-radius: 999px;
+  background: rgba(5, 14, 8, .9);
+  color: var(--neon-cyan);
+  font: 700 9px var(--font-mono);
+  letter-spacing: .6px;
+  pointer-events: none;
+}
+
+.simple-mode.options-open .config-panel,
+.simple-mode.options-open .stats-panel,
+.simple-mode.options-open .terminal-panel {
+  border-color: rgba(0, 255, 102, .30);
+  background: rgba(5, 14, 8, .97);
+  backdrop-filter: blur(22px);
+}
+
+.simple-mode.options-open .config-panel::before,
+.simple-mode.options-open .stats-panel::before {
+  display: block;
+  padding: 14px 14px 0;
+  color: #effff4;
+  font: 800 14px var(--font-display);
+  letter-spacing: -.2px;
+}
+.simple-mode.options-open .config-panel::before { content: "Mission setup"; }
+.simple-mode.options-open .stats-panel::before { content: "Evidence"; }
+
+.simple-mode.options-open .config-panel > .panel-block:first-of-type {
+  border-color: rgba(0, 255, 102, .34);
+  background: rgba(0, 255, 102, .055);
+}
+.simple-mode.options-open .config-panel > .panel-block:nth-of-type(2) {
+  border-color: rgba(0, 255, 204, .20);
+}
+.simple-mode.options-open .config-panel > .panel-block:nth-of-type(2)::before {
+  content: "Playtest controls";
+  color: var(--neon-cyan);
+  font: 700 9px var(--font-mono);
+  letter-spacing: .9px;
+}
+.simple-mode.options-open .config-panel > .panel-block:nth-of-type(n+3) {
+  opacity: .84;
+}
+.simple-mode.options-open .config-panel > .panel-block:nth-of-type(n+3):hover { opacity: 1; }
+
+.simple-mode.options-open .stats-panel h3 { margin-top: 10px; }
+.simple-mode.options-open .stat-grid { grid-template-columns: repeat(3, 1fr); }
+.simple-mode.options-open .stat-grid span {
+  padding: 7px 4px;
+  border: 1px solid rgba(0, 255, 102, .10);
+  border-radius: 6px;
+  text-align: center;
+}
+.simple-mode.options-open .stats-panel canvas { width: 100%; height: 44px; opacity: .72; }
+.simple-mode.options-open .terminal-panel::before {
+  content: "Activity  ·  Ask the agent, inspect a step, or use /help";
+  color: var(--text-secondary);
+  font: 700 9px var(--font-mono);
+  letter-spacing: .5px;
+}
+.simple-mode.options-open .terminal-log { height: 110px; }
+
+.featured-game-card {
+  position: relative;
+  border-color: rgba(0, 255, 102, .52) !important;
+  background: linear-gradient(145deg, rgba(0, 255, 102, .12), rgba(7, 15, 10, .86)) !important;
+  box-shadow: 0 14px 34px rgba(0, 255, 102, .12) !important;
+}
+.card-kicker { color: var(--hub-accent); font: 800 9px var(--font-mono); letter-spacing: 1px; }
+.featured-game-card .card-icon { font-family: Georgia, serif; font-size: 42px; color: var(--hub-accent); }
+.mission-copy { color: var(--hub-text); line-height: 1.55; }
+.mission-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.mission-steps span { padding: 10px; border: 1px solid var(--hub-border); border-radius: 8px; color: var(--hub-text-dim); font-size: 11px; }
+.mission-steps b { display: block; margin-bottom: 5px; color: var(--hub-accent); font: 800 12px var(--font-mono); }
+.mission-label { display: flex; flex-direction: column; gap: 6px; color: var(--hub-text-dim); font: 800 9px var(--font-mono); letter-spacing: .7px; }
+.mission-label textarea { width: 100%; min-height: 78px; }
+.mission-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.mission-note { color: var(--hub-text-dim); font-size: 10px; line-height: 1.45; }
+
+@media (max-width: 900px) {
+  .simple-mode .quick-run-card { grid-template-columns: 1fr; gap: 11px; }
+  .quick-run-fields { grid-template-columns: 1fr; }
+  .simple-mode.options-open .stats-panel,
+  .simple-mode.options-open .terminal-panel { display: none !important; }
+  .simple-mode.options-open::after { content: "MISSION CONTROL"; }
+  .mission-steps { grid-template-columns: 1fr; }
+}
+
+/* Clean Iframe & Viewport Styling */
+.viewport-body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+  border-radius: 0 0 6px 6px;
+}
+
+.iframe-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+#game-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #000;
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}

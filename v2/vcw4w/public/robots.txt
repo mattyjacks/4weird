@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /ai/
+Disallow: /temp/
+Disallow: /account.html
+
+Sitemap: https://4weird.com/sitemap.xml

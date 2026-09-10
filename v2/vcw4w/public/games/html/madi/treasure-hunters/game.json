@@ -1,0 +1,52 @@
+{
+    "title": "Treasure Hunters",
+    "slug": "treasure-hunters",
+    "description": "Mine for pipeline value, meetings, revenue, and customers! Swing the claw grapple to pull in the treasures hidden in your business.",
+    "genre": "Timing / Claw Grabber",
+    "tags": ["HTML5", "Action", "Three.js", "Arcade"],
+    "maker": {
+        "name": "Madi AI Creative Team",
+        "bio": "Building the future of autonomous revenue engines.",
+        "url": "https://madi.ai",
+        "urlLabel": "Website"
+    },
+    "credits": [
+        {
+            "name": "Madi AI Team",
+            "role": "Game Creators",
+            "avatar": "💎",
+            "primary": true,
+            "url": "https://madi.ai",
+            "urlLabel": "Website"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "Space": "Drop / Retrieve Claw",
+            "P / Esc": "Pause"
+        },
+        "touch": true,
+        "mouse": true
+    },
+    "instructions": "The claw swings back and forth. Press Space or Click to release the claw downward. Grab Pipeline, Meetings, Revenue, and Customer items to secure points!",
+    "technical": {
+        "canvasSize": {"width": 800, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [
+            {
+                "type": "script",
+                "url": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+                "description": "Three.js Library"
+            }
+        ],
+        "local": ["game.js", "game.css"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-16",
+        "license": "Private"
+    }
+}

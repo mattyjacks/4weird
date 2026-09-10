@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AssassinAnimals - 4weird Games</title>
+    <meta name="description" content="Select one of 9 unique animal operatives, infiltrate procedurally generated floors of a high-security facility, collect DNA splices, and assassinate guards in this stealth rogue-like.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥷</text></svg>">
+    <link rel="stylesheet" href="../../../styles.css">
+    <link rel="stylesheet" href="game.css">
+</head>
+<body class="TEMPLATE-4weird-game-page">
+    <canvas id="TEMPLATE-4weird-starfield"></canvas>
+    <div id="TEMPLATE-4weird-nav-placeholder"></div>
+
+    <div class="game-wrapper">
+        <!-- Main Game Screen (HUD + Viewport) -->
+        <div class="game-main hidden" id="gameMain">
+            <!-- HUD -->
+            <div class="hud">
+                <div class="hud-left">
+                    <div class="hud-stat health-stat">
+                        <span class="hud-label">❤️ HP</span>
+                        <div class="hud-bar-container">
+                            <div class="hud-bar health-bar" id="healthBar" style="width: 100%;"></div>
+                        </div>
+                        <span class="hud-value" id="hudHealthText">100/100</span>
+                    </div>
+                    <div class="hud-stat ability-stat">
+                        <span class="hud-label" id="abilityLabel">⚡ Ability</span>
+                        <div class="ability-cooldown-container">
+                            <div class="ability-cooldown-fill" id="abilityCooldownFill" style="width: 0%;"></div>
+                            <span class="ability-status-text" id="abilityStatusText">READY</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="hud-center">
+                    <div class="noise-meter-container" title="Movement Noise Level">
+                        <span class="hud-label">🔊 Noise</span>
+                        <div class="noise-waves" id="noiseWaves">
+                            <div class="wave"></div>
+                            <div class="wave"></div>
+                            <div class="wave"></div>
+                        </div>
+                        <span class="hud-value" id="hudNoiseText">SILENT</span>
+                    </div>
+                </div>
+
+                <div class="hud-right">
+                    <div class="hud-stat">
+                        <span class="hud-label">🧬 DNA</span>
+                        <span class="hud-value highlight-cyan" id="hudDNA">0</span>
+                    </div>
+                    <div class="hud-stat">
+                        <span class="hud-label">🔑 Key</span>
+                        <span class="hud-value" id="hudKey">❌</span>
+                    </div>
+                    <div class="hud-stat floor-stat">
+                        <span class="hud-label">🏢 Floor</span>
+                        <span class="hud-value highlight-pink" id="hudFloor">1</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tactical Gadget Inventory & Silent Assassin Rating -->
+            <div class="tactical-subbar">
+                <div class="gadget-bar" id="gadgetBar">
+                    <button class="gadget-slot" id="slotMedkit" title="Press 1: Adrenaline Medkit (+50 HP)">
+                        <span class="slot-key">1</span>
+                        <span class="slot-icon">💉</span>
+                        <span class="slot-name">Medkit</span>
+                        <span class="slot-count" id="countMedkit">1</span>
+                    </button>
+                    <button class="gadget-slot" id="slotTranq" title="Press 2: Tranquilizer Dart (Silent Knockout)">
+                        <span class="slot-key">2</span>
+                        <span class="slot-icon">💤</span>
+                        <span class="slot-name">Tranq Dart</span>
+                        <span class="slot-count" id="countTranq">2</span>
+                    </button>
+                    <button class="gadget-slot" id="slotSmoke" title="Press 3: Smoke Bomb (Blinds Vision Cones)">
+                        <span class="slot-key">3</span>
+                        <span class="slot-icon">💨</span>
+                        <span class="slot-name">Smoke Bomb</span>
+                        <span class="slot-count" id="countSmoke">1</span>
+                    </button>
+                </div>
+                <div class="sa-rating-badge" id="hudSABadge">
+                    <span class="sa-icon">👑</span>
+                    <span class="sa-label">RATING:</span>
+                    <strong class="sa-status highlight-green" id="hudSAText">SILENT ASSASSIN</strong>
+                </div>
+            </div>
+
+            <!-- Viewport Container -->
+            <div class="viewport-container" id="viewportContainer">
+                <canvas id="gameCanvas" width="1000" height="600"></canvas>
+                
+                <!-- On-Screen Context Interaction Prompt -->
+                <div class="context-prompt hidden" id="contextPrompt">
+                    <span class="prompt-badge" id="promptKey">E</span>
+                    <span class="prompt-text" id="promptText">SILENT TAKEDOWN</span>
+                </div>
+
+                <!-- On-Screen Alarm Flash -->
+                <div class="alarm-overlay hidden" id="alarmOverlay">
+                    <div class="alarm-banner">🚨 COMPLEX ALERT 🚨</div>
+                    <div class="alarm-sub">BODY DISCOVERED OR COVER BLOWN! GUARDS RESPONDING</div>
+                </div>
+
+                <!-- Touch Controls (Visible on mobile/touch screens or when toggled) -->
+                <div class="touch-controls-container hidden" id="touchControlsContainer">
+                    <div class="touch-joystick-zone" id="touchJoystickZone">
+                        <div class="joystick-base" id="joystickBase">
+                            <div class="joystick-thumb" id="joystickThumb"></div>
+                        </div>
+                    </div>
+                    <div class="touch-buttons-zone" id="touchButtonsZone">
+                        <button class="touch-btn touch-btn-interact" id="btnTouchInteract" title="Interact / Takedown">🖐️<br><span>Action [E]</span></button>
+                        <button class="touch-btn touch-btn-coin" id="btnTouchCoin" title="Toss Coin">🪙<br><span>Distract</span></button>
+                        <button class="touch-btn touch-btn-ability" id="btnTouchAbility" title="Special Ability">⚡<br><span>Ability</span></button>
+                        <button class="touch-btn touch-btn-attack" id="btnTouchAttack" title="Strike Attack">⚔️<br><span>Strike</span></button>
+                    </div>
+                </div>
+
+                <!-- Floating Ability Hint -->
+                <div class="ability-hint-panel">
+                    <span><strong>Click / Space</strong>: Strike</span>
+                    <span class="separator">|</span>
+                    <span><strong>Right-Click / Q</strong>: Distract Coin</span>
+                    <span class="separator">|</span>
+                    <span><strong>E</strong>: Takedown / Uniform / Hack</span>
+                    <span class="separator">|</span>
+                    <span><strong>G</strong>: Drag Body</span>
+                    <span class="separator">|</span>
+                    <span><strong>SHIFT / F</strong>: Ability</span>
+                    <span class="separator">|</span>
+                    <span><strong>1-3</strong>: Gadgets</span>
+                </div>
+            </div>
+
+            <!-- Action buttons bottom -->
+            <div class="action-row">
+                <button class="btn btn-secondary" id="btnPauseGame">⏸️ Pause</button>
+                <button class="btn btn-secondary" id="btnToggleSound">🔊 Sound: ON</button>
+                <button class="btn btn-secondary" id="btnToggleTouch">📱 Touch Controls</button>
+                <div class="run-stats-brief">
+                    <span>VIP Targets: <strong id="hudGuardsLeft" class="highlight-pink">0</strong></span>
+                    <span class="separator">|</span>
+                    <span>Disguise: <strong id="hudDisguiseText">NONE</strong></span>
+                    <span class="separator">|</span>
+                    <span>Score: <strong id="hudScoreText" class="highlight-cyan">0</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1. MAIN MENU SCREEN -->
+        <div class="screen-overlay" id="mainMenuScreen">
+            <div class="menu-container">
+                <div class="neon-title-container">
+                    <span class="tech-prefix">PROTOTYPE PROJECT: HITMAN-ANIMALS</span>
+                    <h1 class="logo-title">ASSASSIN ANIMALS</h1>
+                    <span class="logo-sub">TACTICAL INFILTRATION SYSTEM</span>
+                </div>
+
+                <div class="menu-buttons">
+                    <button class="btn btn-menu btn-pulse" id="btnGoToCharSelect">⚡ INITIATE CONTRACT</button>
+                    <button class="btn btn-menu btn-secondary" id="btnOpenGuide">📚 TACTICAL FIELD MANUAL</button>
+                    <button class="btn btn-menu btn-secondary" id="btnMenuCredits" onclick="document.getElementById('TEMPLATE-4weird-credits').scrollIntoView({behavior: 'smooth'})">👥 CREDITS</button>
+                </div>
+
+                <div class="menu-footer-tag">
+                    <span>CLASSIFIED INTERFACE SECURE</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. CHARACTER SELECT SCREEN -->
+        <div class="screen-overlay hidden" id="charSelectScreen">
+            <div class="char-select-container">
+                <div class="char-select-header">
+                    <h2>SELECT YOUR INFILTRATOR</h2>
+                    <p>Each operative handles disguises, stealth weight, and distraction ranges uniquely.</p>
+                </div>
+
+                <!-- Horizontal/Grid Roster of 9 Animals -->
+                <div class="char-roster-grid" id="charRosterGrid">
+                    <!-- Cards populated by JS -->
+                </div>
+
+                <!-- Detailed View of Selected Animal -->
+                <div class="selected-char-details" id="selectedCharDetails">
+                    <div class="details-left">
+                        <div class="details-emoji" id="detailsEmoji">🐱</div>
+                        <h3 id="detailsName">Cyber-Panther</h3>
+                        <p class="details-role" id="detailsRole">STEALTH SPECIALIST</p>
+                        <p class="details-desc" id="detailsDesc">Infiltrates target facilities using shadow concealment and lethal silent strikes.</p>
+                    </div>
+                    <div class="details-mid">
+                        <div class="stat-bar-row">
+                            <span class="stat-name">HP</span>
+                            <div class="stat-bar-bg"><div class="stat-bar-fill" id="statBarHP" style="width: 70%;"></div></div>
+                        </div>
+                        <div class="stat-bar-row">
+                            <span class="stat-name">SPEED</span>
+                            <div class="stat-bar-bg"><div class="stat-bar-fill" id="statBarSpeed" style="width: 85%;"></div></div>
+                        </div>
+                        <div class="stat-bar-row">
+                            <span class="stat-name">STEALTH</span>
+                            <div class="stat-bar-bg"><div class="stat-bar-fill" id="statBarStealth" style="width: 100%;"></div></div>
+                        </div>
+                        <div class="stat-bar-row">
+                            <span class="stat-name">NOISE</span>
+                            <div class="stat-bar-bg"><div class="stat-bar-fill" id="statBarNoise" style="width: 20%;"></div></div>
+                        </div>
+                    </div>
+                    <div class="details-right">
+                        <div class="ability-block">
+                            <h4>⚔️ Primary Attack</h4>
+                            <p id="detailsPrimary">Silent Razor Claws (Insta-kill from behind)</p>
+                        </div>
+                        <div class="ability-block">
+                            <h4>💥 Special Ability (SHIFT / F)</h4>
+                            <p id="detailsSpecial"><strong>Pounce</strong>: Leaps forward to instantly execute targets silently.</p>
+                        </div>
+                        <div class="ability-block">
+                            <h4>🧬 Passive Trait</h4>
+                            <p id="detailsPassive">Invisible while stationary in bushes, tall grass, or shadows.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="char-select-footer">
+                    <button class="btn btn-secondary" id="btnBackToMenu">← Return to Menu</button>
+                    <button class="btn btn-start" id="btnLaunchRun">🚀 LAUNCH MISSION</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. OPERATIVES FIELD GUIDE OVERLAY -->
+        <div class="screen-overlay hidden" id="guideOverlay">
+            <div class="guide-modal">
+                <div class="guide-header">
+                    <h2>📚 INFILTRATION FIELD MANUAL</h2>
+                    <button class="close-btn" id="btnCloseGuide">&times;</button>
+                </div>
+                
+                <div class="guide-tabs">
+                    <button class="guide-tab active" data-guide-tab="agents">Operative Roster (9)</button>
+                    <button class="guide-tab" data-guide-tab="rules">Hitman Protocol & Systems</button>
+                    <button class="guide-tab" data-guide-tab="mutations">DNA Mutation Guide</button>
+                </div>
+
+                <div class="guide-body">
+                    <!-- Tab 1: Operatives List -->
+                    <div class="guide-pane active" id="guide-pane-agents">
+                        <div class="guide-agents-list" id="guideAgentsList">
+                            <!-- Populated dynamically to keep HTML short and sweet -->
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: Mission Parameters -->
+                    <div class="guide-pane" id="guide-pane-rules">
+                        <div class="guide-rules-content">
+                            <h3>🕶️ The Silent Assassin Protocol</h3>
+                            <ul>
+                                <li><strong>Target Assassinations:</strong> Each floor contains red-haloed VIP Target Scientists. Eliminate them or hack security terminals to retrieve the exit keycard.</li>
+                                <li><strong>Silent Takedowns:</strong> Sneak up behind any guard and press <strong>E</strong> or <strong>Space</strong> to execute a silent takedown. Non-lethal pacifications do not break your Silent Assassin rating!</li>
+                                <li><strong>Disguise Systems:</strong> Press <strong>E</strong> near neutralized guards to steal their uniforms. Regular guards will ignore you unless you sprint, attack, or get too close to white-dot Enforcers.</li>
+                                <li><strong>Hiding Bodies:</strong> Guards notice bodies on sight and raise alarms. Stand near a body, press <strong>G</strong> to drag it, and dump it into a metal dumpster or locker.</li>
+                                <li><strong>Distractions:</strong> Press <strong>Right-Click</strong> or <strong>Q</strong> to toss a coin. Guards investigate the sound, leaving vulnerable gaps in patrols.</li>
+                                <li><strong>Stealth Cover & Foliage:</strong> Stand inside cyber-plants, bushes, or behind server racks to enter Concealed state (reduces detection range by 80%).</li>
+                                <li><strong>Tactical Gadgets:</strong> Collect and use emergency equipment: [1] Adrenaline Medkit (+50 HP), [2] Tranq Dart (silent ranged sleep), [3] Smoke Bomb (breaks vision lines).</li>
+                                <li><strong>Silent Assassin Rating:</strong> Maintain your rating by neutralizing only required targets or pacifying silently, hiding all bodies, and preventing full alarms for massive bonus points!</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Tab 3: Mutation Guide -->
+                    <div class="guide-pane" id="guide-pane-mutations">
+                        <div class="guide-rules-content">
+                            <h3>🧪 DNA Splice Mutators</h3>
+                            <p>Collect DNA canisters (🧬) drops from neutralized guards or search boxes. Spend them at elevator nodes to modify your genome:</p>
+                            <div class="mutations-guide-grid">
+                                <div class="mut-guide-card">
+                                    <span class="mut-icon">🏃‍♂️</span>
+                                    <h4>Adrenaline Injector</h4>
+                                    <p>Increases base movement speed by +10% per level.</p>
+                                </div>
+                                <div class="mut-guide-card">
+                                    <span class="mut-icon">🛡️</span>
+                                    <h4>Chitin Plating</h4>
+                                    <p>Mutates skin/scales. Increases max HP by +25 per upgrade.</p>
+                                </div>
+                                <div class="mut-guide-card">
+                                    <span class="mut-icon">🔪</span>
+                                    <h4>Carbon Claws</h4>
+                                    <p>Increases melee and ability damage output by +20%.</p>
+                                </div>
+                                <div class="mut-guide-card">
+                                    <span class="mut-icon">👁️</span>
+                                    <h4>Thermal Retinas</h4>
+                                    <p>Expands your sight range, letting you see cameras and guards further away.</p>
+                                </div>
+                                <div class="mut-guide-card">
+                                    <span class="mut-icon">🤫</span>
+                                    <h4>Silencer Pads</h4>
+                                    <p>Reduces the sound output generated by sprinting or regular combat.</p>
+                                </div>
+                                <div class="mut-guide-card">
+                                    <span class="mut-icon">⏳</span>
+                                    <h4>Synaptic Coolers</h4>
+                                    <p>Reduces the recharge timer of your signature active ability by 20%.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="guide-footer">
+                    <button class="btn btn-primary" id="btnResumeFromGuide">Acknowledge Intel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. ELEVATOR SHOP UPGRADE OVERLAY -->
+        <div class="screen-overlay hidden" id="elevatorShopOverlay">
+            <div class="lab-modal">
+                <div class="lab-header">
+                    <h2>🧬 ELEVATOR NODE: GENETIC BIO-LAB</h2>
+                    <p>Splice gathered DNA compounds into your animal's genetic code before descending.</p>
+                </div>
+                
+                <div class="lab-content">
+                    <div class="lab-resources">
+                        <div class="resource-pill">🧬 Collected DNA: <span class="highlight-cyan" id="shopDNACount">0</span></div>
+                        <div class="resource-pill">🏢 Current Depth: Floor <span class="highlight-pink" id="shopFloorIndex">1</span></div>
+                    </div>
+
+                    <div class="shop-upgrades-list" id="shopUpgradesList">
+                        <!-- Populated dynamically with 3 random upgrades for rogue-like flavor -->
+                    </div>
+                </div>
+
+                <div class="lab-footer">
+                    <button class="btn btn-start" id="btnDescendNextFloor">🔽 DESCEND TO NEXT COMPLEX</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. GAME OVER SCREEN -->
+        <div class="screen-overlay hidden" id="gameOverScreen">
+            <div class="game-over-container">
+                <div class="logo-big red-neon">⚠️ AGENT ELIMINATED</div>
+                <div class="tagline">Operative vital signs flatlined. Run terminated.</div>
+                
+                <div class="final-stats">
+                    <div class="stat-row">
+                        <span>Operative Employed</span>
+                        <span class="highlight" id="finalAgent">None</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Highest Complex Depth</span>
+                        <span class="highlight" id="finalFloor">Floor 1</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Guards Liquidated</span>
+                        <span class="highlight" id="finalKills">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>DNA Extracted</span>
+                        <span class="highlight" id="finalDNA">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Net Infiltration Score</span>
+                        <span class="highlight-pink" id="finalScore">0</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-start" id="btnRestartRun">🔄 Clone New Operative</button>
+                <button class="btn btn-secondary" id="btnGameOverToMenu">🏠 Return to Main Menu</button>
+            </div>
+        </div>
+
+        <!-- 6. PAUSE SCREEN -->
+        <div class="screen-overlay hidden" id="pauseScreen">
+            <div class="pause-container">
+                <div class="logo-big cyan-neon">⏸️ OPERATIONS SUSPENDED</div>
+                <p>Simulation paused. Security grids frozen.</p>
+                <button class="btn btn-start" id="btnResumeMission">▶️ Resume Operation</button>
+                <button class="btn btn-secondary" id="btnRestartFromPause">🔄 Restart Run</button>
+                <button class="btn btn-secondary" id="btnPauseToMenu">🏠 Abandon Run</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Credits Section -->
+    <section class="TEMPLATE-4weird-credits-section" id="TEMPLATE-4weird-credits">
+        <div class="TEMPLATE-4weird-credits-container">
+            <h2 class="TEMPLATE-4weird-credits-title">Credits & Personnel</h2>
+            <div class="TEMPLATE-4weird-credits-grid" id="TEMPLATE-4weird-credits-grid">
+                <!-- Loaded via JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Maker Bio Section -->
+    <section class="TEMPLATE-4weird-bio-section" id="TEMPLATE-4weird-bio">
+        <div class="TEMPLATE-4weird-bio-container">
+            <h2 class="TEMPLATE-4weird-bio-title">About the Intelligence Agent</h2>
+            <div class="TEMPLATE-4weird-bio-content" id="TEMPLATE-4weird-maker-bio">
+                <!-- Loaded via JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- More Games -->
+    <section class="TEMPLATE-4weird-more-games">
+        <div class="TEMPLATE-4weird-more-games-container">
+            <h2>Access Other Operatives</h2>
+            <a href="/games/index.html" class="btn btn-secondary">
+                <span class="btn-emoji">🎯</span> Main Game Terminal
+            </a>
+        </div>
+    </section>
+
+    <div id="TEMPLATE-4weird-footer-placeholder"></div>
+
+    <script src="../../../components.js"></script>
+    <script src="game.js"></script>
+    <script src="../game-meta.js"></script>
+    <script>
+        // Load game metadata and populate credits
+        (function() {
+            fetch('game.json')
+                .then(r => r.json())
+                .then(data => {
+                    // Security: bio/credits go through FourWeirdMeta
+                    // (textContent + http(s)-only URLs), never innerHTML.
+                    window.FourWeirdMeta.setBio('TEMPLATE-4weird-maker-bio', data.maker && data.maker.bio);
+                    window.FourWeirdMeta.renderCredits('TEMPLATE-4weird-credits-grid', data.credits);
+                })
+                .catch(err => console.log('Metadata load fallback:', err));
+        })();
+    </script>
+</body>
+</html>

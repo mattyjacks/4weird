@@ -1,0 +1,56 @@
+{
+    "title": "Demo Lichdom",
+    "slug": "demolichdom",
+    "description": "Command your skeleton army to demolish buildings as a modern necromancer! Pure HTML5 strategy action with emoji-powered graphics.",
+    "genre": "Strategy",
+    "tags": ["HTML5", "Strategy", "Action", "Emoji"],
+    "maker": {
+        "name": "MattyJacks",
+        "bio": "Founder of 4weird Games and creator of Demo Lichdom. I specialize in creating quirky browser games that blend unconventional concepts with polished gameplay. As a necromancer demolition contractor in this game, you embody the weird spirit that drives all 4weird creations - unexpected combinations that just work.",
+        "url": "https://mattyjacks.com",
+        "urlLabel": "mattyjacks.com"
+    },
+    "credits": [
+        {
+            "name": "MattyJacks",
+            "role": "Game Developer & Designer",
+            "avatar": "🧙‍♂️",
+            "primary": true,
+            "url": "https://mattyjacks.com",
+            "urlLabel": "Website"
+        },
+        {
+            "name": "4weird Games",
+            "role": "Publisher",
+            "avatar": "🎮",
+            "primary": false,
+            "url": "https://github.com/mattyjacks/4weird",
+            "urlLabel": "GitHub"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "WASD / Arrows": "Move necromancer",
+            "Click": "Cast skull spell",
+            "S": "Summon skeleton (-25 Mana)",
+            "P": "Pause game"
+        },
+        "touch": true,
+        "mouse": true
+    },
+    "instructions": "You are a necromancer demolition contractor. Use WASD to move, CLICK to cast skull spells, and press S to summon skeletons (-25 mana each). Command your undead army to destroy all buildings. Level up to unlock powerful upgrades.",
+    "technical": {
+        "canvasSize": {"width": 800, "height": 500},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [],
+        "local": ["game.js", "game.css", "game.json"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2025-01-01",
+        "license": "MIT"
+    }
+}

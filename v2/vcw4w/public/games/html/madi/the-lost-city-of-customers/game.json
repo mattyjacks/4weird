@@ -1,0 +1,48 @@
+{
+    "title": "The Lost City of Customers",
+    "slug": "the-lost-city-of-customers",
+    "description": "Find customers others can't see! Use your 3D locator scanner to trace potential customer regions in the hidden valley.",
+    "genre": "Scanner Hunt",
+    "tags": ["HTML5", "Puzzle", "Three.js", "Relaxing"],
+    "maker": {
+        "name": "Madi AI Creative Team",
+        "bio": "Building the future of autonomous revenue engines.",
+        "url": "https://madi.ai",
+        "urlLabel": "Website"
+    },
+    "credits": [
+        {
+            "name": "Madi AI Team",
+            "role": "Game Creators",
+            "avatar": "🔍",
+            "primary": true,
+            "url": "https://madi.ai",
+            "urlLabel": "Website"
+        }
+    ],
+    "controls": {
+        "mouse": "Move scan crosshair and Click to scan terrain",
+        "touch": "Tap screen to scan terrain"
+    },
+    "instructions": "Locate 5 hidden client databases buried under the valley ground. Tap/Click to run a scanner scan. Green ripples reveal target locations!",
+    "technical": {
+        "canvasSize": {"width": 800, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [
+            {
+                "type": "script",
+                "url": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+                "description": "Three.js Library"
+            }
+        ],
+        "local": ["game.js", "game.css"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-16",
+        "license": "Private"
+    }
+}

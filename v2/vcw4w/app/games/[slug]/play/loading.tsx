@@ -1,0 +1,1 @@
+export default function Loading() { return <main className="flex min-h-screen items-center justify-center bg-black text-white"><p role="status" className="text-sm text-white/70">Loading original game runtime…</p></main>; }

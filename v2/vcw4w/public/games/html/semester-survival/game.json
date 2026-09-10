@@ -1,0 +1,57 @@
+{
+    "title": "Semester Survival",
+    "slug": "semester-survival",
+    "description": "Survive 8 chaotic semesters of lectures, exams, portal downs, and empty wallets to graduate without getting expelled!",
+    "genre": "Endless Runner",
+    "tags": ["HTML5", "3D", "Runner", "University", "Arcade"],
+    "maker": {
+        "name": "Joseph Ombati & Antigravity",
+        "bio": "A collaboration between concept designer Joseph Ombati and Antigravity to create the ultimate premium university simulation running game.",
+        "url": "https://4weird.games",
+        "urlLabel": "4weird Games"
+    },
+    "credits": [
+        {
+            "name": "Joseph Ombati",
+            "role": "Concept & Design",
+            "avatar": "🎓",
+            "primary": true
+        },
+        {
+            "name": "Antigravity",
+            "role": "Lead Developer & UI Designer",
+            "avatar": "🤖",
+            "primary": true,
+            "url": "https://4weird.games",
+            "urlLabel": "4weird"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "A / D or Arrow Left / Right": "Switch Lanes",
+            "W or Arrow Up": "Jump over obstacles",
+            "S or Arrow Down": "Slide under obstacles",
+            "P or Escape": "Pause / Resume"
+        },
+        "touch": {
+            "swipe": "Swipe Left / Right / Up / Down",
+            "buttons": "Touch buttons on mobile screen"
+        },
+        "mouse": false
+    },
+    "instructions": "Navigate your student through three lanes to dodge academic threats like assignment deadlines, portal crashes, and stress while collecting coffee, lecture notes, and HELB loans. Complete objectives to pass the final exam/boss of each semester and advance. Survive all 8 semesters to graduate!",
+    "technical": {
+        "canvasSize": {"width": 800, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": ["https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"],
+        "local": ["sound.js", "state.js", "controls.js", "renderer.js", "ui.js", "game.js", "game.css"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-28",
+        "license": "Private - All Rights Reserved"
+    }
+}

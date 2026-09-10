@@ -1,0 +1,53 @@
+{
+    "title": "Temple of Lost Revenue",
+    "slug": "temple-of-lost-revenue",
+    "description": "Recover lost revenue hidden inside your business! Solve the ancient maze to collect lost deals, missing CRM data, and unanswered leads.",
+    "genre": "Maze Adventure",
+    "tags": ["HTML5", "Puzzle", "Three.js", "Adventure"],
+    "maker": {
+        "name": "Madi AI Creative Team",
+        "bio": "Building the future of autonomous revenue engines.",
+        "url": "https://madi.ai",
+        "urlLabel": "Website"
+    },
+    "credits": [
+        {
+            "name": "Madi AI Team",
+            "role": "Game Creators",
+            "avatar": "🏛️",
+            "primary": true,
+            "url": "https://madi.ai",
+            "urlLabel": "Website"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "Arrow Keys / WASD": "Move Cat",
+            "Shift": "Decipher Map (Green Visor scan)",
+            "P / Esc": "Pause"
+        },
+        "touch": true,
+        "mouse": true
+    },
+    "instructions": "Use WASD or Arrows to guide the Blue Cat through the temple maze. Pick up deals, data, and leads. Stand near doors and press shift to decipher and reveal the path!",
+    "technical": {
+        "canvasSize": {"width": 800, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [
+            {
+                "type": "script",
+                "url": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+                "description": "Three.js Library"
+            }
+        ],
+        "local": ["game.js", "game.css"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-16",
+        "license": "Private"
+    }
+}

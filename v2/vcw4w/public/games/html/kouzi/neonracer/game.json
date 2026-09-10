@@ -1,0 +1,70 @@
+{
+    "title": "Neon Racer",
+    "slug": "neon-racer",
+    "description": "High-speed racing through a neon-lit cyberpunk cityscape. Weave through traffic, avoid obstacles, and go as fast as you can. The longer you survive, the higher your score. Pure arcade racing thrills.",
+    "genre": "Racing",
+    "tags": [
+        "HTML5",
+        "Neon",
+        "Racing",
+        "Arcade",
+        "KouziTech",
+        "4weird"
+    ],
+    "maker": {
+        "name": "KouziTech",
+        "bio": "KouziTech is an AI-first game studio pushing the boundaries of generative AI in game development. Every game is designed, built, and polished using AI-assisted workflows \u2014 proving that high-quality games can be created faster than ever before. We specialize in HTML5 browser games that work everywhere: no downloads, no installations, no plugins. Just click and play.",
+        "url": "../index.html",
+        "urlLabel": "More KouziTech Games"
+    },
+    "credits": [
+        {
+            "name": "KouziTech AI Studio",
+            "role": "Game Developer",
+            "avatar": "\u26a1",
+            "primary": true,
+            "url": "../index.html",
+            "urlLabel": "More Games"
+        },
+        {
+            "name": "4weird",
+            "role": "Publisher",
+            "avatar": "\ud83c\udfae",
+            "primary": false,
+            "url": "../../../index.html",
+            "urlLabel": "4weird Games"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "\u2190 \u2192 / A D": "Switch lanes",
+            "Space": "Start / Restart",
+            "P or Esc": "Pause"
+        },
+        "touch": true,
+        "mouse": false
+    },
+    "instructions": "Race through a neon cyberpunk highway at breakneck speeds. Swerve between lanes to avoid other cars and obstacles. The longer you survive, the faster you go and the more points you score. Use left/right arrow keys or A/D to switch lanes. Press Space to start and P to pause.",
+    "technical": {
+        "canvasSize": {
+            "width": 400,
+            "height": 600
+        },
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [],
+        "local": [
+            "game.js",
+            "game.css"
+        ]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-06-18",
+        "license": "MIT"
+    },
+    "stage": "prototype",
+    "visible": true
+}
