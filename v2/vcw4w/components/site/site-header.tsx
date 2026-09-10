@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const NAV_GROUPS = [
   {
@@ -44,16 +44,54 @@ const NAV_GROUPS = [
   },
 ];
 
-const ALL_LINKS = NAV_GROUPS.flatMap((g) => g.links);
+const GITHUB_HREF = "https://github.com/mattyjacks/4weird";
 
 function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+function groupActive(pathname: string, links: { href: string }[]) {
+  return links.some((link) => isActive(pathname, link.href));
+}
+
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<string | null>(null);
   const pathname = usePathname();
+  const desktopNavRef = useRef<HTMLElement>(null);
+
+  // Close the desktop dropdown on route change.
+  useEffect(() => {
+    setOpenMenu(null);
+    setOpen(false);
+  }, [pathname]);
+
+  // Default the mobile accordion to the group holding the current page.
+  useEffect(() => {
+    const current = NAV_GROUPS.find((g) => groupActive(pathname, g.links));
+    setExpanded((prev) => prev ?? current?.label ?? "Play");
+  }, [pathname]);
+
+  // Close the desktop dropdown on Escape or outside pointer-down.
+  useEffect(() => {
+    if (!openMenu) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpenMenu(null);
+    };
+    const onPointer = (event: PointerEvent) => {
+      if (desktopNavRef.current && !desktopNavRef.current.contains(event.target as Node)) {
+        setOpenMenu(null);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onPointer);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onPointer);
+    };
+  }, [openMenu]);
 
   return (
     <>
@@ -69,25 +107,61 @@ export function SiteHeader() {
             🎮 4weird<span className="text-cyan-300">Games</span>
           </Link>
 
-          {/* Desktop nav */}
-          <nav aria-label="Primary navigation" className="hidden items-center gap-x-4 gap-y-2 text-sm text-slate-300 lg:flex">
-            {ALL_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                aria-current={isActive(pathname, link.href) ? "page" : undefined}
-                className={`rounded px-1 py-1 transition hover:text-white ${
-                  isActive(pathname, link.href) ? "font-bold text-cyan-300" : ""
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
+          {/* Desktop nav: 2-level — one button per group, links in a dropdown */}
+          <nav
+            ref={desktopNavRef}
+            aria-label="Primary navigation"
+            className="hidden items-center gap-1 text-sm text-slate-300 lg:flex"
+            onMouseLeave={() => setOpenMenu(null)}
+          >
+            {NAV_GROUPS.map((group) => {
+              const active = groupActive(pathname, group.links);
+              const expandedMenu = openMenu === group.label;
+              return (
+                <div key={group.label} className="relative" onMouseEnter={() => setOpenMenu(group.label)}>
+                  <button
+                    type="button"
+                    aria-expanded={expandedMenu}
+                    aria-haspopup="true"
+                    aria-current={active && !expandedMenu ? "page" : undefined}
+                    onClick={() => setOpenMenu(expandedMenu ? null : group.label)}
+                    className={`flex items-center gap-1 rounded-lg px-3 py-2 font-semibold transition hover:bg-white/10 hover:text-white ${
+                      active ? "text-cyan-300" : ""
+                    }`}
+                  >
+                    {group.label}
+                    <span aria-hidden="true" className={`text-xs transition-transform ${expandedMenu ? "rotate-180" : ""}`}>
+                      ▾
+                    </span>
+                  </button>
+                  {expandedMenu && (
+                    <div className="absolute left-0 top-full z-50 min-w-52 pt-1">
+                      <ul className="overflow-hidden rounded-xl border border-white/10 bg-slate-950/95 py-1 shadow-xl shadow-black/50 backdrop-blur">
+                        {group.links.map((link) => (
+                          <li key={link.href}>
+                            <Link
+                              href={link.href}
+                              aria-current={isActive(pathname, link.href) ? "page" : undefined}
+                              onClick={() => setOpenMenu(null)}
+                              className={`block whitespace-nowrap px-4 py-2.5 transition hover:bg-white/10 hover:text-white ${
+                                isActive(pathname, link.href) ? "font-bold text-cyan-300" : ""
+                              }`}
+                            >
+                              {link.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
             <a
-              href="https://github.com/mattyjacks/4weird"
+              href={GITHUB_HREF}
               target="_blank"
               rel="noreferrer"
-              className="rounded px-1 py-1 transition hover:text-white"
+              className="rounded-lg px-3 py-2 font-semibold transition hover:bg-white/10 hover:text-white"
             >
               GitHub
             </a>
@@ -116,37 +190,66 @@ export function SiteHeader() {
           </button>
         </div>
 
-        {/* Mobile nav */}
+        {/* Mobile nav: 2-level accordion — one tap expands a group */}
         {open && (
           <nav
             id="site-mobile-nav"
             aria-label="Mobile navigation"
             className="border-t border-white/10 bg-black px-4 pb-6 pt-4 lg:hidden"
           >
-            <div className="grid gap-5 sm:grid-cols-2">
-              {NAV_GROUPS.map((group) => (
-                <div key={group.label}>
-                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">{group.label}</p>
-                  <ul className="mt-2 space-y-1">
-                    {group.links.map((link) => (
-                      <li key={link.href}>
-                        <Link
-                          href={link.href}
-                          onClick={() => setOpen(false)}
-                          aria-current={isActive(pathname, link.href) ? "page" : undefined}
-                          className={`block rounded-lg px-3 py-2.5 text-base font-semibold transition hover:bg-white/10 hover:text-white ${
-                            isActive(pathname, link.href) ? "bg-white/10 text-cyan-300" : "text-slate-200"
-                          }`}
-                        >
-                          {link.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+            <ul className="space-y-1">
+              {NAV_GROUPS.map((group) => {
+                const active = groupActive(pathname, group.links);
+                const isExpanded = expanded === group.label;
+                return (
+                  <li key={group.label} className="overflow-hidden rounded-xl border border-white/10">
+                    <button
+                      type="button"
+                      aria-expanded={isExpanded}
+                      aria-controls={`mobile-group-${group.label}`}
+                      onClick={() => setExpanded(isExpanded ? null : group.label)}
+                      className={`flex w-full items-center justify-between px-4 py-3 text-left text-base font-bold transition hover:bg-white/5 ${
+                        active ? "text-cyan-300" : "text-white"
+                      }`}
+                    >
+                      {group.label}
+                      <span aria-hidden="true" className={`text-sm transition-transform ${isExpanded ? "rotate-180" : ""}`}>
+                        ▾
+                      </span>
+                    </button>
+                    {isExpanded && (
+                      <ul id={`mobile-group-${group.label}`} className="border-t border-white/10 bg-white/[.02] py-1">
+                        {group.links.map((link) => (
+                          <li key={link.href}>
+                            <Link
+                              href={link.href}
+                              onClick={() => setOpen(false)}
+                              aria-current={isActive(pathname, link.href) ? "page" : undefined}
+                              className={`block px-6 py-2.5 text-[15px] font-semibold transition hover:bg-white/10 hover:text-white ${
+                                isActive(pathname, link.href) ? "text-cyan-300" : "text-slate-200"
+                              }`}
+                            >
+                              {link.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
+              <li>
+                <a
+                  href={GITHUB_HREF}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block rounded-xl border border-white/10 px-4 py-3 text-base font-bold text-white transition hover:bg-white/5"
+                >
+                  GitHub
+                </a>
+              </li>
+            </ul>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
               <Link
                 href="/pricing"
                 onClick={() => setOpen(false)}
@@ -154,14 +257,6 @@ export function SiteHeader() {
               >
                 Get Coins — 100 = $1.00
               </Link>
-              <a
-                href="https://github.com/mattyjacks/4weird"
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-full border border-white/20 px-5 py-3 text-center font-semibold text-white"
-              >
-                GitHub
-              </a>
             </div>
           </nav>
         )}
