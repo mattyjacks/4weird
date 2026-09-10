@@ -30,6 +30,19 @@
     return window.FourWeirdAuthConfig || null;
   }
 
+  // Decode a legacy JWT WITHOUT verifying (verification happens server-side
+  // on every request) purely to read its role claim. Returns the role or ''.
+  function peekKeyRole(key) {
+    try {
+      var parts = String(key).split('.');
+      if (parts.length !== 3) return '';
+      var payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+      return payload && typeof payload.role === 'string' ? payload.role : '';
+    } catch (e) {
+      return '';
+    }
+  }
+
   // Supabase ships two key formats: legacy JWT anon keys (payload role
   // "anon") and new sb_publishable_ keys. Both are public-by-design. The
   // check below accepts exactly those two and refuses everything else —
@@ -94,8 +107,13 @@
       initError = 'Refusing to connect: Supabase URL must be https://*.supabase.co (or http://localhost for local dev).';
       return { client: null, error: initError };
     }
-    if (peekKeyRole(cfg.SUPABASE_ANON_KEY) !== 'anon') {
-      initError = 'Refusing to start: the configured key is not an anon key. Use the publishable/anon key from Supabase API settings — never the service_role secret.';
+    var verdict = clientKeyVerdict(cfg.SUPABASE_ANON_KEY);
+    if (verdict === 'refuse-secret') {
+      initError = 'Refusing to start: that is a SECRET key (service_role / sb_secret_). It bypasses every database rule and must never ship in a website. Use the publishable/anon key; the secret belongs only in Edge Function secrets (see SUPABASE_SETUP.md).';
+      return { client: null, error: initError };
+    }
+    if (verdict !== 'ok') {
+      initError = 'Refusing to start: unrecognized Supabase key. Paste the publishable key from Supabase Project Settings → API.';
       return { client: null, error: initError };
     }
     try {

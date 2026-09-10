@@ -16,8 +16,10 @@ window.FourWeirdAuthConfig = {
   // Example: 'https://abcdefghijklmno.supabase.co'
   SUPABASE_URL: 'https://YOUR-PROJECT-REF.supabase.co',
 
-  // The ANON key (a JWT whose payload role is "anon"). The loader refuses
-  // anything else, so a service_role key pasted here by accident cannot run.
+  // The PUBLISHABLE key, in either Supabase format: a legacy anon JWT
+  // (payload role "anon") or a new sb_publishable_ key. The loader accepts
+  // only these two and REFUSES secret keys (service_role JWT / sb_secret_),
+  // so a secret pasted here by accident cannot run in the browser.
   SUPABASE_ANON_KEY: 'YOUR-ANON-KEY',
 
   // Trusted backend for Shopify fulfillment + coin claims (no secrets here,
