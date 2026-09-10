@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     });
   }
   const { data: rows, error } = await supabase.rpc("claim_daily_bonus");
-  if (error) return fail("internal error", 500);
+  if (error) return dbFail("api/coins/daily", error);
   const row = (rows as { coins: number; streak: number }[] | null)?.[0] ?? { coins: 0, streak: 0 };
   return ok({ coins: row.coins, streak: row.streak, claimed: row.coins > 0 });
 }

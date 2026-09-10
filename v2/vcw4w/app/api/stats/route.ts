@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { isSlug } from "@/lib/validate";
@@ -18,7 +18,7 @@ export async function GET() {
     .select("active_seconds,actions,kills,deaths")
     .eq("user_id", u.id)
     .limit(10000);
-  if (error) return fail("internal error", 500);
+  if (error) return dbFail("api/stats", error);
   const totals = ((rows as { active_seconds: number; actions: number; kills: number; deaths: number }[] | null) ?? []).reduce(
     (x, v) => ({
       sec: x.sec + v.active_seconds,

@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
+import { rpcStatus } from "@/lib/agent-market";
 
 export const dynamic = "force-dynamic";
 
@@ -31,21 +32,29 @@ export async function POST(req: Request) {
     const game = String(input.game_slug ?? input.game ?? "lobby").toLowerCase();
     const voice = String(input.voice ?? "alloy").toLowerCase();
     if (!/^[a-z0-9-]{1,64}$/.test(game)) return fail("Invalid game_slug.", 400);
-    const { data: session, error } = await supabase.rpc("start_buddy_session", {
-      p_game: game,
-      p_voice: voice,
-    });
-    if (error) return fail(error.message || "Unable to start session.", 400);
-    return ok({ session });
+    try {
+      const { data: session, error } = await supabase.rpc("start_buddy_session", {
+        p_game: game,
+        p_voice: voice,
+      });
+      if (error) return rpcFail("api/buddy/session:start", error, rpcStatus, "Unable to start session.");
+      return ok({ session });
+    } catch (error) {
+      return dbFail("api/buddy/session:start", error, "Unable to start session.");
+    }
   }
   if (action === "end") {
     const sid = input.session_id ?? input.sessionId;
     if (!isUuid(sid)) return fail("Invalid session_id.", 400);
-    const { data: session, error } = await supabase.rpc("end_buddy_session", {
-      p_session: sid,
-    });
-    if (error) return fail(error.message || "Unable to end session.", 400);
-    return ok({ session });
+    try {
+      const { data: session, error } = await supabase.rpc("end_buddy_session", {
+        p_session: sid,
+      });
+      if (error) return rpcFail("api/buddy/session:end", error, rpcStatus, "Unable to end session.");
+      return ok({ session });
+    } catch (error) {
+      return dbFail("api/buddy/session:end", error, "Unable to end session.");
+    }
   }
   return fail("Action must be start or end.", 400);
 }

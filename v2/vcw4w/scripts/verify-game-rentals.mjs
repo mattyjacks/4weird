@@ -41,6 +41,29 @@ for (const token of ["game_rates", "game_developers", "game_sessions", "game_pla
   if (!migration.includes(token)) throw new Error(`Migration missing ${token}.`);
 }
 if (!migration.includes("IF NOT EXISTS") && !migration.includes("if not exists")) throw new Error("Migration must be rerunnable.");
+// FK discipline: start_game_session must insert the parent game_sessions row
+// BEFORE any game_play_usage child row — placeholder session ids violate
+// game_play_usage_session_id_fkey on every paid load (live prod incident).
+if (migration.includes("00000000-0000-0000-0000-000000000000")) {
+  throw new Error("Migration must not insert placeholder session ids (FK violation).");
+}
+{
+  const startFn = migration.slice(migration.indexOf("start_game_session(p_game"));
+  const sessionPos = startFn.indexOf("insert into public.game_sessions");
+  const usagePos = startFn.indexOf("insert into public.game_play_usage");
+  if (sessionPos < 0 || usagePos < 0 || sessionPos > usagePos) {
+    throw new Error("start_game_session must insert game_sessions before game_play_usage.");
+  }
+}
+// RPC errors: P0001 (our raise exception) maps to client statuses; anything
+// else is a DB fault → logged 500, never raw PG text with a 400.
+const respond = read("../lib/api-respond.ts");
+if (!respond.includes("dbFail") || !respond.includes("rpcFail") || !respond.includes("P0001")) {
+  throw new Error("api-respond must export dbFail + rpcFail (P0001 mapping).");
+}
+for (const [name, src] of [["session", session], ["meter", read("../app/api/game-ai/meter/route.ts")], ["buddy-session", read("../app/api/buddy/session/route.ts")]]) {
+  if (!src.includes("rpcFail")) throw new Error(`${name} API must route RPC errors through rpcFail.`);
+}
 
 // APIs: coin sessions need auth; guest-pass must stay public + IP-throttled.
 for (const [name, src] of [["session", session], ["rates-put", rates]]) {

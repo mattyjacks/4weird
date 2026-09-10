@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { clampLimit } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +16,6 @@ export async function GET(req: Request) {
     .select("delta,reason,created_at")
     .order("created_at", { ascending: false })
     .limit(limit);
-  if (error) return fail("Unable to load coin history.", 500);
+  if (error) return dbFail("api/coins/history", error, "Unable to load coin history.");
   return ok({ rows: data ?? [] });
 }

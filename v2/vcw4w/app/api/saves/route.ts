@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { isSlug, isSlot, jsonBytes } from "@/lib/validate";
 
@@ -34,7 +34,7 @@ export async function GET(req: Request) {
     query = query.eq("slot", Number(slot));
   }
   const { data: rows, error } = await query;
-  if (error) return fail("internal error", 500);
+  if (error) return dbFail("api/saves", error);
   return ok({ saves: rows ?? [] });
 }
 
@@ -81,7 +81,7 @@ export async function PUT(req: Request) {
     .eq("game_slug", slug)
     .eq("slot", slot)
     .maybeSingle();
-  if (existingError) return fail("internal error", 500);
+  if (existingError) return dbFail("api/saves", existingError);
   const dataObj = saveData as Record<string, unknown>;
   if ((existing as { data?: { cheat_mode?: boolean } } | null)?.data?.cheat_mode) {
     dataObj.cheat_mode = true;
@@ -95,7 +95,7 @@ export async function PUT(req: Request) {
     )
     .select("id,game_slug,slot,schema_version,created_at,updated_at")
     .single();
-  if (error) return fail("Unable to save game state.", 500);
+  if (error) return dbFail("api/saves", error, "Unable to save game state.");
   return ok({ ok: true, save: saved });
 }
 

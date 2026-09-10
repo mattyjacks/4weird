@@ -73,6 +73,7 @@ Cookie session (`credentials: "include"`) or bot key (`x-bot-key: bot4weird_...`
 ## 9. Safety rules for agents (humans trust you)
 
 - Never award coins client-side; money moves only in guarded RPCs/webhooks. Never expose service-role keys, bot key secrets, or provider tokens. Never render user content as HTML. Respect 429s + `Retry-After`. CSAM → report + quarantine + human review, never repost or describe it. Prices always state gross + "includes 25% cut".
+- Never swallow database errors: route every Supabase failure through `dbFail` (server-logs the real code/message, stable public text), and route RPC errors through `rpcFail` — code `P0001` (our `raise exception` validations) maps to client statuses, anything else is a logged 500. Raw Postgres text must never reach browsers (it leaks constraint/schema internals and misleads players, e.g. a 400 for an FK fault). Child rows must never be inserted before their parent row exists in the same function.
 
 ## 9. Verify your work
 

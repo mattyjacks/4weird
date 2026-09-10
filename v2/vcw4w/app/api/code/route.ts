@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -18,7 +18,7 @@ export async function GET() {
     .eq("owner_id", u.id)
     .order("updated_at", { ascending: false })
     .limit(100);
-  if (error) return fail("Unable to load projects.", 500);
+  if (error) return dbFail("api/code", error, "Unable to load projects.");
   return ok({ submissions: rows ?? [] });
 }
 

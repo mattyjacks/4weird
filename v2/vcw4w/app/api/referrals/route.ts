@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { REFERRAL_INVITEE_COINS, REFERRAL_INVITER_COINS, isReferralCode } from "@/lib/economy";
 
@@ -18,7 +18,7 @@ export async function GET() {
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);
   const { data: code, error } = await supabase.rpc("get_or_create_referral_code");
-  if (error) return fail("internal error", 500);
+  if (error) return dbFail("api/referrals", error);
   const { count } = await supabase.from("referrals").select("id", { count: "exact", head: true }).eq("inviter_id", data.user.id);
   return ok({ code: String(code ?? ""), invited: count ?? 0, inviterCoins: REFERRAL_INVITER_COINS, inviteeCoins: REFERRAL_INVITEE_COINS });
 }

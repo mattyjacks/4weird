@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -19,7 +19,7 @@ export async function GET() {
     .select("allow_friend_requests,show_playtime,marketing_email,updated_at")
     .eq("user_id", u.id)
     .maybeSingle();
-  if (error) return fail("internal error", 500);
+  if (error) return dbFail("api/settings", error);
   return ok({
     settings: row ?? { allow_friend_requests: true, show_playtime: true, marketing_email: false },
   });

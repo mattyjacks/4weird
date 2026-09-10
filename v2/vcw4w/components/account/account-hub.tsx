@@ -522,6 +522,16 @@ function AdminTab() {
   const [message, setMessage] = useState("Loading review queue…");
   const load = useCallback(async () => {
     try {
+      // Non-admins would just eat a 403 (and a red console line): check the
+      // session role first and skip the round-trip entirely.
+      const session = await request<{ user?: { app_metadata?: { role?: string } } }>("/api/auth/session").catch(
+        () => null,
+      );
+      if (session?.user?.app_metadata?.role !== "admin") {
+        setQueue(null);
+        setMessage("Admin access required.");
+        return;
+      }
       const r = await request<{ submissions: Submission[] }>("/api/admin/submissions");
       setQueue(r.submissions ?? []);
       setMessage((r.submissions ?? []).length ? "" : "Nothing awaiting review.");

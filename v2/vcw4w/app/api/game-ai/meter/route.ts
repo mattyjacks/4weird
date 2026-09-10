@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { isGameAiKind, GAME_AI_CUT_NOTE } from "@/lib/game-ai";
 import { isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
@@ -40,13 +40,17 @@ export async function POST(req: Request) {
   if (!["meter", "chat", "tts", "heartbeat", "manual"].includes(sourceRaw)) {
     return fail("Invalid source.", 400);
   }
-  const { data: result, error } = await supabase.rpc("meter_game_ai_usage", {
-    p_game: game,
-    p_kind: kind,
-    p_qty: qty,
-    p_session: sessionRaw,
-    p_source: sourceRaw,
-  });
-  if (error) return fail(error.message || "Unable to meter game AI.", rpcStatus(error.message));
-  return ok({ usage: result, note: GAME_AI_CUT_NOTE });
+  try {
+    const { data: result, error } = await supabase.rpc("meter_game_ai_usage", {
+      p_game: game,
+      p_kind: kind,
+      p_qty: qty,
+      p_session: sessionRaw,
+      p_source: sourceRaw,
+    });
+    if (error) return rpcFail("api/game-ai/meter", error, rpcStatus, "Unable to meter game AI.");
+    return ok({ usage: result, note: GAME_AI_CUT_NOTE });
+  } catch (error) {
+    return dbFail("api/game-ai/meter", error, "Unable to meter game AI.");
+  }
 }

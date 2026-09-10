@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient, supabaseServiceRoleKey } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { cleanKeyLabel } from "@/lib/bot-validate";
 import { generateBotKey, keyPrefix, sha256Hash } from "@/lib/bot-auth";
@@ -25,10 +25,10 @@ export async function GET() {
       .select("id,prefix,label,created_at,last_used_at,revoked")
       .eq("user_id", data.user.id)
       .order("created_at", { ascending: false });
-    if (error) return fail("Unable to load keys.", 500);
+    if (error) return dbFail("api/bot/keys", error, "Unable to load keys.");
     return ok({ keys: rows ?? [] });
-  } catch {
-    return fail("Unable to load keys.", 500);
+  } catch (error) {
+    return dbFail("api/bot/keys", error, "Unable to load keys.");
   }
 }
 

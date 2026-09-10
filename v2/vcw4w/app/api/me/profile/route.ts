@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { cleanDisplayName, cleanHandle, jsonBytes } from "@/lib/validate";
 
@@ -20,7 +20,7 @@ export async function GET() {
     .select("display_name,public_handle,email,created_at")
     .eq("id", u.id)
     .maybeSingle();
-  if (error) return fail("Unable to load profile.", 500);
+  if (error) return dbFail("api/me/profile", error, "Unable to load profile.");
   return ok({ profile: row ?? null });
 }
 

@@ -190,7 +190,6 @@ declare
   v_free boolean := false; v_fee integer := 0;
   v_cut integer := 0; v_provider integer := 0;
   v_bal integer; v_fee_split record; v_session public.game_sessions;
-  v_usage_id uuid := null;
 begin
   if auth.uid() is null then raise exception 'login required'; end if;
   v_game := lower(trim(coalesce(p_game, '')));
@@ -217,6 +216,13 @@ begin
   end if;
   v_fee := case when v_free then 0 else v_load end;
 
+  -- Parent first: game_play_usage.session_id references game_sessions(id),
+  -- so the session row must exist before any child row. (One function = one
+  -- transaction either way, so this ordering loses no atomicity.)
+  insert into public.game_sessions (user_id, game_slug, bundle_version, new_bytes, load_fee, load_cut, free_load)
+  values (auth.uid(), v_game, v_version, v_bytes, v_fee, v_cut, v_free)
+  returning * into v_session;
+
   if v_fee > 0 then
     select coalesce(sum(delta), 0)::integer into v_bal
     from public.coin_ledger where user_id = auth.uid();
@@ -225,25 +231,12 @@ begin
     end if;
     select * into v_fee_split from public.game_ai_compute_split(v_fee);
     v_cut := v_fee_split.cut; v_provider := v_fee_split.provider;
+    -- Keep the session's recorded cut in sync with the final split.
+    update public.game_sessions set load_cut = v_cut where id = v_session.id;
     insert into public.coin_ledger (user_id, delta, reason)
     values (auth.uid(), -v_fee, substr('Play ' || v_game || ' (load)', 1, 120));
-    -- Placeholder session id: re-pointed at the real session below so the
-    -- debit + session stay atomic (tracked by row id, race-safe).
     insert into public.game_play_usage (session_id, user_id, game_slug, active_seconds, gross_coins, cut_coins, provider_coins, dev_user_id, source)
-    values ('00000000-0000-0000-0000-000000000000', auth.uid(), v_game, 0, v_fee, v_cut, v_provider, v_dev, 'load')
-    returning id into v_usage_id;
-  end if;
-
-  insert into public.game_sessions (user_id, game_slug, bundle_version, new_bytes, load_fee, load_cut, free_load)
-  values (auth.uid(), v_game, v_version, v_bytes, v_fee, v_cut, v_free)
-  returning * into v_session;
-
-  -- Re-point the load row at the real session (it was inserted with a
-  -- placeholder above so the debit + session stay atomic).
-  if v_fee > 0 then
-    update public.game_play_usage
-    set session_id = v_session.id
-    where id = v_usage_id;
+    values (v_session.id, auth.uid(), v_game, 0, v_fee, v_cut, v_provider, v_dev, 'load');
   end if;
 
   return jsonb_build_object(

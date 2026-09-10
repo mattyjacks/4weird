@@ -7,7 +7,7 @@ import {
   supabaseUrl,
 } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 
 export const dynamic = "force-dynamic";
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
         .select("id,coins,shopify_order_name")
         .ilike("email", user.email)
         .eq("claimed", false);
-      if (qErr) return fail("internal error", 500);
+      if (qErr) return dbFail("api/coins/claim", qErr);
       let claimed = 0;
       for (const g of ((pending as { id: string; coins: number; shopify_order_name: string | null }[] | null) ?? [])) {
         const { data: won } = await db
@@ -63,8 +63,8 @@ export async function POST(req: Request) {
         if (!ledgerErr) claimed += 1;
       }
       return ok({ claimed });
-    } catch {
-      return fail("internal error", 500);
+    } catch (error) {
+      return dbFail("api/coins/claim", error);
     }
   }
 
@@ -73,12 +73,17 @@ export async function POST(req: Request) {
   const { data: sessionData } = await supabase.auth.getSession();
   const token = sessionData.session?.access_token;
   if (!token) return fail("Authentication required.", 401);
-  const response = await fetch(`${url.replace(/\/$/, "")}/functions/v1/shopify-coins/claim`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}`, apikey: key, "Content-Type": "application/json" },
-    body: "{}",
-    cache: "no-store",
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${url.replace(/\/$/, "")}/functions/v1/shopify-coins/claim`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, apikey: key, "Content-Type": "application/json" },
+      body: "{}",
+      cache: "no-store",
+    });
+  } catch (error) {
+    return dbFail("api/coins/claim:edge", error, "Coin service unreachable. Try again shortly.", 502);
+  }
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {
     const msg = (body as { error?: unknown }).error;

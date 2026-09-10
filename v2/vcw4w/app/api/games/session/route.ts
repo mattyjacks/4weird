@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { isSlug, isUuid } from "@/lib/validate";
 import { rpcStatus } from "@/lib/agent-market";
@@ -47,12 +47,18 @@ export async function POST(req: Request) {
     const version = isBundleVersion(input.bundle_version ?? input.version ?? "1") || "1";
     const bytes = isNewBytes(input.new_bytes ?? input.bytes ?? 0);
     if (bytes < 0) return fail("Invalid new_bytes.", 400);
-    const { data: session, error } = await supabase.rpc("start_game_session", {
-      p_game: game,
-      p_version: version,
-      p_new_bytes: bytes,
-    });
-    if (error) return fail(error.message || "Unable to start play session.", rpcStatus(error.message));
+    let session: unknown;
+    try {
+      const { data: row, error } = await supabase.rpc("start_game_session", {
+        p_game: game,
+        p_version: version,
+        p_new_bytes: bytes,
+      });
+      if (error) return rpcFail("api/games/session:start", error, rpcStatus, "Unable to start play session.");
+      session = row;
+    } catch (error) {
+      return dbFail("api/games/session:start", error, "Play metering is down. Try again shortly.");
+    }
     return ok({ session, heartbeat_seconds: GAME_HEARTBEAT_SECONDS });
   }
 
@@ -63,20 +69,30 @@ export async function POST(req: Request) {
     if (!Number.isInteger(seconds) || seconds < 1 || seconds > GAME_HEARTBEAT_MAX_SECONDS) {
       return fail(`active_seconds must be 1..${GAME_HEARTBEAT_MAX_SECONDS}.`, 400);
     }
-    const { data: beat, error } = await supabase.rpc("heartbeat_game_session", {
-      p_session: sid,
-      p_seconds: seconds,
-    });
-    if (error) return fail(error.message || "Unable to record play.", rpcStatus(error.message));
+    let beat: unknown;
+    try {
+      const { data: row, error } = await supabase.rpc("heartbeat_game_session", {
+        p_session: sid,
+        p_seconds: seconds,
+      });
+      if (error) return rpcFail("api/games/session:heartbeat", error, rpcStatus, "Unable to record play.");
+      beat = row;
+    } catch (error) {
+      return dbFail("api/games/session:heartbeat", error, "Play metering is down. Try again shortly.");
+    }
     return ok({ beat });
   }
 
   if (action === "end") {
     const sid = input.session_id ?? input.sessionId;
     if (!isUuid(sid)) return fail("Invalid session_id.", 400);
-    const { data: session, error } = await supabase.rpc("end_game_session", { p_session: sid });
-    if (error) return fail(error.message || "Unable to end play session.", rpcStatus(error.message));
-    return ok({ session });
+    try {
+      const { data: ended, error } = await supabase.rpc("end_game_session", { p_session: sid });
+      if (error) return rpcFail("api/games/session:end", error, rpcStatus, "Unable to end play session.");
+      return ok({ session: ended });
+    } catch (error) {
+      return dbFail("api/games/session:end", error, "Unable to end play session.");
+    }
   }
 
   return fail("Action must be start, heartbeat, or end.", 400);

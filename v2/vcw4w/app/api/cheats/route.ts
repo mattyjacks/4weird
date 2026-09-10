@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { isSlug, isSlot } from "@/lib/validate";
@@ -20,7 +20,7 @@ export async function GET(req: Request) {
       .select("enabled")
       .eq("user_id", u.id)
       .maybeSingle();
-    if (error) return fail("internal error", 500);
+    if (error) return dbFail("api/cheats", error);
     return ok({ enabled: Boolean((row as { enabled?: boolean } | null)?.enabled) });
   }
   const game = isSlug(q.get("game"));
@@ -36,7 +36,7 @@ export async function GET(req: Request) {
       .maybeSingle(),
     supabase.from("global_cheat_settings").select("enabled").eq("user_id", u.id).maybeSingle(),
   ]);
-  if (error) return fail("internal error", 500);
+  if (error) return dbFail("api/cheats", error);
   const typed = row as { enabled?: boolean; cheated_at?: string | null } | null;
   const globalTyped = global as { enabled?: boolean } | null;
   return ok({

@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { isBotUsername } from "@/lib/bot-validate";
 
@@ -27,7 +27,7 @@ export async function GET() {
   const { data } = await supabase.auth.getUser();
   if (!data?.user) return fail("Login required.", 401);
   const { data: rpcData, error } = await supabase.rpc("ensure_bot_identity");
-  if (error) return fail("Unable to load bot identity.", 500);
+  if (error) return dbFail("api/bot/identity", error, "Unable to load bot identity.");
   const row = pickRow(rpcData);
   if (!row) return fail("Unable to load bot identity.", 500);
   return ok({ username: row.username, human_id: row.human_id });

@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +12,6 @@ export async function GET() {
   // Fixed-logic SECURITY DEFINER function: returns SUM(delta) for the
   // caller only. No arguments, nothing to inject.
   const { data, error } = await supabase.rpc("get_my_coin_balance");
-  if (error) return fail("internal error", 500);
+  if (error) return dbFail("api/coins/balance", error);
   return ok({ balance: Number(data) || 0 });
 }
