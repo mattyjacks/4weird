@@ -10,5 +10,5 @@ export async function GET(request: NextRequest) {
   const limit = Number.isFinite(raw) ? Math.max(1, Math.min(Math.trunc(raw), 100)) : 25;
   const { data, error } = await supabase.from("coin_ledger").select("delta,reason,created_at").order("created_at", { ascending: false }).limit(limit);
   if (error) return NextResponse.json({ error: "Unable to load coin history." }, { status: 500 });
-  return NextResponse.json({ rows: data ?? [] });
+  return NextResponse.json({ rows: data ?? [] }, { headers: { "Cache-Control": "private, no-store" } });
 }

@@ -40,3 +40,42 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Generated canonical game runtime bundles (recreated by
+# `npm run sync:games` from the tracked public/games/html/ sources).
+# Kept out of git so fresh clones and deploys regenerate them via
+# prebuild/pretest instead of committing duplicated bundles.
+public/games/aiwhackamole/
+public/games/assassinanimals/
+public/games/battlesharks2/
+public/games/demolichdom/
+public/games/DiscoverAmerica/
+public/games/discoveramerica/
+public/games/financialfreedom/
+public/games/fridgesimulator/
+public/games/friendslop/
+public/games/gravegain2d/
+public/games/gravegain3d/
+public/games/lastwordszombies/
+public/games/neonbreaker/
+public/games/neoninvaders/
+public/games/neonracer/
+public/games/neonsnake/
+public/games/neonvoidrunner/
+public/games/orbitaldrift/
+public/games/overtake/
+public/games/semester-survival/
+public/games/serversavershield/
+public/games/soundpainter/
+public/games/soundpainter2/
+public/games/temple-of-lost-revenue/
+public/games/the-ai-expedition/
+public/games/the-cave-of-bottlenecks/
+public/games/the-lost-city-of-customers/
+public/games/the-madi-ai-universe/
+public/games/the-pipeline-mountain/
+public/games/the-revenue-dragon/
+public/games/the-revenue-jungle/
+public/games/the-speed-portal/
+public/games/treasure-hunters/
+public/games/venturemechanically/

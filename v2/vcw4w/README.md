@@ -12,6 +12,8 @@ npm run dev
 
 The app runs at `http://localhost:3000` by default. Supabase variables are required for authenticated account features; the public catalog and games remain usable without them.
 
+Optional service settings include `SHOPIFY_STORE_DOMAIN`, `SHOPIFY_ALLOWED_VARIANTS` (comma-separated numeric variant IDs), and `VCW_SERVICE_URL`. Without those settings, the corresponding account/worker screens report explicit configuration states rather than failing silently.
+
 ## Verification
 
 ```bash
@@ -20,6 +22,8 @@ npm run build
 ```
 
 `npm test` checks byte-for-byte game bundle parity, catalog/runtime invariants, lint, and TypeScript. The original games are intentionally served as static HTML/CSS/JavaScript under `public/games/html`; the Next.js UI hosts them without rewriting their internals.
+
+Game saves use an authenticated, slot-isolated, versioned schema backed by the Supabase migration in `supabase/migrations/202609100001_game_saves.sql`.
 
 ## Migration layout
 
@@ -31,4 +35,4 @@ npm run build
 - `scripts/verify-game-bundles.mjs` — source/bundle parity guard.
 - `V1_TO_NEXTJS_REFACTOR_SPEC.md` — full migration contract and acceptance criteria.
 
-When adding a game, add its metadata to `content/games.ts`, copy its original bundle into `public/games/html`, and run `npm test` before opening a PR.
+When adding a game, add its metadata to `content/games.ts`, copy its original bundle into `public/games/html/<legacy-path>/`, run `npm run sync:games` (also runs automatically before `test`/`build`) to regenerate the canonical `public/games/<slug>/` runtimes, and run `npm test` before opening a PR.

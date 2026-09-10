@@ -1,0 +1,1 @@
+export default function Loading(){return <main className="flex min-h-screen items-center justify-center bg-slate-950 text-white"><p role="status" className="rounded-full border border-cyan-300/30 px-5 py-3 text-cyan-200">Loading 4weird…</p></main>}

@@ -8,5 +8,5 @@ export async function GET() {
   if (!user.user) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   const { data, error } = await supabase.rpc("get_my_coin_balance");
   if (error) return NextResponse.json({ error: "Unable to load coin balance." }, { status: 500 });
-  return NextResponse.json({ balance: Number(data) || 0 });
+  return NextResponse.json({ balance: Number(data) || 0 }, { headers: { "Cache-Control": "private, no-store" } });
 }

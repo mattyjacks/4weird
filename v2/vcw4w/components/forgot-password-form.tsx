@@ -53,10 +53,11 @@ export function ForgotPasswordForm({
             <CardDescription>Password reset instructions sent</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
               If you registered using your email and password, you will receive
               a password reset email.
-            </p>
+              </p>
+              <Link href="/auth/login" className="mt-5 inline-block text-sm text-cyan-300 underline">Return to login</Link>
           </CardContent>
         </Card>
       ) : (

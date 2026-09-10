@@ -1,17 +1,6 @@
 "use client";
-
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-
-export function LogoutButton() {
-  const router = useRouter();
-
-  const logout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/auth/login");
-  };
-
-  return <Button onClick={logout}>Logout</Button>;
-}
+import { useState } from "react";
+export function LogoutButton(){const router=useRouter();const [busy,setBusy]=useState(false);const [error,setError]=useState("");async function logout(){setBusy(true);setError("");const {error:signOutError}=await createClient().auth.signOut();if(signOutError){setError("Unable to sign out. Please try again.");setBusy(false);return}router.replace("/auth/login");router.refresh()}return <div><Button type="button" disabled={busy} onClick={logout}>{busy?"Signing out…":"Logout"}</Button>{error&&<p role="alert" className="mt-2 text-sm text-red-300">{error}</p>}</div>}

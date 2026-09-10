@@ -3,5 +3,12 @@ Allow: /
 Disallow: /ai/
 Disallow: /temp/
 Disallow: /account.html
+Disallow: /account
+Disallow: /auth/
+Disallow: /protected
+Disallow: /api/
+Disallow: /vibecodeworker-legacy/
+Disallow: /v1-legacy/
+Disallow: /games/html/
 
-Sitemap: https://4weird.com/sitemap.xml
+Sitemap: https://4weird.games/sitemap.xml

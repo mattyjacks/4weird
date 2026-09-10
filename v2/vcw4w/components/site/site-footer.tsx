@@ -1,1 +1,2 @@
-export function SiteFooter() { return <footer className="border-t border-white/10 px-5 py-10 text-center text-sm text-slate-400">© 2026 4weird Games · Future Forward Fun</footer>; }
+import Link from "next/link";
+export function SiteFooter(){return <footer className="border-t border-white/10 px-5 py-10 text-center text-sm text-slate-400"><nav aria-label="Footer navigation" className="mb-4 flex flex-wrap justify-center gap-x-5 gap-y-2"><Link href="/privacy">Privacy</Link><Link href="/accessibility">Accessibility</Link><Link href="/games">Games</Link><Link href="/pricing">Pricing</Link><Link href="/tech">Technology</Link></nav><p>© 2026 4weird Games · Future Forward Fun</p></footer>}

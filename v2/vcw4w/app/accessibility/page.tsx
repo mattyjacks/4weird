@@ -1,2 +1,3 @@
 import { MarketingPage } from "@/components/site/marketing-page";
-export default function Page() { return <MarketingPage title="Accessibility" intro="4weird is being rebuilt with keyboard navigation, readable contrast, reduced motion, and accessible game instructions as first-class requirements." />; }
+import { AccessibilityControls } from "@/components/site/accessibility-controls";
+export default function Page() { return <MarketingPage title="Accessibility" intro="Adjust the site to your preferences. Settings are saved on this device."><AccessibilityControls /></MarketingPage>; }

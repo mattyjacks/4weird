@@ -1,0 +1,3 @@
+"use client";
+import Link from "next/link";
+export default function GlobalError({ reset }: { error: Error & { digest?: string }; reset: () => void }) { return <main className="flex min-h-screen flex-col items-center justify-center gap-5 bg-slate-950 px-6 text-center text-white"><h1 className="text-3xl font-black">Something went sideways</h1><p className="max-w-xl text-slate-300">The 4weird page could not finish loading. Your saved game data is preserved.</p><div className="flex gap-3"><button type="button" onClick={reset} className="rounded-full bg-cyan-300 px-6 py-3 font-bold text-slate-950">Try again</button><Link href="/" className="rounded-full border border-white/20 px-6 py-3 font-semibold">Go home</Link></div></main>; }

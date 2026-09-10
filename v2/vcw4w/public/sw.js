@@ -1,17 +1,17 @@
 // Bump whenever a deployed game bundle changes.  This lets a repaired game
 // replace a previously cached module instead of leaving players on stale code.
-const CACHE_NAME = '4weird-v2-cache';
+const CACHE_NAME = '4weird-v10-cache';
 const ASSETS_TO_CACHE = [
   './',
-  './index.html',
-  './account.html',
+  './games',
+  './academy',
+  './pricing',
+  './accessibility',
+  './privacy',
   './styles.css',
   './components.js',
   './script.js',
-  './auth/supabase-auth.js',
-  './auth/vibe-coins.js',
-  './404.html',
-  './manifest.json'
+  './manifest.webmanifest'
 ];
 
 // Install Service Worker and cache core shell assets
@@ -46,6 +46,19 @@ self.addEventListener('fetch', (event) => {
   if (!event.request.url.startsWith(self.location.origin)) {
     return;
   }
+  if (event.request.method !== 'GET') {
+    return;
+  }
+  if (event.request.cache === 'no-store') {
+    return;
+  }
+  if (event.request.headers.has('range')) {
+    return;
+  }
+  const requestUrl = new URL(event.request.url);
+  if (requestUrl.pathname.startsWith('/api/') || requestUrl.pathname.startsWith('/auth/') || requestUrl.pathname === '/account' || requestUrl.pathname.startsWith('/protected')) {
+    return;
+  }
 
   event.respondWith(
     fetch(event.request)
@@ -67,7 +80,7 @@ self.addEventListener('fetch', (event) => {
           }
           // Fallback to 404 for pages
           if (event.request.mode === 'navigate') {
-            return caches.match('./404.html');
+            return caches.match(new URL('/', self.location.origin).toString());
           }
         });
       })

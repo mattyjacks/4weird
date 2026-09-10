@@ -2,10 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   async headers() {
-    return [{ source: "/(.*)", headers: [
+    return [{ source: "/account", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }, { source: "/protected", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }, { source: "/api/:path*", headers: [{ key: "Cache-Control", value: "no-store" }] }, { source: "/api/vcw/health", headers: [{ key: "Cache-Control", value: "no-store" }] }, { source: "/(.*)", headers: [
       { key: "X-Content-Type-Options", value: "nosniff" },
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-      { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+      { key: "Permissions-Policy", value: "camera=(self), microphone=(self), geolocation=()" },
     ] }];
   },
   async redirects() {
@@ -13,13 +13,19 @@ const nextConfig: NextConfig = {
       { source: "/index.html", destination: "/", permanent: true },
       { source: "/games/index.html", destination: "/games", permanent: true },
       { source: "/account.html", destination: "/account", permanent: true },
+      { source: "/protected", destination: "/account", permanent: true },
+      { source: "/protected/", destination: "/account", permanent: true },
       { source: "/tech.html", destination: "/tech", permanent: true },
       { source: "/web-apps.html", destination: "/web-apps", permanent: true },
+      { source: "/spaceships.html", destination: "/spaceships", permanent: true },
+      { source: "/spaceships/index.html", destination: "/spaceships", permanent: true },
       { source: "/pricing/index.html", destination: "/pricing", permanent: true },
       { source: "/academy/index.html", destination: "/academy", permanent: true },
       { source: "/privacy.html", destination: "/privacy", permanent: true },
       { source: "/privacy-policy.html", destination: "/privacy", permanent: true },
+      { source: "/privacy-policy", destination: "/privacy", permanent: true },
       { source: "/accessibility-info.html", destination: "/accessibility", permanent: true },
+      { source: "/accessibility-info", destination: "/accessibility", permanent: true },
       { source: "/vibecodeworker/index.html", destination: "/vibecodeworker", permanent: true },
       { source: "/vibecodeworker/overview.html", destination: "/vibecodeworker/overview", permanent: true },
       { source: "/vibecodeworker/hub.html", destination: "/vibecodeworker/hub", permanent: true },

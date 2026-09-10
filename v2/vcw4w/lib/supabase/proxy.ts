@@ -7,8 +7,7 @@ export async function updateSession(request: NextRequest) {
     request,
   });
 
-  // If the env vars are not set, skip proxy check. You can remove this
-  // once you setup the project.
+  // Public deployments may omit Supabase; protected routes then fail closed in their handlers.
   if (!hasEnvVars) {
     return supabaseResponse;
   }
@@ -59,9 +58,13 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/api/vcw");
 
   if (protectedPath && !user) {
+    if (request.nextUrl.pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Authentication required." }, { status: 401, headers: { "Cache-Control": "private, no-store" } });
+    }
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
+    url.search = `?next=${encodeURIComponent(request.nextUrl.pathname + request.nextUrl.search)}`;
     return NextResponse.redirect(url);
   }
 

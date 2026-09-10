@@ -2,7 +2,7 @@
   "name": "4weird Games",
   "short_name": "4weird",
   "description": "Future Forward Fun. AI-powered game development studio.",
-  "start_url": "./index.html",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0f",
   "theme_color": "#8b5cf6",

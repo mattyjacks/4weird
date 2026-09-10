@@ -1,0 +1,4 @@
+import { games, type Game } from "./games";
+export type GameManifest = { slug: string; sourcePath: string; runtimePath: string; schemaVersion: number; storage: string[]; workers: string[]; audio: boolean; cleanup: string[]; tests: string[] };
+export const gameManifests: Record<string, GameManifest> = Object.fromEntries(games.map((game: Game) => [game.slug, { slug: game.slug, sourcePath: `/games/html/${game.legacyPath}/`, runtimePath: game.runtimePath, schemaVersion: 1, storage: ["localStorage (game-owned)"], workers: ["Preserved worker files when present"], audio: true, cleanup: ["iframe teardown", "event listener cleanup", "worker termination where applicable"], tests: ["raw static HTML smoke test", "Next.js iframe shell smoke test", "bundle parity verification"] }]));
+export const getGameManifest = (slug: string) => gameManifests[slug];
