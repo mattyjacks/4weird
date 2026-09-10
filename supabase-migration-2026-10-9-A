@@ -2,7 +2,7 @@
 
 Target project: the Supabase project behind `NEXT_PUBLIC_SUPABASE_URL` in
 `v2/vcw4w/.env.example` (production: `https://4weird.games`).
-Source files: `v2/vcw4w/supabase/migrations/` (9 files) + `v2/vcw4w/supabase/schema.sql`
+Source files: `v2/vcw4w/supabase/migrations/` (14 files) + `v2/vcw4w/supabase/schema.sql`
 (review copy) + `v2/vcw4w/supabase/functions/shopify-coins/index.ts`.
 
 All SQL is re-runnable (IF NOT EXISTS / OR REPLACE / DROP IF EXISTS guards).
@@ -37,14 +37,28 @@ Packs for sale: 500 ($5), 1500 ($15), 5000 ($50), 25000 ($250), custom
    streak day, cap 12, one claim per UTC day), referral_codes + referrals
    (25 coins each side, one use per invitee), leaderboard_top() RPC
    (handles + totals only, callable anonymously).
+10. `20260910080000_clans.sql` — clans, members, posts, comments, images,
+    reports tables + `clan-images` storage bucket + moderation RPCs
+    (CSAM reports auto-hide + quarantine).
+11. `20260910090000_bot_platform.sql` — bot identities + hashed API keys
+    (shown once) + key management RPCs.
+12. `20260910100000_agent_rentals.sql` — compute providers, agent listings,
+    rental bookings with coin escrow, metered usage with the 25% cut.
+13. `20260910110000_security_fixes.sql` — friendship self-accept hole closed,
+    immutable friendship parties, DM read rules, CSRF-safe defaults.
+14. `20260910120000_reconcile_clans_bots.sql` — unifies clan status
+    vocabulary, drops permissive bot-era policies, double-booking lock,
+    escrow-capped metering.
 
-Verify after step 9 (SQL Editor):
+Verify after step 14 (SQL Editor):
 `select tablename from pg_tables where schemaname='public' order by 1;`
 must include: profiles, game_saves, coin_grants, coin_ledger,
 purchase_claims, friendships, messages, telemetry_events, code_submissions,
 game_match_queue, game_matches, game_lobbies, game_presence,
 signup_ip_credits, account_settings, global_cheat_settings, daily_claims,
-referral_codes, referrals.
+referral_codes, referrals, clans, clan_members, clan_posts, clan_comments,
+clan_images, clan_reports, bot_identities, bot_api_keys, compute_providers,
+agent_listings, rental_bookings, compute_usage.
 
 ## B. Edge function — terminal with Supabase CLI logged in
 

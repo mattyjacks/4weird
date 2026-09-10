@@ -54,7 +54,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ slug: string }>
         .from("clan_posts")
         .select("id,title,body,image_url,status,author_id,created_at")
         .eq("clan_id", clan.id)
-        .eq("status", "published")
+        .eq("status", "visible")
         .order("created_at", { ascending: false })
         .limit(25),
       db

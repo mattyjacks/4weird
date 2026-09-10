@@ -86,9 +86,16 @@ export function sha256Hash(key: string): string {
   return createHash("sha256").update(pepper() + key, "utf8").digest("hex");
 }
 
-/** Identification prefix: first 8 chars of the full key. */
+/**
+ * Identification prefix: first 8 chars of the RANDOM suffix (after the
+ * `bot4weird_` tag). The tag itself is identical on every key, so prefixing
+ * on it would collapse all keys into one lookup bucket (and hit the
+ * .limit(100) scan cap once 100+ keys exist). Suffix-derived prefixes are
+ * unique with overwhelming probability.
+ */
 export function keyPrefix(key: string): string {
-  return key.slice(0, 8);
+  const suffix = key.startsWith(BOT_KEY_TAG) ? key.slice(BOT_KEY_TAG.length) : key;
+  return suffix.slice(0, 8);
 }
 
 /** Read the presented key: x-bot-key header, or Authorization: Bearer. */

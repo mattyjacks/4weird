@@ -45,7 +45,32 @@ export function isImageUrl(value: unknown): boolean {
   return /^https?:\/\/[^\s/$.?#].[^\s]*$/i.test(v);
 }
 
-export const REPORT_TARGETS = ["clan", "post", "comment"] as const;
+/**
+ * Bot-posted images must be clan-images URLs issued by our own upload route
+ * (same rule as the human clan UI). Rendered in <img> tags, an arbitrary
+ * external URL would be a tracking beacon; javascript:/data: never passes.
+ */
+export function isOwnClanImageUrl(value: unknown, supabaseBase: string): boolean {
+  const u = String(value ?? "").trim();
+  if (!u || u.length > 2000) return false;
+  if (!u.startsWith("http://") && !u.startsWith("https://")) return false;
+  try {
+    const parsed = new URL(u);
+    const base = (supabaseBase ?? "").trim();
+    if (base) {
+      try {
+        if (parsed.host === new URL(base).host) return true;
+      } catch {
+        return false;
+      }
+    }
+    return /\/storage\/v1\/object\/(public\/)?clan-images\//.test(u);
+  } catch {
+    return false;
+  }
+}
+
+export const REPORT_TARGETS = ["clan", "post", "comment", "image"] as const;
 export type ReportTarget = (typeof REPORT_TARGETS)[number];
 
 export function isReportTarget(value: unknown): value is ReportTarget {
@@ -58,6 +83,7 @@ export const REPORT_CATEGORIES = [
   "nsfw",
   "cheating",
   "copyright",
+  "csam",
   "other",
 ] as const;
 

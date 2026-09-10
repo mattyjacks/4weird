@@ -4,7 +4,7 @@ import Script from "next/script";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
-const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "G-KZ03RW8P96";
+const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "";
 
 declare global {
   interface Window {
@@ -12,17 +12,20 @@ declare global {
   }
 }
 
-/** Loads the legacy GA4 property and records Next.js client-side navigations. */
+/** Loads GA4 only when configured, and records client-side navigations. */
 export function GoogleAnalytics() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    if (!measurementId) return;
     const query = searchParams.toString();
     const pagePath = `${pathname}${query ? `?${query}` : ""}`;
 
     window.gtag?.("config", measurementId, { page_path: pagePath });
   }, [pathname, searchParams]);
+
+  if (!measurementId) return null;
 
   return (
     <>

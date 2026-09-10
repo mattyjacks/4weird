@@ -10,6 +10,13 @@
 
 export const COIN_PRICE_CENTS_EACH = 1;
 export const SERVICE_CUT_PCT = 25;
+/**
+ * UnitUnite workspace compute cut: every workspace-metered cloud charge
+ * splits 25% platform / 75% provider, INCLUDED in the listed price.
+ * Same rate as SERVICE_CUT_PCT by design — one rule everywhere — but scoped
+ * per individual workspace so each team's ledger shows its own cut.
+ */
+export const WORKSPACE_COMPUTE_CUT_PCT = 25;
 export const TRIAL_COINS_DEFAULT = 100;
 export const TRIAL_COINS_MAX = 100;
 
@@ -49,6 +56,13 @@ export function dailyBonusForStreak(streakDays: number): number {
 /** Referral rewards, each side. */
 export const REFERRAL_INVITER_COINS = 25;
 export const REFERRAL_INVITEE_COINS = 25;
+
+/** Split a workspace compute charge (gross, cut INCLUDED) into platform/provider. */
+export function workspaceComputeSplit(grossCoins: number): { gross: number; cut: number; provider: number } {
+  const gross = Math.max(0, Math.floor(grossCoins));
+  const cut = Math.round((gross * WORKSPACE_COMPUTE_CUT_PCT) / 100);
+  return { gross, cut, provider: gross - cut };
+}
 
 /** Referral codes are 8 uppercase alphanumerics, minted server-side (see migration). */
 export function isReferralCode(value: unknown): string {

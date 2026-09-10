@@ -6,15 +6,11 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - images - .svg, .png, .jpg, .jpeg, .gif, .webp
-     * Feel free to modify this pattern to include more paths.
-     */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  // Sessions only matter where the app reads or writes them: the account
+  // area, auth flows, bot setup, and every API route. Everything else —
+  // marketing pages, game detail/play shells, and the static game bundles
+  // under /games/* — skips middleware entirely (zero session-refresh cost
+  // per asset request). Page-level guards (e.g. /bot/setup) redirect
+  // unauthenticated users themselves.
+  matcher: ["/account/:path*", "/auth/:path*", "/api/:path*", "/bot/:path*"],
 };

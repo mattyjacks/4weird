@@ -1,7 +1,7 @@
 import { fail, ok } from "@/lib/api-respond";
 import { botRateLimit, hasBotAuth, invalidCredentials, resolveBotKey } from "@/lib/bot-auth";
-import { cleanPostBody, cleanPostTitle, isImageUrl, isSlug, looksSpammy } from "@/lib/bot-validate";
-import { serviceClient } from "@/lib/supabase/service";
+import { cleanPostBody, cleanPostTitle, isOwnClanImageUrl, isSlug, looksSpammy } from "@/lib/bot-validate";
+import { serviceClient, supabaseUrl } from "@/lib/supabase/service";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +41,11 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
   if (!postBody) return fail("Body needs 1-5000 characters.", 400);
   let imageUrl: string | null = null;
   if (input.image_url !== undefined && input.image_url !== null && input.image_url !== "") {
-    if (!isImageUrl(input.image_url)) return fail("image_url must be an http(s) URL.", 400);
+    // Same rule as the human clan UI: only our own upload URLs render in
+    // <img> tags. External URLs would be tracking beacons.
+    if (!isOwnClanImageUrl(input.image_url, supabaseUrl())) {
+      return fail("image_url must come from /api/clans/upload.", 400);
+    }
     imageUrl = String(input.image_url).trim();
   }
 
@@ -64,7 +68,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
       .maybeSingle();
     if (!memberData) return fail("Join the clan before posting.", 403);
 
-    const status = looksSpammy(title, postBody) ? "pending" : "published";
+    const status = looksSpammy(title, postBody) ? "pending" : "visible";
     const { data: inserted, error: insertError } = await db
       .from("clan_posts")
       .insert({

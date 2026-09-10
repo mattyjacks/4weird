@@ -24,7 +24,7 @@ if (!economy.includes("CUSTOM_COINS_MIN = 500")) throw new Error("Custom minimum
 if (!signup.includes("TRIAL_COINS_DEFAULT")) throw new Error("Signup must use the trial constant.");
 
 // Checkout supports custom-amount quantities on the custom variant only.
-if (!checkout.includes("COIN_CUSTOM_VARIANT") || !checkout.includes("500")) throw new Error("Checkout must support custom amounts.");
+if (!checkout.includes("COIN_CUSTOM_VARIANT") || !checkout.includes("CUSTOM_COINS_MIN")) throw new Error("Checkout must support custom amounts.");
 
 // Edge function sells the same packs, no legacy SKUs, custom from paid totals.
 for (const sku of ["VIBE-COINS-500", "VIBE-COINS-1500", "VIBE-COINS-5000", "VIBE-COINS-25000", "VIBE-COINS-CUSTOM"]) {

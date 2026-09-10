@@ -41,12 +41,13 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     const db = serviceClient();
     const { data: postData, error: postError } = await db
       .from("clan_posts")
-      .select("id,clan_id")
+      .select("id,clan_id,status")
       .eq("id", postId)
       .maybeSingle();
     if (postError) return fail("Unable to comment.", 500);
-    const post = postData as { id: string; clan_id: string } | null;
+    const post = postData as { id: string; clan_id: string; status: string } | null;
     if (!post) return fail("Post not found.", 404);
+    if (post.status === "hidden") return fail("Post not found.", 404);
 
     const { data: memberData } = await db
       .from("clan_members")
