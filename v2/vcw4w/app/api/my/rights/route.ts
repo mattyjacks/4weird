@@ -1,0 +1,495 @@
+import { createHash } from "node:crypto";
+import { createClient } from "@/lib/supabase/server";
+import {
+  hasServerSupabase,
+  serviceClient,
+  supabaseServiceRoleKey,
+} from "@/lib/supabase/service";
+import { rateLimit } from "@/lib/rate-limit";
+import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
+import { clientIp, isUuid } from "@/lib/validate";
+
+export const dynamic = "force-dynamic";
+
+const CONFIRM_PHRASE = "DELETE MY DATA";
+const REQUEST_TTL_MS = 30 * 60 * 1000;
+const CONFIRM_COOLDOWN_MS = 30 * 1000;
+const SUPPORT_EMAIL = "matt@mattyjacks.com";
+
+function ipHash(req: Request): string {
+  const salt = process.env.SIGNUP_IP_HASH_SALT ?? "";
+  const raw = salt ? `${salt}|${clientIp(req)}` : clientIp(req);
+  return createHash("sha256").update(raw).digest("hex");
+}
+
+async function logRequest(
+  userId: string,
+  email: string | null,
+  type: "export" | "delete",
+  status: "requested" | "confirmed" | "completed" | "denied" | "expired",
+  req: Request,
+  note?: string,
+) {
+  try {
+    await serviceClient()
+      .from("privacy_requests")
+      .insert({
+        user_id: userId,
+        email,
+        type,
+        status,
+        ip_hash: ipHash(req),
+        ...(note ? { note: note.slice(0, 500) } : {}),
+        ...(status === "confirmed" ? { confirmed_at: new Date().toISOString() } : {}),
+        ...(status === "completed" ? { completed_at: new Date().toISOString() } : {}),
+      });
+  } catch {
+    // Audit logging is best-effort; never block the rights flow on it.
+  }
+}
+
+// ---------------------------------------------------------------------------
+// GET ?action=export — access/portability: JSON dump of the caller's own data.
+// Auth + same-origin are not needed for GET shape, but auth IS required and
+// tight per-account rate limits stop bulk harvesting / spam.
+// ---------------------------------------------------------------------------
+export async function GET(req: Request) {
+  if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  const action = new URL(req.url).searchParams.get("action");
+  if (action !== "export") return fail("Unknown rights action.", 400);
+
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  const u = data?.user;
+  if (!u) return fail("Sign in to export your data.", 401);
+
+  const perUser = rateLimit(`rights-export:${u.id}`, 5, 60 * 60 * 1000);
+  if (!perUser.allowed) {
+    return fail("Export limit reached (5 per hour). Try again later.", 429, {
+      "Retry-After": String(perUser.retryAfter),
+    });
+  }
+  const perIp = rateLimit(`rights-export-ip:${clientIp(req)}`, 20, 60 * 60 * 1000);
+  if (!perIp.allowed) {
+    return fail("Too many export requests from this network. Try again later.", 429, {
+      "Retry-After": String(perIp.retryAfter),
+    });
+  }
+
+  async function pick(table: string, columns: string, match: Record<string, string>, limit = 200) {
+    try {
+      let q = supabase.from(table).select(columns).limit(limit);
+      for (const [k, v] of Object.entries(match)) q = q.eq(k, v);
+      const { data: rows, error } = await q;
+      if (error) return null;
+      return rows;
+    } catch {
+      return null;
+    }
+  }
+
+  const id = u.id;
+  const [profile, settings, saves, cheatSettings, globalCheats, statEvents, friendshipsA, friendshipsB, messagesSent, messagesGot] =
+    await Promise.all([
+      pick("profiles", "id,email,display_name,public_handle,created_at,updated_at", { id }, 1),
+      pick("account_settings", "*", { user_id: id }, 1),
+      pick("game_saves", "id,game_slug,slot,schema_version,data,created_at,updated_at", { user_id: id }),
+      pick("cheat_settings", "*", { user_id: id }),
+      pick("global_cheat_settings", "*", { user_id: id }, 1),
+      pick("game_stat_events", "game_slug,active_seconds,actions,kills,deaths,created_at", { user_id: id }, 1000),
+      pick("friendships", "*", { requester_id: id }),
+      pick("friendships", "*", { addressee_id: id }),
+      pick("direct_messages", "id,recipient_id,body,created_at,read_at", { sender_id: id }, 500),
+      pick("direct_messages", "id,sender_id,body,created_at,read_at", { recipient_id: id }, 500),
+    ]);
+
+  const [submissions, lobbyHost, lobbyGuest, presence, queue, matchesPhone, matchesDesk, daily, refCode, refAsInviter, refAsInvitee] =
+    await Promise.all([
+      pick("code_submissions", "id,title,status,monetization_status,created_at,updated_at", { owner_id: id }, 100),
+      pick("game_lobbies", "*", { host_id: id }, 100),
+      pick("game_lobbies", "*", { guest_id: id }, 100),
+      pick("game_presence", "*", { user_id: id }, 100),
+      pick("game_match_queue", "*", { user_id: id }, 1),
+      pick("game_matches", "*", { phone_id: id }, 100),
+      pick("game_matches", "*", { desktop_id: id }, 100),
+      pick("daily_claims", "*", { user_id: id }, 1),
+      pick("referral_codes", "code,created_at", { user_id: id }, 1),
+      pick("referrals", "*", { inviter_id: id }, 200),
+      pick("referrals", "*", { invitee_id: id }, 1),
+    ]);
+
+  const [clanMemberships, clanPosts, clanComments, clanReports, clansOwnedA, clansOwnedB, botIdentities, listings, bookings, ledger, grants] =
+    await Promise.all([
+      pick("clan_members", "*", { user_id: id }),
+      pick("clan_posts", "id,clan_id,title,body,image_url,status,created_at", { author_id: id }),
+      pick("clan_comments", "id,clan_id,post_id,body,status,created_at", { author_id: id }, 500),
+      pick("clan_reports", "id,target_type,target_id,category,status,created_at", { reporter_id: id }),
+      pick("clans", "id,slug,name,description,created_at", { owner_id: id }, 100),
+      pick("clans", "id,slug,name,description,created_at", { created_by: id }, 100),
+      pick("bot_identities", "id,username,human_id,created_at", { user_id: id }, 10),
+      pick("agent_listings", "*", { owner_id: id }, 100),
+      pick("rental_bookings", "*", { renter_id: id }, 100),
+      pick("coin_ledger", "id,delta,reason,created_at", { user_id: id }, 500),
+      pick("coin_grants", "id,coins,created_at", { user_id: id }, 200),
+    ]);
+
+  // Bot key secrets are NEVER exported (shown once at issue); metadata only.
+  let botKeys: unknown = null;
+  try {
+    const ids = ((botIdentities as Array<{ id: string }> | null) ?? []).map((r) => r.id);
+    if (ids.length) {
+      const { data: keys } = await supabase
+        .from("bot_api_keys")
+        .select("id,identity_id,label,key_prefix,created_at,revoked_at")
+        .in("identity_id", ids)
+        .limit(50);
+      botKeys = keys ?? [];
+    } else botKeys = [];
+  } catch {
+    botKeys = null;
+  }
+
+  let balance: number | null = null;
+  try {
+    const { data: b } = await supabase.rpc("coin_balance");
+    if (typeof b === "number") balance = b;
+  } catch {
+    balance = null;
+  }
+
+  await logRequest(id, u.email ?? null, "export", "completed", req);
+
+  return ok({
+    exportedAt: new Date().toISOString(),
+    account: { id, email: u.email ?? null },
+    profile,
+    settings,
+    games: { saves, cheatSettings, globalCheats, statEvents, queue, presence, lobbiesHosted: lobbyHost, lobbiesJoined: lobbyGuest, matchesAsPhone: matchesPhone, matchesAsDesktop: matchesDesk },
+    social: { friendshipsRequested: friendshipsA, friendshipsReceived: friendshipsB, messagesSent, messagesReceived: messagesGot },
+    creator: { submissions },
+    clans: { memberships: clanMemberships, posts: clanPosts, comments: clanComments, reportsFiled: clanReports, clansOwned: [...((clansOwnedA as unknown[] | null) ?? []), ...((clansOwnedB as unknown[] | null) ?? [])] },
+    bots: { identities: botIdentities, keys: botKeys },
+    economy: { balance, ledger, grants, daily, referralCode: refCode, referralsAsInviter: refAsInviter, referralsAsInvitee: refAsInvitee },
+    rentals: { listings, bookings },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// POST { action: "request-delete" } — step 1: open a 30-minute deletion window.
+// POST { action: "confirm-delete", requestId, confirmation } — step 2: erase.
+// Only the signed-in holder can delete their OWN account. Anything else
+// (family of a deceased user, authorized agents) goes through email review.
+// ---------------------------------------------------------------------------
+export async function POST(req: Request) {
+  if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  if (!supabaseServiceRoleKey()) {
+    return fail(`Deletion service is unavailable right now. Email ${SUPPORT_EMAIL} for help.`, 503);
+  }
+
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  const u = data?.user;
+  if (!u) return fail("Sign in with the account you want to delete.", 401);
+
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return fail("Invalid JSON body.", 400);
+  }
+  const input = (body ?? {}) as Record<string, unknown>;
+  const action = String(input.action ?? "");
+
+  const service = serviceClient();
+
+  if (action === "request-delete") {
+    const perUser = rateLimit(`rights-del-req:${u.id}`, 3, 60 * 60 * 1000);
+    if (!perUser.allowed) {
+      return fail("Too many deletion requests. Wait an hour or email support for help.", 429, {
+        "Retry-After": String(perUser.retryAfter),
+      });
+    }
+    const perIp = rateLimit(`rights-del-req-ip:${clientIp(req)}`, 10, 60 * 60 * 1000);
+    if (!perIp.allowed) {
+      return fail("Too many requests from this network. Try again later.", 429, {
+        "Retry-After": String(perIp.retryAfter),
+      });
+    }
+
+    // Reuse an unexpired pending request instead of minting duplicates.
+    const { data: existing } = await service
+      .from("privacy_requests")
+      .select("id,created_at,status")
+      .eq("user_id", u.id)
+      .eq("type", "delete")
+      .in("status", ["requested", "confirmed"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (existing) {
+      const age = Date.now() - new Date((existing as { created_at: string }).created_at).getTime();
+      if (age < REQUEST_TTL_MS) {
+        const created = new Date((existing as { created_at: string }).created_at).getTime();
+        return ok({
+          pending: true,
+          requestId: (existing as { id: string }).id,
+          expiresAt: new Date(created + REQUEST_TTL_MS).toISOString(),
+          cooldownSeconds: Math.max(0, Math.ceil((CONFIRM_COOLDOWN_MS - age) / 1000)),
+          mustType: CONFIRM_PHRASE,
+        });
+      }
+      await service.from("privacy_requests").update({ status: "expired" }).eq("id", (existing as { id: string }).id);
+    }
+
+    // Abuse brake: at most 3 deletion requests per 30 days per account.
+    const monthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const { count } = await service
+      .from("privacy_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", u.id)
+      .eq("type", "delete")
+      .gte("created_at", monthAgo);
+    if ((count ?? 0) >= 3) {
+      return fail(`Deletion-request limit reached. Email ${SUPPORT_EMAIL} for help.`, 429);
+    }
+
+    // Warn early if shared-ownership cleanup will be needed (enforced again
+    // at confirm time against fresh data).
+    let sharedClanWarning: string | null = null;
+    try {
+      const { data: owned } = await service.from("clans").select("id,name").eq("owner_id", u.id).limit(25);
+      if (owned && owned.length) {
+        const { count: others } = await service
+          .from("clan_members")
+          .select("clan_id", { count: "exact", head: true })
+          .in("clan_id", (owned as Array<{ id: string }>).map((c) => c.id))
+          .neq("user_id", u.id);
+        if ((others ?? 0) > 0) {
+          sharedClanWarning =
+            "You still own clans with other members. Delete those clans (or ask us to transfer them) before confirming, or confirmation will be refused.";
+        }
+      }
+    } catch {
+      sharedClanWarning = null;
+    }
+
+    const { data: inserted, error } = await service
+      .from("privacy_requests")
+      .insert({ user_id: u.id, email: u.email ?? null, type: "delete", status: "requested", ip_hash: ipHash(req) })
+      .select("id,created_at")
+      .single();
+    if (error || !inserted) return fail("Could not open a deletion request. Try again.", 500);
+    const created = new Date((inserted as { created_at: string }).created_at).getTime();
+
+    return ok({
+      pending: true,
+      requestId: (inserted as { id: string }).id,
+      expiresAt: new Date(created + REQUEST_TTL_MS).toISOString(),
+      cooldownSeconds: Math.ceil(CONFIRM_COOLDOWN_MS / 1000),
+      mustType: CONFIRM_PHRASE,
+      sharedClanWarning,
+    });
+  }
+
+  if (action === "confirm-delete") {
+    const perUser = rateLimit(`rights-del-confirm:${u.id}`, 5, 60 * 60 * 1000);
+    if (!perUser.allowed) {
+      return fail("Too many confirmation attempts. Wait a while and try again.", 429, {
+        "Retry-After": String(perUser.retryAfter),
+      });
+    }
+    const requestId = String(input.requestId ?? "");
+    const confirmation = String(input.confirmation ?? "");
+    if (!isUuid(requestId)) return fail("Unknown deletion request.", 404);
+    if (confirmation !== CONFIRM_PHRASE) return fail(`Type ${CONFIRM_PHRASE} exactly to confirm.`, 400);
+
+    const { data: pr } = await service
+      .from("privacy_requests")
+      .select("id,user_id,status,created_at")
+      .eq("id", requestId)
+      .maybeSingle();
+    const row = pr as { id: string; user_id: string; status: string; created_at: string } | null;
+    if (!row || row.user_id !== u.id || (row.status !== "requested" && row.status !== "confirmed")) {
+      return fail("Unknown deletion request.", 404);
+    }
+    const age = Date.now() - new Date(row.created_at).getTime();
+    if (age > REQUEST_TTL_MS) {
+      await service.from("privacy_requests").update({ status: "expired" }).eq("id", row.id);
+      return fail("This deletion request expired. Open a new one to continue.", 410);
+    }
+    if (age < CONFIRM_COOLDOWN_MS) {
+      return fail(`Wait ${Math.ceil((CONFIRM_COOLDOWN_MS - age) / 1000)} more seconds, then confirm again.`, 429);
+    }
+
+    // Blockers are checked BEFORE anything is erased.
+    try {
+      for (const col of ["owner_id", "created_by"]) {
+        const { data: owned } = await service.from("clans").select("id").eq(col, u.id).limit(25);
+        const list = (owned as Array<{ id: string }> | null) ?? [];
+        if (!list.length) continue;
+        const { count: others } = await service
+          .from("clan_members")
+          .select("clan_id", { count: "exact", head: true })
+          .in("clan_id", list.map((c) => c.id))
+          .neq("user_id", u.id);
+        if ((others ?? 0) > 0) {
+          await service.from("privacy_requests").update({ status: "denied", note: "shared clan ownership" }).eq("id", row.id);
+          return fail(
+            `You own a clan with other members. Delete it first (or email ${SUPPORT_EMAIL} to transfer ownership), then request deletion again.`,
+            409,
+          );
+        }
+      }
+    } catch {
+      // Ownership tables may differ by deployment; fall through to best-effort.
+    }
+    try {
+      const { data: active } = await service
+        .from("rental_bookings")
+        .select("id", { count: "exact" })
+        .eq("renter_id", u.id)
+        .eq("status", "active")
+        .limit(1);
+      if (active && (active as unknown[]).length) {
+        return fail("You have an active rental booking with escrowed coins. End it first, then confirm deletion.", 409);
+      }
+    } catch {
+      // Bookings table shape differs; fall through.
+    }
+
+    await service.from("privacy_requests").update({ status: "confirmed", confirmed_at: new Date().toISOString() }).eq("id", row.id);
+
+    // Erase user rows (service_role bypasses RLS, including tables the
+    // client itself can no longer delete, e.g. cheat-marked saves).
+    async function wipe(table: string, col: string) {
+      try {
+        await service.from(table).delete().eq(col, u!.id);
+      } catch {
+        /* best-effort: missing table/column or cascade handles it */
+      }
+    }
+    async function wipeEither(table: string, a: string, b: string) {
+      await wipe(table, a);
+      await wipe(table, b);
+    }
+
+    await wipe("game_match_queue", "user_id");
+    await wipeEither("game_matches", "phone_id", "desktop_id");
+    await wipe("game_presence", "user_id");
+    await wipe("signup_ip_credits", "user_id");
+    await wipe("account_settings", "user_id");
+    await wipe("global_cheat_settings", "user_id");
+    await wipe("cheat_settings", "user_id");
+    await wipe("game_stat_events", "user_id");
+    await wipe("game_saves", "user_id");
+    await wipeEither("friendships", "requester_id", "addressee_id");
+    await wipeEither("direct_messages", "sender_id", "recipient_id");
+    await wipe("code_submissions", "owner_id");
+    await wipe("daily_claims", "user_id");
+    await wipe("referral_codes", "user_id");
+    await wipeEither("referrals", "inviter_id", "invitee_id");
+    await wipe("game_lobbies", "host_id");
+    try {
+      await service.from("game_lobbies").update({ guest_id: null }).eq("guest_id", u.id);
+    } catch { /* best-effort */ }
+
+    // Safety evidence is preserved but de-identified: reports stay for
+    // authority review with the reporter link removed (CSAM rows especially
+    // must survive under legal hold).
+    try {
+      await service.from("clan_reports").update({ reporter_id: null }).eq("reporter_id", u.id);
+    } catch { /* best-effort */ }
+    await wipe("clan_comments", "author_id");
+    await wipe("clan_posts", "author_id");
+    await wipe("clan_members", "user_id");
+    // Clans the user solely owns go with the account (cascade clears the rest).
+    await wipe("clans", "owner_id");
+    await wipe("clans", "created_by");
+
+    // Clan images: remove the user's uploads from storage + index, best-effort.
+    try {
+      const { data: imgs } = await service.from("clan_images").select("id,storage_path").eq("uploader_id", u.id).limit(200);
+      const list = (imgs as Array<{ id: string; storage_path: string }> | null) ?? [];
+      if (list.length) {
+        try {
+          await service.storage.from("clan-images").remove(list.map((i) => i.storage_path));
+        } catch { /* best-effort */ }
+        await wipe("clan_images", "uploader_id");
+      }
+    } catch { /* best-effort */ }
+    await wipe("clan_images", "author_id");
+
+    // Bots: metadata + keys (secrets were never stored; hashes die here).
+    try {
+      const { data: idents } = await service.from("bot_identities").select("id").eq("user_id", u.id);
+      const ids = ((idents as Array<{ id: string }> | null) ?? []).map((r) => r.id);
+      for (const kid of ["identity_id", "bot_identity_id", "user_id"]) {
+        try {
+          if (kid === "user_id") await service.from("bot_api_keys").delete().eq("user_id", u.id);
+          else if (ids.length) await service.from("bot_api_keys").delete().in(kid, ids);
+        } catch { /* best-effort */ }
+      }
+    } catch { /* best-effort */ }
+    await wipe("bot_identities", "user_id");
+    await wipe("bot_identities", "owner_id");
+
+    await wipe("rental_bookings", "renter_id");
+    await wipe("compute_usage", "user_id");
+    await wipe("agent_listings", "owner_id");
+
+    // Teams/enterprise memberships (orgs solely owned that cannot cascade
+    // will surface below as a 409 with email guidance).
+    for (const [table, col] of [
+      ["org_members", "user_id"],
+      ["org_invites", "email"],
+      ["team_members", "user_id"],
+      ["team_invites", "email"],
+      ["project_members", "user_id"],
+      ["room_members", "user_id"],
+      ["room_messages", "author_id"],
+      ["room_messages", "sender_id"],
+      ["team_api_keys", "created_by"],
+    ] as Array<[string, string]>) {
+      try {
+        if (col === "email" && u.email) await service.from(table).delete().eq(col, u.email);
+        else if (col !== "email") await service.from(table).delete().eq(col, u.id);
+      } catch { /* best-effort */ }
+    }
+
+    // Money records for this user, then the profile row itself.
+    await wipe("coin_ledger", "user_id");
+    await wipe("coin_grants", "user_id");
+    try {
+      await service.from("profiles").delete().eq("id", u.id);
+    } catch { /* admin delete cascades */ }
+
+    const { error: adminError } = await service.auth.admin.deleteUser(u.id);
+    if (adminError) {
+      await service
+        .from("privacy_requests")
+        .update({ status: "denied", note: `auth delete failed: ${String(adminError.message).slice(0, 200)}` })
+        .eq("id", row.id);
+      // Most common cause: solely-owned orgs/clans with RESTRICT guards.
+      return fail(
+        `Automatic deletion hit a shared-ownership record. Email ${SUPPORT_EMAIL} from your account email and we will finish it manually.`,
+        409,
+      );
+    }
+
+    await service
+      .from("privacy_requests")
+      .update({ status: "completed", completed_at: new Date().toISOString() })
+      .eq("id", row.id);
+
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Client clears session cookies regardless.
+    }
+    return ok({ deleted: true });
+  }
+
+  return fail("Unknown rights action.", 400);
+}

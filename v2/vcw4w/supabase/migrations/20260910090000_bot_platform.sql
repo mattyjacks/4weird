@@ -1,13 +1,18 @@
 -- ============================================================================
--- Agentic bot platform (/bot/clans/, moltbook-style) + clan tables.
+-- Agentic bot platform (/bot/clans/, moltbook-style) + bot identity/keys.
 -- Re-runnable: every statement is IF NOT EXISTS / OR REPLACE / guarded by
 -- a preceding DROP ... IF EXISTS.
 --
--- Tables:
---   clans, clan_members, clan_posts, clan_comments, clan_reports
---     (no clan tables existed before; human RLS policies ship here so a
---     future human clan UI can read/write the same tables directly)
---   bot_identities, bot_api_keys
+-- Clan-table ownership: 20260910080000_clans.sql owns ALL clan DDL
+-- (owner_id, visible/pending/hidden, uuid report targets). The CREATE TABLE
+-- statements below are no-op convergence guards that only take effect if
+-- 080000 was never applied; this file creates NO clan policies and seeds
+-- NO starter rows, so it can never contradict 080000 (a past revision did
+-- both — created_by policies and ownerless seeds — and broke bundle order
+-- with 42703/23502; 20260910120000_reconcile_clans_bots.sql cleans up
+-- databases that already applied that revision).
+--
+-- Tables created here: bot_identities, bot_api_keys
 --     (RLS enabled, NO client policies at all: all access via the
 --     SECURITY DEFINER RPCs below or service-role server routes)
 -- RPCs (all SECURITY DEFINER, locked down with explicit REVOKEs):
@@ -82,60 +87,26 @@ alter table public.clan_posts enable row level security;
 alter table public.clan_comments enable row level security;
 alter table public.clan_reports enable row level security;
 
--- Human client policies (bots go through service-role server routes).
+-- Human client policies: NONE here. 080000 ships the read policies and all
+-- writes go through its SECURITY DEFINER RPCs; the drops below converge
+-- databases that applied the old contradictory revision of this file.
 drop policy if exists clans_select_all on public.clans;
-create policy clans_select_all on public.clans
-  for select to anon, authenticated using (true);
 drop policy if exists clans_insert_own on public.clans;
-create policy clans_insert_own on public.clans
-  for insert to authenticated with check (created_by = auth.uid());
 drop policy if exists clans_update_own on public.clans;
-create policy clans_update_own on public.clans
-  for update to authenticated
-  using (created_by = auth.uid()) with check (created_by = auth.uid());
-
 drop policy if exists clan_members_select_all on public.clan_members;
-create policy clan_members_select_all on public.clan_members
-  for select to anon, authenticated using (true);
 drop policy if exists clan_members_self_join on public.clan_members;
-create policy clan_members_self_join on public.clan_members
-  for insert to authenticated with check (user_id = auth.uid());
 drop policy if exists clan_members_self_leave on public.clan_members;
-create policy clan_members_self_leave on public.clan_members
-  for delete to authenticated using (user_id = auth.uid());
-
 drop policy if exists clan_posts_select_all on public.clan_posts;
-create policy clan_posts_select_all on public.clan_posts
-  for select to anon, authenticated using (true);
 drop policy if exists clan_posts_insert_own on public.clan_posts;
-create policy clan_posts_insert_own on public.clan_posts
-  for insert to authenticated with check (author_id = auth.uid());
 drop policy if exists clan_posts_update_own on public.clan_posts;
-create policy clan_posts_update_own on public.clan_posts
-  for update to authenticated
-  using (author_id = auth.uid()) with check (author_id = auth.uid());
-
 drop policy if exists clan_comments_select_all on public.clan_comments;
-create policy clan_comments_select_all on public.clan_comments
-  for select to anon, authenticated using (true);
 drop policy if exists clan_comments_insert_own on public.clan_comments;
-create policy clan_comments_insert_own on public.clan_comments
-  for insert to authenticated with check (author_id = auth.uid());
-
 drop policy if exists clan_reports_insert_own on public.clan_reports;
-create policy clan_reports_insert_own on public.clan_reports
-  for insert to authenticated with check (reporter_id = auth.uid());
 drop policy if exists clan_reports_select_own on public.clan_reports;
-create policy clan_reports_select_own on public.clan_reports
-  for select to authenticated using (reporter_id = auth.uid());
 
--- Starter clans so the platform (and the /bot/setup playground) is usable
--- on a fresh database. Rerunnable via ON CONFLICT DO NOTHING.
-insert into public.clans (slug, name, description) values
-  ('game-dev', 'Game Dev', 'Build logs, dev tools, and release notes for 4weird games.'),
-  ('automation', 'Automation', 'Bots, scripts, and workflows run by game-dev AI.'),
-  ('arcade-builders', 'Arcade Builders', 'Showcase your cabinets, jams, and high scores.')
-on conflict (slug) do nothing;
+-- Starter clans are created through the app (create_clan RPC), which supplies
+-- the mandatory owner_id. No seed rows here: an ownerless insert cannot
+-- satisfy the 080000 NOT NULL owner_id constraint.
 
 -- --------------------------------------------------------------------------
 -- Bot identity + API keys. NO client policies: deny-by-default for anon AND

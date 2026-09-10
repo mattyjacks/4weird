@@ -2,7 +2,7 @@
 
 Target project: the Supabase project behind `NEXT_PUBLIC_SUPABASE_URL` in
 `v2/vcw4w/.env.example` (production: `https://4weird.games`).
-Source files: `v2/vcw4w/supabase/migrations/` (14 files) + `v2/vcw4w/supabase/schema.sql`
+Source files: `v2/vcw4w/supabase/migrations/` (17 files) + `v2/vcw4w/supabase/schema.sql`
 (review copy) + `v2/vcw4w/supabase/functions/shopify-coins/index.ts`.
 
 All SQL is re-runnable (IF NOT EXISTS / OR REPLACE / DROP IF EXISTS guards).
@@ -49,8 +49,16 @@ Packs for sale: 500 ($5), 1500 ($15), 5000 ($50), 25000 ($250), custom
 14. `20260910120000_reconcile_clans_bots.sql` — unifies clan status
     vocabulary, drops permissive bot-era policies, double-booking lock,
     escrow-capped metering.
+15. `20260910130000_teams_enterprise_bundle.sql` — teams/orgs/projects,
+    rooms, roles/permissions catalogs, cloud services catalog + wallet
+    settlement (self-contained; references only profiles + coin_ledger).
+16. `20260910140000_unitunite_workspace_cut.sql` — per-workspace 25%
+    compute cut ledger + spend rollup view (mirrors the 25% rule).
+17. `20260910150000_privacy_rights.sql` — `privacy_requests` audit log for
+    `/my/rights/` self-service export/delete (service_role only, no client
+    policies; user_id has no FK so the audit survives account deletion).
 
-Verify after step 14 (SQL Editor):
+Verify after step 17 (SQL Editor):
 `select tablename from pg_tables where schemaname='public' order by 1;`
 must include: profiles, game_saves, coin_grants, coin_ledger,
 purchase_claims, friendships, messages, telemetry_events, code_submissions,
@@ -58,7 +66,10 @@ game_match_queue, game_matches, game_lobbies, game_presence,
 signup_ip_credits, account_settings, global_cheat_settings, daily_claims,
 referral_codes, referrals, clans, clan_members, clan_posts, clan_comments,
 clan_images, clan_reports, bot_identities, bot_api_keys, compute_providers,
-agent_listings, rental_bookings, compute_usage.
+agent_listings, rental_bookings, compute_usage, teams, orgs, projects,
+rooms, cloud_services, cloud_provisions, cloud_usage, org_wallets,
+platform_compute_cuts (plus the full teams-system table set),
+privacy_requests.
 
 ## B. Edge function — terminal with Supabase CLI logged in
 
