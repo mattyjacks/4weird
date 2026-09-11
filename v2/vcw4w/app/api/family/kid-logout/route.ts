@@ -1,3 +1,4 @@
+import { type NextRequest } from "next/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
@@ -6,7 +7,7 @@ import { clearKidSessionCookie, hashKidToken } from "@/lib/kid-session";
 export const dynamic = "force-dynamic";
 
 /** POST /api/family/kid-logout — destroy this child session + clear cookie. */
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const token = req.cookies.get("kid_session")?.value ?? "";

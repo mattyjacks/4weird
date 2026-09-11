@@ -1,3 +1,4 @@
+import { type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
@@ -15,7 +16,7 @@ export const dynamic = "force-dynamic";
  * token session, and sets an httpOnly `kid_session` cookie. Strictly
  * IP-rate-limited (credential-stuffing shield for the 4-digit namespace).
  */
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const ip = clientIp(req);
@@ -79,7 +80,7 @@ export async function POST(req: Request) {
 }
 
 /** GET resolves the calling client: parent user, child session, or neither. */
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();

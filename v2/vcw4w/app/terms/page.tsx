@@ -225,6 +225,22 @@ export default function TermsPage() {
           the Privacy Policy for what leaves your device and what never does.
         </p>
 
+        <h2 className={h2}>8C. Timer, Work Diary, and Ghost Cash (👻💵) non-legal debt ledger</h2>
+        <p>
+          The Service provides a second-by-second time tracker and work diary (/timer) with optional Upwork-style screen
+          capture proofs and activity monitoring. Time tracked within organizations and projects may accrue debts
+          measured in a non-monetary bookkeeping unit designated as <strong>Ghost Cash (👻💵)</strong>.
+        </p>
+        <p>
+          <strong>NO CASH VALUE OR LEGAL TENDER.</strong> Ghost Cash is strictly an internal, centrally controlled
+          bookkeeping and expense-tracking metric to measure hours worked down to the exact second and record debts
+          between participating organization members, freelancers, and marketers. Ghost Cash is NOT legal tender,
+          currency, money, security, commodity, or cryptocurrency, has no cash value, has no exchange rate, confers no
+          equity or rights against MattyJacks LLC, and cannot be redeemed, withdrawn, or cashed out. Optional screen
+          proofs captured during timer sessions require explicit device permission and may be blurred or deleted at
+          any time by the user.
+        </p>
+
         <h2 className={h2}>9. Agent rentals and Teams compute (25% cut on all computing)</h2>
         <p>
           The marketplace lists rentable agents (openclaw/nanoclaw/custom) on providers such as RunPod and

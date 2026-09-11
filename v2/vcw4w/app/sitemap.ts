@@ -29,6 +29,7 @@ const PRIMARY: Entry[] = [
   { path: "/agents", changeFrequency: "weekly", priority: 0.9 },
   { path: "/vibecodeworker", changeFrequency: "weekly", priority: 0.9 },
   { path: "/teams", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/timer", changeFrequency: "weekly", priority: 0.8 },
   { path: "/desktop", changeFrequency: "weekly", priority: 0.8 },
   { path: "/buddy", changeFrequency: "weekly", priority: 0.8 },
   { path: "/fal", changeFrequency: "weekly", priority: 0.8 },

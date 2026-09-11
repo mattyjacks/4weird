@@ -34,9 +34,9 @@ for (const p of statics) {
   if (!ok) throw new Error(`Sitemap path resolves nowhere (no route, file, or index): ${p || "/"} .`);
 }
 
-// 3. Every indexable static route must be listed (auth/account/my are
+// 3. Every indexable static route must be listed (account/auth/my/family are
 // gated-noindex by policy and must stay OUT).
-const GATED = new Set(["account", "auth", "my"]);
+const GATED = new Set(["account", "auth", "my", "family"]);
 function walk(dir, base) {
   for (const e of fs.readdirSync(path.join(root, dir), { withFileTypes: true })) {
     if (e.isDirectory()) {

@@ -30,6 +30,7 @@ const NAV_GROUPS: { label: string; links: NavLink[] }[] = [
       { href: "/fal", label: "fal.ai Studio" },
       { href: "/desktop", label: "Virtual Desktop" },
       { href: "/teams", label: "UnitUnite" },
+      { href: "/timer", label: "Timer & Work Diary" },
       { href: "/vibecodeworker", label: "VibeCodeWorker" },
       { href: "/web-apps", label: "Web Apps" },
       { href: "/docs", label: "Docs" },

@@ -7,7 +7,9 @@ import { games } from "@/content/games";
  * plain text that models can cite accurately.
  */
 export function GET(): Response {
-  const packLine = COIN_PACKS.map((p) => `${p.coins} ($${p.usd})`).join(" / ");
+  const packLine = COIN_PACKS.map(
+    (p) => `${p.coins.toLocaleString("en-US")} ($${p.usd})`
+  ).join(" / ");
   const gameLines = games
     .map((g) => `- ${g.title} (${g.genre}): ${g.description} ${SITE_URL}/games/${g.slug}`)
     .join("\n");

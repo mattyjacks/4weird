@@ -28,7 +28,7 @@ function toMinutes(v: unknown): number | null | undefined {
   return n;
 }
 
-function toTime(v: unknown): string | undefined {
+function toTime(v: unknown): string | null | undefined {
   if (v === undefined) return undefined;
   const s = String(v).trim().slice(0, 5);
   return /^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(s) ? `${s}:00` : null;

@@ -35,9 +35,9 @@ export async function GET() {
   if (error) return dbFail("api/family/kids", error, "Unable to load child accounts.");
   const list = Array.isArray(kids) ? kids : [];
   const ids = list.map((k) => String(k.id));
-  let controls: Record<string, unknown> = {};
-  let balances: Record<string, number> = {};
-  let today: Record<string, number> = {};
+  const controls: Record<string, unknown> = {};
+  const balances: Record<string, number> = {};
+  const today: Record<string, number> = {};
   if (ids.length) {
     const [{ data: c }, { data: w }, { data: d }] = await Promise.all([
       service.from("kid_controls").select("*").in("kid_id", ids),

@@ -1,3 +1,4 @@
+import { type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
@@ -30,7 +31,7 @@ export const dynamic = "force-dynamic";
  *     seconds only; only the delta since the last beat is debited.
  *   - end {session_id} → end_game_session.
  */
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
@@ -109,7 +110,7 @@ export async function POST(req: Request) {
   return fail("Action must be start, heartbeat, or end.", 400);
 }
 
-async function kidSessionPlay(req: Request, supabase: Awaited<ReturnType<typeof createClient>>) {
+async function kidSessionPlay(req: NextRequest, supabase: Awaited<ReturnType<typeof createClient>>) {
   const rawToken = req.cookies.get("kid_session")?.value ?? "";
   if (!/^[0-9a-f]{64}$/.test(rawToken)) return fail("Authentication required.", 401);
   let service;

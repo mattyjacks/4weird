@@ -484,6 +484,7 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
             Claim daily bonus
           </Link>
         </div>
+        </div>
       </div>
     );
   }
