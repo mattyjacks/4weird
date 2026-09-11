@@ -44,9 +44,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     .maybeSingle();
   if (error) return fail("Unable to load booking.", 500);
   if (!booking) return fail("Booking not found.", 404);
-  const row = booking as { id: string; renter_id: string; pod_id: string; agent_listings: { owner_id: string } | null };
+  const row = booking as unknown as {
+    id: string;
+    renter_id: string;
+    pod_id: string;
+    agent_listings: { owner_id: string } | { owner_id: string }[] | null;
+  };
   const isRenter = row.renter_id === data.user.id;
-  const isOwner = row.agent_listings?.owner_id === data.user.id;
+  const listing = Array.isArray(row.agent_listings) ? row.agent_listings[0] : row.agent_listings;
+  const isOwner = listing?.owner_id === data.user.id;
   if (!isRenter && !isOwner) return fail("Booking not found.", 404);
   if (!row.pod_id) return fail("No pod on this booking — it never provisioned a RunPod.", 409);
 
