@@ -306,7 +306,6 @@ export function FaceController({ onGameInput }: { onGameInput?: (input: FaceGame
       // dynamic-import path in app/components/lib. Function-constructor form
       // keeps webpack from rewriting the specifier; tsc cannot type a remote
       // URL module, so the result is cast from unknown.
-      // eslint-disable-next-line no-new-func
       const vision = (await Function(
         "return import(/* webpackIgnore: true */ 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs')",
       )()) as unknown as {

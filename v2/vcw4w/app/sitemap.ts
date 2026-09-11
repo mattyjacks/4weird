@@ -55,6 +55,7 @@ const SUPPORT: Entry[] = [
 
 // Evergreen exhibits + explainers.
 const EXPLORE: Entry[] = [
+  { path: "/ads", changeFrequency: "weekly", priority: 0.5 },
   { path: "/academy", changeFrequency: "monthly", priority: 0.7 },
   { path: "/tech", changeFrequency: "monthly", priority: 0.7 },
   { path: "/spaceships", changeFrequency: "monthly", priority: 0.7 },

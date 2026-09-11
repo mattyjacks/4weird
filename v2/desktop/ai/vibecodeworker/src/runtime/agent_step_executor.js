@@ -187,7 +187,14 @@ async function executeAgentStep({
     }
 
     el.brainScreenshot.src = 'data:image/jpeg;base64,' + screenshotBase64;
-    el.brainReasoning.innerHTML = `<strong>Action reasoning:</strong><br>${decision.reasoning}`;
+    el.brainReasoning.textContent = '';
+    {
+      const label = document.createElement('strong');
+      label.textContent = 'Action reasoning:';
+      el.brainReasoning.appendChild(label);
+      el.brainReasoning.appendChild(document.createElement('br'));
+      el.brainReasoning.appendChild(document.createTextNode(String(decision.reasoning ?? '')));
+    }
     logSystemMessage(`Decision reasoning: ${decision.reasoning}`);
     // Commentary is intentionally fire-and-forget: speech generation must
     // never add latency to gameplay input or the next agent decision.

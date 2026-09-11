@@ -131,12 +131,15 @@ export function initAuthCheck() {
     requiredPassword = process.env.VIBECODEWORKER_AUTH_PASSWORD || process.env.VibeCodeWorker_AUTH_PASSWORD;
   } else if (window.VIBECODEWORKER_AUTH_PASSWORD || window.VibeCodeWorker_AUTH_PASSWORD) {
     requiredPassword = window.VIBECODEWORKER_AUTH_PASSWORD || window.VibeCodeWorker_AUTH_PASSWORD;
-  } else if (localStorage.getItem('VIBECODEWORKER_AUTH_PASSWORD') || localStorage.getItem('VibeCodeWorker_AUTH_PASSWORD')) {
+  } else if (sessionStorage.getItem('VIBECODEWORKER_AUTH_PASSWORD') || sessionStorage.getItem('VibeCodeWorker_AUTH_PASSWORD')) {
     // Security: passwords are only honored from an explicit operator action
     // (env var, injected constant, or the lock dialog). They are never read
     // from URL query params (which leak into history, logs, and Referer
-    // headers) and there is no hardcoded default password.
-    requiredPassword = localStorage.getItem('VIBECODEWORKER_AUTH_PASSWORD') || localStorage.getItem('VibeCodeWorker_AUTH_PASSWORD');
+    // headers), never persisted in localStorage (XSS-readable across
+    // sessions), and there is no hardcoded default password.
+    requiredPassword = sessionStorage.getItem('VIBECODEWORKER_AUTH_PASSWORD') || sessionStorage.getItem('VibeCodeWorker_AUTH_PASSWORD');
+    // One-time migration: drop legacy persistent copies.
+    try { localStorage.removeItem('VIBECODEWORKER_AUTH_PASSWORD'); localStorage.removeItem('VibeCodeWorker_AUTH_PASSWORD'); } catch (e) { /* ignore */ }
   }
 
   if (requiredPassword) {
@@ -166,7 +169,7 @@ export function handleAuthSubmit(e) {
   const inputVal = el.authPasswordInput ? el.authPasswordInput.value.trim() : '';
   // Security: no fallback default password. Auth only engages when the
   // operator has configured one; otherwise there is nothing to guess.
-  const targetPassword = state.authPassword || localStorage.getItem('VIBECODEWORKER_AUTH_PASSWORD') || localStorage.getItem('VibeCodeWorker_AUTH_PASSWORD') || '';
+  const targetPassword = state.authPassword || sessionStorage.getItem('VIBECODEWORKER_AUTH_PASSWORD') || sessionStorage.getItem('VibeCodeWorker_AUTH_PASSWORD') || '';
 
   if (inputVal === targetPassword || !targetPassword) {
     sessionStorage.setItem('vibecodeworker_authenticated', 'true');
@@ -201,9 +204,10 @@ export function setupAuthEventListeners() {
           initAuthCheck();
         }
       } else if (!state.authPassword) {
-        const p = prompt('Set a session password for VibeCodeWorker (stored only in this browser profile):', '');
+        const p = prompt('Set a session password for VibeCodeWorker (kept only for this tab session):', '');
         if (p) {
-          localStorage.setItem('VIBECODEWORKER_AUTH_PASSWORD', p);
+          sessionStorage.setItem('VIBECODEWORKER_AUTH_PASSWORD', p);
+          try { localStorage.removeItem('VIBECODEWORKER_AUTH_PASSWORD'); localStorage.removeItem('VibeCodeWorker_AUTH_PASSWORD'); } catch (e) { /* ignore */ }
           sessionStorage.removeItem('vibecodeworker_authenticated');
           sessionStorage.removeItem('VibeCodeWorker_authenticated');
           initAuthCheck();

@@ -1668,9 +1668,13 @@ const path = require('path');
 function logSystemMessage(logStream, consoleLogs, dataDir, message, type = 'system') {
   const entry = document.createElement('div');
   entry.className = `log-entry ${type}`;
-  
+
   const timestamp = new Date().toLocaleTimeString([], { hour12: false });
-  entry.innerHTML = `<span style="opacity: 0.5;">[${timestamp}]</span> ${message}`;
+  const timeSpan = document.createElement('span');
+  timeSpan.style.opacity = '0.5';
+  timeSpan.textContent = `[${timestamp}]`;
+  entry.appendChild(timeSpan);
+  entry.appendChild(document.createTextNode(` ${String(message ?? '')}`));
   
   if (logStream) {
     logStream.appendChild(entry);

@@ -101,10 +101,16 @@ function handleProviderChange(providerSelect, modelSelect, localUrlGroup, apiKey
     }
   }
 
-  // Load key specific to selected provider from persistent storage
+  // Never auto-fill the raw key into the DOM: any script/extension with DOM
+  // read access could exfiltrate it. Show a masked hint instead; the resolved
+  // key is read from storage only at request time.
   const savedKey = getResolvedApiKey(val);
+  apiKeyInput.value = "";
   if (savedKey) {
-    apiKeyInput.value = savedKey;
+    apiKeyInput.placeholder = `Saved key loaded (${maskApiKey(savedKey)}) — leave blank to keep`;
+    apiKeyInput.dataset.hasSavedKey = "1";
+  } else {
+    delete apiKeyInput.dataset.hasSavedKey;
   }
   
   if (!skipSave) {
@@ -134,10 +140,15 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
   settings.modelName = migrateLegacyDefaultModel(prov, settings.modelName || '');
   elements.providerSelect.value = prov;
 
-  // Resolve API key from OS-level persistent storage across builds
+  // Resolve API key from OS-level persistent storage across builds.
+  // Never place the raw key in the DOM (see handleProviderChange).
   const resolvedKey = getResolvedApiKey(prov, settings.apiKey);
-  elements.apiKeyInput.value = resolvedKey || '';
-  if (!elements.apiKeyInput.value) {
+  elements.apiKeyInput.value = '';
+  if (resolvedKey) {
+    elements.apiKeyInput.placeholder = `Saved key loaded (${maskApiKey(resolvedKey)}) — leave blank to keep`;
+    elements.apiKeyInput.dataset.hasSavedKey = "1";
+  }
+  if (!resolvedKey) {
     if (prov === 'deepseek' && process.env.DEEPSEEK_API_KEY) {
       elements.apiKeyInput.placeholder = "Using process.env.DEEPSEEK_API_KEY";
     } else if (prov === 'meta' && (process.env.META_API_KEY || process.env.OPENROUTER_API_KEY)) {
@@ -247,7 +258,7 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
   agentBrain.updateConfig({
     dataDir,
     provider: prov,
-    apiKey: elements.apiKeyInput.value || '',
+    apiKey: resolvedKey || '',
     endpointUrl: elements.localUrlInput.value || '',
     modelName: elements.modelNameInput.value || '',
     gameRules: elements.gameRulesInput.value || '',
@@ -336,9 +347,12 @@ function saveConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     console.error("Failed to write settings to config.json", e);
   }
 
+  // Blank input means "keep the saved key": resolve it for this session
+  // without ever writing it back into the DOM.
+  const effectiveKey = apiKey || getResolvedApiKey(settings.provider, undefined) || '';
   agentBrain.updateConfig({
     provider: settings.provider,
-    apiKey,
+    apiKey: effectiveKey,
     endpointUrl: settings.localUrl,
     modelName: settings.modelName,
     gameRules: settings.gameRules,
