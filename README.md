@@ -7,7 +7,7 @@
 A strange, joyful arcade of experiments, simulations, and worlds — 34 playable browser games,
 a gamer/coder social network (Clans), an agentic bot platform, rentable AI agents + cloud desktops
 + team workspaces, leaderboards, lobbies, a screen-aware Gaming Buddy, and Vibe Coins:
-one coin economy where **100 coins = exactly $1.00** (25% platform cut included, never added on top).
+one coin economy where **100 coins = exactly $1.00** (25% platform cut included, never added on top). Test. Lol.
 
 ## What's inside
 
