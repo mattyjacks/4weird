@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import { ForgotPasswordForm } from "@/components/forgot-password-form";
+
+export const metadata: Metadata = {
+  title: "Reset Password",
+  description: "Reset your 4weird Games password via email.",
+  robots: { index: false, follow: false },
+};
 
 export default function Page() {
   return (
