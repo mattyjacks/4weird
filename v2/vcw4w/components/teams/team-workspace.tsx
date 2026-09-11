@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { PERMISSION_CATALOG, GROUP_LABELS, type PermissionGroup } from "@/lib/permissions";
 import { CLOUD_SERVICES, CHEAPEST_DEFAULTS, WORKSPACE_CUT_NOTE } from "@/lib/cloud-catalog";
 import { UNITUNITE_NAME, UNITUNITE_TAGLINE } from "@/lib/unitunite";
+import { BudgetControls } from "@/components/budget/budget-controls";
 
 type Org = { id: string; slug: string; name: string };
 type Team = { id: string; org_id: string; slug: string; name: string };
@@ -97,6 +98,8 @@ export function TeamWorkspace() {
         </form>
         <p className="mt-2 text-sm text-slate-400">{orgs.length ? `${orgs.length} org(s): ${orgs.map((o) => o.slug).join(", ")}` : "No orgs yet."}</p>
       </section>
+
+      {orgs.map((org) => <BudgetControls key={org.id} orgId={org.id} title={`${org.name} organization budget`} />)}
 
       <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
         <h2 className="text-xl font-bold">2 · {UNITUNITE_NAME} workspace <span className="text-sm font-normal text-slate-400">— {UNITUNITE_TAGLINE}</span></h2>

@@ -33,7 +33,7 @@ export default function Page() {
         <p className="mt-6 max-w-2xl text-base text-slate-300 sm:text-lg">
           100 Vibe Coins cost exactly $1.00 — every price already includes the 25% platform service
           cut, never added on top. New accounts start with a free 100-coin ($1.00) trial. Compute
-          works the same way: one gross metered price, split 25% platform / 75% provider.
+          works the same way: one gross metered price, split 25% platform / 75% provider. Coins expire one year after receipt, and every purchase automatically spends the oldest unexpired centicentcoins first.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
@@ -72,6 +72,7 @@ export default function Page() {
             <ul className="mt-5 space-y-2.5">
               <Check>500 / 1,500 / 5,000 / 25,000 packs + custom 500–100,000</Check>
               <Check>Daily login bonus (5–12 coins) + 25/25 referrals</Check>
+              <Check>One-year expiry · oldest unexpired centicentcoins spent first</Check>
               <Check>Cloud saves, leaderboards, clans, agent escrow</Check>
               <Check>Renting games: 1 coin/load (first hour included) + 1 coin/hr</Check>
             </ul>
