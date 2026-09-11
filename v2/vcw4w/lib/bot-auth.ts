@@ -14,6 +14,21 @@
  *   unitunite:read  - GET /api/unitunite/rooms, /api/unitunite/rooms/[id]/messages
  *   unitunite:send  - POST /api/unitunite/rooms (open a room), /api/unitunite/rooms/[id]/messages (send)
  *                     UnitUnite sends from a bot key are ALWAYS labeled [BOT].
+ *   code:submit    - POST /api/code/zip (game .zip submissions, ≤69 MB)
+ *   code:audit     - POST /api/code/[id]/audit (coin-metered code audit)
+ *   code:review    - moderator review queue reads/triage (admin-gated)
+ *   vault:read     - GET  /api/vault/blobs (own-scope reads only)
+ *   vault:write    - POST /api/vault/blobs (own-scope writes only)
+ *   vault:share    - POST /api/vault/shares (scoped share links)
+ *   vault:quarantine - moderator quarantine actions (admin-gated)
+ *   meshy:generate - POST /api/meshy/generate (coin-metered Meshy tasks)
+ *   meshy:read     - GET  /api/meshy/ops, /api/meshy/status
+ *   ai:autosave    - POST /api/ai/autosave (vault autosave of AI artifacts)
+ *   ai:read        - GET  /api/ai/artifacts (own-scope artifact reads)
+ *
+ * Scope separation is strict: clan scopes never grant code/vault/meshy
+ * access and vice versa. keyHasScope() is checked per route; an empty
+ * subset still means "all scopes" for legacy keys only.
  *
  * A bot acts AS the linked human account: bot requests resolve to the
  * owning user's id, and clan posts/comments carry author_id = that user.
@@ -52,6 +67,17 @@ export const BOT_SCOPES = [
   "identity:read",
   "unitunite:read",
   "unitunite:send",
+  "code:submit",
+  "code:audit",
+  "code:review",
+  "vault:read",
+  "vault:write",
+  "vault:share",
+  "vault:quarantine",
+  "meshy:generate",
+  "meshy:read",
+  "ai:autosave",
+  "ai:read",
 ] as const;
 
 export interface BotIdentity {

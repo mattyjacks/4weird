@@ -22,6 +22,17 @@ export const BOT_KEY_SCOPES = [
   "identity:read",
   "unitunite:read",
   "unitunite:send",
+  "code:submit",
+  "code:audit",
+  "code:review",
+  "vault:read",
+  "vault:write",
+  "vault:share",
+  "vault:quarantine",
+  "meshy:generate",
+  "meshy:read",
+  "ai:autosave",
+  "ai:read",
 ] as const;
 
 /** Platform cut INCLUDED in every log-storage charge. Same 25% as everything. */
