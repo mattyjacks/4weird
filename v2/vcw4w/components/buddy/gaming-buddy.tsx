@@ -196,8 +196,9 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
         <div>
           <h2 className="text-lg font-black">🎧 Gaming Buddy — universal screen reader + voice</h2>
           <p className="mt-1 text-sm text-slate-300">
-            Talks while you play in any of 9 OpenAI voices. Reads the screen, reacts to score changes, runs on the
-            VibeCodeWorker observe→reason→act loop. Every turn meters Vibe Coins with the 25% cut included.
+            Talks while you play in any of 9 OpenAI voices. Reads the screen, reacts to score changes, and runs on the
+            VibeCodeWorker observe→reason→act loop. OpenAI turns meter Vibe Coins with the 25% cut included; local
+            fallback answers are free.
           </p>
         </div>
         {sessionId ? (
@@ -296,6 +297,24 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
               React to screen
             </button>
           </form>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void talk("Give me one concise tactical recommendation based on the current battle state.")}
+              className="rounded-lg border border-cyan-300/40 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-300/10 disabled:opacity-60"
+            >
+              🧠 Ask for tactics
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void talk("Hail the enemy commander: give one short fictional radio taunt, then one fair counter-tactic.")}
+              className="rounded-lg border border-rose-300/40 px-4 py-2 text-sm font-semibold text-rose-100 hover:bg-rose-300/10 disabled:opacity-60"
+            >
+              📡 Hail enemy AI
+            </button>
+          </div>
         </div>
       )}
     </section>

@@ -35,7 +35,14 @@ create policy game_saves_update_own on public.game_saves
   for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 
 create or replace function public.touch_game_save_updated_at()
-returns trigger language plpgsql as $$ begin new.updated_at = now(); return new; $$;
+returns trigger
+language plpgsql
+as $save_touch$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$save_touch$;
 drop trigger if exists game_saves_updated_at on public.game_saves;
 drop trigger if exists trg_game_saves_updated_at on public.game_saves;
 create trigger game_saves_updated_at

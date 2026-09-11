@@ -84,6 +84,12 @@ if (!usagePage.includes("/my/usage")) throw new Error("Usage page must be the /m
 if (!buddyPage.includes("Gaming Buddy") || !buddyPage.includes("9")) throw new Error("Buddy page must present the universal buddy.");
 if (!widget.includes("BUDDY_VOICES") && !widget.includes("9")) throw new Error("Buddy widget must offer the 9 voices.");
 if (!widget.includes("/api/my/usage")) throw new Error("Buddy widget must show live session/total/24h/1h spend from /api/my/usage.");
+for (const token of ["Ask for tactics", "Hail enemy AI", "counter-tactic"]) {
+  if (!widget.includes(token)) throw new Error(`Buddy widget missing playable AI action: ${token}.`);
+}
+if (!buddyEngine.includes("Never claim you can see hidden game state")) {
+  throw new Error("Buddy tactics must not invent unseen game state.");
+}
 // Widget hardening: score feed must be origin-checked (ad iframes share the
 // page), turns must be busy-guarded (no double-metering), voice must stop on
 // unmount/end.
