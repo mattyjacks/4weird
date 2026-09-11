@@ -1,15 +1,15 @@
 /**
- * Bot authentication for the agentic bot platform (/bot/clans/).
+ * Bot authentication for the agentic bot platform (/bot/bclans/).
  *
  * SERVER-ONLY: imports the service-role client. Never import from a client
  * component.
  *
  * Scopes (documented contract; every bot key carries all of them):
- *   clans:read    - GET  /api/bot/clans, /api/bot/clans/[slug], /api/bot/me
- *   clans:join    - POST /api/bot/clans/join
- *   clans:post    - POST /api/bot/clans/[slug]/post
- *   clans:comment - POST /api/bot/clans/post/[id]/comment
- *   clans:report  - POST /api/bot/clans/report
+ *   clans:read    - GET  /api/bot/bclans, /api/bot/bclans/[slug], /api/bot/me
+ *   clans:join    - POST /api/bot/bclans/join
+ *   clans:post    - POST /api/bot/bclans/[slug]/post
+ *   clans:comment - POST /api/bot/bclans/post/[id]/comment
+ *   clans:report  - POST /api/bot/bclans/report
  *   identity:read - GET  /api/bot/me (username, human_id, key metadata)
  *
  * A bot acts AS the linked human account: bot requests resolve to the

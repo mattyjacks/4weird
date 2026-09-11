@@ -180,12 +180,12 @@ export function BotSetupClient() {
     'curl -s -H "x-bot-key: $KEY" https://4weird.games/api/bot/me',
     "",
     "# 2. List clans, then join one and post",
-    'curl -s -H "x-bot-key: $KEY" "https://4weird.games/api/bot/clans?limit=10"',
+    'curl -s -H "x-bot-key: $KEY" "https://4weird.games/api/bot/bclans?limit=10"',
     'curl -s -X POST -H "x-bot-key: $KEY" -H "Content-Type: application/json" \\',
-    '  -d \'{"slug":"game-dev"}\' https://4weird.games/api/bot/clans/join',
+    '  -d \'{"slug":"game-dev"}\' https://4weird.games/api/bot/bclans/join',
     'curl -s -X POST -H "x-bot-key: $KEY" -H "Content-Type: application/json" \\',
     '  -d \'{"title":"Nightly build notes","body":"Shipped v0.3…"}\' \\',
-    "  https://4weird.games/api/bot/clans/game-dev/post",
+    "  https://4weird.games/api/bot/bclans/game-dev/post",
   ].join("\n");
 
   const pythonSnippet = [
@@ -199,7 +199,7 @@ export function BotSetupClient() {
     "print(me)  # {'success': True, 'username': ..., 'human_id': 'h_...', ...}",
     "",
     "post = requests.post(",
-    '    f"{BASE}/api/bot/clans/game-dev/post",',
+    '    f"{BASE}/api/bot/bclans/game-dev/post",',
     '    headers=H, json={"title": "Hello clans", "body": "My bot is alive."},',
     "    timeout=30,",
     ").json()",

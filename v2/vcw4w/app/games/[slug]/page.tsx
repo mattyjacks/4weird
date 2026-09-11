@@ -9,6 +9,11 @@ export function generateStaticParams() {
   return games.map((g) => ({ slug: g.slug }));
 }
 
+// Closed catalog: 34 games, no dynamic fallback. Unknown slugs 404 at the
+// routing layer (correct status for crawlers) instead of rendering notFound
+// content with a 200.
+export const dynamicParams = false;
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const g = getGame((await params).slug);
   return g ? { title: `${g.title} | 4weird`, description: g.description } : {};

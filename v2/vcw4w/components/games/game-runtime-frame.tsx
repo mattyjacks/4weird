@@ -14,8 +14,10 @@ type RuntimeEvent = {
 };
 
 // First-party hosts the shell and the static game bundles can be served
-// from. Kept in sync with public/games/html/runtime-bridge.js.
-const TRUSTED_GAME_ORIGINS = [
+// from. Kept in sync with public/games/html/runtime-bridge.js. Exported so
+// other shell listeners (e.g. the Buddy widget's score feed) can apply the
+// same origin allowlist instead of trusting every iframe on the page.
+export const TRUSTED_GAME_ORIGINS = [
   "https://4weird.com",
   "https://www.4weird.com",
   "https://4weird.games",

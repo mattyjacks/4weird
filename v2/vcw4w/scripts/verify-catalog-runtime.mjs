@@ -25,4 +25,14 @@ for (const name of canonicalShells) {
   if (html.includes('"../game-meta.js"') || html.includes("'../game-meta.js") || html.includes('"../../game-meta.js"') || html.includes("'../../game-meta.js")) relativeMeta.push(name);
 }
 if (unbridged.length || relativeMeta.length) { console.error(JSON.stringify({ unbridged, relativeMeta }, null, 2)); process.exit(1); }
+// Closed catalogs: unknown slugs/sections must 404 with a real 404 status,
+// not render the not-found UI with a 200 (soft-404 leaks crawl budget and
+// misleads players). generateStaticParams + dynamicParams=false does that.
+for (const page of ["app/games/[slug]/page.tsx", "app/games/[slug]/play/page.tsx", "app/vibecodeworker/[section]/page.tsx"]) {
+  const src = await readFile(join(process.cwd(), page), "utf8");
+  if (!src.includes("generateStaticParams") || !src.includes("dynamicParams = false") || !src.includes("notFound()")) {
+    console.error(`${page} must be a closed static catalog (generateStaticParams + dynamicParams=false + notFound).`);
+    process.exit(1);
+  }
+}
 console.log(`Catalog runtime integrity OK: ${indexCount} legacy entrypoints, ${canonicalCount} canonical bundles; ${paths.length} literal paths checked.`);

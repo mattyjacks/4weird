@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BUDDY_VOICES } from "@/lib/game-ai";
+import { TRUSTED_GAME_ORIGINS } from "@/components/games/game-runtime-frame";
 
 type BuddyMessage = { role: "buddy" | "you"; text: string; at: string };
 type SessionSpend = { gross: number; cut: number; provider: number; turns: number };
@@ -66,13 +67,26 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
   }, []);
 
   // OBSERVE: game score events forwarded by GameRuntimeFrame via postMessage.
+  // Origin-checked: without this any iframe on the page (including ad
+  // slots) could spoof score context into buddy prompts.
   useEffect(() => {
     const onMessage = (event: MessageEvent<{ version?: number; type?: string; score?: number }>) => {
+      if (event.origin !== window.location.origin && !TRUSTED_GAME_ORIGINS.includes(event.origin)) return;
       if (event.data?.version !== 1 || event.data?.type !== "score") return;
       if (Number.isFinite(event.data.score)) setScore(Number(event.data.score));
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
+  }, []);
+
+  // Stop any in-flight voice when the session ends or the widget unmounts.
+  const stopVoice = useCallback(() => {
+    try {
+      audioRef.current?.pause();
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    } catch {
+      /* audio teardown is best-effort */
+    }
   }, []);
 
   useEffect(() => {
@@ -81,6 +95,8 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
     const timer = setInterval(() => void refreshSpend(sessionId), 15_000);
     return () => clearInterval(timer);
   }, [sessionId, refreshSpend]);
+
+  useEffect(() => stopVoice, [stopVoice]);
 
   const start = async () => {
     setBusy(true);
@@ -104,6 +120,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
 
   const end = async () => {
     if (!sessionId) return;
+    stopVoice();
     try {
       await post("/api/buddy/session", { action: "end", session_id: sessionId });
       setStatus("Session ended. Spend stays on /my/usage/ forever.");
@@ -126,7 +143,9 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
   };
 
   const talk = async (text: string) => {
-    if (!sessionId || !text.trim()) return;
+    // Guarded: without this, double-Enter submits two concurrent turns and
+    // the user is metered twice for one message.
+    if (!sessionId || !text.trim() || busy) return;
     setBusy(true);
     const screen = text.trim().startsWith("/") ? observeScreenText() : `${observeScreenText()} ${text.trim()}`.trim();
     setMessages((m) => [...m, { role: "you", text: text.trim(), at: new Date().toLocaleTimeString() }]);

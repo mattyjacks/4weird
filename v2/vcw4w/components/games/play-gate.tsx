@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { GameRuntimeFrame } from "@/components/games/game-runtime-frame";
 import { AdSlot } from "@/components/ads/AdSlot";
 import type { HouseAd } from "@/lib/ads";
@@ -26,8 +27,10 @@ type Gate =
   | { kind: "denied"; message: string }
   | { kind: "topup"; message: string };
 
-const METER_TIMEOUT_MS = 8000;
+const METER_TIMEOUT_MS = 20000;
 /** Assume a full load when the runtime never reports bytes (safe direction). */
+// Note: the timeout only delays *billing*, never play — the frame mounts
+// immediately in "metering", so slow game loads still report real bytes.
 const UNMEASURED_BYTES = 2 * GAME_CACHE_FREE_BYTES;
 
 async function postJson<T>(path: string, body: unknown): Promise<T> {
@@ -61,12 +64,26 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
  * already degrades to local progress), no multiplayer, no AI/Buddy.
  */
 export function PlayGate({ slug, title, src, version }: { slug: string; title: string; src: string; version?: string }) {
+  return (
+    <Suspense>
+      <PlayGateInner slug={slug} title={title} src={src} version={version} />
+    </Suspense>
+  );
+}
+
+// Lobby joins land here as ?match=<uuid>. The match id is forwarded into the
+// runtime iframe's query string (same-origin) where the game's own
+// matchmaking code reads it. Client-side on purpose: the play page stays
+// static so unknown slugs 404 with a real 404 status, and useSearchParams
+// needs the Suspense boundary above during prerender.
+function PlayGateInner({ slug, title, src, version }: { slug: string; title: string; src: string; version?: string }) {
+  const match = useSearchParams().get("match");
+  const frameSrc = /^[0-9a-f-]{36}$/i.test(String(match ?? "")) ? `${src}?match=${encodeURIComponent(String(match))}` : src;
   const [gate, setGate] = useState<Gate>({ kind: "checking" });
   const [broke, setBroke] = useState("");
   const [showGuestAd, setShowGuestAd] = useState(false);
   const sessionRef = useRef<string | null>(null);
   const startedRef = useRef(false);
-  const beatsRef = useRef(0);
 
   const startSession = useCallback(
     async (newBytes: number) => {
@@ -186,7 +203,6 @@ export function PlayGate({ slug, title, src, version }: { slug: string; title: s
       if (document.hidden) return;
       try {
         await postJson("/api/games/session", { action: "heartbeat", session_id: sid, active_seconds: GAME_HEARTBEAT_SECONDS });
-        beatsRef.current += 1;
       } catch (error) {
         if (/insufficient balance/i.test(error instanceof Error ? error.message : "")) {
           setBroke("Out of coins — hourly metering paused. Top up to keep your play counted (the game keeps running).");
@@ -225,15 +241,13 @@ export function PlayGate({ slug, title, src, version }: { slug: string; title: s
     return () => clearInterval(timer);
   }, [gate]);
 
-  if (gate.kind === "checking" || gate.kind === "metering") {
+  if (gate.kind === "checking") {
     return (
       <div className="overflow-hidden rounded-2xl border border-white/15 bg-black">
         <div className="grid h-[70vh] min-h-[420px] place-items-center p-8 text-center sm:h-[75vh]">
           <div>
             <p className="text-lg font-bold text-white">Loading {title}…</p>
-            <p className="mt-2 text-sm text-white/60">
-              {gate.kind === "metering" ? "Measuring fresh download (cached loads play free)…" : "Checking your pass…"}
-            </p>
+            <p className="mt-2 text-sm text-white/60">Checking your pass…</p>
           </div>
         </div>
       </div>
@@ -301,14 +315,28 @@ export function PlayGate({ slug, title, src, version }: { slug: string; title: s
     );
   }
 
+  // "metering" and "playing" share one mounted frame below so the game never
+  // reboots when the coin session starts. This is load-bearing: the byte
+  // report that starts the session comes from the runtime bridge INSIDE the
+  // frame, so the frame must mount before metering can complete — blocking
+  // it forced every load down the unmeasured-fallback path (full fee even
+  // for cached loads).
+  const metering = gate.kind === "metering";
+  const playing = gate.kind === "playing" ? gate : null;
+
   return (
     <div>
-      {gate.signedIn && (
+      {metering && (
         <p role="status" className="mb-2 rounded-xl border border-white/10 bg-white/[.04] px-4 py-2 text-xs text-slate-300">
-          {gate.sessionId ? (
+          Measuring fresh download (cached loads play free)…
+        </p>
+      )}
+      {playing?.signedIn && (
+        <p role="status" className="mb-2 rounded-xl border border-white/10 bg-white/[.04] px-4 py-2 text-xs text-slate-300">
+          {playing.sessionId ? (
             <>
-              Metering play: this load <b className="text-white">{gate.freeLoad ? "free (cached)" : `${gate.loadFee} coin${gate.loadFee === 1 ? "" : "s"} (first hour included)`}</b>
-              {" "}· +{gate.coinsPerHour} coin/hr after · <Link href="/my/usage/" className="text-cyan-300 hover:underline">usage</Link>
+              Metering play: this load <b className="text-white">{playing.freeLoad ? "free (cached)" : `${playing.loadFee} coin${playing.loadFee === 1 ? "" : "s"} (first hour included)`}</b>
+              {" "}· +{playing.coinsPerHour} coin/hr after · <Link href="/my/usage/" className="text-cyan-300 hover:underline">usage</Link>
             </>
           ) : (
             <>Playing unmetered this load (session unavailable).</>
@@ -316,7 +344,7 @@ export function PlayGate({ slug, title, src, version }: { slug: string; title: s
           {broke && <> · <span className="text-amber-200">{broke}</span></>}
         </p>
       )}
-      {!gate.signedIn && (
+      {playing && !playing.signedIn && (
         <p className="mb-2 rounded-xl border border-amber-300/30 bg-amber-300/[.06] px-4 py-2 text-xs text-slate-300">
           Playing as a guest — free with ads, no cloud saves or multiplayer.{" "}
           <Link href="/auth/sign-up" className="font-bold text-cyan-300 hover:underline">
@@ -327,7 +355,7 @@ export function PlayGate({ slug, title, src, version }: { slug: string; title: s
       )}
       <div className="overflow-hidden rounded-2xl border border-white/15 bg-black">
         <div className="h-[70vh] min-h-[420px] sm:h-[75vh]">
-          <GameRuntimeFrame slug={slug} title={title} src={src} />
+          <GameRuntimeFrame slug={slug} title={title} src={frameSrc} />
         </div>
       </div>
       {showGuestAd && (

@@ -39,8 +39,9 @@ const nextConfig: NextConfig = {
       { source: "/me/:path*", destination: "/account", permanent: true },
       { source: "/my", destination: "/account", permanent: true },
       { source: "/my/", destination: "/account", permanent: true },
-      { source: "/my/:section", destination: "/account?tab=:section", permanent: true },
-      { source: "/my/:section/", destination: "/account?tab=:section", permanent: true },
+      // NOTE: no /my/:section redirect — /my/usage/ and /my/rights/ are live
+      // login-gated pages (see app/my/*/page.tsx). A catch-all here would
+      // shadow them, since redirects run before page routes.
       { source: "/lobbies/", destination: "/lobbies", permanent: true },
       { source: "/games/html/platform-wars", destination: "/games/platform-wars/play", permanent: true },
       { source: "/games/html/platform-wars/", destination: "/games/platform-wars/play", permanent: true },
@@ -69,6 +70,11 @@ const nextConfig: NextConfig = {
       { source: "/vcw/desktop/", destination: "/vibecodeworker", permanent: true },
       { source: "/vcw/web/hub", destination: "/vibecodeworker/hub", permanent: true },
       { source: "/vcw/web/hub/", destination: "/vibecodeworker/hub", permanent: true },
+      // Bot clan UI moved from /bot/clans to /bot/bclans (less confusing
+      // next to the human /clans pages). The retired /api/bot/clans/*
+      // endpoints intentionally have no redirect — they are gone (404).
+      { source: "/bot/clans", destination: "/bot/bclans", permanent: true },
+      { source: "/bot/clans/:path*", destination: "/bot/bclans/:path*", permanent: true },
     ];
   },
 };

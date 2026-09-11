@@ -37,6 +37,7 @@ const NAV_GROUPS = [
     label: "Account",
     links: [
       { href: "/bot/setup", label: "Bots" },
+      { href: "/bot/bclans", label: "Bot Clans" },
       { href: "/account", label: "Account" },
       { href: "/my/usage/", label: "Usage" },
       { href: "/accessibility", label: "Accessibility" },
@@ -47,8 +48,12 @@ const NAV_GROUPS = [
 const GITHUB_HREF = "https://github.com/mattyjacks/4weird";
 
 function isActive(pathname: string, href: string) {
-  if (href === "/") return pathname === "/";
-  return pathname === href || pathname.startsWith(`${href}/`);
+  // Trailing-slash-insensitive: "/my/usage" and "/my/usage/" are the same page.
+  const norm = (p: string) => (p.length > 1 ? p.replace(/\/$/, "") : p);
+  const path = norm(pathname);
+  const target = norm(href);
+  if (target === "/") return path === "/";
+  return path === target || path.startsWith(`${target}/`);
 }
 
 function groupActive(pathname: string, links: { href: string }[]) {

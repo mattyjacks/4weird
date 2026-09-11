@@ -82,6 +82,17 @@ for (const token of ["ad_required", "rateLimit", "clientIp", "GUEST_FREE_LOADS_P
 if (!gate.includes("guest-pass") || !gate.includes("fourweird-metering") || !gate.includes("heartbeat") || !gate.includes("keepalive")) {
   throw new Error("PlayGate must gate guests, meter bytes, heartbeat, and end sessions.");
 }
+// The frame must mount during "metering": the byte report comes from the
+// bridge inside the frame, so blocking the frame forced every load down the
+// unmeasured-fallback path (full fee even for cached loads).
+if (gate.includes('gate.kind === "checking" || gate.kind === "metering"')) {
+  throw new Error("PlayGate must mount the frame during metering (no metering deadlock).");
+}
+if (!migration.includes("for update")) throw new Error("Heartbeat must lock the session row (no double-bill on retries).");
+if (!bundle.includes("for update")) throw new Error("Runbook bundle copy of the migration is stale.");
+for (const [name, src] of [["rates", rates], ["chat", read("../app/api/buddy/chat/route.ts")], ["tts", read("../app/api/buddy/tts/route.ts")]]) {
+  if (!src.includes("rpcFail")) throw new Error(`${name} API must route RPC errors through rpcFail (no raw PG leaks).`);
+}
 if (!adSlot.includes("Skip") || !adSlot.includes("NEXT_PUBLIC_AD_PROVIDER_URL") || !adSlot.includes("pickHouseAd")) {
   throw new Error("AdSlot must be instantly skippable with provider-first + house fallback.");
 }

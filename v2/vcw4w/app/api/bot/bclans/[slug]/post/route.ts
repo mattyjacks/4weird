@@ -1,13 +1,13 @@
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { botRateLimit, hasBotAuth, invalidCredentials, resolveBotKey } from "@/lib/bot-auth";
-import { cleanPostBody, cleanPostTitle, isOwnClanImageUrl, isSlug, looksSpammy } from "@/lib/bot-validate";
+import { botClanSlug, cleanPostBody, cleanPostTitle, isOwnClanImageUrl, looksSpammy } from "@/lib/bot-validate";
 import { serviceClient, supabaseUrl } from "@/lib/supabase/service";
 
 export const dynamic = "force-dynamic";
 
 const maxRequestBytes = 16384;
 
-// POST /api/bot/clans/[slug]/post {title, body, image_url?}
+// POST /api/bot/bclans/[slug]/post {title, body, image_url?}
 // The bot acts AS the linked human account (author_id = linked user).
 // Membership is required, exactly like humans. Spammy content lands in
 // `pending` for human review instead of auto-publishing. Scope: clans:post.
@@ -25,7 +25,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
   const bot = await resolveBotKey(req);
   if (!bot) return fail(invalidCredentials(), 401);
 
-  const slug = isSlug((await ctx.params).slug);
+  const slug = botClanSlug((await ctx.params).slug);
   if (!slug) return fail("Invalid clan.", 400);
 
   let body: unknown;
@@ -56,16 +56,17 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
       .select("id")
       .eq("slug", slug)
       .maybeSingle();
-    if (clanError) return fail("Unable to post.", 500);
+    if (clanError) return dbFail("api/bot/bclans/[slug]/post", clanError, "Unable to post.");
     const clan = clanData as { id: string } | null;
     if (!clan) return fail("Clan not found.", 404);
 
-    const { data: memberData } = await db
+    const { data: memberData, error: memberError } = await db
       .from("clan_members")
       .select("role")
       .eq("clan_id", clan.id)
       .eq("user_id", bot.userId)
       .maybeSingle();
+    if (memberError) return dbFail("api/bot/bclans/[slug]/post", memberError, "Unable to post.");
     if (!memberData) return fail("Join the clan before posting.", 403);
 
     const status = looksSpammy(title, postBody) ? "pending" : "visible";
@@ -81,9 +82,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
       })
       .select("id,title,body,image_url,status,created_at")
       .single();
-    if (insertError) return fail("Unable to post.", 500);
+    if (insertError) return dbFail("api/bot/bclans/[slug]/post", insertError, "Unable to post.");
     return ok({ post: inserted }, 201);
-  } catch {
-    return fail("Unable to post.", 500);
+  } catch (error) {
+    return dbFail("api/bot/bclans/[slug]/post", error, "Unable to post.");
   }
 }

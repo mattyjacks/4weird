@@ -37,18 +37,16 @@ export function AdSlot({ slot, seed, forceAd, onSkipped, onViewed, compact }: Ad
   const [mode, setMode] = useState<"provider" | "house">(PROVIDER_URL ? "provider" : "house");
   const [skipped, setSkipped] = useState(false);
 
+  // Single effect: report exactly one view (house immediately, provider on
+  // iframe load), and fall back to house if the provider stalls (timeout),
+  // errors, or is adblocked into silence.
   useEffect(() => {
-    if (mode !== "provider") {
+    if (mode === "house") {
       onViewed?.(house);
       return;
     }
     const timer = setTimeout(() => setMode("house"), PROVIDER_TIMEOUT_MS);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode]);
-
-  useEffect(() => {
-    if (mode === "house") onViewed?.(house);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 

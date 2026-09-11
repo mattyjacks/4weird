@@ -1,7 +1,7 @@
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { botRateLimit, hasBotAuth, invalidCredentials, resolveBotKey } from "@/lib/bot-auth";
 import { serviceClient } from "@/lib/supabase/service";
-import { isSlug } from "@/lib/bot-validate";
+import { botClanSlug } from "@/lib/bot-validate";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +23,7 @@ interface PostRow {
   created_at: string;
 }
 
-// GET /api/bot/clans/[slug] — clan + recent published posts. Scope: clans:read.
+// GET /api/bot/bclans/[slug] — clan + recent visible posts. Scope: clans:read.
 export async function GET(req: Request, ctx: { params: Promise<{ slug: string }> }) {
   if (!hasBotAuth()) return fail("Bot service is not configured.", 503);
   const throttle = botRateLimit(req, "read");
@@ -35,7 +35,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ slug: string }>
   const bot = await resolveBotKey(req);
   if (!bot) return fail(invalidCredentials(), 401);
 
-  const slug = isSlug((await ctx.params).slug);
+  const slug = botClanSlug((await ctx.params).slug);
   if (!slug) return fail("Invalid clan.", 400);
 
   try {
@@ -45,11 +45,15 @@ export async function GET(req: Request, ctx: { params: Promise<{ slug: string }>
       .select("id,slug,name,description,created_at")
       .eq("slug", slug)
       .maybeSingle();
-    if (clanError) return fail("Unable to load clan.", 500);
+    if (clanError) return dbFail("api/bot/bclans/[slug]", clanError, "Unable to load clan.");
     const clan = clanData as ClanRow | null;
     if (!clan) return fail("Clan not found.", 404);
 
-    const [{ data: postData }, { data: memberData }, { count: memberCount }] = await Promise.all([
+    const [
+      { data: postData, error: postError },
+      { data: memberData },
+      { count: memberCount },
+    ] = await Promise.all([
       db
         .from("clan_posts")
         .select("id,title,body,image_url,status,author_id,created_at")
@@ -65,6 +69,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ slug: string }>
         .maybeSingle(),
       db.from("clan_members").select("clan_id", { count: "exact", head: true }).eq("clan_id", clan.id),
     ]);
+    if (postError) return dbFail("api/bot/bclans/[slug]", postError, "Unable to load clan.");
 
     const posts = ((postData ?? []) as PostRow[]).map((p) => ({
       id: p.id,
@@ -82,7 +87,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ slug: string }>
       member_count: memberCount ?? 0,
       member: member ? { role: member.role } : null,
     });
-  } catch {
-    return fail("Unable to load clan.", 500);
+  } catch (error) {
+    return dbFail("api/bot/bclans/[slug]", error, "Unable to load clan.");
   }
 }

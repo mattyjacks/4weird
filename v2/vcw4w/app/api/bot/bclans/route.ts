@@ -1,4 +1,4 @@
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { BOT_SCOPES, botRateLimit, hasBotAuth, invalidCredentials, resolveBotKey } from "@/lib/bot-auth";
 import { serviceClient } from "@/lib/supabase/service";
 import { clampLimit } from "@/lib/validate";
@@ -14,7 +14,7 @@ interface ClanRow {
   clan_members?: { count: number }[];
 }
 
-// GET /api/bot/clans — list clans. Scope: clans:read.
+// GET /api/bot/bclans — list clans. Scope: clans:read.
 export async function GET(req: Request) {
   if (!hasBotAuth()) return fail("Bot service is not configured.", 503);
   const throttle = botRateLimit(req, "read");
@@ -38,7 +38,7 @@ export async function GET(req: Request) {
       .select("id,slug,name,description,created_at,clan_members(count)")
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
-    if (error) return fail("Unable to load clans.", 500);
+    if (error) return dbFail("api/bot/bclans", error, "Unable to load clans.");
     const clans = ((data ?? []) as ClanRow[]).map((row) => ({
       id: row.id,
       slug: row.slug,
@@ -48,7 +48,7 @@ export async function GET(req: Request) {
       member_count: row.clan_members?.[0]?.count ?? 0,
     }));
     return ok({ clans, scopes: [...BOT_SCOPES] });
-  } catch {
-    return fail("Unable to load clans.", 500);
+  } catch (error) {
+    return dbFail("api/bot/bclans", error, "Unable to load clans.");
   }
 }

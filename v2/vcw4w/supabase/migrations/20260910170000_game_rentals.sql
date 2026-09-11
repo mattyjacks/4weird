@@ -263,7 +263,9 @@ declare
 begin
   if auth.uid() is null then raise exception 'login required'; end if;
   if p_seconds is null or p_seconds < 1 or p_seconds > 3600 then raise exception 'seconds must be 1..3600'; end if;
-  select * into v_session from public.game_sessions where id = p_session and user_id = auth.uid();
+  -- Lock the session row: concurrent beats (client retries, two tabs) must
+  -- serialize on billed_hourly, or both read the same counter and double-bill.
+  select * into v_session from public.game_sessions where id = p_session and user_id = auth.uid() for update;
   if not found then raise exception 'session not found'; end if;
   if v_session.status <> 'open' then raise exception 'session is not open'; end if;
 

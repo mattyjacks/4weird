@@ -16,12 +16,13 @@
     "verify:robots": "node scripts/verify-robots-policy.mjs",
     "verify:spaceships": "node scripts/verify-spaceships-metadata.mjs",
     "verify:auth": "node scripts/verify-auth-routes.mjs",
+    "verify:bot": "node scripts/verify-bot-routes.mjs",
     "verify:economy": "node scripts/verify-economy.mjs",
     "verify:game-ai": "node scripts/verify-game-ai.mjs",
     "verify:game-rentals": "node scripts/verify-game-rentals.mjs",
     "verify:pwa": "node scripts/verify-pwa.mjs",
     "verify:rights": "node scripts/verify-rights.mjs",
-    "test": "npm run sync:games && npm run verify:games && npm run verify:catalog && npm run verify:legacy && npm run verify:legacy-parity && npm run verify:service-worker && npm run verify:robots && npm run verify:spaceships && npm run verify:auth && npm run verify:economy && npm run verify:game-ai && npm run verify:game-rentals && npm run verify:pwa && npm run verify:rights && npm run lint && tsc --noEmit"
+    "test": "npm run sync:games && npm run verify:games && npm run verify:catalog && npm run verify:legacy && npm run verify:legacy-parity && npm run verify:service-worker && npm run verify:robots && npm run verify:spaceships && npm run verify:auth && npm run verify:bot && npm run verify:economy && npm run verify:game-ai && npm run verify:game-rentals && npm run verify:pwa && npm run verify:rights && npm run lint && tsc --noEmit"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.1",

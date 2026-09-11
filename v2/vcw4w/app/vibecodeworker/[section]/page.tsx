@@ -13,4 +13,6 @@ const sections = new Map([
 ]);
 
 export function generateStaticParams() { return [...sections.keys()].map((section) => ({ section })); }
+// Closed section list: unknown sections 404 with a real 404 status.
+export const dynamicParams = false;
 export default async function SectionPage({ params }: { params: Promise<{ section: string }> }) { const { section } = await params; const content = sections.get(section); if (!content) notFound(); const legacy = section === "docs" ? "/vibecodeworker-legacy/docs/index.html" : section === "demo" ? "/vibecodeworker-legacy/demo/index.html" : `/vibecodeworker-legacy/${section}.html`; return <MarketingPage title={content[0]} intro={content[1]}><Link className="inline-block rounded-full border border-white/20 px-5 py-2 text-cyan-300" href={legacy}>Open original v1 surface</Link></MarketingPage>; }

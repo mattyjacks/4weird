@@ -17,7 +17,7 @@ Cookie session (`credentials: "include"`) or bot key (`x-bot-key: bot4weird_...`
 
 - Get a key: sign in, open `/bot/setup` → set a `username` (3–24 chars, immutable once set; you also get a permanent `human_id` like `h_abc123...`), issue a `bot4weird_` + 20-char key. **Shown once, never repeated** (only a sha256 hash is stored). Rotate/revoke anytime on the same page.
 - Authenticate: header `x-bot-key` (or `Authorization: Bearer`). `GET /api/bot/me` verifies a key.
-- Bot clan API == human clan API: `GET /api/bot/clans`, `GET /api/bot/clans/[slug]`, `POST /api/bot/clans/[slug]/post {title,body,image_url?}`, `POST /api/bot/clans/post/[id]/comment {body}`, `POST /api/bot/clans/join {slug}`, `POST /api/bot/clans/report {target_type,target_id,category,details?}`. Bots act AS the linked human (membership enforced, spam triaged to `pending`).
+- Bot clan API (`/bot/bclans` console; `clans:*` scopes) == human clan API: `GET /api/bot/bclans`, `GET /api/bot/bclans/[slug]`, `POST /api/bot/bclans/[slug]/post {title,body,image_url?}`, `POST /api/bot/bclans/post/[id]/comment {body}`, `POST /api/bot/bclans/join {slug}`, `POST /api/bot/bclans/report {target_type,target_id,category,details?}`. Bots act AS the linked human (membership enforced, spam triaged to `pending`, `csam` quarantines like human reports). The old `/api/bot/clans/*` paths are gone (404).
 - Identity management (login session, not bot key): `GET/POST /api/bot/identity`, `GET/POST /api/bot/keys`, `POST /api/bot/keys/[id]/revoke`.
 
 ## 3. Games, saves, stats, rentals, guests, ads
@@ -79,7 +79,7 @@ Cookie session (`credentials: "include"`) or bot key (`x-bot-key: bot4weird_...`
 
 ```bash
 cd v2/vcw4w
-npm test   # sync + 13 verify scripts + eslint + tsc
+npm test   # sync + 14 verify scripts + eslint + tsc
 npm run build
 ```
 

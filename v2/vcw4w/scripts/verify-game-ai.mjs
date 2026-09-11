@@ -51,6 +51,14 @@ for (const [name, src] of [["meter", meter], ["chat", chat], ["tts", tts], ["usa
 if (!features.includes("game_ai_features")) throw new Error("features API must read game_ai_features.");
 if (!meter.includes("meter_game_ai_usage")) throw new Error("Meter API must call meter_game_ai_usage.");
 if (!chat.includes("meter_game_ai_usage") || !chat.includes("OPENAI_API_KEY")) throw new Error("Buddy chat must meter + honor OPENAI_API_KEY.");
+// Metering gates the goods: a failed meter must fail the turn/audio, never
+// serve a free reply (each would also leak real OpenAI spend).
+if (!chat.includes("rpcFail") || !chat.includes("Unable to meter this turn")) {
+  throw new Error("Buddy chat must fail the turn when metering fails (no free replies).");
+}
+if (!tts.includes("rpcFail") || tts.indexOf("meter_game_ai_usage") > tts.indexOf("audio/speech")) {
+  throw new Error("Buddy TTS must meter before calling OpenAI.");
+}
 if (!tts.includes("audio/speech") || !tts.includes("speechSynthesis") && !tts.includes("fallback")) {
   throw new Error("Buddy TTS must proxy OpenAI speech with a browser fallback.");
 }
@@ -67,4 +75,13 @@ if (!usagePage.includes("/my/usage")) throw new Error("Usage page must be the /m
 if (!buddyPage.includes("Gaming Buddy") || !buddyPage.includes("9")) throw new Error("Buddy page must present the universal buddy.");
 if (!widget.includes("BUDDY_VOICES") && !widget.includes("9")) throw new Error("Buddy widget must offer the 9 voices.");
 if (!widget.includes("/api/my/usage")) throw new Error("Buddy widget must show live session/total/24h/1h spend from /api/my/usage.");
+// Widget hardening: score feed must be origin-checked (ad iframes share the
+// page), turns must be busy-guarded (no double-metering), voice must stop on
+// unmount/end.
+for (const token of ["TRUSTED_GAME_ORIGINS", "stopVoice", "!text.trim() || busy"]) {
+  if (!widget.includes(token)) throw new Error(`Widget missing hardening: ${token}.`);
+}
+if (buddyEngine.includes("BuddyAct") || buddyEngine.includes("buddyConfigured")) {
+  throw new Error("buddy-engine must not carry dead/unusable exports.");
+}
 console.log("Game AI + Buddy integrity OK.");

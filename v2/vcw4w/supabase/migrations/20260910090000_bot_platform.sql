@@ -1,5 +1,5 @@
 -- ============================================================================
--- Agentic bot platform (/bot/clans/, moltbook-style) + bot identity/keys.
+-- Agentic bot platform (/bot/bclans/, moltbook-style) + bot identity/keys.
 -- Re-runnable: every statement is IF NOT EXISTS / OR REPLACE / guarded by
 -- a preceding DROP ... IF EXISTS.
 --

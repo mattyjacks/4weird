@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
+import { rpcStatus } from "@/lib/agent-market";
 import {
   buddySystemPrompt,
   buddyUserPrompt,
@@ -90,27 +91,39 @@ export async function POST(req: Request) {
   }
 
   const est = estimateBuddyTurn(reply);
-  // Meter the turn: chat tokens + spoken chars, same 25% cut included.
+  // Meter the turn: chat tokens + spoken chars, same 25% cut included. The
+  // chat leg gates the reply — a failed meter (e.g. insufficient balance)
+  // fails the turn instead of serving a free one. A failed voice leg still
+  // serves the reply with a warning, since the chat leg already settled.
   const chatQty = Math.max(0.2, (buddyUserPrompt(obs).length + reply.length) / 4000);
   const ttsQty = Math.max(0.1, reply.length / 1000);
   let metered: unknown = null;
-  const { data: chatRow, error: chatErr } = await supabase.rpc("meter_game_ai_usage", {
-    p_game: obs.gameSlug,
-    p_kind: "buddy-chat",
-    p_qty: chatQty,
-    p_session: sessionRaw,
-    p_source: "chat",
-  });
-  if (!chatErr) {
+  let meterWarning = "";
+  try {
+    const { data: chatRow, error: chatErr } = await supabase.rpc("meter_game_ai_usage", {
+      p_game: obs.gameSlug,
+      p_kind: "buddy-chat",
+      p_qty: chatQty,
+      p_session: sessionRaw,
+      p_source: "chat",
+    });
+    if (chatErr) return rpcFail("api/buddy/chat:meter", chatErr, rpcStatus, "Unable to meter this turn.");
     metered = chatRow;
-    const { data: ttsRow } = await supabase.rpc("meter_game_ai_usage", {
+    const { data: ttsRow, error: ttsErr } = await supabase.rpc("meter_game_ai_usage", {
       p_game: obs.gameSlug,
       p_kind: "buddy-tts",
       p_qty: ttsQty,
       p_session: sessionRaw,
       p_source: "chat",
     });
-    if (ttsRow) metered = { chat: chatRow, tts: ttsRow };
+    if (ttsErr) {
+      meterWarning = "Voice leg did not meter — the chat leg settled; check /my/usage.";
+      dbFail("api/buddy/chat:meter-tts", ttsErr, meterWarning);
+    } else if (ttsRow) {
+      metered = { chat: chatRow, tts: ttsRow };
+    }
+  } catch (error) {
+    return dbFail("api/buddy/chat:meter", error, "Unable to meter this turn.");
   }
   return ok({
     reply,
@@ -118,6 +131,7 @@ export async function POST(req: Request) {
     fallback,
     estimate: est,
     metered,
+    ...(meterWarning ? { meterWarning } : {}),
     note: "Buddy turns meter in Vibe Coins with the 25% cut included — see /my/usage.",
   });
 }

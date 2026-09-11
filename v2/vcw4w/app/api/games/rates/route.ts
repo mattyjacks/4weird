@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp, isSlug } from "@/lib/validate";
 import { rpcStatus } from "@/lib/agent-market";
@@ -26,7 +26,7 @@ export async function GET(req: Request) {
   const { data, error } = await supabase
     .from("game_rates")
     .select("game_slug,coins_per_load,coins_per_hour");
-  if (error) return fail("Unable to load rates.", 500);
+  if (error) return dbFail("api/games/rates", error, "Unable to load rates.");
   return ok({
     rates: data ?? [],
     defaults: { coins_per_load: GAME_LOAD_COINS_DEFAULT, coins_per_hour: GAME_HOURLY_COINS_DEFAULT },
@@ -62,6 +62,6 @@ export async function PUT(req: Request) {
     p_load: load,
     p_hour: hour,
   });
-  if (error) return fail(error.message || "Unable to set rate.", rpcStatus(error.message));
+  if (error) return rpcFail("api/games/rates:set", error, rpcStatus, "Unable to set rate.");
   return ok({ rate });
 }

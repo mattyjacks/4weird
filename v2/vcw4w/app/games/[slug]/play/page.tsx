@@ -11,6 +11,9 @@ export function generateStaticParams() {
   return games.map((game) => ({ slug: game.slug }));
 }
 
+// Closed catalog (see ../page.tsx): unknown slugs 404 with a real 404 status.
+export const dynamicParams = false;
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const game = getGame((await params).slug);
   if (!game) return {};
@@ -21,22 +24,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-export default async function PlayPage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ slug: string }>;
-  searchParams?: Promise<{ match?: string }>;
-}) {
+export default async function PlayPage({ params }: { params: Promise<{ slug: string }> }) {
   const game = getGame((await params).slug);
   if (!game) notFound();
-  // Lobby joins land here as /games/<slug>/play?match=<uuid>. The runtime
-  // iframe is same-origin, so the match id is forwarded into its query
-  // string where the game's own matchmaking code reads it.
-  const match = (await searchParams)?.match;
-  const src = /^[0-9a-f-]{36}$/i.test(String(match ?? ""))
-    ? `${game.runtimePath}?match=${encodeURIComponent(String(match))}`
-    : game.runtimePath;
+  // NOTE: the page stays static (no searchParams read) so the closed catalog
+  // above 404s unknown slugs with a real 404 status. Lobby joins land here
+  // as /games/<slug>/play?match=<uuid>; PlayGate forwards the match id into
+  // the runtime iframe's query string client-side, where the game's own
+  // matchmaking code reads it. The runtime iframe is same-origin.
+  const src = game.runtimePath;
   return (
     <div className="bg-black text-white">
       <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-5">

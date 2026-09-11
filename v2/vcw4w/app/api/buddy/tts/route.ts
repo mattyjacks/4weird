@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
+import { rpcStatus } from "@/lib/agent-market";
 import { cleanBuddyVoice, cleanBuddySpeed, isBuddyModel, quoteGameAi } from "@/lib/game-ai";
 
 export const dynamic = "force-dynamic";
@@ -43,13 +44,22 @@ export async function POST(req: Request) {
 
   const qty = Math.max(0.1, text.length / 1000);
   const gross = quoteGameAi("buddy-tts", qty);
-  const { data: metered } = await supabase.rpc("meter_game_ai_usage", {
-    p_game: game,
-    p_kind: "buddy-tts",
-    p_qty: qty,
-    p_session: sessionRaw,
-    p_source: "tts",
-  });
+  // Meter BEFORE touching OpenAI: a failed meter (e.g. insufficient
+  // balance) fails the request instead of serving paid-out audio for free.
+  let metered: unknown = null;
+  try {
+    const { data: row, error } = await supabase.rpc("meter_game_ai_usage", {
+      p_game: game,
+      p_kind: "buddy-tts",
+      p_qty: qty,
+      p_session: sessionRaw,
+      p_source: "tts",
+    });
+    if (error) return rpcFail("api/buddy/tts:meter", error, rpcStatus, "Unable to meter voice output.");
+    metered = row;
+  } catch (error) {
+    return dbFail("api/buddy/tts:meter", error, "Unable to meter voice output.");
+  }
 
   const key = process.env.OPENAI_API_KEY ?? "";
   if (!key) {

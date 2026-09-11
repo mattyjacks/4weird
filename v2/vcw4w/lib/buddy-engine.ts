@@ -26,15 +26,6 @@ export type BuddyObservation = {
   voice: string;
 };
 
-export type BuddyAct = {
-  reply: string;
-  voice: string;
-  fallback: boolean;
-  chatCoins: number;
-  ttsCoins: number;
-  grossCoins: number;
-};
-
 export function cleanScreenText(value: unknown): string {
   return String(value ?? "").slice(0, 2000);
 }
@@ -101,8 +92,4 @@ export function estimateBuddyTurn(replyText: string, promptChars = 500): { chatC
   const chatCoins = quoteGameAi("buddy-chat", promptTokensK + replyTokensK);
   const ttsCoins = quoteGameAi("buddy-tts", Math.max(0.1, String(replyText ?? "").length / 1000));
   return { chatCoins, ttsCoins, gross: chatCoins + ttsCoins };
-}
-
-export function buddyConfigured(): boolean {
-  return Boolean(process.env.OPENAI_API_KEY);
 }

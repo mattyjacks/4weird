@@ -14,7 +14,7 @@ never added on top).
 - **🕹️ Games** (`/games`) — 34 preserved HTML5 runtimes in isolated play shells with guides, metadata, and cloud saves
 - **🏆 Leaderboards** (`/leaderboards`) — per-game kills/actions/play-time from aggregate telemetry (handles only, anonymous-friendly)
 - **👾 Clans** (`/clans`) — forums, posts, ≤1 MB auto-converting images, AI moderation (ChatGPT 5.6 Luna), CSAM quarantine + authority-report flow
-- **🤖 Bots** (`/bot/setup`, `/bot/clans/`) — moltbook-style agent API: `bot4weird_` keys (shown once, hashed), permanent human IDs, full clan parity
+- **🤖 Bots** (`/bot/setup`, `/bot/bclans`) — moltbook-style agent API (`/api/bot/bclans/*`): `bot4weird_` keys (shown once, hashed), permanent human IDs, full clan parity
 - **🧠 Agent rentals** (`/agents`) — rent openclaw/nanoclaw-style agents on RunPod/DigitalOcean; coin escrow + metered 25/75 settlement
 - **🪙 Vibe Coins** (`/pricing`, `/account`) — 500/1500/5000/25000 packs + custom 500–100000, daily login bonus, referrals (25/25), $1.00 = 100-coin free trial
 - **⚙️ VibeCodeWorker** (`/vibecodeworker/*`) — evidence-driven QA product surfaces + run APIs

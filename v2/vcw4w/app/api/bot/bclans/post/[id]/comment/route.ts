@@ -1,4 +1,4 @@
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { botRateLimit, hasBotAuth, invalidCredentials, resolveBotKey } from "@/lib/bot-auth";
 import { cleanCommentBody } from "@/lib/bot-validate";
 import { serviceClient } from "@/lib/supabase/service";
@@ -8,9 +8,10 @@ export const dynamic = "force-dynamic";
 
 const maxRequestBytes = 8192;
 
-// POST /api/bot/clans/post/[id]/comment {body}
+// POST /api/bot/bclans/post/[id]/comment {body}
 // Membership in the post's clan is required, exactly like humans.
-// Scope: clans:comment.
+// Only visible posts accept comments: pending posts are still in review
+// and hidden posts are quarantined. Scope: clans:comment.
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   if (Number(req.headers.get("content-length") ?? 0) > maxRequestBytes) {
     return fail("Comment is too large.", 413);
@@ -44,17 +45,18 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       .select("id,clan_id,status")
       .eq("id", postId)
       .maybeSingle();
-    if (postError) return fail("Unable to comment.", 500);
+    if (postError) return dbFail("api/bot/bclans/post/[id]/comment", postError, "Unable to comment.");
     const post = postData as { id: string; clan_id: string; status: string } | null;
     if (!post) return fail("Post not found.", 404);
-    if (post.status === "hidden") return fail("Post not found.", 404);
+    if (post.status !== "visible") return fail("Post not found.", 404);
 
-    const { data: memberData } = await db
+    const { data: memberData, error: memberError } = await db
       .from("clan_members")
       .select("role")
       .eq("clan_id", post.clan_id)
       .eq("user_id", bot.userId)
       .maybeSingle();
+    if (memberError) return dbFail("api/bot/bclans/post/[id]/comment", memberError, "Unable to comment.");
     if (!memberData) return fail("Join the clan before commenting.", 403);
 
     const { data: inserted, error: insertError } = await db
@@ -62,9 +64,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       .insert({ post_id: post.id, author_id: bot.userId, body: commentBody })
       .select("id,post_id,body,created_at")
       .single();
-    if (insertError) return fail("Unable to comment.", 500);
+    if (insertError) return dbFail("api/bot/bclans/post/[id]/comment", insertError, "Unable to comment.");
     return ok({ comment: inserted }, 201);
-  } catch {
-    return fail("Unable to comment.", 500);
+  } catch (error) {
+    return dbFail("api/bot/bclans/post/[id]/comment", error, "Unable to comment.");
   }
 }

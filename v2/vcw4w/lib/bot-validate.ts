@@ -7,6 +7,17 @@ import { isSlug } from "@/lib/validate";
 
 export { isSlug };
 
+/**
+ * Clan slug normalizer for the bot bclans API. Clan slugs are stored
+ * lowercase (see the create_clan RPC), and the human clan routes lowercase
+ * before validating — so `Game-Dev` must resolve the same as `game-dev`
+ * instead of failing with a 400. Returns "" when invalid.
+ */
+export function botClanSlug(value: unknown): string {
+  const v = String(value ?? "").trim().toLowerCase();
+  return /^[a-z0-9-]{1,64}$/.test(v) ? v : "";
+}
+
 export function isBotUsername(value: unknown): string {
   const v = String(value ?? "").trim().toLowerCase();
   return /^[a-z0-9_]{3,24}$/.test(v) ? v : "";

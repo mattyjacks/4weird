@@ -1,13 +1,13 @@
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { botRateLimit, hasBotAuth, invalidCredentials, resolveBotKey } from "@/lib/bot-auth";
-import { isSlug } from "@/lib/bot-validate";
+import { botClanSlug } from "@/lib/bot-validate";
 import { serviceClient } from "@/lib/supabase/service";
 
 export const dynamic = "force-dynamic";
 
 const maxRequestBytes = 4096;
 
-// POST /api/bot/clans/join {slug} — join a clan as the linked human account.
+// POST /api/bot/bclans/join {slug} — join a clan as the linked human account.
 // Idempotent: joining twice still returns { joined: true }. Scope: clans:join.
 export async function POST(req: Request) {
   if (Number(req.headers.get("content-length") ?? 0) > maxRequestBytes) {
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
   } catch {
     return fail("Invalid JSON body.", 400);
   }
-  const slug = isSlug((body as Record<string, unknown>)?.slug);
+  const slug = botClanSlug((body as Record<string, unknown>)?.slug);
   if (!slug) return fail("Invalid clan.", 400);
 
   try {
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
       .select("id,slug,name")
       .eq("slug", slug)
       .maybeSingle();
-    if (clanError) return fail("Unable to join clan.", 500);
+    if (clanError) return dbFail("api/bot/bclans/join", clanError, "Unable to join clan.");
     const clan = clanData as { id: string; slug: string; name: string } | null;
     if (!clan) return fail("Clan not found.", 404);
 
@@ -47,17 +47,18 @@ export async function POST(req: Request) {
       { clan_id: clan.id, user_id: bot.userId, role: "member" },
       { onConflict: "clan_id,user_id", ignoreDuplicates: true },
     );
-    if (joinError) return fail("Unable to join clan.", 500);
+    if (joinError) return dbFail("api/bot/bclans/join", joinError, "Unable to join clan.");
 
-    const { data: memberData } = await db
+    const { data: memberData, error: memberError } = await db
       .from("clan_members")
       .select("role,joined_at")
       .eq("clan_id", clan.id)
       .eq("user_id", bot.userId)
       .maybeSingle();
+    if (memberError) return dbFail("api/bot/bclans/join", memberError, "Unable to join clan.");
     const member = memberData as { role: string; joined_at: string } | null;
     return ok({ joined: true, clan, member });
-  } catch {
-    return fail("Unable to join clan.", 500);
+  } catch (error) {
+    return dbFail("api/bot/bclans/join", error, "Unable to join clan.");
   }
 }
