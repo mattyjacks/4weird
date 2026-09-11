@@ -23,6 +23,7 @@
     "verify:game-rentals": "node scripts/verify-game-rentals.mjs",
     "verify:clan-economy": "node scripts/verify-clan-economy.mjs",
     "verify:agent-rentals": "node scripts/verify-agent-rentals.mjs",
+    "verify:swarm": "node scripts/verify-swarm.mjs",
     "verify:vcw-autoplay": "node scripts/verify-vcw-autoplay.mjs",
     "verify:desktop": "node scripts/verify-desktop.mjs",
     "verify:vcw-runs": "node scripts/verify-vcw-runs.mjs",
@@ -35,7 +36,7 @@
     "verify:age-gate": "node scripts/verify-age-gate.mjs",
     "verify:family": "node scripts/verify-family.mjs",
     "verify:orgs-ghost": "node scripts/verify-orgs-ghost.mjs",
-    "test": "npm run sync:games && npm run verify:games && npm run verify:catalog && npm run verify:legacy && npm run verify:legacy-parity && npm run verify:service-worker && npm run verify:robots && npm run verify:sitemap && npm run verify:spaceships && npm run verify:auth && npm run verify:bot && npm run verify:economy && npm run verify:game-ai && npm run verify:game-rentals && npm run verify:clan-economy && npm run verify:agent-rentals && npm run verify:vcw-autoplay && npm run verify:desktop && npm run verify:vcw-runs && npm run verify:fal && npm run verify:blender-render && npm run verify:pwa && npm run verify:rights && npm run verify:perf && npm run verify:a11y && npm run verify:support && npm run verify:age-gate && npm run verify:family && npm run verify:orgs-ghost && npm run lint && tsc --noEmit",
+    "test": "npm run sync:games && npm run verify:games && npm run verify:catalog && npm run verify:legacy && npm run verify:legacy-parity && npm run verify:service-worker && npm run verify:robots && npm run verify:sitemap && npm run verify:spaceships && npm run verify:auth && npm run verify:bot && npm run verify:economy && npm run verify:game-ai && npm run verify:game-rentals && npm run verify:clan-economy && npm run verify:agent-rentals && npm run verify:swarm && npm run verify:vcw-autoplay && npm run verify:desktop && npm run verify:vcw-runs && npm run verify:fal && npm run verify:blender-render && npm run verify:pwa && npm run verify:rights && npm run verify:perf && npm run verify:a11y && npm run verify:support && npm run verify:age-gate && npm run verify:family && npm run verify:orgs-ghost && npm run lint && tsc --noEmit",
     "verify:blender-render": "node scripts/verify-blender-render.mjs"
   },
   "dependencies": {

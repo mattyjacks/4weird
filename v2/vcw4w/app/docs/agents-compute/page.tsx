@@ -83,13 +83,20 @@ export default function AgentsComputePage() {
 
       <SectionHead
         index="3"
+        kicker="One chat, five brains"
+        title="Agent swarm chat (/swarm)"
+        body="Hire up to 5 agents as one Gemini-Spark-style chatbot: a custom system prompt for the whole swarm plus a role prompt per agent, orchestration (auto plans with the DeepSeek harness observe→reason→act loop, then delegates), model + temperature pickers, and every tool auto-usable — VibeCodeWorker runs/findings/handoffs, OpenCode.ai exports + heal loops, Fal media, Buddy voice. Turns meter per agent in Vibe Coins with the 25% cut included; local-engine turns are free and labelled."
+      />
+
+      <SectionHead
+        index="4"
         kicker="Squad up"
         title="UnitUnite team workspaces (/teams)"
         body="Orgs â†’ teams â†’ projects/rooms with role catalogs, org coin wallets, messaging, and a metered cloud catalog (GPU pods, serverless, storage, databases, KV, queue). Every workspace meter carries the same included 25% cut, every cent attributed. Use teams when several people share budget, rooms, and cloud."
       />
 
       <SectionHead
-        index="4"
+        index="5"
         kicker="Street smarts"
         title="Cloud tips that save coins"
       />
