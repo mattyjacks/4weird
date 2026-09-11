@@ -13,6 +13,7 @@
  */
 
 import { RUNPOD_AUTO_ENDPOINT } from "@/lib/agent-market";
+import type { DesktopKind } from "@/lib/desktop";
 import {
   RUNPOD_API_BASE_DEFAULT,
   runpodApiBase,
@@ -487,6 +488,7 @@ async function createRunpodCpuPod(opts: {
   vcpuCount: number;
   ports: string[];
   env: Record<string, string>;
+  diskGb?: number;
 }): Promise<{ ok: true; podId: string } | { ok: false; error: string }> {
   const key = (process.env.RUNPOD_API_KEY ?? "").trim();
   if (!key) return { ok: false, error: "RUNPOD_API_KEY is not set." };
@@ -508,7 +510,7 @@ async function createRunpodCpuPod(opts: {
         cpu: { id: opts.cpuId, vcpuCount: opts.vcpuCount },
         ports: opts.ports,
         env: opts.env,
-        disk: 10,
+        disk: opts.diskGb ?? 10,
       }),
     });
     if (!res.ok) {
@@ -689,5 +691,202 @@ export async function provisionAutoplayWorker(opts: {
     cpuId: "",
     hourlyUsd: pick.hourlyUsd,
     port: workload.port,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Virtual Desktop remotes (/desktop): a real RunPod pod you drive in the
+// browser. CPU = official Ubuntu 22.04 base (JupyterLab + SSH on 8888);
+// GPU = official RunPod Desktop Kasm image (graphical desktop on 6901).
+// Never fakes: without credentials, stock, or a budget fit this returns a
+// typed error and the API surfaces that state. RunPod bills the operator's
+// card per second; coin figures elsewhere are display equivalents only.
+// ---------------------------------------------------------------------------
+
+export type DesktopWorkload = {
+  kind: "cpu" | "gpu";
+  image: string;
+  ports: string[];
+  env: Record<string, string>;
+  port: number;
+  diskGb: number;
+};
+
+/**
+ * Image + ports + env for a Virtual Desktop pod. Pure + unit-testable.
+ * GPU uses the official RunPod Desktop (Kasm) template image on 6901;
+ * CPU uses the official Ubuntu 22.04 base on 8888 (JupyterLab + SSH).
+ */
+export function desktopWorkloadFor(kind: DesktopKind): DesktopWorkload {
+  if (kind === "gpu") {
+    return {
+      kind: "gpu",
+      image: "runpod/kasm-docker:cuda11",
+      ports: ["6901/http"],
+      env: { VNC_PW: "password", DESKTOP_MODE: "kasm" },
+      port: 6901,
+      diskGb: 60,
+    };
+  }
+  if (kind === "cpu") {
+    return {
+      kind: "cpu",
+      image: "runpod/base:1.0.2-ubuntu2204",
+      ports: ["8888/http", "22/tcp"],
+      env: { DESKTOP_MODE: "ubuntu-jupyter" },
+      port: 8888,
+      diskGb: 20,
+    };
+  }
+  throw new Error("Invalid desktop kind.");
+}
+
+export type ProvisionDesktopResult =
+  | {
+      endpointUrl: string;
+      podId: string;
+      kind: "cpu" | "gpu";
+      gpuId: string;
+      cpuId: string;
+      hourlyUsd: number;
+      port: number;
+      image: string;
+    }
+  | { error: ProvisionErrorCode; message?: string };
+
+async function createRunpodDesktopPod(opts: {
+  name: string;
+  image: string;
+  gpuId: string;
+  ports: string[];
+  env: Record<string, string>;
+  diskGb: number;
+}): Promise<{ ok: true; podId: string } | { ok: false; error: string }> {
+  const key = (process.env.RUNPOD_API_KEY ?? "").trim();
+  if (!key) return { ok: false, error: "RUNPOD_API_KEY is not set." };
+  const base = (process.env.RUNPOD_API_BASE ?? "").trim().replace(/\/+$/, "") || RUNPOD_API_BASE_DEFAULT;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 20_000);
+  try {
+    const res = await fetch(`${base}/pods`, {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${key}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: `${slugifyName(opts.name)}-${Date.now().toString(36)}`,
+        image: opts.image,
+        gpu: { id: opts.gpuId, count: 1 },
+        ports: opts.ports,
+        env: opts.env,
+        disk: opts.diskGb,
+      }),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      return { ok: false, error: `RunPod pod create HTTP ${res.status}: ${text.slice(0, 160)}` };
+    }
+    const data = (await res.json()) as { id?: string; pod?: { id?: string } };
+    const podId = String(data.id ?? data.pod?.id ?? "");
+    if (!podId) return { ok: false, error: "RunPod returned no pod id." };
+    return { ok: true, podId };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "fetch failed";
+    return { ok: false, error: `RunPod request failed: ${msg.slice(0, 140)}` };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Provision a Virtual Desktop pod. CPU provisions a cheap Ubuntu remote;
+ * GPU provisions a Kasm graphical desktop on the cheapest Secure GPU at or
+ * under maxUsdPerHour (defaults to the cheapest with stock when 0/omitted).
+ */
+export async function provisionDesktopWorker(opts: {
+  name: string;
+  kind: DesktopKind;
+  maxUsdPerHour?: number;
+}): Promise<ProvisionDesktopResult> {
+  if (!runpodConfigured()) return { error: "unconfigured" };
+  let workload: DesktopWorkload;
+  try {
+    workload = desktopWorkloadFor(opts.kind);
+  } catch (err) {
+    return { error: "provision_failed", message: err instanceof Error ? err.message : "Invalid desktop kind." };
+  }
+
+  if (workload.kind === "cpu") {
+    const live = await fetchAutoplayCpuCatalog();
+    const pool = live.length > 0 ? live : AUTOPLAY_CPU_STATIC;
+    const ranked = pool
+      .filter((c) => /^(cpu3[cgm]|cpu5[cgm])$/.test(c.id) && c.perVcpuUsd > 0)
+      .sort((a, b) => autoplayCpuHourly(a) - autoplayCpuHourly(b));
+    if (!ranked.length) return { error: "no_stock", message: "No RunPod CPU stock right now." };
+    const best = ranked[0];
+    const created = await createRunpodCpuPod({
+      name: opts.name,
+      image: workload.image,
+      cpuId: best.id,
+      vcpuCount: AUTOPLAY_CPU_VCPU,
+      ports: workload.ports,
+      env: workload.env,
+      diskGb: workload.diskGb,
+    });
+    if (!created.ok) return { error: "provision_failed", message: created.error };
+    return {
+      endpointUrl: runpodProxyUrl(created.podId, workload.port),
+      podId: created.podId,
+      kind: "cpu",
+      gpuId: "",
+      cpuId: best.id,
+      hourlyUsd: autoplayCpuHourly(best),
+      port: workload.port,
+      image: workload.image,
+    };
+  }
+
+  const catalog = await fetchPodGpuCatalog();
+  if (!catalog.ok) return { error: "provision_failed", message: catalog.error };
+  const rows = catalog.gpus.map((g) => ({
+    id: g.id,
+    availability: g.availability,
+    secure: g.secure,
+    priceSecure: Number(g.price?.secure ?? 0),
+  }));
+  const maxUsd = Number(opts.maxUsdPerHour ?? 0);
+  const pick =
+    Number.isFinite(maxUsd) && maxUsd > 0
+      ? pickGpuUnderBudget(rows, maxUsd)
+      : cheapestSecureGpu(rows);
+  if (!pick) {
+    const cheapest = cheapestSecureGpu(rows);
+    if (!cheapest) return { error: "no_stock", message: "No RunPod Secure GPU stock right now." };
+    return {
+      error: "over_budget",
+      message: `Cheapest available Secure GPU is ${cheapest.id} at $${cheapest.hourlyUsd.toFixed(2)}/hr, above your $${Number(maxUsd).toFixed(2)}/hr max.`,
+    };
+  }
+  const created = await createRunpodDesktopPod({
+    name: opts.name,
+    image: workload.image,
+    gpuId: pick.id,
+    ports: workload.ports,
+    env: workload.env,
+    diskGb: workload.diskGb,
+  });
+  if (!created.ok) return { error: "provision_failed", message: created.error };
+  return {
+    endpointUrl: runpodProxyUrl(created.podId, workload.port),
+    podId: created.podId,
+    kind: "gpu",
+    gpuId: pick.id,
+    cpuId: "",
+    hourlyUsd: pick.hourlyUsd,
+    port: workload.port,
+    image: workload.image,
   };
 }

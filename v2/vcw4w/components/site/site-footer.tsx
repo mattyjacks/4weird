@@ -16,6 +16,7 @@ const COLUMNS = [
     label: "Build",
     links: [
       { href: "/agents", label: "AI Agents" },
+      { href: "/desktop", label: "Virtual Desktop" },
       { href: "/teams", label: "UnitUnite" },
       { href: "/vibecodeworker", label: "VibeCodeWorker" },
       { href: "/web-apps", label: "Web Apps" },

@@ -43,6 +43,13 @@ export default function AgentsPage() {
           </Link>{" "}
           — GPU boosted + off-site, desktop app required.
         </p>
+        <p className="mt-2 text-sm text-slate-400">
+          Need a full computer instead of an agent?{" "}
+          <Link href="/desktop" className="text-cyan-300 hover:underline">
+            Rent a virtual desktop →
+          </Link>{" "}
+          CPU Ubuntu box or GPU Kasm graphical desktop, streamed in your browser per second.
+        </p>
         <nav className="mt-8 flex gap-2" aria-label="Agent marketplace tabs">
           <a
             href="#browse"

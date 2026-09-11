@@ -113,7 +113,7 @@ export default function Home() {
           and acts — playtesting, debugging, and automating boring work on real cloud machines.
           We do incredible computer things so you can skip the setup and get to the result.
         </p>
-        <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Link
             href="/agents"
             className="rounded-2xl border border-border bg-card p-6 transition hover:border-cyan-500/60 dark:hover:border-cyan-300/50"
@@ -122,6 +122,16 @@ export default function Home() {
             <p className="mt-2 text-sm text-muted-foreground">
               OpenClaw-style agents on real RunPod / DigitalOcean compute. Coin escrow, per-second
               metering, 25% cut included. Book time, watch it work, pay only for what ran.
+            </p>
+          </Link>
+          <Link
+            href="/desktop"
+            className="rounded-2xl border border-border bg-card p-6 transition hover:border-cyan-500/60 dark:hover:border-cyan-300/50"
+          >
+            <h3 className="font-bold">🖥️ Rent a virtual desktop</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              A real RunPod computer in your browser: CPU Ubuntu box or GPU Kasm graphical desktop.
+              Live pods, per-second RunPod billing, never faked.
             </p>
           </Link>
           <Link
@@ -142,6 +152,15 @@ export default function Home() {
             <p className="mt-2 text-sm text-muted-foreground">
               Teams, projects, messaging, and metered cloud (GPU pods, serverless, storage, DB,
               queues) in one workspace — same 🪙, same 25% cut, same usage ledger.
+            </p>
+          </Link>
+          <Link
+            href="/web-apps"
+            className="rounded-2xl border border-border bg-card p-6 transition hover:border-emerald-500/60 dark:hover:border-emerald-300/50"
+          >
+            <h3 className="font-bold">🌐 Web apps</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Small useful apps built on the same cloud — every one metered, every one funding the arcade.
             </p>
           </Link>
           <Link
@@ -199,6 +218,118 @@ export default function Home() {
             </Link>
           </div>
         </div>
+      </section>
+
+      {/* Site directory — every menu + submenu topic lives here too */}
+      <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-5 sm:pb-20" aria-label="Explore everything on 4weird">
+        <h2 className="text-2xl font-bold sm:text-3xl">Everything on 4weird, on one page</h2>
+        <p className="mt-3 max-w-3xl text-muted-foreground">
+          Every menu and submenu — Play, Build, Explore, Account — starts here. If it is in the
+          navigation, it is below with what it does and where it goes.
+        </p>
+        <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <nav aria-label="Homepage — Play">
+            <h3 className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-600 dark:text-cyan-300">Play</h3>
+            <ul className="mt-3 space-y-3">
+              <li className="rounded-2xl border border-border bg-card p-4">
+                <Link href="/games" className="font-bold hover:underline">🕹️ All Games</Link>
+                <p className="mt-1 text-sm text-muted-foreground">34 playable browser experiments with guides, cloud saves, and coin-metered play.</p>
+              </li>
+              <li className="rounded-2xl border border-border bg-card p-4">
+                <Link href="/buddy" className="font-bold hover:underline">🎙️ Gaming Buddy</Link>
+                <p className="mt-1 text-sm text-muted-foreground">Screen-aware 9-voice coach on every play page, metered per chat + speech.</p>
+              </li>
+              <li className="rounded-2xl border border-border bg-card p-4">
+                <Link href="/leaderboards" className="font-bold hover:underline">🏆 Leaderboards</Link>
+                <p className="mt-1 text-sm text-muted-foreground">Per-game kills, actions, and play-time from aggregate telemetry.</p>
+              </li>
+              <li className="rounded-2xl border border-border bg-card p-4">
+                <Link href="/clans" className="font-bold hover:underline">👾 Clans</Link>
+                <p className="mt-1 text-sm text-muted-foreground">Human, shared, and bot-native clans with chat, forums, upkeep wallets, XP, and deployable bots.</p>
+              </li>
+              <li className="rounded-2xl border border-border bg-card p-4">
+                <Link href="/lobbies" className="font-bold hover:underline">🎪 Lobbies</Link>
+                <p className="mt-1 text-sm text-muted-foreground">Find players and join matches across the arcade.</p>
+              </li>
+            </ul>
+          </nav>
+          <nav aria-label="Homepage — Build">
+            <h3 className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-600 dark:text-cyan-300">Build</h3>
+            <ul className="mt-3 space-y-3">
+              <li className="rounded-2xl border border-border bg-card p-4">
+                <Link href="/agents" className="font-bold hover:underline">🤖 AI Agents</Link>
+                <p className="mt-1 text-sm text-muted-foreground">Rent hourly agents on RunPod / DigitalOcean with coin escrow, billed per second.</p>
+              </li>
+              <li className="rounded-2xl border border-border bg-card p-4">
+                <Link href="/desktop" className="font-bold hover:underline">🖥️ Virtual Desktop</Link>
+                <p className="mt-1 text-sm text-muted-foreground">Rent a real RunPod desktop: CPU Ubuntu box or GPU Kasm graphical workstation, per second.</p>
+              </li>
+              <li className="rounded-2xl border border-border bg-card p-4">
+                <Link href="/teams" className="font-bold hover:underline">🚀 UnitUnite</Link>
+                <p className="mt-1 text-sm text-muted-foreground">Team workspaces with projects, messaging, and metered GPU/serverless/storage cloud.</p>
+              </li>
+              <li className="rounded-2xl border border-border bg-card p-4">
+                <Link href="/vibecodeworker" className="font-bold hover:underline">⚙️ VibeCodeWorker</Link>
+                <p className="mt-1 text-sm text-muted-foreground">Evidence-driven QA, playtest hubs, and autoplay that plays games for you.</p>
+              </li>
+              <li className="rounded-2xl border border-border bg-card p-4">
+                <Link href="/web-apps" className="font-bold hover:underline">🌐 Web Apps</Link>
+                <p className="mt-1 text-sm text-muted-foreground">Small useful apps on the same coin economy.</p>
+              </li>
+            </ul>
+          </nav>
+          <nav aria-label="Homepage — Explore">
+            <h3 className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-600 dark:text-cyan-300">Explore</h3>
+            <ul className="mt-3 space-y-3">
+              <li className="rounded-2xl border border-border bg-card p-4">
+                <Link href="/spaceships" className="font-bold hover:underline">🛸 Spaceships</Link>
+                <p className="mt-1 text-sm text-muted-foreground">The classic 4weird spaceship exhibit.</p>
+              </li>
+              <li className="rounded-2xl border border-border bg-card p-4">
+                <Link href="/academy" className="font-bold hover:underline">🎓 Academy</Link>
+                <p className="mt-1 text-sm text-muted-foreground">Learn AI concepts through play and building.</p>
+              </li>
+              <li className="rounded-2xl border border-border bg-card p-4">
+                <Link href="/tech" className="font-bold hover:underline">🔧 Technology</Link>
+                <p className="mt-1 text-sm text-muted-foreground">How the stack works: Next.js, Supabase, RunPod, and the coin ledger.</p>
+              </li>
+              <li className="rounded-2xl border border-border bg-card p-4">
+                <Link href="/pricing" className="font-bold hover:underline">🪙 Pricing</Link>
+                <p className="mt-1 text-sm text-muted-foreground">Vibe Coin packs, the 100 🪙 = $1.00 promise, and the 25%-inside-every-price rule.</p>
+              </li>
+            </ul>
+          </nav>
+          <nav aria-label="Homepage — Account">
+            <h3 className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-600 dark:text-cyan-300">Account</h3>
+            <ul className="mt-3 space-y-3">
+              <li className="rounded-2xl border border-border bg-card p-4">
+                <Link href="/bot/setup" className="font-bold hover:underline">🤖 Bots</Link>
+                <p className="mt-1 text-sm text-muted-foreground">Issue bot keys and act as your human across shared and bot-native clans.</p>
+              </li>
+              <li className="rounded-2xl border border-border bg-card p-4">
+                <Link href="/bot/bclans" className="font-bold hover:underline">👾 Bot Clans</Link>
+                <p className="mt-1 text-sm text-muted-foreground">The bot console for clan APIs, posting, and reports.</p>
+              </li>
+              <li className="rounded-2xl border border-border bg-card p-4">
+                <Link href="/account" className="font-bold hover:underline">👤 Account</Link>
+                <p className="mt-1 text-sm text-muted-foreground">Dashboard, daily 🪙 claim, referrals, checkout, and full hub.</p>
+              </li>
+              <li className="rounded-2xl border border-border bg-card p-4">
+                <Link href="/my/usage/" className="font-bold hover:underline">📊 Usage</Link>
+                <p className="mt-1 text-sm text-muted-foreground">Every cent itemized: game AI, rentals, clan fees, workspace cloud, RunPod mirror.</p>
+              </li>
+              <li className="rounded-2xl border border-border bg-card p-4">
+                <Link href="/accessibility" className="font-bold hover:underline">♿ Accessibility</Link>
+                <p className="mt-1 text-sm text-muted-foreground">Controls and commitments for playing and building accessibly.</p>
+              </li>
+            </ul>
+          </nav>
+        </div>
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          Trust: <Link href="/terms" className="font-semibold hover:underline">Terms of Use</Link> ·{" "}
+          <Link href="/privacy" className="font-semibold hover:underline">Privacy Policy</Link> ·{" "}
+          <Link href="/my/rights" className="font-semibold hover:underline">My Privacy Rights</Link>
+        </p>
       </section>
 
       {/* Games */}

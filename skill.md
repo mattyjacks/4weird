@@ -56,10 +56,25 @@ Cookie session (`credentials: "include"`) or bot key (`x-bot-key: bot4weird_...`
 - APIs: `GET/POST /api/agents`, `GET /api/agents/[id]`, `POST /api/agents/[id]/book {hours}`, `POST /api/agents/bookings/[id]/heartbeat {seconds}`, `POST /api/agents/bookings/[id]/end`, `GET /api/agents/bookings/mine`, `GET /api/agents/providers` (configured flags only, never keys).
 - Providers are wired to real APIs: set `RUNPOD_API_KEY` (RunPod console → Settings → API Keys; optional `RUNPOD_API_BASE`, default `https://api.runpod.io/v2`) and the app proves it live on `GET /api/agents/runpod-status` (read-only billing probe, never provisions). `POST /api/agents/runpod-sync {days?}` mirrors REAL RunPod billing (pods + serverless + volumes) into `runpod_usage`, shown on `/my/usage` in the RunPod card with a Sync button (USD, billed by RunPod — no Vibe cut, outside combined coin totals). The app never fakes a provision or a spend row.
 - Teams/enterprise (UnitUnite): orgs → teams → projects/rooms with role catalogs, org coin wallets, and a cloud catalog (GPU pods, serverless, storage, DB, KV, queue) metered per workspace with the same 25% cut (`platform_compute_cuts` attributes every cent).
+- Virtual Desktops: `/desktop` (CPU Ubuntu 22.04 box on 8888, GPU Kasm graphical desktop on 6901 — official `runpod-ubuntu-2204` / `runpod-desktop` images). `GET /api/desktop/provision` (public plan catalog + `runpod_configured` flag) · `POST /api/desktop/provision {kind: cpu|gpu, max_usd_per_hour?, name?}` (login required; provisions a REAL pod via `provisionDesktopWorker` in `lib/compute.ts`, cheapest fitting Secure stock, proxy URL handed back; `started:false` + typed `provision` state on unconfigured/no_stock/over_budget/provision_failed, never faked). RunPod bills the card per second — coin figures are display equivalents only, no Vibe cut, no coin debit; mirror spend on `/my/usage` via runpod-sync.
 
 ## 7. VibeCodeWorker
 
 - Pages: `/vibecodeworker`, `/vibecodeworker/[section]` (overview, hub, run, full, phone, docs, demo — each embeds its live `/vibecodeworker-legacy/*` surface in an iframe plus a public service-status pill). Run lifecycle API: `/api/vcw/*` (`health` is public; every other action authenticated).
+- Agent loop (login session, `credentials: "include"`; every route returns `{ success }` and rate-limits per user):
+  - `GET /api/vcw/status` → `{ service, catalog_games, runs, bugs }` (start here; proves the loop is usable).
+  - `GET /api/vcw/games` → `{ count, games: [{ slug, title, genre, play_url, runtime_path }] }` (every legal run target; play URLs are first-party only).
+  - `POST /api/vcw/runs { game_slug, goal }` → `{ run }` (opens a run; slug must be catalog, goal 1–500 chars).
+  - `GET /api/vcw/runs` → `{ runs }` (latest 50, newest first).
+  - `GET /api/vcw/runs/[id]` → `{ run, steps, bugs }` (the full observe→reason→act trail + findings; read before every next step).
+  - `POST /api/vcw/runs/[id]/actions { kind: observation|action|finding, text, data? }` → `{ step }` (append one loop iteration; text 1–5000 chars, data a ≤10 KB object; open runs only).
+  - `POST /api/vcw/bugs { title, description, severity?, game_slug?, run_id? }` → `{ bug }` (severity low|medium|high|critical, default medium; run_id pins the bug to a run and defaults the slug).
+  - `GET /api/vcw/bugs` → `{ bugs }` (latest 100).
+  - `POST /api/vcw/runs/[id]/complete { summary, verdict: pass|fail|inconclusive }` → `{ run }` (closes the run).
+  - `POST /api/vcw/handoff { run_id?, reason? }` → `{ run_id, markdown }` (portable brief for any vibecoding tool; defaults to the latest run).
+  - `GET /api/vcw/dashboard` → `{ service, catalog_games, runs, bugs }` (recent 10 + 10 in one call).
+  - Cloud execution stays on `/api/vcw/autoplay` (`POST { game_slug, compute: cpu|gpu|gpu-boosted, site_mode?, desktop_installed? }` provisions a real RunPod remote or returns honest `started:false`; catalog games on-site only, Xonotic gpu-boosted + off-site + desktop only).
+- The serverless deploy has no live browser: the agent drives play locally (desktop control plane at `http://127.0.0.1:42069`, or an autoplay remote) and records each observe→reason→act iteration via the actions endpoint. Live-browser control (`/api/game/action`, `/api/game/eval`, screenshots, video) exists only on the local worker, never in `/api/vcw/*`.
 
 ## 8. Game AI + Gaming Buddy + usage (25% cut on ALL game AI)
 
@@ -83,7 +98,7 @@ Cookie session (`credentials: "include"`) or bot key (`x-bot-key: bot4weird_...`
 
 ```bash
 cd v2/vcw4w
-npm test   # sync + 15 verify scripts + eslint + tsc
+npm test   # sync + 18 verify scripts + eslint + tsc
 npm run build
 ```
 

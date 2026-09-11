@@ -1,0 +1,119 @@
+import { createClient } from "@/lib/supabase/server";
+import { hasServerSupabase } from "@/lib/supabase/service";
+import { fail, ok } from "@/lib/api-respond";
+import { rateLimit } from "@/lib/rate-limit";
+import {
+  DESKTOP_PLANS,
+  cleanDesktopName,
+  desktopUsdToCoins,
+  isDesktopKind,
+  parseDesktopMaxUsd,
+} from "@/lib/desktop";
+import { provisionDesktopWorker } from "@/lib/compute";
+import { runpodConfigured } from "@/lib/runpod";
+
+export const dynamic = "force-dynamic";
+
+/**
+ * GET /api/desktop/provision — public plan catalog (no auth, no billing).
+ * Returns both Virtual Desktop plans with their official RunPod images,
+ * ports, and billing honesty note.
+ */
+export async function GET() {
+  return ok({
+    plans: DESKTOP_PLANS.map((p) => ({
+      kind: p.kind,
+      name: p.name,
+      tagline: p.tagline,
+      image: p.image,
+      template: p.templateId,
+      port: p.port,
+      ports: p.ports,
+      disk_gb: p.diskGb,
+      blurb: p.blurb,
+      best_for: p.bestFor,
+    })),
+    billing: {
+      billed_by: "runpod",
+      per: "second",
+      coins: "display-equivalent only (100 coins = $1.00); no Vibe cut on direct RunPod spend",
+      usage: "/my/usage mirrors real RunPod spend via POST /api/agents/runpod-sync",
+    },
+    runpod_configured: runpodConfigured(),
+  });
+}
+
+/**
+ * POST /api/desktop/provision — rent a Virtual Desktop on RunPod.
+ *
+ * Body: { kind: cpu|gpu, max_usd_per_hour?: number, name?: string }
+ *
+ * Auth required. Provisions a REAL pod via the RunPod REST API and hands
+ * back the RunPod default proxy endpoint — never faked. Without
+ * credentials, stock, or a budget fit it returns started:false with the
+ * typed provision state (mirrors /api/agents/[id]/book + /api/vcw/autoplay).
+ * RunPod bills the operator's card per second; coin figures are display
+ * equivalents only (no Vibe cut, no coin debit here).
+ */
+export async function POST(req: Request) {
+  if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) return fail("Authentication required.", 401);
+  const rl = rateLimit(`desktop:provision:${data.user.id}`, 10, 60_000);
+  if (!rl.allowed) return fail("Rate limited.", 429);
+
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return fail("Invalid JSON body.", 400);
+  }
+  const input = (body ?? {}) as Record<string, unknown>;
+  const kindRaw = String(input.kind ?? "gpu").toLowerCase();
+  if (!isDesktopKind(kindRaw)) return fail("Invalid kind. Use cpu or gpu.", 400);
+  const maxRaw = input.max_usd_per_hour ?? input.maxUsdPerHour ?? 0;
+  const maxUsd = Number(maxRaw) === 0 ? 0 : parseDesktopMaxUsd(maxRaw);
+  if (Number(maxRaw) !== 0 && !maxUsd) {
+    return fail("max_usd_per_hour must be $0.01–$1000, or 0 for cheapest available.", 400);
+  }
+  const name = cleanDesktopName(input.name ?? `desktop-${kindRaw}`) || `desktop-${kindRaw}`;
+
+  const provisioned = await provisionDesktopWorker({ name, kind: kindRaw, maxUsdPerHour: maxUsd });
+
+  if ("error" in provisioned) {
+    return ok({
+      started: false,
+      kind: kindRaw,
+      provision: { ok: false, code: provisioned.error, message: provisioned.message ?? "Provisioning failed." },
+      note: "Virtual Desktop not started — no spend. Fix the provision state above and retry.",
+    });
+  }
+
+  const coinsPerHour = desktopUsdToCoins(provisioned.hourlyUsd);
+  return ok({
+    started: true,
+    kind: provisioned.kind,
+    connection: {
+      endpointUrl: provisioned.endpointUrl,
+      podId: provisioned.podId,
+      gpu: provisioned.gpuId || null,
+      cpu: provisioned.cpuId || null,
+      hourlyUsd: provisioned.hourlyUsd,
+      coinsPerHour,
+      port: provisioned.port,
+      image: provisioned.image,
+    },
+    billing: {
+      billed_by: "runpod",
+      per: "second",
+      hourly_usd: provisioned.hourlyUsd,
+      coins_per_hour_equiv: coinsPerHour,
+      note: "RunPod bills per second — stop the pod in the RunPod console when done. Mirror the spend on /my/usage via POST /api/agents/runpod-sync. No Vibe cut, no coin debit.",
+    },
+    note:
+      provisioned.kind === "gpu"
+        ? `GPU desktop live on ${provisioned.gpuId} at ~$${provisioned.hourlyUsd.toFixed(2)}/hr. Open the endpoint URL, log in with the VNC password, and your desktop streams in the browser.`
+        : `CPU desktop live (${provisioned.cpuId}) at ~$${provisioned.hourlyUsd.toFixed(2)}/hr. Open the endpoint URL for JupyterLab, or SSH per the RunPod console.`,
+  });
+}
