@@ -40,6 +40,9 @@ export async function POST(req: Request) {
   if (!coins) return fail("Amount must be 1..100000 coins.", 400);
   const recipientUser = isUuid(input.recipient_user_id);
   const clanId = isUuid(input.clan_id);
+  if (input.recipient_user_id !== undefined && input.recipient_user_id !== null && String(input.recipient_user_id) !== "" && !recipientUser) {
+    return fail("Invalid creator user ID.", 400);
+  }
   if ((recipientUser === "") === (clanId === "")) {
     return fail("Send to exactly one recipient: a verified creator or a clan.", 400);
   }

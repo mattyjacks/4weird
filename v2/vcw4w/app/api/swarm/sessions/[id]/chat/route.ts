@@ -6,7 +6,7 @@ import { requireHuman } from "@/lib/botid";
 import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
 import { rpcStatus } from "@/lib/agent-market";
-import { OPENROUTER_ENDPOINT, OPENROUTER_REFERER, OPENROUTER_TITLE, parseOpenRouterText } from "@/lib/openrouter-plays";
+import { OPENROUTER_ENDPOINT, OPENROUTER_REFERER, OPENROUTER_TITLE, isPlaceholderKey, parseOpenRouterText } from "@/lib/openrouter-plays";
 import {
   SWARM_CUT_NOTE,
   SWARM_GAME_SLUG,
@@ -186,7 +186,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const buddyModel = process.env.BUDDY_MODEL ?? "gpt-4o-mini";
   const modelPref = String(row.model ?? "auto").toLowerCase();
   const wantOpenAi = modelPref !== "local" && modelPref !== "openrouter" && Boolean(openaiKey.trim());
-  const wantOpenRouter = !wantOpenAi && modelPref !== "local" && Boolean(openrouterKey.trim()) && !openrouterKey.includes("your-openrouter");
+  const wantOpenRouter = !wantOpenAi && modelPref !== "local" && Boolean(openrouterKey.trim()) && !isPlaceholderKey(openrouterKey);
 
   const replies = await Promise.all(
     plan.steps.map(async (step, i) => {
@@ -251,7 +251,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       tool_calls: [],
       gross_coins: 0,
     });
-    for (const r of replies) {
+    // The turn gross belongs to the replies, not the prompt: split it
+    // across reply rows (floored cents each, remainder on the last) so
+    // per-message cost stays truthful instead of reading 0 everywhere.
+    const turnGross = anyLive ? quote.gross : 0;
+    const each = replies.length > 0 ? Math.floor((turnGross / replies.length) * 100) / 100 : 0;
+    const shares = replies.map((_, i) =>
+      i < replies.length - 1 ? each : Math.round((turnGross - each * (replies.length - 1)) * 100) / 100,
+    );
+    for (let i = 0; i < replies.length; i++) {
+      const r = replies[i];
       await supabase.from("swarm_messages").insert({
         session_id: id,
         user_id: data.user.id,
@@ -260,12 +269,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         agent_name: r.agentName,
         text: r.text,
         tool_calls: r.toolCalls,
-        gross_coins: 0,
+        gross_coins: shares[i] ?? 0,
       });
     }
     await supabase
       .from("swarm_sessions")
-      .update({ turns: row.turns + 1, gross_coins: Number(row.gross_coins ?? 0) + (anyLive ? quote.gross : 0) })
+      .update({ turns: row.turns + 1, gross_coins: Number(row.gross_coins ?? 0) + turnGross })
       .eq("id", id);
   } catch (error) {
     return dbFail("api/swarm/chat:save", error, "Swarm replied but the trail did not save.");

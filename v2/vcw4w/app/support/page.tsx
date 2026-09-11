@@ -22,7 +22,6 @@ export default function SupportPage() {
           <p className="max-w-2xl text-slate-300">
             Subscribe to a verified creator or a clan for monthly coins, or send a one-time tip — coffee money, not a
             contract. Every amount already includes the 25% platform cut. Coins have no cash value and can never be cashed out directly. Individual recipients earn time-locked Crowns (Terms 8A.1: 30-day unlock, 1-year expiry, 1:1 convert to Coins, or fiat payout via our licensed provider (30-day unlock + 5-10 business days processing, KYC required, payout countries not yet announced). Timelines are set by fraud, tax, and payments law and cannot be bypassed). Holding Crowns never guarantees a fiat payout: restricted countries, failed KYC, sanctions, or law/provider limits can leave convert-to-Coins as your only exit, with no claim against us (Terms 8A.1).
-            cashed out.
           </p>
         </header>
         <SupportClient />

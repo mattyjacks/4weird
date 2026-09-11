@@ -170,7 +170,10 @@ export async function POST(req: Request) {
 
   const coinsPerHour = desktopUsdToCoins(provisioned.hourlyUsd);
   const vncPassword = "vncPassword" in provisioned ? String(provisioned.vncPassword ?? "") : "";
-  const idlePolicy = getPodIdlePolicy();
+  // Echo the EFFECTIVE policy: the just-stored per-pod overrides when the
+  // caller set them, else the account default. Echoing the default after a
+  // custom provision seeds the control pane with the wrong numbers.
+  const idlePolicy = idleTouched && idleCheck.ok ? idleCheck.value : getPodIdlePolicy();
   return ok({
     started: true,
     kind: provisioned.kind,

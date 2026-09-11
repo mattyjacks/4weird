@@ -270,7 +270,7 @@ export default function Page() {
               <tr className="border-b border-white/5">
                 <td className="px-5 py-4 font-bold text-white">Platform fee</td>
                 <td className="px-5 py-4">$0 — just the 25% premium included in metered coins</td>
-                <td className="px-5 py-4">$420/mo per org (100 seats incl., +.20/seat); Enterprise custom quote</td>
+                <td className="px-5 py-4">$420/mo per org (100 seats incl., +$4.20/seat); Enterprise custom quote</td>
               </tr>
               <tr className="border-b border-white/5">
                 <td className="px-5 py-4 font-bold text-white">Compute premium</td>

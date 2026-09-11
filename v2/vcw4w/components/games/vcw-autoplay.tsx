@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ProxyLink } from "@/components/runpod/proxy-link";
 import { PodIdleWatch } from "@/components/runpod/pod-idle-watch";
@@ -54,6 +54,23 @@ export function VcwAutoplay({ gameSlug, gameTitle }: { gameSlug: string; gameTit
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<StartOk | null>(null);
   const [error, setError] = useState("");
+  // Server idle policy (env-overridable 60/15/24 defaults): the GET
+  // describe route needs no login. Falls back to the documented defaults
+  // when unreachable so the panel never renders a blank policy line.
+  const [idleSummary, setIdleSummary] = useState("");
+  useEffect(() => {
+    let live = true;
+    void fetch("/api/vcw/autoplay", { credentials: "include" })
+      .then((r) => r.json().catch(() => ({})))
+      .then((b) => {
+        const s = String((b as { idle_policy?: { summary?: unknown } }).idle_policy?.summary ?? "");
+        if (live && s) setIdleSummary(s);
+      })
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, []);
 
   const plan = useMemo(
     () =>
@@ -193,8 +210,9 @@ export function VcwAutoplay({ gameSlug, gameTitle }: { gameSlug: string; gameTit
         <p className="mt-2 text-xs text-slate-400">
           Remote boots a Kasm Ubuntu desktop on 6901, then you open{" "}
           <span className="break-all text-cyan-300">{plan.targetUrl}</span> in its Chromium ({plan.compute},{" "}
-          {plan.siteMode}). The stream link always loads once the pod boots; idle pods chime at 60 min, stop 15 min
-          later, terminate after 24h untended. RunPod bills per second; coin quote includes the 25% cut.
+          {plan.siteMode}). The stream link always loads once the pod boots;{" "}
+          {idleSummary || "idle pods chime at 60 min, stop 15 min later, terminate after 24h untended."}{" "}
+          RunPod bills per second; coin quote includes the 25% cut.
         </p>
       )}
 

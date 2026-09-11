@@ -71,6 +71,16 @@ for (const token of ["Hire an agent swarm", "system prompt", "Streaming", "Expor
   const hay = `${page} ${widget}`;
   if (!hay.includes(token)) throw new Error(`Swarm UI missing ${token}.`);
 }
+// Replies must thread quoted context into the turn (the API only sees
+// message text), never merge into the wrong session after a switch, and
+// offer a working regenerate; pins persist on-device; per-message voice.
+for (const token of ["Replying to", "activeIdRef", "Regenerate", "lastSent", "swarm-pins", "aria-label"]) {
+  if (!widget.includes(token)) throw new Error(`Swarm widget missing reply/regen/pins/a11y: ${token}.`);
+}
+// Turn gross is split across reply rows (truthful per-message cost).
+if (!chatRoute.includes("shares") || !chatRoute.includes("turnGross")) {
+  throw new Error("Swarm chat must split the turn gross across reply rows.");
+}
 if (!widget.includes("SWARM_TOOLS") || !widget.includes("Orchestration")) {
   throw new Error("Swarm widget must expose the tool registry + orchestration picker.");
 }

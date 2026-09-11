@@ -26,5 +26,5 @@ export function DailyClaim() {
     }
   }
 
-  return <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6"><h2 className="text-xl font-bold">Daily login bonus</h2><p role="status" className="mt-2 text-sm text-slate-400">{message}</p><button type="button" disabled={busy} onClick={claim} className="mt-4 rounded-full bg-cyan-300 px-5 py-2 font-bold text-slate-950 disabled:opacity-40">{busy ? "Claiming…" : "Claim daily bonus"}</button><p className="mt-2 text-xs text-slate-500">5 coins + 1 per consecutive day, up to 12; plus 💌x1 love letter every claim. Everyone starts with 💌x3.</p></section>;
+  return <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6"><h2 className="text-xl font-bold">Daily login bonus</h2><p role="status" className="mt-2 text-sm text-slate-400">{message}</p><button type="button" disabled={busy} onClick={claim} className="mt-4 rounded-full bg-cyan-300 px-5 py-2 font-bold text-slate-950 disabled:opacity-40">{busy ? "Claiming…" : "Claim daily bonus"}</button><p className="mt-2 text-xs text-slate-500">5 coins + 1 per consecutive day, up to 12; plus 💌x1 love letter every successful daily claim. Everyone starts with 💌x3.</p></section>;
 }

@@ -11,6 +11,7 @@ function refundStatus(message: string): number {
   const m = message.toLowerCase();
   if (m.includes("login")) return 401;
   if (m.includes("forbidden")) return 403;
+  if (m.includes("not found")) return 404;
   if (
     m.includes("free coins") ||
     m.includes("window expired") ||

@@ -10,7 +10,6 @@ import {
   buildBuddyFalHint,
   cleanScreenImage,
   detectBuddyIntent,
-  estimateBuddyTurn,
   fallbackReply,
   observeScreen,
   pickBuddyBrain,
@@ -19,7 +18,7 @@ import {
   summarizeBuddyMemory,
   cleanBuddyHistory,
 } from "@/lib/buddy-engine";
-import { cleanBuddyVoice, formatBuddyCost, quoteBuddyChatLeg } from "@/lib/game-ai";
+import { cleanBuddyVoice, formatBuddyCost, quoteBuddyChatLeg, quoteBuddyTtsLeg } from "@/lib/game-ai";
 import { falConfigured } from "@/lib/fal";
 import { OPENROUTER_ENDPOINT, OPENROUTER_REFERER, OPENROUTER_TITLE, parseOpenRouterText } from "@/lib/openrouter-plays";
 
@@ -174,7 +173,17 @@ export async function POST(req: Request) {
             model,
             messages: [
               { role: "system", content: systemPrompt },
-              { role: "user", content: screenImage ? `${promptText}\n(Screenshot attached separately is not supported on this brain; described context above.)` : promptText },
+              // Llama Scout is vision-capable via the OpenAI content-part
+              // shape; the snapshot rides along when the player shared one.
+              screenImage
+                ? {
+                    role: "user",
+                    content: [
+                      { type: "text", text: promptText },
+                      { type: "image_url", image_url: { url: screenImage } },
+                    ],
+                  }
+                : { role: "user", content: promptText },
             ],
             max_tokens: 150,
             temperature: 0.8,
@@ -196,7 +205,6 @@ export async function POST(req: Request) {
     fallback = true;
   }
 
-  const est = estimateBuddyTurn(reply);
   const falHint = fallback ? null : buildBuddyFalHint(intent, reply, { gameTitle: obs.gameTitle, falAvailable: falConfigured() });
   if (fallback) {
     return ok({
@@ -215,12 +223,23 @@ export async function POST(req: Request) {
   // Meter the chat leg at TRUE cost (chat tokens + image tokens + DB leg).
   // The RPC prices buddy-chat at 3 coins per qty unit, so derive qty from
   // the true-cost gross; the ledger lands on the accurate figure.
-  // (Same meter whichever brain reasoned; the USD delta is sub-centicentcoin.)
+  // (Same meter whichever brain reasoned; the USD delta is sub-centicentcoin.
+  // Both brains receive the screenshot when shared, so both spend the
+  // image leg.)
   const cost = quoteBuddyChatLeg({
     promptChars: promptText.length,
     replyChars: reply.length,
     hasScreenshot: screenImage !== null,
   });
+  // Turn estimate from the SAME true-cost legs as the debit (chat leg known,
+  // voice leg quoted for speaking this reply), so API consumers never see
+  // two contradictory figures. The widget renders cost.display.
+  const estVoice = quoteBuddyTtsLeg({ chars: reply.length, model: "tts-1" });
+  const est = {
+    chatCoins: cost.grossCoins,
+    ttsCoins: estVoice.grossCoins,
+    gross: Math.round((cost.grossCoins + estVoice.grossCoins) * 100) / 100,
+  };
   let metered: unknown = null;
   try {
     const { data: chatRow, error: chatErr } = await supabase.rpc("meter_game_ai_usage", {

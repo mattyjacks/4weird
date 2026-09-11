@@ -58,6 +58,15 @@ export async function POST(
   if (listingError) return fail("Unable to load listing.", 500);
   if (!listing) return fail("Listing not found.", 404);
 
+  // Dead-end guard BEFORE escrow: DigitalOcean has no auto-provision path
+  // (see digitaloceanProvider), so a DO listing with a blank/auto endpoint
+  // would lock escrow with no machine to connect to. Refuse upfront with
+  // the honest reason instead of an escrowed no-op booking.
+  const typed = listing as ListingRow;
+  if (typed.provider_code === "digitalocean" && (!typed.endpoint_url || typed.endpoint_url === RUNPOD_AUTO_ENDPOINT)) {
+    return fail("This DigitalOcean listing has no endpoint yet; the host must supply one (or configure auto-provisioning) before it can be booked. No coins were escrowed.", 409);
+  }
+
   const { data: booking, error } = await supabase.rpc("book_listing", {
     p_listing: id,
     p_hours: hours,

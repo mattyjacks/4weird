@@ -41,4 +41,11 @@ assert(!src.includes("console.log(process.env"), "never log raw keys");
 assert(route.includes("15_000") || route.includes("15000"), "route needs a fetch timeout");
 assert(src.includes(".slice(0,"), "outputs must be length-capped");
 
+// 6. Live path spends the operator's paid key: it must require a signed-in
+// human and meter (anonymous callers get the free offline fallback, never
+// the live call). Fallback stays anonymous for the fresh-clone story.
+assert(route.includes("Authentication required") || route.includes("getUser"), "live path must require auth");
+assert(route.includes("meter_game_ai_usage"), "live path must meter the paid call");
+assert(route.includes("requireHuman"), "live path must gate bots");
+
 console.log(`VERIFY_OK: 25 openrouter plays (${ids.slice(0, 5).join(",")}...), 4 voice backends, offline fallback wired.`);

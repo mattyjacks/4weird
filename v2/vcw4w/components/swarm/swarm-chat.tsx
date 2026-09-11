@@ -528,6 +528,7 @@ export function SwarmChat() {
                   {m.role === "user" ? "You" : `${m.agent_name || "Swarm"} · agent ${(m.agent_index ?? 0) + 1}`}
                 </b>
                 <span>{new Date(m.created_at).toLocaleTimeString()}</span>
+                {m.gross_coins > 0 && <span title="This reply's share of the turn gross (25% cut included)">🪙{m.gross_coins}</span>}
                 <span className="ml-auto flex gap-2">
                   <button type="button" onClick={() => setReplyTo(m.id)} className="hover:text-white">Reply</button>
                   <button type="button" onClick={() => setPins((p) => (p.includes(m.id) ? p.filter((x) => x !== m.id) : [...p, m.id]))} className="hover:text-white">{pins.includes(m.id) ? "Unpin" : "Pin"}</button>
@@ -555,11 +556,15 @@ export function SwarmChat() {
             onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) void send(); }}
             rows={2}
             placeholder={active ? "Message the swarm… (Ctrl+Enter to send, / for commands)" : "Hire a swarm first, then chat here."}
+            aria-label="Message the swarm"
             className="flex-1 rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
           />
           <div className="flex flex-col gap-2">
             <button type="button" disabled={busy || !activeId} onClick={() => void send()} className="rounded-md bg-cyan-500 px-4 py-2 text-sm font-bold text-slate-950 hover:bg-cyan-400 disabled:opacity-50">
               {busy ? "…" : "Send"}
+            </button>
+            <button type="button" disabled={busy || !activeId || !lastSent} onClick={() => void send(lastSent)} title="Resend your last message as a fresh turn" className="rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-200 disabled:opacity-50">
+              ↻ Regenerate
             </button>
             <button type="button" onClick={() => (listening ? recogRef.current?.stop() : startListening())} className="rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-200">
               {listening ? "Stop 🎙" : "🎙 Voice"}
@@ -567,7 +572,7 @@ export function SwarmChat() {
           </div>
         </div>
         <p className="mt-2 text-xs text-slate-500">
-          Modern + beyond: streaming fan-out · markdown + code copy · regenerate (resend) · branch any message · reply threads · pins · search · MD/JSON export · voice in/out · per-agent roles + custom system prompts · orchestration trace · per-turn coin + 25% cut readout. Commands: /reset /persona /delegate /export /voice.
+          Modern + beyond: streaming fan-out · markdown + code copy · ↻ regenerate (resends your last message) · branch any message · reply threading (quoted into the turn) · pins (saved on this device) · search · MD/JSON export · voice in/out + per-message 🔊 · per-agent roles + custom system prompts · orchestration trace · per-turn coin + 25% cut readout. Commands: /reset /persona /delegate /export /voice.
         </p>
       </section>
     </div>

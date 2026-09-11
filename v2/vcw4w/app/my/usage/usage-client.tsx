@@ -58,6 +58,9 @@ type UsageResponse = {
     lastSync: string | null;
   };
   newgameplus?: { gross: number; cut: number; provider: number; turns: number };
+  submissions?: { gross: number; cut: number; provider: number; turns: number };
+  meshy?: { gross: number; cut: number; provider: number; turns: number };
+  vault?: { gross: number; cut: number; provider: number; turns: number };
   fal?: {
     total: { gross: number; cut: number; provider: number; charges: number };
     byOp: { op: string; charges: number; gross: number; cut: number; provider: number }[];
@@ -260,6 +263,42 @@ export function UsageClient() {
             )}
           </Card>
 
+          <Card title="Game submissions; .zip uploads + audits">
+            <p>
+              Ship a game as a .zip:{" "}
+              <b>{data.submissions?.gross ?? 0}</b> coins, <b>{data.submissions?.cut ?? 0}</b> cut,{" "}
+              <b>{data.submissions?.turns ?? 0}</b> charges (25% cut included).{" "}
+              <a className="underline" href="/submit">Submit a game →</a>
+            </p>
+            {(data.submissions?.turns ?? 0) === 0 && (
+              <p className="text-slate-500">No submissions yet; ship one on /submit.</p>
+            )}
+          </Card>
+
+          <Card title="Meshy.ai; text/image to 3D + textures">
+            <p>
+              3D models and textures for your games:{" "}
+              <b>{data.meshy?.gross ?? 0}</b> coins, <b>{data.meshy?.cut ?? 0}</b> cut,{" "}
+              <b>{data.meshy?.turns ?? 0}</b> runs (25% cut included).{" "}
+              <a className="underline" href="/meshy">Open the studio →</a>
+            </p>
+            {(data.meshy?.turns ?? 0) === 0 && (
+              <p className="text-slate-500">No Meshy runs yet; make something on /meshy.</p>
+            )}
+          </Card>
+
+          <Card title="Weird Vault; game file storage">
+            <p>
+              Blob storage for game files:{" "}
+              <b>{data.vault?.gross ?? 0}</b> coins, <b>{data.vault?.cut ?? 0}</b> cut,{" "}
+              <b>{data.vault?.turns ?? 0}</b> charges (25% cut included).{" "}
+              <a className="underline" href="/vault">Open the vault →</a>
+            </p>
+            {(data.vault?.turns ?? 0) === 0 && (
+              <p className="text-slate-500">No vault storage yet; stash files on /vault.</p>
+            )}
+          </Card>
+
           <Card title="RunPod; real spend, mirrored">
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="rounded-xl border border-cyan-300/30 bg-cyan-300/[.06] p-4">
@@ -329,7 +368,7 @@ export function UsageClient() {
               <div className="rounded-xl border border-cyan-300/30 bg-cyan-300/[.06] p-4">
                 <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Combined gross</p>
                 <p className="mt-1 text-3xl font-black">{data.combined.gross} <span className="text-sm text-slate-400">({usd(data.combined.gross)})</span></p>
-                <p className="mt-1 text-xs text-slate-400">game AI + fal.ai + game rentals + newgameplus + agent rentals + workspaces + clan fees</p>
+                <p className="mt-1 text-xs text-slate-400">game AI + fal.ai + game rentals + newgameplus + submissions + meshy + vault + agent rentals + workspaces + clan fees</p>
               </div>
               <div className="rounded-xl border border-white/10 p-4">
                 <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Platform 25%</p>
@@ -349,6 +388,11 @@ export function UsageClient() {
               <div className="rounded-xl border border-white/10 p-4">Workspaces: <b>{data.workspace.gross}</b> coins ({data.workspace.charges} charges)</div>
               <div className="rounded-xl border border-white/10 p-4">Clans: <b>{data.clan?.total.gross ?? 0}</b> coins ({data.clan?.total.charges ?? 0} charges)</div>
               <div className="rounded-xl border border-white/10 p-4">NewGamePlus: <b>{data.newgameplus?.gross ?? 0}</b> coins ({data.newgameplus?.turns ?? 0} builds)</div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-white/10 p-4">Submissions: <b>{data.submissions?.gross ?? 0}</b> coins ({data.submissions?.turns ?? 0} charges)</div>
+              <div className="rounded-xl border border-white/10 p-4">Meshy.ai: <b>{data.meshy?.gross ?? 0}</b> coins ({data.meshy?.turns ?? 0} runs)</div>
+              <div className="rounded-xl border border-white/10 p-4">Vault: <b>{data.vault?.gross ?? 0}</b> coins ({data.vault?.turns ?? 0} charges)</div>
             </div>
           </Card>
 

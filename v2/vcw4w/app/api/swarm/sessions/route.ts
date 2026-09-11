@@ -107,7 +107,7 @@ export async function POST(req: Request) {
     if (error) {
       const msg = String((error as { message?: string }).message ?? "");
       if (msg.includes("swarm_sessions") && (msg.includes("does not exist") || msg.includes("schema"))) {
-        return fail("Swarm tables are not migrated yet; apply supabase/migrations/20260923000000_swarm_chat.sql.", 503);
+        return fail("Swarm tables are not migrated yet; apply supabase/migrations/20260927000000_swarm_chat.sql.", 503);
       }
       return dbFail("api/swarm/sessions:create", error, "Unable to hire the swarm.");
     }
