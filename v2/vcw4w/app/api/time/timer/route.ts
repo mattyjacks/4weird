@@ -54,7 +54,7 @@ export async function GET() {
     org_id: string | null;
   } | null;
 
-  const proj = runningTimer.project as TimerProjectJoin;
+  const proj = runningTimer.project as unknown as TimerProjectJoin;
 
   return ok({
     timer: {

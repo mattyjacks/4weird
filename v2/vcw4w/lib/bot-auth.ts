@@ -216,6 +216,11 @@ export function generateBotKey(): string {
   return BOT_KEY_TAG + suffix;
 }
 
+/** Pinned PQ KDF cost. N=32768/r=8 needs ~34 MiB, over Node's 32 MiB default
+ *  scrypt cap — maxmem is set explicitly (without it every hash THROWS
+ *  ERR_CRYPTO_INVALID_SCRYPT_PARAMS and all bot auth fails closed). */
+export const SCRYPT_PQ = { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 } as const;
+
 /** Per-prefix v2 salt: one rainbow per 8-char bucket, not one for the whole table. */
 export function botSaltFor(prefix: string): string {
   return `bot4weird-v2$${String(prefix ?? "").slice(0, 8)}`;
@@ -224,9 +229,9 @@ export function botSaltFor(prefix: string): string {
 /** v2 hash with an explicit pepper (rotation-safe core). */
 export function hashBotKeyForPepper(key: string, pepperVal: string): string {
   const prefix = keyPrefix(key);
-  return (
-    scryptSync(String(pepperVal) + key, botSaltFor(prefix), 32, { N: 32768, r: 8, p: 1 }) as Buffer
-  ).toString("hex");
+  return (scryptSync(String(pepperVal) + key, botSaltFor(prefix), 32, { ...SCRYPT_PQ }) as Buffer).toString(
+    "hex",
+  );
 }
 
 /** Stored hash: scrypt(pepper + key, salt=v2$prefix) hex. Slow KDF resists offline brute force. */
@@ -246,7 +251,7 @@ export function sha256Hash(key: string): string {
 
 /** v1 static-salt hash at hardening cost, explicit pepper (verify-only). */
 function hashBotKeyV1ForPepper(key: string, pepperVal: string): string {
-  return (scryptSync(String(pepperVal) + key, "bot4weird-v1", 32, { N: 32768, r: 8, p: 1 }) as Buffer).toString("hex");
+  return (scryptSync(String(pepperVal) + key, "bot4weird-v1", 32, { ...SCRYPT_PQ }) as Buffer).toString("hex");
 }
 
 /** v1 static-salt hash at legacy cost, explicit pepper (verify-only). */

@@ -77,7 +77,7 @@ export async function GET(req: Request) {
   };
 
   return ok({
-    entries: ((entries ?? []) as EntryRow[]).map((e) => ({
+    entries: ((entries ?? []) as unknown as EntryRow[]).map((e) => ({
       id: e.id,
       description: e.description,
       startTime: e.start_time,

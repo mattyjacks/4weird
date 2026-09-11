@@ -70,6 +70,10 @@ export function extractGatewayKey(req: Request): string | null {
   return null;
 }
 
+/** Pinned PQ KDF cost (see lib/bot-auth SCRYPT_PQ: maxmem is REQUIRED — without
+ *  it N=32768 throws ERR_CRYPTO_INVALID_SCRYPT_PARAMS under Node's 32 MiB cap). */
+export const SCRYPT_PQ_GW = { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 } as const;
+
 /** Gateway v2 salt: separate domain from bot keys so one rainbow never serves both. */
 export function gatewaySaltFor(prefix: string): string {
   return `vcw-gateway-v2$${String(prefix ?? "").slice(0, 8)}`;
@@ -79,7 +83,7 @@ export function gatewaySaltFor(prefix: string): string {
 export function hashGatewayKeyForPepper(key: string, pepperVal: string): string {
   const prefix = vcwGatewayKeyPrefixFromSecret(key);
   return (
-    scryptSync(String(pepperVal) + key, gatewaySaltFor(prefix), 32, { N: 32768, r: 8, p: 1 }) as Buffer
+    scryptSync(String(pepperVal) + key, gatewaySaltFor(prefix), 32, { ...SCRYPT_PQ_GW }) as Buffer
   ).toString("hex");
 }
 
@@ -114,7 +118,7 @@ function hashGatewayV1ForPepper(key: string, pepperVal: string): string {
   // (static salt "bot4weird-v1", both scrypt costs, then sha256). Verify-only.
   try {
     return (
-      scryptSync(String(pepperVal) + key, "bot4weird-v1", 32, { N: 32768, r: 8, p: 1 }) as Buffer
+      scryptSync(String(pepperVal) + key, "bot4weird-v1", 32, { ...SCRYPT_PQ_GW }) as Buffer
     ).toString("hex");
   } catch {
     return "";

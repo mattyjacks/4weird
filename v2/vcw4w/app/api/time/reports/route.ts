@@ -58,7 +58,7 @@ export async function GET(req: Request) {
     debtor: { display_name: string | null; username: string | null } | null;
   };
 
-  ((entries ?? []) as ReportRow[]).forEach((e) => {
+  ((entries ?? []) as unknown as ReportRow[]).forEach((e) => {
     const dur = e.duration || 0;
     const owed = Number(e.ghost_cash_owed || 0);
     const act = e.activity_score ?? 100;
@@ -76,7 +76,7 @@ export async function GET(req: Request) {
       if (!projectMap[e.project_id]) {
         projectMap[e.project_id] = {
           projectName: e.project.name,
-          projectColor: e.project.color,
+          projectColor: e.project.color ?? "#3b82f6",
           totalSeconds: 0,
           totalGhostCash: 0,
         };
