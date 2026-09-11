@@ -51,6 +51,12 @@ for (const [name, src] of [["meter", meter], ["chat", chat], ["tts", tts], ["usa
 if (!features.includes("game_ai_features")) throw new Error("features API must read game_ai_features.");
 if (!meter.includes("meter_game_ai_usage")) throw new Error("Meter API must call meter_game_ai_usage.");
 if (!chat.includes("meter_game_ai_usage") || !chat.includes("OPENAI_API_KEY")) throw new Error("Buddy chat must meter + honor OPENAI_API_KEY.");
+if (!chat.includes("/v1/responses") || !chat.includes("output_text")) {
+  throw new Error("Buddy chat must use the OpenAI Responses API and read output_text.");
+}
+if (chat.includes('p_kind: "buddy-tts"')) {
+  throw new Error("Buddy chat must not meter voice; the TTS endpoint owns that charge.");
+}
 // Metering gates the goods: a failed meter must fail the turn/audio, never
 // serve a free reply (each would also leak real OpenAI spend).
 if (!chat.includes("rpcFail") || !chat.includes("Unable to meter this turn")) {
@@ -61,6 +67,9 @@ if (!tts.includes("rpcFail") || tts.indexOf("meter_game_ai_usage") > tts.indexOf
 }
 if (!tts.includes("audio/speech") || !tts.includes("speechSynthesis") && !tts.includes("fallback")) {
   throw new Error("Buddy TTS must proxy OpenAI speech with a browser fallback.");
+}
+if (!tts.includes('if (!key) return ok({ fallback: true') || tts.indexOf('if (!key)') > tts.indexOf("meter_game_ai_usage")) {
+  throw new Error("Buddy browser-speech fallback must return before metering.");
 }
 if (!usage.includes("my_compute_usage") || !usage.includes("lastHour") || !usage.includes("last24h")) {
   throw new Error("Usage API must return session/total/last-hour/last-24h via my_compute_usage.");

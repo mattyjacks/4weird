@@ -17,7 +17,8 @@ function cleanText(value: unknown): string {
  * Body: { text, voice?, model?, speed?, game_slug?, session_id? }.
  * With OPENAI_API_KEY set this proxies tts-1 / tts-1-hd and returns base64
  * mp3; without it returns { fallback: true } so the widget uses browser
- * speechSynthesis. Either way the chars are metered as buddy-tts (25% cut).
+ * speechSynthesis. Local browser speech is free; only OpenAI voice output is
+ * metered as buddy-tts (25% cut).
  */
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
@@ -42,6 +43,9 @@ export async function POST(req: Request) {
   const sessionRaw = input.session_id ?? input.sessionId ?? null;
   if (sessionRaw !== null && !isUuid(sessionRaw)) return fail("Invalid session_id.", 400);
 
+  const key = process.env.OPENAI_API_KEY ?? "";
+  if (!key) return ok({ fallback: true, voice, model, speed, gross: 0, metered: null });
+
   const qty = Math.max(0.1, text.length / 1000);
   const gross = quoteGameAi("buddy-tts", qty);
   // Meter BEFORE touching OpenAI: a failed meter (e.g. insufficient
@@ -61,10 +65,6 @@ export async function POST(req: Request) {
     return dbFail("api/buddy/tts:meter", error, "Unable to meter voice output.");
   }
 
-  const key = process.env.OPENAI_API_KEY ?? "";
-  if (!key) {
-    return ok({ fallback: true, voice, model, speed, gross, metered });
-  }
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 20_000);

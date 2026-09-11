@@ -181,7 +181,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       } catch {
         speakWithBrowser(r.reply, voice);
       }
-      setStatus(r.fallback ? "AI is unconfigured — buddy answered locally and metered a heartbeat." : "Buddy answered and spoke.");
+      setStatus(r.fallback ? "AI is unavailable — Buddy answered locally at no cost." : "Buddy answered and spoke.");
       void refreshSpend(sessionId);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Buddy could not answer.");
