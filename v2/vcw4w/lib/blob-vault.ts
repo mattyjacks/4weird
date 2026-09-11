@@ -1,15 +1,15 @@
 /**
- * Weird Vault — blob-based file storage on Supabase (Drive + GitHub rival).
+ * Weird Vault; blob-based file storage on Supabase (Drive + GitHub rival).
  *
  * Model: content-addressed blobs (sha256) + per-scope file rows.
  * - Scopes are STRICTLY separate: personal (owner_id) vs team (team_id) vs
- *   org (org_id). Exactly one scope per file. No cross-scope reads — the
+ *   org (org_id). Exactly one scope per file. No cross-scope reads; the
  *   database enforces it with RLS + RPC membership checks.
  * - Blobs are deduplicated by sha256: storing the same bytes twice costs
  *   once. Quotas count logical bytes per scope, not physical blobs.
  * - Buckets: `game-blobs` (private). No public write path; signed URLs only.
  * - Every price INCLUDES the 25% platform cut (VAULT_CUT_PCT), never on top.
- * - AI artifacts (fal, Meshy, chat, logs, audio/video/text) autosave here —
+ * - AI artifacts (fal, Meshy, chat, logs, audio/video/text) autosave here -
  *   see lib/ai-autosave.ts for the routing; this module owns paths + prices.
  */
 
@@ -17,8 +17,8 @@ import { SERVICE_CUT_PCT } from "@/lib/economy";
 
 export const VAULT_CUT_PCT = SERVICE_CUT_PCT;
 export const VAULT_BUCKET = "game-blobs";
-/** 69 MiB per blob — same cap as game .zip submissions. */
-export const VAULT_MAX_BLOB_BYTES = 69 * 1024 * 1024;
+/** 50 MiB per blob; same cap as game .zip submissions so all games load fast. */
+export const VAULT_MAX_BLOB_BYTES = 50 * 1024 * 1024;
 /** Free quota per personal scope (bytes). Teams/orgs start at 0, fund up. */
 export const VAULT_FREE_BYTES_PERSONAL = 500 * 1024 * 1024;
 /** Overage: coins per GB-month, gross, cut INCLUDED. */
@@ -68,7 +68,7 @@ export function quoteVaultStorageSplit(bytes: number): {
   return vaultSplit(quoteVaultStorage(bytes));
 }
 
-export const VAULT_CUT_NOTE = `Includes ${VAULT_CUT_PCT}% platform cut — never added on top.`;
+export const VAULT_CUT_NOTE = `Includes ${VAULT_CUT_PCT}% platform cut; never added on top.`;
 
 /** Clean a vault path: relative, POSIX, no escapes, 1..512 chars. */
 export function cleanVaultPath(value: unknown): string {

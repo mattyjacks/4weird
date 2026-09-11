@@ -1131,7 +1131,7 @@ async function runTests() {
         ? { exitCode: 1, output: 'FAIL first pass' }
         : { exitCode: 0, output: 'all green' }),
     });
-    // Stub the fix step by enabling a fake binary? No — fix will fail gracefully
+    // Stub the fix step by enabling a fake binary? No; fix will fail gracefully
     // (opencode missing), run ends 'fix_failed' and still persists. Just wait.
     let run = null;
     for (let i = 0; i < 100; i++) {
@@ -1536,7 +1536,7 @@ async function runTests() {
     failedTests.push("Stage.pureAiTakeover");
   }
 
-  // Test 38: self-generated trace tests stay token-frugal — a tiny digest
+  // Test 38: self-generated trace tests stay token-frugal; a tiny digest
   // test (model-visible) plus a runtime-only data fixture (never in context).
   try {
     console.log("Running Test 38: trace test generator (token-frugal)...");

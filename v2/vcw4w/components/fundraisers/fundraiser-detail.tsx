@@ -55,7 +55,7 @@ export function FundraiserDetail({ id }: { id: string }) {
   }, [load]);
 
   async function contribute() {
-    // Disabled in the UI while compliance is worked out — API left working.
+    // Disabled in the UI while compliance is worked out - API left working.
     if (!FUNDRAISERS_ENABLED) {
       setError("Backing is disabled while we work out the legal and compliance side.");
       return;
@@ -73,7 +73,7 @@ export function FundraiserDetail({ id }: { id: string }) {
       else {
         const b = data.backed as { gross_coins?: number; net_coins?: number };
         setNotice(
-          `Backed with ${b.gross_coins} coins (${b.net_coins} reach the project after the 25% cut). Gifts are final — thank you.`,
+          `Backed with ${b.gross_coins} coins (${b.net_coins} reach the project after the 25% cut). Gifts are final; thank you.`,
         );
         await load();
       }
@@ -124,7 +124,7 @@ export function FundraiserDetail({ id }: { id: string }) {
     <div className="space-y-6">
       {!FUNDRAISERS_ENABLED && (
         <div className="rounded-xl border border-red-300/30 bg-red-300/10 p-4 text-sm text-red-100">
-          <p className="font-bold">🚧 Fundraisers are disabled for now — but still working under the hood.</p>
+          <p className="font-bold">🚧 Fundraisers are disabled for now; but still working under the hood.</p>
           <p className="mt-1">{FUNDRAISERS_DISABLED_NOTICE}</p>
         </div>
       )}
@@ -169,10 +169,10 @@ export function FundraiserDetail({ id }: { id: string }) {
         <section className="space-y-3 rounded-xl border border-white/10 bg-slate-900/60 p-4">
           <h3 className="text-lg font-bold">Back this project</h3>
           <p className="text-sm text-slate-400">
-            A voluntary gift in coins — final once sent, no ownership or returns. 25% platform cut included.
+            A voluntary gift in coins; final once sent, no ownership or returns. 25% platform cut included.
           </p>
           <div className="flex flex-col gap-2 sm:flex-row">
-            <input className={input + " sm:max-w-48"} value={coins} onChange={(e) => setCoins(e.target.value)} inputMode="decimal" placeholder="Coins (1–100000)" />
+            <input className={input + " sm:max-w-48"} value={coins} onChange={(e) => setCoins(e.target.value)} inputMode="decimal" placeholder="Coins (1-100000)" />
             <button className={btn} disabled={busy} onClick={() => void contribute()}>
               Back with coins
             </button>
@@ -180,15 +180,15 @@ export function FundraiserDetail({ id }: { id: string }) {
         </section>
       ) : campaign.status === "open" ? (
         <section className="space-y-3 rounded-xl border border-white/10 bg-slate-900/60 p-4 opacity-75">
-          <h3 className="text-lg font-bold">Back this project — disabled for now</h3>
+          <h3 className="text-lg font-bold">Back this project; disabled for now</h3>
           <p className="text-sm text-slate-400">
             Backing is paused while we work out regulations and compliance for moving money between parties,
             especially internationally. The campaign, its story, and its progress stay visible below.
           </p>
           <div className="flex flex-col gap-2 sm:flex-row">
-            <input className={input + " sm:max-w-48"} value={coins} onChange={(e) => setCoins(e.target.value)} inputMode="decimal" placeholder="Coins (1–100000)" disabled />
+            <input className={input + " sm:max-w-48"} value={coins} onChange={(e) => setCoins(e.target.value)} inputMode="decimal" placeholder="Coins (1-100000)" disabled />
             <button className={btn} disabled onClick={() => void contribute()}>
-              Backing disabled — back soon
+              Backing disabled; back soon
             </button>
           </div>
         </section>

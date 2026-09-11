@@ -5,7 +5,7 @@
      https://4weird.games/bot/setup) so the desktop app can act as their bot.
    - Tauri runtime: the secret is stored in a local-only OS app-data file
      via the Rust `save_bot_token` / `get_bot_token` / `clear_bot_token`
-     commands — never logged, never rendered back.
+     commands; never logged, never rendered back.
    - Plain browser fallback: sessionStorage `vcw_bot_token` (tab-scoped, so
      the bearer credential never persists in the profile and any XSS has a
      smaller window than localStorage).
@@ -41,7 +41,7 @@ async function readStoredToken() {
     try {
       const token = await invokeTauriCommand('get_bot_token');
       if (typeof token === 'string' && isBotKeyShape(token)) return token;
-    } catch (e) { /* none stored — fall through */ }
+    } catch (e) { /* none stored; fall through */ }
     return '';
   }
   try {
@@ -132,7 +132,7 @@ async function verifyBotToken() {
     if (res.ok && body && body.success) {
       const who = body.username ? `@${body.username}` : (body.human_id || 'valid key');
       const scopes = Array.isArray(body.scopes) ? body.scopes.join(', ') : '';
-      setStatus(`Verified live: ${who}${scopes ? ` — scopes: ${scopes}` : ''}`, 'ok');
+      setStatus(`Verified live: ${who}${scopes ? `; scopes: ${scopes}` : ''}`, 'ok');
       if (el.botTokenIdentity) {
         el.botTokenIdentity.textContent = `Linked identity: ${who}${body.human_id ? ` (${body.human_id})` : ''}`;
       }

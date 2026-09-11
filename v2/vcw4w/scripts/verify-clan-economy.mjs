@@ -253,7 +253,7 @@ for (const rpc of [
 if (!mig3.includes("PREREQUISITE MISSING") || !mig3.includes("20260912000000_clan_types_upkeep_valleynet_runpod.sql")) {
   fail("v3 migration must guard on the v2 prerequisite (clan_cost_ledger/clan_wallets).");
 }
-// substr() takes comma args only — the FROM/FOR truncate form is
+// substr() takes comma args only; the FROM/FOR truncate form is
 // substring()-only, so substr(x from 1 for N) is a 42601 syntax error.
 for (const [name, src] of [["v2", mig], ["v3", mig3]]) {
   if (/substr\([^)]*\bfrom\b/i.test(src)) fail(`${name} migration must not use substr() with FROM/FOR (42601).`);

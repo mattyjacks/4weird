@@ -9,7 +9,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
           <div className="mt-4 hidden rounded-3xl border border-dashed border-cyan-500/40 bg-cyan-500/5 p-4 text-xs leading-relaxed text-muted-foreground lg:block">
             <p className="font-black text-foreground">💡 Docs promise</p>
             <p className="mt-1">
-              Every price here already includes the 25% cut. 100 🪙 = exactly $1.00 — no asterisks.
+              Every price here already includes the 25% cut. 100 🪙 = exactly $1.00; no asterisks.
             </p>
           </div>
         </aside>

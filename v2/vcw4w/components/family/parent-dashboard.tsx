@@ -37,7 +37,7 @@ function fmtTime(totalSeconds: number): string {
 }
 
 /**
- * ParentDashboard — Parent accounts manage Child sub-accounts here: create
+ * ParentDashboard - Parent accounts manage Child sub-accounts here: create
  * `username#1234` logins, set budgets / daily minutes / allowed hours,
  * fund wallets from the parent's own coins, reset passwords, suspend, and
  * close (refunds the wallet). Children never touch checkout or Supabase auth.
@@ -55,7 +55,7 @@ export function ParentDashboard() {
     try {
       const r = await request<{ kids: Kid[] }>("/api/family/kids");
       setKids(r.kids ?? []);
-      setMessage((r.kids ?? []).length ? "" : "No child accounts yet — create the first one below. You become a Parent account automatically.");
+      setMessage((r.kids ?? []).length ? "" : "No child accounts yet; create the first one below. You become a Parent account automatically.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to load child accounts.");
     }
@@ -86,17 +86,17 @@ export function ParentDashboard() {
   return (
     <div className="space-y-6">
       <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
-        <h2 className="text-xl font-bold">👨‍👩‍👧 Parent Mode — child accounts</h2>
+        <h2 className="text-xl font-bold">👨‍👩‍👧 Parent Mode; child accounts</h2>
         <p className="mt-2 text-sm text-slate-300">
-          Children log in with a <b>username#1234 + password</b> — no email, no Supabase account. You attest their age
-          band (kid 0–12, teen 13–17, adult 18+); the band gates ratings with zero date-of-birth collection. Wallets
-          hold only coins you grant from your own balance — children can spend them on play, never check out, tip, or
+          Children log in with a <b>username#1234 + password</b>; no email, no Supabase account. You attest their age
+          band (kid 0-12, teen 13-17, adult 18+); the band gates ratings with zero date-of-birth collection. Wallets
+          hold only coins you grant from your own balance; children can spend them on play, never check out, tip, or
           subscribe. At most 10 children per parent.
         </p>
         <p role="status" className="mt-2 text-sm text-slate-400">{message}</p>
         {freshHandle && (
           <p role="alert" className="mt-2 rounded-xl border border-emerald-300/40 bg-emerald-300/10 px-4 py-2 text-sm text-emerald-200">
-            ✅ Created <b>{freshHandle}</b> — write down this handle and the password you chose. The handle is the login.
+            ✅ Created <b>{freshHandle}</b>; write down this handle and the password you chose. The handle is the login.
           </p>
         )}
         <form onSubmit={create} className="mt-4 flex flex-wrap items-end gap-3">
@@ -111,8 +111,8 @@ export function ParentDashboard() {
           <label className="text-sm" htmlFor="kid-band">
             Age band
             <select id="kid-band" name="kidBand" className="mt-1 block rounded-lg border border-white/15 bg-black/30 px-3 py-2" value={newBand} onChange={(e) => setNewBand(e.target.value)}>
-              <option value="kid">Kid (0–12)</option>
-              <option value="teen">Teen (13–17)</option>
+              <option value="kid">Kid (0-12)</option>
+              <option value="teen">Teen (13-17)</option>
               <option value="adult">Adult (18+)</option>
             </select>
           </label>
@@ -174,7 +174,7 @@ function KidCard({ kid, refresh }: { kid: Kid; refresh: () => void }) {
         method: "PATCH",
         body: JSON.stringify({ status: kid.status === "active" ? "suspended" : "active" }),
       });
-      setMessage(kid.status === "active" ? "Suspended — live sessions stop working." : "Reactivated.");
+      setMessage(kid.status === "active" ? "Suspended; live sessions stop working." : "Reactivated.");
       refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to update.");
@@ -207,7 +207,7 @@ function KidCard({ kid, refresh }: { kid: Kid; refresh: () => void }) {
     try {
       await request(`/api/family/kids/${kid.id}`, { method: "PATCH", body: JSON.stringify({ password: newPass }) });
       setNewPass("");
-      setMessage("Password reset — all live sessions for this child were logged out.");
+      setMessage("Password reset; all live sessions for this child were logged out.");
       refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to reset.");
@@ -274,8 +274,8 @@ function KidCard({ kid, refresh }: { kid: Kid; refresh: () => void }) {
         <label className="text-sm" htmlFor={`band-${kid.id}`}>
           Age band (you attest this)
           <select id={`band-${kid.id}`} name="ageBand" value={band} onChange={(e) => setBand(e.target.value as Kid["age_band"])} className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2">
-            <option value="kid">Kid (0–12)</option>
-            <option value="teen">Teen (13–17)</option>
+            <option value="kid">Kid (0-12)</option>
+            <option value="teen">Teen (13-17)</option>
             <option value="adult">Adult (18+)</option>
           </select>
         </label>

@@ -12,7 +12,7 @@ const FEATURES = ["avatar", "camera"] as const;
 type Feature = (typeof FEATURES)[number];
 
 /**
- * POST /api/buddy/presence — meter optional Buddy presence by the minute
+ * POST /api/buddy/presence; meter optional Buddy presence by the minute
  * (3D avatar) or by the frame (camera check-ins).
  * Body: { feature: "avatar"|"camera", qty: minutes|frames, game_slug?, session_id? }.
  *
@@ -20,7 +20,7 @@ type Feature = (typeof FEATURES)[number];
  * camera frames meter kind "buddy-camera" (3 centicentcoins/frame).
  * Both kinds land with the DB migration
  * 20260918000000_buddy_presence_kinds.sql. Until it is applied the RPC
- * rejects with "invalid kind" — in exactly that case this route still
+ * rejects with "invalid kind"; in exactly that case this route still
  * returns success with the honest quote and pendingMigration: true (never
  * blocks the widget); every other failure surfaces as an error.
  */
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
     });
     if (error) {
       const msg = String(error.message ?? "");
-      // Migration not applied yet: quote honestly, meter later — don't block.
+      // Migration not applied yet: quote honestly, meter later; don't block.
       if (error.code === "P0001" && msg.includes("invalid kind")) {
         return ok({
           feature: f,
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
             provider: quote.provider,
             display: quote.display,
           },
-          note: "Presence kinds are quoted but not yet metered on this deploy — no coins moved.",
+          note: "Presence kinds are quoted but not yet metered on this deploy; no coins moved.",
         });
       }
       return rpcFail("api/buddy/presence:meter", error, rpcStatus, "Unable to meter presence.");

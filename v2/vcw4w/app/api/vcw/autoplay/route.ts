@@ -17,7 +17,7 @@ import { provisionAutoplayWorker } from "@/lib/compute";
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/vcw/autoplay — start a VibeCodeWorker autoplay remote.
+ * POST /api/vcw/autoplay; start a VibeCodeWorker autoplay remote.
  *
  * Body: { game_slug, compute: cpu|gpu|gpu-boosted,
  *         site_mode?: on-site|off-site, desktop_installed?: boolean }
@@ -91,7 +91,7 @@ export async function POST(req: Request) {
       },
       provision: { ok: false, code: provisioned.error, message: provisioned.message ?? "Provisioning failed." },
       desktop_url: VCW_DESKTOP_PATH,
-      note: "RunPod remote not started — no spend. Fix the provision state above and retry.",
+      note: "RunPod remote not started; no spend. Fix the provision state above and retry.",
     });
   }
 

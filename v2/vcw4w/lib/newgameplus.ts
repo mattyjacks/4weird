@@ -1,22 +1,22 @@
 /**
- * NewGamePlus — type a prompt, get a tested original game in your Draft folder.
+ * NewGamePlus; type a prompt, get a tested original game in your Draft folder.
  *
  * One rule everywhere: every coin price INCLUDES the 25% platform cut
  * (NEWGAMEPLUS_CUT_PCT), never added on top. The builder always picks the
  * cheapest viable tier + newest viable runtime, so it delivers the best
- * quality at the lowest price and greatest speed — and it succeeds: the
+ * quality at the lowest price and greatest speed; and it succeeds: the
  * local generator + VibeCodeWorker self-test loop needs no external keys.
  *
  * Speed lanes (exact spec):
- * - fast lane (budget ≤ 250): the whole symphony finishes in ≤5 minutes —
+ * - fast lane (budget ≤ 250): the whole symphony finishes in ≤5 minutes -
  *   local generation in ms, ≤2 cheap/fast fal ops, VCW static self-test.
  * - deluxe lane (budget > 250): bigger budgets buy more bots + media
- *   (up to 5 swarm agents, up to 4 fal ops incl. video/3D) — longer but
- *   still fast (≈5–12 min wall clock incl. queued fal renders).
+ *   (up to 5 swarm agents, up to 4 fal ops incl. video/3D); longer but
+ *   still fast (≈5-12 min wall clock incl. queued fal renders).
  *
  * Settings (exact spec):
- * - Quality: 0–10 integer, defaults to 5.
- * - Budget: 1–10,000 coins integer, defaults to 100. Any amount above 250
+ * - Quality: 0-10 integer, defaults to 5.
+ * - Budget: 1-10,000 coins integer, defaults to 100. Any amount above 250
  *   coins requires an explicit "Confirm the Amount" acknowledgement.
  */
 
@@ -108,7 +108,7 @@ export function planSymphony(prompt: string, quality: number, budget: number): N
   const audioOps = fal.filter((r) => ["sfx-burst", "npc-voice", "monster-voice", "theme-music", "chiptune-loop", "ambient-bed"].includes(r.op));
   const roleBrief: Record<string, string> = {
     Scout: `OBSERVE the prompt "${prompt.slice(0, 120)}": name the hazards, objective, controls + win/lose.`,
-    Forge: `ACT: forge the single-file HTML/CSS/JS canvas game (q${quality}) — keyboard + touch, score/lives/levels, pause/win/lose, offline.`,
+    Forge: `ACT: forge the single-file HTML/CSS/JS canvas game (q${quality}); keyboard + touch, score/lives/levels, pause/win/lose, offline.`,
     Pixel: artOps.length ? `ACT in parallel: fal art shortlist [${artOps.map((r) => r.op).join(", ")}] for key art/backdrop/sprites.` : "ACT in parallel: hold for deluxe-lane art (fast lane ships local art).",
     Echo: audioOps.length ? `ACT in parallel: fal audio shortlist [${audioOps.map((r) => r.op).join(", ")}] for SFX/voice/music.` : "ACT in parallel: hold for deluxe-lane audio (fast lane ships WebAudio blips).",
     Sage: "REASON + QA: run the VCW observe→reason→act self-test repair loops and file findings.",
@@ -124,7 +124,7 @@ export function planSymphony(prompt: string, quality: number, budget: number): N
     mode: "auto",
     agents,
     trace: plan.trace,
-    target: lane === "fast" ? "≤5 min wall clock" : "≈5–12 min wall clock (bigger cast + media)",
+    target: lane === "fast" ? "≤5 min wall clock" : "≈5-12 min wall clock (bigger cast + media)",
   };
 }
 
@@ -147,7 +147,7 @@ export function planFalForBuild(prompt: string, budget: number, quality: number)
     totalCoins,
     note:
       selected.length === 0
-        ? "Fast lane, pure local build — no fal spend. Add a voice/art keyword (or raise quality) to queue media."
+        ? "Fast lane, pure local build; no fal spend. Add a voice/art keyword (or raise quality) to queue media."
         : `${lane === "fast" ? "Fast lane" : "Deluxe lane"} fal shortlist (${totalCoins} coins gross, 25% cut included): queued via /api/fal/generate source vcw when FAL_KEY is live, else the game ships locally and the prompts stay one click away.`,
   };
 }
@@ -232,12 +232,12 @@ export function planBuild(quality: number, budget: number): BuildPlan {
     spend,
     cut,
     provider: Math.round((spend - cut) * 100) / 100,
-    strategy: "cheapest-viable: local single-file generator + VCW static self-test (no GPU, no inference — 0 external spend)",
+    strategy: "cheapest-viable: local single-file generator + VCW static self-test (no GPU, no inference - 0 external spend)",
     runtime: "canvas2d-newest-viable",
     msEstimate: 400 + quality * 120,
     confirmRequired: needsAmountConfirm(budget),
     lane,
-    target: lane === "fast" ? "≤5 min wall clock (fast lane, ≤250 coins)" : "≈5–12 min wall clock (deluxe lane, bigger cast + media)",
+    target: lane === "fast" ? "≤5 min wall clock (fast lane, ≤250 coins)" : "≈5-12 min wall clock (deluxe lane, bigger cast + media)",
   };
 }
 
@@ -281,7 +281,7 @@ function escapeHtml(s: string): string {
  * Deterministic original game: single self-contained HTML file with inline
  * CSS + JS, canvas 2D, rAF loop, keyboard + touch, score/lives/levels,
  * pause, win/lose, highscore. Quality scales enemies, particles, levels,
- * audio blips, and touch polish. No external URLs — fully offline.
+ * audio blips, and touch polish. No external URLs; fully offline.
  *
  * falNote (optional): the intelligent fal shortlist is embedded as an HTML
  * comment asset manifest, so the game ships playable instantly while the
@@ -333,7 +333,7 @@ function loop(){if(paused||over||won){requestAnimationFrame(loop);return;}ctx.fi
 if(keys['arrowleft']||keys['a'])player.x-=4;if(keys['arrowright']||keys['d'])player.x+=4;if(keys['arrowup']||keys['w'])player.y-=4;if(keys['arrowdown']||keys['s'])player.y+=4;
 player.x=Math.max(player.r,Math.min(W-player.r,player.x));player.y=Math.max(player.r,Math.min(H-player.r,player.y));
 for(const f of foes){f.x+=f.vx;f.y+=f.vy;if(f.x<f.r||f.x>W-f.r)f.vx*=-1;if(f.y<f.r||f.y>H-f.r)f.vy*=-1;
-const dx=player.x-f.x,dy=player.y-f.y;if(Math.hypot(dx,dy)<player.r+f.r){lives--;burst(player.x,player.y,'#f87171');blip(140);player.x=W/2;player.y=H-40;if(lives<=0){over=true;msg.textContent='Game over — score '+score+'. Press R to restart.';saveHi();}}}
+const dx=player.x-f.x,dy=player.y-f.y;if(Math.hypot(dx,dy)<player.r+f.r){lives--;burst(player.x,player.y,'#f87171');blip(140);player.x=W/2;player.y=H-40;if(lives<=0){over=true;msg.textContent='Game over; score '+score+'. Press R to restart.';saveHi();}}}
 for(const p of pickups){p.t+=0.05;const dx=player.x-p.x,dy=player.y-p.y;if(Math.hypot(dx,dy)<player.r+p.r+2){score+=10*level;burst(p.x,p.y,'${accent}');blip(660);p.x=Math.random()*(W-40)+20;p.y=Math.random()*(H-120)+60;if(score>=level*100&&level<LEVELS){level++;spawn(MAXF+level);msg.textContent='Level '+level+'!';}else if(score>=LEVELS*100){won=true;msg.textContent='You win! Score '+score+'. Press R to play again.';saveHi();}}}
 ctx.fillStyle='${accent}';ctx.beginPath();ctx.arc(player.x,player.y,player.r,0,7);ctx.fill();
 ctx.fillStyle='${accent2}';for(const f of foes){ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,7);ctx.fill();}
@@ -355,7 +355,7 @@ reset();loop();`;
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>${safeTitle} — NewGamePlus</title>
+<title>${safeTitle} - NewGamePlus</title>
 <!-- NewGamePlus asset manifest: an original micro-game. Prompt: "${safePrompt}".${falNote ? ` Fal shortlist (via /api/fal/generate source vcw): ${escapeHtml(falNote)}.` : ""} Fully offline single file. -->
 <style>
 :root{color-scheme:dark}
@@ -422,7 +422,7 @@ export function vcwSelfTest(source: string, quality: number): VcwTestResult {
     const failed = checks.filter((c) => !c.passed);
     steps.push(`reason (loop ${attempt}): ${checks.length - failed.length}/${checks.length} checks green`);
     if (!failed.length) {
-      steps.push(`act (loop ${attempt}): no repair needed — verdict pass`);
+      steps.push(`act (loop ${attempt}): no repair needed; verdict pass`);
       return { verdict: "pass", checks, findings, steps, loops };
     }
     for (const f of failed) {
@@ -430,11 +430,11 @@ export function vcwSelfTest(source: string, quality: number): VcwTestResult {
     }
     const repaired = repairSource(current, failed.map((f) => f.id));
     if (repaired === current) {
-      steps.push(`act (loop ${attempt}): unrepairable — verdict ${quality === 0 ? "inconclusive" : "fail"}`);
+      steps.push(`act (loop ${attempt}): unrepairable; verdict ${quality === 0 ? "inconclusive" : "fail"}`);
       return { verdict: quality === 0 ? "inconclusive" : "fail", checks, findings, steps, loops };
     }
     current = repaired;
-    steps.push(`act (loop ${attempt}): repaired [${failed.map((f) => f.id).join(", ")}] — re-running`);
+    steps.push(`act (loop ${attempt}): repaired [${failed.map((f) => f.id).join(", ")}]; re-running`);
   }
   const checks = runChecks(current);
   const failed = checks.filter((c) => !c.passed);
@@ -456,8 +456,8 @@ function runChecks(source: string): VcwCheck[] {
     { id: "input", label: "Keyboard input", passed: has(/keydown/i) && has(/arrow|wasd|keys\[/i), detail: "Needs keydown handling for play." },
     { id: "touch", label: "Touch/pointer input", passed: has(/pointerdown|touchstart/i), detail: "Needs pointer/touch controls for phones." },
     { id: "objective", label: "Score + win/lose", passed: has(/score/i) && has(/game over|you win/i), detail: "Needs a score plus win/lose states." },
-    { id: "offline", label: "Fully offline (no external URLs)", passed: !has(/<script[^>]+src\s*=/i) && !has(/https?:\/\//i), detail: "No external scripts/URLs allowed — single file only." },
-    { id: "size", label: "Draft size budget", passed: sizeOk, detail: "Source must be 2KB–256KB." },
+    { id: "offline", label: "Fully offline (no external URLs)", passed: !has(/<script[^>]+src\s*=/i) && !has(/https?:\/\//i), detail: "No external scripts/URLs allowed; single file only." },
+    { id: "size", label: "Draft size budget", passed: sizeOk, detail: "Source must be 2KB-256KB." },
     { id: "safe", label: "Safe source (no secrets/sinks)", passed: !has(/process\.env|service_role|javascript:/i), detail: "Forbidden: env access, service_role, javascript: URLs." },
   ];
 }
@@ -483,4 +483,4 @@ function repairSource(source: string, missing: string[]): string {
   return out;
 }
 
-export const NEWGAMEPLUS_CUT_NOTE = `Includes ${NEWGAMEPLUS_CUT_PCT}% platform cut — never added on top.`;
+export const NEWGAMEPLUS_CUT_NOTE = `Includes ${NEWGAMEPLUS_CUT_PCT}% platform cut; never added on top.`;

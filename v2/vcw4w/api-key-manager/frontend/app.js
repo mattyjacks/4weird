@@ -1,5 +1,5 @@
 /* ==========================================================================
-   4weird API Key Manager — frontend
+   4weird API Key Manager; frontend
    --------------------------------------------------------------------------
    - Talks to the Rust vault ONLY through Tauri `invoke` (km_list_slots,
      km_save_key, km_reveal_key, km_clear_key). Secrets are never logged,
@@ -42,7 +42,7 @@ async function verifyBot(key) {
   if (res.ok && body && body.success) {
     const who = body.username ? "@" + body.username : (body.human_id || "valid key");
     const scopes = Array.isArray(body.scopes) ? body.scopes.join(", ") : "";
-    return { ok: true, text: "Verified live: " + who + (scopes ? " — scopes: " + scopes : "") };
+    return { ok: true, text: "Verified live: " + who + (scopes ? "; scopes: " + scopes : "") };
   }
   return { ok: false, text: "Rejected (" + res.status + "): " + ((body && body.error) || "invalid key.") };
 }
@@ -74,7 +74,7 @@ async function verifyBearerGet(url, key, hostLabel, acceptStatuses) {
     return { ok: false, text: "Rejected (" + res.status + "): bad key. Nothing was spent." };
   }
   if (acceptStatuses && acceptStatuses.indexOf(res.status) === -1) {
-    return { ok: false, text: "Unexpected answer (" + res.status + ") — key may be wrong; check the provider dashboard." };
+    return { ok: false, text: "Unexpected answer (" + res.status + "); key may be wrong; check the provider dashboard." };
   }
   return { ok: true, text: "Key accepted (probe answered " + res.status + "). $0.00 spent." };
 }
@@ -100,7 +100,7 @@ async function verifyAnthropic(key) {
     return { ok: false, text: "Rejected (" + res.status + "): bad key. Nothing was spent." };
   }
   if (!res.ok) {
-    return { ok: false, text: "Unexpected answer (" + res.status + ") — key may be wrong; check console.anthropic.com." };
+    return { ok: false, text: "Unexpected answer (" + res.status + "); key may be wrong; check console.anthropic.com." };
   }
   return { ok: true, text: "Key accepted (model list reachable). $0.00 spent." };
 }
@@ -133,7 +133,7 @@ async function verifyOpenrouter(key) {
     return { ok: false, text: "Rejected (" + res.status + "): bad key. Nothing was spent." };
   }
   const body = await res.json().catch(() => null);
-  const label = body && body.data && body.data.label ? " — label: " + body.data.label : "";
+  const label = body && body.data && body.data.label ? "; label: " + body.data.label : "";
   if (!res.ok) {
     return { ok: false, text: "Unexpected answer (" + res.status + ")." };
   }
@@ -356,7 +356,7 @@ async function doReveal(slot) {
   try {
     const value = await invoke("km_reveal_key", { slot: slot.cfg.id });
     showReveal(slot, value);
-    setResult(slot, "Revealed — auto-hides in " + REVEAL_SECONDS + "s. Shoulder-surf responsibly.", "info");
+    setResult(slot, "Revealed; auto-hides in " + REVEAL_SECONDS + "s. Shoulder-surf responsibly.", "info");
     log(slot.cfg.name + ": revealed for " + REVEAL_SECONDS + "s.", "warn");
   } catch (e) {
     setResult(slot, "Reveal failed: " + String((e && e.message) || e), "error");
@@ -377,7 +377,7 @@ async function doCopy(slot) {
     if (ok) {
       const label = format === "raw" ? "raw key" : format === "ps" ? "PowerShell $env: line"
         : format === "bash" ? "bash export line" : ".env line";
-      setResult(slot, "Copied " + label + " for " + slot.cfg.env + " — paste it into your agent/terminal.", "ok");
+      setResult(slot, "Copied " + label + " for " + slot.cfg.env + "; paste it into your agent/terminal.", "ok");
       log(slot.cfg.name + ": copied (" + label + ") to clipboard.", "ok");
     } else {
       setResult(slot, "Copy failed: clipboard refused. Use Reveal and copy manually.", "error");
@@ -447,7 +447,7 @@ async function doExportEnv(button) {
     const ok = await copyText(lines.join("\n"));
     const out = document.getElementById("export-result");
     if (ok) {
-      out.textContent = "Copied " + lines.length + " key(s) as .env — paste into your terminal.";
+      out.textContent = "Copied " + lines.length + " key(s) as .env; paste into your terminal.";
       out.className = "result ok";
       log("Bulk export: " + lines.length + " key(s) copied as .env.", "warn");
     } else {
@@ -633,12 +633,12 @@ function boot() {
     badgeEl.className = "pill pill-idle";
     document.querySelectorAll("#slots button, #slots input, #slots select, #btn-export-env")
       .forEach((el) => { el.disabled = true; });
-    log("Running outside the Tauri runtime — controls disabled.", "warn");
+    log("Running outside the Tauri runtime; controls disabled.", "warn");
     return;
   }
   badgeEl.textContent = "desktop vault ●";
   badgeEl.className = "pill pill-on";
-  log("Vault ready — OS credential store reachable.", "ok");
+  log("Vault ready - OS credential store reachable.", "ok");
   refreshStatuses();
 }
 

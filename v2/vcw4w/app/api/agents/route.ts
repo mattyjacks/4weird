@@ -46,7 +46,7 @@ export async function GET(req: Request) {
  *
  *  Price is USD/hour gross MAXIMUM (`price_usd_per_hour`, legacy
  *  `price_cents_per_hour` still accepted). RunPod/DigitalOcean listings do
- *  NOT need an endpoint URL — blank means "use the RunPod default endpoint"
+ *  NOT need an endpoint URL; blank means "use the RunPod default endpoint"
  *  (auto-provisioned on booking). Custom listings still need an https URL. */
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);

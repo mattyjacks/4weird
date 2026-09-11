@@ -12,7 +12,7 @@ type AdSlotProps = {
   seed?: string;
   /** Force a specific house ad (used for the guest interstitial pick). */
   forceAd?: HouseAd | null;
-  /** "Skip" is always instant — this fires after it. */
+  /** "Skip" is always instant; this fires after it. */
   onSkipped?: () => void;
   /** Fires when any ad (primary or house) is shown. */
   onViewed?: (ad: HouseAd | null) => void;
@@ -20,7 +20,7 @@ type AdSlotProps = {
 };
 
 /**
- * AdSlot — primary provider first, house fallback always.
+ * AdSlot; primary provider first, house fallback always.
  *
  * When NEXT_PUBLIC_AD_PROVIDER_URL is set, the slot tries the provider in an
  * iframe and falls back to one of the 10 house ads on error, timeout, or

@@ -1,5 +1,5 @@
 -- ============================================================================
--- fal.ai media compute — 30-op expansion (15 → 30), same 25% cut rule.
+-- fal.ai media compute - 30-op expansion (15 → 30), same 25% cut rule.
 -- Fully rerunnable: drops the 15-op CHECK + recreates it with all 30 ops,
 -- then CREATE OR REPLACE the meter/model map. Mirrors lib/fal.ts FAL_OPS.
 --
@@ -36,7 +36,7 @@ begin
   if p_qty is null or p_qty <= 0 or p_qty > 100000000 then raise exception 'invalid qty'; end if;
   if p_source not in ('fal-studio','vcw','api','manual') then raise exception 'invalid source'; end if;
 
-  -- Gross price by op (coins, cut INCLUDED — mirrors lib/fal.ts FAL_OPS).
+  -- Gross price by op (coins, cut INCLUDED; mirrors lib/fal.ts FAL_OPS).
   v_gross := case p_op
     when 'concept-art' then greatest(1, ceil(8 * p_qty)::integer)
     when 'sprite-edit' then greatest(1, ceil(8 * p_qty)::integer)

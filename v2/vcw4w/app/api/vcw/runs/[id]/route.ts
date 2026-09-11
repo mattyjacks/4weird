@@ -7,7 +7,7 @@ import { isRunUuid } from "@/lib/vcw-runs";
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/vcw/runs/[id] — read a run with its observe->reason->act
+ * GET /api/vcw/runs/[id]; read a run with its observe->reason->act
  * trail and filed bugs (authenticated, owner only). The v1 worker's
  * `GET /api/game/state` + `GET /api/game/logs` equivalent: everything
  * the agent needs to decide the next step.

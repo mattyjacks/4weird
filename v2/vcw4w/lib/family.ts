@@ -1,5 +1,5 @@
 /**
- * Family accounts — shared shapes + validation for Parent/Child accounts.
+ * Family accounts; shared shapes + validation for Parent/Child accounts.
  *
  * Two independent axes (see supabase/migrations/20260924000000_family_accounts.sql):
  * - family_role: 'solo' | 'parent' (full Supabase accounts)

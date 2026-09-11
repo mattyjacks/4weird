@@ -96,7 +96,7 @@ revoke all on public.bot_key_request_logs from anon, authenticated;
 -- 3. Owner self-service policy update (Supabase-login auth, own keys only).
 --    Budgets can only stay the same or tighten once spend exists: raising a
 --    budget above lifetime_spent is allowed, lowering below spent freezes the
---    key (enforced app-side as "over budget") — never rewrites history.
+--    key (enforced app-side as "over budget"); never rewrites history.
 -- --------------------------------------------------------------------------
 create or replace function public.update_bot_key_policy(
   p_key_id uuid,

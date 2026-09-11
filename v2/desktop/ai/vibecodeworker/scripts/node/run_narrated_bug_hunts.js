@@ -38,7 +38,7 @@ const sessions = [
     url: 'https://taglish-translate.vercel.app/',
     narration: 'VibeCodeWorker is testing Taglish Translate as an unknown web application. It discovers the input, performs a harmless translation, and verifies that the result area changes without browser errors.',
     async play(win, note) {
-      // Use visible focus, keystrokes, and the site’s normal button — no API
+      // Use visible focus, keystrokes, and the site’s normal button; no API
       // calls or hidden app state. The sentence is deliberately non-sensitive.
       const box = await win.webContents.executeJavaScript(`(() => { const e = document.querySelector('#source-text, textarea'); if (!e) return null; const r = e.getBoundingClientRect(); return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) }; })()`);
       if (!box) throw new Error('translation input was not visible');
@@ -153,7 +153,7 @@ const sessions = [
 ];
 
 async function runSession(spec) {
-  const win = new BrowserWindow({ width: 1280, height: 720, show: true, title: `AI Bug Hunt — ${spec.id}`, webPreferences: { contextIsolation: true } });
+  const win = new BrowserWindow({ width: 1280, height: 720, show: true, title: `AI Bug Hunt - ${spec.id}`, webPreferences: { contextIsolation: true } });
   const errors = [];
   const selectedUrl = Array.isArray(spec.urls) && spec.urls.length
     ? spec.urls[Math.floor(Math.random() * spec.urls.length)]

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { RunpodDashboard } from "@/components/runpod/runpod-dashboard";
 
 export const metadata: Metadata = {
-  title: "My RunPods — stop, start, restart, delete your servers",
+  title: "My RunPods; stop, start, restart, delete your servers",
   description:
     "Every RunPod you created in one place: Virtual Desktops, agent-rental servers, and Blender render workers. Clickable links, live status, and power controls.",
   alternates: { canonical: "/runpods" },
@@ -16,7 +16,7 @@ export default function RunpodsPage() {
       <p className="text-xs font-bold uppercase tracking-widest text-cyan-300">Your servers</p>
       <h1 className="mt-2 text-4xl font-black">My RunPods</h1>
       <p className="mt-2 max-w-2xl text-sm text-slate-300">
-        Every RunPod you created — desktops, rental servers, render workers — with a clickable link, live status,
+        Every RunPod you created; desktops, rental servers, render workers; with a clickable link, live status,
         and <strong>Stop / Start / Restart / Terminate / Delete</strong>. Only you can touch your pods. RunPod bills
         per second while a pod runs; stopping ends compute billing (disk storage still bills until terminate/delete).
       </p>

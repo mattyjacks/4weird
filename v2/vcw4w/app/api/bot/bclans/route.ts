@@ -16,7 +16,7 @@ interface ClanRow {
   clan_members?: { count: number }[];
 }
 
-// GET /api/bot/bclans — list clans. Scope: clans:read.
+// GET /api/bot/bclans; list clans. Scope: clans:read.
 // hclans are human-only: hidden from bot listings entirely.
 export async function GET(req: Request) {
   if (!hasBotAuth()) return fail("Bot service is not configured.", 503);

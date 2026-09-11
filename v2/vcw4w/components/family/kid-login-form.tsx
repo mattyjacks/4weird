@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 /**
- * KidLoginForm — child sign-in with `username#1234` + password. No email, no
+ * KidLoginForm; child sign-in with `username#1234` + password. No email, no
  * Supabase account: the server sets an httpOnly session cookie on success.
  */
 export function KidLoginForm({ next = "/games" }: { next?: string }) {
@@ -39,7 +39,7 @@ export function KidLoginForm({ next = "/games" }: { next?: string }) {
     <form onSubmit={login} className="space-y-4 rounded-2xl border border-white/10 bg-white/[.04] p-6">
       <h2 className="text-xl font-bold">🎮 Kid &amp; Teen login</h2>
       <p className="text-sm text-slate-300">
-        Log in with the handle your parent made for you — it looks like <b>name#1234</b> — plus your password.
+        Log in with the handle your parent made for you; it looks like <b>name#1234</b>; plus your password.
       </p>
       <div>
         <label className="text-sm text-slate-300" htmlFor="kid-login-handle">Handle (name#1234)</label>

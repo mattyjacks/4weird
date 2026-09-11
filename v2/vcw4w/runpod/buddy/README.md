@@ -1,7 +1,7 @@
-# Buddy multi-agent — desktop, web, Runpod pod, Runpod Serverless
+# Buddy multi-agent; desktop, web, Runpod pod, Runpod Serverless
 
 One goal fans out to specialist agents (voice, hype, lore, sfx, coach, quest,
-herald — each an OpenRouter play) and merges a super-pack. Same orchestration,
+herald; each an OpenRouter play) and merges a super-pack. Same orchestration,
 four runtimes. Every specialist degrades to a labelled offline fallback, so any
 runtime works with zero keys.
 
@@ -40,7 +40,7 @@ node tests/test_openrouter_plays.js     # 25 plays, offline + mocked-live
 
 ## 2. Build + push the serverless image (needs Docker only)
 
-Runpod hosts are x86_64 — always `--platform=linux/amd64`:
+Runpod hosts are x86_64; always `--platform=linux/amd64`:
 
 ```bash
 cd v2/vcw4w
@@ -48,7 +48,7 @@ docker buildx build --platform linux/amd64 \
   -f runpod/buddy/Dockerfile -t <namespace>/buddy-orchestrator:v1 --push runpod/buddy
 ```
 
-Local job test (no spend — runs the image on your machine):
+Local job test (no spend; runs the image on your machine):
 
 ```bash
 docker run --rm --platform linux/amd64 <namespace>/buddy-orchestrator:v1 \
@@ -66,7 +66,7 @@ runpodctl pod get <pod-id>   # poll until the ssh block has ip/port
 runpodctl pod delete <pod-id>   # or: runpodctl pod stop <pod-id>
 ```
 
-## 4. Deploy the CPU endpoint (cheapest class — no GPU needed)
+## 4. Deploy the CPU endpoint (cheapest class; no GPU needed)
 
 ```bash
 runpodctl template create --name buddy-orchestrator \
@@ -82,10 +82,10 @@ runpodctl serverless create --template-id <template-id> \
 
 Cost-guard: `--workers-min 0` scales to zero when idle; `--idle-timeout 5`
 reaps workers fast; prefer CPU (this worker only does HTTPS + text merge).
-Check current CPU worker pricing in the console before creating — state it in
+Check current CPU worker pricing in the console before creating; state it in
 the deploy log. Nothing here needs a GPU.
 
-## 5. Invoke from outside (the verify step — status alone is not proof)
+## 5. Invoke from outside (the verify step; status alone is not proof)
 
 ```bash
 KEY="${RUNPOD_API_KEY}"
@@ -97,7 +97,7 @@ curl -s -X POST "https://api.runpod.ai/v2/<endpoint-id>/runsync" \
 
 Long jobs: POST `/run` instead (returns job id), then poll `/status/<id>`.
 Debug a stuck job with worker logs (`runpodctl serverless logs <endpoint-id>`)
-— a crash-looping worker still reports RUNNING, so logs are the authority.
+- a crash-looping worker still reports RUNNING, so logs are the authority.
 
 ## 6. Teardown
 
@@ -110,4 +110,4 @@ runpodctl serverless delete <endpoint-id>
 In: `{"goal":"...","gameTitle":"...","screenText":"...","score":99}`
 Out: `{"goal","reply","brain","model","specialists":[{specialist,text,fallback}],"fallbackCount","voiceLines","sfxPrompts","loreNote"}`
 Without `OPENROUTER_API_KEY` on the endpoint: same shape, `brain:"offline"`,
-every specialist labelled fallback — valid pack, zero inference spend.
+every specialist labelled fallback; valid pack, zero inference spend.

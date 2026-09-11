@@ -53,7 +53,7 @@ function saveConsent(status: StoredConsent["status"], categories: CookieCategori
       JSON.stringify({ v: COOKIE_CONSENT_VERSION, status, categories, at: Date.now() } satisfies StoredConsent),
     );
   } catch {
-    /* storage may be blocked — banner simply returns next visit */
+    /* storage may be blocked; banner simply returns next visit */
   }
   try {
     window.dispatchEvent(new Event("fw-consent-changed"));
@@ -65,7 +65,7 @@ function saveConsent(status: StoredConsent["status"], categories: CookieCategori
 /**
  * Cookie banner on every page until you choose (re-asked every 7 days).
  * Real options, strong recommendation: Accept all is prominent because it
- * funds free play and unlocks every feature — Reject and Customize always
+ * funds free play and unlocks every feature - Reject and Customize always
  * work too, and essential cookies stay on regardless (sign-in needs them).
  */
 export function CookieBanner() {
@@ -117,7 +117,7 @@ export function CookieBanner() {
   return (
     <div role="dialog" aria-live="polite" aria-label="Cookie choices" className="fixed inset-x-0 bottom-0 z-50 border-t border-white/15 bg-slate-950/95 p-4 shadow-2xl backdrop-blur">
       <div className="mx-auto max-w-4xl">
-        <p className="text-sm font-bold text-white">🍪 We use cookies — and we strongly recommend accepting all of them</p>
+        <p className="text-sm font-bold text-white">🍪 We use cookies; and we strongly recommend accepting all of them</p>
         <p className="mt-1 text-xs text-slate-300">
           Accept-all funds free play, keeps every feature working, and lets us improve the Service for any purpose in
           our <a href="/privacy" className="text-cyan-300 underline">Privacy Policy</a>. Essential cookies stay on no

@@ -66,7 +66,7 @@ function runBridge(pyArgs, windowTitle) {
 
 // Safety: input_sim.py screenshots the whole desktop (exit 0) when the
 // target window is missing, so a failed screenshot can NOT be used to detect
-// "game not running" — without this check the loop would send REAL inputs to
+// "game not running"; without this check the loop would send REAL inputs to
 // whatever window has focus. Verify the target exists first via the overlay
 // command (throws "Window not found") or the process list, and force dry-run
 // when it is absent so only decisions are printed, never executed.
@@ -137,7 +137,7 @@ async function main() {
       : (targetWindowPresent(query) || targetProcessRunning(profile.processNames));
     if (!present) {
       args.dryRun = true;
-      console.log(`[hl2-demo] Target "${query}" is not running — forcing --dry-run (decisions printed, NO inputs sent). Start the game first for a live run (or re-run with --launch).`);
+      console.log(`[hl2-demo] Target "${query}" is not running; forcing --dry-run (decisions printed, NO inputs sent). Start the game first for a live run (or re-run with --launch).`);
     }
   }
 

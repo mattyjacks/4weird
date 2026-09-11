@@ -51,7 +51,7 @@ for (const token of ["numeric(12, 2)", "game_ai_compute_split_numeric", "least(v
 if (!rentPerSecond.includes("IF NOT EXISTS") && !rentPerSecond.includes("if not exists") && !rentPerSecond.includes("if exists")) throw new Error("Per-second migration must be rerunnable.");
 if (!migration.includes("IF NOT EXISTS") && !migration.includes("if not exists")) throw new Error("Migration must be rerunnable.");
 // FK discipline: start_game_session must insert the parent game_sessions row
-// BEFORE any game_play_usage child row — placeholder session ids violate
+// BEFORE any game_play_usage child row; placeholder session ids violate
 // game_play_usage_session_id_fkey on every paid load (live prod incident).
 if (migration.includes("00000000-0000-0000-0000-000000000000")) {
   throw new Error("Migration must not insert placeholder session ids (FK violation).");

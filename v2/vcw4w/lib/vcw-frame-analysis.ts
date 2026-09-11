@@ -1,19 +1,19 @@
 /**
- * VibeCodeWorker frame-analysis playtest loop — shared pure logic.
+ * VibeCodeWorker frame-analysis playtest loop; shared pure logic.
  *
  * This is the evidence half of the testing-video pipeline, ported from
  * the local capture scripts into the v2 app so agents and routes share
  * one implementation:
  *
  *   1. Sample N frames at 1 fps from a gameplay take
- *      (`frameSamplePlan` — 15 frames for a 15 s take).
+ *      (`frameSamplePlan` - 15 frames for a 15 s take).
  *   2. Aggregate per-tick telemetry into per-second segment descriptors
  *      (`segmentTicks`) for the live TestingH/TestingV dashboard overlays.
  *   3. Build the spatiotemporal heatmap inputs (`buildThreatHeat`,
  *      `buildTrailPath`, `buildInputHeat`): threat blobs + movement path
  *      in normalized canvas coordinates ([-1,1] x, [0,1] y, intensity).
  *   4. Turn frame observations into an improved input plan
- *      (`improveFromObservations`) and re-run — the observe -> reason ->
+ *      (`improveFromObservations`) and re-run; the observe -> reason ->
  *      act loop the skill documents.
  *
  * Coordinates are normalized so H (1920x1080) and V (1080x1920) layouts

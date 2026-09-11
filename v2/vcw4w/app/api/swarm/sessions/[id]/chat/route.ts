@@ -41,10 +41,10 @@ type SwarmRow = {
 
 const AGENT_NAMES = ["Scout", "Forge", "Echo", "Pixel", "Sage"];
 
-/** Parse `[tool: id — args]` tags a model may emit (em-dash, hyphen, colon all ok). */
+/** Parse `[tool: id; args]` tags a model may emit (em-dash, hyphen, colon all ok). */
 function parseToolCalls(text: string, enabled: string[]): { id: string; args: string }[] {
   const out: { id: string; args: string }[] = [];
-  const re = /\[tool:\s*([a-z0-9.*_-]+)\s*[—–\-:]\s*([^\]]{1,200})\]/gi;
+  const re = /\[tool:\s*([a-z0-9.*_-]+)\s*[--\-:]\s*([^\]]{1,200})\]/gi;
   let m: RegExpExecArray | null;
   while ((m = re.exec(String(text ?? ""))) !== null) {
     const id = m[1].trim();
@@ -125,7 +125,7 @@ async function reasonWithOpenRouter(opts: { key: string; model: string; system: 
 }
 
 /**
- * POST /api/swarm/sessions/[id]/chat — one swarm turn.
+ * POST /api/swarm/sessions/[id]/chat; one swarm turn.
  * Body: { message (1-4000 chars) }.
  * Flow per agent: OBSERVE (plan) -> REASON (OpenAI/OpenRouter/local) ->
  * ACT (tool-call tags parsed) -> METER (one inference leg for the turn,

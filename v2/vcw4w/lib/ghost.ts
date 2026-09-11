@@ -1,10 +1,10 @@
 /**
- * Ghost Cash (👻) — hypothetical IOU unit for orgs. NO legal value, NO
+ * Ghost Cash (👻); hypothetical IOU unit for orgs. NO legal value, NO
  * cash-out, NO store of value: a ruler for "you owe me for those hours",
  * tracked to the second by timer heartbeats. Fully separate from Vibe Coins
- * (different tables, no shared triggers) — the two can never mix.
+ * (different tables, no shared triggers); the two can never mix.
  *
- * Emoji is the ghost ONLY (👻) — never paired with a cash emoji. Real money
+ * Emoji is the ghost ONLY (👻); never paired with a cash emoji. Real money
  * always uses 💸, Vibe Coins use 🪙, clan Love Letters use 💌.
  */
 
@@ -61,7 +61,7 @@ export function fmtGhostTime(totalSeconds: number): string {
   return `${rest}s`;
 }
 
-/** "1,234.56 👻" — always labeled hypothetical. */
+/** "1,234.56 👻"; always labeled hypothetical. */
 export function fmtGhost(amount: number): string {
   const n = Number(amount ?? 0);
   return `${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${GHOST_EMOJI}`;

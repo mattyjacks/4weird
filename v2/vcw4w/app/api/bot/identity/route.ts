@@ -21,7 +21,7 @@ function pickRow(data: unknown): IdentityRow | null {
   return { username: row.username ?? null, human_id: row.human_id };
 }
 
-// GET /api/bot/identity — ensure the caller's bot identity exists and return
+// GET /api/bot/identity; ensure the caller's bot identity exists and return
 // { username (nullable until set), human_id }. Supabase-login auth.
 export async function GET() {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
@@ -35,7 +35,7 @@ export async function GET() {
   return ok({ username: row.username, human_id: row.human_id });
 }
 
-// POST /api/bot/identity {username} — set the bot username ONCE. After it is
+// POST /api/bot/identity {username}; set the bot username ONCE. After it is
 // set the identity is immutable: further attempts get 409.
 export async function POST(req: Request) {
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);

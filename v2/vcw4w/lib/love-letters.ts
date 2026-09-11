@@ -1,5 +1,5 @@
 /**
- * Love Letters (💌) — clan-native appreciation currency.
+ * Love Letters (💌); clan-native appreciation currency.
  * Separate from Vibe Coins: never mints coins, never converts, never cashes.
  * Earn: start with 3, +1 per daily-bonus claim, clan quest rewards, receiving
  * from humans who loved your posts. Spend: 1 💌 gifts + tiered advanced awards

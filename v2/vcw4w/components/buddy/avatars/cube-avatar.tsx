@@ -1,5 +1,5 @@
 /**
- * Oso cube — the default Buddy avatar. A soft round-cornered bot: glowing
+ * Oso cube; the default Buddy avatar. A soft round-cornered bot: glowing
  * face plate, expressive brows, springy antenna star, glossy top light,
  * stubby blob feet. userData carries { eyeL, eyeR, mouth, browL, browR,
  * star, starBaseY, kind: "cube" } for the animation loop.

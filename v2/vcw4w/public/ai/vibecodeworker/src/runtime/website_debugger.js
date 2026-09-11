@@ -19,7 +19,7 @@
  *    files them through the normal bug pipeline (cooldown + dedupe included).
  *
  * Plain-node testable: builders return strings, parsers take values.
- * Nothing here reads game sources — it only observes the live DOM.
+ * Nothing here reads game sources; it only observes the live DOM.
  */
 
 // Marker lines the bug scanner treats as fileable (see bug_scanner.js).
@@ -50,7 +50,7 @@ function buildGuestErrorHookScript() {
           console.error(line);
         } catch (_) {}
       };
-      // JS exceptions (uncaught) — message + location, no stack spam.
+      // JS exceptions (uncaught); message + location, no stack spam.
       window.addEventListener('error', (e) => {
         try {
           if (e.target && e.target !== window && (e.target.src || e.target.href)) {
@@ -256,7 +256,7 @@ function issueToLogLine(issue) {
 
 /**
  * Run the audit when due and fold findings into consoleLogs (same array the
- * brain scans). All guest calls are best-effort — failures just skip.
+ * brain scans). All guest calls are best-effort; failures just skip.
  * Returns the issues array (empty when skipped or clean).
  */
 async function maybeAuditWebsite({ gameController, webviewElement, url, consoleLogs, logSystemMessage }) {
@@ -272,7 +272,7 @@ async function maybeAuditWebsite({ gameController, webviewElement, url, consoleL
   try {
     const c = audit.counts || {};
     if (logSystemMessage) {
-      logSystemMessage(`Site audit: "${audit.title || url}" — ${c.images || 0} imgs (${c.brokenImages || 0} broken), ${c.links || 0} links (${c.deadLinks || 0} dead), ${c.forms || 0} forms, ${audit.issues.length} issue(s).`);
+      logSystemMessage(`Site audit: "${audit.title || url}" - ${c.images || 0} imgs (${c.brokenImages || 0} broken), ${c.links || 0} links (${c.deadLinks || 0} dead), ${c.forms || 0} forms, ${audit.issues.length} issue(s).`);
     }
   } catch (_) {}
   for (const issue of audit.issues) {

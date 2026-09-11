@@ -18,7 +18,7 @@ const SHOT_DIR = path.join(__dirname, '..', '..', '..', '..', 'test-results', 's
 const results = { stages: [], errors: [], shots: [] };
 function stage(name, ok, detail) {
   results.stages.push({ name, ok: !!ok, detail: detail || '' });
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? ' — ' + detail : ''}`);
+  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? ' - ' + detail : ''}`);
 }
 
 async function main() {

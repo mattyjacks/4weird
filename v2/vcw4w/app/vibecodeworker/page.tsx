@@ -3,7 +3,7 @@ import Link from "next/link";
 import { MarketingPage } from "@/components/site/marketing-page";
 
 export const metadata: Metadata = {
-  title: "VibeCodeWorker — Evidence-Driven Game QA",
+  title: "VibeCodeWorker - Evidence-Driven Game QA",
   description:
     "VibeCodeWorker is evidence-driven QA for the things you build: run, observe, debug, and improve web experiences with playtest hubs, cloud GPU runs, autoplay, and a full manual. Local-first agentic workflow.",
   keywords: [
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: "/vibecodeworker" },
   openGraph: {
-    title: "VibeCodeWorker — Evidence-Driven Game QA",
+    title: "VibeCodeWorker - Evidence-Driven Game QA",
     description:
       "Run, observe, debug, and improve web experiences: playtest hubs, cloud GPU runs, autoplay, and a full manual.",
   },

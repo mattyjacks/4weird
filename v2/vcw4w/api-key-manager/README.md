@@ -2,17 +2,17 @@
 
 A tiny Tauri v2 `.exe` that keeps your API keys in the **OS credential store**
 and hands them to desktop agents (Codex CLI, Antigravity, OpenCode, any terminal)
-in one click — raw, PowerShell `$env:`, bash `export`, or `.env` line.
+in one click; raw, PowerShell `$env:`, bash `export`, or `.env` line.
 
 ## Feature parity with the vibecodeworker desktop key manager
 
 | vibecodeworker desktop (`v2/desktop/vibecodeworker`) | This manager |
 |---|---|
-| Bot key drawer: `bot4weird_`+20 shape check, masked badge, save / live-verify (`GET /api/bot/me`) / clear / stored-or-not status | Same shapes, same verify endpoint, same masked display, same flows — slot **4weird Bot key** |
-| FAL KEY drawer: opaque-key shape guard, masked badge, save / **free** nil-UUID verify probe / clear / status | Same guard, same free probe, same flows — slot **fal.ai key** |
+| Bot key drawer: `bot4weird_`+20 shape check, masked badge, save / live-verify (`GET /api/bot/me`) / clear / stored-or-not status | Same shapes, same verify endpoint, same masked display, same flows; slot **4weird Bot key** |
+| FAL KEY drawer: opaque-key shape guard, masked badge, save / **free** nil-UUID verify probe / clear / status | Same guard, same free probe, same flows; slot **fal.ai key** |
 | RunPod key: BYOK input kept **session-only** (`run.html`) | **Strict upgrade:** same key, now vault-persisted; verify = read-only `GET /v2/pods` probe (free) |
 | Phone control token / session lock password | Out of scope on purpose: local UI secrets, not provider API keys |
-| FAL "cheap test" render | Out of scope on purpose: it spends real money rendering media — key *management* never spends |
+| FAL "cheap test" render | Out of scope on purpose: it spends real money rendering media; key *management* never spends |
 
 Plus agent slots the desktop never persisted: **OpenAI** (`sk-`/`sk-proj-`),
 **Anthropic** (`sk-ant-`), **Google AI** (`AIza`), **OpenRouter** (`sk-or-v1-`),
@@ -23,7 +23,7 @@ each with shape validation and a free live probe (model list / key info).
 - **Storage:** `keyring` crate → Windows Credential Manager (DPAPI-encrypted at
   rest, unlocked with your Windows login), macOS Keychain, Linux Secret Service.
   Service name: `4weird-api-key-manager`. The program writes **zero** secret
-  material to its own files, stdout, or logs — check `src-tauri/src/lib.rs`:
+  material to its own files, stdout, or logs; check `src-tauri/src/lib.rs`:
   every error string is static.
 - **Memory:** secret buffers are `Zeroizing` (wiped on drop); the frontend
   drops revealed values after copy and auto-hides reveals after 15 s.
@@ -31,7 +31,7 @@ each with shape validation and a free live probe (model list / key info).
   values leave the vault solely via your explicit Reveal / Copy click.
 - **Webview:** strict CSP (no inline scripts/styles, `connect-src` limited to
   `ipc:` + the seven provider APIs), minimal capability set (`core:default`
-  only — no fs, dialog, notification, or shell access).
+  only; no fs, dialog, notification, or shell access).
 - **Honest limits:** clipboard contents are owned by the OS once copied
   (paste promptly); JS cannot truly zero RAM (we overwrite + drop references).
   Verify probes are read-only and free; `--smoke` writes only a random scratch
@@ -52,7 +52,7 @@ each with shape validation and a free live probe (model list / key info).
 ## Build the .exe
 
 Prereqs (Windows): Rust MSVC toolchain (`rustup`), WebView2 runtime (preinstalled
-on Win 10/11). No Node build step — the frontend is static files.
+on Win 10/11). No Node build step; the frontend is static files.
 
 ```powershell
 cd v2\vcw4w\api-key-manager\src-tauri
@@ -63,7 +63,7 @@ Output: `src-tauri\target\release\fourweird-api-key-manager.exe`.
 A stable copy is staged at `api-key-manager\4weird-api-key-manager.exe`, and
 `v2\vcw4w\4weird API Key Manager.lnk` (root shortcut) points at it.
 
-Headless self-test (no window — proves the real OS vault round-trips):
+Headless self-test (no window; proves the real OS vault round-trips):
 
 ```powershell
 .\4weird-api-key-manager.exe --smoke   # → SMOKE OK: credential-store round-trip OK …

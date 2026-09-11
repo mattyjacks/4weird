@@ -8,8 +8,8 @@ import { cleanGameSlug, isRunUuid, isVcwSeverity } from "@/lib/vcw-runs";
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/vcw/bugs — list the caller's bug reports (authenticated).
- * POST /api/vcw/bugs — file one = v1 `POST /api/bugs` for cloud.
+ * GET /api/vcw/bugs; list the caller's bug reports (authenticated).
+ * POST /api/vcw/bugs; file one = v1 `POST /api/bugs` for cloud.
  *
  * Body: { title, description, severity?, game_slug?, run_id? }.
  * game_slug defaults to the run's game when run_id is given.

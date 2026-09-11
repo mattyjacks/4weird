@@ -2,13 +2,13 @@
  * Foveated vision for VibeCodeWorker game debugging.
  *
  * Latency idea: one small overview image per tick + up to N tiny
- * high-detail crops where the model wants more pixels — e.g. the screen
- * center in an FPS (crosshair/enemy contact) — instead of one huge
+ * high-detail crops where the model wants more pixels; e.g. the screen
+ * center in an FPS (crosshair/enemy contact); instead of one huge
  * full-resolution frame. Small crops cost a fraction of the tokens, so the
  * model decides faster and the follow-up tick stays real-time.
  *
  * All rects are normalized 0-1000 (500,500 = screen center), matching the
- * bot action coordinate space. Pure Node — safe to require in tests.
+ * bot action coordinate space. Pure Node; safe to require in tests.
  */
 
 'use strict';
@@ -70,7 +70,7 @@ function isHighContext({ status = '', reasoning = '', urgency = '', genre = '' }
 
 /**
  * Default detail crops when the model has not asked for anything yet.
- * - menus/loading: [] (overview only — fastest tick)
+ * - menus/loading: [] (overview only; fastest tick)
  * - normal play: one 450px center crop (content zone)
  * - combat/FPS/high urgency: 400px context + 220px fovea (crosshair home)
  */
@@ -148,11 +148,11 @@ function mergeFocusRequests({ requested = [], context = {}, max = MAX_DETAILS } 
 function buildFoveaPromptSnippet(detailCount = 0) {
   const n = Math.max(0, Math.min(MAX_DETAILS, Math.round(Number(detailCount) || 0)));
   const extra = n > 0
-    ? ` This tick you also get ${n} detail crop(s) after the overview (labeled: ${Array.from({ length: n }, (_, i) => `crop${i + 1}`).join(', ')} — tight high-resolution zooms of the requested zones).`
+    ? ` This tick you also get ${n} detail crop(s) after the overview (labeled: ${Array.from({ length: n }, (_, i) => `crop${i + 1}`).join(', ')}; tight high-resolution zooms of the requested zones).`
     : '';
   return `FOVEATED VISION: image 1 is always a small full-screen overview (cheap, fast). ` +
-    `You may ALSO request up to ${MAX_DETAILS} tiny high-detail crops for the NEXT tick — ` +
-    `e.g. the FPS crosshair zone — by returning "focus": [{"x":300,"y":300,"w":400,"h":400,"label":"center"}] ` +
+    `You may ALSO request up to ${MAX_DETAILS} tiny high-detail crops for the NEXT tick - ` +
+    `e.g. the FPS crosshair zone; by returning "focus": [{"x":300,"y":300,"w":400,"h":400,"label":"center"}] ` +
     `(0-1000 normalized, 500,500 = center; min 80x80). Small crops arrive at higher effective ` +
     `resolution than the overview for a fraction of full-frame tokens, so prefer them over asking ` +
     `for a bigger overview. Omit "focus" (or []) for menus/loading to keep the tick fast.${extra}`;

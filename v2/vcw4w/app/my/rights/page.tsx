@@ -42,7 +42,7 @@ export default async function RightsPage() {
       <section className="mx-auto max-w-4xl px-5 py-20">
         <h1 className="text-4xl font-black">My privacy rights</h1>
         <p className="mt-4 max-w-2xl text-slate-300">
-          Exercise your rights under New Hampshire and U.S. law and — where applicable — the EU/UK GDPR and other
+          Exercise your rights under New Hampshire and U.S. law and; where applicable; the EU/UK GDPR and other
           global privacy laws: download your data, correct it, or permanently delete your data and account. These
           tools act <strong className="text-white">only on your own signed-in account</strong>; anything else
           (including requests for a deceased loved one’s account) is handled by email with proof of authority, as

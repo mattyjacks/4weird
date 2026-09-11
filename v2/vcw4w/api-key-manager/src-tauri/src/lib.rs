@@ -1,4 +1,4 @@
-//! 4weird API Key Manager — secure vault backend.
+//! 4weird API Key Manager; secure vault backend.
 //!
 //! SECURITY MODEL (read before touching this file):
 //! - Secrets live ONLY in the OS credential store via the `keyring` crate:
@@ -14,8 +14,8 @@
 //!   interpolated into errors, logs, or panic messages.
 //! - Shape validation mirrors the vibecodeworker desktop drawers
 //!   (`modules/bot_token.js`, `modules/fal_key.js`) so the manager keeps full
-//!   feature parity with the desktop API-keys manager — same accepted shapes,
-//!   same masked display, same save / verify-outcome / clear semantics — while
+//!   feature parity with the desktop API-keys manager; same accepted shapes,
+//!   same masked display, same save / verify-outcome / clear semantics; while
 //!   upgrading storage from app-data plaintext files to the OS vault.
 
 use serde::{Deserialize, Serialize};
@@ -103,7 +103,7 @@ mod commands {
     }
 
     /// RunPod console keys (`rpa_…`) are opaque strings; same placeholder guard.
-    /// The desktop keeps this key session-only — the manager gives it the same
+    /// The desktop keeps this key session-only; the manager gives it the same
     /// vault persistence as every other slot (strict upgrade, same UX).
     pub fn is_valid_runpod_key(t: &str) -> bool {
         let t = t.trim();
@@ -169,12 +169,12 @@ mod commands {
     fn shape_error(slot: &str) -> &'static str {
         match slot {
             "bot" => "That does not look like a 4weird bot key (bot4weird_ + 20 letters/digits).",
-            "fal" => "That does not look like a fal.ai key — paste the real key from fal.ai/dashboard/keys.",
-            "runpod" => "That does not look like a RunPod API key — paste the real key from the RunPod console (Settings → API Keys).",
-            "openai" => "That does not look like an OpenAI API key — it starts with sk- (paste it from platform.openai.com/api-keys).",
-            "anthropic" => "That does not look like an Anthropic API key — it starts with sk-ant- (paste it from console.anthropic.com).",
-            "gemini" => "That does not look like a Google AI API key — it starts with AIza (paste it from aistudio.google.com/apikey).",
-            "openrouter" => "That does not look like an OpenRouter API key — it starts with sk-or-v1- (paste it from openrouter.ai/keys).",
+            "fal" => "That does not look like a fal.ai key; paste the real key from fal.ai/dashboard/keys.",
+            "runpod" => "That does not look like a RunPod API key; paste the real key from the RunPod console (Settings → API Keys).",
+            "openai" => "That does not look like an OpenAI API key; it starts with sk- (paste it from platform.openai.com/api-keys).",
+            "anthropic" => "That does not look like an Anthropic API key; it starts with sk-ant- (paste it from console.anthropic.com).",
+            "gemini" => "That does not look like a Google AI API key; it starts with AIza (paste it from aistudio.google.com/apikey).",
+            "openrouter" => "That does not look like an OpenRouter API key; it starts with sk-or-v1- (paste it from openrouter.ai/keys).",
             _ => "Invalid key.",
         }
     }
@@ -194,7 +194,7 @@ mod commands {
 
     // ─── IPC commands ───
 
-    /// Status of every slot. Returns fingerprints only — no secret material
+    /// Status of every slot. Returns fingerprints only; no secret material
     /// ever crosses this boundary (parity with get_*_status in the desktop).
     #[tauri::command]
     pub fn km_list_slots() -> Vec<SlotStatus> {

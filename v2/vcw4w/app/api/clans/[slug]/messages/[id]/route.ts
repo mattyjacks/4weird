@@ -15,11 +15,11 @@ function asUuid(v: unknown): string {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(s) ? s : "";
 }
 
-// POST /api/clans/[slug]/messages/[id] — one action per call:
-// { action: "react", emoji } — toggle an emoji reaction (members).
-// { action: "pin", pinned? } — pin/unpin (owner/mod).
-// { action: "edit", body } — edit text (author or mod).
-// { action: "delete" } — hide the message (author or mod, row preserved).
+// POST /api/clans/[slug]/messages/[id]; one action per call:
+// { action: "react", emoji }; toggle an emoji reaction (members).
+// { action: "pin", pinned? }; pin/unpin (owner/mod).
+// { action: "edit", body }; edit text (author or mod).
+// { action: "delete" }; hide the message (author or mod, row preserved).
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ slug: string; id: string }> },

@@ -7,45 +7,45 @@ const configFilePath = path.join(__dirname, '..', '..', 'config', 'default.json'
 
 const modelsByProvider = {
   openai: [
-    { value: 'gpt-5.6-luna', text: 'GPT-5.6 Luna — current lowest-cost tier (Default)' },
-    { value: 'gpt-5.6-terra', text: 'GPT-5.6 Terra — balanced' },
-    { value: 'gpt-5.6-sol', text: 'GPT-5.6 Sol — advanced work' },
+    { value: 'gpt-5.6-luna', text: 'GPT-5.6 Luna; current lowest-cost tier (Default)' },
+    { value: 'gpt-5.6-terra', text: 'GPT-5.6 Terra; balanced' },
+    { value: 'gpt-5.6-sol', text: 'GPT-5.6 Sol; advanced work' },
     { value: 'custom', text: 'Custom...' }
   ],
   deepseek: [
-    { value: 'deepseek-v4-flash', text: 'DeepSeek V4 Flash — current low-cost tier (Default)' },
+    { value: 'deepseek-v4-flash', text: 'DeepSeek V4 Flash; current low-cost tier (Default)' },
     { value: 'deepseek-v4-pro', text: 'DeepSeek V4 Pro (Complex)' },
     { value: 'deepseek-v4-flash-vision-exp', text: 'DeepSeek V4 Flash Vision' },
     { value: 'custom', text: 'Custom...' }
   ],
   meta: [
-    { value: 'muse-spark-1.3-contributor', text: 'Muse Spark 1.3 Contributor — current Meta model (Default)' },
-    { value: 'meta-llama/llama-4-maverick-17b-128e-instruct', text: 'Llama 4 Maverick — higher capability' },
+    { value: 'muse-spark-1.3-contributor', text: 'Muse Spark 1.3 Contributor; current Meta model (Default)' },
+    { value: 'meta-llama/llama-4-maverick-17b-128e-instruct', text: 'Llama 4 Maverick; higher capability' },
     { value: 'custom', text: 'Custom...' }
   ],
   gemini: [
-    { value: 'gemini-3.5-flash-lite', text: 'Gemini 3.5 Flash-Lite — current lowest-cost tier (Default)' },
-    { value: 'gemini-3.8-flash', text: 'Gemini 3.8 Flash — newest Flash model' },
+    { value: 'gemini-3.5-flash-lite', text: 'Gemini 3.5 Flash-Lite; current lowest-cost tier (Default)' },
+    { value: 'gemini-3.8-flash', text: 'Gemini 3.8 Flash; newest Flash model' },
     { value: 'custom', text: 'Custom...' }
   ],
   openrouter: [
-    { value: 'meta/muse-spark-1.3-contributor', text: 'Muse Spark 1.3 Contributor — current Meta model (Default)' },
+    { value: 'meta/muse-spark-1.3-contributor', text: 'Muse Spark 1.3 Contributor; current Meta model (Default)' },
     { value: 'google/gemini-3.5-flash-lite', text: 'Gemini 3.5 Flash-Lite' },
     { value: 'custom', text: 'Custom...' }
   ],
   elevenlabs: [
-    { value: 'eleven_multilingual_v2', text: 'Eleven Multilingual v2 — TTS default' },
-    { value: 'eleven_turbo_v2_5', text: 'Eleven Turbo v2.5 — low latency' },
-    { value: 'scribe_v1', text: 'Scribe v1 — speech-to-text' },
+    { value: 'eleven_multilingual_v2', text: 'Eleven Multilingual v2 - TTS default' },
+    { value: 'eleven_turbo_v2_5', text: 'Eleven Turbo v2.5; low latency' },
+    { value: 'scribe_v1', text: 'Scribe v1; speech-to-text' },
     { value: 'custom', text: 'Custom...' }
   ],
   local: [
     { value: 'llama3', text: 'Llama 3' },
     { value: 'mistral', text: 'Mistral' },
-    { value: 'qwen3:8b', text: 'Qwen3 8B — fast generalist (recommended local default)' },
-    { value: 'qwen2.5vl:7b', text: 'Qwen2.5-VL 7B — vision (screenshots)' },
-    { value: 'qwen2.5-coder:7b', text: 'Qwen2.5-Coder 7B — code patches' },
-    { value: 'deepseek-r1:8b', text: 'DeepSeek-R1 8B — reasoning' },
+    { value: 'qwen3:8b', text: 'Qwen3 8B; fast generalist (recommended local default)' },
+    { value: 'qwen2.5vl:7b', text: 'Qwen2.5-VL 7B; vision (screenshots)' },
+    { value: 'qwen2.5-coder:7b', text: 'Qwen2.5-Coder 7B; code patches' },
+    { value: 'deepseek-r1:8b', text: 'DeepSeek-R1 8B; reasoning' },
     { value: 'custom', text: 'Custom...' }
   ]
 };
@@ -107,7 +107,7 @@ function handleProviderChange(providerSelect, modelSelect, localUrlGroup, apiKey
   const savedKey = getResolvedApiKey(val);
   apiKeyInput.value = "";
   if (savedKey) {
-    apiKeyInput.placeholder = `Saved key loaded (${maskApiKey(savedKey)}) — leave blank to keep`;
+    apiKeyInput.placeholder = `Saved key loaded (${maskApiKey(savedKey)}); leave blank to keep`;
     apiKeyInput.dataset.hasSavedKey = "1";
   } else {
     delete apiKeyInput.dataset.hasSavedKey;
@@ -145,7 +145,7 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
   const resolvedKey = getResolvedApiKey(prov, settings.apiKey);
   elements.apiKeyInput.value = '';
   if (resolvedKey) {
-    elements.apiKeyInput.placeholder = `Saved key loaded (${maskApiKey(resolvedKey)}) — leave blank to keep`;
+    elements.apiKeyInput.placeholder = `Saved key loaded (${maskApiKey(resolvedKey)}); leave blank to keep`;
     elements.apiKeyInput.dataset.hasSavedKey = "1";
   }
   if (!resolvedKey) {
@@ -244,13 +244,13 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
   }
 
   // Local-model orchestration roles (dashboard "Local models" panel).
-  // Elements are optional — the panel may be absent in minimal builds.
+  // Elements are optional; the panel may be absent in minimal builds.
   try {
     const { applyLocalModelsSettings } = require('../components/ollama_ui_controller');
     applyLocalModelsSettings(elements, settings);
   } catch (e) { /* dashboard works fine without the local-models panel */ }
 
-  // OpenCode.ai bridge (optional) — applied defensively so older configs still load.
+  // OpenCode.ai bridge (optional); applied defensively so older configs still load.
   try {
     const { applyOpenCodeSettings } = require('../components/opencode_ui_controller');
     applyOpenCodeSettings(elements, settings);
@@ -340,7 +340,7 @@ function saveConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     else if (settings.provider === 'elevenlabs') credUpdate.elevenlabsApiKey = apiKey;
     saveCredentials(credUpdate);
   }
-  // ElevenLabs voice key is provider-independent — always persist when typed.
+  // ElevenLabs voice key is provider-independent; always persist when typed.
   if (elements.elevenlabsKeyInput && elements.elevenlabsKeyInput.value) {
     saveCredentials({ elevenlabsApiKey: elements.elevenlabsKeyInput.value });
   }

@@ -25,7 +25,7 @@ function refundStatus(message: string): number {
 }
 
 /**
- * POST /api/coins/refund { lot_id, coins? } — refund a purchased lot's
+ * POST /api/coins/refund { lot_id, coins? }; refund a purchased lot's
  * unspent remainder in full (coins omitted) or partially (coins set).
  * Partial refunds are the pro-rated path once FIFO spending ate part of
  * the lot. The lot row is marked refunded; the ledger + coin_refunds audit

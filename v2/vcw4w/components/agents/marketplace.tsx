@@ -79,7 +79,7 @@ export function Marketplace() {
   async function book(listing: Listing) {
     const hours = Number(hoursById[listing.id] || "1");
     if (!Number.isInteger(hours) || hours < 1 || hours > 720) {
-      setNoteById((m) => ({ ...m, [listing.id]: "Hours must be 1..720 (your max rental length — billed per second up to that cap)." }));
+      setNoteById((m) => ({ ...m, [listing.id]: "Hours must be 1..720 (your max rental length; billed per second up to that cap)." }));
       return;
     }
     setBusyId(listing.id);
@@ -121,7 +121,7 @@ export function Marketplace() {
       } else {
         setNoteById((m) => ({
           ...m,
-          [listing.id]: `Booked ${hours}h. Escrow locked from your coin balance — billed per second.`,
+          [listing.id]: `Booked ${hours}h. Escrow locked from your coin balance; billed per second.`,
         }));
       }
     } catch {
@@ -135,7 +135,7 @@ export function Marketplace() {
     <div>
       <h2 className="text-2xl font-black">Rent an agent</h2>
       <p className="mt-2 text-sm text-slate-400">
-        Quotes are USD/hour maximums (gross, 25% cut included) — you pay per
+        Quotes are USD/hour maximums (gross, 25% cut included); you pay per
         second of actual use, never more than the quote.
       </p>
       <div className="mt-4 flex flex-wrap gap-3">
@@ -200,7 +200,7 @@ export function Marketplace() {
                 <span className="text-sm font-normal text-slate-400"> /hour max, gross</span>
               </p>
               <p className="text-xs text-slate-500">
-                ≈ ${perSec.toFixed(4)}/sec · ${usdHr.toFixed(2)}/hr cap — includes {SERVICE_CUT_PCT}% platform cut. Billed per second.
+                ≈ ${perSec.toFixed(4)}/sec · ${usdHr.toFixed(2)}/hr cap; includes {SERVICE_CUT_PCT}% platform cut. Billed per second.
               </p>
               <div className="mt-4 flex items-center gap-2">
                 <label className="text-sm text-slate-300">
@@ -226,13 +226,13 @@ export function Marketplace() {
                 </button>
               </div>
               <p className="mt-2 text-sm text-slate-300">
-                Up to {formatUsd(math.gross)} for {hours || 0}h — billed per
+                Up to {formatUsd(math.gross)} for {hours || 0}h; billed per
                 second ({formatUsd(math.cut)} platform /{" "}
                 {formatUsd(math.provider)} compute at full use).
               </p>
               {l.provider_code === "runpod" && (
                 <p className="mt-1 text-xs text-slate-500">
-                  RunPod default endpoint — no URL needed. Booking rents the
+                  RunPod default endpoint; no URL needed. Booking rents the
                   cheapest live GPU at or under this max.
                 </p>
               )}

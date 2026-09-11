@@ -84,7 +84,7 @@ export class HubManager {
         ? objective.value.trim()
         : 'Play through the opening safely. Check movement, aim, interaction prompts, menus, performance stutter, and visual glitches.';
       if (el.gameTarget) el.gameTarget.value = 'desktop://steam/220';
-      if (el.quickTarget) el.quickTarget.value = 'Half-Life 2 — Steam desktop window';
+      if (el.quickTarget) el.quickTarget.value = 'Half-Life 2 - Steam desktop window';
       if (el.testRules) el.testRules.value = rules;
       if (el.quickObjective) el.quickObjective.value = rules;
       this.closeAllModals();
@@ -110,7 +110,7 @@ export class HubManager {
     const cardDesktop = document.getElementById('card-desktop-game');
     if (cardDesktop) cardDesktop.addEventListener('click', () => {
       synth.playClick();
-      log('[HUB] Native window capture lives in the Electron build — run launch_vibecodeworker.bat to attach to a running Windows game.', 'warning');
+      log('[HUB] Native window capture lives in the Electron build; run launch_vibecodeworker.bat to attach to a running Windows game.', 'warning');
     });
 
     const cardOpen = document.getElementById('card-open-folder');

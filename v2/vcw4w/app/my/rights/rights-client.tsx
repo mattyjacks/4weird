@@ -167,7 +167,7 @@ export function RightsClient({ email }: { email: string }) {
         <p className="mt-2 text-sm text-slate-300">
           Erasure (GDPR Art. 17 and U.S. state-law deletion rights). This permanently erases your profile, saves,
           social graph, Clans posts, bot identities and keys, coin ledger, referrals, rentals, and memberships, then
-          deletes the login itself. <strong className="text-white">Only you — signed in as this account — can delete
+          deletes the login itself. <strong className="text-white">Only you; signed in as this account; can delete
           this account.</strong> Requests for anyone else’s data are refused here. Confirmed deletions are final:
           unspent coins are forfeited, and safety evidence or financial records the law requires us to keep are
           retained in minimal form as explained in the Privacy Policy.
@@ -189,7 +189,7 @@ export function RightsClient({ email }: { email: string }) {
             <p className="text-sm text-slate-200">
               Deletion window open until <span className="font-mono">{new Date(pending.expiresAt).toLocaleString()}</span>.
               {cooldownLeft > 0 ? (
-                <> You can confirm in <span className="font-semibold text-white">{cooldownLeft}s</span> — this pause stops accidental and automated deletions.</>
+                <> You can confirm in <span className="font-semibold text-white">{cooldownLeft}s</span>; this pause stops accidental and automated deletions.</>
               ) : (
                 <> You can confirm now.</>
               )}
@@ -243,13 +243,13 @@ export function RightsClient({ email }: { email: string }) {
       </section>
 
       <section className="rounded-xl border border-white/10 bg-white/5 p-6">
-        <h2 className="text-xl font-bold text-white">4. Someone else’s account — special cases only</h2>
+        <h2 className="text-xl font-bold text-white">4. Someone else’s account; special cases only</h2>
         <p className="mt-2 text-sm text-slate-300">
           The buttons above work <strong className="text-white">only for your own signed-in account</strong> and this
           is enforced technically, not just by policy. If you are family or a legal representative of a{" "}
           <strong className="text-white">deceased</strong> or incapacitated user asking for deletion, or an authorized
           agent with written permission, email{" "}
-          <a className="text-cyan-200 underline" href={`mailto:${SUPPORT_EMAIL}?subject=Privacy%20request%20—%20special%20case`}>{SUPPORT_EMAIL}</a>{" "}
+          <a className="text-cyan-200 underline" href={`mailto:${SUPPORT_EMAIL}?subject=Privacy%20request%20-%20special%20case`}>{SUPPORT_EMAIL}</a>{" "}
           from a verifiable address with: the account’s email/handle, your relationship, what you are asking for, and
           proof of authority (for a deceased user: death certificate plus proof of kinship or legal appointment; for
           agents: signed permission plus identity verification of the principal). We verify every such request, ask

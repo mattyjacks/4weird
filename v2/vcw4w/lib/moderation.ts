@@ -1,12 +1,12 @@
 /**
- * 4weird Clans — Luna text moderation adapter.
+ * 4weird Clans - Luna text moderation adapter.
  *
  * Behavior contract (kept simple on purpose):
  *  - With OPENAI_API_KEY set: text is checked against an OpenAI-compatible
  *    chat-completions endpoint (base https://api.openai.com/v1, model from
  *    LUNA_MODEL, default "gpt-5.6-luna"). allowed=false => caller should
  *    store the post/comment with status='pending' for human review.
- *  - WITHOUT a key (UNCONFIGURED): fail-CLOSED for writes — returns
+ *  - WITHOUT a key (UNCONFIGURED): fail-CLOSED for writes; returns
  *    { allowed: true, heuristicHit: true } so callers store status='pending'
  *    for human review until Luna is configured. Reads may still proceed.
  *  - IMAGES without a key: NOT approved here at all. Image safety is

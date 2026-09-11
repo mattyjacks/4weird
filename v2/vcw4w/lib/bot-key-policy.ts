@@ -5,7 +5,7 @@
  * /bot/setup manager UI can import this directly.
  *
  * Money rule (same as everywhere else on the site): every price includes
- * the 25% platform cut — including log-file storage (see LOG_CUT_PCT and
+ * the 25% platform cut; including log-file storage (see LOG_CUT_PCT and
  * logStorageSplit below).
  */
 

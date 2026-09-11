@@ -6,10 +6,10 @@ import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
-// POST /api/clans/report — anonymous allowed, strict rate limit.
+// POST /api/clans/report; anonymous allowed, strict rate limit.
 // { target_type: post|comment|image, target_id: uuid, category: csam|other, details? }
 // category=csam => file_report RPC hides the target immediately (quarantine;
-// content preserved for the NCMEC CyberTipline procedure — see migration header).
+// content preserved for the NCMEC CyberTipline procedure; see migration header).
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const throttle = rateLimit(`clan-report:${clientIp(req)}`, 5, 60_000);

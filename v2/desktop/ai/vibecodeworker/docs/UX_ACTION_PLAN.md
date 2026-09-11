@@ -499,5 +499,5 @@ If issues arise:
 
 By implementing these UX improvements, you'll create a more **intuitive**, **accessible**, and **professional** application that users will enjoy using. Start with Phase 1 quick wins to build momentum, then tackle the core improvements.
 
-**Remember**: Good UX is not about making things pretty—it's about making things **clear**, **intuitive**, and **delightful** to use.
+**Remember**: Good UX is not about making things pretty-it's about making things **clear**, **intuitive**, and **delightful** to use.
 

@@ -3,9 +3,9 @@ import { NewGamePlusBuilder } from "@/components/newgameplus/newgameplus-builder
 
 export const metadata: Metadata = {
   alternates: { canonical: "/newgameplus" },
-  title: "NewGamePlus — type a prompt, ship a tested game | 4weird",
+  title: "NewGamePlus; type a prompt, ship a tested game | 4weird",
   description:
-    "Type a game prompt, tune Quality (0–10) + Budget coins, and NewGamePlus generates an original HTML/CSS/JS game, pushes it to the Draft folder in your org, and tests it with VibeCodeWorker. Best quality, lowest price, greatest speed.",
+    "Type a game prompt, tune Quality (0-10) + Budget coins, and NewGamePlus generates an original HTML/CSS/JS game, pushes it to the Draft folder in your org, and tests it with VibeCodeWorker. Best quality, lowest price, greatest speed.",
 };
 
 export default function NewGamePlusPage() {
@@ -17,9 +17,9 @@ export default function NewGamePlusPage() {
         <p className="mt-4 max-w-3xl text-slate-300">
           VibeCodeWorker + every related service in one launch: a bot symphony (Scout → Forge → Pixel → Echo → Sage) builds an original HTML/CSS/JS game, intelligently shortlists the fal.ai media the prompt needs, pushes it to the{" "}
           <b>Draft</b> game folder inside your org, then VibeCodeWorker intelligently playtests it
-          (observe → reason → act repair loops). Quality 0–10 (default 5) · Budget 100 coins default (1–10,000;
+          (observe → reason → act repair loops). Quality 0-10 (default 5) · Budget 100 coins default (1-10,000;
           above 250 triggers Confirm the Amount). Fast lane (≤250 coins) finishes in ≤5 minutes; deluxe budgets run longer but stay fast. Cheapest viable build, newest viable runtime, 25% cut included
-          — and it succeeds.
+ - and it succeeds.
         </p>
         <div className="mt-8">
           <NewGamePlusBuilder />

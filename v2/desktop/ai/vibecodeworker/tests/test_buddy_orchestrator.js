@@ -26,7 +26,7 @@ const slowRunner = (ms) => async (playId) => { await new Promise((r) => setTimeo
   assert.strictEqual(off.fallbackCount, off.specialists.length, 'all-throwing all fallback');
   assert.ok(off.reply.length > 0, 'offline reply non-empty');
 
-  // 4. Slow runner past timeout becomes fallback (fast test: 50ms timeout floor is 1000ms — use explicit override).
+  // 4. Slow runner past timeout becomes fallback (fast test: 50ms timeout floor is 1000ms; use explicit override).
   const slow = await runOrchestrator('coach me', {}, slowRunner(3000), { specialists: ['coach'], timeoutMs: 1000, concurrency: 1 });
   assert.strictEqual(slow.fallbackCount, 1, 'slow agent times out into fallback');
 

@@ -125,7 +125,7 @@
     var videoLayout = $('run-video-layout').value || 'both';
     var controlToken = ($('run-control-token').value || '').trim();
     if (controlToken && !/^[A-Za-z0-9._~-]{24,256}$/.test(controlToken)) {
-      log('Phone control token must be 24–256 URL-safe characters. Nothing launched.');
+      log('Phone control token must be 24-256 URL-safe characters. Nothing launched.');
       return;
     }
     log('Launching ' + game + ' on ' + gpuId + ' with ' + MODEL_FOR(mem) + '...');
@@ -143,7 +143,7 @@
       if (!state.podId) throw new Error('Runpod did not return a pod id');
       state.startedAt = Date.now();
       // Security: desktop URLs come back from the API (via Runpod). Only
-      // https: targets may become iframe sources — anything else (including
+      // https: targets may become iframe sources; anything else (including
       // javascript:/data:) falls back to the known-good proxy pattern, and
       // only for sane pod ids.
       var podOk = /^[A-Za-z0-9-]{1,64}$/.test(String(state.podId));
@@ -162,7 +162,7 @@
       state.timer = setInterval(setCost, 1000);
       setCost();
       if (data.phone && data.phone.endpoint) {
-        log('Phone endpoint ready after pod boot: ' + data.phone.endpoint + ' — open the phone controller and enter this endpoint plus the token you chose.');
+        log('Phone endpoint ready after pod boot: ' + data.phone.endpoint + '; open the phone controller and enter this endpoint plus the token you chose.');
       }
       // Hard client side auto stop at 55 minutes.
       setTimeout(function () {

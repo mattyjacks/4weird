@@ -14,9 +14,9 @@ export type GameA11y = {
   keyboardOnly: boolean;
   /** Gameplay meaning is carried by color (match red/green, etc). */
   colorDependent: boolean;
-  /** Flashing / screen-shake heavy — warn + offer reduced motion. */
+  /** Flashing / screen-shake heavy; warn + offer reduced motion. */
   photosensitive: boolean;
-  /** Typing-heavy — pairs well with dyslexia font + large text. */
+  /** Typing-heavy; pairs well with dyslexia font + large text. */
   readingHeavy: boolean;
   /** Short control + assist summary shown on the play page. */
   controls: string;
@@ -85,7 +85,7 @@ const TABLE: Record<string, GameA11y> = {
     photosensitive: false,
     readingHeavy: false,
     controls: "WASD sneak · Space takedown · E collect DNA",
-    assist: "Stealth pacing suits switch, dwell, and face control — no twitch aiming required.",
+    assist: "Stealth pacing suits switch, dwell, and face control; no twitch aiming required.",
   },
   "platform-wars": {
     slug: "platform-wars",
@@ -229,7 +229,7 @@ const TABLE: Record<string, GameA11y> = {
     photosensitive: false,
     readingHeavy: false,
     controls: "Arrows / WASD steer · Space start/restart · P or Esc pause",
-    assist: "Slow-grid classic: suits switch, dwell, and face control — no twitch aiming required.",
+    assist: "Slow-grid classic: suits switch, dwell, and face control; no twitch aiming required.",
   },
   neonvoidrunner: {
     slug: "neonvoidrunner",
@@ -301,7 +301,7 @@ const TABLE: Record<string, GameA11y> = {
     photosensitive: true,
     readingHeavy: false,
     controls: "A/D or ←/→ move · Space fire action beams · P pause",
-    assist: "Boss battle: orange fireballs vs your beams are color-coded — set a filter; reduced-motion calms the fight.",
+    assist: "Boss battle: orange fireballs vs your beams are color-coded; set a filter; reduced-motion calms the fight.",
   },
   "the-revenue-jungle": {
     slug: "the-revenue-jungle",
@@ -340,7 +340,7 @@ export function getGameA11y(slug: string): GameA11y {
       colorDependent: false,
       photosensitive: false,
       readingHeavy: false,
-      controls: "Keyboard + mouse — see the in-game help screen",
+      controls: "Keyboard + mouse; see the in-game help screen",
       assist: "Generic shell assists apply: colorblind filter, dyslexia font, dwell-click, and face-key mapping.",
     }
   );

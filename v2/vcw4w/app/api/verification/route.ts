@@ -5,7 +5,7 @@ import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/verification — my verified status + pending request.
+// GET /api/verification; my verified status + pending request.
 export async function GET() {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
@@ -21,7 +21,7 @@ export async function GET() {
   });
 }
 
-// POST /api/verification { note? } — request creator verification.
+// POST /api/verification { note? }; request creator verification.
 // Verification is granted by MattyJacks after review; requesting is not approval.
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);

@@ -9,7 +9,7 @@ import { rpcStatus } from "@/lib/agent-market";
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/game-ai/meter — meter game AI compute (dialogue bot, AI
+ * POST /api/game-ai/meter; meter game AI compute (dialogue bot, AI
  * director, TTS, rented RunPod GPU, inference) with the same 25% cut.
  * Body: { game_slug, kind, qty, session_id?, source? }.
  * The meter_game_ai_usage RPC debits gross coins, splits 25/75, records it.

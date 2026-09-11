@@ -11,7 +11,7 @@ import { VAULT_CUT_NOTE, quoteVaultStorageSplit } from "@/lib/blob-vault";
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/vault/blobs/[id] — owner/member reads one file + (when clean) a
+ * GET /api/vault/blobs/[id]; owner/member reads one file + (when clean) a
  * short-lived download URL. Quarantined rows NEVER include a URL.
  * Auth: session OR bot key with `vault:read`.
  */
@@ -64,7 +64,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 }
 
 /**
- * POST /api/vault/blobs/[id] — confirm bytes landed (size check),
+ * POST /api/vault/blobs/[id]; confirm bytes landed (size check),
  * then meter storage (fail closed). Auth: session OR `vault:write`.
  */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -124,7 +124,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const stored = (listed ?? []).find((o) => o.name === base);
   if (!stored) return fail("Bytes not uploaded yet.", 409);
   if (typeof stored.metadata?.size === "number" && stored.metadata.size !== r.bytes) {
-    return fail("Size mismatch — re-upload.", 409);
+    return fail("Size mismatch; re-upload.", 409);
   }
 
   const quote = quoteVaultStorageSplit(r.bytes);

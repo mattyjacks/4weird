@@ -38,7 +38,7 @@ for (const [name, src] of [["usage", usagePage], ["rights", rightsPage]]) {
 }
 
 // Password rules: strength (3 of 4 classes) is enforced when a password is
-// CHOSEN (signup/change), never when it is PRESENTED — login must use the
+// CHOSEN (signup/change), never when it is PRESENTED; login must use the
 // length-shape check so pre-rule accounts are not locked out, and both
 // chooser surfaces must state the rule upfront.
 const validate = read("../lib/validate.ts");

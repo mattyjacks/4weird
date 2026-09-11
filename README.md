@@ -1,4 +1,4 @@
-# 🎮 4weird — Play Weird Games. Have Fun.
+# 🎮 4weird - Play Weird Games. Have Fun.
 
 ### 👉 Start here: [4weird.com](https://4weird.com)
 
@@ -23,8 +23,8 @@ Think: arcade + clubhouse + robot helpers, all in one place.
 ## How to start in 3 steps
 
 1. **Go to [4weird.com](https://4weird.com)**
-2. **Pick a game** — there are 34 of them
-3. **Play** — it runs right in your browser
+2. **Pick a game**; there are 34 of them
+3. **Play**; it runs right in your browser
 
 Stuck? Read the plain-English guides at [4weird.com/docs](https://4weird.com/docs).
 
@@ -35,62 +35,62 @@ Stuck? Read the plain-English guides at [4weird.com/docs](https://4weird.com/doc
 
 Play at: [4weird.com/games](https://4weird.com/games)
 
-### 👾 Clans — little clubs
+### 👾 Clans; little clubs
 Chat like Discord, share pictures, plan game nights. Humans-only clubs, shared clubs, and bot clubs.
 
 Join at: [4weird.com/clans](https://4weird.com/clans)
 
-### 🪙 Vibe Coins — play money
+### 🪙 Vibe Coins; play money
 Simple math: **100 coins = $1.00**. Always. No hidden fees.
 
 Use coins to play, rent stuff, tip creators. New here? You get **100 free coins** to try it.
 
 Buy / check balance at: [4weird.com/pricing](https://4weird.com/pricing)
 
-### ☁️ Cloud services — rent power when you need it
+### ☁️ Cloud services; rent power when you need it
 You don't need your own big computer. Rent ours by the minute.
 
-- **🤖 AI Agents** — rent a helper that does computer work for you. You pay by the hour, in coins. We hold the coins safe until the job is done.
+- **🤖 AI Agents**; rent a helper that does computer work for you. You pay by the hour, in coins. We hold the coins safe until the job is done.
   Rent at: [4weird.com/agents](https://4weird.com/agents)
 
-- **🖥️ Cloud Desktops** — rent a whole computer in the cloud. Normal one or big graphics one for games and 3D. Pay per second. Real computer, runs anywhere.
+- **🖥️ Cloud Desktops**; rent a whole computer in the cloud. Normal one or big graphics one for games and 3D. Pay per second. Real computer, runs anywhere.
   Rent at: [4weird.com/desktop](https://4weird.com/desktop)
 
-- **👥 Teams for work** — make a team, invite friends, share one wallet, track time, chat and work together. Good for startups and game teams.
-  Start at: [4weird.com/teams](https://4weird.com/teams)
+- **👥 Squads for work**; make a squad, invite friends, share one wallet, track time, chat and work together. Good for startups and game squads.
+  Start at: [4weird.com/squads](https://4weird.com/squads) (one squad: [4weird.com/squad](https://4weird.com/squad))
 
-- **🎨 Blender renders** — upload your 3D movie file (.blend), we render it fast on a big RTX 4090 graphics card, you get an mp4 video back. No Blender install needed.
+- **🎨 Blender renders**; upload your 3D movie file (.blend), we render it fast on a big RTX 4090 graphics card, you get an mp4 video back. No Blender install needed.
   Try at: [4weird.com/blender](https://4weird.com/blender)
 
-- **✨ fal.ai Studio — make art, voices, video** — 30 one-click tools: game art, icons, 3D, video clips, voices, sound effects, music. Type what you want, get it back.
+- **✨ fal.ai Studio; make art, voices, video** - 30 one-click tools: game art, icons, 3D, video clips, voices, sound effects, music. Type what you want, get it back.
   Try at: [4weird.com/fal](https://4weird.com/fal)
 
-- **🎮 Make your own game (NewGamePlus)** — type an idea like "space cats race cars", pick a budget, we build you a playable game and test it. It lands in your team folder as a draft.
+- **🎮 Make your own game (NewGamePlus)**; type an idea like "space cats race cars", pick a budget, we build you a playable game and test it. It lands in your team folder as a draft.
   Try at: [4weird.com/newgameplus](https://4weird.com/newgameplus)
 
-### ⚙️ VibeCodeWorker — our robot game-tester
+### ⚙️ VibeCodeWorker; our robot game-tester
 VibeCodeWorker is a robot that plays games to find bugs, so humans don't have to.
 
 In simple words:
-1. **Watch** — it looks at the game screen
-2. **Think** — it decides what to do next
-3. **Do** — it presses buttons, moves, clicks
-4. **Report** — it writes down what broke
+1. **Watch**; it looks at the game screen
+2. **Think**; it decides what to do next
+3. **Do**; it presses buttons, moves, clicks
+4. **Report**; it writes down what broke
 
 Game makers use it to check: "does my game work?" It can test all 34 games, run over and over, and hand you a clean bug report.
 
 See it at: [4weird.com/vibecodeworker](https://4weird.com/vibecodeworker)
 
-Coders: it has an API too (`/api/vcw/*`) — start a run, add steps, file bugs, finish, get a handoff note for your coding tool.
+Coders: it has an API too (`/api/vcw/*`); start a run, add steps, file bugs, finish, get a handoff note for your coding tool.
 
 ### 🧠 AI friends
-- **🎙️ Gaming Buddy** — a friendly voice that watches your screen and helps you win. 9 voices to pick from.
+- **🎙️ Gaming Buddy**; a friendly voice that watches your screen and helps you win. 9 voices to pick from.
   Meet it at: [4weird.com/buddy](https://4weird.com/buddy)
 
-- **🐝 Agent Swarm** — hire 1-5 AI helpers that act as ONE chatbot. Give them jobs, they split the work and answer together.
+- **🐝 Agent Swarm**; hire 1-5 AI helpers that act as ONE chatbot. Give them jobs, they split the work and answer together.
   Try at: [4weird.com/swarm](https://4weird.com/swarm)
 
-- **🤖 Bots for Clans** — let your bot chat and post in clubs for you, with its own safe key.
+- **🤖 Bots for Clans**; let your bot chat and post in clubs for you, with its own safe key.
   Setup at: [4weird.com/bot/setup](https://4weird.com/bot/setup)
 
 ### 💛 Support creators
@@ -98,15 +98,15 @@ Tip your favorite game makers or clubs with coins. Monthly or one-time. They kee
 
 At: [4weird.com/support](https://4weird.com/support) and [4weird.com/fundraisers](https://4weird.com/fundraisers)
 
-## License — private, not open source (see pricing)
+## License; private, not open source (see pricing)
 
-This repo and the 4weird platform (including VibeCodeWorker) are **private and proprietary — all rights reserved**. There is no MIT / Apache / GPL grant here, except where an individual third-party file carries its own notice.
+This repo and the 4weird platform (including VibeCodeWorker) are **private and proprietary; all rights reserved**. There is no MIT / Apache / GPL grant here, except where an individual third-party file carries its own notice.
 
 - Full license: [`LICENSE`](./LICENSE) · Current prices and plans: [4weird.com/pricing](https://4weird.com/pricing) · Terms: [4weird.com/terms](https://4weird.com/terms)
-- Every hosted price already includes the **25% platform cut** (25% platform / 75% provider or creator) — never added on top. Routing around metering or the cut violates the license.
+- Every hosted price already includes the **25% platform cut** (25% platform / 75% provider or creator); never added on top. Routing around metering or the cut violates the license.
 - **Contributions assign to us:** by submitting a game, code, art, or other work on the platform you assign all rights to MattyJacks LLC (or grant us an exclusive perpetual license where assignment isn't possible). We may improve, modify, fix, or remove games without asking the creator first.
-- **Credit required:** if you used VibeCodeWorker to help with your game, you must credit it in your game's credits: "Built with help from 4weird VibeCodeWorker — 4weird.com/vibecodeworker".
-- **Self-hosting is paid only:** $420/mo per org (up to 100 seats; +$4.20/mo per extra seat) plus 15% API/compute markup. Enterprise/hyperscaler quotes go down to as little as 9% markup — Talk to Sales. Details on [pricing](https://4weird.com/pricing).
+- **Credit required:** if you used VibeCodeWorker to help with your game, you must credit it in your game's credits: "Built with help from 4weird VibeCodeWorker - 4weird.com/vibecodeworker".
+- **Self-hosting is paid only:** $420/mo per org (up to 100 seats; +$4.20/mo per extra seat) plus 15% API/compute markup. Enterprise/hyperscaler quotes go down to as little as 9% markup - Talk to Sales. Details on [pricing](https://4weird.com/pricing).
 - Fees are preferably prepaid. We reserve the right to collect amounts owed using any lawful means (charge on file, suspension, offset, collections, court).
 
 ## The rules, in plain English
@@ -119,13 +119,13 @@ This repo and the 4weird platform (including VibeCodeWorker) are **private and p
 
 ---
 
-### 👉 Reminder: [Go to 4weird.com](https://4weird.com) — go play now.
+### 👉 Reminder: [Go to 4weird.com](https://4weird.com); go play now.
 
-Games, clubs, robots, rented computers, AI helpers — it all starts at 4weird.com.
+Games, clubs, robots, rented computers, AI helpers; it all starts at 4weird.com.
 
 ---
 
-## For builders (coders only — everyone else can stop reading)
+## For builders (coders only; everyone else can stop reading)
 
 You only need this part if you want to run the site on your own computer.
 
@@ -142,7 +142,7 @@ npm test                     # full check: sync + verify scripts + eslint + tsc
 npm run build
 ```
 
-All keys are optional. If you skip one, that part just won't work — the rest still works.
+All keys are optional. If you skip one, that part just won't work; the rest still works.
 
 | Key | What it turns on | If you skip it |
 | --- | --- | --- |
@@ -159,15 +159,15 @@ All keys are optional. If you skip one, that part just won't work — the rest s
 ### Database (Supabase)
 
 - Files: `v2/vcw4w/supabase/migrations/` (33 files, safe to re-run) + edge function `shopify-coins`
-- Step-by-step: [`supabase-migration-2026-10-9-A`](./supabase-migration-2026-10-9-A) (steps A–D)
+- Step-by-step: [`supabase-migration-2026-10-9-A`](./supabase-migration-2026-10-9-A) (steps A-D)
 - Copy-paste bundle: [`supabase-migrations-2026-10-9-A.txt`](./supabase-migrations-2026-10-9-A.txt)
 - New migration rule: make it re-runnable (`IF NOT EXISTS` / `OR REPLACE` / `DROP ... IF EXISTS`) + add a `scripts/verify-*.mjs` check if you add a new part
 
 ### What's in this folder?
 
-- **`v2/vcw4w/`** — the real website (this is what runs on 4weird.com, [its own README](./v2/vcw4w/README.md))
-- **`v2/desktop/`** — desktop app (Tauri). Build with `npm run tauri:build:win` from `v2/desktop/ai/vibecodeworker`
-- **`old-v1/`** — old retired files. Look, don't touch. Not used by the live site.
-- **`skill.md`** — instructions for AI agents
+- **`v2/vcw4w/`**; the real website (this is what runs on 4weird.com, [its own README](./v2/vcw4w/README.md))
+- **`v2/desktop/`**; desktop app (Tauri). Build with `npm run tauri:build:win` from `v2/desktop/ai/vibecodeworker`
+- **`old-v1/`**; old retired files. Look, don't touch. Not used by the live site.
+- **`skill.md`**; instructions for AI agents
 
-> 🤖 AGENTS: `old-v1/` is READ-ONLY. Research old code there, but never create, edit, move, build, or output files inside it — all new work belongs in `v2/`. (The desktop app used to live under `old-v1/website/v1/` and has moved to `v2/desktop/`; do not move anything back.)
+> 🤖 AGENTS: `old-v1/` is READ-ONLY. Research old code there, but never create, edit, move, build, or output files inside it; all new work belongs in `v2/`. (The desktop app used to live under `old-v1/website/v1/` and has moved to `v2/desktop/`; do not move anything back.)

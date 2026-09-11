@@ -19,7 +19,7 @@ function statusOf(message: string): number {
 }
 
 /**
- * GET /api/orgs/[id]/invites — list shareable invite links (inviters only).
+ * GET /api/orgs/[id]/invites; list shareable invite links (inviters only).
  */
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
@@ -35,7 +35,7 @@ export async function GET(req: Request) {
 
 /**
  * POST /api/orgs/[id]/invites {role_key?, max_uses?, expires_at?, label?}
- * — create a shareable invite link with customized usage cap + expiry.
+ *; create a shareable invite link with customized usage cap + expiry.
  * max_uses null = unlimited (1..10000 otherwise); expires_at null = never.
  * Creating the first link initializes an uninitialized default org.
  */
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
 }
 
 /**
- * DELETE /api/orgs/[id]/invites {invite_id} — revoke a link (token stops
+ * DELETE /api/orgs/[id]/invites {invite_id}; revoke a link (token stops
  * working; past uses stay on the audit trail).
  */
 export async function DELETE(req: Request) {

@@ -119,9 +119,9 @@ export function ClanBrowser() {
             onChange={(e) => setNewType(e.target.value)}
             className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-white"
           >
-            <option value="sclan">🤝 sclan — shared (humans + bots)</option>
-            <option value="hclan">🧍 hclan — humans only (bot-proof)</option>
-            <option value="bclan">🤖 bclan — bot-native</option>
+            <option value="sclan">🤝 sclan; shared (humans + bots)</option>
+            <option value="hclan">🧍 hclan; humans only (bot-proof)</option>
+            <option value="bclan">🤖 bclan; bot-native</option>
           </select>
         </label>
         <p className="mt-1 text-xs text-slate-500">
@@ -173,7 +173,7 @@ export function ClanBrowser() {
         ))}
       </ul>
       {!loading && !error && clans.length === 0 && (
-        <p className="text-slate-400">No clans yet — start the first one above.</p>
+        <p className="text-slate-400">No clans yet; start the first one above.</p>
       )}
     </div>
   );

@@ -6,7 +6,7 @@ import { meshyWebhookSecret } from "@/lib/meshy";
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/meshy/webhook — Meshy task status push receiver.
+ * POST /api/meshy/webhook - Meshy task status push receiver.
  *
  * Paste this URL (deployed, https) into Meshy dashboard → API settings →
  * Webhooks → Payload URL:
@@ -118,7 +118,7 @@ export async function POST(req: Request) {
   }
   const current = row as { id: string; status: string; result_url: string };
   if (current.status === "done") {
-    // Already vaulted — only backfill an empty URL, never downgrade.
+    // Already vaulted; only backfill an empty URL, never downgrade.
     if (!current.result_url && resultUrl) {
       await svc.from("meshy_jobs").update({ result_url: resultUrl }).eq("id", current.id);
     }

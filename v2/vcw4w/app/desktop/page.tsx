@@ -22,10 +22,10 @@ export default function DesktopPage() {
         <h1 className="mt-2 text-4xl font-black">Rent a virtual desktop</h1>
         <p className="mt-4 max-w-3xl text-slate-300">
           A real computer in the cloud, rented by the second on RunPod. Both plans boot an <strong>Ubuntu GUI
-          desktop</strong> (Kasm on port 6901, streamed to your browser) by default — pick <strong>CPU</strong> for
+          desktop</strong> (Kasm on port 6901, streamed to your browser) by default; pick <strong>CPU</strong> for
           cheap everyday computing or <strong>GPU</strong> (hardware-accelerated) for Blender, CUDA dev, AI art, and
           GPU play. Prefer JupyterLab + SSH? Pick the <strong>Jupyter</strong> interface instead. Booking provisions a
-          live pod and hands you a clickable proxy URL — nothing is ever faked.
+          live pod and hands you a clickable proxy URL; nothing is ever faked.
         </p>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
           RunPod bills the operator&apos;s card <strong>per second</strong> from the first second. Coin figures are
@@ -43,9 +43,9 @@ export default function DesktopPage() {
 
         <div className="mt-10 grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <h2 className="font-bold">💻 CPU Desktop — Ubuntu GUI (Kasm)</h2>
+            <h2 className="font-bold">💻 CPU Desktop - Ubuntu GUI (Kasm)</h2>
             <p className="mt-2 text-sm text-slate-400">
-              <code>runpod/kasm-docker:cuda11</code> (template <code>runpod-desktop</code>) on a cheap CPU pod —
+              <code>runpod/kasm-docker:cuda11</code> (template <code>runpod-desktop</code>) on a cheap CPU pod -
               full graphical desktop streamed on port 6901, software-rendered. JupyterLab + SSH on 8888 is one click
               away (official <code>runpod/base:1.0.2-ubuntu2204</code>).
             </p>
@@ -56,10 +56,10 @@ export default function DesktopPage() {
             </ul>
           </div>
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <h2 className="font-bold">🖥️ GPU Desktop — RunPod Desktop (Kasm)</h2>
+            <h2 className="font-bold">🖥️ GPU Desktop - RunPod Desktop (Kasm)</h2>
             <p className="mt-2 text-sm text-slate-400">
               Official <code>runpod/kasm-docker:cuda11</code> (template <code>runpod-desktop</code>). Full XFCE
-              graphical desktop streamed on port 6901 — open the link and you are logged into a GPU workstation.
+              graphical desktop streamed on port 6901; open the link and you are logged into a GPU workstation.
               JupyterLab on a CUDA box is one click away (PyTorch image on 8888).
             </p>
             <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-slate-400">
@@ -79,7 +79,7 @@ export default function DesktopPage() {
               theater. No stock, no key, or over budget comes back as an honest <code>started: false</code> state.
             </li>
             <li>Open the returned proxy URL: Kasm desktop stream (GUI) or JupyterLab (Jupyter).</li>
-            <li>Manage it from <Link href="/runpods" className="text-cyan-300 hover:underline">My RunPods</Link> — stop ends billing, terminate deletes the disk.</li>
+            <li>Manage it from <Link href="/runpods" className="text-cyan-300 hover:underline">My RunPods</Link>; stop ends billing, terminate deletes the disk.</li>
             <li>
               Sync real spend to{" "}
               <Link href="/my/usage/" className="text-cyan-300 hover:underline">

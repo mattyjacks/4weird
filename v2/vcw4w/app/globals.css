@@ -232,7 +232,7 @@ html.light .border-amber-300\/40, html.light .border-amber-300\/60 { border-colo
 
 /* Play-shell frame height: stable while the mobile keyboard opens/closes.
    svh is immune to URL-bar/keyboard viewport changes; vh stays as the
-   fallback for browsers without svh. (A plain class — Tailwind can't
+   fallback for browsers without svh. (A plain class - Tailwind can't
    guarantee fallback ordering for two height utilities on one element.) */.play-frame-height { height: 70vh; height: 70svh; }
 @media (min-width: 640px) { .play-frame-height { height: 75vh; height: 75svh; } }
 
@@ -246,7 +246,7 @@ html.light [data-theme-lock="dark"] .text-slate-400 { color: #94a3b8 !important;
 html.light [data-theme-lock="dark"] .text-cyan-300 { color: #67e8f9 !important; }
 html.light [data-theme-lock="dark"] .border-white\/10, html.light [data-theme-lock="dark"] .border-white\/15, html.light [data-theme-lock="dark"] .border-white\/20 { border-color: rgb(255 255 255 / 0.1) !important; }
 
-/* 4weird Docs visuals — blueprint grids, aurora orbs, float + EQ motion.
+/* 4weird Docs visuals; blueprint grids, aurora orbs, float + EQ motion.
    All motion is neutralized by the reduced-motion rules above. */
 .docs-grid-bg {
   background-image:

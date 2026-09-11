@@ -2,8 +2,8 @@
  * Age ratings + date-of-birth checks for 4weird Games.
  *
  * Ratings mirror familiar store bands:
- * - Kids   → ages 0–12  (no gate)
- * - Teens  → ages 13–17 (gate only for Kids Mode accounts, at 13+)
+ * - Kids   → ages 0-12  (no gate)
+ * - Teens  → ages 13-17 (gate only for Kids Mode accounts, at 13+)
  * - Adults → ages 18+   (always gated at 18+; Kids Mode accounts are
  *   blocked outright and can never pass the gate)
  *
@@ -11,11 +11,11 @@
  * own device and is NEVER sent to any API, never written to Supabase, and
  * never persisted anywhere (no localStorage, no cookies). Only the
  * pass/fail outcome for this page load lives in React state. Age itself is
- * never stored either — every check re-derives it from a freshly entered
+ * never stored either; every check re-derives it from a freshly entered
  * date of birth.
  *
  * CONTENT POLICY: sexual content is not allowed anywhere on 4weird Games.
- * "Adults" here means intense violence / horror themes only — never sexual
+ * "Adults" here means intense violence / horror themes only; never sexual
  * content, which would be removed, not rated.
  */
 
@@ -29,23 +29,23 @@ export const RATING_MIN_AGE: Record<AgeRating, number> = {
 };
 
 export const RATING_LABEL: Record<AgeRating, string> = {
-  kids: "Kids (0–12)",
-  teens: "Teens (13–17)",
+  kids: "Kids (0-12)",
+  teens: "Teens (13-17)",
   adults: "Adults (18+)",
 };
 
-/** The date picker always opens on this date — it is a neutral placeholder. */
+/** The date picker always opens on this date; it is a neutral placeholder. */
 export const DEFAULT_DOB_ISO = "1970-04-20";
 
 /** Per-game ratings. Games not listed here default to "kids". */
 export const GAME_RATINGS: Record<string, AgeRating> = {
-  // Intense violence / horror themes — 18+.
+  // Intense violence / horror themes - 18+.
   assassinanimals: "adults",
   gravegain2d: "adults",
   gravegain3d: "adults",
   demolichdom: "adults",
   lastwordszombies: "adults",
-  // Cartoon/fantasy combat — 13+.
+  // Cartoon/fantasy combat - 13+.
   battlesharks2: "teens",
   serversavershield: "teens",
   "platform-wars": "teens",
@@ -103,12 +103,12 @@ export function diffYMD(from: Date, to: Date): WaitParts {
 }
 
 /**
- * Check a date of birth against a minimum age. Pure function — the input
+ * Check a date of birth against a minimum age. Pure function; the input
  * is used only for this call and never stored.
  *
  * @param dobISO date of birth as YYYY-MM-DD
  * @param requiredAge minimum whole-years age (13 or 18)
- * @param now override "today" (UTC) — for tests only; defaults to now
+ * @param now override "today" (UTC); for tests only; defaults to now
  */
 export function checkDob(dobISO: string, requiredAge: number, now?: Date): DobCheck {
   const dob = parseDob(dobISO);
@@ -128,7 +128,7 @@ export function checkDob(dobISO: string, requiredAge: number, now?: Date): DobCh
   };
 }
 
-/** "2 years, 3 months, 4 days" — drops zero parts, keeps at least days. */
+/** "2 years, 3 months, 4 days"; drops zero parts, keeps at least days. */
 export function formatWait(wait: WaitParts): string {
   const parts: string[] = [];
   if (wait.years > 0) parts.push(`${wait.years} year${wait.years === 1 ? "" : "s"}`);
@@ -158,6 +158,6 @@ export function setKidsMode(on: boolean): void {
     if (on) window.localStorage.setItem(KIDS_MODE_KEY, "1");
     else window.localStorage.removeItem(KIDS_MODE_KEY);
   } catch {
-    /* private mode — the gate still enforces per page load */
+    /* private mode; the gate still enforces per page load */
   }
 }

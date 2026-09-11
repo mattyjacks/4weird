@@ -8,7 +8,7 @@ import { rpcStatus } from "@/lib/agent-market";
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/family/fund {kid_id, coins} — parent moves their own Vibe Coins
+ * POST /api/family/fund {kid_id, coins}; parent moves their own Vibe Coins
  * into a child's wallet. Atomic RPC: parent ledger debit (parental budgets
  * enforced) + child credit. Children can only spend what parents grant.
  */

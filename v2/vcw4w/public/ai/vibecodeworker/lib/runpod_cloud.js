@@ -23,7 +23,7 @@
 // api.runpod.io/v2 endpoint accepts a different schema and returns 400 for pod
 // creation, so keep the base explicit and overridable for test doubles.
 // CPU-only pods are created through REST v2 (api.runpod.io/v2), whose
-// create-pod takes { name, image, cpu: { id, vcpuCount }, ... } — v1 GPU
+// create-pod takes { name, image, cpu: { id, vcpuCount }, ... }; v1 GPU
 // bodies (computeType/gpuTypeIds) do not express CPU pods.
 const RUNPOD_API_BASE = String(process.env.RUNPOD_API_BASE || 'https://rest.runpod.io/v1').replace(/\/+$/, '');
 const RUNPOD_API_BASE_V2 = String(process.env.RUNPOD_API_BASE_V2 || 'https://api.runpod.io/v2').replace(/\/+$/, '');

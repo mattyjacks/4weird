@@ -38,22 +38,22 @@ export function runGraveGain3DStep() {
 
     if (visible('mainMenuScreen')) {
       return click('#btnPlay')
-        ? 'GRAVEGAIN3D: menu detected — selecting Endless Dungeon Run.'
+        ? 'GRAVEGAIN3D: menu detected; selecting Endless Dungeon Run.'
         : 'GRAVEGAIN3D: menu is visible; waiting for the run control.';
     }
     if (visible('charSelectScreen')) {
       return click('#btnCharSelectStart, #btnStartRun')
-        ? 'GRAVEGAIN3D: character setup detected — deploying the default infiltrator.'
+        ? 'GRAVEGAIN3D: character setup detected; deploying the default infiltrator.'
         : 'GRAVEGAIN3D: character setup is loading; waiting one step.';
     }
     if (visible('gameOverScreen')) {
       return click('#btnTryAgain, #btnGameOverReturn')
-        ? 'GRAVEGAIN3D: defeat screen detected — restarting the run.'
+        ? 'GRAVEGAIN3D: defeat screen detected; restarting the run.'
         : 'GRAVEGAIN3D: defeat screen is visible; waiting for restart control.';
     }
     if (visible('levelUpScreen')) {
       return click('.perk-card button, .perk-card')
-        ? 'GRAVEGAIN3D: level-up detected — selecting the first available perk.'
+        ? 'GRAVEGAIN3D: level-up detected; selecting the first available perk.'
         : 'GRAVEGAIN3D: level-up screen is visible; waiting for perks.';
     }
 
@@ -62,18 +62,18 @@ export function runGraveGain3DStep() {
     if (player) {
       if (player.hp < player.maxHp * 0.45 && (player.potions || 0) > 0) {
         key('q');
-        return `GRAVEGAIN3D: low health (${Math.round(player.hp)}/${Math.round(player.maxHp)}) — drinking potion.`;
+        return `GRAVEGAIN3D: low health (${Math.round(player.hp)}/${Math.round(player.maxHp)}); drinking potion.`;
       }
       const enemies = Array.isArray(game.enemies) ? game.enemies.filter(enemy => enemy && enemy.hp > 0) : [];
       const nearby = enemies.some(enemy => Math.hypot(enemy.x - player.x, enemy.y - player.y) < 85);
       if (nearby) {
         key(' ');
-        return 'GRAVEGAIN3D: enemy in melee range — attacking.';
+        return 'GRAVEGAIN3D: enemy in melee range; attacking.';
       }
       key('w');
       return enemies.length
-        ? 'GRAVEGAIN3D: enemy acquired — advancing into engagement range.'
-        : 'GRAVEGAIN3D: no enemy visible — advancing through the dungeon.';
+        ? 'GRAVEGAIN3D: enemy acquired; advancing into engagement range.'
+        : 'GRAVEGAIN3D: no enemy visible; advancing through the dungeon.';
     }
   } catch (error) {
     log(`GRAVEGAIN3D controller recovery: ${error.message}`, 'warning');

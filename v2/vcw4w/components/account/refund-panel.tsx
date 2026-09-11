@@ -57,7 +57,7 @@ export function RefundPanel() {
         setRefunds(b.refunds ?? []);
         setMessage(
           (b.lots ?? []).length === 0
-            ? "No refundable coins right now. Only unspent coins from purchases made in the last 90 days can be refunded — free coins (trial, daily, referrals) are never refundable."
+            ? "No refundable coins right now. Only unspent coins from purchases made in the last 90 days can be refunded; free coins (trial, daily, referrals) are never refundable."
             : "",
         );
       })
@@ -81,7 +81,7 @@ export function RefundPanel() {
     }
     const label =
       partial || lot.spent_coins > 0
-        ? `Refund ${partial ? `${fmtCoins(coins as number)} of ${fmtCoins(lot.refundable_coins)}` : `the ${fmtCoins(lot.refundable_coins)} unspent`} coins from this purchase?${lot.spent_coins > 0 ? ` You already spent ${fmtCoins(lot.spent_coins)} — only the unspent remainder is refundable.` : ""}`
+        ? `Refund ${partial ? `${fmtCoins(coins as number)} of ${fmtCoins(lot.refundable_coins)}` : `the ${fmtCoins(lot.refundable_coins)} unspent`} coins from this purchase?${lot.spent_coins > 0 ? ` You already spent ${fmtCoins(lot.spent_coins)}; only the unspent remainder is refundable.` : ""}`
         : `Refund ${fmtCoins(lot.refundable_coins)} unspent coins from this purchase?`;
     if (!window.confirm(label)) return;
     setBusy(true);
@@ -110,7 +110,7 @@ export function RefundPanel() {
       <p className="mt-2 text-sm text-slate-400">
         Unspent coins from purchases made in the last 90 days can be refunded. Free coins are
         never refundable. If you already spent part of a pack, only the unspent remainder is
-        refunded (pro-rated) — the lot is marked refunded for the refunded amount.
+        refunded (pro-rated); the lot is marked refunded for the refunded amount.
       </p>
       {message && (
         <p role="status" className="mt-3 text-sm text-slate-400">

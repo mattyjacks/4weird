@@ -12,7 +12,7 @@ const METRICS = ["kills", "actions", "active_seconds"] as const;
 /**
  * Public per-game leaderboard. All aggregation and privacy filtering happen
  * inside the leaderboard_top() RPC: only handles plus summed totals leave
- * the database — no user IDs, no emails, no per-session rows.
+ * the database; no user IDs, no emails, no per-session rows.
  */
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);

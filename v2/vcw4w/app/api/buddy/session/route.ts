@@ -9,7 +9,7 @@ import { BUDDY_DEFAULT_VOICE, cleanBuddyVoice } from "@/lib/game-ai";
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/buddy/session — open/close a universal Gaming Buddy session.
+ * POST /api/buddy/session; open/close a universal Gaming Buddy session.
  * Body: { action: "start", game_slug?, voice? } | { action: "end", session_id }.
  * Sessions group metered turns so the widget + /my/usage show live session
  * spend. Uses the start_buddy_session / end_buddy_session RPCs (writes only).

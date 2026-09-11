@@ -1,7 +1,7 @@
 /**
  * Shared validation + error mapping for the agent-rental marketplace APIs.
  * Prices throughout are GROSS cents and already include the 25% platform
- * cut (SERVICE_CUT_PCT) — the cut is never added on top.
+ * cut (SERVICE_CUT_PCT); the cut is never added on top.
  *
  * Buyer model: every hourly figure is a MAXIMUM quote ("up to $X/hr").
  * Metering settles per second from the first second:
@@ -25,8 +25,8 @@ export const RUNTIME_LABELS: Record<Runtime, string> = {
   openclaw: "OpenClaw agent",
   nanoclaw: "NanoClaw agent",
   vibecodeworker: "VibeCodeWorker",
-  "xonotic-vcw": "Xonotic — VibeCodeWorker plays",
-  "xonotic-self": "Xonotic — you play",
+  "xonotic-vcw": "Xonotic - VibeCodeWorker plays",
+  "xonotic-self": "Xonotic; you play",
   custom: "Custom",
 };
 
@@ -82,7 +82,7 @@ export function displayEndpoint(value: unknown): string {
 
 /**
  * Endpoint rule per provider:
- * - runpod: no URL needed — blank means "use the RunPod default endpoint".
+ * - runpod: no URL needed; blank means "use the RunPod default endpoint".
  * - digitalocean: optional (blank also means auto/default).
  * - custom: a real https URL is required (bring your own endpoint).
  */

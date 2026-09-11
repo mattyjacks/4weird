@@ -8,7 +8,7 @@ import { BLENDER_BUCKET, BLENDER_MAX_SCENE_BYTES } from "@/lib/blender-render";
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/blender/jobs/[id]/ready — confirm the browser's direct upload
+ * POST /api/blender/jobs/[id]/ready; confirm the browser's direct upload
  * landed: reads the stored object's size (service role, no download) and
  * flips draft → ready. Rejects oversize scenes instead of billing a render.
  */
@@ -37,7 +37,7 @@ export async function POST(_req: Request, ctx: { params: Promise<{ id: string }>
   if (!row) return fail("Render job not found.", 404);
   const job = row as { id: string; scene_path: string; status: string };
   if (job.status !== "draft" && job.status !== "ready") {
-    return fail(`Job is ${job.status} — upload a new scene for another render.`, 409);
+    return fail(`Job is ${job.status}; upload a new scene for another render.`, 409);
   }
   const prefix = job.scene_path.slice(0, job.scene_path.lastIndexOf("/"));
   const needle = job.scene_path.slice(job.scene_path.lastIndexOf("/") + 1);
@@ -46,11 +46,11 @@ export async function POST(_req: Request, ctx: { params: Promise<{ id: string }>
   const hit = ((files ?? []) as { name?: string; metadata?: { size?: number } }[]).find((f) => f.name === needle);
   const size = Number(hit?.metadata?.size ?? 0);
   if (!hit || !Number.isFinite(size) || size < 1) {
-    return fail("Upload not found — PUT the .blend file first, then retry.", 404);
+    return fail("Upload not found - PUT the .blend file first, then retry.", 404);
   }
   if (size > BLENDER_MAX_SCENE_BYTES) {
-    await svc.from("blender_renders").update({ status: "failed", error: `Scene is ${size} bytes — ${BLENDER_MAX_SCENE_BYTES / 1_048_576} MB max.` }).eq("id", job.id);
-    return fail(`Scene is ${(size / 1_048_576).toFixed(1)} MB — ${BLENDER_MAX_SCENE_BYTES / 1_048_576} MB max.`, 413);
+    await svc.from("blender_renders").update({ status: "failed", error: `Scene is ${size} bytes - ${BLENDER_MAX_SCENE_BYTES / 1_048_576} MB max.` }).eq("id", job.id);
+    return fail(`Scene is ${(size / 1_048_576).toFixed(1)} MB - ${BLENDER_MAX_SCENE_BYTES / 1_048_576} MB max.`, 413);
   }
   const { error: upErr } = await svc
     .from("blender_renders")

@@ -126,7 +126,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
     } catch (err) {
       if (err instanceof FeeError) {
         if (err.code === "delinquent")
-          return fail("This clan's upkeep is delinquent — posting is paused until it is funded.", 402);
+          return fail("This clan's upkeep is delinquent; posting is paused until it is funded.", 402);
         return fail("Insufficient Vibe Coins for the server-cost fee.", 402);
       }
       return dbFail("api/bot/bclans/[slug]/post", err, "Unable to post.");

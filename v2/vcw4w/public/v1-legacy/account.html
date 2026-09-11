@@ -97,7 +97,7 @@
     <script src="auth/auth-server.js"></script>
     <script>
         // Account page controller (server-backed auth). Every dynamic string
-        // goes through textContent — auth errors, emails, ledger reasons are
+        // goes through textContent; auth errors, emails, ledger reasons are
         // untrusted. No tokens or keys exist in this page (httpOnly cookies).
         (function () {
             'use strict';
@@ -178,7 +178,7 @@
                     var card = document.createElement('div');
                     card.className = 'pack';
                     var title = document.createElement('h3');
-                    title.textContent = pack.name + ' — ' + pack.coins + ' Vibe Coins';
+                    title.textContent = pack.name + ' - ' + pack.coins + ' Vibe Coins';
                     var price = document.createElement('div');
                     price.className = 'price';
                     price.textContent = pack.price;

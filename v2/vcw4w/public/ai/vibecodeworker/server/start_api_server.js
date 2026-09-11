@@ -51,7 +51,7 @@ async function main() {
   if (process.env.VIBE_API_TOKEN) {
     console.log('[API Server] Token auth ENABLED (VIBE_API_TOKEN set). Mutating /api calls require X-Vibe-Auth.');
   } else {
-    console.log('[API Server] Token auth disabled — set VIBE_API_TOKEN before exposing this port to the internet!');
+    console.log('[API Server] Token auth disabled; set VIBE_API_TOKEN before exposing this port to the internet!');
   }
 
   // Security: this server exposes code-execution endpoints (/api/game/eval,

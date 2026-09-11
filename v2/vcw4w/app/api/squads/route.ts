@@ -15,7 +15,7 @@ function isUuid(v: unknown): string {
   return /^[0-9a-f-]{36}$/i.test(s) ? s : "";
 }
 
-// GET /api/teams?org=<id> — workspaces visible to me (RLS enforces perms).
+// GET /api/squads?org=<id>; workspaces visible to me (RLS enforces perms).
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
@@ -25,11 +25,11 @@ export async function GET(req: Request) {
   let query = supabase.from("teams").select("id,org_id,slug,name,visibility,created_at").order("created_at", { ascending: false }).limit(100);
   if (isUuid(org)) query = query.eq("org_id", org);
   const { data: teams, error } = await query;
-  if (error) return dbFail("GET /api/teams", error, "Unable to load teams.");
+  if (error) return dbFail("GET /api/squads", error, "Unable to load squads.");
   return ok({ teams: teams ?? [] });
 }
 
-// POST /api/teams — create a workspace (RPC checks org.teams.create).
+// POST /api/squads; create a workspace (RPC checks org.teams.create).
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
   if (error) {
     if (/forbidden/i.test(error.message)) return fail("Missing permission: org.teams.create.", 403);
     if (/slug taken/i.test(error.message)) return fail("Slug taken in this org.", 409);
-    return fail("Unable to create team.", 500);
+    return fail("Unable to create squad.", 500);
   }
   return ok({ team }, 201);
 }

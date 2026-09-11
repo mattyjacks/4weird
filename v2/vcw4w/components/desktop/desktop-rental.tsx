@@ -41,7 +41,7 @@ type PlansOk = {
 /**
  * Virtual Desktop rental panel. Rents a REAL RunPod pod (CPU Ubuntu or GPU
  * Kasm desktop) through POST /api/desktop/provision and hands back the
- * RunPod default proxy endpoint — never faked. RunPod bills per second;
+ * RunPod default proxy endpoint; never faked. RunPod bills per second;
  * coin figures are display equivalents only.
  */
 export function DesktopRental() {
@@ -105,13 +105,13 @@ export function DesktopRental() {
     <section aria-label="Rent a Virtual Desktop" className="rounded-2xl border border-cyan-300/30 bg-cyan-300/[.05] p-5">
       <h2 className="text-2xl font-black text-white">Rent your desktop</h2>
       <p className="mt-2 text-sm text-slate-300">
-        Quotes are USD/hour maximums on real RunPod pods — billed <strong>per second</strong> by RunPod, never more
+        Quotes are USD/hour maximums on real RunPod pods; billed <strong>per second</strong> by RunPod, never more
         than the quote. Coin figures (≈ {desktopUsdToCoins(1)} coins per $1) are display equivalents only: direct
         RunPod spend carries <strong>no Vibe cut</strong> and debits no coins.
       </p>
       {runpodReady === false && (
         <p role="status" className="mt-3 rounded-lg border border-amber-300/40 bg-amber-300/[.08] px-3 py-2 text-xs text-amber-100">
-          RunPod is not configured on the server yet (RUNPOD_API_KEY). You can still try — the API will return the
+          RunPod is not configured on the server yet (RUNPOD_API_KEY). You can still try; the API will return the
           honest provision state instead of a faked desktop.
         </p>
       )}
@@ -263,19 +263,19 @@ export function DesktopRental() {
           {result.interface === "jupyter" ? (
             <ul className="mt-2 list-disc space-y-1 pl-5 text-slate-400">
               <li>JupyterLab opens at the link above; SSH per the RunPod console pod details.</li>
-              <li>Install anything with apt/uv — disk is {plan.diskGb} GB ephemeral unless you attach storage.</li>
-              <li>Manage it from <Link href="/runpods" className="text-cyan-300 hover:underline">My RunPods</Link> — stop ends billing, terminate deletes the disk.</li>
+              <li>Install anything with apt/uv; disk is {plan.diskGb} GB ephemeral unless you attach storage.</li>
+              <li>Manage it from <Link href="/runpods" className="text-cyan-300 hover:underline">My RunPods</Link>; stop ends billing, terminate deletes the disk.</li>
             </ul>
           ) : (
             <ul className="mt-2 list-disc space-y-1 pl-5 text-slate-400">
-              <li>Log in with the VNC password (default `password` — change VNC_PW in the RunPod console after first login).</li>
+              <li>Log in with the VNC password (default `password`; change VNC_PW in the RunPod console after first login).</li>
               <li>Your Ubuntu desktop streams in the browser: Chromium, VS Code, terminal{result.kind === "gpu" ? ", Blender-ready GPU" : ""}.</li>
-              <li>Manage it from <Link href="/runpods" className="text-cyan-300 hover:underline">My RunPods</Link> — stop ends billing, terminate deletes the disk.</li>
+              <li>Manage it from <Link href="/runpods" className="text-cyan-300 hover:underline">My RunPods</Link>; stop ends billing, terminate deletes the disk.</li>
             </ul>
           )}
           <p className="mt-2 text-slate-500">{result.billing?.note ?? result.note ?? ""}</p>
           <p className="mt-1 text-slate-500">
-            First boot pulls a ~6.5 GB desktop image and can take several minutes — a 404 or “waiting” page on the
+            First boot pulls a ~6.5 GB desktop image and can take several minutes; a 404 or “waiting” page on the
             link during that window is normal. Wait, then Reload.
           </p>
         </div>

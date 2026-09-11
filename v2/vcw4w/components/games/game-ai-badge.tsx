@@ -4,7 +4,7 @@ import { featuresForGame, gameRequiresAi } from "@/lib/game-ai";
 /**
  * Game AI disclosure badge. Rendered on game detail + play shells:
  * required AI (game cannot run without metered compute) vs optional AI
- * (toggleable dialogue/director/TTS) — both metered with the same 25% cut.
+ * (toggleable dialogue/director/TTS); both metered with the same 25% cut.
  */
 export function GameAiBadge({ slug }: { slug: string }) {
   const features = featuresForGame(slug);
@@ -28,7 +28,7 @@ export function GameAiBadge({ slug }: { slug: string }) {
         ))}
       </ul>
       <p className="mt-2 text-xs text-slate-400">
-        AI is metered in Vibe Coins (100 = $1.00) with the same 25% platform cut included — never added on top.
+        AI is metered in Vibe Coins (100 = $1.00) with the same 25% platform cut included; never added on top.
         Rent RunPods, inference endpoints, and AI APIs behind one gross price.{" "}
         <Link href="/my/usage/" className="text-cyan-300 hover:underline">
           See your usage →

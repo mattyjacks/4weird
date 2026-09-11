@@ -62,7 +62,7 @@ must(proofs.includes("Only the worker attaches proof"), "proofs must be worker-o
 const summary = read("app/api/ghost/summary/route.ts");
 must(summary.includes("ghost_org_summary"), "summary route must use the one-round-trip RPC");
 const memberRoles = read("app/api/orgs/[id]/members/roles/route.ts");
-must(memberRoles.includes("set_member_roles") && memberRoles.includes("1–5 roles"), "member-roles route must assign preset bundles");
+must(memberRoles.includes("set_member_roles") && memberRoles.includes("1-5 roles"), "member-roles route must assign preset bundles");
 const members = read("app/api/orgs/[id]/members/route.ts");
 must(members.includes("org_roster"), "members route must serve the roster RPC");
 const watch = read("app/api/orgs/[id]/watch/route.ts");

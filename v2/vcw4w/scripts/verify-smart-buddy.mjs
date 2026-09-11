@@ -16,7 +16,7 @@ const has = (file, ...needles) => {
   return src;
 };
 
-// 1. Smart brain in buddy-engine (additive — old exports must survive).
+// 1. Smart brain in buddy-engine (additive; old exports must survive).
 const engine = has(
   "lib/buddy-engine.ts",
   "pickBuddyBrain", "detectBuddyIntent", "cleanBuddyHistory",

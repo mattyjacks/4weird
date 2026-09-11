@@ -127,7 +127,7 @@ curl http://127.0.0.1:42069/api/dashboard
 
 ---
 
-## 🔊 Audio Voice Layer (`/api/audio/*` — ElevenLabs BYOK + offline PCM QA)
+## 🔊 Audio Voice Layer (`/api/audio/*` - ElevenLabs BYOK + offline PCM QA)
 
 Set `ELEVENLABS_API_KEY` (or save it in settings) to unlock TTS/STT/SFX/music.
 The PCM analyzer and all `offline: true` endpoints work with no key at all.

@@ -12,7 +12,7 @@
  *
  * Metrics: RMS/peak/dBFS, clipping %, silence %, DC offset, zero-crossing
  * rate (brightness proxy), L/R imbalance dB, inter-channel correlation,
- * dropout/mute detection per channel. All pure functions — no network.
+ * dropout/mute detection per channel. All pure functions; no network.
  */
 
 const CHANNEL_MODES = ['mono', 'stereo'];
@@ -118,21 +118,21 @@ function gradeFindings({ monoStats, diff, mode, durationSeconds }) {
   const findings = [];
   const push = (severity, code, message) => findings.push({ severity, code, message });
 
-  if (monoStats.silenceRatio > 0.98) push('high', 'SILENCE', `Output is ${(monoStats.silenceRatio * 100).toFixed(1)}% silent over ${durationSeconds.toFixed(1)}s — mute bus, autoplay block, or missing asset.`);
-  else if (monoStats.silenceRatio > 0.9) push('medium', 'MOSTLY_SILENT', `Output is ${(monoStats.silenceRatio * 100).toFixed(1)}% near-silent — check gain staging.`);
-  if (monoStats.clippedRatio > 0.01) push('high', 'CLIPPING', `${(monoStats.clippedRatio * 100).toFixed(2)}% of samples clip at 0dBFS — audible distortion, lower master gain.`);
-  else if (monoStats.clippedRatio > 0.001) push('medium', 'HOT_MASTER', 'Master runs hot with occasional clips — leave 3-6dB headroom.');
-  if (Math.abs(monoStats.dcOffset) > 0.02) push('medium', 'DC_OFFSET', `DC offset ${monoStats.dcOffset.toFixed(4)} — high-pass or re-render the loop.`);
-  if (monoStats.dbfs > -6) push('low', 'LOUD', `Average level ${monoStats.dbfs.toFixed(1)}dBFS is loud — verify against platform loudness targets.`);
-  if (monoStats.dbfs < -48 && monoStats.silenceRatio < 0.9) push('low', 'QUIET', `Average level ${monoStats.dbfs.toFixed(1)}dBFS is very quiet — players will crank volume into the noise floor.`);
+  if (monoStats.silenceRatio > 0.98) push('high', 'SILENCE', `Output is ${(monoStats.silenceRatio * 100).toFixed(1)}% silent over ${durationSeconds.toFixed(1)}s; mute bus, autoplay block, or missing asset.`);
+  else if (monoStats.silenceRatio > 0.9) push('medium', 'MOSTLY_SILENT', `Output is ${(monoStats.silenceRatio * 100).toFixed(1)}% near-silent; check gain staging.`);
+  if (monoStats.clippedRatio > 0.01) push('high', 'CLIPPING', `${(monoStats.clippedRatio * 100).toFixed(2)}% of samples clip at 0dBFS; audible distortion, lower master gain.`);
+  else if (monoStats.clippedRatio > 0.001) push('medium', 'HOT_MASTER', 'Master runs hot with occasional clips; leave 3-6dB headroom.');
+  if (Math.abs(monoStats.dcOffset) > 0.02) push('medium', 'DC_OFFSET', `DC offset ${monoStats.dcOffset.toFixed(4)}; high-pass or re-render the loop.`);
+  if (monoStats.dbfs > -6) push('low', 'LOUD', `Average level ${monoStats.dbfs.toFixed(1)}dBFS is loud; verify against platform loudness targets.`);
+  if (monoStats.dbfs < -48 && monoStats.silenceRatio < 0.9) push('low', 'QUIET', `Average level ${monoStats.dbfs.toFixed(1)}dBFS is very quiet; players will crank volume into the noise floor.`);
 
   if (mode === 'stereo' && diff) {
-    if (Math.abs(diff.levelImbalanceDb) > 6) push('high', 'STEREO_IMBALANCE', `L/R imbalance ${diff.levelImbalanceDb.toFixed(1)}dB — one side is twice as loud; check panning or a dead channel.`);
-    else if (Math.abs(diff.levelImbalanceDb) > 3) push('medium', 'STEREO_DRIFT', `L/R imbalance ${diff.levelImbalanceDb.toFixed(1)}dB — audible image pull.`);
-    if (diff.dropoutL !== diff.dropoutR) push('high', 'ONE_SIDED_DROPOUT', `Only one stereo channel has signal (L ${diff.dropoutL ? 'mute' : 'live'} / R ${diff.dropoutR ? 'mute' : 'live'}) — broken cable/pan bug.`);
-    if (diff.correlation < -0.3) push('medium', 'PHASE_INVERTED', `L/R correlation ${diff.correlation.toFixed(2)} is strongly negative — probable phase inversion; mono fold-down will cancel.`);
-    else if (diff.correlation < 0.2 && diff.meanAbsDiff > 0.15) push('low', 'WIDE_OR_DECOUPLED', `L/R correlation ${diff.correlation.toFixed(2)} is low — very wide or decoupled mix; confirm mono compatibility.`);
-    if (diff.meanAbsDiff < 0.001) push('low', 'DUAL_MONO', 'L and R are sample-identical — ship mono and save bandwidth.');
+    if (Math.abs(diff.levelImbalanceDb) > 6) push('high', 'STEREO_IMBALANCE', `L/R imbalance ${diff.levelImbalanceDb.toFixed(1)}dB; one side is twice as loud; check panning or a dead channel.`);
+    else if (Math.abs(diff.levelImbalanceDb) > 3) push('medium', 'STEREO_DRIFT', `L/R imbalance ${diff.levelImbalanceDb.toFixed(1)}dB; audible image pull.`);
+    if (diff.dropoutL !== diff.dropoutR) push('high', 'ONE_SIDED_DROPOUT', `Only one stereo channel has signal (L ${diff.dropoutL ? 'mute' : 'live'} / R ${diff.dropoutR ? 'mute' : 'live'}); broken cable/pan bug.`);
+    if (diff.correlation < -0.3) push('medium', 'PHASE_INVERTED', `L/R correlation ${diff.correlation.toFixed(2)} is strongly negative; probable phase inversion; mono fold-down will cancel.`);
+    else if (diff.correlation < 0.2 && diff.meanAbsDiff > 0.15) push('low', 'WIDE_OR_DECOUPLED', `L/R correlation ${diff.correlation.toFixed(2)} is low; very wide or decoupled mix; confirm mono compatibility.`);
+    if (diff.meanAbsDiff < 0.001) push('low', 'DUAL_MONO', 'L and R are sample-identical; ship mono and save bandwidth.');
   }
   return findings;
 }
@@ -159,7 +159,7 @@ function analyzeAudio(input, opts = {}) {
       perChannel = { left: channelStats(norm.left), right: channelStats(norm.right) };
       diff = stereoDiff(norm.left, norm.right);
     }
-    // Default: single mono stream — stereo input is downmixed first.
+    // Default: single mono stream; stereo input is downmixed first.
     mono = channelStats(downmixToMono(norm.left, norm.right));
   } else {
     mono = channelStats(norm.mono);

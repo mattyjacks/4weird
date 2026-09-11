@@ -30,9 +30,9 @@ Third-party engines, models, and provider services (e.g. RunPod,
 Shopify, OpenAI, fal.ai) remain under their own terms. Our license does
 not grant you any rights in them.
 
-## 2. No open-source grant — all rights reserved
+## 2. No open-source grant; all rights reserved
 
-Except for the narrow permissions in Sections 3–4, all rights are
+Except for the narrow permissions in Sections 3-4, all rights are
 reserved. You may not copy, reproduce, redistribute, publish, mirror,
 sublicense, sell, lease, lend, scrape, data-mine, decompile, reverse
 engineer, circumvent access controls, or create derivative works from
@@ -53,7 +53,7 @@ intended purpose (play, clans, coins, rentals, teams, AI features, QA).
 This license ends automatically if your account is suspended,
 terminated, or past due, or if you violate the Terms.
 
-## 4. Self-hosting / VibeCodeWorker license — paid only
+## 4. Self-hosting / VibeCodeWorker license; paid only
 
 Running VibeCodeWorker or any material part of the Covered Work on your
 own infrastructure ("self-hosting") requires a current paid
@@ -66,7 +66,7 @@ self-host right.
   help with self-hosting, workspaces, orchestration, messaging, and
   support. Metered API / compute used through our orchestration carries
   a **15% markup** over at-cost provider bills.
-- **Enterprise / hyperscaler: custom quote — Talk to Sales.**
+- **Enterprise / hyperscaler: custom quote - Talk to Sales.**
   Volume pricing available down to as little as a **9% API / compute
   markup**, depending on scale, term, prepayment, and support scope.
   Contact matt@mattyjacks.com for a written quote. No enterprise rights
@@ -77,19 +77,19 @@ including bots operated on a user's behalf where applicable per your
 order. Exceeding your seat count is billed as additional seats. Current
 prices and plan details live at https://4weird.com/pricing.
 
-## 5. Platform fee — 25% cut is part of every price
+## 5. Platform fee - 25% cut is part of every price
 
 Every hosted price is gross and already includes our platform service
 fee (standard: **25% platform / 75% provider or creator**), never added
 on top. Coins (100 coins = $1.00), game rentals, agent rentals, team
 compute, game AI, support/tips, and campaign contributions all settle on
 this basis, as metered and attributed server-side. Circumventing,
-obscuring, or routing around metering or the platform fee — including
-off-platform settlement to avoid it — violates this license and the
+obscuring, or routing around metering or the platform fee; including
+off-platform settlement to avoid it; violates this license and the
 Terms and may result in suspension, forfeiture of credits, and billing
 for amounts owed.
 
-## 6. Contributions — automatic assignment to us
+## 6. Contributions; automatic assignment to us
 
 By submitting, uploading, posting, or otherwise making available any
 game, code, art, audio, video, text, feedback, bug report, or other
@@ -120,25 +120,25 @@ assigned even if you later delete your account.
 
 We reserve the right to fix, patch, optimize, re-balance, moderate,
 re-package, re-render, translate, port, or otherwise modify any game or
-Contribution on the Service — including via VibeCodeWorker QA loops,
-human review, or automated tooling — without seeking the creator's
+Contribution on the Service; including via VibeCodeWorker QA loops,
+human review, or automated tooling; without seeking the creator's
 prior permission. We may also remove or suspend games for safety, legal,
 quality, or operational reasons. Gameplay telemetry, QA findings, and
 derived fixes may be used across the platform.
 
-## 8. Attribution — credit VibeCodeWorker in your game
+## 8. Attribution; credit VibeCodeWorker in your game
 
 If you used VibeCodeWorker to help build, test, or improve your game,
 you must include a visible credit in the game's credits (and, where the
 game has one, its about/readme screen) substantially in this form:
 
-> "Built with help from 4weird VibeCodeWorker — https://4weird.com/vibecodeworker"
+> "Built with help from 4weird VibeCodeWorker; https://4weird.com/vibecodeworker"
 
 Removal or obscuring of a required credit is a license violation. We may
 request cure within 14 days; uncured or repeated violations may result
 in delisting and termination of related distribution rights.
 
-## 9. Payment — prepay preferred; amounts owed are enforceable
+## 9. Payment; prepay preferred; amounts owed are enforceable
 
 We prefer prepayment. Fees are due as stated on https://4weird.com/pricing,
 your order, or your written quote, plus applicable taxes. Late or unpaid

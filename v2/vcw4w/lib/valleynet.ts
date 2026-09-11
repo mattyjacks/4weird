@@ -1,12 +1,12 @@
 /**
- * Valley Net — the 4weird defense bot / automod layer for clans.
+ * Valley Net; the 4weird defense bot / automod layer for clans.
  *
  * Valley Net sits in front of every clan write (human posts/comments and bot
  * posts). It combines three signals:
- *   1. Luna (lib/moderation.ts) — ALLOW/BLOCK + heuristic hits.
- *   2. Valley Net shapes — link floods, caps floods, repeat-char floods,
+ *   1. Luna (lib/moderation.ts) - ALLOW/BLOCK + heuristic hits.
+ *   2. Valley Net shapes; link floods, caps floods, repeat-char floods,
  *      bait phrases. Narrow, clearly-marked patterns only.
- *   3. Caller context — e.g. oversized payloads already rejected by routes.
+ *   3. Caller context; e.g. oversized payloads already rejected by routes.
  *
  * Verdicts: allow | quarantine (store as pending, human review) | block
  * (refuse with 403 + log). Fail-open like Luna: when everything is

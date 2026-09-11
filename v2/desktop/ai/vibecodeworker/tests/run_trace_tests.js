@@ -1,7 +1,7 @@
 /**
  * Trace-test runner: executes every self-generated takeover regression test.
  *
- * Runs `tests/generated/trace-*.js` only — the sibling `*.test.json` files
+ * Runs `tests/generated/trace-*.js` only; the sibling `*.test.json` files
  * are RUNTIME-ONLY fixtures (loaded from disk by the tests, never pasted
  * into model context). Zero generated tests yet is a pass with a hint.
  */
@@ -15,14 +15,14 @@ const dir = path.join(__dirname, 'generated');
 
 function main() {
   if (!fs.existsSync(dir)) {
-    console.log('=== TRACE TESTS: none yet — take over a game and press 🧪 Generate test ===');
+    console.log('=== TRACE TESTS: none yet; take over a game and press 🧪 Generate test ===');
     return 0;
   }
   const files = fs.readdirSync(dir)
     .filter((f) => /^trace-.*\.js$/.test(f) && !f.endsWith('.test.json'))
     .sort();
   if (!files.length) {
-    console.log('=== TRACE TESTS: none yet — take over a game and press 🧪 Generate test ===');
+    console.log('=== TRACE TESTS: none yet; take over a game and press 🧪 Generate test ===');
     return 0;
   }
   console.log(`=== RUNNING ${files.length} SELF-GENERATED TRACE TEST(S) ===`);

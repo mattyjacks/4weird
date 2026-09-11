@@ -35,7 +35,7 @@ type Gate =
 
 const METER_TIMEOUT_MS = 20000;
 /** Assume a full load when the runtime never reports bytes (safe direction). */
-// Note: the timeout only delays *billing*, never play — the frame mounts
+// Note: the timeout only delays *billing*, never play; the frame mounts
 // immediately in "metering", so slow game loads still report real bytes.
 const UNMEASURED_BYTES = 2 * GAME_CACHE_FREE_BYTES;
 
@@ -56,11 +56,11 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
 }
 
 /**
- * PlayGate — the play shell's front door.
+ * PlayGate; the play shell's front door.
  *
  * Age ratings first: Adults (18+) games always show a date-of-birth gate
  * (checked on-device, never stored); Kids Mode accounts can never see or
- * play Adults games (hard block, no bypass), while Teens (13–17) games ask
+ * play Adults games (hard block, no bypass), while Teens (13-17) games ask
  * Kids Mode players for a 13+ date-of-birth check.
  *
  * Signed-in players: the game loads immediately (play is never blocked on
@@ -69,7 +69,7 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
  * the load rate for 1 MiB, exact to the centicentcoin even under 1 MB),
  * then a 1-minute visible-tab heartbeat bills running play per second
  * (hourly rate spread over 3600 s, from the first second). Every 5 hours
- * of active play a "still playing?" check asks for confirmation — the game
+ * of active play a "still playing?" check asks for confirmation; the game
  * keeps running either way; it only confirms metering continues. Out of
  * coins → banner, beats stop.
  *
@@ -98,7 +98,7 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
   const [broke, setBroke] = useState("");
   const [showGuestAd, setShowGuestAd] = useState(false);
   // Age gate: resolved on mount from the catalog rating + Kids Mode, or from
-  // a live child session (parent-attested band + hours + daily minutes — no
+  // a live child session (parent-attested band + hours + daily minutes; no
   // DOB is ever asked of children). "passed" means play may proceed; anything
   // else renders instead of the metering boot below. An entered DOB never
   // leaves the AgeGate component.
@@ -155,7 +155,7 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
           // Metering failed but the static game is already served: play on
           // unmetered rather than bricking the game; the next load retries.
           setGate({ kind: "playing", signedIn: true, sessionId: null, loadFee: 0, freeLoad: false, coinsPerHour: 1 });
-          setBroke(`Play metering is down (${message}) — playing unmetered this load.`);
+          setBroke(`Play metering is down (${message}); playing unmetered this load.`);
         }
       }
     },
@@ -193,7 +193,7 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
           return;
         }
       } catch {
-        /* kid lookup failed — fall through to the standard gates */
+        /* kid lookup failed; fall through to the standard gates */
       }
       if (!live) return;
       setKidHandle(null);
@@ -216,7 +216,7 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
   }, [rating, slug]);
 
   // Boot: signed in, guest, or metering-unavailable (local dev).
-  // A live child session skips straight to metering — /api/games/session
+  // A live child session skips straight to metering - /api/games/session
   // routes the kid_session cookie to the child wallet RPCs server-side.
   useEffect(() => {
     if (age !== "passed") return;
@@ -304,11 +304,11 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
       } catch (error) {
         const message = error instanceof Error ? error.message : "";
         if (/insufficient balance/i.test(message)) {
-          setBroke("Out of coins — metering paused. Top up to keep your play counted (the game keeps running).");
+          setBroke("Out of coins; metering paused. Top up to keep your play counted (the game keeps running).");
         } else if (/daily time limit|allowed play hours|monthly budget|suspended|session expired/i.test(message)) {
           // Parental limits hit mid-play: the game keeps running, but the
           // child sees why metering stopped (server stays authoritative).
-          setBroke(`⏸️ ${message} — the game keeps running, but play time is paused.`);
+          setBroke(`⏸️ ${message}; the game keeps running, but play time is paused.`);
         }
       }
     };
@@ -351,7 +351,7 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
         <p className="mt-2 text-sm text-slate-300">
           {title} is rated <RatingBadge rating={rating} /> and can&apos;t be played while Kids Mode is on.
           Turn Kids Mode off in <Link href="/account?tab=settings" className="font-bold text-cyan-300 hover:underline">account settings</Link> (or
-          the games catalog) to play it — Adults games still ask for an 18+ age check every time.
+          the games catalog) to play it - Adults games still ask for an 18+ age check every time.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Link href="/games" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
@@ -365,10 +365,10 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
   if (age === "kid-rating" || age === "kid-hours" || age === "kid-timeup") {
     const copy =
       age === "kid-rating"
-        ? { head: "🔒 Not for your age band yet", body: `${title} is rated ${rating === "adults" ? "Adults (18+)" : "Teens (13–17)"}, and your parent set your account to a younger band. Ask them to change it in Account → Family if that’s wrong.` }
+        ? { head: "🔒 Not for your age band yet", body: `${title} is rated ${rating === "adults" ? "Adults (18+)" : "Teens (13-17)"}, and your parent set your account to a younger band. Ask them to change it in Account → Family if that’s wrong.` }
         : age === "kid-hours"
-          ? { head: "🕒 Outside your play hours", body: "Your parent set hours when you can play. Come back when the window opens — your games and coins will be right here." }
-          : { head: "⏰ Daily time is up!", body: "You’ve used today’s play minutes. Great session — see you tomorrow!" };
+          ? { head: "🕒 Outside your play hours", body: "Your parent set hours when you can play. Come back when the window opens; your games and coins will be right here." }
+          : { head: "⏰ Daily time is up!", body: "You’ve used today’s play minutes. Great session; see you tomorrow!" };
     return (
       <div>
         <KidBanner />
@@ -414,7 +414,7 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
       <div className="overflow-hidden rounded-2xl border border-white/15 bg-black p-6 sm:p-10">
         <p className="text-lg font-black text-white">🎟️ Free guest loads used ({gate.loadsUsed - 1} of {gate.loadsFree} today)</p>
         <p className="mt-2 text-sm text-slate-300">
-          Guests keep playing by watching a quick ad — or sign in and play on coins (daily bonuses alone cover 5+
+          Guests keep playing by watching a quick ad; or sign in and play on coins (daily bonuses alone cover 5+
           hours a day, no ads, plus cloud saves and multiplayer).
         </p>
         <div className="mt-4">
@@ -426,7 +426,7 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           <Link href="/auth/sign-up" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
-            Sign up — get 100 free coins
+            Sign up; get 100 free coins
           </Link>
           <Link href="/auth/login" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
             Log in
@@ -452,7 +452,7 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
             ) : (
               <>
                 <Link href="/auth/sign-up" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
-                  Sign up free — 100 coins
+                  Sign up free - 100 coins
                 </Link>
                 <Link href="/games" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
                   Browse games
@@ -478,7 +478,7 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
           </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Link href="/pricing" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
-            Get coins — 100 = $1.00
+            Get coins - 100 = $1.00
           </Link>
           <Link href="/account" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
             Claim daily bonus
@@ -492,13 +492,13 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
   // "metering" and "playing" share one mounted frame below so the game never
   // reboots when the coin session starts. This is load-bearing: the byte
   // report that starts the session comes from the runtime bridge INSIDE the
-  // frame, so the frame must mount before metering can complete — blocking
+  // frame, so the frame must mount before metering can complete; blocking
   // it forced every load down the unmeasured-fallback path (full fee even
   // for cached loads).
   const metering = gate.kind === "metering";
   const playing = gate.kind === "playing" ? gate : null;
   // Still-playing check: every 5 hours of active play, ask for confirmation.
-  // The game keeps running either way — this only confirms metering.
+  // The game keeps running either way; this only confirms metering.
   const hoursPlayed = playing?.signedIn && playing.sessionId ? activeSecs / 3600 : 0;
   const needStillCheck =
     playing?.signedIn && playing.sessionId ? activeSecs >= (stillAcks + 1) * GAME_STILL_PLAYING_SECONDS : false;
@@ -531,19 +531,19 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
             ⏰ Still playing? You&apos;ve been running for {(activeSecs / 3600).toFixed(1)} hours (billed per second at {playing && "coinsPerHour" in playing ? playing.coinsPerHour : 1} coin/hr).
           </p>
           <p className="mt-1 text-slate-300">
-            The game keeps running either way — confirm metering should continue, or just close the tab.
+            The game keeps running either way; confirm metering should continue, or just close the tab.
           </p>
           <button
             className="mt-2 rounded-full bg-amber-300 px-4 py-1.5 font-bold text-slate-950 hover:bg-amber-200"
             onClick={() => setStillAcks((n) => n + 1)}
           >
-            Yes, still playing — keep metering
+            Yes, still playing; keep metering
           </button>
         </div>
       )}
       {playing && !playing.signedIn && (
         <p className="mb-2 rounded-xl border border-amber-300/30 bg-amber-300/[.06] px-4 py-2 text-xs text-slate-300">
-          Playing as a guest — free with ads, no cloud saves or multiplayer.{" "}
+          Playing as a guest; free with ads, no cloud saves or multiplayer.{" "}
           <Link href="/auth/sign-up" className="font-bold text-cyan-300 hover:underline">
             Sign up free
           </Link>{" "}

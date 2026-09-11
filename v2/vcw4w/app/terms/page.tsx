@@ -17,7 +17,7 @@ export default function TermsPage() {
         <p>
           These Terms of Use (“Terms”) form a binding agreement between you and MattyJacks LLC, a New Hampshire
           limited liability company (“MattyJacks,” “we,” “us,” or “our”), governing your access to and use of 4weird
-          Games — including its games, play shells, guides, leaderboards, Clans social features, bot platform, agent
+          Games; including its games, play shells, guides, leaderboards, Clans social features, bot platform, agent
           rentals, Vibe Coins economy, Teams/enterprise workspaces, VibeCodeWorker surfaces, exhibits, accounts,
           virtual items, software, APIs, and related websites and services (collectively, the “Service”). By accessing
           or using the Service, you accept these Terms. If you do not agree, do not use the Service. Our{" "}
@@ -35,7 +35,7 @@ export default function TermsPage() {
           information or content you submit. One promotional trial per person applies (see Section 8); we use
           privacy-preserving signals to enforce it. We may refuse registration, reclaim usernames, or suspend, limit,
           or terminate any account or access at any time, with or without notice, to the fullest extent permitted by
-          law — including for suspected fraud, abuse, chargebacks, or violations of these Terms.
+          law; including for suspected fraud, abuse, chargebacks, or violations of these Terms.
         </p>
 
         <h2 className={h2}>2. License and acceptable use</h2>
@@ -49,11 +49,11 @@ export default function TermsPage() {
         <ul className="list-disc space-y-2 pl-6">
           <li>copy, modify, distribute, sell, lease, sublicense, or create derivative works from the Service;</li>
           <li>reverse engineer, decompile, scrape, data-mine, circumvent security or access controls, or interfere with or disrupt the Service;</li>
-          <li>exploit bugs, cheat, tamper with game state, telemetry, leaderboards, saves, coins, referrals, or metering — enabling Cheat Mode permanently marks the affected save and the mark cannot be removed by deleting or recreating the save;</li>
-          <li>use the Service unlawfully or in violation of any applicable law, including export-control and sanctions laws — no illegal content of any kind is allowed, anywhere on the Service;</li>
+          <li>exploit bugs, cheat, tamper with game state, telemetry, leaderboards, saves, coins, referrals, or metering; enabling Cheat Mode permanently marks the affected save and the mark cannot be removed by deleting or recreating the save;</li>
+          <li>use the Service unlawfully or in violation of any applicable law, including export-control and sanctions laws; no illegal content of any kind is allowed, anywhere on the Service;</li>
           <li>infringe intellectual-property, privacy, or other rights; upload malicious code; impersonate others; or harvest other users’ information;</li>
-          <li>harass, threaten, defame, hate-target, or harm anyone; post sexual content involving minors in any form — this results in immediate removal, account termination, evidence preservation, and referral to authorities (see Section 5);</li>
-          <li>alternatively monetize, cash out, or extract value from Vibe Coins or Ghost Cash — including selling, buying, trading, exchanging, gifting-for-cash, pegging to fiat or crypto, advertising exchange rates, factoring Ghost IOUs, using balances as collateral, or routing around the closed loop (see Sections 8 and 8C);</li>
+          <li>harass, threaten, defame, hate-target, or harm anyone; post sexual content involving minors in any form; this results in immediate removal, account termination, evidence preservation, and referral to authorities (see Section 5);</li>
+          <li>alternatively monetize, cash out, or extract value from Vibe Coins or Ghost Cash; including selling, buying, trading, exchanging, gifting-for-cash, pegging to fiat or crypto, advertising exchange rates, factoring Ghost IOUs, using balances as collateral, or routing around the closed loop (see Sections 8 and 8C);</li>
           <li>abuse support, reporting, or privacy-request channels, including filing false reports or automated bulk requests.</li>
         </ul>
 
@@ -72,19 +72,19 @@ export default function TermsPage() {
           our discretion, without liability, to the fullest extent permitted by law. Content reported as child sexual
           abuse material (“CSAM”) is hidden immediately, preserved as evidence (including file hashes), queued for
           human review, and reported to the National Center for Missing &amp; Exploited Children (NCMEC) CyberTipline
-          by a human — offending content is deleted only after authorities confirm. Never repost or further describe
+          by a human; offending content is deleted only after authorities confirm. Never repost or further describe
           suspected CSAM; report it instead.
         </p>
 
         <h2 className={h2}>3A. Game submissions (.zip), Weird Vault, and Meshy 3D</h2>
         <p>
-          You may submit games as <strong>.zip packages (max 69 MB)</strong>, naming the{" "}
+          You may submit games as <strong>.zip packages (max 50 MB, so every game loads fast)</strong>, naming the{" "}
           <strong>game root</strong> inside the .zip where your entry file lives (like a
           deploy Root Directory). Every package is statically scanned and marked{" "}
           <strong>safe, warning, unsafe, or denied</strong>. Packages flagged unsafe or
           denied are <strong>quarantined</strong>: never served, never displayed, and
           queued for human moderator review. Malware, keyloggers, viruses, cybercrime
-          tools, and sexual content (never allowed on the Service — removed, not rated)
+          tools, and sexual content (never allowed on the Service; removed, not rated)
           are hard-denied. Storage and code audits are metered in Vibe Coins with the
           25% platform cut already included. The <strong>Weird Vault</strong> stores your
           game code and assets (including AI-made models, images, animations, code,
@@ -99,7 +99,7 @@ export default function TermsPage() {
           never described), queued for human review, and referred to the NCMEC
           CyberTipline <strong>by a human</strong>. Uploader network identifiers are
           stored as salted hashes and disclosed <strong>only on valid legal process</strong>{" "}
-          (such as a court order or subpoena) — there is no automatic reporting pipeline,
+          (such as a court order or subpoena); there is no automatic reporting pipeline,
           consistent with Sections 5 and 11.
         </p>
 
@@ -115,31 +115,31 @@ export default function TermsPage() {
 
         <h2 className={h2}>4A. Age ratings, age checks, and Kids Mode</h2>
         <p>
-          Games carry an age rating — <strong>Kids (0–12)</strong>, <strong>Teens (13–17)</strong>, or{" "}
-          <strong>Adults (18+)</strong> — shown on every catalog card, detail page, and play shell. Adults-rated games
+          Games carry an age rating - <strong>Kids (0-12)</strong>, <strong>Teens (13-17)</strong>, or{" "}
+          <strong>Adults (18+)</strong>; shown on every catalog card, detail page, and play shell. Adults-rated games
           always show a date-of-birth check before playing: enter a date showing you are under 18 and we tell you how
           long until you can play (years, months, days) with a Try Again option. That date of birth is checked on your
-          own device and is never stored — not in our database, not in your browser (see the Privacy Policy). Accounts
+          own device and is never stored; not in our database, not in your browser (see the Privacy Policy). Accounts
           with <strong>Kids Mode</strong> turned on (games catalog or account settings) cannot see or play Adults games
           at all, and can play Teens games only after passing a 13+ date-of-birth check. Ratings reflect intense
-          violence or horror themes only: sexual content is never allowed on the Service — it is removed, not rated
+          violence or horror themes only: sexual content is never allowed on the Service; it is removed, not rated
           (see Section 2).
         </p>
 
         <h2 className={h2}>4B. Parent and Child accounts</h2>
         <p>
           Any account holder may become a <strong>Parent</strong> account (automatically, on creating their first
-          child) and create <strong>Child</strong> sub-accounts for their kids or teens — even adult children. Children
+          child) and create <strong>Child</strong> sub-accounts for their kids or teens; even adult children. Children
           log in with a parent-chosen <strong>username#1234 + password</strong> and have no email, no checkout, and no
-          Supabase login of their own. You attest each child&apos;s age band (Kid 0–12, Teen 13–17, Adult 18+) when you
+          Supabase login of their own. You attest each child&apos;s age band (Kid 0-12, Teen 13-17, Adult 18+) when you
           create the account; the band gates ratings with no date of birth collected from anyone. Children spend only
           coins you grant from your own balance into their wallet (spendable on play like normal coins, no cash value,
           never withdrawable); you set their monthly coin budget (with optional hard stop), daily play-time limit, and
-          allowed play hours in your timezone — all enforced server-side, including mid-play. Suspending a child stops
+          allowed play hours in your timezone; all enforced server-side, including mid-play. Suspending a child stops
           play immediately; closing an account refunds its remaining wallet to you. You are responsible for your
           children&apos;s activity, for keeping their passwords safe on shared devices (resetting logs them out
           everywhere), and for complying with parental-consent and child-privacy laws where you live (including the EU,
-          UK, and U.S. state regimes referenced in Section 18) — among others, children&apos;s data is exported and
+          UK, and U.S. state regimes referenced in Section 18); among others, children&apos;s data is exported and
           erased together with your account at <a className={a} href="/my/rights">/my/rights/</a>. Full accounts may
           separately declare their own Kid/Teen/Adult band (Account page), which applies the same Adults-gating
           without collecting any birth date.
@@ -147,7 +147,7 @@ export default function TermsPage() {
 
         <h2 className={h2}>5. Safety rules you accept</h2>
         <p>
-          Money moves only through guarded server-side transactions — never award currency client-side. Never expose
+          Money moves only through guarded server-side transactions; never award currency client-side. Never expose
           service-role keys, bot key secrets, or provider tokens. Never render other users’ content as executable HTML.
           Respect rate limits and retry signals. Prices always state the gross amount with the 25% platform cut
           included, never added on top.
@@ -171,18 +171,18 @@ export default function TermsPage() {
         <h2 className={h2}>8. Vibe Coins, purchases, and refunds</h2>
         <p>
           Vibe Coins are a virtual currency: 100 coins = exactly $1.00 ($0.01 per coin). Every price already includes
-          a 25% platform cut — it is never added on top. Packs (500 / 1500 / 5000 / 25000 coins, plus custom
-          500–100,000), the daily login bonus (5 + 1 per streak day, capped at 12, once per UTC day), referrals (25
+          a 25% platform cut; it is never added on top. Packs (500 / 1500 / 5000 / 25000 coins, plus custom
+          500-100,000), the daily login bonus (5 + 1 per streak day, capped at 12, once per UTC day), referrals (25
           coins each side, one use per invitee, no self-use), and the 100-coin ($1.00) signup trial (once per person,
           enforced per IP-hash; no 100-coin pack is sold) operate server-side under anti-double-mint guards.
           Checkout is processed by Shopify (and/or other payment processors) under their terms; we reconcile paid
           grants by order email. Virtual currency, progress, and items are licensed features with no cash value, are
           not property, are non-transferable, and may be changed, removed, or discontinued at any time. Purchases are
           final except where required by applicable law (including non-waivable EU/UK consumer rights) or expressly
-          stated otherwise — including the 90-day unspent-purchase refund below.
+          stated otherwise; including the 90-day unspent-purchase refund below.
         </p>
         <p>
-          <strong>90-day refund on unspent purchased coins.</strong> Coins you bought (paid packs only —
+          <strong>90-day refund on unspent purchased coins.</strong> Coins you bought (paid packs only -
           never free trial, daily, referral, alpha, or other granted coins) can be refunded within 90 days of
           purchase, up to the unspent remainder of each coin lot. Spending uses the oldest unexpired coins first,
           so a partially-spent pack refunds pro-rata for whatever is still unspent (for example: buy 500, spend
@@ -191,10 +191,10 @@ export default function TermsPage() {
         </p>
         <p>
           <strong>Ghost Cash (👻) is not currency at all.</strong> The org timer tracks work to the second and
-          records who owes whom in Ghost Cash — a centrally-controlled hypothetical unit with no legal value, no cash
+          records who owes whom in Ghost Cash; a centrally-controlled hypothetical unit with no legal value, no cash
           value, no cash-out, and no store-of-value function. It cannot buy anything, cannot be transferred off the
           Service, and creates no debt enforceable anywhere but social agreement inside your org. Ghost Cash is a
-          tracking-only ruler for hypothetical payments — it is never itself a way of making payments, and any
+          tracking-only ruler for hypothetical payments; it is never itself a way of making payments, and any
           real-world settlement happens entirely off the Service, between users, without us (see Section 8C). Timer
           activity scores come from visible-tab heartbeats the worker&apos;s own device reports; proof screenshots are
           attached by the worker, never captured by us. Because no money or monetary value moves, Ghost Cash is not a
@@ -205,10 +205,10 @@ export default function TermsPage() {
         <p>
           <strong>What this is.</strong> The Service lets you (a) send voluntary one-time tips and monthly support
           subscriptions in Vibe Coins to verified creators and Clans (“Support”), and (b) give and receive gift-based
-          backing for creative project-launch campaigns — game launches, tech startups, and creative tech
+          backing for creative project-launch campaigns; game launches, tech startups, and creative tech
           (“Campaigns”). Both move closed-loop Vibe Coins only, with the 25% platform cut already included in every
           gross amount (never added on top). Support and Campaign transfers are voluntary, gratuitous, and final once
-          executed — “coffee money,” not a purchase and not a contract for goods, services, or outcomes.
+          executed - “coffee money,” not a purchase and not a contract for goods, services, or outcomes.
         </p>
         <p>
           <strong>What this is not.</strong> Nothing on the Support or Campaign surfaces is charitable: MattyJacks is
@@ -218,7 +218,7 @@ export default function TermsPage() {
           shares, interest, dividends, profit-shares, guaranteed returns, or any ownership or financial return, and any
           campaign using charity, medical, emergency, disaster-relief, political, or investment language is rejected.
           Coins have no cash value, are licensed platform features under Section 8, and can never be redeemed, cashed
-          out, or converted to money by anyone — recipients receive platform credits spendable on the Service only.
+          out, or converted to money by anyone; recipients receive platform credits spendable on the Service only.
           Because no money is transmitted to third parties and no cash-out exists, the Service does not act as a money
           transmitter, e-money issuer, bank, broker, or investment platform.
         </p>
@@ -230,14 +230,14 @@ export default function TermsPage() {
           are final when sent. You cannot support yourself, and clan owners fund their own clan through the wallet
           rather than tipping it. Only verified creators can receive personal Support; verification is granted by
           MattyJacks after human review, may be granted or revoked at our discretion, and signifies only that we
-          reviewed a request — not an endorsement, employment, partnership, or guarantee of any creator or clan.
+          reviewed a request; not an endorsement, employment, partnership, or guarantee of any creator or clan.
         </p>
         <p>
           <strong>Campaign rules.</strong> Campaigns are limited to the listed creative categories (game-launch,
           startup, creative-tech) and must include a truthful title, story, and use-of-funds statement. Creators must
           describe their project honestly, may not mislead about progress, use of funds, affiliations, or risks, and
           must not promise outcomes they cannot deliver. Any perks or rewards mentioned are aspirational goals the
-          creator hopes to deliver — not contractual obligations, sales of goods, or guarantees. Backing a Campaign is
+          creator hopes to deliver; not contractual obligations, sales of goods, or guarantees. Backing a Campaign is
           a gift: backers receive no ownership, equity, financial return, or enforceable right to any reward. Raised
           coins credit the creator’s coin balance (or the linked clan wallet) as platform credits; closing or
           cancelling a Campaign stops new backing but does not reverse credited transfers except where we intervene for
@@ -247,7 +247,7 @@ export default function TermsPage() {
         <p>
           <strong>Eligibility, taxes, and your rights.</strong> You must be at least 13 (and have any required
           parental consent) to send or receive Support or to create or back a Campaign, and you must comply with
-          sanctions, export-control, and all other applicable laws — prohibited persons and prohibited jurisdictions
+          sanctions, export-control, and all other applicable laws; prohibited persons and prohibited jurisdictions
           may not participate. Recipients are solely responsible for any tax consequences of coins they receive and
           should consult a tax advisor; we provide transaction records on the account and usage pages but no tax
           advice. If you are in the EEA, UK, or Switzerland: the pre-contract information in these Terms and on the
@@ -262,13 +262,13 @@ export default function TermsPage() {
 
         <h2 className={h2}>8B. AI features (Buddy, voices, generated media)</h2>
         <p>
-          The Service includes AI features — the Gaming Buddy, AI voices and narration, game-AI directors and
+          The Service includes AI features; the Gaming Buddy, AI voices and narration, game-AI directors and
           dialogue, AI moderation assistance, and AI-generated images, audio, video, and 3D content. These features
           are powered in part by third-party AI providers (Section 11). <strong>AI output is generated, not
           verified:</strong> it may be wrong, incomplete, hallucinated, or inappropriate. Do not rely on it as
           professional, medical, legal, financial, or safety advice, and do not rely on it in emergencies. We do not
           guarantee that any AI feature is available, accurate, or fit for any purpose, to the fullest extent
-          permitted by law. Voice and camera features run only with your explicit opt-in, per message or frame — see
+          permitted by law. Voice and camera features run only with your explicit opt-in, per message or frame; see
           the Privacy Policy for what leaves your device and what never does.
         </p>
 
@@ -279,13 +279,13 @@ export default function TermsPage() {
           measured in a non-monetary bookkeeping unit designated as <strong>Ghost Cash (👻)</strong>.
         </p>
         <p>
-          <strong>(a) Tracking only — never a payment method. NO CASH VALUE OR LEGAL TENDER.</strong> Ghost Cash is
+          <strong>(a) Tracking only; never a payment method. NO CASH VALUE OR LEGAL TENDER.</strong> Ghost Cash is
           strictly an internal, centrally controlled bookkeeping and expense-tracking metric used <em>only</em> to keep
           track of hypothetical payments: to measure hours worked down to the exact second and to record hypothetical
           debts between participating organization members, freelancers, and marketers. Ghost Cash is NOT legal tender,
           currency, money, security, commodity, or cryptocurrency, has no cash value, has no exchange rate, confers no
           equity or rights against MattyJacks LLC, and cannot be redeemed, withdrawn, or cashed out. Ghost Cash ledgers,
-          balances, contracts, timer summaries, and debts are informal private worksheets — they do not move money, do
+          balances, contracts, timer summaries, and debts are informal private worksheets; they do not move money, do
           not settle debts on the Service, and do not create legally enforceable obligations against any person or
           against MattyJacks. If members choose to settle anything in the real world, they do so entirely off the
           Service, at their own risk and under their own arrangements; MattyJacks is not a party to, broker of, or
@@ -293,9 +293,9 @@ export default function TermsPage() {
           device permission and may be blurred or deleted at any time by the user.
         </p>
         <p>
-          <strong>(b) Invoices are informal aids for org officers — not our invoices.</strong> Ghost Cash summaries and
+          <strong>(b) Invoices are informal aids for org officers; not our invoices.</strong> Ghost Cash summaries and
           &quot;invoice&quot; actions exist solely to help an organization&apos;s <strong>Lord</strong> and{" "}
-          <strong>Banker</strong> — and, at the org&apos;s option, its <strong>Captain</strong> — prepare informal
+          <strong>Banker</strong>; and, at the org&apos;s option, its <strong>Captain</strong>; prepare informal
           internal memoranda of who worked how long at what hypothetical rate. These memoranda are generated by and for
           org members; they are not issued, endorsed, or verified by MattyJacks, are not tax invoices, VAT/GST
           invoices, payroll records, wage statements, or receipts, and carry no legal, tax, accounting, or employment
@@ -305,9 +305,9 @@ export default function TermsPage() {
           and for determining whether any off-Service payment triggers tax, reporting, employment, or licensing duties.
         </p>
         <p>
-          <strong>(c) What Ghost Cash is not — worldwide.</strong> Because no money or monetary value moves on the
+          <strong>(c) What Ghost Cash is not; worldwide.</strong> Because no money or monetary value moves on the
           Service through Ghost Cash, the feature is designed to stay outside money, payments, banking, securities, and
-          crypto-asset regimes in every jurisdiction — including, without limitation, U.S. federal and state money
+          crypto-asset regimes in every jurisdiction; including, without limitation, U.S. federal and state money
           transmission and money-services-business laws (including FinCEN regulations), the EU&apos;s Payment Services
           Directive (PSD2), Electronic Money Directive (EMD2), and Markets in Crypto-Assets Regulation (MiCA), the
           UK&apos;s Payment Services Regulations, Electronic Money Regulations, and Financial Services and Markets Act,
@@ -318,29 +318,29 @@ export default function TermsPage() {
           transferability outside the closed org book in which it was recorded. Nothing in Ghost Cash is an offer or
           sale of securities, and nothing is a crypto-asset, virtual asset, or stablecoin under any regime. If your
           jurisdiction would treat any off-Service use of Ghost Cash figures (for example, pegging them to fiat or
-          using them to demand real payment) as a regulated activity, you must not engage in that use — and any such
+          using them to demand real payment) as a regulated activity, you must not engage in that use; and any such
           use is yours alone, not the Service&apos;s.
         </p>
         <p>
-          <strong>(d) Centralized, revocable display numbers — adjustable at any time with no recourse.</strong> Ghost
+          <strong>(d) Centralized, revocable display numbers; adjustable at any time with no recourse.</strong> Ghost
           Cash exists only on our centralized systems, is wholly owned and controlled by MattyJacks, and has no legal
           value of any kind. All Ghost Cash figures are display-only bookkeeping entries. We may, in our sole
           discretion and at any time, create, adjust, recalculate, cap, reset, void, or delete any Ghost Cash balance,
-          contract rate, timer record, debt, invoice memorandum, or book — in whole or in part, for any reason or no
-          reason, with or without notice — and no such action gives rise to any claim, debt, compensation, refund,
+          contract rate, timer record, debt, invoice memorandum, or book; in whole or in part, for any reason or no
+          reason, with or without notice; and no such action gives rise to any claim, debt, compensation, refund,
           damages, or other legal ramification of any kind, in any jurisdiction, against MattyJacks. You waive, to the
           fullest extent permitted by law, any claim that a Ghost Cash number constitutes property, funds, wages,
           consideration, or an enforceable promise.
         </p>
         <p>
-          <strong>(e) No alternative monetization — discretionary ban.</strong> Vibe Coins are closed-loop licensed
+          <strong>(e) No alternative monetization; discretionary ban.</strong> Vibe Coins are closed-loop licensed
           platform features (Section 8) and Ghost Cash is a no-value tracking unit; neither may be monetized outside
           the Service. You must not sell, buy, trade, exchange, auction, gift-for-cash, lend against, factor,
           collateralize, peg, or advertise any exchange rate for Vibe Coins or Ghost Cash, and must not offer or accept
           fiat, crypto, goods, or services for them, or use Ghost Cash figures to demand, invoice (in the legal sense),
           or collect real-world payment as though they were money. Attempts to &quot;get money out&quot; of Coins or
-          Ghost Cash — including secondary markets, OTC deals, IOU factoring, rate-pegging, or routing around the
-          closed loop — violate these Terms. Where we suspect such conduct, we may act in our sole discretion and
+          Ghost Cash; including secondary markets, OTC deals, IOU factoring, rate-pegging, or routing around the
+          closed loop; violate these Terms. Where we suspect such conduct, we may act in our sole discretion and
           without liability: warn, void or reset affected Coins or Ghost Cash figures, freeze or hide books and
           listings, limit features, suspend or permanently ban accounts (including related or evading accounts),
           preserve evidence, and refer matters to authorities. Our decision is final, and no violation creates any cash
@@ -352,12 +352,12 @@ export default function TermsPage() {
           The marketplace lists rentable agents (openclaw/nanoclaw/custom) on providers such as RunPod and
           DigitalOcean. Bookings escrow the gross coin amount; metered heartbeats settle gross into a 25% platform
           share and 75% provider share, never above escrow. Providers run bring-your-own-endpoint until configured;
-          the app never fakes a provision. Teams/enterprise (UnitUnite) workspaces — orgs, teams, projects, rooms,
-          roles, org wallets, and the cloud catalog (GPU pods, serverless, storage, databases, KV, queue) — are
+          the app never fakes a provision. Teams/enterprise (UnitUnite) workspaces; orgs, teams, projects, rooms,
+          roles, org wallets, and the cloud catalog (GPU pods, serverless, storage, databases, KV, queue); are
           metered per workspace under the same included 25% cut, with every cent of the platform share attributed in
           the cut ledger. Orgs may rank members as Lord (org leader), Captain (team leader), Infantry (regular
-          player), Banker (finance controller, optionally read-only), or Watcher (sees everything, changes nothing —
-          optionally scoped to certain members) — one member may hold several presets at once, different in every
+          player), Banker (finance controller, optionally read-only), or Watcher (sees everything, changes nothing -
+          optionally scoped to certain members); one member may hold several presets at once, different in every
           org, with power always the union; rank powers are enforced server-side per action. Everyone may join up to
           100 orgs, each with its own bosses. Compute features depend on third-party capacity and may be unavailable, delayed, or
           re-priced; estimates are not guarantees.
@@ -365,7 +365,7 @@ export default function TermsPage() {
 
         <h2 className={h2}>10. Intellectual property and copyright (DMCA)</h2>
         <p>
-          The Service — software, games, designs, names, graphics, and content — is owned by MattyJacks or its
+          The Service; software, games, designs, names, graphics, and content; is owned by MattyJacks or its
           licensors and protected by law. If you believe content on the Service infringes your copyright, email{" "}
           <a className={a} href="mailto:matt@mattyjacks.com">matt@mattyjacks.com</a> with (a) identification of the
           copyrighted work, (b) the infringing material and its URL, (c) your contact information, (d) a good-faith
@@ -374,7 +374,7 @@ export default function TermsPage() {
           repeat infringers where appropriate.
         </p>
 
-        <h2 className={h2}>11. Third parties — and who sees your data</h2>
+        <h2 className={h2}>11. Third parties; and who sees your data</h2>
         <p>
           The Service runs on third-party providers that process information on our behalf, and may include
           third-party links, tools, or listings. Our providers are: Google Analytics (usage measurement, Google LLC);
@@ -389,9 +389,9 @@ export default function TermsPage() {
           and the third party under their terms. See the Privacy Policy for provider categories and data flows.
         </p>
         <p>
-          We provide your information to private third parties as described in the Privacy Policy — including service
+          We provide your information to private third parties as described in the Privacy Policy; including service
           providers that operate the Service, and buyers or successors in a merger, financing, sale, or
-          reorganization under confidentiality — and to U.S. courts and authorities upon valid legal request, such as
+          reorganization under confidentiality; and to U.S. courts and authorities upon valid legal request, such as
           a court order, subpoena, or other lawful process. Illegal content is never allowed: we remove it, terminate
           offending accounts, preserve evidence, and refer it to the appropriate authorities.
         </p>
@@ -403,7 +403,7 @@ export default function TermsPage() {
           privacy laws. You may exercise access, portability, correction, and deletion rights yourself at{" "}
           <a className={a} href="/my/rights">4weird.com/my/rights/</a> (also reachable on 4weird.games): export your
           data or permanently delete your data and account, subject to verification and anti-abuse limits. Self-service
-          deletion is strictly limited to the signed-in account holder deleting their own account — you cannot request
+          deletion is strictly limited to the signed-in account holder deleting their own account; you cannot request
           deletion of anyone else’s data through that page. Special cases (for example, family of a deceased user
           seeking deletion) are handled by email at{" "}
           <a className={a} href="mailto:matt@mattyjacks.com">matt@mattyjacks.com</a> with proof of authority; we verify
@@ -416,17 +416,17 @@ export default function TermsPage() {
           We reserve all rights to modify, suspend, discontinue, restrict, cancel, or remove any part of the Service,
           content, game, feature, account, clan, listing, booking, workspace, subscription, or virtual item at any
           time, for any reason or no reason, without liability and without any obligation to provide a refund,
-          replacement, proration, or continued access — including when we cancel services or terminate accounts —
+          replacement, proration, or continued access; including when we cancel services or terminate accounts -
           except where the law requires otherwise. Unused coins, items, progress, and credits are forfeited on
           termination or cancellation except where the law requires otherwise. You may stop using the Service at any
           time; account deletion is available via Section 12. We may preserve records and safety evidence as
           described in the Privacy Policy.
         </p>
 
-        <h2 className={h2}>14. Disclaimers — we guarantee nothing</h2>
+        <h2 className={h2}>14. Disclaimers; we guarantee nothing</h2>
         <p>
           TO THE FULLEST EXTENT PERMITTED BY LAW, THE SERVICE IS PROVIDED “AS IS,” “AS AVAILABLE,” AND WITH ALL
-          FAULTS, AND WE GUARANTEE NOTHING ABOUT IT — NOT UPTIME, NOT ACCURACY, NOT SECURITY, NOT FITNESS FOR ANY
+          FAULTS, AND WE GUARANTEE NOTHING ABOUT IT - NOT UPTIME, NOT ACCURACY, NOT SECURITY, NOT FITNESS FOR ANY
           PURPOSE, AND NOT THAT IT WILL WORK AT ALL. MATTYJACKS AND ITS OWNERS, OFFICERS, EMPLOYEES, CONTRACTORS,
           LICENSORS, AND SUPPLIERS DISCLAIM ALL WARRANTIES, WHETHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE,
           INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, NON-INFRINGEMENT, ACCURACY,
@@ -435,17 +435,17 @@ export default function TermsPage() {
           PRESERVED. AI FEATURES IN PARTICULAR MAY BE UNAVAILABLE OR WRONG AT ANY TIME.
         </p>
 
-        <h2 className={h2}>15. Limitation of liability — $0</h2>
+        <h2 className={h2}>15. Limitation of liability - $0</h2>
         <p>
           TO THE FULLEST EXTENT PERMITTED BY LAW, MATTYJACKS AND ITS OWNERS, OFFICERS, EMPLOYEES, CONTRACTORS,
-          LICENSORS, AND SUPPLIERS HAVE ZERO LIABILITY TO YOU, EVER — NOT FOR INDIRECT, INCIDENTAL, SPECIAL,
+          LICENSORS, AND SUPPLIERS HAVE ZERO LIABILITY TO YOU, EVER - NOT FOR INDIRECT, INCIDENTAL, SPECIAL,
           EXEMPLARY, PUNITIVE, OR CONSEQUENTIAL DAMAGES; NOT FOR LOST PROFITS, REVENUE, DATA, GOODWILL, OR BUSINESS;
           NOT FOR THE COST OF SUBSTITUTE SERVICES; AND NOT FOR DAMAGES ARISING FROM OR RELATED TO YOUR USE OF,
           INABILITY TO USE, OR RELIANCE ON THE SERVICE, EVEN IF ADVISED OF THE POSSIBILITY. TO THE FULLEST EXTENT
           PERMITTED BY LAW, THE TOTAL AGGREGATE LIABILITY OF THOSE PARTIES FOR ALL CLAIMS ARISING OUT OF OR RELATED
           TO THE SERVICE OR THESE TERMS IS $0. YOUR SOLE AND EXCLUSIVE REMEDY FOR DISSATISFACTION IS TO STOP USING
-          THE SERVICE. Some jurisdictions do not allow certain exclusions or limitations — including limits that
-          would erase liability entirely — so this section applies only to the extent permitted by applicable law,
+          THE SERVICE. Some jurisdictions do not allow certain exclusions or limitations; including limits that
+          would erase liability entirely; so this section applies only to the extent permitted by applicable law,
           and nothing here limits rights that cannot lawfully be waived in your jurisdiction (see Section 18).
         </p>
 
@@ -473,7 +473,7 @@ export default function TermsPage() {
         <p>
           If you are in the European Economic Area, the United Kingdom, Switzerland, Canada, or a U.S. state with a
           comprehensive privacy law (such as California, Colorado, Connecticut, Oregon, Texas, Utah, or Virginia),
-          nothing in these Terms overrides your non-waivable statutory rights — including privacy rights exercisable
+          nothing in these Terms overrides your non-waivable statutory rights; including privacy rights exercisable
           at <a className={a} href="/my/rights">/my/rights/</a>, warranty and withdrawal rights where applicable, and
           the right to seek relief from a competent court or supervisory authority.
         </p>

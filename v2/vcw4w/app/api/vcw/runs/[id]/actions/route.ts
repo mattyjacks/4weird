@@ -8,7 +8,7 @@ import { falOpsForVcwPhase, isFalOp, opByKey, qtyForInput, quoteFalSplit } from 
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/vcw/runs/[id]/actions — append one observe->reason->act
+ * POST /api/vcw/runs/[id]/actions; append one observe->reason->act
  * step to an open run (authenticated, owner only). The v1 worker's
  * `POST /api/game/action` equivalent, recorded instead of executed:
  * the serverless deploy has no live browser to drive, so the agent
@@ -17,8 +17,8 @@ export const dynamic = "force-dynamic";
  *
  * Body: { kind: observation|action|finding, text, data? }.
  *
- * fal.ai meld: a step can carry a fal call — text containing
- * `[tool: fal.generate — op=<op> prompt="..."]` (or data { fal_op, prompt })
+ * fal.ai meld: a step can carry a fal call; text containing
+ * `[tool: fal.generate; op=<op> prompt="..."]` (or data { fal_op, prompt })
  * with source "vcw". The route validates the op against the 30-op catalog
  * and returns the gross quote + next step (POST /api/fal/generate) so the
  * main loop chains observe → reason → act without leaving the trail.
@@ -81,7 +81,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
             detected: true,
             ok: false,
             phase,
-            hint: `Unknown fal op "${falCall.op || "missing"}". Pick one of the 30 ops from GET /api/fal/ops (observe/reason prefer: ${falOpsForVcwPhase("observe").join(", ")}; act can use any). Tag shape: [tool: fal.generate — op=<op> prompt="..."].`,
+            hint: `Unknown fal op "${falCall.op || "missing"}". Pick one of the 30 ops from GET /api/fal/ops (observe/reason prefer: ${falOpsForVcwPhase("observe").join(", ")}; act can use any). Tag shape: [tool: fal.generate; op=<op> prompt="..."].`,
             suggested: falOpsForVcwPhase(phase),
           },
         },
@@ -100,7 +100,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
           op: def.op,
           model: def.model,
           quote: quoteFalSplit(def.op, qty),
-          next: "POST /api/fal/generate { op, prompt, game_slug, source: \"vcw\" } — metered via meter_fal_usage, 25% cut included.",
+          next: "POST /api/fal/generate { op, prompt, game_slug, source: \"vcw\" }; metered via meter_fal_usage, 25% cut included.",
           prompt: falCall.prompt.slice(0, 300),
         },
       },

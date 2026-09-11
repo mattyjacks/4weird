@@ -3,7 +3,7 @@ import fs from "node:fs";
 const read = (file) => fs.readFileSync(new URL(file, import.meta.url), "utf8");
 const fail = (msg) => { throw new Error(msg); };
 
-// Pure lib: exact settings — Quality 0–10 (default 5), Budget 1–10,000
+// Pure lib: exact settings - Quality 0-10 (default 5), Budget 1-10,000
 // (default 100), Confirm-the-Amount above 250.
 const lib = read("../lib/newgameplus.ts");
 for (const token of [
@@ -98,4 +98,4 @@ if (!/"test": "[^"]*verify:newgameplus/.test(pkg)) {
   fail("npm test must run verify:newgameplus.");
 }
 
-console.log("NewGamePlus integrity OK — prompt in, tested Draft game out.");
+console.log("NewGamePlus integrity OK; prompt in, tested Draft game out.");

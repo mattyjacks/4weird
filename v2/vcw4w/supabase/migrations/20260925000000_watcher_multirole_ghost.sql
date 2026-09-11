@@ -2,22 +2,22 @@
 -- Watcher role + multi-role presets + 100-org cap + Ghost Cash (👻💵) + timer.
 -- Fully rerunnable: IF NOT EXISTS / OR REPLACE / DROP ... IF EXISTS.
 --
--- 1. WATCHER — sees everything, changes nothing. Org-scope template with
+-- 1. WATCHER; sees everything, changes nothing. Org-scope template with
 --    view-only keys. Optionally SCOPED to certain users via org_watch_scopes:
 --    no scope rows = whole org; rows = only those targets. Enforced in
 --    org_watch_visible() and honored by the Ghost summary RPC.
--- 2. MULTI-ROLE presets — org_member_roles lets one user hold several
+-- 2. MULTI-ROLE presets; org_member_roles lets one user hold several
 --    templates at once (e.g. Banker + Watcher, or Lord + Banker), different
 --    per org (org_id is in the key). Effective power = UNION of the legacy
 --    single role_key and every junction row (has_org_perm upgraded below;
 --    team/project fallbacks inherit through it with no other changes).
--- 3. ORG CAP — one user may join at most 100 orgs (trigger; generous enough
+-- 3. ORG CAP; one user may join at most 100 orgs (trigger; generous enough
 --    to never bind a real community, strict enough to bound fan-out reads).
 --    Different org = different bosses: memberships stay fully per-org.
--- 4. GHOST CASH (👻💵) — a centrally-controlled HYPOTHETICAL unit with NO
+-- 4. GHOST CASH (👻💵); a centrally-controlled HYPOTHETICAL unit with NO
 --    legal value, NO cash-out, NO store of value. It only measures who owes
 --    whom inside an org (e.g. marketer owes freelancer for hours worked).
---    Completely separate tables from Vibe Coins — no trigger, view, or RPC
+--    Completely separate tables from Vibe Coins; no trigger, view, or RPC
 --    below touches coin_ledger, org wallets, or any money path. Amounts are
 --    tracked to the second via timer heartbeats (rate/hr × seconds/3600).
 --    Activity proof = visible-tab heartbeat beats + optional worker-attached
@@ -199,7 +199,7 @@ grant execute on function public.set_watch_scope(uuid, uuid, uuid[]) to authenti
 
 -- May the caller observe this member? Owners + unscoped watchers see all;
 -- scoped watchers see only their targets. (Non-watchers: not their business
--- via THIS helper — normal member reads use the table RLS policies.)
+-- via THIS helper; normal member reads use the table RLS policies.)
 create or replace function public.org_watch_visible(p_org uuid, p_target uuid)
 returns boolean language plpgsql stable security definer set search_path = public as $$
 declare v_roles text[];
@@ -216,7 +216,7 @@ begin
 end; $$;
 
 -- --------------------------------------------------------------------------
--- 3. One user, at most 100 orgs. Different org, different bosses — the cap
+-- 3. One user, at most 100 orgs. Different org, different bosses; the cap
 --    only bounds fan-out, never choice.
 -- --------------------------------------------------------------------------
 create or replace function public.enforce_org_count()
@@ -233,7 +233,7 @@ create trigger trg_org_members_count before insert on public.org_members
 
 -- --------------------------------------------------------------------------
 -- 4. Ghost Cash (👻💵): hypothetical IOU unit. NO legal value, NO cash-out,
---    NO store of value — a ruler for debts, not money. Separate tables only.
+--    NO store of value; a ruler for debts, not money. Separate tables only.
 -- --------------------------------------------------------------------------
 create table if not exists public.ghost_contracts (
   id uuid primary key default gen_random_uuid(),
@@ -270,7 +270,7 @@ create index if not exists idx_ghost_timers_contract on public.ghost_timers (con
 create index if not exists idx_ghost_timers_open on public.ghost_timers (worker_id, contract_id) where clock_out is null;
 
 -- Worker-attached proof screenshots (manual uploads ≤1 MB; we never capture
--- screens — proof is supplied, not taken).
+-- screens; proof is supplied, not taken).
 create table if not exists public.ghost_proofs (
   id uuid primary key default gen_random_uuid(),
   timer_id uuid not null references public.ghost_timers(id) on delete cascade,
@@ -309,7 +309,7 @@ alter table public.ghost_timers enable row level security;
 alter table public.ghost_proofs enable row level security;
 alter table public.ghost_debts enable row level security;
 
--- Org members read their org's ghost books (watchers included — reading is
+-- Org members read their org's ghost books (watchers included; reading is
 -- the whole point of watching). Writes go through the RPCs below.
 drop policy if exists ghost_contracts_read on public.ghost_contracts;
 create policy ghost_contracts_read on public.ghost_contracts

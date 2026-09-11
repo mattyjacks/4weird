@@ -1,5 +1,5 @@
 /**
- * Game AI compute — one rule everywhere: every AI price INCLUDES the 25%
+ * Game AI compute; one rule everywhere: every AI price INCLUDES the 25%
  * platform cut (GAME_AI_COMPUTE_CUT_PCT), never added on top.
  *
  * Games may declare AI features as `required` (core loop needs it: an
@@ -15,7 +15,7 @@
 
 import { SERVICE_CUT_PCT } from "@/lib/economy";
 
-/** Same 25% as SERVICE_CUT_PCT / WORKSPACE_COMPUTE_CUT_PCT — one rule. */
+/** Same 25% as SERVICE_CUT_PCT / WORKSPACE_COMPUTE_CUT_PCT; one rule. */
 export const GAME_AI_COMPUTE_CUT_PCT = 25;
 
 export const GAME_AI_KINDS = [
@@ -136,7 +136,7 @@ export type GameAiFeature = {
  * treated as "no AI" (free). Keeping it static means the play shell can
  * render the 25% disclosure without a DB round-trip; operators promote a
  * row into public.game_ai_features (migration) when they wire real
- * providers — the API merges both sources.
+ * providers; the API merges both sources.
  */
 export const GAME_AI_FEATURES: GameAiFeature[] = [
   { gameSlug: "gravegain2d", kind: "dialogue", mode: "optional", provider: "openai", label: "NPC dialogue bot", blurb: "Procedural-dungeon NPCs talk back via an OpenAI dialogue bot." },
@@ -159,10 +159,10 @@ export function gameRequiresAi(slug: string): boolean {
   return featuresForGame(slug).some((f) => f.mode === "required");
 }
 
-export const GAME_AI_CUT_NOTE = `Includes ${GAME_AI_COMPUTE_CUT_PCT}% platform cut (same ${SERVICE_CUT_PCT}% as all compute) — never added on top.`;
+export const GAME_AI_CUT_NOTE = `Includes ${GAME_AI_COMPUTE_CUT_PCT}% platform cut (same ${SERVICE_CUT_PCT}% as all compute); never added on top.`;
 
 /* ---------------------------------------------------------------------------
- * Accurate Buddy cost table — true upstream USD -> gross Vibe Coins.
+ * Accurate Buddy cost table; true upstream USD -> gross Vibe Coins.
  *
  * Every Buddy turn touches real paid APIs plus real database writes:
  *   - OpenAI chat (BUDDY_MODEL, default gpt-4o-mini): input + output tokens.
@@ -291,7 +291,7 @@ export function formatBuddyCost(cost: Pick<BuddyCostBreakdown, "grossCoins" | "g
 }
 
 /* ---------------------------------------------------------------------------
- * Presence metering — avatar minutes + camera frames, in centicentcoins.
+ * Presence metering; avatar minutes + camera frames, in centicentcoins.
  *
  * Fixed per-unit rates mirror the meter_game_ai_usage RPC case arms
  * (buddy-avatar 0.08 coins/min = 8 centicentcoins/min, buddy-camera 0.03

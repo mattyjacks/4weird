@@ -4,7 +4,7 @@
  * Tiers (see lib/bot-key-policy.ts):
  *  - full: prompt, output, context + request/response previews are STORED.
  *  - half (default): metadata + short preview only; full texts are dropped.
- *  - none: compliance minimum only — time, key, route, status, ip, coins,
+ *  - none: compliance minimum only; time, key, route, status, ip, coins,
  *    bytes. Nothing viewable beyond that, nothing extra stored. Safety and
  *    compliance fields are ALWAYS stored regardless of mode.
  *

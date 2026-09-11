@@ -14,7 +14,7 @@ function rpcStatus(msg: string): number {
   return 400;
 }
 
-// GET /api/support/subscribe — my subscriptions (supporter only).
+// GET /api/support/subscribe; my subscriptions (supporter only).
 export async function GET() {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
@@ -30,7 +30,7 @@ export async function GET() {
   return ok({ subscriptions: subs ?? [] });
 }
 
-// POST /api/support/subscribe { action: "subscribe", tier_id } — first month
+// POST /api/support/subscribe { action: "subscribe", tier_id }; first month
 // charged immediately (30-day period, cancel anytime, no proration/refund).
 // POST /api/support/subscribe { action: "cancel", subscription_id }
 export async function POST(req: Request) {

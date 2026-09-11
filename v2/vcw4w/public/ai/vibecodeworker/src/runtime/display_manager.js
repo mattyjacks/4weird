@@ -3,7 +3,7 @@
  *
  * Two jobs:
  *  1. Display modes (windowed / fullscreen dashboard, windowed / fullscreen
- *     separate game window) — seeded by CLI flags (--window-size,
+ *     separate game window); seeded by CLI flags (--window-size,
  *     --fullscreen, --display-mode, --game-window-size, --game-fullscreen)
  *     and switchable at runtime by the operator OR the runner brain via
  *     window.setDisplayMode() -> 'set-display-mode' IPC.
@@ -53,7 +53,7 @@ function buildEnsureVisibleScript() {
       } catch (e) {}
     });
     // 2. The interactive cluster: the union box of visible buttons/links.
-    //    (e.g. a whack-a-mole hole grid is 60 buttons — its union IS the playfield.)
+    //    (e.g. a whack-a-mole hole grid is 60 buttons; its union IS the playfield.)
     try {
       const clickables = Array.from(document.querySelectorAll('button, a, [role="button"]'))
         .map(rectOf).filter(inRange);

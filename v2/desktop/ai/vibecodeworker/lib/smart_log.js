@@ -1,5 +1,5 @@
 /**
- * SmartLog — file-backed structured logging for VibeCodeWorker (all runtimes).
+ * SmartLog; file-backed structured logging for VibeCodeWorker (all runtimes).
  *
  * Every process (Electron main, headless API server, heal_worker, Tauri via
  * the Rust mirror in src-tauri) appends JSONL rows to a daily log file under
@@ -165,7 +165,7 @@ class SmartLog {
       L.push('');
       if (clusters.length === 0) {
         L.push('## Error clusters');
-        L.push('_No errors or warnings in the scanned window — the worker looks healthy._');
+        L.push('_No errors or warnings in the scanned window; the worker looks healthy._');
       } else {
         L.push(`## Error clusters (${clusters.length})`);
         clusters.slice(0, 15).forEach((c, i) => {
@@ -193,11 +193,11 @@ class SmartLog {
       } else if (bugs.length > 0) {
         L.push('Pick the highest-severity open bug above, fix it with a regression test, and re-run the suite.');
       } else {
-        L.push('No failures observed — run a full playtest + suite and extend coverage for untested modules.');
+        L.push('No failures observed; run a full playtest + suite and extend coverage for untested modules.');
       }
       // ASCII-safe: Windows consoles and naive log viewers render UTF-8
       // dashes/arrows as mojibake, which then confuses the AI reading them.
-      const markdown = L.join('\n').replace(/—/g, '-').replace(/→/g, '->').replace(/[“”]/g, '"');
+      const markdown = L.join('\n').replace(/-/g, '-').replace(/→/g, '->').replace(/[“”]/g, '"');
       if (!fs.existsSync(this.dir)) fs.mkdirSync(this.dir, { recursive: true });
       const stamp = new Date().toISOString().replace(/[:.]/g, '-');
       const file = path.join(this.dir, `smart-handoff-${stamp}.md`);

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LeaderboardBrowser } from "@/components/games/leaderboard-browser";
 
 export const metadata: Metadata = {
-  title: "Leaderboards — Top Players",
+  title: "Leaderboards - Top Players",
   description: "Top players across 4weird Games: per-game kills, actions, and play-time from aggregate telemetry. Set a public handle to appear by name.",
   keywords: ["game leaderboards", "top players", "arcade high scores"],
   alternates: { canonical: "/leaderboards" },

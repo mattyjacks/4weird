@@ -2,7 +2,7 @@
  * Dual-pane playtest stage: PURE live game + AI vision + human takeover.
  *
  * The game renders ONCE at true 1920x1080 inside the PURE pane (a fixed-size
- * <webview> backing store, CSS-scaled to fit — ratio locked, headless and
+ * <webview> backing store, CSS-scaled to fit; ratio locked, headless and
  * headful alike, still fully interactive). The AI pane mirrors the same
  * frame on a compact 480x270 canvas (quarter of 960x540: 4x fewer pixels to
  * move/decode/draw) plus the AI overlay: object detections, bot AND
@@ -17,7 +17,7 @@
  * the heat grid is a compact 32x18 (576 cells vs 1296).
  *
  * Human takeover mode: the operator plays in the PURE pane while the AI only
- * watches — a tiny guest recorder streams normalized mouse/keys into a drain
+ * watches; a tiny guest recorder streams normalized mouse/keys into a drain
  * loop that feeds vision_state (so the AI pane draws the human live),
  * accumulates a notes session (moves, clicks, keys, zones, screenshots) and
  * logs a plain-English summary when the operator hands the wheel back.
@@ -51,7 +51,7 @@ const TAKEOVER_SHOT_MS = 3000;
 const MAX_TAKEOVER_SHOTS = 12;
 // Trace-test ring: raw takeover samples kept per session so the app can
 // generate a regression test from its own trace (see trace_test_gen.js).
-// Bounded — never grows past this many compact events.
+// Bounded; never grows past this many compact events.
 const TRACE_SAMPLE_CAP = 240;
 
 let KIND_COLORS = null;
@@ -66,7 +66,7 @@ KIND_COLORS = KIND_COLORS || {
 };
 
 // ---------------------------------------------------------------------------
-// Pure helpers (no DOM, no Electron — covered by unit tests).
+// Pure helpers (no DOM, no Electron; covered by unit tests).
 // ---------------------------------------------------------------------------
 
 function clamp1000(n) {
@@ -107,7 +107,7 @@ function heatZoneName(nx, ny) {
 }
 
 // Keep the overlay cheap: cap boxes, drop off-screen/degenerate entries,
-// biggest first so the 24 that matter survive. Pure — also runs in the worker.
+// biggest first so the 24 that matter survive. Pure; also runs in the worker.
 function cullObjects(objects, max) {
   const n = Math.max(1, Math.min(MAX_BOXES, Number(max) || MAX_BOXES));
   if (!Array.isArray(objects)) return [];
@@ -157,7 +157,7 @@ function bucketHeatCellsByAlpha(cells) {
 
 // Exponential fade for stale hotspots. Mutates the grid in place, returns
 // { decayed, cleared, active }. Invalid factors are a no-op (never explode
-// or invert the heat). Pure — unit-tested in plain node.
+// or invert the heat). Pure; unit-tested in plain node.
 function decayHeatValues(heatArr, factor, epsilon) {
   const f = Number(factor), eps = Number(epsilon);
   if (!Array.isArray(heatArr) || !isFinite(f) || f <= 0 || f >= 1 || !isFinite(eps) || eps < 0) {
@@ -174,7 +174,7 @@ function decayHeatValues(heatArr, factor, epsilon) {
   return { decayed: true, cleared, active };
 }
 
-// Web Worker source: CPU-heavy overlay prep on another thread — drain JSON
+// Web Worker source: CPU-heavy overlay prep on another thread; drain JSON
 // parse/filter, box culling, heat-cell scaling. Main thread keeps only
 // decode (GPU) + rect compositing.
 function buildOverlayWorkerScript() {
@@ -311,7 +311,7 @@ function summarizeTakeover(s) {
   const zones = Object.entries(s.zones || {}).sort((a, b) => b[1] - a[1]);
   const keyCount = keys.reduce((n, kv) => n + kv[1], 0);
   const lines = [
-    `📝 Takeover notes — you played ${fmtDuration(durS)}, the AI watched everything:`,
+    `📝 Takeover notes; you played ${fmtDuration(durS)}, the AI watched everything:`,
     `   · mouse: ${s.moves || 0} sampled moves, ~${Math.round(s.distance || 0)} units travelled, ${s.clicks || 0} clicks`,
     `   · keys: ${keys.length ? keys.slice(0, 8).map(([k, c]) => `${k}×${c}`).join(', ') : 'none pressed'}`,
     `   · hottest zone: ${zones.length ? `${zones[0][0]} (${zones[0][1]} clicks)` : 'n/a'}`,
@@ -344,7 +344,7 @@ function initStageView(deps) {
     tick: 0,
     objects: [],
     boxesView: [],
-    source: '—',
+    source: '-',
     img: null,      // <img> fallback frame
     bitmap: null,   // GPU-decoded ImageBitmap frame (preferred)
     frames: [],
@@ -479,7 +479,7 @@ function initStageView(deps) {
   }
 
   // Repaint the tiny layer (1px per active cell, batched by alpha bucket).
-  // Runs only on heat change — never per frame.
+  // Runs only on heat change; never per frame.
   function repaintHeatLayer() {
     const layer = ensureHeatLayer();
     if (!layer || !heatLayerCtx) return;
@@ -597,7 +597,7 @@ function initStageView(deps) {
   function heatTotal() {
     let n = 0;
     for (let i = 0; i < heat.length; i++) n += heat[i];
-    return Math.round(n); // decay leaves fractional values — keep stats integral
+    return Math.round(n); // decay leaves fractional values; keep stats integral
   }
 
   function render() {
@@ -617,7 +617,7 @@ function initStageView(deps) {
     const Y = (ny) => (ny / 1000) * canvas.height;
 
     // Persistent click heatmap (AI + human clicks accumulate here).
-    // Single GPU blit of the cached 32x18 layer — O(1) per frame. The layer
+    // Single GPU blit of the cached 32x18 layer - O(1) per frame. The layer
     // itself repaints only when heat data changes (see repaintHeatLayer).
     if (state.showHeat && state.heatView.max > 0) {
       const layer = ensureHeatLayer();
@@ -729,7 +729,7 @@ function initStageView(deps) {
     }
   }
 
-  // Notice clicks (bot or human — both flow through vision_state) so the AI
+  // Notice clicks (bot or human; both flow through vision_state) so the AI
   // pane flashes them and grows the heatmap. Called once per mirror tick.
   function noticeClicks() {
     try {
@@ -826,7 +826,7 @@ function initStageView(deps) {
     const btn = $('btn-takeover'), st = $('takeover-status');
     if (btn) {
       btn.classList.toggle('live', !!live);
-      btn.innerHTML = live ? '⏹ End takeover — AI takes notes' : '🙋 Take Over: You Play, AI Watches';
+      btn.innerHTML = live ? '⏹ End takeover - AI takes notes' : '🙋 Take Over: You Play, AI Watches';
     }
     if (st) {
       st.classList.toggle('live', !!live);
@@ -921,7 +921,7 @@ function initStageView(deps) {
   async function startTakeover() {
     if (takeover) return true;
     if (separateActive()) {
-      toast('Close the separate game window first — takeover plays in the PURE pane.');
+      toast('Close the separate game window first; takeover plays in the PURE pane.');
       return false;
     }
     if (!guestLoaded()) {
@@ -931,13 +931,13 @@ function initStageView(deps) {
     try {
       if (typeof d.isAgentRunning === 'function' && d.isAgentRunning()) {
         if (typeof d.pauseAgent === 'function') d.pauseAgent();
-        log('AI Agent paused — you have the wheel. It watches and takes notes.');
+        log('AI Agent paused; you have the wheel. It watches and takes notes.');
       }
       if (typeof d.setBotControl === 'function') {
         try { d.setBotControl(false); } catch (_) {}
       }
       const res = await execGuest(buildRecorderScript());
-      log(`🙋 Takeover LIVE (${res}) — play in the PURE pane; the AI records mouse, clicks, keys + screenshots.`);
+      log(`🙋 Takeover LIVE (${res}); play in the PURE pane; the AI records mouse, clicks, keys + screenshots.`);
     } catch (e) {
       toast(`Takeover failed: ${e.message}`);
       return false;
@@ -981,7 +981,7 @@ function initStageView(deps) {
       if (typeof window !== 'undefined') window.__lastTakeoverSummary = summary;
     } catch (_) {}
     setTakeoverUI(false,
-      `Takeover done — ${summary.clicks} clicks, ${summary.keyCount} key presses, ${summary.durationS}s noted. Take over again anytime.`);
+      `Takeover done - ${summary.clicks} clicks, ${summary.keyCount} key presses, ${summary.durationS}s noted. Take over again anytime.`);
     return summary;
   }
 

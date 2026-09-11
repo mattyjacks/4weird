@@ -192,7 +192,7 @@ const MODEL_PRICING = {
     tier: 1,
     description: 'Experimental multimodal image processing model'
   },
-  // ElevenLabs audio (BYOK voice layer — not LLM tokens)
+  // ElevenLabs audio (BYOK voice layer; not LLM tokens)
   'elevenlabs-tts': {
     name: 'ElevenLabs TTS',
     inputRate: 300.00,

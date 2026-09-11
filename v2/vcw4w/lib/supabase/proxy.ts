@@ -99,6 +99,7 @@ export async function updateSession(request: NextRequest) {
       request.nextUrl.pathname.startsWith("/api/settings") ||
       request.nextUrl.pathname.startsWith("/api/social") ||
       request.nextUrl.pathname.startsWith("/api/stats") ||
+      request.nextUrl.pathname.startsWith("/api/squads") ||
       request.nextUrl.pathname.startsWith("/api/teams") ||
       (request.nextUrl.pathname.startsWith("/api/vcw") && !isVcwHealth));
 

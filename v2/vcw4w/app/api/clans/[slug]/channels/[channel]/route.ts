@@ -71,7 +71,7 @@ async function resolveChannel(
   return { error: null, clanId, chan: chan as ChanRow };
 }
 
-// GET /api/clans/[slug]/channels/[channel]?limit=&before= — public message
+// GET /api/clans/[slug]/channels/[channel]?limit=&before=; public message
 // history (visible only, newest last for chat rendering, pins first).
 export async function GET(
   req: Request,
@@ -122,7 +122,7 @@ export async function GET(
   return ok(payload);
 }
 
-// POST /api/clans/[slug]/channels/[channel] {body, image_url?, reply_to?} —
+// POST /api/clans/[slug]/channels/[channel] {body, image_url?, reply_to?} -
 // member-only chat send. Valley Net screens every message (Luna metered),
 // delinquent wallets refuse, and the message pays the standard server-cost fee.
 export async function POST(
@@ -201,7 +201,7 @@ export async function POST(
     if (/join the clan/i.test(msg)) return fail("Join the clan first.", 403);
     if (/read-only/i.test(msg)) return fail("Read-only channel.", 403);
     if (/upkeep delinquent/i.test(msg))
-      return fail("This clan's upkeep is delinquent — chat is paused until it is funded.", 402);
+      return fail("This clan's upkeep is delinquent; chat is paused until it is funded.", 402);
     if (/insufficient balance/i.test(msg))
       return fail("Insufficient Vibe Coins for the server-cost fee.", 402);
     return fail("Unable to charge the server-cost fee.", 500);

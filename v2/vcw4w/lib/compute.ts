@@ -238,7 +238,7 @@ async function createRunpodPod(opts: {
         ...(opts.args ? { args: opts.args } : {}),
         disk: opts.diskGb ?? 20,
         // Interactive pods (agents, CPU desktops, autoplay) serve Jupyter on
-        // 8888 — without this the proxy URL shows "Waiting for service".
+        // 8888; without this the proxy URL shows "Waiting for service".
         ...(opts.startJupyter ? { startJupyter: true } : {}),
         ...(opts.startSsh ? { startSsh: true } : {}),
       }),
@@ -298,7 +298,7 @@ export async function getPodLive(
 /**
  * Lifecycle action on a pod. Only the user who created the pod (the booking
  * renter, the blender job owner, or the desktop owner recorded in Supabase)
- * may call this — every API route enforces that ownership check before
+ * may call this; every API route enforces that ownership check before
  * reaching here. Valid actions: stop (releases GPU/CPU, keeps disk),
  * start (boots an EXITED/ERROR pod), restart (in-place container restart),
  * terminate (permanently deletes the pod, disk lost).
@@ -337,7 +337,7 @@ export async function podAction(
       const text = await res.text().catch(() => "");
       return { ok: false, error: `RunPod pod ${action} HTTP ${res.status}: ${text.slice(0, 160)}` };
     }
-    // Terminate returns 204 with no body — no pod status to report.
+    // Terminate returns 204 with no body; no pod status to report.
     if (res.status === 204) return { ok: true, status: "TERMINATED" };
     const text = await res.text().catch(() => "");
     if (!text) return { ok: true, status: "UNKNOWN" };
@@ -354,7 +354,7 @@ export async function podAction(
 /**
  * Permanently delete a pod (DELETE /pods/:id). Equivalent to the terminate
  * action for callers that prefer REST delete semantics. Only the pod's
- * creator may call this — enforced by the API route's ownership check.
+ * creator may call this; enforced by the API route's ownership check.
  */
 export async function deleteRunpodPod(
   podId: string,
@@ -401,7 +401,7 @@ export async function stopPodAction(
 }
 
 /**
- * Start a stopped pod (EXITED/ERROR back toward RUNNING). Creator-only —
+ * Start a stopped pod (EXITED/ERROR back toward RUNNING). Creator-only -
  * enforced by the calling API route's ownership check.
  */
 export async function startPodAction(
@@ -411,7 +411,7 @@ export async function startPodAction(
 }
 
 /**
- * Restart a RUNNING pod's container in place. Creator-only — enforced by
+ * Restart a RUNNING pod's container in place. Creator-only; enforced by
  * the calling API route's ownership check.
  */
 export async function restartPodAction(
@@ -421,7 +421,7 @@ export async function restartPodAction(
 }
 
 /**
- * Terminate a pod permanently (container disk lost). Creator-only —
+ * Terminate a pod permanently (container disk lost). Creator-only -
  * enforced by the calling API route's ownership check.
  */
 export async function terminatePodAction(
@@ -435,7 +435,7 @@ export async function terminatePodAction(
  * REST DELETE (same effect as `terminate`); everything else maps to the pod
  * action endpoint. Every caller must verify the requester created the pod
  * (booking renter / listing owner, blender job owner, desktop owner) BEFORE
- * calling this — this helper performs no auth.
+ * calling this; this helper performs no auth.
  */
 export async function runPodLifecycle(
   podId: string,
@@ -518,7 +518,7 @@ export const digitaloceanProvider: ComputeProvider = {
       if (!isHttpsUrl(endpoint)) return { error: "invalid_endpoint" };
       return { endpointUrl: endpoint, podId: "", gpuId: "", hourlyUsd: 0, port: 443 };
     }
-    return { error: "provision_failed", message: "DigitalOcean auto-provision is not wired yet — supply an https endpoint or use RunPod." };
+    return { error: "provision_failed", message: "DigitalOcean auto-provision is not wired yet; supply an https endpoint or use RunPod." };
   },
 };
 
@@ -561,7 +561,7 @@ export function providerStatus(): { code: ProviderCode; name: string; configured
 // Enforcement lives in lib/vcw-autoplay.ts (resolveAutoplayPlan) and is
 // re-checked here so a direct call cannot bypass it:
 // - on-site: 4weird catalog games only (x’importe quoi URLs refused).
-// - off-site: xonotic only, gpu-boosted only (desktop driver required —
+// - off-site: xonotic only, gpu-boosted only (desktop driver required -
 //   checked by the API via desktopInstalled, recorded here in env).
 // ---------------------------------------------------------------------------
 
@@ -581,7 +581,7 @@ function cleanAutoplayGame(value: unknown): string {
 
 /**
  * Remote image + ports + env for an autoplay run. Throws on any
- * disallowed combination (fail closed — the API maps it to 400).
+ * disallowed combination (fail closed; the API maps it to 400).
  */
 export function autoplayWorkloadFor(opts: {
   gameSlug: string;
@@ -599,9 +599,9 @@ export function autoplayWorkloadFor(opts: {
 
   if (isXonotic) {
     if (compute !== "gpu-boosted") throw new Error("Xonotic autoplay needs GPU boosted mode.");
-    if (siteMode !== "off-site") throw new Error("Xonotic has no on-site runtime — use off-site mode.");
+    if (siteMode !== "off-site") throw new Error("Xonotic has no on-site runtime; use off-site mode.");
   } else if (siteMode !== "on-site") {
-    throw new Error("Autoplay browser control is on-site only — 4weird games only.");
+    throw new Error("Autoplay browser control is on-site only - 4weird games only.");
   }
 
   const baseEnv: Record<string, string> = {
@@ -748,7 +748,7 @@ async function createRunpodCpuPod(opts: {
 
 /**
  * Boosted (Xonotic vision) GPU preference: GeForce RTX 4090 first, RTX 5090
- * fallback. Priciest-card picking is gone on purpose — datacenter compute
+ * fallback. Priciest-card picking is gone on purpose; datacenter compute
  * cards cost up to 9x more yet render games worse than GeForce. Pure +
  * unit-testable: pass catalog rows in.
  */
@@ -1003,7 +1003,7 @@ export type DesktopWorkload = {
 
 /**
  * Image + ports + env for a Virtual Desktop pod. Pure + unit-testable.
- * Default (`gui`): Ubuntu graphical desktop (Kasm) on 6901 for BOTH kinds —
+ * Default (`gui`): Ubuntu graphical desktop (Kasm) on 6901 for BOTH kinds -
  * GPU streams with hardware acceleration, CPU runs the same desktop with
  * software rendering. `jupyter`: JupyterLab + SSH on 8888 (official Ubuntu
  * 22.04 base for CPU, PyTorch CUDA base for GPU).
@@ -1071,7 +1071,7 @@ async function createRunpodDesktopPod(opts: {
   ports: string[];
   env: Record<string, string>;
   diskGb: number;
-  /** Kasm GPU desktops serve 6901 themselves — no Jupyter needed. */
+  /** Kasm GPU desktops serve 6901 themselves; no Jupyter needed. */
   startJupyter?: boolean;
   startSsh?: boolean;
 }): Promise<{ ok: true; podId: string } | { ok: false; error: string }> {
@@ -1153,7 +1153,7 @@ export async function provisionDesktopWorker(opts: {
       env: workload.env,
       diskGb: workload.diskGb,
       // Jupyter interface: start JupyterLab on 8888 so the proxy URL
-      // answers. GUI interface: Kasm serves 6901 itself — no Jupyter needed.
+      // answers. GUI interface: Kasm serves 6901 itself; no Jupyter needed.
       startJupyter: workload.iface === "jupyter",
       startSsh: true,
     });
@@ -1199,7 +1199,7 @@ export async function provisionDesktopWorker(opts: {
     ports: workload.ports,
     env: workload.env,
     diskGb: workload.diskGb,
-    // GUI interface: Kasm serves 6901 itself — no Jupyter needed.
+    // GUI interface: Kasm serves 6901 itself; no Jupyter needed.
     // Jupyter interface: start JupyterLab on 8888 so the proxy URL answers.
     startJupyter: workload.iface === "jupyter",
     startSsh: true,

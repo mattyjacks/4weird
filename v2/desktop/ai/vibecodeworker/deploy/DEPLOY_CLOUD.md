@@ -9,17 +9,17 @@ so the cheapest single-box hosts all work. All state lives in `data/`
 
 | Vendor | Box | ~Cost | Notes |
 |---|---|---|---|
-| **DigitalOcean** (recommended) | Basic droplet 1 vCPU / 1 GB | **$6/mo** | Use `deploy/digitalocean-user-data.sh` as User Data — fully automatic |
+| **DigitalOcean** (recommended) | Basic droplet 1 vCPU / 1 GB | **$6/mo** | Use `deploy/digitalocean-user-data.sh` as User Data; fully automatic |
 | Hetzner | CX22 2 vCPU / 4 GB | ~€4.15/mo | Best value; manual Docker install, then cloud compose |
 | AWS Lightsail | 1 GB bundle | $5/mo | Static IP included; manual Docker install |
-| Fly.io | shared-1x 512 MB + 1 GB volume | ~$5–7/mo | `deploy/fly.toml` — sleeps to zero when idle |
-| Render | Starter + 1 GB disk | ~$7/mo | `deploy/render.yaml` Blueprint — easiest click-deploy |
+| Fly.io | shared-1x 512 MB + 1 GB volume | ~$5-7/mo | `deploy/fly.toml`; sleeps to zero when idle |
+| Render | Starter + 1 GB disk | ~$7/mo | `deploy/render.yaml` Blueprint; easiest click-deploy |
 
-## Option A — DigitalOcean, automatic (2 minutes)
+## Option A - DigitalOcean, automatic (2 minutes)
 
 1. Create Droplet → Ubuntu 24.04 → **$6 Basic** → Authentication (SSH key) →
    paste `deploy/digitalocean-user-data.sh` into **User Data**.
-2. Wait ~3–5 min (Docker install + build). Then:
+2. Wait ~3-5 min (Docker install + build). Then:
    ```bash
    ssh root@<droplet-ip> 'cat /opt/vibecodeworker/.env'   # grab VIBE_API_TOKEN
    curl http://<droplet-ip>:42069/api/status
@@ -29,7 +29,7 @@ so the cheapest single-box hosts all work. All state lives in `data/`
    curl -H "X-Vibe-Auth: <token>" http://<droplet-ip>:42069/api/dashboard
    ```
 
-## Option B — Any Docker box (Hetzner / Lightsail / home server)
+## Option B - Any Docker box (Hetzner / Lightsail / home server)
 
 ```bash
 git clone https://github.com/mattyjacks/4weird.git /opt/vibecodeworker/repo
@@ -49,12 +49,12 @@ docker compose --profile opencode up -d --build
 # OPENCODE_MODE=server OPENCODE_SERVER_URL=http://opencode-server:4096
 ```
 
-## Option C — Fly.io / Render (no server to babysit)
+## Option C - Fly.io / Render (no server to babysit)
 
 - **Fly:** `fly volumes create vibe_data --size 1`, `fly secrets set VIBE_API_TOKEN=…`,
   `fly deploy` (uses `deploy/fly.toml`). Data persists on the volume.
 - **Render:** New → Blueprint → select repo (`deploy/render.yaml`); token is
-  auto-generated — read it from the dashboard.
+  auto-generated; read it from the dashboard.
 
 ## Environment knobs
 
@@ -70,7 +70,7 @@ docker compose --profile opencode up -d --build
 
 ## Remote self-healing across boxes (the cool part)
 
-Run the playtests on one box, fix on another — or fix locally and verify on the droplet:
+Run the playtests on one box, fix on another; or fix locally and verify on the droplet:
 
 ```bash
 # Start a heal loop locally, but execute each test round on the droplet:
@@ -81,7 +81,7 @@ curl -H "X-Vibe-Auth: <local-token>" -H "Content-Type: application/json" \
 # → {"runId":"heal_..."} ; poll GET /api/opencode/heal/<runId>
 ```
 
-Or skip the middleman — SSH into the box and heal there with the fresh-process
+Or skip the middleman - SSH into the box and heal there with the fresh-process
 worker (`heal_worker.js` runs each test round in its own process):
 
 ```bash

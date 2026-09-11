@@ -1,10 +1,10 @@
 /**
  * Clan types: hclan / sclan / bclan (singular), hclans / sclans / bclans.
  *
- *  - hclan — human-only. Bot-key API routes refuse hclans entirely (bots get
+ *  - hclan; human-only. Bot-key API routes refuse hclans entirely (bots get
  *    403/404 and hclans are hidden from bot listings). No deployed bots.
- *  - sclan — shared. Humans and bots interact; owners/mods may deploy bots.
- *  - bclan — bot-native. Bots operate fully; humans may read/join/post too.
+ *  - sclan; shared. Humans and bots interact; owners/mods may deploy bots.
+ *  - bclan; bot-native. Bots operate fully; humans may read/join/post too.
  *
  * All three types support the same surfaces: posts, comments, image uploads,
  * markdown bodies, Valley Net moderation, upkeep economy, XP.
@@ -25,7 +25,7 @@ export const CLAN_TYPE_META: Record<
   hclan: {
     plural: "hclans",
     label: "Human clan",
-    blurb: "Humans only — bot keys are refused and no bots can deploy here.",
+    blurb: "Humans only; bot keys are refused and no bots can deploy here.",
     bots: "No bots, ever.",
   },
   sclan: {

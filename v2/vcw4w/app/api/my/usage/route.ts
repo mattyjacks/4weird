@@ -23,7 +23,7 @@ function toSpend(value: unknown): Spend {
 }
 
 /**
- * GET /api/my/usage?session=<uuid>&limit=25 — the full compute-spend ledger
+ * GET /api/my/usage?session=<uuid>&limit=25; the full compute-spend ledger
  * behind 4weird.com/my/usage/. Aggregates EVERY way we charge for compute:
  *   - game_ai_usage (game dialogue/director/TTS/RunPod/inference + buddy
  *     chat/voice) via my_compute_usage(): session + total + last hour +
@@ -33,7 +33,7 @@ function toSpend(value: unknown): Spend {
  *   - cloud_usage + platform_compute_cuts (UnitUnite workspace spend the
  *     caller may see via their org permission).
  *   - functions: serverlessFFN-style function runs are the cloud catalog's
- *     serverless-worker / serverless-cron / inference-api provisions — they
+ *     serverless-worker / serverless-cron / inference-api provisions; they
  *     appear under workspace rows with service_key + unit so functions spend
  *     is never hidden inside a generic "compute" bucket.
  *   - game_play_usage (game rentals: proportional load fee + per-second
@@ -45,7 +45,7 @@ function toSpend(value: unknown): Spend {
  *     clan fees would hide inside generic coin movements.
  *   - runpod_usage (REAL RunPod spend mirrored via POST /api/agents/runpod-sync
  *     with RUNPOD_API_KEY: pods + serverless + volumes in USD with a Vibe Coin
- *     display equivalent. Billed by RunPod directly — no Vibe cut applies.)
+ *     display equivalent. Billed by RunPod directly; no Vibe cut applies.)
  *
  * Missing tables / unconfigured Supabase degrade to zeros + rows: [] (the
  * page still renders the full breakdown skeleton).

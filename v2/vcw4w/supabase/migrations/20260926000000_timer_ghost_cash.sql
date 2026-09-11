@@ -1,5 +1,5 @@
 -- ============================================================================
--- 4weird Timer & Work Diary — Ghost Cash (👻💵) Debt Ledger & Screen Proofs
+-- 4weird Timer & Work Diary - Ghost Cash (👻💵) Debt Ledger & Screen Proofs
 --
 -- Adds:
 --  * timer_projects: projects with Ghost Cash hourly rate (ghost_rate), budget, org attribution

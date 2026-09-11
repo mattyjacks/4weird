@@ -1,10 +1,10 @@
 /**
- * OpenCode.ai Integration Bridge — OPTIONAL module for VibeCodeWorker.
+ * OpenCode.ai Integration Bridge - OPTIONAL module for VibeCodeWorker.
  *
  * When enabled, VibeCodeWorker can:
  *   1. EXPORT a playtest bug report (markdown + machine-readable JSON) for OpenCode.
  *   2. FIX via OpenCode's direct-code-editing agent (`opencode run` CLI or
- *      `opencode serve` HTTP API) — OpenCode edits repo files itself.
+ *      `opencode serve` HTTP API) - OpenCode edits repo files itself.
  *   3. HEAL in a loop: test -> export -> fix -> re-test, until clean or the
  *      iteration budget is spent. The loop runs in the SAME process, a FRESH
  *      child-process instance, or on ANOTHER VibeCodeWorker (e.g. a cloud
@@ -30,7 +30,7 @@ const DEFAULTS = {
   enabled: false,
   mode: 'cli', // 'cli' | 'server'
   binary: 'opencode', // resolved via PATH; override with absolute path if needed
-  model: '', // e.g. 'anthropic/claude-sonnet-4-5' — empty = OpenCode default
+  model: '', // e.g. 'anthropic/claude-sonnet-4-5'; empty = OpenCode default
   agent: 'build', // OpenCode agent to use for fixes
   autoApprove: true, // pass --auto so fixes don't stall on permission prompts
   timeoutMs: 600000, // 10 min per fix run
@@ -444,7 +444,7 @@ async function fixBugs({ bugs, bugIds, gameId, instructions, testCommand, fileCo
   if (handoff) exported.prompt += `\n\n## Live runtime context (auto-attached smart-log handoff)\n\n${handoff}`;
 
   if (config.mode === 'server') {
-    const res = await runServerFix({ prompt: exported.prompt, sessionId, title: `Fix ${list.length} bug(s) — ${gameId || 'game'}`, config });
+    const res = await runServerFix({ prompt: exported.prompt, sessionId, title: `Fix ${list.length} bug(s) - ${gameId || 'game'}`, config });
     return { ...res, exported, bugCount: list.length, targetDir };
   }
   const res = await runOpenCodeFix({ promptFile: exported.mdPath, dir: targetDir, config });
@@ -489,7 +489,7 @@ function getHealRun(runId) {
  * Start a self-healing run in the background. Returns { runId } immediately;
  * poll with getHealRun(runId) or GET /api/opencode/heal/:id.
  *
- * instance: 'same' (in-process) | 'fresh' (spawn heal_worker.js child —
+ * instance: 'same' (in-process) | 'fresh' (spawn heal_worker.js child -
  *   literally another VibeCodeWorker instance) | { remoteUrl, token }
  *   (hand testing off to a different machine, e.g. a droplet).
  */
@@ -562,7 +562,7 @@ function startHealCycle({ bugs, gameId, instructions, testCommand, dir, maxItera
 
 async function runHealTestStep({ run, instance, testRunner, config }) {
   // Remote instance: ask ANOTHER VibeCodeWorker (same LAN, droplet, etc.)
-  // to run the tests and report back — testing resumes there.
+  // to run the tests and report back; testing resumes there.
   if (instance && typeof instance === 'object' && instance.remoteUrl) {
     try {
       const headers = { 'Content-Type': 'application/json' };
@@ -579,7 +579,7 @@ async function runHealTestStep({ run, instance, testRunner, config }) {
       return { exitCode: -1, output: 'REMOTE TEST ERROR: ' + e.message };
     }
   }
-  // Fresh instance: spawn heal_worker.js — a separate VibeCodeWorker process
+  // Fresh instance: spawn heal_worker.js; a separate VibeCodeWorker process
   // with its own memory, so a wedged tester can't poison the healer.
   if (instance === 'fresh') {
     return runFreshInstanceTest({ run, config });
@@ -642,7 +642,7 @@ function persistHealRun(run) {
   } catch (e) { /* never break the loop over persistence */ }
 }
 
-/** Latest smart-log handoff markdown (or null) — auto-attached to fix prompts. */
+/** Latest smart-log handoff markdown (or null); auto-attached to fix prompts. */
 function getLatestHandoffMarkdown() {
   try {
     const sl = require('./smart_log');

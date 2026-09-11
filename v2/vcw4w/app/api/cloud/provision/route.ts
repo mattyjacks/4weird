@@ -7,11 +7,11 @@ import { WORKSPACE_COMPUTE_CUT_PCT } from "@/lib/economy";
 
 export const dynamic = "force-dynamic";
 
-// POST /api/cloud/provision — start a pay-as-you-go UnitUnite workspace
+// POST /api/cloud/provision; start a pay-as-you-go UnitUnite workspace
 // service from the org wallet (RPC checks cloud.provision [+ gpu]).
 // Every metered charge includes the 25% per-workspace compute cut
 // (WORKSPACE_COMPUTE_CUT_PCT), split per workspace in meter_usage().
-// Fund the wallet first with Vibe Coins — provisions are never faked,
+// Fund the wallet first with Vibe Coins; provisions are never faked,
 // never go negative, and default to the cheapest tier / newest viable runtime.
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);

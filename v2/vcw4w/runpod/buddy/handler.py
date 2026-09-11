@@ -1,4 +1,4 @@
-"""Buddy multi-agent serverless worker — one goal fans out to specialist agents.
+"""Buddy multi-agent serverless worker; one goal fans out to specialist agents.
 
 Dual-mode (golden path 09 invariant): the SAME orchestrate() runs everywhere.
 - Pod / local iterate:  python handler.py --selftest   (no keys, no deps)
@@ -6,13 +6,13 @@ Dual-mode (golden path 09 invariant): the SAME orchestrate() runs everywhere.
 - Serverless:           runpod.serverless.start({"handler": handler})  (queue contract, golden path 23)
 
 Queue contract: handler(event) reads event["input"], returns a plain dict.
-This worker needs NO GPU — it calls OpenRouter over HTTPS (or falls back
+This worker needs NO GPU; it calls OpenRouter over HTTPS (or falls back
 offline). Deploy it on the cheapest CPU workers, min 0 so it scales to zero.
 
 Env (serverless workers only; everything degrades without them):
-  OPENROUTER_API_KEY — live OpenRouter brains. Without it every specialist
+  OPENROUTER_API_KEY; live OpenRouter brains. Without it every specialist
                        returns a labelled offline fallback (still a valid pack).
-  OPENROUTER_MODEL   — override model (default below).
+  OPENROUTER_MODEL  ; override model (default below).
 """
 
 import json
@@ -180,7 +180,7 @@ if __name__ == "__main__":
         selftest()
     else:
         try:
-            import runpod  # noqa: F401 — serverless SDK, in requirements.txt
+            import runpod  # noqa: F401; serverless SDK, in requirements.txt
         except ImportError:
             print("The 'runpod' package is not installed. For the offline check run: python handler.py --selftest", flush=True)
             print("In the Docker image (requirements.txt installed) re-run with --test_input '<json>'.", flush=True)

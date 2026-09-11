@@ -11,7 +11,7 @@ const variantPattern = /^\d+$/;
 /**
  * Coin checkout: builds a Shopify cart URL for an allowlisted variant.
  * Fail closed: pack variants must appear in SHOPIFY_ALLOWED_VARIANTS (or the
- * legacy COIN_PACK_VARIANTS) — an unconfigured allowlist blocks packs rather
+ * legacy COIN_PACK_VARIANTS); an unconfigured allowlist blocks packs rather
  * than opening checkout to any numeric variant. The custom $0.01/unit
  * variant is always permitted with quantity == coin count. Money mints only
  * from the HMAC-verified webhook, never from this URL.

@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 function mapErr(msg: string) {
   if (/login required/i.test(msg)) return fail("Login required.", 401);
   if (/join the clan/i.test(msg)) return fail("Join the clan first.", 403);
-  if (/own post/i.test(msg)) return fail("You cannot 💌 your own post — earn it from a human who saw it.", 400);
+  if (/own post/i.test(msg)) return fail("You cannot 💌 your own post; earn it from a human who saw it.", 400);
   if (/already loved/i.test(msg)) return fail("You already gave 💌 to this post.", 409);
   if (/not enough/i.test(msg)) return fail("Not enough 💌. Earn more via daily bonus + clan quests + loved posts.", 402);
   if (/not found/i.test(msg)) return fail("Post not found.", 404);
@@ -17,7 +17,7 @@ function mapErr(msg: string) {
   return fail("Unable to give 💌.", 500);
 }
 
-// POST /api/love/give {post_id} — give 1 💌 to a post's author.
+// POST /api/love/give {post_id}; give 1 💌 to a post's author.
 // Moves 1 💌 giver -> author. Never touches coins.
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);

@@ -23,13 +23,13 @@ export function GameA11yPanel({ slug }: { slug: string }) {
             <span className="rounded-full border border-cyan-300/50 px-2 py-0.5 font-bold text-cyan-200">🎨 color-independent</span>
           )}
           {meta.colorDependent && (
-            <span className="rounded-full border border-amber-300/50 px-2 py-0.5 font-bold text-amber-200">🎨 color matters — use a filter</span>
+            <span className="rounded-full border border-amber-300/50 px-2 py-0.5 font-bold text-amber-200">🎨 color matters; use a filter</span>
           )}
           {meta.photosensitive && (
-            <span className="rounded-full border border-fuchsia-300/50 px-2 py-0.5 font-bold text-fuchsia-200">⚠️ flashes — reduce motion</span>
+            <span className="rounded-full border border-fuchsia-300/50 px-2 py-0.5 font-bold text-fuchsia-200">⚠️ flashes; reduce motion</span>
           )}
           {meta.readingHeavy && (
-            <span className="rounded-full border border-violet-300/50 px-2 py-0.5 font-bold text-violet-200">📖 reading-heavy — dyslexia font</span>
+            <span className="rounded-full border border-violet-300/50 px-2 py-0.5 font-bold text-violet-200">📖 reading-heavy; dyslexia font</span>
           )}
         </span>
         <Link href="/accessibility" className="ml-auto rounded-full border border-white/20 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/10">
@@ -48,7 +48,7 @@ export function GameA11yPanel({ slug }: { slug: string }) {
       </dl>
       <p className="mt-2 text-xs text-slate-500">
         Below the game you&apos;ll find the face + head controller (nose aims, wink clicks), dwell-to-click for eye
-        trackers, and single-switch scanning — all applied inside the game frame, not just the site.
+        trackers, and single-switch scanning; all applied inside the game frame, not just the site.
       </p>
     </section>
   );

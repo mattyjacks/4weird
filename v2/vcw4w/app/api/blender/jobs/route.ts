@@ -51,7 +51,7 @@ function publicRow(row: BlenderRow) {
 }
 
 /**
- * POST /api/blender/jobs {filename, bytes} — reserve a job row (draft) and
+ * POST /api/blender/jobs {filename, bytes}; reserve a job row (draft) and
  * mint a direct-to-storage upload URL. The browser PUTs the .blend straight
  * to Supabase so multi-hundred-MB scenes never cross Vercel's body limit.
  */
@@ -75,7 +75,7 @@ export async function POST(req: Request) {
   const bytes = Number(input.bytes);
   if (!isBlenderFilename(filename)) return fail("Upload a .blend scene file.", 400);
   if (!Number.isInteger(bytes) || bytes < 1 || bytes > BLENDER_MAX_SCENE_BYTES) {
-    return fail(`Scene must be 1 byte–${BLENDER_MAX_SCENE_BYTES / 1_048_576} MB.`, 400);
+    return fail(`Scene must be 1 byte-${BLENDER_MAX_SCENE_BYTES / 1_048_576} MB.`, 400);
   }
 
   let svc;
@@ -106,7 +106,7 @@ export async function POST(req: Request) {
   return ok({ jobId, uploadUrl: signed.signedUrl, maxBytes: BLENDER_MAX_SCENE_BYTES }, 201);
 }
 
-/** GET /api/blender/jobs — your latest 20 render jobs (login, no secrets). */
+/** GET /api/blender/jobs; your latest 20 render jobs (login, no secrets). */
 export async function GET() {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();

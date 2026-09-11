@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Minimal capabilities for 4weird API Key Manager: core invoke only. No fs, dialog, notification, or shell access — the vault has no reason to touch anything but the OS credential store.",
+  "description": "Minimal capabilities for 4weird API Key Manager: core invoke only. No fs, dialog, notification, or shell access; the vault has no reason to touch anything but the OS credential store.",
   "windows": ["main"],
   "permissions": ["core:default"]
 }

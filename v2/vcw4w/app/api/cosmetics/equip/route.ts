@@ -8,7 +8,7 @@ import type { AvatarKind } from "@/components/buddy/avatars/types";
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/cosmetics/equip — equip owned cosmetics (free, looks-only).
+ * POST /api/cosmetics/equip; equip owned cosmetics (free, looks-only).
  * Body: { loadout: { hat?, glasses?, outfit?, accessory?, effect? }, kind? }.
  * Fail-closed: every id must be owned + fit the avatar kind. Pre-migration
  * the wardrobe is unavailable (503, nothing equipped blindly).

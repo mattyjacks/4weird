@@ -77,7 +77,7 @@ async function main() {
   };
 
   if (opts.install) {
-    say('Ollama install requested — downloading (~700MB+) and installing...');
+    say('Ollama install requested; downloading (~700MB+) and installing...');
     const installed = await installOllama({ onProgress: say, timeoutMs: 600000 });
     if (!installed.ok) {
       say(`Ollama install failed: ${installed.error}`);
@@ -95,7 +95,7 @@ async function main() {
 
   let up = await isServerUp(opts.baseUrl, Math.min(opts.timeoutMs, 10000));
   if (!up.ok && opts.start) {
-    say('Ollama server is down — starting `ollama serve`...');
+    say('Ollama server is down; starting `ollama serve`...');
     const started = await startServer({ binary: found.binary, baseUrl: opts.baseUrl, timeoutMs: opts.timeoutMs, onProgress: say });
     if (!started.ok) {
       say(`Could not start Ollama server: ${started.error}`);

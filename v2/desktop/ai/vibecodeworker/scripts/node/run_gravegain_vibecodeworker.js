@@ -165,7 +165,7 @@ async function runGraveGainVibeCodeWorkerSession() {
   console.log(`[VibeCodeWorker Action 2] Result: ${res2.success}`);
 
   // Action 3: Melee attack in close combat (canvas click aims + strikes;
-  // KeyF is the class ability, Space is jump/wait — neither is the attack)
+  // KeyF is the class ability, Space is jump/wait; neither is the attack)
   const act3 = { type: 'click', x: 500, y: 300, description: 'Melee attack toward crosshair' };
   replayEngine.recordAction(act3, 'Strike skeleton');
   const res3 = await client.click(act3.x, act3.y);

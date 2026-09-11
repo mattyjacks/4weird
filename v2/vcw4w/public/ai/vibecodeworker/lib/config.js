@@ -57,7 +57,7 @@ class AutoCodeConfig {
     this.maxChatHistory = 50;
     this.streamingEnabled = true;
 
-    // ElevenLabs audio (BYOK voice layer — never required, always optional)
+    // ElevenLabs audio (BYOK voice layer; never required, always optional)
     this.elevenlabsApiKey = '';
     this.audioChannelMode = 'mono'; // 'mono' (default single stream) | 'stereo' (L/R + diff)
     this.audioVoiceId = '21m00Tcm4TlvDq8ikWAM';
@@ -76,7 +76,7 @@ class AutoCodeConfig {
       defaultGpuId: 'NVIDIA RTX 2000 Ada Generation'
     };
 
-    // Local-model orchestration (Ollama role assignments — see lib/model_roles.js).
+    // Local-model orchestration (Ollama role assignments; see lib/model_roles.js).
     // Defaults are suggestions only; the dashboard "Local models" panel owns them.
     this.localModels = {
       ollamaUrl: 'http://127.0.0.1:11434',

@@ -290,12 +290,12 @@ function StatsTab() {
   }, []);
   return (
     <Card title="Stats">
-      <p>We count active game time only while a game has focus and actions are happening — not time sitting on a page.</p>
+      <p>We count active game time only while a game has focus and actions are happening; not time sitting on a page.</p>
       <div className="grid gap-3 sm:grid-cols-2">
         {(Object.entries({ playtime: "Active playtime", kills: "Kills", deaths: "Deaths", actions_per_minute: "Actions / minute" }) as [string, string][]).map(([k, label]) => (
           <div key={k} className="rounded-xl border border-white/10 p-4">
             {label}
-            <strong className="block text-2xl">{String(stats[k] ?? "—")}</strong>
+            <strong className="block text-2xl">{String(stats[k] ?? "-")}</strong>
           </div>
         ))}
       </div>
@@ -608,7 +608,7 @@ function SettingsTab() {
     allow_friend_requests: "Allow friend requests",
     show_playtime: "Show playtime on my public profile",
     marketing_email: "Marketing email",
-    kids_mode: "🔒 Kids Mode — hide Adults (18+) games; Teens games ask a 13+ age check",
+    kids_mode: "🔒 Kids Mode; hide Adults (18+) games; Teens games ask a 13+ age check",
   };
   return (
     <Card title="Settings">

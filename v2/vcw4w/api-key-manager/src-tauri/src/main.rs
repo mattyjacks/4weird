@@ -1,4 +1,4 @@
-//! 4weird API Key Manager — entry point.
+//! 4weird API Key Manager; entry point.
 //!
 //! `--smoke` runs a headless credential-store self-test (write/read/delete)
 //! and exits WITHOUT opening a window, so CI and this repo's scripts can
@@ -14,7 +14,7 @@ fn main() {
                 std::process::exit(0);
             }
             Err(e) => {
-                // Static messages only — smoke_test never returns secret material.
+                // Static messages only; smoke_test never returns secret material.
                 eprintln!("SMOKE FAIL: {e}");
                 std::process::exit(1);
             }

@@ -8,7 +8,7 @@ import { logValleynetAction, valleynetCheck } from "@/lib/valleynet";
 
 export const dynamic = "force-dynamic";
 
-// POST /api/clans/post/[id]/comment — member-only, Luna-moderated.
+// POST /api/clans/post/[id]/comment; member-only, Luna-moderated.
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const { id } = await params;
@@ -67,7 +67,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const msg = String(feeError.message ?? "");
     if (/join the clan/i.test(msg)) return fail("Join the clan first.", 403);
     if (/upkeep delinquent/i.test(msg))
-      return fail("This clan's upkeep is delinquent — commenting is paused until it is funded.", 402);
+      return fail("This clan's upkeep is delinquent; commenting is paused until it is funded.", 402);
     if (/insufficient balance/i.test(msg))
       return fail("Insufficient Vibe Coins for the server-cost fee.", 402);
     return fail("Unable to charge the server-cost fee.", 500);

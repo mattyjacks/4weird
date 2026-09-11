@@ -13,7 +13,7 @@ type VaultFile = {
 };
 
 /**
- * Weird Vault browser — the Drive/GitHub rival. Strictly separated scopes
+ * Weird Vault browser; the Drive/GitHub rival. Strictly separated scopes
  * (personal / team / org), content-addressed dedup, signed-URL uploads
  * (browser PUTs direct to storage), share links, quarantine hiding.
  */
@@ -162,7 +162,7 @@ export function VaultBrowser() {
         ))}
       </ul>
       {files.length === 0 && !busy && (
-        <p className="text-sm text-muted-foreground">Nothing here yet — store your first file above.</p>
+        <p className="text-sm text-muted-foreground">Nothing here yet; store your first file above.</p>
       )}
     </div>
   );

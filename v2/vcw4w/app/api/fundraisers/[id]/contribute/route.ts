@@ -20,7 +20,7 @@ function rpcStatus(msg: string): number {
   return 400;
 }
 
-// POST /api/fundraisers/[id]/contribute { coins } — gift-based backing in
+// POST /api/fundraisers/[id]/contribute { coins }; gift-based backing in
 // Vibe Coins. Final once sent (fraud freeze/refund is platform-handled).
 // NOTE: UI-disabled via FUNDRAISERS_ENABLED while compliance is worked out,
 // but intentionally left working so re-enabling is instant.

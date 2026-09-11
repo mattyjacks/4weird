@@ -2,19 +2,19 @@
 -- Lazy default org + org invite links with limits/expiry.
 -- Fully rerunnable: ADD COLUMN IF NOT EXISTS / OR REPLACE / DROP IF EXISTS.
 --
--- 1. LAZY DEFAULT ORG — every new user starts with one uninitialized org:
+-- 1. LAZY DEFAULT ORG; every new user starts with one uninitialized org:
 --      name "Default Org by <username>", is_initialized = false.
 --    Uninitialized = exactly ONE row in public.orgs and nothing else: no
 --    org_members row, no org_wallets row, no ledger entries, no teams, no
---    provisions — so players who never touch the org model pay 0 coins.
+--    provisions; so players who never touch the org model pay 0 coins.
 --    The FIRST write sent to the org (team, wallet fund, provision, ghost
 --    contract/debt, custom role, member-role change, watch scope, invite
 --    link) auto-initializes it via ensure_org_initialized(): owner member
 --    row + wallet row + org.init audit, still 0 coins moved.
--- 2. ORG INVITE LINKS — shareable tokens (no email required) with
+-- 2. ORG INVITE LINKS; shareable tokens (no email required) with
 --    customized max_uses (NULL = unlimited) and expires_at (NULL = never).
 --    create_org_invite_link / redeem_org_invite / revoke_org_invite /
---    list_org_invites RPCs. Redeeming initializes nothing extra — the org
+--    list_org_invites RPCs. Redeeming initializes nothing extra; the org
 --    was already initialized when the link was created.
 -- ============================================================================
 
@@ -40,7 +40,7 @@ where is_initialized = false
   and exists (select 1 from public.org_members m where m.org_id = public.orgs.id);
 
 -- --------------------------------------------------------------------------
--- 1b. Initializer — idempotent, moves 0 coins. Uses the org OWNER (not the
+-- 1b. Initializer; idempotent, moves 0 coins. Uses the org OWNER (not the
 -- caller) so DB triggers on first-use tables can call it safely.
 -- --------------------------------------------------------------------------
 create or replace function public.ensure_org_initialized(p_org uuid)
@@ -51,7 +51,7 @@ begin
   select owner_id into v_owner from public.orgs where id = p_org;
   if not found then raise exception 'org not found'; end if;
   if exists (select 1 from public.orgs where id = p_org and is_initialized) then return; end if;
-  -- Caller must belong (or own) — invites redeem through their own RPC.
+  -- Caller must belong (or own); invites redeem through their own RPC.
   if auth.uid() is not null
      and auth.uid() <> v_owner
      and not exists (select 1 from public.org_members m
@@ -76,7 +76,7 @@ revoke all on function public.ensure_org_initialized(uuid) from public, anon;
 grant execute on function public.ensure_org_initialized(uuid) to authenticated;
 
 -- --------------------------------------------------------------------------
--- 1c. Default org for the caller — at most one row, zero side effects.
+-- 1c. Default org for the caller; at most one row, zero side effects.
 -- --------------------------------------------------------------------------
 create or replace function public.ensure_default_org()
 returns public.orgs language plpgsql security definer set search_path = public as $$
@@ -114,7 +114,7 @@ grant execute on function public.ensure_default_org() to authenticated;
 
 -- --------------------------------------------------------------------------
 -- 1d. handle_new_user also seeds the default org (zero resources: orgs row
--- only). Signup must never fail because of it — swallow all errors.
+-- only). Signup must never fail because of it; swallow all errors.
 -- Trigger context has no JWT, so owner = new.id (never auth.uid()).
 -- --------------------------------------------------------------------------
 create or replace function public.handle_new_user()

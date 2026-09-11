@@ -1,10 +1,10 @@
 /**
- * Monetization policy — one universal lawfulness layer for every player
+ * Monetization policy; one universal lawfulness layer for every player
  * purchase (cosmetics shop, dev charges, avatar/camera presence).
  *
  * Better than freeform upload tags: each game declares ONE enumerated
  * monetization profile + audience, and every rule below is MACHINE-ENFORCED
- * in the purchase routes — a tag you can violate is decoration; a profile
+ * in the purchase routes; a tag you can violate is decoration; a profile
  * the server checks is compliance.
  *
  * Profiles (plain-language labels included for store display):
@@ -73,7 +73,7 @@ export const PROFILE_RULES: Record<MonetizationProfile, ProfileRules> = {
   },
   "cosmetics-only": {
     label: "Cosmetics Only",
-    blurb: "Looks-only items. Nothing sold here changes gameplay — safe in multiplayer.",
+    blurb: "Looks-only items. Nothing sold here changes gameplay; safe in multiplayer.",
     allowedCategories: ["cosmetic"],
     allowsChance: false,
     requiresSeasonLabel: false,
@@ -219,7 +219,7 @@ export function resolveRegionFromHeaders(headers: Pick<Headers, "get"> | Record<
 
 /** EU/UK immediate-delivery waiver line recorded on every receipt there. */
 export const EU_WAIVER_LINE =
-  "Digital delivery begins immediately with your express consent — the EU/UK 14-day withdrawal right is waived on delivery.";
+  "Digital delivery begins immediately with your express consent; the EU/UK 14-day withdrawal right is waived on delivery.";
 
 export function isEuStrict(region: RegionInfo): boolean {
   return region.class === "EU" || region.class === "UK" || region.class === "UNKNOWN";
@@ -245,7 +245,7 @@ export type ChargeLegality =
   | { ok: false; error: string; rule: string };
 
 export function checkChargeLegality(ctx: ChargeLegalityContext): ChargeLegality {
-  // Kids: COPPA / UK Age-Appropriate Design Code / GDPR-K — no charges, ever.
+  // Kids: COPPA / UK Age-Appropriate Design Code / GDPR-K; no charges, ever.
   if (ctx.kidsMode || ctx.audience === "kids") {
     return { ok: false, error: "Kids-safe mode: purchases are disabled on this account.", rule: "kids-block" };
   }
@@ -289,7 +289,7 @@ export function checkChargeLegality(ctx: ChargeLegalityContext): ChargeLegality 
   };
 }
 
-/** Human price line: "8 coins ($0.08)" — shown before AND on every receipt. */
+/** Human price line: "8 coins ($0.08)"; shown before AND on every receipt. */
 export function priceLine(coins: number): string {
   const c = Math.round(Number(coins) * 100) / 100;
   return `${c} coins ($${(c / 100).toFixed(2)})`;

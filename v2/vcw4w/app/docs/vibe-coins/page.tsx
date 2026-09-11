@@ -58,7 +58,7 @@ export default function VibeCoinsPage() {
         index="1"
         kicker="The promise"
         title="A cent is a cent is a cent"
-        body="When you pay 400 coins ($4.00) for compute, 100 goes to the platform and 300 to the provider â€” but you only ever see the gross 400. Same rule for game rentals, clan fees, game AI, Buddy turns, and team cloud. Your receipt is /my/usage/."
+        body="When you pay 400 coins ($4.00) for compute, 100 goes to the platform and 300 to the provider â€” but you only ever see the gross 400. Same rule for game rentals, clan fees, game AI, Buddy turns, and squad cloud. Your receipt is /my/usage/."
       />
       <SplitBar />
 

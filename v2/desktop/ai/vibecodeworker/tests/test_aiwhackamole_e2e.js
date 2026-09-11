@@ -25,7 +25,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const results = { stages: [], errors: [], shots: [], observations: {} };
 function stage(name, ok, detail) {
   results.stages.push({ name, ok: !!ok, detail: detail || '' });
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? ' — ' + detail : ''}`);
+  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? ' - ' + detail : ''}`);
 }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

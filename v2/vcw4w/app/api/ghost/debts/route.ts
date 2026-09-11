@@ -13,11 +13,11 @@ function isUuid(v: unknown): string {
 }
 
 /**
- * POST /api/ghost/debts — Ghost Cash IOUs (hypothetical, never money).
+ * POST /api/ghost/debts - Ghost Cash IOUs (hypothetical, never money).
  *   {action:"mark", org_id, debtor_id, creditor_id, amount_ghost, reason}
  *   {action:"settle", debt_id, status: settled|void}
  * Anyone in the org may record; only the two parties (or finance power:
- * org.wallet.spend — Banker/Lord/owner) may settle or void.
+ * org.wallet.spend - Banker/Lord/owner) may settle or void.
  */
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);

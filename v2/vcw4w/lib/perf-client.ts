@@ -1,5 +1,5 @@
 /**
- * Perf client — Web Worker fan-out + hardware GPU hints for the whole v2 stack.
+ * Perf client - Web Worker fan-out + hardware GPU hints for the whole v2 stack.
  *
  * Client-safe, dependency-free, tiny. Every helper degrades honestly:
  * no Worker support (SSR, old browser, file://) => main-thread fallback.
@@ -119,7 +119,7 @@ function getWorker(path: string): Worker | null {
 /**
  * One-shot worker call with timeout + main-thread fallback.
  * The shared worker stays alive across calls (warm); a hung call falls back
- * without killing the pool. Never throws — fallback always runs.
+ * without killing the pool. Never throws; fallback always runs.
  */
 export async function runWorker<T>(
   workerPath: string,

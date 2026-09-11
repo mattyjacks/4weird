@@ -1,5 +1,5 @@
 -- ============================================================================
--- Love Letters (💌) — clan-native appreciation currency. NOT coins, never
+-- Love Letters (💌); clan-native appreciation currency. NOT coins, never
 -- mingles with coins, never cashes out, never transfers to coins.
 --   * Every profile starts with 3 💌 (column default + backfill).
 --   * Each daily-bonus claim mints +1 💌 (inside claim_daily_bonus()).
@@ -237,7 +237,7 @@ grant execute on function public.complete_clan_quest(uuid, uuid) to authenticate
 
 -- 5. Daily bonus also mints 1 💌 (rerunnable OR REPLACE of the original). ----
 -- NOTE: the return type gains a third column (love_letters), so the old
--- function must be DROPPED first — CREATE OR REPLACE alone fails with 42P13
+-- function must be DROPPED first - CREATE OR REPLACE alone fails with 42P13
 -- ("cannot change return type of existing function").
 drop function if exists public.claim_daily_bonus();
 create or replace function public.claim_daily_bonus()

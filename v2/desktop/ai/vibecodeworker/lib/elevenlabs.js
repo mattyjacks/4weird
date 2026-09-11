@@ -12,7 +12,7 @@
  *   3. process.env.ELEVENLABS_API_KEY (placeholders rejected)
  *
  * Creative EPIC integrations live in lib/audio/voice_director.js and
- * lib/audio/audio_analyzer.js — this file is the thin transport + pricing
+ * lib/audio/audio_analyzer.js; this file is the thin transport + pricing
  * + voice catalog layer so it stays unit-testable without network.
  */
 
@@ -24,7 +24,7 @@ const ELEVENLABS_BASE = 'https://api.elevenlabs.io/v1';
 // Low-cost, high-quality defaults (overridable per call).
 const DEFAULTS = {
   ttsModel: 'eleven_multilingual_v2',
-  ttsVoiceId: '21m00Tcm4TlvDq8ikWAM', // Rachel — permissive default
+  ttsVoiceId: '21m00Tcm4TlvDq8ikWAM', // Rachel; permissive default
   sttModel: 'scribe_v1',
   sfxModel: null, // sound-generation endpoint carries no model param
   musicModel: 'music_v1',

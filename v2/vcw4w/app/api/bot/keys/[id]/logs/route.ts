@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 type Ctx = { params: Promise<{ id: string }> };
 
-// GET /api/bot/keys/[id]/logs?limit=&before=&status= — the key's request
+// GET /api/bot/keys/[id]/logs?limit=&before=&status=; the key's request
 // activity, newest first. Owner only (Supabase-login auth).
 // `none`-mode requests store the compliance minimum only, so those rows
 // carry null bodies by design. Totals include the 25% platform cut INCLUDED
@@ -42,7 +42,7 @@ export async function GET(req: Request, ctx: Ctx) {
     try {
       await db.rpc("purge_expired_bot_key_logs");
     } catch {
-      // ignore — retention is enforced on a schedule too.
+      // ignore; retention is enforced on a schedule too.
     }
 
     let query = db

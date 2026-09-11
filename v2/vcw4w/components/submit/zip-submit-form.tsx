@@ -23,9 +23,9 @@ const VERDICT_STYLE: Record<Verdict, string> = {
 };
 
 /**
- * Game .zip submit flow: file + title + Vercel-style game root, 69 MB cap,
+ * Game .zip submit flow: file + title + Vercel-style game root, 50 MB cap,
  * instant verdict display with findings + coin split. Denied/unsafe uploads
- * are quarantined (never served) and queued for HUMAN review — authority
+ * are quarantined (never served) and queued for HUMAN review; authority
  * referrals happen by a human, never automatically with an IP.
  */
 export function ZipSubmitForm() {
@@ -43,8 +43,8 @@ export function ZipSubmitForm() {
       setError("Pick a .zip first.");
       return;
     }
-    if (file.size > 69 * 1024 * 1024) {
-      setError("That .zip is over the 69 MB cap.");
+    if (file.size > 50 * 1024 * 1024) {
+      setError("That .zip is over the 50 MB cap. Trim it down so your game loads fast for everyone.");
       return;
     }
     setBusy(true);
@@ -74,7 +74,7 @@ export function ZipSubmitForm() {
   return (
     <div className="space-y-4 rounded-2xl border border-border bg-card p-5">
       <div>
-        <label className="text-sm font-bold" htmlFor="zip-file">Game .zip (max 69 MB)</label>
+        <label className="text-sm font-bold" htmlFor="zip-file">Game .zip (max 50 MB — keeps every game loading fast ⚡)</label>
         <input
           id="zip-file"
           type="file"
@@ -96,7 +96,7 @@ export function ZipSubmitForm() {
       </div>
       <div>
         <label className="text-sm font-bold" htmlFor="zip-root">
-          Game root inside the .zip <span className="font-normal text-muted-foreground">(like Vercel — where index.html lives; blank = zip root)</span>
+          Game root inside the .zip <span className="font-normal text-muted-foreground">(like Vercel; where index.html lives; blank = zip root)</span>
         </label>
         <input
           id="zip-root"
@@ -125,7 +125,7 @@ export function ZipSubmitForm() {
         <div className={`rounded-xl border p-4 text-sm ${VERDICT_STYLE[result.verdict]}`}>
           <p className="font-black">
             Verdict: {result.verdict}
-            {result.quarantined ? " — quarantined, never served, human review queued" : ""}
+            {result.quarantined ? "; quarantined, never served, human review queued" : ""}
           </p>
           <p className="mt-1 text-xs opacity-80">
             Status {result.status} · Storage {result.storage?.gross ?? "?"} coins · Audit{" "}

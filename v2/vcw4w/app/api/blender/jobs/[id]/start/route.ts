@@ -23,7 +23,7 @@ export const dynamic = "force-dynamic";
 const siteBase = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://4weird.games").replace(/\/+$/, "");
 
 /**
- * POST /api/blender/jobs/[id]/start {startFrame, endFrame} — provision the
+ * POST /api/blender/jobs/[id]/start {startFrame, endFrame}; provision the
  * pinned-4090 worker. Never fakes: unconfigured / no_stock / provision
  * failures come back as honest started:false (mirrors /api/vcw/autoplay).
  * RunPod bills the card per second; the coin quote is the gross display
@@ -64,7 +64,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   if (!row) return fail("Render job not found.", 404);
   const job = row as { id: string; scene_path: string; status: string; callback_token: string };
   if (job.status !== "ready") {
-    return fail(job.status === "draft" ? "Confirm the upload first." : `Job is ${job.status} — start a new job for another render.`, 409);
+    return fail(job.status === "draft" ? "Confirm the upload first." : `Job is ${job.status}; start a new job for another render.`, 409);
   }
 
   const { data: sceneUrls, error: sceneErr } = await svc.storage
@@ -101,7 +101,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     return ok({
       started: false,
       provision: { ok: false, code: provisioned.error, message: provisioned.message ?? "Provisioning failed." },
-      note: "Render worker not started — no spend. Fix the provision state above and retry.",
+      note: "Render worker not started; no spend. Fix the provision state above and retry.",
     });
   }
 
@@ -121,7 +121,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       error: null,
     })
     .eq("id", job.id);
-  if (upErr) return dbFail("POST /api/blender/jobs/[id]/start", upErr, "Worker started but the job row did not save — stop the pod from RunPod console.", 500);
+  if (upErr) return dbFail("POST /api/blender/jobs/[id]/start", upErr, "Worker started but the job row did not save; stop the pod from RunPod console.", 500);
 
   return ok({
     started: true,

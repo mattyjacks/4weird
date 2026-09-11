@@ -1,5 +1,5 @@
 -- ============================================================================
--- Game AI compute + Gaming Buddy — 25% cut on ALL game AI, same rule as
+-- Game AI compute + Gaming Buddy - 25% cut on ALL game AI, same rule as
 -- every other compute surface (SERVICE_CUT_PCT / WORKSPACE_COMPUTE_CUT_PCT).
 -- Fully rerunnable: IF NOT EXISTS / OR REPLACE / DROP ... IF EXISTS.
 --
@@ -75,7 +75,7 @@ create index if not exists idx_game_ai_usage_session on public.game_ai_usage (se
 create index if not exists idx_game_ai_usage_game on public.game_ai_usage (game_slug, created_at desc);
 
 -- --------------------------------------------------------------------------
--- 4. RLS — deny by default; users read their own rows only.
+-- 4. RLS; deny by default; users read their own rows only.
 -- --------------------------------------------------------------------------
 alter table public.game_ai_features enable row level security;
 alter table public.buddy_sessions enable row level security;
@@ -117,7 +117,7 @@ revoke all on function public.game_ai_compute_split(integer) from public, anon, 
 grant execute on function public.game_ai_compute_split(integer) to authenticated;
 
 -- --------------------------------------------------------------------------
--- 6. RPCs — the ONLY writers.
+-- 6. RPCs; the ONLY writers.
 -- --------------------------------------------------------------------------
 
 -- start_buddy_session: open a universal buddy session (any game, 9 voices).
@@ -238,7 +238,7 @@ end; $$;
 revoke all on function public.end_buddy_session(uuid) from public, anon, authenticated;
 grant execute on function public.end_buddy_session(uuid) to authenticated;
 
--- my_compute_usage: one rollup for /my/usage — session + total + last hour
+-- my_compute_usage: one rollup for /my/usage; session + total + last hour
 -- + last 24h over game_ai_usage (+ buddy), personal coin spend, agent rental
 -- compute_usage, and workspace cloud_usage visibility is org-scoped so this
 -- returns only what the caller may see (personal surfaces; org spend stays

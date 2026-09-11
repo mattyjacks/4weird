@@ -5,7 +5,7 @@ import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/projects/:id/issues — Issues tab list (RLS needs project.issues.view).
+// GET /api/projects/:id/issues - Issues tab list (RLS needs project.issues.view).
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const { id } = await ctx.params;
@@ -23,7 +23,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   return ok({ issues: issues ?? [] });
 }
 
-// POST /api/projects/:id/issues — open an issue (RPC checks project.issues.create).
+// POST /api/projects/:id/issues; open an issue (RPC checks project.issues.create).
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const { id } = await ctx.params;

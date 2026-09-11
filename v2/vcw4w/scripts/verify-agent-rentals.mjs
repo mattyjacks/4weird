@@ -96,7 +96,7 @@ if (!detailRoute.includes("delete pub.owner_id") || !detailRoute.includes("delet
 
 // Heartbeat single-beat cap parity (Heartbleed-pattern fix): the API route
 // and isHeartbeatSeconds() cap beats to 1..3600, so the database function
-// must too — otherwise any authenticated caller can bypass the API with a
+// must too; otherwise any authenticated caller can bypass the API with a
 // direct rpc call of up to 86400s and drain the booking escrow in one beat.
 const heartbeatRoute = read("../app/api/agents/bookings/[id]/heartbeat/route.ts");
 if (!heartbeatRoute.includes("1..3600")) throw new Error("heartbeat route must cap beats to 1..3600.");

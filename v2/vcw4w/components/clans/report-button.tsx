@@ -51,7 +51,7 @@ export function ReportButton({ targetType, targetId }: { targetType: "post" | "c
             aria-label="Report category"
           >
             <option value="other">Spam / abuse / other</option>
-            <option value="csam">Illegal/CSAM — hides immediately, preserved for authorities</option>
+            <option value="csam">Illegal/CSAM; hides immediately, preserved for authorities</option>
           </select>
           <input
             value={details}

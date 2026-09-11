@@ -23,7 +23,7 @@ export const SERVICE_CUT_PCT = 25;
 /**
  * UnitUnite workspace compute cut: every workspace-metered cloud charge
  * splits 25% platform / 75% provider, INCLUDED in the listed price.
- * Same rate as SERVICE_CUT_PCT by design — one rule everywhere — but scoped
+ * Same rate as SERVICE_CUT_PCT by design; one rule everywhere; but scoped
  * per individual workspace so each team's ledger shows its own cut.
  */
 export const WORKSPACE_COMPUTE_CUT_PCT = 25;
@@ -31,14 +31,14 @@ export const WORKSPACE_COMPUTE_CUT_PCT = 25;
  * Game AI compute cut: games that require or optionally use AI (OpenAI
  * dialogue bots, AI directors, rented RunPods, inference APIs, Gaming
  * Buddy) meter with the same 25% cut INCLUDED in the listed price.
- * Same rate as SERVICE_CUT_PCT by design — one rule everywhere — but scoped
+ * Same rate as SERVICE_CUT_PCT by design; one rule everywhere; but scoped
  * per game + feature kind so /my/usage can attribute every cent.
  */
 export const GAME_AI_COMPUTE_CUT_PCT = 25;
 /**
  * Clan compute cut: per-post/comment server-cost fees split 25% platform /
  * 75% clan wallet, INCLUDED in the listed fee. Same rate as SERVICE_CUT_PCT
- * by design — one rule everywhere — but scoped per clan so each clan's
+ * by design; one rule everywhere; but scoped per clan so each clan's
  * ledger shows its own cut.
  */
 export const CLAN_COMPUTE_CUT_PCT = 25;
@@ -162,7 +162,7 @@ export function isReferralCode(value: unknown): string {
 
 /* ---------------------------------------------------------------------------
  * Player-spend fairness rules (cosmetics + dev charges). Single source of
- * truth — the cosmetics catalog, dev-charge validator, and SQL RPCs all
+ * truth; the cosmetics catalog, dev-charge validator, and SQL RPCs all
  * enforce the same numbers:
  * - Cosmetics are looks-only and cost 10 coins each, everywhere in the app.
  * - NOTHING purchasable may help win a multiplayer game (no pay-to-win).

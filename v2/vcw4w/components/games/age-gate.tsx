@@ -11,7 +11,7 @@ import {
 } from "@/lib/age-gate";
 
 /**
- * AgeGate — date-of-birth check shown before age-restricted games.
+ * AgeGate; date-of-birth check shown before age-restricted games.
  *
  * PRIVACY: the entered date of birth lives only in this component's React
  * state. It is never sent to any API, never written to Supabase, never put
@@ -57,7 +57,7 @@ export function AgeGate({
   if (failed) {
     return (
       <div className="overflow-hidden rounded-2xl border border-white/15 bg-black p-6 sm:p-10" role="alert" data-testid="age-gate-failed">
-        <p className="text-lg font-black text-white">🔞 Not yet — come back soon!</p>
+        <p className="text-lg font-black text-white">🔞 Not yet; come back soon!</p>
         <p className="mt-2 text-sm text-slate-300">
           {title} is rated <b className="text-white">{RATING_LABEL[rating]}</b>. Based on the date you entered,
           you can play it in <b className="text-white">{failed.wait}</b> (on {failed.eligibleDateISO}).
@@ -87,7 +87,7 @@ export function AgeGate({
   return (
     <div className="overflow-hidden rounded-2xl border border-white/15 bg-black p-6 sm:p-10" data-testid="age-gate">
       <p className="text-lg font-black text-white">
-        🔞 Age check — {title} is rated {RATING_LABEL[rating]}
+        🔞 Age check - {title} is rated {RATING_LABEL[rating]}
       </p>
       <p className="mt-2 text-sm text-slate-300">
         {rating === "adults"
@@ -112,11 +112,11 @@ export function AgeGate({
       />
       {invalid && (
         <p role="alert" className="mt-2 text-sm text-amber-200">
-          That date doesn&apos;t look right — please pick your real date of birth from the calendar.
+          That date doesn&apos;t look right; please pick your real date of birth from the calendar.
         </p>
       )}
       <p className="mt-3 text-xs text-slate-500">
-        🔒 Your date of birth is checked on this device only and is never stored — not in our database, not in your
+        🔒 Your date of birth is checked on this device only and is never stored; not in our database, not in your
         browser. It disappears as soon as this check is done.
       </p>
       <div className="mt-4 flex flex-wrap gap-2">

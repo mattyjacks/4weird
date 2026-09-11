@@ -36,7 +36,7 @@ function clampLimit(v: unknown): number {
 }
 
 /**
- * GET /api/unitunite/rooms/[id]/messages?limit=&before= — read a room.
+ * GET /api/unitunite/rooms/[id]/messages?limit=&before=; read a room.
  * Members/owners auto-join on read so the user always sees their chats.
  * Every message carries is_bot + encoding; clients MUST render bot rows
  * with a [BOT] label and must NOT attempt decrypt on encoding='plain'.
@@ -88,9 +88,9 @@ export async function GET(req: Request) {
 }
 
 /**
- * POST /api/unitunite/rooms/[id]/messages — send a chat message.
+ * POST /api/unitunite/rooms/[id]/messages; send a chat message.
  * Human E2EE send: {ciphertext, session_key_id?, device?}.
- * Agent relay (the antisocial flow): {text, bot_name?, as_bot:true} —
+ * Agent relay (the antisocial flow): {text, bot_name?, as_bot:true} -
  * stored plaintext, ALWAYS labeled [BOT]. Session users need rooms.send;
  * `bot4weird_` keys need unitunite:send and are ALWAYS labeled [BOT]
  * (text → plain relay, or ciphertext passthrough for key-holding bots).
@@ -167,7 +167,7 @@ export async function POST(req: Request) {
 }
 
 /**
- * DELETE /api/unitunite/rooms/[id]/messages {message_id} — redact a message
+ * DELETE /api/unitunite/rooms/[id]/messages {message_id}; redact a message
  * (rooms.moderate, session users only; bots cannot redact).
  */
 export async function DELETE(req: Request) {

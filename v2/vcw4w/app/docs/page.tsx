@@ -37,7 +37,7 @@ export default function DocsHome() {
         crumb="Docs home"
         art={
           <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
-            {["ðŸŽ® Play", "ðŸ‘¾ Belong", "ðŸ¤– Automate", "ðŸª™ Earn"].map((t) => (
+            {["ðŸŽ® Play", "ðŸ‘¾ Belong", "ðŸ¤- Automate", "ðŸª™ Earn"].map((t) => (
               <span key={t} className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-white backdrop-blur">
                 {t}
               </span>

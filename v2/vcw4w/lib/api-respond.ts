@@ -46,7 +46,7 @@ type DbErrorShape = {
  * Database-failure responder. Logs the real Postgres/PostgREST error
  * server-side (code + message + details, truncated) so Vercel/server logs
  * always show WHY a query failed, while the client gets a stable public
- * message — raw PG text (constraint names, schema hints) must never leak to
+ * message; raw PG text (constraint names, schema hints) must never leak to
  * browsers, where it both confuses players and aids probing.
  */
 export function dbFail(
@@ -67,7 +67,7 @@ export function dbFail(
 
 /**
  * RPC-failure router. Our SECURITY DEFINER RPCs raise validation failures
- * with plain `raise exception`, which PostgREST surfaces as code P0001 —
+ * with plain `raise exception`, which PostgREST surfaces as code P0001 -
  * those map to client statuses via rpcStatus(). ANY other code (23503
  * foreign-key, 42P01 undefined table, PGRST*, …) is a database-side fault:
  * log it via dbFail and return 500 instead of leaking PG internals with a

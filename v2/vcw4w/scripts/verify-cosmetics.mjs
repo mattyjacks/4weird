@@ -115,7 +115,7 @@ assert(dev.isMultiplayerGame("gravegain2d") === false, "gravegain2d is singlepla
 assert(dev.isMultiplayerGame("no-such-game") === true, "unknown games fail closed to multiplayer");
 
 // Dev charges: bans + caps + consent, all enforced pure.
-const quote = "Revive x3 — 90 coins ($0.90)";
+const quote = "Revive x3 - 90 coins ($0.90)";
 const base = { gameSlug: "gravegain2d", amountCoins: 90, label: "Revive x3", idemKey: "abc12345", acceptedQuote: quote, expectedQuote: quote };
 assert(dev.validateDevCharge({ ...base, category: "singleplayer-boost" }).ok === true, "singleplayer boost must pass");
 assert(dev.validateDevCharge({ ...base, category: "multiplayer-boost" }).ok === false, "multiplayer-boost banned everywhere");
@@ -151,4 +151,4 @@ assert(policy.validateGameMonetization({ profile: "battle-pass", multiplayer: fa
 assert(policy.validateGameMonetization({ profile: "cosmetics-only", multiplayer: true }).ok === true, "upload: multiplayer cosmetics-only passes");
 assert(policy.priceLine(10) === "10 coins ($0.10)", "price line format");
 
-console.log("VERIFY_OK: unified cosmetics shop (24 x 10c) + guarded dev charges + universal monetization policy — static + executed pure tests pass.");
+console.log("VERIFY_OK: unified cosmetics shop (24 x 10c) + guarded dev charges + universal monetization policy; static + executed pure tests pass.");

@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 const PHASES = ["starting", "rendering", "done", "done_unstored", "failed"] as const;
 
 /**
- * POST /api/blender/progress {token, status, detail?, uploaded?} — phase
+ * POST /api/blender/progress {token, status, detail?, uploaded?}; phase
  * callbacks from the render worker. Token-authenticated (the pod has no
- * Origin, so no sameOrigin check here — the 64-hex job token IS the auth).
+ * Origin, so no sameOrigin check here; the 64-hex job token IS the auth).
  * The worker exits itself after a terminal phase, ending GPU billing.
  */
 export async function POST(req: Request) {

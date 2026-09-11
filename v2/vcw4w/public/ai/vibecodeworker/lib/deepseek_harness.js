@@ -20,7 +20,7 @@ function launchDeepSeekHarnessWeb({ apiKey = '', workspaceDir = '', port = 3080 
     const resolvedKey = apiKey || getResolvedApiKey('deepseek');
     // Security: port/workspaceDir arrive via IPC from the renderer. Coerce
     // the port to a bare number and confine the workspace to the worker
-    // tree — spawn runs with shell:true on Windows (needed for npx.cmd),
+    // tree; spawn runs with shell:true on Windows (needed for npx.cmd),
     // so no caller-controlled string may reach the command line.
     const portNum = Number(port);
     const safePort = Number.isInteger(portNum) && portNum >= 1024 && portNum <= 65535 ? portNum : 3080;

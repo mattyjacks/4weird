@@ -1,5 +1,5 @@
 /**
- * Game rentals — "renting games" play metering.
+ * Game rentals - "renting games" play metering.
  *
  * Per-second model (one rule everywhere, 25% cut INCLUDED, never on top).
  * Prices are still quoted in familiar "per hour" terms; the ledger simply
@@ -22,7 +22,7 @@
  *   - Every gross amount splits 25% platform / 75% provider with
  *     `cut_cc = round(gross_cc * 25 / 100)` and `provider = gross - cut`,
  *     so cut + provider ALWAYS equals gross (verified by a DB CHECK).
- *   - Game developers set their own rates, 0–100 coins per load and 0–100
+ *   - Game developers set their own rates, 0-100 coins per load and 0-100
  *     coins per hour (0 = free game). Only mapped developers
  *     (`game_developers`, onboarded by an admin) or admins may change rates.
  *   - The client heartbeats visible-tab seconds regularly (60 s cadence)
@@ -30,7 +30,7 @@
  *
  * Guests (signed out) never touch coins: they play free inside an IP-based
  * daily quota (`GUEST_FREE_LOADS_PER_DAY`), then keep playing by viewing
- * skippable house ads — no cloud saves, multiplayer, AI, or Buddy.
+ * skippable house ads; no cloud saves, multiplayer, AI, or Buddy.
  */
 
 export const GAME_LOAD_COINS_DEFAULT = 1;
@@ -150,4 +150,4 @@ export function quotePlaySeconds(seconds: number, coinsPerLoad: number, coinsPer
 }
 
 export const GAME_RENT_CUT_NOTE =
-  "Play metering includes the 25% platform cut — never added on top. 100 coins = $1.00. Billed per second, quoted per hour.";
+  "Play metering includes the 25% platform cut; never added on top. 100 coins = $1.00. Billed per second, quoted per hour.";

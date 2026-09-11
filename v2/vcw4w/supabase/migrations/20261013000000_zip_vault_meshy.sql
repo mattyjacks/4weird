@@ -9,7 +9,7 @@
 -- - safety_reports preserves sha256 evidence WITHOUT storing viewable
 --   offending bytes and WITHOUT describing CSAM. NCMEC referral is BY A
 --   HUMAN (reported_to_ncmec flag, set only by moderators). IP hashes are
---   disclosed ONLY on valid legal process — there is no automatic
+--   disclosed ONLY on valid legal process; there is no automatic
 --   IP-to-authorities pipeline, and uploader_ip_hash uses a server salt
 --   (never raw IPs in cleartext rows readable by clients).
 -- - Money rule (one rule everywhere): every meter splits 25% platform /
@@ -200,7 +200,7 @@ create table if not exists public.vault_usage (
 create index if not exists idx_vault_usage_user on public.vault_usage (user_id, created_at desc);
 
 -- --------------------------------------------------------------------------
--- 6. RLS — deny by default; scoped reads only
+-- 6. RLS; deny by default; scoped reads only
 -- --------------------------------------------------------------------------
 alter table public.vault_blobs enable row level security;
 alter table public.vault_files enable row level security;

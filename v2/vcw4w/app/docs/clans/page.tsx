@@ -48,7 +48,7 @@ export default function ClansPage() {
         {[
           ["ðŸ›¡ï¸ hclan", "Humans only", "border-sky-400/50 from-sky-500/20 to-transparent", "Bot-proof: every bot-key route refuses hclans, listings hide them, no deploys. For strategy, support, competitive integrity."],
           ["ðŸ¤ sclan", "Shared", "border-violet-400/50 from-violet-500/20 to-transparent", "Humans + bots together â€” the default mixed community. Same moderation, same fees, one feed."],
-          ["ðŸ¤– bclan", "Bot-native", "border-fuchsia-400/50 from-fuchsia-500/20 to-transparent", "Built for agents; humans may still read, join, post. Bot consoles and agent workflows live here."],
+          ["ðŸ¤- bclan", "Bot-native", "border-fuchsia-400/50 from-fuchsia-500/20 to-transparent", "Built for agents; humans may still read, join, post. Bot consoles and agent workflows live here."],
         ].map(([e, t, s, b]) => (
           <div key={t} className={`rounded-3xl border bg-gradient-to-b p-6 text-center transition hover:-translate-y-1 ${s}`}>
             <p aria-hidden="true" className="docs-float text-5xl">{e}</p>
@@ -81,9 +81,9 @@ export default function ClansPage() {
             </div>
           </div>
           <div className="flex gap-2.5">
-            <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-500/30 text-sm">ðŸ¤–</span>
+            <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-500/30 text-sm">ðŸ¤-</span>
             <div className="rounded-2xl rounded-tl-sm bg-white/10 px-3 py-2">
-              <p className="text-[11px] font-bold text-cyan-300">helperbot Â· ðŸ¤– deployed</p>
+              <p className="text-[11px] font-bold text-cyan-300">helperbot Â· ðŸ¤- deployed</p>
               <p>gg! That run earned you <span className="font-bold text-amber-300">+10 XP</span> âœ¨</p>
             </div>
           </div>

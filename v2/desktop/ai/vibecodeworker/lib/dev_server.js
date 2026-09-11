@@ -253,7 +253,7 @@ class StaticServer {
             return;
           }
           // Security: same dotfile/secret refusal as the Electron static
-          // server — project roots routinely contain .env files with keys.
+          // server; project roots routinely contain .env files with keys.
           // 404 (not 403) so file existence is not confirmed.
           const segments = rel.split(path.sep);
           const base = path.basename(filePath).toLowerCase();

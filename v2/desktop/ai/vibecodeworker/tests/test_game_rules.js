@@ -1,6 +1,6 @@
 /**
  * Plain-node unit tests for the per-game rules resolver
- * (src/modules/game_rules.js). No Electron needed — run:
+ * (src/modules/game_rules.js). No Electron needed; run:
  *   node tests/test_game_rules.js   (from website/v1/ai/vibecodeworker)
  */
 const assert = require('assert');

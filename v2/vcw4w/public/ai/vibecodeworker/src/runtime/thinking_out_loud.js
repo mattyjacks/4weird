@@ -1,6 +1,6 @@
 /**
  * Live, deliberately brief playtest commentary.
- * It translates a completed decision into a public-facing 1–2 sentence note;
+ * It translates a completed decision into a public-facing 1-2 sentence note;
  * it never exposes prompts, private reasoning chains, keys, or screenshots.
  */
 const MAX_COMMENTARY_CHARS = 260;

@@ -55,7 +55,7 @@ export default function Page() {
             Rent compute
           </Link>
           <Link
-            href="/teams"
+            href="/squads"
             className="rounded-full border border-white/20 px-6 py-3 text-center font-semibold transition hover:bg-white/10"
           >
             Try UnitUnite
@@ -100,7 +100,7 @@ export default function Page() {
               Base + 25% <span className="text-base font-semibold text-slate-400">included, not on top</span>
             </p>
             <p className="mt-3 text-sm text-slate-300">
-              Rent AI agents and team cloud by the hour or second. One gross coin price covers the
+              Rent AI agents and squad cloud by the hour or second. One gross coin price covers the
               provider + our 25% platform cut.
             </p>
             <ul className="mt-5 space-y-2.5">
@@ -124,19 +124,19 @@ export default function Page() {
               $420<span className="text-base font-semibold text-slate-400">/mo per org + 15% compute markup</span>
             </p>
             <p className="mt-3 text-sm text-slate-300">
-              Plug in your own RunPod / DigitalOcean keys. You pay providers at cost — we add a
+              Plug in your own RunPod / DigitalOcean keys. You pay providers at cost; we add a
               flat $420/mo platform fee plus a 15% metered API/compute premium for orchestration.
               Includes up to 100 user seats per org; extra seats $4.20/mo each. Need scale?
-              Enterprise quotes go down to as little as 9% markup — Talk to Sales.
+              Enterprise quotes go down to as little as 9% markup - Talk to Sales.
             </p>
             <ul className="mt-5 space-y-2.5">
               <Check>$420/mo per org: up to 100 seats, workspaces, escrow-free metering, support + self-host help</Check>
-              <Check>Extra seats $4.20/mo each — add as your org grows</Check>
+              <Check>Extra seats $4.20/mo each; add as your org grows</Check>
               <Check>15% API/compute markup on your at-cost bills (vs 25% on cloud)</Check>
-              <Check>Your keys, your limits, your invoices — we never hold funds</Check>
+              <Check>Your keys, your limits, your invoices; we never hold funds</Check>
             </ul>
             <Link
-              href="/teams"
+              href="/squads"
               className="mt-6 block rounded-full border border-amber-300/60 px-5 py-3 text-center font-bold text-amber-200 transition hover:bg-amber-300/10"
             >
               Go self-hosted
@@ -155,7 +155,7 @@ export default function Page() {
             even loads under 1 MB pay their exact fraction, down to 1 centicentcoin (0.01 coins). Running play
             costs the <strong className="text-white">hourly rate (default 1 coin/hr)</strong>, billed{" "}
             <strong className="text-white">per second from the first second</strong> â€” that&apos;s 100 centicentcoins
-            spread over 60 minutes Ã— 60 seconds, so you never pay for time you didn&apos;t play. Every 5 hours a
+            spread over 60 minutes Ã- 60 seconds, so you never pay for time you didn&apos;t play. Every 5 hours a
             â€œstill playing?â€ check asks you to confirm metering continues (the game keeps running either way). AI
             features meter separately on top. Replaying the same version within 24 hours is never double-billed.
             Developers set their own rates up to <strong className="text-white">100 coins/hour</strong> (0 = free
@@ -220,14 +220,14 @@ export default function Page() {
               for orchestration, workspaces, messaging, self-host help, and support. Each org
               includes <strong className="text-white">100 seats</strong>; additional seats are{" "}
               <strong className="text-white">$4.20/mo each</strong>. No escrow, no markups hiding
-              anywhere else. Self-hosting requires a current paid plan — there is no free
+              anywhere else. Self-hosting requires a current paid plan; there is no free
               self-host right.
             </p>
             <ul className="mt-5 space-y-2.5">
               <Check>$420/mo per org covers 100 seats + unlimited workspaces + team seats on your stack</Check>
               <Check>15% metered API/compute markup settled monthly in coins or card</Check>
-              <Check>Enterprise / hyperscaler quotes down to as little as 9% markup — Talk to Sales</Check>
-              <Check>Cancel anytime — your keys and data stay yours</Check>
+              <Check>Enterprise / hyperscaler quotes down to as little as 9% markup - Talk to Sales</Check>
+              <Check>Cancel anytime; your keys and data stay yours</Check>
             </ul>
           </div>
         </div>
@@ -281,7 +281,7 @@ export default function Page() {
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-300">Private license · not open source</p>
           <h2 className="mt-2 text-2xl font-black sm:text-3xl">VibeCodeWorker licensing, plainly stated</h2>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300">
-            The 4weird platform, VibeCodeWorker, and the games in this repo are proprietary — all
+            The 4weird platform, VibeCodeWorker, and the games in this repo are proprietary; all
             rights reserved. Full text lives in the repo <code className="text-cyan-300">LICENSE</code> file
             and the binding Terms at <Link href="/terms" className="text-cyan-200 underline">/terms</Link>.
             What follows is the pricing-page summary; where they differ, the LICENSE + Terms + your
@@ -289,18 +289,18 @@ export default function Page() {
           </p>
           <div className="mt-6 grid gap-4 lg:grid-cols-2">
             <div className="rounded-2xl border border-amber-300/30 bg-black/30 p-5">
-              <h3 className="font-black text-amber-200">Mid-tier self-host — $420/mo per org</h3>
+              <h3 className="font-black text-amber-200">Mid-tier self-host - $420/mo per org</h3>
               <ul className="mt-3 space-y-2.5">
                 <Check>Up to 100 user seats included; additional seats $4.20/mo each</Check>
                 <Check>Permission + help to self-host VibeCodeWorker on your infrastructure</Check>
                 <Check>15% API / compute markup over at-cost provider bills</Check>
-                <Check>No free or implied self-host right — a current paid plan is required</Check>
+                <Check>No free or implied self-host right; a current paid plan is required</Check>
               </ul>
             </div>
             <div className="rounded-2xl border border-cyan-300/30 bg-black/30 p-5">
-              <h3 className="font-black text-cyan-200">Enterprise / hyperscaler — Get a Quote</h3>
+              <h3 className="font-black text-cyan-200">Enterprise / hyperscaler - Get a Quote</h3>
               <ul className="mt-3 space-y-2.5">
-                <Check>Custom monthly pricing — Talk to Sales (matt@mattyjacks.com)</Check>
+                <Check>Custom monthly pricing - Talk to Sales (matt@mattyjacks.com)</Check>
                 <Check>Volume API / compute markup down to as little as 9%</Check>
                 <Check>Scale, term, prepayment, and support scope set the final number</Check>
                 <Check>No enterprise rights until a signed order or written quote is in place</Check>
@@ -308,10 +308,10 @@ export default function Page() {
             </div>
           </div>
           <ul className="mt-6 space-y-2.5">
-            <Check>25% platform cut is part of every hosted price (25% platform / 75% provider or creator), never on top — routing around metering or the cut violates the license</Check>
-            <Check>Contributions assign to us: work you submit through the platform is assigned to MattyJacks LLC (exclusive perpetual license where assignment is not possible) — contributors do not retain ownership, and we may improve, modify, or remove games without further permission</Check>
-            <Check>Attribution required: games built or tested with VibeCodeWorker must credit “Built with help from 4weird VibeCodeWorker — 4weird.com/vibecodeworker” in the game credits</Check>
-            <Check>Prepay preferred: fees are due as quoted plus taxes; late amounts may bear interest and collection costs where allowed — we reserve the right to collect amounts owed by any lawful means (charge on file, suspension, offset, collections, court)</Check>
+            <Check>25% platform cut is part of every hosted price (25% platform / 75% provider or creator), never on top; routing around metering or the cut violates the license</Check>
+            <Check>Contributions assign to us: work you submit through the platform is assigned to MattyJacks LLC (exclusive perpetual license where assignment is not possible); contributors do not retain ownership, and we may improve, modify, or remove games without further permission</Check>
+            <Check>Attribution required: games built or tested with VibeCodeWorker must credit “Built with help from 4weird VibeCodeWorker - 4weird.com/vibecodeworker” in the game credits</Check>
+            <Check>Prepay preferred: fees are due as quoted plus taxes; late amounts may bear interest and collection costs where allowed; we reserve the right to collect amounts owed by any lawful means (charge on file, suspension, offset, collections, court)</Check>
           </ul>
         </div>
       </section>
@@ -328,7 +328,7 @@ export default function Page() {
           <p className="mt-4 max-w-2xl text-sm text-slate-400">
             Changed your mind? Unspent coins from purchases made in the last 90 days can be refunded
             (pro-rated when part of a pack is already spent). Free coins are never refundable. Request
-            a refund from your account page — refunded lots are marked refunded.
+            a refund from your account page; refunded lots are marked refunded.
           </p>
         </div>
       </section>
@@ -348,7 +348,7 @@ export default function Page() {
             },
             {
               q: "What does Self-Hosted $420/mo include?",
-              a: "Up to 100 seats per org (extra seats $4.20/mo each), unlimited workspaces, projects, messaging, cloud orchestration against your own keys, self-host help, and support. Compute itself bills your providers at cost plus the 15% API/compute markup. Enterprise quotes go down to 9% — Talk to Sales.",
+              a: "Up to 100 seats per org (extra seats $4.20/mo each), unlimited workspaces, projects, messaging, cloud orchestration against your own keys, self-host help, and support. Compute itself bills your providers at cost plus the 15% API/compute markup. Enterprise quotes go down to 9% - Talk to Sales.",
             },
             {
               q: "Can I switch between Cloud and BYOK?",
@@ -376,7 +376,7 @@ export default function Page() {
             },
             {
               q: "Do I have to credit VibeCodeWorker?",
-              a: "Yes, when you used it. Games built or tested with VibeCodeWorker must carry a visible credit: Built with help from 4weird VibeCodeWorker — 4weird.com/vibecodeworker. Removing a required credit can lead to delisting.",
+              a: "Yes, when you used it. Games built or tested with VibeCodeWorker must carry a visible credit: Built with help from 4weird VibeCodeWorker - 4weird.com/vibecodeworker. Removing a required credit can lead to delisting.",
             },
             {
               q: "What are the self-host seat limits?",
@@ -384,7 +384,7 @@ export default function Page() {
             },
             {
               q: "What if I do not pay?",
-              a: "We prefer prepayment to avoid interruptions. Fees are due as quoted plus taxes, and late amounts may bear interest and collection costs where allowed. We reserve the right to collect amounts owed by any lawful means — including charging the method on file, suspending seats or keys, offsetting credits, or pursuing collections or court claims.",
+              a: "We prefer prepayment to avoid interruptions. Fees are due as quoted plus taxes, and late amounts may bear interest and collection costs where allowed. We reserve the right to collect amounts owed by any lawful means; including charging the method on file, suspending seats or keys, offsetting credits, or pursuing collections or court claims.",
             },
             {
               q: "Do guests have to pay or watch ads?",

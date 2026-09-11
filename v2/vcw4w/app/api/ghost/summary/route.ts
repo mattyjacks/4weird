@@ -11,7 +11,7 @@ function isUuid(v: unknown): string {
   return /^[0-9a-f-]{36}$/i.test(s) ? s : "";
 }
 
-/** GET /api/ghost/summary?org=<id> — one-round-trip book for the /timer page. */
+/** GET /api/ghost/summary?org=<id>; one-round-trip book for the /timer page. */
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
@@ -24,7 +24,7 @@ export async function GET(req: Request) {
   return ok({ summary });
 }
 
-/** POST /api/ghost/summary {org_id} — same book via body (for large clients). */
+/** POST /api/ghost/summary {org_id}; same book via body (for large clients). */
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);

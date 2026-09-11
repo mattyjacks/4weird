@@ -91,7 +91,7 @@ export function BuddyAvatarFallback({ type, label }: { type: BuddyAvatarType; la
   return (
     <div className="flex h-56 flex-col items-center justify-center gap-1 rounded-xl bg-black/40 text-5xl" role="img" aria-label={`${label} avatar (3D unavailable)`}>
       <span>{face}</span>
-      <span className="text-xs text-slate-400">3D avatar unavailable offline — {label} is resting in 2D.</span>
+      <span className="text-xs text-slate-400">3D avatar unavailable offline - {label} is resting in 2D.</span>
     </div>
   );
 }
@@ -108,7 +108,7 @@ export type BuddyAvatarProps = {
   speaking: boolean;
   /** Buddy voice <audio> element (analyser taps it without changing sound). */
   outputEl: HTMLAudioElement | null;
-  /** Live mic stream (analyser only — never recorded or sent). */
+  /** Live mic stream (analyser only; never recorded or sent). */
   micStream: MediaStream | null;
   /** Equipped wardrobe (hats, glasses, outfits, accessories, effects). */
   loadout: AvatarLoadout;
@@ -213,7 +213,7 @@ export function BuddyAvatar(props: BuddyAvatarProps) {
           } catch { /* recolor is cosmetic */ }
         };
 
-        // Mic analyser (level only — the stream never leaves the device).
+        // Mic analyser (level only; the stream never leaves the device).
         try {
           if (stateRef.current.micStream) {
             const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;

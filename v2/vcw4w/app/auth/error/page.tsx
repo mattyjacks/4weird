@@ -9,7 +9,7 @@ async function ErrorContent({
 }) {
   const params = await searchParams;
 
-  // Map provider error codes to generic messages — never reflect raw
+  // Map provider error codes to generic messages; never reflect raw
   // Supabase error text (leaks provider internals).
   const GENERIC: Record<string, string> = {
     access_denied: "Access was denied.",

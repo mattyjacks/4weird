@@ -82,7 +82,7 @@ export default function GameAiBuddyPage() {
                 : "border-border bg-card"
             }`}
           >
-            <p aria-hidden="true" className="text-xl">ðŸ—£ï¸</p>
+            <p aria-hidden="true" className="text-xl">ðŸ-£ï¸</p>
             <p className="mt-1 text-xs font-black">{v}</p>
             {v === "Nova" && <p className="text-[10px] font-bold text-rose-500">DEFAULT</p>}
           </div>

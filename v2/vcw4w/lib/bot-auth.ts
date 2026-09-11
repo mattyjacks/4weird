@@ -14,7 +14,7 @@
  *   unitunite:read  - GET /api/unitunite/rooms, /api/unitunite/rooms/[id]/messages
  *   unitunite:send  - POST /api/unitunite/rooms (open a room), /api/unitunite/rooms/[id]/messages (send)
  *                     UnitUnite sends from a bot key are ALWAYS labeled [BOT].
- *   code:submit    - POST /api/code/zip (game .zip submissions, ≤69 MB)
+  *   code:submit    - POST /api/code/zip (game .zip submissions, ≤50 MB)
  *   code:audit     - POST /api/code/[id]/audit (coin-metered code audit)
  *   code:review    - moderator review queue reads/triage (admin-gated)
  *   vault:read     - GET  /api/vault/blobs (own-scope reads only)

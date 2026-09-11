@@ -108,7 +108,7 @@ export function AccessibilityControls() {
           />
           <Toggle
             label="Large click targets"
-            hint="Bigger buttons and stronger focus rings — easier for tremor, touch, and gaze."
+            hint="Bigger buttons and stronger focus rings; easier for tremor, touch, and gaze."
             checked={settings.largeTargets}
             onChange={(largeTargets) => update({ largeTargets })}
           />
@@ -152,7 +152,7 @@ export function AccessibilityControls() {
         </fieldset>
         {isColorblindMode(settings.colorblind) && settings.colorblind !== "none" && (
           <p role="status" className="mt-2 text-sm text-cyan-200">
-            Previewing <b>{COLORBLIND_MODES.find((m) => m.id === settings.colorblind)?.label}</b> — open any game and
+            Previewing <b>{COLORBLIND_MODES.find((m) => m.id === settings.colorblind)?.label}</b>; open any game and
             the filter follows you into the frame.
           </p>
         )}
@@ -163,7 +163,7 @@ export function AccessibilityControls() {
           👀 Eye tracker mode
         </h2>
         <p className="mt-1 text-sm text-slate-300">
-          Works with any eye tracker that moves the mouse (Tobii, etc.) — hover or look at a button and it
+          Works with any eye tracker that moves the mouse (Tobii, etc.); hover or look at a button and it
           clicks itself after the dwell time. No camera permission needed for this mode.
         </p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -199,7 +199,7 @@ export function AccessibilityControls() {
           <b className="text-white">left wink → left click</b>, <b className="text-white">right wink → right click</b>,
           and <b className="text-white">smile → your chosen key</b>. Blinking both eyes does nothing (so natural
           blinks never fire). Turn on the <b className="text-white">head pointer</b> and your nose aims an on-screen
-          ✛ cursor — tell it where your webcam sits so side/phone angles stay accurate, then calibrate while
+          ✛ cursor; tell it where your webcam sits so side/phone angles stay accurate, then calibrate while
           looking at the screen center. Video never leaves your device.
         </p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -277,7 +277,7 @@ export function AccessibilityControls() {
           🔘 Single-switch access
         </h2>
         <p className="mt-1 text-sm text-slate-300">
-          One-switch auto-scan steps focus through every control on a timer — press Space/Enter (or any switch
+          One-switch auto-scan steps focus through every control on a timer; press Space/Enter (or any switch
           mapped to them) to choose the highlighted one. Extra features: every game frame gets a strong focus
           ring, and the face controller&apos;s test buttons verify click wiring without a camera model.
         </p>

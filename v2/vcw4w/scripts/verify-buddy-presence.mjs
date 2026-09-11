@@ -1,4 +1,4 @@
-// Verifier: Buddy presence — mic/VAD/barge-in memory, 3 avatars, camera.
+// Verifier: Buddy presence; mic/VAD/barge-in memory, 3 avatars, camera.
 // Static contract checks + REAL execution of lib/buddy-voice.ts (transpiled
 // with the repo typescript into a temp dir, then asserted under node).
 // Run: node scripts/verify-buddy-presence.mjs (no keys, no network).
@@ -108,7 +108,7 @@ for (const token of [
 }
 
 // 7. REAL execution: transpile buddy-voice.ts -> temp -> require -> assert.
-// (tsc is invoked as a node script — no shell/`npx` resolution involved.)
+// (tsc is invoked as a node script; no shell/`npx` resolution involved.)
 const tmp = mkdtempSync(join(tmpdir(), "buddy-voice-"));
 const tscBin = join(root, "node_modules", "typescript", "bin", "tsc");
 assert(existsSync(tscBin), "repo typescript is required to execute pure-module tests");
@@ -140,4 +140,4 @@ const pruned = bv.pruneHistoryWithInterruptions(turns, 8);
 assert(pruned.length === 8, "prune must cap length");
 assert(pruned.some((t) => t.text === "t1"), "prune must keep the interrupted turn");
 
-console.log("VERIFY_OK: buddy presence (mic/VAD/barge-in, 3 avatars, camera) — static + executed pure tests pass.");
+console.log("VERIFY_OK: buddy presence (mic/VAD/barge-in, 3 avatars, camera); static + executed pure tests pass.");

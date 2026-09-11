@@ -25,10 +25,10 @@ function nameOf(members: Member[], id: string): string {
 }
 
 /**
- * GhostTimer — the /timer/ work clock for orgs. Clock in on a contract, beat
+ * GhostTimer; the /timer/ work clock for orgs. Clock in on a contract, beat
  * every 60s with visible-tab seconds (activity % = active beats / total),
  * clock out, invoice tracked seconds into Ghost Cash debts. Debts are
- * hypothetical IOUs (👻 has no value) — mark/settle/void from the book.
+ * hypothetical IOUs (👻 has no value); mark/settle/void from the book.
  * Screen proof is worker-attached (manual screenshot upload), never captured.
  */
 export function GhostTimer() {
@@ -110,7 +110,7 @@ export function GhostTimer() {
       beatAccum.current = 0;
       setMessage(upworkSync
         ? `Clocked in with Upwork Dual-Timer mode enabled! Running alongside official Upwork timer.`
-        : `Clocked in — tracking to the second. Beats flush every 60s while this tab is visible.`);
+        : `Clocked in; tracking to the second. Beats flush every 60s while this tab is visible.`);
       void load(orgId);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to clock in.");
@@ -139,7 +139,7 @@ export function GhostTimer() {
   async function invoice(timerId: string) {
     try {
       const r = await request<{ debt: Debt }>("/api/ghost/timer", { method: "POST", body: JSON.stringify({ action: "invoice", timer_id: timerId }) });
-      setMessage(`Invoiced ${fmtGhost(r.debt.amount_ghost)} — payer owes worker (hypothetically, always).`);
+      setMessage(`Invoiced ${fmtGhost(r.debt.amount_ghost)}; payer owes worker (hypothetically, always).`);
       void load(orgId);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to invoice.");
@@ -149,7 +149,7 @@ export function GhostTimer() {
   async function settle(debtId: string, status: string) {
     try {
       await request("/api/ghost/debts", { method: "POST", body: JSON.stringify({ action: "settle", debt_id: debtId, status }) });
-      setMessage(status === "settled" ? "Debt settled (in Ghost — no money moved, ever)." : "Debt voided.");
+      setMessage(status === "settled" ? "Debt settled (in Ghost; no money moved, ever)." : "Debt voided.");
       void load(orgId);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to update debt.");
@@ -164,7 +164,7 @@ export function GhostTimer() {
       <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
         <h2 className="text-xl font-bold">👻 Ghost Cash timer</h2>
         <p className="mt-2 text-sm text-slate-300">
-          Hypothetical IOUs for org work — <b>not money, no value, no cash-out</b>, just a ruler for who owes whom.
+          Hypothetical IOUs for org work - <b>not money, no value, no cash-out</b>, just a ruler for who owes whom.
           Clock in, work with this tab visible (activity % proves presence), clock out, invoice tracked seconds.
           Proof screenshots are attached by the worker, never captured.
         </p>
@@ -268,7 +268,7 @@ function GhostContracts({ orgId, members, contracts, refresh, me }: { orgId: str
   }
   return (
     <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
-      <h3 className="text-lg font-bold">Contracts (rate in 👻/hour — hypothetical)</h3>
+      <h3 className="text-lg font-bold">Contracts (rate in 👻/hour; hypothetical)</h3>
       {(contracts ?? []).map((c) => (
         <div key={c.id} className="mt-2 flex flex-wrap justify-between gap-2 border-t border-white/10 pt-2 text-sm">
           <span><b>{c.title}</b> · {nameOf(members, c.worker_id)} works · {nameOf(members, c.payer_id)} owes · {fmtGhost(c.rate_ghost)}/h · {c.status}</span>
@@ -344,7 +344,7 @@ function GhostDebts({ members, debts, balances, orgId, refresh, onSettle }: { me
   }
   return (
     <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
-      <h3 className="text-lg font-bold">Who owes whom (👻 — not money)</h3>
+      <h3 className="text-lg font-bold">Who owes whom (👻; not money)</h3>
       {(balances ?? []).map((b) => (
         <div key={b.user_id} className="mt-2 flex justify-between gap-2 border-t border-white/10 pt-2 text-sm">
           <span>{nameOf(members, b.user_id)}</span>

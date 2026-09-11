@@ -5,8 +5,8 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/orgs/roles — the assignable role catalog: classic ranks
- * (owner/admin/billing/…) plus warlord ranks — Lord (org leader), Captain
+ * GET /api/orgs/roles; the assignable role catalog: classic ranks
+ * (owner/admin/billing/…) plus warlord ranks - Lord (org leader), Captain
  * (team leader), Infantry (regular player), Banker (finance, full write),
  * Banker read-only. Labels + scopes for role pickers; permission details
  * stay server-side (effective power is checked per action, never trusted

@@ -3,13 +3,13 @@ import Link from "next/link";
 import { MarketingPage } from "@/components/site/marketing-page";
 
 export const metadata: Metadata = {
-  title: "Technology — How 4weird Works",
+  title: "Technology - How 4weird Works",
   description:
     "How 4weird Games works: Next.js platform, preserved original game runtimes, Supabase identity, RunPod cloud compute, and automated parity checks that protect every legacy experience.",
   keywords: ["Next.js game platform", "RunPod cloud gaming", "browser game runtime", "game preservation"],
   alternates: { canonical: "/tech" },
   openGraph: {
-    title: "4weird Technology — How 4weird Works",
+    title: "4weird Technology - How 4weird Works",
     description:
       "Next.js platform, preserved game runtimes, Supabase identity, RunPod cloud, and automated parity checks.",
   },

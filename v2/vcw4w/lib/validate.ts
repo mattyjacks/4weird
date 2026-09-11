@@ -31,7 +31,7 @@ export function isPassword(value: unknown): string {
 
 /** Login-shape check: length-bounded only, NO strength classes. Strength is
  *  enforced when a password is CHOSEN (signup/change), never when it is
- *  presented — otherwise accounts created before the rule could not log in. */
+ *  presented; otherwise accounts created before the rule could not log in. */
 export function isLoginPassword(value: unknown): string {
   const v = String(value ?? "");
   if (v.length < 1 || v.length > 128) return "";
@@ -103,7 +103,7 @@ export function clientIp(request: Request): string {
   return ip;
 }
 
-/** Actual POST body byte size — never trust Content-Length (missing on chunked). */
+/** Actual POST body byte size; never trust Content-Length (missing on chunked). */
 export function bodyByteSize(value: unknown): number {
   try {
     return Buffer.byteLength(typeof value === "string" ? value : JSON.stringify(value), "utf8");

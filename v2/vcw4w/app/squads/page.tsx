@@ -1,14 +1,15 @@
 ﻿import type { Metadata } from "next";
 import { TeamWorkspace } from "@/components/teams/team-workspace";
+import { PartyHub } from "@/components/parties/party-hub";
 import { UNITUNITE_BLURB, UNITUNITE_NAME, UNITUNITE_TAGLINE } from "@/lib/unitunite";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/teams" },
+  alternates: { canonical: "/squads" },
   title: `${UNITUNITE_NAME} â€” workspaces, projects, messaging, cloud`,
   description: `${UNITUNITE_BLURB} Pay-as-you-go cloud settled in Vibe Coins, 25% workspace compute cut included.`,
 };
 
-export default function TeamsPage() {
+export default function SquadsPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       
@@ -22,6 +23,7 @@ export default function TeamsPage() {
         </p>
         <div className="mt-10">
           <TeamWorkspace />
+          <PartyHub />
         </div>
       </section>
     </main>

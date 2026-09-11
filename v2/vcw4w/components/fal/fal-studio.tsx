@@ -40,7 +40,7 @@ export function FalStudio() {
   const [imageUrl, setImageUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<GenerateResponse | null>(null);
-  const [message, setMessage] = useState("Pick a tool — every price already includes the 25% cut.");
+  const [message, setMessage] = useState("Pick a tool; every price already includes the 25% cut.");
 
   const load = useCallback(async () => {
     try {
@@ -76,9 +76,9 @@ export function FalStudio() {
       if (!res.ok) {
         setMessage(String(body.error ?? `Request failed (${res.status})`));
       } else if (body.started) {
-        setMessage(`Queued! Request ${body.request_id} — poll status below. ${body.quote?.gross ?? ""} coins gross.`);
+        setMessage(`Queued! Request ${body.request_id}; poll status below. ${body.quote?.gross ?? ""} coins gross.`);
       } else {
-        setMessage(body.hint ?? "fal.ai is not configured on this deployment — quote shown, nothing charged.");
+        setMessage(body.hint ?? "fal.ai is not configured on this deployment; quote shown, nothing charged.");
       }
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "Unable to queue.");
@@ -105,7 +105,7 @@ export function FalStudio() {
     <div className="space-y-8">
       <div className="flex flex-wrap items-center gap-2">
         <span className={`rounded-full px-3 py-1 text-xs font-bold ${configured ? "bg-emerald-400/15 text-emerald-200" : "bg-amber-400/15 text-amber-200"}`}>
-          {configured ? "● fal.ai live" : "● fal.ai not configured — quotes only"}
+          {configured ? "● fal.ai live" : "● fal.ai not configured; quotes only"}
         </span>
         <span className="text-xs text-slate-400">{FAL_CUT_NOTE}</span>
       </div>
@@ -146,7 +146,7 @@ export function FalStudio() {
           </div>
           <div className="flex flex-wrap gap-3">
             <button onClick={() => void run()} disabled={busy || (!!active?.needsPrompt && prompt.trim().length < 3)} className="rounded-lg bg-fuchsia-300 px-5 py-2 font-bold text-slate-950 disabled:opacity-50">
-              {busy ? "Queuing…" : `✨ Generate — ${active?.coinsPerUnit} coins/${active?.unit} gross`}
+              {busy ? "Queuing…" : `✨ Generate - ${active?.coinsPerUnit} coins/${active?.unit} gross`}
             </button>
             {!!result?.request_id && (
               <button onClick={() => void poll()} className="rounded-lg border border-white/15 px-4 py-2 font-semibold">Refresh status</button>

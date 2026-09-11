@@ -14,7 +14,7 @@ function isUuid(v: unknown): string {
 
 /**
  * POST /api/ghost/contracts {org_id, title, worker_id, payer_id, rate_ghost}
- * — open a Ghost Cash work contract (hypothetical IOUs only, never money).
+ *; open a Ghost Cash work contract (hypothetical IOUs only, never money).
  */
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);

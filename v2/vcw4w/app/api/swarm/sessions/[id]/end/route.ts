@@ -6,7 +6,7 @@ import { isUuid } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
-/** POST /api/swarm/sessions/[id]/end — retire a hired swarm. */
+/** POST /api/swarm/sessions/[id]/end; retire a hired swarm. */
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();

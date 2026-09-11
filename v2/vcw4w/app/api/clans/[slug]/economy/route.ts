@@ -17,7 +17,7 @@ function isUuid(v: unknown): string {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(s) ? s : "";
 }
 
-// GET /api/clans/[slug]/economy — public wallet/upkeep/ledger/channels view.
+// GET /api/clans/[slug]/economy; public wallet/upkeep/ledger/channels view.
 export async function GET(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const { slug: raw } = await params;
@@ -49,13 +49,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
   return ok({ clan, wallet: wallet ?? { balance: 0 }, ledger: ledger ?? [], channels: channels ?? [], rate: rate ?? null });
 }
 
-// POST /api/clans/[slug]/economy — owner + member + public revenue actions.
-// { action: "fund", coins } — owner moves personal coins into the wallet.
-// { action: "donate", coins } — ANY member chips in for upkeep (1:1, no cut).
-// { action: "channel", kind, label, target_url? } — owner adds a channel.
-// { action: "type", clan_type } — owner switches hclan/sclan/bclan.
-// { action: "ad-view", channel_id } — anyone, IP-throttled, credits 0.01.
-// { action: "affiliate-click", channel_id } — anyone, IP-throttled, credits 0.05.
+// POST /api/clans/[slug]/economy; owner + member + public revenue actions.
+// { action: "fund", coins }; owner moves personal coins into the wallet.
+// { action: "donate", coins } - ANY member chips in for upkeep (1:1, no cut).
+// { action: "channel", kind, label, target_url? }; owner adds a channel.
+// { action: "type", clan_type }; owner switches hclan/sclan/bclan.
+// { action: "ad-view", channel_id }; anyone, IP-throttled, credits 0.01.
+// { action: "affiliate-click", channel_id }; anyone, IP-throttled, credits 0.05.
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const { slug: raw } = await params;
@@ -168,7 +168,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     // Leaving hclan dissolves the human-only guarantee: require explicit
     // confirmation and refuse silent downgrades.
     if (clanType !== "hclan" && String(input.confirmLeaveHclan ?? "") !== "yes") {
-      return fail("Leaving hclan requires { confirmLeaveHclan: 'yes' } — members joined a human-only clan.", 400);
+      return fail("Leaving hclan requires { confirmLeaveHclan: 'yes' }; members joined a human-only clan.", 400);
     }
     const { error } = await supabase.rpc("set_clan_type", { p_clan_id: clanId, p_clan_type: clanType });
     if (error) {

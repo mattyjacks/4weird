@@ -14,11 +14,11 @@ import {
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/openrouter-plays — run one of the 25 OpenRouter plays.
+ * POST /api/openrouter-plays; run one of the 25 OpenRouter plays.
  * Body: { playId: string, input?: string }.
  *
  * With OPENROUTER_API_KEY set it calls OpenRouter chat-completions
- * (15s timeout); without it — or on any upstream failure — it returns a
+ * (15s timeout); without it; or on any upstream failure; it returns a
  * clearly-labelled offline fallback at no cost. No auth, no DB, so it
  * works the first time on a fresh clone. Rate-limited per IP.
  */
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
       voiceId: play.voiceId,
       fallback: true,
       model: play.model,
-      note: "Set OPENROUTER_API_KEY for live OpenRouter output — this offline reply is free.",
+      note: "Set OPENROUTER_API_KEY for live OpenRouter output; this offline reply is free.",
     });
   }
 
@@ -103,12 +103,12 @@ export async function POST(req: Request) {
       voiceId: play.voiceId,
       fallback: true,
       model: play.model,
-      note: "Live OpenRouter failed — this offline reply is free.",
+      note: "Live OpenRouter failed; this offline reply is free.",
     });
   }
 }
 
-/** GET /api/openrouter-plays — list the 25 play ids (no key needed). */
+/** GET /api/openrouter-plays; list the 25 play ids (no key needed). */
 export async function GET() {
   const { OPENROUTER_PLAYS } = await import("@/lib/openrouter-plays");
   return ok({

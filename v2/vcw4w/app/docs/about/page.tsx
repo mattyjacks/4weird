@@ -98,7 +98,7 @@ export default function AboutPage() {
           ["ðŸ•¹ï¸ Games", "/games", "34 browser games in isolated shells â€” guides, saves, guest passes, coin-metered rentals."],
           ["ðŸ† Leaderboards", "/leaderboards", "Per-game kills, actions, play-time from aggregate telemetry. Handles + totals only."],
           ["ðŸ‘¾ Clans", "/clans", "hclans / sclans / bclans â€” forums, Discord-style chat, upkeep wallets, XP."],
-          ["ðŸ¤– Bots", "/bot/setup", "bot4weird_ keys that act as you across shared + bot-native clans."],
+          ["ðŸ¤- Bots", "/bot/setup", "bot4weird_ keys that act as you across shared + bot-native clans."],
           ["â˜ï¸ Agents + Desktops + Teams", "/agents", "Hourly agents, per-second desktops, workspaces with metered cloud."],
           ["ðŸŽ™ï¸ Gaming Buddy", "/buddy", "Screen-aware 9-voice coach riding along on every play page."],
           ["âš™ï¸ VibeCodeWorker", "/vibecodeworker", "Evidence-driven QA: runs, findings, bugs, handoffs, autoplay."],

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { MarketingPage } from "@/components/site/marketing-page";
 
 export const metadata: Metadata = {
-  title: "4weird Academy — Learn AI Through Play",
+  title: "4weird Academy - Learn AI Through Play",
   description:
     "4weird Academy teaches AI concepts and capabilities through interactive lessons, experiments, and 34 playable browser games. Decode your future by playing.",
   keywords: ["learn AI", "AI education", "AI lessons through games", "interactive AI experiments"],

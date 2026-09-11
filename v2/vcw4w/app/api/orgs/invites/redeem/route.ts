@@ -14,7 +14,7 @@ function statusOf(message: string): number {
 }
 
 /**
- * POST /api/orgs/invites/redeem {token} — join an org via an invite link.
+ * POST /api/orgs/invites/redeem {token}; join an org via an invite link.
  * Links carry the inviter's chosen role and may be capped (max_uses) and
  * expirable (expires_at). Joining moves 0 coins.
  */

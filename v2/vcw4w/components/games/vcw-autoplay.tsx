@@ -35,7 +35,7 @@ type StartOk = {
 
 /**
  * VibeCodeWorker autoplay panel. A RunPod CPU/GPU remote plays the game
- * by controlling the browser — locked on-site to 4weird games only.
+ * by controlling the browser; locked on-site to 4weird games only.
  * Xonotic is the single exception: GPU boosted + off-site + desktop app.
  */
 export function VcwAutoplay({ gameSlug, gameTitle }: { gameSlug: string; gameTitle: string }) {
@@ -88,12 +88,12 @@ export function VcwAutoplay({ gameSlug, gameTitle }: { gameSlug: string; gameTit
 
   return (
     <section aria-label="VibeCodeWorker autoplay" className="mt-4 rounded-2xl border border-cyan-300/30 bg-cyan-300/[.05] p-4">
-      <p className="text-sm font-black text-cyan-200">🎮 VibeCodeWorker autoplay — RunPod remote plays for you</p>
+      <p className="text-sm font-black text-cyan-200">🎮 VibeCodeWorker autoplay - RunPod remote plays for you</p>
       <p className="mt-1 text-xs text-slate-300">
         {isXonotic ? (
           <>
             Xonotic runs <b className="text-white">off-site in GPU boosted mode</b> (RunPod GPUs render + see the game).
-            The desktop VibeCodeWorker must be installed —{" "}
+            The desktop VibeCodeWorker must be installed -{" "}
             <Link href={VCW_DESKTOP_PATH} className="font-bold text-cyan-300 hover:underline">
               get it at {VCW_DESKTOP_PATH}
             </Link>{" "}
@@ -102,7 +102,7 @@ export function VcwAutoplay({ gameSlug, gameTitle }: { gameSlug: string; gameTit
         ) : (
           <>
             A CPU or GPU remote controls <b className="text-white">this browser tab only</b>, playing {gameTitle} on-site.
-            Browser control is locked to 4weird games — off-site mode stays off here (it exists only for Xonotic,
+            Browser control is locked to 4weird games; off-site mode stays off here (it exists only for Xonotic,
             GPU boosted + desktop app).
           </>
         )}
@@ -118,7 +118,7 @@ export function VcwAutoplay({ gameSlug, gameTitle }: { gameSlug: string; gameTit
           >
             {AUTOPLAY_RATES.map((r) => (
               <option key={r.compute} value={r.compute}>
-                {r.compute} — {r.coinsPerMinute} coins/min
+                {r.compute} - {r.coinsPerMinute} coins/min
               </option>
             ))}
           </select>
@@ -217,7 +217,7 @@ export function VcwAutoplay({ gameSlug, gameTitle }: { gameSlug: string; gameTit
             ~${Number(result.connection.hourlyUsd).toFixed(2)}/hr, per second
             {result.quote ? ` · max ~$${Number(result.quote.max_run_usd).toFixed(2)} / ${result.quote.minutes} min · ${result.quote.gross_coins} coins gross` : ""}.
           </p>
-          <p className="mt-1 text-slate-400">Watch the stream above — the worker is driving the locked game URL only.</p>
+          <p className="mt-1 text-slate-400">Watch the stream above; the worker is driving the locked game URL only.</p>
         </div>
       )}
       {result?.success && !result.started && (

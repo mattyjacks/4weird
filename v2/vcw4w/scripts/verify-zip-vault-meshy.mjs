@@ -154,4 +154,4 @@ const pkg = read("../package.json");
 if (!pkg.includes("verify:zip-vault-meshy")) fail("package.json must wire verify:zip-vault-meshy.");
 if (!/"test": "[^"]*verify:zip-vault-meshy/.test(pkg)) fail("npm test must run verify:zip-vault-meshy.");
 
-console.log("zip + vault + meshy integrity OK — 69 MB, 4 verdicts, strict scopes, 25% included, human-only referrals.");
+console.log("zip + vault + meshy integrity OK - 69 MB, 4 verdicts, strict scopes, 25% included, human-only referrals.");

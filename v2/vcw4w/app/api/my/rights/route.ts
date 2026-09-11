@@ -50,7 +50,7 @@ async function logRequest(
 }
 
 // ---------------------------------------------------------------------------
-// GET ?action=export — access/portability: JSON dump of the caller's own data.
+// GET ?action=export; access/portability: JSON dump of the caller's own data.
 // Auth + same-origin are not needed for GET shape, but auth IS required and
 // tight per-account rate limits stop bulk harvesting / spam.
 // ---------------------------------------------------------------------------
@@ -129,7 +129,7 @@ export async function GET(req: Request) {
       pick("clan_reports", "id,target_type,target_id,category,status,created_at", { reporter_id: id }),
       pick("clans", "id,slug,name,description,created_at", { owner_id: id }, 100),
       pick("bot_identities", "username,human_id,created_at", { user_id: id }, 10),
-      // Escrow/provider internals never exported — public card only.
+      // Escrow/provider internals never exported; public card only.
       pick("agent_listings", "id,name,runtime,provider_code,price_cents_per_hour,status,created_at", { owner_id: id }, 100),
       pick("rental_bookings", "id,listing_id,status,hours,created_at", { renter_id: id }, 100),
       pick("coin_ledger", "id,delta,reason,created_at", { user_id: id }, 500),
@@ -159,7 +159,7 @@ export async function GET(req: Request) {
   }
 
   // Family: child accounts WITHOUT secrets (password hashes and session
-  // tokens are never exported — same rule as bot key secrets). Scoped to
+  // tokens are never exported; same rule as bot key secrets). Scoped to
   // this parent's kids only (the service client bypasses RLS, so scope here).
   let family: unknown = null;
   try {
@@ -203,8 +203,8 @@ export async function GET(req: Request) {
 }
 
 // ---------------------------------------------------------------------------
-// POST { action: "request-delete" } — step 1: open a 30-minute deletion window.
-// POST { action: "confirm-delete", requestId, confirmation } — step 2: erase.
+// POST { action: "request-delete" }; step 1: open a 30-minute deletion window.
+// POST { action: "confirm-delete", requestId, confirmation }; step 2: erase.
 // Only the signed-in holder can delete their OWN account. Anything else
 // (family of a deceased user, authorized agents) goes through email review.
 // ---------------------------------------------------------------------------
@@ -563,7 +563,7 @@ export async function POST(req: Request) {
         .from("privacy_requests")
         .update({ status: "denied", note: `incomplete erasure: ${wipeErrors.slice(0, 5).join("; ").slice(0, 400)}` })
         .eq("id", row.id);
-      return fail("Deletion incomplete — some records could not be erased. Try again or email support.", 500);
+      return fail("Deletion incomplete; some records could not be erased. Try again or email support.", 500);
     }
 
     const { error: adminError } = await service.auth.admin.deleteUser(u.id);

@@ -16,12 +16,12 @@ import {
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/dev-charges — a game takes coins for a declared, consented action.
+ * POST /api/dev-charges; a game takes coins for a declared, consented action.
  * Body: { game_slug, category ("cosmetic"|"singleplayer-boost"), amount,
  *   label, idem, acceptedQuote, season?, chance?, odds?, kidsMode? }.
  *
  * Every protection fires before money moves: category allowlist (multiplayer
- * boosts can never be recorded — the RPC rejects them too), multiplayer gate,
+ * boosts can never be recorded; the RPC rejects them too), multiplayer gate,
  * 10k single-charge cap, exact consent-quote match, per-game daily cap,
  * idempotency (retries return the original receipt), monetization-profile +
  * region legality (kids block, chance odds/region gates, EU waiver receipt),
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
   const amountRaw = Number(input.amount);
   const labelRaw = String(input.label ?? "").replace(/\s+/g, " ").trim().slice(0, 80);
   const expectedQuote = labelRaw && Number.isFinite(amountRaw) && amountRaw > 0
-    ? `${labelRaw} — ${priceLine(Math.round(amountRaw * 100) / 100)}`
+    ? `${labelRaw} - ${priceLine(Math.round(amountRaw * 100) / 100)}`
     : "";
   const checked = validateDevCharge({
     gameSlug: input.game_slug ?? input.game,
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
   if (!legal.ok) return fail(legal.error, 403);
 
   try {
-    // Daily per-game cap (skipped pre-migration — the RPC is missing too,
+    // Daily per-game cap (skipped pre-migration; the RPC is missing too,
     // so nothing can be charged there anyway).
     let allowance = DEV_GAME_DAILY_CAP_COINS;
     try {
@@ -96,7 +96,7 @@ export async function POST(req: Request) {
       if (code !== "42P01") throw capErr;
     }
     if (checked.amount > allowance) {
-      return fail(`Daily limit for this game is ${DEV_GAME_DAILY_CAP_COINS} coins — ${allowance} left today.`, 402);
+      return fail(`Daily limit for this game is ${DEV_GAME_DAILY_CAP_COINS} coins - ${allowance} left today.`, 402);
     }
 
     const { data: row, error } = await supabase.rpc("charge_dev_action", {
@@ -115,7 +115,7 @@ export async function POST(req: Request) {
           metered: null,
           pendingMigration: true,
           quote: expectedQuote,
-          note: "Dev charges are quoted but not yet metered on this deploy — no coins moved.",
+          note: "Dev charges are quoted but not yet metered on this deploy; no coins moved.",
         });
       }
       if (msg.includes("insufficient balance")) return fail("Not enough coins for this charge.", 402);
@@ -139,7 +139,7 @@ export async function POST(req: Request) {
         rule: legal.receipt.rule,
         dailyLeft: Math.max(0, Math.round((allowance - checked.amount) * 100) / 100),
       },
-      note: receipt.duplicate === true ? "Already charged — returning the original receipt, no double charge." : undefined,
+      note: receipt.duplicate === true ? "Already charged; returning the original receipt, no double charge." : undefined,
     });
   } catch (error) {
     return dbFail("api/dev-charges", error, "Unable to complete charge.");

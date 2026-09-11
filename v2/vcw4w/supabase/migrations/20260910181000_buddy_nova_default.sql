@@ -4,7 +4,7 @@
 -- touches rows that still carry the old implicit default.
 --
 -- Context: the app default moved from Alloy to Nova (BUDDY_DEFAULT_VOICE in
--- lib/game-ai.ts). Existing sessions keep their stored voice — this only
+-- lib/game-ai.ts). Existing sessions keep their stored voice; this only
 -- changes the column default for rows created without an explicit voice.
 --
 -- Metering note (no ledger change): buddy turns meter at TRUE upstream cost

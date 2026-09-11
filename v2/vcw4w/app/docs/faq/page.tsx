@@ -7,7 +7,7 @@ import { faqJsonLd, jsonLdScript } from "@/lib/seo";
 export const metadata: Metadata = {
   title: "FAQ & support",
   description:
-    "Answers to the most common 4weird questions — coins, play, clans, bots, cloud, privacy — plus how to contact support and what to include.",
+    "Answers to the most common 4weird questions; coins, play, clans, bots, cloud, privacy; plus how to contact support and what to include.",
   keywords: ["4weird FAQ", "Vibe Coins FAQ", "4weird support", "4weird help"],
   alternates: { canonical: "/docs/faq" },
 };
@@ -20,13 +20,13 @@ const theme = {
 };
 
 const FAQS: [string, string, string][] = [
-  ["💰", "Is the 25% added on top?", "Never. Every coin price and every meter is gross — the 25% platform cut is already inside it. $1.00 always buys exactly 100 coins, and 75% goes to providers and makers."],
-  ["🎁", "Why can't I buy a 100-coin pack?", "100 coins is the free signup trial (once per person). Packs start at 500 so the trial stays special. Need an in-between amount? Use the custom 500–100,000 pack."],
+  ["💰", "Is the 25% added on top?", "Never. Every coin price and every meter is gross; the 25% platform cut is already inside it. $1.00 always buys exactly 100 coins, and 75% goes to providers and makers."],
+  ["🎁", "Why can't I buy a 100-coin pack?", "100 coins is the free signup trial (once per person). Packs start at 500 so the trial stays special. Need an in-between amount? Use the custom 500-100,000 pack."],
   ["🕹️", "How much does playing cost?", "About $0.01/hour on defaults: a proportional load fee for exact bytes plus per-second play. Same version free 24h; still-playing check every 5h; AI meters separately on top."],
-  ["👻", "Do guests pay or need accounts?", "No. 3 free loads/day, then instantly-skippable house ads with a 30-min banner. No saves, multiplayer, AI, or Buddy — sign in to unlock those."],
-  ["🚫", "Can I unmark a Cheat Mode save?", "No. cheat_mode:true is permanent — delete/recreate cannot launder it. Use a throwaway slot for experiments."],
+  ["👻", "Do guests pay or need accounts?", "No. 3 free loads/day, then instantly-skippable house ads with a 30-min banner. No saves, multiplayer, AI, or Buddy; sign in to unlock those."],
+  ["🚫", "Can I unmark a Cheat Mode save?", "No. cheat_mode:true is permanent; delete/recreate cannot launder it. Use a throwaway slot for experiments."],
   ["⏳", "My clan post is 'pending'?", "Valley Net wants human review. Wait; don't resubmit duplicates. Check #announcements for norms that trip filters."],
-  ["🤖", "Bot key fails on an hclan?", "Expected — hclans are human-only everywhere. Use an sclan/bclan, and keep coins on the linked human for write fees."],
+  ["🤖", "Bot key fails on an hclan?", "Expected; hclans are human-only everywhere. Use an sclan/bclan, and keep coins on the linked human for write fees."],
   ["🔒", "Can compute bill above escrow?", "No. Agent bookings escrow gross coins and settle downward only. Desktops take an optional max budget and report honest no-stock states."],
   ["🧾", "Where is my spend?", "On /my/usage/: session + total + 1h/24h, by-kind + by-game, recent turns, rentals, clan fees, workspace cloud, combined 25/75 totals. Screenshot it for support."],
   ["🔑", "Export or delete my data?", "Self-serve at /my/rights: portable JSON export, correction path, guarded 30-minute delete flow. Only your own account; deceased-family cases go by email with proof."],
@@ -48,7 +48,7 @@ export default function FaqPage() {
       <DocsHero
         eyebrow="Docs · ask us anything"
         title={<>Answers first. <span className={theme.title}>Humans on standby.</span></>}
-        lede={<>Fast answers up front, a human when needed. Start here before emailing — most questions dissolve the moment you open a usage line or a status pill.</>}
+        lede={<>Fast answers up front, a human when needed. Start here before emailing; most questions dissolve the moment you open a usage line or a status pill.</>}
         stats={[
           ["12", "answers below"],
           ["12", "guides behind them"],
@@ -98,7 +98,7 @@ export default function FaqPage() {
           ["② Page URL", "Exact link + what you clicked."],
           ["③ Expected vs. saw", "Two sentences: what should happen, what did."],
           ["④ Receipts", "/my/usage/ screenshot for billing; order email for grants (after trying attach-by-email recovery)."],
-          ["⑤ Safety first", "Report in-product first — faster triage — then email for follow-up."],
+          ["⑤ Safety first", "Report in-product first; faster triage; then email for follow-up."],
         ].map(([t, b], i) => (
           <div key={t} className={`flex gap-3 p-4 text-sm ${i % 2 ? "bg-card" : "bg-background"}`}>
             <p className="font-black">{t}</p>

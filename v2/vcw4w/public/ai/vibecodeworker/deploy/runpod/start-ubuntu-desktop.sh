@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# VibeCodeWorker — cheap CPU-only Ubuntu remote desktop for Runpod.
+# VibeCodeWorker; cheap CPU-only Ubuntu remote desktop for Runpod.
 #
 # What you get: Ubuntu + XFCE desktop on a CPU pod, reachable from your
 # browser at https://<podId>-6901.proxy.runpod.net/vnc.html

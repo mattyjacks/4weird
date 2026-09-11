@@ -92,9 +92,9 @@ function errText(body: Record<string, unknown>, fallback: string): string {
 }
 
 function fmtDate(iso: string | null | undefined): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   const t = Date.parse(iso);
-  if (!Number.isFinite(t)) return "—";
+  if (!Number.isFinite(t)) return "-";
   return new Date(t).toLocaleString();
 }
 
@@ -276,7 +276,7 @@ function PolicyFields({
     <div className="grid gap-4 sm:grid-cols-2">
       <div>
         <label className={labelCls} htmlFor={`${prefix}-expires`}>
-          Expires (lifetime — blank = never)
+          Expires (lifetime; blank = never)
         </label>
         <input
           id={`${prefix}-expires`}
@@ -498,7 +498,7 @@ function PolicyFields({
         </select>
         <p className="mt-1 text-xs text-slate-500">{LOGGING_MODE_META[form.loggingMode].blurb}</p>
         <p className="mt-1 text-xs text-slate-500">
-          Log storage bills in Vibe Coins with the 25% platform cut included — same as everything else.
+          Log storage bills in Vibe Coins with the 25% platform cut included; same as everything else.
         </p>
       </div>
       <div>
@@ -546,11 +546,11 @@ function KeyCard({
       <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-xs font-bold text-red-300">uses exhausted</span>
     ) : health.state === "over-budget" ? (
       <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-xs font-bold text-red-300">
-        frozen — {health.which}
+        frozen - {health.which}
       </span>
     ) : health.state === "warning" ? (
       <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-xs font-bold text-amber-200">
-        warning — {health.which}
+        warning - {health.which}
       </span>
     ) : (
       <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-bold text-emerald-300">active</span>
@@ -737,10 +737,10 @@ function KeyCard({
           <p className="text-xs text-slate-400">
             Mode <strong className="font-mono text-cyan-300">{logMode}</strong>
             {logMode === "none"
-              ? " — compliance minimum only (no prompt/output/bodies stored, nothing viewable)."
+              ? "; compliance minimum only (no prompt/output/bodies stored, nothing viewable)."
               : logMode === "half"
-                ? " — metadata + previews. Full prompt/output text is dropped at write time."
-                : " — full prompt, output, context, and bodies."}{" "}
+                ? "; metadata + previews. Full prompt/output text is dropped at write time."
+                : "; full prompt, output, context, and bodies."}{" "}
             Log storage bills in coins with the 25% cut included.
           </p>
           {logTotals ? (
@@ -759,7 +759,7 @@ function KeyCard({
                     {l.method} {l.path} <span className="text-slate-500">{fmtDate(l.created_at)}</span>
                   </p>
                   <p className="text-slate-500">
-                    ip {l.ip || "—"} · {l.coins_spent} coins · {l.bytes}B · cut {l.log_cut_coins}
+                    ip {l.ip || "-"} · {l.coins_spent} coins · {l.bytes}B · cut {l.log_cut_coins}
                   </p>
                   {l.prompt_text ? (
                     <p className="mt-1 whitespace-pre-wrap break-words">
@@ -868,7 +868,7 @@ export function BotSetupClient() {
     const t = setTimeout(() => {
       setNewKey(null);
       setCopied(false);
-      setStatus({ kind: "ok", text: "Key hidden automatically — copy it at issue time; it will never be shown again." });
+      setStatus({ kind: "ok", text: "Key hidden automatically; copy it at issue time; it will never be shown again." });
     }, 60_000);
     return () => clearTimeout(t);
   }, [newKey]);
@@ -890,7 +890,7 @@ export function BotSetupClient() {
       setUsername(typeof body.username === "string" ? body.username : null);
       setHumanId(typeof body.human_id === "string" ? body.human_id : null);
       setNameInput("");
-      setStatus({ kind: "ok", text: "Username claimed — it is now permanent." });
+      setStatus({ kind: "ok", text: "Username claimed; it is now permanent." });
     } catch {
       setStatus({ kind: "err", text: "Network error. Try again." });
     }
@@ -921,10 +921,10 @@ export function BotSetupClient() {
       if (body.policyApplied === false) {
         setStatus({
           kind: "ok",
-          text: "Key issued, but custom limits did not apply (server update pending) — defaults active.",
+          text: "Key issued, but custom limits did not apply (server update pending); defaults active.",
         });
       } else {
-        setStatus({ kind: "ok", text: "Key issued. Copy it now — it will never be shown again." });
+        setStatus({ kind: "ok", text: "Key issued. Copy it now; it will never be shown again." });
       }
       setLabelInput("");
       setCreateForm(EMPTY_FORM);
@@ -1081,7 +1081,7 @@ export function BotSetupClient() {
         {newKey ? (
           <div className="mt-4 rounded-xl border border-amber-300/40 bg-amber-400/10 p-4">
             <p className="text-sm font-bold text-amber-200">
-              Copy this key now — it will never be shown again (auto-hides after 60s).
+              Copy this key now; it will never be shown again (auto-hides after 60s).
             </p>
             <div className="mt-2 flex items-center gap-2">
               <code className="min-w-0 flex-1 break-all rounded-lg bg-black/50 px-3 py-2 font-mono text-sm text-amber-100">
@@ -1109,7 +1109,7 @@ export function BotSetupClient() {
             <KeyCard key={k.id} k={k} onChanged={load} setStatus={setStatus} />
           ))}
           {keys.length === 0 ? (
-            <li className="text-sm text-slate-500">No keys yet — issue one above.</li>
+            <li className="text-sm text-slate-500">No keys yet; issue one above.</li>
           ) : null}
         </ul>
       </section>

@@ -8,7 +8,7 @@ import { FAL_FAST_OPS, FAL_OPS, VCW_FAL_HOWTO, falConfigured, falOpsForVcwPhase 
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/vcw/status — agent control-plane status (authenticated).
+ * GET /api/vcw/status; agent control-plane status (authenticated).
  *
  * The v1 worker's `GET /api/status` equivalent for the cloud API: service
  * health (same coarse probe as /api/vcw/health, never forwards upstream

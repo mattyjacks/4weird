@@ -3,7 +3,7 @@
  * Patreon-style (subscriptions + tips to verified creators and clans) and
  * GoFundMe-style (gift-based game/startup launch fundraising) surfaces.
  *
- * LEGAL MODEL — closed-loop Vibe Coins only:
+ * LEGAL MODEL; closed-loop Vibe Coins only:
  *  - 25% platform cut INCLUDED in every gross amount, never on top.
  *  - Coins have no cash value and cannot be cashed out; recipients get
  *    platform credits spendable on the Service only.
@@ -41,7 +41,7 @@ export const LAUNCH_STORY_MIN = 20;
 export const LAUNCH_STORY_MAX = 5000;
 
 /**
- * Fundraisers are DISABLED for now while we work out the legal side —
+ * Fundraisers are DISABLED for now while we work out the legal side -
  * regulations and compliance for handling money between parties,
  * especially internationally, is a lot of work and not settled yet.
  *
@@ -53,34 +53,34 @@ export const LAUNCH_STORY_MAX = 5000;
 export const FUNDRAISERS_ENABLED = false;
 
 export const FUNDRAISERS_DISABLED_NOTICE =
-  "Fundraisers are paused while we work out the regulations and compliance for handling money between parties — especially internationally. Moving funds between backers, creators, and clans across borders means money-transmitter rules, tax reporting, payouts, refunds, and fraud handling, and that is a lot of work to get right. Launching, backing, and closing campaigns are disabled for now, but the code is still in place and will return once the legal path is clear.";
+  "Fundraisers are paused while we work out the regulations and compliance for handling money between parties; especially internationally. Moving funds between backers, creators, and clans across borders means money-transmitter rules, tax reporting, payouts, refunds, and fraud handling, and that is a lot of work to get right. Launching, backing, and closing campaigns are disabled for now, but the code is still in place and will return once the legal path is clear.";
 
 export const FUNDRAISERS_COMPLIANCE_NOTE =
-  "We are still working out how to handle the money between parties compliantly — who holds funds, when they release, how refunds and disputes work, and what changes country by country. Until that is settled, fundraisers stay disabled.";
+  "We are still working out how to handle the money between parties compliantly; who holds funds, when they release, how refunds and disputes work, and what changes country by country. Until that is settled, fundraisers stay disabled.";
 
 /**
- * Currency emoji legend — one emoji, one meaning, everywhere:
- * - 💸 Real Money — actual fiat / cash references only. Never use 🪙 for this.
- * - 👻 Ghost Cash — hypothetical org-work IOU unit. Ghost emoji ONLY, never
+ * Currency emoji legend; one emoji, one meaning, everywhere:
+ * - 💸 Real Money; actual fiat / cash references only. Never use 🪙 for this.
+ * - 👻 Ghost Cash; hypothetical org-work IOU unit. Ghost emoji ONLY, never
  *   paired with a cash emoji. No value, no cash-out, timer books only.
- * - 🪙 Coin (Vibe Coins) — closed-loop platform credits. 100 🪙 = $1.00.
- * - 💌 Love Letters — a /clans/ community currency earned from likes and
+ * - 🪙 Coin (Vibe Coins); closed-loop platform credits. 100 🪙 = $1.00.
+ * - 💌 Love Letters; a /clans/ community currency earned from likes and
  *   other engagement: post in a clan, a human sees it and gives it a love
  *   letter, and letters accumulate on your account. They can be spent on
  *   advanced awards for posts and users. Love Letters can NEVER be mingled
- *   with or transferred into 🪙 coins — the two ledgers stay separate, and
+ *   with or transferred into 🪙 coins; the two ledgers stay separate, and
  *   the only way to earn a letter is a human giving one to your post.
  */
 export const CURRENCY_LEGEND = [
   {
     emoji: "💸",
     name: "Real Money",
-    blurb: "Actual fiat / cash. Whenever we mean real money, we use 💸 — never 🪙.",
+    blurb: "Actual fiat / cash. Whenever we mean real money, we use 💸; never 🪙.",
   },
   {
     emoji: "👻",
     name: "Ghost Cash",
-    blurb: "Hypothetical org-work IOUs from the timer. Ghost emoji only — no cash emoji. No value, no cash-out.",
+    blurb: "Hypothetical org-work IOUs from the timer. Ghost emoji only; no cash emoji. No value, no cash-out.",
   },
   {
     emoji: "🪙",
@@ -91,7 +91,7 @@ export const CURRENCY_LEGEND = [
     emoji: "💌",
     name: "Love Letters",
     blurb:
-      "A /clans/ community currency made from likes and other engagement: post, a human sees it and gives it a love letter, and letters accumulate. Spend them on advanced awards for posts and users. Cannot be mingled or transferred with 🪙 — you have to earn each letter on your posts.",
+      "A /clans/ community currency made from likes and other engagement: post, a human sees it and gives it a love letter, and letters accumulate. Spend them on advanced awards for posts and users. Cannot be mingled or transferred with 🪙; you have to earn each letter on your posts.",
   },
 ] as const;
 

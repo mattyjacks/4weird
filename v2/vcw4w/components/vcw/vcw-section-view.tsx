@@ -10,10 +10,10 @@ type HealthState = {
 const STATUS_COPY: Record<string, string> = {
   ok: "Cloud service online.",
   unconfigured:
-    "Browser workspace ready — the optional cloud service is not configured on this deployment.",
-  degraded: "Cloud service is degraded — the browser workspace still runs locally.",
+    "Browser workspace ready; the optional cloud service is not configured on this deployment.",
+  degraded: "Cloud service is degraded; the browser workspace still runs locally.",
   unavailable:
-    "Cloud service unreachable — the browser workspace still runs locally.",
+    "Cloud service unreachable; the browser workspace still runs locally.",
 };
 
 export function VcwSectionView({

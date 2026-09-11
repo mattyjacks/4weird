@@ -7,7 +7,7 @@ import { BLENDER_BUCKET } from "@/lib/blender-render";
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/blender/jobs/[id] — one job: status, exact quote inputs, pod
+ * GET /api/blender/jobs/[id]; one job: status, exact quote inputs, pod
  * liveness, and (when uploaded) a fresh 1-hour mp4 download URL. Never
  * exposes the pod callback token.
  */

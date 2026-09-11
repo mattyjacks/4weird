@@ -171,7 +171,7 @@ Coordinates are 0-1000 normalized (500,500 = screen center, crosshair home).
 ${(() => {
   try {
     if (!visionMeta || !Array.isArray(visionMeta.details) || !visionMeta.details.length) {
-      return 'FOVEATED VISION: image 1 is the full-screen overview. No detail crops this tick — request them via "focus" when aiming matters.';
+      return 'FOVEATED VISION: image 1 is the full-screen overview. No detail crops this tick; request them via "focus" when aiming matters.';
     }
     const { describeFrameForPrompt } = require('../../lib/brain/foveated_vision');
     return `FOVEATED VISION: image 1 is the small full-screen overview, followed by ${visionMeta.details.length} tiny high-detail crop(s). FRAME MAP: ${describeFrameForPrompt(visionMeta.details)}`;

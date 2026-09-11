@@ -1,4 +1,4 @@
-# VibeCodeWorker — cloud / headless image.
+# VibeCodeWorker; cloud / headless image.
 #
 # Build from the REPO ROOT so both the worker and the games it serves are included:
 #   docker build -f website/v1/ai/vibecodeworker/deploy/docker/Dockerfile -t vibecodeworker:latest .

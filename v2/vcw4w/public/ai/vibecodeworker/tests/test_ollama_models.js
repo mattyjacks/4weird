@@ -1,6 +1,6 @@
 /**
  * Plain-node unit tests for Ollama lifecycle + local-model role routing
- * (lib/ollama_manager.js, lib/model_roles.js). No Electron, no network —
+ * (lib/ollama_manager.js, lib/model_roles.js). No Electron, no network -
  * run:  node tests/test_ollama_models.js   (from website/v1/ai/vibecodeworker)
  */
 const assert = require('assert');

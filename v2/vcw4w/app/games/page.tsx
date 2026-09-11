@@ -4,7 +4,7 @@ import { GameCatalog } from "@/components/games/game-catalog";
 import { canonical, itemListJsonLd, jsonLdScript } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "All Games — 34 Free Browser Experiments",
+  title: "All Games - 34 Free Browser Experiments",
   description:
     "Browse all 34 4weird browser games: arcade racers, typing survival, dungeon crawlers, finance sims, and neon classics. Free to try with guides, cloud saves, and coin-metered play that pays creators.",
   keywords: [
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: "/games" },
   openGraph: {
-    title: "All Games — 34 Free Browser Experiments | 4weird Games",
+    title: "All Games - 34 Free Browser Experiments | 4weird Games",
     description:
       "Arcade racers, typing survival, dungeon crawlers, finance sims, and neon classics. Free to try; play pays creators.",
   },

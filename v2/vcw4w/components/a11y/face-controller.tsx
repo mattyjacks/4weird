@@ -86,7 +86,7 @@ function webcamOffset(webcam: WebcamPosition): { x: number; y: number } {
 export function FaceController({ onGameInput }: { onGameInput?: (input: FaceGameInput) => void }) {
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<Status>({ state: "idle" });
-  const [lastGesture, setLastGesture] = useState("—");
+  const [lastGesture, setLastGesture] = useState("-");
   const [smileToClick, setSmileToClick] = useState(true);
   const [headPointer, setHeadPointer] = useState(() => loadA11ySafe().headPointer);
   const [webcam, setWebcam] = useState<WebcamPosition>(() => loadA11ySafe().webcam);
@@ -297,12 +297,12 @@ export function FaceController({ onGameInput }: { onGameInput?: (input: FaceGame
       video.srcObject = stream;
       await video.play().catch(() => undefined);
     } catch {
-      setStatus({ state: "error", message: "Camera blocked — allow camera access and try again. Nothing is recorded." });
+      setStatus({ state: "error", message: "Camera blocked; allow camera access and try again. Nothing is recorded." });
       return;
     }
     try {
       // Untyped CDN import: no npm dep, model loads on-device at runtime.
-      // SECURITY: URL is a static literal (no user interpolation) — the only
+      // SECURITY: URL is a static literal (no user interpolation); the only
       // dynamic-import path in app/components/lib. Function-constructor form
       // keeps webpack from rewriting the specifier; tsc cannot type a remote
       // URL module, so the result is cast from unknown.
@@ -395,7 +395,7 @@ export function FaceController({ onGameInput }: { onGameInput?: (input: FaceGame
               Status:{" "}
               {status.state === "idle" && "camera off"}
               {status.state === "starting" && "starting camera…"}
-              {status.state === "running" && (status.backend === "mediapipe" ? "watching — aim with your nose, wink or smile to click" : "camera on, face model unreachable — test buttons below still drive the game")}
+              {status.state === "running" && (status.backend === "mediapipe" ? "watching; aim with your nose, wink or smile to click" : "camera on, face model unreachable; test buttons below still drive the game")}
               {status.state === "error" && <span className="text-amber-200">{status.message}</span>}
             </p>
             <p className="mt-1">Last gesture: <b className="text-white">{lastGesture}</b></p>
@@ -427,7 +427,7 @@ export function FaceController({ onGameInput }: { onGameInput?: (input: FaceGame
                   }}
                   className="mt-1 w-full rounded-lg border border-white/15 bg-slate-900 p-2 text-sm text-white"
                 >
-                  {WEBCAM_POSITIONS.map((p) => <option key={p.id} value={p.id}>{p.label} — {p.hint}</option>)}
+                  {WEBCAM_POSITIONS.map((p) => <option key={p.id} value={p.id}>{p.label} - {p.hint}</option>)}
                 </select>
               </label>
               <label className="rounded-xl border border-white/10 bg-white/[.04] p-3">
@@ -463,7 +463,7 @@ export function FaceController({ onGameInput }: { onGameInput?: (input: FaceGame
               </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              {neutral ? `Calibrated (dx ${neutral.x.toFixed(3)}, dy ${neutral.y.toFixed(3)}). ` : "Not calibrated — pointer assumes your neutral gaze is centered. "}
+              {neutral ? `Calibrated (dx ${neutral.x.toFixed(3)}, dy ${neutral.y.toFixed(3)}). ` : "Not calibrated; pointer assumes your neutral gaze is centered. "}
               Both-eyes blinks never fire · ~0.9s cooldown between clicks · side webcams are angle-compensated.
             </p>
           </div>

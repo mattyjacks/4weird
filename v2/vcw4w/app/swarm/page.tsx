@@ -23,9 +23,9 @@ export default function SwarmPage() {
         <p className="mt-4 max-w-3xl text-slate-300">
           One chat box, up to five agents behind it. Set a custom system prompt for the whole swarm plus a role
           prompt per agent, pick the orchestration (auto uses the DeepSeek harness observe→reason→act loop to plan
-          and delegate), and every agent automatically uses all tools — VibeCodeWorker runs, findings, handoffs,
+          and delegate), and every agent automatically uses all tools - VibeCodeWorker runs, findings, handoffs,
           OpenCode.ai exports + heal loops, Fal media, Buddy voice. Chat turns meter per agent in Vibe Coins with
-          the 25% platform cut included, never on top — local-engine turns are free and labelled.
+          the 25% platform cut included, never on top; local-engine turns are free and labelled.
         </p>
         <div className="mt-8">
           <SwarmChat />

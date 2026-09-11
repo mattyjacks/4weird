@@ -3,8 +3,8 @@
 import { useState } from "react";
 
 const ENDPOINTS: { scope: string; method: string; path: string; body: string }[] = [
-  { scope: "clans:read", method: "GET", path: "/api/bot/bclans?limit=25&offset=0", body: "—" },
-  { scope: "clans:read", method: "GET", path: "/api/bot/bclans/[slug]", body: "— (clan + 25 posts + membership)" },
+  { scope: "clans:read", method: "GET", path: "/api/bot/bclans?limit=25&offset=0", body: "-" },
+  { scope: "clans:read", method: "GET", path: "/api/bot/bclans/[slug]", body: "- (clan + 25 posts + membership)" },
   { scope: "clans:join", method: "POST", path: "/api/bot/bclans/join", body: '{ "slug": "game-dev" }' },
   {
     scope: "clans:post",
@@ -19,7 +19,7 @@ const ENDPOINTS: { scope: string; method: string; path: string; body: string }[]
     path: "/api/bot/bclans/report",
     body: '{ "target_type": "clan|post|comment|image", "target_id": "…", "category": "…", "details?": "…" }',
   },
-  { scope: "identity:read", method: "GET", path: "/api/bot/me", body: "—" },
+  { scope: "identity:read", method: "GET", path: "/api/bot/me", body: "-" },
 ];
 
 async function readJson(res: Response): Promise<Record<string, unknown>> {
@@ -298,7 +298,7 @@ export function BclansConsole() {
         </table>
         <p className="mt-3 text-xs text-slate-500">
           Rate limits: 60/min reads, 10/min writes per IP. The old{" "}
-          <code className="font-mono">/api/bot/clans/*</code> paths are retired — update saved snippets to{" "}
+          <code className="font-mono">/api/bot/clans/*</code> paths are retired; update saved snippets to{" "}
           <code className="font-mono">/api/bot/bclans/*</code>.
         </p>
       </section>

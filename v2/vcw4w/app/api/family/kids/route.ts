@@ -11,7 +11,7 @@ import { rpcStatus } from "@/lib/agent-market";
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/family/kids — the signed-in parent lists their child accounts
+ * GET /api/family/kids; the signed-in parent lists their child accounts
  * (handles, bands, balances, controls, today's play). Secrets (password
  * hashes, session tokens) never leave the database.
  */
@@ -64,9 +64,9 @@ export async function GET() {
 }
 
 /**
- * POST /api/family/kids {username, password, age_band?} — create a child
+ * POST /api/family/kids {username, password, age_band?}; create a child
  * account. The creator is promoted to a Parent account on first child.
- * Returns the `username#1234` handle (show it once — it IS the login).
+ * Returns the `username#1234` handle (show it once; it IS the login).
  */
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
@@ -123,5 +123,5 @@ export async function POST(req: Request) {
     const message = String((error as { message?: string }).message ?? "");
     if (!/handle taken/i.test(message)) return rpcFail("api/family/kids:create", error, rpcStatus, "Unable to create child account.");
   }
-  return fail("Username is busy — try a different one.", 409);
+  return fail("Username is busy; try a different one.", 409);
 }

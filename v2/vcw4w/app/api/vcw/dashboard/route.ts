@@ -7,7 +7,7 @@ import { gameSlugs } from "@/content/games";
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/vcw/dashboard — consolidated agent view (authenticated).
+ * GET /api/vcw/dashboard; consolidated agent view (authenticated).
  * The v1 worker's `GET /api/dashboard` equivalent: service state,
  * recent runs, and recent bugs in one call.
  */

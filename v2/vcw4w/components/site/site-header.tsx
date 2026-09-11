@@ -34,7 +34,7 @@ const NAV_GROUPS: { label: string; links: NavLink[] }[] = [
       { href: "/runpods", label: "My RunPods" },
       { href: "/fal", label: "fal.ai Studio" },
       { href: "/desktop", label: "Virtual Desktop" },
-      { href: "/teams", label: "UnitUnite" },
+      { href: "/squads", label: "UnitUnite" },
       { href: "/timer", label: "Timer & Work Diary" },
       { href: "/vibecodeworker", label: "VibeCodeWorker" },
       { href: "/web-apps", label: "Web Apps" },
@@ -410,7 +410,7 @@ export function SiteHeader() {
             🎮 4weird
           </Link>
 
-          {/* Desktop nav: 2-level — one button per group, links in a dropdown */}
+          {/* Desktop nav: 2-level; one button per group, links in a dropdown */}
           <nav
             ref={desktopNavRef}
             aria-label="Primary navigation"
@@ -491,7 +491,7 @@ export function SiteHeader() {
           </button>
         </div>
 
-        {/* Mobile nav: 2-level accordion — one tap expands a group */}
+        {/* Mobile nav: 2-level accordion; one tap expands a group */}
         {open && (
           <nav
             id="site-mobile-nav"

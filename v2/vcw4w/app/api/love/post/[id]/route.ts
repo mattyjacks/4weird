@@ -4,7 +4,7 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/love/post/[id] — public 💌 totals for a post.
+// GET /api/love/post/[id]; public 💌 totals for a post.
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const { id } = await params;

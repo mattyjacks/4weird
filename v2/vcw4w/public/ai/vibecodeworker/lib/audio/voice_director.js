@@ -1,5 +1,5 @@
 /**
- * Voice Director — EPIC ElevenLabs x Muse Spark 1.3 game-audio integrations
+ * Voice Director - EPIC ElevenLabs x Muse Spark 1.3 game-audio integrations
  * ==========================================================================
  * Each static maps to a real playtest superpower:
  *
@@ -35,7 +35,7 @@ const PERSONALITIES = {
 const VOICE_COMMAND_PATTERNS = [
   { re: /\b(jump|hop|leap)\b/i, action: { type: 'press_key', target: 'Space', duration_ms: 150 } },
   { re: /\b(attack|hit|strike|whack|shoot|fire)\b/i, action: { type: 'click', target: '500,500', duration_ms: 150 } },
-  // Multi-word scroll commands first — "scroll down" must not match "down".
+  // Multi-word scroll commands first - "scroll down" must not match "down".
   { re: /\b(scroll down|page down)\b/i, action: { type: 'scroll', target: 'down', duration_ms: 200, params: { direction: 'down', amount: 600 } } },
   { re: /\b(scroll up|page up)\b/i, action: { type: 'scroll', target: 'up', duration_ms: 200, params: { direction: 'up', amount: 600 } } },
   { re: /\b(left|move left)\b/i, action: { type: 'press_key', target: 'ArrowLeft', duration_ms: 200 } },
@@ -94,7 +94,7 @@ async function generateNpcPack({ theme = 'dungeon crawler', lineCount = 6, voice
   const count = Math.min(Math.max(parseInt(lineCount, 10) || 6, 1), 20);
   const bank = {
     greet: [`Welcome to the ${theme}, traveler.`, `You made it. The ${theme} remembers you.`],
-    hint: [`Watch the shadows — that is where the ${theme} hides its teeth.`, `Listen: the music changes before the ambush.`],
+    hint: [`Watch the shadows; that is where the ${theme} hides its teeth.`, `Listen: the music changes before the ambush.`],
     bark: [`Another one for the ${theme} depths!`, `You fight like a ${theme} tutorial popup!`, `The ${theme} always wins.`],
     victory: [`The ${theme} yields... this time.`, `Clean run. The crowd goes mild.`],
     defeat: [`Respawn is just a state machine.`, `The ${theme} keeps your high score.`],

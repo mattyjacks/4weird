@@ -28,7 +28,7 @@ export type WebcamPosition =
 
 export const WEBCAM_POSITIONS: Array<{ id: WebcamPosition; label: string; hint: string }> = [
   { id: "front", label: "Front (desktop)", hint: "Webcam centered above your screen" },
-  { id: "phone", label: "Phone front", hint: "Held below eye line — pitch compensated" },
+  { id: "phone", label: "Phone front", hint: "Held below eye line; pitch compensated" },
   { id: "left", label: "Left side", hint: "Webcam sits left of where you look" },
   { id: "right", label: "Right side", hint: "Webcam sits right of where you look" },
   { id: "above", label: "High above", hint: "Camera looks down at you" },

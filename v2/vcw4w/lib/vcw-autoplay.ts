@@ -1,5 +1,5 @@
 /**
- * VibeCodeWorker autoplay — a RunPod remote (CPU or GPU) that plays
+ * VibeCodeWorker autoplay; a RunPod remote (CPU or GPU) that plays
  * 4weird games by controlling the browser.
  *
  * Enforcement (one rule, client + server share it):
@@ -13,7 +13,7 @@
  *   refused with a pointer to /vcw/desktop/.
  *
  * Prices are gross Vibe Coins per minute and INCLUDE the 25% game-AI
- * compute cut (GAME_AI_COMPUTE_CUT_PCT) — never added on top.
+ * compute cut (GAME_AI_COMPUTE_CUT_PCT); never added on top.
  * RunPod itself bills the operator's card per second; the coin quote
  * here is the in-app autoplay metering display.
  */
@@ -52,16 +52,16 @@ export type AutoplayRate = {
   blurb: string;
 };
 
-/** Gross coins/min, 25% cut INCLUDED — anchored to live RunPod Secure prices.
+/** Gross coins/min, 25% cut INCLUDED; anchored to live RunPod Secure prices.
  * Recomputed 2026-09-11 from the live catalog (100 coins = $1.00, gross =
  * providerUsd / 0.75, rounded UP to the centicentcoin so the provider share
  * always covers the card):
  * - cpu 0.14/min: cpu3c 2 vCPU at $0.06/hr → $0.08/hr gross.
- * - gpu 0.63/min: cheapest Secure GPUs with stock ($0.24–0.28/hr: RTX 2000
+ * - gpu 0.63/min: cheapest Secure GPUs with stock ($0.24-0.28/hr: RTX 2000
  *   Ada, RTX A4000/A4500, RTX A5000, RTX 4000 Ada) → $0.373/hr gross.
  * - gpu-boosted 2.2/min: pinned to GeForce RTX 4090 ($0.74/hr, RTX 5090 $0.99/hr
  *   fallback) → $1.32/hr gross ceiling. Boosted no longer chases the
- *   priciest card with stock — compute cards cost up to 9x more yet render
+ *   priciest card with stock; compute cards cost up to 9x more yet render
  *   games worse. The API still quotes the provisioned card exactly at start
  *   (quoteAutoplayForUsd). A 55-min run is ~8 / ~35 / ~121 coins. */
 export const AUTOPLAY_RATES: AutoplayRate[] = [
@@ -111,7 +111,7 @@ export function quoteAutoplaySplit(compute: AutoplayCompute, minutes: number): {
 /**
  * Exact quote for the card that was actually provisioned: gross coins for N
  * minutes from its hourly USD price (gross = provider / 0.75, 25% included),
- * centicentcoin ceiling. This is what the API reports after provisioning —
+ * centicentcoin ceiling. This is what the API reports after provisioning -
  * the static AUTOPLAY_RATES above are pre-provision estimates only.
  */
 export function quoteAutoplayForUsd(hourlyUsd: number, minutes: number): {
@@ -129,7 +129,7 @@ export function quoteAutoplayForUsd(hourlyUsd: number, minutes: number): {
 }
 
 export const AUTOPLAY_CUT_NOTE =
-  "Includes 25% platform cut (same 25% as all game AI + compute) — never added on top.";
+  "Includes 25% platform cut (same 25% as all game AI + compute); never added on top.";
 
 /**
  * True when a URL is an on-site autoplay target: first-party origin AND
@@ -201,14 +201,14 @@ export function resolveAutoplayPlan(input: AutoplayPlanInput): AutoplayPlan {
     if (compute !== "gpu-boosted") {
       return {
         ok: false,
-        error: "Xonotic autoplay needs GPU boosted mode — it renders on RunPod GPUs.",
+        error: "Xonotic autoplay needs GPU boosted mode; it renders on RunPod GPUs.",
         needsDesktop: false,
       };
     }
     if (siteMode !== "off-site") {
       return {
         ok: false,
-        error: "Xonotic has no on-site runtime — use off-site mode (GPU boosted + desktop app).",
+        error: "Xonotic has no on-site runtime; use off-site mode (GPU boosted + desktop app).",
         needsDesktop: true,
       };
     }
@@ -225,14 +225,14 @@ export function resolveAutoplayPlan(input: AutoplayPlanInput): AutoplayPlan {
   if (!catalog.includes(slug)) {
     return {
       ok: false,
-      error: "Autoplay browser control is on-site only — 4weird games only.",
+      error: "Autoplay browser control is on-site only - 4weird games only.",
       needsDesktop: false,
     };
   }
   if (siteMode !== "on-site") {
     return {
       ok: false,
-      error: "Autoplay browser control is on-site only — 4weird games only. Off-site mode exists only for Xonotic (GPU boosted + desktop app).",
+      error: "Autoplay browser control is on-site only - 4weird games only. Off-site mode exists only for Xonotic (GPU boosted + desktop app).",
       needsDesktop: false,
     };
   }

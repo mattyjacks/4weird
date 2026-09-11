@@ -6,7 +6,7 @@ const { handlePatchFile } = require('./patch_handler');
 
 // Security: request-influenced filesystem paths (bug filePath, targetFile,
 // working dirs) must stay inside the shipped site tree (website/v1), which
-// contains the games and the worker itself — and nothing else sensitive.
+// contains the games and the worker itself; and nothing else sensitive.
 // Credentials live in the OS profile dir, outside this tree, so confining
 // here keeps them unreadable through the API.
 function confineToSiteTree(rootDir, requested) {
@@ -274,7 +274,7 @@ async function handleApiRequest(context, req, res, pathname, parsedUrl, readBody
         try {
           // Security: bug file paths are request-influenced (stored via
           // POST /api/bugs). Confine reads to the workspace with a
-          // path.relative check — a startsWith prefix test is bypassable
+          // path.relative check; a startsWith prefix test is bypassable
           // via sibling directories (e.g. "<root>-evil").
           const abs = path.resolve(path.isAbsolute(fp) ? fp : path.join(rootDir, fp));
           const rel = path.relative(path.resolve(rootDir), abs);
@@ -311,7 +311,7 @@ async function handleApiRequest(context, req, res, pathname, parsedUrl, readBody
       gameId: body.gameId || appState.activeGame,
       instructions: body.instructions,
       testCommand: body.testCommand,
-      // Security: OpenCode edits files under dir — keep it inside the site tree.
+      // Security: OpenCode edits files under dir; keep it inside the site tree.
       dir: (body.dir && confineToSiteTree(rootDir, body.dir)) || undefined,
       sessionId: body.sessionId,
     });
@@ -324,7 +324,7 @@ async function handleApiRequest(context, req, res, pathname, parsedUrl, readBody
   // ─── POST /api/opencode/heal ─────────────────────────
   // Start the self-healing loop (test -> export -> fix -> re-test).
   // Body: { gameId?, testCommand?, maxIterations?, instance?: 'same'|'fresh'|{remoteUrl,token},
-  //         instructions?, bugIds? }. Returns { runId } — poll the GET below.
+  //         instructions?, bugIds? }. Returns { runId }; poll the GET below.
   if (pathname === '/api/opencode/heal') {
     if (req.method !== 'POST') return sendText(405, 'Method Not Allowed');
     const body = await readBody();
@@ -341,7 +341,7 @@ async function handleApiRequest(context, req, res, pathname, parsedUrl, readBody
       gameId: body.gameId || appState.activeGame,
       instructions: body.instructions,
       testCommand: body.testCommand,
-      // Security: the heal loop edits + executes under dir — site tree only.
+      // Security: the heal loop edits + executes under dir; site tree only.
       dir: (body.dir && confineToSiteTree(rootDir, body.dir)) || undefined,
       maxIterations: Math.min(parseInt(body.maxIterations, 10) || 3, 10),
       instance,

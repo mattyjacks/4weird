@@ -18,7 +18,7 @@ const pkg = read("../package.json");
 
 // ProxyLink: a REAL anchor (clickable), never a blue span.
 for (const token of ["<a", "target=\"_blank\"", 'rel="noreferrer', "href={href}"]) {
-  if (!link.includes(token)) throw new Error(`proxy-link missing ${token} — links must be real anchors.`);
+  if (!link.includes(token)) throw new Error(`proxy-link missing ${token}; links must be real anchors.`);
 }
 if (link.includes("<span") && link.includes("endpointUrl")) {
   throw new Error("proxy-link must not render the URL as a bare span.");
@@ -45,7 +45,7 @@ if (!dash.includes("/desktop") || !dash.includes("/agents") || !dash.includes("/
   throw new Error("empty dashboard must link desktop + agents + blender entry points.");
 }
 
-// Page: login-gated dashboard — noindex, never in the sitemap.
+// Page: login-gated dashboard; noindex, never in the sitemap.
 if (!page.includes("RunpodDashboard")) throw new Error("runpods page must render RunpodDashboard.");
 if (!page.includes("index: false")) throw new Error("runpods page must stay noindex (login-gated dashboard).");
 if (sitemap.includes("/runpods")) throw new Error("sitemap must exclude /runpods (login-gated, like /account).");

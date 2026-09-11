@@ -32,7 +32,7 @@ export const KEY_POLICY_COLUMNS =
   "hard_stop_enabled,low_balance_floor,low_balance_pct," +
   "ip_mode,ip_allowlist,ip_blocklist,scopes,logging_mode,log_retention_days,note";
 
-// GET /api/bot/keys — list the caller's keys WITHOUT secrets, now with the
+// GET /api/bot/keys; list the caller's keys WITHOUT secrets, now with the
 // full power-manager policy (budgets, expiry, uses, IPs, logging, …).
 // Supabase-login auth.
 export async function GET() {
@@ -55,7 +55,7 @@ export async function GET() {
   }
 }
 
-// POST /api/bot/keys {label, …policy} — issue a key. Returns the FULL secret
+// POST /api/bot/keys {label, …policy}; issue a key. Returns the FULL secret
 // ONCE; it is never stored and can never be shown again. Every policy field
 // is optional (sane defaults: unlimited budgets, never expires, half logs).
 export async function POST(req: Request) {
@@ -199,7 +199,7 @@ export async function POST(req: Request) {
       label: row.label,
       created_at: row.created_at,
       policyApplied,
-      warning: "Copy this key now — it will never be shown again.",
+      warning: "Copy this key now; it will never be shown again.",
     },
     201,
   );

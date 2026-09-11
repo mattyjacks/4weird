@@ -83,7 +83,7 @@ export async function POST(req: Request) {
         const res = await fetch(url, { signal: controller.signal });
         if (!res.ok) return fail("Unable to fetch artifact URL.", 502);
         const buf = Buffer.from(await res.arrayBuffer());
-        if (buf.length > 69 * 1024 * 1024) return fail("Artifact exceeds 69 MB.", 413);
+        if (buf.length > 50 * 1024 * 1024) return fail("Artifact exceeds 50 MB.", 413);
         bytes = buf;
         mime = (res.headers.get("content-type") ?? "application/octet-stream").slice(0, 128);
       } finally {

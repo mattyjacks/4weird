@@ -2,11 +2,11 @@
  * Trace-test generator: turns a human takeover session into a regression test
  * the app can run on itself (`npm run test:traces`).
  *
- * Token-smart by design — every trace produces TWO artifacts:
- *   1. `trace-<ts>-<slug>.js` — tiny, model-visible. Embeds only a DIGEST
+ * Token-smart by design; every trace produces TWO artifacts:
+ *   1. `trace-<ts>-<slug>.js`; tiny, model-visible. Embeds only a DIGEST
  *      (counts, top zones/keys, heat totals, hashes, a few exemplars). This is
  *      the entire reviewable surface, typically well under 1k tokens.
- *   2. `trace-<ts>-<slug>.test.json` — RUNTIME-ONLY fixture holding the full
+ *   2. `trace-<ts>-<slug>.test.json` - RUNTIME-ONLY fixture holding the full
  *      compacted samples + heat grid. It is loaded from disk when the test
  *      runs and must NEVER be pasted into a model context (it says so inside,
  *      via the `_note` field). This is where the bulk tokens live, and they
@@ -18,7 +18,7 @@
  * are embedded into the generated file via Function.toString(), so the runtime
  * copy can never drift from the generator.
  *
- * Pure Node — safe to require in tests. stage_view.js must NOT require this
+ * Pure Node; safe to require in tests. stage_view.js must NOT require this
  * module (cycle); instead it exposes the raw trace input and the caller
  * composes artifacts with buildTraceArtifacts().
  */
@@ -52,7 +52,7 @@ function fnv1a(str) {
 }
 
 // Canonical encoding of one COMPACT sample ([0,x,y] move, [1,x,y] click,
-// [2,key] key). Self-contained — also embedded into generated tests.
+// [2,key] key). Self-contained; also embedded into generated tests.
 function canonicalSample(c) {
   if (!Array.isArray(c)) return null;
   if (c[0] === 0 || c[0] === 1) {
@@ -68,7 +68,7 @@ function canonicalSample(c) {
 }
 
 // Deterministic synthetic boxes from trace clicks for the cull smoke test.
-// Self-contained — also embedded into generated tests via toString.
+// Self-contained; also embedded into generated tests via toString.
 function synthTraceBoxes(clickEvents) {
   return (clickEvents || []).slice(0, 10).map((e, i) => ({
     x: e.x, y: e.y,
@@ -212,10 +212,10 @@ function buildTraceDigest(snapshot) {
 function buildTestSource(id, digest) {
   const digestJson = JSON.stringify(digest);
   return `'use strict';
-// ${TEST_MARKER} — auto-generated from a human takeover trace. DO NOT HAND-EDIT.
+// ${TEST_MARKER}; auto-generated from a human takeover trace. DO NOT HAND-EDIT.
 // Game: ${digest.game} · recorded ${digest.recordedAt} · ${digest.moves} moves, ${digest.clicks} clicks, ${digest.keyCount} keys in ${digest.durStr}.
 // Reviewable surface: the DIGEST below (~${estimateTokens(digestJson)} tokens). The bulky trace lives in
-// ./${id}.test.json — a RUNTIME-ONLY fixture, never paste it into model context.
+// ./${id}.test.json; a RUNTIME-ONLY fixture, never paste it into model context.
 // Replay harness: tests/trace_replay.js (committed once, shared by all traces).
 const assert = require('assert');
 const fs = require('fs');
@@ -232,7 +232,7 @@ console.log('PASS trace ${id}: replay green (' + r.moves + ' moves, ' + r.clicks
 
 function buildDataSource(id, snapshot) {
   return JSON.stringify({
-    _note: 'RUNTIME-ONLY fixture for the sibling trace test. Loaded from disk at test time — NEVER paste this file into a model context; the test file digest is the whole reviewable surface.',
+    _note: 'RUNTIME-ONLY fixture for the sibling trace test. Loaded from disk at test time - NEVER paste this file into a model context; the test file digest is the whole reviewable surface.',
     v: TRACE_TEST_VERSION,
     id,
     samples: snapshot.samples,

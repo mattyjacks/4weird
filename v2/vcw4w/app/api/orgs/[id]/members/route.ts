@@ -13,7 +13,7 @@ function idFrom(url: string): string {
 }
 
 /**
- * GET /api/orgs/[id]/members — roster with display names, full role sets
+ * GET /api/orgs/[id]/members; roster with display names, full role sets
  * (legacy + presets), and watcher scopes. Membership-gated via org_roster.
  */
 export async function GET(req: Request) {

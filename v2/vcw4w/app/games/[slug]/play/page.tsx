@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 // Viewport meta is governed by the TOP-LEVEL document, never by the runtime
-// inside the iframe — so the play shell must declare it. resizes-visual keeps
+// inside the iframe; so the play shell must declare it. resizes-visual keeps
 // the mobile keyboard from shrinking the layout viewport (which resized the
 // frame + canvas and made typing games jump vertically with every keystroke).
 export const viewport: Viewport = {

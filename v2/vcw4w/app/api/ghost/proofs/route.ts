@@ -17,9 +17,9 @@ const MAGIC: Array<{ mime: string; ext: string; check: (b: Uint8Array) => boolea
 ];
 
 /**
- * POST /api/ghost/proofs — multipart {file, timer_id, caption?}. Worker-
+ * POST /api/ghost/proofs; multipart {file, timer_id, caption?}. Worker-
  * ATTACHED proof screenshots for timer sessions (≤1 MB, magic-byte checked,
- * service-role upload to `ghost-proofs`). We never capture screens — the
+ * service-role upload to `ghost-proofs`). We never capture screens; the
  * worker supplies proof, like Upwork diaries but consensual by construction.
  */
 export async function POST(req: Request) {
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
   const kind = MAGIC.find((m) => m.check(new Uint8Array(buf)));
   if (!kind) return fail("Not a supported image (PNG/JPEG/WebP/GIF only).", 400);
 
-  // The timer must be mine and still open (or just closed — proof lands late).
+  // The timer must be mine and still open (or just closed; proof lands late).
   const { data: timer } = await supabase
     .from("ghost_timers")
     .select("id,worker_id")

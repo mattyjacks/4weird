@@ -14,7 +14,7 @@ function idFrom(url: string, back: number): string {
 
 /**
  * PUT /api/orgs/[id]/members/roles {user_id, roles: ["banker","watcher"]}
- * — assign a preset bundle (1–5 templates) to a member. Different bundles
+ *; assign a preset bundle (1-5 templates) to a member. Different bundles
  * per org; power is the UNION of the legacy single role and every preset.
  * Requires org.members.change_role (Lord/owner/admin…). Returns all keys.
  */
@@ -39,7 +39,7 @@ export async function PUT(req: Request) {
   const target = String(input.user_id ?? "");
   const roles = Array.isArray(input.roles) ? input.roles.map((r) => String(r)) : [];
   if (!/^[0-9a-f-]{36}$/i.test(target)) return fail("user_id is required.", 400);
-  if (roles.length < 1 || roles.length > 5) return fail("Give 1–5 roles.", 400);
+  if (roles.length < 1 || roles.length > 5) return fail("Give 1-5 roles.", 400);
   const { data: result, error } = await supabase.rpc("set_member_roles", { p_org: orgId, p_user: target, p_roles: roles });
   if (error) return rpcFail("api/orgs/members/roles", error, rpcStatus, "Unable to assign roles.");
   return ok({ roles: result ?? [] });

@@ -1,9 +1,9 @@
 /**
- * Dev-charge protections — the rules that keep player wallets safe when games
+ * Dev-charge protections; the rules that keep player wallets safe when games
  * (including future dev-uploaded games) take coins:
  *
  * 1. SELLABLE ONLY: "cosmetic" | "singleplayer-boost". "multiplayer-boost"
- *    is rejected everywhere, always — pay-to-win in multiplayer is banned.
+ *    is rejected everywhere, always; pay-to-win in multiplayer is banned.
  * 2. MULTIPLAYER DETECTION: a game is multiplayer iff its catalog tags
  *    include "Multiplayer" (same rule for first-party and dev-uploaded
  *    games). Unknown slugs fail CLOSED (treated as multiplayer).
@@ -54,7 +54,7 @@ export type DevChargeRequest = {
   amountCoins: unknown;
   label: unknown;
   idemKey: unknown;
-  /** Exact price line the player accepted, e.g. "Revive ×3 — 90 coins". */
+  /** Exact price line the player accepted, e.g. "Revive ×3 - 90 coins". */
   acceptedQuote: unknown;
   /** Server-computed price line it must equal. */
   expectedQuote: unknown;
@@ -76,7 +76,7 @@ export function validateDevCharge(req: DevChargeRequest): DevChargeCheck {
   }
   if (!isSellableCategory(req.category)) return { ok: false, error: "That cannot be sold." };
   const amount = cleanPurchaseAmount(req.amountCoins);
-  if (!amount) return { ok: false, error: `Amount must be 1–${MAX_SINGLE_PURCHASE_COINS} coins.` };
+  if (!amount) return { ok: false, error: `Amount must be 1-${MAX_SINGLE_PURCHASE_COINS} coins.` };
   if (req.category === "singleplayer-boost" && isMultiplayerGame(slug)) {
     return { ok: false, error: "Boosts are singleplayer-only: this game is multiplayer, so only cosmetics may be sold here." };
   }
@@ -87,7 +87,7 @@ export function validateDevCharge(req: DevChargeRequest): DevChargeCheck {
   const accepted = String(req.acceptedQuote ?? "").trim().slice(0, 160);
   const expected = String(req.expectedQuote ?? "").trim().slice(0, 160);
   if (!expected || accepted !== expected) {
-    return { ok: false, error: "Price changed since you confirmed — please review and confirm again." };
+    return { ok: false, error: "Price changed since you confirmed; please review and confirm again." };
   }
   return { ok: true, gameSlug: slug, category: req.category, amount, label, idemKey };
 }

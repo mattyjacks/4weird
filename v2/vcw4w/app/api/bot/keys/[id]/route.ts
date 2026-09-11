@@ -32,7 +32,7 @@ async function ownerId(): Promise<string | null> {
   return data?.user?.id ?? null;
 }
 
-// GET /api/bot/keys/[id] — one key's full policy + owner balance context.
+// GET /api/bot/keys/[id]; one key's full policy + owner balance context.
 // Supabase-login auth, owner only.
 export async function GET(_req: Request, ctx: Ctx) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
@@ -75,7 +75,7 @@ export async function GET(_req: Request, ctx: Ctx) {
   }
 }
 
-// PATCH /api/bot/keys/[id] — update label, lifetime/daily budgets, warn %,
+// PATCH /api/bot/keys/[id]; update label, lifetime/daily budgets, warn %,
 // expiry, max uses, hard-stop guard, IP lists, scopes, logging, retention,
 // note. Only provided fields change. Supabase-login auth, owner only.
 export async function PATCH(req: Request, ctx: Ctx) {
@@ -201,7 +201,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
   if (Object.keys(patch).length === 0) return fail("Nothing to update.", 400);
 
   // Cross-field guard: enabling the hard stop or allowlist mode with an
-  // empty list must read back sane — check against the stored row.
+  // empty list must read back sane; check against the stored row.
   try {
     const db = serviceClient();
     const { data: current, error: readError } = await db

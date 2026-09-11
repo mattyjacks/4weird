@@ -24,7 +24,7 @@ const ASSETS_TO_CACHE = [
 
 // Install: pre-cache the shell. Each asset is added independently so one
 // 404 can never reject the whole install (a rejected install leaves the
-// previous worker — and its stale caches — stuck in place forever).
+// previous worker; and its stale caches; stuck in place forever).
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {

@@ -81,7 +81,7 @@ export function SupportClient() {
       });
       if (!data.success) setError(data.error ?? "Subscribe failed.");
       else {
-        setNotice("Subscribed — first month charged now. Cancel anytime; no proration.");
+        setNotice("Subscribed; first month charged now. Cancel anytime; no proration.");
         await load();
       }
     } finally {
@@ -230,7 +230,7 @@ export function SupportClient() {
       <section className="space-y-4">
         <h2 className="text-2xl font-bold">Support tiers</h2>
         {tiers.length === 0 ? (
-          <p className="text-sm text-slate-400">No tiers yet — verified creators and clans can publish the first one below.</p>
+          <p className="text-sm text-slate-400">No tiers yet; verified creators and clans can publish the first one below.</p>
         ) : (
           <ul className="grid gap-4 sm:grid-cols-2">
             {tiers.map((t) => (
@@ -253,7 +253,7 @@ export function SupportClient() {
       <section className="space-y-4">
         <h2 className="text-2xl font-bold">Send a one-time tip</h2>
         <p className="text-sm text-slate-400">
-          A “coffee money” gift in coins — voluntary, non-refundable, and never a purchase. Creators must be verified;
+          A “coffee money” gift in coins; voluntary, non-refundable, and never a purchase. Creators must be verified;
           anyone can tip a clan (owners fund their own clan via the wallet instead).
         </p>
         <div className="grid gap-3 sm:grid-cols-[1fr_140px_auto] sm:items-end">
@@ -262,7 +262,7 @@ export function SupportClient() {
             <input className={input + " mt-1"} value={tipTo} onChange={(e) => setTipTo(e.target.value)} placeholder={tipClan ? "my-clan" : "paste their user ID"} />
           </label>
           <label className="block text-sm">
-            Coins (1–100k)
+            Coins (1-100k)
             <input className={input + " mt-1"} value={tipCoins} onChange={(e) => setTipCoins(e.target.value)} inputMode="decimal" />
           </label>
           <div className="flex gap-2">
@@ -303,12 +303,12 @@ export function SupportClient() {
         <h2 className="text-2xl font-bold">Offer a tier</h2>
         <p className="text-sm text-slate-400">
           Verified creators can offer personal tiers; clan moderators can offer clan tiers (leave the clan field empty
-          for a personal tier). Tier perks are goals you hope to deliver — never contractual promises.
+          for a personal tier). Tier perks are goals you hope to deliver; never contractual promises.
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
-          <input className={input} value={tierTitle} onChange={(e) => setTierTitle(e.target.value)} placeholder="Tier title (2–80 chars)" />
-          <input className={input} value={tierCoins} onChange={(e) => setTierCoins(e.target.value)} inputMode="decimal" placeholder="Coins per month (1–100000)" />
-          <input className={input} value={tierBlurb} onChange={(e) => setTierBlurb(e.target.value)} placeholder="Blurb — what will support go toward? (optional)" />
+          <input className={input} value={tierTitle} onChange={(e) => setTierTitle(e.target.value)} placeholder="Tier title (2-80 chars)" />
+          <input className={input} value={tierCoins} onChange={(e) => setTierCoins(e.target.value)} inputMode="decimal" placeholder="Coins per month (1-100000)" />
+          <input className={input} value={tierBlurb} onChange={(e) => setTierBlurb(e.target.value)} placeholder="Blurb; what will support go toward? (optional)" />
           <input className={input} value={tierClanSlug} onChange={(e) => setTierClanSlug(e.target.value)} placeholder="Clan slug for a clan tier (optional)" />
         </div>
         <button className={btn} disabled={busy} onClick={() => void createTier()}>
@@ -319,7 +319,7 @@ export function SupportClient() {
       <section className="space-y-4">
         <h2 className="text-2xl font-bold">Creator verification</h2>
         {verified ? (
-          <p className="text-sm text-emerald-200">✓ You are verified — you can receive tips and offer personal tiers.</p>
+          <p className="text-sm text-emerald-200">✓ You are verified; you can receive tips and offer personal tiers.</p>
         ) : (
           <>
             <p className="text-sm text-slate-400">

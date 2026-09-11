@@ -9,7 +9,7 @@
  * so the testing videos draw the detail-crop boundaries AND show the crop
  * renders picture-in-picture.
  *
- * Pure Node — safe to require in tests and in export_testing_layouts.js.
+ * Pure Node; safe to require in tests and in export_testing_layouts.js.
  */
 
 'use strict';

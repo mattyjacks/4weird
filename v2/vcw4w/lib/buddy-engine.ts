@@ -1,5 +1,5 @@
 /**
- * Buddy engine — the Gaming Buddy reuses the VibeCodeWorker loop shape:
+ * Buddy engine; the Gaming Buddy reuses the VibeCodeWorker loop shape:
  *   OBSERVE -> REASON -> ACT -> METER.
  *
  * VibeCodeWorker: run a playtest, observe telemetry/evidence, reason about
@@ -84,10 +84,10 @@ export function buddyUserPrompt(obs: BuddyObservation): string {
   const parts = [`Game: ${obs.gameTitle} (${obs.gameSlug})`];
   if (obs.score !== null) parts.push(`Score: ${obs.score}`);
   parts.push(obs.screenText ? `Screen: ${obs.screenText}` : "Screen: (no text captured yet)");
-  if (obs.hasScreenshot) parts.push("A downscaled screen snapshot is attached — describe what you see in it, not the text dump alone.");
+  if (obs.hasScreenshot) parts.push("A downscaled screen snapshot is attached; describe what you see in it, not the text dump alone.");
   if (obs.hasCamera)
     parts.push(
-      "A player camera frame is attached (explicit opt-in) — read visible energy, posture, props, and background " +
+      "A player camera frame is attached (explicit opt-in); read visible energy, posture, props, and background " +
       "kindly to match their mood. Never diagnose health or emotions as medical facts, never identify the person, " +
       "never comment critically on appearance.",
     );
@@ -107,14 +107,14 @@ export function cleanScreenImage(value: unknown): string | null {
 /** VCW-style ACT fallback when OPENAI_API_KEY is missing: never throws, never fakes a model. */
 export function fallbackReply(obs: BuddyObservation): string {
   if (obs.hasScreenshot) {
-    return `I got your screen snapshot in ${obs.gameTitle} — nice view. The live AI service is not connected yet, so this local coaching reply is free and I can't describe the image in detail.`;
+    return `I got your screen snapshot in ${obs.gameTitle}; nice view. The live AI service is not connected yet, so this local coaching reply is free and I can't describe the image in detail.`;
   }
   if (obs.screenText) {
     const snippet = obs.screenText.slice(0, 90);
-    return `I'm watching ${obs.gameTitle} with you — I see "${snippet}". The live AI service is not connected yet, so this local coaching reply is free.`;
+    return `I'm watching ${obs.gameTitle} with you - I see "${snippet}". The live AI service is not connected yet, so this local coaching reply is free.`;
   }
   if (obs.score !== null) {
-    return `Score's at ${obs.score} in ${obs.gameTitle} — keep pushing. The live AI service is not connected yet, so this local coaching reply is free.`;
+    return `Score's at ${obs.score} in ${obs.gameTitle}; keep pushing. The live AI service is not connected yet, so this local coaching reply is free.`;
   }
   return `Hey, I'm your Gaming Buddy for ${obs.gameTitle}. Give me some screen to read and I'll react out loud.`;
 }
@@ -129,7 +129,7 @@ export function estimateBuddyTurn(replyText: string, promptChars = 500): { chatC
 }
 
 /* ---------------------------------------------------------------------------
- * Smart Buddy — memory + intent + multi-brain routing + optional Fal hints.
+ * Smart Buddy; memory + intent + multi-brain routing + optional Fal hints.
  *
  * Additive and client-safe: no imports beyond game-ai, no network, no keys.
  * The /api/buddy/chat route uses these to (a) remember the last turns,
@@ -142,7 +142,7 @@ export function estimateBuddyTurn(replyText: string, promptChars = 500): { chatC
 /** Which brain reasons this turn. "none" = local fallback, free. */
 export type BuddyBrain = "openai" | "openrouter" | "none";
 
-/** What the player (probably) wants — drives prompts + Fal hints. */
+/** What the player (probably) wants; drives prompts + Fal hints. */
 export type BuddyIntent = "voice" | "sfx" | "music" | "art" | "coach" | "chat";
 
 export type BuddyHistoryTurn = { role: "user" | "buddy"; text: string; interrupted?: boolean };
@@ -169,9 +169,9 @@ export function cleanBuddyHistory(value: unknown): BuddyHistoryTurn[] {
 export function summarizeBuddyMemory(history: BuddyHistoryTurn[]): string {
   if (!history.length) return "";
   const last = history.slice(-3).map((t) => `${t.role === "buddy" ? "Buddy said" : "Player said"}: ${t.text.slice(0, 120)}`);
-  let out = `Conversation so far — ${last.join(" | ")}`.slice(0, 400);
+  let out = `Conversation so far - ${last.join(" | ")}`.slice(0, 400);
   if (history.slice(-4).some((t) => t.interrupted)) {
-    out = `${out} (Note: the player cut in at least once — they redirect fast, so answer the newest message first.)`.slice(0, 500);
+    out = `${out} (Note: the player cut in at least once; they redirect fast, so answer the newest message first.)`.slice(0, 500);
   }
   return out;
 }
@@ -236,7 +236,7 @@ export function smartBuddyUserPrompt(
 ): string {
   const lines: string[] = [];
   for (const turn of (opts?.history ?? []).slice(-6)) {
-    const cut = turn.interrupted ? " (cut in — answer this newest point first)" : "";
+    const cut = turn.interrupted ? " (cut in; answer this newest point first)" : "";
     lines.push(`${turn.role === "buddy" ? "Buddy" : "Player"}: ${turn.text}${cut}`);
   }
   const message = String(opts?.message ?? "").replace(/\s+/g, " ").trim().slice(0, 500);

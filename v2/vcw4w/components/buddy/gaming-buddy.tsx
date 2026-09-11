@@ -78,8 +78,8 @@ type ShareMode = "off" | "tab" | "screen";
  * Screen sharing is explicit opt-in, off by default. "Tab only" constrains
  * the picker to this browser tab (other tabs and apps stay private); the
  * browser picker itself enforces the choice and the user can stop anytime.
- * Only one downscaled JPEG snapshot per sent message leaves the device —
- * never video, never stored server-side — and every snapshot turn is
+ * Only one downscaled JPEG snapshot per sent message leaves the device -
+ * never video, never stored server-side; and every snapshot turn is
  * itemized in that turn's cost line.
  */
 export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTitle: string }) {
@@ -263,7 +263,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
   useEffect(() => {
     if (!sessionId) return;
     void refreshSpend(sessionId);
-    // Hidden tabs skip spend polls — the metered ledger stays authoritative.
+    // Hidden tabs skip spend polls; the metered ledger stays authoritative.
     const timer = setInterval(() => {
       if (!document.hidden) void refreshSpend(sessionId);
     }, 15_000);
@@ -314,14 +314,14 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
           item_id: item.id,
           game_slug: gameSlug,
           session_id: sessionId,
-          acceptedQuote: `${item.name} — ${priceLine(item.price)}`,
+          acceptedQuote: `${item.name} - ${priceLine(item.price)}`,
         },
       );
       if (r.pendingMigration) {
-        setWardrobeMsg("Shop isn't metered on this deploy yet — nothing bought, no coins moved.");
+        setWardrobeMsg("Shop isn't metered on this deploy yet; nothing bought, no coins moved.");
         return;
       }
-      setWardrobeMsg(`Bought ${item.name} for ${r.receipt?.price ?? `${item.price} coins`} — check your avatar!`);
+      setWardrobeMsg(`Bought ${item.name} for ${r.receipt?.price ?? `${item.price} coins`}; check your avatar!`);
       void refreshWardrobe();
       if (sessionId) void refreshSpend(sessionId);
     } catch (error) {
@@ -351,7 +351,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
 
   const startShare = async (mode: Exclude<ShareMode, "off">) => {
     if (typeof navigator === "undefined" || !navigator.mediaDevices?.getDisplayMedia) {
-      setStatus("Screen sharing is not supported in this browser — text + score context still works.");
+      setStatus("Screen sharing is not supported in this browser; text + score context still works.");
       return;
     }
     try {
@@ -375,12 +375,12 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       }
       setStatus(
         mode === "tab"
-          ? "Sharing this 4weird tab only — other tabs and apps stay private. Stop anytime below or via the browser bar."
-          : "Sharing your screen — pick just the game window/tab in the browser picker to keep everything else private.",
+          ? "Sharing this 4weird tab only; other tabs and apps stay private. Stop anytime below or via the browser bar."
+          : "Sharing your screen; pick just the game window/tab in the browser picker to keep everything else private.",
       );
     } catch {
       setSharing(false);
-      setStatus("Screen share cancelled — nothing is shared until you approve the browser picker.");
+      setStatus("Screen share cancelled; nothing is shared until you approve the browser picker.");
     }
   };
 
@@ -419,7 +419,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
     return speakingRef.current;
   }, []);
 
-  /** Barge-in: user cut in — stop Buddy, snapshot both sides, resume next turn. */
+  /** Barge-in: user cut in; stop Buddy, snapshot both sides, resume next turn. */
   const handleBargeIn = useCallback(() => {
     const partial = interimRef.current.trim();
     const soFar = replyProgress();
@@ -429,8 +429,8 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
     pendingRef.current = snap;
     setStatus(
       partial
-        ? `Heard you cut in (“${partial.slice(0, 60)}${partial.length > 60 ? "…" : ""}”) — finishing your sentence, then Buddy resumes from it.`
-        : "Heard you cut in — finishing your sentence, then Buddy resumes from it.",
+        ? `Heard you cut in (“${partial.slice(0, 60)}${partial.length > 60 ? "…" : ""}”); finishing your sentence, then Buddy resumes from it.`
+        : "Heard you cut in; finishing your sentence, then Buddy resumes from it.",
     );
   }, [gameTitle, replyProgress, stopVoice]);
 
@@ -508,7 +508,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
 
   const enableMic = async () => {
     if (micOn || typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
-      if (!navigator.mediaDevices?.getUserMedia) setStatus("Microphone is not supported in this browser — typed messages still work.");
+      if (!navigator.mediaDevices?.getUserMedia) setStatus("Microphone is not supported in this browser; typed messages still work.");
       return;
     }
     try {
@@ -534,11 +534,11 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       setMicOn(true);
       setStatus(
         speechSupported
-          ? "Mic live — talk to interrupt Buddy anytime; smart detection sends your sentence when you pause. Mute anytime below."
-          : "Mic live for interruption detection — typed messages still send turns (this browser has no speech-to-text).",
+          ? "Mic live; talk to interrupt Buddy anytime; smart detection sends your sentence when you pause. Mute anytime below."
+          : "Mic live for interruption detection; typed messages still send turns (this browser has no speech-to-text).",
       );
     } catch {
-      setStatus("Microphone blocked — allow mic access in the browser bar, or keep typing.");
+      setStatus("Microphone blocked; allow mic access in the browser bar, or keep typing.");
     }
   };
 
@@ -591,7 +591,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
     } catch {
       /* mute toggle is best-effort */
     }
-    setStatus(next ? "Mic muted — Buddy can't hear you until you unmute." : "Mic live again.");
+    setStatus(next ? "Mic muted - Buddy can't hear you until you unmute." : "Mic live again.");
   };
 
   const enableCamera = async () => {
@@ -612,9 +612,9 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
         await camVideoRef.current.play().catch(() => undefined);
       }
       setCamOn(true);
-      setStatus("Camera on — attach a frame to any message and Buddy reads your energy, posture, and backdrop. Each attached frame is itemized in that turn (~3 centicentcoins). Stop anytime.");
+      setStatus("Camera on; attach a frame to any message and Buddy reads your energy, posture, and backdrop. Each attached frame is itemized in that turn (~3 centicentcoins). Stop anytime.");
     } catch {
-      setStatus("Camera blocked — allow camera access in the browser bar, or keep playing without it.");
+      setStatus("Camera blocked; allow camera access in the browser bar, or keep playing without it.");
     }
   };
 
@@ -695,7 +695,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
         void (async () => {
           const okTick = await meterPresence("avatar", 1);
           if (!okTick) {
-            setStatus("Avatar ran out of meterable coins — avatar paused, chat still works.");
+            setStatus("Avatar ran out of meterable coins; avatar paused, chat still works.");
             setAvatarOn(false);
             avatarStartRef.current = null;
             if (avatarTimerRef.current) clearInterval(avatarTimerRef.current);
@@ -703,11 +703,11 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
           }
         })();
       }, 60_000);
-      setStatus(`Avatar on — cute companion renders beside chat at ${quoteAvatarMinutes(1).display}/min. Turn it off anytime.`);
+      setStatus(`Avatar on; cute companion renders beside chat at ${quoteAvatarMinutes(1).display}/min. Turn it off anytime.`);
     } else {
       setAvatarOn(false);
       void stopAvatarMeter();
-      setStatus("Avatar off — presence metering stopped.");
+      setStatus("Avatar off; presence metering stopped.");
     }
   };
 
@@ -722,7 +722,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       setSessionId(r.session.id);
       setOpen(true);
       setStatus(`Buddy is live as ${voice}. It reads your screen and reacts out loud.`);
-      pushMessage({ role: "buddy", text: `Hey, I'm your Gaming Buddy for ${gameTitle}. I'm watching the screen — talk to me while you play.`, at: new Date().toLocaleTimeString() });
+      pushMessage({ role: "buddy", text: `Hey, I'm your Gaming Buddy for ${gameTitle}. I'm watching the screen; talk to me while you play.`, at: new Date().toLocaleTimeString() });
       void refreshWardrobe();
       void refreshSpend(r.session.id);
     } catch (error) {
@@ -753,7 +753,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
   };
 
   const observeScreenText = (): string => {
-    // Screen reading without new deps: visible headings + live region text —
+    // Screen reading without new deps: visible headings + live region text -
     // scoped OUTSIDE this widget (data-buddy) so the buddy never quotes its
     // own transcript back into the next prompt (the /react echo bug).
     // Cached 1s: rapid sends reuse the last snapshot instead of re-querying.
@@ -778,13 +778,13 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
     setBusy(true);
     const screen = text.trim().startsWith("/") ? observeScreenText() : `${observeScreenText()} ${text.trim()}`.trim();
     const snapshot = shareMode === "off" ? null : captureSnapshot();
-    // Camera frames only ever ride an explicit user turn — never silent.
+    // Camera frames only ever ride an explicit user turn; never silent.
     const camFrame = !camOn ? null : captureCameraFrame();
     if (shareMode !== "off" && !snapshot) {
-      setStatus("Screen share is on but no frame was ready — sent text context only (no image charge). Re-pick the tab if this persists.");
+      setStatus("Screen share is on but no frame was ready; sent text context only (no image charge). Re-pick the tab if this persists.");
     }
     if (camOn && !camFrame) {
-      setStatus("Camera is on but no frame was ready — sent without a camera frame (no camera charge).");
+      setStatus("Camera is on but no frame was ready; sent without a camera frame (no camera charge).");
     }
     const resumedNote = opts?.resumed ? snapshotToPrompt(opts.resumed) : "";
     pushMessage({ role: "you", text: text.trim(), at: new Date().toLocaleTimeString(), ...(opts?.interrupted ? { interrupted: true } : {}) });
@@ -817,7 +817,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
         if (p.chatUsd) bits.push(`chat $${Number(p.chatUsd).toFixed(6)}`);
         if (p.imageUsd) bits.push(`screen $${Number(p.imageUsd).toFixed(6)}`);
         if (p.dbUsd) bits.push(`DB $${Number(p.dbUsd).toFixed(6)}`);
-        setLastCost(`Last turn: ${r.cost.display} (25% cut incl.${bits.length ? ` — ${bits.join(" + ")}` : ""})`);
+        setLastCost(`Last turn: ${r.cost.display} (25% cut incl.${bits.length ? ` - ${bits.join(" + ")}` : ""})`);
       }
       // ACT: voice output in the selected voice.
       if (r.fallback) {
@@ -847,7 +847,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
               replyRef.current = null;
             };
             el.onpause = () => {
-              // Pause also fires on barge-in stopVoice() — flag clears there.
+              // Pause also fires on barge-in stopVoice(); flag clears there.
               if (el.ended) {
                 speakingRef.current = false;
                 setSpeaking(false);
@@ -864,7 +864,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
           speakBrowser(r.reply);
         }
       }
-      setStatus(r.fallback ? "AI is unavailable — Buddy answered locally at no cost." : camFrame ? "Buddy answered (camera frame itemized in the turn cost) and spoke." : "Buddy answered and spoke.");
+      setStatus(r.fallback ? "AI is unavailable - Buddy answered locally at no cost." : camFrame ? "Buddy answered (camera frame itemized in the turn cost) and spoke." : "Buddy answered and spoke.");
       void refreshSpend(sessionId);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Buddy could not answer.");
@@ -906,11 +906,11 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
     <section data-buddy aria-label="Gaming Buddy" className="mt-4 rounded-2xl border border-violet-300/30 bg-gradient-to-b from-violet-400/10 to-white/[.02] p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-black">🎧 Gaming Buddy — universal screen reader + voice</h2>
+          <h2 className="text-lg font-black">🎧 Gaming Buddy; universal screen reader + voice</h2>
           <p className="mt-1 text-sm text-slate-300">
             Talks while you play in any of 9 OpenAI voices (default Nova). Reads the screen, reacts to score changes,
             and runs on the VibeCodeWorker observe→reason→act loop. OpenAI + database turns meter Vibe Coins at true
-            cost with the 25% cut included — every turn shows its Coins + CentiCentCoins below; local
+            cost with the 25% cut included; every turn shows its Coins + CentiCentCoins below; local
             fallback answers are free.
           </p>
         </div>
@@ -970,10 +970,10 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       </div>
 
       <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-slate-300">
-        <p className="font-bold text-white">👁️ Let the buddy see your screen <span className="font-normal text-slate-400">(off unless you approve — the browser picker enforces your choice)</span></p>
+        <p className="font-bold text-white">👁️ Let the buddy see your screen <span className="font-normal text-slate-400">(off unless you approve; the browser picker enforces your choice)</span></p>
         <p className="mt-1 text-slate-400">
-          <b className="text-emerald-200">Tab only (safest):</b> shares just this 4weird tab — other tabs, windows, and apps stay
-          private. <b className="text-amber-200">Full screen:</b> you pick what to share in the browser picker — choose the game
+          <b className="text-emerald-200">Tab only (safest):</b> shares just this 4weird tab; other tabs, windows, and apps stay
+          private. <b className="text-amber-200">Full screen:</b> you pick what to share in the browser picker; choose the game
           window to keep the rest private. Only one small snapshot per message is sent (never video, never stored).
         </p>
         <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -1018,9 +1018,9 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       </div>
 
       <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-slate-300">
-        <p className="font-bold text-white">🎙️ Talk to Buddy <span className="font-normal text-slate-400">(optional mic — mute anytime, Buddy never records you)</span></p>
+        <p className="font-bold text-white">🎙️ Talk to Buddy <span className="font-normal text-slate-400">(optional mic; mute anytime, Buddy never records you)</span></p>
         <p className="mt-1 text-slate-400">
-          Turn the mic on to interrupt Buddy mid-sentence — it stops, remembers what both of you said, and resumes
+          Turn the mic on to interrupt Buddy mid-sentence; it stops, remembers what both of you said, and resumes
           from your cut-in. Only transcripts leave the device (never audio). Smart detection sends your sentence when
           you pause; turn it off to send manually.
         </p>
@@ -1058,14 +1058,14 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
           </div>
         )}
         {!speechSupported && micOn && (
-          <p className="mt-1 text-slate-500">This browser has no speech-to-text — mic still detects interruptions; type or dictate elsewhere to send words.</p>
+          <p className="mt-1 text-slate-500">This browser has no speech-to-text; mic still detects interruptions; type or dictate elsewhere to send words.</p>
         )}
       </div>
 
       <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-slate-300">
-        <p className="font-bold text-white">📷 Let Buddy see you <span className="font-normal text-slate-400">(optional camera — you approve every frame by sending)</span></p>
+        <p className="font-bold text-white">📷 Let Buddy see you <span className="font-normal text-slate-400">(optional camera; you approve every frame by sending)</span></p>
         <p className="mt-1 text-slate-400">
-          Buddy reads your energy, posture, props, and backdrop to match your mood — kindly, never diagnosing, never
+          Buddy reads your energy, posture, props, and backdrop to match your mood; kindly, never diagnosing, never
           identifying. While on, each message you send carries one small frame, itemized in that turn
           (~{quoteCameraFrames(1).display} per frame). No video ever leaves the device, nothing is stored.
         </p>
@@ -1089,7 +1089,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       </div>
 
       <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-slate-300">
-        <p className="font-bold text-white">✨ Buddy avatar <span className="font-normal text-slate-400">(optional 3D companion — {quoteAvatarMinutes(1).display}/min, free when hidden)</span></p>
+        <p className="font-bold text-white">✨ Buddy avatar <span className="font-normal text-slate-400">(optional 3D companion - {quoteAvatarMinutes(1).display}/min, free when hidden)</span></p>
         <p className="mt-1 text-slate-400">
           A cute three.js companion whose mouth follows Buddy&apos;s voice waveform and words, eyes blink, track your
           cursor, and widen with excitement. Presence meters by the minute while visible
@@ -1119,16 +1119,16 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
           {avatarOn && sessionId ? (
             <BuddyAvatar type={avatarType} color={outfitColor(loadout.outfit) ?? avatarColor} script={script} scriptStartedAt={scriptAt} speaking={speaking} outputEl={voiceEl} micStream={micOn && !micMuted ? micStream : null} loadout={loadout} label={`Buddy ${avatarType}`} />
           ) : (
-            <p className="text-slate-500">{sessionId ? "Avatar hidden — no presence cost. Show it anytime." : "Start a Buddy session to meet the avatar."}</p>
+            <p className="text-slate-500">{sessionId ? "Avatar hidden; no presence cost. Show it anytime." : "Start a Buddy session to meet the avatar."}</p>
           )}
         </div>
         <div className="mt-3 border-t border-white/10 pt-3">
-          <p className="font-bold text-white">🎩 Wardrobe <span className="font-normal text-slate-400">(one shop everywhere — every look costs 10 coins, looks-only, never pay-to-win)</span></p>
+          <p className="font-bold text-white">🎩 Wardrobe <span className="font-normal text-slate-400">(one shop everywhere; every look costs 10 coins, looks-only, never pay-to-win)</span></p>
           <p className="mt-1 text-slate-400">
             Buying shows the exact price first and charges only what you confirm (singleplayer boosts live behind
-            guarded dev charges, capped at 10,000 coins each and 1,000/day per game — multiplayer boosts are banned).
+            guarded dev charges, capped at 10,000 coins each and 1,000/day per game; multiplayer boosts are banned).
           </p>
-          {wardrobePending && <p className="mt-1 text-amber-200">Shop isn&apos;t metered on this deploy yet — browsing is free, buying is disabled.</p>}
+          {wardrobePending && <p className="mt-1 text-amber-200">Shop isn&apos;t metered on this deploy yet; browsing is free, buying is disabled.</p>}
           {wardrobeMsg && <p className="mt-1 text-cyan-200">{wardrobeMsg}</p>}
           {COSMETIC_SLOTS.map((slot) => (
             <div key={slot} className="mt-2">
@@ -1169,7 +1169,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
                 </p>
               ))
             ) : (
-              <p className="text-sm text-slate-500">Say hi — buddy reads the screen and answers out loud.</p>
+              <p className="text-sm text-slate-500">Say hi; buddy reads the screen and answers out loud.</p>
             )}
           </div>
           <form

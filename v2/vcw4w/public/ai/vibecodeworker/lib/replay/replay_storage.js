@@ -10,7 +10,7 @@ class ReplayStorage {
   }
 
   // Security: session ids are request-influenced. They are treated as bare
-  // file names inside replaysDir only — path separators, traversal, and
+  // file names inside replaysDir only; path separators, traversal, and
   // absolute paths are rejected, and the resolved path is re-confined.
   sanitizeSessionId(sessionId) {
     const id = String(sessionId == null ? '' : sessionId);

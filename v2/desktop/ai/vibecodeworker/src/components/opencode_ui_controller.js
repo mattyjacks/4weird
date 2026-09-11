@@ -30,14 +30,14 @@ async function refreshStatus({ el, logSystemMessage }) {
   try {
     const s = await bridge.getStatus();
     if (!s.enabled) {
-      setStatus(el, 'Disabled — tick Enable to use OpenCode.', 'idle');
+      setStatus(el, 'Disabled; tick Enable to use OpenCode.', 'idle');
     } else if (!s.available) {
       setStatus(el, 'Enabled but `opencode` not found. ' + (s.hint || ''), 'warn');
     } else {
       const extra = s.mode === 'server'
-        ? (s.serverReachable ? `server reachable (${s.serverUrl || ''})` : 'server UNREACHABLE — is `opencode serve` running?')
+        ? (s.serverReachable ? `server reachable (${s.serverUrl || ''})` : 'server UNREACHABLE; is `opencode serve` running?')
         : `CLI ready (${s.version || 'opencode'})`;
-      setStatus(el, `Ready — ${s.mode} mode. ${extra}`, s.mode === 'server' && !s.serverReachable ? 'warn' : 'ok');
+      setStatus(el, `Ready - ${s.mode} mode. ${extra}`, s.mode === 'server' && !s.serverReachable ? 'warn' : 'ok');
     }
     return s;
   } catch (e) {
@@ -86,7 +86,7 @@ async function handleFix({ el, agentBrain, audio, logSystemMessage }) {
       if (logSystemMessage) logSystemMessage(`OpenCode fix done (${res.mode || 'cli'}${res.sessionId ? ' session ' + res.sessionId : ''}). Changed: ${files}`, 'system');
       setStatus(el, `Fix complete. Changed: ${files}. Re-run the playtest to verify.`, 'ok');
     } else {
-      if (logSystemMessage) logSystemMessage('OpenCode fix failed: ' + (res.error || 'unknown') + (res.hint ? ' — ' + res.hint : ''), 'error');
+      if (logSystemMessage) logSystemMessage('OpenCode fix failed: ' + (res.error || 'unknown') + (res.hint ? ' - ' + res.hint : ''), 'error');
       setStatus(el, 'Fix failed: ' + (res.error || 'unknown'), 'err');
     }
   } catch (e) {
@@ -104,7 +104,7 @@ function pollHealRun({ el, logSystemMessage }, runId) {
     const phase = last
       ? `iter ${last.iteration}: test=${last.testPhase ? (last.testPhase.exitCode === 0 ? 'PASS' : 'FAIL') : '…'} fix=${last.fixPhase ? (last.fixPhase.success ? 'OK' : 'FAIL') : '…'}`
       : 'starting…';
-    setStatus(el, `Heal ${runId}: ${run.status} — ${phase}`, run.status === 'healed' ? 'ok' : (run.status === 'running' ? 'warn' : 'err'));
+    setStatus(el, `Heal ${runId}: ${run.status} - ${phase}`, run.status === 'healed' ? 'ok' : (run.status === 'running' ? 'warn' : 'err'));
     if (run.status !== 'running') {
       clearInterval(timer);
       if (logSystemMessage) logSystemMessage(`OpenCode heal ${runId} finished: ${run.status} after ${run.iteration} iteration(s).`, run.status === 'healed' ? 'system' : 'error');
@@ -141,7 +141,7 @@ function handleHandoff({ el, agentBrain, audio, logSystemMessage }) {
     const res = getSharedLog('electron-dashboard').writeHandoff({ reason: 'dashboard 📋 button', bugs });
     if (res.success) {
       if (el.smartHandoffPath) el.smartHandoffPath.textContent = res.path;
-      if (logSystemMessage) logSystemMessage(`Smart-log handoff written: ${res.path} — paste it into any vibecoding tool, or let the heal loop auto-feed it.`, 'system');
+      if (logSystemMessage) logSystemMessage(`Smart-log handoff written: ${res.path}; paste it into any vibecoding tool, or let the heal loop auto-feed it.`, 'system');
       if (audio) audio.playClickSound();
       try {
         const { clipboard } = require('electron');

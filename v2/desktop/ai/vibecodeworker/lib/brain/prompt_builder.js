@@ -36,7 +36,7 @@ function buildPrompt(brain, consoleLogs, domSnapshot, isStuck, audioContext = nu
     const epLines = recentEps.map((ep, i) => {
       return `  Step -${recentEps.length - i}: [${ep.status}] ${ep.action.type} -> ${ep.action.target || 'N/A'} | path: ${JSON.stringify(ep.reasoning_path || ep.reasoning || '')}`;
     }).join('\n');
-    memoryBlock = `\n## MEMORY — Recent Episode History (last ${recentEps.length} steps)\n${epLines}${sessionSummary ? `\nSession stats: ${sessionSummary}` : ''}${learnedContext ? `\nLearned gameplay discoveries:\n${learnedContext}` : ''}\n`;
+    memoryBlock = `\n## MEMORY - Recent Episode History (last ${recentEps.length} steps)\n${epLines}${sessionSummary ? `\nSession stats: ${sessionSummary}` : ''}${learnedContext ? `\nLearned gameplay discoveries:\n${learnedContext}` : ''}\n`;
   } else if (sessionSummary && isStuck) {
     memoryBlock = `\n## SESSION STATS\n${sessionSummary}${learnedContext ? `\nLearned gameplay discoveries:\n${learnedContext}` : ''}\n`;
   }
@@ -64,7 +64,7 @@ function buildPrompt(brain, consoleLogs, domSnapshot, isStuck, audioContext = nu
   // Foveated vision option: overview + tiny detail crops. ON by default
   // (config.foveatedVision !== false). When on, the model sees image 1 as a
   // small full-screen overview plus N small high-detail crops, and may steer
-  // the next tick's crops via "focus" rects — the FPS-center fast path.
+  // the next tick's crops via "focus" rects; the FPS-center fast path.
   const foveaOn = !brain.config || brain.config.foveatedVision !== false;
   const visionMeta = visionContext || (brain && brain._lastVisionMeta) || null;
   const detailCount = visionMeta && Array.isArray(visionMeta.details) ? visionMeta.details.length : 0;
@@ -97,7 +97,7 @@ ${compactLogs.join('\n')}
 Interactive DOM (up to 40):
 ${compactDom.join('\n')}
 ${stuckBlock}
-${memoryBlock}${audioBlock}${foveaBlock}## GOAL — Game Objective
+${memoryBlock}${audioBlock}${foveaBlock}## GOAL - Game Objective
 ${brain.config.gameRules || "Explore the game: find buttons, play, maximize score, look for bugs/errors."}
 
 ## TASK

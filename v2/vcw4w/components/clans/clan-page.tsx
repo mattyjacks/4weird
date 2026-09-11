@@ -73,7 +73,7 @@ async function convertPngOver1MB(file: File): Promise<{ file: File; note: string
   if (!fallback) return { file, note: `${Math.round(file.size / 1024)}KB` };
   return {
     file: new File([fallback], file.name.replace(/\.png$/i, ".jpg"), { type: "image/jpeg" }),
-    note: `converted PNG→JPEG q=0.3 (${Math.round(fallback.size / 1024)}KB — may still exceed 1MB)`,
+    note: `converted PNG→JPEG q=0.3 (${Math.round(fallback.size / 1024)}KB; may still exceed 1MB)`,
   };
 }
 
@@ -226,7 +226,7 @@ export function ClanPage({ slug }: { slug: string }) {
       setImageUrl("");
       setFileNote("");
       if (fileRef.current) fileRef.current.value = "";
-      setNotice(data.status === "pending" ? "Posted — held for review (pending)." : "Posted! Server-cost fee charged (min 0.01 coins, 25% cut included).");
+      setNotice(data.status === "pending" ? "Posted; held for review (pending)." : "Posted! Server-cost fee charged (min 0.01 coins, 25% cut included).");
       await load();
     } catch (err) {
       setNotice(err instanceof Error ? err.message : "Post failed.");
@@ -436,7 +436,7 @@ export function ClanPage({ slug }: { slug: string }) {
         ))}
       </ul>
       {!loading && !error && posts.length === 0 && (
-        <p className="text-slate-400">No posts yet — be the first.</p>
+        <p className="text-slate-400">No posts yet; be the first.</p>
       )}
 
       <ClanDiscord slug={slug} />
@@ -447,7 +447,7 @@ export function ClanPage({ slug }: { slug: string }) {
         <h2 className="font-bold text-cyan-300">🪙 Clan upkeep + wallet</h2>
         <p className="mt-1 text-xs text-slate-400">
           The creator funds the server wallet and any member can donate directly (1:1, no cut).
-          Upkeep is billed every minute at :00 — stored images, database bytes, measured
+          Upkeep is billed every minute at :00; stored images, database bytes, measured
           bandwidth, Luna AI moderation, and base server share. Delinquent clans pause
           posting/chat until funded. Ad views + affiliate clicks earn revenue that offsets
           upkeep. New clans get 14 days grace.
@@ -461,7 +461,7 @@ export function ClanPage({ slug }: { slug: string }) {
             {minuteRate.db_kb ?? 0} KB text)
             {minuteRate.breakdown && (
               <span className="text-slate-500">
-                {" "}— server {Number(minuteRate.breakdown.server ?? 0).toFixed(6)} · members{" "}
+                {" "}- server {Number(minuteRate.breakdown.server ?? 0).toFixed(6)} · members{" "}
                 {Number(minuteRate.breakdown.members ?? 0).toFixed(6)} · images{" "}
                 {Number(minuteRate.breakdown.images ?? 0).toFixed(6)} · db{" "}
                 {Number(minuteRate.breakdown.database ?? 0).toFixed(6)}
@@ -487,7 +487,7 @@ export function ClanPage({ slug }: { slug: string }) {
             <p className="mt-1 text-xs text-slate-500">Any member can chip in directly, 1:1, no cut.</p>
             <div className="mt-2 flex gap-2">
               <input id="donate-coins-input" name="donateCoins" aria-label="Coins to donate" value={donateCoins} onChange={(e) => setDonateCoins(e.target.value)} placeholder="coins" inputMode="decimal" className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white" />
-              <button onClick={() => void econ("", { action: "donate", coins: Number(donateCoins) }, "Donation received — thank you!")} className="rounded-lg bg-emerald-400 px-3 py-2 text-sm font-bold text-slate-950">Donate</button>
+              <button onClick={() => void econ("", { action: "donate", coins: Number(donateCoins) }, "Donation received; thank you!")} className="rounded-lg bg-emerald-400 px-3 py-2 text-sm font-bold text-slate-950">Donate</button>
             </div>
           </div>
           <div>
@@ -507,9 +507,9 @@ export function ClanPage({ slug }: { slug: string }) {
             <h3 className="text-sm font-bold text-slate-200">Clan type (owner)</h3>
             <div className="mt-2 flex gap-2">
               <select id="clan-type-pick" name="clanType" aria-label="Clan type" defaultValue={clanType} className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white">
-                <option value="hclan">hclan — humans only</option>
-                <option value="sclan">sclan — shared</option>
-                <option value="bclan">bclan — bot-native</option>
+                <option value="hclan">hclan; humans only</option>
+                <option value="sclan">sclan; shared</option>
+                <option value="bclan">bclan; bot-native</option>
               </select>
               <button
                 onClick={() => {
@@ -556,7 +556,7 @@ export function ClanPage({ slug }: { slug: string }) {
       </section>
 
       <section className="rounded-xl border border-white/10 bg-slate-900 p-5">
-        <h2 className="font-bold text-cyan-300">🤖 Deployed bots {clanType === "hclan" ? "(disabled — hclan)" : `(${bots.length})`}</h2>
+        <h2 className="font-bold text-cyan-300">🤖 Deployed bots {clanType === "hclan" ? "(disabled; hclan)" : `(${bots.length})`}</h2>
         <p className="mt-1 text-xs text-slate-400">
           {clanType === "hclan"
             ? "hclans are hardened against bots: no bot reads, joins, posts, or deploys."
@@ -594,7 +594,7 @@ export function ClanPage({ slug }: { slug: string }) {
             ))}
           </ol>
         ) : (
-          <p className="mt-2 text-sm text-slate-500">No XP yet — post something.</p>
+          <p className="mt-2 text-sm text-slate-500">No XP yet; post something.</p>
         )}
       </section>
     </div>

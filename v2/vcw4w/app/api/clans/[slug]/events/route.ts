@@ -16,7 +16,7 @@ function asUuid(v: unknown): string {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(s) ? s : "";
 }
 
-// GET /api/clans/[slug]/events — public upcoming events.
+// GET /api/clans/[slug]/events; public upcoming events.
 export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const rl = rateLimit(`clan-events:${clientIp(req)}`, 60, 60_000);
@@ -38,7 +38,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   return ok({ events: events ?? [] });
 }
 
-// POST /api/clans/[slug]/events {title, description?, starts_at, channel_id?} —
+// POST /api/clans/[slug]/events {title, description?, starts_at, channel_id?} -
 // owner/mod only. starts_at must be a future ISO timestamp.
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);

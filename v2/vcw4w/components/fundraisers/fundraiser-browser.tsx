@@ -53,7 +53,7 @@ export function FundraiserBrowser() {
   }, [load]);
 
   async function create() {
-    // Disabled in the UI while compliance is worked out — the API + RPCs
+    // Disabled in the UI while compliance is worked out; the API + RPCs
     // underneath are intentionally left working so this flips back on.
     if (!FUNDRAISERS_ENABLED) {
       setError("Fundraisers are disabled while we work out the legal and compliance side.");
@@ -95,7 +95,7 @@ export function FundraiserBrowser() {
       if (!data.success) setError(data.error ?? "Campaign creation failed.");
       else {
         const c = data.campaign as { id?: string };
-        setNotice("Campaign launched. Tell the story honestly — backers fund dreams, not guarantees.");
+        setNotice("Campaign launched. Tell the story honestly; backers fund dreams, not guarantees.");
         setTitle("");
         setStory("");
         setFunds("");
@@ -143,7 +143,7 @@ export function FundraiserBrowser() {
       <section className="space-y-4">
         <h2 className="text-2xl font-bold">Open campaigns</h2>
         {campaigns.length === 0 ? (
-          <p className="text-sm text-slate-400">No open campaigns in this view — launch the first one below.</p>
+          <p className="text-sm text-slate-400">No open campaigns in this view; launch the first one below.</p>
         ) : (
           <ul className="grid gap-4 sm:grid-cols-2">
             {campaigns.map((c) => {
@@ -173,18 +173,18 @@ export function FundraiserBrowser() {
       <section className="space-y-4">
         <h2 className="text-2xl font-bold">Launch your game or startup</h2>
         <p className="text-sm text-slate-400">
-          Gift-based backing for creative projects only — games, tech startups, creative tech. No charity, medical,
+          Gift-based backing for creative projects only; games, tech startups, creative tech. No charity, medical,
           emergency, political, or investment language is accepted (it is rejected automatically). You must describe
           what the coins will fund, and every reward you mention is a goal, not a guarantee. Login required.
           {!FUNDRAISERS_ENABLED && " Launching is disabled for now while we work out regulations and compliance."}
         </p>
         <div className="grid gap-3" aria-disabled={!FUNDRAISERS_ENABLED}>
-          <input className={input} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Project title (4–120 chars)" disabled={!FUNDRAISERS_ENABLED} />
-          <textarea className={input + " min-h-28"} value={story} onChange={(e) => setStory(e.target.value)} placeholder="Story (20–5000 chars): what are you building, why, and what happens if you hit the goal?" disabled={!FUNDRAISERS_ENABLED} />
-          <input className={input} value={funds} onChange={(e) => setFunds(e.target.value)} placeholder="Use of funds — e.g. art, servers, SDK licenses (recommended)" disabled={!FUNDRAISERS_ENABLED} />
+          <input className={input} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Project title (4-120 chars)" disabled={!FUNDRAISERS_ENABLED} />
+          <textarea className={input + " min-h-28"} value={story} onChange={(e) => setStory(e.target.value)} placeholder="Story (20-5000 chars): what are you building, why, and what happens if you hit the goal?" disabled={!FUNDRAISERS_ENABLED} />
+          <input className={input} value={funds} onChange={(e) => setFunds(e.target.value)} placeholder="Use of funds; e.g. art, servers, SDK licenses (recommended)" disabled={!FUNDRAISERS_ENABLED} />
           <div className="grid gap-3 sm:grid-cols-4">
             <label className="block text-sm">
-              Goal (50–1M coins)
+              Goal (50-1M coins)
               <input className={input + " mt-1"} value={goal} onChange={(e) => setGoal(e.target.value)} inputMode="decimal" disabled={!FUNDRAISERS_ENABLED} />
             </label>
             <label className="block text-sm">
@@ -208,7 +208,7 @@ export function FundraiserBrowser() {
           </div>
         </div>
         <button className={btn} disabled={busy || !FUNDRAISERS_ENABLED} onClick={() => void create()}>
-          {FUNDRAISERS_ENABLED ? "Launch campaign" : "Launching disabled — back soon"}
+          {FUNDRAISERS_ENABLED ? "Launch campaign" : "Launching disabled; back soon"}
         </button>
       </section>
     </div>

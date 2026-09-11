@@ -14,7 +14,7 @@ type KidMe = {
 };
 
 /**
- * KidBanner — shown whenever a child session is live on this device: who is
+ * KidBanner; shown whenever a child session is live on this device: who is
  * playing, wallet balance, time used/left, and a switch-back (logout) button.
  * Mount it on play + catalog surfaces; it renders nothing otherwise.
  */
@@ -56,9 +56,9 @@ export function KidBanner() {
         ⏱️ {usedMin} min today
         {left !== null && <> · {Math.floor(left / 60)} min left</>}
       </span>
-      {kid.allowed_start && kid.allowed_end && <span>🕒 {kid.allowed_start}–{kid.allowed_end}</span>}
-      {!kid.in_window && <b className="text-amber-200">Outside play hours — play is paused until the window opens.</b>}
-      {left !== null && left <= 0 && <b className="text-amber-200">Daily time is up — see you tomorrow!</b>}
+      {kid.allowed_start && kid.allowed_end && <span>🕒 {kid.allowed_start}-{kid.allowed_end}</span>}
+      {!kid.in_window && <b className="text-amber-200">Outside play hours; play is paused until the window opens.</b>}
+      {left !== null && left <= 0 && <b className="text-amber-200">Daily time is up; see you tomorrow!</b>}
       <button type="button" onClick={logout} className="ml-auto rounded-full border border-white/20 px-3 py-1 font-semibold hover:bg-white/10">
         Switch player
       </button>

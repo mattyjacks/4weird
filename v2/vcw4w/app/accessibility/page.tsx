@@ -3,7 +3,7 @@ import { MarketingPage } from "@/components/site/marketing-page";
 import { AccessibilityControls } from "@/components/site/accessibility-controls";
 
 export const metadata: Metadata = {
-  title: "Accessibility — Play and Build Accessibly",
+  title: "Accessibility - Play and Build Accessibly",
   description:
     "4weird accessibility controls: reading, color-vision, eye-tracker, head-pointer, face-control, and single-switch settings, saved on-device and honored inside game frames.",
   alternates: { canonical: "/accessibility" },

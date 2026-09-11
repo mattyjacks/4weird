@@ -1,7 +1,7 @@
 /**
  * Local-model role orchestration.
  *
- * The agent is not one model call — different pipeline stages want different
+ * The agent is not one model call; different pipeline stages want different
  * models. Each ROLE below names an orchestration responsibility; the user
  * assigns any installed model (local Ollama tag like `qwen3:8b`, or a cloud
  * model when that role's provider is cloud) to each role in the dashboard
@@ -9,10 +9,10 @@
  * default is just a starting suggestion and is overridable per role.
  *
  * Roles:
- *   agent    — everyday playtest decisions, planning, tool calls.
- *   vision   — screenshot / frame understanding (needs a vision-capable model).
- *   coder    — autocode patches, code review, heal-worker edits.
- *   reasoner — slow deep diagnosis, self-improvement, root-cause work.
+ *   agent   ; everyday playtest decisions, planning, tool calls.
+ *   vision  ; screenshot / frame understanding (needs a vision-capable model).
+ *   coder   ; autocode patches, code review, heal-worker edits.
+ *   reasoner; slow deep diagnosis, self-improvement, root-cause work.
  *
  * Config shape (persisted in config/default.json under `localModels`):
  *   {
@@ -27,7 +27,7 @@
  *   }
  *
  * `callRoleLLM(brain, role, ...)` resolves the role against the live config
- * and delegates to the existing callLLM — cloud roles behave exactly like
+ * and delegates to the existing callLLM; cloud roles behave exactly like
  * the legacy single-model path, local roles hit the Ollama endpoint.
  */
 
@@ -102,7 +102,7 @@ function normalizeLocalModels(input) {
 
 /**
  * Resolve what { provider, modelName, endpointUrl } a role should run with.
- * appConfig: { provider, modelName, endpointUrl, localModels? } — the live
+ * appConfig: { provider, modelName, endpointUrl, localModels? }; the live
  * brain/autoCode config. Unconfigured roles fall back to the legacy
  * single-model config so existing setups keep working untouched.
  */
@@ -145,7 +145,7 @@ async function callRoleLLM(brain, role, prompt, base64Image = null, audioInput =
   return callLLM(roleBrain, prompt, base64Image, audioInput);
 }
 
-/** Suggested starter tags shown in the UI datalist (pure hints — any installed tag works). */
+/** Suggested starter tags shown in the UI datalist (pure hints; any installed tag works). */
 function suggestedTags(role) {
   const base = {
     agent: ['qwen3:8b', 'qwen3:14b', 'mistral:latest', 'llama3.1:8b', 'gemma3:4b'],

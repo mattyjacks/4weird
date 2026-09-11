@@ -25,17 +25,17 @@ import { OPENROUTER_ENDPOINT, OPENROUTER_REFERER, OPENROUTER_TITLE, parseOpenRou
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/buddy/chat — one Gaming Buddy turn reusing the VibeCodeWorker
+ * POST /api/buddy/chat; one Gaming Buddy turn reusing the VibeCodeWorker
  * loop (OBSERVE -> REASON -> ACT -> METER).
  * Body: { game_slug?, game_title?, screen_text?, score?, voice?,
  *   session_id?, screen_image?, message?, history?, brain? }.
  * screen_image is an optional client-captured JPEG/PNG data URL (downscaled
  * snapshot from the user's explicit screen share). It is forwarded to the
- * model for this turn only — never stored, never logged — and billed as
+ * model for this turn only; never stored, never logged; and billed as
  * image input tokens on the chat leg.
  * message is an optional typed player question; history is an optional
  * array of { role: "user"|"buddy", text } (capped at 8 turns) that the
- * buddy remembers for this turn only — never stored server-side.
+ * buddy remembers for this turn only; never stored server-side.
  * brain is optional: "auto" (default) | "openai" | "openrouter".
  *
  * REASON picks its brain by key: OPENAI_API_KEY -> Responses API
@@ -44,7 +44,7 @@ export const dynamic = "force-dynamic";
  * clearly-labelled local fallback at no cost. Voice is metered
  * separately, only when /api/buddy/tts actually calls OpenAI.
  * When Fal is configured (FAL_KEY) and the moment suits it, the reply
- * carries a falHint — a ready-to-fire /api/fal/generate payload that
+ * carries a falHint; a ready-to-fire /api/fal/generate payload that
  * costs nothing until the client uses it.
  * Metering is true-cost: chat tokens + image tokens + one Supabase DB leg,
  * converted provider-USD -> gross Vibe Coins (25% cut INCLUDED), rounded to
@@ -171,7 +171,7 @@ export async function POST(req: Request) {
             model,
             messages: [
               { role: "system", content: systemPrompt },
-              { role: "user", content: screenImage ? `${promptText}\n(Screenshot attached separately is not supported on this brain — described context above.)` : promptText },
+              { role: "user", content: screenImage ? `${promptText}\n(Screenshot attached separately is not supported on this brain; described context above.)` : promptText },
             ],
             max_tokens: 150,
             temperature: 0.8,
@@ -211,7 +211,7 @@ export async function POST(req: Request) {
   }
   // Meter the chat leg at TRUE cost (chat tokens + image tokens + DB leg).
   // The RPC prices buddy-chat at 3 coins per qty unit, so derive qty from
-  // the true-cost gross — the ledger lands on the accurate figure.
+  // the true-cost gross; the ledger lands on the accurate figure.
   // (Same meter whichever brain reasoned; the USD delta is sub-centicentcoin.)
   const cost = quoteBuddyChatLeg({
     promptChars: promptText.length,
@@ -252,6 +252,6 @@ export async function POST(req: Request) {
     },
     metered,
     falHint,
-    note: "Buddy turns meter in Vibe Coins with the 25% cut included — see /my/usage.",
+    note: "Buddy turns meter in Vibe Coins with the 25% cut included; see /my/usage.",
   });
 }

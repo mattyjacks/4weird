@@ -13,7 +13,7 @@
  *   - `chromium` (standalone): Playwright / Puppeteer headless Chromium, with
  *     graceful compat fallback to the Electron viewport when not installed.
  *
- * Switching: `setActiveEngine(id)` — persisted to config.json `webEngine`.
+ * Switching: `setActiveEngine(id)`; persisted to config.json `webEngine`.
  * Multi-engine QA: `runMultiEngineQA(url, executorProvider)` fans the same
  * telemetry pass out to all engines and diffs console/network/bug results so
  * cross-engine regressions (Ultralight vs Chromium vs Electron) are visible.
@@ -30,7 +30,7 @@ const ENGINE_META = {
   ultralight: {
     id: 'ultralight',
     label: 'Ultralight (main)',
-    description: 'ultralig.ht WebKit GPU runtime — default driver for telemetry & automation.',
+    description: 'ultralig.ht WebKit GPU runtime; default driver for telemetry & automation.',
     isDefault: true,
   },
   electron: {
@@ -299,7 +299,7 @@ class WebEngineManager extends EventEmitter {
       url, engines: ids, at: new Date().toISOString(),
       diverged, domCountsDiffer: domCounts.size > 1,
       note: diverged
-        ? 'Engines disagree on console/network telemetry — inspect per-engine bug lists for rendering or API divergences.'
+        ? 'Engines disagree on console/network telemetry; inspect per-engine bug lists for rendering or API divergences.'
         : 'All engines agree on console/network telemetry for this target.',
     };
     this.emit('multi_engine_qa', { summary, results });

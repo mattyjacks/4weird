@@ -241,7 +241,7 @@ export function ClanDiscord({ slug }: { slug: string }) {
               </li>
             ))}
             {channels.length === 0 && (
-              <li className="px-2 text-xs text-slate-500">No channels yet — check back soon.</li>
+              <li className="px-2 text-xs text-slate-500">No channels yet; check back soon.</li>
             )}
           </ul>
           <form onSubmit={createChannel} className="mt-3 flex gap-1">
@@ -279,7 +279,7 @@ export function ClanDiscord({ slug }: { slug: string }) {
         <div className="flex flex-col">
           <div className="border-b border-white/10 px-4 py-2 text-sm text-slate-300">
             <span className="font-bold text-white">{active?.readonly ? "📢" : active?.kind === "media" ? "🖼️" : "#"} {active?.name ?? "general"}</span>
-            {active?.topic && <span className="ml-2 text-xs text-slate-400">— {active.topic}</span>}
+            {active?.topic && <span className="ml-2 text-xs text-slate-400">- {active.topic}</span>}
           </div>
           <div className="perf-list flex-1 space-y-3 overflow-y-auto p-4" style={{ maxHeight: "420px" }}>
             {messages.map((m) => {
@@ -326,7 +326,7 @@ export function ClanDiscord({ slug }: { slug: string }) {
               );
             })}
             {messages.length === 0 && (
-              <p className="text-sm text-slate-500">No messages yet — say hi.</p>
+              <p className="text-sm text-slate-500">No messages yet; say hi.</p>
             )}
             <div ref={bottomRef} />
           </div>
@@ -346,7 +346,7 @@ export function ClanDiscord({ slug }: { slug: string }) {
                 aria-label="Chat message"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                placeholder={active?.readonly ? "📢 announcements — owners/mods only" : `Message ${active?.name ?? ""} (markdown OK)`}
+                placeholder={active?.readonly ? "📢 announcements; owners/mods only" : `Message ${active?.name ?? ""} (markdown OK)`}
                 maxLength={2000}
                 className="flex-1 rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500"
               />

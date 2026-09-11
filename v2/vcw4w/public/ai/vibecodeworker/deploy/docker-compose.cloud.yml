@@ -1,8 +1,8 @@
-# Production cloud compose — cheap single-box deploy (droplet, Hetzner, Lightsail).
+# Production cloud compose; cheap single-box deploy (droplet, Hetzner, Lightsail).
 # Copy this file + .env to /opt/vibecodeworker on the box, then:
 #   VIBE_API_TOKEN=$(openssl rand -hex 24) docker compose -f docker-compose.cloud.yml up -d --build
 #
-# VIBE_API_TOKEN is REQUIRED here (refused to start without it — see command below).
+# VIBE_API_TOKEN is REQUIRED here (refused to start without it; see command below).
 services:
   vibecodeworker:
     build:

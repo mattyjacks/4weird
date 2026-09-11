@@ -16,7 +16,7 @@ function isChannelSlug(v: unknown): string {
   return /^[a-z0-9-]{1,30}$/.test(s) ? s : "";
 }
 
-// GET /api/clans/[slug]/channels — public channel list (+ member roles for
+// GET /api/clans/[slug]/channels; public channel list (+ member roles for
 // the sidebar, message counts, minute rate, upkeep state).
 export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
@@ -65,7 +65,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   });
 }
 
-// POST /api/clans/[slug]/channels {slug, name, topic?, kind?} — owner/mod only.
+// POST /api/clans/[slug]/channels {slug, name, topic?, kind?}; owner/mod only.
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const { slug: raw } = await params;

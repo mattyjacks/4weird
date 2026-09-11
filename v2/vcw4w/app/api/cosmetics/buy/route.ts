@@ -16,7 +16,7 @@ import {
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/cosmetics/buy — buy one own-once cosmetic (10 coins).
+ * POST /api/cosmetics/buy; buy one own-once cosmetic (10 coins).
  * Body: { item_id, game_slug?, session_id?, acceptedQuote, kidsMode? }.
  * Protections: catalog price enforced server-side, consent quote must match
  * exactly, kids mode blocks, monetization-profile gate, PK blocks double-buy,
@@ -45,10 +45,10 @@ export async function POST(req: Request) {
   const sessionRaw = input.session_id ?? input.sessionId ?? null;
   if (sessionRaw !== null && !isUuid(sessionRaw)) return fail("Invalid session_id.", 400);
 
-  const expectedQuote = `${def.name} — ${priceLine(def.price)}`;
+  const expectedQuote = `${def.name} - ${priceLine(def.price)}`;
   const acceptedQuote = String(input.acceptedQuote ?? "").trim().slice(0, 160);
   if (acceptedQuote !== expectedQuote) {
-    return fail("Price changed since you confirmed — please review and confirm again.", 400);
+    return fail("Price changed since you confirmed; please review and confirm again.", 400);
   }
 
   const region = resolveRegionFromHeaders(req.headers);
@@ -78,10 +78,10 @@ export async function POST(req: Request) {
           metered: null,
           pendingMigration: true,
           quote: expectedQuote,
-          note: "Shop kinds are quoted but not yet metered on this deploy — no coins moved.",
+          note: "Shop kinds are quoted but not yet metered on this deploy; no coins moved.",
         });
       }
-      if (msg.includes("already owned")) return fail(`${def.name} is already yours — equip it from your wardrobe.`, 409);
+      if (msg.includes("already owned")) return fail(`${def.name} is already yours; equip it from your wardrobe.`, 409);
       if (msg.includes("insufficient balance")) return fail("Not enough coins for this cosmetic.", 402);
       return dbFail("api/cosmetics/buy:meter", error, "Unable to complete purchase.");
     }

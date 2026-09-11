@@ -1,5 +1,5 @@
 /**
- * Audio route handlers — ElevenLabs voice layer + offline PCM QA.
+ * Audio route handlers - ElevenLabs voice layer + offline PCM QA.
  * Mounted by lib/api/routes.js under /api/audio/*. All TTS/STS/SFX/Music
  * calls need ELEVENLABS_API_KEY (BYOK); /analyze, /npc-plan (synthesize
  * off), /voice-command-parse, and /subtitle-check work fully offline.
@@ -219,7 +219,7 @@ async function handleAudioRequest(pathname, req, readBody, sendJSON, sendText) {
     return sendJSON(200, { success: true, offline: true, assetUrl, prompt: sfxPromptForAsset(assetUrl || '') });
   }
 
-  return null; // not an audio route — let the main dispatcher continue
+  return null; // not an audio route; let the main dispatcher continue
 }
 
 module.exports = { handleAudioRequest, audioStatus };

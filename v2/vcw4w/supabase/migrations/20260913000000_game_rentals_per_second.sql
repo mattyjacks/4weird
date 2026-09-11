@@ -1,5 +1,5 @@
 -- ============================================================================
--- Game rentals, per-second billing — proportional load + per-second running.
+-- Game rentals, per-second billing; proportional load + per-second running.
 -- Fully rerunnable: IF NOT EXISTS / OR REPLACE / DROP ... IF EXISTS.
 --
 -- Model (mirrors lib/game-rent.ts):
@@ -22,7 +22,7 @@
 
 -- --------------------------------------------------------------------------
 -- 0. Numeric 25/75 split (idempotent; also defined in the fractional-coins
---    migration — repeated here so this file is safe to run on its own).
+--    migration; repeated here so this file is safe to run on its own).
 -- --------------------------------------------------------------------------
 create or replace function public.game_ai_compute_split_numeric(p_gross numeric)
 returns table(gross numeric, cut numeric, provider numeric)

@@ -1,5 +1,5 @@
 /**
- * Buddy voice presence — mic mute/VAD, barge-in (interruption) handling, and
+ * Buddy voice presence; mic mute/VAD, barge-in (interruption) handling, and
  * interruption memory. 100% pure (no DOM, no imports): the widget owns the
  * MediaStream/Analyser/SpeechRecognition objects and feeds numbers + strings
  * through these functions. Runnable under plain node for tests.
@@ -7,7 +7,7 @@
  * Interruption model: when the user starts speaking while Buddy is talking,
  * the widget stops Buddy's audio, keeps (a) the partial user transcript so
  * far and (b) how far Buddy got, and resumes with a self-prompt that carries
- * both — so nothing said on either side is lost. Turns flagged
+ * both; so nothing said on either side is lost. Turns flagged
  * `interrupted` are preserved preferentially in memory.
  */
 
@@ -78,7 +78,7 @@ export function resumptionPrefix(partialUserText: string, buddyReplySoFar: strin
   const bits: string[] = ["[barge-in]"];
   bits.push(partial ? `I cut in saying: "${partial}".` : "I cut in before finishing my sentence.");
   bits.push(soFar ? `You had gotten as far as: "${soFar}".` : "You had just started answering.");
-  bits.push("Please continue from my interruption — don't restart your previous answer from the top.");
+  bits.push("Please continue from my interruption; don't restart your previous answer from the top.");
   return bits.join(" ");
 }
 

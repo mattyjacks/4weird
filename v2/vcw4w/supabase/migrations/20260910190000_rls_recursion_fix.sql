@@ -55,7 +55,7 @@ begin
   select t.org_id into v_org from public.teams t where t.id = p_team;
   if v_org is null then return false; end if;
   -- Org owners/admins inherit team power (except explicit billing-only stays out
-  -- of code/rooms unless also a team member — checked below by perm key).
+  -- of code/rooms unless also a team member; checked below by perm key).
   if public.has_org_perm(v_org, 'org.teams.delete') then return true; end if;
   select m.role_key, m.custom_role_id into m from public.team_members m
     where m.team_id = p_team and m.user_id = auth.uid();

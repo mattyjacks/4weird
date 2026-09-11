@@ -21,10 +21,10 @@ export const OPERATOR = "MattyJacks LLC";
 export const SITE_LOCALE = "en_US";
 export const SITE_LANGUAGE = "en";
 
-/** Canonical facts — repeat verbatim wherever prices are stated. */
+/** Canonical facts; repeat verbatim wherever prices are stated. */
 export const FACTS = {
   coinPeg: "100 Vibe Coins (🪙) = exactly $1.00",
-  platformCut: "25% platform cut, always included in the price — never added on top",
+  platformCut: "25% platform cut, always included in the price; never added on top",
   providerShare: "75% goes to the providers and game makers doing the work",
   trial: "free 100-coin ($1.00) trial for new accounts",
   gameCount: "34 playable browser games",
@@ -45,9 +45,9 @@ export const COIN_TRIAL = { coins: 100, usd: 0, label: "Free signup trial (once 
 export const BYOK_PLAN = { usdPerMonth: 420, label: "Self-hosted BYOK, 15% compute premium" } as const;
 
 export const DEFAULT_TITLE =
-  "4weird Games — Cloud Compute That Funds AI-Built Games";
+  "4weird Games - Cloud Compute That Funds AI-Built Games";
 export const DEFAULT_DESCRIPTION =
-  "Rent metered cloud compute, AI agents, and team workspaces with Vibe Coins (100 🪙 = $1.00, 25% cut included) — funding 34 AI-built browser games that teach AI by playing.";
+  "Rent metered cloud compute, AI agents, and squad workspaces with Vibe Coins (100 🪙 = $1.00, 25% cut included); funding 34 AI-built browser games that teach AI by playing.";
 
 /** Core keyword set shared by the homepage and section hubs. */
 export const CORE_KEYWORDS = [
@@ -207,7 +207,7 @@ export function itemListJsonLd(
 export function pricingOffersJsonLd() {
   const packOffers = COIN_PACKS.map((pack) => ({
     "@type": "Offer",
-    name: `${pack.coins.toLocaleString("en-US")} Vibe Coins — $${pack.usd}`,
+    name: `${pack.coins.toLocaleString("en-US")} Vibe Coins - $${pack.usd}`,
     description: `${pack.label}. ${FACTS.platformCut}.`,
     price: String(pack.usd),
     priceCurrency: "USD",
@@ -224,7 +224,7 @@ export function pricingOffersJsonLd() {
       {
         "@type": "Offer",
         position: packOffers.length + 1,
-        name: `${COIN_TRIAL.coins} Vibe Coins trial — free`,
+        name: `${COIN_TRIAL.coins} Vibe Coins trial; free`,
         description: COIN_TRIAL.label,
         price: "0",
         priceCurrency: "USD",
@@ -233,7 +233,7 @@ export function pricingOffersJsonLd() {
       {
         "@type": "Offer",
         position: packOffers.length + 2,
-        name: `Self-hosted BYOK — $${BYOK_PLAN.usdPerMonth}/mo`,
+        name: `Self-hosted BYOK - $${BYOK_PLAN.usdPerMonth}/mo`,
         description: BYOK_PLAN.label,
         price: String(BYOK_PLAN.usdPerMonth),
         priceCurrency: "USD",

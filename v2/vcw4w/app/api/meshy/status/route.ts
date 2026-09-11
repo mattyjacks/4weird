@@ -11,7 +11,7 @@ import { VAULT_BUCKET } from "@/lib/blob-vault";
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/meshy/status?job=<uuid> — poll a Meshy task; on SUCCEEDED the
+ * GET /api/meshy/status?job=<uuid>; poll a Meshy task; on SUCCEEDED the
  * result is fetched server-side, stored in the caller's Weird Vault
  * (personal scope, models/ prefix), and linked to the job with
  * game-readiness advice. Auth: owner session OR bot key `meshy:read`.

@@ -10,7 +10,7 @@ type ProxyLinkProps = {
 
 /**
  * A RunPod proxy URL as a REAL clickable link (anchor), never a blue span.
- * Opens in a new tab — the pod UI (Jupyter, Kasm desktop, render log) stays
+ * Opens in a new tab; the pod UI (Jupyter, Kasm desktop, render log) stays
  * usable while the 4weird tab stays open.
  */
 export function ProxyLink({ href, label = "Open", className = "" }: ProxyLinkProps) {

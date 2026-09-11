@@ -7,7 +7,7 @@ import { GAME_LOAD_COINS_DEFAULT, GAME_HOURLY_COINS_DEFAULT, perSecondCenticentc
 type Rate = { game_slug: string; coins_per_load: number; coins_per_hour: number };
 
 /**
- * PlayRateBadge — the honest price tag on every game: proportional load fee
+ * PlayRateBadge; the honest price tag on every game: proportional load fee
  * + hourly rate billed per second, and the dev-rate pointer.
  * Rates come from /api/games/rates (public); missing rows mean defaults.
  */
@@ -43,7 +43,7 @@ export function PlayRateBadge({ slug, compact }: { slug: string; compact?: boole
       }
     >
       {free ? (
-        <>🆓 Free to play — the developer set this game to 0 coins.</>
+        <>🆓 Free to play; the developer set this game to 0 coins.</>
       ) : (
         <>
           🪙 <b className="text-white">{load} coin{load === 1 ? "" : "s"} per load</b> (exact fresh bytes, 1 MiB = full fee)

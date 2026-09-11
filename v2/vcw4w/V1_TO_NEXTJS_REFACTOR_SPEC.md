@@ -1,4 +1,4 @@
-# 4weird v1 to Next.js v2 — Complete Refactor Specification
+# 4weird v1 to Next.js v2 - Complete Refactor Specification
 
 ## 1. Document control
 
@@ -364,7 +364,7 @@ export type GameCatalogEntry = {
 ### 14.3 Vibe Coins
 
 - v1 supports balance retrieval.
-- v1 supports transaction history with a 1–100 item requested limit and default 25.
+- v1 supports transaction history with a 1-100 item requested limit and default 25.
 - v1 supports claim processing.
 - v1 supports coin-pack configuration.
 - v1 generates a Shopify cart URL from validated store and variant configuration.
@@ -674,7 +674,7 @@ VibeCodeWorker is a separate product family embedded within v1. It has a static 
 
 ## 27. Migration phases
 
-### Phase 0 — Baseline and safety
+### Phase 0 - Baseline and safety
 
 - Freeze a reference list of legacy URLs.
 - Capture screenshots and manual walkthrough notes for representative pages.
@@ -684,7 +684,7 @@ VibeCodeWorker is a separate product family embedded within v1. It has a static 
 - Add lint, typecheck, and test scripts to v2.
 - Decide canonical deployment origin and redirect host policy.
 
-### Phase 1 — Shell and public content
+### Phase 1 - Shell and public content
 
 - Replace starter home and metadata.
 - Build shared header/footer and design tokens.
@@ -692,7 +692,7 @@ VibeCodeWorker is a separate product family embedded within v1. It has a static 
 - Add redirects for high-value legacy public URLs.
 - Add sitemap, robots, and manifest.
 
-### Phase 2 — Catalog and games
+### Phase 2 - Catalog and games
 
 - Create typed catalog and metadata pipeline.
 - Migrate game cards/details.
@@ -701,7 +701,7 @@ VibeCodeWorker is a separate product family embedded within v1. It has a static 
 - Migrate/save selected representative games first.
 - Establish a per-game migration manifest.
 
-### Phase 3 — Auth, profile, coins, and saves
+### Phase 3 - Auth, profile, coins, and saves
 
 - Align existing Supabase starter routes with 4weird product branding.
 - Create profile and account dashboard.
@@ -709,14 +709,14 @@ VibeCodeWorker is a separate product family embedded within v1. It has a static 
 - Add ledger-backed coin read paths.
 - Integrate commerce only through verified server/webhook workflow.
 
-### Phase 4 — Advanced interactive products
+### Phase 4 - Advanced interactive products
 
 - Migrate spaceships as a client-island with cleanup and fallback behavior.
 - Migrate VibeCodeWorker public pages and web dashboard shell.
 - Define service bridge for VCW jobs; do not copy desktop logic into client code.
 - Define MediaMogul web/service boundary if product scope includes it.
 
-### Phase 5 — Parity, removal, and release
+### Phase 5 - Parity, removal, and release
 
 - Run route parity matrix.
 - Run security and accessibility checks.
@@ -1481,9 +1481,9 @@ The following atomic lines are deliberately included as an execution checklist f
 
 ## 39. Final engineering judgement
 
-This is a high-complexity platform migration, not a file-format conversion. Start with route and shared-shell parity, establish a typed catalog, preserve browser games through isolated runtimes, make auth/saves/coins server-authoritative, then integrate the spaceships and VibeCodeWorker product families through explicit client/service boundaries. The enormous legacy `ai/` tree must be triaged into source, service, desktop product, documentation, and generated artifacts before any copy operation. The destination Next.js project should become the clean web platform—not a container for every legacy binary and runtime.
+This is a high-complexity platform migration, not a file-format conversion. Start with route and shared-shell parity, establish a typed catalog, preserve browser games through isolated runtimes, make auth/saves/coins server-authoritative, then integrate the spaceships and VibeCodeWorker product families through explicit client/service boundaries. The enormous legacy `ai/` tree must be triaged into source, service, desktop product, documentation, and generated artifacts before any copy operation. The destination Next.js project should become the clean web platform-not a container for every legacy binary and runtime.
 
-## 40. Binding decision — retain original HTML games
+## 40. Binding decision; retain original HTML games
 
 This section supersedes any ambiguous wording elsewhere in this specification. The games are **not** a React-conversion backlog. They remain HTML-first applications in substantially their existing form.
 

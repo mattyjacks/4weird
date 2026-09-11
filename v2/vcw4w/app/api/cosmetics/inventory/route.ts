@@ -7,7 +7,7 @@ import { cleanLoadoutIds } from "@/lib/cosmetics";
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/cosmetics/inventory — owned item ids + equipped loadout.
+ * GET /api/cosmetics/inventory; owned item ids + equipped loadout.
  * Pre-migration (tables missing) returns an empty wardrobe with
  * pendingMigration:true instead of failing the widget.
  */

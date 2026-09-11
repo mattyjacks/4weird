@@ -11,7 +11,7 @@ import { getKidSession, kidSessionCookie, newKidToken, verifyKidPassword } from 
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/family/kid-login {handle: "name#1234", password} — child sign-in
+ * POST /api/family/kid-login {handle: "name#1234", password}; child sign-in
  * WITHOUT a Supabase user. Verifies the scrypt password, mints a 30-day
  * token session, and sets an httpOnly `kid_session` cookie. Strictly
  * IP-rate-limited (credential-stuffing shield for the 4-digit namespace).

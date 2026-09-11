@@ -1,5 +1,5 @@
 /**
- * OpenRouter 25 plays — one transport, 25 prompt-packs for 4weird + VibeCodeWorker.
+ * OpenRouter 25 plays; one transport, 25 prompt-packs for 4weird + VibeCodeWorker.
  *
  * Truth in advertising: OpenRouter is a chat-completions aggregator, NOT a
  * TTS host. So every "voice" play here does the OpenRouter part (writes the
@@ -10,7 +10,7 @@
  *   - "fal-minimax"   -> fal-ai/minimax/speech-02-hd via /api/fal/generate
  *   - "browser-speech"-> speechSynthesis fallback, free, always works
  *
- * Pure module: no imports, no Next.js, no Supabase — safe for tsc + edge.
+ * Pure module: no imports, no Next.js, no Supabase; safe for tsc + edge.
  * Live calls live in app/api/openrouter-plays/route.ts; offline fallback
  * lives here so every play works with zero keys.
  */
@@ -108,7 +108,7 @@ export const OPENROUTER_PLAYS: OpenRouterPlay[] = [
     voiceId: "fal-minimax/speech-02-hd",
     model: OPENROUTER_DEFAULT_MODEL,
     system:
-      "You are a dub script writer. Given one English game line, output 4 lines labelled ES:, FR:, DE:, JA: — each a natural game-localized translation under 20 words. No explanations.",
+      "You are a dub script writer. Given one English game line, output 4 lines labelled ES:, FR:, DE:, JA: - each a natural game-localized translation under 20 words. No explanations.",
     userPrompt: (i) => `Dub this line: ${clean(i, 300)}.`,
     maxTokens: 200,
   },
@@ -384,14 +384,14 @@ export function isPlayId(value: unknown): boolean {
   return getPlay(value) !== undefined;
 }
 
-/** Deterministic offline fallback — works with zero keys, never throws. */
+/** Deterministic offline fallback; works with zero keys, never throws. */
 export function fallbackOpenRouterPlay(play: OpenRouterPlay, input: unknown): string {
   const snippet = clean(input, 140);
   switch (play.id) {
     case "voice-command-parser":
       return `{"action":"none","target":"","confidence":0.0}`;
     case "autoplay-coach":
-      return `{"action":"wait","detail":"observe one more frame","why":"offline fallback — no live model"}`;
+      return `{"action":"wait","detail":"observe one more frame","why":"offline fallback; no live model"}`;
     case "multilingual-dub":
       return `ES: ${snippet}\nFR: ${snippet}\nDE: ${snippet}\nJA: ${snippet}`;
     case "sfx-smith":

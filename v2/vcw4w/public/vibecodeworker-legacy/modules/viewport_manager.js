@@ -195,7 +195,7 @@ export function setupIframeErrorListeners() {
 }
 
 /* Device content boxes (layout px). The frame keeps this aspect ratio and only
-   ever shrinks to fit — transform scale is coordinate-safe because the agent
+   ever shrinks to fit; transform scale is coordinate-safe because the agent
    cursor, overlay canvases and elementFromPoint all work in container px. */
 const DEVICE_BOXES = {
   autofit: { w: 1280, h: 800, label: 'Auto-Fit' },

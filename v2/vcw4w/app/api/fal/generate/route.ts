@@ -23,12 +23,12 @@ import {
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/fal/generate — run one of the 30 fal.ai media tools.
+ * POST /api/fal/generate; run one of the 30 fal.ai media tools.
  * Body: { op, prompt?, game_slug?, image_url?, audio_url?, audio_minutes?,
  *         source? }.
  *
  * Economy: gross Vibe Coins INCLUDE the 25% cut (meter_fal_usage RPC debits
- * first so fal spend can never leak free — a failed meter fails the run).
+ * first so fal spend can never leak free; a failed meter fails the run).
  * Without FAL_KEY the route returns honest started:false with a quote and
  * charges nothing. Nothing is ever faked: no URLs are synthesized.
  */
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
-  if (!data.user) return fail("Authentication required. Sign in to run fal tools — the catalog + quotes on /fal are free without login.", 401);
+  if (!data.user) return fail("Authentication required. Sign in to run fal tools; the catalog + quotes on /fal are free without login.", 401);
   const rl = rateLimit(`fal:generate:${data.user.id}`, 20, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
 
@@ -121,7 +121,7 @@ export async function POST(req: Request) {
       if (res.status === 401 || res.status === 403) {
         console.error(`[api/fal/generate] fal.ai rejected the server key (HTTP ${res.status}, op ${opRaw}, model ${model}). Nothing was charged.`);
         return fail(
-          `fal.ai rejected the server key (HTTP ${res.status}). Re-issue FAL_KEY in the fal.ai dashboard and update the server env — nothing was charged, metered coins stay on your balance.`,
+          `fal.ai rejected the server key (HTTP ${res.status}). Re-issue FAL_KEY in the fal.ai dashboard and update the server env; nothing was charged, metered coins stay on your balance.`,
           502,
         );
       }

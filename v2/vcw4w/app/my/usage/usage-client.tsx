@@ -165,7 +165,7 @@ export function UsageClient() {
           <input
             value={sessionFilter}
             onChange={(e) => setSessionFilter(e.target.value)}
-            placeholder="paste a buddy session uuid — or leave blank"
+            placeholder="paste a buddy session uuid; or leave blank"
             className="mt-1 w-full rounded-lg border border-white/15 bg-black/40 px-3 py-2 font-mono text-xs"
           />
         </label>
@@ -175,7 +175,7 @@ export function UsageClient() {
 
       {data && (
         <>
-          <Card title="Gaming Buddy + game AI — the four windows you asked for">
+          <Card title="Gaming Buddy + game AI; the four windows you asked for">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <SpendGrid label={data.session?.id ? "Current session" : "Session (none selected)"} spend={data.session} usd={usd} />
               <SpendGrid label="Total (all time)" spend={data.total} usd={usd} />
@@ -189,7 +189,7 @@ export function UsageClient() {
             </p>
           </Card>
 
-          <Card title="Game rentals — loads + per-second play">
+          <Card title="Game rentals; loads + per-second play">
             <div className="grid gap-3 sm:grid-cols-3">
               <SpendGrid label="Total (all time)" spend={data.gameRent?.total ?? { gross: 0, cut: 0, provider: 0, turns: 0 }} usd={usd} />
               <SpendGrid label="Last 24 hours" spend={data.gameRent?.last24h ?? { gross: 0, cut: 0, provider: 0, turns: 0 }} usd={usd} />
@@ -211,7 +211,7 @@ export function UsageClient() {
                 ))}
               </div>
             ) : (
-              <p className="text-slate-500">No rented play yet — every load and hour lands here.</p>
+              <p className="text-slate-500">No rented play yet; every load and hour lands here.</p>
             )}
             {(data.gameRent?.recent ?? []).length > 0 && (
               <div className="overflow-x-auto">
@@ -237,7 +237,7 @@ export function UsageClient() {
             )}
           </Card>
 
-          <Card title="RunPod — real spend, mirrored">
+          <Card title="RunPod; real spend, mirrored">
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="rounded-xl border border-cyan-300/30 bg-cyan-300/[.06] p-4">
                 <p className="text-xs font-bold uppercase tracking-widest text-slate-400">RunPod total (USD)</p>
@@ -263,7 +263,7 @@ export function UsageClient() {
             </div>
             <p className="text-xs text-slate-500">
               Pulled live from RunPod billing (pods + serverless + volumes) with the server&apos;s RUNPOD_API_KEY.
-              RunPod bills your card directly — mirrored rows carry no Vibe cut and sit outside the combined coin totals.
+              RunPod bills your card directly; mirrored rows carry no Vibe cut and sit outside the combined coin totals.
             </p>
             {data.runpod.byKind.length ? (
               <div className="space-y-2">
@@ -275,7 +275,7 @@ export function UsageClient() {
                 ))}
               </div>
             ) : (
-              <p className="text-slate-500">No RunPod spend mirrored yet — hit “Sync from RunPod”.</p>
+              <p className="text-slate-500">No RunPod spend mirrored yet; hit “Sync from RunPod”.</p>
             )}
             {data.runpod.recent.length > 0 && (
               <div className="overflow-x-auto">
@@ -290,9 +290,9 @@ export function UsageClient() {
                       <tr key={i} className="border-b border-white/5">
                         <td className="px-3 py-2">{new Date(r.time_bucket).toLocaleDateString()}</td>
                         <td className="px-3 py-2">{r.kind}</td>
-                        <td className="px-3 py-2 font-mono">{r.remote_id || "—"}</td>
+                        <td className="px-3 py-2 font-mono">{r.remote_id || "-"}</td>
                         <td className="px-3 py-2">${Number(r.amount_usd).toFixed(4)}</td>
-                        <td className="px-3 py-2">{r.time_billed_ms ? `${Math.round(r.time_billed_ms / 3_600_000 * 100) / 100}h` : "—"}</td>
+                        <td className="px-3 py-2">{r.time_billed_ms ? `${Math.round(r.time_billed_ms / 3_600_000 * 100) / 100}h` : "-"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -328,7 +328,7 @@ export function UsageClient() {
             </div>
           </Card>
 
-          <Card title="Clans — posting fees + funding + donations">
+          <Card title="Clans; posting fees + funding + donations">
             <p>
               Every post/comment/message pays a server-cost fee (25% platform / 75% clan wallet, min 0.01 coins);
               owner funding + member donations move 1:1 with no cut. Total: <b>{data.clan?.total.gross ?? 0}</b> coins,{" "}
@@ -344,11 +344,11 @@ export function UsageClient() {
                 ))}
               </div>
             ) : (
-              <p className="text-slate-500">No clan spend yet — every Clan fee, funding, and donation lands here.</p>
+              <p className="text-slate-500">No clan spend yet; every Clan fee, funding, and donation lands here.</p>
             )}
           </Card>
 
-          <Card title="Functions — serverless, cron, inference, queues, relays">
+          <Card title="Functions; serverless, cron, inference, queues, relays">
             <p>
               Function runs are workspace provisions, not a hidden bucket: <b>{data.workspace.functions.charges}</b> charges,{" "}
               <b>{data.workspace.functions.gross}</b> coins ({usd(data.workspace.functions.gross)}),{" "}
@@ -392,7 +392,7 @@ export function UsageClient() {
                 ))}
               </div>
             ) : (
-              <p className="text-slate-500">No game-AI spend yet — start a Buddy session or play an AI game.</p>
+              <p className="text-slate-500">No game-AI spend yet; start a Buddy session or play an AI game.</p>
             )}
           </Card>
 
@@ -411,7 +411,7 @@ export function UsageClient() {
             )}
           </Card>
 
-          <Card title="fal.ai Studio — 15 media tools">
+          <Card title="fal.ai Studio - 15 media tools">
             <p>
               Concept art, sprites, 3D, trailers, voices, music + promo kits:{" "}
               <b>{data.fal?.total.gross ?? 0}</b> coins, <b>{data.fal?.total.cut ?? 0}</b> cut,{" "}
@@ -428,7 +428,7 @@ export function UsageClient() {
                 ))}
               </div>
             ) : (
-              <p className="text-slate-500">No fal.ai runs yet — make something magical on /fal.</p>
+              <p className="text-slate-500">No fal.ai runs yet; make something magical on /fal.</p>
             )}
           </Card>
 
@@ -451,7 +451,7 @@ export function UsageClient() {
                         <td className="px-3 py-2">{r.source}</td>
                         <td className="px-3 py-2">{r.gross_coins}</td>
                         <td className="px-3 py-2">{r.cut_coins}</td>
-                        <td className="px-3 py-2 font-mono">{r.session_id ? String(r.session_id).slice(0, 8) + "…" : "—"}</td>
+                        <td className="px-3 py-2 font-mono">{r.session_id ? String(r.session_id).slice(0, 8) + "…" : "-"}</td>
                       </tr>
                     ))}
                   </tbody>

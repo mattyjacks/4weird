@@ -7,7 +7,7 @@ import { buildRunHandoff, isRunUuid } from "@/lib/vcw-runs";
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/vcw/handoff — portable AI handoff brief for a run
+ * POST /api/vcw/handoff; portable AI handoff brief for a run
  * (authenticated, owner only). The v1 worker's
  * `POST /api/opencode/handoff` equivalent without local files: the
  * markdown is returned in the response so any vibecoding tool can

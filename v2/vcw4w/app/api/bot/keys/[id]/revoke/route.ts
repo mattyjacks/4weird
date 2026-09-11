@@ -7,7 +7,7 @@ import { isUuid } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
-// POST /api/bot/keys/[id]/revoke — revoke one of the caller's own keys.
+// POST /api/bot/keys/[id]/revoke; revoke one of the caller's own keys.
 // Takes effect immediately. Supabase-login auth (NOT a bot key).
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);

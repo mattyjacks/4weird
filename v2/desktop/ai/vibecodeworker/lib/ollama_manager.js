@@ -2,19 +2,19 @@
  * Ollama lifecycle manager (Windows-first, macOS/Linux best-effort).
  *
  * Responsibilities, in order:
- *   1. detect()       — locate the `ollama` binary (PATH + well-known spots).
- *   2. isServerUp()   — probe the HTTP API (GET /api/tags).
- *   3. startServer()  — spawn `ollama serve` detached when the binary exists
+ *   1. detect()      ; locate the `ollama` binary (PATH + well-known spots).
+ *   2. isServerUp()  ; probe the HTTP API (GET /api/tags).
+ *   3. startServer() ; spawn `ollama serve` detached when the binary exists
  *                       but nothing listens yet.
- *   4. installOllama()— EXPLICIT-CONSENT ONLY: winget, else the official
+ *   4. installOllama()- EXPLICIT-CONSENT ONLY: winget, else the official
  *                       OllamaSetup.exe (silent), else clear manual steps.
- *   5. listModels()/pullModel()/ensureModel() — model inventory management.
- *   6. ensureReady()  — the one-call orchestrator used by the launcher,
+ *   5. listModels()/pullModel()/ensureModel(); model inventory management.
+ *   6. ensureReady() ; the one-call orchestrator used by the launcher,
  *                       the Electron main process, and the settings panel.
  *
  * Every function returns plain `{ ok, ... }` results and never throws on
  * expected failures (missing binary, offline registry, refused download).
- * Plain Node only — no Electron dependency so the .bat preflight, the API
+ * Plain Node only; no Electron dependency so the .bat preflight, the API
  * server, and unit tests can all use it.
  */
 
@@ -39,7 +39,7 @@ function defaultBaseUrl() {
       // OLLAMA_HOST is a *bind* address: 0.0.0.0 means "all interfaces" and
       // is not dialable. Rewrite it to loopback, preserving any port.
       if (parsed.hostname === '0.0.0.0' || parsed.hostname === '::') parsed.hostname = '127.0.0.1';
-      // A bare host carries no port — fall back to the Ollama default instead
+      // A bare host carries no port; fall back to the Ollama default instead
       // of the protocol default (80/443), which would never answer.
       if (!parsed.port) parsed.port = String(DEFAULT_PORT);
       return parsed.toString().replace(/\/+$/, '');
@@ -69,7 +69,7 @@ function candidateBinaryPaths() {
   return found;
 }
 
-/** Locate a usable ollama binary. Returns { ok, binary } — binary may be bare 'ollama'. */
+/** Locate a usable ollama binary. Returns { ok, binary }; binary may be bare 'ollama'. */
 function detectOllama() {
   for (const candidate of candidateBinaryPaths()) {
     try {
@@ -214,7 +214,7 @@ function downloadFile(url, destPath, { timeoutMs = 120000, onProgress = null } =
 }
 
 /**
- * Full unattended install. EXPLICIT CONSENT ONLY — the caller (CLI --install
+ * Full unattended install. EXPLICIT CONSENT ONLY; the caller (CLI --install
  * flag or the dashboard Install button) must have asked the user first:
  * this downloads ~700MB+ and touches the system.
  */
@@ -359,7 +359,7 @@ function pullModel(model, { baseUrl = defaultBaseUrl(), timeoutMs = 3600000, onP
             } else if (status && status !== lastStatus) {
               say(`Pulling ${model}... ${status}`);
             }
-          } catch (_) { /* partial NDJSON line — wait for more */ }
+          } catch (_) { /* partial NDJSON line; wait for more */ }
         }
       });
       res.on('end', () => resolve({ ok: true, model }));
@@ -399,7 +399,7 @@ async function ensureReady({ baseUrl = defaultBaseUrl(), autoInstall = false, st
 
   const found = detectOllama();
   if (found.ok) {
-    say('Ollama is installed but the server is down — starting it...');
+    say('Ollama is installed but the server is down; starting it...');
     const started = await startServer({ binary: found.binary, baseUrl, timeoutMs: startTimeoutMs, onProgress });
     if (started.ok) return { ok: true, stage: 'server-started', server: true, installed: true, models: started.models, baseUrl };
     return { ok: false, stage: started.stage, server: false, installed: true, error: started.error, baseUrl };
@@ -408,7 +408,7 @@ async function ensureReady({ baseUrl = defaultBaseUrl(), autoInstall = false, st
   if (!autoInstall) {
     return { ok: false, stage: 'not-installed', server: false, installed: false, error: found.error, manual: manualInstallHint(), baseUrl };
   }
-  say('Ollama is not installed — installing now (one-time, ~700MB+)...');
+  say('Ollama is not installed; installing now (one-time, ~700MB+)...');
   const installed = await installOllama({ onProgress });
   if (!installed.ok) return { ok: false, stage: installed.stage, server: false, installed: false, error: installed.error, manual: installed.manual, baseUrl };
   const started = await startServer({ binary: installed.binary, baseUrl, timeoutMs: startTimeoutMs, onProgress });

@@ -1,9 +1,9 @@
 /**
- * Standardized cosmetics inventory — the ONE shop for looks across the whole
+ * Standardized cosmetics inventory; the ONE shop for looks across the whole
  * app. Every item costs COSMETIC_PRICE_COINS (10), works on the Buddy avatar,
  * and is looks-only: nothing here changes gameplay anywhere, so there is no
  * pay-to-win vector to audit per game. Gameplay boosts live under dev
- * charges (singleplayer only, capped) — never in this catalog.
+ * charges (singleplayer only, capped); never in this catalog.
  *
  * Pure module (imports ./economy only): transpile-runnable under node.
  */
@@ -19,7 +19,7 @@ export type CosmeticItem = {
   slot: CosmeticSlot;
   name: string;
   blurb: string;
-  /** Always COSMETIC_PRICE_COINS — enforced by catalog check below. */
+  /** Always COSMETIC_PRICE_COINS; enforced by catalog check below. */
   price: number;
   /** Avatar kinds that can wear it. */
   kinds: AvatarKind[];
@@ -115,7 +115,7 @@ export function validateLoadout(
     const def = cosmeticById(raw);
     if (!def) return { ok: false, error: `Unknown cosmetic: ${raw}.` };
     if (def.slot !== slot) return { ok: false, error: `${def.name} is ${def.slot} gear, not ${slot} gear.` };
-    if (!owned.has(def.id)) return { ok: false, error: `${def.name} is not yours yet — buy it for ${def.price} coins first.` };
+    if (!owned.has(def.id)) return { ok: false, error: `${def.name} is not yours yet; buy it for ${def.price} coins first.` };
     if (!def.kinds.includes(kind)) return { ok: false, error: `${def.name} doesn't fit the ${kind} avatar.` };
     ids.push(def.id);
   }

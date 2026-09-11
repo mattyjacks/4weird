@@ -19,7 +19,7 @@ async function callLLM(brain, prompt, base64Image = null, audioInput = null, ext
   // Foveated vision: extraImages are tiny high-detail crops sent alongside
   // the small overview frame (1 big + N small per tick). Every provider gets
   // them as additional image parts so detail costs small-crop tokens instead
-  // of full-frame tokens — this is what cuts decision + input latency.
+  // of full-frame tokens; this is what cuts decision + input latency.
   // Legacy callers may pass the array in the audioInput slot.
   if (Array.isArray(audioInput) && (!extraImages || (Array.isArray(extraImages) && !extraImages.length))) {
     extraImages = audioInput;

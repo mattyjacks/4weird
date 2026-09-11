@@ -1,5 +1,5 @@
 -- ============================================================================
--- UnitUnite workspace compute cut — 25% per individual workspace.
+-- UnitUnite workspace compute cut - 25% per individual workspace.
 -- Fully rerunnable: IF NOT EXISTS / OR REPLACE / ADD COLUMN IF NOT EXISTS.
 --
 -- Rule (mirrors lib/economy.ts WORKSPACE_COMPUTE_CUT_PCT = 25):
@@ -82,7 +82,7 @@ begin
   v_cut := round(v_cost * 25 / 100.0)::integer;
   v_provider := v_cost - v_cut;
   select coalesce(sum(delta),0)::integer into v_bal from public.org_wallet_ledger where org_id = v_prov.org_id;
-  if v_bal < v_cost then raise exception 'org wallet insufficient — fund with Vibe Coins'; end if;
+  if v_bal < v_cost then raise exception 'org wallet insufficient; fund with Vibe Coins'; end if;
   insert into public.org_wallet_ledger (org_id, actor_id, delta, reason)
   values (v_prov.org_id, auth.uid(), -v_cost, substr('UnitUnite compute: ' || v_prov.service_key,1,140));
   insert into public.cloud_usage (provision_id, qty, coins, cut_coins, provider_coins, source)

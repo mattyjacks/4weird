@@ -3,7 +3,7 @@
  * context (bot-key routes run on the service role, where auth.uid() is null
  * and meter_clan_posting_fee() cannot see the caller).
  *
- * SERVER-ONLY. Calls meter_clan_posting_fee_for() — the explicit-user twin
+ * SERVER-ONLY. Calls meter_clan_posting_fee_for(); the explicit-user twin
  * of meter_clan_posting_fee() (same formula, granted to service_role only).
  * Throws FeeError so routes map honestly: delinquent/balance -> 402.
  */
@@ -30,7 +30,7 @@ function mapError(message: string): FeeError {
   if (m.includes("delinquent")) {
     return new FeeError(
       "delinquent",
-      "This clan's upkeep is delinquent — posting is paused until it is funded.",
+      "This clan's upkeep is delinquent; posting is paused until it is funded.",
     );
   }
   if (m.includes("insufficient balance")) {

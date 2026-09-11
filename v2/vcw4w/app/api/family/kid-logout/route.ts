@@ -6,7 +6,7 @@ import { clearKidSessionCookie, hashKidToken } from "@/lib/kid-session";
 
 export const dynamic = "force-dynamic";
 
-/** POST /api/family/kid-logout — destroy this child session + clear cookie. */
+/** POST /api/family/kid-logout; destroy this child session + clear cookie. */
 export async function POST(req: NextRequest) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     try {
       const service = serviceClient();
       const { error } = await service.from("kid_sessions").delete().eq("token_hash", hashKidToken(token));
-      if (error) return dbFail("api/family/kid-logout", error, "Logout hiccup — try again.");
+      if (error) return dbFail("api/family/kid-logout", error, "Logout hiccup; try again.");
     } catch {
       return fail("Server misconfigured.", 500);
     }

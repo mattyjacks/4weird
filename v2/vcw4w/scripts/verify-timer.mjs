@@ -39,7 +39,7 @@ for (const rpc of ["start_timer", "stop_timer"]) {
   }
 }
 
-// 3. Ghost Cash currency symbol & calculations (ghost emoji ONLY — never paired with a cash emoji)
+// 3. Ghost Cash currency symbol & calculations (ghost emoji ONLY; never paired with a cash emoji)
 if (!ghostCash.includes("👻")) fail("Ghost cash lib must define 👻 symbol.");
 if (!ghostCash.includes("calculateGhostCashOwed")) fail("Ghost cash lib must calculate owed amount down to the second.");
 if (!ghostCash.includes("GHOST_CASH_DISCLAIMER")) fail("Ghost cash lib must export legal disclaimer.");

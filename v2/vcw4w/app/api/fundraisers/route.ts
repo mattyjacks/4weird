@@ -13,7 +13,7 @@ function rpcStatus(msg: string): number {
   return 400;
 }
 
-// GET /api/fundraisers?category=&status=open — public launch-campaign catalog.
+// GET /api/fundraisers?category=&status=open; public launch-campaign catalog.
 // NOTE: fundraisers are UI-disabled via FUNDRAISERS_ENABLED=false in
 // lib/support.ts while compliance is worked out, but this route is
 // intentionally left working (not deleted, not 503) so re-enabling is instant.
@@ -43,7 +43,7 @@ export async function GET(req: Request) {
   return ok({ campaigns: withProgress });
 }
 
-// POST /api/fundraisers — launch a game/startup campaign.
+// POST /api/fundraisers; launch a game/startup campaign.
 // { title, story, goal_coins, category, use_of_funds?, clan_id?, ends_at? }
 // Intentionally left working while the UI flag disables it (see above).
 export async function POST(req: Request) {

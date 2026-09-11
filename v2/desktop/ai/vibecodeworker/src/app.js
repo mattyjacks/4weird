@@ -509,7 +509,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // the dashboard with the selected Steam game and its live window.
     if (el.gameUrlInput) el.gameUrlInput.value = nativeUrl;
     if (el.quickGameUrl) {
-      el.quickGameUrl.value = `Native window — ${gameName}`;
+      el.quickGameUrl.value = `Native window - ${gameName}`;
       el.quickGameUrl.readOnly = true;
       el.quickGameUrl.setAttribute('aria-label', `Native playtest target: ${gameName}`);
     }
@@ -522,7 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const label = copy.querySelector('span');
       const title = copy.querySelector('strong');
       if (label) label.textContent = 'NATIVE GAME PLAYTEST';
-      if (title) title.textContent = `${gameName} — attached to “${windowTitle}”`;
+      if (title) title.textContent = `${gameName}; attached to “${windowTitle}”`;
     }
     const banner = document.getElementById('game-status-banner');
     if (banner) banner.textContent = `Native target active: ${gameName}. The AI Relay below mirrors the live game window.`;
@@ -670,7 +670,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Local models (Ollama): status pill, install/start, per-role model picks.
-  // Best-effort — the dashboard must boot even when this panel is absent.
+  // Best-effort; the dashboard must boot even when this panel is absent.
   try {
     const { setupOllamaEventListeners } = require('./components/ollama_ui_controller');
     setupOllamaEventListeners({ el, logSystemMessage, saveConfigData });
@@ -837,7 +837,7 @@ document.addEventListener('DOMContentLoaded', () => {
     agentBrain.config.foveatedVision = el.foveatedVision.checked;
     agentBrain._pendingFocus = [];
     saveConfigData();
-    logSystemMessage(`Foveated vision: ${el.foveatedVision.checked ? 'ON — 1 small overview + up to 3 tiny detail crops per tick (model steers crops via "focus"; FPS crosshair fast path)' : 'OFF — single overview frame per tick'}`);
+    logSystemMessage(`Foveated vision: ${el.foveatedVision.checked ? 'ON - 1 small overview + up to 3 tiny detail crops per tick (model steers crops via "focus"; FPS crosshair fast path)' : 'OFF; single overview frame per tick'}`);
   });
   
   el.btnCloseModal.addEventListener('click', () => el.bugModal.classList.add('hidden'));
@@ -973,7 +973,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!option) {
       option = document.createElement('option');
       option.value = title;
-      option.textContent = `hl2 — "${title}"`;
+      option.textContent = `hl2 - "${title}"`;
       el.nativeProcessSelect.appendChild(option);
     }
     el.nativeProcessSelect.value = title;
@@ -1050,9 +1050,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-takeover-gen-test')?.addEventListener('click', async () => {
     try {
       const input = stageView.getLastTraceInput?.();
-      if (!input) { toastNotifier.show('Take over and play first — there is no trace to test yet.', 'info'); return; }
+      if (!input) { toastNotifier.show('Take over and play first; there is no trace to test yet.', 'info'); return; }
       const { buildTraceArtifacts } = require('./runtime/trace_test_gen');
-      const game = (el.quickGameUrl?.value || 'takeover').replace(/^Native window — /, '').slice(0, 80);
+      const game = (el.quickGameUrl?.value || 'takeover').replace(/^Native window - /, '').slice(0, 80);
       const art = buildTraceArtifacts({ session: input.session, heatGrid: input.heatGrid, game });
       const res = await ipcRenderer.invoke('save-trace-test', {
         testFilename: art.testFilename, testSource: art.testSource,
@@ -1135,7 +1135,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const recording = await ipcRenderer.invoke('start-playtest-recording', { name, fps: 10, voiceoverText: narration });
       if (!recording?.success) throw new Error(recording?.error || 'Could not start recording');
       videoButton.textContent = '⏹ Stop & make video';
-      videoStatus.textContent = recording.voiceoverPath ? 'Recording with voiceover' : 'Recording — narration will be added if available';
+      videoStatus.textContent = recording.voiceoverPath ? 'Recording with voiceover' : 'Recording; narration will be added if available';
       logSystemMessage(`Narrated MediaMogul bug hunt started in a visible game window: ${name}.`, 'success');
       if (!isRunning) toggleAgentState();
     } catch (error) {
@@ -1188,7 +1188,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showEditorWorkspace: () => {
       hubEl.hubWorkspace.classList.add('hidden');
       hubEl.editorWorkspace.classList.remove('hidden');
-      // The PURE pane finally has width — fit the 1920x1080 surface to it.
+      // The PURE pane finally has width; fit the 1920x1080 surface to it.
       try { if (stageView) stageView.fitPure(); } catch (_) {}
     },
     el
@@ -1233,7 +1233,7 @@ document.addEventListener('DOMContentLoaded', () => {
         displayManager.setDisplayMode('game-focus').then(() => {
           const btn = document.getElementById('btn-display-focus');
           if (btn) btn.classList.add('active');
-          logSystemMessage('Display: game-focus from CLI — viewport owns the dashboard.');
+          logSystemMessage('Display: game-focus from CLI; viewport owns the dashboard.');
         }).catch(() => {});
       }, 800);
     }
@@ -1395,7 +1395,7 @@ function paintSavedKeyHint(input, hintEl, masked, label) {
     // accept a replacement key. The masked preview goes in placeholder/hint.
     input.value = '';
     input.placeholder = masked
-      ? `Saved ${masked} — enter a new key to replace`
+      ? `Saved ${masked}; enter a new key to replace`
       : `Paste ${label} API key`;
   }
   if (hintEl) hintEl.textContent = masked ? `Saved: ${masked}` : 'Not set';
@@ -1558,13 +1558,13 @@ function toggleAgentState() {
     el.agentStateBadge.className = 'badge active';
     logSystemMessage("AI Agent playtesting activated." + (cliMaxTicks() > 0 ? ` Tick cap: ${cliMaxTicks()}.` : ''));
     if (!agentBrain.config.apiKey) {
-      logSystemMessage("No API key set — running offline explorer (clicks/scrolls/keys, no smart decisions). Add a key in Settings for full AI playtesting.", 'warning');
+      logSystemMessage("No API key set; running offline explorer (clicks/scrolls/keys, no smart decisions). Add a key in Settings for full AI playtesting.", 'warning');
       toastNotifier.show('No API key: offline explorer mode', 'warning');
     }
     updateStatusBanner("🤖 AI Agent actively playtesting & scanning for bugs...", 'active');
 
     // The agent plays INSIDE the workspace PURE pane now (dual-pane stage),
-    // so starting it no longer pops the separate window — that stays a manual
+    // so starting it no longer pops the separate window; that stays a manual
     // "Separate Window" choice. If the human was mid-takeover, the agent
     // takes the wheel back and the takeover notes are logged first.
     if (stageView && stageView.isTakeover()) {
@@ -1627,7 +1627,7 @@ async function captureViewportScreenshot() {
  * tiny detail crops where the model wants more pixels (FPS crosshair fast
  * path). The model steers next-tick crops via "focus" rects; genre/urgency
  * defaults cover the first tick. Overview stays on the adaptive budget so
- * the whole multi-image tick costs less than one big frame — faster
+ * the whole multi-image tick costs less than one big frame; faster
  * decisions, faster follow-up inputs.
  */
 async function captureVisionFrame() {
@@ -1760,7 +1760,7 @@ function updateDisplayReadout(m) {
     if (!readout) return;
     const metrics = m || displayManager.currentMetrics();
     if (!metrics || !metrics.ok) {
-      readout.textContent = 'viewport: —';
+      readout.textContent = 'viewport: -';
       return;
     }
     if (metrics.target === 'game-window') {
@@ -1796,7 +1796,7 @@ function setupDisplayToolbar() {
     const btn = document.getElementById('btn-display-focus');
     if (btn) btn.classList.toggle('active', on);
     logSystemMessage(res && res.success
-      ? (on ? 'Display: game-focus — viewport owns the dashboard. Toggle Focus game to restore.' : 'Display: windowed dashboard restored.')
+      ? (on ? 'Display: game-focus; viewport owns the dashboard. Toggle Focus game to restore.' : 'Display: windowed dashboard restored.')
       : `Display switch failed: ${(res && res.error) || 'unknown'}`);
     if (on) {
       try {

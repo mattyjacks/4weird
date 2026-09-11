@@ -43,7 +43,7 @@ const MAGIC: Magic[] = [
   },
 ];
 
-// POST /api/clans/upload — multipart { file }. Auth required. Service-role
+// POST /api/clans/upload; multipart { file }. Auth required. Service-role
 // upload to the `clan-images` bucket only; no public write path exists.
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);

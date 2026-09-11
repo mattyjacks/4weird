@@ -10,7 +10,7 @@ function isSlug(v: unknown): string {
   return /^[a-z0-9-]{2,40}$/.test(s) ? s : "";
 }
 
-// GET /api/orgs — orgs I belong to (RLS already scopes to member/public).
+// GET /api/orgs; orgs I belong to (RLS already scopes to member/public).
 // Lazy-provisions the caller's uninitialized "Default Org by <username>"
 // (zero resources until the first write initializes it) so every new user
 // starts with exactly one org and pays 0 coins for it.
@@ -33,7 +33,7 @@ export async function GET() {
   return ok({ orgs: orgs ?? [] });
 }
 
-// POST /api/orgs — create an org (caller becomes owner via create_org RPC).
+// POST /api/orgs; create an org (caller becomes owner via create_org RPC).
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();

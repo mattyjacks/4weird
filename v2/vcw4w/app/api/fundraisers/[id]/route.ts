@@ -9,7 +9,7 @@ function isUuid(v: unknown): string {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(s) ? s : "";
 }
 
-// GET /api/fundraisers/[id] — public campaign detail + progress.
+// GET /api/fundraisers/[id]; public campaign detail + progress.
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const { id: raw } = await params;

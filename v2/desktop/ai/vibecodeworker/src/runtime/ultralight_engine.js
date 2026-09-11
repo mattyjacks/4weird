@@ -173,7 +173,7 @@ class UltralightWebEngine extends EventEmitter {
   /**
    * Backend detection: real `ultralight-sdk` binding when installed,
    * otherwise embedded-compat mode over the active Electron viewport.
-   * Never throws — compat mode keeps QA telemetry working with zero deps.
+   * Never throws; compat mode keeps QA telemetry working with zero deps.
    */
   getBackendInfo() {
     let backend = 'compat';

@@ -6,10 +6,10 @@ import { sameOrigin } from "@/lib/csrf";
 
 export const dynamic = "force-dynamic";
 
-// Clan quests — the second 💌 mint source besides daily bonuses.
-// GET /api/love/quests?clan_id= — list quests + completions (public).
-// POST {action:"create", clan_id, title, reward} — owner/mod creates (1..10 💌).
-// POST {action:"complete", quest_id, user_id} — owner/mod marks a member done,
+// Clan quests; the second 💌 mint source besides daily bonuses.
+// GET /api/love/quests?clan_id=; list quests + completions (public).
+// POST {action:"create", clan_id, title, reward}; owner/mod creates (1..10 💌).
+// POST {action:"complete", quest_id, user_id}; owner/mod marks a member done,
 //   minting reward 💌 to their balance + earned counter.
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);

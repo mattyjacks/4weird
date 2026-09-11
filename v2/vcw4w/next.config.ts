@@ -23,7 +23,7 @@ const nextConfig: NextConfig = {
     { source: "/llms.txt", headers: [{ key: "Cache-Control", value: "public, max-age=3600" }, { key: "Content-Type", value: "text/plain; charset=utf-8" }] },
     { source: "/manifest.webmanifest", headers: [{ key: "Cache-Control", value: "public, max-age=3600" }] },
     // Perf workers: immutable static JS, safe to cache for a year. They are
-    // versioned by filename — bump the file when the protocol changes.
+    // versioned by filename; bump the file when the protocol changes.
     { source: "/workers/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }, { key: "Content-Type", value: "application/javascript; charset=utf-8" }] },
     { source: "/(.*)", headers: [
       { key: "X-Content-Type-Options", value: "nosniff" },
@@ -43,7 +43,7 @@ const nextConfig: NextConfig = {
       { source: "/me/:path*", destination: "/account", permanent: true },
       { source: "/my", destination: "/account", permanent: true },
       { source: "/my/", destination: "/account", permanent: true },
-      // NOTE: no /my/:section redirect — /my/usage/ and /my/rights/ are live
+      // NOTE: no /my/:section redirect - /my/usage/ and /my/rights/ are live
       // login-gated pages (see app/my/*/page.tsx). A catch-all here would
       // shadow them, since redirects run before page routes.
       { source: "/lobbies/", destination: "/lobbies", permanent: true },
@@ -53,7 +53,7 @@ const nextConfig: NextConfig = {
       { source: "/web-apps.html", destination: "/web-apps", permanent: true },
       // NOTE: /spaceships.html is the live WebGL embed framed by /spaceships
       // (see components/spaceships/spaceship-runtime.tsx). Do NOT redirect it
-      // to /spaceships — that makes the page frame itself (infinite nesting).
+      // to /spaceships; that makes the page frame itself (infinite nesting).
       { source: "/spaceships/index.html", destination: "/spaceships", permanent: true },
       { source: "/pricing/index.html", destination: "/pricing", permanent: true },
       { source: "/academy/index.html", destination: "/academy", permanent: true },
@@ -73,7 +73,7 @@ const nextConfig: NextConfig = {
       // VibeCodeWorker short links (used by the legacy nav + landing pages).
       // /vcw/agent/ and /vcw/desktop/ are NOT redirected: real static pages
       // (agent MCP docs, desktop download guide) are served there (see the
-      // rewrites below — a redirect would loop against Next's trailing-slash
+      // rewrites below; a redirect would loop against Next's trailing-slash
       // normalization: /vcw/agent -> /vcw/agent/ -> /vcw/agent -> ...).
       { source: "/vcw", destination: "/vibecodeworker", permanent: true },
       { source: "/vcw/", destination: "/vibecodeworker", permanent: true },
@@ -87,9 +87,16 @@ const nextConfig: NextConfig = {
       { source: "/vcw/web/demo/", destination: "/vibecodeworker/demo", permanent: true },
       // Bot clan UI moved from /bot/clans to /bot/bclans (less confusing
       // next to the human /clans pages). The retired /api/bot/clans/*
-      // endpoints intentionally have no redirect — they are gone (404).
+      // endpoints intentionally have no redirect; they are gone (404).
       { source: "/bot/clans", destination: "/bot/bclans", permanent: true },
       { source: "/bot/clans/:path*", destination: "/bot/bclans/:path*", permanent: true },
+      // Teams renamed to Squads (plural /squads, singular /squad alias). Old
+      // page + API paths redirect so bookmarks and clients keep working.
+      { source: "/squad", destination: "/squads", permanent: true },
+      { source: "/squad/:path*", destination: "/squads/:path*", permanent: true },
+      { source: "/teams", destination: "/squads", permanent: true },
+      { source: "/teams/:path*", destination: "/squads/:path*", permanent: true },
+      { source: "/api/teams/:path*", destination: "/api/squads/:path*", permanent: true },
     ];
   },
   async rewrites() {
@@ -110,10 +117,10 @@ const nextConfig: NextConfig = {
       // with old-v1 is enforced by verify:legacy-parity). afterFiles so the
       // live Next.js /vibecodeworker/* routes always win over file serving.
       // NOTE: no :path* source may match a bare /vibecodeworker/<section>
-      // (zero-segment match shadows the page) — asset-only sources below.
+      // (zero-segment match shadows the page); asset-only sources below.
       afterFiles: [
         // Static guides: public/ serves exact paths only, so the slash-less
-        // variants are rewritten (not redirected — a redirect would loop
+        // variants are rewritten (not redirected; a redirect would loop
         // against trailing-slash normalization).
         { source: "/vcw/agent", destination: "/vcw/agent/index.html" },
         { source: "/vcw/desktop", destination: "/vcw/desktop/index.html" },

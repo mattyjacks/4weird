@@ -7,7 +7,7 @@ export function ReferralPanel() {
   const [invited, setInvited] = useState(0);
   const [inviteCoins, setInviteCoins] = useState(25);
   const [input, setInput] = useState("");
-  const [message, setMessage] = useState("Invite friends — you both earn coins.");
+  const [message, setMessage] = useState("Invite friends; you both earn coins.");
 
   useEffect(() => {
     fetch("/api/referrals", { credentials: "include" }).then((r) => r.json()).then((body) => {

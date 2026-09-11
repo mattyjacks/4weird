@@ -192,7 +192,7 @@ export function MyCompute() {
             </p>
             <p className="text-xs text-slate-500">
               {b.agent_listings
-                ? `Up to ${formatUsd(b.agent_listings.price_cents_per_hour)}/hour max, gross — includes ${SERVICE_CUT_PCT}% platform cut, billed per second.`
+                ? `Up to ${formatUsd(b.agent_listings.price_cents_per_hour)}/hour max, gross; includes ${SERVICE_CUT_PCT}% platform cut, billed per second.`
                 : ""}
             </p>
             {b.gpu_type ? <p className="text-xs text-slate-500">GPU: {b.gpu_type}</p> : null}
@@ -264,7 +264,7 @@ export function MyCompute() {
         </div>
         <div className="mt-4 grid gap-3 rounded-xl border border-slate-800 bg-slate-900 p-5 md:grid-cols-2">
           <label className="text-sm text-slate-300">
-            Name (1–80 chars)
+            Name (1-80 chars)
             <input
               value={form.name}
               onChange={(e) => set("name", e.target.value)}
@@ -334,7 +334,7 @@ export function MyCompute() {
           )}
         </div>
         <p className="mt-2 text-sm text-slate-400">
-          Up to ${Number(form.priceUsd || 0).toFixed(2)}/hour max, gross — includes {SERVICE_CUT_PCT}%
+          Up to ${Number(form.priceUsd || 0).toFixed(2)}/hour max, gross; includes {SERVICE_CUT_PCT}%
           platform cut. Billed per second (≈ ${Number.isFinite(priceCents) ? perSecondUsd(priceCents).toFixed(4) : "0.0000"}/sec), never more than the hourly cap.
         </p>
         <button
@@ -358,7 +358,7 @@ export function MyCompute() {
         </p>
         {mineError && <p className="mt-2 text-sm text-slate-400">{mineError} (login to see bookings)</p>}
         {mine && mine.rentals.length === 0 && (
-          <p className="mt-2 text-sm text-slate-400">No rentals yet — pick a listing under “Rent an agent”.</p>
+          <p className="mt-2 text-sm text-slate-400">No rentals yet; pick a listing under “Rent an agent”.</p>
         )}
         <ul className="mt-3 grid gap-3 md:grid-cols-2">
           {(mine?.rentals ?? []).map(bookingCard)}

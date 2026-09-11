@@ -14,7 +14,7 @@ function cleanText(value: unknown): string {
 }
 
 /**
- * POST /api/buddy/tts — speak text in any of the 9 OpenAI voices.
+ * POST /api/buddy/tts; speak text in any of the 9 OpenAI voices.
  * Body: { text, voice?, model?, speed?, game_slug?, session_id? }.
  * With OPENAI_API_KEY set this proxies tts-1 / tts-1-hd and returns base64
  * mp3; without it returns { fallback: true } so the widget uses browser
@@ -50,10 +50,10 @@ export async function POST(req: Request) {
   const sessionRaw = input.session_id ?? input.sessionId ?? null;
   if (sessionRaw !== null && !isUuid(sessionRaw)) return fail("Invalid session_id.", 400);
 
-  // Optional Fal voice path: no charge here — /api/fal/generate meters on use.
+  // Optional Fal voice path: no charge here - /api/fal/generate meters on use.
   const backend = String(input.backend ?? "openai").trim().toLowerCase();
   if (backend === "fal" || backend === "fal-npc-voice") {
-    if (!falConfigured()) return ok({ fallback: true, voice, model, speed, gross: 0, cost: null, metered: null, note: "Fal is not configured — client should use browser speech." });
+    if (!falConfigured()) return ok({ fallback: true, voice, model, speed, gross: 0, cost: null, metered: null, note: "Fal is not configured; client should use browser speech." });
     const chars = text.length;
     return ok({
       fallback: "fal",
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
         prompt: text.slice(0, 1000),
         coins: quoteFal("npc-voice", Math.max(0.1, chars / 1000)),
       },
-      note: "Send fal.prompt to /api/fal/generate (op npc-voice) — metered there.",
+      note: "Send fal.prompt to /api/fal/generate (op npc-voice); metered there.",
     });
   }
 
@@ -78,7 +78,7 @@ export async function POST(req: Request) {
 
   // True-cost voice leg: chars at the model's USD rate + one DB leg. The RPC
   // prices buddy-tts at 2 coins per qty unit, so derive qty from the
-  // true-cost gross — the ledger lands on the accurate figure.
+  // true-cost gross; the ledger lands on the accurate figure.
   const cost = quoteBuddyTtsLeg({ chars: text.length, model });
   const gross = cost.grossCoins;
   // Meter BEFORE touching OpenAI: a failed meter (e.g. insufficient

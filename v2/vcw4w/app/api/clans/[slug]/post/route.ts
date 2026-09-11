@@ -29,7 +29,7 @@ function isOwnClanImageUrl(url: string): boolean {
   }
 }
 
-// POST /api/clans/[slug]/post — member-only, Luna-moderated.
+// POST /api/clans/[slug]/post; member-only, Luna-moderated.
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const { slug: raw } = await params;
@@ -61,7 +61,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   if (!clanId) return fail("Clan not found.", 404);
 
   // Valley Net automod: block refuses + logs, quarantine forces pending + logs.
-  // valleynetCheck already runs the Luna (GPT 5.6) judge once — that single
+  // valleynetCheck already runs the Luna (GPT 5.6) judge once; that single
   // check is the metered AI cost (no duplicate moderation call).
   const valley = await valleynetCheck(`${title}\n${postBody}`);
   void meterLunaCheck(supabase, clanId, 1);
@@ -99,7 +99,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     const msg = String(feeError.message ?? "");
     if (/join the clan/i.test(msg)) return fail("Join the clan first.", 403);
     if (/upkeep delinquent/i.test(msg))
-      return fail("This clan's upkeep is delinquent — posting is paused until it is funded.", 402);
+      return fail("This clan's upkeep is delinquent; posting is paused until it is funded.", 402);
     if (/insufficient balance/i.test(msg))
       return fail("Insufficient Vibe Coins for the server-cost fee.", 402);
     return fail("Unable to charge the server-cost fee.", 500);

@@ -1,8 +1,8 @@
 -- ============================================================================
--- 4weird Support + Launch campaigns — voluntary coin support for verified
+-- 4weird Support + Launch campaigns; voluntary coin support for verified
 -- creators and clans (Patreon-style subscriptions + one-time tips) and
 -- gift-based project-launch fundraising for games / tech startups
--- (GoFundMe-style, creative projects only — never charity).
+-- (GoFundMe-style, creative projects only; never charity).
 --
 -- LEGAL MODEL (enforced here + Terms §8A + UI disclaimers):
 --   - All transfers move closed-loop Vibe Coins only. Coins have no cash
@@ -10,7 +10,7 @@
 --     platform credits spendable on the Service only. This keeps the feature
 --     outside money-transmission / e-money licensing (US FinCEN, EU EMI) and
 --     outside securities crowdfunding (no equity, interest, revenue-share, or
---     profit promises — constrained below).
+--     profit promises; constrained below).
 --   - Nothing here is charitable: no tax deduction, no charitable
 --     solicitation (NH RSA 7:19+ and EU national charity laws avoided by
 --     explicit non-charity + category allowlist rejecting charity/medical/
@@ -121,7 +121,7 @@ drop policy if exists support_payments_participant_read on public.support_paymen
 create policy support_payments_participant_read on public.support_payments
   for select to authenticated using (supporter_id = auth.uid() or recipient_user_id = auth.uid());
 
--- 4. Launch campaigns (games / tech startups only — category allowlist) -------
+-- 4. Launch campaigns (games / tech startups only; category allowlist) -------
 create table if not exists public.launch_campaigns (
   id uuid primary key default gen_random_uuid(),
   creator_id uuid not null references public.profiles(id) on delete cascade,
@@ -437,7 +437,7 @@ begin
   end if;
   v_blob := lower(v_title || ' ' || v_story || ' ' || v_funds);
   if v_blob ~ '(charit|donat\w* (to|for) (charity|nonprofit|non-profit|501c)|tax[- ]?deduct|501\(c\)|medical|cancer|hospital|surgery|funeral|emergency|disaster|relief fund|go ?fund ?me.*medic|political|vote for|election|equity|shares? (in|of)|revenue share|profit share|roi\b|guaranteed return|interest\b.*%|dividend)' then
-    raise exception 'campaigns cover creative projects only — no charity, medical, emergency, political, or investment language';
+    raise exception 'campaigns cover creative projects only; no charity, medical, emergency, political, or investment language';
   end if;
   insert into public.launch_campaigns (creator_id, clan_id, title, story, use_of_funds, category, goal_coins, ends_at)
   values (auth.uid(), p_clan_id, v_title, v_story, v_funds, v_cat, v_goal, p_ends_at)

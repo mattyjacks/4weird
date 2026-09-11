@@ -7,7 +7,7 @@ import { isRunUuid, isVcwVerdict } from "@/lib/vcw-runs";
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/vcw/runs/[id]/complete — close an open run with a summary
+ * POST /api/vcw/runs/[id]/complete; close an open run with a summary
  * (authenticated, owner only).
  *
  * Body: { summary, verdict: pass|fail|inconclusive }.

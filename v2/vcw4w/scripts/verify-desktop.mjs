@@ -59,7 +59,7 @@ if (!compute.includes("DESKTOP_IMAGE_GUI") && !catalog.includes("runpod/kasm-doc
   throw new Error("compute must provision the Kasm GUI desktop image by default.");
 }
 // Regression: RunPod caps CPU pod container disks at 20 GB (HTTP 400 above
-// it) — the CPU GUI desktop must stay at or under that cap.
+// it); the CPU GUI desktop must stay at or under that cap.
 if (!compute.includes('? 60 : 20')) throw new Error("compute must cap the CPU desktop disk at 20 GB (RunPod CPU limit).");
 if (!compute.includes("VNC_PW")) throw new Error("compute must set the Kasm VNC password env.");
 if (!compute.includes("diskGb: workload.diskGb")) throw new Error("desktop CPU provision must honor the advertised disk size.");

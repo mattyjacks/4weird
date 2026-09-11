@@ -15,7 +15,7 @@
 --   must render [BOT] + body WITHOUT attempting decrypt on plain rows.
 -- * Relay moves 0 coins: nothing here touches coin_ledger / wallets.
 -- * Security fix included: send_room_packet() now ALWAYS requires
---   rooms.send — previously a room member without the key (e.g. an
+--   rooms.send; previously a room member without the key (e.g. an
 --   auto-joined watcher) could post through the member path unchecked.
 -- ============================================================================
 

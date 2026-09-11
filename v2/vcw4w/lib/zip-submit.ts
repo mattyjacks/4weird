@@ -1,19 +1,19 @@
 /**
- * Game .zip submissions — client-safe constants, pricing, and static audit.
+ * Game .zip submissions; client-safe constants, pricing, and static audit.
  *
  * Legal + safety contract (see Terms Sections 2/3/5/11):
  * - Verdicts: safe | warning | unsafe | denied.
  * - `denied` is for hard-deny signals: malware/virus/keylogger/cybercrime
  *   shapes, CSAM-adjacent signals, or sexual/adult content (the platform
- *   allows NO sexual content — it is removed, not rated).
+ *   allows NO sexual content; it is removed, not rated).
  * - A `denied` or `unsafe` result QUARANTINES the package: it is never
  *   served, never rendered, and queued for HUMAN moderator review.
  * - Suspected CSAM is never stored viewable, never reposted, never
- *   described — hash preserved as evidence, human review required.
+ *   described; hash preserved as evidence, human review required.
  * - Reports to authorities happen BY A HUMAN through proper channels
  *   (NCMEC CyberTipline for CSAM). IP addresses are disclosed ONLY on
  *   valid legal process (court order / subpoena). There is NO automatic
- *   IP-to-authorities pipeline — that would be unlawful doxxing.
+ *   IP-to-authorities pipeline; that would be unlawful doxxing.
  * - Every price INCLUDES the 25% platform cut (SUBMIT_CUT_PCT), never on top.
  *
  * No new npm deps: the file list comes from a minimal central-directory
@@ -23,13 +23,13 @@
 
 import { SERVICE_CUT_PCT } from "@/lib/economy";
 
-/** Hard cap: 69 MiB per .zip. */
-export const ZIP_MAX_BYTES = 69 * 1024 * 1024;
+/** Hard cap: 50 MiB per .zip; keeps every game fast to download and play. */
+export const ZIP_MAX_BYTES = 50 * 1024 * 1024;
 /** Vercel-style game root inside the zip (where index.html / entry lives). */
 export const GAME_ROOT_MAX_CHARS = 256;
 /** Bounded audit: never feed more than this many text bytes to regexes. */
 export const AUDIT_TEXT_CAP_BYTES = 512 * 1024;
-/** Max files inspected per audit (cheapest viable — headers first). */
+/** Max files inspected per audit (cheapest viable; headers first). */
 export const AUDIT_MAX_FILES = 500;
 
 export const SUBMIT_CUT_PCT = SERVICE_CUT_PCT;
@@ -88,7 +88,7 @@ export function quoteAuditSplit(deep: boolean): {
   return submitSplit(AUDIT_COINS_FLAT + (deep ? AUDIT_DEEP_COINS : 0));
 }
 
-export const SUBMIT_CUT_NOTE = `Includes ${SUBMIT_CUT_PCT}% platform cut — never added on top.`;
+export const SUBMIT_CUT_NOTE = `Includes ${SUBMIT_CUT_PCT}% platform cut; never added on top.`;
 
 /**
  * Clean a Vercel-style game root: POSIX-ish relative path, no escapes.
@@ -206,7 +206,7 @@ const ENTRY_NAMES = ["index.html", "index.htm", "main.html", "game.html"];
 /**
  * Pure static audit over the entry list + bounded text samples.
  * `texts` maps file name -> leading text sample (caller caps bytes).
- * NEVER receives CSAM imagery — text signals only; imagery is held for
+ * NEVER receives CSAM imagery; text signals only; imagery is held for
  * human review without description.
  */
 export function auditZipPackage(input: {
@@ -224,14 +224,14 @@ export function auditZipPackage(input: {
     findings.push({
       level: "deny",
       code: "policy:oversize",
-      detail: `Package exceeds the 69 MB cap (${input.totalBytes} bytes).`,
+      detail: `Package exceeds the 50 MB cap (${input.totalBytes} bytes). Keep it lean so every game loads fast.`,
     });
   }
   if (entries.length === 0) {
     findings.push({
       level: "warning",
       code: "package:unlisted",
-      detail: "File list unreadable — held for human review, not denied.",
+      detail: "File list unreadable; held for human review, not denied.",
     });
   }
 
@@ -263,8 +263,8 @@ export function auditZipPackage(input: {
       level: "warning",
       code: "package:no-entry",
       detail: gameRoot
-        ? `No index.html under game root "${gameRoot}" — check the path.`
-        : "No index.html found — set the game root (like Vercel) if nested.",
+        ? `No index.html under game root "${gameRoot}"; check the path.`
+        : "No index.html found; set the game root (like Vercel) if nested.",
     });
   }
 

@@ -25,7 +25,7 @@ type ListingRow = {
  *  RunPod auto listings (`runpod:auto`) are intelligently provisioned here:
  *  the cheapest Secure GPU with live stock at or under the listing's max
  *  $/hr is rented and its RunPod default proxy endpoint is stored on the
- *  booking and returned. Nothing is faked — without credentials, stock, or
+ *  booking and returned. Nothing is faked; without credentials, stock, or
  *  a budget fit the booking still exists but `provision` carries the error. */
 export async function POST(
   req: Request,

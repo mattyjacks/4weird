@@ -8,18 +8,18 @@
 --   * profiles.age_band: 'unknown' (default) | 'kid' | 'teen' | 'adult'.
 --     A self-declared band for full accounts: 'kid'/'teen' bands get the
 --     same Adults-gating as Kids Mode. Teen and Adult full accounts stay
---     full accounts — the band just separates their content rules.
+--     full accounts; the band just separates their content rules.
 --   * Child accounts live in kid_accounts (NOT auth.users, NOT profiles):
---     a parent-attested age band (kid/teen/adult — a teen or an adult can
+--     a parent-attested age band (kid/teen/adult; a teen or an adult can
 --     still be somebody's child), a Discord-style login handle
 --     `username#1234` plus a parent-chosen password (scrypt hash, verified
---     in the API route — never in SQL logs), and their own wallet.
+--     in the API route; never in SQL logs), and their own wallet.
 --
 -- Efficiency: children reuse the SAME metering math as adults (same rates,
 -- same 25/75 split, same game_sessions/game_play_usage rows with user_id =
 -- the parent so family spend stays visible in the parent's usage rollups).
 -- kid_id columns attribute the child's share. One upsert per heartbeat
--- tracks the daily play budget (kid_play_days) — no new cron, no polling.
+-- tracks the daily play budget (kid_play_days); no new cron, no polling.
 --
 -- Law-first rules enforced HERE (server-side, not in the client):
 --   * Children can only SPEND parent-granted wallet coins (fund_kid_wallet
@@ -104,7 +104,7 @@ alter table public.game_play_usage
 create index if not exists idx_game_play_usage_kid on public.game_play_usage (kid_id, created_at desc);
 
 -- RLS: deny by default. Children have no auth.jwt, so no client policy can
--- address them — service_role + the SECURITY DEFINER RPCs below are the only
+-- address them; service_role + the SECURITY DEFINER RPCs below are the only
 -- access path. (service_role bypasses RLS entirely.)
 alter table public.kid_accounts enable row level security;
 alter table public.kid_sessions enable row level security;
@@ -287,7 +287,7 @@ begin
   v_bal := public.kid_wallet_balance(p_kid);
   if v_bal > 0 then
     insert into public.coin_ledger (user_id, delta, reason)
-    values (auth.uid(), v_bal, 'Child account closed — refund');
+    values (auth.uid(), v_bal, 'Child account closed; refund');
   end if;
   delete from public.kid_accounts where id = p_kid;
   return coalesce(v_bal, 0);
@@ -297,11 +297,11 @@ grant execute on function public.close_kid_account(uuid) to authenticated;
 
 -- --------------------------------------------------------------------------
 -- 4. Child play RPCs. The child proves its session TOKEN on every call
---    (kids have no auth.jwt) — the RPC re-validates token, status, hours
+--    (kids have no auth.jwt); the RPC re-validates token, status, hours
 --    window, daily minutes, monthly cap, and wallet, all in one round trip.
 --    p_min_age is computed by the API route from the server catalog (0/13/18):
 --    kid band plays kids titles, teen band adds teens, adult band (parent
---    attested) plays everything — no DOB is ever asked of or stored for kids.
+--    attested) plays everything; no DOB is ever asked of or stored for kids.
 -- --------------------------------------------------------------------------
 create or replace function public.start_kid_session(
   p_kid uuid, p_token_hash char(64), p_game text, p_version text, p_new_bytes integer, p_min_age integer)

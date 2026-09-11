@@ -35,7 +35,7 @@ function toTime(v: unknown): string | null | undefined {
 }
 
 /**
- * PATCH /api/family/kids/[id] — parent updates one child: controls
+ * PATCH /api/family/kids/[id]; parent updates one child: controls
  * (daily_minutes, allowed_start/end, timezone, monthly_cap_coins,
  * hard_stop), age_band, status (active|suspended), or password (rotates +
  * kills live sessions). Only supplied fields change.
@@ -122,7 +122,7 @@ export async function PATCH(req: Request) {
 }
 
 /**
- * DELETE /api/family/kids/[id] — close a child account. Remaining wallet
+ * DELETE /api/family/kids/[id]; close a child account. Remaining wallet
  * coins refund to the parent; sessions/controls/history cascade away.
  */
 export async function DELETE(req: Request) {

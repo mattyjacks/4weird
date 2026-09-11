@@ -1,18 +1,18 @@
 /**
- * Meshy.ai compatibility — FULL featured, handled purely through the API.
+ * Meshy.ai compatibility - FULL featured, handled purely through the API.
  *
  * Official surface mirrored 1:1 (text-to-3D, image-to-3D, text-to-texture,
  * animation / rigging, task polling), PLUS 4weird improvements the native
  * dashboard lacks:
- *   1. Budget-first picks — cheapest viable task mode preselected, exact
+ *   1. Budget-first picks; cheapest viable task mode preselected, exact
  *      coin quote BEFORE queueing (25% cut INCLUDED), fail-closed metering.
- *   2. Auto-vault — every finished mesh/texture/animation autosaves to the
+ *   2. Auto-vault; every finished mesh/texture/animation autosaves to the
  *      caller's Weird Vault scope (personal/team/org) with provenance.
- *   3. Game-ready post-checks — polygon budget + format advice per game
+ *   3. Game-ready post-checks; polygon budget + format advice per game
  *      runtime (browser games want GLB < 25 MB), queued as follow-up notes.
- *   4. One-call pipeline — prompt -> preview task -> refine task -> download
+ *   4. One-call pipeline; prompt -> preview task -> refine task -> download
  *      URL, tracked as one meshy_job row with the full trail.
- *   5. Honest unconfigured state — without MESHY_API_KEY every call returns
+ *   5. Honest unconfigured state; without MESHY_API_KEY every call returns
  *      started:false + quote, never faked.
  *
  * Server key: MESHY_API_KEY (server-only, never NEXT_PUBLIC_). Base
@@ -65,7 +65,7 @@ export const MESHY_OPS: MeshyOpDef[] = [
     name: "Text to 3D",
     unit: "model",
     coinsPerUnit: 18,
-    blurb: "Type a prop, get a game-ready GLB — preview then refine, auto-vaulted.",
+    blurb: "Type a prop, get a game-ready GLB; preview then refine, auto-vaulted.",
     mode: "preview-then-refine",
     api: "POST /v2/text-to-3d",
     needsPrompt: true,
@@ -76,7 +76,7 @@ export const MESHY_OPS: MeshyOpDef[] = [
     name: "Image to 3D",
     unit: "model",
     coinsPerUnit: 16,
-    blurb: "One sketch or sprite into a spinnable 3D model — auto-vaulted.",
+    blurb: "One sketch or sprite into a spinnable 3D model; auto-vaulted.",
     mode: "preview-then-refine",
     api: "POST /v2/image-to-3d",
     needsPrompt: false,
@@ -87,7 +87,7 @@ export const MESHY_OPS: MeshyOpDef[] = [
     name: "Text to Texture",
     unit: "texture",
     coinsPerUnit: 12,
-    blurb: "PBR textures from a sentence — paints your uploaded mesh in-style.",
+    blurb: "PBR textures from a sentence; paints your uploaded mesh in-style.",
     mode: "stylized-texture",
     api: "POST /v2/text-to-texture",
     needsPrompt: true,
@@ -98,7 +98,7 @@ export const MESHY_OPS: MeshyOpDef[] = [
     name: "Animate / Rig",
     unit: "animation",
     coinsPerUnit: 14,
-    blurb: "Auto-rig + animate a humanoid — walk, idle, dance in one call.",
+    blurb: "Auto-rig + animate a humanoid; walk, idle, dance in one call.",
     mode: "auto-rig",
     api: "POST /v1/animate",
     needsPrompt: true,
@@ -148,7 +148,7 @@ export function quoteMeshySplit(op: MeshyOp, qty = 1): {
   return meshySplit(quoteMeshy(op, qty));
 }
 
-export const MESHY_CUT_NOTE = `Includes ${MESHY_CUT_PCT}% platform cut (same ${SERVICE_CUT_PCT}% as all compute) — never added on top.`;
+export const MESHY_CUT_NOTE = `Includes ${MESHY_CUT_PCT}% platform cut (same ${SERVICE_CUT_PCT}% as all compute); never added on top.`;
 
 export function cleanMeshyPrompt(value: unknown): string {
   return String(value ?? "").trim().slice(0, 2000);
@@ -191,7 +191,7 @@ export function meshyGameAdvice(input: {
   const tips: string[] = [];
   const bytes = Number(input.bytes ?? 0);
   if (bytes > 25 * 1024 * 1024)
-    tips.push("Over 25 MB — run remesh (quad-300k) before shipping to browsers.");
+    tips.push("Over 25 MB; run remesh (quad-300k) before shipping to browsers.");
   if (input.format && !/glb/i.test(input.format))
     tips.push("Convert to GLB for the widest browser-game support.");
   tips.push("Preview on /meshy before submitting the game zip.");

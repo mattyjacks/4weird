@@ -1,4 +1,4 @@
-# Root gitignore — repo-wide build/runtime junk
+# Root gitignore; repo-wide build/runtime junk
 # Deps
 node_modules/
 # Build outputs

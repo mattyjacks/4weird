@@ -1,16 +1,16 @@
 /**
- * Buddy multi-agent orchestrator — one goal fans out to specialist agents
+ * Buddy multi-agent orchestrator; one goal fans out to specialist agents
  * (each an OpenRouter play), then merges their outputs into a super-pack.
  *
  * Transport-agnostic by design: the caller injects a `PlayRunner`, so the
  * SAME orchestration runs on desktop (direct OpenRouter), web
  * (/api/openrouter-plays), a Runpod pod (same as desktop), and Runpod
  * Serverless (the runpod/buddy handler injects its own runner).
- * Every specialist degrades to its offline fallback independently — one
+ * Every specialist degrades to its offline fallback independently; one
  * slow/broken agent never sinks the pack.
  *
  * Pure module besides the openrouter-plays catalog import: no Next.js,
- * no Supabase, no keys — safe for tsc + edge.
+ * no Supabase, no keys; safe for tsc + edge.
  */
 
 import { fallbackOpenRouterPlay, getPlay } from "./openrouter-plays";
@@ -30,7 +30,7 @@ export const SPECIALIST_PLAYS: Record<SpecialistId, string> = {
 
 /** Runner injected by the host: desktop/pod call OpenRouter directly,
  *  web calls /api/openrouter-plays, serverless uses its handler runner.
- *  Must never throw for fallback text — but orchestrator guards anyway. */
+ *  Must never throw for fallback text; but orchestrator guards anyway. */
 export type PlayRunner = (playId: string, input: string) => Promise<{ text: string; fallback: boolean }>;
 
 export type OrchestratorContext = {

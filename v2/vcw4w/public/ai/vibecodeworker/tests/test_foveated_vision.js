@@ -1,5 +1,5 @@
 /**
- * Regression tests for lib/brain/foveated_vision.js — the foveated vision
+ * Regression tests for lib/brain/foveated_vision.js; the foveated vision
  * option: 1 small overview + up to 3 tiny AI-steered detail crops per tick
  * (FPS crosshair fast path). Small crops cost a fraction of full-frame
  * tokens, so decisions and follow-up inputs stay fast.

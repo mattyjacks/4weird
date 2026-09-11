@@ -13,7 +13,7 @@ function isUuid(v: unknown): string {
 }
 
 /**
- * POST /api/ghost/timer — the work clock.
+ * POST /api/ghost/timer; the work clock.
  *   {action:"in", contract_id, note?} → ghost_clock_in (one open timer/org)
  *   {action:"beat", timer_id, active_seconds} → ghost_beat (0..300, one UPDATE)
  *   {action:"out", timer_id} → ghost_clock_out (freezes + earned summary)

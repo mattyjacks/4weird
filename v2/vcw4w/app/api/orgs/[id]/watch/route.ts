@@ -18,8 +18,8 @@ function isUuid(v: unknown): string {
 }
 
 /**
- * GET /api/orgs/[id]/watch — watch scopes in this org (members can read).
- * PUT /api/orgs/[id]/watch {watcher_id, targets: [userIds]} — scope a
+ * GET /api/orgs/[id]/watch; watch scopes in this org (members can read).
+ * PUT /api/orgs/[id]/watch {watcher_id, targets: [userIds]}; scope a
  * watcher to certain members (empty targets = whole org). Requires
  * org.members.change_role.
  */

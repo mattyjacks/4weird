@@ -9,7 +9,7 @@ import { isUuid } from "@/lib/validate";
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/vault/shares { file_id, expires_hours? } — scoped share link.
+ * POST /api/vault/shares { file_id, expires_hours? }; scoped share link.
  * The token URL downloads ONLY that file (when clean) for the window.
  * Auth: session OR bot key with `vault:share`.
  */

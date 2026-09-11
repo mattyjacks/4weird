@@ -103,7 +103,7 @@ export async function POST(req: Request) {
   if (!path) return fail("Invalid path.", 400);
   const bytes = Math.floor(Number(input.bytes ?? 0));
   if (!Number.isInteger(bytes) || bytes < 1 || bytes > VAULT_MAX_BLOB_BYTES) {
-    return fail("Invalid bytes (1..72477574).", 400);
+    return fail("Invalid bytes (1..52428800 - 50 MB max so all games load fast).", 400);
   }
   const sha256 = String(input.sha256 ?? "").toLowerCase();
   if (!/^[0-9a-f]{64}$/.test(sha256)) {

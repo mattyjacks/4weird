@@ -8,7 +8,7 @@ import { UsageClient } from "./usage-client";
 export const metadata: Metadata = {
   title: "My Compute Usage",
   description:
-    "Every Vibe Coin of compute in one place: Gaming Buddy sessions, game AI, agent rentals, UnitUnite workspaces, and function runs — with the 25% cut shown, never hidden.",
+    "Every Vibe Coin of compute in one place: Gaming Buddy sessions, game AI, agent rentals, UnitUnite workspaces, and function runs; with the 25% cut shown, never hidden.",
   robots: { index: false, follow: false },
 };
 
@@ -44,7 +44,7 @@ export default async function UsagePage() {
           hours, last hour), per-game AI (dialogue bots, AI directors, TTS, rented RunPods, inference APIs),
           function runs (serverless workers, cron, inference endpoints, queues, relays), agent rentals, and
           UnitUnite workspace cloud. 100 coins = $1.00; every gross price already includes the 25% platform cut
-          (25% platform / 75% provider) — never added on top.
+          (25% platform / 75% provider); never added on top.
         </p>
         <UsageClient />
         <div className="mt-8 flex flex-wrap gap-3">

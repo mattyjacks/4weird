@@ -46,7 +46,7 @@ function initVisionMirror(deps) {
     showKeys: true,
     tick: 0,
     objects: [],
-    source: '—',
+    source: '-',
     pageCursor: null,
     img: null,
     imgW: 0,
@@ -193,7 +193,7 @@ function initVisionMirror(deps) {
   async function tick() {
     if (state.busy || state.paused) return;
     if (!placeholderActive()) {
-      setStats('mirror idle — open the test window');
+      setStats('mirror idle; open the test window');
       return;
     }
     state.busy = true;
@@ -269,7 +269,7 @@ function initVisionMirror(deps) {
   function idle() {
     state.objects = [];
     state.pageCursor = null;
-    setStats('mirror idle — open the test window');
+    setStats('mirror idle; open the test window');
     const canvas = $('vision-mirror-canvas');
     if (canvas) {
       const ctx = canvas.getContext('2d');

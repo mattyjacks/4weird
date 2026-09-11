@@ -9,7 +9,7 @@ Task:
 • Read the entire conversation history.
 • Extract constraints, user-provided facts, references (including version references), and goals.
 • Produce a flowchart plan that guides producing the best final assistant reply to the last user turn.
-• Do NOT include the response itself—only the plan.
+• Do NOT include the response itself-only the plan.
 • Start exactly with 'flowchart TD;'
 Conversation:
 ${conversationText}

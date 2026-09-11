@@ -52,7 +52,7 @@ export const metadata: Metadata = {
         url: "/opengraph-image.png",
         width: 1200,
         height: 630,
-        alt: "4weird Games — rent cloud compute, fund AI-built games",
+        alt: "4weird Games; rent cloud compute, fund AI-built games",
       },
     ],
   },

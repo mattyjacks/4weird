@@ -142,7 +142,7 @@ export function buildHandoffMarkdown(reason) {
   L.push('');
   const list = [...clusters.values()].sort((a, b) => b.count - a.count);
   if (list.length === 0) {
-    L.push('## Error clusters\n_None in this session — worker looks healthy._');
+    L.push('## Error clusters\n_None in this session; worker looks healthy._');
   } else {
     L.push(`## Error clusters (${list.length})`);
     list.slice(0, 15).forEach((c, i) => {
@@ -158,7 +158,7 @@ export function buildHandoffMarkdown(reason) {
   L.push(list.length > 0
     ? `Reproduce cluster #1 ("${list[0].title}"), add a regression test, fix, re-run.`
     : 'No failures - extend playtest coverage, then re-run the suite.');
-  return L.join('\n').replace(/—/g, '-').replace(/→/g, '->').replace(/[“”]/g, '"');
+  return L.join('\n').replace(/-/g, '-').replace(/→/g, '->').replace(/[“”]/g, '"');
 }
 
 export async function writeHandoffFile(reason) {
@@ -174,7 +174,7 @@ export async function writeHandoffFile(reason) {
     return { success: true, path: 'smart-handoff.md (downloaded)' };
   }
   const res = await invokeTauriCommand('save_handoff_file', { content: md });
-  if (res) log(`📋 Handoff written: <code>${res.path}</code> — paste it into any vibecoding tool.`, 'success');
+  if (res) log(`📋 Handoff written: <code>${res.path}</code>; paste it into any vibecoding tool.`, 'success');
   smartFileLog('info', 'handoff', `handoff written: ${res && res.path}`);
   return res;
 }
@@ -186,7 +186,7 @@ export async function copyHandoffToClipboard() {
     log('📋 Latest handoff copied to clipboard.', 'success');
     return true;
   }
-  log('⚠️ No handoff yet — press 📋 Handoff first.', 'warning');
+  log('⚠️ No handoff yet; press 📋 Handoff first.', 'warning');
   return false;
 }
 
@@ -207,7 +207,7 @@ export async function feedHandoffToOpenCode(workerUrl, gameId, maxIterations) {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ gameId: gameId || 'tauri-session', maxIterations: maxIterations || 3, instance: 'fresh' }),
   }).then(r => r.json()).catch(e => ({ success: false, error: e.message }));
-  if (heal.success) log(`🤖 Heal run started: <code>${heal.runId}</code> — watch it at ${base}/api/opencode/heal/${heal.runId}`, 'success');
+  if (heal.success) log(`🤖 Heal run started: <code>${heal.runId}</code>; watch it at ${base}/api/opencode/heal/${heal.runId}`, 'success');
   else log(`⚠️ Heal start failed: ${heal.error || ''}`, 'warning');
   return heal;
 }

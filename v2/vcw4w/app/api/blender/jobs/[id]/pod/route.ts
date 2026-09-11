@@ -8,7 +8,7 @@ import { getPodLive, runPodLifecycle } from "@/lib/compute";
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/blender/jobs/[id]/pod {action: stop|start|restart|terminate|delete} —
+ * POST /api/blender/jobs/[id]/pod {action: stop|start|restart|terminate|delete} -
  * control YOUR render worker. Only the user who created the job may act;
  * anyone else gets 404 (never confirm the job exists). stop/terminate/delete
  * end GPU billing now (the job is marked stopped); start/restart revive the
@@ -50,7 +50,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   if (error) return dbFail("POST /api/blender/jobs/[id]/pod", error, "Unable to load render job.");
   if (!row) return fail("Render job not found.", 404);
   const job = row as { id: string; status: string; pod_id: string };
-  if (!job.pod_id) return fail("No worker on this job — it never provisioned a pod.", 409);
+  if (!job.pod_id) return fail("No worker on this job; it never provisioned a pod.", 409);
 
   const result = await runPodLifecycle(job.pod_id, action);
   if (!result.ok) {
@@ -58,9 +58,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     const gone = !live.ok || /EXITED|TERMINATED|UNKNOWN/i.test(live.status);
     if (gone && (action === "stop" || action === "terminate" || action === "delete")) {
       await svc.from("blender_renders").update({ status: "stopped" }).eq("id", job.id);
-      return ok({ ok: true, action, podStatus: live.ok ? live.status : "UNKNOWN", note: "Worker already exited — billing already ended." });
+      return ok({ ok: true, action, podStatus: live.ok ? live.status : "UNKNOWN", note: "Worker already exited; billing already ended." });
     }
-    return fail(`Unable to ${action} the worker (${result.error}). It may still bill — retry or stop it from the RunPod console.`, 502);
+    return fail(`Unable to ${action} the worker (${result.error}). It may still bill; retry or stop it from the RunPod console.`, 502);
   }
   if (action === "stop" || action === "terminate" || action === "delete") {
     await svc.from("blender_renders").update({ status: "stopped" }).eq("id", job.id);

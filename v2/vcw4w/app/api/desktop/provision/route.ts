@@ -16,7 +16,7 @@ import { runpodConfigured } from "@/lib/runpod";
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/desktop/provision — public plan catalog (no auth, no billing).
+ * GET /api/desktop/provision; public plan catalog (no auth, no billing).
  * Returns both Virtual Desktop plans with their official RunPod images,
  * ports, and billing honesty note.
  */
@@ -45,16 +45,16 @@ export async function GET() {
 }
 
 /**
- * POST /api/desktop/provision — rent a Virtual Desktop on RunPod.
+ * POST /api/desktop/provision; rent a Virtual Desktop on RunPod.
  *
  * Body: { kind: cpu|gpu, interface?: gui|jupyter, max_usd_per_hour?: number, name?: string }
  *
  * Interface defaults to `gui` (Ubuntu graphical desktop streamed in the
  * browser); pass `jupyter` for a JupyterLab + SSH box instead. Auth required.
  * Provisions a REAL pod via the RunPod REST API and hands back a clickable
- * proxy URL — never faked. The desktop is recorded as yours (desktop_pods)
+ * proxy URL; never faked. The desktop is recorded as yours (desktop_pods)
  * so you can stop / start / restart / terminate / delete it later from
- * /runpods — only you can control it. RunPod bills the operator's card per
+ * /runpods; only you can control it. RunPod bills the operator's card per
  * second; coin figures are display equivalents only (no Vibe cut, no debit).
  */
 export async function POST(req: Request) {
@@ -78,7 +78,7 @@ export async function POST(req: Request) {
   const maxRaw = input.max_usd_per_hour ?? input.maxUsdPerHour ?? 0;
   const maxUsd = Number(maxRaw) === 0 ? 0 : parseDesktopMaxUsd(maxRaw);
   if (Number(maxRaw) !== 0 && !maxUsd) {
-    return fail("max_usd_per_hour must be $0.01–$1000, or 0 for cheapest available.", 400);
+    return fail("max_usd_per_hour must be $0.01-$1000, or 0 for cheapest available.", 400);
   }
   const name = cleanDesktopName(input.name ?? `desktop-${kindRaw}`) || `desktop-${kindRaw}`;
 
@@ -90,7 +90,7 @@ export async function POST(req: Request) {
       kind: kindRaw,
       interface: iface,
       provision: { ok: false, code: provisioned.error, message: provisioned.message ?? "Provisioning failed." },
-      note: "Virtual Desktop not started — no spend. Fix the provision state above and retry.",
+      note: "Virtual Desktop not started; no spend. Fix the provision state above and retry.",
     });
   }
 
@@ -141,7 +141,7 @@ export async function POST(req: Request) {
       per: "second",
       hourly_usd: provisioned.hourlyUsd,
       coins_per_hour_equiv: coinsPerHour,
-      note: "RunPod bills per second — stop the pod from /runpods when done. Mirror the spend on /my/usage via POST /api/agents/runpod-sync. No Vibe cut, no coin debit.",
+      note: "RunPod bills per second; stop the pod from /runpods when done. Mirror the spend on /my/usage via POST /api/agents/runpod-sync. No Vibe cut, no coin debit.",
     },
     note:
       provisioned.iface === "gui"

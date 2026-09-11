@@ -818,7 +818,7 @@ body.game-focus .quick-run-deck {
 }
 
 #game-webview {
-  /* WARNING: never display:block here — in Electron 31 a block webview stops
+  /* WARNING: never display:block here; in Electron 31 a block webview stops
      propagating its height to the guest (150px sliver). The default
      inline-flex sizing tracks width AND height; vertical-align kills the
      inline baseline gap inside the 16:9 wrap. */

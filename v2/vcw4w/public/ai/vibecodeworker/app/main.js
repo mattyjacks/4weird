@@ -18,7 +18,7 @@ const hasSingleInstanceLock = app.requestSingleInstanceLock();
 if (!hasSingleInstanceLock) app.quit();
 
 // SmartLog: file-backed structured logs + AI handoffs (see lib/smart_log.js).
-// Log dir: %APPDATA%/vibecodeworker/logs (win) — every console.* line lands there.
+// Log dir: %APPDATA%/vibecodeworker/logs (win); every console.* line lands there.
 const { getSharedLog, teeConsole, parseWorkerArgs } = require('../lib/smart_log');
 const smartlog = getSharedLog('electron-main');
 teeConsole(smartlog);
@@ -166,7 +166,7 @@ function createWindow() {
       contextIsolation: false,
       // Security: the dashboard embeds arbitrary playtest targets in
       // iframes. Sub-frames must never inherit Node.js, whatever the
-      // Electron default for nodeIntegrationInSubFrames happens to be —
+      // Electron default for nodeIntegrationInSubFrames happens to be -
       // a malicious target with in-frame Node would own the host.
       nodeIntegrationInSubFrames: false,
       webviewTag: true,
@@ -279,7 +279,7 @@ app.whenReady().then(() => {
 
   // Ollama auto-start (best-effort, never blocks boot): when the user left
   // autoStart on and Ollama is installed but the server is down, bring
-  // `ollama serve` up in the background. Installs are NEVER automatic here —
+  // `ollama serve` up in the background. Installs are NEVER automatic here -
   // those need explicit consent via the .bat --install-ollama flag or the
   // dashboard INSTALL button.
   setImmediate(async () => {
@@ -413,7 +413,7 @@ ipcMain.handle('test-api-keys', async (_event, suppliedKeys = {}) => {
   ];
   const results = await Promise.all(providers.map(async (provider) => {
     if (!provider.key) return { provider: provider.name, status: 'skipped', detail: 'No key entered.' };
-    // ElevenLabs authenticates with xi-api-key on a GET /v1/user probe —
+    // ElevenLabs authenticates with xi-api-key on a GET /v1/user probe -
     // never POST test traffic that would burn voice credits.
     if (provider.runpod) {
       return { provider: provider.name, status: 'valid', detail: 'Key saved (RunPod is not probed from this dialog).' };
@@ -435,7 +435,7 @@ ipcMain.handle('test-api-keys', async (_event, suppliedKeys = {}) => {
     // The Meta slot accepts either an OpenRouter key (sk-or-v1-…) or a
     // Meta-direct key for Meta's Llama API. A Meta-direct key is tested
     // against the user's configured Meta endpoint when set, otherwise the
-    // universal Meta URL (same for everybody) — never against OpenRouter,
+    // universal Meta URL (same for everybody); never against OpenRouter,
     // where it would produce a false 401.
     const isMetaDirectKey = provider.name === 'meta' && !provider.key.startsWith('sk-or-v1-');
     const metaDirectUrl = isMetaDirectUrl(metaEndpointUrl) ? metaEndpointUrl : META_DIRECT_ENDPOINT_URL;
@@ -476,7 +476,7 @@ ipcMain.handle('test-api-keys', async (_event, suppliedKeys = {}) => {
       // Anything else (402 billing, 429 rate limit, 404 model, 5xx outage)
       // says nothing about the key itself, so the key is always kept.
       if (response.status === 402) return { provider: provider.name, status: 'error', detail: `Key is valid but the account needs payment/quota (provider returned 402 Payment Required). Top up billing and retry. Key was not removed.` };
-      if (response.status === 429) return { provider: provider.name, status: 'error', detail: `Rate limited (429) — key works, slow down and retry. Key was not removed.` };
+      if (response.status === 429) return { provider: provider.name, status: 'error', detail: `Rate limited (429); key works, slow down and retry. Key was not removed.` };
       return { provider: provider.name, status: 'error', detail: `Provider returned ${response.status}; the key itself was not judged bad. Key was not removed.` };
     } catch (error) {
       return { provider: provider.name, status: 'error', detail: error.name === 'AbortError' ? 'Timed out; key was not removed.' : 'Connection failed; key was not removed.' };
@@ -1012,7 +1012,7 @@ ipcMain.handle('set-api-server-port', async (event, newPort) => {
 });
 
 // Local models (Ollama) IPC: status, install, server control, model pulls.
-// Install is explicit-consent only (renderer confirms first — ~700MB+
+// Install is explicit-consent only (renderer confirms first - ~700MB+
 // download). Everything else is safe to call any time; failures return
 // { ok:false } and never break the dashboard.
 const ollamaManager = require('../lib/ollama_manager');

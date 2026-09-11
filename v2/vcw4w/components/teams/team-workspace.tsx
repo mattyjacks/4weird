@@ -85,7 +85,7 @@ export function TeamWorkspace() {
       const r = await request<{ invites: Invite[] }>(`/api/orgs/${orgId}/invites`);
       setInvites((prev) => ({ ...prev, [orgId]: r.invites ?? [] }));
     } catch {
-      // Invite listing needs org.members.invite — non-inviters just see nothing.
+      // Invite listing needs org.members.invite; non-inviters just see nothing.
     }
   }, []);
 
@@ -93,7 +93,7 @@ export function TeamWorkspace() {
     // Orgs and teams load independently: one failing must not blank the other.
     const [orgsResult, teamsResult] = await Promise.allSettled([
       request<{ orgs: Org[] }>("/api/orgs"),
-      request<{ teams: Team[] }>("/api/teams"),
+      request<{ teams: Team[] }>("/api/squads"),
     ]);
     const problems: string[] = [];
     if (orgsResult.status === "fulfilled") {
@@ -108,9 +108,9 @@ export function TeamWorkspace() {
       if (!teamId && list.length) setTeamId(list[0].id);
     } else {
       setTeams([]);
-      problems.push(teamsResult.reason instanceof Error ? teamsResult.reason.message : "Unable to load teams.");
+      problems.push(teamsResult.reason instanceof Error ? teamsResult.reason.message : "Unable to load squads.");
     }
-    setMessage(problems.length ? problems.join(" ") : "Create an org, open a workspace, invite your team.");
+    setMessage(problems.length ? problems.join(" ") : "Create an org, open a workspace, invite your squad.");
   }, [teamId]);
 
   useEffect(() => {
@@ -119,7 +119,7 @@ export function TeamWorkspace() {
 
   useEffect(() => {
     if (!teamId) return;
-    request<{ permissions: string[] }>(`/api/teams/${teamId}/perms`)
+    request<{ permissions: string[] }>(`/api/squads/${teamId}/perms`)
       .then((r) => setPerms(r.permissions ?? []))
       .catch(() => setPerms([]));
   }, [teamId]);
@@ -172,10 +172,10 @@ export function TeamWorkspace() {
         <h2 className="text-xl font-bold">1 · Organization</h2>
         <p className="mt-2 text-sm text-slate-300">
           Orgs keep billing, wallets, and audit separate. Everyone starts with an uninitialized
-          default org that costs 0 coins — the first thing you send it (workspace, funding,
+          default org that costs 0 coins; the first thing you send it (workspace, funding,
           cloud service, or invite link) initializes it, still moving 0 coins by itself.
           Pay as you go after that: buy Vibe Coins (100 coins = $1.00), fund the org wallet,
-          and every cloud service meters from it — never a surprise bill.
+          and every cloud service meters from it; never a surprise bill.
         </p>
         <form
           className="mt-4 flex flex-wrap gap-3"
@@ -185,7 +185,7 @@ export function TeamWorkspace() {
               await request("/api/orgs", { method: "POST", body: JSON.stringify({ slug: orgSlug, name: orgName }) });
               setOrgSlug("");
               setOrgName("");
-              setMessage("Org created — you are its owner.");
+              setMessage("Org created; you are its owner.");
               void load();
             } catch (e2) {
               setMessage(e2 instanceof Error ? e2.message : "Unable to create org.");
@@ -199,11 +199,11 @@ export function TeamWorkspace() {
         <p className="mt-2 text-sm text-slate-400">
           {orgs.length
             ? `${orgs.length} org(s): ${orgs.map((o) => `${o.slug}${o.is_initialized === false ? " (uninitialized · 0 coins)" : ""}`).join(", ")}`
-            : "No orgs yet — one is created for you on your first visit."}
+            : "No orgs yet; one is created for you on your first visit."}
         </p>
         {!!orgs.length && (
           <div className="mt-4 rounded-xl border border-white/10 p-4">
-            <h3 className="font-semibold">Invite links — capped + expirable</h3>
+            <h3 className="font-semibold">Invite links; capped + expirable</h3>
             <p className="mt-1 text-xs text-slate-400">
               Share a link instead of per-email invites. Set a usage cap (blank = unlimited)
               and an expiry (blank = never). Redeeming moves 0 coins.
@@ -327,7 +327,7 @@ export function TeamWorkspace() {
                     body: JSON.stringify({ token: redeemToken.trim() }),
                   });
                   setRedeemToken("");
-                  setMessage("Joined the org — 0 coins moved.");
+                  setMessage("Joined the org - 0 coins moved.");
                   void load();
                 } catch (e2) {
                   setMessage(e2 instanceof Error ? e2.message : "Unable to redeem invite.");
@@ -349,8 +349,8 @@ export function TeamWorkspace() {
       {orgs.map((org) => <BudgetControls key={org.id} orgId={org.id} title={`${org.name} organization budget`} />)}
 
       <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
-        <h2 className="text-xl font-bold">2 · {UNITUNITE_NAME} workspace <span className="text-sm font-normal text-slate-400">— {UNITUNITE_TAGLINE}</span></h2>
-        <p className="mt-2 text-sm text-slate-300">{UNITUNITE_NAME} workspaces are securely separate: UnitUnite projects, UnitUnite team messaging (rooms), and keys never leak across teams.</p>
+        <h2 className="text-xl font-bold">2 · {UNITUNITE_NAME} workspace <span className="text-sm font-normal text-slate-400">- {UNITUNITE_TAGLINE}</span></h2>
+        <p className="mt-2 text-sm text-slate-300">{UNITUNITE_NAME} workspaces are securely separate: UnitUnite projects, UnitUnite squad messaging (rooms), and keys never leak across squads.</p>
         {!!teams.length && (
           <label className="mt-4 block text-sm">
             Active workspace
@@ -367,14 +367,14 @@ export function TeamWorkspace() {
       </section>
 
       <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
-        <h2 className="text-xl font-bold">2b · Team rooms — command humans through your agent</h2>
+        <h2 className="text-xl font-bold">2b · Squad rooms; command humans through your agent</h2>
         <p className="mt-2 text-sm text-slate-300">
           Antisocial mode: flip on “Send as my agent”, type the order once, and your agent speaks to the
-          room for you — every agent-driven message is clearly labeled <strong>[BOT]</strong> (in chat,
+          room for you; every agent-driven message is clearly labeled <strong>[BOT]</strong> (in chat,
           in per-room bot counts, and in the org audit trail). You still see the whole chat. Human
           messages stay end-to-end encrypted; agent relays are server-stored plaintext by design.
           External agents (OpenClaw &amp; co.) can read + speak here with a <code>bot4weird_</code> key
-          carrying <code>unitunite:read</code> / <code>unitunite:send</code> — always as [BOT], never as you.
+          carrying <code>unitunite:read</code> / <code>unitunite:send</code>; always as [BOT], never as you.
         </p>
         {!teamId ? (
           <p className="mt-3 text-sm text-slate-400">Pick an active workspace above to open its rooms.</p>
@@ -417,7 +417,7 @@ export function TeamWorkspace() {
             )}
             <div className="mt-4 max-h-80 space-y-2 overflow-y-auto rounded-xl border border-white/10 bg-black/30 p-4">
               {!roomId ? (
-                <p className="text-sm text-slate-500">No room selected — open one above.</p>
+                <p className="text-sm text-slate-500">No room selected; open one above.</p>
               ) : !messages.length ? (
                 <p className="text-sm text-slate-500">No messages yet. Give the order.</p>
               ) : (
@@ -491,11 +491,11 @@ export function TeamWorkspace() {
       </section>
 
       <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
-        <h2 className="text-xl font-bold">3 · Permissions — defaults, custom encouraged</h2>
+        <h2 className="text-xl font-bold">3 · Permissions; defaults, custom encouraged</h2>
         <p className="mt-2 text-sm text-slate-300">
-          Start with Owner / Admin / Maintainer / Developer / Viewer / Billing / Security — or the warlord
+          Start with Owner / Admin / Maintainer / Developer / Viewer / Billing / Security; or the warlord
           ranks Lord / Captain / Infantry / Banker (write or read-only) / Watcher (sees everything, changes
-          nothing) — then copy one and tweak 1–2 keys into a custom role. Every action below only lights up when
+          nothing); then copy one and tweak 1-2 keys into a custom role. Every action below only lights up when
           your workspace grants it.
         </p>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -515,9 +515,9 @@ export function TeamWorkspace() {
       </section>
 
       <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
-        <h2 className="text-xl font-bold">4 · Cloud services, pay as you go — 25% {UNITUNITE_NAME} cut per workspace</h2>
-        <p className="mt-2 text-sm text-slate-300">GPU pods, serverless, storage, databases, queues, CDN, builds, vector DB, inference — all settled in Vibe Coins from the org wallet, metered per {UNITUNITE_NAME} workspace. {WORKSPACE_CUT_NOTE}</p>
-        <p className="mt-2 text-sm text-slate-300">✨ Need game art, trailers, voices or music? <a className="font-bold text-fuchsia-300 underline" href="/fal">Open fal.ai Studio — 30 magical media tools</a>, same 25% cut included.</p>
+        <h2 className="text-xl font-bold">4 · Cloud services, pay as you go - 25% {UNITUNITE_NAME} cut per workspace</h2>
+        <p className="mt-2 text-sm text-slate-300">GPU pods, serverless, storage, databases, queues, CDN, builds, vector DB, inference; all settled in Vibe Coins from the org wallet, metered per {UNITUNITE_NAME} workspace. {WORKSPACE_CUT_NOTE}</p>
+        <p className="mt-2 text-sm text-slate-300">✨ Need game art, trailers, voices or music? <a className="font-bold text-fuchsia-300 underline" href="/fal">Open fal.ai Studio - 30 magical media tools</a>, same 25% cut included.</p>
         <p className="mt-2 text-xs text-slate-500">Cheapest viable tier preselected per category: {Object.entries(CHEAPEST_DEFAULTS).map(([c, k]) => `${c}: ${k}`).join(" · ")}. Newest viable runtimes, no extra dependencies.</p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {services.map((s) => (
@@ -535,9 +535,9 @@ export function TeamWorkspace() {
       <OrgRanks />
 
       <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
-        <h2 className="text-xl font-bold">5 · Ghost timer — who owes whom</h2>
+        <h2 className="text-xl font-bold">5 · Ghost timer; who owes whom</h2>
         <p className="mt-2 text-sm text-slate-300">
-          Clock org work to the second and settle up in 👻 Ghost Cash — hypothetical IOUs with no value, just a
+          Clock org work to the second and settle up in 👻 Ghost Cash; hypothetical IOUs with no value, just a
           ruler for debts. <a className="font-bold text-cyan-300 underline" href="/timer">Open the timer →</a>
         </p>
       </section>

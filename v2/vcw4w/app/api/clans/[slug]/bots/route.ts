@@ -18,7 +18,7 @@ function isHttpsUrl(v: unknown): string {
   return s.startsWith("https://") ? s : "";
 }
 
-// GET /api/clans/[slug]/bots — public list of bots deployed on this clan.
+// GET /api/clans/[slug]/bots; public list of bots deployed on this clan.
 export async function GET(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const { slug: raw } = await params;
@@ -38,9 +38,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
   return ok({ bots: bots ?? [] });
 }
 
-// POST /api/clans/[slug]/bots — owner/mod only.
-// { action: "deploy", bot_username, webhook_url? } — sclans + bclans only.
-// { action: "remove", id } — unplug a deployed bot.
+// POST /api/clans/[slug]/bots; owner/mod only.
+// { action: "deploy", bot_username, webhook_url? }; sclans + bclans only.
+// { action: "remove", id }; unplug a deployed bot.
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const { slug: raw } = await params;
@@ -70,7 +70,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
 
   if (action === "deploy") {
     if (!botDeploysAllowed(String(clanRow.clan_type ?? "sclan"))) {
-      return fail("hclans are human-only — bots cannot deploy here.", 403);
+      return fail("hclans are human-only; bots cannot deploy here.", 403);
     }
     const botUsername = isBotUsername(input.bot_username);
     if (!botUsername) return fail("Invalid bot username (a-z0-9_, 3-24 chars).", 400);
@@ -83,7 +83,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     });
     if (error) {
       const msg = String(error.message ?? "");
-      if (/hclans are human-only/i.test(msg)) return fail("hclans are human-only — bots cannot deploy here.", 403);
+      if (/hclans are human-only/i.test(msg)) return fail("hclans are human-only; bots cannot deploy here.", 403);
       if (/not a moderator/i.test(msg)) return fail("Only the owner or mods can deploy bots.", 403);
       if (/bot not found/i.test(msg)) return fail("Bot not found.", 404);
       if (/invalid/i.test(msg)) return fail("Invalid bot deploy.", 400);

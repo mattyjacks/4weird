@@ -7,7 +7,7 @@ const desktopRoot = join(process.cwd(), "..", "desktop");
 const target = join(process.cwd(), "public");
 // The archived v1 site stays byte-identical in public/: vcw still lives in
 // old-v1 (research-only archive), while the actively-developed desktop
-// frontend lives at v2/desktop/vibecodeworker — never put new work in old-v1.
+// frontend lives at v2/desktop/vibecodeworker; never put new work in old-v1.
 const pairs = [[join(oldRoot, "vcw"), "vcw"], [join(desktopRoot, "vibecodeworker"), "vibecodeworker-legacy"]];
 async function list(dir, base = dir) {
   const out = [];

@@ -1,5 +1,5 @@
 /**
- * House ads — the 10 fallback creatives for 4weird.
+ * House ads; the 10 fallback creatives for 4weird.
  *
  * Shown when the primary ad provider fails, returns nothing, or is blocked
  * (adblock). Guests see them as skippable interstitials/banners on play
@@ -8,7 +8,7 @@
  *
  * Hrefs are first-party routes except the two operator-provided domains
  * (mattyjacks.com, shop.mattyjacks.com). The MediaMogul network is covered
- * in VibeCodeWorker ad copy — no guessed URLs anywhere.
+ * in VibeCodeWorker ad copy; no guessed URLs anywhere.
  */
 
 export type HouseAd = {
@@ -27,7 +27,7 @@ export const HOUSE_ADS: HouseAd[] = [
     emoji: "🪙",
     tag: "4weird · Vibe Coins",
     title: "Get 100 free Vibe Coins",
-    blurb: "100 coins = $1.00. Daily bonuses alone cover 5+ hours of play a day — no card required.",
+    blurb: "100 coins = $1.00. Daily bonuses alone cover 5+ hours of play a day; no card required.",
     cta: "Claim free coins",
     href: "/pricing",
   },
@@ -62,10 +62,10 @@ export const HOUSE_ADS: HouseAd[] = [
     id: "unitunite",
     emoji: "🚀",
     tag: "4weird · UnitUnite cloud",
-    title: "Team cloud that bills in coins",
-    blurb: "GPU pods, serverless, storage, Postgres, queues — one gross metered price per workspace.",
+    title: "Squad cloud that bills in coins",
+    blurb: "GPU pods, serverless, storage, Postgres, queues; one gross metered price per workspace.",
     cta: "Try UnitUnite",
-    href: "/teams",
+    href: "/squads",
   },
   {
     id: "vibecodeworker",
@@ -81,9 +81,9 @@ export const HOUSE_ADS: HouseAd[] = [
     emoji: "⚡",
     tag: "4weird · Functions",
     title: "Serverless functions + inference APIs",
-    blurb: "Autoscaled workers, cron jobs, and hosted model endpoints — metered per second in coins.",
+    blurb: "Autoscaled workers, cron jobs, and hosted model endpoints; metered per second in coins.",
     cta: "See cloud pricing",
-    href: "/teams",
+    href: "/squads",
   },
   {
     id: "leaderboards",
@@ -99,7 +99,7 @@ export const HOUSE_ADS: HouseAd[] = [
     emoji: "🎩",
     tag: "mattyjacks.com",
     title: "Meet the maker",
-    blurb: "MattyJacks builds strange, joyful internet — games, tools, and experiments.",
+    blurb: "MattyJacks builds strange, joyful internet; games, tools, and experiments.",
     cta: "Visit mattyjacks.com",
     href: "https://mattyjacks.com",
   },

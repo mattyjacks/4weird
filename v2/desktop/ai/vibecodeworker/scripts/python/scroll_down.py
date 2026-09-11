@@ -541,7 +541,7 @@ function buildPrompt(brain, consoleLogs, domSnapshot, isStuck) {
     const epLines = recentEps.map((ep, i) => {
       return `  Step -${recentEps.length - i}: [${ep.status}] ${ep.action.type} -> ${ep.action.target || 'N/A'} | path: ${JSON.stringify(ep.reasoning_path || ep.reasoning || '')}`;
     }).join('\\n');
-    memoryBlock = `\\n## MEMORY — Recent Episode History (last ${recentEps.length} steps)\\n${epLines}${sessionSummary ? `\\nSession stats: ${sessionSummary}` : ''}\\n`;
+    memoryBlock = `\\n## MEMORY - Recent Episode History (last ${recentEps.length} steps)\\n${epLines}${sessionSummary ? `\\nSession stats: ${sessionSummary}` : ''}\\n`;
   } else if (sessionSummary && isStuck) {
     memoryBlock = `\\n## SESSION STATS\\n${sessionSummary}\\n`;
   }
@@ -570,7 +570,7 @@ Interactive DOM (up to 40):
 ${compactDom.join('\\n')}
 ${stuckBlock}
 ${memoryBlock}
-## GOAL — Game Objective
+## GOAL - Game Objective
 ${brain.config.gameRules || "Explore the game: find buttons, play, maximize score, look for bugs/errors."}
 
 ## TASK
@@ -662,7 +662,7 @@ Task:
 • Read the entire conversation history.
 • Extract constraints, user-provided facts, references (including version references), and goals.
 • Produce a flowchart plan that guides producing the best final assistant reply to the last user turn.
-• Do NOT include the response itself—only the plan.
+• Do NOT include the response itself-only the plan.
 • Start exactly with 'flowchart TD;'
 Conversation:
 ${conversationText}

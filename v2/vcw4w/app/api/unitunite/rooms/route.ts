@@ -28,7 +28,7 @@ function isSlug(v: unknown): string {
 }
 
 /**
- * GET /api/unitunite/rooms?team=<uuid> — list a team's rooms with message
+ * GET /api/unitunite/rooms?team=<uuid>; list a team's rooms with message
  * and [BOT] counts. Session auth, or `bot4weird_` key + unitunite:read.
  */
 export async function GET(req: Request) {
@@ -64,7 +64,7 @@ export async function GET(req: Request) {
 }
 
 /**
- * POST /api/unitunite/rooms {team_id, slug, name} — open a room.
+ * POST /api/unitunite/rooms {team_id, slug, name}; open a room.
  * Session users need team.rooms.create; agents (bot key + unitunite:send)
  * may open rooms for their linked human too.
  */

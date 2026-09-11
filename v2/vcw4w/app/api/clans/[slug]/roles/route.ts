@@ -16,7 +16,7 @@ function asUuid(v: unknown): string {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(s) ? s : "";
 }
 
-// GET /api/clans/[slug]/roles — public role catalog + assignments.
+// GET /api/clans/[slug]/roles; public role catalog + assignments.
 export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const rl = rateLimit(`clan-roles:${clientIp(req)}`, 60, 60_000);
@@ -36,10 +36,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   return ok({ roles: roles ?? [], assignments: assignments ?? [], members: members ?? [] });
 }
 
-// POST /api/clans/[slug]/roles — one action per call (owner/mod gated in RPCs):
-// { action: "create", name, color? } — new custom role.
-// { action: "assign", user_id, role_id } — grant a custom role to a member.
-// { action: "member-role", user_id, role: "mod"|"member" } — owner-only
+// POST /api/clans/[slug]/roles; one action per call (owner/mod gated in RPCs):
+// { action: "create", name, color? }; new custom role.
+// { action: "assign", user_id, role_id }; grant a custom role to a member.
+// { action: "member-role", user_id, role: "mod"|"member" }; owner-only
 // promote/demote the built-in member role.
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);

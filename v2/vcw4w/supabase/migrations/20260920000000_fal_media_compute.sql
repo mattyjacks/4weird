@@ -1,5 +1,5 @@
 -- ============================================================================
--- fal.ai media compute (/fal studio) — 25% cut on all 15 fal ops, same rule
+-- fal.ai media compute (/fal studio) - 25% cut on all 15 fal ops, same rule
 -- as every other compute surface (SERVICE_CUT_PCT / GAME_AI_COMPUTE_CUT_PCT
 -- / WORKSPACE_COMPUTE_CUT_PCT). Fully rerunnable: IF NOT EXISTS /
 -- OR REPLACE / DROP ... IF EXISTS guards (repo rule).
@@ -80,7 +80,7 @@ begin
   if p_qty is null or p_qty <= 0 or p_qty > 100000000 then raise exception 'invalid qty'; end if;
   if p_source not in ('fal-studio','vcw','api','manual') then raise exception 'invalid source'; end if;
 
-  -- Gross price by op (coins, cut INCLUDED — mirrors lib/fal.ts FAL_OPS).
+  -- Gross price by op (coins, cut INCLUDED; mirrors lib/fal.ts FAL_OPS).
   v_gross := case p_op
     when 'concept-art' then greatest(1, ceil(8 * p_qty)::integer)
     when 'sprite-edit' then greatest(1, ceil(8 * p_qty)::integer)
@@ -143,7 +143,7 @@ end; $$;
 revoke all on function public.meter_fal_usage(text, text, numeric, text) from public, anon, authenticated;
 grant execute on function public.meter_fal_usage(text, text, numeric, text) to authenticated;
 
--- my_fal_usage: one rollup for /my/usage — total + by-op + by-game + recent.
+-- my_fal_usage: one rollup for /my/usage; total + by-op + by-game + recent.
 create or replace function public.my_fal_usage()
 returns jsonb
 language plpgsql security definer set search_path = public as $$

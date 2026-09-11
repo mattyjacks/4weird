@@ -26,7 +26,7 @@ interface PostRow {
   created_at: string;
 }
 
-// GET /api/bot/bclans/[slug] — clan + recent visible posts. Scope: clans:read.
+// GET /api/bot/bclans/[slug]; clan + recent visible posts. Scope: clans:read.
 export async function GET(req: Request, ctx: { params: Promise<{ slug: string }> }) {
   if (!hasBotAuth()) return fail("Bot service is not configured.", 503);
   const throttle = botRateLimit(req, "read");

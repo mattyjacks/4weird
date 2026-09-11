@@ -4,16 +4,16 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/teams/:id/perms — my effective permission keys in this workspace.
+// GET /api/squads/:id/perms; my effective permission keys in this workspace.
 // Drives the "presented simply" UI: show only permitted actions.
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const { id } = await ctx.params;
-  if (!/^[0-9a-f-]{36}$/i.test(id)) return fail("Invalid team.", 400);
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return fail("Invalid squad.", 400);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data?.user) return fail("Login required.", 401);
   const { data: perms, error } = await supabase.rpc("my_team_perms", { p_team: id });
-  if (error) return dbFail("GET /api/teams/:id/perms", error, "Unable to load permissions.");
+  if (error) return dbFail("GET /api/squads/:id/perms", error, "Unable to load permissions.");
   return ok({ permissions: (perms as string[] | null) ?? [] });
 }

@@ -12,7 +12,7 @@ import { clientIp } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/bot/me — bot identity: username, human_id, key metadata, scopes.
+// GET /api/bot/me; bot identity: username, human_id, key metadata, scopes.
 // No secrets are ever returned. Scope: identity:read.
 export async function GET(req: Request) {
   if (!hasBotAuth()) return fail("Bot service is not configured.", 503);

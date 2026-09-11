@@ -11,7 +11,7 @@ import { quoteAuditSplit, SUBMIT_CUT_NOTE } from "@/lib/zip-submit";
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/code/[id]/audit { deep? } — coin-metered code audit.
+ * POST /api/code/[id]/audit { deep? }; coin-metered code audit.
  * Auth: owner session OR bot key with `code:audit`.
  * Static re-audit always runs (stored findings); deep=true adds a
  * Luna/OpenAI review of the stored findings (25% cut INCLUDED) and is
@@ -91,7 +91,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (deep) {
     const key = process.env.OPENAI_API_KEY ?? "";
     if (!key) {
-      aiNote = "Deep review needs OPENAI_API_KEY on the server — static findings returned, deep charge still applies.";
+      aiNote = "Deep review needs OPENAI_API_KEY on the server; static findings returned, deep charge still applies.";
     } else {
       try {
         const controller = new AbortController();
@@ -122,13 +122,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
             const dj = (await res.json()) as { choices?: { message?: { content?: string } }[] };
             aiNote = String(dj?.choices?.[0]?.message?.content ?? "").slice(0, 1500) || null;
           } else {
-            aiNote = "Deep review provider unavailable — static findings stand.";
+            aiNote = "Deep review provider unavailable; static findings stand.";
           }
         } finally {
           clearTimeout(timer);
         }
       } catch {
-        aiNote = "Deep review timed out — static findings stand.";
+        aiNote = "Deep review timed out; static findings stand.";
       }
     }
   }

@@ -12,7 +12,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 // Best-effort per-instance daily counter (resets daily, keyed by IP). The
 // rate limiter above is the enforcement; this counter is only the honest
 // "loads used" readout for the client. The signed-in coin ledger remains
-// the authoritative meter — guests are intentionally approximate.
+// the authoritative meter; guests are intentionally approximate.
 const guestCounts = new Map<string, { day: string; count: number }>();
 
 function countGuestLoad(ip: string): number {
@@ -30,10 +30,10 @@ function countGuestLoad(ip: string): number {
 }
 
 /**
- * POST /api/games/guest-pass — unsigned play gate. Guests (no account, no
+ * POST /api/games/guest-pass; unsigned play gate. Guests (no account, no
  * coins) may play free inside an IP-based daily quota; beyond the free
  * loads they keep playing by viewing skippable house ads. No cloud saves,
- * multiplayer, AI, or Buddy for guests — those stay signed-in only.
+ * multiplayer, AI, or Buddy for guests; those stay signed-in only.
  *
  * This is the cost-control teeth for free traffic: bots and heavy guests get
  * 429s here, while signed-in players meter in coins instead and never see
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
   }
   const daily = rateLimit(`guest-pass:day:${ip}`, GUEST_MAX_LOADS_PER_DAY, DAY_MS);
   if (!daily.allowed) {
-    return fail("Guest daily limit reached. Sign in — daily bonuses alone cover 5+ hours a day.", 429, {
+    return fail("Guest daily limit reached. Sign in; daily bonuses alone cover 5+ hours a day.", 429, {
       "Retry-After": String(daily.retryAfter),
     });
   }
@@ -82,12 +82,12 @@ export async function POST(req: Request) {
     loads_used: Math.min(used, GUEST_MAX_LOADS_PER_DAY),
     loads_free: GUEST_FREE_LOADS_PER_DAY,
     // After the free quota, every further load needs one (instantly
-    // skippable) house-ad view first — the client enforces the interstitial
+    // skippable) house-ad view first; the client enforces the interstitial
     // and must present ad_token on the next load (verified server-side where
     // enforced).
     ad_required: adRequired,
     ad: adRequired ? pickHouseAd(date, game) : null,
     ad_token: adToken,
-    note: "Guests play free with ads. Sign in for cloud saves, multiplayer, AI, Buddy — and no ads.",
+    note: "Guests play free with ads. Sign in for cloud saves, multiplayer, AI, Buddy; and no ads.",
   });
 }

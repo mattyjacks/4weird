@@ -2,13 +2,13 @@
  * RunPod REST client for the 4weird server.
  *
  * SERVER-ONLY: reads RUNPOD_API_KEY (+ optional RUNPOD_API_BASE). Never
- * import this module in a client component — the key must never reach a
+ * import this module in a client component; the key must never reach a
  * browser.
  *
  * What it does: pull REAL billing history (pods / serverless endpoints /
  * network volumes) keyed by Bearer token, so /my/usage can show the
  * operator's genuine RunPod spend next to Vibe Coin spend. Rows are an
- * informational mirror — RunPod bills the card directly, so mirrored rows
+ * informational mirror - RunPod bills the card directly, so mirrored rows
  * carry NO Vibe cut.
  *
  * What it never does: synthesize rows. Every failure returns

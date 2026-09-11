@@ -46,7 +46,7 @@
         const tagline = document.body.getAttribute('data-game-tagline') || 'Official Game Guide & Reference';
         const playUrl = document.body.getAttribute('data-play-url') || 'index.html';
         const backUrl = document.body.getAttribute('data-back-url') || basePath + 'index.html';
-        const footerText = document.body.getAttribute('data-footer-text') || `${title} — A 4weird Games Publication`;
+        const footerText = document.body.getAttribute('data-footer-text') || `${title} - A 4weird Games Publication`;
 
         // Prepend Header if none exists
         if (!document.querySelector('header')) {

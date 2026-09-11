@@ -1,5 +1,5 @@
 /**
- * Team permissions — client-safe mirror of the FULL PERMISSION SET seeded in
+ * Team permissions; client-safe mirror of the FULL PERMISSION SET seeded in
  * `supabase/migrations/20260910130000_teams_enterprise_bundle.sql`.
  *
  * The database is the enforcer (has_*_perm + RLS + RPCs). This module only

@@ -1,5 +1,5 @@
 /**
- * Blender GPU render farm — a .blend scene in, an H.264 .mp4 out, rendered
+ * Blender GPU render farm; a .blend scene in, an H.264 .mp4 out, rendered
  * on a pinned RTX 4090 RunPod pod with official Blender over OptiX/CUDA.
  *
  * Flow (upload bypasses Vercel's ~4.5 MB body limit on purpose):
@@ -16,7 +16,7 @@
  *    itself so billing stops even if nobody clicks anything.
  *
  * Money: RunPod bills the operator's card per second; coin figures are
- * display equivalents (100 coins = $1.00, 25% cut included) — no coin debit,
+ * display equivalents (100 coins = $1.00, 25% cut included); no coin debit,
  * no Vibe cut on direct spend. Mirror on /my/usage via runpod-sync.
  */
 
@@ -111,7 +111,7 @@ export function quoteBlenderCap(
 }
 
 export const BLENDER_CUT_NOTE =
-  "Includes 25% platform cut (same 25% as all game AI + compute) — never added on top.";
+  "Includes 25% platform cut (same 25% as all game AI + compute); never added on top.";
 
 /** Storage paths for one job (user-scoped so listings never leak). */
 export function blenderScenePath(userId: string, jobId: string): string {
@@ -135,13 +135,13 @@ export type BlenderBootstrapOpts = {
  * BLENDER_VERSION.
  *
  * Cost discipline: the script exits 0 after every terminal callback, which
- * releases the GPU — billing ends even if the user never clicks stop. The
+ * releases the GPU; billing ends even if the user never clicks stop. The
  * only path that stays up is done_unstored (upload failed): the mp4 is
  * served on 8888 until the user downloads it and stops the pod.
  */
 export function buildBlenderBootstrap(opts: BlenderBootstrapOpts): string {
   const device = opts.device === "CUDA" ? "CUDA" : "OPTIX";
-  return `# Blender render worker (4weird) — .blend in, .mp4 out.
+  return `# Blender render worker (4weird) - .blend in, .mp4 out.
 set -uo pipefail
 WORK=/opt/blender-render
 OUT=$WORK/out
@@ -246,7 +246,7 @@ if curl -fSL -m 600 -X PUT -H "Content-Type: video/mp4" --data-binary "@$OUT/ren
   cb "done" "frames=$COUNT bytes=$SIZE" "1"
   exit 0
 fi
-echo "[blender-render] upload failed — mp4 stays on the worker; download it from the pod URL, then stop the pod" | tee -a "$OUT/render.log"
+echo "[blender-render] upload failed; mp4 stays on the worker; download it from the pod URL, then stop the pod" | tee -a "$OUT/render.log"
 cb "done_unstored" "frames=$COUNT bytes=$SIZE" "0"
 sleep infinity
 `;

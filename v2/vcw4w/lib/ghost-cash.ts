@@ -4,7 +4,7 @@
  * Ghost Cash is a non-monetary unit of account used inside 4weird orgs and teams
  * to measure hours worked down to the second and track debt/expenses between members.
  * It has NO cash value, NO redemption rights, and CANNOT be cashed out.
- * Emoji is the ghost ONLY (👻) — never paired with a cash emoji.
+ * Emoji is the ghost ONLY (👻); never paired with a cash emoji.
  */
 
 export const GHOST_CASH_SYMBOL = "👻";

@@ -8,10 +8,10 @@ import { getGamePlaybook } from "@/lib/game-playbooks";
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/vcw/games — playable catalog for agents (authenticated).
+ * GET /api/vcw/games; playable catalog for agents (authenticated).
  *
  * The v1 worker's `GET /api/games` equivalent: every game the agent may
- * target with a run. Play URLs are first-party only — the same on-site
+ * target with a run. Play URLs are first-party only; the same on-site
  * rule the autoplay API enforces.
  */
 export async function GET() {

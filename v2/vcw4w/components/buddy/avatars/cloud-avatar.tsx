@@ -1,5 +1,5 @@
 /**
- * Buddy cloud — a soft seven-puff sky buddy with flapping wings, a floating
+ * Buddy cloud; a soft seven-puff sky buddy with flapping wings, a floating
  * star companion, and sleepy-happy brows. userData carries { eyeL, eyeR,
  * mouth, browL, browR, wingL, wingR, star, starBaseY, kind: "cloud" }.
  */

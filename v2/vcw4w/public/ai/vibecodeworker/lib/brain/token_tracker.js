@@ -97,7 +97,7 @@ function recordTokenUsage(brain, model, prompt, completion) {
     });
 
     // Bound memory + file size: prune yearly + cap length, but not on every
-    // write — amortize to roughly once per 50 writes or when over the cap.
+    // write; amortize to roughly once per 50 writes or when over the cap.
     _writesSincePrune++;
     const overCap = data.history.length > MAX_HISTORY_ENTRIES;
     if (overCap || _writesSincePrune >= 50) {

@@ -41,7 +41,7 @@ for (const [name, src] of [["detail", routes.detail], ["post", routes.post], ["j
 }
 
 // 3. Every Supabase failure routes through dbFail (server-logged, stable
-// public text) — raw Postgres text must never reach browsers.
+// public text); raw Postgres text must never reach browsers.
 for (const [name, src] of Object.entries(routes)) {
   if (!src.includes("dbFail")) throw new Error(`${name} route must route DB errors through dbFail.`);
   if (/fail\("Unable[^"]*", 500\)/.test(src)) throw new Error(`${name} route swallows DB errors with a raw 500 fail (use dbFail).`);
@@ -63,7 +63,7 @@ if (!routes.report.includes('category === "csam"') || !routes.report.includes('s
 if (!routes.report.includes("Target not found.")) throw new Error("Bot reports must 404 against missing target rows.");
 
 // 5. Redirects: the UI page moved (/bot/clans -> /bot/bclans) but the retired
-// API intentionally has no redirect — it is gone (404).
+// API intentionally has no redirect; it is gone (404).
 const config = read("../next.config.ts");
 for (const token of ['source: "/bot/clans"', 'destination: "/bot/bclans"', 'source: "/bot/clans/:path*"']) {
   if (!config.includes(token)) throw new Error(`next.config missing bot console redirect ${token}.`);

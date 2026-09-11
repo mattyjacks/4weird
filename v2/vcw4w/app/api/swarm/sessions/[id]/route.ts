@@ -5,7 +5,7 @@ import { isUuid } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
-/** GET /api/swarm/sessions/[id] — swarm config + recent messages. */
+/** GET /api/swarm/sessions/[id]; swarm config + recent messages. */
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();

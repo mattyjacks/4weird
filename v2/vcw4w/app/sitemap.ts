@@ -9,26 +9,26 @@ type Entry = {
 };
 
 /**
- * Canonical sitemap — every crawlable, indexable page on 4weird Games.
+ * Canonical sitemap; every crawlable, indexable page on 4weird Games.
  *
  * Deliberately EXCLUDED (noindex / gated / non-content):
  * - /account, /auth/*, /my/usage, /my/rights (login-gated, robots noindex)
  * - /api/* (data endpoints, no-store)
  * - /games/<slug>/play shells stay listed below at low priority so crawlers
  *   discover game titles through them, even though the shell itself is
- *   noindex (thin iframe wrapper — the /games/<slug> detail page is the
+ *   noindex (thin iframe wrapper; the /games/<slug> detail page is the
  *   canonical indexed surface per game).
  * - Legacy mirrors (/v1-legacy/*, /vibecodeworker-legacy/*, /games/html/*)
  */
 
-// Hub + money pages — crawl often, rank highest.
+// Hub + money pages; crawl often, rank highest.
 const PRIMARY: Entry[] = [
   { path: "", changeFrequency: "daily", priority: 1 },
   { path: "/games", changeFrequency: "daily", priority: 0.9 },
   { path: "/pricing", changeFrequency: "weekly", priority: 0.9 },
   { path: "/agents", changeFrequency: "weekly", priority: 0.9 },
   { path: "/vibecodeworker", changeFrequency: "weekly", priority: 0.9 },
-  { path: "/teams", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/squads", changeFrequency: "weekly", priority: 0.8 },
   { path: "/timer", changeFrequency: "weekly", priority: 0.8 },
   { path: "/desktop", changeFrequency: "weekly", priority: 0.8 },
   { path: "/buddy", changeFrequency: "weekly", priority: 0.8 },
@@ -51,7 +51,7 @@ const COMMUNITY: Entry[] = [
   { path: "/lobbies", changeFrequency: "daily", priority: 0.6 },
 ];
 
-// Creator economy — tipping and launch campaigns.
+// Creator economy; tipping and launch campaigns.
 const SUPPORT: Entry[] = [
   { path: "/support", changeFrequency: "weekly", priority: 0.7 },
   { path: "/fundraisers", changeFrequency: "weekly", priority: 0.7 },
@@ -66,7 +66,7 @@ const EXPLORE: Entry[] = [
   { path: "/web-apps", changeFrequency: "monthly", priority: 0.6 },
 ];
 
-// VibeCodeWorker sections (closed list — mirrors app/vibecodeworker/[section]).
+// VibeCodeWorker sections (closed list; mirrors app/vibecodeworker/[section]).
 const VCW_SECTIONS: Entry[] = [
   "overview",
   "hub",
@@ -105,7 +105,7 @@ const DOCS: Entry[] = [
   { path: "/docs/faq", changeFrequency: "monthly", priority: 0.8 },
 ];
 
-// Trust + legal — indexable, change rarely.
+// Trust + legal; indexable, change rarely.
 const TRUST: Entry[] = [
   { path: "/privacy", changeFrequency: "yearly", priority: 0.4 },
   { path: "/terms", changeFrequency: "yearly", priority: 0.4 },

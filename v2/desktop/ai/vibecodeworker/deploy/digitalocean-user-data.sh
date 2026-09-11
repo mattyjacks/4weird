@@ -48,7 +48,7 @@ cp "$BASE/repo/website/v1/ai/vibecodeworker/deploy/docker-compose.cloud.yml" "$B
 # --- Secrets (generated once, never overwritten) ---
 if [ ! -f "$BASE/.env" ]; then
   cat > "$BASE/.env" <<EOF
-# Generated $(date -u +%FT%TZ) — keep secret!
+# Generated $(date -u +%FT%TZ); keep secret!
 VIBE_API_TOKEN=$(openssl rand -hex 24)
 OPENCODE_SERVER_PASSWORD=$(openssl rand -hex 16)
 OPENCODE_ENABLED=true

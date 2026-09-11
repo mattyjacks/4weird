@@ -1,5 +1,5 @@
 -- ============================================================================
--- Game rentals ("renting games") — per-load + per-hour play metering.
+-- Game rentals ("renting games"); per-load + per-hour play metering.
 -- Fully rerunnable: IF NOT EXISTS / OR REPLACE / DROP ... IF EXISTS.
 --
 -- Model (mirrors lib/game-rent.ts):
@@ -11,7 +11,7 @@
 --     version already billed in the last 24h (refresh protection).
 --   * Developers set their own rates 0..100 (0 = free). Only mapped
 --     developers (game_developers, onboarded by an admin) or admins may
---     change rates — nobody else can grief a game's price.
+--     change rates; nobody else can grief a game's price.
 --   * Every gross coin INCLUDES the 25% platform cut (cut + provider = gross,
 --     computed by game_ai_compute_split). The provider share is attributed to
 --     the mapped developer when one exists (dev_user_id); payouts settle
@@ -84,7 +84,7 @@ create index if not exists idx_game_play_usage_session on public.game_play_usage
 create index if not exists idx_game_play_usage_game on public.game_play_usage (game_slug, created_at desc);
 
 -- --------------------------------------------------------------------------
--- 4. RLS — deny by default. Rates are public (badges/pricing render them);
+-- 4. RLS; deny by default. Rates are public (badges/pricing render them);
 --    dev mapping is member-visible; sessions/usage are self-only.
 -- --------------------------------------------------------------------------
 alter table public.game_rates enable row level security;
@@ -118,7 +118,7 @@ grant select on public.game_sessions to authenticated;
 grant select on public.game_play_usage to authenticated;
 
 -- --------------------------------------------------------------------------
--- 5. RPCs — the ONLY writers. Money moves only here.
+-- 5. RPCs; the ONLY writers. Money moves only here.
 -- --------------------------------------------------------------------------
 
 -- Admin-only: map a developer to a game (onboarding path: email
@@ -325,7 +325,7 @@ end; $$;
 revoke all on function public.end_game_session(uuid) from public, anon, authenticated;
 grant execute on function public.end_game_session(uuid) to authenticated;
 
--- my_game_play_usage: rollup for /my/usage — total + last hour + last 24h +
+-- my_game_play_usage: rollup for /my/usage; total + last hour + last 24h +
 -- per-game, over game_play_usage (loads + heartbeats, 25% split recorded).
 create or replace function public.my_game_play_usage()
 returns jsonb

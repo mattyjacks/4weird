@@ -1,11 +1,11 @@
 /**
  * Per-game rules resolver: makes the playtest agent aware of each 4weird
- * HTML game's rules in a low-code, adaptable way — no per-game code.
+ * HTML game's rules in a low-code, adaptable way; no per-game code.
  *
  * Sources, merged in priority order (first hit wins per line):
- *   1. `<gameDir>/game_meta.json` — dedicated QA file:
+ *   1. `<gameDir>/game_meta.json`; dedicated QA file:
  *      { name, objective, controls, known_states[], win_condition, avoid, tips }
- *   2. `<gameDir>/game.json` — existing catalog metadata:
+ *   2. `<gameDir>/game.json`; existing catalog metadata:
  *      { title, description, instructions, controls, genre }
  *   3. On-page rules, scraped from the loaded game (guest-side script):
  *      - `<meta name="game-rules" content="...">` (one-line convention)
@@ -15,7 +15,7 @@
  *
  * Game authors: copy `_TEMPLATE/game_meta.json` next to your index.html
  * and/or add `<meta name="game-rules" content="...">` to the page head.
- * Either one (or nothing — game.json + on-page How to Play are picked up
+ * Either one (or nothing; game.json + on-page How to Play are picked up
  * automatically) is enough for the agent to playtest with rules.
  */
 const fs = require('fs');

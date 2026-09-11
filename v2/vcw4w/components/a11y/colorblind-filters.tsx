@@ -1,5 +1,5 @@
 /**
- * SVG color-vision-deficiency filters (server component — no JS).
+ * SVG color-vision-deficiency filters (server component; no JS).
  *
  * Each filter daltonizes by projecting through a clinically-used simulation
  * matrix, so it runs on the GPU as a single feColorMatrix. The matching CSS

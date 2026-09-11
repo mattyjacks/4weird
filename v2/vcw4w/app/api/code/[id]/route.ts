@@ -7,7 +7,7 @@ import { isUuid } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/code/[id] — owner reads the full submission incl. verdict,
+// GET /api/code/[id]; owner reads the full submission incl. verdict,
 // findings, game root, and (when safe) a short-lived download URL.
 // Quarantined rows NEVER include a URL. Powers the beautiful code view.
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {

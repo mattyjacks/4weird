@@ -3,7 +3,7 @@ import { KidLoginForm } from "@/components/family/kid-login-form";
 
 export const metadata: Metadata = {
   title: "Kid & Teen Login",
-  description: "Children log in with their username#1234 handle and password — no email needed.",
+  description: "Children log in with their username#1234 handle and password; no email needed.",
   robots: { index: false, follow: false },
 };
 

@@ -6,7 +6,7 @@
  *
  * Money rule (same everywhere on 4weird): prices are GROSS with the 25%
  * platform cut INCLUDED, never added on top. Revenue (ads/affiliate/funding)
- * carries no cut — it is income, not a purchase.
+ * carries no cut; it is income, not a purchase.
  */
 
 import { CLAN_COMPUTE_CUT_PCT } from "@/lib/economy";
@@ -68,7 +68,7 @@ export const CLAN_AFFILIATE_CLICK_COINS = 0.05;
 // Per-minute server upkeep (billed every minute at :00 by /api/cron/clan-upkeep
 // via accrue_clan_minute_upkeep(); this file mirrors the SQL rate card).
 // A 5-member clan with 2 MB of images + 200 KB of text costs ~0.0002/min
-// (~0.26 coins/day) — extremely minimal for small clans; big active clans pay
+// (~0.26 coins/day); extremely minimal for small clans; big active clans pay
 // linearly for what they actually store, transfer, and moderate.
 // ---------------------------------------------------------------------------
 
@@ -80,7 +80,7 @@ export const CLAN_PER_MIN_PER_MEMBER_COINS = 0.000004;
 export const CLAN_PER_MIN_PER_IMAGE_MB_COINS = 0.000008;
 /** Per database KB (posts + comments + messages text) per minute. */
 export const CLAN_PER_MIN_PER_DB_KB_COINS = 0.0000008;
-/** Per transferred KB (measured page/image/api bytes) — billed as used. */
+/** Per transferred KB (measured page/image/api bytes); billed as used. */
 export const CLAN_PER_KB_BANDWIDTH_COINS = 0.000002;
 /** Luna AI moderation (OpenAI GPT 5.6 Luna) per text check. */
 export const CLAN_LUNA_CHECK_COINS = 0.015;
@@ -117,7 +117,7 @@ export function clanBandwidthCost(bytesOut: number): number {
 
 export const CLAN_COST_NOTE =
   "Clan server fees are linear in measured usage (per-KB + image surcharge, " +
-  "min 1 centicentcoin) with the 25% platform cut included — never on top. " +
+  "min 1 centicentcoin) with the 25% platform cut included; never on top. " +
   "Wallets pay per-minute upkeep (billed every minute at :00) covering stored " +
   "images, database bytes, measured bandwidth, Luna AI moderation, and base " +
   "server share; house-ad views and affiliate clicks earn revenue " +

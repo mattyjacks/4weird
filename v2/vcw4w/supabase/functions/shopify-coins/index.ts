@@ -14,7 +14,7 @@
  * Money rules:
  *   - Buyer price is $0.01 per coin (100 coins = exactly $1.00). That $1.00
  *     already includes the 25% platform service cut ($0.25 cut, $0.75 coin
- *     value) — the cut is never added on top of a price.
+ *     value); the cut is never added on top of a price.
  *   - Fixed-pack SKU -> coin amounts live ONLY in COIN_SKU_MAP below.
  *     Prices, cart attributes, and line-item titles from Shopify are never
  *     trusted for fixed packs.

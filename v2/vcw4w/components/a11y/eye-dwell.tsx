@@ -77,7 +77,7 @@ export function EyeDwell() {
       if (!enabled) return;
       const el = (event.target as HTMLElement | null)?.closest?.(SELECTOR) as HTMLElement | null;
       if (!el) {
-        // Pointer drifted off every control — keep focus-dwell, drop hover-dwell.
+        // Pointer drifted off every control; keep focus-dwell, drop hover-dwell.
         if (event.type === "pointerover" || event.type === "pointermove") clear();
         return;
       }

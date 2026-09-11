@@ -1,5 +1,5 @@
 -- ============================================================================
--- 4weird Clans v3 — Discord-style social (channels/messages/reactions/roles/
+-- 4weird Clans v3 - Discord-style social (channels/messages/reactions/roles/
 -- events/reads) + per-minute server-cost billing + member donations.
 -- Fully rerunnable: IF NOT EXISTS / OR REPLACE / DROP ... IF EXISTS throughout.
 -- ============================================================================
@@ -22,7 +22,7 @@
 --     bandwidth (measured transfer log) 0.000002 coins/KB
 --     Luna AI moderation (GPT 5.6 Luna) 0.015 coins per check
 --   A 5-member clan with 2 MB images + 200 KB of text costs ~0.0002 coins/min
---   (~0.26 coins/day) — extremely minimal for small clans; big active clans
+--   (~0.26 coins/day); extremely minimal for small clans; big active clans
 --   pay linearly for what they actually store, transfer, and moderate.
 --   Wallets keep 2-decimal balances; sub-cent fractions accumulate in
 --   clan_upkeep_state.pending_micro until they reach a whole centicentcoin.

@@ -5,7 +5,7 @@
      so the desktop app can queue real fal.ai media runs straight from the hub.
    - Tauri runtime: the secret is stored in a local-only OS app-data file
      via the Rust `save_fal_key` / `get_fal_key` / `clear_fal_key`
-     commands — never logged, never rendered back.
+     commands; never logged, never rendered back.
    - Plain browser fallback: localStorage `vcw_fal_key` (same shape key).
    - VERIFY is FREE: it polls a nil-UUID queue status with the key. A valid
      key answers 404 (no such request); 401/403 means the key is bad. No
@@ -51,7 +51,7 @@ async function readStoredKey() {
     try {
       const key = await invokeTauriCommand('get_fal_key');
       if (typeof key === 'string' && isFalKeyShape(key)) return key.trim();
-    } catch (e) { /* none stored — fall through */ }
+    } catch (e) { /* none stored; fall through */ }
     return '';
   }
   try {
@@ -96,7 +96,7 @@ async function saveFalKeyFromInput() {
   const raw = el.falKeyInput ? el.falKeyInput.value : '';
   const key = String(raw || '').trim();
   if (!isFalKeyShape(key)) {
-    setStatus('That does not look like a fal.ai key — paste the real key from fal.ai/dashboard/keys.', 'error');
+    setStatus('That does not look like a fal.ai key; paste the real key from fal.ai/dashboard/keys.', 'error');
     synth.playFail();
     return;
   }
@@ -156,14 +156,14 @@ function sleep(ms) {
 
 /**
  * CHEAP TEST: one 512px FLUX schnell image, polled to completion, rendered
- * inline. This is the cheapest real fal call in the drawer — fractions of a
- * cent — and it stops after one image.
+ * inline. This is the cheapest real fal call in the drawer; fractions of a
+ * cent; and it stops after one image.
  */
 async function cheapTestFal() {
   synth.playClick();
   const key = (el.falKeyInput && el.falKeyInput.value.trim()) || (await readStoredKey());
   if (!isFalKeyShape(key)) {
-    setStatus('Paste a fal.ai key first — CHEAP TEST spends a fraction of a cent.', 'error');
+    setStatus('Paste a fal.ai key first - CHEAP TEST spends a fraction of a cent.', 'error');
     synth.playFail();
     return;
   }
@@ -191,7 +191,7 @@ async function cheapTestFal() {
     const queued = await submit.json();
     const requestId = String(queued.request_id || queued.requestId || '');
     if (!requestId) throw new Error('queue returned no request id');
-    setStatus(`Queued ${requestId} — polling for the image…`, 'info');
+    setStatus(`Queued ${requestId}; polling for the image…`, 'info');
     const deadline = Date.now() + 180000;
     for (;;) {
       await sleep(4000);
@@ -210,8 +210,8 @@ async function cheapTestFal() {
       const st = String(statusBody.status || '').toUpperCase();
       if (st === 'COMPLETED') break;
       if (st === 'FAILED' || st === 'CANCELLED') throw new Error(`run ${st.toLowerCase()}`);
-      if (Date.now() > deadline) throw new Error('timed out waiting (3 min) — check fal.ai/dashboard');
-      setStatus(`Queued ${requestId} — status: ${st || 'working'}…`, 'info');
+      if (Date.now() > deadline) throw new Error('timed out waiting (3 min); check fal.ai/dashboard');
+      setStatus(`Queued ${requestId}; status: ${st || 'working'}…`, 'info');
     }
     const r = await fetch(`${FAL_QUEUE_BASE}/${FAL_CHEAP_MODEL}/requests/${requestId}`, {
       headers: { Authorization: `Key ${key}` },
@@ -222,7 +222,7 @@ async function cheapTestFal() {
     const url = images.length && images[0].url ? String(images[0].url) : '';
     if (!url) throw new Error('run finished but returned no image url');
     setPreview(`<a href="${url}" target="_blank" rel="noreferrer"><img src="${url}" alt="fal.ai cheap test render" style="max-width:100%;border-radius:8px"></a>`);
-    setStatus(`Done — one 512px image for fractions of a cent. Billed by fal.ai, 4weird coins untouched.`, 'ok');
+    setStatus(`Done; one 512px image for fractions of a cent. Billed by fal.ai, 4weird coins untouched.`, 'ok');
     synth.playSuccess();
     log('[FAL KEY] Cheap test render completed (1 image, cheapest tier).', 'success');
   } catch (e) {

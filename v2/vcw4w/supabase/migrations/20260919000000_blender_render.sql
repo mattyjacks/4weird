@@ -9,7 +9,7 @@
 --    files). The API only ever sees metadata + short callbacks.
 --  * The pod reports each phase to /api/blender/progress with an opaque
 --    per-job callback token. The worker exits itself after a terminal
---    callback, which releases the GPU — billing ends with no clicks.
+--    callback, which releases the GPU; billing ends with no clicks.
 --  * RLS is enabled with NO client policies: only the service_role server
 --    routes read/write this table. Browser anon/auth keys get nothing
 --    (same pattern as privacy_requests).

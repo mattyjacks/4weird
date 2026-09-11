@@ -2,7 +2,7 @@
  * Viewport Screenshot Utility for Internal & External Windows
  *
  * Foveated mode: one small overview frame + up to 3 tiny high-detail crops
- * (the model steers the crops via "focus" rects — e.g. the FPS crosshair
+ * (the model steers the crops via "focus" rects; e.g. the FPS crosshair
  * zone). Small crops cost a fraction of full-frame tokens, so decisions and
  * follow-up inputs stay fast.
  */
@@ -69,7 +69,7 @@ async function captureOverviewBase64(nativeProcessSelect, webviewElement, overvi
   const nativeProcess = nativeProcessSelect ? nativeProcessSelect.value : null;
   if (nativeProcess) {
     // Native/game-window captures arrive as base64 only (main process owns
-    // the pixels), so detail crops are unavailable on this path — overview
+    // the pixels), so detail crops are unavailable on this path; overview
     // only. Webview ticks get the full overview + crops treatment.
     const nativeShot = await ipcRenderer.invoke('capture-native-screenshot', nativeProcess);
     if (nativeShot.success) {

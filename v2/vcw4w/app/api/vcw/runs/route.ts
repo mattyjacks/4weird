@@ -8,12 +8,12 @@ import { cleanGameSlug } from "@/lib/vcw-runs";
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/vcw/runs — list the caller's playtest runs (authenticated).
- * POST /api/vcw/runs — open a run = v1 `POST /api/game/launch` for cloud.
+ * GET /api/vcw/runs; list the caller's playtest runs (authenticated).
+ * POST /api/vcw/runs; open a run = v1 `POST /api/game/launch` for cloud.
  *
  * Body: { game_slug, goal }. The slug must be a catalog game (same
  * on-site rule as autoplay); the goal is the experience under test
- * (1–500 chars). Returns the open run row.
+ * (1-500 chars). Returns the open run row.
  */
 export async function GET() {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);

@@ -16,9 +16,9 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 const PRESETS = ["lord", "captain", "infantry", "banker", "banker_readonly", "watcher"];
 
 /**
- * OrgRanks — assign rank presets (Lord/Captain/Infantry/Banker/Watcher and
+ * OrgRanks; assign rank presets (Lord/Captain/Infantry/Banker/Watcher and
  * the classics) as multi-role bundles per member, different per org, plus
- * Watcher scoping. Power is always the union — enforced server-side.
+ * Watcher scoping. Power is always the union; enforced server-side.
  */
 export function OrgRanks() {
   const [orgs, setOrgs] = useState<Array<{ id: string; name: string }>>([]);
@@ -59,9 +59,9 @@ export function OrgRanks() {
 
   return (
     <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
-      <h2 className="text-xl font-bold">👑 Ranks — Lords, Captains, Infantry, Bankers, Watchers</h2>
+      <h2 className="text-xl font-bold">👑 Ranks - Lords, Captains, Infantry, Bankers, Watchers</h2>
       <p className="mt-2 text-sm text-slate-300">
-        One member can hold several presets at once (e.g. Banker + Watcher), different in every org — power is always
+        One member can hold several presets at once (e.g. Banker + Watcher), different in every org; power is always
         the union. <b>Watcher</b> sees everything and changes nothing; scope a watcher to certain members or leave them
         org-wide. Everyone may join up to 100 orgs, each with its own bosses.
       </p>

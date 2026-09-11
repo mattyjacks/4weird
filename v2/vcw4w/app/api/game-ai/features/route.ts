@@ -6,7 +6,7 @@ import { featuresForGame, gameRequiresAi, GAME_AI_CUT_NOTE } from "@/lib/game-ai
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/game-ai/features?game=<slug> — which AI features a game requires
+ * GET /api/game-ai/features?game=<slug>; which AI features a game requires
  * or optionally offers (dialogue bot, AI director, TTS, RunPod GPU).
  * Merges the static registry (lib/game-ai.ts) with operator rows in
  * public.game_ai_features so the play shell renders without auth.

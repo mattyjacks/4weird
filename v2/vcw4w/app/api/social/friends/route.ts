@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     return fail("Invalid JSON body.", 400);
   }
   const handle = cleanHandle((body as Record<string, unknown> | null)?.handle);
-  if (!handle) return fail("Use a 3–40 character handle.", 400);
+  if (!handle) return fail("Use a 3-40 character handle.", 400);
   const { error } = await supabase.rpc("request_friend_by_handle", { p_handle: handle });
   if (error) return fail("Unable to create request.", 409);
   return ok({});

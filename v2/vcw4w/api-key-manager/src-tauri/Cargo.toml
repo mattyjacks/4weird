@@ -1,7 +1,7 @@
 [package]
 name = "fourweird-api-key-manager"
 version = "1.0.0"
-description = "4weird API Key Manager — OS-credential-store vault for agent + service API keys"
+description = "4weird API Key Manager - OS-credential-store vault for agent + service API keys"
 authors = ["4WEIRD Team"]
 edition = "2021"
 

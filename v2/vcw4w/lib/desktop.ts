@@ -1,5 +1,5 @@
 /**
- * Virtual Desktop catalog — client-safe constants for the /desktop page.
+ * Virtual Desktop catalog; client-safe constants for the /desktop page.
  *
  * A Virtual Desktop is a real RunPod pod you drive in the browser:
  * - CPU desktop: official RunPod Ubuntu 22.04 base (template
@@ -12,7 +12,7 @@
  *
  * Billing honesty (mirrors /api/agents/runpod-sync + /my/usage): RunPod
  * bills the operator's card per second for the pod. Coin figures below are
- * display equivalents only (100 coins = $1.00) — no Vibe cut applies to
+ * display equivalents only (100 coins = $1.00); no Vibe cut applies to
  * direct RunPod spend, and this page never debits coins itself.
  */
 
@@ -27,7 +27,7 @@ export function isDesktopKind(value: unknown): value is DesktopKind {
  * Desktop interface: `gui` (default) boots an Ubuntu graphical desktop
  * (Kasm) streamed in the browser; `jupyter` boots a JupyterLab + SSH box
  * instead. GUI is the default because first-timers expect a computer they
- * can see — Jupyter stays one click away for coders.
+ * can see - Jupyter stays one click away for coders.
  */
 export const DESKTOP_INTERFACES = ["gui", "jupyter"] as const;
 export type DesktopInterface = (typeof DESKTOP_INTERFACES)[number];
@@ -67,7 +67,7 @@ export const DESKTOP_PORT_CPU = 8888;
  * template image (`runpod/kasm-docker:cuda11`, Kasm on port 6901, login with
  * the VNC password). GPU desktops stream with hardware acceleration; CPU
  * desktops run the same image with software rendering (no GPU needed to see
- * a desktop — it is just less fast at 3D). Jupyter images stay per-kind:
+ * a desktop; it is just less fast at 3D). Jupyter images stay per-kind:
  * official `runpod-ubuntu-2204` (CPU) / `runpod-torch-v240` PyTorch (GPU).
  */
 export const DESKTOP_IMAGE_GUI = "runpod/kasm-docker:cuda11";
@@ -80,12 +80,12 @@ export const DESKTOP_PLANS: DesktopPlan[] = [
   {
     kind: "cpu",
     name: "CPU Desktop",
-    tagline: "A remote Ubuntu desktop in your browser — cheapest way to compute.",
+    tagline: "A remote Ubuntu desktop in your browser; cheapest way to compute.",
     image: DESKTOP_IMAGE_GUI,
     templateId: DESKTOP_TEMPLATE_GPU,
     port: DESKTOP_PORT_GUI,
     ports: [...DESKTOP_PORTS_GUI],
-    // RunPod caps CPU pod container disks at 20 GB — GUI image must fit.
+    // RunPod caps CPU pod container disks at 20 GB - GUI image must fit.
     diskGb: 20,
     blurb:
       "Ubuntu graphical desktop (Kasm) on port 6901, opened through the RunPod default proxy endpoint: XFCE desktop, Chromium, VS Code, terminal. JupyterLab + SSH is one click away (pick Jupyter below).",
@@ -100,14 +100,14 @@ export const DESKTOP_PLANS: DesktopPlan[] = [
   {
     kind: "gpu",
     name: "GPU Desktop",
-    tagline: "A full graphical desktop on real GPUs — streamed to your browser.",
+    tagline: "A full graphical desktop on real GPUs; streamed to your browser.",
     image: DESKTOP_IMAGE_GPU,
     templateId: DESKTOP_TEMPLATE_GPU,
     port: DESKTOP_PORT_GPU,
     ports: [...DESKTOP_PORTS_GUI],
     diskGb: 60,
     blurb:
-      "Official RunPod Desktop (Kasm) on port 6901: XFCE desktop, Chromium, VS Code, Blender-ready GPU acceleration. The pod streams its screen — you just open the link. JupyterLab on a CUDA box is one click away (pick Jupyter below).",
+      "Official RunPod Desktop (Kasm) on port 6901: XFCE desktop, Chromium, VS Code, Blender-ready GPU acceleration. The pod streams its screen; you just open the link. JupyterLab on a CUDA box is one click away (pick Jupyter below).",
     bestFor: ["Blender + CUDA dev", "AI art + ComfyUI sidecar", "GPU play + testing"],
     jupyter: {
       image: DESKTOP_IMAGE_GPU_JUPYTER,
@@ -118,7 +118,7 @@ export const DESKTOP_PLANS: DesktopPlan[] = [
   },
 ];
 
-/** USD/hr ceiling accepted from the client ($0.01–$1000, same bounds as agents). */
+/** USD/hr ceiling accepted from the client ($0.01-$1000, same bounds as agents). */
 export const DESKTOP_PRICE_USD_MIN = 0.01;
 export const DESKTOP_PRICE_USD_MAX = 1000;
 

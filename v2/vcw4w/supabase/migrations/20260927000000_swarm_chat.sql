@@ -1,5 +1,5 @@
 -- ============================================================================
--- Agent Swarm Chat — hire a swarm of agents as one chatbot interface.
+-- Agent Swarm Chat; hire a swarm of agents as one chatbot interface.
 -- Fully rerunnable: IF NOT EXISTS / OR REPLACE / DROP ... IF EXISTS.
 --
 -- Rule (mirrors lib/swarm.ts SWARM_COMPUTE_CUT_PCT = 25):

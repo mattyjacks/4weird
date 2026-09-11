@@ -128,7 +128,7 @@ must(read("app/games/[slug]/play/page.tsx").includes("RatingBadge"), "play page 
 
 // 8. Legal: terms cover ratings/Kids Mode/no-sexual-content; privacy states DOB is never stored.
 const terms = read("app/terms/page.tsx");
-for (const token of ["Kids (0–12)", "Teens (13–17)", "Adults (18+)", "Kids Mode", "never stored", "sexual content is never allowed"]) {
+for (const token of ["Kids (0-12)", "Teens (13-17)", "Adults (18+)", "Kids Mode", "never stored", "sexual content is never allowed"]) {
   must(terms.includes(token), `terms must include ${token}`);
 }
 const privacy = read("app/privacy/page.tsx");

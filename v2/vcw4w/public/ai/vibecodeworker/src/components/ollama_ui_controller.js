@@ -5,7 +5,7 @@
  * Ollama, (3) pick which installed model serves each orchestration role
  * (agent / vision / coder / reasoner), and (4) pull new model tags.
  * Everything persists into config/default.json `localModels` via the normal
- * saveConfig path. All IPC is guarded — the panel degrades to static inputs
+ * saveConfig path. All IPC is guarded; the panel degrades to static inputs
  * when the main process does not expose the ollama channels (e.g. tests).
  */
 
@@ -86,9 +86,9 @@ async function refreshOllamaStatus({ el, logSystemMessage }) {
     if (!res) throw new Error('empty status response');
     if (res.server) {
       const n = (res.models || []).length;
-      setPill(el.ollamaStatusPill, `Ready — ${n} model${n === 1 ? '' : 's'}`, 'ok');
+      setPill(el.ollamaStatusPill, `Ready - ${n} model${n === 1 ? '' : 's'}`, 'ok');
     } else if (res.installed) {
-      setPill(el.ollamaStatusPill, 'Installed — server stopped', 'warn');
+      setPill(el.ollamaStatusPill, 'Installed; server stopped', 'warn');
     } else {
       setPill(el.ollamaStatusPill, 'Not installed', 'err');
     }
@@ -105,7 +105,7 @@ function renderInstalledModels(el, models) {
   if (el.ollamaInstalledModels) {
     el.ollamaInstalledModels.textContent = models.length
       ? `Installed: ${models.join(', ')}`
-      : 'No local models installed yet — pull one below.';
+      : 'No local models installed yet; pull one below.';
   }
   // Merge installed tags into each role's suggestion datalist (keeps starter hints).
   try {

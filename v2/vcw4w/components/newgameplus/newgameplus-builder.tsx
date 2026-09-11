@@ -88,7 +88,7 @@ export function NewGamePlusBuilder() {
 
   async function launch(confirmed: boolean) {
     if (!prompt.trim()) {
-      setStatus("Type a game prompt first — e.g. “neon snake that eats falling stars”.");
+      setStatus("Type a game prompt first; e.g. “neon snake that eats falling stars”.");
       return;
     }
     if (budget > CONFIRM_ABOVE && !confirmed) {
@@ -107,19 +107,19 @@ export function NewGamePlusBuilder() {
     const bots = lane === "fast" ? "Scout → Forge → Sage" : "Scout → Forge → Pixel → Echo → Sage";
     try {
       setStageKey("queued");
-      pushLive(`⚡ Queued — ${lane} lane (budget ${budget} coins, target ${lane === "fast" ? "≤5 min" : "≈5–12 min"}).`);
-      setStatus(`Queued in the ${lane} lane — conducting the symphony (${bots})…`);
+      pushLive(`⚡ Queued - ${lane} lane (budget ${budget} coins, target ${lane === "fast" ? "≤5 min" : "≈5-12 min"}).`);
+      setStatus(`Queued in the ${lane} lane; conducting the symphony (${bots})…`);
       await new Promise((r) => setTimeout(r, 30));
       setStageKey("symphony");
-      pushLive(`🎼 Symphony tuning — ${bots} (auto orchestration, deepseek harness).`);
-      setStatus("Symphony tuning — Scout observes, Forge warms up…");
+      pushLive(`🎼 Symphony tuning - ${bots} (auto orchestration, deepseek harness).`);
+      setStatus("Symphony tuning - Scout observes, Forge warms up…");
       await new Promise((r) => setTimeout(r, 30));
       setStageKey("forge");
-      pushLive("🔨 Forge building — generating the original single-file HTML/CSS/JS game…");
+      pushLive("🔨 Forge building; generating the original single-file HTML/CSS/JS game…");
       setStatus("Forge is building your original HTML/CSS/JS game (cheapest viable, fastest)…");
       await new Promise((r) => setTimeout(r, 30));
       setStageKey("fal");
-      pushLive("✨ Fal assets — shortlisting the media this prompt actually needs (budget-capped)…");
+      pushLive("✨ Fal assets; shortlisting the media this prompt actually needs (budget-capped)…");
       setStageKey("qa");
       const body = await api<BuildResult>("/api/newgameplus/build", {
         method: "POST",
@@ -128,15 +128,15 @@ export function NewGamePlusBuilder() {
       // Replay the server symphony as the live trail.
       for (const a of body.swarm?.agents ?? []) pushLive(`🤖 ${a.name} (${a.role}): ${a.task.slice(0, 140)}`);
       for (const t of body.swarm?.trace ?? []) pushLive(`📜 ${t}`);
-      for (const f of body.fal?.selected ?? []) pushLive(`✨ fal pick: ${f.op} — ${f.why} (${f.coins} coins gross).`);
+      for (const f of body.fal?.selected ?? []) pushLive(`✨ fal pick: ${f.op} - ${f.why} (${f.coins} coins gross).`);
       for (const s of body.test.steps) pushLive(`🕹️ VCW ${s}`);
       setStageKey("done");
-      pushLive(`✅ Done in ${fmtClock(Date.now() - startedAt.current)} — “${body.game.title}” (${body.game.bytes.toLocaleString()} bytes). ${body.draft.note}`);
+      pushLive(`✅ Done in ${fmtClock(Date.now() - startedAt.current)} - “${body.game.title}” (${body.game.bytes.toLocaleString()} bytes). ${body.draft.note}`);
       setResult(body);
       setStatus(
         body.test.verdict === "pass"
-          ? `Done — “${body.game.title}” passed VibeCodeWorker (${body.test.loops} loop${body.test.loops === 1 ? "" : "s"}). ${body.draft.note}`
-          : `Built “${body.game.title}” — VCW verdict: ${body.test.verdict}. ${body.draft.note}`,
+          ? `Done - “${body.game.title}” passed VibeCodeWorker (${body.test.loops} loop${body.test.loops === 1 ? "" : "s"}). ${body.draft.note}`
+          : `Built “${body.game.title}” - VCW verdict: ${body.test.verdict}. ${body.draft.note}`,
       );
     } catch (e) {
       setStageKey("");
@@ -159,7 +159,7 @@ export function NewGamePlusBuilder() {
         method: "POST",
         body: JSON.stringify({ op, prompt: `${result.game.title}: ${prompt.trim()}`.slice(0, 500), game_slug: result.game.slug.slice(0, 64), source: "vcw" }),
       });
-      setFalMsg(body.started ? `Queued ${op}! Request ${body.request_id} — ${body.quote?.gross ?? ""} coins gross. Poll it on /fal.` : String(body.hint ?? `Queued ${op} (not configured — nothing charged).`));
+      setFalMsg(body.started ? `Queued ${op}! Request ${body.request_id} - ${body.quote?.gross ?? ""} coins gross. Poll it on /fal.` : String(body.hint ?? `Queued ${op} (not configured; nothing charged).`));
     } catch (e) {
       setFalMsg(e instanceof Error ? e.message : "Fal queue failed.");
     }
@@ -194,7 +194,7 @@ export function NewGamePlusBuilder() {
         <p className="mt-1 text-xs text-slate-500">{prompt.length}/500</p>
 
         <label className="mt-4 block text-sm">
-          Quality: <b className="text-cyan-300">{quality}</b> <span className="text-slate-500">(0–10)</span>
+          Quality: <b className="text-cyan-300">{quality}</b> <span className="text-slate-500">(0-10)</span>
           <input type="range" min={0} max={10} step={1} value={quality} onChange={(e) => setQuality(Number(e.target.value))} className="w-full" aria-label="Quality 0 to 10" />
         </label>
         <label className="mt-3 block text-sm">
@@ -211,7 +211,7 @@ export function NewGamePlusBuilder() {
           Default 100 · min {BUDGET_MIN} · max {BUDGET_MAX.toLocaleString()}. Above {CONFIRM_ABOVE} needs Confirm the Amount.
         </p>
         <p className="mt-1 rounded-md border border-cyan-400/20 bg-cyan-400/5 px-2 py-1 text-xs text-cyan-200">
-          🎼 {lane === "fast" ? "Fast lane: ≤5 min, Scout → Forge → Sage, cheap fal only." : "Deluxe lane: longer but fast (≈5–12 min), full 5-bot symphony + video/3D."}
+          🎼 {lane === "fast" ? "Fast lane: ≤5 min, Scout → Forge → Sage, cheap fal only." : "Deluxe lane: longer but fast (≈5-12 min), full 5-bot symphony + video/3D."}
         </p>
 
         <label className="mt-3 block text-sm">
@@ -225,7 +225,7 @@ export function NewGamePlusBuilder() {
         </label>
         {!orgs.length && (
           <p className="mt-1 text-xs text-slate-500">
-            No orgs yet — <a className="text-cyan-300 underline" href="/teams">create one on /teams</a>, or launch now and save personally.
+            No orgs yet - <a className="text-cyan-300 underline" href="/squads">create one on /squads</a>, or launch now and save personally.
           </p>
         )}
 
@@ -236,7 +236,7 @@ export function NewGamePlusBuilder() {
           {busy ? "Symphony playing…" : "Launch NewGamePlus"}
         </button>
         <p className="mt-2 text-xs text-slate-500" role="status">{status}</p>
-        <p className="mt-1 text-xs text-slate-500">Best quality at the lowest price and greatest speed — cheapest viable build, newest viable runtime, 25% cut included.</p>
+        <p className="mt-1 text-xs text-slate-500">Best quality at the lowest price and greatest speed; cheapest viable build, newest viable runtime, 25% cut included.</p>
       </section>
 
       <section className="rounded-2xl border border-white/10 bg-white/[.03] p-5" aria-label="NewGamePlus result" aria-live="polite">
@@ -244,7 +244,7 @@ export function NewGamePlusBuilder() {
         {(busy || liveLog.length > 0) && (
           <div className="rounded-xl border border-cyan-400/20 bg-black/40 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-sm font-bold text-cyan-200">🎼 Symphony {busy ? "playing" : "finished"} — {lane} lane · ⏱ {fmtClock(elapsedMs)} / {lane === "fast" ? "5:00" : "12:00"} target</p>
+              <p className="text-sm font-bold text-cyan-200">🎼 Symphony {busy ? "playing" : "finished"} - {lane} lane · ⏱ {fmtClock(elapsedMs)} / {lane === "fast" ? "5:00" : "12:00"} target</p>
               <p className="text-xs text-slate-400">{stageKey ? `stage: ${stageKey}` : "idle"}</p>
             </div>
             <div className="mt-2 h-2 overflow-hidden rounded bg-black/60" role="progressbar" aria-label="Build progress">
@@ -269,7 +269,7 @@ export function NewGamePlusBuilder() {
                 📁 Draft: <code className="text-cyan-200">{result.draft.draft_path}</code> ({result.draft.scope}) · {result.draft.note}
               </p>
               <p className="mt-1 text-xs text-slate-400">
-                💰 {result.plan.spend} coins ({result.plan.provider} provider + {result.plan.cut} cut — {result.plan.note}) · est. {result.plan.estimate} for q{result.plan.quality} · {result.plan.lane} lane ({result.plan.target})
+                💰 {result.plan.spend} coins ({result.plan.provider} provider + {result.plan.cut} cut - {result.plan.note}) · est. {result.plan.estimate} for q{result.plan.quality} · {result.plan.lane} lane ({result.plan.target})
               </p>
               <p className="mt-1 text-xs text-slate-400">
                 🤖 VCW verdict: <b className={result.test.verdict === "pass" ? "text-emerald-300" : "text-amber-300"}>{result.test.verdict}</b> ({result.test.loops} loop{result.test.loops === 1 ? "" : "s"}) · {result.game.bytes.toLocaleString()} bytes
@@ -277,10 +277,10 @@ export function NewGamePlusBuilder() {
             </div>
             {!!result.swarm && (
               <details className="rounded-lg border border-fuchsia-300/20 bg-black/30 p-3 text-xs" open>
-                <summary className="cursor-pointer font-bold text-fuchsia-200">🎼 Symphony ({result.swarm.agents.length} bots, {result.swarm.mode}) — {result.swarm.target}</summary>
+                <summary className="cursor-pointer font-bold text-fuchsia-200">🎼 Symphony ({result.swarm.agents.length} bots, {result.swarm.mode}) - {result.swarm.target}</summary>
                 <ul className="mt-2 space-y-1 text-slate-300">
                   {result.swarm.agents.map((a) => (
-                    <li key={a.name}>🤖 <b>{a.name}</b> <span className="text-slate-500">({a.role})</span> — {a.task} <span className="text-slate-500">[{a.tools.join(", ")}]</span></li>
+                    <li key={a.name}>🤖 <b>{a.name}</b> <span className="text-slate-500">({a.role})</span> - {a.task} <span className="text-slate-500">[{a.tools.join(", ")}]</span></li>
                   ))}
                 </ul>
                 {!!result.swarm.trace.length && (
@@ -292,7 +292,7 @@ export function NewGamePlusBuilder() {
             )}
             {!!result.fal && (
               <div className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs">
-                <p className="font-bold text-amber-200">✨ Fal media, picked for this prompt ({result.fal.totalCoins} coins gross){result.fal.configured ? "" : " — server key unset, prompts are one click away"}</p>
+                <p className="font-bold text-amber-200">✨ Fal media, picked for this prompt ({result.fal.totalCoins} coins gross){result.fal.configured ? "" : "; server key unset, prompts are one click away"}</p>
                 <p className="mt-1 text-slate-400">{result.fal.note}</p>
                 {!!result.fal.selected.length && (
                   <div className="mt-2 flex flex-wrap gap-2">
@@ -316,12 +316,12 @@ export function NewGamePlusBuilder() {
               <ol className="mt-2 list-decimal pl-5 text-slate-300">{result.test.steps.map((s, i) => (<li key={i}>{s}</li>))}</ol>
               <ul className="mt-2 space-y-1">
                 {result.test.checks.map((c) => (
-                  <li key={c.id} className={c.passed ? "text-emerald-300" : "text-red-300"}>{c.passed ? "✅" : "❌"} {c.label}{c.passed ? "" : ` — ${c.detail}`}</li>
+                  <li key={c.id} className={c.passed ? "text-emerald-300" : "text-red-300"}>{c.passed ? "✅" : "❌"} {c.label}{c.passed ? "" : ` - ${c.detail}`}</li>
                 ))}
               </ul>
               {!!result.test.findings.length && (
                 <ul className="mt-2 space-y-1 text-amber-200">
-                  {result.test.findings.map((f, i) => (<li key={i}>🔧 [{f.severity}] {f.title} — {f.description}</li>))}
+                  {result.test.findings.map((f, i) => (<li key={i}>🔧 [{f.severity}] {f.title} - {f.description}</li>))}
                 </ul>
               )}
             </details>
@@ -329,7 +329,7 @@ export function NewGamePlusBuilder() {
               <details className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs">
                 <summary className="cursor-pointer font-bold text-slate-200">⏱ Build timeline (target {result.timeline.totalTargetSec}s wall clock)</summary>
                 <ol className="mt-2 space-y-1 text-slate-300">
-                  {result.timeline.stages.map((st) => (<li key={st.key}>· <b>{st.label}</b> — {st.detail} (~{st.targetSec}s)</li>))}
+                  {result.timeline.stages.map((st) => (<li key={st.key}>· <b>{st.label}</b> - {st.detail} (~{st.targetSec}s)</li>))}
                 </ol>
               </details>
             )}
@@ -342,9 +342,9 @@ export function NewGamePlusBuilder() {
           <div className="w-full max-w-md rounded-2xl border border-amber-400/40 bg-slate-950 p-6">
             <h2 className="text-lg font-black text-amber-300">⚠️ Confirm the Amount</h2>
             <p className="mt-2 text-sm text-slate-200">
-              You are about to launch NewGamePlus with <b>{budget} coins</b> — that is above the {CONFIRM_ABOVE}-coin warning line.
+              You are about to launch NewGamePlus with <b>{budget} coins</b>; that is above the {CONFIRM_ABOVE}-coin warning line.
               Estimated build cost is <b>lights-out cheap</b> (quality {quality}/10); you will only ever be quoted the capped spend, 25% cut included.
-              Deluxe lane conducts the full 5-bot symphony with video/3D media — longer but still fast.
+              Deluxe lane conducts the full 5-bot symphony with video/3D media; longer but still fast.
             </p>
             <div className="mt-4 flex gap-2">
               <button type="button" onClick={() => setConfirmOpen(false)} className="flex-1 rounded-md border border-slate-600 px-3 py-2 text-sm text-slate-200">Cancel</button>

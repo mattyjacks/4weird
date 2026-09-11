@@ -35,9 +35,9 @@ export default function PlayingGamesPage() {
         crumb="Playing games"
         art={
           <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-black/40 p-4 backdrop-blur">
-            <span aria-hidden="true" className="docs-blink text-3xl">â—</span>
-            <p className="font-mono text-sm font-bold tracking-widest text-fuchsia-200">â–¶ NOW PLAYING: YOU</p>
-            <span aria-hidden="true" className="docs-cursor font-mono text-fuchsia-200">â–Œ</span>
+            <span aria-hidden="true" className="docs-blink text-3xl">â-</span>
+            <p className="font-mono text-sm font-bold tracking-widest text-fuchsia-200">â-¶ NOW PLAYING: YOU</p>
+            <span aria-hidden="true" className="docs-cursor font-mono text-fuchsia-200">â-Œ</span>
           </div>
         }
       />
@@ -50,8 +50,8 @@ export default function PlayingGamesPage() {
       />
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         {[
-          ["ðŸ—ºï¸ Detail page", "/games/[slug]", "Read the guide when present â€” controls, scoring, secrets. Check the rate badge before you play."],
-          ["â–¶ï¸ Play shell", "/games/[slug]/play", "Signed-in coin sessions around the frame. Guests get quota + skippable house ads."],
+          ["ðŸ-ºï¸ Detail page", "/games/[slug]", "Read the guide when present â€” controls, scoring, secrets. Check the rate badge before you play."],
+          ["â-¶ï¸ Play shell", "/games/[slug]/play", "Signed-in coin sessions around the frame. Guests get quota + skippable house ads."],
           ["ðŸ† Leaderboards", "/leaderboards", "Kills, actions, play-time from aggregate telemetry. Handles + totals only."],
         ].map(([t, code, b]) => (
           <div key={t} className="rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-fuchsia-400/50">
@@ -71,7 +71,7 @@ export default function PlayingGamesPage() {
       <MockWindow title="4weird.games â€” play session receipt" badge="live meter">
         <div className="space-y-2 font-mono text-xs sm:text-sm">
           <div className="flex justify-between gap-4"><span className="text-slate-400">LOAD Â· 1.0 MiB fresh bytes</span><span className="font-bold text-emerald-300">âˆ’1.00 ðŸª™</span></div>
-          <div className="flex justify-between gap-4"><span className="text-slate-400">PLAY Â· 5h Ã— 1 coin/hr, per-second</span><span className="font-bold text-emerald-300">âˆ’5.00 ðŸª™</span></div>
+          <div className="flex justify-between gap-4"><span className="text-slate-400">PLAY Â· 5h Ã- 1 coin/hr, per-second</span><span className="font-bold text-emerald-300">âˆ’5.00 ðŸª™</span></div>
           <div className="flex justify-between gap-4"><span className="text-slate-400">SAME VERSION Â· replay within 24h</span><span className="font-bold text-cyan-300">FREE</span></div>
           <div className="flex justify-between gap-4 border-t border-white/10 pt-2"><span className="font-bold text-slate-200">TOTAL Â· â‰ˆ $0.06</span><span className="font-bold text-amber-300">âˆ’6.00 ðŸª™</span></div>
           <p className="pt-1 text-[11px] text-slate-500">still-playing check every 5h Â· heartbeats bill the delta Â· devs set 0â€“100 coins/load+hr</p>
@@ -91,7 +91,7 @@ export default function PlayingGamesPage() {
         body="Guests never pay: a guest pass (IP-throttled) gives 3 free loads/day, then instantly-skippable house ads keep you playing, with a banner every 30 minutes. Trade-off: no saves, multiplayer, AI, or Buddy."
       />
       <div className="mt-5 flex flex-wrap gap-2 text-xs font-bold">
-        {["ðŸª™ Coins", "ðŸ¤– Buddy", "ðŸ‘¾ Clans", "â˜ï¸ Agents", "âš™ï¸ Testing", "ðŸ† Boards"].map((t) => (
+        {["ðŸª™ Coins", "ðŸ¤- Buddy", "ðŸ‘¾ Clans", "â˜ï¸ Agents", "âš™ï¸ Testing", "ðŸ† Boards"].map((t) => (
           <span key={t} className="rounded-full border border-border bg-card px-3 py-1.5">{t} <span className="text-muted-foreground">Â· Skip â©</span></span>
         ))}
       </div>

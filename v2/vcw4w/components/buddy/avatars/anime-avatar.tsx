@@ -1,5 +1,5 @@
 /**
- * Anime girl — a chibi companion: layered glossy hair with fringe, side
+ * Anime girl; a chibi companion: layered glossy hair with fringe, side
  * locks and a springy ahoge, sailor collar with star hairpin, waving arms,
  * big sparkly eyes and thin brows. userData carries { eyeL, eyeR, mouth,
  * browL, browR, armL, armR, star, starBaseY, kind: "anime" }.

@@ -21,15 +21,15 @@ import { extractTextSamples } from "@/lib/server/zip-extract";
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/code/zip — multipart { file (.zip), title?, game_root? }.
+ * POST /api/code/zip; multipart { file (.zip), title?, game_root? }.
  *
  * Auth: login session OR bot key with `code:submit`.
- * Flow: size/magic gate (69 MB) -> static audit (names + bounded text
+ * Flow: size/magic gate (50 MB) -> static audit (names + bounded text
  * samples) -> coin-meter storage+audit (fail closed) -> private upload to
  * the `game-blobs` bucket -> code_submissions row -> verdict.
  *
  * Safety (lawful by design): `denied`/`unsafe` forces status 'rejected' +
- * quarantined=true — never served, never rendered — plus a safety_reports
+ * quarantined=true; never served, never rendered; plus a safety_reports
  * row for HUMAN moderator review. CSAM evidence = sha256 only, never
  * viewable bytes, never described. NCMEC referral is BY A HUMAN; uploader
  * IPs are salted hashes disclosed ONLY on valid legal process.
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
 
   const buf = Buffer.from(await file.arrayBuffer());
   if (buf.length > ZIP_MAX_BYTES) {
-    return fail("Package exceeds the 69 MB cap.", 413);
+    return fail("Package exceeds the 50 MB cap. Keep it lean so every game loads fast.", 413);
   }
   if (buf.length < 22 || !(buf[0] === 0x50 && buf[1] === 0x4b)) {
     return fail("Not a readable .zip package.", 400);
@@ -188,7 +188,7 @@ export async function POST(req: Request) {
     const errAudit = await meter(report.verdict === "safe" ? "audit" : "audit_deep", auditQuote);
     if (errAudit) throw errAudit;
   } catch (error) {
-    // Fail closed: no free storage — roll back the row + bytes.
+    // Fail closed: no free storage; roll back the row + bytes.
     await svc.from("code_submissions").delete().eq("id", submissionId);
     await svc.storage.from("game-blobs").remove([storagePath]);
     const err = error as { code?: string; message?: string };

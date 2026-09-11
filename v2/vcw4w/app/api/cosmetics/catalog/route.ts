@@ -11,7 +11,7 @@ import { PROFILE_RULES } from "@/lib/monetization-policy";
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/cosmetics/catalog — the ONE public price list for looks.
+ * GET /api/cosmetics/catalog; the ONE public price list for looks.
  * Public by design: prices must be visible BEFORE any consent (EU Omnibus /
  * US ROSCA price transparency). Every item is 10 coins, looks-only, and
  * can never affect multiplayer outcomes.

@@ -6,7 +6,7 @@ import { renderMarkdownAsync } from "@/lib/perf-client";
 
 /**
  * Renders clan markdown bodies. Safe by construction: renderMarkdownSafe()
- * escapes HTML first and only emits its own whitelist of tags — user content
+ * escapes HTML first and only emits its own whitelist of tags; user content
  * is never injected as raw HTML.
  *
  * Perf: short bodies render synchronously (one paint, SEO-friendly);

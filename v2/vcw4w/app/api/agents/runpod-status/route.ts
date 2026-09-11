@@ -6,7 +6,7 @@ import { fetchRunpodBilling, runpodApiBase, runpodConfigured } from "@/lib/runpo
 
 export const dynamic = "force-dynamic";
 
-// GET /api/agents/runpod-status — is RUNPOD_API_KEY set, and does it work?
+// GET /api/agents/runpod-status; is RUNPOD_API_KEY set, and does it work?
 // The live check is a read-only 24h pod-billing query: success proves the key
 // is valid without provisioning anything billable.
 export async function GET() {

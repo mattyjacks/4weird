@@ -1,7 +1,7 @@
 /**
  * Plain-node unit tests for website debugging
  * (src/runtime/website_debugger.js + bug_scanner marker support).
- * No Electron needed — run:
+ * No Electron needed; run:
  *   node tests/test_website_debugger.js   (from website/v1/ai/vibecodeworker)
  */
 const assert = require('assert');
@@ -174,10 +174,10 @@ async function main() {
   check('takeover button reads "Take Over: You Play, AI Watches"', () => {
     const html = fs.readFileSync(path.join(projectRoot, 'src', 'index.html'), 'utf8');
     assert.ok(html.includes('Take Over: You Play, AI Watches'), 'index.html label');
-    assert.ok(!html.includes('Take over — I play, AI watches'), 'old label gone from HTML');
+    assert.ok(!html.includes('Take over - I play, AI watches'), 'old label gone from HTML');
     const stage = fs.readFileSync(path.join(projectRoot, 'src', 'components', 'stage_view.js'), 'utf8');
     assert.ok(stage.includes('Take Over: You Play, AI Watches'), 'stage_view.js label');
-    assert.ok(!stage.includes('Take over — I play, AI watches'), 'old label gone from toggle');
+    assert.ok(!stage.includes('Take over - I play, AI watches'), 'old label gone from toggle');
   });
 
   console.log(`\nAll ${passed} website-debugger checks passed.`);

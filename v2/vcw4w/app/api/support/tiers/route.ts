@@ -14,7 +14,7 @@ function rpcStatus(msg: string): number {
   return 400;
 }
 
-// GET /api/support/tiers?owner_user=&clan_id= — public tier catalog.
+// GET /api/support/tiers?owner_user=&clan_id=; public tier catalog.
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const url = new URL(req.url);
@@ -35,7 +35,7 @@ export async function GET(req: Request) {
 }
 
 // POST /api/support/tiers { clan_id?, title, coins_monthly, blurb? }
-// No clan_id = personal tier (verified creators only — enforced in SQL).
+// No clan_id = personal tier (verified creators only; enforced in SQL).
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();

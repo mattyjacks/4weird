@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * heal_worker.js — a FRESH VibeCodeWorker test instance for the self-healing loop.
+ * heal_worker.js; a FRESH VibeCodeWorker test instance for the self-healing loop.
  *
  * Spawned by lib/opencode_bridge.js (`instance: 'fresh'`) as a separate
  * `node heal_worker.js --test-command "<cmd>" --dir <path>` process with its

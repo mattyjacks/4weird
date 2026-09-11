@@ -9,12 +9,12 @@ import { GAME_LOAD_COINS_DEFAULT, GAME_HOURLY_COINS_DEFAULT, isGameRate } from "
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/games/rates — public price list for "renting games".
+ * GET /api/games/rates; public price list for "renting games".
  * Returns per-game { coins_per_load, coins_per_hour } (defaults 1/1 when no
  * dev-set row exists) so badges and the pricing page render without auth.
  * Prices are quoted per hour; the ledger settles per second (1 coin/hr =
  * 100 centicentcoins over 3600 s). The load rate is the price for 1 MiB of
- * fresh bytes — smaller first loads pay the exact fraction.
+ * fresh bytes; smaller first loads pay the exact fraction.
  */
 export async function GET(req: Request) {
   if (!hasServerSupabase()) {
@@ -37,7 +37,7 @@ export async function GET(req: Request) {
 }
 
 /**
- * PUT /api/games/rates — game developers set their own rates (0–100 each,
+ * PUT /api/games/rates; game developers set their own rates (0-100 each,
  * 0 = free). Enforced in the set_game_rate RPC: mapped developers + admins
  * only, so nobody can grief another game's price.
  */

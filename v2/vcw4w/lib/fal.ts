@@ -1,5 +1,5 @@
 /**
- * fal.ai media compute — 30 magical game-dev + coding tools.
+ * fal.ai media compute - 30 magical game-dev + coding tools.
  *
  * One rule everywhere: every fal price INCLUDES the 25% platform cut
  * (FAL_COMPUTE_CUT_PCT = 25, same as SERVICE_CUT_PCT /
@@ -12,12 +12,12 @@
  * below render in the browser with no credentials.
  *
  * Env (server-only, never NEXT_PUBLIC_):
- *   FAL_KEY (official fal SDK name) — FAL_API_KEY accepted as an alias.
+ *   FAL_KEY (official fal SDK name) - FAL_API_KEY accepted as an alias.
  *   FAL_API_BASE overrides the queue base (default https://queue.fal.run).
  *
  * VibeCodeWorker meld: the agent main loop (observe → reason → act) can
- * call any op from inside a run via VCW_FAL_HOWTO — emit
- * `[tool: fal.generate — op=<op> prompt="..."]` in an actions step, or POST
+ * call any op from inside a run via VCW_FAL_HOWTO; emit
+ * `[tool: fal.generate; op=<op> prompt="..."]` in an actions step, or POST
  * /api/fal/generate with source "vcw". NewGamePlus plans its fal picks
  * with recommendFalOps() so the symphony only pays for assets the prompt
  * actually needs.
@@ -25,7 +25,7 @@
 
 import { SERVICE_CUT_PCT } from "@/lib/economy";
 
-/** Same 25% as every other compute surface — one rule. */
+/** Same 25% as every other compute surface; one rule. */
 export const FAL_COMPUTE_CUT_PCT = 25;
 
 export const FAL_OP_KEYS = [
@@ -90,34 +90,34 @@ export type FalOpDef = {
  */
 export const FAL_OPS: FalOpDef[] = [
   { op: "concept-art", name: "Concept Art", unit: "image", coinsPerUnit: 8, blurb: "FLUX-speed key art: levels, characters, loading screens.", category: "Game Art", model: "fal-ai/flux/schnell", kind: "image", needsImage: false, needsPrompt: true },
-  { op: "sprite-edit", name: "Sprite Edit", unit: "image", coinsPerUnit: 8, blurb: "Reskin any sprite with a sentence — same pose, new vibe.", category: "Game Art", model: "fal-ai/nano-banana-2/edit", kind: "image", needsImage: true, needsPrompt: true },
+  { op: "sprite-edit", name: "Sprite Edit", unit: "image", coinsPerUnit: 8, blurb: "Reskin any sprite with a sentence; same pose, new vibe.", category: "Game Art", model: "fal-ai/nano-banana-2/edit", kind: "image", needsImage: true, needsPrompt: true },
   { op: "icon-logo", name: "Icon + Logo", unit: "image", coinsPerUnit: 10, blurb: "Crisp game icons, logos and clan badges with real typography.", category: "Game Art", model: "fal-ai/ideogram/v3", kind: "image", needsImage: false, needsPrompt: true },
   { op: "texture-tile", name: "Texture Tile", unit: "image", coinsPerUnit: 8, blurb: "Tileable dungeon, grass, metal and neon wall textures.", category: "Game Art", model: "fal-ai/recraft-v3", kind: "image", needsImage: false, needsPrompt: true },
   { op: "upscale-hd", name: "HD Upscale", unit: "image", coinsPerUnit: 6, blurb: "Remaster pixel art + screenshots to crisp HD, no redraw.", category: "Game Art", model: "fal-ai/topaz/upscale/image", kind: "image", needsImage: true, needsPrompt: false },
   { op: "remove-bg", name: "Sprite Cutout", unit: "image", coinsPerUnit: 3, blurb: "Clean background removal for web-game sprites + stickers.", category: "Game Art", model: "fal-ai/birefnet", kind: "image", needsImage: true, needsPrompt: false },
   { op: "render-3d", name: "3D Prop", unit: "model", coinsPerUnit: 15, blurb: "Turn one sketch into a spinnable 3D prop for 3D games.", category: "3D", model: "fal-ai/trellis/image-to-3d", kind: "model-3d", needsImage: true, needsPrompt: false },
   { op: "trailer-clip", name: "Trailer Clip", unit: "clip", coinsPerUnit: 25, blurb: "Cinematic teaser trailers from one sentence of hype.", category: "Video", model: "fal-ai/kling-video/v3/pro/text-to-video", kind: "video", needsImage: false, needsPrompt: true },
-  { op: "animate-sprite", name: "Living Portrait", unit: "clip", coinsPerUnit: 20, blurb: "Breathe motion into static art — cutscenes in seconds.", category: "Video", model: "fal-ai/minimax/h3/image-to-video", kind: "video", needsImage: true, needsPrompt: true },
-  { op: "npc-voice", name: "NPC Voice", unit: "1k_chars", coinsPerUnit: 4, blurb: "Quest givers that actually talk — warm HD narration.", category: "Audio", model: "fal-ai/minimax/speech-02-hd", kind: "audio", needsImage: false, needsPrompt: true },
+  { op: "animate-sprite", name: "Living Portrait", unit: "clip", coinsPerUnit: 20, blurb: "Breathe motion into static art; cutscenes in seconds.", category: "Video", model: "fal-ai/minimax/h3/image-to-video", kind: "video", needsImage: true, needsPrompt: true },
+  { op: "npc-voice", name: "NPC Voice", unit: "1k_chars", coinsPerUnit: 4, blurb: "Quest givers that actually talk; warm HD narration.", category: "Audio", model: "fal-ai/minimax/speech-02-hd", kind: "audio", needsImage: false, needsPrompt: true },
   { op: "sfx-burst", name: "SFX Burst", unit: "clip", coinsPerUnit: 6, blurb: "Laser zaps, coin dings, dungeon booms on demand.", category: "Audio", model: "fal-ai/stable-audio-v2", kind: "audio", needsImage: false, needsPrompt: true },
   { op: "theme-music", name: "Theme Music", unit: "clip", coinsPerUnit: 10, blurb: "Menu loops + boss themes that never loop awkwardly.", category: "Audio", model: "fal-ai/musicgen/medium", kind: "audio", needsImage: false, needsPrompt: true },
-  { op: "lipsync-take", name: "Lip-Sync Take", unit: "clip", coinsPerUnit: 18, blurb: "Talking NPC portraits — audio + face, perfectly synced.", category: "Video", model: "fal-ai/sync-lipsync", kind: "video", needsImage: true, needsPrompt: true },
+  { op: "lipsync-take", name: "Lip-Sync Take", unit: "clip", coinsPerUnit: 18, blurb: "Talking NPC portraits; audio + face, perfectly synced.", category: "Video", model: "fal-ai/sync-lipsync", kind: "video", needsImage: true, needsPrompt: true },
   { op: "playtest-notes", name: "Playtest Notes", unit: "min_audio", coinsPerUnit: 3, blurb: "Transcribe playtests + coding standups straight into VCW bugs.", category: "Coding", model: "fal-ai/whisper-v3", kind: "text", needsImage: false, needsPrompt: false },
   { op: "app-promo", name: "App Promo Kit", unit: "image", coinsPerUnit: 8, blurb: "Shipped-code glow-up: OG cards, icons + promo art for web apps.", category: "Coding", model: "fal-ai/flux/dev", kind: "image", needsImage: false, needsPrompt: true },
   { op: "sprite-sheet", name: "Sprite Sheet", unit: "image", coinsPerUnit: 9, blurb: "Full pixel-art sheets: idle, run, jump frames on one canvas.", category: "Game Art", model: "fal-ai/flux-pro/v1.1", kind: "image", needsImage: false, needsPrompt: true },
   { op: "backdrop-wide", name: "World Backdrop", unit: "image", coinsPerUnit: 9, blurb: "Ultra-wide parallax backdrops: skies, dungeons, neon cities.", category: "Game Art", model: "fal-ai/imagen4/preview", kind: "image", needsImage: false, needsPrompt: true },
   { op: "character-turn", name: "Character Turnaround", unit: "image", coinsPerUnit: 9, blurb: "Front/side/back turnaround sheets for heroes + NPCs.", category: "Game Art", model: "fal-ai/hidream-i1-full", kind: "image", needsImage: false, needsPrompt: true },
-  { op: "level-inpaint", name: "Level Inpaint", unit: "image", coinsPerUnit: 8, blurb: "Repaint part of a level or sprite — masked edits that blend in.", category: "Game Art", model: "fal-ai/flux-pro/fill", kind: "image", needsImage: true, needsPrompt: true },
+  { op: "level-inpaint", name: "Level Inpaint", unit: "image", coinsPerUnit: 8, blurb: "Repaint part of a level or sprite; masked edits that blend in.", category: "Game Art", model: "fal-ai/flux-pro/fill", kind: "image", needsImage: true, needsPrompt: true },
   { op: "depth-map", name: "Depth Map", unit: "image", coinsPerUnit: 6, blurb: "Depth maps from one screenshot for 2.5D lighting + parallax.", category: "3D", model: "fal-ai/depth-anything-v2", kind: "image", needsImage: true, needsPrompt: false },
   { op: "voxel-prop", name: "Voxel Prop 3D", unit: "model", coinsPerUnit: 15, blurb: "Chunky voxel props from one sketch for stylized 3D games.", category: "3D", model: "fal-ai/hunyuan3d-v21/image-to-3d", kind: "model-3d", needsImage: true, needsPrompt: false },
-  { op: "text-to-3d", name: "Text 3D Prop", unit: "model", coinsPerUnit: 16, blurb: "Type a prop, get a spinnable 3D model — no sketch needed.", category: "3D", model: "fal-ai/trellis/text-to-3d", kind: "model-3d", needsImage: false, needsPrompt: true },
+  { op: "text-to-3d", name: "Text 3D Prop", unit: "model", coinsPerUnit: 16, blurb: "Type a prop, get a spinnable 3D model; no sketch needed.", category: "3D", model: "fal-ai/trellis/text-to-3d", kind: "model-3d", needsImage: false, needsPrompt: true },
   { op: "cutscene-veo", name: "Cutscene Clip", unit: "clip", coinsPerUnit: 22, blurb: "Fast cinematic cutscenes from one line of story.", category: "Video", model: "fal-ai/veo3/fast/text-to-video", kind: "video", needsImage: false, needsPrompt: true },
   { op: "motion-loop", name: "Motion Loop", unit: "clip", coinsPerUnit: 20, blurb: "Turn any sprite or portrait into a looping motion clip.", category: "Video", model: "fal-ai/kling-video/v2.5-turbo/image-to-video", kind: "video", needsImage: true, needsPrompt: true },
   { op: "monster-voice", name: "Monster Voice", unit: "1k_chars", coinsPerUnit: 4, blurb: "Growls, goblins + bosses that actually talk back.", category: "Audio", model: "fal-ai/dia-tts", kind: "audio", needsImage: false, needsPrompt: true },
-  { op: "ambient-bed", name: "Ambient Bed", unit: "clip", coinsPerUnit: 7, blurb: "Rain, tavern hum, spaceship drones — looping ambience.", category: "Audio", model: "fal-ai/mmaudio-v2/text-to-audio", kind: "audio", needsImage: false, needsPrompt: true },
+  { op: "ambient-bed", name: "Ambient Bed", unit: "clip", coinsPerUnit: 7, blurb: "Rain, tavern hum, spaceship drones; looping ambience.", category: "Audio", model: "fal-ai/mmaudio-v2/text-to-audio", kind: "audio", needsImage: false, needsPrompt: true },
   { op: "chiptune-loop", name: "Chiptune Loop", unit: "clip", coinsPerUnit: 8, blurb: "8-bit chiptune loops that never loop awkwardly.", category: "Audio", model: "fal-ai/yue/text-to-music", kind: "audio", needsImage: false, needsPrompt: true },
   { op: "quest-dialogue", name: "Quest Dialogue", unit: "quest", coinsPerUnit: 3, blurb: "Branching quest dialogue trees from one story beat.", category: "Coding", model: "fal-ai/openai/gpt-oss-120b", kind: "text", needsImage: false, needsPrompt: true },
-  { op: "code-review", name: "Code Review", unit: "review", coinsPerUnit: 3, blurb: "Instant gameplay code review — balance, bugs + fix list.", category: "Coding", model: "fal-ai/moonshotai/kimi-k2-instruct", kind: "text", needsImage: false, needsPrompt: true },
+  { op: "code-review", name: "Code Review", unit: "review", coinsPerUnit: 3, blurb: "Instant gameplay code review; balance, bugs + fix list.", category: "Coding", model: "fal-ai/moonshotai/kimi-k2-instruct", kind: "text", needsImage: false, needsPrompt: true },
   { op: "capsule-art", name: "Store Capsule", unit: "image", coinsPerUnit: 9, blurb: "Store capsules + OG cards that make the game impossible not to click.", category: "Coding", model: "fal-ai/fast-sdxl", kind: "image", needsImage: false, needsPrompt: true },
 ];
 
@@ -212,7 +212,7 @@ export function falConfigured(): boolean {
   return falKey().length > 0;
 }
 
-export const FAL_CUT_NOTE = `Includes ${FAL_COMPUTE_CUT_PCT}% platform cut (same ${SERVICE_CUT_PCT}% as all compute) — never added on top.`;
+export const FAL_CUT_NOTE = `Includes ${FAL_COMPUTE_CUT_PCT}% platform cut (same ${SERVICE_CUT_PCT}% as all compute); never added on top.`;
 
 /** fal queue submit payload per op (prompt + optional image/audio passthrough). */
 export function falInputFor(op: FalOp, input: { prompt: string; imageUrl?: string; audioUrl?: string }): Record<string, unknown> {
@@ -294,12 +294,12 @@ export const FAL_FAST_OPS: FalOp[] = [
  * How a VibeCodeWorker agent calls fal from inside the main
  * observe → reason → act loop. Emitted as a step tag the actions route
  * understands, e.g.:
- *   [tool: fal.generate — op=concept-art prompt="neon dungeon key art"]
+ *   [tool: fal.generate; op=concept-art prompt="neon dungeon key art"]
  * or equivalently POST /api/fal/generate { op, prompt, game_slug, source: "vcw" }.
  */
 export const VCW_FAL_HOWTO =
   "VCW loop fal call: log an actions step with kind=action and text containing " +
-  "[tool: fal.generate — op=<op> prompt=\"...\"] (source vcw, metered via meter_fal_usage, " +
+  "[tool: fal.generate; op=<op> prompt=\"...\"] (source vcw, metered via meter_fal_usage, " +
   "25% cut included). Observe first, then reason which op fits, then act with the cheapest viable op.";
 
 /** Recommended fal ops per VCW loop phase (cheapest viable first). */

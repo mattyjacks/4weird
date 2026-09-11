@@ -14,7 +14,7 @@ type MeshyOp = {
 };
 
 /**
- * Meshy Studio — full Meshy.ai through the API, improved: budget-first
+ * Meshy Studio; full Meshy.ai through the API, improved: budget-first
  * quotes, preview-then-refine pipeline, auto-vault of finished models,
  * and browser-game readiness advice.
  */
@@ -67,7 +67,7 @@ export function MeshyStudio() {
         return;
       }
       if (!body.started) {
-        setMsg(`Meshy is not configured on this server — quote would be ${body.quote?.gross ?? "?"} coins.`);
+        setMsg(`Meshy is not configured on this server; quote would be ${body.quote?.gross ?? "?"} coins.`);
         return;
       }
       setJob(body.job ?? null);
@@ -96,7 +96,7 @@ export function MeshyStudio() {
         setStatus(String(body.status ?? ""));
         if (Array.isArray(body.advice)) setAdvice(body.advice);
         if (body.status === "done") {
-          setMsg(`Done — model auto-saved to your Vault. ${body.result_url ? "Result ready." : ""}`);
+          setMsg(`Done; model auto-saved to your Vault. ${body.result_url ? "Result ready." : ""}`);
           stop = true;
         }
       } catch {
@@ -115,7 +115,7 @@ export function MeshyStudio() {
     <div className="space-y-4">
       {!configured && (
         <p className="rounded-xl border border-amber-500/40 bg-amber-950/20 p-3 text-xs text-amber-200">
-          MESHY_API_KEY is not set on this server — the catalog + quotes below are live, but
+          MESHY_API_KEY is not set on this server; the catalog + quotes below are live, but
           queueing returns an honest not-configured state instead of faking a model.
         </p>
       )}
@@ -146,7 +146,7 @@ export function MeshyStudio() {
         <input
           value={imageUrl}
           onChange={(e) => setImageUrl(e.target.value)}
-          placeholder="Source image_url (https) — for image-to-3D"
+          placeholder="Source image_url (https); for image-to-3D"
           className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-xs"
         />
         <button

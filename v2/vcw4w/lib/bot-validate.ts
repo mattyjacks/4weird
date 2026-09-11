@@ -10,7 +10,7 @@ export { isSlug };
 /**
  * Clan slug normalizer for the bot bclans API. Clan slugs are stored
  * lowercase (see the create_clan RPC), and the human clan routes lowercase
- * before validating — so `Game-Dev` must resolve the same as `game-dev`
+ * before validating; so `Game-Dev` must resolve the same as `game-dev`
  * instead of failing with a 400. Returns "" when invalid.
  */
 export function botClanSlug(value: unknown): string {
@@ -67,7 +67,7 @@ export function isOwnClanImageUrl(value: unknown, supabaseBase: string): boolean
   // https only: http would allow mixed-content + beacon injection.
   if (!u.startsWith("https://")) return false;
   const base = (supabaseBase ?? "").trim();
-  // Fail closed when the base URL is unconfigured — regex-only fallback on
+  // Fail closed when the base URL is unconfigured; regex-only fallback on
   // any host previously accepted http://evil.com/.../clan-images/...
   if (!base) return false;
   try {

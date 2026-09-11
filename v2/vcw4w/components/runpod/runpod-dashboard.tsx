@@ -94,11 +94,11 @@ function PodButtons({
 }
 
 /**
- * RunPods dashboard — every RunPod you created, in one place: Virtual
+ * RunPods dashboard; every RunPod you created, in one place: Virtual
  * Desktops, agent-rental servers, and Blender render workers. Each card has
  * a clickable proxy link, live pod status, and Stop / Start / Restart /
  * Terminate / Delete buttons. Only the creator sees (and can touch) their
- * own pods — every control route enforces ownership server-side.
+ * own pods; every control route enforces ownership server-side.
  */
 export function RunpodDashboard() {
   const [desktops, setDesktops] = useState<Desktop[] | null>(null);
@@ -147,7 +147,7 @@ export function RunpodDashboard() {
         body: JSON.stringify({ action }),
       });
       const status = String((body.podStatus as string) ?? "");
-      setMsg((m) => ({ ...m, [`${kind}:${id}`]: `${action} sent${status ? ` — pod ${status}` : ""}.` }));
+      setMsg((m) => ({ ...m, [`${kind}:${id}`]: `${action} sent${status ? `; pod ${status}` : ""}.` }));
       await load();
     } catch (e) {
       setMsg((m) => ({ ...m, [`${kind}:${id}`]: e instanceof Error ? e.message : `${action} failed.` }));

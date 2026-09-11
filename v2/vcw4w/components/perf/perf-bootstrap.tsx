@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { getPerfTier, onIdle, warmPerfWorkers } from "@/lib/perf-client";
 
 /**
- * PerfBootstrap — one tiny client component mounted in the root layout.
+ * PerfBootstrap; one tiny client component mounted in the root layout.
  * Runs once per page load, entirely idle-deferred so it never blocks paint:
  * - profiles hardware (cores / WebGL GPU / save-data / reduced motion),
  * - stamps <html> with data-gpu + data-low-power for CSS to adapt,

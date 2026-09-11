@@ -8,7 +8,7 @@ import { getPodLive, runPodLifecycle } from "@/lib/compute";
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/desktop/[id]/pod {action: stop|start|restart|terminate|delete} —
+ * POST /api/desktop/[id]/pod {action: stop|start|restart|terminate|delete} -
  * control YOUR Virtual Desktop. Only the user who created it (desktop_pods
  * owner) may act; anyone else gets 404 (never confirm the row exists).
  * stop releases GPU/CPU (disk kept, storage still bills); start boots a
@@ -63,9 +63,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (gone && (action === "stop" || action === "terminate" || action === "delete")) {
       const status = action === "stop" ? "stopped" : action === "delete" ? "deleted" : "terminated";
       await svc.from("desktop_pods").update({ status }).eq("id", desktop.id);
-      return ok({ ok: true, action, podStatus: live.ok ? live.status : "UNKNOWN", note: "Pod already exited — billing already ended." });
+      return ok({ ok: true, action, podStatus: live.ok ? live.status : "UNKNOWN", note: "Pod already exited; billing already ended." });
     }
-    return fail(`Unable to ${action} the pod (${result.error}). It may still bill — retry or stop it from the RunPod console.`, 502);
+    return fail(`Unable to ${action} the pod (${result.error}). It may still bill; retry or stop it from the RunPod console.`, 502);
   }
 
   const status =

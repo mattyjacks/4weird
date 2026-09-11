@@ -1,4 +1,4 @@
--- 4weird Clans — gamer/coder social platform.
+-- 4weird Clans; gamer/coder social platform.
 -- ============================================================================
 -- CSAM / AUTHORITY FLOW (read this before touching clan_reports):
 --  * Reports with category='csam' AUTO-HIDE the target immediately inside the
@@ -6,7 +6,7 @@
 --    is logged in or anonymous. The sha256 + storage_path of images and the
 --    full text of posts/comments are PRESERVED (never deleted by the RPC) so
 --    admins can export evidence.
---  * Admin export (no admin UI built here — reuse the existing admin
+--  * Admin export (no admin UI built here; reuse the existing admin
 --    submissions UI pattern). Suggested queries for the admin console:
 --      select * from public.clan_reports where status='open' order by created_at desc;
 --      select r.*, p.title, p.body, p.image_url from public.clan_reports r
@@ -27,7 +27,7 @@
 --    server route with the service_role key only.
 -- ============================================================================
 -- Fully rerunnable: IF NOT EXISTS / OR REPLACE / DROP POLICY IF EXISTS used
--- throughout. No client write policies — all writes go through the
+-- throughout. No client write policies; all writes go through the
 -- SECURITY DEFINER RPCs below.
 -- ============================================================================
 

@@ -1,14 +1,14 @@
 /**
- * AI autosave — every AI artifact lands in the Weird Vault automatically.
+ * AI autosave; every AI artifact lands in the Weird Vault automatically.
  *
  * Covered kinds: 3d models, images, animations, code, chat context, full
- * logs, half logs, minimal logs, audio, video, text — plus provenance
+ * logs, half logs, minimal logs, audio, video, text; plus provenance
  * (which op/model made it) so files stay attributable and reviewable.
  *
  * Log tiers (match the bot-key logging contract):
- *   full    — prompt + output + context + request/response bodies.
- *   half    — metadata + short preview (first 500 chars), rest dropped.
- *   minimal — compliance minimum only (time, op, coins, bytes). Nothing
+ *   full   ; prompt + output + context + request/response bodies.
+ *   half   ; metadata + short preview (first 500 chars), rest dropped.
+ *   minimal; compliance minimum only (time, op, coins, bytes). Nothing
  *             viewable beyond metadata.
  * After autosave the artifact is "worked on automatically": the caller gets
  * a vault path + follow-up hints (e.g. remesh a heavy model, upscale art).
@@ -98,4 +98,4 @@ export function planAutosave(input: {
 /** Least-privilege scope keys for AI autosave. */
 export const AUTOSAVE_SCOPES = ["ai:autosave", "ai:read"] as const;
 
-export const AUTOSAVE_CUT_NOTE = `Includes ${AUTOSAVE_CUT_PCT}% platform cut — never added on top.`;
+export const AUTOSAVE_CUT_NOTE = `Includes ${AUTOSAVE_CUT_PCT}% platform cut; never added on top.`;

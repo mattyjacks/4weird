@@ -10,7 +10,7 @@ function isSlug(v: unknown): string {
   return /^[a-z0-9-]{2,60}$/.test(s) ? s : "";
 }
 
-// POST /api/projects — GitHub-like project (RPC checks team.projects.create,
+// POST /api/projects - GitHub-like project (RPC checks team.projects.create,
 // seeds Code-tab README + Issues-tab welcome + default labels).
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);

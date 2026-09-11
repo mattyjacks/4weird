@@ -96,4 +96,4 @@ const pkg = read("../package.json");
 if (!pkg.includes("verify:fal")) fail("package.json must wire verify:fal.");
 if (!/"test": "[^"]*verify:fal/.test(pkg)) fail("npm test must run verify:fal.");
 
-console.log("fal.ai Studio integrity OK — 30 magical tools, 25% included.");
+console.log("fal.ai Studio integrity OK - 30 magical tools, 25% included.");

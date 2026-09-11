@@ -22,12 +22,12 @@ import {
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/swarm/sessions — list my swarm hires (newest first).
- * POST /api/swarm/sessions — hire a swarm as a chatbot interface.
+ * GET /api/swarm/sessions; list my swarm hires (newest first).
+ * POST /api/swarm/sessions; hire a swarm as a chatbot interface.
  * Body: { name?, size (1-5), runtimes?[], system_prompt?, agent_prompts?[],
  *   orchestration?: auto|lead|round-robin, model?: auto|openai|openrouter|local,
  *   temperature?, tools?[] }.
- * Hiring itself is free — chat turns meter per-agent via meter_game_ai_usage
+ * Hiring itself is free; chat turns meter per-agent via meter_game_ai_usage
  * (kind inference, game swarm) with the 25% cut INCLUDED. The response quotes
  * the per-turn estimate so the hire panel can show it before the first send.
  */
@@ -105,7 +105,7 @@ export async function POST(req: Request) {
     if (error) {
       const msg = String((error as { message?: string }).message ?? "");
       if (msg.includes("swarm_sessions") && (msg.includes("does not exist") || msg.includes("schema"))) {
-        return fail("Swarm tables are not migrated yet — apply supabase/migrations/20260923000000_swarm_chat.sql.", 503);
+        return fail("Swarm tables are not migrated yet; apply supabase/migrations/20260923000000_swarm_chat.sql.", 503);
       }
       return dbFail("api/swarm/sessions:create", error, "Unable to hire the swarm.");
     }

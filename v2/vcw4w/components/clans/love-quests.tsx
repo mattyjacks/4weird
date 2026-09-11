@@ -71,7 +71,7 @@ export function LoveQuests({ clanId, clanSlug }: { clanId?: string; clanSlug: st
           ))}
         </ul>
       ) : (
-        <p className="mt-2 text-sm text-slate-500">No quests yet — owners/mods can post the first.</p>
+        <p className="mt-2 text-sm text-slate-500">No quests yet; owners/mods can post the first.</p>
       )}
       <div className="mt-3 flex flex-wrap gap-2">
         <input
@@ -124,7 +124,7 @@ export function LoveQuests({ clanId, clanSlug }: { clanId?: string; clanSlug: st
               setNote("Pick a quest first.");
               return;
             }
-            void post({ action: "complete", quest_id: el.value, user_id: completeUser }, "Quest completed — 💌 minted.");
+            void post({ action: "complete", quest_id: el.value, user_id: completeUser }, "Quest completed - 💌 minted.");
           }}
           className="rounded-lg border border-pink-400/40 px-3 py-2 text-sm font-bold text-pink-200"
         >

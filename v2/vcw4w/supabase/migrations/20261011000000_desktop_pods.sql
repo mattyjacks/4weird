@@ -6,7 +6,7 @@
 --
 -- Design notes:
 --  * POST /api/desktop/provision used to be stateless (pod id returned once,
---    never stored) — desktops were unmanageable after the response. The
+--    never stored); desktops were unmanageable after the response. The
 --    provision route now inserts here (service role) before returning.
 --  * RLS is enabled with NO client policies: only the service_role server
 --    routes read/write this table. Browser anon/auth keys get nothing

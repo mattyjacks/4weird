@@ -18,7 +18,7 @@ import {
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/games/session — signed-in play metering ("renting games").
+ * POST /api/games/session; signed-in play metering ("renting games").
  * Per-second ledger, quoted in "per hour" terms. Actions:
  *   - start {game_slug, new_bytes?, bundle_version?} → start_game_session:
  *     charges the proportional load fee (load rate for 1 MiB of fresh

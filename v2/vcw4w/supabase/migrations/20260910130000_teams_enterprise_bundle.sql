@@ -1,5 +1,5 @@
 -- ============================================================================
--- 4weird Teams Enterprise BUNDLE — orgs / team workspaces / projects
+-- 4weird Teams Enterprise BUNDLE; orgs / team workspaces / projects
 -- (GitHub-like Code + Issues) / Matrix-like secure rooms / cloud services /
 -- pay-as-you-go Vibe Coins + FULL PERMISSION SET.
 --
@@ -11,19 +11,19 @@
 -- Hierarchy (securely separate):
 --   orgs -> teams (workspaces) -> projects -> { repos, issues, rooms }
 -- A user sees an org/team/project row ONLY when they are a member (or the
--- project is public inside a public team — never cross-org leakage).
+-- project is public inside a public team; never cross-org leakage).
 --
 -- Permissions model (ridiculously advanced, presented simply):
---   * public.permission_catalog — every permission key, grouped for UI.
---   * public.role_templates — shipped defaults (owner/admin/maintainer/
+--   * public.permission_catalog; every permission key, grouped for UI.
+--   * public.role_templates; shipped defaults (owner/admin/maintainer/
 --     developer/viewer/billing/security). Clients may READ but never WRITE.
---   * public.custom_roles — per-org / per-team custom roles. Encouraged:
+--   * public.custom_roles; per-org / per-team custom roles. Encouraged:
 --     copy a default, tweak 1-2 keys, assign. Enforced by RPC allowlists.
 --   * Membership rows carry role_key (+ optional custom_role_id). The
 --     has_*_perm() functions resolve effective permissions server-side, so
 --     a workspace user can ONLY do permissioned actions.
 --
--- FULL PERMISSION SET (keys — also seeded into permission_catalog below):
+-- FULL PERMISSION SET (keys; also seeded into permission_catalog below):
 --   ORG: org.view org.edit org.delete org.members.view org.members.invite
 --     org.members.remove org.members.change_role org.roles.view org.roles.manage
 --     org.billing.view org.billing.manage org.wallet.fund org.wallet.spend
@@ -251,7 +251,7 @@ insert into public.role_templates (key, scope, label, permissions) values
 on conflict (key) do update set scope = excluded.scope, label = excluded.label, permissions = excluded.permissions, is_default = true;
 
 -- --------------------------------------------------------------------------
--- 3. Projects — GitHub-like (Code tab + Issues tab + PRs + wiki + actions)
+-- 3. Projects - GitHub-like (Code tab + Issues tab + PRs + wiki + actions)
 -- --------------------------------------------------------------------------
 create table if not exists public.team_projects (
   id uuid primary key default gen_random_uuid(),
@@ -408,7 +408,7 @@ create table if not exists public.federation_outbox (
 );
 
 -- --------------------------------------------------------------------------
--- 5. Cloud services — pay-as-you-go catalog settled in Vibe Coins
+-- 5. Cloud services; pay-as-you-go catalog settled in Vibe Coins
 -- --------------------------------------------------------------------------
 create table if not exists public.cloud_services (
   key text primary key check (key ~ '^[a-z0-9-]{2,48}$'),
@@ -561,7 +561,7 @@ begin
   select t.org_id into v_org from public.teams t where t.id = p_team;
   if v_org is null then return false; end if;
   -- Org owners/admins inherit team power (except explicit billing-only stays out
-  -- of code/rooms unless also a team member — checked below by perm key).
+  -- of code/rooms unless also a team member; checked below by perm key).
   if public.has_org_perm(v_org, 'org.teams.delete') then return true; end if;
   select m.role_key, m.custom_role_id into m from public.team_members m
     where m.team_id = p_team and m.user_id = auth.uid();
@@ -599,7 +599,7 @@ begin
 end; $$;
 
 -- --------------------------------------------------------------------------
--- 8. RLS — deny by default; SELECT only through membership/permission
+-- 8. RLS; deny by default; SELECT only through membership/permission
 -- --------------------------------------------------------------------------
 alter table public.orgs enable row level security;
 alter table public.org_members enable row level security;
@@ -797,7 +797,7 @@ grant select on public.team_budgets to authenticated;
 grant select on public.audit_log to authenticated;
 
 -- --------------------------------------------------------------------------
--- 9. RPCs — the ONLY writers. Each enforces its permission key first.
+-- 9. RPCs; the ONLY writers. Each enforces its permission key first.
 -- --------------------------------------------------------------------------
 
 -- Small audit helper (called inside RPCs; direct calls denied below).
@@ -850,7 +850,7 @@ revoke all on function public.create_team(uuid, text, text) from public, anon, a
 grant execute on function public.create_team(uuid, text, text) to authenticated;
 
 -- Custom roles: copy a default then tweak (only keys that exist in catalog,
--- and only keys the creator already holds — no privilege escalation).
+-- and only keys the creator already holds; no privilege escalation).
 create or replace function public.create_custom_role(p_org uuid, p_team uuid, p_name text, p_perms text[])
 returns public.custom_roles language plpgsql security definer set search_path = public as $$
 declare v_perms text[] := coalesce(p_perms, '{}'); k text; v_row public.custom_roles%rowtype;
@@ -1125,7 +1125,7 @@ begin
   select s.coins_per_unit into v_rate from public.cloud_services s where s.key = v_prov.service_key;
   v_cost := v_rate * p_qty;
   select coalesce(sum(delta),0)::integer into v_bal from public.org_wallet_ledger where org_id = v_prov.org_id;
-  if v_bal < v_cost then raise exception 'org wallet insufficient — fund with Vibe Coins'; end if;
+  if v_bal < v_cost then raise exception 'org wallet insufficient; fund with Vibe Coins'; end if;
   insert into public.org_wallet_ledger (org_id, actor_id, delta, reason)
   values (v_prov.org_id, auth.uid(), -v_cost, substr('Cloud meter: ' || v_prov.service_key,1,140));
   insert into public.cloud_usage (provision_id, qty, coins, source)

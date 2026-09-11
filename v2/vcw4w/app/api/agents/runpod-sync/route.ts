@@ -6,7 +6,7 @@ import { fetchRunpodBilling, type RunpodBillingKind } from "@/lib/runpod";
 
 export const dynamic = "force-dynamic";
 
-// POST /api/agents/runpod-sync { days?: 1..31 } — pull REAL RunPod billing
+// POST /api/agents/runpod-sync { days?: 1..31 }; pull REAL RunPod billing
 // history (pods + serverless endpoints + network volumes) with RUNPOD_API_KEY
 // and mirror it into runpod_usage for /my/usage. Informational mirror only:
 // RunPod bills the card directly, so mirrored rows carry no Vibe cut.
@@ -79,6 +79,6 @@ export async function POST(req: Request) {
     days,
     totalUsd: Math.round(totalUsd * 10000) / 10000,
     byKind,
-    note: "Mirrored RunPod spend (billed by RunPod — no Vibe cut).",
+    note: "Mirrored RunPod spend (billed by RunPod; no Vibe cut).",
   });
 }

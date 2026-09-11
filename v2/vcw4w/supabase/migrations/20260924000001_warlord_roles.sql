@@ -2,20 +2,20 @@
 -- Warlord roles: Lord / Captain / Infantry / Banker (+ read-only Banker).
 -- Fully rerunnable: DROP ... IF EXISTS / OR REPLACE / upsert seeds.
 --
--- These are FIRST-CLASS role_templates on the existing Teams RBAC — no
+-- These are FIRST-CLASS role_templates on the existing Teams RBAC; no
 -- parallel system. effective_perms()/has_org_perm()/has_team_perm() resolve
 -- templates by key, so the new keys work everywhere (RLS, RPCs, audit)
 -- with zero function changes. Only the CHECK whitelists grow:
---   * Lord    — leader of an org. Everything an Owner has except destroying
+--   * Lord   ; leader of an org. Everything an Owner has except destroying
 --     the org (org.delete) and SSO control. The org creator (owner_id)
 --     always outranks Lords and keeps ultimate power via has_*_perm().
---   * Captain — team member with leadership: member management, room
+--   * Captain; team member with leadership: member management, room
 --     moderation, GPU provisioning for the squad. Team scope.
---   * Infantry — normal team player: play, chat, file issues, run actions.
+--   * Infantry; normal team player: play, chat, file issues, run actions.
 --     Team scope.
---   * Banker  — controls the finances: budgets, funding, spending, approvals.
+--   * Banker ; controls the finances: budgets, funding, spending, approvals.
 --     Write operations included. Org scope.
---   * Banker (read-only) — key 'banker_readonly': sees billing, audit, and
+--   * Banker (read-only); key 'banker_readonly': sees billing, audit, and
 --     usage but cannot move a single centicentcoin. Org scope.
 -- ============================================================================
 

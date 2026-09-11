@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!g) return {};
   const description = `${g.description} Free to try in your browser with guides, cloud saves, and coin-metered play that pays the makers.`;
   return {
-    title: `${g.title} — Play Free in Your Browser`,
+    title: `${g.title} - Play Free in Your Browser`,
     description,
     keywords: [g.title, g.genre, ...g.tags, "free browser game", "play online"],
     alternates: { canonical: `/games/${g.slug}` },

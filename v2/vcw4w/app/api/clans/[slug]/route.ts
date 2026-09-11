@@ -12,7 +12,7 @@ function isClanSlug(v: unknown): string {
   return /^[a-z0-9-]{1,40}$/.test(s) ? s : "";
 }
 
-// GET /api/clans/[slug] — public clan + visible posts + wallet/upkeep ledger,
+// GET /api/clans/[slug]; public clan + visible posts + wallet/upkeep ledger,
 // deployed bots, monetization channels, XP leaderboard. Accrues upkeep lazily
 // for signed-in readers (anonymous reads skip the write).
 export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
@@ -144,7 +144,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   return ok(payload);
 }
 
-// POST /api/clans/[slug] with { action: "join" } — join the clan (auth).
+// POST /api/clans/[slug] with { action: "join" }; join the clan (auth).
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const { slug: raw } = await params;

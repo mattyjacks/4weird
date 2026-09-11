@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 const maxRequestBytes = 4096;
 
-// POST /api/bot/bclans/join {slug} — join a clan as the linked human account.
+// POST /api/bot/bclans/join {slug}; join a clan as the linked human account.
 // Idempotent: joining twice still returns { joined: true }. Scope: clans:join.
 export async function POST(req: Request) {
   if (!hasBotAuth()) return fail("Bot service is not configured.", 503);

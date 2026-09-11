@@ -1,4 +1,4 @@
-# Local Models (Ollama) — install, roles, launcher
+# Local Models (Ollama); install, roles, launcher
 
 VibeCodeWorker runs fully offline-capable: Ollama provides the local models,
 and each orchestration job gets its own model assignment.
@@ -11,7 +11,7 @@ and each orchestration job gets its own model assignment.
 | Automatic | `node scripts/node/ensure_ollama.js --install` |
 | Manual | `winget install Ollama.Ollama`, or https://ollama.com/download |
 
-The app **never** auto-installs on boot — installs need explicit consent.
+The app **never** auto-installs on boot; installs need explicit consent.
 What boot *does* do (when panel toggle `autoStart` is on): start
 `ollama serve` in the background if Ollama is installed but stopped.
 
@@ -29,7 +29,7 @@ The pipeline is split into four roles; each runs a different model:
 | `coder` | Autocode patches, review, heal edits | `qwen2.5-coder:7b` |
 | `reasoner` | Deep diagnosis, self-improvement | `deepseek-r1:8b` |
 
-Defaults are suggestions — change them in panel **1B**, which offers your
+Defaults are suggestions; change them in panel **1B**, which offers your
 actually-installed tags plus starter hints. A role can also point at a cloud
 provider; then it behaves exactly like the legacy single-model path.
 
@@ -37,19 +37,19 @@ Persistence: `config/default.json` → `localModels: { ollamaUrl, autoStart,
 roles: { agent/vision/coder/reasoner: { provider, model } } }`.
 Headless/CI override (model tag only): `VIBE_ROLE_AGENT`, `VIBE_ROLE_VISION`,
 `VIBE_ROLE_CODER`, `VIBE_ROLE_REASONER`. Server address:
-`OLLAMA_URL` (or `OLLAMA_HOST` bind addr — `0.0.0.0` is rewritten to
+`OLLAMA_URL` (or `OLLAMA_HOST` bind addr - `0.0.0.0` is rewritten to
 loopback for dialing).
 
 ## 3. Code map
 
-- `lib/ollama_manager.js` — detect / serve / install / list / pull / ensure.
-- `lib/model_roles.js` — role registry, validation, `resolveRoleModel`,
+- `lib/ollama_manager.js`; detect / serve / install / list / pull / ensure.
+- `lib/model_roles.js`; role registry, validation, `resolveRoleModel`,
   `callRoleLLM(brain, role, prompt, image?, audio?)` (delegates to `callLLM`).
-- `scripts/node/ensure_ollama.js` — launcher/CI preflight CLI.
+- `scripts/node/ensure_ollama.js`; launcher/CI preflight CLI.
 - `src/components/ollama_ui_controller.js` + panel `1B` in `src/index.html`
   + `localModels` load/save in `src/modules/config_manager.js`.
-- `app/main.js` — `ollama-*` IPC channels + boot auto-start.
-- `tests/test_ollama_models.js` — offline unit tests (`npm run test:ollama`).
+- `app/main.js` - `ollama-*` IPC channels + boot auto-start.
+- `tests/test_ollama_models.js`; offline unit tests (`npm run test:ollama`).
 
 ## 4. Launcher flags (`launch_vibecodeworker.bat`)
 

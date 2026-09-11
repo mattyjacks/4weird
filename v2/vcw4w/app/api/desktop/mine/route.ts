@@ -20,7 +20,7 @@ type DesktopRow = {
   updated_at: string;
 };
 
-/** GET /api/desktop/mine — your Virtual Desktops with live pod status. */
+/** GET /api/desktop/mine; your Virtual Desktops with live pod status. */
 export async function GET() {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();

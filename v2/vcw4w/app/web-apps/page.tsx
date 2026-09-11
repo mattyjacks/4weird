@@ -4,7 +4,7 @@ import { MarketingPage } from "@/components/site/marketing-page";
 import { ServiceStatus } from "@/components/vcw/service-status";
 
 export const metadata: Metadata = {
-  title: "Web Apps — Playtest and Debug What You Build",
+  title: "Web Apps - Playtest and Debug What You Build",
   description:
     "Small useful web apps on the 4weird coin economy, plus VibeCodeWorker playtesting that inspects, plays, and improves the things you build. Every app metered, every coin funding the arcade.",
   alternates: { canonical: "/web-apps" },

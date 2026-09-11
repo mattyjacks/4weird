@@ -4,13 +4,13 @@ import { HOUSE_ADS } from "@/lib/ads";
 import { AdsPlayground } from "./ads-playground";
 
 export const metadata: Metadata = {
-  title: "Ads — Wow, Look at All Those Ads… | 4weird Games",
+  title: "Ads - Wow, Look at All Those Ads… | 4weird Games",
   description:
     "The 4weird ad wall: every house fallback ad in one glorious place, plus room for future on-site ads. 100% skippable, 0 trackers, maximum weird.",
   keywords: ["4weird ads", "house ads", "sponsor wall"],
   alternates: { canonical: "/ads" },
   openGraph: {
-    title: "Ads — Wow, Look at All Those Ads… | 4weird Games",
+    title: "Ads - Wow, Look at All Those Ads… | 4weird Games",
     description:
       "Every 4weird house ad on one glorious wall. Come for the coins pitch, stay for the merch.",
   },
@@ -31,7 +31,7 @@ export default function AdsPage() {
         </h1>
         <p className="mt-6 max-w-2xl text-base text-slate-300 sm:text-lg">
           You asked for ads. We brought <em>ALL</em> the ads. This is the sacred wall where every
-          4weird house fallback ad lives — the same creatives guests see between plays, gathered in
+          4weird house fallback ad lives; the same creatives guests see between plays, gathered in
           one place for your gawking pleasure. Stare as long as you like. They love the attention.
         </p>
         <div className="mt-6 flex flex-wrap gap-2" aria-label="Site stats">
@@ -81,7 +81,7 @@ export default function AdsPage() {
           On-site ads <span className="text-yellow-300">(coming soon… probably… eventually…)</span>
         </h2>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          This velvet-roped VIP section is reserved for a whole bunch of future on-site ads — clan
+          This velvet-roped VIP section is reserved for a whole bunch of future on-site ads; clan
           shout-outs, game launches, community chaos. Today it is beautifully, hilariously empty.
         </p>
         <div className="mt-6 grid gap-4 md:grid-cols-3">
@@ -117,19 +117,19 @@ export default function AdsPage() {
           {[
             {
               q: "Why does this page exist?",
-              a: "Because someone said “make a page called /ads/” and honestly? Respect. Also: transparency — every fallback creative, out in the open, no dark patterns.",
+              a: "Because someone said “make a page called /ads/” and honestly? Respect. Also: transparency; every fallback creative, out in the open, no dark patterns.",
             },
             {
               q: "Do signed-in players see ads?",
-              a: "Nope — signed-in players pay coins instead of watching ads. Guests get quota + skippable house ads. This page is the one place everyone can gawk at them on purpose.",
+              a: "Nope; signed-in players pay coins instead of watching ads. Guests get quota + skippable house ads. This page is the one place everyone can gawk at them on purpose.",
             },
             {
               q: "Do these ads track me?",
-              a: "The house ads are just links and emoji — no trackers, no fingerprinting. The optional provider slot (when configured) loads in a sandboxed iframe and still falls back here on error, timeout, or adblock.",
+              a: "The house ads are just links and emoji; no trackers, no fingerprinting. The optional provider slot (when configured) loads in a sandboxed iframe and still falls back here on error, timeout, or adblock.",
             },
             {
               q: "Can I advertise my weird thing here?",
-              a: "Not yet — the on-site slots above are placeholders. Until then, the honest paths are clans, fundraisers, and creator support. This page will be first to know.",
+              a: "Not yet; the on-site slots above are placeholders. Until then, the honest paths are clans, fundraisers, and creator support. This page will be first to know.",
             },
           ].map((item) => (
             <div key={item.q} className="rounded-3xl border border-white/10 bg-white/[.03] p-5">
@@ -143,7 +143,7 @@ export default function AdsPage() {
             href="/games"
             className="rounded-full bg-cyan-300 px-6 py-3 text-center font-bold text-slate-950 transition hover:bg-cyan-200"
           >
-            Enough ads — play games →
+            Enough ads; play games →
           </Link>
           <Link
             href="/pricing"

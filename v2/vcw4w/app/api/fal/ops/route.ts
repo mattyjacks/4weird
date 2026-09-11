@@ -3,7 +3,7 @@ import { ok } from "@/lib/api-respond";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/fal/ops — public catalog of the 30 fal.ai media tools.
+// GET /api/fal/ops; public catalog of the 30 fal.ai media tools.
 // Static + honest: prices render without auth; `configured` is a boolean
 // only (the key never leaves the server).
 export async function GET() {

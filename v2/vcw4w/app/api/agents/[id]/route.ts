@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 /** Public: fetch one listing (available to all; paused only to its owner).
  *  Hourly prices are gross MAXIMUMS ($/hr, 25% cut included); metering bills
- *  per second. RunPod auto listings expose no private URL here — the live
+ *  per second. RunPod auto listings expose no private URL here; the live
  *  RunPod default endpoint is handed to the renter on booking. */
 export async function GET(
   req: Request,

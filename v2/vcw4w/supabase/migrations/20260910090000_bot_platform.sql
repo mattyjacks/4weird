@@ -8,7 +8,7 @@
 -- statements below are no-op convergence guards that only take effect if
 -- 080000 was never applied; this file creates NO clan policies and seeds
 -- NO starter rows, so it can never contradict 080000 (a past revision did
--- both — created_by policies and ownerless seeds — and broke bundle order
+-- both; created_by policies and ownerless seeds; and broke bundle order
 -- with 42703/23502; 20260910120000_reconcile_clans_bots.sql cleans up
 -- databases that already applied that revision).
 --

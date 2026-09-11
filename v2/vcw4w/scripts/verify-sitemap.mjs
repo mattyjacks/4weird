@@ -35,7 +35,7 @@ for (const p of statics) {
 }
 
 // 3. Every indexable static route must be listed (account/auth/my/family
-// are gated-noindex by policy and must stay OUT — as is /runpods, a
+// are gated-noindex by policy and must stay OUT; as is /runpods, a
 // login-gated noindex dashboard per verify-runpod-dashboard + skill.md).
 const GATED = new Set(["account", "auth", "my", "family", "runpods"]);
 function walk(dir, base) {

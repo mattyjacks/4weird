@@ -35,7 +35,7 @@ export async function POST(req: Request) {
   if (!userId) {
     const bot = await resolveBotKey(req).catch(() => null);
     if (!bot) {
-      return fail("Authentication required. Sign in to run Meshy tools — the catalog + quotes on /meshy are free without login.", 401);
+      return fail("Authentication required. Sign in to run Meshy tools; the catalog + quotes on /meshy are free without login.", 401);
     }
     if (!keyHasScope(bot, "meshy:generate")) return fail("Key lacks scope: meshy:generate.", 403);
     userId = bot.userId;
@@ -150,7 +150,7 @@ export async function POST(req: Request) {
       const text = await res.text().catch(() => "");
       if (res.status === 401 || res.status === 403) {
         console.error(`[api/meshy/generate] Meshy rejected the server key (HTTP ${res.status}, op ${opRaw}). Nothing was charged.`);
-        return fail("Meshy.ai rejected the server key. Re-issue MESHY_API_KEY — nothing was charged.", 502);
+        return fail("Meshy.ai rejected the server key. Re-issue MESHY_API_KEY; nothing was charged.", 502);
       }
       await svc.from("meshy_jobs").update({ status: "failed" }).eq("id", jobId);
       return fail(`Meshy.ai queue HTTP ${res.status}: ${text.slice(0, 160)}`, 502);

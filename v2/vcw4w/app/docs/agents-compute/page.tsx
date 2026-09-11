@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/docs/agents-compute" },
   title: "Agents & cloud",
   description:
-    "How to rent AI agents, virtual desktops, and UnitUnite team workspaces on 4weird: booking, escrow, per-second metering, and reading usage.",
+    "How to rent AI agents, virtual desktops, and UnitUnite squad workspaces on 4weird: booking, escrow, per-second metering, and reading usage.",
 };
 
 const theme = {
@@ -23,7 +23,7 @@ export default function AgentsComputePage() {
       <DocsHero
         eyebrow="Docs Â· the cloud gift shop"
         title={<>Rent a supercomputer <span className={theme.title}>by the second.</span></>}
-        lede={<>AI agents by the hour, virtual desktops by the second, team workspaces with metered cloud â€” all in Vibe Coins, all with the 25% cut already inside the price.</>}
+        lede={<>AI agents by the hour, virtual desktops by the second, squad workspaces with metered cloud â€” all in Vibe Coins, all with the 25% cut already inside the price.</>}
         stats={[
           ["1s", "metering granularity"],
           ["25/75", "split, escrowed"],
@@ -72,7 +72,7 @@ export default function AgentsComputePage() {
       />
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <div className="overflow-hidden rounded-2xl border border-border bg-card">
-          <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/10 p-4"><p className="text-3xl" aria-hidden="true">ðŸ–¥ï¸</p><p className="mt-1 font-black">CPU box â€” Ubuntu</p></div>
+          <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/10 p-4"><p className="text-3xl" aria-hidden="true">ðŸ-¥ï¸</p><p className="mt-1 font-black">CPU box â€” Ubuntu</p></div>
           <p className="p-4 text-sm text-muted-foreground">Browsing, editing, light dev. The cheap seat with a great view.</p>
         </div>
         <div className="overflow-hidden rounded-2xl border border-border bg-card">
@@ -85,14 +85,14 @@ export default function AgentsComputePage() {
         index="3"
         kicker="One chat, five brains"
         title="Agent swarm chat (/swarm)"
-        body="Hire up to 5 agents as one Gemini-Spark-style chatbot: a custom system prompt for the whole swarm plus a role prompt per agent, orchestration (auto plans with the DeepSeek harness observe→reason→act loop, then delegates), model + temperature pickers, and every tool auto-usable — VibeCodeWorker runs/findings/handoffs, OpenCode.ai exports + heal loops, Fal media, Buddy voice. Turns meter per agent in Vibe Coins with the 25% cut included; local-engine turns are free and labelled."
+        body="Hire up to 5 agents as one Gemini-Spark-style chatbot: a custom system prompt for the whole swarm plus a role prompt per agent, orchestration (auto plans with the DeepSeek harness observe→reason→act loop, then delegates), model + temperature pickers, and every tool auto-usable - VibeCodeWorker runs/findings/handoffs, OpenCode.ai exports + heal loops, Fal media, Buddy voice. Turns meter per agent in Vibe Coins with the 25% cut included; local-engine turns are free and labelled."
       />
 
       <SectionHead
         index="4"
         kicker="Squad up"
-        title="UnitUnite team workspaces (/teams)"
-        body="Orgs â†’ teams â†’ projects/rooms with role catalogs, org coin wallets, messaging, and a metered cloud catalog (GPU pods, serverless, storage, databases, KV, queue). Every workspace meter carries the same included 25% cut, every cent attributed. Use teams when several people share budget, rooms, and cloud."
+        title="UnitUnite squad workspaces (/squads)"
+        body="Orgs â†’ squads â†’ projects/rooms with role catalogs, org coin wallets, messaging, and a metered cloud catalog (GPU pods, serverless, storage, databases, KV, queue). Every workspace meter carries the same included 25% cut, every cent attributed. Use squads when several people share budget, rooms, and cloud."
       />
 
       <SectionHead

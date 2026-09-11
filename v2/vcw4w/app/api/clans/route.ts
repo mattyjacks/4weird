@@ -12,7 +12,7 @@ function isClanSlug(v: unknown): string {
   return /^[a-z0-9-]{1,40}$/.test(s) ? s : "";
 }
 
-// GET /api/clans?type=hclan|sclan|bclan — public list of clans.
+// GET /api/clans?type=hclan|sclan|bclan; public list of clans.
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const rl = rateLimit(`clans-list:${clientIp(req)}`, 60, 60_000);
@@ -30,7 +30,7 @@ export async function GET(req: Request) {
   return ok({ clans: data ?? [] });
 }
 
-// POST /api/clans — create a clan (auth, via create_clan RPC).
+// POST /api/clans; create a clan (auth, via create_clan RPC).
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();

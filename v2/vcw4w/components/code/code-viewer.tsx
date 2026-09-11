@@ -56,7 +56,7 @@ function escapeHtml(s: string): string {
 /**
  * Beautiful code view: file tree + tabbed viewer, line numbers, tinted
  * tokens, sticky header with language + size. Quarantined packages render
- * the verdict banner only — never file contents.
+ * the verdict banner only; never file contents.
  */
 export function CodeViewer({
   files,
@@ -80,7 +80,7 @@ export function CodeViewer({
         <p className="font-black">🛡️ Held for human review ({verdict}).</p>
         <p className="mt-2">
           This package tripped a safety signal, so its files are never displayed. A human
-          moderator reviews every held package — authority referrals happen only through
+          moderator reviews every held package; authority referrals happen only through
           proper human channels.
         </p>
       </div>
@@ -89,7 +89,7 @@ export function CodeViewer({
   if (!file) {
     return (
       <div className="rounded-2xl border border-border p-6 text-sm text-muted-foreground">
-        No previewable text files in this package yet — the .zip itself is stored safely.
+        No previewable text files in this package yet; the .zip itself is stored safely.
       </div>
     );
   }

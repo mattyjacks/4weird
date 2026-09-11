@@ -209,7 +209,7 @@ export function SwarmChat() {
   async function send(messageOverride?: string) {
     const raw = (messageOverride ?? draft).trim();
     if (!raw || !activeId || busy) return;
-    // /commands — post-modern command palette inline.
+    // /commands; post-modern command palette inline.
     if (raw.startsWith("/")) {
       handleCommand(raw);
       return;
@@ -278,7 +278,7 @@ export function SwarmChat() {
       setLastCost(`${body.cost.display}${body.fallback ? " (free local engine)" : ""}`);
       const first = body.replies[0];
       if (first) speak(`${first.agentName}: ${first.text}`);
-      setStatus(body.fallback ? "Local engine replied free — add OPENAI_API_KEY for full reasoning." : "Swarm replied. Your turn.");
+      setStatus(body.fallback ? "Local engine replied free; add OPENAI_API_KEY for full reasoning." : "Swarm replied. Your turn.");
       void loadSessions();
     } catch (e) {
       setStatus(e instanceof Error ? e.message : "Chat failed.");
@@ -295,7 +295,7 @@ export function SwarmChat() {
     if (cmd === "reset") {
       setMessages([]);
       setTrace([]);
-      setStatus("Cleared locally — the saved trail stays on the server. Export first if it matters.");
+      setStatus("Cleared locally; the saved trail stays on the server. Export first if it matters.");
     } else if (cmd === "persona" && arg) {
       setSystemPrompt(arg.slice(0, 2000));
       setStatus("Swarm instructions updated for the NEXT hire (running swarms keep theirs).");
@@ -377,7 +377,7 @@ export function SwarmChat() {
       <aside className="rounded-2xl border border-white/10 bg-white/[.03] p-5" aria-label="Hire a swarm">
         <h2 className="text-lg font-bold">Hire an agent swarm</h2>
         <p className="mt-1 text-xs text-slate-400">
-          {SWARM_MAX_AGENTS} agents max, billed per turn across the swarm — every price includes the 25% platform cut, never on top.
+          {SWARM_MAX_AGENTS} agents max, billed per turn across the swarm; every price includes the 25% platform cut, never on top.
         </p>
         <label className="mt-4 block text-sm">Swarm name
           <input value={name} onChange={(e) => setName(e.target.value.slice(0, 60))} className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-white" />
@@ -443,7 +443,7 @@ export function SwarmChat() {
                 </button>
               </li>
             ))}
-            {!sessions.length && !loading && <li className="text-xs text-slate-500">No swarms yet — hire your first above.</li>}
+            {!sessions.length && !loading && <li className="text-xs text-slate-500">No swarms yet; hire your first above.</li>}
           </ul>
         </div>
       </aside>
@@ -451,7 +451,7 @@ export function SwarmChat() {
       {/* Chat column */}
       <section className="rounded-2xl border border-white/10 bg-white/[.03] p-5" aria-label="Swarm chat">
         <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-lg font-bold">{active ? `${active.name} — ${active.size} agents` : "Swarm chat"}</h2>
+          <h2 className="text-lg font-bold">{active ? `${active.name} - ${active.size} agents` : "Swarm chat"}</h2>
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…" className="ml-auto w-32 rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-white" />
           <button type="button" onClick={() => exportTrail("md")} className="rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-200">Export MD</button>
           <button type="button" onClick={() => exportTrail("json")} className="rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-200">JSON</button>
@@ -460,7 +460,7 @@ export function SwarmChat() {
         <p className="mt-1 text-xs text-slate-400" role="status">{status}</p>
         {(lastCost || trace.length > 0) && (
           <div className="mt-2 rounded-lg border border-white/10 bg-black/30 p-2 text-xs text-slate-300">
-            {lastCost && <p>💰 {lastCost} — includes 25% platform cut.</p>}
+            {lastCost && <p>💰 {lastCost}; includes 25% platform cut.</p>}
             {trace.length > 0 && (
               <div className="mt-1">
                 <button type="button" onClick={() => setShowTrace((s) => !s)} className="text-cyan-300 hover:underline">
@@ -477,7 +477,7 @@ export function SwarmChat() {
           <select value={voice} onChange={(e) => setVoice(e.target.value)} className="rounded-md border border-slate-700 bg-slate-950 px-1 py-0.5 text-xs text-white" aria-label="Voice">
             {BUDDY_VOICES.map((v) => (<option key={v.id} value={v.id}>{v.label}</option>))}
           </select>
-          {replyTo && <button type="button" onClick={() => setReplyTo(null)} className="text-amber-300 hover:underline">↩ replying — cancel</button>}
+          {replyTo && <button type="button" onClick={() => setReplyTo(null)} className="text-amber-300 hover:underline">↩ replying; cancel</button>}
         </div>
         <ul className="mt-3 max-h-[52vh] space-y-3 overflow-y-auto pr-1" aria-live="polite">
           {visible.map((m) => (
@@ -491,19 +491,19 @@ export function SwarmChat() {
                   <button type="button" onClick={() => setReplyTo(m.id)} className="hover:text-white">Reply</button>
                   <button type="button" onClick={() => setPins((p) => (p.includes(m.id) ? p.filter((x) => x !== m.id) : [...p, m.id]))} className="hover:text-white">{pins.includes(m.id) ? "Unpin" : "Pin"}</button>
                   <button type="button" onClick={() => { try { void navigator.clipboard.writeText(m.text); setStatus("Copied to clipboard."); } catch { setStatus("Copy failed."); } }} className="hover:text-white">Copy</button>
-                  {m.role === "user" && <button type="button" onClick={() => { setDraft(m.text); setStatus("Editing — tweak and resend to branch the thread."); }} className="hover:text-white">Branch</button>}
+                  {m.role === "user" && <button type="button" onClick={() => { setDraft(m.text); setStatus("Editing; tweak and resend to branch the thread."); }} className="hover:text-white">Branch</button>}
                 </span>
               </div>
               {replyTo === m.id && <p className="mt-1 text-xs text-amber-300">↩ replying to this message</p>}
               <div className="mt-1 text-slate-100" dangerouslySetInnerHTML={{ __html: renderLite(m.text) }} />
               {m.tool_calls?.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
-                  {m.tool_calls.map((t, i) => (<span key={i} className="rounded bg-violet-900 px-1.5 py-0.5 text-xs text-violet-100">🛠 {t.id} — {t.args.slice(0, 60)}</span>))}
+                  {m.tool_calls.map((t, i) => (<span key={i} className="rounded bg-violet-900 px-1.5 py-0.5 text-xs text-violet-100">🛠 {t.id} - {t.args.slice(0, 60)}</span>))}
                 </div>
               )}
             </li>
           ))}
-          {!visible.length && <li className="text-sm text-slate-500">{search ? "No messages match." : "No messages yet — say hi to your swarm."}</li>}
+          {!visible.length && <li className="text-sm text-slate-500">{search ? "No messages match." : "No messages yet; say hi to your swarm."}</li>}
           <div ref={bottomRef} />
         </ul>
         <div className="mt-3 flex gap-2">

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Shared types for the Buddy 3D avatars. `T3` is the three.js namespace
- * (loaded lazily from CDN — see buddy-avatar.tsx), kept as `any` behind one
+ * (loaded lazily from CDN; see buddy-avatar.tsx), kept as `any` behind one
  * alias so no three.js dependency or @types/three is ever required to build.
  */
 

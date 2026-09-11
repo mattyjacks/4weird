@@ -43,7 +43,7 @@ async function api(path: string, init?: RequestInit) {
 }
 
 /**
- * Blender Studio — upload a .blend, render it on a pinned RTX 4090, get an
+ * Blender Studio; upload a .blend, render it on a pinned RTX 4090, get an
  * mp4 back. First-timers: grab a free demo scene, no Blender install needed.
  */
 export function BlenderStudio() {
@@ -51,7 +51,7 @@ export function BlenderStudio() {
   const [selected, setSelected] = useState<JobDetail | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState("");
-  const [message, setMessage] = useState("Pick a .blend file to begin — or grab a free demo scene below.");
+  const [message, setMessage] = useState("Pick a .blend file to begin; or grab a free demo scene below.");
   const [pendingJob, setPendingJob] = useState<{ jobId: string } | null>(null);
   const [workerLogUrl, setWorkerLogUrl] = useState("");
   const [startFrame, setStartFrame] = useState("1");
@@ -102,7 +102,7 @@ export function BlenderStudio() {
     try {
       if (!file.name.toLowerCase().endsWith(".blend")) throw new Error("Pick a .blend scene file.");
       if (file.size > BLENDER_MAX_SCENE_BYTES) {
-        throw new Error(`Scene is ${(file.size / 1_048_576).toFixed(1)} MB — ${BLENDER_MAX_SCENE_BYTES / 1_048_576} MB max.`);
+        throw new Error(`Scene is ${(file.size / 1_048_576).toFixed(1)} MB - ${BLENDER_MAX_SCENE_BYTES / 1_048_576} MB max.`);
       }
       const created = await api("/api/blender/jobs", {
         method: "POST",
@@ -140,7 +140,7 @@ export function BlenderStudio() {
       setWorkerLogUrl(String(body.workerLog ?? ""));
       setMessage(
         body.started
-          ? `Worker live on ${String((body.connection as { gpu?: string })?.gpu ?? "RTX 4090")} — render started. It exits itself when done.`
+          ? `Worker live on ${String((body.connection as { gpu?: string })?.gpu ?? "RTX 4090")}; render started. It exits itself when done.`
           : `Not started: ${String((body.provision as { message?: string })?.message ?? body.note ?? "provisioning deferred")}`,
       );
       await refreshJobs();
@@ -156,7 +156,7 @@ export function BlenderStudio() {
     setBusy(`stop:${id}`);
     try {
       await api(`/api/blender/jobs/${id}/stop`, { method: "POST" });
-      setMessage("Worker stopped — GPU billing ended.");
+      setMessage("Worker stopped - GPU billing ended.");
       await refreshJobs();
       await refreshSelected(id);
     } catch (e) {
@@ -241,7 +241,7 @@ export function BlenderStudio() {
       <section aria-label="Your renders">
         <p className="font-black text-white">Your renders</p>
         {jobs.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-400">No renders yet — your jobs will appear here with live status.</p>
+          <p className="mt-2 text-sm text-slate-400">No renders yet; your jobs will appear here with live status.</p>
         ) : (
           <ul className="mt-2 space-y-2">
             {jobs.map((j) => (
@@ -253,7 +253,7 @@ export function BlenderStudio() {
                   <span className="rounded-full border border-white/15 px-3 py-0.5 text-xs font-bold text-slate-200">{j.status}</span>
                 </div>
                 <p className="mt-1 text-xs text-slate-400">
-                  {(j.sceneBytes / 1_048_576).toFixed(1)} MB · frames {j.startFrame}–{j.endFrame} ({j.frameCount}) · {j.gpu ?? "no GPU yet"}
+                  {(j.sceneBytes / 1_048_576).toFixed(1)} MB · frames {j.startFrame}-{j.endFrame} ({j.frameCount}) · {j.gpu ?? "no GPU yet"}
                   {j.hourlyUsd > 0 ? ` · $${j.hourlyUsd.toFixed(2)}/hr` : ""}
                 </p>
                 {j.error && <p className="mt-1 text-xs text-red-300">{j.error}</p>}
@@ -265,7 +265,7 @@ export function BlenderStudio() {
                   </p>
                 )}
                 {selected?.job.id === j.id && selected.workerQuiet && (
-                  <p className="mt-1 text-xs text-amber-200">Worker is up but quiet — still installing Blender (first ~5 min), or starting up. It will report in.</p>
+                  <p className="mt-1 text-xs text-amber-200">Worker is up but quiet; still installing Blender (first ~5 min), or starting up. It will report in.</p>
                 )}
                 {ACTIVE.has(j.status) && (
                   <button

@@ -4,7 +4,7 @@ import { fail, ok } from "@/lib/api-respond";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-// GET|POST /api/cron/support-renewals — renew due support subscriptions.
+// GET|POST /api/cron/support-renewals; renew due support subscriptions.
 // Fired by Vercel Cron daily (see vercel.json). CRON_SECRET-gated; the
 // renew_support_subscriptions() RPC is service_role-only, so supporters are
 // never charged by client-reachable code. Short on coins → past_due, never

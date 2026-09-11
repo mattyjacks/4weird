@@ -23,7 +23,7 @@ const COLUMNS = [
       { href: "/runpods", label: "My RunPods" },
       { href: "/swarm", label: "Swarm" },
       { href: "/desktop", label: "Virtual Desktop" },
-      { href: "/teams", label: "UnitUnite" },
+      { href: "/squads", label: "UnitUnite" },
       { href: "/vibecodeworker", label: "VibeCodeWorker" },
       { href: "/web-apps", label: "Web Apps" },
       { href: "/blender", label: "Blender Studio" },
@@ -100,7 +100,7 @@ export function SiteFooter() {
             🎮 4weird<span className="text-cyan-600 dark:text-cyan-300">Games</span>
           </p>
           <p className="mt-3 max-w-xs text-sm leading-relaxed">
-            Future Forward Fun — cloud computing that funds AI-built arcade experiments, agents, and team cloud.
+            Future Forward Fun; cloud computing that funds AI-built arcade experiments, agents, and squad cloud.
           </p>
           <div className="mt-4 flex items-center gap-2">
             <span>Theme</span>
@@ -108,7 +108,7 @@ export function SiteFooter() {
           </div>
         </div>
         {COLUMNS.map((col) => (
-          <nav key={col.label} aria-label={`Footer — ${col.label}`}>
+          <nav key={col.label} aria-label={`Footer - ${col.label}`}>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-600 dark:text-cyan-300">{col.label}</p>
             <ul className="mt-3 space-y-2">
               {col.links.map((link) => (

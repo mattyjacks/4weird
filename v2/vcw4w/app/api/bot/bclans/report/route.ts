@@ -21,7 +21,7 @@ const maxRequestBytes = 8192;
 // target_type 'clan' accepts a clan slug or uuid (stored as the clan uuid);
 // 'post', 'comment', and 'image' require the row uuid and must exist.
 // category='csam' quarantines a post/comment target immediately
-// (status -> 'hidden', content preserved) — the same guarantee the human
+// (status -> 'hidden', content preserved); the same guarantee the human
 // file_report RPC gives. Clans and images have no status column, so the
 // report row itself is the evidence record there.
 export async function POST(req: Request) {

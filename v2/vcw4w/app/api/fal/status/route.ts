@@ -7,7 +7,7 @@ import { falApiBase, falConfigured, falKey, isFalOp, modelForOp, opByKey } from 
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/fal/status?op=<op>&id=<request_id> — poll a queued fal.ai run.
+ * GET /api/fal/status?op=<op>&id=<request_id>; poll a queued fal.ai run.
  * Authenticated; proxies the live fal queue status (never synthesized).
  * Without FAL_KEY returns honest configured:false.
  */
@@ -15,7 +15,7 @@ export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
-  if (!data.user) return fail("Authentication required. Sign in to poll fal runs — the catalog + quotes on /fal are free without login.", 401);
+  if (!data.user) return fail("Authentication required. Sign in to poll fal runs; the catalog + quotes on /fal are free without login.", 401);
   const rl = rateLimit(`fal:status:${data.user.id}`, 30, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
 

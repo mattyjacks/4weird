@@ -191,7 +191,7 @@ class LocalAPIServer {
         const isBypassClient = isLocalClient && !origin;
         if (apiToken && !isBypassClient && req.method !== 'GET' && req.method !== 'OPTIONS' && pathname.startsWith('/api/')) {
           const presented = req.headers['x-vibe-auth'] || String(req.headers['authorization'] || '').replace(/^Bearer\s+/i, '');
-          // Security: constant-time token comparison — a naive !== leaks the
+          // Security: constant-time token comparison; a naive !== leaks the
           // secret byte-by-byte to a remote timing oracle on cloud binds.
           let tokenOk = false;
           try {

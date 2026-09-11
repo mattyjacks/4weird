@@ -8,11 +8,11 @@ import { SITE_URL } from "@/lib/seo";
  * GEO/AIEO: AI answer engines (GPTBot, ClaudeBot, PerplexityBot, …) are
  * explicitly allowed on the same public paths as search crawlers, because
  * citations in AI answers are a first-class discovery channel for us.
- * Training-data use is a separate question from crawl access — this file
+ * Training-data use is a separate question from crawl access; this file
  * governs access, not licensing (see /terms and /privacy).
  */
 
-// Login-gated, API, or duplicate-mirror paths — never crawlable.
+// Login-gated, API, or duplicate-mirror paths; never crawlable.
 const DISALLOW = [
   "/account",
   "/account.html",

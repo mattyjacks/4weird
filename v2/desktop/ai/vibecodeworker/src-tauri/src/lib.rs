@@ -346,7 +346,7 @@ mod commands {
     pub fn save_fal_key(key: String) -> Result<Value, String> {
         let t = key.trim().to_string();
         if !is_valid_fal_key(&t) {
-            return Err("That does not look like a fal.ai key — paste the real key from fal.ai/dashboard/keys.".to_string());
+            return Err("That does not look like a fal.ai key; paste the real key from fal.ai/dashboard/keys.".to_string());
         }
         let file = fal_key_path();
         if let Some(parent) = file.parent() {

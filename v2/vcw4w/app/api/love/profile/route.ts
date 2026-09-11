@@ -6,7 +6,7 @@ import { clientIp } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/love/profile?handle= — public 💌 Earned / Received / Given.
+// GET /api/love/profile?handle=; public 💌 Earned / Received / Given.
 // Hidden profiles (shy opt-out) return is_public:false with zeroed counters.
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);

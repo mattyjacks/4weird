@@ -1,5 +1,5 @@
 /**
- * VibeCodeWorker cloud run lifecycle — shared validation + handoff builder.
+ * VibeCodeWorker cloud run lifecycle; shared validation + handoff builder.
  *
  * The v2 deploy is serverless, so the /api/vcw/* agent API persists the
  * v1 worker loop (launch -> observe -> reason -> act -> bugs -> handoff)
@@ -42,7 +42,7 @@ export function isRunUuid(value: unknown): boolean {
  * fal.ai inside the VCW main loop (observe → reason → act).
  *
  * Agents call fal by logging an actions step whose text (or data object)
- * carries a `[tool: fal.generate — op=<op> prompt="..."]` tag with
+ * carries a `[tool: fal.generate; op=<op> prompt="..."]` tag with
  * source "vcw". The actions route detects the tag, validates the op
  * against the 30-op catalog, and returns the gross quote + next step
  * (POST /api/fal/generate) so the loop can chain observe → reason → act
@@ -59,7 +59,7 @@ export function vcwPhaseForKind(kind: string): VcwLoopPhase {
   return "act";
 }
 
-const FAL_TAG_RE = /\[tool:\s*fal\.generate\s*[—-]\s*([^\]]+)\]/i;
+const FAL_TAG_RE = /\[tool:\s*fal\.generate\s*[--]\s*([^\]]+)\]/i;
 
 export function parseFalToolCall(text: unknown, data: unknown): { op: string; prompt: string } | null {
   const fromData =
@@ -71,7 +71,7 @@ export function parseFalToolCall(text: unknown, data: unknown): { op: string; pr
   const chunk = m ? m[1] : hay;
   const opMatch = chunk.match(/op\s*=\s*([a-z0-9-]+)/i) ?? fromData.match(/^([a-z0-9-]+)/i);
   if (!opMatch) {
-    // Bare mention without an op is not callable — the route will hint instead.
+    // Bare mention without an op is not callable; the route will hint instead.
     return /fal\.generate/i.test(hay) ? { op: "", prompt: "" } : null;
   }
   const promptMatch = chunk.match(/prompt\s*=\s*"([^"]{1,2000})"/i) ?? chunk.match(/prompt\s*=\s*'([^']{1,2000})'/i);
@@ -103,7 +103,7 @@ export function buildRunHandoff(opts: {
   reason: string;
 }): string {
   const lines = [
-    `# VCW run handoff — ${opts.gameSlug}`,
+    `# VCW run handoff - ${opts.gameSlug}`,
     ``,
     `Goal: ${opts.goal}`,
     `Status: ${opts.status}${opts.verdict ? ` (${opts.verdict})` : ""}`,

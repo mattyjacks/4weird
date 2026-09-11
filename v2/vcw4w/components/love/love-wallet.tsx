@@ -48,7 +48,7 @@ export function LoveWalletPanel() {
         body: JSON.stringify({ display_name: p.profile?.display_name || "player", is_profile_public: next }),
       });
       setWallet((w) => (w ? { ...w, is_public: next } : w));
-      setMessage(next ? "Profile is public — 💌 stats visible." : "Profile hidden — 💌 stats private (shy mode).");
+      setMessage(next ? "Profile is public - 💌 stats visible." : "Profile hidden - 💌 stats private (shy mode).");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to update visibility.");
     } finally {
@@ -60,7 +60,7 @@ export function LoveWalletPanel() {
     <section className="rounded-2xl border border-pink-400/20 bg-white/[.04] p-6">
       <h2 className="text-xl font-bold">💌 Love Letters</h2>
       <p className="mt-2 text-sm text-slate-400">
-        Clan-native appreciation — not coins, never converts, never cashes out. Start with 💌x3, earn +1 per daily
+        Clan-native appreciation; not coins, never converts, never cashes out. Start with 💌x3, earn +1 per daily
         claim + clan quests + loved posts. Spend on gifts (1) and awards (2/5/10) for posts you love.
       </p>
       {wallet ? (

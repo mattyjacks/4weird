@@ -1,13 +1,13 @@
 -- ============================================================================
--- 4weird Clans v2 — clan types (hclan/sclan/bclan), Valley Net automod log,
+-- 4weird Clans v2; clan types (hclan/sclan/bclan), Valley Net automod log,
 -- per-clan server-cost upkeep economy, clan XP/gamification, RunPod spend mirror.
 -- Fully rerunnable: IF NOT EXISTS / OR REPLACE / DROP ... IF EXISTS throughout.
 -- ============================================================================
 -- CLAN TYPES (singular: hclan/sclan/bclan; plural: hclans/sclans/bclans):
---   hclan — human-only. Bot-key API routes must refuse hclans (403/404);
+--   hclan; human-only. Bot-key API routes must refuse hclans (403/404);
 --           deployed bots are rejected on hclans. Hardened against bots.
---   sclan — shared. Humans AND bots interact; deployable bots allowed.
---   bclan — bot-native. Bots operate fully; humans may read/join/post.
+--   sclan; shared. Humans AND bots interact; deployable bots allowed.
+--   bclan; bot-native. Bots operate fully; humans may read/join/post.
 -- Existing clans backfill to 'sclan' (they already serve both APIs).
 --
 -- UPKEEP ECONOMY (25% platform cut INCLUDED in every fee, never on top):
@@ -429,7 +429,7 @@ revoke all on function public.accrue_clan_upkeep(uuid) from public, anon, authen
 grant execute on function public.accrue_clan_upkeep(uuid) to authenticated;
 
 -- fund_clan_wallet: owner moves personal coins into the clan wallet (1:1, no
--- cut — a transfer, not a purchase). Awards patron XP + badge at 100+.
+-- cut; a transfer, not a purchase). Awards patron XP + badge at 100+.
 create or replace function public.fund_clan_wallet(p_clan_id uuid, p_coins numeric)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare
@@ -469,7 +469,7 @@ revoke all on function public.fund_clan_wallet(uuid, numeric) from public, anon,
 grant execute on function public.fund_clan_wallet(uuid, numeric) to authenticated;
 
 -- credit_clan_channel_revenue: credit ad/affiliate revenue to the clan wallet
--- at the published per-event rate (no cut — revenue, not a purchase).
+-- at the published per-event rate (no cut; revenue, not a purchase).
 create or replace function public.credit_clan_channel_revenue(
   p_channel_id uuid, p_event text
 )
