@@ -192,6 +192,98 @@ mod commands {
         }
     }
 
+    // ─── Bot API token (4weird bot key) ─────────────────
+    // Lets the desktop app act as the user's bot on 4weird.games.
+    // Keys are issued at https://4weird.games/bot/setup and look like
+    // `bot4weird_` + 20 chars from [A-Za-z0-9] (shown once, hashed server-side).
+    // The secret is kept in a local-only file under the OS app-data dir and is
+    // never logged; status calls report only whether a token is stored.
+
+    pub fn bot_token_path() -> std::path::PathBuf {
+        #[cfg(target_os = "windows")]
+        {
+            let base = std::env::var("APPDATA").unwrap_or_else(|_| ".".to_string());
+            return std::path::PathBuf::from(base).join("vibecodeworker").join("bot-token");
+        }
+        #[cfg(target_os = "macos")]
+        {
+            let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+            return std::path::PathBuf::from(home)
+                .join("Library")
+                .join("Application Support")
+                .join("vibecodeworker")
+                .join("bot-token");
+        }
+        #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+        {
+            let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+            return std::path::PathBuf::from(home)
+                .join(".local")
+                .join("share")
+                .join("vibecodeworker")
+                .join("bot-token");
+        }
+    }
+
+    pub fn is_valid_bot_token(token: &str) -> bool {
+        let t = token.trim();
+        if t.len() != 30 || !t.starts_with("bot4weird_") {
+            return false;
+        }
+        t[10..].bytes().all(|b| b.is_ascii_alphanumeric())
+    }
+
+    #[tauri::command]
+    pub fn save_bot_token(token: String) -> Result<Value, String> {
+        let t = token.trim().to_string();
+        if !is_valid_bot_token(&t) {
+            return Err("That does not look like a 4weird bot key (bot4weird_ + 20 letters/digits).".to_string());
+        }
+        let file = bot_token_path();
+        if let Some(parent) = file.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| format!("token dir: {}", e))?;
+        }
+        std::fs::write(&file, &t).map_err(|e| format!("token write: {}", e))?;
+        Ok(json!({ "success": true, "message": "Bot token saved locally." }))
+    }
+
+    #[tauri::command]
+    pub fn get_bot_token_status() -> Value {
+        let file = bot_token_path();
+        let configured = std::fs::read_to_string(&file)
+            .map(|t| is_valid_bot_token(t.trim()))
+            .unwrap_or(false);
+        json!({ "configured": configured })
+    }
+
+    #[tauri::command]
+    pub fn get_bot_token() -> Result<String, String> {
+        let file = bot_token_path();
+        match std::fs::read_to_string(&file) {
+            Ok(t) => {
+                let t = t.trim().to_string();
+                if is_valid_bot_token(&t) {
+                    Ok(t)
+                } else {
+                    Err("No valid bot token stored.".to_string())
+                }
+            }
+            Err(_) => Err("No bot token stored yet.".to_string()),
+        }
+    }
+
+    #[tauri::command]
+    pub fn clear_bot_token() -> Result<Value, String> {
+        let file = bot_token_path();
+        match std::fs::remove_file(&file) {
+            Ok(_) => Ok(json!({ "success": true, "message": "Bot token removed." })),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                Ok(json!({ "success": true, "message": "No bot token was stored." }))
+            }
+            Err(e) => Err(format!("token delete: {}", e)),
+        }
+    }
+
     // ─── CLI args (headfull/headless/game/autoplay/handoff) ──
     // Lets the exe run headfull from a terminal, e.g.:
     //   vibecodeworker-4weird.exe --headfull --game gravegain3d --autoplay
@@ -211,8 +303,9 @@ mod commands {
 }
 
 pub use commands::{
-    append_smart_log, get_cli_args, get_gpu_info, get_log_dir, read_latest_handoff,
-    save_handoff_file, save_report_file, show_native_notification,
+    append_smart_log, clear_bot_token, get_bot_token, get_bot_token_status, get_cli_args, get_gpu_info,
+    get_log_dir, read_latest_handoff, save_bot_token, save_handoff_file, save_report_file,
+    show_native_notification,
 };
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -244,7 +337,11 @@ pub fn run() {
             commands::append_smart_log,
             commands::save_handoff_file,
             commands::read_latest_handoff,
-            commands::get_cli_args
+            commands::get_cli_args,
+            commands::save_bot_token,
+            commands::get_bot_token,
+            commands::get_bot_token_status,
+            commands::clear_bot_token
         ])
         .run(tauri::generate_context!())
         .expect("error while running 4WEIRD VibeCodeWorker Tauri application");

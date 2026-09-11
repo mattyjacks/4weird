@@ -66,6 +66,7 @@
       <div class="bar-right">
         <span id="system-time">00:00:00</span>
         <button id="audio-toggle" type="button">SYNTH: ON</button>
+        <button id="btn-bot-token" type="button">BOT TOKEN</button>
         <button id="btn-auth-lock" type="button">LOCK</button>
       </div>
     </header>
@@ -417,6 +418,21 @@
     <span id="gpu-tokens-speed"></span><span id="gpu-backend-mode"></span>
     <button id="btn-test-gpu-connection" type="button">TEST</button>
     <span id="gpu-test-result"></span>
+  </div>
+
+  <!-- BOT TOKEN DRAWER -->
+  <div id="bot-token-drawer" class="drawer hidden">
+    <button id="btn-close-bot-drawer" type="button">CLOSE</button>
+    <h3>4WEIRD BOT API TOKEN</h3>
+    <p>Paste a <code>bot4weird_…</code> key so this desktop app can act as your bot.
+      Generate one at <a href="https://4weird.games/bot/setup" target="_blank" rel="noreferrer">4weird.games/bot/setup</a>
+      (shown once — copy it immediately). Desktop builds store it in a local-only OS app-data file, never logged.</p>
+    <input id="bot-token-input" type="password" autocomplete="off" spellcheck="false" placeholder="bot4weird_…" aria-label="Bot API token">
+    <button id="btn-save-bot-token" type="button">SAVE</button>
+    <button id="btn-verify-bot-token" type="button">VERIFY</button>
+    <button id="btn-clear-bot-token" type="button">CLEAR</button>
+    <span id="bot-token-status"></span>
+    <span id="bot-token-identity"></span>
   </div>
 
   <!-- PHONE REMOTE -->

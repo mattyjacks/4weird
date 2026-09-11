@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { DocsHero } from "@/components/docs/docs-hero";
+import { SectionHead, Steps, Callout, Pager } from "@/components/docs/docs-bits";
 
 export const metadata: Metadata = {
   title: "Getting started",
@@ -7,72 +9,104 @@ export const metadata: Metadata = {
     "Create a 4weird account, claim the 100-coin trial and daily bonus, tour the account hub, and do your first useful things in 15 minutes.",
 };
 
-const h2 = "mt-10 text-2xl font-bold tracking-tight";
-const p = "mt-3 text-muted-foreground leading-relaxed";
+const theme = {
+  bg: "bg-gradient-to-br from-emerald-950 via-slate-950 to-cyan-950",
+  border: "border-emerald-300/20",
+  chip: "border-emerald-300/40 bg-emerald-300/10 text-emerald-200",
+  title: "bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent",
+};
 
 export default function GettingStartedPage() {
   return (
     <article>
-      <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-600 dark:text-cyan-300">
-        Docs · Start here
-      </p>
-      <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">Getting started</h1>
-      <p className="mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
-        From zero to playing, saving, earning, and renting in about 15 minutes —
-        using only the website. No downloads, no setup.
-      </p>
+      <DocsHero
+        eyebrow="Docs · zero to playing in 15 min"
+        title={<>Launch sequence: <span className={theme.title}>3… 2… 1…</span></>}
+        lede={<>From zero to playing, saving, earning, and renting in about 15 minutes — using only the website. No downloads, no setup, no datacenter degree.</>}
+        stats={[
+          ["2 min", "to an account"],
+          ["100 🪙", "free trial"],
+          ["5–12 🪙", "daily bonus"],
+          ["25/25", "referral split"],
+        ]}
+        glyph="🚀"
+        theme={theme}
+        crumb="Getting started"
+      />
 
-      <h2 className={h2}>1. Create your account (2 minutes)</h2>
-      <ol className="mt-3 list-decimal space-y-2 pl-6 text-muted-foreground">
-        <li>Open <Link className="underline" href="/auth/sign-up">/auth/sign-up</Link> and register with email + password. Passwords need 8+ characters with 3 of: lowercase, UPPERCASE, digits, symbols.</li>
-        <li>New accounts receive a <strong className="text-foreground">free 100-coin ($1.00) trial</strong> — once per person. Your dashboard tells you whether the trial was awarded.</li>
-        <li>Sign in at <Link className="underline" href="/auth/login">/auth/login</Link>. Check your session anytime from the header (Login / Sign Up becomes Dashboard).</li>
-      </ol>
-      <p className={p}>
-        Prefer to look around first? Everything readable — games catalog, clan pages, leaderboards,
-        pricing — is public. You only need an account when you post, save, rent, or use AI.
-      </p>
+      <SectionHead
+        index="1"
+        kicker="T-minus 13 minutes"
+        title="Create your account"
+        body="Two minutes, one email, one password. Passwords need 8+ characters with 3 of: lowercase, UPPERCASE, digits, symbols."
+      />
+      <Steps
+        items={[
+          ["Sign up, get 100 coins", <>Open <Link className="font-bold underline" href="/auth/sign-up">/auth/sign-up</Link> and register. New accounts receive a <strong>free 100-coin ($1.00) trial</strong> — once per person. Your dashboard confirms the award.</>],
+          ["Sign in, see the switch", <>Log in at <Link className="font-bold underline" href="/auth/login">/auth/login</Link>. The header flips from Login / Sign Up to <strong>Dashboard</strong> — your proof of orbit.</>],
+          ["Look around free", <>Reading is public: catalog, clans, leaderboards, pricing. You only need the account when you <strong>post, save, rent, or use AI</strong>.</>],
+        ]}
+      />
 
-      <h2 className={h2}>2. Tour your account hub (/account)</h2>
-      <p className={p}>
-        <Link className="underline" href="/account">/account</Link> is your dashboard: coin balance
-        (coins + fractional centicentcoins), checkout, daily claim button, referral code, order-grant
-        recovery, and links to usage and rights. Key actions:
-      </p>
-      <ul className="mt-3 list-disc space-y-2 pl-6 text-muted-foreground">
-        <li><strong className="text-foreground">Claim daily bonus:</strong> one button, once per UTC day — 5 coins + 1 per streak day, capped at 12. Streaks reward coming back.</li>
-        <li><strong className="text-foreground">Refer friends:</strong> share your 8-character code from <Link className="underline" href="/account">/account</Link>. When someone redeems it, you both get 25 coins (one use per invitee, no self-use).</li>
-        <li><strong className="text-foreground">Buy coins:</strong> 500 / 1,500 / 5,000 / 25,000 packs plus custom 500–100,000 at 1¢/coin on <Link className="underline" href="/pricing">/pricing</Link>. Checkout runs through Shopify; paid grants reconcile by order email.</li>
-        <li><strong className="text-foreground">Audit spend:</strong> <Link className="underline" href="/my/usage/">/my/usage/</Link> itemizes every cent — game rentals, game AI, Buddy, rentals, clan fees, workspace cloud.</li>
+      <SectionHead
+        index="2"
+        kicker="Mission control"
+        title="Tour your account hub"
+        body="Your dashboard at /account: balance (coins + fractional centicentcoins), checkout, daily claim, referral code, grant recovery — plus doors to usage and rights."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        {[
+          ["📅 Daily bonus", "One button, once per UTC day — 5 coins + 1 per streak day, capped at 12. Streaks pay."],
+          ["💌 Referrals 25/25", "Share your 8-character code. Someone redeems it → you both get 25 coins. No self-use."],
+          ["🛒 Buy coins", "500 / 1,500 / 5,000 / 25,000 packs + custom 500–100,000 at 1¢/coin. Shopify checkout, reconciled by order email."],
+          ["🧾 Audit everything", "/my/usage/ itemizes every cent — rentals, AI, Buddy, clan fees, workspace cloud."],
+        ].map(([t, b]) => (
+          <div key={t} className="rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-emerald-400/50">
+            <p className="font-black">{t}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          </div>
+        ))}
+      </div>
+
+      <SectionHead
+        index="3"
+        kicker="First orbit"
+        title="Your first 15 minutes"
+        body="A flight plan. Do all four and you'll have touched every major system on the site."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          ["🕹️ 0:00 — Play", "Pick a game on /games, read its guide, hit Play. Signed-in play meters coins; guests get ads."],
+          ["💾 0:05 — Save", "Use slots 1–3, then check /leaderboards for kills, actions, play-time."],
+          ["👾 0:08 — Belong", "Join a clan on /clans, say hi in #general, react to a post."],
+          ["🎙️ 0:12 — Coach", "Open /buddy or the play-page widget and ask for coaching."],
+        ].map(([t, b]) => (
+          <div key={t} className="relative overflow-hidden rounded-2xl border border-border bg-card p-4">
+            <div aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-400 to-cyan-400" />
+            <p className="font-black">{t}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          </div>
+        ))}
+      </div>
+
+      <Callout tone="rose" title="Don't touch that button (yet): Cheat Mode.">
+        Enabling cheats permanently brands that save (<code>cheat_mode:true</code>) — delete/recreate cannot launder it.
+        Experiment on a throwaway slot. Full story in <Link className="underline" href="/docs/playing-games">Playing games</Link>.
+      </Callout>
+
+      <SectionHead
+        index="4"
+        kicker="Stay safe up there"
+        title="Account hygiene"
+      />
+      <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
+        <li className="rounded-xl border border-border bg-card p-3">📧 <strong className="text-foreground">Keep your email current</strong> — checkout grants, referrals, and rights flows key off it.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🚪 <strong className="text-foreground">Log out on shared devices</strong> via the logout action on /account.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🚫 <strong className="text-foreground">One trial per person.</strong> Farming trials with extra accounts violates the Terms and is blocked.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🔒 <strong className="text-foreground">Need out?</strong> Self-serve export + deletion at <Link className="underline" href="/my/rights">/my/rights</Link> — see <Link className="underline" href="/docs/privacy-safety">Privacy &amp; safety</Link>.</li>
       </ul>
 
-      <h2 className={h2}>3. Your first 15 minutes</h2>
-      <ol className="mt-3 list-decimal space-y-2 pl-6 text-muted-foreground">
-        <li><strong className="text-foreground">Play a game (5 min):</strong> browse <Link className="underline" href="/games">/games</Link>, open a detail page, read its guide, hit Play. Signed-in play meters coins per second; guests play free with ads. Details in <Link className="underline" href="/docs/playing-games">Playing games</Link>.</li>
-        <li><strong className="text-foreground">Save + leaderboard (3 min):</strong> use slots 1–3 on any game, then check <Link className="underline" href="/leaderboards">/leaderboards</Link> for kills, actions, and play-time.</li>
-        <li><strong className="text-foreground">Join a clan (4 min):</strong> browse <Link className="underline" href="/clans">/clans</Link>, join one, say hi in #general, react to a post. Details in <Link className="underline" href="/docs/clans">Clans</Link>.</li>
-        <li><strong className="text-foreground">Meet the Buddy (3 min):</strong> open <Link className="underline" href="/buddy">/buddy</Link> or the widget on any play page and ask for coaching. Details in <Link className="underline" href="/docs/game-ai-buddy">Game AI &amp; Buddy</Link>.</li>
-      </ol>
-
-      <h2 className={h2}>4. Account hygiene</h2>
-      <ul className="mt-3 list-disc space-y-2 pl-6 text-muted-foreground">
-        <li>Keep your login email current — checkout grants, referrals, and rights flows key off it.</li>
-        <li>Log out on shared devices via the logout action on /account.</li>
-        <li>One trial per person: creating extra accounts to farm trials violates the Terms and is blocked with privacy-preserving signals.</li>
-        <li>Need your data or deletion? Self-serve at <Link className="underline" href="/my/rights">/my/rights</Link> — export, correction path, and a guarded 30-minute delete flow. Details in <Link className="underline" href="/docs/privacy-safety">Privacy &amp; safety</Link>.</li>
-      </ul>
-
-      <h2 className={h2}>5. Common first-day mistakes</h2>
-      <ul className="mt-3 list-disc space-y-2 pl-6 text-muted-foreground">
-        <li>Enabling <strong className="text-foreground">Cheat Mode</strong> “just to look” — it permanently marks that save (cheat_mode:true) and the mark survives delete/recreate. Use a throwaway slot.</li>
-        <li>Buying coins before claiming the free trial + daily bonus — the trial and streak often cover your first sessions.</li>
-        <li>Posting before reading a clan&apos;s #announcements — each clan sets its own norms; #general is the safe first post.</li>
-      </ul>
-
-      <p className="mt-8 text-sm text-muted-foreground">
-        Next: <Link className="underline" href="/docs/playing-games">Playing games →</Link> ·{" "}
-        <Link className="underline" href="/docs/vibe-coins">Vibe Coins →</Link>
-      </p>
+      <Pager current="/docs/getting-started" />
     </article>
   );
 }

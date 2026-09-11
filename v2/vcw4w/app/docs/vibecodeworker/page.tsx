@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { DocsHero } from "@/components/docs/docs-hero";
+import { SectionHead, Callout, Steps, MockWindow, Pager } from "@/components/docs/docs-bits";
 
 export const metadata: Metadata = {
   title: "VibeCodeWorker",
@@ -7,70 +9,107 @@ export const metadata: Metadata = {
     "How to use VibeCodeWorker: check status, open QA runs, record observe-reason-act steps, file bugs, complete runs, and export handoffs.",
 };
 
-const h2 = "mt-10 text-2xl font-bold tracking-tight";
-const p = "mt-3 text-muted-foreground leading-relaxed";
+const theme = {
+  bg: "bg-gradient-to-br from-orange-950 via-slate-950 to-stone-900",
+  border: "border-orange-400/20",
+  chip: "border-orange-300/40 bg-orange-300/10 text-orange-200",
+  title: "bg-gradient-to-r from-orange-300 via-amber-200 to-yellow-300 bg-clip-text text-transparent",
+};
 
 export default function VcwPage() {
   return (
     <article>
-      <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-600 dark:text-cyan-300">
-        Docs · QA product
-      </p>
-      <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">VibeCodeWorker ⚙️</h1>
-      <p className="mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
-        Evidence-driven QA: point it at a game, watch it observe → reason → act, and get runs,
-        findings, bugs, and portable handoffs with proof. Start at{" "}
-        <Link className="underline" href="/vibecodeworker">/vibecodeworker</Link>.
-      </p>
+      <DocsHero
+        eyebrow="Docs · the QA lab"
+        title={<>Break it. <span className={theme.title}>Prove it. Ship it.</span></>}
+        lede={<>Evidence-driven QA: point VibeCodeWorker at a game, watch it observe → reason → act, and get runs, findings, bugs, and portable handoffs with proof. Start at /vibecodeworker.</>}
+        stats={[
+          ["3", "steps per loop"],
+          ["4", "severities"],
+          ["3", "verdicts"],
+          ["1", "portable handoff"],
+        ]}
+        glyph="⚙️"
+        theme={theme}
+        crumb="VibeCodeWorker"
+        art={
+          <div className="flex flex-wrap items-center gap-2 text-sm font-black" aria-hidden="true">
+            {["👁️ Observe", "🧠 Reason", "🎬 Act"].map((t, i) => (
+              <span key={t} className="flex items-center gap-2">
+                <span className="rounded-full border border-orange-300/40 bg-orange-300/10 px-4 py-2 text-orange-100">{t}</span>
+                {i < 2 && <span className="text-orange-400">→</span>}
+              </span>
+            ))}
+            <span className="text-orange-400">↺</span>
+          </div>
+        }
+      />
 
-      <h2 className={h2}>1. Surfaces (/vibecodeworker/*)</h2>
-      <p className={p}>
-        Overview, hub, run, full, phone, docs, and demo sections each pair a guide with the live
-        surface plus a public service-status pill. If the status pill reports trouble, wait before
-        opening runs — the loop depends on the service underneath.
-      </p>
+      <SectionHead
+        index="1"
+        kicker="The floor plan"
+        title="Surfaces at /vibecodeworker/*"
+        body="Overview, hub, run, full, phone, docs, and demo — each pairs a guide with the live surface plus a public service-status pill. If the pill reports trouble, wait before opening runs: the loop depends on the service underneath."
+      />
 
-      <h2 className={h2}>2. The agent loop in 7 steps (signed in)</h2>
-      <ol className="mt-3 list-decimal space-y-2 pl-6 text-muted-foreground">
-        <li><strong className="text-foreground">Check status:</strong> confirm the service, catalog game count, and recent runs/bugs. If the catalog is empty or unhealthy, stop here.</li>
-        <li><strong className="text-foreground">Pick a target:</strong> list catalog games (slug, title, genre, play URL). Every legal run target comes from this list — first-party play URLs only.</li>
-        <li><strong className="text-foreground">Open a run:</strong> choose a catalog slug + a 1–500 character goal (“verify level 2 boss spawns adds”). You get a run ID.</li>
-        <li><strong className="text-foreground">Observe → reason → act:</strong> read the full run (trail + findings) before every next step, then append one iteration: an observation, an action, or a finding (each with text + optional small data object; open runs only).</li>
-        <li><strong className="text-foreground">File bugs:</strong> title + description + severity (low/medium/high/critical, default medium), optionally pinned to a run (which defaults the game slug).</li>
-        <li><strong className="text-foreground">Complete the run:</strong> close with a summary + verdict (pass / fail / inconclusive). Closed runs reject further steps.</li>
-        <li><strong className="text-foreground">Hand off:</strong> export a portable markdown brief for any coding tool (defaults to your latest run). The dashboard gives recent runs + bugs in one view.</li>
-      </ol>
+      <SectionHead
+        index="2"
+        kicker="The assembly line"
+        title="The 7-step agent loop"
+        body="Signed in, every route returns success envelopes and rate-limits per user. Read the full run (trail + findings) before every next step."
+      />
+      <Steps
+        items={[
+          ["Check status", <>Confirm service health, catalog game count, recent runs/bugs. Unhealthy? Stop here.</>],
+          ["Pick a target", <>List catalog games — slug, title, genre, play URL. Every legal run target comes from this list; first-party play URLs only.</>],
+          ["Open a run", <>Catalog slug + a 1–500 character goal (“verify level-2 boss spawns adds”). You get a run ID.</>],
+          ["Observe → reason → act", <>Append one iteration at a time — observation, action, or finding (text + optional ≤10 KB data object). Open runs only.</>],
+          ["File bugs", <>Title + description + severity (low/medium/high/critical, default medium), optionally pinned to a run (defaults the slug).</>],
+          ["Complete the run", <>Close with summary + verdict: pass / fail / inconclusive. Closed runs are read-only history.</>],
+          ["Hand off", <>Export a portable markdown brief for any coding tool (defaults to your latest run). The dashboard gives recent runs + bugs in one view.</>],
+        ]}
+      />
 
-      <h2 className={h2}>3. Autoplay + cloud execution</h2>
-      <p className={p}>
-        Autoplay provisions a real remote to play the game for you (or reports honestly that it
-        couldn&apos;t start). Catalog games run on-site only; special titles may require GPU-boosted,
-        off-site, desktop-backed remotes — the request tells you which. The hosted site has no live
-        browser of its own: you drive play locally (or via an autoplay remote) and record each iteration
-        through the run actions. Live-browser control exists only on local workers, never in the hosted
-        run API.
-      </p>
+      <SectionHead
+        index="3"
+        kicker="Exhibit A"
+        title="What good evidence looks like"
+      />
+      <MockWindow title="run #4821 — boss-spawn verification" badge="verdict: pass">
+        <div className="space-y-2 text-xs sm:text-sm">
+          <p><span className="rounded bg-sky-400/20 px-1.5 py-0.5 font-bold text-sky-300">OBSERVE</span> <span className="text-slate-300">screenshot: 3 adds spawn at 0:42, HP bars visible</span></p>
+          <p><span className="rounded bg-violet-400/20 px-1.5 py-0.5 font-bold text-violet-300">REASON</span> <span className="text-slate-300">spawn matches spec §2.1 → engage, record score events</span></p>
+          <p><span className="rounded bg-emerald-400/20 px-1.5 py-0.5 font-bold text-emerald-300">ACT</span> <span className="text-slate-300">cleared wave, no console errors, 60fps held</span></p>
+          <p><span className="rounded bg-amber-300/20 px-1.5 py-0.5 font-bold text-amber-200">FINDING</span> <span className="text-slate-300">goal met — no bug filed, evidence attached</span></p>
+        </div>
+      </MockWindow>
 
-      <h2 className={h2}>4. Writing good runs + bugs</h2>
-      <ul className="mt-3 list-disc space-y-2 pl-6 text-muted-foreground">
-        <li><strong className="text-foreground">Goals:</strong> one verifiable claim per run (“main menu → new game → first checkpoint with no console errors”).</li>
-        <li><strong className="text-foreground">Steps:</strong> small, timestamped, evidence-first (“screenshot shows…”, “score event fired…”) — one kind per append.</li>
-        <li><strong className="text-foreground">Bugs:</strong> expected vs. actual + reproduction path + severity + run link. Critical = data loss, payment error, or safety issue.</li>
-        <li><strong className="text-foreground">Verdicts:</strong> pass (goal met with evidence), fail (reproducible defect filed), inconclusive (blocked — say what blocked you).</li>
-      </ul>
+      <SectionHead
+        index="4"
+        kicker="Field notes"
+        title="Writing runs + bugs that get fixed"
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        {[
+          ["🎯 Goals", "One verifiable claim per run: “menu → new game → first checkpoint, no console errors.”"],
+          ["🔬 Steps", "Small, timestamped, evidence-first: “screenshot shows…”, “score event fired…”."],
+          ["🐞 Bugs", "Expected vs. actual + repro path + severity + run link. Critical = data loss, payment error, safety."],
+          ["🏁 Verdicts", "Pass (evidence), fail (repro defect filed), inconclusive (blocked — say what blocked you)."],
+        ].map(([t, b]) => (
+          <div key={t} className="rounded-2xl border border-border bg-card p-4">
+            <p className="font-black">{t}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          </div>
+        ))}
+      </div>
+      <Callout tone="cyan" title="Autoplay = a real remote, or an honest no.">
+        Autoplay provisions a real remote to play for you — or reports it couldn&apos;t start (capacity, wrong tier for the
+        title). Catalog games run on-site only; some titles need GPU-boosted off-site desktop remotes. The hosted site
+        has no live browser: you drive play locally or via autoplay and record each iteration. See{" "}
+        <Link className="underline" href="/docs/agents-compute">Agents &amp; cloud</Link> for the compute behind it.
+      </Callout>
 
-      <h2 className={h2}>5. Limits + troubleshooting</h2>
-      <ul className="mt-3 list-disc space-y-2 pl-6 text-muted-foreground">
-        <li>Runs, steps, and bugs are rate-limited per user; back off on 429s and respect retry signals.</li>
-        <li>Slugs must be catalog; goals/text have length caps; data payloads cap at ~10 KB. Oversized appends are rejected — trim and retry.</li>
-        <li>Only open runs accept steps; completed runs are read-only history.</li>
-        <li>Usage may be metered and autoplay depends on real capacity — “couldn&apos;t start” is an honest capacity answer, not a bug in your goal.</li>
-      </ul>
-
-      <p className="mt-8 text-sm text-muted-foreground">
-        Next: <Link className="underline" href="/docs/agents-compute">Agents &amp; cloud →</Link> ·{" "}
-        <Link className="underline" href="/docs/faq">FAQ &amp; support →</Link>
-      </p>
+      <Pager current="/docs/vibecodeworker" />
     </article>
   );
 }

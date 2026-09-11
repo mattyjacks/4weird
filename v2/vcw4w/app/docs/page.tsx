@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DOCS_NAV } from "./layout";
+import { DOCS_DATA } from "@/components/docs/docs-data";
+import { DocsHero } from "@/components/docs/docs-hero";
+import { SectionHead, SplitBar } from "@/components/docs/docs-bits";
 
 export const metadata: Metadata = {
   title: "Docs",
@@ -8,84 +10,112 @@ export const metadata: Metadata = {
     "Official 4weird Games documentation: company, accounts, games, Vibe Coins, clans, bots, agents, game AI, VibeCodeWorker, privacy, and support.",
 };
 
-const h2 = "mt-10 text-2xl font-bold tracking-tight";
+const theme = {
+  bg: "bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950",
+  border: "border-white/15",
+  chip: "border-cyan-300/40 bg-cyan-300/10 text-cyan-200",
+  title: "bg-gradient-to-r from-cyan-300 via-sky-200 to-fuchsia-300 bg-clip-text text-transparent",
+};
 
 export default function DocsHome() {
+  const guides = DOCS_DATA.filter((d) => d.href !== "/docs");
   return (
     <article>
-      <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-600 dark:text-cyan-300">
-        4weird.com/docs/
-      </p>
-      <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">
-        4weird Docs
-      </h1>
-      <p className="mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
-        Everything about the company and how to use the site and software — one
-        coin economy, 34 games, clans, bots, rentable agents, game AI, and QA
-        tooling. Pick a guide below. Every price on this site already includes
-        our 25% cut: <strong className="text-foreground">100 🪙 = exactly $1.00</strong>.
-      </p>
+      <DocsHero
+        eyebrow="4weird.com/docs/ · 11 guides"
+        title={<>The manual for <span className={theme.title}>Future Forward Fun.</span></>}
+        lede={<>Everything about the company and how to use the site and software — one coin economy, 34 games, clans, bots, rentable agents, game AI, and QA tooling. Start anywhere; every guide links to the next.</>}
+        stats={[
+          ["11", "guides, zero fluff"],
+          ["34", "games documented"],
+          ["100 🪙", "= exactly $1.00"],
+          ["25%", "cut, always inside"],
+        ]}
+        glyph="📚"
+        theme={theme}
+        crumb="Docs home"
+        art={
+          <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
+            {["🎮 Play", "👾 Belong", "🤖 Automate", "🪙 Earn"].map((t) => (
+              <span key={t} className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-white backdrop-blur">
+                {t}
+              </span>
+            ))}
+          </div>
+        }
+      />
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        {DOCS_NAV.filter((d) => d.href !== "/docs").map((doc) => (
+      <SectionHead
+        index="✦"
+        kicker="Pick your path"
+        title="Where do you want to go?"
+        body="Four doors into the same arcade. New here? Take door one and read straight through."
+      />
+
+      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        {[
+          ["🌱 New here? Read in order", "About → Getting started → Playing games → Vibe Coins. Fifteen minutes and you'll be dangerous.", "/docs/about"],
+          ["🎉 Social player? Belong first", "Clans → Bots → Privacy & safety. Find your people, then give your agent a key.", "/docs/clans"],
+          ["🔧 Builder? Rent the cloud", "Agents & cloud → Game AI & Buddy → VibeCodeWorker. Metered compute that funds the arcade.", "/docs/agents-compute"],
+          ["🛡️ Trust first? Verify us", "Privacy & safety → FAQ & support → Vibe Coins. Rights, moderation, receipts, humans.", "/docs/privacy-safety"],
+        ].map(([t, b, href]) => (
           <Link
-            key={doc.href}
-            href={doc.href}
-            className="rounded-2xl border border-border bg-card p-5 transition hover:border-cyan-500/60 dark:hover:border-cyan-300/50"
+            key={href}
+            href={href}
+            className="group rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-xl"
           >
-            <h2 className="font-bold">{doc.label}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{doc.blurb}</p>
-            <span className="mt-3 inline-block text-sm font-semibold text-cyan-600 dark:text-cyan-300">
-              Read guide →
-            </span>
+            <p className="font-black group-hover:text-cyan-600 dark:group-hover:text-cyan-300">{t}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
           </Link>
         ))}
       </div>
 
-      <h2 className={h2}>How to use these docs</h2>
-      <ul className="mt-3 list-disc space-y-2 pl-6 text-muted-foreground">
-        <li>
-          <strong className="text-foreground">New here?</strong> Read in order:{" "}
-          <Link className="underline" href="/docs/about">About</Link> →{" "}
-          <Link className="underline" href="/docs/getting-started">Getting started</Link> →{" "}
-          <Link className="underline" href="/docs/playing-games">Playing games</Link> →{" "}
-          <Link className="underline" href="/docs/vibe-coins">Vibe Coins</Link>.
-        </li>
-        <li>
-          <strong className="text-foreground">Social player?</strong> Jump to{" "}
-          <Link className="underline" href="/docs/clans">Clans</Link> and{" "}
-          <Link className="underline" href="/docs/bots">Bots</Link>.
-        </li>
-        <li>
-          <strong className="text-foreground">Builder?</strong> Jump to{" "}
-          <Link className="underline" href="/docs/agents-compute">Agents &amp; cloud</Link>,{" "}
-          <Link className="underline" href="/docs/game-ai-buddy">Game AI &amp; Buddy</Link>, and{" "}
-          <Link className="underline" href="/docs/vibecodeworker">VibeCodeWorker</Link>.
-        </li>
-        <li>
-          <strong className="text-foreground">Trust first?</strong> Start at{" "}
-          <Link className="underline" href="/docs/privacy-safety">Privacy &amp; safety</Link>, then{" "}
-          <Link className="underline" href="/docs/faq">FAQ &amp; support</Link>.
-        </li>
-      </ul>
+      <SectionHead
+        index="✦"
+        kicker="The whole library"
+        title="All 11 guides"
+        body="Each card is its own page — company, how-tos, economy, social, cloud, trust."
+      />
 
-      <h2 className={h2}>Key facts used across every guide</h2>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        {[
-          ["🪙 100 coins = $1.00", "1¢ per coin. Packs are 500 / 1,500 / 5,000 / 25,000 plus custom 500–100,000. 100 coins is the free signup trial — it is never sold as a pack."],
-          ["25% cut, always inside", "Every coin price, game rate, clan fee, AI meter, and compute booking already includes the 25% platform share. It is never added on top; 75% goes to providers and makers."],
-          ["Live site + legal", "The app lives at 4weird.games (also reachable via 4weird.com). Terms at /terms, Privacy at /privacy, self-service rights at /my/rights, spend ledger at /my/usage/."],
-          ["Accounts + guests", "Reading is public; posting, saving, renting, and AI need a signed-in account. Guests get free daily loads plus skippable house ads — no account needed."],
-        ].map(([title, body]) => (
-          <div key={title} className="rounded-2xl border border-border bg-card p-5">
-            <h3 className="font-bold">{title}</h3>
-            <p className="mt-2 text-sm text-muted-foreground">{body}</p>
-          </div>
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        {guides.map((doc, i) => (
+          <Link
+            key={doc.href}
+            href={doc.href}
+            className="group relative overflow-hidden rounded-2xl border border-border bg-card transition hover:-translate-y-1 hover:shadow-2xl"
+          >
+            <div aria-hidden="true" className={`h-2 bg-gradient-to-r ${doc.card}`} />
+            <div className="p-5">
+              <div className="flex items-center gap-3">
+                <span aria-hidden="true" className={`flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br text-2xl ${doc.card}`}>
+                  {doc.icon}
+                </span>
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                    Guide {String(i + 1).padStart(2, "0")}
+                  </p>
+                  <h2 className="text-lg font-black leading-tight">{doc.label}</h2>
+                </div>
+              </div>
+              <p className="mt-2 text-sm text-muted-foreground">{doc.blurb}</p>
+              <span className="mt-3 inline-block text-sm font-bold text-cyan-600 transition group-hover:translate-x-1 dark:text-cyan-300">
+                Read guide →
+              </span>
+            </div>
+          </Link>
         ))}
       </div>
 
-      <p className="mt-8 text-sm text-muted-foreground">
-        Company: MattyJacks LLC, New Hampshire, USA · Contact:{" "}
+      <SectionHead
+        index="✦"
+        kicker="The one rule"
+        title="100 🪙 = $1.00. The 25% is already inside."
+        body="A coin is worth a cent. When you pay 400 coins ($4.00) for anything metered, the split behind it is always the same:"
+      />
+      <SplitBar />
+
+      <p className="mt-8 rounded-2xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
+        Company: MattyJacks LLC, New Hampshire, USA ·{" "}
         <a className="underline" href="mailto:matt@mattyjacks.com">matt@mattyjacks.com</a> ·{" "}
         <Link className="underline" href="/terms">Terms of Use</Link> ·{" "}
         <Link className="underline" href="/privacy">Privacy Policy</Link>

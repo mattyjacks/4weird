@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { DocsHero } from "@/components/docs/docs-hero";
+import { SectionHead, Callout, MockWindow, Pager } from "@/components/docs/docs-bits";
 
 export const metadata: Metadata = {
   title: "Game AI & Buddy",
@@ -7,73 +9,124 @@ export const metadata: Metadata = {
     "How game AI (dialogue bots, AI directors, voice) and the 9-voice Gaming Buddy work, what they cost, and how to use them on any play page.",
 };
 
-const h2 = "mt-10 text-2xl font-bold tracking-tight";
-const p = "mt-3 text-muted-foreground leading-relaxed";
+const theme = {
+  bg: "bg-gradient-to-br from-rose-950 via-slate-950 to-orange-950",
+  border: "border-rose-400/20",
+  chip: "border-rose-300/40 bg-rose-300/10 text-rose-200",
+  title: "bg-gradient-to-r from-rose-300 via-pink-200 to-orange-300 bg-clip-text text-transparent",
+};
+
+const VOICES = ["Alloy", "Ash", "Coral", "Echo", "Fable", "Onyx", "Nova", "Sage", "Shimmer"];
+const EQ = [42, 68, 34, 80, 56, 92, 48, 74, 38, 86, 60, 96, 52, 70, 40, 82, 58, 90, 46, 66, 36, 76, 54, 88];
 
 export default function GameAiBuddyPage() {
   return (
     <article>
-      <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-600 dark:text-cyan-300">
-        Docs · Play smarter
-      </p>
-      <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">Game AI &amp; Buddy 🎙️</h1>
-      <p className="mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
-        Dialogue bots, AI directors, voice acting — plus a universal 9-voice Gaming Buddy that
-        reads the screen and coaches you live. All metered with the 25% cut included.
-      </p>
+      <DocsHero
+        eyebrow="Docs · your co-pilot"
+        title={<>A coach who <span className={theme.title}>watches you play.</span></>}
+        lede={<>Dialogue bots, AI directors, voice acting — plus a universal 9-voice Gaming Buddy that reads the screen and coaches you live. All metered with the 25% cut included.</>}
+        stats={[
+          ["9", "voices"],
+          ["0.5–2x", "speech speed"],
+          ["2", "AI kinds: built-in + Buddy"],
+          ["1 widget", "every play page"],
+        ]}
+        glyph="🎙️"
+        theme={theme}
+        crumb="Game AI & Buddy"
+        art={
+          <div className="flex h-16 items-end gap-1 rounded-2xl border border-white/15 bg-black/40 p-3 backdrop-blur" aria-hidden="true">
+            {EQ.map((h, i) => (
+              <div
+                key={i}
+                className="eq-bar w-full rounded-full bg-gradient-to-t from-rose-500 to-orange-300"
+                style={{ height: `${h}%`, animationDelay: `${(i % 8) * 0.14}s` }}
+              />
+            ))}
+          </div>
+        }
+      />
 
-      <h2 className={h2}>1. Which games use AI (and how you&apos;ll know)</h2>
-      <p className={p}>
-        Games declare AI per title. Detail pages (<code>/games/[slug]</code>) and play pages show badges
-        disclosing the mode + provider + “25% cut included”:
-      </p>
-      <ul className="mt-3 list-disc space-y-2 pl-6 text-muted-foreground">
-        <li><strong className="text-foreground">Required AI:</strong> the core loop needs it (e.g. an attack director driving enemies). Playing the game uses AI by definition.</li>
-        <li><strong className="text-foreground">Optional AI:</strong> toggleable dialogue bots, AI directors, or text-to-speech you can switch on/off. Off means no AI metering for that feature.</li>
-      </ul>
+      <SectionHead
+        index="1"
+        kicker="Know what you're playing with"
+        title="Required vs. optional AI"
+        body="Detail and play pages wear badges disclosing mode + provider + '25% cut included'. Learn to read them:"
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-rose-400/40 bg-gradient-to-b from-rose-500/15 to-transparent p-5">
+          <p className="inline-block rounded-full bg-rose-500/25 px-2.5 py-1 text-[11px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-300">Required AI</p>
+          <p className="mt-2 text-sm text-muted-foreground">The core loop needs it — e.g. an attack director driving enemies. Playing the game <strong className="text-foreground">is</strong> using AI, metered per turn, decision, or GPU minute.</p>
+        </div>
+        <div className="rounded-2xl border border-emerald-400/40 bg-gradient-to-b from-emerald-500/15 to-transparent p-5">
+          <p className="inline-block rounded-full bg-emerald-500/25 px-2.5 py-1 text-[11px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-300">Optional AI</p>
+          <p className="mt-2 text-sm text-muted-foreground">Toggleable dialogue bots, directors, TTS. <strong className="text-foreground">Off means zero AI metering</strong> for that feature. Mix freely with the Buddy.</p>
+        </div>
+      </div>
 
-      <h2 className={h2}>2. What AI costs</h2>
-      <p className={p}>
-        Game AI meters per unit — dialogue/director/inference turns, TTS characters, GPU minutes — debited
-        in gross coins with the 25/75 split recorded server-side. Kinds include dialogue, director, TTS,
-        GPU-backed battles, inference, buddy-chat, and buddy-TTS. Game rental (load + per-second play) bills
-        underneath; AI bills on top only when used. Every line lands on{" "}
-        <Link className="underline" href="/my/usage/">/my/usage/</Link> by kind + by game.
-      </p>
+      <SectionHead
+        index="2"
+        kicker="The voice cast"
+        title="Nine voices, one default diva"
+        body="Nova ships as the default; all nine ride the same meters (chat tokens + voice characters + optional screen snapshot + database writes, 25% inside)."
+      />
+      <div className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-9">
+        {VOICES.map((v) => (
+          <div
+            key={v}
+            className={`rounded-2xl border p-3 text-center transition hover:-translate-y-0.5 ${
+              v === "Nova"
+                ? "border-rose-300/60 bg-gradient-to-b from-rose-400/25 to-transparent shadow-lg"
+                : "border-border bg-card"
+            }`}
+          >
+            <p aria-hidden="true" className="text-xl">🗣️</p>
+            <p className="mt-1 text-xs font-black">{v}</p>
+            {v === "Nova" && <p className="text-[10px] font-bold text-rose-500">DEFAULT</p>}
+          </div>
+        ))}
+      </div>
 
-      <h2 className={h2}>3. Gaming Buddy: your universal coach (/buddy)</h2>
-      <p className={p}>
-        <Link className="underline" href="/buddy">/buddy</Link> plus the widget on every play page is one
-        coach across all 34 games. It reads the screen + score events, reacts via an observe → reason → act
-        loop, chats back, and speaks in 9 voices.
-      </p>
-      <ul className="mt-3 list-disc space-y-2 pl-6 text-muted-foreground">
-        <li><strong className="text-foreground">Voices (9):</strong> Alloy, Ash, Coral, Echo, Fable, Onyx, Nova, Sage, Shimmer — Nova by default — at 0.5x–2.0x speed.</li>
-        <li><strong className="text-foreground">Sessions:</strong> start/end a Buddy session from the widget; chat and TTS actions meter per turn while the session is open.</li>
-        <li><strong className="text-foreground">Live spend:</strong> the widget shows session / total / 24h / 1h spend so costs never surprise you.</li>
-        <li><strong className="text-foreground">Fallbacks:</strong> when provider voice is unavailable the Buddy falls back locally (including browser speech) — metering still records the turn.</li>
-      </ul>
-
-      <h2 className={h2}>4. Using the Buddy well</h2>
-      <ol className="mt-3 list-decimal space-y-2 pl-6 text-muted-foreground">
-        <li>Open any play page, start a Buddy session, and ask for what you want: “coach my aim,” “explain this level,” “call out pickups.”</li>
-        <li>Keep sessions scoped (one game, one goal) — shorter sessions cost less and coach better.</li>
-        <li>Toggle optional in-game AI separately from the Buddy: e.g. mute a game&apos;s narrator but keep Buddy coaching.</li>
-        <li>End the session when you stop playing — open sessions keep the door open for metered turns.</li>
-        <li>Guests: Buddy, multiplayer, saves, and game AI are signed-in only. Sign up to unlock them.</li>
+      <SectionHead
+        index="3"
+        kicker="How a session sounds"
+        title="Buddy 101"
+      />
+      <MockWindow title="gaming buddy — live session" badge="9.2¢ this session">
+        <div className="space-y-3 text-sm">
+          <div className="flex gap-2.5">
+            <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rose-500/30">🎙️</span>
+            <div className="rounded-2xl rounded-tl-sm bg-white/10 px-3 py-2">
+              <p className="text-[11px] font-bold text-rose-300">Buddy · Nova 1.2x</p>
+              <p>Nice dodge! Two pickups spawn left in ~5s — grab the shield first 🛡️</p>
+            </div>
+          </div>
+          <div className="flex flex-row-reverse gap-2.5">
+            <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/15">🙂</span>
+            <div className="rounded-2xl rounded-tr-sm bg-rose-500/25 px-3 py-2"><p>coach my aim for this boss?</p></div>
+          </div>
+          <div className="flex flex-wrap gap-2 text-[11px] font-bold text-slate-400">
+            <span className="rounded-full border border-white/10 px-2.5 py-1">session 4.1¢</span>
+            <span className="rounded-full border border-white/10 px-2.5 py-1">total 38.7¢</span>
+            <span className="rounded-full border border-white/10 px-2.5 py-1">24h 12.0¢</span>
+            <span className="rounded-full border border-white/10 px-2.5 py-1">1h 4.1¢</span>
+          </div>
+        </div>
+      </MockWindow>
+      <ol className="mt-5 list-decimal space-y-2 pl-6 text-sm leading-relaxed text-muted-foreground">
+        <li>Open any play page, <strong className="text-foreground">start a Buddy session</strong>, ask for what you want: “coach my aim,” “explain this level,” “call out pickups.”</li>
+        <li><strong className="text-foreground">Keep sessions scoped</strong> — one game, one goal. Shorter sessions cost less and coach better.</li>
+        <li><strong className="text-foreground">End the session</strong> when you stop playing — open sessions keep the door open for metered turns.</li>
+        <li><strong className="text-foreground">Guests:</strong> Buddy, multiplayer, saves, and game AI are signed-in only. Sign up to unlock them.</li>
       </ol>
+      <Callout tone="rose" title="No voice? Check the stage, not the actor.">
+        Device volume + browser autoplay permission first, then another voice/speed. The widget falls back to on-device
+        speech when provider voice is unavailable — the turn still meters. Spend questions? Compare the widget&apos;s session
+        line with <Link className="underline" href="/my/usage/">/my/usage/</Link> by-kind + recent-turns lines.
+      </Callout>
 
-      <h2 className={h2}>5. Troubleshooting</h2>
-      <ul className="mt-3 list-disc space-y-2 pl-6 text-muted-foreground">
-        <li><strong className="text-foreground">No voice:</strong> check device volume + browser autoplay permission; try a different voice/speed; the widget falls back to on-device speech.</li>
-        <li><strong className="text-foreground">Spend question:</strong> compare the widget&apos;s session line with <Link className="underline" href="/my/usage/">/my/usage/</Link> by-kind + recent-turns lines.</li>
-        <li><strong className="text-foreground">AI badge vs. Buddy:</strong> a game can have no built-in AI and still support the universal Buddy overlay — badges describe the game, the widget describes the coach.</li>
-      </ul>
-
-      <p className="mt-8 text-sm text-muted-foreground">
-        Next: <Link className="underline" href="/docs/playing-games">Playing games →</Link> ·{" "}
-        <Link className="underline" href="/docs/vibecodeworker">VibeCodeWorker →</Link>
-      </p>
+      <Pager current="/docs/game-ai-buddy" />
     </article>
   );
 }

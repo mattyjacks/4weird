@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { DocsHero } from "@/components/docs/docs-hero";
+import { SectionHead, MockWindow, SplitBar, Pager } from "@/components/docs/docs-bits";
 
 export const metadata: Metadata = {
   title: "Agents & cloud",
@@ -7,72 +9,97 @@ export const metadata: Metadata = {
     "How to rent AI agents, virtual desktops, and UnitUnite team workspaces on 4weird: booking, escrow, per-second metering, and reading usage.",
 };
 
-const h2 = "mt-10 text-2xl font-bold tracking-tight";
-const p = "mt-3 text-muted-foreground leading-relaxed";
+const theme = {
+  bg: "bg-gradient-to-br from-sky-950 via-slate-950 to-indigo-950",
+  border: "border-sky-400/20",
+  chip: "border-sky-300/40 bg-sky-300/10 text-sky-200",
+  title: "bg-gradient-to-r from-sky-300 via-blue-200 to-indigo-300 bg-clip-text text-transparent",
+};
 
 export default function AgentsComputePage() {
   return (
     <article>
-      <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-600 dark:text-cyan-300">
-        Docs · Build
-      </p>
-      <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">Agents &amp; cloud</h1>
-      <p className="mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
-        Rent AI agents by the hour, virtual desktops by the second, and team workspaces with
-        metered cloud — all in Vibe Coins, all with the 25% cut already inside the price.
-      </p>
+      <DocsHero
+        eyebrow="Docs · the cloud gift shop"
+        title={<>Rent a supercomputer <span className={theme.title}>by the second.</span></>}
+        lede={<>AI agents by the hour, virtual desktops by the second, team workspaces with metered cloud — all in Vibe Coins, all with the 25% cut already inside the price.</>}
+        stats={[
+          ["1s", "metering granularity"],
+          ["25/75", "split, escrowed"],
+          ["2", "desktop flavors"],
+          ["$0", "above escrow, ever"],
+        ]}
+        glyph="☁️"
+        theme={theme}
+        crumb="Agents & cloud"
+      />
 
-      <h2 className={h2}>1. Renting AI agents (/agents)</h2>
-      <p className={p}>
-        <Link className="underline" href="/agents">/agents</Link> lists rentable agents by runtime and
-        provider. Booking flow, entirely on the site:
-      </p>
-      <ol className="mt-3 list-decimal space-y-2 pl-6 text-muted-foreground">
-        <li>Browse by runtime and provider; open an agent to see its hourly coin price and terms.</li>
-        <li>Book by hours — the gross coin amount is <strong className="text-foreground">escrowed</strong> from your balance up front.</li>
-        <li>Metered heartbeats settle actual run seconds into 25% platform / 75% provider. The final charge can only go down — <strong className="text-foreground">never above escrow</strong>.</li>
-        <li>End the booking when done; unused escrow returns to you. Track bookings under “my bookings.”</li>
-      </ol>
-      <p className={p}>
-        Availability depends on real provider capacity. If a booking can&apos;t start, the page says so
-        honestly (no stock / over budget / unavailable) — you are not charged for time that didn&apos;t run.
-      </p>
+      <SectionHead
+        index="1"
+        kicker="Hire a robot"
+        title="Renting AI agents (/agents)"
+        body="Browse by runtime and provider, open an agent for its hourly coin price and terms, then book. The flow protects you by construction:"
+      />
+      <MockWindow title="booking — escrow ledger" badge="escrow">
+        <div className="space-y-1.5 font-mono text-xs sm:text-sm">
+          <div className="flex justify-between gap-4"><span className="text-slate-400">BOOK · 3h @ 100 🪙/hr</span><span className="font-bold text-amber-300">−300 🪙 escrowed</span></div>
+          <div className="flex justify-between gap-4"><span className="text-slate-400">♥ heartbeat · 1,842s run</span><span className="text-slate-300">metered…</span></div>
+          <div className="flex justify-between gap-4"><span className="text-slate-400">SETTLE · 25/75 · used 154 🪙</span><span className="font-bold text-emerald-300">+146 🪙 refunded</span></div>
+          <p className="pt-1 text-[11px] text-slate-500">final charge can only go down — never above escrow</p>
+        </div>
+      </MockWindow>
+      <div className="mt-5 grid gap-3 sm:grid-cols-4">
+        {[
+          ["🔍 Browse", "Filter by runtime + provider on /agents."],
+          ["🔒 Book", "Gross coins escrowed up front."],
+          ["💓 Heartbeat", "Per-second metering settles 25/75."],
+          ["🏁 End", "Unused escrow returns to you."],
+        ].map(([t, b]) => (
+          <div key={t} className="rounded-2xl border border-border bg-card p-4">
+            <p className="font-black">{t}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          </div>
+        ))}
+      </div>
+      <SplitBar />
 
-      <h2 className={h2}>2. Virtual desktops (/desktop)</h2>
-      <ul className="mt-3 list-disc space-y-2 pl-6 text-muted-foreground">
-        <li><strong className="text-foreground">CPU box:</strong> Ubuntu desktop in your browser — good for browsing, editing, light dev.</li>
-        <li><strong className="text-foreground">GPU workstation:</strong> graphical desktop for heavier visual work and game-adjacent tasks.</li>
-        <li>Provision from <Link className="underline" href="/desktop">/desktop</Link> while signed in (optional max-budget + name). You get a proxy URL back; billing is per-second by the provider and mirrored read-only on <Link className="underline" href="/my/usage/">/my/usage/</Link>. Coin figures shown for desktops are display equivalents only.</li>
+      <SectionHead
+        index="2"
+        kicker="A computer in a tab"
+        title="Virtual desktops (/desktop)"
+        body="Provision from /desktop while signed in (optional max-budget + name) and get a proxy URL back. Billing is per-second by the provider and mirrored read-only on /my/usage/. Coin figures shown are display equivalents only."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card">
+          <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/10 p-4"><p className="text-3xl" aria-hidden="true">🖥️</p><p className="mt-1 font-black">CPU box — Ubuntu</p></div>
+          <p className="p-4 text-sm text-muted-foreground">Browsing, editing, light dev. The cheap seat with a great view.</p>
+        </div>
+        <div className="overflow-hidden rounded-2xl border border-border bg-card">
+          <div className="bg-gradient-to-r from-violet-500/20 to-fuchsia-500/10 p-4"><p className="text-3xl" aria-hidden="true">🎮</p><p className="mt-1 font-black">GPU workstation — graphical</p></div>
+          <p className="p-4 text-sm text-muted-foreground">Heavier visual work and game-adjacent tasks. Bring sunglasses.</p>
+        </div>
+      </div>
+
+      <SectionHead
+        index="3"
+        kicker="Squad up"
+        title="UnitUnite team workspaces (/teams)"
+        body="Orgs → teams → projects/rooms with role catalogs, org coin wallets, messaging, and a metered cloud catalog (GPU pods, serverless, storage, databases, KV, queue). Every workspace meter carries the same included 25% cut, every cent attributed. Use teams when several people share budget, rooms, and cloud."
+      />
+
+      <SectionHead
+        index="4"
+        kicker="Street smarts"
+        title="Cloud tips that save coins"
+      />
+      <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
+        <li className="rounded-xl border border-border bg-card p-3">🧪 <strong className="text-foreground">Book short first sessions</strong> to calibrate cost — per-second settlement keeps tests cheap.</li>
+        <li className="rounded-xl border border-border bg-card p-3">💰 <strong className="text-foreground">Set a max budget</strong> on desktop provisions to avoid surprises.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🔌 <strong className="text-foreground">End bookings, close desktops.</strong> Metering follows run time, not browser tabs.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🌊 <strong className="text-foreground">Estimates aren&apos;t guarantees</strong> — capacity, queues, and provider pricing can shift. Can&apos;t start? The page says so honestly, and you aren&apos;t charged. Track it all on <Link className="underline" href="/my/usage/">/my/usage/</Link>.</li>
       </ul>
 
-      <h2 className={h2}>3. UnitUnite team workspaces (/teams)</h2>
-      <p className={p}>
-        <Link className="underline" href="/teams">/teams</Link> organizes orgs → teams → projects/rooms with role
-        catalogs, org coin wallets, messaging, and a metered cloud catalog (GPU pods, serverless, storage,
-        databases, KV, queue). Every workspace meter carries the same included 25% cut, with every cent of the
-        platform share attributed. Use teams when several people share budget, rooms, and cloud in one place.
-      </p>
-
-      <h2 className={h2}>4. Reading cloud spend (/my/usage/)</h2>
-      <p className={p}>
-        Open <Link className="underline" href="/my/usage/">/my/usage/</Link> for agent-rental compute lines,
-        workspace cloud with function runs broken out (serverless-worker/cron, inference, queues, relays),
-        game AI/Buddy, clan fees, game rentals, and combined 25/75 totals — plus the provider-spend mirror card
-        with a Sync button. If a number surprises you, this page is the receipt support will ask for.
-      </p>
-
-      <h2 className={h2}>5. Practical tips</h2>
-      <ul className="mt-3 list-disc space-y-2 pl-6 text-muted-foreground">
-        <li>Book short first sessions to calibrate cost; heartbeats settle per second so short tests stay cheap.</li>
-        <li>Set a max budget on desktop provisions to avoid surprises.</li>
-        <li>End bookings and close desktops when done — metering follows run time, not browser tabs.</li>
-        <li>Estimates are not guarantees: capacity, queues, and provider pricing can shift mid-session.</li>
-      </ul>
-
-      <p className="mt-8 text-sm text-muted-foreground">
-        Next: <Link className="underline" href="/docs/game-ai-buddy">Game AI &amp; Buddy →</Link> ·{" "}
-        <Link className="underline" href="/docs/vibe-coins">Vibe Coins →</Link>
-      </p>
+      <Pager current="/docs/agents-compute" />
     </article>
   );
 }

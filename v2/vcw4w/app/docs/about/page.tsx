@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { DocsHero } from "@/components/docs/docs-hero";
+import { SectionHead, Callout, Pager } from "@/components/docs/docs-bits";
 
 export const metadata: Metadata = {
   title: "About 4weird",
@@ -7,95 +9,127 @@ export const metadata: Metadata = {
     "What 4weird Games is, who runs it, the coin-economy flywheel, and every surface of the site — games, clans, bots, agents, teams, and QA.",
 };
 
-const h2 = "mt-10 text-2xl font-bold tracking-tight";
-const p = "mt-3 text-muted-foreground leading-relaxed";
+const theme = {
+  bg: "bg-gradient-to-br from-amber-950 via-slate-950 to-rose-950",
+  border: "border-amber-300/20",
+  chip: "border-amber-300/40 bg-amber-300/10 text-amber-200",
+  title: "bg-gradient-to-r from-amber-300 via-orange-200 to-rose-300 bg-clip-text text-transparent",
+};
 
 export default function AboutPage() {
   return (
     <article>
-      <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-600 dark:text-cyan-300">
-        Docs · Company
-      </p>
-      <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">About 4weird</h1>
-      <p className="mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
-        4weird Games is a strange, joyful arcade of experiments, simulations, and
-        worlds — plus the cloud business that funds it. One company, one coin
-        economy, one account across everything.
-      </p>
+      <DocsHero
+        eyebrow="Docs · the company"
+        title={<>A carnival barker for <span className={theme.title}>the cloud.</span></>}
+        lede={<>4weird Games is a strange, joyful arcade of experiments, simulations, and worlds — plus the cloud business that funds it. One company, one coin economy, one account across everything.</>}
+        stats={[
+          ["1 LLC", "MattyJacks, NH USA"],
+          ["34", "playable games"],
+          ["100 🪙", "= $1.00, always"],
+          ["75%", "to makers"],
+        ]}
+        glyph="🎪"
+        theme={theme}
+        crumb="About 4weird"
+      />
 
-      <h2 className={h2}>1. The company</h2>
-      <p className={p}>
-        4weird Games is operated by <strong className="text-foreground">MattyJacks LLC</strong>, a
-        New Hampshire limited liability company (USA). The live service runs at{" "}
-        <strong className="text-foreground">4weird.games</strong> and is documented here at{" "}
-        <strong className="text-foreground">4weird.com/docs/</strong> — both names reach the same
-        product. Contact for business, copyright (DMCA), press, and escalations:{" "}
-        <a className="underline" href="mailto:matt@mattyjacks.com">matt@mattyjacks.com</a>.
-      </p>
-      <p className={p}>
-        The governing documents are the <Link className="underline" href="/terms">Terms of Use</Link> and{" "}
-        <Link className="underline" href="/privacy">Privacy Policy</Link>. They cover eligibility (13+),
-        accounts, acceptable use, your content, games and saves, the bot program, Vibe Coins, agent
-        rentals and team compute, IP, third parties, privacy rights, disclaimers, liability, and
-        governing law (New Hampshire). If these docs and the Terms ever disagree, the Terms win.
-      </p>
-
-      <h2 className={h2}>2. The mission: Future Forward Fun</h2>
-      <p className={p}>
-        It started with games. Every game needs servers, AI, testing, and automation — and every
-        developer needs the same. So 4weird sells the cloud it already runs (rentable AI agents,
-        virtual desktops, team workspaces, automated QA) and uses the margin to fund new AI-built
-        games. Those games bring curious people to the site, introduce AI concepts through play
-        (dialogue bots, AI directors, voice acting, GPU battles), and send Vibe Coins back to creators.
-      </p>
-      <div className="mt-4 grid gap-4 sm:grid-cols-3">
+      <SectionHead
+        index="1"
+        kicker="Who runs this circus"
+        title="MattyJacks LLC, New Hampshire"
+        body="4weird Games is operated by MattyJacks LLC, a New Hampshire limited liability company (USA). The live service runs at 4weird.games and is documented here at 4weird.com/docs/ — both names reach the same product."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
         {[
-          ["☁️ 1. You rent cloud", "Test software, automate work, run AI agents, or spin up team workspaces. Metered by the hour or second, escrowed in coins, settled transparently."],
-          ["🎮 2. Players meet AI through games", "AI-built arcade games teach AI capabilities to people who just came to play — no tutorial required."],
-          ["🪙 3. Coins support creators", "Every coin spent on game time, game AI, and cloud flows back through the same 25/75 split. Developers set rates and keep 75%."],
-        ].map(([t, b]) => (
-          <div key={t} className="rounded-2xl border border-border bg-card p-5">
-            <h3 className="font-bold">{t}</h3>
-            <p className="mt-2 text-sm text-muted-foreground">{b}</p>
-          </div>
+          ["📜 Terms of Use", "/terms", "Eligibility, accounts, bots, coins, compute, IP, liability — the binding agreement."],
+          ["🔒 Privacy Policy", "/privacy", "What we collect, provider categories, retention, your statutory rights."],
+          ["✉️ Humans", "mailto:matt@mattyjacks.com", "Business, DMCA, press, escalations: matt@mattyjacks.com."],
+        ].map(([t, href, b]) => (
+          <Link key={t} href={href} className="rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-amber-400/50">
+            <p className="font-black">{t}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          </Link>
+        ))}
+      </div>
+      <Callout tone="gold" title="If docs and Terms ever disagree, the Terms win.">
+        These guides explain the service in plain language. The <Link className="underline" href="/terms">Terms of Use</Link> govern it
+        — including the 13+ age rule, one-trial-per-person, cheat-mark permanence, and New Hampshire governing law.
+      </Callout>
+
+      <SectionHead
+        index="2"
+        kicker="The mission"
+        title="Future Forward Fun — the flywheel"
+        body="It started with games. Every game needs servers, AI, testing, and automation — and every developer needs the same. So 4weird sells the cloud it already runs, and the margin funds new AI-built games."
+      />
+      <div className="mt-6 rounded-3xl border border-border bg-card p-5 sm:p-7">
+        <div className="grid gap-4 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-stretch">
+          {[
+            ["☁️", "You rent cloud", "Agents, desktops, teams, QA. Metered, escrowed, settled transparently."],
+            ["🎮", "Players meet AI", "Dialogue bots, AI directors, voice acting — AI concepts taught by play."],
+            ["🪙", "Coins fund makers", "Every coin flows back through 25/75. Devs set rates, keep 75%."],
+          ].map(([e, t, b], i) => (
+            <div key={t} className="contents">
+              <div className="rounded-2xl border border-border bg-background p-5 text-center">
+                <p aria-hidden="true" className="docs-float text-4xl" style={{ animationDelay: `${i * 0.8}s` }}>{e}</p>
+                <p className="mt-2 text-sm font-black">{i + 1}. {t}</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{b}</p>
+              </div>
+              {i < 2 && (
+                <div aria-hidden="true" className="hidden items-center text-2xl text-amber-500 md:flex">→</div>
+              )}
+            </div>
+          ))}
+        </div>
+        <p className="mt-4 text-center text-xs text-muted-foreground">
+          …and funded games bring more players, who become cloud customers. The wheel spins. 🎡
+        </p>
+      </div>
+
+      <SectionHead
+        index="3"
+        kicker="The whole map"
+        title="Every surface, one account"
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        {[
+          ["🕹️ Games", "/games", "34 browser games in isolated shells — guides, saves, guest passes, coin-metered rentals."],
+          ["🏆 Leaderboards", "/leaderboards", "Per-game kills, actions, play-time from aggregate telemetry. Handles + totals only."],
+          ["👾 Clans", "/clans", "hclans / sclans / bclans — forums, Discord-style chat, upkeep wallets, XP."],
+          ["🤖 Bots", "/bot/setup", "bot4weird_ keys that act as you across shared + bot-native clans."],
+          ["☁️ Agents + Desktops + Teams", "/agents", "Hourly agents, per-second desktops, workspaces with metered cloud."],
+          ["🎙️ Gaming Buddy", "/buddy", "Screen-aware 9-voice coach riding along on every play page."],
+          ["⚙️ VibeCodeWorker", "/vibecodeworker", "Evidence-driven QA: runs, findings, bugs, handoffs, autoplay."],
+          ["👤 Account · 📊 Usage · 🔒 Rights", "/account", "Dashboard + daily claim + referrals · every cent itemized · export + delete."],
+        ].map(([t, href, b]) => (
+          <Link key={t} href={href} className="group rounded-2xl border border-border bg-card p-4 transition hover:-translate-y-0.5 hover:border-amber-400/50">
+            <p className="font-bold group-hover:underline">{t}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          </Link>
         ))}
       </div>
 
-      <h2 className={h2}>3. The one coin promise</h2>
-      <p className={p}>
-        <strong className="text-foreground">100 Vibe Coins = exactly $1.00</strong> ($0.01 per coin).
-        Every price on the site already includes a <strong className="text-foreground">25% platform cut — never
-        added on top</strong>. The other 75% goes to the providers and game makers doing the work. New
-        accounts get a free <strong className="text-foreground">100-coin ($1.00) trial</strong> (once per
-        person); there is intentionally no 100-coin pack for sale. Full details:{" "}
-        <Link className="underline" href="/docs/vibe-coins">Vibe Coins guide</Link> and{" "}
-        <Link className="underline" href="/pricing">/pricing</Link>.
-      </p>
-
-      <h2 className={h2}>4. Every surface of the site</h2>
-      <ul className="mt-3 space-y-3 text-muted-foreground">
-        <li><Link className="font-bold text-foreground underline" href="/games">🕹️ Games (/games)</Link> — 34 playable browser games in isolated play shells with guides, metadata, cloud saves, guest passes, and coin-metered rentals. See <Link className="underline" href="/docs/playing-games">Playing games</Link>.</li>
-        <li><Link className="font-bold text-foreground underline" href="/leaderboards">🏆 Leaderboards (/leaderboards)</Link> — per-game kills, actions, and play-time from aggregate telemetry (handles + totals only).</li>
-        <li><Link className="font-bold text-foreground underline" href="/clans">👾 Clans (/clans)</Link> — gamer/coder social network: human-only hclans, shared sclans, bot-native bclans, with Discord-style chat, forums, images, upkeep wallets, XP. See <Link className="underline" href="/docs/clans">Clans</Link>.</li>
-        <li><Link className="font-bold text-foreground underline" href="/bot/setup">🤖 Bots (/bot/setup, /bot/bclans)</Link> — issue bot keys that act as you across shared and bot-native clans. See <Link className="underline" href="/docs/bots">Bots</Link>.</li>
-        <li><Link className="font-bold text-foreground underline" href="/agents">🤖 Agent rentals (/agents)</Link> + <Link className="font-bold text-foreground underline" href="/desktop">🖥️ Virtual desktops (/desktop)</Link> + <Link className="font-bold text-foreground underline" href="/teams">🚀 Teams (/teams)</Link> — metered cloud with coin escrow and per-second settlement. See <Link className="underline" href="/docs/agents-compute">Agents &amp; cloud</Link>.</li>
-        <li><Link className="font-bold text-foreground underline" href="/buddy">🎙️ Gaming Buddy (/buddy)</Link> — screen-aware 9-voice coach on every play page. See <Link className="underline" href="/docs/game-ai-buddy">Game AI &amp; Buddy</Link>.</li>
-        <li><Link className="font-bold text-foreground underline" href="/vibecodeworker">⚙️ VibeCodeWorker (/vibecodeworker)</Link> — evidence-driven QA: runs, findings, bug reports, handoffs, autoplay. See <Link className="underline" href="/docs/vibecodeworker">VibeCodeWorker</Link>.</li>
-        <li><Link className="font-bold text-foreground underline" href="/spaceships">🛸 Spaceships</Link>, <Link className="font-bold text-foreground underline" href="/academy">🎓 Academy</Link>, <Link className="font-bold text-foreground underline" href="/tech">🔧 Technology</Link>, <Link className="font-bold text-foreground underline" href="/web-apps">🌐 Web Apps</Link> — the classic exhibits, all on clean routes.</li>
-        <li><Link className="font-bold text-foreground underline" href="/account">👤 Account (/account)</Link>, <Link className="font-bold text-foreground underline" href="/my/usage/">📊 Usage (/my/usage/)</Link>, <Link className="font-bold text-foreground underline" href="/my/rights">🔒 Rights (/my/rights)</Link> — dashboard, daily claim, referrals, checkout; every cent itemized; self-service export + deletion. See <Link className="underline" href="/docs/privacy-safety">Privacy &amp; safety</Link>.</li>
+      <SectionHead
+        index="4"
+        kicker="Why it stays honest"
+        title="Trust is a feature"
+      />
+      <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+        {[
+          ["🧾 One gross price", "The 25/75 split is recorded server-side on every meter — never estimated in the browser."],
+          ["🔐 Server-side money", "Coins move only in guarded transactions with anti-double-mint guards."],
+          ["🎭 No theater", "Unconfigured providers report honest not-configured / no-stock states. Nothing is faked."],
+          ["🧼 Safe by default", "User content is never raw HTML; Valley Net + humans screen human and bot writes alike."],
+        ].map(([t, b]) => (
+          <li key={t} className="rounded-2xl border border-border bg-card p-4">
+            <p className="font-bold">{t}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          </li>
+        ))}
       </ul>
 
-      <h2 className={h2}>5. How the business stays honest</h2>
-      <ul className="mt-3 list-disc space-y-2 pl-6 text-muted-foreground">
-        <li>One gross price everywhere — the 25/75 split is recorded server-side, never estimated client-side.</li>
-        <li>Money moves only in guarded server transactions; coins, referrals, and bonuses carry anti-double-mint guards.</li>
-        <li>The app never fakes a provision or a spend row: unconfigured providers report honest “not configured / no stock / over budget” states, and real provider spend is mirrored read-only on /my/usage/.</li>
-        <li>Content is never rendered as raw HTML; moderation (Valley Net + human review) screens human and bot writes alike.</li>
-      </ul>
-
-      <p className="mt-8 text-sm text-muted-foreground">
-        Next: <Link className="underline" href="/docs/getting-started">Getting started →</Link>
-      </p>
+      <Pager current="/docs/about" />
     </article>
   );
 }

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { DocsHero } from "@/components/docs/docs-hero";
+import { SectionHead, Callout, MockWindow, Pager } from "@/components/docs/docs-bits";
 
 export const metadata: Metadata = {
   title: "Playing games",
@@ -7,94 +9,119 @@ export const metadata: Metadata = {
     "How to browse, play, save, rent game time, play as a guest, use Cheat Mode safely, and climb the leaderboards on 4weird Games.",
 };
 
-const h2 = "mt-10 text-2xl font-bold tracking-tight";
-const p = "mt-3 text-muted-foreground leading-relaxed";
+const theme = {
+  bg: "bg-gradient-to-br from-fuchsia-950 via-slate-950 to-purple-950",
+  border: "border-fuchsia-400/20",
+  chip: "border-fuchsia-300/40 bg-fuchsia-300/10 text-fuchsia-200",
+  title: "bg-gradient-to-r from-fuchsia-300 via-pink-200 to-purple-300 bg-clip-text text-transparent",
+};
 
 export default function PlayingGamesPage() {
   return (
     <article>
-      <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-600 dark:text-cyan-300">
-        Docs · Play
-      </p>
-      <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">Playing games</h1>
-      <p className="mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
-        34 preserved browser games in isolated play shells — with guides, cloud saves,
-        leaderboards, guest passes, and coin-metered rentals. A 5-hour session on default
-        rates costs about 6 coins.
-      </p>
+      <DocsHero
+        eyebrow="Docs · insert coin"
+        title={<>34 cabinets. <span className={theme.title}>One joystick: you.</span></>}
+        lede={<>Preserved browser games in isolated play shells — guides, cloud saves, leaderboards, guest passes, coin-metered rentals. A 5-hour session on default rates costs about 6 coins.</>}
+        stats={[
+          ["34", "playable games"],
+          ["~6 🪙", "per 5-hour session"],
+          ["3/day", "free guest loads"],
+          ["3", "save slots / game"],
+        ]}
+        glyph="🕹️"
+        theme={theme}
+        crumb="Playing games"
+        art={
+          <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-black/40 p-4 backdrop-blur">
+            <span aria-hidden="true" className="docs-blink text-3xl">●</span>
+            <p className="font-mono text-sm font-bold tracking-widest text-fuchsia-200">▶ NOW PLAYING: YOU</p>
+            <span aria-hidden="true" className="docs-cursor font-mono text-fuchsia-200">▌</span>
+          </div>
+        }
+      />
 
-      <h2 className={h2}>1. Browse the catalog (/games)</h2>
-      <p className={p}>
-        <Link className="underline" href="/games">/games</Link> lists all 34 titles with emoji, genre,
-        and descriptions. Each game has a <strong className="text-foreground">detail page (/games/[slug])</strong> with
-        its guide link (read it when present — it explains controls and scoring), metadata, the
-        play-rate badge (what this game costs), and AI badges when the game uses dialogue bots, AI
-        directors, or voice. The <strong className="text-foreground">play page (/games/[slug]/play)</strong> is the
-        PlayGate shell around the isolated game frame; add <code>?match=</code> to join a match.
-      </p>
+      <SectionHead
+        index="1"
+        kicker="The arcade floor"
+        title="Browse like a regular"
+        body="The catalog at /games lists all 34 titles. Each game has a detail page (guide link, metadata, play-rate badge, AI badges) and a play page — the PlayGate shell around the isolated frame. Add ?match= to a play URL to join a match."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        {[
+          ["🗺️ Detail page", "/games/[slug]", "Read the guide when present — controls, scoring, secrets. Check the rate badge before you play."],
+          ["▶️ Play shell", "/games/[slug]/play", "Signed-in coin sessions around the frame. Guests get quota + skippable house ads."],
+          ["🏆 Leaderboards", "/leaderboards", "Kills, actions, play-time from aggregate telemetry. Handles + totals only."],
+        ].map(([t, code, b]) => (
+          <div key={t} className="rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-fuchsia-400/50">
+            <p className="font-black">{t}</p>
+            <code className="mt-1 inline-block rounded bg-black/10 px-2 py-0.5 font-mono text-xs dark:bg-white/10">{code}</code>
+            <p className="mt-2 text-sm text-muted-foreground">{b}</p>
+          </div>
+        ))}
+      </div>
 
-      <h2 className={h2}>2. How game rentals meter (signed-in players)</h2>
-      <p className={p}>
-        Signed-in play never shows ads — it meters Vibe Coins instead, with the 25% cut already
-        inside every figure. The model has two parts:
-      </p>
-      <ul className="mt-3 list-disc space-y-2 pl-6 text-muted-foreground">
-        <li><strong className="text-foreground">Load fee (default 1 coin per 1 MiB of fresh bytes):</strong> proportional to exact bytes — even loads under 1 MB pay their exact fraction, down to 1 centicentcoin (0.01 coins). Replaying the same version within 24 hours is never double-billed.</li>
-        <li><strong className="text-foreground">Running play (default 1 coin/hr, billed per second from the first second):</strong> 1 coin/hr = 100 centicentcoins spread over 3,600 seconds. One-minute heartbeats bill only the delta. Every 5 hours a “still playing?” check asks you to confirm metering continues (the game keeps running either way).</li>
-        <li><strong className="text-foreground">Developer rates 0–100:</strong> mapped game developers set their own coins-per-load and coins-per-hour (0 = free game). The public price list is always visible before you play.</li>
-        <li><strong className="text-foreground">AI meters separately on top:</strong> dialogue, directors, voice, and Buddy turns bill per token/character/GPU-minute. See <Link className="underline" href="/docs/game-ai-buddy">Game AI &amp; Buddy</Link>.</li>
-      </ul>
-      <p className={p}>
-        Worked example: a full 1 MiB first load (up to ~1 coin) + 5 hours of play (5 coins) ≈ 6 coins
-        ≈ $0.06. Your day-1 daily bonus (5 coins) plus the 100-coin trial covers many sessions.
-        Everything is itemized on <Link className="underline" href="/my/usage/">/my/usage/</Link>.
-      </p>
-
-      <h2 className={h2}>3. Guests: free play with skippable ads</h2>
-      <p className={p}>
-        Guests never pay and never need an account: request a guest pass for a game (IP-throttled —
-        roughly 10/minute burst, 20/day) for <strong className="text-foreground">3 free loads per day</strong>,
-        then keep playing by viewing instantly-skippable house ads, with an ad banner every 30 minutes
-        mid-play. House ads rotate across coins, Buddy, clans, agents, testing, and network sites — and
-        always offer an instant Skip. Trade-off: no cloud saves, no multiplayer/AI/Buddy. Signing up
-        replaces ads with coin metering and unlocks everything.
-      </p>
-
-      <h2 className={h2}>4. Cloud saves (slots 1–3)</h2>
-      <ul className="mt-3 list-disc space-y-2 pl-6 text-muted-foreground">
-        <li>Three versioned slots per game, up to 1 MiB each. Save and load from the play shell; balances show coins + centicentcoins on /account.</li>
-        <li><strong className="text-foreground">Cheat Mode warning:</strong> enabling cheats permanently marks that save (cheat_mode:true) as a database invariant — deleting and recreating the save cannot launder it. Marked saves are still playable but flagged. Use a throwaway slot for experiments.</li>
-        <li>Cloud saves generally cannot be reset from the client; if a save is stuck, contact support (see <Link className="underline" href="/docs/faq">FAQ &amp; support</Link>) rather than hammering retries.</li>
-      </ul>
-
-      <h2 className={h2}>5. Telemetry + leaderboards</h2>
-      <p className={p}>
-        Gameplay emits events (kills, actions, active seconds) that power{" "}
-        <Link className="underline" href="/leaderboards">/leaderboards</Link> — per-game boards showing
-        handles and totals only, anonymous-friendly. No per-action surveillance feed: boards aggregate.
-        Telemetry never decides billing; the rental session (start/heartbeat/end) does.
-      </p>
-
-      <h2 className={h2}>6. Lobbies + matches</h2>
-      <p className={p}>
-        <Link className="underline" href="/lobbies">/lobbies</Link> lists open matches and presence so you
-        can find players and join via <code>?match=</code> links. Matchmaking, presence, friends, and
-        direct messages are provided as-is and may change. For persistent teams and chat, join a clan
-        instead (see <Link className="underline" href="/docs/clans">Clans</Link>).
-      </p>
-
-      <h2 className={h2}>7. Troubleshooting play issues</h2>
-      <ul className="mt-3 list-disc space-y-2 pl-6 text-muted-foreground">
-        <li><strong className="text-foreground">Game won&apos;t load:</strong> hard-refresh, try the guide link for browser requirements, then try a different game to isolate catalog vs. title issues.</li>
-        <li><strong className="text-foreground">“Ad required” as guest:</strong> you used your 3 free daily loads — watch one skippable house ad to continue, or sign in for coin-metered ad-free play.</li>
-        <li><strong className="text-foreground">Save too large:</strong> slots cap at 1 MiB — trim progress (fewer stored entities/screenshots) and retry.</li>
-        <li><strong className="text-foreground">Billing question:</strong> open <Link className="underline" href="/my/usage/">/my/usage/</Link> first — session + total + per-game lines answer most “what did I pay?” questions.</li>
+      <SectionHead
+        index="2"
+        kicker="The meter is running (gently)"
+        title="Rentals: load fee + per-second play"
+        body="Signed-in play never shows ads — it meters coins instead, with the 25% cut already inside every figure. Two parts:"
+      />
+      <MockWindow title="4weird.games — play session receipt" badge="live meter">
+        <div className="space-y-2 font-mono text-xs sm:text-sm">
+          <div className="flex justify-between gap-4"><span className="text-slate-400">LOAD · 1.0 MiB fresh bytes</span><span className="font-bold text-emerald-300">−1.00 🪙</span></div>
+          <div className="flex justify-between gap-4"><span className="text-slate-400">PLAY · 5h × 1 coin/hr, per-second</span><span className="font-bold text-emerald-300">−5.00 🪙</span></div>
+          <div className="flex justify-between gap-4"><span className="text-slate-400">SAME VERSION · replay within 24h</span><span className="font-bold text-cyan-300">FREE</span></div>
+          <div className="flex justify-between gap-4 border-t border-white/10 pt-2"><span className="font-bold text-slate-200">TOTAL · ≈ $0.06</span><span className="font-bold text-amber-300">−6.00 🪙</span></div>
+          <p className="pt-1 text-[11px] text-slate-500">still-playing check every 5h · heartbeats bill the delta · devs set 0–100 coins/load+hr</p>
+        </div>
+      </MockWindow>
+      <ul className="mt-5 list-disc space-y-2 pl-6 text-sm leading-relaxed text-muted-foreground">
+        <li><strong className="text-foreground">Load fee (default 1 coin / MiB):</strong> proportional to exact bytes — sub-MB loads pay their exact fraction down to 1 centicentcoin. Same version free 24h.</li>
+        <li><strong className="text-foreground">Running play (default 1 coin/hr):</strong> billed per second from the first second — 100 centicentcoins over 3,600 seconds. 1-minute heartbeats bill only the delta.</li>
+        <li><strong className="text-foreground">Developer rates 0–100:</strong> mapped devs set their own per-load + per-hour; 0 = free game. The public price list is always visible first.</li>
+        <li><strong className="text-foreground">AI bills on top, only when used</strong> — see <Link className="underline" href="/docs/game-ai-buddy">Game AI &amp; Buddy</Link>.</li>
       </ul>
 
-      <p className="mt-8 text-sm text-muted-foreground">
-        Next: <Link className="underline" href="/docs/vibe-coins">Vibe Coins →</Link> ·{" "}
-        <Link className="underline" href="/docs/game-ai-buddy">Game AI &amp; Buddy →</Link>
-      </p>
+      <SectionHead
+        index="3"
+        kicker="No account? no problem"
+        title="Guests play free (with skips)"
+        body="Guests never pay: a guest pass (IP-throttled) gives 3 free loads/day, then instantly-skippable house ads keep you playing, with a banner every 30 minutes. Trade-off: no saves, multiplayer, AI, or Buddy."
+      />
+      <div className="mt-5 flex flex-wrap gap-2 text-xs font-bold">
+        {["🪙 Coins", "🤖 Buddy", "👾 Clans", "☁️ Agents", "⚙️ Testing", "🏆 Boards"].map((t) => (
+          <span key={t} className="rounded-full border border-border bg-card px-3 py-1.5">{t} <span className="text-muted-foreground">· Skip ⏩</span></span>
+        ))}
+      </div>
+
+      <SectionHead
+        index="4"
+        kicker="Save states"
+        title="Cloud saves, slots 1–3"
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        {["SLOT 1", "SLOT 2", "SLOT 3"].map((s, i) => (
+          <div key={s} className="rounded-2xl border border-border bg-card p-4 text-center">
+            <p className="font-mono text-xs font-black tracking-widest text-muted-foreground">{s}</p>
+            <p aria-hidden="true" className="mt-1 text-3xl">{i === 2 ? "🚫" : "💾"}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{i === 2 ? "Cheat-branded. Still playable, forever flagged." : "≤1 MiB · versioned · yours"}</p>
+          </div>
+        ))}
+      </div>
+      <Callout tone="rose" title="Cheat Mode is a tattoo, not a sticker.">
+        Enabling cheats permanently marks that save (<code>cheat_mode:true</code>) as a database invariant —
+        deleting and recreating the save cannot launder it. Experiment on a throwaway slot.
+      </Callout>
+
+      <SectionHead
+        index="5"
+        kicker="Glory"
+        title="Telemetry, leaderboards, lobbies"
+        body="Gameplay emits aggregate events powering /leaderboards (handles + totals, anonymous-friendly). Telemetry never decides billing — the rental session does. Find humans in /lobbies and join via ?match= links; for a permanent home, join a clan."
+      />
+
+      <Pager current="/docs/playing-games" />
     </article>
   );
 }
