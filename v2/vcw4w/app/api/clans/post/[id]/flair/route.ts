@@ -20,7 +20,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
-  const botBlock = await requireHuman(req, "POST /api/clans/post/flair");
+  // Author/mod-only flair: logged-in bots acting as members may use it.
+  const botBlock = await requireHuman(req, "POST /api/clans/post/flair", { allowAuthenticated: true });
   if (botBlock) return botBlock;
   const throttle = rateLimit(`clan-flair:${u.id}`, 20, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);

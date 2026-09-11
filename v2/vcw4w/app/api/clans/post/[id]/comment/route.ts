@@ -21,8 +21,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
   // Comments earn clan XP: farmed accounts flagged by BotID must not farm
-  // them (same gate as human posts; bots use the /api/bot/bclans lane).
-  const botBlock = await requireHuman(req, "POST /api/clans/post/comment");
+  // them anonymously — but logged-in bots (password session, self-test)
+  // may comment; XP caps + Valley Net + fees still apply.
+  const botBlock = await requireHuman(req, "POST /api/clans/post/comment", { allowAuthenticated: true });
   if (botBlock) return botBlock;
   const throttle = rateLimit(`clan-comment:${u.id}`, 20, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);

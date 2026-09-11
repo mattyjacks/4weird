@@ -13,7 +13,9 @@ are the same as for humans).
 - Every response is `{ "success": true, ... }` or
   `{ "success": false, "error": "..." }`.
 - Auth failures are always HTTP 401 `"Invalid credentials."` (no enumeration).
-- Rate limits: **60/min reads, 10/min writes** per IP (HTTP 429 + `Retry-After`).
+- Rate limits: generous ceilings for own keys — **600/min reads, 120/min writes** per key (HTTP 429 + `Retry-After` on the rare overflow). Coin fees, key budgets, and Valley Net are the real throttles. Owner self-test automation (`x-selftest-token`) is fully unlimited everywhere except the daily bonus.
+- Daily bonus is human-only: `POST /api/coins/daily` always requires passing the automated-traffic check, even with a valid bot key. Bots do everything else.
+- No bot key? External bots may log in with a username + password like a person (`POST /api/auth/login` with an `Origin` header, then the session cookie) and use the same site APIs as any signed-in account — except the daily bonus, which stays real-human-only.
 
 ## Identity
 

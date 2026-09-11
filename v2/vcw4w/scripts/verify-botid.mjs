@@ -34,11 +34,14 @@ for (const path of [
 }
 
 // 3. lib/botid.ts is the single server gate: fail-closed on bots, fail-open
-// on verifier outage, exempting only valid bot keys + Vercel Cron + opted-in
-// signed-in spenders (paid work must survive BotID false-positives).
+// on verifier outage, exempting valid bot keys + self-test token + Vercel
+// Cron + opted-in signed-in spenders (paid work must survive BotID
+// false-positives, and external password bots + AI self-test must play).
+// The daily bonus is the one human-only route: it passes
+// { allowTrustedMachine: false } so even valid keys and self-test face it.
 if (!exists("../lib/botid.ts")) fail("lib/botid.ts is missing (requireHuman gate).");
 const gate = read("../lib/botid.ts");
-for (const token of ["export async function requireHuman", "checkBotId", "deepAnalysis", "isTrustedMachine", "allowAuthenticated", "isAuthenticatedUser"]) {
+for (const token of ["export async function requireHuman", "checkBotId", "deepAnalysis", "isTrustedMachine", "isSelfTest", "allowAuthenticated", "allowTrustedMachine", "isAuthenticatedUser"]) {
   if (!gate.includes(token)) fail(`lib/botid.ts must contain '${token}'.`);
 }
 
@@ -48,16 +51,25 @@ for (const token of ["export async function requireHuman", "checkBotId", "deepAn
 // (anti-cheat via the cheat_mode save invariant + rate limits). Anonymous
 // free-play abuse stays gated via guest-pass below.
 //
-// Two tiers:
-// - strict: identity + free-money + social writes. Must call requireHuman
-//   WITHOUT allowAuthenticated (logged-in bots stay blocked so farmed
-//   accounts cannot mint free coins or spam).
+// NOTE: POST /api/auth/login is intentionally NOT in the strict list
+// either: external bots log in with username + password like any person,
+// so the gate engages ONLY after 5 consecutive failed passwords (deferred,
+// see the login route). Brute-force shields still apply.
+//
+// Three tiers:
+// - strict: identity-mint + free-money + kid + key-issuance + deletion.
+//   Must call requireHuman WITHOUT allowAuthenticated (logged-in bots stay
+//   blocked so farmed accounts cannot mint free coins or delete accounts).
+// - bots-welcome: social/economy writes a logged-in bot may perform
+//   (clan posts/comments/votes, support, fundraisers, verification,
+//   openrouter plays). Must call requireHuman WITH { allowAuthenticated:
+//   true } so password-session bots and AI self-test can play; Valley Net,
+//   member checks, and coin metering still apply per route.
 // - spend: coin-metered compute/AI that already requires login. Must call
 //   requireHuman WITH { allowAuthenticated: true } so a valid session
 //   survives BotID false-positives and legitimate automation can pay + play.
 const strict = [
   "../app/api/auth/signup/route.ts",
-  "../app/api/auth/login/route.ts",
   "../app/api/family/kid-login/route.ts",
   "../app/api/games/guest-pass/route.ts",
   "../app/api/coins/daily/route.ts",
@@ -66,21 +78,8 @@ const strict = [
   "../app/api/coins/refund/route.ts",
   "../app/api/coins/alpha/route.ts",
   "../app/api/referrals/route.ts",
-  "../app/api/support/tip/route.ts",
-  "../app/api/support/subscribe/route.ts",
-  "../app/api/support/tiers/route.ts",
-  "../app/api/fundraisers/route.ts",
-  "../app/api/fundraisers/[id]/contribute/route.ts",
-  "../app/api/fundraisers/[id]/close/route.ts",
   "../app/api/bot/keys/route.ts",
-  "../app/api/clans/[slug]/post/route.ts",
-  "../app/api/clans/post/[id]/comment/route.ts",
-  "../app/api/clans/post/[id]/vote/route.ts",
-  "../app/api/clans/comment/[id]/vote/route.ts",
-  "../app/api/clans/post/[id]/flair/route.ts",
-  "../app/api/clans/post/[id]/board/route.ts",
   "../app/api/my/rights/route.ts",
-  "../app/api/verification/route.ts",
 ];
 const spend = [
   "../app/api/newgameplus/build/route.ts",
@@ -92,7 +91,23 @@ const spend = [
   "../app/api/code/zip/route.ts",
   "../app/api/desktop/provision/route.ts",
 ];
-const enforced = [...strict, ...spend];
+const botsWelcome = [
+  "../app/api/clans/[slug]/post/route.ts",
+  "../app/api/clans/post/[id]/comment/route.ts",
+  "../app/api/clans/post/[id]/vote/route.ts",
+  "../app/api/clans/comment/[id]/vote/route.ts",
+  "../app/api/clans/post/[id]/flair/route.ts",
+  "../app/api/clans/post/[id]/board/route.ts",
+  "../app/api/support/tip/route.ts",
+  "../app/api/support/subscribe/route.ts",
+  "../app/api/support/tiers/route.ts",
+  "../app/api/fundraisers/route.ts",
+  "../app/api/fundraisers/[id]/contribute/route.ts",
+  "../app/api/fundraisers/[id]/close/route.ts",
+  "../app/api/verification/route.ts",
+  "../app/api/openrouter-plays/route.ts",
+];
+const enforced = [...strict, ...spend, ...botsWelcome];
 for (const file of strict) {
   if (!exists(file)) fail(`enforced route missing: ${file}`);
   const src = read(file);
@@ -107,6 +122,36 @@ for (const file of spend) {
   if (!src.includes("requireHuman")) fail(`${file} must call requireHuman() (BotID gate).`);
   if (!src.includes("allowAuthenticated")) {
     fail(`${file} must pass { allowAuthenticated: true } so logged-in spenders survive BotID false-positives.`);
+  }
+}
+for (const file of botsWelcome) {
+  if (!exists(file)) fail(`enforced route missing: ${file}`);
+  const src = read(file);
+  if (!src.includes("requireHuman")) fail(`${file} must call requireHuman() (BotID gate).`);
+  if (!src.includes("allowAuthenticated")) {
+    fail(`${file} must pass { allowAuthenticated: true } so logged-in bots (password sessions, self-test) can play.`);
+  }
+}
+
+// 4b. Daily bonus is the one human-only route: even valid bot keys and the
+// self-test token must face the BotID check there.
+{
+  const src = read("../app/api/coins/daily/route.ts");
+  if (!src.includes("allowTrustedMachine: false")) {
+    fail("app/api/coins/daily/route.ts must pass { allowTrustedMachine: false } (daily stays real-human-only).");
+  }
+  if (src.includes("allowAuthenticated")) {
+    fail("app/api/coins/daily/route.ts must NOT opt into allowAuthenticated (daily stays real-human-only).");
+  }
+}
+
+// 4c. Login is deferred-gate: no upfront BotID block (external password bots
+// must be able to log in), engagement only after repeated failures.
+{
+  const src = read("../app/api/auth/login/route.ts");
+  if (!src.includes("requireHuman")) fail("app/api/auth/login/route.ts must keep the deferred requireHuman() (brute-force backstop).");
+  if (src.includes("allowAuthenticated")) {
+    fail("app/api/auth/login/route.ts must NOT opt into allowAuthenticated (no session exists yet).");
   }
 }
 

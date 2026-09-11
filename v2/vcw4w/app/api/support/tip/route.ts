@@ -25,7 +25,8 @@ export async function POST(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Login required.", 401);
-  const botBlock = await requireHuman(req, "POST /api/support/tip");
+  // Tips spend the caller's own coins: logged-in bots may tip.
+  const botBlock = await requireHuman(req, "POST /api/support/tip", { allowAuthenticated: true });
   if (botBlock) return botBlock;
   const throttle = rateLimit(`support-tip:${data.user.id}`, 10, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);

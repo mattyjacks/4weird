@@ -55,7 +55,8 @@ export async function POST(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Login required.", 401);
-  const botBlock = await requireHuman(req, "POST /api/fundraisers");
+  // Campaign creation: logged-in bots may launch (gift-only, no cash-out).
+  const botBlock = await requireHuman(req, "POST /api/fundraisers", { allowAuthenticated: true });
   if (botBlock) return botBlock;
   const throttle = rateLimit(`fundraisers:${data.user.id}`, 5, 3_600_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);

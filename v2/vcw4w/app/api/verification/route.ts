@@ -31,7 +31,8 @@ export async function POST(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Login required.", 401);
-  const botBlock = await requireHuman(req, "POST /api/verification");
+  // Verification requests are human-reviewed; logged-in bots may file them.
+  const botBlock = await requireHuman(req, "POST /api/verification", { allowAuthenticated: true });
   if (botBlock) return botBlock;
   const throttle = rateLimit(`verification:${data.user.id}`, 3, 3_600_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);

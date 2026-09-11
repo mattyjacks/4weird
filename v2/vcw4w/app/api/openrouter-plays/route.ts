@@ -91,7 +91,8 @@ export async function POST(req: Request) {
       note: "Sign in for live OpenRouter output; this offline reply is free.",
     });
   }
-  const botBlock = await requireHuman(req, "POST /api/openrouter-plays");
+  // Live path is metered to the caller's coins: logged-in bots may play.
+  const botBlock = await requireHuman(req, "POST /api/openrouter-plays", { allowAuthenticated: true });
   if (botBlock) return botBlock;
 
   try {

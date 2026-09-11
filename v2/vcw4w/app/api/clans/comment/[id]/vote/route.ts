@@ -19,8 +19,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
-  // Votes move hot ranking: same BotID gate as posts/comments.
-  const botBlock = await requireHuman(req, "POST /api/clans/comment/vote");
+  // Votes move hot ranking: logged-in bots may vote (member-checked below).
+  const botBlock = await requireHuman(req, "POST /api/clans/comment/vote", { allowAuthenticated: true });
   if (botBlock) return botBlock;
   const throttle = rateLimit(`clan-vote:${u.id}`, 30, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);

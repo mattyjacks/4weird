@@ -9,7 +9,7 @@ import { extractBotKey, resolveBotKey } from "@/lib/bot-auth";
  * Usage (top of POST/PUT/PATCH/DELETE, AFTER the hasServerSupabase + sameOrigin
  * checks, BEFORE rate limits and body parsing):
  *
- *   const blocked = await requireHuman(req, "POST /api/coins/daily");
+ *   const blocked = await requireHuman(req, "POST /api/coins/daily", { allowTrustedMachine: false });
  *   if (blocked) return blocked;
  *
  * Why this shape:
@@ -25,17 +25,24 @@ import { extractBotKey, resolveBotKey } from "@/lib/bot-auth";
  *   we skip the network call entirely (zero latency, zero log spam).
  * - Legitimate automation is exempt, fake automation is not:
  *   - Vercel Cron (Bearer CRON_SECRET) → exempt (no browser session exists).
+ *   - Owner self-test (`x-selftest-token: SELFTEST_BYPASS_TOKEN`) → exempt:
+ *     the AI testing its own website with unlimited actions. Daily bonus
+ *     opts out of this (allowTrustedMachine:false) and stays human-only.
  *   - VALID `bot4weird_` keys (resolved against the DB: revocation, expiry,
- *     budgets enforced) → exempt. A present-but-invalid key is NOT enough —
- *     it falls through to the BotID check and fails closed like any bot.
- *   - Signed-in coin-spend callers → exempt ONLY when the route opts in
- *     with `{ allowAuthenticated: true }`. A valid Supabase session proves
+ *     budgets enforced) → exempt everywhere EXCEPT daily. A
+ *     present-but-invalid key is NOT enough — it falls through to the
+ *     BotID check and fails closed like any bot.
+ *   - Signed-in coin-spend/social callers → exempt ONLY when the route opts
+ *     in with `{ allowAuthenticated: true }`. A valid Supabase session proves
  *     the caller is a real account whose coin ledger can be debited, so a
  *     BotID false-positive (or headless automation through a real login)
  *     must not 403 paid work like NewGamePlus builds, fal renders, or buddy
- *     turns. Free-money routes (signup/login/daily/claim/checkout/refund/
- *     referrals/guest-pass) must NEVER opt in — they stay gated even for
- *     logged-in callers so farmed accounts cannot mint free coins.
+  *     turns. Free-money routes (signup/daily/claim/checkout/refund/
+  *     alpha/referrals/guest-pass) plus kid-login, bot key issuance, and
+  *     account deletion must NEVER opt in — they stay gated even for
+  *     logged-in callers so farmed accounts cannot mint free coins.
+  *     Login itself is deferred-gate (BotID only after 5 failed passwords)
+  *     so external bots CAN log in with a username + password.
  * - Webhook / pod-token callbacks (meshy/webhook, blender/progress) must
  *     NEVER call this helper at all — they authenticate by HMAC/job-token.
  * - Signed-in play metering (POST /api/games/session) must NEVER call this
@@ -67,13 +74,43 @@ function isCron(req: Request): boolean {
 }
 
 /**
+ * Owner's AI self-test bypass: the site testing its own website. When
+ * SELFTEST_BYPASS_TOKEN is set, requests carrying it in `x-selftest-token`
+ * (or as a Bearer token alongside a logged-in session) skip the BotID
+ * check AND the bot rate limits (see botRateLimit). This is how our own
+ * automation hammers the site with unlimited actions during testing.
+ * Never set this header from browsers; never log the token. When unset,
+ * this check is a no-op (fail closed, zero behavior change).
+ */
+export function isSelfTest(req: Request): boolean {
+  const secret = process.env.SELFTEST_BYPASS_TOKEN ?? "";
+  if (!secret) return false;
+  const header = (req.headers.get("x-selftest-token") ?? "").trim();
+  if (header && safeEqual(header, secret)) return true;
+  const bearer = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "").trim();
+  // Bearer form only counts when it is NOT a bot4weird_ key (keys resolve
+  // via the bot-key path instead, so a leaked key cannot pose as self-test
+  // and vice versa).
+  if (bearer && !bearer.startsWith("bot4weird_") && safeEqual(bearer, secret)) return true;
+  return false;
+}
+
+/**
  * True when the caller is trusted machine traffic that must bypass the
- * invisible-CAPTCHA: Vercel Cron, or a VALID bot key. Humans (no bot-key
- * header) never hit the DB here — the resolve only runs when a key is
+ * invisible-CAPTCHA: Vercel Cron, a VALID bot key, or the owner's AI
+ * self-test token (SELFTEST_BYPASS_TOKEN). Humans (no bot-key header)
+ * never hit the DB here — the resolve only runs when a key is
  * actually presented.
+ *
+ * Own bots (valid `bot4weird_` keys) bypass here on every route EXCEPT the
+ * daily bonus, which passes `{ allowTrustedMachine: false }` so it stays
+ * real-human-only. External password bots (username + password login,
+ * cookie session) bypass via `{ allowAuthenticated: true }` on all
+ * non-free-mint routes instead — they carry no bot-key header.
  */
 export async function isTrustedMachine(req: Request): Promise<boolean> {
   if (isCron(req)) return true;
+  if (isSelfTest(req)) return true;
   try {
     if (!extractBotKey(req)) return false;
     return (await resolveBotKey(req).catch(() => null)) !== null;
@@ -129,24 +166,36 @@ async function isAuthenticatedUser(): Promise<boolean> {
  * opted-in authenticated spender, dev, or verifier outage with backstops
  * still active).
  *
- * Pass `{ allowAuthenticated: true }` ONLY on coin-spending routes that
- * already require login (NewGamePlus, fal/meshy/generate, buddy/chat,
- * game-ai/meter, swarm/chat, code/zip, desktop/provision): a valid session
- * proves a debitable account, so BotID false-positives must not block paid
- * work or legitimate automation. Never use it on free-money or identity
- * routes (signup/login/daily/claim/checkout/refund/referrals/guest-pass).
+ * Pass `{ allowAuthenticated: true }` on every route a logged-in bot may
+ * use: coin-spending compute/AI (NewGamePlus, fal/meshy/generate,
+ * buddy/chat, game-ai/meter, swarm/chat, code/zip, desktop/provision) AND
+ * social/economy writes (clan posts/comments/votes, support, fundraisers,
+ * verification, openrouter-plays, rights). A valid session proves a
+ * debitable account, so BotID false-positives must not block paid work or
+ * legitimate automation — including external bots that logged in with a
+ * username + password and the owner's AI self-testing its own site.
+ * Never use it on free-money or identity-mint routes
+ * (signup/daily/claim/checkout/refund/alpha/referrals/guest-pass,
+ * kid-login, bot key issuance): those stay gated even for logged-in callers
+ * so farmed accounts cannot mint free coins.
+ *
+ * Pass `{ allowTrustedMachine: false }` ONLY on the daily bonus: it is the
+ * one route that must be a real human, so even a VALID bot key or the
+ * self-test token must still face the BotID check there.
  */
 export async function requireHuman(
   req: Request,
   route: string,
-  opts?: { allowAuthenticated?: boolean },
+  opts?: { allowAuthenticated?: boolean; allowTrustedMachine?: boolean },
 ): Promise<NextResponse | null> {
   // Local/dev/test: BotID always classifies HUMAN; skip the call entirely.
   if (process.env.NODE_ENV !== "production") return null;
-  try {
-    if (await isTrustedMachine(req)) return null;
-  } catch {
-    // Fall through to the BotID check — exemption failures fail closed.
+  if (opts?.allowTrustedMachine !== false) {
+    try {
+      if (await isTrustedMachine(req)) return null;
+    } catch {
+      // Fall through to the BotID check — exemption failures fail closed.
+    }
   }
   if (opts?.allowAuthenticated) {
     try {

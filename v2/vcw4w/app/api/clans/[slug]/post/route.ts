@@ -43,7 +43,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
-  const botBlock = await requireHuman(req, "POST /api/clans/post");
+  // Logged-in bots (username+password sessions, AI self-test) may post:
+  // allowAuthenticated survives BotID false-positives; Valley Net +
+  // server-cost fees + member checks still apply. Free-money abuse stays
+  // gated on the daily/claim/referral lane, never here.
+  const botBlock = await requireHuman(req, "POST /api/clans/post", { allowAuthenticated: true });
   if (botBlock) return botBlock;
   const throttle = rateLimit(`clan-post:${u.id}`, 10, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);

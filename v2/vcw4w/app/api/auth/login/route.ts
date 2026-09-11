@@ -9,11 +9,53 @@ import { clientIp, isEmail, isLoginPassword } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
+// Consecutive-failure tracker: BotID only engages after 5 failed password
+// inputs in a row for the same account (or IP when the email shape is
+// invalid). Success clears the counter. Process-local (fast, exact
+// consecutive semantics); the shared Postgres fail bucket below covers
+// cross-instance spread.
+const loginFailures = new Map<string, { fails: number; resetAt: number }>();
+const LOGIN_FAIL_WINDOW_MS = 15 * 60_000;
+const LOGIN_FAIL_THRESHOLD = 5;
+
+function failKeyFor(email: string, req: Request): string {
+  if (email) return `login-fail:acct:${email}`.toLowerCase().slice(0, 160);
+  return `login-fail:ip:${clientIp(req)}`.toLowerCase().slice(0, 160);
+}
+
+function recordLoginFailure(key: string): number {
+  const now = Date.now();
+  // Opportunistic expiry + cap: keys are attacker-influenced (emails), so the
+  // map must not grow unboundedly.
+  for (const [k, v] of loginFailures) {
+    if (v.resetAt <= now) loginFailures.delete(k);
+    if (loginFailures.size <= 5000) break;
+  }
+  while (loginFailures.size > 5000) {
+    const oldest = loginFailures.keys().next();
+    if (oldest.done) break;
+    loginFailures.delete(oldest.value);
+  }
+  const cur = loginFailures.get(key);
+  if (!cur || cur.resetAt <= now) {
+    loginFailures.set(key, { fails: 1, resetAt: now + LOGIN_FAIL_WINDOW_MS });
+    return 1;
+  }
+  cur.fails += 1;
+  return cur.fails;
+}
+
+function clearLoginFailures(key: string): void {
+  loginFailures.delete(key);
+}
+
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
-  const botBlock = await requireHuman(req, "POST /api/auth/login");
-  if (botBlock) return botBlock;
+  // NOTE: no upfront BotID gate here on purpose. First-attempt logins (human
+  // or AI-driven through a real browser) must never see the
+  // automated-traffic 403. The gate engages ONLY after 5 consecutive failed
+  // password inputs (see failure paths below).
   const throttle = rateLimit(`login:${clientIp(req)}`, 10);
   if (!throttle.allowed) {
     return fail("Too many attempts. Wait a minute and retry.", 429, {
@@ -39,7 +81,23 @@ export async function POST(req: Request) {
   // accounts must still be able to present their existing password here.
   const password = isLoginPassword(input.password);
   // Generic message either way: no oracle for which half was wrong.
-  if (!email || !password) return fail("Invalid login credentials.", 401);
+  // Malformed credentials count as a failed password input toward the
+  // 5-in-a-row BotID threshold, but never trigger the BotID 403 themselves
+  // until the threshold is reached.
+  if (!email || !password) {
+    const fails = recordLoginFailure(failKeyFor(email, req));
+    const distFails = await globalBucket(
+      email ? acctBucketKey("login-fail", email) : ipBucketKey(req, "login-fail"),
+      LOGIN_FAIL_THRESHOLD,
+      900,
+    );
+    const sharedFails = distFails ? distFails.hits : fails;
+    if (fails >= LOGIN_FAIL_THRESHOLD || (distFails && (!distFails.allowed || sharedFails >= LOGIN_FAIL_THRESHOLD))) {
+      const botBlock = await requireHuman(req, "POST /api/auth/login");
+      if (botBlock) return botBlock;
+    }
+    return fail("Invalid login credentials.", 401);
+  }
   // Per-account throttle survives IP rotation during credential stuffing.
   const accountThrottle = rateLimit(`login-email:${email}`, 10);
   if (!accountThrottle.allowed) {
@@ -56,8 +114,22 @@ export async function POST(req: Request) {
   try {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error || !data?.session?.user) return fail("Invalid login credentials.", 401);
+    if (error || !data?.session?.user) {
+      // Wrong password: count it. The automated-traffic check engages ONLY
+      // here, after 5 consecutive failures (local exact count + shared
+      // cross-instance bucket). Success clears the local streak.
+      const key = failKeyFor(email, req);
+      const fails = recordLoginFailure(key);
+      const distFails = await globalBucket(acctBucketKey("login-fail", email), LOGIN_FAIL_THRESHOLD, 900);
+      const sharedFails = distFails ? distFails.hits : fails;
+      if (fails >= LOGIN_FAIL_THRESHOLD || (distFails && (!distFails.allowed || sharedFails >= LOGIN_FAIL_THRESHOLD))) {
+        const botBlock = await requireHuman(req, "POST /api/auth/login");
+        if (botBlock) return botBlock;
+      }
+      return fail("Invalid login credentials.", 401);
+    }
     const u = data.session.user;
+    clearLoginFailures(failKeyFor(email, req));
     return ok({ user: { id: u.id, email: u.email } });
   } catch {
     return fail("internal error", 500);

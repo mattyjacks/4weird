@@ -27,7 +27,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Login required.", 401);
-  const botBlock = await requireHuman(req, "POST /api/fundraisers/close");
+  // Creator-only close: logged-in bots acting as creator may close.
+  const botBlock = await requireHuman(req, "POST /api/fundraisers/close", { allowAuthenticated: true });
   if (botBlock) return botBlock;
   const throttle = rateLimit(`launch-close:${data.user.id}`, 10, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);

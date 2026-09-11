@@ -28,6 +28,15 @@
  *   vcw:read       - GET /api/vcw/gateway/* + /api/vcw/* reads
  *   vcw:write      - POST gateway dispatch + VCW run writes
  *
+ * Bot login (POST /api/bot/login): bots log in with EITHER a `bot4weird_`
+ * API key OR an email + password. The email+password path mints a normal
+ * Supabase session PLUS a `bot_tester=1` marker cookie: the tester session
+ * can play and test the site, but profile writes (PATCH /api/me/profile)
+ * and destructive actions (POST /api/my/rights, bot key/identity
+ * management) refuse it with 403. API-key callers never hold a session at
+ * all, so they carry no profile/destructive power either. Owners hand a
+ * bot the tester login instead of a full /api/auth/login session.
+ *
  * Scope separation is strict: clan scopes never grant code/vault/meshy
  * access and vice versa. keyHasScope() is checked per route; an empty
  * subset still means "all scopes" for legacy keys only.
@@ -624,9 +633,34 @@ export async function resolveBotKey(req: Request): Promise<BotIdentity | null> {
   }
 }
 
-/** Stricter-than-human throttles for bot traffic: 60/min reads, 10/min writes. */
+/** Stricter-than-human throttles for bot traffic — with an unlimited lane
+ * for the owner's own automation.
+ *
+ * - `x-selftest-token: SELFTEST_BYPASS_TOKEN` (the AI testing its own
+ *   website) → fully unlimited: returns allowed without touching budgets.
+ *   The daily bonus never honors this (it passes allowTrustedMachine:false
+ *   to the BotID gate), so self-test cannot mint free coins.
+ * - Own `bot4weird_` keys → generous ceilings (600/min reads, 120/min
+ *   writes): effectively "as many actions as they want" for testing and
+ *   play. Coin fees, key budgets, and Valley Net remain the real throttles.
+ */
 export function botRateLimit(req: Request, kind: "read" | "write", keyId = "") {
-  const limit = kind === "read" ? 60 : 10;
+  try {
+    const secret = process.env.SELFTEST_BYPASS_TOKEN ?? "";
+    if (secret) {
+      const header = (req.headers.get("x-selftest-token") ?? "").trim();
+      if (header && header.length === secret.length) {
+        const ah = createHash("sha256").update(header, "utf8").digest();
+        const bh = createHash("sha256").update(secret, "utf8").digest();
+        if (ah.length === bh.length && timingSafeEqual(ah, bh)) {
+          return { allowed: true, retryAfter: 0 };
+        }
+      }
+    }
+  } catch {
+    // Self-test check must never break normal throttling.
+  }
+  const limit = kind === "read" ? 600 : 120;
   // Key by key prefix/id first so NAT-mates don't share a budget and IP
   // rotation alone cannot evade the write throttle; IP is defense-in-depth.
   const raw = extractBotKey(req) ?? "";
@@ -640,4 +674,33 @@ export function botRateLimit(req: Request, kind: "read" | "write", keyId = "") {
 /** Uniform auth-failure message (enumerate-safe). */
 export function invalidCredentials(): string {
   return "Invalid credentials.";
+}
+
+/**
+ * Restricted bot-tester session marker (POST /api/bot/login email+password
+ * path). The login sets an httpOnly `bot_tester=1` cookie next to the
+ * Supabase session; profile writes and destructive routes refuse any
+ * request carrying it, so a bot given tester credentials can play/test but
+ * can never change the user profile or destroy anything.
+ */
+export const BOT_TESTER_COOKIE = "bot_tester";
+
+/** True when the request carries the bot-tester marker cookie. */
+export function isBotTester(req: Request): boolean {
+  try {
+    const header = req.headers.get("cookie") ?? "";
+    if (!header) return false;
+    for (const part of header.split(";")) {
+      const [name, ...rest] = part.split("=");
+      if (name.trim() === BOT_TESTER_COOKIE && rest.join("=").trim() === "1") return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/** Uniform refusal for bot-tester sessions on profile/destructive routes. */
+export function botTesterBlocked(): string {
+  return "Bot tester sessions cannot change the user profile or perform destructive actions.";
 }
