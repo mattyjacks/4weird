@@ -76,6 +76,33 @@ export default function TermsPage() {
           suspected CSAM; report it instead.
         </p>
 
+        <h2 className={h2}>3A. Game submissions (.zip), Weird Vault, and Meshy 3D</h2>
+        <p>
+          You may submit games as <strong>.zip packages (max 69 MB)</strong>, naming the{" "}
+          <strong>game root</strong> inside the .zip where your entry file lives (like a
+          deploy Root Directory). Every package is statically scanned and marked{" "}
+          <strong>safe, warning, unsafe, or denied</strong>. Packages flagged unsafe or
+          denied are <strong>quarantined</strong>: never served, never displayed, and
+          queued for human moderator review. Malware, keyloggers, viruses, cybercrime
+          tools, and sexual content (never allowed on the Service — removed, not rated)
+          are hard-denied. Storage and code audits are metered in Vibe Coins with the
+          25% platform cut already included. The <strong>Weird Vault</strong> stores your
+          game code and assets (including AI-made models, images, animations, code,
+          chats, logs, audio, video, and text, which autosave to your personal, team,
+          or organization scope) in strictly separated scopes enforced by the database.{" "}
+          <strong>Meshy.ai 3D tools</strong> run purely through Meshy&apos;s API under
+          their terms; finished models autosave to your Vault with game-readiness notes.
+        </p>
+        <p>
+          <strong>Safety referrals are human-only.</strong> Suspected child sexual abuse
+          material is hidden immediately, preserved as hash evidence only (never viewable,
+          never described), queued for human review, and referred to the NCMEC
+          CyberTipline <strong>by a human</strong>. Uploader network identifiers are
+          stored as salted hashes and disclosed <strong>only on valid legal process</strong>{" "}
+          (such as a court order or subpoena) — there is no automatic reporting pipeline,
+          consistent with Sections 5 and 11.
+        </p>
+
         <h2 className={h2}>4. Games, saves, telemetry, and leaderboards</h2>
         <p>
           The catalog offers browser games in isolated play shells with guides and metadata. Cloud saves offer up to

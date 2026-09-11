@@ -174,6 +174,12 @@ export function meshyConfigured(): boolean {
   return meshyKey().length > 0;
 }
 
+/** Shared secret Meshy uses to authenticate webhook pushes (optional). */
+export function meshyWebhookSecret(): string {
+  if (typeof process === "undefined") return "";
+  return String(process.env.MESHY_WEBHOOK_SECRET ?? "").trim();
+}
+
 /** Least-privilege scope keys for Meshy (generate vs read). */
 export const MESHY_SCOPES = ["meshy:generate", "meshy:read"] as const;
 

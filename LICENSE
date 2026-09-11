@@ -1,0 +1,195 @@
+# 4weird Private License v1.0
+
+Effective: September 11, 2026
+Owner: MattyJacks LLC, New Hampshire, USA ("4weird", "we", "us", "our")
+Contact: matt@mattyjacks.com
+Canonical terms + current prices: https://4weird.com/pricing
+Full Terms of Use: https://4weird.com/terms · Privacy: https://4weird.com/privacy
+
+> This is a private, proprietary license. This is not open source.
+> No OSI, Creative Commons, MIT, Apache, or GPL license applies to the
+> 4weird platform, VibeCodeWorker, games catalog, or this repository,
+> except where a third-party file in this repo carries its own notice
+> (see Section 11). If in doubt, assume all rights reserved.
+>
+> This LICENSE file is a summary of your rights for the GitHub / code
+> reader. The binding agreement is the Terms of Use plus the plan you
+> paid for. Where they differ, the Terms + your paid order control.
+> This file is not legal advice. Consult your own attorney.
+
+## 1. What this covers
+
+"Covered Work" means the 4weird platform and everything we operate or
+publish through it, including: the website and apps at 4weird.com /
+4weird.games, VibeCodeWorker (robot game-tester, APIs, harnesses, docs),
+games and game bundles in this repo, art, music, text, video, clan/bot/
+agent/desktop/team/blender/fal/Meshy surfaces, and related software,
+APIs, docs, and configs.
+
+Third-party engines, models, and provider services (e.g. RunPod,
+Shopify, OpenAI, fal.ai) remain under their own terms. Our license does
+not grant you any rights in them.
+
+## 2. No open-source grant — all rights reserved
+
+Except for the narrow permissions in Sections 3–4, all rights are
+reserved. You may not copy, reproduce, redistribute, publish, mirror,
+sublicense, sell, lease, lend, scrape, data-mine, decompile, reverse
+engineer, circumvent access controls, or create derivative works from
+the Covered Work without our prior written permission or a paid plan
+that expressly allows it.
+
+Viewing public pages, playing games in your browser, and reading this
+public repo for evaluation are permitted. That permission is revocable
+and does not transfer any ownership.
+
+## 3. Platform use license (players and customers in good standing)
+
+While your account is in good standing and you comply with the Terms,
+we grant you a limited, revocable, non-exclusive, non-transferable,
+non-sublicensable license to access and use the hosted Service for its
+intended purpose (play, clans, coins, rentals, teams, AI features, QA).
+
+This license ends automatically if your account is suspended,
+terminated, or past due, or if you violate the Terms.
+
+## 4. Self-hosting / VibeCodeWorker license — paid only
+
+Running VibeCodeWorker or any material part of the Covered Work on your
+own infrastructure ("self-hosting") requires a current paid
+VibeCodeWorker Self-Hosted plan. There is no free, trial, or implied
+self-host right.
+
+- **Mid-tier (standard self-host): $420/month per organization.**
+  Includes up to 100 user seats under the org. Additional seats:
+  **$4.20/month per seat.** Plan includes permission to self-host plus
+  help with self-hosting, workspaces, orchestration, messaging, and
+  support. Metered API / compute used through our orchestration carries
+  a **15% markup** over at-cost provider bills.
+- **Enterprise / hyperscaler: custom quote — Talk to Sales.**
+  Volume pricing available down to as little as a **9% API / compute
+  markup**, depending on scale, term, prepayment, and support scope.
+  Contact matt@mattyjacks.com for a written quote. No enterprise rights
+  exist until a signed order or written quote is in place.
+
+Seats are counted per named user with access during the billing period,
+including bots operated on a user's behalf where applicable per your
+order. Exceeding your seat count is billed as additional seats. Current
+prices and plan details live at https://4weird.com/pricing.
+
+## 5. Platform fee — 25% cut is part of every price
+
+Every hosted price is gross and already includes our platform service
+fee (standard: **25% platform / 75% provider or creator**), never added
+on top. Coins (100 coins = $1.00), game rentals, agent rentals, team
+compute, game AI, support/tips, and campaign contributions all settle on
+this basis, as metered and attributed server-side. Circumventing,
+obscuring, or routing around metering or the platform fee — including
+off-platform settlement to avoid it — violates this license and the
+Terms and may result in suspension, forfeiture of credits, and billing
+for amounts owed.
+
+## 6. Contributions — automatic assignment to us
+
+By submitting, uploading, posting, or otherwise making available any
+game, code, art, audio, video, text, feedback, bug report, or other
+work on or through the platform or this repo (a "Contribution"), you
+agree:
+
+1. You presently assign to MattyJacks LLC all right, title, and
+   interest in the Contribution, worldwide, including copyrights and
+   all other intellectual-property rights, to the fullest extent
+   permitted by law;
+2. To the extent any rights cannot be assigned, you grant us an
+   exclusive, irrevocable, perpetual, worldwide, royalty-free,
+   transferable, sublicensable license to use them in any manner;
+3. You waive moral rights / attribution rights to the extent waivable,
+   and agree not to assert them against us or our licensees;
+4. You represent you have the authority to grant the above and that the
+   Contribution does not infringe third-party rights.
+
+Effect: contributors do not retain ownership of work contributed through
+the platform. We may use, improve, modify, adapt, combine, distribute,
+commercialize, or discontinue Contributions without further permission,
+notice, or compensation, except where the Terms expressly provide
+creator payouts (e.g. the 75% creator share on included-price
+transactions). Prior versions of a Contribution already assigned remain
+assigned even if you later delete your account.
+
+## 7. We may improve and modify games without creator permission
+
+We reserve the right to fix, patch, optimize, re-balance, moderate,
+re-package, re-render, translate, port, or otherwise modify any game or
+Contribution on the Service — including via VibeCodeWorker QA loops,
+human review, or automated tooling — without seeking the creator's
+prior permission. We may also remove or suspend games for safety, legal,
+quality, or operational reasons. Gameplay telemetry, QA findings, and
+derived fixes may be used across the platform.
+
+## 8. Attribution — credit VibeCodeWorker in your game
+
+If you used VibeCodeWorker to help build, test, or improve your game,
+you must include a visible credit in the game's credits (and, where the
+game has one, its about/readme screen) substantially in this form:
+
+> "Built with help from 4weird VibeCodeWorker — https://4weird.com/vibecodeworker"
+
+Removal or obscuring of a required credit is a license violation. We may
+request cure within 14 days; uncured or repeated violations may result
+in delisting and termination of related distribution rights.
+
+## 9. Payment — prepay preferred; amounts owed are enforceable
+
+We prefer prepayment. Fees are due as stated on https://4weird.com/pricing,
+your order, or your written quote, plus applicable taxes. Late or unpaid
+amounts may accrue interest at the maximum rate permitted by law, plus
+reasonable costs of collection, including attorneys' fees where allowed.
+
+We reserve the right to collect amounts lawfully owed using any lawful
+means, which may include: charging the payment method on file, suspending
+or terminating accounts, seats, workspaces, or self-host keys, offsetting
+against credits or payouts otherwise due, engaging a collection agency or
+counsel, and pursuing claims in court. Prepaying minimizes interruptions
+and collection action. Nothing here limits defenses or rights available
+to you under applicable law.
+
+Self-hosted subscriptions renew monthly until cancelled per the Terms or
+your order. Cancelling stops future renewals; it does not refund
+completed periods and does not retroactively license past unlicensed use.
+
+## 10. Acceptable use and safety
+
+No unlawful content or conduct, no cheating or metering tampering, no
+malware, no sexual content involving minors in any form, no harassment,
+no infringement, and no circumvention of safety, moderation, or billing
+controls. Violations may result in removal, suspension, evidence
+preservation, and referral to authorities where appropriate, per the
+Terms. Human safety referrals (e.g. NCMEC by a human) and disclosure of
+identifiers only on valid legal process apply as stated in the Terms.
+
+## 11. Third-party notices preserved
+
+Some files in this repo (e.g. legacy bundles, engines, fonts, or
+provider SDKs) may carry their own third-party license notices. Those
+notices remain in force for those files only and do not convert the
+Covered Work to open source. Where a third-party license requires its
+notice to travel with the file, we preserve it.
+
+## 12. No warranty; liability limited
+
+TO THE FULLEST EXTENT PERMITTED BY LAW, THE COVERED WORK IS PROVIDED
+"AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND. OUR
+LIABILITY IS LIMITED AS STATED IN THE TERMS (INCLUDING ITS LIMITATION
+SECTION), AND NOTHING HERE EXPANDS IT.
+
+## 13. Term, termination, governing terms
+
+This license is governed by the Terms of Use, including governing law
+(New Hampshire), venue, class-action waiver limits, claim-filing
+deadlines, and mandatory-rights notices. We may update this LICENSE
+file and the pricing page prospectively; continued use after an update
+constitutes acceptance of the updated terms for future use. Rights
+accrued (assignments, amounts owed, attribution duties on distributed
+copies) survive termination.
+
+Questions: matt@mattyjacks.com · Prices: https://4weird.com/pricing

@@ -8,6 +8,11 @@ One account, one coin economy (**100 coins = exactly $1.00**, 25% platform cut i
 in every price, never on top) across games, clans, bots, agents/desktops/teams, game AI +
 Gaming Buddy, and VibeCodeWorker QA!
 
+License: private and proprietary — see [`LICENSE`](../../LICENSE) and
+[4weird.com/pricing](https://4weird.com/pricing). Contributions assign to
+MattyJacks LLC; VibeCodeWorker-assisted games must credit VibeCodeWorker;
+self-hosting requires a paid plan ($420/mo per org + 15% markup, Enterprise down to 9%).
+
 ## Routes (pages)
 
 | Area | Routes |

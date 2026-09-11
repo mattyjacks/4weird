@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/pricing" },
   title: "Pricing | 4weird Games",
   description:
-    "Vibe Coins, cloud compute with a 25% premium included, and $420/mo self-hosted BYOK with a 15% compute premium.",
+    "Vibe Coins, cloud compute with a 25% premium included, and VibeCodeWorker self-hosted licensing: $420/mo per org (100 seats, +$4.20/seat) with 15% compute markup, plus Enterprise quotes down to 9%.",
 };
 
 function Check({ children }: { children: React.ReactNode }) {
@@ -118,19 +118,22 @@ export default function Page() {
           </article>
 
           <article className="rounded-3xl border border-amber-300/40 bg-gradient-to-b from-amber-300/10 to-white/[.03] p-6 sm:p-8">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-300">Self-hosted Â· BYOK</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-300">Self-hosted · BYOK · Mid-tier</p>
             <h2 className="mt-2 text-2xl font-black">Bring your own keys</h2>
             <p className="mt-2 text-3xl font-black">
-              $420<span className="text-base font-semibold text-slate-400">/mo + 15% compute premium</span>
+              $420<span className="text-base font-semibold text-slate-400">/mo per org + 15% compute markup</span>
             </p>
             <p className="mt-3 text-sm text-slate-300">
-              Plug in your own RunPod / DigitalOcean keys. You pay providers at cost â€” we add a
-              flat $420/mo platform fee plus a 15% metered premium for orchestration.
+              Plug in your own RunPod / DigitalOcean keys. You pay providers at cost — we add a
+              flat $420/mo platform fee plus a 15% metered API/compute premium for orchestration.
+              Includes up to 100 user seats per org; extra seats $4.20/mo each. Need scale?
+              Enterprise quotes go down to as little as 9% markup — Talk to Sales.
             </p>
             <ul className="mt-5 space-y-2.5">
-              <Check>$420/mo platform: workspaces, escrow-free metering, support</Check>
-              <Check>15% premium on your at-cost compute (vs 25% on cloud)</Check>
-              <Check>Your keys, your limits, your invoices â€” we never hold funds</Check>
+              <Check>$420/mo per org: up to 100 seats, workspaces, escrow-free metering, support + self-host help</Check>
+              <Check>Extra seats $4.20/mo each — add as your org grows</Check>
+              <Check>15% API/compute markup on your at-cost bills (vs 25% on cloud)</Check>
+              <Check>Your keys, your limits, your invoices — we never hold funds</Check>
             </ul>
             <Link
               href="/teams"
@@ -213,14 +216,18 @@ export default function Page() {
             <p className="mt-3 text-sm leading-relaxed text-slate-300">
               Connect your own provider keys once. Your workloads bill your provider accounts
               directly at cost. 4weird meters the same usage and adds a{" "}
-              <strong className="text-white">15% premium + $420/mo platform subscription</strong>{" "}
-              for orchestration, workspaces, messaging, and support. No escrow, no markups hiding
-              anywhere else.
+              <strong className="text-white">15% API/compute markup + $420/mo per-org subscription</strong>{" "}
+              for orchestration, workspaces, messaging, self-host help, and support. Each org
+              includes <strong className="text-white">100 seats</strong>; additional seats are{" "}
+              <strong className="text-white">$4.20/mo each</strong>. No escrow, no markups hiding
+              anywhere else. Self-hosting requires a current paid plan — there is no free
+              self-host right.
             </p>
             <ul className="mt-5 space-y-2.5">
-              <Check>$420/mo covers unlimited workspaces + team seats on your stack</Check>
-              <Check>15% metered premium settled monthly in coins or card</Check>
-              <Check>Cancel anytime â€” your keys and data stay yours</Check>
+              <Check>$420/mo per org covers 100 seats + unlimited workspaces + team seats on your stack</Check>
+              <Check>15% metered API/compute markup settled monthly in coins or card</Check>
+              <Check>Enterprise / hyperscaler quotes down to as little as 9% markup — Talk to Sales</Check>
+              <Check>Cancel anytime — your keys and data stay yours</Check>
             </ul>
           </div>
         </div>
@@ -239,12 +246,12 @@ export default function Page() {
               <tr className="border-b border-white/5">
                 <td className="px-5 py-4 font-bold text-white">Platform fee</td>
                 <td className="px-5 py-4">$0 â€” just the 25% premium included in metered coins</td>
-                <td className="px-5 py-4">$420/mo flat</td>
+                <td className="px-5 py-4">$420/mo per org (100 seats incl., +.20/seat); Enterprise custom quote</td>
               </tr>
               <tr className="border-b border-white/5">
                 <td className="px-5 py-4 font-bold text-white">Compute premium</td>
                 <td className="px-5 py-4">25% included (25/75 split, escrowed)</td>
-                <td className="px-5 py-4">15% on at-cost provider bills</td>
+                <td className="px-5 py-4">15% on at-cost provider bills (Mid-tier); down to 9% on Enterprise</td>
               </tr>
               <tr className="border-b border-white/5">
                 <td className="px-5 py-4 font-bold text-white">Who pays provider</td>
@@ -265,6 +272,47 @@ export default function Page() {
               </tr>
             </tbody>
           </table>
+        </div>
+      </section>
+
+      {/* VibeCodeWorker license */}
+      <section className="mx-auto max-w-6xl px-4 sm:px-5" aria-label="VibeCodeWorker license">
+        <div className="rounded-3xl border border-violet-300/30 bg-gradient-to-b from-violet-400/10 to-white/[.02] p-6 sm:p-8">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-300">Private license · not open source</p>
+          <h2 className="mt-2 text-2xl font-black sm:text-3xl">VibeCodeWorker licensing, plainly stated</h2>
+          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300">
+            The 4weird platform, VibeCodeWorker, and the games in this repo are proprietary — all
+            rights reserved. Full text lives in the repo <code className="text-cyan-300">LICENSE</code> file
+            and the binding Terms at <Link href="/terms" className="text-cyan-200 underline">/terms</Link>.
+            What follows is the pricing-page summary; where they differ, the LICENSE + Terms + your
+            paid order control.
+          </p>
+          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            <div className="rounded-2xl border border-amber-300/30 bg-black/30 p-5">
+              <h3 className="font-black text-amber-200">Mid-tier self-host — $420/mo per org</h3>
+              <ul className="mt-3 space-y-2.5">
+                <Check>Up to 100 user seats included; additional seats $4.20/mo each</Check>
+                <Check>Permission + help to self-host VibeCodeWorker on your infrastructure</Check>
+                <Check>15% API / compute markup over at-cost provider bills</Check>
+                <Check>No free or implied self-host right — a current paid plan is required</Check>
+              </ul>
+            </div>
+            <div className="rounded-2xl border border-cyan-300/30 bg-black/30 p-5">
+              <h3 className="font-black text-cyan-200">Enterprise / hyperscaler — Get a Quote</h3>
+              <ul className="mt-3 space-y-2.5">
+                <Check>Custom monthly pricing — Talk to Sales (matt@mattyjacks.com)</Check>
+                <Check>Volume API / compute markup down to as little as 9%</Check>
+                <Check>Scale, term, prepayment, and support scope set the final number</Check>
+                <Check>No enterprise rights until a signed order or written quote is in place</Check>
+              </ul>
+            </div>
+          </div>
+          <ul className="mt-6 space-y-2.5">
+            <Check>25% platform cut is part of every hosted price (25% platform / 75% provider or creator), never on top — routing around metering or the cut violates the license</Check>
+            <Check>Contributions assign to us: work you submit through the platform is assigned to MattyJacks LLC (exclusive perpetual license where assignment is not possible) — contributors do not retain ownership, and we may improve, modify, or remove games without further permission</Check>
+            <Check>Attribution required: games built or tested with VibeCodeWorker must credit “Built with help from 4weird VibeCodeWorker — 4weird.com/vibecodeworker” in the game credits</Check>
+            <Check>Prepay preferred: fees are due as quoted plus taxes; late amounts may bear interest and collection costs where allowed — we reserve the right to collect amounts owed by any lawful means (charge on file, suspension, offset, collections, court)</Check>
+          </ul>
         </div>
       </section>
 
@@ -300,7 +348,7 @@ export default function Page() {
             },
             {
               q: "What does Self-Hosted $420/mo include?",
-              a: "Unlimited workspaces, projects, messaging, cloud orchestration against your own keys, and support. Compute itself bills your providers at cost plus the 15% premium.",
+              a: "Up to 100 seats per org (extra seats $4.20/mo each), unlimited workspaces, projects, messaging, cloud orchestration against your own keys, self-host help, and support. Compute itself bills your providers at cost plus the 15% API/compute markup. Enterprise quotes go down to 9% — Talk to Sales.",
             },
             {
               q: "Can I switch between Cloud and BYOK?",
@@ -321,6 +369,22 @@ export default function Page() {
             {
               q: "Can I really play 5 hours a day for free?",
               a: "Yes. A 5-hour session on default rates costs about 6 coins (up to 1 coin load for a full 1 MiB plus 5 coins of per-second play) â€” covered by the 100-coin signup trial many times over, and streak bonuses pay up to 12 coins a day.",
+            },
+            {
+              q: "Who owns work I contribute?",
+              a: "You assign it to us on submission: games, code, art, and other contributions made through the platform are assigned to MattyJacks LLC (or exclusively licensed where assignment is not possible). Contributors do not retain ownership, and we may improve, modify, adapt, or remove games without further permission, except where the Terms expressly provide creator payouts (the 75% share). See LICENSE for the full assignment text.",
+            },
+            {
+              q: "Do I have to credit VibeCodeWorker?",
+              a: "Yes, when you used it. Games built or tested with VibeCodeWorker must carry a visible credit: Built with help from 4weird VibeCodeWorker — 4weird.com/vibecodeworker. Removing a required credit can lead to delisting.",
+            },
+            {
+              q: "What are the self-host seat limits?",
+              a: "Mid-tier is $420/mo per org including 100 seats; extra seats are $4.20/mo each. Metered API/compute carries a 15% markup. Enterprise/hyperscaler plans are custom-quoted (Talk to Sales) with markup down to as little as 9%.",
+            },
+            {
+              q: "What if I do not pay?",
+              a: "We prefer prepayment to avoid interruptions. Fees are due as quoted plus taxes, and late amounts may bear interest and collection costs where allowed. We reserve the right to collect amounts owed by any lawful means — including charging the method on file, suspending seats or keys, offsetting credits, or pursuing collections or court claims.",
             },
             {
               q: "Do guests have to pay or watch ads?",

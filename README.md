@@ -98,6 +98,17 @@ Tip your favorite game makers or clubs with coins. Monthly or one-time. They kee
 
 At: [4weird.com/support](https://4weird.com/support) and [4weird.com/fundraisers](https://4weird.com/fundraisers)
 
+## License — private, not open source (see pricing)
+
+This repo and the 4weird platform (including VibeCodeWorker) are **private and proprietary — all rights reserved**. There is no MIT / Apache / GPL grant here, except where an individual third-party file carries its own notice.
+
+- Full license: [`LICENSE`](./LICENSE) · Current prices and plans: [4weird.com/pricing](https://4weird.com/pricing) · Terms: [4weird.com/terms](https://4weird.com/terms)
+- Every hosted price already includes the **25% platform cut** (25% platform / 75% provider or creator) — never added on top. Routing around metering or the cut violates the license.
+- **Contributions assign to us:** by submitting a game, code, art, or other work on the platform you assign all rights to MattyJacks LLC (or grant us an exclusive perpetual license where assignment isn't possible). We may improve, modify, fix, or remove games without asking the creator first.
+- **Credit required:** if you used VibeCodeWorker to help with your game, you must credit it in your game's credits: "Built with help from 4weird VibeCodeWorker — 4weird.com/vibecodeworker".
+- **Self-hosting is paid only:** $420/mo per org (up to 100 seats; +$4.20/mo per extra seat) plus 15% API/compute markup. Enterprise/hyperscaler quotes go down to as little as 9% markup — Talk to Sales. Details on [pricing](https://4weird.com/pricing).
+- Fees are preferably prepaid. We reserve the right to collect amounts owed using any lawful means (charge on file, suspension, offset, collections, court).
+
 ## The rules, in plain English
 
 - 100 coins = $1.00, always. The 25% site cut is already inside the price, never added on top.

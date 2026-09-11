@@ -193,7 +193,7 @@ const DENY_PATTERNS: { code: string; re: RegExp }[] = [
 
 // Warning shapes: risky-but-legit capabilities needing human eyeballs.
 const WARN_PATTERNS: { code: string; re: RegExp }[] = [
-  { code: "risk:eval-obfuscation", re: /eval\s*\(\s*(atob|unescape|String\.fromCharCode)|\\x[0-9a-f]{2}{8,}|fromCharCode\s*\(\s*\d{2,}/i },
+  { code: "risk:eval-obfuscation", re: /eval\s*\(\s*(atob|unescape|String\.fromCharCode)|(?:\\x[0-9a-f]{2}){8,}|fromCharCode\s*\(\s*\d{2,}/i },
   { code: "risk:remote-fetch", re: /fetch\s*\(\s*["']https?:|XMLHttpRequest|import\s*\(\s*["']https?:/i },
   { code: "risk:crypto-miner", re: /coinhive|cryptoloot|miner\.start|WebAssembly.*mine/i },
   { code: "risk:exfiltration", re: /localStorage\s*\[\s*["']token|document\.cookie.*fetch|navigator\.sendBeacon/i },
@@ -269,7 +269,6 @@ export function auditZipPackage(input: {
   }
 
   // Content scan over bounded text samples.
-  let scanned = 0;
   for (const e of entries.slice(0, AUDIT_MAX_FILES)) {
     if (!/\.(html?|js|mjs|cjs|ts|json|txt|md)$/i.test(e.name)) continue;
     const sample = String(texts[e.name] ?? "").slice(
@@ -277,7 +276,6 @@ export function auditZipPackage(input: {
       Math.floor(AUDIT_TEXT_CAP_BYTES / 50),
     );
     if (!sample) continue;
-    scanned++;
     for (const { code, re } of DENY_PATTERNS) {
       if (re.test(sample)) {
         findings.push({

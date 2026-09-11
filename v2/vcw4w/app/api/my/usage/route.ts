@@ -331,13 +331,36 @@ export async function GET(req: Request) {
   const falTotalGross = Number(fal.total.gross) || 0;
   const falTotalCut = Number(fal.total.cut) || 0;
 
+  // 7c. Game .zip submissions + Weird Vault + Meshy.ai (25% cut INCLUDED).
+  // Pre-migration or RLS: zeros so the page still renders its skeleton.
+  async function spendRollup(fn: string): Promise<{ gross: number; cut: number; provider: number; turns: number }> {
+    try {
+      const { data: rollup, error } = await supabase.rpc(fn as "my_fal_usage");
+      if (!error && rollup) {
+        const r = rollup as Record<string, unknown>;
+        return {
+          gross: Number(r.gross) || 0,
+          cut: Number(r.cut) || 0,
+          provider: Number(r.provider) || 0,
+          turns: Number(r.turns) || 0,
+        };
+      }
+    } catch {
+      // Pre-migration: zeros.
+    }
+    return { gross: 0, cut: 0, provider: 0, turns: 0 };
+  }
+  const submissions = await spendRollup("my_submission_spend");
+  const meshy = await spendRollup("my_meshy_spend");
+  const vault = await spendRollup("my_vault_spend");
+
   const combined = {
     gross:
       Math.round(
-        (gameAi.total.gross + agentCompute.gross + workspace.gross + gameRent.total.gross + clanTotalGross + falTotalGross) * 100,
+        (gameAi.total.gross + agentCompute.gross + workspace.gross + gameRent.total.gross + clanTotalGross + falTotalGross + submissions.gross + meshy.gross + vault.gross) * 100,
       ) / 100,
     cut:
-      Math.round((gameAi.total.cut + agentCompute.cut + workspace.cut + gameRent.total.cut + clanTotalCut + falTotalCut) * 100) /
+      Math.round((gameAi.total.cut + agentCompute.cut + workspace.cut + gameRent.total.cut + clanTotalCut + falTotalCut + submissions.cut + meshy.cut + vault.cut) * 100) /
       100,
     provider:
       Math.round(
@@ -346,7 +369,10 @@ export async function GET(req: Request) {
           workspace.provider +
           gameRent.total.provider +
           (clanTotalGross - clanTotalCut) +
-          (falTotalGross - falTotalCut)) *
+          (falTotalGross - falTotalCut) +
+          submissions.provider +
+          meshy.provider +
+          vault.provider) *
           100,
       ) / 100,
   };
@@ -414,6 +440,9 @@ export async function GET(req: Request) {
     clan,
     runpod,
     fal,
+    submissions,
+    meshy,
+    vault,
     combined,
     note: GAME_AI_CUT_NOTE,
   });

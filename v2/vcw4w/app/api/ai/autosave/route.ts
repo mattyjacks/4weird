@@ -1,0 +1,173 @@
+import { createHash } from "node:crypto";
+import { createClient } from "@/lib/supabase/server";
+import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
+import { dbFail, fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
+import { keyHasScope, resolveBotKey } from "@/lib/bot-auth";
+import { rateLimit } from "@/lib/rate-limit";
+import { VAULT_BUCKET, cleanVaultPath, isVaultScope, vaultPathForKind } from "@/lib/blob-vault";
+import {
+  AUTOSAVE_CUT_NOTE,
+  LOG_FULL_MAX_CHARS,
+  LOG_HALF_PREVIEW_CHARS,
+  isAiArtifactKind,
+  isLogTier,
+  planAutosave,
+} from "@/lib/ai-autosave";
+
+export const dynamic = "force-dynamic";
+const MAX_INLINE_BYTES = 256 * 1024;
+
+/**
+ * POST /api/ai/autosave { kind, tier?, filename?, scope?, scope_id?, text?, url? }.
+ * Autosaves an AI artifact (fal/Meshy/VCW/swarm/buddy/NGP output, chat
+ * context, full/half/minimal logs, audio/video/text) to the caller's Weird
+ * Vault scope, then returns follow-up work hints. Auth: session OR bot key
+ * with `ai:autosave`. Provenance recorded; log tiers enforced (half drops
+ * full text, minimal keeps metadata only).
+ */
+export async function POST(req: Request) {
+  if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  let userId = data?.user?.id ?? null;
+  let viaBot = false;
+  if (!userId) {
+    const bot = await resolveBotKey(req).catch(() => null);
+    if (!bot) return fail("Login required.", 401);
+    if (!keyHasScope(bot, "ai:autosave")) return fail("Key lacks scope: ai:autosave.", 403);
+    userId = bot.userId;
+    viaBot = true;
+  }
+  const throttle = rateLimit(`ai-autosave:${userId}`, 30, 60_000);
+  if (!throttle.allowed) return fail("Too many requests.", 429);
+
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return fail("Invalid JSON body.", 400);
+  }
+  const input = (body ?? {}) as Record<string, unknown>;
+  if (!isAiArtifactKind(input.kind)) return fail("Invalid kind.", 400);
+  const tier = isLogTier(input.tier) ? input.tier : "half";
+  const scope = input.scope ?? "personal";
+  if (!isVaultScope(scope)) return fail("Invalid scope.", 400);
+  const scopeId = String(input.scope_id ?? userId);
+  if (scope === "personal" && scopeId !== userId) return fail("Personal saves live on your account.", 403);
+  if (scope !== "personal" && !/^[0-9a-f-]{36}$/i.test(scopeId)) return fail("Invalid scope_id.", 400);
+  const source = ["fal", "meshy", "vcw", "swarm", "buddy", "newgameplus", "manual", "api"].includes(String(input.source))
+    ? String(input.source)
+    : "manual";
+
+  // Resolve payload: inline text (tier-capped) or a server-fetched https URL.
+  let bytes: Buffer | null = null;
+  let mime = "application/octet-stream";
+  const rawText = String(input.text ?? "");
+  const url = String(input.url ?? "");
+  if (rawText) {
+    const capped =
+      tier === "full"
+        ? rawText.slice(0, LOG_FULL_MAX_CHARS)
+        : tier === "half"
+          ? rawText.slice(0, LOG_HALF_PREVIEW_CHARS)
+          : "";
+    bytes = Buffer.from(capped, "utf8");
+    mime = "text/plain";
+  } else if (url.startsWith("https://") && url.length <= 2048) {
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 15_000);
+      try {
+        const res = await fetch(url, { signal: controller.signal });
+        if (!res.ok) return fail("Unable to fetch artifact URL.", 502);
+        const buf = Buffer.from(await res.arrayBuffer());
+        if (buf.length > 69 * 1024 * 1024) return fail("Artifact exceeds 69 MB.", 413);
+        bytes = buf;
+        mime = (res.headers.get("content-type") ?? "application/octet-stream").slice(0, 128);
+      } finally {
+        clearTimeout(timer);
+      }
+    } catch {
+      return fail("Unable to fetch artifact URL.", 502);
+    }
+  } else {
+    return fail("Provide text or an https url.", 400);
+  }
+  if (!bytes || bytes.length < 1) return fail("Nothing to save for this tier.", 400);
+  if (bytes.length > MAX_INLINE_BYTES && mime === "text/plain") {
+    bytes = bytes.subarray(0, MAX_INLINE_BYTES);
+  }
+
+  let svc;
+  try {
+    svc = serviceClient();
+  } catch {
+    return fail("Autosave unavailable.", 503);
+  }
+  if (scope !== "personal") {
+    const table = scope === "team" ? "team_members" : "org_members";
+    const col = scope === "team" ? "team_id" : "org_id";
+    const { data: mem } = await svc.from(table).select("user_id").eq(col, scopeId).eq("user_id", userId).maybeSingle();
+    if (!mem) return fail("Not a member of that scope.", 403);
+  }
+
+  const filename = String(input.filename ?? `${source}-${Date.now()}.txt`).slice(0, 128);
+  const plan = planAutosave({ kind: input.kind, tier, filename });
+  if (!plan) return fail("Invalid kind.", 400);
+  const rel = cleanVaultPath(vaultPathForKind(plan.kind, filename)) || `assets/${filename}`;
+  const sha256 = createHash("sha256").update(bytes).digest("hex");
+  const ext = (rel.split(".").pop() ?? "bin").slice(0, 8);
+  const objectKey = `${scope}/${scopeId}/${sha256}.${ext}`;
+  await svc.from("vault_blobs").upsert(
+    { sha256, bytes: bytes.length, mime, storage_path: objectKey },
+    { onConflict: "sha256" },
+  );
+  await svc.storage.from(VAULT_BUCKET).upload(objectKey, bytes, { contentType: mime, upsert: true });
+  const cols =
+    scope === "personal"
+      ? { owner_id: userId, team_id: null, org_id: null }
+      : scope === "team"
+        ? { owner_id: null, team_id: scopeId, org_id: null }
+        : { owner_id: null, team_id: null, org_id: scopeId };
+  const { data: vf, error: vfErr } = await svc
+    .from("vault_files")
+    .upsert(
+      {
+        ...cols,
+        scope,
+        path: rel,
+        sha256,
+        bytes: bytes.length,
+        kind: plan.kind,
+        provenance: { source, tier, via: viaBot ? "bot" : "app", mime },
+      },
+      { onConflict: "scope,owner_id,team_id,org_id,path" },
+    )
+    .select("id")
+    .single();
+  if (vfErr || !vf) return dbFail("api/ai/autosave", vfErr, "Unable to save artifact.");
+  const fileId = (vf as { id: string }).id;
+  await svc.from("ai_artifacts").insert({
+    owner_id: userId,
+    team_id: scope === "team" ? scopeId : null,
+    org_id: scope === "org" ? scopeId : null,
+    kind: plan.kind,
+    tier,
+    source,
+    vault_file_id: fileId,
+    bytes: bytes.length,
+    coins: 0,
+  });
+
+  return ok(
+    {
+      file: { id: fileId, path: rel },
+      dropped: plan.dropped,
+      followUps: plan.followUps,
+      note: AUTOSAVE_CUT_NOTE,
+    },
+    201,
+  );
+}

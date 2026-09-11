@@ -27,6 +27,9 @@ const NAV_GROUPS: { label: string; links: NavLink[] }[] = [
     label: "Build",
     links: [
       { href: "/newgameplus", label: "NewGamePlus" },
+      { href: "/submit", label: "Submit Game" },
+      { href: "/vault", label: "Weird Vault" },
+      { href: "/meshy", label: "Meshy 3D" },
       { href: "/agents", label: "AI Agents" },
       { href: "/runpods", label: "My RunPods" },
       { href: "/fal", label: "fal.ai Studio" },
