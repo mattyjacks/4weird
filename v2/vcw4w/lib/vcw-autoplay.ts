@@ -52,11 +52,21 @@ export type AutoplayRate = {
   blurb: string;
 };
 
-/** Gross coins/min, 25% cut INCLUDED. */
+/** Gross coins/min, 25% cut INCLUDED — anchored to live RunPod Secure prices.
+ * Recomputed 2026-09-11 from the live catalog (100 coins = $1.00, gross =
+ * providerUsd / 0.75, rounded UP to the centicentcoin so the provider share
+ * always covers the card):
+ * - cpu 0.14/min: cpu3c 2 vCPU at $0.06/hr → $0.08/hr gross.
+ * - gpu 0.63/min: cheapest Secure GPUs with stock ($0.24–0.28/hr: RTX 2000
+ *   Ada, RTX A4000/A4500, RTX A5000, RTX 4000 Ada) → $0.373/hr gross.
+ * - gpu-boosted 16/min: priciest Secure POD stock (B200 $6.79/hr) →
+ *   $9.05/hr gross. Boosted picks the priciest card with stock, so this is
+ *   a ceiling — the API quotes the provisioned card exactly at start time
+ *   (quoteAutoplayForUsd). A 55-min run is ~8 / ~35 / ~880 coins. */
 export const AUTOPLAY_RATES: AutoplayRate[] = [
-  { compute: "cpu", unit: "remote_min", coinsPerMinute: 4, blurb: "RunPod CPU remote drives the 4weird play page (cheapest autoplay)." },
-  { compute: "gpu", unit: "remote_min", coinsPerMinute: 12, blurb: "RunPod GPU remote drives the 4weird play page with vision." },
-  { compute: "gpu-boosted", unit: "remote_min", coinsPerMinute: 20, blurb: "Best RunPod GPU: fastest vision for 4weird games, required for Xonotic off-site." },
+  { compute: "cpu", unit: "remote_min", coinsPerMinute: 0.14, blurb: "RunPod CPU remote drives the 4weird play page (cheapest autoplay, ~$0.08/hr gross)." },
+  { compute: "gpu", unit: "remote_min", coinsPerMinute: 0.63, blurb: "RunPod GPU remote drives the 4weird play page with vision (~$0.37/hr gross)." },
+  { compute: "gpu-boosted", unit: "remote_min", coinsPerMinute: 16, blurb: "Best RunPod GPU: fastest vision for 4weird games, required for Xonotic off-site (ceiling — quoted exactly at start)." },
 ];
 
 export function isAutoplayCompute(value: unknown): value is AutoplayCompute {
@@ -81,12 +91,12 @@ export function rateForCompute(compute: AutoplayCompute): AutoplayRate {
   return found;
 }
 
-/** Gross coins for N minutes at a compute tier (min 1). */
+/** Gross coins for N minutes at a compute tier (centicentcoin ceiling, min 0.01). */
 export function quoteAutoplay(compute: AutoplayCompute, minutes: number): number {
   const rate = rateForCompute(compute);
   const mins = Number(minutes);
   if (!Number.isFinite(mins) || mins <= 0) return 0;
-  return Math.max(1, Math.ceil(rate.coinsPerMinute * mins));
+  return Math.max(0.01, Math.ceil(rate.coinsPerMinute * mins * 100) / 100);
 }
 
 export function quoteAutoplaySplit(compute: AutoplayCompute, minutes: number): {
@@ -95,6 +105,26 @@ export function quoteAutoplaySplit(compute: AutoplayCompute, minutes: number): {
   provider: number;
 } {
   return gameAiSplit(quoteAutoplay(compute, minutes));
+}
+
+/**
+ * Exact quote for the card that was actually provisioned: gross coins for N
+ * minutes from its hourly USD price (gross = provider / 0.75, 25% included),
+ * centicentcoin ceiling. This is what the API reports after provisioning —
+ * the static AUTOPLAY_RATES above are pre-provision estimates only.
+ */
+export function quoteAutoplayForUsd(hourlyUsd: number, minutes: number): {
+  gross: number;
+  cut: number;
+  provider: number;
+} {
+  const usd = Number(hourlyUsd);
+  const mins = Number(minutes);
+  if (!Number.isFinite(usd) || usd <= 0 || !Number.isFinite(mins) || mins <= 0) {
+    return { gross: 0, cut: 0, provider: 0 };
+  }
+  const gross = Math.ceil(((usd / 0.75) * 100 * mins) / 60 * 100) / 100;
+  return gameAiSplit(gross);
 }
 
 export const AUTOPLAY_CUT_NOTE =

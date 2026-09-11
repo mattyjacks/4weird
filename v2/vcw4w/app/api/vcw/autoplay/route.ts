@@ -9,7 +9,7 @@ import {
   VCW_DESKTOP_PATH,
   isAutoplayCompute,
   isAutoplaySiteMode,
-  quoteAutoplaySplit,
+  quoteAutoplayForUsd,
   resolveAutoplayPlan,
 } from "@/lib/vcw-autoplay";
 import { provisionAutoplayWorker } from "@/lib/compute";
@@ -95,7 +95,7 @@ export async function POST(req: Request) {
     });
   }
 
-  const quote = quoteAutoplaySplit(plan.compute, AUTOPLAY_MAX_MINUTES);
+  const quote = quoteAutoplayForUsd(provisioned.hourlyUsd, AUTOPLAY_MAX_MINUTES);
   const maxRunUsd = Math.round((provisioned.hourlyUsd / 60) * AUTOPLAY_MAX_MINUTES * 100) / 100;
   return ok({
     started: true,
