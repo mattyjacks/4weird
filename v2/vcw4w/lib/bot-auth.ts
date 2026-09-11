@@ -25,6 +25,8 @@
  *   meshy:read     - GET  /api/meshy/ops, /api/meshy/status
  *   ai:autosave    - POST /api/ai/autosave (vault autosave of AI artifacts)
  *   ai:read        - GET  /api/ai/artifacts (own-scope artifact reads)
+ *   vcw:read       - GET /api/vcw/gateway/* + /api/vcw/* reads
+ *   vcw:write      - POST gateway dispatch + VCW run writes
  *
  * Scope separation is strict: clan scopes never grant code/vault/meshy
  * access and vice versa. keyHasScope() is checked per route; an empty
@@ -78,6 +80,8 @@ export const BOT_SCOPES = [
   "meshy:read",
   "ai:autosave",
   "ai:read",
+  "vcw:read",
+  "vcw:write",
 ] as const;
 
 export interface BotIdentity {

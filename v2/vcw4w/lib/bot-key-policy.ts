@@ -33,6 +33,8 @@ export const BOT_KEY_SCOPES = [
   "meshy:read",
   "ai:autosave",
   "ai:read",
+  "vcw:read",
+  "vcw:write",
 ] as const;
 
 /** Platform cut INCLUDED in every log-storage charge. Same 25% as everything. */
