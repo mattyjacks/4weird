@@ -1,0 +1,35 @@
+﻿# Supabase migration 2026-10-9-B — 4weird single-deploy (v2/vcw4w)
+
+Target project: the Supabase project behind `NEXT_PUBLIC_SUPABASE_URL` in
+`v2/vcw4w/.env.example` (production: `https://4weird.games` / `https://4weird.com`).
+Source files: `v2/vcw4w/supabase/migrations/` (18 files) + `v2/vcw4w/supabase/schema.sql`.
+
+All SQL is re-runnable (`IF NOT EXISTS` / `OR REPLACE` / `DROP ... IF EXISTS` guards).
+Run in filename order.
+
+## A. SQL — Supabase Dashboard → SQL Editor → New query, paste, Run
+
+1. `20260910000000_vibe_coins_init.sql` — profiles, game_saves, coin_grants, coin_ledger, purchase_claims, RLS.
+2. `202609100001_game_saves.sql` — game_saves table + self-only RLS.
+3. `20260910010000_social_platform_wars.sql` — public_handle/playtime on profiles; friendships, messages, telemetry, code_submissions tables.
+4. `20260910020000_multiplayer_and_social_actions.sql` — game_match_queue, game_matches, account RPC helpers.
+5. `20260910030000_lobbies_analytics_and_trial_credit.sql` — game_lobbies, game_presence, signup_ip_credits.
+6. `20260910040000_account_preferences_and_creator_monetization.sql` — account_settings + monetization_status.
+7. `20260910050000_global_cheat_controls.sql` — global_cheat_settings.
+8. `20260910060000_enforce_cheated_save_invariant.sql` — cheat_mode:true invariant trigger on game_saves.
+9. `20260910070000_daily_and_referrals.sql` — daily_claims, referral_codes + referrals, leaderboard_top() RPC.
+10. `20260910080000_clans.sql` — clans, members, posts, comments, images, reports tables + moderation RPCs.
+11. `20260910090000_bot_platform.sql` — bot identities + hashed API keys + key management RPCs.
+12. `20260910100000_agent_rentals.sql` — compute providers, agent listings, rental bookings with coin escrow.
+13. `20260910110000_security_fixes.sql` — friendship self-accept hole closed, immutable parties, DM read rules.
+14. `20260910120000_reconcile_clans_bots.sql` — clan status vocabulary unification, bot RPC reconciliation.
+15. `20260910130000_teams_enterprise_bundle.sql` — teams/orgs/projects/rooms, cloud services catalog + settlement.
+16. `20260910140000_unitunite_workspace_cut.sql` — per-workspace 25% compute cut ledger + spend rollup view.
+17. `20260910150000_privacy_rights.sql` — privacy_requests audit log for /my/rights/.
+18. `20260910160000_game_ai_compute.sql` — game AI features, Gaming Buddy sessions, metered game AI usage.
+19. `20260910170000_game_rentals.sql` — game rates, developers, sessions, play usage with 25% cut.
+20. `20260910180000_profile_provisioning_and_clans_hardening.sql` — profile auto-repair, bot identity self-healing foreign key safeguard, clans public read grant.
+
+## B. Paste-and-run bundle
+
+See `supabase-migrations-2026-10-9-B.txt` for the combined single-paste SQL script containing all migrations up to 20260910180000.

@@ -236,6 +236,7 @@ export function ClanPage({ slug }: { slug: string }) {
             <h3 className="text-lg font-bold text-white">{p.title}</h3>
             <p className="mt-2 whitespace-pre-wrap text-sm text-slate-300">{p.body}</p>
             {p.image_url && (
+              // eslint-disable-next-line @next/next/no-img-element
               <img src={p.image_url} alt="" loading="lazy" className="mt-3 max-h-80 rounded-lg border border-white/10" />
             )}
             <div className="mt-3 flex flex-wrap items-center gap-3">
