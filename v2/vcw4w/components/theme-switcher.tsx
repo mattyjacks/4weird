@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 
 const ThemeSwitcher = () => {
   const [mounted, setMounted] = useState(false);
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
 
   // useEffect only runs on the client, so now we can safely show the UI
   useEffect(() => {
@@ -26,6 +26,7 @@ const ThemeSwitcher = () => {
   }
 
   const ICON_SIZE = 16;
+  const active = theme ?? resolvedTheme ?? "dark";
 
   return (
     <DropdownMenu>
@@ -35,7 +36,7 @@ const ThemeSwitcher = () => {
           size="sm"
           aria-label="Select color theme"
         >
-          {theme === "light" ? (
+          {active === "light" ? (
             <Sun
               key="light"
               size={ICON_SIZE}
@@ -52,7 +53,7 @@ const ThemeSwitcher = () => {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-content" align="start">
         <DropdownMenuRadioGroup
-          value={theme}
+          value={active}
           onValueChange={(e) => setTheme(e)}
         >
           <DropdownMenuRadioItem className="flex gap-2" value="light">

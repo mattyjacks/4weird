@@ -52,6 +52,9 @@ export const CLOUD_SERVICES: CloudService[] = [
   { key: "game-ai-tts", name: "Game AI Voice", unit: "1k_chars", coinsPerUnit: 2, blurb: "In-game voice lines in 9 OpenAI voices", category: "Game AI", tier: "cheapest-tts", runtime: "tts-newest-viable" },
   { key: "buddy-chat", name: "Gaming Buddy Chat", unit: "1k_tokens", coinsPerUnit: 3, blurb: "Universal screen-aware buddy conversation", category: "Game AI", tier: "cheapest-model", runtime: "openai-newest-viable" },
   { key: "buddy-voice", name: "Gaming Buddy Voice", unit: "1k_chars", coinsPerUnit: 2, blurb: "Buddy speech in 9 OpenAI voices (Alloy→Shimmer)", category: "Game AI", tier: "cheapest-tts", runtime: "tts-newest-viable" },
+  { key: "vcw-autoplay-cpu", name: "VCW Autoplay (CPU remote)", unit: "remote_min", coinsPerUnit: 4, blurb: "RunPod CPU remote plays 4weird games on-site only (browser locked)", category: "Game AI", tier: "cheapest-cpu", runtime: "ubuntu-newest-viable" },
+  { key: "vcw-autoplay-gpu", name: "VCW Autoplay (GPU remote)", unit: "remote_min", coinsPerUnit: 12, blurb: "RunPod GPU remote plays 4weird games on-site only (browser locked)", category: "Game AI", tier: "cheapest-gpu", runtime: "cuda-newest-viable" },
+  { key: "vcw-autoplay-gpu-boosted", name: "VCW Autoplay (GPU boosted)", unit: "remote_min", coinsPerUnit: 20, blurb: "Best RunPod GPU: fastest 4weird on-site vision; required for Xonotic off-site (desktop app required)", category: "Game AI", tier: "best-gpu", runtime: "cuda-newest-viable" },
 ];
 
 /** Cheapest viable default per category (what the UI preselects). */

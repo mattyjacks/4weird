@@ -13,10 +13,10 @@ const defaultUrl = process.env.NEXT_PUBLIC_SITE_URL
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
   title: {
-    default: "4weird Games — Future Forward Fun",
+    default: "4weird Games — Cloud Compute That Funds AI-Built Games",
     template: "%s | 4weird Games",
   },
-  description: "A strange, joyful arcade of experiments, simulations, and worlds made for curious people.",
+  description: "Rent metered cloud compute, AI agents, and team workspaces with Vibe Coins (100 🪙 = $1.00, 25% cut included) — funding AI-built games that teach AI by playing.",
 };
 
 export default function RootLayout({
@@ -33,7 +33,7 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <div className="flex min-h-screen flex-col bg-slate-950">
+          <div className="flex min-h-screen flex-col bg-background text-foreground">
             <SiteHeader />
             <div id="main-content" className="flex-1">
               {children}

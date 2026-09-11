@@ -6,6 +6,7 @@ import { PlayGate } from "@/components/games/play-gate";
 import { PlayRateBadge } from "@/components/games/play-rate-badge";
 import { GameAiBadge } from "@/components/games/game-ai-badge";
 import { GamingBuddy } from "@/components/buddy/gaming-buddy";
+import { VcwAutoplay } from "@/components/games/vcw-autoplay";
 
 export function generateStaticParams() {
   return games.map((game) => ({ slug: game.slug }));
@@ -34,7 +35,7 @@ export default async function PlayPage({ params }: { params: Promise<{ slug: str
   // matchmaking code reads it. The runtime iframe is same-origin.
   const src = game.runtimePath;
   return (
-    <div className="bg-black text-white">
+    <div className="bg-black text-white" data-theme-lock="dark">
       <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-5">
         <nav aria-label="Game breadcrumb" className="flex flex-wrap items-center gap-2 text-sm">
           <Link href="/games" className="font-semibold text-cyan-300 hover:underline">
@@ -80,6 +81,7 @@ export default async function PlayPage({ params }: { params: Promise<{ slug: str
           </Link>
         </div>
         <GameAiBadge slug={game.slug} />
+        <VcwAutoplay gameSlug={game.slug} gameTitle={game.title} />
         <GamingBuddy gameSlug={game.slug} gameTitle={game.title} />
       </div>
     </div>

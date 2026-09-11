@@ -34,6 +34,15 @@ export default function AgentsPage() {
           you — booking auto-provisions a server and hands you the RunPod
           default endpoint.
         </p>
+        <p className="mt-2 text-sm text-slate-400">
+          Want a worker to play for you? Every game page has a{" "}
+          <strong>VibeCodeWorker autoplay</strong> panel (RunPod CPU/GPU, on-site browser control for 4weird games
+          only).{" "}
+          <Link href="/xonotic" className="text-cyan-300 hover:underline">
+            Xonotic autoplay lives here
+          </Link>{" "}
+          — GPU boosted + off-site, desktop app required.
+        </p>
         <nav className="mt-8 flex gap-2" aria-label="Agent marketplace tabs">
           <a
             href="#browse"

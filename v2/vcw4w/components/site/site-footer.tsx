@@ -44,14 +44,14 @@ const COLUMNS = [
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-white/10 bg-slate-950 px-4 py-10 text-sm text-slate-400 sm:px-5">
+    <footer className="border-t border-border bg-background px-4 py-10 text-sm text-muted-foreground dark:border-white/10 dark:bg-slate-950">
       <div className="mx-auto grid max-w-6xl gap-8 text-left sm:grid-cols-2 lg:grid-cols-5">
         <div className="lg:col-span-1">
-          <p className="text-base font-black text-white">
-            🎮 4weird<span className="text-cyan-300">Games</span>
+          <p className="text-base font-black text-foreground">
+            🎮 4weird<span className="text-cyan-600 dark:text-cyan-300">Games</span>
           </p>
           <p className="mt-3 max-w-xs text-sm leading-relaxed">
-            Future Forward Fun — strange, joyful arcade experiments, AI agents, and team cloud.
+            Future Forward Fun — cloud computing that funds AI-built arcade experiments, agents, and team cloud.
           </p>
           <div className="mt-4 flex items-center gap-2">
             <span>Theme</span>
@@ -60,11 +60,11 @@ export function SiteFooter() {
         </div>
         {COLUMNS.map((col) => (
           <nav key={col.label} aria-label={`Footer — ${col.label}`}>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">{col.label}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-600 dark:text-cyan-300">{col.label}</p>
             <ul className="mt-3 space-y-2">
               {col.links.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="transition hover:text-white hover:underline underline-offset-4">
+                  <Link href={link.href} className="transition hover:text-foreground hover:underline underline-offset-4">
                     {link.label}
                   </Link>
                 </li>
@@ -73,8 +73,8 @@ export function SiteFooter() {
           </nav>
         ))}
       </div>
-      <p className="mx-auto mt-8 max-w-6xl border-t border-white/10 pt-5 text-center text-xs sm:text-sm">
-        © 2026 MattyJacks LLC · 4weird Games · New Hampshire, USA · 100 Vibe Coins = exactly $1.00
+      <p className="mx-auto mt-8 max-w-6xl border-t border-border pt-5 text-center text-xs dark:border-white/10 sm:text-sm">
+        © 2026 MattyJacks LLC · 4weird Games · New Hampshire, USA · 100 Vibe Coins (🪙) = exactly $1.00
       </p>
     </footer>
   );
