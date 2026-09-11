@@ -15,6 +15,7 @@ export function DailyClaim() {
       const body = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(body.error || "Unable to claim.");
       setMessage(body.claimed ? `+${body.coins} coins! Day ${body.streak} streak.` : `Already claimed today. Streak: day ${body.streak}.`);
+      if (body.claimed) window.dispatchEvent(new Event("vibe-coins-changed"));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to claim.");
     } finally {

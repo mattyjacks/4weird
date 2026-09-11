@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type Profile = { display_name?: string | null };
 type LedgerRow = { delta?: number; reason?: string; created_at?: string };
@@ -20,7 +20,8 @@ export function AccountDashboard() {
   const [message, setMessage] = useState("Loading account…");
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => { void Promise.all([request<{ profile: Profile }>("/api/me/profile"), request<{ balance: number }>("/api/coins/balance"), request<{ rows: LedgerRow[] }>("/api/coins/history?limit=10")]).then(([p, b, h]) => { setProfile(p.profile); setName(p.profile?.display_name ?? ""); setBalance(b.balance); setHistory(h.rows ?? []); setMessage(""); }).catch((error: unknown) => setMessage(error instanceof Error ? error.message : "Unable to load account.")); }, []);
+  const loadAccount = useCallback(() => { void Promise.all([request<{ profile: Profile }>("/api/me/profile"), request<{ balance: number }>("/api/coins/balance"), request<{ rows: LedgerRow[] }>("/api/coins/history?limit=10")]).then(([p, b, h]) => { setProfile(p.profile); setName(p.profile?.display_name ?? ""); setBalance(b.balance); setHistory(h.rows ?? []); setMessage(""); }).catch((error: unknown) => setMessage(error instanceof Error ? error.message : "Unable to load account.")); }, []);
+  useEffect(() => { loadAccount(); window.addEventListener("vibe-coins-changed", loadAccount); return () => window.removeEventListener("vibe-coins-changed", loadAccount); }, [loadAccount]);
 
   async function saveName() { if (busy) return; setBusy(true); setMessage("Saving…"); try { await request("/api/me/profile", { method: "PATCH", body: JSON.stringify({ display_name: name }) }); setProfile({ display_name: name }); setMessage("Profile saved."); } catch (error) { setMessage(error instanceof Error ? error.message : "Unable to save profile."); } finally { setBusy(false); } }
   async function claim() { if (busy) return; setBusy(true); setMessage("Checking for purchases…"); try { const result = await request<{ claimed: number }>("/api/coins/claim", { method: "POST", body: "{}" }); const [nextBalance, nextHistory] = await Promise.all([request<{ balance: number }>("/api/coins/balance"), request<{ rows: LedgerRow[] }>("/api/coins/history?limit=10")]); setBalance(nextBalance.balance); setHistory(nextHistory.rows ?? []); setMessage(result.claimed ? `Claimed ${result.claimed} coin grant(s).` : "No unclaimed purchases found."); } catch (error) { setMessage(error instanceof Error ? error.message : "Unable to claim coins."); } finally { setBusy(false); } }
