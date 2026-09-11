@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
-import { isRunUuid, isVcwRunKind } from "@/lib/vcw-runs";
+import { isRunUuid, isVcwRunKind, parseFalToolCall, vcwPhaseForKind } from "@/lib/vcw-runs";
+import { falOpsForVcwPhase, isFalOp, opByKey, qtyForInput, quoteFalSplit } from "@/lib/fal";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,12 @@ export const dynamic = "force-dynamic";
  * plane or autoplay remote) and the trail stays queryable.
  *
  * Body: { kind: observation|action|finding, text, data? }.
+ *
+ * fal.ai meld: a step can carry a fal call — text containing
+ * `[tool: fal.generate — op=<op> prompt="..."]` (or data { fal_op, prompt })
+ * with source "vcw". The route validates the op against the 30-op catalog
+ * and returns the gross quote + next step (POST /api/fal/generate) so the
+ * main loop chains observe → reason → act without leaving the trail.
  */
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
@@ -61,5 +68,44 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     .select("id,kind,text,data,created_at")
     .single();
   if (error) return dbFail("vcw/run actions", error, "Unable to record the step.");
+
+  // fal.ai meld: detect a loop tool call and hand back the validated next hop.
+  const phase = vcwPhaseForKind(String(input.kind));
+  const falCall = parseFalToolCall(text, extra);
+  if (falCall) {
+    if (!falCall.op || !isFalOp(falCall.op)) {
+      return ok(
+        {
+          step,
+          fal: {
+            detected: true,
+            ok: false,
+            phase,
+            hint: `Unknown fal op "${falCall.op || "missing"}". Pick one of the 30 ops from GET /api/fal/ops (observe/reason prefer: ${falOpsForVcwPhase("observe").join(", ")}; act can use any). Tag shape: [tool: fal.generate — op=<op> prompt="..."].`,
+            suggested: falOpsForVcwPhase(phase),
+          },
+        },
+        201,
+      );
+    }
+    const def = opByKey(falCall.op);
+    const qty = qtyForInput(falCall.op, { prompt: falCall.prompt });
+    return ok(
+      {
+        step,
+        fal: {
+          detected: true,
+          ok: true,
+          phase,
+          op: def.op,
+          model: def.model,
+          quote: quoteFalSplit(def.op, qty),
+          next: "POST /api/fal/generate { op, prompt, game_slug, source: \"vcw\" } — metered via meter_fal_usage, 25% cut included.",
+          prompt: falCall.prompt.slice(0, 300),
+        },
+      },
+      201,
+    );
+  }
   return ok({ step }, 201);
 }

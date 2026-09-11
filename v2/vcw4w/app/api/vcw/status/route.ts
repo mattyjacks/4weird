@@ -3,7 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { gameSlugs } from "@/content/games";
-import { FAL_OPS, falConfigured } from "@/lib/fal";
+import { FAL_FAST_OPS, FAL_OPS, VCW_FAL_HOWTO, falConfigured, falOpsForVcwPhase } from "@/lib/fal";
 
 export const dynamic = "force-dynamic";
 
@@ -58,5 +58,13 @@ export async function GET() {
     fal_ops: FAL_OPS.length,
     fal_configured: falConfigured(),
     fal_studio: "/fal",
+    fal_fast_ops: FAL_FAST_OPS,
+    fal_by_phase: {
+      observe: falOpsForVcwPhase("observe"),
+      reason: falOpsForVcwPhase("reason"),
+      act: falOpsForVcwPhase("act"),
+    },
+    fal_howto: VCW_FAL_HOWTO,
+    swarm: { tools: ["vcw.open_run", "vcw.file_finding", "fal.generate", "deepseek.orchestrate", "swarm.delegate"], hint: "Plan multi-agent QA with POST /api/swarm/sessions + /chat (auto/lead/round-robin); NewGamePlus fans out the same way." },
   });
 }

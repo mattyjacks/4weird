@@ -48,7 +48,7 @@ export function FalStudio() {
       const body = (await res.json()) as OpsResponse;
       if (res.ok) setCatalog(body);
     } catch {
-      // Static FAL_OPS fallback below still renders the 15 tools.
+      // Static FAL_OPS fallback below still renders the 30 tools.
     }
   }, []);
 

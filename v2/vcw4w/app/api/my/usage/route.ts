@@ -302,7 +302,7 @@ export async function GET(req: Request) {
   const clanTotalGross = Number(clan.total.gross) || 0;
   const clanTotalCut = Number(clan.total.cut) || 0;
 
-  // 7b. fal.ai media (15 ops, 25% cut INCLUDED via meter_fal_usage).
+  // 7b. fal.ai media (30 ops, 25% cut INCLUDED via meter_fal_usage).
   // Pre-migration or RLS: zeros so the page still renders its skeleton.
   const fal: {
     total: { gross: number; cut: number; provider: number; charges: number };

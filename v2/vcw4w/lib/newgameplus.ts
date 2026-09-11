@@ -7,11 +7,21 @@
  * quality at the lowest price and greatest speed — and it succeeds: the
  * local generator + VibeCodeWorker self-test loop needs no external keys.
  *
+ * Speed lanes (exact spec):
+ * - fast lane (budget ≤ 250): the whole symphony finishes in ≤5 minutes —
+ *   local generation in ms, ≤2 cheap/fast fal ops, VCW static self-test.
+ * - deluxe lane (budget > 250): bigger budgets buy more bots + media
+ *   (up to 5 swarm agents, up to 4 fal ops incl. video/3D) — longer but
+ *   still fast (≈5–12 min wall clock incl. queued fal renders).
+ *
  * Settings (exact spec):
  * - Quality: 0–10 integer, defaults to 5.
  * - Budget: 1–10,000 coins integer, defaults to 100. Any amount above 250
  *   coins requires an explicit "Confirm the Amount" acknowledgement.
  */
+
+import { FAL_FAST_OPS, recommendFalOps, type FalOp } from "@/lib/fal";
+import { planSwarmTurn } from "@/lib/swarm";
 
 export const NEWGAMEPLUS_CUT_PCT = 25;
 
@@ -40,7 +50,134 @@ export type BuildPlan = {
   runtime: string;
   msEstimate: number;
   confirmRequired: boolean;
+  lane: NgpLane;
+  /** Honest wall-clock target incl. queued fal renders (server work is ms). */
+  target: string;
 };
+
+export type NgpLane = "fast" | "deluxe";
+
+/** ≤250 coins runs the fast lane (≤5 min); bigger budgets go deluxe. */
+export function laneForBudget(budget: number): NgpLane {
+  return Number(budget) > BUDGET_CONFIRM_THRESHOLD ? "deluxe" : "fast";
+}
+
+export type NgpSwarmAgent = {
+  name: string;
+  role: string;
+  task: string;
+  tools: string[];
+};
+
+export type NgpSymphony = {
+  lane: NgpLane;
+  mode: "auto";
+  agents: NgpSwarmAgent[];
+  trace: string[];
+  target: string;
+};
+
+const NGP_SWARM_CAST = [
+  { name: "Scout", role: "observe", tools: ["vcw.open_run", "deepseek.orchestrate"] },
+  { name: "Forge", role: "act: code", tools: ["opencode.heal", "swarm.delegate"] },
+  { name: "Pixel", role: "act: art", tools: ["fal.generate", "swarm.delegate"] },
+  { name: "Echo", role: "act: audio", tools: ["fal.generate", "swarm.delegate"] },
+  { name: "Sage", role: "reason: QA", tools: ["vcw.file_finding", "vcw.handoff"] },
+];
+
+/**
+ * The beautiful symphony of bots: deterministic multi-agent plan for one
+ * build. Fast lane fields 3 bots (Scout→Forge→Sage); deluxe fields all 5
+ * (adds Pixel + Echo for fal art/audio in parallel). Built on the same
+ * deepseek-harness planSwarmTurn the /swarm chat uses, so the trace reads
+ * the same everywhere.
+ */
+export function planSymphony(prompt: string, quality: number, budget: number): NgpSymphony {
+  const lane = laneForBudget(budget);
+  const size = lane === "fast" ? 3 : 5;
+  const cast = NGP_SWARM_CAST.slice(0, size);
+  const plan = planSwarmTurn({
+    message: `Build a tested micro-game: ${prompt} (quality ${quality}/10, ${budget} coins, ${lane} lane)`,
+    size,
+    mode: "auto",
+    turnIndex: 0,
+    enabledTools: ["vcw.open_run", "vcw.file_finding", "fal.generate", "deepseek.orchestrate", "swarm.delegate", "opencode.heal"],
+  });
+  const fal = recommendFalOps(prompt, budget, lane === "fast" ? 2 : 4);
+  const artOps = fal.filter((r) => ["concept-art", "sprite-sheet", "backdrop-wide", "character-turn", "capsule-art", "icon-logo", "texture-tile"].includes(r.op));
+  const audioOps = fal.filter((r) => ["sfx-burst", "npc-voice", "monster-voice", "theme-music", "chiptune-loop", "ambient-bed"].includes(r.op));
+  const roleBrief: Record<string, string> = {
+    Scout: `OBSERVE the prompt "${prompt.slice(0, 120)}": name the hazards, objective, controls + win/lose.`,
+    Forge: `ACT: forge the single-file HTML/CSS/JS canvas game (q${quality}) — keyboard + touch, score/lives/levels, pause/win/lose, offline.`,
+    Pixel: artOps.length ? `ACT in parallel: fal art shortlist [${artOps.map((r) => r.op).join(", ")}] for key art/backdrop/sprites.` : "ACT in parallel: hold for deluxe-lane art (fast lane ships local art).",
+    Echo: audioOps.length ? `ACT in parallel: fal audio shortlist [${audioOps.map((r) => r.op).join(", ")}] for SFX/voice/music.` : "ACT in parallel: hold for deluxe-lane audio (fast lane ships WebAudio blips).",
+    Sage: "REASON + QA: run the VCW observe→reason→act self-test repair loops and file findings.",
+  };
+  const agents: NgpSwarmAgent[] = cast.map((bot, i) => ({
+    name: bot.name,
+    role: bot.role,
+    task: roleBrief[bot.name] ?? plan.steps[i]?.task ?? `Support build step ${i + 1}.`,
+    tools: plan.steps[i]?.tools?.length ? plan.steps[i].tools : bot.tools,
+  }));
+  return {
+    lane,
+    mode: "auto",
+    agents,
+    trace: plan.trace,
+    target: lane === "fast" ? "≤5 min wall clock" : "≈5–12 min wall clock (bigger cast + media)",
+  };
+}
+
+export type NgpFalPlan = {
+  selected: { op: FalOp; why: string; coins: number; fast: boolean }[];
+  totalCoins: number;
+  note: string;
+};
+
+/** Intelligent fal shortlist for a build: keyword-matched, budget-capped, fast-lane prefers fast ops. */
+export function planFalForBuild(prompt: string, budget: number, quality: number): NgpFalPlan {
+  const lane = laneForBudget(budget);
+  const recs = recommendFalOps(prompt, budget, lane === "fast" ? 2 : 4);
+  const capped = lane === "fast" ? recs.filter((r) => (FAL_FAST_OPS as string[]).includes(r.op)).slice(0, 2) : recs.slice(0, 4);
+  // Quality 0 ships zero media (pure local); quality ≥8 deluxe earns one extra art pick when room remains.
+  const selected = (quality === 0 ? [] : capped).map((r) => ({ ...r, fast: (FAL_FAST_OPS as string[]).includes(r.op) }));
+  const totalCoins = selected.reduce((s, r) => s + r.coins, 0);
+  return {
+    selected,
+    totalCoins,
+    note:
+      selected.length === 0
+        ? "Fast lane, pure local build — no fal spend. Add a voice/art keyword (or raise quality) to queue media."
+        : `${lane === "fast" ? "Fast lane" : "Deluxe lane"} fal shortlist (${totalCoins} coins gross, 25% cut included): queued via /api/fal/generate source vcw when FAL_KEY is live, else the game ships locally and the prompts stay one click away.`,
+  };
+}
+
+export type NgpTimelineStage = { key: string; label: string; detail: string; targetSec: number };
+
+/** Live-build timeline the UI streams while the symphony plays. */
+export function timelineForLane(lane: NgpLane): { stages: NgpTimelineStage[]; totalTargetSec: number } {
+  const stages: NgpTimelineStage[] =
+    lane === "fast"
+      ? [
+          { key: "queued", label: "Queued", detail: "Budget checked, lane locked: fast (≤5 min).", targetSec: 2 },
+          { key: "symphony", label: "Symphony tuning", detail: "Scout→Forge→Sage plan via the deepseek harness.", targetSec: 5 },
+          { key: "forge", label: "Forge building", detail: "Generating the single-file HTML/CSS/JS game.", targetSec: 15 },
+          { key: "fal", label: "Fal assets", detail: "Cheap/fast fal shortlist queued in parallel (or held when unconfigured).", targetSec: 120 },
+          { key: "qa", label: "Sage playtesting", detail: "VCW observe→reason→act repair loops (≤3).", targetSec: 60 },
+          { key: "draft", label: "Draft push", detail: "Pushing to the Draft folder + personal draft.", targetSec: 10 },
+          { key: "done", label: "Done", detail: "Live preview + evidence trail below.", targetSec: 0 },
+        ]
+      : [
+          { key: "queued", label: "Queued", detail: "Budget confirmed, lane locked: deluxe (bigger cast + media).", targetSec: 2 },
+          { key: "symphony", label: "Symphony tuning", detail: "Scout→Forge→Pixel→Echo→Sage plan via the deepseek harness.", targetSec: 8 },
+          { key: "forge", label: "Forge building", detail: "Generating the high-quality single-file game.", targetSec: 25 },
+          { key: "fal", label: "Fal assets", detail: "Up to 4 fal ops incl. video/3D, queued in parallel.", targetSec: 420 },
+          { key: "qa", label: "Sage playtesting", detail: "VCW observe→reason→act repair loops (≤3) + fal audio checks.", targetSec: 120 },
+          { key: "draft", label: "Draft push", detail: "Pushing to the Draft folder + personal draft.", targetSec: 15 },
+          { key: "done", label: "Done", detail: "Live preview + evidence trail below.", targetSec: 0 },
+        ];
+  return { stages, totalTargetSec: stages.reduce((s, st) => s + st.targetSec, 0) };
+}
 
 export function cleanPrompt(value: unknown): string {
   return String(value ?? "").trim().slice(0, 500);
@@ -87,6 +224,7 @@ export function planBuild(quality: number, budget: number): BuildPlan {
   const estimate = 8 + quality * 6 + complexity; // q0→8, q5→44, q10→80
   const spend = Math.max(1, Math.min(estimate, budget));
   const cut = Math.round(((spend * NEWGAMEPLUS_CUT_PCT) / 100) * 100) / 100;
+  const lane = laneForBudget(budget);
   return {
     quality,
     budget,
@@ -98,6 +236,8 @@ export function planBuild(quality: number, budget: number): BuildPlan {
     runtime: "canvas2d-newest-viable",
     msEstimate: 400 + quality * 120,
     confirmRequired: needsAmountConfirm(budget),
+    lane,
+    target: lane === "fast" ? "≤5 min wall clock (fast lane, ≤250 coins)" : "≈5–12 min wall clock (deluxe lane, bigger cast + media)",
   };
 }
 
@@ -142,8 +282,12 @@ function escapeHtml(s: string): string {
  * CSS + JS, canvas 2D, rAF loop, keyboard + touch, score/lives/levels,
  * pause, win/lose, highscore. Quality scales enemies, particles, levels,
  * audio blips, and touch polish. No external URLs — fully offline.
+ *
+ * falNote (optional): the intelligent fal shortlist is embedded as an HTML
+ * comment asset manifest, so the game ships playable instantly while the
+ * media prompts stay one click away in /fal or via the VCW loop.
  */
-export function generateGameSource(prompt: string, quality: number): { slug: string; title: string; source: string } {
+export function generateGameSource(prompt: string, quality: number, falNote = ""): { slug: string; title: string; source: string } {
   const seed = hashSeed(`${prompt}::${quality}`);
   const rand = (() => {
     let s = seed || 1;
@@ -212,6 +356,7 @@ reset();loop();`;
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>${safeTitle} — NewGamePlus</title>
+<!-- NewGamePlus asset manifest: an original micro-game. Prompt: "${safePrompt}".${falNote ? ` Fal shortlist (via /api/fal/generate source vcw): ${escapeHtml(falNote)}.` : ""} Fully offline single file. -->
 <style>
 :root{color-scheme:dark}
 *{box-sizing:border-box}

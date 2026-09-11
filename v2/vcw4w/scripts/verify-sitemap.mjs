@@ -34,9 +34,10 @@ for (const p of statics) {
   if (!ok) throw new Error(`Sitemap path resolves nowhere (no route, file, or index): ${p || "/"} .`);
 }
 
-// 3. Every indexable static route must be listed (account/auth/my/family are
-// gated-noindex by policy and must stay OUT).
-const GATED = new Set(["account", "auth", "my", "family"]);
+// 3. Every indexable static route must be listed (account/auth/my/family
+// are gated-noindex by policy and must stay OUT — as is /runpods, a
+// login-gated noindex dashboard per verify-runpod-dashboard + skill.md).
+const GATED = new Set(["account", "auth", "my", "family", "runpods"]);
 function walk(dir, base) {
   for (const e of fs.readdirSync(path.join(root, dir), { withFileTypes: true })) {
     if (e.isDirectory()) {

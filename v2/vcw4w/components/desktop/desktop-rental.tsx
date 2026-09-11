@@ -274,6 +274,10 @@ export function DesktopRental() {
             </ul>
           )}
           <p className="mt-2 text-slate-500">{result.billing?.note ?? result.note ?? ""}</p>
+          <p className="mt-1 text-slate-500">
+            First boot pulls a ~6.5 GB desktop image and can take several minutes — a 404 or “waiting” page on the
+            link during that window is normal. Wait, then Reload.
+          </p>
         </div>
       )}
       {result?.success && !result.started && (

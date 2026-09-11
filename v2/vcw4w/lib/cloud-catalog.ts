@@ -70,6 +70,21 @@ export const CLOUD_SERVICES: CloudService[] = [
   { key: "fal-lipsync-take", name: "fal Lip-Sync Take", unit: "clip", coinsPerUnit: 18, blurb: "Talking NPC portraits — audio + face synced (sync-lipsync)", category: "fal.ai Media", tier: "pro", runtime: "sync-lipsync" },
   { key: "fal-playtest-notes", name: "fal Playtest Notes", unit: "min_audio", coinsPerUnit: 3, blurb: "Transcribe playtests + standups into VCW bugs (whisper-v3)", category: "fal.ai Media", tier: "turbo", runtime: "whisper-v3" },
   { key: "fal-app-promo", name: "fal App Promo Kit", unit: "image", coinsPerUnit: 8, blurb: "Shipped-code glow-up: OG cards + icons for web apps (flux/dev)", category: "fal.ai Media", tier: "turbo", runtime: "flux-dev" },
+  { key: "fal-sprite-sheet", name: "fal Sprite Sheet", unit: "image", coinsPerUnit: 9, blurb: "Pixel-art sheets: idle, run, jump frames on one canvas (flux-pro/v1.1)", category: "fal.ai Media", tier: "turbo", runtime: "flux-pro-v1.1" },
+  { key: "fal-backdrop-wide", name: "fal World Backdrop", unit: "image", coinsPerUnit: 9, blurb: "Ultra-wide parallax backdrops: skies, dungeons, neon cities (imagen4)", category: "fal.ai Media", tier: "turbo", runtime: "imagen4-preview" },
+  { key: "fal-character-turn", name: "fal Character Turnaround", unit: "image", coinsPerUnit: 9, blurb: "Front/side/back turnaround sheets for heroes + NPCs (hidream-i1)", category: "fal.ai Media", tier: "turbo", runtime: "hidream-i1" },
+  { key: "fal-level-inpaint", name: "fal Level Inpaint", unit: "image", coinsPerUnit: 8, blurb: "Repaint part of a level or sprite — masked edits that blend in (flux-pro/fill)", category: "fal.ai Media", tier: "turbo", runtime: "flux-pro-fill" },
+  { key: "fal-depth-map", name: "fal Depth Map", unit: "image", coinsPerUnit: 6, blurb: "Depth maps from one screenshot for 2.5D lighting (depth-anything-v2)", category: "fal.ai Media", tier: "turbo", runtime: "depth-anything-v2" },
+  { key: "fal-voxel-prop", name: "fal Voxel Prop 3D", unit: "model", coinsPerUnit: 15, blurb: "Chunky voxel props from one sketch (hunyuan3d-v21)", category: "fal.ai Media", tier: "turbo", runtime: "hunyuan3d-v21" },
+  { key: "fal-text-to-3d", name: "fal Text 3D Prop", unit: "model", coinsPerUnit: 16, blurb: "Type a prop, get a spinnable 3D model (trellis/text-to-3d)", category: "fal.ai Media", tier: "turbo", runtime: "trellis-text-3d" },
+  { key: "fal-cutscene-veo", name: "fal Cutscene Clip", unit: "clip", coinsPerUnit: 22, blurb: "Fast cinematic cutscenes from one story line (veo3/fast)", category: "fal.ai Media", tier: "pro", runtime: "veo3-fast" },
+  { key: "fal-motion-loop", name: "fal Motion Loop", unit: "clip", coinsPerUnit: 20, blurb: "Any sprite or portrait into a looping motion clip (kling-2.5-turbo)", category: "fal.ai Media", tier: "pro", runtime: "kling-2.5-turbo" },
+  { key: "fal-monster-voice", name: "fal Monster Voice", unit: "1k_chars", coinsPerUnit: 4, blurb: "Growls, goblins + bosses that talk back (dia-tts)", category: "fal.ai Media", tier: "turbo", runtime: "dia-tts" },
+  { key: "fal-ambient-bed", name: "fal Ambient Bed", unit: "clip", coinsPerUnit: 7, blurb: "Rain, tavern hum, spaceship drones — looping ambience (mmaudio-v2)", category: "fal.ai Media", tier: "turbo", runtime: "mmaudio-v2" },
+  { key: "fal-chiptune-loop", name: "fal Chiptune Loop", unit: "clip", coinsPerUnit: 8, blurb: "8-bit chiptune loops that never loop awkwardly (yue)", category: "fal.ai Media", tier: "turbo", runtime: "yue-music" },
+  { key: "fal-quest-dialogue", name: "fal Quest Dialogue", unit: "quest", coinsPerUnit: 3, blurb: "Branching quest dialogue trees from one story beat (gpt-oss-120b)", category: "fal.ai Media", tier: "turbo", runtime: "gpt-oss-120b" },
+  { key: "fal-code-review", name: "fal Code Review", unit: "review", coinsPerUnit: 3, blurb: "Instant gameplay code review — balance, bugs + fix list (kimi-k2)", category: "fal.ai Media", tier: "turbo", runtime: "kimi-k2-instruct" },
+  { key: "fal-capsule-art", name: "fal Store Capsule", unit: "image", coinsPerUnit: 9, blurb: "Store capsules + OG cards that demand the click (fast-sdxl)", category: "fal.ai Media", tier: "turbo", runtime: "fast-sdxl" },
 ];
 
 /** Cheapest viable default per category (what the UI preselects). */

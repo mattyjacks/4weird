@@ -152,7 +152,15 @@ export default function TermsPage() {
           grants by order email. Virtual currency, progress, and items are licensed features with no cash value, are
           not property, are non-transferable, and may be changed, removed, or discontinued at any time. Purchases are
           final except where required by applicable law (including non-waivable EU/UK consumer rights) or expressly
-          stated otherwise.
+          stated otherwise — including the 90-day unspent-purchase refund below.
+        </p>
+        <p>
+          <strong>90-day refund on unspent purchased coins.</strong> Coins you bought (paid packs only —
+          never free trial, daily, referral, alpha, or other granted coins) can be refunded within 90 days of
+          purchase, up to the unspent remainder of each coin lot. Spending uses the oldest unexpired coins first,
+          so a partially-spent pack refunds pro-rata for whatever is still unspent (for example: buy 500, spend
+          200, refund up to 300). Refunded lots are marked refunded and the coins are removed from your balance;
+          request a refund from your account page. Free coins are never refundable.
         </p>
         <p>
           <strong>Ghost Cash (👻) is not currency at all.</strong> The org timer tracks work to the second and

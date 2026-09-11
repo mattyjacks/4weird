@@ -38,6 +38,46 @@ export function isRunUuid(value: unknown): boolean {
   return typeof value === "string" && /^[0-9a-f-]{36}$/i.test(value);
 }
 
+/**
+ * fal.ai inside the VCW main loop (observe → reason → act).
+ *
+ * Agents call fal by logging an actions step whose text (or data object)
+ * carries a `[tool: fal.generate — op=<op> prompt="..."]` tag with
+ * source "vcw". The actions route detects the tag, validates the op
+ * against the 30-op catalog, and returns the gross quote + next step
+ * (POST /api/fal/generate) so the loop can chain observe → reason → act
+ * without leaving the run trail. Video/3D ops are act-phase only (slow);
+ * observe/reason prefer the fast text/image/audio ops.
+ */
+export const VCW_FAL_TOOL_ID = "fal.generate" as const;
+
+export type VcwLoopPhase = "observe" | "reason" | "act";
+
+export function vcwPhaseForKind(kind: string): VcwLoopPhase {
+  if (kind === "observation") return "observe";
+  if (kind === "finding") return "reason";
+  return "act";
+}
+
+const FAL_TAG_RE = /\[tool:\s*fal\.generate\s*[—-]\s*([^\]]+)\]/i;
+
+export function parseFalToolCall(text: unknown, data: unknown): { op: string; prompt: string } | null {
+  const fromData =
+    typeof data === "object" && data !== null
+      ? String((data as Record<string, unknown>).fal_op ?? (data as Record<string, unknown>).op ?? "")
+      : "";
+  const hay = `${String(text ?? "")} ${fromData}`;
+  const m = hay.match(FAL_TAG_RE);
+  const chunk = m ? m[1] : hay;
+  const opMatch = chunk.match(/op\s*=\s*([a-z0-9-]+)/i) ?? fromData.match(/^([a-z0-9-]+)/i);
+  if (!opMatch) {
+    // Bare mention without an op is not callable — the route will hint instead.
+    return /fal\.generate/i.test(hay) ? { op: "", prompt: "" } : null;
+  }
+  const promptMatch = chunk.match(/prompt\s*=\s*"([^"]{1,2000})"/i) ?? chunk.match(/prompt\s*=\s*'([^']{1,2000})'/i);
+  return { op: opMatch[1].toLowerCase(), prompt: (promptMatch?.[1] ?? "").slice(0, 2000) };
+}
+
 export type VcwHandoffBug = {
   title: string;
   severity: string;

@@ -63,6 +63,16 @@ export const COIN_PACKS: CoinPack[] = [
 export const CUSTOM_COINS_MIN = 500;
 export const CUSTOM_COINS_MAX = 100000;
 
+/**
+ * Refund window: only the UNSPENT remainder of PURCHASED lots (paid
+ * VIBE-COINS-* packs, never free grants) bought within this many days can
+ * be refunded. Partially-spent lots refund pro-rata for the remainder, and
+ * the lot row is marked refunded (refunded_coins + refunded_at).
+ */
+export const COIN_REFUND_WINDOW_DAYS = 90;
+/** Minimum refundable amount: 0.01 coins (1 centicentcoin). */
+export const COIN_REFUND_MIN_COINS = 0.01;
+
 export function packPriceCents(coins: number): number {
   return Math.round(coins * COIN_PRICE_CENTS_EACH);
 }

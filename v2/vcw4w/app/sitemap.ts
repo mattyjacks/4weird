@@ -34,6 +34,7 @@ const PRIMARY: Entry[] = [
   { path: "/buddy", changeFrequency: "weekly", priority: 0.8 },
   { path: "/swarm", changeFrequency: "weekly", priority: 0.8 },
   { path: "/fal", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/newgameplus", changeFrequency: "weekly", priority: 0.8 },
   { path: "/blender", changeFrequency: "weekly", priority: 0.8 },
   { path: "/xonotic", changeFrequency: "weekly", priority: 0.7 },
 ];

@@ -111,7 +111,7 @@ export const SWARM_TOOLS: SwarmTool[] = [
   { id: "opencode.export", label: "OpenCode export", blurb: "Export a bug/test report for opencode.ai (opencode.ai/install).", triggers: ["opencode", "export bug", "code fix", "edit repo", " heal"] },
   { id: "opencode.heal", label: "OpenCode heal", blurb: "Start an OpenCode test→fix→re-test heal loop.", triggers: ["heal", "self-heal", "fix loop", "retest", "re-test"] },
   { id: "deepseek.orchestrate", label: "DeepSeek orchestrate", blurb: "DeepSeek harness plan: decompose the goal into delegated steps.", triggers: ["plan", "orchestrat", "decompose", "strategy", "reason"] },
-  { id: "fal.generate", label: "Fal media", blurb: "Generate voice/SFX/music/art via /api/fal/generate.", triggers: ["voice", "sfx", "music", "art", "sprite", "draw", "sing"] },
+  { id: "fal.generate", label: "Fal media", blurb: "Generate art/sprites/3D/video/voice/SFX/music/dialogue via /api/fal/generate (30 ops, source vcw).", triggers: ["voice", "sfx", "music", "art", "sprite", "draw", "sing", "3d", "video", "cutscene", "dialogue", "chiptune", "backdrop", "capsule"] },
   { id: "buddy.tts", label: "Buddy voice", blurb: "Speak a reply aloud in one of 9 Buddy voices.", triggers: ["say ", "speak", "read aloud", "shout"] },
   { id: "swarm.delegate", label: "Delegate", blurb: "Hand a subtask to another swarm member.", triggers: ["delegate", "subtask", "you two", "split up", "parallel"] },
 ];

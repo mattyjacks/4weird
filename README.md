@@ -62,7 +62,7 @@ You don't need your own big computer. Rent ours by the minute.
 - **🎨 Blender renders** — upload your 3D movie file (.blend), we render it fast on a big RTX 4090 graphics card, you get an mp4 video back. No Blender install needed.
   Try at: [4weird.com/blender](https://4weird.com/blender)
 
-- **✨ fal.ai Studio — make art, voices, video** — 15 one-click tools: game art, icons, 3D, video clips, voices, sound effects, music. Type what you want, get it back.
+- **✨ fal.ai Studio — make art, voices, video** — 30 one-click tools: game art, icons, 3D, video clips, voices, sound effects, music. Type what you want, get it back.
   Try at: [4weird.com/fal](https://4weird.com/fal)
 
 - **🎮 Make your own game (NewGamePlus)** — type an idea like "space cats race cars", pick a budget, we build you a playable game and test it. It lands in your team folder as a draft.
@@ -140,7 +140,7 @@ All keys are optional. If you skip one, that part just won't work — the rest s
 | `OPENAI_API_KEY` (+ `BUDDY_MODEL`) | Buddy chat/voice, game AI | Simple backup answers instead |
 | `LUNA_MODEL` | Smarter auto-moderation | Basic filters still run |
 | `RUNPOD_API_KEY` | Rentable agents/desktops + real spend mirror on `/my/usage` | Shows "not set up", never fakes it |
-| `FAL_KEY` (`FAL_API_KEY` also works) | 15 game-dev media tools | Shows "not set up", never fakes it |
+| `FAL_KEY` (`FAL_API_KEY` also works) | 30 game-dev media tools | Shows "not set up", never fakes it |
 | `SHOPIFY_STORE_DOMAIN` + `COIN_PACK_VARIANTS` / `COIN_CUSTOM_VARIANT` | Buying coins | You can still see prices |
 | `CRON_SECRET` | Auto clan upkeep every minute | Site catches up when you open a clan |
 | `SIGNUP_IP_HASH_SALT` | 100-coin free trial on signup | Trial is skipped, safely |

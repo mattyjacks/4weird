@@ -20,7 +20,7 @@ const TICKER = [
   "🎮 34 playable games",
   "🐝 1–5 agent swarm chat",
   "🎬 .blend → mp4 renders",
-  "🎨 15 fal.ai studio tools",
+  "🎨 30 fal.ai studio tools",
   "👾 hclans · sclans · bclans",
   "🪙 100 coins = exactly $1.00",
   "⚙️ VibeCodeWorker autoplay QA",
@@ -386,7 +386,7 @@ export default function Home() {
           Hire brains. Make art. Never leave the tab.
         </h2>
         <p className="mt-3 max-w-3xl text-muted-foreground sm:text-lg">
-          One swarm to think with, 15 magical media tools to create with, and a
+          One swarm to think with, 30 magical media tools to create with, and a
           Buddy that watches your screen while you play.
         </p>
         <div className="mt-8 grid gap-4 lg:grid-cols-3">

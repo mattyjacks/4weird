@@ -15,7 +15,7 @@ export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
-  if (!data.user) return fail("Authentication required.", 401);
+  if (!data.user) return fail("Authentication required. Sign in to poll fal runs — the catalog + quotes on /fal are free without login.", 401);
   const rl = rateLimit(`fal:status:${data.user.id}`, 30, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
 
@@ -35,7 +35,13 @@ export async function GET(req: Request) {
       signal: controller.signal,
       headers: { Authorization: `Key ${falKey()}`, Accept: "application/json" },
     });
-    if (!res.ok) return fail(`fal.ai status HTTP ${res.status}.`, 502);
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        console.error(`[api/fal/status] fal.ai rejected the server key (HTTP ${res.status}, op ${opRaw}).`);
+        return fail("fal.ai rejected the server key (HTTP 401/403). Re-issue FAL_KEY in the fal.ai dashboard and update the server env.", 502);
+      }
+      return fail(`fal.ai status HTTP ${res.status}.`, 502);
+    }
     const status = (await res.json()) as Record<string, unknown>;
     return ok({ configured: true, op: opRaw, model, request_id: id, status });
   } catch (error) {

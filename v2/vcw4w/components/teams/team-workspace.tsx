@@ -517,7 +517,7 @@ export function TeamWorkspace() {
       <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
         <h2 className="text-xl font-bold">4 · Cloud services, pay as you go — 25% {UNITUNITE_NAME} cut per workspace</h2>
         <p className="mt-2 text-sm text-slate-300">GPU pods, serverless, storage, databases, queues, CDN, builds, vector DB, inference — all settled in Vibe Coins from the org wallet, metered per {UNITUNITE_NAME} workspace. {WORKSPACE_CUT_NOTE}</p>
-        <p className="mt-2 text-sm text-slate-300">✨ Need game art, trailers, voices or music? <a className="font-bold text-fuchsia-300 underline" href="/fal">Open fal.ai Studio — 15 magical media tools</a>, same 25% cut included.</p>
+        <p className="mt-2 text-sm text-slate-300">✨ Need game art, trailers, voices or music? <a className="font-bold text-fuchsia-300 underline" href="/fal">Open fal.ai Studio — 30 magical media tools</a>, same 25% cut included.</p>
         <p className="mt-2 text-xs text-slate-500">Cheapest viable tier preselected per category: {Object.entries(CHEAPEST_DEFAULTS).map(([c, k]) => `${c}: ${k}`).join(" · ")}. Newest viable runtimes, no extra dependencies.</p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {services.map((s) => (

@@ -277,6 +277,11 @@ export default function Page() {
         </p>
         <div className="mt-8">
           <PackCatalog />
+          <p className="mt-4 max-w-2xl text-sm text-slate-400">
+            Changed your mind? Unspent coins from purchases made in the last 90 days can be refunded
+            (pro-rated when part of a pack is already spent). Free coins are never refundable. Request
+            a refund from your account page — refunded lots are marked refunded.
+          </p>
         </div>
       </section>
 

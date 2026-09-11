@@ -23,7 +23,7 @@ import {
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/fal/generate — run one of the 15 fal.ai media tools.
+ * POST /api/fal/generate — run one of the 30 fal.ai media tools.
  * Body: { op, prompt?, game_slug?, image_url?, audio_url?, audio_minutes?,
  *         source? }.
  *
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
-  if (!data.user) return fail("Authentication required.", 401);
+  if (!data.user) return fail("Authentication required. Sign in to run fal tools — the catalog + quotes on /fal are free without login.", 401);
   const rl = rateLimit(`fal:generate:${data.user.id}`, 20, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
 
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
   }
   const input = (body ?? {}) as Record<string, unknown>;
   const opRaw = String(input.op ?? "");
-  if (!isFalOp(opRaw)) return fail("Invalid op. Pick one of the 15 fal tools from GET /api/fal/ops.", 400);
+  if (!isFalOp(opRaw)) return fail("Invalid op. Pick one of the 30 fal tools from GET /api/fal/ops.", 400);
   const def = opByKey(opRaw);
 
   const prompt = cleanFalPrompt(input.prompt ?? "");
@@ -118,6 +118,13 @@ export async function POST(req: Request) {
     });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
+      if (res.status === 401 || res.status === 403) {
+        console.error(`[api/fal/generate] fal.ai rejected the server key (HTTP ${res.status}, op ${opRaw}, model ${model}). Nothing was charged.`);
+        return fail(
+          `fal.ai rejected the server key (HTTP ${res.status}). Re-issue FAL_KEY in the fal.ai dashboard and update the server env — nothing was charged, metered coins stay on your balance.`,
+          502,
+        );
+      }
       return fail(`fal.ai queue HTTP ${res.status}: ${text.slice(0, 160)}`, 502);
     }
     const queued = (await res.json()) as { request_id?: string; requestId?: string; status_url?: string; response_url?: string };

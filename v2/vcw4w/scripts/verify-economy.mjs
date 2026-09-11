@@ -50,6 +50,23 @@ if (!economy.includes("ALPHA_TESTER_COINS = 300")) throw new Error("Alpha award 
 if (!economy.includes("ALPHA_TESTER_TOTAL_CAP_COINS = 10000")) throw new Error("Alpha pool cap must be 10000 coins.");
 if (!rewardMig.includes("v_award integer := 300") || !rewardMig.includes("v_cap integer := 10000") || !rewardMig.includes("alpha pool exhausted")) throw new Error("Alpha migration must award 300 with a 10,000-coin pool cap.");
 
+// Refund window: 90 days, purchased lots only, pro-rated partial refunds.
+if (!economy.includes("COIN_REFUND_WINDOW_DAYS = 90")) throw new Error("Refund window must be 90 days.");
+if (!economy.includes("COIN_REFUND_MIN_COINS = 0.01")) throw new Error("Refund minimum must be 0.01 coins.");
+const refundMig = read("../supabase/migrations/20261012000000_coin_refunds.sql");
+for (const token of ["refunded_coins", "coin_refunds", "refund_coin_lot", "get_my_refundable_lots", "get_my_coin_refunds", "90 days", "VIBE-COINS-", "free coins cannot be refunded", "Coin refund:"]) {
+  if (!refundMig.includes(token)) throw new Error(`Refund migration missing ${token}.`);
+}
+if (!refundMig.includes("refunded_at")) throw new Error("Refund migration must mark lots refunded.");
+const refundGet = read("../app/api/coins/refunds/route.ts");
+const refundPost = read("../app/api/coins/refund/route.ts");
+if (!refundGet.includes("get_my_refundable_lots") || !refundGet.includes("get_my_coin_refunds")) throw new Error("Refunds GET must list refundable lots + history.");
+if (!refundPost.includes("refund_coin_lot") || !refundPost.includes("sameOrigin")) throw new Error("Refund POST must use the guarded refund RPC.");
+const refundPanel = read("../components/account/refund-panel.tsx");
+if (!refundPanel.includes("/api/coins/refund") || !refundPanel.includes("Partial refund")) throw new Error("Refund panel must support full + partial refunds.");
+const terms = read("../app/terms/page.tsx");
+if (!terms.includes("90-day refund on unspent purchased coins") || (!terms.includes("pro-rata") && !terms.includes("pro-rated"))) throw new Error("Terms must disclose the 90-day unspent pro-rated refund.");
+
 // Centicentcoins fractional spending (0.01 coins = 0.01 cent = $0.0001 USD)
 if (!economy.includes("CENTICENTCOINS_PER_COIN = 100")) throw new Error("Centicentcoins must be 100 per coin.");
 if (!economy.includes("CENTICENTCOIN_USD = 0.0001")) throw new Error("Centicentcoin USD value must be $0.0001.");

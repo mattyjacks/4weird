@@ -25,8 +25,17 @@ for (const token of [
   "DRAFT_PROJECT_SLUG",
   "NEWGAMEPLUS_CUT_NOTE",
   "NEWGAMEPLUS_CUT_PCT = 25",
+  "laneForBudget",
+  "planSymphony",
+  "planFalForBuild",
+  "timelineForLane",
+  "recommendFalOps",
 ]) {
   if (!lib.includes(token)) fail(`newgameplus lib missing ${token}.`);
+}
+if (!lib.includes("≤5 min")) fail("newgameplus lib must promise the ≤5-min fast lane.");
+if (!lib.includes("Scout") || !lib.includes("Forge") || !lib.includes("Sage")) {
+  fail("newgameplus lib must field the Scout/Forge/Sage symphony cast.");
 }
 
 // API: prompt in → tested game out, confirm gate, draft push, honest errors.
@@ -45,6 +54,11 @@ for (const token of [
   "push_file",
   "draft-games",
   "Draft/",
+  "planSymphony",
+  "planFalForBuild",
+  "timelineForLane",
+  "swarm",
+  "timeline",
 ]) {
   if (!route.includes(token)) fail(`newgameplus build route missing ${token}.`);
 }
@@ -61,9 +75,13 @@ for (const token of [
   "Confirm the Amount",
   "250",
   "/api/newgameplus/build",
+  "/api/fal/generate",
   "srcDoc",
   "Draft",
   "VibeCodeWorker",
+  "Symphony",
+  "timeline",
+  "≤5 min",
 ]) {
   if (!builder.includes(token)) fail(`newgameplus builder missing ${token}.`);
 }

@@ -1,5 +1,5 @@
 /**
- * fal.ai media compute — 15 magical game-dev + coding tools.
+ * fal.ai media compute — 30 magical game-dev + coding tools.
  *
  * One rule everywhere: every fal price INCLUDES the 25% platform cut
  * (FAL_COMPUTE_CUT_PCT = 25, same as SERVICE_CUT_PCT /
@@ -14,6 +14,13 @@
  * Env (server-only, never NEXT_PUBLIC_):
  *   FAL_KEY (official fal SDK name) — FAL_API_KEY accepted as an alias.
  *   FAL_API_BASE overrides the queue base (default https://queue.fal.run).
+ *
+ * VibeCodeWorker meld: the agent main loop (observe → reason → act) can
+ * call any op from inside a run via VCW_FAL_HOWTO — emit
+ * `[tool: fal.generate — op=<op> prompt="..."]` in an actions step, or POST
+ * /api/fal/generate with source "vcw". NewGamePlus plans its fal picks
+ * with recommendFalOps() so the symphony only pays for assets the prompt
+ * actually needs.
  */
 
 import { SERVICE_CUT_PCT } from "@/lib/economy";
@@ -37,6 +44,21 @@ export const FAL_OP_KEYS = [
   "lipsync-take",
   "playtest-notes",
   "app-promo",
+  "sprite-sheet",
+  "backdrop-wide",
+  "character-turn",
+  "level-inpaint",
+  "depth-map",
+  "voxel-prop",
+  "text-to-3d",
+  "cutscene-veo",
+  "motion-loop",
+  "monster-voice",
+  "ambient-bed",
+  "chiptune-loop",
+  "quest-dialogue",
+  "code-review",
+  "capsule-art",
 ] as const;
 export type FalOp = (typeof FAL_OP_KEYS)[number];
 
@@ -63,7 +85,7 @@ export type FalOpDef = {
 };
 
 /**
- * 15 ways to use fal across game dev + coding. Gross Vibe Coins per unit,
+ * 30 ways to use fal across game dev + coding. Gross Vibe Coins per unit,
  * 25% cut INCLUDED. Units match cloud-catalog style (image/clip/1k_chars/min).
  */
 export const FAL_OPS: FalOpDef[] = [
@@ -82,6 +104,21 @@ export const FAL_OPS: FalOpDef[] = [
   { op: "lipsync-take", name: "Lip-Sync Take", unit: "clip", coinsPerUnit: 18, blurb: "Talking NPC portraits — audio + face, perfectly synced.", category: "Video", model: "fal-ai/sync-lipsync", kind: "video", needsImage: true, needsPrompt: true },
   { op: "playtest-notes", name: "Playtest Notes", unit: "min_audio", coinsPerUnit: 3, blurb: "Transcribe playtests + coding standups straight into VCW bugs.", category: "Coding", model: "fal-ai/whisper-v3", kind: "text", needsImage: false, needsPrompt: false },
   { op: "app-promo", name: "App Promo Kit", unit: "image", coinsPerUnit: 8, blurb: "Shipped-code glow-up: OG cards, icons + promo art for web apps.", category: "Coding", model: "fal-ai/flux/dev", kind: "image", needsImage: false, needsPrompt: true },
+  { op: "sprite-sheet", name: "Sprite Sheet", unit: "image", coinsPerUnit: 9, blurb: "Full pixel-art sheets: idle, run, jump frames on one canvas.", category: "Game Art", model: "fal-ai/flux-pro/v1.1", kind: "image", needsImage: false, needsPrompt: true },
+  { op: "backdrop-wide", name: "World Backdrop", unit: "image", coinsPerUnit: 9, blurb: "Ultra-wide parallax backdrops: skies, dungeons, neon cities.", category: "Game Art", model: "fal-ai/imagen4/preview", kind: "image", needsImage: false, needsPrompt: true },
+  { op: "character-turn", name: "Character Turnaround", unit: "image", coinsPerUnit: 9, blurb: "Front/side/back turnaround sheets for heroes + NPCs.", category: "Game Art", model: "fal-ai/hidream-i1-full", kind: "image", needsImage: false, needsPrompt: true },
+  { op: "level-inpaint", name: "Level Inpaint", unit: "image", coinsPerUnit: 8, blurb: "Repaint part of a level or sprite — masked edits that blend in.", category: "Game Art", model: "fal-ai/flux-pro/fill", kind: "image", needsImage: true, needsPrompt: true },
+  { op: "depth-map", name: "Depth Map", unit: "image", coinsPerUnit: 6, blurb: "Depth maps from one screenshot for 2.5D lighting + parallax.", category: "3D", model: "fal-ai/depth-anything-v2", kind: "image", needsImage: true, needsPrompt: false },
+  { op: "voxel-prop", name: "Voxel Prop 3D", unit: "model", coinsPerUnit: 15, blurb: "Chunky voxel props from one sketch for stylized 3D games.", category: "3D", model: "fal-ai/hunyuan3d-v21/image-to-3d", kind: "model-3d", needsImage: true, needsPrompt: false },
+  { op: "text-to-3d", name: "Text 3D Prop", unit: "model", coinsPerUnit: 16, blurb: "Type a prop, get a spinnable 3D model — no sketch needed.", category: "3D", model: "fal-ai/trellis/text-to-3d", kind: "model-3d", needsImage: false, needsPrompt: true },
+  { op: "cutscene-veo", name: "Cutscene Clip", unit: "clip", coinsPerUnit: 22, blurb: "Fast cinematic cutscenes from one line of story.", category: "Video", model: "fal-ai/veo3/fast/text-to-video", kind: "video", needsImage: false, needsPrompt: true },
+  { op: "motion-loop", name: "Motion Loop", unit: "clip", coinsPerUnit: 20, blurb: "Turn any sprite or portrait into a looping motion clip.", category: "Video", model: "fal-ai/kling-video/v2.5-turbo/image-to-video", kind: "video", needsImage: true, needsPrompt: true },
+  { op: "monster-voice", name: "Monster Voice", unit: "1k_chars", coinsPerUnit: 4, blurb: "Growls, goblins + bosses that actually talk back.", category: "Audio", model: "fal-ai/dia-tts", kind: "audio", needsImage: false, needsPrompt: true },
+  { op: "ambient-bed", name: "Ambient Bed", unit: "clip", coinsPerUnit: 7, blurb: "Rain, tavern hum, spaceship drones — looping ambience.", category: "Audio", model: "fal-ai/mmaudio-v2/text-to-audio", kind: "audio", needsImage: false, needsPrompt: true },
+  { op: "chiptune-loop", name: "Chiptune Loop", unit: "clip", coinsPerUnit: 8, blurb: "8-bit chiptune loops that never loop awkwardly.", category: "Audio", model: "fal-ai/yue/text-to-music", kind: "audio", needsImage: false, needsPrompt: true },
+  { op: "quest-dialogue", name: "Quest Dialogue", unit: "quest", coinsPerUnit: 3, blurb: "Branching quest dialogue trees from one story beat.", category: "Coding", model: "fal-ai/openai/gpt-oss-120b", kind: "text", needsImage: false, needsPrompt: true },
+  { op: "code-review", name: "Code Review", unit: "review", coinsPerUnit: 3, blurb: "Instant gameplay code review — balance, bugs + fix list.", category: "Coding", model: "fal-ai/moonshotai/kimi-k2-instruct", kind: "text", needsImage: false, needsPrompt: true },
+  { op: "capsule-art", name: "Store Capsule", unit: "image", coinsPerUnit: 9, blurb: "Store capsules + OG cards that make the game impossible not to click.", category: "Coding", model: "fal-ai/fast-sdxl", kind: "image", needsImage: false, needsPrompt: true },
 ];
 
 export function opByKey(op: FalOp): FalOpDef {
@@ -119,7 +156,7 @@ export function quoteFalSplit(op: FalOp, qty: number): { gross: number; cut: num
 
 /** Derive billable qty from raw inputs (chars/audio minutes fall back to 1 run). */
 export function qtyForInput(op: FalOp, input: { prompt?: string; audioMinutes?: number }): number {
-  if (op === "npc-voice") {
+  if (op === "npc-voice" || op === "monster-voice") {
     const chars = String(input.prompt ?? "").length;
     return Math.max(0.1, Math.ceil(chars / 100) / 10);
   }
@@ -192,12 +229,128 @@ export function falInputFor(op: FalOp, input: { prompt: string; imageUrl?: strin
     case "icon-logo":
     case "texture-tile":
     case "app-promo":
+    case "sprite-sheet":
+    case "backdrop-wide":
+    case "character-turn":
+    case "capsule-art":
       return { prompt, num_images: 1, output_format: "png" };
+    case "level-inpaint":
+      return { prompt, image_url: input.imageUrl ?? undefined };
     case "upscale-hd":
     case "remove-bg":
-    case "render-3d":
+    case "depth-map":
       return out;
+    case "render-3d":
+    case "voxel-prop":
+      return out;
+    case "text-to-3d":
+      return { prompt };
+    case "trailer-clip":
+    case "cutscene-veo":
+      return { prompt };
+    case "animate-sprite":
+    case "motion-loop":
+    case "lipsync-take":
+      return out;
+    case "npc-voice":
+    case "monster-voice":
+      // Speech models take raw text, not a "prompt" wrapper.
+      return { text: prompt || "Hello, adventurer." };
+    case "sfx-burst":
+    case "theme-music":
+    case "ambient-bed":
+    case "chiptune-loop":
+      return { prompt };
+    case "playtest-notes":
+      return out;
+    case "quest-dialogue":
+    case "code-review":
+      return { prompt };
     default:
       return Object.keys(out).length ? out : { prompt };
   }
+}
+
+/** Cheap + fast ops safe for the ≤5-minute NewGamePlus fast lane. */
+export const FAL_FAST_OPS: FalOp[] = [
+  "remove-bg",
+  "playtest-notes",
+  "quest-dialogue",
+  "code-review",
+  "npc-voice",
+  "monster-voice",
+  "upscale-hd",
+  "depth-map",
+  "sfx-burst",
+  "ambient-bed",
+  "concept-art",
+  "texture-tile",
+  "level-inpaint",
+  "app-promo",
+  "capsule-art",
+];
+
+/**
+ * How a VibeCodeWorker agent calls fal from inside the main
+ * observe → reason → act loop. Emitted as a step tag the actions route
+ * understands, e.g.:
+ *   [tool: fal.generate — op=concept-art prompt="neon dungeon key art"]
+ * or equivalently POST /api/fal/generate { op, prompt, game_slug, source: "vcw" }.
+ */
+export const VCW_FAL_HOWTO =
+  "VCW loop fal call: log an actions step with kind=action and text containing " +
+  "[tool: fal.generate — op=<op> prompt=\"...\"] (source vcw, metered via meter_fal_usage, " +
+  "25% cut included). Observe first, then reason which op fits, then act with the cheapest viable op.";
+
+/** Recommended fal ops per VCW loop phase (cheapest viable first). */
+export function falOpsForVcwPhase(phase: "observe" | "reason" | "act"): FalOp[] {
+  if (phase === "observe") return ["playtest-notes", "code-review", "upscale-hd"];
+  if (phase === "reason") return ["quest-dialogue", "code-review", "concept-art"];
+  return ["sprite-edit", "sfx-burst", "npc-voice", "concept-art", "remove-bg"];
+}
+
+export type FalRecommendation = { op: FalOp; why: string; coins: number };
+
+/**
+ * Intelligent fal picker shared by NewGamePlus + VCW: keyword-scan the
+ * prompt, cap by budget, cheapest viable first. Pure + deterministic.
+ */
+export function recommendFalOps(prompt: string, budget: number, maxOps = 3): FalRecommendation[] {
+  const p = String(prompt ?? "").toLowerCase();
+  const picks: FalRecommendation[] = [];
+  const push = (op: FalOp, why: string) => {
+    if (picks.some((r) => r.op === op)) return;
+    if (picks.length >= Math.max(1, Math.min(5, maxOps))) return;
+    picks.push({ op, why, coins: quoteFal(op, 1) });
+  };
+  if (/voice|talk|speak|npc|quest giver|dialogue|narrat/.test(p)) push("npc-voice", "prompt names voices/dialogue");
+  if (/monster|boss|growl|goblin|dragon|demon/.test(p)) push("monster-voice", "prompt names a monster/boss voice");
+  if (/music|theme|soundtrack|chiptune|8-bit|8bit/.test(p)) push("chiptune-loop", "prompt names music/chiptune");
+  else if (/music|theme|soundtrack|song/.test(p)) push("theme-music", "prompt names music");
+  if (/sfx|sound|laser|zap|explosion|coin ding/.test(p)) push("sfx-burst", "prompt names sound effects");
+  if (/ambient|rain|tavern|hum|drone|atmosphere/.test(p)) push("ambient-bed", "prompt names ambience");
+  if (/sprite|pixel|character|hero|enemy/.test(p)) push("sprite-sheet", "prompt names sprites/characters");
+  if (/world|backdrop|sky|city|dungeon|parallax|background/.test(p)) push("backdrop-wide", "prompt names a world/backdrop");
+  if (/3d|voxel|model|spinnable/.test(p)) {
+    if (/voxel|chunky|stylized/.test(p)) push("voxel-prop", "prompt names voxel 3D");
+    else push("text-to-3d", "prompt names 3D");
+  }
+  if (/cutscene|story|cinematic|intro/.test(p)) {
+    if (budget > 250) push("cutscene-veo", "big-budget prompt names cutscenes");
+  } else if (/trailer|hype|teaser/.test(p) && budget > 250) push("trailer-clip", "big-budget prompt names a trailer");
+  if (/quest|story|branch|mission/.test(p)) push("quest-dialogue", "prompt names quests/story");
+  if (/logo|icon|badge/.test(p)) push("icon-logo", "prompt names a logo/icon");
+  if (!picks.length) {
+    push("concept-art", "default key art for the loading screen");
+    if (/collect|catch|shooter|dodge|race|maze|shooter/.test(p)) push("sfx-burst", "action games need SFX");
+    else push("capsule-art", "default store capsule for launch");
+  }
+  // Budget cap: keep the fal shortlist inside ~1/4 of the coin budget.
+  const cap = Math.max(6, Math.floor(Number(budget) / 4));
+  let total = picks.reduce((s, r) => s + r.coins, 0);
+  while (picks.length > 1 && total > cap) {
+    const dropped = picks.pop();
+    total -= dropped?.coins ?? 0;
+  }
+  return picks;
 }
