@@ -6,7 +6,7 @@ agent manual at [`skill.md`](../../skill.md) · repo overview at [`README.md`](.
 
 One account, one coin economy (**100 coins = exactly $1.00**, 25% platform cut included
 in every price, never on top) across games, clans, bots, agents/desktops/teams, game AI +
-Gaming Buddy, and VibeCodeWorker QA.
+Gaming Buddy, and VibeCodeWorker QA!
 
 ## Routes (pages)
 
