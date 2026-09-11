@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { ParentDashboard } from "@/components/family/parent-dashboard";
+
 type Friendship = { id: string; display_name?: string | null; public_handle?: string | null; status?: string; direction?: string };
 type ChatMessage = { body: string; created_at?: string };
 type Save = { game_slug: string; slot: number; data?: { cheat_mode?: boolean } | null; updated_at?: string };
@@ -18,7 +20,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return body as T;
 }
 
-const tabs = ["friends", "messages", "saves", "stats", "cheats", "studio", "admin", "settings"] as const;
+const tabs = ["friends", "messages", "saves", "stats", "cheats", "studio", "admin", "family", "settings"] as const;
 type Tab = (typeof tabs)[number];
 
 function normalizeTab(value: string | null): Tab {
@@ -56,7 +58,7 @@ export function AccountHub() {
             onClick={() => setTab(t)}
             className={`rounded-full px-4 py-2 text-sm font-semibold ${tab === t ? "bg-cyan-300 text-slate-950" : "border border-white/20 text-slate-300"}`}
           >
-            {t === "studio" ? "Creator Studio" : t.charAt(0).toUpperCase() + t.slice(1)}
+            {t === "studio" ? "Creator Studio" : t === "family" ? "Family" : t.charAt(0).toUpperCase() + t.slice(1)}
           </button>
         ))}
       </nav>
@@ -67,6 +69,7 @@ export function AccountHub() {
       {tab === "cheats" && <CheatsTab />}
       {tab === "studio" && <StudioTab />}
       {tab === "admin" && <AdminTab />}
+      {tab === "family" && <ParentDashboard />}
       {tab === "settings" && <SettingsTab />}
     </div>
   );
@@ -583,15 +586,30 @@ function AdminTab() {
 }
 
 function SettingsTab() {
-  const [settings, setSettings] = useState({ allow_friend_requests: true, show_playtime: true, marketing_email: false });
+  const [settings, setSettings] = useState({ allow_friend_requests: true, show_playtime: true, marketing_email: false, kids_mode: false });
   const [message, setMessage] = useState("");
   useEffect(() => {
-    request<{ settings: { allow_friend_requests: boolean; show_playtime: boolean; marketing_email: boolean } }>("/api/settings")
+    request<{ settings: { allow_friend_requests: boolean; show_playtime: boolean; marketing_email: boolean; kids_mode?: boolean } }>("/api/settings")
       .then((r) => {
-        if (r.settings) setSettings(r.settings);
+        if (r.settings) {
+          setSettings({ kids_mode: false, ...r.settings });
+          try {
+            // Mirror Kids Mode onto this device so the catalog + play shell
+            // enforce it without an extra round-trip (the flag is a
+            // preference, not age data).
+            if (r.settings.kids_mode) window.localStorage.setItem("4weird-kids-mode", "1");
+            else window.localStorage.removeItem("4weird-kids-mode");
+          } catch { /* private mode */ }
+        }
       })
       .catch(() => undefined);
   }, []);
+  const labels: Record<keyof typeof settings, string> = {
+    allow_friend_requests: "Allow friend requests",
+    show_playtime: "Show playtime on my public profile",
+    marketing_email: "Marketing email",
+    kids_mode: "🔒 Kids Mode — hide Adults (18+) games; Teens games ask a 13+ age check",
+  };
   return (
     <Card title="Settings">
       <p>Control how other players can find you and how 4weird communicates with you.</p>
@@ -601,6 +619,11 @@ function SettingsTab() {
           e.preventDefault();
           try {
             await request("/api/settings", { method: "PUT", body: JSON.stringify(settings) });
+            try {
+              if (settings.kids_mode) window.localStorage.setItem("4weird-kids-mode", "1");
+              else window.localStorage.removeItem("4weird-kids-mode");
+              window.dispatchEvent(new Event("kids-mode-changed"));
+            } catch { /* private mode */ }
             setMessage("Settings saved.");
           } catch (error) {
             setMessage(error instanceof Error ? error.message : "Unable to save settings.");
@@ -610,7 +633,7 @@ function SettingsTab() {
         {(Object.keys(settings) as (keyof typeof settings)[]).map((k) => (
           <label key={k} className="flex items-center gap-2" htmlFor={`setting-${k}`}>
             <input id={`setting-${k}`} name={k} type="checkbox" checked={settings[k]} onChange={(e) => setSettings({ ...settings, [k]: e.target.checked })} />{" "}
-            {k === "allow_friend_requests" ? "Allow friend requests" : k === "show_playtime" ? "Show playtime on my public profile" : "Marketing email"}
+            {labels[k]}
           </label>
         ))}
         <button className="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950">Save settings</button>

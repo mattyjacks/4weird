@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { games } from "@/content/games";
 import { GameCatalog } from "@/components/games/game-catalog";
+import { canonical, itemListJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "All Games — 34 Free Browser Experiments",
@@ -26,6 +27,21 @@ export const metadata: Metadata = {
 export default function GamesPage() {
   return (
     <div className="bg-[#070912] text-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            itemListJsonLd(
+              "All 4weird browser games",
+              "Every playable 4weird browser game: free to try with guides, cloud saves, and coin-metered play that pays creators.",
+              games.map((g) => ({
+                name: `${g.title} (${g.genre})`,
+                url: canonical(`/games/${g.slug}`),
+              })),
+            ),
+          ),
+        }}
+      />
       <GameCatalog games={games} />
     </div>
   );

@@ -46,6 +46,9 @@ if (!referrals.includes("apply_referral") || !referrals.includes("get_or_create_
 if (!leaderboard.includes("leaderboard_top")) throw new Error("Leaderboard must use the leaderboard RPC.");
 if (!mig.includes("claim_daily_bonus") || !mig.includes("apply_referral") || !mig.includes("leaderboard_top")) throw new Error("Migration must define the feature RPCs.");
 if (!rewardMig.includes("alpha_tester_claims") || !rewardMig.includes("claim_alpha_tester_bonus") || !rewardMig.includes("pg_advisory_xact_lock")) throw new Error("Alpha and daily rewards must be idempotent and race-safe.");
+if (!economy.includes("ALPHA_TESTER_COINS = 300")) throw new Error("Alpha award must be 300 coins.");
+if (!economy.includes("ALPHA_TESTER_TOTAL_CAP_COINS = 10000")) throw new Error("Alpha pool cap must be 10000 coins.");
+if (!rewardMig.includes("v_award integer := 300") || !rewardMig.includes("v_cap integer := 10000") || !rewardMig.includes("alpha pool exhausted")) throw new Error("Alpha migration must award 300 with a 10,000-coin pool cap.");
 
 // Centicentcoins fractional spending (0.01 coins = 0.01 cent = $0.0001 USD)
 if (!economy.includes("CENTICENTCOINS_PER_COIN = 100")) throw new Error("Centicentcoins must be 100 per coin.");

@@ -5,6 +5,11 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { GameRuntimeFrame } from "@/components/games/game-runtime-frame";
 import { AdSlot } from "@/components/ads/AdSlot";
+import { AgeGate } from "@/components/games/age-gate";
+import { RatingBadge } from "@/components/games/rating-badge";
+import { KidBanner } from "@/components/family/kid-banner";
+import { requiredAgeFor, getGameRating, isKidsMode } from "@/lib/age-gate";
+import { bandMinAge } from "@/lib/family";
 import type { HouseAd } from "@/lib/ads";
 import {
   GAME_CACHE_FREE_BYTES,
@@ -53,6 +58,11 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
 /**
  * PlayGate — the play shell's front door.
  *
+ * Age ratings first: Adults (18+) games always show a date-of-birth gate
+ * (checked on-device, never stored); Kids Mode accounts can never see or
+ * play Adults games (hard block, no bypass), while Teens (13–17) games ask
+ * Kids Mode players for a 13+ date-of-birth check.
+ *
  * Signed-in players: the game loads immediately (play is never blocked on
  * metering); when the runtime bridge reports fresh network bytes
  * (`fourweird-metering`), a coin session starts (proportional load fee:
@@ -87,6 +97,16 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
   const [gate, setGate] = useState<Gate>({ kind: "checking" });
   const [broke, setBroke] = useState("");
   const [showGuestAd, setShowGuestAd] = useState(false);
+  // Age gate: resolved on mount from the catalog rating + Kids Mode, or from
+  // a live child session (parent-attested band + hours + daily minutes — no
+  // DOB is ever asked of children). "passed" means play may proceed; anything
+  // else renders instead of the metering boot below. An entered DOB never
+  // leaves the AgeGate component.
+  const [age, setAge] = useState<
+    "unknown" | "blocked" | "gate-teens" | "gate-adults" | "kid-rating" | "kid-hours" | "kid-timeup" | "passed"
+  >("unknown");
+  const [kidHandle, setKidHandle] = useState<string | null>(null);
+  const rating = getGameRating(slug);
   // Per-second metering state: cumulative active seconds (from heartbeat
   // receipts) + how many 5-hour still-playing checks were acknowledged.
   const [activeSecs, setActiveSecs] = useState(0);
@@ -128,6 +148,9 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
         const message = error instanceof Error ? error.message : "Unable to start play session.";
         if (/insufficient balance/i.test(message)) {
           setGate({ kind: "topup", message });
+        } else if (kidHandle && /daily time limit|allowed play hours|monthly budget|suspended|session expired|rating blocked/i.test(message)) {
+          // Child sessions fail CLOSED on parental limits: no unmetered play.
+          setGate({ kind: "denied", message });
         } else {
           // Metering failed but the static game is already served: play on
           // unmetered rather than bricking the game; the next load retries.
@@ -136,13 +159,73 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
         }
       }
     },
-    [slug, version],
+    [slug, version, kidHandle],
   );
 
-  // Boot: signed in, guest, or metering-unavailable (local dev).
+  // Age gate first: a live child session decides by parent-attested band +
+  // hours + daily minutes; otherwise rating + Kids Mode decide (DOB gates).
   useEffect(() => {
     let live = true;
+    const resolve = async () => {
+      try {
+        const res = await fetch("/api/family/kid-login", { credentials: "include" });
+        const body = await res.json().catch(() => ({}));
+        const kid = (body as { kid?: {
+          handle: string; age_band: string; seconds_today: number;
+          daily_minutes: number | null; in_window: boolean;
+        } }).kid ?? null;
+        if (!live) return;
+        if (kid) {
+          setKidHandle(kid.handle);
+          if (bandMinAge(kid.age_band) < requiredAgeFor(rating)) {
+            setAge("kid-rating");
+            return;
+          }
+          if (!kid.in_window) {
+            setAge("kid-hours");
+            return;
+          }
+          if (kid.daily_minutes !== null && kid.seconds_today >= kid.daily_minutes * 60) {
+            setAge("kid-timeup");
+            return;
+          }
+          setAge("passed");
+          return;
+        }
+      } catch {
+        /* kid lookup failed — fall through to the standard gates */
+      }
+      if (!live) return;
+      setKidHandle(null);
+      const kids = isKidsMode();
+      if (rating === "adults") setAge(kids ? "blocked" : "gate-adults");
+      else if (rating === "teens") setAge(kids ? "gate-teens" : "passed");
+      else setAge("passed");
+    };
+    void resolve();
+    const refresh = () => void resolve();
+    window.addEventListener("kids-mode-changed", refresh);
+    window.addEventListener("kid-session-changed", refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      live = false;
+      window.removeEventListener("kids-mode-changed", refresh);
+      window.removeEventListener("kid-session-changed", refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, [rating, slug]);
+
+  // Boot: signed in, guest, or metering-unavailable (local dev).
+  // A live child session skips straight to metering — /api/games/session
+  // routes the kid_session cookie to the child wallet RPCs server-side.
+  useEffect(() => {
+    if (age !== "passed") return;
+    let live = true;
     (async () => {
+      if (kidHandle) {
+        if (live) setGate({ kind: "metering", signedIn: true });
+        return;
+      }
       let sessionRes: Response | null = null;
       try {
         sessionRes = await fetch("/api/auth/session", { credentials: "include" });
@@ -188,7 +271,7 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
     return () => {
       live = false;
     };
-  }, [slug]);
+  }, [slug, age, kidHandle]);
 
   // Signed-in metering: wait for the bridge's byte report, else bill the load.
   useEffect(() => {
@@ -219,8 +302,13 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
         const secs = Math.max(0, Math.floor(Number(body?.beat?.active_seconds ?? 0)));
         if (secs > 0) setActiveSecs(secs);
       } catch (error) {
-        if (/insufficient balance/i.test(error instanceof Error ? error.message : "")) {
+        const message = error instanceof Error ? error.message : "";
+        if (/insufficient balance/i.test(message)) {
           setBroke("Out of coins — metering paused. Top up to keep your play counted (the game keeps running).");
+        } else if (/daily time limit|allowed play hours|monthly budget|suspended|session expired/i.test(message)) {
+          // Parental limits hit mid-play: the game keeps running, but the
+          // child sees why metering stopped (server stays authoritative).
+          setBroke(`⏸️ ${message} — the game keeps running, but play time is paused.`);
         }
       }
     };
@@ -255,6 +343,58 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
     const timer = setInterval(() => setShowGuestAd(true), GUEST_AD_INTERVAL_MS);
     return () => clearInterval(timer);
   }, [gate]);
+
+  if (age === "blocked") {
+    return (
+      <div className="overflow-hidden rounded-2xl border border-white/15 bg-black p-6 sm:p-10" role="alert">
+        <p className="text-lg font-black text-white">🔒 Kids Mode is on</p>
+        <p className="mt-2 text-sm text-slate-300">
+          {title} is rated <RatingBadge rating={rating} /> and can&apos;t be played while Kids Mode is on.
+          Turn Kids Mode off in <Link href="/account?tab=settings" className="font-bold text-cyan-300 hover:underline">account settings</Link> (or
+          the games catalog) to play it — Adults games still ask for an 18+ age check every time.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link href="/games" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
+            Browse kid-friendly games
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (age === "kid-rating" || age === "kid-hours" || age === "kid-timeup") {
+    const copy =
+      age === "kid-rating"
+        ? { head: "🔒 Not for your age band yet", body: `${title} is rated ${rating === "adults" ? "Adults (18+)" : "Teens (13–17)"}, and your parent set your account to a younger band. Ask them to change it in Account → Family if that’s wrong.` }
+        : age === "kid-hours"
+          ? { head: "🕒 Outside your play hours", body: "Your parent set hours when you can play. Come back when the window opens — your games and coins will be right here." }
+          : { head: "⏰ Daily time is up!", body: "You’ve used today’s play minutes. Great session — see you tomorrow!" };
+    return (
+      <div>
+        <KidBanner />
+        <div className="overflow-hidden rounded-2xl border border-white/15 bg-black p-6 sm:p-10" role="alert">
+          <p className="text-lg font-black text-white">{copy.head}</p>
+          <p className="mt-2 text-sm text-slate-300">{copy.body}</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link href="/games" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
+              Browse your games
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (age === "gate-adults" || age === "gate-teens") {
+    return (
+      <div>
+        <div className="mb-2">
+          <RatingBadge rating={rating} />
+        </div>
+        <AgeGate rating={age === "gate-adults" ? "adults" : "teens"} title={title} onPass={() => setAge("passed")} />
+      </div>
+    );
+  }
 
   if (gate.kind === "checking") {
     return (
@@ -297,17 +437,29 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
   }
 
   if (gate.kind === "denied") {
+    const kidBlock = kidHandle !== null;
     return (
-      <div className="overflow-hidden rounded-2xl border border-white/15 bg-black p-6 sm:p-10">
-        <p className="text-lg font-black text-white">🚦 Guest limit reached</p>
-        <p className="mt-2 text-sm text-slate-300">{gate.message}</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Link href="/auth/sign-up" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
-            Sign up free — 100 coins
-          </Link>
-          <Link href="/games" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
-            Browse games
-          </Link>
+      <div>
+        {kidHandle && <KidBanner />}
+        <div className="overflow-hidden rounded-2xl border border-white/15 bg-black p-6 sm:p-10">
+          <p className="text-lg font-black text-white">{kidBlock ? "⏸️ Paused by parental controls" : "🚦 Guest limit reached"}</p>
+          <p className="mt-2 text-sm text-slate-300">{gate.message}</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {kidBlock ? (
+              <Link href="/games" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
+                Browse your games
+              </Link>
+            ) : (
+              <>
+                <Link href="/auth/sign-up" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
+                  Sign up free — 100 coins
+                </Link>
+                <Link href="/games" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
+                  Browse games
+                </Link>
+              </>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -315,9 +467,15 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
 
   if (gate.kind === "topup") {
     return (
-      <div className="overflow-hidden rounded-2xl border border-white/15 bg-black p-6 sm:p-10">
-        <p className="text-lg font-black text-white">🪙 Out of coins</p>
-        <p className="mt-2 text-sm text-slate-300">{gate.message} Claim your daily bonus, grab a pack, or invite a friend (25/25).</p>
+      <div>
+        {kidHandle && <KidBanner />}
+        <div className="overflow-hidden rounded-2xl border border-white/15 bg-black p-6 sm:p-10">
+          <p className="text-lg font-black text-white">🪙 Out of coins</p>
+          <p className="mt-2 text-sm text-slate-300">
+            {kidHandle
+              ? `${gate.message} Ask your parent to add coins to your wallet in Account → Family.`
+              : `${gate.message} Claim your daily bonus, grab a pack, or invite a friend (25/25).`}
+          </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Link href="/pricing" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
             Get coins — 100 = $1.00
@@ -346,6 +504,7 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
 
   return (
     <div>
+      {kidHandle && <KidBanner />}
       {metering && (
         <p role="status" className="mb-2 rounded-xl border border-white/10 bg-white/[.04] px-4 py-2 text-xs text-slate-300">
           Measuring fresh download (first loads bill exact bytes)…

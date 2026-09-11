@@ -2,7 +2,8 @@
 
 import Script from "next/script";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { readCookieConsent } from "@/components/site/cookie-banner";
 
 const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "";
 
@@ -12,20 +13,32 @@ declare global {
   }
 }
 
-/** Loads GA4 only when configured, and records client-side navigations. */
+/** Loads GA4 only when configured AND the visitor accepted analytics cookies. */
 export function GoogleAnalytics() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [allowed, setAllowed] = useState(false);
 
   useEffect(() => {
-    if (!measurementId) return;
+    const check = () => setAllowed(readCookieConsent().categories.analytics);
+    check();
+    window.addEventListener("fw-consent-changed", check);
+    window.addEventListener("storage", check);
+    return () => {
+      window.removeEventListener("fw-consent-changed", check);
+      window.removeEventListener("storage", check);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!measurementId || !allowed) return;
     const query = searchParams.toString();
     const pagePath = `${pathname}${query ? `?${query}` : ""}`;
 
     window.gtag?.("config", measurementId, { page_path: pagePath });
-  }, [pathname, searchParams]);
+  }, [pathname, searchParams, allowed]);
 
-  if (!measurementId) return null;
+  if (!measurementId || !allowed) return null;
 
   return (
     <>

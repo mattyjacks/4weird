@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["lucide-react", "next-themes", "@radix-ui/react-checkbox", "@radix-ui/react-dropdown-menu", "@radix-ui/react-label", "@radix-ui/react-slot"],
   },
   async headers() {
-    return [{ source: "/account", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }, { source: "/protected", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }, { source: "/api/:path*", headers: [{ key: "Cache-Control", value: "no-store" }] }, { source: "/api/vcw/health", headers: [{ key: "Cache-Control", value: "no-store" }] },
+    return [{ source: "/account", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }, { source: "/auth/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }, { source: "/protected", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }, { source: "/api/:path*", headers: [{ key: "Cache-Control", value: "no-store" }] }, { source: "/api/vcw/health", headers: [{ key: "Cache-Control", value: "no-store" }] },
     // Static game bundles: public, 1h fresh + 24h stale-while-revalidate.
     // frame-ancestors explicitly allows the play shell to frame them from any
     // first-party host (apex/www x 4weird.com/4weird.games): Vercel redirects

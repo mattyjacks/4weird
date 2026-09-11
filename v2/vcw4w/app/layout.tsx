@@ -3,6 +3,7 @@ import { ThemeProvider } from "next-themes";
 import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { GoogleAnalytics } from "@/components/site/google-analytics";
+import { CookieBanner } from "@/components/site/cookie-banner";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { A11yProvider } from "@/components/site/a11y-provider";
@@ -114,6 +115,7 @@ export default function RootLayout({
         <EyeDwell />
         <SwitchScan />
         <Analytics />
+        <CookieBanner />
       </body>
     </html>
   );

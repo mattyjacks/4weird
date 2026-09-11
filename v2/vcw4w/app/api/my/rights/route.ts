@@ -139,8 +139,7 @@ export async function GET(req: Request) {
   // Bot key secrets are NEVER exported (shown once at issue); metadata only.
   // bot_api_keys is keyed directly by user_id: id,user_id,label,prefix,
   // created_at,last_used_at,revoked. key_hash is never selected.
-  let botKeys: unknown = null;
-  try {
+  let botKeys: unknown = null;  try {
     const { data: keys, error: keysError } = await supabase
       .from("bot_api_keys")
       .select("id,label,prefix,created_at,last_used_at,revoked")
@@ -159,6 +158,32 @@ export async function GET(req: Request) {
     balance = null;
   }
 
+  // Family: child accounts WITHOUT secrets (password hashes and session
+  // tokens are never exported — same rule as bot key secrets). Scoped to
+  // this parent's kids only (the service client bypasses RLS, so scope here).
+  let family: unknown = null;
+  try {
+    const { data: kids } = await supabase.from("kid_accounts")
+      .select("id,username,discriminator,age_band,status,created_at,last_login_at")
+      .eq("parent_id", id)
+      .limit(10);
+    const kidIds = (Array.isArray(kids) ? kids : []).map((k) => String((k as { id: string }).id));
+    let controls: unknown = [], wallet: unknown = [], days: unknown = [];
+    if (kidIds.length) {
+      const [c, w, d] = await Promise.all([
+        supabase.from("kid_controls").select("kid_id,daily_minutes,allowed_start,allowed_end,timezone,monthly_cap_coins,hard_stop,updated_at").in("kid_id", kidIds),
+        supabase.from("kid_wallet_ledger").select("id,kid_id,delta,reason,created_at").in("kid_id", kidIds).limit(500),
+        supabase.from("kid_play_days").select("kid_id,day,seconds").in("kid_id", kidIds).limit(365),
+      ]);
+      controls = c.data ?? [];
+      wallet = w.data ?? [];
+      days = d.data ?? [];
+    }
+    family = { kids: kids ?? [], controls, wallet, days };
+  } catch {
+    family = null;
+  }
+
   await logRequest(id, u.email ?? null, "export", "completed", req);
 
   return ok({
@@ -171,6 +196,7 @@ export async function GET(req: Request) {
     creator: { submissions },
     clans: { memberships: clanMemberships, posts: clanPosts, comments: clanComments, reportsFiled: clanReports, clansOwned },
     bots: { identities: botIdentities, keys: botKeys },
+    family,
     economy: { balance, ledger, grants, daily, referralCode: refCode, referralsAsInviter: refAsInviter, referralsAsInvitee: refAsInvitee },
     rentals: { listings, bookings },
   });

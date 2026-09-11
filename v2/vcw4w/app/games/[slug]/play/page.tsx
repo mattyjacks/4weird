@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { games, getGame } from "@/content/games";
 import { PlayGate } from "@/components/games/play-gate";
 import { PlayRateBadge } from "@/components/games/play-rate-badge";
+import { RatingBadge } from "@/components/games/rating-badge";
 import { GameAiBadge } from "@/components/games/game-ai-badge";
 import { GameA11yPanel } from "@/components/games/game-a11y-panel";
 import { GamePlaybookPanel } from "@/components/games/game-playbook-panel";
@@ -68,6 +69,9 @@ export default async function PlayPage({ params }: { params: Promise<{ slug: str
           {game.emoji} Play {game.title}
         </h1>
         <div className="mt-2 flex flex-col gap-2">
+          <div>
+            <RatingBadge rating={game.rating ?? "kids"} />
+          </div>
           <PlayRateBadge slug={game.slug} />
           <GameAiBadge slug={game.slug} />
         </div>

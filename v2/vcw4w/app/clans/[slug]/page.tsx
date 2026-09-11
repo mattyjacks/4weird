@@ -3,10 +3,19 @@ import Link from "next/link";
 import { ClanPage } from "@/components/clans/clan-page";
 import { ModerationNote } from "@/components/clans/moderation-note";
 
-export const metadata: Metadata = {
-  title: "Clan | 4weird Clans",
-  description: "Clan posts, strats, and clips. Reading is public; posting needs login.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  return {
+    title: "Clan | 4weird Clans",
+    description: "Clan posts, strats, and clips. Reading is public; posting needs login.",
+    // Per-clan canonical so every public clan page is indexed under its own URL.
+    alternates: { canonical: `/clans/${slug}` },
+  };
+}
 
 export const dynamic = "force-dynamic";
 

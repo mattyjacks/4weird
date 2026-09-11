@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { games, getGame } from "@/content/games";
 import { getGameManifest } from "@/content/game-manifests";
 import { GameAiBadge } from "@/components/games/game-ai-badge";
+import { RatingBadge } from "@/components/games/rating-badge";
 import { GamePlaybookPanel } from "@/components/games/game-playbook-panel";
 import { PlayRateBadge } from "@/components/games/play-rate-badge";
 import { breadcrumbJsonLd, videoGameJsonLd } from "@/lib/seo";
@@ -69,6 +70,9 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
           {g.emoji} {g.title}
         </h1>
         <p className="mt-4 text-lg text-slate-300 sm:mt-5 sm:text-xl">{g.description}</p>
+        <div className="mt-4">
+          <RatingBadge rating={g.rating ?? "kids"} />
+        </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
             href={`/games/${g.slug}/play`}

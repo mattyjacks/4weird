@@ -1,6 +1,7 @@
 ﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { PackCatalog } from "@/components/coins/pack-catalog";
+import { pricingOffersJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/pricing" },
@@ -23,6 +24,10 @@ function Check({ children }: { children: React.ReactNode }) {
 export default function Page() {
   return (
     <div className="bg-slate-950 text-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(pricingOffersJsonLd()) }}
+      />
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-4 pb-10 pt-14 sm:px-5 sm:pt-20">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-300 sm:text-sm">

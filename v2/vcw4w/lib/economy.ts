@@ -45,6 +45,11 @@ export const CLAN_COMPUTE_CUT_PCT = 25;
 export const TRIAL_COINS_DEFAULT = 100;
 export const TRIAL_COINS_MAX = 100;
 
+/** Alpha Tester launch gift: 300 coins ($3.00), one per account. */
+export const ALPHA_TESTER_COINS = 300;
+/** Alpha Tester pool cap: at most this many coins given away in total. */
+export const ALPHA_TESTER_TOTAL_CAP_COINS = 10000;
+
 /** Fixed packs for sale. There is intentionally NO 100-coin pack: 100 coins is the free trial. */
 export type CoinPack = { key: string; coins: number; priceCents: number; blurb: string };
 export const COIN_PACKS: CoinPack[] = [

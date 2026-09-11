@@ -17,6 +17,14 @@ for (const path of ["/account", "/account.html", "/api/", "/auth/", "/protected"
 }
 if (!generated.includes("/sitemap.xml")) throw new Error("Robots must point at the sitemap.");
 
+// Auth surfaces are login-gated: robots disallows them AND the server sends
+// X-Robots-Tag noindex (defense in depth — disallow alone leaves
+// URL-only listings possible via external links).
+const nextConfig = read("../next.config.ts");
+if (!nextConfig.includes('"/auth/:path*"') || !nextConfig.includes("noindex, nofollow")) {
+  throw new Error("next.config must send X-Robots-Tag noindex on /auth/*.");
+}
+
 // The sitemap route must enumerate the canonical published pages + every game.
 const sitemap = read("../app/sitemap.ts");
 for (const path of ["/games", "/pricing", "/tech", "/privacy", "/terms", "/teams"]) {

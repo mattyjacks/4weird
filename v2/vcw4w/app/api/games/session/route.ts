@@ -1,9 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
-import { hasServerSupabase } from "@/lib/supabase/service";
+import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { isSlug, isUuid } from "@/lib/validate";
 import { rpcStatus } from "@/lib/agent-market";
+import { getGameRating, requiredAgeFor } from "@/lib/age-gate";
+import { getKidSession, hashKidToken } from "@/lib/kid-session";
 import {
   GAME_HEARTBEAT_MAX_SECONDS,
   GAME_HEARTBEAT_SECONDS,
@@ -32,7 +34,13 @@ export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
-  if (!data.user) return fail("Authentication required.", 401);
+  if (!data.user) {
+    // Child session branch: no Supabase user, but a live `kid_session`
+    // cookie. Spend comes from the child's parent-funded wallet; rating
+    // band, hours window, daily minutes, and monthly cap are enforced
+    // inside the RPCs (single round trip, server-authoritative).
+    return kidSessionPlay(req, supabase);
+  }
   const rl = rateLimit(`game-session:${data.user.id}`, 60, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
   let body: unknown;
@@ -95,6 +103,93 @@ export async function POST(req: Request) {
       return ok({ session: ended });
     } catch (error) {
       return dbFail("api/games/session:end", error, "Unable to end play session.");
+    }
+  }
+
+  return fail("Action must be start, heartbeat, or end.", 400);
+}
+
+async function kidSessionPlay(req: Request, supabase: Awaited<ReturnType<typeof createClient>>) {
+  const rawToken = req.cookies.get("kid_session")?.value ?? "";
+  if (!/^[0-9a-f]{64}$/.test(rawToken)) return fail("Authentication required.", 401);
+  let service;
+  try {
+    service = serviceClient();
+  } catch {
+    return fail("Server misconfigured.", 500);
+  }
+  const session = await getKidSession(service, rawToken);
+  if (!session) return fail("Child session expired. Log in again.", 401);
+  const rl = rateLimit(`game-session:kid:${session.kid.id}`, 60, 60_000);
+  if (!rl.allowed) return fail("Rate limited.", 429);
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return fail("Invalid JSON body.", 400);
+  }
+  const input = (body ?? {}) as Record<string, unknown>;
+  const action = String(input.action ?? "start");
+  const tokenHash = hashKidToken(rawToken);
+
+  if (action === "start") {
+    const game = isSlug(input.game_slug ?? input.game);
+    if (!game) return fail("Invalid game_slug.", 400);
+    const version = isBundleVersion(input.bundle_version ?? input.version ?? "1") || "1";
+    const bytes = isNewBytes(input.new_bytes ?? input.bytes ?? 0);
+    if (bytes < 0) return fail("Invalid new_bytes.", 400);
+    // Required age comes from the SERVER catalog, never the client.
+    const minAge = requiredAgeFor(getGameRating(game));
+    try {
+      const { data: row, error } = await supabase.rpc("start_kid_session", {
+        p_kid: session.kid.id,
+        p_token_hash: tokenHash,
+        p_game: game,
+        p_version: version,
+        p_new_bytes: bytes,
+        p_min_age: minAge,
+      });
+      if (error) return rpcFail("api/games/session:kid-start", error, rpcStatus, "Unable to start play session.");
+      return ok({ session: row, heartbeat_seconds: GAME_HEARTBEAT_SECONDS });
+    } catch (error) {
+      return dbFail("api/games/session:kid-start", error, "Play metering is down. Try again shortly.");
+    }
+  }
+
+  if (action === "heartbeat") {
+    const sid = input.session_id ?? input.sessionId;
+    if (!isUuid(sid)) return fail("Invalid session_id.", 400);
+    const seconds = Number(input.active_seconds ?? input.seconds ?? GAME_HEARTBEAT_SECONDS);
+    if (!Number.isInteger(seconds) || seconds < 1 || seconds > GAME_HEARTBEAT_MAX_SECONDS) {
+      return fail(`active_seconds must be 1..${GAME_HEARTBEAT_MAX_SECONDS}.`, 400);
+    }
+    try {
+      const { data: row, error } = await supabase.rpc("heartbeat_kid_session", {
+        p_kid: session.kid.id,
+        p_token_hash: tokenHash,
+        p_session: sid,
+        p_seconds: seconds,
+      });
+      if (error) return rpcFail("api/games/session:kid-heartbeat", error, rpcStatus, "Unable to record play.");
+      return ok({ beat: row });
+    } catch (error) {
+      return dbFail("api/games/session:kid-heartbeat", error, "Play metering is down. Try again shortly.");
+    }
+  }
+
+  if (action === "end") {
+    const sid = input.session_id ?? input.sessionId;
+    if (!isUuid(sid)) return fail("Invalid session_id.", 400);
+    try {
+      const { data: ended, error } = await supabase.rpc("end_kid_session", {
+        p_kid: session.kid.id,
+        p_token_hash: tokenHash,
+        p_session: sid,
+      });
+      if (error) return rpcFail("api/games/session:kid-end", error, rpcStatus, "Unable to end play session.");
+      return ok({ session: ended });
+    } catch (error) {
+      return dbFail("api/games/session:kid-end", error, "Unable to end play session.");
     }
   }
 

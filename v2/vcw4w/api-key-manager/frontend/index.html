@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>4weird API Key Manager</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">🔑</span>
+      <div>
+        <h1>4weird API Key Manager</h1>
+        <p class="subtitle">One vault for your agent keys — stored in the OS credential store, never in files.</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span id="runtime-badge" class="pill pill-idle">checking runtime…</span>
+      <button id="btn-refresh" type="button" class="btn btn-ghost">↻ Refresh</button>
+    </div>
+  </header>
+
+  <div id="nontauri-banner" class="banner banner-warn" hidden>
+    <strong>Desktop app required.</strong>
+    This page is the UI of the <code>4weird-api-key-manager.exe</code> Tauri app.
+    Opened in a plain browser it cannot reach the OS credential store, so every
+    control below is disabled — launch the <code>.exe</code> instead.
+  </div>
+
+  <main>
+    <section class="intro card">
+      <h2>How this works</h2>
+      <ol class="steps">
+        <li><strong>Paste</strong> a key into its slot and press <strong>Save</strong> — it goes straight into the OS credential store (Windows Credential Manager), never into a file.</li>
+        <li><strong>Verify</strong> runs a free live probe (bot identity, fal nil-request, provider model-list). Nothing billable ever runs.</li>
+        <li><strong>Hand keys to agents</strong> with Copy: raw, PowerShell <code>$env:</code>, bash <code>export</code>, or <code>.env</code> line — then paste into Codex, OpenCode, Antigravity, or any terminal.</li>
+      </ol>
+      <p class="muted">Status pills show a masked fingerprint (<code>abcd…wxyz</code>) only. Full values are revealed solely by your explicit Reveal / Copy click, auto-hidden after 15 seconds.</p>
+    </section>
+
+    <section id="slots" aria-label="API key slots"></section>
+
+    <section class="card danger-zone">
+      <h2>Bulk handoff</h2>
+      <p class="muted">Copy <strong>every saved key</strong> as <code>.env</code> lines in one go — paste into a terminal so Codex / OpenCode / Antigravity inherit them all. Clipboard only; nothing is written to disk.</p>
+      <div class="row">
+        <button id="btn-export-env" type="button" class="btn btn-warn">Copy all saved as .env</button>
+        <span id="export-result" class="result" role="status"></span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Event log <span class="muted">(never contains secrets)</span></h2>
+      <ol id="log" class="log"></ol>
+    </section>
+  </main>
+
+  <footer>
+    <p>Vault: OS credential store service <code>4weird-api-key-manager</code> · Unlocked with your OS login · Parity with the vibecodeworker desktop key drawers (bot + fal), extended to RunPod + LLM providers for desktop agents.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

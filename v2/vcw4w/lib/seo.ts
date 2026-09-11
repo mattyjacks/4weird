@@ -30,6 +30,20 @@ export const FACTS = {
   gameCount: "34 playable browser games",
 } as const;
 
+/**
+ * Coin packs for sale, single source of truth (packs + trial + BYOK plan).
+ * Mirrored in: pricing page Offer JSON-LD, docs/vibe-coins PACKS table,
+ * llms.txt pack line. Change a price here, not in prose.
+ */
+export const COIN_PACKS = [
+  { coins: 500, usd: 5, label: "Pocket change for sessions + clan fees" },
+  { coins: 1500, usd: 15, label: "The regular's stash" },
+  { coins: 5000, usd: 50, label: "Clan treasuries + agent hours" },
+  { coins: 25000, usd: 250, label: "Team war chest" },
+] as const;
+export const COIN_TRIAL = { coins: 100, usd: 0, label: "Free signup trial (once per person)" } as const;
+export const BYOK_PLAN = { usdPerMonth: 420, label: "Self-hosted BYOK, 15% compute premium" } as const;
+
 export const DEFAULT_TITLE =
   "4weird Games — Cloud Compute That Funds AI-Built Games";
 export const DEFAULT_DESCRIPTION =
@@ -155,5 +169,67 @@ export function faqJsonLd(faqs: Array<[string, string]>) {
       name: question,
       acceptedAnswer: { "@type": "Answer", text: answer },
     })),
+  };
+}
+
+/** Generic ItemList JSON-LD. Items: [name, url, extra-props] triples. */
+export function itemListJsonLd(
+  name: string,
+  description: string,
+  items: Array<{ name: string; url: string; [key: string]: unknown }>,
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name,
+    description,
+    numberOfItems: items.length,
+    itemListElement: items.map(({ name: itemName, url, ...extra }, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: itemName,
+      url,
+      ...extra,
+    })),
+  };
+}
+
+/** Offer-list JSON-LD for the pricing page: packs + trial + BYOK plan. */
+export function pricingOffersJsonLd() {
+  const packOffers = COIN_PACKS.map((pack) => ({
+    "@type": "Offer",
+    name: `${pack.coins.toLocaleString("en-US")} Vibe Coins — $${pack.usd}`,
+    description: `${pack.label}. ${FACTS.platformCut}.`,
+    price: String(pack.usd),
+    priceCurrency: "USD",
+    availability: "https://schema.org/InStock",
+  }));
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "4weird Games pricing: Vibe Coin packs and plans",
+    description: `${FACTS.coinPeg}. ${FACTS.platformCut}.`,
+    numberOfItems: packOffers.length + 2,
+    itemListElement: [
+      ...packOffers.map((offer, i) => ({ ...offer, position: i + 1 })),
+      {
+        "@type": "Offer",
+        position: packOffers.length + 1,
+        name: `${COIN_TRIAL.coins} Vibe Coins trial — free`,
+        description: COIN_TRIAL.label,
+        price: "0",
+        priceCurrency: "USD",
+        availability: "https://schema.org/InStock",
+      },
+      {
+        "@type": "Offer",
+        position: packOffers.length + 2,
+        name: `Self-hosted BYOK — $${BYOK_PLAN.usdPerMonth}/mo`,
+        description: BYOK_PLAN.label,
+        price: String(BYOK_PLAN.usdPerMonth),
+        priceCurrency: "USD",
+        availability: "https://schema.org/InStock",
+      },
+    ],
   };
 }

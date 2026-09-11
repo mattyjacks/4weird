@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 export function AlphaTesterClaim() {
-  const [message, setMessage] = useState("One launch gift per account.");
+  const [message, setMessage] = useState("One launch gift per account. 10,000-coin pool.");
   const [busy, setBusy] = useState(false);
 
   async function claim() {
@@ -23,5 +23,5 @@ export function AlphaTesterClaim() {
     }
   }
 
-  return <section className="rounded-2xl border border-amber-300/40 bg-amber-300/10 p-6"><h2 className="text-xl font-bold text-amber-100">Alpha Tester</h2><p role="status" className="mt-2 text-sm text-amber-100/80">{message}</p><button type="button" disabled={busy} onClick={claim} className="mt-4 rounded-full bg-amber-300 px-5 py-2 font-bold text-slate-950 disabled:opacity-40">{busy ? "Claiming…" : "Alpha Tester: Get 500 Coins for free!"}</button></section>;
+  return <section className="rounded-2xl border border-amber-300/40 bg-amber-300/10 p-6"><h2 className="text-xl font-bold text-amber-100">Alpha Tester</h2><p role="status" className="mt-2 text-sm text-amber-100/80">{message}</p><button type="button" disabled={busy} onClick={claim} className="mt-4 rounded-full bg-amber-300 px-5 py-2 font-bold text-slate-950 disabled:opacity-40">{busy ? "Claiming…" : "Alpha Tester: Get 300 Coins for free!"}</button></section>;
 }

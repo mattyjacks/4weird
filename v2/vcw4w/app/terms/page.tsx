@@ -85,6 +85,38 @@ export default function TermsPage() {
           lobbies, presence, friends, and direct messages are provided as-is and may be changed or discontinued.
         </p>
 
+        <h2 className={h2}>4A. Age ratings, age checks, and Kids Mode</h2>
+        <p>
+          Games carry an age rating — <strong>Kids (0–12)</strong>, <strong>Teens (13–17)</strong>, or{" "}
+          <strong>Adults (18+)</strong> — shown on every catalog card, detail page, and play shell. Adults-rated games
+          always show a date-of-birth check before playing: enter a date showing you are under 18 and we tell you how
+          long until you can play (years, months, days) with a Try Again option. That date of birth is checked on your
+          own device and is never stored — not in our database, not in your browser (see the Privacy Policy). Accounts
+          with <strong>Kids Mode</strong> turned on (games catalog or account settings) cannot see or play Adults games
+          at all, and can play Teens games only after passing a 13+ date-of-birth check. Ratings reflect intense
+          violence or horror themes only: sexual content is never allowed on the Service — it is removed, not rated
+          (see Section 2).
+        </p>
+
+        <h2 className={h2}>4B. Parent and Child accounts</h2>
+        <p>
+          Any account holder may become a <strong>Parent</strong> account (automatically, on creating their first
+          child) and create <strong>Child</strong> sub-accounts for their kids or teens — even adult children. Children
+          log in with a parent-chosen <strong>username#1234 + password</strong> and have no email, no checkout, and no
+          Supabase login of their own. You attest each child&apos;s age band (Kid 0–12, Teen 13–17, Adult 18+) when you
+          create the account; the band gates ratings with no date of birth collected from anyone. Children spend only
+          coins you grant from your own balance into their wallet (spendable on play like normal coins, no cash value,
+          never withdrawable); you set their monthly coin budget (with optional hard stop), daily play-time limit, and
+          allowed play hours in your timezone — all enforced server-side, including mid-play. Suspending a child stops
+          play immediately; closing an account refunds its remaining wallet to you. You are responsible for your
+          children&apos;s activity, for keeping their passwords safe on shared devices (resetting logs them out
+          everywhere), and for complying with parental-consent and child-privacy laws where you live (including the EU,
+          UK, and U.S. state regimes referenced in Section 18) — among others, children&apos;s data is exported and
+          erased together with your account at <a className={a} href="/my/rights">/my/rights/</a>. Full accounts may
+          separately declare their own Kid/Teen/Adult band (Account page), which applies the same Adults-gating
+          without collecting any birth date.
+        </p>
+
         <h2 className={h2}>5. Safety rules you accept</h2>
         <p>
           Money moves only through guarded server-side transactions — never award currency client-side. Never expose
@@ -181,6 +213,18 @@ export default function TermsPage() {
           counterfeiting, and unlawful fundraising.
         </p>
 
+        <h2 className={h2}>8B. AI features (Buddy, voices, generated media)</h2>
+        <p>
+          The Service includes AI features — the Gaming Buddy, AI voices and narration, game-AI directors and
+          dialogue, AI moderation assistance, and AI-generated images, audio, video, and 3D content. These features
+          are powered in part by third-party AI providers (Section 11). <strong>AI output is generated, not
+          verified:</strong> it may be wrong, incomplete, hallucinated, or inappropriate. Do not rely on it as
+          professional, medical, legal, financial, or safety advice, and do not rely on it in emergencies. We do not
+          guarantee that any AI feature is available, accurate, or fit for any purpose, to the fullest extent
+          permitted by law. Voice and camera features run only with your explicit opt-in, per message or frame — see
+          the Privacy Policy for what leaves your device and what never does.
+        </p>
+
         <h2 className={h2}>9. Agent rentals and Teams compute (25% cut on all computing)</h2>
         <p>
           The marketplace lists rentable agents (openclaw/nanoclaw/custom) on providers such as RunPod and
@@ -189,7 +233,9 @@ export default function TermsPage() {
           the app never fakes a provision. Teams/enterprise (UnitUnite) workspaces — orgs, teams, projects, rooms,
           roles, org wallets, and the cloud catalog (GPU pods, serverless, storage, databases, KV, queue) — are
           metered per workspace under the same included 25% cut, with every cent of the platform share attributed in
-          the cut ledger. Compute features depend on third-party capacity and may be unavailable, delayed, or
+          the cut ledger. Orgs may rank members as Lord (org leader), Captain (team leader), Infantry (regular
+          player), or Banker (finance controller, optionally read-only) — rank powers are enforced server-side per
+          action. Compute features depend on third-party capacity and may be unavailable, delayed, or
           re-priced; estimates are not guarantees.
         </p>
 
@@ -204,12 +250,26 @@ export default function TermsPage() {
           repeat infringers where appropriate.
         </p>
 
-        <h2 className={h2}>11. Third parties</h2>
+        <h2 className={h2}>11. Third parties — and who sees your data</h2>
         <p>
-          The Service uses third-party providers (including analytics, authentication/database hosting, checkout and
-          payment processing, compute, and AI moderation) and may include third-party links, tools, or listings. We do
-          not control, endorse, or assume responsibility for them; your dealings are solely between you and the third
-          party under their terms. See the Privacy Policy for provider categories.
+          The Service runs on third-party providers that process information on our behalf, and may include
+          third-party links, tools, or listings. Our providers are: Google Analytics (usage measurement, Google LLC);
+          Vercel (hosting, analytics, and edge routing); Cloudflare (network delivery and security); Supabase
+          (authentication and database); Shopify (checkout and order reconciliation); OpenAI (chat, moderation
+          assistance, and text-to-speech); OpenRouter (multi-model AI routing, including Meta Muse Spark, Google
+          Gemini, and Anthropic Claude models); DeepSeek (AI chat and reasoning); Google Gemini (AI chat, directly or
+          via OpenRouter); Anthropic Claude (AI chat, via OpenRouter); Meta (Muse Spark AI, directly or via
+          OpenRouter); ElevenLabs (text-to-speech, speech-to-text, sound and music generation); fal.ai (image, video,
+          audio, and 3D generation); RunPod (GPU cloud compute); and DigitalOcean (compute). We do not control,
+          endorse, or assume responsibility for third-party services; your dealings with them are solely between you
+          and the third party under their terms. See the Privacy Policy for provider categories and data flows.
+        </p>
+        <p>
+          We provide your information to private third parties as described in the Privacy Policy — including service
+          providers that operate the Service, and buyers or successors in a merger, financing, sale, or
+          reorganization under confidentiality — and to U.S. courts and authorities upon valid legal request, such as
+          a court order, subpoena, or other lawful process. Illegal content is never allowed: we remove it, terminate
+          offending accounts, preserve evidence, and refer it to the appropriate authorities.
         </p>
 
         <h2 className={h2}>12. Privacy, your rights, and account deletion</h2>
@@ -229,35 +289,40 @@ export default function TermsPage() {
 
         <h2 className={h2}>13. Service changes, suspension, and termination</h2>
         <p>
-          We may modify, suspend, discontinue, restrict, or remove any part of the Service, content, game, feature,
-          account, clan, listing, booking, workspace, or virtual item at any time, without liability or obligation to
-          provide a refund, replacement, or continued access, except where the law requires otherwise. You may stop
-          using the Service at any time; account deletion is available via Section 12. We may preserve records and
-          safety evidence as described in the Privacy Policy.
+          We reserve all rights to modify, suspend, discontinue, restrict, cancel, or remove any part of the Service,
+          content, game, feature, account, clan, listing, booking, workspace, subscription, or virtual item at any
+          time, for any reason or no reason, without liability and without any obligation to provide a refund,
+          replacement, proration, or continued access — including when we cancel services or terminate accounts —
+          except where the law requires otherwise. Unused coins, items, progress, and credits are forfeited on
+          termination or cancellation except where the law requires otherwise. You may stop using the Service at any
+          time; account deletion is available via Section 12. We may preserve records and safety evidence as
+          described in the Privacy Policy.
         </p>
 
-        <h2 className={h2}>14. Disclaimers</h2>
+        <h2 className={h2}>14. Disclaimers — we guarantee nothing</h2>
         <p>
-          TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SERVICE IS PROVIDED “AS IS,” “AS AVAILABLE,” AND WITH ALL
-          FAULTS. MATTYJACKS AND ITS OWNERS, OFFICERS, EMPLOYEES, CONTRACTORS, LICENSORS, AND SUPPLIERS DISCLAIM ALL
-          WARRANTIES, WHETHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, INCLUDING MERCHANTABILITY, FITNESS FOR A
-          PARTICULAR PURPOSE, TITLE, NON-INFRINGEMENT, ACCURACY, AVAILABILITY, SECURITY, AND FREEDOM FROM ERRORS,
-          VIRUSES, OR INTERRUPTIONS. WE DO NOT WARRANT THAT THE SERVICE WILL BE SAFE, UNINTERRUPTED, OR ERROR-FREE, OR
-          THAT DATA, PROGRESS, OR VIRTUAL ITEMS WILL BE PRESERVED.
+          TO THE FULLEST EXTENT PERMITTED BY LAW, THE SERVICE IS PROVIDED “AS IS,” “AS AVAILABLE,” AND WITH ALL
+          FAULTS, AND WE GUARANTEE NOTHING ABOUT IT — NOT UPTIME, NOT ACCURACY, NOT SECURITY, NOT FITNESS FOR ANY
+          PURPOSE, AND NOT THAT IT WILL WORK AT ALL. MATTYJACKS AND ITS OWNERS, OFFICERS, EMPLOYEES, CONTRACTORS,
+          LICENSORS, AND SUPPLIERS DISCLAIM ALL WARRANTIES, WHETHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE,
+          INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, NON-INFRINGEMENT, ACCURACY,
+          AVAILABILITY, SECURITY, AND FREEDOM FROM ERRORS, VIRUSES, OR INTERRUPTIONS. WE DO NOT WARRANT THAT THE
+          SERVICE WILL BE SAFE, UNINTERRUPTED, OR ERROR-FREE, OR THAT DATA, PROGRESS, OR VIRTUAL ITEMS WILL BE
+          PRESERVED. AI FEATURES IN PARTICULAR MAY BE UNAVAILABLE OR WRONG AT ANY TIME.
         </p>
 
-        <h2 className={h2}>15. Limitation of liability</h2>
+        <h2 className={h2}>15. Limitation of liability — $0</h2>
         <p>
-          TO THE MAXIMUM EXTENT PERMITTED BY LAW, MATTYJACKS AND ITS OWNERS, OFFICERS, EMPLOYEES, CONTRACTORS,
-          LICENSORS, AND SUPPLIERS WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, PUNITIVE, OR
-          CONSEQUENTIAL DAMAGES; LOST PROFITS, REVENUE, DATA, GOODWILL, OR BUSINESS; COST OF SUBSTITUTE SERVICES; OR
-          DAMAGES ARISING FROM OR RELATED TO YOUR USE OF, INABILITY TO USE, OR RELIANCE ON THE SERVICE, EVEN IF
-          ADVISED OF THE POSSIBILITY. TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE TOTAL AGGREGATE LIABILITY OF THOSE
-          PARTIES FOR ALL CLAIMS ARISING OUT OF OR RELATED TO THE SERVICE OR THESE TERMS WILL NOT EXCEED THE GREATER
-          OF $100 USD OR THE AMOUNT YOU PAID DIRECTLY TO MATTYJACKS FOR THE SERVICE IN THE 12 MONTHS BEFORE THE EVENT
-          GIVING RISE TO THE CLAIM. YOUR SOLE AND EXCLUSIVE REMEDY FOR DISSATISFACTION IS TO STOP USING THE SERVICE.
-          Some jurisdictions do not allow certain exclusions or limitations, so they apply only to the extent permitted
-          by applicable law.
+          TO THE FULLEST EXTENT PERMITTED BY LAW, MATTYJACKS AND ITS OWNERS, OFFICERS, EMPLOYEES, CONTRACTORS,
+          LICENSORS, AND SUPPLIERS HAVE ZERO LIABILITY TO YOU, EVER — NOT FOR INDIRECT, INCIDENTAL, SPECIAL,
+          EXEMPLARY, PUNITIVE, OR CONSEQUENTIAL DAMAGES; NOT FOR LOST PROFITS, REVENUE, DATA, GOODWILL, OR BUSINESS;
+          NOT FOR THE COST OF SUBSTITUTE SERVICES; AND NOT FOR DAMAGES ARISING FROM OR RELATED TO YOUR USE OF,
+          INABILITY TO USE, OR RELIANCE ON THE SERVICE, EVEN IF ADVISED OF THE POSSIBILITY. TO THE FULLEST EXTENT
+          PERMITTED BY LAW, THE TOTAL AGGREGATE LIABILITY OF THOSE PARTIES FOR ALL CLAIMS ARISING OUT OF OR RELATED
+          TO THE SERVICE OR THESE TERMS IS $0. YOUR SOLE AND EXCLUSIVE REMEDY FOR DISSATISFACTION IS TO STOP USING
+          THE SERVICE. Some jurisdictions do not allow certain exclusions or limitations — including limits that
+          would erase liability entirely — so this section applies only to the extent permitted by applicable law,
+          and nothing here limits rights that cannot lawfully be waived in your jurisdiction (see Section 18).
         </p>
 
         <h2 className={h2}>16. Indemnification</h2>

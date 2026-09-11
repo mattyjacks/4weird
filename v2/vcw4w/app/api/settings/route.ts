@@ -6,7 +6,7 @@ import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
-const fields = ["allow_friend_requests", "show_playtime", "marketing_email"] as const;
+const fields = ["allow_friend_requests", "show_playtime", "marketing_email", "kids_mode"] as const;
 
 export async function GET() {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
@@ -16,12 +16,12 @@ export async function GET() {
   if (!u) return fail("Login required.", 401);
   const { data: row, error } = await supabase
     .from("account_settings")
-    .select("allow_friend_requests,show_playtime,marketing_email,updated_at")
+    .select("allow_friend_requests,show_playtime,marketing_email,kids_mode,updated_at")
     .eq("user_id", u.id)
     .maybeSingle();
   if (error) return dbFail("api/settings", error);
   return ok({
-    settings: row ?? { allow_friend_requests: true, show_playtime: true, marketing_email: false },
+    settings: row ?? { allow_friend_requests: true, show_playtime: true, marketing_email: false, kids_mode: false },
   });
 }
 

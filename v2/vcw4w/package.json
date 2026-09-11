@@ -14,6 +14,7 @@
     "verify:legacy-parity": "node scripts/verify-legacy-parity.mjs",
     "verify:service-worker": "node scripts/verify-service-worker.mjs",
     "verify:robots": "node scripts/verify-robots-policy.mjs",
+    "verify:sitemap": "node scripts/verify-sitemap.mjs",
     "verify:spaceships": "node scripts/verify-spaceships-metadata.mjs",
     "verify:auth": "node scripts/verify-auth-routes.mjs",
     "verify:bot": "node scripts/verify-bot-routes.mjs",
@@ -31,7 +32,8 @@
     "verify:perf": "node scripts/verify-perf.mjs",
     "verify:a11y": "node scripts/verify-a11y.mjs",
     "verify:support": "node scripts/verify-support.mjs",
-    "test": "npm run sync:games && npm run verify:games && npm run verify:catalog && npm run verify:legacy && npm run verify:legacy-parity && npm run verify:service-worker && npm run verify:robots && npm run verify:spaceships && npm run verify:auth && npm run verify:bot && npm run verify:economy && npm run verify:game-ai && npm run verify:game-rentals && npm run verify:clan-economy && npm run verify:agent-rentals && npm run verify:vcw-autoplay && npm run verify:desktop && npm run verify:vcw-runs && npm run verify:fal && npm run verify:blender-render && npm run verify:pwa && npm run verify:rights && npm run verify:perf && npm run verify:a11y && npm run verify:support && npm run lint && tsc --noEmit",
+    "verify:age-gate": "node scripts/verify-age-gate.mjs",
+    "test": "npm run sync:games && npm run verify:games && npm run verify:catalog && npm run verify:legacy && npm run verify:legacy-parity && npm run verify:service-worker && npm run verify:robots && npm run verify:sitemap && npm run verify:spaceships && npm run verify:auth && npm run verify:bot && npm run verify:economy && npm run verify:game-ai && npm run verify:game-rentals && npm run verify:clan-economy && npm run verify:agent-rentals && npm run verify:vcw-autoplay && npm run verify:desktop && npm run verify:vcw-runs && npm run verify:fal && npm run verify:blender-render && npm run verify:pwa && npm run verify:rights && npm run verify:perf && npm run verify:a11y && npm run verify:support && npm run verify:age-gate && npm run lint && tsc --noEmit",
     "verify:blender-render": "node scripts/verify-blender-render.mjs"
   },
   "dependencies": {

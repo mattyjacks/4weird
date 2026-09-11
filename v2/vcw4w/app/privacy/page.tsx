@@ -12,7 +12,7 @@ const a = "text-cyan-200 underline";
 
 export default function PrivacyPage() {
   return (
-    <MarketingPage title="Privacy Policy" intro="Effective September 10, 2026 · MattyJacks LLC, New Hampshire, USA">
+      <MarketingPage title="Privacy Policy" intro="Effective September 11, 2026 · MattyJacks LLC, New Hampshire, USA">
       <section className="space-y-6">
         <p>
           This policy describes how MattyJacks LLC (“MattyJacks,” “we,” “us,” or “our”) handles information across the
@@ -33,13 +33,17 @@ export default function PrivacyPage() {
 
         <h2 className={h2}>2. Information we collect</h2>
         <p><strong className="text-white">Account and identity.</strong> Email address, password-authentication records, display name, public handle, permanent human ID (bot users), and account timestamps.</p>
-        <p><strong className="text-white">Profiles and preferences.</strong> Display name, handle, account settings (friend requests, playtime visibility, marketing email), accessibility controls, and creator submissions.</p>
+        <p><strong className="text-white">Profiles and preferences.</strong> Display name, handle, account settings (friend requests, playtime visibility, marketing email, Kids Mode flag), accessibility controls, and creator submissions.</p>
         <p><strong className="text-white">Games.</strong> Cloud-save content (game, slot 1–3, versioned data ≤1 MiB, including any permanent cheat-mode mark), gameplay telemetry (kills, actions, active seconds, deaths), matchmaking/lobby/presence records, and leaderboard aggregates (handles + totals only).</p>
         <p><strong className="text-white">Clans and user content.</strong> Clans, memberships, posts, comments, uploaded images (≤1 MB; PNG/JPEG/WebP/GIF; hash + storage path), and moderation reports (anonymous reports allowed; CSAM reports trigger immediate quarantine and evidence preservation for authority referral).</p>
         <p><strong className="text-white">Bots.</strong> Bot usernames, human-ID links, and API-key hashes (key secrets are shown once and never stored).</p>
         <p><strong className="text-white">Vibe Coins and transactions.</strong> Coin ledger and grant entries, daily-claim streaks, referral codes and referral links, signup-trial records (privacy-preserving IP hash), checkout sessions and order reconciliation by email, voluntary Support transfers (tips, subscriptions) and gift-based launch-Campaign backing. Campaign pages publicly show the campaign story, goal, raised totals, and backer counts; individual contribution amounts are visible only to you and the campaign creator. Card and payment details are processed by our checkout provider (Shopify and/or its payment processors) — we do not store full payment-card numbers.</p>
         <p><strong className="text-white">Agent rentals and Teams compute.</strong> Listings, bookings, escrow and metered-usage records, provider references, org/team/project/room memberships and roles, cloud provisions and usage, wallet ledgers, and audit entries.</p>
         <p><strong className="text-white">Communications.</strong> Support and rights-request messages you send us, including verification and authority documents for special-case requests.</p>
+        <p><strong className="text-white">AI and voice/camera features.</strong> Text you send the Gaming Buddy (messages, transcripts, screen text), one downscaled image per message when you share your screen or attach a camera frame, and voice replies we generate for you. Screen snapshots and camera frames are processed for that turn only — never stored, never logged. Microphone audio for interruption detection never leaves your device (only transcripts are sent). Avatar, voice, camera, purchase, and cookie choices tied to your account or device.</p>
+        <p><strong className="text-white">Age checks (never collected).</strong> Date of birth entered in a game age gate is checked on your own device, in memory, for that check only. It is never sent to our servers, never written to any database, and never stored in your browser — there is nothing to export or delete because we never receive it. The Kids Mode flag is an ordinary account/device preference, not age data.</p>
+        <p><strong className="text-white">Family accounts.</strong> Parent accounts hold their children&apos;s handles (username#1234), parent-attested age bands, play controls (budgets, time limits, hours), wallet ledgers, and daily play totals — never passwords (scrypt hashes only, never exported) and never session tokens. Children have no birth dates on file because none are ever asked. A parent&apos;s data export includes their children&apos;s non-secret records; deleting the parent account erases the children&apos;s accounts with it (sessions die, wallets are gone with the ledger).</p>
+        <p><strong className="text-white">Consent and purchase records.</strong> Cookie-banner choices (7-day renewal), accepted purchase quotes, charge receipts, and idempotency records that prove what you confirmed and what we charged.</p>
         <p><strong className="text-white">Automatic technical data.</strong> IP address, browser and device characteristics, request logs, pages or features used, approximate location derived from IP, security and fraud-prevention events (including rate-limit and trial-abuse signals). Games and accessibility controls may store preferences and progress in your browser (local storage).</p>
 
         <h2 className={h2}>3. How we use information (and GDPR legal bases)</h2>
@@ -48,28 +52,43 @@ export default function PrivacyPage() {
 
         <h2 className={h2}>4. Cookies and similar technologies</h2>
         <p>
-          Authentication uses strictly necessary cookies/session storage — the Service cannot sign you in without them.
-          Games and accessibility controls use browser local storage for preferences and progress. With your consent
-          where required, Google Analytics measures usage (see env-configured measurement ID); you can opt out with
-          browser controls, “Do Not Track”-respecting settings where honored, or Google’s opt-out tools. Marketing
-          email is off by default and controlled in account settings.
+          A cookie banner loads on every page until you choose, and asks again once every 7 days. You get real
+          options: <strong className="text-white">Accept all</strong> (which we strongly recommend — it funds free
+          play, keeps every feature working, and lets us improve the Service for any purpose described here),{" "}
+          <strong className="text-white">Reject non-essential</strong>, or{" "}
+          <strong className="text-white">Customize</strong> by category. Categories:
+        </p>
+        <ul className="list-disc space-y-2 pl-6">
+          <li><strong className="text-white">Essential (always on):</strong> sign-in session, security, fraud prevention, load balancing, and your cookie choice itself. The Service cannot sign you in without these.</li>
+          <li><strong className="text-white">Analytics (opt-in):</strong> Google Analytics measurement (env-configured measurement ID) and privacy-friendly Vercel Analytics telemetry. Google Analytics loads only after you accept analytics cookies.</li>
+          <li><strong className="text-white">Functional (opt-in):</strong> remembered preferences such as theme, voices, avatar shape and color, and game settings.</li>
+          <li><strong className="text-white">Marketing (opt-in):</strong> campaign and referral measurement. Marketing email is separately off by default in account settings.</li>
+        </ul>
+        <p>
+          Games and accessibility controls also use browser local storage for preferences and progress. You can change
+          your choice anytime by clearing site data (the banner returns), with browser controls,
+          “Do Not Track”-respecting settings where honored, or Google’s opt-out tools.
         </p>
 
         <h2 className={h2}>5. Disclosures and service providers</h2>
-        <p>We disclose information only as needed for the purposes above, to:</p>
+        <p>We provide your information to private third parties only as needed for the purposes above, to:</p>
         <ul className="list-disc space-y-2 pl-6">
-          <li><strong className="text-white">Infrastructure:</strong> Supabase (authentication/database), hosting/CDN providers, and error/security tooling;</li>
+          <li><strong className="text-white">Hosting and delivery:</strong> Vercel (hosting, analytics, edge routing) and Cloudflare (network delivery and security);</li>
+          <li><strong className="text-white">Accounts and data:</strong> Supabase (authentication/database);</li>
           <li><strong className="text-white">Payments:</strong> Shopify (checkout, order reconciliation) and its payment processors, under their terms;</li>
-          <li><strong className="text-white">Measurement:</strong> Google Analytics, under Google’s terms;</li>
+          <li><strong className="text-white">Measurement:</strong> Google Analytics (only with your analytics consent) and Vercel Analytics, under their terms;</li>
+          <li><strong className="text-white">AI chat and reasoning:</strong> OpenAI; OpenRouter (routing to Meta Muse Spark, Google Gemini, and Anthropic Claude models); DeepSeek; Google Gemini; Anthropic Claude; Meta — your prompts, transcripts, and attached images are processed to produce replies under their terms, and we do not authorize them to use your inputs to train their models;</li>
+          <li><strong className="text-white">AI voice and media:</strong> ElevenLabs (text-to-speech, speech-to-text, sound and music) and fal.ai (image, video, audio, 3D generation), under their terms;</li>
           <li><strong className="text-white">Compute:</strong> RunPod / DigitalOcean or your custom endpoint when you book agent or cloud compute;</li>
           <li><strong className="text-white">Moderation:</strong> OpenAI-based screening that assists human review of reported content;</li>
-          <li><strong className="text-white">Safety and legal:</strong> NCMEC CyberTipline for suspected child exploitation (filed by a human), law enforcement or courts on valid legal process, and parties necessary to protect rights, safety, and the Service or enforce our Terms;</li>
+          <li><strong className="text-white">Safety and legal:</strong> NCMEC CyberTipline for suspected child exploitation (filed by a human); U.S. courts and authorities upon valid legal request such as a court order, subpoena, or other lawful process; and parties necessary to protect rights, safety, and the Service or enforce our Terms — including against illegal content, which is never allowed;</li>
           <li><strong className="text-white">Corporate:</strong> a buyer or successor in a merger, financing, sale, or reorganization, under confidentiality.</li>
         </ul>
         <p>
           We <strong className="text-white">do not sell personal information for money</strong> and do not share it
           for cross-context behavioral advertising. Providers process information under their own terms and may process
-          it outside your state or country (see Section 6).
+          it outside your state or country (see Section 6). Receipts and ledgers carry no personal details beyond
+          your account reference.
         </p>
 
         <h2 className={h2}>6. International transfers</h2>

@@ -2,10 +2,19 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FundraiserDetail } from "@/components/fundraisers/fundraiser-detail";
 
-export const metadata: Metadata = {
-  title: "Launch campaign | 4weird Games",
-  description: "Back a game launch or tech startup with Vibe Coins. Gifts, not charity, not investment.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return {
+    title: "Launch campaign | 4weird Games",
+    description: "Back a game launch or tech startup with Vibe Coins. Gifts, not charity, not investment.",
+    // Per-campaign canonical so every public campaign page is indexed under its own URL.
+    alternates: { canonical: `/fundraisers/${id}` },
+  };
+}
 
 export const dynamic = "force-dynamic";
 
