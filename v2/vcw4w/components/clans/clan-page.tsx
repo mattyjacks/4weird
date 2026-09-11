@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ReportButton } from "@/components/clans/report-button";
+import { MarkdownEditor } from "@/components/clans/markdown-editor";
+import { MarkdownView } from "@/components/clans/markdown-view";
+import { CLAN_TYPE_META, type ClanType } from "@/lib/clan-types";
+import { clanLevelForXp } from "@/lib/clan-xp";
 
 type Post = {
   id: string;
@@ -10,6 +14,28 @@ type Post = {
   body: string;
   image_url: string | null;
   created_at: string;
+};
+
+type ClanInfo = {
+  id?: string;
+  slug?: string;
+  name?: string;
+  description?: string;
+  owner_id?: string;
+  clan_type?: string;
+  upkeep_status?: string;
+  upkeep_grace_until?: string;
+};
+
+type Bot = { id: string; name: string; created_at: string };
+type Channel = { id: string; kind: string; label: string; target_url: string; active: boolean };
+type LedgerRow = { kind: string; qty: number; gross: number; cut: number; provider: number; note: string; created_at: string };
+type Leader = { user_id: string; xp: number; events: number };
+
+const TYPE_BADGE: Record<string, string> = {
+  hclan: "🧍 hclan · humans only",
+  sclan: "🤝 sclan · humans + bots",
+  bclan: "🤖 bclan · bot-native",
 };
 
 async function convertPngOver1MB(file: File): Promise<{ file: File; note: string }> {
@@ -42,6 +68,7 @@ async function convertPngOver1MB(file: File): Promise<{ file: File; note: string
 
 export function ClanPage({ slug }: { slug: string }) {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [clan, setClan] = useState<ClanInfo>({});
   const [clanName, setClanName] = useState(slug);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -55,6 +82,19 @@ export function ClanPage({ slug }: { slug: string }) {
   const [notice, setNotice] = useState("");
   const [commentFor, setCommentFor] = useState<string | null>(null);
   const [commentText, setCommentText] = useState("");
+  const [wallet, setWallet] = useState<{ balance: number }>({ balance: 0 });
+  const [bots, setBots] = useState<Bot[]>([]);
+  const [channels, setChannels] = useState<Channel[]>([]);
+  const [ledger, setLedger] = useState<LedgerRow[]>([]);
+  const [leaders, setLeaders] = useState<Leader[]>([]);
+  const [myXp, setMyXp] = useState(0);
+  const [botName, setBotName] = useState("");
+  const [botHook, setBotHook] = useState("");
+  const [econNote, setEconNote] = useState("");
+  const [fundCoins, setFundCoins] = useState("");
+  const [chanKind, setChanKind] = useState("house-ad");
+  const [chanLabel, setChanLabel] = useState("");
+  const [chanUrl, setChanUrl] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
@@ -64,13 +104,37 @@ export function ClanPage({ slug }: { slug: string }) {
       const res = await fetch(`/api/clans/${slug}`);
       const data = (await res.json()) as {
         success?: boolean;
-        clan?: { name?: string };
+        clan?: ClanInfo;
         posts?: Post[];
+        wallet?: { balance: number };
+        bots?: Bot[];
+        channels?: Channel[];
+        ledger?: LedgerRow[];
+        leaders?: Leader[];
+        myXp?: number;
         error?: string;
       };
       if (!data.success) throw new Error(data.error ?? "Load failed.");
       setPosts(data.posts ?? []);
+      setClan(data.clan ?? {});
       if (data.clan?.name) setClanName(data.clan.name);
+      setWallet(data.wallet ?? { balance: 0 });
+      setBots(data.bots ?? []);
+      setChannels(data.channels ?? []);
+      setLedger(data.ledger ?? []);
+      setLeaders(data.leaders ?? []);
+      setMyXp(Number(data.myXp) || 0);
+      // House-ad revenue: one credited view per active house-ad channel per
+      // page load (server IP-throttles to 10/hr; revenue offsets upkeep).
+      for (const c of data.channels ?? []) {
+        if (c.kind === "house-ad" && c.active) {
+          void fetch(`/api/clans/${slug}/economy`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "ad-view", channel_id: c.id }),
+          });
+        }
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Load failed.");
     } finally {
@@ -147,7 +211,7 @@ export function ClanPage({ slug }: { slug: string }) {
       setImageUrl("");
       setFileNote("");
       if (fileRef.current) fileRef.current.value = "";
-      setNotice(data.status === "pending" ? "Posted — held for review (pending)." : "Posted!");
+      setNotice(data.status === "pending" ? "Posted — held for review (pending)." : "Posted! Server-cost fee charged (min 0.01 coins, 25% cut included).");
       await load();
     } catch (err) {
       setNotice(err instanceof Error ? err.message : "Post failed.");
@@ -179,20 +243,102 @@ export function ClanPage({ slug }: { slug: string }) {
     }
   }
 
+  async function econ(path: string, payload: Record<string, unknown>, okMsg: string) {
+    setEconNote("");
+    try {
+      const res = await fetch(`/api/clans/${slug}/economy`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = (await res.json()) as { success?: boolean; error?: string };
+      if (!data.success) throw new Error(data.error ?? "Failed.");
+      setEconNote(okMsg);
+      await load();
+    } catch (err) {
+      setEconNote(err instanceof Error ? err.message : "Failed.");
+    }
+  }
+
+  async function deployBot(e: React.FormEvent) {
+    e.preventDefault();
+    setEconNote("");
+    try {
+      const res = await fetch(`/api/clans/${slug}/bots`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "deploy", bot_username: botName, webhook_url: botHook || undefined }),
+      });
+      const data = (await res.json()) as { success?: boolean; error?: string };
+      if (!data.success) throw new Error(data.error ?? "Deploy failed.");
+      setBotName("");
+      setBotHook("");
+      setEconNote("Bot deployed on this clan.");
+      await load();
+    } catch (err) {
+      setEconNote(err instanceof Error ? err.message : "Deploy failed.");
+    }
+  }
+
+  async function removeBot(id: string) {
+    setEconNote("");
+    try {
+      const res = await fetch(`/api/clans/${slug}/bots`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "remove", id }),
+      });
+      const data = (await res.json()) as { success?: boolean; error?: string };
+      if (!data.success) throw new Error(data.error ?? "Remove failed.");
+      setEconNote("Bot removed.");
+      await load();
+    } catch (err) {
+      setEconNote(err instanceof Error ? err.message : "Remove failed.");
+    }
+  }
+
+  async function affiliateClick(c: Channel) {
+    try {
+      const res = await fetch(`/api/clans/${slug}/economy`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "affiliate-click", channel_id: c.id }),
+      });
+      if (res.ok && c.target_url) window.open(c.target_url, "_blank", "noopener");
+    } catch {
+      if (c.target_url) window.open(c.target_url, "_blank", "noopener");
+    }
+  }
+
+  const clanType = (clan.clan_type ?? "sclan") as ClanType;
+  const typeMeta = CLAN_TYPE_META[clanType] ?? CLAN_TYPE_META.sclan;
+  const level = clanLevelForXp(myXp);
+  const upkeep = clan.upkeep_status ?? "healthy";
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-3xl font-black text-white">{clanName}</h1>
+        <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-bold text-cyan-200">
+          {TYPE_BADGE[clanType] ?? clanType}
+        </span>
+        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
+          🛡️ Protected by Valley Net
+        </span>
         {!joined && (
           <button onClick={join} className="rounded-lg bg-cyan-400 px-4 py-2 text-sm font-bold text-slate-950">
             Join clan
           </button>
         )}
       </div>
+      <p className="text-sm text-slate-400">{typeMeta.blurb} {typeMeta.bots}</p>
 
       <form onSubmit={submitPost} className="rounded-xl border border-cyan-400/20 bg-slate-900 p-5">
         <h2 className="font-bold text-cyan-300">New post</h2>
-        <p className="mt-1 text-xs text-slate-400">Login + membership required. Images: 1MB max after conversion.</p>
+        <p className="mt-1 text-xs text-slate-400">
+          Login + membership required. Markdown supported. Images: 1MB max after conversion.
+          Every post pays a linear server-cost fee (min 0.01 coins, 25% cut included).
+        </p>
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -201,15 +347,9 @@ export function ClanPage({ slug }: { slug: string }) {
           required
           className="mt-3 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-white placeholder:text-slate-500"
         />
-        <textarea
-          value={bodyText}
-          onChange={(e) => setBodyText(e.target.value)}
-          placeholder="Body (max 8000)"
-          maxLength={8000}
-          required
-          rows={4}
-          className="mt-3 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-white placeholder:text-slate-500"
-        />
+        <div className="mt-3">
+          <MarkdownEditor value={bodyText} onChange={setBodyText} placeholder="Body markdown (max 8000)" maxLength={8000} rows={4} />
+        </div>
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={pickAndUpload} className="text-sm text-slate-300" />
           {uploading && <span className="text-sm text-slate-400">Uploading…</span>}
@@ -234,7 +374,7 @@ export function ClanPage({ slug }: { slug: string }) {
         {posts.map((p) => (
           <li key={p.id} className="rounded-xl border border-white/10 bg-slate-900 p-5">
             <h3 className="text-lg font-bold text-white">{p.title}</h3>
-            <p className="mt-2 whitespace-pre-wrap text-sm text-slate-300">{p.body}</p>
+            <MarkdownView text={p.body} />
             {p.image_url && (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={p.image_url} alt="" loading="lazy" className="mt-3 max-h-80 rounded-lg border border-white/10" />
@@ -253,7 +393,7 @@ export function ClanPage({ slug }: { slug: string }) {
                 <input
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="Write a comment (max 2000)"
+                  placeholder="Write a comment, markdown OK (max 2000)"
                   maxLength={2000}
                   className="flex-1 rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500"
                 />
@@ -271,6 +411,135 @@ export function ClanPage({ slug }: { slug: string }) {
       {!loading && !error && posts.length === 0 && (
         <p className="text-slate-400">No posts yet — be the first.</p>
       )}
+
+      <section className="rounded-xl border border-white/10 bg-slate-900 p-5">
+        <h2 className="font-bold text-cyan-300">🪙 Clan upkeep + wallet</h2>
+        <p className="mt-1 text-xs text-slate-400">
+          Server costs are linear in usage; the wallet pays daily upkeep. Delinquent clans pause posting until funded.
+          Ad views + affiliate clicks earn revenue that offsets upkeep. New clans get 14 days grace.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-3 text-sm">
+          <span className="rounded-lg bg-black/40 px-3 py-2 text-white">Wallet: <b>{wallet.balance}</b> coins</span>
+          <span className="rounded-lg bg-black/40 px-3 py-2 text-white">
+            Upkeep: <b className={upkeep === "healthy" ? "text-emerald-300" : upkeep === "low" ? "text-amber-300" : "text-red-300"}>{upkeep}</b>
+          </span>
+          <span className="rounded-lg bg-black/40 px-3 py-2 text-white">Your XP: <b>{myXp}</b> ({level.title})</span>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <div>
+            <h3 className="text-sm font-bold text-slate-200">Fund wallet (owner)</h3>
+            <div className="mt-2 flex gap-2">
+              <input value={fundCoins} onChange={(e) => setFundCoins(e.target.value)} placeholder="coins" inputMode="decimal" className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white" />
+              <button onClick={() => void econ("", { action: "fund", coins: Number(fundCoins) }, "Wallet funded.")} className="rounded-lg bg-cyan-400 px-3 py-2 text-sm font-bold text-slate-950">Fund</button>
+            </div>
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-200">Add revenue channel (owner)</h3>
+            <div className="mt-2 space-y-2">
+              <select value={chanKind} onChange={(e) => setChanKind(e.target.value)} className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white">
+                <option value="house-ad">house-ad (0.01/view)</option>
+                <option value="affiliate">affiliate (0.05/click)</option>
+                <option value="sponsor">sponsor</option>
+              </select>
+              <input value={chanLabel} onChange={(e) => setChanLabel(e.target.value)} placeholder="Label" maxLength={120} className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white" />
+              <input value={chanUrl} onChange={(e) => setChanUrl(e.target.value)} placeholder="https://… (optional)" className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white" />
+              <button onClick={() => void econ("", { action: "channel", kind: chanKind, label: chanLabel, target_url: chanUrl }, "Channel added.")} className="rounded-lg bg-cyan-400 px-3 py-2 text-sm font-bold text-slate-950">Add channel</button>
+            </div>
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-200">Clan type (owner)</h3>
+            <div className="mt-2 flex gap-2">
+              <select id="clan-type-pick" defaultValue={clanType} className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white">
+                <option value="hclan">hclan — humans only</option>
+                <option value="sclan">sclan — shared</option>
+                <option value="bclan">bclan — bot-native</option>
+              </select>
+              <button
+                onClick={() => {
+                  const el = document.getElementById("clan-type-pick") as HTMLSelectElement | null;
+                  void econ("", { action: "type", clan_type: el?.value ?? "sclan" }, "Clan type changed.");
+                }}
+                className="rounded-lg bg-cyan-400 px-3 py-2 text-sm font-bold text-slate-950"
+              >
+                Set
+              </button>
+            </div>
+          </div>
+        </div>
+        {econNote && <p className="mt-2 text-sm text-slate-300">{econNote}</p>}
+        {channels.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-sm font-bold text-slate-200">Revenue channels</h3>
+            <ul className="mt-2 space-y-1 text-sm text-slate-300">
+              {channels.map((c) => (
+                <li key={c.id} className="flex flex-wrap items-center gap-2">
+                  <span className="rounded bg-black/40 px-2 py-1">{c.kind}</span>
+                  <span>{c.label}</span>
+                  {c.kind === "affiliate" && c.target_url && (
+                    <button onClick={() => void affiliateClick(c)} className="text-cyan-300 hover:underline">visit ↗</button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {ledger.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-sm font-bold text-slate-200">Recent ledger</h3>
+            <ul className="mt-2 space-y-1 text-xs text-slate-400">
+              {ledger.slice(0, 10).map((r, i) => (
+                <li key={i} className="flex flex-wrap justify-between gap-2 border-t border-white/5 pt-1">
+                  <span>{r.kind} · {r.note}</span>
+                  <span>+{r.provider} wallet · {r.cut} cut · gross {r.gross}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </section>
+
+      <section className="rounded-xl border border-white/10 bg-slate-900 p-5">
+        <h2 className="font-bold text-cyan-300">🤖 Deployed bots {clanType === "hclan" ? "(disabled — hclan)" : `(${bots.length})`}</h2>
+        <p className="mt-1 text-xs text-slate-400">
+          {clanType === "hclan"
+            ? "hclans are hardened against bots: no bot reads, joins, posts, or deploys."
+            : "Owners/mods can deploy their own bots here by bot username (+ optional https webhook)."}
+        </p>
+        {bots.length > 0 && (
+          <ul className="mt-3 space-y-1 text-sm text-slate-300">
+            {bots.map((b) => (
+              <li key={b.id} className="flex flex-wrap items-center gap-2">
+                <span className="font-bold text-white">🤖 {b.name}</span>
+                <button onClick={() => void removeBot(b.id)} className="text-xs text-red-300 hover:underline">remove</button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {clanType !== "hclan" && (
+          <form onSubmit={deployBot} className="mt-3 flex flex-wrap gap-2">
+            <input value={botName} onChange={(e) => setBotName(e.target.value.toLowerCase())} placeholder="bot username" pattern="[a-z0-9_]{3,24}" required className="rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white" />
+            <input value={botHook} onChange={(e) => setBotHook(e.target.value)} placeholder="https webhook (optional)" className="rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white" />
+            <button type="submit" className="rounded-lg bg-cyan-400 px-3 py-2 text-sm font-bold text-slate-950">Deploy bot</button>
+          </form>
+        )}
+      </section>
+
+      <section className="rounded-xl border border-white/10 bg-slate-900 p-5">
+        <h2 className="font-bold text-cyan-300">🏆 Clan leaderboard (XP)</h2>
+        <p className="mt-1 text-xs text-slate-400">Posts +10 · comments +3 · bot deploys +15 · funding upkeep +20. Daily cap 100 XP.</p>
+        {leaders.length > 0 ? (
+          <ol className="mt-3 space-y-1 text-sm text-slate-300">
+            {leaders.map((l, i) => (
+              <li key={l.user_id} className="flex flex-wrap justify-between gap-2 border-t border-white/5 pt-1">
+                <span>#{i + 1} <span className="font-mono text-xs">{l.user_id.slice(0, 8)}…</span></span>
+                <span><b className="text-white">{l.xp}</b> XP · {l.events} events</span>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p className="mt-2 text-sm text-slate-500">No XP yet — post something.</p>
+        )}
+      </section>
     </div>
   );
 }

@@ -57,6 +57,15 @@ Packs for sale: 500 ($5), 1500 ($15), 5000 ($50), 25000 ($250), custom
 17. `20260910150000_privacy_rights.sql` — `privacy_requests` audit log for
     `/my/rights/` self-service export/delete (service_role only, no client
     policies; user_id has no FK so the audit survives account deletion).
+18. `20260910180000_fractional_centicentcoins.sql` — coin_ledger delta +
+    game-AI tables to numeric(12, 2); centicentcoin (0.01 coin) minimum
+    spend; numeric 25/75 split helper.
+19. `20260913000000_game_rentals_per_second.sql` — game rentals billed PER
+    SECOND but quoted per hour: proportional first-load fee (load rate for
+    1 MiB of fresh bytes, exact to the centicentcoin, min 1 centicentcoin;
+    same version free 24h) + running play per second from the first second
+    (1 coin/hr = 100 centicentcoins / 3600 s). game_sessions + game_play_usage
+    coin columns to numeric(12, 2); 25% cut kept via the numeric split.
 
 Verify after step 17 (SQL Editor):
 `select tablename from pg_tables where schemaname='public' order by 1;`
@@ -109,7 +118,7 @@ Root Directory stays `v2/vcw4w`. Redeploy after setting vars.
 - `GET /api/health` → `{"success":true,...}`
 - Sign up → profiles row auto-created by trigger; with service key + salt set,
   100-coin ($1.00) trial credit appears in the ledger (once per IP).
-- Authenticated `GET /api/coins/balance` returns integer balance; anonymous
+- Authenticated `GET /api/coins/balance` returns coin balance + centicentcoins (100 per coin); anonymous
   returns 503 "Supabase is not configured" only if env vars are missing.
 - Save a game slot → row in game_saves; enabling Cheat Mode then writing
   keeps `cheat_mode:true` (trigger); delete from client is denied.

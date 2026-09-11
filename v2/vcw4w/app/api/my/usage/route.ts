@@ -36,8 +36,8 @@ function toSpend(value: unknown): Spend {
  *     serverless-worker / serverless-cron / inference-api provisions — they
  *     appear under workspace rows with service_key + unit so functions spend
  *     is never hidden inside a generic "compute" bucket.
- *   - game_play_usage (game rentals: per-load incl. first hour + hourly
- *     heartbeats) via my_game_play_usage(): total + last hour + last 24h +
+ *   - game_play_usage (game rentals: proportional load fee + per-second
+ *     playtime heartbeats) via my_game_play_usage(): total + last hour + last 24h +
  *     by-game + recent, each split 25% cut / 75% provider.
  *   - runpod_usage (REAL RunPod spend mirrored via POST /api/agents/runpod-sync
  *     with RUNPOD_API_KEY: pods + serverless + volumes in USD with a Vibe Coin
@@ -192,7 +192,7 @@ export async function GET(req: Request) {
     // No teams tables / no membership: zeros.
   }
 
-  // 6. Game rentals (per-load incl. first hour + hourly heartbeats).
+  // 6. Game rentals (proportional load + per-second playtime heartbeats).
   let gameRent: {
     total: Spend;
     lastHour: Spend;

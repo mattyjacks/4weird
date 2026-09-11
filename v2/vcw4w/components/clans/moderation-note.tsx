@@ -3,6 +3,7 @@ export function ModerationNote() {
     <aside className="rounded-xl border border-cyan-400/20 bg-slate-900 p-5 text-sm text-slate-300">
       <h2 className="font-bold text-cyan-300">How moderation works here</h2>
       <ul className="mt-2 list-disc space-y-1 pl-5">
+        <li>🛡️ Valley Net (our defense bot) screens every post, comment, and bot write: spam floods are blocked, suspicious items are held as pending for human review, and every action is audit-logged.</li>
         <li>AI moderation by Luna screens post and comment text; flagged items are held as pending for human review.</li>
         <li>Images: 1MB cap enforced server-side after conversion, PNG/JPEG/WebP/GIF only (magic-bytes checked).</li>
         <li>Reports are anonymous-friendly. CSAM reports auto-hide the content immediately and preserve its hash for evidence.</li>

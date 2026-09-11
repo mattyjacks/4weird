@@ -39,6 +39,14 @@ type UsageResponse = {
     functions: { gross: number; cut: number; charges: number };
     byService: { service: string; unit: string; qty: number; gross: number; cut: number; provider: number }[];
   };
+  runpod: {
+    totalUsd: number;
+    coinsEquivalent: number;
+    buckets: number;
+    byKind: { kind: string; usd: number }[];
+    recent: { kind: string; remote_id: string; time_bucket: string; amount_usd: number; time_billed_ms: number }[];
+    lastSync: string | null;
+  };
   combined: { gross: number; cut: number; provider: number };
 };
 
@@ -79,6 +87,8 @@ export function UsageClient() {
   const [sessionFilter, setSessionFilter] = useState("");
   const [data, setData] = useState<UsageResponse | null>(null);
   const [message, setMessage] = useState("Loading your compute ledger…");
+  const [runpodMsg, setRunpodMsg] = useState("");
+  const [syncing, setSyncing] = useState(false);
 
   const usd = useCallback((coins: number) => `$${(coins / 100).toFixed(2)}`, []);
 
@@ -104,6 +114,26 @@ export function UsageClient() {
     setSessionFilter(/^[0-9a-f-]{36}$/i.test(sid) ? sid : "");
     void load(sid);
   }, [load]);
+
+  async function syncRunpod() {
+    setSyncing(true);
+    setRunpodMsg("Pulling real RunPod billing…");
+    try {
+      const res = await fetch("/api/agents/runpod-sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ days: 7 }),
+      });
+      const body = (await res.json()) as { success?: boolean; synced?: number; totalUsd?: number; error?: string };
+      if (!body.success) throw new Error(body.error ?? "Sync failed.");
+      setRunpodMsg(`Synced ${body.synced ?? 0} buckets ($${body.totalUsd ?? 0}).`);
+      await load(sessionFilter);
+    } catch (error) {
+      setRunpodMsg(error instanceof Error ? error.message : "Sync failed.");
+    } finally {
+      setSyncing(false);
+    }
+  }
 
   return (
     <div className="mt-8 space-y-6">
@@ -146,15 +176,17 @@ export function UsageClient() {
             </p>
           </Card>
 
-          <Card title="Game rentals — loads + hourly play">
+          <Card title="Game rentals — loads + per-second play">
             <div className="grid gap-3 sm:grid-cols-3">
               <SpendGrid label="Total (all time)" spend={data.gameRent?.total ?? { gross: 0, cut: 0, provider: 0, turns: 0 }} usd={usd} />
               <SpendGrid label="Last 24 hours" spend={data.gameRent?.last24h ?? { gross: 0, cut: 0, provider: 0, turns: 0 }} usd={usd} />
               <SpendGrid label="Last hour" spend={data.gameRent?.lastHour ?? { gross: 0, cut: 0, provider: 0, turns: 0 }} usd={usd} />
             </div>
             <p className="text-xs text-slate-500">
-              Each load costs the game&apos;s rate (default 1 coin, first hour included); extra hours bill the hourly
-              rate (default 1 coin/hr). Cached loads (&lt;1&nbsp;MB new data) are free. “Turns” above counts play sessions.
+              Each first load costs the game&apos;s load rate for 1 MiB of fresh bytes, proportional to the exact
+              bytes (default 1 coin, min 1 centicentcoin); running play bills the hourly
+              rate (default 1 coin/hr) per second from the first second. Same-version replays within 24h are free.
+              “Turns” above counts play sessions.
             </p>
             {(data.gameRent?.byGame ?? []).length ? (
               <div className="space-y-2">
@@ -181,9 +213,73 @@ export function UsageClient() {
                       <tr key={i} className="border-b border-white/5">
                         <td className="px-3 py-2">{new Date(r.created_at).toLocaleString()}</td>
                         <td className="px-3 py-2">{r.game_slug}</td>
-                        <td className="px-3 py-2">{r.source === "load" ? "load (first hour incl.)" : "hourly"}</td>
+                        <td className="px-3 py-2">{r.source === "load" ? "load (exact bytes)" : "per-second play"}</td>
                         <td className="px-3 py-2">{r.gross_coins}</td>
                         <td className="px-3 py-2">{r.cut_coins}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Card>
+
+          <Card title="RunPod — real spend, mirrored">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-cyan-300/30 bg-cyan-300/[.06] p-4">
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-400">RunPod total (USD)</p>
+                <p className="mt-1 text-3xl font-black">${data.runpod.totalUsd.toFixed(4)}</p>
+                <p className="mt-1 text-xs text-slate-400">≈ {data.runpod.coinsEquivalent} coins display-equiv (100 coins = $1.00)</p>
+              </div>
+              <div className="rounded-xl border border-white/10 p-4">
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Buckets</p>
+                <p className="mt-1 text-3xl font-black">{data.runpod.buckets}</p>
+              </div>
+              <div className="rounded-xl border border-white/10 p-4">
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Last sync</p>
+                <p className="mt-1 text-sm font-bold">{data.runpod.lastSync ? new Date(data.runpod.lastSync).toLocaleString() : "never"}</p>
+                <button
+                  onClick={() => void syncRunpod()}
+                  disabled={syncing}
+                  className="mt-2 rounded-lg bg-cyan-300 px-3 py-1.5 text-xs font-bold text-slate-950 disabled:opacity-50"
+                >
+                  {syncing ? "Syncing…" : "Sync from RunPod"}
+                </button>
+                {runpodMsg && <p className="mt-1 text-xs text-slate-400">{runpodMsg}</p>}
+              </div>
+            </div>
+            <p className="text-xs text-slate-500">
+              Pulled live from RunPod billing (pods + serverless + volumes) with the server&apos;s RUNPOD_API_KEY.
+              RunPod bills your card directly — mirrored rows carry no Vibe cut and sit outside the combined coin totals.
+            </p>
+            {data.runpod.byKind.length ? (
+              <div className="space-y-2">
+                {data.runpod.byKind.map((k) => (
+                  <div key={k.kind} className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-2">
+                    <span className="font-semibold text-white">{k.kind === "pod" ? "Pods" : k.kind === "serverless" ? "Serverless endpoints" : "Network volumes"}</span>
+                    <span className="text-slate-400">${k.usd.toFixed(4)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-slate-500">No RunPod spend mirrored yet — hit “Sync from RunPod”.</p>
+            )}
+            {data.runpod.recent.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[560px] border-collapse text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-white/10 uppercase tracking-widest text-slate-500">
+                      <th className="px-3 py-2">Bucket</th><th className="px-3 py-2">Kind</th><th className="px-3 py-2">Resource</th><th className="px-3 py-2">USD</th><th className="px-3 py-2">Billed time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.runpod.recent.map((r, i) => (
+                      <tr key={i} className="border-b border-white/5">
+                        <td className="px-3 py-2">{new Date(r.time_bucket).toLocaleDateString()}</td>
+                        <td className="px-3 py-2">{r.kind}</td>
+                        <td className="px-3 py-2 font-mono">{r.remote_id || "—"}</td>
+                        <td className="px-3 py-2">${Number(r.amount_usd).toFixed(4)}</td>
+                        <td className="px-3 py-2">{r.time_billed_ms ? `${Math.round(r.time_billed_ms / 3_600_000 * 100) / 100}h` : "—"}</td>
                       </tr>
                     ))}
                   </tbody>

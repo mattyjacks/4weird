@@ -74,7 +74,7 @@ export default function Page() {
               <Check>Daily login bonus (5–12 coins) + 25/25 referrals</Check>
               <Check>One-year expiry · oldest unexpired centicentcoins spent first</Check>
               <Check>Cloud saves, leaderboards, clans, agent escrow</Check>
-              <Check>Renting games: 1 coin/load (first hour included) + 1 coin/hr</Check>
+              <Check>Renting games: load fee by exact bytes + play billed per second (quoted per hour)</Check>
             </ul>
             <Link
               href="/account"
@@ -140,19 +140,22 @@ export default function Page() {
       <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-5 sm:pt-16" aria-label="Renting games">
         <div className="rounded-3xl border border-white/10 bg-white/[.03] p-6 sm:p-8">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">Renting games</p>
-          <h2 className="mt-2 text-2xl font-black sm:text-3xl">About $0.01 per hour of play</h2>
+          <h2 className="mt-2 text-2xl font-black sm:text-3xl">About $0.01 per hour of play, billed per second</h2>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300">
-            Every game load costs its <strong className="text-white">load fee (default 1 coin)</strong> and the
-            load <strong className="text-white">includes the first hour</strong>. Keep playing and each extra hour
-            costs the <strong className="text-white">hourly rate (default 1 coin/hr)</strong> — AI features meter
-            separately on top. Cached loads (under 1&nbsp;MB of new data) are free, and replaying the same
-            version within 24 hours is never double-billed. Developers set their own rates up to{" "}
-            <strong className="text-white">100 coins/hour</strong> (0 = free game). Every price already includes
-            the 25% platform cut — and a day-1 daily bonus (5 coins) covers a full 5-hour session on its own.
+            Every first load costs a <strong className="text-white">proportional load fee (default 1 coin for 1 MiB of fresh bytes)</strong> —
+            even loads under 1 MB pay their exact fraction, down to 1 centicentcoin (0.01 coins). Running play
+            costs the <strong className="text-white">hourly rate (default 1 coin/hr)</strong>, billed{" "}
+            <strong className="text-white">per second from the first second</strong> — that&apos;s 100 centicentcoins
+            spread over 60 minutes × 60 seconds, so you never pay for time you didn&apos;t play. Every 5 hours a
+            “still playing?” check asks you to confirm metering continues (the game keeps running either way). AI
+            features meter separately on top. Replaying the same version within 24 hours is never double-billed.
+            Developers set their own rates up to <strong className="text-white">100 coins/hour</strong> (0 = free
+            game). Every price already includes the 25% platform cut — and a day-1 daily bonus (5 coins) covers a
+            full 5-hour session on its own.
           </p>
           <ul className="mt-5 grid gap-2.5 sm:grid-cols-2">
-            <Check>1 coin per load, first hour included — then 1 coin/hr (defaults)</Check>
-            <Check>Cached loads free · same version free for 24h · dev rates 0–100</Check>
+            <Check>Load fee by exact bytes (1 MiB = full fee) + play billed per second (defaults 1 + 1/hr)</Check>
+            <Check>Same version free for 24h · still-playing check every 5h · dev rates 0–100</Check>
             <Check>Guests play free with skippable ads — no saves, multiplayer, or AI</Check>
             <Check>Every load, hour, and ad-free session itemized on /my/usage/</Check>
           </ul>
@@ -302,11 +305,11 @@ export default function Page() {
             },
             {
               q: "How does renting games work?",
-              a: "Each load costs the game's load fee (default 1 coin) with the first hour included, then the hourly rate (default 1 coin/hr) — about $0.01 per hour. Cached loads under 1 MB of new data are free, same-version replays are free for 24h, and developers can set 0–100 coins per load/hour. Guests play free with skippable ads instead.",
+              a: "The first load costs a proportional fee for its exact fresh bytes (default 1 coin for 1 MiB — smaller loads pay the exact fraction, down to 1 centicentcoin), then running play bills the hourly rate (default 1 coin/hr) per second from the first second — about $0.01 per hour. Same-version replays are free for 24h, a still-playing check appears every 5 hours, and developers can set 0–100 coins per load/hour. Guests play free with skippable ads instead.",
             },
             {
               q: "Can I really play 5 hours a day for free?",
-              a: "Yes. A 5-hour session on default rates costs exactly 5 coins (1 load including hour one, plus 4 extra hours) — covered by even the day-1 daily bonus of 5 coins. Streaks pay up to 12 a day, and the 100-coin signup trial covers 100 hours.",
+              a: "Yes. A 5-hour session on default rates costs about 6 coins (up to 1 coin load for a full 1 MiB plus 5 coins of per-second play) — covered by the 100-coin signup trial many times over, and streak bonuses pay up to 12 coins a day.",
             },
             {
               q: "Do guests have to pay or watch ads?",

@@ -15,14 +15,17 @@ export const dynamic = "force-dynamic";
 
 /**
  * POST /api/games/session — signed-in play metering ("renting games").
- * Actions:
+ * Per-second ledger, quoted in "per hour" terms. Actions:
  *   - start {game_slug, new_bytes?, bundle_version?} → start_game_session:
- *     charges the load fee (default 1 coin, includes the first hour) unless
- *     the load moved < 1 MiB of new bytes (cached: free) or the same bundle
- *     version was billed in the last 24h (refresh protection).
+ *     charges the proportional load fee (load rate for 1 MiB of fresh
+ *     bytes, exact to the centicentcoin, min 1 centicentcoin on a priced
+ *     game) unless the load moved 0 bytes or the same bundle version was
+ *     billed in the last 24h (refresh protection).
  *   - heartbeat {session_id, active_seconds?} → heartbeat_game_session:
- *     bills extra hours beyond the included first hour (default 1 coin/hr).
- *     Clients beat every 5 min with visible-tab seconds only.
+ *     bills running play per second from the first second
+ *     (owed = hourly_rate * total_seconds / 3600, 1 coin/hr = 100
+ *     centicentcoins / 3600 s). Clients beat regularly with visible-tab
+ *     seconds only; only the delta since the last beat is debited.
  *   - end {session_id} → end_game_session.
  */
 export async function POST(req: Request) {

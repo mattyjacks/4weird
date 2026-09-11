@@ -17,16 +17,20 @@ const pricing = read("../app/pricing/page.tsx");
 const skill = read("../../../skill.md");
 const bundle = read("../../../supabase-migrations-2026-10-9-A.txt");
 
-// Play-metering economics: 1/load (first hour included) + 1/hr, dev cap 100.
-for (const token of ["GAME_LOAD_COINS_DEFAULT = 1", "GAME_HOURLY_COINS_DEFAULT = 1", "GAME_RATE_MAX = 100", "GAME_INCLUDED_SECONDS = 3600", "GAME_CACHE_FREE_BYTES = 1024 * 1024"]) {
+const rentPerSecond = read("../supabase/migrations/20260913000000_game_rentals_per_second.sql");
+
+// Play-metering economics: proportional load (1 MiB reference) + per-second
+// running (quoted per hour), dev cap 100.
+for (const token of ["GAME_LOAD_COINS_DEFAULT = 1", "GAME_HOURLY_COINS_DEFAULT = 1", "GAME_RATE_MAX = 100", "GAME_INCLUDED_SECONDS = 0", "GAME_LOAD_REFERENCE_BYTES", "GAME_HEARTBEAT_SECONDS = 60", "GAME_STILL_PLAYING_SECONDS", "loadFeeForBytes", "runningOwed", "perSecondCenticentcoins"]) {
   if (!rent.includes(token)) throw new Error(`game-rent lib missing ${token}.`);
 }
 if (!rent.includes("GUEST_FREE_LOADS_PER_DAY") || !rent.includes("GUEST_AD_INTERVAL_MS")) {
   throw new Error("game-rent lib must define guest quotas + ad cadence.");
 }
-// 5-hour default session = 1 load (incl. hour 1) + 4 extra hours = 5 coins,
-// covered by the day-1 daily bonus (5 coins): average users get 5h/day free.
+// Per-second default math: 1 coin/hr = 100 centicentcoins over 3600 s, and a
+// day-1 daily bonus (5 coins) covers a full 5-hour session on its own.
 if (!read("../lib/economy.ts").includes("dailyBonusForStreak")) throw new Error("Economy must keep the daily bonus (5h/day math depends on it).");
+if (!rent.includes("100 centicentcoins")) throw new Error("game-rent lib must document the 100-centicentcoin hourly spread.");
 
 // Exactly 10 house ads spanning every required property.
 const adCount = (ads.match(/id: "/g) ?? []).length;
@@ -40,6 +44,11 @@ if (/mediamogul\.com|shop\.mattyjacks\.net|example\.com/i.test(ads)) throw new E
 for (const token of ["game_rates", "game_developers", "game_sessions", "game_play_usage", "set_game_rate", "add_game_developer", "start_game_session", "heartbeat_game_session", "end_game_session", "my_game_play_usage", "between 0 and 100", "game_ai_compute_split", "1048576", "not authorized"]) {
   if (!migration.includes(token)) throw new Error(`Migration missing ${token}.`);
 }
+// Per-second migration: numeric ledger + proportional load + per-second run.
+for (const token of ["numeric(12, 2)", "game_ai_compute_split_numeric", "least(v_bytes, 1048576)", "3600.0", "for update", "free_load = false"]) {
+  if (!rentPerSecond.includes(token)) throw new Error(`Per-second migration missing ${token}.`);
+}
+if (!rentPerSecond.includes("IF NOT EXISTS") && !rentPerSecond.includes("if not exists") && !rentPerSecond.includes("if exists")) throw new Error("Per-second migration must be rerunnable.");
 if (!migration.includes("IF NOT EXISTS") && !migration.includes("if not exists")) throw new Error("Migration must be rerunnable.");
 // FK discipline: start_game_session must insert the parent game_sessions row
 // BEFORE any game_play_usage child row — placeholder session ids violate
@@ -78,9 +87,15 @@ for (const token of ["ad_required", "rateLimit", "clientIp", "GUEST_FREE_LOADS_P
   if (!guest.includes(token)) throw new Error(`guest-pass missing ${token}.`);
 }
 
-// Play shell: gate + badge + bridge byte reports.
+// Play shell: gate + badge + bridge byte reports + 5-hour still-playing check.
 if (!gate.includes("guest-pass") || !gate.includes("fourweird-metering") || !gate.includes("heartbeat") || !gate.includes("keepalive")) {
   throw new Error("PlayGate must gate guests, meter bytes, heartbeat, and end sessions.");
+}
+if (!gate.includes("GAME_STILL_PLAYING_SECONDS") || !gate.includes("Still playing")) {
+  throw new Error("PlayGate must ask a still-playing check every 5 hours.");
+}
+if (!badge.includes("billed per second") || !badge.includes("perSecondCenticentcoins")) {
+  throw new Error("PlayRateBadge must show the per-second rate in centicentcoins.");
 }
 // The frame must mount during "metering": the byte report comes from the
 // bridge inside the frame, so blocking the frame forced every load down the
@@ -104,16 +119,20 @@ if (!bridge.includes('type: "metering"') || !bridge.includes("transferSize")) {
 
 // Usage ledger folds rentals into combined totals.
 if (!usage.includes("my_game_play_usage") || !usage.includes("gameRent")) throw new Error("Usage API must include game rentals.");
-for (const token of ["Game rentals", "gameRent", "first hour"]) {
+for (const token of ["Game rentals", "gameRent", "per second"]) {
   if (!usageClient.includes(token)) throw new Error(`Usage client missing ${token}.`);
+}
+if (!read("../components/account/account-dashboard.tsx").includes("centicentcoins")) {
+  throw new Error("Account dashboard must show the centicentcoin balance.");
 }
 
 // Pricing + skill + bundle honesty.
-for (const token of ["Renting games", "$0.01 per hour", "Guests play free", "100 coins/hour", "5-hour session"]) {
+for (const token of ["Renting games", "$0.01 per hour", "Guests play free", "100 coins/hour", "5-hour session", "billed per second"]) {
   if (!pricing.includes(token)) throw new Error(`Pricing missing "${token}".`);
 }
 for (const token of ["guest-pass", "set_game_rate", "AdSlot", "free loads"]) {
   if (!skill.includes(token)) throw new Error(`skill.md missing "${token}".`);
 }
 if (!bundle.includes("BUNDLE FILE: 20260910170000_game_rentals.sql")) throw new Error("Runbook bundle must include the rentals migration.");
+if (!bundle.includes("BUNDLE FILE: 20260913000000_game_rentals_per_second.sql")) throw new Error("Runbook bundle must include the per-second rentals migration.");
 console.log("Game rentals integrity OK.");

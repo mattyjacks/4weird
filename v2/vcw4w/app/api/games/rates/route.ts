@@ -12,6 +12,9 @@ export const dynamic = "force-dynamic";
  * GET /api/games/rates — public price list for "renting games".
  * Returns per-game { coins_per_load, coins_per_hour } (defaults 1/1 when no
  * dev-set row exists) so badges and the pricing page render without auth.
+ * Prices are quoted per hour; the ledger settles per second (1 coin/hr =
+ * 100 centicentcoins over 3600 s). The load rate is the price for 1 MiB of
+ * fresh bytes — smaller first loads pay the exact fraction.
  */
 export async function GET(req: Request) {
   if (!hasServerSupabase()) {

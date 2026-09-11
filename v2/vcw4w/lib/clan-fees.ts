@@ -17,10 +17,12 @@ export class FeeError extends Error {
 }
 
 type RpcClient = {
+  // Thenable (not Promise): the Supabase client returns a query builder that
+  // resolves to { data, error } on await. Typed wide on purpose.
   rpc: (
     fn: string,
     args: Record<string, unknown>,
-  ) => Promise<{ data: unknown; error: { message?: string } | null }>;
+  ) => PromiseLike<{ data: unknown; error: { message?: string } | null }>;
 };
 
 function mapError(message: string): FeeError {

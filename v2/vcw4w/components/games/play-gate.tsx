@@ -9,6 +9,7 @@ import type { HouseAd } from "@/lib/ads";
 import {
   GAME_CACHE_FREE_BYTES,
   GAME_HEARTBEAT_SECONDS,
+  GAME_STILL_PLAYING_SECONDS,
   GUEST_AD_INTERVAL_MS,
 } from "@/lib/game-rent";
 
@@ -54,9 +55,13 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
  *
  * Signed-in players: the game loads immediately (play is never blocked on
  * metering); when the runtime bridge reports fresh network bytes
- * (`fourweird-metering`), a coin session starts (load fee incl. first hour),
- * then a 5-minute visible-tab heartbeat bills extra hours. Cached loads
- * (< 1 MiB new data) are free. Out of coins → banner, beats stop.
+ * (`fourweird-metering`), a coin session starts (proportional load fee:
+ * the load rate for 1 MiB, exact to the centicentcoin even under 1 MB),
+ * then a 1-minute visible-tab heartbeat bills running play per second
+ * (hourly rate spread over 3600 s, from the first second). Every 5 hours
+ * of active play a "still playing?" check asks for confirmation — the game
+ * keeps running either way; it only confirms metering continues. Out of
+ * coins → banner, beats stop.
  *
  * Guests: IP-quota-checked via /api/games/guest-pass. Inside the free quota
  * they play right away; beyond it each load needs one instantly-skippable
@@ -82,6 +87,10 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
   const [gate, setGate] = useState<Gate>({ kind: "checking" });
   const [broke, setBroke] = useState("");
   const [showGuestAd, setShowGuestAd] = useState(false);
+  // Per-second metering state: cumulative active seconds (from heartbeat
+  // receipts) + how many 5-hour still-playing checks were acknowledged.
+  const [activeSecs, setActiveSecs] = useState(0);
+  const [stillAcks, setStillAcks] = useState(0);
   const sessionRef = useRef<string | null>(null);
   const startedRef = useRef(false);
 
@@ -105,6 +114,8 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
           bundle_version: version ?? "1",
         });
         sessionRef.current = body.session.session_id;
+        setActiveSecs(0);
+        setStillAcks(0);
         setGate({
           kind: "playing",
           signedIn: true,
@@ -195,17 +206,21 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
     };
   }, [gate.kind, slug, startSession]);
 
-  // Hourly heartbeat: visible tab only, 5-minute beats.
+  // Per-second heartbeat: visible tab only, 1-minute beats that bill only
+  // the delta since the last beat. Receipts update the active-seconds
+  // counter driving the 5-hour still-playing check.
   useEffect(() => {
     if (gate.kind !== "playing" || !gate.signedIn || !gate.sessionId) return;
     const sid = gate.sessionId;
     const beat = async () => {
       if (document.hidden) return;
       try {
-        await postJson("/api/games/session", { action: "heartbeat", session_id: sid, active_seconds: GAME_HEARTBEAT_SECONDS });
+        const body = await postJson<{ beat: { active_seconds: number } }>("/api/games/session", { action: "heartbeat", session_id: sid, active_seconds: GAME_HEARTBEAT_SECONDS });
+        const secs = Math.max(0, Math.floor(Number(body?.beat?.active_seconds ?? 0)));
+        if (secs > 0) setActiveSecs(secs);
       } catch (error) {
         if (/insufficient balance/i.test(error instanceof Error ? error.message : "")) {
-          setBroke("Out of coins — hourly metering paused. Top up to keep your play counted (the game keeps running).");
+          setBroke("Out of coins — metering paused. Top up to keep your play counted (the game keeps running).");
         }
       }
     };
@@ -323,26 +338,48 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
   // for cached loads).
   const metering = gate.kind === "metering";
   const playing = gate.kind === "playing" ? gate : null;
+  // Still-playing check: every 5 hours of active play, ask for confirmation.
+  // The game keeps running either way — this only confirms metering.
+  const hoursPlayed = playing?.signedIn && playing.sessionId ? activeSecs / 3600 : 0;
+  const needStillCheck =
+    playing?.signedIn && playing.sessionId ? activeSecs >= (stillAcks + 1) * GAME_STILL_PLAYING_SECONDS : false;
 
   return (
     <div>
       {metering && (
         <p role="status" className="mb-2 rounded-xl border border-white/10 bg-white/[.04] px-4 py-2 text-xs text-slate-300">
-          Measuring fresh download (cached loads play free)…
+          Measuring fresh download (first loads bill exact bytes)…
         </p>
       )}
       {playing?.signedIn && (
         <p role="status" className="mb-2 rounded-xl border border-white/10 bg-white/[.04] px-4 py-2 text-xs text-slate-300">
           {playing.sessionId ? (
             <>
-              Metering play: this load <b className="text-white">{playing.freeLoad ? "free (cached)" : `${playing.loadFee} coin${playing.loadFee === 1 ? "" : "s"} (first hour included)`}</b>
-              {" "}· +{playing.coinsPerHour} coin/hr after · <Link href="/my/usage/" className="text-cyan-300 hover:underline">usage</Link>
+              Metering play: this load <b className="text-white">{playing.freeLoad ? "free (cached)" : `${playing.loadFee} coin${playing.loadFee === 1 ? "" : "s"} (exact bytes)`}</b>
+              {" "}· +{playing.coinsPerHour} coin/hr, billed per second from the first second · <Link href="/my/usage/" className="text-cyan-300 hover:underline">usage</Link>
+              {hoursPlayed > 0 && <> · {hoursPlayed.toFixed(1)}h played</>}
             </>
           ) : (
             <>Playing unmetered this load (session unavailable).</>
           )}
           {broke && <> · <span className="text-amber-200">{broke}</span></>}
         </p>
+      )}
+      {needStillCheck && (
+        <div role="alert" className="mb-2 rounded-xl border border-amber-300/40 bg-amber-300/[.08] px-4 py-3 text-xs text-slate-200">
+          <p className="font-bold text-amber-200">
+            ⏰ Still playing? You&apos;ve been running for {(activeSecs / 3600).toFixed(1)} hours (billed per second at {playing && "coinsPerHour" in playing ? playing.coinsPerHour : 1} coin/hr).
+          </p>
+          <p className="mt-1 text-slate-300">
+            The game keeps running either way — confirm metering should continue, or just close the tab.
+          </p>
+          <button
+            className="mt-2 rounded-full bg-amber-300 px-4 py-1.5 font-bold text-slate-950 hover:bg-amber-200"
+            onClick={() => setStillAcks((n) => n + 1)}
+          >
+            Yes, still playing — keep metering
+          </button>
+        </div>
       )}
       {playing && !playing.signedIn && (
         <p className="mb-2 rounded-xl border border-amber-300/30 bg-amber-300/[.06] px-4 py-2 text-xs text-slate-300">

@@ -219,6 +219,18 @@ end; $$;
 revoke all on function public.create_clan(text, text, text, text) from public, anon, authenticated;
 grant execute on function public.create_clan(text, text, text, text) to authenticated;
 
+-- Keep the legacy 3-arg overload as a delegating wrapper so older callers
+-- (and exact-match 3-arg resolution) cannot bypass clan_type, wallets, and
+-- founder badges. Without this, Postgres would keep routing 3-arg calls to
+-- the pre-existing 3-arg overload.
+create or replace function public.create_clan(p_slug text, p_name text, p_description text)
+returns public.clans language plpgsql security definer set search_path = public as $$
+begin
+  return public.create_clan(p_slug, p_name, p_description, 'sclan');
+end; $$;
+revoke all on function public.create_clan(text, text, text) from public, anon, authenticated;
+grant execute on function public.create_clan(text, text, text) to authenticated;
+
 -- Owner-only clan type switch (hclan <-> sclan <-> bclan).
 create or replace function public.set_clan_type(p_clan_id uuid, p_clan_type text)
 returns void language plpgsql security definer set search_path = public as $$
