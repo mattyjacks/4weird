@@ -80,10 +80,10 @@ export function buddyUserPrompt(obs: BuddyObservation): string {
 export function fallbackReply(obs: BuddyObservation): string {
   if (obs.screenText) {
     const snippet = obs.screenText.slice(0, 90);
-    return `I'm watching ${obs.gameTitle} with you — I see "${snippet}". Turn on AI with your coins and I'll start calling the action for real.`;
+    return `I'm watching ${obs.gameTitle} with you — I see "${snippet}". The live AI service is not connected yet, so this local coaching reply is free.`;
   }
   if (obs.score !== null) {
-    return `Score's at ${obs.score} in ${obs.gameTitle} — keep pushing, I'm tracking every move for when you enable AI voice.`;
+    return `Score's at ${obs.score} in ${obs.gameTitle} — keep pushing. The live AI service is not connected yet, so this local coaching reply is free.`;
   }
   return `Hey, I'm your Gaming Buddy for ${obs.gameTitle}. Give me some screen to read and I'll react out loud.`;
 }
