@@ -1043,7 +1043,8 @@ export function desktopWorkloadFor(kind: DesktopKind, iface: DesktopInterface = 
       ports: [...DESKTOP_PORTS_GUI],
       env: { VNC_PW: "password", DESKTOP_MODE: "kasm" },
       port: 6901,
-      diskGb: kind === "gpu" ? 60 : 30,
+      // RunPod caps CPU pod container disks at 20 GB (HTTP 400 above it).
+      diskGb: kind === "gpu" ? 60 : 20,
     };
   }
   throw new Error("Invalid desktop kind.");

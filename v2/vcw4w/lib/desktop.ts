@@ -85,7 +85,8 @@ export const DESKTOP_PLANS: DesktopPlan[] = [
     templateId: DESKTOP_TEMPLATE_GPU,
     port: DESKTOP_PORT_GUI,
     ports: [...DESKTOP_PORTS_GUI],
-    diskGb: 30,
+    // RunPod caps CPU pod container disks at 20 GB — GUI image must fit.
+    diskGb: 20,
     blurb:
       "Ubuntu graphical desktop (Kasm) on port 6901, opened through the RunPod default proxy endpoint: XFCE desktop, Chromium, VS Code, terminal. JupyterLab + SSH is one click away (pick Jupyter below).",
     bestFor: ["Browsing + files", "Coding + notebooks", "Always-on helper box"],
