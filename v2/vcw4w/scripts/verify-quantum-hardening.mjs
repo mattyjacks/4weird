@@ -14,6 +14,7 @@ const bot = read("lib/bot-auth.ts");
 must(bot.includes("BOT_KEY_SUFFIX_LEN = 32"), "bot keys must issue 32 chars");
 must(bot.includes("BOT_KEY_SUFFIX_LEN_LEGACY"), "legacy 20-char length must be documented");
 must(bot.includes("N: 32768"), "bot KDF must be N=32768");
+must(bot.includes("maxmem"), "bot KDF must set maxmem (N=32768 exceeds Node's 32MiB scrypt cap)");
 must(bot.includes("hashBotKeyV1LegacyCostForPepper") || bot.includes("sha256HashLegacyCost"), "legacy N=16384 verify path must exist");
 must(bot.includes("needsRehash"), "opportunistic rehash must exist");
 must(bot.includes("scryptSync(randomBytes(16)"), "dummy KDF must exist for timing parity");
