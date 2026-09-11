@@ -4,6 +4,10 @@
     {
       "path": "/api/cron/clan-upkeep",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/support-renewals",
+      "schedule": "15 4 * * *"
     }
   ]
 }

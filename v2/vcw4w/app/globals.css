@@ -69,6 +69,67 @@
 html.a11y-reduced-motion *, html.a11y-reduced-motion *::before, html.a11y-reduced-motion *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 html.a11y-high-contrast { filter: contrast(1.2); }
 html.a11y-large-text { font-size: 112.5%; }
+
+/* ---- Accessibility layer (4weird a11y) ---- */
+/* Dyslexia-friendly reading: distinctive letterforms + roomy spacing. */
+html.a11y-dyslexia body {
+  font-family: "Atkinson Hyperlegible", "OpenDyslexic", Verdana, "Segoe UI", system-ui, sans-serif;
+}
+html.a11y-dyslexia p, html.a11y-dyslexia li, html.a11y-dyslexia span, html.a11y-dyslexia div,
+html.a11y-dyslexia button, html.a11y-dyslexia a, html.a11y-dyslexia input {
+  letter-spacing: 0.06em;
+  line-height: 1.7;
+  word-spacing: 0.1em;
+}
+html.a11y-spacing p, html.a11y-spacing li, html.a11y-spacing span, html.a11y-spacing div,
+html.a11y-spacing button, html.a11y-spacing a {
+  letter-spacing: 0.12em !important;
+  line-height: 1.9 !important;
+  word-spacing: 0.22em !important;
+}
+/* Color-vision filters: same-document SVG projections (GPU feColorMatrix). */
+html.a11y-cb-protanopia body { filter: url(#a11y-protanopia); }
+html.a11y-cb-protanomaly body { filter: url(#a11y-protanomaly); }
+html.a11y-cb-deuteranopia body { filter: url(#a11y-deuteranopia); }
+html.a11y-cb-deuteranomaly body { filter: url(#a11y-deuteranomaly); }
+html.a11y-cb-tritanopia body { filter: url(#a11y-tritanopia); }
+html.a11y-cb-tritanomaly body { filter: url(#a11y-tritanomaly); }
+html.a11y-cb-achromatopsia body { filter: url(#a11y-achromatopsia); }
+/* Colorblind preview dots in the settings panel. */
+.cb-dot { display: inline-block; width: 1.75rem; height: 1.75rem; border-radius: 9999px; flex-shrink: 0;
+  background: linear-gradient(135deg, #ef4444 0 33%, #22c55e 33% 66%, #3b82f6 66% 100%); border: 1px solid rgb(255 255 255 / 0.25); }
+.cb-preview-protanopia { filter: url(#a11y-protanopia); }
+.cb-preview-protanomaly { filter: url(#a11y-protanomaly); }
+.cb-preview-deuteranopia { filter: url(#a11y-deuteranopia); }
+.cb-preview-deuteranomaly { filter: url(#a11y-deuteranomaly); }
+.cb-preview-tritanopia { filter: url(#a11y-tritanopia); }
+.cb-preview-tritanomaly { filter: url(#a11y-tritanomaly); }
+.cb-preview-achromatopsia { filter: url(#a11y-achromatopsia); }
+/* Large targets + unmissable focus. */
+html.a11y-large-targets button, html.a11y-large-targets a, html.a11y-large-targets input,
+html.a11y-large-targets select, html.a11y-large-targets [role="button"] {
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+}
+html.a11y-large-targets :focus-visible { outline: 3px solid #22d3ee !important; outline-offset: 3px !important; }
+/* Dwell progress ring on the armed control. */
+.a11y-dwelling { position: relative; outline: 3px solid #22d3ee !important; outline-offset: 2px !important; }
+.a11y-dwelling::after {
+  content: ""; position: absolute; inset: -6px; border-radius: inherit; pointer-events: none;
+  background: conic-gradient(#22d3ee calc(var(--dwell-progress, 0) * 360deg), transparent 0deg);
+  opacity: 0.45;
+}
+/* Head-pointer cursor (fixed overlay driven by nose direction). */
+.a11y-head-cursor {
+  position: fixed; z-index: 9999; width: 28px; height: 28px; margin: -14px 0 0 -14px;
+  pointer-events: none; border-radius: 9999px;
+  border: 3px solid #22d3ee; background: rgb(34 211 238 / 0.18);
+  box-shadow: 0 0 0 3px rgb(0 0 0 / 0.55), 0 0 18px rgb(34 211 238 / 0.8);
+}
+.a11y-head-cursor::after { content: "+"; position: absolute; inset: 0; display: grid; place-items: center;
+  color: #fff; font-weight: 900; font-size: 16px; line-height: 1; }
+/* Single-switch scan highlight. */
+.a11y-scan-hit { outline: 4px solid #facc15 !important; outline-offset: 3px !important; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }
 
 /* Light-theme fallback for legacy hardcoded dark utilities.

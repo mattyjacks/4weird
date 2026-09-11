@@ -1,5 +1,26 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingPage } from "@/components/site/marketing-page";
+
+export const metadata: Metadata = {
+  title: "VibeCodeWorker — Evidence-Driven Game QA",
+  description:
+    "VibeCodeWorker is evidence-driven QA for the things you build: run, observe, debug, and improve web experiences with playtest hubs, cloud GPU runs, autoplay, and a full manual. Local-first agentic workflow.",
+  keywords: [
+    "game QA automation",
+    "automated playtesting",
+    "VibeCodeWorker",
+    "software testing agent",
+    "game debugging tool",
+    "cloud GPU testing",
+  ],
+  alternates: { canonical: "/vibecodeworker" },
+  openGraph: {
+    title: "VibeCodeWorker — Evidence-Driven Game QA",
+    description:
+      "Run, observe, debug, and improve web experiences: playtest hubs, cloud GPU runs, autoplay, and a full manual.",
+  },
+};
 
 const sections = [
   { slug: "overview", label: "Overview", blurb: "What VibeCodeWorker does and how the loop works." },

@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { Marketplace } from "@/components/agents/marketplace";
 import { MyCompute } from "@/components/agents/my-compute";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/agents" },
   title: "Rent an Agent | 4weird Games",
   description:
     "Rent an AI agent or a Xonotic game server by the hour. Every price is a gross USD/hr maximum (25% platform cut included) and you are billed per second.",
@@ -17,11 +18,11 @@ export default function AgentsPage() {
       
       <section className="mx-auto max-w-5xl px-5 py-20">
         <Link className="text-cyan-300 hover:underline" href="/">
-          ← Home
+          â† Home
         </Link>
         <h1 className="mt-4 text-4xl font-black">Rent an agent</h1>
         <p className="mt-4 text-slate-300">
-          Rent an OpenClaw / NanoClaw / VibeCodeWorker agent — or a Xonotic
+          Rent an OpenClaw / NanoClaw / VibeCodeWorker agent â€” or a Xonotic
           game server where VibeCodeWorker plays for you or you play yourself.
           Pick a listing below to rent it, or list your own compute below to
           earn coins from other players.
@@ -31,7 +32,7 @@ export default function AgentsPage() {
           platform cut included, never added on top). Metering bills{" "}
           <strong>per second</strong> from the first second, so a partial hour
           never costs the full hour. RunPod listings need no endpoint URL from
-          you — booking auto-provisions a server and hands you the RunPod
+          you â€” booking auto-provisions a server and hands you the RunPod
           default endpoint.
         </p>
         <p className="mt-2 text-sm text-slate-400">
@@ -41,12 +42,12 @@ export default function AgentsPage() {
           <Link href="/xonotic" className="text-cyan-300 hover:underline">
             Xonotic autoplay lives here
           </Link>{" "}
-          — GPU boosted + off-site, desktop app required.
+          â€” GPU boosted + off-site, desktop app required.
         </p>
         <p className="mt-2 text-sm text-slate-400">
           Need a full computer instead of an agent?{" "}
           <Link href="/desktop" className="text-cyan-300 hover:underline">
-            Rent a virtual desktop →
+            Rent a virtual desktop â†’
           </Link>{" "}
           CPU Ubuntu box or GPU Kasm graphical desktop, streamed in your browser per second.
         </p>

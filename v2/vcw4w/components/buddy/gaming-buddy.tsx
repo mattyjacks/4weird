@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BUDDY_DEFAULT_VOICE, BUDDY_VOICES, quoteAvatarMinutes, quoteCameraFrames } from "@/lib/game-ai";
+import { AvatarLoadout, COSMETIC_SLOTS, CosmeticItem, outfitColor } from "@/lib/cosmetics";
+import { priceLine } from "@/lib/monetization-policy";
 import { TRUSTED_GAME_ORIGINS } from "@/components/games/game-runtime-frame";
 import { BuddyAvatar, BuddyAvatarType } from "@/components/buddy/buddy-avatar";
 import {
@@ -137,6 +139,12 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
   const [avatarCents, setAvatarCents] = useState(0);
   const avatarStartRef = useRef<number | null>(null);
   const avatarTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // --- Wardrobe (unified cosmetics shop: 10 coins each, looks-only) ---
+  const [catalog, setCatalog] = useState<CosmeticItem[]>([]);
+  const [owned, setOwned] = useState<string[]>([]);
+  const [loadout, setLoadout] = useState<AvatarLoadout>({});
+  const [wardrobeMsg, setWardrobeMsg] = useState<string | null>(null);
+  const [wardrobePending, setWardrobePending] = useState(false);
 
   type TalkOpts = { resumed?: InterruptionSnapshot | null; interrupted?: boolean };
   const talkRef = useRef<(text: string, opts?: TalkOpts) => Promise<void>>(async () => undefined);
@@ -268,6 +276,75 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       document.removeEventListener("visibilitychange", onVis);
     };
   }, [sessionId, refreshSpend]);
+
+  // Public price list (no auth) + owned wardrobe after login actions.
+  useEffect(() => {
+    let live = true;
+    fetch("/api/cosmetics/catalog")
+      .then((r) => r.json().catch(() => null))
+      .then((b) => {
+        if (live && b?.success && Array.isArray(b.items)) setCatalog(b.items);
+      })
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  const refreshWardrobe = useCallback(async () => {
+    try {
+      const res = await fetch("/api/cosmetics/inventory", { credentials: "include" });
+      const body = await res.json().catch(() => null);
+      if (body?.success) {
+        setOwned(Array.isArray(body.owned) ? body.owned : []);
+        setLoadout((body.loadout ?? {}) as AvatarLoadout);
+        setWardrobePending(body.pendingMigration === true);
+      }
+    } catch {
+      /* wardrobe is best-effort; shop stays visible */
+    }
+  }, []);
+
+  const buyCosmetic = async (item: CosmeticItem) => {
+    setWardrobeMsg(null);
+    try {
+      const r = await post<{ metered: unknown; pendingMigration?: boolean; quote?: string; receipt?: { price: string } }>(
+        "/api/cosmetics/buy",
+        {
+          item_id: item.id,
+          game_slug: gameSlug,
+          session_id: sessionId,
+          acceptedQuote: `${item.name} — ${priceLine(item.price)}`,
+        },
+      );
+      if (r.pendingMigration) {
+        setWardrobeMsg("Shop isn't metered on this deploy yet — nothing bought, no coins moved.");
+        return;
+      }
+      setWardrobeMsg(`Bought ${item.name} for ${r.receipt?.price ?? `${item.price} coins`} — check your avatar!`);
+      void refreshWardrobe();
+      if (sessionId) void refreshSpend(sessionId);
+    } catch (error) {
+      setWardrobeMsg(error instanceof Error ? error.message : "Could not buy that.");
+    }
+  };
+
+  const toggleEquip = async (item: CosmeticItem) => {
+    setWardrobeMsg(null);
+    const next: AvatarLoadout = { ...loadout };
+    if (next[item.slot] === item.id) {
+      delete next[item.slot];
+    } else {
+      next[item.slot] = item.id;
+    }
+    try {
+      const r = await post<{ loadout: AvatarLoadout }>("/api/cosmetics/equip", { loadout: next, kind: avatarType });
+      setLoadout(r.loadout);
+      setWardrobeMsg(next[item.slot] ? `Equipped ${item.name}.` : `Unequipped ${item.name}.`);
+    } catch (error) {
+      setWardrobeMsg(error instanceof Error ? error.message : "Could not equip that.");
+    }
+  };
 
   useEffect(() => stopVoice, [stopVoice]);
   useEffect(() => () => stopSharing(), [stopSharing]);
@@ -646,6 +723,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       setOpen(true);
       setStatus(`Buddy is live as ${voice}. It reads your screen and reacts out loud.`);
       pushMessage({ role: "buddy", text: `Hey, I'm your Gaming Buddy for ${gameTitle}. I'm watching the screen — talk to me while you play.`, at: new Date().toLocaleTimeString() });
+      void refreshWardrobe();
       void refreshSpend(r.session.id);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Could not start buddy.");
@@ -1039,10 +1117,42 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
         </div>
         <div className="mt-2">
           {avatarOn && sessionId ? (
-            <BuddyAvatar type={avatarType} color={avatarColor} script={script} scriptStartedAt={scriptAt} speaking={speaking} outputEl={voiceEl} micStream={micOn && !micMuted ? micStream : null} label={`Buddy ${avatarType}`} />
+            <BuddyAvatar type={avatarType} color={outfitColor(loadout.outfit) ?? avatarColor} script={script} scriptStartedAt={scriptAt} speaking={speaking} outputEl={voiceEl} micStream={micOn && !micMuted ? micStream : null} loadout={loadout} label={`Buddy ${avatarType}`} />
           ) : (
             <p className="text-slate-500">{sessionId ? "Avatar hidden — no presence cost. Show it anytime." : "Start a Buddy session to meet the avatar."}</p>
           )}
+        </div>
+        <div className="mt-3 border-t border-white/10 pt-3">
+          <p className="font-bold text-white">🎩 Wardrobe <span className="font-normal text-slate-400">(one shop everywhere — every look costs 10 coins, looks-only, never pay-to-win)</span></p>
+          <p className="mt-1 text-slate-400">
+            Buying shows the exact price first and charges only what you confirm (singleplayer boosts live behind
+            guarded dev charges, capped at 10,000 coins each and 1,000/day per game — multiplayer boosts are banned).
+          </p>
+          {wardrobePending && <p className="mt-1 text-amber-200">Shop isn&apos;t metered on this deploy yet — browsing is free, buying is disabled.</p>}
+          {wardrobeMsg && <p className="mt-1 text-cyan-200">{wardrobeMsg}</p>}
+          {COSMETIC_SLOTS.map((slot) => (
+            <div key={slot} className="mt-2">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-400">{slot}</p>
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {catalog.filter((c) => c.slot === slot && c.kinds.includes(avatarType)).map((c) => {
+                  const have = owned.includes(c.id);
+                  const worn = loadout[slot] === c.id;
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      disabled={!sessionId || busy}
+                      title={c.blurb}
+                      onClick={() => void (have ? toggleEquip(c) : buyCosmetic(c))}
+                      className={`rounded-lg border px-2.5 py-1.5 text-xs ${worn ? "border-emerald-300 bg-emerald-300/15 font-bold text-emerald-100" : have ? "border-white/20 hover:bg-white/10" : "border-violet-300/40 text-violet-100 hover:bg-violet-300/10"} disabled:opacity-50`}
+                    >
+                      {c.name} · {have ? (worn ? "worn ✓" : "wear") : `buy ${c.price}`}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

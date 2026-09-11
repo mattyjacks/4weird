@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
 import { MarketingPage } from "@/components/site/marketing-page";
 
-export const metadata: Metadata = { title: "Terms of Use", description: "Terms governing use of the 4weird Games service." };
+export const metadata: Metadata = {
+  title: "Terms of Use",
+  description: "Terms governing use of the 4weird Games service.",
+  alternates: { canonical: "/terms" },
+};
 
 const h2 = "text-2xl font-bold text-white";
 const a = "text-cyan-200 underline";
 
 export default function TermsPage() {
   return (
-    <MarketingPage title="Terms of Use" intro="Effective September 10, 2026 · Please read these terms carefully.">
+      <MarketingPage title="Terms of Use" intro="Effective September 11, 2026 · Please read these terms carefully.">
       <section className="space-y-6">
         <p>
           These Terms of Use (“Terms”) form a binding agreement between you and MattyJacks LLC, a New Hampshire
@@ -46,7 +50,7 @@ export default function TermsPage() {
           <li>copy, modify, distribute, sell, lease, sublicense, or create derivative works from the Service;</li>
           <li>reverse engineer, decompile, scrape, data-mine, circumvent security or access controls, or interfere with or disrupt the Service;</li>
           <li>exploit bugs, cheat, tamper with game state, telemetry, leaderboards, saves, coins, referrals, or metering — enabling Cheat Mode permanently marks the affected save and the mark cannot be removed by deleting or recreating the save;</li>
-          <li>use the Service unlawfully or in violation of any applicable law, including export-control and sanctions laws;</li>
+          <li>use the Service unlawfully or in violation of any applicable law, including export-control and sanctions laws — no illegal content of any kind is allowed, anywhere on the Service;</li>
           <li>infringe intellectual-property, privacy, or other rights; upload malicious code; impersonate others; or harvest other users’ information;</li>
           <li>harass, threaten, defame, hate-target, or harm anyone; post sexual content involving minors in any form — this results in immediate removal, account termination, evidence preservation, and referral to authorities (see Section 5);</li>
           <li>abuse support, reporting, or privacy-request channels, including filing false reports or automated bulk requests.</li>
@@ -116,6 +120,65 @@ export default function TermsPage() {
           not property, are non-transferable, and may be changed, removed, or discontinued at any time. Purchases are
           final except where required by applicable law (including non-waivable EU/UK consumer rights) or expressly
           stated otherwise.
+        </p>
+
+        <h2 className={h2}>8A. Voluntary Support and Launch campaigns (not charity, not investment)</h2>
+        <p>
+          <strong>What this is.</strong> The Service lets you (a) send voluntary one-time tips and monthly support
+          subscriptions in Vibe Coins to verified creators and Clans (“Support”), and (b) give and receive gift-based
+          backing for creative project-launch campaigns — game launches, tech startups, and creative tech
+          (“Campaigns”). Both move closed-loop Vibe Coins only, with the 25% platform cut already included in every
+          gross amount (never added on top). Support and Campaign transfers are voluntary, gratuitous, and final once
+          executed — “coffee money,” not a purchase and not a contract for goods, services, or outcomes.
+        </p>
+        <p>
+          <strong>What this is not.</strong> Nothing on the Support or Campaign surfaces is charitable: MattyJacks is
+          not a charity, recipients are not charities, transfers are not charitable donations, are not tax-deductible,
+          and are not charitable solicitations under New Hampshire RSA 7:19 and following or any other charitable-law
+          regime. Nothing there is an investment, security, loan, or revenue-share: Campaigns may not offer equity,
+          shares, interest, dividends, profit-shares, guaranteed returns, or any ownership or financial return, and any
+          campaign using charity, medical, emergency, disaster-relief, political, or investment language is rejected.
+          Coins have no cash value, are licensed platform features under Section 8, and can never be redeemed, cashed
+          out, or converted to money by anyone — recipients receive platform credits spendable on the Service only.
+          Because no money is transmitted to third parties and no cash-out exists, the Service does not act as a money
+          transmitter, e-money issuer, bank, broker, or investment platform.
+        </p>
+        <p>
+          <strong>Subscriptions and tips.</strong> Subscribing charges the first 30-day period immediately and renews
+          every 30 days while active; you may cancel anytime from the Support page, which stops future renewals without
+          proration or refund of completed periods. If a renewal cannot be covered by your balance, the subscription
+          lapses to past-due instead of charging you into a negative balance. Tips are single gratuitous transfers and
+          are final when sent. You cannot support yourself, and clan owners fund their own clan through the wallet
+          rather than tipping it. Only verified creators can receive personal Support; verification is granted by
+          MattyJacks after human review, may be granted or revoked at our discretion, and signifies only that we
+          reviewed a request — not an endorsement, employment, partnership, or guarantee of any creator or clan.
+        </p>
+        <p>
+          <strong>Campaign rules.</strong> Campaigns are limited to the listed creative categories (game-launch,
+          startup, creative-tech) and must include a truthful title, story, and use-of-funds statement. Creators must
+          describe their project honestly, may not mislead about progress, use of funds, affiliations, or risks, and
+          must not promise outcomes they cannot deliver. Any perks or rewards mentioned are aspirational goals the
+          creator hopes to deliver — not contractual obligations, sales of goods, or guarantees. Backing a Campaign is
+          a gift: backers receive no ownership, equity, financial return, or enforceable right to any reward. Raised
+          coins credit the creator’s coin balance (or the linked clan wallet) as platform credits; closing or
+          cancelling a Campaign stops new backing but does not reverse credited transfers except where we intervene for
+          proven fraud. We may freeze, hide, or remove any Campaign or Support tier, suspend payouts of credited coins
+          pending review, and re-credit defrauded supporters from frozen amounts where technically possible.
+        </p>
+        <p>
+          <strong>Eligibility, taxes, and your rights.</strong> You must be at least 13 (and have any required
+          parental consent) to send or receive Support or to create or back a Campaign, and you must comply with
+          sanctions, export-control, and all other applicable laws — prohibited persons and prohibited jurisdictions
+          may not participate. Recipients are solely responsible for any tax consequences of coins they receive and
+          should consult a tax advisor; we provide transaction records on the account and usage pages but no tax
+          advice. If you are in the EEA, UK, or Switzerland: the pre-contract information in these Terms and on the
+          Support/Campaign pages is provided before you commit; by confirming a tip, subscription charge, or Campaign
+          contribution you expressly request immediate execution of a digital-content transfer and acknowledge you lose
+          any withdrawal right once executed. Reports about misleading Campaigns or Support abuse can be filed through
+          the in-Service reporting flow or by email at{" "}
+          <a className={a} href="mailto:matt@mattyjacks.com">matt@mattyjacks.com</a>; we review reports under our
+          hosting-provider duties (including EU Digital Services Act notice-and-action) and act against fraud,
+          counterfeiting, and unlawful fundraising.
         </p>
 
         <h2 className={h2}>9. Agent rentals and Teams compute (25% cut on all computing)</h2>

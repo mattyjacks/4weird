@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { MarketingPage } from "@/components/site/marketing-page";
 
-export const metadata: Metadata = { title: "Privacy Policy", description: "How MattyJacks LLC collects, uses, and protects information on 4weird Games." };
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description: "How MattyJacks LLC collects, uses, and protects information on 4weird Games.",
+  alternates: { canonical: "/privacy" },
+};
 
 const h2 = "text-2xl font-bold text-white";
 const a = "text-cyan-200 underline";
@@ -33,7 +37,7 @@ export default function PrivacyPage() {
         <p><strong className="text-white">Games.</strong> Cloud-save content (game, slot 1–3, versioned data ≤1 MiB, including any permanent cheat-mode mark), gameplay telemetry (kills, actions, active seconds, deaths), matchmaking/lobby/presence records, and leaderboard aggregates (handles + totals only).</p>
         <p><strong className="text-white">Clans and user content.</strong> Clans, memberships, posts, comments, uploaded images (≤1 MB; PNG/JPEG/WebP/GIF; hash + storage path), and moderation reports (anonymous reports allowed; CSAM reports trigger immediate quarantine and evidence preservation for authority referral).</p>
         <p><strong className="text-white">Bots.</strong> Bot usernames, human-ID links, and API-key hashes (key secrets are shown once and never stored).</p>
-        <p><strong className="text-white">Vibe Coins and transactions.</strong> Coin ledger and grant entries, daily-claim streaks, referral codes and referral links, signup-trial records (privacy-preserving IP hash), checkout sessions and order reconciliation by email. Card and payment details are processed by our checkout provider (Shopify and/or its payment processors) — we do not store full payment-card numbers.</p>
+        <p><strong className="text-white">Vibe Coins and transactions.</strong> Coin ledger and grant entries, daily-claim streaks, referral codes and referral links, signup-trial records (privacy-preserving IP hash), checkout sessions and order reconciliation by email, voluntary Support transfers (tips, subscriptions) and gift-based launch-Campaign backing. Campaign pages publicly show the campaign story, goal, raised totals, and backer counts; individual contribution amounts are visible only to you and the campaign creator. Card and payment details are processed by our checkout provider (Shopify and/or its payment processors) — we do not store full payment-card numbers.</p>
         <p><strong className="text-white">Agent rentals and Teams compute.</strong> Listings, bookings, escrow and metered-usage records, provider references, org/team/project/room memberships and roles, cloud provisions and usage, wallet ledgers, and audit entries.</p>
         <p><strong className="text-white">Communications.</strong> Support and rights-request messages you send us, including verification and authority documents for special-case requests.</p>
         <p><strong className="text-white">Automatic technical data.</strong> IP address, browser and device characteristics, request logs, pages or features used, approximate location derived from IP, security and fraud-prevention events (including rate-limit and trial-abuse signals). Games and accessibility controls may store preferences and progress in your browser (local storage).</p>

@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { DesktopRental } from "@/components/desktop/desktop-rental";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/desktop" },
   title: "Virtual Desktop on RunPod | 4weird Games",
   description:
     "Rent a virtual desktop on RunPod: a CPU Ubuntu box or a GPU Kasm graphical desktop streamed to your browser. Real pods, per-second RunPod billing, no faked provisioning.",
@@ -15,7 +16,7 @@ export default function DesktopPage() {
     <main className="min-h-screen bg-slate-950 text-white">
       <section className="mx-auto max-w-5xl px-5 py-16">
         <Link className="text-cyan-300 hover:underline" href="/">
-          ← Home
+          â† Home
         </Link>
         <p className="mt-4 text-xs font-bold tracking-widest text-cyan-300">4WEIRD CLOUD / VIRTUAL DESKTOP</p>
         <h1 className="mt-2 text-4xl font-black">Rent a virtual desktop</h1>
@@ -23,11 +24,11 @@ export default function DesktopPage() {
           A real computer in the cloud, rented by the second on RunPod. Pick a <strong>CPU Ubuntu box</strong> for
           coding and notebooks, or a <strong>GPU graphical desktop</strong> (official RunPod Desktop, Kasm on port
           6901) for Blender, CUDA dev, AI art, and GPU play. Booking provisions a live pod and hands you the RunPod
-          default proxy endpoint — nothing is ever faked.
+          default proxy endpoint â€” nothing is ever faked.
         </p>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
           RunPod bills the operator&apos;s card <strong>per second</strong> from the first second. Coin figures are
-          display equivalents only (100 🪙 = $1.00) — direct RunPod spend carries <strong>no Vibe cut</strong> and
+          display equivalents only (100 ðŸª™ = $1.00) â€” direct RunPod spend carries <strong>no Vibe cut</strong> and
           debits no coins. Mirror every dollar on{" "}
           <Link href="/my/usage/" className="text-cyan-300 hover:underline">
             /my/usage/
@@ -41,7 +42,7 @@ export default function DesktopPage() {
 
         <div className="mt-10 grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <h2 className="font-bold">💻 CPU Desktop — Ubuntu 22.04</h2>
+            <h2 className="font-bold">ðŸ’» CPU Desktop â€” Ubuntu 22.04</h2>
             <p className="mt-2 text-sm text-slate-400">
               Official <code>runpod/base:1.0.2-ubuntu2204</code> (template <code>runpod-ubuntu-2204</code>).
               JupyterLab on 8888 + SSH on 22 through the proxy URL. Cheapest remote Linux that just works.
@@ -53,14 +54,14 @@ export default function DesktopPage() {
             </ul>
           </div>
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <h2 className="font-bold">🖥️ GPU Desktop — RunPod Desktop (Kasm)</h2>
+            <h2 className="font-bold">ðŸ–¥ï¸ GPU Desktop â€” RunPod Desktop (Kasm)</h2>
             <p className="mt-2 text-sm text-slate-400">
               Official <code>runpod/kasm-docker:cuda11</code> (template <code>runpod-desktop</code>). Full XFCE
-              graphical desktop streamed on port 6901 — open the link and you are logged into a GPU workstation.
+              graphical desktop streamed on port 6901 â€” open the link and you are logged into a GPU workstation.
             </p>
             <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-slate-400">
               <li>Cheapest Secure GPU at or under your $/hr max (set 0 for cheapest available)</li>
-              <li>60 GB disk, VNC password via VNC_PW (default `password` — change it after login)</li>
+              <li>60 GB disk, VNC password via VNC_PW (default `password` â€” change it after login)</li>
               <li>Best for: Blender, CUDA, ComfyUI sidecar, GPU testing</li>
             </ul>
           </div>
@@ -71,11 +72,11 @@ export default function DesktopPage() {
           <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-slate-300">
             <li>Sign in, pick CPU or GPU, optionally cap your $/hr max (GPU only).</li>
             <li>
-              <code>POST /api/desktop/provision</code> provisions a real RunPod pod — cheapest fitting stock, no
+              <code>POST /api/desktop/provision</code> provisions a real RunPod pod â€” cheapest fitting stock, no
               theater. No stock, no key, or over budget comes back as an honest <code>started: false</code> state.
             </li>
             <li>Open the returned proxy URL: JupyterLab (CPU) or the Kasm desktop stream (GPU).</li>
-            <li>Stop the pod in the RunPod console when done — billing stops with it.</li>
+            <li>Stop the pod in the RunPod console when done â€” billing stops with it.</li>
             <li>
               Sync real spend to{" "}
               <Link href="/my/usage/" className="text-cyan-300 hover:underline">
@@ -87,11 +88,11 @@ export default function DesktopPage() {
           <p className="mt-4 text-sm text-slate-400">
             Need an agent instead of a desktop?{" "}
             <Link href="/agents" className="text-cyan-300 hover:underline">
-              Rent an AI agent →
+              Rent an AI agent â†’
             </Link>{" "}
             Want a worker to play for you?{" "}
             <Link href="/xonotic" className="text-cyan-300 hover:underline">
-              Xonotic autoplay →
+              Xonotic autoplay â†’
             </Link>
           </p>
         </div>

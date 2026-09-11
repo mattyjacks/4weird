@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DocsHero } from "@/components/docs/docs-hero";
 import { SectionHead, Pager } from "@/components/docs/docs-bits";
+import { faqJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "FAQ & support",
   description:
     "Answers to the most common 4weird questions — coins, play, clans, bots, cloud, privacy — plus how to contact support and what to include.",
+  keywords: ["4weird FAQ", "Vibe Coins FAQ", "4weird support", "4weird help"],
+  alternates: { canonical: "/docs/faq" },
 };
 
 const theme = {
@@ -34,6 +37,14 @@ const FAQS: [string, string, string][] = [
 export default function FaqPage() {
   return (
     <article>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            faqJsonLd(FAQS.map(([, q, a]) => [q, a] as [string, string])),
+          ),
+        }}
+      />
       <DocsHero
         eyebrow="Docs · ask us anything"
         title={<>Answers first. <span className={theme.title}>Humans on standby.</span></>}

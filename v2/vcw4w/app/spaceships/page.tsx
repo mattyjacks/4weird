@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { SpaceshipRuntime } from "@/components/spaceships/spaceship-runtime";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/spaceships" },
   title: "Spaceship Simulation",
   description: "Pilot the original 4weird WebGL spaceship simulation.",
 };

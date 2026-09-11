@@ -1,9 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { games, getGame } from "@/content/games";
 import { getGameManifest } from "@/content/game-manifests";
 import { GameAiBadge } from "@/components/games/game-ai-badge";
+import { GamePlaybookPanel } from "@/components/games/game-playbook-panel";
 import { PlayRateBadge } from "@/components/games/play-rate-badge";
+import { breadcrumbJsonLd, videoGameJsonLd } from "@/lib/seo";
 
 export function generateStaticParams() {
   return games.map((g) => ({ slug: g.slug }));
@@ -14,9 +17,27 @@ export function generateStaticParams() {
 // content with a 200.
 export const dynamicParams = false;
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const g = getGame((await params).slug);
-  return g ? { title: `${g.title} | 4weird`, description: g.description } : {};
+  if (!g) return {};
+  const description = `${g.description} Free to try in your browser with guides, cloud saves, and coin-metered play that pays the makers.`;
+  return {
+    title: `${g.title} — Play Free in Your Browser`,
+    description,
+    keywords: [g.title, g.genre, ...g.tags, "free browser game", "play online"],
+    alternates: { canonical: `/games/${g.slug}` },
+    openGraph: {
+      type: "article",
+      title: `${g.title} | 4weird Games`,
+      description,
+      url: `/games/${g.slug}`,
+    },
+    twitter: {
+      card: "summary",
+      title: `${g.title} | 4weird Games`,
+      description,
+    },
+  };
 }
 
 export default async function GamePage({ params }: { params: Promise<{ slug: string }> }) {
@@ -28,6 +49,18 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
     : null;
   return (
     <div className="bg-slate-950 text-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([
+            videoGameJsonLd(g),
+            breadcrumbJsonLd([
+              ["Games", "/games"],
+              [g.title, `/games/${g.slug}`],
+            ]),
+          ]),
+        }}
+      />
       <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-16">
         <Link href="/games" className="text-sm font-semibold text-cyan-300 hover:underline">
           ← All games
@@ -57,6 +90,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
         </p>
         <PlayRateBadge slug={g.slug} />
         <GameAiBadge slug={g.slug} />
+        <GamePlaybookPanel slug={g.slug} />
         <section className="mt-8 rounded-2xl border border-white/10 bg-white/[.03] p-5 sm:mt-10 sm:p-6">
           <h2 className="text-lg font-bold sm:text-xl">Runtime manifest</h2>
           <p className="mt-3 break-words text-sm text-slate-400">

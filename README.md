@@ -18,6 +18,7 @@ one coin economy where **100 coins = exactly $1.00** (25% platform cut included,
 - **☁️ Agents, Desktops, Teams** (`/agents`, `/desktop`, `/teams`) — rent openclaw/nanoclaw-style agents on RunPod/DigitalOcean (coin escrow + metered 25/75 settlement); per-second virtual desktops; UnitUnite org/team/project workspaces with metered cloud catalog; `RUNPOD_API_KEY` mirrors real RunPod spend onto `/my/usage`
 - **🎙️ Gaming Buddy** (`/buddy` + widget on every play page) — screen-aware 9-voice coach (Nova default) on the VibeCodeWorker observe→reason→act loop; true-cost metering (chat + TTS + snapshots + DB writes, 25/75)
 - **🪙 Vibe Coins** (`/pricing`, `/account`, `/my/usage`, `/my/rights`) — 500/1500/5000/25000 packs + custom 500–100000, daily login bonus (5 + streak, cap 12), referrals (25/25), $1.00 = 100-coin free trial; itemized usage ledger + self-service export/delete
+- **💛 Support + Launch campaigns** (`/support`, `/fundraisers`) — voluntary coin support for verified creators + clans (monthly tiers, one-time tips) and gift-based fundraising for game launches / tech startups; 25% cut included, no cash-out, never charity, never investment (Terms §8A)
 - **⚙️ VibeCodeWorker** (`/vibecodeworker/*`) — evidence-driven QA product surfaces + run APIs (status → games → runs → actions → bugs → complete → handoff)
 - **📚 Docs** (`/docs`) — 12 plain-language guides (about → FAQ) covering every surface above; start at `/docs/about`
 - **🚀 Spaceships, Academy, Tech, Web Apps, Xonotic** — the classic 4weird exhibits, all on clean routes with legacy redirects

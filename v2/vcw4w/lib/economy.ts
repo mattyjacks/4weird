@@ -144,3 +144,44 @@ export function isReferralCode(value: unknown): string {
   const v = String(value ?? "").trim().toUpperCase();
   return /^[A-Z0-9]{8}$/.test(v) ? v : "";
 }
+
+/* ---------------------------------------------------------------------------
+ * Player-spend fairness rules (cosmetics + dev charges). Single source of
+ * truth — the cosmetics catalog, dev-charge validator, and SQL RPCs all
+ * enforce the same numbers:
+ * - Cosmetics are looks-only and cost 10 coins each, everywhere in the app.
+ * - NOTHING purchasable may help win a multiplayer game (no pay-to-win).
+ *   Singleplayer boosts are allowed, clearly labelled.
+ * - No single purchase may exceed 10,000 coins, and devs may not take more
+ *   than 1,000 coins/day from one player per game without a fresh consent.
+ * - Guidance for devs: ~100 coins for deliberate buys, ~10 for automatic ones.
+ * ------------------------------------------------------------------------- */
+
+/** Every cosmetic item costs exactly this (looks-only, unified shop). */
+export const COSMETIC_PRICE_COINS = 10;
+/** Hard ceiling for any single player purchase (cosmetic or boost). */
+export const MAX_SINGLE_PURCHASE_COINS = 10000;
+/** Per-game, per-player, per-day ceiling on dev-initiated charges. */
+export const DEV_GAME_DAILY_CAP_COINS = 1000;
+/** Pricing guidance for game devs: deliberate player-confirmed actions. */
+export const DEV_PRICE_GUIDE_DELIBERATE_COINS = 100;
+/** Pricing guidance for game devs: automatic/background charges. */
+export const DEV_PRICE_GUIDE_AUTOMATIC_COINS = 10;
+
+/** What player money may buy. "multiplayer-boost" is banned, never sold. */
+export const PURCHASE_CATEGORIES = ["cosmetic", "singleplayer-boost", "multiplayer-boost"] as const;
+export type PurchaseCategory = (typeof PURCHASE_CATEGORIES)[number];
+
+/** Categories the shop will ever sell (multiplayer-boost excluded on purpose). */
+export const SELLABLE_CATEGORIES: readonly PurchaseCategory[] = ["cosmetic", "singleplayer-boost"];
+
+export function isSellableCategory(value: unknown): value is "cosmetic" | "singleplayer-boost" {
+  return value === "cosmetic" || value === "singleplayer-boost";
+}
+
+/** Validate any single purchase amount: positive, 2dp, within the 10k cap. */
+export function cleanPurchaseAmount(value: unknown): number {
+  const v = Number(value);
+  if (!Number.isFinite(v) || v <= 0 || v > MAX_SINGLE_PURCHASE_COINS) return 0;
+  return Math.round(v * 100) / 100;
+}

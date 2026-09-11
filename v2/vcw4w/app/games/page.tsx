@@ -1,9 +1,26 @@
+import type { Metadata } from "next";
 import { games } from "@/content/games";
 import { GameCatalog } from "@/components/games/game-catalog";
 
-export const metadata = {
-  title: "Games | 4weird",
-  description: "Play weird, wonderful browser games from 4weird.",
+export const metadata: Metadata = {
+  title: "All Games — 34 Free Browser Experiments",
+  description:
+    "Browse all 34 4weird browser games: arcade racers, typing survival, dungeon crawlers, finance sims, and neon classics. Free to try with guides, cloud saves, and coin-metered play that pays creators.",
+  keywords: [
+    "free browser games",
+    "online arcade games",
+    "typing survival game",
+    "browser dungeon crawler",
+    "arcade racer",
+    "finance simulator game",
+    "neon arcade games",
+  ],
+  alternates: { canonical: "/games" },
+  openGraph: {
+    title: "All Games — 34 Free Browser Experiments | 4weird Games",
+    description:
+      "Arcade racers, typing survival, dungeon crawlers, finance sims, and neon classics. Free to try; play pays creators.",
+  },
 };
 
 export default function GamesPage() {

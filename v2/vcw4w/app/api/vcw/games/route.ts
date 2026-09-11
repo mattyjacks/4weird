@@ -3,6 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { games } from "@/content/games";
+import { getGamePlaybook } from "@/lib/game-playbooks";
 
 export const dynamic = "force-dynamic";
 
@@ -23,12 +24,19 @@ export async function GET() {
 
   return ok({
     count: games.length,
-    games: games.map((g) => ({
-      slug: g.slug,
-      title: g.title,
-      genre: g.genre,
-      play_url: `/games/${g.slug}/play`,
-      runtime_path: g.runtimePath,
-    })),
+    games: games.map((g) => {
+      const playbook = getGamePlaybook(g.slug);
+      return {
+        slug: g.slug,
+        title: g.title,
+        genre: g.genre,
+        play_url: `/games/${g.slug}/play`,
+        runtime_path: g.runtimePath,
+        controls: playbook?.controls ?? null,
+        goal: playbook?.goal ?? null,
+        boot: playbook?.boot ?? [],
+        autoplay: playbook?.autoplay ?? [],
+      };
+    }),
   });
 }

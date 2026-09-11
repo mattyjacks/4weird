@@ -20,6 +20,7 @@ const nextConfig: NextConfig = {
     // Crawlable metadata endpoints: cheap to serve, safe to cache briefly.
     { source: "/sitemap.xml", headers: [{ key: "Cache-Control", value: "public, max-age=3600" }] },
     { source: "/robots.txt", headers: [{ key: "Cache-Control", value: "public, max-age=3600" }] },
+    { source: "/llms.txt", headers: [{ key: "Cache-Control", value: "public, max-age=3600" }, { key: "Content-Type", value: "text/plain; charset=utf-8" }] },
     { source: "/manifest.webmanifest", headers: [{ key: "Cache-Control", value: "public, max-age=3600" }] },
     // Perf workers: immutable static JS, safe to cache for a year. They are
     // versioned by filename — bump the file when the protocol changes.

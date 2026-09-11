@@ -6,7 +6,11 @@
  * protocol the Next.js play shell (GameRuntimeFrame) expects:
  *
  *   game -> host: ready, error, score, metering
- *   host -> game: host-ready, load, save-ack, pause, resume, reset
+ *   host -> game: host-ready, load, save-ack, pause, resume, reset,
+ *     a11y (colorblind filter, reduced motion, dyslexia spacing, focus
+ *     rings — applied inside the frame where shell CSS cannot reach),
+ *     input (click / rightclick / key synthesis for face, head-pointer,
+ *     dwell, and switch control — normalized 0..1 coords or iframe px).
  *
  * Why this exists: the preserved v1 game bundles predate the play shell, so
  * none of them post "ready". Without it the shell sits on "Loading original
@@ -134,6 +138,20 @@
     switch (data.type) {
       case "host-ready":
         break;
+      case "a11y":
+        try {
+          applyA11y(data.settings || {});
+        } catch (e) {
+          /* a11y styling is best-effort; the game stays playable */
+        }
+        break;
+      case "input":
+        try {
+          applyInput(data);
+        } catch (e) {
+          /* synthetic input is best-effort */
+        }
+        break;
       case "reset":
         try {
           window.location.reload();
@@ -171,6 +189,160 @@
         break;
     }
   });
+
+  // ---- Accessibility: shell settings applied INSIDE the game document. ----
+  // Parent-page CSS cannot cross the iframe boundary, so the play shell
+  // forwards its a11y object here. Filters are same-document SVG
+  // feColorMatrix projections (GPU-cheap, one node on <html>).
+  var CB_MATRICES = {
+    protanopia: "0.567 0.433 0 0 0  0.558 0.442 0 0 0  0 0.242 0.758 0 0  0 0 0 1 0",
+    protanomaly: "0.817 0.183 0 0 0  0.333 0.667 0 0 0  0 0.125 0.875 0 0  0 0 0 1 0",
+    deuteranopia: "0.625 0.375 0 0 0  0.7 0.3 0 0 0  0 0.3 0.7 0 0  0 0 0 1 0",
+    deuteranomaly: "0.8 0.2 0 0 0  0.258 0.742 0 0 0  0 0.142 0.858 0 0  0 0 0 1 0",
+    tritanopia: "0.95 0.05 0 0 0  0 0.433 0.567 0 0  0 0.475 0.525 0 0  0 0 0 1 0",
+    tritanomaly: "0.967 0.033 0 0 0  0 0.733 0.267 0 0  0 0.183 0.817 0 0  0 0 0 1 0",
+    achromatopsia: "0.299 0.587 0.114 0 0  0.299 0.587 0.114 0 0  0.299 0.587 0.114 0 0  0 0 0 1 0"
+  };
+
+  function ensureA11yDefs() {
+    try {
+      if (document.getElementById("fourweird-a11y-defs")) return;
+      var svgNS = "http://www.w3.org/2000/svg";
+      var svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("id", "fourweird-a11y-defs");
+      svg.setAttribute("width", "0");
+      svg.setAttribute("height", "0");
+      svg.setAttribute("aria-hidden", "true");
+      svg.style.position = "absolute";
+      var defs = document.createElementNS(svgNS, "defs");
+      for (var mode in CB_MATRICES) {
+        if (!Object.prototype.hasOwnProperty.call(CB_MATRICES, mode)) continue;
+        var f = document.createElementNS(svgNS, "filter");
+        f.setAttribute("id", "fourweird-cb-" + mode);
+        var m = document.createElementNS(svgNS, "feColorMatrix");
+        m.setAttribute("type", "matrix");
+        m.setAttribute("values", CB_MATRICES[mode]);
+        f.appendChild(m);
+        defs.appendChild(f);
+      }
+      svg.appendChild(defs);
+      (document.documentElement || document.body).appendChild(svg);
+    } catch (e) {
+      /* SVG defs unavailable; CSS fallback below still helps */
+    }
+  }
+
+  function applyA11y(settings) {
+    ensureA11yDefs();
+    var style = document.getElementById("fourweird-a11y-style");
+    if (!style) {
+      style = document.createElement("style");
+      style.setAttribute("id", "fourweird-a11y-style");
+      (document.head || document.documentElement).appendChild(style);
+    }
+    var css = "";
+    if (settings.motion) {
+      css += "*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}";
+    }
+    if (settings.dyslexia || settings.spacing || settings.large) {
+      var ls = settings.spacing ? "0.12em" : settings.dyslexia ? "0.06em" : "0";
+      var lh = settings.spacing ? "1.9" : settings.dyslexia ? "1.7" : "1.5";
+      var fs = settings.large ? "112.5%" : "100%";
+      css += "html{font-size:" + fs + "}p,li,span,div,button,a{letter-spacing:" + ls + ";line-height:" + lh + "}";
+    }
+    // Unmissable focus ring for keyboard / switch / dwell users.
+    css += ":focus-visible{outline:3px solid #22d3ee!important;outline-offset:2px!important}";
+    style.textContent = css;
+    try {
+      var root = document.documentElement;
+      var mode = settings.colorblind || "none";
+      if (mode && mode !== "none" && CB_MATRICES[mode]) {
+        root.style.filter = "url(#fourweird-cb-" + mode + ")";
+      } else if (settings.contrast) {
+        root.style.filter = "contrast(1.2)";
+      } else {
+        root.style.filter = "";
+      }
+    } catch (e) {
+      /* filter unsupported */
+    }
+  }
+
+  // ---- Assistive input: face winks, head-pointer dwell, switch presses. ----
+  // Coords arrive normalized (nx/ny 0..1 across the game viewport) so the
+  // shell never needs iframe geometry; raw x/y pixels are also accepted.
+  function inputPoint(data) {
+    var w = window.innerWidth || 800;
+    var h = window.innerHeight || 600;
+    var x, y;
+    if (typeof data.nx === "number" && typeof data.ny === "number") {
+      x = Math.min(1, Math.max(0, data.nx)) * w;
+      y = Math.min(1, Math.max(0, data.ny)) * h;
+    } else if (typeof data.x === "number" && typeof data.y === "number") {
+      x = Math.min(w - 1, Math.max(0, data.x > 1 ? (data.x % w) : data.x * w));
+      y = Math.min(h - 1, Math.max(0, data.y > 1 ? (data.y % h) : data.y * h));
+    } else {
+      x = w / 2;
+      y = h / 2;
+    }
+    return { x: x, y: y };
+  }
+
+  function dispatchAt(type, pt, button) {
+    var el = null;
+    try {
+      el = document.elementFromPoint(pt.x, pt.y);
+    } catch (e) {
+      el = null;
+    }
+    var init = { bubbles: true, cancelable: true, clientX: pt.x, clientY: pt.y, button: button || 0 };
+    var down, up;
+    try {
+      if (type === "rightclick") {
+        if (el) el.dispatchEvent(new MouseEvent("contextmenu", init));
+        return;
+      }
+      down = new MouseEvent("mousedown", init);
+      up = new MouseEvent("mouseup", init);
+      var click = new MouseEvent("click", init);
+      var target = el || document.body;
+      target.dispatchEvent(down);
+      target.dispatchEvent(up);
+      target.dispatchEvent(click);
+      // Canvas games listen on window/document, not the pixel element.
+      window.dispatchEvent(new MouseEvent("mousedown", init));
+      window.dispatchEvent(new MouseEvent("mouseup", init));
+    } catch (e) {
+      /* synthetic mouse unsupported */
+    }
+  }
+
+  function dispatchKey(key) {
+    var k = String(key == null ? " " : key).slice(0, 1) || " ";
+    var code = k === " " ? "Space" : k === "\n" || k === "Enter" ? "Enter" : "Key" + k.toUpperCase();
+    try {
+      var opts = { key: k, code: code, bubbles: true, cancelable: true };
+      window.dispatchEvent(new KeyboardEvent("keydown", opts));
+      document.dispatchEvent(new KeyboardEvent("keydown", opts));
+      var active = document.activeElement || document.body;
+      if (active) active.dispatchEvent(new KeyboardEvent("keydown", opts));
+      window.dispatchEvent(new KeyboardEvent("keyup", opts));
+      document.dispatchEvent(new KeyboardEvent("keyup", opts));
+    } catch (e) {
+      /* synthetic keys unsupported */
+    }
+  }
+
+  function applyInput(data) {
+    var action = data.action || data.kind || "click";
+    if (action === "key") {
+      dispatchKey(data.key);
+    } else if (action === "rightclick" || action === "right-click") {
+      dispatchAt("rightclick", inputPoint(data), 2);
+    } else {
+      dispatchAt("click", inputPoint(data), 0);
+    }
+  }
 
   // Legacy templates call copyGameLink() from an inline share button, but no
   // bundle defines it (only semester-survival does). Define it once so the

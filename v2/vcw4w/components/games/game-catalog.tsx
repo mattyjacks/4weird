@@ -2,11 +2,12 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { Game } from "@/content/games";
+import { getGameA11y } from "@/lib/game-a11y";
 import { debounce, filterGamesAsync } from "@/lib/perf-client";
 import styles from "./game-catalog.module.css";
 
 const picks = ["overtake", "lastwordszombies", "gravegain2d", "gravegain3d", "battlesharks2", "serversavershield", "assassinanimals"];
-function Card({ game, recommended = false }: { game: Game; recommended?: boolean }) { return <article className={`${styles.card} perf-card`}><div className={`${styles.art} ${styles[`art${game.slug}`] ?? ""}`} aria-hidden="true"><span>{game.emoji}</span><i /><div className={styles.badges}>{recommended && <b>RECOMMENDED</b>}<em>📱 + 💻</em></div><div className={styles.playMark}>▶</div></div><div className={styles.body}><div><h3>{game.title}</h3><small>{game.genre}</small></div><p>{game.description}</p><div className={styles.tags}>{game.tags.slice(0,3).map(tag=><span key={tag}>{tag}</span>)}</div><Link href={`/games/${game.slug}/play`} className={styles.play}>PLAY NOW <span>→</span></Link></div></article> }
+function Card({ game, recommended = false }: { game: Game; recommended?: boolean }) { const a11y = getGameA11y(game.slug); const a11yBadges = [a11y.keyboardOnly ? "⌨️ keyboard" : null, !a11y.colorDependent ? "🎨 color-free" : "🎨 filter me", "♿ assists"].filter(Boolean) as string[]; return <article className={`${styles.card} perf-card`}><div className={`${styles.art} ${styles[`art${game.slug}`] ?? ""}`} aria-hidden="true"><span>{game.emoji}</span><i /><div className={styles.badges}>{recommended && <b>RECOMMENDED</b>}<em>📱 + 💻</em></div><div className={styles.playMark}>▶</div></div><div className={styles.body}><div><h3>{game.title}</h3><small>{game.genre}</small></div><p>{game.description}</p><div className={styles.tags}>{game.tags.slice(0,3).map(tag=><span key={tag}>{tag}</span>)}</div><div className={styles.tags} aria-label={`Accessibility: ${a11yBadges.join(", ")}`}>{a11yBadges.map(b=><span key={b}>{b}</span>)}</div><Link href={`/games/${game.slug}/play`} className={styles.play}>PLAY NOW <span>→</span></Link></div></article> }
 export function GameCatalog({ games }: { games: Game[] }) {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");

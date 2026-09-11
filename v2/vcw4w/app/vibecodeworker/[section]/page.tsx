@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { VcwSectionView } from "@/components/vcw/vcw-section-view";
 
@@ -66,6 +67,26 @@ export function generateStaticParams() {
 
 // Closed section list: unknown sections 404 with a real 404 status.
 export const dynamicParams = false;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ section: string }>;
+}): Promise<Metadata> {
+  const { section } = await params;
+  const content = sections.get(section);
+  if (!content) return {};
+  const [title, intro] = content;
+  return {
+    title: `${title} | VibeCodeWorker`,
+    description: intro,
+    alternates: { canonical: `/vibecodeworker/${section}` },
+    openGraph: {
+      title: `${title} | VibeCodeWorker`,
+      description: intro,
+    },
+  };
+}
 
 export default async function SectionPage({
   params,

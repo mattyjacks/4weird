@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { LobbiesBrowser } from "@/components/lobbies/lobbies-browser";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/lobbies" },
   title: "All Open Lobbies | 4weird Games",
   description: "Join a public game or an open friends-only room. Private invite rooms never appear here.",
 };
@@ -15,7 +16,7 @@ export default function LobbiesPage() {
       
       <section className="mx-auto max-w-4xl px-5 py-20">
         <Link className="text-cyan-300 hover:underline" href="/games">
-          ← Games
+          â† Games
         </Link>
         <h1 className="mt-4 text-4xl font-black">All Open Lobbies</h1>
         <p className="mt-4 text-slate-300">

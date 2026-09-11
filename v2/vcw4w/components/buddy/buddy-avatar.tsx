@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { buildAnimeAvatar } from "./avatars/anime-avatar";
 import { buildCloudAvatar } from "./avatars/cloud-avatar";
 import { buildCubeAvatar } from "./avatars/cube-avatar";
+import { applyCosmetics } from "./avatars/parts";
 import type { AvatarKind, T3 } from "./avatars/types";
+import type { AvatarLoadout } from "../../lib/cosmetics";
 
 export type BuddyAvatarType = AvatarKind;
 
@@ -108,6 +110,8 @@ export type BuddyAvatarProps = {
   outputEl: HTMLAudioElement | null;
   /** Live mic stream (analyser only — never recorded or sent). */
   micStream: MediaStream | null;
+  /** Equipped wardrobe (hats, glasses, outfits, accessories, effects). */
+  loadout: AvatarLoadout;
   label: string;
 };
 
@@ -119,10 +123,10 @@ export type BuddyAvatarProps = {
  * shadows + blush included. Anything fails -> 2D fallback, never a crash.
  */
 export function BuddyAvatar(props: BuddyAvatarProps) {
-  const { type, color, script, scriptStartedAt, speaking, outputEl, micStream, label } = props;
+  const { type, color, script, scriptStartedAt, speaking, outputEl, micStream, loadout, label } = props;
   const mountRef = useRef<HTMLDivElement | null>(null);
-  const stateRef = useRef({ type, color, script, scriptStartedAt, speaking, outputEl, micStream });
-  stateRef.current = { type, color, script, scriptStartedAt, speaking, outputEl, micStream };
+  const stateRef = useRef({ type, color, script, scriptStartedAt, speaking, outputEl, micStream, loadout });
+  stateRef.current = { type, color, script, scriptStartedAt, speaking, outputEl, micStream, loadout };
   const [failed, setFailed] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -189,6 +193,16 @@ export function BuddyAvatar(props: BuddyAvatarProps) {
 
         let rig: T3 = buildRig(T, stateRef.current.type, stateRef.current.color);
         scene.add(rig);
+        let dressedSig = "";
+        const dress = (kind: AvatarKind, look: AvatarLoadout): void => {
+          try {
+            applyCosmetics(T, rig, look ?? {}, kind);
+            dressedSig = JSON.stringify(look ?? {});
+          } catch {
+            dressedSig = JSON.stringify(look ?? {});
+          }
+        };
+        dress(stateRef.current.type, stateRef.current.loadout);
         let painted = stateRef.current.color;
         const repaint = (c: string) => {
           painted = c;
@@ -226,15 +240,21 @@ export function BuddyAvatar(props: BuddyAvatarProps) {
           const now = performance.now();
           const t = (now - t0) / 1000;
 
-          // Hot-swap rig on type change; repaint on color change.
+          // Hot-swap rig on type change; repaint on color change; re-dress wardrobe.
           const want = s.type;
           if (rig.userData.kind !== want) {
             scene.remove(rig);
             rig = buildRig(T, want, s.color);
             scene.add(rig);
             painted = s.color;
+            dress(want, s.loadout);
           } else if (painted !== s.color) {
             repaint(s.color);
+          }
+          try {
+            if (JSON.stringify(s.loadout ?? {}) !== dressedSig) dress(want, s.loadout);
+          } catch {
+            /* wardrobe diff is best-effort */
           }
 
           // Levels: buddy voice output + live mic (whichever is louder).
@@ -262,7 +282,7 @@ export function BuddyAvatar(props: BuddyAvatarProps) {
           const ud = rig.userData as {
             eyeL: T3; eyeR: T3; browL?: T3; browR?: T3;
             wingL?: T3; wingR?: T3; armL?: T3; armR?: T3;
-            star?: T3; starBaseY?: number;
+            star?: T3; starBaseY?: number; effectSpin?: T3;
           };
           for (const [brow, sgn] of [[ud.browL, -1], [ud.browR, 1]] as Array<[T3 | undefined, number]>) {
             if (!brow) continue;
@@ -298,6 +318,10 @@ export function BuddyAvatar(props: BuddyAvatarProps) {
             if (ud.star) {
               ud.star.rotation.y += 0.025;
               ud.star.position.y = Number(ud.starBaseY ?? ud.star.position.y) + Math.sin(t * 2.2) * 0.07;
+            }
+            // Wardrobe effects (sparkles / bubbles) orbit gently.
+            if (ud.effectSpin) {
+              ud.effectSpin.rotation.y += talking ? 0.03 : 0.008;
             }
           } catch { /* cosmetic */ }
 

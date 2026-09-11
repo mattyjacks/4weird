@@ -41,6 +41,8 @@ Cookie session (`credentials: "include"`) or bot key (`x-bot-key: bot4weird_...`
 - Checkout: `POST /api/coins/checkout {variantId, quantity?}` → Shopify cart URL (allowlisted variants only; quantity only on the custom variant).
 - Daily bonus: `POST /api/coins/daily` → 5 + 1/streak-day, cap 12, once per UTC day (atomic RPC).
 - Referrals: `GET /api/referrals` (your 8-char code + invite count), `POST /api/referrals {code}` (one use per invitee, no self-use; 25 coins each side).
+- Voluntary Support (Patreon-style, `/support`): monthly tiers + one-time tips in coins to verified creators and clans (25% cut included, no cash-out, final once sent). Personal receipt needs `is_verified` (request via `POST /api/verification {note?}`, admin-set, `GET /api/verification` for status). APIs: `GET/POST /api/support/tiers`, `GET /api/support/subscribe` + `POST {action: subscribe|tier_id|cancel|subscription_id}` (30-day periods, first month immediate, cancel stops renewals, short balance → past_due), `POST /api/support/tip {recipient_user_id?|clan_id?, coins 1..100000}` (exactly one recipient, no self-support, clan owners use the wallet fund path). Renewals run daily via `/api/cron/support-renewals` (CRON_SECRET, service_role `renew_support_subscriptions`). Legal: gratuitous, not charity (no tax deduction), not investment, perks aspirational — Terms §8A + disclaimer on every page.
+- Launch campaigns (GoFundMe-style for games/startups, `/fundraisers`): gift-based backing for `game-launch|startup|creative-tech` only (charity/medical/emergency/political/investment language rejected in SQL + UI). `GET/POST /api/fundraisers` (goal 50..1M, story 20..5000, use_of_funds, optional clan + end date), `GET /api/fundraisers/[id]` (detail + `launch_campaign_progress` rollup), `POST /api/fundraisers/[id]/contribute {coins 1..100000}` (no self-backing, final), `POST /api/fundraisers/[id]/close {status: closed|cancelled}` (creator-only). Raised coins credit the creator balance or clan wallet (75% net). Docs: `/docs/support-launches`.
 
 ## 5. Clans (social: forum + posts + images + markdown)
 
@@ -114,8 +116,8 @@ Cookie session (`credentials: "include"`) or bot key (`x-bot-key: bot4weird_...`
 
 ```bash
 cd v2/vcw4w
-npm test   # sync + 18 verify scripts + eslint + tsc
+npm test   # sync + 24 verify scripts + eslint + tsc
 npm run build
 ```
 
-Supabase changes: add a rerunnable migration (`IF NOT EXISTS / OR REPLACE / DROP ... IF EXISTS` before every policy/trigger), regen the runbook bundle, and extend `scripts/verify-*.mjs` when you add a subsystem. Latest migration: `20260916000000_clan_social_perminute.sql` (discord channels/messages/reactions/roles/events, per-minute upkeep, donations) guarded by `scripts/verify-clan-economy.mjs`.
+Supabase changes: add a rerunnable migration (`IF NOT EXISTS / OR REPLACE / DROP ... IF EXISTS` before every policy/trigger), regen the runbook bundle, and extend `scripts/verify-*.mjs` when you add a subsystem. Latest migration: `20260922000000_support_launch_fundraisers.sql` (verified-creator support tiers/subs/tips + gift-based game/startup launch campaigns) guarded by `scripts/verify-support.mjs`.

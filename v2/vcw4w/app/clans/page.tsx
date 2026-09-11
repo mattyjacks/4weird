@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { ClanBrowser } from "@/components/clans/clan-browser";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/clans" },
   title: "4weird Clans | Gamer & Coder Crews",
   description: "Find your crew: start or join a 4weird clan, post strats, code, and clips.",
 };
@@ -15,7 +16,7 @@ export default function ClansPage() {
       
       <section className="mx-auto max-w-4xl px-5 py-20">
         <Link className="text-cyan-300 hover:underline" href="/">
-          ← Home
+          â† Home
         </Link>
         <h1 className="mt-4 text-4xl font-black">
           4weird <span className="text-cyan-300">Clans</span>
