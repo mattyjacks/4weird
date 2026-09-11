@@ -4,6 +4,7 @@ import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
+import { requireHuman } from "@/lib/botid";
 import { isClanFlair } from "@/lib/clan-forum";
 
 export const dynamic = "force-dynamic";
@@ -19,6 +20,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
+  const botBlock = await requireHuman(req, "POST /api/clans/post/flair");
+  if (botBlock) return botBlock;
   const throttle = rateLimit(`clan-flair:${u.id}`, 20, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);
   let body: unknown;

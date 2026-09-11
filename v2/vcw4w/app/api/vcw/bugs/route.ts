@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
  * Body: { title, description, severity?, game_slug?, run_id? }.
  * game_slug defaults to the run's game when run_id is given.
  */
-export async function GET() {
+export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
@@ -23,14 +23,44 @@ export async function GET() {
   const rl = rateLimit(`vcw:bugs:list:${data.user.id}`, 60, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
 
-  const { data: bugs, error } = await supabase
+  // Filters (all optional, backward compatible):
+  // ?severity=low|medium|high|critical ?game_slug= ?run_id=<uuid> ?limit=1..100 ?before=<ISO>
+  const url = new URL(req.url);
+  const rawSeverity = (url.searchParams.get("severity") ?? "").trim().toLowerCase();
+  if (rawSeverity && !isVcwSeverity(rawSeverity)) {
+    return fail("Invalid severity. Use low, medium, high, or critical.", 400);
+  }
+  const rawSlug = cleanGameSlug(url.searchParams.get("game_slug") ?? url.searchParams.get("gameSlug"));
+  const gameFilter = rawSlug && /^[a-z0-9-]{1,64}$/.test(rawSlug) && gameSlugs.includes(rawSlug) ? rawSlug : null;
+  if (rawSlug && !gameFilter) return fail("Unknown game_slug. List targets via GET /api/vcw/games.", 400);
+  const rawRun = (url.searchParams.get("run_id") ?? url.searchParams.get("runId") ?? "").trim();
+  if (rawRun && !isRunUuid(rawRun)) return fail("Invalid run_id.", 400);
+  const limit = Math.min(100, Math.max(1, Number(url.searchParams.get("limit") ?? 100) || 100));
+  const beforeRaw = (url.searchParams.get("before") ?? "").trim();
+  let before: string | null = null;
+  if (beforeRaw) {
+    const t = new Date(beforeRaw);
+    if (Number.isNaN(t.getTime())) return fail("Invalid before cursor. Use an ISO timestamp.", 400);
+    before = t.toISOString();
+  }
+
+  let query = supabase
     .from("vcw_bugs")
     .select("id,run_id,game_slug,title,severity,description,created_at")
     .eq("user_id", data.user.id)
     .order("created_at", { ascending: false })
-    .limit(100);
+    .limit(limit);
+  if (rawSeverity) query = query.eq("severity", rawSeverity);
+  if (gameFilter) query = query.eq("game_slug", gameFilter);
+  if (rawRun) query = query.eq("run_id", rawRun);
+  if (before) query = query.lt("created_at", before);
+  const { data: bugs, error } = await query;
   if (error) return dbFail("vcw/bugs list", error, "Unable to load bugs.");
-  return ok({ bugs: bugs ?? [] });
+  const list = bugs ?? [];
+  return ok({
+    bugs: list,
+    next_before: list.length === limit ? list[list.length - 1].created_at : null,
+  });
 }
 
 export async function POST(req: Request) {

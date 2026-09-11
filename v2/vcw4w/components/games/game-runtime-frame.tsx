@@ -13,6 +13,8 @@ type RuntimeEvent = {
   message?: string;
   score?: number;
   bytes?: number;
+  active_seconds?: number;
+  actions?: number;
 };
 
 // First-party hosts the shell and the static game bundles can be served

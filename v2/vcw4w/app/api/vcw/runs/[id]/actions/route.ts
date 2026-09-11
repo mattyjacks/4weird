@@ -3,8 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
-import { isRunUuid, isVcwRunKind, parseFalToolCall, vcwPhaseForKind } from "@/lib/vcw-runs";
-import { falOpsForVcwPhase, isFalOp, opByKey, qtyForInput, quoteFalSplit } from "@/lib/fal";
+import { describeFalStep, isRunUuid, isVcwRunKind, parseFalToolCall } from "@/lib/vcw-runs";
 
 export const dynamic = "force-dynamic";
 
@@ -95,42 +94,10 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   }
 
   // fal.ai meld: detect a loop tool call and hand back the validated next hop.
-  const phase = vcwPhaseForKind(String(input.kind));
+  // parseFalToolCall gates first so steps without a tag skip catalog
+  // validation entirely; describeFalStep then validates + quotes the hop.
   const falCall = parseFalToolCall(text, extra);
-  if (falCall) {
-    if (!falCall.op || !isFalOp(falCall.op)) {
-      return ok(
-        {
-          step,
-          fal: {
-            detected: true,
-            ok: false,
-            phase,
-            hint: `Unknown fal op "${falCall.op || "missing"}". Pick one of the 30 ops from GET /api/fal/ops (observe/reason prefer: ${falOpsForVcwPhase("observe").join(", ")}; act can use any). Tag shape: [tool: fal.generate; op=<op> prompt="..."].`,
-            suggested: falOpsForVcwPhase(phase),
-          },
-        },
-        201,
-      );
-    }
-    const def = opByKey(falCall.op);
-    const qty = qtyForInput(falCall.op, { prompt: falCall.prompt });
-    return ok(
-      {
-        step,
-        fal: {
-          detected: true,
-          ok: true,
-          phase,
-          op: def.op,
-          model: def.model,
-          quote: quoteFalSplit(def.op, qty),
-          next: "POST /api/fal/generate { op, prompt, game_slug, source: \"vcw\" }; metered via meter_fal_usage, 25% cut included.",
-          prompt: falCall.prompt.slice(0, 300),
-        },
-      },
-      201,
-    );
-  }
+  const fal = falCall ? describeFalStep(String(input.kind), text, extra) : { detected: false as const };
+  if (fal.detected) return ok({ step, fal }, 201);
   return ok({ step }, 201);
 }

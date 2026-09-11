@@ -4,6 +4,7 @@ import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
+import { requireHuman } from "@/lib/botid";
 import { meterLunaCheck } from "@/lib/clan-meter";
 import { logValleynetAction, valleynetCheck } from "@/lib/valleynet";
 
@@ -19,6 +20,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
+  // Comments earn clan XP: farmed accounts flagged by BotID must not farm
+  // them (same gate as human posts; bots use the /api/bot/bclans lane).
+  const botBlock = await requireHuman(req, "POST /api/clans/post/comment");
+  if (botBlock) return botBlock;
   const throttle = rateLimit(`clan-comment:${u.id}`, 20, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);
   let body: unknown;

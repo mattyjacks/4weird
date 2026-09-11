@@ -62,8 +62,17 @@ if (chat.includes('p_kind: "buddy-tts"')) {
 if (!chat.includes("rpcFail") || !chat.includes("Unable to meter this turn")) {
   throw new Error("Buddy chat must fail the turn when metering fails (no free replies).");
 }
-if (!tts.includes("rpcFail") || tts.indexOf("meter_game_ai_usage") > tts.indexOf("audio/speech")) {
-  throw new Error("Buddy TTS must meter before calling OpenAI.");
+// TTS debits AFTER the provider succeeds (balance is pre-checked
+// AFTER the provider succeeds (balance is pre-checked 402-when-short, and a
+// failed meter discards the audio via rpcFail/dbFail) so users never pay for
+// failed OpenAI calls. The enforced invariant is therefore delivery-gated:
+// audio bytes are returned only after a successful meter_game_ai_usage debit,
+// and every meter-error branch fails without audio.
+if (!tts.includes("rpcFail")) {
+  throw new Error("Buddy TTS must fail (rpcFail) when metering fails.");
+}
+if (tts.indexOf("meter_game_ai_usage") > tts.indexOf("audio: buf.toString")) {
+  throw new Error("Buddy TTS must meter before delivering OpenAI audio (debit-after-success; failures discard audio).");
 }
 if (!tts.includes("audio/speech") || !tts.includes("speechSynthesis") && !tts.includes("fallback")) {
   throw new Error("Buddy TTS must proxy OpenAI speech with a browser fallback.");

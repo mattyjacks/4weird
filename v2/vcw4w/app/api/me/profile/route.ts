@@ -53,9 +53,9 @@ export async function PATCH(req: Request) {
       return fail("Invalid profile field.", 400);
     }
   }
-  const name = cleanDisplayName(input.display_name);
+  const name = input.display_name === undefined ? undefined : cleanDisplayName(input.display_name);
   const handle = input.public_handle === undefined ? undefined : cleanHandle(input.public_handle);
-  if (!name) return fail("Display name needs 2-40 characters.", 400);
+  if (input.display_name !== undefined && !name) return fail("Display name needs 2-40 characters.", 400);
   if (input.public_handle !== undefined && !handle) {
     return fail("Handle needs 3-40 letters, numbers, _ or -.", 400);
   }
@@ -99,7 +99,7 @@ export async function PATCH(req: Request) {
   const { error } = await supabase
     .from("profiles")
     .update({
-      display_name: name,
+      ...(name !== undefined ? { display_name: name } : {}),
       ...(handle !== undefined ? { public_handle: handle } : {}),
       ...(band !== undefined ? { age_band: band } : {}),
       ...(role !== undefined ? { family_role: role } : {}),

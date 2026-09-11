@@ -95,10 +95,10 @@ export async function GET(req: Request) {
   const [profile, settings, saves, cheatSettings, globalCheats, statEvents, friendshipsA, friendshipsB, messagesSent, messagesGot] =
     await Promise.all([
       pick("profiles", "id,email,display_name,public_handle,created_at,updated_at", { id }, 1),
-      pick("account_settings", "user_id,theme,notifications,created_at,updated_at", { user_id: id }, 1),
+      pick("account_settings", "user_id,allow_friend_requests,show_playtime,marketing_email,kids_mode,updated_at", { user_id: id }, 1),
       pick("game_saves", "id,game_slug,slot,schema_version,data,created_at,updated_at", { user_id: id }),
-      pick("cheat_settings", "user_id,game_slug,enabled,created_at", { user_id: id }),
-      pick("global_cheat_settings", "user_id,enabled,created_at", { user_id: id }, 1),
+      pick("cheat_settings", "user_id,game_slug,slot,enabled,cheated_at", { user_id: id }),
+      pick("global_cheat_settings", "user_id,enabled,updated_at", { user_id: id }, 1),
       pick("game_stat_events", "game_slug,active_seconds,actions,kills,deaths,created_at", { user_id: id }, 1000),
       pick("friendships", "id,requester_id,addressee_id,status,created_at", { requester_id: id }),
       pick("friendships", "id,requester_id,addressee_id,status,created_at", { addressee_id: id }),
@@ -110,16 +110,16 @@ export async function GET(req: Request) {
     await Promise.all([
       pick("code_submissions", "id,title,status,monetization_status,created_at,updated_at", { owner_id: id }, 100),
       // join_code / guest secrets never exported.
-      pick("game_lobbies", "id,game_slug,status,max_players,created_at", { host_id: id }, 100),
+      pick("game_lobbies", "id,game_slug,status,created_at", { host_id: id }, 100),
       pick("game_lobbies", "id,game_slug,status,created_at", { guest_id: id }, 100),
-      pick("game_presence", "id,game_slug,status,updated_at", { user_id: id }, 100),
-      pick("game_match_queue", "id,game_slug,status,created_at", { user_id: id }, 1),
+      pick("game_presence", "user_id,game_slug,actor_kind,last_seen_at", { user_id: id }, 100),
+      pick("game_match_queue", "id,user_id,game_slug,platform,created_at", { user_id: id }, 1),
       pick("game_matches", "id,game_slug,result,created_at", { phone_id: id }, 100),
       pick("game_matches", "id,game_slug,result,created_at", { desktop_id: id }, 100),
-      pick("daily_claims", "id,claimed_on,streak,coins,created_at", { user_id: id }, 1),
+      pick("daily_claims", "user_id,last_claim_date,streak,updated_at", { user_id: id }, 1),
       pick("referral_codes", "code,created_at", { user_id: id }, 1),
-      pick("referrals", "id,invitee_id,status,created_at", { inviter_id: id }, 200),
-      pick("referrals", "id,inviter_id,status,created_at", { invitee_id: id }, 1),
+      pick("referrals", "id,invitee_id,inviter_coins,invitee_coins,created_at", { inviter_id: id }, 200),
+      pick("referrals", "id,inviter_id,inviter_coins,invitee_coins,created_at", { invitee_id: id }, 1),
     ]);
 
   const [clanMemberships, clanPosts, clanComments, clanReports, clansOwned, botIdentities, listings, bookings, ledger, grants] =
@@ -160,11 +160,14 @@ export async function GET(req: Request) {
   }
 
   // Family: child accounts WITHOUT secrets (password hashes and session
-  // tokens are never exported; same rule as bot key secrets). Scoped to
-  // this parent's kids only (the service client bypasses RLS, so scope here).
+  // tokens are never exported; same rule as bot key secrets). Kid tables
+  // expose NO client policies by design, so the user client reads nothing
+  // here; the service client bypasses RLS and the parent_id scoping below
+  // is the access boundary (this parent's kids only).
   let family: unknown = null;
   try {
-    const { data: kids } = await supabase.from("kid_accounts")
+    const svc = serviceClient();
+    const { data: kids } = await svc.from("kid_accounts")
       .select("id,username,discriminator,age_band,status,created_at,last_login_at")
       .eq("parent_id", id)
       .limit(10);
@@ -172,9 +175,9 @@ export async function GET(req: Request) {
     let controls: unknown = [], wallet: unknown = [], days: unknown = [];
     if (kidIds.length) {
       const [c, w, d] = await Promise.all([
-        supabase.from("kid_controls").select("kid_id,daily_minutes,allowed_start,allowed_end,timezone,monthly_cap_coins,hard_stop,updated_at").in("kid_id", kidIds),
-        supabase.from("kid_wallet_ledger").select("id,kid_id,delta,reason,created_at").in("kid_id", kidIds).limit(500),
-        supabase.from("kid_play_days").select("kid_id,day,seconds").in("kid_id", kidIds).limit(365),
+        svc.from("kid_controls").select("kid_id,daily_minutes,allowed_start,allowed_end,timezone,monthly_cap_coins,hard_stop,updated_at").in("kid_id", kidIds),
+        svc.from("kid_wallet_ledger").select("id,kid_id,delta,reason,created_at").in("kid_id", kidIds).limit(500),
+        svc.from("kid_play_days").select("kid_id,day,seconds").in("kid_id", kidIds).limit(365),
       ]);
       controls = c.data ?? [];
       wallet = w.data ?? [];

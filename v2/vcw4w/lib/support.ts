@@ -48,10 +48,17 @@ export const LAUNCH_STORY_MAX = 5000;
  * regulations and compliance for handling money between parties,
  * especially internationally, is a lot of work and not settled yet.
  *
- * The code paths below are intentionally left working (APIs, RPCs,
- * browser/detail components) so re-enabling is a one-line flip once
- * compliance is sorted. The UI gates on this flag: listing stays
- * readable, but launching / backing / closing is disabled.
+ * The UI gates on this flag AND the three money POST routes
+ * (POST /api/fundraisers, contribute, close) 403 while it is false, so a
+ * disabled fundraiser is disabled via curl too. Listing stays readable.
+ * Re-enabling is a one-line flip of this flag once compliance is sorted.
+ *
+ * Moderation note: new campaigns default to visible with automated
+ * screening (create_launch_campaign refuses charity/medical/emergency/
+ * political/investment language). A human review queue (pending-by-default
+ * + approver) ships with the compliance re-enable; until then the default
+ * stays visible so approved-shape campaigns are not stranded with no
+ * approver role in the schema.
  */
 export const FUNDRAISERS_ENABLED = false;
 

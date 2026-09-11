@@ -73,7 +73,9 @@ export function FundraiserDetail({ id }: { id: string }) {
       else {
         const b = data.backed as { gross_coins?: number; net_coins?: number };
         setNotice(
-          `Backed with ${b.gross_coins} coins (${b.net_coins} reach the project after the 25% cut). Gifts are final; thank you.`,
+          campaign?.clan_id
+            ? `Backed with ${b.gross_coins} coins (${b.net_coins} reach the clan project wallet after the 25% cut). Gifts are final; thank you.`
+            : `Backed with ${b.gross_coins} coins (${b.net_coins} reach the project as time-locked Crowns - 30-day unlock, 1-year expiry - after the 25% cut). Gifts are final; thank you.`,
         );
         await load();
       }

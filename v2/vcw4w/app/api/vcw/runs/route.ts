@@ -4,7 +4,7 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { gameSlugs } from "@/content/games";
-import { cleanGameSlug } from "@/lib/vcw-runs";
+import { cleanGameSlug, isVcwVerdict } from "@/lib/vcw-runs";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
  * on-site rule as autoplay); the goal is the experience under test
  * (1-500 chars). Returns the open run row.
  */
-export async function GET() {
+export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
@@ -24,14 +24,46 @@ export async function GET() {
   const rl = rateLimit(`vcw:runs:list:${data.user.id}`, 60, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
 
-  const { data: runs, error } = await supabase
+  // Pagination + filters (all optional, backward compatible):
+  // ?game_slug=<catalog slug> ?status=open|completed ?verdict=pass|fail|inconclusive ?limit=1..100 ?before=<ISO timestamp cursor>
+  const url = new URL(req.url);
+  const rawSlug = cleanGameSlug(url.searchParams.get("game_slug") ?? url.searchParams.get("gameSlug"));
+  const gameFilter = rawSlug && /^[a-z0-9-]{1,64}$/.test(rawSlug) && gameSlugs.includes(rawSlug) ? rawSlug : null;
+  if (rawSlug && !gameFilter) return fail("Unknown game_slug. List targets via GET /api/vcw/games.", 400);
+  const rawStatus = (url.searchParams.get("status") ?? "").trim().toLowerCase();
+  if (rawStatus && rawStatus !== "open" && rawStatus !== "completed") {
+    return fail("Invalid status. Use open or completed.", 400);
+  }
+  const rawVerdict = (url.searchParams.get("verdict") ?? "").trim().toLowerCase();
+  if (rawVerdict && !isVcwVerdict(rawVerdict)) {
+    return fail("Invalid verdict. Use pass, fail, or inconclusive.", 400);
+  }
+  const limit = Math.min(100, Math.max(1, Number(url.searchParams.get("limit") ?? 50) || 50));
+  const beforeRaw = (url.searchParams.get("before") ?? "").trim();
+  let before: string | null = null;
+  if (beforeRaw) {
+    const t = new Date(beforeRaw);
+    if (Number.isNaN(t.getTime())) return fail("Invalid before cursor. Use an ISO timestamp.", 400);
+    before = t.toISOString();
+  }
+
+  let query = supabase
     .from("vcw_runs")
     .select("id,game_slug,goal,status,verdict,summary,created_at,updated_at")
     .eq("user_id", data.user.id)
     .order("created_at", { ascending: false })
-    .limit(50);
+    .limit(limit);
+  if (gameFilter) query = query.eq("game_slug", gameFilter);
+  if (rawStatus) query = query.eq("status", rawStatus);
+  if (rawVerdict) query = query.eq("verdict", rawVerdict);
+  if (before) query = query.lt("created_at", before);
+  const { data: runs, error } = await query;
   if (error) return dbFail("vcw/runs list", error, "Unable to load runs.");
-  return ok({ runs: runs ?? [] });
+  const list = runs ?? [];
+  return ok({
+    runs: list,
+    next_before: list.length === limit ? list[list.length - 1].created_at : null,
+  });
 }
 
 export async function POST(req: Request) {

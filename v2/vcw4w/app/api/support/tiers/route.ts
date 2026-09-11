@@ -4,6 +4,7 @@ import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/support";
+import { requireHuman } from "@/lib/botid";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +44,8 @@ export async function POST(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Login required.", 401);
+  const botBlock = await requireHuman(req, "POST /api/support/tiers");
+  if (botBlock) return botBlock;
   const throttle = rateLimit(`support-tier:${data.user.id}`, 10, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);
   let body: unknown;

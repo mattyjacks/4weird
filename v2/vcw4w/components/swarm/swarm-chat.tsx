@@ -96,8 +96,17 @@ export function SwarmChat() {
   const [trace, setTrace] = useState<string[]>([]);
   const [showTrace, setShowTrace] = useState(true);
   const [search, setSearch] = useState("");
-  const [pins, setPins] = useState<string[]>([]);
+  const [pins, setPins] = useState<string[]>(() => {
+    try {
+      if (typeof window === "undefined") return [];
+      const raw = JSON.parse(window.localStorage.getItem("swarm-pins") ?? "[]") as unknown;
+      return Array.isArray(raw) ? raw.filter((x): x is string => typeof x === "string").slice(0, 200) : [];
+    } catch {
+      return [];
+    }
+  });
   const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [lastSent, setLastSent] = useState("");
   const [streaming, setStreaming] = useState(true);
   const [voice, setVoice] = useState(BUDDY_DEFAULT_VOICE);
   const [speakReplies, setSpeakReplies] = useState(false);
@@ -116,6 +125,18 @@ export function SwarmChat() {
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const recogRef = useRef<{ start: () => void; stop: () => void } | null>(null);
+  // Which session is on screen right now (ref mirror: send() must not trust
+  // its stale activeId closure when the reply lands after a session switch).
+  const activeIdRef = useRef(activeId);
+  activeIdRef.current = activeId;
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("swarm-pins", JSON.stringify(pins.slice(0, 200)));
+    } catch {
+      // Private mode etc: pins just don't survive reloads.
+    }
+  }, [pins]);
 
   const loadSessions = useCallback(async () => {
     setLoading(true);
@@ -193,10 +214,13 @@ export function SwarmChat() {
     }
   }
 
-  function speak(text: string) {
+  function speak(text: string, force = false) {
     try {
-      if (!speakReplies || typeof window === "undefined" || !("speechSynthesis" in window)) return;
-      const u = new SpeechSynthesisUtterance(text.slice(0, 300));
+      if ((!force && !speakReplies) || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+      // Never read tool-call tags aloud; voice the human-readable part.
+      const clean = text.replace(/\[tool:[^\]]*\]/gi, " ").replace(/\s+/g, " ").trim().slice(0, 300);
+      if (!clean) return;
+      const u = new SpeechSynthesisUtterance(clean);
       const v = window.speechSynthesis.getVoices().find((vv) => vv.name.toLowerCase().includes(voice));
       if (v) u.voice = v;
       window.speechSynthesis.cancel();
@@ -208,12 +232,21 @@ export function SwarmChat() {
 
   async function send(messageOverride?: string) {
     const raw = (messageOverride ?? draft).trim();
-    if (!raw || !activeId || busy) return;
+    const sendSessionId = activeIdRef.current;
+    if (!raw || !sendSessionId || busy) return;
     // /commands; post-modern command palette inline.
     if (raw.startsWith("/")) {
       handleCommand(raw);
       return;
     }
+    // Reply threading is real: quote the target message into the turn so the
+    // swarm reasons with the context (the API only sees message text).
+    const target = replyTo ? messages.find((m) => m.id === replyTo) : undefined;
+    const quoted = target
+      ? `↩ Replying to ${target.role === "user" ? "you" : target.agent_name || "swarm"}: "${target.text.slice(0, 300)}"\n${raw}`
+      : raw;
+    setReplyTo(null);
+    setLastSent(raw);
     setBusy(true);
     setDraft("");
     const optimistic: ChatMsg = {
@@ -221,7 +254,7 @@ export function SwarmChat() {
       role: "user",
       agent_index: -1,
       agent_name: "",
-      text: raw,
+      text: quoted,
       tool_calls: [],
       gross_coins: 0,
       created_at: new Date().toISOString(),
@@ -234,7 +267,15 @@ export function SwarmChat() {
         plan: { trace: string[] };
         cost: { display: string };
         fallback: boolean;
-      }>(`/api/swarm/sessions/${activeId}/chat`, { method: "POST", body: JSON.stringify({ message: raw }) });
+      }>(`/api/swarm/sessions/${sendSessionId}/chat`, { method: "POST", body: JSON.stringify({ message: quoted }) });
+      // Session switch mid-turn: the reply belongs to the session that was
+      // asked, not the one on screen. Never merge into the wrong thread;
+      // the trail is on the server, so switching back shows it.
+      if (activeIdRef.current !== sendSessionId) {
+        setStatus("Swarm replied in the other session; switch back to see it.");
+        void loadSessions();
+        return;
+      }
       setTrace(body.plan.trace ?? []);
       const at = new Date().toISOString();
       const userMsg: ChatMsg = { ...optimistic, id: `u-${Date.now()}` };
@@ -452,7 +493,7 @@ export function SwarmChat() {
       <section className="rounded-2xl border border-white/10 bg-white/[.03] p-5" aria-label="Swarm chat">
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-lg font-bold">{active ? `${active.name} - ${active.size} agents` : "Swarm chat"}</h2>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…" className="ml-auto w-32 rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-white" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…" aria-label="Search messages" className="ml-auto w-32 rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-white" />
           <button type="button" onClick={() => exportTrail("md")} className="rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-200">Export MD</button>
           <button type="button" onClick={() => exportTrail("json")} className="rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-200">JSON</button>
           {active && active.status === "open" && <button type="button" onClick={() => void endSwarm()} className="rounded-md border border-red-800 px-2 py-1 text-xs text-red-300">Retire</button>}
@@ -491,6 +532,7 @@ export function SwarmChat() {
                   <button type="button" onClick={() => setReplyTo(m.id)} className="hover:text-white">Reply</button>
                   <button type="button" onClick={() => setPins((p) => (p.includes(m.id) ? p.filter((x) => x !== m.id) : [...p, m.id]))} className="hover:text-white">{pins.includes(m.id) ? "Unpin" : "Pin"}</button>
                   <button type="button" onClick={() => { try { void navigator.clipboard.writeText(m.text); setStatus("Copied to clipboard."); } catch { setStatus("Copy failed."); } }} className="hover:text-white">Copy</button>
+                  {m.role !== "user" && <button type="button" onClick={() => speak(`${m.agent_name ? `${m.agent_name}: ` : ""}${m.text}`, true)} className="hover:text-white" aria-label={`Speak this ${m.agent_name || "swarm"} message aloud`}>🔊</button>}
                   {m.role === "user" && <button type="button" onClick={() => { setDraft(m.text); setStatus("Editing; tweak and resend to branch the thread."); }} className="hover:text-white">Branch</button>}
                 </span>
               </div>

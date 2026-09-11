@@ -66,5 +66,10 @@ export async function GET() {
     },
     fal_howto: VCW_FAL_HOWTO,
     swarm: { tools: ["vcw.open_run", "vcw.file_finding", "fal.generate", "deepseek.orchestrate", "swarm.delegate"], hint: "Plan multi-agent QA with POST /api/swarm/sessions + /chat (auto/lead/round-robin); NewGamePlus fans out the same way." },
+    filters: {
+      runs: "GET /api/vcw/runs?game_slug=&status=open|completed&limit=1..100&before=<ISO>",
+      bugs: "GET /api/vcw/bugs?severity=&game_slug=&run_id=&limit=1..100&before=<ISO>",
+      run_detail: "GET /api/vcw/runs/[id]?steps_limit=1..200&bugs_limit=1..100",
+    },
   });
 }

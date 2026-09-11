@@ -62,6 +62,7 @@ export function NewGamePlusBuilder() {
   const [result, setResult] = useState<BuildResult | null>(null);
   const [falMsg, setFalMsg] = useState("");
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const previewRef = useRef<HTMLDivElement | null>(null);
   const startedAt = useRef(0);
 
   const loadOrgs = useCallback(async () => {
@@ -183,6 +184,18 @@ export function NewGamePlusBuilder() {
     a.download = `${result.game.slug}.html`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  function togglePreviewFullscreen() {
+    try {
+      if (document.fullscreenElement) {
+        void document.exitFullscreen().catch(() => undefined);
+      } else {
+        void previewRef.current?.requestFullscreen?.().catch(() => setStatus("Fullscreen was blocked by the browser; the preview still plays inline."));
+      }
+    } catch {
+      setStatus("Fullscreen unavailable; the preview still plays inline.");
+    }
   }
 
   return (
@@ -318,9 +331,13 @@ export function NewGamePlusBuilder() {
                 {!!falMsg && <p className="mt-2 text-slate-300" role="status">{falMsg}</p>}
               </div>
             )}
-            <iframe title={`${result.game.title} preview`} srcDoc={result.game.source} sandbox="allow-scripts" className="h-[440px] w-full rounded-xl border border-white/15 bg-black" />
+            <div ref={previewRef} className="rounded-xl border border-white/15 bg-black">
+              <iframe title={`${result.game.title} preview`} srcDoc={result.game.source} sandbox="allow-scripts" className="h-[440px] w-full rounded-xl bg-black" />
+            </div>
+            <p className="text-xs text-slate-500">Click the game once to focus keyboard (WASD/arrows, P pauses, R restarts) · Fullscreen for the full play window.</p>
             <div className="flex flex-wrap gap-2">
               <button type="button" onClick={download} className="rounded-md bg-emerald-400 px-3 py-1.5 text-sm font-bold text-slate-950">Download .html</button>
+              <button type="button" onClick={togglePreviewFullscreen} className="rounded-md border border-slate-700 px-3 py-1.5 text-sm text-slate-200">Fullscreen preview</button>
               <button type="button" onClick={() => { try { void navigator.clipboard.writeText(result.game.source); setStatus("Game source copied."); } catch { setStatus("Copy failed."); } }} className="rounded-md border border-slate-700 px-3 py-1.5 text-sm text-slate-200">Copy source</button>
             </div>
             <details className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs">

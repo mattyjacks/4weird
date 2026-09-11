@@ -171,7 +171,7 @@ export async function POST(req: Request) {
       max_run_usd: maxRunUsd,
     },
     desktop_url: VCW_DESKTOP_PATH,
-    note: `Autoplay remote live for ${plan.gameSlug} (${plan.compute}, ${plan.siteMode}). Open the stream URL, log in with the VNC password, and open the locked game URL (${plan.targetUrl}) in the remote Chromium. RunPod bills ~$${provisioned.hourlyUsd.toFixed(2)}/hr per second (max ~$${maxRunUsd.toFixed(2)} over ${AUTOPLAY_MAX_MINUTES} min of use). ${idlePolicy.warnMinutes} min with no input rings a warning chime; ${idlePolicy.stopGraceMinutes} more idle min stops the pod; ${idlePolicy.terminateHours}h untended terminates it. Coin quote ${quote.gross} gross ${AUTOPLAY_CUT_NOTE}`,
+    note: `Autoplay remote live for ${plan.gameSlug} (${plan.compute}, ${plan.siteMode}). Open the stream URL, log in with the VNC password, and open the locked game URL (${plan.targetUrl}) in the remote Chromium. RunPod bills ~$${provisioned.hourlyUsd.toFixed(2)}/hr per second (max ~$${maxRunUsd.toFixed(2)} over ${AUTOPLAY_MAX_MINUTES} min of use). ${idlePolicy.warnMinutes} min with no input rings a warning chime; ${idlePolicy.stopGraceMinutes} more idle min stops the pod; ${idlePolicy.terminateHours}h untended terminates it. Coin quote ${quote.gross} gross ${AUTOPLAY_CUT_NOTE} Coins bill per elapsed worker-minute on heartbeat (first debit from creation); stop the remote from /runpods to end billing.`,
   });
 }
 

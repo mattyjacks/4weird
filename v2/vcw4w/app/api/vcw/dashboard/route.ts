@@ -56,10 +56,23 @@ export async function GET() {
   if (runsError) return dbFail("vcw/dashboard runs", runsError, "Unable to load the dashboard.");
   if (bugsError) return dbFail("vcw/dashboard bugs", bugsError, "Unable to load the dashboard.");
 
+  const runList = runs ?? [];
+  const bugList = bugs ?? [];
+  const openRuns = runList.filter((r) => r.status === "open").length;
+  const bySeverity: Record<string, number> = {};
+  for (const b of bugList) bySeverity[b.severity] = (bySeverity[b.severity] ?? 0) + 1;
+  const byVerdict: Record<string, number> = {};
+  for (const r of runList) {
+    if (r.status === "completed" && typeof r.verdict === "string" && r.verdict) {
+      byVerdict[r.verdict] = (byVerdict[r.verdict] ?? 0) + 1;
+    }
+  }
   return ok({
     service,
     catalog_games: gameSlugs.length,
-    runs: runs ?? [],
-    bugs: bugs ?? [],
+    runs: runList,
+    bugs: bugList,
+    counts: { open_runs: openRuns, runs_by_verdict: byVerdict, bugs_by_severity: bySeverity },
+    hint: "Filter deeper with GET /api/vcw/runs?game_slug=&status=&verdict=&limit=&before= and GET /api/vcw/bugs?severity=&game_slug=&run_id=&limit=&before=.",
   });
 }

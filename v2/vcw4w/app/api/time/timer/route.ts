@@ -174,12 +174,16 @@ export async function PUT(req: Request) {
 }
 
 // DELETE /api/time/timer - Discard running timer
-export async function DELETE() {
+export async function DELETE(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
   const u = auth?.user;
   if (!u) return fail("Login required.", 401);
+
+  const throttle = rateLimit(`timer-discard:${u.id}`, 10, 60_000);
+  if (!throttle.allowed) return fail("Too many requests.", 429);
 
   const { data: runningTimer } = await supabase
     .from("timer_entries")

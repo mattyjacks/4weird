@@ -98,6 +98,9 @@ export async function POST(req: Request) {
     .select("id")
     .maybeSingle();
   if (rowErr) return dbFail("api/ghost/proofs", rowErr, "Unable to record proof.");
-  const { data: pub } = svc.storage.from("ghost-proofs").getPublicUrl(path);
-  return ok({ url: pub.publicUrl, proofId: (row as { id?: string } | null)?.id ?? null, sha256 }, 201);
+  // Private bucket: mint a 1-hour signed URL (same discipline as vault +
+  // blender). Never a permanent public URL for worker screenshots.
+  const { data: signed, error: signErr } = await svc.storage.from("ghost-proofs").createSignedUrl(path, 3600);
+  if (signErr || !signed?.signedUrl) return dbFail("api/ghost/proofs", signErr, "Unable to sign proof URL.");
+  return ok({ url: signed.signedUrl, expires_in: 3600, proofId: (row as { id?: string } | null)?.id ?? null, sha256 }, 201);
 }

@@ -406,7 +406,7 @@ export default function Home() {
           </Link>
           <Link href="/fal" className="group rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-pink-500/60 hover:shadow-xl hover:shadow-pink-500/10">
             <p className="text-3xl" aria-hidden="true">🎨</p>
-            <h3 className="mt-3 text-lg font-bold">fal.ai Studio - 15 tools</h3>
+            <h3 className="mt-3 text-lg font-bold">fal.ai Studio - 30 tools</h3>
             <p className="mt-2 text-sm text-muted-foreground">
               Concept art, sprites, icons, textures, HD upscale, 3D renders,
               trailer clips, NPC voices, SFX, theme music, lipsync, playtest
@@ -757,7 +757,7 @@ export default function Home() {
               </li>
               <li className="rounded-2xl border border-border bg-card p-4">
                 <Link href="/fal" className="font-bold hover:underline">🎨 fal.ai Studio</Link>
-                <p className="mt-1 text-sm text-muted-foreground">15 game-dev + coding media tools, quote-first.</p>
+                <p className="mt-1 text-sm text-muted-foreground">30 game-dev + coding media tools, quote-first.</p>
               </li>
             </ul>
           </nav>

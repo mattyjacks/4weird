@@ -21,6 +21,8 @@ export async function GET() {
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
+  const rl = rateLimit(`family-kids:${u.id}`, 60, 60_000);
+  if (!rl.allowed) return fail("Rate limited.", 429);
   let service;
   try {
     service = serviceClient();

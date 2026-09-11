@@ -99,6 +99,35 @@ export async function POST(req: Request) {
       ? createHmac("sha256", salt).update(`guest-ad|${date}|${ip}|${game}|${used}`).digest("hex").slice(0, 32)
       : createHash("sha256").update(`guest|${date}|${ip}|${game}|${used}`).digest("hex").slice(0, 32)
     : null;
+  // Token chaining: the first over-quota load (used == FREE+1) carries no
+  // token yet, so it is allowed and issued one. Every load after that must
+  // present the previous load's token (used-1, with a used-2 window for
+  // multi-tab races), proving the client came through the interstitial flow
+  // instead of skipping it or calling the API directly. A failed chain gets
+  // 403 WITH a fresh ad + token, so the client shows the interstitial and
+  // the retry succeeds.
+  if (adRequired && used > GUEST_FREE_LOADS_PER_DAY + 1) {
+    const presented = (body as Record<string, unknown> | null)?.ad_token;
+    const chained =
+      verifyGuestAdToken(presented, ip, game, used - 1, date) ||
+      verifyGuestAdToken(presented, ip, game, used - 2, date);
+    if (!chained) {
+      return ok(
+        {
+          allowed: false,
+          guest: true,
+          game,
+          loads_used: Math.min(used, GUEST_MAX_LOADS_PER_DAY),
+          loads_free: GUEST_FREE_LOADS_PER_DAY,
+          ad_required: true,
+          ad: pickHouseAd(date, game),
+          ad_token: adToken,
+          note: "Show the interstitial, then retry this load with ad_token.",
+        },
+        403,
+      );
+    }
+  }
   return ok({
     allowed: true,
     guest: true,

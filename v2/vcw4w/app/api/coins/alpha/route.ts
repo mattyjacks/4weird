@@ -3,6 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok, rpcFail } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { sameOrigin } from "@/lib/csrf";
+import { requireHuman } from "@/lib/botid";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,9 @@ export async function POST(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);
+  // Mints 300 free coins: bots must never farm it.
+  const botBlock = await requireHuman(req, "POST /api/coins/alpha");
+  if (botBlock) return botBlock;
   const throttle = rateLimit(`alpha:${data.user.id}`, 5, 60_000);
   if (!throttle.allowed) return fail("Too many attempts. Try again shortly.", 429, { "Retry-After": String(throttle.retryAfter) });
 

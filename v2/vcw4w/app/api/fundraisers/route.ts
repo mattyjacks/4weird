@@ -3,7 +3,8 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
-import { isLaunchCategory, isUuid } from "@/lib/support";
+import { FUNDRAISERS_DISABLED_NOTICE, FUNDRAISERS_ENABLED, isLaunchCategory, isUuid } from "@/lib/support";
+import { requireHuman } from "@/lib/botid";
 
 export const dynamic = "force-dynamic";
 
@@ -50,9 +51,12 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  if (!FUNDRAISERS_ENABLED) return fail(FUNDRAISERS_DISABLED_NOTICE, 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Login required.", 401);
+  const botBlock = await requireHuman(req, "POST /api/fundraisers");
+  if (botBlock) return botBlock;
   const throttle = rateLimit(`fundraisers:${data.user.id}`, 5, 3_600_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);
   let body: unknown;

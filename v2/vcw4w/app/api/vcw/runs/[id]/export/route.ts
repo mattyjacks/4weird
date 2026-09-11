@@ -7,10 +7,14 @@ import { isRunUuid } from "@/lib/vcw-runs";
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/vcw/runs/[id]; read a run with its observe->reason->act
- * trail and filed bugs (authenticated, owner only). The v1 worker's
- * `GET /api/game/state` + `GET /api/game/logs` equivalent: everything
- * the agent needs to decide the next step.
+ * GET /api/vcw/runs/[id]/export; full-fidelity portable run archive
+ * (authenticated, owner only, read-only so unmetered).
+ *
+ * GET /api/vcw/runs/[id] caps the trail (200 steps / 100 bugs) for fast
+ * iteration; the handoff caps it further (50 + 50) for pasting into a
+ * coding tool. The export removes the caps (up to 2000 steps / 500 bugs)
+ * for archival, offline analysis, and migration between tools: one JSON
+ * document with the run, every step in order, and every filed bug.
  */
 export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
@@ -19,13 +23,8 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);
-  const rl = rateLimit(`vcw:run:get:${data.user.id}`, 60, 60_000);
+  const rl = rateLimit(`vcw:run:export:${data.user.id}`, 30, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
-
-  // ?steps_limit=1..200 ?bugs_limit=1..100 (defaults match the old fixed caps).
-  const url = new URL(req.url);
-  const stepsLimit = Math.min(200, Math.max(1, Number(url.searchParams.get("steps_limit") ?? 200) || 200));
-  const bugsLimit = Math.min(100, Math.max(1, Number(url.searchParams.get("bugs_limit") ?? 100) || 100));
 
   const { data: run, error: runError } = await supabase
     .from("vcw_runs")
@@ -41,26 +40,22 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
       .select("id,kind,text,data,created_at")
       .eq("run_id", id)
       .order("created_at", { ascending: true })
-      .limit(stepsLimit),
+      .limit(2000),
     supabase
       .from("vcw_bugs")
       .select("id,title,severity,description,created_at")
       .eq("run_id", id)
       .order("created_at", { ascending: true })
-      .limit(bugsLimit),
+      .limit(500),
   ]);
-  if (stepsError) return dbFail("vcw/run steps", stepsError, "Unable to load run steps.");
-  if (bugsError) return dbFail("vcw/run bugs", bugsError, "Unable to load run bugs.");
+  if (stepsError) return dbFail("vcw/run export steps", stepsError, "Unable to load run steps.");
+  if (bugsError) return dbFail("vcw/run export bugs", bugsError, "Unable to load run bugs.");
 
-  const stepList = steps ?? [];
-  const bugList = bugs ?? [];
-  const kinds: Record<string, number> = {};
-  for (const s of stepList) kinds[s.kind] = (kinds[s.kind] ?? 0) + 1;
   return ok({
+    format: "vcw-run-export/1",
+    exported_at: new Date().toISOString(),
     run,
-    steps: stepList,
-    bugs: bugList,
-    counts: { steps: stepList.length, bugs: bugList.length, kinds },
-    limits: { steps_limit: stepsLimit, bugs_limit: bugsLimit },
+    steps: steps ?? [],
+    bugs: bugs ?? [],
   });
 }

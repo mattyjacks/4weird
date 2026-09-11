@@ -113,6 +113,13 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
   const [stillAcks, setStillAcks] = useState(0);
   const sessionRef = useRef<string | null>(null);
   const startedRef = useRef(false);
+  // Latest guest ad_token for the server-side token chain (over-quota loads
+  // must present the previous load's token). Survives the interstitial
+  // retry; reset per slug mount.
+  const guestAdToken = useRef<string | null>(null);
+  // Bumped when the guest interstitial is dismissed so the boot effect
+  // re-runs guest-pass WITH the fresh token instead of playing blind.
+  const [guestRetry, setGuestRetry] = useState(0);
 
   const startSession = useCallback(
     async (newBytes: number) => {
@@ -256,16 +263,28 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
         setGate({ kind: "playing", signedIn: false, sessionId: null, loadFee: 0, freeLoad: true, coinsPerHour: 0 });
         return;
       }
-      // Guest path: quota + ads.
+      // Guest path: quota + ads. Over-quota loads chain the previous
+      // load's ad_token (see /api/games/guest-pass); the ref carries it
+      // across the interstitial retry. A 403 denial still carries a fresh
+      // ad + token, so showing the interstitial and retrying converges.
       try {
-        const pass = await postJson<{
-          allowed: boolean;
-          loads_used: number;
-          loads_free: number;
-          ad_required: boolean;
-          ad: HouseAd | null;
-        }>("/api/games/guest-pass", { game_slug: slug });
+        const guestRes = await fetch("/api/games/guest-pass", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ game_slug: slug, ...(guestAdToken.current ? { ad_token: guestAdToken.current } : {}) }),
+        });
+        const pass = (await guestRes.json().catch(() => ({}))) as {
+          allowed?: boolean;
+          loads_used?: number;
+          loads_free?: number;
+          ad_required?: boolean;
+          ad?: HouseAd | null;
+          ad_token?: string;
+          error?: string;
+        };
         if (!live) return;
+        if (typeof pass.ad_token === "string" && pass.ad_token) guestAdToken.current = pass.ad_token;
         try {
           const key = `4weird-guest-loads:${new Date().toISOString().slice(0, 10)}`;
           window.localStorage.setItem(key, String(pass.loads_used));
@@ -273,7 +292,9 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
           /* private mode; server quota still enforced */
         }
         if (pass.ad_required && pass.ad) {
-          setGate({ kind: "guest-ad", ad: pass.ad, loadsUsed: pass.loads_used, loadsFree: pass.loads_free });
+          setGate({ kind: "guest-ad", ad: pass.ad, loadsUsed: pass.loads_used ?? 0, loadsFree: pass.loads_free ?? 0 });
+        } else if (!guestRes.ok || pass.allowed === false) {
+          setGate({ kind: "denied", message: pass.error ?? "Guest play unavailable." });
         } else {
           setGate({ kind: "playing", signedIn: false, sessionId: null, loadFee: 0, freeLoad: true, coinsPerHour: 0 });
         }
@@ -285,7 +306,7 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
     return () => {
       live = false;
     };
-  }, [slug, age, kidHandle]);
+  }, [slug, age, kidHandle, guestRetry]);
 
   // Signed-in metering: wait for the bridge's byte report, else bill the load.
   useEffect(() => {
@@ -435,7 +456,10 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
           <AdSlot
             slot={`play-${slug}`}
             forceAd={gate.ad}
-            onSkipped={() => setGate({ kind: "playing", signedIn: false, sessionId: null, loadFee: 0, freeLoad: true, coinsPerHour: 0 })}
+            onSkipped={() => {
+              setGate({ kind: "checking" });
+              setGuestRetry((n) => n + 1);
+            }}
           />
         </div>
         <div className="mt-4 flex flex-wrap gap-2">

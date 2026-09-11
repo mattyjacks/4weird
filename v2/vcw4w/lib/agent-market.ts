@@ -163,12 +163,18 @@ export function isHeartbeatSeconds(value: unknown): number {
 }
 
 /** Map a Supabase RPC failure to an HTTP status (all RPC raises are client
- *  errors except unexpected internals). */
+ *  errors except unexpected internals). Money and ownership faults get
+ *  their honest codes: short funds 402, foreign rows 404 (never a 400
+ *  oracle), caps 409. */
 export function rpcStatus(message: string): number {
   const m = message.toLowerCase();
   if (m.includes("authentication required") || m.includes("login required"))
     return 401;
+  if (m.includes("insufficient"))
+    return 402;
   if (m.includes("not authorized")) return 403;
-  if (m.includes("not found")) return 404;
+  if (m.includes("not found") || m.includes("not your child")) return 404;
+  if (m.includes("limit reached") || m.includes("already subscribed") || m.includes("cap reached"))
+    return 409;
   return 400;
 }

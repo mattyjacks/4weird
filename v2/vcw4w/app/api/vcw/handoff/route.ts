@@ -51,7 +51,7 @@ export async function POST(req: Request) {
 
   const { data: run, error: runError } = await supabase
     .from("vcw_runs")
-    .select("id,game_slug,goal,status,verdict,summary")
+    .select("id,game_slug,goal,status,verdict,summary,updated_at")
     .eq("id", runId)
     .eq("user_id", data.user.id)
     .single();
@@ -106,6 +106,8 @@ export async function POST(req: Request) {
       description: b.description,
     })),
     reason,
+    runId,
+    updatedAt: (run as { updated_at?: string | null }).updated_at ?? null,
   });
   return ok({ run_id: runId, markdown });
 }

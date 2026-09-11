@@ -81,10 +81,20 @@ export async function POST(req: Request) {
   // True-cost voice leg: chars at the model's USD rate + one DB leg. The RPC
   // prices buddy-tts at 2 coins per qty unit, so derive qty from the
   // true-cost gross; the ledger lands on the accurate figure.
+  // Balance is pre-checked (402 when short) AND the debit lands BEFORE the
+  // provider call: metering gates the goods, so a failed meter fails the
+  // turn instead of serving unmetered audio (each would leak real OpenAI
+  // spend). The meter RPC re-checks balance under its spend lock, so a race
+  // that empties the wallet between check and debit still fails closed.
   const cost = quoteBuddyTtsLeg({ chars: text.length, model });
   const gross = cost.grossCoins;
-  // Meter BEFORE touching OpenAI: a failed meter (e.g. insufficient
-  // balance) fails the request instead of serving paid-out audio for free.
+  try {
+    const { data: bal, error: balError } = await supabase.rpc("get_my_coin_balance");
+    if (balError) return dbFail("api/buddy/tts:balance", balError, "Unable to check balance.");
+    if ((Number(bal) || 0) < gross) return fail("Insufficient Vibe Coin balance.", 402);
+  } catch (error) {
+    return dbFail("api/buddy/tts:balance", error, "Unable to check balance.");
+  }
   let metered: unknown = null;
   try {
     const { data: row, error } = await supabase.rpc("meter_game_ai_usage", {
@@ -94,10 +104,10 @@ export async function POST(req: Request) {
       p_session: sessionRaw,
       p_source: "tts",
     });
-    if (error) return rpcFail("api/buddy/tts:meter", error, rpcStatus, "Unable to meter voice output.");
+    if (error) return rpcFail("api/buddy/tts:meter", error, rpcStatus, "Unable to meter this turn.");
     metered = row;
   } catch (error) {
-    return dbFail("api/buddy/tts:meter", error, "Unable to meter voice output.");
+    return dbFail("api/buddy/tts:meter", error, "Unable to meter this turn.");
   }
 
   try {
@@ -138,7 +148,7 @@ export async function POST(req: Request) {
       mime: "audio/mpeg",
     });
   } catch (err) {
-    console.error("[buddy] tts failed, client should use speechSynthesis:", err);
-    return ok({ fallback: true, voice, model, speed, gross, cost: null, metered });
+    console.error("[buddy] tts failed after metering:", err);
+    return fail("Voice generation failed after the turn was metered; retry or use browser speech.", 502);
   }
 }

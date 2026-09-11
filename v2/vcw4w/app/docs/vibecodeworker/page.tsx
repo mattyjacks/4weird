@@ -63,7 +63,7 @@ export default function VcwPage() {
         items={[
           ["Check status", <>Confirm service health, catalog game count, recent runs/bugs. Unhealthy? Stop here.</>],
           ["Pick a target", <>List catalog games — slug, title, genre, play URL. Every legal run target comes from this list; first-party play URLs only.</>],
-          ["Open a run", <>Catalog slug + a 1–500 character goal (“verify level-2 boss spawns adds”). You get a run ID.</>],
+          ["Open a run", <>Catalog slug + a 1–500 character goal (“verify level-2 boss spawns adds”). You get a run ID. List yours with <code>?game_slug=</code> + <code>?status=open|completed</code> + <code>?verdict=pass|fail|inconclusive</code> + <code>?limit=</code> + <code>?before=</code> cursor paging; bugs filter by <code>?severity=</code> + <code>?game_slug=</code> + <code>?run_id=</code> the same way.</>],
           ["Observe → reason → act", <>Append one iteration at a time — observation, action, or finding (text + optional ≤10 KB data object). Open runs only.</>],
           ["File bugs", <>Title + description + severity (low/medium/high/critical, default medium), optionally pinned to a run (defaults the slug).</>],
           ["Complete the run", <>Close with summary + verdict: pass / fail / inconclusive. Closed runs are read-only history.</>],

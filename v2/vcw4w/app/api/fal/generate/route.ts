@@ -97,7 +97,20 @@ export async function POST(req: Request) {
     });
   }
 
-  // Meter first (fail closed): no free fal spend on real provider cost.
+  // Balance pre-check (402 when short), then the debit lands BEFORE fal.ai
+  // is touched: metering gates the goods, so a failed meter fails the run
+  // instead of queueing spend the ledger never sees (each orphaned queue
+  // would bill the server key with no revenue). The meter RPC re-checks
+  // balance under its spend lock, so a race that empties the wallet between
+  // check and debit still fails closed with no queue submitted.
+  try {
+    const { data: bal, error: balError } = await supabase.rpc("get_my_coin_balance");
+    if (balError) return dbFail("api/fal/generate", balError, "Unable to check balance.");
+    if ((Number(bal) || 0) < quote.gross) return fail("Insufficient Vibe Coin balance.", 402);
+  } catch (error) {
+    return dbFail("api/fal/generate", error, "Unable to check balance.");
+  }
+
   let usage: unknown = null;
   try {
     const { data: result, error } = await supabase.rpc("meter_fal_usage", {
@@ -131,17 +144,17 @@ export async function POST(req: Request) {
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       if (res.status === 401 || res.status === 403) {
-        console.error(`[api/fal/generate] fal.ai rejected the server key (HTTP ${res.status}, op ${opRaw}, model ${model}). Nothing was charged.`);
+        console.error(`[api/fal/generate] fal.ai rejected the server key (HTTP ${res.status}, op ${opRaw}, model ${model}). The run was metered; contact support for a credit.`);
         return fail(
-          `fal.ai rejected the server key (HTTP ${res.status}). Re-issue FAL_KEY in the fal.ai dashboard and update the server env; nothing was charged, metered coins stay on your balance.`,
+          `fal.ai rejected the server key (HTTP ${res.status}). Re-issue FAL_KEY in the fal.ai dashboard and update the server env; the run was metered before queueing, so contact support if you need a credit.`,
           502,
         );
       }
-      return fail(`fal.ai queue HTTP ${res.status}: ${text.slice(0, 160)}`, 502);
+      return fail(`fal.ai queue HTTP ${res.status}: ${text.slice(0, 160)} (metered before queueing; contact support if you need a credit).`, 502);
     }
     const queued = (await res.json()) as { request_id?: string; requestId?: string; status_url?: string; response_url?: string };
     const requestId = String(queued.request_id ?? queued.requestId ?? "");
-    if (!requestId) return fail("fal.ai returned no request id.", 502);
+    if (!requestId) return fail("fal.ai returned no request id (metered before queueing; contact support if you need a credit).", 502);
     return ok({
       started: true,
       configured: true,

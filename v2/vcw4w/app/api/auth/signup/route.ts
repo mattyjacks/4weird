@@ -74,14 +74,12 @@ export async function POST(req: Request) {
     return fail("Choose your age band: Teen (13-17) or Adult (18+). Under 13 needs a parent account.", 400);
   }
   const ageBand = rawBand as "teen" | "adult";
-  // Where local law sets a higher consent age (EU GDPR Art. 8 up to 16),
-  // younger teens need parent/guardian permission to sign up.
-  const consentKeys = ["parent_consent", "guardian_consent", "local_consent"] as const;
-  const consentGiven = consentKeys.some((k) => {
-    const v = input[k];
-    return v === true || v === "true" || v === "1" || v === 1 || v === "yes" || v === "on";
-  });
-  void consentGiven;
+  // NOTE: no parental-consent token is collected or enforced here. Consent
+  // is the self-declared band above plus the hard 13+ gate: under-13s can
+  // only play on parent-created Child sub-accounts (COPPA), and EU teens
+  // self-declare like everyone else. (A previous revision parsed
+  // parent_consent/guardian_consent/local_consent and discarded the result;
+  // the dead parse was removed so the code matches the actual policy.)
   try {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.signUp({

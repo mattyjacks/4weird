@@ -4,7 +4,7 @@ import { fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { requireHuman } from "@/lib/botid";
-import { cleanSupportAmount } from "@/lib/support";
+import { cleanSupportAmount, FUNDRAISERS_DISABLED_NOTICE, FUNDRAISERS_ENABLED } from "@/lib/support";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +29,7 @@ function rpcStatus(msg: string): number {
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  if (!FUNDRAISERS_ENABLED) return fail(FUNDRAISERS_DISABLED_NOTICE, 403);
   const { id: raw } = await params;
   const id = isUuid(raw);
   if (!id) return fail("Invalid campaign.", 400);

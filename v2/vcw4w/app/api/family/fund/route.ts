@@ -33,7 +33,7 @@ export async function POST(req: Request) {
   const kidId = String(input.kid_id ?? "");
   const coins = Number(input.coins);
   if (!/^[0-9a-f-]{36}$/i.test(kidId)) return fail("Invalid child account.", 400);
-  if (!Number.isFinite(coins) || coins <= 0 || coins > 100000) return fail("Amount must be 0-100,000 coins.", 400);
+  if (!Number.isFinite(coins) || coins <= 0 || coins > 100000) return fail("Amount must be 0.01-100,000 coins.", 400);
   const { data: balance, error } = await supabase.rpc("fund_kid_wallet", { p_kid: kidId, p_coins: Math.round(coins * 100) / 100 });
   if (error) return rpcFail("api/family/fund", error, rpcStatus, "Unable to fund child wallet.");
   return ok({ balance: Number(balance ?? 0) });

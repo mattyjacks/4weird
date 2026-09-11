@@ -141,7 +141,9 @@ export function SupportClient() {
       if (!data.success) setError(data.error ?? "Tip failed.");
       else {
         const t = data.tipped as { gross_coins?: number; net_coins?: number };
-        setNotice(`Sent ${t.gross_coins} coins (${t.net_coins} reach the creator after the 25% cut). Voluntary and final.`);
+        setNotice(tipClan
+          ? `Sent ${t.gross_coins} coins (${t.net_coins} reach the clan wallet after the 25% cut). Voluntary and final.`
+          : `Sent ${t.gross_coins} coins (${t.net_coins} reach the creator as time-locked Crowns - 30-day unlock, 1-year expiry - after the 25% cut). Voluntary and final.`);
       }
     } finally {
       setBusy(false);

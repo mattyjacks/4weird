@@ -70,7 +70,7 @@ if (!ops.includes("/api/fal/ops") || !ops.includes("FAL_OPS")) fail("ops API mus
 if (!generate.includes("Authentication required")) fail("generate API must require auth.");
 if (!generate.includes("meter_fal_usage")) fail("generate API must call meter_fal_usage.");
 if (!generate.includes("started:false") || !generate.includes("falConfigured")) fail("generate API must degrade honestly without FAL_KEY.");
-if (!generate.includes("rpcFail") || !generate.includes("Unable to meter this fal run")) fail("generate API must fail the run when metering fails (no free runs).");
+if (!generate.includes("rpcFail") || !/unable to meter/i.test(generate)) fail("generate API must fail the run when metering fails (no free runs).");
 if (!generate.includes("queue.fal.run") && !generate.includes("falApiBase")) fail("generate API must queue via the fal queue base.");
 if (!status.includes("Authentication required")) fail("status API must require auth.");
 if (!status.includes("falConfigured")) fail("status API must honor falConfigured.");
@@ -85,7 +85,7 @@ if (!read("../components/teams/team-workspace.tsx").includes("/fal")) fail("Team
 // Standard harness + ledger: VCW status advertises the 30 ops, usage breaks out fal.
 if (!vcwStatus.includes("fal_ops") || !vcwStatus.includes("fal_configured")) fail("VCW status must advertise fal_ops + fal_configured.");
 if (!vcwStatus.includes("fal_fast_ops") || !vcwStatus.includes("fal_by_phase") || !vcwStatus.includes("fal_howto")) fail("VCW status must advertise fal_fast_ops + fal_by_phase + fal_howto (main-loop meld).");
-if (!vcwActions.includes("parseFalToolCall") || !vcwActions.includes("[tool: fal.generate")) fail("VCW actions must detect fal tool calls in the main loop.");
+if (!vcwActions.includes("describeFalStep") || !vcwActions.includes("[tool: fal.generate")) fail("VCW actions must detect fal tool calls in the main loop (via the shared describeFalStep helper).");
 if (!vcwRuns.includes("VCW_FAL_TOOL_ID") || !vcwRuns.includes("parseFalToolCall")) fail("vcw-runs lib must carry the fal meld helpers.");
 if (!usage.includes("my_fal_usage") || !usage.includes("falTotalGross")) fail("Usage API must roll up fal spend into combined totals.");
 if (!read("../app/my/usage/usage-client.tsx").includes("fal.ai Studio")) fail("Usage client must show the fal.ai section.");

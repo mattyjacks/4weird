@@ -22,9 +22,9 @@ import {
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/meshy/generate { op, prompt?, image_url?, scope?, scope_id? }.
+ * POST /api/meshy/generate { op, prompt?, image_url?, model_url? (remesh), scope?, scope_id? }.
  * Auth: session OR bot key with `meshy:generate`.
- * Meters gross (25% cut INCLUDED) BEFORE queueing; without MESHY_API_KEY
+ * Meters gross (25% cut INCLUDED) AFTER Meshy accepts the task; without MESHY_API_KEY
  * returns honest started:false + quote, charging nothing, never faked.
  */
 export async function POST(req: Request) {
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
     });
   }
 
-  let svc;
+  let svc: ReturnType<typeof serviceClient>;
   try {
     svc = serviceClient();
   } catch {
@@ -104,32 +104,51 @@ export async function POST(req: Request) {
   if (jobErr || !job) return dbFail("api/meshy/generate", jobErr, "Unable to open job.");
   const jobId = (job as { id: string }).id;
 
-  // Meter first (fail closed).
-  if (viaBot) {
-    const { error } = await svc.rpc("meter_meshy_usage_for", {
-      p_user: userId,
-      p_op: opRaw,
-      p_qty: 1,
-      p_job: jobId,
-    });
-    if (error) {
-      await svc.from("meshy_jobs").delete().eq("id", jobId);
-      return rpcFail("api/meshy/generate", error, rpcStatus, "Unable to meter this Meshy run.");
+  // Meter AFTER Meshy accepts the task: a rejected queue is free by
+  // construction. (Meter-first billed failed queues.) The meter RPC
+  // re-checks balance under its spend lock, so short funds fail closed
+  // here and the job is marked failed, never silently free.
+  async function meterOrFail(): Promise<{ ok: true } | { ok: false; response: Response }> {
+    if (viaBot) {
+      const { error } = await svc.rpc("meter_meshy_usage_for", {
+        p_user: userId,
+        p_op: opRaw,
+        p_qty: 1,
+        p_job: jobId,
+      });
+      if (error) {
+        await svc.from("meshy_jobs").update({ status: "failed" }).eq("id", jobId);
+        return { ok: false, response: rpcFail("api/meshy/generate", error, rpcStatus, "Queued on Meshy.ai but unable to meter; not charged.") };
+      }
+    } else {
+      const { error } = await supabase.rpc("meter_meshy_usage", {
+        p_op: opRaw,
+        p_qty: 1,
+        p_job: jobId,
+      });
+      if (error) {
+        await svc.from("meshy_jobs").update({ status: "failed" }).eq("id", jobId);
+        return { ok: false, response: rpcFail("api/meshy/generate", error, rpcStatus, "Queued on Meshy.ai but unable to meter; not charged.") };
+      }
     }
-  } else {
-    const { error } = await supabase.rpc("meter_meshy_usage", {
-      p_op: opRaw,
-      p_qty: 1,
-      p_job: jobId,
-    });
-    if (error) {
-      await svc.from("meshy_jobs").delete().eq("id", jobId);
-      return rpcFail("api/meshy/generate", error, rpcStatus, "Unable to meter this Meshy run.");
-    }
+    return { ok: true };
   }
 
   const key = meshyKey();
   const base = meshyApiBase();
+  // Remesh takes a source MODEL (not an image): accept model_url and route
+  // to POST /v2/remesh. Anything else remesh-shaped must not fall through
+  // to the animation endpoint.
+  const modelUrl = typeof input.model_url === "string" ? input.model_url : "";
+  if (opRaw === "remesh" && !isHttpsUrl(modelUrl)) {
+    await svc.from("meshy_jobs").update({ status: "failed" }).eq("id", jobId);
+    return fail("Remesh needs a source model_url (https).", 400);
+  }
+  if (modelUrl && !isHttpsUrl(modelUrl)) return fail("Invalid model_url.", 400);
+  if (modelUrl) {
+    const verdict = await checkEgressUrl(modelUrl);
+    if ("error" in verdict) return fail(`Blocked fetch target: ${verdict.error}`, 400);
+  }
   const endpoint =
     opRaw === "text-to-3d"
       ? `${base}/v2/text-to-3d`
@@ -137,7 +156,9 @@ export async function POST(req: Request) {
         ? `${base}/v2/image-to-3d`
         : opRaw === "text-to-texture"
           ? `${base}/v2/text-to-texture`
-          : `${base}/v1/animate`;
+          : opRaw === "remesh"
+            ? `${base}/v2/remesh`
+            : `${base}/v1/animate`;
   const payload =
     opRaw === "text-to-3d"
       ? { mode: "preview", prompt, art_style: "stylized", ai_model: "meshy-5" }
@@ -145,7 +166,9 @@ export async function POST(req: Request) {
         ? { image_url: imageUrl, ai_model: "meshy-5" }
         : opRaw === "text-to-texture"
           ? { prompt, art_style: "stylized" }
-          : { prompt };
+          : opRaw === "remesh"
+            ? { model_url: modelUrl || undefined, target_polycount: 300000, topology: "quad" }
+            : { prompt };
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 20_000);
@@ -171,6 +194,8 @@ export async function POST(req: Request) {
       await svc.from("meshy_jobs").update({ status: "failed" }).eq("id", jobId);
       return fail("Meshy.ai returned no task id.", 502);
     }
+    const metered = await meterOrFail();
+    if (!metered.ok) return metered.response;
     await svc
       .from("meshy_jobs")
       .update({ meshy_task_id: taskId, status: "processing", coins: quote.gross, cut: quote.cut })

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function RunpodsPage() {
   return (
-    <main id="main-content" className="mx-auto max-w-6xl px-4 py-10 sm:px-5">
+    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-5">
       <p className="text-xs font-bold uppercase tracking-widest text-cyan-300">Your servers</p>
       <h1 className="mt-2 text-4xl font-black">My RunPods</h1>
       <p className="mt-2 max-w-2xl text-sm text-slate-300">

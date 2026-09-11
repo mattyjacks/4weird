@@ -107,6 +107,11 @@ export async function getKidSession(
   const tokenHash = hashKidToken(token);
   const legacyHash = hashKidTokenLegacy(token);
   let session: { kid_id: string; expires_at: string } | null = null;
+  // Remember which hash matched: the liveness refresh below must update by
+  // the matched hash (a peppered row matched by tokenHash; a legacy row by
+  // legacyHash). Updating a peppered session by the legacy hash touches 0
+  // rows and silently drops the sliding refresh.
+  let matchedHash = tokenHash;
   {
     const { data } = await service
       .from("kid_sessions")
@@ -121,6 +126,7 @@ export async function getKidSession(
         .eq("token_hash", legacyHash)
         .maybeSingle();
       session = (legacy as { kid_id: string; expires_at: string } | null) ?? null;
+      if (session) matchedHash = legacyHash;
     }
   }
   if (!session || new Date(String(session.expires_at)).getTime() <= Date.now()) return null;
@@ -158,9 +164,8 @@ export async function getKidSession(
     if (expiresMs - Date.now() < 48 * 3600 * 1000) {
       patch.expires_at = new Date(Date.now() + KID_SESSION_DAYS * 24 * 3600 * 1000).toISOString();
     }
-    if (legacyHash !== tokenHash) patch.token_hash = tokenHash;
-    const lookupHash = legacyHash !== tokenHash && patch.token_hash ? legacyHash : tokenHash;
-    await service.from("kid_sessions").update(patch).eq("token_hash", lookupHash);
+    if (matchedHash === legacyHash && legacyHash !== tokenHash) patch.token_hash = tokenHash;
+    await service.from("kid_sessions").update(patch).eq("token_hash", matchedHash);
   } catch {
     // liveness/refresh must never break play
   }
