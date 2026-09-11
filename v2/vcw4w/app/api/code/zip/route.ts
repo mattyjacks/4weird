@@ -68,7 +68,8 @@ export async function POST(req: Request) {
   const filename = String(
     (file as File).name ?? (form.get("filename") as string | null) ?? "game.zip",
   ).slice(0, 128);
-  if (!/\.zip$/i.test(filename) && file.type !== "application/zip") {
+  // Extension is authoritative; file.type is client-controlled and ignored.
+  if (!/\.zip$/i.test(filename)) {
     return fail("Only .zip packages are accepted.", 400);
   }
   const title = String(form.get("title") ?? filename.replace(/\.zip$/i, "") ?? "Untitled game")
@@ -85,7 +86,17 @@ export async function POST(req: Request) {
   if (buf.length > ZIP_MAX_BYTES) {
     return fail("Package exceeds the 50 MB cap. Keep it lean so every game loads fast.", 413);
   }
-  if (buf.length < 22 || !(buf[0] === 0x50 && buf[1] === 0x4b)) {
+  // Magic: PK local-header signature + end-of-central-directory record.
+  const hasLocalHeader = buf[0] === 0x50 && buf[1] === 0x4b && buf[2] === 0x03 && buf[3] === 0x04;
+  let hasEocd = false;
+  const tailStart = Math.max(0, buf.length - 66500);
+  for (let i = buf.length - 22; i >= tailStart; i--) {
+    if (buf[i] === 0x50 && buf[i + 1] === 0x4b && buf[i + 2] === 0x05 && buf[i + 3] === 0x06) {
+      hasEocd = true;
+      break;
+    }
+  }
+  if (buf.length < 22 || !hasLocalHeader || !hasEocd) {
     return fail("Not a readable .zip package.", 400);
   }
 

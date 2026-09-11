@@ -5,7 +5,7 @@ import { SUBMIT_CUT_NOTE } from "@/lib/zip-submit";
 export const metadata: Metadata = {
   alternates: { canonical: "/submit" },
   title: "Submit your game (.zip) | 4weird",
-  description: `Upload your game as a .zip (50 MB max — every game loads fast) with a Vercel-style game root. Automatic safety scan: safe, warning, unsafe, or denied. ${SUBMIT_CUT_NOTE}`,
+  description: `Upload your game as a .zip (50 MB max; every game loads fast) with a Vercel-style game root. Automatic safety scan: safe, warning, unsafe, or denied. ${SUBMIT_CUT_NOTE}`,
 };
 
 export default function SubmitPage() {
@@ -15,7 +15,7 @@ export default function SubmitPage() {
         <p className="text-sm font-semibold uppercase tracking-widest text-cyan-300">Submit · .zip games</p>
         <h1 className="mt-2 text-4xl font-black">📦 Submit your game</h1>
         <p className="mt-4 text-slate-300">
-          Zip your game (max <strong>50 MB</strong> — every game on 4weird loads
+          Zip your game (max <strong>50 MB</strong> - every game on 4weird loads
           fast ⚡), tell us the{" "}
           <strong>game root</strong> inside the .zip (like picking the Root Directory on
           Vercel; where your index.html lives), and our scanner marks it{" "}

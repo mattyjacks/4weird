@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { checkEgressUrl } from "@/lib/ssrf-guard";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
@@ -75,16 +76,36 @@ export async function POST(req: Request) {
           : "";
     bytes = Buffer.from(capped, "utf8");
     mime = "text/plain";
-  } else if (url.startsWith("https://") && url.length <= 2048) {
+  } else if (url) {
+    // SSRF guard: https-only, no private/link-local/metadata IPs (DNS-pinned),
+    // no redirects (blocks 302 downgrade to intranet), streaming 50 MB cap.
+    const egress = await checkEgressUrl(url);
+    if ("error" in egress) return fail(egress.error, 400);
     try {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 15_000);
       try {
-        const res = await fetch(url, { signal: controller.signal });
+        const res = await fetch(egress.url.toString(), { signal: controller.signal, redirect: "error" });
         if (!res.ok) return fail("Unable to fetch artifact URL.", 502);
-        const buf = Buffer.from(await res.arrayBuffer());
-        if (buf.length > 50 * 1024 * 1024) return fail("Artifact exceeds 50 MB.", 413);
-        bytes = buf;
+        const announced = Number(res.headers.get("content-length") ?? 0);
+        if (Number.isFinite(announced) && announced > 50 * 1024 * 1024) {
+          return fail("Artifact exceeds 50 MB.", 413);
+        }
+        const chunks: Buffer[] = [];
+        let total = 0;
+        const reader = res.body?.getReader();
+        if (!reader) return fail("Unable to fetch artifact URL.", 502);
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          total += value.byteLength;
+          if (total > 50 * 1024 * 1024) {
+            try { await reader.cancel(); } catch { /* ignore */ }
+            return fail("Artifact exceeds 50 MB.", 413);
+          }
+          chunks.push(Buffer.from(value));
+        }
+        bytes = Buffer.concat(chunks);
         mime = (res.headers.get("content-type") ?? "application/octet-stream").slice(0, 128);
       } finally {
         clearTimeout(timer);

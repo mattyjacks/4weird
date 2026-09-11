@@ -44,6 +44,16 @@ export async function GET(req: Request) {
   } catch {
     return fail("Vault unavailable.", 503);
   }
+  // Explicit membership gate (defense in depth beyond RLS): team/org list
+  // requires direct membership, so public/internal visibility can never
+  // over-grant file metadata to strangers.
+  if (scope !== "personal") {
+    if (!/^[0-9a-f-]{36}$/i.test(scopeId)) return fail("Invalid scope_id.", 400);
+    const table = scope === "team" ? "team_members" : "org_members";
+    const col = scope === "team" ? "team_id" : "org_id";
+    const { data: mem } = await svc.from(table).select("user_id").eq(col, scopeId).eq("user_id", userId).maybeSingle();
+    if (!mem) return fail("Not a member of that scope.", 403);
+  }
   // Scope gate: personal callers see only their own rows; team/org rows go
   // through the membership-checked RLS policies on the user client.
   let query = supabase
@@ -111,6 +121,16 @@ export async function POST(req: Request) {
   }
   const kind = String(input.kind ?? "asset").slice(0, 16);
   const mime = String(input.mime ?? "application/octet-stream").slice(0, 128);
+  // Stored-XSS guard: never store browser-active markup that would execute
+  // inline when a teammate opens the signed URL. HTML/SVG/XML are rejected;
+  // use text/plain or octet-stream for code instead.
+  if (/^\s*(text\/html|image\/svg\+xml|application\/xhtml\+xml|text\/xml|application\/xml|multipart\/related)\s*(;|$)/i.test(mime)) {
+    return fail("That content type cannot be stored inline. Use a safe type.", 400);
+  }
+  const lowerPath = path.toLowerCase();
+  if (/\.(html?|xhtml|svg|shtml|hta|swf|xap)$/.test(lowerPath)) {
+    return fail("That file extension cannot be stored inline.", 400);
+  }
 
   let svc;
   try {

@@ -100,7 +100,13 @@ export default function ExploreMorePage() {
           </div>
         ))}
       </div>
-      <Callout tone="cyan" title="â™¿ Accessibility lives at /accessibility.">
+      <SectionHead
+        index="4"
+        kicker="Ship it"
+        title="Submit your game - 50 MB, loads fast ⚡"
+        body="Zip your game (50 MB max into the game-blobs vault), name the game root like a Vercel Root Directory, and our scanner marks it safe, warning, unsafe, or denied. The cap is a feature: every game on 4weird loads fast. Start at /submit."
+      />
+      <Callout tone="cyan" title="⚡ Accessibility lives at /accessibility.">
         Keyboard paths, contrast, reduced-motion, and screen-reader notes for the whole arcade â€”
         linked from the footer on every page. Found a barrier? Email{" "}
         <a className="underline" href="mailto:matt@mattyjacks.com">matt@mattyjacks.com</a> with

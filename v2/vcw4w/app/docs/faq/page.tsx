@@ -31,6 +31,7 @@ const FAQS: [string, string, string][] = [
   ["🧾", "Where is my spend?", "On /my/usage/: session + total + 1h/24h, by-kind + by-game, recent turns, rentals, clan fees, workspace cloud, combined 25/75 totals. Screenshot it for support."],
   ["🔑", "Export or delete my data?", "Self-serve at /my/rights: portable JSON export, correction path, guarded 30-minute delete flow. Only your own account; deceased-family cases go by email with proof."],
   ["🚨", "Report abuse or CSAM?", "Report in-product (anonymous OK). CSAM is quarantined instantly, preserved, human-reviewed, referred to NCMEC. Never repost or describe it."],
+  ["📦", "How big can my submitted game be?", "50 MB max per .zip into the game-blobs vault; a feature, not a limit: every game on 4weird loads fast. Trim assets, compress audio, and your players will thank you."],
   ["✉️", "Business, DMCA, press?", "MattyJacks LLC via matt@mattyjacks.com. Include URLs, order emails for billing, and /my/usage/ screenshots where relevant."],
 ];
 
@@ -50,7 +51,7 @@ export default function FaqPage() {
         title={<>Answers first. <span className={theme.title}>Humans on standby.</span></>}
         lede={<>Fast answers up front, a human when needed. Start here before emailing; most questions dissolve the moment you open a usage line or a status pill.</>}
         stats={[
-          ["12", "answers below"],
+          ["13", "answers below"],
           ["12", "guides behind them"],
           ["1", "inbox for the rest"],
           ["0", "dumb questions"],

@@ -235,8 +235,8 @@ export function auditZipPackage(input: {
     });
   }
 
-  // Zip-slip / traversal guard on names.
-  for (const e of entries.slice(0, AUDIT_MAX_FILES)) {
+  // Zip-slip / traversal guard on names (ALL entries, not a sample).
+  for (const e of entries) {
     if (
       e.name.includes("..") ||
       e.name.startsWith("/") ||

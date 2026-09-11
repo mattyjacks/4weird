@@ -21,9 +21,9 @@ const meshyStatus = read("../app/api/meshy/status/route.ts");
 const autosaveRoute = read("../app/api/ai/autosave/route.ts");
 const artifacts = read("../app/api/ai/artifacts/route.ts");
 
-// 1. Lib constants: 69 MB cap, Vercel-style game root, 4 verdicts, 25% cuts.
+// 1. Lib constants: 50 MB cap, Vercel-style game root, 4 verdicts, 25% cuts.
 for (const [name, src, token] of [
-  ["zip-submit", zip, "ZIP_MAX_BYTES = 69 * 1024 * 1024"],
+  ["zip-submit", zip, "ZIP_MAX_BYTES = 50 * 1024 * 1024"],
   ["zip-submit", zip, "cleanGameRoot"],
   ["zip-submit", zip, "auditZipPackage"],
   ["zip-submit", zip, "SUBMIT_CUT_PCT = SERVICE_CUT_PCT"],
@@ -31,7 +31,7 @@ for (const [name, src, token] of [
   ["zip-submit", zip, "AUDIT_CUT_PCT = SERVICE_CUT_PCT"],
   ["blob-vault", vault, "VAULT_CUT_PCT = SERVICE_CUT_PCT"],
   ["blob-vault", vault, "VAULT_BUCKET = \"game-blobs\""],
-  ["blob-vault", vault, "VAULT_MAX_BLOB_BYTES = 69 * 1024 * 1024"],
+  ["blob-vault", vault, "VAULT_MAX_BLOB_BYTES = 50 * 1024 * 1024"],
   ["blob-vault", vault, "isVaultScope"],
   ["blob-vault", vault, "vaultObjectKey"],
   ["meshy", meshy, "MESHY_CUT_PCT = SERVICE_CUT_PCT"],
@@ -146,7 +146,7 @@ const env = read("../.env.example");
 if (!env.includes("MESHY_API_KEY=")) fail(".env.example must document MESHY_API_KEY.");
 if (!env.includes("game-blobs")) fail(".env.example must document the game-blobs bucket.");
 const terms = read("../app/terms/page.tsx");
-if (!terms.includes("69 MB") || !terms.includes("quarantined")) fail("Terms must disclose the .zip cap + quarantine.");
+if (!terms.includes("50 MB") || !terms.includes("quarantined")) fail("Terms must disclose the .zip cap + quarantine.");
 if (!terms.includes("only on valid legal process")) fail("Terms must state human-only referrals + lawful IP disclosure.");
 
 // 7. Package gate wiring.
@@ -154,4 +154,12 @@ const pkg = read("../package.json");
 if (!pkg.includes("verify:zip-vault-meshy")) fail("package.json must wire verify:zip-vault-meshy.");
 if (!/"test": "[^"]*verify:zip-vault-meshy/.test(pkg)) fail("npm test must run verify:zip-vault-meshy.");
 
-console.log("zip + vault + meshy integrity OK - 69 MB, 4 verdicts, strict scopes, 25% included, human-only referrals.");
+// 8. 50 MB fast-load cap: every game-blobs write path enforces it.
+const capMig = read("../supabase/migrations/20261015000000_game_blobs_50mb.sql");
+if (!capMig.includes("52428800")) fail("50 MB migration must enforce 52428800 bytes.");
+const vaultRegister = read("../app/api/vault/blobs/route.ts");
+if (!vaultRegister.includes("VAULT_MAX_BLOB_BYTES")) fail("vault blobs route must enforce VAULT_MAX_BLOB_BYTES.");
+const submitPage = read("../app/submit/page.tsx");
+if (!submitPage.includes("50 MB")) fail("Submit page must disclose the 50 MB fast-load cap.");
+
+console.log("zip + vault + meshy integrity OK - 50 MB, 4 verdicts, strict scopes, 25% included, human-only referrals.");

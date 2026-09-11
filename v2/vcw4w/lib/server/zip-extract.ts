@@ -30,8 +30,11 @@ export function extractTextSamples(buf: Buffer): ExtractedFile[] {
         break;
       const method = view.getUint16(off + 8, true);
       const compSize = view.getUint32(off + 18, true);
+      const uncompSize = view.getUint32(off + 22, true);
       const nameLen = view.getUint16(off + 26, true);
       const extraLen = view.getUint16(off + 28, true);
+      // Zip-bomb pre-guard: reject absurd compression ratios before inflating.
+      if (method === 8 && compSize > 0 && uncompSize > compSize * 200) break;
       const nameStart = off + 30;
       const dataStart = nameStart + nameLen + extraLen;
       if (dataStart > b.length) break;
@@ -57,7 +60,7 @@ export function extractTextSamples(buf: Buffer): ExtractedFile[] {
             method === 0
               ? slice.subarray(0, MAX_EACH_BYTES)
               : method === 8
-                ? inflateRawSync(slice, { windowBits: 15 }).subarray(0, MAX_EACH_BYTES)
+                ? inflateRawSync(slice, { windowBits: 15, maxOutputLength: MAX_EACH_BYTES }).subarray(0, MAX_EACH_BYTES)
                 : null;
           if (raw && raw.length > 0) {
             const text = new TextDecoder("utf-8", { fatal: false })

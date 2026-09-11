@@ -1,3 +1,4 @@
+import { createHash, timingSafeEqual } from "node:crypto";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 
@@ -14,7 +15,15 @@ function authorized(req: Request): boolean {
   const secret = process.env.CRON_SECRET ?? "";
   if (!secret) return false;
   const bearer = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
-  return bearer === secret;
+  if (!bearer) return false;
+  // Constant-time compare on hashes so neither value nor length leaks via timing.
+  const ah = createHash("sha256").update(bearer).digest();
+  const bh = createHash("sha256").update(secret).digest();
+  try {
+    return timingSafeEqual(ah, bh);
+  } catch {
+    return false;
+  }
 }
 
 async function tick() {

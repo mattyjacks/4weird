@@ -23,7 +23,7 @@ function partyOf(v: unknown): { kind: string; id: string } | null {
   return { kind, id };
 }
 
-// GET /api/parties/invites — my pending inbox + outbox across every party
+// GET /api/parties/invites; my pending inbox + outbox across every party
 // I can speak for (squads, clans, orgs) plus my own individual inbox.
 export async function GET() {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
@@ -36,7 +36,7 @@ export async function GET() {
 }
 
 // POST /api/parties/invites {from:{kind,id}, to:{kind,id}, message?}
-// — propose a join or alliance. Accepting lands the real membership
+//; propose a join or alliance. Accepting lands the real membership
 // (team_members / clan_members / org_members) plus an ally badge.
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);

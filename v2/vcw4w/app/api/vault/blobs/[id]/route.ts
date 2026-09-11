@@ -37,10 +37,26 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     .maybeSingle();
   if (error) return dbFail("api/vault/blob", error, "Unable to load file.");
   if (!row) return fail("File not found.", 404);
-  void userId;
+
+  // Explicit ownership/membership check before minting a download URL:
+  // RLS alone over-grants team files on public/internal teams.
+  const r = row as { scope: string; owner_id: string | null; team_id: string | null; org_id: string | null; quarantined: boolean; sha256: string; [k: string]: unknown };
+  let owns = r.scope === "personal" && r.owner_id === userId;
+  if (!owns && r.scope !== "personal") {
+    try {
+      const svc = serviceClient();
+      const table = r.scope === "team" ? "team_members" : "org_members";
+      const col = r.scope === "team" ? "team_id" : "org_id";
+      const scopeKey = String(r.scope === "team" ? r.team_id : r.org_id ?? "");
+      const { data: mem } = await svc.from(table).select("user_id").eq(col, scopeKey).eq("user_id", userId).maybeSingle();
+      owns = Boolean(mem);
+    } catch {
+      owns = false;
+    }
+  }
+  if (!owns) return fail("File not found.", 404);
 
   let download: string | null = null;
-  const r = row as Record<string, unknown>;
   if (!r.quarantined) {
     try {
       const svc = serviceClient();
@@ -53,14 +69,18 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       if (storagePath) {
         const { data: signed } = await svc.storage
           .from("game-blobs")
-          .createSignedUrl(storagePath, 3600);
+          .createSignedUrl(storagePath, 3600, { download: String(r.path ?? "download").split("/").pop() ?? "download" });
         download = signed?.signedUrl ?? null;
       }
     } catch {
       download = null;
     }
   }
-  return ok({ file: { ...r, download } });
+  const pub: Record<string, unknown> = { ...r };
+  delete pub.owner_id;
+  delete pub.team_id;
+  delete pub.org_id;
+  return ok({ file: { ...pub, download } });
 }
 
 /**

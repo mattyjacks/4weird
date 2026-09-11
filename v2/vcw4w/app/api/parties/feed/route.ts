@@ -29,7 +29,7 @@ function partyOf(v: unknown): { kind: string; id: string } | null {
   return { kind, id };
 }
 
-// GET /api/parties/feed?limit= — public town square, newest first.
+// GET /api/parties/feed?limit=; public town square, newest first.
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const limit = clampLimit(new URL(req.url).searchParams.get("limit"), 25, 100);
@@ -40,7 +40,7 @@ export async function GET(req: Request) {
 }
 
 // POST /api/parties/feed {actor:{kind,id}, target?:{kind,id}, body,
-// game_slug?} — post as any party you can speak for, optionally @ another
+// game_slug?}; post as any party you can speak for, optionally @ another
 // party. Valley Net screens every write (blocked refuses, suspicious held
 // as pending); posting is coin-free.
 export async function POST(req: Request) {

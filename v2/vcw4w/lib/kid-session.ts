@@ -1,4 +1,4 @@
-import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes, randomInt, scryptSync, timingSafeEqual } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { KID_SESSION_DAYS, type KidAccount, type KidControls } from "@/lib/family";
 
@@ -39,7 +39,7 @@ export function hashKidToken(token: string): string {
 }
 
 export function randomDiscriminator(): string {
-  return String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+  return String(randomInt(0, 10000)).padStart(4, "0");
 }
 
 export type KidSession = {

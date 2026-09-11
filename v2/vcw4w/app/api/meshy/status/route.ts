@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { checkEgressUrl } from "@/lib/ssrf-guard";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
@@ -83,12 +84,47 @@ export async function GET(req: Request) {
     if (!resultUrl) return ok({ job, status: "processing", configured: true });
 
     // Autosave to the owner's Weird Vault (personal scope).
-    const dl = await fetch(resultUrl);
-    if (!dl.ok) {
+    // resultUrl comes from the Meshy API, not the caller, but validate +
+    // pin it anyway (https-only, no private IPs, no redirects) with a
+    // timeout and a 50 MB streaming cap.
+    const egress = await checkEgressUrl(resultUrl);
+    if ("error" in egress) {
       await svc.from("meshy_jobs").update({ status: "processing", result_url: resultUrl }).eq("id", job);
       return ok({ job, status: "processing", result_url: resultUrl, configured: true });
     }
-    const bytes = Buffer.from(await dl.arrayBuffer());
+    const dlController = new AbortController();
+    const dlTimer = setTimeout(() => dlController.abort(), 15_000);
+    let bytes: Buffer;
+    try {
+      const dl = await fetch(egress.url.toString(), { signal: dlController.signal, redirect: "error" });
+      if (!dl.ok) {
+        await svc.from("meshy_jobs").update({ status: "processing", result_url: resultUrl }).eq("id", job);
+        return ok({ job, status: "processing", result_url: resultUrl, configured: true });
+      }
+      const announced = Number(dl.headers.get("content-length") ?? 0);
+      if (Number.isFinite(announced) && announced > 50 * 1024 * 1024) {
+        return ok({ job, status: "processing", result_url: resultUrl, configured: true });
+      }
+      const chunks: Buffer[] = [];
+      let total = 0;
+      const reader = dl.body?.getReader();
+      if (!reader) return ok({ job, status: "processing", result_url: resultUrl, configured: true });
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        total += value.byteLength;
+        if (total > 50 * 1024 * 1024) {
+          try { await reader.cancel(); } catch { /* ignore */ }
+          return ok({ job, status: "processing", result_url: resultUrl, configured: true });
+        }
+        chunks.push(Buffer.from(value));
+      }
+      bytes = Buffer.concat(chunks);
+    } catch {
+      return ok({ job, status: j.status, configured: true });
+    } finally {
+      clearTimeout(dlTimer);
+    }
     const sha256 = createHash("sha256").update(bytes).digest("hex");
     const ext = /\.fbx/i.test(resultUrl) ? "fbx" : /\.obj/i.test(resultUrl) ? "obj" : /\.mp4/i.test(resultUrl) ? "mp4" : "glb";
     const objectKey = `personal/${userId}/${sha256}.${ext}`;

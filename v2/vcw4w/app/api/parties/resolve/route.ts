@@ -16,8 +16,8 @@ function statusOf(message: string): number {
 }
 
 // GET /api/parties/resolve?kind=squad|clan|org|individual&ref=<slug|handle|id>
-// — unified directory lookup across all four party kinds.
-// GET /api/parties/resolve?q=<text> — search all four kinds at once.
+//; unified directory lookup across all four party kinds.
+// GET /api/parties/resolve?q=<text> - search all four kinds at once.
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const url = new URL(req.url);

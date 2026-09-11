@@ -22,7 +22,7 @@ function partyOf(v: unknown): { kind: string; id: string } | null {
   return { kind, id };
 }
 
-// GET /api/parties/challenges?kind=&id=&status= — open challenges touching a
+// GET /api/parties/challenges?kind=&id=&status=; open challenges touching a
 // party (default: every open challenge, newest first).
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
@@ -51,7 +51,7 @@ export async function GET(req: Request) {
 }
 
 // POST /api/parties/challenges {challenger:{kind,id}, opponent:{kind,id},
-// game_slug?, message?} — any party challenges any other party.
+// game_slug?, message?}; any party challenges any other party.
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();

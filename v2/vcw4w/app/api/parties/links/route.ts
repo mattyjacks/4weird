@@ -22,7 +22,7 @@ function partyOf(v: unknown): { kind: string; id: string } | null {
   return { kind, id };
 }
 
-// GET /api/parties/links?kind=&id= — follows/allies/rivals touching a party.
+// GET /api/parties/links?kind=&id=; follows/allies/rivals touching a party.
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const url = new URL(req.url);
@@ -41,7 +41,7 @@ export async function GET(req: Request) {
 }
 
 // POST /api/parties/links {from:{kind,id}, to:{kind,id}, action:"follow"|"unfollow"}
-// — instant public follow badges. Allies/rivals form only through accepted
+//; instant public follow badges. Allies/rivals form only through accepted
 // invites and completed challenges (never direct-written).
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);

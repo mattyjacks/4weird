@@ -16,7 +16,7 @@ function statusOf(message: string): number {
 }
 
 // POST /api/parties/challenges/[id] {action: accept|decline|cancel|complete,
-// winner?: {kind,id}} — advance a challenge. Accept/decline speak for the
+// winner?: {kind,id}}; advance a challenge. Accept/decline speak for the
 // opponent side; cancel for either side; complete for either side with the
 // winner set to one of the two parties.
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {

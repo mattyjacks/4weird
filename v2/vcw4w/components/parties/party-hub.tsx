@@ -172,7 +172,7 @@ export function PartyHub() {
   return (
     <section aria-label="Party interop" className="mt-12 rounded-2xl border border-white/10 bg-white/5 p-6">
       <p className="text-sm font-semibold uppercase tracking-widest text-amber-300">Town square</p>
-      <h2 className="mt-1 text-2xl font-black">Squads, clans, orgs, and individuals — one square</h2>
+      <h2 className="mt-1 text-2xl font-black">Squads, clans, orgs, and individuals; one square</h2>
       <p className="mt-2 max-w-3xl text-sm text-slate-300">
         Search every party, follow anyone, invite anyone into your squad, clan, or org, challenge any
         party to a game, and post @ any party. Accepting an invite lands the real membership plus a
@@ -220,7 +220,7 @@ export function PartyHub() {
         <form onSubmit={post} className="rounded-xl border border-white/10 bg-slate-950/60 p-4">
           <p className="text-sm font-bold">Post to the square</p>
           <label className="mt-3 block text-xs text-slate-400">
-            Act as (kind:id — you must belong to it)
+            Act as (kind:id; you must belong to it)
             <input
               value={actor}
               onChange={(e) => setActor(e.target.value)}
@@ -229,7 +229,7 @@ export function PartyHub() {
             />
           </label>
           <label className="mt-2 block text-xs text-slate-400">
-            @ target (optional kind:id — empty posts to everyone)
+            @ target (optional kind:id; empty posts to everyone)
             <input
               value={target}
               onChange={(e) => setTarget(e.target.value)}
@@ -311,7 +311,7 @@ export function PartyHub() {
       <div className="mt-6 rounded-xl border border-white/10 bg-slate-950/60 p-4">
         <p className="text-sm font-bold">Live square</p>
         {feed.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-500">Nothing yet — be the first party to post.</p>
+          <p className="mt-2 text-sm text-slate-500">Nothing yet; be the first party to post.</p>
         ) : (
           <ul className="mt-2 space-y-2 text-sm">
             {feed.map((p) => (

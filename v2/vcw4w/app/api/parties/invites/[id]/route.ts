@@ -14,7 +14,7 @@ function statusOf(message: string): number {
   return 400;
 }
 
-// POST /api/parties/invites/[id] {accept: boolean} — accept (target side
+// POST /api/parties/invites/[id] {accept: boolean}; accept (target side
 // speaks: the invitee or an officer of the invited squad/clan/org) or
 // decline/cancel (either side). Accepting applies the membership effect.
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {

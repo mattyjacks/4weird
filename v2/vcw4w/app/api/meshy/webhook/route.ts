@@ -31,19 +31,22 @@ function header(req: Request, name: string): string {
 
 function safeEqual(a: string, b: string): boolean {
   if (!a || !b) return false;
-  const ab = Buffer.from(a);
-  const bb = Buffer.from(b);
-  if (ab.length !== bb.length) return false;
+  // Hash both sides first so length differences leak nothing via early exit.
+  const ah = createHmac("sha256", "meshy-webhook-compare").update(a).digest();
+  const bh = createHmac("sha256", "meshy-webhook-compare").update(b).digest();
   try {
-    return timingSafeEqual(ab, bb);
+    return timingSafeEqual(ah, bh);
   } catch {
     return false;
   }
 }
 
-function authorized(req: Request, rawBody: string, json: Record<string, unknown>): boolean {
+function authorized(req: Request, rawBody: string): boolean {
   const expected = expectedSecret();
-  if (!expected) return true;
+  // Fail closed: without a configured secret no delivery is trusted.
+  if (!expected) return false;
+  // Header-only credentials. URL query (?secret=) and JSON body secrets are
+  // rejected by design: they leak into logs, proxies, and history.
   const candidates = [
     header(req, "x-meshy-signature"),
     header(req, "x-meshy-webhook-secret"),
@@ -51,8 +54,6 @@ function authorized(req: Request, rawBody: string, json: Record<string, unknown>
     header(req, "x-signature"),
     header(req, "webhook-signature"),
     header(req, "authorization").replace(/^bearer\s+/i, ""),
-    new URL(req.url).searchParams.get("secret") ?? "",
-    String(json.secret ?? json.webhook_secret ?? ""),
   ]
     .map((s) => String(s ?? "").trim().replace(/^sha256=/i, ""))
     .filter(Boolean);
@@ -92,7 +93,8 @@ export async function POST(req: Request) {
     // Stay 2xx so one malformed delivery doesn't disable the webhook.
     return ok({ received: false, reason: "invalid-json" });
   }
-  if (!authorized(req, raw, body)) return fail("Invalid webhook secret.", 401);
+  if (!expectedSecret()) return fail("Webhook not configured.", 503);
+  if (!authorized(req, raw)) return fail("Invalid webhook secret.", 401);
 
   const taskId = String(body.id ?? body.task_id ?? body.result ?? "").slice(0, 128);
   if (!taskId) return ok({ received: false, reason: "missing-task-id" });
