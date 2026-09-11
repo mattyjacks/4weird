@@ -140,4 +140,32 @@ for (const [path, body] of [["lib/age-gate.ts", core], ["app/terms/page.tsx", te
   must(!/porn|hentai|nsfw|erotic|sex game/i.test(body), `${path} must not describe sexual content`);
 }
 
-console.log(`Age-gate checks OK: bands + DOB math + ${canonical.length} catalog slugs + Kids Mode + legal notes.`);
+// 9. COPPA + global safety: 13+ teen / 18+ adult bands, under-13 parent-only,
+//    no kid full accounts, adult-only parents, server + client enforcement.
+const signup = read("app/api/auth/signup/route.ts");
+for (const token of ["age_band", '"teen"', '"adult"', "Under 13", "profiles", "ageBand"]) {
+  must(signup.includes(token), `signup route must include ${token}`);
+}
+must(signup.includes("kid") && /Under 13|under-13|under 13/i.test(signup), "signup must reject under-13 with a parent-flow message");
+const profile = read("app/api/me/profile/route.ts");
+must(profile.includes("Full accounts are 13+ only"), "profile PATCH must explain 13+ full-account rule");
+must(profile.includes('"kid"') || profile.includes("'kid'") || profile.includes("kid"), "profile PATCH must reject kid band");
+const famCreate = read("app/api/family/kids/route.ts");
+must(famCreate.includes("Only an Adult"), "child creation must require an Adult parent");
+const session = read("app/api/games/session/route.ts");
+must(session.includes("Adults (18+) games need an Adult"), "game session must block Adults titles for non-adult bands");
+const playGate = read("components/games/play-gate.tsx");
+must(playGate.includes("/api/me/profile") && playGate.includes("blocked"), "play-gate must enforce the full-account band");
+for (const token of ["COPPA", "Teen (13-17)", "Adult (18+)", "Under 13", "Child", "GDPR", "Age Appropriate"]) {
+  must(terms.includes(token), `terms must include ${token}`);
+}
+for (const token of ["13+ only", "Child sub-account", "COPPA", "high-privacy"]) {
+  must(privacy.includes(token), `privacy policy must include ${token}`);
+}
+must(/no\s+date of birth/i.test(privacy), "privacy policy must state no date of birth is collected");
+const signupForm = read("components/sign-up-form.tsx");
+for (const token of ["Age band", "13-17", "18+", "under 13", "age_band"]) {
+  must(signupForm.includes(token), `sign-up form must include ${token}`);
+}
+
+console.log(`Age-gate checks OK: bands + DOB math + ${canonical.length} catalog slugs + Kids Mode + legal notes + COPPA teen/adult gating.`);

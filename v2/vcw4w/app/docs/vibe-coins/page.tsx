@@ -58,7 +58,7 @@ export default function VibeCoinsPage() {
         index="1"
         kicker="The promise"
         title="A cent is a cent is a cent"
-        body="When you pay 400 coins ($4.00) for compute, 100 goes to the platform and 300 credits the provider as on-site platform credits — but you only ever see the gross 400. Same rule for game rentals, clan fees, game AI, Buddy turns, and squad cloud. All credits are spendable on cloud computing, game credits, and other on-site services only; never cash-out, never withdrawable. Your receipt is /my/usage/."
+        body="When you pay 400 coins ($4.00) for compute, 100 goes to the platform and 300 credits the provider as on-site platform credits — but you only ever see the gross 400. Same rule for game rentals, clan fees, game AI, Buddy turns, and squad cloud. Individual earn shares mint time-locked Crowns under Terms 8A.1 (convert 1:1 to Coins after a 30-day legal lock (instant once unlocked) or cash out via our payout provider (30 days + 5-10 business days, KYC required, countries not yet announced); shared wallet credits are spendable on cloud computing, game credits, and other on-site services only; never cash-out, never withdrawable. Your receipt is /my/usage/."
       />
       <SplitBar />
 
@@ -146,3 +146,5 @@ export default function VibeCoinsPage() {
     </article>
   );
 }
+
+

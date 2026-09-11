@@ -2,9 +2,13 @@
  * Family accounts; shared shapes + validation for Parent/Child accounts.
  *
  * Two independent axes (see supabase/migrations/20260924000000_family_accounts.sql):
- * - family_role: 'solo' | 'parent' (full Supabase accounts)
- * - age_band: 'unknown' | 'kid' | 'teen' | 'adult' (full accounts, self-declared;
- *   'kid'/'teen' get the same Adults-gating as Kids Mode)
+ * - family_role: 'solo' | 'parent' (full Supabase accounts; only Adult 18+
+ *   accounts may become 'parent' and create children — COPPA consent)
+ * - age_band: 'unknown' (legacy) | 'kid' (legacy full-account rows only) |
+ *   'teen' (13-17) | 'adult' (18+). Full accounts are 13+ only: signup
+ *   requires teen/adult, PATCH rejects kid/unknown, and teen bands block
+ *   Adults (18+) titles server-side. No DOB is ever collected.
+ * - Child sub-accounts (kid_accounts): parent-attested band kid/teen/adult,
  * - Child sub-accounts (kid_accounts): parent-attested band kid/teen/adult,
  *   Clan-style `username#1234` + password login, NO Supabase user.
  */

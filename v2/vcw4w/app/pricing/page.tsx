@@ -39,7 +39,7 @@ export default function Page() {
         <p className="mt-6 max-w-2xl text-base text-slate-300 sm:text-lg">
           100 Vibe Coins cost exactly $1.00 â€” every price already includes the 25% platform service
           cut, never added on top. New accounts start with a free 100-coin ($1.00) trial. Compute
-          works the same way: one gross metered price, split 25% platform / 75% provider as on-site platform credits. Coins are spendable on cloud computing, game credits, and other on-site services only; never cash-out, never withdrawable. Coins expire one year after receipt, and every purchase automatically spends the oldest unexpired centicentcoins first.
+          works the same way: one gross metered price, split 25% platform / 75% provider as Crowns for individual providers (Terms 8A.1) or shared wallet credits. Coins are spendable on cloud computing, game credits, and other on-site services only; never cash-out, never withdrawable. Coins expire one year after receipt, and every purchase automatically spends the oldest unexpired centicentcoins first.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
@@ -438,3 +438,4 @@ export default function Page() {
     </div>
   );
 }
+

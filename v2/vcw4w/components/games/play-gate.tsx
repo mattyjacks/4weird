@@ -198,8 +198,22 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
       if (!live) return;
       setKidHandle(null);
       const kids = isKidsMode();
-      if (rating === "adults") setAge(kids ? "blocked" : "gate-adults");
-      else if (rating === "teens") setAge(kids ? "gate-teens" : "passed");
+      // Full-account band enforcement (COPPA: full accounts are 13+ only;
+      // 13-17 → teen, 18+ → adult). Non-adult bands get Kids-Mode treatment:
+      // Adults titles blocked outright (no DOB bypass), Teens titles need a
+      // 13+ DOB check. Server (/api/games/session) re-enforces authoritatively.
+      let band = "unknown";
+      try {
+        const pres = await fetch("/api/me/profile", { credentials: "include" });
+        const pbody = await pres.json().catch(() => ({}));
+        const raw = String((pbody as { profile?: { age_band?: unknown } }).profile?.age_band ?? "unknown");
+        if (raw === "adult" || raw === "teen" || raw === "kid" || raw === "unknown") band = raw;
+      } catch {
+        /* profile unreadable: fall through to Kids-Mode-only logic */
+      }
+      const restricted = kids || band !== "adult";
+      if (rating === "adults") setAge(restricted ? "blocked" : "gate-adults");
+      else if (rating === "teens") setAge(restricted ? "gate-teens" : "passed");
       else setAge("passed");
     };
     void resolve();

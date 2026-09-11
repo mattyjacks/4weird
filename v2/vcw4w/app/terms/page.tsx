@@ -27,15 +27,26 @@ export default function TermsPage() {
 
         <h2 className={h2}>1. Eligibility and accounts</h2>
         <p>
-          You represent that you may lawfully enter into these Terms and that you are at least 13 years old. The
-          Service is not directed to children under 13. If you are a minor in your jurisdiction, you may use the
-          Service only with the involvement and consent of a parent or legal guardian who accepts these Terms on your
-          behalf. You must provide accurate registration information, keep your credentials confidential, and promptly
+          Direct accounts are <strong>13+ only</strong>: <strong>Teen (13-17)</strong> or{" "}
+          <strong>Adult (18+)</strong>. You represent at signup that you meet your band (13-17 for Teen, 18+ for
+          Adult) and that you meet the minimum age where you live or have parent/guardian permission where your
+          law requires it (including EU GDPR consent ages 13-16, the UK age 13, and U.S. state requirements). We
+          collect no date of birth to verify this — only your self-declared band — so do not sign up with a false
+          band. <strong>Under 13 has no direct account:</strong> a parent or legal guardian (an Adult 18+ account
+          holder) must sign up and create a <strong>Child</strong> sub-account for the child instead (see Section
+          4B); do not enter a Teen/Adult band for an under-13. If you are a minor in your jurisdiction, you may use
+          the Service only with the involvement and consent of a parent or legal guardian who accepts these Terms on
+          your behalf. Only Adult (18+) accounts may create Child sub-accounts, make purchases, or receive fiat
+          payouts. You must provide accurate registration information, keep your credentials confidential, and promptly
           notify us of any unauthorized access. You are responsible for all activity through your account and for all
           information or content you submit. One promotional trial per person applies (see Section 8); we use
           privacy-preserving signals to enforce it. We may refuse registration, reclaim usernames, or suspend, limit,
           or terminate any account or access at any time, with or without notice, to the fullest extent permitted by
-          law; including for suspected fraud, abuse, chargebacks, or violations of these Terms.
+          law; including for suspected fraud, abuse, age-band misrepresentation, chargebacks, or violations of these
+          Terms. We comply with the U.S. Children&apos;s Online Privacy Protection Act (COPPA), the EU/UK GDPR age
+          rules, the UK Age Appropriate Design Code, the EU Digital Services Act, California&apos;s Age-Appropriate
+          Design Code Act, and other applicable child-safety and privacy regimes; where your law grants non-waivable
+          protections (see Section 18), those apply in addition.
         </p>
 
         <h2 className={h2}>2. License and acceptable use</h2>
@@ -53,7 +64,7 @@ export default function TermsPage() {
           <li>use the Service unlawfully or in violation of any applicable law, including export-control and sanctions laws; no illegal content of any kind is allowed, anywhere on the Service;</li>
           <li>infringe intellectual-property, privacy, or other rights; upload malicious code; impersonate others; or harvest other users’ information;</li>
           <li>harass, threaten, defame, hate-target, or harm anyone; post sexual content involving minors in any form; this results in immediate removal, account termination, evidence preservation, and referral to authorities (see Section 5);</li>
-          <li>alternatively monetize, cash out, or extract value from Vibe Coins or Ghost Cash; including selling, buying, trading, exchanging, gifting-for-cash, pegging to fiat or crypto, advertising exchange rates, factoring Ghost IOUs, using balances as collateral, or routing around the closed loop (see Sections 8 and 8C);</li>
+          <li>alternatively monetize, cash out, or extract value from Coins, Crowns, or Ghost Cash outside the expressly permitted paths in Sections 8–8A.1; including selling, buying, trading, exchanging, gifting-for-cash, pegging to fiat or crypto, advertising exchange rates, factoring Ghost IOUs, using balances as collateral, or routing around the closed loop (see Sections 8 and 8C);</li>
           <li>abuse support, reporting, or privacy-request channels, including filing false reports or automated bulk requests.</li>
         </ul>
 
@@ -116,33 +127,43 @@ export default function TermsPage() {
         <h2 className={h2}>4A. Age ratings, age checks, and Kids Mode</h2>
         <p>
           Games carry an age rating - <strong>Kids (0-12)</strong>, <strong>Teens (13-17)</strong>, or{" "}
-          <strong>Adults (18+)</strong>; shown on every catalog card, detail page, and play shell. Adults-rated games
-          always show a date-of-birth check before playing: enter a date showing you are under 18 and we tell you how
-          long until you can play (years, months, days) with a Try Again option. That date of birth is checked on your
-          own device and is never stored; not in our database, not in your browser (see the Privacy Policy). Accounts
-          with <strong>Kids Mode</strong> turned on (games catalog or account settings) cannot see or play Adults games
-          at all, and can play Teens games only after passing a 13+ date-of-birth check. Ratings reflect intense
+          <strong>Adults (18+)</strong>; shown on every catalog card, detail page, and play shell. Ratings reflect intense
           violence or horror themes only: sexual content is never allowed on the Service; it is removed, not rated
-          (see Section 2).
+          (see Section 2). Your account band enforces ratings server-side: <strong>Teen (13-17)</strong> full accounts
+          are blocked from Adults (18+) games outright and play Teens games freely; <strong>Adult (18+)</strong> full
+          accounts pass Adults games only after an on-device 18+ date-of-birth check each time. Accounts with{" "}
+          <strong>Kids Mode</strong> turned on (games catalog or account settings) cannot see or play Adults games
+          at all, and can play Teens games only after passing a 13+ date-of-birth check. Any date of birth you enter
+          in a game gate is checked on your own device and is never stored; not in our database, not in your browser
+          (see the Privacy Policy). A date-of-birth entry can never override your account band: a Teen band stays
+          blocked from Adults titles even with an adult date typed in.
         </p>
 
         <h2 className={h2}>4B. Parent and Child accounts</h2>
         <p>
-          Any account holder may become a <strong>Parent</strong> account (automatically, on creating their first
-          child) and create <strong>Child</strong> sub-accounts for their kids or teens; even adult children. Children
+          Only an <strong>Adult (18+)</strong> account holder may become a <strong>Parent</strong> account
+          (automatically, on creating their first child) and create <strong>Child</strong> sub-accounts — including
+          for under-13 children, who have no other path onto the Service (COPPA verifiable parental consent: the
+          parent&apos;s own Adult signup + their authenticated creation of the child IS the consent). Children
           log in with a parent-chosen <strong>username#1234 + password</strong> and have no email, no checkout, and no
           Supabase login of their own. You attest each child&apos;s age band (Kid 0-12, Teen 13-17, Adult 18+) when you
-          create the account; the band gates ratings with no date of birth collected from anyone. Children spend only
+          create the account; the band gates ratings with no date of birth collected from anyone (Kid plays Kids
+          titles, Teen adds Teens, Adult plays everything, all enforced server-side). Children spend only
           coins you grant from your own balance into their wallet (spendable on play like normal coins, no cash value,
           never withdrawable); you set their monthly coin budget (with optional hard stop), daily play-time limit, and
-          allowed play hours in your timezone; all enforced server-side, including mid-play. Suspending a child stops
+          allowed play hours in your timezone; all enforced server-side, including mid-play. Children cannot check out,
+          tip, subscribe, or receive payouts. Suspending a child stops
           play immediately; closing an account refunds its remaining wallet to you. You are responsible for your
           children&apos;s activity, for keeping their passwords safe on shared devices (resetting logs them out
-          everywhere), and for complying with parental-consent and child-privacy laws where you live (including the EU,
-          UK, and U.S. state regimes referenced in Section 18); among others, children&apos;s data is exported and
-          erased together with your account at <a className={a} href="/my/rights">/my/rights/</a>. Full accounts may
-          separately declare their own Kid/Teen/Adult band (Account page), which applies the same Adults-gating
-          without collecting any birth date.
+          everywhere), and for complying with parental-consent and child-privacy laws where you live (including COPPA,
+          the EU GDPR consent ages 13-16, the UK Age Appropriate Design Code and Data Protection Act 2018, the EU
+          Digital Services Act, California&apos;s Age-Appropriate Design Code Act, and other U.S. state regimes
+          referenced in Section 18); among others, children&apos;s data is exported and
+          erased together with your account at <a className={a} href="/my/rights">/my/rights/</a>. Full accounts hold
+          only Teen (13-17) or Adult (18+) bands — never Kid — set at signup and changeable on the Account page within
+          those two bands; Teen bands apply the same Adults-blocking as Kids Mode without collecting any birth date.
+          Under-18 accounts get high-privacy defaults (no behavioral ads for signed-in players, minimal data, parent
+          controls where applicable).
         </p>
 
         <h2 className={h2}>5. Safety rules you accept</h2>
@@ -168,16 +189,21 @@ export default function TermsPage() {
           metered, rate-limited, or discontinued at any time.
         </p>
 
-        <h2 className={h2}>8. Vibe Coins, purchases, and refunds</h2>
+        <h2 className={h2}>8. Coins (spend) and Crowns (earn), purchases, and refunds</h2>
         <p>
-          Vibe Coins are a virtual currency: 100 coins = exactly $1.00 ($0.01 per coin). Every price already includes
+          The Service uses two closed-loop units. <strong>🪙 Coins (spend)</strong> are a virtual
+          currency: 100 coins = exactly $1.00 ($0.01 per coin). <strong>👑 Crowns (earn)</strong> are
+          non-transferable earn-only payout points: 100 crowns = $1.00 of payout value (1¢ each) or
+          100 coins on 1:1 convert, because the 25% platform cut was already taken when the underlying
+          coins were gifted. Neither is money, property, or crypto. Every price already includes
           a 25% platform cut; it is never added on top. Packs (500 / 1500 / 5000 / 25000 coins, plus custom
           500-100,000), the daily login bonus (5 + 1 per streak day, capped at 12, once per UTC day), referrals (25
           coins each side, one use per invitee, no self-use), and the 100-coin ($1.00) signup trial (once per person,
           enforced per IP-hash; no 100-coin pack is sold) operate server-side under anti-double-mint guards.
           Checkout is processed by Shopify (and/or other payment processors) under their terms; we reconcile paid
-          grants by order email. Virtual currency, progress, and items are licensed features with no cash value, are
-          not property, are non-transferable, are spendable on cloud computing, game credits, and other on-site services only (never cash-out, never withdrawable), and may be changed, removed, or discontinued at any time. Purchases are
+          grants by order email. Coins are licensed features with no cash value, are
+          not property, are non-transferable except as expressly permitted gifts executed by guarded
+          server-side transactions, are spendable on cloud computing, game credits, and other on-site services only (never cash-out, never withdrawable), and may be changed, removed, or discontinued at any time. Purchases are
           final except where required by applicable law (including non-waivable EU/UK consumer rights) or expressly
           stated otherwise; including the 90-day unspent-purchase refund below.
         </p>
@@ -204,10 +230,12 @@ export default function TermsPage() {
         <h2 className={h2}>8A. Voluntary Support and Launch campaigns (not charity, not investment)</h2>
         <p>
           <strong>What this is.</strong> The Service lets you (a) send voluntary one-time tips and monthly support
-          subscriptions in Vibe Coins to verified creators and Clans (“Support”), and (b) give and receive gift-based
+          subscriptions in Coins to verified creators and Clans (“Support”), and (b) give and receive gift-based
           backing for creative project-launch campaigns; game launches, tech startups, and creative tech
-          (“Campaigns”). Both move closed-loop Vibe Coins only, with the 25% platform cut already included in every
-          gross amount (never added on top). Support and Campaign transfers are voluntary, gratuitous, and final once
+          (“Campaigns”). Both move closed-loop Coins only, with the 25% platform cut already included in every
+          gross amount (never added on top). Gifting deducts the supporter’s Coins first; the 75% net then mints
+          time-locked Crowns for individual recipients under Section 8A.1 (clan recipients credit the shared clan
+          wallet instead). Support and Campaign transfers are voluntary, gratuitous, and final once
           executed - “coffee money,” not a purchase and not a contract for goods, services, or outcomes.
         </p>
         <p>
@@ -218,9 +246,9 @@ export default function TermsPage() {
           shares, interest, dividends, profit-shares, guaranteed returns, or any ownership or financial return, and any
           campaign using charity, medical, emergency, disaster-relief, political, or investment language is rejected.
           Coins have no cash value, are licensed platform features under Section 8, and can never be redeemed, cashed
-          out, withdrawn, or converted to money by anyone; recipients receive platform credits spendable on cloud computing, game credits, and other on-site services only.
-          Because no money is transmitted to third parties and no cash-out exists, the Service does not act as a money
-          transmitter, e-money issuer, bank, broker, or investment platform.
+          out, withdrawn, or converted to money by anyone; individual recipients receive time-locked Crowns under Section 8A.1 (spendable on-site only after 1:1 convert, or withdrawable in fiat only through our licensed payout provider), and clan recipients receive shared wallet credits spendable on cloud computing, game credits, and other on-site services only.
+          Because no money is transmitted to third parties on the gift itself and no direct coin cash-out exists, the gift leg does not act as a money
+          transmitter, e-money issuer, bank, broker, or investment platform; fiat payouts under Section 8A.1 are executed by our licensed payout provider, not by us as transmitter.
         </p>
         <p>
           <strong>Subscriptions and tips.</strong> Subscribing charges the first 30-day period immediately and renews
@@ -239,7 +267,7 @@ export default function TermsPage() {
           must not promise outcomes they cannot deliver. Any perks or rewards mentioned are aspirational goals the
           creator hopes to deliver; not contractual obligations, sales of goods, or guarantees. Backing a Campaign is
           a gift: backers receive no ownership, equity, financial return, or enforceable right to any reward. Raised
-          coins credit the creator’s coin balance (or the linked clan wallet) as platform credits; closing or
+          coins credit the creator’s Crown balance under Section 8A.1 (or the linked clan wallet) as platform credits; closing or
           cancelling a Campaign stops new backing but does not reverse credited transfers except where we intervene for
           proven fraud. We may freeze, hide, or remove any Campaign or Support tier, suspend crediting and use of credited coins
           pending review, and re-credit defrauded supporters from frozen amounts where technically possible.
@@ -258,6 +286,87 @@ export default function TermsPage() {
           <a className={a} href="mailto:matt@mattyjacks.com">matt@mattyjacks.com</a>; we review reports under our
           hosting-provider duties (including EU Digital Services Act notice-and-action) and act against fraud,
           counterfeiting, and unlawful fundraising.
+        </p>
+
+        <h2 className={h2}>8A.1. Crowns (earn): time locks, convert, and fiat payouts</h2>
+        <p>
+          <strong>The timelines, up front.</strong> Crowns you earn today are locked for 30 days by
+          anti-fraud and payments regulations — this cannot be bypassed, not by us and not by support.
+          After that: converting Crowns to Coins takes effect immediately (1+ crowns, 1:1, no fee) once
+          unlocked; cashing Crowns out to fiat takes a minimum of 30 days after earning plus provider
+          processing time (typically 5–10 business days after you request a payout). There is no instant
+          cash-out on this Service, ever.
+        </p>
+        <p>
+          <strong>What Crowns are.</strong> Crowns are earn-only, non-transferable payout points, not
+          currency, money, property, securities, or crypto. They cannot be bought, sold, gifted,
+          transferred, or spent directly. They are minted only when your gifted Coins net settles:
+          Support tips/subscriptions, creator-direct Campaign backing, and compute-provider shares
+          (Section 9). Clan, org, and shared-wallet credits are not Crowns and never become payout-eligible.
+          Balances earned before the Crowns launch remain Coins and never become Crowns.
+        </p>
+        <p>
+          <strong>Time locks and expiry.</strong> Every Crown lot unlocks 30 days after receipt
+          (fraud/chargeback clearing required by our anti-money-laundering, sanctions, and payments
+          compliance duties — including card-network chargeback windows and the 90-day Coin refund window;
+          locked Crowns cannot be paid out, converted, or expedited for any reason), expires 1 year after receipt, and is consumable only while
+          unlocked and unexpired, oldest eligible first. Locked or expired Crowns do not count toward
+          payouts or converts. If the underlying Coin gift refunds or chargebacks inside 90 days, we
+          may claw back the corresponding Crowns from remaining lots first, then carry any shortfall as
+          ledger debt against future earnings. Payout and convert calls serialize on the same
+          per-account lock so concurrent requests cannot double-spend one lot.
+        </p>
+        <p>
+          <strong>Two exits, your choice.</strong> (a) <em>Convert to Coins (on-site, 1:1, no fee):</em>{" "}
+          convert any amount from 1 crown upward into your own Coins at exactly 100 Crowns = 100 Coins,
+          available only after the 30-day unlock and effective immediately once requested.
+          Converted Coins are ordinary spend Coins with a fresh 1-year expiry: spendable on-site, giftable
+          with a fresh 25% cut if re-gifted, never directly cashable. Converts are final. (b){" "}
+          <em>Fiat payout via our licensed payout provider:</em> request 5,000+ crowns ($50 minimum) for
+          payout in fiat to your verified account, available only after the 30-day unlock plus provider
+          processing (typically 5–10 business days). We do not transmit the money ourselves; a licensed
+          provider (such as Stripe, Hyperwallet, or Tipalti) performs identity verification, sanctions
+          screening, tax reporting, and the transfer under its own terms. We never pay out in crypto
+          directly; if the provider offers a crypto rail on its side, that is between you and the provider.
+        </p>
+        <p>
+          <strong>KYC is mandatory for cash-out.</strong> Fiat payouts require government-issued identity
+          verification, sanctions screening, and tax documentation (W-9/W-8BEN or local equivalents) through
+          our payout provider before the first payout, plus re-verification whenever the provider or the law
+          requires it. We may also require proof of address or source-of-funds information,
+          and we will hold or refuse payouts until verification completes. Converting Crowns to Coins does not
+          require provider KYC, but still requires the 30-day unlock and a verified creator account standing.
+        </p>
+        <p>
+          <strong>Who can cash out, and where.</strong> Payouts require: (i) age 18+ with a verified
+          creator account (minors, child sub-accounts, and unverified accounts may earn and convert but
+          may never receive fiat); (ii) residence in a currently allowlisted payout country — which we have
+          not yet finalized or published, so fiat payouts are currently unavailable everywhere and Crowns
+          are convertible to Coins only until we announce the country list (once published, everywhere else
+          stays credits-and-convert only); (iii) clean fraud standing and completed
+          provider KYC. Prohibited persons, sanctioned jurisdictions, and export-controlled dealings are
+          excluded entirely. We may change the allowlist, hold, delay, split, or refuse any payout for fraud,
+          safety, compliance, or provider-capacity reasons, without liability.
+        </p>
+        <p>
+          <strong>No payout guarantee; availability risk is yours.</strong> You acquire and hold Crowns at
+          your own risk. We do not promise that fiat payouts will ever be available to you — not in your
+          country, not at any amount, not at any time. If you cannot cash out because you live in a
+          restricted or unlisted country, fail or cannot complete KYC, are sanctioned or otherwise
+          ineligible, lose verification or good standing, or because the law, our provider, capacity, fraud
+          controls, or our own discretion prevents it, that is not our fault and gives rise to no claim:
+          no compensation, no refund of gifted amounts, no damages, no exchange or alternative payout. Your
+          Crowns remain usable as on-site Coins via 1:1 convert where eligible, and that is the full extent
+          of what we owe. To the fullest extent permitted by law, Sections 14 and 15 apply to Crowns in full:
+          the Service is as-is with no guarantee of payout availability, our aggregate liability is $0, and
+          your sole remedy for dissatisfaction is to stop using the Service.
+        </p>
+        <p>
+          <strong>Taxes are on earn, not on exit.</strong> The taxable event is earning Crowns, not
+          converting or cashing them out. Recipients are solely responsible for all tax consequences and
+          should consult a tax advisor; the provider collects W-9/W-8BEN (or equivalents) and issues
+          1099-NEC/1099-K/1042-S, DAC7, or other required reports. We provide transaction records on the
+          account and usage pages but no tax advice. Nothing here is employment, partnership, or agency.
         </p>
 
         <h2 className={h2}>8B. AI features (Buddy, voices, generated media)</h2>
@@ -333,15 +442,15 @@ export default function TermsPage() {
           consideration, or an enforceable promise.
         </p>
         <p>
-          <strong>(e) No alternative monetization; discretionary ban.</strong> Vibe Coins are closed-loop licensed
-          platform features (Section 8) and Ghost Cash is a no-value tracking unit; neither may be monetized outside
-          the Service. You must not sell, buy, trade, exchange, auction, gift-for-cash, lend against, factor,
-          collateralize, peg, or advertise any exchange rate for Vibe Coins or Ghost Cash, and must not offer or accept
+          <strong>(e) No alternative monetization; discretionary ban.</strong> Coins are closed-loop licensed
+          platform features (Section 8), Crowns move only through Section 8A.1, and Ghost Cash is a no-value tracking unit; none may be monetized outside
+          the Service except through the expressly permitted Crown convert and provider-payout paths. You must not sell, buy, trade, exchange, auction, gift-for-cash, lend against, factor,
+          collateralize, peg, or advertise any exchange rate for Coins, Crowns, or Ghost Cash, and must not offer or accept
           fiat, crypto, goods, or services for them, or use Ghost Cash figures to demand, invoice (in the legal sense),
-          or collect real-world payment as though they were money. Attempts to &quot;get money out&quot; of Coins or
-          Ghost Cash; including secondary markets, OTC deals, IOU factoring, rate-pegging, or routing around the
+          or collect real-world payment as though they were money. Attempts to &quot;get money out&quot; of Coins, Crowns, or
+          Ghost Cash outside Section 8A.1; including secondary markets, OTC deals, IOU factoring, rate-pegging, or routing around the
           closed loop; violate these Terms. Where we suspect such conduct, we may act in our sole discretion and
-          without liability: warn, void or reset affected Coins or Ghost Cash figures, freeze or hide books and
+          without liability: warn, void or reset affected Coins, Crowns, or Ghost Cash figures, freeze or hide books and
           listings, limit features, suspend or permanently ban accounts (including related or evading accounts),
           preserve evidence, and refer matters to authorities. Our decision is final, and no violation creates any cash
           value or redemption right in the affected figures.
@@ -375,14 +484,14 @@ export default function TermsPage() {
           central clan reserve (which auto-rescues delinquent clans); 6–12-month coins are{" "}
           <strong>Given as Tribute</strong> — 70% to the poorest clans, 20% to the reserve, 10% to poor
           individual members. Expired coin lots never travel. Like all Support (Section 8A), tribute is a
-          gratuitous gift: not charity, not investment, no cash-out, final once moved.
+          gratuitous gift: not charity, not investment, no cash-out, final once moved. Tribute never mints Crowns.
         </p>
 
         <h2 className={h2}>9. Agent rentals and Teams compute (25% cut on all computing)</h2>
         <p>
           The marketplace lists rentable agents (openclaw/nanoclaw/custom) on providers such as RunPod and
           DigitalOcean. Bookings escrow the gross coin amount; metered heartbeats settle gross into a 25% platform
-          share and 75% provider share as on-site platform credits (spendable on cloud computing, game credits, and other on-site services only; never cash-out, never withdrawable), never above escrow. Providers run bring-your-own-endpoint until configured;
+          share and 75% provider share as Crowns for individual providers under Section 8A.1 (or shared wallet credits where the provider is a clan/org), never above escrow. Providers run bring-your-own-endpoint until configured;
           the app never fakes a provision. Teams/enterprise (UnitUnite) workspaces; orgs, teams, projects, rooms,
           roles, org wallets, and the cloud catalog (GPU pods, serverless, storage, databases, KV, queue); are
           metered per workspace under the same included 25% cut, with every cent of the platform share attributed in

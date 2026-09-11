@@ -42,5 +42,9 @@ export function isConvertAmount(value: unknown): number {
 export const CROWN_VS_COIN_COPY = {
   coins: "🪙 Coins (spend): buy, play, rent, tip. No cash value, never cash-out.",
   crowns:
-    "👑 Crowns (earn): creator earnings from gifts. Time-locked 30 days. Cash out in fiat via our payout provider (5000+), or convert 1:1 to your own Coins anytime (1+).",
+    "👑 Crowns (earn): creator earnings from gifts. Locked 30 days by anti-fraud/payments law (cannot be bypassed). Then convert 1:1 to your own Coins instantly (1+), or cash out in fiat (5000+, 30 days + 5-10 business days, KYC required; payout countries not yet announced).",
+  timelines:
+    "Convert: 30-day legal lock, then instant. Cash-out: 30 days + 5-10 business days via our licensed provider. No instant cash-out exists.",
+  availabilityRisk:
+    "Holding Crowns never guarantees a fiat payout. Restricted country, failed KYC, sanctions, or law/provider limits can leave convert-to-Coins as your only exit, with no claim against us.",
 } as const;

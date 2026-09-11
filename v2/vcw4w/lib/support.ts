@@ -3,10 +3,13 @@
  * creator-membership (subscriptions + tips to verified creators and clans) and
  * community-fundraising (gift-based game/startup launch fundraising) surfaces.
  *
- * LEGAL MODEL; closed-loop Vibe Coins only:
+ * LEGAL MODEL; closed-loop Coins in, time-locked Crowns out:
  *  - 25% platform cut INCLUDED in every gross amount, never on top.
- *  - Coins have no cash value and cannot be cashed out; recipients get
- *    platform credits spendable on the Service only.
+ *  - Coins have no cash value and cannot be cashed out directly; individual
+ *    recipients earn time-locked Crowns (Terms 8A.1: 30-day unlock, 1-year
+ *    expiry, 1:1 convert to own Coins, or fiat payout via our licensed
+ *    provider), clan recipients get shared wallet credits spendable on the
+ *    Service only.
  *  - Nothing here is charitable: no tax deduction, no charitable
  *    solicitation. Campaign categories are creative projects only.
  *  - Perks / campaign rewards are aspirational goals, not contractual

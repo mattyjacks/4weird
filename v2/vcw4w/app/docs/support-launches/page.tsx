@@ -48,7 +48,7 @@ export default function SupportLaunchesPage() {
 
       <Callout title="The legal shape in one breath">
         Support and launch backing are gratuitous transfers of closed-loop platform credits. Coins have no cash value
-        and can never be cashed out. Nothing here is charitable (no tax deduction, no charitable solicitation) and
+        and can never be cashed out directly; gifts to individuals mint time-locked Crowns under Terms 8A.1 (locked 30 days by law; then 1:1 convert to Coins instantly, or fiat payout in 5-10 business days with KYC; payout countries not yet announced). Nothing here is charitable (no tax deduction, no charitable solicitation) and
         nothing is an investment (no equity, interest, or profit-share). Perks and campaign rewards are goals the
         creator hopes to deliver â€” never contractual promises. The binding version lives in{" "}
         <Link className="underline" href="/terms">Terms of Use Â§8A</Link>.
@@ -99,7 +99,7 @@ export default function SupportLaunchesPage() {
         index="3"
         kicker="The money"
         title="One split everywhere"
-        body="A supporter pays gross coins; 25% stays with the platform and 75% credits the recipient — a verified creator's coin balance or a clan's wallet — as on-site platform credits (cloud compute, game credits, other on-site services only; never cash-out, never withdrawable). Raised campaign coins work the same way. Start at /support or /fundraisers."
+        body="A supporter pays gross coins; 25% stays with the platform and 75% mints time-locked Crowns for verified creators (or credits the clan wallet) — a verified creator's coin balance or a clan's wallet — as on-site platform credits (cloud compute, game credits, other on-site services only; never cash-out directly, never withdrawable as Coins). Raised campaign coins work the same way, minting Crowns for creator-direct campaigns. Start at /support or /fundraisers."
       />
       <SplitBar leftLabel="75% creator / project" rightLabel="25% platform" />
 
@@ -126,3 +126,7 @@ export default function SupportLaunchesPage() {
     </article>
   );
 }
+
+
+
+

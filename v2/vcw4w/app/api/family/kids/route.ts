@@ -99,6 +99,20 @@ export async function POST(req: Request) {
   } catch {
     return fail("Server misconfigured.", 500);
   }
+  // COPPA verifiable parental consent: only an Adult (18+) full account may
+  // create Child sub-accounts. Under-13s can never be the parent.
+  try {
+    const { data: parent } = await service.from("profiles").select("age_band").eq("id", u.id).maybeSingle();
+    const parentBand = String((parent as { age_band?: unknown } | null)?.age_band ?? "unknown");
+    if (parentBand !== "adult") {
+      return fail(
+        "Only an Adult (18+) account can create Child accounts. Set your age band to Adult (18+) in Account settings first.",
+        403,
+      );
+    }
+  } catch {
+    return fail("Server misconfigured.", 500);
+  }
   const { count } = await service.from("kid_accounts").select("id", { count: "exact", head: true }).eq("parent_id", u.id);
   if ((count ?? 0) >= MAX_KIDS_PER_PARENT) return fail("Child account limit reached (10 per parent).", 400);
   const passwordHash = hashKidPassword(password);

@@ -64,6 +64,26 @@ export async function POST(req: NextRequest) {
     const version = isBundleVersion(input.bundle_version ?? input.version ?? "1") || "1";
     const bytes = isNewBytes(input.new_bytes ?? input.bytes ?? 0);
     if (bytes < 0) return fail("Invalid new_bytes.", 400);
+    // Server-side age enforcement for full accounts (client PlayGate also
+    // gates, but the server is authoritative): Adults (18+) titles require a
+    // self-declared adult band. Teen/unknown/legacy-kid bands are blocked
+    // outright — a DOB entry cannot bypass the band. Teens (13+) pass teens
+    // titles; kids titles pass for all 13+ bands. Under-13s have no full
+    // account and play only via Child sessions (kidSessionPlay below).
+    try {
+      const svc = serviceClient();
+      const { data: profile } = await svc.from("profiles").select("age_band").eq("id", data.user.id).maybeSingle();
+      const band = String((profile as { age_band?: unknown } | null)?.age_band ?? "unknown");
+      const minAge = requiredAgeFor(getGameRating(game));
+      if (minAge >= 18 && band !== "adult") {
+        return fail("Adults (18+) games need an Adult (18+) age band. Teens stay on Teen/Kids games.", 403);
+      }
+      if (minAge >= 13 && band !== "adult" && band !== "teen") {
+        return fail("Teens (13+) games need a Teen (13-17) or Adult (18+) age band.", 403);
+      }
+    } catch {
+      return fail("Server misconfigured.", 500);
+    }
     let session: unknown;
     try {
       const { data: row, error } = await supabase.rpc("start_game_session", {

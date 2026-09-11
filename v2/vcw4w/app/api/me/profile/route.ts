@@ -59,10 +59,23 @@ export async function PATCH(req: Request) {
   if (input.public_handle !== undefined && !handle) {
     return fail("Handle needs 3-40 letters, numbers, _ or -.", 400);
   }
-  // age_band is a self-declared content band: kid/teen bands get the same
-  // Adults-gating as Kids Mode (no DOB is ever collected to verify it).
+  // age_band is a self-declared content band for full (13+) accounts only:
+  // teen (13-17) or adult (18+). "kid" (0-12) is NEVER valid here — under-13s
+  // have no direct account (COPPA); they play on parent-created Child
+  // sub-accounts. "unknown" is legacy read-only: existing rows keep working
+  // (treated as teen-restricted), but new writes must pick teen or adult.
+  // No DOB is ever collected to verify the band (data minimization).
   const band = input.age_band === undefined ? undefined : isAgeBand(input.age_band);
   if (input.age_band !== undefined && band === null) return fail("Invalid age band.", 400);
+  if (band === "kid") {
+    return fail(
+      "Full accounts are 13+ only (Teen 13-17 or Adult 18+). Under 13 plays on a parent-created Child account in Account → Family.",
+      400,
+    );
+  }
+  if (band === "unknown" && input.age_band !== undefined) {
+    return fail("Choose your age band: Teen (13-17) or Adult (18+).", 400);
+  }
   // family_role: anyone may opt IN to parent; opting out requires zero kids.
   const role = input.family_role === undefined ? undefined : String(input.family_role);
   if (role !== undefined && role !== "parent" && role !== "solo") return fail("Invalid family role.", 400);

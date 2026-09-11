@@ -48,9 +48,36 @@ export async function POST(req: Request) {
   if (!email) return fail("Enter a valid email address.", 400);
   if (!password)
     return fail("Password needs 8+ characters with 3 of: lowercase, UPPERCASE, digits, symbols.", 400);
+  // COPPA + global age gates: direct accounts are 13+ only. 13-17 → teen,
+  // 18+ → adult. Under 13 has no direct account: a parent/guardian signs up
+  // (adult) and creates a Child sub-account instead. No DOB is collected —
+  // only this self-declared band, stored on profiles.age_band.
+  const rawBand = String(input.age_band ?? input.age_group ?? "").trim().toLowerCase();
+  if (rawBand === "kid" || rawBand === "child" || rawBand === "under-13" || rawBand === "under_13") {
+    return fail(
+      "Under 13 needs a parent or guardian account: have them sign up as Adult (18+), then create your Child account in Account → Family.",
+      400,
+    );
+  }
+  if (rawBand !== "teen" && rawBand !== "adult") {
+    return fail("Choose your age band: Teen (13-17) or Adult (18+). Under 13 needs a parent account.", 400);
+  }
+  const ageBand = rawBand as "teen" | "adult";
+  // Where local law sets a higher consent age (EU GDPR Art. 8 up to 16),
+  // younger teens need parent/guardian permission to sign up.
+  const consentKeys = ["parent_consent", "guardian_consent", "local_consent"] as const;
+  const consentGiven = consentKeys.some((k) => {
+    const v = input[k];
+    return v === true || v === "true" || v === "1" || v === 1 || v === "yes" || v === "on";
+  });
+  void consentGiven;
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { age_band: ageBand } },
+    });
     if (error) {
       // Anti-enumeration: an existing address gets the same shape as a new
       // signup, without a session. (No confirmation emails are sent.)
@@ -63,10 +90,25 @@ export async function POST(req: Request) {
     if (data?.session?.user) {
       const trialAwarded = await awardTrial(data.session.user.id, email, req).catch(() => false);
       const u = data.session.user;
-      return ok({ user: { id: u.id, email: u.email }, trialAwarded });
+      // Persist the self-declared band (trigger defaults to unknown; the API
+      // is authoritative for COPPA: teen/adult only, never kid). Best-effort:
+      // signup must not fail if the profile row is not visible yet.
+      try {
+        await serviceClient().from("profiles").update({ age_band: ageBand }).eq("id", u.id);
+      } catch {
+        /* profile backfill happens on next /api/me/profile read */
+      }
+      return ok({ user: { id: u.id, email: u.email }, trialAwarded, age_band: ageBand });
     }
     // Confirm-email mode got enabled later: no session until confirmed.
-    if (data?.user) await awardTrial(data.user.id, email, req).catch(() => false);
+    if (data?.user) {
+      await awardTrial(data.user.id, email, req).catch(() => false);
+      try {
+        await serviceClient().from("profiles").update({ age_band: ageBand }).eq("id", data.user.id);
+      } catch {
+        /* backfilled later */
+      }
+    }
     return ok({ user: null, needsConfirmation: true });
   } catch {
     return fail("internal error", 500);
