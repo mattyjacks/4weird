@@ -25,7 +25,18 @@
 <body data-vcw="run">
   <div class="run-wrap">
     <h1>Cloud Run</h1>
-    <p>Low spec device? Rent a cloud GPU with your own Runpod key. Game and model share one box for low latency. Hard cap 55 minutes. Billed per second. Key stays in this tab only and is sent only to the local VCW control plane.</p>
+    <p>Low spec device? Rent a cloud box with your own Runpod key. <strong>Cheap CPU Ubuntu desktop first ($0.06/hr, 2 vCPU)</strong>, or a cloud GPU for game + model runs. Hard cap 55 minutes. Billed per second. Key stays in this tab only and is sent only to the local VCW control plane.</p>
+    <div class="run-card">
+      <h3>Cheap CPU Ubuntu desktop — remote desktop with copy-paste both ways</h3>
+      <p class="run-mono">Ubuntu 24.04 + XFCE on a CPU-only pod. Browser desktop at port 6901 (noVNC). Clipboard: copy locally → noVNC sidebar Clipboard → Ctrl+V in pod, and reverse. Cheapest: cpu3c 2 vCPU $0.06/hr.</p>
+      <div class="run-row">
+        <div><label>CPU flavor (cheapest first)</label><select id="run-cpu"><option value="cpu3c">cpu3c Compute-Optimized 2 vCPU — $0.06/hr</option><option value="cpu3g">cpu3g General Purpose 2 vCPU — $0.08/hr</option><option value="cpu5c">cpu5c Compute-Optimized 2 vCPU — $0.07/hr</option></select></div>
+        <div><label>Data center</label><select id="run-datacenter"><option value="EU-RO-1">EU-RO-1 (HIGH CPU stock)</option><option value="EUR-IS-1">EUR-IS-1</option><option value="US-CA-2">US-CA-2</option><option value="US-GA-2">US-GA-2</option></select></div>
+        <button class="run-btn" id="run-launch-cpu">Launch CPU desktop ($0.06/hr)</button>
+      </div>
+      <div class="run-mono" id="run-cpu-status">CPU desktop idle. Clipboard: noVNC sidebar Clipboard panel both directions (autocutsel bridge on pod).</div>
+      <div class="run-desktops" style="margin-top:12px"><section><h4>Ubuntu desktop (CPU pod)</h4><iframe id="run-cpu-view" title="CPU Ubuntu desktop" sandbox="allow-scripts allow-same-origin"></iframe></section><section><h4>Manage runpods</h4><div class="run-row"><button class="run-btn" id="run-list">Refresh my pods</button></div><div class="run-mono" id="run-pods">No pod list loaded.</div></section></div>
+    </div>
     <div class="run-card">
       <div class="run-row">
         <div><label>Runpod API key (BYOK, session only)</label><input id="run-key" type="password" autocomplete="off" placeholder="rpa_..."></div>

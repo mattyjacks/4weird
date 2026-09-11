@@ -106,6 +106,9 @@ function FriendsTab() {
         }}
       >
         <input
+          id="friend-handle-input"
+          name="handle"
+          aria-label="Player handle"
           className="min-w-0 flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2"
           placeholder="Player handle"
           value={handle}
@@ -166,37 +169,34 @@ function MessagesTab() {
   }, []);
   useEffect(() => {
     void loadThread(peer);
-  }, [peer, loadThread]);
+  }, [loadThread, peer]);
   return (
-    <Card title="Messages">
-      <p>Private messages are available only between accepted friends.</p>
+    <Card title="Direct messages">
+      <p>Direct messages are end-to-end between friends. You must both accept before chatting.</p>
       <p role="status" className="text-slate-400">{message}</p>
-      {!!friends.length && (
+      {friends.length > 0 && (
         <>
-          <label className="block">
-            Friend
-            <select
-              className="mt-2 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2"
-              value={peer}
-              onChange={(e) => setPeer(e.target.value)}
-            >
-              {friends.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.display_name || f.public_handle}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div className="space-y-2">
+          <div className="flex flex-wrap gap-2">
+            {friends.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                className={`rounded-full px-3 py-1 text-xs ${peer === f.id ? "bg-cyan-300 font-bold text-slate-950" : "border border-white/15"}`}
+                onClick={() => setPeer(f.id)}
+              >
+                {f.display_name || f.public_handle || "Friend"}
+              </button>
+            ))}
+          </div>
+          <div className="max-h-80 space-y-2 overflow-y-auto rounded-xl border border-white/10 bg-black/20 p-4">
             {thread.length ? (
               thread.map((m, i) => (
-                <Row key={i}>
-                  <span>{m.body}</span>
-                  <small className="text-slate-500">{m.created_at ? new Date(m.created_at).toLocaleString() : ""}</small>
-                </Row>
+                <div key={i} className="text-xs">
+                  <span className="text-slate-500">[{new Date(m.created_at ?? "").toLocaleTimeString()}]</span> {m.body}
+                </div>
               ))
             ) : (
-              <p className="text-slate-400">No messages yet.</p>
+              <p className="text-slate-500">No messages yet.</p>
             )}
           </div>
           <form
@@ -213,6 +213,9 @@ function MessagesTab() {
             }}
           >
             <input
+              id="message-draft-input"
+              name="messageDraft"
+              aria-label="Message"
               className="min-w-0 flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2"
               placeholder="Message"
               value={draft}
@@ -347,22 +350,22 @@ function CheatsTab() {
           }
         }}
       >
-        <label>
+        <label htmlFor="cheat-game-select">
           Game
-          <select className="mt-1 block rounded-lg border border-white/15 bg-black/30 px-3 py-2" value={game} onChange={(e) => setGame(e.target.value)}>
+          <select id="cheat-game-select" name="game" className="mt-1 block rounded-lg border border-white/15 bg-black/30 px-3 py-2" value={game} onChange={(e) => setGame(e.target.value)}>
             <option value="platform-wars">Platform Wars</option>
           </select>
         </label>
-        <label>
+        <label htmlFor="cheat-slot-select">
           Save slot
-          <select className="mt-1 block rounded-lg border border-white/15 bg-black/30 px-3 py-2" value={slot} onChange={(e) => setSlot(e.target.value)}>
+          <select id="cheat-slot-select" name="slot" className="mt-1 block rounded-lg border border-white/15 bg-black/30 px-3 py-2" value={slot} onChange={(e) => setSlot(e.target.value)}>
             <option value="1">Save 1</option>
             <option value="2">Save 2</option>
             <option value="3">Save 3</option>
           </select>
         </label>
         <label className="flex items-center gap-2">
-          <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} /> Enable cheats
+          <input id="cheat-enabled-checkbox" name="enabled" type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} /> Enable cheats
         </label>
         <button className="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950">Save</button>
       </form>
@@ -379,7 +382,7 @@ function CheatsTab() {
         }}
       >
         <label className="flex items-center gap-2">
-          <input type="checkbox" checked={global} onChange={(e) => setGlobal(e.target.checked)} /> Allow AI testing cheats in all games
+          <input id="cheat-global-checkbox" name="globalCheats" type="checkbox" checked={global} onChange={(e) => setGlobal(e.target.checked)} /> Allow AI testing cheats in all games
         </label>
         <p className="text-slate-500">This grants testing access globally. A save is still permanently marked only when cheats are enabled for that game and save.</p>
         <button className="rounded-lg border border-white/20 px-4 py-2">Save all-game permission</button>
@@ -425,9 +428,11 @@ function StudioTab() {
           }
         }}
       >
-        <label className="block">
+        <label className="block" htmlFor="studio-title-input">
           Title
           <input
+            id="studio-title-input"
+            name="title"
             className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2"
             value={title}
             maxLength={80}
@@ -435,9 +440,11 @@ function StudioTab() {
             onChange={(e) => setTitle(e.target.value)}
           />
         </label>
-        <label className="block">
+        <label className="block" htmlFor="studio-source-textarea">
           Source (HTML)
           <textarea
+            id="studio-source-textarea"
+            name="source"
             className="mt-1 h-40 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 font-mono text-xs"
             value={source}
             required
@@ -601,8 +608,8 @@ function SettingsTab() {
         }}
       >
         {(Object.keys(settings) as (keyof typeof settings)[]).map((k) => (
-          <label key={k} className="flex items-center gap-2">
-            <input type="checkbox" checked={settings[k]} onChange={(e) => setSettings({ ...settings, [k]: e.target.checked })} />{" "}
+          <label key={k} className="flex items-center gap-2" htmlFor={`setting-${k}`}>
+            <input id={`setting-${k}`} name={k} type="checkbox" checked={settings[k]} onChange={(e) => setSettings({ ...settings, [k]: e.target.checked })} />{" "}
             {k === "allow_friend_requests" ? "Allow friend requests" : k === "show_playtime" ? "Show playtime on my public profile" : "Marketing email"}
           </label>
         ))}

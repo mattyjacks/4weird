@@ -76,8 +76,10 @@ export function UpdatePasswordForm({
                 <Label htmlFor="password">New password</Label>
                 <Input
                   id="password"
+                  name="password"
                   type="password"
                   placeholder="New password"
+                  autoComplete="new-password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

@@ -56,34 +56,51 @@ export async function updateSession(request: NextRequest) {
   const isVcwHealth =
     request.nextUrl.pathname === "/api/vcw/health" ||
     request.nextUrl.pathname.startsWith("/api/vcw/health/");
+  // Endpoints that allow unauthenticated/guest access or alternate auth (e.g. x-bot-key).
+  // Individual route handlers enforce fine-grained method and payload authentication.
+  const path = request.nextUrl.pathname;
+  const method = request.method;
+  const isBotKeyAuth = request.headers.has("x-bot-key") || request.headers.get("authorization")?.startsWith("Bearer ");
+  const isPublicApi =
+    (path === "/api/games/guest-pass" && method === "POST") ||
+    (path === "/api/games/rates" && method === "GET") ||
+    (path === "/api/game-ai/features" && method === "GET") ||
+    (path === "/api/clans" && method === "GET") ||
+    (/^\/api\/clans\/[^/]+$/.test(path) && method === "GET") ||
+    (/^\/api\/clans\/[^/]+\/channels$/.test(path) && method === "GET") ||
+    (/^\/api\/clans\/[^/]+\/economy$/.test(path) && method === "GET") ||
+    (path.startsWith("/api/bot/bclans") && isBotKeyAuth) ||
+    (path === "/api/bot/me" && isBotKeyAuth);
+
   const protectedPath =
-    request.nextUrl.pathname === "/account" ||
-    request.nextUrl.pathname.startsWith("/protected") ||
-    request.nextUrl.pathname.startsWith("/api/account") ||
-    request.nextUrl.pathname.startsWith("/api/admin") ||
-    request.nextUrl.pathname.startsWith("/api/agents") ||
-    request.nextUrl.pathname.startsWith("/api/bot") ||
-    request.nextUrl.pathname.startsWith("/api/cheats") ||
-    request.nextUrl.pathname.startsWith("/api/clans") ||
-    request.nextUrl.pathname.startsWith("/api/cloud") ||
-    request.nextUrl.pathname.startsWith("/api/code") ||
-    request.nextUrl.pathname.startsWith("/api/coins") ||
-    request.nextUrl.pathname.startsWith("/api/lobbies") ||
-    request.nextUrl.pathname.startsWith("/api/matches") ||
-    request.nextUrl.pathname.startsWith("/api/me") ||
-    request.nextUrl.pathname.startsWith("/api/messages") ||
-    request.nextUrl.pathname.startsWith("/api/my") ||
-    request.nextUrl.pathname.startsWith("/api/buddy") ||
-    request.nextUrl.pathname.startsWith("/api/game-ai") ||
-    request.nextUrl.pathname.startsWith("/api/games") ||
-    request.nextUrl.pathname.startsWith("/api/orgs") ||
-    request.nextUrl.pathname.startsWith("/api/presence") ||
-    request.nextUrl.pathname.startsWith("/api/saves") ||
-    request.nextUrl.pathname.startsWith("/api/settings") ||
-    request.nextUrl.pathname.startsWith("/api/social") ||
-    request.nextUrl.pathname.startsWith("/api/stats") ||
-    request.nextUrl.pathname.startsWith("/api/teams") ||
-    (request.nextUrl.pathname.startsWith("/api/vcw") && !isVcwHealth);
+    !isPublicApi &&
+    (request.nextUrl.pathname === "/account" ||
+      request.nextUrl.pathname.startsWith("/protected") ||
+      request.nextUrl.pathname.startsWith("/api/account") ||
+      request.nextUrl.pathname.startsWith("/api/admin") ||
+      request.nextUrl.pathname.startsWith("/api/agents") ||
+      request.nextUrl.pathname.startsWith("/api/bot") ||
+      request.nextUrl.pathname.startsWith("/api/cheats") ||
+      request.nextUrl.pathname.startsWith("/api/clans") ||
+      request.nextUrl.pathname.startsWith("/api/cloud") ||
+      request.nextUrl.pathname.startsWith("/api/code") ||
+      request.nextUrl.pathname.startsWith("/api/coins") ||
+      request.nextUrl.pathname.startsWith("/api/lobbies") ||
+      request.nextUrl.pathname.startsWith("/api/matches") ||
+      request.nextUrl.pathname.startsWith("/api/me") ||
+      request.nextUrl.pathname.startsWith("/api/messages") ||
+      request.nextUrl.pathname.startsWith("/api/my") ||
+      request.nextUrl.pathname.startsWith("/api/buddy") ||
+      request.nextUrl.pathname.startsWith("/api/game-ai") ||
+      request.nextUrl.pathname.startsWith("/api/games") ||
+      request.nextUrl.pathname.startsWith("/api/orgs") ||
+      request.nextUrl.pathname.startsWith("/api/presence") ||
+      request.nextUrl.pathname.startsWith("/api/saves") ||
+      request.nextUrl.pathname.startsWith("/api/settings") ||
+      request.nextUrl.pathname.startsWith("/api/social") ||
+      request.nextUrl.pathname.startsWith("/api/stats") ||
+      request.nextUrl.pathname.startsWith("/api/teams") ||
+      (request.nextUrl.pathname.startsWith("/api/vcw") && !isVcwHealth));
 
   if (protectedPath && !user) {
     if (request.nextUrl.pathname.startsWith("/api/")) {

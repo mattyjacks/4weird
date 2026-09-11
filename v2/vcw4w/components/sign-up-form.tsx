@@ -71,8 +71,10 @@ export function SignUpForm({
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
                   placeholder="m@example.com"
+                  autoComplete="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -84,7 +86,9 @@ export function SignUpForm({
                 </div>
                 <Input
                   id="password"
+                  name="password"
                   type="password"
+                  autoComplete="new-password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -99,7 +103,9 @@ export function SignUpForm({
                 </div>
                 <Input
                   id="repeat-password"
+                  name="repeat-password"
                   type="password"
+                  autoComplete="new-password"
                   required
                   value={repeatPassword}
                   onChange={(e) => setRepeatPassword(e.target.value)}

@@ -358,6 +358,9 @@ export function ClanPage({ slug }: { slug: string }) {
           Every post pays a linear server-cost fee (min 0.01 coins, 25% cut included).
         </p>
         <input
+          id="clan-post-title"
+          name="postTitle"
+          aria-label="Post title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Title (max 120)"
@@ -369,7 +372,7 @@ export function ClanPage({ slug }: { slug: string }) {
           <MarkdownEditor value={bodyText} onChange={setBodyText} placeholder="Body markdown (max 8000)" maxLength={8000} rows={4} />
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-3">
-          <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={pickAndUpload} className="text-sm text-slate-300" />
+          <input id="clan-post-file" name="postFile" aria-label="Attach image" ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={pickAndUpload} className="text-sm text-slate-300" />
           {uploading && <span className="text-sm text-slate-400">Uploading…</span>}
           {fileNote && <span className="text-xs text-slate-400">size: {fileNote}</span>}
         </div>
@@ -409,6 +412,9 @@ export function ClanPage({ slug }: { slug: string }) {
             {commentFor === p.id && (
               <div className="mt-3 flex gap-2">
                 <input
+                  id={`clan-comment-input-${p.id}`}
+                  name="commentText"
+                  aria-label="Write a comment"
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder="Write a comment, markdown OK (max 2000)"
@@ -469,33 +475,33 @@ export function ClanPage({ slug }: { slug: string }) {
           <div>
             <h3 className="text-sm font-bold text-slate-200">Fund wallet (creator)</h3>
             <div className="mt-2 flex gap-2">
-              <input value={fundCoins} onChange={(e) => setFundCoins(e.target.value)} placeholder="coins" inputMode="decimal" className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white" />
+              <input id="fund-coins-input" name="fundCoins" aria-label="Coins to fund" value={fundCoins} onChange={(e) => setFundCoins(e.target.value)} placeholder="coins" inputMode="decimal" className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white" />
               <button onClick={() => void econ("", { action: "fund", coins: Number(fundCoins) }, "Wallet funded.")} className="rounded-lg bg-cyan-400 px-3 py-2 text-sm font-bold text-slate-950">Fund</button>
             </div>
             <h3 className="mt-4 text-sm font-bold text-slate-200">Donate upkeep (members)</h3>
             <p className="mt-1 text-xs text-slate-500">Any member can chip in directly, 1:1, no cut.</p>
             <div className="mt-2 flex gap-2">
-              <input value={donateCoins} onChange={(e) => setDonateCoins(e.target.value)} placeholder="coins" inputMode="decimal" className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white" />
+              <input id="donate-coins-input" name="donateCoins" aria-label="Coins to donate" value={donateCoins} onChange={(e) => setDonateCoins(e.target.value)} placeholder="coins" inputMode="decimal" className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white" />
               <button onClick={() => void econ("", { action: "donate", coins: Number(donateCoins) }, "Donation received — thank you!")} className="rounded-lg bg-emerald-400 px-3 py-2 text-sm font-bold text-slate-950">Donate</button>
             </div>
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-200">Add revenue channel (owner)</h3>
             <div className="mt-2 space-y-2">
-              <select value={chanKind} onChange={(e) => setChanKind(e.target.value)} className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white">
+              <select id="channel-kind-select" name="chanKind" aria-label="Revenue channel kind" value={chanKind} onChange={(e) => setChanKind(e.target.value)} className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white">
                 <option value="house-ad">house-ad (0.01/view)</option>
                 <option value="affiliate">affiliate (0.05/click)</option>
                 <option value="sponsor">sponsor</option>
               </select>
-              <input value={chanLabel} onChange={(e) => setChanLabel(e.target.value)} placeholder="Label" maxLength={120} className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white" />
-              <input value={chanUrl} onChange={(e) => setChanUrl(e.target.value)} placeholder="https://… (optional)" className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white" />
+              <input id="channel-label-input" name="chanLabel" aria-label="Channel label" value={chanLabel} onChange={(e) => setChanLabel(e.target.value)} placeholder="Label" maxLength={120} className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white" />
+              <input id="channel-url-input" name="chanUrl" aria-label="Channel target URL" value={chanUrl} onChange={(e) => setChanUrl(e.target.value)} placeholder="https://… (optional)" className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white" />
               <button onClick={() => void econ("", { action: "channel", kind: chanKind, label: chanLabel, target_url: chanUrl }, "Channel added.")} className="rounded-lg bg-cyan-400 px-3 py-2 text-sm font-bold text-slate-950">Add channel</button>
             </div>
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-200">Clan type (owner)</h3>
             <div className="mt-2 flex gap-2">
-              <select id="clan-type-pick" defaultValue={clanType} className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white">
+              <select id="clan-type-pick" name="clanType" aria-label="Clan type" defaultValue={clanType} className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white">
                 <option value="hclan">hclan — humans only</option>
                 <option value="sclan">sclan — shared</option>
                 <option value="bclan">bclan — bot-native</option>

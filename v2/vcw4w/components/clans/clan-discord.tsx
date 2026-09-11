@@ -221,6 +221,9 @@ export function ClanDiscord({ slug }: { slug: string }) {
           </ul>
           <form onSubmit={createChannel} className="mt-3 flex gap-1">
             <input
+              id="new-channel-name-input"
+              name="newChannelName"
+              aria-label="New channel name"
               value={newChan}
               onChange={(e) => setNewChan(e.target.value)}
               placeholder="+ channel"
@@ -248,62 +251,48 @@ export function ClanDiscord({ slug }: { slug: string }) {
         </div>
 
         {/* Message feed */}
-        <div className="flex min-h-[320px] flex-col">
-          <div className="border-b border-white/5 px-4 py-2 text-sm text-slate-300">
-            {active ? (
-              <>
-                <b className="text-white">{active.name}</b>
-                {active.topic && <span className="ml-2 text-xs text-slate-500">{active.topic}</span>}
-              </>
-            ) : (
-              "Pick a channel"
-            )}
+        <div className="flex flex-col">
+          <div className="border-b border-white/10 px-4 py-2 text-sm text-slate-300">
+            <span className="font-bold text-white">{active?.readonly ? "📢" : active?.kind === "media" ? "🖼️" : "#"} {active?.name ?? "general"}</span>
+            {active?.topic && <span className="ml-2 text-xs text-slate-400">— {active.topic}</span>}
           </div>
-          <div className="max-h-96 flex-1 space-y-2 overflow-y-auto p-4">
+          <div className="flex-1 space-y-3 overflow-y-auto p-4" style={{ maxHeight: "420px" }}>
             {messages.map((m) => {
-              const replyTarget = m.reply_to ? messages.find((x) => x.id === m.reply_to) : null;
-              const mReacts = reactions.filter((r) => r.message_id === m.id);
-              const counts = new Map<string, number>();
-              for (const r of mReacts) counts.set(r.emoji, (counts.get(r.emoji) ?? 0) + 1);
+              const myReactions = reactions.filter((r) => r.message_id === m.id);
               return (
-                <div key={m.id} className="rounded-lg bg-black/30 px-3 py-2">
-                  {m.pinned && <p className="text-[11px] font-bold text-amber-300">📌 Pinned</p>}
-                  {replyTarget && (
-                    <p className="truncate border-l-2 border-cyan-400/40 pl-2 text-xs text-slate-500">
-                      ↳ {shortId(replyTarget.author_id)}: {replyTarget.body.slice(0, 80)}
-                    </p>
-                  )}
-                  <p className="text-xs text-slate-500">
-                    <span className="font-mono text-cyan-300">{shortId(m.author_id)}</span> ·{" "}
-                    {new Date(m.created_at).toLocaleString()}
-                    {m.edited_at && " · edited"}
-                  </p>
-                  <div className="text-sm text-slate-200">
+                <div key={m.id} className="group rounded-lg p-2 transition hover:bg-white/5">
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-mono text-xs font-bold text-cyan-300">{shortId(m.author_id)}</span>
+                    <span className="text-[10px] text-slate-500">{new Date(m.created_at).toLocaleTimeString()}</span>
+                    {m.reply_to && (
+                      <span className="text-[10px] text-slate-400">↳ replying to {shortId(m.reply_to)}</span>
+                    )}
+                    {m.status === "pending" && (
+                      <span className="rounded bg-amber-400/20 px-1 text-[10px] text-amber-300">pending</span>
+                    )}
+                  </div>
+                  <div className="mt-1 text-sm text-slate-100">
                     <MarkdownView text={m.body} />
                   </div>
-                  {counts.size > 0 && (
-                    <p className="mt-1 text-sm">
-                      {[...counts.entries()].map(([emoji, n]) => (
-                        <span key={emoji} className="mr-1 rounded bg-white/10 px-1.5 py-0.5">
-                          {emoji} {n}
-                        </span>
-                      ))}
-                    </p>
+                  {m.image_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={m.image_url} alt="" loading="lazy" className="mt-2 max-h-60 rounded border border-white/10" />
                   )}
-                  <div className="mt-1 flex flex-wrap gap-1">
+                  <div className="mt-2 flex flex-wrap items-center gap-1 opacity-0 transition group-hover:opacity-100">
                     {QUICK_EMOJI.map((emoji) => (
                       <button
                         key={emoji}
                         onClick={() => void react(m.id, emoji)}
-                        className="rounded px-1 text-sm hover:bg-white/10"
-                        aria-label={`React ${emoji}`}
+                        className={`rounded px-1.5 py-0.5 text-xs ${
+                          myReactions.some((r) => r.emoji === emoji) ? "bg-cyan-400/20 text-cyan-200" : "hover:bg-white/10"
+                        }`}
                       >
                         {emoji}
                       </button>
                     ))}
                     <button
                       onClick={() => setReplyTo(m.id)}
-                      className="rounded px-1 text-xs text-slate-400 hover:bg-white/10 hover:text-cyan-300"
+                      className="rounded px-1.5 py-0.5 text-xs text-slate-400 hover:bg-white/10 hover:text-cyan-300"
                     >
                       Reply
                     </button>
@@ -327,6 +316,9 @@ export function ClanDiscord({ slug }: { slug: string }) {
             )}
             <div className="flex gap-2">
               <input
+                id="clan-chat-input"
+                name="chatText"
+                aria-label="Chat message"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder={active?.readonly ? "📢 announcements — owners/mods only" : `Message ${active?.name ?? ""} (markdown OK)`}
