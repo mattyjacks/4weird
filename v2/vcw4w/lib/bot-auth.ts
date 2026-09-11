@@ -11,6 +11,9 @@
  *   clans:comment - POST /api/bot/bclans/post/[id]/comment
  *   clans:report  - POST /api/bot/bclans/report
  *   identity:read - GET  /api/bot/me (username, human_id, key metadata)
+ *   unitunite:read  - GET /api/unitunite/rooms, /api/unitunite/rooms/[id]/messages
+ *   unitunite:send  - POST /api/unitunite/rooms (open a room), /api/unitunite/rooms/[id]/messages (send)
+ *                     UnitUnite sends from a bot key are ALWAYS labeled [BOT].
  *
  * A bot acts AS the linked human account: bot requests resolve to the
  * owning user's id, and clan posts/comments carry author_id = that user.
@@ -34,6 +37,7 @@
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/validate";
+import { isIpAllowed, lowBalanceTripLine, type IpMode } from "@/lib/bot-key-policy";
 import { serviceClient, supabaseServiceRoleKey, supabaseUrl } from "@/lib/supabase/service";
 
 export const BOT_KEY_TAG = "bot4weird_";
@@ -46,6 +50,8 @@ export const BOT_SCOPES = [
   "clans:comment",
   "clans:report",
   "identity:read",
+  "unitunite:read",
+  "unitunite:send",
 ] as const;
 
 export interface BotIdentity {
@@ -54,6 +60,10 @@ export interface BotIdentity {
   humanId: string;
   keyId: string;
   prefix: string;
+  /** Scope subset carried by this key (empty = all BOT_SCOPES). */
+  scopes: string[];
+  /** Logging tier carried by this key (full | half | none). */
+  loggingMode: string;
 }
 
 const KEY_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -158,6 +168,91 @@ interface KeyCandidate {
   user_id: string;
   key_hash: string;
   revoked: boolean;
+  expires_at: string | null;
+  max_uses: number;
+  use_count: number;
+  lifetime_budget: number;
+  lifetime_spent: number;
+  daily_budget: number;
+  daily_spent: number;
+  daily_day: string | null;
+  hard_stop_enabled: boolean;
+  low_balance_floor: number;
+  low_balance_pct: number;
+  ip_mode: string;
+  ip_allowlist: string[];
+  ip_blocklist: string[];
+  scopes: string[];
+  logging_mode: string;
+}
+
+const POLICY_COLUMNS =
+  "id,user_id,key_hash,revoked,expires_at,max_uses,use_count," +
+  "lifetime_budget,lifetime_spent,daily_budget,daily_spent,daily_day," +
+  "hard_stop_enabled,low_balance_floor,low_balance_pct," +
+  "ip_mode,ip_allowlist,ip_blocklist,scopes,logging_mode";
+
+function todayDay(d = new Date()): string {
+  return d.toISOString().slice(0, 10);
+}
+
+/** Owner Vibe Coin balance (SUM of coin_ledger deltas). Null on DB error. */
+async function ownerCoinBalance(userId: string): Promise<number | null> {
+  try {
+    const db = serviceClient();
+    const { data, error } = await db
+      .from("coin_ledger")
+      .select("delta")
+      .eq("user_id", userId)
+      .limit(5000);
+    if (error) return null;
+    const rows = (data ?? []) as { delta: unknown }[];
+    let sum = 0;
+    for (const r of rows) sum += Number(r.delta) || 0;
+    return Math.round(sum * 100) / 100;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Add metered spend (clan fees, log storage, …) to a key's lifetime + daily
+ * counters, rolling the daily window. Fire-and-forget safe: never throws.
+ */
+export async function recordBotKeySpend(keyId: string, coins: number): Promise<void> {
+  const amount = Math.round(Number(coins || 0) * 100) / 100;
+  if (!keyId || !(amount > 0)) return;
+  try {
+    const db = serviceClient();
+    const { data } = await db
+      .from("bot_api_keys")
+      .select("lifetime_spent,daily_spent,daily_day")
+      .eq("id", keyId)
+      .maybeSingle();
+    const row = (data ?? {}) as {
+      lifetime_spent?: unknown;
+      daily_spent?: unknown;
+      daily_day?: unknown;
+    };
+    const day = todayDay();
+    const rolled = String(row.daily_day ?? "") !== day;
+    await db
+      .from("bot_api_keys")
+      .update({
+        lifetime_spent: Math.round(((Number(row.lifetime_spent) || 0) + amount) * 100) / 100,
+        daily_spent: Math.round(((rolled ? 0 : Number(row.daily_spent) || 0) + amount) * 100) / 100,
+        daily_day: day,
+      })
+      .eq("id", keyId);
+  } catch {
+    // spend accounting must never break the request it meters.
+  }
+}
+
+/** Scope check against the key's subset (empty subset = all scopes). */
+export function keyHasScope(bot: BotIdentity, scope: string): boolean {
+  if (!bot.scopes || bot.scopes.length === 0) return true;
+  return bot.scopes.includes(scope);
 }
 
 function dummyCompare(digest: Buffer): void {
@@ -192,14 +287,14 @@ export async function resolveBotKey(req: Request): Promise<BotIdentity | null> {
     const db = serviceClient();
     const { data, error } = await db
       .from("bot_api_keys")
-      .select("id,user_id,key_hash,revoked")
+      .select(POLICY_COLUMNS)
       .eq("prefix", prefix)
       .limit(100);
     if (error) {
       dummyCompare(Buffer.alloc(32, 0));
       return null;
     }
-    candidates = ((data ?? []) as KeyCandidate[]).filter(
+    candidates = ((data ?? []) as unknown as KeyCandidate[]).filter(
       (c) => typeof c?.key_hash === "string" && typeof c?.user_id === "string",
     );
   } catch {
@@ -229,13 +324,66 @@ export async function resolveBotKey(req: Request): Promise<BotIdentity | null> {
 
   if (!matched || matched.revoked) return null;
 
+  // ---- Power-manager policy enforcement (all denials collapse to null:
+  // ---- the route layer answers the uniform "Invalid credentials."). ----
+  const now = Date.now();
+  if (matched.expires_at && Date.parse(matched.expires_at) <= now) return null;
+  if (Number(matched.max_uses) > 0 && Number(matched.use_count) >= Number(matched.max_uses)) {
+    return null;
+  }
+  try {
+    const mode = (matched.ip_mode === "allowlist" || matched.ip_mode === "blocklist"
+      ? matched.ip_mode
+      : "disabled") as IpMode;
+    if (
+      !isIpAllowed(
+        clientIp(req),
+        mode,
+        Array.isArray(matched.ip_allowlist) ? matched.ip_allowlist : [],
+        Array.isArray(matched.ip_blocklist) ? matched.ip_blocklist : [],
+      )
+    ) {
+      return null;
+    }
+  } catch {
+    return null;
+  }
+  // Daily window rolls over at UTC midnight: a stale daily_day means today's
+  // spend is 0, even before the fire-and-forget counter catches up.
+  const effectiveDaily =
+    String(matched.daily_day ?? "") === todayDay() ? Number(matched.daily_spent) || 0 : 0;
+  if (Number(matched.lifetime_budget) > 0 && Number(matched.lifetime_spent) >= Number(matched.lifetime_budget)) {
+    return null;
+  }
+  if (Number(matched.daily_budget) > 0 && effectiveDaily >= Number(matched.daily_budget)) {
+    return null;
+  }
+  if (matched.hard_stop_enabled) {
+    const floor = Number(matched.low_balance_floor) || 0;
+    const pct = Number(matched.low_balance_pct);
+    const balance = await ownerCoinBalance(matched.user_id);
+    // Fail closed when the balance cannot be read and a floor is set.
+    if (balance === null) {
+      if (floor > 0) return null;
+    } else if (balance <= lowBalanceTripLine(floor, Number.isFinite(pct) ? pct : 10)) {
+      return null;
+    }
+  }
+
   try {
     const db = serviceClient();
-    // Fire-and-forget usage timestamp; never blocks or fails the request.
+    // Fire-and-forget usage counters; never blocks or fails the request.
     try {
+      const day = todayDay();
+      const rolled = String(matched.daily_day ?? "") !== day;
       void db
         .from("bot_api_keys")
-        .update({ last_used_at: new Date().toISOString() })
+        .update({
+          last_used_at: new Date().toISOString(),
+          use_count: (Number(matched.use_count) || 0) + 1,
+          daily_spent: rolled ? 0 : Number(matched.daily_spent) || 0,
+          daily_day: day,
+        })
         .eq("id", matched.id)
         .then(
           () => undefined,
@@ -257,6 +405,11 @@ export async function resolveBotKey(req: Request): Promise<BotIdentity | null> {
       humanId: row.human_id,
       keyId: matched.id,
       prefix,
+      scopes: Array.isArray(matched.scopes) ? matched.scopes : [],
+      loggingMode:
+        matched.logging_mode === "full" || matched.logging_mode === "none"
+          ? matched.logging_mode
+          : "half",
     };
   } catch {
     return null;

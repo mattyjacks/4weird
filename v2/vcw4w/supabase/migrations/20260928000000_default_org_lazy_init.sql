@@ -159,7 +159,7 @@ begin
           if exists (select 1 from public.orgs where owner_id = new.id) then exit; end if;
         end;
       end loop;
-    end;
+    end if;
   exception when others then
     -- Default-org seeding is best-effort: GET /api/orgs backfills via
     -- ensure_default_org() for any user missed here.

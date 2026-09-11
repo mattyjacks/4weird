@@ -81,4 +81,18 @@ if (!detailRoute.includes("delete pub.owner_id") || !detailRoute.includes("delet
   throw new Error("detail route must strip owner_id/endpoint_url for non-owners.");
 }
 
+// Heartbeat single-beat cap parity (Heartbleed-pattern fix): the API route
+// and isHeartbeatSeconds() cap beats to 1..3600, so the database function
+// must too — otherwise any authenticated caller can bypass the API with a
+// direct rpc call of up to 86400s and drain the booking escrow in one beat.
+const heartbeatRoute = read("../app/api/agents/bookings/[id]/heartbeat/route.ts");
+if (!heartbeatRoute.includes("1..3600")) throw new Error("heartbeat route must cap beats to 1..3600.");
+if (!market.includes("v > 3600")) throw new Error("isHeartbeatSeconds must cap beats to 3600.");
+const heartbeatFix = read("../supabase/migrations/20260930000000_heartbeat_escrow_cap.sql");
+if (!heartbeatFix.includes("p_seconds > 3600")) throw new Error("heartbeat cap migration must enforce p_seconds > 3600.");
+if (!heartbeatFix.includes("seconds must be 1..3600")) throw new Error("heartbeat cap migration must raise 'seconds must be 1..3600'.");
+if (heartbeatFix.includes("p_seconds > 86400")) throw new Error("heartbeat cap migration must not allow 86400s beats.");
+if (heartbeatFix.includes("seconds must be 1..86400")) throw new Error("heartbeat cap migration must not raise the old 1..86400 range.");
+if (!heartbeatFix.includes("usage exceeds escrow")) throw new Error("heartbeat cap migration must keep the escrow guard.");
+
 console.log("Agent rentals integrity OK.");

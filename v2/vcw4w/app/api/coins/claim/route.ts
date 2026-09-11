@@ -87,8 +87,12 @@ export async function POST(req: Request) {
   }
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const msg = (body as { error?: unknown }).error;
-    return fail(typeof msg === "string" ? msg : "Unable to claim coins.", response.status >= 400 && response.status < 500 ? response.status : 502);
+    const raw = (body as { error?: unknown }).error;
+    console.error("[api/coins/claim] edge error", {
+      status: response.status,
+      message: String(raw ?? "unknown").slice(0, 200),
+    });
+    return fail("Unable to claim coins.", response.status >= 400 && response.status < 500 ? response.status : 502);
   }
   return ok({ claimed: Number((body as { claimed?: unknown }).claimed) || 0 });
 }

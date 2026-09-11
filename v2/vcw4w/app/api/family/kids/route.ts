@@ -40,7 +40,7 @@ export async function GET() {
   const today: Record<string, number> = {};
   if (ids.length) {
     const [{ data: c }, { data: w }, { data: d }] = await Promise.all([
-      service.from("kid_controls").select("*").in("kid_id", ids),
+      service.from("kid_controls").select("kid_id,daily_minutes,allowed_start,allowed_end,timezone,monthly_cap_coins,hard_stop,updated_at").in("kid_id", ids),
       service.from("kid_wallet_ledger").select("kid_id,delta").in("kid_id", ids),
       service.from("kid_play_days").select("kid_id,seconds").in("kid_id", ids).eq("day", new Date().toISOString().slice(0, 10)),
     ]);

@@ -4,8 +4,11 @@ import {
   botRateLimit,
   hasBotAuth,
   invalidCredentials,
+  keyHasScope,
   resolveBotKey,
 } from "@/lib/bot-auth";
+import { logBotKeyRequest } from "@/lib/bot-log";
+import { clientIp } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +24,16 @@ export async function GET(req: Request) {
   }
   const bot = await resolveBotKey(req);
   if (!bot) return fail(invalidCredentials(), 401);
+  if (!keyHasScope(bot, "identity:read")) return fail("Key lacks scope: identity:read.", 403);
+  void logBotKeyRequest({
+    keyId: bot.keyId,
+    userId: bot.userId,
+    method: "GET",
+    path: "/api/bot/me",
+    status: 200,
+    ip: clientIp(req),
+    loggingMode: bot.loggingMode,
+  });
   return ok({
     username: bot.username,
     human_id: bot.humanId,

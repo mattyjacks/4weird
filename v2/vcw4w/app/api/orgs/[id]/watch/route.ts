@@ -30,7 +30,10 @@ export async function GET(req: Request) {
   if (!data?.user) return fail("Login required.", 401);
   const orgId = idFrom(req.url, 2);
   if (!/^[0-9a-f-]{36}$/i.test(orgId)) return fail("Invalid org.", 400);
-  const { data: scopes, error } = await supabase.from("org_watch_scopes").select("*").eq("org_id", orgId).limit(500);
+  // Membership gate: org_roster raises 'forbidden' for non-members.
+  const { error: memberError } = await supabase.rpc("org_roster", { p_org: orgId });
+  if (memberError) return fail("Not a member of this org.", 403);
+  const { data: scopes, error } = await supabase.from("org_watch_scopes").select("org_id,watcher_id,target_user_id,created_at").eq("org_id", orgId).limit(500);
   if (error) return fail("Unable to load watch scopes.", 500);
   return ok({ scopes: scopes ?? [] });
 }

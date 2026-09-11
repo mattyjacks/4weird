@@ -46,7 +46,12 @@ const AGENT_COLORS = ["text-cyan-300", "text-amber-300", "text-violet-300", "tex
 const RUNTIME_OPTIONS = Object.keys(RUNTIME_LABELS) as Runtime[];
 
 function escapeHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 /** Markdown-lite: code fences, inline code, bold, line breaks. Escape-first, never raw HTML. */

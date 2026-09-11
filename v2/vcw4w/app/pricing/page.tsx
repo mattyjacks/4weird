@@ -1,7 +1,7 @@
 ﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { PackCatalog } from "@/components/coins/pack-catalog";
-import { pricingOffersJsonLd } from "@/lib/seo";
+import { jsonLdScript, pricingOffersJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/pricing" },
@@ -26,7 +26,7 @@ export default function Page() {
     <div className="bg-slate-950 text-white">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(pricingOffersJsonLd()) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(pricingOffersJsonLd()) }}
       />
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-4 pb-10 pt-14 sm:px-5 sm:pt-20">

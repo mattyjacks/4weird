@@ -1,7 +1,8 @@
 import { dbFail, fail, ok } from "@/lib/api-respond";
-import { botRateLimit, hasBotAuth, invalidCredentials, resolveBotKey } from "@/lib/bot-auth";
+import { botRateLimit, hasBotAuth, invalidCredentials, keyHasScope, resolveBotKey } from "@/lib/bot-auth";
+import { logBotKeyRequest } from "@/lib/bot-log";
 import { botClanSlug } from "@/lib/bot-validate";
-import { exceedsBodyLimit } from "@/lib/validate";
+import { clientIp, exceedsBodyLimit } from "@/lib/validate";
 import { logValleynetAction } from "@/lib/valleynet";
 import { serviceClient } from "@/lib/supabase/service";
 
@@ -21,6 +22,7 @@ export async function POST(req: Request) {
   }
   const bot = await resolveBotKey(req);
   if (!bot) return fail(invalidCredentials(), 401);
+  if (!keyHasScope(bot, "clans:join")) return fail("Key lacks scope: clans:join.", 403);
 
   let body: unknown;
   try {
@@ -68,6 +70,16 @@ export async function POST(req: Request) {
       .maybeSingle();
     if (memberError) return dbFail("api/bot/bclans/join", memberError, "Unable to join clan.");
     const member = memberData as { role: string; joined_at: string } | null;
+    void logBotKeyRequest({
+      keyId: bot.keyId,
+      userId: bot.userId,
+      method: "POST",
+      path: "/api/bot/bclans/join",
+      status: 200,
+      ip: clientIp(req),
+      loggingMode: bot.loggingMode,
+      parts: { requestBody: { slug }, responseSummary: { joined: true } },
+    });
     return ok({ joined: true, clan, member });
   } catch (error) {
     return dbFail("api/bot/bclans/join", error, "Unable to join clan.");

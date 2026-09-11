@@ -6,7 +6,9 @@
    - Tauri runtime: the secret is stored in a local-only OS app-data file
      via the Rust `save_bot_token` / `get_bot_token` / `clear_bot_token`
      commands — never logged, never rendered back.
-   - Plain browser fallback: localStorage `vcw_bot_token` (same shape key).
+   - Plain browser fallback: sessionStorage `vcw_bot_token` (tab-scoped, so
+     the bearer credential never persists in the profile and any XSS has a
+     smaller window than localStorage).
    - VERIFY performs a live read-only check: GET /api/bot/me with the
      `x-bot-key` header and shows the linked username / human_id / scopes.
    ========================================================================== */
@@ -43,7 +45,9 @@ async function readStoredToken() {
     return '';
   }
   try {
-    const token = window.localStorage.getItem(BOT_TOKEN_LS_KEY) || '';
+    const token = window.sessionStorage.getItem(BOT_TOKEN_LS_KEY) || window.localStorage.getItem(BOT_TOKEN_LS_KEY) || '';
+    // One-time migration: drop any legacy persistent copy.
+    try { window.localStorage.removeItem(BOT_TOKEN_LS_KEY); } catch (e) { /* ignore */ }
     return isBotKeyShape(token) ? token : '';
   } catch (e) {
     return '';
@@ -93,7 +97,8 @@ async function saveBotTokenFromInput() {
       const res = await invokeTauriCommand('save_bot_token', { token });
       if (!res || res.success === false) throw new Error('Desktop refused the token.');
     } else {
-      window.localStorage.setItem(BOT_TOKEN_LS_KEY, token);
+      window.sessionStorage.setItem(BOT_TOKEN_LS_KEY, token);
+      try { window.localStorage.removeItem(BOT_TOKEN_LS_KEY); } catch (e) { /* ignore */ }
     }
     if (el.botTokenInput) el.botTokenInput.value = '';
     setStatus(`Saved ${maskToken(token)} locally. VERIFY checks it against 4weird.games.`, 'ok');
@@ -149,7 +154,8 @@ async function clearBotToken() {
     if (isTauriRuntime()) {
       await invokeTauriCommand('clear_bot_token');
     } else {
-      window.localStorage.removeItem(BOT_TOKEN_LS_KEY);
+      window.sessionStorage.removeItem(BOT_TOKEN_LS_KEY);
+      try { window.localStorage.removeItem(BOT_TOKEN_LS_KEY); } catch (e) { /* ignore */ }
     }
     if (el.botTokenInput) el.botTokenInput.value = '';
     if (el.botTokenIdentity) el.botTokenIdentity.textContent = '';

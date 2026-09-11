@@ -213,10 +213,7 @@ function initContactForm() {
 
     form.addEventListener('submit', (e) => {
         e.preventDefault();
-        
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData);
-        
+
         // Show success message
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
@@ -233,8 +230,8 @@ function initContactForm() {
             submitBtn.style.background = '';
             submitBtn.disabled = false;
         }, 3000);
-        
-        console.log('Form submission:', data);
+
+        // Never log form contents: contact fields contain PII (name/email/message).
     });
 }
 

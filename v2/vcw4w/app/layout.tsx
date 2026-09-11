@@ -20,6 +20,7 @@ import {
   SITE_NAME,
   SITE_URL,
   canonical,
+  jsonLdScript,
   organizationJsonLd,
 } from "@/lib/seo";
 import "./globals.css";
@@ -88,7 +89,7 @@ export default function RootLayout({
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd()) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(organizationJsonLd()) }}
         />
       </head>
       <body className="antialiased">

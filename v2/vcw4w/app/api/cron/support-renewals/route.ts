@@ -12,10 +12,8 @@ export const maxDuration = 60;
 function authorized(req: Request): boolean {
   const secret = process.env.CRON_SECRET ?? "";
   if (!secret) return false;
-  const url = new URL(req.url);
-  const query = url.searchParams.get("secret") ?? "";
   const bearer = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
-  return query === secret || bearer === secret;
+  return bearer === secret;
 }
 
 async function tick() {

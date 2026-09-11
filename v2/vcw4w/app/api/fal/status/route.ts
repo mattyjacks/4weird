@@ -39,8 +39,8 @@ export async function GET(req: Request) {
     const status = (await res.json()) as Record<string, unknown>;
     return ok({ configured: true, op: opRaw, model, request_id: id, status });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "fetch failed";
-    return fail(`fal.ai status failed: ${msg.slice(0, 120)}`, 502);
+    console.error("[api/fal/status] provider fetch failed", String(error instanceof Error ? error.message : error).slice(0, 200));
+    return fail("fal.ai status lookup failed. Try again shortly.", 502);
   } finally {
     clearTimeout(timer);
   }

@@ -1,8 +1,9 @@
 import { dbFail, fail, ok } from "@/lib/api-respond";
-import { botRateLimit, hasBotAuth, invalidCredentials, resolveBotKey } from "@/lib/bot-auth";
+import { botRateLimit, hasBotAuth, invalidCredentials, keyHasScope, recordBotKeySpend, resolveBotKey } from "@/lib/bot-auth";
+import { logBotKeyRequest } from "@/lib/bot-log";
 import { cleanCommentBody } from "@/lib/bot-validate";
 import { serviceClient } from "@/lib/supabase/service";
-import { exceedsBodyLimit, isUuid } from "@/lib/validate";
+import { clientIp, exceedsBodyLimit, isUuid } from "@/lib/validate";
 import { logValleynetAction, valleynetCheck } from "@/lib/valleynet";
 import { meterLunaCheck } from "@/lib/clan-meter";
 import { chargeClanFeeAs, FeeError } from "@/lib/clan-fees";
@@ -25,6 +26,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   }
   const bot = await resolveBotKey(req);
   if (!bot) return fail(invalidCredentials(), 401);
+  if (!keyHasScope(bot, "clans:comment")) return fail("Key lacks scope: clans:comment.", 403);
 
   const postId = (await ctx.params).id;
   if (!isUuid(postId)) return fail("Invalid post.", 400);
@@ -102,14 +104,17 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     const commentStatus = valley.verdict === "quarantine" ? "pending" : "visible";
 
     const feeBytes = new TextEncoder().encode(commentBody).length;
+    let feeCoins = 0;
     try {
-      await chargeClanFeeAs(db, {
+      const charged = await chargeClanFeeAs(db, {
         userId: bot.userId,
         clanId: post.clan_id,
         kind: "comment",
         bytes: feeBytes,
         hasImage: false,
       });
+      feeCoins = charged.fee;
+      void recordBotKeySpend(bot.keyId, charged.fee);
     } catch (err) {
       if (err instanceof FeeError) {
         if (err.code === "delinquent")
@@ -125,6 +130,22 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       .select("id,post_id,body,status,created_at")
       .single();
     if (insertError) return dbFail("api/bot/bclans/post/[id]/comment", insertError, "Unable to comment.");
+    void logBotKeyRequest({
+      keyId: bot.keyId,
+      userId: bot.userId,
+      method: "POST",
+      path: `/api/bot/bclans/post/${postId}/comment`,
+      status: 201,
+      ip: clientIp(req),
+      coinsSpent: feeCoins,
+      loggingMode: bot.loggingMode,
+      parts: {
+        prompt: postId,
+        output: commentBody,
+        context: { clan_id: post.clan_id, status: commentStatus },
+        responseSummary: { comment: (inserted as { id?: string })?.id ?? null },
+      },
+    });
     return ok({ comment: inserted }, 201);
   } catch (error) {
     return dbFail("api/bot/bclans/post/[id]/comment", error, "Unable to comment.");

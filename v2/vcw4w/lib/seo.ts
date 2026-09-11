@@ -73,6 +73,15 @@ export function canonical(path = "/"): string {
   return `${SITE_URL}${path === "/" ? "" : path}`;
 }
 
+/**
+ * Serialize JSON-LD for <script type="application/ld+json">.
+ * Escapes `<` so a `</script>` sequence in data can never break out of the
+ * script element (classic XSS vector when JSON contains user content).
+ */
+export function jsonLdScript(value: unknown): string {
+  return JSON.stringify(value).replace(/</g, "\\u003c");
+}
+
 /** BreadcrumbList JSON-LD for any page. Items: [label, path] pairs. */
 export function breadcrumbJsonLd(items: Array<[string, string]>) {
   return {

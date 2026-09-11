@@ -1,7 +1,8 @@
 import { dbFail, fail, ok } from "@/lib/api-respond";
-import { BOT_SCOPES, botRateLimit, hasBotAuth, invalidCredentials, resolveBotKey } from "@/lib/bot-auth";
+import { BOT_SCOPES, botRateLimit, hasBotAuth, invalidCredentials, keyHasScope, resolveBotKey } from "@/lib/bot-auth";
+import { logBotKeyRequest } from "@/lib/bot-log";
 import { serviceClient } from "@/lib/supabase/service";
-import { clampLimit } from "@/lib/validate";
+import { clampLimit, clientIp } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,7 @@ export async function GET(req: Request) {
   }
   const bot = await resolveBotKey(req);
   if (!bot) return fail(invalidCredentials(), 401);
+  if (!keyHasScope(bot, "clans:read")) return fail("Key lacks scope: clans:read.", 403);
 
   const q = new URL(req.url).searchParams;
   const limit = clampLimit(q.get("limit"), 25, 50);
@@ -51,6 +53,16 @@ export async function GET(req: Request) {
       created_at: row.created_at,
       member_count: row.clan_members?.[0]?.count ?? 0,
     }));
+    void logBotKeyRequest({
+      keyId: bot.keyId,
+      userId: bot.userId,
+      method: "GET",
+      path: "/api/bot/bclans",
+      status: 200,
+      ip: clientIp(req),
+      loggingMode: bot.loggingMode,
+      parts: { responseSummary: { count: clans.length } },
+    });
     return ok({ clans, scopes: [...BOT_SCOPES] });
   } catch (error) {
     return dbFail("api/bot/bclans", error, "Unable to load clans.");

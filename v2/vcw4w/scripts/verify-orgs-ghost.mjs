@@ -133,4 +133,30 @@ const redeemRoute = read("app/api/orgs/invites/redeem/route.ts");
 must(redeemRoute.includes("redeem_org_invite"), "redeem route must use the RPC");
 must(workspace.includes("0 coins") && workspace.includes("Invite links"), "workspace must explain 0-coin default org + invite links");
 
+// 11. Agent relay: antisocial users command humans through [BOT]-labeled
+// room messages (session toggle + bot-key scopes), readable chats included.
+const relay = read("supabase/migrations/20260929000000_agent_room_relay.sql");
+for (const token of ["is_bot", "encoding", "send_room_packet_as_bot", "read_room_messages", "list_unitunite_rooms", "agent_room_send", "agent_room_read", "agent_list_rooms", "agent_room_create", "room.send.bot", "[BOT]", "trg_team_rooms_init_org", "trg_room_messages_init_org"]) {
+  must(relay.includes(token), `agent-relay migration must include ${token}`);
+}
+must(!/public\.coin_ledger|coin_grants/.test(relay), "agent relay must never touch coin tables");
+must(relay.includes("rooms.send') then raise exception 'forbidden'"), "human send must always require rooms.send (no member bypass)");
+const roomsRoute = read("app/api/unitunite/rooms/route.ts");
+for (const token of ["list_unitunite_rooms", "agent_list_rooms", "create_room", "agent_room_create", "unitunite:read", "unitunite:send"]) {
+  must(roomsRoute.includes(token), `rooms route must include ${token}`);
+}
+const messagesRoute = read("app/api/unitunite/rooms/[id]/messages/route.ts");
+for (const token of ["read_room_messages", "agent_room_read", "send_room_packet_as_bot", "agent_room_send", "send_room_packet", "redact_room_message", "is_bot", "[BOT]"]) {
+  must(messagesRoute.includes(token), `messages route must include ${token}`);
+}
+must(messagesRoute.includes("Bots cannot redact"), "bots must be denied redaction");
+for (const [path, body] of [["bot-auth", read("lib/bot-auth.ts")], ["bot-key-policy", read("lib/bot-key-policy.ts")], ["bot-setup", read("app/bot/setup/bot-setup.tsx")]]) {
+  must(body.includes("unitunite:read") && body.includes("unitunite:send"), `${path} must carry the unitunite scopes`);
+}
+must(read("app/bot/setup/bot-setup.tsx").includes("always labeled [BOT]"), "bot setup must explain the [BOT] label");
+must(read("public/bot/skill.md").includes("unitunite:send") && read("public/bot/skill.md").includes("[BOT]"), "bot skill manual must document the relay");
+for (const token of ["[BOT]", "Send as my agent", "/api/unitunite/rooms", "bot_sends", "as_bot"]) {
+  must(workspace.includes(token), `workspace rooms UI must include ${token}`);
+}
+
 console.log("Orgs+Ghost checks OK: watcher + multi-role + 100-org cap + 👻💵 timer/books.");

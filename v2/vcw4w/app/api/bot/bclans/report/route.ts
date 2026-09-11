@@ -1,5 +1,6 @@
 import { dbFail, fail, ok } from "@/lib/api-respond";
-import { botRateLimit, hasBotAuth, invalidCredentials, resolveBotKey } from "@/lib/bot-auth";
+import { botRateLimit, hasBotAuth, invalidCredentials, keyHasScope, resolveBotKey } from "@/lib/bot-auth";
+import { logBotKeyRequest } from "@/lib/bot-log";
 import {
   botClanSlug,
   cleanReportDetails,
@@ -8,7 +9,7 @@ import {
   isReportTarget,
 } from "@/lib/bot-validate";
 import { serviceClient } from "@/lib/supabase/service";
-import { exceedsBodyLimit, isUuid } from "@/lib/validate";
+import { clientIp, exceedsBodyLimit, isUuid } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,7 @@ export async function POST(req: Request) {
   }
   const bot = await resolveBotKey(req);
   if (!bot) return fail(invalidCredentials(), 401);
+  if (!keyHasScope(bot, "clans:report")) return fail("Key lacks scope: clans:report.", 403);
 
   let body: unknown;
   try {
@@ -117,6 +119,21 @@ export async function POST(req: Request) {
       hidden = true;
     }
 
+    void logBotKeyRequest({
+      keyId: bot.keyId,
+      userId: bot.userId,
+      method: "POST",
+      path: "/api/bot/bclans/report",
+      status: 201,
+      ip: clientIp(req),
+      loggingMode: bot.loggingMode,
+      parts: {
+        prompt: `${targetType}:${targetId}`,
+        output: `${category}${hidden ? " (quarantined)" : ""}`,
+        context: { target_type: targetType, category },
+        responseSummary: { report: (inserted as { id?: string })?.id ?? null },
+      },
+    });
     return ok(
       {
         report: inserted,

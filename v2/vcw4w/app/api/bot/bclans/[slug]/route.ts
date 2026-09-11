@@ -1,7 +1,9 @@
 import { dbFail, fail, ok } from "@/lib/api-respond";
-import { botRateLimit, hasBotAuth, invalidCredentials, resolveBotKey } from "@/lib/bot-auth";
+import { botRateLimit, hasBotAuth, invalidCredentials, keyHasScope, resolveBotKey } from "@/lib/bot-auth";
+import { logBotKeyRequest } from "@/lib/bot-log";
 import { serviceClient } from "@/lib/supabase/service";
 import { botClanSlug } from "@/lib/bot-validate";
+import { clientIp } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +37,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ slug: string }>
   }
   const bot = await resolveBotKey(req);
   if (!bot) return fail(invalidCredentials(), 401);
+  if (!keyHasScope(bot, "clans:read")) return fail("Key lacks scope: clans:read.", 403);
 
   const slug = botClanSlug((await ctx.params).slug);
   if (!slug) return fail("Invalid clan.", 400);
@@ -83,6 +86,16 @@ export async function GET(req: Request, ctx: { params: Promise<{ slug: string }>
     }));
     const member = memberData as { role: string } | null;
 
+    void logBotKeyRequest({
+      keyId: bot.keyId,
+      userId: bot.userId,
+      method: "GET",
+      path: `/api/bot/bclans/${slug}`,
+      status: 200,
+      ip: clientIp(req),
+      loggingMode: bot.loggingMode,
+      parts: { responseSummary: { posts: posts.length } },
+    });
     return ok({
       clan,
       posts,

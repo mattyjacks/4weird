@@ -6,16 +6,15 @@ export const maxDuration = 60;
 
 // GET|POST /api/cron/clan-upkeep — bill every clan for elapsed whole minutes.
 // Fired by Vercel Cron every minute at :00 (see vercel.json). Authenticates
-// with CRON_SECRET (Bearer or ?secret=); without a configured secret the
-// route refuses (fail-closed — no free billing runs, no unauth runs).
+// with CRON_SECRET via Authorization: Bearer only (never ?secret= — query
+// secrets leak into logs, proxies, and browser history). Without a configured
+// secret the route refuses (fail-closed — no free billing runs, no unauth runs).
 // Lazy accrual in the clan detail GET covers reads between ticks.
 function authorized(req: Request): boolean {
   const secret = process.env.CRON_SECRET ?? "";
   if (!secret) return false;
-  const url = new URL(req.url);
-  const query = url.searchParams.get("secret") ?? "";
   const bearer = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
-  return query === secret || bearer === secret;
+  return bearer === secret;
 }
 
 async function tick() {

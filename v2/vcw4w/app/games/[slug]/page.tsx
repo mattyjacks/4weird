@@ -7,7 +7,7 @@ import { GameAiBadge } from "@/components/games/game-ai-badge";
 import { RatingBadge } from "@/components/games/rating-badge";
 import { GamePlaybookPanel } from "@/components/games/game-playbook-panel";
 import { PlayRateBadge } from "@/components/games/play-rate-badge";
-import { breadcrumbJsonLd, videoGameJsonLd } from "@/lib/seo";
+import { breadcrumbJsonLd, jsonLdScript, videoGameJsonLd } from "@/lib/seo";
 
 export function generateStaticParams() {
   return games.map((g) => ({ slug: g.slug }));
@@ -53,7 +53,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([
+          __html: jsonLdScript([
             videoGameJsonLd(g),
             breadcrumbJsonLd([
               ["Games", "/games"],

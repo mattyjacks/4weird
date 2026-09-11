@@ -34,6 +34,13 @@ export async function POST(req: NextRequest) {
   const parsed = parseKidHandle(input.handle);
   const password = isLoginPassword(input.password);
   if (!parsed || !password) return fail("Enter your handle (name#1234) and password.", 400);
+  // Per-handle throttle: the discriminator namespace is small enough to
+  // enumerate, so distributed IPs must not parallel-guess one handle.
+  const handleKey = `${parsed.username.toLowerCase()}#${parsed.discriminator}`;
+  const handleThrottle = rateLimit(`kid-login-handle:${handleKey}`, 10, 60_000);
+  if (!handleThrottle.allowed) {
+    return fail("Too many login attempts. Try again shortly.", 429, { "Retry-After": String(handleThrottle.retryAfter) });
+  }
   let service;
   try {
     service = serviceClient();

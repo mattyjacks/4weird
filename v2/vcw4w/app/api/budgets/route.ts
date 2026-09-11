@@ -10,6 +10,17 @@ export async function GET(req: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return fail("Login required.", 401);
   const orgId = new URL(req.url).searchParams.get("orgId");
+  if (orgId && !/^[0-9a-f-]{36}$/i.test(orgId)) return fail("Invalid org.", 400);
+  if (orgId) {
+    // Membership gate before revealing org budget existence/values.
+    const { data: membership } = await supabase
+      .from("org_members")
+      .select("org_id")
+      .eq("org_id", orgId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!membership) return fail("Not a member of this org.", 403);
+  }
   const table = orgId ? "org_budgets" : "personal_budgets";
   const key = orgId ? "org_id" : "user_id";
   const value = orgId ?? user.id;

@@ -135,8 +135,8 @@ export async function POST(req: Request) {
       note: FAL_CUT_NOTE,
     }, 201);
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "fetch failed";
-    return fail(`fal.ai request failed: ${msg.slice(0, 140)}`, 502);
+    console.error("[api/fal/generate] provider fetch failed", String(error instanceof Error ? error.message : error).slice(0, 200));
+    return fail("fal.ai request failed. Try again shortly.", 502);
   } finally {
     clearTimeout(timer);
   }

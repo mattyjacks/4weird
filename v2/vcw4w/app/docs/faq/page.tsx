@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DocsHero } from "@/components/docs/docs-hero";
 import { SectionHead, Pager } from "@/components/docs/docs-bits";
-import { faqJsonLd } from "@/lib/seo";
+import { faqJsonLd, jsonLdScript } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "FAQ & support",
@@ -40,7 +40,7 @@ export default function FaqPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(
+          __html: jsonLdScript(
             faqJsonLd(FAQS.map(([, q, a]) => [q, a] as [string, string])),
           ),
         }}

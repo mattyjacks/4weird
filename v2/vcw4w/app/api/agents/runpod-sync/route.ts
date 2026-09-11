@@ -42,7 +42,8 @@ export async function POST(req: Request) {
   if (firstErr && !firstErr.ok) {
     const msg = firstErr.error;
     if (/not set/i.test(msg)) return fail("RUNPOD_API_KEY is not set on the server.", 503);
-    return fail(msg, 502);
+    console.error("[api/agents/runpod-sync] provider error", String(msg).slice(0, 300));
+    return fail("RunPod billing lookup failed. Try again shortly.", 502);
   }
   const db = serviceClient();
   let synced = 0;

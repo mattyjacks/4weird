@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { fail, ok, rpcFail } from "@/lib/api-respond";
 import { isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
 import { isHeartbeatSeconds, rpcStatus } from "@/lib/agent-market";
@@ -38,6 +38,6 @@ export async function POST(
     p_seconds: seconds,
   });
   if (error)
-    return fail(error.message || "Unable to record usage.", rpcStatus(error.message));
+    return rpcFail("api/agents/bookings/heartbeat", error, rpcStatus, "Unable to record usage.");
   return ok({ usage });
 }

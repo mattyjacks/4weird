@@ -1,7 +1,8 @@
 import { dbFail, fail, ok } from "@/lib/api-respond";
-import { botRateLimit, hasBotAuth, invalidCredentials, resolveBotKey } from "@/lib/bot-auth";
+import { botRateLimit, hasBotAuth, invalidCredentials, keyHasScope, recordBotKeySpend, resolveBotKey } from "@/lib/bot-auth";
+import { logBotKeyRequest } from "@/lib/bot-log";
 import { botClanSlug, cleanPostBody, cleanPostTitle, isOwnClanImageUrl, looksSpammy } from "@/lib/bot-validate";
-import { exceedsBodyLimit } from "@/lib/validate";
+import { clientIp, exceedsBodyLimit } from "@/lib/validate";
 import { serviceClient, supabaseUrl } from "@/lib/supabase/service";
 import { logValleynetAction, valleynetCheck } from "@/lib/valleynet";
 import { meterLunaCheck } from "@/lib/clan-meter";
@@ -25,6 +26,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
   }
   const bot = await resolveBotKey(req);
   if (!bot) return fail(invalidCredentials(), 401);
+  if (!keyHasScope(bot, "clans:post")) return fail("Key lacks scope: clans:post.", 403);
 
   const slug = botClanSlug((await ctx.params).slug);
   if (!slug) return fail("Invalid clan.", 400);
@@ -108,15 +110,19 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
     }
 
     // Server-cost fee on the linked human's coins (min 1 centicentcoin).
+    // The fee also meters against this key's lifetime/daily budgets.
     const feeBytes = new TextEncoder().encode(`${title}\n${postBody}`).length;
+    let feeCoins = 0;
     try {
-      await chargeClanFeeAs(db, {
+      const charged = await chargeClanFeeAs(db, {
         userId: bot.userId,
         clanId: clan.id,
         kind: "post",
         bytes: feeBytes,
         hasImage: Boolean(imageUrl),
       });
+      feeCoins = charged.fee;
+      void recordBotKeySpend(bot.keyId, charged.fee);
     } catch (err) {
       if (err instanceof FeeError) {
         if (err.code === "delinquent")
@@ -139,6 +145,22 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
       .select("id,title,body,image_url,status,created_at")
       .single();
     if (insertError) return dbFail("api/bot/bclans/[slug]/post", insertError, "Unable to post.");
+    void logBotKeyRequest({
+      keyId: bot.keyId,
+      userId: bot.userId,
+      method: "POST",
+      path: `/api/bot/bclans/${slug}/post`,
+      status: 201,
+      ip: clientIp(req),
+      coinsSpent: feeCoins,
+      loggingMode: bot.loggingMode,
+      parts: {
+        prompt: title,
+        output: postBody,
+        context: { clan: slug, status, image: Boolean(imageUrl) },
+        responseSummary: { post: (inserted as { id?: string })?.id ?? null },
+      },
+    });
     return ok({ post: inserted }, 201);
   } catch (error) {
     return dbFail("api/bot/bclans/[slug]/post", error, "Unable to post.");

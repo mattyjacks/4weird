@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { fail, ok, rpcFail } from "@/lib/api-respond";
 import { isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
 import { rpcStatus } from "@/lib/agent-market";
@@ -27,6 +27,6 @@ export async function POST(
     p_booking: id,
   });
   if (error)
-    return fail(error.message || "Unable to end booking.", rpcStatus(error.message));
+    return rpcFail("api/agents/bookings/end", error, rpcStatus, "Unable to end booking.");
   return ok({ booking });
 }

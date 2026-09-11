@@ -9,6 +9,27 @@ import { OrgRanks } from "@/components/teams/org-ranks";
 
 type Org = { id: string; slug: string; name: string; is_initialized?: boolean };
 type Team = { id: string; org_id: string; slug: string; name: string };
+type Room = {
+  id: string;
+  team_id: string;
+  slug: string;
+  name: string;
+  topic: string;
+  encrypted: boolean;
+  message_count: number;
+  bot_sends: number;
+  created_at: string;
+};
+type ChatMessage = {
+  id: string;
+  sender_id: string | null;
+  sender: string;
+  is_bot: boolean;
+  encoding: string;
+  body: string;
+  redacted: boolean;
+  created_at: string;
+};
 type Invite = {
   id: string;
   token: string;
@@ -51,6 +72,13 @@ export function TeamWorkspace() {
   const [inviteExpiry, setInviteExpiry] = useState("");
   const [inviteLabel, setInviteLabel] = useState("");
   const [redeemToken, setRedeemToken] = useState("");
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [roomId, setRoomId] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [roomSlug, setRoomSlug] = useState("");
+  const [roomName, setRoomName] = useState("");
+  const [chatText, setChatText] = useState("");
+  const [sendAsAgent, setSendAsAgent] = useState(true);
 
   const loadInvites = useCallback(async (orgId: string) => {
     try {
@@ -97,6 +125,46 @@ export function TeamWorkspace() {
   }, [teamId]);
 
   const canDo = (key: string) => perms.includes(key);
+
+  const loadRooms = useCallback(async (team: string) => {
+    if (!team) {
+      setRooms([]);
+      setRoomId("");
+      setMessages([]);
+      return;
+    }
+    try {
+      const r = await request<{ rooms: Room[] }>(`/api/unitunite/rooms?team=${encodeURIComponent(team)}`);
+      const list = r.rooms ?? [];
+      setRooms(list);
+      if (!list.some((x) => x.id === roomId)) {
+        setRoomId(list[0]?.id ?? "");
+      }
+    } catch {
+      setRooms([]);
+    }
+  }, [roomId]);
+
+  const loadMessages = useCallback(async (room: string) => {
+    if (!room) {
+      setMessages([]);
+      return;
+    }
+    try {
+      const r = await request<{ messages: ChatMessage[] }>(`/api/unitunite/rooms/${room}/messages?limit=50`);
+      setMessages(r.messages ?? []);
+    } catch {
+      setMessages([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadRooms(teamId);
+  }, [teamId, loadRooms]);
+
+  useEffect(() => {
+    void loadMessages(roomId);
+  }, [roomId, loadMessages]);
 
   return (
     <div className="space-y-8">
@@ -296,6 +364,130 @@ export function TeamWorkspace() {
         <p className="mt-3 text-sm text-slate-400">
           {teamId ? `You hold ${perms.length} permission(s) here.` : "Create a workspace from an org to unlock projects, code, issues, rooms, and cloud."}
         </p>
+      </section>
+
+      <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
+        <h2 className="text-xl font-bold">2b · Team rooms — command humans through your agent</h2>
+        <p className="mt-2 text-sm text-slate-300">
+          Antisocial mode: flip on “Send as my agent”, type the order once, and your agent speaks to the
+          room for you — every agent-driven message is clearly labeled <strong>[BOT]</strong> (in chat,
+          in per-room bot counts, and in the org audit trail). You still see the whole chat. Human
+          messages stay end-to-end encrypted; agent relays are server-stored plaintext by design.
+          External agents (OpenClaw &amp; co.) can read + speak here with a <code>bot4weird_</code> key
+          carrying <code>unitunite:read</code> / <code>unitunite:send</code> — always as [BOT], never as you.
+        </p>
+        {!teamId ? (
+          <p className="mt-3 text-sm text-slate-400">Pick an active workspace above to open its rooms.</p>
+        ) : (
+          <>
+            <form
+              className="mt-4 flex flex-wrap gap-2"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  const r = await request<{ room: Room }>("/api/unitunite/rooms", {
+                    method: "POST",
+                    body: JSON.stringify({ team_id: teamId, slug: roomSlug, name: roomName }),
+                  });
+                  setRoomSlug("");
+                  setRoomName("");
+                  setMessage(`Room ${r.room.slug} opened.`);
+                  void loadRooms(teamId);
+                  setRoomId(r.room.id);
+                } catch (e2) {
+                  setMessage(e2 instanceof Error ? e2.message : "Unable to create room.");
+                }
+              }}
+            >
+              <input value={roomSlug} maxLength={60} onChange={(e) => setRoomSlug(e.target.value)} placeholder="war-room" className="w-40 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm" />
+              <input value={roomName} maxLength={80} onChange={(e) => setRoomName(e.target.value)} placeholder="War Room" className="min-w-0 flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm" />
+              <button className="rounded-lg bg-cyan-300 px-4 py-2 text-sm font-semibold text-slate-950">New room</button>
+            </form>
+            {!!rooms.length && (
+              <label className="mt-4 block text-sm">
+                Active room
+                <select value={roomId} onChange={(e) => setRoomId(e.target.value)} className="mt-2 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2">
+                  {rooms.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name} ({r.slug}) · {r.message_count} msgs{r.bot_sends ? ` · ${r.bot_sends} [BOT]` : ""}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <div className="mt-4 max-h-80 space-y-2 overflow-y-auto rounded-xl border border-white/10 bg-black/30 p-4">
+              {!roomId ? (
+                <p className="text-sm text-slate-500">No room selected — open one above.</p>
+              ) : !messages.length ? (
+                <p className="text-sm text-slate-500">No messages yet. Give the order.</p>
+              ) : (
+                messages.map((m) => (
+                  <div key={m.id} className="text-sm">
+                    <span className="text-slate-500">{new Date(m.created_at).toLocaleTimeString()} </span>
+                    {m.is_bot ? (
+                      <span className="mr-1 rounded bg-amber-300 px-1.5 py-0.5 text-[11px] font-black text-slate-950">[BOT]</span>
+                    ) : null}
+                    <strong className={m.is_bot ? "text-amber-200" : "text-slate-200"}>
+                      {m.is_bot ? `[BOT] ${m.sender}` : m.sender}
+                    </strong>
+                    <span className="text-slate-300">: {m.redacted ? "[redacted]" : m.body}</span>
+                    {!m.is_bot && m.encoding === "cipher" ? <span className="ml-1 text-xs text-slate-500">🔒</span> : null}
+                  </div>
+                ))
+              )}
+            </div>
+            {!!roomId && (
+              <form
+                className="mt-3 space-y-2"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  try {
+                    await request(`/api/unitunite/rooms/${roomId}/messages`, {
+                      method: "POST",
+                      body: JSON.stringify(
+                        sendAsAgent
+                          ? { text: chatText, as_bot: true }
+                          : { ciphertext: chatText, device: "web" },
+                      ),
+                    });
+                    setChatText("");
+                    setMessage(sendAsAgent ? "Agent relayed your order ([BOT])." : "Message sent (encrypted).");
+                    void loadMessages(roomId);
+                    void loadRooms(teamId);
+                  } catch (e2) {
+                    setMessage(e2 instanceof Error ? e2.message : "Unable to send.");
+                  }
+                }}
+              >
+                <textarea
+                  value={chatText}
+                  onChange={(e) => setChatText(e.target.value)}
+                  placeholder={sendAsAgent ? "Order your humans (sent as [BOT])…" : "Encrypted message to the room…"}
+                  rows={2}
+                  maxLength={4000}
+                  className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                />
+                <div className="flex flex-wrap items-center gap-3">
+                  <label className="flex items-center gap-2 text-sm text-slate-300">
+                    <input type="checkbox" checked={sendAsAgent} onChange={(e) => setSendAsAgent(e.target.checked)} />
+                    Send as my agent ([BOT])
+                  </label>
+                  <button className="rounded-lg bg-emerald-300 px-4 py-2 text-sm font-semibold text-slate-950">Send</button>
+                  <button
+                    type="button"
+                    className="rounded-lg border border-white/15 px-3 py-2 text-sm text-slate-300"
+                    onClick={() => {
+                      void loadMessages(roomId);
+                      void loadRooms(teamId);
+                    }}
+                  >
+                    Refresh
+                  </button>
+                </div>
+              </form>
+            )}
+          </>
+        )}
       </section>
 
       <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
