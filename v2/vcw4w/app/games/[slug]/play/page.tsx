@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { games, getGame } from "@/content/games";
@@ -24,6 +24,17 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     robots: { index: false, follow: false },
   };
 }
+
+// Viewport meta is governed by the TOP-LEVEL document, never by the runtime
+// inside the iframe — so the play shell must declare it. resizes-visual keeps
+// the mobile keyboard from shrinking the layout viewport (which resized the
+// frame + canvas and made typing games jump vertically with every keystroke).
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  interactiveWidget: "resizes-visual",
+};
 
 export default async function PlayPage({ params }: { params: Promise<{ slug: string }> }) {
   const game = getGame((await params).slug);

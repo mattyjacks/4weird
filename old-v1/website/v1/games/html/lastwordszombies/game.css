@@ -177,6 +177,11 @@
     aspect-ratio: 4/3;
     display: flex;
     flex-direction: column;
+    /* Keep the frame put while the mobile keyboard opens/closes:
+       no scroll chaining, no double-tap zoom reflow. JS additionally locks
+       the frame to a fixed px height during PLAYING (see lockFrameHeight). */
+    overscroll-behavior: contain;
+    touch-action: manipulation;
 }
 
 .TEMPLATE-4weird-game-frame::after {
@@ -862,6 +867,7 @@
     .TEMPLATE-4weird-game-frame {
         aspect-ratio: auto;
         height: 50vh;
+        height: 50svh;
         min-height: 350px;
     }
 }
@@ -887,6 +893,7 @@
 
     .TEMPLATE-4weird-game-frame {
         height: 60vh;
+        height: 60svh;
         min-height: 300px;
     }
 }
@@ -1019,6 +1026,27 @@
 }
 
 /* ===== 16. MOBILE KEYBOARD TRIGGER ===== */
+/* Hidden typing input. Stays anchored inside the game frame so focusing it
+   never scrolls the page (the previous off-screen -9999px position made
+   mobile browsers jump vertically to reveal it). 16px font-size stops iOS
+   auto-zoom on focus; pointer-events:none lets taps fall through to the
+   frame, which focuses programmatically with preventScroll. */
+.mobile-typing-input {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  width: 16px;
+  height: 16px;
+  opacity: 0.01;
+  border: 0;
+  padding: 0;
+  font-size: 16px;
+  background: transparent;
+  color: transparent;
+  caret-color: transparent;
+  pointer-events: none;
+  z-index: 4;
+}
 .mobile-keyboard-trigger {
   position: absolute;
   bottom: 20px;

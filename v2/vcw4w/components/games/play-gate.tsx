@@ -259,7 +259,7 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
   if (gate.kind === "checking") {
     return (
       <div className="overflow-hidden rounded-2xl border border-white/15 bg-black">
-        <div className="grid h-[70vh] min-h-[420px] place-items-center p-8 text-center sm:h-[75vh]">
+        <div className="play-frame-height grid min-h-[420px] place-items-center p-8 text-center">
           <div>
             <p className="text-lg font-bold text-white">Loading {title}…</p>
             <p className="mt-2 text-sm text-white/60">Checking your pass…</p>
@@ -390,8 +390,8 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
           for 100 coins, daily bonuses, and no ads.
         </p>
       )}
-      <div className="overflow-hidden rounded-2xl border border-white/15 bg-black">
-        <div className="h-[70vh] min-h-[420px] sm:h-[75vh]">
+      <div className="overflow-hidden overscroll-contain rounded-2xl border border-white/15 bg-black">
+        <div className="play-frame-height min-h-[420px]">
           <GameRuntimeFrame slug={slug} title={title} src={frameSrc} />
         </div>
       </div>

@@ -34,6 +34,28 @@
 -- The creator pays by funding the wallet; members chip in via donations.
 -- ============================================================================
 
+-- 0. Prerequisite guard: this file extends the Clans v2 economy
+-- (public.clan_cost_ledger, public.clan_wallets, clans.clan_type /
+-- upkeep_*), all created by 20260912000000_clan_types_upkeep_valleynet_runpod.sql.
+-- Without it the first ALTER below fails with a cryptic
+-- "relation public.clan_cost_ledger does not exist" (42P01). Fail fast with
+-- the actionable message instead. Migrations must run in filename order.
+do $$
+begin
+  if not exists (
+    select 1 from information_schema.tables
+    where table_schema = 'public' and table_name = 'clan_cost_ledger'
+  ) then
+    raise exception 'PREREQUISITE MISSING: run 20260912000000_clan_types_upkeep_valleynet_runpod.sql BEFORE this file (it creates public.clan_cost_ledger). Run migrations in filename order.';
+  end if;
+  if not exists (
+    select 1 from information_schema.tables
+    where table_schema = 'public' and table_name = 'clan_wallets'
+  ) then
+    raise exception 'PREREQUISITE MISSING: run 20260912000000_clan_types_upkeep_valleynet_runpod.sql BEFORE this file (it creates public.clan_wallets). Run migrations in filename order.';
+  end if;
+end $$;
+
 -- 1. Ledger kinds: widen for message fees, donations, metered costs ---------
 alter table public.clan_cost_ledger drop constraint if exists clan_cost_ledger_kind_check;
 alter table public.clan_cost_ledger add constraint clan_cost_ledger_kind_check
@@ -569,7 +591,7 @@ begin
   v_cut := round(v_fee * 25 / 100.0, 2);
   v_provider := v_fee - v_cut;
   insert into public.coin_ledger (user_id, delta, reason)
-  values (auth.uid(), -v_fee, substr('Clan ' || v_kind || ' fee: ' || v_slug from 1 for 120));
+  values (auth.uid(), -v_fee, substr('Clan ' || v_kind || ' fee: ' || v_slug, 1, 120));
   insert into public.clan_wallets (clan_id, balance)
   values (p_clan_id, v_provider)
   on conflict (clan_id) do update set
@@ -617,7 +639,7 @@ begin
   v_cut := round(v_fee * 25 / 100.0, 2);
   v_provider := v_fee - v_cut;
   insert into public.coin_ledger (user_id, delta, reason)
-  values (p_user_id, -v_fee, substr('Clan ' || v_kind || ' fee: ' || v_slug from 1 for 120));
+  values (p_user_id, -v_fee, substr('Clan ' || v_kind || ' fee: ' || v_slug, 1, 120));
   insert into public.clan_wallets (clan_id, balance)
   values (p_clan_id, v_provider)
   on conflict (clan_id) do update set

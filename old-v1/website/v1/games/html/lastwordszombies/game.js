@@ -753,6 +753,56 @@ class GameApp {
     return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
   }
 
+  // Focus the hidden typing input without scrolling the page. The input is
+  // anchored inside the game frame (see .mobile-typing-input), and
+  // preventScroll stops mobile browsers from jumping vertically to reveal it.
+  focusMobileInput() {
+    if (!this.isTouchDevice()) return;
+    if (this.state.currentState !== GameState.PLAYING) return;
+    const mobileInput = document.getElementById('mobile-game-input');
+    if (!mobileInput) return;
+    this.lockFrameHeight();
+    try {
+      mobileInput.focus({ preventScroll: true });
+    } catch (err) {
+      mobileInput.focus();
+    }
+  }
+
+  blurMobileInput() {
+    const mobileInput = document.getElementById('mobile-game-input');
+    if (mobileInput && document.activeElement === mobileInput) {
+      mobileInput.blur();
+    }
+  }
+
+  // Pin the game frame to its current pixel height while the keyboard is up.
+  // Mobile keyboards shrink the layout viewport (and vh units), which would
+  // otherwise resize the frame + canvas on every open/close and make the
+  // game jump. Cleared when leaving PLAYING.
+  lockFrameHeight() {
+    const frame = document.querySelector('.TEMPLATE-4weird-game-frame');
+    if (!frame || frame.dataset.lwzLocked === 'true') return;
+    const rect = frame.getBoundingClientRect();
+    if (rect.height > 0) {
+      frame.dataset.lwzLocked = 'true';
+      frame.style.height = `${rect.height}px`;
+      frame.style.minHeight = '0px';
+    }
+  }
+
+  unlockFrameHeight() {
+    const frame = document.querySelector('.TEMPLATE-4weird-game-frame');
+    if (!frame) return;
+    if (frame.dataset.lwzLocked !== 'true' && !frame.style.height) return;
+    delete frame.dataset.lwzLocked;
+    frame.style.height = '';
+    frame.style.minHeight = '';
+    this._lastCanvasW = 0;
+    this._lastCanvasH = 0;
+    this.resizeCanvas();
+  }
+
   populateGlossary() {
     const container = document.getElementById('wave-word-definitions');
     if (!container) return;
@@ -791,6 +841,12 @@ class GameApp {
 
   bindEvents() {
     window.addEventListener('resize', () => this.resizeCanvas());
+    // Mobile keyboards fire viewport resizes as they open/close. The frame
+    // height is locked during PLAYING, so this only re-fits the renderer
+    // when the container actually changed size (see resizeCanvas guard).
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', () => this.resizeCanvas());
+    }
     
     window.addEventListener('message', (e) => {
       if (e.data && e.data.type === 'SET_GAME_SPEED') {
@@ -841,19 +897,22 @@ class GameApp {
     
     if (this.isTouchDevice() && mobileBtn) {
       mobileBtn.style.display = 'flex';
-      
-      // Focus when clicking container
+
+      // Tapping the play area re-opens the keyboard without scrolling.
       this.container.addEventListener('click', () => {
-        if (this.state.currentState === GameState.PLAYING) {
-          mobileInput.focus();
-        }
+        this.focusMobileInput();
       });
     }
 
     if (mobileBtn) {
       mobileBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        mobileInput.focus();
+        // Toggle: focused -> dismiss keyboard, blurred -> bring it back.
+        if (document.activeElement === mobileInput) {
+          this.blurMobileInput();
+        } else {
+          this.focusMobileInput();
+        }
       });
     }
 
@@ -948,9 +1007,8 @@ class GameApp {
       this.triggerCameraShake(0.2);
       this.state.waveWords.clear();
       this.state.setGameState(GameState.PLAYING);
-      if (this.isTouchDevice() && mobileInput) {
-        mobileInput.focus();
-      }
+      this.lockFrameHeight();
+      this.focusMobileInput();
     });
 
     // Mute button handler
@@ -1034,7 +1092,14 @@ class GameApp {
   resizeCanvas() {
     const w = this.container.clientWidth;
     const h = this.container.clientHeight;
-    
+    if (!w || !h) return;
+    // Skip keyboard/orientation noise: only touch the renderer when the
+    // container actually changed size. This stops the canvas (and camera)
+    // from thrashing while the mobile keyboard animates open/closed.
+    if (this._lastCanvasW === w && this._lastCanvasH === h) return;
+    this._lastCanvasW = w;
+    this._lastCanvasH = h;
+
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
@@ -1077,11 +1142,8 @@ class GameApp {
     this.spawnTimer = Number.MAX_SAFE_INTEGER;
     this.state.setGameState(GameState.PLAYING);
     this.resizeCanvas();
-    
-    const mobileInput = document.getElementById('mobile-game-input');
-    if (this.isTouchDevice() && mobileInput) {
-      mobileInput.focus();
-    }
+    this.lockFrameHeight();
+    this.focusMobileInput();
   }
 
   calculateWaveBudget() {
@@ -1121,16 +1183,22 @@ class GameApp {
   }
 
   quitToMenu() {
+    this.blurMobileInput();
+    this.unlockFrameHeight();
     this.state.setGameState(GameState.MENU);
   }
 
   togglePause() {
     if (this.state.currentState === GameState.PLAYING) {
+      this.blurMobileInput();
+      this.unlockFrameHeight();
       this.state.setGameState(GameState.PAUSED);
     } else if (this.state.currentState === GameState.PAUSED) {
       this.state.currentState = GameState.PLAYING;
       document.getElementById('TEMPLATE-4weird-pause-screen').classList.add('hidden');
       document.getElementById('game-hud').classList.remove('hidden');
+      this.lockFrameHeight();
+      this.focusMobileInput();
     }
   }
 
@@ -1214,6 +1282,8 @@ class GameApp {
         
         if (this.state.health <= 0) {
           this.state.setGameState(GameState.GAME_OVER);
+          this.blurMobileInput();
+          this.unlockFrameHeight();
           this.audio.stopAll();
         }
         continue;
@@ -1232,6 +1302,8 @@ class GameApp {
     if (this.state.zombiesKilled >= this.state.zombiesInWave && this.zombies.length === 0) {
       this.populateGlossary();
       this.state.setGameState(GameState.GLOSSARY);
+      this.blurMobileInput();
+      this.unlockFrameHeight();
       this.triggerCameraShake(0.2);
     }
     

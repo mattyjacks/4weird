@@ -151,6 +151,11 @@ const usage = read("../app/api/my/usage/route.ts");
 if (!usage.includes("runpod_usage") || !usage.includes("runpodUsdToCoins")) {
   fail("/api/my/usage must include the RunPod mirror section.");
 }
+// Every clan cost is tracked: personal fees/funding/donations break out in
+// /api/my/usage (never hidden inside generic coin movements).
+if (!usage.includes("my_clan_usage") || !usage.includes("byReason") || !usage.includes("Clan %")) {
+  fail("/api/my/usage must break out clan fees/funding/donations via my_clan_usage.");
+}
 const usageClient = read("../app/my/usage/usage-client.tsx");
 if (!usageClient.includes("runpod-sync") || !usageClient.includes("Sync from RunPod")) {
   fail("usage-client must offer the RunPod sync + card.");
@@ -242,6 +247,16 @@ for (const rpc of [
   "clan_is_moderator",
 ]) {
   if (!mig3.includes(rpc)) fail(`v3 migration must define ${rpc}.`);
+}
+// Prerequisite guard: v3 extends the v2 economy, so it must fail fast with
+// an actionable message (not cryptic 42P01) when run before 20260912000000.
+if (!mig3.includes("PREREQUISITE MISSING") || !mig3.includes("20260912000000_clan_types_upkeep_valleynet_runpod.sql")) {
+  fail("v3 migration must guard on the v2 prerequisite (clan_cost_ledger/clan_wallets).");
+}
+// substr() takes comma args only — the FROM/FOR truncate form is
+// substring()-only, so substr(x from 1 for N) is a 42601 syntax error.
+for (const [name, src] of [["v2", mig], ["v3", mig3]]) {
+  if (/substr\([^)]*\bfrom\b/i.test(src)) fail(`${name} migration must not use substr() with FROM/FOR (42601).`);
 }
 // Minute-anchored billing: whole-minute steps from a :00 cursor.
 if (!mig3.includes("date_trunc('minute'")) fail("Per-minute upkeep must anchor to :00 minute boundaries.");

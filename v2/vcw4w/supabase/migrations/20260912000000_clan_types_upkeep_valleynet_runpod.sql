@@ -293,7 +293,7 @@ begin
   v_cut := round(v_fee * 25 / 100.0, 2);
   v_provider := v_fee - v_cut;
   insert into public.coin_ledger (user_id, delta, reason)
-  values (auth.uid(), -v_fee, substr('Clan ' || v_kind || ' fee: ' || v_slug from 1 for 120));
+  values (auth.uid(), -v_fee, substr('Clan ' || v_kind || ' fee: ' || v_slug, 1, 120));
   insert into public.clan_wallets (clan_id, balance)
   values (p_clan_id, v_provider)
   on conflict (clan_id) do update set
@@ -344,7 +344,7 @@ begin
   v_cut := round(v_fee * 25 / 100.0, 2);
   v_provider := v_fee - v_cut;
   insert into public.coin_ledger (user_id, delta, reason)
-  values (p_user_id, -v_fee, substr('Clan ' || v_kind || ' fee: ' || v_slug from 1 for 120));
+  values (p_user_id, -v_fee, substr('Clan ' || v_kind || ' fee: ' || v_slug, 1, 120));
   insert into public.clan_wallets (clan_id, balance)
   values (p_clan_id, v_provider)
   on conflict (clan_id) do update set

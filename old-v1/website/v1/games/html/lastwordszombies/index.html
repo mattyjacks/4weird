@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-visual">
     <title>Last Words Zombies - 4weird Games</title>
     <meta name="description" content="A high-intensity 3D cyberpunk typing survival game. Decrypt invading rogue zombie units before they compromise your mainframe terminal.">
     <meta name="keywords" content="4weird, Last Words Zombies, HTML5 game, browser game, retro, cyberpunk, Typing, Survival">
@@ -22,7 +22,7 @@
     
     <!-- Base Styles -->
     <link rel="stylesheet" href="../../../styles.css">
-    <link rel="stylesheet" href="game.css?v=3">
+    <link rel="stylesheet" href="game.css?v=4">
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
 
@@ -94,8 +94,12 @@
             <!-- WebGL Game Canvas -->
             <div id="canvas-container" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1;"></div>
 
-            <!-- Hidden mobile input capturing keystrokes -->
-            <input type="text" id="mobile-game-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text" style="position: absolute; left: -9999px; top: -9999px; opacity: 0; z-index: -1;">
+            <!-- Hidden mobile input capturing keystrokes. Anchored inside the
+                 game frame (see .mobile-typing-input in game.css): the old
+                 off-screen (-9999px) position forced mobile browsers to scroll
+                 the page to reveal it on focus, making the game jump vertically
+                 every time the keyboard opened. -->
+            <input type="text" id="mobile-game-input" class="mobile-typing-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text" enterkeyhint="go" aria-label="Typing input">
 
             <!-- Mobile Keyboard Floating Trigger -->
             <button id="mobile-keyboard-btn" class="mobile-keyboard-trigger" style="display: none;" title="Toggle Keyboard">⌨️ TYPE</button>
@@ -329,7 +333,7 @@
     <script src="zombie.js?v=3"></script>
     <script src="typing.js?v=2"></script>
     <script src="store.js?v=2"></script>
-    <script src="game.js?v=3"></script>
+    <script src="game.js?v=4"></script>
     <script src="../game-meta.js"></script>
     <script>
         // Load game metadata and populate template fields

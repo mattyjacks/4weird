@@ -98,6 +98,13 @@ html.light .border-cyan-300\/30, html.light .border-cyan-300\/50, html.light .bo
 html.light .border-violet-300\/50 { border-color: #c4b5fd; }
 html.light .border-amber-300\/40, html.light .border-amber-300\/60 { border-color: #fcd34d; }
 
+/* Play-shell frame height: stable while the mobile keyboard opens/closes.
+   svh is immune to URL-bar/keyboard viewport changes; vh stays as the
+   fallback for browsers without svh. (A plain class — Tailwind can't
+   guarantee fallback ordering for two height utilities on one element.) */
+.play-frame-height { height: 70vh; height: 70svh; }
+@media (min-width: 640px) { .play-frame-height { height: 75vh; height: 75svh; } }
+
 /* Game shells stay dark even when the site is in light mode. */
 html.light [data-theme-lock="dark"] { background-color: #000000 !important; color: #ffffff !important; }
 html.light [data-theme-lock="dark"] .bg-slate-950 { background-color: #020617 !important; }
