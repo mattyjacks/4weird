@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ReportButton } from "@/components/clans/report-button";
+import { ClanDiscord } from "@/components/clans/clan-discord";
 import { MarkdownEditor } from "@/components/clans/markdown-editor";
 import { MarkdownView } from "@/components/clans/markdown-view";
 import { CLAN_TYPE_META, type ClanType } from "@/lib/clan-types";
@@ -31,6 +32,14 @@ type Bot = { id: string; name: string; created_at: string };
 type Channel = { id: string; kind: string; label: string; target_url: string; active: boolean };
 type LedgerRow = { kind: string; qty: number; gross: number; cut: number; provider: number; note: string; created_at: string };
 type Leader = { user_id: string; xp: number; events: number };
+type MinuteRate = {
+  per_minute_coins?: number;
+  per_day_coins?: number;
+  members?: number;
+  image_mb?: number;
+  db_kb?: number;
+  breakdown?: { server?: number; members?: number; images?: number; database?: number };
+};
 
 const TYPE_BADGE: Record<string, string> = {
   hclan: "🧍 hclan · humans only",
@@ -92,6 +101,8 @@ export function ClanPage({ slug }: { slug: string }) {
   const [botHook, setBotHook] = useState("");
   const [econNote, setEconNote] = useState("");
   const [fundCoins, setFundCoins] = useState("");
+  const [donateCoins, setDonateCoins] = useState("");
+  const [minuteRate, setMinuteRate] = useState<MinuteRate | null>(null);
   const [chanKind, setChanKind] = useState("house-ad");
   const [chanLabel, setChanLabel] = useState("");
   const [chanUrl, setChanUrl] = useState("");
@@ -111,6 +122,7 @@ export function ClanPage({ slug }: { slug: string }) {
         channels?: Channel[];
         ledger?: LedgerRow[];
         leaders?: Leader[];
+        minuteRate?: MinuteRate | null;
         myXp?: number;
         error?: string;
       };
@@ -123,6 +135,7 @@ export function ClanPage({ slug }: { slug: string }) {
       setChannels(data.channels ?? []);
       setLedger(data.ledger ?? []);
       setLeaders(data.leaders ?? []);
+      setMinuteRate(data.minuteRate ?? null);
       setMyXp(Number(data.myXp) || 0);
       // House-ad revenue: one credited view per active house-ad channel per
       // page load (server IP-throttles to 10/hr; revenue offsets upkeep).
@@ -417,12 +430,34 @@ export function ClanPage({ slug }: { slug: string }) {
         <p className="text-slate-400">No posts yet — be the first.</p>
       )}
 
+      <ClanDiscord slug={slug} />
+
       <section className="rounded-xl border border-white/10 bg-slate-900 p-5">
         <h2 className="font-bold text-cyan-300">🪙 Clan upkeep + wallet</h2>
         <p className="mt-1 text-xs text-slate-400">
-          Server costs are linear in usage; the wallet pays daily upkeep. Delinquent clans pause posting until funded.
-          Ad views + affiliate clicks earn revenue that offsets upkeep. New clans get 14 days grace.
+          The creator funds the server wallet and any member can donate directly (1:1, no cut).
+          Upkeep is billed every minute at :00 — stored images, database bytes, measured
+          bandwidth, Luna AI moderation, and base server share. Delinquent clans pause
+          posting/chat until funded. Ad views + affiliate clicks earn revenue that offsets
+          upkeep. New clans get 14 days grace.
         </p>
+        {minuteRate && (
+          <div className="mt-3 rounded-lg bg-black/40 px-3 py-2 text-xs text-slate-300">
+            <span className="font-bold text-white">⏱️ Live server rate: </span>
+            {Number(minuteRate.per_minute_coins ?? 0).toFixed(6)} coins/min
+            {" "}(≈ {Number(minuteRate.per_day_coins ?? 0).toFixed(4)}/day ·{" "}
+            {minuteRate.members ?? 0} members · {minuteRate.image_mb ?? 0} MB images ·{" "}
+            {minuteRate.db_kb ?? 0} KB text)
+            {minuteRate.breakdown && (
+              <span className="text-slate-500">
+                {" "}— server {Number(minuteRate.breakdown.server ?? 0).toFixed(6)} · members{" "}
+                {Number(minuteRate.breakdown.members ?? 0).toFixed(6)} · images{" "}
+                {Number(minuteRate.breakdown.images ?? 0).toFixed(6)} · db{" "}
+                {Number(minuteRate.breakdown.database ?? 0).toFixed(6)}
+              </span>
+            )}
+          </div>
+        )}
         <div className="mt-3 flex flex-wrap gap-3 text-sm">
           <span className="rounded-lg bg-black/40 px-3 py-2 text-white">Wallet: <b>{wallet.balance}</b> coins</span>
           <span className="rounded-lg bg-black/40 px-3 py-2 text-white">
@@ -432,10 +467,16 @@ export function ClanPage({ slug }: { slug: string }) {
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <div>
-            <h3 className="text-sm font-bold text-slate-200">Fund wallet (owner)</h3>
+            <h3 className="text-sm font-bold text-slate-200">Fund wallet (creator)</h3>
             <div className="mt-2 flex gap-2">
               <input value={fundCoins} onChange={(e) => setFundCoins(e.target.value)} placeholder="coins" inputMode="decimal" className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white" />
               <button onClick={() => void econ("", { action: "fund", coins: Number(fundCoins) }, "Wallet funded.")} className="rounded-lg bg-cyan-400 px-3 py-2 text-sm font-bold text-slate-950">Fund</button>
+            </div>
+            <h3 className="mt-4 text-sm font-bold text-slate-200">Donate upkeep (members)</h3>
+            <p className="mt-1 text-xs text-slate-500">Any member can chip in directly, 1:1, no cut.</p>
+            <div className="mt-2 flex gap-2">
+              <input value={donateCoins} onChange={(e) => setDonateCoins(e.target.value)} placeholder="coins" inputMode="decimal" className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white" />
+              <button onClick={() => void econ("", { action: "donate", coins: Number(donateCoins) }, "Donation received — thank you!")} className="rounded-lg bg-emerald-400 px-3 py-2 text-sm font-bold text-slate-950">Donate</button>
             </div>
           </div>
           <div>

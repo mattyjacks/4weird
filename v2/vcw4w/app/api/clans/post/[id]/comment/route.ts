@@ -3,7 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
-import { moderateText } from "@/lib/moderation";
+import { meterLunaCheck } from "@/lib/clan-meter";
 import { logValleynetAction, valleynetCheck } from "@/lib/valleynet";
 
 export const dynamic = "force-dynamic";
@@ -34,6 +34,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if ((parent as { status?: string } | null)?.status !== "visible") return fail("Post not found.", 404);
 
   const valley = await valleynetCheck(text);
+  void meterLunaCheck(supabase, clanId, 1);
   if (valley.verdict === "block") {
     await logValleynetAction({
       clanId,
@@ -44,8 +45,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     });
     return fail("Valley Net blocked this comment (spam shield).", 403);
   }
-  const mod = await moderateText(text);
-  const status = valley.verdict === "quarantine" || !mod.allowed || mod.heuristicHit ? "pending" : "visible";
+  const status = valley.verdict === "quarantine" ? "pending" : "visible";
   if (status === "pending") {
     await logValleynetAction({
       clanId,

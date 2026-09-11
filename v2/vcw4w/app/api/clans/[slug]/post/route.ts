@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, supabaseUrl } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
-import { moderateText } from "@/lib/moderation";
+import { meterLunaCheck } from "@/lib/clan-meter";
 import { logValleynetAction, valleynetCheck } from "@/lib/valleynet";
 
 export const dynamic = "force-dynamic";
@@ -61,7 +61,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   if (!clanId) return fail("Clan not found.", 404);
 
   // Valley Net automod: block refuses + logs, quarantine forces pending + logs.
+  // valleynetCheck already runs the Luna (GPT 5.6) judge once — that single
+  // check is the metered AI cost (no duplicate moderation call).
   const valley = await valleynetCheck(`${title}\n${postBody}`);
+  void meterLunaCheck(supabase, clanId, 1);
   if (valley.verdict === "block") {
     await logValleynetAction({
       clanId,
@@ -72,8 +75,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     });
     return fail("Valley Net blocked this post (spam shield).", 403);
   }
-  const mod = await moderateText(`${title}\n${postBody}`);
-  const status = valley.verdict === "quarantine" || !mod.allowed || mod.heuristicHit ? "pending" : "visible";
+  const status = valley.verdict === "quarantine" ? "pending" : "visible";
   if (status === "pending") {
     await logValleynetAction({
       clanId,

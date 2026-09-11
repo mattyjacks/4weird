@@ -64,8 +64,61 @@ export function clanUpkeepStatus(
 export const CLAN_AD_VIEW_COINS = 0.01;
 export const CLAN_AFFILIATE_CLICK_COINS = 0.05;
 
+// ---------------------------------------------------------------------------
+// Per-minute server upkeep (billed every minute at :00 by /api/cron/clan-upkeep
+// via accrue_clan_minute_upkeep(); this file mirrors the SQL rate card).
+// A 5-member clan with 2 MB of images + 200 KB of text costs ~0.0002/min
+// (~0.26 coins/day) — extremely minimal for small clans; big active clans pay
+// linearly for what they actually store, transfer, and moderate.
+// ---------------------------------------------------------------------------
+
+/** Base server postulant per minute (the clan's share of the box). */
+export const CLAN_PER_MIN_BASE_COINS = 0.00003;
+/** Per member per minute. */
+export const CLAN_PER_MIN_PER_MEMBER_COINS = 0.000004;
+/** Per stored image MB per minute. */
+export const CLAN_PER_MIN_PER_IMAGE_MB_COINS = 0.000008;
+/** Per database KB (posts + comments + messages text) per minute. */
+export const CLAN_PER_MIN_PER_DB_KB_COINS = 0.0000008;
+/** Per transferred KB (measured page/image/api bytes) — billed as used. */
+export const CLAN_PER_KB_BANDWIDTH_COINS = 0.000002;
+/** Luna AI moderation (OpenAI GPT 5.6 Luna) per text check. */
+export const CLAN_LUNA_CHECK_COINS = 0.015;
+
+export type ClanMinuteBreakdown = {
+  server: number;
+  members: number;
+  images: number;
+  database: number;
+};
+
+/** Per-minute upkeep from live usage. Mirrors clan_minute_rate(). */
+export function clanMinuteRate(input: {
+  members: number;
+  imageMb: number;
+  dbKb: number;
+}): { perMinute: number; perDay: number; breakdown: ClanMinuteBreakdown } {
+  const server = CLAN_PER_MIN_BASE_COINS;
+  const members = Math.max(0, input.members) * CLAN_PER_MIN_PER_MEMBER_COINS;
+  const images = Math.max(0, input.imageMb) * CLAN_PER_MIN_PER_IMAGE_MB_COINS;
+  const database = Math.max(0, input.dbKb) * CLAN_PER_MIN_PER_DB_KB_COINS;
+  const perMinute = server + members + images + database;
+  return {
+    perMinute,
+    perDay: Math.round(perMinute * 1440 * 10000) / 10000,
+    breakdown: { server, members, images, database },
+  };
+}
+
+/** Bandwidth cost for measured transfer. */
+export function clanBandwidthCost(bytesOut: number): number {
+  return Math.max(0, bytesOut) / 1024 * CLAN_PER_KB_BANDWIDTH_COINS;
+}
+
 export const CLAN_COST_NOTE =
   "Clan server fees are linear in measured usage (per-KB + image surcharge, " +
   "min 1 centicentcoin) with the 25% platform cut included — never on top. " +
-  "Wallets pay daily upkeep; house-ad views and affiliate clicks earn revenue " +
-  "that offsets it.";
+  "Wallets pay per-minute upkeep (billed every minute at :00) covering stored " +
+  "images, database bytes, measured bandwidth, Luna AI moderation, and base " +
+  "server share; house-ad views and affiliate clicks earn revenue " +
+  "that offsets it. The creator funds the wallet and any member can donate.";

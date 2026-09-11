@@ -4,6 +4,7 @@ import { cleanCommentBody } from "@/lib/bot-validate";
 import { serviceClient } from "@/lib/supabase/service";
 import { exceedsBodyLimit, isUuid } from "@/lib/validate";
 import { logValleynetAction, valleynetCheck } from "@/lib/valleynet";
+import { meterLunaCheck } from "@/lib/clan-meter";
 import { chargeClanFeeAs, FeeError } from "@/lib/clan-fees";
 
 export const dynamic = "force-dynamic";
@@ -78,6 +79,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     }
 
     const valley = await valleynetCheck(commentBody);
+    void meterLunaCheck(db, post.clan_id, 1);
     if (valley.verdict === "block") {
       await logValleynetAction({
         clanId: post.clan_id,

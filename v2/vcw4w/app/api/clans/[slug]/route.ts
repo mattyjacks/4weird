@@ -3,6 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/validate";
+import { meterTransfer } from "@/lib/clan-meter";
 
 export const dynamic = "force-dynamic";
 
@@ -30,10 +31,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   if (error || !clan) return fail("Clan not found.", 404);
   const row = clan as { id: string } & Record<string, unknown>;
   const { data: auth } = await supabase.auth.getUser();
-  // Lazy upkeep accrual for signed-in readers (best-effort, never blocks).
+  // Lazy per-minute upkeep accrual for signed-in readers (best-effort, never
+  // blocks). The cron biller (/api/cron/clan-upkeep) covers every clan each
+  // minute at :00; this keeps the page fresh between ticks. Anonymous reads
+  // skip the write (accrue RPC is authenticated-only).
   if (auth?.user) {
     try {
-      await supabase.rpc("accrue_clan_upkeep", { p_clan_id: row.id });
+      await supabase.rpc("accrue_clan_minute_upkeep", { p_clan_id: row.id });
     } catch {
       // Pre-migration or lock contention: the stored status is the answer.
     }
@@ -73,6 +77,33 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
         .limit(25),
       supabase.rpc("clan_leaderboard", { p_clan_id: row.id }),
     ]);
+  // Discord surfaces: chat channels + custom roles + live per-minute rate.
+  // Best-effort (pre-migration rows simply come back empty).
+  let chatChannels: unknown[] = [];
+  let clanRoles: unknown[] = [];
+  let minuteRate: unknown = null;
+  try {
+    const [{ data: cc }, { data: cr }, { data: mr }] = await Promise.all([
+      supabase
+        .from("clan_channels")
+        .select("id,slug,name,topic,kind,position,readonly")
+        .eq("clan_id", row.id)
+        .order("position", { ascending: true })
+        .limit(50),
+      supabase
+        .from("clan_roles")
+        .select("id,name,color,position")
+        .eq("clan_id", row.id)
+        .order("position", { ascending: false })
+        .limit(50),
+      supabase.rpc("clan_minute_rate", { p_clan_id: row.id }),
+    ]);
+    chatChannels = cc ?? [];
+    clanRoles = cr ?? [];
+    minuteRate = mr ?? null;
+  } catch {
+    // Pre-migration: discord surfaces stay empty, the forum still renders.
+  }
   let myXp = 0;
   if (auth?.user) {
     try {
@@ -88,17 +119,29 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     }
   }
   const leadersRaw = (leaders ?? {}) as { leaders?: unknown };
-  return ok({
+  const payload = {
     clan,
     posts: posts ?? [],
     memberCount: (members ?? []).length,
+    members: members ?? [],
     wallet: wallet ?? { balance: 0 },
     bots: bots ?? [],
     channels: channels ?? [],
+    chatChannels,
+    clanRoles,
+    minuteRate,
     ledger: ledger ?? [],
     leaders: Array.isArray(leadersRaw.leaders) ? leadersRaw.leaders : [],
     myXp,
-  });
+  };
+  // Bandwidth accounting: meter the bytes this response serves (best-effort).
+  try {
+    const bytes = new TextEncoder().encode(JSON.stringify(payload)).length;
+    void meterTransfer(supabase, row.id, bytes, "page-view");
+  } catch {
+    // Metering never breaks a read.
+  }
+  return ok(payload);
 }
 
 // POST /api/clans/[slug] with { action: "join" } — join the clan (auth).

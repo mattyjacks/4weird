@@ -4,6 +4,7 @@ import { botClanSlug, cleanPostBody, cleanPostTitle, isOwnClanImageUrl, looksSpa
 import { exceedsBodyLimit } from "@/lib/validate";
 import { serviceClient, supabaseUrl } from "@/lib/supabase/service";
 import { logValleynetAction, valleynetCheck } from "@/lib/valleynet";
+import { meterLunaCheck } from "@/lib/clan-meter";
 import { chargeClanFeeAs, FeeError } from "@/lib/clan-fees";
 
 export const dynamic = "force-dynamic";
@@ -83,6 +84,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
 
     // Valley Net automod: block refuses + logs, quarantine forces pending.
     const valley = await valleynetCheck(`${title}\n${postBody}`);
+    void meterLunaCheck(db, clan.id, 1);
     if (valley.verdict === "block") {
       await logValleynetAction({
         clanId: clan.id,

@@ -31,7 +31,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
     .maybeSingle();
   const clanRow = clan as { id?: string } | null;
   if (!clanRow?.id) return fail("Clan not found.", 404);
-  const [{ data: wallet }, { data: ledger }, { data: channels }] = await Promise.all([
+  const [{ data: wallet }, { data: ledger }, { data: channels }, { data: rate }] = await Promise.all([
     supabase.from("clan_wallets").select("balance,updated_at").eq("clan_id", clanRow.id).maybeSingle(),
     supabase
       .from("clan_cost_ledger")
@@ -44,12 +44,14 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
       .select("id,kind,label,target_url,active")
       .eq("clan_id", clanRow.id)
       .limit(25),
+    supabase.rpc("clan_minute_rate", { p_clan_id: clanRow.id }),
   ]);
-  return ok({ clan, wallet: wallet ?? { balance: 0 }, ledger: ledger ?? [], channels: channels ?? [] });
+  return ok({ clan, wallet: wallet ?? { balance: 0 }, ledger: ledger ?? [], channels: channels ?? [], rate: rate ?? null });
 }
 
-// POST /api/clans/[slug]/economy — owner + public revenue actions.
+// POST /api/clans/[slug]/economy — owner + member + public revenue actions.
 // { action: "fund", coins } — owner moves personal coins into the wallet.
+// { action: "donate", coins } — ANY member chips in for upkeep (1:1, no cut).
 // { action: "channel", kind, label, target_url? } — owner adds a channel.
 // { action: "type", clan_type } — owner switches hclan/sclan/bclan.
 // { action: "ad-view", channel_id } — anyone, IP-throttled, credits 0.01.
@@ -115,6 +117,25 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     return ok({ funded: rpcData });
   }
 
+  if (action === "donate") {
+    const coins = Math.round(Number(input.coins) * 100) / 100;
+    if (!Number.isFinite(coins) || coins < 0.01 || coins > 100000) {
+      return fail("Amount must be 0.01..100000 coins.", 400);
+    }
+    const { data: rpcData, error } = await supabase.rpc("donate_clan_upkeep", {
+      p_clan_id: clanId,
+      p_coins: coins,
+    });
+    if (error) {
+      const msg = String(error.message ?? "");
+      if (/join the clan/i.test(msg)) return fail("Join the clan to donate.", 403);
+      if (/insufficient balance/i.test(msg)) return fail("Insufficient Vibe Coins.", 402);
+      if (/amount|invalid|login/i.test(msg)) return fail("Invalid donation amount.", 400);
+      return fail("Unable to donate.", 500);
+    }
+    return ok({ donated: rpcData });
+  }
+
   if (action === "channel") {
     const kind = String(input.kind ?? "");
     if (!["house-ad", "affiliate", "sponsor"].includes(kind)) {
@@ -159,5 +180,5 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     return ok({ clan_type: clanType });
   }
 
-  return fail("Invalid action (fund, channel, type, ad-view, affiliate-click).", 400);
+  return fail("Invalid action (fund, donate, channel, type, ad-view, affiliate-click).", 400);
 }
