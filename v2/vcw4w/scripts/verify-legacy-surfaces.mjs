@@ -111,8 +111,8 @@ if (frameMissing.length) {
 }
 const nextConfig = await readFile(join(root, "next.config.ts"), "utf8");
 for (const token of [
-  'source: "/vcw/agent", destination: "/vcw/agent/"',
-  'source: "/vcw/desktop", destination: "/vcw/desktop/"',
+  'source: "/vcw/agent", destination: "/vcw/agent/index.html"',
+  'source: "/vcw/desktop", destination: "/vcw/desktop/index.html"',
   'source: "/vcw/web/demo", destination: "/vibecodeworker/demo"',
   'source: "/vibecodeworker/style.css", destination: "/vibecodeworker-legacy/style.css"',
   'source: "/vibecodeworker/modules/:path*", destination: "/vibecodeworker-legacy/modules/:path*"',

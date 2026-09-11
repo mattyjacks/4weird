@@ -82,6 +82,30 @@ async function run() {
   const launcher = fs.readFileSync(path.join(__dirname, '..', 'deploy', 'runpod', 'start-dual-desktop.sh'), 'utf8');
   assert.match(launcher, /VIBE_MAX_MINUTES/);
   assert.match(launcher, /VCW budget deadline reached/);
+  // Cheap CPU-only Ubuntu desktop: cheapest flavor, pod spec, clipboard.
+  assert.strictEqual(cloud.DEFAULT_CPU_ID, 'cpu3c');
+  assert.strictEqual(cloud.DEFAULT_CPU_VCPU, 2);
+  assert.strictEqual(cloud.cpuHourly('cpu3c', 2), 0.06);
+  const cheapCpu = cloud.pickCheapestAvailableCpu([]);
+  assert.strictEqual(cheapCpu.id, 'cpu3c');
+  assert.strictEqual(cheapCpu.hourly, 0.06);
+  const cpuSpec = cloud.buildCpuPodSpec({ cpuId: 'cpu3c', vcpuCount: 2, dataCenterId: 'EU-RO-1' });
+  assert.strictEqual(cpuSpec.cpu.hourly, 0.06);
+  assert.strictEqual(cpuSpec.body.cpu.id, 'cpu3c');
+  assert.strictEqual(cpuSpec.body.cpu.vcpuCount, 2);
+  assert.match(cpuSpec.body.image, /ubuntu2404/);
+  assert.ok(cpuSpec.body.ports.includes('6901/http'), 'desktop VNC port exposed');
+  assert.ok(cpuSpec.body.args.join(' ').includes('autocutsel'), 'clipboard bridge in bootstrap');
+  assert.ok(cpuSpec.body.args.join(' ').includes('websockify'), 'noVNC in bootstrap');
+  assert.strictEqual(cpuSpec.body.env.VIBE_DESKTOP_CLIPBOARD, 'bidirectional-autocutsel-novnc');
+  assert.strictEqual(cpuSpec.billing, 'per-second');
+  assert.throws(() => cloud.buildCpuPodSpec({ cpuId: 'cpu3c', vcpuCount: 2, controlToken: 'too-short' }), /Invalid controlToken/);
+  const desktopScript = fs.readFileSync(path.join(__dirname, '..', 'deploy', 'runpod', 'start-ubuntu-desktop.sh'), 'utf8');
+  assert.match(desktopScript, /autocutsel/);
+  assert.match(desktopScript, /Clipboard/i);
+  assert.match(desktopScript, /VIBE_MAX_MINUTES/);
+  const cpuCatalog = await cloud.getCloudCpuCatalog({ vcpu: 2 });
+  assert.ok(cpuCatalog.find((c) => c.id === 'cpu3c' && c.hourly === 0.06), 'cpu catalog carries $0.06 cheapest');
   // Cloud routes exist and never echo keys.
   const routes = require('../lib/api/cloud_routes');
   assert.strictEqual(typeof routes.handleCloudRequest, 'function');
@@ -91,6 +115,12 @@ async function run() {
   assert.strictEqual(seen[0][0], 200);
   assert.strictEqual(seen[0][1].cheapest.id, 'NVIDIA RTX 2000 Ada Generation');
   assert.ok(!JSON.stringify(seen[0][1]).includes('rpa-'), 'no key material in estimate');
+  const cpuSeen = [];
+  const cpuSend = (code, data) => { cpuSeen.push([code, data]); };
+  await routes.handleCloudRequest('/api/cloud/cpu-estimate', {}, async () => ({}), cpuSend, cpuSend);
+  assert.strictEqual(cpuSeen[0][0], 200);
+  assert.strictEqual(cpuSeen[0][1].computeType, 'CPU');
+  assert.strictEqual(cpuSeen[0][1].cheapest.hourly, 0.06);
   console.log('ALL CLOUD TESTS PASSED');
 }
 

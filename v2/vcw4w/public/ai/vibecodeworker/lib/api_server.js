@@ -172,7 +172,7 @@ class LocalAPIServer {
         // covered so an alias cannot bypass the origin guard.
         const EXECUTION_PATHS = ['/api/game/patch', '/api/game/eval', '/eval', '/api/game/action', '/action', '/api/game/video/start', '/api/game/video/stop', '/api/autocode/fix',
           '/api/opencode/fix', '/api/opencode/heal', '/api/opencode/heal-test', '/api/opencode/revert',
-          '/api/cloud/launch', '/api/cloud/stop', '/api/cloud/status', '/api/cloud/games/download',
+          '/api/cloud/launch', '/api/cloud/stop', '/api/cloud/status', '/api/cloud/list', '/api/cloud/games/download',
           '/api/godot/install', '/api/godot/action'];
         if (origin && !isLocalOrigin && EXECUTION_PATHS.some(p => pathname.startsWith(p))) {
           res.writeHead(403, { 'Content-Type': 'application/json' });

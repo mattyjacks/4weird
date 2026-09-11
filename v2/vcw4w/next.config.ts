@@ -68,11 +68,9 @@ const nextConfig: NextConfig = {
       { source: "/vibecodeworker/demo/index.html", destination: "/vibecodeworker/demo", permanent: true },
       // VibeCodeWorker short links (used by the legacy nav + landing pages).
       // /vcw/agent/ and /vcw/desktop/ are NOT redirected: real static pages
-      // (agent MCP docs, desktop download guide) are served there. The
-      // slash-less variants redirect to the trailing-slash static files
-      // (public/ only serves exact paths, so /vcw/agent alone would 404).
-      { source: "/vcw/agent", destination: "/vcw/agent/", permanent: true },
-      { source: "/vcw/desktop", destination: "/vcw/desktop/", permanent: true },
+      // (agent MCP docs, desktop download guide) are served there (see the
+      // rewrites below — a redirect would loop against Next's trailing-slash
+      // normalization: /vcw/agent -> /vcw/agent/ -> /vcw/agent -> ...).
       { source: "/vcw", destination: "/vibecodeworker", permanent: true },
       { source: "/vcw/", destination: "/vibecodeworker", permanent: true },
       { source: "/vcw/web/run", destination: "/vibecodeworker/run", permanent: true },
@@ -110,6 +108,11 @@ const nextConfig: NextConfig = {
       // NOTE: no :path* source may match a bare /vibecodeworker/<section>
       // (zero-segment match shadows the page) — asset-only sources below.
       afterFiles: [
+        // Static guides: public/ serves exact paths only, so the slash-less
+        // variants are rewritten (not redirected — a redirect would loop
+        // against trailing-slash normalization).
+        { source: "/vcw/agent", destination: "/vcw/agent/index.html" },
+        { source: "/vcw/desktop", destination: "/vcw/desktop/index.html" },
         { source: "/vibecodeworker/style.css", destination: "/vibecodeworker-legacy/style.css" },
         { source: "/vibecodeworker/style_hub_simple.css", destination: "/vibecodeworker-legacy/style_hub_simple.css" },
         { source: "/vibecodeworker/hub-shared.css", destination: "/vibecodeworker-legacy/hub-shared.css" },

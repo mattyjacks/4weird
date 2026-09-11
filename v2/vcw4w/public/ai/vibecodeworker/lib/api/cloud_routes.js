@@ -79,6 +79,34 @@ async function handleCloudRequest(pathname, req, readBody, sendJSON, sendText) {
     });
   }
 
+  // Public: cheap CPU-only Ubuntu desktop catalog + estimate. No key needed.
+  // Prices are the static-verified v2 POD catalog (cpu3c 2vCPU = $0.06/hr).
+  if (pathname === '/api/cloud/cpu-catalog') {
+    if (req.method !== 'GET') return sendText(405, 'Method Not Allowed');
+    const body = req.method === 'POST' ? await readBody() : {};
+    const vcpu = Number((body && body.vcpu) || 2);
+    const cpus = await cloud.getCloudCpuCatalog({ vcpu });
+    return sendJSON(200, { success: true, cpus, clipboard: 'bidirectional: noVNC sidebar Clipboard panel + pod-side autocutsel bridge' });
+  }
+
+  if (pathname === '/api/cloud/cpu-estimate') {
+    const body = await readBody();
+    const vcpu = Math.min(Math.max(parseInt(body.vcpu, 10) || 2, 2), 32);
+    const pick = cloud.pickCheapestAvailableCpu(body.cpus || [], { vcpu });
+    const secs = Math.min(Number(body.seconds) || 600, cloud.MAX_RUN_SECONDS);
+    return sendJSON(200, {
+      success: true,
+      computeType: 'CPU',
+      cheapest: pick,
+      seconds: secs,
+      estCost: cloud.estimateCost(pick.hourly, secs),
+      maxCost: cloud.estimateCost(pick.hourly, cloud.MAX_RUN_SECONDS),
+      maxMinutes: cloud.MAX_RUN_MINUTES,
+      billing: 'per-second',
+      clipboard: 'bidirectional: noVNC sidebar Clipboard panel + pod-side autocutsel bridge'
+    });
+  }
+
   if (pathname === '/api/cloud/estimate') {
     const body = await readBody();
     const pick = cloud.pickCheapestAvailableGpu(body.gpus || [], { minGB: body.minGB });
@@ -96,6 +124,19 @@ async function handleCloudRequest(pathname, req, readBody, sendJSON, sendText) {
   }
 
   // Mutating below: brake + key required. Origin gating lives in api_server.js.
+  // /api/cloud/list is read-only but key-gated (it lists the caller's pods).
+  if (pathname === '/api/cloud/list') {
+    if (req.method !== 'GET') return sendText(405, 'Method Not Allowed');
+    const runpodKey = readRunpodKey(req);
+    if (!runpodKey) return sendJSON(401, { success: false, error: 'Missing x-runpod-key header' });
+    try {
+      const pods = await cloud.listCloudRuns({ runpodKey });
+      return sendJSON(200, { success: true, count: pods.length, pods });
+    } catch (e) {
+      return sendJSON(502, { success: false, error: String(e.message || e).slice(0, 200) });
+    }
+  }
+
   if (pathname === '/api/cloud/launch' || pathname === '/api/cloud/stop' || pathname === '/api/cloud/status') {
     if (req.method === 'GET' && pathname !== '/api/cloud/status') return sendText(405, 'Method Not Allowed');
     if (!rateLimitOk()) return sendJSON(429, { success: false, error: 'Rate limited, try again in a minute' });
@@ -105,6 +146,11 @@ async function handleCloudRequest(pathname, req, readBody, sendJSON, sendText) {
       if (pathname === '/api/cloud/launch') {
         if (req.method !== 'POST') return sendText(405, 'Method Not Allowed');
         const body = await readBody();
+        // Cheap CPU-only Ubuntu desktop path (default for remote-desktop use).
+        if (String(body.computeType || '').toUpperCase() === 'CPU' || body.cpuId) {
+          const result = await cloud.startCpuDesktopRun({ ...body, runpodKey });
+          return sendJSON(200, result);
+        }
         let gpus = Array.isArray(body.gpus) ? body.gpus : null;
         let gpuPick = null;
         if (!body.gpuId && gpus) {

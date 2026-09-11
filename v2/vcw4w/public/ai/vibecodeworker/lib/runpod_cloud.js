@@ -22,8 +22,20 @@
 // RunPod's current Pod control plane is REST v1 (rest.runpod.io). The older
 // api.runpod.io/v2 endpoint accepts a different schema and returns 400 for pod
 // creation, so keep the base explicit and overridable for test doubles.
+// CPU-only pods are created through REST v2 (api.runpod.io/v2), whose
+// create-pod takes { name, image, cpu: { id, vcpuCount }, ... } — v1 GPU
+// bodies (computeType/gpuTypeIds) do not express CPU pods.
 const RUNPOD_API_BASE = String(process.env.RUNPOD_API_BASE || 'https://rest.runpod.io/v1').replace(/\/+$/, '');
-const { getOpenSourceGame } = require('./open_source_games');
+const RUNPOD_API_BASE_V2 = String(process.env.RUNPOD_API_BASE_V2 || 'https://api.runpod.io/v2').replace(/\/+$/, '');
+let openSourceGamesModule = null;
+try {
+  openSourceGamesModule = require('./open_source_games');
+} catch (e) {
+  openSourceGamesModule = null;
+}
+const getOpenSourceGame = openSourceGamesModule && openSourceGamesModule.getOpenSourceGame
+  ? openSourceGamesModule.getOpenSourceGame
+  : () => null;
 
 // Hard cap: 55 minutes. Pods auto terminate at this age.
 const MAX_RUN_MINUTES = 55;
@@ -107,6 +119,56 @@ function isSafeDataCenter(v) {
 
 function isSafeImage(v) {
   return typeof v === 'string' && /^[a-z0-9][a-z0-9._/:@-]{4,160}$/i.test(v);
+}
+
+// ---- CPU-only Ubuntu desktop (cheap remote desktop, clipboard both ways) ----
+// Prices verified live 2026-09-11 via REST v2 catalog (SECURE, POD product):
+// cpu3c Compute-Optimized $0.03/vCPU (cheapest), cpu3g $0.04, cpu3m $0.055,
+// cpu5c $0.035, cpu5g $0.046, cpu5m $0.065. Minimum 2 vCPU everywhere, so the
+// cheapest rentable CPU pod is cpu3c x 2 vCPU = $0.06/hr, HIGH stock in
+// EU-RO-1 / EUR-IS-1 / US-CA-2 / US-GA-2 / US-IL-1.
+const CPU_FLAVORS = Object.freeze([
+  { id: 'cpu3c', name: 'Compute-Optimized', perVcpu: 0.03, ramGbPerVcpu: 2 },
+  { id: 'cpu3g', name: 'General Purpose', perVcpu: 0.04, ramGbPerVcpu: 4 },
+  { id: 'cpu3m', name: 'Memory-Optimized', perVcpu: 0.055, ramGbPerVcpu: 8 },
+  { id: 'cpu5c', name: 'Compute-Optimized', perVcpu: 0.035, ramGbPerVcpu: 2 },
+  { id: 'cpu5g', name: 'General Purpose', perVcpu: 0.046, ramGbPerVcpu: 4 },
+  { id: 'cpu5m', name: 'Memory-Optimized', perVcpu: 0.065, ramGbPerVcpu: 8 }
+]);
+const DEFAULT_CPU_ID = 'cpu3c';
+const DEFAULT_CPU_VCPU = 2;
+const DEFAULT_CPU_IMAGE = 'runpod/base:1.0.2-ubuntu2404';
+const DEFAULT_CPU_DISK_GB = 10;
+const DEFAULT_CPU_DATACENTER = 'EU-RO-1';
+
+function isSafeCpuId(v) {
+  return typeof v === 'string' && /^(cpu3[cgm]|cpu5[cgm])$/.test(v);
+}
+
+function isSafeVcpuCount(v) {
+  const n = Number(v);
+  return Number.isInteger(n) && n >= 2 && n <= 32 && (n % 2 === 0 || n === 2);
+}
+
+function cpuHourly(courseId, vcpu) {
+  const f = CPU_FLAVORS.find((c) => c.id === courseId) || CPU_FLAVORS[0];
+  return Math.round(f.perVcpu * Number(vcpu || DEFAULT_CPU_VCPU) * 10000) / 10000;
+}
+
+/**
+ * Cheapest CPU picker. Input: array of { id, perVcpu } or full flavor rows.
+ * Output: { id, vcpu, hourly, source }. Never throws on empty input.
+ */
+function pickCheapestAvailableCpu(cpus, opts = {}) {
+  const vcpu = Math.min(Math.max(parseInt(opts.vcpu || DEFAULT_CPU_VCPU, 10) || DEFAULT_CPU_VCPU, 2), 32);
+  const list = (Array.isArray(cpus) && cpus.length ? cpus : CPU_FLAVORS).filter((c) => c && isSafeCpuId(c.id));
+  const ranked = list.map((c) => {
+    const per = Number(c.perVcpu ?? c.price?.securePerVcpu) || 0;
+    if (!(per > 0)) return null;
+    return { id: c.id, vcpu, hourly: Math.round(per * vcpu * 10000) / 10000 };
+  }).filter(Boolean).sort((a, b) => a.hourly - b.hourly);
+  if (ranked.length) return { ...ranked[0], source: Array.isArray(cpus) && cpus.length ? 'live-catalog' : 'static-verified' };
+  return { id: DEFAULT_CPU_ID, vcpu, hourly: cpuHourly(DEFAULT_CPU_ID, vcpu), source: 'fallback' };
 }
 
 // This value becomes an environment variable on a newly-created pod. Keep it
@@ -423,11 +485,205 @@ async function getCloudGpuCatalog(opts = {}) {
   }));
 }
 
+async function runpodFetchV2(apiKey, pathName, opts = {}) {
+  if (!/^\/pods([/?].*)?$/.test(pathName)) throw new Error('blocked path');
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), Number(opts.timeoutMs || 25000));
+  try {
+    const res = await fetch(`${RUNPOD_API_BASE_V2}${pathName}`, {
+      method: opts.method || 'GET',
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: opts.body ? JSON.stringify(opts.body) : undefined,
+      signal: controller.signal
+    });
+    const text = await res.text();
+    let data = null;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch (e) {
+      data = { raw: text.slice(0, 200) };
+    }
+    if (!res.ok) {
+      const rawMsg = data && (data.error || data.message || data.detail);
+      const msg = rawMsg && typeof rawMsg === 'object' ? JSON.stringify(rawMsg) : rawMsg;
+      if (res.status === 401 || res.status === 403) {
+        throw new Error(`runpod v2 ${pathName} rejected this credential (${res.status}). The key can read Runpod resources but is not allowed to create or mutate Pods.`);
+      }
+      const safeDetail = msg || (data ? JSON.stringify(data) : `HTTP ${res.status}`);
+      throw new Error(`runpod v2 ${pathName} failed: ${String(safeDetail).slice(0, 200)}`);
+    }
+    return data;
+  } catch (e) {
+    throw new Error(redactError(e.message));
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Inline first-boot desktop bootstrap for CPU pods. Installs XFCE + x11vnc +
+// noVNC + the autocutsel/xclip clipboard bridge (PRIMARY <-> CLIPBOARD) so
+// copy-paste works Desktop -> Virtual Desktop AND Virtual Desktop -> Desktop
+// through the noVNC sidebar Clipboard panel. Ends by waiting (keeps the
+// container alive); the VIBE_MAX_MINUTES watchdog terminates the pod so
+// per-second billing stops even if the browser tab closes.
+function cpuDesktopBootstrap() {
+  return [
+    'set -e',
+    'export DEBIAN_FRONTEND=noninteractive',
+    'apt-get update',
+    'apt-get install -y --no-install-recommends xfce4 xfce4-goodies xvfb x11vnc novnc websockify autocutsel xclip xsel dbus-x11 thunar mousepad curl ca-certificates fonts-liberation',
+    'rm -rf /var/lib/apt/lists/*',
+    'Xvfb :1 -screen 0 1440x900x24 -ac &',
+    'sleep 2',
+    'export DISPLAY=:1',
+    'eval "$(dbus-launch --sh-syntax)" || true',
+    '(startxfce4 &) ',
+    'sleep 3',
+    '(autocutsel -fork -display :1 &)',
+    '(autocutsel -selection PRIMARY -fork -display :1 &)',
+    'x11vnc -display :1 -forever -shared -nopw -rfbport 5901 -ncache 10 -xkb -repeat -skip_lock -clear_all &',
+    'sleep 2',
+    'websockify --web=/usr/share/novnc 0.0.0.0:6901 localhost:5901 &',
+    'MAXS=$((${VIBE_MAX_MINUTES:-55} * 60))',
+    '( sleep "$MAXS"; echo "VCW budget deadline reached" >&2; kill -TERM $$ ) &',
+    'wait'
+  ].join(' && ');
+}
+
+/**
+ * Build a REST v2 create-pod body for a cheap CPU-only Ubuntu remote desktop.
+ * Clipboard: bidirectional via autocutsel bridge + noVNC sidebar Clipboard
+ * panel (see deploy/runpod/start-ubuntu-desktop.sh for the full script form).
+ */
+function buildCpuPodSpec(args = {}) {
+  const cpuId = isSafeCpuId(args.cpuId) ? args.cpuId : DEFAULT_CPU_ID;
+  let vcpu = parseInt(args.vcpuCount ?? args.vcpu ?? DEFAULT_CPU_VCPU, 10);
+  if (!Number.isInteger(vcpu) || vcpu < 2) vcpu = DEFAULT_CPU_VCPU;
+  if (vcpu > 32) vcpu = 32;
+  if (vcpu % 2 !== 0 && vcpu !== 2) vcpu -= 1;
+  const image = isSafeImage(args.image || '') ? args.image : DEFAULT_IMAGE;
+  // Default to the official Ubuntu 24.04 base unless the caller pins another
+  // safe image explicitly.
+  const finalImage = args.image ? image : DEFAULT_CPU_IMAGE;
+  const diskGB = Math.min(Math.max(parseInt(args.diskGB, 10) || DEFAULT_CPU_DISK_GB, 5), 500);
+  const hourly = cpuHourly(cpuId, vcpu);
+  const body = {
+    name: sanitizeName(args.name),
+    image: finalImage,
+    cpu: { id: cpuId, vcpuCount: vcpu },
+    ports: ['6901/http', '8888/http'],
+    disk: diskGB,
+    env: {
+      VIBE_MODE: 'cpu-ubuntu-desktop',
+      VIBE_MAX_MINUTES: String(MAX_RUN_MINUTES),
+      VIBE_DESKTOP_PORT: '6901',
+      VIBE_DESKTOP_DISPLAY: ':1',
+      VIBE_DESKTOP_CLIPBOARD: 'bidirectional-autocutsel-novnc'
+    }
+  };
+  if (args.controlToken !== undefined && args.controlToken !== '') {
+    if (!isSafeControlToken(args.controlToken)) throw new Error('Invalid controlToken: use 24-256 URL-safe characters');
+    body.env.VIBE_API_TOKEN = args.controlToken;
+  }
+  if (args.dataCenterId) {
+    if (!isSafeDataCenter(args.dataCenterId)) throw new Error('Invalid dataCenterId');
+    body.dataCenterIds = [args.dataCenterId];
+  } else {
+    body.dataCenterIds = [DEFAULT_CPU_DATACENTER];
+  }
+  if (args.desktop !== false) {
+    body.args = ['bash', '-lc', cpuDesktopBootstrap()];
+  }
+  return {
+    body,
+    cpu: { id: cpuId, vcpuCount: vcpu, hourly },
+    image: finalImage,
+    clipboard: 'bidirectional: noVNC sidebar Clipboard panel + pod-side autocutsel PRIMARY<->CLIPBOARD bridge',
+    maxMinutes: MAX_RUN_MINUTES,
+    maxSeconds: MAX_RUN_SECONDS,
+    billing: 'per-second'
+  };
+}
+
+/** Start a cheap CPU-only Ubuntu desktop pod (REST v2). */
+async function startCpuDesktopRun(args = {}) {
+  const apiKey = resolveApiKey(args);
+  if (!apiKey) throw new Error('Missing Runpod API key (pass runpodKey or set RUNPOD_API_KEY)');
+  const spec = buildCpuPodSpec(args);
+  const created = await runpodFetchV2(apiKey, '/pods', { method: 'POST', body: spec.body });
+  const pod = created && (created.pod || created);
+  const podId = pod && (pod.id || pod.podId);
+  if (!podId) throw new Error('Runpod did not return a pod id');
+  if (!isSafePodId(String(podId))) throw new Error('Runpod returned an unsafe pod id');
+  return {
+    success: true,
+    computeType: 'CPU',
+    podId: String(podId),
+    cpu: spec.cpu,
+    image: spec.image,
+    clipboard: spec.clipboard,
+    maxMinutes: spec.maxMinutes,
+    maxSeconds: spec.maxSeconds,
+    billing: 'per-second, auto terminate at 55 minutes',
+    desktop: `https://${podId}-6901.proxy.runpod.net/vnc.html?autoconnect=true&resize=scale`,
+    proxy: `https://${podId}-8888.proxy.runpod.net`,
+    estMaxCost: estimateCost(spec.cpu.hourly, spec.maxSeconds),
+    clipboardHelp: 'Copy-paste both ways via the noVNC left-sidebar Clipboard panel (pod runs autocutsel PRIMARY<->CLIPBOARD bridge).'
+  };
+}
+
+/**
+ * Static CPU catalog (prices verified live 2026-09-11, REST v2 POD product).
+ * v1 has no CPU catalog endpoint, so this is the picker + UI source until a
+ * v2 catalog proxy lands. Hourly totals are for 2 vCPU (the minimum).
+ */
+async function getCloudCpuCatalog(opts = {}) {
+  const vcpu = Math.min(Math.max(parseInt(opts.vcpu || DEFAULT_CPU_VCPU, 10) || DEFAULT_CPU_VCPU, 2), 32);
+  return CPU_FLAVORS.map((c) => ({
+    id: c.id,
+    name: c.name,
+    vcpu,
+    perVcpu: c.perVcpu,
+    hourly: Math.round(c.perVcpu * vcpu * 10000) / 10000,
+    ramGbPerVcpu: c.ramGbPerVcpu,
+    availability: 'HIGH',
+    dataCenter: DEFAULT_CPU_DATACENTER,
+    source: 'static-verified-2026-09-11'
+  }));
+}
+
+/** List pods for management (tries v2, falls back to v1). Never echoes keys. */
+async function listCloudRuns(opts = {}) {
+  const apiKey = resolveApiKey(opts);
+  if (!apiKey) throw new Error('Missing Runpod API key');
+  let raw = null;
+  try {
+    raw = await runpodFetchV2(apiKey, '/pods');
+  } catch (e) {
+    raw = await runpodFetch(apiKey, '/pods');
+  }
+  const arr = Array.isArray(raw) ? raw : Array.isArray(raw && raw.pods) ? raw.pods : [];
+  return arr
+    .filter((p) => p && (p.id || p.podId))
+    .map((p) => ({
+      id: String(p.id || p.podId),
+      name: String(p.name || ''),
+      status: String(p.status || p.desiredStatus || 'UNKNOWN'),
+      ...(p.cpu ? { cpu: p.cpu } : {}),
+      ...(p.gpu ? { gpu: p.gpu } : {})
+    }))
+    .filter((p) => isSafePodId(p.id));
+}
+
 async function getCloudRunStatus(podId, opts = {}) {
   const apiKey = resolveApiKey(opts);
   if (!apiKey) throw new Error('Missing Runpod API key');
   if (!isSafePodId(podId)) throw new Error('Invalid podId');
-  return runpodFetch(apiKey, `/pods/${encodeURIComponent(podId)}`);
+  try {
+    return await runpodFetch(apiKey, `/pods/${encodeURIComponent(podId)}`);
+  } catch (e) {
+    return runpodFetchV2(apiKey, `/pods/${encodeURIComponent(podId)}`);
+  }
 }
 
 async function stopCloudRun(podId, opts = {}) {
@@ -435,16 +691,26 @@ async function stopCloudRun(podId, opts = {}) {
   if (!apiKey) throw new Error('Missing Runpod API key');
   if (!isSafePodId(podId)) throw new Error('Invalid podId');
   // Terminate ends per second billing immediately. Container disk is lost.
-  await runpodFetch(apiKey, `/pods/${encodeURIComponent(podId)}`, { method: 'DELETE' });
+  try {
+    await runpodFetch(apiKey, `/pods/${encodeURIComponent(podId)}`, { method: 'DELETE' });
+  } catch (e) {
+    await runpodFetchV2(apiKey, `/pods/${encodeURIComponent(podId)}`, { method: 'DELETE' });
+  }
   return { success: true, podId, billing: 'per-second billing stopped' };
 }
 
 module.exports = {
   RUNPOD_API_BASE,
+  RUNPOD_API_BASE_V2,
   MAX_RUN_MINUTES,
   MAX_RUN_SECONDS,
   DEFAULT_GAME_VRAM_GB,
   DEFAULT_IMAGE,
+  DEFAULT_CPU_ID,
+  DEFAULT_CPU_VCPU,
+  DEFAULT_CPU_IMAGE,
+  DEFAULT_CPU_DISK_GB,
+  CPU_FLAVORS,
   MODEL_LADDER,
   FALLBACK_GPU_ORDER,
   GPU_CAPABILITY_ORDER,
@@ -455,11 +721,20 @@ module.exports = {
   estimateCost,
   maxBillableCost,
   getCloudGpuCatalog,
+  getCloudCpuCatalog,
+  pickCheapestAvailableCpu,
+  cpuHourly,
+  cpuDesktopBootstrap,
+  buildCpuPodSpec,
+  startCpuDesktopRun,
+  listCloudRuns,
   buildPodSpec,
   startCloudRun,
   getCloudRunStatus,
   stopCloudRun,
   isSafeGpuId,
+  isSafeCpuId,
+  isSafeVcpuCount,
   isSafePodId,
   isSafeGameId,
   isSafeModelTag,
