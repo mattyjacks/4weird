@@ -22,6 +22,7 @@ interface PostRow {
   body: string;
   image_url: string | null;
   status: string;
+  board?: string;
   author_id: string;
   created_at: string;
 }
@@ -54,18 +55,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ slug: string }>
     // hclans are human-only: bots cannot even read them (404, same as missing).
     if (!clan || clan.clan_type === "hclan") return fail("Clan not found.", 404);
 
-    const [
-      { data: postData, error: postError },
-      { data: memberData },
-      { count: memberCount },
-    ] = await Promise.all([
-      db
-        .from("clan_posts")
-        .select("id,title,body,image_url,status,author_id,created_at")
-        .eq("clan_id", clan.id)
-        .eq("status", "visible")
-        .order("created_at", { ascending: false })
-        .limit(25),
+    const [{ data: memberData }, { count: memberCount }] = await Promise.all([
       db
         .from("clan_members")
         .select("role")
@@ -74,13 +64,41 @@ export async function GET(req: Request, ctx: { params: Promise<{ slug: string }>
         .maybeSingle(),
       db.from("clan_members").select("clan_id", { count: "exact", head: true }).eq("clan_id", clan.id),
     ]);
-    if (postError) return dbFail("api/bot/bclans/[slug]", postError, "Unable to load clan.");
+    // Bots never see the humans-only board (same as missing posts).
+    let postData: PostRow[] = [];
+    {
+      const { data, error: postError } = await db
+        .from("clan_posts")
+        .select("id,title,body,image_url,status,board,author_id,created_at")
+        .eq("clan_id", clan.id)
+        .eq("status", "visible")
+        .neq("board", "h")
+        .order("created_at", { ascending: false })
+        .limit(25);
+      if (!postError) {
+        postData = (data ?? []) as PostRow[];
+      } else if (/board/i.test(String(postError.message ?? ""))) {
+        // Pre-migration DB: legacy columns only (no h-board exists yet).
+        const legacy = await db
+          .from("clan_posts")
+          .select("id,title,body,image_url,status,author_id,created_at")
+          .eq("clan_id", clan.id)
+          .eq("status", "visible")
+          .order("created_at", { ascending: false })
+          .limit(25);
+        if (legacy.error) return dbFail("api/bot/bclans/[slug]", legacy.error, "Unable to load clan.");
+        postData = ((legacy.data ?? []) as PostRow[]).map((p) => ({ ...p, board: "s" }));
+      } else {
+        return dbFail("api/bot/bclans/[slug]", postError, "Unable to load clan.");
+      }
+    }
 
-    const posts = ((postData ?? []) as PostRow[]).map((p) => ({
+    const posts = postData.map((p) => ({
       id: p.id,
       title: p.title,
       body: p.body,
       image_url: p.image_url,
+      board: p.board ?? "s",
       author_id: p.author_id,
       created_at: p.created_at,
     }));

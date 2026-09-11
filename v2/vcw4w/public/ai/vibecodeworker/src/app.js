@@ -1878,7 +1878,7 @@ async function runDirectAIFix() {
   };
 
   el.directFixStatusContainer.classList.remove('hidden');
-  el.directFixStatusText.innerHTML = `⏳ <strong>Analyzing codebase & dispatching AI Fix...</strong><br>Using direct AI tokens (no Antigravity/Codex quota limits).`;
+  el.directFixStatusText.innerHTML = `⏳ <strong>Analyzing codebase & dispatching AI Fix...</strong><br>Using direct AI tokens (no third-party IDE quota limits).`;
   el.btnRunDirectFix.classList.add('btn-loading');
   logSystemMessage(`Initiating direct AI coding fix via AI tokens on "${targetBug.title || targetBug.type}"...`);
 

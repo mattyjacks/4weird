@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { GhostDebt, formatGhostCash } from "@/types/time";
-import { CheckCircle2, ShieldCheck, UserCheck, AlertTriangle, Plus, Loader2 } from "lucide-react";
+import { CheckCircle2, Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 

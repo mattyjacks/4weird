@@ -9,7 +9,6 @@
  *   requires teen/adult, PATCH rejects kid/unknown, and teen bands block
  *   Adults (18+) titles server-side. No DOB is ever collected.
  * - Child sub-accounts (kid_accounts): parent-attested band kid/teen/adult,
- * - Child sub-accounts (kid_accounts): parent-attested band kid/teen/adult,
  *   Clan-style `username#1234` + password login, NO Supabase user.
  */
 

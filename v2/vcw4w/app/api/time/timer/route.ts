@@ -46,7 +46,15 @@ export async function GET() {
     return ok({ timer: null });
   }
 
-  const proj: any = runningTimer.project;
+  type TimerProjectJoin = {
+    id: string;
+    name: string;
+    color: string | null;
+    ghost_rate: number | string | null;
+    org_id: string | null;
+  } | null;
+
+  const proj = runningTimer.project as TimerProjectJoin;
 
   return ok({
     timer: {
@@ -87,9 +95,9 @@ export async function POST(req: Request) {
   const throttle = rateLimit(`timer-start:${u.id}`, 30, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);
 
-  let body: any = {};
+  let body: Record<string, unknown> = {};
   try {
-    body = await req.json();
+    body = (await req.json()) as Record<string, unknown>;
   } catch {
     // empty body ok
   }
@@ -105,8 +113,8 @@ export async function POST(req: Request) {
   } = body;
 
   const { data: timer, error } = await supabase.rpc("start_timer", {
-    p_project_id: projectId || null,
-    p_debtor_id: debtorId || null,
+    p_project_id: projectId ? String(projectId) : null,
+    p_debtor_id: debtorId ? String(debtorId) : null,
     p_description: description ? String(description).slice(0, 2000) : null,
     p_is_billable: !!isBillable,
     p_upwork_sync_mode: !!upworkSyncMode,
@@ -143,19 +151,19 @@ export async function PUT(req: Request) {
 
   if (!runningTimer) return fail("No running timer found.", 404);
 
-  let body: any = {};
+  let stopBody: Record<string, unknown> = {};
   try {
-    body = await req.json();
+    stopBody = (await req.json()) as Record<string, unknown>;
   } catch {
     // empty body ok
   }
 
-  const { description, projectId, isBillable, activityScore } = body;
+  const { description, projectId, isBillable, activityScore } = stopBody;
 
   const { data: timer, error } = await supabase.rpc("stop_timer", {
     p_entry_id: runningTimer.id,
     p_description: description !== undefined ? String(description).slice(0, 2000) : null,
-    p_project_id: projectId || null,
+    p_project_id: projectId ? String(projectId) : null,
     p_is_billable: isBillable !== undefined ? !!isBillable : null,
     p_activity_score: typeof activityScore === "number" ? activityScore : null,
   });

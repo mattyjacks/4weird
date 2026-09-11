@@ -2,16 +2,31 @@
 
 import { useMemo } from "react";
 import { TimerEntry, TimerProject, formatGhostCash, formatDurationShort } from "@/types/time";
-import { Clock, CheckCircle2, TrendingUp, Monitor } from "lucide-react";
 import { TimerWidget } from "./TimerWidget";
+
+interface TimerStartData {
+  projectId?: string;
+  debtorId?: string;
+  description?: string;
+  isBillable?: boolean;
+  upworkSyncMode?: boolean;
+  upworkContractId?: string;
+  upworkMemo?: string;
+}
+
+interface TimerStopData {
+  projectId?: string;
+  description?: string;
+  isBillable?: boolean;
+}
 
 interface TimeDashboardProps {
   entries: TimerEntry[];
   projects: TimerProject[];
   runningTimer: TimerEntry | null;
   onNavigate: (view: string) => void;
-  onTimerStart: (data: any) => Promise<void>;
-  onTimerStop: (data?: any) => Promise<void>;
+  onTimerStart: (data: TimerStartData) => Promise<void>;
+  onTimerStop: (data?: TimerStopData) => Promise<void>;
   onTimerDiscard: () => Promise<void>;
   onRefresh: () => void;
 }

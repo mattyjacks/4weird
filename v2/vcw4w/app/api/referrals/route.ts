@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
+import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit";
 import { rateLimit } from "@/lib/rate-limit";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
@@ -37,6 +38,13 @@ export async function POST(req: Request) {
     return fail("Too many attempts. Try again shortly.", 429, {
       "Retry-After": String(throttle.retryAfter),
     });
+  }
+  // Distributed shield: at most 10 referral applications/hour per account
+  // across all instances (self-dealing is blocked by UNIQUE(invitee_id), this
+  // stops code-spraying farms from reaching the money path at scale).
+  const refDist = await globalBucket(acctBucketKey("referral-hour", data.user.id), 10, 3600);
+  if (refDist && !refDist.allowed) {
+    return fail("Too many attempts. Try again shortly.", 429, throttleHeaders(refDist.retryAfter));
   }
   let body: unknown;
   try {

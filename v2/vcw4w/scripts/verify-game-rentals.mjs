@@ -15,7 +15,6 @@ const usage = read("../app/api/my/usage/route.ts");
 const usageClient = read("../app/my/usage/usage-client.tsx");
 const pricing = read("../app/pricing/page.tsx");
 const skill = read("../../../skill.md");
-const bundle = read("../../../supabase-migrations-2026-10-9-A.txt");
 
 const rentPerSecond = read("../supabase/migrations/20260913000000_game_rentals_per_second.sql");
 
@@ -104,7 +103,6 @@ if (gate.includes('gate.kind === "checking" || gate.kind === "metering"')) {
   throw new Error("PlayGate must mount the frame during metering (no metering deadlock).");
 }
 if (!migration.includes("for update")) throw new Error("Heartbeat must lock the session row (no double-bill on retries).");
-if (!bundle.includes("for update")) throw new Error("Runbook bundle copy of the migration is stale.");
 for (const [name, src] of [["rates", rates], ["chat", read("../app/api/buddy/chat/route.ts")], ["tts", read("../app/api/buddy/tts/route.ts")]]) {
   if (!src.includes("rpcFail")) throw new Error(`${name} API must route RPC errors through rpcFail (no raw PG leaks).`);
 }
@@ -133,6 +131,6 @@ for (const token of ["Renting games", "$0.01 per hour", "Guests play free", "100
 for (const token of ["guest-pass", "set_game_rate", "AdSlot", "free loads"]) {
   if (!skill.includes(token)) throw new Error(`skill.md missing "${token}".`);
 }
-if (!bundle.includes("BUNDLE FILE: 20260910170000_game_rentals.sql")) throw new Error("Runbook bundle must include the rentals migration.");
-if (!bundle.includes("BUNDLE FILE: 20260913000000_game_rentals_per_second.sql")) throw new Error("Runbook bundle must include the per-second rentals migration.");
+if (!migration.includes("start_game_session")) throw new Error("Live rentals migration must define start_game_session.");
+if (!rentPerSecond.includes("heartbeat_game_session")) throw new Error("Live per-second rentals migration must define heartbeat_game_session.");
 console.log("Game rentals integrity OK.");

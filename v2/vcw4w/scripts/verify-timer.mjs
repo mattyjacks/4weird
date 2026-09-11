@@ -6,14 +6,7 @@ const fail = (msg) => {
 };
 
 const mig = read("../supabase/migrations/20260926000000_timer_ghost_cash.sql");
-const timeTypes = read("../types/time.ts");
 const ghostCash = read("../lib/ghost-cash.ts");
-const timeRoute = read("../app/api/time/route.ts");
-const timerRoute = read("../app/api/time/timer/route.ts");
-const projectsRoute = read("../app/api/time/projects/route.ts");
-const debtsRoute = read("../app/api/time/debts/route.ts");
-const screenshotsRoute = read("../app/api/time/screenshots/route.ts");
-const timerPage = read("../app/timer/page.tsx");
 const timerWidget = read("../components/time/TimerWidget.tsx");
 const screenTracker = read("../components/time/ScreenTracker.tsx");
 const terms = read("../app/terms/page.tsx");

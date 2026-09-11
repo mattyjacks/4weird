@@ -25,10 +25,16 @@
  *   required." at the route layer). This module never throws.
  */
 
-import { createHash, randomBytes, timingSafeEqual } from "crypto";
+import { createHash, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
-import { botPepperConfigured, keyHasScope, resolveBotKey, sha256Hash } from "@/lib/bot-auth";
+import {
+  allPeppers,
+  botPepperConfigured,
+  botPepperIssuanceReady,
+  keyHasScope,
+  resolveBotKey,
+} from "@/lib/bot-auth";
 import { VCW_GATEWAY_KEY_TAG } from "@/lib/vcw-gateway";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/validate";
@@ -64,31 +70,107 @@ export function extractGatewayKey(req: Request): string | null {
   return null;
 }
 
-function legacySha256(key: string): string {
+/** Gateway v2 salt: separate domain from bot keys so one rainbow never serves both. */
+export function gatewaySaltFor(prefix: string): string {
+  return `vcw-gateway-v2$${String(prefix ?? "").slice(0, 8)}`;
+}
+
+/** v2 gateway hash with an explicit pepper (rotation-safe core). */
+export function hashGatewayKeyForPepper(key: string, pepperVal: string): string {
+  const prefix = vcwGatewayKeyPrefixFromSecret(key);
+  return (
+    scryptSync(String(pepperVal) + key, gatewaySaltFor(prefix), 32, { N: 32768, r: 8, p: 1 }) as Buffer
+  ).toString("hex");
+}
+
+/** Hash a NEW gateway secret (issuance path: fails closed on memorable peppers). */
+export function hashNewGatewayKey(key: string): string {
+  if (!botPepperIssuanceReady()) {
+    throw new Error("BOT_KEY_PEPPER must be 32+ strong-random chars to hash new keys.");
+  }
+  const peppers = allPeppers();
+  if (peppers.length === 0) throw new Error("BOT_KEY_PEPPER missing or too short.");
+  return hashGatewayKeyForPepper(key, peppers[0]);
+}
+
+/** Strict gateway present format: tag + 32 alphanumerics (checked before any KDF). */
+export function isValidGatewayKeyFormat(key: string): boolean {
+  const v = String(key ?? "");
+  if (!v.startsWith(VCW_GATEWAY_KEY_TAG)) return false;
+  const suffix = v.slice(VCW_GATEWAY_KEY_TAG.length);
+  return suffix.length === 32 && /^[A-Za-z0-9]+$/.test(suffix);
+}
+
+function legacySha256ForPepper(key: string, pepperVal: string): string {
   try {
-    const p = process.env.BOT_KEY_PEPPER ?? "";
-    return createHash("sha256").update(p + key, "utf8").digest("hex");
+    return createHash("sha256").update(String(pepperVal) + key, "utf8").digest("hex");
   } catch {
     return "";
   }
 }
 
-/** scrypt verify with legacy sha256 fallback (same pattern as bot-auth). */
+function hashGatewayV1ForPepper(key: string, pepperVal: string): string {
+  // Pre-domain-separation rows were hashed with the shared bot-auth hasher
+  // (static salt "bot4weird-v1", both scrypt costs, then sha256). Verify-only.
+  try {
+    return (
+      scryptSync(String(pepperVal) + key, "bot4weird-v1", 32, { N: 32768, r: 8, p: 1 }) as Buffer
+    ).toString("hex");
+  } catch {
+    return "";
+  }
+}
+
+function hashGatewayV1LegacyCostForPepper(key: string, pepperVal: string): string {
+  try {
+    return (
+      scryptSync(String(pepperVal) + key, "bot4weird-v1", 32, { N: 16384, r: 8, p: 1 }) as Buffer
+    ).toString("hex");
+  } catch {
+    return "";
+  }
+}
+
+/** scrypt verify with legacy fallback across current + previous peppers. */
 function verifyGatewayKeyHash(presentedKey: string, storedHex: string): boolean {
   try {
     const a = Buffer.from(storedHex, "hex");
     if (a.length !== 32) return false;
-    try {
-      const b = Buffer.from(sha256Hash(presentedKey), "hex");
-      if (b.length === 32 && timingSafeEqual(a, b)) return true;
-    } catch {
-      // fall through to legacy check
+    const peppers = allPeppers();
+    for (const pv of peppers) {
+      try {
+        const b = Buffer.from(hashGatewayKeyForPepper(presentedKey, pv), "hex");
+        if (b.length === 32 && timingSafeEqual(a, b)) return true;
+      } catch {
+        // fall through to legacy rows
+      }
     }
-    const legacy = Buffer.from(legacySha256(presentedKey), "hex");
-    if (legacy.length !== 32) return false;
-    return timingSafeEqual(a, legacy);
+    for (const pv of peppers) {
+      for (const fn of [hashGatewayV1ForPepper, hashGatewayV1LegacyCostForPepper, legacySha256ForPepper]) {
+        try {
+          const c = Buffer.from(fn(presentedKey, pv), "hex");
+          if (c.length === 32 && timingSafeEqual(a, c)) return true;
+        } catch {
+          // keep trying
+        }
+      }
+    }
+    return false;
   } catch {
     return false;
+  }
+}
+
+/** True when the stored gateway row predates the current v2 hash. */
+function gatewayNeedsRehash(storedHex: string, presentedKey: string): boolean {
+  try {
+    const peppers = allPeppers();
+    if (peppers.length === 0) return true;
+    const a = Buffer.from(storedHex, "hex");
+    const b = Buffer.from(hashGatewayKeyForPepper(presentedKey, peppers[0]), "hex");
+    return !(a.length === 32 && b.length === 32 && timingSafeEqual(a, b));
+  } catch {
+    return true;
   }
 }
 
@@ -140,7 +222,7 @@ interface GatewayKeyCandidate {
 /** Branch (c): resolve a `vcw_live_` key, or null on ANY failure. */
 async function resolveGatewayKey(req: Request): Promise<VcwCaller | null> {
   const raw = extractGatewayKey(req);
-  if (!raw || raw.length < 12 || raw.length > 128) {
+  if (!raw || !isValidGatewayKeyFormat(raw)) {
     dummyCompare();
     return null;
   }
@@ -234,19 +316,25 @@ async function resolveGatewayKey(req: Request): Promise<VcwCaller | null> {
     if (balance <= floor) return null;
   }
 
-  // Fire-and-forget usage counters; never blocks or fails the request.
+  // Fire-and-forget usage counters + opportunistic v2 rehash; never blocks.
   try {
     const db = serviceClient();
     const day = todayDay();
     const rolled = String(matched.daily_day ?? "") !== day;
+    const patch: Record<string, unknown> = {
+      last_used_at: new Date().toISOString(),
+      use_count: (Number(matched.use_count) || 0) + 1,
+      daily_spent: rolled ? 0 : Number(matched.daily_spent) || 0,
+      daily_day: day,
+    };
+    try {
+      if (gatewayNeedsRehash(matched.key_hash, raw)) patch.key_hash = hashNewGatewayKey(raw);
+    } catch {
+      // keep counters even when rehash is gated (weak pepper) or fails
+    }
     void db
       .from("vcw_api_keys")
-      .update({
-        last_used_at: new Date().toISOString(),
-        use_count: (Number(matched.use_count) || 0) + 1,
-        daily_spent: rolled ? 0 : Number(matched.daily_spent) || 0,
-        daily_day: day,
-      })
+      .update(patch)
       .eq("id", matched.id)
       .then(
         () => undefined,

@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient, supabaseServiceRoleKey } from "@/lib/supabase/service";
+import { globalBucket, ipBucketKey, throttleHeaders } from "@/lib/abuse-limit";
 import { rateLimit } from "@/lib/rate-limit";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
@@ -35,6 +36,16 @@ export async function POST(req: Request) {
     return fail("Too many attempts. Wait a minute and retry.", 429, {
       "Retry-After": String(throttle.retryAfter),
     });
+  }
+  // Distributed Sybil shield: the memory bucket above is per-instance, so a
+  // caller spraying instances (or a slow farm) gets N x 10/min. The shared
+  // buckets cap account creation per IP at 50/hour and 200/day — farming
+  // beyond that is rejected no matter how the traffic is spread.
+  for (const [scope, limit, windowSecs] of [["signup-hour", 50, 3600], ["signup-day", 200, 86400]] as const) {
+    const dist = await globalBucket(ipBucketKey(req, scope), limit, windowSecs);
+    if (dist && !dist.allowed) {
+      return fail("Too many signups from this network. Try again later.", 429, throttleHeaders(dist.retryAfter));
+    }
   }
   let body: unknown;
   try {

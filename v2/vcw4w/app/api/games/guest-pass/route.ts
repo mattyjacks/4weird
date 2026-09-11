@@ -2,6 +2,7 @@ import { createHash, createHmac } from "node:crypto";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
+import { globalBucket, ipBucketKey, throttleHeaders } from "@/lib/abuse-limit";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp, isSlug } from "@/lib/validate";
 import { GUEST_FREE_LOADS_PER_DAY, GUEST_MAX_LOADS_PER_DAY } from "@/lib/game-rent";
@@ -62,6 +63,15 @@ export async function POST(req: Request) {
       "Retry-After": String(daily.retryAfter),
     });
   }
+  // Distributed quota: the counters above are per-instance memory, so N
+  // instances meant N x free loads per IP. The shared daily bucket is the
+  // authoritative cross-instance count (its hits drive loads_used/ad gating
+  // below); the memory counters stay as a zero-I/O fast path + degraded
+  // fallback when the shared store is unreachable.
+  const sharedDay = await globalBucket(ipBucketKey(req, "guest-day"), GUEST_MAX_LOADS_PER_DAY, DAY_MS / 1000);
+  if (sharedDay && !sharedDay.allowed) {
+    return fail("Guest daily limit reached. Sign in; daily bonuses alone cover 5+ hours a day.", 429, throttleHeaders(sharedDay.retryAfter));
+  }
   let body: unknown;
   try {
     body = await req.json();
@@ -71,11 +81,12 @@ export async function POST(req: Request) {
   const game = isSlug((body as Record<string, unknown> | null)?.game_slug ?? (body as Record<string, unknown> | null)?.game);
   if (!game) return fail("Invalid game_slug.", 400);
 
-  // In-memory per-IP count ≈ loads used today (best-effort per instance;
-  // the signed-in coin ledger remains the authoritative meter). Server also
+  // Loads used today: the shared bucket count when available (authoritative
+  // across instances), else the in-memory per-instance counter (degraded).
+  // The signed-in coin ledger remains the authoritative meter. Server also
   // issues a single-use ad token for over-quota loads so the client cannot
   // skip the interstitial by ignoring ad_required.
-  const used = countGuestLoad(ip);
+  const used = sharedDay ? sharedDay.hits : countGuestLoad(ip);
   const adRequired = used > GUEST_FREE_LOADS_PER_DAY;
   const date = new Date().toISOString().slice(0, 10);
   // HMAC (not plain sha) so the token can't be recomputed offline from a

@@ -36,8 +36,25 @@ export async function GET() {
 
   if (error) return dbFail("GET /api/time/projects", error, "Failed to load timer projects.");
 
+  type ProjectRow = {
+    id: string;
+    name: string;
+    color: string | null;
+    ghost_rate: number | string | null;
+    budget_hours: number | string | null;
+    is_billable: boolean;
+    is_archived: boolean;
+    org_id: string | null;
+    team_id: string | null;
+    client_id: string | null;
+    org: { id: string; slug: string; name: string } | null;
+    client: { id: string; username: string; display_name: string | null } | null;
+    created_at: string;
+    updated_at: string;
+  };
+
   return ok({
-    projects: (projects ?? []).map((p: any) => ({
+    projects: ((projects ?? []) as unknown as ProjectRow[]).map((p) => ({
       id: p.id,
       name: p.name,
       color: p.color,
@@ -68,19 +85,19 @@ export async function POST(req: Request) {
   const throttle = rateLimit(`timer-proj-create:${u.id}`, 20, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);
 
-  let body: any;
+  let body: Record<string, unknown> | null = null;
   try {
-    body = await req.json();
+    body = (await req.json()) as Record<string, unknown>;
   } catch {
     return fail("Invalid JSON body.", 400);
   }
 
-  const { name, color = "#3b82f6", ghostRate = 0, budgetHours, isBillable = true, orgId, clientId } = body || {};
+  const { name, color = "#3b82f6", ghostRate = 0, budgetHours, isBillable = true, orgId, clientId } = body ?? {};
 
   const cleanName = String(name || "").trim().slice(0, 100);
   if (!cleanName) return fail("Project name is required (1-100 chars).", 400);
 
-  const rate = Math.max(Number(ghostRate) || 0, 0);
+  const rate = Math.max(Number(ghostRate as number | string) || 0, 0);
 
   const { data: project, error } = await supabase
     .from("timer_projects")
@@ -89,10 +106,10 @@ export async function POST(req: Request) {
       name: cleanName,
       color: String(color).slice(0, 7),
       ghost_rate: rate,
-      budget_hours: budgetHours ? Number(budgetHours) : null,
-      is_billable: !!isBillable,
-      org_id: orgId || null,
-      client_id: clientId || null,
+      budget_hours: budgetHours ? Number(budgetHours as number | string) : null,
+      is_billable: Boolean(isBillable),
+      org_id: orgId ? String(orgId) : null,
+      client_id: clientId ? String(clientId) : null,
     })
     .select()
     .single();

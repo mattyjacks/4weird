@@ -92,6 +92,17 @@ export async function PATCH(req: Request) {
     } catch {
       return fail("Server misconfigured.", 500);
     }
+    // Parenthood check BEFORE the service read: kid tables have no client
+    // RLS policies (service_role only), so without this any signed-in user
+    // could probe arbitrary kid rows through the merge oracle.
+    const { data: kid } = await service
+      .from("kid_accounts")
+      .select("parent_id")
+      .eq("id", kidId)
+      .maybeSingle();
+    if (!kid || (kid as { parent_id: string }).parent_id !== u.id) {
+      return fail("Child account not found.", 404);
+    }
     const { data: current } = await service
       .from("kid_controls")
       .select("daily_minutes,allowed_start,allowed_end,timezone,monthly_cap_coins,hard_stop")

@@ -6,9 +6,7 @@ import {
   Clock,
   Folder,
   BarChart3,
-  Users,
   Coins,
-  ShieldAlert,
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -62,7 +60,15 @@ export function TimeTracker() {
     fetchData();
   }, [fetchData]);
 
-  const handleTimerStart = async (data: any) => {
+  const handleTimerStart = async (data: {
+    projectId?: string;
+    debtorId?: string;
+    description?: string;
+    isBillable?: boolean;
+    upworkSyncMode?: boolean;
+    upworkContractId?: string;
+    upworkMemo?: string;
+  }) => {
     const res = await fetch("/api/time/timer", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -73,7 +79,12 @@ export function TimeTracker() {
     }
   };
 
-  const handleTimerStop = async (data?: any) => {
+  const handleTimerStop = async (data?: {
+    projectId?: string;
+    description?: string;
+    isBillable?: boolean;
+    activityScore?: number;
+  }) => {
     const res = await fetch("/api/time/timer", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },

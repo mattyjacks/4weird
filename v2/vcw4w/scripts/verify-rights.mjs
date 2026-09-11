@@ -2,7 +2,8 @@ import fs from "node:fs";
 
 const read = (file) => fs.readFileSync(new URL(file, import.meta.url), "utf8");
 const route = read("../app/api/my/rights/route.ts");
-const bundle = read("../../../supabase-migrations-2026-10-9-A.txt");
+// Source of truth is the live migration, not a paste-and-run bundle copy.
+const privacyMig = read("../supabase/migrations/20260910150000_privacy_rights.sql");
 
 // clans.owner_id is the single ownership column (080000 wins). Any query
 // against clans.created_by 42703s on real databases (only the 090000
@@ -34,9 +35,9 @@ if (route.includes('wipe("compute_usage", "user_id")')) throw new Error("rights 
 // room_messages sender column is sender_id (not author_id).
 if (route.includes('"room_messages", "author_id"')) throw new Error("rights route references nonexistent room_messages.author_id.");
 
-// The audit table backing /my/rights must ship in the paste-and-run bundle.
-if (!bundle.includes("BUNDLE FILE: 20260910150000_privacy_rights.sql") || !bundle.includes("create table if not exists public.privacy_requests")) {
-  throw new Error("Bundle is missing the 20260910150000_privacy_rights migration.");
+// The audit table backing /my/rights must ship in the live migration.
+if (!privacyMig.includes("create table if not exists public.privacy_requests")) {
+  throw new Error("Migration is missing the 20260910150000_privacy_rights migration.");
 }
 
 console.log("Rights privacy checks OK.");

@@ -1,7 +1,7 @@
 # 4weird API Key Manager
 
 A tiny Tauri v2 `.exe` that keeps your API keys in the **OS credential store**
-and hands them to desktop agents (Codex CLI, Antigravity, OpenCode, any terminal)
+and hands them to desktop agents (Codex CLI, OpenCode, any terminal)
 in one click; raw, PowerShell `$env:`, bash `export`, or `.env` line.
 
 ## Feature parity with the vibecodeworker desktop key manager
@@ -44,7 +44,7 @@ each with shape validation and a free live probe (model list / key info).
 - **OpenCode** reads provider env vars (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
   `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, …): use **Copy all saved as .env**,
   paste once, launch `opencode` from that shell.
-- **Antigravity / Gemini flows** need `GEMINI_API_KEY`: Copy: bash/.env.
+- **Google AI (Gemini) flows** need `GEMINI_API_KEY`: Copy: bash/.env.
 - **4weird bot work** uses `FOURWEIRD_BOT_KEY` as the `x-bot-key` header value.
 - **fal / RunPod scripts** use `FAL_KEY` / `RUNPOD_API_KEY` (same names as the
   `vcw4w` server env vars, so `.env` output drops straight in).

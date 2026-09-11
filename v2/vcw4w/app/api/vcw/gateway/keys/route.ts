@@ -3,7 +3,8 @@ import { hasServerSupabase, serviceClient, supabaseServiceRoleKey } from "@/lib/
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { sameOrigin } from "@/lib/csrf";
-import { botPepperConfigured, sha256Hash } from "@/lib/bot-auth";
+import { botPepperConfigured, botPepperIssuanceReady } from "@/lib/bot-auth";
+import { hashNewGatewayKey } from "@/lib/vcw-gateway-auth";
 import { gatewayKeyPrefix, generateVcwGatewayKey } from "@/lib/vcw-gateway";
 
 export const dynamic = "force-dynamic";
@@ -77,6 +78,10 @@ export async function POST(req: Request) {
   if (!supabaseServiceRoleKey() || !botPepperConfigured()) {
     return fail("Gateway service is not configured.", 503);
   }
+  if (!botPepperIssuanceReady()) {
+    console.warn("[vcw-gateway-keys] issuance refused: BOT_KEY_PEPPER weak (need `openssl rand -hex 32`).");
+    return fail("Gateway service is not configured.", 503);
+  }
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data?.user) return fail("Authentication required.", 401);
@@ -116,12 +121,12 @@ export async function POST(req: Request) {
   }
 
   const secret = generateVcwGatewayKey();
-  // Pepper is gated above, but hash defensively: sha256Hash throws when the
-  // pepper is misconfigured, and that must stay a JSON failure, not an
-  // unhandled HTML 500. The full key is never logged.
+  // Pepper is gated above, but hash defensively: hashNewGatewayKey throws when
+  // the pepper is weak/misconfigured, and that must stay a JSON failure, not
+  // an unhandled HTML 500. The full key is never logged.
   let keyHash: string;
   try {
-    keyHash = sha256Hash(secret);
+    keyHash = hashNewGatewayKey(secret);
   } catch {
     return fail("Gateway service is not configured.", 503);
   }

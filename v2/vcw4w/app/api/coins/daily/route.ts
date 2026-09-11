@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
+import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit";
 import { rateLimit } from "@/lib/rate-limit";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
@@ -25,6 +26,12 @@ export async function POST(req: Request) {
     return fail("Too many attempts. Try again shortly.", 429, {
       "Retry-After": String(throttle.retryAfter),
     });
+  }
+  // Distributed shield: one account claims at most 20 daily bonuses/hour
+  // across all instances (farming scripts spread load to dodge local maps).
+  const dailyDist = await globalBucket(acctBucketKey("daily-hour", data.user.id), 20, 3600);
+  if (dailyDist && !dailyDist.allowed) {
+    return fail("Too many attempts. Try again shortly.", 429, throttleHeaders(dailyDist.retryAfter));
   }
   const { data: rows, error } = await supabase.rpc("claim_daily_bonus");
   if (error) return dbFail("api/coins/daily", error);

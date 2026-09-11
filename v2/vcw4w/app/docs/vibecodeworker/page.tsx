@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/docs/vibecodeworker" },
   title: "VibeCodeWorker",
   description:
-    "How to use VibeCodeWorker: check status, open QA runs, record observe-reason-act steps, file bugs, complete runs, and export handoffs.",
+    "How to use VibeCodeWorker: check status, open QA runs, record observe-reason-act steps, file bugs, complete runs, export handoffs, and call the gateway with your own keys (hosted or BYOK).",
 };
 
 const theme = {
@@ -109,6 +109,33 @@ export default function VcwPage() {
         has no live browser: you drive play locally or via autoplay and record each iteration. See{" "}
         <Link className="underline" href="/docs/agents-compute">Agents &amp; cloud</Link> for the compute behind it.
       </Callout>
+
+      <SectionHead
+        index="5"
+        kicker="Keys + gateway"
+        title="Call the loop with your own tools"
+        body="The run loop above uses your login session. The gateway (under /api/vcw/gateway/*) gives the same loop a key you can paste into your own agent tools — hosted on our GPUs, or routed to your own provider keys (BYOK)."
+      />
+      <Steps
+        items={[
+          ["Probe the gateway", <>No key needed: GET /api/vcw/gateway/status reports the hosted markups (15% standard, 9% enterprise) and the BYOK kinds. Start here before wiring anything.</>],
+          ["Issue a key", <>Signed in: POST /api/vcw/gateway/keys with a label, scopes (vcw:read, vcw:write), and optional lifetime/daily budgets + expiry. The vcw_live_ secret is shown once and never again (max 10 active keys). List them anytime with GET — secrets never come back.</>],
+          ["Register your providers (BYOK, optional)", <>POST /api/vcw/gateway/providers with kind (runpod, openai, fal, meshy, or custom + your https endpoint), a label, and your key. We store only kind + label + last-4 — your full secret is never stored, returned, or logged. DELETE removes one.</>],
+          ["Dispatch a run", <>POST /api/vcw/gateway/dispatch with game_slug, compute (cpu/gpu/gpu-boosted), mode (hosted/byok), and goal — authenticated with your login, a bot key, or the gateway key (x-bot-key or Authorization: Bearer), with vcw:write scope. The MVP answers honestly: always started:false with the coin quote, the meter receipt, and the manual next step (POST /api/vcw/runs or autoplay). No worker URL is ever faked; low balance fails closed with 402.</>],
+          ["Watch the spend", <>GET /api/vcw/gateway/usage shows your latest 50 metered rows. Every figure is gross with the 25% cut already inside — same as every metered surface on the site.</>],
+        ]}
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        {[
+          ["💰 Gateway prices (gross, cut inside)", "run-open 10 · action-step 1 · bug-file 2 · handoff 5 · worker-min 6 · byok-route 2 coins. Hosted adds 15% over provider cost (9% enterprise); BYOK bills the base price. 100 coins = $1.00, always."],
+          ["🔑 Key hygiene", "Copy the secret once, store it like a password, set a budget + expiry, revoke keys you stop using. Gateway-key reads and writes are metered to your coins like session calls."],
+        ].map(([t, b]) => (
+          <div key={t} className="rounded-2xl border border-border bg-card p-4">
+            <p className="font-black">{t}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          </div>
+        ))}
+      </div>
 
       <Pager current="/docs/vibecodeworker" />
     </article>

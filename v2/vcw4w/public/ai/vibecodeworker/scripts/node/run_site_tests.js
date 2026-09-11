@@ -12,10 +12,24 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-// Paths
-const ARTIFACTS_DIR = 'C:\\Users\\ventu\\.gemini\\antigravity\\brain\\8bb3ad9c-adaf-4412-80cc-0d31065a68a6';
+// Paths (repo-relative: artifacts land under the vibecodeworker root so
+// no machine-specific absolute path is ever required).
+const projectRoot = path.resolve(__dirname, '..', '..');
+const ARTIFACTS_DIR = path.join(projectRoot, 'test-artifacts', 'site-tests');
 const SCREENSHOT_DIR = path.join(ARTIFACTS_DIR, 'screenshots');
-const REPO_TEST_RESULTS_DIR = 'c:\\GitHub5\\4weird\\test-results';
+// Repo test-results dir, found by walking up to the repo root (marked by
+// v2/vcw4w/package.json) so no machine-specific absolute path is needed.
+function findRepoRoot(start) {
+  let dir = start;
+  for (let i = 0; i < 8; i++) {
+    if (fs.existsSync(path.join(dir, 'v2', 'vcw4w', 'package.json'))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return start;
+}
+const REPO_TEST_RESULTS_DIR = path.join(findRepoRoot(projectRoot), 'test-results');
 const REPO_SCREENSHOT_DIR = path.join(REPO_TEST_RESULTS_DIR, 'screenshots');
 
 // Ensure directories exist

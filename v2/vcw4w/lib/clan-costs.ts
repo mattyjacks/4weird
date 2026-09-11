@@ -122,3 +122,66 @@ export const CLAN_COST_NOTE =
   "images, database bytes, measured bandwidth, Luna AI moderation, and base " +
   "server share; house-ad views and affiliate clicks earn revenue " +
   "that offsets it. The creator funds the wallet and any member can donate.";
+
+// ---------------------------------------------------------------------------
+// Big communities + Clan Support commons. Single source of truth for the
+// scale caps, pruning thresholds, headroom prices, supporter tiers, and the
+// tribute math. The SQL migration mirrors these numbers
+// (org_member_cap / clan_member_cap / prune settings / buy_*_headroom /
+// clan_supporter_tier / run_clan_tribute_sweep); keep both sides in sync
+// when prices change — and update LICENSE alongside pricing, always.
+// ---------------------------------------------------------------------------
+
+/** Hosted orgs hold this many members (+ prepaid headroom). */
+export const ORG_MEMBER_BASE_CAP = 10000;
+/** Self-hosted orgs are capped by purchased seats instead — no 10k rule. */
+export const ORG_SELF_HOST_CAP_BY_SEATS = true;
+/** Clans hold this many members (+ prepaid headroom). */
+export const CLAN_MEMBER_BASE_CAP = 100000;
+
+/** Automated pruning arms here (opt-in for orgs, on-by-default for clans). */
+export const ORG_PRUNE_THRESHOLD = 9000;
+export const CLAN_PRUNE_THRESHOLD = 90000;
+
+/** Paid headroom: flat, simple, 25% cut included. */
+export const ORG_HEADROOM_COINS_PER_100_SLOTS = 10;
+export const CLAN_HEADROOM_COINS_PER_1000_SLOTS = 10;
+
+/** Pruning strategies, in plain words. */
+export const PRUNE_STRATEGIES = [
+  "oldest_activity_first",
+  "random_chance",
+  "oldest_joined_first",
+  "never_contributed",
+] as const;
+export type PruneStrategy = (typeof PRUNE_STRATEGIES)[number];
+
+/** Clan Supporter Status tiers: exact lifetime donated coins → badge. */
+export const SUPPORTER_TIERS = [
+  { tier: "Ember", minCoins: 1 },
+  { tier: "Spark", minCoins: 25 },
+  { tier: "Beacon", minCoins: 100 },
+  { tier: "Patron", minCoins: 500 },
+  { tier: "Legend", minCoins: 2500 },
+] as const;
+
+/** Tribute commons, simplified to four numbers. */
+export const TRIBUTE_AGE_MONTHS = 6;
+export const GLOBALIZE_AGE_MONTHS = 12;
+export const TRIBUTE_LIFETIME_CAP_PCT = 50;
+export const TRIBUTE_DAILY_RATE_PCT = 1;
+
+/** ~69-day half-life from the 1%/day exponential decay. */
+export function tributeHalfLifeDays(): number {
+  return Math.round((Math.LN2 / (TRIBUTE_DAILY_RATE_PCT / 100)) * 10) / 10;
+}
+
+/** Price a headroom purchase (gross coins, 25% cut included). */
+export function orgHeadroomPrice(slots: number): number {
+  return Math.round((Math.max(0, slots) / 100) * ORG_HEADROOM_COINS_PER_100_SLOTS * 100) / 100;
+}
+
+/** Price a clan headroom purchase (gross coins, 25% cut included). */
+export function clanHeadroomPrice(slots: number): number {
+  return Math.round((Math.max(0, slots) / 1000) * CLAN_HEADROOM_COINS_PER_1000_SLOTS * 100) / 100;
+}

@@ -5,6 +5,7 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
 import { clientIp, isLoginPassword } from "@/lib/validate";
+import { acctBucketKey, globalBucket, ipBucketKey, throttleHeaders } from "@/lib/abuse-limit";
 import { rateLimit } from "@/lib/rate-limit";
 import { KID_SESSION_DAYS, parseKidHandle } from "@/lib/family";
 import { dummyKidPasswordVerify, getKidSession, kidSessionCookie, newKidToken, verifyKidPassword } from "@/lib/kid-session";
@@ -28,6 +29,13 @@ export async function POST(req: NextRequest) {
   if (!throttle.allowed) {
     return fail("Too many login attempts. Try again shortly.", 429, { "Retry-After": String(throttle.retryAfter) });
   }
+  // Distributed shield for the small discriminator namespace: instance-local
+  // buckets fall to multi-instance guessing; the shared bucket caps one IP
+  // at 100 kid-logins/hour however the traffic spreads.
+  const kidIpDist = await globalBucket(ipBucketKey(req, "kid-login-hour"), 100, 3600);
+  if (kidIpDist && !kidIpDist.allowed) {
+    return fail("Too many login attempts. Try again shortly.", 429, throttleHeaders(kidIpDist.retryAfter));
+  }
   let body: unknown;
   try {
     body = await req.json();
@@ -44,6 +52,12 @@ export async function POST(req: NextRequest) {
   const handleThrottle = rateLimit(`kid-login-handle:${handleKey}`, 10, 60_000);
   if (!handleThrottle.allowed) {
     return fail("Too many login attempts. Try again shortly.", 429, { "Retry-After": String(handleThrottle.retryAfter) });
+  }
+  // ...and the shared per-handle bucket stops many IPs parallel-guessing ONE
+  // handle (10k discriminator space): 30 guesses/hour per handle, globally.
+  const handleDist = await globalBucket(acctBucketKey("kid-login-hour", handleKey), 30, 3600);
+  if (handleDist && !handleDist.allowed) {
+    return fail("Too many login attempts. Try again shortly.", 429, throttleHeaders(handleDist.retryAfter));
   }
   let service;
   try {

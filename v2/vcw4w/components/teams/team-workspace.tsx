@@ -6,6 +6,7 @@ import { CLOUD_SERVICES, CHEAPEST_DEFAULTS, WORKSPACE_CUT_NOTE } from "@/lib/clo
 import { UNITUNITE_NAME, UNITUNITE_TAGLINE } from "@/lib/unitunite";
 import { BudgetControls } from "@/components/budget/budget-controls";
 import { OrgRanks } from "@/components/teams/org-ranks";
+import { OrgScale } from "@/components/teams/org-scale";
 
 type Org = { id: string; slug: string; name: string; is_initialized?: boolean };
 type Team = { id: string; org_id: string; slug: string; name: string };
@@ -533,6 +534,8 @@ export function TeamWorkspace() {
       <p role="status" className="text-sm text-slate-400">{message}</p>
 
       <OrgRanks />
+
+      <OrgScale />
 
       <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
         <h2 className="text-xl font-bold">5 · Ghost timer; who owes whom</h2>

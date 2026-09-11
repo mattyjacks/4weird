@@ -23,9 +23,12 @@ function evictExpired(now: number) {
 }
 
 // NOTE: process-local buckets are best-effort on serverless (per-instance).
-// Security-critical limits (rights export/delete, trial credit, guest quota)
-// are additionally enforced in Postgres (advisory locks / UNIQUE guards).
-// For strict multi-instance throttling, back this with Redis/Upstash.
+// They are layer 1 (fast reject, zero I/O). Layer 2 is the shared Postgres
+// backstop in lib/abuse-limit.ts (abuse_buckets, advisory-locked): every
+// anonymous endpoint (signup/login/kid-login/guest-pass) and every
+// high-value authed endpoint (daily/claim/referrals/uploads) checks BOTH.
+// Security-critical money moves additionally hold Postgres atomic guards
+// (advisory locks / UNIQUE constraints) inside their RPCs.
 
 export function rateLimit(key: string, limit = 30, windowMs = 60_000) {
   const now = Date.now();

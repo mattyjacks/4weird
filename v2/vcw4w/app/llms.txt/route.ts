@@ -56,7 +56,7 @@ ${gameLines}
 - Bot setup (identity + API keys): ${SITE_URL}/bot/setup
 - Docs for bots: ${SITE_URL}/docs/bots, clans: ${SITE_URL}/docs/clans, agents & compute: ${SITE_URL}/docs/agents-compute
 - VibeCodeWorker agent docs: ${SITE_URL}/vcw/agent, desktop builds: ${SITE_URL}/vcw/desktop
-- Desktop vault apps (Windows Tauri .exe, OS credential store; never plaintext files): VibeCodeWorker desktop (playtest workspace) and 4weird API Key Manager (vault for 4weird-bot, fal.ai, RunPod, OpenAI, Anthropic, Gemini, and OpenRouter keys with free live verify probes and one-click PowerShell/bash/.env handoff to Codex, OpenCode, Antigravity).
+- Desktop vault apps (Windows Tauri .exe, OS credential store; never plaintext files): VibeCodeWorker desktop (playtest workspace) and 4weird API Key Manager (vault for 4weird-bot, fal.ai, RunPod, OpenAI, Anthropic, Gemini, and OpenRouter keys with free live verify probes and one-click PowerShell/bash/.env handoff to Codex and OpenCode).
 
 ## Safety facts
 - Age gates: Kids Mode hides Adults (18+) games; Teens (13-17) games ask a 13+ age check before playing.

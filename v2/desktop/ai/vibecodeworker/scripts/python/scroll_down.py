@@ -1740,7 +1740,7 @@ async function callPlannerAI(agentBrain, userInput, plannerStep, plannerSpecs, p
       return { agentResponse, choices, nextStep: 3, isCompleted: false };
     } else {
       plannerSpecs.goal = userInput.replace(/^\\d+\\.\\s*/, '');
-      agentResponse = `[Plan Complete] Your plan document has been written to: games_plan/${plannerSpecs.name.replace(/\\s+/g, '_')}_plan.txt. You can copy/paste it into Cursor/antigravity or select the folder from the hub view!`;
+      agentResponse = `[Plan Complete] Your plan document has been written to: games_plan/${plannerSpecs.name.replace(/\\s+/g, '_')}_plan.txt. You can copy/paste it into Cursor or another AI code editor or select the folder from the hub view!`;
       choices = ["Draft Saved", "Spec Completed", "Saved to workspace"];
       return { agentResponse, choices, nextStep: 4, isCompleted: true };
     }

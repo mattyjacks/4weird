@@ -81,7 +81,9 @@ Game makers use it to check: "does my game work?" It can test all 34 games, run 
 
 See it at: [4weird.com/vibecodeworker](https://4weird.com/vibecodeworker)
 
-Coders: it has an API too (`/api/vcw/*`); start a run, add steps, file bugs, finish, get a handoff note for your coding tool.
+Coders: it has an API too (`/api/vcw/*`); start a run, add steps, file bugs, finish, get a handoff note for your coding tool. Full guide: [4weird.com/docs/vibecodeworker](https://4weird.com/docs/vibecodeworker).
+
+Need keys for your own tools? Issue a `vcw_live_` gateway key (shown once, max 10, with budgets and expiry), register your own providers (RunPod, OpenAI, fal, Meshy, or custom; we never store your full secret), and dispatch hosted runs (15% over provider cost) or BYOK runs at base price. Every quote is in coins with the 25% cut already inside.
 
 ### 🧠 AI friends
 - **🎙️ Gaming Buddy**; a friendly voice that watches your screen and helps you win. 9 voices to pick from.

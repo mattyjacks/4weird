@@ -14,10 +14,24 @@ const bot = read("lib/bot-auth.ts");
 must(bot.includes("BOT_KEY_SUFFIX_LEN = 32"), "bot keys must issue 32 chars");
 must(bot.includes("BOT_KEY_SUFFIX_LEN_LEGACY"), "legacy 20-char length must be documented");
 must(bot.includes("N: 32768"), "bot KDF must be N=32768");
-must(bot.includes("sha256HashLegacyCost"), "legacy N=16384 verify path must exist");
+must(bot.includes("hashBotKeyV1LegacyCostForPepper") || bot.includes("sha256HashLegacyCost"), "legacy N=16384 verify path must exist");
 must(bot.includes("needsRehash"), "opportunistic rehash must exist");
 must(bot.includes("scryptSync(randomBytes(16)"), "dummy KDF must exist for timing parity");
 must(bot.includes("botPepperQuantumReady"), "pepper PQ-margin helper must exist");
+// 1b. State-actor grade: memorable-pepper rejection, rotation, per-prefix salt, format gate.
+must(bot.includes("BOT_KEY_PEPPER_PREVIOUS"), "pepper rotation (PREVIOUS) must exist");
+must(bot.includes("botPepperIssuanceReady"), "issuance pepper-strength gate must exist");
+must(bot.includes("isStrongPepper"), "memorable-pepper rejection must exist");
+must(bot.includes("bot4weird-v2$"), "per-prefix v2 salt must exist");
+must(bot.includes("isValidBotKeyFormat"), "strict key-format gate must exist");
+must(bot.includes("allPeppers"), "multi-pepper verify must exist");
+const gwAuth = read("lib/vcw-gateway-auth.ts");
+must(gwAuth.includes("vcw-gateway-v2$"), "gateway domain separation must exist");
+must(gwAuth.includes("hashNewGatewayKey"), "gateway issuance hasher must exist");
+must(gwAuth.includes("isValidGatewayKeyFormat"), "gateway format gate must exist");
+must(gwAuth.includes("botPepperConfigured"), "gateway must keep pepper fail-closed");
+const botKeys = read("app/api/bot/keys/route.ts");
+must(botKeys.includes("botPepperIssuanceReady"), "bot issuance must gate on pepper strength");
 
 // 2. Kid sessions: 7d, 32-byte salt, pinned cost, peppered tokens, sliding refresh.
 const fam = read("lib/family.ts");

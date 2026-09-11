@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
+import { acctBucketKey, globalBucket, ipBucketKey, throttleHeaders } from "@/lib/abuse-limit";
 import { rateLimit } from "@/lib/rate-limit";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
@@ -18,6 +19,13 @@ export async function POST(req: Request) {
     return fail("Too many attempts. Wait a minute and retry.", 429, {
       "Retry-After": String(throttle.retryAfter),
     });
+  }
+  // Distributed credential-stuffing shield: per-instance memory is bypassed
+  // by spreading attempts across instances/IPs. Shared buckets cap one IP at
+  // 100 logins/hour regardless of spread.
+  const loginDist = await globalBucket(ipBucketKey(req, "login-hour"), 100, 3600);
+  if (loginDist && !loginDist.allowed) {
+    return fail("Too many attempts. Wait a minute and retry.", 429, throttleHeaders(loginDist.retryAfter));
   }
   let body: unknown;
   try {
@@ -38,6 +46,12 @@ export async function POST(req: Request) {
     return fail("Too many attempts. Wait a minute and retry.", 429, {
       "Retry-After": String(accountThrottle.retryAfter),
     });
+  }
+  // ...and the shared per-account bucket survives instance rotation too: one
+  // account takes at most 30 password guesses/hour however the botnet spreads.
+  const accountDist = await globalBucket(acctBucketKey("login-hour", email), 30, 3600);
+  if (accountDist && !accountDist.allowed) {
+    return fail("Too many attempts. Wait a minute and retry.", 429, throttleHeaders(accountDist.retryAfter));
   }
   try {
     const supabase = await createClient();

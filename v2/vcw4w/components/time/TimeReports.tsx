@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { TimerReport, formatGhostCash, formatDurationShort } from "@/types/time";
-import { BarChart3, Clock, DollarSign, Activity, FileSpreadsheet, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 export function TimeReports() {
   const [report, setReport] = useState<TimerReport | null>(null);

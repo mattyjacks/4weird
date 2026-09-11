@@ -6,8 +6,7 @@
      never persisted here, and revealed values are wiped after use.
    - VERIFY probes are free and read-only (bot identity, fal nil-request,
      provider model/key introspection). Nothing billable ever runs.
-   - Copy formats hand keys to desktop agents (Codex / OpenCode /
-     Antigravity): raw, PowerShell $env:, bash export, .env line.
+   - Copy formats hand keys to desktop agents (Codex / OpenCode): raw, PowerShell $env:, bash export, .env line.
    ========================================================================== */
 "use strict";
 
@@ -35,7 +34,7 @@ async function verifyBot(key) {
   let res;
   try {
     res = await fetchTimeout("https://4weird.com/api/bot/me", { headers: { "x-bot-key": key } });
-  } catch (e) {
+  } catch {
     return { ok: false, text: "Verify failed: could not reach 4weird.com." };
   }
   const body = await res.json().catch(() => ({}));
@@ -54,7 +53,7 @@ async function verifyFal(key) {
       "https://queue.fal.run/fal-ai/flux/schnell/requests/" + NIL_REQUEST_ID + "/status",
       { headers: { Authorization: "Key " + key } }
     );
-  } catch (e) {
+  } catch {
     return { ok: false, text: "Verify failed: could not reach queue.fal.run." };
   }
   if (res.status === 401 || res.status === 403) {
@@ -67,7 +66,7 @@ async function verifyBearerGet(url, key, hostLabel, acceptStatuses) {
   let res;
   try {
     res = await fetchTimeout(url, { headers: { Authorization: "Bearer " + key } });
-  } catch (e) {
+  } catch {
     return { ok: false, text: "Verify failed: could not reach " + hostLabel + "." };
   }
   if (res.status === 401 || res.status === 403) {
@@ -93,7 +92,7 @@ async function verifyAnthropic(key) {
     res = await fetchTimeout("https://api.anthropic.com/v1/models", {
       headers: { "x-api-key": key, "anthropic-version": "2023-06-01" }
     });
-  } catch (e) {
+  } catch {
     return { ok: false, text: "Verify failed: could not reach api.anthropic.com." };
   }
   if (res.status === 401 || res.status === 403) {
@@ -126,7 +125,7 @@ async function verifyOpenrouter(key) {
     res = await fetchTimeout("https://openrouter.ai/api/v1/auth/key", {
       headers: { Authorization: "Bearer " + key }
     });
-  } catch (e) {
+  } catch {
     return { ok: false, text: "Verify failed: could not reach openrouter.ai." };
   }
   if (res.status === 401 || res.status === 403) {
@@ -176,7 +175,7 @@ const SLOTS = [
   {
     id: "gemini", name: "Google AI (Gemini) API key", env: "GEMINI_API_KEY",
     getUrl: "https://aistudio.google.com/apikey", getLabel: "Get one at aistudio.google.com/apikey",
-    hint: "Starts with AIza. Powers Antigravity and Gemini models in OpenCode. Verify lists models (free).",
+    hint: "Starts with AIza. Powers Gemini models in your AI code editor. Verify lists models (free).",
     verify: verifyGemini
   },
   {
@@ -254,7 +253,7 @@ async function copyText(text) {
     try {
       await navigator.clipboard.writeText(text);
       return true;
-    } catch (e) { /* fall through to legacy path */ }
+    } catch { /* fall through to legacy path */ }
   }
   const area = document.createElement("textarea");
   area.value = text;
@@ -264,7 +263,7 @@ async function copyText(text) {
   let ok = false;
   try {
     ok = document.execCommand("copy");
-  } catch (e) {
+  } catch {
     ok = false;
   }
   document.body.removeChild(area);
@@ -334,7 +333,7 @@ async function doVerify(slot) {
     setResult(slot, "Revealing stored key for the probe…", "info");
     try {
       key = await invoke("km_reveal_key", { slot: slot.cfg.id });
-    } catch (e) {
+    } catch {
       setResult(slot, "Nothing to verify: paste a key or save one first.", "error");
       return;
     }
@@ -440,7 +439,7 @@ async function doExportEnv(button) {
         let secret = await invoke("km_reveal_key", { slot: s.slot });
         lines.push(cfg.env + "=" + dotenvQuote(secret));
         secret = "";
-      } catch (e) {
+      } catch {
         log(cfg.name + ": skipped in export (unreadable).", "error");
       }
     }

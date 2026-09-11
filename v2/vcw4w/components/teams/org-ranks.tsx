@@ -26,18 +26,37 @@ export function OrgRanks() {
   const [members, setMembers] = useState<RosterMember[]>([]);
   const [scopes, setScopes] = useState<Scope[]>([]);
   const [catalog, setCatalog] = useState<Role[]>([]);
+  const [total, setTotal] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [cursor, setCursor] = useState<{ cursor: string; cursor_id: string } | null>(null);
+  const [search, setSearch] = useState("");
   const [message, setMessage] = useState("Pick an org to manage its ranks.");
 
-  const load = useCallback(async (org: string) => {
+  // Paged roster (100/page + search): 8,000-member orgs render the first
+  // page instantly instead of dragging the whole roster into the DOM.
+  const load = useCallback(async (org: string, q = "", append = false, cur: { cursor: string; cursor_id: string } | null = null) => {
     if (!org) return;
     try {
+      const params = new URLSearchParams({ paged: "1", limit: "100" });
+      if (q.trim()) params.set("q", q.trim().slice(0, 40));
+      if (append && cur) {
+        params.set("cursor", cur.cursor);
+        params.set("cursor_id", cur.cursor_id);
+      }
       const [roster, roles] = await Promise.all([
-        request<{ members: RosterMember[]; scopes: Scope[] }>(`/api/orgs/${org}/members`),
-        request<{ roles: Role[] }>("/api/orgs/roles").catch(() => ({ roles: [] as Role[] })),
+        request<{ members: RosterMember[]; scopes?: Scope[]; total?: number; has_more?: boolean; next_cursor?: string | null; next_cursor_id?: string | null }>(`/api/orgs/${org}/members?${params}`),
+        append ? null : request<{ roles: Role[] }>("/api/orgs/roles").catch(() => ({ roles: [] as Role[] })),
       ]);
-      setMembers(roster.members ?? []);
-      setScopes(roster.scopes ?? []);
-      setCatalog(roles.roles ?? []);
+      setMembers((prev) => (append ? [...prev, ...(roster.members ?? [])] : (roster.members ?? [])));
+      if (!append) {
+        setScopes(roster.scopes ?? []);
+        setCatalog(roles?.roles ?? []);
+      }
+      setTotal(Number(roster.total) || 0);
+      setHasMore(Boolean(roster.has_more));
+      setCursor(roster.has_more && roster.next_cursor && roster.next_cursor_id
+        ? { cursor: roster.next_cursor, cursor_id: roster.next_cursor_id }
+        : null);
       setMessage("");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to load roster.");
@@ -65,14 +84,31 @@ export function OrgRanks() {
         the union. <b>Watcher</b> sees everything and changes nothing; scope a watcher to certain members or leave them
         org-wide. Everyone may join up to 100 orgs, each with its own bosses.
       </p>
-      <label className="mt-4 block text-sm" htmlFor="ranks-org">
-        Org
-        <select id="ranks-org" name="org" value={orgId} onChange={(e) => setOrgId(e.target.value)} className="mt-1 block rounded-lg border border-white/15 bg-black/30 px-3 py-2">
-          <option value="">Pick an org…</option>
-          {orgs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
-        </select>
-      </label>
-      <p role="status" className="mt-2 text-sm text-slate-400">{message}</p>
+      <div className="mt-4 flex flex-wrap items-end gap-3">
+        <label className="block text-sm" htmlFor="ranks-org">
+          Org
+          <select id="ranks-org" name="org" value={orgId} onChange={(e) => { setOrgId(e.target.value); setSearch(""); }} className="mt-1 block rounded-lg border border-white/15 bg-black/30 px-3 py-2">
+            <option value="">Pick an org…</option>
+            {orgs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+          </select>
+        </label>
+        <label className="block text-sm" htmlFor="ranks-search">
+          Search members
+          <input
+            id="ranks-search"
+            name="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") void load(orgId, search); }}
+            placeholder="name or handle…"
+            className="mt-1 block rounded-lg border border-white/15 bg-black/30 px-3 py-2"
+          />
+        </label>
+        <button onClick={() => load(orgId, search)} className="rounded-full border border-white/20 px-3 py-1 text-xs">Search</button>
+      </div>
+      <p role="status" className="mt-2 text-sm text-slate-400">
+        {message || (total > 0 ? `Showing ${members.length} of ${total.toLocaleString()} members (100/page).` : "No members loaded.")}
+      </p>
       <div className="mt-4 space-y-3">
         {members.map((m) => (
           <MemberRanks
@@ -83,10 +119,15 @@ export function OrgRanks() {
             members={members}
             labelOf={labelOf}
             nameOf={nameOf}
-            refresh={() => load(orgId)}
+            refresh={() => load(orgId, search)}
           />
         ))}
       </div>
+      {hasMore && (
+        <button onClick={() => load(orgId, search, true, cursor)} className="mt-3 rounded-full border border-white/20 px-4 py-1 text-xs">
+          Load 100 more ({(total - members.length).toLocaleString()} remaining)
+        </button>
+      )}
     </section>
   );
 }
@@ -105,7 +146,7 @@ function MemberRanks({ orgId, member, scopes, members, labelOf, nameOf, refresh 
   const [message, setMessage] = useState("");
   const scopesKey = (scopes ?? []).join(",");
   useEffect(() => { setPicked(member.roles); }, [member.roles]);
-  useEffect(() => { setTargets(scopes ?? []); }, [scopesKey]);
+  useEffect(() => { setTargets(scopesKey ? scopesKey.split(",") : []); }, [scopesKey]);
 
   function toggle(list: string[], v: string, set: (n: string[]) => void) {
     set(list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);

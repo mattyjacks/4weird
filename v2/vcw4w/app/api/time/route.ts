@@ -53,8 +53,31 @@ export async function GET(req: Request) {
   const { data: entries, error } = await query;
   if (error) return dbFail("GET /api/time", error, "Unable to load time entries.");
 
+  type EntryRow = {
+    id: string;
+    description: string | null;
+    start_time: string;
+    end_time: string | null;
+    duration: number | null;
+    is_billable: boolean;
+    is_running: boolean;
+    ghost_rate: number | string | null;
+    ghost_cash_owed: number | string | null;
+    activity_score: number | null;
+    upwork_sync_mode: boolean | null;
+    upwork_contract_id: string | null;
+    upwork_memo: string | null;
+    tags: string | null;
+    project_id: string | null;
+    project: { id: string; name: string; color: string | null; ghost_rate: number | string | null; org_id: string | null } | null;
+    debtor_id: string | null;
+    debtor: { id: string; username: string; display_name: string | null } | null;
+    org_id: string | null;
+    created_at: string;
+  };
+
   return ok({
-    entries: (entries ?? []).map((e: any) => ({
+    entries: ((entries ?? []) as EntryRow[]).map((e) => ({
       id: e.id,
       description: e.description,
       startTime: e.start_time,
@@ -101,9 +124,9 @@ export async function POST(req: Request) {
   const throttle = rateLimit(`timer-manual:${u.id}`, 30, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);
 
-  let body: any;
+  let body: Record<string, unknown> | null = null;
   try {
-    body = await req.json();
+    body = (await req.json()) as Record<string, unknown>;
   } catch {
     return fail("Invalid JSON body.", 400);
   }
@@ -116,13 +139,13 @@ export async function POST(req: Request) {
     endTime,
     duration: rawDuration,
     isBillable = true,
-  } = body || {};
+  } = body ?? {};
 
   if (!startTime) return fail("startTime is required.", 400);
 
-  let duration = rawDuration;
+  let duration: unknown = rawDuration;
   if (!duration && endTime) {
-    const diff = Math.floor((new Date(endTime).getTime() - new Date(startTime).getTime()) / 1000);
+    const diff = Math.floor((new Date(String(endTime)).getTime() - new Date(String(startTime)).getTime()) / 1000);
     duration = Math.max(diff, 0);
   }
 
@@ -132,12 +155,12 @@ export async function POST(req: Request) {
 
   // Look up project rate and org
   let ghostRate = 0;
-  let orgId = null;
+  let orgId: string | null = null;
   if (projectId) {
     const { data: proj } = await supabase
       .from("timer_projects")
       .select("ghost_rate, org_id")
-      .eq("id", projectId)
+      .eq("id", String(projectId))
       .single();
     if (proj) {
       ghostRate = Number(proj.ghost_rate || 0);
@@ -145,7 +168,7 @@ export async function POST(req: Request) {
     }
   }
 
-  const ghostCashOwed = isBillable && ghostRate > 0
+  const ghostCashOwed = Boolean(isBillable) && ghostRate > 0
     ? Number(((duration / 3600) * ghostRate).toFixed(4))
     : 0;
 
@@ -153,12 +176,12 @@ export async function POST(req: Request) {
     .from("timer_entries")
     .insert({
       user_id: u.id,
-      project_id: projectId || null,
-      debtor_id: debtorId || null,
+      project_id: projectId ? String(projectId) : null,
+      debtor_id: debtorId ? String(debtorId) : null,
       org_id: orgId || null,
       description: description ? String(description).slice(0, 2000) : null,
-      start_time: new Date(startTime).toISOString(),
-      end_time: endTime ? new Date(endTime).toISOString() : new Date().toISOString(),
+      start_time: new Date(String(startTime)).toISOString(),
+      end_time: endTime ? new Date(String(endTime)).toISOString() : new Date().toISOString(),
       duration,
       is_billable: !!isBillable,
       is_running: false,

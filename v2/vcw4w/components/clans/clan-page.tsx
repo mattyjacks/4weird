@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ReportButton } from "@/components/clans/report-button";
 import { ClanChat } from "@/components/clans/clan-chat";
+import { ClanSupport } from "@/components/clans/clan-support";
 import { LoveButtons } from "@/components/clans/love-buttons";
 import { LoveQuests } from "@/components/clans/love-quests";
 import { MarkdownEditor } from "@/components/clans/markdown-editor";
@@ -442,6 +443,8 @@ export function ClanPage({ slug }: { slug: string }) {
       <ClanChat slug={slug} />
 
       <LoveQuests clanId={clan.id} clanSlug={slug} />
+
+      <ClanSupport slug={slug} />
 
       <section className="rounded-xl border border-white/10 bg-slate-900 p-5">
         <h2 className="font-bold text-cyan-300">🪙 Clan upkeep + wallet</h2>

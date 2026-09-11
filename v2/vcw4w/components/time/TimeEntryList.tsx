@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { TimerEntry, formatDuration, formatGhostCash } from "@/types/time";
-import { Clock, Trash2, Tag, CheckCircle2, XCircle, Monitor } from "lucide-react";
+import { Clock, Trash2, CheckCircle2, XCircle, Monitor } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface TimeEntryListProps {
@@ -91,7 +91,7 @@ export function TimeEntryList({ entries, onDelete }: TimeEntryListProps) {
                 <div className="text-xs text-emerald-300/80 bg-emerald-950/30 px-2 py-1 rounded border border-emerald-900/30 flex items-center gap-2">
                   <span className="font-semibold text-emerald-400">External Sync:</span>
                   {entry.upworkContractId && <span>Contract: <code className="font-mono text-white">{entry.upworkContractId}</code></span>}
-                  {entry.upworkMemo && <span>Memo: "{entry.upworkMemo}"</span>}
+                  {entry.upworkMemo && <span>Memo: &ldquo;{entry.upworkMemo}&rdquo;</span>}
                 </div>
               )}
 

@@ -43,8 +43,23 @@ export async function GET(req: Request) {
   const { data: debts, error } = await query;
   if (error) return dbFail("GET /api/time/debts", error, "Failed to load Ghost Cash debts.");
 
+  type DebtRow = {
+    id: string;
+    org_id: string | null;
+    project_id: string | null;
+    creditor_id: string;
+    debtor_id: string;
+    creditor: { id: string; username: string; display_name: string | null } | null;
+    debtor: { id: string; username: string; display_name: string | null } | null;
+    amount_ghost_cash: number | string | null;
+    status: string;
+    memo: string | null;
+    settled_at: string | null;
+    created_at: string;
+  };
+
   return ok({
-    debts: (debts ?? []).map((d: any) => ({
+    debts: ((debts ?? []) as unknown as DebtRow[]).map((d) => ({
       id: d.id,
       orgId: d.org_id,
       projectId: d.project_id,
@@ -81,14 +96,14 @@ export async function POST(req: Request) {
   const throttle = rateLimit(`timer-debts-post:${u.id}`, 20, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);
 
-  let body: any;
+  let body: Record<string, unknown> | null = null;
   try {
-    body = await req.json();
+    body = (await req.json()) as Record<string, unknown>;
   } catch {
     return fail("Invalid JSON body.", 400);
   }
 
-  const { action = "create", debtId, debtorId, amountGhostCash, memo, orgId } = body || {};
+  const { action = "create", debtId, debtorId, amountGhostCash, memo, orgId } = body ?? {};
 
   if (action === "settle" || action === "forgive") {
     if (!debtId) return fail("debtId is required.", 400);
@@ -101,7 +116,7 @@ export async function POST(req: Request) {
         settled_at: new Date().toISOString(),
         settled_by: u.id,
       })
-      .eq("id", debtId)
+      .eq("id", String(debtId))
       .select()
       .single();
 
@@ -110,17 +125,17 @@ export async function POST(req: Request) {
   }
 
   // Create manual debt entry
-  if (!debtorId || !amountGhostCash || Number(amountGhostCash) <= 0) {
+  if (!debtorId || !amountGhostCash || Number(amountGhostCash as number | string) <= 0) {
     return fail("debtorId and positive amountGhostCash are required.", 400);
   }
 
   const { data: debt, error } = await supabase
     .from("timer_debts")
     .insert({
-      org_id: orgId || null,
+      org_id: orgId ? String(orgId) : null,
       creditor_id: u.id,
-      debtor_id: debtorId,
-      amount_ghost_cash: Number(amountGhostCash),
+      debtor_id: String(debtorId),
+      amount_ghost_cash: Number(amountGhostCash as number | string),
       status: "pending",
       memo: String(memo || "Freelance / marketing services").slice(0, 300),
     })

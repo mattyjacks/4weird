@@ -4,7 +4,7 @@ const path = require('path');
 const http = require('http');
 const projectRoot = path.resolve(__dirname, '..', '..');
 
-const ARTIFACTS_DIR = 'C:\\Users\\ventu\\.gemini\\antigravity\\brain\\ecb08d1b-e9a9-4456-9936-a49b02e38a04';
+const ARTIFACTS_DIR = path.join(projectRoot, 'test-artifacts', 'playtests');
 const SCREENSHOT_DIR = path.join(ARTIFACTS_DIR, 'screenshots');
 
 if (!fs.existsSync(SCREENSHOT_DIR)) {

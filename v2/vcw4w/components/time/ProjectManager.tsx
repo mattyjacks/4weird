@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { TimerProject, formatGhostCash, TIMER_PROJECT_COLORS } from "@/types/time";
-import { Plus, Folder, Trash2, Edit2, Loader2, Coins } from "lucide-react";
+import { Plus, Trash2, Loader2, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 

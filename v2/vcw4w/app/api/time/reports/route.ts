@@ -47,7 +47,18 @@ export async function GET(req: Request) {
   const projectMap: Record<string, { projectName: string; projectColor: string; totalSeconds: number; totalGhostCash: number }> = {};
   const debtorMap: Record<string, { debtorName: string; totalSeconds: number; totalGhostCash: number }> = {};
 
-  (entries ?? []).forEach((e: any) => {
+  type ReportRow = {
+    duration: number | null;
+    ghost_cash_owed: number | string | null;
+    activity_score: number | null;
+    is_billable: boolean;
+    project_id: string | null;
+    project: { name: string; color: string | null } | null;
+    debtor_id: string | null;
+    debtor: { display_name: string | null; username: string | null } | null;
+  };
+
+  ((entries ?? []) as ReportRow[]).forEach((e) => {
     const dur = e.duration || 0;
     const owed = Number(e.ghost_cash_owed || 0);
     const act = e.activity_score ?? 100;

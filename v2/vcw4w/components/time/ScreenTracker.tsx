@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { Camera, Monitor, EyeOff, Check, AlertCircle } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
+import { Camera, Monitor, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ScreenTrackerProps {
@@ -82,7 +83,7 @@ export function ScreenTracker({ isRunning, entryId }: ScreenTrackerProps) {
     }
   };
 
-  const stopScreenCapture = () => {
+  const stopScreenCapture = useCallback(() => {
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
       setStream(null);
@@ -92,7 +93,7 @@ export function ScreenTracker({ isRunning, entryId }: ScreenTrackerProps) {
       intervalRef.current = null;
     }
     setIsCapturing(false);
-  };
+  }, [stream]);
 
   const takeSnapshot = async (activeStream = stream) => {
     if (!activeStream || !entryId) return;
@@ -143,7 +144,7 @@ export function ScreenTracker({ isRunning, entryId }: ScreenTrackerProps) {
     if (!isRunning && isCapturing) {
       stopScreenCapture();
     }
-  }, [isRunning]);
+  }, [isRunning, isCapturing, stopScreenCapture]);
 
   return (
     <div className="rounded-xl border border-white/10 bg-black/40 p-4 space-y-3">
@@ -212,9 +213,12 @@ export function ScreenTracker({ isRunning, entryId }: ScreenTrackerProps) {
 
       {lastCaptureUrl && (
         <div className="pt-2 border-t border-white/5 flex items-center gap-3">
-          <img
+          <Image
             src={lastCaptureUrl}
             alt="Latest screen capture preview"
+            width={96}
+            height={56}
+            unoptimized
             className="w-24 h-14 rounded border border-white/20 object-cover"
           />
           <div className="text-xs text-zinc-400">

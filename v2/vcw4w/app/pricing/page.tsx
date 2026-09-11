@@ -185,6 +185,30 @@ export default function Page() {
         </div>
       </section>
 
+      {/* Big communities: 10k orgs, 100k clans, pruning, Tribute commons */}
+      <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-5 sm:pt-16" aria-label="Big communities">
+        <div className="rounded-3xl border border-white/10 bg-white/[.03] p-6 sm:p-8">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-300">Big communities</p>
+          <h2 className="mt-2 text-2xl font-black sm:text-3xl">10,000-member orgs · 100,000-member clans</h2>
+          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300">
+            Hosted orgs hold up to <strong className="text-white">10,000</strong> members and clans up to{" "}
+            <strong className="text-white">100,000</strong> members before automated pruning arms (owners never
+            pruned, 7-day new-join grace). Self-hosted orgs are capped by{" "}
+            <strong className="text-white">purchased seats</strong> instead. Need room beyond the cap? Buy headroom:{" "}
+            <strong className="text-white">10 coins per 100</strong> org slots and{" "}
+            <strong className="text-white">10 coins per 1,000</strong> clan slots (25% cut included); upkeep still
+            meters per member afterwards.
+          </p>
+          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300">
+            Clan Supporter Status + the Tribute commons keep big rooms alive: surplus donations{" "}
+            <strong className="text-white">globalize</strong> into a shared reserve on a{" "}
+            <strong className="text-white">69-day half-life</strong> decay and flow back out as{" "}
+            <strong className="text-white">Tribute commons</strong> gifts to the poorest clans and members — so a
+            quiet room you love doesn&apos;t die when its wallet runs dry.
+          </p>
+        </div>
+      </section>
+
       {/* How the 25% works */}
       <section className="mx-auto max-w-6xl px-4 py-12 sm:px-5 sm:py-16" aria-label="How compute pricing works">
         <div className="grid gap-4 lg:grid-cols-2">

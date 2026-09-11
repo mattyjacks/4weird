@@ -36,14 +36,21 @@
  * owning user's id, and clan posts/comments carry author_id = that user.
  * Membership rules are identical to humans (must join before posting).
  *
- * Security (quantum-hardened):
+ * Security (quantum-hardened, state-actor grade):
  * - Secrets are `bot4weird_` + 32 chars from [A-Za-z0-9] (~190 bits;
  *   Grover ~95 bits). Legacy 20-char rows still verify but new issuance
- *   is always 32 chars.
- * - Stored as scrypt(pepper + key, N=32768,r=8,p=1) (pepper REQUIRED,
- *   >=16 chars accepted, >=32 chars recommended for 256-bit PQ margin;
- *   legacy N=16384 + sha256 rows still verify via fallback and are
- *   opportunistically rehashed on next successful use).
+ *   is always 32 chars. Malformed presents are rejected BEFORE any KDF
+ *   (CPU-DoS gate against AI-speed online guessing).
+ * - Stored as scrypt(pepper + key, salt=bot4weird-v2$<prefix>, N=32768,r=8,p=1).
+ *   The per-prefix salt kills one-rainbow-cracks-all bulk attacks on DB leak;
+ *   the `vcw_live_` gateway family uses a separate `vcw-gateway-v2$` domain so
+ *   the shared pepper cannot cross-verify. Pepper REQUIRED: >=16 chars verify
+ *   legacy rows, >=32 strong-random chars required to ISSUE (human-memorable
+ *   passwords are rejected — use `openssl rand -hex 32`, never a password).
+ *   Rotation is non-breaking via BOT_KEY_PEPPER_PREVIOUS (verify current then
+ *   previous, opportunistically rehash to current on next successful use).
+ *   Legacy static-salt N=16384/N=32768 + sha256 rows still verify via fallback
+ *   and are rehashed forward.
  * - Full keys are never logged.
  * - Hash comparison is constant-time (timingSafeEqual over every prefix
  *   candidate); unknown prefixes still burn a dummy compare so failures
@@ -108,17 +115,64 @@ function pepper(): string {
   const p = process.env.BOT_KEY_PEPPER ?? "";
   // Fail closed: without a pepper the stored hash is a fast unsalted
   // sha256(key) vulnerable to offline brute force on DB leak.
-  // 16 chars keeps legacy deploys working; 32+ chars (>=256 bits via
-  // `openssl rand -hex 32`) is the quantum margin — warn once below that.
+  // 16 chars keeps legacy deploys verifying; 32+ strong-random chars
+  // (`openssl rand -hex 32`) is the quantum margin — warn once below that.
+  // Human-memorable passwords must never be used: they carry ~30-40 bits of
+  // entropy and fall to AI-assisted dictionary guessing after any DB leak.
   if (!p || p.length < 16) {
     throw new Error("BOT_KEY_PEPPER missing or too short (>=16 chars required, 32+ recommended).");
   }
   return p;
 }
 
+/** Previous pepper (rotation window): verify-only, never used for new hashes. */
+function previousPepper(): string {
+  const p = process.env.BOT_KEY_PEPPER_PREVIOUS ?? "";
+  return p.length >= 16 ? p : "";
+}
+
+/** All peppers to try on verify: current first, previous second (deduped). */
+export function allPeppers(): string[] {
+  const out: string[] = [];
+  const cur = process.env.BOT_KEY_PEPPER ?? "";
+  if (cur.length >= 16) out.push(cur);
+  const prev = previousPepper();
+  if (prev && !out.includes(prev)) out.push(prev);
+  return out;
+}
+
 /** True when the pepper meets the 256-bit post-quantum margin (>=32 chars). */
 export function botPepperQuantumReady(): boolean {
   return (process.env.BOT_KEY_PEPPER ?? "").length >= 32;
+}
+
+/**
+ * Strength gate for ISSUANCE (state-actor grade): >=32 chars AND looks
+ * machine-generated. Rejects human-memorable passwords even at 32+ chars:
+ * requires 64-hex (openssl rand -hex 32) OR >=3 of 4 char classes with no
+ * 4-in-a-row repeat. Verify-only paths stay at >=16 so rotation never locks
+ * out legacy rows; issuance fails closed instead.
+ */
+export function isStrongPepper(p: string): boolean {
+  const v = String(p ?? "");
+  if (v.length < 32) return false;
+  if (/^[0-9a-f]{64}$/i.test(v)) return true; // openssl rand -hex 32
+  if (/^[A-Za-z0-9+/=_-]{43,}$/.test(v) && /(?:[A-Z][\s\S]*[a-z][\s\S]*[0-9]|[0-9][\s\S]*[A-Z][\s\S]*[a-z])/.test(v)) {
+    let classes = 0;
+    if (/[a-z]/.test(v)) classes += 1;
+    if (/[A-Z]/.test(v)) classes += 1;
+    if (/[0-9]/.test(v)) classes += 1;
+    if (/[^A-Za-z0-9]/.test(v)) classes += 1;
+    if (classes >= 3 && !/(.)\1\1\1/.test(v)) return true;
+  }
+  // Long passphrases: 6+ words still count when 48+ chars (diceware margin).
+  if (v.length >= 48 && v.split(/[\s_-]+/).filter(Boolean).length >= 6) return true;
+  return false;
+}
+
+/** True when the current pepper is strong enough to issue NEW keys. */
+export function botPepperIssuanceReady(): boolean {
+  return isStrongPepper(process.env.BOT_KEY_PEPPER ?? "");
 }
 
 let pepperWarned = false;
@@ -162,23 +216,47 @@ export function generateBotKey(): string {
   return BOT_KEY_TAG + suffix;
 }
 
-/** Stored hash: scrypt(pepper + key) hex. Slow KDF resists offline brute force. */
+/** Per-prefix v2 salt: one rainbow per 8-char bucket, not one for the whole table. */
+export function botSaltFor(prefix: string): string {
+  return `bot4weird-v2$${String(prefix ?? "").slice(0, 8)}`;
+}
+
+/** v2 hash with an explicit pepper (rotation-safe core). */
+export function hashBotKeyForPepper(key: string, pepperVal: string): string {
+  const prefix = keyPrefix(key);
+  return (
+    scryptSync(String(pepperVal) + key, botSaltFor(prefix), 32, { N: 32768, r: 8, p: 1 }) as Buffer
+  ).toString("hex");
+}
+
+/** Stored hash: scrypt(pepper + key, salt=v2$prefix) hex. Slow KDF resists offline brute force. */
 export function sha256Hash(key: string): string {
-  // Name kept for callers; now scrypt (N=32768,r=8,p=1, 32-byte output).
-  // N=16384 + legacy sha256 rows still verify via verifyKeyHash fallback.
+  // Name kept for callers; now per-prefix v2 salt (N=32768,r=8,p=1, 32-byte output).
+  // Static-salt v1 (both costs) + legacy sha256 rows still verify via
+  // verifyKeyHash fallback across current + previous peppers.
   warnLegacyPepper();
-  return (scryptSync(pepper() + key, "bot4weird-v1", 32, { N: 32768, r: 8, p: 1 }) as Buffer).toString("hex");
+  if (!botPepperIssuanceReady()) {
+    // Issuance with a memorable/weak pepper would mint keys an AI farm can
+    // crack after any DB leak. Fail closed here too (routes also gate with a
+    // JSON 503); verify paths do NOT call this function.
+    throw new Error("BOT_KEY_PEPPER must be 32+ strong-random chars to hash new keys.");
+  }
+  return hashBotKeyForPepper(key, pepper());
 }
 
-/** Hash with the pre-hardening cost (verify-only for legacy rows). */
-function sha256HashLegacyCost(key: string): string {
-  return (scryptSync(pepper() + key, "bot4weird-v1", 32, { N: 16384, r: 8, p: 1 }) as Buffer).toString("hex");
+/** v1 static-salt hash at hardening cost, explicit pepper (verify-only). */
+function hashBotKeyV1ForPepper(key: string, pepperVal: string): string {
+  return (scryptSync(String(pepperVal) + key, "bot4weird-v1", 32, { N: 32768, r: 8, p: 1 }) as Buffer).toString("hex");
 }
 
-function legacySha256(key: string): string {
+/** v1 static-salt hash at legacy cost, explicit pepper (verify-only). */
+function hashBotKeyV1LegacyCostForPepper(key: string, pepperVal: string): string {
+  return (scryptSync(String(pepperVal) + key, "bot4weird-v1", 32, { N: 16384, r: 8, p: 1 }) as Buffer).toString("hex");
+}
+
+function legacySha256ForPepper(key: string, pepperVal: string): string {
   try {
-    const p = process.env.BOT_KEY_PEPPER ?? "";
-    return createHash("sha256").update(p + key, "utf8").digest("hex");
+    return createHash("sha256").update(String(pepperVal) + key, "utf8").digest("hex");
   } catch {
     return "";
   }
@@ -188,31 +266,49 @@ function verifyKeyHash(presentedKey: string, storedHex: string): boolean {
   try {
     const a = Buffer.from(storedHex, "hex");
     if (a.length !== 32) return false;
-    try {
-      const b = Buffer.from(sha256Hash(presentedKey), "hex");
-      if (b.length === 32 && timingSafeEqual(a, b)) return true;
-    } catch {
-      // fall through to older-cost + legacy checks
+    const peppers = allPeppers();
+    // Current v2 per-prefix salt first (steady state: single KDF on hit).
+    for (const pv of peppers) {
+      try {
+        const b = Buffer.from(hashBotKeyForPepper(presentedKey, pv), "hex");
+        if (b.length === 32 && timingSafeEqual(a, b)) return true;
+      } catch {
+        // fall through to older-cost + legacy checks
+      }
     }
-    try {
-      const old = Buffer.from(sha256HashLegacyCost(presentedKey), "hex");
-      if (old.length === 32 && timingSafeEqual(a, old)) return true;
-    } catch {
-      // fall through to legacy check
+    for (const pv of peppers) {
+      try {
+        const old = Buffer.from(hashBotKeyV1ForPepper(presentedKey, pv), "hex");
+        if (old.length === 32 && timingSafeEqual(a, old)) return true;
+      } catch {
+        // fall through
+      }
+      try {
+        const older = Buffer.from(hashBotKeyV1LegacyCostForPepper(presentedKey, pv), "hex");
+        if (older.length === 32 && timingSafeEqual(a, older)) return true;
+      } catch {
+        // fall through to legacy check
+      }
+      try {
+        const legacy = Buffer.from(legacySha256ForPepper(presentedKey, pv), "hex");
+        if (legacy.length === 32 && timingSafeEqual(a, legacy)) return true;
+      } catch {
+        // keep trying next pepper
+      }
     }
-    const legacy = Buffer.from(legacySha256(presentedKey), "hex");
-    if (legacy.length !== 32) return false;
-    return timingSafeEqual(a, legacy);
+    return false;
   } catch {
     return false;
   }
 }
 
-/** True when the stored row predates the PQ cost (needs opportunistic rehash). */
+/** True when the stored row predates the current v2 hash (needs opportunistic rehash). */
 function needsRehash(storedHex: string, presentedKey: string): boolean {
   try {
     const a = Buffer.from(storedHex, "hex");
-    const b = Buffer.from(sha256Hash(presentedKey), "hex");
+    const cur = process.env.BOT_KEY_PEPPER ?? "";
+    if (cur.length < 16) return true;
+    const b = Buffer.from(hashBotKeyForPepper(presentedKey, cur), "hex");
     return !(a.length === 32 && b.length === 32 && timingSafeEqual(a, b));
   } catch {
     return true;
@@ -229,6 +325,19 @@ function needsRehash(storedHex: string, presentedKey: string): boolean {
 export function keyPrefix(key: string): string {
   const suffix = key.startsWith(BOT_KEY_TAG) ? key.slice(BOT_KEY_TAG.length) : key;
   return suffix.slice(0, 8);
+}
+
+/**
+ * Strict present format: tag + 32 (current) or 20 (legacy) alphanumerics.
+ * Checked BEFORE any DB read or KDF so AI-speed garbage cannot burn scrypt
+ * CPU (DoS) or probe the prefix-existence oracle cheaply.
+ */
+export function isValidBotKeyFormat(key: string): boolean {
+  const v = String(key ?? "");
+  if (!v.startsWith(BOT_KEY_TAG)) return false;
+  const suffix = v.slice(BOT_KEY_TAG.length);
+  if (suffix.length !== BOT_KEY_SUFFIX_LEN && suffix.length !== BOT_KEY_SUFFIX_LEN_LEGACY) return false;
+  return /^[A-Za-z0-9]+$/.test(suffix);
 }
 
 /** Read the presented key: x-bot-key header, or Authorization: Bearer. */
@@ -355,7 +464,7 @@ function dummyCompare(digest: Buffer): void {
  */
 export async function resolveBotKey(req: Request): Promise<BotIdentity | null> {
   const raw = extractBotKey(req);
-  if (!raw || raw.length < 12 || raw.length > 128) {
+  if (!raw || !isValidBotKeyFormat(raw)) {
     dummyCompare(Buffer.alloc(32, 0));
     return null;
   }

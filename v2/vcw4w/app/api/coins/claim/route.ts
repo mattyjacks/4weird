@@ -6,6 +6,7 @@ import {
   supabaseServiceRoleKey,
   supabaseUrl,
 } from "@/lib/supabase/service";
+import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit";
 import { rateLimit } from "@/lib/rate-limit";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
@@ -38,6 +39,13 @@ export async function POST(req: Request) {
       "Retry-After": String(throttle.retryAfter),
     });
   }
+  // Distributed shield: at most 10 grant-claims/hour per account across all
+  // instances (double-mint itself is blocked by UNIQUE(grant_id), this stops
+  // the retry storm from ever reaching the money path).
+  const claimDist = await globalBucket(acctBucketKey("claim-hour", user.id), 10, 3600);
+  if (claimDist && !claimDist.allowed) {
+    return fail("Too many claim attempts. Try again shortly.", 429, throttleHeaders(claimDist.retryAfter));
+  }
 
   if (supabaseServiceRoleKey()) {
     try {
@@ -61,7 +69,28 @@ export async function POST(req: Request) {
           reason: (`Shopify order ${g.shopify_order_name ?? ""}`).slice(0, 120),
           grant_id: g.id,
         });
-        if (ledgerErr) continue;
+        if (ledgerErr) {
+          // UNIQUE(grant_id) violation (23505) means this grant is already
+          // paired to a ledger row (concurrent claim won the race): converge
+          // the grant to claimed instead of leaving it unclaimed forever.
+          const code = (ledgerErr as { code?: unknown }).code;
+          if (code === "23505") {
+            const { data: existing } = await db
+              .from("coin_ledger")
+              .select("id")
+              .eq("grant_id", g.id)
+              .limit(1);
+            if (existing && existing.length > 0) {
+              await db
+                .from("coin_grants")
+                .update({ user_id: user.id, claimed: true })
+                .eq("id", g.id)
+                .eq("claimed", false);
+              claimed += 1;
+            }
+          }
+          continue;
+        }
         await db
           .from("coin_grants")
           .update({ user_id: user.id, claimed: true })
