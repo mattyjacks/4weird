@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   if (!(await sameOriginOrBotKey(req))) return fail("Invalid request origin.", 403);
   // Valid bot4weird_ keys (code:submit) pass inside requireHuman; forged keys
   // fall through to the BotID check and fail closed like any bot.
-  const botBlock = await requireHuman(req, "POST /api/code/zip");
+  const botBlock = await requireHuman(req, "POST /api/code/zip", { allowAuthenticated: true });
   if (botBlock) return botBlock;
 
   const supabase = await createClient();

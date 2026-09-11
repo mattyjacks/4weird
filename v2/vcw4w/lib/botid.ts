@@ -28,6 +28,14 @@ import { extractBotKey, resolveBotKey } from "@/lib/bot-auth";
  *   - VALID `bot4weird_` keys (resolved against the DB: revocation, expiry,
  *     budgets enforced) → exempt. A present-but-invalid key is NOT enough —
  *     it falls through to the BotID check and fails closed like any bot.
+ *   - Signed-in coin-spend callers → exempt ONLY when the route opts in
+ *     with `{ allowAuthenticated: true }`. A valid Supabase session proves
+ *     the caller is a real account whose coin ledger can be debited, so a
+ *     BotID false-positive (or headless automation through a real login)
+ *     must not 403 paid work like NewGamePlus builds, fal renders, or buddy
+ *     turns. Free-money routes (signup/login/daily/claim/checkout/refund/
+ *     referrals/guest-pass) must NEVER opt in — they stay gated even for
+ *     logged-in callers so farmed accounts cannot mint free coins.
  * - Webhook / pod-token callbacks (meshy/webhook, blender/progress) must
  *     NEVER call this helper at all — they authenticate by HMAC/job-token.
  * - Signed-in play metering (POST /api/games/session) must NEVER call this
@@ -84,17 +92,55 @@ function blocked(): NextResponse {
 }
 
 /**
- * BotID gate for mutating routes. Returns a 403 response when the caller is a
- * bot, or null when the request may proceed (human, trusted machine, dev, or
- * verifier outage with backstops still active).
+ * True when the request carries a valid signed-in Supabase session. Used only
+ * by routes that opt in with `{ allowAuthenticated: true }`: paid work may
+ * proceed for a real account even when BotID flags the browser as a bot.
+ * Returns false when Supabase is unconfigured or the session is absent.
  */
-export async function requireHuman(req: Request, route: string): Promise<NextResponse | null> {
+async function isAuthenticatedUser(): Promise<boolean> {
+  try {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return false;
+    const { createClient } = await import("@/lib/supabase/server");
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getUser();
+    return Boolean(data?.user);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * BotID gate for mutating routes. Returns a 403 response when the caller is a
+ * bot, or null when the request may proceed (human, trusted machine,
+ * opted-in authenticated spender, dev, or verifier outage with backstops
+ * still active).
+ *
+ * Pass `{ allowAuthenticated: true }` ONLY on coin-spending routes that
+ * already require login (NewGamePlus, fal/meshy/generate, buddy/chat,
+ * game-ai/meter, swarm/chat, code/zip, desktop/provision): a valid session
+ * proves a debitable account, so BotID false-positives must not block paid
+ * work or legitimate automation. Never use it on free-money or identity
+ * routes (signup/login/daily/claim/checkout/refund/referrals/guest-pass).
+ */
+export async function requireHuman(
+  req: Request,
+  route: string,
+  opts?: { allowAuthenticated?: boolean },
+): Promise<NextResponse | null> {
   // Local/dev/test: BotID always classifies HUMAN; skip the call entirely.
   if (process.env.NODE_ENV !== "production") return null;
   try {
     if (await isTrustedMachine(req)) return null;
   } catch {
     // Fall through to the BotID check — exemption failures fail closed.
+  }
+  if (opts?.allowAuthenticated) {
+    try {
+      if (await isAuthenticatedUser()) return null;
+    } catch {
+      // Fall through to the BotID check — auth-check failures fail closed
+      // for anonymous callers, so free-play abuse stays gated.
+    }
   }
   try {
     const verification = await checkBotId({

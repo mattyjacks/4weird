@@ -65,7 +65,7 @@ export async function POST(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);
-  const botBlock = await requireHuman(req, "POST /api/desktop/provision");
+  const botBlock = await requireHuman(req, "POST /api/desktop/provision", { allowAuthenticated: true });
   if (botBlock) return botBlock;
   const rl = rateLimit(`desktop:provision:${data.user.id}`, 10, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);

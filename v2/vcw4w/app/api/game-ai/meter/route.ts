@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);
-  const botBlock = await requireHuman(req, "POST /api/game-ai/meter");
+  const botBlock = await requireHuman(req, "POST /api/game-ai/meter", { allowAuthenticated: true });
   if (botBlock) return botBlock;
   const rl = rateLimit(`game-ai:meter:${data.user.id}`, 60, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);

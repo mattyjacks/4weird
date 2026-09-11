@@ -58,7 +58,10 @@ export async function POST(req: Request) {
   // coins and writes drafts for signed-in users, so cross-site POSTs must
   // prove Origin even when this particular call carries no session.
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
-  const botBlock = await requireHuman(req, "POST /api/newgameplus/build");
+  // Signed-in spenders bypass BotID false-positives: a valid session proves a
+  // debitable account, so logged-in automation/flagged browsers can still build.
+  // Anonymous callers stay gated (free-play abuse shield).
+  const botBlock = await requireHuman(req, "POST /api/newgameplus/build", { allowAuthenticated: true });
   if (botBlock) return botBlock;
   let body: unknown;
   try {

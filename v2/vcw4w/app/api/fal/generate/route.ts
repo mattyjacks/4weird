@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required. Sign in to run fal tools; the catalog + quotes on /fal are free without login.", 401);
-  const botBlock = await requireHuman(req, "POST /api/fal/generate");
+  const botBlock = await requireHuman(req, "POST /api/fal/generate", { allowAuthenticated: true });
   if (botBlock) return botBlock;
   const rl = rateLimit(`fal:generate:${data.user.id}`, 20, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);

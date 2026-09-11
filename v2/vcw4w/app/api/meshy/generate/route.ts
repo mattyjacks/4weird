@@ -45,7 +45,7 @@ export async function POST(req: Request) {
   }
   // Valid bot4weird_ keys (meshy:generate) pass inside requireHuman; forged
   // keys fall through to the BotID check and fail closed like any bot.
-  const botBlock = await requireHuman(req, "POST /api/meshy/generate");
+  const botBlock = await requireHuman(req, "POST /api/meshy/generate", { allowAuthenticated: true });
   if (botBlock) return botBlock;
   const rl = rateLimit(`meshy:generate:${userId}`, 20, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);

@@ -34,10 +34,11 @@ for (const path of [
 }
 
 // 3. lib/botid.ts is the single server gate: fail-closed on bots, fail-open
-// on verifier outage, exempting only valid bot keys + Vercel Cron.
+// on verifier outage, exempting only valid bot keys + Vercel Cron + opted-in
+// signed-in spenders (paid work must survive BotID false-positives).
 if (!exists("../lib/botid.ts")) fail("lib/botid.ts is missing (requireHuman gate).");
 const gate = read("../lib/botid.ts");
-for (const token of ["export async function requireHuman", "checkBotId", "deepAnalysis", "isTrustedMachine"]) {
+for (const token of ["export async function requireHuman", "checkBotId", "deepAnalysis", "isTrustedMachine", "allowAuthenticated", "isAuthenticatedUser"]) {
   if (!gate.includes(token)) fail(`lib/botid.ts must contain '${token}'.`);
 }
 
@@ -46,7 +47,15 @@ for (const token of ["export async function requireHuman", "checkBotId", "deepAn
 // signed-in bot/automation play is welcome and still meters + pays coins
 // (anti-cheat via the cheat_mode save invariant + rate limits). Anonymous
 // free-play abuse stays gated via guest-pass below.
-const enforced = [
+//
+// Two tiers:
+// - strict: identity + free-money + social writes. Must call requireHuman
+//   WITHOUT allowAuthenticated (logged-in bots stay blocked so farmed
+//   accounts cannot mint free coins or spam).
+// - spend: coin-metered compute/AI that already requires login. Must call
+//   requireHuman WITH { allowAuthenticated: true } so a valid session
+//   survives BotID false-positives and legitimate automation can pay + play.
+const strict = [
   "../app/api/auth/signup/route.ts",
   "../app/api/auth/login/route.ts",
   "../app/api/family/kid-login/route.ts",
@@ -56,25 +65,39 @@ const enforced = [
   "../app/api/coins/checkout/route.ts",
   "../app/api/coins/refund/route.ts",
   "../app/api/referrals/route.ts",
-  "../app/api/fal/generate/route.ts",
-  "../app/api/buddy/chat/route.ts",
   "../app/api/support/tip/route.ts",
   "../app/api/fundraisers/[id]/contribute/route.ts",
   "../app/api/bot/keys/route.ts",
-  "../app/api/newgameplus/build/route.ts",
-  "../app/api/code/zip/route.ts",
   "../app/api/clans/[slug]/post/route.ts",
-  "../app/api/meshy/generate/route.ts",
-  "../app/api/game-ai/meter/route.ts",
-  "../app/api/swarm/sessions/[id]/chat/route.ts",
   "../app/api/my/rights/route.ts",
-  "../app/api/desktop/provision/route.ts",
   "../app/api/verification/route.ts",
 ];
-for (const file of enforced) {
+const spend = [
+  "../app/api/newgameplus/build/route.ts",
+  "../app/api/fal/generate/route.ts",
+  "../app/api/buddy/chat/route.ts",
+  "../app/api/game-ai/meter/route.ts",
+  "../app/api/swarm/sessions/[id]/chat/route.ts",
+  "../app/api/meshy/generate/route.ts",
+  "../app/api/code/zip/route.ts",
+  "../app/api/desktop/provision/route.ts",
+];
+const enforced = [...strict, ...spend];
+for (const file of strict) {
   if (!exists(file)) fail(`enforced route missing: ${file}`);
   const src = read(file);
   if (!src.includes("requireHuman")) fail(`${file} must call requireHuman() (BotID gate).`);
+  if (src.includes("allowAuthenticated")) {
+    fail(`${file} must NOT opt into allowAuthenticated (free-money/identity gate stays strict).`);
+  }
+}
+for (const file of spend) {
+  if (!exists(file)) fail(`enforced route missing: ${file}`);
+  const src = read(file);
+  if (!src.includes("requireHuman")) fail(`${file} must call requireHuman() (BotID gate).`);
+  if (!src.includes("allowAuthenticated")) {
+    fail(`${file} must pass { allowAuthenticated: true } so logged-in spenders survive BotID false-positives.`);
+  }
 }
 
 // 5. Machine-to-machine routes must NEVER call the gate: they carry no

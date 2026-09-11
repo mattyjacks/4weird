@@ -139,7 +139,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);
-  const botBlock = await requireHuman(req, "POST /api/swarm/chat");
+  const botBlock = await requireHuman(req, "POST /api/swarm/chat", { allowAuthenticated: true });
   if (botBlock) return botBlock;
   const rl = rateLimit(`swarm:chat:${data.user.id}`, 30, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
