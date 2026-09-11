@@ -10,8 +10,9 @@ const proxy = read("../lib/supabase/proxy.ts");
 
 if (!login.includes("router.push(next") || !login.includes(' : "/account"')) throw new Error("Login must land on /account or a safe requested path.");
 if (login.includes('router.push("/protected")')) throw new Error("Login still targets legacy /protected.");
-if (!signup.includes("/auth/confirm?next=/account")) throw new Error("Signup confirmation must use /auth/confirm.");
-if (signup.includes("/auth/callback")) throw new Error("Signup references missing /auth/callback.");
+if (!signup.includes('fetch("/api/auth/signup"')) throw new Error("Signup must use the guarded server auth route.");
+if (!login.includes('fetch("/api/auth/login"')) throw new Error("Login must use the guarded server auth route.");
+if (signup.includes("supabase.auth.signUp") || login.includes("supabase.auth.signInWithPassword")) throw new Error("Browser auth forms must not bypass the guarded server auth routes.");
 const passwordReminder = "Password reset and email confirmation are not available yet. Please remember your password.";
 if (!login.includes(passwordReminder) || !signup.includes(passwordReminder)) throw new Error("Login and signup must warn that password reset and email confirmation are unavailable.");
 if (login.includes('href="/auth/forgot-password"')) throw new Error("Login must not advertise an unavailable password-reset flow.");

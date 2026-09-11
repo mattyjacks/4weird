@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -28,16 +27,18 @@ export function LoginForm({
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
     setIsLoading(true);
     setError(null);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
       });
-      if (error) throw error;
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body.error || "Invalid login credentials.");
       // The account page is the v2 authenticated destination; /protected is a legacy starter route.
       const next = new URLSearchParams(window.location.search).get("next");
       router.push(next && next.startsWith("/") && !next.startsWith("//") ? next : "/account");
