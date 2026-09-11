@@ -31,6 +31,7 @@ const NAV_GROUPS: { label: string; links: NavLink[] }[] = [
       { href: "/teams", label: "UnitUnite" },
       { href: "/vibecodeworker", label: "VibeCodeWorker" },
       { href: "/web-apps", label: "Web Apps" },
+      { href: "/docs", label: "Docs" },
       { href: GITHUB_HREF, label: "GitHub", external: true },
     ],
   },

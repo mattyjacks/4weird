@@ -18,6 +18,7 @@ export const DOCS_DATA: DocEntry[] = [
   { href: "/docs/agents-compute", label: "Agents & cloud", blurb: "Rentals, desktops, teams", icon: "☁️", card: "from-sky-500/25 via-blue-500/10 to-indigo-500/25" },
   { href: "/docs/game-ai-buddy", label: "Game AI & Buddy", blurb: "AI features + voice coach", icon: "🎙️", card: "from-rose-500/25 via-pink-500/10 to-orange-500/25" },
   { href: "/docs/vibecodeworker", label: "VibeCodeWorker", blurb: "QA runs, bugs, handoffs", icon: "⚙️", card: "from-orange-500/25 via-amber-500/10 to-stone-500/20" },
+  { href: "/docs/explore-more", label: "Explore more", blurb: "Classics, arenas, account hub", icon: "🧭", card: "from-cyan-500/25 via-sky-500/10 to-violet-500/25" },
   { href: "/docs/privacy-safety", label: "Privacy & safety", blurb: "Rights, moderation, reports", icon: "🛡️", card: "from-teal-500/25 via-emerald-500/10 to-cyan-500/25" },
   { href: "/docs/faq", label: "FAQ & support", blurb: "Answers + contact", icon: "💬", card: "from-indigo-500/25 via-violet-500/10 to-sky-500/25" },
 ];

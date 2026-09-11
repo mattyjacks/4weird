@@ -15,6 +15,11 @@ for (const token of ["isVcwRunKind", "isVcwSeverity", "isVcwVerdict", "cleanGame
 }
 
 // Every agent action is authenticated + rate limited (proxy also gates
+// Frame-analysis loop: segment aggregation + heatmap builders + improve plan.
+const analysis = read("../lib/vcw-frame-analysis.ts");
+for (const token of ["frameSamplePlan", "segmentTicks", "buildThreatHeat", "buildTrailPath", "buildInputHeat", "buildKeyPath", "improveFromObservations", "laneOf", "targetOf"]) {
+  if (!analysis.includes(token)) throw new Error(`vcw-frame-analysis lib missing ${token}.`);
+}
 // /api/vcw/* except health; routes enforce it themselves too).
 const routes = [
   "../app/api/vcw/status/route.ts",

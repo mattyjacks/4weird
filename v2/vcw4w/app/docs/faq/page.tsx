@@ -40,7 +40,7 @@ export default function FaqPage() {
         lede={<>Fast answers up front, a human when needed. Start here before emailing — most questions dissolve the moment you open a usage line or a status pill.</>}
         stats={[
           ["12", "answers below"],
-          ["11", "guides behind them"],
+          ["12", "guides behind them"],
           ["1", "inbox for the rest"],
           ["0", "dumb questions"],
         ]}

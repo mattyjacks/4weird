@@ -109,6 +109,11 @@ export default function AboutPage() {
           </Link>
         ))}
       </div>
+      <p className="mt-3 text-sm text-muted-foreground">
+        Want the classics, the competitive arenas, and the account hub in one chapter?{" "}
+        <Link className="underline" href="/docs/explore-more">Explore more</Link> covers
+        Spaceships, Academy, Tech, Web Apps, Xonotic, leaderboards, lobbies, pricing, usage, rights, and accessibility.
+      </p>
 
       <SectionHead
         index="4"

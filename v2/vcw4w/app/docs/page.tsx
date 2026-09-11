@@ -22,11 +22,11 @@ export default function DocsHome() {
   return (
     <article>
       <DocsHero
-        eyebrow="4weird.com/docs/ · 11 guides"
+        eyebrow="4weird.com/docs/ · 12 guides"
         title={<>The manual for <span className={theme.title}>Future Forward Fun.</span></>}
         lede={<>Everything about the company and how to use the site and software — one coin economy, 34 games, clans, bots, rentable agents, game AI, and QA tooling. Start anywhere; every guide links to the next.</>}
         stats={[
-          ["11", "guides, zero fluff"],
+          ["12", "guides, zero fluff"],
           ["34", "games documented"],
           ["100 🪙", "= exactly $1.00"],
           ["25%", "cut, always inside"],
@@ -73,7 +73,7 @@ export default function DocsHome() {
       <SectionHead
         index="✦"
         kicker="The whole library"
-        title="All 11 guides"
+        title="All 12 guides"
         body="Each card is its own page — company, how-tos, economy, social, cloud, trust."
       />
 
