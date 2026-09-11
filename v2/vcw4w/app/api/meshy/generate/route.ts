@@ -5,6 +5,7 @@ import { sameOriginOrBotKey } from "@/lib/csrf-bot";
 import { keyHasScope, resolveBotKey } from "@/lib/bot-auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { requireHuman } from "@/lib/botid";
+import { checkEgressUrl } from "@/lib/ssrf-guard";
 import { rpcStatus } from "@/lib/agent-market";
 import {
   MESHY_CUT_NOTE,
@@ -66,6 +67,10 @@ export async function POST(req: Request) {
     return fail(`${def.name} needs a source image_url (https).`, 400);
   }
   if (imageUrl && !isHttpsUrl(imageUrl)) return fail("Invalid image_url.", 400);
+  if (imageUrl) {
+    const verdict = await checkEgressUrl(imageUrl);
+    if ("error" in verdict) return fail(`Blocked fetch target: ${verdict.error}`, 400);
+  }
 
   const quote = quoteMeshySplit(opRaw, 1);
   if (!meshyConfigured()) {

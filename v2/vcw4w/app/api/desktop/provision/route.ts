@@ -126,6 +126,7 @@ export async function POST(req: Request) {
   }
 
   const coinsPerHour = desktopUsdToCoins(provisioned.hourlyUsd);
+  const vncPassword = "vncPassword" in provisioned ? String(provisioned.vncPassword ?? "") : "";
   return ok({
     started: true,
     kind: provisioned.kind,
@@ -140,6 +141,8 @@ export async function POST(req: Request) {
       coinsPerHour,
       port: provisioned.port,
       image: provisioned.image,
+      // Shown once at provision time only; never stored, never re-served.
+      ...(vncPassword ? { vncPassword, vncNote: "Save this VNC password now; it will never be shown again." } : {}),
     },
     billing: {
       billed_by: "runpod",

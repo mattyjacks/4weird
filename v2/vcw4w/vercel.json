@@ -8,6 +8,18 @@
     {
       "path": "/api/cron/support-renewals",
       "schedule": "15 4 * * *"
+    },
+    {
+      "path": "/api/cron/scale-sweep",
+      "schedule": "30 4 * * *"
+    },
+    {
+      "path": "/api/cron/clan-tribute",
+      "schedule": "45 4 * * *"
+    },
+    {
+      "path": "/api/cron/key-hygiene",
+      "schedule": "0 5 * * *"
     }
   ]
 }

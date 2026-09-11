@@ -147,13 +147,13 @@ export async function POST(req: Request) {
   const kind = String(input.kind ?? "asset").slice(0, 16);
   const mime = String(input.mime ?? "application/octet-stream").slice(0, 128);
   // Stored-XSS guard: never store browser-active markup that would execute
-  // inline when a teammate opens the signed URL. HTML/SVG/XML are rejected;
-  // use text/plain or octet-stream for code instead.
-  if (/^\s*(text\/html|image\/svg\+xml|application\/xhtml\+xml|text\/xml|application\/xml|multipart\/related)\s*(;|$)/i.test(mime)) {
+  // inline when a teammate opens the signed URL. HTML/SVG/XML/JS are
+  // rejected; use text/plain or octet-stream for code instead.
+  if (/^\s*(text\/html|image\/svg\+xml|application\/xhtml\+xml|text\/xml|application\/xml|multipart\/related|text\/javascript|application\/javascript|application\/ecmascript|text\/ecmascript)\s*(;|$)/i.test(mime)) {
     return fail("That content type cannot be stored inline. Use a safe type.", 400);
   }
   const lowerPath = path.toLowerCase();
-  if (/\.(html?|xhtml|svg|shtml|hta|swf|xap)$/.test(lowerPath)) {
+  if (/\.(html?|xhtml|svg|svgz|shtml|hta|swf|xap|xht|xml|js|mjs|cjs)$/.test(lowerPath)) {
     return fail("That file extension cannot be stored inline.", 400);
   }
 
@@ -193,13 +193,20 @@ export async function POST(req: Request) {
     if (memErr || !mem) return fail("Not a member of that scope.", 403);
   }
 
-  // Dedup: same bytes already stored -> reuse the blob + object key.
+  // Dedup per scope: same bytes already stored in THIS scope -> reuse the
+  // blob row; never repoint another scope's storage_path (cross-scope leak).
   const ext = (path.split(".").pop() ?? "").slice(0, 8);
   const objectKey = vaultObjectKey({ scope, scopeId, sha256, ext });
-  await svc.from("vault_blobs").upsert(
-    { sha256, bytes, mime, storage_path: objectKey },
-    { onConflict: "sha256" },
-  );
+  {
+    const { data: existing } = await svc
+      .from("vault_blobs")
+      .select("sha256,storage_path")
+      .eq("sha256", sha256)
+      .maybeSingle();
+    if (!existing) {
+      await svc.from("vault_blobs").insert({ sha256, bytes, mime, storage_path: objectKey });
+    }
+  }
 
   const { data: file, error: fileErr } = await svc
     .from("vault_files")

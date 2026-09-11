@@ -99,13 +99,33 @@ export async function POST(req: NextRequest) {
     return ok({ session, heartbeat_seconds: GAME_HEARTBEAT_SECONDS });
   }
 
+  // Per-beat elapsed ceiling: clients beat every 60s; anything above 5 min
+  // is client attestation, not wall-clock. Clamp the ledger to what one beat
+  // can honestly cover (prevents 3600s under/over-billing in a single call).
+  const HEARTBEAT_BEAT_CAP = Math.min(GAME_HEARTBEAT_MAX_SECONDS, 300);
+  // Adult RPCs must never touch kid-attributed rows (kid sessions store
+  // user_id = parent): a parent session driving a kid session_id would bill
+  // the parent ledger and skip kid guards. Reject with a redirect to Child
+  // login instead. Runs on the service client (owner check, no RLS bypass
+  // for writes — the RPC below still enforces auth.uid()).
+  async function isKidRow(sessionId: string): Promise<boolean> {
+    try {
+      const svc = serviceClient();
+      const { data } = await svc.from("game_sessions").select("kid_id").eq("id", sessionId).maybeSingle();
+      return Boolean((data as { kid_id?: string | null } | null)?.kid_id);
+    } catch {
+      return false;
+    }
+  }
+
   if (action === "heartbeat") {
     const sid = input.session_id ?? input.sessionId;
     if (!isUuid(sid)) return fail("Invalid session_id.", 400);
     const seconds = Number(input.active_seconds ?? input.seconds ?? GAME_HEARTBEAT_SECONDS);
-    if (!Number.isInteger(seconds) || seconds < 1 || seconds > GAME_HEARTBEAT_MAX_SECONDS) {
-      return fail(`active_seconds must be 1..${GAME_HEARTBEAT_MAX_SECONDS}.`, 400);
+    if (!Number.isInteger(seconds) || seconds < 1 || seconds > HEARTBEAT_BEAT_CAP) {
+      return fail(`active_seconds must be 1..${HEARTBEAT_BEAT_CAP}.`, 400);
     }
+    if (await isKidRow(String(sid))) return fail("Child sessions heartbeat through Child login.", 403);
     let beat: unknown;
     try {
       const { data: row, error } = await supabase.rpc("heartbeat_game_session", {
@@ -123,6 +143,7 @@ export async function POST(req: NextRequest) {
   if (action === "end") {
     const sid = input.session_id ?? input.sessionId;
     if (!isUuid(sid)) return fail("Invalid session_id.", 400);
+    if (await isKidRow(String(sid))) return fail("Child sessions end through Child login.", 403);
     try {
       const { data: ended, error } = await supabase.rpc("end_game_session", { p_session: sid });
       if (error) return rpcFail("api/games/session:end", error, rpcStatus, "Unable to end play session.");
@@ -186,8 +207,8 @@ async function kidSessionPlay(req: NextRequest, supabase: Awaited<ReturnType<typ
     const sid = input.session_id ?? input.sessionId;
     if (!isUuid(sid)) return fail("Invalid session_id.", 400);
     const seconds = Number(input.active_seconds ?? input.seconds ?? GAME_HEARTBEAT_SECONDS);
-    if (!Number.isInteger(seconds) || seconds < 1 || seconds > GAME_HEARTBEAT_MAX_SECONDS) {
-      return fail(`active_seconds must be 1..${GAME_HEARTBEAT_MAX_SECONDS}.`, 400);
+    if (!Number.isInteger(seconds) || seconds < 1 || seconds > Math.min(GAME_HEARTBEAT_MAX_SECONDS, 300)) {
+      return fail("active_seconds must be 1..300.", 400);
     }
     try {
       const { data: row, error } = await supabase.rpc("heartbeat_kid_session", {

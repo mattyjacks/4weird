@@ -167,7 +167,15 @@ export function meshyKey(): string {
 export function meshyApiBase(): string {
   if (typeof process === "undefined") return MESHY_API_BASE_DEFAULT;
   const raw = String(process.env.MESHY_API_BASE ?? "").trim().replace(/\/+$/, "");
-  return raw || MESHY_API_BASE_DEFAULT;
+  if (!raw) return MESHY_API_BASE_DEFAULT;
+  try {
+    const u = new URL(raw);
+    if (u.protocol !== "https:") return MESHY_API_BASE_DEFAULT;
+    if (u.origin !== "https://api.meshy.ai") return MESHY_API_BASE_DEFAULT;
+    return raw;
+  } catch {
+    return MESHY_API_BASE_DEFAULT;
+  }
 }
 
 export function meshyConfigured(): boolean {

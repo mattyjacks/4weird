@@ -9,17 +9,22 @@ import { KID_SESSION_DAYS, type KidAccount, type KidControls } from "@/lib/famil
  * token lives only in the httpOnly cookie).
  */
 
+/** Pepper for kid token hashes (256-bit PQ margin): KID_TOKEN_PEPPER, else BOT_KEY_PEPPER. */
+function kidTokenPepper(): string {
+  return process.env.KID_TOKEN_PEPPER ?? process.env.BOT_KEY_PEPPER ?? "";
+}
+
 export function hashKidPassword(password: string): string {
-  const salt = randomBytes(16).toString("hex");
-  const derived = scryptSync(password, salt, 64).toString("hex");
+  // 32-byte salt + pinned N=32768 cost. Format stays `scrypt$salt$derived`
+  // so legacy rows (16-byte salt, default cost) still verify below.
+  const salt = randomBytes(32).toString("hex");
+  const derived = scryptSync(password, salt, 64, { N: 32768, r: 8, p: 1 }).toString("hex");
   return `scrypt$${salt}$${derived}`;
 }
 
-export function verifyKidPassword(password: string, stored: string): boolean {
+function verifyWithCost(password: string, salt: string, expected: string, opts?: { N: number; r: number; p: number }): boolean {
   try {
-    const [scheme, salt, expected] = String(stored).split("$");
-    if (scheme !== "scrypt" || !salt || !expected) return false;
-    const derived = scryptSync(password, salt, 64);
+    const derived = opts ? scryptSync(password, salt, 64, opts) : scryptSync(password, salt, 64);
     const ref = Buffer.from(expected, "hex");
     if (derived.length !== ref.length) return false;
     return timingSafeEqual(derived, ref);
@@ -28,13 +33,43 @@ export function verifyKidPassword(password: string, stored: string): boolean {
   }
 }
 
+export function verifyKidPassword(password: string, stored: string): boolean {
+  try {
+    const [scheme, salt, expected] = String(stored).split("$");
+    if (scheme !== "scrypt" || !salt || !expected) return false;
+    // New cost first, then legacy default cost (N=16384) for pre-hardening rows.
+    if (verifyWithCost(password, salt, expected, { N: 32768, r: 8, p: 1 })) return true;
+    return verifyWithCost(password, salt, expected);
+  } catch {
+    return false;
+  }
+}
+
+/** Burn ~1 KDF so unknown-handle misses cost like a real password verify. */
+export function dummyKidPasswordVerify(): void {
+  try {
+    scryptSync(randomBytes(8), randomBytes(16).toString("hex"), 64, { N: 32768, r: 8, p: 1 });
+  } catch {
+    // best-effort only
+  }
+}
+
 export function newKidToken(): { token: string; tokenHash: string } {
   const token = randomBytes(32).toString("hex");
-  const tokenHash = createHash("sha256").update(token).digest("hex");
-  return { token, tokenHash };
+  return { token, tokenHash: hashKidToken(token) };
 }
 
 export function hashKidToken(token: string): string {
+  const t = String(token);
+  const pepper = kidTokenPepper();
+  // Peppered when configured (DB leak alone can't brute-force); legacy
+  // unpeppered rows verify via hashKidTokenLegacy + opportunistic rehash.
+  if (pepper.length >= 16) return createHash("sha256").update(`${pepper}|${t}`).digest("hex");
+  return createHash("sha256").update(t).digest("hex");
+}
+
+/** Pre-hardening token hash (verify-only for legacy rows). */
+export function hashKidTokenLegacy(token: string): string {
   return createHash("sha256").update(String(token)).digest("hex");
 }
 
@@ -57,12 +92,26 @@ export async function getKidSession(
 ): Promise<KidSession | null> {
   const token = String(rawToken ?? "");
   if (!/^[0-9a-f]{64}$/.test(token)) return null;
+  // Peppered lookup first, legacy unpeppered fallback (pre-hardening rows).
   const tokenHash = hashKidToken(token);
-  const { data: session } = await service
-    .from("kid_sessions")
-    .select("kid_id, expires_at")
-    .eq("token_hash", tokenHash)
-    .maybeSingle();
+  const legacyHash = hashKidTokenLegacy(token);
+  let session: { kid_id: string; expires_at: string } | null = null;
+  {
+    const { data } = await service
+      .from("kid_sessions")
+      .select("kid_id, expires_at")
+      .eq("token_hash", tokenHash)
+      .maybeSingle();
+    session = (data as { kid_id: string; expires_at: string } | null) ?? null;
+    if (!session && legacyHash !== tokenHash) {
+      const { data: legacy } = await service
+        .from("kid_sessions")
+        .select("kid_id, expires_at")
+        .eq("token_hash", legacyHash)
+        .maybeSingle();
+      session = (legacy as { kid_id: string; expires_at: string } | null) ?? null;
+    }
+  }
   if (!session || new Date(String(session.expires_at)).getTime() <= Date.now()) return null;
   const { data: kid } = await service
     .from("kid_accounts")
@@ -89,7 +138,21 @@ export async function getKidSession(
   } catch {
     inWindow = true;
   }
-  await service.from("kid_sessions").update({ last_seen_at: new Date().toISOString() }).eq("token_hash", tokenHash);
+  // Sliding 7-day refresh + opportunistic pepper rehash: extend expiry when
+  // <48h remain so active kids stay signed in without 30-day bearer windows.
+  // Legacy unpeppered rows are rehashed to the peppered form on next use.
+  try {
+    const expiresMs = new Date(String(session.expires_at)).getTime();
+    const patch: Record<string, string> = { last_seen_at: new Date().toISOString() };
+    if (expiresMs - Date.now() < 48 * 3600 * 1000) {
+      patch.expires_at = new Date(Date.now() + KID_SESSION_DAYS * 24 * 3600 * 1000).toISOString();
+    }
+    if (legacyHash !== tokenHash) patch.token_hash = tokenHash;
+    const lookupHash = legacyHash !== tokenHash && patch.token_hash ? legacyHash : tokenHash;
+    await service.from("kid_sessions").update(patch).eq("token_hash", lookupHash);
+  } catch {
+    // liveness/refresh must never break play
+  }
   return {
     kid,
     controls: controls ?? null,

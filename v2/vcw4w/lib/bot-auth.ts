@@ -36,11 +36,14 @@
  * owning user's id, and clan posts/comments carry author_id = that user.
  * Membership rules are identical to humans (must join before posting).
  *
- * Security:
- * - Secrets are `bot4weird_` + 20 chars from [A-Za-z0-9]; only
- *   scrypt(BOT_KEY_PEPPER + key) is stored (pepper REQUIRED, >=16 chars;
- *   legacy sha256 rows still verify via fallback). Without a pepper every
- *   bot route fails closed (503/401), never with an unhashed comparison.
+ * Security (quantum-hardened):
+ * - Secrets are `bot4weird_` + 32 chars from [A-Za-z0-9] (~190 bits;
+ *   Grover ~95 bits). Legacy 20-char rows still verify but new issuance
+ *   is always 32 chars.
+ * - Stored as scrypt(pepper + key, N=32768,r=8,p=1) (pepper REQUIRED,
+ *   >=16 chars accepted, >=32 chars recommended for 256-bit PQ margin;
+ *   legacy N=16384 + sha256 rows still verify via fallback and are
+ *   opportunistically rehashed on next successful use).
  * - Full keys are never logged.
  * - Hash comparison is constant-time (timingSafeEqual over every prefix
  *   candidate); unknown prefixes still burn a dummy compare so failures
@@ -58,7 +61,10 @@ import { isIpAllowed, lowBalanceTripLine, type IpMode } from "@/lib/bot-key-poli
 import { serviceClient, supabaseServiceRoleKey, supabaseUrl } from "@/lib/supabase/service";
 
 export const BOT_KEY_TAG = "bot4weird_";
-export const BOT_KEY_SUFFIX_LEN = 20;
+/** 32 chars x 62-symbol alphabet = ~190 bits classical, ~95 bits PQ (Grover). */
+export const BOT_KEY_SUFFIX_LEN = 32;
+/** Legacy suffix length (pre-quantum-hardening rows still verify). */
+export const BOT_KEY_SUFFIX_LEN_LEGACY = 20;
 
 export const BOT_SCOPES = [
   "clans:read",
@@ -102,10 +108,29 @@ function pepper(): string {
   const p = process.env.BOT_KEY_PEPPER ?? "";
   // Fail closed: without a pepper the stored hash is a fast unsalted
   // sha256(key) vulnerable to offline brute force on DB leak.
+  // 16 chars keeps legacy deploys working; 32+ chars (>=256 bits via
+  // `openssl rand -hex 32`) is the quantum margin — warn once below that.
   if (!p || p.length < 16) {
-    throw new Error("BOT_KEY_PEPPER missing or too short (>=16 chars required).");
+    throw new Error("BOT_KEY_PEPPER missing or too short (>=16 chars required, 32+ recommended).");
   }
   return p;
+}
+
+/** True when the pepper meets the 256-bit post-quantum margin (>=32 chars). */
+export function botPepperQuantumReady(): boolean {
+  return (process.env.BOT_KEY_PEPPER ?? "").length >= 32;
+}
+
+let pepperWarned = false;
+/** Log-once guidance when a legacy 16-31 char pepper is in use. */
+export function warnLegacyPepper(): void {
+  if (pepperWarned || botPepperQuantumReady()) return;
+  pepperWarned = true;
+  try {
+    console.warn("[bot-auth] BOT_KEY_PEPPER <32 chars: rotate to `openssl rand -hex 32` for PQ margin.");
+  } catch {
+    // logging must never break auth
+  }
 }
 
 /** Server has what it needs to resolve bot keys (URL + service_role). */
@@ -121,7 +146,7 @@ export function botPepperConfigured(): boolean {
   return p.length >= 16;
 }
 
-/** Generate a fresh secret: 'bot4weird_' + 20 chars from [A-Za-z0-9]. */
+/** Generate a fresh secret: 'bot4weird_' + 32 chars from [A-Za-z0-9] (~190 bits). */
 export function generateBotKey(): string {
   let suffix = "";
   while (suffix.length < BOT_KEY_SUFFIX_LEN) {
@@ -139,8 +164,14 @@ export function generateBotKey(): string {
 
 /** Stored hash: scrypt(pepper + key) hex. Slow KDF resists offline brute force. */
 export function sha256Hash(key: string): string {
-  // Name kept for callers; now scrypt (N=16384,r=8,p=1, 32-byte output).
-  // Legacy sha256 rows still verify via verifyKeyHash fallback below.
+  // Name kept for callers; now scrypt (N=32768,r=8,p=1, 32-byte output).
+  // N=16384 + legacy sha256 rows still verify via verifyKeyHash fallback.
+  warnLegacyPepper();
+  return (scryptSync(pepper() + key, "bot4weird-v1", 32, { N: 32768, r: 8, p: 1 }) as Buffer).toString("hex");
+}
+
+/** Hash with the pre-hardening cost (verify-only for legacy rows). */
+function sha256HashLegacyCost(key: string): string {
   return (scryptSync(pepper() + key, "bot4weird-v1", 32, { N: 16384, r: 8, p: 1 }) as Buffer).toString("hex");
 }
 
@@ -161,6 +192,12 @@ function verifyKeyHash(presentedKey: string, storedHex: string): boolean {
       const b = Buffer.from(sha256Hash(presentedKey), "hex");
       if (b.length === 32 && timingSafeEqual(a, b)) return true;
     } catch {
+      // fall through to older-cost + legacy checks
+    }
+    try {
+      const old = Buffer.from(sha256HashLegacyCost(presentedKey), "hex");
+      if (old.length === 32 && timingSafeEqual(a, old)) return true;
+    } catch {
       // fall through to legacy check
     }
     const legacy = Buffer.from(legacySha256(presentedKey), "hex");
@@ -168,6 +205,17 @@ function verifyKeyHash(presentedKey: string, storedHex: string): boolean {
     return timingSafeEqual(a, legacy);
   } catch {
     return false;
+  }
+}
+
+/** True when the stored row predates the PQ cost (needs opportunistic rehash). */
+function needsRehash(storedHex: string, presentedKey: string): boolean {
+  try {
+    const a = Buffer.from(storedHex, "hex");
+    const b = Buffer.from(sha256Hash(presentedKey), "hex");
+    return !(a.length === 32 && b.length === 32 && timingSafeEqual(a, b));
+  } catch {
+    return true;
   }
 }
 
@@ -287,6 +335,14 @@ export function keyHasScope(bot: BotIdentity, scope: string): boolean {
 
 function dummyCompare(digest: Buffer): void {
   try {
+    // Burn ~1 KDF so unknown-prefix misses cost roughly like a single
+    // candidate verify (narrows the prefix-existence timing oracle without
+    // burning 100x scrypt like a full bucket scan would).
+    try {
+      scryptSync(randomBytes(16), "bot4weird-v1", 32, { N: 16384, r: 8, p: 1 });
+    } catch {
+      // fall through to the cheap compare
+    }
     timingSafeEqual(digest, randomBytes(32));
   } catch {
     // compare is best-effort hardening; never fail auth on it.
@@ -402,18 +458,26 @@ export async function resolveBotKey(req: Request): Promise<BotIdentity | null> {
 
   try {
     const db = serviceClient();
-    // Fire-and-forget usage counters; never blocks or fails the request.
+    // Fire-and-forget usage counters + opportunistic PQ rehash; never blocks
+    // or fails the request. Rehash upgrades legacy N=16384/sha256 rows to
+    // N=32768 on successful use (no forced rotation, no lockout).
     try {
       const day = todayDay();
       const rolled = String(matched.daily_day ?? "") !== day;
+      const patch: Record<string, unknown> = {
+        last_used_at: new Date().toISOString(),
+        use_count: (Number(matched.use_count) || 0) + 1,
+        daily_spent: rolled ? 0 : Number(matched.daily_spent) || 0,
+        daily_day: day,
+      };
+      try {
+        if (needsRehash(matched.key_hash, raw)) patch.key_hash = sha256Hash(raw);
+      } catch {
+        // keep counters even when rehash fails
+      }
       void db
         .from("bot_api_keys")
-        .update({
-          last_used_at: new Date().toISOString(),
-          use_count: (Number(matched.use_count) || 0) + 1,
-          daily_spent: rolled ? 0 : Number(matched.daily_spent) || 0,
-          daily_day: day,
-        })
+        .update(patch)
         .eq("id", matched.id)
         .then(
           () => undefined,

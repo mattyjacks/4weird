@@ -77,5 +77,6 @@ export function bandMinAge(band: string): number {
 }
 
 export const KID_SESSION_COOKIE = "kid_session";
-export const KID_SESSION_DAYS = 30;
+/** 7-day child sessions (PQ HNDL window): sliding refresh extends while active. */
+export const KID_SESSION_DAYS = 7;
 export const MAX_KIDS_PER_PARENT = 10;

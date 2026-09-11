@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { meshyWebhookSecret } from "@/lib/meshy";
@@ -29,11 +29,15 @@ function header(req: Request, name: string): string {
   return String(req.headers.get(name) ?? req.headers.get(name.toLowerCase()) ?? "").trim();
 }
 
+// Per-boot compare key: cross-request comparison oracles die with the
+// instance. Generated once via crypto randomness; never logged/exported.
+const COMPARE_KEY = randomBytes(32);
+
 function safeEqual(a: string, b: string): boolean {
   if (!a || !b) return false;
   // Hash both sides first so length differences leak nothing via early exit.
-  const ah = createHmac("sha256", "meshy-webhook-compare").update(a).digest();
-  const bh = createHmac("sha256", "meshy-webhook-compare").update(b).digest();
+  const ah = createHmac("sha256", COMPARE_KEY).update(a).digest();
+  const bh = createHmac("sha256", COMPARE_KEY).update(b).digest();
   try {
     return timingSafeEqual(ah, bh);
   } catch {

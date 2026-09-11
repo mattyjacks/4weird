@@ -221,6 +221,18 @@ export function initDOM() {
   el.botTokenStatus = document.getElementById('bot-token-status');
   el.botTokenIdentity = document.getElementById('bot-token-identity');
 
+  el.btnFalKey = document.getElementById('btn-fal-key');
+  el.falKeyDrawer = document.getElementById('fal-key-drawer');
+  el.btnCloseFalDrawer = document.getElementById('btn-close-fal-drawer');
+  el.falKeyInput = document.getElementById('fal-key-input');
+  el.falTestPrompt = document.getElementById('fal-test-prompt');
+  el.btnSaveFalKey = document.getElementById('btn-save-fal-key');
+  el.btnVerifyFalKey = document.getElementById('btn-verify-fal-key');
+  el.btnCheapTestFalKey = document.getElementById('btn-cheap-test-fal-key');
+  el.btnClearFalKey = document.getElementById('btn-clear-fal-key');
+  el.falKeyStatus = document.getElementById('fal-key-status');
+  el.falKeyPreview = document.getElementById('fal-key-preview');
+
   el.rsoGenNum = document.getElementById('rso-gen-num');
   el.rsoRewardVal = document.getElementById('rso-reward-val');
   el.rsoActionsSucc = document.getElementById('rso-actions-succ');

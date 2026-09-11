@@ -86,7 +86,14 @@ export async function POST(req: Request) {
   if (!label) return fail("Label needs 1-40 characters.", 400);
 
   // ---- Optional power-manager policy (all validated, all safe-defaulted) ----
-  const expiresAt = cleanExpiryIso(input.expires_at ?? input.expiresAt ?? "");
+  // Quantum hygiene: keys default to 180-day expiry (max 5y on request).
+  // Pass expires_at:"" explicitly only to keep a legacy never-expiring key.
+  const rawExpiry = input.expires_at ?? input.expiresAt;
+  const defaultExpiry =
+    rawExpiry === undefined || rawExpiry === null || String(rawExpiry).trim() === ""
+      ? new Date(Date.now() + 180 * 24 * 3600 * 1000).toISOString()
+      : rawExpiry;
+  const expiresAt = cleanExpiryIso(defaultExpiry);
   if (expiresAt === null) return fail("Expiry must be a future date (max 5 years).", 400);
   const maxUses = cleanMaxUses(input.max_uses ?? input.maxUses ?? 0);
   if (maxUses < 0) return fail("max_uses must be 0 (unlimited) to 10,000,000.", 400);

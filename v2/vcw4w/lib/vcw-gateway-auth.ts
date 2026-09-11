@@ -28,7 +28,8 @@
 import { createHash, randomBytes, timingSafeEqual } from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
-import { keyHasScope, resolveBotKey, sha256Hash } from "@/lib/bot-auth";
+import { botPepperConfigured, keyHasScope, resolveBotKey, sha256Hash } from "@/lib/bot-auth";
+import { VCW_GATEWAY_KEY_TAG } from "@/lib/vcw-gateway";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/validate";
 
@@ -41,7 +42,6 @@ export interface VcwCaller {
   scopes: string[];
 }
 
-export const VCW_GATEWAY_KEY_TAG = "vcw_live_";
 export const VCW_READ_SCOPE = "vcw:read";
 export const VCW_WRITE_SCOPE = "vcw:write";
 
@@ -144,6 +144,13 @@ async function resolveGatewayKey(req: Request): Promise<VcwCaller | null> {
     dummyCompare();
     return null;
   }
+  // Fail closed without a pepper: deny gateway-key auth, burn dummy compare.
+  // (Issuance already gates on botPepperConfigured; without it no key could
+  // have been hashed with scrypt, so any comparison would be meaningless.)
+  if (!botPepperConfigured()) {
+    dummyCompare();
+    return null;
+  }
   // Gentle per-IP attempt throttle; exhaustion collapses to the uniform null.
   try {
     const throttle = rateLimit(`vcw:gateway:auth:${clientIp(req)}`, 120, 60_000);
@@ -159,7 +166,17 @@ async function resolveGatewayKey(req: Request): Promise<VcwCaller | null> {
   let candidates: GatewayKeyCandidate[] = [];
   try {
     const db = serviceClient();
-    const { data, error } = await db.from("vcw_api_keys").select("*").eq("prefix", prefix).limit(100);
+    // Explicit columns only: key hashes stay in memory for comparison and
+    // never leave this module (never returned, never logged).
+    const { data, error } = await db
+      .from("vcw_api_keys")
+      .select(
+        "id,user_id,key_hash,revoked,expires_at,max_uses,use_count," +
+          "lifetime_budget,lifetime_spent,daily_budget,daily_spent,daily_day," +
+          "hard_stop_enabled,low_balance_floor,scopes",
+      )
+      .eq("prefix", prefix)
+      .limit(100);
     if (error) {
       dummyCompare();
       return null;

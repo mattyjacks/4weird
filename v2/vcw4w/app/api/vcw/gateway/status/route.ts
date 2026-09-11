@@ -1,5 +1,6 @@
 import { dbFail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
+import { clientIp } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,9 @@ export const dynamic = "force-dynamic";
  * route through dbFail so the shape stays honest if a future check queries.
  */
 export async function GET(req: Request) {
-  const rl = rateLimit(`vcw:gateway:status:${req.headers.get("x-forwarded-for") ?? "anon"}`, 60, 60_000);
+  // clientIp() trusts the Vercel edge header first; raw x-forwarded-for is
+  // client-spoofable, so it is never used directly as a throttle key.
+  const rl = rateLimit(`vcw:gateway:status:${clientIp(req)}`, 60, 60_000);
   if (!rl.allowed) {
     return dbFail("vcw/gateway/status", { code: "429" }, "Rate limited.");
   }

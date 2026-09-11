@@ -84,6 +84,17 @@ export async function POST(req: Request) {
   const bytes = new Uint8Array(buf);
   const kind = MAGIC.find((m) => m.check(bytes));
   if (!kind) return fail("Not a supported image (PNG/JPEG/WebP/GIF only).", 400);
+  // Polyglot guard: magic bytes alone don't prove "just an image" — an
+  // HTML/JS payload appended after a valid header still served from a
+  // trusted origin is stored XSS. Scan head+tail for active markup.
+  {
+    const head = buf.subarray(0, Math.min(buf.length, 2048)).toString("latin1").toLowerCase();
+    const tail = buf.subarray(Math.max(0, buf.length - 2048)).toString("latin1").toLowerCase();
+    const blob = `${head}\n${tail}`;
+    if (/<html|<\s*script|<\s*iframe|<\s*object|<\s*embed|<\s*svg|<\?php|javascript\s*:|on\w+\s*=/.test(blob)) {
+      return fail("Image contains embedded active content.", 400);
+    }
+  }
 
   const sha256 = createHash("sha256").update(buf).digest("hex");
   const path = `${u.id}/${sha256}.${kind.ext}`;

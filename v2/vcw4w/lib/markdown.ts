@@ -20,9 +20,14 @@ function escapeHtml(s: string): string {
 }
 
 function inlineMd(escaped: string): string {
-  let s = escaped;
-  // Inline code first (contents already escaped, so backticks are literal).
-  s = s.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+  // Mask inline code spans before other inline passes so `[text](https://…)`
+  // inside backticks stays inert text (phishing-resistant). Placeholders are
+  // restored after link/bold processing.
+  const codeSpans: string[] = [];
+  let s = escaped.replace(/`([^`\n]+)`/g, (_m, inner: string) => {
+    codeSpans.push(`<code>${inner}</code>`);
+    return `\u0000CODE${codeSpans.length - 1}\u0000`;
+  });
   // Bold / italic / strikethrough.
   s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   s = s.replace(/(^|[^*\w])\*([^*\n]+)\*/g, "$1<em>$2</em>");
@@ -34,6 +39,7 @@ function inlineMd(escaped: string): string {
     /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
     '<a href="$2" target="_blank" rel="noopener nofollow ugc">$1</a>',
   );
+  s = s.replace(/\u0000CODE(\d+)\u0000/g, (_m, idx: string) => codeSpans[Number(idx)] ?? "");
   return s;
 }
 

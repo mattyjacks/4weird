@@ -93,6 +93,9 @@ export async function PATCH(req: Request) {
   const isPublic = input.is_profile_public === undefined ? undefined : Boolean(input.is_profile_public);
   // user_id is forced from the session; RLS re-checks it. A client-supplied
   // id field is ignored entirely.
+  // TOCTOU guard: re-check kids AFTER the update when opting out — a child
+  // created in the race window flips the role back to parent instead of
+  // leaving solo-with-kids.
   const { error } = await supabase
     .from("profiles")
     .update({
@@ -103,6 +106,18 @@ export async function PATCH(req: Request) {
       ...(isPublic !== undefined ? { is_profile_public: isPublic } : {}),
     })
     .eq("id", u.id);
+  if (!error && role === "solo") {
+    try {
+      const service = serviceClient();
+      const { count: after } = await service.from("kid_accounts").select("id", { count: "exact", head: true }).eq("parent_id", u.id);
+      if ((after ?? 0) > 0) {
+        await service.from("profiles").update({ family_role: "parent" }).eq("id", u.id);
+        return fail("A child account appeared during the update; staying as parent.", 409);
+      }
+    } catch {
+      // re-check is best-effort; the pre-check above already gated
+    }
+  }
   if (error) {
     // 409 only on unique-violation; all other DB faults are generic 500 to
     // avoid a handle-existence oracle.

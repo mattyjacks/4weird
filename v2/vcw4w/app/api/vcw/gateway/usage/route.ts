@@ -20,9 +20,11 @@ export async function GET(req: Request) {
 
   try {
     const db = serviceClient();
+    // Explicit columns: vcw_usage carries no secrets, but SELECT * would
+    // silently widen this payload if a sensitive column is ever added.
     const { data, error } = await db
       .from("vcw_usage")
-      .select("*")
+      .select("id,op,qty,gross,cut,provider,source,run_id,key_id,created_at")
       .eq("user_id", caller.userId)
       .order("created_at", { ascending: false })
       .limit(50);

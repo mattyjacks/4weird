@@ -55,18 +55,25 @@ for (const token of ["VCW_BYOK_KINDS", "redactSecrets", "decideRoute", "last4Of"
   if (!byok.includes(token)) throw new Error(`vcw-byok lib missing ${token}.`);
 }
 
-// Gateway auth: bot-key caller resolution + write-scope gate.
+// Gateway auth: caller resolution + write-scope gate + pepper fail-closed.
 const auth = read("../lib/vcw-gateway-auth.ts");
-for (const token of ["resolveVcwCaller", "vcwWriteScope"]) {
+for (const token of ["resolveVcwCaller", "vcwWriteScope", "botPepperConfigured"]) {
   if (!auth.includes(token)) throw new Error(`vcw-gateway-auth lib missing ${token}.`);
 }
+// Keygen must avoid modulo bias (rejection sampling like bot keys).
+if (!read("../lib/vcw-gateway.ts").includes("modulo bias")) {
+  throw new Error("vcw-gateway keygen must avoid modulo bias.");
+}
 
-// Gateway routes: keys/usage/dispatch are authenticated + rate limited with
-// dbFail; status is the public-status exception (rate limited, may be public).
+// Gateway routes: keys/usage/dispatch/providers are authenticated +
+// rate limited with dbFail; status is the public-status exception.
 const authedRoutes = [
   "../app/api/vcw/gateway/keys/route.ts",
+  "../app/api/vcw/gateway/keys/[id]/route.ts",
   "../app/api/vcw/gateway/usage/route.ts",
   "../app/api/vcw/gateway/dispatch/route.ts",
+  "../app/api/vcw/gateway/providers/route.ts",
+  "../app/api/vcw/gateway/providers/[id]/route.ts",
 ];
 for (const file of authedRoutes) {
   const src = read(file);
@@ -85,6 +92,27 @@ if (!status.includes("Authentication required") && !status.toLowerCase().include
   throw new Error(
     "../app/api/vcw/gateway/status/route.ts must require auth or be the documented public-status exception.",
   );
+}
+// Status must not trust raw x-forwarded-for (spoofable); use clientIp().
+if (status.includes('headers.get("x-forwarded-for")')) {
+  throw new Error("../app/api/vcw/gateway/status/route.ts must use clientIp(), not raw x-forwarded-for.");
+}
+// Revocation must exist and take effect immediately (revoked flag checked per request).
+const revoke = read("../app/api/vcw/gateway/keys/[id]/route.ts");
+if (!revoke.includes("revoked: true") || !revoke.includes("sameOrigin")) {
+  throw new Error("gateway keys/[id] must revoke owner-only with sameOrigin.");
+}
+if (!auth.includes("matched.revoked") && !auth.includes("matched || matched.revoked")) {
+  throw new Error("vcw-gateway-auth must enforce revoked on every request.");
+}
+// BYOK refs must never accept secrets (last4 only).
+const providers = read("../app/api/vcw/gateway/providers/route.ts");
+for (const token of ["Never send API keys", "last4", "https:"]) {
+  if (!providers.includes(token)) throw new Error(`gateway providers route missing ${token}.`);
+}
+// Spend view must not leak cross-user aggregates (security_invoker + revoke).
+if (!migration.includes("security_invoker") || !migration.includes("v_vcw_spend")) {
+  throw new Error(`${migrationFile} must lock v_vcw_spend with security_invoker.`);
 }
 
 // Package gate wiring.

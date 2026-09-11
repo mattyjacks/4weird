@@ -6,16 +6,17 @@ import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
 import { clientIp, isLoginPassword } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
-import { parseKidHandle } from "@/lib/family";
-import { getKidSession, kidSessionCookie, newKidToken, verifyKidPassword } from "@/lib/kid-session";
+import { KID_SESSION_DAYS, parseKidHandle } from "@/lib/family";
+import { dummyKidPasswordVerify, getKidSession, kidSessionCookie, newKidToken, verifyKidPassword } from "@/lib/kid-session";
 
 export const dynamic = "force-dynamic";
 
 /**
  * POST /api/family/kid-login {handle: "name#1234", password}; child sign-in
- * WITHOUT a Supabase user. Verifies the scrypt password, mints a 30-day
- * token session, and sets an httpOnly `kid_session` cookie. Strictly
- * IP-rate-limited (credential-stuffing shield for the 4-digit namespace).
+ * WITHOUT a Supabase user. Verifies the scrypt password, mints a 7-day
+ * token session (sliding refresh), and sets an httpOnly `kid_session`
+ * cookie. Strictly IP-rate-limited (credential-stuffing shield for the
+ * 4-digit namespace). Misses burn a dummy KDF so timing reveals nothing.
  */
 export async function POST(req: NextRequest) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
@@ -57,15 +58,20 @@ export async function POST(req: NextRequest) {
     .eq("discriminator", parsed.discriminator)
     .maybeSingle();
   if (error) return dbFail("api/family/kid-login", error, "Login is down. Try again shortly.");
-  // One generic failure: no handle oracle, no status oracle.
-  if (!kid || kid.status !== "active" || !verifyKidPassword(password, String(kid.password_hash))) {
+  // One generic failure: no handle oracle, no status oracle, no timing
+  // oracle (dummy KDF on miss/inactive matches a real verify's cost).
+  if (!kid || kid.status !== "active") {
+    dummyKidPasswordVerify();
+    return fail("Wrong handle or password.", 401);
+  }
+  if (!verifyKidPassword(password, String(kid.password_hash))) {
     return fail("Wrong handle or password.", 401);
   }
   const { token, tokenHash } = newKidToken();
   const { error: sessionError } = await service.from("kid_sessions").insert({
     kid_id: kid.id,
     token_hash: tokenHash,
-    expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    expires_at: new Date(Date.now() + KID_SESSION_DAYS * 24 * 60 * 60 * 1000).toISOString(),
   });
   if (sessionError) return dbFail("api/family/kid-login", sessionError, "Login is down. Try again shortly.");
   await service.from("kid_accounts").update({ last_login_at: new Date().toISOString() }).eq("id", kid.id);

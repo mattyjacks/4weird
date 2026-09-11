@@ -262,8 +262,12 @@ end; $$;
 revoke all on function public.my_vcw_usage() from public, anon, authenticated;
 grant execute on function public.my_vcw_usage() to authenticated;
 
--- Spend view (per user + op; RLS still applies via base table).
-create or replace view public.v_vcw_spend as
+-- Spend view (per user + op). SECURITY INVOKER so the view respects the
+-- caller's RLS on vcw_usage instead of leaking cross-user aggregates under
+-- the view owner's rights. Revoked from anon/authenticated direct access;
+-- read it through service_role or the my_vcw_usage() RPC instead.
+drop view if exists public.v_vcw_spend;
+create or replace view public.v_vcw_spend with (security_invoker = true) as
 select
   user_id,
   op,
@@ -273,6 +277,7 @@ select
   coalesce(sum(provider), 0)::numeric(12, 2) as provider
 from public.vcw_usage
 group by user_id, op;
+revoke all on table public.v_vcw_spend from public, anon, authenticated;
 
 -- 9. meter_vcw_usage_for: service-role metering for key callers (bot keys,
 -- gateway vcw_live_ keys) that carry no Supabase session, so auth.uid() is

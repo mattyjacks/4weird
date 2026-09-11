@@ -194,10 +194,20 @@ function ipv4ToInt(ip: string): number | null {
   return ((p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3]) >>> 0;
 }
 
-/** Exact match, or IPv4 CIDR subnet match. IPv6 matches exactly only. */
+/** Normalize for comparison: lowercase, strip %zone, expand 4-in-6. */
+export function normalizeIp(ip: string): string {
+  let v = String(ip ?? "").trim().toLowerCase();
+  const pct = v.indexOf("%");
+  if (pct >= 0) v = v.slice(0, pct);
+  if (v.startsWith("::ffff:")) v = v.slice(7);
+  return v;
+}
+
+/** Exact match (normalized), or IPv4 CIDR subnet match. IPv6 matches exactly only. */
 export function ipMatchesList(ip: string, list: string[]): boolean {
-  const needle = ip.trim();
-  for (const entry of list) {
+  const needle = normalizeIp(ip);
+  for (const rawEntry of list) {
+    const entry = normalizeIp(rawEntry);
     if (entry === needle) return true;
     const slash = entry.indexOf("/");
     if (slash > 0) {

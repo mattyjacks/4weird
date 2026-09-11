@@ -17,9 +17,21 @@
 
 export const RUNPOD_API_BASE_DEFAULT = "https://api.runpod.io/v2";
 
+const RUNPOD_API_BASE_ALLOW = new Set(["https://api.runpod.io/v2", "https://api.runpod.ai/v2"]);
+
 export function runpodApiBase(): string {
   const raw = (process.env.RUNPOD_API_BASE ?? "").trim().replace(/\/+$/, "");
-  return raw || RUNPOD_API_BASE_DEFAULT;
+  // Allowlist https bases only: an operator typo (or http) must never send
+  // the Bearer key off-domain. Unknown values fail closed to the default.
+  if (!raw) return RUNPOD_API_BASE_DEFAULT;
+  try {
+    const u = new URL(raw);
+    if (u.protocol !== "https:") return RUNPOD_API_BASE_DEFAULT;
+    if (RUNPOD_API_BASE_ALLOW.has(`${u.origin}${u.pathname}`.replace(/\/+$/, ""))) return raw;
+    return RUNPOD_API_BASE_DEFAULT;
+  } catch {
+    return RUNPOD_API_BASE_DEFAULT;
+  }
 }
 
 export function runpodConfigured(): boolean {

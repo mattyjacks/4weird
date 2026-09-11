@@ -16,23 +16,25 @@ export async function GET(req: Request) {
   const clanId = new URL(req.url).searchParams.get("clan_id")?.trim() ?? "";
   if (!clanId) return fail("clan_id required.", 400);
   const supabase = await createClient();
-  const [{ data: quests }, { data: completions }] = await Promise.all([
-    supabase
-      .from("clan_quests")
-      .select("id,clan_id,title,reward_ll,active,created_at")
-      .eq("clan_id", clanId)
-      .order("created_at", { ascending: false })
-      .limit(50),
-    supabase
+  const { data: quests } = await supabase
+    .from("clan_quests")
+    .select("id,clan_id,title,reward_ll,active,created_at")
+    .eq("clan_id", clanId)
+    .order("created_at", { ascending: false })
+    .limit(50);
+  // Scope completions to THIS clan's quests in SQL (never leak other clans'
+  // member activity through the unfiltered 500-row window).
+  const questIds = ((quests ?? []) as { id: string }[]).map((q) => q.id);
+  let completions: unknown[] = [];
+  if (questIds.length > 0) {
+    const { data } = await supabase
       .from("clan_quest_completions")
       .select("quest_id,user_id,created_at")
-      .limit(500),
-  ]);
-  const questIds = new Set(((quests ?? []) as { id: string }[]).map((q) => q.id));
-  return ok({
-    quests: quests ?? [],
-    completions: ((completions ?? []) as { quest_id: string }[]).filter((c) => questIds.has(c.quest_id)),
-  });
+      .in("quest_id", questIds)
+      .limit(500);
+    completions = data ?? [];
+  }
+  return ok({ quests: quests ?? [], completions });
 }
 
 export async function POST(req: Request) {
@@ -75,6 +77,10 @@ export async function POST(req: Request) {
     const questId = String(input.quest_id ?? "").trim();
     const userId = String(input.user_id ?? "").trim();
     if (!questId || !userId) return fail("quest_id + user_id required.", 400);
+    // No self-mint: owners/mods complete quests for OTHER members only.
+    // (Two-account collusion still needs velocity monitoring; this kills the
+    // unbounded single-account loop.)
+    if (userId === u.id) return fail("Quests reward other members, not yourself.", 400);
     const { error } = await supabase.rpc("complete_clan_quest", { p_quest_id: questId, p_user_id: userId });
     if (error) {
       const msg = String(error.message ?? "");

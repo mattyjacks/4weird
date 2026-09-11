@@ -82,7 +82,9 @@ export async function POST(req: Request) {
       // Anti-enumeration: an existing address gets the same shape as a new
       // signup, without a session. (No confirmation emails are sent.)
       if (/already registered|already exists/i.test(error.message ?? "")) {
-        return ok({ user: null, note: "If this email is new, the account was created. Try logging in." });
+        // Same shape as a fresh signup (trialAwarded present) so the branch
+        // isn't a trivial fingerprint beyond the inherent user null/object.
+        return ok({ user: null, trialAwarded: false, age_band: null, note: "If this email is new, the account was created. Try logging in." });
       }
       // Never reflect provider internals: generic failure, no oracle.
       return fail("Signup failed. Try again.", 400);

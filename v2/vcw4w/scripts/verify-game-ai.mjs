@@ -1,6 +1,6 @@
 import fs from "node:fs";
 
-const read = (file) => fs.readFileSync(new URL(file, import.meta.url), "utf8");
+const read = (file) => fs.readFileSync(new URL(file, import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const economy = read("../lib/economy.ts");
 const gameAi = read("../lib/game-ai.ts");
 const catalog = read("../lib/cloud-catalog.ts");

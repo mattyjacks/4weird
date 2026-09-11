@@ -170,4 +170,4 @@ npm test   # sync + 24 verify scripts + eslint + tsc
 npm run build
 ```
 
-Supabase changes: add a rerunnable migration (`IF NOT EXISTS / OR REPLACE / DROP ... IF EXISTS` before every policy/trigger), regen the runbook bundle, and extend `scripts/verify-*.mjs` when you add a subsystem. Latest migration: `20261015000000_scale_prune_tribute.sql` (10k orgs / 100k clans, pruning, headroom, supporters, tribute commons) guarded by `scripts/verify-scale-tribute.mjs`.
+Supabase changes: add a rerunnable migration (`IF NOT EXISTS / OR REPLACE / DROP ... IF EXISTS` before every policy/trigger), regen the runbook bundle, and extend `scripts/verify-*.mjs` when you add a subsystem. Latest migration: `20261021000000_quantum_hardening.sql` (7-day kid sessions, quest no-self-mint) guarded by `scripts/verify-quantum-hardening.mjs`.

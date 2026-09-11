@@ -205,7 +205,15 @@ export function falApiBase(): string {
     typeof process !== "undefined"
       ? String(process.env.FAL_API_BASE ?? "").trim().replace(/\/+$/, "")
       : "";
-  return raw || FAL_API_BASE_DEFAULT;
+  if (!raw) return FAL_API_BASE_DEFAULT;
+  try {
+    const u = new URL(raw);
+    if (u.protocol !== "https:") return FAL_API_BASE_DEFAULT;
+    if (u.hostname !== "queue.fal.run" && !u.hostname.endsWith(".fal.run")) return FAL_API_BASE_DEFAULT;
+    return raw;
+  } catch {
+    return FAL_API_BASE_DEFAULT;
+  }
 }
 
 export function falConfigured(): boolean {

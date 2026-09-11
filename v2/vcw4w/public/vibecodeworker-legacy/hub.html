@@ -67,6 +67,7 @@
         <span id="system-time">00:00:00</span>
         <button id="audio-toggle" type="button">SYNTH: ON</button>
         <button id="btn-bot-token" type="button">BOT TOKEN</button>
+        <button id="btn-fal-key" type="button">FAL KEY</button>
         <button id="btn-auth-lock" type="button">LOCK</button>
       </div>
     </header>
@@ -433,6 +434,24 @@
     <button id="btn-clear-bot-token" type="button">CLEAR</button>
     <span id="bot-token-status"></span>
     <span id="bot-token-identity"></span>
+  </div>
+
+  <!-- fal.ai KEY DRAWER -->
+  <div id="fal-key-drawer" class="drawer hidden">
+    <button id="btn-close-fal-drawer" type="button">CLOSE</button>
+    <h3>fal.ai API KEY</h3>
+    <p>Paste a fal.ai key so this desktop app can queue real media runs (art, video, voice).
+      Grab one at <a href="https://fal.ai/dashboard/keys" target="_blank" rel="noreferrer">fal.ai/dashboard/keys</a>.
+      Desktop builds store it in a local-only OS app-data file, never logged. VERIFY is a free
+      probe ($0.00); CHEAP TEST renders one 512px image for fractions of a cent.</p>
+    <input id="fal-key-input" type="password" autocomplete="off" spellcheck="false" placeholder="fal key…" aria-label="fal.ai API key">
+    <input id="fal-test-prompt" type="text" autocomplete="off" spellcheck="false" placeholder="cheap test prompt (optional)" aria-label="Cheap test prompt" value="a tiny neon arcade cabinet, pixel sticker">
+    <button id="btn-save-fal-key" type="button">SAVE</button>
+    <button id="btn-verify-fal-key" type="button">VERIFY (FREE)</button>
+    <button id="btn-cheap-test-fal-key" type="button">CHEAP TEST ✨</button>
+    <button id="btn-clear-fal-key" type="button">CLEAR</button>
+    <span id="fal-key-status"></span>
+    <div id="fal-key-preview"></div>
   </div>
 
   <!-- PHONE REMOTE -->

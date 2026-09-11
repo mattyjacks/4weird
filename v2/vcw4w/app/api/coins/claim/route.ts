@@ -42,10 +42,13 @@ export async function POST(req: Request) {
   if (supabaseServiceRoleKey()) {
     try {
       const db = serviceClient();
+      // Exact-lower match (not ilike): grants are written lowercased by the
+      // webhook, so `User@x.com ≡ user@x.com` can't claim a differently-cased
+      // row and whitespace/case variants can't shadow ownership.
       const { data: pending, error: qErr } = await db
         .from("coin_grants")
         .select("id,coins,shopify_order_name")
-        .ilike("email", user.email)
+        .eq("email", String(user.email).trim().toLowerCase())
         .eq("claimed", false);
       if (qErr) return dbFail("api/coins/claim", qErr);
       let claimed = 0;

@@ -33,8 +33,17 @@ export function extractTextSamples(buf: Buffer): ExtractedFile[] {
       const uncompSize = view.getUint32(off + 22, true);
       const nameLen = view.getUint16(off + 26, true);
       const extraLen = view.getUint16(off + 28, true);
-      // Zip-bomb pre-guard: reject absurd compression ratios before inflating.
-      if (method === 8 && compSize > 0 && uncompSize > compSize * 200) break;
+      // Zip-bomb pre-guard: skip absurd-ratio entries WITHOUT blinding the
+      // rest of the archive (break here let one leading entry hide every
+      // later payload from the audit; continue keeps scanning).
+      if (method === 8 && compSize > 0 && uncompSize > compSize * 200) {
+        const skipNameLen = view.getUint16(off + 26, true);
+        const skipExtraLen = view.getUint16(off + 28, true);
+        const skipDataStart = off + 30 + skipNameLen + skipExtraLen;
+        off = Math.min(b.length, skipDataStart + compSize);
+        if (off <= skipDataStart) break;
+        continue;
+      }
       const nameStart = off + 30;
       const dataStart = nameStart + nameLen + extraLen;
       if (dataStart > b.length) break;

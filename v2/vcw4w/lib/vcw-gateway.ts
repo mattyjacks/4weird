@@ -106,12 +106,14 @@ const GATEWAY_KEY_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx
 
 /** New random gateway secret: tag + 32 alphanumeric chars. Show once, hash, never store. */
 export function generateVcwGatewayKey(): string {
-  const bytes = new Uint8Array(VCW_GATEWAY_KEY_LEN);
+  const bytes = new Uint8Array(VCW_GATEWAY_KEY_LEN * 2);
   globalThis.crypto.getRandomValues(bytes);
   let suffix = "";
-  for (let i = 0; i < bytes.length; i += 1) {
-    suffix += GATEWAY_KEY_ALPHABET[bytes[i] % GATEWAY_KEY_ALPHABET.length];
+  for (let i = 0; i < bytes.length && suffix.length < VCW_GATEWAY_KEY_LEN; i += 1) {
+    // 248 = 4 * 62: drop the tail to avoid modulo bias (same as bot keys).
+    if (bytes[i] < 248) suffix += GATEWAY_KEY_ALPHABET[bytes[i] % 62];
   }
+  if (suffix.length < VCW_GATEWAY_KEY_LEN) throw new Error("Key generation failed; retry.");
   return `${VCW_GATEWAY_KEY_TAG}${suffix}`;
 }
 

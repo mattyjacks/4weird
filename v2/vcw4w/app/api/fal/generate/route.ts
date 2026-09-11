@@ -4,6 +4,7 @@ import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { requireHuman } from "@/lib/botid";
+import { checkEgressUrl } from "@/lib/ssrf-guard";
 import { rpcStatus } from "@/lib/agent-market";
 import {
   FAL_CUT_NOTE,
@@ -70,6 +71,12 @@ export async function POST(req: Request) {
   if (imageUrl && !isHttpsUrl(imageUrl)) return fail("Invalid image_url.", 400);
   const audioUrl = typeof input.audio_url === "string" ? input.audio_url : "";
   if (audioUrl && !isHttpsUrl(audioUrl)) return fail("Invalid audio_url.", 400);
+  // Vendor-fetch SSRF shield: fal.ai would fetch these URLs on our paid key,
+  // so validate egress (DNS-pinned, no private/link-local) before metering.
+  for (const u of [imageUrl, audioUrl].filter(Boolean)) {
+    const verdict = await checkEgressUrl(u);
+    if ("error" in verdict) return fail(`Blocked fetch target: ${verdict.error}`, 400);
+  }
 
   const sourceRaw = String(input.source ?? "fal-studio");
   const source = sourceRaw === "vcw" ? "vcw" : sourceRaw === "api" ? "api" : sourceRaw === "manual" ? "manual" : "fal-studio";

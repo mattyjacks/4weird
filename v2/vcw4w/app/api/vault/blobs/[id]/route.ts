@@ -74,7 +74,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         .eq("sha256", String(r.sha256))
         .maybeSingle();
       const storagePath = (blob as { storage_path?: string } | null)?.storage_path;
-      if (storagePath) {
+      // Scope-prefix check: the global blob row must live under this file's
+      // scope prefix, else a dedup alias could sign another scope's path.
+      const scopeId = String(r.scope === "personal" ? r.owner_id : r.scope === "team" ? r.team_id : r.org_id ?? "");
+      const expectedPrefix = `${r.scope}/${scopeId}/`;
+      if (storagePath && storagePath.startsWith(expectedPrefix)) {
         const { data: signed } = await svc.storage
           .from("game-blobs")
           .createSignedUrl(storagePath, 3600, { download: String(r.path ?? "download").split("/").pop() ?? "download" });

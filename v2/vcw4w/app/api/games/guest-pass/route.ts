@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
@@ -78,11 +78,15 @@ export async function POST(req: Request) {
   const used = countGuestLoad(ip);
   const adRequired = used > GUEST_FREE_LOADS_PER_DAY;
   const date = new Date().toISOString().slice(0, 10);
+  // HMAC (not plain sha) so the token can't be recomputed offline from a
+  // leaked salt guess; verifyGuestAdToken() below is the server-side check
+  // the next over-quota load presents. Falls back to unsalted hash only when
+  // no salt is configured (dev), matching the pre-hardening form.
+  const salt = process.env.SIGNUP_IP_HASH_SALT ?? "";
   const adToken = adRequired
-    ? createHash("sha256")
-        .update(`${process.env.SIGNUP_IP_HASH_SALT ?? "guest"}|${date}|${ip}|${game}|${used}`)
-        .digest("hex")
-        .slice(0, 32)
+    ? salt
+      ? createHmac("sha256", salt).update(`guest-ad|${date}|${ip}|${game}|${used}`).digest("hex").slice(0, 32)
+      : createHash("sha256").update(`guest|${date}|${ip}|${game}|${used}`).digest("hex").slice(0, 32)
     : null;
   return ok({
     allowed: true,
@@ -93,10 +97,27 @@ export async function POST(req: Request) {
     // After the free quota, every further load needs one (instantly
     // skippable) house-ad view first; the client enforces the interstitial
     // and must present ad_token on the next load (verified server-side where
-    // enforced).
+    // enforced via verifyGuestAdToken).
     ad_required: adRequired,
     ad: adRequired ? pickHouseAd(date, game) : null,
     ad_token: adToken,
     note: "Guests play free with ads. Sign in for cloud saves, multiplayer, AI, Buddy; and no ads.",
   });
+}
+
+/** Verify an ad_token issued for a previous over-quota load (HMAC form). */
+export function verifyGuestAdToken(token: unknown, ip: string, game: string, used: number, date: string): boolean {
+  const t = String(token ?? "");
+  if (!/^[0-9a-f]{32}$/.test(t)) return false;
+  const salt = process.env.SIGNUP_IP_HASH_SALT ?? "";
+  if (!salt) return false;
+  try {
+    const expect = createHmac("sha256", salt)
+      .update(`guest-ad|${date}|${ip}|${game}|${used}`)
+      .digest("hex")
+      .slice(0, 32);
+    return expect === t;
+  } catch {
+    return false;
+  }
 }

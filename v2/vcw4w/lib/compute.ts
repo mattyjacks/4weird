@@ -12,6 +12,7 @@
  * the caller must surface that state.
  */
 
+import { randomBytes } from "node:crypto";
 import { RUNPOD_AUTO_ENDPOINT } from "@/lib/agent-market";
 import type { DesktopKind } from "@/lib/desktop";
 import { DESKTOP_IMAGE_GUI, DESKTOP_PORTS_GUI } from "@/lib/desktop";
@@ -1036,12 +1037,15 @@ export function desktopWorkloadFor(kind: DesktopKind, iface: DesktopInterface = 
     throw new Error("Invalid desktop kind.");
   }
   if (kind === "gpu" || kind === "cpu") {
+    // Per-pod random VNC password (never the hardcoded "password" every pod
+    // shared): generated here, planted in env, returned once to the owner.
+    const vncPw = randomBytes(18).toString("base64url").slice(0, 24);
     return {
       kind,
       iface: "gui",
       image: DESKTOP_IMAGE_GUI,
       ports: [...DESKTOP_PORTS_GUI],
-      env: { VNC_PW: "password", DESKTOP_MODE: "kasm" },
+      env: { VNC_PW: vncPw, DESKTOP_MODE: "kasm" },
       port: 6901,
       // RunPod caps CPU pod container disks at 20 GB (HTTP 400 above it).
       diskGb: kind === "gpu" ? 60 : 20,
@@ -1061,6 +1065,8 @@ export type ProvisionDesktopResult =
       hourlyUsd: number;
       port: number;
       image: string;
+      /** GUI only: per-pod VNC password, shown once to the owner. */
+      vncPassword?: string;
     }
   | { error: ProvisionErrorCode; message?: string };
 
@@ -1168,6 +1174,7 @@ export async function provisionDesktopWorker(opts: {
       hourlyUsd: autoplayCpuHourly(best),
       port: workload.port,
       image: workload.image,
+      ...(workload.iface === "gui" ? { vncPassword: String(workload.env.VNC_PW ?? "") } : {}),
     };
   }
 
@@ -1215,5 +1222,6 @@ export async function provisionDesktopWorker(opts: {
     hourlyUsd: pick.hourlyUsd,
     port: workload.port,
     image: workload.image,
+    ...(workload.iface === "gui" ? { vncPassword: String(workload.env.VNC_PW ?? "") } : {}),
   };
 }

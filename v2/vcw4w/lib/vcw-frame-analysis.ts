@@ -181,8 +181,8 @@ export function fovealCenterRect(size: number, label = "center"): FovealRect {
 export function sanitizeFovealRect(raw: unknown): FovealRect {
   const r = (raw ?? {}) as Record<string, unknown>;
   const label = String(r.label ?? "detail").slice(0, 40) || "detail";
-  let w = clampFovealSize(Number(r.w ?? r.width));
-  let h = clampFovealSize(Number(r.h ?? r.height));
+  const w = clampFovealSize(Number(r.w ?? r.width));
+  const h = clampFovealSize(Number(r.h ?? r.height));
   let x = Number(r.x);
   let y = Number(r.y);
   if (!Number.isFinite(x)) x = 500 - w / 2;

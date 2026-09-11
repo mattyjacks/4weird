@@ -42,16 +42,33 @@ export async function POST(req: Request) {
     return fail("expires_hours must be 1..720.", 400);
   }
 
-  // Visibility through RLS: callers can only share files they can see.
+  // Explicit ownership/membership gate (RLS alone over-grants team files
+  // on public/internal teams): callers can only share files they own or
+  // belong to. Mirrors GET /api/vault/blobs/[id].
   const { data: visible, error: visErr } = await supabase
     .from("vault_files")
-    .select("id,quarantined")
+    .select("id,quarantined,scope,owner_id,team_id,org_id")
     .eq("id", fileId)
     .maybeSingle();
   if (visErr) return dbFail("api/vault/shares", visErr, "Unable to load file.");
   if (!visible) return fail("File not found.", 404);
-  if ((visible as { quarantined: boolean }).quarantined) {
-    return fail("Quarantined files cannot be shared.", 403);
+  {
+    const v = visible as { quarantined: boolean; scope: string; owner_id: string | null; team_id: string | null; org_id: string | null };
+    if (v.quarantined) return fail("Quarantined files cannot be shared.", 403);
+    let owns = v.scope === "personal" && v.owner_id === userId;
+    if (!owns && v.scope !== "personal") {
+      try {
+        const svc = serviceClient();
+        const table = v.scope === "team" ? "team_members" : "org_members";
+        const col = v.scope === "team" ? "team_id" : "org_id";
+        const scopeKey = String(v.scope === "team" ? v.team_id : v.org_id ?? "");
+        const { data: mem } = await svc.from(table).select("user_id").eq(col, scopeKey).eq("user_id", userId).maybeSingle();
+        owns = Boolean(mem);
+      } catch {
+        owns = false;
+      }
+    }
+    if (!owns) return fail("File not found.", 404);
   }
 
   let svc;
