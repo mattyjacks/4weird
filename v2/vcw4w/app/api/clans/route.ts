@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { clientIp } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
 import { isClanType } from "@/lib/clan-types";
@@ -33,6 +34,7 @@ export async function GET(req: Request) {
 // POST /api/clans; create a clan (auth, via create_clan RPC).
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;

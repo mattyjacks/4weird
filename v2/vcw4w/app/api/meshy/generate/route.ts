@@ -1,9 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
-import { sameOrigin } from "@/lib/csrf";
+import { sameOriginOrBotKey } from "@/lib/csrf-bot";
 import { keyHasScope, resolveBotKey } from "@/lib/bot-auth";
 import { rateLimit } from "@/lib/rate-limit";
+import { requireHuman } from "@/lib/botid";
 import { rpcStatus } from "@/lib/agent-market";
 import {
   MESHY_CUT_NOTE,
@@ -27,7 +28,7 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
-  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  if (!(await sameOriginOrBotKey(req))) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   let userId = data?.user?.id ?? null;
@@ -41,6 +42,10 @@ export async function POST(req: Request) {
     userId = bot.userId;
     viaBot = true;
   }
+  // Valid bot4weird_ keys (meshy:generate) pass inside requireHuman; forged
+  // keys fall through to the BotID check and fail closed like any bot.
+  const botBlock = await requireHuman(req, "POST /api/meshy/generate");
+  if (botBlock) return botBlock;
   const rl = rateLimit(`meshy:generate:${userId}`, 20, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
 

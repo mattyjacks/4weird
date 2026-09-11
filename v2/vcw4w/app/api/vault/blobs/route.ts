@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
-import { sameOrigin } from "@/lib/csrf";
+import { sameOriginOrBotKey } from "@/lib/csrf-bot";
 import { keyHasScope, resolveBotKey } from "@/lib/bot-auth";
+import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit";
 import { rateLimit } from "@/lib/rate-limit";
 import {
   VAULT_BUCKET,
@@ -26,11 +27,13 @@ export async function GET(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   let userId = data?.user?.id ?? null;
+  let viaBot = false;
   if (!userId) {
     const bot = await resolveBotKey(req).catch(() => null);
     if (!bot) return fail("Login required.", 401);
     if (!keyHasScope(bot, "vault:read")) return fail("Key lacks scope: vault:read.", 403);
     userId = bot.userId;
+    viaBot = true;
   }
   const q = new URL(req.url).searchParams;
   const scope = q.get("scope") ?? "personal";
@@ -56,9 +59,26 @@ export async function GET(req: Request) {
   }
   // Scope gate: personal callers see only their own rows; team/org rows go
   // through the membership-checked RLS policies on the user client.
+  // Bot callers have no session, so the anon client sees nothing under RLS:
+  // serve them from the service client instead, behind the same explicit
+  // membership gate enforced above (personal: own rows only).
+  const cols = "id,scope,path,bytes,kind,quarantined,created_at,updated_at";
+  if (viaBot) {
+    let query = svc.from("vault_files").select(cols).order("updated_at", { ascending: false }).limit(limit);
+    if (scope === "personal") {
+      query = query.eq("scope", "personal").eq("owner_id", userId);
+    } else if (scope === "team") {
+      query = query.eq("scope", "team").eq("team_id", scopeId);
+    } else {
+      query = query.eq("scope", "org").eq("org_id", scopeId);
+    }
+    const { data: rows, error } = await query;
+    if (error) return dbFail("api/vault/blobs", error, "Unable to list files.");
+    return ok({ files: rows ?? [], scope });
+  }
   let query = supabase
     .from("vault_files")
-    .select("id,scope,path,bytes,kind,quarantined,created_at,updated_at")
+    .select(cols)
     .order("updated_at", { ascending: false })
     .limit(limit);
   if (scope === "personal") {
@@ -70,7 +90,6 @@ export async function GET(req: Request) {
     if (!scopeId) return fail("scope_id required for org scope.", 400);
     query = query.eq("scope", "org").eq("org_id", scopeId);
   }
-  void svc;
   const { data: rows, error } = await query;
   if (error) return dbFail("api/vault/blobs", error, "Unable to list files.");
   return ok({ files: rows ?? [], scope });
@@ -85,7 +104,7 @@ export async function GET(req: Request) {
  */
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
-  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  if (!(await sameOriginOrBotKey(req))) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   let userId = data?.user?.id ?? null;
@@ -99,6 +118,12 @@ export async function POST(req: Request) {
   }
   const throttle = rateLimit(`vault-write:${userId}`, 20, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);
+  // Distributed shield: at most 100 vault registrations/hour per account
+  // across all instances (each registration reserves billable storage).
+  const vaultDist = await globalBucket(acctBucketKey("vault-write-hour", userId), 100, 3600);
+  if (vaultDist && !vaultDist.allowed) {
+    return fail("Too many requests.", 429, throttleHeaders(vaultDist.retryAfter));
+  }
 
   let body: unknown;
   try {

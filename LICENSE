@@ -80,10 +80,13 @@ prices and plan details live at https://4weird.com/pricing.
 ## 5. Platform fee - 25% cut is part of every price
 
 Every hosted price is gross and already includes our platform service
-fee (standard: **25% platform / 75% provider or creator**), never added
+fee (standard: **25% platform / 75% provider or creator as on-site
+platform credits**), never added
 on top. Coins (100 coins = $1.00), game rentals, agent rentals, team
 compute, game AI, support/tips, and campaign contributions all settle on
-this basis, as metered and attributed server-side. Circumventing,
+this basis, as metered and attributed server-side. Coins are spendable
+on cloud computing, game credits, and other on-site services only;
+never cash-out, never withdrawable. Circumventing,
 obscuring, or routing around metering or the platform fee; including
 off-platform settlement to avoid it; violates this license and the
 Terms and may result in suspension, forfeiture of credits, and billing
@@ -112,8 +115,9 @@ Effect: contributors do not retain ownership of work contributed through
 the platform. We may use, improve, modify, adapt, combine, distribute,
 commercialize, or discontinue Contributions without further permission,
 notice, or compensation, except where the Terms expressly provide
-creator payouts (e.g. the 75% creator share on included-price
-transactions). Prior versions of a Contribution already assigned remain
+creator coin credits (e.g. the 75% creator share of on-site platform
+credits on included-price transactions; spendable on cloud computing,
+game credits, and other on-site services only, never cash-out). Prior versions of a Contribution already assigned remain
 assigned even if you later delete your account.
 
 ## 7. We may improve and modify games without creator permission
@@ -148,7 +152,7 @@ reasonable costs of collection, including attorneys' fees where allowed.
 We reserve the right to collect amounts lawfully owed using any lawful
 means, which may include: charging the payment method on file, suspending
 or terminating accounts, seats, workspaces, or self-host keys, offsetting
-against credits or payouts otherwise due, engaging a collection agency or
+against coin credits otherwise due (coins are never payable in cash), engaging a collection agency or
 counsel, and pursuing claims in court. Prepaying minimizes interruptions
 and collection action. Nothing here limits defenses or rights available
 to you under applicable law.

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { fetchRunpodBilling, type RunpodBillingKind } from "@/lib/runpod";
 
@@ -12,6 +13,7 @@ export const dynamic = "force-dynamic";
 // RunPod bills the card directly, so mirrored rows carry no Vibe cut.
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;

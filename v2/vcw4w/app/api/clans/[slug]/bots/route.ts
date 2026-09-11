@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { isBotUsername } from "@/lib/bot-validate";
 import { botDeploysAllowed } from "@/lib/clan-types";
@@ -43,6 +44,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
 // { action: "remove", id }; unplug a deployed bot.
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const { slug: raw } = await params;
   const slug = isClanSlug(raw);
   if (!slug) return fail("Invalid clan.", 400);

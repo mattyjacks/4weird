@@ -3,6 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
+import { requireHuman } from "@/lib/botid";
 import { clientIp, isEmail, isLoginPassword } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +11,8 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  const botBlock = await requireHuman(req, "POST /api/auth/login");
+  if (botBlock) return botBlock;
   const throttle = rateLimit(`login:${clientIp(req)}`, 10);
   if (!throttle.allowed) {
     return fail("Too many attempts. Wait a minute and retry.", 429, {

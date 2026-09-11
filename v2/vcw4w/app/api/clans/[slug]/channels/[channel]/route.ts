@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, supabaseUrl } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/validate";
 import { meterLunaCheck, meterTransfer } from "@/lib/clan-meter";
@@ -130,6 +131,7 @@ export async function POST(
   { params }: { params: Promise<{ slug: string; channel: string }> },
 ) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const { slug: rawSlug, channel: rawChan } = await params;
   const slug = isClanSlug(rawSlug);
   if (!slug) return fail("Invalid clan.", 400);

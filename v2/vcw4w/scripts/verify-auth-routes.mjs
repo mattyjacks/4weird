@@ -8,7 +8,11 @@ const signupSuccess = read("../app/auth/sign-up-success/page.tsx");
 const config = read("../next.config.ts");
 const proxy = read("../lib/supabase/proxy.ts");
 
-if (!login.includes("router.push(next") || !login.includes(' : "/account"')) throw new Error("Login must land on /account or a safe requested path.");
+if (!login.includes("router.push(next")) throw new Error("Login must land on /account or a safe requested path.");
+if (!login.includes(' : "/account"') && !login.includes("safeNext")) throw new Error("Login must fall back to /account on unsafe next paths.");
+// Hardened helper (mirrors GET /auth/confirm): single leading slash only,
+// no protocol-relative //evil, no backslashes, no control chars.
+if (login.includes("safeNext") && (!login.includes('startsWith("//")') || !login.includes("\\"))) throw new Error("Login safeNext must block protocol-relative and backslash targets.");
 if (login.includes('router.push("/protected")')) throw new Error("Login still targets legacy /protected.");
 if (!signup.includes('fetch("/api/auth/signup"')) throw new Error("Signup must use the guarded server auth route.");
 if (!login.includes('fetch("/api/auth/login"')) throw new Error("Login must use the guarded server auth route.");

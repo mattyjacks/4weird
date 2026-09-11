@@ -1,4 +1,5 @@
 import { dbFail, fail, ok } from "@/lib/api-respond";
+import { sameOriginOrBotKey } from "@/lib/csrf-bot";
 import { botRateLimit, hasBotAuth, invalidCredentials, keyHasScope, recordBotKeySpend, resolveBotKey } from "@/lib/bot-auth";
 import { logBotKeyRequest } from "@/lib/bot-log";
 import { cleanCommentBody } from "@/lib/bot-validate";
@@ -18,6 +19,8 @@ const maxRequestBytes = 8192;
 // and hidden posts are quarantined. Scope: clans:comment.
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   if (!hasBotAuth()) return fail("Bot service is not configured.", 503);
+  // Cookie sessions (browsers) prove same-origin; bots prove a VALID key.
+  if (!(await sameOriginOrBotKey(req))) return fail("Invalid request origin.", 403);
   const throttle = botRateLimit(req, "write");
   if (!throttle.allowed) {
     return fail("Rate limited. Try again shortly.", 429, {
@@ -43,15 +46,42 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
 
   try {
     const db = serviceClient();
-    const { data: postData, error: postError } = await db
-      .from("clan_posts")
-      .select("id,clan_id,status")
-      .eq("id", postId)
-      .maybeSingle();
-    if (postError) return dbFail("api/bot/bclans/post/[id]/comment", postError, "Unable to comment.");
-    const post = postData as { id: string; clan_id: string; status: string } | null;
+    let post: { id: string; clan_id: string; status: string; board?: string } | null = null;
+    {
+      const { data: postData, error: postError } = await db
+        .from("clan_posts")
+        .select("id,clan_id,status,board")
+        .eq("id", postId)
+        .maybeSingle();
+      if (!postError) {
+        post = postData as typeof post;
+      } else if (/board/i.test(String(postError.message ?? ""))) {
+        // Pre-migration DB: legacy columns only (no h-board exists yet).
+        const legacy = await db
+          .from("clan_posts")
+          .select("id,clan_id,status")
+          .eq("id", postId)
+          .maybeSingle();
+        if (legacy.error) return dbFail("api/bot/bclans/post/[id]/comment", legacy.error, "Unable to comment.");
+        const legacyPost = legacy.data as { id: string; clan_id: string; status: string } | null;
+        post = legacyPost ? { ...legacyPost, board: "s" } : null;
+      } else {
+        return dbFail("api/bot/bclans/post/[id]/comment", postError, "Unable to comment.");
+      }
+    }
     if (!post) return fail("Post not found.", 404);
     if (post.status !== "visible") return fail("Post not found.", 404);
+    // The humans-only board refuses bot comments, same as an hclan.
+    if ((post.board ?? "s") === "h") {
+      await logValleynetAction({
+        clanId: post.clan_id,
+        targetType: "comment",
+        verdict: "block",
+        reasons: ["h-board-refused"],
+        actorId: bot.userId,
+      });
+      return fail("This board is humans-only.", 403);
+    }
 
     const { data: memberData, error: memberError } = await db
       .from("clan_members")

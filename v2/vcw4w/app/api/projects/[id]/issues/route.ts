@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +27,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
 // POST /api/projects/:id/issues; open an issue (RPC checks project.issues.create).
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const { id } = await ctx.params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) return fail("Invalid project.", 400);
   const supabase = await createClient();

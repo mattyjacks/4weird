@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { serviceByKey, workspaceQuote } from "@/lib/cloud-catalog";
 import { WORKSPACE_COMPUTE_CUT_PCT } from "@/lib/economy";
@@ -15,6 +16,7 @@ export const dynamic = "force-dynamic";
 // never go negative, and default to the cheapest tier / newest viable runtime.
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;

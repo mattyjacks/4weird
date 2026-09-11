@@ -4,6 +4,7 @@ import { hasServerSupabase, serviceClient, supabaseServiceRoleKey } from "@/lib/
 import { rateLimit } from "@/lib/rate-limit";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
+import { requireHuman } from "@/lib/botid";
 import { TRIAL_COINS_DEFAULT, TRIAL_COINS_MAX } from "@/lib/economy";
 import { clientIp, isEmail, isPassword } from "@/lib/validate";
 
@@ -27,6 +28,8 @@ async function awardTrial(userId: string, email: string, req: Request): Promise<
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  const botBlock = await requireHuman(req, "POST /api/auth/signup");
+  if (botBlock) return botBlock;
   const throttle = rateLimit(`signup:${clientIp(req)}`, 10);
   if (!throttle.allowed) {
     return fail("Too many attempts. Wait a minute and retry.", 429, {

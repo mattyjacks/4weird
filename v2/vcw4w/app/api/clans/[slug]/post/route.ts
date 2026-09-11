@@ -1,9 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, supabaseUrl } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
+import { requireHuman } from "@/lib/botid";
 import { rateLimit } from "@/lib/rate-limit";
 import { meterLunaCheck } from "@/lib/clan-meter";
 import { logValleynetAction, valleynetCheck } from "@/lib/valleynet";
+import { isClanBoard, normalizeFlair } from "@/lib/clan-forum";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +35,7 @@ function isOwnClanImageUrl(url: string): boolean {
 // POST /api/clans/[slug]/post; member-only, Luna-moderated.
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const { slug: raw } = await params;
   const slug = isClanSlug(raw);
   if (!slug) return fail("Invalid clan.", 400);
@@ -39,6 +43,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
+  const botBlock = await requireHuman(req, "POST /api/clans/post");
+  if (botBlock) return botBlock;
   const throttle = rateLimit(`clan-post:${u.id}`, 10, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);
   let body: unknown;
@@ -51,6 +57,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   const title = String(input.title ?? "").trim().slice(0, 120);
   const postBody = String(input.body ?? "").slice(0, 8000);
   const imageUrl = String(input.image_url ?? "").trim().slice(0, 2000);
+  const flair = normalizeFlair(input.flair);
+  if (input.flair !== undefined && input.flair !== null && String(input.flair).trim() !== "" && !flair) {
+    return fail("Invalid flair.", 400);
+  }
+  // Board pick: humans post to h/s/a (default shared). The bots-only board
+  // refuses human authors before any fee or moderation spend happens.
+  const rawBoard = String(input.board ?? "s").trim().toLowerCase();
+  if (!isClanBoard(rawBoard)) return fail("Invalid board.", 400);
+  if (rawBoard === "b") return fail("This board is bots-only.", 403);
   if (!title || !postBody.trim()) return fail("Title and body required.", 400);
   if (postBody.length > 8000) return fail("Body too long (8000 max).", 400);
   if (imageUrl && !isOwnClanImageUrl(imageUrl)) {
@@ -111,10 +126,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     p_body: postBody,
     p_image_url: imageUrl || null,
     p_status: status,
+    p_board: rawBoard,
   });
   if (error) {
     const msg = String(error.message ?? "");
     if (/join the clan/i.test(msg)) return fail("Join the clan first.", 403);
+    if (/bots and agents only/i.test(msg)) return fail("This board is bots-only.", 403);
     if (/invalid/i.test(msg)) return fail("Invalid post.", 400);
     return fail("Unable to create post.", 500);
   }
@@ -125,5 +142,27 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     // XP is garnish, never a post failure.
   }
   const id = (Array.isArray(rpcData) ? rpcData[0] : rpcData) as string;
+  // Flair is garnish: a pre-migration DB (no flair column) must not fail the post.
+  if (flair) {
+    try {
+      const { error: flairError } = await supabase.rpc("set_post_flair", {
+        p_post_id: id,
+        p_flair: flair,
+      });
+      if (flairError) {
+        const msg = String(flairError.message ?? "");
+        if (/invalid flair/i.test(msg)) return fail("Invalid flair.", 400);
+        // Pre-migration (missing RPC/column): keep the post, skip the flair.
+        if (!/not allowed|login required/i.test(msg)) {
+          console.error("[api] clan post flair skipped", {
+            code: String(flairError.code ?? "").slice(0, 16),
+            message: msg.slice(0, 200),
+          });
+        }
+      }
+    } catch {
+      // Flair never fails a post.
+    }
+  }
   return ok({ id, status }, 201);
 }

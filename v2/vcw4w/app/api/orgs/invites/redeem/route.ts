@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok, rpcFail } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { rpcStatus } from "@/lib/agent-market";
 
@@ -8,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 function statusOf(message: string): number {
   if (/forbidden/i.test(message)) return 403;
-  if (/already a member/i.test(message)) return 409;
+  if (/already a member|member limit reached/i.test(message)) return 409;
   if (/expired|fully used|already used|revoked/i.test(message)) return 410;
   return rpcStatus(message);
 }
@@ -20,6 +21,7 @@ function statusOf(message: string): number {
  */
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;

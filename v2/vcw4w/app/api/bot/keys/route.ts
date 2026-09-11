@@ -3,6 +3,7 @@ import { hasServerSupabase, serviceClient, supabaseServiceRoleKey } from "@/lib/
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { sameOrigin } from "@/lib/csrf";
+import { requireHuman } from "@/lib/botid";
 import { exceedsBodyLimit } from "@/lib/validate";
 import { cleanKeyLabel } from "@/lib/bot-validate";
 import { botPepperConfigured, generateBotKey, keyPrefix, sha256Hash } from "@/lib/bot-auth";
@@ -60,6 +61,8 @@ export async function GET() {
 // is optional (sane defaults: unlimited budgets, never expires, half logs).
 export async function POST(req: Request) {
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  const botBlock = await requireHuman(req, "POST /api/bot/keys");
+  if (botBlock) return botBlock;
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!supabaseServiceRoleKey() || !botPepperConfigured()) return fail("Bot service is not configured.", 503);
   const supabase = await createClient();

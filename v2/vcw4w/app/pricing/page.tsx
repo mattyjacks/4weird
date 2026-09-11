@@ -39,7 +39,7 @@ export default function Page() {
         <p className="mt-6 max-w-2xl text-base text-slate-300 sm:text-lg">
           100 Vibe Coins cost exactly $1.00 â€” every price already includes the 25% platform service
           cut, never added on top. New accounts start with a free 100-coin ($1.00) trial. Compute
-          works the same way: one gross metered price, split 25% platform / 75% provider. Coins expire one year after receipt, and every purchase automatically spends the oldest unexpired centicentcoins first.
+          works the same way: one gross metered price, split 25% platform / 75% provider as on-site platform credits. Coins are spendable on cloud computing, game credits, and other on-site services only; never cash-out, never withdrawable. Coins expire one year after receipt, and every purchase automatically spends the oldest unexpired centicentcoins first.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
@@ -104,7 +104,7 @@ export default function Page() {
               provider + our 25% platform cut.
             </p>
             <ul className="mt-5 space-y-2.5">
-              <Check>400 coins ($4.00) of compute = 100 platform / 300 provider</Check>
+              <Check>400 coins ($4.00) of compute = 100 platform / 300 provider credits (on-site only, never cash-out)</Check>
               <Check>Coin escrow â€” metered heartbeat never bills above escrow</Check>
               <Check>RunPod / DigitalOcean / custom endpoints, no fake provisioning</Check>
               <Check>Game AI + Gaming Buddy meter the same way â€” see /buddy and /my/usage/</Check>
@@ -192,22 +192,22 @@ export default function Page() {
             <h2 className="text-xl font-black sm:text-2xl">How the 25% compute premium works</h2>
             <p className="mt-3 text-sm leading-relaxed text-slate-300">
               Every cloud meter shows one gross price in coins. Behind it we split{" "}
-              <strong className="text-white">25% platform / 75% provider</strong> and attribute
-              every cent in <code className="text-cyan-300">platform_compute_cuts</code>. Agent
+              <strong className="text-white">25% platform / 75% provider</strong> as on-site platform credits and attribute
+              every cent in <code className="text-cyan-300">platform_compute_cuts</code>. Provider shares are spendable on cloud computing, game credits, and other on-site services only; never cash-out, never withdrawable. Agent
               rentals escrow your coins up front and settle metered usage by heartbeat â€” the final
               charge can only go down, never above escrow.
             </p>
             <div className="mt-6 overflow-hidden rounded-2xl border border-white/10">
               <div className="flex h-12">
                 <div className="flex w-3/4 items-center justify-center bg-cyan-300/80 text-sm font-black text-slate-950">
-                  75% provider
+                  75% provider credits (on-site only)
                 </div>
                 <div className="flex w-1/4 items-center justify-center bg-violet-400/70 text-sm font-black text-slate-950">
                   25%
                 </div>
               </div>
               <p className="bg-black/40 px-4 py-3 text-xs text-slate-400">
-                Example: 400-coin job â†’ 300 coins provider, 100 coins platform. Buyer paid $4.00.
+                Example: 400-coin job â†’ 300 coins provider credits, 100 coins platform. Buyer paid $4.00. Credits are on-site only; never cash-out, never withdrawable.
               </p>
             </div>
           </div>
@@ -308,7 +308,7 @@ export default function Page() {
             </div>
           </div>
           <ul className="mt-6 space-y-2.5">
-            <Check>25% platform cut is part of every hosted price (25% platform / 75% provider or creator), never on top; routing around metering or the cut violates the license</Check>
+            <Check>25% platform cut is part of every hosted price (25% platform / 75% provider or creator as on-site credits, never cash-out), never on top; routing around metering or the cut violates the license</Check>
             <Check>Contributions assign to us: work you submit through the platform is assigned to MattyJacks LLC (exclusive perpetual license where assignment is not possible); contributors do not retain ownership, and we may improve, modify, or remove games without further permission</Check>
             <Check>Attribution required: games built or tested with VibeCodeWorker must credit “Built with help from 4weird VibeCodeWorker - 4weird.com/vibecodeworker” in the game credits</Check>
             <Check>Prepay preferred: fees are due as quoted plus taxes; late amounts may bear interest and collection costs where allowed; we reserve the right to collect amounts owed by any lawful means (charge on file, suspension, offset, collections, court)</Check>
@@ -372,7 +372,7 @@ export default function Page() {
             },
             {
               q: "Who owns work I contribute?",
-              a: "You assign it to us on submission: games, code, art, and other contributions made through the platform are assigned to MattyJacks LLC (or exclusively licensed where assignment is not possible). Contributors do not retain ownership, and we may improve, modify, adapt, or remove games without further permission, except where the Terms expressly provide creator payouts (the 75% share). See LICENSE for the full assignment text.",
+              a: "You assign it to us on submission: games, code, art, and other contributions made through the platform are assigned to MattyJacks LLC (or exclusively licensed where assignment is not possible). Contributors do not retain ownership, and we may improve, modify, adapt, or remove games without further permission, except where the Terms expressly provide creator coin credits (the 75% on-site share, spendable on cloud computing, game credits, and other on-site services only; never cash-out). See LICENSE for the full assignment text.",
             },
             {
               q: "Do I have to credit VibeCodeWorker?",

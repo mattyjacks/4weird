@@ -15,6 +15,22 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+// Strict same-origin target, mirroring GET /auth/confirm: single leading
+// slash (no protocol-relative //evil), no backslashes (some clients
+// normalize /\evil to //evil), no control characters, length-capped.
+// Anything else falls back to /account.
+function safeNext(value: string | null): string {
+  const v = String(value ?? "");
+  if (!v.startsWith("/") || v.startsWith("//")) return "/account";
+  if (v.includes("\\")) return "/account";
+  if (v.length > 2048) return "/account";
+  for (let i = 0; i < v.length; i++) {
+    const code = v.charCodeAt(i);
+    if (code <= 0x1f || code === 0x7f) return "/account";
+  }
+  return v;
+}
+
 export function LoginForm({
   className,
   ...props
@@ -40,8 +56,8 @@ export function LoginForm({
       const body = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(body.error || "Invalid login credentials.");
       // The account page is the v2 authenticated destination; /protected is a legacy starter route.
-      const next = new URLSearchParams(window.location.search).get("next");
-      router.push(next && next.startsWith("/") && !next.startsWith("//") ? next : "/account");
+      const next = safeNext(new URLSearchParams(window.location.search).get("next"));
+      router.push(next);
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {

@@ -1,4 +1,5 @@
 import { dbFail, fail, ok } from "@/lib/api-respond";
+import { sameOriginOrBotKey } from "@/lib/csrf-bot";
 import { botRateLimit, hasBotAuth, invalidCredentials, keyHasScope, resolveBotKey } from "@/lib/bot-auth";
 import { logBotKeyRequest } from "@/lib/bot-log";
 import {
@@ -26,6 +27,8 @@ const maxRequestBytes = 8192;
 // report row itself is the evidence record there.
 export async function POST(req: Request) {
   if (!hasBotAuth()) return fail("Bot service is not configured.", 503);
+  // Cookie sessions (browsers) prove same-origin; bots prove a VALID key.
+  if (!(await sameOriginOrBotKey(req))) return fail("Invalid request origin.", 403);
   const throttle = botRateLimit(req, "write");
   if (!throttle.allowed) {
     return fail("Rate limited. Try again shortly.", 429, {

@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
+import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit";
 import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -54,6 +55,12 @@ export async function POST(req: Request) {
   if (!u) return fail("Login required.", 401);
   const throttle = rateLimit(`clan-upload:${u.id}`, 10, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);
+  // Distributed shield: at most 60 image uploads/hour per account across all
+  // instances (each upload burns storage + a metered moderation check).
+  const uploadDist = await globalBucket(acctBucketKey("clan-upload-hour", u.id), 60, 3600);
+  if (uploadDist && !uploadDist.allowed) {
+    return fail("Too many requests.", 429, throttleHeaders(uploadDist.retryAfter));
+  }
 
   let form: FormData;
   try {

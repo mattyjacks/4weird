@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok, rpcFail } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { clientIp } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
 import {
@@ -50,6 +51,7 @@ export async function GET(req: Request) {
  *  (auto-provisioned on booking). Custom listings still need an https URL. */
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);

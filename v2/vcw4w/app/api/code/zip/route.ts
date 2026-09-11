@@ -2,8 +2,10 @@ import { createHash } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
-import { sameOrigin } from "@/lib/csrf";
+import { sameOriginOrBotKey } from "@/lib/csrf-bot";
+import { requireHuman } from "@/lib/botid";
 import { keyHasScope, resolveBotKey } from "@/lib/bot-auth";
+import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit";
 import { rateLimit } from "@/lib/rate-limit";
 import { rpcStatus } from "@/lib/agent-market";
 import { clientIp } from "@/lib/validate";
@@ -36,7 +38,11 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
-  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  if (!(await sameOriginOrBotKey(req))) return fail("Invalid request origin.", 403);
+  // Valid bot4weird_ keys (code:submit) pass inside requireHuman; forged keys
+  // fall through to the BotID check and fail closed like any bot.
+  const botBlock = await requireHuman(req, "POST /api/code/zip");
+  if (botBlock) return botBlock;
 
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
@@ -55,6 +61,13 @@ export async function POST(req: Request) {
     return fail("Too many uploads. Try again shortly.", 429, {
       "Retry-After": String(throttle.retryAfter),
     });
+  }
+  // Distributed shield: at most 20 zip submissions/hour per account across
+  // all instances (metered storage bills per byte; farms must not get N x
+  // the local quota by spreading uploads).
+  const zipDist = await globalBucket(acctBucketKey("zip-hour", userId), 20, 3600);
+  if (zipDist && !zipDist.allowed) {
+    return fail("Too many uploads. Try again shortly.", 429, throttleHeaders(zipDist.retryAfter));
   }
 
   let form: FormData;

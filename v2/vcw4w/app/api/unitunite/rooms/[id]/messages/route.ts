@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
+import { sameOriginOrBotKey } from "@/lib/csrf-bot";
 import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
 import { rpcStatus } from "@/lib/agent-market";
@@ -97,6 +99,8 @@ export async function GET(req: Request) {
  */
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  // Session browsers prove same-origin; agent relays prove a VALID bot key.
+  if (!(await sameOriginOrBotKey(req))) return fail("Invalid request origin.", 403);
   const roomId = idFrom(req.url);
   if (!isUuid(roomId)) return fail("Invalid room.", 400);
   let body: unknown;
@@ -108,7 +112,9 @@ export async function POST(req: Request) {
   const input = (body ?? {}) as Record<string, unknown>;
   const asBot = input.as_bot === true || typeof input.text === "string";
   const text = typeof input.text === "string" ? input.text : "";
-  const botName = String(input.bot_name ?? "").trim().slice(0, 40);
+  // Strip control characters (incl. \n\r): bot_name is interpolated into the
+  // org audit log, so raw newlines would be a log-injection vector.
+  const botName = String(input.bot_name ?? "").replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 40);
   const ciphertext = typeof input.ciphertext === "string" ? input.ciphertext : "";
   if (asBot && (text.trim().length < 1 || text.length > 4000))
     return fail("Agent text must be 1..4000 characters.", 400);
@@ -172,6 +178,9 @@ export async function POST(req: Request) {
  */
 export async function DELETE(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  // Redaction is session-only (bots are rejected below), so the plain
+  // same-origin proof applies; no bot-key exemption on this handler.
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   if (extractBotKey(req)) return fail("Bots cannot redact messages.", 403);
   const roomId = idFrom(req.url);
   if (!isUuid(roomId)) return fail("Invalid room.", 400);
@@ -186,6 +195,23 @@ export async function DELETE(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data?.user) return fail("Login required.", 401);
+  // Bind the URL room to the message: the redact RPC derives the room from
+  // the message and ignores the URL, so a mismatched roomId would otherwise
+  // return success for a redact in a different room (audit confusion).
+  // Only room_id is read (never content); message UUIDs are unguessable.
+  try {
+    const svc = serviceClient();
+    const { data: target } = await svc
+      .from("room_messages")
+      .select("room_id")
+      .eq("id", messageId)
+      .maybeSingle();
+    if (!target || String((target as { room_id: string }).room_id) !== roomId) {
+      return fail("Message not found in this room.", 404);
+    }
+  } catch {
+    return fail("Unable to redact.", 503);
+  }
   const { error } = await supabase.rpc("redact_room_message", { p_message: messageId });
   if (error) return rpcFail("api/unitunite/rooms/messages", error, statusOf, "Unable to redact.");
   return ok({ redacted: true });

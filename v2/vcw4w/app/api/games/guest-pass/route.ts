@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
+import { requireHuman } from "@/lib/botid";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp, isSlug } from "@/lib/validate";
 import { GUEST_FREE_LOADS_PER_DAY, GUEST_MAX_LOADS_PER_DAY } from "@/lib/game-rent";
@@ -46,6 +47,8 @@ export async function POST(req: Request) {
   // creation against a victim's IP quota). Browser play shells always send
   // Origin on POST; non-browser callers must send one too.
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  const botBlock = await requireHuman(req, "POST /api/games/guest-pass");
+  if (botBlock) return botBlock;
   const ip = clientIp(req);
   const burst = rateLimit(`guest-pass:burst:${ip}`, 10, 60_000);
   if (!burst.allowed) {

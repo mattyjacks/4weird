@@ -1,7 +1,9 @@
 import { dbFail, fail, ok } from "@/lib/api-respond";
+import { sameOriginOrBotKey } from "@/lib/csrf-bot";
 import { botRateLimit, hasBotAuth, invalidCredentials, keyHasScope, recordBotKeySpend, resolveBotKey } from "@/lib/bot-auth";
 import { logBotKeyRequest } from "@/lib/bot-log";
 import { botClanSlug, cleanPostBody, cleanPostTitle, isOwnClanImageUrl, looksSpammy } from "@/lib/bot-validate";
+import { isClanBoard } from "@/lib/clan-forum";
 import { clientIp, exceedsBodyLimit } from "@/lib/validate";
 import { serviceClient, supabaseUrl } from "@/lib/supabase/service";
 import { logValleynetAction, valleynetCheck } from "@/lib/valleynet";
@@ -18,6 +20,8 @@ const maxRequestBytes = 16384;
 // `pending` for human review instead of auto-publishing. Scope: clans:post.
 export async function POST(req: Request, ctx: { params: Promise<{ slug: string }> }) {
   if (!hasBotAuth()) return fail("Bot service is not configured.", 503);
+  // Cookie sessions (browsers) prove same-origin; bots prove a VALID key.
+  if (!(await sameOriginOrBotKey(req))) return fail("Invalid request origin.", 403);
   const throttle = botRateLimit(req, "write");
   if (!throttle.allowed) {
     return fail("Rate limited. Try again shortly.", 429, {
@@ -43,6 +47,10 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
   const postBody = cleanPostBody(input.body);
   if (!title) return fail("Title needs 1-120 characters.", 400);
   if (!postBody) return fail("Body needs 1-5000 characters.", 400);
+  // Board pick: bots post to s/b/a (default shared). The humans-only board
+  // refuses bot authors before any fee or moderation spend happens.
+  const rawBoard = String(input.board ?? "s").trim().toLowerCase();
+  if (!isClanBoard(rawBoard)) return fail("Invalid board.", 400);
   let imageUrl: string | null = null;
   if (input.image_url !== undefined && input.image_url !== null && input.image_url !== "") {
     // Same rule as the human clan UI: only our own upload URLs render in
@@ -73,6 +81,17 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
         actorId: bot.userId,
       });
       return fail("hclans are human-only.", 403);
+    }
+    // The humans-only board refuses bot authors, same as an hclan.
+    if (rawBoard === "h") {
+      await logValleynetAction({
+        clanId: clan.id,
+        targetType: "post",
+        verdict: "block",
+        reasons: ["h-board-refused"],
+        actorId: bot.userId,
+      });
+      return fail("This board is humans-only.", 403);
     }
 
     const { data: memberData, error: memberError } = await db
@@ -132,19 +151,39 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
       return dbFail("api/bot/bclans/[slug]/post", err, "Unable to post.");
     }
 
-    const { data: inserted, error: insertError } = await db
-      .from("clan_posts")
-      .insert({
-        clan_id: clan.id,
-        author_id: bot.userId,
-        title,
-        body: postBody,
-        image_url: imageUrl,
-        status,
-      })
-      .select("id,title,body,image_url,status,created_at")
-      .single();
-    if (insertError) return dbFail("api/bot/bclans/[slug]/post", insertError, "Unable to post.");
+    const row = {
+      clan_id: clan.id,
+      author_id: bot.userId,
+      title,
+      body: postBody,
+      image_url: imageUrl,
+      status,
+      board: rawBoard,
+    };
+    let inserted: unknown = null;
+    {
+      const { data, error: insertError } = await db
+        .from("clan_posts")
+        .insert(row)
+        .select("id,title,body,image_url,board,status,created_at")
+        .single();
+      if (!insertError) {
+        inserted = data;
+      } else if (/board/i.test(String(insertError.message ?? ""))) {
+        // Pre-migration DB: retry without the board column.
+        const { board: _dropped, ...legacyRow } = row;
+        void _dropped;
+        const retry = await db
+          .from("clan_posts")
+          .insert(legacyRow)
+          .select("id,title,body,image_url,status,created_at")
+          .single();
+        if (retry.error) return dbFail("api/bot/bclans/[slug]/post", retry.error, "Unable to post.");
+        inserted = retry.data;
+      } else {
+        return dbFail("api/bot/bclans/[slug]/post", insertError, "Unable to post.");
+      }
+    }
     void logBotKeyRequest({
       keyId: bot.keyId,
       userId: bot.userId,
@@ -157,7 +196,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
       parts: {
         prompt: title,
         output: postBody,
-        context: { clan: slug, status, image: Boolean(imageUrl) },
+        context: { clan: slug, status, board: rawBoard, image: Boolean(imageUrl) },
         responseSummary: { post: (inserted as { id?: string })?.id ?? null },
       },
     });

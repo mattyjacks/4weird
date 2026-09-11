@@ -131,7 +131,7 @@ export function SplitBar({ leftLabel = "75% provider", rightLabel = "25% platfor
         </div>
       </div>
       <p className="bg-card px-4 py-3 text-xs text-muted-foreground">
-        Example: a 400-coin ($4.00) job → 300 coins provider, 100 coins platform. You only ever see the gross 400.
+        Example: a 400-coin ($4.00) job → 300 coins provider credits, 100 coins platform. You only ever see the gross 400. All credits are on-site only (cloud compute, game credits, other on-site services); never cash-out, never withdrawable.
       </p>
     </div>
   );

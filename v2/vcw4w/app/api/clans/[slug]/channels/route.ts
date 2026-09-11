@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/validate";
 
@@ -32,6 +33,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   const [
     { data: channels },
     { data: members },
+    { data: clanRow },
     { data: roles },
     { data: memberRoles },
     { data: events },
@@ -44,6 +46,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
       .order("position", { ascending: true })
       .limit(50),
     supabase.from("clan_members").select("user_id,role,joined_at").eq("clan_id", clanId).limit(200),
+    // O(1) cached total so the sidebar can say "and N more" at 100k scale
+    // (pre-migration DBs simply omit the column → total falls back below).
+    supabase.from("clans").select("member_count").eq("id", clanId).maybeSingle(),
     supabase.from("clan_roles").select("id,name,color,position").eq("clan_id", clanId).order("position", { ascending: false }).limit(50),
     supabase.from("clan_member_roles").select("user_id,role_id").eq("clan_id", clanId).limit(500),
     supabase
@@ -58,6 +63,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   return ok({
     channels: channels ?? [],
     members: members ?? [],
+    member_total: Number((clanRow as { member_count?: number } | null)?.member_count) || (members ?? []).length,
     roles: roles ?? [],
     memberRoles: memberRoles ?? [],
     events: events ?? [],
@@ -68,6 +74,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
 // POST /api/clans/[slug]/channels {slug, name, topic?, kind?}; owner/mod only.
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const { slug: raw } = await params;
   const slug = isClanSlug(raw);
   if (!slug) return fail("Invalid clan.", 400);

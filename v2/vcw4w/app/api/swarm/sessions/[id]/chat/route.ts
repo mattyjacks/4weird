@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
+import { requireHuman } from "@/lib/botid";
 import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
 import { rpcStatus } from "@/lib/agent-market";
@@ -138,6 +139,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);
+  const botBlock = await requireHuman(req, "POST /api/swarm/chat");
+  if (botBlock) return botBlock;
   const rl = rateLimit(`swarm:chat:${data.user.id}`, 30, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
   const { id } = await params;

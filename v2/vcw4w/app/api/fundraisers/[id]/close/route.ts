@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok, rpcFail } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +17,7 @@ function isUuid(v: unknown): string {
 // but intentionally left working so re-enabling is instant.
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const { id: raw } = await params;
   const id = isUuid(raw);
   if (!id) return fail("Invalid campaign.", 400);

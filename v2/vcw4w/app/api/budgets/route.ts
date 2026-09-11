@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,7 @@ export async function GET(req: Request) {
 
 export async function PUT(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return fail("Login required.", 401);
@@ -38,6 +40,18 @@ export async function PUT(req: Request) {
   const cap = Number(body?.monthlyCapCoins); const alert = Number(body?.alertAtPct);
   const hardStop = Boolean(body?.hardStop); const orgId = typeof body?.orgId === "string" ? body.orgId : "";
   if (!Number.isFinite(cap) || cap < 0 || cap > 100000000 || !Number.isInteger(alert) || alert < 1 || alert > 100) return fail("Invalid budget settings.", 400);
+  if (orgId) {
+    // Validate shape + membership before touching the RPC so strangers get
+    // a clean 403 instead of an RPC error (the RPC re-checks billing.manage).
+    if (!/^[0-9a-f-]{36}$/i.test(orgId)) return fail("Invalid org.", 400);
+    const { data: membership } = await supabase
+      .from("org_members")
+      .select("org_id")
+      .eq("org_id", orgId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!membership) return fail("Not a member of this org.", 403);
+  }
   const { data, error } = orgId
     ? await supabase.rpc("set_org_budget", { p_org: orgId, p_cap: cap, p_alert: alert, p_hard_stop: hardStop })
     : await supabase.rpc("set_my_budget", { p_cap: cap, p_alert: alert, p_hard_stop: hardStop });

@@ -29,7 +29,7 @@ Operated by ${OPERATOR}, New Hampshire, USA. Canonical site: ${SITE_URL}
 
 ## What 4weird is
 - ${FACTS.gameCount} plus cloud services on one account: AI agent rentals (RunPod/DigitalOcean, per-second billing), virtual desktops (CPU Ubuntu or GPU Kasm), UnitUnite squad workspaces (projects, messaging, metered GPU/serverless/storage), VibeCodeWorker evidence-driven game QA, Gaming Buddy (screen-aware voice coach, 9 voices), Blender GPU renders (pinned RTX 4090), and a fal.ai media studio.
-- Games lower acquisition cost: free-to-try play brings people in; the coin economy turns visitors into cloud customers. Creators keep 75% of every coin their work earns.
+- Games lower acquisition cost: free-to-try play brings people in; the coin economy turns visitors into cloud customers. Creators keep 75% of every coin their work earns as on-site platform credits (cloud compute, game credits, other on-site services only; never cash-out, never withdrawable).
 - Real providers, no theater: RunPod and DigitalOcean APIs under the hood with live billing mirrors.
 
 ## Key pages

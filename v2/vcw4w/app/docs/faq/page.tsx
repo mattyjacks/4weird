@@ -20,7 +20,7 @@ const theme = {
 };
 
 const FAQS: [string, string, string][] = [
-  ["💰", "Is the 25% added on top?", "Never. Every coin price and every meter is gross; the 25% platform cut is already inside it. $1.00 always buys exactly 100 coins, and 75% goes to providers and makers."],
+  ["💰", "Is the 25% added on top?", "Never. Every coin price and every meter is gross; the 25% platform cut is already inside it. $1.00 always buys exactly 100 coins, and 75% credits providers and makers as on-site platform credits (cloud compute, game credits, other on-site services only; never cash-out, never withdrawable)."],
   ["🎁", "Why can't I buy a 100-coin pack?", "100 coins is the free signup trial (once per person). Packs start at 500 so the trial stays special. Need an in-between amount? Use the custom 500-100,000 pack."],
   ["🕹️", "How much does playing cost?", "About $0.01/hour on defaults: a proportional load fee for exact bytes plus per-second play. Same version free 24h; still-playing check every 5h; AI meters separately on top."],
   ["👻", "Do guests pay or need accounts?", "No. 3 free loads/day, then instantly-skippable house ads with a 30-min banner. No saves, multiplayer, AI, or Buddy; sign in to unlock those."],

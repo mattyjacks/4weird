@@ -1,7 +1,35 @@
+import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/proxy";
-import { type NextRequest } from "next/server";
+import { sameOrigin } from "@/lib/csrf";
 
 export async function proxy(request: NextRequest) {
+  // Central CSRF gate: cookie-authenticated mutations must prove same-origin
+  // (Origin/Referer host === Host). Secret-header callers (x-bot-key,
+  // Authorization: Bearer for cron/bot keys, webhook secrets, pod callbacks)
+  // and unauthenticated public endpoints carry no session cookie and are
+  // exempt by construction. Per-route sameOrigin() checks remain as defense
+  // in depth; blender/progress-style token callbacks stay exempt (no cookies).
+  const method = request.method;
+  if (
+    request.nextUrl.pathname.startsWith("/api/") &&
+    (method === "POST" || method === "PUT" || method === "PATCH" || method === "DELETE")
+  ) {
+    // Presence alone is not enough: require a non-empty value, otherwise a
+    // caller that can inject an empty header name (but not its secret
+    // value) would walk through the exemption with no credential at all.
+    const botKey = (request.headers.get("x-bot-key") ?? "").trim();
+    const auth = (request.headers.get("authorization") ?? "").trim();
+    const hasSecretAuth = botKey.length > 0 || auth.length > 0;
+    const hasSessionCookie = request.cookies
+      .getAll()
+      .some((c) => c.name === "kid_session" || c.name.startsWith("sb-"));
+    if (!hasSecretAuth && hasSessionCookie && !sameOrigin(request)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid request origin." },
+        { status: 403, headers: { "Cache-Control": "private, no-store" } },
+      );
+    }
+  }
   return await updateSession(request);
 }
 

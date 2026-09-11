@@ -81,26 +81,23 @@ export function jsonBytes(value: unknown): number {
 
 /**
  * Best-effort client IP for rate limiting and trial-credit hashing.
- * Trusts ONLY the platform-provided leftmost unspoofable headers in order:
- * x-real-ip, then the FIRST x-forwarded-for entry (client-supplied chain
- * head is still spoofable, so all abuse decisions MUST also have a
- * server-side Postgres guard: UNIQUE ip_hash trial credit, advisory locks,
- * per-account limits). The previous "LAST entry" logic broke when the
- * platform preserved client-first ordering with infra IPs appended.
+ *
+ * Header trust order (spoof-resistant first): `x-vercel-forwarded-for` is
+ * set by the Vercel edge and cannot be spoofed by clients; the FIRST
+ * `x-forwarded-for` entry is next. `x-real-ip` is deliberately NOT trusted:
+ * it is client-supplied on most deployments, so trusting it let any caller
+ * rotate IPs per request and bypass every IP-keyed throttle (guest quotas,
+ * signup/login buckets). IP limits remain defense-in-depth only: all abuse
+ * decisions MUST also have a server-side Postgres guard (UNIQUE ip_hash
+ * trial credit, advisory locks, per-account limits).
  */
 export function clientIp(request: Request): string {
-  const real = (request.headers.get("x-real-ip") ?? "").trim();
-  if (real && /^[A-Za-z0-9:.]{1,64}$/.test(real)) return real;
-  const fwd = request.headers.get("x-forwarded-for") ?? "";
-  const parts = fwd
-    .split(",")
-    .map((part) => part.trim())
-    .filter(Boolean);
-  // Prefer Vercel's documented forwarded header when present.
   const vercelForwarded = (request.headers.get("x-vercel-forwarded-for") ?? "").trim().split(",")[0]?.trim() ?? "";
-  const ip = vercelForwarded || parts[0] || "unknown";
-  if (!/^[A-Za-z0-9:.]{1,64}$/.test(ip)) return "unknown";
-  return ip;
+  if (vercelForwarded && /^[A-Za-z0-9:.]{1,64}$/.test(vercelForwarded)) return vercelForwarded;
+  const fwd = request.headers.get("x-forwarded-for") ?? "";
+  const first = fwd.split(",").map((part) => part.trim()).filter(Boolean)[0] ?? "";
+  if (first && /^[A-Za-z0-9:.]{1,64}$/.test(first)) return first;
+  return "unknown";
 }
 
 /** Actual POST body byte size; never trust Content-Length (missing on chunked). */

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { clientIp } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
 import { isClanType } from "@/lib/clan-types";
@@ -17,7 +18,10 @@ function isUuid(v: unknown): string {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(s) ? s : "";
 }
 
-// GET /api/clans/[slug]/economy; public wallet/upkeep/ledger/channels view.
+// GET /api/clans/[slug]/economy; public wallet/upkeep/ledger/channels view,
+// plus Clan Supporter Status (exact lifetime totals + tiers), Total Clan
+// Support, and the tribute/commons status. Supporter + tribute RPCs are
+// best-effort here (pre-migration DBs return the legacy economy shape).
 export async function GET(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const { slug: raw } = await params;
@@ -46,7 +50,19 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
       .limit(25),
     supabase.rpc("clan_minute_rate", { p_clan_id: clanRow.id }),
   ]);
-  return ok({ clan, wallet: wallet ?? { balance: 0 }, ledger: ledger ?? [], channels: channels ?? [], rate: rate ?? null });
+  let supporters: unknown = null;
+  let tribute: unknown = null;
+  try {
+    const [{ data: s }, { data: t }] = await Promise.all([
+      supabase.rpc("clan_supporter_status", { p_clan: clanRow.id }),
+      supabase.rpc("clan_tribute_status", { p_clan: clanRow.id }),
+    ]);
+    supporters = s ?? null;
+    tribute = t ?? null;
+  } catch {
+    // Pre-migration: supporters + tribute stay null, economy still renders.
+  }
+  return ok({ clan, wallet: wallet ?? { balance: 0 }, ledger: ledger ?? [], channels: channels ?? [], rate: rate ?? null, supporters, tribute });
 }
 
 // POST /api/clans/[slug]/economy; owner + member + public revenue actions.
@@ -58,6 +74,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
 // { action: "affiliate-click", channel_id }; anyone, IP-throttled, credits 0.05.
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const { slug: raw } = await params;
   const slug = isClanSlug(raw);
   if (!slug) return fail("Invalid clan.", 400);

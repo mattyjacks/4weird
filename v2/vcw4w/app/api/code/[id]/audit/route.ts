@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
-import { sameOrigin } from "@/lib/csrf";
+import { sameOriginOrBotKey } from "@/lib/csrf-bot";
 import { keyHasScope, resolveBotKey } from "@/lib/bot-auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { rpcStatus } from "@/lib/agent-market";
@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
-  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  if (!(await sameOriginOrBotKey(req))) return fail("Invalid request origin.", 403);
   const { id } = await params;
   if (!isUuid(id)) return fail("Invalid submission.", 400);
 

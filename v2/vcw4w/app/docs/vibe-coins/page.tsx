@@ -58,7 +58,7 @@ export default function VibeCoinsPage() {
         index="1"
         kicker="The promise"
         title="A cent is a cent is a cent"
-        body="When you pay 400 coins ($4.00) for compute, 100 goes to the platform and 300 to the provider â€” but you only ever see the gross 400. Same rule for game rentals, clan fees, game AI, Buddy turns, and squad cloud. Your receipt is /my/usage/."
+        body="When you pay 400 coins ($4.00) for compute, 100 goes to the platform and 300 credits the provider as on-site platform credits — but you only ever see the gross 400. Same rule for game rentals, clan fees, game AI, Buddy turns, and squad cloud. All credits are spendable on cloud computing, game credits, and other on-site services only; never cash-out, never withdrawable. Your receipt is /my/usage/."
       />
       <SplitBar />
 
@@ -139,7 +139,7 @@ export default function VibeCoinsPage() {
       <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
         <li className="rounded-xl border border-border bg-card p-3">ðŸ§¾ <strong className="text-foreground">Read /my/usage/ first.</strong> Session + total + 1h/24h, by-kind + by-game, recent turns â€” it answers nearly every â€œwhat did I pay?â€ question.</li>
         <li className="rounded-xl border border-border bg-card p-3">ðŸ” <strong className="text-foreground">Money moves server-side only.</strong> Never trust a client-side display offering to â€œaward yourselfâ€ coins.</li>
-        <li className="rounded-xl border border-border bg-card p-3">ðŸ“œ <strong className="text-foreground">Coins are licensed features</strong> â€” no cash value, non-transferable, purchases final except where law requires otherwise (<Link className="underline" href="/terms">Terms Â§8</Link>).</li>
+        <li className="rounded-xl border border-border bg-card p-3">ðŸ“œ <strong className="text-foreground">Coins are licensed features</strong> â€” no cash value, never cash-out, never withdrawable, non-transferable, spendable on cloud computing, game credits, and other on-site services only; purchases final except where law requires otherwise (<Link className="underline" href="/terms">Terms Â§8</Link>).</li>
       </ul>
 
       <Pager current="/docs/vibe-coins" />

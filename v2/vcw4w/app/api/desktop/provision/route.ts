@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
+import { requireHuman } from "@/lib/botid";
 import { rateLimit } from "@/lib/rate-limit";
 import {
   DESKTOP_PLANS,
@@ -59,9 +61,12 @@ export async function GET() {
  */
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);
+  const botBlock = await requireHuman(req, "POST /api/desktop/provision");
+  if (botBlock) return botBlock;
   const rl = rateLimit(`desktop:provision:${data.user.id}`, 10, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
 

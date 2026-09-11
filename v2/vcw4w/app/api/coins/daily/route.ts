@@ -3,6 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
+import { requireHuman } from "@/lib/botid";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,8 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  const botBlock = await requireHuman(req, "POST /api/coins/daily");
+  if (botBlock) return botBlock;
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);

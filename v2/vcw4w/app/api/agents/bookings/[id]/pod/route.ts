@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
 import { getPodLive, runPodLifecycle } from "@/lib/compute";
@@ -19,6 +20,7 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);

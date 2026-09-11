@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok, rpcFail } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { clampLimit } from "@/lib/validate";
 import { logValleynetAction, valleynetCheck } from "@/lib/valleynet";
@@ -45,6 +46,7 @@ export async function GET(req: Request) {
 // as pending); posting is coin-free.
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;

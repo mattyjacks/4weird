@@ -1,4 +1,5 @@
 import { dbFail, fail, ok } from "@/lib/api-respond";
+import { sameOriginOrBotKey } from "@/lib/csrf-bot";
 import { botRateLimit, hasBotAuth, invalidCredentials, keyHasScope, resolveBotKey } from "@/lib/bot-auth";
 import { logBotKeyRequest } from "@/lib/bot-log";
 import { botClanSlug } from "@/lib/bot-validate";
@@ -14,6 +15,10 @@ const maxRequestBytes = 4096;
 // Idempotent: joining twice still returns { joined: true }. Scope: clans:join.
 export async function POST(req: Request) {
   if (!hasBotAuth()) return fail("Bot service is not configured.", 503);
+  // Cookie sessions (browsers) prove same-origin; bots prove a VALID key.
+  // Valid-key curl bots carry no Origin and pass via the key; keyless or
+  // revoked callers fail here instead of reaching key resolution.
+  if (!(await sameOriginOrBotKey(req))) return fail("Invalid request origin.", 403);
   const throttle = botRateLimit(req, "write");
   if (!throttle.allowed) {
     return fail("Rate limited. Try again shortly.", 429, {

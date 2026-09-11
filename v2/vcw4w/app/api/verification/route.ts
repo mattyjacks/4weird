@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
+import { requireHuman } from "@/lib/botid";
 import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +31,8 @@ export async function POST(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Login required.", 401);
+  const botBlock = await requireHuman(req, "POST /api/verification");
+  if (botBlock) return botBlock;
   const throttle = rateLimit(`verification:${data.user.id}`, 3, 3_600_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);
   let body: unknown;

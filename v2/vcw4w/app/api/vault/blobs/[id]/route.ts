@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
-import { sameOrigin } from "@/lib/csrf";
+import { sameOriginOrBotKey } from "@/lib/csrf-bot";
 import { keyHasScope, resolveBotKey } from "@/lib/bot-auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { rpcStatus } from "@/lib/agent-market";
@@ -20,21 +20,29 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   let userId = data?.user?.id ?? null;
+  let viaBot = false;
   if (!userId) {
     const bot = await resolveBotKey(req).catch(() => null);
     if (!bot) return fail("Login required.", 401);
     if (!keyHasScope(bot, "vault:read")) return fail("Key lacks scope: vault:read.", 403);
     userId = bot.userId;
+    viaBot = true;
   }
   const { id } = await params;
   if (!isUuid(id)) return fail("Invalid file.", 400);
 
-  // RLS policies enforce scope separation on the user client.
-  const { data: row, error } = await supabase
-    .from("vault_files")
-    .select("id,scope,owner_id,team_id,org_id,path,bytes,kind,provenance,quarantined,sha256,created_at,updated_at")
-    .eq("id", id)
-    .maybeSingle();
+  // RLS policies enforce scope separation on the user client. Bot callers
+  // have no session (anon sees nothing), so they read via the service
+  // client; the explicit ownership check below applies to both paths.
+  const columns =
+    "id,scope,owner_id,team_id,org_id,path,bytes,kind,provenance,quarantined,sha256,created_at,updated_at";
+  const { data: row, error } = viaBot
+    ? await serviceClient()
+        .from("vault_files")
+        .select(columns)
+        .eq("id", id)
+        .maybeSingle()
+    : await supabase.from("vault_files").select(columns).eq("id", id).maybeSingle();
   if (error) return dbFail("api/vault/blob", error, "Unable to load file.");
   if (!row) return fail("File not found.", 404);
 
@@ -89,7 +97,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
  */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
-  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  if (!(await sameOriginOrBotKey(req))) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   let userId = data?.user?.id ?? null;

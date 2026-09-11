@@ -1,7 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok, rpcFail } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
+import { requireHuman } from "@/lib/botid";
 import { cleanSupportAmount } from "@/lib/support";
 
 export const dynamic = "force-dynamic";
@@ -26,12 +28,15 @@ function rpcStatus(msg: string): number {
 // but intentionally left working so re-enabling is instant.
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const { id: raw } = await params;
   const id = isUuid(raw);
   if (!id) return fail("Invalid campaign.", 400);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Login required.", 401);
+  const botBlock = await requireHuman(req, "POST /api/fundraisers/contribute");
+  if (botBlock) return botBlock;
   const throttle = rateLimit(`launch-back:${data.user.id}`, 10, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);
   let body: unknown;

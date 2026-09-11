@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +26,7 @@ export async function POST(
   { params }: { params: Promise<{ slug: string; id: string }> },
 ) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const { slug: rawSlug, id: rawId } = await params;
   const slug = isClanSlug(rawSlug);
   const messageId = asUuid(rawId);

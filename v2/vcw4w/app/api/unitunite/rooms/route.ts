@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
+import { sameOriginOrBotKey } from "@/lib/csrf-bot";
 import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
 import { rpcStatus } from "@/lib/agent-market";
@@ -70,6 +71,9 @@ export async function GET(req: Request) {
  */
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  // Session browsers prove same-origin; agent relays prove a VALID bot key
+  // (curl bots carry no Origin). Either opens the gate.
+  if (!(await sameOriginOrBotKey(req))) return fail("Invalid request origin.", 403);
   let body: unknown;
   try {
     body = await req.json();

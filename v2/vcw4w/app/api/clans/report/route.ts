@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { clientIp, isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -12,6 +13,10 @@ export const dynamic = "force-dynamic";
 // content preserved for the NCMEC CyberTipline procedure; see migration header).
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  // Anonymous-but-still-browser: the Origin/Referer proof stops cross-site
+  // report spam filed from a victim's browser/IP (bots use the keyed
+  // /api/bot/bclans/report instead, which accepts valid keys without Origin).
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const throttle = rateLimit(`clan-report:${clientIp(req)}`, 5, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);
   let body: unknown;
