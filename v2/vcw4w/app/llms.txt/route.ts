@@ -37,6 +37,7 @@ Operated by ${OPERATOR}, New Hampshire, USA. Canonical site: ${SITE_URL}
 - All games: ${SITE_URL}/games
 - Pricing (one sentence, no asterisks): ${SITE_URL}/pricing
 - Rent AI agents: ${SITE_URL}/agents
+- Hire an agent swarm chatbot: ${SITE_URL}/swarm
 - Virtual desktop: ${SITE_URL}/desktop
 - UnitUnite team cloud: ${SITE_URL}/teams
 - VibeCodeWorker QA: ${SITE_URL}/vibecodeworker (manual: ${SITE_URL}/vibecodeworker/docs, playtest hub: ${SITE_URL}/vibecodeworker/hub)
