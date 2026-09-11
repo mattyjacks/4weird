@@ -55,6 +55,8 @@ async function runGraveGain3DAutoplay(webviewElement, executeJSHelper = null) {
             playerInfo = {
               x: gg.player.x,
               y: gg.player.y,
+              yaw: gg.player.yaw ?? null,
+              pitch: gg.player.pitch ?? null,
               hp: gg.player.hp,
               maxHp: gg.player.maxHp,
               stamina: gg.player.stamina,
@@ -62,6 +64,7 @@ async function runGraveGain3DAutoplay(webviewElement, executeJSHelper = null) {
               level: gg.player.level,
               kills: gg.kills || 0,
               gold: gg.gold || 0,
+              floorIndex: gg.floorIndex ?? null,
               controlMode: gg.controlMode || 'realtime',
               isPaused: !!gg.isPaused
             };
@@ -99,23 +102,14 @@ async function runGraveGain3DAutoplay(webviewElement, executeJSHelper = null) {
             }
           }
 
-          // Project the nearest enemy to normalized canvas coords. GraveGain2D
-          // has no 3D bot-input layer; its melee system reads the canvas mouse
-          // position and a click pulse instead.
+          // GraveGain3D is a first-person 3D game: project via the THREE
+          // camera through GraveGainBotInput.projectEnemy (canvas-rect
+          // aware). The old 2D camera-offset path does not exist
+          // here (CameraController only does shake) and mis-aimed attacks.
           let enemyScreen = null;
           try {
-            if (nearestEnemy && gg && gg.camera) {
-              const canvas = document.getElementById('gameCanvas');
-              const w = canvas?.width || 1000;
-              const h = canvas?.height || 600;
-              const offset = gg.camera.getOffsets();
-              const sx = nearestEnemy.x - offset.x;
-              const sy = nearestEnemy.y - offset.y;
-              enemyScreen = {
-                x: Math.round((sx / w) * 1000),
-                y: Math.round((sy / h) * 1000),
-                onScreen: sx >= 0 && sx <= w && sy >= 0 && sy <= h
-              };
+            if (nearestEnemy && window.GraveGainBotInput && window.GraveGainBotInput.projectEnemy) {
+              enemyScreen = window.GraveGainBotInput.projectEnemy();
             }
           } catch (e) { enemyScreen = null; }
 
@@ -132,7 +126,7 @@ async function runGraveGain3DAutoplay(webviewElement, executeJSHelper = null) {
             totalEnemies: enemiesInfo.length,
             menuAction: actionableCenter('#btnPlay'),
             deployAction: actionableCenter('#btnCharSelectStart'),
-            realtimeAction: actionableCenter('.btn-mode[data-mode="realtime"], .char-mode-card[data-mode="realtime"]')
+            realtimeAction: actionableCenter('#btnModeRealtime, .btn-mode[data-mode="realtime"], .char-mode-card[data-mode="realtime"]')
           };
         } catch (e) {
           return { error: e.message };
@@ -149,7 +143,7 @@ async function runGraveGain3DAutoplay(webviewElement, executeJSHelper = null) {
       return {
         status: 'level_up',
         reasoning: 'Autoplay: Selecting perk card on Level Up screen',
-        action: { type: 'click', target: '.perk-card button, .perk-card' }
+        action: { type: 'click', target: '#perkCardsGrid .perk-card button, #perkCardsGrid .perk-card, .perk-card button, .perk-card' }
       };
     }
 
@@ -158,7 +152,7 @@ async function runGraveGain3DAutoplay(webviewElement, executeJSHelper = null) {
       return {
         status: 'game_over',
         reasoning: 'Autoplay: Returning to menu after defeat via Go-To-Menu button',
-        action: { type: 'click', target: '#btnGoToMenu, #btnTryAgain, #btnGameOverReturn' }
+        action: { type: 'click', target: '#btnGoToMenu' }
       };
     }
 
@@ -215,7 +209,8 @@ async function runGraveGain3DAutoplay(webviewElement, executeJSHelper = null) {
         };
       }
 
-      // GraveGain2D melee is a canvas click + facing angle. F is an ability
+      // GraveGain3D is first-person 3D: canvas clicks steer aim
+      // (BotInput.lookToward) and fire the melee attack. F is an ability
       // key, never the primary attack, so do not substitute it for combat.
       if (enemy) {
         if (![enemy.x, enemy.y, gameState.player.x, gameState.player.y].every(Number.isFinite)) {
@@ -226,7 +221,7 @@ async function runGraveGain3DAutoplay(webviewElement, executeJSHelper = null) {
           return {
             status: 'playing',
             reasoning: `Autoplay: Melee attack on ${enemy.name} (${Math.round(enemy.dist)}px) at canvas ${scr.x},${scr.y}`,
-            action: { type: 'click', target: `${scr.x},${scr.y}`, params: { x: scr.x, y: scr.y, gameAction: 'gravegain2d_attack' } }
+            action: { type: 'click', target: `${scr.x},${scr.y}`, params: { x: scr.x, y: scr.y, gameAction: 'gravegain3d_attack' } }
           };
         }
         if (scr && scr.onScreen) {
@@ -251,21 +246,29 @@ async function runGraveGain3DAutoplay(webviewElement, executeJSHelper = null) {
         };
       }
 
-      // Exploration / Loot sweep
-      const wanderKeys = ['w', 'w', 'a', 'd', 's'];
-      const chosenKey = wanderKeys[Math.floor(Math.random() * wanderKeys.length)];
+      // Exploration / loot sweep: deterministic corridor cycle persisted
+      // on the page. Pure random wander re-walked the same rooms and
+      // starved the frame-analysis loop of new content.
+      let sweepIdx = 0;
+      try {
+        window.__gg3dWanderIdx = ((window.__gg3dWanderIdx || 0) + 1) % 8;
+        sweepIdx = window.__gg3dWanderIdx;
+      } catch (_) { sweepIdx = Math.floor(Math.random() * 8); }
+      const sweepKeys = ['w', 'w', 'a', 'w', 'w', 'd', 'w', 's'];
+      const chosenKey = sweepKeys[sweepIdx] || 'w';
       return {
         status: 'playing',
-        reasoning: `Autoplay: Navigating dungeon corridor (Floor Layer, Gold: ${p.gold}) pressing ${chosenKey.toUpperCase()}`,
-        action: { type: 'hold_key', target: chosenKey, duration_ms: 250 }
+        reasoning: `Autoplay: Sweeping dungeon corridor [${sweepIdx + 1}/8] (Layer ${p.floorIndex ?? gameState.player.floorIndex ?? '?'}, Gold: ${p.gold}) pressing ${chosenKey.toUpperCase()}`,
+        action: { type: 'hold_key', target: chosenKey, duration_ms: 300 }
       };
     }
 
-    // Fallback: move forward (Space is jump/wait, not an attack)
+    // Fallback: step forward with a real hold (a 50 ms 'w' tap never
+    // overcomes dungeon friction; Space is jump/wait, not an attack)
     return {
       status: 'exploring',
       reasoning: 'Autoplay: Generic exploration fallback',
-      action: { type: 'press_key', target: 'w' }
+      action: { type: 'hold_key', target: 'w', duration_ms: 300 }
     };
 
   } catch (err) {

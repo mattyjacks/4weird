@@ -395,6 +395,10 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
           <GameRuntimeFrame slug={slug} title={title} src={frameSrc} />
         </div>
       </div>
+      <p className="mt-2 text-xs text-slate-400">
+        Click the game once to focus keyboard controls · Fullscreen or Pop out for the full game window · Progress
+        saves to slot 1 when you&apos;re signed in.
+      </p>
       {showGuestAd && (
         <div className="mt-2">
           <AdSlot slot={`midplay-${slug}`} onSkipped={() => setShowGuestAd(false)} compact />

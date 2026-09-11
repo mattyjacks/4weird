@@ -86,6 +86,7 @@ const CHROME_PATTERNS = [
   /<section[^>]*class=["'][^"']*more-kouzi-games[^"']*["'][^>]*>[\s\S]*?<\/section>\s*/gi,
   /<section[^>]*class=["'][^"']*kouzi-cta[^"']*["'][^>]*>[\s\S]*?<\/section>\s*/gi,
   /<section[^>]*class=["'][^"']*madi-cta[^"']*["'][^>]*>[\s\S]*?<\/section>\s*/gi,
+  /<!--[\s\S]*?placeholder[\s\S]*?-->\s*/gi,
 ];
 
 const EMBED_CSS = `<style id="fourweird-game-only">

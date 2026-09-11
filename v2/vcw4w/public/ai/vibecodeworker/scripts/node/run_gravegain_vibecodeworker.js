@@ -44,8 +44,9 @@ async function runGraveGainVibeCodeWorkerSession() {
   const simulatedGameState = {
     title: 'GraveGain3D - 4weird Games',
     score: 0,
-    floor: 1,
+    floorIndex: 1,
     kills: 0,
+    gold: 0,
     isGameOver: false,
     playerState: {
       hp: 100,
@@ -56,7 +57,7 @@ async function runGraveGainVibeCodeWorkerSession() {
       classType: 'warrior'
     },
     enemiesCount: 4,
-    activeMode: 'realtime'
+    controlMode: 'realtime'
   };
 
   const apiServer = new LocalAPIServer({
@@ -85,7 +86,9 @@ async function runGraveGainVibeCodeWorkerSession() {
       getGameState: async () => simulatedGameState,
       executeAction: async (action) => {
         console.log(`[API Server Action Executed] ${action.type}: ${JSON.stringify(action)}`);
-        if (action.type === 'click' || action.type === 'press_key') {
+        // Only canvas attacks (clicks) advance combat telemetry. Ability
+        // keys (KeyF) and movement must not farm kills in smoke mode.
+        if (action.type === 'click') {
           simulatedGameState.score += 15;
           simulatedGameState.kills += 1;
           if (simulatedGameState.enemiesCount > 0) simulatedGameState.enemiesCount -= 1;
@@ -161,10 +164,11 @@ async function runGraveGainVibeCodeWorkerSession() {
   const res2 = await client.pressKey('KeyW');
   console.log(`[VibeCodeWorker Action 2] Result: ${res2.success}`);
 
-  // Action 3: Class ability in close combat (Space is jump/wait, NOT melee)
-  const act3 = { type: 'keydown', key: 'KeyF', description: 'Activate class ability' };
+  // Action 3: Melee attack in close combat (canvas click aims + strikes;
+  // KeyF is the class ability, Space is jump/wait — neither is the attack)
+  const act3 = { type: 'click', x: 500, y: 300, description: 'Melee attack toward crosshair' };
   replayEngine.recordAction(act3, 'Strike skeleton');
-  const res3 = await client.pressKey('KeyF');
+  const res3 = await client.click(act3.x, act3.y);
   console.log(`[VibeCodeWorker Action 3] Result: ${res3.success}`);
 
   // Action 4: Trigger class ability
@@ -181,8 +185,9 @@ async function runGraveGainVibeCodeWorkerSession() {
   const screenshotRes = await client.getScreenshot('game', 'json');
   console.log(`[VibeCodeWorker Screenshot] Captured game screenshot frame: ${screenshotRes.mimeType} (${screenshotRes.base64 ? 'valid base64 stream' : 'empty'})`);
 
-  // Action 7: Execute in-engine JavaScript evaluation
-  const jsEvalRes = await client.eval(`window.game ? { inDungeon: window.game.inDungeon, floor: window.game.floor } : { status: 'ok' }`);
+  // Action 7: Execute in-engine JavaScript evaluation (real 3D globals:
+  // window.GraveGainGame with floorIndex/controlMode, not window.game)
+  const jsEvalRes = await client.eval(`window.GraveGainGame ? { inDungeon: !!window.GraveGainGame.player, floorIndex: window.GraveGainGame.floorIndex, controlMode: window.GraveGainGame.controlMode } : { status: 'ok' }`);
   console.log(`[VibeCodeWorker Eval] JS Evaluation result:`, jsEvalRes.result);
 
   // Save replay file

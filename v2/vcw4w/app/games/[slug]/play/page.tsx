@@ -65,7 +65,10 @@ export default async function PlayPage({ params }: { params: Promise<{ slug: str
         <h1 className="mt-3 text-2xl font-black sm:text-3xl">
           {game.emoji} Play {game.title}
         </h1>
-        <PlayRateBadge slug={game.slug} />
+        <div className="mt-2 flex flex-col gap-2">
+          <PlayRateBadge slug={game.slug} />
+          <GameAiBadge slug={game.slug} />
+        </div>
       </div>
       <div className="mx-auto max-w-6xl px-4 pb-10 sm:px-5">
         <div className="mt-4">
@@ -91,7 +94,6 @@ export default async function PlayPage({ params }: { params: Promise<{ slug: str
             My usage
           </Link>
         </div>
-        <GameAiBadge slug={game.slug} />
         <VcwAutoplay gameSlug={game.slug} gameTitle={game.title} />
         <GamingBuddy gameSlug={game.slug} gameTitle={game.title} />
       </div>

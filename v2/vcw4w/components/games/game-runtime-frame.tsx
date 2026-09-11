@@ -51,7 +51,8 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
     const target = frame.current?.contentWindow;
     if (!target) return;
     try {
-      const event = new KeyboardEvent(pressed ? "keydown" : "keyup", { key, code: key === " " ? "Space" : `Arrow${key.replace("Arrow", "")}`, bubbles: true });
+      const code = key === " " ? "Space" : key.startsWith("Arrow") ? key : `Key${key.toUpperCase()}`;
+      const event = new KeyboardEvent(pressed ? "keydown" : "keyup", { key, code, bubbles: true });
       target.dispatchEvent(event);
       target.document?.dispatchEvent(event);
     } catch {
@@ -61,37 +62,32 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
   };
 
   useEffect(() => {
-    setStatus("Loading original HTML runtime…");
-    loadTimer.current = setTimeout(() => setStatus("The game is taking longer than expected to load. You can still use the original runtime URL."), 8000);
+    setStatus("Loading game…");
+    loadTimer.current = setTimeout(() => setStatus("The game is taking longer than expected to load. You can still open the standalone runtime URL in a new tab."), 8000);
     return () => { if (loadTimer.current) clearTimeout(loadTimer.current); };
   }, [src]);
 
-  const prepareRuntime = () => {
+  // The runtime bundle is game-only (the sync step strips the legacy site
+  // chrome at build time), so the shell must NOT reach into the iframe's
+  // document: that access throws cross-origin after an apex/www redirect and
+  // is unnecessary same-origin. The postMessage handshake below ("ready")
+  // is the single source of truth for load state.
+  const handleLoad = () => {
     if (loadTimer.current) clearTimeout(loadTimer.current);
     setStatus("");
-    // Same-origin only: after an apex/www redirect the document is
-    // cross-origin and this access throws. The status is already cleared
-    // above, so swallow and let the postMessage handshake do the rest.
-    let document: Document | undefined;
+    focusGame();
+  };
+
+  const focusGame = () => {
     try {
-      document = frame.current?.contentDocument ?? undefined;
+      frame.current?.contentWindow?.focus();
     } catch {
-      return;
+      try {
+        frame.current?.focus();
+      } catch {
+        /* iframe focus unavailable; keyboard still works after a click */
+      }
     }
-    if (!document || document.getElementById("fourweird-v2-runtime-shell")) return;
-    const style = document.createElement("style");
-    style.id = "fourweird-v2-runtime-shell";
-    style.textContent = `
-      /* V2 embeds the game, so hide the legacy site shell rather than duplicate it. */
-      #TEMPLATE-4weird-nav-placeholder, .TEMPLATE-4weird-game-header,
-      .TEMPLATE-4weird-game-info-panel, .TEMPLATE-4weird-credits-section,
-      .TEMPLATE-4weird-bio-section, .TEMPLATE-4weird-more-games,
-      #TEMPLATE-4weird-footer-placeholder { display: none !important; }
-      html, body { min-height: 100% !important; height: 100% !important; overflow: hidden !important; }
-      .TEMPLATE-4weird-game-page, .TEMPLATE-4weird-game-main { margin: 0 !important; padding: 0 !important; min-height: 100% !important; height: 100% !important; max-width: none !important; }
-      .TEMPLATE-4weird-game-frame { width: 100% !important; height: 100% !important; min-height: 100% !important; border: 0 !important; border-radius: 0 !important; }
-    `;
-    document.head.append(style);
   };
 
   useEffect(() => {
@@ -154,5 +150,5 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
   };
 
   const padButton = (label: string, key: string, className = "") => <button type="button" aria-label={label} className={`grid h-12 w-12 touch-none place-items-center rounded-full border border-cyan-100/40 bg-slate-950/85 text-lg text-cyan-50 active:bg-cyan-400 active:text-black ${className}`} onPointerDown={(event) => { event.preventDefault(); sendKey(key, true); }} onPointerUp={() => sendKey(key, false)} onPointerCancel={() => sendKey(key, false)} onPointerLeave={() => sendKey(key, false)}>{label}</button>;
-  return <div className="relative h-full w-full"><div className="absolute right-2 top-2 z-20 flex max-w-[calc(100%-1rem)] flex-wrap justify-end gap-1 rounded bg-black/70 p-1.5">{score !== null && <span role="status" className="px-2 py-1 text-xs text-cyan-200">Score: {score}</span>}<button type="button" onClick={() => command("pause")} className="hidden rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:inline">Pause</button><button type="button" onClick={() => command("resume")} className="hidden rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:inline">Resume</button><button type="button" onClick={() => command("fullscreen")} className="rounded px-2 py-1 text-xs text-white hover:bg-white/20">Fullscreen</button></div><p role="status" className={`absolute left-2 top-2 z-20 max-w-[70%] rounded bg-black/70 px-3 py-1 text-xs text-white/80 ${status ? "" : "sr-only"}`}>{status}</p>{showTouchPad && <div className="pointer-events-none absolute inset-x-3 bottom-3 z-20 flex items-end justify-between"><div className="pointer-events-auto grid grid-cols-3 gap-1">{padButton("↑", "ArrowUp", "col-start-2")}{padButton("←", "ArrowLeft")}{padButton("↓", "ArrowDown")}{padButton("→", "ArrowRight")}</div><div className="pointer-events-auto flex gap-2">{padButton("A", " ")}{padButton("↻", "r")}</div></div>}<iframe ref={frame} title={title} src={src} onLoad={prepareRuntime} onError={() => setStatus("The game could not be loaded. Open the original runtime URL to debug it.")} className="h-full w-full touch-manipulation border-0" allow="autoplay; fullscreen; gamepad" sandbox="allow-forms allow-modals allow-pointer-lock allow-same-origin allow-scripts" /></div>;
+  return <div className="relative h-full w-full bg-black" onClick={focusGame}><div className="absolute right-2 top-2 z-20 flex max-w-[calc(100%-1rem)] flex-wrap items-center justify-end gap-1 rounded bg-black/70 p-1.5">{score !== null && <span role="status" className="px-2 py-1 text-xs text-cyan-200">Score: {score}</span>}<button type="button" onClick={focusGame} className="hidden rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:inline" title="Focus the game so keyboard controls respond">Focus</button><button type="button" onClick={() => command("pause")} className="hidden rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:inline">Pause</button><button type="button" onClick={() => command("resume")} className="hidden rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:inline">Resume</button><button type="button" onClick={() => command("fullscreen")} className="rounded px-2 py-1 text-xs text-white hover:bg-white/20">Fullscreen</button><a href={src} target="_blank" rel="noopener" className="rounded px-2 py-1 text-xs text-white hover:bg-white/20" title="Open the standalone game window in a new tab">Pop out</a></div><p role="status" className={`absolute left-2 top-2 z-20 max-w-[70%] rounded bg-black/70 px-3 py-1 text-xs text-white/80 ${status ? "" : "sr-only"}`}>{status}</p>{showTouchPad && <div className="pointer-events-none absolute inset-x-3 bottom-3 z-20 flex items-end justify-between"><div className="pointer-events-auto grid grid-cols-3 gap-1">{padButton("↑", "ArrowUp", "col-start-2")}{padButton("←", "ArrowLeft")}{padButton("↓", "ArrowDown")}{padButton("→", "ArrowRight")}</div><div className="pointer-events-auto flex gap-2">{padButton("A", " ")}{padButton("↻", "r")}</div></div>}<iframe ref={frame} title={title} src={src} onLoad={handleLoad} onError={() => setStatus("The game could not be loaded. Try the Pop out link to open the standalone runtime.")} className="h-full w-full touch-manipulation border-0 bg-black" allow="autoplay; fullscreen; gamepad" sandbox="allow-forms allow-modals allow-pointer-lock allow-same-origin allow-scripts" /></div>;
 }

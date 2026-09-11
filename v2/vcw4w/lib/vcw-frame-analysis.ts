@@ -185,7 +185,18 @@ export function improveFromObservations(
 ): ImprovedPhase[] {
   const sawContent = observations.some((o) => o.enemiesVisible || (o.gold ?? 0) > 0);
   const quarter = Math.max(1, Math.floor(totalSeconds / 4));
-  void sawContent;
+  if (sawContent) {
+    // Content was observed: push toward it first with clicks leading
+    // movement, then sweep the remaining quadrants with attack cadence.
+    return [
+      { untilSecond: quarter, keys: ["KeyW"], clickAhead: [0, -130], abilityAt: [Math.floor(quarter / 2)] },
+      { untilSecond: quarter * 2, keys: ["KeyA"], clickAhead: [-200, -20] },
+      { untilSecond: quarter * 3, keys: ["KeyD"], clickAhead: [180, 0], abilityAt: [quarter * 2 + Math.floor(quarter / 2)] },
+      { untilSecond: totalSeconds, keys: ["KeyW", "KeyD"], clickAhead: [140, -110] },
+    ];
+  }
+  // No content seen: systematic sweep to find it (blind rotation walks
+  // away from content, so cover all four quadrants instead of repeating).
   return [
     { untilSecond: quarter, keys: ["KeyA"], clickAhead: [-200, -20], abilityAt: [Math.floor(quarter / 2)] },
     { untilSecond: quarter * 2, keys: ["KeyW"], clickAhead: [0, -130] },

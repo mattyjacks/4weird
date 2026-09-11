@@ -25,6 +25,19 @@ for (const name of canonicalShells) {
   if (html.includes('"../game-meta.js"') || html.includes("'../game-meta.js") || html.includes('"../../game-meta.js"') || html.includes("'../../game-meta.js")) relativeMeta.push(name);
 }
 if (unbridged.length || relativeMeta.length) { console.error(JSON.stringify({ unbridged, relativeMeta }, null, 2)); process.exit(1); }
+// Game-only runtimes: the sync step strips the legacy v1 site chrome so the
+// play iframe shows JUST the game window (no nav/header/info-panel/credits/
+// bio/promos/footer, no site-wide styles.css, no components.js). Anything
+// left behind renders the old site inside the game window.
+const chromeElement = /<(header|aside|section|div|canvas)[^>]*(nav-placeholder|footer-placeholder|starfield|game-header|game-info-panel|credits-section|bio-section|more-games|more-kouzi|kouzi-cta|madi-cta)/i;
+const chromeLoad = /<(link|script)[^>]*(styles\.css|components\.js)/i;
+const chromed = [];
+for (const name of canonicalShells) {
+  const html = await readFile(join(process.cwd(), "public", "games", name), "utf8");
+  const body = html.replace(/<style id="fourweird-game-only">[\s\S]*?<\/style>/, "");
+  if (chromeElement.test(body) || chromeLoad.test(body)) chromed.push(name);
+}
+if (chromed.length) { console.error(`Game runtimes still embed the legacy site chrome (sync-game-bundles must strip it):\n${chromed.join("\n")}`); process.exit(1); }
 // Closed catalogs: unknown slugs/sections must 404 with a real 404 status,
 // not render the not-found UI with a 200 (soft-404 leaks crawl budget and
 // misleads players). generateStaticParams + dynamicParams=false does that.

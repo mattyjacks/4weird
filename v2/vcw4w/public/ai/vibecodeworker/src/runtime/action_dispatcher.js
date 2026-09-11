@@ -369,7 +369,7 @@ async function executeAction(controller, webview, action, nativeProcessName = nu
         // params.gameAction routes canvas clicks inside GraveGain3D through
         // the bot input API (aim + attack, no pointer lock needed).
         const gameAction = (action.params && action.params.gameAction) || null;
-        const clickLabel = gameAction === 'attack' ? 'attack' : (gameAction === 'aim' ? 'aim' : ('click ' + target));
+        const clickLabel = (gameAction === 'attack' || gameAction === 'gravegain3d_attack') ? 'attack' : ((gameAction === 'aim' || gameAction === 'gravegain3d_aim') ? 'aim' : ('click ' + target));
         visionState.recordPointer(nx, ny, clickLabel, true);
         visionState.recordAction('click ' + clickLabel + ' @ ' + nx + ',' + ny);
         pushVision();
@@ -396,8 +396,8 @@ async function executeAction(controller, webview, action, nativeProcessName = nu
             }
             if (gameAction && window.GraveGainBotInput) {
                 ${botCursor.flashClickJS(nx, ny)}
-                if (gameAction === 'attack') return window.GraveGainBotInput.click(nx, ny, 'attack');
-                if (gameAction === 'aim') {
+                if (gameAction === 'attack' || gameAction === 'gravegain3d_attack') return window.GraveGainBotInput.click(nx, ny, 'attack');
+                if (gameAction === 'aim' || gameAction === 'gravegain3d_aim') {
                   window.GraveGainBotInput.move(nx, ny, 'aim');
                   window.GraveGainBotInput.lookToward(nx, ny);
                   return 'Bot aimed at ' + nx + ',' + ny;
@@ -554,7 +554,9 @@ async function executeAction(controller, webview, action, nativeProcessName = nu
       const aimX = action.params && Number.isFinite(Number(action.params.aimX)) ? Number(action.params.aimX) : null;
       const aimY = action.params && Number.isFinite(Number(action.params.aimY)) ? Number(action.params.aimY) : null;
       const aimCode = aimX !== null && aimY !== null ? `
-          if (window.GraveGainGame && window.GraveGainGame.input && window.GraveGainGame.player) {
+          if (window.GraveGainBotInput && window.GraveGainBotInput.lookToward) {
+            window.GraveGainBotInput.lookToward(${aimX}, ${aimY});
+          } else if (window.GraveGainGame && window.GraveGainGame.input && window.GraveGainGame.player && window.GraveGainGame.camera && window.GraveGainGame.camera.getOffsets && window.GraveGainGame.player.angle !== undefined) {
             const g = window.GraveGainGame;
             const ax = (${aimX} / 1000) * (g.canvas?.width || 1000);
             const ay = (${aimY} / 1000) * (g.canvas?.height || 600);
