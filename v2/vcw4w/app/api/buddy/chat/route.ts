@@ -74,8 +74,18 @@ export async function POST(req: Request) {
         clearTimeout(timer);
       }
       if (!res.ok) throw new Error(`chat HTTP ${res.status}`);
-      const out = (await res.json()) as { output_text?: string };
-      reply = String(out.output_text ?? "").trim().slice(0, 600);
+      const out = (await res.json()) as {
+        output_text?: string;
+        output?: { type?: string; content?: { type?: string; text?: string }[] }[];
+      };
+      // The REST Responses payload carries text in output[].content[];
+      // output_text is an SDK convenience property and may be absent here.
+      const responseText = (out.output ?? [])
+        .flatMap((item) => item.type === "message" ? item.content ?? [] : [])
+        .filter((part) => part.type === "output_text")
+        .map((part) => part.text ?? "")
+        .join("");
+      reply = String(responseText || out.output_text || "").trim().slice(0, 600);
       if (!reply) throw new Error("empty reply");
     } catch (err) {
       console.error("[buddy] chat failed, using fallback:", err);

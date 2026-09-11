@@ -51,8 +51,8 @@ for (const [name, src] of [["meter", meter], ["chat", chat], ["tts", tts], ["usa
 if (!features.includes("game_ai_features")) throw new Error("features API must read game_ai_features.");
 if (!meter.includes("meter_game_ai_usage")) throw new Error("Meter API must call meter_game_ai_usage.");
 if (!chat.includes("meter_game_ai_usage") || !chat.includes("OPENAI_API_KEY")) throw new Error("Buddy chat must meter + honor OPENAI_API_KEY.");
-if (!chat.includes("/v1/responses") || !chat.includes("output_text")) {
-  throw new Error("Buddy chat must use the OpenAI Responses API and read output_text.");
+if (!chat.includes("/v1/responses") || !chat.includes("output_text") || !chat.includes('part.type === "output_text"')) {
+  throw new Error("Buddy chat must use the OpenAI Responses API and read its output message text.");
 }
 if (chat.includes('p_kind: "buddy-tts"')) {
   throw new Error("Buddy chat must not meter voice; the TTS endpoint owns that charge.");
