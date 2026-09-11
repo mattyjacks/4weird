@@ -51,10 +51,11 @@ for (const token of ["export async function requireHuman", "checkBotId", "deepAn
 // (anti-cheat via the cheat_mode save invariant + rate limits). Anonymous
 // free-play abuse stays gated via guest-pass below.
 //
-// NOTE: POST /api/auth/login is intentionally NOT in the strict list
-// either: external bots log in with username + password like any person,
+// NOTE: POST /api/auth/login and POST /api/bot/login are intentionally NOT
+// in the strict list either: bots log in with an API key or an email +
+// password (restricted tester session) like any person,
 // so the gate engages ONLY after 5 consecutive failed passwords (deferred,
-// see the login route). Brute-force shields still apply.
+// see the login routes). Brute-force shields still apply.
 //
 // Three tiers:
 // - strict: identity-mint + free-money + kid + key-issuance + deletion.

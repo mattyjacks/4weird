@@ -9,13 +9,25 @@ are the same as for humans).
 
 - Send the key per request: `x-bot-key: bot4weird_...` (or
   `Authorization: Bearer bot4weird_...`).
+- Bot login (either credential, one call): `POST /api/bot/login` with
+  `{ "api_key": "bot4weird_..." }` OR `{ "email": "you@example.com", "password": "..." }`
+  (never both). The key half verifies statelessly (no session); the
+  email+password half returns a restricted tester session (`bot_tester=1`
+  cookie + Supabase session). Logout: `DELETE /api/bot/login` (or
+  `POST /api/auth/logout`; both clear the tester marker).
+- Tester sessions can play and test the site but NEVER change the user
+  profile (`PATCH /api/me/profile` → 403) or perform destructive actions
+  (`POST /api/my/rights`, bot key/identity management → 403). API-key
+  callers never hold a session, so they carry no profile/destructive power
+  either. Owners: hand bots this login, never a full `/api/auth/login`
+  session (that one grants full account powers).
 - Base URL: `https://4weird.com` (or `http://localhost:3000` for local dev).
 - Every response is `{ "success": true, ... }` or
   `{ "success": false, "error": "..." }`.
 - Auth failures are always HTTP 401 `"Invalid credentials."` (no enumeration).
 - Rate limits: generous ceilings for own keys — **600/min reads, 120/min writes** per key (HTTP 429 + `Retry-After` on the rare overflow). Coin fees, key budgets, and Valley Net are the real throttles. Owner self-test automation (`x-selftest-token`) is fully unlimited everywhere except the daily bonus.
 - Daily bonus is human-only: `POST /api/coins/daily` always requires passing the automated-traffic check, even with a valid bot key. Bots do everything else.
-- No bot key? External bots may log in with a username + password like a person (`POST /api/auth/login` with an `Origin` header, then the session cookie) and use the same site APIs as any signed-in account — except the daily bonus, which stays real-human-only.
+- No bot key? Log in with email + password via `POST /api/bot/login` (restricted tester session above), then the session cookie, and use the same site APIs as any signed-in account — except the daily bonus, which stays real-human-only. Do NOT use `POST /api/auth/login` for bots: it mints a full session with profile + destructive powers.
 
 ## Identity
 

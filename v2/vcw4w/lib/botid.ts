@@ -28,15 +28,21 @@ import { extractBotKey, resolveBotKey } from "@/lib/bot-auth";
  *   - Owner self-test (`x-selftest-token: SELFTEST_BYPASS_TOKEN`) → exempt:
  *     the AI testing its own website with unlimited actions. Daily bonus
  *     opts out of this (allowTrustedMachine:false) and stays human-only.
- *   - VALID `bot4weird_` keys (resolved against the DB: revocation, expiry,
- *     budgets enforced) → exempt everywhere EXCEPT daily. A
- *     present-but-invalid key is NOT enough — it falls through to the
- *     BotID check and fails closed like any bot.
- *   - Signed-in coin-spend/social callers → exempt ONLY when the route opts
- *     in with `{ allowAuthenticated: true }`. A valid Supabase session proves
- *     the caller is a real account whose coin ledger can be debited, so a
- *     BotID false-positive (or headless automation through a real login)
- *     must not 403 paid work like NewGamePlus builds, fal renders, or buddy
+  *   - VALID `bot4weird_` keys (resolved against the DB: revocation, expiry,
+  *     budgets enforced) → exempt everywhere EXCEPT daily. A
+  *     present-but-invalid key is NOT enough — it falls through to the
+  *     BotID check and fails closed like any bot.
+  *   - Restricted tester sessions (POST /api/bot/login email+password,
+  *     `bot_tester` cookie) bypass via `{ allowAuthenticated: true }` on all
+  *     non-free-mint routes instead — they carry a real Supabase session.
+  *     They can never touch the user profile or destructive actions: those
+  *     routes refuse the marker with 403 even in dev (no BotID involved).
+  *   - Signed-in coin-spend/social callers → exempt ONLY when the route opts
+  *     in with `{ allowAuthenticated: true }`. A valid Supabase session proves
+  *     the caller is a real account whose coin ledger can be debited, so a
+  *     BotID false-positive (or headless automation through a real login,
+  *     including the restricted POST /api/bot/login tester session)
+  *     must not 403 paid work like NewGamePlus builds, fal renders, or buddy
   *     turns. Free-money routes (signup/daily/claim/checkout/refund/
   *     alpha/referrals/guest-pass) plus kid-login, bot key issuance, and
   *     account deletion must NEVER opt in — they stay gated even for
@@ -166,14 +172,14 @@ async function isAuthenticatedUser(): Promise<boolean> {
  * opted-in authenticated spender, dev, or verifier outage with backstops
  * still active).
  *
- * Pass `{ allowAuthenticated: true }` on every route a logged-in bot may
- * use: coin-spending compute/AI (NewGamePlus, fal/meshy/generate,
- * buddy/chat, game-ai/meter, swarm/chat, code/zip, desktop/provision) AND
- * social/economy writes (clan posts/comments/votes, support, fundraisers,
- * verification, openrouter-plays, rights). A valid session proves a
- * debitable account, so BotID false-positives must not block paid work or
- * legitimate automation — including external bots that logged in with a
- * username + password and the owner's AI self-testing its own site.
+  * Pass `{ allowAuthenticated: true }` on every route a logged-in bot may
+  * use: coin-spending compute/AI (NewGamePlus, fal/meshy/generate,
+  * buddy/chat, game-ai/meter, swarm/chat, code/zip, desktop/provision) AND
+  * social/economy writes (clan posts/comments/votes, support, fundraisers,
+  * verification, openrouter-plays, rights). A valid session proves a
+  * debitable account, so BotID false-positives must not block paid work or
+  * legitimate automation — including tester sessions from POST /api/bot/login
+  * and the owner's AI self-testing its own site.
  * Never use it on free-money or identity-mint routes
  * (signup/daily/claim/checkout/refund/alpha/referrals/guest-pass,
  * kid-login, bot key issuance): those stay gated even for logged-in callers

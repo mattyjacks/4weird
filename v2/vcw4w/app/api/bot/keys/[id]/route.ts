@@ -5,6 +5,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { sameOrigin } from "@/lib/csrf";
 import { exceedsBodyLimit, isUuid } from "@/lib/validate";
 import { cleanKeyLabel } from "@/lib/bot-validate";
+import { botTesterBlocked, isBotTester } from "@/lib/bot-auth";
 import {
   cleanBudgetCoins,
   cleanExpiryIso,
@@ -81,6 +82,8 @@ export async function GET(_req: Request, ctx: Ctx) {
 export async function PATCH(req: Request, ctx: Ctx) {
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  // Bot tester sessions can play but never reconfigure keys.
+  if (isBotTester(req)) return fail(botTesterBlocked(), 403);
   const keyId = (await ctx.params).id;
   if (!isUuid(keyId)) return fail("Invalid key.", 400);
   const uid = await ownerId();

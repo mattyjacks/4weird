@@ -4,6 +4,7 @@ import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
+import { botTesterBlocked, isBotTester } from "@/lib/bot-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,8 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  // Bot tester sessions can play but never revoke keys.
+  if (isBotTester(req)) return fail(botTesterBlocked(), 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data?.user) return fail("Login required.", 401);

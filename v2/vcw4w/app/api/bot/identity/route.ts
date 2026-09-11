@@ -5,6 +5,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { sameOrigin } from "@/lib/csrf";
 import { exceedsBodyLimit } from "@/lib/validate";
 import { isBotUsername } from "@/lib/bot-validate";
+import { botTesterBlocked, isBotTester } from "@/lib/bot-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,8 @@ export async function GET() {
 export async function POST(req: Request) {
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  // Bot tester sessions can play but never claim or change the bot identity.
+  if (isBotTester(req)) return fail(botTesterBlocked(), 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data?.user) return fail("Login required.", 401);

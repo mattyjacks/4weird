@@ -139,4 +139,45 @@ for (const token of ["botPepperConfigured", 'Bot service is not configured.", 50
   if (!keysRoute.includes(token)) throw new Error(`keys route must gate issuance on the pepper (${token}).`);
 }
 if (/p_key_hash:\s*sha256Hash\(secret\)/.test(keysRoute)) throw new Error("keys route must not hash unguarded (sha256Hash throws without a pepper).");
+
+// 9. Bot login (POST /api/bot/login): API key OR email+password, restricted
+// tester session with no profile/destructive powers.
+if (!exists("../app/api/bot/login/route.ts")) throw new Error("Bot login route app/api/bot/login/route.ts is missing.");
+{
+  const login = read("../app/api/bot/login/route.ts");
+  for (const token of ["api_key", "BOT_TESTER_COOKIE", "resolveBotKey", "signInWithPassword", "bot_tester", "restrictions"]) {
+    if (!login.includes(token)) throw new Error(`bot login route must reference ${token}.`);
+  }
+  if (!login.includes("not both")) throw new Error("bot login must refuse a body carrying both an API key and email+password.");
+  if (!login.includes("export async function DELETE")) throw new Error("bot login must support DELETE (tester logout).");
+  // Helpers live in bot-auth (single source of truth for the marker).
+  for (const token of ["BOT_TESTER_COOKIE", "export function isBotTester", "export function botTesterBlocked"]) {
+    if (!auth.includes(token)) throw new Error(`bot-auth must export ${token}.`);
+  }
+  // Profile writes + destructive routes refuse tester sessions (403 even in
+  // dev, where the BotID gate never fires).
+  for (const [file, note] of [
+    ["../app/api/me/profile/route.ts", "profile PATCH"],
+    ["../app/api/my/rights/route.ts", "rights POST"],
+    ["../app/api/bot/identity/route.ts", "bot identity POST"],
+    ["../app/api/bot/keys/route.ts", "bot keys POST"],
+    ["../app/api/bot/keys/[id]/route.ts", "bot keys PATCH"],
+    ["../app/api/bot/keys/[id]/revoke/route.ts", "bot keys revoke"],
+  ]) {
+    const src = read(file);
+    if (!src.includes("isBotTester") || !src.includes("botTesterBlocked")) {
+      throw new Error(`${file} must refuse bot tester sessions (${note}).`);
+    }
+  }
+  // Logout clears the marker alongside the Supabase cookies.
+  if (!read("../app/api/auth/logout/route.ts").includes("BOT_TESTER_COOKIE")) {
+    throw new Error("auth logout must clear the bot tester marker.");
+  }
+  // Docs stay aligned: both skills + the repo skill document the dual login
+  // and the profile/destructive refusal.
+  for (const token of ["POST /api/bot/login", "bot_tester", "PATCH /api/me/profile"]) {
+    if (!botSkill.includes(token)) throw new Error(`public/bot/skill.md missing "${token}".`);
+    if (!skill.includes(token)) throw new Error(`skill.md missing "${token}".`);
+  }
+}
 console.log("Bot route integrity OK.");

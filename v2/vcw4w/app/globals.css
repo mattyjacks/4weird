@@ -159,14 +159,11 @@ html.light .border-cyan-300\/30, html.light .border-cyan-300\/50, html.light .bo
 html.light .border-violet-300\/50 { border-color: #c4b5fd; }
 html.light .border-amber-300\/40, html.light .border-amber-300\/60 { border-color: #fcd34d; }
 
-/* ---- Desktop nav dropdown: click-pin + 2s mouse-disturbed swirl fade ----
-   JS drives --fade (0 open -> 1 gone) via rAF: 2000ms out on mouse-away,
-   proportional restore up to 1000ms on re-enter. --mx/--my track the cursor,
-   --vel is cursor-velocity energy, --swirl is the churn angle.
-   The panel slides back up into its button (translate + bottom clip) while a
-   two-layer gradient mask dissolves it: a rising bottom edge + a radial
-   vortex carved at the cursor that widens with velocity. A conic shimmer
-   overlay rotates with --swirl so the fade reads as a swirl, not a blink. */
+/* ---- Nav fluid system: one JS-driven swirl on desktop, per-device
+   opacity choreography everywhere. Desktop keeps the 2s mouse-disturbed
+   swirl fade (JS drives --fade/--vel/--swirl/--mx/--my); mobile + tablet get
+   their own tap-tuned fluid below. All curves are gentle ease-outs, never
+   linear, and everything collapses to instant under reduced motion. ---- */
 .nav-swirl-panel {
   --fade: 0;
   --mx: 50%;
@@ -185,49 +182,273 @@ html.light .border-amber-300\/40, html.light .border-amber-300\/60 { border-colo
     radial-gradient(78% 92% at var(--mx) var(--my), #000 calc(74% - var(--vel) * 46%), transparent calc(110% - var(--vel) * 26%));
   -webkit-mask-composite: source-in;
   mask-composite: intersect;
-  will-change: opacity, transform, clip-path;
+  will-change: opacity, transform, clip-path, filter;
   pointer-events: auto;
 }
 .nav-swirl-panel .nav-swirl-list {
   position: relative;
+  isolation: isolate;
 }
+/* Aurora edge: a soft cyan->fuchsia wash that breathes with cursor energy,
+   visible even at rest so the panel never looks flat. */
+.nav-swirl-panel .nav-swirl-list::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  opacity: calc(0.5 + var(--vel) * 0.5);
+  background:
+    radial-gradient(120% 60% at 50% -10%, rgb(34 211 238 / 0.16), transparent 60%),
+    radial-gradient(120% 70% at 85% 110%, rgb(192 38 211 / 0.14), transparent 62%);
+}
+/* Churning shimmer: conic vortex at the cursor + a counter-rotating veil. */
 .nav-swirl-panel .nav-swirl-list::after {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  opacity: calc(var(--fade) * 0.55 + var(--vel) * 0.35);
+  z-index: 0;
+  opacity: calc(0.28 + var(--fade) * 0.5 + var(--vel) * 0.45);
   background: conic-gradient(from var(--swirl) at var(--mx) var(--my),
-    transparent 0deg, rgb(34 211 238 / 0.28) 70deg, rgb(192 38 211 / 0.24) 150deg,
-    transparent 220deg, rgb(34 211 238 / 0.18) 300deg, transparent 360deg);
+    transparent 0deg, rgb(34 211 238 / 0.3) 70deg, rgb(192 38 211 / 0.26) 150deg,
+    transparent 220deg, rgb(34 211 238 / 0.2) 300deg, transparent 360deg);
   mix-blend-mode: screen;
 }
 .dark .nav-swirl-panel .nav-swirl-list::after {
   mix-blend-mode: screen;
 }
-/* Cascade-in: links drop in staggered when the panel mounts. */
 .nav-swirl-list > li {
-  animation: nav-link-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: calc(var(--i, 0) * 35ms);
+  position: relative;
+  z-index: 1;
+}
+/* ---- DESKTOP fluid (fine pointer, wide): liquid blur + arc cascade ----
+   Links melt in with blur->sharp + a gentle upward arc, staggered on a curve
+   (later rows ease in a touch slower). Hover sweeps a light ribbon. */
+@media (hover: hover) and (pointer: fine) and (min-width: 1024px) {
+  .nav-swirl-panel {
+    filter: blur(calc(var(--fade) * 7px)) saturate(calc(1.18 - var(--fade) * 0.45)) brightness(calc(1.05 - var(--fade) * 0.14));
+  }
+  .nav-swirl-list > li {
+    animation: nav-link-liquid 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i, 0) * 38ms);
+  }
+  .nav-swirl-list > li:nth-child(n + 6) {
+    animation-delay: calc(190ms + (var(--i, 5) - 5) * 26ms);
+  }
+  .nav-swirl-list > li > a {
+    position: relative;
+    overflow: hidden;
+  }
+  .nav-swirl-list > li > a::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 20%, rgb(34 211 238 / 0.22) 50%, transparent 80%);
+    transform: translateX(-120%);
+    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+  }
+  .nav-swirl-list > li > a:hover::before {
+    transform: translateX(120%);
+  }
+}
+@keyframes nav-link-liquid {
+  0% { opacity: 0; transform: translateY(-12px) translateX(-4px) scale(0.98); filter: blur(7px); }
+  55% { opacity: 0.85; transform: translateY(2px) translateX(1px) scale(1.005); filter: blur(1.5px); }
+  100% { opacity: 1; transform: translateY(0) translateX(0) scale(1); filter: blur(0); }
 }
 @keyframes nav-link-in {
-  from { opacity: 0; transform: translateY(-7px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(-7px); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
 
-/* ---- Mobile accordion: tap pins open (already), now with a smooth slide ---- */
+/* ---- Mobile sheet: viewport-capped + inner-scrollable ----
+   The sheet never stretches past the viewport: it owns at most
+   (viewport - header) and scrolls inside with smooth, curved momentum.
+   dvh handles the mobile URL bar; svh/vh are fallbacks in order. */
+.mobile-nav-scroll {
+  max-height: 78vh;
+  max-height: 78svh;
+  max-height: calc(100dvh - 4rem);
+  max-height: calc(100svh - 4rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(34 211 238 / 0.55) transparent;
+  touch-action: pan-y;
+}
+.mobile-nav-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.mobile-nav-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, rgb(34 211 238 / 0.65), rgb(192 38 211 / 0.55));
+  border-radius: 9999px;
+}
+.mobile-nav-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+/* Tall groups get their own inner scroll so one mega-group (Build, 14 links)
+   can't shove the CTAs off-screen: the group scrolls, the sheet stays put. */
+.mobile-acc-scroll {
+  max-height: 34vh;
+  max-height: 34svh;
+  max-height: 36dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(34 211 238 / 0.45) transparent;
+  /* Soft edge fade top/bottom: a scroll affordance that reads as fluid. */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+}
+.mobile-acc-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.mobile-acc-scroll::-webkit-scrollbar-thumb {
+  background: rgb(34 211 238 / 0.45);
+  border-radius: 9999px;
+}
+/* Base accordion mount: gentle drape curve shared by all touch devices. */
 .mobile-acc-panel {
-  animation: mobile-acc-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: mobile-acc-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
   transform-origin: top center;
+  will-change: opacity, transform, filter;
 }
 .mobile-acc-list > li {
-  animation: nav-link-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: nav-link-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: calc(var(--i, 0) * 30ms);
 }
 @keyframes mobile-acc-in {
-  from { opacity: 0; transform: translateY(-8px) scaleY(0.96); }
-  to { opacity: 1; transform: translateY(0) scaleY(1); }
+  from { opacity: 0; transform: translateY(-10px) scaleY(0.96); filter: blur(5px); }
+  to { opacity: 1; transform: translateY(0) scaleY(1); filter: blur(0); }
+}
+
+/* ---- TABLET fluid (640-1023px): calm lagoon rise ----
+   Distinct from phone + desktop: the sheet floats up with a soft spring,
+   groups bloom with scaleY + blur, links drift in on a sideways arc with a
+   cyan wash that lingers a beat longer than on phones. */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .mobile-nav-sheet {
+    animation: tablet-sheet-in 0.45s cubic-bezier(0.34, 1.25, 0.5, 1) both;
+    box-shadow: 0 24px 60px -18px rgb(34 211 238 / 0.28), 0 8px 28px rgb(0 0 0 / 0.25);
+  }
+  .mobile-group-card {
+    animation: tablet-card-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .mobile-acc-panel {
+    animation: tablet-acc-in 0.42s cubic-bezier(0.34, 1.2, 0.5, 1) both;
+  }
+  .mobile-acc-list > li {
+    animation: tablet-link-arc 0.44s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--i, 0) * 34ms);
+  }
+  .mobile-fluid .mobile-acc-list > li > a {
+    background-image: linear-gradient(100deg, transparent 30%, rgb(34 211 238 / 0.14) 50%, transparent 70%);
+    background-size: 220% 100%;
+    background-position: 120% 0;
+    transition: background-position 0.6s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.25s ease;
+  }
+  .mobile-fluid .mobile-acc-list > li > a:hover,
+  .mobile-fluid .mobile-acc-list > li > a:active {
+    background-position: -20% 0;
+  }
+}
+@keyframes tablet-sheet-in {
+  0% { opacity: 0; transform: translateY(-16px) scale(0.985); filter: blur(8px) saturate(0.85); }
+  60% { opacity: 1; transform: translateY(3px) scale(1.002); filter: blur(1px) saturate(1.08); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0) saturate(1); }
+}
+@keyframes tablet-card-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes tablet-acc-in {
+  0% { opacity: 0; transform: translateY(-12px) scaleY(0.94); filter: blur(6px); }
+  55% { opacity: 0.9; transform: translateY(2px) scaleY(1.005); filter: blur(1px); }
+  100% { opacity: 1; transform: translateY(0) scaleY(1); filter: blur(0); }
+}
+@keyframes tablet-link-arc {
+  0% { opacity: 0; transform: translateX(-14px) translateY(-6px); filter: blur(6px); }
+  60% { opacity: 0.9; transform: translateX(3px) translateY(1px); filter: blur(1px); }
+  100% { opacity: 1; transform: translateX(0) translateY(0); filter: blur(0); }
+}
+
+/* ---- PHONE fluid (<=639px): neon drape ----
+   Distinct from tablet: the sheet drapes down like fabric, links swing in on
+   alternating gentle arcs with a glow pulse on the active row, plus sticky
+   edge glows so the inner scroll reads as bottomless but bounded. */
+@media (max-width: 639px) {
+  .mobile-nav-sheet {
+    animation: phone-sheet-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+    box-shadow: 0 18px 44px -14px rgb(192 38 211 / 0.3), 0 6px 22px rgb(0 0 0 / 0.3);
+  }
+  .mobile-acc-panel {
+    animation: phone-acc-in 0.36s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .mobile-acc-list > li {
+    animation: phone-link-arc 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--i, 0) * 28ms);
+  }
+  .mobile-acc-list > li:nth-child(even) {
+    animation-name: phone-link-arc-alt;
+  }
+  .mobile-fluid {
+    background-image: radial-gradient(130% 34% at 50% 0%, rgb(34 211 238 / 0.1), transparent 70%);
+  }
+}
+@keyframes phone-sheet-in {
+  0% { opacity: 0; transform: translateY(-14px) scaleY(0.975); filter: blur(8px) brightness(1.1); }
+  55% { opacity: 0.92; transform: translateY(2px) scaleY(1.004); filter: blur(1px) brightness(1.02); }
+  100% { opacity: 1; transform: translateY(0) scaleY(1); filter: blur(0) brightness(1); }
+}
+@keyframes phone-acc-in {
+  from { opacity: 0; transform: translateY(-10px) scaleY(0.95); filter: blur(6px); }
+  to { opacity: 1; transform: translateY(0) scaleY(1); filter: blur(0); }
+}
+@keyframes phone-link-arc {
+  0% { opacity: 0; transform: translateX(10px) translateY(-7px); filter: blur(5px); }
+  60% { opacity: 0.9; transform: translateX(-2px) translateY(1px); filter: blur(1px); }
+  100% { opacity: 1; transform: translateX(0) translateY(0); filter: blur(0); }
+}
+@keyframes phone-link-arc-alt {
+  0% { opacity: 0; transform: translateX(-10px) translateY(-7px); filter: blur(5px); }
+  60% { opacity: 0.9; transform: translateX(2px) translateY(1px); filter: blur(1px); }
+  100% { opacity: 1; transform: translateX(0) translateY(0); filter: blur(0); }
+}
+/* Coarse pointers: slow the fluid a touch so fingers can follow it. */
+@media (pointer: coarse) {
+  .mobile-acc-panel { animation-duration: 0.42s; }
+  .mobile-acc-list > li { animation-duration: 0.42s; }
+  .nav-swirl-panel .nav-swirl-list::after { opacity: calc(0.22 + var(--fade) * 0.4 + var(--vel) * 0.3); }
+}
+/* Motion-sensitive users + low-power: fluid off, scroll stays usable. */
+@media (prefers-reduced-motion: reduce) {
+  .nav-swirl-panel, .mobile-nav-sheet, .mobile-acc-panel,
+  .nav-swirl-list > li, .mobile-acc-list > li, .mobile-group-card {
+    animation: none !important;
+    transition: none !important;
+    filter: none !important;
+  }
+  .mobile-nav-scroll, .mobile-acc-scroll { scroll-behavior: auto; }
+  .mobile-acc-scroll { -webkit-mask-image: none; mask-image: none; }
+}
+html.a11y-reduced-motion .nav-swirl-panel,
+html.a11y-reduced-motion .mobile-nav-sheet,
+html.a11y-reduced-motion .mobile-acc-panel,
+html.a11y-reduced-motion .nav-swirl-list > li,
+html.a11y-reduced-motion .mobile-acc-list > li {
+  animation: none !important;
+  transition: none !important;
+  filter: none !important;
 }
 
 /* Play-shell frame height: stable while the mobile keyboard opens/closes.
@@ -317,3 +538,111 @@ html[data-low-power="1"] .perf-card {
 /* Images + video decode off the critical path. */
 img, video { content-visibility: auto; }
 iframe { contain: layout style; }
+
+/* ---- 4weird compact UX layer: tighter + cleaner everywhere ----
+   Shared primitives: (?) InfoTip tooltip, ClampText teaser+dropdown,
+   CompactDetails dropdown. Mobile-first: tap toggles, desktop: hover. */
+@layer components {
+  /* (?) trigger: 18px desktop, 28px touch target via padding trick. */
+  .ui-infotip { position: relative; display: inline-flex; align-items: center; flex-shrink: 0; }
+  .ui-infotip-btn {
+    display: inline-grid; place-items: center;
+    width: 1.125rem; height: 1.125rem; border-radius: 9999px;
+    font-size: 0.6875rem; font-weight: 800; line-height: 1;
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--muted)); color: hsl(var(--muted-foreground));
+    cursor: pointer; padding: 0; transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .ui-infotip-btn::before {
+    content: ""; position: absolute; inset: -8px; /* 44px-ish tap zone on mobile */
+  }
+  .ui-infotip-btn:hover, .ui-infotip:focus-within .ui-infotip-btn, .ui-infotip.is-pinned .ui-infotip-btn {
+    background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); border-color: hsl(var(--primary));
+  }
+  .ui-infotip-bubble {
+    position: absolute; z-index: 60;
+    width: max-content; max-width: 16rem;
+    padding: 0.5rem 0.625rem; border-radius: 0.625rem;
+    font-size: 0.75rem; line-height: 1.45; font-weight: 400; text-align: left; white-space: normal;
+    background: hsl(var(--popover)); color: hsl(var(--popover-foreground));
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+    opacity: 0; visibility: hidden; transform: translateY(3px);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+    pointer-events: none;
+  }
+  .ui-infotip-top .ui-infotip-bubble { bottom: calc(100% + 8px); left: 50%; translate: -50% 0; }
+  .ui-infotip-bottom .ui-infotip-bubble { top: calc(100% + 8px); left: 50%; translate: -50% 0; }
+  .ui-infotip-left .ui-infotip-bubble { right: calc(100% + 8px); top: 50%; translate: 0 -50%; }
+  .ui-infotip-right .ui-infotip-bubble { left: calc(100% + 8px); top: 50%; translate: 0 -50%; }
+  .ui-infotip:hover .ui-infotip-bubble,
+  .ui-infotip:focus-within .ui-infotip-bubble,
+  .ui-infotip.is-pinned .ui-infotip-bubble {
+    opacity: 1; visibility: visible; transform: none; pointer-events: auto;
+  }
+  @media (max-width: 640px) {
+    .ui-infotip-bubble { max-width: 70vw; font-size: 0.8125rem; }
+    /* Keep every bubble on-screen: always drop below, centered. */
+    .ui-infotip-top .ui-infotip-bubble,
+    .ui-infotip-bottom .ui-infotip-bubble,
+    .ui-infotip-left .ui-infotip-bubble,
+    .ui-infotip-right .ui-infotip-bubble {
+      top: calc(100% + 8px); bottom: auto; left: 50%; right: auto; translate: -50% 0;
+    }
+  }
+
+  /* ClampText: tight teaser + (?) + "More" dropdown for the long version. */
+  .ui-clamp { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.375rem; max-width: 100%; }
+  .ui-clamp-short {
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+    line-height: 1.4;
+  }
+  .ui-clamp-1 { -webkit-line-clamp: 1; }
+  .ui-clamp-3 { -webkit-line-clamp: 3; }
+  .ui-clamp-more { display: inline; font-size: 0.75rem; }
+  .ui-clamp-more > summary {
+    display: inline-flex; align-items: center; gap: 0.15rem;
+    list-style: none; cursor: pointer; font-weight: 700;
+    color: hsl(var(--muted-foreground)); border-radius: 0.375rem;
+    padding: 0.125rem 0.375rem; margin: -0.125rem -0.375rem;
+    min-height: 1.75rem; /* touch-friendly */
+  }
+  .ui-clamp-more > summary::-webkit-details-marker { display: none; }
+  .ui-clamp-more > summary:hover { color: hsl(var(--foreground)); background: hsl(var(--accent)); }
+  .ui-clamp-more .ui-clamp-caret { font-size: 0.625rem; transition: transform 0.15s ease; }
+  .ui-clamp-more[open] .ui-clamp-caret { transform: rotate(180deg); }
+  .ui-clamp-more[open] { display: inline; }
+  .ui-clamp-body {
+    display: block; flex-basis: 100%;
+    margin-top: 0.25rem; padding: 0.5rem 0.625rem; border-radius: 0.625rem;
+    font-size: 0.8125rem; line-height: 1.5;
+    background: hsl(var(--muted) / 0.5); border: 1px solid hsl(var(--border));
+  }
+
+  /* CompactDetails: one tight row, long text in the dropdown. */
+  .ui-details {
+    border: 1px solid hsl(var(--border)); border-radius: 0.75rem;
+    background: hsl(var(--card)); overflow: hidden;
+  }
+  .ui-details-summary {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.5rem 0.75rem; min-height: 2.5rem;
+    font-size: 0.8125rem; font-weight: 700; line-height: 1.3;
+    list-style: none; cursor: pointer; user-select: none;
+  }
+  .ui-details-summary::-webkit-details-marker { display: none; }
+  .ui-details-summary:hover { background: hsl(var(--accent) / 0.6); }
+  .ui-details-caret { font-size: 0.625rem; color: hsl(var(--muted-foreground)); transition: transform 0.15s ease; flex-shrink: 0; }
+  .ui-details[open] .ui-details-caret { transform: rotate(180deg); }
+  .ui-details-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ui-details-body { padding: 0 0.75rem 0.625rem; font-size: 0.8125rem; line-height: 1.55; }
+
+  /* Cleaner focus for every new compact control. */
+  .ui-infotip-btn:focus-visible, .ui-clamp-more > summary:focus-visible, .ui-details-summary:focus-visible {
+    outline: 2px solid #22d3ee; outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-infotip-bubble, .ui-clamp-more .ui-clamp-caret, .ui-details-caret { transition: none !important; }
+}

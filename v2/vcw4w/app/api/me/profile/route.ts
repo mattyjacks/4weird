@@ -3,6 +3,7 @@ import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
+import { botTesterBlocked, isBotTester } from "@/lib/bot-auth";
 import { cleanDisplayName, cleanHandle, jsonBytes } from "@/lib/validate";
 import { isAgeBand } from "@/lib/family";
 
@@ -28,6 +29,9 @@ export async function GET() {
 export async function PATCH(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  // Bot tester sessions (POST /api/bot/login email+password) can play but
+  // never change the user profile.
+  if (isBotTester(req)) return fail(botTesterBlocked(), 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;

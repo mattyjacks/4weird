@@ -4,6 +4,8 @@ import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/validate";
+import { cookies } from "next/headers";
+import { BOT_TESTER_COOKIE } from "@/lib/bot-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +24,14 @@ export async function POST(req: Request) {
       await supabase.auth.signOut();
     } catch {
       // Server sign-out is best-effort; clearing cookies logs out regardless.
+    }
+    try {
+      // Bot tester sessions end here too: drop the restricted-session marker
+      // alongside the Supabase cookies (see POST /api/bot/login).
+      const jar = await cookies();
+      jar.delete(BOT_TESTER_COOKIE);
+    } catch {
+      // best-effort
     }
   } finally {
     // The @supabase/ssr server client clears the session cookies on sign-out;

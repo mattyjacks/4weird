@@ -273,7 +273,7 @@ function DesktopNavGroup({ group, active, expandedMenu, pathname, onOpen, onRequ
         aria-haspopup="true"
         aria-current={active && !expandedMenu ? "page" : undefined}
         onClick={() => (expandedMenu ? onRequestClose() : onOpen())}
-        className={`flex items-center gap-1 rounded-lg px-3 py-2 font-semibold transition hover:bg-accent hover:text-accent-foreground ${
+        className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 font-semibold transition hover:bg-accent hover:text-accent-foreground ${
           active ? "text-cyan-600 dark:text-cyan-300" : ""
         }`}
       >
@@ -283,7 +283,7 @@ function DesktopNavGroup({ group, active, expandedMenu, pathname, onOpen, onRequ
         </span>
       </button>
       {stayVisible && (
-        <div ref={panelRef} className="nav-swirl-panel absolute left-0 top-full z-50 min-w-52 pt-1">
+        <div ref={panelRef} className="nav-swirl-panel desktop-fluid absolute left-0 top-full z-50 min-w-52 pt-1">
           <ul className="nav-swirl-list overflow-hidden rounded-xl border border-border bg-popover py-1 shadow-xl backdrop-blur dark:border-white/10 dark:bg-slate-950/95 dark:shadow-black/50">
             {group.links.map((link, index) => (
               <li key={link.href} style={{ "--i": index } as CSSProperties}>
@@ -293,7 +293,7 @@ function DesktopNavGroup({ group, active, expandedMenu, pathname, onOpen, onRequ
                     target="_blank"
                     rel="noreferrer"
                     onClick={onNavigate}
-                    className="block whitespace-nowrap px-4 py-2.5 transition hover:bg-accent hover:text-accent-foreground"
+                    className="block whitespace-nowrap px-3 py-1.5 text-sm transition hover:bg-accent hover:text-accent-foreground"
                   >
                     {link.label} <span aria-hidden="true">↗</span>
                   </a>
@@ -302,7 +302,7 @@ function DesktopNavGroup({ group, active, expandedMenu, pathname, onOpen, onRequ
                     href={link.href}
                     aria-current={isActive(pathname, link.href) ? "page" : undefined}
                     onClick={onNavigate}
-                    className={`block whitespace-nowrap px-4 py-2.5 transition hover:bg-accent hover:text-accent-foreground ${
+                    className={`block whitespace-nowrap px-3 py-1.5 text-sm transition hover:bg-accent hover:text-accent-foreground ${
                       isActive(pathname, link.href) ? "font-bold text-cyan-600 dark:text-cyan-300" : ""
                     }`}
                   >
@@ -340,6 +340,7 @@ export function SiteHeader() {
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const pathname = usePathname();
   const desktopNavRef = useRef<HTMLElement>(null);
+  const mobileNavRef = useRef<HTMLElement>(null);
 
   // Track auth state so the header can show Login / Sign Up vs Dashboard.
   useEffect(() => {
@@ -396,6 +397,37 @@ export function SiteHeader() {
     };
   }, [openMenu]);
 
+  // Mobile sheet: lock background scroll while open so the panel owns the
+  // gesture, and close on Escape. The sheet itself stays inner-scrollable.
+  useEffect(() => {
+    if (!open) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  // When a mobile group expands, glide it into view inside the sheet with a
+  // gentle curve (smooth behavior) instead of jumping.
+  useEffect(() => {
+    if (!open || !expanded || !mobileNavRef.current) return;
+    if (prefersReducedMotion()) return;
+    const target = mobileNavRef.current.querySelector(`[data-group="${expanded}"]`);
+    if (target) {
+      // Let the accordion mount first, then ease toward it.
+      const id = window.setTimeout(() => {
+        (target as HTMLElement).scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, 60);
+      return () => window.clearTimeout(id);
+    }
+  }, [expanded, open]);
+
   return (
     <>
       <a
@@ -405,7 +437,7 @@ export function SiteHeader() {
         Skip to content
       </a>
       <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur dark:border-white/10 dark:bg-black/85">
-        <div className="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-5">
+        <div className="mx-auto flex min-h-14 max-w-6xl items-center justify-between gap-2 px-4 py-2 sm:px-5">
           <Link href="/" className="shrink-0 text-lg font-black text-foreground" aria-label="4weird home">
             🎮 4weird
           </Link>
@@ -419,7 +451,7 @@ export function SiteHeader() {
             <Link
               href={ALL_GAMES_HREF}
               aria-current={isActive(pathname, ALL_GAMES_HREF) ? "page" : undefined}
-              className={`rounded-lg px-3 py-2 font-bold transition hover:bg-accent hover:text-accent-foreground ${
+              className={`rounded-lg px-2.5 py-1.5 font-bold transition hover:bg-accent hover:text-accent-foreground ${
                 isActive(pathname, ALL_GAMES_HREF) ? "text-cyan-600 dark:text-cyan-300" : ""
               }`}
             >
@@ -446,7 +478,7 @@ export function SiteHeader() {
           <div className="hidden items-center gap-2 lg:flex">
             <Link
               href="/pricing"
-              className="rounded-full border border-border px-4 py-2 text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground"
+              className="rounded-full border border-border px-3 py-1.5 text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground"
             >
               Get Coins
             </Link>
@@ -455,7 +487,7 @@ export function SiteHeader() {
             ) : signedIn ? (
               <Link
                 href="/account"
-                className="rounded-full bg-cyan-600 px-5 py-2 text-sm font-black text-white transition hover:bg-cyan-500 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
+                className="rounded-full bg-cyan-600 px-4 py-1.5 text-sm font-black text-white transition hover:bg-cyan-500 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
               >
                 Dashboard
               </Link>
@@ -463,13 +495,13 @@ export function SiteHeader() {
               <>
                 <Link
                   href="/auth/login"
-                  className="rounded-full border border-cyan-600/60 px-5 py-2 text-sm font-bold text-cyan-700 transition hover:bg-cyan-600/10 dark:border-cyan-300/60 dark:text-cyan-200 dark:hover:text-white"
+                  className="rounded-full border border-cyan-600/60 px-4 py-1.5 text-sm font-bold text-cyan-700 transition hover:bg-cyan-600/10 dark:border-cyan-300/60 dark:text-cyan-200 dark:hover:text-white"
                 >
                   Login
                 </Link>
                 <Link
                   href="/auth/sign-up"
-                  className="rounded-full bg-cyan-600 px-5 py-2 text-sm font-black text-white transition hover:bg-cyan-500 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
+className="rounded-full bg-cyan-600 px-4 py-1.5 text-sm font-black text-white transition hover:bg-cyan-500 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
                 >
                   Sign Up
                 </Link>
@@ -491,12 +523,15 @@ export function SiteHeader() {
           </button>
         </div>
 
-        {/* Mobile nav: 2-level accordion; one tap expands a group */}
+        {/* Mobile nav: 2-level accordion; one tap expands a group.
+            The sheet is capped to the viewport and scrolls internally so every
+            option stays reachable, with smooth curved motion throughout. */}
         {open && (
           <nav
+            ref={mobileNavRef}
             id="site-mobile-nav"
             aria-label="Mobile navigation"
-            className="border-t border-border bg-background px-4 pb-6 pt-4 lg:hidden dark:border-white/10 dark:bg-black"
+            className="mobile-nav-sheet mobile-nav-scroll mobile-fluid border-t border-border bg-background px-3 pb-4 pt-3 lg:hidden dark:border-white/10 dark:bg-black"
           >
             <ul className="space-y-1">
               <li>
@@ -504,7 +539,7 @@ export function SiteHeader() {
                   href={ALL_GAMES_HREF}
                   onClick={() => setOpen(false)}
                   aria-current={isActive(pathname, ALL_GAMES_HREF) ? "page" : undefined}
-                  className={`block rounded-xl bg-cyan-600 px-4 py-3 text-center text-base font-black text-white transition hover:bg-cyan-500 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200`}
+                  className={`block rounded-xl bg-cyan-600 px-3 py-2 text-center text-sm font-black text-white transition hover:bg-cyan-500 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200`}
                 >
                   All Games
                 </Link>
@@ -513,13 +548,17 @@ export function SiteHeader() {
                 const active = groupActive(pathname, group.links);
                 const isExpanded = expanded === group.label;
                 return (
-                  <li key={group.label} className="overflow-hidden rounded-xl border border-border dark:border-white/10">
+                  <li
+                    key={group.label}
+                    data-group={group.label}
+                    className="mobile-group-card overflow-hidden rounded-xl border border-border dark:border-white/10"
+                  >
                     <button
                       type="button"
                       aria-expanded={isExpanded}
                       aria-controls={`mobile-group-${group.label}`}
                       onClick={() => setExpanded(isExpanded ? null : group.label)}
-                      className={`flex w-full items-center justify-between px-4 py-3 text-left text-base font-bold transition hover:bg-accent ${
+                      className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm font-bold transition hover:bg-accent ${
                         active ? "text-cyan-600 dark:text-cyan-300" : "text-foreground"
                       }`}
                     >
@@ -529,7 +568,10 @@ export function SiteHeader() {
                       </span>
                     </button>
                     {isExpanded && (
-                      <ul id={`mobile-group-${group.label}`} className="mobile-acc-panel mobile-acc-list border-t border-border bg-muted/40 py-1 dark:border-white/10 dark:bg-white/[.02]">
+                      <ul
+                        id={`mobile-group-${group.label}`}
+                        className="mobile-acc-panel mobile-acc-list mobile-acc-scroll mobile-fluid border-t border-border bg-muted/40 py-1 dark:border-white/10 dark:bg-white/[.02]"
+                      >
                         {group.links.map((link, index) => (
                           <li key={link.href} style={{ "--i": index } as CSSProperties}>
                             {link.external ? (
@@ -538,7 +580,7 @@ export function SiteHeader() {
                                 target="_blank"
                                 rel="noreferrer"
                                 onClick={() => setOpen(false)}
-                                className="block px-6 py-2.5 text-[15px] font-semibold text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+                                className="block px-5 py-1.5 text-sm font-semibold text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
                               >
                                 {link.label} <span aria-hidden="true">↗</span>
                               </a>
@@ -547,7 +589,7 @@ export function SiteHeader() {
                                 href={link.href}
                                 onClick={() => setOpen(false)}
                                 aria-current={isActive(pathname, link.href) ? "page" : undefined}
-                                className={`block px-6 py-2.5 text-[15px] font-semibold transition hover:bg-accent hover:text-accent-foreground ${
+                                className={`block px-5 py-1.5 text-sm font-semibold transition hover:bg-accent hover:text-accent-foreground ${
                                   isActive(pathname, link.href) ? "text-cyan-600 dark:text-cyan-300" : "text-muted-foreground"
                                 }`}
                               >
@@ -566,7 +608,7 @@ export function SiteHeader() {
               <Link
                 href="/pricing"
                 onClick={() => setOpen(false)}
-                className="rounded-full border border-border px-5 py-3 text-center font-bold text-foreground"
+                className="rounded-full border border-border px-4 py-2 text-center text-sm font-bold text-foreground"
               >
                 Get Coins
               </Link>
@@ -574,7 +616,7 @@ export function SiteHeader() {
                 <Link
                   href="/account"
                   onClick={() => setOpen(false)}
-                  className="rounded-full bg-cyan-600 px-5 py-3 text-center font-black text-white dark:bg-cyan-300 dark:text-slate-950"
+                  className="rounded-full bg-cyan-600 px-4 py-2 text-center text-sm font-black text-white dark:bg-cyan-300 dark:text-slate-950"
                 >
                   Dashboard
                 </Link>
@@ -583,14 +625,14 @@ export function SiteHeader() {
                   <Link
                     href="/auth/login"
                     onClick={() => setOpen(false)}
-                    className="rounded-full border border-cyan-600/60 px-5 py-3 text-center font-bold text-cyan-700 dark:border-cyan-300/60 dark:text-cyan-200"
+                    className="rounded-full border border-cyan-600/60 px-4 py-2 text-center text-sm font-bold text-cyan-700 dark:border-cyan-300/60 dark:text-cyan-200"
                   >
                     Login
                   </Link>
                   <Link
                     href="/auth/sign-up"
                     onClick={() => setOpen(false)}
-                    className="rounded-full bg-cyan-600 px-5 py-3 text-center font-black text-white dark:bg-cyan-300 dark:text-slate-950"
+                    className="rounded-full bg-cyan-600 px-4 py-2 text-center text-sm font-black text-white dark:bg-cyan-300 dark:text-slate-950"
                   >
                     Sign Up
                   </Link>

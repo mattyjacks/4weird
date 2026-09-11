@@ -9,6 +9,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
+import { botTesterBlocked, isBotTester } from "@/lib/bot-auth";
 import { clientIp, isUuid } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
@@ -215,6 +216,9 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  // Bot tester sessions (POST /api/bot/login email+password) can play but
+  // never open a delete window or confirm deletion.
+  if (isBotTester(req)) return fail(botTesterBlocked(), 403);
   // Account deletion is irreversible: bots must never open a delete window.
   const botBlock = await requireHuman(req, "POST /api/my/rights");
   if (botBlock) return botBlock;
