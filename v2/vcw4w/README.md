@@ -60,7 +60,7 @@ Optional service keys (see `.env.example` + root README "Keys" table):
 `OPENAI_API_KEY` (+ `BUDDY_MODEL`), `LUNA_MODEL`, `BOT_KEY_PEPPER` (≥16 chars, required for
 bot keys), `RUNPOD_API_KEY`, `FAL_KEY` (fal.ai Studio), `SHOPIFY_*` / `COIN_*_VARIANT*`, `CRON_SECRET`, `SIGNUP_IP_HASH_SALT`.
 Without them the app reports explicit not-configured states instead of failing silently -
-and clan moderation fails closed (writes held `pending`).
+and clan moderation stays lenient (medium-bar: ordinary posts go `visible`, only clearly violating text is held `pending`).
 
 ## Verification
 

@@ -14,13 +14,21 @@ type DesktopRow = {
   endpoint_url: string;
   gpu_id: string;
   cpu_id: string;
+  image: string;
   hourly_usd: number;
   status: string;
   created_at: string;
   updated_at: string;
+  last_activity_at: string | null;
+  warn_chimed_at: string | null;
+  warn_minutes: number | null;
+  stop_grace_minutes: number | null;
+  terminate_hours: number | null;
 };
 
-/** GET /api/desktop/mine; your Virtual Desktops with live pod status. */
+/** GET /api/desktop/mine; your Virtual Desktops with live pod status,
+ * container image, last activity, and per-pod idle overrides. Only rows
+ * you created (desktop_pods.user_id) are ever returned. */
 export async function GET() {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
@@ -36,7 +44,9 @@ export async function GET() {
   }
   const { data: rows, error } = await svc
     .from("desktop_pods")
-    .select("id,pod_id,kind,interface,endpoint_url,gpu_id,cpu_id,hourly_usd,status,created_at,updated_at")
+    .select(
+      "id,pod_id,kind,interface,endpoint_url,gpu_id,cpu_id,image,hourly_usd,status,created_at,updated_at,last_activity_at,warn_chimed_at,warn_minutes,stop_grace_minutes,terminate_hours",
+    )
     .eq("user_id", data.user.id)
     .order("created_at", { ascending: false })
     .limit(50);
@@ -58,11 +68,19 @@ export async function GET() {
         endpointUrl: d.endpoint_url || null,
         gpu: d.gpu_id || null,
         cpu: d.cpu_id || null,
+        image: d.image || null,
         hourlyUsd: Number(d.hourly_usd) || 0,
         status: d.status,
         podStatus,
         createdAt: d.created_at,
         updatedAt: d.updated_at,
+        lastActivityAt: d.last_activity_at,
+        warnChimedAt: d.warn_chimed_at,
+        policy: {
+          warnMinutes: d.warn_minutes,
+          stopGraceMinutes: d.stop_grace_minutes,
+          terminateHours: d.terminate_hours,
+        },
       };
     }),
   );

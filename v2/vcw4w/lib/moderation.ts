@@ -1,22 +1,28 @@
 /**
  * 4weird Clans - Luna text moderation adapter.
  *
- * Behavior contract (kept simple on purpose):
+ * Behavior contract (medium-bar, lenient on purpose):
+ *  - Only flag text that CLEARLY violates the Terms of Use (Section 2:
+ *    illegal content, harassment/hate/threats, sexual content involving
+ *    minors, fraud/scams/spam, IP abuse, monetization abuse). Heated
+ *    debate, trash-talk, profanity, caps, and links are NOT violations.
  *  - With OPENAI_API_KEY set: text is checked against an OpenAI-compatible
  *    chat-completions endpoint (base https://api.openai.com/v1, model from
  *    LUNA_MODEL, default "gpt-5.6-luna"). allowed=false => caller should
  *    store the post/comment with status='pending' for human review.
- *  - WITHOUT a key (UNCONFIGURED): fail-CLOSED for writes; returns
- *    { allowed: true, heuristicHit: true } so callers store status='pending'
- *    for human review until Luna is configured. Reads may still proceed.
+ *  - WITHOUT a key (UNCONFIGURED): fail-OPEN for writes; returns
+ *    { allowed: true, heuristicHit: <actual hit> } so only posts matching a
+ *    narrow obvious-spam shape are treated as suspicious. Ordinary posts go
+ *    straight to `visible`. Reads may still proceed.
  *  - IMAGES without a key: NOT approved here at all. Image safety is
  *    report-driven (report-button CSAM flow auto-hides + preserves sha256)
  *    plus the 1MB cap and magic-bytes checks in the upload route. This
  *    function never sees image bytes.
  *  - NEVER throws: every failure path returns { allowed: true, reason:
- *    "unconfigured"|"moderation-unavailable", heuristicHit: true } and logs
- *    server-side via console.error/warn. Fail-closed keeps unreviewed text
- *    out of `visible`; quarantine (pending/hidden) is the safety net.
+ *    "unconfigured"|"moderation-unavailable", heuristicHit: <actual hit> }
+ *    and logs server-side via console.error/warn. Fail-open keeps ordinary
+ *    posts flowing; quarantine (pending/hidden) is reserved for clearly bad
+ *    text, and the report button remains the safety net.
  */
 
 export type ModerationResult = {
@@ -27,13 +33,14 @@ export type ModerationResult = {
 
 const LUNA_BASE = "https://api.openai.com/v1";
 
-// SHORT, clearly-marked UNCONFIGURED fallback patterns. Deliberately narrow:
-// exact slur spellings are NOT enumerated here; we match only generic spam /
-// hate-signal shapes so the fallback stays obviously heuristic, never a
-// pretend blocklist.
+// MEDIUM-BAR fallback patterns. Deliberately narrow: exact slur spellings
+// are NOT enumerated here; we match only obvious spam/flood shapes that
+// clearly look like Terms-of-Use abuse (scams, link floods, gibberish
+// floods), never ordinary gamer chat. Single links, caps, profanity, and
+// heated debate must NOT match.
 const HEURISTIC_PATTERNS: RegExp[] = [
-  /(https?:\/\/\S+){3,}/i, // URL-spam: 3+ links in one post
-  /(.)\1{29,}/, // 30+ repeated chars (zalgo/gibberish floods)
+  /(https?:\/\/\S+){5,}/i, // URL-spam: 5+ links in one post
+  /(.)\1{49,}/, // 50+ repeated chars (zalgo/gibberish floods)
   /\b(buy|free|click|claim|winner|prize|crypto|giveaway)[\s\S]{0,40}(http|www\.|bit\.ly|t\.me)/i,
 ];
 
@@ -53,9 +60,11 @@ export async function moderateText(text: string): Promise<ModerationResult> {
   if (!key) {
     const hit = heuristicCheck(input);
     if (hit) console.warn("[moderation] UNCONFIGURED heuristic hit; caller should use status=pending");
-    // Fail-closed for writes: unconfigured moderator cannot affirm safety,
-    // so signal heuristicHit=true to force quarantine (pending) at callers.
-    return { allowed: true, reason: "unconfigured", heuristicHit: true };
+    // Fail-open (medium-bar): an unconfigured moderator cannot affirm
+    // safety, but it also cannot condemn ordinary posts. Only a real
+    // heuristic hit marks the text suspicious; everything else flows to
+    // `visible` with the report button as the safety net.
+    return { allowed: true, reason: "unconfigured", heuristicHit: hit };
   }
 
   try {
@@ -78,9 +87,9 @@ export async function moderateText(text: string): Promise<ModerationResult> {
             {
               role: "system",
               content:
-                "You are Luna, a game-community moderator. Reply with exactly one word: ALLOW or BLOCK. " +
-                "BLOCK spam, hate, sexual content involving minors, or instructions for wrongdoing. " +
-                "ALLOW everything else, including mild trash-talk and profanity between gamers.",
+                "You are Luna, a game-community moderator enforcing the site Terms of Use (medium-bar, lenient). Reply with exactly one word: ALLOW or BLOCK. " +
+                "BLOCK only when the text CLEARLY violates the terms: illegal content, harassment/hate/threats, sexual content involving minors, fraud/scams/spam floods, or instructions for wrongdoing. " +
+                "When in doubt, ALLOW. ALLOW profanity, mild trash-talk, heated debate, caps, and ordinary links between gamers.",
             },
             { role: "user", content: input.slice(0, 4000) },
           ],
@@ -91,7 +100,9 @@ export async function moderateText(text: string): Promise<ModerationResult> {
     }
     if (!res.ok) {
       console.error("[moderation] Luna HTTP", res.status);
-      return { allowed: true, reason: "moderation-unavailable", heuristicHit: true };
+      // Fail-open (medium-bar): Luna down is not a verdict. Only a real
+      // fallback-pattern hit marks the text suspicious.
+      return { allowed: true, reason: "moderation-unavailable", heuristicHit: heuristicCheck(input) };
     }
     const data = (await res.json()) as {
       choices?: { message?: { content?: string } }[];
@@ -101,6 +112,7 @@ export async function moderateText(text: string): Promise<ModerationResult> {
     return { allowed: true };
   } catch (err) {
     console.error("[moderation] Luna fetch failed:", err);
-    return { allowed: true, reason: "moderation-unavailable", heuristicHit: true };
+    // Fail-open (medium-bar): see above.
+    return { allowed: true, reason: "moderation-unavailable", heuristicHit: heuristicCheck(input) };
   }
 }

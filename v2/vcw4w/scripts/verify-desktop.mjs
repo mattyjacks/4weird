@@ -10,6 +10,14 @@ const podRoute = read("../app/api/desktop/[id]/pod/route.ts");
 const widget = read("../components/desktop/desktop-rental.tsx");
 const migration = read("../supabase/migrations/20261011000000_desktop_pods.sql");
 const page = read("../app/desktop/page.tsx");
+const heartbeatRoute = read("../app/api/desktop/[id]/heartbeat/route.ts");
+const policyRoute = read("../app/api/desktop/[id]/policy/route.ts");
+const sweepRoute = read("../app/api/cron/pod-sweep/route.ts");
+const idleLib = read("../lib/pod-idle.ts");
+const idleWatch = read("../components/runpod/pod-idle-watch.tsx");
+const autoplayMine = read("../app/api/vcw/autoplay/mine/route.ts");
+const idleMigration = read("../supabase/migrations/20261023000000_pod_idle_autoplay.sql");
+const vercel = read("../vercel.json");
 const header = read("../components/site/site-header.tsx");
 const footer = read("../components/site/site-footer.tsx");
 const sitemap = read("../app/sitemap.ts");
@@ -116,6 +124,12 @@ if (!page.includes("DesktopRental")) throw new Error("desktop page must render D
 if (!page.includes("/agents") || !page.includes("/my/usage")) {
   throw new Error("desktop page must link agents + usage.");
 }
+// Control pane: launch + admin + testing on one page (CPU preselected default
+// lives in the widget); only the creator's pods ever listed (mine routes).
+if (!page.includes("RunpodDashboard")) throw new Error("desktop page must embed RunpodDashboard as the My-pods admin section.");
+if (!page.includes("only your pods") && !page.includes("Only your pods") && !page.includes("only yours")) {
+  throw new Error("desktop page must state it shows only the creator's pods.");
+}
 if (!header.includes('href: "/desktop"')) throw new Error("site header must link /desktop.");
 if (!footer.includes('href: "/desktop"')) throw new Error("site footer must link /desktop.");
 if (!sitemap.includes('"/desktop"')) throw new Error("sitemap must include /desktop.");
@@ -127,6 +141,60 @@ if (!agentsPage.includes("/desktop")) throw new Error("agents page must link the
 if (!pkg.includes("verify:desktop")) throw new Error("package.json must wire verify:desktop.");
 if (!/"test": "[^"]*verify:desktop/.test(pkg)) {
   throw new Error("npm test must run verify:desktop.");
+}
+
+// Idle lifecycle (warn chime → stop → terminate, configurable): shared
+// policy lib, audible client watchdog, heartbeat + policy routes, server
+// sweep on a 15-min cron, activity columns migration.
+for (const token of [
+  "POD_IDLE_WARN_MINUTES_DEFAULT",
+  "POD_IDLE_STOP_GRACE_MINUTES_DEFAULT",
+  "POD_TERMINATE_AFTER_HOURS_DEFAULT",
+  "getPodIdlePolicy",
+  "resolvePodPolicy",
+  "podIdlePhase",
+  "describePodIdlePolicy",
+]) {
+  if (!idleLib.includes(token)) throw new Error(`pod-idle lib missing ${token}.`);
+}
+if (!idleLib.includes("60") || !idleLib.includes("15") || !idleLib.includes("24")) {
+  throw new Error("pod-idle lib must default to 60-min warn / 15-min stop grace / 24h terminate.");
+}
+for (const token of ["PodIdleWatch", "playWarnChime", "AudioContext", "heartbeatUrl", "stopUrl"]) {
+  if (!idleWatch.includes(token)) throw new Error(`pod-idle-watch missing ${token}.`);
+}
+for (const token of ["Authentication required", "heartbeat", "last_activity_at", "user_id"]) {
+  if (!heartbeatRoute.includes(token)) throw new Error(`desktop heartbeat route missing ${token}.`);
+}
+for (const token of ["Authentication required", "validatePodPolicyInput", "warn_minutes", "user_id"]) {
+  if (!policyRoute.includes(token)) throw new Error(`desktop policy route missing ${token}.`);
+}
+for (const token of ["CRON_SECRET", "desktop_pods", "vcw_autoplay_remotes", "terminate", "stop"]) {
+  if (!sweepRoute.includes(token)) throw new Error(`pod-sweep route missing ${token}.`);
+}
+if (!vercel.includes("/api/cron/pod-sweep")) throw new Error("vercel.json must schedule /api/cron/pod-sweep.");
+for (const token of ["vcw_autoplay_remotes", "last_activity_at", "warn_minutes", "terminate_hours"]) {
+  if (!idleMigration.includes(token)) throw new Error(`idle migration missing ${token}.`);
+}
+if (/create policy/i.test(idleMigration)) throw new Error("idle migration must create no client policies (service_role only).");
+
+// Launch panel: CPU preselected default, live cheapest-GPU price example
+// (real catalog data, never made up), custom image, idle timers.
+if (!widget.includes('"cpu"')) throw new Error("desktop widget must preselect the CPU plan (cheapest default).");
+for (const token of ["pricing_example", "cheapest_gpu", "PodIdleWatch", "PolicyFields", "customImage", "heartbeat_url", "idle_policy"]) {
+  if (!widget.includes(token)) throw new Error(`desktop widget missing ${token}.`);
+}
+for (const token of ["pricing_example", "idle_policy", "getLiveCheapestQuotes"]) {
+  if (!route.includes(token)) throw new Error(`desktop route missing ${token}.`);
+}
+if (!compute.includes("cleanCustomImage") || !compute.includes("getLiveCheapestQuotes")) {
+  throw new Error("compute must expose cleanCustomImage + getLiveCheapestQuotes for the control pane.");
+}
+if (!mineRoute.includes("last_activity_at") || !mineRoute.includes("image")) {
+  throw new Error("desktop mine must return image + activity for the admin cards.");
+}
+if (!autoplayMine.includes("vcw_autoplay_remotes") || !autoplayMine.includes("Authentication required")) {
+  throw new Error("autoplay mine must list the creator's remotes with auth.");
 }
 
 console.log("Virtual Desktop integrity OK.");

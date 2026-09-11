@@ -11,6 +11,11 @@ const xonoticPage = read("../app/xonotic/page.tsx");
 const catalog = read("../lib/cloud-catalog.ts");
 const sitemap = read("../app/sitemap.ts");
 const agentsPage = read("../app/agents/page.tsx");
+const idleLib = read("../lib/pod-idle.ts");
+const idleWatch = read("../components/runpod/pod-idle-watch.tsx");
+const autoplayMine = read("../app/api/vcw/autoplay/mine/route.ts");
+const autoplayPod = read("../app/api/vcw/autoplay/[id]/pod/route.ts");
+const autoplayBeat = read("../app/api/vcw/autoplay/[id]/heartbeat/route.ts");
 const pkg = read("../package.json");
 
 // Rules: on-site locked to 4weird games, off-site only xonotic + gpu-boosted + desktop.
@@ -112,6 +117,39 @@ for (const key of ["vcw-autoplay-cpu", "vcw-autoplay-gpu", "vcw-autoplay-gpu-boo
 if (!pkg.includes("verify:vcw-autoplay")) throw new Error("package.json must wire verify:vcw-autoplay.");
 if (!pkg.includes("verify:vcw-autoplay") || !/"test": "[^"]*verify:vcw-autoplay/.test(pkg)) {
   throw new Error("npm test must run verify:vcw-autoplay.");
+}
+
+// Remote must boot a loadable desktop: Kasm GUI image on 6901 (base images
+// serve nothing on 6901, so the stream could never load), with a VNC
+// password + locked target URL in env.
+if (!compute.includes("DESKTOP_IMAGE_GUI")) throw new Error("autoplay compute must boot the Kasm GUI desktop image (loadable 6901).");
+if (!compute.includes("VCW_TARGET_URL") || !compute.includes("VNC_PW")) {
+  throw new Error("autoplay compute must plant VCW_TARGET_URL + VNC_PW in env.");
+}
+// Recorded + controllable + idle-guarded like desktops (never fire-and-forget).
+for (const token of ["vcw_autoplay_remotes", "idle_policy", "heartbeat_url", "pod_url", "vncPassword"]) {
+  if (!route.includes(token)) throw new Error(`autoplay route missing ${token}.`);
+}
+for (const token of ["vcw_autoplay_remotes", "Authentication required", "getPodLive"]) {
+  if (!autoplayMine.includes(token)) throw new Error(`autoplay mine route missing ${token}.`);
+}
+for (const token of ["Authentication required", "runPodLifecycle", "terminate", "delete", "user_id"]) {
+  if (!autoplayPod.includes(token)) throw new Error(`autoplay pod route missing ${token}.`);
+}
+if (autoplayPod.includes("process.env.RUNPOD_API_KEY")) {
+  throw new Error("autoplay pod route must not touch RUNPOD_API_KEY directly (compute owns the key).");
+}
+for (const token of ["Authentication required", "last_activity_at", "user_id"]) {
+  if (!autoplayBeat.includes(token)) throw new Error(`autoplay heartbeat route missing ${token}.`);
+}
+if (!widget.includes("PodIdleWatch") || !widget.includes("vncPassword")) {
+  throw new Error("autoplay widget must render PodIdleWatch + the one-time VNC password.");
+}
+if (widget.includes("55 min") || widget.includes("55-min")) {
+  throw new Error("autoplay widget must not quote the old 55-minute cap (idle policy is 60-chime/+15-stop/24h-terminate).");
+}
+if (!idleLib.includes("getPodIdlePolicy") || !idleWatch.includes("PodIdleWatch")) {
+  throw new Error("autoplay idle lifecycle must share lib/pod-idle + PodIdleWatch.");
 }
 
 console.log("VCW autoplay integrity OK.");

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { hasServerSupabase } from "@/lib/supabase/service";
+import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
@@ -47,8 +47,9 @@ function isUuid(v: unknown): boolean {
  * budget-capped, fast-lane prefers fast ops) → generate the original
  * single-file HTML/CSS/JS (server work is ms, so the ≤5-min fast-lane
  * target always holds; deluxe runs longer but stays fast) → VibeCodeWorker
- * intelligent self-test (observe→reason→act repair loop) → push to the
- * Draft game folder inside your org (team project `draft-games`, path
+ * intelligent self-test (observe→reason→act repair loop) → meter the capped
+ * spend (plan.spend, 25% cut included, fail closed on low balance) → push to
+ * the Draft game folder inside your org (team project `draft-games`, path
  * `Draft/<slug>/index.html`) plus a personal `code_submissions` draft row.
  * Always succeeds with a playable artifact: persistence degrades honestly
  * when Supabase/auth or org permissions are missing, and fal assets degrade
@@ -107,6 +108,8 @@ export async function POST(req: Request) {
   const draftPath = draftPathFor(game.slug);
 
   // Persistence (best-effort, honest): personal draft + org Draft folder.
+  // Signed-in builds are metered (plan.spend, 25% cut included); anonymous
+  // builds stay free and local-only.
   let draft: { scope: string; submission_id: string | null; project_id: string | null; draft_path: string; note: string } = {
     scope: "local",
     submission_id: null,
@@ -114,6 +117,7 @@ export async function POST(req: Request) {
     draft_path: draftPath,
     note: "Played locally below ;; sign in to save drafts.",
   };
+  let charge: { billed: boolean; gross: number; cut: number } = { billed: false, gross: 0, cut: 0 };
 
   // Anonymous callers were throttled ONLY by BotID: a passed check meant
   // unlimited builds. Per-IP ceiling keeps the GUI usable for flagged humans
@@ -171,6 +175,37 @@ export async function POST(req: Request) {
             project_id: null,
             draft_path: draftPath,
             note: "Saved to your personal drafts.",
+          };
+          // Coin metering (fail closed, like /api/code/zip): the capped
+          // spend debits via the guarded RPC (balance guard + 25/75 split +
+          // `NewGamePlus <slug> (qX)` ledger row). A failed charge rolls the
+          // draft back so short balances never mint free builds.
+          const { data: metered, error: meterError } = await supabase.rpc("meter_newgameplus_build", {
+            p_submission: submission?.id ?? null,
+            p_slug: game.slug.slice(0, 64),
+            p_title: game.title.slice(0, 120),
+            p_quality: quality,
+            p_budget: budget,
+            p_spend: plan.spend,
+            p_lane: lane,
+          });
+          if (meterError) {
+            try {
+              await serviceClient().from("code_submissions").delete().eq("id", submission?.id);
+            } catch {
+              /* rollback best-effort; the charge failure below is authoritative */
+            }
+            const msg = String(meterError.message ?? "");
+            if (/insufficient balance/i.test(msg)) {
+              return fail(`Insufficient Vibe Coins: this build costs ${plan.spend} coins (25% cut included). Top up, lower Quality, or lower Budget.`, 402);
+            }
+            return rpcFail("newgameplus/build meter", meterError, rpcStatus, "Unable to meter this build.");
+          }
+          const billed = (metered ?? {}) as { gross?: unknown; cut?: unknown };
+          charge = {
+            billed: true,
+            gross: Number(billed.gross) || plan.spend,
+            cut: Number(billed.cut) || plan.cut,
           };
         }
 
@@ -259,6 +294,7 @@ export async function POST(req: Request) {
     {
       game: { slug: game.slug, title: game.title, source: game.source, bytes: game.source.length },
       plan: { ...plan, note: NEWGAMEPLUS_CUT_NOTE },
+      charge,
       test: { verdict: test.verdict, loops: test.loops, steps: test.steps, checks: test.checks, findings: test.findings },
       draft,
       swarm: symphony,

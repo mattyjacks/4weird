@@ -40,8 +40,8 @@ export const AUTOPLAY_ONSITE_ORIGINS = [
   "https://www.4weird.com",
 ] as const;
 
-/** Hard remote lifetime: 55 minutes, then the pod self-terminates. */
-export const AUTOPLAY_MAX_MINUTES = 55;
+/** Idle lifecycle: 60 min of no input → warning chime, +15 min → stop, 24h untended → terminate (see lib/pod-idle.ts). */
+export const AUTOPLAY_MAX_MINUTES = 60;
 
 export type AutoplayRate = {
   compute: AutoplayCompute;
@@ -61,7 +61,8 @@ export type AutoplayRate = {
  *   fallback) → $1.32/hr gross ceiling. Boosted no longer chases the
  *   priciest card with stock; compute cards cost up to 9x more yet render
  *   games worse. The API still quotes the provisioned card exactly at start
- *   (quoteAutoplayForUsd). A 55-min run is ~8 / ~35 / ~121 coins. */
+ *   (quoteAutoplayForUsd). A 60-min run is ~9 / ~38 / ~132 coins. Idle pods
+ *   stop after the warn + grace window instead of burning the full hour. */
 export const AUTOPLAY_RATES: AutoplayRate[] = [
   { compute: "cpu", unit: "remote_min", coinsPerMinute: 0.14, blurb: "RunPod CPU remote drives the 4weird play page (cheapest autoplay, ~$0.08/hr gross)." },
   { compute: "gpu", unit: "remote_min", coinsPerMinute: 0.63, blurb: "RunPod GPU remote drives the 4weird play page with vision (~$0.37/hr gross)." },

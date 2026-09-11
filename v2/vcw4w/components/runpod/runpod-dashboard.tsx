@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ProxyLink } from "@/components/runpod/proxy-link";
+import { PodIdleWatch } from "@/components/runpod/pod-idle-watch";
 
 type PodAction = "stop" | "start" | "restart" | "terminate" | "delete";
 
@@ -22,10 +23,13 @@ type Desktop = {
   endpointUrl: string | null;
   gpu: string | null;
   cpu: string | null;
+  image: string | null;
   hourlyUsd: number;
   status: string;
   podStatus: string | null;
   createdAt: string;
+  lastActivityAt: string | null;
+  policy: { warnMinutes: number | null; stopGraceMinutes: number | null; terminateHours: number | null } | null;
 };
 
 type Booking = {
@@ -47,11 +51,40 @@ type RenderJob = {
   frameCount: number;
 };
 
+type AutoplayRemote = {
+  id: string;
+  podId: string | null;
+  gameSlug: string;
+  compute: string;
+  siteMode: string;
+  endpointUrl: string | null;
+  gpu: string | null;
+  cpu: string | null;
+  image: string | null;
+  hourlyUsd: number;
+  status: string;
+  podStatus: string | null;
+  createdAt: string;
+  lastActivityAt: string | null;
+};
+
 async function api(path: string, init?: RequestInit) {
   const res = await fetch(path, { credentials: "include", ...init });
   const body = (await res.json().catch(() => ({}))) as { success?: boolean; error?: string } & Record<string, unknown>;
   if (!body.success) throw new Error(String(body.error || `Request failed (${res.status}).`));
   return body;
+}
+
+function fmtAgo(iso: string | null): string {
+  if (!iso) return "unknown";
+  const ms = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(ms) || ms < 0) return "just now";
+  const m = Math.floor(ms / 60_000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 48) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
 }
 
 function PodButtons({
@@ -95,13 +128,17 @@ function PodButtons({
 
 /**
  * RunPods dashboard; every RunPod you created, in one place: Virtual
- * Desktops, agent-rental servers, and Blender render workers. Each card has
- * a clickable proxy link, live pod status, and Stop / Start / Restart /
- * Terminate / Delete buttons. Only the creator sees (and can touch) their
- * own pods; every control route enforces ownership server-side.
+ * Desktops, web-app test remotes (autoplay), agent-rental servers, and
+ * Blender render workers. Each card shows its container image, live pod
+ * status, last activity + idle guard, a clickable proxy link, and Stop /
+ * Start / Restart / Terminate / Delete buttons. Only the creator sees (and
+ * can touch) their own pods; every control route enforces ownership
+ * server-side (desktop owner, autoplay creator, booking renter-or-owner,
+ * blender job owner).
  */
 export function RunpodDashboard() {
   const [desktops, setDesktops] = useState<Desktop[] | null>(null);
+  const [autoplay, setAutoplay] = useState<AutoplayRemote[] | null>(null);
   const [rentals, setRentals] = useState<Booking[] | null>(null);
   const [jobs, setJobs] = useState<RenderJob[] | null>(null);
   const [error, setError] = useState("");
@@ -110,12 +147,13 @@ export function RunpodDashboard() {
   const [msg, setMsg] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
-    // Per-source settle: one failing lane (desktops, rentals, or renders)
-    // must never pin the whole dashboard on "Loading your RunPods…" forever.
-    // Each lane resolves independently; failures show inline with a retry.
+    // Per-source settle: one failing lane (desktops, autoplay, rentals, or
+    // renders) must never pin the whole dashboard on "Loading your RunPods…"
+    // forever. Each lane resolves independently; failures show inline.
     setError("");
-    const [d, m, j] = await Promise.allSettled([
+    const [d, a, m, j] = await Promise.allSettled([
       api("/api/desktop/mine"),
+      api("/api/vcw/autoplay/mine"),
       api("/api/agents/bookings/mine"),
       api("/api/blender/jobs"),
     ]);
@@ -127,6 +165,12 @@ export function RunpodDashboard() {
     } else {
       setDesktops([]);
       problems.push(`desktops (${reasonOf(d)})`);
+    }
+    if (a.status === "fulfilled") {
+      setAutoplay(((a.value.remotes as AutoplayRemote[]) ?? []));
+    } else {
+      setAutoplay([]);
+      problems.push(`test remotes (${reasonOf(a)})`);
     }
     if (m.status === "fulfilled") {
       setRentals((((m.value.rentals as Booking[]) ?? []).filter((b) => b.pod_id || b.endpoint_url)));
@@ -151,16 +195,18 @@ export function RunpodDashboard() {
     void load();
   }, [load]);
 
-  async function control(kind: "desktop" | "booking" | "blender", id: string, action: PodAction) {
+  async function control(kind: "desktop" | "autoplay" | "booking" | "blender", id: string, action: PodAction) {
     const key = `${kind}:${id}:${action}`;
     setBusy(key);
     try {
       const url =
         kind === "desktop"
           ? `/api/desktop/${id}/pod`
-          : kind === "booking"
-            ? `/api/agents/bookings/${id}/pod`
-            : `/api/blender/jobs/${id}/pod`;
+          : kind === "autoplay"
+            ? `/api/vcw/autoplay/${id}/pod`
+            : kind === "booking"
+              ? `/api/agents/bookings/${id}/pod`
+              : `/api/blender/jobs/${id}/pod`;
       const body = await api(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -180,7 +226,7 @@ export function RunpodDashboard() {
     return (
       <div role="alert" className="rounded-xl border border-cyan-300/40 bg-cyan-300/[.08] p-4 text-sm text-slate-200">
         <p className="font-bold text-white">Login required to manage RunPods</p>
-        <p className="mt-1 text-xs text-slate-300">Your desktops, rental servers, and render workers live here once you sign in.</p>
+        <p className="mt-1 text-xs text-slate-300">Your desktops, test remotes, rental servers, and render workers live here once you sign in.</p>
         <div className="mt-3 flex flex-wrap gap-2">
           <Link href="/auth/login" className="rounded-full bg-cyan-300 px-5 py-2 text-sm font-bold text-slate-950 hover:bg-cyan-200">
             Login
@@ -193,8 +239,8 @@ export function RunpodDashboard() {
     );
   }
 
-  const loading = desktops === null || rentals === null || jobs === null;
-  const total = (desktops?.length ?? 0) + (rentals?.length ?? 0) + (jobs?.length ?? 0);
+  const loading = desktops === null || autoplay === null || rentals === null || jobs === null;
+  const total = (desktops?.length ?? 0) + (autoplay?.length ?? 0) + (rentals?.length ?? 0) + (jobs?.length ?? 0);
 
   return (
     <div className="space-y-8">
@@ -229,6 +275,10 @@ export function RunpodDashboard() {
           {desktops && desktops.length > 0 && (
             <section aria-label="Your Virtual Desktops">
               <h2 className="text-xl font-black text-white">🖥️ Your Virtual Desktops ({desktops.length})</h2>
+              <p className="mt-1 text-xs text-slate-500">
+                Stop ends compute billing (disk kept, storage still bills); Start boots a stopped pod; Restart reboots in place;
+                Terminate/Delete ends billing permanently (disk lost). Idle pods chime at 60 min, stop 15 min later, terminate after 24h untended.
+              </p>
               <ul className="mt-3 grid gap-3 md:grid-cols-2">
                 {desktops.map((d) => (
                   <li key={d.id} className="rounded-xl border border-slate-800 bg-slate-900 p-4">
@@ -240,6 +290,8 @@ export function RunpodDashboard() {
                       {d.podStatus ? ` · pod ${d.podStatus}` : ""} · {d.gpu || d.cpu || "…"} · ~${d.hourlyUsd.toFixed(2)}/hr ·
                       since {new Date(d.createdAt).toLocaleString()}
                     </p>
+                    {d.image && <p className="mt-1 break-all font-mono text-[11px] text-slate-500">image: {d.image}</p>}
+                    <p className="mt-1 text-[11px] text-slate-500">last activity {fmtAgo(d.lastActivityAt)} · idle guard on</p>
                     {d.endpointUrl && (
                       <p className="mt-2 text-xs">
                         <ProxyLink href={d.endpointUrl} label={d.interface === "gui" ? "Open desktop" : "Open Jupyter"} />
@@ -249,6 +301,47 @@ export function RunpodDashboard() {
                       <PodButtons onAct={(a) => void control("desktop", d.id, a)} busy={busy.startsWith(`desktop:${d.id}:`) ? busy.split(":")[2] : ""} compact={d.id.slice(0, 8)} />
                     )}
                     {msg[`desktop:${d.id}`] && <p className="mt-1 text-xs text-amber-300">{msg[`desktop:${d.id}`]}</p>}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {autoplay && autoplay.length > 0 && (
+            <section aria-label="Your web-app test remotes">
+              <h2 className="text-xl font-black text-white">🧪 Your web-app test remotes ({autoplay.length})</h2>
+              <p className="mt-1 text-xs text-slate-500">
+                Kasm desktops that test 4weird games remotely: open the stream, log in with your saved VNC password, and open the locked game URL in its Chromium. Same power controls + idle guard as desktops.
+              </p>
+              <ul className="mt-3 grid gap-3 md:grid-cols-2">
+                {autoplay.map((r) => (
+                  <li key={r.id} className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+                    <p className="font-bold text-white">Test: {r.gameSlug} · {r.compute}</p>
+                    <p className="mt-1 text-xs text-slate-400">
+                      {r.status}
+                      {r.podStatus ? ` · pod ${r.podStatus}` : ""} · {r.siteMode} · {r.gpu || r.cpu || "…"} · ~${r.hourlyUsd.toFixed(2)}/hr ·
+                      since {r.createdAt ? new Date(r.createdAt).toLocaleString() : "…"}
+                    </p>
+                    {r.image && <p className="mt-1 break-all font-mono text-[11px] text-slate-500">image: {r.image}</p>}
+                    <p className="mt-1 text-[11px] text-slate-500">last activity {fmtAgo(r.lastActivityAt)} · idle guard on</p>
+                    {r.endpointUrl && (
+                      <p className="mt-2 text-xs">
+                        <ProxyLink href={r.endpointUrl} label="Open stream" />
+                      </p>
+                    )}
+                    {r.status !== "deleted" && r.status !== "terminated" && (
+                      <PodButtons onAct={(a) => void control("autoplay", r.id, a)} busy={busy.startsWith(`autoplay:${r.id}:`) ? busy.split(":")[2] : ""} compact={r.id.slice(0, 8)} />
+                    )}
+                    {msg[`autoplay:${r.id}`] && <p className="mt-1 text-xs text-amber-300">{msg[`autoplay:${r.id}`]}</p>}
+                    {r.status === "running" && (
+                      <PodIdleWatch
+                        heartbeatUrl={`/api/vcw/autoplay/${r.id}/heartbeat`}
+                        stopUrl={`/api/vcw/autoplay/${r.id}/pod`}
+                        policy={{ warnMinutes: 60, stopGraceMinutes: 15, terminateHours: 24 }}
+                        label={`Test (${r.gameSlug})`}
+                        compact
+                      />
+                    )}
                   </li>
                 ))}
               </ul>

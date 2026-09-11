@@ -59,9 +59,13 @@ for (const token of [
   "timelineForLane",
   "swarm",
   "timeline",
+  "meter_newgameplus_build",
+  "insufficient balance",
+  "charge",
 ]) {
   if (!route.includes(token)) fail(`newgameplus build route missing ${token}.`);
 }
+if (!route.includes("402")) fail("newgameplus build route must 402 short balances (fail closed).");
 
 // Page + builder: prompt, Quality slider, Budget input, confirm modal, preview.
 const page = read("../app/newgameplus/page.tsx");
@@ -84,6 +88,34 @@ for (const token of [
   "≤5 min",
 ]) {
   if (!builder.includes(token)) fail(`newgameplus builder missing ${token}.`);
+}
+
+// Metering: signed-in builds debit the capped spend (25% cut included) via
+// guarded RPCs; spend rolls up into /my/usage + coin history.
+const mig = read("../supabase/migrations/20261022000000_newgameplus_metering.sql");
+for (const token of [
+  "newgameplus_builds",
+  "meter_newgameplus_build",
+  "meter_newgameplus_build_for",
+  "my_newgameplus_spend",
+  "NewGamePlus ",
+  "insufficient balance",
+  "coin_spend_lock",
+  "25 / 100",
+]) {
+  if (!mig.includes(token)) fail(`newgameplus metering migration missing ${token}.`);
+}
+if (!mig.includes("IF NOT EXISTS") && !mig.includes("if not exists") && !mig.includes("or replace")) {
+  fail("newgameplus metering migration must be rerunnable.");
+}
+const usageApi = read("../app/api/my/usage/route.ts");
+for (const token of ["my_newgameplus_spend", "newgameplus"]) {
+  if (!usageApi.includes(token)) fail(`usage API missing ${token}.`);
+}
+const usageClient = read("../app/my/usage/usage-client.tsx");
+if (!usageClient.includes("NewGamePlus")) fail("usage client must show the NewGamePlus card.");
+if (!builder.includes("Billed")) {
+  fail("newgameplus builder must show the billed charge.");
 }
 
 // Discoverability: site nav links to /newgameplus.

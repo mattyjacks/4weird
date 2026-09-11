@@ -35,8 +35,11 @@ type UsageResponse = {
     total: Spend;
     lastHour: Spend;
     last24h: Spend;
-    byGame: { game_slug: string; sessions: number; gross: number; cut: number; provider: number }[];
+    byGame: { game_slug: string; sessions: number; gross: number; cut: number; provider: number; seconds?: number }[];
     recent: { game_slug: string; gross_coins: number; cut_coins: number; source: string; created_at: string }[];
+    secondsTotal?: number;
+    secondsHour?: number;
+    secondsDay?: number;
   };
   workspace: {
     gross: number;
@@ -54,6 +57,7 @@ type UsageResponse = {
     recent: { kind: string; remote_id: string; time_bucket: string; amount_usd: number; time_billed_ms: number }[];
     lastSync: string | null;
   };
+  newgameplus?: { gross: number; cut: number; provider: number; turns: number };
   fal?: {
     total: { gross: number; cut: number; provider: number; charges: number };
     byOp: { op: string; charges: number; gross: number; cut: number; provider: number }[];
@@ -199,14 +203,20 @@ export function UsageClient() {
               Each first load costs the game&apos;s load rate for 1 MiB of fresh bytes, proportional to the exact
               bytes (default 1 coin, min 1 centicentcoin); running play bills the hourly
               rate (default 1 coin/hr) per second from the first second. Same-version replays within 24h are free.
-              “Turns” above counts play sessions.
+              &ldquo;Turns&rdquo; above counts play sessions.
+            </p>
+            <p className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm">
+              ⏱ Hours played: <b className="text-white">{((data.gameRent?.secondsTotal ?? 0) / 3600).toFixed(1)}h</b> all time
+              {" "}· {((data.gameRent?.secondsDay ?? 0) / 3600).toFixed(1)}h last 24h
+              {" "}· {((data.gameRent?.secondsHour ?? 0) / 3600).toFixed(1)}h last hour
+              {" "}<span className="text-slate-500">(every load counts, free replays included)</span>
             </p>
             {(data.gameRent?.byGame ?? []).length ? (
               <div className="space-y-2">
                 {(data.gameRent?.byGame ?? []).map((g) => (
                   <div key={g.game_slug} className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-2">
                     <span className="font-semibold text-white">{g.game_slug}</span>
-                    <span className="text-slate-400">{g.gross} gross · {g.cut} cut · {g.provider} provider · {g.sessions} sessions</span>
+                    <span className="text-slate-400">{g.gross} gross · {g.cut} cut · {g.provider} provider · {g.sessions} sessions{typeof g.seconds === "number" ? ` · ${((g.seconds ?? 0) / 3600).toFixed(1)}h played` : ""}</span>
                   </div>
                 ))}
               </div>
@@ -234,6 +244,19 @@ export function UsageClient() {
                   </tbody>
                 </table>
               </div>
+            )}
+          </Card>
+
+          <Card title="NewGamePlus; prompt-to-game builds">
+            <p>
+              One prompt in, one tested Draft game out:{" "}
+              <b>{data.newgameplus?.gross ?? 0}</b> coins, <b>{data.newgameplus?.cut ?? 0}</b> cut,{" "}
+              <b>{data.newgameplus?.turns ?? 0}</b> builds. Every build debits its capped spend (25% cut included)
+              and lands in coin history as <span className="font-mono">NewGamePlus &lt;slug&gt; (qX)</span>.{" "}
+              <a className="underline" href="/newgameplus">Build a game →</a>
+            </p>
+            {(data.newgameplus?.turns ?? 0) === 0 && (
+              <p className="text-slate-500">No builds yet; launch one on /newgameplus.</p>
             )}
           </Card>
 
@@ -306,7 +329,7 @@ export function UsageClient() {
               <div className="rounded-xl border border-cyan-300/30 bg-cyan-300/[.06] p-4">
                 <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Combined gross</p>
                 <p className="mt-1 text-3xl font-black">{data.combined.gross} <span className="text-sm text-slate-400">({usd(data.combined.gross)})</span></p>
-                <p className="mt-1 text-xs text-slate-400">game AI + fal.ai + game rentals + agent rentals + workspaces + clan fees</p>
+                <p className="mt-1 text-xs text-slate-400">game AI + fal.ai + game rentals + newgameplus + agent rentals + workspaces + clan fees</p>
               </div>
               <div className="rounded-xl border border-white/10 p-4">
                 <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Platform 25%</p>
@@ -325,6 +348,7 @@ export function UsageClient() {
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="rounded-xl border border-white/10 p-4">Workspaces: <b>{data.workspace.gross}</b> coins ({data.workspace.charges} charges)</div>
               <div className="rounded-xl border border-white/10 p-4">Clans: <b>{data.clan?.total.gross ?? 0}</b> coins ({data.clan?.total.charges ?? 0} charges)</div>
+              <div className="rounded-xl border border-white/10 p-4">NewGamePlus: <b>{data.newgameplus?.gross ?? 0}</b> coins ({data.newgameplus?.turns ?? 0} builds)</div>
             </div>
           </Card>
 

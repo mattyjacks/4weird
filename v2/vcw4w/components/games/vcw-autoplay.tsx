@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ProxyLink } from "@/components/runpod/proxy-link";
+import { PodIdleWatch } from "@/components/runpod/pod-idle-watch";
 import { gameSlugs } from "@/content/games";
 import {
   AUTOPLAY_RATES,
@@ -18,6 +19,10 @@ type StartOk = {
   success: boolean;
   started?: boolean;
   plan?: { game_slug: string; compute: string; site_mode: string; target_url: string };
+  remote?: { id: string } | null;
+  heartbeat_url?: string | null;
+  pod_url?: string | null;
+  idle_policy?: { warn_minutes: number; stop_grace_minutes: number; terminate_hours: number; summary?: string } | null;
   connection?: {
     endpointUrl: string;
     podId: string;
@@ -26,6 +31,8 @@ type StartOk = {
     cpu: string | null;
     hourlyUsd: number;
     port: number;
+    image?: string | null;
+    vncPassword?: string;
   };
   provision?: { ok: boolean; code?: string; message?: string };
   quote?: { minutes: number; gross_coins: number; max_run_usd: number };
@@ -184,8 +191,10 @@ export function VcwAutoplay({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       )}
       {plan.ok && (
         <p className="mt-2 text-xs text-slate-400">
-          Remote will drive <span className="break-all text-cyan-300">{plan.targetUrl}</span> ({plan.compute}, {plan.siteMode}).
-          Self-terminates after 55 min. RunPod bills per second; coin quote includes the 25% cut.
+          Remote boots a Kasm Ubuntu desktop on 6901, then you open{" "}
+          <span className="break-all text-cyan-300">{plan.targetUrl}</span> in its Chromium ({plan.compute},{" "}
+          {plan.siteMode}). The stream link always loads once the pod boots; idle pods chime at 60 min, stop 15 min
+          later, terminate after 24h untended. RunPod bills per second; coin quote includes the 25% cut.
         </p>
       )}
 
@@ -217,7 +226,32 @@ export function VcwAutoplay({ gameSlug, gameTitle }: { gameSlug: string; gameTit
             ~${Number(result.connection.hourlyUsd).toFixed(2)}/hr, per second
             {result.quote ? ` · max ~$${Number(result.quote.max_run_usd).toFixed(2)} / ${result.quote.minutes} min · ${result.quote.gross_coins} coins gross` : ""}.
           </p>
-          <p className="mt-1 text-slate-400">Watch the stream above; the worker is driving the locked game URL only.</p>
+          {result.connection.vncPassword && (
+            <p className="mt-2 rounded-lg border border-amber-300/40 bg-amber-300/[.08] px-3 py-2 text-amber-100">
+              🔑 VNC password (shown once — save it now): <code className="font-bold">{result.connection.vncPassword}</code>
+            </p>
+          )}
+          <ol className="mt-1 list-decimal space-y-1 pl-5 text-slate-400">
+            <li>Open the stream link above (first boot takes minutes while the desktop image pulls — a 404/“waiting” page is normal; wait, then Reload).</li>
+            <li>Log in with the VNC password, open Chromium, and go to the locked game URL{result.plan ? <>: <span className="break-all text-cyan-300">{result.plan.target_url}</span></> : "."}</li>
+            <li>Play/test the game there; the worker harness drives the locked URL only. Keep this tab open for the idle guard below.</li>
+          </ol>
+          <p className="mt-1 text-slate-500">
+            Manage it from <Link href="/desktop" className="text-cyan-300 hover:underline">the /desktop control pane</Link> or{" "}
+            <Link href="/runpods" className="text-cyan-300 hover:underline">My RunPods</Link>; stop ends billing, terminate deletes the disk.
+          </p>
+          {result.idle_policy && (
+            <PodIdleWatch
+              heartbeatUrl={result.heartbeat_url ?? null}
+              stopUrl={result.pod_url ?? null}
+              policy={{
+                warnMinutes: result.idle_policy.warn_minutes,
+                stopGraceMinutes: result.idle_policy.stop_grace_minutes,
+                terminateHours: result.idle_policy.terminate_hours,
+              }}
+              label={`Autoplay (${result.plan?.game_slug ?? gameSlug})`}
+            />
+          )}
         </div>
       )}
       {result?.success && !result.started && (

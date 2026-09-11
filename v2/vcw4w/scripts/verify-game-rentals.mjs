@@ -120,8 +120,20 @@ if (!usage.includes("my_game_play_usage") || !usage.includes("gameRent")) throw 
 for (const token of ["Game rentals", "gameRent", "per second"]) {
   if (!usageClient.includes(token)) throw new Error(`Usage client missing ${token}.`);
 }
+// Free loads are tracked (0-gross rows) and hours played are summarized:
+// the rollup carries active seconds; the client renders hours.
+const loadMig = read("../supabase/migrations/20261022000000_newgameplus_metering.sql");
+for (const token of ["secondsTotal", "secondsHour", "secondsDay", "Free loads are tracked"]) {
+  if (!loadMig.includes(token)) throw new Error(`Load-visibility migration missing ${token}.`);
+}
+for (const token of ["Hours played", "secondsTotal", "/newgameplus"]) {
+  if (!usageClient.includes(token)) throw new Error(`Usage client missing ${token}.`);
+}
 if (!read("../components/account/account-dashboard.tsx").includes("centicentcoins")) {
   throw new Error("Account dashboard must show the centicentcoin balance.");
+}
+if (!read("../components/account/account-dashboard.tsx").includes("/my/usage/")) {
+  throw new Error("Account dashboard must link to the full usage ledger.");
 }
 
 // Pricing + skill + bundle honesty.

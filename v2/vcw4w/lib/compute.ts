@@ -610,7 +610,12 @@ export function autoplayWorkloadFor(opts: {
     VCW_AUTOPLAY_GAME: slug,
     VCW_AUTOPLAY_COMPUTE: compute,
     VCW_AUTOPLAY_SITE: siteMode,
-    VIBE_MAX_MINUTES: "55",
+    // Idle lifecycle: the browser watchdog + server sweep own the actual
+    // stop/terminate (see lib/pod-idle.ts); this env is the backstop hint
+    // for humans reading `env` in the RunPod console.
+    VIBE_MAX_MINUTES: "75",
+    VCW_TARGET_URL:
+      siteMode === "off-site" ? "https://dpgame.xonotic.workers.dev/" : `https://4weird.com/games/${slug}/play`,
   };
   if (isXonotic) {
     baseEnv.GAME = "xonotic";
@@ -623,21 +628,32 @@ export function autoplayWorkloadFor(opts: {
   if (compute === "gpu-boosted") baseEnv.VCW_AUTOPLAY_BOOSTED = "1";
 
   if (compute === "cpu") {
+    // CPU autoplay boots the SAME Kasm graphical desktop as /desktop GUI
+    // (DESKTOP_IMAGE_GUI on 6901): runpod/base has no VNC/desktop server, so
+    // pointing the stream at 6901 on the base image could never load
+    // ("Waiting for service"). Kasm ships Chromium + a VNC stream, so the
+    // tester opens the stream link, then the locked game URL inside it.
+    const vncPw = randomBytes(18).toString("base64url").slice(0, 24);
     return {
       kind: "cpu",
-      image: "runpod/base:1.0.2-ubuntu2404",
-      ports: ["6901/http", "8888/http"],
-      env: { ...baseEnv, AGENT_RUNTIME: "vibecodeworker" },
+      image: DESKTOP_IMAGE_GUI,
+      ports: [...DESKTOP_PORTS_GUI],
+      env: { ...baseEnv, AGENT_RUNTIME: "vibecodeworker", VNC_PW: vncPw, DESKTOP_MODE: "kasm-autoplay" },
       port: 6901,
     };
   }
+  // GPU + gpu-boosted autoplay: same Kasm desktop (GPU-accelerated), so the
+  // stream URL always answers. Vision/model env stays for the harness.
+  const gpuVncPw = randomBytes(18).toString("base64url").slice(0, 24);
   return {
     kind: "gpu",
-    image: "runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04",
-    ports: ["6901/http", "6902/http", "8888/http"],
+    image: DESKTOP_IMAGE_GUI,
+    ports: [...DESKTOP_PORTS_GUI],
     env: {
       ...baseEnv,
       AGENT_RUNTIME: "vibecodeworker",
+      VNC_PW: gpuVncPw,
+      DESKTOP_MODE: "kasm-autoplay",
       VIBE_MODEL: "qwen2.5vl:7b",
       VIBE_MODE: "cloud-game-plus-model",
     },
@@ -786,8 +802,46 @@ export type ProvisionAutoplayResult =
       cpuId: string;
       hourlyUsd: number;
       port: number;
+      image: string;
+      /** Kasm VNC password, shown once to the owner (never stored). */
+      vncPassword?: string;
     }
   | { error: ProvisionErrorCode; message?: string };
+
+/**
+ * Live cheapest-with-stock quotes for the control-pane pricing example.
+ * Real catalog data only: returns nulls (never a made-up price) when the
+ * key is missing or the fetch fails. Both legs are best-effort and settle
+ * independently so one failing lane never blocks the other.
+ */
+export async function getLiveCheapestQuotes(): Promise<{
+  gpu: { id: string; hourlyUsd: number } | null;
+  cpu: { id: string; hourlyUsd: number } | null;
+}> {
+  if (!runpodConfigured()) return { gpu: null, cpu: null };
+  const [gpuCat, cpuRows] = await Promise.all([
+    fetchPodGpuCatalog(),
+    fetchAutoplayCpuCatalog().catch(() => [] as CpuCatalogRow[]),
+  ]);
+  let gpu: { id: string; hourlyUsd: number } | null = null;
+  if (gpuCat.ok) {
+    gpu = cheapestSecureGpu(
+      gpuCat.gpus.map((g) => ({
+        id: g.id,
+        availability: g.availability,
+        secure: g.secure,
+        priceSecure: Number(g.price?.secure ?? 0),
+      })),
+    );
+  }
+  let cpu: { id: string; hourlyUsd: number } | null = null;
+  const pool = cpuRows.length > 0 ? cpuRows : [];
+  const ranked = pool
+    .filter((c) => /^(cpu3[cgm]|cpu5[cgm])$/.test(c.id) && c.perVcpuUsd > 0)
+    .sort((a, b) => autoplayCpuHourly(a) - autoplayCpuHourly(b));
+  if (ranked[0]) cpu = { id: ranked[0].id, hourlyUsd: autoplayCpuHourly(ranked[0]) };
+  return { gpu, cpu };
+}
 
 /**
  * Provision a RunPod CPU or GPU autoplay remote. Never fakes: without
@@ -832,7 +886,8 @@ export async function provisionAutoplayWorker(opts: {
         vcpuCount: AUTOPLAY_CPU_VCPU,
         ports: workload.ports,
         env: workload.env,
-        startJupyter: true,
+        // Kasm serves 6901 itself; Jupyter would only add a second server.
+        startJupyter: false,
         startSsh: true,
       });
       if (!created.ok) return { error: "provision_failed", message: created.error };
@@ -845,6 +900,8 @@ export async function provisionAutoplayWorker(opts: {
         cpuId: fitting.id,
         hourlyUsd,
         port: workload.port,
+        image: workload.image,
+        vncPassword: String(workload.env.VNC_PW ?? ""),
       };
     }
     const best = ranked[0];
@@ -853,13 +910,14 @@ export async function provisionAutoplayWorker(opts: {
       image: workload.image,
       cpuId: best.id,
       vcpuCount: AUTOPLAY_CPU_VCPU,
-      ports: workload.ports,
-      env: workload.env,
-      startJupyter: true,
-      startSsh: true,
-    });
-    if (!created.ok) return { error: "provision_failed", message: created.error };
-    const hourlyUsd = autoplayCpuHourly(best);
+        ports: workload.ports,
+        env: workload.env,
+        // Kasm serves 6901 itself; Jupyter would only add a second server.
+        startJupyter: false,
+        startSsh: true,
+      });
+      if (!created.ok) return { error: "provision_failed", message: created.error };
+      const hourlyUsd = autoplayCpuHourly(best);
     return {
       endpointUrl: runpodProxyUrl(created.podId, workload.port),
       podId: created.podId,
@@ -868,6 +926,8 @@ export async function provisionAutoplayWorker(opts: {
       cpuId: best.id,
       hourlyUsd,
       port: workload.port,
+      image: workload.image,
+      vncPassword: String(workload.env.VNC_PW ?? ""),
     };
   }
 
@@ -886,20 +946,23 @@ export async function provisionAutoplayWorker(opts: {
       name: opts.name,
       image: workload.image,
       gpuId: best.id,
-      ports: workload.ports,
-      env: workload.env,
-      startJupyter: true,
-      startSsh: true,
-    });
-    if (!created.ok) return { error: "provision_failed", message: created.error };
-    return {
-      endpointUrl: runpodProxyUrl(created.podId, workload.port),
-      podId: created.podId,
-      kind: "gpu",
-      gpuId: best.id,
+        ports: workload.ports,
+        env: workload.env,
+        // Kasm serves 6901 itself; Jupyter would only add a second server.
+        startJupyter: false,
+        startSsh: true,
+      });
+      if (!created.ok) return { error: "provision_failed", message: created.error };
+      return {
+        endpointUrl: runpodProxyUrl(created.podId, workload.port),
+        podId: created.podId,
+        kind: "gpu",
+        gpuId: best.id,
       cpuId: "",
       hourlyUsd: best.hourlyUsd,
       port: workload.port,
+      image: workload.image,
+      vncPassword: String(workload.env.VNC_PW ?? ""),
     };
   }
   const maxCents = Math.max(0, Math.floor(Number(opts.maxPriceCentsPerHour ?? 0)));
@@ -917,11 +980,12 @@ export async function provisionAutoplayWorker(opts: {
     name: opts.name,
     image: workload.image,
     gpuId: pick.id,
-    ports: workload.ports,
-    env: workload.env,
-    startJupyter: true,
-    startSsh: true,
-  });
+      ports: workload.ports,
+      env: workload.env,
+      // Kasm serves 6901 itself; Jupyter would only add a second server.
+      startJupyter: false,
+      startSsh: true,
+    });
   if (!created.ok) return { error: "provision_failed", message: created.error };
   return {
     endpointUrl: runpodProxyUrl(created.podId, workload.port),
@@ -931,6 +995,8 @@ export async function provisionAutoplayWorker(opts: {
     cpuId: "",
     hourlyUsd: pick.hourlyUsd,
     port: workload.port,
+    image: workload.image,
+    vncPassword: String(workload.env.VNC_PW ?? ""),
   };
 }
 
@@ -980,6 +1046,7 @@ export async function provisionBlenderWorker(opts: {
     cpuId: "",
     hourlyUsd: pick.hourlyUsd,
     port: 8888,
+    image: opts.image,
   };
 }
 
@@ -1123,15 +1190,33 @@ async function createRunpodDesktopPod(opts: {
 }
 
 /**
+ * A custom container image reference for advanced launches from the control
+ * pane. Docker-ref shaped only (registry/name:tag); shell, URLs, and empty
+ * strings are refused. Length-capped so it cannot smuggle RunPod API fields.
+ */
+export function cleanCustomImage(value: unknown): string | null {
+  const v = String(value ?? "").trim().slice(0, 256);
+  if (!v) return null;
+  if (/[\s"'`$\\;|&<>]/.test(v)) return null;
+  if (!/^[a-z0-9][a-z0-9._/-]*[a-z0-9](:[a-z0-9._-]+)?$/i.test(v)) return null;
+  if (!v.includes("/") && !v.includes(":")) return null;
+  return v;
+}
+
+/**
  * Provision a Virtual Desktop pod. GUI (default) boots an Ubuntu graphical
  * desktop (Kasm) on 6901 for both kinds; Jupyter boots JupyterLab + SSH on
  * 8888 instead. CPU GUI runs the same Kasm desktop with software rendering.
+ * Advanced control-pane launches may override the image (validated Docker
+ * ref); ports stay the interface defaults so the stream URL keeps working.
  */
 export async function provisionDesktopWorker(opts: {
   name: string;
   kind: DesktopKind;
   iface?: DesktopInterface;
   maxUsdPerHour?: number;
+  /** Advanced: validated custom container image (cleanCustomImage). */
+  image?: string;
 }): Promise<ProvisionDesktopResult> {
   if (!runpodConfigured()) return { error: "unconfigured" };
   const face: DesktopInterface = opts.iface === "jupyter" ? "jupyter" : "gui";
@@ -1140,6 +1225,13 @@ export async function provisionDesktopWorker(opts: {
     workload = desktopWorkloadFor(opts.kind, face);
   } catch (err) {
     return { error: "provision_failed", message: err instanceof Error ? err.message : "Invalid desktop kind." };
+  }
+  const customImage = opts.image ? cleanCustomImage(opts.image) : null;
+  if (opts.image && !customImage) {
+    return { error: "provision_failed", message: "Invalid custom image. Use a Docker ref like registry/name:tag." };
+  }
+  if (customImage) {
+    workload = { ...workload, image: customImage };
   }
 
   if (workload.kind === "cpu") {

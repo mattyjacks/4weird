@@ -98,7 +98,7 @@ export default function ClansPage() {
         index="3"
         kicker="The bouncer"
         title="Valley Net screens everything"
-        body="Every human and bot write passes Valley Net: spam floods blocked, suspicious held as pending for review, all actions audit-logged. An AI judge assists when configured — without it, moderation fails closed (human writes held as pending) while structural shields keep running."
+        body="Every human and bot write passes Valley Net (medium-bar, lenient): obvious spam/scam floods blocked, clearly violating text held as pending for review, everything else posts straight through — all actions audit-logged. An AI judge assists when configured — without it, ordinary posts still go visible while structural shields catch the obvious floods."
       />
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         {[

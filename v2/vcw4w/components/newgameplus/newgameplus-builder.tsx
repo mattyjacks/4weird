@@ -15,6 +15,7 @@ type TimelineStage = { key: string; label: string; detail: string; targetSec: nu
 type BuildResult = {
   game: { slug: string; title: string; source: string; bytes: number };
   plan: { quality: number; budget: number; estimate: number; spend: number; cut: number; provider: number; strategy: string; note: string; lane: string; target: string };
+  charge?: { billed: boolean; gross: number; cut: number };
   test: { verdict: string; loops: number; steps: string[]; checks: { id: string; label: string; passed: boolean; detail: string }[]; findings: { severity: string; title: string; description: string }[] };
   draft: { scope: string; submission_id: string | null; project_id: string | null; draft_path: string; note: string };
   swarm?: { lane: string; mode: string; agents: SwarmAgent[]; trace: string[]; target: string };
@@ -278,6 +279,9 @@ export function NewGamePlusBuilder() {
               </p>
               <p className="mt-1 text-xs text-slate-400">
                 💰 {result.plan.spend} coins ({result.plan.provider} provider + {result.plan.cut} cut - {result.plan.note}) · est. {result.plan.estimate} for q{result.plan.quality} · {result.plan.lane} lane ({result.plan.target})
+              </p>
+              <p className="mt-1 text-xs text-slate-400">
+                🧾 {result.charge?.billed ? `Billed ${result.charge.gross} coins (incl. ${result.charge.cut} cut) - see coin history + /my/usage.` : "Free local build (sign in to save drafts + meter coins)."}
               </p>
               <p className="mt-1 text-xs text-slate-400">
                 🤖 VCW verdict: <b className={result.test.verdict === "pass" ? "text-emerald-300" : "text-amber-300"}>{result.test.verdict}</b> ({result.test.loops} loop{result.test.loops === 1 ? "" : "s"}) · {result.game.bytes.toLocaleString()} bytes

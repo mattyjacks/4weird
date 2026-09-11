@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ProxyLink } from "@/components/runpod/proxy-link";
+import { PodIdleWatch, PolicyFields } from "@/components/runpod/pod-idle-watch";
+import { describePodIdlePolicy, type PodIdlePolicy } from "@/lib/pod-idle";
 import {
   DESKTOP_PLANS,
   desktopUsdToCoins,
@@ -16,6 +18,8 @@ type ProvisionOk = {
   kind?: DesktopKind;
   interface?: DesktopInterface;
   desktop?: { id: string } | null;
+  heartbeat_url?: string | null;
+  idle_policy?: { warn_minutes: number; stop_grace_minutes: number; terminate_hours: number; summary?: string } | null;
   connection?: {
     endpointUrl: string;
     podId: string;
@@ -25,6 +29,7 @@ type ProvisionOk = {
     coinsPerHour: number;
     port: number;
     image: string;
+    vncPassword?: string;
   };
   provision?: { ok: boolean; code?: string; message?: string };
   billing?: { hourly_usd?: number; coins_per_hour_equiv?: number; note?: string };
@@ -36,37 +41,64 @@ type PlansOk = {
   success: boolean;
   plans?: typeof DESKTOP_PLANS;
   runpod_configured?: boolean;
+  pricing_example?: {
+    cheapest_gpu: { id: string; hourly_usd: number } | null;
+    cheapest_cpu: { id: string; hourly_usd: number } | null;
+    note?: string;
+  } | null;
+  idle_policy?: { warn_minutes: number; stop_grace_minutes: number; terminate_hours: number; summary?: string } | null;
 };
 
+const DEFAULT_POLICY: PodIdlePolicy = { warnMinutes: 60, stopGraceMinutes: 15, terminateHours: 24 };
+
 /**
- * Virtual Desktop rental panel. Rents a REAL RunPod pod (CPU Ubuntu or GPU
- * Kasm desktop) through POST /api/desktop/provision and hands back the
+ * Virtual Desktop rental panel (first tab of the /desktop control pane).
+ * Rents a REAL RunPod pod (CPU Ubuntu or GPU Kasm desktop, or your own
+ * container image) through POST /api/desktop/provision and hands back the
  * RunPod default proxy endpoint; never faked. RunPod bills per second;
- * coin figures are display equivalents only.
+ * coin figures are display equivalents only. CPU is preselected: it is the
+ * cheapest way to get a remote box, and the live cheapest-GPU example below
+ * shows what the GPU step-up costs right now.
  */
 export function DesktopRental() {
-  const [kind, setKind] = useState<DesktopKind>("gpu");
+  const [kind, setKind] = useState<DesktopKind>("cpu");
   const [iface, setIface] = useState<DesktopInterface>("gui");
   const [maxUsd, setMaxUsd] = useState("0");
+  const [customImage, setCustomImage] = useState("");
+  const [warn, setWarn] = useState("");
+  const [grace, setGrace] = useState("");
+  const [term, setTerm] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ProvisionOk | null>(null);
   const [error, setError] = useState("");
   const [needsLogin, setNeedsLogin] = useState(false);
   const [runpodReady, setRunpodReady] = useState<boolean | null>(null);
+  const [pricing, setPricing] = useState<PlansOk["pricing_example"]>(null);
+  const [serverPolicy, setServerPolicy] = useState<PodIdlePolicy>(DEFAULT_POLICY);
 
   useEffect(() => {
     (async () => {
       try {
         const res = await fetch("/api/desktop/provision");
         const body = (await res.json()) as PlansOk;
-        if (body.success) setRunpodReady(Boolean(body.runpod_configured));
+        if (body.success) {
+          setRunpodReady(Boolean(body.runpod_configured));
+          if (body.pricing_example) setPricing(body.pricing_example);
+          if (body.idle_policy) {
+            setServerPolicy({
+              warnMinutes: body.idle_policy.warn_minutes,
+              stopGraceMinutes: body.idle_policy.stop_grace_minutes,
+              terminateHours: body.idle_policy.terminate_hours,
+            });
+          }
+        }
       } catch {
         setRunpodReady(null);
       }
     })();
   }, []);
 
-  const plan = DESKTOP_PLANS.find((p) => p.kind === kind) ?? DESKTOP_PLANS[1];
+  const plan = DESKTOP_PLANS.find((p) => p.kind === kind) ?? DESKTOP_PLANS[0];
 
   async function rent() {
     setBusy(true);
@@ -75,6 +107,10 @@ export function DesktopRental() {
     setResult(null);
     try {
       const max = Number(maxUsd);
+      const idle: Record<string, number> = {};
+      if (warn.trim() !== "") idle.warn_minutes = Number(warn);
+      if (grace.trim() !== "") idle.stop_grace_minutes = Number(grace);
+      if (term.trim() !== "") idle.terminate_hours = Number(term);
       const res = await fetch("/api/desktop/provision", {
         method: "POST",
         credentials: "include",
@@ -83,6 +119,8 @@ export function DesktopRental() {
           kind,
           interface: iface,
           max_usd_per_hour: Number.isFinite(max) ? max : 0,
+          ...(customImage.trim() ? { image: customImage.trim() } : {}),
+          ...idle,
         }),
       });
       const body = (await res.json()) as ProvisionOk;
@@ -101,14 +139,43 @@ export function DesktopRental() {
     }
   }
 
+  const effectivePolicy: PodIdlePolicy = result?.idle_policy
+    ? {
+        warnMinutes: result.idle_policy.warn_minutes,
+        stopGraceMinutes: result.idle_policy.stop_grace_minutes,
+        terminateHours: result.idle_policy.terminate_hours,
+      }
+    : serverPolicy;
+
   return (
     <section aria-label="Rent a Virtual Desktop" className="rounded-2xl border border-cyan-300/30 bg-cyan-300/[.05] p-5">
       <h2 className="text-2xl font-black text-white">Rent your desktop</h2>
       <p className="mt-2 text-sm text-slate-300">
-        Quotes are USD/hour maximums on real RunPod pods; billed <strong>per second</strong> by RunPod, never more
-        than the quote. Coin figures (≈ {desktopUsdToCoins(1)} coins per $1) are display equivalents only: direct
-        RunPod spend carries <strong>no Vibe cut</strong> and debits no coins.
+        <strong>CPU is preselected</strong> — the cheapest remote box. Step up to GPU only when you need hardware
+        acceleration (Blender, CUDA, AI art, GPU play). Quotes are USD/hour maximums on real RunPod pods; billed{" "}
+        <strong>per second</strong> by RunPod, never more than the quote. Coin figures (≈ {desktopUsdToCoins(1)} coins
+        per $1) are display equivalents only: direct RunPod spend carries <strong>no Vibe cut</strong> and debits no
+        coins.
       </p>
+      <p role="status" className="mt-2 rounded-lg border border-white/15 bg-white/[.04] px-3 py-2 text-xs text-slate-300">
+        {pricing?.cheapest_gpu ? (
+          <>
+            💡 Live example: cheapest Secure GPU with stock right now is <strong>{pricing.cheapest_gpu.id}</strong> at{" "}
+            <strong>~${Number(pricing.cheapest_gpu.hourly_usd).toFixed(2)}/hr</strong>
+            {pricing.cheapest_cpu ? (
+              <>
+                {" "}vs cheapest CPU ({pricing.cheapest_cpu.id}) at ~${Number(pricing.cheapest_cpu.hourly_usd).toFixed(2)}/hr.
+              </>
+            ) : (
+              "."
+            )}{" "}
+            Your pod is quoted exactly at rent time — stock moves, so this is an example, not a promise.
+          </>
+        ) : (
+          "💡 Live GPU price example unavailable (no stock data right now). Your pod is still quoted exactly at rent time."
+        )}
+      </p>
+      <p className="mt-2 text-xs text-slate-400">🔔 {describePodIdlePolicy(serverPolicy)} Any input resets the clock.</p>
       {runpodReady === false && (
         <p role="status" className="mt-3 rounded-lg border border-amber-300/40 bg-amber-300/[.08] px-3 py-2 text-xs text-amber-100">
           RunPod is not configured on the server yet (RUNPOD_API_KEY). You can still try; the API will return the
@@ -134,6 +201,7 @@ export function DesktopRental() {
             />
             <p className="font-bold text-white">
               {p.kind === "gpu" ? "🖥️" : "💻"} {p.name}
+              {p.kind === "cpu" && <span className="ml-2 rounded-full bg-emerald-300/20 px-2 py-0.5 text-[11px] text-emerald-200">cheapest · default</span>}
             </p>
             <p className="mt-1 text-xs text-slate-300">{p.tagline}</p>
             <p className="mt-2 text-[11px] text-slate-500">
@@ -203,6 +271,32 @@ export function DesktopRental() {
         </div>
       </div>
 
+      <details className="mt-4 rounded-xl border border-slate-700 bg-slate-950 p-4">
+        <summary className="cursor-pointer text-sm font-bold text-white">⚙️ Advanced: custom container image + idle timers</summary>
+        <div className="mt-3 grid gap-3">
+          <label className="text-xs text-slate-300">
+            Custom image (Docker ref, e.g. <code>runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04</code>; blank = plan default)
+            <input
+              type="text"
+              value={customImage}
+              onChange={(e) => setCustomImage(e.target.value)}
+              placeholder={iface === "gui" ? plan.image : plan.jupyter.image}
+              spellCheck={false}
+              className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 font-mono text-white"
+            />
+            <span className="mt-1 block text-slate-500">
+              Ports stay the interface defaults so the stream link keeps working ({iface === "gui" ? `port ${plan.port}` : `port ${plan.jupyter.port}`}). Anything that is not a Docker ref is refused.
+            </span>
+          </label>
+          <div>
+            <p className="text-xs font-bold text-slate-200">Idle timers for this pod (blank = default {serverPolicy.warnMinutes}/{serverPolicy.stopGraceMinutes}/{serverPolicy.terminateHours}h)</p>
+            <div className="mt-2">
+              <PolicyFields warn={warn} setWarn={setWarn} grace={grace} setGrace={setGrace} term={term} setTerm={setTerm} prefix="rent" />
+            </div>
+          </div>
+        </div>
+      </details>
+
       <div className="mt-4 flex flex-wrap gap-2">
         <button
           type="button"
@@ -258,26 +352,38 @@ export function DesktopRental() {
             Pod {result.connection.podId} ·{" "}
             {result.connection.gpu ? `GPU ${result.connection.gpu}` : `CPU ${result.connection.cpu ?? ""}`} · ~
             ${Number(result.connection.hourlyUsd).toFixed(2)}/hr (≈ {Number(result.connection.coinsPerHour).toFixed(0)}{" "}
-            coins/hr equiv), per second
+            coins/hr equiv), per second · image <code className="break-all">{result.connection.image}</code>
           </p>
+          {result.connection.vncPassword && (
+            <p className="mt-2 rounded-lg border border-amber-300/40 bg-amber-300/[.08] px-3 py-2 text-amber-100">
+              🔑 VNC password (shown once — save it now): <code className="font-bold">{result.connection.vncPassword}</code>
+            </p>
+          )}
           {result.interface === "jupyter" ? (
             <ul className="mt-2 list-disc space-y-1 pl-5 text-slate-400">
               <li>JupyterLab opens at the link above; SSH per the RunPod console pod details.</li>
               <li>Install anything with apt/uv; disk is {plan.diskGb} GB ephemeral unless you attach storage.</li>
-              <li>Manage it from <Link href="/runpods" className="text-cyan-300 hover:underline">My RunPods</Link>; stop ends billing, terminate deletes the disk.</li>
+              <li>Manage it below in <strong>My pods</strong> (or <Link href="/runpods" className="text-cyan-300 hover:underline">My RunPods</Link>); stop ends billing, terminate deletes the disk.</li>
             </ul>
           ) : (
             <ul className="mt-2 list-disc space-y-1 pl-5 text-slate-400">
-              <li>Log in with the VNC password (default `password`; change VNC_PW in the RunPod console after first login).</li>
+              <li>Log in with the VNC password above (change it after first login).</li>
               <li>Your Ubuntu desktop streams in the browser: Chromium, VS Code, terminal{result.kind === "gpu" ? ", Blender-ready GPU" : ""}.</li>
-              <li>Manage it from <Link href="/runpods" className="text-cyan-300 hover:underline">My RunPods</Link>; stop ends billing, terminate deletes the disk.</li>
+              <li>Manage it below in <strong>My pods</strong> (or <Link href="/runpods" className="text-cyan-300 hover:underline">My RunPods</Link>); stop ends billing, terminate deletes the disk.</li>
             </ul>
           )}
           <p className="mt-2 text-slate-500">{result.billing?.note ?? result.note ?? ""}</p>
           <p className="mt-1 text-slate-500">
             First boot pulls a ~6.5 GB desktop image and can take several minutes; a 404 or “waiting” page on the
-            link during that window is normal. Wait, then Reload.
+            link during that window is normal. Wait, then Reload. Keep this tab open and the idle guard below watches
+            the pod for you.
           </p>
+          <PodIdleWatch
+            heartbeatUrl={result.heartbeat_url ?? null}
+            stopUrl={result.desktop ? `/api/desktop/${result.desktop.id}/pod` : null}
+            policy={effectivePolicy}
+            label={`${result.kind === "gpu" ? "GPU" : "CPU"} Desktop`}
+          />
         </div>
       )}
       {result?.success && !result.started && (

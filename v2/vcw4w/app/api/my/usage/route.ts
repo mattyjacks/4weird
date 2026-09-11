@@ -36,9 +36,13 @@ function toSpend(value: unknown): Spend {
  *     serverless-worker / serverless-cron / inference-api provisions; they
  *     appear under workspace rows with service_key + unit so functions spend
  *     is never hidden inside a generic "compute" bucket.
- *   - game_play_usage (game rentals: proportional load fee + per-second
- *     playtime heartbeats) via my_game_play_usage(): total + last hour + last 24h +
- *     by-game + recent, each split 25% cut / 75% provider.
+  *   - game_play_usage (game rentals: proportional load fee + per-second
+  *     playtime heartbeats) via my_game_play_usage(): total + last hour + last 24h +
+  *     by-game + recent, each split 25% cut / 75% provider, plus active
+  *     seconds/hours from game_sessions (free loads record 0-gross rows, so
+  *     every load counts as a session even when the load fee is waived).
+  *   - newgameplus_builds (NewGamePlus prompt-to-game builds: capped spend,
+  *     25% cut included) via my_newgameplus_spend(), folded into combined.
  *   - clan personal spend (post/comment/message server-cost fees at 25% cut,
  *     plus owner funding + member donations at 1:1) via my_clan_usage():
  *     total + last hour + last 24h + by-reason + recent. Without this section
@@ -198,18 +202,26 @@ export async function GET(req: Request) {
   }
 
   // 6. Game rentals (proportional load + per-second playtime heartbeats).
+  // Free loads record 0-gross 'load' rows, so every load counts as a
+  // session; hours played come from game_sessions active seconds.
   let gameRent: {
     total: Spend;
     lastHour: Spend;
     last24h: Spend;
-    byGame: { game_slug: string; sessions: number; gross: number; cut: number; provider: number }[];
+    byGame: { game_slug: string; sessions: number; gross: number; cut: number; provider: number; seconds: number }[];
     recent: { game_slug: string; gross_coins: number; cut_coins: number; source: string; created_at: string }[];
+    secondsTotal: number;
+    secondsHour: number;
+    secondsDay: number;
   } = {
     total: { ...ZERO, turns: 0 },
     lastHour: { ...ZERO, turns: 0 },
     last24h: { ...ZERO, turns: 0 },
     byGame: [],
     recent: [],
+    secondsTotal: 0,
+    secondsHour: 0,
+    secondsDay: 0,
   };
   try {
     const { data: rollup, error } = await supabase.rpc("my_game_play_usage");
@@ -226,6 +238,9 @@ export async function GET(req: Request) {
         last24h: asSpend(r.last24h),
         byGame: Array.isArray(r.byGame) ? (r.byGame as typeof gameRent.byGame) : [],
         recent: Array.isArray(r.recent) ? (r.recent as typeof gameRent.recent) : [],
+        secondsTotal: Number(r.secondsTotal) || 0,
+        secondsHour: Number(r.secondsHour) || 0,
+        secondsDay: Number(r.secondsDay) || 0,
       };
     }
   } catch {
@@ -353,14 +368,15 @@ export async function GET(req: Request) {
   const submissions = await spendRollup("my_submission_spend");
   const meshy = await spendRollup("my_meshy_spend");
   const vault = await spendRollup("my_vault_spend");
+  const newgameplus = await spendRollup("my_newgameplus_spend");
 
   const combined = {
     gross:
       Math.round(
-        (gameAi.total.gross + agentCompute.gross + workspace.gross + gameRent.total.gross + clanTotalGross + falTotalGross + submissions.gross + meshy.gross + vault.gross) * 100,
+        (gameAi.total.gross + agentCompute.gross + workspace.gross + gameRent.total.gross + clanTotalGross + falTotalGross + submissions.gross + meshy.gross + vault.gross + newgameplus.gross) * 100,
       ) / 100,
     cut:
-      Math.round((gameAi.total.cut + agentCompute.cut + workspace.cut + gameRent.total.cut + clanTotalCut + falTotalCut + submissions.cut + meshy.cut + vault.cut) * 100) /
+      Math.round((gameAi.total.cut + agentCompute.cut + workspace.cut + gameRent.total.cut + clanTotalCut + falTotalCut + submissions.cut + meshy.cut + vault.cut + newgameplus.cut) * 100) /
       100,
     provider:
       Math.round(
@@ -372,7 +388,8 @@ export async function GET(req: Request) {
           (falTotalGross - falTotalCut) +
           submissions.provider +
           meshy.provider +
-          vault.provider) *
+          vault.provider +
+          newgameplus.provider) *
           100,
       ) / 100,
   };
@@ -443,6 +460,7 @@ export async function GET(req: Request) {
     submissions,
     meshy,
     vault,
+    newgameplus,
     combined,
     note: GAME_AI_CUT_NOTE,
   });

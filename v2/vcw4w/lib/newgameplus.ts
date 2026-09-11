@@ -9,7 +9,8 @@
  *
  * Speed lanes (exact spec):
  * - fast lane (budget ≤ 250): the whole symphony finishes in ≤5 minutes -
- *   local generation in ms, ≤2 cheap/fast fal ops, VCW static self-test.
+ *   local generation in ms, ≤2 cheap/fast fal ops, VCW executed playtest
+ *   (the game is really booted headless: real rAF frames + synthetic input).
  * - deluxe lane (budget > 250): bigger budgets buy more bots + media
  *   (up to 5 swarm agents, up to 4 fal ops incl. video/3D); longer but
  *   still fast (≈5-12 min wall clock incl. queued fal renders).
@@ -22,6 +23,7 @@
 
 import { FAL_FAST_OPS, recommendFalOps, type FalOp } from "@/lib/fal";
 import { planSwarmTurn } from "@/lib/swarm";
+import { createContext, Script } from "node:vm";
 
 export const NEWGAMEPLUS_CUT_PCT = 25;
 
@@ -232,7 +234,7 @@ export function planBuild(quality: number, budget: number): BuildPlan {
     spend,
     cut,
     provider: Math.round((spend - cut) * 100) / 100,
-    strategy: "cheapest-viable: local single-file generator + VCW static self-test (no GPU, no inference - 0 external spend)",
+    strategy: "cheapest-viable: local single-file generator + VCW executed playtest (headless run: real frames + synthetic input - 0 external spend)",
     runtime: "canvas2d-newest-viable",
     msEstimate: 400 + quality * 120,
     confirmRequired: needsAmountConfirm(budget),
@@ -412,8 +414,11 @@ export type VcwTestResult = {
 
 /**
  * Intelligent VibeCodeWorker self-test: observe (static checks) → reason
- * (file findings) → act (auto-repair + re-run, up to 3 loops). Repairs are
- * cheapest-first: inject the missing 6-line block instead of regenerating.
+ * (file findings) → act (auto-repair + re-run, up to 3 loops) → playtest
+ * (really execute the game headless: boot the canvas, pump real rAF frames,
+ * drive synthetic keyboard + pointer input, and observe the HUD/pause/reset
+ * the way a player would). Repairs are cheapest-first: inject the missing
+ * 6-line block instead of regenerating.
  */
 export function vcwSelfTest(source: string, quality: number): VcwTestResult {
   const steps: string[] = [];
@@ -428,8 +433,8 @@ export function vcwSelfTest(source: string, quality: number): VcwTestResult {
     const failed = checks.filter((c) => !c.passed);
     steps.push(`reason (loop ${attempt}): ${checks.length - failed.length}/${checks.length} checks green`);
     if (!failed.length) {
-      steps.push(`act (loop ${attempt}): no repair needed; verdict pass`);
-      return { verdict: "pass", checks, findings, steps, loops };
+      steps.push(`act (loop ${attempt}): no repair needed; handing to the playtest`);
+      break;
     }
     for (const f of failed) {
       findings.push({ severity: "medium", title: f.label, description: f.detail });
@@ -442,15 +447,34 @@ export function vcwSelfTest(source: string, quality: number): VcwTestResult {
     current = repaired;
     steps.push(`act (loop ${attempt}): repaired [${failed.map((f) => f.id).join(", ")}]; re-running`);
   }
-  const checks = runChecks(current);
-  const failed = checks.filter((c) => !c.passed);
-  return {
-    verdict: failed.length ? "fail" : "pass",
-    checks,
-    findings,
-    steps,
-    loops,
-  };
+  const staticChecks = runChecks(current);
+  const staticFailed = staticChecks.filter((c) => !c.passed);
+  if (staticFailed.length) {
+    return {
+      verdict: "fail",
+      checks: staticChecks,
+      findings,
+      steps,
+      loops,
+    };
+  }
+
+  // Phase 2: the game is REALLY played, headless. A static pass only proves
+  // the source mentions a loop and some keys; the playtest below boots the
+  // actual script, advances real frames, presses real (synthetic) keys,
+  // drags the pointer, pauses, and restarts - failing closed on any throw.
+  const play = executePlaytest(current);
+  steps.push(...play.steps);
+  for (const f of play.failed) {
+    findings.push({ severity: "high", title: f.label, description: f.detail });
+  }
+  const checks = [...staticChecks, ...play.checks];
+  if (play.failed.length) {
+    steps.push(`playtest: ${play.failed.length} execution check(s) red; verdict ${quality === 0 ? "inconclusive" : "fail"}`);
+    return { verdict: quality === 0 ? "inconclusive" : "fail", checks, findings, steps, loops };
+  }
+  steps.push("playtest: executed clean; verdict pass");
+  return { verdict: "pass", checks, findings, steps, loops };
 }
 
 function runChecks(source: string): VcwCheck[] {
@@ -487,6 +511,204 @@ function repairSource(source: string, missing: string[]): string {
     out = out.replace(/https?:\/\/[^\s"'<>]+/g, "#");
   }
   return out;
+}
+
+type PlayListener = (event: Record<string, unknown>) => void;
+
+function noop() {
+  /* headless canvas sink */
+}
+
+/** 2D context stub: every draw call is a no-op, property sets are kept. */
+function stubCanvasContext(): Record<string, unknown> {
+  const store: Record<string, unknown> = {};
+  return new Proxy(store, {
+    get: (target, prop) => {
+      if (prop in target) return target[prop as string];
+      return noop;
+    },
+    set: (target, prop, value) => {
+      target[prop as string] = value;
+      return true;
+    },
+  });
+}
+
+/** Last inline (no-src) script block: the game's own logic. */
+function extractInlineScript(source: string): string | null {
+  const blocks = [...source.matchAll(/<script(?![^>]*\bsrc\s*=)[^>]*>([\s\S]*?)<\/script>/gi)];
+  if (!blocks.length) return null;
+  return blocks[blocks.length - 1][1] ?? "";
+}
+
+/**
+ * Headless playtest: boot the game's real script in a vm sandbox with a
+ * stub DOM/canvas, pump genuine rAF frames, drive synthetic keyboard +
+ * pointer input, and observe the HUD, pause, and reset exactly as a player
+ * would. Any throw fails closed. Budgets are tiny (a few hundred frames of
+ * canvas math) so the ≤5-min fast-lane target always holds.
+ */
+function executePlaytest(source: string): { checks: VcwCheck[]; failed: VcwCheck[]; steps: string[] } {
+  const checks: VcwCheck[] = [];
+  const steps: string[] = [];
+  const fail = (id: string, label: string, detail: string): VcwCheck => ({ id, label, passed: false, detail });
+  const pass = (id: string, label: string): VcwCheck => ({ id, label, passed: true, detail: "" });
+
+  const js = extractInlineScript(source);
+  if (!js || js.trim().length < 50) {
+    const c = fail("x-boot", "Headless boot", "No inline game script found to execute.");
+    steps.push("playtest (executed): no inline script; boot red");
+    return { checks: [c], failed: [c], steps };
+  }
+
+  const keyHandlers: Record<string, PlayListener[]> = { keydown: [], keyup: [] };
+  const canvasHandlers: Record<string, PlayListener[]> = {};
+  const clicks: Record<string, PlayListener[]> = {};
+  let rafQueue: Array<() => void> = [];
+  let frames = 0;
+  const FRAMES_BOOT = 120;
+  const FRAMES_EXTRA = 30;
+
+  const hud = { textContent: "" };
+  const msg = { textContent: "" };
+  const ctxStub = stubCanvasContext();
+  const canvasStub = {
+    width: 640,
+    height: 420,
+    getContext: () => ctxStub,
+    setPointerCapture: noop,
+    getBoundingClientRect: () => ({ left: 0, top: 0, width: 640, height: 420 }),
+    addEventListener: (type: string, fn: PlayListener) => {
+      canvasHandlers[type] = [...(canvasHandlers[type] ?? []), fn];
+    },
+  };
+  const buttonStub = (id: string) => ({
+    addEventListener: (type: string, fn: PlayListener) => {
+      if (type === "click") clicks[id] = [...(clicks[id] ?? []), fn];
+    },
+  });
+  const elements: Record<string, unknown> = {
+    game: canvasStub,
+    hud,
+    msg,
+    pauseBtn: buttonStub("pauseBtn"),
+    resetBtn: buttonStub("resetBtn"),
+  };
+  const storage = new Map<string, string>();
+  const sandbox: Record<string, unknown> = {
+    document: { getElementById: (id: string) => elements[id] ?? null },
+    addEventListener: (type: string, fn: PlayListener) => {
+      if (type === "keydown" || type === "keyup") keyHandlers[type] = [...keyHandlers[type], fn];
+    },
+    removeEventListener: noop,
+    requestAnimationFrame: (cb: () => void) => {
+      rafQueue.push(cb);
+      return rafQueue.length;
+    },
+    localStorage: {
+      getItem: (k: string) => storage.get(k) ?? null,
+      setItem: (k: string, v: string) => void storage.set(k, String(v)),
+      removeItem: (k: string) => void storage.delete(k),
+      clear: () => void storage.clear(),
+    },
+    window: {},
+    console: { log: noop, warn: noop, error: noop },
+  };
+  const ctx = createContext(sandbox);
+
+  const pump = (n: number) => {
+    for (let i = 0; i < n && rafQueue.length; i++) {
+      const batch = rafQueue;
+      rafQueue = [];
+      frames += batch.length;
+      for (const cb of batch) cb();
+    }
+  };
+  const key = (type: "keydown" | "keyup", k: string) => {
+    const event = { key: k, preventDefault: noop };
+    for (const fn of keyHandlers[type]) fn(event);
+  };
+  const pointer = (type: string, x: number, y: number) => {
+    const event = { clientX: x, clientY: y, pointerId: 1, preventDefault: noop };
+    for (const fn of canvasHandlers[type] ?? []) fn(event);
+  };
+  const click = (id: string) => {
+    for (const fn of clicks[id] ?? []) fn({});
+  };
+
+  try {
+    new Script(js, { filename: "newgameplus-playtest.js" }).runInContext(ctx, { timeout: 3000 });
+  } catch (e) {
+    const c = fail("x-boot", "Headless boot", `Game script threw on boot: ${String(e instanceof Error ? e.message : e).slice(0, 160)}`);
+    steps.push("playtest (executed): boot red (script threw)");
+    return { checks: [c], failed: [c], steps };
+  }
+  const boot = pass("x-boot", "Headless boot (script evaluates, loop queued)");
+  checks.push(boot);
+  steps.push("playtest (executed): boot green; canvas 640x420 live");
+
+  try {
+    // Play like a player: steer with keys, drag on the pointer, pause/resume.
+    key("keydown", "ArrowLeft");
+    pump(20);
+    key("keyup", "ArrowLeft");
+    key("keydown", "a");
+    pointer("pointerdown", 320, 210);
+    pointer("pointermove", 400, 300);
+    pump(40);
+    key("keyup", "a");
+    key("keydown", " ");
+    pointer("pointerup", 400, 300);
+    pump(FRAMES_BOOT);
+  } catch (e) {
+    const c = fail("x-frames", "120 live frames + synthetic input", `Frame/input threw: ${String(e instanceof Error ? e.message : e).slice(0, 160)}`);
+    steps.push(`playtest (executed): ${frames} frames then red`);
+    return { checks: [...checks, c], failed: [c], steps };
+  }
+  const framesCheck = frames >= FRAMES_BOOT
+    ? pass("x-frames", `120 live frames + synthetic input (${frames} callbacks, keys + drag)`)
+    : fail("x-frames", "120 live frames + synthetic input", `Loop stalled after ${frames} frame(s); expected a self-perpetuating rAF loop.`);
+  checks.push(framesCheck);
+  const inputCheck = keyHandlers.keydown.length > 0 && (canvasHandlers.pointerdown ?? []).length > 0
+    ? pass("x-input", "Keyboard + pointer controls wired (keydown + pointerdown observed)")
+    : fail("x-input", "Keyboard + pointer controls wired", "Game registered no keydown/pointerdown handlers; it cannot be played.");
+  checks.push(inputCheck);
+
+  const hudText = String(hud.textContent ?? "");
+  const hudCheck = /Score \d+ · Lives \d+ · Level \d+\/\d+/.test(hudText)
+    ? pass("x-hud", `Live HUD observed (“${hudText.slice(0, 60)}”)`)
+    : fail("x-hud", "Live HUD observed", `HUD never rendered a score line; saw: “${hudText.slice(0, 120)}”.`);
+  checks.push(hudCheck);
+
+  try {
+    click("pauseBtn");
+    const frozen = String(hud.textContent ?? "");
+    pump(FRAMES_EXTRA);
+    const stillFrozen = String(hud.textContent ?? "") === frozen;
+    click("pauseBtn");
+    pump(5);
+    const resumed = String(hud.textContent ?? "").length > 0;
+    checks.push(
+      stillFrozen && resumed
+        ? pass("x-pause", "Pause freezes play, resume continues")
+        : fail("x-pause", "Pause freezes play, resume continues", "HUD kept changing while paused, or never resumed."),
+    );
+    click("resetBtn");
+    pump(10);
+    const afterReset = String(hud.textContent ?? "");
+    checks.push(
+      /Score 0/.test(afterReset) && /Level 1\//.test(afterReset)
+        ? pass("x-reset", "Restart resets to Score 0 · Level 1")
+        : fail("x-reset", "Restart resets to Score 0 · Level 1", `After restart HUD read: “${afterReset.slice(0, 120)}”.`),
+    );
+  } catch (e) {
+    const c = fail("x-pause", "Pause/resume/restart", `Pause/reset threw: ${String(e instanceof Error ? e.message : e).slice(0, 160)}`);
+    checks.push(c);
+  }
+
+  const failed = checks.filter((c) => !c.passed);
+  steps.push(`playtest (executed): ${frames} rAF frames, ${keyHandlers.keydown.length} key handler(s), HUD “${String(hud.textContent ?? "").slice(0, 60)}”; ${checks.length - failed.length}/${checks.length} execution checks green`);
+  return { checks, failed, steps };
 }
 
 export const NEWGAMEPLUS_CUT_NOTE = `Includes ${NEWGAMEPLUS_CUT_PCT}% platform cut; never added on top.`;

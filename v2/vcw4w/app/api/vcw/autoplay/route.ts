@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { hasServerSupabase } from "@/lib/supabase/service";
+import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
@@ -13,6 +13,7 @@ import {
   quoteAutoplayForUsd,
   resolveAutoplayPlan,
 } from "@/lib/vcw-autoplay";
+import { getPodIdlePolicy, describePodIdlePolicy } from "@/lib/pod-idle";
 import { provisionAutoplayWorker } from "@/lib/compute";
 
 export const dynamic = "force-dynamic";
@@ -99,6 +100,40 @@ export async function POST(req: Request) {
 
   const quote = quoteAutoplayForUsd(provisioned.hourlyUsd, AUTOPLAY_MAX_MINUTES);
   const maxRunUsd = Math.round((provisioned.hourlyUsd / 60) * AUTOPLAY_MAX_MINUTES * 100) / 100;
+  const idlePolicy = getPodIdlePolicy();
+
+  // Record ownership: autoplay remotes used to be fire-and-forget (pod id
+  // returned once, never stored) so they could never be stopped and never
+  // shut off. Now the creator owns a row (vcw_autoplay_remotes) and can
+  // stop/start/restart/terminate it from /desktop or /runpods; the client
+  // watchdog + server sweep enforce the idle policy on it.
+  let remoteId: string | null = null;
+  try {
+    const db = serviceClient();
+    const { data: row, error: rowErr } = await db
+      .from("vcw_autoplay_remotes")
+      .insert({
+        user_id: data.user.id,
+        pod_id: provisioned.podId,
+        game_slug: plan.gameSlug,
+        compute: plan.compute,
+        site_mode: plan.siteMode,
+        endpoint_url: provisioned.endpointUrl,
+        gpu_id: provisioned.gpuId,
+        cpu_id: provisioned.cpuId,
+        image: "image" in provisioned ? String(provisioned.image ?? "") : "",
+        hourly_usd: provisioned.hourlyUsd,
+        status: "running",
+        last_activity_at: new Date().toISOString(),
+      })
+      .select("id")
+      .single();
+    if (!rowErr) remoteId = String((row as { id: string }).id);
+  } catch {
+    remoteId = null;
+  }
+
+  const vncPassword = "vncPassword" in provisioned ? String(provisioned.vncPassword ?? "") : "";
   return ok({
     started: true,
     plan: {
@@ -106,6 +141,15 @@ export async function POST(req: Request) {
       compute: plan.compute,
       site_mode: plan.siteMode,
       target_url: plan.targetUrl,
+    },
+    remote: remoteId ? { id: remoteId } : null,
+    heartbeat_url: remoteId ? `/api/vcw/autoplay/${remoteId}/heartbeat` : null,
+    pod_url: remoteId ? `/api/vcw/autoplay/${remoteId}/pod` : null,
+    idle_policy: {
+      warn_minutes: idlePolicy.warnMinutes,
+      stop_grace_minutes: idlePolicy.stopGraceMinutes,
+      terminate_hours: idlePolicy.terminateHours,
+      summary: describePodIdlePolicy(idlePolicy),
     },
     connection: {
       endpointUrl: provisioned.endpointUrl,
@@ -115,6 +159,9 @@ export async function POST(req: Request) {
       cpu: provisioned.cpuId || null,
       hourlyUsd: provisioned.hourlyUsd,
       port: provisioned.port,
+      image: "image" in provisioned ? provisioned.image : null,
+      // Shown once at provision time only; never stored, never re-served.
+      ...(vncPassword ? { vncPassword, vncNote: "Save this VNC password now; it will never be shown again." } : {}),
     },
     quote: {
       minutes: AUTOPLAY_MAX_MINUTES,
@@ -124,21 +171,29 @@ export async function POST(req: Request) {
       max_run_usd: maxRunUsd,
     },
     desktop_url: VCW_DESKTOP_PATH,
-    note: `Autoplay remote live for ${plan.gameSlug} (${plan.compute}, ${plan.siteMode}). Browser control is locked to ${plan.targetUrl}. RunPod bills ~$${provisioned.hourlyUsd.toFixed(2)}/hr per second (max ~$${maxRunUsd.toFixed(2)} over ${AUTOPLAY_MAX_MINUTES} min, then it self-terminates). Coin quote ${quote.gross} gross ${AUTOPLAY_CUT_NOTE}`,
+    note: `Autoplay remote live for ${plan.gameSlug} (${plan.compute}, ${plan.siteMode}). Open the stream URL, log in with the VNC password, and open the locked game URL (${plan.targetUrl}) in the remote Chromium. RunPod bills ~$${provisioned.hourlyUsd.toFixed(2)}/hr per second (max ~$${maxRunUsd.toFixed(2)} over ${AUTOPLAY_MAX_MINUTES} min of use). ${idlePolicy.warnMinutes} min with no input rings a warning chime; ${idlePolicy.stopGraceMinutes} more idle min stops the pod; ${idlePolicy.terminateHours}h untended terminates it. Coin quote ${quote.gross} gross ${AUTOPLAY_CUT_NOTE}`,
   });
 }
 
 /** GET describes the rules without provisioning (login not required). */
 export async function GET() {
+  const idlePolicy = getPodIdlePolicy();
   return ok({
     computes: ["cpu", "gpu", "gpu-boosted"],
     site_modes: ["on-site", "off-site"],
     rules: [
       "On-site mode: VibeCodeWorker remotes control the browser for 4weird games only.",
       "Off-site mode: Xonotic only, GPU boosted mode only (RunPod GPUs), desktop VibeCodeWorker install required.",
+      "Every remote boots a Kasm graphical desktop on 6901 (Chromium inside): the stream link always loads; open the locked game URL in the remote browser.",
     ],
     desktop_url: VCW_DESKTOP_PATH,
     max_minutes: AUTOPLAY_MAX_MINUTES,
+    idle_policy: {
+      warn_minutes: idlePolicy.warnMinutes,
+      stop_grace_minutes: idlePolicy.stopGraceMinutes,
+      terminate_hours: idlePolicy.terminateHours,
+      summary: describePodIdlePolicy(idlePolicy),
+    },
     note: AUTOPLAY_CUT_NOTE,
   });
 }

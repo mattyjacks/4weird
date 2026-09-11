@@ -24,11 +24,12 @@ if (link.includes("<span") && link.includes("endpointUrl")) {
   throw new Error("proxy-link must not render the URL as a bare span.");
 }
 
-// Dashboard: aggregates the three creator-owned surfaces, clickable links,
+// Dashboard: aggregates the four creator-owned surfaces, clickable links,
 // all five lifecycle actions with a destructive confirm.
 for (const token of [
   "RunpodDashboard",
   "/api/desktop/mine",
+  "/api/vcw/autoplay/mine",
   "/api/agents/bookings/mine",
   "/api/blender/jobs",
   "ProxyLink",
@@ -77,6 +78,13 @@ for (const token of ["runPodLifecycle", "deleteRunpodPod", "podAction", "startJu
 // Wiring: header + footer link the dashboard.
 if (!header.includes('href: "/runpods"')) throw new Error("site header must link /runpods.");
 if (!footer.includes('href: "/runpods"')) throw new Error("site footer must link /runpods.");
+
+if (!dash.includes("test remotes") && !dash.includes("Test remotes") && !dash.includes("autoplay")) {
+  throw new Error("dashboard must render the web-app test remotes lane.");
+}
+if (!dash.includes("image") || !dash.includes("last activity") || !dash.includes("PodIdleWatch")) {
+  throw new Error("dashboard cards must show container image + last activity + idle guard.");
+}
 
 // Package gate wiring.
 if (!pkg.includes("verify:runpod-dashboard")) throw new Error("package.json must wire verify:runpod-dashboard.");
