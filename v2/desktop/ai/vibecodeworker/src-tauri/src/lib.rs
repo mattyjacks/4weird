@@ -284,6 +284,115 @@ mod commands {
         }
     }
 
+    // ─── fal.ai API key ─────────────────────────────────────
+    // Lets the desktop app queue real fal.ai media runs (art, video, voice)
+    // straight from the hub: paste the key from https://fal.ai/dashboard/keys
+    // into the FAL KEY drawer. The secret is kept in a local-only file under
+    // the OS app-data dir (same folder as the bot token) and is never
+    // logged; status calls report only whether a key is stored. fal keys are
+    // opaque strings, so shape validation only rejects blanks, absurd
+    // lengths, and obvious example/placeholder values.
+
+    pub fn fal_key_path() -> std::path::PathBuf {
+        #[cfg(target_os = "windows")]
+        {
+            let base = std::env::var("APPDATA").unwrap_or_else(|_| ".".to_string());
+            return std::path::PathBuf::from(base).join("vibecodeworker").join("fal-key");
+        }
+        #[cfg(target_os = "macos")]
+        {
+            let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+            return std::path::PathBuf::from(home)
+                .join("Library")
+                .join("Application Support")
+                .join("vibecodeworker")
+                .join("fal-key");
+        }
+        #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+        {
+            let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+            return std::path::PathBuf::from(home)
+                .join(".local")
+                .join("share")
+                .join("vibecodeworker")
+                .join("fal-key");
+        }
+    }
+
+    pub fn is_valid_fal_key(key: &str) -> bool {
+        let t = key.trim();
+        if t.len() < 8 || t.len() > 512 {
+            return false;
+        }
+        let lower = t.to_lowercase();
+        for needle in [
+            "your-",
+            "paste",
+            "example",
+            "placeholder",
+            "xxx",
+            "****",
+            "enter ",
+            "key-here",
+        ] {
+            if lower.contains(needle) {
+                return false;
+            }
+        }
+        true
+    }
+
+    #[tauri::command]
+    pub fn save_fal_key(key: String) -> Result<Value, String> {
+        let t = key.trim().to_string();
+        if !is_valid_fal_key(&t) {
+            return Err("That does not look like a fal.ai key — paste the real key from fal.ai/dashboard/keys.".to_string());
+        }
+        let file = fal_key_path();
+        if let Some(parent) = file.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| format!("key dir: {}", e))?;
+        }
+        std::fs::write(&file, &t).map_err(|e| format!("key write: {}", e))?;
+        Ok(json!({ "success": true, "message": "fal.ai key saved locally." }))
+    }
+
+    #[tauri::command]
+    pub fn get_fal_key_status() -> Value {
+        let file = fal_key_path();
+        let configured = std::fs::read_to_string(&file)
+            .map(|t| is_valid_fal_key(t.trim()))
+            .unwrap_or(false);
+        json!({ "configured": configured })
+    }
+
+    #[tauri::command]
+    pub fn get_fal_key() -> Result<String, String> {
+        let file = fal_key_path();
+        match std::fs::read_to_string(&file) {
+            Ok(t) => {
+                let t = t.trim().to_string();
+                if is_valid_fal_key(&t) {
+                    Ok(t)
+                } else {
+                    Err("No valid fal.ai key stored.".to_string())
+                }
+            }
+            Err(_) => Err("No fal.ai key stored yet.".to_string()),
+        }
+    }
+
+    #[tauri::command]
+    pub fn clear_fal_key() -> Result<Value, String> {
+        let file = fal_key_path();
+        match std::fs::remove_file(&file) {
+            Ok(_) => Ok(json!({ "success": true, "message": "fal.ai key removed." })),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                Ok(json!({ "success": true, "message": "No fal.ai key was stored." }))
+            }
+            Err(e) => Err(format!("key delete: {}", e)),
+        }
+    }
+
     // ─── CLI args (headfull/headless/game/autoplay/handoff) ──
     // Lets the exe run headfull from a terminal, e.g.:
     //   vibecodeworker-4weird.exe --headfull --game gravegain3d --autoplay
@@ -303,9 +412,9 @@ mod commands {
 }
 
 pub use commands::{
-    append_smart_log, clear_bot_token, get_bot_token, get_bot_token_status, get_cli_args, get_gpu_info,
-    get_log_dir, read_latest_handoff, save_bot_token, save_handoff_file, save_report_file,
-    show_native_notification,
+    append_smart_log, clear_bot_token, clear_fal_key, get_bot_token, get_bot_token_status,
+    get_cli_args, get_fal_key, get_fal_key_status, get_gpu_info, get_log_dir, read_latest_handoff,
+    save_bot_token, save_fal_key, save_handoff_file, save_report_file, show_native_notification,
 };
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -341,7 +450,11 @@ pub fn run() {
             commands::save_bot_token,
             commands::get_bot_token,
             commands::get_bot_token_status,
-            commands::clear_bot_token
+            commands::clear_bot_token,
+            commands::save_fal_key,
+            commands::get_fal_key,
+            commands::get_fal_key_status,
+            commands::clear_fal_key
         ])
         .run(tauri::generate_context!())
         .expect("error while running 4WEIRD VibeCodeWorker Tauri application");

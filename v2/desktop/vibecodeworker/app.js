@@ -15,6 +15,7 @@ import { HubManager } from './modules/hub_manager.js';
 import { loadGameTarget, initiateTesting, pauseTesting, stopTesting, executeAgentStep, autoRunEverything } from './modules/agent_runner.js';
 import { initTauriSmartLog, smartFileLog } from './modules/tauri_smart_log.js';
 import { initBotToken } from './modules/bot_token.js';
+import { initFalKey } from './modules/fal_key.js';
 
 let hubInstance = null;
 
@@ -551,6 +552,7 @@ function initApp() {
   bindEvents();
   initAuthCheck();
   initBotToken();
+  initFalKey();
   startClock();
   updateSubagentsUI();
   renderReasoningTree();
