@@ -2,6 +2,15 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { SERVICE_CUT_PCT, formatUsd } from "@/lib/economy";
+import {
+  RUNTIME_LABELS,
+  RUNTIME_DESCRIPTIONS,
+  PRICE_USD_MAX,
+  PRICE_USD_MIN,
+  displayEndpoint,
+  perSecondUsd,
+  type Runtime,
+} from "@/lib/agent-market";
 
 type ProviderInfo = { code: string; name: string; configured: boolean };
 
@@ -12,11 +21,15 @@ type Booking = {
   escrow_coins: number;
   started_at: string;
   ended_at: string | null;
+  pod_id?: string | null;
+  endpoint_url?: string | null;
+  gpu_type?: string | null;
   agent_listings: {
     id: string;
     name: string;
     runtime: string;
     provider_code: string;
+    endpoint_url?: string;
     price_cents_per_hour: number;
     status: string;
   } | null;
@@ -35,6 +48,14 @@ type MineResponse = {
   totals: { seconds: number; gross_cents: number; cut_cents: number; provider_cents: number };
 };
 
+const RUNTIME_VALUES = Object.keys(RUNTIME_LABELS) as Runtime[];
+
+function connectionFor(b: Booking): string {
+  if (b.endpoint_url) return b.endpoint_url;
+  if (b.agent_listings?.endpoint_url) return displayEndpoint(b.agent_listings.endpoint_url);
+  return "";
+}
+
 export function MyCompute() {
   const [providers, setProviders] = useState<ProviderInfo[]>([]);
   const [form, setForm] = useState({
@@ -42,7 +63,7 @@ export function MyCompute() {
     runtime: "openclaw",
     provider_code: "runpod",
     endpoint_url: "",
-    price: "100",
+    priceUsd: "1.00",
   });
   const [formMsg, setFormMsg] = useState("");
   const [formBusy, setFormBusy] = useState(false);
@@ -79,6 +100,8 @@ export function MyCompute() {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
+  const needsEndpoint = form.provider_code === "custom";
+  const priceCents = Math.round(Number(form.priceUsd) * 100);
   async function createListing() {
     setFormBusy(true);
     setFormMsg("");
@@ -90,14 +113,14 @@ export function MyCompute() {
           name: form.name.trim(),
           runtime: form.runtime,
           provider_code: form.provider_code,
-          endpoint_url: form.endpoint_url.trim(),
-          price_cents_per_hour: Number(form.price),
+          endpoint_url: needsEndpoint ? form.endpoint_url.trim() : "",
+          price_usd_per_hour: Number(form.priceUsd),
         }),
       });
-      const body = (await res.json()) as { success: boolean; error?: string };
+      const body = (await res.json()) as { success: boolean; error?: string; note?: string };
       if (!body.success) throw new Error(body.error || "Create failed.");
-      setFormMsg("Listing published.");
-      setForm({ name: "", runtime: "openclaw", provider_code: "runpod", endpoint_url: "", price: "100" });
+      setFormMsg(body.note ?? "Listing published. Renters are billed per second up to your max.");
+      setForm({ name: "", runtime: "openclaw", provider_code: "runpod", endpoint_url: "", priceUsd: "1.00" });
     } catch (e) {
       setFormMsg(e instanceof Error ? e.message : "Create failed.");
     } finally {
@@ -126,7 +149,7 @@ export function MyCompute() {
       setActionMsg((m) => ({
         ...m,
         [bookingId]: body.success && body.usage
-          ? `Metered: ${formatUsd(body.usage.gross_cents)} gross (includes ${SERVICE_CUT_PCT}% platform cut).`
+          ? `Metered ${seconds}s: ${formatUsd(body.usage.gross_cents)} gross (includes ${SERVICE_CUT_PCT}% platform cut).`
           : (body.error ?? "Heartbeat failed."),
       }));
       if (body.success) void loadMine();
@@ -144,7 +167,7 @@ export function MyCompute() {
       const body = (await res.json()) as { success: boolean; error?: string };
       setActionMsg((m) => ({
         ...m,
-        [bookingId]: body.success ? "Booking ended." : (body.error ?? "End failed."),
+        [bookingId]: body.success ? "Booking ended. Billing stops here." : (body.error ?? "End failed."),
       }));
       if (body.success) void loadMine();
     } catch {
@@ -155,6 +178,7 @@ export function MyCompute() {
   }
 
   function bookingCard(b: Booking) {
+    const conn = connectionFor(b);
     return (
       <li key={b.id} className="rounded-xl border border-slate-800 bg-slate-900 p-4">
         <div className="flex items-start justify-between gap-2">
@@ -166,9 +190,11 @@ export function MyCompute() {
             </p>
             <p className="text-xs text-slate-500">
               {b.agent_listings
-                ? `${formatUsd(b.agent_listings.price_cents_per_hour)}/hour gross — includes ${SERVICE_CUT_PCT}% platform cut.`
+                ? `Up to ${formatUsd(b.agent_listings.price_cents_per_hour)}/hour max, gross — includes ${SERVICE_CUT_PCT}% platform cut, billed per second.`
                 : ""}
             </p>
+            {b.gpu_type ? <p className="text-xs text-slate-500">GPU: {b.gpu_type}</p> : null}
+            {conn ? <p className="mt-1 text-xs break-all text-cyan-300">{conn}</p> : null}
           </div>
           {b.status === "active" && (
             <button
@@ -212,7 +238,12 @@ export function MyCompute() {
   return (
     <div className="space-y-10">
       <section>
-        <h2 className="text-2xl font-black">Rent out your agent</h2>
+        <h2 className="text-2xl font-black">List your compute for rent</h2>
+        <p className="mt-2 text-sm text-slate-400">
+          You are the <strong>host</strong> here: publish a server others can
+          rent and earn coins per second of use. To <strong>rent</strong> one
+          yourself, use “Rent an agent” above.
+        </p>
         <div className="mt-3 flex flex-wrap gap-2">
           {providers.map((p) => (
             <span
@@ -232,6 +263,7 @@ export function MyCompute() {
               value={form.name}
               onChange={(e) => set("name", e.target.value)}
               maxLength={80}
+              placeholder="e.g. Budget Xonotic server"
               className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-white"
             />
           </label>
@@ -242,10 +274,13 @@ export function MyCompute() {
               onChange={(e) => set("runtime", e.target.value)}
               className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-white"
             >
-              <option value="openclaw">openclaw</option>
-              <option value="nanoclaw">nanoclaw</option>
-              <option value="custom">custom</option>
+              {RUNTIME_VALUES.map((r) => (
+                <option key={r} value={r}>{RUNTIME_LABELS[r]}</option>
+              ))}
             </select>
+            <span className="mt-1 block text-xs text-slate-500">
+              {(RUNTIME_DESCRIPTIONS as Record<string, string>)[form.runtime] ?? ""}
+            </span>
           </label>
           <label className="text-sm text-slate-300">
             Provider
@@ -254,35 +289,47 @@ export function MyCompute() {
               onChange={(e) => set("provider_code", e.target.value)}
               className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-white"
             >
-              <option value="runpod">RunPod</option>
+              <option value="runpod">RunPod (auto endpoint)</option>
               <option value="digitalocean">DigitalOcean</option>
               <option value="custom">Custom endpoint</option>
             </select>
           </label>
           <label className="text-sm text-slate-300">
-            Price (cents/hour, gross)
+            Max price (USD/hour, gross)
             <input
               type="number"
-              min={1}
-              max={100000}
-              value={form.price}
-              onChange={(e) => set("price", e.target.value)}
+              min={PRICE_USD_MIN}
+              max={PRICE_USD_MAX}
+              step="0.01"
+              value={form.priceUsd}
+              onChange={(e) => set("priceUsd", e.target.value)}
               className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-white"
             />
           </label>
-          <label className="text-sm text-slate-300 md:col-span-2">
-            Endpoint URL (https only)
-            <input
-              value={form.endpoint_url}
-              onChange={(e) => set("endpoint_url", e.target.value)}
-              placeholder="https://…"
-              className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-white"
-            />
-          </label>
+          {needsEndpoint ? (
+            <label className="text-sm text-slate-300 md:col-span-2">
+              Endpoint URL (https only)
+              <input
+                value={form.endpoint_url}
+                onChange={(e) => set("endpoint_url", e.target.value)}
+                placeholder="https://…"
+                className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-white"
+              />
+            </label>
+          ) : (
+            <p className="text-sm text-slate-400 md:col-span-2">
+              RunPod default endpoint: no URL needed. Renting auto-provisions
+              the cheapest live GPU at or under your max and hands the renter
+              its proxy URL.
+              {form.runtime === "xonotic-vcw" || form.runtime === "xonotic-self" ? (
+                <> Xonotic serves on port 26000 (game) + 8888 (status).</>
+              ) : null}
+            </p>
+          )}
         </div>
         <p className="mt-2 text-sm text-slate-400">
-          {formatUsd(Number(form.price) || 0)}/hour gross — includes {SERVICE_CUT_PCT}%
-          platform cut.
+          Up to ${Number(form.priceUsd || 0).toFixed(2)}/hour max, gross — includes {SERVICE_CUT_PCT}%
+          platform cut. Billed per second (≈ ${Number.isFinite(priceCents) ? perSecondUsd(priceCents).toFixed(4) : "0.0000"}/sec), never more than the hourly cap.
         </p>
         <button
           type="button"
@@ -296,10 +343,10 @@ export function MyCompute() {
       </section>
 
       <section>
-        <h2 className="text-2xl font-black">My rentals</h2>
+        <h2 className="text-2xl font-black">My rentals (I&apos;m renting)</h2>
         {mineError && <p className="mt-2 text-sm text-slate-400">{mineError} (login to see bookings)</p>}
         {mine && mine.rentals.length === 0 && (
-          <p className="mt-2 text-sm text-slate-400">No rentals yet.</p>
+          <p className="mt-2 text-sm text-slate-400">No rentals yet — pick a listing under “Rent an agent”.</p>
         )}
         <ul className="mt-3 grid gap-3 md:grid-cols-2">
           {(mine?.rentals ?? []).map(bookingCard)}
@@ -307,12 +354,13 @@ export function MyCompute() {
       </section>
 
       <section>
-        <h2 className="text-2xl font-black">Bookings on my listings</h2>
+        <h2 className="text-2xl font-black">Bookings on my listings (I&apos;m hosting)</h2>
         {mine && (
           <p className="mt-2 text-sm text-slate-300">
             Metered {mine.totals.seconds}s · {formatUsd(mine.totals.gross_cents)} gross
             (includes {SERVICE_CUT_PCT}% platform cut: {formatUsd(mine.totals.cut_cents)}{" "}
-            platform / {formatUsd(mine.totals.provider_cents)} compute).
+            platform / {formatUsd(mine.totals.provider_cents)} compute). Quotes are
+            ${" "}per-hour maximums; every row above billed per second.
           </p>
         )}
         <ul className="mt-3 grid gap-3 md:grid-cols-2">

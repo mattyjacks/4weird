@@ -6,7 +6,10 @@ import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
-/** Public: fetch one listing (available to all; paused only to its owner). */
+/** Public: fetch one listing (available to all; paused only to its owner).
+ *  Hourly prices are gross MAXIMUMS ($/hr, 25% cut included); metering bills
+ *  per second. RunPod auto listings expose no private URL here — the live
+ *  RunPod default endpoint is handed to the renter on booking. */
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -20,7 +23,7 @@ export async function GET(
   const { data, error } = await supabase
     .from("agent_listings")
     .select(
-      "id,owner_id,name,runtime,provider_code,price_cents_per_hour,status,created_at",
+      "id,owner_id,name,runtime,provider_code,endpoint_url,price_cents_per_hour,status,created_at",
     )
     .eq("id", id)
     .maybeSingle();

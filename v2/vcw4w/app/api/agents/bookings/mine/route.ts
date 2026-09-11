@@ -13,8 +13,9 @@ type UsageRow = {
   provider_cents: number;
 };
 
-/** Own rentals + bookings on own listings + summed metered usage.
- *  All usage money shown is gross and includes the 25% platform cut. */
+/** Your rentals (rent side) + bookings on your listings (host side) + summed
+ *  metered usage. All usage money shown is gross and includes the 25%
+ *  platform cut. Hourly quotes are MAXIMUMS; usage rows bill per second. */
 export async function GET() {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
@@ -26,14 +27,14 @@ export async function GET() {
 
   const { data: rentals, error: rentalsError } = await supabase
     .from("rental_bookings")
-    .select("*, agent_listings(id,name,runtime,provider_code,price_cents_per_hour,status)")
+    .select("*, agent_listings(id,name,runtime,provider_code,endpoint_url,price_cents_per_hour,status)")
     .eq("renter_id", user.id)
     .order("started_at", { ascending: false });
   if (rentalsError) return fail("Unable to load rentals.", 500);
 
   const { data: ownerBookings, error: ownerError } = await supabase
     .from("rental_bookings")
-    .select("*, agent_listings!inner(id,name,runtime,provider_code,price_cents_per_hour,status)")
+    .select("*, agent_listings!inner(id,name,runtime,provider_code,endpoint_url,price_cents_per_hour,status)")
     .eq("agent_listings.owner_id", user.id)
     .order("started_at", { ascending: false });
   if (ownerError) return fail("Unable to load listing bookings.", 500);

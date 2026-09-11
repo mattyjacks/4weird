@@ -1,21 +1,20 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { fail, ok, rpcFail } from "@/lib/api-respond";
 import { clientIp } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
 import {
   cleanListingName,
-  isHttpsEndpoint,
-  isPriceCentsPerHour,
   isProviderCode,
   isRuntime,
-  rpcStatus,
+  normalizeEndpointForProvider,
+  parsePriceInput,
 } from "@/lib/agent-market";
 
 export const dynamic = "force-dynamic";
 
-/** Public: list available agent listings. Prices shown are gross and already
- *  include the 25% platform cut. */
+/** Public: list available agent listings. Prices shown are gross MAXIMUMS
+ *  per hour (include the 25% platform cut); metering bills per second. */
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const rl = rateLimit(`agents:list:${clientIp(req)}`, 60, 60_000);
@@ -40,8 +39,13 @@ export async function GET(req: Request) {
   return ok({ listings: data ?? [] });
 }
 
-/** Create a listing. Auth required; all writes happen in the create_listing
- *  RPC (client table writes are denied by RLS). */
+/** Host a listing (earn side). Auth required; all writes happen in the
+ *  create_listing RPC (client table writes are denied by RLS).
+ *
+ *  Price is USD/hour gross MAXIMUM (`price_usd_per_hour`, legacy
+ *  `price_cents_per_hour` still accepted). RunPod/DigitalOcean listings do
+ *  NOT need an endpoint URL — blank means "use the RunPod default endpoint"
+ *  (auto-provisioned on booking). Custom listings still need an https URL. */
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
@@ -59,29 +63,38 @@ export async function POST(req: Request) {
   const name = cleanListingName(input.name);
   const runtime = input.runtime;
   const provider = (input.provider_code ?? input.provider) as unknown;
-  const endpoint = (input.endpoint_url ?? input.endpoint) as unknown;
-  const price = isPriceCentsPerHour(
-    input.price_cents_per_hour ?? input.price,
-  );
-  if (
-    name.length < 1 ||
-    !isRuntime(runtime) ||
-    !isProviderCode(provider) ||
-    !isHttpsEndpoint(endpoint) ||
-    !price
-  ) {
+  const price = parsePriceInput(input);
+  if (name.length < 1 || !isRuntime(runtime) || !isProviderCode(provider) || !price) {
     return fail(
-      "Invalid listing. Need name (1-80 chars), runtime openclaw|nanoclaw|custom, provider runpod|digitalocean|custom, https endpoint, price 1..100000 cents/hour gross (includes 25% platform cut).",
+      "Invalid listing. Need a name (1-80 chars), a runtime (openclaw, nanoclaw, vibecodeworker, xonotic with VibeCodeWorker or self-play, custom), a provider (runpod, digitalocean, custom), and a max price of $0.01-$1000/hour gross (includes 25% platform cut; billed per second).",
       400,
     );
   }
+  const { endpoint, error: endpointError } = normalizeEndpointForProvider(
+    input.endpoint_url ?? input.endpoint ?? "",
+    String(provider),
+  );
+  if (endpointError) return fail(endpointError, 400);
   const { data: listing, error } = await supabase.rpc("create_listing", {
     p_name: name,
     p_runtime: runtime,
     p_provider: provider,
-    p_endpoint: String(endpoint),
+    p_endpoint: endpoint,
     p_price: price,
   });
-  if (error) return fail(error.message || "Unable to create listing.", rpcStatus(error.message));
-  return ok({ listing });
+  if (error)
+    return rpcFail("api/agents", error, (m) => {
+      const l = m.toLowerCase();
+      if (l.includes("authentication required")) return 401;
+      if (l.includes("not authorized")) return 403;
+      return 400;
+    });
+  return ok({
+    listing,
+    endpointAuto: endpoint === "runpod:auto",
+    note:
+      endpoint === "runpod:auto"
+        ? "RunPod default endpoint: a server is provisioned automatically when someone rents this (up to your max $/hr, billed per second)."
+        : undefined,
+  });
 }

@@ -4,9 +4,9 @@ import { Marketplace } from "@/components/agents/marketplace";
 import { MyCompute } from "@/components/agents/my-compute";
 
 export const metadata: Metadata = {
-  title: "Rent AI Agents | 4weird Games",
+  title: "Rent an Agent | 4weird Games",
   description:
-    "Rent openclaw / nanoclaw-style AI agents by the hour. Every price is gross and includes the 25% platform cut.",
+    "Rent an AI agent or a Xonotic game server by the hour. Every price is a gross USD/hr maximum (25% platform cut included) and you are billed per second.",
 };
 
 export const dynamic = "force-dynamic";
@@ -19,32 +19,41 @@ export default function AgentsPage() {
         <Link className="text-cyan-300 hover:underline" href="/">
           ← Home
         </Link>
-        <h1 className="mt-4 text-4xl font-black">Rent AI Agents</h1>
+        <h1 className="mt-4 text-4xl font-black">Rent an agent</h1>
         <p className="mt-4 text-slate-300">
-          Rent openclaw / nanoclaw-style agents hosted on RunPod, DigitalOcean,
-          or a custom endpoint. Every price below is gross and includes the 25%
-          platform cut — the cut is never added on top.
+          Rent an OpenClaw / NanoClaw / VibeCodeWorker agent — or a Xonotic
+          game server where VibeCodeWorker plays for you or you play yourself.
+          Pick a listing below to rent it, or list your own compute below to
+          earn coins from other players.
+        </p>
+        <p className="mt-2 text-sm text-slate-400">
+          Every price is a gross USD-per-hour <strong>maximum</strong> (25%
+          platform cut included, never added on top). Metering bills{" "}
+          <strong>per second</strong> from the first second, so a partial hour
+          never costs the full hour. RunPod listings need no endpoint URL from
+          you — booking auto-provisions a server and hands you the RunPod
+          default endpoint.
         </p>
         <nav className="mt-8 flex gap-2" aria-label="Agent marketplace tabs">
           <a
             href="#browse"
             className="rounded-t-lg border border-b-0 border-slate-800 bg-slate-900 px-4 py-2 text-sm font-bold text-cyan-300"
           >
-            Browse
+            Rent an agent
           </a>
           <a
             href="#my-compute"
             className="rounded-t-lg border border-b-0 border-slate-800 bg-slate-900 px-4 py-2 text-sm font-bold text-cyan-300"
           >
-            My compute
+            List your compute
           </a>
         </nav>
         <div className="rounded-b-xl rounded-tr-xl border border-slate-800 p-5">
-          <section id="browse" aria-label="Browse agents">
+          <section id="browse" aria-label="Rent an agent">
             <Marketplace />
           </section>
           <hr className="my-10 border-slate-800" />
-          <section id="my-compute" aria-label="My compute">
+          <section id="my-compute" aria-label="List your compute">
             <MyCompute />
           </section>
         </div>

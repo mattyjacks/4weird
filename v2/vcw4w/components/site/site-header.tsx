@@ -4,11 +4,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-const NAV_GROUPS = [
+type NavLink = {
+  href: string;
+  label: string;
+  external?: boolean;
+};
+
+const GITHUB_HREF = "https://github.com/mattyjacks/4weird";
+
+const NAV_GROUPS: { label: string; links: NavLink[] }[] = [
   {
     label: "Play",
     links: [
-      { href: "/games", label: "Games" },
+      { href: "/games", label: "All Games" },
       { href: "/buddy", label: "Gaming Buddy" },
       { href: "/leaderboards", label: "Leaderboards" },
       { href: "/clans", label: "Clans" },
@@ -22,6 +30,7 @@ const NAV_GROUPS = [
       { href: "/teams", label: "UnitUnite" },
       { href: "/vibecodeworker", label: "VibeCodeWorker" },
       { href: "/web-apps", label: "Web Apps" },
+      { href: GITHUB_HREF, label: "GitHub", external: true },
     ],
   },
   {
@@ -45,9 +54,11 @@ const NAV_GROUPS = [
   },
 ];
 
-const GITHUB_HREF = "https://github.com/mattyjacks/4weird";
+const ALL_GAMES_HREF = "/games";
 
 function isActive(pathname: string, href: string) {
+  // External links are never "active".
+  if (/^https?:\/\//.test(href)) return false;
   // Trailing-slash-insensitive: "/my/usage" and "/my/usage/" are the same page.
   const norm = (p: string) => (p.length > 1 ? p.replace(/\/$/, "") : p);
   const path = norm(pathname);
@@ -64,8 +75,33 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const pathname = usePathname();
   const desktopNavRef = useRef<HTMLElement>(null);
+
+  // Track auth state so the header can show Login / Sign Up vs Dashboard.
+  useEffect(() => {
+    let mounted = true;
+    let unsubscribe: (() => void) | null = null;
+    (async () => {
+      try {
+        const { createClient } = await import("@/lib/supabase/client");
+        const supabase = createClient();
+        const { data } = await supabase.auth.getSession();
+        if (mounted) setSignedIn(Boolean(data.session));
+        const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+          if (mounted) setSignedIn(Boolean(session));
+        });
+        unsubscribe = () => listener.subscription.unsubscribe();
+      } catch {
+        if (mounted) setSignedIn(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+      unsubscribe?.();
+    };
+  }, []);
 
   // Close the desktop dropdown on route change.
   useEffect(() => {
@@ -108,8 +144,8 @@ export function SiteHeader() {
       </a>
       <header className="sticky top-0 z-50 border-b border-white/10 bg-black/85 backdrop-blur">
         <div className="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-5">
-          <Link href="/" className="shrink-0 text-lg font-black text-white" aria-label="4weird Games home">
-            🎮 4weird<span className="text-cyan-300">Games</span>
+          <Link href="/" className="shrink-0 text-lg font-black text-white" aria-label="4weird home">
+            🎮 4weird
           </Link>
 
           {/* Desktop nav: 2-level — one button per group, links in a dropdown */}
@@ -119,6 +155,15 @@ export function SiteHeader() {
             className="hidden items-center gap-1 text-sm text-slate-300 lg:flex"
             onMouseLeave={() => setOpenMenu(null)}
           >
+            <Link
+              href={ALL_GAMES_HREF}
+              aria-current={isActive(pathname, ALL_GAMES_HREF) ? "page" : undefined}
+              className={`rounded-lg px-3 py-2 font-bold transition hover:bg-white/10 hover:text-white ${
+                isActive(pathname, ALL_GAMES_HREF) ? "text-cyan-300" : ""
+              }`}
+            >
+              All Games
+            </Link>
             {NAV_GROUPS.map((group) => {
               const active = groupActive(pathname, group.links);
               const expandedMenu = openMenu === group.label;
@@ -144,16 +189,28 @@ export function SiteHeader() {
                       <ul className="overflow-hidden rounded-xl border border-white/10 bg-slate-950/95 py-1 shadow-xl shadow-black/50 backdrop-blur">
                         {group.links.map((link) => (
                           <li key={link.href}>
-                            <Link
-                              href={link.href}
-                              aria-current={isActive(pathname, link.href) ? "page" : undefined}
-                              onClick={() => setOpenMenu(null)}
-                              className={`block whitespace-nowrap px-4 py-2.5 transition hover:bg-white/10 hover:text-white ${
-                                isActive(pathname, link.href) ? "font-bold text-cyan-300" : ""
-                              }`}
-                            >
-                              {link.label}
-                            </Link>
+                            {link.external ? (
+                              <a
+                                href={link.href}
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={() => setOpenMenu(null)}
+                                className="block whitespace-nowrap px-4 py-2.5 transition hover:bg-white/10 hover:text-white"
+                              >
+                                {link.label} <span aria-hidden="true">↗</span>
+                              </a>
+                            ) : (
+                              <Link
+                                href={link.href}
+                                aria-current={isActive(pathname, link.href) ? "page" : undefined}
+                                onClick={() => setOpenMenu(null)}
+                                className={`block whitespace-nowrap px-4 py-2.5 transition hover:bg-white/10 hover:text-white ${
+                                  isActive(pathname, link.href) ? "font-bold text-cyan-300" : ""
+                                }`}
+                              >
+                                {link.label}
+                              </Link>
+                            )}
                           </li>
                         ))}
                       </ul>
@@ -162,23 +219,40 @@ export function SiteHeader() {
                 </div>
               );
             })}
-            <a
-              href={GITHUB_HREF}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-lg px-3 py-2 font-semibold transition hover:bg-white/10 hover:text-white"
-            >
-              GitHub
-            </a>
           </nav>
 
           <div className="hidden items-center gap-2 lg:flex">
             <Link
               href="/pricing"
-              className="rounded-full bg-cyan-300 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
+              className="rounded-full border border-white/15 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10"
             >
               Get Coins
             </Link>
+            {signedIn === null ? (
+              <span aria-hidden="true" className="inline-block h-9 w-44 animate-pulse rounded-full bg-white/10" />
+            ) : signedIn ? (
+              <Link
+                href="/account"
+                className="rounded-full bg-cyan-300 px-5 py-2 text-sm font-black text-slate-950 transition hover:bg-cyan-200"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/auth/login"
+                  className="rounded-full border border-cyan-300/60 px-5 py-2 text-sm font-bold text-cyan-200 transition hover:bg-cyan-300/10 hover:text-white"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/auth/sign-up"
+                  className="rounded-full bg-cyan-300 px-5 py-2 text-sm font-black text-slate-950 transition hover:bg-cyan-200"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile toggle */}
@@ -203,6 +277,16 @@ export function SiteHeader() {
             className="border-t border-white/10 bg-black px-4 pb-6 pt-4 lg:hidden"
           >
             <ul className="space-y-1">
+              <li>
+                <Link
+                  href={ALL_GAMES_HREF}
+                  onClick={() => setOpen(false)}
+                  aria-current={isActive(pathname, ALL_GAMES_HREF) ? "page" : undefined}
+                  className={`block rounded-xl bg-cyan-300 px-4 py-3 text-center text-base font-black text-slate-950 transition hover:bg-cyan-200`}
+                >
+                  All Games
+                </Link>
+              </li>
               {NAV_GROUPS.map((group) => {
                 const active = groupActive(pathname, group.links);
                 const isExpanded = expanded === group.label;
@@ -226,16 +310,28 @@ export function SiteHeader() {
                       <ul id={`mobile-group-${group.label}`} className="border-t border-white/10 bg-white/[.02] py-1">
                         {group.links.map((link) => (
                           <li key={link.href}>
-                            <Link
-                              href={link.href}
-                              onClick={() => setOpen(false)}
-                              aria-current={isActive(pathname, link.href) ? "page" : undefined}
-                              className={`block px-6 py-2.5 text-[15px] font-semibold transition hover:bg-white/10 hover:text-white ${
-                                isActive(pathname, link.href) ? "text-cyan-300" : "text-slate-200"
-                              }`}
-                            >
-                              {link.label}
-                            </Link>
+                            {link.external ? (
+                              <a
+                                href={link.href}
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={() => setOpen(false)}
+                                className="block px-6 py-2.5 text-[15px] font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white"
+                              >
+                                {link.label} <span aria-hidden="true">↗</span>
+                              </a>
+                            ) : (
+                              <Link
+                                href={link.href}
+                                onClick={() => setOpen(false)}
+                                aria-current={isActive(pathname, link.href) ? "page" : undefined}
+                                className={`block px-6 py-2.5 text-[15px] font-semibold transition hover:bg-white/10 hover:text-white ${
+                                  isActive(pathname, link.href) ? "text-cyan-300" : "text-slate-200"
+                                }`}
+                              >
+                                {link.label}
+                              </Link>
+                            )}
                           </li>
                         ))}
                       </ul>
@@ -243,25 +339,41 @@ export function SiteHeader() {
                   </li>
                 );
               })}
-              <li>
-                <a
-                  href={GITHUB_HREF}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block rounded-xl border border-white/10 px-4 py-3 text-base font-bold text-white transition hover:bg-white/5"
-                >
-                  GitHub
-                </a>
-              </li>
             </ul>
             <div className="mt-4 flex flex-col gap-2 sm:flex-row">
               <Link
                 href="/pricing"
                 onClick={() => setOpen(false)}
-                className="rounded-full bg-cyan-300 px-5 py-3 text-center font-bold text-slate-950"
+                className="rounded-full border border-white/15 px-5 py-3 text-center font-bold text-white"
               >
-                Get Coins — 100 = $1.00
+                Get Coins
               </Link>
+              {signedIn === null ? null : signedIn ? (
+                <Link
+                  href="/account"
+                  onClick={() => setOpen(false)}
+                  className="rounded-full bg-cyan-300 px-5 py-3 text-center font-black text-slate-950"
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/auth/login"
+                    onClick={() => setOpen(false)}
+                    className="rounded-full border border-cyan-300/60 px-5 py-3 text-center font-bold text-cyan-200"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/auth/sign-up"
+                    onClick={() => setOpen(false)}
+                    className="rounded-full bg-cyan-300 px-5 py-3 text-center font-black text-slate-950"
+                  >
+                    Sign Up
+                  </Link>
+                </>
+              )}
             </div>
           </nav>
         )}
