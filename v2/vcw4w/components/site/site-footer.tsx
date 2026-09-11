@@ -29,6 +29,7 @@ const COLUMNS = [
       { href: "/academy", label: "Academy" },
       { href: "/tech", label: "Technology" },
       { href: "/pricing", label: "Pricing" },
+      { href: "/docs", label: "Docs" },
     ],
   },
   {

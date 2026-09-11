@@ -41,6 +41,7 @@ const NAV_GROUPS: { label: string; links: NavLink[] }[] = [
       { href: "/academy", label: "Academy" },
       { href: "/tech", label: "Technology" },
       { href: "/pricing", label: "Pricing" },
+      { href: "/docs", label: "Docs" },
     ],
   },
   {

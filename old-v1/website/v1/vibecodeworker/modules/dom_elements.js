@@ -211,6 +211,16 @@ export function initDOM() {
   el.btnTestGpuConnection = document.getElementById('btn-test-gpu-connection');
   el.gpuTestResult = document.getElementById('gpu-test-result');
 
+  el.btnBotToken = document.getElementById('btn-bot-token');
+  el.botTokenDrawer = document.getElementById('bot-token-drawer');
+  el.btnCloseBotDrawer = document.getElementById('btn-close-bot-drawer');
+  el.botTokenInput = document.getElementById('bot-token-input');
+  el.btnSaveBotToken = document.getElementById('btn-save-bot-token');
+  el.btnVerifyBotToken = document.getElementById('btn-verify-bot-token');
+  el.btnClearBotToken = document.getElementById('btn-clear-bot-token');
+  el.botTokenStatus = document.getElementById('bot-token-status');
+  el.botTokenIdentity = document.getElementById('bot-token-identity');
+
   el.rsoGenNum = document.getElementById('rso-gen-num');
   el.rsoRewardVal = document.getElementById('rso-reward-val');
   el.rsoActionsSucc = document.getElementById('rso-actions-succ');
