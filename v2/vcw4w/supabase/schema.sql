@@ -109,7 +109,7 @@ create index if not exists idx_coin_grants_user on public.coin_grants (user_id);
 create table if not exists public.coin_ledger (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles (id) on delete cascade,
-  delta integer not null check (delta <> 0 and delta >= -1000000 and delta <= 1000000),
+  delta numeric(12, 2) not null check (delta <> 0 and delta >= -1000000 and delta <= 1000000),
   reason varchar(120) not null check (char_length(reason) <= 120),
   grant_id uuid unique references public.coin_grants (id) on delete set null,
   created_at timestamptz not null default now()
@@ -120,12 +120,12 @@ create index if not exists idx_coin_ledger_user on public.coin_ledger (user_id, 
 -- Convenience balance function (fixed logic, no arguments to inject).
 -- --------------------------------------------------------------------------
 create or replace function public.get_my_coin_balance()
-returns integer
+returns numeric
 language sql
 security definer
 set search_path = public
 as $$
-  select coalesce(sum(delta), 0)::integer from public.coin_ledger where user_id = auth.uid();
+  select coalesce(sum(delta), 0)::numeric(12, 2) from public.coin_ledger where user_id = auth.uid();
 $$;
 grant execute on function public.get_my_coin_balance() to authenticated;
 

@@ -9,6 +9,16 @@
  */
 
 export const COIN_PRICE_CENTS_EACH = 1;
+
+/**
+ * Centicentcoins: Fractional Vibe Coins.
+ * 1 Vibe Coin = 1 cent = 100 centicentcoins.
+ * 1 centicentcoin (plural: centicentcoins) = 0.01 coins = 0.01 cents = $0.0001 USD.
+ */
+export const CENTICENTCOINS_PER_COIN = 100;
+export const MIN_SPENDABLE_COINS = 0.01;
+export const CENTICENTCOIN_USD = 0.0001;
+
 export const SERVICE_CUT_PCT = 25;
 /**
  * UnitUnite workspace compute cut: every workspace-metered cloud charge
@@ -49,6 +59,32 @@ export function formatUsd(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
+/** Formats USD with fractional cent / centicentcoin precision ($0.0001) if present. */
+export function formatUsdAccurate(usd: number): string {
+  const rounded4 = Math.round(usd * 10000) / 10000;
+  if (rounded4 % 0.01 === 0) {
+    return `$${rounded4.toFixed(2)}`;
+  }
+  return `$${rounded4.toFixed(4)}`;
+}
+
+/** Convert whole or fractional Vibe Coins to integer centicentcoins (1 coin = 100 centicentcoins). */
+export function coinsToCenticentcoins(coins: number): number {
+  return Math.round(coins * CENTICENTCOINS_PER_COIN);
+}
+
+/** Convert integer centicentcoins to Vibe Coins (100 centicentcoins = 1 coin). */
+export function centicentcoinsToCoins(centicentcoins: number): number {
+  return Math.round(centicentcoins) / CENTICENTCOINS_PER_COIN;
+}
+
+/** Format coin balance nicely: integer if whole, or up to 2 decimal places if fractional. */
+export function formatCoinBalance(coins: number): string {
+  const rounded = Math.round(coins * 100) / 100;
+  if (Number.isInteger(rounded)) return rounded.toLocaleString();
+  return rounded.toFixed(2);
+}
+
 /** Whole-coin custom amount validation (mirrors the edge-function floor/cap). */
 export function isCustomAmount(value: unknown): number {
   const v = Number(value);
@@ -74,16 +110,18 @@ export const SELF_HOSTED_COMPUTE_CUT_PCT = 15;
 
 /** Split a workspace compute charge (gross, cut INCLUDED) into platform/provider. */
 export function workspaceComputeSplit(grossCoins: number): { gross: number; cut: number; provider: number } {
-  const gross = Math.max(0, Math.floor(grossCoins));
-  const cut = Math.round((gross * WORKSPACE_COMPUTE_CUT_PCT) / 100);
-  return { gross, cut, provider: gross - cut };
+  const gross = Math.max(0, Math.round(grossCoins * 100) / 100);
+  const cut = Math.round((gross * WORKSPACE_COMPUTE_CUT_PCT)) / 100;
+  const provider = Math.round((gross - cut) * 100) / 100;
+  return { gross, cut, provider };
 }
 
 /** Split a game-AI compute charge (gross, cut INCLUDED) into platform/provider. */
 export function gameAiComputeSplit(grossCoins: number): { gross: number; cut: number; provider: number } {
-  const gross = Math.max(0, Math.floor(grossCoins));
-  const cut = Math.round((gross * GAME_AI_COMPUTE_CUT_PCT) / 100);
-  return { gross, cut, provider: gross - cut };
+  const gross = Math.max(0, Math.round(grossCoins * 100) / 100);
+  const cut = Math.round((gross * GAME_AI_COMPUTE_CUT_PCT)) / 100;
+  const provider = Math.round((gross - cut) * 100) / 100;
+  return { gross, cut, provider };
 }
 
 /** Referral codes are 8 uppercase alphanumerics, minted server-side (see migration). */

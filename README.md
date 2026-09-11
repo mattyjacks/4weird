@@ -33,9 +33,9 @@ npm run build
 
 ## Supabase
 
-- Migrations: `v2/vcw4w/supabase/migrations/` (17 files, all rerunnable) + edge function `shopify-coins`
+- Migrations: `v2/vcw4w/supabase/migrations/` (18 files, all rerunnable) + edge function `shopify-coins`
 - One-file runbook: [`supabase-migration-2026-10-9-A`](./supabase-migration-2026-10-9-A) (steps A–D)
-- Paste-and-run bundle: [`supabase-migrations-2026-10-9-A.txt`](./supabase-migrations-2026-10-9-A.txt) (17 migrations, safe to rerun)
+- Paste-and-run bundle: [`supabase-migrations-2026-10-9-A.txt`](./supabase-migrations-2026-10-9-A.txt) (18 migrations, safe to rerun)
 
 ## Layout
 

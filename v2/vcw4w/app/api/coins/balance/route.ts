@@ -13,5 +13,7 @@ export async function GET() {
   // caller only. No arguments, nothing to inject.
   const { data, error } = await supabase.rpc("get_my_coin_balance");
   if (error) return dbFail("api/coins/balance", error);
-  return ok({ balance: Number(data) || 0 });
+  const coins = Math.round((Number(data) || 0) * 100) / 100;
+  const centicentcoins = Math.round(coins * 100);
+  return ok({ balance: coins, centicentcoins });
 }

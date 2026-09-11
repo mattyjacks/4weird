@@ -42,4 +42,15 @@ if (!daily.includes("claim_daily_bonus")) throw new Error("Daily route must use 
 if (!referrals.includes("apply_referral") || !referrals.includes("get_or_create_referral_code")) throw new Error("Referral route must use the referral RPCs.");
 if (!leaderboard.includes("leaderboard_top")) throw new Error("Leaderboard must use the leaderboard RPC.");
 if (!mig.includes("claim_daily_bonus") || !mig.includes("apply_referral") || !mig.includes("leaderboard_top")) throw new Error("Migration must define the feature RPCs.");
+
+// Centicentcoins fractional spending (0.01 coins = 0.01 cent = $0.0001 USD)
+if (!economy.includes("CENTICENTCOINS_PER_COIN = 100")) throw new Error("Centicentcoins must be 100 per coin.");
+if (!economy.includes("CENTICENTCOIN_USD = 0.0001")) throw new Error("Centicentcoin USD value must be $0.0001.");
+if (!economy.includes("MIN_SPENDABLE_COINS = 0.01")) throw new Error("Minimum spendable coins must be 0.01.");
+
+const fractionalMig = read("../supabase/migrations/20260910180000_fractional_centicentcoins.sql");
+if (!fractionalMig.includes("numeric(12, 2)") || !fractionalMig.includes("greatest(0.01")) {
+  throw new Error("Fractional migration must support numeric(12, 2) and 0.01 minimum coin spending.");
+}
+
 console.log("Economy integrity OK.");
