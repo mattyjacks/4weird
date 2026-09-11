@@ -153,6 +153,15 @@ export default function TermsPage() {
           final except where required by applicable law (including non-waivable EU/UK consumer rights) or expressly
           stated otherwise.
         </p>
+        <p>
+          <strong>Ghost Cash (👻💵) is not currency at all.</strong> The org timer tracks work to the second and
+          records who owes whom in Ghost Cash — a centrally-controlled hypothetical unit with no legal value, no cash
+          value, no cash-out, and no store-of-value function. It cannot buy anything, cannot be transferred off the
+          Service, and creates no debt enforceable anywhere but social agreement inside your org. Timer activity scores
+          come from visible-tab heartbeats the worker&apos;s own device reports; proof screenshots are attached by the
+          worker, never captured by us. Because no money or monetary value moves, Ghost Cash is not a purchase, not a
+          transfer of funds, and not a money-transmission or e-money service.
+        </p>
 
         <h2 className={h2}>8A. Voluntary Support and Launch campaigns (not charity, not investment)</h2>
         <p>
@@ -250,8 +259,10 @@ export default function TermsPage() {
           roles, org wallets, and the cloud catalog (GPU pods, serverless, storage, databases, KV, queue) — are
           metered per workspace under the same included 25% cut, with every cent of the platform share attributed in
           the cut ledger. Orgs may rank members as Lord (org leader), Captain (team leader), Infantry (regular
-          player), or Banker (finance controller, optionally read-only) — rank powers are enforced server-side per
-          action. Compute features depend on third-party capacity and may be unavailable, delayed, or
+          player), Banker (finance controller, optionally read-only), or Watcher (sees everything, changes nothing —
+          optionally scoped to certain members) — one member may hold several presets at once, different in every
+          org, with power always the union; rank powers are enforced server-side per action. Everyone may join up to
+          100 orgs, each with its own bosses. Compute features depend on third-party capacity and may be unavailable, delayed, or
           re-priced; estimates are not guarantees.
         </p>
 

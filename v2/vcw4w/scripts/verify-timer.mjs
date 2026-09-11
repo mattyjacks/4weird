@@ -46,6 +46,7 @@ if (!ghostCash.includes("GHOST_CASH_DISCLAIMER")) fail("Ghost cash lib must expo
 
 // 4. Timer Widget & Screen Tracker
 if (!timerWidget.includes("ScreenTracker")) fail("TimerWidget must integrate Upwork-style ScreenTracker.");
+if (!timerWidget.includes("upworkSyncMode")) fail("TimerWidget must support Upwork dual-timer companion mode.");
 if (!screenTracker.includes("getDisplayMedia")) fail("ScreenTracker must use getDisplayMedia for display capture.");
 if (!screenTracker.includes("blurSensitive")) fail("ScreenTracker must support privacy blur.");
 
@@ -57,4 +58,4 @@ if (!terms.includes("NO CASH VALUE OR LEGAL TENDER")) fail("Terms must explicitl
 if (!header.includes('href: "/timer"')) fail("SiteHeader must include link to /timer.");
 if (!sitemap.includes('path: "/timer"')) fail("Sitemap must list /timer.");
 
-console.log("Timer and Ghost Cash (👻💵) verification passed successfully!");
+console.log("Timer, Upwork companion mode, and Ghost Cash (👻💵) verification passed successfully!");

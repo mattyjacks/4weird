@@ -26,7 +26,15 @@ import { ScreenTracker } from "./ScreenTracker";
 interface TimerWidgetProps {
   projects: TimerProject[];
   runningTimer: TimerEntry | null;
-  onTimerStart: (data: { projectId?: string; debtorId?: string; description?: string; isBillable?: boolean }) => Promise<void>;
+  onTimerStart: (data: {
+    projectId?: string;
+    debtorId?: string;
+    description?: string;
+    isBillable?: boolean;
+    upworkSyncMode?: boolean;
+    upworkContractId?: string;
+    upworkMemo?: string;
+  }) => Promise<void>;
   onTimerStop: (data?: { projectId?: string; description?: string; isBillable?: boolean }) => Promise<void>;
   onTimerDiscard: () => Promise<void>;
   onRefresh: () => void;
@@ -42,6 +50,9 @@ export function TimerWidget({
   const [description, setDescription] = useState(runningTimer?.description || "");
   const [projectId, setProjectId] = useState(runningTimer?.projectId || "");
   const [isBillable, setIsBillable] = useState(runningTimer?.isBillable ?? true);
+  const [upworkSyncMode, setUpworkSyncMode] = useState(runningTimer?.upworkSyncMode ?? false);
+  const [upworkContractId, setUpworkContractId] = useState(runningTimer?.upworkContractId || "");
+  const [upworkMemo, setUpworkMemo] = useState(runningTimer?.upworkMemo || "");
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -52,6 +63,9 @@ export function TimerWidget({
       setDescription(runningTimer.description || "");
       setProjectId(runningTimer.projectId || "");
       setIsBillable(runningTimer.isBillable);
+      setUpworkSyncMode(!!runningTimer.upworkSyncMode);
+      setUpworkContractId(runningTimer.upworkContractId || "");
+      setUpworkMemo(runningTimer.upworkMemo || "");
     }
   }, [runningTimer]);
 
@@ -86,6 +100,9 @@ export function TimerWidget({
         projectId: projectId || undefined,
         description: description || undefined,
         isBillable,
+        upworkSyncMode,
+        upworkContractId: upworkSyncMode && upworkContractId ? upworkContractId : undefined,
+        upworkMemo: upworkSyncMode && upworkMemo ? upworkMemo : undefined,
       });
     } finally {
       setIsLoading(false);
@@ -243,7 +260,48 @@ export function TimerWidget({
             Billable in Ghost Cash (👻💵)
           </Label>
         </div>
+
+        {/* Upwork Dual-Timer Companion Mode Toggle */}
+        <div className="flex items-center gap-2 border-l border-white/10 pl-4">
+          <Checkbox
+            id="upwork-sync"
+            checked={upworkSyncMode}
+            onCheckedChange={(checked) => setUpworkSyncMode(checked === true)}
+          />
+          <Label
+            htmlFor="upwork-sync"
+            className={cn(
+              "text-xs font-medium cursor-pointer flex items-center gap-1.5",
+              upworkSyncMode ? "text-cyan-400" : "text-zinc-400"
+            )}
+          >
+            <span className="font-semibold text-emerald-400">Upwork</span> Dual-Timer Mode
+          </Label>
+        </div>
       </div>
+
+      {upworkSyncMode && (
+        <div className="p-3 rounded-lg bg-emerald-950/20 border border-emerald-500/20 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div className="space-y-1">
+            <Label className="text-zinc-400">Upwork Contract / Job ID (Optional)</Label>
+            <Input
+              placeholder="e.g. ~01abc123456789 or Contract Title"
+              value={upworkContractId}
+              onChange={(e) => setUpworkContractId(e.target.value)}
+              className="h-8 bg-black/50 border-emerald-500/30 text-white placeholder:text-zinc-600 font-mono text-xs"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-zinc-400">Upwork Work Diary Memo Sync</Label>
+            <Input
+              placeholder="Memo matching Upwork Desktop app memo"
+              value={upworkMemo}
+              onChange={(e) => setUpworkMemo(e.target.value)}
+              className="h-8 bg-black/50 border-emerald-500/30 text-white placeholder:text-zinc-600 text-xs"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Upwork Screen Tracking proof drawer */}
       <ScreenTracker isRunning={isRunning} entryId={runningTimer?.id || null} />

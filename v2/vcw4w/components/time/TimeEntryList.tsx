@@ -75,11 +75,25 @@ export function TimeEntryList({ entries, onDelete }: TimeEntryListProps) {
                     {entry.activityScore}% activity
                   </span>
                 )}
+
+                {entry.upworkSyncMode && (
+                  <span className="flex items-center gap-1 text-xs text-emerald-400 bg-emerald-950/50 px-1.5 py-0.5 rounded border border-emerald-900/50 font-medium">
+                    Upwork Dual-Timer
+                  </span>
+                )}
               </div>
 
               <p className="text-sm font-medium text-white">
                 {entry.description || "Untitled session"}
               </p>
+
+              {entry.upworkSyncMode && (entry.upworkContractId || entry.upworkMemo) && (
+                <div className="text-xs text-emerald-300/80 bg-emerald-950/30 px-2 py-1 rounded border border-emerald-900/30 flex items-center gap-2">
+                  <span className="font-semibold text-emerald-400">Upwork Sync:</span>
+                  {entry.upworkContractId && <span>Contract: <code className="font-mono text-white">{entry.upworkContractId}</code></span>}
+                  {entry.upworkMemo && <span>Memo: "{entry.upworkMemo}"</span>}
+                </div>
+              )}
 
               <div className="flex items-center gap-3 text-xs text-zinc-400">
                 <span>

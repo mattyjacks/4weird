@@ -28,6 +28,9 @@ export async function GET() {
       ghost_rate,
       ghost_cash_owed,
       activity_score,
+      upwork_sync_mode,
+      upwork_contract_id,
+      upwork_memo,
       project:timer_projects(id, name, color, ghost_rate, org_id)
     `)
     .eq("user_id", u.id)
@@ -54,6 +57,9 @@ export async function GET() {
       ghostRate: Number(runningTimer.ghost_rate || 0),
       ghostCashOwed: Number(runningTimer.ghost_cash_owed || 0),
       activityScore: runningTimer.activity_score ?? 100,
+      upworkSyncMode: !!runningTimer.upwork_sync_mode,
+      upworkContractId: runningTimer.upwork_contract_id,
+      upworkMemo: runningTimer.upwork_memo,
       projectId: runningTimer.project_id,
       project: proj ? {
         id: proj.id,
@@ -86,13 +92,24 @@ export async function POST(req: Request) {
     // empty body ok
   }
 
-  const { projectId, debtorId, description, isBillable = true } = body;
+  const {
+    projectId,
+    debtorId,
+    description,
+    isBillable = true,
+    upworkSyncMode = false,
+    upworkContractId,
+    upworkMemo,
+  } = body;
 
   const { data: timer, error } = await supabase.rpc("start_timer", {
     p_project_id: projectId || null,
     p_debtor_id: debtorId || null,
     p_description: description ? String(description).slice(0, 2000) : null,
     p_is_billable: !!isBillable,
+    p_upwork_sync_mode: !!upworkSyncMode,
+    p_upwork_contract_id: upworkContractId ? String(upworkContractId).slice(0, 100) : null,
+    p_upwork_memo: upworkMemo ? String(upworkMemo).slice(0, 200) : null,
   });
 
   if (error) {

@@ -5,6 +5,7 @@ import { PERMISSION_CATALOG, GROUP_LABELS, type PermissionGroup } from "@/lib/pe
 import { CLOUD_SERVICES, CHEAPEST_DEFAULTS, WORKSPACE_CUT_NOTE } from "@/lib/cloud-catalog";
 import { UNITUNITE_NAME, UNITUNITE_TAGLINE } from "@/lib/unitunite";
 import { BudgetControls } from "@/components/budget/budget-controls";
+import { OrgRanks } from "@/components/teams/org-ranks";
 
 type Org = { id: string; slug: string; name: string };
 type Team = { id: string; org_id: string; slug: string; name: string };
@@ -122,8 +123,10 @@ export function TeamWorkspace() {
       <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
         <h2 className="text-xl font-bold">3 · Permissions — defaults, custom encouraged</h2>
         <p className="mt-2 text-sm text-slate-300">
-          Start with Owner / Admin / Maintainer / Developer / Viewer / Billing / Security, then copy one and tweak
-          1–2 keys into a custom role. Every action below only lights up when your workspace grants it.
+          Start with Owner / Admin / Maintainer / Developer / Viewer / Billing / Security — or the warlord
+          ranks Lord / Captain / Infantry / Banker (write or read-only) / Watcher (sees everything, changes
+          nothing) — then copy one and tweak 1–2 keys into a custom role. Every action below only lights up when
+          your workspace grants it.
         </p>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           {groups.map((g) => (
@@ -158,6 +161,16 @@ export function TeamWorkspace() {
       </section>
 
       <p role="status" className="text-sm text-slate-400">{message}</p>
+
+      <OrgRanks />
+
+      <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
+        <h2 className="text-xl font-bold">5 · Ghost timer — who owes whom</h2>
+        <p className="mt-2 text-sm text-slate-300">
+          Clock org work to the second and settle up in 👻💵 Ghost Cash — hypothetical IOUs with no value, just a
+          ruler for debts. <a className="font-bold text-cyan-300 underline" href="/timer">Open the timer →</a>
+        </p>
+      </section>
     </div>
   );
 }

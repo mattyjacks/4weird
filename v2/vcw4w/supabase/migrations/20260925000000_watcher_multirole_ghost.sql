@@ -499,6 +499,35 @@ end; $$;
 revoke all on function public.ghost_settle_debt(uuid, text) from public, anon;
 grant execute on function public.ghost_settle_debt(uuid, text) to authenticated;
 
+-- Roster for rank management UIs: every member with display name, full role
+-- set (legacy + presets), and each watcher's current scope targets.
+create or replace function public.org_roster(p_org uuid)
+returns jsonb language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'login required'; end if;
+  if not public.is_org_member(p_org) then raise exception 'forbidden'; end if;
+  return jsonb_build_object(
+    'members', (
+      select coalesce(jsonb_agg(t order by t.display_name), '[]'::jsonb) from (
+        select m.user_id as id,
+          coalesce(p.display_name, p.public_handle, 'member') as display_name,
+          public.org_roles_of(p_org, m.user_id) as roles
+        from public.org_members m left join public.profiles p on p.id = m.user_id
+        where m.org_id = p_org limit 500
+      ) t
+    ),
+    'scopes', (
+      select coalesce(jsonb_agg(t), '[]'::jsonb) from (
+        select watcher_id, array_agg(target_user_id) as targets
+        from public.org_watch_scopes where org_id = p_org
+        group by watcher_id limit 200
+      ) t
+    )
+  );
+end; $$;
+revoke all on function public.org_roster(uuid) from public, anon;
+grant execute on function public.org_roster(uuid) to authenticated;
+
 -- One-round-trip book for the /timer page: contracts, open timers, debts,
 -- and net balances. Scoped watchers see only rows touching their targets.
 create or replace function public.ghost_org_summary(p_org uuid)
