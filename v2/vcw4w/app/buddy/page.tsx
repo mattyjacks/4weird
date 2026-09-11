@@ -20,7 +20,7 @@ export default function BuddyPage() {
         <h1 className="mt-2 text-4xl font-black tracking-tight sm:text-5xl">🎧 Gaming Buddy</h1>
         <p className="mt-4 max-w-2xl text-lg text-slate-300">
           One buddy for every game. It reads your screen, reacts to score changes, and talks back in any of 9
-          OpenAI voices — powered by the same observe→reason→act engine as VibeCodeWorker. Every turn meters
+          OpenAI voices — powered by the same observe→reason→act engine as VibeCodeWorker. OpenAI turns meter
           Vibe Coins with the same 25% cut included, and your spend shows live below + on{" "}
           <Link href="/my/usage/" className="text-cyan-300 hover:underline">/my/usage/</Link>.
         </p>
