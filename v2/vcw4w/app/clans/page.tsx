@@ -16,7 +16,7 @@ export default function ClansPage() {
       
       <section className="mx-auto max-w-4xl px-5 py-20">
         <Link className="text-cyan-300 hover:underline" href="/">
-          â† Home
+          ← Home
         </Link>
         <h1 className="mt-4 text-4xl font-black">
           4weird <span className="text-cyan-300">Clans</span>

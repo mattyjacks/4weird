@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/fundraisers" },
   title: "Launch campaigns | 4weird Games",
   description:
-    "Gift-based backing for game launches and tech startups in Vibe Coins. Creative projects only â€” not charity, not investment.",
+    "Gift-based backing for game launches and tech startups in Vibe Coins. Creative projects only — not charity, not investment.",
 };
 
 export default function FundraisersPage() {
@@ -15,7 +15,7 @@ export default function FundraisersPage() {
     <main className="min-h-screen bg-slate-950 text-white">
       <section className="mx-auto max-w-4xl space-y-8 px-5 py-20">
         <Link className="text-cyan-300 hover:underline" href="/">
-          â† Home
+          ← Home
         </Link>
         <header className="space-y-3">
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-300">Launch campaigns</p>

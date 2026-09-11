@@ -16,7 +16,7 @@ export default function LobbiesPage() {
       
       <section className="mx-auto max-w-4xl px-5 py-20">
         <Link className="text-cyan-300 hover:underline" href="/games">
-          â† Games
+          ← Games
         </Link>
         <h1 className="mt-4 text-4xl font-black">All Open Lobbies</h1>
         <p className="mt-4 text-slate-300">

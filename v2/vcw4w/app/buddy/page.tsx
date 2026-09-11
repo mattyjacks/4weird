@@ -15,14 +15,14 @@ export default function BuddyPage() {
     <div className="bg-slate-950 text-white">
       <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-16">
         <Link href="/games" className="text-sm font-semibold text-cyan-300 hover:underline">
-          â† All games
+          ← All games
         </Link>
         <p className="mt-6 text-xs font-bold uppercase tracking-[0.3em] text-violet-300">Universal companion</p>
-        <h1 className="mt-2 text-4xl font-black tracking-tight sm:text-5xl">ðŸŽ§ Gaming Buddy</h1>
+        <h1 className="mt-2 text-4xl font-black tracking-tight sm:text-5xl">🎧 Gaming Buddy</h1>
         <p className="mt-4 max-w-2xl text-lg text-slate-300">
           One buddy for every game. With your permission it sees your screen (this tab only, if you
           choose), reacts to score changes, and talks back in any of 9
-          OpenAI voices (Nova by default) â€” powered by the same observeâ†’reasonâ†’act engine as VibeCodeWorker. OpenAI + database turns meter
+          OpenAI voices (Nova by default) — powered by the same observe→reason→act engine as VibeCodeWorker. OpenAI + database turns meter
           Vibe Coins at true cost with the same 25% cut included, and your spend shows live below + on{" "}
           <Link href="/my/usage/" className="text-cyan-300 hover:underline">/my/usage/</Link>.
         </p>
@@ -42,17 +42,17 @@ export default function BuddyPage() {
             ))}
           </ul>
           <p className="mt-3 text-sm text-slate-400">
-            Models: tts-1 (fast, $15/1M chars) + tts-1-hd (rich, $30/1M chars). Speeds 0.5xâ€“2.0x. Chat runs on{" "}
+            Models: tts-1 (fast, $15/1M chars) + tts-1-hd (rich, $30/1M chars). Speeds 0.5x–2.0x. Chat runs on{" "}
             <code className="text-cyan-300">BUDDY_MODEL</code> (default gpt-4o-mini). Every turn is metered at true
             upstream cost plus database writes, converted to gross coins with the 25% cut included and shown per
             turn in Coins + CentiCentCoins (100 centicentcoins = 1 coin).
           </p>
         </section>
         <section aria-label="Screen sharing" className="mt-4 rounded-2xl border border-emerald-300/20 bg-emerald-300/[.04] p-5 sm:p-6">
-          <h2 className="text-lg font-bold sm:text-xl">ðŸ‘ï¸ Screen sharing is your choice</h2>
+          <h2 className="text-lg font-bold sm:text-xl">👁️ Screen sharing is your choice</h2>
           <p className="mt-2 text-sm leading-relaxed text-slate-300">
             The buddy works from game text + score events without any permission. If you want it to actually{" "}
-            <em>see</em> the game, start a session and press <b>Share this tab only</b> â€” the browser picker is
+            <em>see</em> the game, start a session and press <b>Share this tab only</b> — the browser picker is
             constrained to this 4weird tab, so other tabs, windows, and apps stay private. Only one downscaled
             snapshot per message is sent to the model (never video, never stored); stop sharing anytime from the
             widget or the browser bar. Snapshot turns carry a small image-token charge, itemized in that turn&apos;s

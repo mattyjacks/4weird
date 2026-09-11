@@ -16,7 +16,7 @@ export default function FalPage() {
         <h1 className="mt-2 text-4xl font-black">✨ fal.ai Studio - 30 ways to make magic</h1>
         <p className="mt-4 max-w-3xl text-slate-300">
           Concept art to cutscenes to NPC voices to transcribed playtests: every run is metered in
-          Vibe Coins (100 coins = $1.00) with the 25% platform cut INCLUDED â€” never added on top.
+          Vibe Coins (100 coins = $1.00) with the 25% platform cut INCLUDED — never added on top.
           Signed-in players meter coins; usage lands on <a className="underline" href="/my/usage/">/my/usage</a> per
           op + game, and VibeCodeWorker runs can file fal art straight into their evidence trail.
         </p>

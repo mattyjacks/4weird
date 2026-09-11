@@ -14,7 +14,7 @@ function Check({ children }: { children: React.ReactNode }) {
   return (
     <li className="flex gap-2 text-sm text-slate-300">
       <span aria-hidden="true" className="font-bold text-cyan-300">
-        âœ“
+        ✓
       </span>
       <span>{children}</span>
     </li>
@@ -37,7 +37,7 @@ export default function Page() {
           One sentence pricing. <span className="text-cyan-300">No asterisks.</span>
         </h1>
         <p className="mt-6 max-w-2xl text-base text-slate-300 sm:text-lg">
-          100 Vibe Coins cost exactly $1.00 â€” every price already includes the 25% platform service
+          100 Vibe Coins cost exactly $1.00 — every price already includes the 25% platform service
           cut, never added on top. New accounts start with a free 100-coin ($1.00) trial. Compute
           works the same way: one gross metered price, split 25% platform / 75% provider as Crowns for individual providers (Terms 8A.1) or shared wallet credits. Coins are spendable on cloud computing, game credits, and other on-site services only; never cash-out, never withdrawable. Coins expire one year after receipt, and every purchase automatically spends the oldest unexpired centicentcoins first.
         </p>
@@ -46,7 +46,7 @@ export default function Page() {
             href="/account"
             className="rounded-full bg-cyan-300 px-6 py-3 text-center font-bold text-slate-950 transition hover:bg-cyan-200"
           >
-            Open account â€” get 100 free
+            Open account — get 100 free
           </Link>
           <Link
             href="/agents"
@@ -73,12 +73,12 @@ export default function Page() {
               $1.00 <span className="text-base font-semibold text-slate-400">= 100 coins</span>
             </p>
             <p className="mt-3 text-sm text-slate-400">
-              Pay-as-you-go fun money. 1Â¢ per coin, 25% cut included, free 100-coin trial.
+              Pay-as-you-go fun money. 1¢ per coin, 25% cut included, free 100-coin trial.
             </p>
             <ul className="mt-5 space-y-2.5">
-              <Check>500 / 1,500 / 5,000 / 25,000 packs + custom 500â€“100,000</Check>
-              <Check>Daily login bonus (5â€“12 coins) + 25/25 referrals</Check>
-              <Check>One-year expiry Â· oldest unexpired centicentcoins spent first</Check>
+              <Check>500 / 1,500 / 5,000 / 25,000 packs + custom 500–100,000</Check>
+              <Check>Daily login bonus (5–12 coins) + 25/25 referrals</Check>
+              <Check>One-year expiry · oldest unexpired centicentcoins spent first</Check>
               <Check>Cloud saves, leaderboards, clans, agent escrow</Check>
               <Check>Renting games: load fee by exact bytes + play billed per second (quoted per hour)</Check>
             </ul>
@@ -105,9 +105,9 @@ export default function Page() {
             </p>
             <ul className="mt-5 space-y-2.5">
               <Check>400 coins ($4.00) of compute = 100 platform / 300 provider credits (on-site only, never cash-out)</Check>
-              <Check>Coin escrow â€” metered heartbeat never bills above escrow</Check>
+              <Check>Coin escrow — metered heartbeat never bills above escrow</Check>
               <Check>RunPod / DigitalOcean / custom endpoints, no fake provisioning</Check>
-              <Check>Game AI + Gaming Buddy meter the same way â€” see /buddy and /my/usage/</Check>
+              <Check>Game AI + Gaming Buddy meter the same way — see /buddy and /my/usage/</Check>
             </ul>
             <Link
               href="/agents"
@@ -151,21 +151,21 @@ export default function Page() {
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">Renting games</p>
           <h2 className="mt-2 text-2xl font-black sm:text-3xl">About $0.01 per hour of play, billed per second</h2>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300">
-            Every first load costs a <strong className="text-white">proportional load fee (default 1 coin for 1 MiB of fresh bytes)</strong> â€”
+            Every first load costs a <strong className="text-white">proportional load fee (default 1 coin for 1 MiB of fresh bytes)</strong> —
             even loads under 1 MB pay their exact fraction, down to 1 centicentcoin (0.01 coins). Running play
             costs the <strong className="text-white">hourly rate (default 1 coin/hr)</strong>, billed{" "}
-            <strong className="text-white">per second from the first second</strong> â€” that&apos;s 100 centicentcoins
-            spread over 60 minutes Ã- 60 seconds, so you never pay for time you didn&apos;t play. Every 5 hours a
-            â€œstill playing?â€ check asks you to confirm metering continues (the game keeps running either way). AI
+            <strong className="text-white">per second from the first second</strong> — that&apos;s 100 centicentcoins
+            spread over 60 minutes Ö 60 seconds, so you never pay for time you didn&apos;t play. Every 5 hours a
+            “still playing?” check asks you to confirm metering continues (the game keeps running either way). AI
             features meter separately on top. Replaying the same version within 24 hours is never double-billed.
             Developers set their own rates up to <strong className="text-white">100 coins/hour</strong> (0 = free
-            game). Every price already includes the 25% platform cut â€” and a day-1 daily bonus (5 coins) covers a
+            game). Every price already includes the 25% platform cut — and a day-1 daily bonus (5 coins) covers a
             full 5-hour session on its own.
           </p>
           <ul className="mt-5 grid gap-2.5 sm:grid-cols-2">
             <Check>Load fee by exact bytes (1 MiB = full fee) + play billed per second (defaults 1 + 1/hr)</Check>
-            <Check>Same version free for 24h Â· still-playing check every 5h Â· dev rates 0â€“100</Check>
-            <Check>Guests play free with skippable ads â€” no saves, multiplayer, or AI</Check>
+            <Check>Same version free for 24h · still-playing check every 5h · dev rates 0–100</Check>
+            <Check>Guests play free with skippable ads — no saves, multiplayer, or AI</Check>
             <Check>Every load, hour, and ad-free session itemized on /my/usage/</Check>
           </ul>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -194,7 +194,7 @@ export default function Page() {
               Every cloud meter shows one gross price in coins. Behind it we split{" "}
               <strong className="text-white">25% platform / 75% provider</strong> as on-site platform credits and attribute
               every cent in <code className="text-cyan-300">platform_compute_cuts</code>. Provider shares are spendable on cloud computing, game credits, and other on-site services only; never cash-out, never withdrawable. Agent
-              rentals escrow your coins up front and settle metered usage by heartbeat â€” the final
+              rentals escrow your coins up front and settle metered usage by heartbeat — the final
               charge can only go down, never above escrow.
             </p>
             <div className="mt-6 overflow-hidden rounded-2xl border border-white/10">
@@ -207,7 +207,7 @@ export default function Page() {
                 </div>
               </div>
               <p className="bg-black/40 px-4 py-3 text-xs text-slate-400">
-                Example: 400-coin job â†’ 300 coins provider credits, 100 coins platform. Buyer paid $4.00. Credits are on-site only; never cash-out, never withdrawable.
+                Example: 400-coin job → 300 coins provider credits, 100 coins platform. Buyer paid $4.00. Credits are on-site only; never cash-out, never withdrawable.
               </p>
             </div>
           </div>
@@ -245,7 +245,7 @@ export default function Page() {
             <tbody className="text-slate-300">
               <tr className="border-b border-white/5">
                 <td className="px-5 py-4 font-bold text-white">Platform fee</td>
-                <td className="px-5 py-4">$0 â€” just the 25% premium included in metered coins</td>
+                <td className="px-5 py-4">$0 — just the 25% premium included in metered coins</td>
                 <td className="px-5 py-4">$420/mo per org (100 seats incl., +.20/seat); Enterprise custom quote</td>
               </tr>
               <tr className="border-b border-white/5">
@@ -255,8 +255,8 @@ export default function Page() {
               </tr>
               <tr className="border-b border-white/5">
                 <td className="px-5 py-4 font-bold text-white">Who pays provider</td>
-                <td className="px-5 py-4">We do â€” out of your gross coin price</td>
-                <td className="px-5 py-4">You do â€” directly, at cost</td>
+                <td className="px-5 py-4">We do — out of your gross coin price</td>
+                <td className="px-5 py-4">You do — directly, at cost</td>
               </tr>
               <tr className="border-b border-white/5">
                 <td className="px-5 py-4 font-bold text-white">Best for</td>
@@ -266,7 +266,7 @@ export default function Page() {
               <tr>
                 <td className="px-5 py-4 font-bold text-white">Break-even hint</td>
                 <td className="px-5 py-4" colSpan={2}>
-                  Self-hosted wins once your monthly 10% premium savings pass $420 â€” roughly
+                  Self-hosted wins once your monthly 10% premium savings pass $420 — roughly
                   $4,200/mo of cloud compute.
                 </td>
               </tr>
@@ -320,8 +320,8 @@ export default function Page() {
       <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-5 sm:pb-16" aria-label="Vibe Coin packs">
         <h2 className="text-2xl font-black sm:text-3xl">Vibe Coin packs</h2>
         <p className="mt-3 max-w-2xl text-slate-300">
-          100 Vibe Coins cost exactly $1.00 at 1Â¢ per coin. There is intentionally no 100-coin
-          pack â€” 100 coins is the free trial. Pick a stash below.
+          100 Vibe Coins cost exactly $1.00 at 1¢ per coin. There is intentionally no 100-coin
+          pack — 100 coins is the free trial. Pick a stash below.
         </p>
         <div className="mt-8">
           <PackCatalog />
@@ -340,7 +340,7 @@ export default function Page() {
           {[
             {
               q: "Is the 25% added on top?",
-              a: "Never. Every coin price and every compute meter is gross â€” the 25% platform cut is already inside it. $1.00 always buys exactly 100 coins.",
+              a: "Never. Every coin price and every compute meter is gross — the 25% platform cut is already inside it. $1.00 always buys exactly 100 coins.",
             },
             {
               q: "Can compute ever bill above escrow?",
@@ -352,23 +352,23 @@ export default function Page() {
             },
             {
               q: "Can I switch between Cloud and BYOK?",
-              a: "Yes â€” per workspace. Burst on cloud, settle steady work on your own keys. Your coins, saves, clans, and leaderboards follow you.",
+              a: "Yes — per workspace. Burst on cloud, settle steady work on your own keys. Your coins, saves, clans, and leaderboards follow you.",
             },
             {
               q: "How is game AI priced?",
-              a: "Games with required or optional AI (OpenAI dialogue bots, AI directors on rented RunPods, voice lines in 9 voices) meter per token, char, decision, or GPU minute with the same 25% cut included. The Gaming Buddy meters the same way â€” watch every cent on /my/usage/.",
+              a: "Games with required or optional AI (OpenAI dialogue bots, AI directors on rented RunPods, voice lines in 9 voices) meter per token, char, decision, or GPU minute with the same 25% cut included. The Gaming Buddy meters the same way — watch every cent on /my/usage/.",
             },
             {
               q: "What voices does the Gaming Buddy use?",
-              a: "All 9 OpenAI voices: Alloy, Ash, Coral, Echo, Fable, Onyx, Nova, Sage, Shimmer â€” Nova by default â€” on tts-1 ($15/1M chars) or tts-1-hd ($30/1M chars) at 0.5xâ€“2.0x speed. Every turn meters true upstream cost (chat tokens + voice chars + optional screen snapshot + database writes) in Coins + CentiCentCoins with the 25% cut included.",
+              a: "All 9 OpenAI voices: Alloy, Ash, Coral, Echo, Fable, Onyx, Nova, Sage, Shimmer — Nova by default — on tts-1 ($15/1M chars) or tts-1-hd ($30/1M chars) at 0.5x–2.0x speed. Every turn meters true upstream cost (chat tokens + voice chars + optional screen snapshot + database writes) in Coins + CentiCentCoins with the 25% cut included.",
             },
             {
               q: "How does renting games work?",
-              a: "The first load costs a proportional fee for its exact fresh bytes (default 1 coin for 1 MiB â€” smaller loads pay the exact fraction, down to 1 centicentcoin), then running play bills the hourly rate (default 1 coin/hr) per second from the first second â€” about $0.01 per hour. Same-version replays are free for 24h, a still-playing check appears every 5 hours, and developers can set 0â€“100 coins per load/hour. Guests play free with skippable ads instead.",
+              a: "The first load costs a proportional fee for its exact fresh bytes (default 1 coin for 1 MiB — smaller loads pay the exact fraction, down to 1 centicentcoin), then running play bills the hourly rate (default 1 coin/hr) per second from the first second — about $0.01 per hour. Same-version replays are free for 24h, a still-playing check appears every 5 hours, and developers can set 0–100 coins per load/hour. Guests play free with skippable ads instead.",
             },
             {
               q: "Can I really play 5 hours a day for free?",
-              a: "Yes. A 5-hour session on default rates costs about 6 coins (up to 1 coin load for a full 1 MiB plus 5 coins of per-second play) â€” covered by the 100-coin signup trial many times over, and streak bonuses pay up to 12 coins a day.",
+              a: "Yes. A 5-hour session on default rates costs about 6 coins (up to 1 coin load for a full 1 MiB plus 5 coins of per-second play) — covered by the 100-coin signup trial many times over, and streak bonuses pay up to 12 coins a day.",
             },
             {
               q: "Who owns work I contribute?",
@@ -388,7 +388,7 @@ export default function Page() {
             },
             {
               q: "Do guests have to pay or watch ads?",
-              a: "Guests never pay and never need an account: they get free loads every day (IP-limited), then keep playing by viewing instantly-skippable house ads, with an ad banner every 30 minutes. Cloud saves, multiplayer, AI, and Buddy stay signed-in only â€” which is exactly why signing up beats ad-watching.",
+              a: "Guests never pay and never need an account: they get free loads every day (IP-limited), then keep playing by viewing instantly-skippable house ads, with an ad banner every 30 minutes. Cloud saves, multiplayer, AI, and Buddy stay signed-in only — which is exactly why signing up beats ad-watching.",
             },
           ].map((item) => (
             <details

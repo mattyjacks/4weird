@@ -21,16 +21,16 @@ export default function AgentsComputePage() {
   return (
     <article>
       <DocsHero
-        eyebrow="Docs Â· the cloud gift shop"
+        eyebrow="Docs · the cloud gift shop"
         title={<>Rent a supercomputer <span className={theme.title}>by the second.</span></>}
-        lede={<>AI agents by the hour, virtual desktops by the second, squad workspaces with metered cloud â€” all in Vibe Coins, all with the 25% cut already inside the price.</>}
+        lede={<>AI agents by the hour, virtual desktops by the second, squad workspaces with metered cloud — all in Vibe Coins, all with the 25% cut already inside the price.</>}
         stats={[
           ["1s", "metering granularity"],
           ["25/75", "split, escrowed"],
           ["2", "desktop flavors"],
           ["$0", "above escrow, ever"],
         ]}
-        glyph="â˜ï¸"
+        glyph="☁️"
         theme={theme}
         crumb="Agents & cloud"
       />
@@ -41,20 +41,20 @@ export default function AgentsComputePage() {
         title="Renting AI agents (/agents)"
         body="Browse by runtime and provider, open an agent for its hourly coin price and terms, then book. The flow protects you by construction:"
       />
-      <MockWindow title="booking â€” escrow ledger" badge="escrow">
+      <MockWindow title="booking — escrow ledger" badge="escrow">
         <div className="space-y-1.5 font-mono text-xs sm:text-sm">
-          <div className="flex justify-between gap-4"><span className="text-slate-400">BOOK Â· 3h @ 100 ðŸª™/hr</span><span className="font-bold text-amber-300">âˆ’300 ðŸª™ escrowed</span></div>
-          <div className="flex justify-between gap-4"><span className="text-slate-400">â™¥ heartbeat Â· 1,842s run</span><span className="text-slate-300">meteredâ€¦</span></div>
-          <div className="flex justify-between gap-4"><span className="text-slate-400">SETTLE Â· 25/75 Â· used 154 ðŸª™</span><span className="font-bold text-emerald-300">+146 ðŸª™ refunded</span></div>
-          <p className="pt-1 text-[11px] text-slate-500">final charge can only go down â€” never above escrow</p>
+          <div className="flex justify-between gap-4"><span className="text-slate-400">BOOK · 3h @ 100 🪙/hr</span><span className="font-bold text-amber-300">−300 🪙 escrowed</span></div>
+          <div className="flex justify-between gap-4"><span className="text-slate-400">♥ heartbeat · 1,842s run</span><span className="text-slate-300">metered…</span></div>
+          <div className="flex justify-between gap-4"><span className="text-slate-400">SETTLE · 25/75 · used 154 🪙</span><span className="font-bold text-emerald-300">+146 🪙 refunded</span></div>
+          <p className="pt-1 text-[11px] text-slate-500">final charge can only go down — never above escrow</p>
         </div>
       </MockWindow>
       <div className="mt-5 grid gap-3 sm:grid-cols-4">
         {[
-          ["ðŸ” Browse", "Filter by runtime + provider on /agents."],
-          ["ðŸ”’ Book", "Gross coins escrowed up front."],
-          ["ðŸ’“ Heartbeat", "Per-second metering settles 25/75."],
-          ["ðŸ End", "Unused escrow returns to you."],
+          ["🔍 Browse", "Filter by runtime + provider on /agents."],
+          ["🔒 Book", "Gross coins escrowed up front."],
+          ["💓 Heartbeat", "Per-second metering settles 25/75."],
+          ["🏁 End", "Unused escrow returns to you."],
         ].map(([t, b]) => (
           <div key={t} className="rounded-2xl border border-border bg-card p-4">
             <p className="font-black">{t}</p>
@@ -72,11 +72,11 @@ export default function AgentsComputePage() {
       />
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <div className="overflow-hidden rounded-2xl border border-border bg-card">
-          <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/10 p-4"><p className="text-3xl" aria-hidden="true">ðŸ-¥ï¸</p><p className="mt-1 font-black">CPU box â€” Ubuntu</p></div>
+          <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/10 p-4"><p className="text-3xl" aria-hidden="true">🖥️</p><p className="mt-1 font-black">CPU box — Ubuntu</p></div>
           <p className="p-4 text-sm text-muted-foreground">Browsing, editing, light dev. The cheap seat with a great view.</p>
         </div>
         <div className="overflow-hidden rounded-2xl border border-border bg-card">
-          <div className="bg-gradient-to-r from-violet-500/20 to-fuchsia-500/10 p-4"><p className="text-3xl" aria-hidden="true">ðŸŽ®</p><p className="mt-1 font-black">GPU workstation â€” graphical</p></div>
+          <div className="bg-gradient-to-r from-violet-500/20 to-fuchsia-500/10 p-4"><p className="text-3xl" aria-hidden="true">🎮</p><p className="mt-1 font-black">GPU workstation — graphical</p></div>
           <p className="p-4 text-sm text-muted-foreground">Heavier visual work and game-adjacent tasks. Bring sunglasses.</p>
         </div>
       </div>
@@ -92,7 +92,7 @@ export default function AgentsComputePage() {
         index="4"
         kicker="Squad up"
         title="UnitUnite squad workspaces (/squads)"
-        body="Orgs â†’ squads â†’ projects/rooms with role catalogs, org coin wallets, messaging, and a metered cloud catalog (GPU pods, serverless, storage, databases, KV, queue). Every workspace meter carries the same included 25% cut, every cent attributed. Use squads when several people share budget, rooms, and cloud."
+        body="Orgs → squads → projects/rooms with role catalogs, org coin wallets, messaging, and a metered cloud catalog (GPU pods, serverless, storage, databases, KV, queue). Every workspace meter carries the same included 25% cut, every cent attributed. Use squads when several people share budget, rooms, and cloud."
       />
 
       <SectionHead
@@ -101,10 +101,10 @@ export default function AgentsComputePage() {
         title="Cloud tips that save coins"
       />
       <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
-        <li className="rounded-xl border border-border bg-card p-3">ðŸ§ª <strong className="text-foreground">Book short first sessions</strong> to calibrate cost â€” per-second settlement keeps tests cheap.</li>
-        <li className="rounded-xl border border-border bg-card p-3">ðŸ’° <strong className="text-foreground">Set a max budget</strong> on desktop provisions to avoid surprises.</li>
-        <li className="rounded-xl border border-border bg-card p-3">ðŸ”Œ <strong className="text-foreground">End bookings, close desktops.</strong> Metering follows run time, not browser tabs.</li>
-        <li className="rounded-xl border border-border bg-card p-3">ðŸŒŠ <strong className="text-foreground">Estimates aren&apos;t guarantees</strong> â€” capacity, queues, and provider pricing can shift. Can&apos;t start? The page says so honestly, and you aren&apos;t charged. Track it all on <Link className="underline" href="/my/usage/">/my/usage/</Link>.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🧪 <strong className="text-foreground">Book short first sessions</strong> to calibrate cost — per-second settlement keeps tests cheap.</li>
+        <li className="rounded-xl border border-border bg-card p-3">💰 <strong className="text-foreground">Set a max budget</strong> on desktop provisions to avoid surprises.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🔌 <strong className="text-foreground">End bookings, close desktops.</strong> Metering follows run time, not browser tabs.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🌊 <strong className="text-foreground">Estimates aren&apos;t guarantees</strong> — capacity, queues, and provider pricing can shift. Can&apos;t start? The page says so honestly, and you aren&apos;t charged. Track it all on <Link className="underline" href="/my/usage/">/my/usage/</Link>.</li>
       </ul>
 
       <Pager current="/docs/agents-compute" />

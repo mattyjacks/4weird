@@ -23,21 +23,21 @@ export default function DocsHome() {
   return (
     <article>
       <DocsHero
-        eyebrow="4weird.com/docs/ Â· 13 guides"
+        eyebrow="4weird.com/docs/ · 13 guides"
         title={<>The manual for <span className={theme.title}>Future Forward Fun.</span></>}
-        lede={<>Everything about the company and how to use the site and software â€” one coin economy, 34 games, clans, bots, rentable agents, game AI, and QA tooling. Start anywhere; every guide links to the next.</>}
+        lede={<>Everything about the company and how to use the site and software — one coin economy, 34 games, clans, bots, rentable agents, game AI, and QA tooling. Start anywhere; every guide links to the next.</>}
         stats={[
           ["13", "guides, zero fluff"],
           ["34", "games documented"],
-          ["100 ðŸª™", "= exactly $1.00"],
+          ["100 🪙", "= exactly $1.00"],
           ["25%", "cut, always inside"],
         ]}
-        glyph="ðŸ“š"
+        glyph="📚"
         theme={theme}
         crumb="Docs home"
         art={
           <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
-            {["ðŸŽ® Play", "ðŸ‘¾ Belong", "ðŸ¤- Automate", "ðŸª™ Earn"].map((t) => (
+            {["🎮 Play", "👾 Belong", "🤖 Automate", "🪙 Earn"].map((t) => (
               <span key={t} className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-white backdrop-blur">
                 {t}
               </span>
@@ -47,7 +47,7 @@ export default function DocsHome() {
       />
 
       <SectionHead
-        index="âœ¦"
+        index="✦"
         kicker="Pick your path"
         title="Where do you want to go?"
         body="Four doors into the same arcade. New here? Take door one and read straight through."
@@ -55,10 +55,10 @@ export default function DocsHome() {
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         {[
-          ["ðŸŒ± New here? Read in order", "About â†’ Getting started â†’ Playing games â†’ Vibe Coins. Fifteen minutes and you'll be dangerous.", "/docs/about"],
-          ["ðŸŽ‰ Social player? Belong first", "Clans â†’ Bots â†’ Privacy & safety. Find your people, then give your agent a key.", "/docs/clans"],
-          ["ðŸ”§ Builder? Rent the cloud", "Agents & cloud â†’ Game AI & Buddy â†’ VibeCodeWorker. Metered compute that funds the arcade.", "/docs/agents-compute"],
-          ["ðŸ›¡ï¸ Trust first? Verify us", "Privacy & safety â†’ FAQ & support â†’ Vibe Coins. Rights, moderation, receipts, humans.", "/docs/privacy-safety"],
+          ["🌱 New here? Read in order", "About → Getting started → Playing games → Vibe Coins. Fifteen minutes and you'll be dangerous.", "/docs/about"],
+          ["🎉 Social player? Belong first", "Clans → Bots → Privacy & safety. Find your people, then give your agent a key.", "/docs/clans"],
+          ["🔧 Builder? Rent the cloud", "Agents & cloud → Game AI & Buddy → VibeCodeWorker. Metered compute that funds the arcade.", "/docs/agents-compute"],
+          ["🛡️ Trust first? Verify us", "Privacy & safety → FAQ & support → Vibe Coins. Rights, moderation, receipts, humans.", "/docs/privacy-safety"],
         ].map(([t, b, href]) => (
           <Link
             key={href}
@@ -72,10 +72,10 @@ export default function DocsHome() {
       </div>
 
       <SectionHead
-        index="âœ¦"
+        index="✦"
         kicker="The whole library"
         title="All 13 guides"
-        body="Each card is its own page â€” company, how-tos, economy, social, cloud, trust."
+        body="Each card is its own page — company, how-tos, economy, social, cloud, trust."
       />
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -100,7 +100,7 @@ export default function DocsHome() {
               </div>
               <p className="mt-2 text-sm text-muted-foreground">{doc.blurb}</p>
               <span className="mt-3 inline-block text-sm font-bold text-cyan-600 transition group-hover:translate-x-1 dark:text-cyan-300">
-                Read guide â†’
+                Read guide →
               </span>
             </div>
           </Link>
@@ -108,17 +108,17 @@ export default function DocsHome() {
       </div>
 
       <SectionHead
-        index="âœ¦"
+        index="✦"
         kicker="The one rule"
-        title="100 ðŸª™ = $1.00. The 25% is already inside."
+        title="100 🪙 = $1.00. The 25% is already inside."
         body="A coin is worth a cent. When you pay 400 coins ($4.00) for anything metered, the split behind it is always the same:"
       />
       <SplitBar />
 
       <p className="mt-8 rounded-2xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
-        Company: MattyJacks LLC, New Hampshire, USA Â·{" "}
-        <a className="underline" href="mailto:matt@mattyjacks.com">matt@mattyjacks.com</a> Â·{" "}
-        <Link className="underline" href="/terms">Terms of Use</Link> Â·{" "}
+        Company: MattyJacks LLC, New Hampshire, USA ·{" "}
+        <a className="underline" href="mailto:matt@mattyjacks.com">matt@mattyjacks.com</a> ·{" "}
+        <Link className="underline" href="/terms">Terms of Use</Link> ·{" "}
         <Link className="underline" href="/privacy">Privacy Policy</Link>
       </p>
     </article>

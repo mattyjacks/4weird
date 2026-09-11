@@ -21,27 +21,27 @@ export default function VcwPage() {
   return (
     <article>
       <DocsHero
-        eyebrow="Docs Â· the QA lab"
+        eyebrow="Docs · the QA lab"
         title={<>Break it. <span className={theme.title}>Prove it. Ship it.</span></>}
-        lede={<>Evidence-driven QA: point VibeCodeWorker at a game, watch it observe â†’ reason â†’ act, and get runs, findings, bugs, and portable handoffs with proof. Start at /vibecodeworker.</>}
+        lede={<>Evidence-driven QA: point VibeCodeWorker at a game, watch it observe → reason → act, and get runs, findings, bugs, and portable handoffs with proof. Start at /vibecodeworker.</>}
         stats={[
           ["3", "steps per loop"],
           ["4", "severities"],
           ["3", "verdicts"],
           ["1", "portable handoff"],
         ]}
-        glyph="âš™ï¸"
+        glyph="⚙️"
         theme={theme}
         crumb="VibeCodeWorker"
         art={
           <div className="flex flex-wrap items-center gap-2 text-sm font-black" aria-hidden="true">
-            {["ðŸ‘ï¸ Observe", "ðŸ§  Reason", "ðŸŽ¬ Act"].map((t, i) => (
+            {["👁️ Observe", "🧠 Reason", "🎬 Act"].map((t, i) => (
               <span key={t} className="flex items-center gap-2">
                 <span className="rounded-full border border-orange-300/40 bg-orange-300/10 px-4 py-2 text-orange-100">{t}</span>
-                {i < 2 && <span className="text-orange-400">â†’</span>}
+                {i < 2 && <span className="text-orange-400">→</span>}
               </span>
             ))}
-            <span className="text-orange-400">â†º</span>
+            <span className="text-orange-400">↺</span>
           </div>
         }
       />
@@ -50,7 +50,7 @@ export default function VcwPage() {
         index="1"
         kicker="The floor plan"
         title="Surfaces at /vibecodeworker/*"
-        body="Overview, hub, run, full, phone, docs, and demo â€” each pairs a guide with the live surface plus a public service-status pill. If the pill reports trouble, wait before opening runs: the loop depends on the service underneath."
+        body="Overview, hub, run, full, phone, docs, and demo — each pairs a guide with the live surface plus a public service-status pill. If the pill reports trouble, wait before opening runs: the loop depends on the service underneath."
       />
 
       <SectionHead
@@ -62,9 +62,9 @@ export default function VcwPage() {
       <Steps
         items={[
           ["Check status", <>Confirm service health, catalog game count, recent runs/bugs. Unhealthy? Stop here.</>],
-          ["Pick a target", <>List catalog games â€” slug, title, genre, play URL. Every legal run target comes from this list; first-party play URLs only.</>],
-          ["Open a run", <>Catalog slug + a 1â€“500 character goal (â€œverify level-2 boss spawns addsâ€). You get a run ID.</>],
-          ["Observe â†’ reason â†’ act", <>Append one iteration at a time â€” observation, action, or finding (text + optional â‰¤10 KB data object). Open runs only.</>],
+          ["Pick a target", <>List catalog games — slug, title, genre, play URL. Every legal run target comes from this list; first-party play URLs only.</>],
+          ["Open a run", <>Catalog slug + a 1–500 character goal (“verify level-2 boss spawns adds”). You get a run ID.</>],
+          ["Observe → reason → act", <>Append one iteration at a time — observation, action, or finding (text + optional ≤10 KB data object). Open runs only.</>],
           ["File bugs", <>Title + description + severity (low/medium/high/critical, default medium), optionally pinned to a run (defaults the slug).</>],
           ["Complete the run", <>Close with summary + verdict: pass / fail / inconclusive. Closed runs are read-only history.</>],
           ["Hand off", <>Export a portable markdown brief for any coding tool (defaults to your latest run). The dashboard gives recent runs + bugs in one view.</>],
@@ -76,12 +76,12 @@ export default function VcwPage() {
         kicker="Exhibit A"
         title="What good evidence looks like"
       />
-      <MockWindow title="run #4821 â€” boss-spawn verification" badge="verdict: pass">
+      <MockWindow title="run #4821 — boss-spawn verification" badge="verdict: pass">
         <div className="space-y-2 text-xs sm:text-sm">
           <p><span className="rounded bg-sky-400/20 px-1.5 py-0.5 font-bold text-sky-300">OBSERVE</span> <span className="text-slate-300">screenshot: 3 adds spawn at 0:42, HP bars visible</span></p>
-          <p><span className="rounded bg-violet-400/20 px-1.5 py-0.5 font-bold text-violet-300">REASON</span> <span className="text-slate-300">spawn matches spec Â§2.1 â†’ engage, record score events</span></p>
+          <p><span className="rounded bg-violet-400/20 px-1.5 py-0.5 font-bold text-violet-300">REASON</span> <span className="text-slate-300">spawn matches spec §2.1 → engage, record score events</span></p>
           <p><span className="rounded bg-emerald-400/20 px-1.5 py-0.5 font-bold text-emerald-300">ACT</span> <span className="text-slate-300">cleared wave, no console errors, 60fps held</span></p>
-          <p><span className="rounded bg-amber-300/20 px-1.5 py-0.5 font-bold text-amber-200">FINDING</span> <span className="text-slate-300">goal met â€” no bug filed, evidence attached</span></p>
+          <p><span className="rounded bg-amber-300/20 px-1.5 py-0.5 font-bold text-amber-200">FINDING</span> <span className="text-slate-300">goal met — no bug filed, evidence attached</span></p>
         </div>
       </MockWindow>
 
@@ -92,10 +92,10 @@ export default function VcwPage() {
       />
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         {[
-          ["ðŸŽ¯ Goals", "One verifiable claim per run: â€œmenu â†’ new game â†’ first checkpoint, no console errors.â€"],
-          ["ðŸ”¬ Steps", "Small, timestamped, evidence-first: â€œscreenshot showsâ€¦â€, â€œscore event firedâ€¦â€."],
-          ["ðŸž Bugs", "Expected vs. actual + repro path + severity + run link. Critical = data loss, payment error, safety."],
-          ["ðŸ Verdicts", "Pass (evidence), fail (repro defect filed), inconclusive (blocked â€” say what blocked you)."],
+          ["🎯 Goals", "One verifiable claim per run: “menu → new game → first checkpoint, no console errors.”"],
+          ["🔬 Steps", "Small, timestamped, evidence-first: “screenshot shows…”, “score event fired…”."],
+          ["🐞 Bugs", "Expected vs. actual + repro path + severity + run link. Critical = data loss, payment error, safety."],
+          ["🏁 Verdicts", "Pass (evidence), fail (repro defect filed), inconclusive (blocked — say what blocked you)."],
         ].map(([t, b]) => (
           <div key={t} className="rounded-2xl border border-border bg-card p-4">
             <p className="font-black">{t}</p>
@@ -104,7 +104,7 @@ export default function VcwPage() {
         ))}
       </div>
       <Callout tone="cyan" title="Autoplay = a real remote, or an honest no.">
-        Autoplay provisions a real remote to play for you â€” or reports it couldn&apos;t start (capacity, wrong tier for the
+        Autoplay provisions a real remote to play for you — or reports it couldn&apos;t start (capacity, wrong tier for the
         title). Catalog games run on-site only; some titles need GPU-boosted off-site desktop remotes. The hosted site
         has no live browser: you drive play locally or via autoplay and record each iteration. See{" "}
         <Link className="underline" href="/docs/agents-compute">Agents &amp; cloud</Link> for the compute behind it.

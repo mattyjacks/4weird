@@ -16,7 +16,7 @@ export default function DesktopPage() {
     <main className="min-h-screen bg-slate-950 text-white">
       <section className="mx-auto max-w-5xl px-5 py-16">
         <Link className="text-cyan-300 hover:underline" href="/">
-          â† Home
+          ← Home
         </Link>
         <p className="mt-4 text-xs font-bold tracking-widest text-cyan-300">4WEIRD CLOUD / VIRTUAL DESKTOP</p>
         <h1 className="mt-2 text-4xl font-black">Rent a virtual desktop</h1>
@@ -29,7 +29,7 @@ export default function DesktopPage() {
         </p>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
           RunPod bills the operator&apos;s card <strong>per second</strong> from the first second. Coin figures are
-          display equivalents only (100 ðŸª™ = $1.00) â€” direct RunPod spend carries <strong>no Vibe cut</strong> and
+          display equivalents only (100 🪙 = $1.00) — direct RunPod spend carries <strong>no Vibe cut</strong> and
           debits no coins. Mirror every dollar on{" "}
           <Link href="/my/usage/" className="text-cyan-300 hover:underline">
             /my/usage/
@@ -64,7 +64,7 @@ export default function DesktopPage() {
             </p>
             <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-slate-400">
               <li>Cheapest Secure GPU at or under your $/hr max (set 0 for cheapest available)</li>
-              <li>60 GB disk, VNC password via VNC_PW (default `password` â€” change it after login)</li>
+              <li>60 GB disk, VNC password via VNC_PW (default `password` — change it after login)</li>
               <li>Best for: Blender, CUDA, ComfyUI sidecar, GPU testing</li>
             </ul>
           </div>
@@ -75,7 +75,7 @@ export default function DesktopPage() {
           <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-slate-300">
             <li>Sign in, pick CPU or GPU, pick GUI (default) or Jupyter, optionally cap your $/hr max (GPU only).</li>
             <li>
-              <code>POST /api/desktop/provision</code> provisions a real RunPod pod â€” cheapest fitting stock, no
+              <code>POST /api/desktop/provision</code> provisions a real RunPod pod — cheapest fitting stock, no
               theater. No stock, no key, or over budget comes back as an honest <code>started: false</code> state.
             </li>
             <li>Open the returned proxy URL: Kasm desktop stream (GUI) or JupyterLab (Jupyter).</li>
@@ -91,11 +91,11 @@ export default function DesktopPage() {
           <p className="mt-4 text-sm text-slate-400">
             Need an agent instead of a desktop?{" "}
             <Link href="/agents" className="text-cyan-300 hover:underline">
-              Rent an AI agent â†’
+              Rent an AI agent →
             </Link>{" "}
             Want a worker to play for you?{" "}
             <Link href="/xonotic" className="text-cyan-300 hover:underline">
-              Xonotic autoplay â†’
+              Xonotic autoplay →
             </Link>
           </p>
         </div>
