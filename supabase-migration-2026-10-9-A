@@ -1,7 +1,7 @@
 # Supabase migration 2026-10-9-A - 4weird single-deploy (v2/vcw4w)
 
 Target project: the Supabase project behind `NEXT_PUBLIC_SUPABASE_URL` in
-`v2/vcw4w/.env.example` (production: `https://4weird.games`).
+`v2/vcw4w/.env.example` (production: `https://4weird.com`).
 Source files: `v2/vcw4w/supabase/migrations/` (17 files) + `v2/vcw4w/supabase/schema.sql`
 (review copy) + `v2/vcw4w/supabase/functions/shopify-coins/index.ts`.
 
@@ -85,7 +85,7 @@ privacy_requests.
 ```
 cd v2/vcw4w
 supabase functions deploy shopify-coins --no-verify-jwt
-supabase secrets set SUPABASE_URL=<project-url> SUPABASE_ANON_KEY=<anon-key> SUPABASE_SERVICE_ROLE_KEY=<service-role-key> SHOPIFY_WEBHOOK_SECRET=<shopify-secret> SITE_ORIGINS="https://4weird.games,https://www.4weird.games"
+supabase secrets set SUPABASE_URL=<project-url> SUPABASE_ANON_KEY=<anon-key> SUPABASE_SERVICE_ROLE_KEY=<service-role-key> SHOPIFY_WEBHOOK_SECRET=<shopify-secret> SITE_ORIGINS="https://4weird.com,https://www.4weird.com"
 ```
 
 `--no-verify-jwt` is required: Shopify webhooks use HMAC
@@ -101,7 +101,7 @@ floored at 500. Your Shopify store needs variants for the 500 / 1500 /
 ## C. Vercel env vars (project → Settings → Environment Variables)
 
 - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
-  `NEXT_PUBLIC_SITE_URL=https://4weird.games`
+  `NEXT_PUBLIC_SITE_URL=https://4weird.com`
 - `SUPABASE_SERVICE_ROLE_KEY` (server-only; enables direct
   `/api/coins/claim` ledger writes + signup trial credit; without it, claim
   proxies to the edge function and no trial credit is issued)

@@ -1,7 +1,7 @@
 ﻿# Supabase migration 2026-10-9-B - 4weird single-deploy (v2/vcw4w)
 
 Target project: the Supabase project behind `NEXT_PUBLIC_SUPABASE_URL` in
-`v2/vcw4w/.env.example` (production: `https://4weird.games` / `https://4weird.com`).
+`v2/vcw4w/.env.example` (production: `https://4weird.com` / `https://4weird.com`).
 Source files: `v2/vcw4w/supabase/migrations/` (18 files) + `v2/vcw4w/supabase/schema.sql`.
 
 All SQL is re-runnable (`IF NOT EXISTS` / `OR REPLACE` / `DROP ... IF EXISTS` guards).

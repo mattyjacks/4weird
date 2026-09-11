@@ -39,7 +39,7 @@ export default function AboutPage() {
         index="1"
         kicker="Who runs this circus"
         title="MattyJacks LLC, New Hampshire"
-        body="4weird Games is operated by MattyJacks LLC, a New Hampshire limited liability company (USA). The live service runs at 4weird.games and is documented here at 4weird.com/docs/ — both names reach the same product."
+        body="4weird Games is operated by MattyJacks LLC, a New Hampshire limited liability company (USA). The live service runs at 4weird.com and is documented here at 4weird.com/docs/."
       />
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         {[

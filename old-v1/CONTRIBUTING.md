@@ -12,7 +12,7 @@ Every accepted game receives:
 
 | Benefit | What You Get |
 |---------|--------------|
-| **🌐 Live Featuring** | Permanent spot on 4weird.games with dedicated page |
+| **🌐 Live Featuring** | Permanent spot on 4weird.com with dedicated page |
 | **👤 Full Credits** | Name, role, avatar, and links on your game's page |
 | **📝 Maker Bio** | 200-word bio section to tell your story |
 | **🔗 SEO Backlink** | Do-follow link from an established gaming site |
@@ -204,7 +204,7 @@ Before submitting, verify:
 1. **Submit PR** → Automated checks run
 2. **Human review** → We play your game (usually within 24-48 hours)
 3. **Feedback** → If needed, we suggest changes (friendly, constructive)
-4. **Merge** → You go live on 4weird.games immediately
+4. **Merge** → You go live on 4weird.com immediately
 5. **Promote** → We shout out new games on social channels
 
 **We want to merge your game.** The weirder, the better.

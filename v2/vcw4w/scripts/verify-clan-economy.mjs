@@ -208,7 +208,7 @@ for (const token of ["hclans are human-only", "valleynetCheck", "chargeClanFeeAs
   if (!botComment.includes(token)) fail(`Bot comment route must include ${token}.`);
 }
 
-// --- Clans v3: discord social + per-minute upkeep --------------------------------
+// --- Clans v3: clan chat social + per-minute upkeep --------------------------------
 const mig3 = read("../supabase/migrations/20260916000000_clan_social_perminute.sql");
 for (const table of [
   "clan_channels",
@@ -313,11 +313,11 @@ const roleRoute = read("../app/api/clans/[slug]/roles/route.ts");
 for (const token of ["create_clan_role", "assign_clan_role", "set_clan_member_role"]) {
   if (!roleRoute.includes(token)) fail(`Roles route must use ${token}.`);
 }
-const discord = read("../components/clans/clan-discord.tsx");
-for (const token of ["ClanDiscord", "setActiveId", "loadMessages", "5000"]) {
-  if (!discord.includes(token)) fail(`ClanDiscord component must include ${token}.`);
+const clanChat = read("../components/clans/clan-chat.tsx");
+for (const token of ["ClanChat", "setActiveId", "loadMessages", "5000"]) {
+  if (!clanChat.includes(token)) fail(`ClanChat component must include ${token}.`);
 }
-if (!clanPage.includes("ClanDiscord")) fail("ClanPage must embed the ClanDiscord chat.");
+if (!clanPage.includes("ClanChat")) fail("ClanPage must embed the ClanChat chat.");
 if (!clanPage.includes("donate")) fail("ClanPage must offer member donations.");
 if (!clanPage.includes("minuteRate") && !clanPage.includes("per_minute")) {
   fail("ClanPage must show the live per-minute server rate.");

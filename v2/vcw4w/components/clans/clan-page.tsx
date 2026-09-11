@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ReportButton } from "@/components/clans/report-button";
-import { ClanDiscord } from "@/components/clans/clan-discord";
+import { ClanChat } from "@/components/clans/clan-chat";
 import { LoveButtons } from "@/components/clans/love-buttons";
 import { LoveQuests } from "@/components/clans/love-quests";
 import { MarkdownEditor } from "@/components/clans/markdown-editor";
@@ -439,7 +439,7 @@ export function ClanPage({ slug }: { slug: string }) {
         <p className="text-slate-400">No posts yet; be the first.</p>
       )}
 
-      <ClanDiscord slug={slug} />
+      <ClanChat slug={slug} />
 
       <LoveQuests clanId={clan.id} clanSlug={slug} />
 

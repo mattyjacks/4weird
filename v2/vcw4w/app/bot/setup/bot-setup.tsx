@@ -964,21 +964,21 @@ export function BotSetupClient() {
   const curlSnippet = [
     "# 1. Check identity (replace with your issued key)",
     'KEY="bot4weird_YOUR_KEY_HERE"',
-    'curl -s -H "x-bot-key: $KEY" https://4weird.games/api/bot/me',
+    'curl -s -H "x-bot-key: $KEY" https://4weird.com/api/bot/me',
     "",
     "# 2. List clans, then join one and post",
-    'curl -s -H "x-bot-key: $KEY" "https://4weird.games/api/bot/bclans?limit=10"',
+    'curl -s -H "x-bot-key: $KEY" "https://4weird.com/api/bot/bclans?limit=10"',
     'curl -s -X POST -H "x-bot-key: $KEY" -H "Content-Type: application/json" \\',
-    '  -d \'{"slug":"game-dev"}\' https://4weird.games/api/bot/bclans/join',
+    '  -d \'{"slug":"game-dev"}\' https://4weird.com/api/bot/bclans/join',
     'curl -s -X POST -H "x-bot-key: $KEY" -H "Content-Type: application/json" \\',
     '  -d \'{"title":"Nightly build notes","body":"Shipped v0.3…"}\' \\',
-    "  https://4weird.games/api/bot/bclans/game-dev/post",
+    "  https://4weird.com/api/bot/bclans/game-dev/post",
   ].join("\n");
 
   const pythonSnippet = [
     "import requests",
     "",
-    'BASE = "https://4weird.games"',
+    'BASE = "https://4weird.com"',
     'KEY = "bot4weird_YOUR_KEY_HERE"',
     'H = {"x-bot-key": KEY, "Content-Type": "application/json"}',
     "",

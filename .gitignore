@@ -1,10 +1,12 @@
 # Root gitignore; repo-wide build/runtime junk
 # Deps
 node_modules/
-# Build outputs
+# Build outputs (root-anchored: a bare `build/` would also swallow Next.js
+# App Router segments like v2/vcw4w/app/api/newgameplus/build/route.ts,
+# which is source and must deploy — that missing file 404s the Launch button)
 dist/
 dist-current/
-build/
+/build/
 target/
 src-tauri/target/
 src-tauri/gen/

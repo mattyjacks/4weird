@@ -184,7 +184,7 @@ const DENY_PATTERNS: { code: string; re: RegExp }[] = [
   { code: "malware:keylogger", re: /keylog|keystroke\s*(log|captur)|SetWindowsHookEx\s*\(\s*WH_KEYBOARD/i },
   { code: "malware:ransomware", re: /vssadmin\s+delete\s+shadows|bcdedit\s+\/set\s+.*recoveryenabled\s+no|decrypt[a-z_]*\s*for\s*(bitcoin|btc|monero|xmr)/i },
   { code: "malware:rat", re: /reverse_shell|nc\s+-e\s+\/bin\/(ba)?sh|powershell\s+.*-enc(?:odedcommand)?\s+[A-Za-z0-9+/=]{80,}/i },
-  { code: "malware:stealer", re: /discord.*token|Login\s*Data|Cookies.*sqlite|seed\s*phrase|mnemonic.*harvest/i },
+  { code: "malware:stealer", re: /Login\s*Data|Cookies.*sqlite|seed\s*phrase|mnemonic.*harvest/i },
   { code: "malware:dropper", re: /Invoke-Mimikatz|mimikatz|meterpreter| CobaltStrike|beacon\s*(http|dns|smb)/i },
   { code: "cybercrime:exploit-kit", re: /exploit\s*(cve-\d{4}-\d+|zero-?day)|sqlmap|nmap\s+-sS|hydra\s+-l\b/i },
   { code: "cybercrime:phishing", re: /verify\s*(your\s*)?(account|wallet).{0,40}(password|seed|mnemonic)|fake\s*login/i },

@@ -130,8 +130,8 @@ for (const token of ["ClanSupport", "/api/clans/", "/scale", "Supporter Status",
 }
 const clanPage = read("components/clans/clan-page.tsx");
 must(clanPage.includes("ClanSupport"), "ClanPage must mount ClanSupport");
-const discord = read("components/clans/clan-discord.tsx");
-must(discord.includes("member_total") && discord.includes("showing"), "ClanDiscord must show the cached total");
+const clanChat = read("components/clans/clan-chat.tsx");
+must(clanChat.includes("member_total") && clanChat.includes("showing"), "ClanChat must show the cached total");
 
 // 12. Pricing + LICENSE move together (the rule: pricing updates update the license).
 const pricing = read("app/pricing/page.tsx");

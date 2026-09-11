@@ -24,7 +24,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: asset: https://asset.localhost; connect-src 'self' ipc: http://ipc.localhost https://ipc.localhost https://4weird.games https://queue.fal.run https://api.runpod.io https://api.openai.com https://api.anthropic.com https://generativelanguage.googleapis.com https://openrouter.ai; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: asset: https://asset.localhost; connect-src 'self' ipc: http://ipc.localhost https://ipc.localhost https://4weird.com https://queue.fal.run https://api.runpod.io https://api.openai.com https://api.anthropic.com https://generativelanguage.googleapis.com https://openrouter.ai; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
     }
   },
   "bundle": {

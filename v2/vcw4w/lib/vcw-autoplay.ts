@@ -36,8 +36,6 @@ export const VCW_DESKTOP_INSTALLER = "vibecodeworker-4weird_2.0.0_x64-setup.exe"
 
 /** First-party origins the autoplay browser is allowed to touch. */
 export const AUTOPLAY_ONSITE_ORIGINS = [
-  "https://4weird.games",
-  "https://www.4weird.games",
   "https://4weird.com",
   "https://www.4weird.com",
 ] as const;

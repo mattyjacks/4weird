@@ -459,7 +459,7 @@ class FriendSlop {
     }
     
     shareScore() {
-        const text = `I scored ${Math.floor(this.score)} points in FriendSlop! 🍝 Can you beat my score? Play now: https://4weird.games/games/friendslop`;
+        const text = `I scored ${Math.floor(this.score)} points in FriendSlop! 🍝 Can you beat my score? Play now: https://4weird.com/games/friendslop`;
         
         if (navigator.share) {
             navigator.share({

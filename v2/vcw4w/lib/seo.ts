@@ -13,7 +13,7 @@
  */
 
 export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://4weird.games"
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://4weird.com"
 ).replace(/\/$/, "");
 
 export const SITE_NAME = "4weird Games";

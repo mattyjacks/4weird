@@ -1,7 +1,7 @@
 # 4weird Agent Skill; do anything a human can do
 
-Live site: https://4weird.games · App root: `v2/vcw4w/` (Next.js, Vercel Root Directory = `v2/vcw4w`)
-Legal: [Terms of Use](https://4weird.games/terms) · [Privacy Policy](https://4weird.games/privacy)
+Live site: https://4weird.com · App root: `v2/vcw4w/` (Next.js, Vercel Root Directory = `v2/vcw4w`)
+Legal: [Terms of Use](https://4weird.com/terms) · [Privacy Policy](https://4weird.com/privacy)
 Bot skill companion: `v2/vcw4w/public/bot/skill.md` · Human docs: `v2/vcw4w/README.md`
 
 Every API below returns `{ success: true, ...data }` or `{ success: false, error }`.

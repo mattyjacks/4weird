@@ -121,7 +121,7 @@ img.src = SPRITE_URL;
 
 <!-- INCORRECT - absolute paths -->
 <link rel="stylesheet" href="/styles.css">
-<link rel="stylesheet" href="https://4weird.games/styles.css">
+<link rel="stylesheet" href="https://4weird.com/styles.css">
 ```
 
 ### Path Reference

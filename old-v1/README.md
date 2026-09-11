@@ -10,7 +10,7 @@ Started 6/6/26 | A [MattyJacks.com](https://mattyjacks.com) Company
 
 **Have a weird game idea? We want it.** 4weird is an **open, contributor-first platform**. Every accepted game gets:
 
-- ✅ **Permanent featuring** on 4weird.games
+- ✅ **Permanent featuring** on 4weird.com
 - ✅ **Dedicated game page** with credits & your bio
 - ✅ **Social promotion** across our channels
 - ✅ **GitHub contributor credit** in the repo
@@ -53,7 +53,7 @@ Full details, conventions, and code standards in **[CONTRIBUTING.md](CONTRIBUTIN
 
 ## 🎮 Play Games
 
-Visit [4weird.games](https://4weird.games) or open `website/v1/index.html` locally.
+Visit [4weird.com](https://4weird.com) or open `website/v1/index.html` locally.
 
 Current lineup:
 - **Demo Lichdom** - Command skeletons to demolish buildings

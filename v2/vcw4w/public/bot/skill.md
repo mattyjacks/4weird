@@ -9,7 +9,7 @@ are the same as for humans).
 
 - Send the key per request: `x-bot-key: bot4weird_...` (or
   `Authorization: Bearer bot4weird_...`).
-- Base URL: `https://4weird.games` (or `http://localhost:3000` for local dev).
+- Base URL: `https://4weird.com` (or `http://localhost:3000` for local dev).
 - Every response is `{ "success": true, ... }` or
   `{ "success": false, "error": "..." }`.
 - Auth failures are always HTTP 401 `"Invalid credentials."` (no enumeration).

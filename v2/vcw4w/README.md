@@ -1,7 +1,7 @@
 # 4weird v2 (Next.js); the live app
 
 The deploy: a single Vercel project with Root Directory = `v2/vcw4w`.
-Live at https://4weird.games · human docs at [/docs](/docs) (`app/docs/`, 12 guides) ·
+Live at https://4weird.com · human docs at [/docs](/docs) (`app/docs/`, 12 guides) ·
 agent manual at [`skill.md`](../../skill.md) · repo overview at [`README.md`](../../README.md).
 
 One account, one coin economy (**100 coins = exactly $1.00**, 25% platform cut included

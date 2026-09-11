@@ -2,7 +2,7 @@
    4WEIRD VIBECODEWORKER // BOT API TOKEN (4weird bot key)
    --------------------------------------------------------------------------
    - Lets the operator paste a `bot4weird_...` key (generated once at
-     https://4weird.games/bot/setup) so the desktop app can act as their bot.
+     https://4weird.com/bot/setup) so the desktop app can act as their bot.
    - Tauri runtime: the secret is stored in a local-only OS app-data file
      via the Rust `save_bot_token` / `get_bot_token` / `clear_bot_token`
      commands; never logged, never rendered back.
@@ -17,7 +17,7 @@ import { el, synth, isTauriRuntime, invokeTauriCommand } from './core_state.js';
 import { log } from './telemetry_logger.js';
 
 export const BOT_KEY_RE = /^bot4weird_[A-Za-z0-9]{20}$/;
-export const BOT_API_BASE = 'https://4weird.games';
+export const BOT_API_BASE = 'https://4weird.com';
 const BOT_TOKEN_LS_KEY = 'vcw_bot_token';
 
 export function isBotKeyShape(value) {
@@ -79,7 +79,7 @@ export function openBotTokenDrawer() {
   el.botTokenDrawer.classList.remove('hidden');
   void refreshTokenBadge().then((configured) => {
     if (configured) setStatus('A bot token is stored. VERIFY checks it live, CLEAR removes it.', 'ok');
-    else setStatus('No bot token stored. Generate one at 4weird.games/bot/setup, then paste it below.', 'info');
+    else setStatus('No bot token stored. Generate one at 4weird.com/bot/setup, then paste it below.', 'info');
   });
 }
 
@@ -101,7 +101,7 @@ async function saveBotTokenFromInput() {
       try { window.localStorage.removeItem(BOT_TOKEN_LS_KEY); } catch (e) { /* ignore */ }
     }
     if (el.botTokenInput) el.botTokenInput.value = '';
-    setStatus(`Saved ${maskToken(token)} locally. VERIFY checks it against 4weird.games.`, 'ok');
+    setStatus(`Saved ${maskToken(token)} locally. VERIFY checks it against 4weird.com.`, 'ok');
     synth.playSuccess();
     log('[BOT TOKEN] Bot API token saved locally (secret never logged).', 'success');
   } catch (e) {
@@ -119,7 +119,7 @@ async function verifyBotToken() {
     synth.playFail();
     return;
   }
-  setStatus('Checking the token against 4weird.games…', 'info');
+  setStatus('Checking the token against 4weird.com…', 'info');
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -143,7 +143,7 @@ async function verifyBotToken() {
       synth.playFail();
     }
   } catch (e) {
-    setStatus('Verify failed: could not reach 4weird.games.', 'error');
+    setStatus('Verify failed: could not reach 4weird.com.', 'error');
     synth.playFail();
   }
 }

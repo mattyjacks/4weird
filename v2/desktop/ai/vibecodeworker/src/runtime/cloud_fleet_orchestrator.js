@@ -89,7 +89,7 @@ class CloudFleetOrchestrator extends EventEmitter {
       launchedAt: Date.now(),
       totalActiveSeconds: 0,
       currentCostUSD: 0.0,
-      streamUrl: `wss://stream.4weird.games/rtc/${instanceId}`,
+      streamUrl: `wss://stream.4weird.com/rtc/${instanceId}`,
       assignedTargetUrl: options.targetUrl || null
     };
 

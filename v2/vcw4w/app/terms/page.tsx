@@ -541,7 +541,7 @@ export default function TermsPage() {
           Our <a className={a} href="/privacy">Privacy Policy</a> explains what we collect and your rights under New
           Hampshire and U.S. law and, where applicable, international laws such as the EU/UK GDPR and U.S. state
           privacy laws. You may exercise access, portability, correction, and deletion rights yourself at{" "}
-          <a className={a} href="/my/rights">4weird.com/my/rights/</a> (also reachable on 4weird.games): export your
+          <a className={a} href="/my/rights">4weird.com/my/rights/</a>: export your
           data or permanently delete your data and account, subject to verification and anti-abuse limits. Self-service
           deletion is strictly limited to the signed-in account holder deleting their own account; you cannot request
           deletion of anyone else’s data through that page. Special cases (for example, family of a deceased user

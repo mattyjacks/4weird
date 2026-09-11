@@ -34,9 +34,9 @@ async function fetchTimeout(url, options) {
 async function verifyBot(key) {
   let res;
   try {
-    res = await fetchTimeout("https://4weird.games/api/bot/me", { headers: { "x-bot-key": key } });
+    res = await fetchTimeout("https://4weird.com/api/bot/me", { headers: { "x-bot-key": key } });
   } catch (e) {
-    return { ok: false, text: "Verify failed: could not reach 4weird.games." };
+    return { ok: false, text: "Verify failed: could not reach 4weird.com." };
   }
   const body = await res.json().catch(() => ({}));
   if (res.ok && body && body.success) {
@@ -145,7 +145,7 @@ async function verifyOpenrouter(key) {
 const SLOTS = [
   {
     id: "bot", name: "4weird Bot key", env: "FOURWEIRD_BOT_KEY",
-    getUrl: "https://4weird.games/bot/setup", getLabel: "Get one at 4weird.games/bot/setup",
+    getUrl: "https://4weird.com/bot/setup", getLabel: "Get one at 4weird.com/bot/setup",
     hint: "Shape: bot4weird_ + 20 letters/digits. Lets agents act as your bot on 4weird clans.",
     verify: verifyBot
   },

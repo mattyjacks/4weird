@@ -35,7 +35,7 @@ ok('newRequestId unique', () => {
   assert.notStrictEqual(u.newRequestId(), u.newRequestId());
 });
 ok('isValidUrl', () => {
-  assert.strictEqual(u.isValidUrl('https://4weird.games'), true);
+  assert.strictEqual(u.isValidUrl('https://4weird.com'), true);
   assert.strictEqual(u.isValidUrl('ftp://x'), false);
   assert.strictEqual(u.isValidUrl('x'.repeat(3000)), false);
 });

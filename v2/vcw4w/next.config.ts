@@ -10,12 +10,12 @@ const nextConfig: NextConfig = {
     return [{ source: "/account", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }, { source: "/auth/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }, { source: "/protected", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }, { source: "/api/:path*", headers: [{ key: "Cache-Control", value: "no-store" }] }, { source: "/api/vcw/health", headers: [{ key: "Cache-Control", value: "no-store" }] },
     // Static game bundles: public, 1h fresh + 24h stale-while-revalidate.
     // frame-ancestors explicitly allows the play shell to frame them from any
-    // first-party host (apex/www x 4weird.com/4weird.games): Vercel redirects
+    // first-party host (apex/www 4weird.com): Vercel redirects
     // apex -> www, so a shell on one origin routinely frames a bundle that
     // settled on the other. No X-Frame-Options is emitted anywhere, so
     // same-origin framing keeps working and cross-host framing is governed
     // here, not by a deny-all default.
-    { source: "/games/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=3600, stale-while-revalidate=86400" }, { key: "Content-Security-Policy", value: "frame-ancestors 'self' https://4weird.com https://www.4weird.com https://4weird.games https://www.4weird.games" }] },
+    { source: "/games/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=3600, stale-while-revalidate=86400" }, { key: "Content-Security-Policy", value: "frame-ancestors 'self' https://4weird.com https://www.4weird.com" }] },
     { source: "/vcw/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=3600, stale-while-revalidate=86400" }] },
     { source: "/vibecodeworker-legacy/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=3600, stale-while-revalidate=86400" }] },
     // Crawlable metadata endpoints: cheap to serve, safe to cache briefly.

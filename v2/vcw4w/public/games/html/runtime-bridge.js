@@ -25,8 +25,6 @@
   var TRUSTED_ORIGINS = [
     "https://4weird.com",
     "https://www.4weird.com",
-    "https://4weird.games",
-    "https://www.4weird.games",
   ];
 
   function currentSlug() {

@@ -20,7 +20,7 @@ import {
 
 export const dynamic = "force-dynamic";
 
-const siteBase = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://4weird.games").replace(/\/+$/, "");
+const siteBase = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://4weird.com").replace(/\/+$/, "");
 
 /**
  * POST /api/blender/jobs/[id]/start {startFrame, endFrame}; provision the

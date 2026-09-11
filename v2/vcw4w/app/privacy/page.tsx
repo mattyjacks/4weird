@@ -18,8 +18,8 @@ export default function PrivacyPage() {
           This policy describes how MattyJacks LLC (“MattyJacks,” “we,” “us,” or “our”) handles information across the
           4weird Games websites, games, accounts, Clans social features, bot platform, agent rentals, Vibe Coins
           economy, Teams/enterprise workspaces, VibeCodeWorker surfaces, exhibits, APIs, and related services
-          (collectively, the “Service”). It applies whenever you visit or use the Service, on 4weird.games,
-          4weird.com, or any domain where the Service is served.
+          (collectively, the “Service”). It applies whenever you visit or use the Service, on 4weird.com
+          or any domain where the Service is served.
         </p>
 
         <h2 className={h2}>1. Who is responsible for your information</h2>

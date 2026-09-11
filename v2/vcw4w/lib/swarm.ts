@@ -233,7 +233,7 @@ export function swarmSystemPrompt(input: {
   const global = cleanSystemPrompt(input.globalPrompt);
   const tools = input.tools.filter(isSwarmToolId);
   const parts = [
-    `You are ${input.agent.name} (agent ${input.agentIndex + 1}, ${input.agent.runtime}) in the "${cleanSwarmName(input.swarmName) || "Swarm"}" agent swarm on 4weird.games.`,
+    `You are ${input.agent.name} (agent ${input.agentIndex + 1}, ${input.agent.runtime}) in the "${cleanSwarmName(input.swarmName) || "Swarm"}" agent swarm on 4weird.com.`,
     `Orchestration: ${input.orchestration} (built-in observe→reason→act; ${input.orchestration === "round-robin" ? "take your turn and hand off" : input.orchestration === "lead" ? "agent 1 leads, others support" : "agent 1 plans with deepseek.orchestrate, then delegates"}).`,
   ];
   if (global) parts.push(`Swarm instructions: ${global}`);

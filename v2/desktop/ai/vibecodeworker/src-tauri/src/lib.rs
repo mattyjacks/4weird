@@ -193,8 +193,8 @@ mod commands {
     }
 
     // ─── Bot API token (4weird bot key) ─────────────────
-    // Lets the desktop app act as the user's bot on 4weird.games.
-    // Keys are issued at https://4weird.games/bot/setup and look like
+    // Lets the desktop app act as the user's bot on 4weird.com.
+    // Keys are issued at https://4weird.com/bot/setup and look like
     // `bot4weird_` + 20 chars from [A-Za-z0-9] (shown once, hashed server-side).
     // The secret is kept in a local-only file under the OS app-data dir and is
     // never logged; status calls report only whether a token is stored.

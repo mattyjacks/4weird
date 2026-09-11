@@ -68,7 +68,7 @@ export default function PlayingGamesPage() {
         title="Rentals: load fee + per-second play"
         body="Signed-in play never shows ads — it meters coins instead, with the 25% cut already inside every figure. Two parts:"
       />
-      <MockWindow title="4weird.games — play session receipt" badge="live meter">
+      <MockWindow title="4weird.com — play session receipt" badge="live meter">
         <div className="space-y-2 font-mono text-xs sm:text-sm">
           <div className="flex justify-between gap-4"><span className="text-slate-400">LOAD · 1.0 MiB fresh bytes</span><span className="font-bold text-emerald-300">−1.00 🪙</span></div>
           <div className="flex justify-between gap-4"><span className="text-slate-400">PLAY · 5h Ö 1 coin/hr, per-second</span><span className="font-bold text-emerald-300">−5.00 🪙</span></div>

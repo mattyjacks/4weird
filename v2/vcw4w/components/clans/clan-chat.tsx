@@ -41,7 +41,7 @@ function shortId(id: string): string {
   return `${id.slice(0, 8)}…`;
 }
 
-export function ClanDiscord({ slug }: { slug: string }) {
+export function ClanChat({ slug }: { slug: string }) {
   const [channels, setChannels] = useState<ChatChannel[]>([]);
   const [activeId, setActiveId] = useState<string>("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
