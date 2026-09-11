@@ -390,7 +390,7 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
           for 100 coins, daily bonuses, and no ads.
         </p>
       )}
-      <div className="overflow-hidden overscroll-contain rounded-2xl border border-white/15 bg-black">
+      <div className="perf-frame overflow-hidden overscroll-contain rounded-2xl border border-white/15 bg-black">
         <div className="play-frame-height min-h-[420px]">
           <GameRuntimeFrame slug={slug} title={title} src={frameSrc} />
         </div>

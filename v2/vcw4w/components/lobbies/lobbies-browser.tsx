@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { sortByPingAsync } from "@/lib/perf-client";
 
 type Lobby = {
   id: string;
@@ -44,8 +45,14 @@ export function LobbiesBrowser() {
         return;
       }
       const list = (Array.isArray(body.lobbies) ? body.lobbies : []) as Lobby[];
-      list.sort((a, b) => (a.relay_ping_ms ?? 999) - (b.relay_ping_ms ?? 999));
-      setRows(list);
+      // Ping sort runs in /workers/search-worker.js (falls back to main thread).
+      const rows = list.map((l) => ({ ...l, relay_ping_ms: Number(l.relay_ping_ms) || 999 }));
+      const sorted = await sortByPingAsync(
+        rows.map((l) => ({ id: l.id, ping: Number(l.relay_ping_ms) || 999 })),
+      );
+      const order = new Map(sorted.map((s, i) => [s.id, i]));
+      rows.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+      setRows(rows);
       setMessage(list.length ? "" : "No open lobbies match this filter.");
     } catch {
       setMessage("Unable to load lobbies.");
@@ -129,7 +136,7 @@ export function LobbiesBrowser() {
         {message || `${rows?.length ?? 0} open ${rows?.length === 1 ? "lobby" : "lobbies"} · sorted by relay ping, lowest first.`}
       </div>
       {!message && (
-        <ul className="space-y-3">
+        <ul className="perf-list space-y-3">
           {(rows ?? []).map((lobby) => (
             <li
               key={lobby.id}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MarkdownView } from "@/components/clans/markdown-view";
 
 type ChatChannel = {
@@ -57,6 +57,19 @@ export function ClanDiscord({ slug }: { slug: string }) {
 
   const active = channels.find((c) => c.id === activeId) ?? channels[0] ?? null;
 
+  // Reaction lookup is O(1) per message: the feed re-renders every 5s poll,
+  // so a linear filter per message would be O(messages x reactions) on the
+  // main thread. Grouped once here instead.
+  const reactionsByMessage = useMemo(() => {
+    const map = new Map<string, Reaction[]>();
+    for (const r of reactions) {
+      const list = map.get(r.message_id);
+      if (list) list.push(r);
+      else map.set(r.message_id, [r]);
+    }
+    return map;
+  }, [reactions]);
+
   const loadSidebar = useCallback(async () => {
     try {
       const res = await fetch(`/api/clans/${slug}/channels`);
@@ -104,8 +117,20 @@ export function ClanDiscord({ slug }: { slug: string }) {
     if (!id) return;
     setActiveId(id);
     void loadMessages(id);
-    const timer = setInterval(() => void loadMessages(id), 5000);
-    return () => clearInterval(timer);
+    // Hidden tabs skip polls: no GPU/CPU/network burned for an unseen feed.
+    // Visible tabs poll every 5s as before.
+    const tick = () => {
+      if (!document.hidden) void loadMessages(id);
+    };
+    const timer = setInterval(tick, 5000);
+    const onVis = () => {
+      if (!document.hidden) void loadMessages(id);
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [active?.id, loadMessages]);
 
   useEffect(() => {
@@ -256,9 +281,9 @@ export function ClanDiscord({ slug }: { slug: string }) {
             <span className="font-bold text-white">{active?.readonly ? "📢" : active?.kind === "media" ? "🖼️" : "#"} {active?.name ?? "general"}</span>
             {active?.topic && <span className="ml-2 text-xs text-slate-400">— {active.topic}</span>}
           </div>
-          <div className="flex-1 space-y-3 overflow-y-auto p-4" style={{ maxHeight: "420px" }}>
+          <div className="perf-list flex-1 space-y-3 overflow-y-auto p-4" style={{ maxHeight: "420px" }}>
             {messages.map((m) => {
-              const myReactions = reactions.filter((r) => r.message_id === m.id);
+              const myReactions = reactionsByMessage.get(m.id) ?? [];
               return (
                 <div key={m.id} className="group rounded-lg p-2 transition hover:bg-white/5">
                   <div className="flex items-baseline gap-2">

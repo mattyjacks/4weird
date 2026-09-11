@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { GoogleAnalytics } from "@/components/site/google-analytics";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
+import { PerfBootstrap } from "@/components/perf/perf-bootstrap";
 import "./globals.css";
 
 const defaultUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -44,6 +45,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <GoogleAnalytics />
         </Suspense>
+        <PerfBootstrap />
         <Analytics />
       </body>
     </html>

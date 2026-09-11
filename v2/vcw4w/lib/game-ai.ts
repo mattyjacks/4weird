@@ -26,6 +26,8 @@ export const GAME_AI_KINDS = [
   "inference",
   "buddy-chat",
   "buddy-tts",
+  "buddy-avatar",
+  "buddy-camera",
 ] as const;
 export type GameAiKind = (typeof GAME_AI_KINDS)[number];
 
@@ -50,6 +52,8 @@ export const GAME_AI_RATES: GameAiRate[] = [
   { kind: "inference", unit: "worker_min", coinsPerUnit: 6, blurb: "Hosted inference endpoint for game AI" },
   { kind: "buddy-chat", unit: "1k_tokens", coinsPerUnit: 3, blurb: "Gaming Buddy conversation (screen-aware)" },
   { kind: "buddy-tts", unit: "1k_chars", coinsPerUnit: 2, blurb: "Gaming Buddy voice output (9 OpenAI voices)" },
+  { kind: "buddy-avatar", unit: "min", coinsPerUnit: 0.08, blurb: "Buddy 3D avatar presence (optional, 8 centicentcoins/min)" },
+  { kind: "buddy-camera", unit: "frame", coinsPerUnit: 0.03, blurb: "Camera emotion/body-language frame (optional, 3 centicentcoins/frame)" },
 ];
 
 export function rateForKind(kind: GameAiKind): GameAiRate | undefined {
@@ -284,4 +288,51 @@ export function quoteBuddyTtsLeg(input: { chars: number; model: string }): Buddy
 /** Human line for the widget: "2.15 coins (215 centicentcoins) ≈ $0.0215". */
 export function formatBuddyCost(cost: Pick<BuddyCostBreakdown, "grossCoins" | "grossCenticentcoins" | "usdGross">): string {
   return `${cost.grossCoins} coins (${cost.grossCenticentcoins} centicentcoins) ≈ $${cost.usdGross.toFixed(4)}`;
+}
+
+/* ---------------------------------------------------------------------------
+ * Presence metering — avatar minutes + camera frames, in centicentcoins.
+ *
+ * Fixed per-unit rates mirror the meter_game_ai_usage RPC case arms
+ * (buddy-avatar 0.08 coins/min = 8 centicentcoins/min, buddy-camera 0.03
+ * coins/frame = 3 centicentcoins/frame, 0.01-coin floor). Same 25%-included
+ * split as every other kind via gameAiSplit. Dedicated fns (not
+ * quoteGameAi) so fractional qty keeps centicentcoin accuracy instead of
+ * ceil-ing to whole coins.
+ * ------------------------------------------------------------------------- */
+
+export const AVATAR_COINS_PER_MIN = 0.08;
+export const CAMERA_COINS_PER_FRAME = 0.03;
+
+export type PresenceQuote = {
+  grossCoins: number;
+  grossCenticentcoins: number;
+  cut: number;
+  provider: number;
+  display: string;
+};
+
+function presenceQuote(gross: number): PresenceQuote {
+  const split = gameAiSplit(gross);
+  return {
+    grossCoins: split.gross,
+    grossCenticentcoins: coinsToCenticentcoins(split.gross),
+    cut: split.cut,
+    provider: split.provider,
+    display: `${split.gross} coins (${coinsToCenticentcoins(split.gross)} centicentcoins)`,
+  };
+}
+
+/** Gross quote for avatar presence (qty in minutes, fractional ok). */
+export function quoteAvatarMinutes(minutes: number): PresenceQuote {
+  const m = Number(minutes);
+  if (!Number.isFinite(m) || m <= 0) return presenceQuote(0.01);
+  return presenceQuote(Math.max(0.01, Math.round(AVATAR_COINS_PER_MIN * m * 100) / 100));
+}
+
+/** Gross quote for camera frames (qty in frames). */
+export function quoteCameraFrames(frames: number): PresenceQuote {
+  const n = Number(frames);
+  if (!Number.isFinite(n) || n <= 0) return presenceQuote(0.01);
+  return presenceQuote(Math.max(0.01, Math.round(CAMERA_COINS_PER_FRAME * n * 100) / 100));
 }

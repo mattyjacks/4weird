@@ -28,7 +28,8 @@
     "verify:fal": "node scripts/verify-fal.mjs",
     "verify:pwa": "node scripts/verify-pwa.mjs",
     "verify:rights": "node scripts/verify-rights.mjs",
-    "test": "npm run sync:games && npm run verify:games && npm run verify:catalog && npm run verify:legacy && npm run verify:legacy-parity && npm run verify:service-worker && npm run verify:robots && npm run verify:spaceships && npm run verify:auth && npm run verify:bot && npm run verify:economy && npm run verify:game-ai && npm run verify:game-rentals && npm run verify:clan-economy && npm run verify:agent-rentals && npm run verify:vcw-autoplay && npm run verify:desktop && npm run verify:vcw-runs && npm run verify:fal && npm run verify:blender-render && npm run verify:pwa && npm run verify:rights && npm run lint && tsc --noEmit",
+    "verify:perf": "node scripts/verify-perf.mjs",
+    "test": "npm run sync:games && npm run verify:games && npm run verify:catalog && npm run verify:legacy && npm run verify:legacy-parity && npm run verify:service-worker && npm run verify:robots && npm run verify:spaceships && npm run verify:auth && npm run verify:bot && npm run verify:economy && npm run verify:game-ai && npm run verify:game-rentals && npm run verify:clan-economy && npm run verify:agent-rentals && npm run verify:vcw-autoplay && npm run verify:desktop && npm run verify:vcw-runs && npm run verify:fal && npm run verify:blender-render && npm run verify:pwa && npm run verify:rights && npm run verify:perf && npm run lint && tsc --noEmit",
     "verify:blender-render": "node scripts/verify-blender-render.mjs"
   },
   "dependencies": {

@@ -1,10 +1,43 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BUDDY_DEFAULT_VOICE, BUDDY_VOICES } from "@/lib/game-ai";
+import { BUDDY_DEFAULT_VOICE, BUDDY_VOICES, quoteAvatarMinutes, quoteCameraFrames } from "@/lib/game-ai";
 import { TRUSTED_GAME_ORIGINS } from "@/components/games/game-runtime-frame";
+import { BuddyAvatar, BuddyAvatarType } from "@/components/buddy/buddy-avatar";
+import {
+  InterruptionSnapshot,
+  VadState,
+  buildInterruptionSnapshot,
+  frameEnergy,
+  mergePartialTranscript,
+  snapshotToPrompt,
+  updateVad,
+} from "@/lib/buddy-voice";
 
-type BuddyMessage = { role: "buddy" | "you"; text: string; at: string };
+type BuddyMessage = { role: "buddy" | "you"; text: string; at: string; interrupted?: boolean };
+
+type SpeechRecognitionLike = {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((e: { results: ArrayLike<{ isFinal: boolean; 0: { transcript: string } }> }) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+
+function getSpeechRecognition(): (new () => SpeechRecognitionLike) | null {
+  try {
+    const w = window as unknown as {
+      SpeechRecognition?: new () => SpeechRecognitionLike;
+      webkitSpeechRecognition?: new () => SpeechRecognitionLike;
+    };
+    return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+  } catch {
+    return null;
+  }
+}
 type SessionSpend = { gross: number; cut: number; provider: number; turns: number };
 type TurnCost = {
   grossCoins: number;
@@ -27,19 +60,6 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(String((data as { error?: unknown }).error ?? `Request failed (${response.status})`));
   return data as T;
-}
-
-function speakWithBrowser(text: string, voiceId: string) {
-  try {
-    if (!("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text.slice(0, 400));
-    utter.rate = 1.0;
-    utter.pitch = voiceId === "echo" || voiceId === "onyx" ? 0.7 : voiceId === "nova" || voiceId === "shimmer" ? 1.3 : 1.0;
-    window.speechSynthesis.speak(utter);
-  } catch {
-    // Audio is best-effort; the transcript below is the source of truth.
-  }
 }
 
 type ShareMode = "off" | "tab" | "screen";
@@ -78,6 +98,51 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  // --- Voice presence (mic + smart speech detection + barge-in) ---
+  const [micOn, setMicOn] = useState(false);
+  const [micMuted, setMicMuted] = useState(false);
+  const [vadSmart, setVadSmart] = useState(true);
+  const [hearing, setHearing] = useState(false);
+  const [interim, setInterim] = useState("");
+  const [speechSupported] = useState(() => typeof window !== "undefined" && getSpeechRecognition() !== null);
+  const micStreamRef = useRef<MediaStream | null>(null);
+  const [micStream, setMicStream] = useState<MediaStream | null>(null);
+  const micCtxRef = useRef<AudioContext | null>(null);
+  const micAnalyserRef = useRef<AnalyserNode | null>(null);
+  const micBufRef = useRef<Uint8Array>(new Uint8Array(512));
+  const micRafRef = useRef(0);
+  const vadRef = useRef<VadState>({ speaking: false, hang: 0 });
+  const recogRef = useRef<SpeechRecognitionLike | null>(null);
+  const interimRef = useRef("");
+  const pendingRef = useRef<InterruptionSnapshot | null>(null);
+  const micOnRef = useRef(false);
+  const micMutedRef = useRef(false);
+  const vadSmartRef = useRef(true);
+  // --- Buddy speech tracking (for barge-in + avatar lips) ---
+  const [speaking, setSpeaking] = useState(false);
+  const speakingRef = useRef(false);
+  const [script, setScript] = useState("");
+  const [scriptAt, setScriptAt] = useState<number | null>(null);
+  const [voiceEl, setVoiceEl] = useState<HTMLAudioElement | null>(null);
+  const replyRef = useRef<{ text: string; startedAt: number } | null>(null);
+  const speakTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // --- Camera presence (opt-in emotion / body-language frames) ---
+  const [camOn, setCamOn] = useState(false);
+  const camStreamRef = useRef<MediaStream | null>(null);
+  const camVideoRef = useRef<HTMLVideoElement | null>(null);
+  // --- Avatar presence (optional 3D companion, metered per minute) ---
+  const [avatarOn, setAvatarOn] = useState(false);
+  const [avatarType, setAvatarType] = useState<BuddyAvatarType>("cube");
+  const [avatarColor, setAvatarColor] = useState("#7c6cf6");
+  const [avatarCents, setAvatarCents] = useState(0);
+  const avatarStartRef = useRef<number | null>(null);
+  const avatarTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  type TalkOpts = { resumed?: InterruptionSnapshot | null; interrupted?: boolean };
+  const talkRef = useRef<(text: string, opts?: TalkOpts) => Promise<void>>(async () => undefined);
+  // Screen-text cache: DOM queries run at most once per second so rapid
+  // sends never force layout back-to-back on the main thread.
+  const screenCache = useRef<{ at: number; text: string }>({ at: 0, text: "" });
 
   const refreshSpend = useCallback(async (sid: string | null) => {
     try {
@@ -106,6 +171,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
   }, []);
 
   // Stop any in-flight voice when the session ends or the widget unmounts.
+  // Also the barge-in path: cutting Buddy off mid-sentence.
   const stopVoice = useCallback(() => {
     try {
       audioRef.current?.pause();
@@ -113,7 +179,66 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
     } catch {
       /* audio teardown is best-effort */
     }
+    speakingRef.current = false;
+    setSpeaking(false);
+    if (speakTimerRef.current) {
+      clearTimeout(speakTimerRef.current);
+      speakTimerRef.current = null;
+    }
   }, []);
+
+  const messagesRef = useRef<BuddyMessage[]>([]);
+  const pushMessage = useCallback((m: BuddyMessage) => {
+    messagesRef.current = [...messagesRef.current, m].slice(-30);
+    setMessages(messagesRef.current);
+  }, []);
+
+  /** Approx what Buddy had spoken when the user cut in (audio clock, else 35%). */
+  const replyProgress = useCallback((): string => {
+    const cur = replyRef.current;
+    if (!cur) return "";
+    let frac = 0.35;
+    try {
+      const el = audioRef.current;
+      if (el && Number.isFinite(el.duration) && el.duration > 0 && Number.isFinite(el.currentTime)) {
+        frac = Math.min(0.95, Math.max(0.05, el.currentTime / el.duration));
+      }
+    } catch {
+      /* clock is best-effort */
+    }
+    return cur.text.slice(0, Math.max(10, Math.floor(cur.text.length * frac)));
+  }, []);
+
+  const markSpeaking = useCallback((text: string) => {
+    speakingRef.current = true;
+    setSpeaking(true);
+    if (speakTimerRef.current) clearTimeout(speakTimerRef.current);
+    // Safety: clear the flag even if an audio event is missed.
+    const ms = Math.min(60_000, Math.max(4_000, (text.length / 13) * 1000));
+    speakTimerRef.current = setTimeout(() => {
+      speakingRef.current = false;
+      setSpeaking(false);
+    }, ms);
+  }, []);
+
+  const speakBrowser = useCallback((text: string) => {
+    markSpeaking(text);
+    try {
+      if (!("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text.slice(0, 400));
+      utter.rate = 1.0;
+      utter.pitch = voice === "echo" || voice === "onyx" ? 0.7 : voice === "nova" || voice === "shimmer" ? 1.3 : 1.0;
+      utter.onend = () => {
+        speakingRef.current = false;
+        setSpeaking(false);
+        replyRef.current = null;
+      };
+      window.speechSynthesis.speak(utter);
+    } catch {
+      // Audio is best-effort; the transcript below is the source of truth.
+    }
+  }, [markSpeaking, voice]);
 
   const stopSharing = useCallback(() => {
     try {
@@ -130,8 +255,18 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
   useEffect(() => {
     if (!sessionId) return;
     void refreshSpend(sessionId);
-    const timer = setInterval(() => void refreshSpend(sessionId), 15_000);
-    return () => clearInterval(timer);
+    // Hidden tabs skip spend polls — the metered ledger stays authoritative.
+    const timer = setInterval(() => {
+      if (!document.hidden) void refreshSpend(sessionId);
+    }, 15_000);
+    const onVis = () => {
+      if (!document.hidden) void refreshSpend(sessionId);
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [sessionId, refreshSpend]);
 
   useEffect(() => stopVoice, [stopVoice]);
@@ -195,6 +330,310 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
     }
   };
 
+  /** True while Buddy's own voice is audible (barge-in only counts then). */
+  const isBuddySpeaking = useCallback((): boolean => {
+    try {
+      const el = audioRef.current;
+      if (el && !el.paused && !el.ended) return true;
+      if ("speechSynthesis" in window && window.speechSynthesis.speaking) return true;
+    } catch {
+      /* speaking check is best-effort */
+    }
+    return speakingRef.current;
+  }, []);
+
+  /** Barge-in: user cut in — stop Buddy, snapshot both sides, resume next turn. */
+  const handleBargeIn = useCallback(() => {
+    const partial = interimRef.current.trim();
+    const soFar = replyProgress();
+    stopVoice();
+    replyRef.current = null;
+    const snap = buildInterruptionSnapshot({ partialUserText: partial, buddyReplySoFar: soFar, gameTitle });
+    pendingRef.current = snap;
+    setStatus(
+      partial
+        ? `Heard you cut in (“${partial.slice(0, 60)}${partial.length > 60 ? "…" : ""}”) — finishing your sentence, then Buddy resumes from it.`
+        : "Heard you cut in — finishing your sentence, then Buddy resumes from it.",
+    );
+  }, [gameTitle, replyProgress, stopVoice]);
+
+  const autoSendVoice = useCallback(() => {
+    const text = interimRef.current.trim();
+    interimRef.current = "";
+    setInterim("");
+    if (!text || !sessionIdRef.current || busyRef.current || micMutedRef.current) return;
+    const resumed = pendingRef.current;
+    pendingRef.current = null;
+    void talkRef.current(text, { resumed, interrupted: resumed !== null });
+  }, []);
+
+  const micLoop = useCallback(() => {
+    const analyser = micAnalyserRef.current;
+    if (!analyser) return;
+    try {
+      const buf = micBufRef.current;
+      analyser.getByteTimeDomainData(buf as unknown as Uint8Array<ArrayBuffer>);
+      const energy = frameEnergy(buf);
+      const { state, event } = updateVad(vadRef.current, energy);
+      vadRef.current = state;
+      const active = state.speaking && !micMutedRef.current;
+      setHearing((h) => (h === active ? h : active));
+      if (event === "started" && !micMutedRef.current && isBuddySpeaking()) {
+        handleBargeIn();
+      } else if (event === "ended" && vadSmartRef.current) {
+        autoSendVoice();
+      }
+    } catch {
+      /* VAD tick is best-effort */
+    }
+    micRafRef.current = requestAnimationFrame(micLoop);
+  }, [autoSendVoice, handleBargeIn, isBuddySpeaking]);
+
+  const startRecognition = useCallback(() => {
+    const Kind = getSpeechRecognition();
+    if (!Kind || recogRef.current) return;
+    try {
+      const recog = new Kind();
+      recog.continuous = true;
+      recog.interimResults = true;
+      recog.lang = "en-US";
+      recog.onresult = (e) => {
+        try {
+          let interimText = "";
+          for (let i = 0; i < e.results.length; i += 1) {
+            const r = e.results[i];
+            if (!r.isFinal) interimText += String(r[0]?.transcript ?? "");
+          }
+          interimRef.current = mergePartialTranscript(interimRef.current, interimText);
+          setInterim(interimRef.current);
+        } catch {
+          /* transcript fold is best-effort */
+        }
+      };
+      recog.onerror = () => undefined;
+      recog.onend = () => {
+        recogRef.current = null;
+        // Keep listening across natural recognizer restarts while mic is live.
+        if (micOnRef.current && !micMutedRef.current) {
+          try {
+            startRecognition();
+          } catch {
+            /* restart is best-effort */
+          }
+        }
+      };
+      recog.start();
+      recogRef.current = recog;
+    } catch {
+      /* speech recognition is optional */
+    }
+  }, []);
+
+  const enableMic = async () => {
+    if (micOn || typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+      if (!navigator.mediaDevices?.getUserMedia) setStatus("Microphone is not supported in this browser — typed messages still work.");
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micStreamRef.current = stream;
+      setMicStream(stream);
+      micOnRef.current = true;
+      micMutedRef.current = micMuted;
+      const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (Ctx) {
+        const ctx = new Ctx();
+        micCtxRef.current = ctx;
+        const src = ctx.createMediaStreamSource(stream);
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 512;
+        src.connect(analyser);
+        micAnalyserRef.current = analyser;
+        void ctx.resume().catch(() => undefined);
+      }
+      vadRef.current = { speaking: false, hang: 0 };
+      micRafRef.current = requestAnimationFrame(micLoop);
+      startRecognition();
+      setMicOn(true);
+      setStatus(
+        speechSupported
+          ? "Mic live — talk to interrupt Buddy anytime; smart detection sends your sentence when you pause. Mute anytime below."
+          : "Mic live for interruption detection — typed messages still send turns (this browser has no speech-to-text).",
+      );
+    } catch {
+      setStatus("Microphone blocked — allow mic access in the browser bar, or keep typing.");
+    }
+  };
+
+  const disableMic = useCallback(() => {
+    micOnRef.current = false;
+    cancelAnimationFrame(micRafRef.current);
+    try {
+      recogRef.current?.stop();
+    } catch {
+      /* recognizer teardown is best-effort */
+    }
+    recogRef.current = null;
+    try {
+      micStreamRef.current?.getTracks().forEach((t) => t.stop());
+    } catch {
+      /* track teardown is best-effort */
+    }
+    micStreamRef.current = null;
+    setMicStream(null);
+    try {
+      void micCtxRef.current?.close().catch(() => undefined);
+    } catch {
+      /* context teardown is best-effort */
+    }
+    micCtxRef.current = null;
+    micAnalyserRef.current = null;
+    interimRef.current = "";
+    setInterim("");
+    setHearing(false);
+    setMicOn(false);
+  }, []);
+
+  const toggleMute = () => {
+    const next = !micMuted;
+    setMicMuted(next);
+    micMutedRef.current = next;
+    try {
+      micStreamRef.current?.getAudioTracks().forEach((t) => {
+        t.enabled = !next;
+      });
+      if (next) {
+        recogRef.current?.stop();
+        recogRef.current = null;
+        interimRef.current = "";
+        setInterim("");
+        setHearing(false);
+      } else if (micOnRef.current) {
+        startRecognition();
+      }
+    } catch {
+      /* mute toggle is best-effort */
+    }
+    setStatus(next ? "Mic muted — Buddy can't hear you until you unmute." : "Mic live again.");
+  };
+
+  const enableCamera = async () => {
+    if (camOn || typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+      if (!navigator.mediaDevices?.getUserMedia) setStatus("Camera is not supported in this browser.");
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 640 }, facingMode: "user" },
+        audio: false,
+      });
+      camStreamRef.current = stream;
+      const [track] = stream.getVideoTracks();
+      track?.addEventListener("ended", () => disableCamera());
+      if (camVideoRef.current) {
+        camVideoRef.current.srcObject = stream;
+        await camVideoRef.current.play().catch(() => undefined);
+      }
+      setCamOn(true);
+      setStatus("Camera on — attach a frame to any message and Buddy reads your energy, posture, and backdrop. Each attached frame is itemized in that turn (~3 centicentcoins). Stop anytime.");
+    } catch {
+      setStatus("Camera blocked — allow camera access in the browser bar, or keep playing without it.");
+    }
+  };
+
+  const disableCamera = useCallback(() => {
+    try {
+      camStreamRef.current?.getTracks().forEach((t) => t.stop());
+    } catch {
+      /* track teardown is best-effort */
+    }
+    camStreamRef.current = null;
+    if (camVideoRef.current) camVideoRef.current.srcObject = null;
+    setCamOn(false);
+  }, []);
+
+  /** One downscaled camera frame for the next explicit turn (never silent). */
+  const captureCameraFrame = (): string | null => {
+    try {
+      const stream = camStreamRef.current;
+      const video = camVideoRef.current;
+      if (!stream || !video || video.readyState < 2 || video.videoWidth < 2) return null;
+      const maxW = 480;
+      const scale = Math.min(1, maxW / video.videoWidth);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(2, Math.round(video.videoWidth * scale));
+      canvas.height = Math.max(2, Math.round(video.videoHeight * scale));
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return null;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const url = canvas.toDataURL("image/jpeg", 0.55);
+      if (url.length > 900_000) return null;
+      return url;
+    } catch {
+      return null;
+    }
+  };
+
+  /** Meter avatar minutes (heartbeat). Camera frames ride chat turns instead. */
+  const meterPresence = useCallback(async (feature: "avatar", qty: number): Promise<boolean> => {
+    if (!sessionId) return false;
+    try {
+      const r = await post<{ metered: unknown; pendingMigration?: boolean; quote: { display: string } }>(
+        "/api/buddy/presence",
+        { feature, qty, game_slug: gameSlug, session_id: sessionId },
+      );
+      const m = r.quote.display.match(/(\d+)\s+centicentcoins/);
+      if (m) setAvatarCents((c) => c + Number(m[1]));
+      void refreshSpend(sessionId);
+      return true;
+    } catch {
+      return false;
+    }
+  }, [sessionId, gameSlug, refreshSpend]);
+
+  const stopAvatarMeter = useCallback(async () => {
+    if (avatarTimerRef.current) {
+      clearInterval(avatarTimerRef.current);
+      avatarTimerRef.current = null;
+    }
+    const started = avatarStartRef.current;
+    avatarStartRef.current = null;
+    if (started !== null && sessionId) {
+      const secs = (Date.now() - started) / 1000;
+      // Whole minutes tick while running; only the tail is fractional.
+      const tail = (secs % 60) / 60;
+      if (secs >= 5 && tail > 0.02) {
+        await meterPresence("avatar", Math.round(tail * 100) / 100);
+      }
+    }
+  }, [meterPresence, sessionId]);
+
+  const setAvatarVisible = (on: boolean) => {
+    if (on === avatarOn) return;
+    if (on) {
+      setAvatarOn(true);
+      avatarStartRef.current = Date.now();
+      if (avatarTimerRef.current) clearInterval(avatarTimerRef.current);
+      avatarTimerRef.current = setInterval(() => {
+        void (async () => {
+          const okTick = await meterPresence("avatar", 1);
+          if (!okTick) {
+            setStatus("Avatar ran out of meterable coins — avatar paused, chat still works.");
+            setAvatarOn(false);
+            avatarStartRef.current = null;
+            if (avatarTimerRef.current) clearInterval(avatarTimerRef.current);
+            avatarTimerRef.current = null;
+          }
+        })();
+      }, 60_000);
+      setStatus(`Avatar on — cute companion renders beside chat at ${quoteAvatarMinutes(1).display}/min. Turn it off anytime.`);
+    } else {
+      setAvatarOn(false);
+      void stopAvatarMeter();
+      setStatus("Avatar off — presence metering stopped.");
+    }
+  };
+
   const start = async () => {
     setBusy(true);
     try {
@@ -206,7 +645,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       setSessionId(r.session.id);
       setOpen(true);
       setStatus(`Buddy is live as ${voice}. It reads your screen and reacts out loud.`);
-      setMessages((m) => [...m, { role: "buddy", text: `Hey, I'm your Gaming Buddy for ${gameTitle}. I'm watching the screen — talk to me while you play.`, at: new Date().toLocaleTimeString() }]);
+      pushMessage({ role: "buddy", text: `Hey, I'm your Gaming Buddy for ${gameTitle}. I'm watching the screen — talk to me while you play.`, at: new Date().toLocaleTimeString() });
       void refreshSpend(r.session.id);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Could not start buddy.");
@@ -219,6 +658,11 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
     if (!sessionId) return;
     stopVoice();
     stopSharing();
+    disableMic();
+    disableCamera();
+    replyRef.current = null;
+    await stopAvatarMeter();
+    setAvatarOn(false);
     try {
       await post("/api/buddy/session", { action: "end", session_id: sessionId });
       setStatus("Session ended. Screen sharing stopped. Spend stays on /my/usage/ forever.");
@@ -234,39 +678,61 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
     // Screen reading without new deps: visible headings + live region text —
     // scoped OUTSIDE this widget (data-buddy) so the buddy never quotes its
     // own transcript back into the next prompt (the /react echo bug).
+    // Cached 1s: rapid sends reuse the last snapshot instead of re-querying.
+    const now = Date.now();
+    if (now - screenCache.current.at < 1000) return screenCache.current.text;
     try {
       const els = [...document.querySelectorAll("h1, h2, [role=status]")]
         .filter((e) => !e.closest("[data-buddy]"))
         .slice(0, 8);
-      return els.map((e) => (e.textContent ?? "").trim()).filter(Boolean).join(" · ").slice(0, 500);
+      const text = els.map((e) => (e.textContent ?? "").trim()).filter(Boolean).join(" · ").slice(0, 500);
+      screenCache.current = { at: now, text };
+      return text;
     } catch {
-      return "";
+      return screenCache.current.text;
     }
   };
 
-  const talk = async (text: string) => {
+  const talk = async (text: string, opts?: { resumed?: InterruptionSnapshot | null; interrupted?: boolean }) => {
     // Guarded: without this, double-Enter submits two concurrent turns and
     // the user is metered twice for one message.
     if (!sessionId || !text.trim() || busy) return;
     setBusy(true);
     const screen = text.trim().startsWith("/") ? observeScreenText() : `${observeScreenText()} ${text.trim()}`.trim();
     const snapshot = shareMode === "off" ? null : captureSnapshot();
+    // Camera frames only ever ride an explicit user turn — never silent.
+    const camFrame = !camOn ? null : captureCameraFrame();
     if (shareMode !== "off" && !snapshot) {
       setStatus("Screen share is on but no frame was ready — sent text context only (no image charge). Re-pick the tab if this persists.");
     }
-    setMessages((m) => [...m, { role: "you", text: text.trim(), at: new Date().toLocaleTimeString() }]);
+    if (camOn && !camFrame) {
+      setStatus("Camera is on but no frame was ready — sent without a camera frame (no camera charge).");
+    }
+    const resumedNote = opts?.resumed ? snapshotToPrompt(opts.resumed) : "";
+    pushMessage({ role: "you", text: text.trim(), at: new Date().toLocaleTimeString(), ...(opts?.interrupted ? { interrupted: true } : {}) });
     setDraft("");
+    const history = messagesRef.current.slice(-8).map((m) => ({
+      role: m.role === "buddy" ? ("buddy" as const) : ("user" as const),
+      text: m.text.slice(0, 300),
+      ...(m.interrupted ? { interrupted: true as const } : {}),
+    }));
     try {
       const r = await post<{ reply: string; voice: string; fallback: boolean; cost?: TurnCost | null }>("/api/buddy/chat", {
         game_slug: gameSlug,
         game_title: gameTitle,
         screen_text: screen || text.trim(),
+        message: `${resumedNote} ${text.trim()}`.trim().slice(0, 900),
+        history,
         score,
         voice,
         session_id: sessionId,
         ...(snapshot ? { screen_image: snapshot } : {}),
+        ...(camFrame ? { camera_image: camFrame } : {}),
       });
-      setMessages((m) => [...m, { role: "buddy", text: r.reply, at: new Date().toLocaleTimeString() }]);
+      pushMessage({ role: "buddy", text: r.reply, at: new Date().toLocaleTimeString() });
+      setScript(r.reply);
+      setScriptAt(Date.now());
+      replyRef.current = { text: r.reply, startedAt: Date.now() };
       if (r.cost) {
         const p = r.cost.parts ?? {};
         const bits: string[] = [];
@@ -277,7 +743,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       }
       // ACT: voice output in the selected voice.
       if (r.fallback) {
-        speakWithBrowser(r.reply, voice);
+        speakBrowser(r.reply);
       } else {
         try {
           const t = await post<{ fallback: boolean; audio?: string; mime?: string; cost?: TurnCost | null }>("/api/buddy/tts", {
@@ -297,16 +763,30 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
           if (!t.fallback && t.audio) {
             const el = audioRef.current ?? new Audio();
             el.src = `data:${t.mime ?? "audio/mpeg"};base64,${t.audio}`;
+            el.onended = () => {
+              speakingRef.current = false;
+              setSpeaking(false);
+              replyRef.current = null;
+            };
+            el.onpause = () => {
+              // Pause also fires on barge-in stopVoice() — flag clears there.
+              if (el.ended) {
+                speakingRef.current = false;
+                setSpeaking(false);
+              }
+            };
             audioRef.current = el;
-            await el.play().catch(() => speakWithBrowser(r.reply, voice));
+            setVoiceEl(el);
+            markSpeaking(r.reply);
+            await el.play().catch(() => speakBrowser(r.reply));
           } else {
-            speakWithBrowser(r.reply, voice);
+            speakBrowser(r.reply);
           }
         } catch {
-          speakWithBrowser(r.reply, voice);
+          speakBrowser(r.reply);
         }
       }
-      setStatus(r.fallback ? "AI is unavailable — Buddy answered locally at no cost." : "Buddy answered and spoke.");
+      setStatus(r.fallback ? "AI is unavailable — Buddy answered locally at no cost." : camFrame ? "Buddy answered (camera frame itemized in the turn cost) and spoke." : "Buddy answered and spoke.");
       void refreshSpend(sessionId);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Buddy could not answer.");
@@ -314,6 +794,35 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       setBusy(false);
     }
   };
+
+  // Ref mirrors for the mic RAF loop + recognizer (they outlive renders).
+  const sessionIdRef = useRef<string | null>(null);
+  const busyRef = useRef(false);
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+    busyRef.current = busy;
+    vadSmartRef.current = vadSmart;
+    talkRef.current = (t, o) => talk(t, o);
+  });
+
+  // Full teardown on unmount: mic, camera, avatar meter, voice.
+  useEffect(() => {
+    return () => {
+      cancelAnimationFrame(micRafRef.current);
+      try {
+        recogRef.current?.stop();
+      } catch {
+        /* teardown is best-effort */
+      }
+      try {
+        micStreamRef.current?.getTracks().forEach((t) => t.stop());
+        camStreamRef.current?.getTracks().forEach((t) => t.stop());
+      } catch {
+        /* teardown is best-effort */
+      }
+      if (avatarTimerRef.current) clearInterval(avatarTimerRef.current);
+    };
+  }, []);
 
   return (
     <section data-buddy aria-label="Gaming Buddy" className="mt-4 rounded-2xl border border-violet-300/30 bg-gradient-to-b from-violet-400/10 to-white/[.02] p-5">
@@ -430,15 +939,122 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
         <video ref={videoRef} muted playsInline className={shareMode === "off" ? "hidden" : "mt-2 max-h-32 rounded-lg border border-white/10"} aria-label="Screen share preview" />
       </div>
 
+      <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-slate-300">
+        <p className="font-bold text-white">🎙️ Talk to Buddy <span className="font-normal text-slate-400">(optional mic — mute anytime, Buddy never records you)</span></p>
+        <p className="mt-1 text-slate-400">
+          Turn the mic on to interrupt Buddy mid-sentence — it stops, remembers what both of you said, and resumes
+          from your cut-in. Only transcripts leave the device (never audio). Smart detection sends your sentence when
+          you pause; turn it off to send manually.
+        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          {!micOn ? (
+            <button type="button" disabled={!sessionId} onClick={() => void enableMic()} title={!sessionId ? "Start a Buddy session first" : "Turn the microphone on"} className="rounded-lg bg-violet-300 px-4 py-2 text-xs font-bold text-slate-950 disabled:opacity-50">
+              Enable mic
+            </button>
+          ) : (
+            <>
+              <button type="button" onClick={toggleMute} className={`rounded-lg px-4 py-2 text-xs font-bold ${micMuted ? "bg-rose-300 text-slate-950" : "border border-white/20 hover:bg-white/10"}`}>
+                {micMuted ? "🔇 Unmute me" : "🎤 Mute me"}
+              </button>
+              <button type="button" onClick={disableMic} className="rounded-lg border border-white/20 px-4 py-2 text-xs hover:bg-white/10">
+                Mic off
+              </button>
+              <label className="flex items-center gap-1.5 text-xs">
+                <input type="checkbox" checked={vadSmart} onChange={(e) => { setVadSmart(e.target.checked); vadSmartRef.current = e.target.checked; }} />
+                Smart speech detection
+              </label>
+            </>
+          )}
+          {micOn && (
+            <span className={`rounded-full px-3 py-1 text-xs font-bold ${hearing ? "bg-emerald-400/20 text-emerald-200" : micMuted ? "bg-rose-400/20 text-rose-200" : "bg-white/10 text-slate-300"}`}>
+              {micMuted ? "Muted" : hearing ? "● Hearing you…" : "Listening"}
+            </span>
+          )}
+        </div>
+        {micOn && interim && (
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <p className="min-w-0 flex-1 text-xs text-cyan-200">“{interim}”</p>
+            <button type="button" disabled={busy || !interim.trim()} onClick={() => { const t = interimRef.current.trim(); interimRef.current = ""; setInterim(""); const r = pendingRef.current; pendingRef.current = null; void talk(t, { resumed: r, interrupted: r !== null }); }} className="rounded-lg border border-cyan-300/40 px-3 py-1.5 text-xs font-semibold text-cyan-100 disabled:opacity-50">
+              Send what I said
+            </button>
+          </div>
+        )}
+        {!speechSupported && micOn && (
+          <p className="mt-1 text-slate-500">This browser has no speech-to-text — mic still detects interruptions; type or dictate elsewhere to send words.</p>
+        )}
+      </div>
+
+      <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-slate-300">
+        <p className="font-bold text-white">📷 Let Buddy see you <span className="font-normal text-slate-400">(optional camera — you approve every frame by sending)</span></p>
+        <p className="mt-1 text-slate-400">
+          Buddy reads your energy, posture, props, and backdrop to match your mood — kindly, never diagnosing, never
+          identifying. While on, each message you send carries one small frame, itemized in that turn
+          (~{quoteCameraFrames(1).display} per frame). No video ever leaves the device, nothing is stored.
+        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          {!camOn ? (
+            <button type="button" disabled={!sessionId} onClick={() => void enableCamera()} title={!sessionId ? "Start a Buddy session first" : "Turn the camera on"} className="rounded-lg bg-violet-300 px-4 py-2 text-xs font-bold text-slate-950 disabled:opacity-50">
+              Enable camera
+            </button>
+          ) : (
+            <>
+              <button type="button" onClick={disableCamera} className="rounded-lg border border-rose-300/50 px-4 py-2 text-xs font-semibold text-rose-100 hover:bg-rose-300/10">
+                Camera off
+              </button>
+              <button type="button" disabled={busy} onClick={() => void talk("Assess my current emotional state and body language from the camera frame, then match my energy.")} className="rounded-lg border border-cyan-300/40 px-4 py-2 text-xs font-semibold text-cyan-100 hover:bg-cyan-300/10 disabled:opacity-60">
+                ✨ Read my vibe
+              </button>
+            </>
+          )}
+        </div>
+        <video ref={camVideoRef} muted playsInline className={camOn ? "mt-2 max-h-32 rounded-lg border border-white/10" : "hidden"} aria-label="Camera preview" />
+      </div>
+
+      <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-slate-300">
+        <p className="font-bold text-white">✨ Buddy avatar <span className="font-normal text-slate-400">(optional 3D companion — {quoteAvatarMinutes(1).display}/min, free when hidden)</span></p>
+        <p className="mt-1 text-slate-400">
+          A cute three.js companion whose mouth follows Buddy&apos;s voice waveform and words, eyes blink, track your
+          cursor, and widen with excitement. Presence meters by the minute while visible
+          (this session&apos;s avatar: <b className="text-violet-200">{avatarCents} centicentcoins</b>).
+        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <button type="button" disabled={!sessionId} onClick={() => setAvatarVisible(!avatarOn)} title={!sessionId ? "Start a Buddy session first" : avatarOn ? "Hide the avatar (stops metering)" : "Show the avatar"} className="rounded-lg bg-violet-300 px-4 py-2 text-xs font-bold text-slate-950 disabled:opacity-50">
+            {avatarOn ? "Hide avatar" : "Show avatar"}
+          </button>
+          <label className="flex items-center gap-1.5 text-xs">
+            Shape
+            <select value={avatarType} onChange={(e) => setAvatarType(e.target.value as BuddyAvatarType)} className="rounded-lg border border-white/15 bg-black/40 px-2 py-1.5">
+              <option value="cube">oso cube (default)</option>
+              <option value="cloud">Buddy cloud</option>
+              <option value="anime">Anime girl</option>
+            </select>
+          </label>
+          <label className="flex items-center gap-1.5 text-xs">
+            Color
+            <input type="color" value={avatarColor} onChange={(e) => setAvatarColor(e.target.value)} className="h-7 w-10 cursor-pointer rounded border border-white/15 bg-black/40" aria-label="Avatar color" />
+          </label>
+          {["#7c6cf6", "#38e1c6", "#ff9db0", "#ffe066", "#ff8a5c"].map((c) => (
+            <button key={c} type="button" onClick={() => setAvatarColor(c)} aria-label={`Avatar color ${c}`} className={`h-6 w-6 rounded-full border ${avatarColor === c ? "border-white" : "border-white/20"}`} style={{ backgroundColor: c }} />
+          ))}
+        </div>
+        <div className="mt-2">
+          {avatarOn && sessionId ? (
+            <BuddyAvatar type={avatarType} color={avatarColor} script={script} scriptStartedAt={scriptAt} speaking={speaking} outputEl={voiceEl} micStream={micOn && !micMuted ? micStream : null} label={`Buddy ${avatarType}`} />
+          ) : (
+            <p className="text-slate-500">{sessionId ? "Avatar hidden — no presence cost. Show it anytime." : "Start a Buddy session to meet the avatar."}</p>
+          )}
+        </div>
+      </div>
+
       <p role="status" className="mt-3 text-sm text-slate-400">{status}</p>
 
       {open && (
         <div className="mt-4 space-y-3">
-          <div className="max-h-64 space-y-2 overflow-y-auto rounded-xl border border-white/10 bg-black/30 p-3" aria-live="polite">
+          <div className="perf-list max-h-64 space-y-2 overflow-y-auto rounded-xl border border-white/10 bg-black/30 p-3" aria-live="polite">
             {messages.length ? (
               messages.map((m, i) => (
                 <p key={i} className={`text-sm ${m.role === "buddy" ? "text-violet-100" : "text-slate-300"}`}>
-                  <b>{m.role === "buddy" ? "Buddy" : "You"}:</b> {m.text}{" "}
+                  <b>{m.role === "buddy" ? "Buddy" : "You"}:</b> {m.text}{m.interrupted ? <em className="text-amber-200"> (cut in)</em> : null}{" "}
                   <small className="text-slate-500">{m.at}</small>
                 </p>
               ))

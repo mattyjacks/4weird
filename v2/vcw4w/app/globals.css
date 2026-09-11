@@ -98,6 +98,77 @@ html.light .border-cyan-300\/30, html.light .border-cyan-300\/50, html.light .bo
 html.light .border-violet-300\/50 { border-color: #c4b5fd; }
 html.light .border-amber-300\/40, html.light .border-amber-300\/60 { border-color: #fcd34d; }
 
+/* ---- Desktop nav dropdown: click-pin + 2s mouse-disturbed swirl fade ----
+   JS drives --fade (0 open -> 1 gone) via rAF: 2000ms out on mouse-away,
+   proportional restore up to 1000ms on re-enter. --mx/--my track the cursor,
+   --vel is cursor-velocity energy, --swirl is the churn angle.
+   The panel slides back up into its button (translate + bottom clip) while a
+   two-layer gradient mask dissolves it: a rising bottom edge + a radial
+   vortex carved at the cursor that widens with velocity. A conic shimmer
+   overlay rotates with --swirl so the fade reads as a swirl, not a blink. */
+.nav-swirl-panel {
+  --fade: 0;
+  --mx: 50%;
+  --my: 0%;
+  --vel: 0;
+  --swirl: 0deg;
+  opacity: calc(1 - var(--fade));
+  transform: translateY(calc(var(--fade) * -18px)) scale(calc(1 - var(--fade) * 0.07));
+  transform-origin: top center;
+  clip-path: inset(0 0 calc(var(--fade) * 100%) 0 round 12px);
+  -webkit-mask-image:
+    linear-gradient(to bottom, #000 0%, #000 calc(100% - var(--fade) * 100% - 26px), transparent calc(100% - var(--fade) * 100% + 8px)),
+    radial-gradient(78% 92% at var(--mx) var(--my), #000 calc(74% - var(--vel) * 46%), transparent calc(110% - var(--vel) * 26%));
+  mask-image:
+    linear-gradient(to bottom, #000 0%, #000 calc(100% - var(--fade) * 100% - 26px), transparent calc(100% - var(--fade) * 100% + 8px)),
+    radial-gradient(78% 92% at var(--mx) var(--my), #000 calc(74% - var(--vel) * 46%), transparent calc(110% - var(--vel) * 26%));
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  will-change: opacity, transform, clip-path;
+  pointer-events: auto;
+}
+.nav-swirl-panel .nav-swirl-list {
+  position: relative;
+}
+.nav-swirl-panel .nav-swirl-list::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: calc(var(--fade) * 0.55 + var(--vel) * 0.35);
+  background: conic-gradient(from var(--swirl) at var(--mx) var(--my),
+    transparent 0deg, rgb(34 211 238 / 0.28) 70deg, rgb(192 38 211 / 0.24) 150deg,
+    transparent 220deg, rgb(34 211 238 / 0.18) 300deg, transparent 360deg);
+  mix-blend-mode: screen;
+}
+.dark .nav-swirl-panel .nav-swirl-list::after {
+  mix-blend-mode: screen;
+}
+/* Cascade-in: links drop in staggered when the panel mounts. */
+.nav-swirl-list > li {
+  animation: nav-link-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 35ms);
+}
+@keyframes nav-link-in {
+  from { opacity: 0; transform: translateY(-7px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Mobile accordion: tap pins open (already), now with a smooth slide ---- */
+.mobile-acc-panel {
+  animation: mobile-acc-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: top center;
+}
+.mobile-acc-list > li {
+  animation: nav-link-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 30ms);
+}
+@keyframes mobile-acc-in {
+  from { opacity: 0; transform: translateY(-8px) scaleY(0.96); }
+  to { opacity: 1; transform: translateY(0) scaleY(1); }
+}
+
 /* Play-shell frame height: stable while the mobile keyboard opens/closes.
    svh is immune to URL-bar/keyboard viewport changes; vh stays as the
    fallback for browsers without svh. (A plain class — Tailwind can't
@@ -126,10 +197,62 @@ html.light [data-theme-lock="dark"] .border-white\/10, html.light [data-theme-lo
 .docs-orb-a { background: radial-gradient(circle, rgb(34 211 238 / 0.35), transparent 70%); }
 .docs-orb-b { background: radial-gradient(circle, rgb(192 38 211 / 0.3), transparent 70%); }
 @keyframes docs-float { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-12px) rotate(2deg); } }
-.docs-float { animation: docs-float 7s ease-in-out infinite; }
+.docs-float { animation: docs-float 7s ease-in-out infinite; will-change: transform; }
 @keyframes docs-eq { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
-.eq-bar { transform-origin: bottom; animation: docs-eq 1.1s ease-in-out infinite; }
+.eq-bar { transform-origin: bottom; animation: docs-eq 1.1s ease-in-out infinite; will-change: transform; }
 @keyframes docs-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 .docs-cursor { animation: docs-blink 1s step-end infinite; }
 @keyframes docs-spin-slow { to { transform: rotate(360deg); } }
-.docs-spin-slow { animation: docs-spin-slow 14s linear infinite; }
+.docs-spin-slow { animation: docs-spin-slow 14s linear infinite; will-change: transform; }
+
+/* ---- 4weird perf layer: GPU compositing + low-resource lists ----
+   Every rule here is transform/opacity-only (compositor thread, no layout
+   or paint on the main thread) plus content-visibility for long feeds.
+   data-gpu / data-low-power are stamped by <PerfBootstrap />. */
+.perf-gpu {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+}
+.perf-card {
+  transform: translateZ(0);
+  contain: layout style;
+}
+@media (hover: hover) {
+  .perf-card { transition: transform 0.2s ease, border-color 0.2s ease; }
+}
+/* Long scrollable feeds (chat, leaderboards, catalogs): skip off-screen
+   rendering entirely; the intrinsic size keeps scrollbars stable. */
+.perf-list > * {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 120px;
+}
+.perf-feed {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 400px;
+  transform: translateZ(0);
+}
+/* Game + WebGL frames get their own compositor layer; touch stays buttery. */
+.perf-frame {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  contain: strict;
+}
+/* Low-power / save-data / software-GL devices: no ambient motion at all. */
+html.perf-low-power .docs-float,
+html.perf-low-power .docs-spin-slow,
+html.perf-low-power .eq-bar,
+html.perf-low-power .docs-cursor,
+html[data-low-power="1"] .docs-float,
+html[data-low-power="1"] .docs-spin-slow,
+html[data-low-power="1"] .eq-bar,
+html[data-low-power="1"] .docs-cursor {
+  animation: none !important;
+}
+html.perf-low-power .perf-card,
+html[data-low-power="1"] .perf-card {
+  transition: none !important;
+}
+/* Images + video decode off the critical path. */
+img, video { content-visibility: auto; }
+iframe { contain: layout style; }

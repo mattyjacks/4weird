@@ -21,6 +21,9 @@ const nextConfig: NextConfig = {
     { source: "/sitemap.xml", headers: [{ key: "Cache-Control", value: "public, max-age=3600" }] },
     { source: "/robots.txt", headers: [{ key: "Cache-Control", value: "public, max-age=3600" }] },
     { source: "/manifest.webmanifest", headers: [{ key: "Cache-Control", value: "public, max-age=3600" }] },
+    // Perf workers: immutable static JS, safe to cache for a year. They are
+    // versioned by filename — bump the file when the protocol changes.
+    { source: "/workers/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }, { key: "Content-Type", value: "application/javascript; charset=utf-8" }] },
     { source: "/(.*)", headers: [
       { key: "X-Content-Type-Options", value: "nosniff" },
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

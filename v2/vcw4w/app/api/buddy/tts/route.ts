@@ -5,6 +5,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
 import { rpcStatus } from "@/lib/agent-market";
 import { cleanBuddyVoice, cleanBuddySpeed, formatBuddyCost, isBuddyModel, quoteBuddyTtsLeg } from "@/lib/game-ai";
+import { falConfigured, modelForOp, quoteFal } from "@/lib/fal";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,9 @@ function cleanText(value: unknown): string {
  * mp3; without it returns { fallback: true } so the widget uses browser
  * speechSynthesis. Local browser speech is free; only OpenAI voice output is
  * metered as buddy-tts (25% cut).
+ * Optional Fal voice: pass { backend: "fal" } and, when FAL_KEY is set, the
+ * route returns a ready-to-fire npc-voice payload for /api/fal/generate
+ * (metered there on use, never here) instead of OpenAI audio.
  * Metering is true-cost: characters at the selected model's USD rate plus
  * one Supabase DB leg, converted to gross Vibe Coins (25% cut INCLUDED) at
  * centicentcoin resolution. The response carries the per-turn cost breakdown.
@@ -45,6 +49,29 @@ export async function POST(req: Request) {
   const game = /^[a-z0-9-]{1,64}$/.test(String(input.game_slug ?? "lobby")) ? String(input.game_slug) : "lobby";
   const sessionRaw = input.session_id ?? input.sessionId ?? null;
   if (sessionRaw !== null && !isUuid(sessionRaw)) return fail("Invalid session_id.", 400);
+
+  // Optional Fal voice path: no charge here — /api/fal/generate meters on use.
+  const backend = String(input.backend ?? "openai").trim().toLowerCase();
+  if (backend === "fal" || backend === "fal-npc-voice") {
+    if (!falConfigured()) return ok({ fallback: true, voice, model, speed, gross: 0, cost: null, metered: null, note: "Fal is not configured — client should use browser speech." });
+    const chars = text.length;
+    return ok({
+      fallback: "fal",
+      voice,
+      model,
+      speed,
+      gross: 0,
+      cost: null,
+      metered: null,
+      fal: {
+        op: "npc-voice",
+        model: modelForOp("npc-voice"),
+        prompt: text.slice(0, 1000),
+        coins: quoteFal("npc-voice", Math.max(0.1, chars / 1000)),
+      },
+      note: "Send fal.prompt to /api/fal/generate (op npc-voice) — metered there.",
+    });
+  }
 
   const key = process.env.OPENAI_API_KEY ?? "";
   if (!key) return ok({ fallback: true, voice, model, speed, gross: 0, cost: null, metered: null });

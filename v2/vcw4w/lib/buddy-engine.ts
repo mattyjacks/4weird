@@ -26,6 +26,8 @@ export type BuddyObservation = {
   voice: string;
   /** True when the client attached a downscaled screen snapshot for this turn. */
   hasScreenshot: boolean;
+  /** True when the attached frame came from the player's camera (opt-in). */
+  hasCamera: boolean;
 };
 
 export function cleanScreenText(value: unknown): string {
@@ -45,6 +47,7 @@ export function observeScreen(input: {
   score?: unknown;
   voice?: unknown;
   hasScreenshot?: unknown;
+  hasCamera?: unknown;
 }): BuddyObservation {
   const screenText = cleanScreenText(input.screenText).replace(/\s+/g, " ").trim().slice(0, 500);
   const scoreRaw = Number(input.score);
@@ -55,6 +58,7 @@ export function observeScreen(input: {
     score: Number.isFinite(scoreRaw) ? scoreRaw : null,
     voice: cleanBuddyVoice(input.voice),
     hasScreenshot: input.hasScreenshot === true,
+    hasCamera: input.hasCamera === true,
   };
 }
 
@@ -81,6 +85,12 @@ export function buddyUserPrompt(obs: BuddyObservation): string {
   if (obs.score !== null) parts.push(`Score: ${obs.score}`);
   parts.push(obs.screenText ? `Screen: ${obs.screenText}` : "Screen: (no text captured yet)");
   if (obs.hasScreenshot) parts.push("A downscaled screen snapshot is attached — describe what you see in it, not the text dump alone.");
+  if (obs.hasCamera)
+    parts.push(
+      "A player camera frame is attached (explicit opt-in) — read visible energy, posture, props, and background " +
+      "kindly to match their mood. Never diagnose health or emotions as medical facts, never identify the person, " +
+      "never comment critically on appearance.",
+    );
   return parts.join("\n");
 }
 
@@ -116,4 +126,142 @@ export function estimateBuddyTurn(replyText: string, promptChars = 500): { chatC
   const chatCoins = quoteGameAi("buddy-chat", promptTokensK + replyTokensK);
   const ttsCoins = quoteGameAi("buddy-tts", Math.max(0.1, String(replyText ?? "").length / 1000));
   return { chatCoins, ttsCoins, gross: chatCoins + ttsCoins };
+}
+
+/* ---------------------------------------------------------------------------
+ * Smart Buddy — memory + intent + multi-brain routing + optional Fal hints.
+ *
+ * Additive and client-safe: no imports beyond game-ai, no network, no keys.
+ * The /api/buddy/chat route uses these to (a) remember the last turns,
+ * (b) route REASON to OpenAI Responses OR OpenRouter chat-completions
+ * whichever key is configured, and (c) attach a ready-to-use Fal media hint
+ * (voice/SFX/music/art) that costs nothing until the client fires it at
+ * /api/fal/generate. Desktop reuses the same shapes via its JS twin.
+ * ------------------------------------------------------------------------- */
+
+/** Which brain reasons this turn. "none" = local fallback, free. */
+export type BuddyBrain = "openai" | "openrouter" | "none";
+
+/** What the player (probably) wants — drives prompts + Fal hints. */
+export type BuddyIntent = "voice" | "sfx" | "music" | "art" | "coach" | "chat";
+
+export type BuddyHistoryTurn = { role: "user" | "buddy"; text: string; interrupted?: boolean };
+
+const BUDDY_HISTORY_MAX_TURNS = 8;
+const BUDDY_HISTORY_MAX_CHARS = 300;
+
+/** Clean client-supplied history: cap turns + chars, drop empties. Never throws. */
+export function cleanBuddyHistory(value: unknown): BuddyHistoryTurn[] {
+  if (!Array.isArray(value)) return [];
+  const out: BuddyHistoryTurn[] = [];
+  for (const item of value) {
+    if (out.length >= BUDDY_HISTORY_MAX_TURNS) break;
+    const row = (item ?? {}) as Record<string, unknown>;
+    const roleRaw = String(row.role ?? "").toLowerCase();
+    const role = roleRaw === "buddy" || roleRaw === "assistant" ? "buddy" : "user";
+    const text = String(row.text ?? row.message ?? "").replace(/\s+/g, " ").trim().slice(0, BUDDY_HISTORY_MAX_CHARS);
+    if (text) out.push({ role, text, ...(row.interrupted === true ? { interrupted: true as const } : {}) });
+  }
+  return out;
+}
+
+/** One-line memory the system prompt carries ("they asked about X, we said Y"). */
+export function summarizeBuddyMemory(history: BuddyHistoryTurn[]): string {
+  if (!history.length) return "";
+  const last = history.slice(-3).map((t) => `${t.role === "buddy" ? "Buddy said" : "Player said"}: ${t.text.slice(0, 120)}`);
+  let out = `Conversation so far — ${last.join(" | ")}`.slice(0, 400);
+  if (history.slice(-4).some((t) => t.interrupted)) {
+    out = `${out} (Note: the player cut in at least once — they redirect fast, so answer the newest message first.)`.slice(0, 500);
+  }
+  return out;
+}
+
+/** Keyword intent router. Order matters: media intents win over coach/chat. */
+export function detectBuddyIntent(text: unknown): BuddyIntent {
+  const t = String(text ?? "").toLowerCase();
+  if (/(sfx|sound effect|sound-effect|\bzap\b|\bboom\b|explosion|coin ding|whoosh|footstep)/.test(t)) return "sfx";
+  if (/(theme music|\bmusic\b|soundtrack|\bsong\b|boss theme|menu loop|anthem)/.test(t)) return "music";
+  if (/(concept art|poster|sprite|pixel art|logo|banner|draw |paint |thumbnail)/.test(t)) return "art";
+  if (/(say |speak|narrat|voice|dub|announce|shout-out|shoutout|read this)/.test(t)) return "voice";
+  if (/(stuck|help|how do i|how to|tip|strategy|strategies|what should i|advice|walkthrough)/.test(t)) return "coach";
+  return "chat";
+}
+
+function openRouterKeyUsable(key: string): boolean {
+  const k = String(key ?? "").trim();
+  return Boolean(k) && !k.includes("your-openrouter") && !k.includes("your-meta-or-openrouter") && k !== "sk-or-v1-your-openrouter-api-key-here";
+}
+
+/**
+ * Pick the reasoning brain. Pure/testable: pass the raw env values in.
+ * Explicit `requested` ("openai"|"openrouter") wins when its key is usable,
+ * otherwise auto prefers OpenAI (existing behavior) then OpenRouter.
+ */
+export function pickBuddyBrain(input: { openaiKey: string; openrouterKey: string; requested?: unknown }): BuddyBrain {
+  const openaiOk = Boolean(String(input.openaiKey ?? "").trim());
+  const orOk = openRouterKeyUsable(input.openrouterKey);
+  const req = String(input.requested ?? "auto").trim().toLowerCase();
+  if ((req === "openrouter" || req === "or") && orOk) return "openrouter";
+  if (req === "openai" && openaiOk) return "openai";
+  if (openaiOk) return "openai";
+  if (orOk) return "openrouter";
+  return "none";
+}
+
+/** Smarter system prompt: persona + memory + intent + Fal availability. */
+export function smartBuddySystemPrompt(
+  voiceId: string,
+  opts?: { gameTitle?: string; intent?: BuddyIntent; memory?: string; falAvailable?: boolean; hasCamera?: boolean },
+): string {
+  const base = buddySystemPrompt(voiceId);
+  const parts = [base];
+  const game = String(opts?.gameTitle ?? "").slice(0, 80);
+  if (game) parts.push(`Current game: ${game}.`);
+  const memory = String(opts?.memory ?? "").slice(0, 500);
+  if (memory) parts.push(memory);
+  const intent = opts?.intent ?? "chat";
+  if (intent === "coach") parts.push("The player is asking for help: give exactly one actionable tip, then encouragement.");
+  else if (intent === "voice") parts.push("The player wants something spoken: write lines that read aloud well in under 25 seconds.");
+  else if (intent === "sfx" || intent === "music" || intent === "art")
+    parts.push("The player wants media: describe the moment vividly in 2 sentences so the media hint matches it.");
+  if (opts?.hasCamera) parts.push("The camera is on with consent: match the player's visible energy warmly, never diagnose, never identify.");
+  if (opts?.falAvailable) parts.push("Fal media generation is available: end with a short [media: <what to generate>] tag when the moment deserves voice, SFX, music, or art.");
+  return parts.join(" ").slice(0, 2000);
+}
+
+/** Smarter user prompt: recent history + typed message + screen observation. */
+export function smartBuddyUserPrompt(
+  obs: BuddyObservation,
+  opts?: { history?: BuddyHistoryTurn[]; message?: string },
+): string {
+  const lines: string[] = [];
+  for (const turn of (opts?.history ?? []).slice(-6)) {
+    const cut = turn.interrupted ? " (cut in — answer this newest point first)" : "";
+    lines.push(`${turn.role === "buddy" ? "Buddy" : "Player"}: ${turn.text}${cut}`);
+  }
+  const message = String(opts?.message ?? "").replace(/\s+/g, " ").trim().slice(0, 500);
+  if (message) lines.push(`Player asks: ${message}`);
+  lines.push(buddyUserPrompt(obs));
+  return lines.join("\n").slice(0, 3000);
+}
+
+/** Ready-to-fire Fal suggestion. Null = no media needed or Fal not configured. */
+export type BuddyFalHint = { op: string; model: string; prompt: string; coins: number };
+
+export function buildBuddyFalHint(
+  intent: BuddyIntent,
+  replyText: string,
+  opts?: { gameTitle?: string; falAvailable?: boolean },
+): BuddyFalHint | null {
+  if (!opts?.falAvailable) return null;
+  const game = String(opts?.gameTitle ?? "4weird game").slice(0, 60);
+  const reply = String(replyText ?? "").slice(0, 300);
+  if (intent === "voice") {
+    const prompt = reply || `Victory shout for ${game}`;
+    return { op: "npc-voice", model: "fal-ai/minimax/speech-02-hd", prompt: prompt.slice(0, 1000), coins: Math.max(1, Math.ceil(4 * Math.max(0.1, prompt.length / 1000))) };
+  }
+  if (intent === "sfx") return { op: "sfx-burst", model: "fal-ai/stable-audio-v2", prompt: `Arcade ${game} moment: ${reply}`.slice(0, 500), coins: 6 };
+  if (intent === "music") return { op: "theme-music", model: "fal-ai/musicgen/medium", prompt: `Upbeat ${game} menu loop, 8-bit energy`.slice(0, 300), coins: 10 };
+  if (intent === "art") return { op: "concept-art", model: "fal-ai/flux/schnell", prompt: `Key art for ${game}: ${reply}`.slice(0, 500), coins: 8 };
+  return null;
 }

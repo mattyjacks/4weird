@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 type NavLink = {
   href: string;
@@ -59,6 +59,258 @@ const NAV_GROUPS: { label: string; links: NavLink[] }[] = [
 ];
 
 const ALL_GAMES_HREF = "/games";
+
+// Desktop dropdown timing: 2s swirl fade-out on mouse-away, up to 1s
+// proportional restore when the mouse comes back (restore = faded * 1s,
+// so 0.6s away -> ~0.3s restore).
+const NAV_FADE_OUT_MS = 2000;
+const NAV_RESTORE_MAX_MS = 1000;
+const NAV_SWITCH_FADE_MS = 180;
+
+function prefersReducedMotion() {
+  return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+type DesktopNavGroupProps = {
+  group: { label: string; links: NavLink[] };
+  active: boolean;
+  expandedMenu: boolean;
+  pathname: string;
+  onOpen: () => void;
+  onRequestClose: () => void;
+  onNavigate: () => void;
+};
+
+/**
+ * One desktop nav dropdown: click/hover pins it open; mouse-away starts a
+ * 2s fade where a mouse-disturbed gradient mask dissolves the panel while it
+ * slides back up into its button. Moving the mouse back restores opacity in
+ * (faded * 1s) from the swirl.
+ */
+function DesktopNavGroup({ group, active, expandedMenu, pathname, onOpen, onRequestClose, onNavigate }: DesktopNavGroupProps) {
+  const [leaving, setLeaving] = useState(false);
+  const stayVisible = expandedMenu || leaving;
+  const panelRef = useRef<HTMLDivElement>(null);
+  const fadeRef = useRef(0);
+  const velRef = useRef(0);
+  const swirlRef = useRef(0);
+  const rafRef = useRef(0);
+  const leavingRef = useRef(false);
+  const lastPosRef = useRef<{ x: number; y: number; t: number } | null>(null);
+
+  const cancelAnim = () => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = 0;
+  };
+
+  const paint = () => {
+    const panel = panelRef.current;
+    if (!panel) return;
+    panel.style.setProperty("--fade", fadeRef.current.toFixed(4));
+    panel.style.setProperty("--vel", velRef.current.toFixed(4));
+    panel.style.setProperty("--swirl", `${swirlRef.current.toFixed(1)}deg`);
+  };
+
+  const setMouseFromClient = (clientX: number, clientY: number) => {
+    const panel = panelRef.current;
+    let nx = 0.5;
+    let ny = 0;
+    if (panel) {
+      const rect = panel.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        nx = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+        ny = Math.min(1, Math.max(0, (clientY - rect.top) / rect.height));
+      }
+    }
+    panel?.style.setProperty("--mx", `${(nx * 100).toFixed(1)}%`);
+    panel?.style.setProperty("--my", `${(ny * 100).toFixed(1)}%`);
+    const now = performance.now();
+    const last = lastPosRef.current;
+    if (last) {
+      const dist = Math.hypot(clientX - last.x, clientY - last.y);
+      const dt = Math.max(16, now - last.t);
+      const boost = Math.min(1, dist / (140 * (dt / 16)));
+      velRef.current = Math.min(1, velRef.current + boost * 0.55);
+      swirlRef.current = (swirlRef.current + boost * 46) % 360;
+    }
+    lastPosRef.current = { x: clientX, y: clientY, t: now };
+  };
+
+  // Global mouse disturbance while fading: wiggling the mouse churns the mask.
+  useEffect(() => {
+    if (!leaving) return;
+    const onMove = (event: PointerEvent) => setMouseFromClient(event.clientX, event.clientY);
+    window.addEventListener("pointermove", onMove, { passive: true });
+    return () => window.removeEventListener("pointermove", onMove);
+  }, [leaving]);
+
+  useEffect(() => {
+    cancelAnim();
+    return cancelAnim;
+  }, []);
+
+  // Parent yanked the open state (switched group / Escape / outside / route):
+  // fast swirl-away if we were mid-fade, otherwise hide instantly.
+  useEffect(() => {
+    if (expandedMenu || !leavingRef.current) return;
+    if (prefersReducedMotion()) {
+      leavingRef.current = false;
+      setLeaving(false);
+      return;
+    }
+    const start = fadeRef.current;
+    const t0 = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - t0) / NAV_SWITCH_FADE_MS);
+      fadeRef.current = start + (1 - start) * t;
+      velRef.current *= 0.94;
+      swirlRef.current = (swirlRef.current + (1.5 + velRef.current * 10)) % 360;
+      paint();
+      if (t < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      } else {
+        rafRef.current = 0;
+        leavingRef.current = false;
+        setLeaving(false);
+      }
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return cancelAnim;
+  }, [expandedMenu]);
+
+  const handleEnter = () => {
+    if (leavingRef.current) {
+      // Mouse came back mid-fade: restore in (faded * 1s), unwinding the swirl.
+      cancelAnim();
+      const faded = fadeRef.current;
+      onOpen();
+      if (prefersReducedMotion() || faded <= 0.01) {
+        fadeRef.current = 0;
+        velRef.current = 0;
+        leavingRef.current = false;
+        setLeaving(false);
+        paint();
+        return;
+      }
+      const duration = Math.min(NAV_RESTORE_MAX_MS, Math.max(120, faded * NAV_RESTORE_MAX_MS));
+      const start = faded;
+      const t0 = performance.now();
+      const tick = (now: number) => {
+        const t = Math.min(1, (now - t0) / duration);
+        const eased = 1 - Math.pow(1 - t, 2);
+        fadeRef.current = start * (1 - eased);
+        velRef.current *= 0.9;
+        swirlRef.current = (swirlRef.current - (2 + velRef.current * 14) * (1 - t)) % 360;
+        paint();
+        if (t < 1) {
+          rafRef.current = requestAnimationFrame(tick);
+        } else {
+          rafRef.current = 0;
+          fadeRef.current = 0;
+          velRef.current = 0;
+          leavingRef.current = false;
+          setLeaving(false);
+          paint();
+        }
+      };
+      rafRef.current = requestAnimationFrame(tick);
+      return;
+    }
+    if (!expandedMenu) onOpen();
+  };
+
+  const handleLeave = () => {
+    if (!expandedMenu || leavingRef.current) return;
+    if (prefersReducedMotion()) {
+      onRequestClose();
+      return;
+    }
+    leavingRef.current = true;
+    setLeaving(true);
+    fadeRef.current = 0;
+    velRef.current = 0;
+    lastPosRef.current = null;
+    paint();
+    const t0 = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - t0) / NAV_FADE_OUT_MS);
+      fadeRef.current = t;
+      velRef.current *= 0.93;
+      swirlRef.current = (swirlRef.current + (1.2 + velRef.current * 16)) % 360;
+      paint();
+      if (t < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      } else {
+        rafRef.current = 0;
+        leavingRef.current = false;
+        setLeaving(false);
+        fadeRef.current = 0;
+        onRequestClose();
+      }
+    };
+    rafRef.current = requestAnimationFrame(tick);
+  };
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
+      onMouseMove={(event) => setMouseFromClient(event.clientX, event.clientY)}
+      onFocusCapture={() => {
+        if (!expandedMenu) onOpen();
+      }}
+    >
+      <button
+        type="button"
+        aria-expanded={expandedMenu}
+        aria-haspopup="true"
+        aria-current={active && !expandedMenu ? "page" : undefined}
+        onClick={() => (expandedMenu ? onRequestClose() : onOpen())}
+        className={`flex items-center gap-1 rounded-lg px-3 py-2 font-semibold transition hover:bg-accent hover:text-accent-foreground ${
+          active ? "text-cyan-600 dark:text-cyan-300" : ""
+        }`}
+      >
+        {group.label}
+        <span aria-hidden="true" className={`text-xs transition-transform ${expandedMenu ? "rotate-180" : ""}`}>
+          ▾
+        </span>
+      </button>
+      {stayVisible && (
+        <div ref={panelRef} className="nav-swirl-panel absolute left-0 top-full z-50 min-w-52 pt-1">
+          <ul className="nav-swirl-list overflow-hidden rounded-xl border border-border bg-popover py-1 shadow-xl backdrop-blur dark:border-white/10 dark:bg-slate-950/95 dark:shadow-black/50">
+            {group.links.map((link, index) => (
+              <li key={link.href} style={{ "--i": index } as CSSProperties}>
+                {link.external ? (
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={onNavigate}
+                    className="block whitespace-nowrap px-4 py-2.5 transition hover:bg-accent hover:text-accent-foreground"
+                  >
+                    {link.label} <span aria-hidden="true">↗</span>
+                  </a>
+                ) : (
+                  <Link
+                    href={link.href}
+                    aria-current={isActive(pathname, link.href) ? "page" : undefined}
+                    onClick={onNavigate}
+                    className={`block whitespace-nowrap px-4 py-2.5 transition hover:bg-accent hover:text-accent-foreground ${
+                      isActive(pathname, link.href) ? "font-bold text-cyan-600 dark:text-cyan-300" : ""
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function isActive(pathname: string, href: string) {
   // External links are never "active".
@@ -157,7 +409,6 @@ export function SiteHeader() {
             ref={desktopNavRef}
             aria-label="Primary navigation"
             className="hidden items-center gap-1 text-sm text-muted-foreground lg:flex"
-            onMouseLeave={() => setOpenMenu(null)}
           >
             <Link
               href={ALL_GAMES_HREF}
@@ -172,55 +423,16 @@ export function SiteHeader() {
               const active = groupActive(pathname, group.links);
               const expandedMenu = openMenu === group.label;
               return (
-                <div key={group.label} className="relative" onMouseEnter={() => setOpenMenu(group.label)}>
-                  <button
-                    type="button"
-                    aria-expanded={expandedMenu}
-                    aria-haspopup="true"
-                    aria-current={active && !expandedMenu ? "page" : undefined}
-                    onClick={() => setOpenMenu(expandedMenu ? null : group.label)}
-                    className={`flex items-center gap-1 rounded-lg px-3 py-2 font-semibold transition hover:bg-accent hover:text-accent-foreground ${
-                      active ? "text-cyan-600 dark:text-cyan-300" : ""
-                    }`}
-                  >
-                    {group.label}
-                    <span aria-hidden="true" className={`text-xs transition-transform ${expandedMenu ? "rotate-180" : ""}`}>
-                      ▾
-                    </span>
-                  </button>
-                  {expandedMenu && (
-                    <div className="absolute left-0 top-full z-50 min-w-52 pt-1">
-                      <ul className="overflow-hidden rounded-xl border border-border bg-popover py-1 shadow-xl backdrop-blur dark:border-white/10 dark:bg-slate-950/95 dark:shadow-black/50">
-                        {group.links.map((link) => (
-                          <li key={link.href}>
-                            {link.external ? (
-                              <a
-                                href={link.href}
-                                target="_blank"
-                                rel="noreferrer"
-                                onClick={() => setOpenMenu(null)}
-                                className="block whitespace-nowrap px-4 py-2.5 transition hover:bg-accent hover:text-accent-foreground"
-                              >
-                                {link.label} <span aria-hidden="true">↗</span>
-                              </a>
-                            ) : (
-                              <Link
-                                href={link.href}
-                                aria-current={isActive(pathname, link.href) ? "page" : undefined}
-                                onClick={() => setOpenMenu(null)}
-                                className={`block whitespace-nowrap px-4 py-2.5 transition hover:bg-accent hover:text-accent-foreground ${
-                                  isActive(pathname, link.href) ? "font-bold text-cyan-600 dark:text-cyan-300" : ""
-                                }`}
-                              >
-                                {link.label}
-                              </Link>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
+                <DesktopNavGroup
+                  key={group.label}
+                  group={group}
+                  active={active}
+                  expandedMenu={expandedMenu}
+                  pathname={pathname}
+                  onOpen={() => setOpenMenu(group.label)}
+                  onRequestClose={() => setOpenMenu((prev) => (prev === group.label ? null : prev))}
+                  onNavigate={() => setOpenMenu(null)}
+                />
               );
             })}
           </nav>
@@ -311,9 +523,9 @@ export function SiteHeader() {
                       </span>
                     </button>
                     {isExpanded && (
-                      <ul id={`mobile-group-${group.label}`} className="border-t border-border bg-muted/40 py-1 dark:border-white/10 dark:bg-white/[.02]">
-                        {group.links.map((link) => (
-                          <li key={link.href}>
+                      <ul id={`mobile-group-${group.label}`} className="mobile-acc-panel mobile-acc-list border-t border-border bg-muted/40 py-1 dark:border-white/10 dark:bg-white/[.02]">
+                        {group.links.map((link, index) => (
+                          <li key={link.href} style={{ "--i": index } as CSSProperties}>
                             {link.external ? (
                               <a
                                 href={link.href}
