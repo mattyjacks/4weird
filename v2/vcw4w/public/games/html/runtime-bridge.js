@@ -5,7 +5,7 @@
  * scripts/sync-game-bundles.mjs). Speaks the { version: 1 } postMessage
  * protocol the Next.js play shell (GameRuntimeFrame) expects:
  *
- *   game -> host: ready, error, score, metering
+ *   game -> host: ready, error, metering, stats, save
  *   host -> game: host-ready, load, save-ack, pause, resume, reset,
  *     a11y (colorblind filter, reduced motion, dyslexia spacing, focus
  *     rings — applied inside the frame where shell CSS cannot reach),
@@ -90,7 +90,7 @@
   //
   // Metering: report this document's fresh network bytes (transferSize is 0
   // for cache hits, so a service-worker / HTTP-cached load reports ~0 and
-  // the play-metering API waives the load fee for < 1 MiB of new data).
+  // the play-metering API bills the proportional exact-bytes load fee).
   function reportBytes() {
     var total = 0;
     try {
@@ -168,13 +168,18 @@
         }
         break;
       case "load":
-        // Stash the cloud save where future game code can pick it up.
+        // Stash the cloud save where future game code can pick it up, and
+        // fill in keys MISSING locally (never clobber same-browser state).
+        // Legacy games read localStorage at init, before this message can
+        // arrive, so restored keys take effect on the NEXT visit - which is
+        // exactly the cross-device case cloud saves exist for.
         try {
           window.__fourweirdCloudSave = data;
           window.localStorage.setItem(
             "fourweird-v2-cloud-save:" + SLUG,
             JSON.stringify(data)
           );
+          restoreMissingKeys(data && data.data);
         } catch (e) {
           /* storage unavailable; ignore */
         }
@@ -340,6 +345,136 @@
     } else {
       dispatchAt("click", inputPoint(data), 0);
     }
+  }
+
+  // ---- Engagement telemetry + cloud saves for legacy games. ----
+  // Legacy bundles never learned the save/stats protocol, so the bridge
+  // reports only what it can OBSERVE (never invent):
+  //  - stats: visible seconds + real user inputs (keydown/pointerdown seen
+  //    in this document), flushed every 60 s and once on pagehide. The
+  //    shell POSTs them to /api/stats, so every game's Actions + Play-time
+  //    boards populate. kills/deaths stay 0 - the bridge cannot know them.
+  //  - save: a localStorage snapshot on pagehide/hidden, posted as the
+  //    slot-1 cloud save. Keys already present locally are left alone on
+  //    restore, so same-browser state is never clobbered.
+  var STATS_FLUSH_MS = 60000;
+  var SAVE_BYTES_MAX = 200 * 1024;
+  var statActiveSec = 0;
+  var statActions = 0;
+
+  function noteAction() {
+    statActions += 1;
+  }
+
+  try {
+    window.addEventListener("keydown", noteAction, true);
+    window.addEventListener("pointerdown", noteAction, true);
+  } catch (e) {
+    /* input observation unavailable; seconds still count */
+  }
+
+  try {
+    setInterval(function () {
+      try {
+        if (document.visibilityState !== "hidden") statActiveSec += 1;
+      } catch (e) {
+        statActiveSec += 1;
+      }
+    }, 1000);
+  } catch (e) {
+    /* timers unavailable; flush reports zeros and is skipped */
+  }
+
+  function flushStats() {
+    var sec = Math.max(0, Math.min(3600, Math.floor(statActiveSec)));
+    var acts = Math.max(0, Math.min(100000, Math.floor(statActions)));
+    statActiveSec = 0;
+    statActions = 0;
+    if (sec <= 0 && acts <= 0) return;
+    post({ type: "stats", active_seconds: sec, actions: acts, kills: 0, deaths: 0 });
+  }
+
+  function snapshotStorage() {
+    var keys = {};
+    var bytes = 0;
+    var store = null;
+    try {
+      store = window.localStorage;
+      if (!store) return null;
+    } catch (e) {
+      return null;
+    }
+    try {
+      for (var i = 0; i < store.length; i += 1) {
+        var k = store.key(i);
+        if (!k || k.indexOf("fourweird-v2-cloud-save:") === 0) continue;
+        var v = store.getItem(k);
+        if (typeof v !== "string") continue;
+        if (bytes + k.length + v.length > SAVE_BYTES_MAX) continue;
+        keys[k] = v;
+        bytes += k.length + v.length;
+      }
+    } catch (e) {
+      return null;
+    }
+    var names = Object.keys(keys);
+    if (names.length === 0) return null;
+    return keys;
+  }
+
+  function saveNow() {
+    var keys = snapshotStorage();
+    if (!keys) return;
+    post({ type: "save", slot: 1, schema_version: 1, data: { namespace: SLUG, keys: keys } });
+  }
+
+  // Fill keys ABSENT from localStorage from a cloud snapshot. Same-browser
+  // keys are already current, so touching them would only clobber progress.
+  function restoreMissingKeys(cloudData) {
+    if (!cloudData || typeof cloudData !== "object") return;
+    var keys = cloudData.keys;
+    if (!keys || typeof keys !== "object" || Array.isArray(keys)) return;
+    var store = null;
+    try {
+      store = window.localStorage;
+      if (!store) return;
+    } catch (e) {
+      return;
+    }
+    var bytes = 0;
+    for (var k in keys) {
+      if (!Object.prototype.hasOwnProperty.call(keys, k)) continue;
+      var v = keys[k];
+      if (typeof k !== "string" || typeof v !== "string") continue;
+      if (bytes + k.length + v.length > SAVE_BYTES_MAX) continue;
+      try {
+        if (store.getItem(k) === null) {
+          store.setItem(k, v);
+          bytes += k.length + v.length;
+        }
+      } catch (e) {
+        return; /* quota or access denied; keep what landed */
+      }
+    }
+  }
+
+  function flushAll() {
+    flushStats();
+    saveNow();
+  }
+
+  try {
+    setInterval(flushStats, STATS_FLUSH_MS);
+  } catch (e) {
+    /* timers unavailable */
+  }
+  try {
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "hidden") flushAll();
+    });
+    window.addEventListener("pagehide", flushAll);
+  } catch (e) {
+    /* lifecycle events unavailable */
   }
 
   // Legacy templates call copyGameLink() from an inline share button, but no

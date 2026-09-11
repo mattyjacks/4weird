@@ -64,6 +64,12 @@ export async function POST(req: Request) {
   const input = (body ?? {}) as Record<string, unknown>;
   const clanId = isUuid(input.clan_id);
   const endsRaw = String(input.ends_at ?? "").trim();
+  let endsAt: string | null = null;
+  if (endsRaw) {
+    const t = new Date(endsRaw);
+    if (Number.isNaN(t.getTime())) return fail("Invalid ends_at date.", 400);
+    endsAt = t.toISOString();
+  }
   const { data: rpcData, error } = await supabase.rpc("create_launch_campaign", {
     p_clan_id: clanId || null,
     p_title: String(input.title ?? ""),
@@ -71,7 +77,7 @@ export async function POST(req: Request) {
     p_goal_coins: Number(input.goal_coins),
     p_category: String(input.category ?? ""),
     p_use_of_funds: String(input.use_of_funds ?? ""),
-    p_ends_at: endsRaw ? new Date(endsRaw).toISOString() : null,
+    p_ends_at: endsAt,
   });
   if (error) return rpcFail("api/fundraisers", error, rpcStatus, "Unable to create campaign.");
   return ok({ campaign: rpcData }, 201);

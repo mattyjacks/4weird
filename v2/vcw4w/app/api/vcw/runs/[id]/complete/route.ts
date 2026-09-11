@@ -37,6 +37,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   const summary = String(input.summary ?? "").trim().slice(0, 5000);
   if (!summary) return fail("A summary is required (1-5000 chars).", 400);
 
+  // Closing a run is free by design: opening (run-open), every step
+  // (action-step), filing (bug-file), and handoffs (handoff) are metered;
+  // there is no complete op in meter_vcw_usage and none is invented here.
   const { data: run, error } = await supabase
     .from("vcw_runs")
     .update({ status: "completed", verdict: input.verdict, summary })

@@ -1,4 +1,4 @@
-// Server Saver Shield - Enhanced Arcade Shooter
+﻿// Server Saver Shield - Enhanced Arcade Shooter
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const CANVAS_WIDTH = 800;

@@ -63,5 +63,29 @@ export async function POST(req: Request) {
     .select("id,game_slug,goal,status,verdict,summary,created_at,updated_at")
     .single();
   if (error) return dbFail("vcw/runs create", error, "Unable to open a run.");
-  return ok({ run }, 201);
+
+  // Meter run-open (10 coins gross, 25% cut included) against the fresh run.
+  // The row is rolled back when metering fails so a run is never free and a
+  // failed open never keeps coins.
+  const { data: charge, error: meterError } = await supabase.rpc("meter_vcw_usage", {
+    p_op: "run-open",
+    p_qty: 1,
+    p_run: run.id,
+    p_source: "vcw",
+  });
+  if (meterError) {
+    try {
+      await supabase.from("vcw_runs").delete().eq("id", run.id).eq("user_id", data.user.id);
+    } catch {
+      /* rollback best-effort; the meter fault below is the answer */
+    }
+    const message = String(
+      (meterError as { message?: unknown } | null)?.message ?? meterError ?? "",
+    );
+    if (/insufficient|balance|funds/i.test(message)) {
+      return fail("Insufficient Vibe Coin balance.", 402);
+    }
+    return dbFail("vcw/runs meter", meterError, "Unable to meter the run.");
+  }
+  return ok({ run, charge }, 201);
 }

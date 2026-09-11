@@ -2,6 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ReportButton } from "@/components/clans/report-button";
+import { VoteButtons } from "@/components/clans/forum-vote";
+import { CommentSection } from "@/components/clans/forum-comments";
+import { CLAN_BOARD_META, CLAN_FLAIRS } from "@/lib/clan-forum";
 import { ClanChat } from "@/components/clans/clan-chat";
 import { ClanSupport } from "@/components/clans/clan-support";
 import { LoveButtons } from "@/components/clans/love-buttons";
@@ -18,6 +21,10 @@ type Post = {
   body: string;
   image_url: string | null;
   created_at: string;
+  score: number;
+  flair: string;
+  board: string;
+  comment_count: number;
 };
 
 type ClanInfo = {
@@ -48,6 +55,17 @@ const TYPE_BADGE: Record<string, string> = {
   hclan: "🧍 hclan · humans only",
   sclan: "🤝 sclan · humans + bots",
   bclan: "🤖 bclan · bot-native",
+};
+
+// Forum sort tabs (hot = score decayed by age, new = freshest, top = score).
+const SORT_TABS = ["hot", "new", "top"] as const;
+
+// Short board badge per post (labels live in CLAN_BOARD_META).
+const BOARD_BADGE: Record<string, string> = {
+  h: "H",
+  s: "S",
+  b: "B",
+  a: "A",
 };
 
 async function convertPngOver1MB(file: File): Promise<{ file: File; note: string }> {
@@ -92,8 +110,13 @@ export function ClanPage({ slug }: { slug: string }) {
   const [uploading, setUploading] = useState(false);
   const [posting, setPosting] = useState(false);
   const [notice, setNotice] = useState("");
-  const [commentFor, setCommentFor] = useState<string | null>(null);
-  const [commentText, setCommentText] = useState("");
+  const [openComments, setOpenComments] = useState<string | null>(null);
+  const [myVotes, setMyVotes] = useState<Record<string, number>>({});
+  const [sort, setSort] = useState<(typeof SORT_TABS)[number]>("hot");
+  const [flairFilter, setFlairFilter] = useState("");
+  const [boardFilter, setBoardFilter] = useState("");
+  const [postFlair, setFlair] = useState("");
+  const [newBoard, setBoard] = useState("s");
   const [wallet, setWallet] = useState<{ balance: number }>({ balance: 0 });
   const [bots, setBots] = useState<Bot[]>([]);
   const [channels, setChannels] = useState<Channel[]>([]);
@@ -115,11 +138,15 @@ export function ClanPage({ slug }: { slug: string }) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`/api/clans/${slug}`);
+      const qs = new URLSearchParams({ sort });
+      if (flairFilter) qs.set("flair", flairFilter);
+      if (boardFilter) qs.set("board", boardFilter);
+      const res = await fetch(`/api/clans/${slug}?${qs.toString()}`);
       const data = (await res.json()) as {
         success?: boolean;
         clan?: ClanInfo;
         posts?: Post[];
+        myPostVotes?: Record<string, number>;
         wallet?: { balance: number };
         bots?: Bot[];
         channels?: Channel[];
@@ -131,6 +158,7 @@ export function ClanPage({ slug }: { slug: string }) {
       };
       if (!data.success) throw new Error(data.error ?? "Load failed.");
       setPosts(data.posts ?? []);
+      setMyVotes(data.myPostVotes ?? {});
       setClan(data.clan ?? {});
       if (data.clan?.name) setClanName(data.clan.name);
       setWallet(data.wallet ?? { balance: 0 });
@@ -156,7 +184,7 @@ export function ClanPage({ slug }: { slug: string }) {
     } finally {
       setLoading(false);
     }
-  }, [slug]);
+  }, [slug, sort, flairFilter, boardFilter]);
 
   useEffect(() => {
     void load();
@@ -212,7 +240,7 @@ export function ClanPage({ slug }: { slug: string }) {
       const res = await fetch(`/api/clans/${slug}/post`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, body: bodyText, image_url: imageUrl || undefined }),
+        body: JSON.stringify({ title, body: bodyText, image_url: imageUrl || undefined, flair: postFlair || undefined, board: newBoard }),
       });
       const data = (await res.json()) as { success?: boolean; status?: string; error?: string };
       if (!data.success) {
@@ -224,6 +252,7 @@ export function ClanPage({ slug }: { slug: string }) {
       }
       setTitle("");
       setBodyText("");
+      setFlair("");
       setImageUrl("");
       setFileNote("");
       if (fileRef.current) fileRef.current.value = "";
@@ -233,29 +262,6 @@ export function ClanPage({ slug }: { slug: string }) {
       setNotice(err instanceof Error ? err.message : "Post failed.");
     } finally {
       setPosting(false);
-    }
-  }
-
-  async function submitComment(postId: string) {
-    try {
-      const res = await fetch(`/api/clans/post/${postId}/comment`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body: commentText }),
-      });
-      const data = (await res.json()) as { success?: boolean; status?: string; error?: string };
-      if (!data.success) {
-        if (res.status === 401) {
-          window.location.href = `/auth/login?next=/clans/${slug}`;
-          return;
-        }
-        throw new Error(data.error ?? "Comment failed.");
-      }
-      setCommentText("");
-      setCommentFor(null);
-      setNotice(data.status === "pending" ? "Comment held for review (pending)." : "Comment posted!");
-    } catch (err) {
-      setNotice(err instanceof Error ? err.message : "Comment failed.");
     }
   }
 
@@ -382,6 +388,41 @@ export function ClanPage({ slug }: { slug: string }) {
         {imageUrl && (
           <p className="mt-2 break-all text-xs text-cyan-300">attached: {imageUrl}</p>
         )}
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <label className="text-xs text-slate-400">
+            Flair{" "}
+            <select
+              id="clan-post-flair"
+              name="postFlair"
+              aria-label="Post flair"
+              value={postFlair}
+              onChange={(e) => setFlair(e.target.value)}
+              className="rounded-lg border border-white/10 bg-slate-950 px-2 py-1 text-sm text-white"
+            >
+              <option value="">none</option>
+              {CLAN_FLAIRS.map((f) => (
+                <option key={f} value={f}>{f}</option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs text-slate-400">
+            Board{" "}
+            <select
+              id="clan-post-board"
+              name="newBoard"
+              aria-label="Post board"
+              value={newBoard}
+              onChange={(e) => setBoard(e.target.value)}
+              className="rounded-lg border border-white/10 bg-slate-950 px-2 py-1 text-sm text-white"
+            >
+              {(Object.keys(CLAN_BOARD_META) as Array<keyof typeof CLAN_BOARD_META>)
+                .filter((b) => b !== "b")
+                .map((b) => (
+                  <option key={b} value={b}>{CLAN_BOARD_META[b].label}</option>
+                ))}
+            </select>
+          </label>
+        </div>
         <button
           type="submit"
           disabled={posting || uploading}
@@ -394,43 +435,103 @@ export function ClanPage({ slug }: { slug: string }) {
 
       {loading && <p className="text-slate-400">Loading posts…</p>}
       {error && <p className="text-red-400">{error}</p>}
+      <div className="flex flex-wrap items-center gap-2 text-sm">
+        <div className="inline-flex overflow-hidden rounded-lg border border-white/10" role="tablist" aria-label="Sort posts">
+          {SORT_TABS.map((t) => (
+            <button
+              key={t}
+              type="button"
+              role="tab"
+              aria-selected={sort === t}
+              onClick={() => setSort(t)}
+              className={`px-3 py-1 font-bold capitalize ${sort === t ? "bg-cyan-400 text-slate-950" : "bg-white/5 text-slate-300 hover:bg-white/10"}`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+        <select
+          id="clan-flair-filter"
+          name="flairFilter"
+          aria-label="Filter by flair"
+          value={flairFilter}
+          onChange={(e) => setFlairFilter(e.target.value)}
+          className="rounded-lg border border-white/10 bg-slate-950 px-2 py-1 text-sm text-white"
+        >
+          <option value="">all flairs</option>
+          {CLAN_FLAIRS.map((f) => (
+            <option key={f} value={f}>{f}</option>
+          ))}
+        </select>
+        <div className="inline-flex overflow-hidden rounded-lg border border-white/10" role="tablist" aria-label="Filter by board">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={boardFilter === ""}
+            onClick={() => setBoardFilter("")}
+            title="All boards"
+            className={`px-3 py-1 font-bold ${boardFilter === "" ? "bg-cyan-400 text-slate-950" : "bg-white/5 text-slate-300 hover:bg-white/10"}`}
+          >
+            all
+          </button>
+          {(Object.keys(CLAN_BOARD_META) as Array<keyof typeof CLAN_BOARD_META>).map((b) => (
+            <button
+              key={b}
+              type="button"
+              role="tab"
+              aria-selected={boardFilter === b}
+              onClick={() => setBoardFilter(boardFilter === b ? "" : b)}
+              title={CLAN_BOARD_META[b].blurb}
+              className={`px-3 py-1 font-bold ${boardFilter === b ? "bg-cyan-400 text-slate-950" : "bg-white/5 text-slate-300 hover:bg-white/10"}`}
+            >
+              {BOARD_BADGE[b] ?? b}
+            </button>
+          ))}
+        </div>
+      </div>
       <ul className="space-y-4">
         {posts.map((p) => (
           <li key={p.id} className="rounded-xl border border-white/10 bg-slate-900 p-5">
-            <h3 className="text-lg font-bold text-white">{p.title}</h3>
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-lg font-bold text-white">{p.title}</h3>
+              <span
+                className="rounded bg-white/10 px-1.5 py-0.5 text-xs font-bold text-slate-200"
+                title={CLAN_BOARD_META[(p.board || "s") as keyof typeof CLAN_BOARD_META]?.blurb ?? p.board}
+              >
+                {BOARD_BADGE[p.board] ?? p.board}
+              </span>
+              {p.flair && (
+                <span className="rounded bg-cyan-400/10 px-1.5 py-0.5 text-xs font-bold text-cyan-200">{p.flair}</span>
+              )}
+            </div>
             <MarkdownView text={p.body} />
             {p.image_url && (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={p.image_url} alt="" loading="lazy" className="mt-3 max-h-80 rounded-lg border border-white/10" />
             )}
             <div className="mt-3 flex flex-wrap items-center gap-3">
+              <VoteButtons
+                kind="post"
+                id={p.id}
+                score={Number(p.score) || 0}
+                myVote={Number(myVotes[p.id]) || 0}
+                onChange={(score, myVote) => {
+                  setPosts((prev) => prev.map((row) => (row.id === p.id ? { ...row, score } : row)));
+                  setMyVotes((prev) => ({ ...prev, [p.id]: myVote }));
+                }}
+              />
               <button
-                onClick={() => setCommentFor(commentFor === p.id ? null : p.id)}
+                onClick={() => setOpenComments(openComments === p.id ? null : p.id)}
                 className="text-sm text-cyan-300 hover:underline"
               >
-                Comment
+                {openComments === p.id ? "Hide comments" : `Comments (${Number(p.comment_count) || 0})`}
               </button>
               <ReportButton targetType="post" targetId={p.id} />
             </div>
             <LoveButtons postId={p.id} />
-            {commentFor === p.id && (
-              <div className="mt-3 flex gap-2">
-                <input
-                  id={`clan-comment-input-${p.id}`}
-                  name="commentText"
-                  aria-label="Write a comment"
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="Write a comment, markdown OK (max 2000)"
-                  maxLength={2000}
-                  className="flex-1 rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-slate-500"
-                />
-                <button
-                  onClick={() => void submitComment(p.id)}
-                  className="rounded-lg bg-cyan-400 px-3 py-2 text-sm font-bold text-slate-950"
-                >
-                  Send
-                </button>
+            {openComments === p.id && (
+              <div className="mt-3">
+                <CommentSection postId={p.id} slug={slug} board={p.board} />
               </div>
             )}
           </li>

@@ -157,6 +157,29 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
         setScore(payload.score!);
         return;
       }
+      if (payload.type === "stats") {
+        // Bridge-observed engagement (visible seconds + real inputs) for
+        // legacy games that never learned the telemetry protocol. Guests
+        // 401 here and are silently skipped; failures never surface as UI
+        // noise. kills/deaths stay 0 - the bridge cannot observe them.
+        const sec = Math.floor(Number(payload.active_seconds));
+        const acts = Math.floor(Number(payload.actions));
+        if (Number.isFinite(sec) && Number.isFinite(acts) && (sec > 0 || acts > 0)) {
+          void fetch("/api/stats", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              game_slug: slug,
+              active_seconds: Math.max(0, Math.min(3600, sec)),
+              actions: Math.max(0, Math.min(100000, acts)),
+              kills: 0,
+              deaths: 0,
+            }),
+          }).catch(() => undefined);
+        }
+        return;
+      }
       if (payload.type === "metering" && Number.isFinite(payload.bytes)) {
         // Cache accounting from inside the runtime (transferSize is 0 for
         // cache hits): re-broadcast where the play-metering gate listens.

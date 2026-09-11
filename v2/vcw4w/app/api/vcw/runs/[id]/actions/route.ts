@@ -71,6 +71,29 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     .single();
   if (error) return dbFail("vcw/run actions", error, "Unable to record the step.");
 
+  // Meter action-step (1 coin gross, 25% cut included); the step is rolled
+  // back when metering fails so steps are never free.
+  const { error: meterError } = await supabase.rpc("meter_vcw_usage", {
+    p_op: "action-step",
+    p_qty: 1,
+    p_run: id,
+    p_source: "vcw",
+  });
+  if (meterError) {
+    try {
+      await supabase.from("vcw_run_steps").delete().eq("id", step.id).eq("user_id", data.user.id);
+    } catch {
+      /* rollback best-effort; the meter fault below is the answer */
+    }
+    const message = String(
+      (meterError as { message?: unknown } | null)?.message ?? meterError ?? "",
+    );
+    if (/insufficient|balance|funds/i.test(message)) {
+      return fail("Insufficient Vibe Coin balance.", 402);
+    }
+    return dbFail("vcw/run actions meter", meterError, "Unable to meter the step.");
+  }
+
   // fal.ai meld: detect a loop tool call and hand back the validated next hop.
   const phase = vcwPhaseForKind(String(input.kind));
   const falCall = parseFalToolCall(text, extra);

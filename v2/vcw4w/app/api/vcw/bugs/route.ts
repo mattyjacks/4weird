@@ -89,5 +89,28 @@ export async function POST(req: Request) {
     .select("id,run_id,game_slug,title,severity,description,created_at")
     .single();
   if (error) return dbFail("vcw/bugs create", error, "Unable to file the bug.");
+
+  // Meter bug-file (2 coins gross, 25% cut included); the bug row is rolled
+  // back when metering fails so filings are never free.
+  const { error: meterError } = await supabase.rpc("meter_vcw_usage", {
+    p_op: "bug-file",
+    p_qty: 1,
+    p_run: runId,
+    p_source: "vcw",
+  });
+  if (meterError) {
+    try {
+      await supabase.from("vcw_bugs").delete().eq("id", bug.id).eq("user_id", data.user.id);
+    } catch {
+      /* rollback best-effort; the meter fault below is the answer */
+    }
+    const message = String(
+      (meterError as { message?: unknown } | null)?.message ?? meterError ?? "",
+    );
+    if (/insufficient|balance|funds/i.test(message)) {
+      return fail("Insufficient Vibe Coin balance.", 402);
+    }
+    return dbFail("vcw/bugs meter", meterError, "Unable to meter the bug filing.");
+  }
   return ok({ bug }, 201);
 }

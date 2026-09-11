@@ -85,6 +85,6 @@ export async function POST(req: Request) {
     kills: n("kills"),
     deaths: n("deaths"),
   });
-  if (error) return fail("Unable to record stats.", 500);
+  if (error) return dbFail("api/stats", error, "Unable to record stats.");
   return ok({});
 }

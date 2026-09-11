@@ -106,16 +106,20 @@ export async function POST(req: Request) {
     quote = { gross: 10, cut: 2.5, provider: 7.5 };
   }
 
-  // Meter one run-open against the caller's coins. Session callers meter
-  // via meter_vcw_usage() (auth.uid); key callers (bot/gateway, no session)
+  // Meter one run-open against the caller's coins. Hosted carries the 15%
+  // markup, so it meters qty 1.15 (10 x 1.15 = the quoted 11.5 gross);
+  // BYOK meters the base qty 1. Session callers meter via
+  // meter_vcw_usage() (auth.uid); key callers (bot/gateway, no session)
   // meter via meter_vcw_usage_for(p_user, ...) through service_role.
-  // Insufficient funds fails closed with 402; other faults stay best-effort.
+  // Insufficient funds fails closed with 402; every other meter fault fails
+  // closed too - an uncharged dispatch receipt must never exist.
+  const meterQty = routeName === "byok" ? 1 : 1.15;
   try {
     if (caller.mode === "session") {
       const meterClient = await createClient();
       const { error: meterError } = await meterClient.rpc("meter_vcw_usage", {
         p_op: "run-open",
-        p_qty: 1,
+        p_qty: meterQty,
         p_run: null,
         p_source: "gateway",
       });
@@ -126,13 +130,14 @@ export async function POST(req: Request) {
         if (/insufficient|balance|funds/i.test(message)) {
           return fail("Insufficient Vibe Coin balance.", 402);
         }
+        return dbFail("vcw/gateway/dispatch meter", meterError, "Unable to meter dispatch.");
       }
     } else {
       const db = serviceClient();
       const { error: meterError } = await db.rpc("meter_vcw_usage_for", {
         p_user: caller.userId,
         p_op: "run-open",
-        p_qty: 1,
+        p_qty: meterQty,
         p_run: null,
         p_source: "gateway",
       });

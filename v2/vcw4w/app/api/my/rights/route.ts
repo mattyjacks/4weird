@@ -153,8 +153,8 @@ export async function GET(req: Request) {
 
   let balance: number | null = null;
   try {
-    const { data: b } = await supabase.rpc("coin_balance");
-    if (typeof b === "number") balance = b;
+    const { data: b } = await supabase.rpc("get_my_coin_balance");
+    if (b !== null && b !== undefined) balance = Math.round((Number(b) || 0) * 100) / 100;
   } catch {
     balance = null;
   }

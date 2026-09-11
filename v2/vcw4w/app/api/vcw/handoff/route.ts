@@ -74,6 +74,24 @@ export async function POST(req: Request) {
   if (stepsError) return dbFail("vcw/handoff steps", stepsError, "Unable to build the handoff.");
   if (bugsError) return dbFail("vcw/handoff bugs", bugsError, "Unable to build the handoff.");
 
+  // Meter handoff (5 coins gross, 25% cut included) before building the
+  // brief; the markdown is only assembled for a paid handoff.
+  const { error: meterError } = await supabase.rpc("meter_vcw_usage", {
+    p_op: "handoff",
+    p_qty: 1,
+    p_run: runId,
+    p_source: "vcw",
+  });
+  if (meterError) {
+    const message = String(
+      (meterError as { message?: unknown } | null)?.message ?? meterError ?? "",
+    );
+    if (/insufficient|balance|funds/i.test(message)) {
+      return fail("Insufficient Vibe Coin balance.", 402);
+    }
+    return dbFail("vcw/handoff meter", meterError, "Unable to meter the handoff.");
+  }
+
   const markdown = buildRunHandoff({
     gameSlug: run.game_slug,
     goal: run.goal,

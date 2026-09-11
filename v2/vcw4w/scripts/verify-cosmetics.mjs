@@ -3,7 +3,7 @@
 // lib/dev-charges.ts, lib/monetization-policy.ts (transpiled with the repo
 // typescript into a temp dir, then asserted under node).
 // Run: node scripts/verify-cosmetics.mjs (no keys, no network).
-import { readFileSync, existsSync, mkdtempSync } from "node:fs";
+import { readFileSync, existsSync, mkdtempSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
@@ -74,20 +74,44 @@ has(
 const tmp = mkdtempSync(join(tmpdir(), "shop-"));
 const tscBin = join(root, "node_modules", "typescript", "bin", "tsc");
 assert(existsSync(tscBin), "repo typescript is required to execute pure-module tests");
+// content/games.ts imports "@/lib/age-gate" via the repo tsconfig paths
+// mapping, so compile through a temp tsconfig that carries the same
+// baseUrl + paths (a bare file list has no path mapping and TS2307s).
+const tsconfigPath = join(tmp, "tsconfig.verify.json");
+writeFileSync(tsconfigPath, JSON.stringify({
+  compilerOptions: {
+    module: "commonjs",
+    target: "es2020",
+    skipLibCheck: true,
+    baseUrl: root,
+    paths: { "@/*": ["./*"] },
+    outDir: join(tmp, "out"),
+  },
+  files: [
+    join(root, "lib", "economy.ts"),
+    join(root, "lib", "cosmetics.ts"),
+    join(root, "lib", "dev-charges.ts"),
+    join(root, "lib", "monetization-policy.ts"),
+    join(root, "lib", "age-gate.ts"),
+    join(root, "content", "games.ts"),
+  ],
+}));
 const { execFileSync } = await import("node:child_process");
-execFileSync(process.execPath, [
-  tscBin,
-  join(root, "lib", "economy.ts"),
-  join(root, "lib", "cosmetics.ts"),
-  join(root, "lib", "dev-charges.ts"),
-  join(root, "lib", "monetization-policy.ts"),
-  join(root, "content", "games.ts"),
-  "--outDir", tmp, "--module", "commonjs", "--target", "es2020", "--skipLibCheck",
-], { cwd: root, stdio: "pipe" });
+execFileSync(process.execPath, [tscBin, "-p", tsconfigPath], { cwd: root, stdio: "pipe" });
+const outDir = join(tmp, "out");
 const need = createRequire(join(root, "scripts", "x.mjs"));
-const cosmetics = need(join(tmp, "lib", "cosmetics.js"));
-const dev = need(join(tmp, "lib", "dev-charges.js"));
-const policy = need(join(tmp, "lib", "monetization-policy.js"));
+// Mirror the tsconfig "@/*" mapping at runtime for the transpiled output.
+const { Module } = await import("node:module");
+const origResolve = Module._resolveFilename;
+Module._resolveFilename = function (request, ...rest) {
+  if (typeof request === "string" && request.startsWith("@/")) {
+    request = join(outDir, request.slice(2));
+  }
+  return origResolve.call(this, request, ...rest);
+};
+const cosmetics = need(join(outDir, "lib", "cosmetics.js"));
+const dev = need(join(outDir, "lib", "dev-charges.js"));
+const policy = need(join(outDir, "lib", "monetization-policy.js"));
 
 // Catalog: 24 looks, every one exactly 10 coins, unique well-formed ids.
 assert(cosmetics.COSMETIC_CATALOG.length === 24, `catalog must hold 24 items, got ${cosmetics.COSMETIC_CATALOG.length}`);

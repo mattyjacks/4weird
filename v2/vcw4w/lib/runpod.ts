@@ -62,12 +62,6 @@ export type RunpodFetchResult =
   | { ok: true; rows: RunpodBillingRow[] }
   | { ok: false; error: string };
 
-const KIND_PATH: Record<RunpodBillingKind, string> = {
-  pods: "pods",
-  serverless: "serverless",
-  "network-volumes": "network-volumes",
-};
-
 const KIND_ROW: Record<RunpodBillingKind, "pod" | "serverless" | "volume"> = {
   pods: "pod",
   serverless: "serverless",
