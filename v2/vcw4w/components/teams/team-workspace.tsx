@@ -7,8 +7,20 @@ import { UNITUNITE_NAME, UNITUNITE_TAGLINE } from "@/lib/unitunite";
 import { BudgetControls } from "@/components/budget/budget-controls";
 import { OrgRanks } from "@/components/teams/org-ranks";
 
-type Org = { id: string; slug: string; name: string };
+type Org = { id: string; slug: string; name: string; is_initialized?: boolean };
 type Team = { id: string; org_id: string; slug: string; name: string };
+type Invite = {
+  id: string;
+  token: string;
+  role_key: string;
+  max_uses: number | null;
+  uses: number;
+  expires_at: string | null;
+  revoked: boolean;
+  label: string;
+  status: string;
+  created_at: string;
+};
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -32,6 +44,22 @@ export function TeamWorkspace() {
   const [message, setMessage] = useState("Create an org, open a workspace, invite your team.");
   const [orgSlug, setOrgSlug] = useState("");
   const [orgName, setOrgName] = useState("");
+  const [invites, setInvites] = useState<Record<string, Invite[]>>({});
+  const [inviteOrg, setInviteOrg] = useState("");
+  const [inviteRole, setInviteRole] = useState("viewer");
+  const [inviteMax, setInviteMax] = useState("");
+  const [inviteExpiry, setInviteExpiry] = useState("");
+  const [inviteLabel, setInviteLabel] = useState("");
+  const [redeemToken, setRedeemToken] = useState("");
+
+  const loadInvites = useCallback(async (orgId: string) => {
+    try {
+      const r = await request<{ invites: Invite[] }>(`/api/orgs/${orgId}/invites`);
+      setInvites((prev) => ({ ...prev, [orgId]: r.invites ?? [] }));
+    } catch {
+      // Invite listing needs org.members.invite — non-inviters just see nothing.
+    }
+  }, []);
 
   const load = useCallback(async () => {
     // Orgs and teams load independently: one failing must not blank the other.
@@ -75,8 +103,11 @@ export function TeamWorkspace() {
       <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
         <h2 className="text-xl font-bold">1 · Organization</h2>
         <p className="mt-2 text-sm text-slate-300">
-          Orgs keep billing, wallets, and audit separate. Pay as you go: buy Vibe Coins (100 coins = $1.00),
-          fund the org wallet, and every cloud service meters from it — never a surprise bill.
+          Orgs keep billing, wallets, and audit separate. Everyone starts with an uninitialized
+          default org that costs 0 coins — the first thing you send it (workspace, funding,
+          cloud service, or invite link) initializes it, still moving 0 coins by itself.
+          Pay as you go after that: buy Vibe Coins (100 coins = $1.00), fund the org wallet,
+          and every cloud service meters from it — never a surprise bill.
         </p>
         <form
           className="mt-4 flex flex-wrap gap-3"
@@ -97,7 +128,154 @@ export function TeamWorkspace() {
           <input value={orgName} maxLength={80} onChange={(e) => setOrgName(e.target.value)} placeholder="Acme Inc" className="min-w-0 flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2" />
           <button className="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950">New org</button>
         </form>
-        <p className="mt-2 text-sm text-slate-400">{orgs.length ? `${orgs.length} org(s): ${orgs.map((o) => o.slug).join(", ")}` : "No orgs yet."}</p>
+        <p className="mt-2 text-sm text-slate-400">
+          {orgs.length
+            ? `${orgs.length} org(s): ${orgs.map((o) => `${o.slug}${o.is_initialized === false ? " (uninitialized · 0 coins)" : ""}`).join(", ")}`
+            : "No orgs yet — one is created for you on your first visit."}
+        </p>
+        {!!orgs.length && (
+          <div className="mt-4 rounded-xl border border-white/10 p-4">
+            <h3 className="font-semibold">Invite links — capped + expirable</h3>
+            <p className="mt-1 text-xs text-slate-400">
+              Share a link instead of per-email invites. Set a usage cap (blank = unlimited)
+              and an expiry (blank = never). Redeeming moves 0 coins.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <select
+                value={inviteOrg || orgs[0].id}
+                onChange={(e) => setInviteOrg(e.target.value)}
+                className="rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+              >
+                {orgs.map((o) => (
+                  <option key={o.id} value={o.id}>{o.slug}</option>
+                ))}
+              </select>
+              <select
+                value={inviteRole}
+                onChange={(e) => setInviteRole(e.target.value)}
+                className="rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+              >
+                {["viewer", "developer", "maintainer", "admin", "billing", "security", "lord", "banker", "banker_readonly", "watcher"].map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+              <input
+                value={inviteMax}
+                onChange={(e) => setInviteMax(e.target.value)}
+                placeholder="Max uses (blank ∞)"
+                inputMode="numeric"
+                className="w-40 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+              />
+              <input
+                value={inviteExpiry}
+                onChange={(e) => setInviteExpiry(e.target.value)}
+                placeholder="Expires (YYYY-MM-DD)"
+                className="w-48 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+              />
+              <input
+                value={inviteLabel}
+                maxLength={60}
+                onChange={(e) => setInviteLabel(e.target.value)}
+                placeholder="Label (optional)"
+                className="w-44 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+              />
+              <button
+                className="rounded-lg bg-emerald-300 px-4 py-2 text-sm font-semibold text-slate-950"
+                onClick={async () => {
+                  const orgId = inviteOrg || orgs[0].id;
+                  try {
+                    await request(`/api/orgs/${orgId}/invites`, {
+                      method: "POST",
+                      body: JSON.stringify({
+                        role_key: inviteRole,
+                        max_uses: inviteMax.trim() === "" ? null : Number(inviteMax),
+                        expires_at: inviteExpiry.trim() === "" ? null : inviteExpiry.trim(),
+                        label: inviteLabel,
+                      }),
+                    });
+                    setInviteMax("");
+                    setInviteExpiry("");
+                    setInviteLabel("");
+                    setMessage("Invite link created.");
+                    void loadInvites(orgId);
+                  } catch (e2) {
+                    setMessage(e2 instanceof Error ? e2.message : "Unable to create invite.");
+                  }
+                }}
+              >
+                New link
+              </button>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {orgs.map((o) => (
+                <button
+                  key={o.id}
+                  className="rounded-lg border border-white/15 px-3 py-1 text-xs text-slate-300"
+                  onClick={() => {
+                    setInviteOrg(o.id);
+                    void loadInvites(o.id);
+                  }}
+                >
+                  Show {o.slug} links
+                </button>
+              ))}
+            </div>
+            {(invites[inviteOrg || orgs[0].id] ?? []).map((inv) => (
+              <div key={inv.id} className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-300">
+                <code className="rounded bg-black/40 px-2 py-1">{inv.token}</code>
+                <span>{inv.role_key}</span>
+                <span>{inv.max_uses === null ? "∞" : `${inv.uses}/${inv.max_uses}`} uses</span>
+                <span>{inv.expires_at ? `expires ${new Date(inv.expires_at).toLocaleDateString()}` : "never expires"}</span>
+                <span className={inv.status === "active" ? "text-emerald-300" : "text-slate-500"}>{inv.status}</span>
+                {inv.label ? <span className="text-slate-500">· {inv.label}</span> : null}
+                {!inv.revoked && inv.status === "active" && (
+                  <button
+                    className="rounded border border-red-400/40 px-2 py-0.5 text-red-300"
+                    onClick={async () => {
+                      try {
+                        await request(`/api/orgs/${inviteOrg || orgs[0].id}/invites`, {
+                          method: "DELETE",
+                          body: JSON.stringify({ invite_id: inv.id }),
+                        });
+                        setMessage("Invite revoked.");
+                        void loadInvites(inviteOrg || orgs[0].id);
+                      } catch (e2) {
+                        setMessage(e2 instanceof Error ? e2.message : "Unable to revoke invite.");
+                      }
+                    }}
+                  >
+                    Revoke
+                  </button>
+                )}
+              </div>
+            ))}
+            <form
+              className="mt-3 flex flex-wrap gap-2"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  await request("/api/orgs/invites/redeem", {
+                    method: "POST",
+                    body: JSON.stringify({ token: redeemToken.trim() }),
+                  });
+                  setRedeemToken("");
+                  setMessage("Joined the org — 0 coins moved.");
+                  void load();
+                } catch (e2) {
+                  setMessage(e2 instanceof Error ? e2.message : "Unable to redeem invite.");
+                }
+              }}
+            >
+              <input
+                value={redeemToken}
+                onChange={(e) => setRedeemToken(e.target.value)}
+                placeholder="Have a token? Paste it to join"
+                className="min-w-0 flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+              />
+              <button className="rounded-lg bg-cyan-300 px-4 py-2 text-sm font-semibold text-slate-950">Join</button>
+            </form>
+          </div>
+        )}
       </section>
 
       {orgs.map((org) => <BudgetControls key={org.id} orgId={org.id} title={`${org.name} organization budget`} />)}

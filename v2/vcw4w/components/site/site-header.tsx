@@ -26,6 +26,7 @@ const NAV_GROUPS: { label: string; links: NavLink[] }[] = [
   {
     label: "Build",
     links: [
+      { href: "/newgameplus", label: "NewGamePlus" },
       { href: "/agents", label: "AI Agents" },
       { href: "/fal", label: "fal.ai Studio" },
       { href: "/desktop", label: "Virtual Desktop" },

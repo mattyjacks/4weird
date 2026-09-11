@@ -44,7 +44,7 @@ if (!chatRoute.includes("meter_game_ai_usage")) throw new Error("Swarm chat must
 if (!chatRoute.includes("rpcFail") || !chatRoute.includes("Unable to meter this turn")) {
   throw new Error("Swarm chat must fail the turn when metering fails (no free live replies).");
 }
-if (!chatRoute.includes("localSwarmReply") || !chatRoute.includes("Local engine is free")) {
+if (!chatRoute.includes("localSwarmReply") || !chatRoute.toLowerCase().includes("local swarm reply is free")) {
   throw new Error("Swarm chat must label free local-engine fallbacks.");
 }
 if (!chatRoute.includes("OPENAI_API_KEY") || !chatRoute.includes("OPENROUTER")) {

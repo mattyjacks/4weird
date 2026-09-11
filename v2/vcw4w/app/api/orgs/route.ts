@@ -11,14 +11,22 @@ function isSlug(v: unknown): string {
 }
 
 // GET /api/orgs — orgs I belong to (RLS already scopes to member/public).
+// Lazy-provisions the caller's uninitialized "Default Org by <username>"
+// (zero resources until the first write initializes it) so every new user
+// starts with exactly one org and pays 0 coins for it.
 export async function GET() {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data?.user) return fail("Login required.", 401);
+  // Best-effort: users predating the default-org trigger get theirs here.
+  await supabase.rpc("ensure_default_org").then(
+    () => undefined,
+    () => undefined,
+  );
   const { data: orgs, error } = await supabase
     .from("orgs")
-    .select("id,slug,name,visibility,created_at")
+    .select("id,slug,name,visibility,is_initialized,created_at")
     .order("created_at", { ascending: false })
     .limit(100);
   if (error) return dbFail("GET /api/orgs", error, "Unable to load orgs.");

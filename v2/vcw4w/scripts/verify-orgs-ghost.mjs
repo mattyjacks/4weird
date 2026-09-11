@@ -101,4 +101,36 @@ for (const [path, body] of [["ghost-timer", clock], ["terms-ghost", terms]]) {
   must(!/porn|hentai|nsfw|erotic|sex game/i.test(body), `${path} must not describe sexual content`);
 }
 
+// 9. Lazy default org: one uninitialized org per user, 0 resources until
+// the first write initializes it.
+const lazy = read("supabase/migrations/20260928000000_default_org_lazy_init.sql");
+for (const token of ["is_initialized", "ensure_default_org", "ensure_org_initialized", "Default Org by ", "trg_init_org_on_use", "initialized_at"]) {
+  must(lazy.includes(token), `lazy-org migration must include ${token}`);
+}
+// Init must move 0 coins: no personal-ledger contact anywhere in the file.
+must(!/public\.coin_ledger|coin_grants/.test(lazy), "lazy-org init must never touch coin tables");
+// First-use triggers cover every org-child write path.
+for (const token of ["trg_teams_init_org", "trg_wallet_ledger_init_org", "trg_provisions_init_org", "trg_ghost_contracts_init_org", "trg_ghost_debts_init_org", "trg_org_invites_init_org"]) {
+  must(lazy.includes(token), `lazy-org migration must include ${token}`);
+}
+// Signup seeds best-effort; reads backfill.
+must(lazy.includes("handle_new_user") && lazy.includes("ensure_default_org()"), "default org must seed on signup and backfill on read");
+
+// 10. Org invite links with customized limits + expiry.
+for (const token of ["max_uses", "expires_at", "revoked", "create_org_invite_link", "redeem_org_invite", "revoke_org_invite", "list_org_invites"]) {
+  must(lazy.includes(token), `invite migration must include ${token}`);
+}
+must(lazy.includes("max_uses between 1 and 10000"), "invite cap must be bounded 1..10000");
+must(lazy.includes("expiry must be in the future"), "invites must validate expiry");
+must(lazy.includes("invite expired") && lazy.includes("invite fully used") && lazy.includes("invite revoked"), "redeem must enforce expiry/cap/revoke");
+const orgsRoute = read("app/api/orgs/route.ts");
+must(orgsRoute.includes("ensure_default_org") && orgsRoute.includes("is_initialized"), "GET /api/orgs must lazy-provision and surface init state");
+const invitesRoute = read("app/api/orgs/[id]/invites/route.ts");
+for (const token of ["create_org_invite_link", "revoke_org_invite", "list_org_invites", "max_uses", "expires_at"]) {
+  must(invitesRoute.includes(token), `invites route must include ${token}`);
+}
+const redeemRoute = read("app/api/orgs/invites/redeem/route.ts");
+must(redeemRoute.includes("redeem_org_invite"), "redeem route must use the RPC");
+must(workspace.includes("0 coins") && workspace.includes("Invite links"), "workspace must explain 0-coin default org + invite links");
+
 console.log("Orgs+Ghost checks OK: watcher + multi-role + 100-org cap + 👻💵 timer/books.");

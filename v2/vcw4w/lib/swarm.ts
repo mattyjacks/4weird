@@ -41,7 +41,7 @@ export const SWARM_ORCHESTRATIONS = ["auto", "lead", "round-robin"] as const;
 export type SwarmOrchestration = (typeof SWARM_ORCHESTRATIONS)[number];
 
 export const SWARM_MODELS = ["auto", "openai", "openrouter", "local"] as const;
-export type SwarmModel = (typeof SWARM_MODELS)[string];
+export type SwarmModel = (typeof SWARM_MODELS)[number];
 
 export function isSwarmOrchestration(value: unknown): value is SwarmOrchestration {
   return typeof value === "string" && (SWARM_ORCHESTRATIONS as readonly string[]).includes(value);
