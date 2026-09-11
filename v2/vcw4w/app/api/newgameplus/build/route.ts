@@ -167,7 +167,7 @@ export async function POST(req: Request) {
         } else {
           draft = {
             scope: "personal",
-            submission_id: submission.id,
+            submission_id: submission?.id ?? null,
             project_id: null,
             draft_path: draftPath,
             note: "Saved to your personal drafts.",
@@ -239,7 +239,7 @@ export async function POST(req: Request) {
                 } else {
                   draft = {
                     scope: `org:${(org as { slug?: string }).slug ?? orgId}`,
-                    submission_id: submission.id,
+                    submission_id: draft.submission_id ?? submission?.id ?? null,
                     project_id: projectId,
                     draft_path: `${DRAFT_PROJECT_SLUG}/${draftPath}`,
                     note: "Pushed to the Draft game folder inside your org.",
