@@ -99,9 +99,12 @@ export function isBuddyVoice(value: unknown): value is string {
   return BUDDY_VOICES.some((b) => b.id === v);
 }
 
+/** Default Buddy voice: Nova (bright). Alloy stays valid, just not default. */
+export const BUDDY_DEFAULT_VOICE = "nova";
+
 export function cleanBuddyVoice(value: unknown): string {
   const v = String(value ?? "").toLowerCase();
-  return isBuddyVoice(v) ? v : "alloy";
+  return isBuddyVoice(v) ? v : BUDDY_DEFAULT_VOICE;
 }
 
 export const BUDDY_TTS_MODELS = ["tts-1", "tts-1-hd"] as const;
@@ -153,3 +156,132 @@ export function gameRequiresAi(slug: string): boolean {
 }
 
 export const GAME_AI_CUT_NOTE = `Includes ${GAME_AI_COMPUTE_CUT_PCT}% platform cut (same ${SERVICE_CUT_PCT}% as all compute) — never added on top.`;
+
+/* ---------------------------------------------------------------------------
+ * Accurate Buddy cost table — true upstream USD -> gross Vibe Coins.
+ *
+ * Every Buddy turn touches real paid APIs plus real database writes:
+ *   - OpenAI chat (BUDDY_MODEL, default gpt-4o-mini): input + output tokens.
+ *   - OpenAI TTS (tts-1 / tts-1-hd): characters spoken.
+ *   - Optional screen snapshot: billed as image input tokens on the chat leg.
+ *   - Supabase: 1-2 metered writes + session update + reads per turn.
+ *
+ * Rule: gross (debited) = provider_USD * 100 coins/$ / 0.75, rounded to the
+ * centicentcoin (0.01 coins). The 25% cut stays INCLUDED, never on top.
+ * The meter_game_ai_usage RPC recomputes gross from qty at fixed kind rates
+ * (buddy-chat 3/1k, buddy-tts 2/1k), so callers pass a derived qty
+ * (gross / rate) to land the ledger on the true-cost gross. Minimum 0.01
+ * coins (1 centicentcoin) per metered leg.
+ *
+ * Upstream prices are pinned below and overridable via env for ops without
+ * a code change (see .env.example). Update them when OpenAI/Supabase move.
+ * ------------------------------------------------------------------------- */
+
+import { coinsToCenticentcoins } from "@/lib/economy";
+
+/** USD per 1M tokens for the buddy chat model (gpt-4o-mini, 2026 list). */
+export const BUDDY_CHAT_USD_PER_1M_INPUT = 0.15;
+export const BUDDY_CHAT_USD_PER_1M_OUTPUT = 0.6;
+/** USD per 1M chars for Buddy TTS models (2026 list). */
+export const BUDDY_TTS_USD_PER_1M_CHARS: Record<string, number> = {
+  "tts-1": 15,
+  "tts-1-hd": 30,
+};
+/** One downscaled screen snapshot ≈ this many chat input tokens (low-res). */
+export const BUDDY_SCREENSHOT_INPUT_TOKENS = 1000;
+/** Amortized Supabase cost per metered leg (writes + session update + reads). */
+export const BUDDY_DB_USD_PER_LEG = 0.00002;
+
+function envNum(name: string, fallback: number): number {
+  const v = Number(process.env[name]);
+  return Number.isFinite(v) && v >= 0 ? v : fallback;
+}
+
+export function buddyChatUsdPer1M(): { input: number; output: number } {
+  return {
+    input: envNum("BUDDY_CHAT_USD_PER_1M_INPUT", BUDDY_CHAT_USD_PER_1M_INPUT),
+    output: envNum("BUDDY_CHAT_USD_PER_1M_OUTPUT", BUDDY_CHAT_USD_PER_1M_OUTPUT),
+  };
+}
+
+export function buddyTtsUsdPer1M(model: string): number {
+  const env = Number(process.env[`BUDDY_TTS_USD_PER_1M_${model.replace(/-/g, "_").toUpperCase()}`]);
+  if (Number.isFinite(env) && env >= 0) return env;
+  return BUDDY_TTS_USD_PER_1M_CHARS[model] ?? BUDDY_TTS_USD_PER_1M_CHARS["tts-1"];
+}
+
+export function buddyDbUsdPerLeg(): number {
+  return envNum("BUDDY_DB_USD_PER_LEG", BUDDY_DB_USD_PER_LEG);
+}
+
+export type BuddyCostBreakdown = {
+  /** Gross coins debited (rounded to centicentcoin, min 0.01). */
+  grossCoins: number;
+  /** Same gross in integer centicentcoins (1 coin = 100). */
+  grossCenticentcoins: number;
+  cut: number;
+  provider: number;
+  /** Provider-side USD before the cut (what OpenAI/Supabase actually cost). */
+  usdProvider: number;
+  /** Gross USD equivalent at 100 coins = $1.00. */
+  usdGross: number;
+  parts: Record<string, number>;
+  /** qty to pass to meter_game_ai_usage so the ledger lands on grossCoins. */
+  rpcQty: number;
+};
+
+function toGross(providerUsd: number, ratePerQty: number): BuddyCostBreakdown {
+  const grossRaw = (providerUsd * 100) / (1 - GAME_AI_COMPUTE_CUT_PCT / 100);
+  const gross = Math.max(0.01, Math.round(grossRaw * 100) / 100);
+  const split = gameAiSplit(gross);
+  return {
+    grossCoins: split.gross,
+    grossCenticentcoins: coinsToCenticentcoins(split.gross),
+    cut: split.cut,
+    provider: split.provider,
+    usdProvider: Math.round(providerUsd * 1000000) / 1000000,
+    usdGross: Math.round(split.gross * 100) / 10000,
+    parts: {},
+    rpcQty: Math.max(0.0001, split.gross / ratePerQty),
+  };
+}
+
+/** Accurate chat-leg cost: tokens + optional screenshot + one DB leg. */
+export function quoteBuddyChatLeg(input: {
+  promptChars: number;
+  replyChars: number;
+  hasScreenshot?: boolean;
+}): BuddyCostBreakdown {
+  const rate = buddyChatUsdPer1M();
+  const inTokens = Math.max(1, Math.ceil(input.promptChars / 4));
+  const outTokens = Math.max(1, Math.ceil(input.replyChars / 4));
+  const chatUsd = (inTokens / 1_000_000) * rate.input + (outTokens / 1_000_000) * rate.output;
+  const imageUsd = input.hasScreenshot
+    ? (BUDDY_SCREENSHOT_INPUT_TOKENS / 1_000_000) * rate.input
+    : 0;
+  const dbUsd = buddyDbUsdPerLeg();
+  const out = toGross(chatUsd + imageUsd + dbUsd, 3);
+  out.parts = {
+    chatUsd: Math.round(chatUsd * 1000000) / 1000000,
+    imageUsd: Math.round(imageUsd * 1000000) / 1000000,
+    dbUsd,
+    inTokens,
+    outTokens,
+  };
+  return out;
+}
+
+/** Accurate TTS-leg cost: chars at the selected model rate + one DB leg. */
+export function quoteBuddyTtsLeg(input: { chars: number; model: string }): BuddyCostBreakdown {
+  const per1M = buddyTtsUsdPer1M(input.model);
+  const ttsUsd = (Math.max(1, input.chars) / 1_000_000) * per1M;
+  const dbUsd = buddyDbUsdPerLeg();
+  const out = toGross(ttsUsd + dbUsd, 2);
+  out.parts = { ttsUsd: Math.round(ttsUsd * 1000000) / 1000000, dbUsd, chars: Math.max(1, input.chars) };
+  return out;
+}
+
+/** Human line for the widget: "2.15 coins (215 centicentcoins) ≈ $0.0215". */
+export function formatBuddyCost(cost: Pick<BuddyCostBreakdown, "grossCoins" | "grossCenticentcoins" | "usdGross">): string {
+  return `${cost.grossCoins} coins (${cost.grossCenticentcoins} centicentcoins) ≈ $${cost.usdGross.toFixed(4)}`;
+}

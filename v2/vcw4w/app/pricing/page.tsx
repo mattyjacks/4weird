@@ -301,7 +301,7 @@ export default function Page() {
             },
             {
               q: "What voices does the Gaming Buddy use?",
-              a: "All 9 OpenAI voices: Alloy, Ash, Coral, Echo, Fable, Onyx, Nova, Sage, Shimmer — on tts-1 or tts-1-hd at 0.5x–2.0x speed, 2 coins per 1k chars with the 25% cut included.",
+              a: "All 9 OpenAI voices: Alloy, Ash, Coral, Echo, Fable, Onyx, Nova, Sage, Shimmer — Nova by default — on tts-1 ($15/1M chars) or tts-1-hd ($30/1M chars) at 0.5x–2.0x speed. Every turn meters true upstream cost (chat tokens + voice chars + optional screen snapshot + database writes) in Coins + CentiCentCoins with the 25% cut included.",
             },
             {
               q: "How does renting games work?",

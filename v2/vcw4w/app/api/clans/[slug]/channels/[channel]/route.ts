@@ -85,7 +85,8 @@ export async function GET(
   if (!slug) return fail("Invalid clan.", 400);
   const supabase = await createClient();
   const { clanId, chan, error } = await resolveChannel(supabase, slug, rawChan);
-  if (error || !chan) return error;
+  if (error) return error;
+  if (!chan) return fail("Channel not found.", 404);
   const url = new URL(req.url);
   const limit = Math.max(1, Math.min(100, Number(url.searchParams.get("limit")) || 50));
   const before = url.searchParams.get("before") ?? "";
@@ -153,7 +154,17 @@ export async function POST(
     return fail("image_url must come from /api/clans/upload.", 400);
   }
   const { clanId, chan, error } = await resolveChannel(supabase, slug, rawChan);
-  if (error || !chan) return error;
+  if (error) return error;
+  if (!chan) return fail("Channel not found.", 404);
+  // Read-only channels (e.g. #announcements) are mod-only. Checked BEFORE any
+  // fee so a refused send never charges the server-cost fee.
+  if (chan.readonly) {
+    const { data: isMod } = await supabase.rpc("clan_is_moderator", {
+      p_clan_id: clanId,
+      p_user_id: u.id,
+    });
+    if (!isMod) return fail("Only owners/mods can post here.", 403);
+  }
 
   const valley = await valleynetCheck(text);
   void meterLunaCheck(supabase, clanId, 1);

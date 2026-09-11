@@ -75,6 +75,18 @@ if (!usage.includes("my_compute_usage") || !usage.includes("lastHour") || !usage
   throw new Error("Usage API must return session/total/last-hour/last-24h via my_compute_usage.");
 }
 if (!usage.includes("serverless-worker") || !usage.includes("functions")) throw new Error("Usage API must break out function runs.");
+// Centicentcoin accuracy: rollups stay numeric (no ::integer truncation of
+// fractional coins like 0.41), and clan fees are a first-class section.
+const usageNumericMig = read("../supabase/migrations/20260917000000_usage_numeric_and_clan_breakout.sql");
+if (!usageNumericMig.includes("my_compute_usage") || !usageNumericMig.includes("numeric(12, 2)")) {
+  throw new Error("Usage numeric migration must redefine my_compute_usage with numeric sums.");
+}
+if (!usageNumericMig.includes("my_clan_usage") || !usageNumericMig.includes("Clan %")) {
+  throw new Error("Usage numeric migration must define my_clan_usage over Clan ledger reasons.");
+}
+if (!usage.includes("my_clan_usage") || !usage.includes("clanTotalGross")) {
+  throw new Error("Usage API must include the clan personal-spend section in combined totals.");
+}
 
 // Pages: usage shows all four windows + functions; buddy + widget cover 9 voices + spend.
 for (const token of ["Current session", "Total (all time)", "Last 24 hours", "Last hour", "Functions", "byKind", "byGame", "recentGameAi"]) {
@@ -101,5 +113,49 @@ if (!widget.includes("if (r.fallback) {") || !widget.includes("} else {\n       
 }
 if (buddyEngine.includes("BuddyAct") || buddyEngine.includes("buddyConfigured")) {
   throw new Error("buddy-engine must not carry dead/unusable exports.");
+}
+
+// Nova is the default voice everywhere (Alloy stays valid, not default).
+if (!gameAi.includes('BUDDY_DEFAULT_VOICE = "nova"')) throw new Error("Game AI lib must pin Nova as BUDDY_DEFAULT_VOICE.");
+if (!widget.includes("BUDDY_DEFAULT_VOICE") || !widget.includes('useState(BUDDY_DEFAULT_VOICE)')) {
+  throw new Error("Buddy widget must default its voice to BUDDY_DEFAULT_VOICE (Nova).");
+}
+const session = read("../app/api/buddy/session/route.ts");
+if (!session.includes("BUDDY_DEFAULT_VOICE") || !session.includes("cleanBuddyVoice")) {
+  throw new Error("Buddy session API must default + validate the voice as Nova.");
+}
+if (!buddyEngine.includes("BUDDY_DEFAULT_VOICE")) throw new Error("Buddy engine fallback persona must follow the Nova default.");
+
+// Screen share: explicit opt-in, tab-isolated option, snapshot-only.
+for (const token of ["getDisplayMedia", "preferCurrentTab", "Share this tab only", "Stop sharing", "screen_image", "captureSnapshot", "stopSharing"]) {
+  if (!widget.includes(token)) throw new Error(`Widget missing screen-share flow: ${token}.`);
+}
+if (!buddyEngine.includes("cleanScreenImage") || !buddyEngine.includes("hasScreenshot")) {
+  throw new Error("Buddy engine must validate screen snapshots (cleanScreenImage + hasScreenshot).");
+}
+if (!chat.includes("screen_image") || !chat.includes("input_image") || !chat.includes("cleanScreenImage")) {
+  throw new Error("Buddy chat must accept a screen snapshot and forward it as Responses API image input.");
+}
+// No silent capture: snapshots only ride on an explicit user message turn.
+if (!widget.includes("shareMode === \"off\" ? null : captureSnapshot()")) {
+  throw new Error("Widget must only capture a snapshot while sharing is on.");
+}
+// Echo-bug guard: the widget must not quote its own transcript into prompts.
+if (!widget.includes("data-buddy") || !widget.includes('closest("[data-buddy]")')) {
+  throw new Error("Widget must exclude its own UI (data-buddy) from screen-text observation.");
+}
+
+// True-cost metering: USD rates + DB leg + Coins/CentiCentCoins breakdown.
+for (const token of ["quoteBuddyChatLeg", "quoteBuddyTtsLeg", "BUDDY_DB_USD_PER_LEG", "grossCenticentcoins", "rpcQty", "formatBuddyCost"]) {
+  if (!gameAi.includes(token)) throw new Error(`Game AI lib missing true-cost metering: ${token}.`);
+}
+if (!chat.includes("quoteBuddyChatLeg") || !chat.includes("grossCenticentcoins")) {
+  throw new Error("Buddy chat must meter true cost with a Coins/CentiCentCoins breakdown.");
+}
+if (!tts.includes("quoteBuddyTtsLeg") || !tts.includes("grossCenticentcoins")) {
+  throw new Error("Buddy TTS must meter true per-model cost with a Coins/CentiCentCoins breakdown.");
+}
+if (!widget.toLowerCase().includes("centicentcoins") || !widget.includes("lastCost")) {
+  throw new Error("Widget must show the per-turn Coins + CentiCentCoins cost.");
 }
 console.log("Game AI + Buddy integrity OK.");

@@ -16,7 +16,7 @@
  * widget can show spend instantly and the server can meter identically.
  */
 
-import { BUDDY_VOICES, cleanBuddyVoice, quoteGameAi } from "@/lib/game-ai";
+import { BUDDY_DEFAULT_VOICE, BUDDY_VOICES, cleanBuddyVoice, quoteGameAi } from "@/lib/game-ai";
 
 export type BuddyObservation = {
   gameSlug: string;
@@ -24,6 +24,8 @@ export type BuddyObservation = {
   screenText: string;
   score: number | null;
   voice: string;
+  /** True when the client attached a downscaled screen snapshot for this turn. */
+  hasScreenshot: boolean;
 };
 
 export function cleanScreenText(value: unknown): string {
@@ -42,6 +44,7 @@ export function observeScreen(input: {
   screenText?: unknown;
   score?: unknown;
   voice?: unknown;
+  hasScreenshot?: unknown;
 }): BuddyObservation {
   const screenText = cleanScreenText(input.screenText).replace(/\s+/g, " ").trim().slice(0, 500);
   const scoreRaw = Number(input.score);
@@ -51,13 +54,17 @@ export function observeScreen(input: {
     screenText,
     score: Number.isFinite(scoreRaw) ? scoreRaw : null,
     voice: cleanBuddyVoice(input.voice),
+    hasScreenshot: input.hasScreenshot === true,
   };
 }
 
 /** VCW-style REASON prompt: what the model sees when a key is configured. */
 export function buddySystemPrompt(voiceId: string): string {
   const voice = BUDDY_VOICES.find((v) => v.id === voiceId);
-  const persona = voice ? `${voice.label} (${voice.tone}): ${voice.blurb}` : "Alloy (Neutral)";
+  const fallback = BUDDY_VOICES.find((v) => v.id === BUDDY_DEFAULT_VOICE);
+  const persona = voice
+    ? `${voice.label} (${voice.tone}): ${voice.blurb}`
+    : `${fallback?.label ?? "Nova"} (${fallback?.tone ?? "Bright"})`;
   return (
     `You are the 4weird Gaming Buddy, a screen-aware companion talking while the player plays. ` +
     `Voice persona: ${persona}. ` +
@@ -73,11 +80,25 @@ export function buddyUserPrompt(obs: BuddyObservation): string {
   const parts = [`Game: ${obs.gameTitle} (${obs.gameSlug})`];
   if (obs.score !== null) parts.push(`Score: ${obs.score}`);
   parts.push(obs.screenText ? `Screen: ${obs.screenText}` : "Screen: (no text captured yet)");
+  if (obs.hasScreenshot) parts.push("A downscaled screen snapshot is attached — describe what you see in it, not the text dump alone.");
   return parts.join("\n");
+}
+
+/** Validate an optional client screen snapshot: JPEG/PNG data URL, ≤ 700 KB. */
+export function cleanScreenImage(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const v = value.trim();
+  if (v.length < 100 || v.length > 950_000) return null;
+  if (!/^data:image\/(jpeg|png);base64,/.test(v)) return null;
+  if (!/^[A-Za-z0-9+/=\s]+$/.test(v.split(",")[1] ?? "")) return null;
+  return v.slice(0, 950_000);
 }
 
 /** VCW-style ACT fallback when OPENAI_API_KEY is missing: never throws, never fakes a model. */
 export function fallbackReply(obs: BuddyObservation): string {
+  if (obs.hasScreenshot) {
+    return `I got your screen snapshot in ${obs.gameTitle} — nice view. The live AI service is not connected yet, so this local coaching reply is free and I can't describe the image in detail.`;
+  }
   if (obs.screenText) {
     const snippet = obs.screenText.slice(0, 90);
     return `I'm watching ${obs.gameTitle} with you — I see "${snippet}". The live AI service is not connected yet, so this local coaching reply is free.`;

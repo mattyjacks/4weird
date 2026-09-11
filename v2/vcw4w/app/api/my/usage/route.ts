@@ -39,6 +39,10 @@ function toSpend(value: unknown): Spend {
  *   - game_play_usage (game rentals: proportional load fee + per-second
  *     playtime heartbeats) via my_game_play_usage(): total + last hour + last 24h +
  *     by-game + recent, each split 25% cut / 75% provider.
+ *   - clan personal spend (post/comment/message server-cost fees at 25% cut,
+ *     plus owner funding + member donations at 1:1) via my_clan_usage():
+ *     total + last hour + last 24h + by-reason + recent. Without this section
+ *     clan fees would hide inside generic coin movements.
  *   - runpod_usage (REAL RunPod spend mirrored via POST /api/agents/runpod-sync
  *     with RUNPOD_API_KEY: pods + serverless + volumes in USD with a Vibe Coin
  *     display equivalent. Billed by RunPod directly — no Vibe cut applies.)
@@ -228,10 +232,93 @@ export async function GET(req: Request) {
     // Pre-migration: zeros.
   }
 
+  // 6b. Clan personal spend (post/comment/message fees + funding/donations).
+  // Every clan debit lands in coin_ledger with a 'Clan ...' reason, so this
+  // aggregates the caller's own rows: no clan is ever a hidden bucket.
+  let clan: {
+    total: { gross: number; cut: number; charges: number };
+    lastHour: { gross: number; cut: number; charges: number };
+    last24h: { gross: number; cut: number; charges: number };
+    byReason: { label: string; charges: number; gross: number }[];
+    recent: { delta: number; reason: string; created_at: string }[];
+  } = {
+    total: { gross: 0, cut: 0, charges: 0 },
+    lastHour: { gross: 0, cut: 0, charges: 0 },
+    last24h: { gross: 0, cut: 0, charges: 0 },
+    byReason: [],
+    recent: [],
+  };
+  try {
+    const { data: rollup, error } = await supabase.rpc("my_clan_usage");
+    if (!error && rollup) {
+      const r = rollup as Record<string, unknown>;
+      const asClan = (v: unknown): { gross: number; cut: number; charges: number } => ({
+        gross: Number((v as { gross?: unknown } | null)?.gross) || 0,
+        cut: Number((v as { cut?: unknown } | null)?.cut) || 0,
+        charges: Number((v as { charges?: unknown } | null)?.charges) || 0,
+      });
+      clan = {
+        total: asClan(r.total),
+        lastHour: asClan(r.lastHour),
+        last24h: asClan(r.last24h),
+        byReason: Array.isArray(r.byReason) ? (r.byReason as typeof clan.byReason) : [],
+        recent: Array.isArray(r.recent) ? (r.recent as typeof clan.recent) : [],
+      };
+    } else {
+      // Pre-migration fallback: aggregate the caller's Clan rows directly.
+      const { data: rows } = await supabase
+        .from("coin_ledger")
+        .select("delta,reason,created_at")
+        .eq("user_id", data.user.id)
+        .ilike("reason", "Clan %")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      const list = (rows ?? []) as { delta: number; reason: string; created_at: string }[];
+      const sum = (pred: (row: (typeof list)[number]) => boolean): { gross: number; cut: number; charges: number } => {
+        let gross = 0;
+        let charges = 0;
+        for (const row of list) {
+          if (!pred(row)) continue;
+          const debit = Math.max(0, -(Number(row.delta) || 0));
+          gross += debit;
+          charges += 1;
+        }
+        gross = Math.round(gross * 100) / 100;
+        return { gross, cut: Math.round(gross * 25) / 100, charges };
+      };
+      const hourAgo = Date.now() - 3_600_000;
+      const dayAgo = Date.now() - 86_400_000;
+      clan = {
+        total: sum(() => true),
+        lastHour: sum((row) => Date.parse(row.created_at) > hourAgo),
+        last24h: sum((row) => Date.parse(row.created_at) > dayAgo),
+        byReason: [],
+        recent: list.slice(0, limit),
+      };
+    }
+  } catch {
+    // Pre-migration or RLS: zeros.
+  }
+  const clanTotalGross = Number(clan.total.gross) || 0;
+  const clanTotalCut = Number(clan.total.cut) || 0;
+
   const combined = {
-    gross: gameAi.total.gross + agentCompute.gross + workspace.gross + gameRent.total.gross,
-    cut: gameAi.total.cut + agentCompute.cut + workspace.cut + gameRent.total.cut,
-    provider: gameAi.total.provider + agentCompute.provider + workspace.provider + gameRent.total.provider,
+    gross:
+      Math.round(
+        (gameAi.total.gross + agentCompute.gross + workspace.gross + gameRent.total.gross + clanTotalGross) * 100,
+      ) / 100,
+    cut:
+      Math.round((gameAi.total.cut + agentCompute.cut + workspace.cut + gameRent.total.cut + clanTotalCut) * 100) /
+      100,
+    provider:
+      Math.round(
+        (gameAi.total.provider +
+          agentCompute.provider +
+          workspace.provider +
+          gameRent.total.provider +
+          (clanTotalGross - clanTotalCut)) *
+          100,
+      ) / 100,
   };
 
   // 7. RunPod mirror (real spend pulled with RUNPOD_API_KEY; USD, no cut).
@@ -294,6 +381,7 @@ export async function GET(req: Request) {
     agentCompute,
     workspace,
     gameRent,
+    clan,
     runpod,
     combined,
     note: GAME_AI_CUT_NOTE,

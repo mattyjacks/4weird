@@ -4,7 +4,7 @@ import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
 import { rpcStatus } from "@/lib/agent-market";
-import { cleanBuddyVoice, cleanBuddySpeed, isBuddyModel, quoteGameAi } from "@/lib/game-ai";
+import { cleanBuddyVoice, cleanBuddySpeed, formatBuddyCost, isBuddyModel, quoteBuddyTtsLeg } from "@/lib/game-ai";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +19,9 @@ function cleanText(value: unknown): string {
  * mp3; without it returns { fallback: true } so the widget uses browser
  * speechSynthesis. Local browser speech is free; only OpenAI voice output is
  * metered as buddy-tts (25% cut).
+ * Metering is true-cost: characters at the selected model's USD rate plus
+ * one Supabase DB leg, converted to gross Vibe Coins (25% cut INCLUDED) at
+ * centicentcoin resolution. The response carries the per-turn cost breakdown.
  */
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
@@ -44,10 +47,13 @@ export async function POST(req: Request) {
   if (sessionRaw !== null && !isUuid(sessionRaw)) return fail("Invalid session_id.", 400);
 
   const key = process.env.OPENAI_API_KEY ?? "";
-  if (!key) return ok({ fallback: true, voice, model, speed, gross: 0, metered: null });
+  if (!key) return ok({ fallback: true, voice, model, speed, gross: 0, cost: null, metered: null });
 
-  const qty = Math.max(0.1, text.length / 1000);
-  const gross = quoteGameAi("buddy-tts", qty);
+  // True-cost voice leg: chars at the model's USD rate + one DB leg. The RPC
+  // prices buddy-tts at 2 coins per qty unit, so derive qty from the
+  // true-cost gross — the ledger lands on the accurate figure.
+  const cost = quoteBuddyTtsLeg({ chars: text.length, model });
+  const gross = cost.grossCoins;
   // Meter BEFORE touching OpenAI: a failed meter (e.g. insufficient
   // balance) fails the request instead of serving paid-out audio for free.
   let metered: unknown = null;
@@ -55,7 +61,7 @@ export async function POST(req: Request) {
     const { data: row, error } = await supabase.rpc("meter_game_ai_usage", {
       p_game: game,
       p_kind: "buddy-tts",
-      p_qty: qty,
+      p_qty: cost.rpcQty,
       p_session: sessionRaw,
       p_source: "tts",
     });
@@ -82,9 +88,28 @@ export async function POST(req: Request) {
     if (!res.ok) throw new Error(`tts HTTP ${res.status}`);
     const buf = Buffer.from(await res.arrayBuffer());
     if (buf.length > 2_000_000) throw new Error("tts too large");
-    return ok({ fallback: false, voice, model, speed, gross, metered, audio: buf.toString("base64"), mime: "audio/mpeg" });
+    return ok({
+      fallback: false,
+      voice,
+      model,
+      speed,
+      gross,
+      cost: {
+        grossCoins: cost.grossCoins,
+        grossCenticentcoins: cost.grossCenticentcoins,
+        cut: cost.cut,
+        provider: cost.provider,
+        usdProvider: cost.usdProvider,
+        usdGross: cost.usdGross,
+        parts: cost.parts,
+        display: formatBuddyCost(cost),
+      },
+      metered,
+      audio: buf.toString("base64"),
+      mime: "audio/mpeg",
+    });
   } catch (err) {
     console.error("[buddy] tts failed, client should use speechSynthesis:", err);
-    return ok({ fallback: true, voice, model, speed, gross, metered });
+    return ok({ fallback: true, voice, model, speed, gross, cost: null, metered });
   }
 }

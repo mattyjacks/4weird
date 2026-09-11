@@ -24,6 +24,13 @@ type UsageResponse = {
     created_at: string;
   }[];
   agentCompute: { gross: number; cut: number; provider: number; slices: number };
+  clan: {
+    total: { gross: number; cut: number; charges: number };
+    lastHour: { gross: number; cut: number; charges: number };
+    last24h: { gross: number; cut: number; charges: number };
+    byReason: { label: string; charges: number; gross: number }[];
+    recent: { delta: number; reason: string; created_at: string }[];
+  };
   gameRent: {
     total: Spend;
     lastHour: Spend;
@@ -293,7 +300,7 @@ export function UsageClient() {
               <div className="rounded-xl border border-cyan-300/30 bg-cyan-300/[.06] p-4">
                 <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Combined gross</p>
                 <p className="mt-1 text-3xl font-black">{data.combined.gross} <span className="text-sm text-slate-400">({usd(data.combined.gross)})</span></p>
-                <p className="mt-1 text-xs text-slate-400">game AI + game rentals + agent rentals + workspaces</p>
+                <p className="mt-1 text-xs text-slate-400">game AI + game rentals + agent rentals + workspaces + clan fees</p>
               </div>
               <div className="rounded-xl border border-white/10 p-4">
                 <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Platform 25%</p>
@@ -311,7 +318,28 @@ export function UsageClient() {
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="rounded-xl border border-white/10 p-4">Workspaces: <b>{data.workspace.gross}</b> coins ({data.workspace.charges} charges)</div>
+              <div className="rounded-xl border border-white/10 p-4">Clans: <b>{data.clan?.total.gross ?? 0}</b> coins ({data.clan?.total.charges ?? 0} charges)</div>
             </div>
+          </Card>
+
+          <Card title="Clans — posting fees + funding + donations">
+            <p>
+              Every post/comment/message pays a server-cost fee (25% platform / 75% clan wallet, min 0.01 coins);
+              owner funding + member donations move 1:1 with no cut. Total: <b>{data.clan?.total.gross ?? 0}</b> coins,{" "}
+              <b>{data.clan?.total.cut ?? 0}</b> cut, <b>{data.clan?.total.charges ?? 0}</b> charges.
+            </p>
+            {(data.clan?.byReason ?? []).length ? (
+              <div className="space-y-2">
+                {(data.clan?.byReason ?? []).map((r) => (
+                  <div key={r.label} className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-2">
+                    <span className="font-semibold text-white">{r.label}</span>
+                    <span className="text-slate-400">{r.gross} gross · {r.charges} charges</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-slate-500">No clan spend yet — every Clan fee, funding, and donation lands here.</p>
+            )}
           </Card>
 
           <Card title="Functions — serverless, cron, inference, queues, relays">

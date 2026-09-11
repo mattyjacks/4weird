@@ -4,6 +4,7 @@ import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
 import { rpcStatus } from "@/lib/agent-market";
+import { BUDDY_DEFAULT_VOICE, cleanBuddyVoice } from "@/lib/game-ai";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
   const action = String(input.action ?? "");
   if (action === "start") {
     const game = String(input.game_slug ?? input.game ?? "lobby").toLowerCase();
-    const voice = String(input.voice ?? "alloy").toLowerCase();
+    const voice = cleanBuddyVoice(input.voice ?? BUDDY_DEFAULT_VOICE);
     if (!/^[a-z0-9-]{1,64}$/.test(game)) return fail("Invalid game_slug.", 400);
     try {
       const { data: session, error } = await supabase.rpc("start_buddy_session", {

@@ -444,6 +444,7 @@ declare
   v_amount numeric(12, 2) := round(coalesce(p_coins, 0), 2);
   v_bal numeric(12, 2);
   v_total numeric(12, 2);
+  v_xp_today integer;
 begin
   if auth.uid() is null then raise exception 'login required'; end if;
   if v_amount < 0.01 or v_amount > 100000 then raise exception 'amount must be 0.01..100000'; end if;
@@ -469,8 +470,15 @@ begin
     updated_at = now();
   insert into public.clan_cost_ledger (clan_id, kind, qty, gross, cut, provider, note)
   values (p_clan_id, 'donation', 1, v_amount, 0, v_amount, substr('member donation', 1, 200));
-  insert into public.clan_xp_ledger (user_id, clan_id, xp, reason)
-  values (auth.uid(), p_clan_id, 20, 'upkeep-funded');
+  -- Donation XP respects the same 100/day anti-farm cap as award_clan_xp.
+  select coalesce(sum(xp), 0)::integer into v_xp_today
+  from public.clan_xp_ledger
+  where user_id = auth.uid() and clan_id = p_clan_id
+    and created_at >= date_trunc('day', now());
+  if v_xp_today < 100 then
+    insert into public.clan_xp_ledger (user_id, clan_id, xp, reason)
+    values (auth.uid(), p_clan_id, least(20, 100 - v_xp_today), 'upkeep-funded');
+  end if;
   select coalesce(sum(gross), 0)::numeric(12, 2) into v_total
   from public.clan_cost_ledger where clan_id = p_clan_id and kind = 'donation';
   if v_total >= 100 then
