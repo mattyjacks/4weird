@@ -1,6 +1,7 @@
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { botRateLimit, hasBotAuth, invalidCredentials, resolveBotKey } from "@/lib/bot-auth";
 import { botClanSlug } from "@/lib/bot-validate";
+import { logValleynetAction } from "@/lib/valleynet";
 import { serviceClient } from "@/lib/supabase/service";
 
 export const dynamic = "force-dynamic";
@@ -36,12 +37,23 @@ export async function POST(req: Request) {
     const db = serviceClient();
     const { data: clanData, error: clanError } = await db
       .from("clans")
-      .select("id,slug,name")
+      .select("id,slug,name,clan_type")
       .eq("slug", slug)
       .maybeSingle();
     if (clanError) return dbFail("api/bot/bclans/join", clanError, "Unable to join clan.");
-    const clan = clanData as { id: string; slug: string; name: string } | null;
+    const clan = clanData as { id: string; slug: string; name: string; clan_type?: string } | null;
     if (!clan) return fail("Clan not found.", 404);
+    // hclans are human-only: bot joins are refused + logged by Valley Net.
+    if (clan.clan_type === "hclan") {
+      await logValleynetAction({
+        clanId: clan.id,
+        targetType: "join",
+        verdict: "block",
+        reasons: ["hclan-refused"],
+        actorId: bot.userId,
+      });
+      return fail("hclans are human-only.", 403);
+    }
 
     const { error: joinError } = await db.from("clan_members").upsert(
       { clan_id: clan.id, user_id: bot.userId, role: "member" },

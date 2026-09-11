@@ -35,6 +35,13 @@ export const WORKSPACE_COMPUTE_CUT_PCT = 25;
  * per game + feature kind so /my/usage can attribute every cent.
  */
 export const GAME_AI_COMPUTE_CUT_PCT = 25;
+/**
+ * Clan compute cut: per-post/comment server-cost fees split 25% platform /
+ * 75% clan wallet, INCLUDED in the listed fee. Same rate as SERVICE_CUT_PCT
+ * by design — one rule everywhere — but scoped per clan so each clan's
+ * ledger shows its own cut.
+ */
+export const CLAN_COMPUTE_CUT_PCT = 25;
 export const TRIAL_COINS_DEFAULT = 100;
 export const TRIAL_COINS_MAX = 100;
 
@@ -122,6 +129,14 @@ export function gameAiComputeSplit(grossCoins: number): { gross: number; cut: nu
   const cut = Math.round((gross * GAME_AI_COMPUTE_CUT_PCT)) / 100;
   const provider = Math.round((gross - cut) * 100) / 100;
   return { gross, cut, provider };
+}
+
+/** Split a clan server-cost fee (gross, cut INCLUDED) into platform/clan-wallet. */
+export function clanComputeSplit(grossCoins: number): { gross: number; cut: number; wallet: number } {
+  const gross = Math.max(0, Math.round(grossCoins * 100) / 100);
+  const cut = Math.round((gross * CLAN_COMPUTE_CUT_PCT)) / 100;
+  const wallet = Math.round((gross - cut) * 100) / 100;
+  return { gross, cut, wallet };
 }
 
 /** Referral codes are 8 uppercase alphanumerics, minted server-side (see migration). */

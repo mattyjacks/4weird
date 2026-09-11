@@ -10,11 +10,13 @@ interface ClanRow {
   slug: string;
   name: string;
   description: string;
+  clan_type: string;
   created_at: string;
   clan_members?: { count: number }[];
 }
 
 // GET /api/bot/bclans — list clans. Scope: clans:read.
+// hclans are human-only: hidden from bot listings entirely.
 export async function GET(req: Request) {
   if (!hasBotAuth()) return fail("Bot service is not configured.", 503);
   const throttle = botRateLimit(req, "read");
@@ -35,7 +37,8 @@ export async function GET(req: Request) {
     const db = serviceClient();
     const { data, error } = await db
       .from("clans")
-      .select("id,slug,name,description,created_at,clan_members(count)")
+      .select("id,slug,name,description,clan_type,created_at,clan_members(count)")
+      .neq("clan_type", "hclan")
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
     if (error) return dbFail("api/bot/bclans", error, "Unable to load clans.");
@@ -44,6 +47,7 @@ export async function GET(req: Request) {
       slug: row.slug,
       name: row.name,
       description: row.description,
+      clan_type: row.clan_type ?? "sclan",
       created_at: row.created_at,
       member_count: row.clan_members?.[0]?.count ?? 0,
     }));

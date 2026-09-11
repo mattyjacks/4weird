@@ -4,6 +4,7 @@ import { fail, ok } from "@/lib/api-respond";
 import { clampLimit, isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
 import { GAME_AI_CUT_NOTE } from "@/lib/game-ai";
+import { runpodUsdToCoins } from "@/lib/runpod";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +39,9 @@ function toSpend(value: unknown): Spend {
  *   - game_play_usage (game rentals: per-load incl. first hour + hourly
  *     heartbeats) via my_game_play_usage(): total + last hour + last 24h +
  *     by-game + recent, each split 25% cut / 75% provider.
+ *   - runpod_usage (REAL RunPod spend mirrored via POST /api/agents/runpod-sync
+ *     with RUNPOD_API_KEY: pods + serverless + volumes in USD with a Vibe Coin
+ *     display equivalent. Billed by RunPod directly — no Vibe cut applies.)
  *
  * Missing tables / unconfigured Supabase degrade to zeros + rows: [] (the
  * page still renders the full breakdown skeleton).
@@ -229,6 +233,54 @@ export async function GET(req: Request) {
     provider: gameAi.total.provider + agentCompute.provider + workspace.provider + gameRent.total.provider,
   };
 
+  // 7. RunPod mirror (real spend pulled with RUNPOD_API_KEY; USD, no cut).
+  const runpod: {
+    totalUsd: number;
+    coinsEquivalent: number;
+    buckets: number;
+    byKind: { kind: string; usd: number }[];
+    recent: { kind: string; remote_id: string; time_bucket: string; amount_usd: number; time_billed_ms: number }[];
+    lastSync: string | null;
+  } = { totalUsd: 0, coinsEquivalent: 0, buckets: 0, byKind: [], recent: [] as typeof runpod.recent, lastSync: null };
+  try {
+    const { data: rows } = await supabase
+      .from("runpod_usage")
+      .select("kind,remote_id,time_bucket,amount_usd,time_billed_ms,synced_at")
+      .eq("user_id", data.user.id)
+      .order("time_bucket", { ascending: false })
+      .limit(200);
+    const list = (rows ?? []) as {
+      kind: string;
+      remote_id: string;
+      time_bucket: string;
+      amount_usd: number;
+      time_billed_ms: number;
+      synced_at: string;
+    }[];
+    const sums = new Map<string, number>();
+    for (const r of list) {
+      const usd = Number(r.amount_usd) || 0;
+      runpod.totalUsd += usd;
+      runpod.buckets += 1;
+      sums.set(r.kind, (sums.get(r.kind) ?? 0) + usd);
+      if (!runpod.lastSync || String(r.synced_at) > runpod.lastSync) runpod.lastSync = String(r.synced_at);
+    }
+    runpod.totalUsd = Math.round(runpod.totalUsd * 10000) / 10000;
+    runpod.coinsEquivalent = runpodUsdToCoins(runpod.totalUsd);
+    runpod.byKind = [...sums.entries()]
+      .map(([kind, usd]) => ({ kind, usd: Math.round(usd * 10000) / 10000 }))
+      .sort((a, b) => b.usd - a.usd);
+    runpod.recent = list.slice(0, limit).map((r) => ({
+      kind: r.kind,
+      remote_id: r.remote_id,
+      time_bucket: r.time_bucket,
+      amount_usd: Number(r.amount_usd) || 0,
+      time_billed_ms: Number(r.time_billed_ms) || 0,
+    }));
+  } catch {
+    // Pre-migration: zeros.
+  }
+
   return ok({
     session: session ? { id: session, ...gameAi.session } : gameAi.session,
     total: gameAi.total,
@@ -241,6 +293,7 @@ export async function GET(req: Request) {
     agentCompute,
     workspace,
     gameRent,
+    runpod,
     combined,
     note: GAME_AI_CUT_NOTE,
   });

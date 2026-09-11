@@ -3,6 +3,8 @@ import { botRateLimit, hasBotAuth, invalidCredentials, resolveBotKey } from "@/l
 import { cleanCommentBody } from "@/lib/bot-validate";
 import { serviceClient } from "@/lib/supabase/service";
 import { isUuid } from "@/lib/validate";
+import { logValleynetAction, valleynetCheck } from "@/lib/valleynet";
+import { chargeClanFeeAs, FeeError } from "@/lib/clan-fees";
 
 export const dynamic = "force-dynamic";
 
@@ -59,10 +61,68 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     if (memberError) return dbFail("api/bot/bclans/post/[id]/comment", memberError, "Unable to comment.");
     if (!memberData) return fail("Join the clan before commenting.", 403);
 
+    // hclans are human-only (looked up through the post's clan).
+    const { data: clanData, error: clanError } = await db
+      .from("clans")
+      .select("clan_type")
+      .eq("id", post.clan_id)
+      .maybeSingle();
+    if (clanError) return dbFail("api/bot/bclans/post/[id]/comment", clanError, "Unable to comment.");
+    if ((clanData as { clan_type?: string } | null)?.clan_type === "hclan") {
+      await logValleynetAction({
+        clanId: post.clan_id,
+        targetType: "comment",
+        verdict: "block",
+        reasons: ["hclan-refused"],
+        actorId: bot.userId,
+      });
+      return fail("hclans are human-only.", 403);
+    }
+
+    const valley = await valleynetCheck(commentBody);
+    if (valley.verdict === "block") {
+      await logValleynetAction({
+        clanId: post.clan_id,
+        targetType: "comment",
+        verdict: "block",
+        reasons: valley.reasons,
+        actorId: bot.userId,
+      });
+      return fail("Valley Net blocked this comment (spam shield).", 403);
+    }
+    if (valley.verdict === "quarantine") {
+      await logValleynetAction({
+        clanId: post.clan_id,
+        targetType: "comment",
+        verdict: "quarantine",
+        reasons: valley.reasons,
+        actorId: bot.userId,
+      });
+    }
+    const commentStatus = valley.verdict === "quarantine" ? "pending" : "visible";
+
+    const feeBytes = new TextEncoder().encode(commentBody).length;
+    try {
+      await chargeClanFeeAs(db, {
+        userId: bot.userId,
+        clanId: post.clan_id,
+        kind: "comment",
+        bytes: feeBytes,
+        hasImage: false,
+      });
+    } catch (err) {
+      if (err instanceof FeeError) {
+        if (err.code === "delinquent")
+          return fail("This clan's upkeep is delinquent — commenting is paused until it is funded.", 402);
+        return fail("Insufficient Vibe Coins for the server-cost fee.", 402);
+      }
+      return dbFail("api/bot/bclans/post/[id]/comment", err, "Unable to comment.");
+    }
+
     const { data: inserted, error: insertError } = await db
       .from("clan_comments")
-      .insert({ post_id: post.id, author_id: bot.userId, body: commentBody })
-      .select("id,post_id,body,created_at")
+      .insert({ post_id: post.id, author_id: bot.userId, body: commentBody, status: commentStatus })
+      .select("id,post_id,body,status,created_at")
       .single();
     if (insertError) return dbFail("api/bot/bclans/post/[id]/comment", insertError, "Unable to comment.");
     return ok({ comment: inserted }, 201);

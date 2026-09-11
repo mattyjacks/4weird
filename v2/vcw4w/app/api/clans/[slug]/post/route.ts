@@ -3,6 +3,7 @@ import { hasServerSupabase, supabaseUrl } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { moderateText } from "@/lib/moderation";
+import { logValleynetAction, valleynetCheck } from "@/lib/valleynet";
 
 export const dynamic = "force-dynamic";
 
@@ -65,8 +66,48 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   const clanId = (clan as { id?: string } | null)?.id;
   if (!clanId) return fail("Clan not found.", 404);
 
+  // Valley Net automod: block refuses + logs, quarantine forces pending + logs.
+  const valley = await valleynetCheck(`${title}\n${postBody}`);
+  if (valley.verdict === "block") {
+    await logValleynetAction({
+      clanId,
+      targetType: "post",
+      verdict: "block",
+      reasons: valley.reasons,
+      actorId: u.id,
+    });
+    return fail("Valley Net blocked this post (spam shield).", 403);
+  }
   const mod = await moderateText(`${title}\n${postBody}`);
-  const status = mod.allowed && !mod.heuristicHit ? "visible" : "pending";
+  const status = valley.verdict === "quarantine" || !mod.allowed || mod.heuristicHit ? "pending" : "visible";
+  if (status === "pending") {
+    await logValleynetAction({
+      clanId,
+      targetType: "post",
+      verdict: "quarantine",
+      reasons: valley.reasons.length ? valley.reasons : ["luna-review"],
+      actorId: u.id,
+    });
+  }
+
+  // Server-cost fee: linear in bytes, min 1 centicentcoin, 25% cut included.
+  // Charged before insert so delinquent clans and empty wallets refuse fast.
+  const feeBytes = new TextEncoder().encode(`${title}\n${postBody}`).length;
+  const { error: feeError } = await supabase.rpc("meter_clan_posting_fee", {
+    p_clan_id: clanId,
+    p_kind: "post",
+    p_bytes: feeBytes,
+    p_has_image: Boolean(imageUrl),
+  });
+  if (feeError) {
+    const msg = String(feeError.message ?? "");
+    if (/join the clan/i.test(msg)) return fail("Join the clan first.", 403);
+    if (/upkeep delinquent/i.test(msg))
+      return fail("This clan's upkeep is delinquent — posting is paused until it is funded.", 402);
+    if (/insufficient balance/i.test(msg))
+      return fail("Insufficient Vibe Coins for the server-cost fee.", 402);
+    return fail("Unable to charge the server-cost fee.", 500);
+  }
 
   const { data: rpcData, error } = await supabase.rpc("create_post", {
     p_clan_id: clanId,
@@ -80,6 +121,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     if (/join the clan/i.test(msg)) return fail("Join the clan first.", 403);
     if (/invalid/i.test(msg)) return fail("Invalid post.", 400);
     return fail("Unable to create post.", 500);
+  }
+  // Clan XP for posting (best-effort; capped daily by the RPC).
+  try {
+    await supabase.rpc("award_clan_xp", { p_clan_id: clanId, p_reason: "post", p_xp: 10 });
+  } catch {
+    // XP is garnish, never a post failure.
   }
   const id = (Array.isArray(rpcData) ? rpcData[0] : rpcData) as string;
   return ok({ id, status }, 201);

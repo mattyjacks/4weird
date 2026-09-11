@@ -10,6 +10,7 @@ interface ClanRow {
   slug: string;
   name: string;
   description: string;
+  clan_type: string;
   created_at: string;
 }
 
@@ -42,12 +43,13 @@ export async function GET(req: Request, ctx: { params: Promise<{ slug: string }>
     const db = serviceClient();
     const { data: clanData, error: clanError } = await db
       .from("clans")
-      .select("id,slug,name,description,created_at")
+      .select("id,slug,name,description,clan_type,created_at")
       .eq("slug", slug)
       .maybeSingle();
     if (clanError) return dbFail("api/bot/bclans/[slug]", clanError, "Unable to load clan.");
     const clan = clanData as ClanRow | null;
-    if (!clan) return fail("Clan not found.", 404);
+    // hclans are human-only: bots cannot even read them (404, same as missing).
+    if (!clan || clan.clan_type === "hclan") return fail("Clan not found.", 404);
 
     const [
       { data: postData, error: postError },

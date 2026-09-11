@@ -2,6 +2,8 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { botRateLimit, hasBotAuth, invalidCredentials, resolveBotKey } from "@/lib/bot-auth";
 import { botClanSlug, cleanPostBody, cleanPostTitle, isOwnClanImageUrl, looksSpammy } from "@/lib/bot-validate";
 import { serviceClient, supabaseUrl } from "@/lib/supabase/service";
+import { logValleynetAction, valleynetCheck } from "@/lib/valleynet";
+import { chargeClanFeeAs, FeeError } from "@/lib/clan-fees";
 
 export const dynamic = "force-dynamic";
 
@@ -53,12 +55,23 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
     const db = serviceClient();
     const { data: clanData, error: clanError } = await db
       .from("clans")
-      .select("id")
+      .select("id,clan_type")
       .eq("slug", slug)
       .maybeSingle();
     if (clanError) return dbFail("api/bot/bclans/[slug]/post", clanError, "Unable to post.");
-    const clan = clanData as { id: string } | null;
+    const clan = clanData as { id: string; clan_type?: string } | null;
     if (!clan) return fail("Clan not found.", 404);
+    // hclans are human-only: bot writes are refused + logged by Valley Net.
+    if (clan.clan_type === "hclan") {
+      await logValleynetAction({
+        clanId: clan.id,
+        targetType: "post",
+        verdict: "block",
+        reasons: ["hclan-refused"],
+        actorId: bot.userId,
+      });
+      return fail("hclans are human-only.", 403);
+    }
 
     const { data: memberData, error: memberError } = await db
       .from("clan_members")
@@ -69,7 +82,49 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
     if (memberError) return dbFail("api/bot/bclans/[slug]/post", memberError, "Unable to post.");
     if (!memberData) return fail("Join the clan before posting.", 403);
 
-    const status = looksSpammy(title, postBody) ? "pending" : "visible";
+    // Valley Net automod: block refuses + logs, quarantine forces pending.
+    const valley = await valleynetCheck(`${title}\n${postBody}`);
+    if (valley.verdict === "block") {
+      await logValleynetAction({
+        clanId: clan.id,
+        targetType: "post",
+        verdict: "block",
+        reasons: valley.reasons,
+        actorId: bot.userId,
+      });
+      return fail("Valley Net blocked this post (spam shield).", 403);
+    }
+    const status =
+      valley.verdict === "quarantine" || looksSpammy(title, postBody) ? "pending" : "visible";
+    if (status === "pending") {
+      await logValleynetAction({
+        clanId: clan.id,
+        targetType: "post",
+        verdict: "quarantine",
+        reasons: valley.reasons.length ? valley.reasons : ["spam-triage"],
+        actorId: bot.userId,
+      });
+    }
+
+    // Server-cost fee on the linked human's coins (min 1 centicentcoin).
+    const feeBytes = new TextEncoder().encode(`${title}\n${postBody}`).length;
+    try {
+      await chargeClanFeeAs(db, {
+        userId: bot.userId,
+        clanId: clan.id,
+        kind: "post",
+        bytes: feeBytes,
+        hasImage: Boolean(imageUrl),
+      });
+    } catch (err) {
+      if (err instanceof FeeError) {
+        if (err.code === "delinquent")
+          return fail("This clan's upkeep is delinquent — posting is paused until it is funded.", 402);
+        return fail("Insufficient Vibe Coins for the server-cost fee.", 402);
+      }
+      return dbFail("api/bot/bclans/[slug]/post", err, "Unable to post.");
+    }
+
     const { data: inserted, error: insertError } = await db
       .from("clan_posts")
       .insert({

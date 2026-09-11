@@ -10,7 +10,9 @@ function isClanSlug(v: unknown): string {
   return /^[a-z0-9-]{1,40}$/.test(s) ? s : "";
 }
 
-// GET /api/clans/[slug] — public clan + visible posts.
+// GET /api/clans/[slug] — public clan + visible posts + wallet/upkeep ledger,
+// deployed bots, monetization channels, XP leaderboard. Accrues upkeep lazily
+// for signed-in readers (anonymous reads skip the write).
 export async function GET(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const { slug: raw } = await params;
@@ -19,11 +21,20 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
   const supabase = await createClient();
   const { data: clan, error } = await supabase
     .from("clans")
-    .select("id,slug,name,description,owner_id,created_at")
+    .select("id,slug,name,description,owner_id,created_at,clan_type,upkeep_status,upkeep_grace_until")
     .eq("slug", slug)
     .maybeSingle();
   if (error || !clan) return fail("Clan not found.", 404);
   const row = clan as { id: string } & Record<string, unknown>;
+  const { data: auth } = await supabase.auth.getUser();
+  // Lazy upkeep accrual for signed-in readers (best-effort, never blocks).
+  if (auth?.user) {
+    try {
+      await supabase.rpc("accrue_clan_upkeep", { p_clan_id: row.id });
+    } catch {
+      // Pre-migration or lock contention: the stored status is the answer.
+    }
+  }
   const { data: posts } = await supabase
     .from("clan_posts")
     .select("id,clan_id,author_id,title,body,image_url,created_at")
@@ -36,7 +47,55 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
     .select("user_id,role")
     .eq("clan_id", row.id)
     .limit(200);
-  return ok({ clan, posts: posts ?? [], memberCount: (members ?? []).length });
+  const [{ data: wallet }, { data: bots }, { data: channels }, { data: ledger }, { data: leaders }] =
+    await Promise.all([
+      supabase.from("clan_wallets").select("balance,updated_at").eq("clan_id", row.id).maybeSingle(),
+      supabase
+        .from("clan_bots")
+        .select("id,name,webhook_url,created_at")
+        .eq("clan_id", row.id)
+        .order("created_at", { ascending: true })
+        .limit(50),
+      supabase
+        .from("clan_monetization")
+        .select("id,kind,label,target_url,active")
+        .eq("clan_id", row.id)
+        .eq("active", true)
+        .limit(25),
+      supabase
+        .from("clan_cost_ledger")
+        .select("kind,qty,gross,cut,provider,note,created_at")
+        .eq("clan_id", row.id)
+        .order("created_at", { ascending: false })
+        .limit(25),
+      supabase.rpc("clan_leaderboard", { p_clan_id: row.id }),
+    ]);
+  let myXp = 0;
+  if (auth?.user) {
+    try {
+      const { data: xpRows } = await supabase
+        .from("clan_xp_ledger")
+        .select("xp")
+        .eq("clan_id", row.id)
+        .eq("user_id", auth.user.id)
+        .limit(500);
+      for (const r of ((xpRows ?? []) as { xp: number }[])) myXp += Number(r.xp) || 0;
+    } catch {
+      myXp = 0;
+    }
+  }
+  const leadersRaw = (leaders ?? {}) as { leaders?: unknown };
+  return ok({
+    clan,
+    posts: posts ?? [],
+    memberCount: (members ?? []).length,
+    wallet: wallet ?? { balance: 0 },
+    bots: bots ?? [],
+    channels: channels ?? [],
+    ledger: ledger ?? [],
+    leaders: Array.isArray(leadersRaw.leaders) ? leadersRaw.leaders : [],
+    myXp,
+  });
 }
 
 // POST /api/clans/[slug] with { action: "join" } — join the clan (auth).
