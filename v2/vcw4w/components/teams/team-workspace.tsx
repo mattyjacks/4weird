@@ -32,15 +32,27 @@ export function TeamWorkspace() {
   const [orgName, setOrgName] = useState("");
 
   const load = useCallback(async () => {
-    try {
-      const o = await request<{ orgs: Org[] }>("/api/orgs");
-      setOrgs(o.orgs ?? []);
-      const t = await request<{ teams: Team[] }>("/api/teams");
-      setTeams(t.teams ?? []);
-      if (!teamId && (t.teams ?? []).length) setTeamId(t.teams[0].id);
-    } catch (e) {
-      setMessage(e instanceof Error ? e.message : "Login to manage teams.");
+    // Orgs and teams load independently: one failing must not blank the other.
+    const [orgsResult, teamsResult] = await Promise.allSettled([
+      request<{ orgs: Org[] }>("/api/orgs"),
+      request<{ teams: Team[] }>("/api/teams"),
+    ]);
+    const problems: string[] = [];
+    if (orgsResult.status === "fulfilled") {
+      setOrgs(orgsResult.value.orgs ?? []);
+    } else {
+      setOrgs([]);
+      problems.push(orgsResult.reason instanceof Error ? orgsResult.reason.message : "Unable to load orgs.");
     }
+    if (teamsResult.status === "fulfilled") {
+      const list = teamsResult.value.teams ?? [];
+      setTeams(list);
+      if (!teamId && list.length) setTeamId(list[0].id);
+    } else {
+      setTeams([]);
+      problems.push(teamsResult.reason instanceof Error ? teamsResult.reason.message : "Unable to load teams.");
+    }
+    setMessage(problems.length ? problems.join(" ") : "Create an org, open a workspace, invite your team.");
   }, [teamId]);
 
   useEffect(() => {

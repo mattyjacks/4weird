@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +14,6 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   const { data } = await supabase.auth.getUser();
   if (!data?.user) return fail("Login required.", 401);
   const { data: perms, error } = await supabase.rpc("my_team_perms", { p_team: id });
-  if (error) return fail("Unable to load permissions.", 500);
+  if (error) return dbFail("GET /api/teams/:id/perms", error, "Unable to load permissions.");
   return ok({ permissions: (perms as string[] | null) ?? [] });
 }

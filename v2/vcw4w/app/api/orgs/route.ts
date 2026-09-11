@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +21,7 @@ export async function GET() {
     .select("id,slug,name,visibility,created_at")
     .order("created_at", { ascending: false })
     .limit(100);
-  if (error) return fail("Unable to load orgs.", 500);
+  if (error) return dbFail("GET /api/orgs", error, "Unable to load orgs.");
   return ok({ orgs: orgs ?? [] });
 }
 

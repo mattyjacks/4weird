@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -25,7 +25,7 @@ export async function GET(req: Request) {
   let query = supabase.from("teams").select("id,org_id,slug,name,visibility,created_at").order("created_at", { ascending: false }).limit(100);
   if (isUuid(org)) query = query.eq("org_id", org);
   const { data: teams, error } = await query;
-  if (error) return fail("Unable to load teams.", 500);
+  if (error) return dbFail("GET /api/teams", error, "Unable to load teams.");
   return ok({ teams: teams ?? [] });
 }
 
