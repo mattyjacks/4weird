@@ -12,6 +12,8 @@ function isUuid(v: unknown): string {
 
 // POST /api/fundraisers/[id]/close { status: "closed" | "cancelled" }
 // Creator-only. Closing stops new backing; raised coins stay credited.
+// NOTE: UI-disabled via FUNDRAISERS_ENABLED while compliance is worked out,
+// but intentionally left working so re-enabling is instant.
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const { id: raw } = await params;

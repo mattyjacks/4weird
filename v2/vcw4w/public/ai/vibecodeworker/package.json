@@ -18,6 +18,8 @@
     "ollama:ensure": "node scripts/node/ensure_ollama.js",
     "test:e2e:whackamole": "node tests/test_aiwhackamole_e2e.js",
     "test:video": "node tests/test_mediamogul_video_recorder.js",
+    "test:fovea": "node tests/test_foveated_vision.js",
+    "test:fovea-overlay": "node tests/test_fovea_overlay.js",
     "test:native": "node tests/test_native_hl2.js",
     "test:traces": "node tests/run_trace_tests.js",
     "test:cloud": "node tests/test_runpod_cloud.js",

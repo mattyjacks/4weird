@@ -14,6 +14,9 @@ function rpcStatus(msg: string): number {
 }
 
 // GET /api/fundraisers?category=&status=open — public launch-campaign catalog.
+// NOTE: fundraisers are UI-disabled via FUNDRAISERS_ENABLED=false in
+// lib/support.ts while compliance is worked out, but this route is
+// intentionally left working (not deleted, not 503) so re-enabling is instant.
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const url = new URL(req.url);
@@ -42,6 +45,7 @@ export async function GET(req: Request) {
 
 // POST /api/fundraisers — launch a game/startup campaign.
 // { title, story, goal_coins, category, use_of_funds?, clan_id?, ends_at? }
+// Intentionally left working while the UI flag disables it (see above).
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();

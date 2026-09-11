@@ -143,7 +143,7 @@ export function TimerWidget({
       <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900/90 border border-zinc-800 text-xs text-zinc-400">
         <ShieldAlert className="h-4 w-4 text-cyan-400 shrink-0" />
         <span>
-          <strong>Ghost Cash (👻💵)</strong> is an internal debt measurement tool with no cash value and no legal tender status.
+          <strong>Ghost Cash (👻)</strong> is an internal debt measurement tool with no cash value and no legal tender status.
         </span>
       </div>
 
@@ -257,7 +257,7 @@ export function TimerWidget({
               isBillable ? "text-emerald-400" : "text-zinc-500"
             )}
           >
-            Billable in Ghost Cash (👻💵)
+            Billable in Ghost Cash (👻)
           </Label>
         </div>
 

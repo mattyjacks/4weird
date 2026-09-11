@@ -23,6 +23,8 @@ export default function ClansPage() {
         </h1>
         <p className="mt-4 text-slate-300">
           Gamer and coder crews. Reading is public; posting needs a login and clan membership.
+          Love a post? Give it 💌 — love letters are clan-native appreciation (never coins), earned via daily
+          bonus + quests + loved posts, spent on gifts and advanced awards.
         </p>
         <div className="mt-10">
           <ClanBrowser />

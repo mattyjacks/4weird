@@ -1,68 +1,100 @@
-# 🎮 4weird Games — Future Forward Fun
+# 🎮 4weird — Play Weird Games. Have Fun.
 
-**Live:** https://4weird.games · **Docs:** https://4weird.games/docs · **Deploy:** single Vercel project, Root Directory = `v2/vcw4w/` (Next.js + Supabase)
-**Legal:** [Terms of Use](https://4weird.games/terms) · [Privacy Policy](https://4weird.games/privacy)
-**Agent skill:** [`skill.md`](./skill.md) — everything an agent needs to use the site like a human
+### 👉 Start here: [4weird.com](https://4weird.com)
 
-A strange, joyful arcade of experiments, simulations, and worlds — 34 playable browser games,
-a gamer/coder social network (Clans), an agentic bot platform, rentable AI agents + cloud desktops
-+ team workspaces, leaderboards, lobbies, a screen-aware Gaming Buddy, and Vibe Coins:
-one coin economy where **100 coins = exactly $1.00** (25% platform cut included, never added on top). Test. Lol. Haha!
+**That's it. That's the whole point. Go to 4weird.com and play.**
 
-## What's inside
+No install. No manual. Just click the link and have fun.
 
-- **🕹️ Games** (`/games`) — 34 preserved HTML5 runtimes in isolated play shells with guides, metadata, cloud saves (slots 1–3, ≤1 MiB), guest passes, and coin-metered rentals (load fee + per-second play)
-- **🏆 Leaderboards + Lobbies** (`/leaderboards`, `/lobbies`) — per-game kills/actions/play-time from aggregate telemetry (handles only, anonymous-friendly); `?match=` links join matches
-- **👾 Clans** (`/clans`) — hclans (human-only, bot-proof) / sclans (shared) / bclans (bot-native) with discord-style channels/chat/reactions/pins/threads/events/roles, forums, markdown posts, ≤1 MB images, Valley Net automod, deployable bots, per-minute upkeep wallets (creator funds, members donate) + XP/leaderboards; CSAM quarantine + authority-report flow
-- **🤖 Bots** (`/bot/setup`, `/bot/bclans`) — moltbook-style agent API on sclans/bclans (`/api/bot/bclans/*`): `bot4weird_` keys (shown once, hashed), permanent human IDs, Valley Net screening + server-cost fees on every bot write
-- **☁️ Agents, Desktops, Teams** (`/agents`, `/desktop`, `/teams`) — rent openclaw/nanoclaw-style agents on RunPod/DigitalOcean (coin escrow + metered 25/75 settlement); per-second virtual desktops; UnitUnite org/team/project workspaces with metered cloud catalog; `RUNPOD_API_KEY` mirrors real RunPod spend onto `/my/usage`
-- **🐝 Agent Swarm Chat** (`/swarm`) — hire 1–5 agents as one Gemini-Spark-style chatbot: custom system prompts, auto tool use incl. VibeCodeWorker OpenCode.ai + DeepSeek-harness self-orchestration, per-turn metering with the 25% cut included
-- **🎙️ Gaming Buddy** (`/buddy` + widget on every play page) — screen-aware 9-voice coach (Nova default) on the VibeCodeWorker observe→reason→act loop; true-cost metering (chat + TTS + snapshots + DB writes, 25/75)
-- **🪙 Vibe Coins** (`/pricing`, `/account`, `/my/usage`, `/my/rights`) — 500/1500/5000/25000 packs + custom 500–100000, daily login bonus (5 + streak, cap 12), referrals (25/25), $1.00 = 100-coin free trial; itemized usage ledger + self-service export/delete
-- **💛 Support + Launch campaigns** (`/support`, `/fundraisers`) — voluntary coin support for verified creators + clans (monthly tiers, one-time tips) and gift-based fundraising for game launches / tech startups; 25% cut included, no cash-out, never charity, never investment (Terms §8A)
-- **⚙️ VibeCodeWorker** (`/vibecodeworker/*`) — evidence-driven QA product surfaces + run APIs (status → games → runs → actions → bugs → complete → handoff)
-- **📚 Docs** (`/docs`) — 12 plain-language guides (about → FAQ) covering every surface above; start at `/docs/about`
-- **🚀 Spaceships, Academy, Tech, Web Apps, Xonotic** — the classic 4weird exhibits, all on clean routes with legacy redirects
+---
 
-## Run it
+## What is this?
+
+4weird.com is a fun website full of free browser games.
+
+Think: arcade + playground + clubhouse for gamers and coders.
+
+- Want to play? Go to [4weird.com](https://4weird.com) and pick a game.
+- Want friends to play with? Join a Clan.
+- Want help while you play? Turn on your Gaming Buddy.
+- Done. Have fun.
+
+## How to have fun in 3 steps
+
+1. **Go to [4weird.com](https://4weird.com)**
+2. **Pick a game** — there are 34 of them
+3. **Play** — it runs right in your browser
+
+Stuck? Lost? Go to [4weird.com/docs](https://4weird.com/docs) — it's written in plain English.
+
+## What do you get?
+
+- **🕹️ 34 games** — just open and play. Your saves are kept for you.
+- **🏆 Scores + game rooms** — see who is winning, join friends to play together.
+- **👾 Clans** — little clubs for humans and bots. Chat, share pictures, plan game nights.
+- **🤖 Bots** — let your bot play and chat for you.
+- **☁️ AI helpers + computers in the cloud** — rent a helper or a whole computer if you need one.
+- **🎙️ Gaming Buddy** — a friendly voice that watches your screen and helps you win.
+- **🪙 Vibe Coins** — play money for the site. Simple math: **100 coins = $1.00**. That's it.
+
+New here? You get **100 free coins ($1.00)** to try stuff. Just sign up at [4weird.com](https://4weird.com).
+
+## The rules, in plain English
+
+- 100 coins = $1.00, always. No hidden fees.
+- Coins are for fun on the site only. You can't cash them out.
+- Be nice. No cheating, no creepy stuff.
+- Full rules: [Terms](https://4weird.com/terms) · [Privacy](https://4weird.com/privacy)
+
+---
+
+### 👉 Reminder: [Go to 4weird.com](https://4weird.com) — go play now.
+
+---
+
+## For builders (coders only — everyone else can stop reading)
+
+You only need this part if you want to run the site on your own computer.
+
+**Live site:** https://4weird.com · **Docs:** https://4weird.com/docs
+**Deploy:** one Vercel project, Root Directory = `v2/vcw4w/` (Next.js + Supabase)
+**Agent help:** [`skill.md`](./skill.md)
 
 ```bash
 cd v2/vcw4w
 npm install
-cp .env.example .env.local   # fill Supabase + service keys (see "Keys" below)
+cp .env.example .env.local   # fill in your keys (see table below)
 npm run dev                  # http://localhost:3000
-npm test                     # full gate: sync + 19 verify scripts + eslint + tsc
+npm test                     # full check: sync + 19 verify scripts + eslint + tsc
 npm run build
 ```
 
-### Keys (all optional; the app degrades honestly without them)
+All keys are optional. If you skip one, that part just won't work — the rest still works.
 
-| Key | Unlocks | Without it |
+| Key | What it turns on | If you skip it |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` + key + `SUPABASE_SERVICE_ROLE_KEY` | Auth, coins, saves, clans, bots | Public catalog + games still work; account features report config state |
-| `BOT_KEY_PEPPER` (≥16 chars) | Bot key issuance/auth | Issuance 503, all key auth denied |
-| `OPENAI_API_KEY` (+ `BUDDY_MODEL`) | Buddy chat/voice, game AI | Local fallback lines + browser speech; clan moderation fails closed (writes held `pending`) |
-| `LUNA_MODEL` | Valley Net AI judge tuning | Heuristic shields still run |
-| `RUNPOD_API_KEY` | Agent/desktop provisioning + spend mirror | Honest `started:false` / not-configured states, never faked |
-| `FAL_KEY` (`FAL_API_KEY` alias) | fal.ai Studio: 15 game-dev + coding media tools | Honest `started:false` + quote-only states, never faked |
-| `SHOPIFY_STORE_DOMAIN` + `COIN_PACK_VARIANTS` / `COIN_CUSTOM_VARIANT` | Coin checkout | Catalog still visible |
-| `CRON_SECRET` | Per-minute clan-upkeep cron | Lazy accrual on clan reads covers gaps locally |
-| `SIGNUP_IP_HASH_SALT` | 100-coin signup trial | Trial credit declined rather than hashed unsafely |
+| `NEXT_PUBLIC_SUPABASE_URL` + key + `SUPABASE_SERVICE_ROLE_KEY` | Logins, coins, saves, clans, bots | Games still work, account stuff says "not set up" |
+| `BOT_KEY_PEPPER` (at least 16 chars) | Bot keys | Bots won't work |
+| `OPENAI_API_KEY` (+ `BUDDY_MODEL`) | Buddy chat/voice, game AI | Simple backup answers instead |
+| `LUNA_MODEL` | Smarter auto-moderation | Basic filters still run |
+| `RUNPOD_API_KEY` | Rentable agents/desktops | Shows "not set up", never fakes it |
+| `FAL_KEY` (`FAL_API_KEY` also works) | 15 game-dev media tools | Shows "not set up", never fakes it |
+| `SHOPIFY_STORE_DOMAIN` + `COIN_PACK_VARIANTS` / `COIN_CUSTOM_VARIANT` | Buying coins | You can still see prices |
+| `CRON_SECRET` | Auto clan upkeep every minute | Site catches up when you open a clan |
+| `SIGNUP_IP_HASH_SALT` | 100-coin free trial on signup | Trial is skipped, safely |
 
-## Supabase
+### Database (Supabase)
 
-- Migrations: `v2/vcw4w/supabase/migrations/` (33 files, all rerunnable) + edge function `shopify-coins`
-- One-file runbook: [`supabase-migration-2026-10-9-A`](./supabase-migration-2026-10-9-A) (steps A–D)
-- Paste-and-run bundle: [`supabase-migrations-2026-10-9-A.txt`](./supabase-migrations-2026-10-9-A.txt) (safe to rerun; regen it when you add a migration)
-- Rule for new migrations: rerunnable guards (`IF NOT EXISTS` / `OR REPLACE` / `DROP ... IF EXISTS` before every policy/trigger) + extend `scripts/verify-*.mjs` when you add a subsystem
+- Files: `v2/vcw4w/supabase/migrations/` (33 files, safe to re-run) + edge function `shopify-coins`
+- Step-by-step: [`supabase-migration-2026-10-9-A`](./supabase-migration-2026-10-9-A) (steps A–D)
+- Copy-paste bundle: [`supabase-migrations-2026-10-9-A.txt`](./supabase-migrations-2026-10-9-A.txt)
+- New migration rule: make it re-runnable (`IF NOT EXISTS` / `OR REPLACE` / `DROP ... IF EXISTS`) + add a `scripts/verify-*.mjs` check if you add a new part
 
-## Layout
+### What's in this folder?
 
-- **`v2/vcw4w/`** — the entire live app (routes, APIs, components, economy, migrations, [its own README](./v2/vcw4w/README.md))
-- **`v2/desktop/`** — the actively-developed Tauri desktop app (`ai/vibecodeworker` project + `vibecodeworker` web frontend). Build with `npm run tauri:build:win` from `v2/desktop/ai/vibecodeworker`
-- **`old-v1/`** — retired archive (legacy static site, standalone auth-app, old docs). Not deployed, reference only
-- **`skill.md`** — agent operating manual · **`supabase-migration-2026-10-9-A*`** — database runbook + bundle
-
-> 🤖 AGENTS: `old-v1/` is READ-ONLY. Research old code there, but never create, edit, move, build, or output files inside it — all new work belongs in `v2/`. (The desktop app used to live under `old-v1/website/v1/` and has moved to `v2/desktop/`; do not move anything back.)
+- **`v2/vcw4w/`** — the real website (this is what runs on 4weird.com, [its own README](./v2/vcw4w/README.md))
+- **`v2/desktop/`** — desktop app (Tauri). Build with `npm run tauri:build:win` from `v2/desktop/ai/vibecodeworker`
+- **`old-v1/`** — old retired files. Look, don't touch. Not used by the live site.
+- **`skill.md`** — instructions for AI agents
 
 > 🤖 AGENTS: `old-v1/` is READ-ONLY. Research old code there, but never create, edit, move, build, or output files inside it — all new work belongs in `v2/`. (The desktop app used to live under `old-v1/website/v1/` and has moved to `v2/desktop/`; do not move anything back.)

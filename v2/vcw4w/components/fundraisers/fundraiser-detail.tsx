@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { LAUNCH_DISCLAIMER_SHORT } from "@/lib/support";
+import { LAUNCH_DISCLAIMER_SHORT, FUNDRAISERS_ENABLED, FUNDRAISERS_DISABLED_NOTICE } from "@/lib/support";
 
 type Campaign = {
   id: string;
@@ -55,6 +55,11 @@ export function FundraiserDetail({ id }: { id: string }) {
   }, [load]);
 
   async function contribute() {
+    // Disabled in the UI while compliance is worked out — API left working.
+    if (!FUNDRAISERS_ENABLED) {
+      setError("Backing is disabled while we work out the legal and compliance side.");
+      return;
+    }
     setBusy(true);
     setNotice("");
     setError("");
@@ -78,6 +83,10 @@ export function FundraiserDetail({ id }: { id: string }) {
   }
 
   async function close(status: "closed" | "cancelled") {
+    if (!FUNDRAISERS_ENABLED) {
+      setError("Closing is disabled while fundraisers are paused for compliance work.");
+      return;
+    }
     setBusy(true);
     setNotice("");
     setError("");
@@ -113,6 +122,12 @@ export function FundraiserDetail({ id }: { id: string }) {
 
   return (
     <div className="space-y-6">
+      {!FUNDRAISERS_ENABLED && (
+        <div className="rounded-xl border border-red-300/30 bg-red-300/10 p-4 text-sm text-red-100">
+          <p className="font-bold">🚧 Fundraisers are disabled for now — but still working under the hood.</p>
+          <p className="mt-1">{FUNDRAISERS_DISABLED_NOTICE}</p>
+        </div>
+      )}
       <div className="rounded-xl border border-amber-300/30 bg-amber-300/10 p-4 text-sm text-amber-100">
         {LAUNCH_DISCLAIMER_SHORT}
       </div>
@@ -150,7 +165,7 @@ export function FundraiserDetail({ id }: { id: string }) {
         </section>
       )}
 
-      {campaign.status === "open" ? (
+      {campaign.status === "open" && FUNDRAISERS_ENABLED ? (
         <section className="space-y-3 rounded-xl border border-white/10 bg-slate-900/60 p-4">
           <h3 className="text-lg font-bold">Back this project</h3>
           <p className="text-sm text-slate-400">
@@ -163,6 +178,20 @@ export function FundraiserDetail({ id }: { id: string }) {
             </button>
           </div>
         </section>
+      ) : campaign.status === "open" ? (
+        <section className="space-y-3 rounded-xl border border-white/10 bg-slate-900/60 p-4 opacity-75">
+          <h3 className="text-lg font-bold">Back this project — disabled for now</h3>
+          <p className="text-sm text-slate-400">
+            Backing is paused while we work out regulations and compliance for moving money between parties,
+            especially internationally. The campaign, its story, and its progress stay visible below.
+          </p>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input className={input + " sm:max-w-48"} value={coins} onChange={(e) => setCoins(e.target.value)} inputMode="decimal" placeholder="Coins (1–100000)" disabled />
+            <button className={btn} disabled onClick={() => void contribute()}>
+              Backing disabled — back soon
+            </button>
+          </div>
+        </section>
       ) : (
         <p className="text-sm text-slate-400">This campaign is {campaign.status} and no longer accepts backing.</p>
       )}
@@ -170,13 +199,16 @@ export function FundraiserDetail({ id }: { id: string }) {
       <section className="space-y-2">
         <h3 className="text-lg font-bold">Creator controls</h3>
         <div className="flex gap-2">
-          <button className={btnGhost} disabled={busy} onClick={() => void close("closed")}>
+          <button className={btnGhost} disabled={busy || !FUNDRAISERS_ENABLED} onClick={() => void close("closed")}>
             Close campaign
           </button>
-          <button className={btnGhost} disabled={busy} onClick={() => void close("cancelled")}>
+          <button className={btnGhost} disabled={busy || !FUNDRAISERS_ENABLED} onClick={() => void close("cancelled")}>
             Cancel campaign
           </button>
         </div>
+        {!FUNDRAISERS_ENABLED && (
+          <p className="text-xs text-slate-500">Creator controls are disabled while fundraisers are paused for compliance work.</p>
+        )}
       </section>
     </div>
   );

@@ -22,6 +22,8 @@ function rpcStatus(msg: string): number {
 
 // POST /api/fundraisers/[id]/contribute { coins } — gift-based backing in
 // Vibe Coins. Final once sent (fraud freeze/refund is platform-handled).
+// NOTE: UI-disabled via FUNDRAISERS_ENABLED while compliance is worked out,
+// but intentionally left working so re-enabling is instant.
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const { id: raw } = await params;

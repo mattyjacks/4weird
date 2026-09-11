@@ -537,7 +537,7 @@ export function TeamWorkspace() {
       <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
         <h2 className="text-xl font-bold">5 · Ghost timer — who owes whom</h2>
         <p className="mt-2 text-sm text-slate-300">
-          Clock org work to the second and settle up in 👻💵 Ghost Cash — hypothetical IOUs with no value, just a
+          Clock org work to the second and settle up in 👻 Ghost Cash — hypothetical IOUs with no value, just a
           ruler for debts. <a className="font-bold text-cyan-300 underline" href="/timer">Open the timer →</a>
         </p>
       </section>

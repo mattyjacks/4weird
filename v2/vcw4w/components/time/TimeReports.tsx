@@ -34,7 +34,7 @@ export function TimeReports() {
       <div>
         <h2 className="text-xl font-bold text-white">Ghost Cash & Time Reports</h2>
         <p className="text-sm text-zinc-400">
-          Summary of hours worked down to the second and Ghost Cash (👻💵) accrued.
+          Summary of hours worked down to the second and Ghost Cash (👻) accrued.
         </p>
       </div>
 

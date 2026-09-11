@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ReportButton } from "@/components/clans/report-button";
 import { ClanDiscord } from "@/components/clans/clan-discord";
+import { LoveButtons } from "@/components/clans/love-buttons";
+import { LoveQuests } from "@/components/clans/love-quests";
 import { MarkdownEditor } from "@/components/clans/markdown-editor";
 import { MarkdownView } from "@/components/clans/markdown-view";
 import { CLAN_TYPE_META, type ClanType } from "@/lib/clan-types";
@@ -409,6 +411,7 @@ export function ClanPage({ slug }: { slug: string }) {
               </button>
               <ReportButton targetType="post" targetId={p.id} />
             </div>
+            <LoveButtons postId={p.id} />
             {commentFor === p.id && (
               <div className="mt-3 flex gap-2">
                 <input
@@ -437,6 +440,8 @@ export function ClanPage({ slug }: { slug: string }) {
       )}
 
       <ClanDiscord slug={slug} />
+
+      <LoveQuests clanId={clan.id} clanSlug={slug} />
 
       <section className="rounded-xl border border-white/10 bg-slate-900 p-5">
         <h2 className="font-bold text-cyan-300">🪙 Clan upkeep + wallet</h2>

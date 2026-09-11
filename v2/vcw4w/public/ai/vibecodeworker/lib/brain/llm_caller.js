@@ -15,7 +15,16 @@ function selectDeepSeekModel(requestedModel, hasImage, prompt) {
   return requestedModel;
 }
 
-async function callLLM(brain, prompt, base64Image = null, audioInput = null) {
+async function callLLM(brain, prompt, base64Image = null, audioInput = null, extraImages = []) {
+  // Foveated vision: extraImages are tiny high-detail crops sent alongside
+  // the small overview frame (1 big + N small per tick). Every provider gets
+  // them as additional image parts so detail costs small-crop tokens instead
+  // of full-frame tokens — this is what cuts decision + input latency.
+  // Legacy callers may pass the array in the audioInput slot.
+  if (Array.isArray(audioInput) && (!extraImages || (Array.isArray(extraImages) && !extraImages.length))) {
+    extraImages = audioInput;
+    audioInput = null;
+  }
   // audioInput (Muse Spark 1.3 ear): { base64, mimeType?, transcript?, report? }
   // or a raw base64 string. Providers with native audio (meta/openrouter via
   // OpenRouter) get an input_audio part; every provider gets the transcript +
@@ -39,6 +48,17 @@ async function callLLM(brain, prompt, base64Image = null, audioInput = null) {
     if (audioReportBlock) prompt = `${prompt}\n${audioReportBlock}`;
     else if (audioTranscript) prompt = `${prompt}\n## AUDIO TRANSCRIPT (STT)\n"${String(audioTranscript).slice(0, 500)}"`;
   }
+
+  // Normalize foveated detail crops: accept base64 strings or {base64,data}
+  // objects, drop empties, cap at 3 so one tick stays a fast multi-image call.
+  const detailImages = (Array.isArray(extraImages) ? extraImages : [extraImages])
+    .map((e) => {
+      if (typeof e === 'string') return e;
+      if (e && typeof e === 'object') return e.base64 || e.data || e.image || null;
+      return null;
+    })
+    .filter((s) => typeof s === 'string' && s.length > 100)
+    .slice(0, 3);
 
   let { provider, apiKey, endpointUrl, modelName } = brain.config;
 
@@ -81,12 +101,15 @@ async function callLLM(brain, prompt, base64Image = null, audioInput = null) {
   if (provider === 'openai') {
     url = 'https://api.openai.com/v1/chat/completions';
     headers['Authorization'] = `Bearer ${apiKey}`;
-    if (isMetaDirect) headers['x-api-key'] = apiKey;
+    if (isMetaDirectUrl(endpointUrl)) headers['x-api-key'] = apiKey;
     const realModel = modelName || 'gpt-5.6-luna';
 
     const content = [{ type: 'text', text: prompt }];
     if (base64Image) {
       content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } });
+    }
+    for (const crop of detailImages) {
+      content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${crop}`, detail: 'high' } });
     }
     if (audioBase64) {
       // OpenAI-compatible audio part (Muse Spark 1.3 via OpenRouter).
@@ -97,16 +120,20 @@ async function callLLM(brain, prompt, base64Image = null, audioInput = null) {
   } else if (provider === 'deepseek') {
     url = 'https://api.deepseek.com/chat/completions';
     headers['Authorization'] = `Bearer ${apiKey}`;
-    const realModel = selectDeepSeekModel(modelName, !!base64Image, prompt);
+    const realModel = selectDeepSeekModel(modelName, !!(base64Image || detailImages.length), prompt);
 
     const content = [{ type: 'text', text: prompt }];
     if (base64Image) {
       content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } });
     }
+    for (const crop of detailImages) {
+      content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${crop}`, detail: 'low' } });
+    }
     body = { model: realModel, messages: [{ role: 'user', content }] };
     // Low detail keeps rapid frame-to-frame play affordable; action decisions
-    // generally do not need original-resolution pixels.
-    if (base64Image) content[1].image_url.detail = 'low';
+    // generally do not need original-resolution pixels. Detail crops carry
+    // the close-up pixels instead.
+    if (base64Image && content[1]) content[1].image_url.detail = 'low';
 
   } else if (provider === 'meta') {
     // Meta Model API or OpenRouter-compatible endpoint for Muse Spark 1.3 Contributor
@@ -120,6 +147,9 @@ async function callLLM(brain, prompt, base64Image = null, audioInput = null) {
     const content = [{ type: 'text', text: prompt }];
     if (base64Image) {
       content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } });
+    }
+    for (const crop of detailImages) {
+      content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${crop}` } });
     }
     if (audioBase64) {
       // Muse Spark 1.3 ear: native audio part next to the screenshot.
@@ -138,6 +168,9 @@ async function callLLM(brain, prompt, base64Image = null, audioInput = null) {
           data: base64Image
         }
       });
+    }
+    for (const crop of detailImages) {
+      parts.push({ inlineData: { mimeType: 'image/jpeg', data: crop } });
     }
     body = {
       contents: [{ parts }],
@@ -160,6 +193,9 @@ async function callLLM(brain, prompt, base64Image = null, audioInput = null) {
     if (base64Image) {
       content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } });
     }
+    for (const crop of detailImages) {
+      content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${crop}` } });
+    }
     if (audioBase64) {
       content.push({ type: 'input_audio', input_audio: { data: audioBase64, format: 'wav' } });
     }
@@ -169,11 +205,17 @@ async function callLLM(brain, prompt, base64Image = null, audioInput = null) {
     url = endpointUrl || 'http://localhost:11434/api/chat';
     const model = modelName || 'llama3';
     if (url.includes('/api/chat')) {
-      body = { model, format: "json", stream: false, messages: [{ role: 'user', content: prompt, images: base64Image ? [base64Image] : [] }] };
+      const localImages = [];
+      if (base64Image) localImages.push(base64Image);
+      for (const crop of detailImages) localImages.push(crop);
+      body = { model, format: "json", stream: false, messages: [{ role: 'user', content: prompt, images: localImages }] };
     } else {
       const content = [{ type: 'text', text: prompt }];
       if (base64Image) {
         content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } });
+      }
+      for (const crop of detailImages) {
+        content.push({ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${crop}` } });
       }
       body = { model, messages: [{ role: 'user', content }] };
     }
@@ -227,11 +269,13 @@ async function callLLM(brain, prompt, base64Image = null, audioInput = null) {
   }
 
   const activeModel = provider === 'deepseek'
-    ? selectDeepSeekModel(modelName, !!base64Image, prompt)
+    ? selectDeepSeekModel(modelName, !!(base64Image || detailImages.length), prompt)
     : (modelName || (provider === 'openai' ? 'gpt-5.6-luna' : (provider === 'openrouter' ? 'meta-llama/llama-4-scout-17b-16e-instruct' : (provider === 'gemini' ? 'gemini-3.5-flash-lite' : 'llama3'))));
 
   if (promptTokens === 0 && completionTokens === 0) {
-    promptTokens = Math.round(prompt.length / 4) + (base64Image ? 260 : 0) + (audioBase64 ? Math.round(audioBase64.length / 760) : 0);
+    const detailChars = detailImages.reduce((a, s) => a + String(s || '').length, 0);
+    promptTokens = Math.round(prompt.length / 4) + (base64Image ? 260 : 0)
+      + Math.round(detailChars / 1400) + (audioBase64 ? Math.round(audioBase64.length / 760) : 0);
     completionTokens = Math.round(contentString.length / 4);
   }
 

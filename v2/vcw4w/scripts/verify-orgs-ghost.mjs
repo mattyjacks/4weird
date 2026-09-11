@@ -84,11 +84,11 @@ for (const token of ["Lord", "Captain", "Infantry", "Banker", "Watcher", "member
 const workspace = read("components/teams/team-workspace.tsx");
 must(workspace.includes("OrgRanks") && workspace.includes("/timer"), "workspace must mount ranks + link the timer");
 const lib = read("lib/ghost.ts");
-must(lib.includes("👻💵") && lib.includes("fmtGhost") && lib.includes("fmtGhostTime"), "lib/ghost must format the currency + time");
+must(lib.includes("👻") && lib.includes("fmtGhost") && lib.includes("fmtGhostTime"), "lib/ghost must format the currency + time");
 
 // 7. Legal: ghost no-value clause in terms + privacy; ranks in terms.
 const terms = read("app/terms/page.tsx");
-for (const token of ["Ghost Cash (👻💵) is not currency at all", "no legal value", "not a money-transmission", "never captured by us", "Watcher (sees everything", "several presets at once", "100 orgs"]) {
+for (const token of ["Ghost Cash (👻) is not currency at all", "no legal value", "not a money-transmission", "never captured by us", "Watcher (sees everything", "several presets at once", "100 orgs"]) {
   must(terms.includes(token), `terms must include ${token}`);
 }
 const privacy = read("app/privacy/page.tsx");
@@ -159,4 +159,4 @@ for (const token of ["[BOT]", "Send as my agent", "/api/unitunite/rooms", "bot_s
   must(workspace.includes(token), `workspace rooms UI must include ${token}`);
 }
 
-console.log("Orgs+Ghost checks OK: watcher + multi-role + 100-org cap + 👻💵 timer/books.");
+console.log("Orgs+Ghost checks OK: watcher + multi-role + 100-org cap + 👻 timer/books.");

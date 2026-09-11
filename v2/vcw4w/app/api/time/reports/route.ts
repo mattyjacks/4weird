@@ -4,7 +4,7 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/time/reports - Generate reports on hours and Ghost Cash 👻💵
+// GET /api/time/reports - Generate reports on hours and Ghost Cash 👻
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();

@@ -17,6 +17,9 @@ const nativeActionHistory = [];
 // Last pre-tick frame signature for the adaptive tick planner: sizing the
 // NEXT delay from how fast the screen is changing costs one hash, no pixels.
 let lastPreFrame = null;
+// Last fovea overlay key sent to the playtest recorder (run-scoped so each
+// agent session logs its crop plan at least once; rect-only, no pixels).
+let lastFoveaKey = null;
 function pushNativeHistory(action) {
   if (!action) return;
   nativeActionHistory.push(action);
@@ -41,6 +44,7 @@ async function executeAgentStep({
   selectBugCard,
   bugsLogPath,
   captureViewportScreenshot,
+  captureVisionFrame,
   captureManualScreenshot,
   logSystemMessage,
   thinkingOutLoud,
@@ -93,8 +97,54 @@ async function executeAgentStep({
       } catch (_) { /* framing is best-effort; the step still runs */ }
     }
 
-    const screenshotBase64 = await captureViewportScreenshot();
+    // Foveated vision: 1 small overview + up to 3 tiny detail crops where the
+    // model wants more pixels (FPS crosshair fast path). The capture helper
+    // owns rect selection (pending AI focus + genre/urgency defaults); this
+    // step just normalizes its return shape so legacy string captures keep
+    // working. Small crops = small tokens = faster decisions + faster inputs.
+    let screenshotBase64 = null;
+    let detailImages = [];
+    let visionMeta = null;
+    try {
+      if (typeof captureVisionFrame === 'function') {
+        const frame = await captureVisionFrame();
+        if (frame && typeof frame === 'object' && !Array.isArray(frame)) {
+          screenshotBase64 = frame.overview || null;
+          detailImages = Array.isArray(frame.details)
+            ? frame.details.map((d) => (typeof d === 'string' ? d : d && d.base64)).filter((s) => typeof s === 'string' && s.length > 100)
+            : [];
+          visionMeta = frame.meta || (Array.isArray(frame.details)
+            ? { details: frame.details.map((d, i) => ({ label: (d && d.label) || `crop${i + 1}`, rect: (d && d.rect) || null })) }
+            : null);
+        } else if (typeof frame === 'string') {
+          screenshotBase64 = frame;
+        }
+      }
+    } catch (_) { /* foveated capture is best-effort; fall back below */ }
+    if (!screenshotBase64 && typeof captureViewportScreenshot === 'function') {
+      screenshotBase64 = await captureViewportScreenshot();
+    }
     if (!screenshotBase64) return null;
+    // Fovea breadcrumb for the testing videos: log the tick's detail-crop
+    // boundaries (rects only, no pixels) so TestingH/V exports can draw the
+    // crop boxes + picture-in-picture renders. Change-throttled per run so
+    // the manifest stays tiny; the recorder no-ops when idle.
+    try {
+      const foveaDetails = visionMeta && Array.isArray(visionMeta.details) ? visionMeta.details : [];
+      if (foveaDetails.length && ipcRenderer && typeof ipcRenderer.send === 'function') {
+        const runId = (agentBrain && agentBrain.activeRunId) || 'norun';
+        const foveaKey = `${runId}|${foveaDetails.map((d) => `${(d && d.label) || 'crop'}:${d && d.rect ? `${d.rect.x},${d.rect.y},${d.rect.w},${d.rect.h}` : '?'}`).join('|')}`;
+        if (foveaKey !== lastFoveaKey) {
+          lastFoveaKey = foveaKey;
+          ipcRenderer.send('playtest-recording-event', {
+            type: 'fovea',
+            rects: foveaDetails.map((d) => ({ label: String((d && d.label) || 'detail').slice(0, 40), ...(d && d.rect ? d.rect : {}) })),
+            detailCount: foveaDetails.length,
+            source: (visionMeta && visionMeta.source) || 'fovea'
+          });
+        }
+      }
+    } catch (_) { /* recording is optional */ }
     // Frame-change signal for the adaptive tick: compare this pre-frame
     // against the previous tick's (hash + byte size, no pixel decode).
     const preFrame = { hash: simpleHash(screenshotBase64), bytes: screenshotBase64.length };
@@ -153,7 +203,9 @@ async function executeAgentStep({
             profile,
             recentActions: nativeActionHistory.slice(),
             stuck,
-            extraRules
+            extraRules,
+            extraImages: detailImages,
+            visionMeta
           });
           decision.reasoning = `[${profile.id} via DeepSeek harness] ${decision.reasoning}`;
         } catch (visionErr) {
@@ -175,7 +227,10 @@ async function executeAgentStep({
     }
 
     if (!decision) {
-      decision = await agentBrain.chooseNextAction(screenshotBase64, elements, forceHeuristic, consoleLogs);
+      decision = await agentBrain.chooseNextAction(screenshotBase64, elements, forceHeuristic, consoleLogs, {
+        extraImages: detailImages,
+        visionMeta
+      });
       usedBrainDecision = true;
     }
 
@@ -206,7 +261,9 @@ async function executeAgentStep({
       timestamp: Date.now(),
       screenshot: screenshotBase64,
       reasoning: decision.reasoning,
-      action: decision.action
+      action: decision.action,
+      detailCount: detailImages.length,
+      focus: Array.isArray(decision.focus) ? decision.focus : []
     });
 
     el.timelineScrubber.max = timelineHistory.length - 1;

@@ -1,10 +1,10 @@
-// Ghost Cash (👻💵) & Timer Types for 4weird
+// Ghost Cash (👻) & Timer Types for 4weird
 
 export interface TimerProject {
   id: string;
   name: string;
   color: string;
-  ghostRate: number; // 👻💵 Ghost Cash rate per hour
+  ghostRate: number; // 👻 Ghost Cash rate per hour
   budgetHours: number | null;
   isBillable: boolean;
   isArchived: boolean;
@@ -45,8 +45,8 @@ export interface TimerEntry {
   duration: number | null; // seconds
   isBillable: boolean;
   isRunning: boolean;
-  ghostRate: number; // hourly rate in 👻💵
-  ghostCashOwed: number; // total calculated 👻💵 down to the second
+  ghostRate: number; // hourly rate in 👻
+  ghostCashOwed: number; // total calculated 👻 down to the second
   activityScore: number; // 0-100%
   upworkSyncMode?: boolean; // Dual-timer companion with official Upwork desktop app
   upworkContractId?: string | null;
@@ -100,7 +100,7 @@ export interface TimerReport {
     totalSeconds: number;
     billableSeconds: number;
     nonBillableSeconds: number;
-    totalGhostCashOwed: number; // 👻💵
+    totalGhostCashOwed: number; // 👻
     entryCount: number;
     totalHours: number;
     billableHours: number;
@@ -121,10 +121,10 @@ export interface TimerReport {
   }>;
 }
 
-// Utility functions for Ghost Cash (👻💵)
+// Utility functions for Ghost Cash (👻)
 export function formatGhostCash(amount: number | null | undefined): string {
-  if (amount === null || amount === undefined || isNaN(amount)) return "👻💵 0.00";
-  return `👻💵 ${Number(amount).toLocaleString("en-US", {
+  if (amount === null || amount === undefined || isNaN(amount)) return "👻 0.00";
+  return `👻 ${Number(amount).toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;

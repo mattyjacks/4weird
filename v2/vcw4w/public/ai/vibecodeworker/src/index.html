@@ -278,6 +278,11 @@
                 <input type="checkbox" id="generalized-intelligence" checked> Generalized intelligence mode
               </label>
             </div>
+            <div class="form-group checkbox-group">
+              <label title="Foveated vision: each tick sends 1 small overview + up to 3 tiny high-detail crops where the model wants more pixels (e.g. the FPS crosshair zone). Small crops cost a fraction of full-frame tokens, so decisions and follow-up inputs stay fast. The model steers crops via &quot;focus&quot; rects.">
+                <input type="checkbox" id="foveated-vision" checked> Foveated vision (overview + detail crops)
+              </label>
+            </div>
 
             <div class="form-group toggle-row" id="auto-choose-group">
               <label for="toggle-auto-choose"

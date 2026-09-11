@@ -18,7 +18,7 @@ export async function GET() {
   if (!u) return fail("Authentication required.", 401);
   const { data: row, error } = await supabase
     .from("profiles")
-    .select("display_name,public_handle,email,family_role,age_band,created_at")
+    .select("display_name,public_handle,email,family_role,age_band,created_at,is_profile_public,ll_balance,ll_earned,ll_received,ll_given")
     .eq("id", u.id)
     .maybeSingle();
   if (error) return dbFail("api/me/profile", error, "Unable to load profile.");
@@ -49,7 +49,7 @@ export async function PATCH(req: Request) {
   if (jsonBytes(input) > maxRequestBytes) return fail("Profile request is too large.", 413);
   // Reject unexpected fields (mass-assignment guard).
   for (const k of Object.keys(input)) {
-    if (k !== "display_name" && k !== "public_handle" && k !== "age_band" && k !== "family_role") {
+    if (k !== "display_name" && k !== "public_handle" && k !== "age_band" && k !== "family_role" && k !== "is_profile_public") {
       return fail("Invalid profile field.", 400);
     }
   }
@@ -75,6 +75,9 @@ export async function PATCH(req: Request) {
       return fail("Server misconfigured.", 500);
     }
   }
+  // is_profile_public: public 💌 stats by default; shy users may hide them.
+  // Coerce truthy/falsy; undefined leaves the flag untouched.
+  const isPublic = input.is_profile_public === undefined ? undefined : Boolean(input.is_profile_public);
   // user_id is forced from the session; RLS re-checks it. A client-supplied
   // id field is ignored entirely.
   const { error } = await supabase
@@ -84,6 +87,7 @@ export async function PATCH(req: Request) {
       ...(handle !== undefined ? { public_handle: handle } : {}),
       ...(band !== undefined ? { age_band: band } : {}),
       ...(role !== undefined ? { family_role: role } : {}),
+      ...(isPublic !== undefined ? { is_profile_public: isPublic } : {}),
     })
     .eq("id", u.id);
   if (error) {

@@ -40,6 +40,61 @@ export const LAUNCH_TITLE_MAX = 120;
 export const LAUNCH_STORY_MIN = 20;
 export const LAUNCH_STORY_MAX = 5000;
 
+/**
+ * Fundraisers are DISABLED for now while we work out the legal side —
+ * regulations and compliance for handling money between parties,
+ * especially internationally, is a lot of work and not settled yet.
+ *
+ * The code paths below are intentionally left working (APIs, RPCs,
+ * browser/detail components) so re-enabling is a one-line flip once
+ * compliance is sorted. The UI gates on this flag: listing stays
+ * readable, but launching / backing / closing is disabled.
+ */
+export const FUNDRAISERS_ENABLED = false;
+
+export const FUNDRAISERS_DISABLED_NOTICE =
+  "Fundraisers are paused while we work out the regulations and compliance for handling money between parties — especially internationally. Moving funds between backers, creators, and clans across borders means money-transmitter rules, tax reporting, payouts, refunds, and fraud handling, and that is a lot of work to get right. Launching, backing, and closing campaigns are disabled for now, but the code is still in place and will return once the legal path is clear.";
+
+export const FUNDRAISERS_COMPLIANCE_NOTE =
+  "We are still working out how to handle the money between parties compliantly — who holds funds, when they release, how refunds and disputes work, and what changes country by country. Until that is settled, fundraisers stay disabled.";
+
+/**
+ * Currency emoji legend — one emoji, one meaning, everywhere:
+ * - 💸 Real Money — actual fiat / cash references only. Never use 🪙 for this.
+ * - 👻 Ghost Cash — hypothetical org-work IOU unit. Ghost emoji ONLY, never
+ *   paired with a cash emoji. No value, no cash-out, timer books only.
+ * - 🪙 Coin (Vibe Coins) — closed-loop platform credits. 100 🪙 = $1.00.
+ * - 💌 Love Letters — a /clans/ community currency earned from likes and
+ *   other engagement: post in a clan, a human sees it and gives it a love
+ *   letter, and letters accumulate on your account. They can be spent on
+ *   advanced awards for posts and users. Love Letters can NEVER be mingled
+ *   with or transferred into 🪙 coins — the two ledgers stay separate, and
+ *   the only way to earn a letter is a human giving one to your post.
+ */
+export const CURRENCY_LEGEND = [
+  {
+    emoji: "💸",
+    name: "Real Money",
+    blurb: "Actual fiat / cash. Whenever we mean real money, we use 💸 — never 🪙.",
+  },
+  {
+    emoji: "👻",
+    name: "Ghost Cash",
+    blurb: "Hypothetical org-work IOUs from the timer. Ghost emoji only — no cash emoji. No value, no cash-out.",
+  },
+  {
+    emoji: "🪙",
+    name: "Coin (Vibe Coins)",
+    blurb: "Closed-loop platform credits. 100 🪙 = $1.00. No cash-out, spendable on the Service only.",
+  },
+  {
+    emoji: "💌",
+    name: "Love Letters",
+    blurb:
+      "A /clans/ community currency made from likes and other engagement: post, a human sees it and gives it a love letter, and letters accumulate. Spend them on advanced awards for posts and users. Cannot be mingled or transferred with 🪙 — you have to earn each letter on your posts.",
+  },
+] as const;
+
 export const SUPPORT_DISCLAIMER_SHORT =
   "Voluntary support in Vibe Coins. Not a charity, not tax-deductible, no cash value, no cash-out. Perks are goals, not promises.";
 

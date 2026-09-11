@@ -39,8 +39,8 @@ for (const rpc of ["start_timer", "stop_timer"]) {
   }
 }
 
-// 3. Ghost Cash currency symbol & calculations
-if (!ghostCash.includes("👻💵")) fail("Ghost cash lib must define 👻💵 symbol.");
+// 3. Ghost Cash currency symbol & calculations (ghost emoji ONLY — never paired with a cash emoji)
+if (!ghostCash.includes("👻")) fail("Ghost cash lib must define 👻 symbol.");
 if (!ghostCash.includes("calculateGhostCashOwed")) fail("Ghost cash lib must calculate owed amount down to the second.");
 if (!ghostCash.includes("GHOST_CASH_DISCLAIMER")) fail("Ghost cash lib must export legal disclaimer.");
 
@@ -58,4 +58,4 @@ if (!terms.includes("NO CASH VALUE OR LEGAL TENDER")) fail("Terms must explicitl
 if (!header.includes('href: "/timer"')) fail("SiteHeader must include link to /timer.");
 if (!sitemap.includes('path: "/timer"')) fail("Sitemap must list /timer.");
 
-console.log("Timer, Upwork companion mode, and Ghost Cash (👻💵) verification passed successfully!");
+console.log("Timer, Upwork companion mode, and Ghost Cash (👻) verification passed successfully!");

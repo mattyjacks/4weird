@@ -3,7 +3,7 @@
  */
 const path = require('path');
 
-function buildPrompt(brain, consoleLogs, domSnapshot, isStuck, audioContext = null) {
+function buildPrompt(brain, consoleLogs, domSnapshot, isStuck, audioContext = null, visionContext = null) {
   const includeMemory = brain.config.alwaysSendMemory || isStuck;
   const sessionSummary = brain.getSessionSummary();
   const learnedContext = includeMemory && brain.getTextBrainContext ? brain.getTextBrainContext(6) : '';
@@ -61,6 +61,21 @@ function buildPrompt(brain, consoleLogs, domSnapshot, isStuck, audioContext = nu
   const role = brain.config.generalizedIntelligence !== false
     ? 'You are a general-purpose interactive-systems investigator. This may be an unknown game, website, desktop app, or tool. Observe visible evidence, form a compact hypothesis, run one reversible interaction, and verify the outcome. Do not assume genre-specific controls or hidden state.'
     : 'You are an expert AI game QA testing agent.';
+  // Foveated vision option: overview + tiny detail crops. ON by default
+  // (config.foveatedVision !== false). When on, the model sees image 1 as a
+  // small full-screen overview plus N small high-detail crops, and may steer
+  // the next tick's crops via "focus" rects — the FPS-center fast path.
+  const foveaOn = !brain.config || brain.config.foveatedVision !== false;
+  const visionMeta = visionContext || (brain && brain._lastVisionMeta) || null;
+  const detailCount = visionMeta && Array.isArray(visionMeta.details) ? visionMeta.details.length : 0;
+  let foveaBlock = '';
+  if (foveaOn) {
+    try {
+      const { buildFoveaPromptSnippet, describeFrameForPrompt } = require('./foveated_vision');
+      const mapping = detailCount > 0 ? `\nFRAME MAP: overview is the full screen (0-1000). ${describeFrameForPrompt(visionMeta.details)}` : '';
+      foveaBlock = `\n## ${buildFoveaPromptSnippet(detailCount)}${mapping}\n`;
+    } catch (_) { /* fovea hint is best-effort */ }
+  }
   return `## ROLE & DECISION ENGINE (BRAID)
 ${role} You must make decisions by traversing the following Bounded Reasoning Graph (BRAID):
 
@@ -82,8 +97,7 @@ ${compactLogs.join('\n')}
 Interactive DOM (up to 40):
 ${compactDom.join('\n')}
 ${stuckBlock}
-${memoryBlock}${audioBlock}
-## GOAL — Game Objective
+${memoryBlock}${audioBlock}${foveaBlock}## GOAL — Game Objective
 ${brain.config.gameRules || "Explore the game: find buttons, play, maximize score, look for bugs/errors."}
 
 ## TASK
@@ -91,6 +105,7 @@ Respond ONLY with a JSON object matching this exact schema:
 {
   "status": "menu | playing | game_over | stuck | unknown",
   "reasoning_path": ["S", "No", "No", "No", "R_PLAY"],
+  "focus": "optional foveated-vision request for the NEXT tick: up to 3 rects like [{\"x\":300,\"y\":300,\"w\":400,\"h\":400,\"label\":\"center\"}] (0-1000, 500,500 = center, min 80x80). Ask for the FPS crosshair zone when aiming matters; omit (or []) on menus to keep the tick fast.",
   "urgency": "low | normal | high",
   "action": {
     "type": "combo | click | right_click | double_click | press_key | hold_key | hold_keys | move_mouse | drag_look | wheel | type_text | scroll | wait | refresh",

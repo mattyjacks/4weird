@@ -28,7 +28,7 @@ function nameOf(members: Member[], id: string): string {
  * GhostTimer — the /timer/ work clock for orgs. Clock in on a contract, beat
  * every 60s with visible-tab seconds (activity % = active beats / total),
  * clock out, invoice tracked seconds into Ghost Cash debts. Debts are
- * hypothetical IOUs (👻💵 has no value) — mark/settle/void from the book.
+ * hypothetical IOUs (👻 has no value) — mark/settle/void from the book.
  * Screen proof is worker-attached (manual screenshot upload), never captured.
  */
 export function GhostTimer() {
@@ -162,7 +162,7 @@ export function GhostTimer() {
   return (
     <div className="space-y-6">
       <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
-        <h2 className="text-xl font-bold">👻💵 Ghost Cash timer</h2>
+        <h2 className="text-xl font-bold">👻 Ghost Cash timer</h2>
         <p className="mt-2 text-sm text-slate-300">
           Hypothetical IOUs for org work — <b>not money, no value, no cash-out</b>, just a ruler for who owes whom.
           Clock in, work with this tab visible (activity % proves presence), clock out, invoice tracked seconds.
@@ -236,7 +236,7 @@ export function GhostTimer() {
                 <span className="flex gap-2">
                   <ProofUpload timerId={t.id} mine={t.worker_id === me} />
                   {(t.worker_id === me || summary.contracts.find((c) => c.id === t.contract_id)) && (
-                    <button onClick={() => invoice(t.id)} className="rounded-lg border border-white/20 px-3 py-1">Invoice 👻💵</button>
+                    <button onClick={() => invoice(t.id)} className="rounded-lg border border-white/20 px-3 py-1">Invoice 👻</button>
                   )}
                 </span>
               </div>
@@ -268,7 +268,7 @@ function GhostContracts({ orgId, members, contracts, refresh, me }: { orgId: str
   }
   return (
     <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
-      <h3 className="text-lg font-bold">Contracts (rate in 👻💵/hour — hypothetical)</h3>
+      <h3 className="text-lg font-bold">Contracts (rate in 👻/hour — hypothetical)</h3>
       {(contracts ?? []).map((c) => (
         <div key={c.id} className="mt-2 flex flex-wrap justify-between gap-2 border-t border-white/10 pt-2 text-sm">
           <span><b>{c.title}</b> · {nameOf(members, c.worker_id)} works · {nameOf(members, c.payer_id)} owes · {fmtGhost(c.rate_ghost)}/h · {c.status}</span>
@@ -289,7 +289,7 @@ function GhostContracts({ orgId, members, contracts, refresh, me }: { orgId: str
             {members.map((m) => <option key={m.id} value={m.id}>{m.display_name}</option>)}
           </select>
         </label>
-        <label className="text-sm">👻💵/h
+        <label className="text-sm">👻/h
           <input type="number" value={rate} required min={0} max={100000000} step="0.01" onChange={(e) => setRate(e.target.value)} className="ml-1 w-24 rounded-lg border border-white/15 bg-black/30 px-2 py-2 text-sm" />
         </label>
         <button className="rounded-lg bg-cyan-300 px-4 py-2 text-sm font-semibold text-slate-950">Open contract</button>
@@ -344,7 +344,7 @@ function GhostDebts({ members, debts, balances, orgId, refresh, onSettle }: { me
   }
   return (
     <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
-      <h3 className="text-lg font-bold">Who owes whom (👻💵 — not money)</h3>
+      <h3 className="text-lg font-bold">Who owes whom (👻 — not money)</h3>
       {(balances ?? []).map((b) => (
         <div key={b.user_id} className="mt-2 flex justify-between gap-2 border-t border-white/10 pt-2 text-sm">
           <span>{nameOf(members, b.user_id)}</span>

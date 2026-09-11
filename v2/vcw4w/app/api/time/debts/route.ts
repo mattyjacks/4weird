@@ -5,7 +5,7 @@ import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/time/debts - List Ghost Cash 👻💵 debts
+// GET /api/time/debts - List Ghost Cash 👻 debts
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();

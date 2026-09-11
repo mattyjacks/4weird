@@ -67,7 +67,7 @@ export function GhostDebtManager({ debts, onRefresh }: GhostDebtManagerProps) {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white">Ghost Cash (👻💵) Debt Ledger</h2>
+          <h2 className="text-xl font-bold text-white">Ghost Cash (👻) Debt Ledger</h2>
           <p className="text-sm text-zinc-400">
             Track debts owed between org leaders, social media marketers, and freelancers.
           </p>
@@ -105,7 +105,7 @@ export function GhostDebtManager({ debts, onRefresh }: GhostDebtManagerProps) {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs text-zinc-400">Amount in Ghost Cash (👻💵)</label>
+              <label className="text-xs text-zinc-400">Amount in Ghost Cash (👻)</label>
               <Input
                 type="number"
                 step="0.01"

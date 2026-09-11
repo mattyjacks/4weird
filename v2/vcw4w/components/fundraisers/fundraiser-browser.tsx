@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { LAUNCH_CATEGORIES, LAUNCH_DISCLAIMER_SHORT, type LaunchCategory } from "@/lib/support";
+import { LAUNCH_CATEGORIES, LAUNCH_DISCLAIMER_SHORT, FUNDRAISERS_ENABLED, FUNDRAISERS_DISABLED_NOTICE, type LaunchCategory } from "@/lib/support";
 
 type Campaign = {
   id: string;
@@ -53,6 +53,12 @@ export function FundraiserBrowser() {
   }, [load]);
 
   async function create() {
+    // Disabled in the UI while compliance is worked out — the API + RPCs
+    // underneath are intentionally left working so this flips back on.
+    if (!FUNDRAISERS_ENABLED) {
+      setError("Fundraisers are disabled while we work out the legal and compliance side.");
+      return;
+    }
     setBusy(true);
     setNotice("");
     setError("");
@@ -110,6 +116,12 @@ export function FundraiserBrowser() {
 
   return (
     <div className="space-y-10">
+      {!FUNDRAISERS_ENABLED && (
+        <div className="rounded-xl border border-red-300/30 bg-red-300/10 p-4 text-sm text-red-100">
+          <p className="font-bold">🚧 Launching and backing are disabled for now.</p>
+          <p className="mt-1">{FUNDRAISERS_DISABLED_NOTICE}</p>
+        </div>
+      )}
       <div className="rounded-xl border border-amber-300/30 bg-amber-300/10 p-4 text-sm text-amber-100">
         {LAUNCH_DISCLAIMER_SHORT} Full rules: <a className="underline" href="/terms">Terms of Use §8A</a>.
       </div>
@@ -164,19 +176,20 @@ export function FundraiserBrowser() {
           Gift-based backing for creative projects only — games, tech startups, creative tech. No charity, medical,
           emergency, political, or investment language is accepted (it is rejected automatically). You must describe
           what the coins will fund, and every reward you mention is a goal, not a guarantee. Login required.
+          {!FUNDRAISERS_ENABLED && " Launching is disabled for now while we work out regulations and compliance."}
         </p>
-        <div className="grid gap-3">
-          <input className={input} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Project title (4–120 chars)" />
-          <textarea className={input + " min-h-28"} value={story} onChange={(e) => setStory(e.target.value)} placeholder="Story (20–5000 chars): what are you building, why, and what happens if you hit the goal?" />
-          <input className={input} value={funds} onChange={(e) => setFunds(e.target.value)} placeholder="Use of funds — e.g. art, servers, SDK licenses (recommended)" />
+        <div className="grid gap-3" aria-disabled={!FUNDRAISERS_ENABLED}>
+          <input className={input} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Project title (4–120 chars)" disabled={!FUNDRAISERS_ENABLED} />
+          <textarea className={input + " min-h-28"} value={story} onChange={(e) => setStory(e.target.value)} placeholder="Story (20–5000 chars): what are you building, why, and what happens if you hit the goal?" disabled={!FUNDRAISERS_ENABLED} />
+          <input className={input} value={funds} onChange={(e) => setFunds(e.target.value)} placeholder="Use of funds — e.g. art, servers, SDK licenses (recommended)" disabled={!FUNDRAISERS_ENABLED} />
           <div className="grid gap-3 sm:grid-cols-4">
             <label className="block text-sm">
               Goal (50–1M coins)
-              <input className={input + " mt-1"} value={goal} onChange={(e) => setGoal(e.target.value)} inputMode="decimal" />
+              <input className={input + " mt-1"} value={goal} onChange={(e) => setGoal(e.target.value)} inputMode="decimal" disabled={!FUNDRAISERS_ENABLED} />
             </label>
             <label className="block text-sm">
               Category
-              <select className={input + " mt-1"} value={cat} onChange={(e) => setCat(e.target.value as LaunchCategory)}>
+              <select className={input + " mt-1"} value={cat} onChange={(e) => setCat(e.target.value as LaunchCategory)} disabled={!FUNDRAISERS_ENABLED}>
                 {LAUNCH_CATEGORIES.map((c) => (
                   <option key={c} value={c}>
                     {c}
@@ -186,16 +199,16 @@ export function FundraiserBrowser() {
             </label>
             <label className="block text-sm">
               Clan slug (optional)
-              <input className={input + " mt-1"} value={clanSlug} onChange={(e) => setClanSlug(e.target.value)} placeholder="my-clan" />
+              <input className={input + " mt-1"} value={clanSlug} onChange={(e) => setClanSlug(e.target.value)} placeholder="my-clan" disabled={!FUNDRAISERS_ENABLED} />
             </label>
             <label className="block text-sm">
               Ends (optional)
-              <input className={input + " mt-1"} type="date" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
+              <input className={input + " mt-1"} type="date" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} disabled={!FUNDRAISERS_ENABLED} />
             </label>
           </div>
         </div>
-        <button className={btn} disabled={busy} onClick={() => void create()}>
-          Launch campaign
+        <button className={btn} disabled={busy || !FUNDRAISERS_ENABLED} onClick={() => void create()}>
+          {FUNDRAISERS_ENABLED ? "Launch campaign" : "Launching disabled — back soon"}
         </button>
       </section>
     </div>

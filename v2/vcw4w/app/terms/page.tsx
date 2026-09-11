@@ -155,7 +155,7 @@ export default function TermsPage() {
           stated otherwise.
         </p>
         <p>
-          <strong>Ghost Cash (👻💵) is not currency at all.</strong> The org timer tracks work to the second and
+          <strong>Ghost Cash (👻) is not currency at all.</strong> The org timer tracks work to the second and
           records who owes whom in Ghost Cash — a centrally-controlled hypothetical unit with no legal value, no cash
           value, no cash-out, and no store-of-value function. It cannot buy anything, cannot be transferred off the
           Service, and creates no debt enforceable anywhere but social agreement inside your org. Ghost Cash is a
@@ -237,11 +237,11 @@ export default function TermsPage() {
           the Privacy Policy for what leaves your device and what never does.
         </p>
 
-        <h2 className={h2}>8C. Timer, Work Diary, and Ghost Cash (👻💵) non-legal debt ledger</h2>
+        <h2 className={h2}>8C. Timer, Work Diary, and Ghost Cash (👻) non-legal debt ledger</h2>
         <p>
           The Service provides a second-by-second time tracker and work diary (/timer) with optional Upwork-style screen
           capture proofs and activity monitoring. Time tracked within organizations and projects may accrue debts
-          measured in a non-monetary bookkeeping unit designated as <strong>Ghost Cash (👻💵)</strong>.
+          measured in a non-monetary bookkeeping unit designated as <strong>Ghost Cash (👻)</strong>.
         </p>
         <p>
           <strong>(a) Tracking only — never a payment method. NO CASH VALUE OR LEGAL TENDER.</strong> Ghost Cash is

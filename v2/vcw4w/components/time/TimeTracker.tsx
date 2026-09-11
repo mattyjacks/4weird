@@ -117,7 +117,7 @@ export function TimeTracker() {
       <div className="rounded-xl border border-cyan-500/20 bg-gradient-to-r from-cyan-950/40 via-zinc-950/60 to-emerald-950/40 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
-            <span className="text-lg">👻💵</span>
+            <span className="text-lg">👻</span>
             <h1 className="font-bold text-white text-base">Ghost Cash Time Tracker & Work Diary</h1>
           </div>
           <p className="text-xs text-zinc-400">
