@@ -1,0 +1,105 @@
+/* ============ USA (stars + stripes + fireworks) ============
+   Old glory blue carries the old cyan role, flag red the fuchsia role;
+   coins stay amber so money reads the same in every palette. Night mode is
+   a star field over deep navy; day mode is paper with faint stripes. The
+   fireworks canvas (components/site/themes/usa-fireworks.tsx) flies over
+   everything while this theme is active: smoky by day, electric by night. */
+
+html.theme-usa {
+  --t-solid: #1d4ed8; --t-solid-hover: #2563eb;
+  --t-bright: #93c5fd; --t-bright-hover: #bfdbfe;
+  --t-ink: #1e3a8a; --t-glow: #93c5fd;
+  --t2-solid: #be123c; --t2-hover: #e11d48; --t2-bright: #fda4af; --t2-glow: #fecdd3;
+  --t-coin-solid: #f59e0b; --t-coin-hover: #fbbf24; --t-coin-bright: #fcd34d; --t-coin-bright-hover: #fde68a;
+  --t-coin-ink: #92400e; --t-coin-glow: #fcd34d;
+  --radius: 0.375rem;
+  scrollbar-color: #b31942 transparent;
+}
+html.light.theme-usa {
+  --background: 0 0% 100%; --foreground: 222 47% 15%;
+  --card: 220 40% 98%; --card-foreground: 222 47% 15%;
+  --popover: 220 40% 98%; --popover-foreground: 222 47% 15%;
+  --primary: 350 80% 42%; --primary-foreground: 0 0% 100%;
+  --secondary: 217 60% 93%; --secondary-foreground: 222 47% 18%;
+  --muted: 220 30% 94%; --muted-foreground: 222 25% 38%;
+  --accent: 217 60% 92%; --accent-foreground: 222 47% 20%;
+  --border: 217 35% 86%; --input: 217 35% 84%; --ring: 350 80% 50%;
+}
+html.dark.theme-usa {
+  --background: 222 55% 5%; --foreground: 220 60% 96%;
+  --card: 222 50% 7%; --card-foreground: 220 60% 96%;
+  --popover: 222 50% 8%; --popover-foreground: 220 60% 96%;
+  --primary: 213 94% 72%; --primary-foreground: 222 55% 8%;
+  --secondary: 222 45% 13%; --secondary-foreground: 220 60% 96%;
+  --muted: 222 40% 12%; --muted-foreground: 220 25% 68%;
+  --accent: 222 50% 14%; --accent-foreground: 220 60% 96%;
+  --border: 222 40% 18%; --input: 222 40% 18%; --ring: 213 94% 65%;
+}
+/* day: faint stripes over paper */
+html.light.theme-usa body {
+  background-image: repeating-linear-gradient(180deg,
+    rgb(29 78 216 / 0.07) 0 70px,
+    rgb(190 18 60 / 0.06) 70px 140px,
+    rgb(255 255 255 / 0) 140px 210px);
+}
+/* night: star field + red/blue glows */
+html.dark.theme-usa body {
+  background-image:
+    radial-gradient(circle, rgb(255 255 255 / 0.85) 1px, transparent 1.6px),
+    radial-gradient(circle, rgb(147 197 253 / 0.5) 1px, transparent 1.8px),
+    radial-gradient(55% 40% at 12% 0%, rgb(29 78 216 / 0.30), transparent 70%),
+    radial-gradient(45% 35% at 88% 8%, rgb(190 18 60 / 0.28), transparent 70%);
+  background-size: 90px 90px, 140px 140px, auto, auto;
+}
+html.theme-usa .docs-orb-a { background: radial-gradient(circle, rgb(147 197 253 / 0.5), transparent 70%); }
+html.theme-usa .docs-orb-b { background: radial-gradient(circle, rgb(253 164 175 / 0.45), transparent 70%); }
+html.theme-usa .docs-grid-bg {
+  background-image:
+    linear-gradient(to right, rgb(29 78 216 / 0.14) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(190 18 60 / 0.12) 1px, transparent 1px);
+}
+html.theme-usa ::selection { background: rgb(190 18 60 / 0.4); }
+html.theme-usa::-webkit-scrollbar-thumb { background: linear-gradient(#b31942 0 38%, #ffffff 38% 62%, #0a3161 62% 100%); border-radius: 9999px; }
+
+/* bold glossy buttons: white-hot highlight, deep shadow */
+html.theme-usa .bg-cyan-600 {
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.42), rgb(255 255 255 / 0) 50%);
+  box-shadow: 0 8px 24px -8px rgb(29 78 216 / 0.8), inset 0 1px 0 rgb(255 255 255 / 0.4), inset 0 -2px 0 rgb(0 0 0 / 0.25);
+}
+html.dark.theme-usa .dark\:bg-cyan-300 {
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.55), rgb(255 255 255 / 0) 50%);
+  box-shadow: 0 0 24px -4px rgb(147 197 253 / 0.8), inset 0 -2px 0 rgb(0 0 0 / 0.2);
+}
+html.theme-usa .bg-amber-500 {
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.35), rgb(255 255 255 / 0) 55%);
+  box-shadow: 0 8px 22px -8px rgb(245 158 11 / 0.7), inset 0 1px 0 rgb(255 255 255 / 0.35);
+}
+html.theme-usa .bg-clip-text { filter: drop-shadow(0 2px 10px rgb(37 99 235 / 0.5)); }
+html.theme-usa footer > .h-1 {
+  background-image: linear-gradient(90deg,
+    #b31942 0%, #b31942 30%, #ffffff 30%, #ffffff 36%,
+    #0a3161 36%, #0a3161 64%, #ffffff 64%, #ffffff 70%, #b31942 70%, #b31942 100%);
+}
+
+/* ---- VAST: hardcoded slate surfaces go midnight navy, headlines go poster-bold ---- */
+html.light.theme-usa .bg-slate-950 { background-color: #0a1c3f; }
+html.dark.theme-usa .bg-slate-950 { background-color: #060b18; }
+html.light.theme-usa .bg-slate-900 { background-color: #12294f; }
+html.dark.theme-usa .bg-slate-900 { background-color: #0b1526; }
+html.theme-usa .bg-black { background-color: #040814; }
+html.theme-usa .bg-black\/30 { background-color: color-mix(in srgb, #1e3a8a 32%, transparent); }
+html.theme-usa .bg-black\/40 { background-color: color-mix(in srgb, #1e3a8a 44%, transparent); }
+html.theme-usa .bg-black\/50 { background-color: color-mix(in srgb, #1e3a8a 54%, transparent); }
+html.theme-usa .border-slate-700 { border-color: rgb(147 197 253 / 0.28); }
+html.theme-usa .border-slate-800 { border-color: rgb(147 197 253 / 0.18); }
+html.dark.theme-usa .dark\:bg-slate-950 { background-color: #060b18; }
+html.dark.theme-usa .dark\:bg-slate-900 { background-color: #0b1526; }
+html.dark.theme-usa .dark\:border-slate-700 { border-color: rgb(147 197 253 / 0.28); }
+html.dark.theme-usa .dark\:border-slate-800 { border-color: rgb(147 197 253 / 0.18); }
+html.theme-usa h1 {
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", "Arial Narrow", sans-serif;
+  letter-spacing: 0.03em;
+}
+html.theme-usa .rounded-lg { border-radius: 5px; }
+html.theme-usa .rounded-xl { border-radius: 7px; }
+html.theme-usa .rounded-2xl { border-radius: 10px; }

@@ -60,7 +60,7 @@ ${gameLines}
 
 ## Safety facts
 - Age gates: Kids Mode hides Adults (18+) games; Teens (13-17) games ask a 13+ age check before playing.
-- Cheat Mode saves are permanently flagged (cheat_mode:true cannot be laundered); leaderboards use handles and aggregate totals only.
+- Cheat Mode saves are permanently flagged (cheat_mode:true cannot be laundered); slot 0 is cheat-proof and can never be marked; leaderboards use handles and aggregate totals only.
 
 ## Trust
 - Terms: ${SITE_URL}/terms, Privacy: ${SITE_URL}/privacy, Accessibility: ${SITE_URL}/accessibility

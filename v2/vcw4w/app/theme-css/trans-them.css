@@ -1,0 +1,100 @@
+/* ============ TRANS THEM (trans-pride pastels) ============
+   Moved from app/globals.css during the theme split (one file per palette).
+   VAST block at the bottom re-hues the hardcoded slate surfaces deep sea,
+   gives headlines an airy voice, and softens corners. */
+
+html.theme-trans-them {
+  --t-solid: #0284c7; --t-solid-hover: #0ea5e9;
+  --t-bright: #7dd3fc; --t-bright-hover: #bae6fd;
+  --t-ink: #0369a1; --t-glow: #7dd3fc;
+  --t2-solid: #db2777; --t2-hover: #ec4899; --t2-bright: #f9a8d4; --t2-glow: #f5abb9;
+  --t-coin-solid: #be185d; --t-coin-hover: #ec4899; --t-coin-bright: #f472b6; --t-coin-bright-hover: #f9a8d4;
+  --t-coin-ink: #9d174d; --t-coin-glow: #f9a8d4;
+  --radius: 0.625rem;
+  scrollbar-color: #0ea5e9 transparent;
+}
+html.light.theme-trans-them {
+  --background: 200 100% 99%; --foreground: 205 50% 12%;
+  --card: 205 90% 98%; --card-foreground: 205 50% 12%;
+  --popover: 205 90% 98%; --popover-foreground: 205 50% 12%;
+  --primary: 201 96% 40%; --primary-foreground: 0 0% 100%;
+  --secondary: 205 80% 93%; --secondary-foreground: 205 50% 16%;
+  --muted: 205 70% 94%; --muted-foreground: 205 30% 40%;
+  --accent: 205 85% 92%; --accent-foreground: 205 55% 20%;
+  --border: 205 50% 88%; --input: 205 50% 86%; --ring: 200 90% 50%;
+}
+html.dark.theme-trans-them {
+  --background: 206 60% 7%; --foreground: 200 80% 96%;
+  --card: 206 55% 9%; --card-foreground: 200 80% 96%;
+  --popover: 206 55% 10%; --popover-foreground: 200 80% 96%;
+  --primary: 199 95% 74%; --primary-foreground: 206 60% 10%;
+  --secondary: 206 50% 15%; --secondary-foreground: 200 80% 96%;
+  --muted: 206 50% 14%; --muted-foreground: 200 30% 68%;
+  --accent: 206 55% 16%; --accent-foreground: 200 80% 96%;
+  --border: 206 45% 20%; --input: 206 45% 20%; --ring: 200 90% 65%;
+}
+html.light.theme-trans-them body {
+  background-image: repeating-linear-gradient(180deg,
+    rgb(125 211 252 / 0.10) 0 90px,
+    rgb(245 171 185 / 0.10) 90px 180px,
+    rgb(255 255 255 / 0.12) 180px 270px);
+}
+html.dark.theme-trans-them body {
+  background-image:
+    radial-gradient(circle, rgb(255 255 255 / 0.14) 1px, transparent 1.6px),
+    radial-gradient(55% 40% at 10% 0%, rgb(56 189 248 / 0.2), transparent 70%),
+    radial-gradient(45% 35% at 90% 10%, rgb(245 171 185 / 0.2), transparent 70%);
+  background-size: 30px 30px, auto, auto;
+}
+html.theme-trans-them .docs-orb-a { background: radial-gradient(circle, rgb(125 211 252 / 0.45), transparent 70%); }
+html.theme-trans-them .docs-orb-b { background: radial-gradient(circle, rgb(245 171 185 / 0.45), transparent 70%); }
+html.theme-trans-them .docs-grid-bg {
+  background-image:
+    linear-gradient(to right, rgb(125 211 252 / 0.14) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(245 171 185 / 0.14) 1px, transparent 1px);
+}
+html.theme-trans-them ::selection { background: rgb(245 171 185 / 0.55); }
+html.theme-trans-them::-webkit-scrollbar-thumb { background: linear-gradient(#7dd3fc, #f5abb9); border-radius: 9999px; }
+
+/* pastel sheen buttons */
+html.theme-trans-them .bg-cyan-600 {
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.3), rgb(255 255 255 / 0) 60%);
+  box-shadow: 0 6px 20px -8px rgb(2 132 199 / 0.7), inset 0 1px 0 rgb(255 255 255 / 0.3);
+}
+html.dark.theme-trans-them .dark\:bg-cyan-300 {
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.45), rgb(255 255 255 / 0) 60%);
+  box-shadow: 0 0 20px -4px rgb(125 211 252 / 0.7);
+}
+html.theme-trans-them .bg-amber-500 {
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.3), rgb(255 255 255 / 0) 60%);
+  box-shadow: 0 6px 20px -8px rgb(190 24 93 / 0.6), inset 0 1px 0 rgb(255 255 255 / 0.3);
+}
+html.theme-trans-them .bg-clip-text { filter: drop-shadow(0 2px 8px rgb(56 189 248 / 0.35)); }
+html.theme-trans-them footer > .h-1 {
+  background-image: linear-gradient(90deg,
+    #5bcefa 0%, #5bcefa 20%, #f5abb9 20%, #f5abb9 40%,
+    #ffffff 40%, #ffffff 60%, #f5abb9 60%, #f5abb9 80%, #5bcefa 80%, #5bcefa 100%);
+}
+
+/* ---- VAST: hardcoded slate surfaces go deep sea, headlines breathe, corners soften ---- */
+html.light.theme-trans-them .bg-slate-950 { background-color: #0a1c28; }
+html.dark.theme-trans-them .bg-slate-950 { background-color: #07141d; }
+html.light.theme-trans-them .bg-slate-900 { background-color: #10293a; }
+html.dark.theme-trans-them .bg-slate-900 { background-color: #0c2231; }
+html.theme-trans-them .bg-black { background-color: #050e14; }
+html.theme-trans-them .bg-black\/30 { background-color: color-mix(in srgb, #075985 30%, transparent); }
+html.theme-trans-them .bg-black\/40 { background-color: color-mix(in srgb, #075985 42%, transparent); }
+html.theme-trans-them .bg-black\/50 { background-color: color-mix(in srgb, #075985 52%, transparent); }
+html.theme-trans-them .border-slate-700 { border-color: rgb(125 211 252 / 0.25); }
+html.theme-trans-them .border-slate-800 { border-color: rgb(125 211 252 / 0.15); }
+html.dark.theme-trans-them .dark\:bg-slate-950 { background-color: #07141d; }
+html.dark.theme-trans-them .dark\:bg-slate-900 { background-color: #0c2231; }
+html.dark.theme-trans-them .dark\:border-slate-700 { border-color: rgb(125 211 252 / 0.25); }
+html.dark.theme-trans-them .dark\:border-slate-800 { border-color: rgb(125 211 252 / 0.15); }
+html.theme-trans-them h1 {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  letter-spacing: 0.04em;
+}
+html.theme-trans-them .rounded-lg { border-radius: 8px; }
+html.theme-trans-them .rounded-xl { border-radius: 12px; }
+html.theme-trans-them .rounded-2xl { border-radius: 18px; }

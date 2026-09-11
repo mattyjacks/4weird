@@ -25,7 +25,8 @@ export async function GET(req: Request) {
   }
   const game = isSlug(q.get("game"));
   const slot = isSlot(q.get("slot"));
-  if (!game || !slot) return fail("Invalid cheat setting.", 400);
+  if (!game || slot === null) return fail("Invalid cheat setting.", 400);
+  if (slot === 0) return fail("Slot 0 is cheat-proof and can never allow cheats.", 400);
   const [{ data: row, error }, { data: global }] = await Promise.all([
     supabase
       .from("cheat_settings")
@@ -75,7 +76,8 @@ export async function PUT(req: Request) {
   }
   const game = isSlug(input.game_slug);
   const slot = isSlot(input.slot);
-  if (!game || !slot || typeof input.enabled !== "boolean") return fail("Invalid cheat setting.", 400);
+  if (!game || slot === null || typeof input.enabled !== "boolean") return fail("Invalid cheat setting.", 400);
+  if (slot === 0) return fail("Slot 0 is cheat-proof and can never allow cheats.", 400);
   const { data: rpcData, error } = await supabase.rpc("set_cheat_setting", {
     p_game: game,
     p_slot: slot,

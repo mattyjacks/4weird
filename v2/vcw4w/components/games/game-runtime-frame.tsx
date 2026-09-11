@@ -205,7 +205,7 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
       } else if (payload.type === "error") {
         setStatus(payload.message || "The game reported a runtime error.");
       } else if (payload.type === "save" && payload.data && typeof payload.data === "object") {
-        const slot = Number.isInteger(payload.slot) && payload.slot! >= 1 && payload.slot! <= 3 ? payload.slot : 1;
+        const slot = Number.isInteger(payload.slot) && payload.slot! >= 0 && payload.slot! <= 3 ? payload.slot : 1;
         void fetch("/api/saves", {
           method: "PUT",
           credentials: "include",

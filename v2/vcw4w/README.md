@@ -36,7 +36,7 @@ Cookie session (`credentials: "include"`) or bot key (`x-bot-key: bot4weird_...`
 | --- | --- | --- |
 | Auth | `/api/auth/*` | signup (100-coin trial, once/IP) · login/logout/session |
 | Coins | `/api/coins/*` | balance/history/claim/daily/checkout (Shopify allowlist) |
-| Games | `/api/games/*`, `/api/saves`, `/api/leaderboard` | rates + start/heartbeat/end sessions · slots 1-3 ≤1 MiB · aggregates |
+| Games | `/api/games/*`, `/api/saves`, `/api/leaderboard` | rates + start/heartbeat/end sessions · slots 0-3 ≤1 MiB (slot 0 cheat-proof) · aggregates |
 | Clans | `/api/clans/*` | posts/comments/channels/messages/reactions/roles/events/economy/bots + upkeep cron at `/api/cron/clan-upkeep` |
 | Bots | `/api/bot/*` | login (API key OR email+password, restricted tester session) · identity/keys/me + `/api/bot/bclans/*` clan API on sclans/bclans only |
 | Agents/cloud | `/api/agents/*`, `/api/desktop/*`, `/api/squads/*`, `/api/orgs/*`, `/api/projects/*`, `/api/cloud/*` | escrow + heartbeat settlement · real RunPod provisioning · metered workspaces |

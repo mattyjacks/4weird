@@ -1,0 +1,98 @@
+/* ============ GIRLY GIRL (pink) ============
+   Moved from app/globals.css during the theme split (one file per palette).
+   VAST block at the bottom re-hues the hardcoded slate surfaces, gives
+   headlines a rounded voice, and rounds every corner — so pages look
+   unmistakably Girly Girl in both modes. */
+
+html.theme-girly-girl {
+  --t-solid: #db2777; --t-solid-hover: #ec4899;
+  --t-bright: #f9a8d4; --t-bright-hover: #fbcfe8;
+  --t-ink: #9d174d; --t-glow: #f9a8d4;
+  --t2-solid: #c026d3; --t2-hover: #d946ef; --t2-bright: #f0abfc; --t2-glow: #f5d0fe;
+  --t-coin-solid: #e11d48; --t-coin-hover: #f43f5e; --t-coin-bright: #fecdd3; --t-coin-bright-hover: #ffe4e6;
+  --t-coin-ink: #9f1239; --t-coin-glow: #fecdd3;
+  --radius: 0.9rem;
+  scrollbar-color: #ec4899 transparent;
+}
+html.light.theme-girly-girl {
+  --background: 335 100% 99%; --foreground: 335 40% 12%;
+  --card: 330 100% 98%; --card-foreground: 335 40% 12%;
+  --popover: 330 100% 98%; --popover-foreground: 335 40% 12%;
+  --primary: 336 75% 45%; --primary-foreground: 0 0% 100%;
+  --secondary: 330 70% 94%; --secondary-foreground: 335 40% 16%;
+  --muted: 330 70% 94%; --muted-foreground: 335 25% 42%;
+  --accent: 330 80% 93%; --accent-foreground: 335 45% 20%;
+  --border: 332 45% 88%; --input: 332 45% 86%; --ring: 336 75% 55%;
+}
+html.dark.theme-girly-girl {
+  --background: 336 45% 7%; --foreground: 330 60% 96%;
+  --card: 336 40% 9%; --card-foreground: 330 60% 96%;
+  --popover: 336 40% 10%; --popover-foreground: 330 60% 96%;
+  --primary: 327 85% 80%; --primary-foreground: 336 50% 12%;
+  --secondary: 336 35% 15%; --secondary-foreground: 330 60% 96%;
+  --muted: 336 35% 14%; --muted-foreground: 330 25% 68%;
+  --accent: 336 40% 16%; --accent-foreground: 330 60% 96%;
+  --border: 336 30% 20%; --input: 336 30% 20%; --ring: 330 80% 70%;
+}
+html.light.theme-girly-girl body {
+  background-image:
+    radial-gradient(circle, rgb(236 72 153 / 0.3) 1.2px, transparent 1.8px),
+    radial-gradient(60% 40% at 12% 0%, rgb(249 168 212 / 0.35), transparent 70%),
+    radial-gradient(45% 35% at 88% 6%, rgb(240 171 252 / 0.28), transparent 70%);
+  background-size: 26px 26px, auto, auto;
+}
+html.dark.theme-girly-girl body {
+  background-image:
+    radial-gradient(circle, rgb(249 168 212 / 0.22) 1.2px, transparent 1.8px),
+    radial-gradient(55% 40% at 12% 0%, rgb(219 39 119 / 0.22), transparent 70%),
+    radial-gradient(45% 35% at 88% 8%, rgb(192 38 211 / 0.18), transparent 70%);
+  background-size: 26px 26px, auto, auto;
+}
+html.theme-girly-girl .docs-orb-a { background: radial-gradient(circle, rgb(249 168 212 / 0.45), transparent 70%); }
+html.theme-girly-girl .docs-orb-b { background: radial-gradient(circle, rgb(240 171 252 / 0.4), transparent 70%); }
+html.theme-girly-girl .docs-grid-bg {
+  background-image:
+    linear-gradient(to right, rgb(244 114 182 / 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(244 114 182 / 0.12) 1px, transparent 1px);
+}
+html.theme-girly-girl ::selection { background: rgb(236 72 153 / 0.35); }
+html.theme-girly-girl::-webkit-scrollbar-thumb { background: linear-gradient(#f9a8d4, #db2777); border-radius: 9999px; }
+
+/* glossy candy buttons */
+html.theme-girly-girl .bg-cyan-600 {
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.38), rgb(255 255 255 / 0) 55%);
+  box-shadow: 0 6px 20px -6px rgb(219 39 119 / 0.65), inset 0 1px 0 rgb(255 255 255 / 0.35);
+}
+html.dark.theme-girly-girl .dark\:bg-cyan-300 {
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.5), rgb(255 255 255 / 0) 55%);
+  box-shadow: 0 0 20px -4px rgb(249 168 212 / 0.7);
+}
+html.theme-girly-girl .bg-amber-500 {
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.35), rgb(255 255 255 / 0) 55%);
+  box-shadow: 0 6px 20px -6px rgb(225 29 72 / 0.65), inset 0 1px 0 rgb(255 255 255 / 0.35);
+}
+html.theme-girly-girl .bg-clip-text { filter: drop-shadow(0 2px 8px rgb(236 72 153 / 0.4)); }
+html.theme-girly-girl footer > .h-1 { background-image: linear-gradient(90deg, #f9a8d4, #ec4899 30%, #f0abfc 50%, #db2777 70%, #f9a8d4); }
+
+/* ---- VAST: hardcoded slate surfaces go plum, headlines go round, corners go bubbly ---- */
+html.light.theme-girly-girl .bg-slate-950 { background-color: #2b0d1c; }
+html.dark.theme-girly-girl .bg-slate-950 { background-color: #230b16; }
+html.light.theme-girly-girl .bg-slate-900 { background-color: #3d1226; }
+html.dark.theme-girly-girl .bg-slate-900 { background-color: #2f1020; }
+html.theme-girly-girl .bg-black { background-color: #1c0712; }
+html.theme-girly-girl .bg-black\/30 { background-color: color-mix(in srgb, #831843 30%, transparent); }
+html.theme-girly-girl .bg-black\/40 { background-color: color-mix(in srgb, #831843 42%, transparent); }
+html.theme-girly-girl .bg-black\/50 { background-color: color-mix(in srgb, #831843 52%, transparent); }
+html.theme-girly-girl .border-slate-700 { border-color: rgb(244 114 182 / 0.28); }
+html.theme-girly-girl .border-slate-800 { border-color: rgb(244 114 182 / 0.18); }
+html.dark.theme-girly-girl .dark\:bg-slate-950 { background-color: #230b16; }
+html.dark.theme-girly-girl .dark\:bg-slate-900 { background-color: #2f1020; }
+html.dark.theme-girly-girl .dark\:border-slate-700 { border-color: rgb(244 114 182 / 0.28); }
+html.dark.theme-girly-girl .dark\:border-slate-800 { border-color: rgb(244 114 182 / 0.18); }
+html.theme-girly-girl h1 {
+  font-family: ui-rounded, "Hiragino Maru Gothic ProN", "Segoe UI", system-ui, sans-serif;
+  letter-spacing: 0.01em;
+}
+html.theme-girly-girl .rounded-lg { border-radius: 14px; }
+html.theme-girly-girl .rounded-xl { border-radius: 20px; }
+html.theme-girly-girl .rounded-2xl { border-radius: 26px; }

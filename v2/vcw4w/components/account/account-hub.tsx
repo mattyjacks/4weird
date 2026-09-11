@@ -248,19 +248,23 @@ function SavesTab() {
   const games = ["platform-wars", ...new Set(saves.map((s) => s.game_slug))].filter((g, i, a) => a.indexOf(g) === i);
   return (
     <Card title="Cloud saves">
-      <p>Every game includes three independent save slots. Cheated status is permanent per slot after its first cheat.</p>
+      <p>Every game includes four independent save slots. Slot 0 is cheat-proof and can never be marked. Cheated status is permanent per other slot after its first cheat.</p>
       <p role="status" className="text-slate-400">{message}</p>
       {games.map((game) => (
         <div key={game}>
           <h3 className="font-semibold">{game === "platform-wars" ? "Platform Wars: Phone vs Desktop" : game}</h3>
-          {[1, 2, 3].map((slot) => {
+          {[0, 1, 2, 3].map((slot) => {
             const s = saves.find((x) => x.game_slug === game && x.slot === slot);
             return (
               <Row key={slot}>
                 <span>
                   Save {slot}{" "}
-                  {s?.data?.cheat_mode && (
-                    <b className="rounded-full border border-red-400/40 px-2 py-0.5 text-xs text-red-300">CHEAT MODE</b>
+                  {slot === 0 ? (
+                    <b className="rounded-full border border-emerald-400/40 px-2 py-0.5 text-xs text-emerald-300">CHEAT-PROOF</b>
+                  ) : (
+                    s?.data?.cheat_mode && (
+                      <b className="rounded-full border border-red-400/40 px-2 py-0.5 text-xs text-red-300">CHEAT MODE</b>
+                    )
                   )}
                 </span>
                 <span className="text-slate-400">{s ? `Last synced ${new Date(s.updated_at ?? "").toLocaleDateString()}` : "Empty"}</span>
@@ -336,7 +340,7 @@ function CheatsTab() {
     <Card title="Cheat controls">
       <p>
         Cheats are deliberately separated by game and save slot. The first enabled cheat permanently marks that save <b>Cheat Mode</b>,
-        including in captured gameplay output.
+        including in captured gameplay output. Save 0 is cheat-proof and never appears here.
       </p>
       <form
         className="flex flex-wrap items-end gap-3"

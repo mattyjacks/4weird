@@ -1,0 +1,76 @@
+/* ---- Accent remap (shared): Girly Girl / Trans Them / Green Guy / USA ----
+   Re-routes the hardcoded cyan (primary), fuchsia (secondary) and amber
+   (coins) utilities across site chrome onto the active palette's tokens.
+   Blue Boy needs no rules (it IS the current look).
+   Moved from app/globals.css during the theme split; selector lists use
+   :is() so the next palette is a one-word addition. Specificity matches the
+   old per-theme selectors (html + one class beats any single utility). */
+
+/* solid buttons + fills (light-mode base, dark-mode via dark: variant) */
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.bg-cyan-600, .bg-cyan-500) { background-color: var(--t-solid); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .dark\:bg-cyan-300 { background-color: var(--t-bright); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .bg-cyan-400 { background-color: var(--t-solid-hover); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .bg-cyan-300 { background-color: var(--t-bright); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.hover\:bg-cyan-500:hover, .hover\:bg-cyan-400:hover) { background-color: var(--t-solid-hover); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .focus\:bg-cyan-300:focus { background-color: var(--t-bright); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .dark\:hover\:bg-cyan-200:hover { background-color: var(--t-bright-hover); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .hover\:bg-cyan-600\/10:hover { background-color: color-mix(in srgb, var(--t-solid) 10%, transparent); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .bg-cyan-300\/10 { background-color: color-mix(in srgb, var(--t-bright) 12%, transparent); }
+/* fuchsia (secondary) fills */
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .bg-fuchsia-600 { background-color: var(--t2-solid); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .bg-fuchsia-500 { background-color: var(--t2-hover); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.bg-fuchsia-300, .dark\:bg-fuchsia-300) { background-color: var(--t2-bright); }
+/* amber (coins) fills */
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .bg-amber-500 { background-color: var(--t-coin-solid); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.bg-amber-400, .hover\:bg-amber-400:hover) { background-color: var(--t-coin-hover); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.bg-amber-300, .dark\:bg-amber-300) { background-color: var(--t-coin-bright); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .dark\:hover\:bg-amber-200:hover { background-color: var(--t-coin-bright-hover); }
+/* accent text (light-mode base + dark-mode variant) */
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.text-cyan-700, .text-cyan-600) { color: var(--t-ink); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.dark\:text-cyan-300, .dark\:text-cyan-200) { color: var(--t-glow); }
+html.light:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.text-cyan-300, .text-cyan-200) { color: var(--t-ink); }
+html.dark:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.text-cyan-300, .text-cyan-200) { color: var(--t-glow); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .dark\:text-fuchsia-300 { color: var(--t2-glow); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .text-amber-700 { color: var(--t-coin-ink); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.text-amber-300, .dark\:text-amber-300) { color: var(--t-coin-glow); }
+html.light:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .text-amber-200 { color: var(--t-coin-ink); }
+html.dark:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .text-amber-200 { color: var(--t-coin-glow); }
+/* borders */
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .border-cyan-600\/60 { border-color: color-mix(in srgb, var(--t-solid) 60%, transparent); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .border-cyan-600\/20 { border-color: color-mix(in srgb, var(--t-solid) 20%, transparent); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.dark\:border-cyan-300\/60, .dark\:border-cyan-300\/50, .dark\:border-cyan-300\/40, .dark\:border-cyan-300\/30, .dark\:border-cyan-300\/20) { border-color: color-mix(in srgb, var(--t-bright) 55%, transparent); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.border-cyan-300\/70, .hover\:border-cyan-300\/40:hover) { border-color: color-mix(in srgb, var(--t-bright) 65%, transparent); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.border-amber-500\/25, .border-amber-300\/25, .border-amber-300\/40, .border-amber-300\/60, .dark\:border-amber-300\/25) { border-color: color-mix(in srgb, var(--t-coin-bright) 60%, transparent); }
+/* gradients (brand hairlines, logos, icon tiles) */
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .from-cyan-400 { --tw-gradient-from: var(--t-solid-hover) var(--tw-gradient-from-position); --tw-gradient-to: color-mix(in srgb, var(--t-solid-hover) 0%, transparent) var(--tw-gradient-to-position); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.from-cyan-600, .dark\:from-cyan-300) { --tw-gradient-from: var(--t-solid) var(--tw-gradient-from-position); --tw-gradient-to: color-mix(in srgb, var(--t-solid) 0%, transparent) var(--tw-gradient-to-position); }
+html.dark:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .dark\:from-cyan-300 { --tw-gradient-from: var(--t-bright) var(--tw-gradient-from-position); --tw-gradient-to: color-mix(in srgb, var(--t-bright) 0%, transparent) var(--tw-gradient-to-position); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .from-cyan-500\/15 { --tw-gradient-from: color-mix(in srgb, var(--t-solid) 15%, transparent) var(--tw-gradient-from-position); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.from-cyan-300\/15, .from-cyan-300\/10, .from-cyan-600\/\[0\.07\], .dark\:from-cyan-300\/10) { --tw-gradient-from: color-mix(in srgb, var(--t-bright) 22%, transparent) var(--tw-gradient-to-position); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.to-fuchsia-500, .via-fuchsia-500) { --tw-gradient-to: var(--t2-hover) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--t2-hover) var(--tw-gradient-via-position), var(--tw-gradient-to); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .to-fuchsia-600 { --tw-gradient-to: var(--t2-solid) var(--tw-gradient-to-position); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .to-fuchsia-500\/15 { --tw-gradient-to: color-mix(in srgb, var(--t2-hover) 15%, transparent) var(--tw-gradient-to-position); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .dark\:to-fuchsia-300 { --tw-gradient-to: var(--t2-bright) var(--tw-gradient-to-position); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .to-amber-300 { --tw-gradient-to: var(--t-coin-bright) var(--tw-gradient-to-position); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.from-amber-300\/15, .from-amber-300\/10, .from-amber-400\/\[0\.09\], .dark\:from-amber-300\/10) { --tw-gradient-from: color-mix(in srgb, var(--t-coin-bright) 25%, transparent) var(--tw-gradient-from-position); }
+/* underline decorations + form accents */
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .decoration-cyan-500\/50 { text-decoration-color: color-mix(in srgb, var(--t-solid) 50%, transparent); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .decoration-fuchsia-500\/50 { text-decoration-color: color-mix(in srgb, var(--t2-solid) 50%, transparent); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .decoration-amber-500\/50 { text-decoration-color: color-mix(in srgb, var(--t-coin-solid) 50%, transparent); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .hover\:decoration-cyan-400:hover { text-decoration-color: var(--t-solid-hover); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .hover\:decoration-fuchsia-400:hover { text-decoration-color: var(--t2-hover); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .hover\:decoration-amber-400:hover { text-decoration-color: var(--t-coin-hover); }
+html.light:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .accent-cyan-300 { accent-color: var(--t-solid); }
+html.dark:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .accent-cyan-300 { accent-color: var(--t-bright); }
+
+/* focus + dwell + head-cursor tints follow the palette (base is cyan) */
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.ui-infotip-btn:focus-visible, .ui-clamp-more > summary:focus-visible, .ui-details-summary:focus-visible) { outline-color: var(--t-solid-hover); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .a11y-dwelling { outline-color: var(--t-solid-hover); }
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .a11y-dwelling::after {
+  background: conic-gradient(var(--t-solid-hover) calc(var(--dwell-progress, 0) * 360deg), transparent 0deg);
+}
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .a11y-head-cursor {
+  border-color: var(--t-solid-hover);
+  background: color-mix(in srgb, var(--t-solid-hover) 18%, transparent);
+}
+html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa).a11y-large-targets :focus-visible { outline-color: var(--t-bright); }

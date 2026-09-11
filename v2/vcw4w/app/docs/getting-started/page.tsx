@@ -78,7 +78,7 @@ export default function GettingStartedPage() {
       <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
           ["🕹️ 0:00 — Play", "Pick a game on /games, read its guide, hit Play. Signed-in play meters coins; guests get ads."],
-          ["💾 0:05 — Save", "Use slots 1–3, then check /leaderboards for kills, actions, play-time."],
+          ["💾 0:05 — Save", "Use slots 0–3 (slot 0 is cheat-proof), then check /leaderboards for kills, actions, play-time."],
           ["👾 0:08 — Belong", "Join a clan on /clans, say hi in #general, react to a post."],
           ["🎙️ 0:12 — Coach", "Open /buddy or the play-page widget and ask for coaching."],
         ].map(([t, b]) => (
@@ -92,7 +92,7 @@ export default function GettingStartedPage() {
 
       <Callout tone="rose" title="Don't touch that button (yet): Cheat Mode.">
         Enabling cheats permanently brands that save (<code>cheat_mode:true</code>) — delete/recreate cannot launder it.
-        Experiment on a throwaway slot. Full story in <Link className="underline" href="/docs/playing-games">Playing games</Link>.
+        Experiment on a throwaway slot. Slot 0 can never be marked, so it is always safe. Full story in <Link className="underline" href="/docs/playing-games">Playing games</Link>.
       </Callout>
 
       <SectionHead

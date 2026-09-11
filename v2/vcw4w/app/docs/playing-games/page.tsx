@@ -28,7 +28,7 @@ export default function PlayingGamesPage() {
           ["34", "playable games"],
           ["~6 🪙", "per 5-hour session"],
           ["3/day", "free guest loads"],
-          ["3", "save slots / game"],
+          ["4", "save slots / game"],
         ]}
         glyph="🕹️"
         theme={theme}
@@ -99,20 +99,21 @@ export default function PlayingGamesPage() {
       <SectionHead
         index="4"
         kicker="Save states"
-        title="Cloud saves, slots 1–3"
+        title="Cloud saves, slots 0–3"
       />
-      <div className="mt-5 grid gap-3 sm:grid-cols-3">
-        {["SLOT 1", "SLOT 2", "SLOT 3"].map((s, i) => (
+      <div className="mt-5 grid gap-3 sm:grid-cols-4">
+        {["SLOT 0", "SLOT 1", "SLOT 2", "SLOT 3"].map((s, i) => (
           <div key={s} className="rounded-2xl border border-border bg-card p-4 text-center">
             <p className="font-mono text-xs font-black tracking-widest text-muted-foreground">{s}</p>
-            <p aria-hidden="true" className="mt-1 text-3xl">{i === 2 ? "🚫" : "💾"}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{i === 2 ? "Cheat-branded. Still playable, forever flagged." : "≤1 MiB · versioned · yours"}</p>
+            <p aria-hidden="true" className="mt-1 text-3xl">{i === 0 ? "🛡️" : i === 3 ? "🚫" : "💾"}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{i === 0 ? "Cheat-proof safety slot. Can never be marked." : i === 3 ? "Cheat-branded. Still playable, forever flagged." : "≤1 MiB · versioned · yours"}</p>
           </div>
         ))}
       </div>
       <Callout tone="rose" title="Cheat Mode is a tattoo, not a sticker.">
         Enabling cheats permanently marks that save (<code>cheat_mode:true</code>) as a database invariant —
-        deleting and recreating the save cannot launder it. Experiment on a throwaway slot.
+        deleting and recreating the save cannot launder it. Experiment on a throwaway slot. Slot 0 can never be
+        marked or allow cheats, so it is always safe.
       </Callout>
 
       <SectionHead

@@ -117,7 +117,8 @@ export default function TermsPage() {
         <h2 className={h2}>4. Games, saves, telemetry, and leaderboards</h2>
         <p>
           The catalog offers browser games in isolated play shells with guides and metadata. Cloud saves offer up to
-          three slots per game (≤1 MiB each, versioned); enabling cheats permanently marks that save
+          four slots per game (slots 0–3, ≤1 MiB each, versioned); slot 0 is cheat-proof and can never be marked,
+          while enabling cheats on any other slot permanently marks that save
           (“cheat_mode:true”) as a database invariant that delete/recreate cannot launder, and cloud saves generally
           cannot be reset from the client. Gameplay telemetry (kills, actions, active seconds, deaths) powers
           per-game leaderboards showing handles and totals only; anonymous play is allowed where offered. Matchmaking,

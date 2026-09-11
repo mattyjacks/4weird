@@ -9,6 +9,7 @@ import { CookieBanner } from "@/components/site/cookie-banner";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { A11yProvider } from "@/components/site/a11y-provider";
+import { UsaFireworks } from "@/components/site/themes/usa-fireworks";
 import { ColorblindFilters } from "@/components/a11y/colorblind-filters";
 import { EyeDwell } from "@/components/a11y/eye-dwell";
 import { SwitchScan } from "@/components/a11y/switch-scan";
@@ -26,6 +27,14 @@ import {
   organizationJsonLd,
 } from "@/lib/seo";
 import "./globals.css";
+// Site color themes: one file per palette + the shared accent remap.
+// Order matters (later wins on equal specificity): identity first, remap last.
+import "./theme-css/blue-boy.css";
+import "./theme-css/girly-girl.css";
+import "./theme-css/trans-them.css";
+import "./theme-css/green-guy.css";
+import "./theme-css/usa.css";
+import "./theme-css/remap-shared.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -117,6 +126,7 @@ export default function RootLayout({
             </div>
             <SiteFooter />
           </div>
+          <UsaFireworks />
         </ThemeProvider>
         </SiteThemeProvider>
         <Suspense fallback={null}>

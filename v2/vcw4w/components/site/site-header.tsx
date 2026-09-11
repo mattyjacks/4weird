@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { WalletBadges } from "@/components/site/wallet-badges";
 
 type NavLink = {
   href: string;
@@ -476,6 +477,7 @@ export function SiteHeader() {
           </nav>
 
           <div className="hidden items-center gap-2 lg:flex">
+            <WalletBadges signedIn={signedIn} />
             <Link
               href="/pricing"
               className="rounded-full border border-border px-3 py-1.5 text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground"
@@ -509,18 +511,21 @@ className="rounded-full bg-cyan-600 px-4 py-1.5 text-sm font-black text-white tr
             )}
           </div>
 
-          {/* Mobile toggle */}
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-bold text-foreground lg:hidden"
-            aria-expanded={open}
-            aria-controls="site-mobile-nav"
-            aria-label={open ? "Close menu" : "Open menu"}
-            onClick={() => setOpen((v) => !v)}
-          >
-            <span aria-hidden="true">{open ? "✕" : "☰"}</span>
-            Menu
-          </button>
+          {/* Mobile balances + toggle: badges stay visible even when the sheet is closed */}
+          <div className="flex min-w-0 flex-1 items-center justify-end gap-2 lg:hidden">
+            <WalletBadges signedIn={signedIn} />
+            <button
+              type="button"
+              className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-bold text-foreground lg:hidden"
+              aria-expanded={open}
+              aria-controls="site-mobile-nav"
+              aria-label={open ? "Close menu" : "Open menu"}
+              onClick={() => setOpen((v) => !v)}
+            >
+              <span aria-hidden="true">{open ? "✕" : "☰"}</span>
+              Menu
+            </button>
+          </div>
         </div>
 
         {/* Mobile nav: 2-level accordion; one tap expands a group.

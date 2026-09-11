@@ -38,8 +38,8 @@ export function applyColorThemeClass(id: ColorThemeId): void {
 
 /**
  * Owns the 4weird color theme (Blue Boy / Girly Girl / Trans Them / Green
- * Guy), persisted to localStorage so the last choice survives reloads.
- * Light/dark mode stays with next-themes; the two compose into 8 combos.
+ * Guy / USA), persisted to localStorage so the last choice survives reloads.
+ * Light/dark mode stays with next-themes; the two compose into 10 combos.
  */
 export function SiteThemeProvider({ children }: { children: ReactNode }) {
   const [colorTheme, setColorThemeState] = useState<ColorThemeId>(DEFAULT_COLOR_THEME);

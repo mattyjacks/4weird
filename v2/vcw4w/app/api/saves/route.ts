@@ -32,7 +32,7 @@ export async function GET(req: Request) {
     query = query.eq("game_slug", game);
   }
   if (slot) {
-    if (!/^[1-3]$/.test(slot)) return fail("Invalid slot.", 400);
+    if (!/^[0-3]$/.test(slot)) return fail("Invalid slot.", 400);
     query = query.eq("slot", Number(slot));
   }
   const { data: rows, error } = await query;
@@ -65,7 +65,7 @@ export async function PUT(req: Request) {
   const slot = isSlot(input.slot);
   const schemaVersion = input.schema_version === undefined ? 1 : Number(input.schema_version);
   if (!slug) return fail("Invalid game slug.", 400);
-  if (!slot) return fail("Slot must be 1, 2, or 3.", 400);
+  if (slot === null) return fail("Slot must be 0, 1, 2, or 3.", 400);
   if (!Number.isInteger(schemaVersion) || schemaVersion < 1 || schemaVersion > 1000) {
     return fail("Invalid save schema version.", 400);
   }
@@ -95,7 +95,12 @@ export async function PUT(req: Request) {
     .maybeSingle();
   if (existingError) return dbFail("api/saves", existingError);
   const dataObj = saveData as Record<string, unknown>;
-  if ((existing as { data?: { cheat_mode?: boolean } } | null)?.data?.cheat_mode) {
+  if (slot === 0) {
+    // Slot 0 is the cheat-proof safety slot: it can never be marked
+    // cheat-moded, so any client-supplied marker is stripped. (A database
+    // trigger enforces the same invariant for non-API writes.)
+    delete dataObj.cheat_mode;
+  } else if ((existing as { data?: { cheat_mode?: boolean } } | null)?.data?.cheat_mode) {
     dataObj.cheat_mode = true;
   }
   // user_id comes from the session, never the body; RLS re-checks it.

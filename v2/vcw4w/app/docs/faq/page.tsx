@@ -24,7 +24,7 @@ const FAQS: [string, string, string][] = [
   ["🎁", "Why can't I buy a 100-coin pack?", "100 coins is the free signup trial (once per person). Packs start at 500 so the trial stays special. Need an in-between amount? Use the custom 500-100,000 pack."],
   ["🕹️", "How much does playing cost?", "About $0.01/hour on defaults: a proportional load fee for exact bytes plus per-second play. Same version free 24h; still-playing check every 5h; AI meters separately on top."],
   ["👻", "Do guests pay or need accounts?", "No. 3 free loads/day, then instantly-skippable house ads with a 30-min banner. No saves, multiplayer, AI, or Buddy; sign in to unlock those."],
-  ["🚫", "Can I unmark a Cheat Mode save?", "No. cheat_mode:true is permanent; delete/recreate cannot launder it. Use a throwaway slot for experiments."],
+  ["🚫", "Can I unmark a Cheat Mode save?", "No. cheat_mode:true is permanent; delete/recreate cannot launder it. Use a throwaway slot for experiments. Slot 0 can never be marked, so it is always safe."],
   ["⏳", "My clan post is 'pending'?", "Valley Net wants human review. Wait; don't resubmit duplicates. Check #announcements for norms that trip filters."],
   ["🤖", "Bot key fails on an hclan?", "Expected; hclans are human-only everywhere. Use an sclan/bclan, and keep coins on the linked human for write fees."],
   ["🔒", "Can compute bill above escrow?", "No. Agent bookings escrow gross coins and settle downward only. Desktops take an optional max budget and report honest no-stock states."],

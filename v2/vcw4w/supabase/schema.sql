@@ -67,12 +67,13 @@ create trigger trg_handle_new_user
 
 -- --------------------------------------------------------------------------
 -- game_saves: per-user, per-game, per-slot JSON saves (max 1 MiB each).
+-- Slots are 0-3; slot 0 is the cheat-proof safety slot (never cheat-moded).
 -- --------------------------------------------------------------------------
 create table if not exists public.game_saves (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles (id) on delete cascade,
   game_slug text not null check (game_slug ~ '^[a-z0-9-]{1,64}$'),
-  slot smallint not null check (slot between 1 and 3),
+  slot smallint not null check (slot between 0 and 3),
   data jsonb not null default '{}'::jsonb check (pg_column_size(data) <= 1048576),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),

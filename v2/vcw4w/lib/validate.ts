@@ -55,9 +55,19 @@ export function isSlug(value: unknown): string {
   return /^[a-z0-9-]{1,64}$/.test(v) ? v : "";
 }
 
-export function isSlot(value: unknown): number {
+/**
+ * Save-slot check: slots are 0, 1, 2, or 3. Slot 0 is the cheat-proof
+ * safety slot (it can never carry cheat_mode; see /api/cheats + /api/saves)
+ * and sorts first everywhere. Returns null when invalid (slot 0 is valid,
+ * so 0 cannot double as the invalid sentinel).
+ */
+export function isSlot(value: unknown): number | null {
+  // Number(null) and Number("") both coerce to 0, so a missing or empty slot
+  // would otherwise pass as the valid safety slot. Reject those outright.
+  if (value === null || value === undefined) return null;
+  if (typeof value === "string" && value.trim() === "") return null;
   const v = Number(value);
-  return Number.isInteger(v) && v >= 1 && v <= 3 ? v : 0;
+  return Number.isInteger(v) && v >= 0 && v <= 3 ? v : null;
 }
 
 export function isUuid(value: unknown): boolean {
