@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { Suspense } from "react";
+import { Analytics } from "@vercel/analytics/next";
 import { GoogleAnalytics } from "@/components/site/google-analytics";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
@@ -43,6 +44,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <GoogleAnalytics />
         </Suspense>
+        <Analytics />
       </body>
     </html>
   );

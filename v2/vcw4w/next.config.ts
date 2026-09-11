@@ -47,7 +47,9 @@ const nextConfig: NextConfig = {
       { source: "/games/html/platform-wars/", destination: "/games/platform-wars/play", permanent: true },
       { source: "/tech.html", destination: "/tech", permanent: true },
       { source: "/web-apps.html", destination: "/web-apps", permanent: true },
-      { source: "/spaceships.html", destination: "/spaceships", permanent: true },
+      // NOTE: /spaceships.html is the live WebGL embed framed by /spaceships
+      // (see components/spaceships/spaceship-runtime.tsx). Do NOT redirect it
+      // to /spaceships — that makes the page frame itself (infinite nesting).
       { source: "/spaceships/index.html", destination: "/spaceships", permanent: true },
       { source: "/pricing/index.html", destination: "/pricing", permanent: true },
       { source: "/academy/index.html", destination: "/academy", permanent: true },
