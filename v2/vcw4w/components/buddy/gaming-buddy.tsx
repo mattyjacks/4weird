@@ -161,25 +161,29 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       });
       setMessages((m) => [...m, { role: "buddy", text: r.reply, at: new Date().toLocaleTimeString() }]);
       // ACT: voice output in the selected voice.
-      try {
-        const t = await post<{ fallback: boolean; audio?: string; mime?: string }>("/api/buddy/tts", {
-          text: r.reply,
-          voice,
-          model,
-          speed,
-          game_slug: gameSlug,
-          session_id: sessionId,
-        });
-        if (!t.fallback && t.audio) {
-          const el = audioRef.current ?? new Audio();
-          el.src = `data:${t.mime ?? "audio/mpeg"};base64,${t.audio}`;
-          audioRef.current = el;
-          await el.play().catch(() => speakWithBrowser(r.reply, voice));
-        } else {
+      if (r.fallback) {
+        speakWithBrowser(r.reply, voice);
+      } else {
+        try {
+          const t = await post<{ fallback: boolean; audio?: string; mime?: string }>("/api/buddy/tts", {
+            text: r.reply,
+            voice,
+            model,
+            speed,
+            game_slug: gameSlug,
+            session_id: sessionId,
+          });
+          if (!t.fallback && t.audio) {
+            const el = audioRef.current ?? new Audio();
+            el.src = `data:${t.mime ?? "audio/mpeg"};base64,${t.audio}`;
+            audioRef.current = el;
+            await el.play().catch(() => speakWithBrowser(r.reply, voice));
+          } else {
+            speakWithBrowser(r.reply, voice);
+          }
+        } catch {
           speakWithBrowser(r.reply, voice);
         }
-      } catch {
-        speakWithBrowser(r.reply, voice);
       }
       setStatus(r.fallback ? "AI is unavailable — Buddy answered locally at no cost." : "Buddy answered and spoke.");
       void refreshSpend(sessionId);

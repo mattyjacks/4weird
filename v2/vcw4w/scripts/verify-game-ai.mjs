@@ -96,6 +96,9 @@ if (!buddyEngine.includes("Never claim you can see hidden game state")) {
 for (const token of ["TRUSTED_GAME_ORIGINS", "stopVoice", "!text.trim() || busy"]) {
   if (!widget.includes(token)) throw new Error(`Widget missing hardening: ${token}.`);
 }
+if (!widget.includes("if (r.fallback) {") || !widget.includes("} else {\n        try {\n          const t = await post")) {
+  throw new Error("Fallback Buddy replies must use browser speech without calling billable TTS.");
+}
 if (buddyEngine.includes("BuddyAct") || buddyEngine.includes("buddyConfigured")) {
   throw new Error("buddy-engine must not carry dead/unusable exports.");
 }
