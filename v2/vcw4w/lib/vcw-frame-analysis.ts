@@ -157,6 +157,102 @@ export function buildKeyPath(recent: InputTick[]): PathPoint[] {
   return pts.map(([x, y]) => [+((x / m)).toFixed(3), +((y / m / 2 + 0.5)).toFixed(3)]) as PathPoint[];
 }
 
+export type FovealRect = { x: number; y: number; w: number; h: number; label: string };
+
+/** Max detail crops per tick (matches the desktop worker's foveated vision). */
+export const MAX_FOVEAL_DETAILS = 3;
+/** Min crop edge in normalized 0-1000 units. */
+export const MIN_FOVEAL_SIZE = 80;
+
+function clampFovealSize(n: number): number {
+  const v = Math.round(Number(n));
+  if (!Number.isFinite(v)) return 400;
+  return Math.max(MIN_FOVEAL_SIZE, Math.min(1000, v));
+}
+
+/** Center square rect in normalized 0-1000 coords (500,500 = screen center). */
+export function fovealCenterRect(size: number, label = "center"): FovealRect {
+  const s = clampFovealSize(size);
+  const half = s / 2;
+  return sanitizeFovealRect({ x: 500 - half, y: 500 - half, w: s, h: s, label });
+}
+
+/** Clamp a raw rect into the 0-1000 frame (never throws, garbage → center). */
+export function sanitizeFovealRect(raw: unknown): FovealRect {
+  const r = (raw ?? {}) as Record<string, unknown>;
+  const label = String(r.label ?? "detail").slice(0, 40) || "detail";
+  let w = clampFovealSize(Number(r.w ?? r.width));
+  let h = clampFovealSize(Number(r.h ?? r.height));
+  let x = Number(r.x);
+  let y = Number(r.y);
+  if (!Number.isFinite(x)) x = 500 - w / 2;
+  if (!Number.isFinite(y)) y = 500 - h / 2;
+  x = Math.max(0, Math.min(1000 - w, Math.round(x)));
+  y = Math.max(0, Math.min(1000 - h, Math.round(y)));
+  return { x, y, w, h, label };
+}
+
+const FOVEAL_HIGH_HINTS =
+  /fps|shooter|3d|combat|enemy|enemies|boss|firing|fire at|muzzle|damage|hit points|low hp|health low|chase|attack|crosshair|xono|grave|hl2/i;
+const FOVEAL_LOW_HINTS =
+  /menu|loading|load screen|game over|paused|pause|dialog|inventory|settings|title screen|cutscene|cinematic/i;
+
+/**
+ * Default foveated crop plan for a tick: menus get overview-only (fastest),
+ * normal play gets one center crop, combat/FPS gets context + crosshair
+ * fovea. Mirrors the desktop worker's `defaultFocusRegions`.
+ */
+export function fovealCropPlan(
+  context: { status?: string; reasoning?: string; urgency?: string; genre?: string } = {},
+): FovealRect[] {
+  const { status = "", reasoning = "", urgency = "", genre = "" } = context;
+  const hay = `${status} ${reasoning} ${genre}`;
+  const urgent = String(urgency).toLowerCase() === "high";
+  if (FOVEAL_LOW_HINTS.test(hay) && !urgent) return [];
+  if (urgent || FOVEAL_HIGH_HINTS.test(hay)) {
+    return [
+      { ...fovealCenterRect(400), label: "center-context" },
+      { ...fovealCenterRect(220), label: "crosshair-fovea" },
+    ];
+  }
+  return [{ ...fovealCenterRect(450), label: "center" }];
+}
+
+/**
+ * Merge model-requested foveal rects over the defaults (explicit wins,
+ * capped at MAX_FOVEAL_DETAILS). Garbage → defaults.
+ */
+export function mergeFovealRequests(
+  requested: unknown,
+  context: { status?: string; reasoning?: string; urgency?: string; genre?: string } = {},
+  max: number = MAX_FOVEAL_DETAILS,
+): FovealRect[] {
+  const cap = Math.max(0, Math.min(MAX_FOVEAL_DETAILS, Math.round(Number(max) || 0)));
+  if (cap === 0) return [];
+  const list = Array.isArray(requested) ? requested : [];
+  const seen = new Set<string>();
+  const out: FovealRect[] = [];
+  const key = (r: FovealRect) =>
+    `${Math.round(r.x / 50) * 50},${Math.round(r.y / 50) * 50},${Math.round(r.w / 50) * 50},${Math.round(r.h / 50) * 50}`;
+  for (const item of list) {
+    if (!item || typeof item !== "object") continue;
+    const r = sanitizeFovealRect(item);
+    const k = key(r);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(r);
+    if (out.length >= cap) break;
+  }
+  for (const d of fovealCropPlan(context)) {
+    if (out.length >= cap) break;
+    const k = key(d);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(d);
+  }
+  return out.slice(0, cap);
+}
+
 export type FrameObservation = {
   second: number;
   xp: number | null;

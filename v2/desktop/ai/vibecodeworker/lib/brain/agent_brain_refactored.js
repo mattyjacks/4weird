@@ -59,8 +59,16 @@ class AgentBrain {
       modelName: '',
       gameRules: '',
       generalizedIntelligence: true,
-      alwaysSendMemory: false
+      alwaysSendMemory: false,
+      // Foveated vision option: 1 small overview + up to N tiny detail crops
+      // per tick (FPS-center fast path). ON by default; toggle in dashboard.
+      foveatedVision: true,
+      maxFoveaDetails: 3
     };
+    // Pending AI-requested detail rects for the NEXT tick (normalized
+    // 0-1000) + last frame's crop map for the prompt. Not persisted.
+    this._pendingFocus = [];
+    this._lastVisionMeta = null;
   }
 
   get stuckCounter() {
@@ -158,28 +166,37 @@ class AgentBrain {
     return saveReplay(this, replaysDir);
   }
 
-  async callLLM(prompt, base64Image = null, audioInput = null) {
-    return await callLLM(this, prompt, base64Image, audioInput);
+  async callLLM(prompt, base64Image = null, audioInput = null, extraImages = []) {
+    return await callLLM(this, prompt, base64Image, audioInput, extraImages);
   }
 
-  buildPrompt(consoleLogs, domSnapshot, isStuck, audioContext = null) {
-    return buildPrompt(this, consoleLogs, domSnapshot, isStuck, audioContext);
+  buildPrompt(consoleLogs, domSnapshot, isStuck, audioContext = null, visionContext = null) {
+    return buildPrompt(this, consoleLogs, domSnapshot, isStuck, audioContext, visionContext);
   }
 
   async runBraidSelfImprovementLoop(conversationText) {
     return await runBraidSelfImprovementLoop(this, conversationText);
   }
 
-  async chooseNextAction(screenshotBase64, domSnapshot, forceHeuristic = false, consoleLogs = []) {
+  async chooseNextAction(screenshotBase64, domSnapshot, forceHeuristic = false, consoleLogs = [], opts = {}) {
+    // opts: { extraImages?: string[], visionMeta?: {details}, audio?: any }
+    // Legacy shape tolerance: consoleLogs slot may carry the opts object.
+    if (consoleLogs && !Array.isArray(consoleLogs) && typeof consoleLogs === 'object' && !opts.extraImages) {
+      opts = consoleLogs;
+      consoleLogs = [];
+    }
+    const extraImages = Array.isArray(opts.extraImages) ? opts.extraImages.slice(0, 3)
+      : Array.isArray(opts.detailImages) ? opts.detailImages.slice(0, 3) : [];
+    if (opts.visionMeta) this._lastVisionMeta = opts.visionMeta;
     const isStuck = this.detectStuckState(screenshotBase64);
-    const prompt = this.buildPrompt(consoleLogs, domSnapshot, isStuck);
+    const prompt = this.buildPrompt(consoleLogs, domSnapshot, isStuck, opts.audio || null, opts.visionMeta || this._lastVisionMeta);
 
     let result;
     if (forceHeuristic) {
       result = this.runHeuristicFallback(consoleLogs, domSnapshot);
     } else {
       try {
-        result = await this.callLLM(prompt, screenshotBase64);
+        result = await this.callLLM(prompt, screenshotBase64, opts.audio || null, extraImages);
       } catch (e) {
         console.warn("LLM Call failed. Falling back to heuristic rules...", e);
         result = this.runHeuristicFallback(consoleLogs, domSnapshot);
@@ -277,11 +294,23 @@ class AgentBrain {
     recordDomDiscoveries(this, domSnapshot);
     recordTextBrainEpisode(this, episode, newBug);
     result.reasoning = result.reasoning || (result.reasoning_path ? result.reasoning_path.join(' -> ') : '');
+    // Foveated vision: remember the model's detail-crop request for the NEXT
+    // tick (FPS-center fast path). Heuristic fallback never requests crops.
+    try {
+      const { parseModelFocus } = require('./foveated_vision');
+      const max = Math.max(0, Math.min(3, Number(this.config.maxFoveaDetails) || 0));
+      this._pendingFocus = this.config.foveatedVision === false ? [] : parseModelFocus(result).slice(0, max);
+    } catch (_) { this._pendingFocus = []; }
+    result.focus = Array.isArray(this._pendingFocus) ? this._pendingFocus : [];
+    if (this.sessionStats) {
+      this.sessionStats.visionFrames = (this.sessionStats.visionFrames || 0) + 1;
+      this.sessionStats.detailImages = (this.sessionStats.detailImages || 0) + extraImages.length;
+    }
     return result;
   }
 
-  async processStep(screenshotBase64, consoleLogs, domSnapshot, bugsLogPath) {
-    const res = await this.chooseNextAction(screenshotBase64, domSnapshot, false, consoleLogs);
+  async processStep(screenshotBase64, consoleLogs, domSnapshot, bugsLogPath, opts = {}) {
+    const res = await this.chooseNextAction(screenshotBase64, domSnapshot, false, consoleLogs, opts);
     if (res.bug_report && res.bug_report.has_bug) {
       this.saveBugs(bugsLogPath);
     }
@@ -322,6 +351,8 @@ class AgentBrain {
     this.stuckRecoveryStage = 0;
     this.lastActionType = null;
     this.lastActionTarget = null;
+    this._pendingFocus = [];
+    this._lastVisionMeta = null;
     this._heuristicCursor = 0;
     this._lastHeuristicTarget = null;
     this.initSessionMemory();

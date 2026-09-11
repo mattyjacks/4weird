@@ -132,7 +132,7 @@ function normalizeComboStep(raw) {
   }
 }
 
-function buildNativeGamePrompt({ profile, recentActions = [], stuck = false, extraRules = '' } = {}) {
+function buildNativeGamePrompt({ profile, recentActions = [], stuck = false, extraRules = '', visionMeta = null } = {}) {
   const p = profile || resolveGameProfile('');
   const c = p.controls || {};
   const extra = c.extra ? Object.entries(c.extra).map(([k, v]) => `${k}=${v}`).join(', ') : '';
@@ -168,6 +168,15 @@ If the screen shows a name field (Welcome screen, "enter your player name",
 ## VISION NOTES
 ${p.visionHints || 'Aim center-screen, follow exits and markers, shoot visible enemies.'}
 Coordinates are 0-1000 normalized (500,500 = screen center, crosshair home).
+${(() => {
+  try {
+    if (!visionMeta || !Array.isArray(visionMeta.details) || !visionMeta.details.length) {
+      return 'FOVEATED VISION: image 1 is the full-screen overview. No detail crops this tick — request them via "focus" when aiming matters.';
+    }
+    const { describeFrameForPrompt } = require('../../lib/brain/foveated_vision');
+    return `FOVEATED VISION: image 1 is the small full-screen overview, followed by ${visionMeta.details.length} tiny high-detail crop(s). FRAME MAP: ${describeFrameForPrompt(visionMeta.details)}`;
+  } catch (_) { return ''; }
+})()}
 
 ## RECENT ACTIONS (do NOT repeat a failing move)
 ${history}
@@ -176,6 +185,7 @@ ${history}
 {
   "status": "menu | playing | combat | puzzle | loading | dead | stuck | unknown",
   "reasoning": "one short sentence: what you see and why this input",
+  "focus": "optional: up to 3 detail crops for the NEXT tick, e.g. [{\\"x\\":390,\\"y\\":390,\\"w\\":220,\\"h\\":220,\\"label\\":\\"crosshair\\"}] (0-1000, 500,500 = center). Ask for the crosshair zone when aiming matters; omit on menus to keep the tick fast.",
   "urgency": "low | normal | high",
   "action": {
     "type": "combo | hold_keys | press_key | click | right_click | double_click | move_mouse | drag_look | wheel | wait",
@@ -330,14 +340,16 @@ async function decideNativeActionViaDeepSeek(brain, {
   profile = null,
   recentActions = [],
   stuck = false,
-  extraRules = ''
-} = {}) {
+  extraRules = '',
+  extraImages = [],
+  visionMeta = null
+  } = {}) {
   if (!brain || typeof brain.callLLM !== 'function') {
     throw new Error('decideNativeActionViaDeepSeek requires a brain with callLLM().');
   }
   if (!screenshotBase64) throw new Error('Screenshot is required for vision play.');
   const resolved = profile || resolveGameProfile(windowTitle);
-  const prompt = buildNativeGamePrompt({ profile: resolved, recentActions, stuck, extraRules });
+  const prompt = buildNativeGamePrompt({ profile: resolved, recentActions, stuck, extraRules, visionMeta });
 
   // Force the vision-capable flash model for frames, keep text on cheap flash.
   const prevModel = brain.config ? brain.config.modelName : '';
@@ -349,10 +361,16 @@ async function decideNativeActionViaDeepSeek(brain, {
       // Only override auto/empty; respect an explicit operator choice.
       if (!saved || saved === 'deepseek-auto') brain.config.modelName = VISION_MODEL;
     }
-    const raw = await brain.callLLM(prompt, screenshotBase64);
+    const raw = await brain.callLLM(prompt, screenshotBase64, null, extraImages);
     const parsed = parseNativeDecision(raw);
     if (!parsed) throw new Error('Vision model returned unparseable JSON.');
     parsed.profile = resolved.id;
+    // Remember the model's detail-crop request for the next tick's capture.
+    try {
+      const { parseModelFocus } = require('../../lib/brain/foveated_vision');
+      parsed.focus = brain.config && brain.config.foveatedVision === false ? [] : parseModelFocus(raw);
+      if (brain) brain._pendingFocus = parsed.focus;
+    } catch (_) { parsed.focus = []; }
     return parsed;
   } finally {
     if (brain.config && saved !== null) brain.config.modelName = saved;

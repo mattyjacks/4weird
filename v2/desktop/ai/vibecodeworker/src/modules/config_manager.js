@@ -179,6 +179,7 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
 
   elements.gameRulesInput.value = settings.gameRules || 'Website audit: explore nav, scroll the full page, try key CTAs/forms, report real JS errors. Ignore cross-origin iframe and permissions-policy noise.';
   if (elements.generalizedIntelligence) elements.generalizedIntelligence.checked = settings.generalizedIntelligence !== false;
+  if (elements.foveatedVision) elements.foveatedVision.checked = settings.foveatedVision !== false;
   elements.gameUrlInput.value = settings.gameUrl || 'https://mattyjacks.com';
   audioModule.setAudioEnabled(settings.isAudioEnabled || false);
   document.getElementById('btn-toggle-audio').textContent = audioModule.getAudioEnabled() ? '🔊' : '🔇';
@@ -262,7 +263,9 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     endpointUrl: elements.localUrlInput.value || '',
     modelName: elements.modelNameInput.value || '',
     gameRules: elements.gameRulesInput.value || '',
-    generalizedIntelligence: elements.generalizedIntelligence ? elements.generalizedIntelligence.checked : true
+    generalizedIntelligence: elements.generalizedIntelligence ? elements.generalizedIntelligence.checked : true,
+    foveatedVision: elements.foveatedVision ? elements.foveatedVision.checked !== false : true,
+    maxFoveaDetails: 3
   });
   agentBrain.loadSessionMemory();
 
@@ -290,6 +293,7 @@ function saveConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     modelName: modelToSave,
     gameRules: elements.gameRulesInput.value,
     generalizedIntelligence: elements.generalizedIntelligence ? elements.generalizedIntelligence.checked : true,
+    foveatedVision: elements.foveatedVision ? elements.foveatedVision.checked !== false : true,
     gameUrl: elements.gameUrlInput.value,
     isAudioEnabled: audioModule.getAudioEnabled(),
     alwaysSendMemory: elements.toggleMemory ? elements.toggleMemory.checked : false,
@@ -357,6 +361,8 @@ function saveConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     modelName: settings.modelName,
     gameRules: settings.gameRules,
     generalizedIntelligence: settings.generalizedIntelligence !== false,
+    foveatedVision: settings.foveatedVision !== false,
+    maxFoveaDetails: 3,
     dataDir: dataDir
   });
 

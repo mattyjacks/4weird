@@ -208,6 +208,7 @@ function queryElements() {
   el.demoGameSelect = document.getElementById('demo-game-select');
   el.gameRulesInput = document.getElementById('game-rules');
   el.generalizedIntelligence = document.getElementById('generalized-intelligence');
+  el.foveatedVision = document.getElementById('foveated-vision');
   el.btnToggleAgent = document.getElementById('btn-toggle-agent');
   el.agentStateBadge = document.getElementById('agent-state-badge');
   el.fpsVal = document.getElementById('fps-val');
@@ -830,6 +831,13 @@ document.addEventListener('DOMContentLoaded', () => {
     agentBrain.config.alwaysSendMemory = el.toggleMemory.checked;
     saveConfigData();
     logSystemMessage(`Episodic memory mode: ${el.toggleMemory.checked ? 'ALWAYS SEND (higher token cost)' : 'STUCK-ONLY (token-saving)'}`);
+  });
+
+  if (el.foveatedVision) el.foveatedVision.addEventListener('change', () => {
+    agentBrain.config.foveatedVision = el.foveatedVision.checked;
+    agentBrain._pendingFocus = [];
+    saveConfigData();
+    logSystemMessage(`Foveated vision: ${el.foveatedVision.checked ? 'ON — 1 small overview + up to 3 tiny detail crops per tick (model steers crops via "focus"; FPS crosshair fast path)' : 'OFF — single overview frame per tick'}`);
   });
   
   el.btnCloseModal.addEventListener('click', () => el.bugModal.classList.add('hidden'));
@@ -1614,6 +1622,52 @@ async function captureViewportScreenshot() {
   return null;
 }
 
+/**
+ * Foveated vision capture for the agent loop: 1 small overview + up to 3
+ * tiny detail crops where the model wants more pixels (FPS crosshair fast
+ * path). The model steers next-tick crops via "focus" rects; genre/urgency
+ * defaults cover the first tick. Overview stays on the adaptive budget so
+ * the whole multi-image tick costs less than one big frame — faster
+ * decisions, faster follow-up inputs.
+ */
+async function captureVisionFrame() {
+  const enabled = !el.foveatedVision || el.foveatedVision.checked !== false;
+  const max = Math.max(0, Math.min(3, Number(agentBrain.config.maxFoveaDetails) || 3));
+  agentBrain.config.foveatedVision = enabled;
+  agentBrain.config.maxFoveaDetails = max;
+  if (!enabled || max === 0) {
+    const overview = await captureViewportScreenshot();
+    return { overview, details: [], meta: { source: 'fovea-off', requested: 0, details: [] } };
+  }
+  try {
+    const { mergeFocusRequests } = require('../lib/brain/foveated_vision');
+    const { screenshotBudget } = require('./runtime/adaptive_tick');
+    const { captureFoveatedFrame } = require('./runtime/viewport_screenshot');
+    const url = (el.gameUrlInput && el.gameUrlInput.value) || '';
+    const context = {
+      urgency: (lastTickHint && lastTickHint.urgency) || 'normal',
+      status: '',
+      reasoning: '',
+      genre: `${url} ${agentBrain.config.gameRules || ''}`,
+    };
+    const rects = mergeFocusRequests({ requested: agentBrain._pendingFocus || [], context, max });
+    const budget = screenshotBudget(context.urgency);
+    const frame = await captureFoveatedFrame(el.nativeProcessSelect, webviewElement, {
+      rects,
+      overviewWidth: budget.width,
+      overviewQuality: 50,
+      detailWidth: 256,
+      detailQuality: 60,
+    });
+    agentBrain._lastVisionMeta = frame.meta;
+    return frame;
+  } catch (e) {
+    console.warn('Foveated capture failed, falling back to overview', e);
+    const overview = await captureViewportScreenshot();
+    return { overview, details: [], meta: { source: 'fovea-fallback', requested: 0, details: [] } };
+  }
+}
+
 async function captureManualScreenshot() {
   const imgBase64 = await captureViewportScreenshot();
   if (imgBase64) {
@@ -2048,6 +2102,7 @@ async function executeAgentStep(forceHeuristic = false) {
     selectBugCard,
     bugsLogPath,
     captureViewportScreenshot,
+    captureVisionFrame,
     captureManualScreenshot,
     logSystemMessage,
     thinkingOutLoud,
