@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { DocsHero } from "@/components/docs/docs-hero";
 import { SectionHead, Callout, MockWindow, Pager } from "@/components/docs/docs-bits";

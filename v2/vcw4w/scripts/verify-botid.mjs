@@ -42,12 +42,15 @@ for (const token of ["export async function requireHuman", "checkBotId", "deepAn
 }
 
 // 4. Every enforced high-value mutation must call requireHuman.
+// NOTE: POST /api/games/session is intentionally NOT in this list:
+// signed-in bot/automation play is welcome and still meters + pays coins
+// (anti-cheat via the cheat_mode save invariant + rate limits). Anonymous
+// free-play abuse stays gated via guest-pass below.
 const enforced = [
   "../app/api/auth/signup/route.ts",
   "../app/api/auth/login/route.ts",
   "../app/api/family/kid-login/route.ts",
   "../app/api/games/guest-pass/route.ts",
-  "../app/api/games/session/route.ts",
   "../app/api/coins/daily/route.ts",
   "../app/api/coins/claim/route.ts",
   "../app/api/coins/checkout/route.ts",
@@ -91,6 +94,15 @@ for (const file of exempt) {
   const src = read(file);
   if (src.includes("requireHuman") || src.includes("botid/server") || src.includes("lib/botid")) {
     fail(`${file} must NOT call the BotID gate (server-to-server route).`);
+  }
+}
+
+// 6. Signed-in play metering must NEVER call the gate: AI/automation playing
+// through a real signed-in session is welcome and still pays coins.
+{
+  const src = read("../app/api/games/session/route.ts");
+  if (src.includes("requireHuman") || src.includes("lib/botid")) {
+    fail("app/api/games/session/route.ts must NOT call the BotID gate (signed-in AI play meters + pays).");
   }
 }
 

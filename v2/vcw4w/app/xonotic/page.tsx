@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { VcwAutoplay } from "@/components/games/vcw-autoplay";
 import { VCW_DESKTOP_PATH, XONOTIC_WEB_URL } from "@/lib/vcw-autoplay";

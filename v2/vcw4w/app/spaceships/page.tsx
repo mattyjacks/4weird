@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { SpaceshipRuntime } from "@/components/spaceships/spaceship-runtime";
 
 export const metadata: Metadata = {

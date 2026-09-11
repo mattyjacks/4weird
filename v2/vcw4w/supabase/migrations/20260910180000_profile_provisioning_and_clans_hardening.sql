@@ -1,4 +1,4 @@
-﻿-- ============================================================================
+-- ============================================================================
 -- Supabase migration 2026-10-9-B:
 -- Profile provisioning safety, bot identity backfill, clans public read grant,
 -- and moderation hardening.

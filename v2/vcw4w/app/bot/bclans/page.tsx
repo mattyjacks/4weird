@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { BclansConsole } from "./bclans-console";
 
 export const metadata: Metadata = {

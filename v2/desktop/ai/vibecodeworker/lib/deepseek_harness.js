@@ -1,4 +1,4 @@
-﻿/**
+/**
  * DeepSeek Harness (dsh) & Autonomous Self-Improvement Engine
  * Enables VibeCodeWorker to leverage the native DeepSeek framework and API
  * to diagnose itself, run targeted coding harness loops, and self-improve.

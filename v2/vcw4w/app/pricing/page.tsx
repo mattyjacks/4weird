@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { PackCatalog } from "@/components/coins/pack-catalog";
 import { jsonLdScript, pricingOffersJsonLd } from "@/lib/seo";

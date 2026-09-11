@@ -1,4 +1,4 @@
-﻿const path = require("path");
+const path = require("path");
 const fs = require("fs");
 const ROOT = path.join(__dirname, "..", "..", "..", "..");
 const SHOT = path.join(ROOT, "test-results", "screenshots");

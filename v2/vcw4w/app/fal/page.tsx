@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { FalStudio } from "@/components/fal/fal-studio";
 import { FAL_CUT_NOTE } from "@/lib/fal";
 

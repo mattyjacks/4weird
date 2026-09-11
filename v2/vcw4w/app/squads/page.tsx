@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { TeamWorkspace } from "@/components/teams/team-workspace";
 import { PartyHub } from "@/components/parties/party-hub";
 import { UNITUNITE_BLURB, UNITUNITE_NAME, UNITUNITE_TAGLINE } from "@/lib/unitunite";

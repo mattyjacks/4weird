@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Marketplace } from "@/components/agents/marketplace";
 import { MyCompute } from "@/components/agents/my-compute";

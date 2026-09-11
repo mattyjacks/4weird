@@ -1,4 +1,4 @@
-﻿-- ============================================================================
+-- ============================================================================
 -- Fractional Vibe Coin spending: Centicentcoins (0.01 coin = 0.01 cent = $0.0001)
 -- 100 centicentcoins = 1 Vibe Coin.
 -- Re-runnable: every statement uses IF EXISTS / OR REPLACE guards.

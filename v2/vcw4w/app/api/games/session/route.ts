@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
-import { requireHuman } from "@/lib/botid";
 import { rateLimit } from "@/lib/rate-limit";
 import { isSlug, isUuid } from "@/lib/validate";
 import { rpcStatus } from "@/lib/agent-market";
@@ -36,8 +35,11 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
-  const botBlock = await requireHuman(req, "POST /api/games/session");
-  if (botBlock) return botBlock;
+  // NOTE: no BotID gate here on purpose. Signed-in bot/automation traffic
+  // (AI playing through a real browser session) is welcome: it meters and
+  // pays coins exactly like human play. Anti-cheat stays enforced elsewhere
+  // (cheat_mode save invariant, server rate limits, leaderboard aggregates).
+  // Anonymous free-play abuse is still gated at /api/games/guest-pass.
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) {

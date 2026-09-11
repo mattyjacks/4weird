@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { BlenderStudio } from "@/components/blender/blender-studio";
 import { BLENDER_DEMO_FILES_URL, BLENDER_MAX_FRAMES, BLENDER_MAX_SCENE_BYTES } from "@/lib/blender-render";

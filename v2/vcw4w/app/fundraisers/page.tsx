@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { FundraiserBrowser } from "@/components/fundraisers/fundraiser-browser";
 import { CURRENCY_LEGEND, FUNDRAISERS_COMPLIANCE_NOTE, FUNDRAISERS_DISABLED_NOTICE } from "@/lib/support";

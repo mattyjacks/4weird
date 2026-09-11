@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { GamingBuddy } from "@/components/buddy/gaming-buddy";
 import { BUDDY_DEFAULT_VOICE, BUDDY_VOICES } from "@/lib/game-ai";

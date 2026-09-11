@@ -28,8 +28,13 @@ import { extractBotKey, resolveBotKey } from "@/lib/bot-auth";
  *   - VALID `bot4weird_` keys (resolved against the DB: revocation, expiry,
  *     budgets enforced) → exempt. A present-but-invalid key is NOT enough —
  *     it falls through to the BotID check and fails closed like any bot.
- *   - Webhook / pod-token callbacks (meshy/webhook, blender/progress) must
+ * - Webhook / pod-token callbacks (meshy/webhook, blender/progress) must
  *     NEVER call this helper at all — they authenticate by HMAC/job-token.
+ * - Signed-in play metering (POST /api/games/session) must NEVER call this
+ *   helper either — AI/automation playing through a real signed-in session
+ *   is welcome and still pays coins; anti-cheat stays via the cheat_mode
+ *   save invariant + rate limits. Anonymous free-play abuse stays gated at
+ *   POST /api/games/guest-pass.
  *
  * SERVER-ONLY: imports the bot-auth chain (service-role). Never import from a
  * client component. Route handlers only.

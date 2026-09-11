@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Stuck State Detector and Escalation Policy
  */
 

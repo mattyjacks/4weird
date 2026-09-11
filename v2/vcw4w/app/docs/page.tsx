@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { DOCS_DATA } from "@/components/docs/docs-data";
 import { DocsHero } from "@/components/docs/docs-hero";
