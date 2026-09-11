@@ -1,0 +1,44 @@
+# Root gitignore — repo-wide build/runtime junk
+# Deps
+node_modules/
+# Build outputs
+dist/
+dist-current/
+build/
+target/
+src-tauri/target/
+src-tauri/gen/
+# Runtime data / captures (large, machine-generated)
+data/
+# Electron / app user-data dirs
+.vibecodeworker-user-data/
+*-user-data/
+# Test / local app state
+.test-appdata/
+# Python
+__pycache__/
+*.pyc
+*.pyo
+# Local env / secrets (keep .env.example tracked)
+.env
+.env.local
+*.enc
+credentials.enc
+# Logs
+*.log
+# SQLite / local DBs
+*.db
+*.db-journal
+*.wal
+*.sqlite
+*.sqlite3
+# OS
+.DS_Store
+Thumbs.db
+# Backup / temp
+*.bak
+*.orig
+*.old
+# Editor
+.vscode/
+.idea/

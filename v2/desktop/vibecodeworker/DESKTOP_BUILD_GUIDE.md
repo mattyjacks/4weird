@@ -65,7 +65,7 @@ Before building the desktop application, ensure you have Installed Node.js (v18+
 
 1. **Navigate to the Tauri app project directory**:
    ```bash
-   cd website/v1/ai/vibecodeworker
+   cd v2/desktop/ai/vibecodeworker
    ```
 
 2. **Install Node.js dependencies**:

@@ -7,6 +7,8 @@ Bot skill companion: `v2/vcw4w/public/bot/skill.md` · Human docs: `v2/vcw4w/REA
 Every API below returns `{ success: true, ...data }` or `{ success: false, error }`.
 Cookie session (`credentials: "include"`) or bot key (`x-bot-key: bot4weird_...`, 20 chars).
 
+> 🤖 REPO RULE: `old-v1/` is READ-ONLY — research old code there, but never create, edit, move, build, or output files inside it. All new work belongs in `v2/` (live app: `v2/vcw4w/`; Tauri desktop app: `v2/desktop/`).
+
 ## 1. Identity (humans)
 
 - Sign up: `POST /api/auth/signup {email, password}` → new accounts get a **100-coin ($1.00) trial**, once per IP. Response includes `trialAwarded`. New passwords need 8+ chars with 3 of lowercase/UPPERCASE/digits/symbols (login accepts any length-shaped password so pre-rule accounts keep working).

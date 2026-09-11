@@ -1,0 +1,37 @@
+# VibeCodeWorker Submodule Gitignore
+node_modules/
+target/
+src-tauri/target/
+src-tauri/gen/
+dist/
+dist-current/
+build/
+*.log
+.env
+.env.local
+.DS_Store
+Thumbs.db
+# Runtime data / captures (large, machine-generated)
+data/
+# Electron / app user-data dirs
+.vibecodeworker-user-data/
+*-user-data/
+# Test / local app state
+.test-appdata/
+# Python
+__pycache__/
+*.pyc
+*.pyo
+# Secrets (keep .env.example tracked)
+*.enc
+credentials.enc
+# Local DBs
+*.db
+*.db-journal
+*.wal
+*.sqlite
+*.sqlite3
+# Backup / temp
+*.bak
+*.orig
+*.old

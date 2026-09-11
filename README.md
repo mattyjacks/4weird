@@ -40,5 +40,8 @@ npm run build
 ## Layout
 
 - **`v2/vcw4w/`** — the entire live app (routes, APIs, components, economy, migrations)
+- **`v2/desktop/`** — the actively-developed Tauri desktop app (`ai/vibecodeworker` project + `vibecodeworker` web frontend). Build with `npm run tauri:build:win` from `v2/desktop/ai/vibecodeworker`
 - **`old-v1/`** — retired archive (legacy static site, standalone auth-app, old docs). Not deployed, reference only
 - **`skill.md`** — agent operating manual · **`supabase-migration-2026-10-9-A*`** — database runbook + bundle
+
+> 🤖 AGENTS: `old-v1/` is READ-ONLY. Research old code there, but never create, edit, move, build, or output files inside it — all new work belongs in `v2/`. (The desktop app used to live under `old-v1/website/v1/` and has moved to `v2/desktop/`; do not move anything back.)

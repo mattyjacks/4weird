@@ -2,9 +2,13 @@ import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 
-const root = join(process.cwd(), "..", "..", "old-v1", "website", "v1");
+const oldRoot = join(process.cwd(), "..", "..", "old-v1", "website", "v1");
+const desktopRoot = join(process.cwd(), "..", "desktop");
 const target = join(process.cwd(), "public");
-const pairs = [["vcw", "vcw"], ["vibecodeworker", "vibecodeworker-legacy"]];
+// The archived v1 site stays byte-identical in public/: vcw still lives in
+// old-v1 (research-only archive), while the actively-developed desktop
+// frontend lives at v2/desktop/vibecodeworker — never put new work in old-v1.
+const pairs = [[join(oldRoot, "vcw"), "vcw"], [join(desktopRoot, "vibecodeworker"), "vibecodeworker-legacy"]];
 async function list(dir, base = dir) {
   const out = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {
@@ -16,8 +20,7 @@ async function list(dir, base = dir) {
 }
 async function hash(path) { return createHash("sha256").update(await readFile(path)).digest("hex"); }
 const errors = [];
-for (const [sourceName, targetName] of pairs) {
-  const sourceDir = join(root, sourceName);
+for (const [sourceDir, targetName] of pairs) {
   const targetDir = join(target, targetName);
   for (const relative of await list(sourceDir)) {
     const source = join(sourceDir, relative);
