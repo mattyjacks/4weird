@@ -140,8 +140,16 @@ export function NewGamePlusBuilder() {
       );
     } catch (e) {
       setStageKey("");
-      pushLive(`❌ ${e instanceof Error ? e.message : "Build failed."}`);
-      setStatus(e instanceof Error ? e.message : "Build failed.");
+      // A 403 here is the automated-traffic check (BotID), not a broken GUI:
+      // route real users to the bypass (sign in) instead of a dead end.
+      const errStatus = e instanceof Error ? (e as { status?: number }).status : undefined;
+      const raw = e instanceof Error ? e.message : "Build failed.";
+      const msg =
+        errStatus === 403
+          ? `${raw} — signed-in builders bypass this check: log in, then launch again.`
+          : raw;
+      pushLive(`❌ ${msg}`);
+      setStatus(msg);
     } finally {
       setBusy(false);
       if (timerRef.current) {

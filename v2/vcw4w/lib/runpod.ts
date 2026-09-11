@@ -38,7 +38,17 @@ export function runpodConfigured(): boolean {
   return Boolean((process.env.RUNPOD_API_KEY ?? "").trim());
 }
 
-export type RunpodBillingKind = "pods" | "endpoints" | "networkvolumes";
+/**
+ * Billing kinds, exactly matching the RunPod v2 REST contract
+ * (https://api.runpod.io/v2/openapi.json):
+ * - GET /v2/billing/pods            → pod rows ({ podId })
+ * - GET /v2/billing/serverless      → serverless rows ({ serverlessId })
+ * - GET /v2/billing/network-volumes → volume rows ({ networkVolumeId })
+ * The old client sent `billing/endpoints` (the public-endpoint lane, wrong
+ * semantic) and `billing/networkvolumes` (missing hyphen → HTTP 404), so
+ * runpod-sync always 502d and the usage mirror stayed empty.
+ */
+export type RunpodBillingKind = "pods" | "serverless" | "network-volumes";
 
 export type RunpodBillingRow = {
   kind: "pod" | "serverless" | "volume";
@@ -52,24 +62,40 @@ export type RunpodFetchResult =
   | { ok: true; rows: RunpodBillingRow[] }
   | { ok: false; error: string };
 
-const KIND_PATH: Record<RunpodBillingKind, "pod" | "serverless" | "volume"> = {
+const KIND_PATH: Record<RunpodBillingKind, string> = {
+  pods: "pods",
+  serverless: "serverless",
+  "network-volumes": "network-volumes",
+};
+
+const KIND_ROW: Record<RunpodBillingKind, "pod" | "serverless" | "volume"> = {
   pods: "pod",
-  endpoints: "serverless",
-  networkvolumes: "volume",
+  serverless: "serverless",
+  "network-volumes": "volume",
 };
 
 function toRow(kind: RunpodBillingKind, r: Record<string, unknown>): RunpodBillingRow | null {
-  const amount = Number(r.amount);
-  const time = String(r.time ?? "");
-  if (!Number.isFinite(amount) || amount < 0 || !time) return null;
-  const ms = Number(r.timeBilledMs ?? 0);
+  // Real v2 record: { startTime, endTime, totalAmount, podId|serverlessId|
+  // networkVolumeId } (+ cost-component splits). Tolerant fallbacks
+  // (amount/time/…) kept so older payloads still parse instead of vanishing.
+  const amount = Number(r.totalAmount ?? r.amount);
+  const start = String(r.startTime ?? r.time ?? "");
+  const end = String(r.endTime ?? "");
+  if (!Number.isFinite(amount) || amount < 0 || !start) return null;
   const remoteId = String(
-    r.podId ?? r.endpointId ?? r.networkVolumeId ?? r.gpuTypeId ?? "",
+    r.podId ?? r.serverlessId ?? r.networkVolumeId ?? r.endpointId ?? r.gpuTypeId ?? "",
   ).slice(0, 128);
-  const t = new Date(time);
+  const t = new Date(start);
   if (Number.isNaN(t.getTime())) return null;
+  // Billing records carry no billed-duration field: mirror the bucket window
+  // ([startTime, endTime)) so time_billed_ms stays meaningful downstream.
+  let ms = Number(r.timeBilledMs ?? 0);
+  if (!(Number.isFinite(ms) && ms > 0) && end) {
+    const window = new Date(end).getTime() - t.getTime();
+    ms = Number.isFinite(window) && window > 0 ? Math.floor(window) : 0;
+  }
   return {
-    kind: KIND_PATH[kind],
+    kind: KIND_ROW[kind],
     remoteId,
     timeBucket: t.toISOString(),
     amountUsd: Math.round(amount * 10000) / 10000,

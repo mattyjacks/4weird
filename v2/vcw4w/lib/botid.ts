@@ -85,8 +85,18 @@ export async function isTrustedMachine(req: Request): Promise<boolean> {
 const noStore = { "Cache-Control": "private, no-store" };
 
 function blocked(): NextResponse {
+  // Anonymous callers fail closed here (indistinguishable from farm bots), but
+  // the message must route real GUI users to the fix: signing in bypasses this
+  // check on paid routes (allowAuthenticated), and a transient flag often
+  // clears on retry. Never expose the BotID verdict details (probes learn).
   return NextResponse.json(
-    { success: false, error: "Bot traffic blocked. Please try again from a real browser." },
+    {
+      success: false,
+      error:
+        "Automated-traffic check flagged this request. If you are a person: sign in and try again (signed-in builders bypass this check), or wait a moment and retry.",
+      code: "bot_check",
+      retryable: true,
+    },
     { status: 403, headers: noStore },
   );
 }
@@ -99,7 +109,11 @@ function blocked(): NextResponse {
  */
 async function isAuthenticatedUser(): Promise<boolean> {
   try {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return false;
+    // Shared resolvers (legacy SUPABASE_URL / SUPABASE_ANON_KEY fallbacks
+    // included): the bypass must work under either env naming, or flagged
+    // signed-in users 403 on paid work they should reach.
+    const { supabaseUrl } = await import("@/lib/supabase/service");
+    if (!supabaseUrl()) return false;
     const { createClient } = await import("@/lib/supabase/server");
     const supabase = await createClient();
     const { data } = await supabase.auth.getUser();

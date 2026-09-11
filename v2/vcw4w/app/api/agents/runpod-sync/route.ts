@@ -30,7 +30,8 @@ export async function POST(req: Request) {
   }
   const end = new Date();
   const start = new Date(end.getTime() - days * 24 * 3_600_000);
-  const kinds: RunpodBillingKind[] = ["pods", "endpoints", "networkvolumes"];
+  // v2 REST paths: billing/pods + billing/serverless + billing/network-volumes.
+  const kinds: RunpodBillingKind[] = ["pods", "serverless", "network-volumes"];
   const all = await Promise.all(
     kinds.map((k) =>
       fetchRunpodBilling(k, {

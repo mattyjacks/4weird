@@ -4,6 +4,7 @@ import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
 import { rateLimit } from "@/lib/rate-limit";
+import { clientIp } from "@/lib/validate";
 import { rpcStatus } from "@/lib/agent-market";
 import {
   BUDGET_CONFIRM_THRESHOLD,
@@ -114,6 +115,25 @@ export async function POST(req: Request) {
     note: "Played locally below ;; sign in to save drafts.",
   };
 
+  // Anonymous callers were throttled ONLY by BotID: a passed check meant
+  // unlimited builds. Per-IP ceiling keeps the GUI usable for flagged humans
+  // (via sign-in bypass above) without opening a free-build floodgate.
+  if (!hasServerSupabase()) {
+    // No persistence configured: local build below, nothing to throttle.
+  } else {
+    try {
+      const probe = await createClient();
+      const { data: probeData } = await probe.auth.getUser();
+      if (!probeData.user) {
+        const rl = rateLimit(`newgameplus:build:anon:${clientIp(req)}`, 10, 60_000);
+        if (!rl.allowed) return fail("Rate limited. Sign in for a higher build allowance.", 429);
+      }
+    } catch {
+      const rl = rateLimit(`newgameplus:build:anon:${clientIp(req)}`, 10, 60_000);
+      if (!rl.allowed) return fail("Rate limited. Sign in for a higher build allowance.", 429);
+    }
+  }
+
   if (hasServerSupabase()) {
     try {
       const supabase = await createClient();
@@ -132,16 +152,32 @@ export async function POST(req: Request) {
           })
           .select("id")
           .single();
-        if (subError) return dbFail("newgameplus/build draft", subError, "Unable to save the draft.");
-        draft = {
-          scope: "personal",
-          submission_id: submission.id,
-          project_id: null,
-          draft_path: draftPath,
-          note: "Saved to your personal drafts.",
-        };
+        // Honest degradation (the route promises a playable artifact): a
+        // failed draft save must never 500 the whole build. The game below
+        // is complete and downloadable; only the saved copy is missing.
+        if (subError) {
+          console.error("[newgameplus/build draft]", subError.code ?? subError.message);
+          draft = {
+            scope: "local",
+            submission_id: null,
+            project_id: null,
+            draft_path: draftPath,
+            note: "Built below, but the draft could not be saved (download the .html to keep it).",
+          };
+        } else {
+          draft = {
+            scope: "personal",
+            submission_id: submission.id,
+            project_id: null,
+            draft_path: draftPath,
+            note: "Saved to your personal drafts.",
+          };
+        }
 
-        if (orgId) {
+        // Org push needs the saved personal draft row; when the draft save
+        // degraded above there is nothing to link, so skip (the local game
+        // below is still complete).
+        if (orgId && draft.submission_id) {
           const { data: org } = await supabase.from("orgs").select("id,slug").eq("id", orgId).maybeSingle();
           if (!org) {
             draft.note = "Saved to personal drafts ;; org not found or not a member.";

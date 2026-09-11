@@ -110,20 +110,40 @@ export function RunpodDashboard() {
   const [msg, setMsg] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
+    // Per-source settle: one failing lane (desktops, rentals, or renders)
+    // must never pin the whole dashboard on "Loading your RunPods…" forever.
+    // Each lane resolves independently; failures show inline with a retry.
     setError("");
-    try {
-      const [d, m, j] = await Promise.all([
-        api("/api/desktop/mine"),
-        api("/api/agents/bookings/mine"),
-        api("/api/blender/jobs"),
-      ]);
-      setDesktops((d.desktops as Desktop[]) ?? []);
-      setRentals(((m.rentals as Booking[]) ?? []).filter((b) => b.pod_id || b.endpoint_url));
-      setJobs(((j.jobs as RenderJob[]) ?? []).filter((job) => job.podId));
-    } catch (e) {
-      const message = e instanceof Error ? e.message : "Failed to load.";
-      if (/authentication required|login/i.test(message)) setNeedsLogin(true);
-      else setError(message);
+    const [d, m, j] = await Promise.allSettled([
+      api("/api/desktop/mine"),
+      api("/api/agents/bookings/mine"),
+      api("/api/blender/jobs"),
+    ]);
+    const reasonOf = (r: PromiseRejectedResult) =>
+      r.reason instanceof Error ? r.reason.message : "Failed to load.";
+    const problems: string[] = [];
+    if (d.status === "fulfilled") {
+      setDesktops(((d.value.desktops as Desktop[]) ?? []));
+    } else {
+      setDesktops([]);
+      problems.push(`desktops (${reasonOf(d)})`);
+    }
+    if (m.status === "fulfilled") {
+      setRentals((((m.value.rentals as Booking[]) ?? []).filter((b) => b.pod_id || b.endpoint_url)));
+    } else {
+      setRentals([]);
+      problems.push(`rentals (${reasonOf(m)})`);
+    }
+    if (j.status === "fulfilled") {
+      setJobs((((j.value.jobs as RenderJob[]) ?? []).filter((job) => job.podId)));
+    } else {
+      setJobs([]);
+      problems.push(`renders (${reasonOf(j)})`);
+    }
+    if (problems.length > 0) {
+      const joined = problems.join("; ");
+      if (/authentication required|login/i.test(joined)) setNeedsLogin(true);
+      else setError(`Some sections failed to load: ${joined}`);
     }
   }, []);
 
