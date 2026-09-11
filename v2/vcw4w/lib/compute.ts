@@ -14,6 +14,8 @@
 
 import { RUNPOD_AUTO_ENDPOINT } from "@/lib/agent-market";
 import type { DesktopKind } from "@/lib/desktop";
+import { DESKTOP_IMAGE_GUI, DESKTOP_PORTS_GUI } from "@/lib/desktop";
+import type { DesktopInterface } from "@/lib/desktop";
 import {
   RUNPOD_API_BASE_DEFAULT,
   runpodApiBase,
@@ -202,6 +204,16 @@ async function createRunpodPod(opts: {
   /** Start-command override (RunPod runs it instead of the image default). */
   args?: string;
   diskGb?: number;
+  /**
+   * Start JupyterLab on 8888 (official images honor this: the provisioner
+   * injects JUPYTER_PASSWORD and starts the server). Required for the
+   * https://<podId>-8888.proxy.runpod.net URL to answer instead of showing
+   * "Waiting for service to respond". Leave false for workers with a custom
+   * `args` bootstrap that serves the port themselves (e.g. Blender).
+   */
+  startJupyter?: boolean;
+  /** Provision SSH access (injects PUBLIC_KEY from the account's keys). */
+  startSsh?: boolean;
 }): Promise<{ ok: true; podId: string } | { ok: false; error: string }> {
   const key = (process.env.RUNPOD_API_KEY ?? "").trim();
   if (!key) return { ok: false, error: "RUNPOD_API_KEY is not set." };
@@ -225,6 +237,10 @@ async function createRunpodPod(opts: {
         env: opts.env,
         ...(opts.args ? { args: opts.args } : {}),
         disk: opts.diskGb ?? 20,
+        // Interactive pods (agents, CPU desktops, autoplay) serve Jupyter on
+        // 8888 — without this the proxy URL shows "Waiting for service".
+        ...(opts.startJupyter ? { startJupyter: true } : {}),
+        ...(opts.startSsh ? { startSsh: true } : {}),
       }),
     });
     if (!res.ok) {
@@ -280,17 +296,29 @@ export async function getPodLive(
 }
 
 /**
- * Stop a pod (releases GPU/CPU compute, keeps disk). A 409 "wrong state" is
- * reported as failure with its message so callers can mark the job stopped
- * anyway when the pod is already EXITED/TERMINATED.
+ * Lifecycle action on a pod. Only the user who created the pod (the booking
+ * renter, the blender job owner, or the desktop owner recorded in Supabase)
+ * may call this — every API route enforces that ownership check before
+ * reaching here. Valid actions: stop (releases GPU/CPU, keeps disk),
+ * start (boots an EXITED/ERROR pod), restart (in-place container restart),
+ * terminate (permanently deletes the pod, disk lost).
+ *
+ * A 409 "wrong state" is reported as failure with its message so callers can
+ * mark the job stopped anyway when the pod is already EXITED/TERMINATED.
  */
-export async function stopPodAction(
+export type PodLifecycleAction = "stop" | "start" | "restart" | "terminate";
+
+export async function podAction(
   podId: string,
+  action: PodLifecycleAction,
 ): Promise<{ ok: true; status: string } | { ok: false; error: string }> {
   const key = (process.env.RUNPOD_API_KEY ?? "").trim();
   if (!key) return { ok: false, error: "RUNPOD_API_KEY is not set." };
   const id = String(podId ?? "").trim();
   if (!id) return { ok: false, error: "Missing pod id." };
+  if (action !== "stop" && action !== "start" && action !== "restart" && action !== "terminate") {
+    return { ok: false, error: "Invalid pod action. Use stop, start, restart, or terminate." };
+  }
   const base = (process.env.RUNPOD_API_BASE ?? "").trim().replace(/\/+$/, "") || RUNPOD_API_BASE_DEFAULT;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 20_000);
@@ -303,13 +331,17 @@ export async function stopPodAction(
         Accept: "application/json",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ action: "stop" }),
+      body: JSON.stringify({ action }),
     });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      return { ok: false, error: `RunPod pod stop HTTP ${res.status}: ${text.slice(0, 160)}` };
+      return { ok: false, error: `RunPod pod ${action} HTTP ${res.status}: ${text.slice(0, 160)}` };
     }
-    const data = (await res.json()) as { status?: unknown; pod?: { status?: unknown } };
+    // Terminate returns 204 with no body — no pod status to report.
+    if (res.status === 204) return { ok: true, status: "TERMINATED" };
+    const text = await res.text().catch(() => "");
+    if (!text) return { ok: true, status: "UNKNOWN" };
+    const data = JSON.parse(text) as { status?: unknown; pod?: { status?: unknown } };
     return { ok: true, status: String(data.status ?? data.pod?.status ?? "UNKNOWN") };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "fetch failed";
@@ -317,6 +349,106 @@ export async function stopPodAction(
   } finally {
     clearTimeout(timer);
   }
+}
+
+/**
+ * Permanently delete a pod (DELETE /pods/:id). Equivalent to the terminate
+ * action for callers that prefer REST delete semantics. Only the pod's
+ * creator may call this — enforced by the API route's ownership check.
+ */
+export async function deleteRunpodPod(
+  podId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const key = (process.env.RUNPOD_API_KEY ?? "").trim();
+  if (!key) return { ok: false, error: "RUNPOD_API_KEY is not set." };
+  const id = String(podId ?? "").trim();
+  if (!id) return { ok: false, error: "Missing pod id." };
+  const base = (process.env.RUNPOD_API_BASE ?? "").trim().replace(/\/+$/, "") || RUNPOD_API_BASE_DEFAULT;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 20_000);
+  try {
+    const res = await fetch(`${base}/pods/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      signal: controller.signal,
+      headers: { Authorization: `Bearer ${key}`, Accept: "application/json" },
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      return { ok: false, error: `RunPod pod delete HTTP ${res.status}: ${text.slice(0, 160)}` };
+    }
+    return { ok: true };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "fetch failed";
+    return { ok: false, error: `RunPod request failed: ${msg.slice(0, 140)}` };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+export function isPodLifecycleAction(value: unknown): value is PodLifecycleAction {
+  return value === "stop" || value === "start" || value === "restart" || value === "terminate" || value === "delete";
+}
+
+/**
+ * Stop a pod (releases GPU/CPU compute, keeps disk). A 409 "wrong state" is
+ * reported as failure with its message so callers can mark the job stopped
+ * anyway when the pod is already EXITED/TERMINATED.
+ */
+export async function stopPodAction(
+  podId: string,
+): Promise<{ ok: true; status: string } | { ok: false; error: string }> {
+  return podAction(podId, "stop");
+}
+
+/**
+ * Start a stopped pod (EXITED/ERROR back toward RUNNING). Creator-only —
+ * enforced by the calling API route's ownership check.
+ */
+export async function startPodAction(
+  podId: string,
+): Promise<{ ok: true; status: string } | { ok: false; error: string }> {
+  return podAction(podId, "start");
+}
+
+/**
+ * Restart a RUNNING pod's container in place. Creator-only — enforced by
+ * the calling API route's ownership check.
+ */
+export async function restartPodAction(
+  podId: string,
+): Promise<{ ok: true; status: string } | { ok: false; error: string }> {
+  return podAction(podId, "restart");
+}
+
+/**
+ * Terminate a pod permanently (container disk lost). Creator-only —
+ * enforced by the calling API route's ownership check.
+ */
+export async function terminatePodAction(
+  podId: string,
+): Promise<{ ok: true; status: string } | { ok: false; error: string }> {
+  return podAction(podId, "terminate");
+}
+
+/**
+ * Run one creator-requested lifecycle action on a pod. `delete` maps to the
+ * REST DELETE (same effect as `terminate`); everything else maps to the pod
+ * action endpoint. Every caller must verify the requester created the pod
+ * (booking renter / listing owner, blender job owner, desktop owner) BEFORE
+ * calling this — this helper performs no auth.
+ */
+export async function runPodLifecycle(
+  podId: string,
+  action: string,
+): Promise<{ ok: true; status: string } | { ok: false; error: string }> {
+  if (action === "delete") {
+    const deleted = await deleteRunpodPod(podId);
+    return deleted.ok ? { ok: true, status: "TERMINATED" } : deleted;
+  }
+  if (action !== "stop" && action !== "start" && action !== "restart" && action !== "terminate") {
+    return { ok: false, error: "Invalid action. Use stop, start, restart, terminate, or delete." };
+  }
+  return podAction(podId, action);
 }
 
 export const runpodProvider: ComputeProvider = {
@@ -354,6 +486,10 @@ export const runpodProvider: ComputeProvider = {
       gpuId: pick.id,
       ports: workload.ports,
       env: workload.env,
+      // Jupyter on 8888 so the proxy URL answers (official images start it
+      // from this flag); SSH so the renter can reach the box directly.
+      startJupyter: true,
+      startSsh: true,
     });
     if (!created.ok) return { error: "provision_failed", message: created.error };
     return {
@@ -564,6 +700,10 @@ async function createRunpodCpuPod(opts: {
   ports: string[];
   env: Record<string, string>;
   diskGb?: number;
+  /** Start JupyterLab on 8888 so the proxy URL answers (see createRunpodPod). */
+  startJupyter?: boolean;
+  /** Provision SSH access (injects PUBLIC_KEY from the account's keys). */
+  startSsh?: boolean;
 }): Promise<{ ok: true; podId: string } | { ok: false; error: string }> {
   const key = (process.env.RUNPOD_API_KEY ?? "").trim();
   if (!key) return { ok: false, error: "RUNPOD_API_KEY is not set." };
@@ -586,6 +726,8 @@ async function createRunpodCpuPod(opts: {
         ports: opts.ports,
         env: opts.env,
         disk: opts.diskGb ?? 10,
+        ...(opts.startJupyter ? { startJupyter: true } : {}),
+        ...(opts.startSsh ? { startSsh: true } : {}),
       }),
     });
     if (!res.ok) {
@@ -689,6 +831,8 @@ export async function provisionAutoplayWorker(opts: {
         vcpuCount: AUTOPLAY_CPU_VCPU,
         ports: workload.ports,
         env: workload.env,
+        startJupyter: true,
+        startSsh: true,
       });
       if (!created.ok) return { error: "provision_failed", message: created.error };
       const hourlyUsd = autoplayCpuHourly(fitting);
@@ -710,6 +854,8 @@ export async function provisionAutoplayWorker(opts: {
       vcpuCount: AUTOPLAY_CPU_VCPU,
       ports: workload.ports,
       env: workload.env,
+      startJupyter: true,
+      startSsh: true,
     });
     if (!created.ok) return { error: "provision_failed", message: created.error };
     const hourlyUsd = autoplayCpuHourly(best);
@@ -741,6 +887,8 @@ export async function provisionAutoplayWorker(opts: {
       gpuId: best.id,
       ports: workload.ports,
       env: workload.env,
+      startJupyter: true,
+      startSsh: true,
     });
     if (!created.ok) return { error: "provision_failed", message: created.error };
     return {
@@ -770,6 +918,8 @@ export async function provisionAutoplayWorker(opts: {
     gpuId: pick.id,
     ports: workload.ports,
     env: workload.env,
+    startJupyter: true,
+    startSsh: true,
   });
   if (!created.ok) return { error: "provision_failed", message: created.error };
   return {
@@ -843,6 +993,7 @@ export async function provisionBlenderWorker(opts: {
 
 export type DesktopWorkload = {
   kind: "cpu" | "gpu";
+  iface: DesktopInterface;
   image: string;
   ports: string[];
   env: Record<string, string>;
@@ -852,28 +1003,47 @@ export type DesktopWorkload = {
 
 /**
  * Image + ports + env for a Virtual Desktop pod. Pure + unit-testable.
- * GPU uses the official RunPod Desktop (Kasm) template image on 6901;
- * CPU uses the official Ubuntu 22.04 base on 8888 (JupyterLab + SSH).
+ * Default (`gui`): Ubuntu graphical desktop (Kasm) on 6901 for BOTH kinds —
+ * GPU streams with hardware acceleration, CPU runs the same desktop with
+ * software rendering. `jupyter`: JupyterLab + SSH on 8888 (official Ubuntu
+ * 22.04 base for CPU, PyTorch CUDA base for GPU).
  */
-export function desktopWorkloadFor(kind: DesktopKind): DesktopWorkload {
-  if (kind === "gpu") {
+export function desktopWorkloadFor(kind: DesktopKind, iface: DesktopInterface = "gui"): DesktopWorkload {
+  const face: DesktopInterface = iface === "jupyter" ? "jupyter" : "gui";
+  if (face === "jupyter") {
+    if (kind === "gpu") {
+      return {
+        kind: "gpu",
+        iface: "jupyter",
+        image: "runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04",
+        ports: ["8888/http", "22/tcp"],
+        env: { DESKTOP_MODE: "gpu-jupyter" },
+        port: 8888,
+        diskGb: 60,
+      };
+    }
+    if (kind === "cpu") {
+      return {
+        kind: "cpu",
+        iface: "jupyter",
+        image: "runpod/base:1.0.2-ubuntu2204",
+        ports: ["8888/http", "22/tcp"],
+        env: { DESKTOP_MODE: "ubuntu-jupyter" },
+        port: 8888,
+        diskGb: 20,
+      };
+    }
+    throw new Error("Invalid desktop kind.");
+  }
+  if (kind === "gpu" || kind === "cpu") {
     return {
-      kind: "gpu",
-      image: "runpod/kasm-docker:cuda11",
-      ports: ["6901/http"],
+      kind,
+      iface: "gui",
+      image: DESKTOP_IMAGE_GUI,
+      ports: [...DESKTOP_PORTS_GUI],
       env: { VNC_PW: "password", DESKTOP_MODE: "kasm" },
       port: 6901,
-      diskGb: 60,
-    };
-  }
-  if (kind === "cpu") {
-    return {
-      kind: "cpu",
-      image: "runpod/base:1.0.2-ubuntu2204",
-      ports: ["8888/http", "22/tcp"],
-      env: { DESKTOP_MODE: "ubuntu-jupyter" },
-      port: 8888,
-      diskGb: 20,
+      diskGb: kind === "gpu" ? 60 : 30,
     };
   }
   throw new Error("Invalid desktop kind.");
@@ -884,6 +1054,7 @@ export type ProvisionDesktopResult =
       endpointUrl: string;
       podId: string;
       kind: "cpu" | "gpu";
+      iface: DesktopInterface;
       gpuId: string;
       cpuId: string;
       hourlyUsd: number;
@@ -899,6 +1070,9 @@ async function createRunpodDesktopPod(opts: {
   ports: string[];
   env: Record<string, string>;
   diskGb: number;
+  /** Kasm GPU desktops serve 6901 themselves — no Jupyter needed. */
+  startJupyter?: boolean;
+  startSsh?: boolean;
 }): Promise<{ ok: true; podId: string } | { ok: false; error: string }> {
   const key = (process.env.RUNPOD_API_KEY ?? "").trim();
   if (!key) return { ok: false, error: "RUNPOD_API_KEY is not set." };
@@ -921,6 +1095,8 @@ async function createRunpodDesktopPod(opts: {
         ports: opts.ports,
         env: opts.env,
         disk: opts.diskGb,
+        ...(opts.startJupyter ? { startJupyter: true } : {}),
+        ...(opts.startSsh ? { startSsh: true } : {}),
       }),
     });
     if (!res.ok) {
@@ -940,19 +1116,21 @@ async function createRunpodDesktopPod(opts: {
 }
 
 /**
- * Provision a Virtual Desktop pod. CPU provisions a cheap Ubuntu remote;
- * GPU provisions a Kasm graphical desktop on the cheapest Secure GPU at or
- * under maxUsdPerHour (defaults to the cheapest with stock when 0/omitted).
+ * Provision a Virtual Desktop pod. GUI (default) boots an Ubuntu graphical
+ * desktop (Kasm) on 6901 for both kinds; Jupyter boots JupyterLab + SSH on
+ * 8888 instead. CPU GUI runs the same Kasm desktop with software rendering.
  */
 export async function provisionDesktopWorker(opts: {
   name: string;
   kind: DesktopKind;
+  iface?: DesktopInterface;
   maxUsdPerHour?: number;
 }): Promise<ProvisionDesktopResult> {
   if (!runpodConfigured()) return { error: "unconfigured" };
+  const face: DesktopInterface = opts.iface === "jupyter" ? "jupyter" : "gui";
   let workload: DesktopWorkload;
   try {
-    workload = desktopWorkloadFor(opts.kind);
+    workload = desktopWorkloadFor(opts.kind, face);
   } catch (err) {
     return { error: "provision_failed", message: err instanceof Error ? err.message : "Invalid desktop kind." };
   }
@@ -973,12 +1151,17 @@ export async function provisionDesktopWorker(opts: {
       ports: workload.ports,
       env: workload.env,
       diskGb: workload.diskGb,
+      // Jupyter interface: start JupyterLab on 8888 so the proxy URL
+      // answers. GUI interface: Kasm serves 6901 itself — no Jupyter needed.
+      startJupyter: workload.iface === "jupyter",
+      startSsh: true,
     });
     if (!created.ok) return { error: "provision_failed", message: created.error };
     return {
       endpointUrl: runpodProxyUrl(created.podId, workload.port),
       podId: created.podId,
       kind: "cpu",
+      iface: workload.iface,
       gpuId: "",
       cpuId: best.id,
       hourlyUsd: autoplayCpuHourly(best),
@@ -1015,12 +1198,17 @@ export async function provisionDesktopWorker(opts: {
     ports: workload.ports,
     env: workload.env,
     diskGb: workload.diskGb,
+    // GUI interface: Kasm serves 6901 itself — no Jupyter needed.
+    // Jupyter interface: start JupyterLab on 8888 so the proxy URL answers.
+    startJupyter: workload.iface === "jupyter",
+    startSsh: true,
   });
   if (!created.ok) return { error: "provision_failed", message: created.error };
   return {
     endpointUrl: runpodProxyUrl(created.podId, workload.port),
     podId: created.podId,
     kind: "gpu",
+    iface: workload.iface,
     gpuId: pick.id,
     cpuId: "",
     hourlyUsd: pick.hourlyUsd,

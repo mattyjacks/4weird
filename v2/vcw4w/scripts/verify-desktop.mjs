@@ -5,7 +5,10 @@ const read = (file) => fs.readFileSync(new URL(file, import.meta.url), "utf8");
 const catalog = read("../lib/desktop.ts");
 const compute = read("../lib/compute.ts");
 const route = read("../app/api/desktop/provision/route.ts");
+const mineRoute = read("../app/api/desktop/mine/route.ts");
+const podRoute = read("../app/api/desktop/[id]/pod/route.ts");
 const widget = read("../components/desktop/desktop-rental.tsx");
+const migration = read("../supabase/migrations/20261011000000_desktop_pods.sql");
 const page = read("../app/desktop/page.tsx");
 const header = read("../components/site/site-header.tsx");
 const footer = read("../components/site/site-footer.tsx");
@@ -15,6 +18,7 @@ const agentsPage = read("../app/agents/page.tsx");
 const pkg = read("../package.json");
 
 // Catalog: two plans on official RunPod images, honest billing (no Vibe cut).
+// GUI desktop by default, Jupyter one click away.
 for (const token of [
   "DESKTOP_PLANS",
   "DESKTOP_KINDS",
@@ -26,31 +30,40 @@ for (const token of [
   "runpod/base:1.0.2-ubuntu2204",
   "runpod-desktop",
   "runpod-ubuntu-2204",
-  "DESKTOP_PORT_GPU",
+  "DESKTOP_PORT_GUI",
   "DESKTOP_PORT_CPU",
+  "DESKTOP_INTERFACES",
+  "isDesktopInterface",
+  "parseDesktopInterface",
+  "DESKTOP_IMAGE_GUI",
 ]) {
   if (!catalog.includes(token)) throw new Error(`desktop catalog missing ${token}.`);
 }
 if (!catalog.includes("6901")) throw new Error("desktop catalog must expose the Kasm port 6901.");
 if (!catalog.includes("no Vibe cut")) throw new Error("desktop catalog must state direct RunPod spend carries no Vibe cut.");
 
-// Compute: real provisioning for both kinds, never faked.
+// Compute: real provisioning for both kinds + both interfaces, never faked.
 for (const token of [
   "desktopWorkloadFor",
   "provisionDesktopWorker",
   "runpodProxyUrl",
   "proxy.runpod.net",
+  "runPodLifecycle",
   "no_stock",
   "over_budget",
   "unconfigured",
 ]) {
   if (!compute.includes(token)) throw new Error(`compute missing ${token}.`);
 }
-if (!compute.includes("runpod/kasm-docker:cuda11")) throw new Error("compute must provision the official Kasm desktop image for GPU.");
+if (!compute.includes("DESKTOP_IMAGE_GUI") && !catalog.includes("runpod/kasm-docker:cuda11")) {
+  throw new Error("compute must provision the Kasm GUI desktop image by default.");
+}
 if (!compute.includes("VNC_PW")) throw new Error("compute must set the Kasm VNC password env.");
 if (!compute.includes("diskGb: workload.diskGb")) throw new Error("desktop CPU provision must honor the advertised disk size.");
 
 // API: auth, rate limit, shared validation, honest provision states, no key handling.
+// Provision records ownership (desktop_pods); mine + pod routes let the
+// creator list and control their desktops.
 for (const token of [
   "Authentication required",
   "rateLimit",
@@ -58,8 +71,19 @@ for (const token of [
   "provisionDesktopWorker",
   "started",
   "runpod_configured",
+  "desktop_pods",
 ]) {
   if (!route.includes(token)) throw new Error(`desktop route missing ${token}.`);
+}
+if (!route.includes("parseDesktopInterface")) throw new Error("desktop route must accept the gui/jupyter interface (gui default).");
+for (const token of ["Authentication required", "desktop_pods", "getPodLive"]) {
+  if (!mineRoute.includes(token)) throw new Error(`desktop mine route missing ${token}.`);
+}
+for (const token of ["Authentication required", "runPodLifecycle", "terminate", "delete", "user_id"]) {
+  if (!podRoute.includes(token)) throw new Error(`desktop pod route missing ${token}.`);
+}
+if (podRoute.includes("process.env.RUNPOD_API_KEY")) {
+  throw new Error("desktop pod route must not touch RUNPOD_API_KEY directly (compute owns the key).");
 }
 if (route.includes("process.env.RUNPOD_API_KEY")) {
   throw new Error("route must not touch RUNPOD_API_KEY directly (compute owns the key).");
@@ -69,13 +93,20 @@ if (!route.includes("no Vibe cut") && !route.includes("No Vibe cut")) {
   throw new Error("route must state direct RunPod spend carries no Vibe cut.");
 }
 
-// Widget: plan picker, provision call, login gate, live connection display.
-for (const token of ["/api/desktop/provision", "DesktopRental", "needsLogin", "endpointUrl", "podId"]) {
+// Widget: plan picker, interface picker (GUI default), provision call, login
+// gate, clickable live-connection link (a real anchor, never a blue span).
+for (const token of ["/api/desktop/provision", "DesktopRental", "needsLogin", "endpointUrl", "podId", "ProxyLink", "desktop-interface", "/runpods"]) {
   if (!widget.includes(token)) throw new Error(`desktop widget missing ${token}.`);
 }
 if (!widget.includes("/auth/login") || !widget.includes("/auth/sign-up")) {
   throw new Error("widget must guide signed-out renters to login/sign-up.");
 }
+
+// Migration: creator-owned desktop rows, rerunnable, service-role only.
+for (const token of ["desktop_pods", "user_id", "pod_id", "if not exists", "enable row level security"]) {
+  if (!migration.includes(token)) throw new Error(`desktop migration missing ${token}.`);
+}
+if (/create policy/i.test(migration)) throw new Error("desktop migration must create no client policies (service_role only).");
 
 // Wiring: page, nav, sitemap, homepage, agents cross-link.
 if (!page.includes("DesktopRental")) throw new Error("desktop page must render DesktopRental.");

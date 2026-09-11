@@ -20,6 +20,7 @@ const COLUMNS = [
     label: "Build",
     links: [
       { href: "/agents", label: "AI Agents" },
+      { href: "/runpods", label: "My RunPods" },
       { href: "/swarm", label: "Swarm" },
       { href: "/desktop", label: "Virtual Desktop" },
       { href: "/teams", label: "UnitUnite" },

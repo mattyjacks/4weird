@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { ProxyLink } from "@/components/runpod/proxy-link";
 import {
   BLENDER_DEMO_FILES_URL,
   BLENDER_MAX_FRAMES,
@@ -52,6 +53,7 @@ export function BlenderStudio() {
   const [busy, setBusy] = useState("");
   const [message, setMessage] = useState("Pick a .blend file to begin — or grab a free demo scene below.");
   const [pendingJob, setPendingJob] = useState<{ jobId: string } | null>(null);
+  const [workerLogUrl, setWorkerLogUrl] = useState("");
   const [startFrame, setStartFrame] = useState("1");
   const [endFrame, setEndFrame] = useState("60");
 
@@ -135,6 +137,7 @@ export function BlenderStudio() {
         body: JSON.stringify({ startFrame: Number(startFrame), endFrame: Number(endFrame) }),
       });
       setPendingJob(null);
+      setWorkerLogUrl(String(body.workerLog ?? ""));
       setMessage(
         body.started
           ? `Worker live on ${String((body.connection as { gpu?: string })?.gpu ?? "RTX 4090")} — render started. It exits itself when done.`
@@ -228,6 +231,11 @@ export function BlenderStudio() {
           </div>
         )}
         <p role="status" className="mt-3 text-sm text-amber-200">{message}</p>
+        {workerLogUrl && (
+          <p className="mt-2 text-xs">
+            <ProxyLink href={workerLogUrl} label="Open worker log" />
+          </p>
+        )}
       </section>
 
       <section aria-label="Your renders">

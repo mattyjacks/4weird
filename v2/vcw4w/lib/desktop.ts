@@ -23,6 +23,23 @@ export function isDesktopKind(value: unknown): value is DesktopKind {
   return typeof value === "string" && (DESKTOP_KINDS as readonly string[]).includes(value);
 }
 
+/**
+ * Desktop interface: `gui` (default) boots an Ubuntu graphical desktop
+ * (Kasm) streamed in the browser; `jupyter` boots a JupyterLab + SSH box
+ * instead. GUI is the default because first-timers expect a computer they
+ * can see — Jupyter stays one click away for coders.
+ */
+export const DESKTOP_INTERFACES = ["gui", "jupyter"] as const;
+export type DesktopInterface = (typeof DESKTOP_INTERFACES)[number];
+
+export function isDesktopInterface(value: unknown): value is DesktopInterface {
+  return typeof value === "string" && (DESKTOP_INTERFACES as readonly string[]).includes(value);
+}
+
+export function parseDesktopInterface(value: unknown): DesktopInterface {
+  return isDesktopInterface(value) ? value : "gui";
+}
+
 export type DesktopPlan = {
   kind: DesktopKind;
   name: string;
@@ -34,6 +51,8 @@ export type DesktopPlan = {
   diskGb: number;
   blurb: string;
   bestFor: string[];
+  /** The Jupyter alternative (one click away from the GUI default). */
+  jupyter: { image: string; templateId: string; port: number; ports: string[] };
 };
 
 export const DESKTOP_IMAGE_GPU = "runpod/kasm-docker:cuda11";
@@ -43,19 +62,39 @@ export const DESKTOP_TEMPLATE_CPU = "runpod-ubuntu-2204";
 export const DESKTOP_PORT_GPU = 6901;
 export const DESKTOP_PORT_CPU = 8888;
 
+/**
+ * GUI desktop image (default interface): the community `runpod-desktop`
+ * template image (`runpod/kasm-docker:cuda11`, Kasm on port 6901, login with
+ * the VNC password). GPU desktops stream with hardware acceleration; CPU
+ * desktops run the same image with software rendering (no GPU needed to see
+ * a desktop — it is just less fast at 3D). Jupyter images stay per-kind:
+ * official `runpod-ubuntu-2204` (CPU) / `runpod-torch-v240` PyTorch (GPU).
+ */
+export const DESKTOP_IMAGE_GUI = "runpod/kasm-docker:cuda11";
+export const DESKTOP_PORT_GUI = 6901;
+export const DESKTOP_PORTS_GUI = ["6901/http", "22/tcp"];
+export const DESKTOP_IMAGE_GPU_JUPYTER = "runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04";
+export const DESKTOP_TEMPLATE_GPU_JUPYTER = "runpod-torch-v240";
+
 export const DESKTOP_PLANS: DesktopPlan[] = [
   {
     kind: "cpu",
     name: "CPU Desktop",
-    tagline: "A remote Ubuntu box in your browser — cheapest way to compute.",
-    image: DESKTOP_IMAGE_CPU,
-    templateId: DESKTOP_TEMPLATE_CPU,
-    port: DESKTOP_PORT_CPU,
-    ports: ["8888/http", "22/tcp"],
-    diskGb: 20,
+    tagline: "A remote Ubuntu desktop in your browser — cheapest way to compute.",
+    image: DESKTOP_IMAGE_GUI,
+    templateId: DESKTOP_TEMPLATE_GPU,
+    port: DESKTOP_PORT_GUI,
+    ports: [...DESKTOP_PORTS_GUI],
+    diskGb: 30,
     blurb:
-      "Official RunPod Ubuntu 22.04 with JupyterLab + SSH, opened through the RunPod default proxy endpoint. Code, browse files, run cron jobs — no GPU needed.",
-    bestFor: ["Coding + notebooks", "Light browsing + files", "Always-on helper box"],
+      "Ubuntu graphical desktop (Kasm) on port 6901, opened through the RunPod default proxy endpoint: XFCE desktop, Chromium, VS Code, terminal. JupyterLab + SSH is one click away (pick Jupyter below).",
+    bestFor: ["Browsing + files", "Coding + notebooks", "Always-on helper box"],
+    jupyter: {
+      image: DESKTOP_IMAGE_CPU,
+      templateId: DESKTOP_TEMPLATE_CPU,
+      port: DESKTOP_PORT_CPU,
+      ports: ["8888/http", "22/tcp"],
+    },
   },
   {
     kind: "gpu",
@@ -64,11 +103,17 @@ export const DESKTOP_PLANS: DesktopPlan[] = [
     image: DESKTOP_IMAGE_GPU,
     templateId: DESKTOP_TEMPLATE_GPU,
     port: DESKTOP_PORT_GPU,
-    ports: ["6901/http"],
+    ports: [...DESKTOP_PORTS_GUI],
     diskGb: 60,
     blurb:
-      "Official RunPod Desktop (Kasm) on port 6901: XFCE desktop, Chromium, VS Code, Blender-ready GPU acceleration. The pod streams its screen — you just open the link.",
+      "Official RunPod Desktop (Kasm) on port 6901: XFCE desktop, Chromium, VS Code, Blender-ready GPU acceleration. The pod streams its screen — you just open the link. JupyterLab on a CUDA box is one click away (pick Jupyter below).",
     bestFor: ["Blender + CUDA dev", "AI art + ComfyUI sidecar", "GPU play + testing"],
+    jupyter: {
+      image: DESKTOP_IMAGE_GPU_JUPYTER,
+      templateId: DESKTOP_TEMPLATE_GPU_JUPYTER,
+      port: 8888,
+      ports: ["8888/http", "22/tcp"],
+    },
   },
 ];
 

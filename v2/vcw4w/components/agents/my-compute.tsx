@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { ProxyLink } from "@/components/runpod/proxy-link";
 import { SERVICE_CUT_PCT, formatUsd } from "@/lib/economy";
 import {
   RUNTIME_LABELS,
@@ -194,7 +196,11 @@ export function MyCompute() {
                 : ""}
             </p>
             {b.gpu_type ? <p className="text-xs text-slate-500">GPU: {b.gpu_type}</p> : null}
-            {conn ? <p className="mt-1 text-xs break-all text-cyan-300">{conn}</p> : null}
+            {conn ? (
+              <p className="mt-1 text-xs">
+                <ProxyLink href={conn} label="Open server" />
+              </p>
+            ) : null}
           </div>
           {b.status === "active" && (
             <button
@@ -344,6 +350,12 @@ export function MyCompute() {
 
       <section>
         <h2 className="text-2xl font-black">My rentals (I&apos;m renting)</h2>
+        <p className="mt-1 text-sm text-slate-400">
+          <Link href="/runpods" className="font-semibold text-cyan-300 underline decoration-cyan-300/50 underline-offset-2 hover:text-cyan-200">
+            Open My RunPods ↗
+          </Link>{" "}
+          for clickable links plus Stop / Start / Restart / Terminate / Delete on every pod you created.
+        </p>
         {mineError && <p className="mt-2 text-sm text-slate-400">{mineError} (login to see bookings)</p>}
         {mine && mine.rentals.length === 0 && (
           <p className="mt-2 text-sm text-slate-400">No rentals yet — pick a listing under “Rent an agent”.</p>

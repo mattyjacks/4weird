@@ -94,6 +94,7 @@ if (!widget.includes("disabled={isXonotic}") || !widget.includes("disabled={!isX
 if (!widget.includes("gameSlugs") || !widget.includes("resolveAutoplayPlan")) {
   throw new Error("widget must enforce the shared plan client-side.");
 }
+if (!widget.includes("ProxyLink")) throw new Error("widget must render the live stream URL as a clickable ProxyLink.");
 
 // Wiring: play pages + xonotic station + discoverability.
 if (!playPage.includes("VcwAutoplay")) throw new Error("play page must render VcwAutoplay.");

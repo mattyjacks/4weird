@@ -9,6 +9,7 @@ const jobRoute = read("../app/api/blender/jobs/[id]/route.ts");
 const readyRoute = read("../app/api/blender/jobs/[id]/ready/route.ts");
 const startRoute = read("../app/api/blender/jobs/[id]/start/route.ts");
 const stopRoute = read("../app/api/blender/jobs/[id]/stop/route.ts");
+const podRoute = read("../app/api/blender/jobs/[id]/pod/route.ts");
 const progressRoute = read("../app/api/blender/progress/route.ts");
 const page = read("../app/blender/page.tsx");
 const widget = read("../components/blender/blender-studio.tsx");
@@ -42,17 +43,21 @@ if (!lib.includes("sleep infinity") || !lib.includes("done_unstored")) {
   throw new Error("bootstrap must keep failed-upload output servable until the user stops the pod.");
 }
 
-// Compute: 4090-pinned provisioner + pod stop/status helpers, never faked.
-for (const token of ["provisionBlenderWorker", "pickBoostedGpu", "stopPodAction", "getPodLive", "BLENDER_BOOTSTRAP", "/action"]) {
+// Compute: 4090-pinned provisioner + pod lifecycle helpers, never faked.
+for (const token of ["provisionBlenderWorker", "pickBoostedGpu", "stopPodAction", "runPodLifecycle", "getPodLive", "BLENDER_BOOTSTRAP", "/action"]) {
   if (!compute.includes(token)) throw new Error(`compute missing ${token}.`);
 }
 if (!compute.includes("args")) throw new Error("compute must pass the start-command override to pod create.");
 
 // API: auth everywhere a browser calls, token auth for the pod callback,
 // honest started:false, no RunPod key outside compute.
-for (const [name, src] of [["jobs", jobsRoute], ["job", jobRoute], ["ready", readyRoute], ["start", startRoute], ["stop", stopRoute]]) {
+for (const [name, src] of [["jobs", jobsRoute], ["job", jobRoute], ["ready", readyRoute], ["start", startRoute], ["stop", stopRoute], ["pod", podRoute]]) {
   if (!src.includes("Authentication required")) throw new Error(`blender ${name} route must require login.`);
 }
+for (const token of ["runPodLifecycle", "terminate", "delete", "user_id"]) {
+  if (!podRoute.includes(token)) throw new Error(`blender pod route missing ${token}.`);
+}
+if (podRoute.includes("process.env.RUNPOD_API_KEY")) throw new Error("blender pod route must not touch RUNPOD_API_KEY directly (compute owns the key).");
 if (!progressRoute.includes("callback_token")) throw new Error("progress route must auth the worker by job token.");
 if (/sameOrigin\s*\(/.test(progressRoute)) throw new Error("progress route must not require Origin (pods have none).");
 if (!startRoute.includes("started") || !startRoute.includes("provisionBlenderWorker")) {
@@ -71,7 +76,7 @@ if (jobsRoute.includes("callback_token") && jobsRoute.includes("publicRow")) {
 for (const token of ["BlenderStudio", "BLENDER_DEMO_FILES_URL", ".blend", "RTX 4090"]) {
   if (!page.includes(token)) throw new Error(`blender page missing ${token}.`);
 }
-for (const token of ["BlenderStudio", "/api/blender/jobs", "Upload scene", "Render on RTX 4090", "Download render.mp4"]) {
+for (const token of ["BlenderStudio", "/api/blender/jobs", "Upload scene", "Render on RTX 4090", "Download render.mp4", "ProxyLink"]) {
   if (!widget.includes(token)) throw new Error(`blender widget missing ${token}.`);
 }
 

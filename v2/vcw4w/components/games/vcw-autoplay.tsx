@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { ProxyLink } from "@/components/runpod/proxy-link";
 import { gameSlugs } from "@/content/games";
 import {
   AUTOPLAY_RATES,
@@ -208,8 +209,8 @@ export function VcwAutoplay({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       {result?.success && result.started && result.connection && (
         <div className="mt-3 rounded-xl border border-emerald-300/30 bg-emerald-300/[.06] p-3 text-xs text-slate-200">
           <p className="font-bold text-emerald-200">✅ Autoplay remote live</p>
-          <p className="mt-1 break-all">
-            Stream: <span className="text-cyan-300">{result.connection.endpointUrl}</span>
+          <p className="mt-1">
+            <ProxyLink href={result.connection.endpointUrl} label="Open stream" />
           </p>
           <p className="mt-1 text-slate-400">
             Pod {result.connection.podId} · {result.connection.kind === "cpu" ? `CPU ${result.connection.cpu}` : `GPU ${result.connection.gpu}`} ·

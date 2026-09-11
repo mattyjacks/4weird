@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { ProxyLink } from "@/components/runpod/proxy-link";
 import { SERVICE_CUT_PCT, formatUsd } from "@/lib/economy";
 import {
   RUNTIME_LABELS,
@@ -236,11 +237,11 @@ export function Marketplace() {
                 </p>
               )}
               {conn && conn.ok && (
-                <p className="mt-2 rounded-md border border-emerald-800 bg-emerald-950 p-2 text-xs break-all text-emerald-200">
-                  Live: {conn.endpointUrl}
-                  {conn.gpuId ? ` · ${conn.gpuId}` : ""}
-                  {typeof conn.hourlyUsd === "number" ? ` · $${conn.hourlyUsd.toFixed(2)}/hr` : ""}
-                </p>
+                <div className="mt-2 rounded-md border border-emerald-800 bg-emerald-950 p-2 text-xs break-all text-emerald-200">
+                  <ProxyLink href={conn.endpointUrl} label="Open server" />
+                  {conn.gpuId ? <span>{` · ${conn.gpuId}`}</span> : ""}
+                  {typeof conn.hourlyUsd === "number" ? <span>{` · $${conn.hourlyUsd.toFixed(2)}/hr`}</span> : ""}
+                </div>
               )}
               {conn && !conn.ok && (
                 <p className="mt-2 rounded-md border border-amber-800 bg-amber-950 p-2 text-xs text-amber-200">

@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { ProxyLink } from "@/components/runpod/proxy-link";
 import {
   DESKTOP_PLANS,
   desktopUsdToCoins,
+  type DesktopInterface,
   type DesktopKind,
 } from "@/lib/desktop";
 
@@ -12,6 +14,8 @@ type ProvisionOk = {
   success: boolean;
   started?: boolean;
   kind?: DesktopKind;
+  interface?: DesktopInterface;
+  desktop?: { id: string } | null;
   connection?: {
     endpointUrl: string;
     podId: string;
@@ -42,6 +46,7 @@ type PlansOk = {
  */
 export function DesktopRental() {
   const [kind, setKind] = useState<DesktopKind>("gpu");
+  const [iface, setIface] = useState<DesktopInterface>("gui");
   const [maxUsd, setMaxUsd] = useState("0");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ProvisionOk | null>(null);
@@ -76,6 +81,7 @@ export function DesktopRental() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           kind,
+          interface: iface,
           max_usd_per_hour: Number.isFinite(max) ? max : 0,
         }),
       });
@@ -132,6 +138,37 @@ export function DesktopRental() {
             <p className="mt-1 text-xs text-slate-300">{p.tagline}</p>
             <p className="mt-2 text-[11px] text-slate-500">
               {p.image} · port {p.port} · {p.diskGb} GB disk
+            </p>
+          </label>
+        ))}
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Desktop interface">
+        {(["gui", "jupyter"] as const).map((face) => (
+          <label
+            key={face}
+            className={`cursor-pointer rounded-xl border p-4 transition ${
+              iface === face ? "border-emerald-300 bg-emerald-300/10" : "border-slate-700 bg-slate-950 hover:border-slate-500"
+            }`}
+          >
+            <input
+              type="radio"
+              name="desktop-interface"
+              value={face}
+              checked={iface === face}
+              onChange={() => setIface(face)}
+              className="sr-only"
+            />
+            <p className="font-bold text-white">
+              {face === "gui" ? "🖥️ Ubuntu GUI desktop (default)" : "📓 JupyterLab + SSH"}
+            </p>
+            <p className="mt-1 text-xs text-slate-300">
+              {face === "gui"
+                ? `Graphical desktop streamed in the browser (port ${plan.port}). Log in with the VNC password.`
+                : `JupyterLab + SSH box (port ${plan.jupyter.port}) for code and notebooks.`}
+            </p>
+            <p className="mt-2 text-[11px] text-slate-500">
+              {(face === "gui" ? plan.image : plan.jupyter.image)} · port {(face === "gui" ? plan.port : plan.jupyter.port)} · {plan.diskGb} GB disk
             </p>
           </label>
         ))}
@@ -214,8 +251,8 @@ export function DesktopRental() {
       {result?.success && result.started && result.connection && (
         <div className="mt-4 rounded-xl border border-emerald-300/30 bg-emerald-300/[.06] p-4 text-xs text-slate-200">
           <p className="font-bold text-emerald-200">✅ Virtual Desktop live</p>
-          <p className="mt-2 break-all">
-            Open: <span className="text-cyan-300">{result.connection.endpointUrl}</span>
+          <p className="mt-2">
+            <ProxyLink href={result.connection.endpointUrl} label="Open desktop" />
           </p>
           <p className="mt-1 text-slate-400">
             Pod {result.connection.podId} ·{" "}
@@ -223,17 +260,17 @@ export function DesktopRental() {
             ${Number(result.connection.hourlyUsd).toFixed(2)}/hr (≈ {Number(result.connection.coinsPerHour).toFixed(0)}{" "}
             coins/hr equiv), per second
           </p>
-          {result.kind === "gpu" ? (
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-slate-400">
-              <li>Log in with the VNC password (default `password` — change VNC_PW in the RunPod console after first login).</li>
-              <li>Your XFCE desktop streams in the browser: Chromium, VS Code, terminal, Blender-ready GPU.</li>
-              <li>Stop the pod in the RunPod console when done — billing stops with it.</li>
-            </ul>
-          ) : (
+          {result.interface === "jupyter" ? (
             <ul className="mt-2 list-disc space-y-1 pl-5 text-slate-400">
               <li>JupyterLab opens at the link above; SSH per the RunPod console pod details.</li>
               <li>Install anything with apt/uv — disk is {plan.diskGb} GB ephemeral unless you attach storage.</li>
-              <li>Stop the pod in the RunPod console when done — billing stops with it.</li>
+              <li>Manage it from <Link href="/runpods" className="text-cyan-300 hover:underline">My RunPods</Link> — stop ends billing, terminate deletes the disk.</li>
+            </ul>
+          ) : (
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-slate-400">
+              <li>Log in with the VNC password (default `password` — change VNC_PW in the RunPod console after first login).</li>
+              <li>Your Ubuntu desktop streams in the browser: Chromium, VS Code, terminal{result.kind === "gpu" ? ", Blender-ready GPU" : ""}.</li>
+              <li>Manage it from <Link href="/runpods" className="text-cyan-300 hover:underline">My RunPods</Link> — stop ends billing, terminate deletes the disk.</li>
             </ul>
           )}
           <p className="mt-2 text-slate-500">{result.billing?.note ?? result.note ?? ""}</p>

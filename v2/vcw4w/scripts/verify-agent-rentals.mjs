@@ -6,6 +6,7 @@ const market = read("../lib/agent-market.ts");
 const compute = read("../lib/compute.ts");
 const createRoute = read("../app/api/agents/route.ts");
 const bookRoute = read("../app/api/agents/[id]/book/route.ts");
+const podRoute = read("../app/api/agents/bookings/[id]/pod/route.ts");
 const marketplace = read("../components/agents/marketplace.tsx");
 const myCompute = read("../components/agents/my-compute.tsx");
 const page = read("../app/agents/page.tsx");
@@ -61,8 +62,20 @@ for (const [name, src] of [["marketplace", marketplace], ["my-compute", myComput
   if (!src.includes("USD")) throw new Error(`${name} must quote USD/hr.`);
 }
 if (!marketplace.includes("RunPod default endpoint")) throw new Error("marketplace must mention the RunPod default endpoint.");
+if (!marketplace.includes("ProxyLink")) throw new Error("marketplace must render the live server URL as a clickable ProxyLink.");
+if (!myCompute.includes("ProxyLink")) throw new Error("my-compute must render booking connections as clickable ProxyLinks.");
+if (!myCompute.includes("/runpods")) throw new Error("my-compute must link the /runpods management dashboard.");
 if (!myCompute.includes("no URL needed") && !myCompute.includes("No URL needed") && !myCompute.includes("no URL")) {
   throw new Error("host form must tell RunPod hosts no URL is needed.");
+}
+
+// Creator pod controls: the renter (or listing owner) can stop / start /
+// restart / terminate / delete the provisioned pod.
+for (const token of ["Authentication required", "runPodLifecycle", "renter_id", "terminate", "delete"]) {
+  if (!podRoute.includes(token)) throw new Error(`booking pod route missing ${token}.`);
+}
+if (podRoute.includes("process.env.RUNPOD_API_KEY")) {
+  throw new Error("booking pod route must not touch RUNPOD_API_KEY directly (compute owns the key).");
 }
 
 // Migration + API hygiene: rerunnable, no raw PG leaks, escrow cap respected.
