@@ -1,7 +1,7 @@
 /**
  * Voluntary Support + Launch campaigns. Single source of truth for the
- * Patreon-style (subscriptions + tips to verified creators and clans) and
- * GoFundMe-style (gift-based game/startup launch fundraising) surfaces.
+ * creator-membership (subscriptions + tips to verified creators and clans) and
+ * community-fundraising (gift-based game/startup launch fundraising) surfaces.
  *
  * LEGAL MODEL; closed-loop Vibe Coins only:
  *  - 25% platform cut INCLUDED in every gross amount, never on top.
@@ -85,7 +85,7 @@ export const CURRENCY_LEGEND = [
   {
     emoji: "🪙",
     name: "Coin (Vibe Coins)",
-    blurb: "Closed-loop platform credits. 100 🪙 = $1.00. No cash-out, spendable on the Service only.",
+    blurb: "Closed-loop platform credits. 100 🪙 = $1.00. No cash-out, never withdrawable; spendable on cloud computing, game credits, and other on-site services only.",
   },
   {
     emoji: "💌",

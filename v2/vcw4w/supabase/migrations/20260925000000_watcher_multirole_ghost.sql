@@ -251,7 +251,7 @@ create index if not exists idx_ghost_contracts_org on public.ghost_contracts (or
 
 -- Timer sessions, tracked to the second. active_seconds grows ONLY through
 -- ghost_beat() heartbeats (visible-tab seconds the worker's client reports);
--- beats/total_beats give the Upwork-style activity score. clock_out freezes.
+-- beats/total_beats give the work-diary activity score. clock_out freezes.
 create table if not exists public.ghost_timers (
   id uuid primary key default gen_random_uuid(),
   contract_id uuid not null references public.ghost_contracts(id) on delete cascade,

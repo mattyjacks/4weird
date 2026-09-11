@@ -1,12 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 
 export const dynamic = "force-dynamic";
 
 // PUT /api/time/[id] - Update a time entry
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
   const u = auth?.user;
@@ -56,6 +58,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 // DELETE /api/time/[id] - Delete a time entry
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
   const u = auth?.user;

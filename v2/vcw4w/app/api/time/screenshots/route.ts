@@ -1,23 +1,38 @@
 import { createClient } from "@/lib/supabase/server";
-import { hasServerSupabase } from "@/lib/supabase/service";
+import { hasServerSupabase, supabaseUrl } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
+// Stored image URLs render in the work diary, so arbitrary external https
+// URLs would be a tracking/content-spoofing vector (same stance as clan
+// posts: upload-issued URLs only). Accept our own Supabase storage URLs
+// plus small client-captured data:image URLs; nothing else.
+function isOwnStorageUrl(v: string): boolean {
+  try {
+    const parsed = new URL(v);
+    const base = (supabaseUrl() ?? "").trim();
+    if (!base) return false;
+    if (parsed.host !== new URL(base).host) return false;
+    return /\/storage\/v1\/object\//.test(parsed.pathname + parsed.search);
+  } catch {
+    return false;
+  }
+}
+
 function cleanScreenshotUrl(value: unknown): string {
   const v = String(value ?? "").trim();
   if (!v || v.length > 8192) return "";
-  // Allow: our own https storage URLs, and small client-captured data:image URLs.
-  if (v.startsWith("https://")) return v.length <= 2048 ? v : "";
   if (/^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(v)) {
     return v.length <= 2 * 1024 * 1024 ? v : "";
   }
+  if (v.startsWith("https://") && v.length <= 2048 && isOwnStorageUrl(v)) return v;
   return "";
 }
 
-// POST /api/time/screenshots - Upload Upwork-style screen capture proof
+// POST /api/time/screenshots - Upload work-diary screen capture proof
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
@@ -44,7 +59,7 @@ export async function POST(req: Request) {
   }
   const safeImageUrl = cleanScreenshotUrl(imageUrl);
   if (!safeImageUrl) {
-    return fail("imageUrl must be an https URL or a data:image capture.", 400);
+    return fail("imageUrl must be a data:image capture or your own storage URL.", 400);
   }
 
   // Ensure user owns the entry

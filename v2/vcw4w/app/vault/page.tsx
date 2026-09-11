@@ -12,7 +12,7 @@ export default function VaultPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <section className="mx-auto max-w-5xl px-5 py-16">
-        <p className="text-sm font-semibold uppercase tracking-widest text-cyan-300">Weird Vault · Drive + GitHub rival</p>
+        <p className="text-sm font-semibold uppercase tracking-widest text-cyan-300">Weird Vault · private files</p>
         <h1 className="mt-2 text-4xl font-black">🗄️ Weird Vault</h1>
         <p className="mt-4 max-w-3xl text-slate-300">
           Blob-based file storage on Supabase for your game code and assets; including

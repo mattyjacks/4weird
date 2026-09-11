@@ -72,11 +72,11 @@ export function GhostTimer() {
   }, []);
   useEffect(() => { void load(orgId); }, [orgId, load]);
 
-  // Upwork Dual-Timer Companion mode
+  // External dual-timer companion mode
   const [upworkSync, setUpworkSync] = useState(false);
   const [upworkJob, setUpworkJob] = useState("");
 
-  // Stopwatch: accumulate real seconds. In Upwork Dual-Timer mode, track background seconds as well.
+  // Stopwatch: accumulate real seconds. In external dual-timer mode, track background seconds as well.
   useEffect(() => {
     if (!myTimer) return;
     lastTick.current = Date.now();
@@ -84,7 +84,7 @@ export function GhostTimer() {
       const now = Date.now();
       const dt = Math.floor((now - lastTick.current) / 1000);
       lastTick.current = now;
-      // If Upwork Dual-Timer mode is ON, user is working in the native Upwork desktop app and other windows,
+      // If external dual-timer mode is ON, the user is working in an external tracker app and other windows,
       // so accumulate active seconds even when this browser tab is backgrounded!
       if (document.hidden && !upworkSync) return;
       beatAccum.current += dt;
@@ -103,13 +103,13 @@ export function GhostTimer() {
   async function clockIn() {
     if (!contractId) { setMessage("Pick a contract first."); return; }
     try {
-      const fullNote = upworkSync && upworkJob ? `${note ? note + " " : ""}[Upwork: ${upworkJob}]` : note;
+      const fullNote = upworkSync && upworkJob ? `${note ? note + " " : ""}[External: ${upworkJob}]` : note;
       const r = await request<{ timer: Timer }>("/api/ghost/timer", { method: "POST", body: JSON.stringify({ action: "in", contract_id: contractId, note: fullNote }) });
       setMyTimer(r.timer);
       setLiveSeconds(0);
       beatAccum.current = 0;
       setMessage(upworkSync
-        ? `Clocked in with Upwork Dual-Timer mode enabled! Running alongside official Upwork timer.`
+        ? `Clocked in with external dual-timer mode enabled! Running alongside your external tracker.`
         : `Clocked in; tracking to the second. Beats flush every 60s while this tab is visible.`);
       void load(orgId);
     } catch (error) {
@@ -196,7 +196,7 @@ export function GhostTimer() {
           )}
         </div>
 
-        {/* Upwork Dual-Timer Companion Mode banner */}
+        {/* External dual-timer companion mode banner */}
         <div className="mt-4 pt-3 border-t border-white/10 flex flex-wrap items-center gap-3 text-xs">
           <label className="flex items-center gap-1.5 cursor-pointer font-medium text-emerald-400">
             <input
@@ -205,20 +205,20 @@ export function GhostTimer() {
               onChange={(e) => setUpworkSync(e.target.checked)}
               className="rounded border-white/20 bg-black/30 text-emerald-400 focus:ring-0"
             />
-            <span>⏱️ Upwork Dual-Timer Companion Mode</span>
+            <span>⏱️ External Dual-Timer Companion Mode</span>
           </label>
           {upworkSync && (
             <input
               value={upworkJob}
               onChange={(e) => setUpworkJob(e.target.value)}
-              placeholder="Upwork Contract ID / Job (e.g. ~01abc123)"
+              placeholder="External Contract ID / Job (e.g. ~01abc123)"
               className="rounded border border-emerald-500/30 bg-emerald-950/20 px-2.5 py-1 text-xs text-white placeholder:text-zinc-500 font-mono"
             />
           )}
           <span className="text-zinc-400">
             {upworkSync
-              ? "Active: Tracks background seconds while you work in the official Upwork desktop app."
-              : "Enable to track 4weird Ghost debts simultaneously alongside the official Upwork app."}
+              ? "Active: Tracks background seconds while you work in an external tracker app."
+              : "Enable to track 4weird Ghost debts simultaneously alongside an external timer."}
           </span>
         </div>
 

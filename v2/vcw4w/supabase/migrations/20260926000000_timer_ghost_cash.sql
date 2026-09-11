@@ -5,7 +5,7 @@
 --  * timer_projects: projects with Ghost Cash hourly rate (ghost_rate), budget, org attribution
 --  * timer_entries: duration down to the second, ghost_cash_owed, activity metrics
 --  * timer_debts: debts owed between org members / contractors in Ghost Cash (mark settled/forgiven)
---  * timer_screenshots: periodic Upwork-style work diary screen captures with privacy flags
+--  * timer_screenshots: periodic work-diary screen captures with privacy flags
 --
 -- Rerunnable: IF NOT EXISTS / OR REPLACE / DROP ... IF EXISTS.
 -- ============================================================================
@@ -50,8 +50,8 @@ create table if not exists public.timer_entries (
   is_running boolean not null default false,
   ghost_rate numeric(12, 2) not null default 0.00 check (ghost_rate >= 0),
   ghost_cash_owed numeric(14, 4) not null default 0.0000 check (ghost_cash_owed >= 0),
-  activity_score integer not null default 100 check (activity_score between 0 and 100), -- Upwork-like % activity
-  upwork_sync_mode boolean not null default false, -- runs in dual-timer mode alongside official Upwork app
+  activity_score integer not null default 100 check (activity_score between 0 and 100), -- work-diary % activity
+  upwork_sync_mode boolean not null default false, -- runs in dual-timer mode alongside an external tracker app
   upwork_contract_id varchar(100) null check (upwork_contract_id is null or char_length(upwork_contract_id) <= 100),
   upwork_memo varchar(200) null check (upwork_memo is null or char_length(upwork_memo) <= 200),
   tags text null check (tags is null or char_length(tags) <= 200),

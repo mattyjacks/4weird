@@ -11,7 +11,7 @@
 --     full accounts; the band just separates their content rules.
 --   * Child accounts live in kid_accounts (NOT auth.users, NOT profiles):
 --     a parent-attested age band (kid/teen/adult; a teen or an adult can
---     still be somebody's child), a Discord-style login handle
+--     still be somebody's child), a clan-style login handle
 --     `username#1234` plus a parent-chosen password (scrypt hash, verified
 --     in the API route; never in SQL logs), and their own wallet.
 --

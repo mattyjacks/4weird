@@ -85,7 +85,7 @@ export default function AgentsComputePage() {
         index="3"
         kicker="One chat, five brains"
         title="Agent swarm chat (/swarm)"
-        body="Hire up to 5 agents as one Gemini-Spark-style chatbot: a custom system prompt for the whole swarm plus a role prompt per agent, orchestration (auto plans with the DeepSeek harness observe→reason→act loop, then delegates), model + temperature pickers, and every tool auto-usable - VibeCodeWorker runs/findings/handoffs, OpenCode.ai exports + heal loops, Fal media, Buddy voice. Turns meter per agent in Vibe Coins with the 25% cut included; local-engine turns are free and labelled."
+        body="Hire up to 5 agents as one swarm chatbot: a custom system prompt for the whole swarm plus a role prompt per agent, orchestration (auto plans with the built-in observe→reason→act loop, then delegates), model + temperature pickers, and every tool auto-usable - VibeCodeWorker runs/findings/handoffs, code exports + heal loops, Fal media, Buddy voice. Turns meter per agent in Vibe Coins with the 25% cut included; local-engine turns are free and labelled."
       />
 
       <SectionHead

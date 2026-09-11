@@ -23,7 +23,7 @@ const VERDICT_STYLE: Record<Verdict, string> = {
 };
 
 /**
- * Game .zip submit flow: file + title + Vercel-style game root, 50 MB cap,
+ * Game .zip submit flow: file + title + project game root, 50 MB cap,
  * instant verdict display with findings + coin split. Denied/unsafe uploads
  * are quarantined (never served) and queued for HUMAN review; authority
  * referrals happen by a human, never automatically with an IP.

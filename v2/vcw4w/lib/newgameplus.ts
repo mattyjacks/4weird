@@ -160,7 +160,7 @@ export function timelineForLane(lane: NgpLane): { stages: NgpTimelineStage[]; to
     lane === "fast"
       ? [
           { key: "queued", label: "Queued", detail: "Budget checked, lane locked: fast (≤5 min).", targetSec: 2 },
-          { key: "symphony", label: "Symphony tuning", detail: "Scout→Forge→Sage plan via the deepseek harness.", targetSec: 5 },
+          { key: "symphony", label: "Symphony tuning", detail: "Scout→Forge→Sage plan via the built-in reasoning harness.", targetSec: 5 },
           { key: "forge", label: "Forge building", detail: "Generating the single-file HTML/CSS/JS game.", targetSec: 15 },
           { key: "fal", label: "Fal assets", detail: "Cheap/fast fal shortlist queued in parallel (or held when unconfigured).", targetSec: 120 },
           { key: "qa", label: "Sage playtesting", detail: "VCW observe→reason→act repair loops (≤3).", targetSec: 60 },
@@ -169,7 +169,7 @@ export function timelineForLane(lane: NgpLane): { stages: NgpTimelineStage[]; to
         ]
       : [
           { key: "queued", label: "Queued", detail: "Budget confirmed, lane locked: deluxe (bigger cast + media).", targetSec: 2 },
-          { key: "symphony", label: "Symphony tuning", detail: "Scout→Forge→Pixel→Echo→Sage plan via the deepseek harness.", targetSec: 8 },
+          { key: "symphony", label: "Symphony tuning", detail: "Scout→Forge→Pixel→Echo→Sage plan via the built-in reasoning harness.", targetSec: 8 },
           { key: "forge", label: "Forge building", detail: "Generating the high-quality single-file game.", targetSec: 25 },
           { key: "fal", label: "Fal assets", detail: "Up to 4 fal ops incl. video/3D, queued in parallel.", targetSec: 420 },
           { key: "qa", label: "Sage playtesting", detail: "VCW observe→reason→act repair loops (≤3) + fal audio checks.", targetSec: 120 },

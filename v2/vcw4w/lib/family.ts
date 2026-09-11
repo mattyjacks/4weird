@@ -6,7 +6,7 @@
  * - age_band: 'unknown' | 'kid' | 'teen' | 'adult' (full accounts, self-declared;
  *   'kid'/'teen' get the same Adults-gating as Kids Mode)
  * - Child sub-accounts (kid_accounts): parent-attested band kid/teen/adult,
- *   Discord-style `username#1234` + password login, NO Supabase user.
+ *   Clan-style `username#1234` + password login, NO Supabase user.
  */
 
 export type FamilyRole = "solo" | "parent";

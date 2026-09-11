@@ -21,7 +21,7 @@ const meshyStatus = read("../app/api/meshy/status/route.ts");
 const autosaveRoute = read("../app/api/ai/autosave/route.ts");
 const artifacts = read("../app/api/ai/artifacts/route.ts");
 
-// 1. Lib constants: 50 MB cap, Vercel-style game root, 4 verdicts, 25% cuts.
+// 1. Lib constants: 50 MB cap, project game root, 4 verdicts, 25% cuts.
 for (const [name, src, token] of [
   ["zip-submit", zip, "ZIP_MAX_BYTES = 50 * 1024 * 1024"],
   ["zip-submit", zip, "cleanGameRoot"],

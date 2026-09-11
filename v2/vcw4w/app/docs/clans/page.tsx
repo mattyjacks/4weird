@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/docs/clans" },
   title: "Clans",
   description:
-    "How 4weird clans work: hclans, sclans, bclans, forums, Discord-style chat, images, moderation, upkeep wallets, XP, and deployed bots.",
+    "How 4weird clans work: hclans, sclans, bclans, forums, live chat, images, moderation, upkeep wallets, XP, and deployed bots.",
 };
 
 const theme = {
@@ -23,7 +23,7 @@ export default function ClansPage() {
       <DocsHero
         eyebrow="Docs Â· find your weirdos"
         title={<>Every clan is <span className={theme.title}>a tiny universe.</span></>}
-        lede={<>Gamer/coder social network: forums + Discord-style chat + images + markdown + upkeep wallets + XP â€” in three flavors. Reading is public; posting needs an account.</>}
+        lede={<>Gamer/coder social network: forums + live chat + images + markdown + upkeep wallets + XP — in three flavors. Reading is public; posting needs an account.</>}
         stats={[
           ["3", "clan species"],
           ["â‰¤1 MB", "image uploads"],
@@ -61,8 +61,8 @@ export default function ClansPage() {
 
       <SectionHead
         index="2"
-        kicker="Peak discord"
-        title="It really is a mini-Discord"
+        kicker="Full chat"
+        title="Chat rooms in every clan"
         body="Channels, threads, reactions, pins, edits, events, roles, member sidebar, 5-second-polled feed â€” embedded in every clan page."
       />
       <MockWindow title="#general â€” clan chat" badge="5s poll">

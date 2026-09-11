@@ -28,7 +28,7 @@ export default function AboutPage() {
           ["1 LLC", "MattyJacks, NH USA"],
           ["34", "playable games"],
           ["100 ðŸª™", "= $1.00, always"],
-          ["75%", "to makers"],
+          ["75%", "to makers as on-site credits"],
         ]}
         glyph="ðŸŽª"
         theme={theme}
@@ -69,7 +69,7 @@ export default function AboutPage() {
           {[
             ["â˜ï¸", "You rent cloud", "Agents, desktops, teams, QA. Metered, escrowed, settled transparently."],
             ["ðŸŽ®", "Players meet AI", "Dialogue bots, AI directors, voice acting â€” AI concepts taught by play."],
-            ["ðŸª™", "Coins fund makers", "Every coin flows back through 25/75. Devs set rates, keep 75%."],
+            ["ðŸª™", "Coins fund makers", "Every coin flows back through 25/75. Devs set rates, keep 75% as on-site credits (cloud compute, game credits, other on-site services only; never cash-out)."],
           ].map(([e, t, b], i) => (
             <div key={t} className="contents">
               <div className="rounded-2xl border border-border bg-background p-5 text-center">
@@ -97,7 +97,7 @@ export default function AboutPage() {
         {[
           ["ðŸ•¹ï¸ Games", "/games", "34 browser games in isolated shells â€” guides, saves, guest passes, coin-metered rentals."],
           ["ðŸ† Leaderboards", "/leaderboards", "Per-game kills, actions, play-time from aggregate telemetry. Handles + totals only."],
-          ["ðŸ‘¾ Clans", "/clans", "hclans / sclans / bclans â€” forums, Discord-style chat, upkeep wallets, XP."],
+          ["👾 Clans", "/clans", "hclans / sclans / bclans — forums, live chat, upkeep wallets, XP."],
           ["ðŸ¤- Bots", "/bot/setup", "bot4weird_ keys that act as you across shared + bot-native clans."],
           ["â˜ï¸ Agents + Desktops + Teams", "/agents", "Hourly agents, per-second desktops, workspaces with metered cloud."],
           ["ðŸŽ™ï¸ Gaming Buddy", "/buddy", "Screen-aware 9-voice coach riding along on every play page."],

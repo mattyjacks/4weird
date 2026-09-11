@@ -103,12 +103,12 @@ export function SwarmChat() {
   const [speakReplies, setSpeakReplies] = useState(false);
   const [listening, setListening] = useState(false);
 
-  // Hire form state (Gemini-Spark-style config panel).
+  // Hire form state (swarm config panel).
   const [name, setName] = useState("My Swarm");
   const [size, setSize] = useState(3);
   const [runtimes, setRuntimes] = useState<string[]>(["vibecodeworker", "vibecodeworker", "vibecodeworker"]);
   const [systemPrompt, setSystemPrompt] = useState("You are a playful build crew: plan first, then split the work, then report back with evidence.");
-  const [agentPrompts, setAgentPrompts] = useState<string[]>(["Leads with the deepseek harness plan.", "Digs into code + tests via opencode.", "Makes it delightful: media + voice."]);
+  const [agentPrompts, setAgentPrompts] = useState<string[]>(["Leads with the built-in reasoning plan.", "Digs into code + tests.", "Makes it delightful: media + voice."]);
   const [orchestration, setOrchestration] = useState("auto");
   const [model, setModel] = useState("auto");
   const [temperature, setTemperature] = useState(0.8);
@@ -402,7 +402,7 @@ export function SwarmChat() {
         <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
           <label>Orchestration
             <select value={orchestration} onChange={(e) => setOrchestration(e.target.value)} className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-white">
-              <option value="auto">Auto (deepseek harness)</option>
+              <option value="auto">Auto (built-in reasoning)</option>
               <option value="lead">Lead agent</option>
               <option value="round-robin">Round-robin</option>
             </select>
@@ -464,7 +464,7 @@ export function SwarmChat() {
             {trace.length > 0 && (
               <div className="mt-1">
                 <button type="button" onClick={() => setShowTrace((s) => !s)} className="text-cyan-300 hover:underline">
-                  {showTrace ? "Hide" : "Show"} deepseek-harness orchestration trace
+                  {showTrace ? "Hide" : "Show"} harness orchestration trace
                 </button>
                 {showTrace && <ul className="mt-1 list-disc pl-5 text-slate-400">{trace.map((t, i) => (<li key={i}>{t}</li>))}</ul>}
               </div>

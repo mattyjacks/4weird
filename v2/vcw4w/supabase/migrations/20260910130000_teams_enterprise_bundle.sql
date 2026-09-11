@@ -1,6 +1,6 @@
 -- ============================================================================
 -- 4weird Teams Enterprise BUNDLE; orgs / team workspaces / projects
--- (GitHub-like Code + Issues) / Matrix-like secure rooms / cloud services /
+-- (team Code + Issues) / encrypted secure rooms / cloud services /
 -- pay-as-you-go Vibe Coins + FULL PERMISSION SET.
 --
 -- One file, fully rerunnable (IF NOT EXISTS / OR REPLACE / DROP ... IF
@@ -33,7 +33,7 @@
 --     team.members.remove team.members.change_role team.roles.view
 --     team.roles.manage team.projects.create team.projects.delete
 --     team.rooms.create team.api_keys.manage team.budget.manage
---   PROJECT (GitHub-like): project.view project.edit project.delete
+--   PROJECT (team code): project.view project.edit project.delete
 --     project.visibility.manage project.code.view project.code.push
 --     project.code.review project.branches.manage project.releases.manage
 --     project.issues.view project.issues.create project.issues.comment
@@ -187,9 +187,9 @@ insert into public.permission_catalog (key, grp, label, blurb) values
   ('team.members.change_role','team','Change roles','Change workspace roles'),
   ('team.roles.view','team','View roles','See workspace roles'),
   ('team.roles.manage','team','Manage roles','Create workspace custom roles'),
-  ('team.projects.create','team','Create projects','Open GitHub-like projects'),
+  ('team.projects.create','team','Create projects','Open team code projects'),
   ('team.projects.delete','team','Delete projects','Remove projects'),
-  ('team.rooms.create','team','Create rooms','Open Matrix-like secure rooms'),
+  ('team.rooms.create','team','Create rooms','Open secure team rooms'),
   ('team.api_keys.manage','team','Manage API keys','Scoped workspace keys'),
   ('team.budget.manage','team','Manage budget','Caps + alerts per workspace'),
   ('project.view','project','View project','Open the project home'),
@@ -251,7 +251,7 @@ insert into public.role_templates (key, scope, label, permissions) values
 on conflict (key) do update set scope = excluded.scope, label = excluded.label, permissions = excluded.permissions, is_default = true;
 
 -- --------------------------------------------------------------------------
--- 3. Projects - GitHub-like (Code tab + Issues tab + PRs + wiki + actions)
+-- 3. Projects - team code (Code tab + Issues tab + PRs + wiki + actions)
 -- --------------------------------------------------------------------------
 create table if not exists public.team_projects (
   id uuid primary key default gen_random_uuid(),
@@ -915,7 +915,7 @@ end; $$;
 revoke all on function public.set_member_role(text, uuid, uuid, text, uuid) from public, anon, authenticated;
 grant execute on function public.set_member_role(text, uuid, uuid, text, uuid) to authenticated;
 
--- Create a GitHub-like project (needs team.projects.create). Seeds Code-tab
+-- Create a team code project (needs team.projects.create). Seeds Code-tab
 -- README + Issues-tab welcome so both tabs are alive on day one.
 create or replace function public.create_project(p_team uuid, p_slug text, p_name text, p_visibility text default 'private')
 returns public.team_projects language plpgsql security definer set search_path = public as $$

@@ -48,7 +48,7 @@ export interface TimerEntry {
   ghostRate: number; // hourly rate in 👻
   ghostCashOwed: number; // total calculated 👻 down to the second
   activityScore: number; // 0-100%
-  upworkSyncMode?: boolean; // Dual-timer companion with official Upwork desktop app
+  upworkSyncMode?: boolean; // Dual-timer companion with an external tracker app
   upworkContractId?: string | null;
   upworkMemo?: string | null;
   tags: string | null;

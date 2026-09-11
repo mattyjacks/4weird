@@ -25,7 +25,7 @@ export const SITE_LANGUAGE = "en";
 export const FACTS = {
   coinPeg: "100 Vibe Coins (🪙) = exactly $1.00",
   platformCut: "25% platform cut, always included in the price; never added on top",
-  providerShare: "75% goes to the providers and game makers doing the work",
+  providerShare: "75% credits test",
   trial: "free 100-coin ($1.00) trial for new accounts",
   gameCount: "34 playable browser games",
 } as const;

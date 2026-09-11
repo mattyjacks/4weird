@@ -25,7 +25,7 @@ import { SERVICE_CUT_PCT } from "@/lib/economy";
 
 /** Hard cap: 50 MiB per .zip; keeps every game fast to download and play. */
 export const ZIP_MAX_BYTES = 50 * 1024 * 1024;
-/** Vercel-style game root inside the zip (where index.html / entry lives). */
+/** Project-style game root inside the zip (where index.html / entry lives). */
 export const GAME_ROOT_MAX_CHARS = 256;
 /** Bounded audit: never feed more than this many text bytes to regexes. */
 export const AUDIT_TEXT_CAP_BYTES = 512 * 1024;
@@ -40,7 +40,7 @@ export const AUDIT_CUT_PCT = SERVICE_CUT_PCT;
 export const STORAGE_COINS_PER_GB_MO = 3;
 /** Code audit: flat gross per submission (covers static scan + AI review). */
 export const AUDIT_COINS_FLAT = 6;
-/** Deep AI audit (Luna/OpenAI review of flagged files): gross add-on. */
+/** Deep AI audit (AI review of flagged files): gross add-on. */
 export const AUDIT_DEEP_COINS = 10;
 
 export type ZipVerdict = "safe" | "warning" | "unsafe" | "denied";
@@ -91,7 +91,7 @@ export function quoteAuditSplit(deep: boolean): {
 export const SUBMIT_CUT_NOTE = `Includes ${SUBMIT_CUT_PCT}% platform cut; never added on top.`;
 
 /**
- * Clean a Vercel-style game root: POSIX-ish relative path, no escapes.
+ * Clean a project-style game root: POSIX-ish relative path, no escapes.
  * "" = zip root. Returns "" when invalid.
  */
 export function cleanGameRoot(value: unknown): string {
@@ -252,7 +252,7 @@ export function auditZipPackage(input: {
     }
   }
 
-  // Entry point under the declared game root (Vercel-style).
+  // Entry point under the declared game root (project-style).
   const prefix = gameRoot ? `${gameRoot}/` : "";
   const names = new Set(entries.map((e) => e.name.toLowerCase()));
   const entryFound = ENTRY_NAMES.some(
@@ -264,7 +264,7 @@ export function auditZipPackage(input: {
       code: "package:no-entry",
       detail: gameRoot
         ? `No index.html under game root "${gameRoot}"; check the path.`
-        : "No index.html found; set the game root (like Vercel) if nested.",
+        : "No index.html found; set the game root if nested.",
     });
   }
 

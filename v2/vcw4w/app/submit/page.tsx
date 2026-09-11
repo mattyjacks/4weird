@@ -5,7 +5,7 @@ import { SUBMIT_CUT_NOTE } from "@/lib/zip-submit";
 export const metadata: Metadata = {
   alternates: { canonical: "/submit" },
   title: "Submit your game (.zip) | 4weird",
-  description: `Upload your game as a .zip (50 MB max; every game loads fast) with a Vercel-style game root. Automatic safety scan: safe, warning, unsafe, or denied. ${SUBMIT_CUT_NOTE}`,
+  description: `Upload your game as a .zip (50 MB max; every game loads fast) with a project game root. Automatic safety scan: safe, warning, unsafe, or denied. ${SUBMIT_CUT_NOTE}`,
 };
 
 export default function SubmitPage() {
@@ -17,8 +17,8 @@ export default function SubmitPage() {
         <p className="mt-4 text-slate-300">
           Zip your game (max <strong>50 MB</strong> - every game on 4weird loads
           fast ⚡), tell us the{" "}
-          <strong>game root</strong> inside the .zip (like picking the Root Directory on
-          Vercel; where your index.html lives), and our scanner marks it{" "}
+          <strong>game root</strong> inside the .zip (the folder
+          where your index.html lives), and our scanner marks it{" "}
           <strong>safe</strong>, <strong>warning</strong>, <strong>unsafe</strong>, or{" "}
           <strong>denied</strong>. Malware, keyloggers, cybercrime tools, and sexual
           content are hard-denied: quarantined, never served, queued for human moderators.

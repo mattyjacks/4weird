@@ -111,7 +111,7 @@ export function NewGamePlusBuilder() {
       setStatus(`Queued in the ${lane} lane; conducting the symphony (${bots})…`);
       await new Promise((r) => setTimeout(r, 30));
       setStageKey("symphony");
-      pushLive(`🎼 Symphony tuning - ${bots} (auto orchestration, deepseek harness).`);
+      pushLive(`🎼 Symphony tuning - ${bots} (auto orchestration, built-in reasoning).`);
       setStatus("Symphony tuning - Scout observes, Forge warms up…");
       await new Promise((r) => setTimeout(r, 30));
       setStageKey("forge");

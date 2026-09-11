@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { isRunUuid, isVcwVerdict } from "@/lib/vcw-runs";
 
@@ -14,6 +15,7 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const { id } = await ctx.params;
   if (!isRunUuid(id)) return fail("Invalid run id.", 400);
   const supabase = await createClient();

@@ -177,7 +177,7 @@ export default function TermsPage() {
           enforced per IP-hash; no 100-coin pack is sold) operate server-side under anti-double-mint guards.
           Checkout is processed by Shopify (and/or other payment processors) under their terms; we reconcile paid
           grants by order email. Virtual currency, progress, and items are licensed features with no cash value, are
-          not property, are non-transferable, and may be changed, removed, or discontinued at any time. Purchases are
+          not property, are non-transferable, are spendable on cloud computing, game credits, and other on-site services only (never cash-out, never withdrawable), and may be changed, removed, or discontinued at any time. Purchases are
           final except where required by applicable law (including non-waivable EU/UK consumer rights) or expressly
           stated otherwise; including the 90-day unspent-purchase refund below.
         </p>
@@ -218,7 +218,7 @@ export default function TermsPage() {
           shares, interest, dividends, profit-shares, guaranteed returns, or any ownership or financial return, and any
           campaign using charity, medical, emergency, disaster-relief, political, or investment language is rejected.
           Coins have no cash value, are licensed platform features under Section 8, and can never be redeemed, cashed
-          out, or converted to money by anyone; recipients receive platform credits spendable on the Service only.
+          out, withdrawn, or converted to money by anyone; recipients receive platform credits spendable on cloud computing, game credits, and other on-site services only.
           Because no money is transmitted to third parties and no cash-out exists, the Service does not act as a money
           transmitter, e-money issuer, bank, broker, or investment platform.
         </p>
@@ -241,7 +241,7 @@ export default function TermsPage() {
           a gift: backers receive no ownership, equity, financial return, or enforceable right to any reward. Raised
           coins credit the creator’s coin balance (or the linked clan wallet) as platform credits; closing or
           cancelling a Campaign stops new backing but does not reverse credited transfers except where we intervene for
-          proven fraud. We may freeze, hide, or remove any Campaign or Support tier, suspend payouts of credited coins
+          proven fraud. We may freeze, hide, or remove any Campaign or Support tier, suspend crediting and use of credited coins
           pending review, and re-credit defrauded supporters from frozen amounts where technically possible.
         </p>
         <p>
@@ -274,7 +274,7 @@ export default function TermsPage() {
 
         <h2 className={h2}>8C. Timer, Work Diary, and Ghost Cash (👻) non-legal debt ledger</h2>
         <p>
-          The Service provides a second-by-second time tracker and work diary (/timer) with optional Upwork-style screen
+          The Service provides a second-by-second time tracker and work diary (/timer) with optional work-diary screen
           capture proofs and activity monitoring. Time tracked within organizations and projects may accrue debts
           measured in a non-monetary bookkeeping unit designated as <strong>Ghost Cash (👻)</strong>.
         </p>
@@ -347,11 +347,42 @@ export default function TermsPage() {
           value or redemption right in the affected figures.
         </p>
 
+        <h2 className={h2}>8D. Big communities, pruning, and the Clan Support commons</h2>
+        <p>
+          Hosted organizations may hold up to <strong>10,000 members</strong> (plus prepaid headroom:
+          10 coins per 100 slots, 25% cut included); self-hosted servers are instead capped at{" "}
+          <strong>purchased seats</strong>. Clans may hold up to <strong>100,000 members</strong> (plus
+          prepaid headroom: 10 coins per 1,000 slots). Caps are enforced server-side; joins past the
+          cap are refused. Headroom lifts the ceiling only — per-member upkeep still meters afterwards —
+          and headroom purchases are final.
+        </p>
+        <p>
+          <strong>Pruning consent.</strong> By joining or staying in a large organization or clan you agree
+          its creator/moderators — and its enabled Automated Member Pruning (opt-in for orgs, on by
+          default for clans; arms at 9,000 org / 90,000 clan members) — may remove inactive seats using
+          oldest-activity-first, random-chance, oldest-joined-first, or never-contributed ordering, with
+          dry-run previews. Owners are never pruned; strategy sweeps spare joins younger than 7 days.
+          Pruned members lose their seat, not their account, coins, or history. Removal is final and not
+          a refund event.
+        </p>
+        <p>
+          <strong>Clan Support commons.</strong> Upkeep donations and owner funding are receipted per donor
+          forever (Supporter Status: Ember 1+, Spark 25+, Beacon 100+, Patron 500+, Legend 2,500+ coins
+          lifetime). Donations older than <strong>6 months</strong> past a full year of upkeep protection
+          may be shared by the daily commons sweep: at most <strong>~1% of the eligible surplus per
+          day</strong> (exponential decay, ≈69-day half-life) and at most <strong>50% of all donated
+          coins, lifetime</strong>. Coins older than 12 months are <strong>Globalized</strong> into the
+          central clan reserve (which auto-rescues delinquent clans); 6–12-month coins are{" "}
+          <strong>Given as Tribute</strong> — 70% to the poorest clans, 20% to the reserve, 10% to poor
+          individual members. Expired coin lots never travel. Like all Support (Section 8A), tribute is a
+          gratuitous gift: not charity, not investment, no cash-out, final once moved.
+        </p>
+
         <h2 className={h2}>9. Agent rentals and Teams compute (25% cut on all computing)</h2>
         <p>
           The marketplace lists rentable agents (openclaw/nanoclaw/custom) on providers such as RunPod and
           DigitalOcean. Bookings escrow the gross coin amount; metered heartbeats settle gross into a 25% platform
-          share and 75% provider share, never above escrow. Providers run bring-your-own-endpoint until configured;
+          share and 75% provider share as on-site platform credits (spendable on cloud computing, game credits, and other on-site services only; never cash-out, never withdrawable), never above escrow. Providers run bring-your-own-endpoint until configured;
           the app never fakes a provision. Teams/enterprise (UnitUnite) workspaces; orgs, teams, projects, rooms,
           roles, org wallets, and the cloud catalog (GPU pods, serverless, storage, databases, KV, queue); are
           metered per workspace under the same included 25% cut, with every cent of the platform share attributed in

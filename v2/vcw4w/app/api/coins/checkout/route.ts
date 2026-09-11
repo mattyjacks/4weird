@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
+import { requireHuman } from "@/lib/botid";
 import { CUSTOM_COINS_MAX, CUSTOM_COINS_MIN } from "@/lib/economy";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +30,8 @@ export async function POST(request: Request) {
     return fail("Supabase is not configured.", 503);
   }
   if (!sameOrigin(request)) return fail("Invalid request origin.", 403);
+  const botBlock = await requireHuman(request, "POST /api/coins/checkout");
+  if (botBlock) return botBlock;
   const { data } = await (await createClient()).auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);
   const throttle = rateLimit(`checkout:${data.user.id}`, 10, 60_000);

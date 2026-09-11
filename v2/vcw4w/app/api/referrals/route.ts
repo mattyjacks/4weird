@@ -3,6 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
+import { requireHuman } from "@/lib/botid";
 import { REFERRAL_INVITEE_COINS, REFERRAL_INVITER_COINS, isReferralCode } from "@/lib/economy";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +27,8 @@ export async function GET() {
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  const botBlock = await requireHuman(req, "POST /api/referrals");
+  if (botBlock) return botBlock;
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);

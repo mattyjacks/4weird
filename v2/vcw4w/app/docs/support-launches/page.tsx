@@ -56,7 +56,7 @@ export default function SupportLaunchesPage() {
 
       <SectionHead
         index="1"
-        kicker="Patreon-style"
+        kicker="Creator memberships"
         title="Support verified creators and clans"
         body="Monthly tiers plus one-time tips. Personal support goes only to verified creators (request verification on the Support page â€” every application is reviewed by hand); clans receive through their moderators into the clan wallet."
       />
@@ -76,7 +76,7 @@ export default function SupportLaunchesPage() {
 
       <SectionHead
         index="2"
-        kicker="GoFundMe-style, for launches"
+        kicker="Community fundraising, for launches"
         title="Launch campaigns fund games and startups"
         body="Gift-based backing for creative projects only: game launches, tech startups, and creative tech. Every campaign states a goal, a story, and what the coins will fund. Backers give gifts â€” no ownership, no returns, no enforceable right to any reward."
       />
@@ -99,7 +99,7 @@ export default function SupportLaunchesPage() {
         index="3"
         kicker="The money"
         title="One split everywhere"
-        body="A supporter pays gross coins; 25% stays with the platform and 75% credits the recipient â€” a verified creator's coin balance or a clan's wallet. Raised campaign coins work the same way. Start at /support or /fundraisers."
+        body="A supporter pays gross coins; 25% stays with the platform and 75% credits the recipient — a verified creator's coin balance or a clan's wallet — as on-site platform credits (cloud compute, game credits, other on-site services only; never cash-out, never withdrawable). Raised campaign coins work the same way. Start at /support or /fundraisers."
       />
       <SplitBar leftLabel="75% creator / project" rightLabel="25% platform" />
 

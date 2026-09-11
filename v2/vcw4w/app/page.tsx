@@ -72,7 +72,7 @@ const FAQS = [
   },
   {
     q: "What does 100 🪙 = $1.00 actually mean?",
-    a: "Every price already includes our 25% platform cut; never added on top. The rest goes to the providers and makers doing the work. See /pricing and /my/usage/ for the itemized proof.",
+    a: "Every price already includes our 25% platform cut; never added on top. The rest credits the providers and makers as on-site platform credits (cloud computing, game credits, other on-site services only; never cash-out, never withdrawable). See /pricing and /my/usage/ for the itemized proof.",
   },
   {
     q: "Can I really turn a sentence into a game?",
@@ -395,7 +395,7 @@ export default function Home() {
             <h3 className="mt-3 text-lg font-bold">Agent Swarm Chat</h3>
             <p className="mt-2 text-sm text-muted-foreground">
               1-5 agents as ONE chatbot. Custom prompts, auto tool use
-              (VibeCodeWorker, opencode.ai, DeepSeek harness, fal.ai), per-turn
+              (VibeCodeWorker, code exports, reasoning harness, media tools), per-turn
               metering with the cut inside.
             </p>
             <ul className="mt-3 space-y-1 font-mono text-xs text-muted-foreground">
@@ -498,8 +498,8 @@ export default function Home() {
           Find your weirdos. Fund your favorites.
         </h2>
         <p className="mt-3 max-w-3xl text-muted-foreground sm:text-lg">
-          Discord-style clans, moltbook-style bot APIs, Patreon-style support,
-          GoFundMe-style launches; all on the same honest coin.
+          Clan chat rooms, bot APIs, creator memberships,
+          community launches; all on the same honest coin.
         </p>
         <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Link href="/clans" className="rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-violet-500/60 hover:shadow-xl hover:shadow-violet-500/10">

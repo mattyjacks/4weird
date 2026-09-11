@@ -4,8 +4,8 @@
  *
  * Scope (deliberately narrow so it stays simple):
  *   - Squad workspaces (orgs -> squads)
- *   - GitHub-like projects (Code tab + Issues tab, PRs, milestones)
- *   - Team messaging (Matrix-style E2EE rooms; server stores ciphertext only)
+ *   - Team code projects (Code tab + Issues tab, PRs, milestones)
+ *   - Team messaging (encrypted E2EE rooms; server stores ciphertext only)
  *   - Anything else directly about "getting stuff done as a team"
  *     (tasks, standups, action items, room pins).
  *

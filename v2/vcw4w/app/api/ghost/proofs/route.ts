@@ -9,18 +9,41 @@ export const dynamic = "force-dynamic";
 
 const MAX_BYTES = 1_048_576;
 
+// Full signatures, matching /api/clans/upload: 8-byte PNG, GIF87a/89a,
+// RIFF....WEBP. Short prefixes (e.g. 3-byte "GIF") accept polyglots.
 const MAGIC: Array<{ mime: string; ext: string; check: (b: Uint8Array) => boolean }> = [
-  { mime: "image/png", ext: "png", check: (b) => b.length >= 8 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47 },
+  {
+    mime: "image/png",
+    ext: "png",
+    check: (b) =>
+      b.length >= 8 &&
+      b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47 &&
+      b[4] === 0x0d && b[5] === 0x0a && b[6] === 0x1a && b[7] === 0x0a,
+  },
   { mime: "image/jpeg", ext: "jpg", check: (b) => b.length >= 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff },
-  { mime: "image/gif", ext: "gif", check: (b) => b.length >= 6 && b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46 },
-  { mime: "image/webp", ext: "webp", check: (b) => b.length >= 12 && b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 },
+  {
+    mime: "image/gif",
+    ext: "gif",
+    check: (b) =>
+      b.length >= 6 &&
+      b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x38 &&
+      (b[4] === 0x37 || b[4] === 0x39) && b[5] === 0x61,
+  },
+  {
+    mime: "image/webp",
+    ext: "webp",
+    check: (b) =>
+      b.length >= 12 &&
+      b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 &&
+      b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50,
+  },
 ];
 
 /**
  * POST /api/ghost/proofs; multipart {file, timer_id, caption?}. Worker-
  * ATTACHED proof screenshots for timer sessions (≤1 MB, magic-byte checked,
  * service-role upload to `ghost-proofs`). We never capture screens; the
- * worker supplies proof, like Upwork diaries but consensual by construction.
+ * worker supplies proof, like freelance work diaries but consensual by construction.
  */
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);

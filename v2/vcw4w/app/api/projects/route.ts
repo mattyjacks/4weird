@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -10,10 +11,11 @@ function isSlug(v: unknown): string {
   return /^[a-z0-9-]{2,60}$/.test(s) ? s : "";
 }
 
-// POST /api/projects - GitHub-like project (RPC checks team.projects.create,
+// POST /api/projects - team project (RPC checks team.projects.create,
 // seeds Code-tab README + Issues-tab welcome + default labels).
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;

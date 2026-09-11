@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
+import { requireHuman } from "@/lib/botid";
 import { rpcStatus } from "@/lib/agent-market";
 import {
   FAL_CUT_NOTE,
@@ -37,6 +38,8 @@ export async function POST(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required. Sign in to run fal tools; the catalog + quotes on /fal are free without login.", 401);
+  const botBlock = await requireHuman(req, "POST /api/fal/generate");
+  if (botBlock) return botBlock;
   const rl = rateLimit(`fal:generate:${data.user.id}`, 20, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
 

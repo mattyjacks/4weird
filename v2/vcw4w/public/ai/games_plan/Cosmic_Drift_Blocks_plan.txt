@@ -13,7 +13,7 @@ HOW TO MAKE IT:
 HOW TO MARKET IT:
 - Pitch as a hyper-addictive, browser-based casual game.
 - Capture a 10-second high-score clip demonstrating close-evasion gameplay.
-- Publish on itch.io and share on Twitter/Reddit under modern retro-gaming hubs.
+- Publish on indie game hubs and share on social channels under modern retro-gaming hubs.
 
 HOW TO TEST IT:
 - Load the index.html directly into 4weird VibeCodeWorker dashboard.

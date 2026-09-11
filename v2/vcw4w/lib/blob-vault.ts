@@ -1,5 +1,5 @@
 /**
- * Weird Vault; blob-based file storage on Supabase (Drive + GitHub rival).
+ * Weird Vault; blob-based private file storage on Supabase.
  *
  * Model: content-addressed blobs (sha256) + per-scope file rows.
  * - Scopes are STRICTLY separate: personal (owner_id) vs team (team_id) vs

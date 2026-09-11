@@ -65,7 +65,7 @@ export function TimeReports() {
           <p className="text-2xl font-bold font-mono text-amber-400">
             {summary?.averageActivityScore || 100}%
           </p>
-          <p className="text-xs text-zinc-500">Upwork-style proof avg</p>
+          <p className="text-xs text-zinc-500">Work-diary proof avg</p>
         </div>
       </div>
 

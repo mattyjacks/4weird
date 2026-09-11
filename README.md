@@ -36,7 +36,7 @@ Stuck? Read the plain-English guides at [4weird.com/docs](https://4weird.com/doc
 Play at: [4weird.com/games](https://4weird.com/games)
 
 ### 👾 Clans; little clubs
-Chat like Discord, share pictures, plan game nights. Humans-only clubs, shared clubs, and bot clubs.
+Chat, share pictures, plan game nights. Humans-only clubs, shared clubs, and bot clubs.
 
 Join at: [4weird.com/clans](https://4weird.com/clans)
 
@@ -94,7 +94,7 @@ Coders: it has an API too (`/api/vcw/*`); start a run, add steps, file bugs, fin
   Setup at: [4weird.com/bot/setup](https://4weird.com/bot/setup)
 
 ### 💛 Support creators
-Tip your favorite game makers or clubs with coins. Monthly or one-time. They keep 75%, site keeps 25% to pay servers. No cash-out, just good vibes.
+Tip your favorite game makers or clubs with coins. Monthly or one-time. They keep 75% as on-site credits (cloud computing, game credits, other on-site services only), site keeps 25% to pay servers. Never cash-out, never withdrawable, just good vibes.
 
 At: [4weird.com/support](https://4weird.com/support) and [4weird.com/fundraisers](https://4weird.com/fundraisers)
 
@@ -103,7 +103,7 @@ At: [4weird.com/support](https://4weird.com/support) and [4weird.com/fundraisers
 This repo and the 4weird platform (including VibeCodeWorker) are **private and proprietary; all rights reserved**. There is no MIT / Apache / GPL grant here, except where an individual third-party file carries its own notice.
 
 - Full license: [`LICENSE`](./LICENSE) · Current prices and plans: [4weird.com/pricing](https://4weird.com/pricing) · Terms: [4weird.com/terms](https://4weird.com/terms)
-- Every hosted price already includes the **25% platform cut** (25% platform / 75% provider or creator); never added on top. Routing around metering or the cut violates the license.
+- Every hosted price already includes the **25% platform cut** (25% platform / 75% provider or creator as on-site credits, never cash-out); never added on top. Routing around metering or the cut violates the license.
 - **Contributions assign to us:** by submitting a game, code, art, or other work on the platform you assign all rights to MattyJacks LLC (or grant us an exclusive perpetual license where assignment isn't possible). We may improve, modify, fix, or remove games without asking the creator first.
 - **Credit required:** if you used VibeCodeWorker to help with your game, you must credit it in your game's credits: "Built with help from 4weird VibeCodeWorker - 4weird.com/vibecodeworker".
 - **Self-hosting is paid only:** $420/mo per org (up to 100 seats; +$4.20/mo per extra seat) plus 15% API/compute markup. Enterprise/hyperscaler quotes go down to as little as 9% markup - Talk to Sales. Details on [pricing](https://4weird.com/pricing).
@@ -112,7 +112,7 @@ This repo and the 4weird platform (including VibeCodeWorker) are **private and p
 ## The rules, in plain English
 
 - 100 coins = $1.00, always. The 25% site cut is already inside the price, never added on top.
-- Coins are for fun on the site only. You can't cash them out.
+- Coins are for fun on the site only (cloud computing, game credits, other on-site services). You can't cash them out or withdraw them.
 - Be nice. No cheating, no creepy stuff.
 - Creators: raising money here is gifts only, not charity, not investment.
 - Full rules: [Terms](https://4weird.com/terms) · [Privacy](https://4weird.com/privacy) · [Docs](https://4weird.com/docs)
@@ -158,9 +158,7 @@ All keys are optional. If you skip one, that part just won't work; the rest stil
 
 ### Database (Supabase)
 
-- Files: `v2/vcw4w/supabase/migrations/` (33 files, safe to re-run) + edge function `shopify-coins`
-- Step-by-step: [`supabase-migration-2026-10-9-A`](./supabase-migration-2026-10-9-A) (steps A-D)
-- Copy-paste bundle: [`supabase-migrations-2026-10-9-A.txt`](./supabase-migrations-2026-10-9-A.txt)
+- Files: `v2/vcw4w/supabase/migrations/` (safe to re-run) + edge function `shopify-coins`; run them in filename order
 - New migration rule: make it re-runnable (`IF NOT EXISTS` / `OR REPLACE` / `DROP ... IF EXISTS`) + add a `scripts/verify-*.mjs` check if you add a new part
 
 ### What's in this folder?

@@ -261,7 +261,7 @@ export function TimerWidget({
           </Label>
         </div>
 
-        {/* Upwork Dual-Timer Companion Mode Toggle */}
+        {/* External dual-timer companion mode toggle */}
         <div className="flex items-center gap-2 border-l border-white/10 pl-4">
           <Checkbox
             id="upwork-sync"
@@ -275,7 +275,7 @@ export function TimerWidget({
               upworkSyncMode ? "text-cyan-400" : "text-zinc-400"
             )}
           >
-            <span className="font-semibold text-emerald-400">Upwork</span> Dual-Timer Mode
+            <span className="font-semibold text-emerald-400">External</span> Dual-Timer Mode
           </Label>
         </div>
       </div>
@@ -283,7 +283,7 @@ export function TimerWidget({
       {upworkSyncMode && (
         <div className="p-3 rounded-lg bg-emerald-950/20 border border-emerald-500/20 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
           <div className="space-y-1">
-            <Label className="text-zinc-400">Upwork Contract / Job ID (Optional)</Label>
+            <Label className="text-zinc-400">External Contract / Job ID (Optional)</Label>
             <Input
               placeholder="e.g. ~01abc123456789 or Contract Title"
               value={upworkContractId}
@@ -292,9 +292,9 @@ export function TimerWidget({
             />
           </div>
           <div className="space-y-1">
-            <Label className="text-zinc-400">Upwork Work Diary Memo Sync</Label>
+            <Label className="text-zinc-400">Work Diary Memo Sync</Label>
             <Input
-              placeholder="Memo matching Upwork Desktop app memo"
+              placeholder="Memo matching external tracker memo"
               value={upworkMemo}
               onChange={(e) => setUpworkMemo(e.target.value)}
               className="h-8 bg-black/50 border-emerald-500/30 text-white placeholder:text-zinc-600 text-xs"
@@ -303,7 +303,7 @@ export function TimerWidget({
         </div>
       )}
 
-      {/* Upwork Screen Tracking proof drawer */}
+      {/* Screen tracking proof drawer */}
       <ScreenTracker isRunning={isRunning} entryId={runningTimer?.id || null} />
     </div>
   );

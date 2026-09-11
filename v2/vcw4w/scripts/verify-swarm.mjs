@@ -21,13 +21,13 @@ if (!swarm.includes("quoteSwarmTurn") || !swarm.includes("gameAiSplit")) {
   throw new Error("Swarm lib must quote turns through the 25/75 split.");
 }
 
-// All tools: VCW + opencode.ai + deepseek harness + fal + buddy + delegation.
+// All tools: VCW + code export/heal + harness orchestration + fal + buddy + delegation.
 for (const tool of ["vcw.open_run", "vcw.file_finding", "vcw.handoff", "opencode.export", "opencode.heal", "deepseek.orchestrate", "fal.generate", "buddy.tts", "swarm.delegate"]) {
   if (!swarm.includes(tool)) throw new Error(`Swarm tool registry missing ${tool}.`);
 }
-if (!swarm.includes("opencode.ai")) throw new Error("Swarm lib must name opencode.ai.");
+if (!swarm.includes("code-export bridge")) throw new Error("Swarm lib must name the code-export bridge.");
 if (!swarm.includes("deepseek") || !swarm.includes("planSwarmTurn") || !swarm.includes("OBSERVE")) {
-  throw new Error("Swarm lib must self-orchestrate with the DeepSeek harness observe→reason→act pattern.");
+  throw new Error("Swarm lib must self-orchestrate with the built-in harness observe→reason→act pattern.");
 }
 
 // Custom system prompts: global + per-agent, sized 1..5.
@@ -66,8 +66,8 @@ for (const token of ["swarm_sessions", "swarm_messages", "orchestration", "syste
 if (!mig.includes("if not exists") && !mig.includes("IF NOT EXISTS")) throw new Error("Swarm migration must be rerunnable.");
 if (!mig.includes("meter_game_ai_usage")) throw new Error("Swarm migration must document metering via meter_game_ai_usage.");
 
-// UI: Spark-like hire + chat with system prompts, streaming, export, voice, trace.
-for (const token of ["Hire an agent swarm", "system prompt", "Streaming", "Export MD", "deepseek-harness orchestration trace", "25%"]) {
+// UI: hire + chat with system prompts, streaming, export, voice, trace.
+for (const token of ["Hire an agent swarm", "system prompt", "Streaming", "Export MD", "harness orchestration trace", "25%"]) {
   const hay = `${page} ${widget}`;
   if (!hay.includes(token)) throw new Error(`Swarm UI missing ${token}.`);
 }

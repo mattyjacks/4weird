@@ -47,6 +47,7 @@ export function ClanDiscord({ slug }: { slug: string }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
+  const [memberTotal, setMemberTotal] = useState(0);
   const [events, setEvents] = useState<ClanEvent[]>([]);
   const [text, setText] = useState("");
   const [replyTo, setReplyTo] = useState<string | null>(null);
@@ -77,11 +78,13 @@ export function ClanDiscord({ slug }: { slug: string }) {
         success?: boolean;
         channels?: ChatChannel[];
         members?: Member[];
+        member_total?: number;
         events?: ClanEvent[];
       };
       if (!data.success) return;
       setChannels(data.channels ?? []);
       setMembers(data.members ?? []);
+      setMemberTotal(Number(data.member_total) || (data.members ?? []).length);
       setEvents(data.events ?? []);
     } catch {
       // Sidebar stays as-is on failure; polling retries.
@@ -214,7 +217,7 @@ export function ClanDiscord({ slug }: { slug: string }) {
   return (
     <section className="overflow-hidden rounded-xl border border-white/10 bg-slate-900">
       <div className="border-b border-white/10 px-5 py-3">
-        <h2 className="font-bold text-cyan-300">💬 Clan chat (discord-style)</h2>
+        <h2 className="font-bold text-cyan-300">💬 Clan chat</h2>
         <p className="mt-1 text-xs text-slate-400">
           Channels, threads (reply), emoji reactions, pins, events, and roles. Every message is
           Valley Net screened and pays the standard server-cost fee.
@@ -365,7 +368,7 @@ export function ClanDiscord({ slug }: { slug: string }) {
         {/* Member sidebar */}
         <div className="border-t border-white/10 p-3 md:border-l md:border-t-0">
           <p className="px-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-            Members ({members.length})
+            Members ({memberTotal.toLocaleString()}{memberTotal > members.length ? ` · showing ${members.length}` : ""})
           </p>
           {[
             ["👑 Owner", owners],

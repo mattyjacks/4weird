@@ -1,8 +1,8 @@
 -- ============================================================================
 -- 4weird Support + Launch campaigns; voluntary coin support for verified
--- creators and clans (Patreon-style subscriptions + one-time tips) and
+-- creators and clans (creator-membership subscriptions + one-time tips) and
 -- gift-based project-launch fundraising for games / tech startups
--- (GoFundMe-style, creative projects only; never charity).
+-- (community fundraising, creative projects only; never charity).
 --
 -- LEGAL MODEL (enforced here + Terms §8A + UI disclaimers):
 --   - All transfers move closed-loop Vibe Coins only. Coins have no cash

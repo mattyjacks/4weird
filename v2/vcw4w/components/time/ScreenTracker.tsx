@@ -150,7 +150,7 @@ export function ScreenTracker({ isRunning, entryId }: ScreenTrackerProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Monitor className="h-5 w-5 text-cyan-400" />
-          <span className="font-semibold text-sm text-white">Upwork-Style Screen Proofs</span>
+          <span className="font-semibold text-sm text-white">Work-Diary Screen Proofs</span>
           {isCapturing && (
             <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />

@@ -13,7 +13,7 @@ type VaultFile = {
 };
 
 /**
- * Weird Vault browser; the Drive/GitHub rival. Strictly separated scopes
+ * Weird Vault browser; private file storage with strictly separated scopes
  * (personal / team / org), content-addressed dedup, signed-URL uploads
  * (browser PUTs direct to storage), share links, quarantine hiding.
  */

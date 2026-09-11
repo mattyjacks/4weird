@@ -1,9 +1,9 @@
 -- ============================================================================
--- 4weird Clans v3 - Discord-style social (channels/messages/reactions/roles/
+-- 4weird Clans v3 - clan chat social (channels/messages/reactions/roles/
 -- events/reads) + per-minute server-cost billing + member donations.
 -- Fully rerunnable: IF NOT EXISTS / OR REPLACE / DROP ... IF EXISTS throughout.
 -- ============================================================================
--- SOCIAL (discord-like, per clan):
+-- SOCIAL (clan chat, per clan):
 --   clan_channels        text channels (#general, #announcements, #media ...)
 --   clan_messages        chat messages (threads via reply_to, pins, edit)
 --   clan_message_reactions  emoji reactions (toggle)
@@ -227,7 +227,7 @@ create policy clan_upkeep_state_public_read on public.clan_upkeep_state
   for select to anon, authenticated using (true);
 
 -- 5. Seed default channels for new clans ---------------------------------------
--- Replaces the 4-arg create_clan so every new clan opens as a mini discord:
+-- Replaces the 4-arg create_clan so every new clan opens with starter channels:
 -- #general (chat) + #announcements (readonly) + #media (images).
 create or replace function public.create_clan(
   p_slug text, p_name text, p_description text, p_clan_type text default 'sclan'
@@ -256,7 +256,7 @@ begin
   insert into public.clan_badges (user_id, clan_id, badge)
   values (auth.uid(), v_row.id, 'founder')
   on conflict do nothing;
-  -- Discord-style starter channels.
+  -- Clan starter channels.
   insert into public.clan_channels (clan_id, slug, name, topic, kind, position, readonly, created_by)
   values
     (v_row.id, 'general', '#general', 'Hang out and talk.', 'chat', 0, false, auth.uid()),

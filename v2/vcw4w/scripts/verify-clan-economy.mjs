@@ -295,7 +295,7 @@ const vercel = read("../vercel.json");
 if (!vercel.includes("/api/cron/clan-upkeep") || !vercel.includes("* * * * *")) {
   fail("vercel.json must schedule /api/cron/clan-upkeep every minute.");
 }
-// Discord API surfaces.
+// Clan chat API surfaces.
 const chanRoute = read("../app/api/clans/[slug]/channels/route.ts");
 if (!chanRoute.includes("create_clan_channel")) fail("Channels route must create via RPC.");
 const msgRoute = read("../app/api/clans/[slug]/channels/[channel]/route.ts");
