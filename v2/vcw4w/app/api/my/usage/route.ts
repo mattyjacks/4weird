@@ -302,13 +302,42 @@ export async function GET(req: Request) {
   const clanTotalGross = Number(clan.total.gross) || 0;
   const clanTotalCut = Number(clan.total.cut) || 0;
 
+  // 7b. fal.ai media (15 ops, 25% cut INCLUDED via meter_fal_usage).
+  // Pre-migration or RLS: zeros so the page still renders its skeleton.
+  const fal: {
+    total: { gross: number; cut: number; provider: number; charges: number };
+    byOp: { op: string; charges: number; gross: number; cut: number; provider: number }[];
+    byGame: { game_slug: string; charges: number; gross: number; cut: number; provider: number }[];
+    recent: { game_slug: string; op: string; qty: number; gross_coins: number; cut_coins: number; source: string; created_at: string }[];
+  } = { total: { gross: 0, cut: 0, provider: 0, charges: 0 }, byOp: [], byGame: [], recent: [] };
+  try {
+    const { data: rollup, error } = await supabase.rpc("my_fal_usage");
+    if (!error && rollup) {
+      const r = rollup as Record<string, unknown>;
+      const t = (r.total ?? {}) as { gross?: unknown; cut?: unknown; provider?: unknown; charges?: unknown };
+      fal.total = {
+        gross: Number(t.gross) || 0,
+        cut: Number(t.cut) || 0,
+        provider: Number(t.provider) || 0,
+        charges: Number(t.charges) || 0,
+      };
+      if (Array.isArray(r.byOp)) fal.byOp = r.byOp as typeof fal.byOp;
+      if (Array.isArray(r.byGame)) fal.byGame = r.byGame as typeof fal.byGame;
+      if (Array.isArray(r.recent)) fal.recent = r.recent as typeof fal.recent;
+    }
+  } catch {
+    // Pre-migration: zeros.
+  }
+  const falTotalGross = Number(fal.total.gross) || 0;
+  const falTotalCut = Number(fal.total.cut) || 0;
+
   const combined = {
     gross:
       Math.round(
-        (gameAi.total.gross + agentCompute.gross + workspace.gross + gameRent.total.gross + clanTotalGross) * 100,
+        (gameAi.total.gross + agentCompute.gross + workspace.gross + gameRent.total.gross + clanTotalGross + falTotalGross) * 100,
       ) / 100,
     cut:
-      Math.round((gameAi.total.cut + agentCompute.cut + workspace.cut + gameRent.total.cut + clanTotalCut) * 100) /
+      Math.round((gameAi.total.cut + agentCompute.cut + workspace.cut + gameRent.total.cut + clanTotalCut + falTotalCut) * 100) /
       100,
     provider:
       Math.round(
@@ -316,7 +345,8 @@ export async function GET(req: Request) {
           agentCompute.provider +
           workspace.provider +
           gameRent.total.provider +
-          (clanTotalGross - clanTotalCut)) *
+          (clanTotalGross - clanTotalCut) +
+          (falTotalGross - falTotalCut)) *
           100,
       ) / 100,
   };
@@ -383,6 +413,7 @@ export async function GET(req: Request) {
     gameRent,
     clan,
     runpod,
+    fal,
     combined,
     note: GAME_AI_CUT_NOTE,
   });

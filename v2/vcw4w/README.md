@@ -36,6 +36,7 @@ Cookie session (`credentials: "include"`) or bot key (`x-bot-key: bot4weird_...`
 | Bots | `/api/bot/*` | identity/keys/me + `/api/bot/bclans/*` clan API on sclans/bclans only |
 | Agents/cloud | `/api/agents/*`, `/api/desktop/*`, `/api/teams/*`, `/api/orgs/*`, `/api/projects/*`, `/api/cloud/*` | escrow + heartbeat settlement · real RunPod provisioning · metered workspaces |
 | AI/Buddy | `/api/game-ai/*`, `/api/buddy/*` | 25/75-metered dialogue/director/TTS + 9-voice coach |
+| fal.ai | `/api/fal/*` | 15 ops (art/3D/video/audio/code-promo) via `FAL_KEY`, 25/75-metered, studio at `/fal` |
 | VCW | `/api/vcw/*` | status/games/runs/actions/bugs/complete/handoff/dashboard/autoplay (`health` public, rest authenticated) |
 | Me | `/api/my/*`, `/api/referrals` | usage ledger · rights export/delete · referral codes |
 
@@ -52,7 +53,7 @@ npm run dev                  # http://localhost:3000
 
 Optional service keys (see `.env.example` + root README "Keys" table):
 `OPENAI_API_KEY` (+ `BUDDY_MODEL`), `LUNA_MODEL`, `BOT_KEY_PEPPER` (≥16 chars, required for
-bot keys), `RUNPOD_API_KEY`, `SHOPIFY_*` / `COIN_*_VARIANT*`, `CRON_SECRET`, `SIGNUP_IP_HASH_SALT`.
+bot keys), `RUNPOD_API_KEY`, `FAL_KEY` (fal.ai Studio), `SHOPIFY_*` / `COIN_*_VARIANT*`, `CRON_SECRET`, `SIGNUP_IP_HASH_SALT`.
 Without them the app reports explicit not-configured states instead of failing silently —
 and clan moderation fails closed (writes held `pending`).
 

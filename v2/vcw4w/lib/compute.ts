@@ -199,6 +199,9 @@ async function createRunpodPod(opts: {
   gpuId: string;
   ports: string[];
   env: Record<string, string>;
+  /** Start-command override (RunPod runs it instead of the image default). */
+  args?: string;
+  diskGb?: number;
 }): Promise<{ ok: true; podId: string } | { ok: false; error: string }> {
   const key = (process.env.RUNPOD_API_KEY ?? "").trim();
   if (!key) return { ok: false, error: "RUNPOD_API_KEY is not set." };
@@ -220,7 +223,8 @@ async function createRunpodPod(opts: {
         gpu: { id: opts.gpuId, count: 1 },
         ports: opts.ports,
         env: opts.env,
-        disk: 20,
+        ...(opts.args ? { args: opts.args } : {}),
+        disk: opts.diskGb ?? 20,
       }),
     });
     if (!res.ok) {
@@ -242,6 +246,77 @@ async function createRunpodPod(opts: {
 /** RunPod default endpoint for an HTTP port (no custom URL needed). */
 export function runpodProxyUrl(podId: string, port: number): string {
   return `https://${podId}-${port}.proxy.runpod.net`;
+}
+
+/**
+ * Live pod state (server key). Best-effort: callers treat failure as
+ * "unknown", never as proof the pod is gone.
+ */
+export async function getPodLive(
+  podId: string,
+): Promise<{ ok: true; status: string } | { ok: false; error: string }> {
+  const key = (process.env.RUNPOD_API_KEY ?? "").trim();
+  if (!key) return { ok: false, error: "RUNPOD_API_KEY is not set." };
+  const id = String(podId ?? "").trim();
+  if (!id) return { ok: false, error: "Missing pod id." };
+  const base = (process.env.RUNPOD_API_BASE ?? "").trim().replace(/\/+$/, "") || RUNPOD_API_BASE_DEFAULT;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15_000);
+  try {
+    const res = await fetch(`${base}/pods/${encodeURIComponent(id)}`, {
+      signal: controller.signal,
+      headers: { Authorization: `Bearer ${key}`, Accept: "application/json" },
+    });
+    if (!res.ok) return { ok: false, error: `RunPod pod get HTTP ${res.status}.` };
+    const data = (await res.json()) as { status?: unknown; pod?: { status?: unknown } };
+    const status = String(data.status ?? data.pod?.status ?? "UNKNOWN");
+    return { ok: true, status };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "fetch failed";
+    return { ok: false, error: `RunPod request failed: ${msg.slice(0, 120)}` };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Stop a pod (releases GPU/CPU compute, keeps disk). A 409 "wrong state" is
+ * reported as failure with its message so callers can mark the job stopped
+ * anyway when the pod is already EXITED/TERMINATED.
+ */
+export async function stopPodAction(
+  podId: string,
+): Promise<{ ok: true; status: string } | { ok: false; error: string }> {
+  const key = (process.env.RUNPOD_API_KEY ?? "").trim();
+  if (!key) return { ok: false, error: "RUNPOD_API_KEY is not set." };
+  const id = String(podId ?? "").trim();
+  if (!id) return { ok: false, error: "Missing pod id." };
+  const base = (process.env.RUNPOD_API_BASE ?? "").trim().replace(/\/+$/, "") || RUNPOD_API_BASE_DEFAULT;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 20_000);
+  try {
+    const res = await fetch(`${base}/pods/${encodeURIComponent(id)}/action`, {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${key}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ action: "stop" }),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      return { ok: false, error: `RunPod pod stop HTTP ${res.status}: ${text.slice(0, 160)}` };
+    }
+    const data = (await res.json()) as { status?: unknown; pod?: { status?: unknown } };
+    return { ok: true, status: String(data.status ?? data.pod?.status ?? "UNKNOWN") };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "fetch failed";
+    return { ok: false, error: `RunPod request failed: ${msg.slice(0, 140)}` };
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export const runpodProvider: ComputeProvider = {
@@ -529,20 +604,34 @@ async function createRunpodCpuPod(opts: {
   }
 }
 
-/** Most capable Secure GPU with stock (highest hourly price proxy). */
-function pickBoostedGpu(
+/**
+ * Boosted (Xonotic vision) GPU preference: GeForce RTX 4090 first, RTX 5090
+ * fallback. Priciest-card picking is gone on purpose — datacenter compute
+ * cards cost up to 9x more yet render games worse than GeForce. Pure +
+ * unit-testable: pass catalog rows in.
+ */
+export const BOOSTED_GPU_PREFERENCE = [
+  "NVIDIA GeForce RTX 4090",
+  "NVIDIA GeForce RTX 5090",
+];
+
+export function pickBoostedGpu(
   gpus: { id: string; availability?: string; secure?: boolean; priceSecure?: number }[],
 ): { id: string; hourlyUsd: number } | null {
-  const avail = gpus.filter(
-    (g) =>
+  const byId = new Map(gpus.map((g) => [g.id, g]));
+  for (const id of BOOSTED_GPU_PREFERENCE) {
+    const g = byId.get(id);
+    if (
+      g &&
       g.secure &&
       (g.availability ?? "NONE") !== "NONE" &&
       Number.isFinite(g.priceSecure) &&
-      (g.priceSecure as number) > 0,
-  );
-  if (!avail.length) return null;
-  avail.sort((a, b) => (b.priceSecure as number) - (a.priceSecure as number));
-  return { id: avail[0].id, hourlyUsd: avail[0].priceSecure as number };
+      (g.priceSecure as number) > 0
+    ) {
+      return { id, hourlyUsd: g.priceSecure as number };
+    }
+  }
+  return null;
 }
 
 export type ProvisionAutoplayResult =
@@ -645,7 +734,7 @@ export async function provisionAutoplayWorker(opts: {
   }));
   if (opts.compute === "gpu-boosted") {
     const best = pickBoostedGpu(rows);
-    if (!best) return { error: "no_stock", message: "No RunPod Secure GPU stock right now." };
+    if (!best) return { error: "no_stock", message: "No RTX 4090/5090 Secure GPU stock right now." };
     const created = await createRunpodPod({
       name: opts.name,
       image: workload.image,
@@ -691,6 +780,55 @@ export async function provisionAutoplayWorker(opts: {
     cpuId: "",
     hourlyUsd: pick.hourlyUsd,
     port: workload.port,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Blender render workers (/blender): a pinned RTX 4090 pod (5090 fallback)
+// that boots Blender and renders a .blend to mp4. The start command carries
+// the whole bootstrap via env (BLENDER_BOOTSTRAP) so no shell quoting
+// crosses the RunPod API boundary.
+// ---------------------------------------------------------------------------
+
+export async function provisionBlenderWorker(opts: {
+  name: string;
+  image: string;
+  ports: string[];
+  env: Record<string, string>;
+  bootstrap: string;
+  diskGb?: number;
+}): Promise<ProvisionAutoplayResult> {
+  if (!runpodConfigured()) return { error: "unconfigured" };
+  const catalog = await fetchPodGpuCatalog();
+  if (!catalog.ok) return { error: "provision_failed", message: catalog.error };
+  const rows = catalog.gpus.map((g) => ({
+    id: g.id,
+    availability: g.availability,
+    secure: g.secure,
+    priceSecure: Number(g.price?.secure ?? 0),
+  }));
+  const pick = pickBoostedGpu(rows);
+  if (!pick) {
+    return { error: "no_stock", message: "No RTX 4090/5090 Secure GPU stock right now." };
+  }
+  const created = await createRunpodPod({
+    name: opts.name,
+    image: opts.image,
+    gpuId: pick.id,
+    ports: opts.ports,
+    env: { ...opts.env, BLENDER_BOOTSTRAP: opts.bootstrap },
+    args: 'bash -c "$BLENDER_BOOTSTRAP"',
+    diskGb: opts.diskGb ?? 30,
+  });
+  if (!created.ok) return { error: "provision_failed", message: created.error };
+  return {
+    endpointUrl: runpodProxyUrl(created.podId, 8888),
+    podId: created.podId,
+    kind: "gpu",
+    gpuId: pick.id,
+    cpuId: "",
+    hourlyUsd: pick.hourlyUsd,
+    port: 8888,
   };
 }
 

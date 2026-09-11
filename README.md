@@ -42,6 +42,7 @@ npm run build
 | `OPENAI_API_KEY` (+ `BUDDY_MODEL`) | Buddy chat/voice, game AI | Local fallback lines + browser speech; clan moderation fails closed (writes held `pending`) |
 | `LUNA_MODEL` | Valley Net AI judge tuning | Heuristic shields still run |
 | `RUNPOD_API_KEY` | Agent/desktop provisioning + spend mirror | Honest `started:false` / not-configured states, never faked |
+| `FAL_KEY` (`FAL_API_KEY` alias) | fal.ai Studio: 15 game-dev + coding media tools | Honest `started:false` + quote-only states, never faked |
 | `SHOPIFY_STORE_DOMAIN` + `COIN_PACK_VARIANTS` / `COIN_CUSTOM_VARIANT` | Coin checkout | Catalog still visible |
 | `CRON_SECRET` | Per-minute clan-upkeep cron | Lazy accrual on clan reads covers gaps locally |
 | `SIGNUP_IP_HASH_SALT` | 100-coin signup trial | Trial credit declined rather than hashed unsafely |

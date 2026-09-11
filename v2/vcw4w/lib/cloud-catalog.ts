@@ -54,7 +54,22 @@ export const CLOUD_SERVICES: CloudService[] = [
   { key: "buddy-voice", name: "Gaming Buddy Voice", unit: "1k_chars", coinsPerUnit: 2, blurb: "Buddy speech in 9 OpenAI voices (Alloy→Shimmer)", category: "Game AI", tier: "cheapest-tts", runtime: "tts-newest-viable" },
   { key: "vcw-autoplay-cpu", name: "VCW Autoplay (CPU remote)", unit: "remote_min", coinsPerUnit: 0.14, blurb: "RunPod CPU remote plays 4weird games on-site only, ~$0.08/hr gross (browser locked)", category: "Game AI", tier: "cheapest-cpu", runtime: "ubuntu-newest-viable" },
   { key: "vcw-autoplay-gpu", name: "VCW Autoplay (GPU remote)", unit: "remote_min", coinsPerUnit: 0.63, blurb: "RunPod GPU remote plays 4weird games on-site only, ~$0.37/hr gross (browser locked)", category: "Game AI", tier: "cheapest-gpu", runtime: "cuda-newest-viable" },
-  { key: "vcw-autoplay-gpu-boosted", name: "VCW Autoplay (GPU boosted)", unit: "remote_min", coinsPerUnit: 16, blurb: "Best RunPod GPU: fastest 4weird on-site vision; required for Xonotic off-site, ceiling quoted exactly at start (desktop app required)", category: "Game AI", tier: "best-gpu", runtime: "cuda-newest-viable" },
+  { key: "vcw-autoplay-gpu-boosted", name: "VCW Autoplay (GPU boosted)", unit: "remote_min", coinsPerUnit: 2.2, blurb: "Pinned RTX 4090 (5090 fallback): fastest 4weird on-site vision; required for Xonotic off-site, ~$1.32/hr gross ceiling quoted exactly at start (desktop app required)", category: "Game AI", tier: "rtx-4090-pinned", runtime: "cuda-newest-viable" },
+  { key: "fal-concept-art", name: "fal Concept Art", unit: "image", coinsPerUnit: 8, blurb: "FLUX-speed key art: levels, characters, loading screens (fal-ai/flux/schnell)", category: "fal.ai Media", tier: "turbo", runtime: "flux-schnell" },
+  { key: "fal-sprite-edit", name: "fal Sprite Edit", unit: "image", coinsPerUnit: 8, blurb: "Reskin any sprite with a sentence — same pose, new vibe (nano-banana-2/edit)", category: "fal.ai Media", tier: "turbo", runtime: "nano-banana-2" },
+  { key: "fal-icon-logo", name: "fal Icon + Logo", unit: "image", coinsPerUnit: 10, blurb: "Game icons, logos + clan badges with real typography (ideogram/v3)", category: "fal.ai Media", tier: "turbo", runtime: "ideogram-v3" },
+  { key: "fal-texture-tile", name: "fal Texture Tile", unit: "image", coinsPerUnit: 8, blurb: "Tileable dungeon, grass, metal + neon textures (recraft-v3)", category: "fal.ai Media", tier: "turbo", runtime: "recraft-v3" },
+  { key: "fal-upscale-hd", name: "fal HD Upscale", unit: "image", coinsPerUnit: 6, blurb: "Remaster pixel art + screenshots to crisp HD (topaz/upscale)", category: "fal.ai Media", tier: "turbo", runtime: "topaz-upscale" },
+  { key: "fal-remove-bg", name: "fal Sprite Cutout", unit: "image", coinsPerUnit: 3, blurb: "Clean background removal for web-game sprites (birefnet)", category: "fal.ai Media", tier: "turbo", runtime: "birefnet" },
+  { key: "fal-render-3d", name: "fal 3D Prop", unit: "model", coinsPerUnit: 15, blurb: "One sketch into a spinnable 3D prop (trellis/image-to-3d)", category: "fal.ai Media", tier: "turbo", runtime: "trellis-3d" },
+  { key: "fal-trailer-clip", name: "fal Trailer Clip", unit: "clip", coinsPerUnit: 25, blurb: "Cinematic teaser trailers from one sentence (kling-video/v3)", category: "fal.ai Media", tier: "pro", runtime: "kling-v3-pro" },
+  { key: "fal-animate-sprite", name: "fal Living Portrait", unit: "clip", coinsPerUnit: 20, blurb: "Breathe motion into static art — cutscenes in seconds (minimax/h3)", category: "fal.ai Media", tier: "pro", runtime: "minimax-h3" },
+  { key: "fal-npc-voice", name: "fal NPC Voice", unit: "1k_chars", coinsPerUnit: 4, blurb: "Quest givers that talk — warm HD narration (minimax/speech-02-hd)", category: "fal.ai Media", tier: "turbo", runtime: "minimax-speech-hd" },
+  { key: "fal-sfx-burst", name: "fal SFX Burst", unit: "clip", coinsPerUnit: 6, blurb: "Laser zaps, coin dings, dungeon booms on demand (stable-audio-v2)", category: "fal.ai Media", tier: "turbo", runtime: "stable-audio-v2" },
+  { key: "fal-theme-music", name: "fal Theme Music", unit: "clip", coinsPerUnit: 10, blurb: "Menu loops + boss themes that never loop awkwardly (musicgen)", category: "fal.ai Media", tier: "turbo", runtime: "musicgen-medium" },
+  { key: "fal-lipsync-take", name: "fal Lip-Sync Take", unit: "clip", coinsPerUnit: 18, blurb: "Talking NPC portraits — audio + face synced (sync-lipsync)", category: "fal.ai Media", tier: "pro", runtime: "sync-lipsync" },
+  { key: "fal-playtest-notes", name: "fal Playtest Notes", unit: "min_audio", coinsPerUnit: 3, blurb: "Transcribe playtests + standups into VCW bugs (whisper-v3)", category: "fal.ai Media", tier: "turbo", runtime: "whisper-v3" },
+  { key: "fal-app-promo", name: "fal App Promo Kit", unit: "image", coinsPerUnit: 8, blurb: "Shipped-code glow-up: OG cards + icons for web apps (flux/dev)", category: "fal.ai Media", tier: "turbo", runtime: "flux-dev" },
 ];
 
 /** Cheapest viable default per category (what the UI preselects). */
@@ -66,6 +81,7 @@ export const CHEAPEST_DEFAULTS: Record<string, string> = {
   DevOps: "ci-actions",
   AI: "inference-api",
   "Game AI": "game-ai-director",
+  "fal.ai Media": "fal-remove-bg",
 };
 
 /**

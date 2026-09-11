@@ -58,6 +58,9 @@ if (!compute.includes("Xonotic autoplay needs GPU boosted")) {
   throw new Error("compute must refuse non-boosted Xonotic (fail closed).");
 }
 if (!compute.includes("on-site only")) throw new Error("compute must refuse off-site for catalog games.");
+if (!compute.includes("BOOSTED_GPU_PREFERENCE") || !compute.includes("NVIDIA GeForce RTX 4090")) {
+  throw new Error("compute must pin boosted autoplay to the RTX 4090 (5090 fallback), never priciest-card.");
+}
 
 // API: auth, rate limit, shared plan enforcement, honest provision states.
 for (const token of [

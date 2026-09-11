@@ -59,14 +59,15 @@ export type AutoplayRate = {
  * - cpu 0.14/min: cpu3c 2 vCPU at $0.06/hr → $0.08/hr gross.
  * - gpu 0.63/min: cheapest Secure GPUs with stock ($0.24–0.28/hr: RTX 2000
  *   Ada, RTX A4000/A4500, RTX A5000, RTX 4000 Ada) → $0.373/hr gross.
- * - gpu-boosted 16/min: priciest Secure POD stock (B200 $6.79/hr) →
- *   $9.05/hr gross. Boosted picks the priciest card with stock, so this is
- *   a ceiling — the API quotes the provisioned card exactly at start time
- *   (quoteAutoplayForUsd). A 55-min run is ~8 / ~35 / ~880 coins. */
+ * - gpu-boosted 2.2/min: pinned to GeForce RTX 4090 ($0.74/hr, RTX 5090 $0.99/hr
+ *   fallback) → $1.32/hr gross ceiling. Boosted no longer chases the
+ *   priciest card with stock — compute cards cost up to 9x more yet render
+ *   games worse. The API still quotes the provisioned card exactly at start
+ *   (quoteAutoplayForUsd). A 55-min run is ~8 / ~35 / ~121 coins. */
 export const AUTOPLAY_RATES: AutoplayRate[] = [
   { compute: "cpu", unit: "remote_min", coinsPerMinute: 0.14, blurb: "RunPod CPU remote drives the 4weird play page (cheapest autoplay, ~$0.08/hr gross)." },
   { compute: "gpu", unit: "remote_min", coinsPerMinute: 0.63, blurb: "RunPod GPU remote drives the 4weird play page with vision (~$0.37/hr gross)." },
-  { compute: "gpu-boosted", unit: "remote_min", coinsPerMinute: 16, blurb: "Best RunPod GPU: fastest vision for 4weird games, required for Xonotic off-site (ceiling — quoted exactly at start)." },
+  { compute: "gpu-boosted", unit: "remote_min", coinsPerMinute: 2.2, blurb: "Pinned RTX 4090 (5090 fallback): fastest game vision for 4weird games, required for Xonotic off-site (~$1.32/hr gross ceiling, quoted exactly at start)." },
 ];
 
 export function isAutoplayCompute(value: unknown): value is AutoplayCompute {

@@ -3,6 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { gameSlugs } from "@/content/games";
+import { FAL_OPS, falConfigured } from "@/lib/fal";
 
 export const dynamic = "force-dynamic";
 
@@ -54,5 +55,8 @@ export async function GET() {
     catalog_games: gameSlugs.length,
     runs: runCount ?? 0,
     bugs: bugCount ?? 0,
+    fal_ops: FAL_OPS.length,
+    fal_configured: falConfigured(),
+    fal_studio: "/fal",
   });
 }
