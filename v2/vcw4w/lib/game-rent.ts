@@ -140,7 +140,8 @@ export function rateOrDefault(rate: GameRate | null | undefined): Required<GameR
 export function quotePlay(hours: number, coinsPerLoad: number, coinsPerHour: number): number {
   const h = Math.max(0, Math.floor(hours));
   if (h <= 0) return 0;
-  return Math.max(0, Math.floor(coinsPerLoad)) + Math.max(0, h - 1) * Math.max(0, Math.floor(coinsPerHour));
+  // Per-second ledger: full 1 MiB load + running from the first second.
+  return loadFeeForBytes(GAME_LOAD_REFERENCE_BYTES, coinsPerLoad) + runningOwed(h * 3600, coinsPerHour);
 }
 
 /** Worst-case coins for `seconds` of play (full 1 MiB load + per-second running). */

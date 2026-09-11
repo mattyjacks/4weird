@@ -26,9 +26,11 @@ export async function GET(req: Request) {
   if (provider && !isProviderCode(provider))
     return fail("Invalid provider.", 400);
   const supabase = await createClient();
+  // Public card only: owner_id/endpoint_url stay private (the [id] route
+  // strips them for non-owners too). The marketplace UI renders no owner.
   let query = supabase
     .from("agent_listings")
-    .select("id,owner_id,name,runtime,provider_code,price_cents_per_hour,status,created_at")
+    .select("id,name,runtime,provider_code,price_cents_per_hour,status,created_at")
     .eq("status", "available")
     .order("created_at", { ascending: false })
     .limit(100);

@@ -12,7 +12,7 @@ import {
 
 type Listing = {
   id: string;
-  owner_id: string;
+  owner_id?: string;
   name: string;
   runtime: string;
   provider_code: string;

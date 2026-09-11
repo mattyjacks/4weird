@@ -3,7 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
-import { clientIp, isEmail, isPassword } from "@/lib/validate";
+import { clientIp, isEmail, isLoginPassword } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +24,9 @@ export async function POST(req: Request) {
   }
   const input = (body ?? {}) as Record<string, unknown>;
   const email = isEmail(input.email);
-  const password = isPassword(input.password);
+  // Length-shape only: strength is enforced at signup/change, and pre-rule
+  // accounts must still be able to present their existing password here.
+  const password = isLoginPassword(input.password);
   // Generic message either way: no oracle for which half was wrong.
   if (!email || !password) return fail("Invalid login credentials.", 401);
   // Per-account throttle survives IP rotation during credential stuffing.

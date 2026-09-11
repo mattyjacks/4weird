@@ -36,4 +36,20 @@ for (const [name, src] of [["usage", usagePage], ["rights", rightsPage]]) {
   if (!src.includes("!hasEnvVars")) throw new Error(`${name} page must degrade gracefully without Supabase env.`);
   if (!src.includes('robots: { index: false, follow: false }')) throw new Error(`${name} page must stay noindex.`);
 }
+
+// Password rules: strength (3 of 4 classes) is enforced when a password is
+// CHOSEN (signup/change), never when it is PRESENTED — login must use the
+// length-shape check so pre-rule accounts are not locked out, and both
+// chooser surfaces must state the rule upfront.
+const validate = read("../lib/validate.ts");
+if (!validate.includes("export function isLoginPassword")) throw new Error("validate must export isLoginPassword (login-shape check).");
+const loginRoute = read("../app/api/auth/login/route.ts");
+if (!loginRoute.includes("isLoginPassword")) throw new Error("Login must validate with isLoginPassword (no strength classes).");
+if (/[^a-zA-Z]isPassword\(/.test(loginRoute)) throw new Error("Login must not enforce isPassword strength (locks out pre-rule accounts).");
+const signupRoute = read("../app/api/auth/signup/route.ts");
+if (!signupRoute.includes("isPassword(input.password)")) throw new Error("Signup must enforce isPassword strength.");
+if (!signupRoute.includes("3 of: lowercase, UPPERCASE, digits, symbols")) throw new Error("Signup must tell the user the password rule.");
+for (const [name, src] of [["sign-up", signup], ["update-password", update]]) {
+  if (!src.includes("lowercase, UPPERCASE, digits, symbols")) throw new Error(`${name} form must state the password rule upfront.`);
+}
 console.log("Auth route integrity OK.");

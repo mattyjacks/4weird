@@ -15,6 +15,8 @@ function isClanSlug(v: unknown): string {
 // GET /api/clans?type=hclan|sclan|bclan — public list of clans.
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  const rl = rateLimit(`clans-list:${clientIp(req)}`, 60, 60_000);
+  if (!rl.allowed) return fail("Rate limited.", 429);
   const type = isClanType(new URL(req.url).searchParams.get("type"));
   const supabase = await createClient();
   let query = supabase

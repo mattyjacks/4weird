@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
@@ -15,13 +15,28 @@ export async function GET(req: Request) {
   if (!u) return fail("Login required.", 401);
   const peer = new URL(req.url).searchParams.get("with");
   if (!isUuid(peer)) return fail("Choose a friend.", 400);
+  const rl = rateLimit(`msg-read:${u.id}`, 60, 60_000);
+  if (!rl.allowed) return fail("Too many requests.", 429);
+  // Defense-in-depth friendship check (RLS is authoritative).
+  try {
+    const { data: fr } = await supabase
+      .from("friendships")
+      .select("id")
+      .or(`and(requester_id.eq.${u.id},addressee_id.eq.${peer}),and(requester_id.eq.${peer},addressee_id.eq.${u.id})`)
+      .eq("status", "accepted")
+      .limit(1)
+      .maybeSingle();
+    if (!fr) return fail("Messages are only available to friends.", 403);
+  } catch {
+    return dbFail("api/messages", "friendship check failed");
+  }
   const { data: messages, error } = await supabase
     .from("direct_messages")
     .select("id,sender_id,recipient_id,body,created_at,read_at")
     .or(`and(sender_id.eq.${u.id},recipient_id.eq.${peer}),and(sender_id.eq.${peer},recipient_id.eq.${u.id})`)
     .order("created_at", { ascending: true })
     .limit(100);
-  if (error) return fail("internal error", 500);
+  if (error) return dbFail("api/messages", error, "Unable to load messages.");
   return ok({ messages: messages ?? [] });
 }
 

@@ -43,7 +43,8 @@ export async function POST(req: Request) {
   const email = isEmail(input.email);
   const password = isPassword(input.password);
   if (!email) return fail("Enter a valid email address.", 400);
-  if (!password) return fail("Password must be 8-128 characters.", 400);
+  if (!password)
+    return fail("Password needs 8+ characters with 3 of: lowercase, UPPERCASE, digits, symbols.", 400);
   try {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.signUp({ email, password });

@@ -47,20 +47,21 @@ export async function POST(req: Request) {
       if (qErr) return dbFail("api/coins/claim", qErr);
       let claimed = 0;
       for (const g of ((pending as { id: string; coins: number; shopify_order_name: string | null }[] | null) ?? [])) {
-        const { data: won } = await db
-          .from("coin_grants")
-          .update({ user_id: user.id, claimed: true })
-          .eq("id", g.id)
-          .eq("claimed", false)
-          .select("id");
-        if (!won || (won as unknown[]).length === 0) continue;
+        // Ledger-first with UNIQUE(grant_id): if the insert fails the grant
+        // stays unclaimed and is retryable (never burned).
         const { error: ledgerErr } = await db.from("coin_ledger").insert({
           user_id: user.id,
           delta: g.coins,
           reason: (`Shopify order ${g.shopify_order_name ?? ""}`).slice(0, 120),
           grant_id: g.id,
         });
-        if (!ledgerErr) claimed += 1;
+        if (ledgerErr) continue;
+        await db
+          .from("coin_grants")
+          .update({ user_id: user.id, claimed: true })
+          .eq("id", g.id)
+          .eq("claimed", false);
+        claimed += 1;
       }
       return ok({ claimed });
     } catch (error) {

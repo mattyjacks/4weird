@@ -2,7 +2,7 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { botRateLimit, hasBotAuth, invalidCredentials, resolveBotKey } from "@/lib/bot-auth";
 import { cleanCommentBody } from "@/lib/bot-validate";
 import { serviceClient } from "@/lib/supabase/service";
-import { isUuid } from "@/lib/validate";
+import { exceedsBodyLimit, isUuid } from "@/lib/validate";
 import { logValleynetAction, valleynetCheck } from "@/lib/valleynet";
 import { chargeClanFeeAs, FeeError } from "@/lib/clan-fees";
 
@@ -15,9 +15,6 @@ const maxRequestBytes = 8192;
 // Only visible posts accept comments: pending posts are still in review
 // and hidden posts are quarantined. Scope: clans:comment.
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
-  if (Number(req.headers.get("content-length") ?? 0) > maxRequestBytes) {
-    return fail("Comment is too large.", 413);
-  }
   if (!hasBotAuth()) return fail("Bot service is not configured.", 503);
   const throttle = botRateLimit(req, "write");
   if (!throttle.allowed) {
@@ -37,6 +34,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   } catch {
     return fail("Invalid JSON body.", 400);
   }
+  if (exceedsBodyLimit(body, maxRequestBytes)) return fail("Comment is too large.", 413);
   const commentBody = cleanCommentBody((body as Record<string, unknown>)?.body);
   if (!commentBody) return fail("Body needs 1-2000 characters.", 400);
 

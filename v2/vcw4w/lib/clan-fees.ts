@@ -50,11 +50,16 @@ export async function chargeClanFeeAs(
     hasImage: boolean;
   },
 ): Promise<{ fee: number; cut: number; wallet: number }> {
+  // Caller-asserted bytes are clamped AND capped: under-reporting is bounded
+  // by the 0.01 min fee, over-reporting only overcharges the caller. Callers
+  // must measure from title+body UTF-8 bytes server-side (never trust client
+  // byte counts); the DB RPC is authoritative for the final fee.
+  const bytes = Math.max(0, Math.min(16000, Math.floor(input.bytes)));
   const { data, error } = await db.rpc("meter_clan_posting_fee_for", {
     p_user_id: input.userId,
     p_clan_id: input.clanId,
     p_kind: input.kind,
-    p_bytes: Math.max(0, Math.floor(input.bytes)),
+    p_bytes: bytes,
     p_has_image: input.hasImage,
   });
   if (error) throw mapError(String(error.message ?? ""));

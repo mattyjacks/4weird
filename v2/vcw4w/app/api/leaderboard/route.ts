@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
+import { rateLimit } from "@/lib/rate-limit";
+import { clientIp } from "@/lib/validate";
 import { gameSlugs, games } from "@/content/games";
 
 export const dynamic = "force-dynamic";
@@ -20,8 +22,10 @@ export async function GET(req: Request) {
   if (!gameSlugs.includes(game)) return fail("Unknown game.", 404);
   if (!(METRICS as readonly string[]).includes(metric)) return fail("Unknown metric.", 400);
   const supabase = await createClient();
+  const rl = rateLimit(`leaderboard:${clientIp(req)}`, 60, 60_000);
+  if (!rl.allowed) return fail("Rate limited.", 429);
   const { data, error } = await supabase.rpc("leaderboard_top", { p_game: game, p_metric: metric });
-  if (error) return fail("internal error", 500);
+  if (error) return dbFail("api/leaderboard", error, "Unable to load leaderboard.");
   const rows = ((data as { player: string; value: number }[] | null) ?? []).map((r, i) => ({
     rank: i + 1,
     player: r.player || "Player",

@@ -58,9 +58,10 @@ export function rateForKind(kind: GameAiKind): GameAiRate | undefined {
 
 /** Split a game-AI gross charge into platform cut + provider share. */
 export function gameAiSplit(grossCoins: number): { gross: number; cut: number; provider: number } {
-  const gross = Math.max(0, Math.floor(grossCoins));
-  const cut = Math.round((gross * GAME_AI_COMPUTE_CUT_PCT) / 100);
-  return { gross, cut, provider: gross - cut };
+  // Mirror SQL meter: round(gross,2), cut=round(gross*25/100,2), provider=gross-cut.
+  const gross = Math.max(0, Math.round(Number(grossCoins) * 100) / 100);
+  const cut = Math.round((gross * GAME_AI_COMPUTE_CUT_PCT) / 100 * 100) / 100;
+  return { gross, cut, provider: Math.round((gross - cut) * 100) / 100 };
 }
 
 /** Quote gross coins for a kind x qty (qty = tokens/1000, chars/1000, minutes, decisions). */

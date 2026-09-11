@@ -90,6 +90,7 @@ export async function GET(req: Request) {
     const { data: rows } = await supabase
       .from("coin_ledger")
       .select("delta,reason,created_at")
+      .eq("user_id", data.user.id)
       .order("created_at", { ascending: false })
       .limit(limit);
     coins = (rows ?? []) as typeof coins;
@@ -149,7 +150,7 @@ export async function GET(req: Request) {
     byService: { service: string; unit: string; qty: number; gross: number; cut: number; provider: number }[];
   } = { gross: 0, cut: 0, provider: 0, charges: 0, functions: { gross: 0, cut: 0, charges: 0 }, byService: [] };
   try {
-    const { data: provisions } = await supabase.from("cloud_provisions").select("id,service_key");
+    const { data: provisions } = await supabase.from("cloud_provisions").select("id,service_key").limit(200);
     const provRows = (provisions ?? []) as { id: string; service_key: string }[];
     if (provRows.length) {
       const ids = provRows.map((p) => p.id).slice(0, 200);

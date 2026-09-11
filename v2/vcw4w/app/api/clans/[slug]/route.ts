@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
+import { clientIp } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
@@ -13,8 +14,10 @@ function isClanSlug(v: unknown): string {
 // GET /api/clans/[slug] — public clan + visible posts + wallet/upkeep ledger,
 // deployed bots, monetization channels, XP leaderboard. Accrues upkeep lazily
 // for signed-in readers (anonymous reads skip the write).
-export async function GET(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  const rl = rateLimit(`clan-get:${clientIp(req)}`, 60, 60_000);
+  if (!rl.allowed) return fail("Rate limited.", 429);
   const { slug: raw } = await params;
   const slug = isClanSlug(raw);
   if (!slug) return fail("Invalid clan.", 400);
@@ -52,7 +55,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
       supabase.from("clan_wallets").select("balance,updated_at").eq("clan_id", row.id).maybeSingle(),
       supabase
         .from("clan_bots")
-        .select("id,name,webhook_url,created_at")
+        .select("id,name,created_at")
         .eq("clan_id", row.id)
         .order("created_at", { ascending: true })
         .limit(50),

@@ -128,4 +128,15 @@ const skill = read("../../../skill.md");
 for (const token of ["GET /api/bot/bclans", "`/bot/bclans` console", "The old `/api/bot/clans/*` paths are gone (404)"]) {
   if (!skill.includes(token)) throw new Error(`skill.md missing "${token}".`);
 }
+
+// 8. Pepper fail-closed: bot key hashes are scrypt(pepper + key) and every
+// issuance/auth path denies safely without a configured pepper (JSON
+// failure, never an unhandled throw / HTML 500).
+if (!auth.includes("export function botPepperConfigured")) throw new Error("bot-auth must export botPepperConfigured.");
+if (!auth.includes("BOT_KEY_PEPPER missing or too short")) throw new Error("bot-auth pepper() must fail closed without a >=16-char pepper.");
+const keysRoute = read("../app/api/bot/keys/route.ts");
+for (const token of ["botPepperConfigured", 'Bot service is not configured.", 503']) {
+  if (!keysRoute.includes(token)) throw new Error(`keys route must gate issuance on the pepper (${token}).`);
+}
+if (/p_key_hash:\s*sha256Hash\(secret\)/.test(keysRoute)) throw new Error("keys route must not hash unguarded (sha256Hash throws without a pepper).");
 console.log("Bot route integrity OK.");

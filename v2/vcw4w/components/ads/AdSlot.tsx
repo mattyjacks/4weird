@@ -84,7 +84,8 @@ export function AdSlot({ slot, seed, forceAd, onSkipped, onViewed, compact }: Ad
           src={`${PROVIDER_URL}?slot=${encodeURIComponent(slot)}`}
           className={`mt-2 w-full border-0 ${compact ? "h-24" : "h-56"}`}
           loading="lazy"
-          sandbox="allow-scripts allow-same-origin"
+          sandbox="allow-scripts"
+          referrerPolicy="no-referrer"
           onLoad={() => onViewed?.(null)}
           onError={() => setMode("house")}
         />

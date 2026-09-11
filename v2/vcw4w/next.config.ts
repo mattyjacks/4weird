@@ -66,18 +66,64 @@ const nextConfig: NextConfig = {
       { source: "/vibecodeworker/phone.html", destination: "/vibecodeworker/phone", permanent: true },
       { source: "/vibecodeworker/docs/index.html", destination: "/vibecodeworker/docs", permanent: true },
       { source: "/vibecodeworker/demo/index.html", destination: "/vibecodeworker/demo", permanent: true },
-      { source: "/vcw/agent", destination: "/vibecodeworker/hub", permanent: true },
-      { source: "/vcw/agent/", destination: "/vibecodeworker/hub", permanent: true },
-      { source: "/vcw/desktop", destination: "/vibecodeworker", permanent: true },
-      { source: "/vcw/desktop/", destination: "/vibecodeworker", permanent: true },
+      // VibeCodeWorker short links (used by the legacy nav + landing pages).
+      // /vcw/agent/ and /vcw/desktop/ are NOT redirected: real static pages
+      // (agent MCP docs, desktop download guide) are served there. The
+      // slash-less variants redirect to the trailing-slash static files
+      // (public/ only serves exact paths, so /vcw/agent alone would 404).
+      { source: "/vcw/agent", destination: "/vcw/agent/", permanent: true },
+      { source: "/vcw/desktop", destination: "/vcw/desktop/", permanent: true },
+      { source: "/vcw", destination: "/vibecodeworker", permanent: true },
+      { source: "/vcw/", destination: "/vibecodeworker", permanent: true },
+      { source: "/vcw/web/run", destination: "/vibecodeworker/run", permanent: true },
+      { source: "/vcw/web/run/", destination: "/vibecodeworker/run", permanent: true },
+      { source: "/vcw/web/full", destination: "/vibecodeworker/full", permanent: true },
+      { source: "/vcw/web/full/", destination: "/vibecodeworker/full", permanent: true },
       { source: "/vcw/web/hub", destination: "/vibecodeworker/hub", permanent: true },
       { source: "/vcw/web/hub/", destination: "/vibecodeworker/hub", permanent: true },
+      { source: "/vcw/web/demo", destination: "/vibecodeworker/demo", permanent: true },
+      { source: "/vcw/web/demo/", destination: "/vibecodeworker/demo", permanent: true },
       // Bot clan UI moved from /bot/clans to /bot/bclans (less confusing
       // next to the human /clans pages). The retired /api/bot/clans/*
       // endpoints intentionally have no redirect — they are gone (404).
       { source: "/bot/clans", destination: "/bot/bclans", permanent: true },
       { source: "/bot/clans/:path*", destination: "/bot/bclans/:path*", permanent: true },
     ];
+  },
+  async rewrites() {
+    return {
+      // Static VCW product pages have directory-index layouts
+      // (agent/index.html). Filesystem slash handling loop-redirects their
+      // clean URLs, so rewrite BEFORE files are checked.
+      beforeFiles: [
+        { source: "/vcw/agent", destination: "/vcw/agent/index.html" },
+        { source: "/vcw/agent/", destination: "/vcw/agent/index.html" },
+        { source: "/vcw/desktop", destination: "/vcw/desktop/index.html" },
+        { source: "/vcw/desktop/", destination: "/vcw/desktop/index.html" },
+      ],
+      // The preserved v1 worker surfaces live under /vibecodeworker-legacy/,
+      // but their HTML/JS was authored for the v1 path prefix /vibecodeworker/
+      // (base href + absolute asset URLs). These rewrites serve those asset
+      // requests from the legacy dir WITHOUT moving the files (byte parity
+      // with old-v1 is enforced by verify:legacy-parity). afterFiles so the
+      // live Next.js /vibecodeworker/* routes always win over file serving.
+      // NOTE: no :path* source may match a bare /vibecodeworker/<section>
+      // (zero-segment match shadows the page) — asset-only sources below.
+      afterFiles: [
+        { source: "/vibecodeworker/style.css", destination: "/vibecodeworker-legacy/style.css" },
+        { source: "/vibecodeworker/style_hub_simple.css", destination: "/vibecodeworker-legacy/style_hub_simple.css" },
+        { source: "/vibecodeworker/hub-shared.css", destination: "/vibecodeworker-legacy/hub-shared.css" },
+        { source: "/vibecodeworker/overview.css", destination: "/vibecodeworker-legacy/overview.css" },
+        { source: "/vibecodeworker/vcw-nav.css", destination: "/vibecodeworker-legacy/vcw-nav.css" },
+        { source: "/vibecodeworker/vcw-nav.js", destination: "/vibecodeworker-legacy/vcw-nav.js" },
+        { source: "/vibecodeworker/app.js", destination: "/vibecodeworker-legacy/app.js" },
+        { source: "/vibecodeworker/run.js", destination: "/vibecodeworker-legacy/run.js" },
+        { source: "/vibecodeworker/full.js", destination: "/vibecodeworker-legacy/full.js" },
+        { source: "/vibecodeworker/modules/:path*", destination: "/vibecodeworker-legacy/modules/:path*" },
+        { source: "/vibecodeworker/demo/demo.css", destination: "/vibecodeworker-legacy/demo/demo.css" },
+        { source: "/vibecodeworker/demo/images/:path*", destination: "/vibecodeworker-legacy/demo/images/:path*" },
+      ],
+    };
   },
 };
 

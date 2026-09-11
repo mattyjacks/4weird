@@ -14,6 +14,7 @@ export async function GET(req: Request) {
   const { data, error } = await supabase
     .from("coin_ledger")
     .select("delta,reason,created_at")
+    .eq("user_id", user.user.id)
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) return dbFail("api/coins/history", error, "Unable to load coin history.");

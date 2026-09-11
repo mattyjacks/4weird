@@ -13,11 +13,13 @@ export async function GET() {
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
+  const rl = rateLimit(`stats-read:${u.id}`, 60, 60_000);
+  if (!rl.allowed) return fail("Rate limited.", 429);
   const { data: rows, error } = await supabase
     .from("game_stat_events")
     .select("active_seconds,actions,kills,deaths")
     .eq("user_id", u.id)
-    .limit(10000);
+    .limit(500);
   if (error) return dbFail("api/stats", error);
   const totals = ((rows as { active_seconds: number; actions: number; kills: number; deaths: number }[] | null) ?? []).reduce(
     (x, v) => ({

@@ -1,0 +1,777 @@
+{
+ "repo": "mattyjacks/4weird",
+ "base": "website/v1/ai",
+ "count": 192,
+ "bytes": 2090398,
+ "files": [
+  {
+   "path": "games_plan/Cosmic_Crawler_Survival_plan.txt",
+   "size": 8282
+  },
+  {
+   "path": "games_plan/Cosmic_Drift_Blocks_plan.txt",
+   "size": 1352
+  },
+  {
+   "path": "games_plan/Cosmic_Snake_Blocks_plan.txt",
+   "size": 1360
+  },
+  {
+   "path": "games_plan/Cyber_Drift_Painter_plan.txt",
+   "size": 5726
+  },
+  {
+   "path": "games_plan/Fluid_Canvas_Dodge_plan.txt",
+   "size": 7452
+  },
+  {
+   "path": "games_plan/Fluid_Reef_Runner_plan.txt",
+   "size": 7454
+  },
+  {
+   "path": "games_plan/Gravity_Stardust_Dodge_plan.txt",
+   "size": 5726
+  },
+  {
+   "path": "games_plan/Hydrothermal_Grid_Blocks_plan.txt",
+   "size": 5719
+  },
+  {
+   "path": "games_plan/Hydrothermal_Slime_Dodge_plan.txt",
+   "size": 8281
+  },
+  {
+   "path": "games_plan/Hyperdrift_Slime_plan.txt",
+   "size": 818
+  },
+  {
+   "path": "games_plan/Neon_Slime_Collector_plan.txt",
+   "size": 7456
+  },
+  {
+   "path": "games_plan/Neon_Vent_Painter_plan.txt",
+   "size": 9323
+  },
+  {
+   "path": "games_plan/Orbital_Drift_Frenzy_plan.txt",
+   "size": 8273
+  },
+  {
+   "path": "games_plan/Orbital_Drift_Painter_plan.txt",
+   "size": 7407
+  },
+  {
+   "path": "games_plan/Pixel_DeepSea_Escape_plan.txt",
+   "size": 3302
+  },
+  {
+   "path": "games_plan/Polarity_of_the_Toxic_Annihilator_plan.txt",
+   "size": 7141
+  },
+  {
+   "path": "games_plan/Repulsion_of_the_Elastic_Spinner_plan.txt",
+   "size": 7439
+  },
+  {
+   "path": "games_plan/Retro_Space_Evasion_plan.txt",
+   "size": 3810
+  },
+  {
+   "path": "games_plan/Return_to_Mainframe_Pathway_Breaker_plan.txt",
+   "size": 7416
+  },
+  {
+   "path": "games_plan/The_abyss_plan.txt",
+   "size": 3814
+  },
+  {
+   "path": "games_plan/Thermal_Capsule_Portal_plan.txt",
+   "size": 3825
+  },
+  {
+   "path": "vibecodeworker/.dockerignore",
+   "size": 102
+  },
+  {
+   "path": "vibecodeworker/.env.example",
+   "size": 4800
+  },
+  {
+   "path": "vibecodeworker/.gitignore",
+   "size": 147
+  },
+  {
+   "path": "vibecodeworker/app/main.js",
+   "size": 55223
+  },
+  {
+   "path": "vibecodeworker/automation/agent_brain.js",
+   "size": 507
+  },
+  {
+   "path": "vibecodeworker/automation/autocode_core.js",
+   "size": 404
+  },
+  {
+   "path": "vibecodeworker/automation/game_controller.js",
+   "size": 2630
+  },
+  {
+   "path": "vibecodeworker/automation/local_game_debugger.js",
+   "size": 7084
+  },
+  {
+   "path": "vibecodeworker/config/default.json",
+   "size": 2391
+  },
+  {
+   "path": "vibecodeworker/deploy/DEPLOY_CLOUD.md",
+   "size": 4665
+  },
+  {
+   "path": "vibecodeworker/deploy/Dockerfile.fly",
+   "size": 1333
+  },
+  {
+   "path": "vibecodeworker/deploy/digitalocean-user-data.sh",
+   "size": 2443
+  },
+  {
+   "path": "vibecodeworker/deploy/docker-compose.cloud.yml",
+   "size": 1971
+  },
+  {
+   "path": "vibecodeworker/deploy/docker/Dockerfile",
+   "size": 1900
+  },
+  {
+   "path": "vibecodeworker/deploy/docker/docker-compose.yml",
+   "size": 1403
+  },
+  {
+   "path": "vibecodeworker/deploy/fly.toml",
+   "size": 845
+  },
+  {
+   "path": "vibecodeworker/deploy/render.yaml",
+   "size": 738
+  },
+  {
+   "path": "vibecodeworker/docs/API_DOCUMENTATION.md",
+   "size": 5884
+  },
+  {
+   "path": "vibecodeworker/docs/FEATURES_SUMMARY.md",
+   "size": 8443
+  },
+  {
+   "path": "vibecodeworker/docs/IMPLEMENTATION_COMPLETE.md",
+   "size": 7055
+  },
+  {
+   "path": "vibecodeworker/docs/LOCAL_MODELS.md",
+   "size": 2987
+  },
+  {
+   "path": "vibecodeworker/docs/README_WEB_APP_FEATURES.md",
+   "size": 8145
+  },
+  {
+   "path": "vibecodeworker/docs/UX_ACTION_PLAN.md",
+   "size": 12712
+  },
+  {
+   "path": "vibecodeworker/docs/UX_IMPLEMENTATION_GUIDE.md",
+   "size": 20816
+  },
+  {
+   "path": "vibecodeworker/docs/UX_IMPROVEMENTS.md",
+   "size": 14388
+  },
+  {
+   "path": "vibecodeworker/docs/UX_VISUAL_MOCKUPS.md",
+   "size": 25303
+  },
+  {
+   "path": "vibecodeworker/docs/WEB_APP_INTEGRATION.md",
+   "size": 10268
+  },
+  {
+   "path": "vibecodeworker/docs/WEB_APP_QUICK_START.md",
+   "size": 4746
+  },
+  {
+   "path": "vibecodeworker/launch_vibecodeworker.bat",
+   "size": 4962
+  },
+  {
+   "path": "vibecodeworker/lib/api/audio_routes.js",
+   "size": 10931
+  },
+  {
+   "path": "vibecodeworker/lib/api/bug_store.js",
+   "size": 1603
+  },
+  {
+   "path": "vibecodeworker/lib/api/cloud_routes.js",
+   "size": 5607
+  },
+  {
+   "path": "vibecodeworker/lib/api/debug_routes.js",
+   "size": 1821
+  },
+  {
+   "path": "vibecodeworker/lib/api/patch_handler.js",
+   "size": 2911
+  },
+  {
+   "path": "vibecodeworker/lib/api/routes.js",
+   "size": 25023
+  },
+  {
+   "path": "vibecodeworker/lib/api_server.js",
+   "size": 13949
+  },
+  {
+   "path": "vibecodeworker/lib/audio/audio_analyzer.js",
+   "size": 12169
+  },
+  {
+   "path": "vibecodeworker/lib/audio/voice_director.js",
+   "size": 9311
+  },
+  {
+   "path": "vibecodeworker/lib/brain/agent_brain_refactored.js",
+   "size": 11486
+  },
+  {
+   "path": "vibecodeworker/lib/brain/braid_flow.js",
+   "size": 1688
+  },
+  {
+   "path": "vibecodeworker/lib/brain/brain_text_memory.js",
+   "size": 8084
+  },
+  {
+   "path": "vibecodeworker/lib/brain/bug_scanner.js",
+   "size": 4735
+  },
+  {
+   "path": "vibecodeworker/lib/brain/llm_caller.js",
+   "size": 15025
+  },
+  {
+   "path": "vibecodeworker/lib/brain/prompt_builder.js",
+   "size": 8885
+  },
+  {
+   "path": "vibecodeworker/lib/brain/replay_recorder.js",
+   "size": 793
+  },
+  {
+   "path": "vibecodeworker/lib/brain/session_memory.js",
+   "size": 4687
+  },
+  {
+   "path": "vibecodeworker/lib/brain/stuck_detector.js",
+   "size": 1553
+  },
+  {
+   "path": "vibecodeworker/lib/brain/token_tracker.js",
+   "size": 5777
+  },
+  {
+   "path": "vibecodeworker/lib/chat.js",
+   "size": 4351
+  },
+  {
+   "path": "vibecodeworker/lib/complexity.js",
+   "size": 4037
+  },
+  {
+   "path": "vibecodeworker/lib/config.js",
+   "size": 7553
+  },
+  {
+   "path": "vibecodeworker/lib/core.js",
+   "size": 23636
+  },
+  {
+   "path": "vibecodeworker/lib/debug.js",
+   "size": 2076
+  },
+  {
+   "path": "vibecodeworker/lib/deepseek_harness.js",
+   "size": 7798
+  },
+  {
+   "path": "vibecodeworker/lib/dev_server.js",
+   "size": 10142
+  },
+  {
+   "path": "vibecodeworker/lib/elevenlabs.js",
+   "size": 12696
+  },
+  {
+   "path": "vibecodeworker/lib/framework_detector.js",
+   "size": 6033
+  },
+  {
+   "path": "vibecodeworker/lib/index.js",
+   "size": 1845
+  },
+  {
+   "path": "vibecodeworker/lib/meta_endpoint.js",
+   "size": 945
+  },
+  {
+   "path": "vibecodeworker/lib/minimization.js",
+   "size": 5103
+  },
+  {
+   "path": "vibecodeworker/lib/model_roles.js",
+   "size": 7321
+  },
+  {
+   "path": "vibecodeworker/lib/ollama_manager.js",
+   "size": 20664
+  },
+  {
+   "path": "vibecodeworker/lib/opencode_bridge.js",
+   "size": 29992
+  },
+  {
+   "path": "vibecodeworker/lib/pricing.js",
+   "size": 9274
+  },
+  {
+   "path": "vibecodeworker/lib/project.js",
+   "size": 5637
+  },
+  {
+   "path": "vibecodeworker/lib/project_manager.js",
+   "size": 5526
+  },
+  {
+   "path": "vibecodeworker/lib/qol.js",
+   "size": 15121
+  },
+  {
+   "path": "vibecodeworker/lib/replay/replay_player.js",
+   "size": 789
+  },
+  {
+   "path": "vibecodeworker/lib/replay/replay_storage.js",
+   "size": 1992
+  },
+  {
+   "path": "vibecodeworker/lib/replay_engine.js",
+   "size": 2039
+  },
+  {
+   "path": "vibecodeworker/lib/runpod_cloud.js",
+   "size": 22053
+  },
+  {
+   "path": "vibecodeworker/lib/screenshots.js",
+   "size": 1204
+  },
+  {
+   "path": "vibecodeworker/lib/smart_log.js",
+   "size": 16553
+  },
+  {
+   "path": "vibecodeworker/lib/storage.js",
+   "size": 15080
+  },
+  {
+   "path": "vibecodeworker/lib/vibecodeworker_client.js",
+   "size": 5233
+  },
+  {
+   "path": "vibecodeworker/lib/website_check.js",
+   "size": 12324
+  },
+  {
+   "path": "vibecodeworker/package-lock.json",
+   "size": 147036
+  },
+  {
+   "path": "vibecodeworker/package.json",
+   "size": 4027
+  },
+  {
+   "path": "vibecodeworker/scripts/node/create_icons.js",
+   "size": 3670
+  },
+  {
+   "path": "vibecodeworker/scripts/node/ensure_ollama.js",
+   "size": 4984
+  },
+  {
+   "path": "vibecodeworker/scripts/node/run_gravegain_vibecodeworker.js",
+   "size": 9798
+  },
+  {
+   "path": "vibecodeworker/scripts/node/run_hl2_playtest.js",
+   "size": 11279
+  },
+  {
+   "path": "vibecodeworker/scripts/node/run_playtest.js",
+   "size": 3494
+  },
+  {
+   "path": "vibecodeworker/scripts/node/run_site_tests.js",
+   "size": 10424
+  },
+  {
+   "path": "vibecodeworker/scripts/python/input_sim.py",
+   "size": 24120
+  },
+  {
+   "path": "vibecodeworker/scripts/python/scroll_down.py",
+   "size": 70825
+  },
+  {
+   "path": "vibecodeworker/scripts/python/scroll_left_panel.py",
+   "size": 460
+  },
+  {
+   "path": "vibecodeworker/scripts/python/take_full_screenshot.py",
+   "size": 441
+  },
+  {
+   "path": "vibecodeworker/scripts/python/toggle_view.py",
+   "size": 433
+  },
+  {
+   "path": "vibecodeworker/server/start_api_server.js",
+   "size": 5864
+  },
+  {
+   "path": "vibecodeworker/src-tauri/Cargo.lock",
+   "size": 127475
+  },
+  {
+   "path": "vibecodeworker/src-tauri/Cargo.toml",
+   "size": 458
+  },
+  {
+   "path": "vibecodeworker/src-tauri/build.rs",
+   "size": 40
+  },
+  {
+   "path": "vibecodeworker/src-tauri/capabilities/default.json",
+   "size": 402
+  },
+  {
+   "path": "vibecodeworker/src-tauri/src/lib.rs",
+   "size": 10005
+  },
+  {
+   "path": "vibecodeworker/src-tauri/src/main.rs",
+   "size": 198
+  },
+  {
+   "path": "vibecodeworker/src-tauri/tauri.conf.json",
+   "size": 938
+  },
+  {
+   "path": "vibecodeworker/src/app.js",
+   "size": 98233
+  },
+  {
+   "path": "vibecodeworker/src/components/autocode_ui_controller.js",
+   "size": 6961
+  },
+  {
+   "path": "vibecodeworker/src/components/collapsible_sections.js",
+   "size": 1395
+  },
+  {
+   "path": "vibecodeworker/src/components/hub_ui_controller.js",
+   "size": 22969
+  },
+  {
+   "path": "vibecodeworker/src/components/metrics_sparkline.js",
+   "size": 711
+  },
+  {
+   "path": "vibecodeworker/src/components/native_process_scanner.js",
+   "size": 1107
+  },
+  {
+   "path": "vibecodeworker/src/components/ollama_ui_controller.js",
+   "size": 10341
+  },
+  {
+   "path": "vibecodeworker/src/components/opencode_ui_controller.js",
+   "size": 9853
+  },
+  {
+   "path": "vibecodeworker/src/components/quick_launcher.js",
+   "size": 882
+  },
+  {
+   "path": "vibecodeworker/src/components/scrubber_controller.js",
+   "size": 874
+  },
+  {
+   "path": "vibecodeworker/src/components/stage_view.js",
+   "size": 43152
+  },
+  {
+   "path": "vibecodeworker/src/components/status_banner.js",
+   "size": 452
+  },
+  {
+   "path": "vibecodeworker/src/components/system_logger.js",
+   "size": 873
+  },
+  {
+   "path": "vibecodeworker/src/components/timeline_scrubber_view.js",
+   "size": 1695
+  },
+  {
+   "path": "vibecodeworker/src/components/vision_mirror.js",
+   "size": 9772
+  },
+  {
+   "path": "vibecodeworker/src/index.css",
+   "size": 65806
+  },
+  {
+   "path": "vibecodeworker/src/index.html",
+   "size": 92401
+  },
+  {
+   "path": "vibecodeworker/src/main_process/file_scanner.js",
+   "size": 3239
+  },
+  {
+   "path": "vibecodeworker/src/main_process/game_discovery.js",
+   "size": 3332
+  },
+  {
+   "path": "vibecodeworker/src/main_process/game_window_manager.js",
+   "size": 9268
+  },
+  {
+   "path": "vibecodeworker/src/main_process/native_runner.js",
+   "size": 5512
+  },
+  {
+   "path": "vibecodeworker/src/main_process/static_server.js",
+   "size": 4407
+  },
+  {
+   "path": "vibecodeworker/src/modules/audio_synthesizer.js",
+   "size": 2699
+  },
+  {
+   "path": "vibecodeworker/src/modules/config_manager.js",
+   "size": 24061
+  },
+  {
+   "path": "vibecodeworker/src/modules/game_rules.js",
+   "size": 8471
+  },
+  {
+   "path": "vibecodeworker/src/modules/hub_manager.js",
+   "size": 17167
+  },
+  {
+   "path": "vibecodeworker/src/modules/monitor_tabs.js",
+   "size": 1973
+  },
+  {
+   "path": "vibecodeworker/src/modules/tracker_manager.js",
+   "size": 7143
+  },
+  {
+   "path": "vibecodeworker/src/modules/vocabulary_pool.js",
+   "size": 24595
+  },
+  {
+   "path": "vibecodeworker/src/modules/web_app_player.js",
+   "size": 9621
+  },
+  {
+   "path": "vibecodeworker/src/modules/webview_manager.js",
+   "size": 8169
+  },
+  {
+   "path": "vibecodeworker/src/runtime/action_dispatcher.js",
+   "size": 33305
+  },
+  {
+   "path": "vibecodeworker/src/runtime/adaptive_tick.js",
+   "size": 6483
+  },
+  {
+   "path": "vibecodeworker/src/runtime/agent_step_executor.js",
+   "size": 18033
+  },
+  {
+   "path": "vibecodeworker/src/runtime/autocode_bridge.js",
+   "size": 991
+  },
+  {
+   "path": "vibecodeworker/src/runtime/bot_cursor.js",
+   "size": 7099
+  },
+  {
+   "path": "vibecodeworker/src/runtime/captcha_detector.js",
+   "size": 3297
+  },
+  {
+   "path": "vibecodeworker/src/runtime/chromium_engine.js",
+   "size": 12761
+  },
+  {
+   "path": "vibecodeworker/src/runtime/cloud_fleet_orchestrator.js",
+   "size": 4957
+  },
+  {
+   "path": "vibecodeworker/src/runtime/display_manager.js",
+   "size": 11131
+  },
+  {
+   "path": "vibecodeworker/src/runtime/dom_inspector.js",
+   "size": 4435
+  },
+  {
+   "path": "vibecodeworker/src/runtime/friend_slop_autoplay.js",
+   "size": 3027
+  },
+  {
+   "path": "vibecodeworker/src/runtime/gravegain3d_autoplay.js",
+   "size": 11939
+  },
+  {
+   "path": "vibecodeworker/src/runtime/input_mapper.js",
+   "size": 627
+  },
+  {
+   "path": "vibecodeworker/src/runtime/native_game_director.js",
+   "size": 8202
+  },
+  {
+   "path": "vibecodeworker/src/runtime/native_game_player.js",
+   "size": 20394
+  },
+  {
+   "path": "vibecodeworker/src/runtime/native_game_profiles.js",
+   "size": 12288
+  },
+  {
+   "path": "vibecodeworker/src/runtime/planner_ai_handler.js",
+   "size": 4302
+  },
+  {
+   "path": "vibecodeworker/src/runtime/spec_sheet_builder.js",
+   "size": 5628
+  },
+  {
+   "path": "vibecodeworker/src/runtime/thinking_out_loud.js",
+   "size": 4790
+  },
+  {
+   "path": "vibecodeworker/src/runtime/trace_test_gen.js",
+   "size": 12137
+  },
+  {
+   "path": "vibecodeworker/src/runtime/ultralight_engine.js",
+   "size": 7368
+  },
+  {
+   "path": "vibecodeworker/src/runtime/viewport_screenshot.js",
+   "size": 1147
+  },
+  {
+   "path": "vibecodeworker/src/runtime/vision_detect.js",
+   "size": 7555
+  },
+  {
+   "path": "vibecodeworker/src/runtime/vision_state.js",
+   "size": 2338
+  },
+  {
+   "path": "vibecodeworker/src/runtime/web_engine_manager.js",
+   "size": 13175
+  },
+  {
+   "path": "vibecodeworker/src/runtime/website_debugger.js",
+   "size": 13415
+  },
+  {
+   "path": "vibecodeworker/src/runtime/workspace_crawler.js",
+   "size": 613
+  },
+  {
+   "path": "vibecodeworker/tests/run_trace_tests.js",
+   "size": 1432
+  },
+  {
+   "path": "vibecodeworker/tests/test_aiwhackamole_e2e.js",
+   "size": 13434
+  },
+  {
+   "path": "vibecodeworker/tests/test_client_sdk.js",
+   "size": 2947
+  },
+  {
+   "path": "vibecodeworker/tests/test_elevenlabs_audio.js",
+   "size": 13017
+  },
+  {
+   "path": "vibecodeworker/tests/test_game_rules.js",
+   "size": 4136
+  },
+  {
+   "path": "vibecodeworker/tests/test_gravegain2d_playtest.js",
+   "size": 4378
+  },
+  {
+   "path": "vibecodeworker/tests/test_gravegain2d_space_builds.js",
+   "size": 2955
+  },
+  {
+   "path": "vibecodeworker/tests/test_hub_headful.js",
+   "size": 7423
+  },
+  {
+   "path": "vibecodeworker/tests/test_native_hl2.js",
+   "size": 13317
+  },
+  {
+   "path": "vibecodeworker/tests/test_ollama_models.js",
+   "size": 6682
+  },
+  {
+   "path": "vibecodeworker/tests/test_runpod_cloud.js",
+   "size": 6851
+  },
+  {
+   "path": "vibecodeworker/tests/test_vibecodeworker.js",
+   "size": 86397
+  },
+  {
+   "path": "vibecodeworker/tests/test_website_check.js",
+   "size": 3838
+  },
+  {
+   "path": "vibecodeworker/tests/test_website_debugger.js",
+   "size": 9560
+  },
+  {
+   "path": "vibecodeworker/tests/trace_replay.js",
+   "size": 5240
+  },
+  {
+   "path": "vibecodeworker/workers/heal_worker.js",
+   "size": 5123
+  }
+ ],
+ "mirror": "v2 public/ai mirror of old-v1/website/v1/ai (manifest-listed files only)"
+}

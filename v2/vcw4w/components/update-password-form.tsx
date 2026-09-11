@@ -24,11 +24,29 @@ export function UpdatePasswordForm({
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
+  const passwordMeetsRule = (v: string) => {
+    if (v.length < 8 || v.length > 128) return false;
+    let classes = 0;
+    if (/[a-z]/.test(v)) classes += 1;
+    if (/[A-Z]/.test(v)) classes += 1;
+    if (/[0-9]/.test(v)) classes += 1;
+    if (/[^A-Za-z0-9]/.test(v)) classes += 1;
+    return classes >= 3;
+  };
+
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     const supabase = createClient();
     setIsLoading(true);
     setError(null);
+
+    // Same strength rule as signup (server validate.isPassword): updateUser
+    // goes straight to Supabase, whose default minimum is weaker.
+    if (!passwordMeetsRule(password)) {
+      setError("Password needs 8+ characters with 3 of: lowercase, UPPERCASE, digits, symbols.");
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const { error } = await supabase.auth.updateUser({ password });
@@ -64,6 +82,9 @@ export function UpdatePasswordForm({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+                <p className="text-xs text-slate-500">
+                  8+ characters with 3 of: lowercase, UPPERCASE, digits, symbols.
+                </p>
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>

@@ -1,6 +1,7 @@
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { botRateLimit, hasBotAuth, invalidCredentials, resolveBotKey } from "@/lib/bot-auth";
 import { botClanSlug, cleanPostBody, cleanPostTitle, isOwnClanImageUrl, looksSpammy } from "@/lib/bot-validate";
+import { exceedsBodyLimit } from "@/lib/validate";
 import { serviceClient, supabaseUrl } from "@/lib/supabase/service";
 import { logValleynetAction, valleynetCheck } from "@/lib/valleynet";
 import { chargeClanFeeAs, FeeError } from "@/lib/clan-fees";
@@ -14,9 +15,6 @@ const maxRequestBytes = 16384;
 // Membership is required, exactly like humans. Spammy content lands in
 // `pending` for human review instead of auto-publishing. Scope: clans:post.
 export async function POST(req: Request, ctx: { params: Promise<{ slug: string }> }) {
-  if (Number(req.headers.get("content-length") ?? 0) > maxRequestBytes) {
-    return fail("Post is too large.", 413);
-  }
   if (!hasBotAuth()) return fail("Bot service is not configured.", 503);
   const throttle = botRateLimit(req, "write");
   if (!throttle.allowed) {
@@ -36,6 +34,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
   } catch {
     return fail("Invalid JSON body.", 400);
   }
+  if (exceedsBodyLimit(body, maxRequestBytes)) return fail("Post is too large.", 413);
   const input = (body ?? {}) as Record<string, unknown>;
   const title = cleanPostTitle(input.title);
   const postBody = cleanPostBody(input.body);

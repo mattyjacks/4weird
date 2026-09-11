@@ -8,10 +8,10 @@
  * Fail closed: a missing Origin AND Referer is rejected.
  */
 export function sameOrigin(req: Request): boolean {
-  const forwarded = req.headers.get("x-forwarded-host") ?? "";
-  const host =
-    forwarded.split(",")[0].trim().toLowerCase() ||
-    (req.headers.get("host") ?? "").split(",")[0].trim().toLowerCase();
+  // SECURITY: never trust x-forwarded-host (client-controllable). Use the
+  // authoritative Host header only; deployments behind trusted proxies must
+  // configure the proxy to overwrite Host, not rely on forwarded headers.
+  const host = (req.headers.get("host") ?? "").split(",")[0].trim().toLowerCase();
   if (!host) return false;
   const origin = req.headers.get("origin");
   const referer = req.headers.get("referer");

@@ -48,7 +48,7 @@ export async function POST(req: Request) {
   return ok(
     {
       id,
-      hidden: category === "csam" && targetType !== "image",
+      hidden: category === "csam",
       message:
         category === "csam"
           ? "Content quarantined and preserved for authorities."

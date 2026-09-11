@@ -304,9 +304,14 @@ export function ClanPage({ slug }: { slug: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "affiliate-click", channel_id: c.id }),
       });
-      if (res.ok && c.target_url) window.open(c.target_url, "_blank", "noopener");
+      // Interstitial + noreferrer: owner-controlled URLs open without Referer
+      // leak; users see the full destination before leaving.
+      if (res.ok && c.target_url) {
+        const okGo = window.confirm(`Leave 4weird for:\n${c.target_url}`);
+        if (okGo) window.open(c.target_url, "_blank", "noopener,noreferrer");
+      }
     } catch {
-      if (c.target_url) window.open(c.target_url, "_blank", "noopener");
+      if (c.target_url) window.open(c.target_url, "_blank", "noopener,noreferrer");
     }
   }
 

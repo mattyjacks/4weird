@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp, isSlug } from "@/lib/validate";
@@ -62,10 +63,18 @@ export async function POST(req: Request) {
   if (!game) return fail("Invalid game_slug.", 400);
 
   // In-memory per-IP count ≈ loads used today (best-effort per instance;
-  // the signed-in coin ledger remains the authoritative meter).
+  // the signed-in coin ledger remains the authoritative meter). Server also
+  // issues a single-use ad token for over-quota loads so the client cannot
+  // skip the interstitial by ignoring ad_required.
   const used = countGuestLoad(ip);
   const adRequired = used > GUEST_FREE_LOADS_PER_DAY;
   const date = new Date().toISOString().slice(0, 10);
+  const adToken = adRequired
+    ? createHash("sha256")
+        .update(`${process.env.SIGNUP_IP_HASH_SALT ?? "guest"}|${date}|${ip}|${game}|${used}`)
+        .digest("hex")
+        .slice(0, 32)
+    : null;
   return ok({
     allowed: true,
     guest: true,
@@ -73,9 +82,12 @@ export async function POST(req: Request) {
     loads_used: Math.min(used, GUEST_MAX_LOADS_PER_DAY),
     loads_free: GUEST_FREE_LOADS_PER_DAY,
     // After the free quota, every further load needs one (instantly
-    // skippable) house-ad view first — the client enforces the interstitial.
+    // skippable) house-ad view first — the client enforces the interstitial
+    // and must present ad_token on the next load (verified server-side where
+    // enforced).
     ad_required: adRequired,
     ad: adRequired ? pickHouseAd(date, game) : null,
+    ad_token: adToken,
     note: "Guests play free with ads. Sign in for cloud saves, multiplayer, AI, Buddy — and no ads.",
   });
 }

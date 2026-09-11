@@ -30,7 +30,9 @@ export async function POST(
   const seconds = isHeartbeatSeconds(
     (body as Record<string, unknown> | null)?.seconds,
   );
-  if (!seconds) return fail("Seconds must be 1..86400.", 400);
+  if (!seconds) return fail("Seconds must be 1..3600.", 400);
+  // Cap single beats to 1h: previously 86400 allowed draining escrow in 1 call.
+  if (seconds > 3600) return fail("Seconds must be 1..3600.", 400);
   const { data: usage, error } = await supabase.rpc("heartbeat_usage", {
     p_booking: id,
     p_seconds: seconds,

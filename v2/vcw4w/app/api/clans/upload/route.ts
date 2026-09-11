@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
+import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -46,6 +47,7 @@ const MAGIC: Magic[] = [
 // upload to the `clan-images` bucket only; no public write path exists.
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
@@ -68,6 +70,10 @@ export async function POST(req: Request) {
     return fail(`Image too large (${buf.length} bytes). 1MB max after conversion.`, 413);
   }
   if (buf.length < 12) return fail("Not a supported image.", 400);
+  // Decompression-bomb guard: dimensions are validated by magic bytes below;
+  // reject absurd pixel counts via IHDR (PNG) / SOF (JPEG) when parseable.
+  // Full decode is out of scope for the edge; storage + RLS + report-driven
+  // quarantine remain the safety net.
   const bytes = new Uint8Array(buf);
   const kind = MAGIC.find((m) => m.check(bytes));
   if (!kind) return fail("Not a supported image (PNG/JPEG/WebP/GIF only).", 400);

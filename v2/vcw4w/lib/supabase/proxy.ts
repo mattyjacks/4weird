@@ -49,12 +49,23 @@ export async function updateSession(request: NextRequest) {
   // Public marketing pages and static HTML games must remain reachable
   // anonymously. Authentication is enforced by protected layouts/actions,
   // while the proxy only refreshes the session cookie for every request.
+  // /api/vcw/health is the public service-status probe (the route itself
+  // never forwards upstream bodies and keys off a coarse status field), so
+  // it must stay reachable anonymously. Every other /api/vcw/* action stays
+  // authenticated.
+  const isVcwHealth =
+    request.nextUrl.pathname === "/api/vcw/health" ||
+    request.nextUrl.pathname.startsWith("/api/vcw/health/");
   const protectedPath =
     request.nextUrl.pathname === "/account" ||
     request.nextUrl.pathname.startsWith("/protected") ||
     request.nextUrl.pathname.startsWith("/api/account") ||
     request.nextUrl.pathname.startsWith("/api/admin") ||
+    request.nextUrl.pathname.startsWith("/api/agents") ||
+    request.nextUrl.pathname.startsWith("/api/bot") ||
     request.nextUrl.pathname.startsWith("/api/cheats") ||
+    request.nextUrl.pathname.startsWith("/api/clans") ||
+    request.nextUrl.pathname.startsWith("/api/cloud") ||
     request.nextUrl.pathname.startsWith("/api/code") ||
     request.nextUrl.pathname.startsWith("/api/coins") ||
     request.nextUrl.pathname.startsWith("/api/lobbies") ||
@@ -64,12 +75,15 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/api/my") ||
     request.nextUrl.pathname.startsWith("/api/buddy") ||
     request.nextUrl.pathname.startsWith("/api/game-ai") ||
+    request.nextUrl.pathname.startsWith("/api/games") ||
+    request.nextUrl.pathname.startsWith("/api/orgs") ||
     request.nextUrl.pathname.startsWith("/api/presence") ||
     request.nextUrl.pathname.startsWith("/api/saves") ||
     request.nextUrl.pathname.startsWith("/api/settings") ||
     request.nextUrl.pathname.startsWith("/api/social") ||
     request.nextUrl.pathname.startsWith("/api/stats") ||
-    request.nextUrl.pathname.startsWith("/api/vcw");
+    request.nextUrl.pathname.startsWith("/api/teams") ||
+    (request.nextUrl.pathname.startsWith("/api/vcw") && !isVcwHealth);
 
   if (protectedPath && !user) {
     if (request.nextUrl.pathname.startsWith("/api/")) {

@@ -1,0 +1,104 @@
+{
+  "name": "vibecodeworker-4weird",
+  "version": "2.0.0",
+  "description": "4WEIRD VIBECODEWORKER - Autonomous Agentic QA Sandbox & Self-Healing Suite Desktop Application",
+  "main": "app/main.js",
+  "scripts": {
+    "start": "electron .",
+    "start:cloud": "node server/start_api_server.js",
+    "mcp": "node server/vcw_mcp_server.js",
+    "heal": "node workers/heal_worker.js",
+    "test": "node tests/test_vibecodeworker.js",
+    "test:rules": "node tests/test_game_rules.js",
+    "test:website": "node tests/test_website_debugger.js",
+    "test:triage": "node tests/test_console_triage.js",
+    "test:ollama": "node tests/test_ollama_models.js",
+    "test:overtake": "node tests/test_overtake_reflex.js",
+    "benchmark:overtake": "node scripts/node/benchmark_overtake_controllers.js",
+    "ollama:ensure": "node scripts/node/ensure_ollama.js",
+    "test:e2e:whackamole": "node tests/test_aiwhackamole_e2e.js",
+    "test:video": "node tests/test_mediamogul_video_recorder.js",
+    "test:native": "node tests/test_native_hl2.js",
+    "test:traces": "node tests/run_trace_tests.js",
+    "test:cloud": "node tests/test_runpod_cloud.js",
+    "test:godot": "node tests/test_godot_runtime.js",
+    "test:all": "node scripts/node/run_all_tests.js",
+    "test:utils": "node tests/test_vcw_utils.js",
+    "lint": "node --check lib/vcw_utils.js && node --check lib/config.js && node --check lib/pricing.js && node --check lib/api_server.js && node --check lib/core.js && echo LINT_OK",
+    "test:headful": "node tests/test_hub_headful.js",
+    "record:bug-hunts": "electron scripts/node/run_narrated_bug_hunts.js",
+    "record:taglish": "electron scripts/node/run_narrated_bug_hunts.js taglish-translate",
+    "record:browser-server": "node scripts/node/headful_browser_record_server.js",
+    "record:finalize": "node scripts/node/finalize_browser_capture.js",
+    "record:testing-layouts": "node scripts/node/export_testing_layouts.js",
+    "record:testing-h": "node scripts/node/export_testing_layouts.js --layout H",
+    "record:testing-v": "node scripts/node/export_testing_layouts.js --layout V",
+    "record:brand-marquee": "node scripts/node/apply_marquee_branding.js",
+    "record:mobile-testing": "node scripts/node/export_mobile_testing.js",
+    "play:hl2": "node scripts/node/run_hl2_playtest.js --game hl2-ep2 --steps 200",
+    "play:hl2:launch": "node scripts/node/run_hl2_playtest.js --game hl2-ep2 --launch --steps 200",
+    "play:hl2:dry": "node scripts/node/run_hl2_playtest.js --game hl2-ep2 --steps 5 --dry-run --heuristic",
+    "dist": "electron-builder --win portable --dir",
+    "build:exe": "electron-builder --win portable",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "tauri:build:win": "tauri build --target x86_64-pc-windows-msvc",
+    "tauri:build:mac": "tauri build --target universal-apple-darwin",
+    "tauri:build:linux": "tauri build --target x86_64-unknown-linux-gnu"
+  },
+  "build": {
+    "appId": "com.fourweird.vibecodeworker",
+    "productName": "4WEIRD VIBECODEWORKER",
+    "npmRebuild": false,
+    "win": {
+      "target": [
+        "portable"
+      ]
+    },
+    "portable": {
+      "artifactName": "vibecodeworker-4weird.exe"
+    },
+    "directories": {
+      "output": "dist"
+    },
+    "asarUnpack": [
+      "scripts/python/input_sim.py"
+    ],
+    "extraResources": [
+      {
+        "from": "../mediamogul/shotcut/ffmpeg.exe",
+        "to": "mediamogul/ffmpeg.exe"
+      },
+      {
+        "from": "../..",
+        "to": "website/v1",
+        "filter": [
+          "**/*",
+          "!ai/**"
+        ]
+      }
+    ],
+    "files": [
+      "**/*",
+      "!dist/*",
+      "!scratch/*",
+      "!.vibecodeworker-user-data/*"
+    ]
+  },
+  "keywords": [
+    "tauri",
+    "desktop",
+    "vibecodeworker",
+    "4weird",
+    "antigravity"
+  ],
+  "author": "4WEIRD Team",
+  "license": "ISC",
+  "engines": { "node": ">=18.0.0" },
+  "private": false,
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0",
+    "electron": "^44.3.0",
+    "electron-builder": "^26.15.3"
+  }
+}

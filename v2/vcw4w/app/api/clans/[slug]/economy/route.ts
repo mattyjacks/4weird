@@ -144,6 +144,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   if (action === "type") {
     const clanType = isClanType(input.clan_type);
     if (!clanType) return fail("Invalid clan type (hclan, sclan, bclan).", 400);
+    // Leaving hclan dissolves the human-only guarantee: require explicit
+    // confirmation and refuse silent downgrades.
+    if (clanType !== "hclan" && String(input.confirmLeaveHclan ?? "") !== "yes") {
+      return fail("Leaving hclan requires { confirmLeaveHclan: 'yes' } — members joined a human-only clan.", 400);
+    }
     const { error } = await supabase.rpc("set_clan_type", { p_clan_id: clanId, p_clan_type: clanType });
     if (error) {
       const msg = String(error.message ?? "");

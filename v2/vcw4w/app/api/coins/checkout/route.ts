@@ -50,6 +50,10 @@ export async function POST(request: Request) {
   if (!variantPattern.test(variantId)) return fail("A valid product variant is required.", 400);
   // Custom amounts ride on a $0.01-per-unit variant: quantity equals coins.
   const customVariant = (process.env.COIN_CUSTOM_VARIANT ?? "").trim();
+  // Fail closed on misconfiguration: custom variant must never collide with a pack variant.
+  if (customVariant && allowedPackVariants().includes(customVariant)) {
+    return fail("Checkout misconfigured.", 500);
+  }
   let qty = 1;
   if (customVariant && variantId === customVariant) {
     const wanted = Number(input.quantity);

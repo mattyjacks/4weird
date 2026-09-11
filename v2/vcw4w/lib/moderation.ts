@@ -6,19 +6,17 @@
  *    chat-completions endpoint (base https://api.openai.com/v1, model from
  *    LUNA_MODEL, default "gpt-5.6-luna"). allowed=false => caller should
  *    store the post/comment with status='pending' for human review.
- *  - WITHOUT a key (UNCONFIGURED): fail-open for TEXT — returns
- *    { allowed: true } — but `heuristicHit` is true when a short,
- *    clearly-marked local pattern trips (length caps, obvious slur/URL-spam
- *    shapes). Callers store status='pending' when heuristicHit is true, so
- *    suspicious text is still quarantined for report-driven review.
+ *  - WITHOUT a key (UNCONFIGURED): fail-CLOSED for writes — returns
+ *    { allowed: true, heuristicHit: true } so callers store status='pending'
+ *    for human review until Luna is configured. Reads may still proceed.
  *  - IMAGES without a key: NOT approved here at all. Image safety is
  *    report-driven (report-button CSAM flow auto-hides + preserves sha256)
  *    plus the 1MB cap and magic-bytes checks in the upload route. This
  *    function never sees image bytes.
  *  - NEVER throws: every failure path returns { allowed: true, reason:
- *    "unconfigured"|"moderation-unavailable", heuristicHit? } and logs
- *    server-side via console.error/warn. Fail-open keeps clans usable when
- *    the moderator is down; quarantine (pending/hidden) is the safety net.
+ *    "unconfigured"|"moderation-unavailable", heuristicHit: true } and logs
+ *    server-side via console.error/warn. Fail-closed keeps unreviewed text
+ *    out of `visible`; quarantine (pending/hidden) is the safety net.
  */
 
 export type ModerationResult = {
@@ -55,7 +53,9 @@ export async function moderateText(text: string): Promise<ModerationResult> {
   if (!key) {
     const hit = heuristicCheck(input);
     if (hit) console.warn("[moderation] UNCONFIGURED heuristic hit; caller should use status=pending");
-    return { allowed: true, reason: "unconfigured", heuristicHit: hit };
+    // Fail-closed for writes: unconfigured moderator cannot affirm safety,
+    // so signal heuristicHit=true to force quarantine (pending) at callers.
+    return { allowed: true, reason: "unconfigured", heuristicHit: true };
   }
 
   try {
@@ -91,7 +91,7 @@ export async function moderateText(text: string): Promise<ModerationResult> {
     }
     if (!res.ok) {
       console.error("[moderation] Luna HTTP", res.status);
-      return { allowed: true, reason: "moderation-unavailable", heuristicHit: heuristicCheck(input) };
+      return { allowed: true, reason: "moderation-unavailable", heuristicHit: true };
     }
     const data = (await res.json()) as {
       choices?: { message?: { content?: string } }[];
@@ -101,6 +101,6 @@ export async function moderateText(text: string): Promise<ModerationResult> {
     return { allowed: true };
   } catch (err) {
     console.error("[moderation] Luna fetch failed:", err);
-    return { allowed: true, reason: "moderation-unavailable", heuristicHit: heuristicCheck(input) };
+    return { allowed: true, reason: "moderation-unavailable", heuristicHit: true };
   }
 }

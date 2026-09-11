@@ -25,9 +25,6 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
-  if (Number(req.headers.get("content-length") ?? 0) > maxRequestBytes) {
-    return fail("Profile request is too large.", 413);
-  }
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
@@ -49,6 +46,10 @@ export async function PATCH(req: Request) {
   const input = (body ?? {}) as Record<string, unknown>;
   // content-length is client-controlled: enforce size on the parsed body too.
   if (jsonBytes(input) > maxRequestBytes) return fail("Profile request is too large.", 413);
+  // Reject unexpected fields (mass-assignment guard): only display_name + public_handle.
+  for (const k of Object.keys(input)) {
+    if (k !== "display_name" && k !== "public_handle") return fail("Invalid profile field.", 400);
+  }
   const name = cleanDisplayName(input.display_name);
   const handle = input.public_handle === undefined ? undefined : cleanHandle(input.public_handle);
   if (!name) return fail("Display name needs 2-40 characters.", 400);
@@ -61,6 +62,12 @@ export async function PATCH(req: Request) {
     .from("profiles")
     .update({ display_name: name, ...(handle !== undefined ? { public_handle: handle } : {}) })
     .eq("id", u.id);
-  if (error) return fail("That public handle is unavailable.", 409);
+  if (error) {
+    // 409 only on unique-violation; all other DB faults are generic 500 to
+    // avoid a handle-existence oracle.
+    const code = String((error as { code?: string }).code ?? "");
+    if (code === "23505") return fail("That public handle is unavailable.", 409);
+    return dbFail("api/me/profile", error, "Unable to update profile.");
+  }
   return ok({});
 }

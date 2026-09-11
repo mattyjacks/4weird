@@ -9,17 +9,19 @@ async function ErrorContent({
 }) {
   const params = await searchParams;
 
+  // Map provider error codes to generic messages — never reflect raw
+  // Supabase error text (leaks provider internals).
+  const GENERIC: Record<string, string> = {
+    access_denied: "Access was denied.",
+    expired: "This link expired. Request a new one.",
+    invalid: "This link is invalid.",
+  };
+  const key = String(params?.error ?? "").slice(0, 64).toLowerCase();
+  const message = GENERIC[key] ?? "An unspecified error occurred.";
+
   return (
     <>
-      {params?.error ? (
-        <p className="text-sm text-muted-foreground">
-          Code error: {params.error}
-        </p>
-      ) : (
-        <p className="text-sm text-muted-foreground">
-          An unspecified error occurred.
-        </p>
-      )}
+      <p className="text-sm text-muted-foreground">{message}</p>
     </>
   );
 }

@@ -27,9 +27,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
   const text = String(((body ?? {}) as Record<string, unknown>).body ?? "").trim().slice(0, 2000);
   if (!text) return fail("Comment body required.", 400);
-  const { data: parent } = await supabase.from("clan_posts").select("clan_id").eq("id", id).maybeSingle();
+  const { data: parent } = await supabase.from("clan_posts").select("clan_id,status").eq("id", id).maybeSingle();
   const clanId = (parent as { clan_id?: string } | null)?.clan_id;
   if (!clanId) return fail("Post not found.", 404);
+  // Refuse comments on quarantined/hidden posts (mirrors bot route).
+  if ((parent as { status?: string } | null)?.status !== "visible") return fail("Post not found.", 404);
 
   const valley = await valleynetCheck(text);
   if (valley.verdict === "block") {

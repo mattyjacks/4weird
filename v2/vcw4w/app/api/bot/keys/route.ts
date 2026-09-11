@@ -2,8 +2,10 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient, supabaseServiceRoleKey } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
+import { sameOrigin } from "@/lib/csrf";
+import { exceedsBodyLimit } from "@/lib/validate";
 import { cleanKeyLabel } from "@/lib/bot-validate";
-import { generateBotKey, keyPrefix, sha256Hash } from "@/lib/bot-auth";
+import { botPepperConfigured, generateBotKey, keyPrefix, sha256Hash } from "@/lib/bot-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +16,7 @@ const MAX_ACTIVE_KEYS = 10;
 // (prefix/label/created/last_used/revoked). Supabase-login auth.
 export async function GET() {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
-  if (!supabaseServiceRoleKey()) return fail("Bot service is not configured.", 503);
+  if (!supabaseServiceRoleKey() || !botPepperConfigured()) return fail("Bot service is not configured.", 503);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data?.user) return fail("Login required.", 401);
@@ -35,11 +37,9 @@ export async function GET() {
 // POST /api/bot/keys {label} — issue a key. Returns the FULL secret ONCE;
 // it is never stored and can never be shown again.
 export async function POST(req: Request) {
-  if (Number(req.headers.get("content-length") ?? 0) > maxRequestBytes) {
-    return fail("Request is too large.", 413);
-  }
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
-  if (!supabaseServiceRoleKey()) return fail("Bot service is not configured.", 503);
+  if (!supabaseServiceRoleKey() || !botPepperConfigured()) return fail("Bot service is not configured.", 503);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data?.user) return fail("Login required.", 401);
@@ -55,6 +55,7 @@ export async function POST(req: Request) {
   } catch {
     return fail("Invalid JSON body.", 400);
   }
+  if (exceedsBodyLimit(body, maxRequestBytes)) return fail("Request is too large.", 413);
   const label = cleanKeyLabel((body as Record<string, unknown>)?.label);
   if (!label) return fail("Label needs 1-40 characters.", 400);
 
@@ -73,9 +74,18 @@ export async function POST(req: Request) {
   }
 
   const secret = generateBotKey();
+  // Pepper is gated above, but hash defensively: sha256Hash throws when the
+  // pepper is misconfigured, and that must stay a JSON failure, not an
+  // unhandled HTML 500 (every API returns {success} or {error}).
+  let keyHash: string;
+  try {
+    keyHash = sha256Hash(secret);
+  } catch {
+    return fail("Bot service is not configured.", 503);
+  }
   const { data: rpcData, error } = await supabase.rpc("issue_bot_key", {
     p_label: label,
-    p_key_hash: sha256Hash(secret),
+    p_key_hash: keyHash,
     p_prefix: keyPrefix(secret),
   });
   if (error) return fail("Unable to issue key.", 500);

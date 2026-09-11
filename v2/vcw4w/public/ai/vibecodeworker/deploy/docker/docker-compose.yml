@@ -1,0 +1,44 @@
+# Local dev: VibeCodeWorker headless API + static game host.
+# Run from the REPO ROOT:  docker compose -f website/v1/ai/vibecodeworker/deploy/docker/docker-compose.yml up --build
+services:
+  vibecodeworker:
+    build:
+      context: ../../..
+      dockerfile: website/v1/ai/vibecodeworker/deploy/docker/Dockerfile
+      args:
+        INSTALL_OPENCODE: "true"
+    ports:
+      - "${PORT:-42069}:42069"
+      - "${STATIC_PORT:-8888}:8888"
+    env_file:
+      - path: ./website/v1/ai/vibecodeworker/.env
+        required: false
+    environment:
+      PORT: 42069
+      HOST: 0.0.0.0
+      STATIC_PORT: 8888
+      OPENCODE_ENABLED: "${OPENCODE_ENABLED:-false}"
+      OPENCODE_MODE: "${OPENCODE_MODE:-cli}"
+    volumes:
+      - vibe-data:/app/website/v1/ai/vibecodeworker/data
+    restart: unless-stopped
+
+  # Optional sidecar: long-lived `opencode serve` so CLI mode never pays MCP
+  # cold-boot per fix. Shares the repo read-write so OpenCode can edit code.
+  # Enable with:  docker compose --profile opencode up
+  opencode-server:
+    image: vibecodeworker-local
+    profiles: ["opencode"]
+    command: ["opencode", "serve", "--port", "4096", "--hostname", "0.0.0.0"]
+    working_dir: /app
+    environment:
+      OPENCODE_SERVER_PASSWORD: "${OPENCODE_SERVER_PASSWORD:-}"
+    ports:
+      - "4096:4096"
+    volumes:
+      - vibe-repo:/app:rw
+    restart: unless-stopped
+
+volumes:
+  vibe-data:
+  vibe-repo:

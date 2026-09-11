@@ -18,7 +18,9 @@
  *
  * Security:
  * - Secrets are `bot4weird_` + 20 chars from [A-Za-z0-9]; only
- *   sha256(BOT_KEY_PEPPER + key) is stored (pepper optional, default '').
+ *   scrypt(BOT_KEY_PEPPER + key) is stored (pepper REQUIRED, >=16 chars;
+ *   legacy sha256 rows still verify via fallback). Without a pepper every
+ *   bot route fails closed (503/401), never with an unhashed comparison.
  * - Full keys are never logged.
  * - Hash comparison is constant-time (timingSafeEqual over every prefix
  *   candidate); unknown prefixes still burn a dummy compare so failures
@@ -29,7 +31,7 @@
  *   credentials." at the route layer).
  */
 
-import { createHash, randomBytes, timingSafeEqual } from "crypto";
+import { createHash, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/validate";
 import { serviceClient, supabaseServiceRoleKey, supabaseUrl } from "@/lib/supabase/service";
@@ -57,12 +59,26 @@ export interface BotIdentity {
 const KEY_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
 function pepper(): string {
-  return process.env.BOT_KEY_PEPPER ?? "";
+  const p = process.env.BOT_KEY_PEPPER ?? "";
+  // Fail closed: without a pepper the stored hash is a fast unsalted
+  // sha256(key) vulnerable to offline brute force on DB leak.
+  if (!p || p.length < 16) {
+    throw new Error("BOT_KEY_PEPPER missing or too short (>=16 chars required).");
+  }
+  return p;
 }
 
 /** Server has what it needs to resolve bot keys (URL + service_role). */
 export function hasBotAuth(): boolean {
   return Boolean(supabaseUrl() && supabaseServiceRoleKey());
+}
+
+/** Pepper is configured (safe to call from routes: never throws). Key
+ *  issuance must gate on this BEFORE hashing so a missing pepper yields a
+ *  JSON 503, not an unhandled throw (HTML 500). */
+export function botPepperConfigured(): boolean {
+  const p = process.env.BOT_KEY_PEPPER ?? "";
+  return p.length >= 16;
 }
 
 /** Generate a fresh secret: 'bot4weird_' + 20 chars from [A-Za-z0-9]. */
@@ -81,9 +97,38 @@ export function generateBotKey(): string {
   return BOT_KEY_TAG + suffix;
 }
 
-/** Stored hash: sha256 hex of (pepper + key). Pepper defaults to ''. */
+/** Stored hash: scrypt(pepper + key) hex. Slow KDF resists offline brute force. */
 export function sha256Hash(key: string): string {
-  return createHash("sha256").update(pepper() + key, "utf8").digest("hex");
+  // Name kept for callers; now scrypt (N=16384,r=8,p=1, 32-byte output).
+  // Legacy sha256 rows still verify via verifyKeyHash fallback below.
+  return (scryptSync(pepper() + key, "bot4weird-v1", 32, { N: 16384, r: 8, p: 1 }) as Buffer).toString("hex");
+}
+
+function legacySha256(key: string): string {
+  try {
+    const p = process.env.BOT_KEY_PEPPER ?? "";
+    return createHash("sha256").update(p + key, "utf8").digest("hex");
+  } catch {
+    return "";
+  }
+}
+
+function verifyKeyHash(presentedKey: string, storedHex: string): boolean {
+  try {
+    const a = Buffer.from(storedHex, "hex");
+    if (a.length !== 32) return false;
+    try {
+      const b = Buffer.from(sha256Hash(presentedKey), "hex");
+      if (b.length === 32 && timingSafeEqual(a, b)) return true;
+    } catch {
+      // fall through to legacy check
+    }
+    const legacy = Buffer.from(legacySha256(presentedKey), "hex");
+    if (legacy.length !== 32) return false;
+    return timingSafeEqual(a, legacy);
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -134,7 +179,13 @@ export async function resolveBotKey(req: Request): Promise<BotIdentity | null> {
     return null;
   }
   const prefix = keyPrefix(raw);
-  const digest = Buffer.from(sha256Hash(raw), "hex");
+  // Fail closed when pepper is misconfigured: deny auth, burn dummy compare.
+  try {
+    pepper();
+  } catch {
+    dummyCompare(Buffer.alloc(32, 0));
+    return null;
+  }
 
   let candidates: KeyCandidate[] = [];
   try {
@@ -145,36 +196,31 @@ export async function resolveBotKey(req: Request): Promise<BotIdentity | null> {
       .eq("prefix", prefix)
       .limit(100);
     if (error) {
-      dummyCompare(digest);
+      dummyCompare(Buffer.alloc(32, 0));
       return null;
     }
     candidates = ((data ?? []) as KeyCandidate[]).filter(
       (c) => typeof c?.key_hash === "string" && typeof c?.user_id === "string",
     );
   } catch {
-    dummyCompare(digest);
+    dummyCompare(Buffer.alloc(32, 0));
     return null;
   }
 
   if (candidates.length === 0) {
-    dummyCompare(digest);
+    dummyCompare(Buffer.alloc(32, 0));
     return null;
   }
 
   // Compare against EVERY candidate (no early exit) so a match position
-  // cannot be inferred from timing.
+  // cannot be inferred from timing. Uses slow-KDF verify with legacy
+  // sha256 fallback for pre-migration rows.
   let matched: KeyCandidate | null = null;
   for (const candidate of candidates) {
-    let stored: Buffer;
-    try {
-      stored = Buffer.from(candidate.key_hash, "hex");
-    } catch {
-      continue;
-    }
-    if (stored.length !== 32) continue;
+    if (typeof candidate.key_hash !== "string") continue;
     let equal = false;
     try {
-      equal = timingSafeEqual(stored, digest);
+      equal = verifyKeyHash(raw, candidate.key_hash);
     } catch {
       equal = false;
     }
@@ -218,9 +264,16 @@ export async function resolveBotKey(req: Request): Promise<BotIdentity | null> {
 }
 
 /** Stricter-than-human throttles for bot traffic: 60/min reads, 10/min writes. */
-export function botRateLimit(req: Request, kind: "read" | "write") {
+export function botRateLimit(req: Request, kind: "read" | "write", keyId = "") {
   const limit = kind === "read" ? 60 : 10;
-  return rateLimit(`bot-${kind}:${clientIp(req)}`, limit, 60_000);
+  // Key by key prefix/id first so NAT-mates don't share a budget and IP
+  // rotation alone cannot evade the write throttle; IP is defense-in-depth.
+  const raw = extractBotKey(req) ?? "";
+  const idPart = (keyId || (raw ? keyPrefix(raw) : "") || "nokey").slice(0, 16);
+  const ipPart = clientIp(req);
+  const primary = rateLimit(`bot-${kind}:${idPart}`, limit, 60_000);
+  if (!primary.allowed) return primary;
+  return rateLimit(`bot-${kind}-ip:${ipPart}`, limit * 5, 60_000);
 }
 
 /** Uniform auth-failure message (enumerate-safe). */

@@ -72,4 +72,13 @@ if (!mig.includes("if not exists") && !mig.includes("IF NOT EXISTS") && !mig.inc
 if (!createRoute.includes("rpcFail")) throw new Error("create route must route RPC errors through rpcFail.");
 if (!bookRoute.includes("rpcFail")) throw new Error("book route must route RPC errors through rpcFail.");
 
+// Private listing fields: the public list card and the detail route must not
+// leak owner_id/endpoint_url to non-owners ( renters get connection details
+// from their own booking, never from the catalog).
+if (createRoute.includes('"id,owner_id') || createRoute.includes(",owner_id,")) throw new Error("public list route must not select owner_id.");
+const detailRoute = read("../app/api/agents/[id]/route.ts");
+if (!detailRoute.includes("delete pub.owner_id") || !detailRoute.includes("delete pub.endpoint_url")) {
+  throw new Error("detail route must strip owner_id/endpoint_url for non-owners.");
+}
+
 console.log("Agent rentals integrity OK.");

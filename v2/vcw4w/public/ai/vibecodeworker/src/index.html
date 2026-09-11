@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>4weird vibecodeworker - agentic web & game runner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Space+Grotesk:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+  <!-- Shared hub theme: same source as the Tauri/website hub (website/v1/vibecodeworker/hub-shared.css) -->
+  <link rel="stylesheet" href="../../vibecodeworker/hub-shared.css">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self' file: data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' file:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com file:; font-src 'self' https://fonts.gstatic.com file:; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.openai.com https://api.deepseek.com https://generativelanguage.googleapis.com https://openrouter.ai; img-src 'self' file: data:; child-src 'self' file:; frame-src 'self' file: http://localhost:* http://127.0.0.1:*;">
+</head>
+
+<body>
+  <div class="app-container simple-mode nav-is-hidden">
+
+    <!-- SLIM TOP TITLE BAR WITH CLEAN DROPDOWNS -->
+    <header class="title-bar glass">
+      <div class="title-bar-left">
+        <button id="btn-open-nav" class="btn btn-nav-open" title="Open navigation menu" aria-label="Open Menu">
+          <span class="hamburger-icon">☰</span>
+        </button>
+        <div class="logo-area">
+          <div class="glow-dot active"></div>
+          <h1>4WEIRD VIBECODEWORKER</h1>
+        </div>
+
+        <!-- SIMPLE HEADER DROPDOWNS -->
+        <div class="header-menu-group">
+          <!-- 1. GAME MENU -->
+          <div class="menu-dropdown">
+            <button class="menu-dropdown-btn btn btn-secondary btn-small" id="menu-game-btn">
+              🎮 Game ▾
+            </button>
+            <div class="menu-dropdown-content menu-panel-solid" id="menu-game-content">
+              <div class="menu-group-title">QUICK LOAD</div>
+              <button class="menu-item" id="menu-item-load-game">
+                <span class="menu-icon">📂</span> Load Selected Game
+              </button>
+              <button class="menu-item" id="menu-item-reload-game">
+                <span class="menu-icon">🔄</span> Reload Game Window
+              </button>
+              <button class="menu-item" id="menu-item-ext-window">
+                <span class="menu-icon">🖥️</span> Open in Separate Window
+              </button>
+              <button class="menu-item" id="menu-item-devtools">
+                <span class="menu-icon">🛠️</span> Open Game DevTools
+              </button>
+              <button class="menu-item" id="menu-item-snapshot">
+                <span class="menu-icon">📸</span> Take Viewport Snapshot
+              </button>
+              <div class="menu-divider"></div>
+              <div class="menu-group-title">WORKSPACE HUB</div>
+              <button class="menu-item" id="menu-item-goto-hub">
+                <span class="menu-icon">🏠</span> Welcome Hub / New Game
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. AI & TOOLS MENU -->
+          <div class="menu-dropdown">
+            <button class="menu-dropdown-btn btn btn-secondary btn-small" id="menu-tools-btn">
+              🤖 AI & Tools ▾
+            </button>
+            <div class="menu-dropdown-content menu-panel-solid" id="menu-tools-content">
+              <div class="menu-group-title">AUTONOMOUS FIXER</div>
+              <button class="menu-item" id="menu-item-direct-fix">
+                <span class="menu-icon">⚡</span> Run AI Coding Fix (Direct)
+              </button>
+              <button class="menu-item" id="menu-item-ultralight">
+                <span class="menu-icon">🌐</span> Run Active Engine QA
+              </button>
+              <button class="menu-item" id="menu-item-engine-ultralight">
+                <span class="menu-icon">⚡</span> Use Ultralight (main)
+              </button>
+              <button class="menu-item" id="menu-item-engine-electron">
+                <span class="menu-icon">🖥️</span> Use Electron (current setup)
+              </button>
+              <button class="menu-item" id="menu-item-engine-chromium">
+                <span class="menu-icon">🧩</span> Use Chromium standalone
+              </button>
+              <button class="menu-item" id="menu-item-engine-multi">
+                <span class="menu-icon">🔬</span> Multi-Engine QA (all 3)
+              </button>
+              <button class="menu-item" id="menu-item-heuristic">
+                <span class="menu-icon">🧪</span> Force Heuristic Step
+              </button>
+              <button class="menu-item" id="menu-item-mega-prompt">
+                <span class="menu-icon">📋</span> Generate Mega-Prompt
+              </button>
+              <div class="menu-divider"></div>
+              <div class="menu-group-title">SESSION DATA</div>
+              <button class="menu-item" id="menu-item-save-replay">
+                <span class="menu-icon">💾</span> Save Replay Recording
+              </button>
+              <button class="menu-item" id="menu-item-copy-logs">
+                <span class="menu-icon">📑</span> Copy Recent Logs
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. VIEW & PANELS MENU -->
+          <div class="menu-dropdown">
+            <button class="menu-dropdown-btn btn btn-secondary btn-small" id="menu-view-btn">
+              ⚙️ Options ▾
+            </button>
+            <div class="menu-dropdown-content menu-panel-solid" id="menu-view-content">
+              <div class="menu-group-title">LAYOUT & SOUND</div>
+              <button class="menu-item" id="menu-item-api-keys">
+                <span class="menu-icon">🔑</span> API Keys
+              </button>
+              <button class="menu-item" id="menu-item-toggle-layout">
+                <span class="menu-icon">⚙️</span> <span id="menu-layout-label">Open detailed options</span>
+              </button>
+              <button class="menu-item" id="menu-item-toggle-audio">
+                <span class="menu-icon">🔊</span> <span id="menu-audio-label">Toggle Audio Sounds</span>
+              </button>
+              <div class="menu-divider"></div>
+              <div class="menu-group-title">SIDEBAR PANELS</div>
+              <button class="menu-item" id="menu-item-toggle-config">
+                <span class="menu-icon">⚙️</span> Toggle Config Panel
+              </button>
+              <button class="menu-item" id="menu-item-toggle-tracker">
+                <span class="menu-icon">🐞</span> Toggle Bug Tracker Panel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="title-bar-center">
+        <button id="btn-toggle-agent" class="btn btn-primary btn-large-top disabled" disabled
+          title="Select a game target and click LOAD first">
+          <span class="icon">▶</span> START AI AGENT
+        </button>
+      </div>
+
+      <div class="title-bar-right">
+        <div class="metrics-bar">
+          <div class="metric">
+            <span class="badge idle" id="agent-state-badge">IDLE</span>
+          </div>
+          <div class="metric">
+            <span class="label">FPS</span>
+            <span class="value" id="fps-val">--</span>
+            <canvas id="fps-chart" width="50" height="18"></canvas>
+          </div>
+          <div class="metric">
+            <span class="label">HEAP</span>
+            <span class="value" id="heap-val">-- MB</span>
+            <canvas id="heap-chart" width="50" height="18"></canvas>
+          </div>
+          <div class="metric">
+            <span class="label">STUCK</span>
+            <span class="value" id="stuck-val">0/3</span>
+          </div>
+        </div>
+        <div class="toggles-group">
+          <button id="btn-toggle-left" class="btn btn-secondary btn-small" title="Toggle Configuration Panel">⚙️
+            Config</button>
+          <button id="btn-toggle-right" class="btn btn-secondary btn-small" title="Toggle Bug Tracker">🐞
+            Tracker</button>
+          <button id="btn-toggle-audio" class="btn btn-icon btn-small" title="Toggle Synth Sounds">🔊</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="main-body">
+
+      <!-- LEFT NAVIGATION MENU (vertical, hideable) -->
+      <nav class="nav-sidebar glass nav-hidden" id="nav-sidebar">
+        <div class="nav-header">
+          <div class="nav-logo-row">
+            <div class="glow-dot active"></div>
+            <span class="nav-title">MENU</span>
+          </div>
+          <button id="btn-hide-nav" class="btn btn-nav-hide" title="Hide navigation menu" aria-label="Hide Menu">
+            ✕ Hide Menu
+          </button>
+        </div>
+
+        <div class="nav-divider"></div>
+
+        <div class="nav-section-label">AGENT CONTROL</div>
+        <nav class="nav-items-group">
+          <button id="btn-goto-hub" class="nav-item btn btn-secondary" title="Return to Welcome Hub View">
+            <span class="nav-item-icon">🏠</span>
+            <span class="nav-item-label">Hub</span>
+          </button>
+          <button id="btn-toggle-view" class="nav-item btn btn-secondary"
+            title="Show or hide detailed controls">
+            <span class="nav-item-icon">🛠️</span>
+            <span class="nav-item-label">Open detailed options</span>
+          </button>
+          <button id="btn-simulate-heuristic" class="nav-item btn btn-warning"
+            title="Force heuristic mode for agent decision-making" aria-label="Force Heuristic Mode">
+            <span class="nav-item-icon">🧪</span>
+            <span class="nav-item-label">Force Heuristic</span>
+          </button>
+        </nav>
+
+        <div class="nav-divider"></div>
+        <div class="nav-section-label">GAME WINDOW</div>
+        <nav class="nav-items-group">
+          <button id="btn-webview-reload" class="nav-item btn btn-secondary" title="Reload the current game page"
+            aria-label="Reload Game Page">
+            <span class="nav-item-icon">🔄</span>
+            <span class="nav-item-label">Reload Game</span>
+          </button>
+          <button id="btn-webview-devtools" class="nav-item btn btn-secondary" title="Open browser developer tools"
+            aria-label="Open Developer Tools">
+            <span class="nav-item-icon">🛠</span>
+            <span class="nav-item-label">DevTools</span>
+          </button>
+          <button id="btn-open-game-window" class="nav-item btn btn-secondary"
+            title="Launch game preview in a separate window to the right">
+            <span class="nav-item-icon">�️</span>
+            <span class="nav-item-label">Separate Window</span>
+          </button>
+          <button id="btn-manual-shot" class="nav-item btn btn-secondary"
+            title="Capture manual screenshot of current view" aria-label="Capture Screenshot">
+            <span class="nav-item-icon">�</span>
+            <span class="nav-item-label">Snapshot</span>
+          </button>
+        </nav>
+      </nav>
+      <!-- LEFT SIDEBAR: CONTROL & CONFIGURATION -->
+      <aside class="sidebar control-panel glass">
+        <div class="sidebar-header">
+          <div class="glow-dot active"></div>
+          <h2>CONFIG PANEL</h2>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="section-header" data-section="llm-settings">
+            <span class="section-toggle">▼</span>
+            <h3>1. LLM ENGINE SETTINGS</h3>
+            <span class="help-icon"
+              title="Configure which AI model to use for game analysis and decision-making">?</span>
+          </div>
+          <div class="section-content" id="llm-settings">
+            <div class="form-group">
+              <label for="provider-select">Provider</label>
+              <select id="provider-select">
+                <option value="deepseek">DeepSeek (Harness / Reasoner / Flash)</option>
+                <option value="meta">Meta (Muse Spark 1.3 Contributor 1M)</option>
+                <option value="openai">OpenAI (GPT-5.6 Luna)</option>
+                <option value="gemini">Gemini (Google Cloud)</option>
+                <option value="openrouter">OpenRouter (Multi-model)</option>
+                <option value="local">Local Endpoint (Ollama/LM Studio)</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="apikey-group">
+              <label for="api-key">API Key</label>
+              <input type="password" id="api-key" placeholder="Enter API Key">
+            </div>
+
+            <div class="form-group hidden" id="local-url-group">
+              <label for="local-url">API Endpoint URL</label>
+              <input type="text" id="local-url" placeholder="e.g. http://localhost:11434/api/chat">
+            </div>
+
+            <div class="form-group">
+              <label for="model-select">Model Choice</label>
+              <select id="model-select">
+                <!-- Dynamically populated options based on provider -->
+              </select>
+            </div>
+            <div class="form-group checkbox-group">
+              <label title="Let the agent observe, form hypotheses, choose a reversible experiment, and verify results without game-specific instructions.">
+                <input type="checkbox" id="generalized-intelligence" checked> Generalized intelligence mode
+              </label>
+            </div>
+
+            <div class="form-group toggle-row" id="auto-choose-group">
+              <label for="toggle-auto-choose"
+                title="Automatically select the most cost-effective model based on task complexity">
+                🤖 Auto-Choose Model (OpenAI)
+                <span class="toggle-hint">(saves budget)</span>
+              </label>
+              <label class="toggle-switch">
+                <input type="checkbox" id="toggle-auto-choose">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="form-group hidden" id="largest-model-group">
+              <label for="largest-model-select">Largest Model Allowed</label>
+              <select id="largest-model-select">
+                <option value="gpt-5.6-luna" selected>GPT-5.6 Luna — lowest cost</option>
+                <option value="gpt-5.6-terra">GPT-5.6 Terra — balanced</option>
+                <option value="gpt-5.6-sol">GPT-5.6 Sol — advanced</option>
+                <option value="gpt-6-astra">GPT-6 Astra — maximum capability</option>
+              </select>
+              <span class="field-hint">Caps auto-selected model tier to control costs</span>
+            </div>
+
+            <div class="form-group hidden" id="pro-extreme-group">
+              <label class="toggle-checkbox" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" id="toggle-pro-extreme">
+                <span>Use Pro for Extreme Complexity</span>
+              </label>
+              <span class="field-hint">Uses the selected current model ceiling for complex tasks.</span>
+            </div>
+
+            <div class="form-group hidden" id="custom-model-group">
+              <label for="model-name">Custom Model Name</label>
+              <input type="text" id="model-name" value="gpt-5.6-luna" placeholder="e.g. custom-model">
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="section-header" data-section="local-models">
+            <span class="section-toggle">▶</span>
+            <h3>1B. LOCAL MODELS (OLLAMA)</h3>
+            <span class="help-icon" title="Run models on your own machine and assign one per job: decisions, vision, coding, deep reasoning">?</span>
+          </div>
+          <div class="section-content hidden" id="local-models">
+            <div class="form-group">
+              <label>Ollama status <span class="badge" id="ollama-status-pill" data-kind="">Checking…</span></label>
+              <div class="input-row">
+                <button id="btn-ollama-status" class="btn btn-secondary">REFRESH</button>
+                <button id="btn-ollama-start" class="btn btn-secondary" title="Start `ollama serve` when installed but stopped">START</button>
+                <button id="btn-ollama-install" class="btn btn-secondary" title="One-time ~700MB+ download + silent install (asks first)">INSTALL</button>
+              </div>
+              <span class="field-hint" id="ollama-installed-models">Checking installed models…</span>
+            </div>
+
+            <div class="form-group">
+              <label for="ollama-url">Ollama URL</label>
+              <input type="text" id="ollama-url" value="http://127.0.0.1:11434" placeholder="e.g. http://127.0.0.1:11434">
+            </div>
+
+            <div class="form-group toggle-row">
+              <label for="ollama-auto-start" title="Start `ollama serve` automatically on app boot when installed">
+                ⚡ Auto-start Ollama server
+              </label>
+              <label class="toggle-switch">
+                <input type="checkbox" id="ollama-auto-start" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label for="role-model-agent" title="Everyday playtest decisions, planning, tool calls">🤖 Agent — decisions</label>
+              <div class="input-row">
+                <select id="role-provider-agent" title="Provider for the agent role">
+                  <option value="local" selected>Local (Ollama)</option>
+                  <option value="deepseek">DeepSeek</option>
+                  <option value="meta">Meta</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="gemini">Gemini</option>
+                  <option value="openrouter">OpenRouter</option>
+                </select>
+                <input type="text" id="role-model-agent" list="role-suggest-agent" value="qwen3:8b" placeholder="e.g. qwen3:8b">
+              </div>
+              <datalist id="role-suggest-agent"></datalist>
+            </div>
+
+            <div class="form-group">
+              <label for="role-model-vision" title="Sees game frames and screenshots — needs a vision-capable model">👁️ Vision — screenshots</label>
+              <div class="input-row">
+                <select id="role-provider-vision" title="Provider for the vision role">
+                  <option value="local" selected>Local (Ollama)</option>
+                  <option value="deepseek">DeepSeek</option>
+                  <option value="meta">Meta</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="gemini">Gemini</option>
+                  <option value="openrouter">OpenRouter</option>
+                </select>
+                <input type="text" id="role-model-vision" list="role-suggest-vision" value="qwen2.5vl:7b" placeholder="e.g. qwen2.5vl:7b">
+              </div>
+              <datalist id="role-suggest-vision"></datalist>
+            </div>
+
+            <div class="form-group">
+              <label for="role-model-coder" title="Autocode patches, code review, heal-worker edits">🧑‍💻 Coder — patches</label>
+              <div class="input-row">
+                <select id="role-provider-coder" title="Provider for the coder role">
+                  <option value="local" selected>Local (Ollama)</option>
+                  <option value="deepseek">DeepSeek</option>
+                  <option value="meta">Meta</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="gemini">Gemini</option>
+                  <option value="openrouter">OpenRouter</option>
+                </select>
+                <input type="text" id="role-model-coder" list="role-suggest-coder" value="qwen2.5-coder:7b" placeholder="e.g. qwen2.5-coder:7b">
+              </div>
+              <datalist id="role-suggest-coder"></datalist>
+            </div>
+
+            <div class="form-group">
+              <label for="role-model-reasoner" title="Slow deep diagnosis, self-improvement, root-cause analysis">🧠 Reasoner — diagnosis</label>
+              <div class="input-row">
+                <select id="role-provider-reasoner" title="Provider for the reasoner role">
+                  <option value="local" selected>Local (Ollama)</option>
+                  <option value="deepseek">DeepSeek</option>
+                  <option value="meta">Meta</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="gemini">Gemini</option>
+                  <option value="openrouter">OpenRouter</option>
+                </select>
+                <input type="text" id="role-model-reasoner" list="role-suggest-reasoner" value="deepseek-r1:8b" placeholder="e.g. deepseek-r1:8b">
+              </div>
+              <datalist id="role-suggest-reasoner"></datalist>
+            </div>
+
+            <div class="form-group">
+              <label for="ollama-pull-name">Pull a model</label>
+              <div class="input-row">
+                <input type="text" id="ollama-pull-name" placeholder="e.g. qwen3:8b">
+                <button id="btn-ollama-pull" class="btn btn-secondary">PULL</button>
+              </div>
+              <span class="field-hint" id="ollama-pull-status">Downloads from the Ollama registry into local storage.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="section-header" data-section="game-target">
+            <span class="section-toggle">▶</span>
+            <h3>2. GAME TARGET</h3>
+            <span class="help-icon" title="Load a game URL or select from local demos">?</span>
+          </div>
+          <div class="section-content hidden" id="game-target">
+            <div class="form-group">
+              <label for="game-url">Game Address (URL or local file://)</label>
+              <div class="input-row">
+                <input type="text" id="game-url" placeholder="http:// or file:///">
+                <button id="btn-load-url" class="btn btn-secondary">LOAD</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Quick Load Local Pages & Games</label>
+              <select id="demo-game-select">
+                <option value="">-- Choose Page or Game --</option>
+                <!-- Javascript will populate this with website/v1 pages & games -->
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="section-header" data-section="game-rules">
+            <span class="section-toggle">▶</span>
+            <h3>3. GAME-SPECIFIC PLAY RULES</h3>
+            <span class="help-icon" title="Define custom rules and behavior for the AI agent">?</span>
+          </div>
+          <div class="section-content hidden" id="game-rules">
+            <div class="form-group">
+              <textarea id="game-rules" rows="3"
+                placeholder="e.g. Press 'Space' to jump. Move using ArrowRight. Avoid spikes. Click 'Start Game' button at coordinates..."></textarea>
+            </div>
+            <div class="form-group toggle-row">
+              <label for="toggle-memory"
+                title="Always include episode history in every LLM call. Default OFF saves tokens — memory is only sent when the agent is stuck.">
+                📚 Always Send Memory
+                <span class="toggle-hint">(default: stuck-only)</span>
+              </label>
+              <label class="toggle-switch">
+                <input type="checkbox" id="toggle-memory">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="section-header" data-section="native-scanner">
+            <span class="section-toggle">▶</span>
+            <h3>4. NATIVE ENGINE SCANNER</h3>
+            <span class="help-icon" title="Scan running game processes like Roblox, Godot, Unity, or Unreal">?</span>
+          </div>
+          <div class="section-content hidden" id="native-scanner">
+            <div class="form-group">
+              <label for="native-process">Target Process</label>
+              <div class="input-row">
+                <select id="native-process">
+                  <option value="">-- Scan / Select Game Window --</option>
+                  <option value="Half-Life 2">Half-Life 2: Episode Two (hl2.exe) - AI demo</option>
+                  <option value="Peggle Deluxe">Peggle Deluxe - AI demo</option>
+                  <option value="RobloxPlayer">RobloxPlayerBeta.exe</option>
+                  <option value="Godot">Godot_v4.exe (Godot Game)</option>
+                  <option value="Unity">UnityPlayer.dll (Unity Game)</option>
+                  <option value="Unreal">UnrealEngine.exe (Unreal Game)</option>
+                </select>
+                <button id="btn-scan-processes" class="btn btn-icon" title="Refresh processes">🔄</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="native-window-mode">Window mode</label>
+              <select id="native-window-mode">
+                <option value="exclusive-fullscreen">Full screen (exclusive)</option>
+                <option value="borderless">Borderless windowed</option>
+                <option value="windowed-fullscreen">Full-screen windowed</option>
+                <option value="partial-windowed">Partial windowed</option>
+              </select>
+              <span class="field-hint">All modes use window-relative capture and input, so the agent keeps working if the game is not maximized.</span>
+            </div>
+            <div class="form-group" id="native-window-size-group">
+              <label for="native-window-width">Partial window size</label>
+              <div class="input-row">
+                <input id="native-window-width" type="number" min="640" max="7680" value="1280" aria-label="Window width">
+                <input id="native-window-height" type="number" min="480" max="4320" value="720" aria-label="Window height">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="steam-game">Steam game</label>
+              <select id="steam-game">
+                <option value="220">Half-Life 2</option>
+                <option value="420" selected>Half-Life 2: Episode Two</option>
+                <option value="3483">Peggle Deluxe</option>
+              </select>
+            </div>
+            <div class="form-group toggle-row">
+              <label for="native-start-new-game">Start a fresh game</label>
+              <label class="toggle-switch"><input id="native-start-new-game" type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+            <div class="form-group toggle-row">
+              <label for="native-skip-cutscenes">Skip skippable cinematics and intros</label>
+              <label class="toggle-switch"><input id="native-skip-cutscenes" type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+            <button id="btn-launch-hl2" class="btn btn-secondary btn-small" type="button">▶ Launch selected Steam game with this mode</button>
+          </div>
+        </div>
+        <div class="sidebar-section">
+          <div class="section-header" data-section="thinking-out-loud">
+            <span class="section-toggle">▶</span>
+            <h3>5. THINKING OUT LOUD</h3>
+            <span class="help-icon" title="Short, spoken summaries of completed decisions. Never exposes private prompts or hidden reasoning.">?</span>
+          </div>
+          <div class="section-content hidden" id="thinking-out-loud">
+            <div class="form-group toggle-row">
+              <label for="thinking-out-loud-toggle">Speak short gameplay commentary</label>
+              <label class="toggle-switch"><input id="thinking-out-loud-toggle" type="checkbox"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="form-group">
+              <label for="commentary-personality">Personality</label>
+              <select id="commentary-personality"><option value="tester">Tester — clear, useful playtest insights</option><option value="streamer">Streamer — playful live commentary</option></select>
+            </div>
+            <div class="form-group">
+              <label for="commentary-voice-engine">Voice engine</label>
+              <select id="commentary-voice-engine"><option value="system">System voice (free)</option><option value="openai">OpenAI TTS (uses configured API key)</option></select>
+            </div>
+            <div class="form-group">
+              <label for="commentary-voice">OpenAI voice</label>
+              <select id="commentary-voice"><option value="nova">Nova</option><option value="alloy">Alloy</option><option value="shimmer">Shimmer</option><option value="onyx">Onyx</option></select>
+            </div>
+            <span class="field-hint" id="thinking-out-loud-status">Commentary is off.</span>
+          </div>
+        <div class="sidebar-section">
+          <div class="section-header" data-section="server-settings">
+            <span class="section-toggle">▶</span>
+            <h3>6. API SERVER & NETWORK</h3>
+            <span class="help-icon" title="Configure VibeCodeWorker Local REST API port (default: 42069)">?</span>
+          </div>
+          <div class="section-content hidden" id="server-settings">
+            <div class="form-group">
+              <label for="server-port">Local REST API Port</label>
+              <div class="input-row">
+                <input type="number" id="server-port" value="42069" min="1024" max="65535" placeholder="42069">
+                <button id="btn-save-port" class="btn btn-secondary btn-small">Apply</button>
+              </div>
+              <span class="field-hint">Default: 42069. Used by CLI scripts, test runners, and SDKs.</span>
+            </div>
+            <div class="form-group">
+              <label for="web-engine-select">Web Engine Driver (default: Ultralight)</label>
+              <select id="web-engine-select">
+                <option value="ultralight">⚡ Ultralight (main / default)</option>
+                <option value="electron">🖥️ Electron (current setup)</option>
+                <option value="chromium">🧩 Chromium standalone</option>
+              </select>
+              <span class="field-hint" id="web-engine-status">Active: ultralight · default: ultralight</span>
+              <button id="btn-multi-engine-qa" class="btn btn-secondary btn-small" style="margin-top: 6px;">🔬 Run Multi-Engine QA (all 3)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Start AI Agent button moved to top action bar -->
+      </aside>
+
+      <!-- CENTER PANEL: GAME VIEWPORT & AGENT MIND -->
+      <main class="main-content">
+        <!-- HUB WORKSPACE VIEW -->
+        <div class="hub-workspace-view hidden" id="hub-workspace"
+          style="display: flex; flex-direction: column; flex: 1; gap: 16px; overflow-y: auto; padding: 12px 4px; position: relative; z-index: 1; pointer-events: auto;">
+          <div class="hub-hero" style="text-align: center; margin-bottom: 8px;">
+            <h2
+              style="font-family: var(--font-display); font-size: 1.6rem; color: var(--accent-blue); letter-spacing: 1px; margin-bottom: 6px;">
+              Welcome to 4weird VibeCodeWorker</h2>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 12px;">Select a workspace path
+              below to design, run test, or auto-fix games and web apps.</p>
+            <div class="hub-hero-actions">
+              <button id="btn-import-plan" class="btn btn-secondary">📂 Import Plan (.txt)</button>
+              <button id="btn-hub-quick-demo" class="btn btn-primary" title="Launch Overtake and create Gameplay + Testing videos">🎬 Quick Demo · Overtake</button>
+              <div class="hub-view-switch" role="group" aria-label="Home view layout">
+                <button id="btn-hub-grid-view" class="btn btn-small is-selected" type="button" aria-pressed="true">▦ Grid</button>
+                <button id="btn-hub-list-view" class="btn btn-small btn-secondary" type="button" aria-pressed="false">☷ List</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="hub-grid">
+            <!-- Card 1: Load 4weird Games -->
+            <div class="hub-card glass" id="card-load-4weird">
+              <div class="card-icon">🎮
+              </div>
+              <h3>Load
+                4weird Games</h3>
+              <p>Instant access to
+                the complete 4weird HTML5 and WebGL catalogue. Select, play, and unleash autonomous QA agents in
+                seconds.</p>
+              <button class="btn btn-primary btn-full" style="pointer-events: none; margin-top: 8px;">BROWSE
+                GAMES</button>
+            </div>
+
+            <!-- Card 2: Test Any Website -->
+            <div class="hub-card glass" id="card-test-website">
+              <div class="card-icon" style="filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.4));">🌐
+              </div>
+              <h3>Test
+                Any Website</h3>
+              <p>Analyze any live
+                URL or SaaS app: UX/UI heuristic audit, backend network errors, form flows, dead link crawling, and
+                CAPTCHA HITL.</p>
+              <button class="btn btn-primary btn-full" style="pointer-events: none; margin-top: 8px;">AUDIT ANY
+                URL</button>
+            </div>
+
+            <!-- Card 3: Cloud Fleet Remote Execution -->
+            <div class="hub-card glass" id="card-cloud-fleet">
+              <div class="card-icon" style="filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.4));">☁️
+              </div>
+              <h3>4weird
+                Cloud Fleet</h3>
+              <p>Run high-load web
+                testing on rented cloud machines (AWS EC2 style). Stream seamlessly to low-power laptops, tablets, or
+                phones.</p>
+              <button class="btn btn-secondary btn-full" style="pointer-events: none; margin-top: 8px;">RENT COMPUTE
+                NODE</button>
+            </div>
+
+            <!-- Card 4: Create Random Viral HTML Game -->
+            <div class="hub-card glass" id="card-random-game">
+              <div class="card-icon">⚡
+              </div>
+              <h3>Create
+                Random Viral Game</h3>
+              <p>Generate an
+                original, randomized non-copyrighted game idea. Automatically creates QA testing guides, and a BRAID
+                decision flowchart.</p>
+              <button class="btn btn-primary btn-full" style="pointer-events: none; margin-top: 8px;">PITCH &
+                GENERATE</button>
+            </div>
+
+            <!-- Card 5: Plan New HTML Game -->
+            <div class="hub-card glass" id="card-plan-game">
+              <div class="card-icon">💬
+              </div>
+              <h3>Plan
+                New HTML Game</h3>
+              <p>Collaboratively
+                construct a custom game plan using an interactive planner chat, answering multiple choice questions to
+                tailor compile a specs draft.</p>
+              <button class="btn btn-primary btn-full" style="pointer-events: none; margin-top: 8px;">START INTERACTIVE
+                PLANNER</button>
+            </div>
+
+            <!-- Card 6: Open Specific Folder -->
+            <div class="hub-card glass" id="card-open-folder">
+              <div class="card-icon">📁
+              </div>
+              <h3>Open
+                Specific Folder</h3>
+              <p>Load any folder
+                path directly. Automatically detects and deploys HTML5 games, web apps (Next.js, Astro, React, Vue),
+                websites, Roblox, Godot, Unity, or Unreal projects.</p>
+              <button class="btn btn-primary btn-full" style="pointer-events: none; margin-top: 8px;">OPEN FILE
+                EXPLORER</button>
+            </div>
+
+            <div class="hub-card glass" id="card-desktop-game"
+              style="padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; cursor: pointer; pointer-events: auto; border-color: rgba(0, 242, 254, 0.36);">
+              <div class="card-icon">🖥️</div>
+              <h3>Work on Desktop Game</h3>
+              <p>Attach to a running Windows game, capture its selected window, and run a supervised playtest. Built for modded games, Unity, Unreal, Godot, and more.</p>
+              <button class="btn btn-primary btn-full" style="pointer-events: none; margin-top: 8px;">SELECT GAME WINDOW</button>
+            </div>
+          </div>
+
+          <!-- MODAL: LOAD 4WEIRD GAMES PICKER -->
+          <div class="hub-panel-modal glass hidden" id="modal-4weird-games"
+            style="padding: 20px; display: flex; flex-direction: column; gap: 16px; min-height: 320px;">
+            <div
+              style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 8px;">
+              <h3 style="font-family: var(--font-display); font-size: 1.1rem; color: var(--accent-cyan);">🎮 4WEIRD
+                GAMES CATALOGUE</h3>
+              <button id="btn-close-games-modal" class="btn btn-small btn-secondary">✕ Close</button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">Click any title to load into the
+              VibeCodeWorker viewport and launch autonomous playtesting:</p>
+            <div class="modal-games-grid" id="modal-games-list"
+              style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; max-height: 380px; overflow-y: auto;">
+              <!-- Injected dynamically via JS -->
+            </div>
+          </div>
+
+          <!-- MODAL: TEST ANY WEBSITE -->
+          <div class="hub-panel-modal glass hidden" id="modal-test-website"
+            style="padding: 20px; display: flex; flex-direction: column; gap: 16px; min-height: 320px;">
+            <div
+              style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 8px;">
+              <h3 style="font-family: var(--font-display); font-size: 1.1rem; color: var(--accent-cyan);">🌐 TEST ANY
+                WEBSITE OR WEB APP</h3>
+              <button id="btn-close-website-modal" class="btn btn-small btn-secondary">✕ Close</button>
+            </div>
+            <div class="form-group" style="margin-bottom: 8px;">
+              <label style="font-size: 0.8rem; color: var(--text-secondary); font-weight: bold;">Target Website URL
+                (HTTP / HTTPS / Localhost)</label>
+              <input type="text" id="input-custom-website-url"
+                placeholder="https://example.com or http://localhost:3000"
+                style="padding: 10px; font-size: 0.9rem; background: rgba(0,0,0,0.5); border: 1px solid var(--panel-border); border-radius: 6px; color: white; width: 100%; box-sizing: border-box;">
+            </div>
+            <div class="form-group" style="margin-bottom: 8px;">
+              <label style="font-size: 0.8rem; color: var(--text-secondary); font-weight: bold;">Select QA Goal
+                Preset</label>
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                <button class="btn btn-secondary btn-small website-goal-btn active"
+                  data-goal="UI/UX Heuristic Audit: Evaluate usability, font contrast, layout responsiveness, and accessibility dead ends.">🎨
+                  UI/UX Audit</button>
+                <button class="btn btn-secondary btn-small website-goal-btn"
+                  data-goal="Backend & Network API Error Sniffer: Intercept console warnings, 4xx/5xx network responses, and failed REST/GraphQL payloads.">🐞
+                  API & Error Sniffer</button>
+                <button class="btn btn-secondary btn-small website-goal-btn"
+                  data-goal="Synthetic Form & Flow Automation: Automatically find inputs, complete form funnels, submit data, and inspect validation feedback.">📝
+                  Form & Flow Automation</button>
+              </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px;">
+              <button id="btn-start-website-audit" class="btn btn-primary"
+                style="padding: 10px 24px; font-size: 0.9rem;">🚀 Launch Autonomous Web QA</button>
+            </div>
+          </div>
+
+          <!-- MODAL: CLOUD FLEET COMPUTE RENTAL -->
+          <div class="hub-panel-modal glass hidden" id="modal-cloud-fleet"
+            style="padding: 20px; display: flex; flex-direction: column; gap: 16px; min-height: 320px;">
+            <div
+              style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 8px;">
+              <h3 style="font-family: var(--font-display); font-size: 1.1rem; color: #a855f7;">☁️ 4WEIRD CLOUD FLEET
+                COMPUTE ORCHESTRATION</h3>
+              <button id="btn-close-fleet-modal" class="btn btn-small btn-secondary">✕ Close</button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">
+              Offload compute-heavy WebKit, Ultralight, and 3D playtesting to ephemeral cloud nodes (AWS EC2 style).
+              Stream the viewport directly to your device. Lowers battery drain and lets budget hardware run
+              enterprise-grade automation.
+            </p>
+            <div class="fleet-tiers-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+              <div class="fleet-tier-card glass"
+                style="padding: 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; text-align: center;">
+                <h4 style="margin: 0 0 6px 0; color: #fff;">Micro (Eco)</h4>
+                <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px;">1 vCPU • 2GB
+                  RAM<br>Headless SwiftShader</p>
+                <div style="font-size: 0.9rem; font-weight: bold; color: #10b981; margin-bottom: 10px;">$0.046 / hr
+                </div>
+                <button class="btn btn-secondary btn-small btn-full btn-provision-node" data-tier="micro">Provision
+                  Node</button>
+              </div>
+              <div class="fleet-tier-card glass active"
+                style="padding: 12px; border: 1px solid var(--accent-cyan); border-radius: 8px; text-align: center;">
+                <h4 style="margin: 0 0 6px 0; color: var(--accent-cyan);">Standard (General)</h4>
+                <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px;">4 vCPU • 8GB
+                  RAM<br>WebGL Hardware Accel</p>
+                <div style="font-size: 0.9rem; font-weight: bold; color: #10b981; margin-bottom: 10px;">$0.184 / hr
+                </div>
+                <button class="btn btn-primary btn-small btn-full btn-provision-node" data-tier="standard">Provision
+                  Node</button>
+              </div>
+              <div class="fleet-tier-card glass"
+                style="padding: 12px; border: 1px solid rgba(168,85,247,0.4); border-radius: 8px; text-align: center;">
+                <h4 style="margin: 0 0 6px 0; color: #c084fc;">Ultra GPU (Extreme)</h4>
+                <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px;">8 vCPU • 16GB
+                  RAM<br>NVIDIA RTX Cloud GPU</p>
+                <div style="font-size: 0.9rem; font-weight: bold; color: #10b981; margin-bottom: 10px;">$0.747 / hr
+                </div>
+                <button class="btn btn-secondary btn-small btn-full btn-provision-node" data-tier="ultra-gpu">Provision
+                  Node</button>
+              </div>
+            </div>
+            <div id="fleet-active-status"
+              style="font-size: 0.8rem; font-family: var(--font-mono); padding: 8px 12px; background: rgba(0,0,0,0.4); border-radius: 6px; color: #a5b4fc;">
+              Fleet Status: Ready (0 active instances). Orchestration Margin: 15% platform management fee.
+            </div>
+          </div>
+
+          <!-- RANDOM PITCH RESULTS PANEL -->
+          <div class="pitch-results-panel glass hidden" id="pitch-results-panel"
+            style="padding: 16px; display: flex; flex-direction: column; gap: 12px; flex: 1; min-height: 350px;">
+            <div class="panel-header-row"
+              style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 8px;">
+              <h3
+                style="font-family: var(--font-display); font-size: 1rem; color: var(--accent-cyan); letter-spacing: 1px;">
+                ⚡ PITCHED GAME CONCEPT</h3>
+              <button id="btn-close-pitch" class="btn btn-small btn-secondary">Back to Hub</button>
+            </div>
+            <div class="pitch-layout"
+              style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; flex: 1; min-height: 0; overflow: hidden;">
+              <div class="pitch-details"
+                style="display: flex; flex-direction: column; gap: 10px; height: 100%; min-height: 0;">
+                <div class="pitch-meta" style="display: flex; align-items: center; gap: 12px;">
+                  <span class="pitch-title" id="pitch-game-name"
+                    style="font-family: var(--font-display); font-size: 1.3rem; font-weight: bold; color: white;"></span>
+                  <span class="pitch-badge"
+                    style="background: rgba(0, 255, 102, 0.1); border: 1px solid var(--accent-blue); color: var(--accent-blue); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">HTML5
+                    GAME</span>
+                </div>
+                <div class="form-group"
+                  style="flex: 1; display: flex; flex-direction: column; margin-bottom: 0; min-height: 0;">
+                  <label
+                    style="font-size: 0.75rem; margin-bottom: 4px; font-weight: bold; color: var(--text-secondary);">GAME
+                    DESIGN PLAN (.txt)</label>
+                  <textarea id="pitch-txt-output" readonly
+                    style="flex: 1; font-family: var(--font-mono); font-size: 0.75rem; color: #a5b4fc; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 10px; resize: none; min-height: 0; box-sizing: border-box; overflow-y: auto; line-height: 1.4;"></textarea>
+                </div>
+                <div class="instructions-box"
+                  style="padding: 10px; background: rgba(0, 255, 102, 0.05); border: 1px solid rgba(0, 255, 102, 0.2); border-radius: 8px; font-size: 0.8rem; color: var(--text-primary); line-height: 1.4;">
+                  💡 <strong>Workspace Saved:</strong> The full design specification document was successfully saved
+                  into your local <code>games_plan</code> workspace folder. Copy/paste this spec sheet to any Vibe IDE
+                  (Devin, Windsurf, Cursor, Antigravity) to code the game!
+                </div>
+                <div class="pitch-actions-row" style="display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap;">
+                  <button id="btn-pitch-copy" class="btn btn-primary btn-small">📋 Copy Plan</button>
+                  <button id="btn-pitch-modify" class="btn btn-warning btn-small">🤖 Modify Plan with AI</button>
+                  <button id="btn-pitch-open-folder" class="btn btn-secondary btn-small">📁 Open Folder</button>
+                  <button id="btn-pitch-open-notepad" class="btn btn-secondary btn-small">📝 Open in Notepad</button>
+                </div>
+              </div>
+              <div class="pitch-braid" style="display: flex; flex-direction: column; height: 100%; min-height: 0;">
+                <label
+                  style="font-size: 0.75rem; margin-bottom: 4px; font-weight: bold; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Agent
+                  BRAID Decision Tree</label>
+                <pre class="braid-diagram-box" id="pitch-braid-output"
+                  style="flex: 1; margin: 0; padding: 12px; background: #030604; border: 1px solid rgba(0, 255, 102, 0.15); border-radius: 8px; font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-cyan); overflow: auto; line-height: 1.4; box-sizing: border-box; min-height: 0;"></pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- INTERACTIVE CHAT PLANNER PANEL -->
+          <div class="chat-planner-panel glass hidden" id="chat-planner-panel"
+            style="padding: 16px; display: flex; flex-direction: column; gap: 12px; flex: 1; min-height: 350px;">
+            <div class="panel-header-row"
+              style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 8px;">
+              <h3
+                style="font-family: var(--font-display); font-size: 1rem; color: var(--accent-cyan); letter-spacing: 1px;">
+                💬 INTERACTIVE GAME PLANNER</h3>
+              <button id="btn-close-planner" class="btn btn-small btn-secondary">Back to Hub</button>
+            </div>
+            <div class="chat-layout"
+              style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; flex: 1; min-height: 0; overflow: hidden;">
+              <div class="chat-dialog"
+                style="display: flex; flex-direction: column; gap: 12px; height: 100%; min-height: 0;">
+                <div class="chat-messages" id="planner-chat-messages"
+                  style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; min-height: 0;">
+                  <!-- Dynamically filled messages -->
+                </div>
+                <div class="chat-inputs-wrapper" style="display: flex; flex-direction: column; gap: 8px;">
+                  <!-- 3-Choice buttons row -->
+                  <div class="chat-choices-row" id="planner-choices-row"
+                    style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                    <button class="btn btn-secondary btn-small choice-btn" data-choice="0">Choice 1</button>
+                    <button class="btn btn-secondary btn-small choice-btn" data-choice="1">Choice 2</button>
+                    <button class="btn btn-secondary btn-small choice-btn" data-choice="2">Choice 3</button>
+                  </div>
+                  <!-- Custom text input row -->
+                  <div class="chat-custom-row" style="display: flex; gap: 8px;">
+                    <input type="text" id="planner-custom-input" placeholder="Type custom feedback/specification..."
+                      style="flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--panel-border); font-size: 0.85rem; padding: 8px 12px; border-radius: 6px; color: white;">
+                    <button id="btn-planner-send-custom" class="btn btn-primary"
+                      style="padding: 0 16px; font-size: 0.85rem;">Send</button>
+                  </div>
+                </div>
+              </div>
+              <div class="chat-spec-preview"
+                style="display: flex; flex-direction: column; height: 100%; min-height: 0;">
+                <label
+                  style="font-size: 0.75rem; margin-bottom: 4px; font-weight: bold; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Live
+                  Specs Plan Preview</label>
+                <textarea id="planner-spec-preview" readonly
+                  style="flex: 1; background: #030604; font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-primary); border: 1px solid rgba(0, 255, 102, 0.12); border-radius: 8px; resize: none; box-sizing: border-box; padding: 10px; overflow-y: auto; line-height: 1.4; min-height: 0;"></textarea>
+                <div class="planner-actions-row" style="display: flex; gap: 8px; margin-top: 8px;">
+                  <button id="btn-planner-copy" class="btn btn-primary btn-small btn-full">📋 Copy Plan</button>
+                  <button id="btn-planner-open-folder" class="btn btn-secondary btn-small">📁 Open Folder</button>
+                  <button id="btn-planner-open-notepad" class="btn btn-secondary btn-small">📝 Open in Notepad</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- EDITOR WORKSPACE VIEW -->
+        <div class="editor-workspace-view" id="editor-workspace"
+          style="display: flex; flex-direction: column; flex: 1; gap: 12px; overflow: hidden; width: 100%; height: 100%;">
+          <section class="quick-run-deck" aria-label="Quick playtest setup">
+            <div class="quick-run-copy">
+              <span>PLAYTEST WORKSPACE</span>
+              <strong>Choose a target. Tell the agent what matters.</strong>
+            </div>
+            <label>Target
+              <input id="quick-game-url" type="text" placeholder="Paste a URL or choose a local game in Options">
+            </label>
+            <label>Test focus
+              <input id="quick-game-rules" type="text" placeholder="Controls, visual issues, performance, or a custom goal">
+            </label>
+            <div class="quick-run-actions">
+              <button id="btn-quick-load" class="btn btn-secondary">Load</button>
+              <button id="btn-quick-run" class="btn btn-primary">Run playtest →</button>
+              <button id="btn-quick-demo" class="btn btn-primary" title="Automatically play Overtake and create Gameplay + Testing videos">🎬 Quick Demo · Overtake</button>
+            </div>
+          </section>
+          <section class="viewport-section glass" style="margin-top: 0;">
+            <div class="viewport-bezel">
+              <!-- DUAL-PANE PLAYTEST STAGE: the game renders once at true
+                   1920x1080 inside the PURE pane (scaled down, ratio kept,
+                   still fully interactive). The AI pane mirrors the same
+                   frame plus the AI overlay: what the agent sees, mouse
+                   trail + heat, clicks, detections, keys. -->
+              <div class="stage-grid" id="stage-grid">
+                <div class="stage-pane pure-pane" id="pure-pane">
+                  <div class="stage-pane-head">
+                    <span class="stage-badge pure">◉ PURE · LIVE GAME</span>
+                    <span class="stage-pane-sub" id="pure-res">1920×1080 · interactive</span>
+                  </div>
+                  <div class="pure-scale-wrap" id="pure-scale-wrap">
+                    <!-- ELECTRON WEBVIEW COMPONENT: fixed 1920x1080 backing
+                         store (headless AND headful), CSS-scaled to fit. -->
+                    <webview id="game-webview" src="about:blank" style="width:1920px; height:1080px;"
+                      partition="persist:gameview" nodeintegrationinsubframes="false"
+                      webpreferences="contextIsolation=yes"></webview>
+                  </div>
+
+                  <div class="game-status-banner" id="game-status-banner">Select a game from local demos below or enter a
+                    URL</div>
+
+                  <div class="no-game-placeholder" id="webview-placeholder">
+                    <div class="placeholder-icon">🎮</div>
+                    <h3>4weird VibeCodeWorker Runner</h3>
+                    <p style="margin-bottom: 15px; max-width: 450px;">Select a local demo game to quick-launch and start
+                      playtesting immediately:</p>
+                    <div class="quick-launch-grid" id="quick-launch-grid"
+                      style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 15px; max-width: 500px;">
+                      <!-- Javascript will dynamically populate quick launch buttons here -->
+                    </div>
+                    <div style="font-size: 0.8rem; opacity: 0.6; max-width: 400px; line-height: 1.4;">
+                      Or configure a custom address in the Config Panel on the left.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="stage-pane ai-pane" id="ai-pane">
+                  <div class="stage-pane-head">
+                    <span class="stage-badge ai">🤖 AI · SEES THIS</span>
+                    <span class="stage-pane-sub" id="ai-view-stats">waiting for game…</span>
+                    <span class="vision-toggles">
+                      <button class="vision-toggle active" id="ai-toggle-boxes" title="Object recognition boxes">🎯</button>
+                      <button class="vision-toggle active" id="ai-toggle-trail" title="Mouse trail + cursor">🖱️</button>
+                      <button class="vision-toggle active" id="ai-toggle-heat" title="Click heatmap">🔥</button>
+                      <button class="vision-toggle active" id="ai-toggle-decay" title="Fade stale hotspots over time">⏳</button>
+                      <button class="vision-toggle active" id="ai-toggle-keys" title="Key press HUD">⌨️</button>
+                      <button class="vision-toggle active" id="ai-toggle-mirror" title="Pause/resume AI view">⏸️</button>
+                    </span>
+                  </div>
+                  <div class="ai-canvas-wrap">
+                    <canvas id="ai-view-canvas" width="480" height="270"></canvas>
+                    <div class="vision-live-badge"><span class="vision-dot"></span><span id="ai-view-live-label">AI VIEW · 480×270</span></div>
+                  </div>
+                  <div class="ai-view-foot">
+                    <div class="vision-keys" id="ai-view-keys"></div>
+                    <div class="vision-action" id="ai-view-action">agent idle</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SEPARATE GAME WINDOW ACTIVE PLACEHOLDER -->
+              <div class="gamewindow-active-placeholder hidden" id="gamewindow-active-placeholder"
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 20, 0.95); box-sizing: border-box; z-index: 8; transform: none;">
+                <!-- AI VISION MIRROR: live mirror of the test window + AI overlays -->
+                <div class="vision-mirror" id="vision-mirror-panel" aria-label="AI relay projection of the active game window">
+                  <div class="vision-mirror-head">
+                    <span class="vision-title"><span class="vision-title-orb">◉</span> AI RELAY</span>
+                    <span class="vision-stats" id="vision-mirror-stats">waiting for test window…</span>
+                    <span class="vision-toggles">
+                      <button class="vision-toggle active" id="vision-toggle-boxes" title="Object recognition boxes">🎯</button>
+                      <button class="vision-toggle active" id="vision-toggle-trail" title="Bot mouse trail">🖱️</button>
+                      <button class="vision-toggle active" id="vision-toggle-keys" title="Key press HUD">⌨️</button>
+                      <button class="vision-toggle active" id="vision-toggle-mirror" title="Pause/resume mirror">⏸️</button>
+                    </span>
+                  </div>
+                  <div class="vision-canvas-wrap">
+                    <canvas id="vision-mirror-canvas" width="640" height="360"></canvas>
+                    <div class="vision-live-badge"><span class="vision-dot"></span>LIVE MIRROR</div>
+                  </div>
+                  <div class="vision-mirror-foot">
+                    <div class="vision-keys" id="vision-keys"></div>
+                    <div class="vision-action" id="vision-action">agent idle</div>
+                    <span class="vision-scale-readout">25% PROJECTION</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TIMELINE SCRUBBER PLAYER -->
+            <div class="timeline-player hidden" id="timeline-container" style="margin-top: 10px;">
+              <button id="btn-timeline-play" class="btn btn-icon btn-small">⏸</button>
+              <input type="range" id="timeline-scrubber" min="0" max="0" value="0">
+              <span id="timeline-time">Tick: 0/0</span>
+            </div>
+            <!-- HUMAN TAKEOVER: you play in the PURE pane, the AI watches and
+                 takes notes (mouse path, clicks, keys, screenshots). -->
+            <div class="takeover-bar" id="takeover-bar">
+              <button id="btn-takeover" class="btn btn-small btn-secondary" title="Pause the agent and play/browse yourself while the AI watches, records your inputs and takes notes">🙋 Take Over: You Play, AI Watches</button>
+              <span class="takeover-status" id="takeover-status">AI drives. Take over anytime to show it how it's done.</span>
+              <button id="btn-takeover-clear-heat" class="btn btn-small btn-secondary" title="Clear the AI click-heatmap">🧹 Clear heat</button>
+              <button id="btn-takeover-gen-test" class="btn btn-small btn-secondary" title="Generate a regression test from your last takeover trace (tiny digest test + runtime-only data fixture)">🧪 Generate test</button>
+              <button id="btn-video-record" class="btn btn-small btn-secondary" title="Record this playtest with MediaMogul and create an MP4">⏺ Record video</button>
+              <button id="btn-narrated-bug-hunt" class="btn btn-small btn-primary" title="Open the selected game in a visible window, start MediaMogul recording, and let the AI playtest it">🎬 Run narrated bug hunt</button>
+              <span class="takeover-status" id="video-recording-status">Video off</span>
+            </div>
+            <!-- DISPLAY CONTROLS: HD windowed / fullscreen + smart game framing -->
+            <div class="viewport-toolbar" id="viewport-display-toolbar">
+              <span class="display-label">DISPLAY</span>
+              <button id="btn-display-windowed" class="btn btn-small btn-secondary" title="Dashboard windowed at 1920x1080">🗔 HD Window</button>
+              <button id="btn-display-fullscreen" class="btn btn-small btn-secondary" title="Dashboard fullscreen">⛶ Fullscreen</button>
+              <button id="btn-display-focus" class="btn btn-small btn-secondary" title="Give the whole dashboard height to the game viewport">🎮 Focus game</button>
+              <button id="btn-center-game" class="btn btn-small btn-secondary" title="Scroll the real play area into the centre of the game view">🎯 Center game</button>
+              <span class="display-readout" id="display-readout">viewport: —</span>
+            </div>
+          </section>
+
+          <!-- AGENT LOGIC MONITOR & GRAPHICS HEATMAP & CODE VIEWER -->
+          <section class="monitor-section">
+            <div class="monitor-card glass flex-2">
+              <div class="card-header">
+                <div class="tab-selectors">
+                  <button class="tab-btn active" id="tab-logs">LOGS & ACTION TRACE</button>
+                  <button class="tab-btn" id="tab-code">SOURCE CODE EXPLORER</button>
+                  <button class="tab-btn" id="tab-autocode">🖥️ AUTOCODE IDE</button>
+                </div>
+                <div class="log-actions" id="log-actions-group" style="display: flex; gap: 6px;">
+                  <button id="btn-copy-all-logs" class="btn btn-small btn-secondary">Copy All</button>
+                  <button id="btn-copy-50-logs" class="btn btn-small btn-secondary">Copy Last 50 Lines</button>
+                  <button id="btn-clear-logs" class="btn btn-small btn-secondary">Clear</button>
+                </div>
+              </div>
+              <div class="card-body log-container" id="log-stream">
+                <div class="log-entry system">System initialized. Ready to load game URL...</div>
+              </div>
+              <div class="card-body code-explorer hidden" id="code-stream">
+                <div class="code-grid">
+                  <div class="file-list" id="code-file-list">
+                    <div class="empty-state">No source files crawled yet. Select and run a local game demo.</div>
+                  </div>
+                  <div class="file-content-wrapper">
+                    <pre><code id="code-content-view">// Select a file to inspect its source code...</code></pre>
+                  </div>
+                </div>
+              </div>
+
+              <!-- AUTOCODE IDE WORKSPACE PANEL -->
+              <div class="card-body autocode-explorer hidden" id="autocode-stream">
+                <div class="autocode-toolbar">
+                  <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                    <label for="autocode-file-select" style="font-size: 0.75rem; margin-bottom: 2px;">Target Source
+                      File</label>
+                    <select id="autocode-file-select" style="padding: 6px 12px; font-size: 0.85rem;">
+                      <option value="">-- Select File to Edit --</option>
+                    </select>
+                  </div>
+
+                  <div class="cost-limits-grid"
+                    style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+                    <div class="limit-input" style="display: flex; flex-direction: column;">
+                      <label for="autocode-budget" style="font-size: 0.7rem;">Budget (USD)</label>
+                      <input type="number" id="autocode-budget" step="0.001" value="0.05"
+                        style="width: 70px; padding: 4px; font-size: 0.75rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(0,242,254,0.3); color: white;">
+                    </div>
+                    <div class="limit-input" style="display: flex; flex-direction: column;">
+                      <label for="autocode-max-in" style="font-size: 0.7rem;">Max Input</label>
+                      <input type="number" id="autocode-max-in" value="30000"
+                        style="width: 75px; padding: 4px; font-size: 0.75rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(0,242,254,0.3); color: white;">
+                    </div>
+                    <div class="limit-input" style="display: flex; flex-direction: column;">
+                      <label for="autocode-max-out" style="font-size: 0.7rem;">Max Output</label>
+                      <input type="number" id="autocode-max-out" value="4000"
+                        style="width: 65px; padding: 4px; font-size: 0.75rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(0,242,254,0.3); color: white;">
+                    </div>
+                    <div class="toggle-checkbox"
+                      style="display: flex; align-items: center; gap: 4px; font-size: 0.75rem;">
+                      <input type="checkbox" id="autocode-cache-tokens" checked>
+                      <label for="autocode-cache-tokens"
+                        title="Use cached input tokens for 50% cost discount">Cache</label>
+                    </div>
+                    <div class="toggle-checkbox"
+                      style="display: flex; align-items: center; gap: 4px; font-size: 0.75rem;">
+                      <input type="checkbox" id="autocode-minify-code" checked>
+                      <label for="autocode-minify-code"
+                        title="Strip comments and whitespace from code before sending">Minify</label>
+                    </div>
+                    <div class="toggle-checkbox"
+                      style="display: flex; align-items: center; gap: 4px; font-size: 0.75rem;">
+                      <input type="checkbox" id="autocode-compress-shots" checked>
+                      <label for="autocode-compress-shots"
+                        title="Compress screenshots: 256px width, grayscale, 20% JPEG quality">Compress</label>
+                    </div>
+                    <div class="cost-display"
+                      style="display: flex; flex-direction: column; align-items: flex-end; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;">
+                      <span style="font-size: 0.65rem; color: var(--text-secondary);">EST. COST</span>
+                      <span id="autocode-cost-val"
+                        style="color: #10b981; font-weight: 700; text-shadow: 0 0 8px rgba(16,185,129,0.3);">$0.0000</span>
+                    </div>
+                  </div>
+
+                  <!-- Screenshot Controls Row -->
+                  <div class="screenshot-controls-row"
+                    style="display: flex; gap: 15px; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05);">
+                    <div class="toggle-checkbox"
+                      style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem;">
+                      <input type="checkbox" id="autocode-enable-shots">
+                      <label for="autocode-enable-shots" title="Enable screenshot context for the AI">Enable
+                        Screenshots</label>
+                    </div>
+                    <div class="shot-count-control"
+                      style="display: flex; align-items: center; gap: 6px; opacity: 0.5; transition: opacity 0.2s;"
+                      id="shot-count-wrapper">
+                      <label for="autocode-max-shots" style="font-size: 0.7rem;">Max Shots (0-5):</label>
+                      <input type="number" id="autocode-max-shots" min="0" max="5" value="2"
+                        style="width: 45px; padding: 4px; font-size: 0.75rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(0,242,254,0.3); color: white;">
+                    </div>
+                    <div class="toggle-checkbox"
+                      style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; opacity: 0.5; transition: opacity 0.2s;"
+                      id="capture-on-play-wrapper">
+                      <input type="checkbox" id="autocode-capture-on-play">
+                      <label for="autocode-capture-on-play"
+                        title="Auto-capture screenshots on manual play actions (click/keypress)">Capture on Play</label>
+                    </div>
+                    <button id="btn-trigger-capture" class="btn btn-small btn-secondary"
+                      style="font-size: 0.7rem; padding: 4px 10px; opacity: 0.5; transition: opacity 0.2s;"
+                      id="trigger-capture-wrapper" disabled>
+                      📸 Manual Capture
+                    </button>
+                  </div>
+                </div>
+
+                <div class="autocode-workspace"
+                  style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px; flex: 1; min-height: 250px;">
+                  <div class="code-editor-container"
+                    style="flex: 1; min-height: 180px; position: relative; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; overflow: hidden;">
+                    <textarea id="autocode-editor-view" readonly
+                      style="width: 100%; height: 100%; background: #05050c; color: #a5b4fc; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; padding: 10px; border: none; resize: none; box-sizing: border-box;"
+                      placeholder="Select a source file above to load its content..."></textarea>
+                  </div>
+
+                  <div class="prompt-workspace-section" style="display: flex; flex-direction: column; gap: 6px;">
+                    <div class="shots-preview-row" id="autocode-shots-preview"
+                      style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;"></div>
+                    <div style="display: flex; gap: 10px;">
+                      <textarea id="autocode-prompt-input" rows="2"
+                        style="flex: 1; background: rgba(255,255,255,0.04); border: 1px solid rgba(0,242,254,0.25); border-radius: 8px; color: white; padding: 10px; font-family: inherit; font-size: 0.9rem; resize: none; box-sizing: border-box;"
+                        placeholder="Describe modifications here (e.g. 'Add a speed booster capsule spawning from hydrothermal vents')..."></textarea>
+                      <button id="btn-vibe-code" class="btn btn-primary"
+                        style="padding: 0 25px; font-family: var(--font-display); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 8px;">
+                        <span>⚡ VIBE CODE</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- AutoCode Proposed Changes Diff Panel -->
+                <div class="diff-review-section hidden" id="autocode-diff-section"
+                  style="margin-top: 15px; border-top: 1px solid rgba(0,242,254,0.3); padding-top: 15px;">
+                  <h3
+                    style="font-family: var(--font-display); font-size: 0.95rem; color: var(--accent-cyan); margin-bottom: 10px; letter-spacing: 1px;">
+                    🔍 REVIEW AI GENERATED MODIFICATIONS</h3>
+                  <div class="diff-container" id="autocode-diff-container"
+                    style="max-height: 250px; overflow-y: auto; background: #030307; border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; box-sizing: border-box;">
+                  </div>
+                  <div class="diff-actions"
+                    style="display: flex; gap: 12px; margin-top: 12px; justify-content: flex-end;">
+                    <button id="btn-discard-changes" class="btn btn-secondary btn-small"
+                      style="font-size: 0.8rem; padding: 8px 16px;">Discard</button>
+                    <button id="btn-apply-changes" class="btn btn-primary btn-small"
+                      style="font-size: 0.8rem; padding: 8px 20px; display: flex; align-items: center; gap: 6px;">
+                      <span>💾 APPLY CHANGES TO FILE</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="monitor-card glass flex-1">
+              <div class="card-header">
+                <h3>CURRENT FRAME BRAIN</h3>
+              </div>
+              <div class="card-body brain-visualizer">
+                <div class="brain-shot-wrapper">
+                  <img id="brain-screenshot" src="" alt="Latest frame screenshot">
+                  <div class="brain-placeholder">NO FRAME</div>
+                  <canvas id="heatmap-overlay"></canvas>
+                </div>
+                <div class="brain-decision" id="brain-reasoning">
+                  <em>Agent is waiting...</em>
+                </div>
+                <div class="action-trail" id="action-trail">
+                  <span class="trail-label">LAST ACTIONS:</span>
+                  <span class="trail-entries" id="trail-entries"><em>—</em></span>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div> <!-- Close editor-workspace -->
+      </main>
+
+      <!-- RIGHT SIDEBAR: BUG TRACKER & MEGA-PROMPT GENERATOR -->
+      <aside class="sidebar bug-panel glass">
+        <div class="sidebar-header">
+          <h2>BUG TRACKER</h2>
+          <span class="count-badge" id="bug-count">0</span>
+        </div>
+
+        <div class="bug-list" id="bugs-container">
+          <div class="empty-state">No bugs identified yet. Run the playtest agent to scan.</div>
+        </div>
+
+        <div class="sidebar-header border-top">
+          <h2>TOKEN USAGE</h2>
+        </div>
+        <div class="token-monitor-section">
+          <div class="token-row-input">
+            <div class="token-label">
+              <span class="label">Input Tokens</span>
+              <span class="value" id="token-input-count">0</span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar" id="token-input-bar"></div>
+            </div>
+            <span class="token-percent" id="token-input-percent">0%</span>
+          </div>
+
+          <div class="token-row-output">
+            <div class="token-label">
+              <span class="label">Output Tokens</span>
+              <span class="value" id="token-output-count">0</span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar" id="token-output-bar"></div>
+            </div>
+            <span class="token-percent" id="token-output-percent">0%</span>
+          </div>
+
+          <div class="token-row-total">
+            <div class="token-label">
+              <span class="label">Total This Session</span>
+              <span class="value" id="token-total-count">0</span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar" id="token-total-bar"></div>
+            </div>
+            <span class="token-percent" id="token-total-percent">0%</span>
+          </div>
+
+          <div class="cost-estimate">
+            <span class="label">Est. Cost:</span>
+            <span class="value" id="cost-estimate">$0.00</span>
+            <span class="label">/ Budget:</span>
+            <span class="value" id="cost-budget">$0.75</span>
+          </div>
+
+          <div class="form-group" style="margin-top: 12px; margin-bottom: 0;">
+            <label for="token-model-select">Filter Model</label>
+            <select id="token-model-select" style="padding: 6px 10px; font-size: 0.8rem;">
+              <option value="total">All Models (Combined)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="sidebar-header border-top">
+          <h2>MEGA-PROMPT & DIRECT FIXER</h2>
+        </div>
+
+        <div class="prompt-generator-box">
+          <p class="box-desc">Generate a prompt or run coding fixes directly using AI tokens (OpenAI / OpenRouter API
+            keys) without quota limits.</p>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button id="btn-self-improve-dsh" class="btn btn-primary btn-full"
+              style="display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; background: linear-gradient(135deg, #0284c7, #0369a1); border-color: #38bdf8;">
+              ⚡ SELF-IMPROVE VIA DEEPSEEK HARNESS
+            </button>
+            <button id="btn-launch-dsh-web" class="btn btn-secondary btn-full" style="font-size: 0.8rem;">
+              🌐 Launch DeepSeek Harness Web GUI (dsh)
+            </button>
+            <button id="btn-run-direct-fix" class="btn btn-warning btn-full"
+              style="display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700;">
+              🤖 RUN AI CODING FIX (DIRECT TOKENS)
+            </button>
+            <button id="btn-generate-prompt" class="btn btn-secondary btn-full">
+              📋 GENERATE PROMPT FOR EXTERNAL TOOLS
+            </button>
+          </div>
+
+          <div class="prompt-output-wrapper hidden" id="direct-fix-status-container"
+            style="margin-top: 10px; background: rgba(0, 242, 254, 0.05); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 6px; padding: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-weight: bold; font-size: 0.8rem; color: var(--accent-cyan);">Fix Report & Tokens</span>
+              <span id="direct-fix-cost-badge"
+                style="font-family: var(--font-mono); font-size: 0.75rem; color: #10b981;">$0.0000</span>
+            </div>
+            <div id="direct-fix-status-text"
+              style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; margin-bottom: 8px;">Waiting
+              for action...</div>
+            <div style="display: flex; gap: 6px;">
+              <button id="btn-view-direct-diff" class="btn btn-small btn-primary hidden" style="flex: 1;">Inspect Diff
+                in AutoCode</button>
+              <button id="btn-apply-direct-fix" class="btn btn-small btn-primary hidden"
+                style="flex: 1; background: #10b981; border-color: #10b981;">Apply to File</button>
+            </div>
+          </div>
+
+          <div class="prompt-output-wrapper hidden" id="prompt-output-container">
+            <div class="prompt-actions">
+              <span>Mega-Prompt Ready</span>
+              <button id="btn-copy-prompt" class="btn btn-small btn-secondary">Copy</button>
+            </div>
+            <textarea id="mega-prompt-output" readonly></textarea>
+          </div>
+        </div>
+
+        <div class="sidebar-header border-top">
+          <h2>OPENCODE.AI BRIDGE <span style="font-size: 0.65rem; opacity: 0.7;">(OPTIONAL)</span></h2>
+        </div>
+
+        <div class="prompt-generator-box">
+          <p class="box-desc">Export bug reports to OpenCode, let its agent edit code directly, then self-heal:
+            test → fix → re-test. Requires the <code>opencode</code> binary (or <code>opencode serve</code>).</p>
+          <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+            <label style="font-size: 0.8rem; display: flex; gap: 6px; align-items: center;">
+              <input type="checkbox" id="opencode-enable" /> Enable OpenCode
+            </label>
+            <select id="opencode-mode" style="flex: 1; font-size: 0.8rem;" title="CLI runs `opencode run` per fix; server uses a long-lived `opencode serve`">
+              <option value="cli">CLI mode (`opencode run`)</option>
+              <option value="server">Server mode (`opencode serve`)</option>
+            </select>
+          </div>
+          <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 8px; font-size: 0.8rem;">
+            <span id="opencode-status-dot">⚪</span>
+            <span id="opencode-status-text" style="color: var(--text-secondary);">Checking…</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button id="btn-opencode-status" class="btn btn-secondary btn-full btn-small">🔄 CHECK OPENCODE STATUS</button>
+            <button id="btn-opencode-export" class="btn btn-secondary btn-full">📤 EXPORT BUGS TO OPENCODE</button>
+            <button id="btn-opencode-fix" class="btn btn-primary btn-full"
+              style="font-weight: 700; background: linear-gradient(135deg, #7c3aed, #4c1d95); border-color: #a78bfa;">
+              🛠️ FIX BUGS WITH OPENCODE
+            </button>
+            <button id="btn-opencode-heal" class="btn btn-warning btn-full" style="font-weight: 700;">
+              ♻️ SELF-HEAL LOOP (TEST → FIX → RE-TEST)
+            </button>
+            <button id="btn-smart-handoff" class="btn btn-secondary btn-full btn-small"
+              title="Write a smart-log handoff file (%APPDATA%/vibecodeworker/logs) to paste into any vibecoding tool">
+              📋 WRITE SMART-LOG HANDOFF
+            </button>
+            <div id="smart-handoff-path"
+              style="font-size: 0.7rem; font-family: var(--font-mono); color: var(--text-secondary); word-break: break-all;"></div>
+            <input id="opencode-heal-cmd" type="text" value="node test_vibecodeworker.js"
+              title="Test command the heal loop runs each iteration"
+              style="font-size: 0.75rem; font-family: var(--font-mono); width: 100%; box-sizing: border-box;" />
+          </div>
+        </div>
+
+        <div class="sidebar-header border-top">
+          <h2>SESSION MEMORY</h2>
+        </div>
+        <div class="session-stats-box" id="session-stats-box">
+          <div class="token-grid">
+            <div class="token-row"><span>Steps</span><span id="sess-steps">0</span></div>
+            <div class="token-row"><span>Bugs Found</span><span id="sess-bugs">0</span></div>
+            <div class="token-row"><span>Stuck Events</span><span id="sess-stuck">0</span></div>
+            <div class="token-row"><span>Recoveries</span><span id="sess-recoveries">0</span></div>
+          </div>
+          <div class="action-mix" id="action-mix"><em>No session active.</em></div>
+          <div class="heatmap-zones" id="heatmap-zones"></div>
+        </div>
+
+        <div class="sidebar-header border-top">
+          <h2>REPLAY SCRIPTS</h2>
+        </div>
+        <div class="replay-section">
+          <button id="btn-save-replay" class="btn btn-secondary btn-full">💾 SAVE REPLAY FILE</button>
+          <div class="replay-status" id="replay-status-text">No active replay recorded.</div>
+        </div>
+      </aside>
+    </div> <!-- Close main-body -->
+  </div>
+
+  <div class="modal hidden" id="missing-api-keys-modal" role="dialog" aria-modal="true" aria-labelledby="missing-api-keys-title">
+    <div class="modal-content glass missing-api-keys-content">
+      <button class="modal-close" id="btn-close-missing-api-keys" aria-label="Ignore API key warning">&times;</button>
+      <div class="missing-api-keys-icon">🔑</div>
+      <h2 id="missing-api-keys-title">Set up an API key to use VibeCodeWorker</h2>
+      <p>VibeCodeWorker requires an API key to work. Add an OpenAI, DeepSeek, Google Gemini, Meta, or OpenRouter key to enable smart game playtesting and commentary.</p>
+      <div class="missing-api-keys-actions">
+        <button id="btn-setup-api-keys" class="btn api-key-setup-button" type="button">Set up API keys</button>
+        <button id="btn-ignore-api-keys-warning" class="btn btn-secondary" type="button">Ignore Warning</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="api-keys-modal" role="dialog" aria-modal="true" aria-labelledby="api-keys-title">
+    <div class="modal-content glass api-keys-modal-content">
+      <button class="modal-close" id="btn-close-api-keys" aria-label="Close API Keys">&times;</button>
+      <h2 id="api-keys-title">API Keys</h2>
+      <p class="api-keys-intro">Add one key per provider. Keys are saved only in this computer’s encrypted VibeCodeWorker key store, outside the app folder, so normal updates keep them.</p>
+      <div class="form-group">
+        <label for="openai-api-key">OpenAI API key</label>
+        <input type="password" id="openai-api-key" autocomplete="off" spellcheck="false" placeholder="Paste an OpenAI API key">
+        <span class="field-hint saved-key-hint" id="openai-api-key-saved" aria-live="polite"></span>
+      </div>
+      <div class="form-group">
+        <label for="deepseek-api-key">DeepSeek API key</label>
+        <input type="password" id="deepseek-api-key" autocomplete="off" spellcheck="false" placeholder="Paste a DeepSeek API key">
+        <span class="field-hint saved-key-hint" id="deepseek-api-key-saved" aria-live="polite"></span>
+      </div>
+      <div class="form-group">
+        <label for="gemini-api-key">Google Gemini API key</label>
+        <input type="password" id="gemini-api-key" autocomplete="off" spellcheck="false" placeholder="Paste a Google Gemini API key">
+        <span class="field-hint saved-key-hint" id="gemini-api-key-saved" aria-live="polite"></span>
+      </div>
+      <div class="form-group">
+        <label for="meta-api-key">Meta API key</label>
+        <input type="password" id="meta-api-key" autocomplete="off" spellcheck="false" placeholder="Paste a Meta API key">
+        <span class="field-hint saved-key-hint" id="meta-api-key-saved" aria-live="polite"></span>
+      </div>
+      <div class="form-group">
+        <label for="openrouter-api-key">OpenRouter API key</label>
+        <input type="password" id="openrouter-api-key" autocomplete="off" spellcheck="false" placeholder="Paste an OpenRouter API key">
+        <span class="field-hint saved-key-hint" id="openrouter-api-key-saved" aria-live="polite"></span>
+      </div>
+      <div class="form-group">
+        <label for="runpod-api-key">RunPod API key</label>
+        <input type="password" id="runpod-api-key" autocomplete="off" spellcheck="false" placeholder="Paste a RunPod API key">
+        <span class="field-hint saved-key-hint" id="runpod-api-key-saved" aria-live="polite"></span>
+      </div>
+      <div class="form-group">
+        <label for="elevenlabs-api-key">ElevenLabs API key</label>
+        <input type="password" id="elevenlabs-api-key" autocomplete="off" spellcheck="false" placeholder="Paste an ElevenLabs API key">
+        <span class="field-hint saved-key-hint" id="elevenlabs-api-key-saved" aria-live="polite"></span>
+      </div>
+      <div class="api-keys-actions">
+        <span id="api-keys-status" class="field-hint" aria-live="polite">Keys are never written to config.json.</span>
+        <button id="btn-save-api-keys" class="btn btn-primary" type="button">Save keys securely</button>
+      </div>
+      <div class="api-key-test-actions">
+        <button id="btn-test-api-keys" class="btn btn-secondary" type="button">Test API Keys</button>
+        <button id="btn-clear-invalid-api-keys" class="btn btn-secondary" type="button" disabled>Clear Invalid API Keys</button>
+      </div>
+      <div id="api-key-test-results" class="api-key-test-results hidden" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="bug-modal">
+    <div class="modal-content glass">
+      <span class="modal-close" id="btn-close-modal">&times;</span>
+      <h2 id="modal-bug-title">Bug Detail</h2>
+      <div class="modal-body">
+        <div class="modal-grid">
+          <div>
+            <h3>Console & System Logs</h3>
+            <pre id="modal-bug-logs"></pre>
+          </div>
+          <div>
+            <h3>Capture Frame</h3>
+            <img id="modal-bug-img" src="" alt="Bug Capture Screen">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>

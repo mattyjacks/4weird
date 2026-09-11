@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { clientIp, isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -20,6 +20,7 @@ export async function GET(
   const { id } = await params;
   if (!isUuid(id)) return fail("Invalid listing id.", 400);
   const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getUser();
   const { data, error } = await supabase
     .from("agent_listings")
     .select(
@@ -27,7 +28,16 @@ export async function GET(
     )
     .eq("id", id)
     .maybeSingle();
-  if (error) return fail("Unable to load listing.", 500);
+  if (error) return dbFail("api/agents/[id]", error, "Unable to load listing.");
   if (!data) return fail("Listing not found.", 404);
-  return ok({ listing: data });
+  const row = data as Record<string, unknown>;
+  // Private fields only to owner; anon/others get the public card.
+  const isOwner = Boolean(auth?.user && auth.user.id === row.owner_id);
+  if (!isOwner) {
+    const pub = { ...row };
+    delete pub.owner_id;
+    delete pub.endpoint_url;
+    return ok({ listing: pub });
+  }
+  return ok({ listing: row });
 }

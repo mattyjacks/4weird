@@ -56,6 +56,7 @@ async function logRequest(
 // ---------------------------------------------------------------------------
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const action = new URL(req.url).searchParams.get("action");
   if (action !== "export") return fail("Unknown rights action.", 400);
 
@@ -93,13 +94,13 @@ export async function GET(req: Request) {
   const [profile, settings, saves, cheatSettings, globalCheats, statEvents, friendshipsA, friendshipsB, messagesSent, messagesGot] =
     await Promise.all([
       pick("profiles", "id,email,display_name,public_handle,created_at,updated_at", { id }, 1),
-      pick("account_settings", "*", { user_id: id }, 1),
+      pick("account_settings", "user_id,theme,notifications,created_at,updated_at", { user_id: id }, 1),
       pick("game_saves", "id,game_slug,slot,schema_version,data,created_at,updated_at", { user_id: id }),
-      pick("cheat_settings", "*", { user_id: id }),
-      pick("global_cheat_settings", "*", { user_id: id }, 1),
+      pick("cheat_settings", "user_id,game_slug,enabled,created_at", { user_id: id }),
+      pick("global_cheat_settings", "user_id,enabled,created_at", { user_id: id }, 1),
       pick("game_stat_events", "game_slug,active_seconds,actions,kills,deaths,created_at", { user_id: id }, 1000),
-      pick("friendships", "*", { requester_id: id }),
-      pick("friendships", "*", { addressee_id: id }),
+      pick("friendships", "id,requester_id,addressee_id,status,created_at", { requester_id: id }),
+      pick("friendships", "id,requester_id,addressee_id,status,created_at", { addressee_id: id }),
       pick("direct_messages", "id,recipient_id,body,created_at,read_at", { sender_id: id }, 500),
       pick("direct_messages", "id,sender_id,body,created_at,read_at", { recipient_id: id }, 500),
     ]);
@@ -107,28 +108,30 @@ export async function GET(req: Request) {
   const [submissions, lobbyHost, lobbyGuest, presence, queue, matchesPhone, matchesDesk, daily, refCode, refAsInviter, refAsInvitee] =
     await Promise.all([
       pick("code_submissions", "id,title,status,monetization_status,created_at,updated_at", { owner_id: id }, 100),
-      pick("game_lobbies", "*", { host_id: id }, 100),
-      pick("game_lobbies", "*", { guest_id: id }, 100),
-      pick("game_presence", "*", { user_id: id }, 100),
-      pick("game_match_queue", "*", { user_id: id }, 1),
-      pick("game_matches", "*", { phone_id: id }, 100),
-      pick("game_matches", "*", { desktop_id: id }, 100),
-      pick("daily_claims", "*", { user_id: id }, 1),
+      // join_code / guest secrets never exported.
+      pick("game_lobbies", "id,game_slug,status,max_players,created_at", { host_id: id }, 100),
+      pick("game_lobbies", "id,game_slug,status,created_at", { guest_id: id }, 100),
+      pick("game_presence", "id,game_slug,status,updated_at", { user_id: id }, 100),
+      pick("game_match_queue", "id,game_slug,status,created_at", { user_id: id }, 1),
+      pick("game_matches", "id,game_slug,result,created_at", { phone_id: id }, 100),
+      pick("game_matches", "id,game_slug,result,created_at", { desktop_id: id }, 100),
+      pick("daily_claims", "id,claimed_on,streak,coins,created_at", { user_id: id }, 1),
       pick("referral_codes", "code,created_at", { user_id: id }, 1),
-      pick("referrals", "*", { inviter_id: id }, 200),
-      pick("referrals", "*", { invitee_id: id }, 1),
+      pick("referrals", "id,invitee_id,status,created_at", { inviter_id: id }, 200),
+      pick("referrals", "id,inviter_id,status,created_at", { invitee_id: id }, 1),
     ]);
 
   const [clanMemberships, clanPosts, clanComments, clanReports, clansOwned, botIdentities, listings, bookings, ledger, grants] =
     await Promise.all([
-      pick("clan_members", "*", { user_id: id }),
+      pick("clan_members", "clan_id,role,created_at", { user_id: id }),
       pick("clan_posts", "id,clan_id,title,body,image_url,status,created_at", { author_id: id }),
       pick("clan_comments", "id,post_id,body,status,created_at", { author_id: id }, 500),
       pick("clan_reports", "id,target_type,target_id,category,status,created_at", { reporter_id: id }),
       pick("clans", "id,slug,name,description,created_at", { owner_id: id }, 100),
       pick("bot_identities", "username,human_id,created_at", { user_id: id }, 10),
-      pick("agent_listings", "*", { owner_id: id }, 100),
-      pick("rental_bookings", "*", { renter_id: id }, 100),
+      // Escrow/provider internals never exported — public card only.
+      pick("agent_listings", "id,name,runtime,provider_code,price_cents_per_hour,status,created_at", { owner_id: id }, 100),
+      pick("rental_bookings", "id,listing_id,status,hours,created_at", { renter_id: id }, 100),
       pick("coin_ledger", "id,delta,reason,created_at", { user_id: id }, 500),
       pick("coin_grants", "id,coins,created_at", { user_id: id }, 200),
     ]);
@@ -419,11 +422,15 @@ export async function POST(req: Request) {
 
     // Erase user rows (service_role bypasses RLS, including tables the
     // client itself can no longer delete, e.g. cheat-marked saves).
+    // Fail-closed: every wipe reports errors; incomplete erasure refuses
+    // with 500 + denied audit instead of false deleted:true.
+    const wipeErrors: string[] = [];
     async function wipe(table: string, col: string) {
       try {
-        await service.from(table).delete().eq(col, u!.id);
-      } catch {
-        /* best-effort: missing table/column or cascade handles it */
+        const { error } = await service.from(table).delete().eq(col, u!.id);
+        if (error) wipeErrors.push(`${table}:${error.code ?? error.message}`);
+      } catch (err) {
+        wipeErrors.push(`${table}:${String((err as Error)?.message ?? err).slice(0, 80)}`);
       }
     }
     async function wipeEither(table: string, a: string, b: string) {
@@ -441,7 +448,18 @@ export async function POST(req: Request) {
     await wipe("game_stat_events", "user_id");
     await wipe("game_saves", "user_id");
     await wipeEither("friendships", "requester_id", "addressee_id");
-    await wipeEither("direct_messages", "sender_id", "recipient_id");
+    // DMs are shared rows: delete own sent copies, redact (not delete) the
+    // counterpart's inbox copy so the other user's history survives.
+    await wipe("direct_messages", "sender_id");
+    try {
+      const { error: redactErr } = await service
+        .from("direct_messages")
+        .update({ body: "[deleted]", read_at: new Date().toISOString() })
+        .eq("recipient_id", u!.id);
+      if (redactErr) wipeErrors.push(`direct_messages-redact:${redactErr.code ?? redactErr.message}`);
+    } catch (err) {
+      wipeErrors.push(`direct_messages-redact:${String((err as Error)?.message ?? err).slice(0, 80)}`);
+    }
     await wipe("code_submissions", "owner_id");
     await wipe("daily_claims", "user_id");
     await wipe("referral_codes", "user_id");
@@ -508,8 +526,19 @@ export async function POST(req: Request) {
     await wipe("coin_ledger", "user_id");
     await wipe("coin_grants", "user_id");
     try {
-      await service.from("profiles").delete().eq("id", u.id);
-    } catch { /* admin delete cascades */ }
+      const { error: profErr } = await service.from("profiles").delete().eq("id", u.id);
+      if (profErr) wipeErrors.push(`profiles:${profErr.code ?? profErr.message}`);
+    } catch (err) {
+      wipeErrors.push(`profiles:${String((err as Error)?.message ?? err).slice(0, 80)}`);
+    }
+
+    if (wipeErrors.length) {
+      await service
+        .from("privacy_requests")
+        .update({ status: "denied", note: `incomplete erasure: ${wipeErrors.slice(0, 5).join("; ").slice(0, 400)}` })
+        .eq("id", row.id);
+      return fail("Deletion incomplete — some records could not be erased. Try again or email support.", 500);
+    }
 
     const { error: adminError } = await service.auth.admin.deleteUser(u.id);
     if (adminError) {

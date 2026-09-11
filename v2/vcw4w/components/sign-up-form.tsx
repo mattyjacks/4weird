@@ -89,6 +89,9 @@ export function SignUpForm({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+                <p className="text-xs text-slate-500">
+                  8+ characters with 3 of: lowercase, UPPERCASE, digits, symbols.
+                </p>
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">

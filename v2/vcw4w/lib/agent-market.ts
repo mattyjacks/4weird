@@ -158,7 +158,7 @@ export function isHours(value: unknown): number {
 
 export function isHeartbeatSeconds(value: unknown): number {
   const v = Number(value);
-  if (!Number.isInteger(v) || v < 1 || v > 86400) return 0;
+  if (!Number.isInteger(v) || v < 1 || v > 3600) return 0;
   return v;
 }
 

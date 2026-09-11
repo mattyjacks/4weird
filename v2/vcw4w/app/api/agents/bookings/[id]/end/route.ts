@@ -7,8 +7,10 @@ import { rpcStatus } from "@/lib/agent-market";
 
 export const dynamic = "force-dynamic";
 
-/** End a booking (renter or listing owner). Escrow release/refund is out of
- *  scope: this only flips status to ended + stamps ended_at. */
+/** End a booking (renter or listing owner). Unused escrow is refunded to the
+ *  renter ledger by the end_booking RPC (escrow - metered); the API surfaces
+ *  the refunded amount. Provision failures should end the booking promptly so
+ *  escrow does not stay locked. */
 export async function POST(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },

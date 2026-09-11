@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     if (/already used/i.test(msg)) return fail("You already used a referral code.", 409);
     if (/yourself/i.test(msg)) return fail("You cannot use your own code.", 400);
     if (/unknown|invalid/i.test(msg)) return fail("That code was not found.", 404);
-    return fail("internal error", 500);
+    return dbFail("api/referrals", error, "Unable to apply referral.");
   }
   const row = (rows as { inviter_coins: number; invitee_coins: number }[] | null)?.[0] ?? { inviter_coins: 0, invitee_coins: 0 };
   return ok({ inviterCoins: row.inviter_coins, inviteeCoins: row.invitee_coins });

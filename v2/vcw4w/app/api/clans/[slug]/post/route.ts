@@ -16,20 +16,14 @@ function isClanSlug(v: unknown): string {
 function isOwnClanImageUrl(url: string): boolean {
   const u = url.trim();
   if (!u || u.length > 2000) return false;
-  if (!u.startsWith("http://") && !u.startsWith("https://")) return false;
-  if (!u.includes("clan-images")) return false;
+  if (!u.startsWith("https://")) return false;
   try {
     const parsed = new URL(u);
     const base = (supabaseUrl() ?? "").trim();
-    if (base) {
-      try {
-        if (parsed.host === new URL(base).host) return true;
-      } catch {
-        return false;
-      }
-    }
-    // Fallback: same-origin relative Supabase storage path containing bucket.
-    return /\/storage\/v1\/object\/(public\/)?clan-images\//.test(u);
+    if (!base) return false;
+    const baseHost = new URL(base).host;
+    if (!baseHost || parsed.host !== baseHost) return false;
+    return /\/storage\/v1\/object\/(public\/)?clan-images\//.test(parsed.pathname + parsed.search);
   } catch {
     return false;
   }

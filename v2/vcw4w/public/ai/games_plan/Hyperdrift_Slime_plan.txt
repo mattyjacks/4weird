@@ -1,0 +1,18 @@
+=====================================================
+GAME SPECIFICATION SHEET: Hyperdrift Slime
+=====================================================
+Status: Under design / draft plan
+Core Mechanic: Tap Space to jump and change orbit size
+Visual Aesthetic: 80s Cyberpunk Neon Vectorlines
+Winning Goal: Collect 50 stardust fragments to win
+
+IMPLEMENTATION SPEC SHEET:
+- Setup a canvas context with standard retro green variables.
+- Write requestAnimationFrame loops in JS.
+
+BRAID ACTION FLOW:
+(S) Start -> Check if Danger nearby?
+  ├─ [Yes] ──> Evade using game controls (Tap Space to jump and change orbit size)
+  └─ [No] ───> Check if target goal (Collect 50 stardust fragments to win) visible?
+        ├─ [Yes] ──> Glide towards it
+        └─ [No] ────> Keep default exploring

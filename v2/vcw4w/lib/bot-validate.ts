@@ -64,18 +64,17 @@ export function isImageUrl(value: unknown): boolean {
 export function isOwnClanImageUrl(value: unknown, supabaseBase: string): boolean {
   const u = String(value ?? "").trim();
   if (!u || u.length > 2000) return false;
-  if (!u.startsWith("http://") && !u.startsWith("https://")) return false;
+  // https only: http would allow mixed-content + beacon injection.
+  if (!u.startsWith("https://")) return false;
+  const base = (supabaseBase ?? "").trim();
+  // Fail closed when the base URL is unconfigured — regex-only fallback on
+  // any host previously accepted http://evil.com/.../clan-images/...
+  if (!base) return false;
   try {
     const parsed = new URL(u);
-    const base = (supabaseBase ?? "").trim();
-    if (base) {
-      try {
-        if (parsed.host === new URL(base).host) return true;
-      } catch {
-        return false;
-      }
-    }
-    return /\/storage\/v1\/object\/(public\/)?clan-images\//.test(u);
+    const baseHost = new URL(base).host;
+    if (!baseHost || parsed.host !== baseHost) return false;
+    return /\/storage\/v1\/object\/(public\/)?clan-images\//.test(parsed.pathname + parsed.search);
   } catch {
     return false;
   }

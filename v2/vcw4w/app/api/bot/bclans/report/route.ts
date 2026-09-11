@@ -8,7 +8,7 @@ import {
   isReportTarget,
 } from "@/lib/bot-validate";
 import { serviceClient } from "@/lib/supabase/service";
-import { isUuid } from "@/lib/validate";
+import { exceedsBodyLimit, isUuid } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
@@ -24,9 +24,6 @@ const maxRequestBytes = 8192;
 // file_report RPC gives. Clans and images have no status column, so the
 // report row itself is the evidence record there.
 export async function POST(req: Request) {
-  if (Number(req.headers.get("content-length") ?? 0) > maxRequestBytes) {
-    return fail("Report is too large.", 413);
-  }
   if (!hasBotAuth()) return fail("Bot service is not configured.", 503);
   const throttle = botRateLimit(req, "write");
   if (!throttle.allowed) {
@@ -43,6 +40,7 @@ export async function POST(req: Request) {
   } catch {
     return fail("Invalid JSON body.", 400);
   }
+  if (exceedsBodyLimit(body, maxRequestBytes)) return fail("Report is too large.", 413);
   const input = (body ?? {}) as Record<string, unknown>;
   if (!isReportTarget(input.target_type)) {
     return fail("target_type must be clan, post, comment, or image.", 400);

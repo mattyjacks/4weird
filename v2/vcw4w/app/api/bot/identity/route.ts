@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
+import { sameOrigin } from "@/lib/csrf";
+import { exceedsBodyLimit } from "@/lib/validate";
 import { isBotUsername } from "@/lib/bot-validate";
 
 export const dynamic = "force-dynamic";
@@ -36,9 +38,7 @@ export async function GET() {
 // POST /api/bot/identity {username} — set the bot username ONCE. After it is
 // set the identity is immutable: further attempts get 409.
 export async function POST(req: Request) {
-  if (Number(req.headers.get("content-length") ?? 0) > maxRequestBytes) {
-    return fail("Request is too large.", 413);
-  }
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
@@ -55,6 +55,7 @@ export async function POST(req: Request) {
   } catch {
     return fail("Invalid JSON body.", 400);
   }
+  if (exceedsBodyLimit(body, maxRequestBytes)) return fail("Request is too large.", 413);
   const username = isBotUsername((body as Record<string, unknown>)?.username);
   if (!username) {
     return fail("Username needs 3-24 lowercase letters, numbers, or _.", 400);
@@ -64,11 +65,9 @@ export async function POST(req: Request) {
   });
   if (error) {
     const msg = String(error.message ?? "");
-    if (msg.includes("already set")) {
-      return fail("Username is already set and immutable.", 409);
-    }
-    if (msg.includes("taken")) {
-      return fail("That username is taken.", 409);
+    // Generic conflict to avoid username-enumeration oracle.
+    if (msg.includes("already set") || msg.includes("taken")) {
+      return fail("Username unavailable.", 409);
     }
     if (msg.includes("invalid")) return fail("Invalid username.", 400);
     return fail("Unable to set username.", 500);

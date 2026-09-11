@@ -16,6 +16,8 @@ export async function GET(req: Request) {
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Authentication required.", 401);
+  const rl = rateLimit(`save-get:${u.id}`, 60, 60_000);
+  if (!rl.allowed) return fail("Too many requests.", 429);
   const q = new URL(req.url).searchParams;
   const game = q.get("game");
   const slot = q.get("slot");
@@ -72,6 +74,16 @@ export async function PUT(req: Request) {
     return fail("Save data must be a JSON object.", 400);
   }
   if (jsonBytes(saveData) > maxBytes) return fail("Save data is too large.", 413);
+  // Stored-XSS sink guard: reject event-handler / javascript: / data:text/html
+  // keys and string values; saves must be plain game state, never markup.
+  try {
+    const raw = JSON.stringify(saveData);
+    if (/on\w+\s*=|javascript\s*:|data\s*:\s*text\/html|<\s*script|<\s*iframe/i.test(raw)) {
+      return fail("Save data contains disallowed content.", 400);
+    }
+  } catch {
+    return fail("Save data must be a JSON object.", 400);
+  }
   // Cheat marking is irreversible per save slot. A later client save cannot
   // erase it after a cheat was used, even if the browser was tampered with.
   const { data: existing, error: existingError } = await supabase

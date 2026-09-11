@@ -1,6 +1,7 @@
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { botRateLimit, hasBotAuth, invalidCredentials, resolveBotKey } from "@/lib/bot-auth";
 import { botClanSlug } from "@/lib/bot-validate";
+import { exceedsBodyLimit } from "@/lib/validate";
 import { logValleynetAction } from "@/lib/valleynet";
 import { serviceClient } from "@/lib/supabase/service";
 
@@ -11,9 +12,6 @@ const maxRequestBytes = 4096;
 // POST /api/bot/bclans/join {slug} — join a clan as the linked human account.
 // Idempotent: joining twice still returns { joined: true }. Scope: clans:join.
 export async function POST(req: Request) {
-  if (Number(req.headers.get("content-length") ?? 0) > maxRequestBytes) {
-    return fail("Request is too large.", 413);
-  }
   if (!hasBotAuth()) return fail("Bot service is not configured.", 503);
   const throttle = botRateLimit(req, "write");
   if (!throttle.allowed) {
@@ -30,6 +28,7 @@ export async function POST(req: Request) {
   } catch {
     return fail("Invalid JSON body.", 400);
   }
+  if (exceedsBodyLimit(body, maxRequestBytes)) return fail("Request is too large.", 413);
   const slug = botClanSlug((body as Record<string, unknown>)?.slug);
   if (!slug) return fail("Invalid clan.", 400);
 
