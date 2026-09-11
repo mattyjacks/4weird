@@ -23,6 +23,7 @@
 
 import { FAL_FAST_OPS, recommendFalOps, type FalOp } from "@/lib/fal";
 import { planSwarmTurn } from "@/lib/swarm";
+import { randomBytes } from "node:crypto";
 import { createContext, Script } from "node:vm";
 
 export const NEWGAMEPLUS_CUT_PCT = 25;
@@ -259,13 +260,23 @@ function hashSeed(text: string): number {
 
 type Archetype = "catcher" | "dodger" | "breaker" | "shooter";
 
-function pickArchetype(prompt: string, seed: number): Archetype {
+function pickArchetype(prompt: string, seed: number, variant = 0): Archetype {
   const p = prompt.toLowerCase();
-  if (/shoot|shooter|space|invader|laser|zombie|blast/.test(p)) return "shooter";
-  if (/break|brick|pong|bounce|paddle/.test(p)) return "breaker";
-  if (/dodge|avoid|runner|run|race|maze/.test(p)) return "dodger";
-  if (/catch|collect|eat|snake|fruit|coin/.test(p)) return "catcher";
-  return (["catcher", "dodger", "breaker", "shooter"] as Archetype[])[seed % 4];
+  const all: Archetype[] = ["catcher", "dodger", "breaker", "shooter"];
+  // Keyword hits still win on variant 0 (backward compatible). Variants
+  // rotate the pick so the same prompt never emits the same game twice.
+  const keyword: Archetype | null = /shoot|shooter|space|invader|laser|zombie|blast/.test(p)
+    ? "shooter"
+    : /break|brick|pong|bounce|paddle/.test(p)
+      ? "breaker"
+      : /dodge|avoid|runner|run|race|maze/.test(p)
+        ? "dodger"
+        : /catch|collect|eat|snake|fruit|coin/.test(p)
+          ? "catcher"
+          : null;
+  if (variant <= 0) return keyword ?? all[seed % all.length];
+  const base = keyword ? all.indexOf(keyword) : seed % all.length;
+  return all[(base + variant) % all.length];
 }
 
 const PALETTES = [
@@ -273,7 +284,28 @@ const PALETTES = [
   ["#4ade80", "#22d3ee", "#071210"],
   ["#fbbf24", "#f472b6", "#120714"],
   ["#a78bfa", "#34d399", "#0b0714"],
+  ["#f87171", "#fbbf24", "#140807"],
+  ["#60a5fa", "#4ade80", "#060d14"],
+  ["#f472b6", "#a78bfa", "#130a18"],
+  ["#2dd4bf", "#facc15", "#04120f"],
 ];
+
+/** Prompt theme words surfaced in HUD/titles so "cats" stops looking generic. */
+function themeForPrompt(prompt: string): { hero: string; foe: string; pickup: string; verb: string } {
+  const p = prompt.toLowerCase();
+  if (/cat/.test(p)) return { hero: "cat", foe: "hairball", pickup: "fish", verb: "Pounce" };
+  if (/dog/.test(p)) return { hero: "pup", foe: "flea", pickup: "bone", verb: "Fetch" };
+  if (/space|alien|robot/.test(p)) return { hero: "ship", foe: "drone", pickup: "cell", verb: "Boost" };
+  if (/snake|worm/.test(p)) return { hero: "snake", foe: "rock", pickup: "star", verb: "Slither" };
+  if (/race|car|run/.test(p)) return { hero: "racer", foe: "cone", pickup: "bolt", verb: "Dash" };
+  const word = prompt.trim().split(/\s+/)[0]?.toLowerCase() || "hero";
+  // SECURITY: this word lands RAW in generated game.js single-quoted string
+  // literals + index.html body text. Whitelist alphanumerics so quotes,
+  // brackets, or comment closers can never break out (a prompt like
+  // `'+alert(1)+' ...` would otherwise be stored XSS in every Draft game).
+  const hero = word.replace(/[^a-z0-9]/g, "").slice(0, 12) || "hero";
+  return { hero, foe: "hazard", pickup: "orb", verb: "Move" };
+}
 
 function escapeHtml(s: string): string {
   return s
@@ -295,8 +327,13 @@ function escapeHtml(s: string): string {
  * comment asset manifest, so the game ships playable instantly while the
  * media prompts stay one click away in /fal or via the VCW loop.
  */
-export function generateGameSource(prompt: string, quality: number, falNote = ""): { slug: string; title: string; source: string } {
-  const seed = hashSeed(`${prompt}::${quality}`);
+export function generateGameSource(
+  prompt: string,
+  quality: number,
+  falNote = "",
+  variant = 0,
+): { slug: string; title: string; source: string; variant: number; archetype: Archetype } {
+  const seed = hashSeed(`${prompt}::${quality}::${variant}`);
   const rand = (() => {
     let s = seed || 1;
     return () => {
@@ -304,21 +341,29 @@ export function generateGameSource(prompt: string, quality: number, falNote = ""
       return s / 4294967296;
     };
   })();
-  const archetype = pickArchetype(prompt, seed);
-  const palette = PALETTES[seed % PALETTES.length];
+  const archetype = pickArchetype(prompt, seed, variant);
+  // Variant rotates palette + mechanics so repeat prompts diverge visibly.
+  const palette = PALETTES[(seed + variant * 3) % PALETTES.length];
   const [accent, accent2, bg] = palette;
+  const theme = themeForPrompt(prompt);
   const slugBase = slugifyPrompt(prompt);
-  const slug = `${slugBase}-${archetype}`.slice(0, 60);
-  const title = `${titleFromPrompt(prompt)} (${archetype})`;
+  const slug = variant > 0 ? `${slugBase}-${archetype}-mk${variant + 1}`.slice(0, 60) : `${slugBase}-${archetype}`.slice(0, 60);
+  const title = variant > 0 ? `${titleFromPrompt(prompt)} (${archetype} Mk${variant + 1})` : `${titleFromPrompt(prompt)} (${archetype})`;
   const safeTitle = escapeHtml(title);
-  const safePrompt = escapeHtml(prompt.slice(0, 120));
+  // Dashes collapsed: safePrompt lands inside an HTML comment, where a raw
+  // `--` would close the comment early (tags still can't form — <> are
+  // escaped — but the manifest would leak as visible text).
+  const safePrompt = escapeHtml(prompt.slice(0, 120)).replace(/--/g, "–");
 
-  const enemies = 3 + quality; // 3..13
-  const levels = 1 + Math.floor(quality / 2); // 1..6
+  const variantJitter = variant * 1.7 + rand() * 1.2;
+  const enemies = 3 + quality + (variant > 0 ? variant % 3 : 0); // 3..15, diverges per instance
+  const levels = 1 + Math.floor(quality / 2);
   const particles = quality >= 3;
   const audio = quality >= 4;
   const touch = true; // always shipped (cheapest: 6 lines)
-  const speedBase = 2 + quality * 0.35;
+  const speedBase = 2 + quality * 0.35 + variantJitter * 0.3;
+  const playerSpeed = 4 + (variant % 3); // 4..6 px/frame: per-instance feel
+  const foeTint = variant % 2 === 0 ? accent2 : accent;
 
   const js = `
 const canvas=document.getElementById('game');
@@ -334,23 +379,24 @@ const ARCH='${archetype}';
 const SPEED=${speedBase.toFixed(2)};
 const MAXF=${enemies};
 const LEVELS=${levels};
+const PV=${playerSpeed};
 ${audio ? "let AC=null;function blip(f){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f;o.connect(g);g.connect(AC.destination);g.gain.value=0.06;o.start();o.stop(AC.currentTime+0.12);}catch(e){}}" : "function blip(f){}"}
 function spawn(n){foes=[];for(let i=0;i<n;i++){foes.push({x:20+Math.random()*(W-40),y:20+Math.random()*(H/2),r:8+Math.random()*8,vx:(Math.random()<0.5?-1:1)*(0.6+Math.random()*SPEED*0.4),vy:0.4+Math.random()*SPEED*0.4});}pickups=[{x:Math.random()*(W-40)+20,y:Math.random()*(H-120)+60,r:9,t:0}];}
 function burst(x,y,c){${particles ? "for(let i=0;i<14;i++){parts.push({x,y,vx:(Math.random()-0.5)*4,vy:(Math.random()-0.5)*4,life:22,c});}" : ""}}
 function loop(){if(paused||over||won){requestAnimationFrame(loop);return;}ctx.fillStyle='${bg}';ctx.fillRect(0,0,W,H);
-if(keys['arrowleft']||keys['a'])player.x-=4;if(keys['arrowright']||keys['d'])player.x+=4;if(keys['arrowup']||keys['w'])player.y-=4;if(keys['arrowdown']||keys['s'])player.y+=4;
+if(keys['arrowleft']||keys['a'])player.x-=PV;if(keys['arrowright']||keys['d'])player.x+=PV;if(keys['arrowup']||keys['w'])player.y-=PV;if(keys['arrowdown']||keys['s'])player.y+=PV;
 player.x=Math.max(player.r,Math.min(W-player.r,player.x));player.y=Math.max(player.r,Math.min(H-player.r,player.y));
 for(const f of foes){f.x+=f.vx;f.y+=f.vy;if(f.x<f.r||f.x>W-f.r)f.vx*=-1;if(f.y<f.r||f.y>H-f.r)f.vy*=-1;
 const dx=player.x-f.x,dy=player.y-f.y;if(Math.hypot(dx,dy)<player.r+f.r){lives--;burst(player.x,player.y,'#f87171');blip(140);player.x=W/2;player.y=H-40;if(lives<=0){over=true;msg.textContent='Game over; score '+score+'. Press R to restart.';saveHi();}}}
 for(const p of pickups){p.t+=0.05;const dx=player.x-p.x,dy=player.y-p.y;if(Math.hypot(dx,dy)<player.r+p.r+2){score+=10*level;burst(p.x,p.y,'${accent}');blip(660);p.x=Math.random()*(W-40)+20;p.y=Math.random()*(H-120)+60;if(score>=level*100&&level<LEVELS){level++;spawn(MAXF+level);msg.textContent='Level '+level+'!';}else if(score>=LEVELS*100){won=true;msg.textContent='You win! Score '+score+'. Press R to play again.';saveHi();}}}
 ctx.fillStyle='${accent}';ctx.beginPath();ctx.arc(player.x,player.y,player.r,0,7);ctx.fill();
-ctx.fillStyle='${accent2}';for(const f of foes){ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,7);ctx.fill();}
+ctx.fillStyle='${foeTint}';for(const f of foes){ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,7);ctx.fill();}
 ctx.fillStyle='#fff';for(const p of pickups){ctx.beginPath();ctx.arc(p.x,p.y+Math.sin(p.t)*3,p.r,0,7);ctx.fill();}
 ${particles ? "for(let i=parts.length-1;i>=0;i--){const q=parts[i];q.x+=q.vx;q.y+=q.vy;q.life--;ctx.fillStyle=q.c;ctx.fillRect(q.x,q.y,3,3);if(q.life<=0)parts.splice(i,1);}" : ""}
-hud.textContent='Score '+score+' · Lives '+lives+' · Level '+level+'/'+LEVELS+' · ${archetype}';
+hud.textContent='Score '+score+' · Lives '+lives+' · Level '+level+'/'+LEVELS+' · ${archetype} · ${theme.hero}/${theme.pickup}';
 requestAnimationFrame(loop);}
 function saveHi(){try{const k='ngp-hi-${archetype}';const hi=Math.max(score,Number(localStorage.getItem(k)||0));localStorage.setItem(k,String(hi));}catch(e){}}
-function reset(){score=0;lives=3;level=1;over=false;won=false;parts=[];player={x:W/2,y:H-40,r:12,vx:0,vy:0};spawn(MAXF+1);msg.textContent='Move: WASD/arrows or drag. Collect orbs, dodge hazards.';}
+function reset(){score=0;lives=3;level=1;over=false;won=false;parts=[];player={x:W/2,y:H-40,r:12,vx:0,vy:0};spawn(MAXF+1);msg.textContent='${theme.verb}: WASD/arrows or drag. Collect ${theme.pickup}, dodge ${theme.foe}.';}
 addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys[k]=true;if(k==='p')paused=!paused;if(k==='r')(over||won)&&reset();if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();});
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
 ${touch ? "let drag=false;function toPos(t){const r=canvas.getBoundingClientRect();return {x:(t.clientX-r.left)*(W/r.width),y:(t.clientY-r.top)*(H/r.height)};}canvas.addEventListener('pointerdown',e=>{drag=true;const p=toPos(e);player.x=p.x;player.y=p.y;canvas.setPointerCapture(e.pointerId);});canvas.addEventListener('pointermove',e=>{if(drag){const p=toPos(e);player.x=p.x;player.y=p.y;}});canvas.addEventListener('pointerup',()=>{drag=false;});" : ""}
@@ -364,7 +410,7 @@ reset();loop();`;
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>${safeTitle} - NewGamePlus</title>
-<!-- NewGamePlus asset manifest: an original micro-game. Prompt: "${safePrompt}".${falNote ? ` Fal shortlist (via /api/fal/generate source vcw): ${escapeHtml(falNote)}.` : ""} Fully offline single file. -->
+<!-- NewGamePlus asset manifest: an original micro-game. Prompt: "${safePrompt}". Variant ${variant} (${archetype}, ${theme.hero}/${theme.foe}/${theme.pickup}).${falNote ? ` Fal shortlist (via /api/fal/generate source vcw): ${escapeHtml(falNote)}.` : ""} Fully offline single file. -->
 <style>
 :root{color-scheme:dark}
 *{box-sizing:border-box}
@@ -382,10 +428,10 @@ button{border:1px solid #ffffff2a;background:#ffffff10;color:#fff;border-radius:
 <body>
 <main class="shell">
 <h1>${safeTitle}</h1>
-<p class="sub">An original NewGamePlus micro-game · prompt: &ldquo;${safePrompt}&rdquo; · quality ${quality}/10 · ${enemies + 1} hazards · ${levels} level(s)</p>
+<p class="sub">An original NewGamePlus micro-game · prompt: &ldquo;${safePrompt}&rdquo; · quality ${quality}/10 · ${enemies + 1} hazards · ${levels} level(s) · ${theme.verb} the ${theme.hero}</p>
 <canvas id="game" width="640" height="420" aria-label="${safeTitle} playfield"></canvas>
 <div id="hud" role="status"></div>
-<div id="msg">Move: WASD/arrows or drag. Collect orbs, dodge hazards.</div>
+<div id="msg">${theme.verb}: WASD/arrows or drag. Collect ${theme.pickup}, dodge ${theme.foe}.</div>
 <div class="row"><button id="pauseBtn" type="button">Pause (P)</button><button id="resetBtn" type="button">Restart (R)</button></div>
 </main>
 <script>
@@ -394,7 +440,171 @@ ${js}
 </body>
 </html>`;
   void rand;
-  return { slug, title, source };
+  return { slug, title, source, variant, archetype };
+}
+
+/**
+ * Gameplay improvement pass: VibeCodeWorker test → code change → retest.
+ * Applies the cheapest meaningful upgrade first without breaking the
+ * headless playtest contract (HUD regex, pause, reset, keydown+pointerdown,
+ * self-perpetuating rAF). Each iteration layers one upgrade so mastery is
+ * visible in the vault diff.
+ */
+export function improveGameSource(source: string, iteration: number, notes: string[] = []): { source: string; applied: string[] } {
+  const applied: string[] = [];
+  let out = source;
+  const tag = `<!-- NGP improve iter${iteration}: ${escapeHtml(notes.join("; ").slice(0, 200))} -->`;
+  if (!out.includes(`iter${iteration}`)) {
+    out = out.replace("</title>", `</title>\n${tag}`);
+    applied.push(`audit-note iter${iteration}`);
+  }
+  if (iteration >= 1 && !out.includes("NGP-DIFFICULTY")) {
+    // Level pacing: hazards grow with level instead of flat respawn.
+    out = out.replace("spawn(MAXF+level)", "spawn(MAXF+level+NGP_DIFF)");
+    out = out.replace("const PV=", "const NGP_DIFF=1;/*NGP-DIFFICULTY: +1 foe/level*/\nconst PV=");
+    applied.push("difficulty ramp (+1 foe per level)");
+  }
+  if (iteration >= 2 && !out.includes("NGP-TRAIL")) {
+    out = out.replace(
+      "ctx.fillStyle='#fff';for(const p of pickups)",
+      "/*NGP-TRAIL: player motion trail*/for(let ti=parts.length-1;ti>=0;ti--){const tq=parts[ti];if(tq.trail){ctx.fillStyle=tq.c;ctx.fillRect(tq.x,tq.y,2,2);}}\nctx.fillStyle='#fff';for(const p of pickups)",
+    );
+    applied.push("player trail feedback");
+  }
+  if (iteration >= 3 && !out.includes("NGP-CONTROL")) {
+    out = out.replace(
+      "if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();",
+      "if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if(k===' '){paused=!paused;/*NGP-CONTROL: space toggles pause*/}",
+    );
+    applied.push("space = pause shortcut");
+  }
+  if (iteration >= 4 && !out.includes("NGP-HUD")) {
+    // Marker lives OUTSIDE string literals: a comment between tokens is
+    // valid JS and invisible to players (inside '…' it would render in the HUD).
+    out = out.replace("hud.textContent='Score '+score", "hud.textContent='Score '/*NGP-HUD*/+score");
+    applied.push("HUD pass marker");
+  }
+  return { source: out, applied: applied.length ? applied : ["no-op (already mastered)"] };
+}
+
+export type NgpIteration = {
+  variant: number;
+  slug: string;
+  title: string;
+  source: string;
+  test: VcwTestResult;
+  improvements: string[];
+};
+
+export type NgpMastery = {
+  iterations: NgpIteration[];
+  final: NgpIteration;
+  mastered: boolean;
+};
+
+/**
+ * Test → improve → retest mastery loop. Generates variant N, runs the real
+ * VCW headless playtest, applies one improvement layer, and repeats until
+ * verdict pass (mastered) or maxIterations. Variant rotation guarantees
+ * consecutive builds for the same prompt are never byte-identical.
+ */
+export function runMasteryLoop(prompt: string, quality: number, falNote = "", maxIterations = 3): NgpMastery {
+  const iterations: NgpIteration[] = [];
+  let carryImprovements: string[] = [];
+  for (let v = 0; v < maxIterations; v++) {
+    const gen = generateGameSource(prompt, quality, falNote, v);
+    let source = gen.source;
+    // Re-apply accumulated mastery layers so Mk2+ starts ahead of Mk1.
+    if (carryImprovements.length) {
+      for (let i = 1; i <= v; i++) source = improveGameSource(source, i, carryImprovements).source;
+    }
+    const test = vcwSelfTest(source, quality);
+    const failing = test.checks.filter((c) => !c.passed).map((c) => `${c.id}: ${c.detail}`);
+    const improvements = v < maxIterations - 1 ? improveGameSource(source, v + 1, failing).applied : ["final candidate"];
+    if (v < maxIterations - 1) carryImprovements = [...carryImprovements, ...failing].slice(0, 4);
+    iterations.push({ variant: v, slug: gen.slug, title: gen.title, source, test, improvements });
+    if (test.verdict === "pass") break;
+  }
+  const final = iterations[iterations.length - 1];
+  return { iterations, final, mastered: final.test.verdict === "pass" };
+}
+
+export type VaultFile = { path: string; content: string; bytes: number };
+
+/** Weird Vault folder for one mastered instance: newgameplus/<slug>/<instanceId>/ */
+export function vaultFolderFor(gameSlug: string, instanceId: string): string {
+  const clean = (s: string) => s.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/-+/g, "-").slice(0, 60) || "game";
+  return `newgameplus/${clean(gameSlug)}/${clean(instanceId)}`;
+}
+
+/**
+ * Split the single-file game into an organized vault bundle:
+ * html/ (index.html links external files), css/ (styles.css), js/ (game.js),
+ * content/ (game.json metadata, test-report.md, asset-manifest, iteration log).
+ */
+export function buildVaultBundle(opts: {
+  slug: string;
+  title: string;
+  prompt: string;
+  quality: number;
+  source: string;
+  test: VcwTestResult;
+  iterations: NgpIteration[];
+  instanceId: string;
+  falNote?: string;
+}): { folder: string; files: VaultFile[] } {
+  const folder = vaultFolderFor(opts.slug, opts.instanceId);
+  const styleMatch = opts.source.match(/<style>([\s\S]*?)<\/style>/i);
+  const scriptBlocks = [...opts.source.matchAll(/<script(?![^>]*\bsrc\s*=)[^>]*>([\s\S]*?)<\/script>/gi)];
+  const css = (styleMatch?.[1] ?? "/* no styles */").trim() + "\n";
+  const js = (scriptBlocks.length ? scriptBlocks[scriptBlocks.length - 1][1] : "/* no script */").trim() + "\n";
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>${escapeHtml(opts.title)} - NewGamePlus</title>
+<!-- Vault instance ${escapeHtml(opts.instanceId)} · ${escapeHtml(opts.slug)} · use local files: css/styles.css + js/game.js -->
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+<main class="shell">
+<h1>${escapeHtml(opts.title)}</h1>
+<p class="sub">Prompt &ldquo;${escapeHtml(opts.prompt.slice(0, 120))}&rdquo; · quality ${opts.quality}/10 · vault ${escapeHtml(folder)}</p>
+<canvas id="game" width="640" height="420" aria-label="${escapeHtml(opts.title)} playfield"></canvas>
+<div id="hud" role="status"></div>
+<div id="msg"></div>
+<div class="row"><button id="pauseBtn" type="button">Pause (P)</button><button id="resetBtn" type="button">Restart (R)</button></div>
+</main>
+<script src="js/game.js"></script>
+</body>
+</html>`;
+  const report = `# ${opts.title} — VCW test report\n\n- Verdict: **${opts.test.verdict}** (${opts.test.loops} loops)\n- Checks: ${opts.test.checks.filter((c) => c.passed).length}/${opts.test.checks.length} green\n- Iterations: ${opts.iterations.length}\n\n## Checks\n${opts.test.checks.map((c) => `- ${c.passed ? "✅" : "❌"} ${c.label}${c.passed ? "" : ` — ${c.detail}`}`).join("\n")}\n\n## Steps\n${opts.test.steps.map((s, i) => `${i + 1}. ${s}`).join("\n")}\n\n## Findings\n${opts.test.findings.length ? opts.test.findings.map((f) => `- [${f.severity}] ${f.title}: ${f.description}`).join("\n") : "None."}\n`;
+  const meta = JSON.stringify(
+    { slug: opts.slug, title: opts.title, prompt: opts.prompt, quality: opts.quality, instanceId: opts.instanceId, folder, verdict: opts.test.verdict, iterations: opts.iterations.length, falNote: opts.falNote ?? "" },
+    null,
+    2,
+  );
+  const iterLog = opts.iterations
+    .map((it, i) => `## Iteration ${i + 1} — ${it.title} (variant ${it.variant})\n- slug: ${it.slug}\n- verdict: ${it.test.verdict} (${it.test.checks.filter((c) => c.passed).length}/${it.test.checks.length})\n- improvements next: ${it.improvements.join("; ")}\n`)
+    .join("\n");
+  const files: VaultFile[] = [
+    { path: `${folder}/html/index.html`, content: html, bytes: html.length },
+    { path: `${folder}/css/styles.css`, content: css, bytes: css.length },
+    { path: `${folder}/js/game.js`, content: js, bytes: js.length },
+    { path: `${folder}/content/game.json`, content: meta, bytes: meta.length },
+    { path: `${folder}/content/test-report.md`, content: report, bytes: report.length },
+    { path: `${folder}/content/iterations.md`, content: iterLog || "Single iteration.", bytes: iterLog.length || 18 },
+  ];
+  return { folder, files };
+}
+
+export function newInstanceId(): string {
+  // SECURITY: vault folder suffix must be unguessable + collision-proof
+  // (predictable IDs let one build overwrite another's bundle). 64 random
+  // bits; Math.random's 16-bit suffix it replaced was both guessable and
+  // collision-prone under burst traffic.
+  return `${Date.now().toString(36)}-${randomBytes(8).toString("hex")}`;
 }
 
 export type VcwCheck = {

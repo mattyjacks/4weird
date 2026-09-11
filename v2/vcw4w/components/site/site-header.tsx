@@ -291,7 +291,7 @@ function DesktopNavGroup({ group, active, expandedMenu, pathname, onOpen, onRequ
                   <a
                     href={link.href}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noreferrer noopener"
                     onClick={onNavigate}
                     className="block whitespace-nowrap px-3 py-1.5 text-sm transition hover:bg-accent hover:text-accent-foreground"
                   >
@@ -575,11 +575,11 @@ className="rounded-full bg-cyan-600 px-4 py-1.5 text-sm font-black text-white tr
                         {group.links.map((link, index) => (
                           <li key={link.href} style={{ "--i": index } as CSSProperties}>
                             {link.external ? (
-                              <a
-                                href={link.href}
-                                target="_blank"
-                                rel="noreferrer"
-                                onClick={() => setOpen(false)}
+                    <a
+                      href={link.href}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      onClick={() => setOpen(false)}
                                 className="block px-5 py-1.5 text-sm font-semibold text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
                               >
                                 {link.label} <span aria-hidden="true">↗</span>

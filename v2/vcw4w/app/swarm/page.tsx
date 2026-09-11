@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/swarm" },
   title: "Hire an Agent Swarm | 4weird Games",
   description:
-    "Hire a swarm of AI agents as one chatbot interface: custom system prompts, auto tool use including VibeCodeWorker runs, code exports, and the built-in reasoning loop, metered per turn with the 25% cut included.",
+    "Your OpenClaw-style agent on 4weird: a per-user internal brain with token-cheap memory, personal .txt file RAG, serverless chat or serverful RunPod runs, and auto-orchestrated child instances — metered per turn with the 25% cut included.",
 };
 
 export const dynamic = "force-dynamic";
@@ -19,12 +19,15 @@ export default function SwarmPage() {
           ← Rent an agent
         </Link>
         <p className="mt-6 text-xs font-bold uppercase tracking-[0.3em] text-violet-300">Swarm chat</p>
-        <h1 className="mt-2 text-4xl font-black">Hire an agent swarm</h1>
+        <h1 className="mt-2 text-4xl font-black">Your agent, with a brain</h1>
         <p className="mt-4 max-w-3xl text-slate-300">
-          One chat box, up to five agents behind it. Set a custom system prompt for the whole swarm plus a role
-          prompt per agent, pick the orchestration (auto uses the built-in observe→reason→act loop to plan
-          and delegate), and every agent automatically uses all tools - VibeCodeWorker runs, findings, handoffs,
-          code exports + heal loops, Fal media, Buddy voice. Chat turns meter per agent in Vibe Coins with
+          One chat box, up to five agents behind it, and an internal brain that remembers you: say
+          “remember that …” once and every future turn knows it for ~150 tokens. File personal .txt
+          notes and matching chunks join the prompt automatically (~300 tokens max). Pick the
+          orchestration (auto uses the built-in observe→reason→act loop to plan
+          and delegate), run serverless right here or serverful on a real RunPod pod/desktop,
+          and watch parallel work fan out into child instances of the swarm itself. Chat turns meter
+          per agent in Vibe Coins with
           the 25% platform cut included, never on top; local-engine turns are free and labelled.
         </p>
         <div className="mt-8">

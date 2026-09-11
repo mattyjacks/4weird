@@ -17,6 +17,8 @@ type BuildResult = {
   plan: { quality: number; budget: number; estimate: number; spend: number; cut: number; provider: number; strategy: string; note: string; lane: string; target: string };
   charge?: { billed: boolean; gross: number; cut: number };
   test: { verdict: string; loops: number; steps: string[]; checks: { id: string; label: string; passed: boolean; detail: string }[]; findings: { severity: string; title: string; description: string }[] };
+  mastery?: { mastered: boolean; iterations: { variant: number; slug: string; title: string; verdict: string; checks: number; passed: number; improvements: string[] }[] };
+  vault?: { folder: string; instanceId: string; files: { path: string; bytes: number }[] };
   draft: { scope: string; submission_id: string | null; project_id: string | null; draft_path: string; note: string };
   swarm?: { lane: string; mode: string; agents: SwarmAgent[]; trace: string[]; target: string };
   fal?: { selected: FalPick[]; totalCoins: number; note: string; configured: boolean };
@@ -354,6 +356,26 @@ export function NewGamePlusBuilder() {
                 </ul>
               )}
             </details>
+            {!!result.mastery && (
+              <details className="rounded-lg border border-emerald-300/20 bg-black/30 p-3 text-xs" open>
+                <summary className="cursor-pointer font-bold text-emerald-200">
+                  🏆 Mastery {result.mastery.mastered ? "reached" : "in progress"} — test → improve → retest ({result.mastery.iterations.length} iteration{result.mastery.iterations.length === 1 ? "" : "s"})
+                </summary>
+                <ol className="mt-2 space-y-1 text-slate-300">
+                  {result.mastery.iterations.map((it, i) => (
+                    <li key={i}>· <b>{it.title}</b> ({it.slug}) — VCW {it.verdict} {it.passed}/{it.checks} · next: {it.improvements.join("; ")}</li>
+                  ))}
+                </ol>
+              </details>
+            )}
+            {!!result.vault && (
+              <details className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs" open>
+                <summary className="cursor-pointer font-bold text-slate-200">📁 Weird Vault — {result.vault.folder} (html + css + js + content)</summary>
+                <ul className="mt-2 space-y-1 text-slate-300">
+                  {result.vault.files.map((f) => (<li key={f.path}>· <code>{f.path}</code> ({f.bytes.toLocaleString()} bytes)</li>))}
+                </ul>
+              </details>
+            )}
             {!!result.timeline && (
               <details className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs">
                 <summary className="cursor-pointer font-bold text-slate-200">⏱ Build timeline (target {result.timeline.totalTargetSec}s wall clock)</summary>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ThemeSwitcher } from "@/components/theme-switcher";
+import { ColorThemeSwitcher, ThemeSwitcher } from "@/components/theme-switcher";
 import { ClampText } from "@/components/ui/clamp-text";
 import { CompactDetails } from "@/components/ui/compact-details";
 import {
@@ -189,14 +189,16 @@ export function SiteFooter() {
               <a
                 href="https://github.com/mattyjacks/4weird"
                 target="_blank"
-                rel="noreferrer"
+                rel="noreferrer noopener"
                 className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[13px] font-semibold text-muted-foreground transition hover:-translate-y-0.5 hover:text-foreground"
               >
                 <Github className="h-4 w-4" aria-hidden="true" /> GitHub ↗
               </a>
             </div>
-            <div className="mt-3 flex items-center gap-2 border-t border-border pt-3 text-[13px] text-muted-foreground dark:border-white/10">
+            <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-2 border-t border-border pt-3 text-[13px] text-muted-foreground dark:border-white/10">
               <span className="font-semibold">Theme</span>
+              <ColorThemeSwitcher />
+              <span className="font-semibold">Mode</span>
               <ThemeSwitcher />
             </div>
           </div>

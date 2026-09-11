@@ -42,6 +42,23 @@ type Reply = {
   fallback: boolean;
 };
 
+type TurnBrain = {
+  execMode: string;
+  ragDocs: string[];
+  memorySaved: number;
+  children: { id: string; subtask: string }[];
+};
+
+type OperatorBrain = {
+  persona: string;
+  facts: string[];
+  goals: string[];
+  exec_mode: string;
+  memory_summary: string;
+};
+
+type BrainDocRow = { id: string; name: string; chars: number; created_at: string };
+
 const AGENT_COLORS = ["text-cyan-300", "text-amber-300", "text-violet-300", "text-emerald-300", "text-rose-300"];
 const RUNTIME_OPTIONS = Object.keys(RUNTIME_LABELS) as Runtime[];
 
@@ -111,6 +128,20 @@ export function SwarmChat() {
   const [voice, setVoice] = useState(BUDDY_DEFAULT_VOICE);
   const [speakReplies, setSpeakReplies] = useState(false);
   const [listening, setListening] = useState(false);
+  const [lastBrain, setLastBrain] = useState<TurnBrain | null>(null);
+  const [childSessions, setChildSessions] = useState<{ id: string; name: string; status: string; turns: number }[]>([]);
+
+  // Internal brain (per-user, OpenClaw-style): persona + memory + exec mode.
+  const [operatorBrain, setOperatorBrain] = useState<OperatorBrain | null>(null);
+  const [personaDraft, setPersonaDraft] = useState("");
+  const [execDraft, setExecDraft] = useState("auto");
+  const [brainBusy, setBrainBusy] = useState(false);
+
+  // Personal .txt docs for internal RAG.
+  const [brainDocs, setBrainDocs] = useState<BrainDocRow[]>([]);
+  const [docName, setDocName] = useState("");
+  const [docBody, setDocBody] = useState("");
+  const [docsBusy, setDocsBusy] = useState(false);
 
   // Hire form state (swarm config panel).
   const [name, setName] = useState("My Swarm");
@@ -157,14 +188,95 @@ export function SwarmChat() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const loadBrain = useCallback(async () => {
+    try {
+      const body = await api<{ brain: OperatorBrain }>("/api/swarm/brain");
+      if (body.brain) {
+        setOperatorBrain(body.brain);
+        setPersonaDraft(String(body.brain.persona ?? ""));
+        setExecDraft(String(body.brain.exec_mode ?? "auto"));
+      }
+    } catch {
+      // Pre-migration or logged-out: brain panel stays empty, chat works.
+    }
+  }, []);
+
+  const loadDocs = useCallback(async () => {
+    try {
+      const body = await api<{ docs: BrainDocRow[] }>("/api/swarm/docs");
+      setBrainDocs(body.docs ?? []);
+    } catch {
+      // Pre-migration or logged-out: docs panel stays empty, chat works.
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadBrain();
+    void loadDocs();
+  }, [loadBrain, loadDocs]);
+
+  async function saveBrain() {
+    setBrainBusy(true);
+    try {
+      const body = await api<{ brain: OperatorBrain }>("/api/swarm/brain", {
+        method: "PATCH",
+        body: JSON.stringify({ persona: personaDraft.slice(0, 500), exec_mode: execDraft }),
+      });
+      setOperatorBrain(body.brain);
+      setStatus(`Brain updated. Memory: ${(body.brain.facts ?? []).length} facts, ${(body.brain.goals ?? []).length} goals; runs ${body.brain.exec_mode}.`);
+    } catch (e) {
+      setStatus(e instanceof Error ? e.message : "Brain save failed.");
+    } finally {
+      setBrainBusy(false);
+    }
+  }
+
+  async function uploadDoc() {
+    const content = docBody.trim();
+    if (!docName.trim() || !content) {
+      setStatus("Give the .txt file a name and paste its text first.");
+      return;
+    }
+    setDocsBusy(true);
+    try {
+      await api("/api/swarm/docs", {
+        method: "POST",
+        body: JSON.stringify({ name: docName.trim(), content }),
+      });
+      setDocName("");
+      setDocBody("");
+      await loadDocs();
+      setStatus("Filed to memory. The swarm reads matching notes automatically (~300 tokens max).");
+    } catch (e) {
+      setStatus(e instanceof Error ? e.message : "Doc upload failed.");
+    } finally {
+      setDocsBusy(false);
+    }
+  }
+
+  async function deleteDoc(docId: string) {
+    setDocsBusy(true);
+    try {
+      await api(`/api/swarm/docs?id=${encodeURIComponent(docId)}`, { method: "DELETE" });
+      await loadDocs();
+      setStatus("Forgot that file.");
+    } catch (e) {
+      setStatus(e instanceof Error ? e.message : "Doc delete failed.");
+    } finally {
+      setDocsBusy(false);
+    }
+  }
+
   const loadActive = useCallback(async () => {
     if (!activeId) {
       setMessages([]);
+      setChildSessions([]);
       return;
     }
     try {
-      const body = await api<{ session: SwarmSession; messages: ChatMsg[] }>(`/api/swarm/sessions/${activeId}`);
+      const body = await api<{ session: SwarmSession; messages: ChatMsg[]; children?: { id: string; name: string; status: string; turns: number }[] }>(`/api/swarm/sessions/${activeId}`);
       setMessages(body.messages ?? []);
+      setChildSessions(body.children ?? []);
       setStatus(`Chatting with ${body.session.name} (${body.session.size} agents, ${body.session.orchestration}).`);
     } catch (e) {
       setStatus(e instanceof Error ? e.message : "Failed to load messages.");
@@ -267,6 +379,7 @@ export function SwarmChat() {
         plan: { trace: string[] };
         cost: { display: string };
         fallback: boolean;
+        brain?: TurnBrain;
       }>(`/api/swarm/sessions/${sendSessionId}/chat`, { method: "POST", body: JSON.stringify({ message: quoted }) });
       // Session switch mid-turn: the reply belongs to the session that was
       // asked, not the one on screen. Never merge into the wrong thread;
@@ -277,6 +390,17 @@ export function SwarmChat() {
         return;
       }
       setTrace(body.plan.trace ?? []);
+      if (body.brain) {
+        setLastBrain(body.brain);
+        if ((body.brain.children ?? []).length) {
+          setChildSessions((c) => [
+            ...c,
+            ...(body.brain?.children ?? []).map((k) => ({ id: k.id, name: k.subtask.slice(0, 60), status: "open", turns: 0 })),
+          ]);
+          void loadSessions();
+        }
+        if ((body.brain.memorySaved ?? 0) > 0) void loadBrain();
+      }
       const at = new Date().toISOString();
       const userMsg: ChatMsg = { ...optimistic, id: `u-${Date.now()}` };
       const full: ChatMsg[] = body.replies.map((r, i) => ({
@@ -472,6 +596,51 @@ export function SwarmChat() {
         <button type="button" disabled={busy} onClick={() => void hire()} className="mt-4 w-full rounded-md bg-cyan-500 px-3 py-2 text-sm font-bold text-slate-950 hover:bg-cyan-400 disabled:opacity-50">
           {busy ? "Hiring…" : `Hire ${size} agent${size === 1 ? "" : "s"}`}
         </button>
+        <details className="mt-4 rounded-lg border border-white/10 p-3">
+          <summary className="cursor-pointer text-sm font-bold">🧠 Internal brain (per-user memory)</summary>
+          <p className="mt-1 text-xs text-slate-400">
+            Your swarm remembers you across chats for ~150 tokens a turn: {operatorBrain ? `${operatorBrain.facts.length} facts · ${operatorBrain.goals.length} goals` : "loading…"}.
+            Say “remember that …” or “my goal is …” and it files it automatically.
+          </p>
+          <label className="mt-2 block text-xs">Who are you? (one line the swarm always knows)
+            <input value={personaDraft} onChange={(e) => setPersonaDraft(e.target.value.slice(0, 500))} placeholder="e.g. Solo dev shipping a pixel platformer" className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-white" />
+          </label>
+          <label className="mt-2 block text-xs">Runs
+            <select value={execDraft} onChange={(e) => setExecDraft(e.target.value)} className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-white">
+              <option value="auto">Auto (serverless chat; serverful for heavy work)</option>
+              <option value="serverless">Serverless (this chat is the runtime)</option>
+              <option value="serverful">Serverful (points at real RunPod pods/desktops)</option>
+            </select>
+          </label>
+          {operatorBrain?.memory_summary && <p className="mt-2 text-xs text-slate-500">So far: {operatorBrain.memory_summary}</p>}
+          <button type="button" disabled={brainBusy} onClick={() => void saveBrain()} className="mt-2 w-full rounded-md border border-cyan-700 px-2 py-1 text-xs font-bold text-cyan-200 hover:bg-cyan-950 disabled:opacity-50">
+            {brainBusy ? "Saving…" : "Save brain"}
+          </button>
+        </details>
+        <details className="mt-3 rounded-lg border border-white/10 p-3">
+          <summary className="cursor-pointer text-sm font-bold">📄 My .txt files ({brainDocs.length}/20)</summary>
+          <p className="mt-1 text-xs text-slate-400">
+            Personal notes the swarm reads automatically (internal RAG, ~300 tokens max per turn, only matching chunks).
+          </p>
+          <ul className="mt-2 space-y-1">
+            {brainDocs.map((d) => (
+              <li key={d.id} className="flex items-center gap-2 text-xs text-slate-300">
+                <span className="min-w-0 flex-1 truncate">{d.name} <span className="text-slate-500">({d.chars} chars)</span></span>
+                <button type="button" disabled={docsBusy} onClick={() => void deleteDoc(d.id)} className="text-red-300 hover:text-red-200 disabled:opacity-50">Forget</button>
+              </li>
+            ))}
+            {!brainDocs.length && <li className="text-xs text-slate-500">No files yet; paste one below.</li>}
+          </ul>
+          <label className="mt-2 block text-xs">File name
+            <input value={docName} onChange={(e) => setDocName(e.target.value.slice(0, 80))} placeholder="e.g. lore.txt" className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-white" />
+          </label>
+          <label className="mt-2 block text-xs">Plain .txt text (≤20 KB)
+            <textarea value={docBody} onChange={(e) => setDocBody(e.target.value.slice(0, 20000))} rows={3} placeholder="Paste character sheets, world notes, shorthand…" className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-white" />
+          </label>
+          <button type="button" disabled={docsBusy || !docName.trim() || !docBody.trim()} onClick={() => void uploadDoc()} className="mt-2 w-full rounded-md border border-violet-700 px-2 py-1 text-xs font-bold text-violet-200 hover:bg-violet-950 disabled:opacity-50">
+            {docsBusy ? "Filing…" : "File to memory"}
+          </button>
+        </details>
         <div className="mt-4 border-t border-white/10 pt-3">
           <h3 className="text-sm font-bold">My swarms</h3>
           {loading && <p className="text-xs text-slate-400">Loading…</p>}
@@ -499,6 +668,42 @@ export function SwarmChat() {
           {active && active.status === "open" && <button type="button" onClick={() => void endSwarm()} className="rounded-md border border-red-800 px-2 py-1 text-xs text-red-300">Retire</button>}
         </div>
         <p className="mt-1 text-xs text-slate-400" role="status">{status}</p>
+        {(lastBrain || childSessions.length > 0) && (
+          <div className="mt-2 rounded-lg border border-white/10 bg-black/30 p-2 text-xs text-slate-300">
+            {lastBrain && (
+              <p>
+                🧠 {lastBrain.execMode === "serverful" ? "serverful (heavy work → real RunPod pod/desktop)" : "serverless (this chat is the runtime)"}
+                {lastBrain.ragDocs.length > 0 && <span> · 📄 {lastBrain.ragDocs.join(", ").slice(0, 120)}</span>}
+                {lastBrain.memorySaved > 0 && <span> · +{lastBrain.memorySaved} memorized</span>}
+              </p>
+            )}
+            {(lastBrain?.children ?? []).length > 0 && (
+              <p className="mt-1">
+                ⚡ Spawned {(lastBrain?.children ?? []).length} child instance{(lastBrain?.children ?? []).length === 1 ? "" : "s"}:{" "}
+                {(lastBrain?.children ?? []).map((k, i) => (
+                  <span key={k.id}>
+                    {i > 0 && " · "}
+                    <button type="button" onClick={() => setActiveId(k.id)} className="text-cyan-300 hover:underline" title={k.subtask}>
+                      open child
+                    </button>
+                  </span>
+                ))}
+              </p>
+            )}
+            {childSessions.length > 0 && !(lastBrain?.children ?? []).length && (
+              <p className="mt-1">⚡ {childSessions.length} child instance{childSessions.length === 1 ? "" : "s"}:{" "}
+                {childSessions.slice(0, 5).map((c, i) => (
+                  <span key={c.id}>
+                    {i > 0 && " · "}
+                    <button type="button" onClick={() => setActiveId(c.id)} className="text-cyan-300 hover:underline" title={c.name}>
+                      {c.name.slice(0, 28)}
+                    </button>
+                  </span>
+                ))}
+              </p>
+            )}
+          </div>
+        )}
         {(lastCost || trace.length > 0) && (
           <div className="mt-2 rounded-lg border border-white/10 bg-black/30 p-2 text-xs text-slate-300">
             {lastCost && <p>💰 {lastCost}; includes 25% platform cut.</p>}
@@ -572,7 +777,7 @@ export function SwarmChat() {
           </div>
         </div>
         <p className="mt-2 text-xs text-slate-500">
-          Modern + beyond: streaming fan-out · markdown + code copy · ↻ regenerate (resends your last message) · branch any message · reply threading (quoted into the turn) · pins (saved on this device) · search · MD/JSON export · voice in/out + per-message 🔊 · per-agent roles + custom system prompts · orchestration trace · per-turn coin + 25% cut readout. Commands: /reset /persona /delegate /export /voice.
+          Modern + beyond: streaming fan-out · markdown + code copy · ↻ regenerate (resends your last message) · branch any message · reply threading (quoted into the turn) · pins (saved on this device) · search · MD/JSON export · voice in/out + per-message 🔊 · per-agent roles + custom system prompts · orchestration trace · per-turn coin + 25% cut readout · internal brain (per-user memory, ~150 tokens) · .txt file RAG (~300 tokens) · auto-spawned child instances · serverless/serverful runs. Commands: /reset /persona /delegate /export /voice.
         </p>
       </section>
     </div>

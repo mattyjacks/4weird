@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ModePicker, SiteThemePicker } from "@/components/theme-switcher";
 import {
   A11Y_EVENT,
   COLORBLIND_MODES,
@@ -71,6 +72,28 @@ export function AccessibilityControls() {
 
   return (
     <div className="space-y-8">
+      <section aria-labelledby="a11y-appearance">
+        <h2 id="a11y-appearance" className="text-lg font-black text-white">
+          🎨 Appearance
+        </h2>
+        <p className="mt-1 text-sm text-slate-300">
+          Four color themes × light/dark mode = 8 combos. Your last pick is
+          remembered on this device and restored on every visit.
+        </p>
+        <h3 className="mt-4 text-sm font-bold uppercase tracking-widest text-slate-400">
+          Color theme
+        </h3>
+        <div className="mt-2">
+          <SiteThemePicker />
+        </div>
+        <h3 className="mt-4 text-sm font-bold uppercase tracking-widest text-slate-400">
+          Light / dark mode
+        </h3>
+        <div className="mt-2">
+          <ModePicker />
+        </div>
+      </section>
+
       <section aria-labelledby="a11y-reading">
         <h2 id="a11y-reading" className="text-lg font-black text-white">
           📖 Reading

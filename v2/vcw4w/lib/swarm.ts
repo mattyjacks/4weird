@@ -297,3 +297,222 @@ export function quoteSwarmTurn(input: { promptChars: number; replyChars: number;
 }
 
 export const SWARM_CUT_NOTE = `Includes ${SWARM_COMPUTE_CUT_PCT}% platform cut (same ${SERVICE_CUT_PCT}% as all compute); never added on top.`;
+
+/* ---------------------------------------------------------------------------
+ * Prompt-driven auto-config (pure + deterministic).
+ * The surface stays simple (just chat), but the swarm stays powerful: a
+ * plain-English directive inside any message — or a /slash command — can
+ * retune the session's advanced settings, and the same fields are PATCHable
+ * over the API. Same inputs -> same outputs; unknown text -> no updates.
+ *
+ * Recognized directives (case-insensitive):
+ * - agents:  "use 3 agents", "switch to 1 agent", "solo", "single agent"
+ * - orchestration: "orchestration lead", "round robin mode", "auto mode"
+ * - model: "model openai", "use local engine", "use openrouter"
+ * - temperature: "temperature 0.3", "temp 1.2", "be more precise|creative"
+ * - tools: "disable fal", "enable voice", "only use code tools"
+ * - instructions: "set instructions to: ...", "system prompt: ..."
+ * ------------------------------------------------------------------------- */
+
+export type SwarmConfigUpdates = {
+  size?: number;
+  orchestration?: SwarmOrchestration;
+  model?: SwarmModel;
+  temperature?: number;
+  tools?: string[];
+  system_prompt?: string;
+};
+
+export type SwarmDirectiveResult = {
+  updates: SwarmConfigUpdates;
+  /** Human-readable lines like "Agents → 3". Empty when nothing matched. */
+  notes: string[];
+  /** Message with directive-only sentences stripped (for reasoning). */
+  cleaned: string;
+};
+
+const TOOL_KEYWORDS: { id: string; words: string[] }[] = [
+  { id: "vcw.open_run", words: ["qa", "playtest", "vcw run", "test game"] },
+  { id: "vcw.file_finding", words: ["finding", "bug report"] },
+  { id: "vcw.handoff", words: ["handoff"] },
+  { id: "opencode.export", words: ["code export", "export"] },
+  { id: "opencode.heal", words: ["heal"] },
+  { id: "deepseek.orchestrate", words: ["orchestrat", "plan", "harness"] },
+  { id: "fal.generate", words: ["fal", "media", "art", "image", "video", "music", "voice-gen"] },
+  { id: "buddy.tts", words: ["voice", "speak", "tts"] },
+  { id: "swarm.delegate", words: ["delegat"] },
+];
+
+function toolIdsForPhrase(phrase: string): string[] {
+  const p = phrase.toLowerCase();
+  const out: string[] = [];
+  for (const tool of SWARM_TOOLS) {
+    if (p.includes(tool.id.toLowerCase())) {
+      out.push(tool.id);
+      continue;
+    }
+    const kw = TOOL_KEYWORDS.find((k) => k.id === tool.id);
+    if (kw && kw.words.some((w) => p.includes(w))) out.push(tool.id);
+  }
+  return out;
+}
+
+function splitSentences(text: string): string[] {
+  return String(text ?? "")
+    .split(/(?<=[.!?\n;])\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Parse prompt-embedded config directives. Never throws; unknown text
+ * yields empty updates. `enabledTools` scopes tool edits to what the
+ * session already allows plus explicit enables.
+ */
+export function parseSwarmConfigDirectives(
+  message: string,
+  enabledTools: string[] = SWARM_TOOLS.map((t) => t.id),
+): SwarmDirectiveResult {
+  const updates: SwarmConfigUpdates = {};
+  const notes: string[] = [];
+  const consumed = new Set<number>();
+  const sentences = splitSentences(message);
+  const allow = new Set(enabledTools.filter(isSwarmToolId));
+  let tools = [...allow];
+
+  const mark = (i: number) => consumed.add(i);
+
+  sentences.forEach((raw, i) => {
+    const s = raw.toLowerCase();
+
+    // Agents: "use 3 agents" / "switch to 1 agent" / "solo" / "single agent".
+    let m = s.match(/\b(?:use|hire|switch to|spawn|set to)\s+([1-5])\s+agents?\b/);
+    if (!m) m = s.match(/\b([1-5])\s+agents?\s+(?:mode|please|now|from now on)\b/);
+    if (m) {
+      const n = cleanSwarmSize(m[1]);
+      if (n) {
+        updates.size = n;
+        notes.push(`Agents → ${n}`);
+        mark(i);
+        return;
+      }
+    }
+    if (/\b(solo|single agent|just one agent|one agent only)\b/.test(s)) {
+      updates.size = 1;
+      notes.push("Agents → 1");
+      mark(i);
+      return;
+    }
+
+    // Orchestration.
+    m = s.match(/\borchestration\s*[:=]?\s*(auto|lead|round[\s-]?robin)\b/);
+    const modeWord = !m
+      ? s.match(/\b(auto|lead|round[\s-]?robin)\s+(?:mode|orchestration)\b/)
+      : null;
+    const modeRaw = (m?.[1] ?? modeWord?.[1] ?? "").replace(/[\s-]+/g, "-");
+    if (modeRaw === "round-robin" || modeRaw === "roundrobin") {
+      updates.orchestration = "round-robin";
+      notes.push("Orchestration → round-robin");
+      mark(i);
+      return;
+    }
+    if (modeRaw === "auto" || modeRaw === "lead") {
+      updates.orchestration = modeRaw;
+      notes.push(`Orchestration → ${modeRaw}`);
+      mark(i);
+      return;
+    }
+
+    // Model.
+    m = s.match(/\bmodel\s*[:=]?\s*(auto|openai|openrouter|local)\b/);
+    if (!m) m = s.match(/\buse\s+(openai|openrouter|local)(?:\s+(?:model|engine|mode))?\b/);
+    if (!m && /\blocal\s+(engine|mode|only)\b/.test(s)) m = ["", "local"] as unknown as RegExpMatchArray;
+    if (m) {
+      const model = String(m[1]).toLowerCase() as SwarmModel;
+      if (isSwarmModel(model)) {
+        updates.model = model;
+        notes.push(`Model → ${model}`);
+        mark(i);
+        return;
+      }
+    }
+
+    // Temperature.
+    m = s.match(/\btemp(?:erature)?\s*[:=]?\s*(0\.\d{1,2}|1\.[0-5]?\d?|[01](?:\.0)?)\b/);
+    if (m) {
+      const t = cleanTemperature(m[1]);
+      updates.temperature = t;
+      notes.push(`Temperature → ${t.toFixed(2)}`);
+      mark(i);
+      return;
+    }
+    if (/\bbe (more )?creative\b/.test(s)) {
+      updates.temperature = 1.2;
+      notes.push("Temperature → 1.20");
+      mark(i);
+      return;
+    }
+    if (/\bbe (more )?(precise|focused|deterministic|exact)\b/.test(s)) {
+      updates.temperature = 0.2;
+      notes.push("Temperature → 0.20");
+      mark(i);
+      return;
+    }
+
+    // Tools: disable / enable / only.
+    m = s.match(/\bdisable\s+(?:the\s+)?(.+?)(?:\s+tools?)?$/);
+    if (m) {
+      const ids = toolIdsForPhrase(m[1]);
+      if (ids.length) {
+        tools = tools.filter((t) => !ids.includes(t));
+        updates.tools = [...tools];
+        notes.push(`Tools off: ${ids.join(", ")}`);
+        mark(i);
+        return;
+      }
+    }
+    m = s.match(/\b(?:enable|turn on)\s+(?:the\s+)?(.+?)(?:\s+tools?)?$/);
+    if (m) {
+      const ids = toolIdsForPhrase(m[1]);
+      if (ids.length) {
+        for (const id of ids) if (!tools.includes(id)) tools.push(id);
+        updates.tools = [...tools];
+        notes.push(`Tools on: ${ids.join(", ")}`);
+        mark(i);
+        return;
+      }
+    }
+    m = s.match(/\bonly use\s+(.+?)(?:\s+tools?)?$/);
+    if (m) {
+      const ids = toolIdsForPhrase(m[1]);
+      if (ids.length) {
+        tools = ids;
+        updates.tools = [...tools];
+        notes.push(`Tools → only ${ids.join(", ")}`);
+        mark(i);
+        return;
+      }
+    }
+    if (/\bno fal\b|\bwithout fal\b|\bno media\b/.test(s)) {
+      tools = tools.filter((t) => t !== "fal.generate");
+      updates.tools = [...tools];
+      notes.push("Tools off: fal.generate");
+      mark(i);
+      return;
+    }
+
+    // Instructions: explicit setters only (never hijack "you are" chat).
+    m = raw.match(/(?:set instructions to|system prompt)\s*[:=]\s*(.+)/i);
+    if (m) {
+      const prompt = cleanSystemPrompt(m[1]);
+      if (prompt) {
+        updates.system_prompt = prompt;
+        notes.push("Instructions updated");
+        mark(i);
+      }
+    }
+  });
+
+  const cleaned = sentences.filter((_, i) => !consumed.has(i)).join(" ").trim();
+  return { updates, notes, cleaned: cleaned || String(message ?? "").trim() };
+}

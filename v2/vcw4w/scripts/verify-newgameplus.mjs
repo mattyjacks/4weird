@@ -34,6 +34,12 @@ for (const token of [
   if (!lib.includes(token)) fail(`newgameplus lib missing ${token}.`);
 }
 if (!lib.includes("≤5 min")) fail("newgameplus lib must promise the ≤5-min fast lane.");
+// SECURITY (stored XSS): the themeForPrompt fallback word lands RAW in
+// generated game.js string literals + index.html, so it must be whitelisted
+// to alphanumerics (a prompt like `'+alert(1)+' ...` must not survive).
+if (!lib.includes('replace(/[^a-z0-9]/g, "")')) {
+  fail("newgameplus theme fallback must whitelist alphanumerics (stored-XSS guard).");
+}
 if (!lib.includes("Scout") || !lib.includes("Forge") || !lib.includes("Sage")) {
   fail("newgameplus lib must field the Scout/Forge/Sage symphony cast.");
 }

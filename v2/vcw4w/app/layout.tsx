@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
+import { SiteThemeProvider } from "@/components/site/site-theme-provider";
+import { COLOR_THEME_IDS, DEFAULT_COLOR_THEME, SITE_COLOR_STORAGE_KEY } from "@/lib/site-theme";
 import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { GoogleAnalytics } from "@/components/site/google-analytics";
@@ -91,11 +93,20 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: jsonLdScript(organizationJsonLd()) }}
         />
+        {/* Stamp the last-selected color theme before first paint (no flash).
+            next-themes handles light/dark separately; this handles the palette. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var ids=${JSON.stringify(COLOR_THEME_IDS)};var v=localStorage.getItem(${JSON.stringify(SITE_COLOR_STORAGE_KEY)});if(ids.indexOf(v)===-1)v=${JSON.stringify(DEFAULT_COLOR_THEME)};document.documentElement.classList.add(v);document.documentElement.dataset.siteColor=v;}catch(e){}})();`,
+          }}
+        />
       </head>
       <body className="antialiased">
+        <SiteThemeProvider>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
+          themes={["light", "dark"]}
           enableSystem={false}
           disableTransitionOnChange
         >
@@ -107,6 +118,7 @@ export default function RootLayout({
             <SiteFooter />
           </div>
         </ThemeProvider>
+        </SiteThemeProvider>
         <Suspense fallback={null}>
           <GoogleAnalytics />
         </Suspense>

@@ -3,6 +3,8 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
+import { readCappedJson } from "@/lib/request-body";
+import { isUuid } from "@/lib/validate";
 import {
   SWARM_CUT_NOTE,
   SWARM_MAX_AGENTS,
@@ -19,6 +21,7 @@ import {
   isSwarmOrchestration,
   quoteSwarmTurn,
 } from "@/lib/swarm";
+import { isSwarmExecMode } from "@/lib/swarm-brain";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +30,8 @@ export const dynamic = "force-dynamic";
  * POST /api/swarm/sessions; hire a swarm as a chatbot interface.
  * Body: { name?, size (1-5), runtimes?[], system_prompt?, agent_prompts?[],
  *   orchestration?: auto|lead|round-robin, model?: auto|openai|openrouter|local,
- *   temperature?, tools?[] }.
+ *   temperature?, tools?[], exec_mode?: auto|serverless|serverful,
+ *   parent_session_id?: uuid (child instance of another session) }.
  * Hiring itself is free; chat turns meter per-agent via meter_game_ai_usage
  * (kind inference, game swarm) with the 25% cut INCLUDED. The response quotes
  * the per-turn estimate so the hire panel can show it before the first send.
@@ -40,7 +44,7 @@ export async function GET() {
   try {
     const { data: rows, error } = await supabase
       .from("swarm_sessions")
-      .select("id,name,size,runtimes,system_prompt,agent_prompts,orchestration,model,temperature,tools,status,turns,gross_coins,created_at,ended_at")
+      .select("id,name,size,runtimes,system_prompt,agent_prompts,orchestration,model,temperature,tools,exec_mode,parent_session_id,status,turns,gross_coins,created_at,ended_at")
       .eq("user_id", data.user.id)
       .order("created_at", { ascending: false })
       .limit(50);
@@ -59,13 +63,11 @@ export async function POST(req: Request) {
   if (!data.user) return fail("Authentication required.", 401);
   const rl = rateLimit(`swarm:create:${data.user.id}`, 20, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return fail("Invalid JSON body.", 400);
-  }
-  const input = (body ?? {}) as Record<string, unknown>;
+  // Capped body (16 KB): hire params are small; unbounded JSON parsing
+  // would let one request burn disproportionate CPU/RAM.
+  const parsed = await readCappedJson(req, 16 * 1024);
+  if ("error" in parsed) return parsed.error;
+  const input = (parsed.body ?? {}) as Record<string, unknown>;
   const size = cleanSwarmSize(input.size ?? 1);
   if (!size) return fail(`size must be ${SWARM_MIN_AGENTS}..${SWARM_MAX_AGENTS} agents.`, 400);
   const orchestration = isSwarmOrchestration(input.orchestration) ? input.orchestration : "auto";
@@ -74,6 +76,11 @@ export async function POST(req: Request) {
   const systemPrompt = cleanSystemPrompt(input.system_prompt ?? input.systemPrompt);
   const temperature = cleanTemperature(input.temperature ?? 0.8);
   const tools = cleanToolIds(input.tools);
+  const execMode = isSwarmExecMode(input.exec_mode) ? input.exec_mode : "auto";
+  const parentSessionId =
+    typeof input.parent_session_id === "string" && isUuid(input.parent_session_id)
+      ? input.parent_session_id
+      : null;
 
   const rawRuntimes = Array.isArray(input.runtimes) ? input.runtimes : [];
   const runtimes = Array.from({ length: size }, (_, i) =>
@@ -88,6 +95,18 @@ export async function POST(req: Request) {
   );
 
   try {
+    // A claimed parent must be one of my own sessions; otherwise the link
+    // is dropped (never a 400 oracle into someone else's rows).
+    let parentId: string | null = null;
+    if (parentSessionId) {
+      const { data: parent } = await supabase
+        .from("swarm_sessions")
+        .select("id")
+        .eq("id", parentSessionId)
+        .eq("user_id", data.user.id)
+        .maybeSingle();
+      if (parent) parentId = parentSessionId;
+    }
     const { data: row, error } = await supabase
       .from("swarm_sessions")
       .insert({
@@ -101,8 +120,10 @@ export async function POST(req: Request) {
         model,
         temperature,
         tools,
+        exec_mode: execMode,
+        ...(parentId ? { parent_session_id: parentId } : {}),
       })
-      .select("id,name,size,runtimes,system_prompt,agent_prompts,orchestration,model,temperature,tools,status,turns,gross_coins,created_at")
+      .select("id,name,size,runtimes,system_prompt,agent_prompts,orchestration,model,temperature,tools,exec_mode,parent_session_id,status,turns,gross_coins,created_at")
       .single();
     if (error) {
       const msg = String((error as { message?: string }).message ?? "");

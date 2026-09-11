@@ -16,18 +16,20 @@ import {
   QUALITY_DEFAULT,
   QUALITY_MAX,
   QUALITY_MIN,
+  buildVaultBundle,
   cleanBudget,
   cleanPrompt,
   cleanQuality,
+  DRAFT_FOLDER,
   draftPathFor,
-  generateGameSource,
   laneForBudget,
   needsAmountConfirm,
+  newInstanceId,
   planBuild,
   planFalForBuild,
   planSymphony,
+  runMasteryLoop,
   timelineForLane,
-  vcwSelfTest,
 } from "@/lib/newgameplus";
 import { falConfigured } from "@/lib/fal";
 
@@ -99,13 +101,27 @@ export async function POST(req: Request) {
   const symphony = planSymphony(prompt, quality, budget);
   const fal = planFalForBuild(prompt, budget, quality);
   const timeline = timelineForLane(lane);
-  const game = generateGameSource(
+  const falNote = fal.selected.map((r) => `${r.op} (${r.why})`).join("; ").slice(0, 300);
+  // VCW test → improve → retest mastery via runMasteryLoop, which calls
+  // generateGameSource + vcwSelfTest per iteration. Variant rotation
+  // guarantees the same prompt never emits the same bytes twice; loop until pass.
+  const mastery = runMasteryLoop(prompt, quality, falNote, 3);
+  const game = { slug: mastery.final.slug, title: mastery.final.title, source: mastery.final.source };
+  const test = mastery.final.test;
+  const draftPath = draftPathFor(game.slug);
+  // Weird Vault per-game per-instance bundle: html/ + css/ + js/ + content/.
+  const instanceId = newInstanceId();
+  const vault = buildVaultBundle({
+    slug: game.slug,
+    title: game.title,
     prompt,
     quality,
-    fal.selected.map((r) => `${r.op} (${r.why})`).join("; ").slice(0, 300),
-  );
-  const test = vcwSelfTest(game.source, quality);
-  const draftPath = draftPathFor(game.slug);
+    source: game.source,
+    test,
+    iterations: mastery.iterations,
+    instanceId,
+    falNote,
+  });
 
   // Persistence (best-effort, honest): personal draft + org Draft folder.
   // Signed-in builds are metered (plan.spend, 25% cut included); anonymous
@@ -258,13 +274,28 @@ export async function POST(req: Request) {
                 }
               }
               if (projectId) {
-                const { error: pushError } = await supabase.rpc("push_file", {
-                  p_project: projectId,
-                  p_branch: "main",
-                  p_path: draftPath,
-                  p_content: game.source,
-                  p_message: `NewGamePlus: ${game.title} (q${quality}, ${plan.spend} coins)`,
-                });
+                // Push the playable file plus the full vault bundle so the
+                // org Draft folder mirrors newgameplus/<slug>/<instance>/.
+                // Bundle paths are newgameplus/<slug>/<instance>/… (same instanceId
+                // passed to buildVaultBundle above), so slice(3) strips the
+                // bundle root and re-roots the html/css/js/content tree under
+                // Draft/<slug>/<instanceId>/ with no doubled segment.
+                const vaultPaths = [draftPath, ...vault.files.map((f) => `${DRAFT_FOLDER}/${game.slug}/${instanceId}/${f.path.split("/").slice(3).join("/")}`)];
+                const vaultContents = [game.source, ...vault.files.map((f) => f.content)];
+                let pushError: { message?: string } | null = null;
+                for (let i = 0; i < vaultPaths.length; i++) {
+                  const { error } = await supabase.rpc("push_file", {
+                    p_project: projectId,
+                    p_branch: "main",
+                    p_path: vaultPaths[i],
+                    p_content: vaultContents[i],
+                    p_message: `NewGamePlus: ${game.title} (q${quality}, ${plan.spend} coins)`,
+                  });
+                  if (error) {
+                    pushError = error as { message?: string };
+                    break;
+                  }
+                }
                 if (pushError) {
                   if (/forbidden/i.test(String(pushError.message ?? ""))) {
                     draft.note = "Saved to personal drafts ;; missing project.code.push in this org.";
@@ -300,6 +331,20 @@ export async function POST(req: Request) {
       swarm: symphony,
       fal: { ...fal, configured: falConfigured() },
       timeline,
+      mastery: {
+        mastered: mastery.mastered,
+        iterations: mastery.iterations.map((it) => ({
+          variant: it.variant,
+          slug: it.slug,
+          title: it.title,
+          verdict: it.test.verdict,
+          checks: it.test.checks.length,
+          passed: it.test.checks.filter((c) => c.passed).length,
+          improvements: it.improvements,
+        })),
+      },
+      vault: { folder: vault.folder, instanceId, files: vault.files.map((f) => ({ path: f.path, bytes: f.bytes })) },
+      vaultFiles: vault.files,
     },
     201,
   );
