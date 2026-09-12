@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PackCatalog } from "@/components/coins/pack-catalog";
+import { CompactDetails } from "@/components/ui/compact-details";
+import { InfoTip } from "@/components/ui/info-tip";
 import { jsonLdScript, pricingOffersJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -38,9 +40,42 @@ export default function Page() {
         </h1>
         <p className="mt-6 max-w-2xl text-base text-slate-300 sm:text-lg">
           100 Vibe Coins cost exactly $1.00 — every price already includes the 25% platform service
-          cut, never added on top. New accounts start with a free trial of up to 100 coins ($1.00) - one per person and network. Compute
-          works the same way: one gross metered price, split 25% platform / 75% provider as Crowns for individual providers (Terms 8A.1) or shared wallet credits. Coins are spendable on cloud computing, game credits, and other on-site services only; never cash-out, never withdrawable. Coins expire one year after receipt, and every purchase automatically spends the oldest unexpired centicentcoins first.
+          cut, never added on top.
         </p>
+        <div className="mt-4 grid max-w-2xl gap-3">
+          <CompactDetails
+            summary="Free trial: up to 100 coins ($1.00)"
+            hint="One free trial per person and network."
+          >
+            <p className="text-sm leading-relaxed text-slate-300">
+              New accounts start with a free trial of up to 100 coins ($1.00) - one per person and network.
+            </p>
+          </CompactDetails>
+          <CompactDetails
+            summary="How compute splits 25% platform / 75% provider"
+            hint="Provider shares land as Crowns for individuals or shared wallet credits — on-site only, never cash-out."
+          >
+            <p className="text-sm leading-relaxed text-slate-300">
+              Compute works the same way: one gross metered price, split 25% platform / 75% provider as Crowns for individual providers (Terms 8A.1) or shared wallet credits.{" "}
+              <InfoTip
+                text="Crowns are earn-only credits for individual providers under Terms 8A.1 — convertible 1:1 to Coins after the lock or cashable via the payout provider. Shared wallet credits stay on-site."
+                label="About Crowns"
+              />
+            </p>
+          </CompactDetails>
+          <CompactDetails
+            summary="Where coins work, when they expire, how they spend"
+            hint="On-site services only; one-year expiry; oldest unexpired centicentcoins spent first."
+          >
+            <p className="text-sm leading-relaxed text-slate-300">
+              Coins are spendable on cloud computing, game credits, and other on-site services only; never cash-out, never withdrawable. Coins expire one year after receipt, and every purchase automatically spends the oldest unexpired centicentcoins first.{" "}
+              <InfoTip
+                text="Centicentcoins are the smallest ledger unit: 100 centicentcoins = 1 coin = $0.01. Spending the oldest unexpired lot first stretches every pack furthest."
+                label="About centicentcoins"
+              />
+            </p>
+          </CompactDetails>
+        </div>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
             href="/account"
@@ -217,8 +252,18 @@ export default function Page() {
             <p className="mt-3 text-sm leading-relaxed text-slate-300">
               Every cloud meter shows one gross price in coins. Behind it we split{" "}
               <strong className="text-white">25% platform / 75% provider</strong> as on-site platform credits and attribute
-              every cent in <code className="text-cyan-300">platform_compute_cuts</code>. Provider shares are spendable on cloud computing, game credits, and other on-site services only; never cash-out, never withdrawable. Agent
-              rentals escrow your coins up front and settle metered usage by heartbeat — the final
+              every cent in <code className="text-cyan-300">platform_compute_cuts</code>{" "}
+              <InfoTip
+                text="platform_compute_cuts is the ledger table where every metered job's 25% platform / 75% provider split is attributed — the itemized proof behind the gross price."
+                label="About platform_compute_cuts"
+              />
+              . Provider shares are spendable on cloud computing, game credits, and other on-site services only; never cash-out, never withdrawable. Agent
+              rentals escrow{" "}
+              <InfoTip
+                text="Escrow means coins are held up front when you book and settled downward by metered heartbeats — the final charge can only go down, never above escrow."
+                label="About escrow"
+              />{" "}
+              your coins up front and settle metered usage by heartbeat — the final
               charge can only go down, never above escrow.
             </p>
             <div className="mt-6 overflow-hidden rounded-2xl border border-white/10">
@@ -236,7 +281,13 @@ export default function Page() {
             </div>
           </div>
           <div className="rounded-3xl border border-white/10 bg-white/[.03] p-6 sm:p-8">
-            <h2 className="text-xl font-black sm:text-2xl">How Self-Hosted BYOK works</h2>
+            <h2 className="text-xl font-black sm:text-2xl">
+              How Self-Hosted BYOK works{" "}
+              <InfoTip
+                text="BYOK = bring your own keys. You connect your own RunPod / DigitalOcean keys, pay providers at cost, and we add the $420/mo org subscription plus a 15% orchestration markup."
+                label="About BYOK"
+              />
+            </h2>
             <p className="mt-3 text-sm leading-relaxed text-slate-300">
               Connect your own provider keys once. Your workloads bill your provider accounts
               directly at cost. 4weird meters the same usage and adds a{" "}
@@ -415,15 +466,9 @@ export default function Page() {
               a: "Guests never pay and never need an account: they get free loads every day (IP-limited), then keep playing by viewing instantly-skippable house ads, with an ad banner every 30 minutes. Cloud saves, multiplayer, AI, and Buddy stay signed-in only — which is exactly why signing up beats ad-watching.",
             },
           ].map((item) => (
-            <details
-              key={item.q}
-              className="group rounded-2xl border border-white/10 bg-white/[.03] p-5"
-            >
-              <summary className="cursor-pointer font-bold transition group-open:text-cyan-300">
-                {item.q}
-              </summary>
-              <p className="mt-3 text-sm leading-relaxed text-slate-300">{item.a}</p>
-            </details>
+            <CompactDetails key={item.q} summary={item.q}>
+              <p className="text-sm leading-relaxed text-slate-300">{item.a}</p>
+            </CompactDetails>
           ))}
         </div>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">

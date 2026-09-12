@@ -6,6 +6,8 @@ import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
 import { clientIp, isEmail, isLoginPassword } from "@/lib/validate";
+import { cookies } from "next/headers";
+import { FULL_LOGIN_COOKIE, signFullLogin } from "@/lib/bot-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -130,6 +132,24 @@ export async function POST(req: Request) {
     }
     const u = data.session.user;
     clearLoginFailures(failKeyFor(email, req));
+    // Full-login proof for privileged routes (profile, rights, bot keys).
+    // Tester logins (POST /api/bot/login) never set this, so stripping the
+    // tester cookie alone cannot escalate.
+    try {
+      const proof = signFullLogin(u.id);
+      if (proof) {
+        const jar = await cookies();
+        jar.set(FULL_LOGIN_COOKIE, proof, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          path: "/",
+          maxAge: 30 * 24 * 3600,
+        });
+      }
+    } catch {
+      // Proof is hardening; the session itself still works for play.
+    }
     return ok({ user: { id: u.id, email: u.email } });
   } catch {
     return fail("internal error", 500);

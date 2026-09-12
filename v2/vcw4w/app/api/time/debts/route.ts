@@ -17,6 +17,20 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const orgId = url.searchParams.get("orgId");
   const status = url.searchParams.get("status");
+  const uuidRe = /^[0-9a-f-]{36}$/i;
+  if (orgId && !uuidRe.test(orgId)) return fail("Invalid org.", 400);
+  if (status && !/^[a-z_]{1,32}$/i.test(status)) return fail("Invalid status.", 400);
+  // Defense in depth: scope to debts I'm a party to. Org-wide views require
+  // org membership (RLS remains the primary gate).
+  if (orgId) {
+    const { data: mem } = await supabase
+      .from("org_members")
+      .select("user_id")
+      .eq("org_id", orgId)
+      .eq("user_id", u.id)
+      .maybeSingle();
+    if (!mem) return fail("Not a member of that org.", 403);
+  }
 
   let query = supabase
     .from("timer_debts")
@@ -34,6 +48,7 @@ export async function GET(req: Request) {
       creditor:profiles!timer_debts_creditor_id_fkey(id, username, display_name),
       debtor:profiles!timer_debts_debtor_id_fkey(id, username, display_name)
     `)
+    .or(`creditor_id.eq.${u.id},debtor_id.eq.${u.id}`)
     .order("created_at", { ascending: false })
     .limit(100);
 
@@ -106,8 +121,32 @@ export async function POST(req: Request) {
   const { action = "create", debtId, debtorId, amountGhostCash, memo, orgId } = body ?? {};
 
   if (action === "settle" || action === "forgive") {
-    if (!debtId) return fail("debtId is required.", 400);
+    if (!debtId || !/^[0-9a-f-]{36}$/i.test(String(debtId))) return fail("debtId is required.", 400);
     const newStatus = action === "settle" ? "settled" : "forgiven";
+
+    // Ownership check: only a party to the debt (or an org admin for org
+    // debts) may settle/forgive. Never update by id alone.
+    const { data: existing, error: fetchErr } = await supabase
+      .from("timer_debts")
+      .select("id, creditor_id, debtor_id, org_id, status")
+      .eq("id", String(debtId))
+      .maybeSingle();
+    if (fetchErr) return dbFail("POST /api/time/debts", fetchErr, "Failed to update debt.");
+    if (!existing) return fail("Debt not found.", 404);
+    const isParty =
+      existing.creditor_id === u.id || existing.debtor_id === u.id;
+    let isOrgAdmin = false;
+    if (!isParty && existing.org_id) {
+      const { data: mem } = await supabase
+        .from("org_members")
+        .select("role_key")
+        .eq("org_id", existing.org_id)
+        .eq("user_id", u.id)
+        .maybeSingle();
+      const role = String((mem as { role_key?: string } | null)?.role_key ?? "");
+      isOrgAdmin = ["owner", "admin", "lord", "banker"].includes(role);
+    }
+    if (!isParty && !isOrgAdmin) return fail("Debt not found.", 404);
 
     const { data: debt, error } = await supabase
       .from("timer_debts")

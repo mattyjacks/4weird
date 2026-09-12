@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ProxyLink } from "@/components/runpod/proxy-link";
+import { InfoTip } from "@/components/ui/info-tip";
 import { PodIdleWatch, PolicyFields } from "@/components/runpod/pod-idle-watch";
 import { describePodIdlePolicy, type PodIdlePolicy } from "@/lib/pod-idle";
 import {
@@ -244,7 +245,8 @@ export function DesktopRental() {
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <label className="text-xs text-slate-300">
-          Max $/hour (0 = cheapest available with stock)
+          Max $/hour (0 = cheapest available with stock){" "}
+          <InfoTip text="Sets the highest hourly rate you accept. Zero picks the cheapest GPU with stock; you never pay more than the quote." label="About max price" />
           <input
             type="number"
             min={0}
@@ -275,7 +277,8 @@ export function DesktopRental() {
         <summary className="cursor-pointer text-sm font-bold text-white">⚙️ Advanced: custom container image + idle timers</summary>
         <div className="mt-3 grid gap-3">
           <label className="text-xs text-slate-300">
-            Custom image (Docker ref, e.g. <code>runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04</code>; blank = plan default)
+            Custom image (Docker ref, e.g. <code>runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04</code>; blank = plan default){" "}
+            <InfoTip text="Uses your Docker image instead of the plan default. Ports stay fixed so the browser stream link keeps working." label="About custom image" />
             <input
               type="text"
               value={customImage}
@@ -289,7 +292,9 @@ export function DesktopRental() {
             </span>
           </label>
           <div>
-            <p className="text-xs font-bold text-slate-200">Idle timers for this pod (blank = default {serverPolicy.warnMinutes}/{serverPolicy.stopGraceMinutes}/{serverPolicy.terminateHours}h)</p>
+            <p className="text-xs font-bold text-slate-200">Idle timers for this pod (blank = default {serverPolicy.warnMinutes}/{serverPolicy.stopGraceMinutes}/{serverPolicy.terminateHours}h){" "}
+              <InfoTip text="Idle guard warns you, then stops the pod to end billing. Any mouse or keyboard input resets the clock." label="About idle timers" />
+            </p>
             <div className="mt-2">
               <PolicyFields warn={warn} setWarn={setWarn} grace={grace} setGrace={setGrace} term={term} setTerm={setTerm} prefix="rent" />
             </div>
@@ -352,11 +357,13 @@ export function DesktopRental() {
             Pod {result.connection.podId} ·{" "}
             {result.connection.gpu ? `GPU ${result.connection.gpu}` : `CPU ${result.connection.cpu ?? ""}`} · ~
             ${Number(result.connection.hourlyUsd).toFixed(2)}/hr (≈ {Number(result.connection.coinsPerHour).toFixed(0)}{" "}
-            coins/hr equiv), per second · image <code className="break-all">{result.connection.image}</code>
+            coins/hr equiv), per second · image <code className="break-all">{result.connection.image}</code>{" "}
+            <InfoTip text="RunPod bills per second while the pod runs. Stopping ends compute billing; terminating deletes the disk." label="About per-second billing" />
           </p>
           {result.connection.vncPassword && (
             <p className="mt-2 rounded-lg border border-amber-300/40 bg-amber-300/[.08] px-3 py-2 text-amber-100">
-              🔑 VNC password (shown once — save it now): <code className="font-bold">{result.connection.vncPassword}</code>
+              🔑 VNC password (shown once — save it now): <code className="font-bold">{result.connection.vncPassword}</code>{" "}
+              <InfoTip text="Shown once after rent, so save it now. Log in with it, then change it after first login." label="About VNC password" />
             </p>
           )}
           {result.interface === "jupyter" ? (

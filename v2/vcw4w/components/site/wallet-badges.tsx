@@ -113,11 +113,31 @@ export function WalletBadges({
   }, [signedIn, authLost, load]);
 
   if (signedIn !== true || authLost) return null;
-  if (coinsCc === null) return null;
+  if (coinsCc === null) {
+    return (
+      <span aria-label="Loading wallet" className="inline-flex items-center gap-1.5 text-sm font-bold">
+        <span className="animate-pulse rounded-full border border-border px-2 py-0.5 text-muted-foreground">
+          … 🪙
+        </span>
+        <span className="animate-pulse rounded-full border border-border px-2 py-0.5 text-muted-foreground">
+          … 👑
+        </span>
+      </span>
+    );
+  }
 
+  const coins = Math.round(coinsCc / 100);
+  const coinsStr = coins.toLocaleString("en-US");
   const crowns = crownsTotal ?? 0;
-  const coinsLabel = `${Math.round(coinsCc / 100).toLocaleString("en-US")} coins`;
-  const crownsLabel = `${Math.round(crowns).toLocaleString("en-US")} crowns`;
+  const crownsRounded = Math.round(crowns);
+  const crownsStr = crownsRounded.toLocaleString("en-US");
+  // Exact (fractional) coins + USD equivalent for the tooltip only —
+  // the badge itself stays whole-number + trailing emoji.
+  const exactCoins = (Math.round(coinsCc) / 100).toFixed(2);
+  const usd = (Math.round(coinsCc) / 100 / 100).toFixed(2);
+  const coinsLabel = `${coinsStr} coins`;
+  const crownsLabel = `${crownsStr} crowns`;
+  const low = coins < 50;
 
   return (
     <span
@@ -128,14 +148,16 @@ export function WalletBadges({
     >
       <Link
         href="/account"
-        title="Your coin balance (rounded to whole coins)"
-        className="rounded-full border border-border px-2 py-0.5 text-foreground transition hover:bg-accent hover:text-accent-foreground"
+        title={`Your coin balance: ${exactCoins} coins ($${usd}). Rounded to whole coins. Click to top up on /account.${low ? " Low balance — top up soon." : ""}`}
+        className={`rounded-full border px-2 py-0.5 transition hover:bg-accent hover:text-accent-foreground ${
+          low ? "border-amber-300/60 text-amber-200" : "border-border text-foreground"
+        }`}
       >
         {formatMenuCoins(coinsCc)}
       </Link>
       <Link
         href="/account"
-        title="Your crown balance, including locked crowns"
+        title={`Your crown balance, including locked crowns: ${crownsStr} total. Click for details on /account.`}
         className="rounded-full border border-border px-2 py-0.5 text-foreground transition hover:bg-accent hover:text-accent-foreground"
       >
         {formatMenuCrowns(crowns)}

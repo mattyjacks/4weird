@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { LOVE_AWARD_TIERS, type LoveAwardTier, type LoveWallet } from "@/lib/love-letters";
+import { InfoTip } from "@/components/ui/info-tip";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(path, {
@@ -58,17 +59,17 @@ export function LoveWalletPanel() {
 
   return (
     <section className="rounded-2xl border border-pink-400/20 bg-white/[.04] p-6">
-      <h2 className="text-xl font-bold">💌 Love Letters</h2>
+      <h2 className="text-xl font-bold">💌 Love Letters <InfoTip text="Love letters are thanks, not coins. Gifts cost 1, awards cost 2, 5, or 10. Never converts to coins." label="About love letters" /></h2>
       <p className="mt-2 text-sm text-slate-400">
         Clan-native appreciation; not coins, never converts, never cashes out. Start with 💌x3, earn +1 per daily
         claim + clan quests + loved posts. Spend on gifts (1) and awards (2/5/10) for posts you love.
       </p>
       {wallet ? (
         <div className="mt-4 flex flex-wrap gap-2 text-sm">
-          <span className="rounded-lg bg-black/40 px-3 py-2 text-white">Balance: <b>💌x{wallet.balance}</b></span>
-          <span className="rounded-lg bg-black/40 px-3 py-2 text-slate-300" title="Minted from daily bonuses + clan quests">Earned: <b>💌x{wallet.earned}</b></span>
-          <span className="rounded-lg bg-black/40 px-3 py-2 text-slate-300" title="Received from humans who loved your posts">Received: <b>💌x{wallet.received}</b></span>
-          <span className="rounded-lg bg-black/40 px-3 py-2 text-slate-300" title="Given to posts you loved">Given: <b>💌x{wallet.given}</b></span>
+          <span className="rounded-lg bg-black/40 px-3 py-2 text-white">Balance: <b>💌x{wallet.balance}</b> <InfoTip text="Letters you can spend now on gifts and awards." label="About balance" /></span>
+          <span className="rounded-lg bg-black/40 px-3 py-2 text-slate-300" title="Minted from daily bonuses + clan quests">Earned: <b>💌x{wallet.earned}</b> <InfoTip text="All letters you ever earned from claims and quests." label="About earned" /></span>
+          <span className="rounded-lg bg-black/40 px-3 py-2 text-slate-300" title="Received from humans who loved your posts">Received: <b>💌x{wallet.received}</b> <InfoTip text="Letters others sent you for posts they loved." label="About received" /></span>
+          <span className="rounded-lg bg-black/40 px-3 py-2 text-slate-300" title="Given to posts you loved">Given: <b>💌x{wallet.given}</b> <InfoTip text="Letters you sent to posts you loved." label="About given" /></span>
         </div>
       ) : (
         <p role="status" className="mt-2 text-sm text-slate-400">{message}</p>

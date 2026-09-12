@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SWARM_TOOLS, SWARM_MAX_AGENTS } from "@/lib/swarm";
 import { RUNTIME_LABELS, type Runtime } from "@/lib/agent-market";
 import { BUDDY_VOICES, BUDDY_DEFAULT_VOICE } from "@/lib/game-ai";
+import { InfoTip } from "@/components/ui/info-tip";
 
 type SwarmSession = {
   id: string;
@@ -554,6 +555,7 @@ export function SwarmChat() {
           <div key={i} className="mt-3 rounded-lg border border-white/10 p-2">
             <div className="flex items-center gap-2">
               <b className={AGENT_COLORS[i % AGENT_COLORS.length]}>Agent {i + 1}</b>
+              {i === 0 && <InfoTip text="Where this agent runs. Pick per agent; mixed teams are fine." label="About runtime" />}
               <select value={runtimes[i] ?? "vibecodeworker"} onChange={(e) => setRuntimes((r) => { const n = [...r]; n[i] = e.target.value; return n; })} className="rounded-md border border-slate-700 bg-slate-950 px-1 py-0.5 text-xs text-white">
                 {RUNTIME_OPTIONS.map((r) => (<option key={r} value={r}>{RUNTIME_LABELS[r]}</option>))}
               </select>
@@ -565,14 +567,14 @@ export function SwarmChat() {
           <textarea value={systemPrompt} onChange={(e) => setSystemPrompt(e.target.value.slice(0, 2000))} rows={3} className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-white" />
         </label>
         <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-          <label>Orchestration
+          <label>Orchestration <InfoTip text="How agents take turns: auto picks, lead decides, round-robin rotates." label="About orchestration" />
             <select value={orchestration} onChange={(e) => setOrchestration(e.target.value)} className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-white">
               <option value="auto">Auto (built-in reasoning)</option>
               <option value="lead">Lead agent</option>
               <option value="round-robin">Round-robin</option>
             </select>
           </label>
-          <label>Model
+          <label>Model <InfoTip text="Which brain answers. Auto is fine. Local is free but simpler." label="About model" />
             <select value={model} onChange={(e) => setModel(e.target.value)} className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-white">
               <option value="auto">Auto</option>
               <option value="openai">OpenAI</option>
@@ -581,11 +583,11 @@ export function SwarmChat() {
             </select>
           </label>
         </div>
-        <label className="mt-3 block text-sm">Temperature: {temperature.toFixed(2)}
+        <label className="mt-3 block text-sm">Temperature: {temperature.toFixed(2)} <InfoTip text="Creativity dial. Low is steady, high is wild." label="About temperature" />
           <input type="range" min={0} max={1.5} step={0.05} value={temperature} onChange={(e) => setTemperature(Number(e.target.value))} className="w-full" />
         </label>
         <fieldset className="mt-3">
-          <legend className="text-sm font-bold">Tools (every agent auto-uses these)</legend>
+          <legend className="text-sm font-bold">Tools (every agent auto-uses these) <InfoTip text="Skills agents can use, like search or files. Untick to keep it simple." label="About tools" /></legend>
           {SWARM_TOOLS.map((t) => (
             <label key={t.id} className="mt-1 flex items-start gap-2 text-xs text-slate-300">
               <input type="checkbox" checked={tools.includes(t.id)} onChange={() => toggleTool(t.id)} className="mt-0.5" />
@@ -605,7 +607,7 @@ export function SwarmChat() {
           <label className="mt-2 block text-xs">Who are you? (one line the swarm always knows)
             <input value={personaDraft} onChange={(e) => setPersonaDraft(e.target.value.slice(0, 500))} placeholder="e.g. Solo dev shipping a pixel platformer" className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-white" />
           </label>
-          <label className="mt-2 block text-xs">Runs
+          <label className="mt-2 block text-xs">Runs <InfoTip text="Serverless is this chat. Serverful points heavy work at real machines. Auto picks." label="About run mode" />
             <select value={execDraft} onChange={(e) => setExecDraft(e.target.value)} className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-white">
               <option value="auto">Auto (serverless chat; serverful for heavy work)</option>
               <option value="serverless">Serverless (this chat is the runtime)</option>
@@ -618,7 +620,7 @@ export function SwarmChat() {
           </button>
         </details>
         <details className="mt-3 rounded-lg border border-white/10 p-3">
-          <summary className="cursor-pointer text-sm font-bold">📄 My .txt files ({brainDocs.length}/20)</summary>
+          <summary className="cursor-pointer text-sm font-bold">📄 My .txt files ({brainDocs.length}/20) <InfoTip text="Your notes. The swarm reads only matching bits, up to ~300 tokens a turn." label="About text files" /></summary>
           <p className="mt-1 text-xs text-slate-400">
             Personal notes the swarm reads automatically (internal RAG, ~300 tokens max per turn, only matching chunks).
           </p>

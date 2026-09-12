@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ProxyLink } from "@/components/runpod/proxy-link";
 import { PodIdleWatch } from "@/components/runpod/pod-idle-watch";
+import { InfoTip } from "@/components/ui/info-tip";
+import { CompactDetails } from "@/components/ui/compact-details";
 
 type PodAction = "stop" | "start" | "restart" | "terminate" | "delete";
 
@@ -122,6 +124,7 @@ function PodButtons({
           {busy === a.value ? `${a.label}…` : a.label}
         </button>
       ))}
+      <InfoTip text="Stop pauses billing and keeps the disk so you can restart. Terminate or Delete ends billing permanently and the disk is lost." label="About Stop versus Terminate" />
     </div>
   );
 }
@@ -279,6 +282,9 @@ export function RunpodDashboard() {
                 Stop ends compute billing (disk kept, storage still bills); Start boots a stopped pod; Restart reboots in place;
                 Terminate/Delete ends billing permanently (disk lost). Idle pods chime at 60 min, stop 15 min later, terminate after 24h untended.
               </p>
+              <CompactDetails summary="Stop vs Terminate/Delete?">
+                <p className="text-xs text-slate-400">Stop ends compute billing but keeps the disk so you can Start again later. Terminate or Delete ends billing permanently and the disk is lost.</p>
+              </CompactDetails>
               <ul className="mt-3 grid gap-3 md:grid-cols-2">
                 {desktops.map((d) => (
                   <li key={d.id} className="rounded-xl border border-slate-800 bg-slate-900 p-4">
@@ -291,7 +297,9 @@ export function RunpodDashboard() {
                       since {new Date(d.createdAt).toLocaleString()}
                     </p>
                     {d.image && <p className="mt-1 break-all font-mono text-[11px] text-slate-500">image: {d.image}</p>}
-                    <p className="mt-1 text-[11px] text-slate-500">last activity {fmtAgo(d.lastActivityAt)} · idle guard on</p>
+                    <p className="mt-1 text-[11px] text-slate-500">last activity {fmtAgo(d.lastActivityAt)} · idle guard on{" "}
+                      <InfoTip text="Idle guard warns at 60 minutes of no input, stops the pod 15 minutes later, and terminates after 24 hours." label="About idle guard" />
+                    </p>
                     {d.endpointUrl && (
                       <p className="mt-2 text-xs">
                         <ProxyLink href={d.endpointUrl} label={d.interface === "gui" ? "Open desktop" : "Open Jupyter"} />
@@ -351,6 +359,10 @@ export function RunpodDashboard() {
           {rentals && rentals.length > 0 && (
             <section aria-label="Your rental servers">
               <h2 className="text-xl font-black text-white">🤖 Your rental servers ({rentals.length})</h2>
+              <p className="mt-1 text-xs text-slate-500">
+                Rented agent servers bill while running.{" "}
+                <InfoTip text="Rented agent servers bill while running. Open the server link to use it; Stop ends billing, Terminate deletes the disk." label="About rental servers" />
+              </p>
               <ul className="mt-3 grid gap-3 md:grid-cols-2">
                 {rentals.map((b) => (
                   <li key={b.id} className="rounded-xl border border-slate-800 bg-slate-900 p-4">
@@ -377,6 +389,10 @@ export function RunpodDashboard() {
           {jobs && jobs.length > 0 && (
             <section aria-label="Your render workers">
               <h2 className="text-xl font-black text-white">🎬 Your render workers ({jobs.length})</h2>
+              <p className="mt-1 text-xs text-slate-500">
+                Render workers bill while the pod runs.{" "}
+                <InfoTip text="Render workers bill while the pod runs. Open the worker log to follow progress; stop it when the render finishes." label="About render workers" />
+              </p>
               <ul className="mt-3 grid gap-3 md:grid-cols-2">
                 {jobs.map((j) => (
                   <li key={j.id} className="rounded-xl border border-slate-800 bg-slate-900 p-4">

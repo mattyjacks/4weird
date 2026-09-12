@@ -48,6 +48,30 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   if (isArchived !== undefined) updates.is_archived = !!isArchived;
   if (Object.keys(updates).length === 0) return fail("Nothing to update.", 400);
 
+  // Defense in depth: RLS (timer_projects_modify) is primary, but verify
+  // ownership/membership in the route so a policy regression fails closed
+  // with 404 instead of cross-tenant write.
+  const { data: existing, error: fetchErr } = await supabase
+    .from("timer_projects")
+    .select("id, user_id, org_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (fetchErr) return dbFail("PUT /api/time/projects/[id]", fetchErr, "Failed to update timer project.");
+  if (!existing) return fail("Project not found.", 404);
+  if ((existing as { user_id?: string }).user_id !== u.id) {
+    const orgId = (existing as { org_id?: string | null }).org_id;
+    if (!orgId) return fail("Project not found.", 404);
+    const { data: mem } = await supabase
+      .from("org_members")
+      .select("role_key")
+      .eq("org_id", orgId)
+      .eq("user_id", u.id)
+      .maybeSingle();
+    const role = String((mem as { role_key?: string } | null)?.role_key ?? "");
+    if (!["owner", "admin", "lord", "banker"].includes(role))
+      return fail("Project not found.", 404);
+  }
+
   const { data: project, error } = await supabase
     .from("timer_projects")
     .update(updates)
@@ -72,6 +96,29 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
   const { id } = await params;
   if (!isUuid(id)) return fail("Invalid project.", 400);
+
+  // Same ownership gate as PUT: verify before delete so RLS is not the only
+  // barrier.
+  const { data: existingDel, error: fetchDelErr } = await supabase
+    .from("timer_projects")
+    .select("id, user_id, org_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (fetchDelErr) return dbFail("DELETE /api/time/projects/[id]", fetchDelErr, "Failed to delete project.");
+  if (!existingDel) return fail("Project not found.", 404);
+  if ((existingDel as { user_id?: string }).user_id !== u.id) {
+    const orgId = (existingDel as { org_id?: string | null }).org_id;
+    if (!orgId) return fail("Project not found.", 404);
+    const { data: mem } = await supabase
+      .from("org_members")
+      .select("role_key")
+      .eq("org_id", orgId)
+      .eq("user_id", u.id)
+      .maybeSingle();
+    const role = String((mem as { role_key?: string } | null)?.role_key ?? "");
+    if (!["owner", "admin", "lord", "banker"].includes(role))
+      return fail("Project not found.", 404);
+  }
 
   const { data: deleted, error } = await supabase
     .from("timer_projects")

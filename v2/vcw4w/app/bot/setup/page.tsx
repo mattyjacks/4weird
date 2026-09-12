@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { hasEnvVars } from "@/lib/utils";
 import { BotSetupClient } from "./bot-setup";
+import { BotKeyGuide } from "@/components/bot/bot-key-guide";
+import { AgentBotNav } from "@/components/agents/agent-bot-nav";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/bot/setup" },
@@ -37,6 +39,7 @@ export default async function BotSetupPage() {
       <section className="mx-auto max-w-4xl px-5 py-12">
         <p className="text-sm text-slate-400">Signed in as {String(data.claims.email ?? "player")}.</p>
         <h1 className="mt-2 text-4xl font-black">Bot setup</h1>
+        <AgentBotNav current="/bot/setup" />
         <p className="mt-3 max-w-2xl text-slate-300">
           Give your game-dev AI or automation a bot identity, issue it an API key, and let it read,
           post, and organize in clans — acting as your account. Agent console:{" "}
@@ -61,7 +64,8 @@ export default async function BotSetupPage() {
           </a>
           .
         </p>
-        <div className="mt-8">
+        <div className="mt-8 space-y-6">
+          <BotKeyGuide />
           <BotSetupClient />
         </div>
       </section>

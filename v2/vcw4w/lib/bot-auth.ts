@@ -70,7 +70,7 @@
  *   credentials." at the route layer).
  */
 
-import { createHash, randomBytes, scryptSync, timingSafeEqual } from "crypto";
+import { createHash, createHmac, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/validate";
 import { isIpAllowed, lowBalanceTripLine, type IpMode } from "@/lib/bot-key-policy";
@@ -685,19 +685,111 @@ export function invalidCredentials(): string {
  */
 export const BOT_TESTER_COOKIE = "bot_tester";
 
+/** Read a single cookie value from a Request (no dependency on next/headers). */
+function readCookie(req: Request, name: string): string {
+  try {
+    const header = req.headers.get("cookie") ?? "";
+    if (!header) return "";
+    for (const part of header.split(";")) {
+      const idx = part.indexOf("=");
+      if (idx < 0) continue;
+      if (part.slice(0, idx).trim() === name) return part.slice(idx + 1).trim();
+    }
+  } catch {
+    // ignore — missing cookie
+  }
+  return "";
+}
+
+/**
+ * Signed bot-tester marker: `1.<hmac(pepper, "bot_tester:<userId>")>`.
+ * Binds the marker to the account so it cannot be replayed across users.
+ * Legacy plain `1` still reads as tester (fail-closed direction: it only
+ * restricts the holder).
+ */
+export function signBotTester(userId: string): string {
+  try {
+    const p = process.env.BOT_KEY_PEPPER ?? "";
+    if (p.length < 16 || !userId) return "1";
+    const mac = createHmac("sha256", p).update(`bot_tester:${userId}`, "utf8").digest("hex");
+    return `1.${mac}`;
+  } catch {
+    return "1";
+  }
+}
+
 /** True when the request carries the bot-tester marker cookie. */
 export function isBotTester(req: Request): boolean {
   try {
-    const header = req.headers.get("cookie") ?? "";
-    if (!header) return false;
-    for (const part of header.split(";")) {
-      const [name, ...rest] = part.split("=");
-      if (name.trim() === BOT_TESTER_COOKIE && rest.join("=").trim() === "1") return true;
-    }
+    const v = readCookie(req, BOT_TESTER_COOKIE);
+    if (!v) return false;
+    // Legacy plain marker + all signed shapes count as tester. Forging a
+    // tester marker only restricts the forger, so accept broadly here;
+    // privilege comes from FULL_LOGIN_COOKIE below, never from absence.
+    if (v === "1" || v.startsWith("1.")) return true;
     return false;
   } catch {
     return false;
   }
+}
+
+/**
+ * Full-login proof: `v1.<hmac(pepper, "full_login:<userId>")>`, set ONLY by
+ * POST /api/auth/login and cleared by POST /api/bot/login (tester path).
+ * Privileged routes (profile writes, account delete, bot key/identity
+ * management) require this proof IN ADDITION to passing isBotTester().
+ * Dropping the tester cookie alone no longer escalates: without the proof
+ * the request is refused with 401 (re-login via /api/auth/login).
+ */
+export const FULL_LOGIN_COOKIE = "full_login";
+
+export function signFullLogin(userId: string): string {
+  const p = process.env.BOT_KEY_PEPPER ?? "";
+  if (p.length < 16 || !userId) return "";
+  try {
+    const mac = createHmac("sha256", p).update(`full_login:${userId}`, "utf8").digest("hex");
+    return `v1.${mac}`;
+  } catch {
+    return "";
+  }
+}
+
+/** True when the request carries a valid full-login proof for userId. */
+export function hasFullLoginProof(req: Request, userId: string): boolean {
+  try {
+    if (!userId) return false;
+    const p = process.env.BOT_KEY_PEPPER ?? "";
+    if (p.length < 16) return false;
+    const v = readCookie(req, FULL_LOGIN_COOKIE);
+    if (!v.startsWith("v1.")) return false;
+    const expected = createHmac("sha256", p).update(`full_login:${userId}`, "utf8").digest("hex");
+    const a = Buffer.from(v.slice(3), "utf8");
+    const b = Buffer.from(expected, "utf8");
+    return a.length === b.length && timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Gate for privileged session routes. Returns an error string when the
+ * request must be refused, null when allowed. Enforces, in order:
+ * 1. tester marker present → 403 (bot tester, never privileged);
+ * 2. strong pepper configured but no valid full-login proof → 401
+ *    (re-login; blocks tester-cookie-stripping escalation);
+ * 3. no pepper configured → legacy tester-cookie check only.
+ */
+export function privilegedSessionBlocked(req: Request, userId: string): string | null {
+  if (isBotTester(req)) return botTesterBlocked();
+  try {
+    const p = process.env.BOT_KEY_PEPPER ?? "";
+    if (p.length >= 16 && userId && !hasFullLoginProof(req, userId)) {
+      return "Session needs refresh. Please log in again.";
+    }
+  } catch {
+    // fail open to legacy check when HMAC is unavailable
+  }
+  return null;
 }
 
 /** Uniform refusal for bot-tester sessions on profile/destructive routes. */

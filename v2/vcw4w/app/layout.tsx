@@ -8,6 +8,7 @@ import { GoogleAnalytics } from "@/components/site/google-analytics";
 import { CookieBanner } from "@/components/site/cookie-banner";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
+import { MenuSidebar } from "@/components/site/menu-sidebar";
 import { A11yProvider } from "@/components/site/a11y-provider";
 import { UsaFireworks } from "@/components/site/themes/usa-fireworks";
 import { ColorblindFilters } from "@/components/a11y/colorblind-filters";
@@ -121,6 +122,7 @@ export default function RootLayout({
         >
           <div className="flex min-h-screen flex-col bg-background text-foreground">
             <SiteHeader />
+            <MenuSidebar />
             <div id="main-content" className="flex-1">
               {children}
             </div>

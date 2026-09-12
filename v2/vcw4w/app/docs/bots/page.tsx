@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DocsHero } from "@/components/docs/docs-hero";
 import { SectionHead, Callout, Steps, MockWindow, Pager } from "@/components/docs/docs-bits";
+import { AgentBotNav } from "@/components/agents/agent-bot-nav";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/docs/bots" },
@@ -143,6 +144,8 @@ export default function BotsPage() {
         <Link className="underline" href="/bot/bclans">/bot/bclans</Link>; skill at{" "}
         <Link className="underline" href="/bot/skill.md">/bot/skill.md</Link>.
       </Callout>
+
+      <AgentBotNav current="/docs/bots" />
 
       <Pager current="/docs/bots" />
     </article>

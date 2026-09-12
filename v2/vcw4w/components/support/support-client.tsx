@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { SUPPORT_DISCLAIMER_SHORT } from "@/lib/support";
+import { InfoTip } from "@/components/ui/info-tip";
+import { CompactDetails } from "@/components/ui/compact-details";
 
 type Tier = {
   id: string;
@@ -231,6 +233,12 @@ export function SupportClient() {
 
       <section className="space-y-4">
         <h2 className="text-2xl font-bold">Support tiers</h2>
+        <CompactDetails summary="Tiers vs tips? What do recipients get?">
+          <p className="text-sm text-slate-400">
+            Tiers are monthly support. Tips are one-time gifts. Both are voluntary and final.
+            Creators get time-locked Crowns (30-day unlock, 1-year expiry). Clans get wallet coins for upkeep.
+          </p>
+        </CompactDetails>
         {tiers.length === 0 ? (
           <p className="text-sm text-slate-400">No tiers yet; verified creators and clans can publish the first one below.</p>
         ) : (
@@ -260,11 +268,11 @@ export function SupportClient() {
         </p>
         <div className="grid gap-3 sm:grid-cols-[1fr_140px_auto] sm:items-end">
           <label className="block text-sm">
-            {tipClan ? "Clan slug" : "Creator user ID"}
+            {tipClan ? "Clan slug" : "Creator user ID"} <InfoTip text={tipClan ? "The clan short name, e.g. my-clan. Goes to the clan wallet." : "The creator ID. They must be verified to receive it."} label="About tip recipient" />
             <input className={input + " mt-1"} value={tipTo} onChange={(e) => setTipTo(e.target.value)} placeholder={tipClan ? "my-clan" : "paste their user ID"} />
           </label>
           <label className="block text-sm">
-            Coins (1-100k)
+            Coins (1-100k) <InfoTip text="How many coins to send. One-time gift, voluntary, no refund." label="About tip amount" />
             <input className={input + " mt-1"} value={tipCoins} onChange={(e) => setTipCoins(e.target.value)} inputMode="decimal" />
           </label>
           <div className="flex gap-2">
@@ -279,7 +287,7 @@ export function SupportClient() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-2xl font-bold">My subscriptions</h2>
+        <h2 className="text-2xl font-bold">My subscriptions <InfoTip text="Cancel anytime. The current month stays active until it ends. No partial refund." label="About cancelling" /></h2>
         {subs.length === 0 ? (
           <p className="text-sm text-slate-400">No subscriptions. Subscribing charges the first month immediately.</p>
         ) : (
@@ -302,7 +310,7 @@ export function SupportClient() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-2xl font-bold">Offer a tier</h2>
+        <h2 className="text-2xl font-bold">Offer a tier <InfoTip text="Personal tier needs verification. Clan tier needs mod rights. Leave clan empty for personal." label="About offering a tier" /></h2>
         <p className="text-sm text-slate-400">
           Verified creators can offer personal tiers; clan moderators can offer clan tiers (leave the clan field empty
           for a personal tier). Tier perks are goals you hope to deliver; never contractual promises.
@@ -319,7 +327,7 @@ export function SupportClient() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-2xl font-bold">Creator verification</h2>
+        <h2 className="text-2xl font-bold">Creator verification <InfoTip text="Only verified creators get personal tips and tiers. Clans use their mods instead. We review by hand." label="About verification" /></h2>
         {verified ? (
           <p className="text-sm text-emerald-200">✓ You are verified; you can receive tips and offer personal tiers.</p>
         ) : (

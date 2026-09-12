@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { LOVE_AWARD_TIERS, type LoveAwardTier } from "@/lib/love-letters";
+import { InfoTip } from "@/components/ui/info-tip";
 
 // Give 1 💌 + tiered awards on a clan post. Receiver = post author (a user),
 // so awards for posts ARE awards for users. Fires love-letters-changed on success.
@@ -51,6 +52,9 @@ export function LoveButtons({ postId }: { postId: string }) {
 
   return (
     <div className="mt-2 flex flex-wrap items-center gap-2">
+      <span className="flex items-center gap-1">
+        <InfoTip text="Give sends 1 love letter to the author. Awards cost 2, 5, or 10. Never coins, never cash." label="About giving love" />
+      </span>
       <button
         type="button"
         disabled={busy}

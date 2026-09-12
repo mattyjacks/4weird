@@ -1,5 +1,14 @@
 import Link from "next/link";
+import { SITE_NAV_GROUPS } from "@/lib/site-nav";
 import { ColorThemeSwitcher, ThemeSwitcher } from "@/components/theme-switcher";
+
+const NAV_QUICK_BY_HREF = new Map(
+  SITE_NAV_GROUPS.flatMap((g) => g.links).map((l) => [`${l.label}::${l.href}`, l.quick] as const),
+);
+
+function quickFor(label: string, href: string): string | undefined {
+  return NAV_QUICK_BY_HREF.get(`${label}::${href}`);
+}
 import { ClampText } from "@/components/ui/clamp-text";
 import { CompactDetails } from "@/components/ui/compact-details";
 import {
@@ -121,6 +130,7 @@ const COLUMNS: FooterColumn[] = [
       { href: "/account", label: "My Account" },
       { href: "/my/usage", label: "My Compute Usage" },
       { href: "/my/rights", label: "My Privacy Rights" },
+      { href: "/favorites", label: "My Favorites" },
       { href: "/auth/login", label: "Login" },
       { href: "/auth/sign-up", label: "Sign Up Free" },
       { href: "/auth/forgot-password", label: "Reset Password" },
@@ -294,9 +304,10 @@ export function SiteFooter() {
               <p className="mt-1.5 text-xs leading-snug text-muted-foreground">{col.tagline}</p>
               <ul className="mt-2 space-y-1">
                 {col.links.map((link) => (
-                  <li key={`${col.label}-${link.href}`}>
+                  <li key={`${col.label}-${link.href}-${link.label}`}>
                     <Link
                       href={link.href}
+                      title={link.blurb ?? quickFor(link.label, link.href) ?? link.label}
                       className="group inline-flex items-center gap-1 text-[13px] text-muted-foreground transition hover:text-foreground"
                     >
                       <span aria-hidden="true" className="h-px w-0 bg-gradient-to-r from-cyan-400 to-fuchsia-500 transition-all group-hover:w-3" />

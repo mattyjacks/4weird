@@ -262,6 +262,27 @@ export function MyCompute() {
             </span>
           ))}
         </div>
+        <div className="mt-3 flex flex-wrap gap-2" aria-label="One-click listing templates">
+          {[
+            { label: "NanoClaw serverful · $1/hr · RunPod", runtime: "nanoclaw", provider_code: "runpod", priceUsd: "1.00", name: "NanoClaw serverful" },
+            { label: "NanoClaw serverless · $0.50/hr cap · Custom", runtime: "nanoclaw", provider_code: "custom", priceUsd: "0.50", name: "NanoClaw serverless" },
+            { label: "OpenClaw · $1/hr · RunPod", runtime: "openclaw", provider_code: "runpod", priceUsd: "1.00", name: "OpenClaw agent" },
+          ].map((t) => (
+            <button
+              key={t.label}
+              type="button"
+              onClick={() => setForm((f) => ({ ...f, runtime: t.runtime, provider_code: t.provider_code, priceUsd: t.priceUsd, name: f.name || t.name }))}
+              className="rounded-full border border-cyan-300/40 bg-cyan-300/10 px-3 py-1 text-xs font-bold text-cyan-200 hover:bg-cyan-300/20"
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <p className="mt-2 text-xs text-slate-500">
+          Template fills runtime + provider + USD/hr max below — edit the name, then Publish. Earnings preview: at $
+          {Number(form.priceUsd || 0).toFixed(2)}/hr max, 1 rented hour ≈ {formatUsd(Math.round(Number(form.priceUsd || 0) * 100))} gross
+          (you keep 75% as provider credits after the {SERVICE_CUT_PCT}% cut), billed per second so partial use pro-rates.
+        </p>
         <div className="mt-4 grid gap-3 rounded-xl border border-slate-800 bg-slate-900 p-5 md:grid-cols-2">
           <label className="text-sm text-slate-300">
             Name (1-80 chars)

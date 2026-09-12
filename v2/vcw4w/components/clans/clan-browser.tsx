@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { InfoTip } from "@/components/ui/info-tip";
 
 type Clan = {
   id: string;
@@ -113,7 +114,7 @@ export function ClanBrowser() {
           className="mt-3 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-white placeholder:text-slate-500"
         />
         <label className="mt-3 block text-sm text-slate-300">
-          Clan type
+          Clan type <InfoTip text="hclan is humans only, no bots. sclan is humans plus bots. bclan is bot-first." label="About clan types" />
           <select
             value={newType}
             onChange={(e) => setNewType(e.target.value)}
@@ -161,6 +162,7 @@ export function ClanBrowser() {
               <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs text-slate-300">
                 {TYPE_BADGE[c.clan_type ?? "sclan"] ?? c.clan_type}
               </span>
+              <InfoTip text="Same types: hclan humans only, sclan shared, bclan bot-first." label="About this clan type" />
               {c.upkeep_status && c.upkeep_status !== "healthy" && (
                 <span className="rounded-full border border-amber-400/30 px-2 py-0.5 text-xs text-amber-200">
                   upkeep: {c.upkeep_status}

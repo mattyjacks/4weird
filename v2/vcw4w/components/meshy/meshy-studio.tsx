@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { InfoTip } from "@/components/ui/info-tip";
 
 type MeshyOp = {
   op: string;
@@ -130,12 +131,17 @@ export function MeshyStudio() {
             <p className="font-black">{o.name}</p>
             <p className="mt-1 text-xs text-muted-foreground">{o.blurb}</p>
             <p className="mt-2 font-mono text-xs text-cyan-600 dark:text-cyan-300">
-              {o.coinsPerUnit} coins · {o.mode}
+              {o.coinsPerUnit} coins · {o.mode}{" "}
+              <InfoTip text="Mode is the Meshy pipeline used; coins is the flat quote with the cut included." label="About mode and price" />
             </p>
           </button>
         ))}
       </div>
       <div className="space-y-2 rounded-2xl border border-border bg-card p-4">
+        <p className="text-xs text-muted-foreground">
+          Prompt or image?{" "}
+          <InfoTip text="Text-to-3D uses the description; image-to-3D uses the image URL. Send only what your tool needs." label="About prompt versus image" />
+        </p>
         <input
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
@@ -157,8 +163,12 @@ export function MeshyStudio() {
         >
           {busy ? "Queueing…" : "Generate 3D"}
         </button>
-        {msg && <p className="text-xs text-muted-foreground">{msg}</p>}
-        {status && <p className="font-mono text-xs">status: {status}</p>}
+        {msg && <p className="text-xs text-muted-foreground">{msg}{" "}
+          <InfoTip text="Finished models auto-save to your Vault. The result link appears here when ready." label="About Vault autosave" />
+        </p>}
+        {status && <p className="font-mono text-xs">status: {status}{" "}
+          <InfoTip text="Status refreshes on its own every few seconds. Keep this open until it says done." label="About auto-polling" />
+        </p>}
         {advice.length > 0 && (
           <ul className="list-disc space-y-1 pl-5 text-xs text-muted-foreground">
             {advice.map((a, i) => (

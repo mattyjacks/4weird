@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DocsHero } from "@/components/docs/docs-hero";
 import { SectionHead, Callout, MockWindow, SplitBar, Pager } from "@/components/docs/docs-bits";
+import { AgentBotNav } from "@/components/agents/agent-bot-nav";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/docs/agents-compute" },
@@ -117,6 +118,8 @@ export default function AgentsComputePage() {
         <li className="rounded-xl border border-border bg-card p-3">🔌 <strong className="text-foreground">End bookings, close desktops.</strong> Metering follows run time, not browser tabs.</li>
         <li className="rounded-xl border border-border bg-card p-3">🌊 <strong className="text-foreground">Estimates aren&apos;t guarantees</strong> — capacity, queues, and provider pricing can shift. Can&apos;t start? The page says so honestly, and you aren&apos;t charged. Track it all on <Link className="underline" href="/my/usage/">/my/usage/</Link>.</li>
       </ul>
+
+      <AgentBotNav current="/docs/agents-compute" />
 
       <Pager current="/docs/agents-compute" />
     </article>

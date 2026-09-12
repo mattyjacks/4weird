@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { getGame } from "@/content/games";
+import { CompactDetails } from "@/components/ui/compact-details";
+import { InfoTip } from "@/components/ui/info-tip";
 
 // Curated homepage lineup; exactly 6. Full catalog lives on /games.
 const FEATURED_SLUGS = [
@@ -91,6 +93,35 @@ const FAQS = [
     a: "Play one game, rent one desktop, ask the Buddy one question. Then read /docs/about - 12 plain-language guides covering every surface.",
   },
 ];
+
+function DirItem({
+  href,
+  label,
+  head,
+  more,
+}: {
+  href: string;
+  label: string;
+  head: React.ReactNode;
+  more?: string;
+}) {
+  return (
+    <li className="rounded-2xl border border-border bg-card p-4">
+      <Link href={href} className="font-bold hover:underline">
+        {label}
+      </Link>
+      <p className="mt-1 text-sm text-muted-foreground">
+        {head}
+        {more ? (
+          <>
+            {" "}
+            <InfoTip text={more} label={`More about ${label}`} />
+          </>
+        ) : null}
+      </p>
+    </li>
+  );
+}
 
 export default function Home() {
   return (
@@ -250,8 +281,17 @@ export default function Home() {
             <p className="text-3xl" aria-hidden="true">🤖</p>
             <h3 className="mt-3 text-lg font-bold">AI agents by the hour</h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              OpenClaw-style agents on real RunPod / DigitalOcean compute. Coin
-              escrow, per-second metering. Book time, watch it work.
+              OpenClaw-style agents on real RunPod{" "}
+              <InfoTip
+                text="RunPod is the GPU-cloud provider our compute rents run on. Your coins pay one gross metered price; we pay RunPod out of it."
+                label="About RunPod"
+              />{" "}
+              / DigitalOcean compute. Coin escrow{" "}
+              <InfoTip
+                text="Escrow means your coins are held up front when you book, then settled downward by metered heartbeats — the final charge can only go down, never above escrow."
+                label="About escrow"
+              />
+              , per-second metering. Book time, watch it work.
             </p>
             <p className="mt-3 font-mono text-xs font-bold text-cyan-600 dark:text-cyan-300">/agents →</p>
           </Link>
@@ -588,8 +628,12 @@ export default function Home() {
               <p className="text-2xl" aria-hidden="true">☁️</p>
               <h3 className="mt-2 font-bold">1. You rent cloud</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Agents, desktops, testing, squad workspaces; metered, escrowed,
-                itemized on <Link href="/my/usage/" className="font-semibold text-cyan-600 hover:underline dark:text-cyan-300">/my/usage/</Link>.
+                Agents, desktops, testing, squad workspaces; metered, escrowed{" "}
+                <InfoTip
+                  text="Escrowed means coins are held when you book and settled downward by usage heartbeats — you never pay more than escrowed. Every cent is itemized on /my/usage/."
+                  label="About escrow"
+                />
+                , itemized on <Link href="/my/usage/" className="font-semibold text-cyan-600 hover:underline dark:text-cyan-300">/my/usage/</Link>.
               </p>
             </div>
             <div>
@@ -652,9 +696,28 @@ export default function Home() {
             <h2 className="text-2xl font-black sm:text-3xl">One coin. One promise.</h2>
             <p className="mt-2 text-white/85 sm:text-lg">
               <strong>100 🪙 = exactly $1.00.</strong> Every price already
-              includes our 25% platform cut; never added on top. The rest goes
-              to the providers and makers doing the work.
+              includes our 25% platform cut{" "}
+              <InfoTip
+                text="The 25% cut is already inside every coin price and compute meter — never added on top. The other 75% credits providers and makers as on-site platform credits."
+                label="About the 25% cut"
+              />
+              ; never added on top. The rest goes to the providers and makers
+              doing the work.
             </p>
+            <CompactDetails
+              summary="New words? 25% cut, escrow, RunPod, BYOK, Crowns, centicentcoins"
+              hint="Plain-language definitions of the pricing jargon used across 4weird."
+              className="mt-4 border-white/20 bg-white/10 text-sm text-white/85"
+            >
+              <ul className="list-disc space-y-1.5 pl-5 text-sm text-white/85">
+                <li><strong className="text-white">25% cut:</strong> the platform share already inside every price; the other 75% credits providers and makers as on-site platform credits.</li>
+                <li><strong className="text-white">Escrow:</strong> coins held up front on bookings, settled downward by metered heartbeats — never above escrow.</li>
+                <li><strong className="text-white">RunPod:</strong> the GPU-cloud provider our rentals run on; per-second metering, live status, no fake provisioning.</li>
+                <li><strong className="text-white">BYOK:</strong> bring your own provider keys on self-hosted plans — you pay providers at cost plus a 15% orchestration markup and the org subscription.</li>
+                <li><strong className="text-white">Crowns:</strong> earn-only credits for individual providers under Terms 8A.1 — convert 1:1 to Coins after the lock or cash out via the payout provider; never directly spendable.</li>
+                <li><strong className="text-white">Centicentcoins:</strong> the smallest ledger unit — 100 centicentcoins = 1 coin = $0.01; purchases always spend the oldest unexpired lot first.</li>
+              </ul>
+            </CompactDetails>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
             <Link
@@ -680,11 +743,10 @@ export default function Home() {
         </p>
         <h2 className="mt-2 text-2xl font-black sm:text-4xl">The 60-second FAQ</h2>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
-          {FAQS.map((f) => (
-            <div key={f.q} className="rounded-2xl border border-border bg-card p-5">
-              <h3 className="font-bold">{f.q}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{f.a}</p>
-            </div>
+          {FAQS.map((f, i) => (
+            <CompactDetails key={f.q} summary={f.q} defaultOpen={i === 0}>
+              <p className="text-sm text-muted-foreground">{f.a}</p>
+            </CompactDetails>
           ))}
         </div>
         <p className="mt-5 text-center text-sm text-muted-foreground">
@@ -702,129 +764,206 @@ export default function Home() {
           <nav aria-label="Homepage - Play">
             <h3 className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-600 dark:text-cyan-300">Play</h3>
             <ul className="mt-3 space-y-3">
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/games" className="font-bold hover:underline">🕹️ All Games</Link>
-                <p className="mt-1 text-sm text-muted-foreground">34 playable browser experiments with guides, cloud saves, and coin-metered play.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/buddy" className="font-bold hover:underline">🎙️ Gaming Buddy</Link>
-                <p className="mt-1 text-sm text-muted-foreground">Screen-aware 9-voice coach on every play page.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/leaderboards" className="font-bold hover:underline">🏆 Leaderboards</Link>
-                <p className="mt-1 text-sm text-muted-foreground">Per-game kills, actions, and play-time.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/clans" className="font-bold hover:underline">👾 Clans</Link>
-                <p className="mt-1 text-sm text-muted-foreground">Human, shared, and bot-native clans with chat, forums, and XP.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/lobbies" className="font-bold hover:underline">🎪 Lobbies</Link>
-                <p className="mt-1 text-sm text-muted-foreground">Find players and join matches across the arcade.</p>
-              </li>
+              <DirItem
+                href="/games"
+                label="🕹️ All Games"
+                head="34 playable browser experiments."
+                more="With guides, cloud saves, and coin-metered play."
+              />
+              <DirItem
+                href="/buddy"
+                label="🎙️ Gaming Buddy"
+                head="Screen-aware 9-voice coach."
+                more="Live on every play page."
+              />
+              <DirItem href="/leaderboards" label="🏆 Leaderboards" head="Per-game kills, actions, and play-time." />
+              <DirItem
+                href="/clans"
+                label="👾 Clans"
+                head="Human, shared, and bot-native clans."
+                more="With chat, forums, and XP."
+              />
+              <DirItem
+                href="/lobbies"
+                label="🎪 Lobbies"
+                head="Find players and join matches."
+                more="Across the arcade."
+              />
             </ul>
           </nav>
           <nav aria-label="Homepage - Build">
             <h3 className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-600 dark:text-cyan-300">Build</h3>
             <ul className="mt-3 space-y-3">
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/agents" className="font-bold hover:underline">🤖 AI Agents</Link>
-                <p className="mt-1 text-sm text-muted-foreground">Rent hourly agents on RunPod / DigitalOcean, billed per second.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/desktop" className="font-bold hover:underline">🖥️ Virtual Desktop</Link>
-                <p className="mt-1 text-sm text-muted-foreground">A real RunPod desktop in your browser, per second.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/squads" className="font-bold hover:underline">🚀 UnitUnite</Link>
-                <p className="mt-1 text-sm text-muted-foreground">Squad workspaces with metered GPU/serverless/storage cloud.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/vibecodeworker" className="font-bold hover:underline">⚙️ VibeCodeWorker</Link>
-                <p className="mt-1 text-sm text-muted-foreground">Evidence-driven QA and autoplay that plays games for you.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/blender" className="font-bold hover:underline">🎬 Blender Renders</Link>
-                <p className="mt-1 text-sm text-muted-foreground">4090-backed .blend → mp4, no install needed.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/newgameplus" className="font-bold hover:underline">✨ NewGamePlus</Link>
-                <p className="mt-1 text-sm text-muted-foreground">Prompt → tested Draft game in your org.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/swarm" className="font-bold hover:underline">🐝 Agent Swarm</Link>
-                <p className="mt-1 text-sm text-muted-foreground">Hire 1-5 agents as one chatbot with auto tool use.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/fal" className="font-bold hover:underline">🎨 fal.ai Studio</Link>
-                <p className="mt-1 text-sm text-muted-foreground">30 game-dev + coding media tools, quote-first.</p>
-              </li>
+              <DirItem
+                href="/agents"
+                label="🤖 AI Agents"
+                head={
+                  <>
+                    Rent hourly agents on RunPod{" "}
+                    <InfoTip
+                      text="RunPod is the GPU-cloud provider our rentals run on — per-second metering, live status, no fake provisioning."
+                      label="About RunPod"
+                    />{" "}
+                    / DigitalOcean, billed per second.
+                  </>
+                }
+              />
+              <DirItem
+                href="/desktop"
+                label="🖥️ Virtual Desktop"
+                head={
+                  <>
+                    A real RunPod{" "}
+                    <InfoTip
+                      text="RunPod is the GPU-cloud provider our desktops run on — a real computer in your browser, billed per second."
+                      label="About RunPod"
+                    />{" "}
+                    desktop in your browser, per second.
+                  </>
+                }
+              />
+              <DirItem
+                href="/squads"
+                label="🚀 UnitUnite"
+                head="Squad workspaces."
+                more="With metered GPU/serverless/storage cloud."
+              />
+              <DirItem
+                href="/vibecodeworker"
+                label="⚙️ VibeCodeWorker"
+                head="Evidence-driven QA and autoplay."
+                more="Autoplay plays games for you."
+              />
+              <DirItem
+                href="/blender"
+                label="🎬 Blender Renders"
+                head="4090-backed .blend → mp4."
+                more="No install needed."
+              />
+              <DirItem
+                href="/newgameplus"
+                label="✨ NewGamePlus"
+                head="Prompt → tested Draft game in your org."
+              />
+              <DirItem
+                href="/swarm"
+                label="🐝 Agent Swarm"
+                head="Hire 1-5 agents as one chatbot."
+                more="With auto tool use."
+              />
+              <DirItem
+                href="/fal"
+                label="🎨 fal.ai Studio"
+                head="30 game-dev + coding media tools."
+                more="Quote-first: quote before you spend."
+              />
             </ul>
           </nav>
           <nav aria-label="Homepage - Explore">
             <h3 className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-600 dark:text-cyan-300">Explore</h3>
             <ul className="mt-3 space-y-3">
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/spaceships" className="font-bold hover:underline">🛸 Spaceships</Link>
-                <p className="mt-1 text-sm text-muted-foreground">The classic 4weird spaceship exhibit.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/academy" className="font-bold hover:underline">🎓 Academy</Link>
-                <p className="mt-1 text-sm text-muted-foreground">Learn AI concepts through play and building.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/tech" className="font-bold hover:underline">🔧 Technology</Link>
-                <p className="mt-1 text-sm text-muted-foreground">How the stack works: Next.js, Supabase, RunPod, and the coin ledger.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/pricing" className="font-bold hover:underline">🪙 Pricing</Link>
-                <p className="mt-1 text-sm text-muted-foreground">Vibe Coin packs and the 100 🪙 = $1.00 promise, platform cut inside every price.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/support" className="font-bold hover:underline">💛 Support</Link>
-                <p className="mt-1 text-sm text-muted-foreground">Tip and subscribe to verified creators and clans.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/fundraisers" className="font-bold hover:underline">🚀 Fundraisers</Link>
-                <p className="mt-1 text-sm text-muted-foreground">Gift-based launches for games and startups.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/xonotic" className="font-bold hover:underline">🔫 Xonotic</Link>
-                <p className="mt-1 text-sm text-muted-foreground">Arena FPS on gpu-boosted cloud desktops.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/web-apps" className="font-bold hover:underline">🌐 Web Apps</Link>
-                <p className="mt-1 text-sm text-muted-foreground">Tiny useful tools built on this cloud.</p>
-              </li>
+              <DirItem
+                href="/spaceships"
+                label="🛸 Spaceships"
+                head="The classic 4weird spaceship exhibit."
+              />
+              <DirItem
+                href="/academy"
+                label="🎓 Academy"
+                head="Learn AI concepts."
+                more="Through play and building."
+              />
+              <DirItem
+                href="/tech"
+                label="🔧 Technology"
+                head={
+                  <>
+                    How the stack works: Next.js, Supabase, RunPod{" "}
+                    <InfoTip
+                      text="RunPod is the GPU-cloud provider under the stack, beside Next.js and Supabase — with one honest coin ledger over it all."
+                      label="About RunPod"
+                    />
+                    , and the coin ledger.
+                  </>
+                }
+              />
+              <DirItem
+                href="/pricing"
+                label="🪙 Pricing"
+                head="Vibe Coin packs and the 100 🪙 = $1.00 promise."
+                more="Platform cut inside every price."
+              />
+              <DirItem
+                href="/support"
+                label="💛 Support"
+                head="Tip and subscribe."
+                more="To verified creators and clans."
+              />
+              <DirItem
+                href="/fundraisers"
+                label="🚀 Fundraisers"
+                head="Gift-based launches."
+                more="For games and startups."
+              />
+              <DirItem
+                href="/xonotic"
+                label="🔫 Xonotic"
+                head="Arena FPS."
+                more="On gpu-boosted cloud desktops."
+              />
+              <DirItem
+                href="/web-apps"
+                label="🌐 Web Apps"
+                head="Tiny useful tools."
+                more="Built on this cloud."
+              />
             </ul>
           </nav>
           <nav aria-label="Homepage - Account">
             <h3 className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-600 dark:text-cyan-300">Account</h3>
             <ul className="mt-3 space-y-3">
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/bot/setup" className="font-bold hover:underline">🤖 Bots</Link>
-                <p className="mt-1 text-sm text-muted-foreground">Issue bot keys and act across shared and bot-native clans.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/account" className="font-bold hover:underline">👤 Account</Link>
-                <p className="mt-1 text-sm text-muted-foreground">Dashboard, daily 🪙 claim, referrals, and checkout.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/my/usage/" className="font-bold hover:underline">📊 Usage</Link>
-                <p className="mt-1 text-sm text-muted-foreground">Every cent itemized: cloud, game AI, rentals, RunPod mirror.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/accessibility" className="font-bold hover:underline">♿ Accessibility</Link>
-                <p className="mt-1 text-sm text-muted-foreground">Controls and commitments for playing and building accessibly.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/timer" className="font-bold hover:underline">⏱️ Timer</Link>
-                <p className="mt-1 text-sm text-muted-foreground">Track time, diary proofs, Ghost Cash books.</p>
-              </li>
-              <li className="rounded-2xl border border-border bg-card p-4">
-                <Link href="/docs" className="font-bold hover:underline">📚 Docs</Link>
-                <p className="mt-1 text-sm text-muted-foreground">12 guides from about → FAQ.</p>
-              </li>
+              <DirItem
+                href="/bot/setup"
+                label="🤖 Bots"
+                head="Issue bot keys."
+                more="Act across shared and bot-native clans."
+              />
+              <DirItem
+                href="/account"
+                label="👤 Account"
+                head="Dashboard, daily 🪙 claim, referrals, and checkout."
+              />
+              <DirItem
+                href="/my/usage/"
+                label="📊 Usage"
+                head={
+                  <>
+                    Every cent itemized: cloud, game AI, rentals, RunPod mirror{" "}
+                    <InfoTip
+                      text="The RunPod mirror shows your matching provider-side spend beside the coin ledger, so every cent is itemized."
+                      label="About the RunPod mirror"
+                    />
+                    .
+                  </>
+                }
+              />
+              <DirItem
+                href="/accessibility"
+                label="♿ Accessibility"
+                head="Controls and commitments."
+                more="For playing and building accessibly."
+              />
+              <DirItem
+                href="/timer"
+                label="⏱️ Timer"
+                head="Track time."
+                more="With diary proofs and Ghost Cash books."
+              />
+              <DirItem
+                href="/docs"
+                label="📚 Docs"
+                head="12 guides from about → FAQ."
+              />
             </ul>
           </nav>
         </div>

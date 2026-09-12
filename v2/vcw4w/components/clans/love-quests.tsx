@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { InfoTip } from "@/components/ui/info-tip";
 
 type Quest = { id: string; title: string; reward_ll: number; active: boolean };
 type Completion = { quest_id: string; user_id: string };
@@ -54,7 +55,7 @@ export function LoveQuests({ clanId, clanSlug }: { clanId?: string; clanSlug: st
 
   return (
     <section className="rounded-xl border border-pink-400/20 bg-slate-900 p-5">
-      <h2 className="font-bold text-pink-200">💌 Clan quests (earn love letters)</h2>
+      <h2 className="font-bold text-pink-200">💌 Clan quests (earn love letters) <InfoTip text="Quests mint love letters, not coins. Rewards are 1 to 10 letters. Completing sends them to the member." label="About quests" /></h2>
       <p className="mt-1 text-xs text-slate-400">
         Owners/mods post quests (reward 1..10 💌); marking a member complete mints it to their 💌 Earned. Daily
         bonuses are the other mint. Clan: {clanSlug}.

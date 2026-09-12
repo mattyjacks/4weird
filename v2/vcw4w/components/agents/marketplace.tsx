@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { ProxyLink } from "@/components/runpod/proxy-link";
 import { SERVICE_CUT_PCT, formatUsd } from "@/lib/economy";
 import {
@@ -34,15 +35,23 @@ function grossFor(pricePerHour: number, hours: number) {
   return { gross, cut, provider: gross - cut };
 }
 
+function coinsFor(cents: number): number {
+  return Math.round(cents);
+}
+
 const RUNTIME_OPTIONS: { value: string; label: string }[] = [
   { value: "", label: "All" },
   ...(Object.keys(RUNTIME_LABELS) as Runtime[]).map((r) => ({ value: r, label: RUNTIME_LABELS[r] })),
 ];
 
+type SortKey = "recommended" | "cheapest" | "newest";
+
 export function Marketplace() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [runtime, setRuntime] = useState("");
   const [provider, setProvider] = useState("");
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<SortKey>("recommended");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [hoursById, setHoursById] = useState<Record<string, string>>({});
@@ -75,6 +84,24 @@ export function Marketplace() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const filtered = listings.filter((l) =>
+      q ? `${l.name} ${l.runtime} ${l.provider_code}`.toLowerCase().includes(q) : true,
+    );
+    const rank = (l: Listing) => (l.runtime === "nanoclaw" ? 0 : l.runtime === "openclaw" ? 1 : 2);
+    return [...filtered].sort((a, b) => {
+      if (sort === "cheapest") return a.price_cents_per_hour - b.price_cents_per_hour;
+      if (sort === "newest") return Date.parse(b.created_at || "") - Date.parse(a.created_at || "");
+      return rank(a) - rank(b) || a.price_cents_per_hour - b.price_cents_per_hour;
+    });
+  }, [listings, query, sort]);
+
+  const cheapest = useMemo(
+    () => (listings.length ? Math.min(...listings.map((l) => l.price_cents_per_hour)) : null),
+    [listings],
+  );
 
   async function book(listing: Listing) {
     const hours = Number(hoursById[listing.id] || "1");
@@ -110,7 +137,7 @@ export function Marketplace() {
         }));
         setNoteById((m) => ({
           ...m,
-          [listing.id]: `Rented! Server live at the RunPod default endpoint below (billed per second up to ${hours}h escrow).`,
+          [listing.id]: `Rented! Server live at the RunPod default endpoint below (billed per second up to ${hours}h escrow). Manage it on /runpods; spend shows on /my/usage. Next: SSH in and run the NanoClaw pod bootstrap from the panel above.`,
         }));
       } else if (body.provision && body.provision.ok === false) {
         setConnectionById((m) => ({ ...m, [listing.id]: { ok: false, code: body.provision?.code, message: body.provision?.message } }));
@@ -136,9 +163,16 @@ export function Marketplace() {
       <h2 className="text-2xl font-black">Rent an agent</h2>
       <p className="mt-2 text-sm text-slate-400">
         Quotes are USD/hour maximums (gross, 25% cut included); you pay per
-        second of actual use, never more than the quote.
+        second of actual use, never more than the quote. NanoClaw is recommended —
+        one bot key from <Link href="/bot/setup" className="text-cyan-300 hover:underline">/bot/setup</Link> drives
+        website chat + Telegram on any listing below.
       </p>
-      <div className="mt-4 flex flex-wrap gap-3">
+      {cheapest !== null && (
+        <p className="mt-2 inline-block rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-200">
+          {visible.length} live · from {formatUsd(cheapest)}/hr max · billed per second
+        </p>
+      )}
+      <div className="mt-4 flex flex-wrap items-center gap-3">
         <label className="flex items-center gap-2 text-sm text-slate-300">
           Runtime
           <select
@@ -164,31 +198,75 @@ export function Marketplace() {
             <option value="custom">Custom</option>
           </select>
         </label>
+        <label className="flex items-center gap-2 text-sm text-slate-300">
+          Sort
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as SortKey)}
+            className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-white"
+          >
+            <option value="recommended">Recommended first</option>
+            <option value="cheapest">Cheapest first</option>
+            <option value="newest">Newest first</option>
+          </select>
+        </label>
+        <label className="flex min-w-48 flex-1 items-center gap-2 text-sm text-slate-300">
+          Search
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="name, runtime, provider…"
+            className="w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-white"
+          />
+        </label>
+        <button
+          type="button"
+          onClick={() => { setRuntime(""); setProvider(""); setQuery(""); setSort("recommended"); }}
+          className="rounded-md border border-slate-700 px-2 py-1 text-xs font-bold text-slate-300 hover:text-white"
+        >
+          Reset
+        </button>
       </div>
 
       {loading && <p className="mt-6 text-slate-400">Loading agents…</p>}
       {error && <p className="mt-6 text-red-400">{error}</p>}
-      {!loading && !error && listings.length === 0 && (
-        <p className="mt-6 text-slate-400">No available agents right now.</p>
+      {!loading && !error && visible.length === 0 && (
+        <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900 p-5 text-sm text-slate-300">
+          <p className="font-bold">No available agents match right now.</p>
+          <p className="mt-1 text-slate-400">
+            Try clearing search/filters — or be the supply: publish a NanoClaw listing below (RunPod needs no URL),
+            get a key at <Link href="/bot/setup" className="text-cyan-300 hover:underline">/bot/setup</Link>, and read{" "}
+            <Link href="/docs/agents-compute" className="text-cyan-300 hover:underline">/docs/agents-compute</Link>.
+          </p>
+        </div>
       )}
 
       <ul className="mt-6 grid gap-4 md:grid-cols-2">
-        {listings.map((l) => {
+        {visible.map((l) => {
           const hours = Number(hoursById[l.id] || "1") || 0;
           const math = grossFor(l.price_cents_per_hour, hours);
           const usdHr = centsToUsdPerHour(l.price_cents_per_hour);
           const perSec = perSecondUsd(l.price_cents_per_hour);
           const desc = (RUNTIME_DESCRIPTIONS as Record<string, string>)[l.runtime];
           const conn = connectionById[l.id];
+          const recommended = l.runtime === "nanoclaw";
+          const day = grossFor(l.price_cents_per_hour, 24);
           return (
             <li
               key={l.id}
-              className="rounded-xl border border-slate-800 bg-slate-900 p-5"
+              className={`rounded-xl border p-5 ${recommended ? "border-cyan-300/40 bg-gradient-to-b from-cyan-300/[.07] to-slate-900" : "border-slate-800 bg-slate-900"}`}
             >
               <div className="flex items-start justify-between gap-3">
                 <h3 className="text-lg font-bold">{l.name}</h3>
-                <span className="shrink-0 rounded-full bg-emerald-900 px-2 py-0.5 text-xs text-emerald-200">
-                  {l.status}
+                <span className="flex shrink-0 items-center gap-1">
+                  {recommended && (
+                    <span className="rounded-full bg-cyan-300 px-2 py-0.5 text-[11px] font-black text-slate-950">
+                      RECOMMENDED
+                    </span>
+                  )}
+                  <span className="rounded-full bg-emerald-900 px-2 py-0.5 text-xs text-emerald-200">
+                    {l.status}
+                  </span>
                 </span>
               </div>
               <p className="mt-1 text-xs text-slate-400">
@@ -201,6 +279,9 @@ export function Marketplace() {
               </p>
               <p className="text-xs text-slate-500">
                 ≈ ${perSec.toFixed(4)}/sec · ${usdHr.toFixed(2)}/hr cap; includes {SERVICE_CUT_PCT}% platform cut. Billed per second.
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                1h ≈ {formatUsd(l.price_cents_per_hour)} ({coinsFor(l.price_cents_per_hour)} coins) · 24h ≈ {formatUsd(day.gross)} max · partial hours pro-rate per second.
               </p>
               <div className="mt-4 flex items-center gap-2">
                 <label className="text-sm text-slate-300">
@@ -234,6 +315,11 @@ export function Marketplace() {
                 <p className="mt-1 text-xs text-slate-500">
                   RunPod default endpoint; no URL needed. Booking rents the
                   cheapest live GPU at or under this max.
+                </p>
+              )}
+              {l.provider_code === "custom" && (
+                <p className="mt-1 text-xs text-slate-500">
+                  Custom endpoint: your serverless URL wakes per job — ideal NanoClaw serverless target.
                 </p>
               )}
               {conn && conn.ok && (

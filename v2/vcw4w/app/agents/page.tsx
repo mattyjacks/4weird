@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Marketplace } from "@/components/agents/marketplace";
 import { MyCompute } from "@/components/agents/my-compute";
 import { NanoclawDeploy } from "@/components/agents/nanoclaw-deploy";
+import { AgentBotNav } from "@/components/agents/agent-bot-nav";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/agents" },
@@ -22,6 +23,7 @@ export default function AgentsPage() {
           ← Home
         </Link>
         <h1 className="mt-4 text-4xl font-black">Rent an agent</h1>
+        <AgentBotNav current="/agents" />
         <p className="mt-4 text-slate-300">
           Rent an OpenClaw / NanoClaw / VibeCodeWorker agent — or a Xonotic
           game server where VibeCodeWorker plays for you or you play yourself.

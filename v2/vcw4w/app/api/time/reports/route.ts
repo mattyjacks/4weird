@@ -15,6 +15,21 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const orgId = url.searchParams.get("orgId");
   const projectId = url.searchParams.get("projectId");
+  const uuidRe = /^[0-9a-f-]{36}$/i;
+  if (orgId && !uuidRe.test(orgId)) return fail("Invalid org.", 400);
+  if (projectId && !uuidRe.test(projectId)) return fail("Invalid project.", 400);
+  // Defense in depth: RLS is primary, but never emit cross-user rows from the
+  // route. When an org filter is supplied the caller must be a member of that
+  // org, otherwise scope to own + owed-to-me rows only.
+  if (orgId) {
+    const { data: mem } = await supabase
+      .from("org_members")
+      .select("user_id")
+      .eq("org_id", orgId)
+      .eq("user_id", u.id)
+      .maybeSingle();
+    if (!mem) return fail("Not a member of that org.", 403);
+  }
 
   let query = supabase
     .from("timer_entries")
@@ -30,7 +45,8 @@ export async function GET(req: Request) {
       project:timer_projects(id, name, color),
       debtor:profiles!timer_entries_debtor_id_fkey(id, username, display_name)
     `)
-    .eq("is_running", false);
+    .eq("is_running", false)
+    .or(`user_id.eq.${u.id},debtor_id.eq.${u.id}`);
 
   if (orgId) query = query.eq("org_id", orgId);
   if (projectId) query = query.eq("project_id", projectId);

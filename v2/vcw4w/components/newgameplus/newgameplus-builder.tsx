@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { InfoTip } from "@/components/ui/info-tip";
+import { CompactDetails } from "@/components/ui/compact-details";
 
 const QUALITY_DEFAULT = 5;
 const BUDGET_DEFAULT = 100;
@@ -218,7 +220,8 @@ export function NewGamePlusBuilder() {
         <p className="mt-1 text-xs text-slate-500">{prompt.length}/500</p>
 
         <label className="mt-4 block text-sm">
-          Quality: <b className="text-cyan-300">{quality}</b> <span className="text-slate-500">(0-10)</span>
+          Quality: <b className="text-cyan-300">{quality}</b> <span className="text-slate-500">(0-10)</span>{" "}
+          <InfoTip text="Higher quality spends more budget for a bigger build. Start at 5 and raise it only if you need more." label="About quality" />
           <input type="range" min={0} max={10} step={1} value={quality} onChange={(e) => setQuality(Number(e.target.value))} className="w-full" aria-label="Quality 0 to 10" />
         </label>
         <label className="mt-3 block text-sm">
@@ -232,14 +235,19 @@ export function NewGamePlusBuilder() {
           />
         </label>
         <p className="mt-1 text-xs text-slate-500">
-          Default 100 · min {BUDGET_MIN} · max {BUDGET_MAX.toLocaleString()}. Above {CONFIRM_ABOVE} needs Confirm the Amount.
+          Default 100 · min {BUDGET_MIN} · max {BUDGET_MAX.toLocaleString()}. Above {CONFIRM_ABOVE} needs Confirm the Amount.{" "}
+          <InfoTip text="Budgets above 250 coins ask for confirmation first. You are only ever charged the capped spend." label="About confirm amount" />
         </p>
         <p className="mt-1 rounded-md border border-cyan-400/20 bg-cyan-400/5 px-2 py-1 text-xs text-cyan-200">
           🎼 {lane === "fast" ? "Fast lane: ≤5 min, Scout → Forge → Sage, cheap fal only." : "Deluxe lane: longer but fast (≈5-12 min), full 5-bot symphony + video/3D."}
         </p>
+        <CompactDetails summary="Fast vs deluxe?">
+          <p className="text-xs text-slate-400">Fast lane builds in under 5 minutes with 3 bots and cheap media. Deluxe runs the full 5-bot symphony with video and 3D, in about 5 to 12 minutes.</p>
+        </CompactDetails>
 
         <label className="mt-3 block text-sm">
-          Org Draft folder (optional)
+          Org Draft folder (optional){" "}
+          <InfoTip text="Personal drafts save to your account. Pick an org to save the draft to a shared folder." label="About org drafts" />
           <select value={orgId} onChange={(e) => setOrgId(e.target.value)} className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-white">
             <option value="">Personal drafts only</option>
             {orgs.map((o) => (
@@ -298,6 +306,9 @@ export function NewGamePlusBuilder() {
               <p className="mt-1 text-xs text-slate-400">
                 🧾 {result.charge?.billed ? `Billed ${result.charge.gross} coins (incl. ${result.charge.cut} cut) - see coin history + /my/usage.` : "Free local build (sign in to save drafts + meter coins)."}
               </p>
+              <CompactDetails summary="How to read this result">
+                <p className="text-xs text-slate-400">Verdict pass means the game survived automated play. Spend shows provider cost plus the cut; the draft path is where your game saved.</p>
+              </CompactDetails>
               <p className="mt-1 text-xs text-slate-400">
                 🤖 VCW verdict: <b className={result.test.verdict === "pass" ? "text-emerald-300" : "text-amber-300"}>{result.test.verdict}</b> ({result.test.loops} loop{result.test.loops === 1 ? "" : "s"}) · {result.game.bytes.toLocaleString()} bytes
               </p>

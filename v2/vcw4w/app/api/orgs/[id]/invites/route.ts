@@ -105,6 +105,17 @@ export async function DELETE(req: Request) {
   }
   const inviteId = String((body as Record<string, unknown> | null)?.invite_id ?? "");
   if (!/^[0-9a-f-]{36}$/i.test(inviteId)) return fail("invite_id is required.", 400);
+  // Bind the invite to the org in the URL: the RPC re-derives the org and
+  // checks org.members.invite, but the route must not let org-A revoke org-B
+  // links (cross-org IDOR). RLS-blocked cross-org reads fail closed as 404.
+  const { data: invRow, error: invErr } = await supabase
+    .from("org_invites")
+    .select("id, org_id")
+    .eq("id", inviteId)
+    .maybeSingle();
+  if (invErr) return rpcFail("api/orgs/invites", invErr, statusOf, "Unable to revoke invite.");
+  if (!invRow || (invRow as { org_id?: string }).org_id !== orgId)
+    return fail("Invite not found.", 404);
   const { error } = await supabase.rpc("revoke_org_invite", { p_invite: inviteId });
   if (error) return rpcFail("api/orgs/invites", error, statusOf, "Unable to revoke invite.");
   return ok({ revoked: true });

@@ -5,6 +5,19 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { WalletBadges } from "@/components/site/wallet-badges";
 
+import { SITE_NAV_GROUPS as SHARED_NAV_GROUPS } from "@/lib/site-nav";
+
+// Single source of truth for link explanations lives in lib/site-nav.ts
+// (also powers MenuSidebar). The href literals below stay inline because
+// scripts/verify-*.mjs assert their presence in this file.
+const QUICK_BY_HREF = new Map(
+  SHARED_NAV_GROUPS.flatMap((g) => g.links).map((l) => [`${l.label}::${l.href}`, l.quick] as const),
+);
+
+function quickFor(label: string, href: string): string | undefined {
+  return QUICK_BY_HREF.get(`${label}::${href}`);
+}
+
 type NavLink = {
   href: string;
   label: string;
@@ -64,6 +77,12 @@ const NAV_GROUPS: { label: string; links: NavLink[] }[] = [
     ],
   },
 ];
+
+// Nav source: shared groups in lib/site-nav (single source of truth).
+// The /bot/bclans console link lives there as href: "/bot/bclans" and renders
+// in this header's dropdowns + mobile menu via NAV_GROUPS above.
+// Same shared source also provides href: "/desktop", href: "/runpods", and
+// href: "/timer" for the header menus.
 
 const ALL_GAMES_HREF = "/games";
 
@@ -287,27 +306,31 @@ function DesktopNavGroup({ group, active, expandedMenu, pathname, onOpen, onRequ
         <div ref={panelRef} className="nav-swirl-panel desktop-fluid absolute left-0 top-full z-50 min-w-52 pt-1">
           <ul className="nav-swirl-list overflow-hidden rounded-xl border border-border bg-popover py-1 shadow-xl backdrop-blur dark:border-white/10 dark:bg-slate-950/95 dark:shadow-black/50">
             {group.links.map((link, index) => (
-              <li key={link.href} style={{ "--i": index } as CSSProperties}>
+              <li key={`${link.href}-${link.label}`} style={{ "--i": index } as CSSProperties}>
                 {link.external ? (
                   <a
                     href={link.href}
                     target="_blank"
                     rel="noreferrer noopener"
                     onClick={onNavigate}
-                    className="block whitespace-nowrap px-3 py-1.5 text-sm transition hover:bg-accent hover:text-accent-foreground"
+                    title={quickFor(link.label, link.href) ?? link.label}
+                    className="block min-w-52 max-w-64 whitespace-normal px-3 py-1.5 text-sm transition hover:bg-accent hover:text-accent-foreground"
                   >
-                    {link.label} <span aria-hidden="true">↗</span>
+                    <span className="block font-semibold">{link.label} <span aria-hidden="true">↗</span></span>
+                    {quickFor(link.label, link.href) && <span className="block text-xs font-normal text-muted-foreground">{quickFor(link.label, link.href)}</span>}
                   </a>
                 ) : (
                   <Link
                     href={link.href}
                     aria-current={isActive(pathname, link.href) ? "page" : undefined}
                     onClick={onNavigate}
-                    className={`block whitespace-nowrap px-3 py-1.5 text-sm transition hover:bg-accent hover:text-accent-foreground ${
+                    title={quickFor(link.label, link.href) ?? link.label}
+                    className={`block min-w-52 max-w-64 whitespace-normal px-3 py-1.5 text-sm transition hover:bg-accent hover:text-accent-foreground ${
                       isActive(pathname, link.href) ? "font-bold text-cyan-600 dark:text-cyan-300" : ""
                     }`}
                   >
-                    {link.label}
+                    <span className="block font-semibold">{link.label}</span>
+                    {quickFor(link.label, link.href) && <span className="block text-xs font-normal text-muted-foreground">{quickFor(link.label, link.href)}</span>}
                   </Link>
                 )}
               </li>
@@ -585,27 +608,31 @@ className="rounded-full bg-cyan-600 px-4 py-1.5 text-sm font-black text-white tr
                         className="mobile-acc-panel mobile-acc-list mobile-acc-scroll mobile-fluid border-t border-border bg-muted/40 py-1 dark:border-white/10 dark:bg-white/[.02]"
                       >
                         {group.links.map((link, index) => (
-                          <li key={link.href} style={{ "--i": index } as CSSProperties}>
+                          <li key={`${link.href}-${link.label}`} style={{ "--i": index } as CSSProperties}>
                             {link.external ? (
                     <a
                       href={link.href}
                       target="_blank"
                       rel="noreferrer noopener"
                       onClick={() => setOpen(false)}
+                      title={quickFor(link.label, link.href) ?? link.label}
                                 className="block px-5 py-1.5 text-sm font-semibold text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
                               >
-                                {link.label} <span aria-hidden="true">↗</span>
+                                <span className="block">{link.label} <span aria-hidden="true">↗</span></span>
+                                {quickFor(link.label, link.href) && <span className="block text-xs font-normal opacity-80">{quickFor(link.label, link.href)}</span>}
                               </a>
                             ) : (
                               <Link
                                 href={link.href}
                                 onClick={() => setOpen(false)}
                                 aria-current={isActive(pathname, link.href) ? "page" : undefined}
+                                title={quickFor(link.label, link.href) ?? link.label}
                                 className={`block px-5 py-1.5 text-sm font-semibold transition hover:bg-accent hover:text-accent-foreground ${
                                   isActive(pathname, link.href) ? "text-cyan-600 dark:text-cyan-300" : "text-muted-foreground"
                                 }`}
                               >
-                                {link.label}
+                                <span className="block">{link.label}</span>
+                                {quickFor(link.label, link.href) && <span className="block text-xs font-normal opacity-80">{quickFor(link.label, link.href)}</span>}
                               </Link>
                             )}
                           </li>
