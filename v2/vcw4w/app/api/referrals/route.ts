@@ -20,7 +20,21 @@ export async function GET() {
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);
   const { data: code, error } = await supabase.rpc("get_or_create_referral_code");
-  if (error) return dbFail("api/referrals", error);
+  if (error) {
+    // Fallback: serve the caller's existing code via direct read (RLS
+    // referral_code_own permits own-row SELECT). Keeps GET working when the
+    // RPC is missing/broken in a deploy; first-time mint still needs the RPC.
+    const { data: row, error: rowErr } = await supabase
+      .from("referral_codes")
+      .select("code")
+      .eq("user_id", data.user.id)
+      .maybeSingle();
+    if (!rowErr && row) {
+      const { count } = await supabase.from("referrals").select("id", { count: "exact", head: true }).eq("inviter_id", data.user.id);
+      return ok({ code: String((row as { code: string }).code ?? ""), invited: count ?? 0, inviterCoins: REFERRAL_INVITER_COINS, inviteeCoins: REFERRAL_INVITEE_COINS });
+    }
+    return dbFail("api/referrals", error);
+  }
   const { count } = await supabase.from("referrals").select("id", { count: "exact", head: true }).eq("inviter_id", data.user.id);
   return ok({ code: String(code ?? ""), invited: count ?? 0, inviterCoins: REFERRAL_INVITER_COINS, inviteeCoins: REFERRAL_INVITEE_COINS });
 }
