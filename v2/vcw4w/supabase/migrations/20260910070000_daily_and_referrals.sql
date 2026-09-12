@@ -30,6 +30,9 @@ drop policy if exists referrals_involved on public.referrals;
 create policy referrals_involved on public.referrals for select to authenticated using(inviter_id=auth.uid() or invitee_id=auth.uid());
 -- Writes go through SECURITY DEFINER RPCs below; no client write policies.
 
+-- DROP first: CREATE OR REPLACE cannot change OUT params, and live copies
+-- of this function already return an extra love_letters column.
+drop function if exists public.claim_daily_bonus();
 create or replace function public.claim_daily_bonus()
 returns table(coins integer, streak integer) language plpgsql security definer set search_path=public as $$
 declare yester date := (now() at time zone 'utc' - interval '1 day')::date;

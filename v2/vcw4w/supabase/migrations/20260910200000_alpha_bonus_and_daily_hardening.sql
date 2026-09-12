@@ -34,6 +34,8 @@ end; $$;
 revoke all on function public.claim_alpha_tester_bonus() from public, anon, authenticated;
 grant execute on function public.claim_alpha_tester_bonus() to authenticated;
 
+-- DROP first: live copies may already carry the love_letters OUT param.
+drop function if exists public.claim_daily_bonus();
 create or replace function public.claim_daily_bonus()
 returns table(coins integer, streak integer) language plpgsql security definer set search_path=public as $$
 declare yesterday date := (now() at time zone 'utc' - interval '1 day')::date;

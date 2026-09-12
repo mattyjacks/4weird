@@ -9,7 +9,7 @@ function read(path) {
   return readFileSync(path, "utf8");
 }
 
-const mig = read("supabase/migrations/20260925000000_watcher_multirole_ghost.sql");
+const mig = read("supabase/migrations/20260925000100_watcher_multirole_ghost.sql");
 
 // 1. Watcher role: view-only template + scoped targets.
 for (const token of ["'watcher'", "org_watch_scopes", "set_watch_scope", "org_watch_visible", "org_roles_of"]) {

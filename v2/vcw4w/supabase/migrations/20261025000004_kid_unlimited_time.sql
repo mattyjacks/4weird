@@ -5,7 +5,7 @@
 -- has a dedicated -1 -> NULL block, but the range guard rejects -1 first
 -- ('daily minutes must be 0..1440'), so unlimited time always 400s. This
 -- re-issues the function with the guard widened to -1..1440; the rest is
--- byte-identical to 20260924000000_family_accounts.sql. Fully rerunnable.
+-- byte-identical to 20260924000002_family_accounts.sql. Fully rerunnable.
 -- ============================================================================
 
 create or replace function public.set_kid_controls(

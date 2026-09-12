@@ -16,7 +16,7 @@ function noSubstrFrom(src, name) {
   must(!/substr\([^)]*\bfrom\b/i.test(stripped), `${name} must not use substr() with FROM/FOR (42601)`);
 }
 
-const mig = read("supabase/migrations/20261015000000_scale_prune_tribute.sql");
+const mig = read("supabase/migrations/20261015000100_scale_prune_tribute.sql");
 noSubstrFrom(mig, "scale migration");
 
 // 1. Caps: 10k orgs (+seats override), 100k clans, exact + race-safe.

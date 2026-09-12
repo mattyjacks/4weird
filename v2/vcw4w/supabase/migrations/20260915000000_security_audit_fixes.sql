@@ -11,13 +11,20 @@ drop policy if exists friendships_own on public.friendships;
 -- 2. Clan-wallet mint: credit_clan_channel_revenue() was granted to anon and
 --    had no auth check. Restrict to authenticated members; server verifies
 --    ad-view/click proofs via the API layer (per-IP throttle + membership).
-revoke all on function public.credit_clan_channel_revenue(text, text) from anon;
-revoke all on function public.credit_clan_channel_revenue(text, text) from authenticated;
+-- NOTE: the live signature is (uuid, text); an earlier revision of this fix
+-- referenced (text, text), which never existed. REVOKE has no IF EXISTS, so
+-- both statements live inside the existence guard.
+do $$ begin
+  if exists (select 1 from pg_proc where proname = 'credit_clan_channel_revenue') then
+    revoke all on function public.credit_clan_channel_revenue(uuid, text) from anon;
+    revoke all on function public.credit_clan_channel_revenue(uuid, text) from authenticated;
+  end if;
+end $$;
 -- Re-grant to authenticated only; function body must check auth.uid() itself.
 -- (If the function does not exist yet, this is a no-op guard.)
 do $$ begin
   if exists (select 1 from pg_proc where proname = 'credit_clan_channel_revenue') then
-    grant execute on function public.credit_clan_channel_revenue(text, text) to authenticated;
+    grant execute on function public.credit_clan_channel_revenue(uuid, text) to authenticated;
   end if;
 end $$;
 

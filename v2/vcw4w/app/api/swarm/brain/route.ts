@@ -74,7 +74,7 @@ export async function PATCH(req: Request) {
     if (error) {
       const msg = String((error as { message?: string }).message ?? "");
       if (msg.includes("swarm_brains") && (msg.includes("does not exist") || msg.includes("schema"))) {
-        return fail("Swarm brain tables are not migrated yet; apply supabase/migrations/20261022000000_swarm_brain.sql.", 503);
+        return fail("Swarm brain tables are not migrated yet; apply supabase/migrations/20261022000100_swarm_brain.sql.", 503);
       }
       return dbFail("api/swarm/brain:patch", error, "Unable to update the brain.");
     }

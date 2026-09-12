@@ -121,6 +121,9 @@ create table if not exists public.org_budgets (
 );
 alter table public.personal_budgets enable row level security;
 alter table public.org_budgets enable row level security;
+-- DROP first: live copies of these policies already exist (dashboard-applied).
+drop policy if exists personal_budgets_read_own on public.personal_budgets;
+drop policy if exists org_budgets_read_member on public.org_budgets;
 create policy personal_budgets_read_own on public.personal_budgets for select to authenticated using (user_id = auth.uid());
 create policy org_budgets_read_member on public.org_budgets for select to authenticated using (public.has_org_perm(org_id, 'org.billing.view'));
 grant select on public.personal_budgets, public.org_budgets to authenticated;

@@ -127,6 +127,9 @@ create index if not exists idx_coin_ledger_user on public.coin_ledger (user_id, 
 -- --------------------------------------------------------------------------
 -- Convenience balance function (fixed logic, no arguments to inject).
 -- --------------------------------------------------------------------------
+-- DROP first: CREATE OR REPLACE cannot change a return type, and early
+-- dashboard-applied copies of this function return numeric/bigint.
+drop function if exists public.get_my_coin_balance();
 create or replace function public.get_my_coin_balance()
 returns integer
 language sql

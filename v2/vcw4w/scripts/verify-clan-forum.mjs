@@ -6,7 +6,7 @@ const fail = (msg) => {
 };
 
 const mig = read("../supabase/migrations/20261016000000_clan_forum.sql");
-const boardsMig = read("../supabase/migrations/20261017000000_clan_boards.sql");
+const boardsMig = read("../supabase/migrations/20261017000100_clan_boards.sql");
 const forum = read("../lib/clan-forum.ts");
 const clanPage = read("../components/clans/clan-page.tsx");
 const voteButtons = read("../components/clans/forum-vote.tsx");

@@ -22,17 +22,22 @@
 -- --------------------------------------------------------------------------
 -- 1. Widen the role_key whitelists (default PG constraint names).
 -- --------------------------------------------------------------------------
+-- NOTE: 'watcher' is included here (not just in the later watcher migration)
+-- because live databases built from newer checkouts already hold watcher
+-- rows; without it this ADD CONSTRAINT fails validation (SQLSTATE 23514).
+-- The watcher migration re-asserts the identical set, so fresh-DB end state
+-- is unchanged (convergent).
 alter table public.role_templates drop constraint if exists role_templates_key_check;
 alter table public.role_templates
   add constraint role_templates_key_check check (key in (
     'owner', 'admin', 'maintainer', 'developer', 'viewer', 'billing', 'security',
-    'lord', 'captain', 'infantry', 'banker', 'banker_readonly'
+    'lord', 'captain', 'infantry', 'banker', 'banker_readonly', 'watcher'
   ));
 
 alter table public.org_members drop constraint if exists org_members_role_key_check;
 alter table public.org_members
   add constraint org_members_role_key_check check (
-    role_key in ('owner', 'admin', 'billing', 'security', 'viewer', 'lord', 'banker', 'banker_readonly')
+    role_key in ('owner', 'admin', 'billing', 'security', 'viewer', 'lord', 'banker', 'banker_readonly', 'watcher')
     or role_key = 'custom'
   );
 

@@ -1,7 +1,7 @@
 /**
  * Family accounts; shared shapes + validation for Parent/Child accounts.
  *
- * Two independent axes (see supabase/migrations/20260924000000_family_accounts.sql):
+ * Two independent axes (see supabase/migrations/20260924000002_family_accounts.sql):
  * - family_role: 'solo' | 'parent' (full Supabase accounts; only Adult 18+
  *   accounts may become 'parent' and create children — COPPA consent)
  * - age_band: 'unknown' (legacy) | 'kid' (legacy full-account rows only) |

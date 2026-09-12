@@ -10,7 +10,7 @@ function read(path) {
 }
 
 // 1. Family migration: tables, axes, RPCs, grants, no client policies.
-const fam = read("supabase/migrations/20260924000000_family_accounts.sql");
+const fam = read("supabase/migrations/20260924000002_family_accounts.sql");
 for (const token of [
   "kid_accounts", "kid_sessions", "kid_controls", "kid_wallet_ledger", "kid_play_days",
   "family_role", "age_band",

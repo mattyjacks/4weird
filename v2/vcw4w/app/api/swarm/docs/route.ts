@@ -42,7 +42,7 @@ export async function GET(req: Request) {
       .limit(SWARM_DOCS_MAX);
     if (error) {
       if (missingBrainTables(String((error as { message?: string }).message ?? ""))) {
-        return fail("Swarm brain tables are not migrated yet; apply supabase/migrations/20261022000000_swarm_brain.sql.", 503);
+        return fail("Swarm brain tables are not migrated yet; apply supabase/migrations/20261022000100_swarm_brain.sql.", 503);
       }
       return dbFail("api/swarm/docs:list", error, "Unable to load docs.");
     }
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
       .eq("user_id", data.user.id);
     if (countError) {
       if (missingBrainTables(String((countError as { message?: string }).message ?? ""))) {
-        return fail("Swarm brain tables are not migrated yet; apply supabase/migrations/20261022000000_swarm_brain.sql.", 503);
+        return fail("Swarm brain tables are not migrated yet; apply supabase/migrations/20261022000100_swarm_brain.sql.", 503);
       }
       return dbFail("api/swarm/docs:count", countError, "Unable to upload the doc.");
     }

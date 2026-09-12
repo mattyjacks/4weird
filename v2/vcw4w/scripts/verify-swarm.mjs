@@ -13,7 +13,7 @@ const docsRoute = read("../app/api/swarm/docs/route.ts");
 const page = read("../app/swarm/page.tsx");
 const widget = read("../components/swarm/swarm-chat.tsx");
 const mig = read("../supabase/migrations/20260927000000_swarm_chat.sql");
-const brainMig = read("../supabase/migrations/20261022000000_swarm_brain.sql");
+const brainMig = read("../supabase/migrations/20261022000100_swarm_brain.sql");
 const sitemap = read("../app/sitemap.ts");
 
 // One rule everywhere: the swarm cut is 25%, included never on top.

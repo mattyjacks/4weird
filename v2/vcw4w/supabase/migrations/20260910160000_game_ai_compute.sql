@@ -315,6 +315,9 @@ grant execute on function public.my_compute_usage(uuid) to authenticated;
 -- --------------------------------------------------------------------------
 -- 7. Spend view (per user + game + kind; RLS still applies via base table).
 -- --------------------------------------------------------------------------
+-- DROP first: CREATE OR REPLACE cannot change a column type, and live copies
+-- of this view already use numeric(12,2) coin columns.
+drop view if exists public.v_game_ai_spend;
 create or replace view public.v_game_ai_spend as
 select
   user_id,
