@@ -176,3 +176,16 @@ html.theme-trans-them .rounded-xl { border-radius: 14px; }
 html.theme-trans-them .rounded-2xl { border-radius: 20px; }
 html.theme-trans-them .rounded-full { border-radius: 9999px; }
 html.theme-trans-them button, html.theme-trans-them input { border-radius: 9999px; }
+/* ---- FOOTER: flag-stripe identity in both modes (paper-sky by day, deep sea by night) ---- */
+html.light.theme-trans-them footer#site-footer { background-color: #eef7fd; border-top-color: rgb(2 132 199 / 0.25); }
+html.dark.theme-trans-them footer#site-footer { background-color: #07141d; border-top-color: rgb(125 211 252 / 0.25); }
+html.light.theme-trans-them footer > .h-1 { height: 4px; background-image: linear-gradient(90deg, #5bcefa 0%, #5bcefa 20%, #f5abb9 20%, #f5abb9 40%, #ffffff 40%, #ffffff 60%, #f5abb9 60%, #f5abb9 80%, #5bcefa 80%, #5bcefa 100%); }
+html.dark.theme-trans-them footer > .h-1 { height: 4px; background-image: linear-gradient(90deg, #38bdf8 0%, #38bdf8 20%, #f472b6 20%, #f472b6 40%, #0e2a3d 40%, #0e2a3d 60%, #f472b6 60%, #f472b6 80%, #38bdf8 80%, #38bdf8 100%); }
+html.light.theme-trans-them footer .bg-clip-text { background-image: linear-gradient(90deg, #0284c7, #db2777); }
+html.dark.theme-trans-them footer .bg-clip-text { background-image: linear-gradient(90deg, #7dd3fc, #f9a8d4); }
+html.light.theme-trans-them footer nav[aria-label^="Footer"] > p > span { color: #0369a1; }
+html.dark.theme-trans-them footer nav[aria-label^="Footer"] > p > span { color: #7dd3fc; }
+html.light.theme-trans-them footer nav[aria-label^="Footer"] > span[aria-hidden="true"] { background-image: linear-gradient(90deg, #5bcefa, #f5abb9); }
+html.dark.theme-trans-them footer nav[aria-label^="Footer"] > span[aria-hidden="true"] { background-image: linear-gradient(90deg, #38bdf8, #f472b6); }
+html.light.theme-trans-them footer dl span[aria-hidden="true"] { color: #0369a1; background-image: linear-gradient(135deg, rgb(125 211 252 / 0.35), rgb(245 171 185 / 0.35)); }
+html.dark.theme-trans-them footer dl span[aria-hidden="true"] { color: #bae6fd; background-image: linear-gradient(135deg, rgb(56 189 248 / 0.30), rgb(245 171 185 / 0.30)); }

@@ -131,3 +131,16 @@ html.theme-girly-girl .rounded-xl { border-radius: 22px; }
 html.theme-girly-girl .rounded-2xl { border-radius: 30px; }
 html.theme-girly-girl button, html.theme-girly-girl input, html.theme-girly-girl .ui-details { border-radius: 9999px; }
 html.theme-girly-girl .ui-details-body, html.theme-girly-girl .ui-clamp-body { border-radius: 18px; }
+/* ---- FOOTER: candy gloss in both modes (strawberry milk by day, plum night) ---- */
+html.light.theme-girly-girl footer#site-footer { background-color: #fdf2f8; border-top-color: rgb(219 39 119 / 0.25); }
+html.dark.theme-girly-girl footer#site-footer { background-color: #230b16; border-top-color: rgb(244 114 182 / 0.28); }
+html.light.theme-girly-girl footer > .h-1 { height: 3px; background-image: linear-gradient(90deg, #fbcfe8, #ec4899 30%, #f0abfc 50%, #db2777 70%, #fbcfe8); }
+html.dark.theme-girly-girl footer > .h-1 { height: 3px; background-image: linear-gradient(90deg, #831843, #f472b6 30%, #f0abfc 50%, #ec4899 70%, #831843); }
+html.light.theme-girly-girl footer .bg-clip-text { background-image: linear-gradient(90deg, #9d174d, #c026d3); }
+html.dark.theme-girly-girl footer .bg-clip-text { background-image: linear-gradient(90deg, #f9a8d4, #f0abfc); }
+html.light.theme-girly-girl footer nav[aria-label^="Footer"] > p > span { color: #9d174d; }
+html.dark.theme-girly-girl footer nav[aria-label^="Footer"] > p > span { color: #f9a8d4; }
+html.light.theme-girly-girl footer nav[aria-label^="Footer"] > span[aria-hidden="true"] { background-image: linear-gradient(90deg, #ec4899, #f0abfc); }
+html.dark.theme-girly-girl footer nav[aria-label^="Footer"] > span[aria-hidden="true"] { background-image: linear-gradient(90deg, #f472b6, #e879f9); }
+html.light.theme-girly-girl footer dl span[aria-hidden="true"] { color: #9d174d; background-image: linear-gradient(135deg, rgb(219 39 119 / 0.16), rgb(192 38 211 / 0.14)); }
+html.dark.theme-girly-girl footer dl span[aria-hidden="true"] { color: #fbcfe8; background-image: linear-gradient(135deg, rgb(236 72 153 / 0.30), rgb(240 171 252 / 0.28)); }

@@ -114,3 +114,16 @@ html.theme-blue-boy h1::before { content: "▸ "; color: #06b6d4; }
 html.theme-blue-boy .rounded-lg { border-radius: 2px 10px 2px 10px; }
 html.theme-blue-boy .rounded-xl { border-radius: 3px 12px 3px 12px; }
 html.theme-blue-boy .rounded-2xl { border-radius: 4px 16px 4px 16px; }
+/* ---- FOOTER: neon arcade in both modes (cyan→fuchsia hairline) ---- */
+html.light.theme-blue-boy footer#site-footer { background-color: #e8f8fd; border-top-color: rgb(8 145 178 / 0.30); }
+html.dark.theme-blue-boy footer#site-footer { background-color: #04090f; border-top-color: rgb(103 232 249 / 0.25); }
+html.light.theme-blue-boy footer > .h-1 { height: 3px; background-image: linear-gradient(90deg, #a5f3fc, #0891b2 40%, #f0abfc 70%, #a5f3fc); }
+html.dark.theme-blue-boy footer > .h-1 { height: 3px; background-image: linear-gradient(90deg, #083344, #22d3ee 40%, #e879f9 70%, #083344); }
+html.light.theme-blue-boy footer .bg-clip-text { background-image: linear-gradient(90deg, #0e7490, #c026d3); }
+html.dark.theme-blue-boy footer .bg-clip-text { background-image: linear-gradient(90deg, #67e8f9, #f0abfc); }
+html.light.theme-blue-boy footer nav[aria-label^="Footer"] > p > span { color: #0e7490; }
+html.dark.theme-blue-boy footer nav[aria-label^="Footer"] > p > span { color: #67e8f9; }
+html.light.theme-blue-boy footer nav[aria-label^="Footer"] > span[aria-hidden="true"] { background-image: linear-gradient(90deg, #0891b2, #c026d3); }
+html.dark.theme-blue-boy footer nav[aria-label^="Footer"] > span[aria-hidden="true"] { background-image: linear-gradient(90deg, #22d3ee, #e879f9); }
+html.light.theme-blue-boy footer dl span[aria-hidden="true"] { color: #0e7490; background-image: linear-gradient(135deg, rgb(8 145 178 / 0.15), rgb(192 38 211 / 0.15)); }
+html.dark.theme-blue-boy footer dl span[aria-hidden="true"] { color: #a5f3fc; background-image: linear-gradient(135deg, rgb(34 211 238 / 0.25), rgb(217 70 239 / 0.25)); }

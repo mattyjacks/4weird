@@ -15,6 +15,7 @@ import { COLOR_THEMES, colorThemeById, type ColorThemeId } from "@/lib/site-them
 import { useSiteTheme } from "@/components/site/site-theme-provider";
 import { useMountedTheme } from "@/components/site/themes/use-mounted-theme";
 import { useRandomizeTheme } from "@/components/site/themes/use-randomize-theme";
+import { UsaFlag } from "@/components/site/themes/usa-flag";
 
 export function SwatchDot({ swatch, label }: { swatch: string; label: string }) {
   return (
@@ -44,12 +45,12 @@ export function ColorThemeSwitcher({ compact = false }: { compact?: boolean }) {
       <DropdownMenuTrigger asChild>
         {compact ? (
           <Button variant="ghost" size="sm" aria-label={`Color theme: ${active.label}. Change color theme`}>
-            <SwatchDot swatch={active.swatch} label={active.label} />
+            {active.id === "theme-usa" ? <UsaFlag /> : <SwatchDot swatch={active.swatch} label={active.label} />}
           </Button>
         ) : (
           <Button variant="outline" size="sm" aria-label="Select color theme" className="gap-2">
             <Palette size={16} className="text-muted-foreground" aria-hidden="true" />
-            <SwatchDot swatch={active.swatch} label={active.label} />
+            {active.id === "theme-usa" ? <UsaFlag /> : <SwatchDot swatch={active.swatch} label={active.label} />}
             <span>{active.label}</span>
           </Button>
         )}
@@ -61,7 +62,7 @@ export function ColorThemeSwitcher({ compact = false }: { compact?: boolean }) {
         >
           {COLOR_THEMES.map((t) => (
             <DropdownMenuRadioItem key={t.id} className="flex items-center gap-2" value={t.id}>
-              <SwatchDot swatch={t.swatch} label={t.label} />
+              {t.id === "theme-usa" ? <UsaFlag /> : <SwatchDot swatch={t.swatch} label={t.label} />}
               <span className="flex-1">{t.label}</span>
               {t.id === colorTheme && <Check size={14} aria-hidden="true" />}
             </DropdownMenuRadioItem>
@@ -111,9 +112,11 @@ export function SiteThemePicker() {
               />
               <span
                 aria-hidden="true"
-                className="h-10 w-10 shrink-0 rounded-lg border border-black/20 dark:border-white/25"
-                style={{ background: t.swatch }}
-              />
+                className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg border border-black/20 dark:border-white/25"
+                style={t.id === "theme-usa" ? undefined : { background: t.swatch }}
+              >
+                {t.id === "theme-usa" ? <UsaFlag className="h-full w-full rounded-none border-0" /> : null}
+              </span>
               <span>
                 <span className="block font-bold text-foreground">{t.label}</span>
                 <span className="block text-xs text-muted-foreground">{t.tagline}</span>

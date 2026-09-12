@@ -14,13 +14,21 @@ type Org = { id: string; slug: string; name: string };
 type FalPick = { op: string; why: string; coins: number; fast: boolean };
 type SwarmAgent = { name: string; role: string; task: string; tools: string[] };
 type TimelineStage = { key: string; label: string; detail: string; targetSec: number };
+type BuildCheck = { id: string; label: string; passed: boolean; detail: string };
+type BuildCommit = {
+  n: number; variant: number; slug: string; title: string; source: string; bytes: number;
+  improvements: string[]; spendSlice: number; spentCumulative?: number; polished?: boolean; vaultPath?: string;
+  evidence: { verdict: string; loops: number; passed: number; total: number; checks: BuildCheck[]; steps: string[]; findings: { severity: string; title: string; description: string }[] };
+};
 type BuildResult = {
-  game: { slug: string; title: string; source: string; bytes: number };
+  game: { slug: string; title: string; source: string; bytes: number; archetype?: string };
+  resolved?: { label: string; family: string; parents: string[]; blendNote: string; freeform: boolean };
   plan: { quality: number; budget: number; estimate: number; spend: number; cut: number; provider: number; strategy: string; note: string; lane: string; target: string };
   charge?: { billed: boolean; gross: number; cut: number };
   test: { verdict: string; loops: number; steps: string[]; checks: { id: string; label: string; passed: boolean; detail: string }[]; findings: { severity: string; title: string; description: string }[] };
-  mastery?: { mastered: boolean; iterations: { variant: number; slug: string; title: string; verdict: string; checks: number; passed: number; improvements: string[] }[] };
-  vault?: { folder: string; instanceId: string; files: { path: string; bytes: number }[] };
+  mastery?: { mastered: boolean; actualSpend?: number; iterations: { variant: number; slug: string; title: string; verdict: string; checks: number; passed: number; improvements: string[]; bytes?: number; spendSlice?: number; spentCumulative?: number; polished?: boolean }[] };
+  commits?: BuildCommit[];
+  vault?: { folder: string; instanceId: string; files: { path: string; bytes: number }[]; saved?: boolean; savedFiles?: number };
   draft: { scope: string; submission_id: string | null; project_id: string | null; draft_path: string; note: string };
   swarm?: { lane: string; mode: string; agents: SwarmAgent[]; trace: string[]; target: string };
   fal?: { selected: FalPick[]; totalCoins: number; note: string; configured: boolean };
@@ -57,6 +65,8 @@ export function NewGamePlusBuilder() {
   const [budget, setBudget] = useState(BUDGET_DEFAULT);
   const [orgs, setOrgs] = useState<Org[]>([]);
   const [orgId, setOrgId] = useState("");
+  const [archetype, setArchetype] = useState("custom");
+  const [style, setStyle] = useState("");
   const [signedIn, setSignedIn] = useState<"unknown" | "in" | "out">("unknown");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -65,7 +75,11 @@ export function NewGamePlusBuilder() {
   const [elapsedMs, setElapsedMs] = useState(0);
   const [status, setStatus] = useState("Describe a game, tune Quality + Budget, then launch.");
   const [result, setResult] = useState<BuildResult | null>(null);
+  const [sel, setSel] = useState<number | null>(null);
   const [falMsg, setFalMsg] = useState("");
+  const [vcw, setVcw] = useState<{ runId: string; verdict: string; steps: number; bugs: number } | null>(null);
+  const [vcwMsg, setVcwMsg] = useState("");
+  const [vcwBusy, setVcwBusy] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const previewRef = useRef<HTMLDivElement | null>(null);
   const startedAt = useRef(0);
@@ -88,6 +102,46 @@ export function NewGamePlusBuilder() {
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [loadOrgs]);
+
+  // New build → auto-load the final commit in the preview.
+  useEffect(() => {
+    setSel(null);
+    setVcw(null);
+    setVcwMsg("");
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("commit");
+      window.history.replaceState(null, "", url.toString());
+    } catch {
+      /* URL cleanup is best-effort */
+    }
+  }, [result?.game.slug]);
+
+  // ?commit= deep link: land directly on one internal commit.
+  useEffect(() => {
+    try {
+      const n = Number(new URL(window.location.href).searchParams.get("commit"));
+      if (result?.commits?.length && Number.isInteger(n) && n >= 1 && n <= result.commits.length) {
+        setSel(n - 1);
+      }
+    } catch {
+      /* deep link is best-effort */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result?.commits?.length]);
+
+  function selectCommit(i: number) {
+    if (!result?.commits?.length) return;
+    const idx = Math.max(0, Math.min(i, result.commits.length - 1));
+    setSel(idx);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set("commit", String(result.commits[idx].n));
+      window.history.replaceState(null, "", url.toString());
+    } catch {
+      /* URL sync is best-effort */
+    }
+  }
 
   const lane = laneOf(budget);
   const targetSecs = lane === "fast" ? 300 : 720;
@@ -133,7 +187,7 @@ export function NewGamePlusBuilder() {
       setStageKey("qa");
       const body = await api<BuildResult>("/api/newgameplus/build", {
         method: "POST",
-        body: JSON.stringify({ prompt: prompt.trim(), quality, budget, org_id: orgId || undefined, confirmed }),
+        body: JSON.stringify({ prompt: prompt.trim(), quality, budget, org_id: orgId || undefined, confirmed, archetype, style: style.trim().slice(0, 120) || undefined }),
       });
       // Replay the server symphony as the live trail.
       for (const a of body.swarm?.agents ?? []) pushLive(`🤖 ${a.name} (${a.role}): ${a.task.slice(0, 140)}`);
@@ -146,8 +200,8 @@ export function NewGamePlusBuilder() {
       setResult(body);
       setStatus(
         body.test.verdict === "pass"
-          ? `Done - “${body.game.title}” passed VibeCodeWorker (${body.test.loops} loop${body.test.loops === 1 ? "" : "s"}). ${body.draft.note}`
-          : `Built “${body.game.title}” - VCW verdict: ${body.test.verdict}. ${body.draft.note}`,
+          ? `Done - “${body.game.title}” passed the local headless playtest (${body.test.loops} loop${body.test.loops === 1 ? "" : "s"}; node:vm boot + real frames, not a remote agent). ${body.draft.note}`
+          : `Built “${body.game.title}” - local verdict: ${body.test.verdict}. ${body.draft.note}`,
       );
     } catch (e) {
       setStageKey("");
@@ -171,8 +225,49 @@ export function NewGamePlusBuilder() {
     }
   }
 
-  async function queueFal(op: string) {
-    if (!result) return;
+  /** VCW-rate quote for transcribing the active commit: run-open 10 + 1/step + 2/bug. */
+  function vcwQuote(): number {
+    const ev = activeCommit()?.evidence;
+    const checks = ev?.checks ?? result?.test.checks ?? [];
+    const steps = ev?.steps ?? result?.test.steps ?? [];
+    const findings = ev?.findings ?? result?.test.findings ?? [];
+    const nSteps = Math.min(checks.length, 20) + Math.min(steps.length, 12) + Math.min(findings.length, 5);
+    const nBugs = Math.min(checks.filter((c) => !c.passed).length, 8)
+      + Math.min(findings.filter((f) => f.severity === "high" || f.severity === "critical").length, 4);
+    return 10 + nSteps + 2 * nBugs;
+  }
+
+  async function verifyWithVcw() {
+    const commit = activeCommit();
+    if (!result?.draft.submission_id || vcwBusy) return;
+    setVcwBusy(true);
+    setVcwMsg("Opening VCW run…");
+    try {
+      const ev = commit?.evidence;
+      const body = await api<{ run_id: string; verdict: string; steps: number; bugs: number }>("/api/newgameplus/vcw-verify", {
+        method: "POST",
+        body: JSON.stringify({
+          submission_id: result.draft.submission_id,
+          commit_n: commit?.n ?? 1,
+          slug: commit?.slug ?? result.game.slug,
+          title: commit?.title ?? result.game.title,
+          verdict: ev?.verdict ?? result.test.verdict,
+          loops: result.test.loops,
+          checks: (ev?.checks ?? result.test.checks).slice(0, 30),
+          steps: (ev?.steps ?? result.test.steps).slice(0, 12),
+          findings: (ev?.findings ?? result.test.findings).slice(0, 8),
+        }),
+      });
+      setVcw({ runId: body.run_id, verdict: body.verdict, steps: body.steps, bugs: body.bugs });
+      setVcwMsg(`VCW run recorded: ${body.verdict}, ${body.steps} steps, ${body.bugs} bugs (transcribed local evidence, metered at VCW rates).`);
+    } catch (e) {
+      setVcwMsg(e instanceof Error ? e.message : "VCW verify failed.");
+    } finally {
+      setVcwBusy(false);
+    }
+  }
+
+  async function queueFal(op: string) {    if (!result) return;
     setFalMsg(`Queuing ${op}…`);
     try {
       const body = await api<{ started?: boolean; request_id?: string; quote?: { gross: number }; hint?: string; error?: string }>("/api/fal/generate", {
@@ -185,13 +280,20 @@ export function NewGamePlusBuilder() {
     }
   }
 
+  function activeCommit() {
+    if (!result?.commits?.length) return null;
+    const idx = sel ?? result.commits.length - 1;
+    return result.commits[Math.max(0, Math.min(idx, result.commits.length - 1))] ?? null;
+  }
+
   function download() {
     if (!result) return;
-    const blob = new Blob([result.game.source], { type: "text/html" });
+    const commit = activeCommit();
+    const blob = new Blob([commit?.source ?? result.game.source], { type: "text/html" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${result.game.slug}.html`;
+    a.download = `${commit?.slug ?? result.game.slug}.html`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -271,6 +373,48 @@ export function NewGamePlusBuilder() {
           </p>
         )}
 
+        <label className="mt-3 block text-sm">
+          Archetype{" "}
+          <InfoTip side="bottom" text="Custom (default) invents the fit from your prompt, melding two families when it hears both. Pick a family to pin it, or Completely custom for a hash-derived one-off with no parent." label="About archetypes" />
+          <select
+            id="ngp-archetype"
+            aria-label="Archetype"
+            aria-describedby="arch-hint"
+            value={archetype}
+            onChange={(e) => setArchetype(e.target.value)}
+            disabled={busy}
+            className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-white"
+          >
+            <option value="custom">Custom ✨ (auto-pick from prompt)</option>
+            <option value="catcher">Catcher (catch falling things)</option>
+            <option value="dodger">Dodger (weave hazards, survive)</option>
+            <option value="breaker">Breaker (smash bursts, clear up)</option>
+            <option value="shooter">Shooter (waves, rescue targets)</option>
+            <option value="rpg">RPG (explore, talk, mini-quests)</option>
+            <option value="free">Completely custom (no parent, pure prompt)</option>
+          </select>
+        </label>
+        <p id="arch-hint" className="mt-1 text-xs text-slate-500">
+          {archetype === "free"
+            ? "Freeform: a one-off engine derived from the prompt hash."
+            : archetype === "custom"
+              ? "Auto: solo inspiration, or a meld when the prompt names two."
+              : `Pinned: every commit builds the ${archetype} family.`}
+        </p>
+        <label className="mt-3 block text-sm">
+          Style notes (optional)
+          <input
+            id="ngp-style"
+            aria-label="Style notes"
+            value={style}
+            onChange={(e) => setStyle(e.target.value.slice(0, 120))}
+            maxLength={120}
+            placeholder="neon vampires, double jump…"
+            disabled={busy}
+            className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          />
+        </label>
+
         <button
           type="button" disabled={busy} onClick={() => void launch(false)}
           className="mt-4 w-full rounded-md bg-cyan-500 px-3 py-2 text-sm font-bold text-slate-950 hover:bg-cyan-400 disabled:opacity-50"
@@ -282,7 +426,7 @@ export function NewGamePlusBuilder() {
       </section>
 
       <section className="rounded-2xl border border-white/10 bg-white/[.03] p-5" aria-label="NewGamePlus result" aria-live="polite">
-        {!result && !busy && !liveLog.length && <p className="text-sm text-slate-400">Your tested game lands here with a live preview, the Draft folder path, and the VCW evidence trail.</p>}
+        {!result && !busy && !liveLog.length && <p className="text-sm text-slate-400">Your tested game lands here with a live preview, the Draft folder path, and the local evidence trail (VibeCodeWorker ledger verify optional).</p>}
         {(busy || liveLog.length > 0) && (
           <div className="rounded-xl border border-cyan-400/20 bg-black/40 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -299,7 +443,7 @@ export function NewGamePlusBuilder() {
         )}
         {busy && !result && (
           <div className="mt-3">
-            <p className="text-sm text-cyan-200">🕹️ VibeCodeWorker: observe → reason → act…</p>
+            <p className="text-sm text-cyan-200">🕹️ VibeCodeWorker (local headless harness): observe → reason → act…</p>
             <div className="mt-2 h-2 overflow-hidden rounded bg-black/40"><div className="h-full w-1/2 animate-pulse bg-cyan-400" /></div>
           </div>
         )}
@@ -307,6 +451,15 @@ export function NewGamePlusBuilder() {
           <div className="mt-4 space-y-4">
             <div>
               <h2 className="text-xl font-black">{result.game.title}</h2>
+              {!!result.resolved && (
+                <p className="mt-1 text-xs font-bold text-fuchsia-300" title={result.resolved.blendNote || undefined}>
+                  {result.resolved.freeform
+                    ? "✨ Custom archetype (freeform — no parent)"
+                    : result.resolved.parents.length > 1
+                      ? `✨ Custom archetype (meld: ${result.resolved.parents.join(" × ")})`
+                      : `Archetype: ${result.resolved.label}`}
+                </p>
+              )}
               <p className="mt-1 text-xs text-slate-400">
                 📁 Draft: <code className="text-cyan-200">{result.draft.draft_path}</code> ({result.draft.scope}) · {result.draft.note}
               </p>
@@ -320,11 +473,39 @@ export function NewGamePlusBuilder() {
                     ? "Free local build (sign in to save drafts + meter coins)."
                     : "Not billed - the draft save failed, so no coins moved. Download the .html, then relaunch to retry the save."}
               </p>
+              <div className="mt-1 rounded-lg border border-violet-300/20 bg-violet-300/5 p-2 text-xs text-slate-300">
+                <p>
+                  ☁️ VibeCodeWorker ledger verify{" "}
+                  {result.draft.submission_id ? (
+                    <button
+                      type="button"
+                      onClick={() => void verifyWithVcw()}
+                      disabled={vcwBusy}
+                      className="font-bold text-violet-200 underline disabled:opacity-50"
+                    >
+                      {vcwBusy ? "Recording…" : `Record commit as VCW run (~${vcwQuote()} coins)`}
+                    </button>
+                  ) : (
+                    <span className="text-slate-500">needs a saved draft (this build is local-only).</span>
+                  )}
+                </p>
+                <p className="mt-1 text-slate-500">
+                  Transcribes this commit&apos;s executed evidence into a real vcw_runs row (steps + bugs + verdict, metered at VCW rates, outside the build charge). No remote browser — local-headless provenance is stamped on every step.
+                </p>
+                {vcwMsg && <p className="mt-1 text-slate-300" role="status">{vcwMsg}</p>}
+                {!!vcw && (
+                  <p className="mt-1 font-mono">
+                    ✅ run <code className="text-violet-200">{vcw.runId}</code> · {vcw.verdict} · {vcw.steps} steps · {vcw.bugs} bugs ·{" "}
+                    <a className="font-bold text-violet-200 underline" href={`/api/vcw/runs/${vcw.runId}`}>run</a> ·{" "}
+                    <a className="font-bold text-violet-200 underline" href={`/api/vcw/runs/${vcw.runId}/export`}>export</a>
+                  </p>
+                )}
+              </div>
               <CompactDetails summary="How to read this result">
                 <p className="text-xs text-slate-400">Verdict pass means the game survived automated play. Gross price — 25% platform cut included, never added on top; the draft path is where your game saved.</p>
               </CompactDetails>
               <p className="mt-1 text-xs text-slate-400">
-                🤖 VCW verdict: <b className={result.test.verdict === "pass" ? "text-emerald-300" : "text-amber-300"}>{result.test.verdict}</b> ({result.test.loops} loop{result.test.loops === 1 ? "" : "s"}) · {result.game.bytes.toLocaleString()} bytes
+                🤖 Local playtest verdict: <b className={result.test.verdict === "pass" ? "text-emerald-300" : "text-amber-300"}>{result.test.verdict}</b> ({result.test.loops} loop{result.test.loops === 1 ? "" : "s"}) · {result.game.bytes.toLocaleString()} bytes · <span className="text-slate-500">local-headless</span>
               </p>
             </div>
             {!!result.swarm && (
@@ -358,17 +539,114 @@ export function NewGamePlusBuilder() {
                 {!!falMsg && <p className="mt-2 text-slate-300" role="status">{falMsg}</p>}
               </div>
             )}
+            {!!result.commits?.length && (
+              <div className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs">
+                <p className="font-bold text-slate-200">
+                  🔁 Test-per-commit ({result.commits.length} commit{result.commits.length === 1 ? "" : "s"} · {result.charge?.billed ? `billed ${result.charge.gross}` : "free"} · preview auto-loads the selected commit)
+                </p>
+                <div
+                  className="mt-2 flex flex-wrap gap-1.5"
+                  role="group"
+                  aria-label="Commits"
+                  onKeyDown={(e) => {
+                    if (/^(TEXTAREA|INPUT|SELECT)$/.test((e.target as HTMLElement)?.tagName ?? "")) return;
+                    const cur = sel ?? result.commits!.length - 1;
+                    if (e.key === "ArrowLeft") selectCommit(cur - 1);
+                    else if (e.key === "ArrowRight") selectCommit(cur + 1);
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => selectCommit((sel ?? result.commits!.length - 1) - 1)}
+                    disabled={(sel ?? result.commits!.length - 1) <= 0}
+                    aria-label="Previous commit"
+                    className="rounded-md border border-white/15 px-2 py-1 font-mono disabled:opacity-40"
+                  >
+                    ← Prev
+                  </button>
+                  {result.commits.map((c, i) => {
+                    const active = (sel ?? result.commits!.length - 1) === i;
+                    return (
+                      <button
+                        key={c.n}
+                        type="button"
+                        onClick={() => selectCommit(i)}
+                        title={`${c.title} — ${c.evidence.passed}/${c.evidence.total} checks · ${(c.improvements ?? []).join("; ") || "hold"}`}
+                        className={`rounded-md border px-2 py-1 font-mono ${active ? "border-cyan-300 bg-cyan-300/15 text-cyan-100" : "border-white/15 text-slate-300 hover:bg-white/5"}`}
+                      >
+                        {c.evidence.verdict === "pass" ? "✅" : "❌"} #{c.n} {c.evidence.passed}/{c.evidence.total}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => selectCommit((sel ?? result.commits!.length - 1) + 1)}
+                    disabled={(sel ?? result.commits!.length - 1) >= result.commits!.length - 1}
+                    aria-label="Next commit"
+                    className="rounded-md border border-white/15 px-2 py-1 font-mono disabled:opacity-40"
+                  >
+                    Next →
+                  </button>
+                </div>
+                <ol className="mt-2 space-y-1 text-slate-400">
+                  {result.commits.map((c) => (
+                    <li key={c.n} className="font-mono">
+                      #{c.n} {c.slug} — {c.evidence.verdict} {c.evidence.passed}/{c.evidence.total} · next: {(c.improvements ?? []).join("; ") || "hold"} · {c.spendSlice}c{typeof c.spentCumulative === "number" ? ` (Σ${c.spentCumulative})` : ""} · {c.bytes.toLocaleString()} bytes
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+            {!!activeCommit() && (
+              <div className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs">
+                <p className="font-bold text-slate-200">
+                  🧪 Commit {activeCommit()!.n} evidence:{" "}
+                  <b className={activeCommit()!.evidence.verdict === "pass" ? "text-emerald-300" : "text-amber-300"}>
+                    {activeCommit()!.evidence.verdict}
+                  </b>{" "}
+                  {activeCommit()!.evidence.passed}/{activeCommit()!.evidence.total} · {activeCommit()!.bytes.toLocaleString()} bytes
+                  {typeof activeCommit()!.spentCumulative === "number" ? ` · Σ${activeCommit()!.spentCumulative}c` : ""}
+                </p>
+                <ul className="mt-2 space-y-1">
+                  {activeCommit()!.evidence.checks.map((c) => (
+                    <li key={c.id} className={c.passed ? "text-emerald-300" : "text-red-300"}>
+                      {c.passed ? "✅" : "❌"} {c.label}{c.passed ? "" : ` - ${c.detail}`}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-slate-400">{activeCommit()!.evidence.steps.slice(0, 3).join(" · ")}</p>
+                {activeCommit()!.evidence.steps.length > 3 && (
+                  <details className="mt-1">
+                    <summary className="cursor-pointer font-bold text-cyan-300">All {activeCommit()!.evidence.steps.length} steps</summary>
+                    <ol className="mt-1 list-decimal pl-5 text-slate-300">
+                      {activeCommit()!.evidence.steps.map((s, i) => (<li key={i}>{s}</li>))}
+                    </ol>
+                  </details>
+                )}
+                {!!activeCommit()!.evidence.findings.length && (
+                  <ul className="mt-2 space-y-1 text-amber-200">
+                    {activeCommit()!.evidence.findings.map((f, i) => (<li key={i}>🔧 [{f.severity}] {f.title} - {f.description}</li>))}
+                  </ul>
+                )}
+              </div>
+            )}
             <div ref={previewRef} className="rounded-xl border border-white/15 bg-black">
-              <iframe title={`${result.game.title} preview`} srcDoc={result.game.source} sandbox="allow-scripts" className="h-[440px] w-full rounded-xl bg-black" />
+              <iframe
+                key={(sel ?? (result.commits?.length ?? 1) - 1) + ":" + (activeCommit()?.slug ?? result.game.slug)}
+                title={`${activeCommit()?.title ?? result.game.title} preview (commit ${activeCommit()?.n ?? result.commits?.length ?? 1})`}
+                srcDoc={activeCommit()?.source ?? result.game.source}
+                sandbox="allow-scripts"
+                className="h-[440px] w-full rounded-xl bg-black"
+              />
             </div>
-            <p className="text-xs text-slate-500">Click the game once to focus keyboard (WASD/arrows, P pauses, R restarts) · Fullscreen for the full play window.</p>
+            <p className="text-xs text-slate-500">Auto-loaded commit {activeCommit()?.n ?? result.commits?.length ?? 1}{result.commits?.length ? ` of ${result.commits.length}` : ""} — click the game once to focus keyboard (WASD/arrows, E talks, P pauses, R restarts) · Fullscreen for the full play window.</p>
             <div className="flex flex-wrap gap-2">
               <button type="button" onClick={download} className="rounded-md bg-emerald-400 px-3 py-1.5 text-sm font-bold text-slate-950">Download .html</button>
               <button type="button" onClick={togglePreviewFullscreen} className="rounded-md border border-slate-700 px-3 py-1.5 text-sm text-slate-200">Fullscreen preview</button>
-              <button type="button" onClick={() => { try { void navigator.clipboard.writeText(result.game.source); setStatus("Game source copied."); } catch { setStatus("Copy failed."); } }} className="rounded-md border border-slate-700 px-3 py-1.5 text-sm text-slate-200">Copy source</button>
+              <button type="button" onClick={() => { try { void navigator.clipboard.writeText(activeCommit()?.source ?? result.game.source); setStatus("Game source copied."); } catch { setStatus("Copy failed."); } }} className="rounded-md border border-slate-700 px-3 py-1.5 text-sm text-slate-200">Copy source</button>
             </div>
             <details className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs">
-              <summary className="cursor-pointer font-bold text-cyan-300">VCW evidence trail ({result.test.steps.length} steps, {result.test.checks.length} checks)</summary>
+              <summary className="cursor-pointer font-bold text-cyan-300">Local evidence trail ({result.test.steps.length} steps, {result.test.checks.length} checks) · local-headless</summary>
               <ol className="mt-2 list-decimal pl-5 text-slate-300">{result.test.steps.map((s, i) => (<li key={i}>{s}</li>))}</ol>
               <ul className="mt-2 space-y-1">
                 {result.test.checks.map((c) => (
@@ -395,7 +673,12 @@ export function NewGamePlusBuilder() {
             )}
             {!!result.vault && (
               <details className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs" open>
-                <summary className="cursor-pointer font-bold text-slate-200">📁 Weird Vault - {result.vault.folder} (html + css + js + content)</summary>
+                <summary className="cursor-pointer font-bold text-slate-200">📁 Weird Vault - {result.vault.folder} (html + css + js + content){result.vault.saved ? ` · saved ✓ (${result.vault.savedFiles ?? 0} files)` : ""}</summary>
+                <p className="mt-1">
+                  <a className="font-bold text-cyan-300 underline" href={`/vault?folder=${encodeURIComponent(result.vault.folder)}`}>
+                    Open folder in Vault →
+                  </a>
+                </p>
                 <ul className="mt-2 space-y-1 text-slate-300">
                   {result.vault.files.map((f) => (<li key={f.path}>· <code>{f.path}</code> ({f.bytes.toLocaleString()} bytes)</li>))}
                 </ul>

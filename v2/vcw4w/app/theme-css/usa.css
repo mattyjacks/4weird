@@ -3,141 +3,167 @@
    the id is persisted in localStorage, stamped pre-paint in layout.tsx,
    and gates the fireworks canvas. Renaming the id would orphan every
    saved preference. Only the display label changed.
-   Old glory blue carries the old cyan role, flag red the fuchsia role;
-   coins stay amber so money reads the same in every palette.
-   NIGHT (dark) is a star field over deep navy. DAY (light) is warm
-   parchment with navy ink and flag-red primaries — never dark blocks
+   BOLD by design: flag RED is the primary action color in BOTH modes
+   (never Blue Boy cyan), navy steel is secondary, coins stay amber so
+   money reads the same in every palette. That red-first palette plus
+   star-field + pinstripe bodies, flag-bar header/footer, and an actual
+   hand-drawn flag asset (`/flags/usa-flag.svg`, rendered via the shared
+   <UsaFlag/> component in the switcher, picker, and header badge) is
+   what sets dark USA apart from dark Blue Boy's cyan-neon arcade.
+   NIGHT (dark) is a red-ember navy star field. DAY (light) is bright
+   paper with navy ink and flag-red primaries — never dark blocks
    on a paper page (that was the old light-mode bug). The fireworks
-   canvas flies over everything while this theme is active. */
+   + bombing-run canvas flies over everything while this theme is active. */
 
 html.theme-usa {
-  --t-solid: #1d4ed8; --t-solid-hover: #2563eb;
-  --t-bright: #93c5fd; --t-bright-hover: #bfdbfe;
-  --t-ink: #1e3a8a; --t-glow: #93c5fd;
-  --t2-solid: #be123c; --t2-hover: #e11d48; --t2-bright: #fda4af; --t2-glow: #fecdd3;
+  --t-solid: #c8102e; --t-solid-hover: #e11d48;
+  --t-bright: #f75c70; --t-bright-hover: #ff8a94;
+  --t-ink: #9b1b30; --t-glow: #ff8a94;
+  --t2-solid: #1d4ed8; --t2-hover: #2563eb; --t2-bright: #7fb0ff; --t2-glow: #93c5fd;
   --t-coin-solid: #f59e0b; --t-coin-hover: #fbbf24; --t-coin-bright: #fcd34d; --t-coin-bright-hover: #fde68a;
   --t-coin-ink: #92400e; --t-coin-glow: #fcd34d;
   --radius: 0.375rem;
   scrollbar-color: #b31942 transparent;
 }
 html.light.theme-usa {
-  --background: 42 48% 96%; --foreground: 222 47% 14%;
-  --card: 43 45% 93%; --card-foreground: 222 47% 14%;
-  --popover: 43 45% 93%; --popover-foreground: 222 47% 14%;
-  --primary: 350 78% 38%; --primary-foreground: 42 60% 98%;
-  --secondary: 217 55% 90%; --secondary-foreground: 222 47% 16%;
-  --muted: 42 30% 89%; --muted-foreground: 222 25% 34%;
-  --accent: 217 60% 90%; --accent-foreground: 222 47% 18%;
-  --border: 42 25% 80%; --input: 42 25% 78%; --ring: 222 70% 30%;
+  --background: 40 60% 99%; --foreground: 222 60% 13%;
+  --card: 0 0% 100%; --card-foreground: 222 60% 13%;
+  --popover: 0 0% 100%; --popover-foreground: 222 60% 13%;
+  --primary: 350 85% 42%; --primary-foreground: 0 0% 100%;
+  --secondary: 222 55% 91%; --secondary-foreground: 222 60% 15%;
+  --muted: 42 35% 92%; --muted-foreground: 222 28% 32%;
+  --accent: 350 70% 94%; --accent-foreground: 350 80% 30%;
+  --border: 222 45% 78%; --input: 222 45% 76%; --ring: 350 85% 45%;
 }
 html.dark.theme-usa {
-  --background: 222 55% 5%; --foreground: 220 60% 96%;
-  --card: 222 50% 7%; --card-foreground: 220 60% 96%;
-  --popover: 222 50% 8%; --popover-foreground: 220 60% 96%;
-  --primary: 213 94% 72%; --primary-foreground: 222 55% 8%;
-  --secondary: 222 45% 13%; --secondary-foreground: 220 60% 96%;
-  --muted: 222 40% 12%; --muted-foreground: 220 25% 68%;
-  --accent: 222 50% 14%; --accent-foreground: 220 60% 96%;
-  --border: 222 40% 18%; --input: 222 40% 18%; --ring: 213 94% 65%;
+  --background: 232 52% 7%; --foreground: 0 0% 98%;
+  --card: 233 46% 9%; --card-foreground: 0 0% 98%;
+  --popover: 233 46% 10%; --popover-foreground: 0 0% 98%;
+  --primary: 350 84% 62%; --primary-foreground: 232 52% 8%;
+  --secondary: 232 42% 15%; --secondary-foreground: 0 0% 98%;
+  --muted: 232 36% 13%; --muted-foreground: 220 22% 70%;
+  --accent: 350 60% 16%; --accent-foreground: 0 0% 98%;
+  --border: 350 42% 24%; --input: 350 42% 24%; --ring: 350 85% 60%;
 }
-/* DAY: warm parchment + faint navy pinstripes (no more dirty red bands) */
+/* DAY: bright paper, navy + red pinstripes, flag-wash glows */
 html.light.theme-usa body {
-  background-color: #faf7f0;
+  background-color: #fdfaf1;
   background-image:
-    repeating-linear-gradient(90deg, rgb(10 49 97 / 0.05) 0 1px, transparent 1px 9px),
-    radial-gradient(60% 40% at 12% 0%, rgb(29 78 216 / 0.10), transparent 70%),
-    radial-gradient(45% 35% at 88% 6%, rgb(179 25 66 / 0.08), transparent 70%);
+    repeating-linear-gradient(90deg, rgb(10 49 97 / 0.07) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(0deg, rgb(179 25 66 / 0.045) 0 1px, transparent 1px 9px),
+    radial-gradient(60% 40% at 12% 0%, rgb(179 25 66 / 0.16), transparent 70%),
+    radial-gradient(45% 35% at 88% 6%, rgb(10 49 97 / 0.14), transparent 70%);
 }
-/* NIGHT: star field + red/blue glows (the good one — untouched) */
+/* NIGHT: red-ember navy star field + faint diagonal pinstripes (NOT Blue Boy scanlines) */
 html.dark.theme-usa body {
+  background-color: #0a0e24;
   background-image:
-    radial-gradient(circle, rgb(255 255 255 / 0.85) 1px, transparent 1.6px),
-    radial-gradient(circle, rgb(147 197 253 / 0.5) 1px, transparent 1.8px),
-    radial-gradient(55% 40% at 12% 0%, rgb(29 78 216 / 0.30), transparent 70%),
-    radial-gradient(45% 35% at 88% 8%, rgb(190 18 60 / 0.28), transparent 70%);
-  background-size: 90px 90px, 140px 140px, auto, auto;
+    radial-gradient(circle, rgb(255 255 255 / 0.9) 1px, transparent 1.7px),
+    radial-gradient(circle, rgb(255 138 148 / 0.55) 1px, transparent 1.9px),
+    repeating-linear-gradient(-45deg, rgb(179 25 66 / 0.05) 0 26px, transparent 26px 52px),
+    radial-gradient(55% 42% at 10% 0%, rgb(179 25 66 / 0.38), transparent 70%),
+    radial-gradient(48% 38% at 90% 8%, rgb(29 78 216 / 0.34), transparent 70%);
+  background-size: 84px 84px, 132px 132px, auto, auto, auto;
 }
-/* USA USA top hairline: 4px flag bar on the header (light-friendly echo of the footer) */
+/* USA USA top hairline: 5px flag bar on the header */
 html.theme-usa header {
-  border-top: 4px solid transparent;
-  border-image: linear-gradient(90deg, #b31942 0 33%, #f8fafc 33% 66%, #0a3161 66% 100%) 1;
+  border-top: 5px solid transparent;
+  border-image: linear-gradient(90deg, #b31942 0 33%, #ffffff 33% 66%, #0a3161 66% 100%) 1;
 }
-html.theme-usa .docs-orb-a { background: radial-gradient(circle, rgb(147 197 253 / 0.5), transparent 70%); }
-html.theme-usa .docs-orb-b { background: radial-gradient(circle, rgb(253 164 175 / 0.45), transparent 70%); }
-html.light.theme-usa .docs-orb-a { background: radial-gradient(circle, rgb(29 78 216 / 0.22), transparent 70%); }
-html.light.theme-usa .docs-orb-b { background: radial-gradient(circle, rgb(179 25 66 / 0.18), transparent 70%); }
+html.theme-usa .docs-orb-a { background: radial-gradient(circle, rgb(29 78 216 / 0.5), transparent 70%); }
+html.theme-usa .docs-orb-b { background: radial-gradient(circle, rgb(179 25 66 / 0.5), transparent 70%); }
+html.light.theme-usa .docs-orb-a { background: radial-gradient(circle, rgb(10 49 97 / 0.28), transparent 70%); }
+html.light.theme-usa .docs-orb-b { background: radial-gradient(circle, rgb(179 25 66 / 0.26), transparent 70%); }
+html.dark.theme-usa .docs-orb-a { background: radial-gradient(circle, rgb(37 99 235 / 0.55), transparent 70%); }
+html.dark.theme-usa .docs-orb-b { background: radial-gradient(circle, rgb(225 29 72 / 0.5), transparent 70%); }
 html.theme-usa .docs-grid-bg {
   background-image:
-    linear-gradient(to right, rgb(29 78 216 / 0.14) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(190 18 60 / 0.12) 1px, transparent 1px);
+    linear-gradient(to right, rgb(29 78 216 / 0.20) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(179 25 66 / 0.18) 1px, transparent 1px);
 }
-html.theme-usa ::selection { background: rgb(190 18 60 / 0.4); color: #fff; }
-html.light.theme-usa ::selection { background: #0a3161; color: #faf7f0; }
+html.theme-usa ::selection { background: #b31942; color: #fff; }
+html.light.theme-usa ::selection { background: #0a3161; color: #fdfaf1; }
+html.dark.theme-usa ::selection { background: #e11d48; color: #fff; }
 html.theme-usa::-webkit-scrollbar-thumb { background: linear-gradient(#b31942 0 38%, #ffffff 38% 62%, #0a3161 62% 100%); border-radius: 9999px; }
-html.light.theme-usa::-webkit-scrollbar-thumb { background: linear-gradient(#8f1d3a 0 38%, #e8dfc8 38% 62%, #1e3a5a 62% 100%); border-radius: 9999px; }
+html.theme-usa :focus-visible { outline: 2px solid #e11d48; outline-offset: 2px; }
+html.dark.theme-usa :focus-visible { outline-color: #ff8a94; }
 
-/* bold glossy buttons: white-hot highlight, deep shadow */
+/* bold flag-red primary buttons (this is what kills the Blue Boy resemblance) */
 html.theme-usa .bg-cyan-600 {
-  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.42), rgb(255 255 255 / 0) 50%);
-  box-shadow: 0 8px 24px -8px rgb(29 78 216 / 0.8), inset 0 1px 0 rgb(255 255 255 / 0.4), inset 0 -2px 0 rgb(0 0 0 / 0.25);
+  background-image: linear-gradient(180deg, #e6354f, #b31942 60%, #8f1d3a);
+  box-shadow: 0 8px 24px -8px rgb(179 25 66 / 0.85), inset 0 1px 0 rgb(255 255 255 / 0.45), inset 0 -2px 0 rgb(0 0 0 / 0.3);
 }
 html.light.theme-usa .bg-cyan-600 {
-  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.25), rgb(0 0 0 / 0.08));
-  box-shadow: 0 2px 0 #0a3161, 4px 4px 0 rgb(179 25 66 / 0.55);
+  background-image: linear-gradient(180deg, #d62543, #b31942 65%, #9b1b30);
+  box-shadow: 0 2px 0 #0a3161, 5px 5px 0 rgb(179 25 66 / 0.55);
+}
+html.dark.theme-usa .bg-cyan-600 {
+  box-shadow: 0 0 26px -4px rgb(225 29 72 / 0.8), inset 0 1px 0 rgb(255 255 255 / 0.4), inset 0 -2px 0 rgb(0 0 0 / 0.3);
 }
 html.dark.theme-usa .dark\:bg-cyan-300 {
-  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.55), rgb(255 255 255 / 0) 50%);
-  box-shadow: 0 0 24px -4px rgb(147 197 253 / 0.8), inset 0 -2px 0 rgb(0 0 0 / 0.2);
+  background-image: linear-gradient(180deg, #ff8a94, #f75c70 60%, #e11d48);
+  box-shadow: 0 0 26px -4px rgb(247 92 112 / 0.85), inset 0 -2px 0 rgb(0 0 0 / 0.2);
+}
+/* navy steel secondary buttons */
+html.theme-usa .bg-fuchsia-600 {
+  background-image: linear-gradient(180deg, #3b82f6, #1d4ed8 60%, #0a3161);
+  box-shadow: 0 8px 24px -8px rgb(29 78 216 / 0.8), inset 0 1px 0 rgb(255 255 255 / 0.4), inset 0 -2px 0 rgb(0 0 0 / 0.3);
+}
+html.light.theme-usa .bg-fuchsia-600 {
+  box-shadow: 0 2px 0 #7f1d2d, 5px 5px 0 rgb(10 49 97 / 0.4);
 }
 html.theme-usa .bg-amber-500 {
   background-image: linear-gradient(180deg, rgb(255 255 255 / 0.35), rgb(255 255 255 / 0) 55%);
   box-shadow: 0 8px 22px -8px rgb(245 158 11 / 0.7), inset 0 1px 0 rgb(255 255 255 / 0.35);
 }
-html.theme-usa .bg-clip-text { filter: drop-shadow(0 2px 10px rgb(37 99 235 / 0.5)); }
+html.theme-usa .bg-clip-text { filter: drop-shadow(0 2px 12px rgb(225 29 72 / 0.55)); }
 html.light.theme-usa .bg-clip-text { filter: drop-shadow(0 1px 0 #0a3161); }
+html.dark.theme-usa .bg-clip-text { filter: drop-shadow(0 0 16px rgb(225 29 72 / 0.65)); }
+/* footer bunting: navy canton block over red/white bands */
 html.theme-usa footer > .h-1 {
-  background-image: linear-gradient(90deg,
-    #b31942 0%, #b31942 30%, #ffffff 30%, #ffffff 36%,
-    #0a3161 36%, #0a3161 64%, #ffffff 64%, #ffffff 70%, #b31942 70%, #b31942 100%);
-}
-html.light.theme-usa footer > .h-1 {
-  background-image: linear-gradient(90deg,
-    #8f1d3a 0%, #8f1d3a 30%, #e8dfc8 30%, #e8dfc8 36%,
-    #1e3a5a 36%, #1e3a5a 64%, #e8dfc8 64%, #e8dfc8 70%, #8f1d3a 70%, #8f1d3a 100%);
+  height: 6px;
+  background-image:
+    linear-gradient(90deg, #0a3161 0 96px, transparent 96px),
+    repeating-linear-gradient(90deg, #b31942 0 24px, #ffffff 24px 48px);
 }
 
-/* ---- VAST: LIGHT goes parchment (never dark blocks on paper), DARK goes midnight navy ---- */
-html.light.theme-usa .bg-slate-950 { background-color: #f1e8d5; }
-html.dark.theme-usa .bg-slate-950 { background-color: #060b18; }
-html.light.theme-usa .bg-slate-900 { background-color: #e9dfc8; }
-html.dark.theme-usa .bg-slate-900 { background-color: #0b1526; }
-html.light.theme-usa .bg-black { background-color: #faf7f0; }
-html.dark.theme-usa .bg-black { background-color: #040814; }
+/* ---- VAST: LIGHT goes bright paper, DARK goes ember navy (never Blue Boy near-black teal) ---- */
+html.light.theme-usa .bg-slate-950 { background-color: #ffffff; }
+html.dark.theme-usa .bg-slate-950 { background-color: #0a0e24; }
+html.light.theme-usa .bg-slate-900 { background-color: #f4eddc; }
+html.dark.theme-usa .bg-slate-900 { background-color: #141b3d; }
+html.light.theme-usa .bg-black { background-color: #fffdf6; }
+html.dark.theme-usa .bg-black { background-color: #060913; }
 html.light.theme-usa .bg-black\/30 { background-color: color-mix(in srgb, #0a3161 10%, transparent); }
-html.dark.theme-usa .bg-black\/30 { background-color: color-mix(in srgb, #1e3a8a 32%, transparent); }
+html.dark.theme-usa .bg-black\/30 { background-color: color-mix(in srgb, #16204d 34%, transparent); }
 html.light.theme-usa .bg-black\/40 { background-color: color-mix(in srgb, #0a3161 12%, transparent); }
-html.dark.theme-usa .bg-black\/40 { background-color: color-mix(in srgb, #1e3a8a 44%, transparent); }
+html.dark.theme-usa .bg-black\/40 { background-color: color-mix(in srgb, #16204d 46%, transparent); }
 html.light.theme-usa .bg-black\/50 { background-color: color-mix(in srgb, #0a3161 14%, transparent); }
-html.dark.theme-usa .bg-black\/50 { background-color: color-mix(in srgb, #1e3a8a 54%, transparent); }
-html.light.theme-usa .text-slate-200 { color: #1e3a5a; }
-html.light.theme-usa .text-slate-300 { color: #334155; }
-html.light.theme-usa .text-slate-400 { color: #475569; }
-html.theme-usa .border-slate-700 { border-color: rgb(147 197 253 / 0.28); }
-html.light.theme-usa .border-slate-700 { border-color: rgb(10 49 97 / 0.25); }
-html.theme-usa .border-slate-800 { border-color: rgb(147 197 253 / 0.18); }
-html.light.theme-usa .border-slate-800 { border-color: rgb(10 49 97 / 0.16); }
-html.dark.theme-usa .dark\:bg-slate-950 { background-color: #060b18; }
-html.light.theme-usa .dark\:bg-slate-950 { background-color: #f1e8d5; }
-html.dark.theme-usa .dark\:bg-slate-900 { background-color: #0b1526; }
-html.light.theme-usa .dark\:bg-slate-900 { background-color: #e9dfc8; }
-html.dark.theme-usa .dark\:border-slate-700 { border-color: rgb(147 197 253 / 0.28); }
-html.light.theme-usa .dark\:border-slate-700 { border-color: rgb(10 49 97 / 0.25); }
-html.dark.theme-usa .dark\:border-slate-800 { border-color: rgb(147 197 253 / 0.18); }
-html.light.theme-usa .dark\:border-slate-800 { border-color: rgb(10 49 97 / 0.16); }
-/* election-poster cards in light: navy 2px border + red offset shadow */
+html.dark.theme-usa .bg-black\/50 { background-color: color-mix(in srgb, #16204d 56%, transparent); }
+html.light.theme-usa .text-slate-200 { color: #0a3161; }
+html.light.theme-usa .text-slate-300 { color: #1e3a5a; }
+html.light.theme-usa .text-slate-400 { color: #46587a; }
+html.theme-usa .border-slate-700 { border-color: rgb(251 113 133 / 0.38); }
+html.light.theme-usa .border-slate-700 { border-color: rgb(10 49 97 / 0.35); }
+html.theme-usa .border-slate-800 { border-color: rgb(251 113 133 / 0.22); }
+html.light.theme-usa .border-slate-800 { border-color: rgb(10 49 97 / 0.22); }
+html.dark.theme-usa .dark\:bg-slate-950 { background-color: #0a0e24; }
+html.light.theme-usa .dark\:bg-slate-950 { background-color: #ffffff; }
+html.dark.theme-usa .dark\:bg-slate-900 { background-color: #141b3d; }
+html.light.theme-usa .dark\:bg-slate-900 { background-color: #f4eddc; }
+html.dark.theme-usa .dark\:border-slate-700 { border-color: rgb(251 113 133 / 0.38); }
+html.light.theme-usa .dark\:border-slate-700 { border-color: rgb(10 49 97 / 0.35); }
+html.dark.theme-usa .dark\:border-slate-800 { border-color: rgb(251 113 133 / 0.22); }
+html.light.theme-usa .dark\:border-slate-800 { border-color: rgb(10 49 97 / 0.22); }
+/* election-poster cards in light: navy border + red offset shadow */
 html.light.theme-usa :is(.rounded-xl, .rounded-2xl) {
-  border-color: rgb(10 49 97 / 0.35);
-  box-shadow: 4px 4px 0 rgb(179 25 66 / 0.35);
+  border-color: rgb(10 49 97 / 0.45);
+  box-shadow: 6px 6px 0 rgb(179 25 66 / 0.45);
+}
+/* ember-navy cards in dark: red-tinted border + red glow */
+html.dark.theme-usa :is(.rounded-xl, .rounded-2xl) {
+  border-color: rgb(251 113 133 / 0.32);
+  box-shadow: 0 10px 30px -12px rgb(179 25 66 / 0.55);
 }
 html.theme-usa h1 {
   font-family: Impact, Haettenschweiler, "Arial Narrow Bold", "Arial Narrow", sans-serif;
@@ -150,16 +176,33 @@ html.light.theme-usa h1 {
   text-shadow: 2px 2px 0 #b31942;
 }
 html.dark.theme-usa h1 {
-  text-shadow: 0 0 22px rgb(37 99 235 / 0.6), 2px 2px 0 rgb(190 18 60 / 0.8);
+  color: #ffffff;
+  text-shadow: 0 0 24px rgb(37 99 235 / 0.55), 3px 3px 0 #b31942;
 }
 html.theme-usa h1::before {
   content: "★ ";
   color: #b31942;
 }
+html.light.theme-usa h1::before {
+  color: #b31942;
+}
 html.dark.theme-usa h1::before {
-  color: #fda4af;
-  text-shadow: 0 0 12px rgb(253 164 175 / 0.9);
+  color: #ffd166;
+  text-shadow: 0 0 14px rgb(255 209 102 / 0.9), 2px 2px 0 #b31942;
 }
 html.theme-usa .rounded-lg { border-radius: 5px; }
 html.theme-usa .rounded-xl { border-radius: 7px; }
 html.theme-usa .rounded-2xl { border-radius: 10px; }
+/* ---- FOOTER: flag bunting in both modes (bright paper by day, ember navy by night) ---- */
+html.light.theme-usa footer#site-footer { background-color: #fffdf6; border-top-color: rgb(10 49 97 / 0.35); }
+html.dark.theme-usa footer#site-footer { background-color: #0a0e24; border-top-color: rgb(251 113 133 / 0.38); }
+html.light.theme-usa footer > .h-1 { height: 6px; background-image: linear-gradient(90deg, #0a3161 0 96px, transparent 96px), repeating-linear-gradient(90deg, #b31942 0 24px, #ffffff 24px 48px); }
+html.dark.theme-usa footer > .h-1 { height: 6px; background-image: linear-gradient(90deg, #16204d 0 96px, transparent 96px), repeating-linear-gradient(90deg, #e11d48 0 24px, #f4eddc 24px 48px); }
+html.light.theme-usa footer .bg-clip-text { background-image: linear-gradient(90deg, #0a3161, #b31942); }
+html.dark.theme-usa footer .bg-clip-text { background-image: linear-gradient(90deg, #f75c70, #7fb0ff); }
+html.light.theme-usa footer nav[aria-label^="Footer"] > p > span { color: #0a3161; }
+html.dark.theme-usa footer nav[aria-label^="Footer"] > p > span { color: #ff8a94; }
+html.light.theme-usa footer nav[aria-label^="Footer"] > span[aria-hidden="true"] { background-image: linear-gradient(90deg, #b31942, #0a3161); }
+html.dark.theme-usa footer nav[aria-label^="Footer"] > span[aria-hidden="true"] { background-image: linear-gradient(90deg, #e11d48, #3b82f6); }
+html.light.theme-usa footer dl span[aria-hidden="true"] { color: #0a3161; background-image: linear-gradient(135deg, rgb(179 25 66 / 0.14), rgb(10 49 97 / 0.14)); }
+html.dark.theme-usa footer dl span[aria-hidden="true"] { color: #ff8a94; background-image: linear-gradient(135deg, rgb(225 29 72 / 0.30), rgb(29 78 216 / 0.30)); }

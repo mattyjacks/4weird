@@ -18,8 +18,10 @@ import {
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/vault/blobs?scope=personal|team|org&scope_id=&limit=
- * Lists the caller's files in ONE scope (strictly separated).
+ * GET /api/vault/blobs?scope=personal|team|org&scope_id=&limit=&prefix=
+ * Lists the caller's files in ONE scope (strictly separated). `prefix`
+ * filters to one folder (e.g. newgameplus/<slug>/<instance>/) for
+ * GitHub-like folder views.
  * Auth: session OR bot key with `vault:read`.
  */
 export async function GET(req: Request) {
@@ -40,6 +42,9 @@ export async function GET(req: Request) {
   if (!isVaultScope(scope)) return fail("Invalid scope.", 400);
   const scopeId = (q.get("scope_id") ?? "").trim();
   const limit = Math.max(1, Math.min(Number(q.get("limit") ?? 50) || 50, 100));
+  // Folder filter: plain prefix match (cleanVaultPath-style, no globs), so a
+  // Vault browser can render one folder at a time like a drive.
+  const prefix = (q.get("prefix") ?? "").replace(/\\/g, "/").replace(/\.\./g, "").trim().slice(0, 200);
 
   let svc;
   try {
@@ -72,6 +77,7 @@ export async function GET(req: Request) {
     } else {
       query = query.eq("scope", "org").eq("org_id", scopeId);
     }
+    if (prefix) query = query.like("path", `${prefix}%`);
     const { data: rows, error } = await query;
     if (error) return dbFail("api/vault/blobs", error, "Unable to list files.");
     return ok({ files: rows ?? [], scope });
@@ -90,6 +96,7 @@ export async function GET(req: Request) {
     if (!scopeId) return fail("scope_id required for org scope.", 400);
     query = query.eq("scope", "org").eq("org_id", scopeId);
   }
+  if (prefix) query = query.like("path", `${prefix}%`);
   const { data: rows, error } = await query;
   if (error) return dbFail("api/vault/blobs", error, "Unable to list files.");
   return ok({ files: rows ?? [], scope });

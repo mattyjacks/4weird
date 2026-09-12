@@ -17,9 +17,11 @@ import {
   QUALITY_MAX,
   QUALITY_MIN,
   buildVaultBundle,
+  cleanArchetype,
   cleanBudget,
   cleanPrompt,
   cleanQuality,
+  cleanStyleNotes,
   DRAFT_FOLDER,
   draftPathFor,
   laneForBudget,
@@ -28,9 +30,12 @@ import {
   planBuild,
   planFalForBuild,
   planSymphony,
+  resolveArchetype,
   runMasteryLoop,
   timelineForLane,
 } from "@/lib/newgameplus";
+import { createHash } from "node:crypto";
+import { VAULT_BUCKET, vaultObjectKey } from "@/lib/blob-vault";
 import { falConfigured } from "@/lib/fal";
 
 export const dynamic = "force-dynamic";
@@ -85,6 +90,12 @@ export async function POST(req: Request) {
   if (quality === null) return fail(`Quality must be an integer ${QUALITY_MIN}-${QUALITY_MAX} (default ${QUALITY_DEFAULT}).`, 400);
   const budget = cleanBudget(input.budget);
   if (budget === null) return fail(`Budget must be ${BUDGET_MIN}-${BUDGET_MAX} coins (default ${BUDGET_DEFAULT}).`, 400);
+  const archetype = cleanArchetype(input.archetype);
+  if (archetype === null) return fail("Archetype must be one of custom|free|catcher|dodger|breaker|shooter|rpg (default custom).", 400);
+  const style = cleanStyleNotes(input.style ?? input.style_notes);
+  if (/(?:process\.env|service_role|javascript:|<script[^>]+src\s*=)/i.test(style)) {
+    return fail("Unsafe style notes are not accepted.", 400);
+  }
 
   const confirmed = input.confirmed === true || input.confirmed === "true";
   if (needsAmountConfirm(budget) && !confirmed) {
@@ -98,14 +109,26 @@ export async function POST(req: Request) {
 
   const plan = planBuild(quality, budget);
   const lane = laneForBudget(budget);
-  const symphony = planSymphony(prompt, quality, budget);
+  // Style notes score like prompt words (theme + meld signals) but never
+  // leak into titles; the resolved request rides the symphony brief.
+  const scoringPrompt = (style ? `${prompt} ${style}` : prompt).slice(0, 620);
+  const previewResolve = resolveArchetype(scoringPrompt, 0, archetype);
+  const archetypeNote = previewResolve.freeform
+    ? "completely custom (freeform engine, no parent archetype)"
+    : previewResolve.parents.length > 1
+      ? `meld ${previewResolve.parents.join(" x ")}`
+      : `solo ${previewResolve.parents[0]}`;
+  const symphony = planSymphony(prompt, quality, budget, archetypeNote);
   const fal = planFalForBuild(prompt, budget, quality);
   const timeline = timelineForLane(lane);
   const falNote = fal.selected.map((r) => `${r.op} (${r.why})`).join("; ").slice(0, 300);
   // VCW test → improve → retest mastery via runMasteryLoop, which calls
   // generateGameSource + vcwSelfTest per iteration. Variant rotation
-  // guarantees the same prompt never emits the same bytes twice; loop until pass.
-  const mastery = runMasteryLoop(prompt, quality, falNote, 3);
+  // guarantees the same prompt never emits the same bytes twice; the loop
+  // keeps committing (new variant per loop) until the build passes with
+  // polish or the capped spend runs out — every loop is a testable commit.
+  const mastery = runMasteryLoop(prompt, quality, falNote, 8, plan.spend, archetype, style);
+  const actualSpend = Math.max(1, Math.min(plan.spend, mastery.actualSpend || plan.spend));
   const game = { slug: mastery.final.slug, title: mastery.final.title, source: mastery.final.source };
   const test = mastery.final.test;
   const draftPath = draftPathFor(game.slug);
@@ -121,6 +144,7 @@ export async function POST(req: Request) {
     iterations: mastery.iterations,
     instanceId,
     falNote,
+    archetype: { displayLabel: mastery.final.displayLabel, parents: mastery.final.parents, blendNote: mastery.final.blendNote },
   });
 
   // Persistence (best-effort, honest): personal draft + org Draft folder.
@@ -134,6 +158,8 @@ export async function POST(req: Request) {
     note: "Played locally below ;; sign in to save drafts.",
   };
   let charge: { billed: boolean; gross: number; cut: number } = { billed: false, gross: 0, cut: 0 };
+  let vaultSaved = false;
+  let vaultSavedFiles = 0;
 
   // Single session probe, reused for the throttle AND metering below:
   // revalidating twice would double latency and open a TOCTOU window
@@ -225,7 +251,7 @@ export async function POST(req: Request) {
             draft_path: draftPath,
             note: "Saved to your personal drafts.",
           };
-          // Coin metering (fail closed, like /api/code/zip): the capped
+          // Coin metering (fail closed, like /api/code/zip): the ACTUAL loop
           // spend debits via the guarded RPC (balance guard + 25/75 split +
           // `NewGamePlus <slug> (qX)` ledger row). A failed charge rolls the
           // draft back so short balances never mint free builds.
@@ -235,7 +261,7 @@ export async function POST(req: Request) {
             p_title: game.title.slice(0, 120),
             p_quality: quality,
             p_budget: budget,
-            p_spend: plan.spend,
+            p_spend: actualSpend,
             p_lane: lane,
           });
           if (meterError) {
@@ -246,16 +272,64 @@ export async function POST(req: Request) {
             }
             const msg = String(meterError.message ?? "");
             if (/insufficient balance/i.test(msg)) {
-              return fail(`Insufficient Vibe Coins: this build costs ${plan.spend} coins (25% cut included). Top up, lower Quality, or lower Budget.`, 402);
+              return fail(`Insufficient Vibe Coins: this build costs ${actualSpend} coins (25% cut included). Top up, lower Quality, or lower Budget.`, 402);
             }
             return rpcFail("newgameplus/build meter", meterError, rpcStatus, "Unable to meter this build.");
           }
           const billed = (metered ?? {}) as { gross?: unknown; cut?: unknown };
           charge = {
             billed: true,
-            gross: Number(billed.gross) || plan.spend,
-            cut: Number(billed.cut) || plan.cut,
+            gross: Number(billed.gross) || actualSpend,
+            cut: Number(billed.cut) || Math.round(actualSpend * 0.25 * 100) / 100,
           };
+        }
+
+        // Auto-persist the vault bundle to personal Vault rows so /vault
+        // shows the newgameplus folder with zero org setup. Best-effort and
+        // never build-failing: bundle dust sits inside the 500MB personal
+        // free quota, so no storage metering here (build metering above is
+        // the single charge). Stored as text/plain (XSS-safe) kind code.
+        if (draft.submission_id) {
+          try {
+            const svc = serviceClient();
+            for (const f of vault.files) {
+              const bytes = Buffer.byteLength(f.content, "utf8");
+              if (bytes < 1) continue;
+              const sha256 = createHash("sha256").update(f.content, "utf8").digest("hex");
+              const ext = (f.path.split(".").pop() ?? "txt").replace(/[^a-z0-9]/gi, "").slice(0, 8) || "txt";
+              const objectKey = vaultObjectKey({ scope: "personal", scopeId: data.user.id, sha256, ext });
+              const { data: existing } = await svc.from("vault_blobs").select("sha256").eq("sha256", sha256).maybeSingle();
+              if (!existing) {
+                const up = await svc.storage
+                  .from(VAULT_BUCKET)
+                  .upload(objectKey, Buffer.from(f.content, "utf8"), { contentType: "text/plain", upsert: true });
+                if (up.error) throw up.error;
+                const { error: blobErr } = await svc
+                  .from("vault_blobs")
+                  .insert({ sha256, bytes, mime: "text/plain", storage_path: objectKey });
+                if (blobErr && !/duplicate|unique|conflict/i.test(String(blobErr.message ?? ""))) throw blobErr;
+              }
+              const { error: fileErr } = await svc.from("vault_files").upsert(
+                {
+                  owner_id: data.user.id,
+                  team_id: null,
+                  org_id: null,
+                  scope: "personal",
+                  path: f.path,
+                  sha256,
+                  bytes,
+                  kind: "code",
+                  provenance: { mime: "text/plain", uploader: data.user.id, via: "newgameplus" },
+                },
+                { onConflict: "scope,owner_id,team_id,org_id,path" },
+              );
+              if (fileErr) throw fileErr;
+              vaultSavedFiles++;
+            }
+            vaultSaved = vaultSavedFiles > 0;
+          } catch (error) {
+            console.error("[newgameplus/build vault]", String((error as Error)?.message ?? error).slice(0, 200));
+          }
         }
 
         // Org push needs the saved personal draft row; when the draft save
@@ -358,7 +432,14 @@ export async function POST(req: Request) {
 
   return ok(
     {
-      game: { slug: game.slug, title: game.title, source: game.source, bytes: game.source.length },
+      game: { slug: game.slug, title: game.title, source: game.source, bytes: game.source.length, archetype: mastery.final.archetype },
+      resolved: {
+        label: mastery.final.displayLabel,
+        family: mastery.final.archetype,
+        parents: mastery.final.parents,
+        blendNote: mastery.final.blendNote,
+        freeform: mastery.final.freeform,
+      },
       plan: { ...plan, note: NEWGAMEPLUS_CUT_NOTE },
       charge,
       test: { verdict: test.verdict, loops: test.loops, steps: test.steps, checks: test.checks, findings: test.findings },
@@ -368,6 +449,7 @@ export async function POST(req: Request) {
       timeline,
       mastery: {
         mastered: mastery.mastered,
+        actualSpend,
         iterations: mastery.iterations.map((it) => ({
           variant: it.variant,
           slug: it.slug,
@@ -376,9 +458,44 @@ export async function POST(req: Request) {
           checks: it.test.checks.length,
           passed: it.test.checks.filter((c) => c.passed).length,
           improvements: it.improvements,
+          bytes: it.bytes,
+          spendSlice: it.spendSlice,
+          spentCumulative: it.spentCumulative,
+          polished: it.polished,
+          archetype: it.archetype,
+          displayLabel: it.displayLabel,
+          parents: it.parents,
         })),
       },
-      vault: { folder: vault.folder, instanceId, files: vault.files.map((f) => ({ path: f.path, bytes: f.bytes })) },
+      // Every loop is a testable commit: full source + verdict + checks per
+      // commit so the builder can auto-load any commit into the preview and
+      // the Vault can version them like GitHub commits.
+      commits: mastery.iterations.map((it, n) => ({
+        n: n + 1,
+        variant: it.variant,
+        slug: it.slug,
+        title: it.title,
+        source: it.source,
+        bytes: it.bytes,
+        improvements: it.improvements,
+        spendSlice: it.spendSlice,
+        spentCumulative: it.spentCumulative,
+        polished: it.polished,
+        archetype: it.archetype,
+        displayLabel: it.displayLabel,
+        parents: it.parents,
+        vaultPath: `${DRAFT_FOLDER}/${it.slug}/${instanceId}/commit-${n + 1}`,
+        evidence: {
+          verdict: it.test.verdict,
+          loops: it.test.loops,
+          passed: it.test.checks.filter((c) => c.passed).length,
+          total: it.test.checks.length,
+          checks: it.test.checks,
+          steps: it.test.steps,
+          findings: it.test.findings,
+        },
+      })),
+      vault: { folder: vault.folder, instanceId, files: vault.files.map((f) => ({ path: f.path, bytes: f.bytes })), saved: vaultSaved, savedFiles: vaultSavedFiles },
       vaultFiles: vault.files,
     },
     201,

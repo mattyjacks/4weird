@@ -4,6 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { WalletBadges } from "@/components/site/wallet-badges";
+import { UsaFlag } from "@/components/site/themes/usa-flag";
+import { useSiteTheme } from "@/components/site/site-theme-provider";
+import { useMountedTheme } from "@/components/site/themes/use-mounted-theme";
 
 import { SITE_NAV_GROUPS as SHARED_NAV_GROUPS } from "@/lib/site-nav";
 
@@ -364,6 +367,9 @@ export function SiteHeader() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const pathname = usePathname();
+  const mountedTheme = useMountedTheme();
+  const { colorTheme } = useSiteTheme();
+  const showUsaFlag = mountedTheme && colorTheme === "theme-usa";
   const desktopNavRef = useRef<HTMLElement>(null);
   const mobileNavRef = useRef<HTMLElement>(null);
   // Stable identity: WalletBadges depends on this in its poll callback —
@@ -473,8 +479,9 @@ export function SiteHeader() {
       </a>
       <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur dark:border-white/10 dark:bg-black/85">
         <div className="mx-auto flex min-h-14 max-w-6xl items-center justify-between gap-2 px-4 py-2 sm:px-5">
-          <Link href="/" className="shrink-0 text-lg font-black text-foreground" aria-label="4weird home">
-            🎮 4weird
+          <Link href="/" className="flex shrink-0 items-center gap-2 text-lg font-black text-foreground" aria-label="4weird home">
+            <span aria-hidden="true">🎮</span> 4weird
+            {showUsaFlag && <UsaFlag className="h-5 w-10" />}
           </Link>
 
           {/* Desktop nav: 2-level; one button per group, links in a dropdown */}

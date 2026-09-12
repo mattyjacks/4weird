@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 100" role="img" aria-label="Flag of the United States">
+  <title>Flag of the United States</title>
+  <!-- Hand-drawn Old Glory: 13 stripes, navy canton, 50 stars (9 staggered rows). -->
+  <!-- Hoist = 100, fly = 190. Stripe height = 100 / 13. Canton = 40% x 7/13. -->
+  <rect width="190" height="100" fill="#ffffff"/>
+  <g fill="#b31942">
+    <rect y="0" width="190" height="7.69"/>
+    <rect y="15.38" width="190" height="7.69"/>
+    <rect y="30.77" width="190" height="7.69"/>
+    <rect y="46.15" width="190" height="7.69"/>
+    <rect y="61.54" width="190" height="7.69"/>
+    <rect y="76.92" width="190" height="7.69"/>
+    <rect y="92.31" width="190" height="7.69"/>
+  </g>
+  <rect width="76" height="53.85" fill="#0a3161"/>
+  <defs>
+    <polygon id="usa-star" points="0,-2.4 0.56,-0.77 2.28,-0.74 0.9,0.29 1.41,1.94 0,0.95 -1.41,1.94 -0.9,0.29 -2.28,-0.74 -0.56,-0.77" fill="#ffffff"/>
+  </defs>
+  <g>
+    <!-- 6-star rows -->
+    <use href="#usa-star" x="6.33" y="5.39"/>
+    <use href="#usa-star" x="19" y="5.39"/>
+    <use href="#usa-star" x="31.67" y="5.39"/>
+    <use href="#usa-star" x="44.33" y="5.39"/>
+    <use href="#usa-star" x="57" y="5.39"/>
+    <use href="#usa-star" x="69.67" y="5.39"/>
+    <use href="#usa-star" x="6.33" y="16.16"/>
+    <use href="#usa-star" x="19" y="16.16"/>
+    <use href="#usa-star" x="31.67" y="16.16"/>
+    <use href="#usa-star" x="44.33" y="16.16"/>
+    <use href="#usa-star" x="57" y="16.16"/>
+    <use href="#usa-star" x="69.67" y="16.16"/>
+    <use href="#usa-star" x="6.33" y="26.93"/>
+    <use href="#usa-star" x="19" y="26.93"/>
+    <use href="#usa-star" x="31.67" y="26.93"/>
+    <use href="#usa-star" x="44.33" y="26.93"/>
+    <use href="#usa-star" x="57" y="26.93"/>
+    <use href="#usa-star" x="69.67" y="26.93"/>
+    <use href="#usa-star" x="6.33" y="37.7"/>
+    <use href="#usa-star" x="19" y="37.7"/>
+    <use href="#usa-star" x="31.67" y="37.7"/>
+    <use href="#usa-star" x="44.33" y="37.7"/>
+    <use href="#usa-star" x="57" y="37.7"/>
+    <use href="#usa-star" x="69.67" y="37.7"/>
+    <use href="#usa-star" x="6.33" y="48.47"/>
+    <use href="#usa-star" x="19" y="48.47"/>
+    <use href="#usa-star" x="31.67" y="48.47"/>
+    <use href="#usa-star" x="44.33" y="48.47"/>
+    <use href="#usa-star" x="57" y="48.47"/>
+    <use href="#usa-star" x="69.67" y="48.47"/>
+    <!-- 5-star rows -->
+    <use href="#usa-star" x="12.67" y="10.77"/>
+    <use href="#usa-star" x="25.33" y="10.77"/>
+    <use href="#usa-star" x="38" y="10.77"/>
+    <use href="#usa-star" x="50.67" y="10.77"/>
+    <use href="#usa-star" x="63.33" y="10.77"/>
+    <use href="#usa-star" x="12.67" y="21.54"/>
+    <use href="#usa-star" x="25.33" y="21.54"/>
+    <use href="#usa-star" x="38" y="21.54"/>
+    <use href="#usa-star" x="50.67" y="21.54"/>
+    <use href="#usa-star" x="63.33" y="21.54"/>
+    <use href="#usa-star" x="12.67" y="32.31"/>
+    <use href="#usa-star" x="25.33" y="32.31"/>
+    <use href="#usa-star" x="38" y="32.31"/>
+    <use href="#usa-star" x="50.67" y="32.31"/>
+    <use href="#usa-star" x="63.33" y="32.31"/>
+    <use href="#usa-star" x="12.67" y="43.08"/>
+    <use href="#usa-star" x="25.33" y="43.08"/>
+    <use href="#usa-star" x="38" y="43.08"/>
+    <use href="#usa-star" x="50.67" y="43.08"/>
+    <use href="#usa-star" x="63.33" y="43.08"/>
+  </g>
+</svg>
