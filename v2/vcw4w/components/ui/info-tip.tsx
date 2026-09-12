@@ -78,10 +78,19 @@ export function InfoTip({ text, label = "More info", className, side = "top" }: 
       const btn = btnRef.current;
       const bubble = bubbleRef.current;
       if (!btn || !bubble) return;
-      const r = btn.getBoundingClientRect();
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       const width = Math.min(MAX_W, vw - EDGE * 2);
+      // Height depends on width: if the rendered width is stale (rotation,
+      // zoom, first paint), set the right width first and re-measure next
+      // frame so the bubble never floats with a gap. offsetWidth includes
+      // the 1px borders, hence the slack.
+      if (Math.abs((bubble.offsetWidth || width) - width) > 6) {
+        setPos({ top: -1000, left: -1000, width, placed: false });
+        requestAnimationFrame(place);
+        return;
+      }
+      const r = btn.getBoundingClientRect();
       const height = bubble.offsetHeight || 0;
 
       const fits = {
@@ -191,7 +200,9 @@ export function InfoTip({ text, label = "More info", className, side = "top" }: 
             style={{
               top: pos?.top ?? -1000,
               left: pos?.left ?? -1000,
-              width: pos?.width ?? Math.min(MAX_W, 280),
+              // First paint already uses the final width so the first
+              // measurement (which sets the height) is exact.
+              width: pos?.width ?? Math.min(MAX_W, window.innerWidth - EDGE * 2),
               visibility: pos?.placed ? "visible" : "hidden",
             }}
           >

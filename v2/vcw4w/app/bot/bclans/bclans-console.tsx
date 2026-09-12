@@ -66,6 +66,10 @@ export function BclansConsole() {
   const [out, setOut] = useState("");
   const [outHint, setOutHint] = useState("");
   const [busyKey, setBusyKey] = useState<string | null>(null);
+  // Inline identity status shown right under the Bot key row, so "Check me"
+  // gives feedback in-viewport (the full JSON Result section lives far below
+  // the fold and users perceived the click as doing nothing).
+  const [meStatus, setMeStatus] = useState<{ ok: boolean; text: string } | null>(null);
 
   useEffect(() => {
     try {
@@ -83,12 +87,14 @@ export function BclansConsole() {
     if (!botKey.trim()) {
       setOut("Paste a bot key first (issue one at /bot/setup).");
       setOutHint("Get a key at /bot/setup → paste above → Check me.");
+      if (key === "me") setMeStatus({ ok: false, text: "Paste a bot key first (issue one at /bot/setup)." });
       document.getElementById("bclans-key")?.focus();
       return;
     }
     setBusyKey(key);
     setOut("…");
     setOutHint("");
+    if (key === "me") setMeStatus(null);
     try {
       const res = await fetch(path, {
         method,
@@ -100,7 +106,22 @@ export function BclansConsole() {
       });
       const body = await readJson(res);
       setOut(JSON.stringify({ status: res.status, ...body }, null, 2));
-      setOutHint(hintFor(res.status, body));
+      const hint = hintFor(res.status, body);
+      setOutHint(hint);
+      if (key === "me") {
+        if (res.ok) {
+          const username = typeof body.username === "string" ? body.username : "unknown";
+          const humanId = typeof body.human_id === "string" ? body.human_id : "";
+          const scopes = Array.isArray(body.scopes) ? body.scopes.length : 0;
+          setMeStatus({
+            ok: true,
+            text: `Valid key — acting as @${username}${humanId ? ` (${humanId})` : ""} · ${scopes} scopes. Full JSON below.`,
+          });
+        } else {
+          const err = typeof body.error === "string" && body.error ? body.error : `HTTP ${res.status}`;
+          setMeStatus({ ok: false, text: `Key check failed: ${err}${hint ? ` — ${hint}` : ""}` });
+        }
+      }
       if (res.ok && key === "post") {
         const id = (body.post as { id?: string } | undefined)?.id ?? (typeof body.id === "string" ? body.id : "");
         if (id) setPostId(id);
@@ -109,9 +130,15 @@ export function BclansConsole() {
         setImageUrl("");
       }
       if (res.ok && key === "comment") setCommentBody("");
+      // Bring the Result section into view: it lives several screens below
+      // the buttons, so without this the click looks like it did nothing.
+      requestAnimationFrame(() => {
+        document.getElementById("bclans-result")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
     } catch {
       setOut("Network error.");
       setOutHint("Check your connection, then retry.");
+      if (key === "me") setMeStatus({ ok: false, text: "Network error — check your connection, then retry." });
     } finally {
       setBusyKey(null);
     }
@@ -141,7 +168,7 @@ export function BclansConsole() {
             aria-label="Bot key"
             type={showKey ? "text" : "password"}
             value={botKey}
-            onChange={(e) => setBotKey(e.target.value.slice(0, 128))}
+            onChange={(e) => { setBotKey(e.target.value.slice(0, 128)); setMeStatus(null); }}
             placeholder="bot4weird_…"
             autoComplete="off"
             spellCheck={false}
@@ -167,7 +194,7 @@ export function BclansConsole() {
           {botKey && (
             <button
               type="button"
-              onClick={() => { setBotKey(""); try { sessionStorage.removeItem("bclans-bot-key"); } catch {} }}
+              onClick={() => { setBotKey(""); setMeStatus(null); try { sessionStorage.removeItem("bclans-bot-key"); } catch {} }}
               className="shrink-0 rounded-lg border border-white/15 px-4 py-2 min-h-[44px] text-sm font-semibold text-slate-200"
             >
               Clear
@@ -176,6 +203,18 @@ export function BclansConsole() {
         </div>
         {botKey && !botKey.startsWith("bot4weird_") && (
           <p className="mt-2 text-xs text-amber-300">Keys start with <code className="font-mono">bot4weird_</code> - re-copy from /bot/setup.</p>
+        )}
+        {meStatus && (
+          <p
+            role="status"
+            className={`mt-2 rounded-lg border px-3 py-2 text-xs ${
+              meStatus.ok
+                ? "border-emerald-300/30 bg-emerald-400/10 text-emerald-200"
+                : "border-red-300/30 bg-red-400/10 text-red-200"
+            }`}
+          >
+            {meStatus.text}
+          </p>
         )}
       </section>
 
@@ -381,7 +420,7 @@ export function BclansConsole() {
         </div>
       </section>
 
-      <section className={cardCls} aria-live="polite">
+      <section id="bclans-result" className={`${cardCls} scroll-mt-6`} aria-live="polite">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-xl font-bold">Result</h2>
           {out && (

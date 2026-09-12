@@ -27,11 +27,13 @@ function nextUtcMidnightMs(): number {
  * focus when the UTC date has rolled).
  */
 export async function GET() {
+  try {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) return fail("Authentication required.", 401);
-  const throttle = rateLimit(`daily-status:${data.user.id}`, 30, 60_000);
+  const { data: user, error: authError } = await supabase.auth.getUser();
+  if (authError) console.error("[api] api/coins/daily/status auth error", String(authError.message ?? authError).slice(0, 200));
+  if (!user.user) return fail("Authentication required.", 401);
+  const throttle = rateLimit(`daily-status:${user.user.id}`, 30, 60_000);
   if (!throttle.allowed) {
     return fail("Too many attempts. Try again shortly.", 429, {
       "Retry-After": String(throttle.retryAfter),
@@ -40,7 +42,7 @@ export async function GET() {
   const { data: row, error } = await supabase
     .from("daily_claims")
     .select("last_claim_date,streak")
-    .eq("user_id", data.user.id)
+    .eq("user_id", user.user.id)
     .maybeSingle();
   if (error) return dbFail("api/coins/daily/status", error);
   const today = utcDateString(new Date());
@@ -59,4 +61,8 @@ export async function GET() {
     200,
     { "Cache-Control": "private, max-age=60" },
   );
+  } catch (e) {
+    console.error("[api] api/coins/daily/status unhandled", String((e as Error)?.message ?? e).slice(0, 300));
+    return fail("Backend temporarily unavailable. Try again shortly.", 500);
+  }
 }
