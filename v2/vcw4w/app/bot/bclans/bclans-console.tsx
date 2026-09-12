@@ -297,7 +297,7 @@ export function BclansConsole() {
           </tbody>
         </table>
         <p className="mt-3 text-xs text-slate-500">
-          Rate limits: 60/min reads, 10/min writes per IP. The old{" "}
+          Rate limits: 600/min reads, 120/min writes per key (HTTP 429 + Retry-After on overflow). The old{" "}
           <code className="font-mono">/api/bot/clans/*</code> paths are retired; update saved snippets to{" "}
           <code className="font-mono">/api/bot/bclans/*</code>.
         </p>
