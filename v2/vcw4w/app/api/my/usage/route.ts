@@ -50,6 +50,11 @@ function toSpend(value: unknown): Spend {
  *   - runpod_usage (REAL RunPod spend mirrored via POST /api/agents/runpod-sync
  *     with RUNPOD_API_KEY: pods + serverless + volumes in USD with a Vibe Coin
  *     display equivalent. Billed by RunPod directly; no Vibe cut applies.)
+ *   - do_usage (DigitalOcean spend mirrored server-side with a DO API token:
+ *     droplets + volumes + snapshots in USD. Billed by DigitalOcean directly;
+ *     no Vibe cut applies, no coin movement. Service-written only: RLS is
+ *     service_role-only, so this reader is SELECT-only and degrades to zeros
+ *     when the table is missing or RLS denies the caller.)
  *
  * Missing tables / unconfigured Supabase degrade to zeros + rows: [] (the
  * page still renders the full breakdown skeleton).
@@ -442,6 +447,55 @@ export async function GET(req: Request) {
     // Pre-migration: zeros.
   }
 
+  // 7d. DigitalOcean mirror (real spend pulled server-side with a DO token;
+  // USD, no cut, no coin movement). Service-written only: RLS is
+  // service_role-only, so an authenticated SELECT either returns the caller's
+  // rows or (pre-migration / RLS-deny) zero rows. SELECT-only here: this
+  // route never inserts, updates, or deletes do_usage or any coin table.
+  const doUsage: {
+    totalUsd: number;
+    buckets: number;
+    byKind: { kind: string; usd: number }[];
+    recent: { kind: string; remote_id: string; time_bucket: string; amount_usd: number }[];
+    lastSync: string | null;
+  } = { totalUsd: 0, buckets: 0, byKind: [], recent: [] as typeof doUsage.recent, lastSync: null };
+  try {
+    const { data: rows, error } = await supabase
+      .from("do_usage")
+      .select("kind,remote_id,time_bucket,amount_usd")
+      .eq("user_id", data.user.id)
+      .order("time_bucket", { ascending: false })
+      .limit(200);
+    if (!error && rows) {
+      const list = rows as {
+        kind: string;
+        remote_id: string;
+        time_bucket: string;
+        amount_usd: number;
+      }[];
+      const sums = new Map<string, number>();
+      for (const r of list) {
+        const usd = Number(r.amount_usd) || 0;
+        doUsage.totalUsd += usd;
+        doUsage.buckets += 1;
+        sums.set(r.kind, (sums.get(r.kind) ?? 0) + usd);
+        if (!doUsage.lastSync || String(r.time_bucket) > doUsage.lastSync) doUsage.lastSync = String(r.time_bucket);
+      }
+      doUsage.totalUsd = Math.round(doUsage.totalUsd * 10000) / 10000;
+      doUsage.byKind = [...sums.entries()]
+        .map(([kind, usd]) => ({ kind, usd: Math.round(usd * 10000) / 10000 }))
+        .sort((a, b) => b.usd - a.usd);
+      doUsage.recent = list.slice(0, limit).map((r) => ({
+        kind: r.kind,
+        remote_id: r.remote_id,
+        time_bucket: r.time_bucket,
+        amount_usd: Number(r.amount_usd) || 0,
+      }));
+    }
+  } catch {
+    // Pre-migration (table missing) or RLS-deny: zeros are the honest answer.
+  }
+
   return ok({
     session: session ? { id: session, ...gameAi.session } : gameAi.session,
     total: gameAi.total,
@@ -456,6 +510,7 @@ export async function GET(req: Request) {
     gameRent,
     clan,
     runpod,
+    doUsage,
     fal,
     submissions,
     meshy,

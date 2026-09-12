@@ -144,7 +144,9 @@ export async function POST(req: Request) {
   const filename = String(input.filename ?? `${source}-${Date.now()}.txt`).slice(0, 128);
   const plan = planAutosave({ kind: input.kind, tier, filename });
   if (!plan) return fail("Invalid kind.", 400);
-  const rel = cleanVaultPath(vaultPathForKind(plan.kind, filename)) || `assets/${filename}`;
+  // Never fall back to the raw filename: an unsanitizable name would land
+  // verbatim (traversal sequences included) in vault_files.path.
+  const rel = cleanVaultPath(vaultPathForKind(plan.kind, filename)) || "assets/untitled";
   const sha256 = createHash("sha256").update(bytes).digest("hex");
   const ext = (rel.split(".").pop() ?? "bin").slice(0, 8);
   const objectKey = `${scope}/${scopeId}/${sha256}.${ext}`;

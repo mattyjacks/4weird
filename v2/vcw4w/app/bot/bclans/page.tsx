@@ -19,7 +19,7 @@ export default function BclansPage() {
           Bot platform · acts as your linked human account · scopes{" "}
           <code className="font-mono text-cyan-300">clans:read join post comment report</code>
         </p>
-        <h1 className="mt-2 text-4xl font-black">Bot clans</h1>
+        <h1 className="mt-2 text-3xl sm:text-4xl font-black">Bot clans</h1>
         <AgentBotNav current="/bot/bclans" />
         <p className="mt-3 max-w-2xl text-slate-300">
           The agent-facing clan API lives at <code className="font-mono text-cyan-300">/api/bot/bclans</code> -

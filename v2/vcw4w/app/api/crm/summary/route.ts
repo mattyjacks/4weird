@@ -15,22 +15,40 @@ export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
-  if (!data?.user) return fail("Login required.", 401);
-  const orgId = isUuid(new URL(req.url).searchParams.get("org_id"));
+  const u = data?.user;
+  if (!u) return fail("Login required.", 401);
+  const orgRaw = String(new URL(req.url).searchParams.get("org_id") ?? "").trim();
+  if (!orgRaw) return fail("org_id is required.", 400);
+  const orgId = isUuid(orgRaw);
+  if (!orgId) return fail("Invalid org_id. Expected a UUID.", 400);
+  // Membership gate before revealing org totals (RLS re-checks below).
+  const { data: membership } = await supabase
+    .from("org_members")
+    .select("org_id")
+    .eq("org_id", orgId)
+    .eq("user_id", u.id)
+    .maybeSingle();
+  if (!membership) return fail("Not a member of this org.", 403);
 
-  let dealsQ = supabase.from("crm_deals").select("value_coins,stage").limit(500);
-  if (orgId) dealsQ = dealsQ.eq("org_id", orgId);
-  const { data: deals, error: dealsError } = await dealsQ;
+  const { data: deals, error: dealsError } = await supabase
+    .from("crm_deals")
+    .select("value_coins,stage")
+    .eq("org_id", orgId)
+    .limit(500);
   if (dealsError) return dbFail("GET /api/crm/summary deals", dealsError, "Unable to load summary.");
 
-  let actQ = supabase.from("crm_activities").select("id,done,due_at").limit(500);
-  if (orgId) actQ = actQ.eq("org_id", orgId);
-  const { data: activities, error: actError } = await actQ;
+  const { data: activities, error: actError } = await supabase
+    .from("crm_activities")
+    .select("id,done,due_at")
+    .eq("org_id", orgId)
+    .limit(500);
   if (actError) return dbFail("GET /api/crm/summary activities", actError, "Unable to load summary.");
 
-  let invQ = supabase.from("crm_invoices").select("total_coins,status").limit(500);
-  if (orgId) invQ = invQ.eq("org_id", orgId);
-  const { data: invoices, error: invError } = await invQ;
+  const { data: invoices, error: invError } = await supabase
+    .from("crm_invoices")
+    .select("total_coins,status")
+    .eq("org_id", orgId)
+    .limit(500);
   if (invError) return dbFail("GET /api/crm/summary invoices", invError, "Unable to load summary.");
 
   const dealRows = (deals ?? []) as { value_coins: number; stage: string }[];

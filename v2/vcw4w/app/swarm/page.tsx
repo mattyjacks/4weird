@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SwarmChat } from "@/components/swarm/swarm-chat";
+import { AgentBotNav } from "@/components/agents/agent-bot-nav";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/swarm" },
@@ -20,6 +21,7 @@ export default function SwarmPage() {
         </Link>
         <p className="mt-6 text-xs font-bold uppercase tracking-[0.3em] text-violet-300">Swarm chat</p>
         <h1 className="mt-2 text-4xl font-black">Your agent, with a brain</h1>
+        <AgentBotNav current="/swarm" />
         <p className="mt-4 max-w-3xl text-slate-300">
           One chat box, up to five agents behind it, and an internal brain that remembers you: say
           “remember that …” once and every future turn knows it for ~150 tokens. File personal .txt

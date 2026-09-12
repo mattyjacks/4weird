@@ -237,3 +237,20 @@ export function resolveAutoplayPlan(input: AutoplayPlanInput): AutoplayPlan {
   }
   return { ok: true, gameSlug: slug, compute, siteMode, targetUrl: onSitePlayUrl(slug), needsDesktop: false };
 }
+
+/**
+ * Provider hint for autoplay remotes; pure display helper, no provisioning.
+ * CPU/GPU short runs stay on RunPod (per-minute remotes, idle-stop capped).
+ * Persistent test fleets (always-on / multi-day harnesses) belong on
+ * DigitalOcean, which is cheaper to park than per-second pod billing.
+ */
+export function autoplayProviderHint(compute: AutoplayCompute): string {
+  switch (compute) {
+    case "cpu":
+      return "RunPod CPU remote for short runs; persistent test fleets → DigitalOcean.";
+    case "gpu":
+      return "RunPod GPU remote for short runs; persistent test fleets → DigitalOcean.";
+    case "gpu-boosted":
+      return "RunPod RTX 4090 boosted remote for short runs; persistent test fleets → DigitalOcean.";
+  }
+}

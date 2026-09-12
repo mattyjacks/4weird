@@ -22,6 +22,8 @@ const LINKS: { href: string; label: string; hint: string }[] = [
 ];
 
 export function AgentBotNav({ current }: { current?: string }) {
+  const norm = (s?: string) => (s ?? "").replace(/\/+$/, "") || "/";
+  const activeHref = norm(current);
   return (
     <nav
       aria-label="Agent and bot pages"
@@ -36,18 +38,29 @@ export function AgentBotNav({ current }: { current?: string }) {
       </p>
       <div className="mt-2 flex flex-wrap gap-2">
       {LINKS.map((l) => {
-        const active = current === l.href;
+        const active = norm(l.href) === activeHref;
+        const pill = `rounded-full border px-3 py-1.5 min-h-[36px] inline-flex items-center text-xs font-bold transition ${
+          active
+            ? "border-cyan-300 bg-cyan-300 text-slate-950"
+            : "border-white/15 text-slate-200 hover:border-cyan-300/60 hover:text-cyan-200"
+        }`;
+        // Static public/ files (e.g. /bot/skill.md) have no RSC payload:
+        // next/link prefetch fires GET ?_rsc=… → 404 in the console.
+        // Plain <a> forces a full document load, no RSC request.
+        if (l.href.endsWith(".md")) {
+          return (
+            <a key={l.href} href={l.href} title={l.hint} className={pill}>
+              {l.label}
+            </a>
+          );
+        }
         return (
           <Link
             key={l.href}
             href={l.href}
             title={l.hint}
             aria-current={active ? "page" : undefined}
-            className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${
-              active
-                ? "border-cyan-300 bg-cyan-300 text-slate-950"
-                : "border-white/15 text-slate-200 hover:border-cyan-300/60 hover:text-cyan-200"
-            }`}
+            className={pill}
           >
             {l.label}
           </Link>

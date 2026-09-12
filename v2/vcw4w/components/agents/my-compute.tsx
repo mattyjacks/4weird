@@ -69,6 +69,7 @@ export function MyCompute() {
     priceUsd: "1.00",
   });
   const [formMsg, setFormMsg] = useState("");
+  const [formOk, setFormOk] = useState(false);
   const [formBusy, setFormBusy] = useState(false);
   const [mine, setMine] = useState<MineResponse | null>(null);
   const [mineError, setMineError] = useState("");
@@ -97,6 +98,9 @@ export function MyCompute() {
 
   useEffect(() => {
     void loadMine();
+    const onBooked = () => void loadMine();
+    window.addEventListener("agents:booked", onBooked);
+    return () => window.removeEventListener("agents:booked", onBooked);
   }, [loadMine]);
 
   function set<K extends keyof typeof form>(key: K, value: string) {
@@ -108,6 +112,23 @@ export function MyCompute() {
   async function createListing() {
     setFormBusy(true);
     setFormMsg("");
+    setFormOk(false);
+    const price = Number(form.priceUsd);
+    if (!form.name.trim() || form.name.trim().length > 80) {
+      setFormMsg("Name must be 1..80 chars.");
+      setFormBusy(false);
+      return;
+    }
+    if (!Number.isFinite(price) || price < PRICE_USD_MIN || price > PRICE_USD_MAX) {
+      setFormMsg(`Max price must be $${PRICE_USD_MIN}..$${PRICE_USD_MAX}/hr gross.`);
+      setFormBusy(false);
+      return;
+    }
+    if (needsEndpoint && !/^https:\/\/.{1,2048}$/.test(form.endpoint_url.trim())) {
+      setFormMsg("Custom endpoints need an https:// URL.");
+      setFormBusy(false);
+      return;
+    }
     try {
       const res = await fetch("/api/agents", {
         method: "POST",
@@ -120,10 +141,13 @@ export function MyCompute() {
           price_usd_per_hour: Number(form.priceUsd),
         }),
       });
-      const body = (await res.json()) as { success: boolean; error?: string; note?: string };
+      const body = (await res.json()) as { success: boolean; error?: string; note?: string; listing?: { id?: string } };
       if (!body.success) throw new Error(body.error || "Create failed.");
+      setFormOk(true);
       setFormMsg(body.note ?? "Listing published. Renters are billed per second up to your max.");
+      if (body.listing?.id) setFormMsg(`${body.note ?? "Listing published."} View: /agents#browse`);
       setForm({ name: "", runtime: "nanoclaw", provider_code: "runpod", endpoint_url: "", priceUsd: "1.00" });
+      void loadMine();
     } catch (e) {
       setFormMsg(e instanceof Error ? e.message : "Create failed.");
     } finally {
@@ -133,8 +157,8 @@ export function MyCompute() {
 
   async function heartbeat(bookingId: string) {
     const seconds = Number(secondsById[bookingId] || "60");
-    if (!Number.isInteger(seconds) || seconds < 1 || seconds > 86400) {
-      setActionMsg((m) => ({ ...m, [bookingId]: "Seconds must be 1..86400." }));
+    if (!Number.isInteger(seconds) || seconds < 1 || seconds > 3600) {
+      setActionMsg((m) => ({ ...m, [bookingId]: "Seconds must be 1..3600 (1h max per beat; report hourly or more often)." }));
       return;
     }
     setBusyId(bookingId);
@@ -164,13 +188,14 @@ export function MyCompute() {
   }
 
   async function endBooking(bookingId: string) {
+    if (!window.confirm("End this booking now? Unused escrow refunds to the renter; provider keeps the metered share.")) return;
     setBusyId(bookingId);
     try {
       const res = await fetch(`/api/agents/bookings/${bookingId}/end`, { method: "POST" });
       const body = (await res.json()) as { success: boolean; error?: string };
       setActionMsg((m) => ({
         ...m,
-        [bookingId]: body.success ? "Booking ended. Billing stops here." : (body.error ?? "End failed."),
+        [bookingId]: body.success ? "Booking ended. Unused escrow refunds to the renter; provider keeps the metered share. Pod still runs until you Stop/Terminate it on /runpods." : (body.error ?? "End failed."),
       }));
       if (body.success) void loadMine();
     } catch {
@@ -182,13 +207,16 @@ export function MyCompute() {
 
   function bookingCard(b: Booking) {
     const conn = connectionFor(b);
+    const usage = mine?.usage.find((u) => u.booking_id === b.id);
+    const escrowLeft = usage ? Math.max(0, b.escrow_coins - usage.gross_cents) : b.escrow_coins;
+    const pct = usage && b.escrow_coins > 0 ? Math.min(100, Math.round((usage.gross_cents / b.escrow_coins) * 100)) : 0;
     return (
       <li key={b.id} className="rounded-xl border border-slate-800 bg-slate-900 p-4">
         <div className="flex items-start justify-between gap-2">
           <div>
             <p className="font-bold">{b.agent_listings?.name ?? "Unknown agent"}</p>
-            <p className="text-xs text-slate-600 dark:text-slate-400">
-              {b.status} · escrow {b.escrow_coins} coins · since{" "}
+            <p className="text-xs text-slate-400">
+              {b.status} · escrow {b.escrow_coins} coins (1 coin = $0.01) · since{" "}
               {new Date(b.started_at).toLocaleString()}
             </p>
             <p className="text-xs text-slate-600 dark:text-slate-500">
@@ -201,6 +229,16 @@ export function MyCompute() {
               <p className="mt-1 text-xs">
                 <ProxyLink href={conn} label="Open server" />
               </p>
+            ) : b.status === "active" ? (
+              <p className="mt-1 text-xs text-amber-300">Needs provisioning / failed - End above for instant refund, then re-book.</p>
+            ) : null}
+            {usage ? (
+              <div className="mt-2 text-xs text-slate-300" role="status">
+                <p>Metered {usage.seconds}s · {formatUsd(usage.gross_cents)} gross · {escrowLeft} coins left ({pct}% used)</p>
+                <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="Escrow used">
+                  <div className="h-full rounded-full bg-cyan-300" style={{ width: `${pct}%` }} />
+                </div>
+              </div>
             ) : null}
           </div>
           {b.status === "active" && (
@@ -215,30 +253,31 @@ export function MyCompute() {
           )}
         </div>
         {b.status === "active" && (
-          <div className="mt-3 flex items-center gap-2">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             <label className="text-xs text-slate-600 dark:text-slate-300">
-              Seconds{" "}
-              <InfoTip side="bottom" text="Reports seconds of use; gross billed per second up to your max. Ending stops billing." label="About reporting usage" />
+              Seconds (1..3600, 1h max per beat){" "}
+              <InfoTip side="bottom" text="Reports seconds of use; gross billed per second up to escrow. Ending refunds the rest." label="About reporting usage" />
               <input
                 type="number"
                 min={1}
-                max={86400}
+                max={3600}
+                aria-label={`Report seconds for booking ${b.id}`}
                 value={secondsById[b.id] ?? "60"}
                 onChange={(e) => setSecondsById((m) => ({ ...m, [b.id]: e.target.value }))}
-                className="ml-2 w-24 rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-white"
+                className="ml-2 w-24 rounded-md border border-slate-700 bg-slate-950 px-2 py-1 min-h-[44px] text-white"
               />
             </label>
             <button
               type="button"
               disabled={busyId === b.id}
               onClick={() => void heartbeat(b.id)}
-              className="rounded-md bg-slate-700 px-2 py-1 text-xs font-bold text-white hover:bg-slate-600 disabled:opacity-50"
+              className="rounded-md bg-slate-700 px-2 py-1 min-h-[44px] text-xs font-bold text-white hover:bg-slate-600 disabled:opacity-50"
             >
               Report usage
             </button>
           </div>
         )}
-        {actionMsg[b.id] && <p className="mt-1 text-xs text-amber-300">{actionMsg[b.id]}</p>}
+        {actionMsg[b.id] && <p role="status" className="mt-1 text-xs text-amber-300">{actionMsg[b.id]}</p>}
       </li>
     );
   }
@@ -273,8 +312,9 @@ export function MyCompute() {
             <button
               key={t.label}
               type="button"
-              onClick={() => setForm((f) => ({ ...f, runtime: t.runtime, provider_code: t.provider_code, priceUsd: t.priceUsd, name: f.name || t.name }))}
-              className="rounded-full border border-cyan-300/40 bg-cyan-300/10 px-3 py-1 text-xs font-bold text-cyan-200 hover:bg-cyan-300/20"
+              aria-pressed={form.runtime === t.runtime && form.provider_code === t.provider_code}
+              onClick={() => setForm((f) => ({ ...f, runtime: t.runtime, provider_code: t.provider_code, priceUsd: t.priceUsd, name: t.name }))}
+              className="rounded-full border border-cyan-300/40 bg-cyan-300/10 px-3 py-1 min-h-[36px] text-xs font-bold text-cyan-200 hover:bg-cyan-300/20"
             >
               {t.label}
             </button>
@@ -370,7 +410,7 @@ export function MyCompute() {
         >
           {formBusy ? "Publishing…" : "Publish listing"}
         </button>
-        {formMsg && <p className="mt-2 text-sm text-amber-300">{formMsg}</p>}
+        {formMsg && <p role="status" className={`mt-2 text-sm ${formOk ? "text-emerald-300" : "text-amber-300"}`}>{formMsg}</p>}
       </section>
 
       <section>
@@ -381,9 +421,16 @@ export function MyCompute() {
           </Link>{" "}
           for clickable links plus Stop / Start / Restart / Terminate / Delete on every pod you created.
         </p>
-        {mineError && <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{mineError} (login to see bookings)</p>}
+        {mineError && (
+          <p className="mt-2 text-sm text-slate-400">
+            {mineError}{" "}
+            <Link href="/auth/login?next=/agents" className="font-bold text-cyan-300 hover:underline">Log in</Link>
+            {" · "}
+            <button type="button" onClick={() => void loadMine()} className="font-bold text-cyan-300 hover:underline">Retry</button>
+          </p>
+        )}
         {mine && mine.rentals.length === 0 && (
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">No rentals yet; pick a listing under “Rent an agent”.</p>
+          <p className="mt-2 text-sm text-slate-400">No rentals yet; pick a listing under “Rent an agent” <a href="#browse" className="font-bold text-cyan-300 hover:underline">↑ browse</a>.</p>
         )}
         <ul className="mt-3 grid gap-3 md:grid-cols-2">
           {(mine?.rentals ?? []).map(bookingCard)}
@@ -392,6 +439,12 @@ export function MyCompute() {
 
       <section>
         <h2 className="text-2xl font-black">Bookings on my listings (I&apos;m hosting)</h2>
+        <p className="mt-1 text-sm text-slate-400">
+          Escrow locks the renter&apos;s max upfront; per-second heartbeats settle 25% platform / 75% you, and End refunds the rest.
+        </p>
+        {(mine?.ownerBookings ?? []).length === 0 && (
+          <p className="mt-2 text-sm text-slate-400">No guests yet - publish above, share your listing URL, earnings land here. Guide: <Link href="/docs/agents-compute" className="font-bold text-cyan-300 hover:underline">/docs/agents-compute</Link>.</p>
+        )}
         {mine && (
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
             Metered {mine.totals.seconds}s · {formatUsd(mine.totals.gross_cents)} gross

@@ -190,3 +190,56 @@ export function describePodIdlePolicy(policy: PodIdlePolicy): string {
 
 /** Local-storage keys for the per-browser watchdog preferences. */
 export const POD_POLICY_STORAGE_KEY = "fourweird:pod-policy";
+
+// ---------------------------------------------------------------------------
+// Long-term idle policy (DigitalOcean droplets, volumes, snapshots).
+//
+// ADDITIVE ONLY: nothing above (RunPod warn → stop → terminate) is changed.
+// DO boxes are persistent servers rented for days/weeks, so the short-burst
+// RunPod lifecycle must never apply to them: warn once, never auto-stop,
+// never auto-terminate — nudge the owner to snapshot instead.
+// ---------------------------------------------------------------------------
+
+/** Long-term (DigitalOcean) idle policy: nudge, never destroy. */
+export const DO_IDLE_POLICY = {
+  /** Days idle before the warning nudge fires. */
+  warnDays: 7,
+  /** Droplets are never auto-stopped by any sweep. */
+  stopNever: true,
+  /** Nudges point at snapshots (point-in-time keeps) instead of shutdown. */
+  snapshotHint: true,
+} as const;
+
+/**
+ * True when a provider code identifies a long-term resource (DigitalOcean),
+ * which the warn-only DO policy covers instead of the RunPod lifecycle.
+ * Accepts provider codes ("digitalocean"), short aliases ("do"), and
+ * resource nouns ("droplet"); anything else (incl. "runpod") is short-term.
+ */
+export function isLongTermResource(provider: unknown): boolean {
+  const p = String(provider ?? "").trim().toLowerCase();
+  return p === "digitalocean" || p === "digital-ocean" || p === "do" || p === "droplet";
+}
+
+/**
+ * Human advice for a long-term resource idle since `lastActivityAt`
+ * (DigitalOcean droplets expose no heartbeat, so callers pass `created_at`
+ * as the idle proxy). Always warn-only: nudge after 7d, never
+ * auto-terminate — snapshot instead.
+ */
+export function longTermIdleAdvice(
+  lastActivityAt: string | number | Date | null | undefined,
+): string {
+  if (lastActivityAt === null || lastActivityAt === undefined || String(lastActivityAt).trim() === "") {
+    return "DO droplet idle age unknown — nudge after 7d, never auto-terminate — snapshot instead.";
+  }
+  const t =
+    lastActivityAt instanceof Date
+      ? lastActivityAt.getTime()
+      : new Date(lastActivityAt as string).getTime();
+  if (!Number.isFinite(t)) {
+    return "DO droplet idle age unknown — nudge after 7d, never auto-terminate — snapshot instead.";
+  }
+  const days = Math.max(0, Math.floor((Date.now() - t) / 86_400_000));
+  return `DO droplet idle ${days}d — nudge after 7d, never auto-terminate — snapshot instead.`;
+}

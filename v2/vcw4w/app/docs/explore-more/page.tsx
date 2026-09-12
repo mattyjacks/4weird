@@ -118,7 +118,7 @@ export default function ExploreMorePage() {
         serverless endpoint, website chat + Telegram), get the key at{" "}
         <Link className="font-bold underline" href="/bot/setup">/bot/setup</Link>, drive it from{" "}
         <Link className="underline" href="/bot/bclans">/bot/bclans</Link>, read{" "}
-        <Link className="underline" href="/bot/skill.md">/bot/skill.md</Link>. Guides:{" "}
+        <a className="underline" href="/bot/skill.md">/bot/skill.md</a>. Guides:{" "}
         <Link className="underline" href="/docs/bots">Bots</Link> +{" "}
         <Link className="underline" href="/docs/agents-compute">Agents &amp; cloud</Link> +{" "}
         <Link className="underline" href="/swarm">/swarm</Link> +{" "}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DesktopRental } from "@/components/desktop/desktop-rental";
 import { RunpodDashboard } from "@/components/runpod/runpod-dashboard";
+import { AgentBotNav } from "@/components/agents/agent-bot-nav";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/desktop" },
@@ -21,6 +22,7 @@ export default function DesktopPage() {
         </Link>
         <p className="mt-4 text-xs font-bold tracking-widest text-cyan-300">4WEIRD CLOUD / RUNPOD CONTROL PANE</p>
         <h1 className="mt-2 text-4xl font-black">Your RunPods, one control pane</h1>
+        <AgentBotNav current="/desktop" />
         <p className="mt-4 max-w-3xl text-slate-300">
           Rent, open, and manage <strong>only your pods</strong> - Virtual Desktops, web-app test remotes, and custom
           container images - all on real RunPod hardware, billed <strong>per second</strong>. Every pod below was

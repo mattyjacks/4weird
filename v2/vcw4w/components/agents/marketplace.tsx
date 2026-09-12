@@ -54,14 +54,16 @@ export function Marketplace() {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("recommended");
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [hoursById, setHoursById] = useState<Record<string, string>>({});
   const [noteById, setNoteById] = useState<Record<string, string>>({});
   const [connectionById, setConnectionById] = useState<Record<string, ProvisionState>>({});
   const [busyId, setBusyId] = useState("");
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (isFirst?: boolean) => {
+    if (isFirst) setLoading(true);
+    else setRefreshing(true);
     setError("");
     try {
       const q = new URLSearchParams();
@@ -79,11 +81,13 @@ export function Marketplace() {
       setError(e instanceof Error ? e.message : "Failed to load.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [runtime, provider]);
 
   useEffect(() => {
-    void load();
+    void load(listings.length === 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [load]);
 
   const visible = useMemo(() => {
@@ -100,14 +104,17 @@ export function Marketplace() {
   }, [listings, query, sort]);
 
   const cheapest = useMemo(
-    () => (listings.length ? Math.min(...listings.map((l) => l.price_cents_per_hour)) : null),
-    [listings],
+    () => (visible.length ? Math.min(...visible.map((l) => l.price_cents_per_hour)) : null),
+    [visible],
   );
 
   async function book(listing: Listing) {
     const hours = Number(hoursById[listing.id] || "1");
     if (!Number.isInteger(hours) || hours < 1 || hours > 720) {
       setNoteById((m) => ({ ...m, [listing.id]: "Hours must be 1..720 (your max rental length; billed per second up to that cap)." }));
+      return;
+    }
+    if (hours > 24 && !window.confirm(`Lock up to ${formatUsd(grossFor(listing.price_cents_per_hour, hours).gross)} escrow for ${hours}h? Unused per-second balance refunds on End.`)) {
       return;
     }
     setBusyId(listing.id);
@@ -140,6 +147,7 @@ export function Marketplace() {
           ...m,
           [listing.id]: `Rented! Server live at the RunPod default endpoint below (billed per second up to ${hours}h escrow). Manage it on /runpods; spend shows on /my/usage. Next: SSH in and run the NanoClaw pod bootstrap from the panel above.`,
         }));
+        if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("agents:booked"));
       } else if (body.provision && body.provision.ok === false) {
         setConnectionById((m) => ({ ...m, [listing.id]: { ok: false, code: body.provision?.code, message: body.provision?.message } }));
         setNoteById((m) => ({
@@ -171,6 +179,7 @@ export function Marketplace() {
       {cheapest !== null && (
         <p className="mt-2 inline-block rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-200">
           {visible.length} live · from {formatUsd(cheapest)}/hr max · billed per second
+          {refreshing ? " · refreshing…" : ""}
         </p>
       )}
       <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -179,7 +188,7 @@ export function Marketplace() {
           <select
             value={runtime}
             onChange={(e) => setRuntime(e.target.value)}
-            className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-slate-900 dark:text-white"
+            className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-white"
           >
             {RUNTIME_OPTIONS.map((o) => (
               <option key={o.value || "all"} value={o.value}>{o.label}</option>
@@ -191,7 +200,7 @@ export function Marketplace() {
           <select
             value={provider}
             onChange={(e) => setProvider(e.target.value)}
-            className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-slate-900 dark:text-white"
+            className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-white"
           >
             <option value="">All</option>
             <option value="runpod">RunPod</option>
@@ -204,7 +213,7 @@ export function Marketplace() {
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as SortKey)}
-            className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-slate-900 dark:text-white"
+            className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-white"
           >
             <option value="recommended">Recommended first</option>
             <option value="cheapest">Cheapest first</option>
@@ -229,7 +238,17 @@ export function Marketplace() {
         </button>
       </div>
 
-      {loading && <p className="mt-6 text-slate-600 dark:text-slate-400">Loading agents…</p>}
+      {loading && (
+        <ul aria-label="Loading agents" className="mt-6 grid gap-4 md:grid-cols-2">
+          {[0, 1, 2, 3].map((i) => (
+            <li key={i} className="animate-pulse rounded-xl border border-slate-800 bg-slate-900 p-5">
+              <div className="h-5 w-2/3 rounded bg-white/10" />
+              <div className="mt-2 h-4 w-1/3 rounded bg-white/10" />
+              <div className="mt-4 h-9 w-full rounded bg-white/10" />
+            </li>
+          ))}
+        </ul>
+      )}
       {error && <p className="mt-6 text-red-400">{error}</p>}
       {!loading && !error && visible.length === 0 && (
         <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900 p-5 text-sm text-slate-600 dark:text-slate-300">
@@ -285,7 +304,7 @@ export function Marketplace() {
               <p className="mt-1 text-xs text-slate-600 dark:text-slate-500">
                 1h ≈ {formatUsd(l.price_cents_per_hour)} ({coinsFor(l.price_cents_per_hour)} coins) · 24h ≈ {formatUsd(day.gross)} max · partial hours pro-rate per second.
               </p>
-              <div className="mt-4 flex items-center gap-2">
+              <div className="mt-4 flex flex-wrap items-center gap-2">
                 <label className="text-sm text-slate-600 dark:text-slate-300">
                   Max hours{" "}
                   <InfoTip side="bottom" text="Escrow locks the max upfront; per-second use releases the rest. Hours must be 1..720." label="About max rental hours" />
@@ -293,26 +312,43 @@ export function Marketplace() {
                     type="number"
                     min={1}
                     max={720}
+                    aria-label={`Max hours for ${l.name}`}
                     value={hoursById[l.id] ?? "1"}
                     onChange={(e) =>
                       setHoursById((m) => ({ ...m, [l.id]: e.target.value }))
                     }
-                    className="ml-2 w-20 rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-white"
+                    className="ml-2 w-20 rounded-md border border-slate-700 bg-slate-950 px-2 py-1 min-h-[44px] text-white"
                   />
                 </label>
+                <div className="flex flex-wrap gap-1" aria-label="Hour presets">
+                  {[1, 8, 24].map((h) => (
+                    <button
+                      key={h}
+                      type="button"
+                      onClick={() => setHoursById((m) => ({ ...m, [l.id]: String(h) }))}
+                      className="rounded-full border border-white/15 px-2 py-1 min-h-[36px] text-xs font-bold text-slate-300 hover:text-white"
+                    >
+                      {h}h
+                    </button>
+                  ))}
+                </div>
                 <button
                   type="button"
                   disabled={busyId === l.id}
                   onClick={() => void book(l)}
-                  className="rounded-md bg-cyan-500 px-3 py-1.5 text-sm font-bold text-slate-950 hover:bg-cyan-400 disabled:opacity-50"
+                  className="rounded-md bg-cyan-500 px-3 py-1.5 min-h-[44px] text-sm font-bold text-slate-950 hover:bg-cyan-400 disabled:opacity-50"
                 >
                   {busyId === l.id ? "Renting…" : "Rent this agent"}
                 </button>
               </div>
-              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                Up to {formatUsd(math.gross)} for {hours || 0}h; billed per
-                second ({formatUsd(math.cut)} platform /{" "}
-                {formatUsd(math.provider)} compute at full use).
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300" role="status">
+                {hours > 0 ? (
+                  <>Up to {formatUsd(math.gross)} for {hours}h; billed per
+                  second ({formatUsd(math.cut)} platform /{" "}
+                  {formatUsd(math.provider)} compute at full use).</>
+                ) : (
+                  <>Pick 1..720 max hours to preview escrow (billed per second, never above cap).</>
+                )}
               </p>
               {l.provider_code === "runpod" && (
                 <p className="mt-1 text-xs text-slate-600 dark:text-slate-500">
@@ -331,6 +367,10 @@ export function Marketplace() {
                   <ProxyLink href={conn.endpointUrl} label="Open server" />
                   {conn.gpuId ? <span>{` · ${conn.gpuId}`}</span> : ""}
                   {typeof conn.hourlyUsd === "number" ? <span>{` · $${conn.hourlyUsd.toFixed(2)}/hr`}</span> : ""}
+                  <span className="mt-2 flex flex-wrap gap-2">
+                    <Link href="/runpods" className="font-bold underline">Manage on /runpods</Link>
+                    <Link href="/my/usage" className="font-bold underline">Spend on /my/usage</Link>
+                  </span>
                 </div>
               )}
               {conn && !conn.ok && (

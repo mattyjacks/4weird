@@ -20,7 +20,7 @@ const API_ROWS: [string, string][] = [
   ["POST /api/crm/activities", "Log a note, call, email, meeting, or task { org_id, kind?, body?, due_at? }."],
   ["PATCH /api/crm/activities", "Complete or edit an activity { id, done? }."],
   ["GET /api/crm/invoices?org_id=", "List invoices with line items { invoices: [{ …invoice, items }] }."],
-  ["POST /api/crm/invoices", "Draft an invoice { org_id, items: [{ label, qty, unit_coins }], tax_coins?, due_date? }."],
+  ["POST /api/crm/invoices", "Draft an invoice { org_id, items: [{ label, qty, unit_coins }], number?, tax_coins?, due_date?, payment_ref? }. Numbers are unique per org."],
   ["PATCH /api/crm/invoices", "Advance status { id, status }: draft → sent → paid, or void."],
   ["GET /api/crm/summary?org_id=", "Dashboard rollup: pipeline coins, open deals, overdue activities, unpaid invoices."],
 ];
@@ -89,12 +89,23 @@ export default function BusinessDocsPage() {
       </div>
 
       <h2 className="mt-8 text-xl font-black">Invoices are memoranda, not tax invoices</h2>
+      <p className="mt-2 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm font-bold">
+        These are NOT tax invoices - internal coin accounting only (100 coins = $1.00).
+        Marking one paid moves no coins by itself.
+      </p>
       <p className="mt-2 text-sm text-muted-foreground">
         An invoice here is an org memorandum — a polite, itemized reminder. It is not a tax
         invoice, VAT/GST invoice, payroll record, or receipt, and marking one paid moves no
         coins by itself. Ghost Cash (👻) has no cash value and can never settle an invoice.
         Full terms live in <Link className="underline" href="/terms">/terms</Link>.
       </p>
+
+      <h2 className="mt-8 text-xl font-black">FAQ</h2>
+      <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
+        <li><strong>Is CRM data org-scoped?</strong> Yes — every company, contact, deal, activity, and invoice belongs to one org and never crosses orgs.</li>
+        <li><strong>Coins vs USD?</strong> 100 Vibe Coins = exactly $1.00 everywhere in the CRM; totals show both.</li>
+        <li><strong>Ghost Cash vs invoices?</strong> Ghost Cash (👻) IOUs never settle an invoice; invoices are memoranda, NOT tax invoices.</li>
+      </ul>
 
       <p className="mt-8 rounded-2xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
         Next: <Link className="underline" href="/business">Business hub</Link> ·{" "}

@@ -19,6 +19,8 @@
 
 import { WORKSPACE_COMPUTE_CUT_PCT, workspaceComputeSplit } from "@/lib/economy";
 
+export type CloudProvider = "runpod" | "digitalocean" | "either";
+
 export type CloudService = {
   key: string;
   name: string;
@@ -30,6 +32,8 @@ export type CloudService = {
   tier: string;
   /** Newest viable runtime/image this service runs on. */
   runtime: string;
+  /** Provider hint for routing (runpod vs digitalocean vs either). */
+  providerHint?: CloudProvider;
 };
 
 export const CLOUD_SERVICES: CloudService[] = [
@@ -85,6 +89,14 @@ export const CLOUD_SERVICES: CloudService[] = [
   { key: "fal-quest-dialogue", name: "fal Quest Dialogue", unit: "quest", coinsPerUnit: 3, blurb: "Branching quest dialogue trees from one story beat (gpt-oss-120b)", category: "fal.ai Media", tier: "turbo", runtime: "gpt-oss-120b" },
   { key: "fal-code-review", name: "fal Code Review", unit: "review", coinsPerUnit: 3, blurb: "Instant gameplay code review; balance, bugs + fix list (kimi-k2)", category: "fal.ai Media", tier: "turbo", runtime: "kimi-k2-instruct" },
   { key: "fal-capsule-art", name: "fal Store Capsule", unit: "image", coinsPerUnit: 9, blurb: "Store capsules + OG cards that demand the click (fast-sdxl)", category: "fal.ai Media", tier: "turbo", runtime: "fast-sdxl" },
+  { key: "do-droplet-basic", name: "DO Basic Droplet", unit: "droplet_mo", coinsPerUnit: 800, blurb: "1 vCPU / 1GB monthly droplet for always-on bots", category: "Long-term", tier: "basic-1vcpu-1gb", runtime: "ubuntu-newest-viable", providerHint: "digitalocean" },
+  { key: "do-droplet-cpu-opt", name: "DO CPU-Optimized Droplet", unit: "droplet_mo", coinsPerUnit: 5600, blurb: "Dedicated vCPUs for game servers + builders", category: "Long-term", tier: "cpu-opt-2vcpu-4gb", runtime: "ubuntu-newest-viable", providerHint: "digitalocean" },
+  { key: "do-droplet-mem-opt", name: "DO Memory-Optimized Droplet", unit: "droplet_mo", coinsPerUnit: 11200, blurb: "High-RAM monthly droplet for DBs + caches", category: "Long-term", tier: "mem-opt-2vcpu-16gb", runtime: "ubuntu-newest-viable", providerHint: "digitalocean" },
+  { key: "do-volume", name: "DO Block Volume", unit: "gb_mo", coinsPerUnit: 13, blurb: "Persistent SSD volumes attached to droplets", category: "Long-term", tier: "standard-10gb", runtime: "ext4-newest", providerHint: "digitalocean" },
+  { key: "do-snapshot", name: "DO Snapshot", unit: "gb_mo", coinsPerUnit: 7, blurb: "Droplet + volume snapshots for rollback", category: "Long-term", tier: "standard", runtime: "snapshot-newest", providerHint: "digitalocean" },
+  { key: "do-managed-db", name: "DO Managed Database", unit: "db_mo", coinsPerUnit: 2000, blurb: "Managed Postgres monthly with backups", category: "Long-term", tier: "basic-1gb", runtime: "postgres-newest-viable", providerHint: "digitalocean" },
+  { key: "do-spaces", name: "DO Spaces Object Storage", unit: "gb_mo", coinsPerUnit: 3, blurb: "S3-compatible Spaces + CDN for assets", category: "Long-term", tier: "standard-250gb", runtime: "s3-compat-v4", providerHint: "digitalocean" },
+  { key: "do-longterm-server", name: "DO Monthly Server Rental", unit: "server_mo", coinsPerUnit: 12000, blurb: "Flat monthly server for 24/7 worlds + relays", category: "Long-term", tier: "monthly-dedicated", runtime: "ubuntu-newest-viable", providerHint: "digitalocean" },
 ];
 
 /** Cheapest viable default per category (what the UI preselects). */
@@ -97,7 +109,11 @@ export const CHEAPEST_DEFAULTS: Record<string, string> = {
   AI: "inference-api",
   "Game AI": "game-ai-director",
   "fal.ai Media": "fal-remove-bg",
+  "Long-term": "do-droplet-basic",
 };
+
+/** DigitalOcean long-term cheapest: do-droplet-basic is the entry tier; all prices include the 25% cut, never added on top. */
+export const DO_CHEAPEST_NOTE = "DigitalOcean long-term cheapest: do-droplet-basic (Basic droplet, monthly). Includes 25% cut; never added on top.";
 
 /**
  * Newest viable runtimes; newest that still runs on this stack (Next 15 /
@@ -119,6 +135,15 @@ export const GAME_AI_CUT_NOTE = `Includes 25% game-AI compute cut; never added o
 
 export function serviceByKey(key: string): CloudService | undefined {
   return CLOUD_SERVICES.find((s) => s.key === key);
+}
+
+/** Route a service key to its provider: explicit providerHint wins, else prefix/convention, else either. */
+export function providerForService(key: string): CloudProvider {
+  const s = serviceByKey(key);
+  if (s?.providerHint) return s.providerHint;
+  if (key.startsWith("do-")) return "digitalocean";
+  if (key === "gpu-pod" || key === "game-ai-director" || key.startsWith("vcw-autoplay-")) return "runpod";
+  return "either";
 }
 
 export function quoteCost(key: string, qty: number): number {

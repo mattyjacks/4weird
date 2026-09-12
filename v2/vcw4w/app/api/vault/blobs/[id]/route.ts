@@ -6,7 +6,7 @@ import { keyHasScope, resolveBotKey } from "@/lib/bot-auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { rpcStatus } from "@/lib/agent-market";
 import { isUuid } from "@/lib/validate";
-import { VAULT_CUT_NOTE, quoteVaultStorageSplit } from "@/lib/blob-vault";
+import { VAULT_CUT_NOTE, cleanVaultPath, quoteVaultStorageSplit } from "@/lib/blob-vault";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +35,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   // have no session (anon sees nothing), so they read via the service
   // client; the explicit ownership check below applies to both paths.
   const columns =
-    "id,scope,owner_id,team_id,org_id,path,bytes,kind,provenance,quarantined,sha256,created_at,updated_at";
+    "id,scope,owner_id,team_id,org_id,path,bytes,kind,provenance,quarantined,sha256,deleted_at,created_at,updated_at";
   const { data: row, error } = viaBot
     ? await serviceClient()
         .from("vault_files")
@@ -44,7 +44,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         .maybeSingle()
     : await supabase.from("vault_files").select(columns).eq("id", id).maybeSingle();
   if (error) return dbFail("api/vault/blob", error, "Unable to load file.");
-  if (!row) return fail("File not found.", 404);
+  // Trashed files read as not-found on the live path (see ?trashed=1 list).
+  if (!row || (row as { deleted_at?: string | null }).deleted_at) return fail("File not found.", 404);
 
   // Explicit ownership/membership check before minting a download URL:
   // RLS alone over-grants team files on public/internal teams.
@@ -95,6 +96,121 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   return ok({ file: { ...pub, download } });
 }
 
+async function loadOwnedFile(
+  svc: ReturnType<typeof serviceClient>,
+  userId: string,
+  id: string,
+) {
+  const { data: row, error } = await svc
+    .from("vault_files")
+    .select("id,scope,owner_id,team_id,org_id,path,deleted_at")
+    .eq("id", id)
+    .maybeSingle();
+  if (error || !row) return { row: null as null, error };
+  const r = row as {
+    scope: string;
+    owner_id: string | null;
+    team_id: string | null;
+    org_id: string | null;
+    deleted_at: string | null;
+  };
+  let owns = r.scope === "personal" && r.owner_id === userId;
+  if (!owns && r.scope !== "personal") {
+    const table = r.scope === "team" ? "team_members" : "org_members";
+    const col = r.scope === "team" ? "team_id" : "org_id";
+    const scopeKey = String(r.scope === "team" ? r.team_id : r.org_id ?? "");
+    const { data: mem } = await svc.from(table).select("user_id").eq(col, scopeKey).eq("user_id", userId).maybeSingle();
+    owns = Boolean(mem);
+  }
+  return { row: owns ? (row as typeof r & { id: string; path: string }) : null, error: null };
+}
+
+/**
+ * PATCH /api/vault/blobs/[id] { path }; rename / move within the same scope.
+ * Auth: session OR bot key with `vault:write`. Target exists -> 409.
+ */
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!(await sameOriginOrBotKey(req))) return fail("Invalid request origin.", 403);
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  let userId = data?.user?.id ?? null;
+  if (!userId) {
+    const bot = await resolveBotKey(req).catch(() => null);
+    if (!bot) return fail("Login required.", 401);
+    if (!keyHasScope(bot, "vault:write")) return fail("Key lacks scope: vault:write.", 403);
+    userId = bot.userId;
+  }
+  const throttle = rateLimit(`vault-write:${userId}`, 20, 60_000);
+  if (!throttle.allowed) return fail("Too many requests.", 429);
+  const { id } = await params;
+  if (!isUuid(id)) return fail("Invalid file.", 400);
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return fail("Invalid JSON body.", 400);
+  }
+  const dest = cleanVaultPath((body as Record<string, unknown> | null)?.path);
+  if (!dest) return fail("Invalid path.", 400);
+
+  let svc;
+  try {
+    svc = serviceClient();
+  } catch {
+    return fail("Vault unavailable.", 503);
+  }
+  const { row, error } = await loadOwnedFile(svc, userId, id);
+  if (error) return dbFail("api/vault/rename", error, "Unable to load file.");
+  if (!row || row.deleted_at) return fail("File not found.", 404);
+  if (row.path === dest) return ok({ file: { id, path: dest } });
+  const { error: upErr } = await svc.from("vault_files").update({ path: dest }).eq("id", id);
+  if (upErr) {
+    if ((upErr as { code?: string }).code === "23505") {
+      return fail("A file already has that name in this folder.", 409);
+    }
+    return dbFail("api/vault/rename", upErr, "Unable to rename file.");
+  }
+  return ok({ file: { id, path: dest } });
+}
+
+/**
+ * DELETE /api/vault/blobs/[id]; soft-delete into trash (deleted_at) + revoke
+ * share links. Quota keeps counting the bytes until purge. Auth: session OR
+ * bot key with `vault:write`.
+ */
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!(await sameOriginOrBotKey(req))) return fail("Invalid request origin.", 403);
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  let userId = data?.user?.id ?? null;
+  if (!userId) {
+    const bot = await resolveBotKey(req).catch(() => null);
+    if (!bot) return fail("Login required.", 401);
+    if (!keyHasScope(bot, "vault:write")) return fail("Key lacks scope: vault:write.", 403);
+    userId = bot.userId;
+  }
+  const throttle = rateLimit(`vault-write:${userId}`, 20, 60_000);
+  if (!throttle.allowed) return fail("Too many requests.", 429);
+  const { id } = await params;
+  if (!isUuid(id)) return fail("Invalid file.", 400);
+
+  let svc;
+  try {
+    svc = serviceClient();
+  } catch {
+    return fail("Vault unavailable.", 503);
+  }
+  const { row, error } = await loadOwnedFile(svc, userId, id);
+  if (error) return dbFail("api/vault/trash", error, "Unable to load file.");
+  if (!row || row.deleted_at) return fail("File not found.", 404);
+  const { error: trashErr } = await svc.from("vault_files").update({ deleted_at: new Date().toISOString() }).eq("id", id);
+  if (trashErr) return dbFail("api/vault/trash", trashErr, "Unable to delete file.");
+  await svc.from("vault_shares").delete().eq("file_id", id);
+  return ok({ deleted: true, trashed: true });
+}
+
 /**
  * POST /api/vault/blobs/[id]; confirm bytes landed (size check),
  * then meter storage (fail closed). Auth: session OR `vault:write`.
@@ -126,10 +242,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
   const { data: row, error } = await svc
     .from("vault_files")
-    .select("id,scope,owner_id,team_id,org_id,bytes,sha256")
+    .select("id,scope,owner_id,team_id,org_id,bytes,sha256,deleted_at")
     .eq("id", id)
     .maybeSingle();
-  if (error || !row) return dbFail("api/vault/ready", error, "File not found.", 404);
+  if (error || !row || (row as { deleted_at?: string | null }).deleted_at) {
+    return error ? dbFail("api/vault/ready", error, "File not found.", 404) : fail("File not found.", 404);
+  }
   const r = row as { scope: string; owner_id: string | null; team_id: string | null; org_id: string | null; bytes: number; sha256: string };
   const owns =
     (r.scope === "personal" && r.owner_id === userId) ||

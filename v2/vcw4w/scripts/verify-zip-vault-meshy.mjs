@@ -166,4 +166,29 @@ if (!vaultRegister.includes("VAULT_MAX_BLOB_BYTES")) fail("vault blobs route mus
 const submitPage = read("../app/submit/page.tsx");
 if (!submitPage.includes("50 MB")) fail("Submit page must disclose the 50 MB fast-load cap.");
 
+// 9. Vault file lifecycle: upsert arbiter, trash, folders, shares, usage.
+const upsertMig = read("../supabase/migrations/20261107000000_vault_path_upsert_trash.sql");
+for (const token of ["vault_files_scope_path_uniq", "nulls not distinct", "deleted_at", "trg_vault_files_touch"]) {
+  if (!upsertMig.includes(token)) fail(`vault upsert/trash migration missing ${token}.`);
+}
+const vaultRow = read("../app/api/vault/blobs/[id]/route.ts");
+for (const token of ["Unable to rename file.", "Unable to delete file.", "A file already has that name in this folder.", "loadOwnedFile"]) {
+  if (!vaultRow.includes(token)) fail(`vault row route missing ${token}.`);
+}
+const folders = read("../app/api/vault/folders/route.ts");
+for (const token of ["Cannot move a folder inside itself.", "Folder too large; split it first.", "Unable to delete folder."]) {
+  if (!folders.includes(token)) fail(`vault folders route missing ${token}.`);
+}
+const redeem = read("../app/api/vault/s/[token]/route.ts");
+for (const token of ["Link expired.", "302"]) {
+  if (!redeem.includes(token)) fail(`vault share redeem route missing ${token}.`);
+}
+const usageApi = read("../app/api/vault/usage/route.ts");
+if (!usageApi.includes("freeBytesPersonal")) fail("vault usage route must report freeBytesPersonal.");
+const browser = read("../components/vault/vault-browser.tsx");
+for (const token of ["500 MB", "50 MB", "quarantine", 'sandbox=""', 'role="status"', "/api/vault/usage", "/api/vault/shares"]) {
+  if (!browser.includes(token)) fail(`vault browser missing ${token}.`);
+}
+if (!vault.includes("sanitizeVaultFilter")) fail("blob-vault lib must sanitize LIKE filters.");
+
 console.log("zip + vault + meshy integrity OK - 50 MB, 4 verdicts, strict scopes, 25% included, human-only referrals.");

@@ -42,6 +42,41 @@ export const RUNTIME_DESCRIPTIONS: Record<Runtime, string> = {
 export const PROVIDER_CODES = ["runpod", "digitalocean", "custom"] as const;
 export type ProviderCode = (typeof PROVIDER_CODES)[number];
 
+/**
+ * Provider lanes:
+ * - runpod: short-lived GPU work on serverless (scale-to-zero, per-second
+ *   billing up to the listing's $/hr max). Best for GPU needs or rentals
+ *   of 24h or less.
+ * - digitalocean: long-term always-on servers (droplets). Best for
+ *   multi-day CPU rentals without a GPU requirement.
+ * - custom: bring your own https endpoint (no provisioning).
+ */
+export const LONG_TERM_PROVIDERS = ["digitalocean"] as const;
+export type LongTermProvider = (typeof LONG_TERM_PROVIDERS)[number];
+
+export const PROVIDER_LANES = [
+  "short-gpu-serverless",
+  "long-term-server",
+  "custom",
+] as const;
+export type ProviderLane = (typeof PROVIDER_LANES)[number];
+
+export function providerLane(provider: string): ProviderLane {
+  if (provider === "custom") return "custom";
+  if (provider === "digitalocean") return "long-term-server";
+  return "short-gpu-serverless";
+}
+
+export function recommendProviderForBooking(opts: {
+  hours: unknown;
+  needsGpu?: unknown;
+}): ProviderCode {
+  if (opts?.needsGpu === true) return "runpod";
+  const h = Number(opts?.hours);
+  if (Number.isFinite(h) && h > 24) return "digitalocean";
+  return "runpod";
+}
+
 export function isRuntime(value: unknown): value is Runtime {
   return (
     typeof value === "string" &&
@@ -68,22 +103,29 @@ export function isHttpsEndpoint(value: unknown): boolean {
 /** Sentinel stored when RunPod auto-provisions the default proxy endpoint. */
 export const RUNPOD_AUTO_ENDPOINT = "runpod:auto";
 
+/** Sentinel stored when DigitalOcean auto-provisions the default endpoint. */
+export const DO_AUTO = "do:auto";
+
 export function isStoredEndpoint(value: unknown): boolean {
   const v = String(value ?? "");
-  return v === RUNPOD_AUTO_ENDPOINT || isHttpsEndpoint(v);
+  return (
+    v === RUNPOD_AUTO_ENDPOINT || v === DO_AUTO || isHttpsEndpoint(v)
+  );
 }
 
-/** Display form of a stored endpoint: the RunPod default proxy, not a raw sentinel. */
+/** Display form of a stored endpoint: a friendly label, not a raw sentinel. */
 export function displayEndpoint(value: unknown): string {
   const v = String(value ?? "");
   if (v === RUNPOD_AUTO_ENDPOINT) return "RunPod default endpoint (auto-provisioned)";
+  if (v === DO_AUTO) return "DigitalOcean default endpoint (auto-provisioned)";
   return v;
 }
 
 /**
  * Endpoint rule per provider:
  * - runpod: no URL needed; blank means "use the RunPod default endpoint".
- * - digitalocean: optional (blank also means auto/default).
+ * - digitalocean: no URL needed; blank means "use the DigitalOcean default
+ *   endpoint" (`do:auto`). An explicit https URL is also allowed.
  * - custom: a real https URL is required (bring your own endpoint).
  */
 export function normalizeEndpointForProvider(
@@ -93,6 +135,15 @@ export function normalizeEndpointForProvider(
   const v = String(value ?? "").trim();
   if (provider === "custom") {
     if (!isHttpsEndpoint(v)) return { endpoint: "", error: "Custom endpoints need an https URL." };
+    return { endpoint: v, error: "" };
+  }
+  if (provider === "digitalocean") {
+    if (!v) return { endpoint: DO_AUTO, error: "" };
+    if (v === DO_AUTO) return { endpoint: v, error: "" };
+    // Backward-compatible: rows written before `do:auto` existed carry
+    // `runpod:auto`; still accept them as stored placeholders.
+    if (v === RUNPOD_AUTO_ENDPOINT) return { endpoint: v, error: "" };
+    if (!isHttpsEndpoint(v)) return { endpoint: "", error: "Endpoint must be an https URL." };
     return { endpoint: v, error: "" };
   }
   if (!v) return { endpoint: RUNPOD_AUTO_ENDPOINT, error: "" };

@@ -35,7 +35,7 @@ import {
   timelineForLane,
 } from "@/lib/newgameplus";
 import { createHash } from "node:crypto";
-import { VAULT_BUCKET, vaultObjectKey } from "@/lib/blob-vault";
+import { VAULT_BUCKET, cleanVaultPath, vaultObjectKey } from "@/lib/blob-vault";
 import { falConfigured } from "@/lib/fal";
 
 export const dynamic = "force-dynamic";
@@ -295,8 +295,11 @@ export async function POST(req: Request) {
             for (const f of vault.files) {
               const bytes = Buffer.byteLength(f.content, "utf8");
               if (bytes < 1) continue;
+              // Bundle paths are builder-generated: sanitize like every other
+              // vault writer so traversal sequences can never land verbatim.
+              const safePath = cleanVaultPath(f.path).slice(0, 512) || "newgameplus/untitled.txt";
               const sha256 = createHash("sha256").update(f.content, "utf8").digest("hex");
-              const ext = (f.path.split(".").pop() ?? "txt").replace(/[^a-z0-9]/gi, "").slice(0, 8) || "txt";
+              const ext = (safePath.split(".").pop() ?? "txt").replace(/[^a-z0-9]/gi, "").slice(0, 8) || "txt";
               const objectKey = vaultObjectKey({ scope: "personal", scopeId: data.user.id, sha256, ext });
               const { data: existing } = await svc.from("vault_blobs").select("sha256").eq("sha256", sha256).maybeSingle();
               if (!existing) {
@@ -315,7 +318,7 @@ export async function POST(req: Request) {
                   team_id: null,
                   org_id: null,
                   scope: "personal",
-                  path: f.path,
+                  path: safePath,
                   sha256,
                   bytes,
                   kind: "code",

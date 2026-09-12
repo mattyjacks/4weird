@@ -27,6 +27,10 @@ export default function VaultPage() {
           the whole squad (or whole company) can reach them — personal scope stays private. Billable shift
           proof from the Timer and client files from the CRM land here too.
         </p>
+        <p className="mt-4 max-w-3xl text-sm text-slate-400">
+          Limits: 50 MB per file · 500 MB free on Personal · ~3 coins/GB-month overage (25% cut included, never on top).
+          Rename, move, trash, restore, share links, search, and previews are all built in — details in the guide below the browser.
+        </p>
         <div className="mt-6">
           <BusinessCrosslinks exclude={["/vault"]} />
         </div>

@@ -100,6 +100,42 @@ export function vaultObjectKey(input: {
   return `${input.scope}/${input.scopeId}/${input.sha256}${ext ? `.${ext.toLowerCase()}` : ""}`;
 }
 
+/** Strip LIKE wildcards so prefix/substring filters cannot escape their scope. */
+export function sanitizeVaultFilter(value: unknown, max = 200): string {
+  return String(value ?? "")
+    .replace(/\\/g, "/")
+    .replace(/\.\./g, "")
+    .replace(/[%_]/g, "")
+    .trim()
+    .slice(0, max);
+}
+
+/** Allowed sort keys for GET /api/vault/blobs (?sort=&dir=). */
+export const VAULT_SORTS = ["name", "size", "kind", "updated"] as const;
+export type VaultSort = (typeof VAULT_SORTS)[number];
+
+export function isVaultSort(value: unknown): value is VaultSort {
+  return (VAULT_SORTS as readonly string[]).includes(String(value ?? ""));
+}
+
+/** Allowed file kinds (mirrors the vault_files CHECK). */
+export const VAULT_KINDS = [
+  "model-3d",
+  "image",
+  "animation",
+  "code",
+  "audio",
+  "video",
+  "text",
+  "chat",
+  "log",
+  "asset",
+] as const;
+
+export function isVaultKind(value: unknown): value is (typeof VAULT_KINDS)[number] {
+  return (VAULT_KINDS as readonly string[]).includes(String(value ?? ""));
+}
+
 /** Kind routing for autosaved AI artifacts (folder prefixes). */
 export const VAULT_KIND_PREFIX: Record<string, string> = {
   "model-3d": "models",

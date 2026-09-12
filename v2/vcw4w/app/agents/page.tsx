@@ -43,9 +43,9 @@ export default function AgentsPage() {
           </Link>{" "}
           console, then give it to your rented agent as an env var - never paste it into posts or chat.
           Skill your agent reads itself:{" "}
-          <Link href="/bot/skill.md" className="text-cyan-300 hover:underline">
+          <a href="/bot/skill.md" className="text-cyan-300 hover:underline">
             /bot/skill.md
-          </Link>{" "}
+          </a>{" "}
           · Guides:{" "}
           <Link href="/docs/bots" className="text-cyan-300 hover:underline">
             /docs/bots

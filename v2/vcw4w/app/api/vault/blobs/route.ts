@@ -10,8 +10,11 @@ import {
   VAULT_CUT_NOTE,
   VAULT_MAX_BLOB_BYTES,
   cleanVaultPath,
+  isVaultKind,
   isVaultScope,
+  isVaultSort,
   quoteVaultStorageSplit,
+  sanitizeVaultFilter,
   vaultObjectKey,
 } from "@/lib/blob-vault";
 
@@ -43,8 +46,21 @@ export async function GET(req: Request) {
   const scopeId = (q.get("scope_id") ?? "").trim();
   const limit = Math.max(1, Math.min(Number(q.get("limit") ?? 50) || 50, 100));
   // Folder filter: plain prefix match (cleanVaultPath-style, no globs), so a
-  // Vault browser can render one folder at a time like a drive.
-  const prefix = (q.get("prefix") ?? "").replace(/\\/g, "/").replace(/\.\./g, "").trim().slice(0, 200);
+  // Vault browser can render one folder at a time like a drive. LIKE
+  // wildcards (%, _) are stripped so a crafted prefix cannot escape it.
+  const prefix = sanitizeVaultFilter(q.get("prefix") ?? "");
+  // Search / sort / filter (all optional, additive).
+  const search = sanitizeVaultFilter(q.get("q") ?? "", 100);
+  const sortRaw = q.get("sort");
+  const sort = isVaultSort(sortRaw) ? sortRaw : "updated";
+  const dirParam = (q.get("dir") ?? "").toLowerCase();
+  const dirAsc =
+    dirParam === "asc" ? true : dirParam === "desc" ? false : sort === "name" || sort === "kind";
+  const kind = (q.get("kind") ?? "").slice(0, 16);
+  if (kind && !isVaultKind(kind)) return fail("Invalid kind.", 400);
+  // Trash: trashed=1 lists ONLY soft-deleted rows (owner/member only);
+  // default hides them.
+  const trashedOnly = (q.get("trashed") ?? "") === "1";
 
   let svc;
   try {
@@ -68,8 +84,11 @@ export async function GET(req: Request) {
   // serve them from the service client instead, behind the same explicit
   // membership gate enforced above (personal: own rows only).
   const cols = "id,scope,path,bytes,kind,quarantined,created_at,updated_at";
+  const orderCol =
+    sort === "name" ? "path" : sort === "size" ? "bytes" : sort === "kind" ? "kind" : "updated_at";
   if (viaBot) {
-    let query = svc.from("vault_files").select(cols).order("updated_at", { ascending: false }).limit(limit);
+    let query = svc.from("vault_files").select(cols).order(orderCol, { ascending: dirAsc }).limit(limit);
+    query = trashedOnly ? query.not("deleted_at", "is", null) : query.is("deleted_at", null);
     if (scope === "personal") {
       query = query.eq("scope", "personal").eq("owner_id", userId);
     } else if (scope === "team") {
@@ -78,6 +97,8 @@ export async function GET(req: Request) {
       query = query.eq("scope", "org").eq("org_id", scopeId);
     }
     if (prefix) query = query.like("path", `${prefix}%`);
+    if (search) query = query.ilike("path", `%${search}%`);
+    if (kind) query = query.eq("kind", kind);
     const { data: rows, error } = await query;
     if (error) return dbFail("api/vault/blobs", error, "Unable to list files.");
     return ok({ files: rows ?? [], scope });
@@ -85,8 +106,11 @@ export async function GET(req: Request) {
   let query = supabase
     .from("vault_files")
     .select(cols)
-    .order("updated_at", { ascending: false })
+    .order(orderCol, { ascending: dirAsc })
     .limit(limit);
+  // RLS hides trashed rows from the live policies; the trash policies expose
+  // them, so belt-and-braces filter here too (service paths use svc above).
+  query = trashedOnly ? query.not("deleted_at", "is", null) : query.is("deleted_at", null);
   if (scope === "personal") {
     query = query.eq("scope", "personal").eq("owner_id", userId);
   } else if (scope === "team") {
@@ -97,6 +121,8 @@ export async function GET(req: Request) {
     query = query.eq("scope", "org").eq("org_id", scopeId);
   }
   if (prefix) query = query.like("path", `${prefix}%`);
+  if (search) query = query.ilike("path", `%${search}%`);
+  if (kind) query = query.eq("kind", kind);
   const { data: rows, error } = await query;
   if (error) return dbFail("api/vault/blobs", error, "Unable to list files.");
   return ok({ files: rows ?? [], scope });
