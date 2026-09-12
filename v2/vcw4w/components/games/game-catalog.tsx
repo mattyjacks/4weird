@@ -42,8 +42,11 @@ export function GameCatalog({ games }: { games: Game[] }) {
         })
         .catch(() => undefined);
     };
-    fetch("/api/settings", { credentials: "include" })
-      .then((r) => (r.ok ? r.json() : null))
+    // Guests have no settings row (a fetch would just 401 + console noise),
+    // so check the session first; device-level Kids Mode still applies.
+    fetch("/api/auth/session", { credentials: "include" })
+      .then((s) => (s.ok ? fetch("/api/settings", { credentials: "include" }) : null))
+      .then((r) => (r && r.ok ? r.json() : null))
       .then((body: unknown) => {
         const flag = (body as { settings?: { kids_mode?: boolean } } | null)?.settings?.kids_mode;
         if (typeof flag === "boolean") {
@@ -66,11 +69,12 @@ export function GameCatalog({ games }: { games: Game[] }) {
     setKidsMode(next);
     setKids(next);
     window.dispatchEvent(new Event("kids-mode-changed"));
-    // Best-effort account persistence for signed-in players (guests get a
-    // 401/503 and simply keep the device-level flag). Merge over the stored
-    // settings so unrelated preferences are never clobbered.
-    fetch("/api/settings", { credentials: "include" })
-      .then((r) => (r.ok ? r.json() : null))
+    // Best-effort account persistence for signed-in players (guests keep
+    // the device-level flag only — no request, no 401 noise). Merge over the
+    // stored settings so unrelated preferences are never clobbered.
+    fetch("/api/auth/session", { credentials: "include" })
+      .then((s) => (s.ok ? fetch("/api/settings", { credentials: "include" }) : null))
+      .then((r) => (r && r.ok ? r.json() : null))
       .then((body: unknown) => {
         const current = (body as { settings?: Record<string, boolean> } | null)?.settings;
         if (!current) return undefined;

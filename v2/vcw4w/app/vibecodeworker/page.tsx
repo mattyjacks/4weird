@@ -55,13 +55,13 @@ export default function Page() {
       </div>
       <p className="text-sm text-slate-500">
         Desktop builds and agent API docs live at{" "}
-        <Link className="text-cyan-300" href="/vcw/desktop/">
+        <a className="text-cyan-300 hover:underline" href="/vcw/desktop/">
           /vcw/desktop/
-        </Link>{" "}
+        </a>{" "}
         and{" "}
-        <Link className="text-cyan-300" href="/vcw/agent/">
+        <a className="text-cyan-300 hover:underline" href="/vcw/agent/">
           /vcw/agent/
-        </Link>
+        </a>
         .
       </p>
     </MarketingPage>

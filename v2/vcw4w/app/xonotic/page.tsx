@@ -23,9 +23,9 @@ export default function XonoticPage() {
           Xonotic is the one game with <b className="text-white">off-site mode on</b>: a GPU-boosted RunPod remote
           renders the arena on real GPUs and drives it with vision. That mode needs the desktop VibeCodeWorker
           installed —{" "}
-          <Link href={VCW_DESKTOP_PATH} className="font-bold text-cyan-300 hover:underline">
+          <a href={VCW_DESKTOP_PATH} className="font-bold text-cyan-300 hover:underline">
             install it from {VCW_DESKTOP_PATH}
-          </Link>{" "}
+          </a>{" "}
           first, then tick “Installed” below.
         </p>
         <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-slate-400">

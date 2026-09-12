@@ -24,7 +24,8 @@ export async function GET(req: Request) {
   try {
     let query = supabase
       .from("buddy_sessions")
-      .select("id, game_slug, voice, started_at, ended_at, turns, gross")
+      .select("id, game_slug, voice, status, started_at, ended_at, turns, gross_coins")
+      .eq("user_id", data.user.id)
       .order("started_at", { ascending: false })
       .limit(10);
     if (onlyOpen) query = query.is("ended_at", null);

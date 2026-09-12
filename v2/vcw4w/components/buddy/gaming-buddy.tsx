@@ -257,13 +257,13 @@ type ShareMode = "off" | "tab" | "screen";
  * itemized in that turn's cost line.
  */
 export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTitle: string }) {
-  const prefsRef = useRef<Record<string, unknown> | null>(null);
-  if (prefsRef.current === null) prefsRef.current = loadPrefs();
-  const prefs = prefsRef.current;
+  // SSR-stable initial state: the first render (server + client hydration)
+  // must be byte-identical, so NO localStorage/window reads here. Persisted
+  // prefs hydrate in the mount effect below (post-hydration update, no 418).
   const [voice, setVoice] = useState(BUDDY_DEFAULT_VOICE);
-  const [model, setModel] = useState(prefs.model === "tts-1-hd" ? "tts-1-hd" : "tts-1");
-  const [speed, setSpeed] = useState(typeof prefs.speed === "number" && prefs.speed >= 0.5 && prefs.speed <= 2 ? Number(prefs.speed) : 1.0);
-  const [brain, setBrain] = useState(prefs.brain === "openai" || prefs.brain === "openrouter" ? String(prefs.brain) : "auto");
+  const [model, setModel] = useState("tts-1");
+  const [speed, setSpeed] = useState(1.0);
+  const [brain, setBrain] = useState("auto");
   const [open, setOpen] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionStartedAt, setSessionStartedAt] = useState<number | null>(null);
@@ -284,8 +284,8 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
   const [shareMode, setShareMode] = useState<ShareMode>("off");
   const [sharing, setSharing] = useState(false);
   const [authNeeded, setAuthNeeded] = useState(false);
-  const [proactiveOn, setProactiveOn] = useState(prefs.proactive === true);
-  const [rememberMe, setRememberMe] = useState(prefs.remember === true);
+  const [proactiveOn, setProactiveOn] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [actMsg, setActMsg] = useState<string | null>(null);
   const [actBusy, setActBusy] = useState(false);
   // Super-pack (multi-agent fan-out over OpenRouter plays).
@@ -319,11 +319,11 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
   // --- Voice presence (mic + smart speech detection + barge-in) ---
   const [micOn, setMicOn] = useState(false);
   const [micMuted, setMicMuted] = useState(false);
-  const [vadSmart, setVadSmart] = useState(prefs.vadSmart !== false);
+  const [vadSmart, setVadSmart] = useState(true);
   const [hearing, setHearing] = useState(false);
   const [micLevel, setMicLevel] = useState(0);
   const [interim, setInterim] = useState("");
-  const [speechSupported] = useState(() => typeof window !== "undefined" && getSpeechRecognition() !== null);
+  const [speechSupported, setSpeechSupported] = useState(false);
   const micStreamRef = useRef<MediaStream | null>(null);
   const [micStream, setMicStream] = useState<MediaStream | null>(null);
   const micCtxRef = useRef<AudioContext | null>(null);
@@ -352,8 +352,8 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
   const camVideoRef = useRef<HTMLVideoElement | null>(null);
   // --- Avatar presence (optional 3D companion, metered per minute) ---
   const [avatarOn, setAvatarOn] = useState(false);
-  const [avatarType, setAvatarType] = useState<BuddyAvatarType>(cleanAvatarType(prefs.avatarType));
-  const [avatarColor, setAvatarColor] = useState(typeof prefs.avatarColor === "string" ? String(prefs.avatarColor) : "#7c6cf6");
+  const [avatarType, setAvatarType] = useState<BuddyAvatarType>("cube");
+  const [avatarColor, setAvatarColor] = useState("#7c6cf6");
   const [avatarCents, setAvatarCents] = useState(0);
   const avatarStartRef = useRef<number | null>(null);
   const avatarTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -405,15 +405,30 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
     }
   }, []);
 
-  // Restore the persisted voice once (default stays Nova per BUDDY_DEFAULT_VOICE).
+  // Hydrate persisted prefs once after mount (post-hydration, so the SSR
+  // HTML and the first client render stay identical — no React 418).
+  // Defaults above stay until this runs (Nova voice, tts-1, 1.0x, auto).
   useEffect(() => {
     try {
-      const saved = String(prefs.voice ?? "");
-      if (saved && (BUDDY_VOICES as { id: string }[]).some((v) => v.id === saved)) setVoice(saved);
+      setSpeechSupported(getSpeechRecognition() !== null);
     } catch {
-      /* voice restore is best-effort */
+      /* speech detection is optional */
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    try {
+      const prefs = loadPrefs();
+      const savedVoice = String(prefs.voice ?? "");
+      if (savedVoice && (BUDDY_VOICES as { id: string }[]).some((v) => v.id === savedVoice)) setVoice(savedVoice);
+      if (prefs.model === "tts-1-hd") setModel("tts-1-hd");
+      if (typeof prefs.speed === "number" && prefs.speed >= 0.5 && prefs.speed <= 2) setSpeed(Number(prefs.speed));
+      if (prefs.brain === "openai" || prefs.brain === "openrouter") setBrain(String(prefs.brain));
+      if (prefs.proactive === true) setProactiveOn(true);
+      if (prefs.remember === true) setRememberMe(true);
+      if (prefs.vadSmart === false) setVadSmart(false);
+      setAvatarType(cleanAvatarType(prefs.avatarType));
+      if (typeof prefs.avatarColor === "string" && prefs.avatarColor) setAvatarColor(String(prefs.avatarColor));
+    } catch {
+      /* pref restore is best-effort */
+    }
   }, []);
 
   // Persist prefs (voice/TTS/avatar/VAD/brain/extras) locally; sessions never persist.
@@ -447,14 +462,25 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
   }, [sessionId, sessionStartedAt]);
 
   // Look for an orphaned open session to resume (reload-proof buddy).
+  // Signed-in only: guests get a 401 here, so check the session first and
+  // skip the request entirely instead of logging a console error per load.
   useEffect(() => {
     let live = true;
-    fetch("/api/buddy/session?open=1", { credentials: "include" })
-      .then((r) => r.json().catch(() => null))
-      .then((b) => {
+    (async () => {
+      try {
+        const s = await fetch("/api/auth/session", { credentials: "include" });
+        if (!s.ok) return;
+      } catch {
+        return;
+      }
+      try {
+        const r = await fetch("/api/buddy/session?open=1", { credentials: "include" });
+        const b = await r.json().catch(() => null);
         if (live && b?.success && Array.isArray(b.sessions)) setOpenSessions(b.sessions as OpenSession[]);
-      })
-      .catch(() => undefined);
+      } catch {
+        /* resume lookup is best-effort */
+      }
+    })();
     return () => {
       live = false;
     };

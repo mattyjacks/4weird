@@ -78,10 +78,10 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
  * house ad, plus a dismissible ad banner every 30 min. No saves (the frame
  * already degrades to local progress), no multiplayer, no AI/Buddy.
  */
-export function PlayGate({ slug, title, src, version }: { slug: string; title: string; src: string; version?: string }) {
+export function PlayGate({ slug, title, src, version, emoji }: { slug: string; title: string; src: string; version?: string; emoji?: string }) {
   return (
     <Suspense>
-      <PlayGateInner slug={slug} title={title} src={src} version={version} />
+      <PlayGateInner slug={slug} title={title} src={src} version={version} emoji={emoji} />
     </Suspense>
   );
 }
@@ -91,10 +91,26 @@ export function PlayGate({ slug, title, src, version }: { slug: string; title: s
 // matchmaking code reads it. Client-side on purpose: the play page stays
 // static so unknown slugs 404 with a real 404 status, and useSearchParams
 // needs the Suspense boundary above during prerender.
-function PlayGateInner({ slug, title, src, version }: { slug: string; title: string; src: string; version?: string }) {
+function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; title: string; src: string; version?: string; emoji?: string }) {
   const match = useSearchParams().get("match");
   const frameSrc = /^[0-9a-f-]{36}$/i.test(String(match ?? "")) ? `${src}?match=${encodeURIComponent(String(match))}` : src;
   const [gate, setGate] = useState<Gate>({ kind: "checking" });
+  // Click-to-play: the runtime iframe never mounts (no bytes, no metering,
+  // no guest-quota burn) until the player presses Start Game on the branded
+  // start screen. Reset per game so navigating between titles re-arms it.
+  const [entered, setEntered] = useState(false);
+  useEffect(() => {
+    setEntered(false);
+    setGate({ kind: "checking" });
+    setBroke("");
+    setShowGuestAd(false);
+    setActiveSecs(0);
+    setStillAcks(0);
+    setGuestRetry(0);
+    sessionRef.current = null;
+    startedRef.current = false;
+    guestAdToken.current = null;
+  }, [slug]);
   const [broke, setBroke] = useState("");
   const [showGuestAd, setShowGuestAd] = useState(false);
   // Age gate: resolved on mount from the catalog rating + Kids Mode, or from
@@ -209,12 +225,19 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
       // 13-17 → teen, 18+ → adult). Non-adult bands get Kids-Mode treatment:
       // Adults titles blocked outright (no DOB bypass), Teens titles need a
       // 13+ DOB check. Server (/api/games/session) re-enforces authoritatively.
+      // Guests have no profile (a fetch would just 401 + console noise), so
+      // check the session first and treat no-session as Kids-Mode-restricted.
       let band = "unknown";
       try {
-        const pres = await fetch("/api/me/profile", { credentials: "include" });
-        const pbody = await pres.json().catch(() => ({}));
-        const raw = String((pbody as { profile?: { age_band?: unknown } }).profile?.age_band ?? "unknown");
-        if (raw === "adult" || raw === "teen" || raw === "kid" || raw === "unknown") band = raw;
+        const sess = await fetch("/api/auth/session", { credentials: "include" });
+        if (sess.ok) {
+          const pres = await fetch("/api/me/profile", { credentials: "include" });
+          if (pres.ok) {
+            const pbody = await pres.json().catch(() => ({}));
+            const raw = String((pbody as { profile?: { age_band?: unknown } }).profile?.age_band ?? "unknown");
+            if (raw === "adult" || raw === "teen" || raw === "kid" || raw === "unknown") band = raw;
+          }
+        }
       } catch {
         /* profile unreadable: fall through to Kids-Mode-only logic */
       }
@@ -237,10 +260,13 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
   }, [rating, slug]);
 
   // Boot: signed in, guest, or metering-unavailable (local dev).
+  // Runs only AFTER the player presses Start Game (entered): the guest-pass
+  // quota, the coin session, and the iframe bytes must all wait for the
+  // click, so landing on the page costs nothing.
   // A live child session skips straight to metering - /api/games/session
   // routes the kid_session cookie to the child wallet RPCs server-side.
   useEffect(() => {
-    if (age !== "passed") return;
+    if (age !== "passed" || !entered) return;
     let live = true;
     (async () => {
       if (kidHandle) {
@@ -306,11 +332,13 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
     return () => {
       live = false;
     };
-  }, [slug, age, kidHandle, guestRetry]);
+  }, [slug, age, kidHandle, guestRetry, entered]);
 
   // Signed-in metering: wait for the bridge's byte report, else bill the load.
+  // Only after Start (entered): the frame — and its byte report — doesn't
+  // exist before the click, so the unmeasured fallback must not fire early.
   useEffect(() => {
-    if (gate.kind !== "metering") return;
+    if (gate.kind !== "metering" || !entered) return;
     const onMetering = (event: Event) => {
       const detail = (event as CustomEvent<{ bytes?: number; slug?: string }>).detail;
       if (detail?.slug && detail.slug !== slug) return;
@@ -322,7 +350,7 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
       window.removeEventListener("fourweird-metering", onMetering);
       clearTimeout(timer);
     };
-  }, [gate.kind, slug, startSession]);
+  }, [gate.kind, slug, startSession, entered]);
 
   // Per-second heartbeat: visible tab only, 1-minute beats that bill only
   // the delta since the last beat. Receipts update the active-seconds
@@ -427,6 +455,38 @@ function PlayGateInner({ slug, title, src, version }: { slug: string; title: str
           <RatingBadge rating={rating} />
         </div>
         <AgeGate rating={age === "gate-adults" ? "adults" : "teens"} title={title} onPass={() => setAge("passed")} />
+      </div>
+    );
+  }
+
+  // Branded click-to-play start screen: shown once the age pass resolves,
+  // before the boot runs. The runtime iframe never mounts until Start, so
+  // landing here downloads nothing, meters no coins, and burns no guest
+  // quota — the load starts (and only starts) on the click.
+  if (!entered && age === "passed") {
+    return (
+      <div className="overflow-hidden rounded-2xl border border-cyan-300/30 bg-gradient-to-b from-slate-950 via-black to-slate-950">
+        <div className="play-frame-height grid min-h-[420px] place-items-center p-8 text-center">
+          <div className="max-w-md">
+            <p aria-hidden="true" className="text-6xl">{emoji ?? "🎮"}</p>
+            <p className="mt-3 text-xs font-bold tracking-widest text-cyan-300">4WEIRD ARCADE</p>
+            <p className="mt-1 text-2xl font-black text-white">{title}</p>
+            <button
+              type="button"
+              onClick={() => setEntered(true)}
+              autoFocus
+              className="mt-6 inline-flex items-center justify-center rounded-full bg-cyan-300 px-10 py-3.5 text-lg font-black text-slate-950 transition hover:bg-cyan-200"
+            >
+              ▶ Start Game
+            </button>
+            <p className="mt-3 text-xs text-white/60">
+              Nothing loads and no coins are metered until you press Start.
+            </p>
+            <p className="mt-2 text-xs text-slate-400">
+              Click the game once after it loads to focus keyboard controls · Fullscreen or Pop out for the full window
+            </p>
+          </div>
+        </div>
       </div>
     );
   }

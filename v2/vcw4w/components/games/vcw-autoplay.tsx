@@ -118,9 +118,9 @@ export function VcwAutoplay({ gameSlug, gameTitle }: { gameSlug: string; gameTit
           <>
             Xonotic runs <b className="text-white">off-site in GPU boosted mode</b> (RunPod GPUs render + see the game).
             The desktop VibeCodeWorker must be installed -{" "}
-            <Link href={VCW_DESKTOP_PATH} className="font-bold text-cyan-300 hover:underline">
+            <a href={VCW_DESKTOP_PATH} className="font-bold text-cyan-300 hover:underline">
               get it at {VCW_DESKTOP_PATH}
-            </Link>{" "}
+            </a>{" "}
             ({VCW_DESKTOP_INSTALLER}).
           </>
         ) : (
@@ -190,9 +190,9 @@ export function VcwAutoplay({ gameSlug, gameTitle }: { gameSlug: string; gameTit
             />
             <span>Installed ({VCW_DESKTOP_INSTALLER})</span>
           </label>
-          <Link href={VCW_DESKTOP_PATH} className="mt-1 inline-block text-cyan-300 hover:underline">
+          <a href={VCW_DESKTOP_PATH} className="mt-1 inline-block text-cyan-300 hover:underline">
             Open {VCW_DESKTOP_PATH} →
-          </Link>
+          </a>
         </div>
       </div>
 
@@ -200,9 +200,9 @@ export function VcwAutoplay({ gameSlug, gameTitle }: { gameSlug: string; gameTit
         <p role="alert" className="mt-2 rounded-lg border border-amber-300/40 bg-amber-300/[.08] px-3 py-2 text-xs text-amber-100">
           {plan.error}{" "}
           {plan.needsDesktop && (
-            <Link href={VCW_DESKTOP_PATH} className="font-bold text-cyan-300 hover:underline">
+            <a href={VCW_DESKTOP_PATH} className="font-bold text-cyan-300 hover:underline">
               Install the desktop app first →
-            </Link>
+            </a>
           )}
         </p>
       )}

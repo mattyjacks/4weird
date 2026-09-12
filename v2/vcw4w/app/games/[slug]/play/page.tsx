@@ -77,11 +77,11 @@ export default async function PlayPage({ params }: { params: Promise<{ slug: str
         </div>
       </div>
       <div className="mx-auto max-w-6xl px-4 pb-10 sm:px-5">
+        <div className="mt-4">
+          <PlayGate slug={game.slug} title={game.title} src={src} emoji={game.emoji} />
+        </div>
         <GameA11yPanel slug={game.slug} />
         <GamePlaybookPanel slug={game.slug} compact />
-        <div className="mt-4">
-          <PlayGate slug={game.slug} title={game.title} src={src} />
-        </div>
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
           <Link
             href={`/games/${game.slug}`}
