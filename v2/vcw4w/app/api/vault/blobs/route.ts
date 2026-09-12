@@ -205,13 +205,23 @@ export async function POST(req: Request) {
   const ext = (path.split(".").pop() ?? "").slice(0, 8);
   const objectKey = vaultObjectKey({ scope, scopeId, sha256, ext });
   {
-    const { data: existing } = await svc
+    const { data: existing, error: blobSelErr } = await svc
       .from("vault_blobs")
       .select("sha256,storage_path")
       .eq("sha256", sha256)
       .maybeSingle();
+    if (blobSelErr) return dbFail("api/vault/blobs", blobSelErr, "Vault unavailable.");
     if (!existing) {
-      await svc.from("vault_blobs").insert({ sha256, bytes, mime, storage_path: objectKey });
+      const { error: blobInsErr } = await svc
+        .from("vault_blobs")
+        .insert({ sha256, bytes, mime, storage_path: objectKey });
+      // 23505 = lost a dedup race with a concurrent upload of the same bytes;
+      // the winner's row satisfies the FK below, so only other errors fail.
+      // Surfacing this separately keeps a blob-layer failure from masquerading
+      // as the file-row "Unable to register file." below.
+      if (blobInsErr && blobInsErr.code !== "23505") {
+        return dbFail("api/vault/blobs", blobInsErr, "Unable to store file bytes.");
+      }
     }
   }
 
