@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { VaultBrowser } from "@/components/vault/vault-browser";
+import { BusinessCrosslinks } from "@/components/business/business-crosslinks";
 import { VAULT_CUT_NOTE } from "@/lib/blob-vault";
 
 export const metadata: Metadata = {
@@ -21,6 +22,14 @@ export default function VaultPage() {
           database). AI-made models, images, animations, code, chats, logs, audio, video,
           and text autosave here and stay ready to work on.
         </p>
+        <p className="mt-4 max-w-3xl text-sm text-slate-400">
+          For business use: keep contracts, invoices, and brand assets under <b>team</b> or <b>org</b> scopes so
+          the whole squad (or whole company) can reach them — personal scope stays private. Billable shift
+          proof from the Timer and client files from the CRM land here too.
+        </p>
+        <div className="mt-6">
+          <BusinessCrosslinks exclude={["/vault"]} />
+        </div>
         <div className="mt-10">
           <VaultBrowser />
         </div>

@@ -57,6 +57,14 @@ const SUPPORT: Entry[] = [
   { path: "/fundraisers", changeFrequency: "weekly", priority: 0.7 },
 ];
 
+// Business suite: org-scoped tools + guide (Task E).
+const BUSINESS: Entry[] = [
+  { path: "/business", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/business/crm", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/business/invoices", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/docs/business", changeFrequency: "monthly", priority: 0.7 },
+];
+
 // Evergreen exhibits + explainers.
 const EXPLORE: Entry[] = [
   { path: "/ads", changeFrequency: "weekly", priority: 0.5 },
@@ -119,6 +127,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...PRIMARY,
     ...COMMUNITY,
     ...SUPPORT,
+    ...BUSINESS,
     ...EXPLORE,
     ...VCW_SECTIONS,
     ...VCW_STATIC,

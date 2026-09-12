@@ -50,6 +50,7 @@ export const GAME_RATINGS: Record<string, AgeRating> = {
   serversavershield: "teens",
   "platform-wars": "teens",
   neoninvaders: "teens",
+  gravegain1d: "teens",
 };
 
 export function getGameRating(slug: string): AgeRating {

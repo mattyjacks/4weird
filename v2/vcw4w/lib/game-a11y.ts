@@ -39,8 +39,8 @@ const TABLE: Record<string, GameA11y> = {
     colorDependent: false,
     photosensitive: true,
     readingHeavy: true,
-    controls: "Type A-Z to banish zombies · 1/2/3 holy-word powers · Shift boost · Esc pause · I survivor stash (desktop keyboard required)",
-    assist: "Typing game: dyslexia font + large text apply to the shell; in-game cursed words keep their font but get letter-spaced.",
+    controls: "Type A-Z to banish zombies · 1/2/3 powers (Shockwave bomb / Cryo freeze 5s / Shield restore +40) · Hold Shift/Space ×3 zombie speed · Backspace drop lock · Enter start · Esc pause · I stash (main menu only, keyboard required)",
+    assist: "Typing game: dyslexia font + large text apply to the shell; in-game cursed words keep their font but get letter-spaced. Screen shake + red damage flash: enable reduced-motion; fully keyboard-playable, mouse only clicks powerup/shop buttons.",
   },
   gravegain2d: {
     slug: "gravegain2d",
@@ -66,8 +66,8 @@ const TABLE: Record<string, GameA11y> = {
     colorDependent: true,
     photosensitive: true,
     readingHeavy: false,
-    controls: "Mouse aim + click eat · WASD swim · E evolve",
-    assist: "Color-dependent pickups: pick a colorblind filter before mutating; face clicks substitute for mouse clicks.",
+    controls: "WASD / arrows swim · Hold Space / Ctrl keyboard fire (remappable) · Click fire · E / Tab lab (focus-trapped) · Esc / P pause",
+    assist: "Keyboard hold-to-fire + focus-trapped lab; reduced-motion damps shake/particles; colorblind pickup legend (debris=dashed GEAR, mutagen=dotted FLASK, shape not color); high-DPI capped.",
   },
   serversavershield: {
     slug: "serversavershield",

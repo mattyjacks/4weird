@@ -159,6 +159,24 @@ export function GhostTimer() {
   const members = summary?.members ?? [];
   const myContracts = (summary?.contracts ?? []).filter((c) => c.status === "open" && c.worker_id === me);
 
+  // Client-side work-diary CSV export of the loaded (visible) timer rows. No server change.
+  function exportWorkDiaryCsv() {
+    const rows = summary?.open_timers ?? [];
+    const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const lines = [
+      "timer_id,worker,contract_id,clock_in,clock_out,active_seconds,beats,total_beats,note",
+      ...rows.map((t) =>
+        [t.id, nameOf(members, t.worker_id), t.contract_id, t.clock_in, t.clock_out ?? "", t.active_seconds, t.beats, t.total_beats, t.note].map(esc).join(","),
+      ),
+    ];
+    const url = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "work-diary.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="space-y-6">
       <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
@@ -229,7 +247,12 @@ export function GhostTimer() {
         <>
           <GhostContracts orgId={orgId} members={members} contracts={summary.contracts} refresh={() => load(orgId)} me={me} />
           <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
-            <h3 className="text-lg font-bold">Open timers</h3>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-lg font-bold">Open timers</h3>
+              <button onClick={exportWorkDiaryCsv} className="rounded-lg border border-white/20 px-3 py-1 text-xs" title="Download visible timer rows as CSV">
+                📥 Export work-diary CSV
+              </button>
+            </div>
             {(summary.open_timers ?? []).length ? summary.open_timers.map((t) => (
               <div key={t.id} className="mt-2 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-2 text-sm">
                 <span>{nameOf(members, t.worker_id)} · {fmtGhostTime(t.id === myTimer?.id ? liveSeconds : t.active_seconds)} · activity {t.total_beats ? Math.round((t.beats / t.total_beats) * 100) : 0}%{t.note ? ` · “${t.note}”` : ""}</span>

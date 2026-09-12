@@ -379,7 +379,7 @@ function hashSeed(text: string): number {
 
 type Archetype = "catcher" | "dodger" | "breaker" | "shooter" | "rpg";
 
-function pickArchetype(prompt: string, seed: number, variant = 0): Archetype {
+export function pickArchetype(prompt: string, seed: number, variant = 0): Archetype {
   const p = prompt.toLowerCase();
   const all: Archetype[] = ["catcher", "dodger", "breaker", "shooter", "rpg"];
   // Keyword hits still win on variant 0 (backward compatible). Variants

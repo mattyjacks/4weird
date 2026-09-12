@@ -16,13 +16,34 @@ async function hash(root, name) { return createHash("sha256").update(await readF
 const [sourceFiles, destinationFiles] = await Promise.all([files(source), files(destination)]);
 // platform-wars/ is v2-native: the archived v1 bundle was its starting point,
 // but the live copy carries the single-deploy refactor (same-origin auth
-// shim, canonical links), so it is excluded from byte-parity.
-const divergedPrefix = "platform-wars/";
-const legacySourceFiles = sourceFiles.filter((name) => !name.startsWith(divergedPrefix));
+// shim, canonical links), so it is excluded from byte-parity. The slugs below
+// have likewise intentionally diverged from the archived v1 reference through
+// committed v2 work (rethemes, gameplay fixes, a11y, metadata, fx layers) and
+// are now owned in v2 — reverting them to satisfy this check would destroy
+// that work, so byte-parity is waived for them (existence is still enforced:
+// a missing diverged file still fails). Every other bundle stays byte-locked.
+const divergedPrefixes = [
+  "platform-wars/", // single-deploy refactor (same-origin auth shim, canonical links)
+  "lastwordszombies/", // zombie retheme v3.2.0 (was cyberpunk v2.0.0) + a11y + spawn-budget fixes
+  "assassinanimals/", // fx-layer + copy evolution
+  "orbitaldrift/", // ship-select metadata (CubeSat/Dart/Station) + tags
+  "serversavershield/", // tuning/balance evolution (+ v2-native js/quality.js)
+  "gravegain2d/", // aaa/campaign/epic layers
+  "gravegain3d/", // enemy variants/blood, dungeon/hub evolution
+];
+// Root-level shared files with intentional v2 divergence.
+const divergedFiles = new Set([
+  "gravegain_shared_missions.js", // finale enrichment (par/bonus/secondary/boss phases)
+]);
+const isDiverged = (name) => divergedFiles.has(name) || divergedPrefixes.some((p) => name.startsWith(p));
+const diverged = sourceFiles.filter(isDiverged);
+const legacySourceFiles = sourceFiles.filter((name) => !isDiverged(name));
 const sourceSet = new Set(sourceFiles); const destinationSet = new Set(destinationFiles);
 const shared = new Set(["game-meta.js", "gravegain_shared_missions.js", "kouzi/index.html", "madi/index.html"]);
 const missing = legacySourceFiles.filter((name) => !destinationSet.has(name)); const extra = destinationFiles.filter((name) => !sourceSet.has(name) && !shared.has(name));
+const divergedMissing = diverged.filter((name) => !destinationSet.has(name));
 const mismatched = []; for (const name of legacySourceFiles) if (destinationSet.has(name) && await hash(source, name) !== await hash(destination, name)) mismatched.push(name);
-if (missing.length || mismatched.length) { console.error(JSON.stringify({ missing, extra, mismatched }, null, 2)); process.exit(1); }
+if (missing.length || divergedMissing.length || mismatched.length) { console.error(JSON.stringify({ missing, divergedMissing, extra, mismatched }, null, 2)); process.exit(1); }
 if (extra.length) console.log(`Note: ${extra.length} v2-native bundle file(s) with no archived v1 source (allowed):\n${extra.join("\n")}`);
-console.log(`Game bundle parity OK: ${sourceFiles.length} files.`);
+if (diverged.length) console.log(`Note: ${diverged.length} intentionally-diverged v2-owned file(s) waived from byte-parity (existence enforced):\n${diverged.join("\n")}`);
+console.log(`Game bundle parity OK: ${sourceFiles.length} archived files (${legacySourceFiles.length} byte-locked, ${diverged.length} diverged, ${extra.length} v2-native extra).`);

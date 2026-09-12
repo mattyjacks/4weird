@@ -413,12 +413,22 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
       if (!live) return;
       setAgeBand(band);
       setHasSession(signedIn);
-      if (rating === "adults") {
+      // Content-mode games (gravegain2d/gravegain3d/lastwordszombies) enforce
+      // the EFFECTIVE minimum age of the stored mode, not the raw catalog
+      // rating — mirroring /api/games/session. A teen-band player with Teen
+      // mode stored (gore on, 13+) takes the teens branch instead of the
+      // adults hard block, and Kid mode (0+) passes outright. Without this
+      // the picker above the block promised a choice that never unblocked
+      // (branching on the raw rating re-blocked every teen/kid-mode player).
+      const storedMode = hasContentModes(slug) ? readStoredContentMode(slug) : null;
+      const effMin = storedMode ? effectiveMinAge(slug, storedMode) : requiredAgeFor(rating);
+      const effRating: "kids" | "teens" | "adults" = effMin >= 18 ? "adults" : effMin >= 13 ? "teens" : "kids";
+      if (effRating === "adults") {
         // Hard block unless an adult band can clear the server check. Kids
         // Mode, guests, and non-adult bands all land here with band-fix copy.
         if (kids || !signedIn || band !== "adult") setAge("blocked");
         else setAge("gate-adults");
-      } else if (rating === "teens") {
+      } else if (effRating === "teens") {
         const bandOk = band === "teen" || band === "adult";
         if (signedIn && bandOk && !kids) setAge("passed");
         else if (signedIn && bandOk && kids) setAge("gate-teens");
@@ -648,6 +658,12 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
               entry cannot bypass the band.
             </p>
           )}
+          {contentSupported && (
+            <p className="mt-2">
+              🧟 Tip: the Content mode picker above changes this check — <b className="text-white">Teen</b> mode needs only a Teen (13-17) or Adult
+              band, and <b className="text-white">Kid</b> mode plays for every band. Only Uncut (18+) needs the Adult band.
+            </p>
+          )}
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           {!kidsOn && !guestBlock && (
@@ -705,6 +721,11 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
               </>
             )}
           </p>
+          {contentSupported && (
+            <p className="mt-2">
+              🧟 Tip: the Content mode picker above changes this check — <b className="text-white">Kid</b> mode plays for every band, no sign-in needed.
+            </p>
+          )}
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           {guestBand ? (

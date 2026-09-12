@@ -27,7 +27,7 @@ export const FACTS = {
   platformCut: "25% platform cut, always included in the price; never added on top",
   providerShare: "75% credits the providers and game makers as on-site platform credits (cloud compute, game credits, other on-site services only; never cash-out, never withdrawable)",
   trial: "free 100-coin ($1.00) trial for new accounts",
-  gameCount: "34 playable browser games",
+  gameCount: "35 playable browser games",
 } as const;
 
 /**
@@ -47,7 +47,7 @@ export const BYOK_PLAN = { usdPerMonth: 420, label: "Self-hosted BYOK, 15% compu
 export const DEFAULT_TITLE =
   "4weird Games - Cloud Compute That Funds AI-Built Games";
 export const DEFAULT_DESCRIPTION =
-  "Rent metered cloud compute, AI agents, and squad workspaces with Vibe Coins (100 🪙 = $1.00, 25% cut included); funding 34 AI-built browser games that teach AI by playing.";
+  "Rent metered cloud compute, AI agents, and squad workspaces with Vibe Coins (100 🪙 = $1.00, 25% cut included); funding 35 AI-built browser games that teach AI by playing.";
 
 /** Core keyword set shared by the homepage and section hubs. */
 export const CORE_KEYWORDS = [

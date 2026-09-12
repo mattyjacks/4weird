@@ -18,6 +18,7 @@ class AudioManager {
     if (this.ctx) return;
     
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return; // no WebAudio: stay silent, never throw into startGame
     this.ctx = new AudioContextClass();
     
     // Create Gain nodes

@@ -32,11 +32,11 @@ const TABLE: Record<string, GamePlaybook> = {
   },
   lastwordszombies: {
     slug: "lastwordszombies",
-    controls: "Type A-Z to banish zombies · 1/2/3 holy words: Shockwave/Cryo/Shield · Shift holy boost · Esc pause · I survivor stash (desktop keyboard required)",
-    goal: "Banish shambling zombies by typing their cursed words before they overrun the graveyard barricade.",
-    boot: ["Click the graveyard to focus the keyboard.", "Type the FIRST letter of the nearest zombie to lock on.", "Finish the locked word before switching targets."],
-    autoplay: ["Send type_text to the focused graveyard; never blind-keypress.", "Prioritize the closest zombie each second; re-read after every banish.", "Open the survivor stash (I) only between waves and record spend."],
-    tips: ["Locking on early buys time; first letters matter most.", "Short words first when the horde floods.", "Pause with Esc to read the survivor stash between waves."],
+    controls: "Type A-Z to lock & banish zombies · 1 Shockwave bomb / 2 Cryo freeze 5s / 3 Shield restore +40 · Hold Shift/Space ×3 zombie speed (risk/reward) · Backspace drop lock · Enter start · Esc pause · I Black Market stash (main menu only, keyboard required)",
+    goal: "Banish shambling zombies by typing their cursed words before they breach the barricade and drain your 100 shield.",
+    boot: ["Click the game frame once so keystrokes go to the game, then press Enter on START GAME (menu drill: TYPE to lock, FINISH to banish, SURVIVE - boss every 5th wave).", "Type the FIRST letter of the nearest zombie to lock on; the game auto-targets the closest to breaching.", "Finish the locked word to banish it - kills stun nearby zombies; Backspace drops a bad lock for free."],
+    autoplay: ["Send type_text to the focused frame one letter per tick; never blind-keypress (the game ignores held-key repeat).", "Prioritize the closest-to-breach zombie each second; re-read after every banish (kills stun neighbours, +15 score each).", "Fire 1/2/3 powers when overwhelmed (1 wipes normals, 2 freezes 5s, 3 restores +40 shield); open the Black Market stash (I) from the main menu only and record spend."],
+    tips: ["Locking on early buys time; first letters matter most - short words first when the horde floods.", "Shift/Space ×3 speed is risk/reward: faster kills, faster breaches - never hold it under 30 shield.", "Boss every 5th wave: save Shockwave (1) for it - it chews +4 letters off the boss word."],
   },
   venturemechanically: {
     slug: "venturemechanically",
@@ -80,11 +80,11 @@ const TABLE: Record<string, GamePlaybook> = {
   },
   battlesharks2: {
     slug: "battlesharks2",
-    controls: "WASD / arrows / mouse swim · Left-click / Ctrl fire · Space jet dash (needs Jet Mutation) · E / Tab upgrade hub",
-    goal: "Eat, gather biomass and cyber-debris, and mutate into the apex cyber-shark.",
-    boot: ["Swim toward small fish first and eat to heal.", "Collect cyber-debris before picking fights.", "Open the hub (E) after your first mutagen and buy one weapon."],
-    autoplay: ["Circle toward the nearest edible each tick; flee hunters with dash.", "Open the upgrade hub between fights, never mid-swarm.", "Log biomass per minute so mutation pacing is comparable across runs."],
-    tips: ["Pickups are color-coded; set a filter before mutating.", "Mines kill greed; eat around them, not through them.", "Jet dash is an escape tool first, a weapon second."],
+    controls: "WASD / arrows / mouse swim · Left-click / Ctrl fire · Space jet dash (needs Jet Engine) · E / Tab R&D Lab hub · Esc / P pause · Touch: on-screen joystick steers, tap fires",
+    goal: "Devour fish to heal and gather biomass, harvest cyber-debris and mutagens, mutate into the apex cyber-shark, and survive hunters, mines, and the ROBO-KRAKEN boss for the record score.",
+    boot: ["Press LAUNCH SHARK on the start screen, then eat small fish first: eating heals you and banks biomass.", "Dodge naval mines, depth charges, and military hunters; collect cyber-debris and mutagens before picking fights.", "Press E (or the R&D LAB HUB button) between fights and install one upgrade — Laser Cannon (20 debris) first."],
+    autoplay: ["Steer toward the nearest edible each tick; flee hunters with the Space jet dash once the Jet Engine is owned.", "Open the R&D Lab hub between fights, never mid-swarm; buy one upgrade per visit so spend stays attributable.", "Log biomass per minute plus score so mutation pacing is comparable across runs."],
+    tips: ["Eating heals: graze small fish before engaging hunters or the boss.", "Jet Engine (30 debris + 10 biomass) unlocks the Space dash — an escape tool first, a weapon second.", "ROBO-KRAKEN warning means disengage and circle; watch its HP bar and save missiles for it."],
   },
   gravegain2d: {
     slug: "gravegain2d",

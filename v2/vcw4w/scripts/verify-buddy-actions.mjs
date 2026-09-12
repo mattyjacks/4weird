@@ -34,7 +34,7 @@ const orch = has(
 assert(!orch.includes("api.openai.com"), "orchestrator must stay transport-agnostic (runner injected)");
 
 // 3. Widget renders delegations + the Super-pack panel.
-const widget = has(
+has(
   "components/buddy/gaming-buddy.tsx",
   "catalogForBuddy", "falPayloadFor", "fireBuddyAction",
   "runOrchestrator", "fireSuperPack", "Assemble pack",

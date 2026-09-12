@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
+import { fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
 import { rateLimit } from "@/lib/rate-limit";

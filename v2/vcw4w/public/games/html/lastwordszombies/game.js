@@ -1122,8 +1122,9 @@ class GameApp {
     });
 
     window.addEventListener('keydown', (e) => {
-      // Do not trap browser navigation/dev shortcuts
-      if (e.ctrlKey || e.metaKey || e.altKey || e.key.startsWith('F') || e.key === 'Tab') {
+      // Do not trap browser navigation/dev shortcuts (F1-F12 only: a bare
+      // startsWith('F') would also swallow Shift+F / CapsLock-F keystrokes)
+      if (e.ctrlKey || e.metaKey || e.altKey || /^F\d+$/.test(e.key) || e.key === 'Tab') {
         return;
       }
 

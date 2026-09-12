@@ -99,6 +99,15 @@ export function VaultBrowser() {
       setMsg("Pick a file first.");
       return;
     }
+    // Sanitize to the server's cleanVaultPath set (spaces/parens OK) and
+    // store inside the open folder, so uploads land where you're looking.
+    const base = (pick.name.split(/[\\/]/).pop() ?? "file").trim() || "file";
+    const safe = base
+      .replace(/[^A-Za-z0-9._/@:+() \-]/g, "_")
+      .replace(/\.\.+/g, "_")
+      .replace(/^\/+|\/+$/g, "")
+      .slice(0, 128) || "file";
+    const dest = cwd ? `${cwd}/${safe}`.slice(0, 512) : safe;
     setBusy(true);
     try {
       const digest = await crypto.subtle.digest("SHA-256", await pick.arrayBuffer());
@@ -110,7 +119,7 @@ export function VaultBrowser() {
         body: JSON.stringify({
           scope,
           scope_id: scopeId || undefined,
-          path: pick.name,
+          path: dest,
           bytes: pick.size,
           sha256,
           kind: "asset",

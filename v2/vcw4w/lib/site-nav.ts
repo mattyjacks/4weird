@@ -21,7 +21,7 @@ export const SITE_NAV_GROUPS: SiteNavGroup[] = [
     label: "🎮 Play Free",
     tagline: "Click and play - free, no install.",
     links: [
-      { href: "/games", label: "All Games", quick: "All 34 games - click and play.", detail: "The arcade shelf. Every game runs in your browser in seconds, saves follow your account, and 100 free welcome coins get you started." },
+      { href: "/games", label: "All Games", quick: "All 35 games - click and play.", detail: "The arcade shelf. Every game runs in your browser in seconds, saves follow your account, and 100 free welcome coins get you started." },
       { href: "/buddy", label: "Gaming Buddy", quick: "Voice coach that watches your screen.", detail: "Your couch co-pilot. Buddy sees your game, talks you past hard parts, finds secrets, and cheers wins." },
       { href: "/leaderboards", label: "Leaderboards", quick: "Top scores for every game.", detail: "Bragging rights central. Daily and all-time highs per game - chase friends and watch your name climb." },
       { href: "/lobbies", label: "Lobbies", quick: "Live rooms waiting for players.", detail: "Multiplayer waiting rooms - see who is inside, hop in, and play. No small talk required." },
@@ -49,6 +49,18 @@ export const SITE_NAV_GROUPS: SiteNavGroup[] = [
       { href: "/swarm", label: "Agent Swarm", quick: "1-5 AI helpers as one chat.", detail: "Hire agents as one chatbot. Auto / Lead / Round-robin, per-turn metering with 25% inside." },
       { href: "/squads", label: "UnitUnite", quick: "Work teams with shared wallet.", detail: "Squads are teams: shared coins, roles (Lord / Captain / Banker / Watcher), rooms, and Ghost Cash timer." },
       { href: "/timer", label: "Timer & Work Diary", quick: "Focus timer + auto diary.", detail: "Clock work to the second with screenshot proofs. Ghost Cash IOUs measure debts - no cash value." },
+    ],
+  },
+  {
+    label: "💼 Business & Teams",
+    tagline: "Squads, invoices, CRM, and the vault.",
+    links: [
+      { href: "/business", label: "Business Hub", quick: "All business tools in one place.", detail: "UnitUnite squads, timer, projects, invoices, CRM, team management, and the vault - one coin, 100 coins = $1." },
+      { href: "/business/crm", label: "Business CRM", quick: "Contacts and pipelines.", detail: "Contacts, pipelines, and follow-ups for teams that sell things." },
+      { href: "/business/invoices", label: "Invoices", quick: "Bill clients in Vibe Coins.", detail: "Itemized, escrowed invoicing settled per second in Vibe Coins." },
+      { href: "/squads", label: "UnitUnite", quick: "Work teams with shared wallet.", detail: "Squads are teams: shared coins, roles, rooms, projects, and metered cloud." },
+      { href: "/timer", label: "Timer & Work Diary", quick: "Focus timer + auto diary.", detail: "Clock work to the second with screenshot proofs. Ghost Cash IOUs measure debts - no cash value." },
+      { href: "/vault", label: "Data Vault", quick: "Private files for teams.", detail: "Blob-based file storage with personal, team, and org scopes, strictly separated." },
     ],
   },
   {

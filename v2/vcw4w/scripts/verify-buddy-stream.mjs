@@ -39,7 +39,7 @@ const chat = has(
 assert(chat.includes("meter_game_ai_usage"), "chat route must meter streamed turns");
 
 // 3. Widget reads SSE progressively and falls back to JSON.
-const widget = has(
+has(
   "components/buddy/gaming-buddy.tsx",
   "readBuddyStream", "text/event-stream", "updateLiveMessage", "streamingActive",
 );

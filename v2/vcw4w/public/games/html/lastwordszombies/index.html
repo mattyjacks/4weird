@@ -42,7 +42,7 @@
     <!-- Cyberpunk ambient styling grids -->
     <div class="cyber-bg-dots"></div>
     
-    <!-- Navigation placeholder - injected by components.js -->
+    <!-- Navigation mount - injected by components.js -->
     <div id="TEMPLATE-4weird-nav-placeholder"></div>
     
     <!-- Game Header Bar -->
@@ -397,7 +397,7 @@
         </div>
     </section>
     
-    <!-- Footer placeholder - injected by components.js -->
+    <!-- Footer mount - injected by components.js -->
     <div id="TEMPLATE-4weird-footer-placeholder"></div>
     
     <!-- Scripts -->
@@ -417,21 +417,33 @@
             fetch('game.json')
                 .then(r => r.json())
                 .then(data => {
-                    document.title = data.title + ' - 4weird Games';
-                    
+                    // Null-safe: the generated /games/<slug>/ bundle strips
+                    // the v1 site chrome (header, info panel, credits, bio,
+                    // share links), so every write below must tolerate a
+                    // missing node instead of throwing and aborting the rest.
+                    var byId = function(id) {
+                        try { return document.getElementById(id); } catch (e) { return null; }
+                    };
+                    var setText = function(id, val) {
+                        var el = byId(id);
+                        if (el) el.textContent = (val == null ? '' : String(val));
+                    };
+                    document.title = (data.title || 'Last Words Zombies') + ' - 4weird Games';
+
                     // Main title tags
-                    document.getElementById('TEMPLATE-4weird-game-title').textContent = data.title;
-                    document.getElementById('start-overlay-title').textContent = data.title;
-                    
+                    setText('TEMPLATE-4weird-game-title', data.title);
+                    setText('start-overlay-title', data.title);
+
                     // Genre and descriptions (textContent: game.json is
                     // contributor-supplied, never interpreted as HTML)
-                    document.getElementById('TEMPLATE-4weird-game-genre').textContent = data.genre;
-                    document.getElementById('start-overlay-desc').textContent = data.description;
-                    document.getElementById('TEMPLATE-4weird-how-to-play').textContent = data.instructions;
+                    setText('TEMPLATE-4weird-game-genre', data.genre);
+                    setText('start-overlay-desc', data.description);
+                    setText('TEMPLATE-4weird-how-to-play', data.instructions);
                     
                     // Set keyboard instructions hint
                     if (data.controls && data.controls.keyboard) {
-                        var kbHint = document.getElementById('start-overlay-hint');
+                        var kbHint = byId('start-overlay-hint');
+                        if (kbHint) {
                         kbHint.textContent = '';
                         Object.entries(data.controls.keyboard).forEach(([k, desc]) => {
                             var p = document.createElement('p');
@@ -442,9 +454,11 @@
                             p.append(strong, ': ', kbd);
                             kbHint.appendChild(p);
                         });
-                        
+                        }
+
                         // Populate the aside sidebar list
-                        var kbList = document.getElementById('TEMPLATE-4weird-keyboard-controls-list');
+                        var kbList = byId('TEMPLATE-4weird-keyboard-controls-list');
+                        if (kbList) {
                         kbList.textContent = '';
                         Object.entries(data.controls.keyboard).forEach(([k, desc]) => {
                             var li = document.createElement('li');
@@ -455,23 +469,28 @@
                             li.append(span, ' ', kbd2);
                             kbList.appendChild(li);
                         });
+                        }
                     }
 
                     // Credits developer bios and details (safe helpers: no
                     // innerHTML, http(s)-only URLs)
-                    const makerNameEl = document.getElementById('TEMPLATE-4weird-maker-name');
+                    const makerNameEl = byId('TEMPLATE-4weird-maker-name');
                     if (makerNameEl) {
-                        makerNameEl.textContent = data.maker.name;
+                        makerNameEl.textContent = (data.maker && data.maker.name) || '';
                     }
+                    if (window.FourWeirdMeta) {
                     window.FourWeirdMeta.setBio('TEMPLATE-4weird-maker-bio', data.maker && data.maker.bio);
                     window.FourWeirdMeta.setMakerLink('TEMPLATE-4weird-maker-link', data.maker && data.maker.url, data.maker && data.maker.urlLabel);
                     window.FourWeirdMeta.renderCredits('TEMPLATE-4weird-credits-grid', data.credits);
+                    }
 
                     // Social Share links updates
                     const encodedUrl = encodeURIComponent(window.location.href);
                     const encodedTitle = encodeURIComponent(`Check out ${data.title} on 4weird Games! 🎮🚀`);
-                    document.getElementById('share-twitter').href = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`;
-                    document.getElementById('share-reddit').href = `https://www.reddit.com/submit?url=${encodedUrl}&title=${encodedTitle}`;
+                    const shareTwitter = byId('share-twitter');
+                    if (shareTwitter) shareTwitter.href = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`;
+                    const shareReddit = byId('share-reddit');
+                    if (shareReddit) shareReddit.href = `https://www.reddit.com/submit?url=${encodedUrl}&title=${encodedTitle}`;
                 })
                 .catch(err => console.log('Template metadata fetch error:', err));
             

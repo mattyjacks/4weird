@@ -23,6 +23,7 @@ const bundles = [
   ["battlesharks2", "battlesharks2"],
   ["gravegain2d", "gravegain2d"],
   ["gravegain3d", "gravegain3d"],
+  ["gravegain1d", "gravegain1d"],
   ["demolichdom", "demolichdom"],
   ["fridgesimulator", "fridgesimulator"],
   // NOTE: source dir keeps its v1 capitalisation; the destination slug is
@@ -150,6 +151,20 @@ function normalizeRuntime(indexFile, slug) {
       else html += tag;
     }
   }
+  // BattleSharks2 mobile layer (battlesharks2 ONLY): virtual joystick + FIRE /
+  // DASH / LAB touch buttons + responsive HUD / bottom-sheet lab CSS. Source
+  // lives at public/games/html/battlesharks2-mobile.js (v2-native, outside
+  // the parity-locked battlesharks2/ tree, so cpSync never carries it) and is
+  // referenced by absolute canonical path. existsSync-guarded; injected only
+  // when absent; tracked bundle sources stay byte-identical.
+  if (slug === "battlesharks2" && !html.includes("battlesharks2-mobile.js")) {
+    const mobileSrc = join(root, "public", "games", "html", "battlesharks2-mobile.js");
+    if (existsSync(mobileSrc)) {
+      const tag = `<script src="/games/html/battlesharks2-mobile.js" data-slug="battlesharks2"></script>`;
+      if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${tag}</body>`);
+      else html += tag;
+    }
+  }
   // V2 per-game gore layer (lastwordszombies ONLY): inject the shared-root
   // gore script into the generated bundle when absent. The source lives at
   // public/games/html/gore-lastwordszombies.js (outside the parity-locked
@@ -189,6 +204,32 @@ function normalizeRuntime(indexFile, slug) {
       else html += tag;
     }
   }
+  // BS2 codex layer (battlesharks2 ONLY): the v2-native lore overlay lives at
+  // public/games/html/battlesharks2-lore.js (outside the parity-locked
+  // battlesharks2/ tree). Inject by reference into the generated bundle only,
+  // and only when the source file exists and no sibling already injected it
+  // (existsSync guard avoids clobbering another agent's injection).
+  if (slug === "battlesharks2" && !html.includes("battlesharks2-lore.js")) {
+    const loreSrc = join(root, "public", "games", "html", "battlesharks2-lore.js");
+    if (existsSync(loreSrc)) {
+      const tag = `<script src="/games/html/battlesharks2-lore.js" data-slug="battlesharks2"></script>`;
+      if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${tag}</body>`);
+      else html += tag;
+    }
+  }
+  // Battlesharks 2 gameplay tuning overlay (battlesharks2 ONLY): difficulty
+  // governor + economy hints + boss director + juice. Source lives at
+  // public/games/html/battlesharks2-tune.js (v2-native, outside the
+  // parity-locked battlesharks2/ tree). existsSync-guarded, injected only
+  // when absent; tracked bundle sources stay byte-identical.
+  if (slug === "battlesharks2" && !html.includes("battlesharks2-tune.js")) {
+    const tuneSrc = join(root, "public", "games", "html", "battlesharks2-tune.js");
+    if (existsSync(tuneSrc)) {
+      const tag = `<script src="/games/html/battlesharks2-tune.js" data-slug="battlesharks2"></script>`;
+      if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${tag}</body>`);
+      else html += tag;
+    }
+  }
   // GraveGain epic layer (gravegain2d + gravegain3d ONLY): saga data ->
   // cutscene engine -> graphics-plus -> worker tasks, in dependency order.
   // All sources live at public/games/html/*.js (v2-native, outside the
@@ -218,6 +259,21 @@ function normalizeRuntime(indexFile, slug) {
     const tag = `<script src="/games/html/content-mode-bridge.js" data-slug="${slug}"></script>`;
     if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${tag}</body>`);
     else html += tag;
+  }
+  // BattleSharks2 desktop/perf/a11y layer (DESKTOP + PERFORMANCE + ACCESS
+  // owner): remappable keyboard fire, lab focus-trap, pause parity, DPR<=2
+  // canvas scaling, reduced-motion damping, colorblind pickup legend, FPS
+  // guard. Source lives at public/games/html/battlesharks2-desktop.js (a
+  // sibling of the parity-locked battlesharks2/ tree, so cpSync never
+  // carries it). existsSync-guarded, injected only when absent; the tracked
+  // bundle sources stay byte-identical.
+  if (slug === "battlesharks2" && !html.includes("battlesharks2-desktop.js")) {
+    const bs2DesktopSrc = join(root, "public", "games", "html", "battlesharks2-desktop.js");
+    if (existsSync(bs2DesktopSrc)) {
+      const tag = `<script src="/games/html/battlesharks2-desktop.js" data-slug="battlesharks2"></script>`;
+      if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${tag}</body>`);
+      else html += tag;
+    }
   }
   writeFileSync(indexFile, html);
   return stripped.removed;

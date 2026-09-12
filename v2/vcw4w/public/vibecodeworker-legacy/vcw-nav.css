@@ -15,12 +15,27 @@
   padding: 7px 12px; border-radius: 8px; border: 1px solid transparent;
   text-transform: uppercase; white-space: nowrap;
 }
-.vcw-links a:hover { color: #fff; border-color: #333; }
-.vcw-links a.active {
-  color: #39ff88; border-color: rgba(57, 255, 136, .4);
+.vcw-links a:hover { color: #fff; border-color: #333; text-shadow: 0 0 12px rgba(57, 255, 136, .8); }
+.vcw-links a.active { color: #39ff88; border-color: rgba(57, 255, 136, .4);
   background: rgba(57, 255, 136, .07);
 }
 .vcw-links a.ext { color: #83ffaf; }
+.vcw-links a.cta-money, .vcw-links a.cta-money.ext {
+  color: #1a1200; font-weight: 800;
+  background: linear-gradient(135deg, #ffd75e, #f5a623);
+  border-color: rgba(255, 215, 94, .8);
+  box-shadow: 0 0 14px rgba(245, 166, 35, .45);
+}
+.vcw-links a.cta-money:hover { color: #000; filter: brightness(1.08); text-shadow: none; box-shadow: 0 0 22px rgba(245, 166, 35, .7); }
+.vcw-links a:focus-visible, .vcw-mode a:focus-visible, .vcw-brand:focus-visible {
+  outline: 2px solid #39ff88; outline-offset: 2px; border-radius: 8px;
+}
+@media (max-width: 850px) {
+  .vcw-nav { gap: 10px; padding: 12px 14px; }
+  .vcw-links { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; margin-left: 0; padding-bottom: 6px; scrollbar-width: thin; }
+  .vcw-links a { flex: 0 0 auto; }
+  .vcw-mode { margin-left: auto; }
+}
 .vcw-mode {
   display: flex; border: 1px solid rgba(57, 255, 136, .4); border-radius: 10px;
   overflow: hidden; font-size: 12px; letter-spacing: 1px;
@@ -28,3 +43,10 @@
 .vcw-mode a { color: #9ca3af; text-decoration: none; padding: 7px 14px; text-transform: uppercase; }
 .vcw-mode a.active { background: rgba(57, 255, 136, .15); color: #fff; }
 .vcw-rule { max-width: 1100px; margin: 0 auto; border: none; border-top: 1px solid #1c2333; }
+/* Shared mini-sitemap footer (index.html + overview.html): money line + taxonomy. */
+.vcw-foot { max-width: 1100px; margin: 0 auto; padding: 18px 20px 26px; font-family: 'JetBrains Mono', 'DM Mono', ui-monospace, monospace; }
+.vcw-foot-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.vcw-foot-row a { color: #9ca3af; text-decoration: none; font-size: 12px; letter-spacing: 1px; padding: 6px 10px; border-radius: 8px; text-transform: uppercase; white-space: nowrap; }
+.vcw-foot-row a:hover { color: #fff; text-shadow: 0 0 12px rgba(57, 255, 136, .8); }
+.vcw-foot-money { margin-top: 10px; font-size: 12px; letter-spacing: 1px; color: #ffd75e; }
+.vcw-foot-money a { color: #1a1200; font-weight: 800; background: linear-gradient(135deg, #ffd75e, #f5a623); border-radius: 8px; padding: 4px 10px; text-decoration: none; box-shadow: 0 0 14px rgba(245, 166, 35, .45); }

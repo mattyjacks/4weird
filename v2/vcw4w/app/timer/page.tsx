@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { GhostTimer } from "@/components/ghost/ghost-timer";
+import { BusinessCrosslinks } from "@/components/business/business-crosslinks";
 
 export const metadata: Metadata = {
   title: "Ghost Timer - Who Owes Whom",
@@ -17,6 +18,14 @@ export default function TimerPage() {
           centrally-controlled hypothetical unit with <b>no legal value</b>: it measures debts, stores nothing, buys
           nothing.
         </p>
+        <p className="mt-3 text-sm text-slate-400">
+          For business use: tracked seconds invoice into Ghost debts, which the Business Hub turns into real
+          invoices; contracts live under <b>/business/contracts</b>, client records in the CRM, and shift notes
+          attach proof in the Vault. Export the work diary as CSV for bookkeeping.
+        </p>
+        <div className="mt-6">
+          <BusinessCrosslinks exclude={["/timer"]} />
+        </div>
         <div className="mt-8">
           <GhostTimer />
         </div>

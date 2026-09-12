@@ -77,7 +77,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
               {rating === "adults"
                 ? "Needs Adult (18+) band – set in "
                 : "Needs Teen (13+) or Adult (18+) band – set in "}
-              <Link href="/account" className="font-semibold text-cyan-300 hover:underline">
+              <Link href="/account#age-band" className="font-semibold text-cyan-300 hover:underline">
                 Account → Settings
               </Link>{" "}
               before you press Play.

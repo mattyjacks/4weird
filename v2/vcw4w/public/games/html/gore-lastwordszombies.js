@@ -27,9 +27,15 @@
  *                 breach sparks, vignette flicker + tiny camera-shake flicker.
  *       kid:      original blood burst is SKIPPED; kills are "reboots" —
  *                 celebration bubbles + floating "+1 FRIEND SAVED" text.
- *   - kill text: wraps TypingController.prototype.triggerExplosion to add the
- *     kid "+1 FRIEND SAVED" sleeper text after the original scoring runs.
- *   - breach: MutationObserver on #health-bar-fill (width shrink == a unit
+  *   - kill text: wraps TypingController.prototype.triggerExplosion to add the
+  *     kid "+1 FRIEND SAVED" sleeper text after the original scoring runs.
+  *   - kid dictionary: in-place patch of the bundle's SHORT/MID/LONG_WORDS
+  *     spawn lists (same array references the spawner reads per spawn, so
+  *     already-running games converge without a reload) + additive
+  *     WORD_DEFINITIONS entries for the kid words. Mirrors filterWords /
+  *     kidWordList in content/lastwordszombies-modes.ts; teen/all restore
+  *     the stashed bundle originals untouched. Re-applied on every setMode.
+  *   - breach: MutationObserver on #health-bar-fill (width shrink == a unit
  *     crossed BREACH_LINE; damage only comes from breaches). teen|all leaves
  *     scorch decals; kid leaves "nap" pills ("breaches are naps").
  *
@@ -56,7 +62,6 @@
       v = v.toLowerCase().trim();
       if (v === "child" || v === "kids") v = "kid";
       if (v === "adult" || v === "mature" || v === "uncensored") v = "all";
-      if (v === "everyone") v = "all";
       if (MODES.indexOf(v) !== -1) return v;
     }
     return null;
@@ -384,6 +389,117 @@
     } catch (e) { return false; }
   }
 
+  /* ---------- kid dictionary patch (word-list swap) ---------- */
+  //
+  // Mirrors filterWords + kidWordList in
+  // content/lastwordszombies-modes.ts (that module is the TS source of
+  // truth; this vanilla layer duplicates the data because classic scripts
+  // share one realm and take no imports). In-place only: the bundle
+  // declares these as const globals, so reassignment would throw — the
+  // spawner reads the same array references per spawn, making the swap
+  // (and restore) live with no reload and no game-logic edits.
+
+  // Keep in sync with kidWordList in content/lastwordszombies-modes.ts.
+  var KID_WORDS = [
+    "cat", "dog", "fox", "owl", "bear", "frog", "duck", "fish",
+    "lion", "tiger", "zebra", "panda", "koala", "mouse", "bunny", "puppy",
+    "kitty", "sheep", "horse", "whale", "shark", "eagle", "snake", "lizard",
+    "red", "blue", "green", "pink", "purple", "yellow", "orange", "teal",
+    "apple", "berry", "grape", "lemon", "melon", "peach", "mango", "plum",
+    "star", "moon", "cloud", "rain", "sunny", "snowy", "breeze", "comet",
+    "ghost", "crypt", "bubble", "candy", "cuddle", "giggle", "jammie", "nap"
+  ];
+
+  // Keep in sync with KID_BLOCKED in content/lastwordszombies-modes.ts.
+  var KID_BLOCKED_LIST = [
+    "die", "gun", "kill", "blood", "murder", "weapon", "hell", "damn",
+    "annihilation", "apocalyptic", "biohazard", "malware", "catastrophic"
+  ];
+
+  var wordsStashed = false;
+  var savedLists = { short: null, mid: null, long: null };
+
+  function isKidBlocked(word) {
+    try {
+      var w = String(word).toLowerCase();
+      for (var i = 0; i < KID_BLOCKED_LIST.length; i += 1) {
+        if (w === KID_BLOCKED_LIST[i]) return true;
+      }
+    } catch (e) { /* treat uncheckable as blocked below */ return true; }
+    return false;
+  }
+
+  function swapInPlace(arr, src) {
+    arr.length = 0;
+    for (var i = 0; i < src.length; i += 1) arr.push(src[i]);
+  }
+
+  // Same-realm application of the TS filterWords rule: kid gets kidWordList
+  // plus any bundle word that is short, lowercase, alphabetic and unblocked;
+  // teen/all get the stashed bundle originals restored verbatim.
+  function applyWordLists() {
+    try {
+      var SHORT = globalOf("SHORT_WORDS");
+      var MID = globalOf("MID_WORDS");
+      var LONG = globalOf("LONG_WORDS");
+      var DEFS = globalOf("WORD_DEFINITIONS");
+      if (!SHORT || !MID || !LONG ||
+          typeof SHORT.length !== "number" ||
+          typeof MID.length !== "number" ||
+          typeof LONG.length !== "number") return false;
+      if (!wordsStashed) {
+        try {
+          savedLists.short = SHORT.slice();
+          savedLists.mid = MID.slice();
+          savedLists.long = LONG.slice();
+        } catch (e) { return false; }
+        // Additive only: teen/all lookups never see a changed entry.
+        try {
+          if (DEFS && typeof DEFS === "object") {
+            for (var d = 0; d < KID_WORDS.length; d += 1) {
+              var kw = KID_WORDS[d];
+              if (!DEFS[kw]) {
+                DEFS[kw] = [
+                  "n. A sleepy herd word — type it to tuck a wobbly zombie into its crypt nap. 🧟",
+                  "n. A cozy word from the Friendly Zombie Roundup."
+                ];
+              }
+            }
+          }
+        } catch (e) { /* definitions are best-effort; the lookup falls back */ }
+        wordsStashed = true;
+      }
+      if (isKid()) {
+        var seen = {};
+        var merged = [];
+        var k;
+        for (k = 0; k < KID_WORDS.length; k += 1) {
+          if (!seen[KID_WORDS[k]]) { seen[KID_WORDS[k]] = true; merged.push(KID_WORDS[k]); }
+        }
+        var bundle = savedLists.short.concat(savedLists.mid, savedLists.long);
+        for (var b = 0; b < bundle.length; b += 1) {
+          var w = bundle[b];
+          if (typeof w !== "string" || w.length === 0 || w.length > 5) continue;
+          if (!/^[a-z]+$/.test(w)) continue;
+          var lw = w.toLowerCase();
+          if (isKidBlocked(lw) || seen[lw]) continue;
+          seen[lw] = true;
+          merged.push(lw);
+        }
+        if (merged.length === 0) return false;
+        swapInPlace(SHORT, merged);
+        swapInPlace(MID, merged);
+        swapInPlace(LONG, merged);
+      } else {
+        swapInPlace(SHORT, savedLists.short);
+        swapInPlace(MID, savedLists.mid);
+        swapInPlace(LONG, savedLists.long);
+      }
+      hooks.words = true;
+      return true;
+    } catch (e) { return false; }
+  }
+
   /* ---------- breach hook (health-bar shrink observer) ---------- */
 
   var lastHealthWidth = null;
@@ -452,7 +568,8 @@
     try { hookExplosions(); } catch (e) { ok = false; }
     try { hookKillText(); } catch (e) { ok = false; }
     try { hookBreach(); } catch (e) { ok = false; }
-    return ok && hooks.explosion && hooks.killText && hooks.breach;
+    try { applyWordLists(); } catch (e) { ok = false; }
+    return ok && hooks.explosion && hooks.killText && hooks.breach && hooks.words;
   }
 
   // Game scripts load before this file, but retry briefly in case of slow
@@ -476,6 +593,9 @@
     try {
       if (window.localStorage) window.localStorage.setItem("4weird-content-mode:" + SLUG, m);
     } catch (e) { /* storage unavailable */ }
+    // Live switch: swap (kid) or restore (teen/all) the spawn word lists so
+    // the running game converges without a reload.
+    try { applyWordLists(); } catch (e) { /* next retry converges */ }
     return mode;
   }
 
@@ -495,6 +615,9 @@
     getKills: function () { return killCount; },
     getDecals: function () { return decalCount; },
     hooks: hooks,
+    // Test/bridge seam: re-apply the word-list swap/restore for the current
+    // mode without game state (kid swaps in, teen/all restore).
+    resyncWords: applyWordLists,
     // Test/bridge seam: force a breach visual without game state.
     previewBreach: onBreach
   };

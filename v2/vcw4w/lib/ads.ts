@@ -90,7 +90,7 @@ export const HOUSE_ADS: HouseAd[] = [
     emoji: "🏆",
     tag: "4weird · Leaderboards",
     title: "Top the leaderboards",
-    blurb: "Kills, actions, and play-time across 34 games. Sign in to post your runs.",
+    blurb: "Kills, actions, and play-time across 35 games. Sign in to post your runs.",
     cta: "View boards",
     href: "/leaderboards",
   },

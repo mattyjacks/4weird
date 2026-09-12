@@ -4,12 +4,13 @@
 (function () {
   'use strict';
   var active = (document.body && document.body.dataset.vcw) || '';
-  var link = function (href, label, key, ext) {
-    var cls = key === active ? ' class="active"' : '';
+  var link = function (href, label, key, ext, extra) {
+    var classes = [];
+    if (key === active) classes.push('active');
+    if (ext) classes.push('ext');
+    if (extra) classes.push(extra);
+    var cls = classes.length ? ' class="' + classes.join(' ') + '"' : '';
     var target = ext ? ' target="_blank" rel="noopener noreferrer"' : '';
-    var extCls = ext ? ' ext' : '';
-    if (cls) cls = ' class="active' + extCls + '"';
-    else if (ext) cls = ' class="ext"';
     return '<a href="' + href + '"' + cls + target + '>' + label + '</a>';
   };
   var mode = function (href, label, key) {
@@ -21,11 +22,12 @@
     '<a class="vcw-brand" href="/vcw/">4WEIRD <b>/ VIBECODEWORKER</b></a>' +
     '<div class="vcw-links">' +
     link('/vcw/', 'Overview', 'overview') +
-    link('/vcw/web/run/', 'Cloud Run', 'run') +
+    link('/vcw/web/run/', '⚡ Cloud Run 💰', 'run') +
     link('/vcw/web/full/', 'Full Web', 'full') +
     link('/vcw/web/hub/', 'Workspace', 'hub') +
     link('/vcw/desktop/', 'Desktop', 'desktop') +
     link('/vcw/agent/', 'Agent API', 'agent') +
+    link('https://4weird.com/pricing', 'Pricing 💰', 'pricing', true, 'cta-money') +
     link('https://github.com/mattyjacks/4weird', 'GitHub', '', true) +
     '</div>' +
     '<div class="vcw-mode">' +

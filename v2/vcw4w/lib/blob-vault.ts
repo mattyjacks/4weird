@@ -70,13 +70,16 @@ export function quoteVaultStorageSplit(bytes: number): {
 
 export const VAULT_CUT_NOTE = `Includes ${VAULT_CUT_PCT}% platform cut; never added on top.`;
 
-/** Clean a vault path: relative, POSIX, no escapes, 1..512 chars. */
+/** Clean a vault path: relative, POSIX, no escapes, 1..512 chars. Spaces and
+ *  parentheses are allowed (screenshots like "Screenshot 2026-01-01 103922.png"
+ *  or "Screenshot (12).png" must store); URL-breaking / glob / escape
+ *  characters (& ? # * % ` ' " | ; < > $ ! \) stay rejected. */
 export function cleanVaultPath(value: unknown): string {
   const raw = String(value ?? "").trim().replace(/\\/g, "/");
   if (!raw || raw.length > 512) return "";
   if (raw.startsWith("/") || raw.includes("..") || raw.includes("//")) return "";
-  if (!/^[A-Za-z0-9._/@:+-]+$/.test(raw.replace(/\//g, "a"))) return "";
-  if (!/^[A-Za-z0-9._/:-]+$/.test(raw)) return "";
+  if (!/^[A-Za-z0-9._/@:+() \-]+$/.test(raw.replace(/\//g, "a"))) return "";
+  if (!/^[A-Za-z0-9._/() :\-]+$/.test(raw)) return "";
   return raw.replace(/^\/+|\/+$/g, "");
 }
 

@@ -17,9 +17,18 @@
  *     visuals live in public/games/html/gore-lastwordszombies.js.
  *   - Storage key `4weird-content-mode:lastwordszombies` matches
  *     contentModeStorageKey("lastwordszombies"); query param `?content=`.
- *   - Source truth: bundle dictionary.js (~1266 words), store.js (camp
- *     store), zombie.js/particles.js (blood hooks), typing.js (kill path).
+ *   - Source truth: bundle dictionary.js (~633 WORD_DEFINITIONS words /
+ *     ~1266 definitions, plus the SHORT/MID/LONG_WORDS spawn lists),
+ *     store.js (camp store: cosmetics-only blood/fonts/music tabs — no
+ *     tonic item exists in the bundle; the tonic/lantern-oil copy here is
+ *     the V2 shell's store-slot gating source), zombie.js/particles.js
+ *     (blood hooks), typing.js (kill path).
  *     Bundle is parity-locked; this module is a v2-layer override only.
+ *     Runtime application: the kid dictionary swap is applied same-realm by
+ *     public/games/html/gore-lastwordszombies.js (in-place
+ *     SHORT/MID/LONG_WORDS patch + additive WORD_DEFINITIONS, mirroring
+ *     filterWords/kidWordList below); teen/all play the bundle lists
+ *     untouched.
  */
 
 import { isDrugContentAllowed, parseContentMode } from "@/lib/content-modes";
@@ -129,7 +138,8 @@ const KID_BLOCKED = new Set([
 ]);
 
 /**
- * Runtime patch hook for the bundle dictionary.
+ * Pure gating function for the bundle dictionary (same-realm runtime
+ * application lives in gore-lastwordszombies.js, mirroring this logic).
  * - kid  -> kidWordList (plus any incoming word that is short, lowercase,
  *           alphabetic and not blocked — so custom/expansion words survive).
  * - teen/all -> words unchanged (same reference, zero cost).

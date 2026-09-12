@@ -23,7 +23,7 @@ Think: arcade + clubhouse + robot helpers, all in one place.
 ## How to start in 3 steps
 
 1. **Go to [4weird.com](https://4weird.com)**
-2. **Pick a game**; there are 34 of them
+2. **Pick a game**; there are 35 of them
 3. **Play**; it runs right in your browser
 
 Stuck? Read the plain-English guides at [4weird.com/docs](https://4weird.com/docs).
@@ -31,7 +31,7 @@ Stuck? Read the plain-English guides at [4weird.com/docs](https://4weird.com/doc
 ## What do you get? (plain English)
 
 ### 🕹️ Games
-34 games you just open and play. Your saves are kept for you. See high scores, join friends in game rooms.
+35 games you just open and play. Your saves are kept for you. See high scores, join friends in game rooms.
 
 Play at: [4weird.com/games](https://4weird.com/games)
 

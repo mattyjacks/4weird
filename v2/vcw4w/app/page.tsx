@@ -324,10 +324,16 @@ export default function Home() {
               <li>✅ 100 🪙 = exactly $1.00, itemized</li>
             </ul>
             <Link
-              href="/games/financialfreedom"
+              href="/business"
               className="mt-5 rounded-full border border-amber-500/60 px-6 py-3 text-center font-bold text-amber-700 transition hover:-translate-y-0.5 hover:bg-amber-500/10 dark:text-amber-300"
             >
-              Run a money sim →
+              Open Business &amp; Teams →
+            </Link>
+            <Link
+              href="/games/financialfreedom"
+              className="mt-2 text-center text-sm font-semibold text-muted-foreground hover:underline"
+            >
+              …or run a money sim →
             </Link>
           </div>
         </div>
@@ -437,6 +443,122 @@ export default function Home() {
             <p className="mt-3 font-mono text-xs font-bold text-amber-600 dark:text-amber-300">/buddy →</p>
           </Link>
         </div>
+      </section>
+
+      {/* For business & teams */}
+      <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-5 sm:pb-20" aria-label="For business and teams">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.3em] text-amber-600 dark:text-amber-300">
+              For business &amp; teams
+            </p>
+            <h2 className="mt-2 text-3xl font-black tracking-tight sm:text-5xl">
+              Run the company like you run a squad.
+            </h2>
+          </div>
+          <Link href="/business" className="text-sm font-semibold text-amber-600 hover:underline dark:text-amber-300">
+            Open Business &amp; Teams →
+          </Link>
+        </div>
+        <p className="mt-3 max-w-3xl text-muted-foreground sm:text-lg">
+          Squads, time tracking, projects, invoices, CRM, and the vault; one
+          coin where 100 🪙 = exactly $1.00.
+        </p>
+        <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Link
+            href="/squads"
+            className="group rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
+          >
+            <p className="text-3xl" aria-hidden="true">🚀</p>
+            <h3 className="mt-3 text-lg font-bold">UnitUnite</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Squad workspaces with projects, code, issues, and team messaging.
+            </p>
+            <p className="mt-3 font-mono text-xs font-bold text-amber-600 dark:text-amber-300">/squads →</p>
+          </Link>
+          <Link
+            href="/squads#orgs"
+            className="group rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
+          >
+            <p className="text-3xl" aria-hidden="true">🏢</p>
+            <h3 className="mt-3 text-lg font-bold">Orgs &amp; Teams</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Orgs hold billing and audit; squads hold the people doing the work.
+            </p>
+            <p className="mt-3 font-mono text-xs font-bold text-amber-600 dark:text-amber-300">/squads#orgs →</p>
+          </Link>
+          <Link
+            href="/timer"
+            className="group rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
+          >
+            <p className="text-3xl" aria-hidden="true">⏱️</p>
+            <h3 className="mt-3 text-lg font-bold">Timer</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Second-by-second tracking with Ghost Cash books for teams.
+            </p>
+            <p className="mt-3 font-mono text-xs font-bold text-amber-600 dark:text-amber-300">/timer →</p>
+          </Link>
+          <Link
+            href="/squads"
+            className="group rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
+          >
+            <p className="text-3xl" aria-hidden="true">📋</p>
+            <h3 className="mt-3 text-lg font-bold">Projects</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Team code projects with Code + Issues tabs and milestones.
+            </p>
+            <p className="mt-3 font-mono text-xs font-bold text-amber-600 dark:text-amber-300">/squads →</p>
+          </Link>
+          <Link
+            href="/business/invoices"
+            className="group rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
+          >
+            <p className="text-3xl" aria-hidden="true">🧾</p>
+            <h3 className="mt-3 text-lg font-bold">Invoices</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Bill clients in Vibe Coins; itemized, escrowed, settled per second.
+            </p>
+            <p className="mt-3 font-mono text-xs font-bold text-amber-600 dark:text-amber-300">/business/invoices →</p>
+          </Link>
+          <Link
+            href="/business/crm"
+            className="group rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
+          >
+            <p className="text-3xl" aria-hidden="true">🤝</p>
+            <h3 className="mt-3 text-lg font-bold">CRM</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Contacts, pipelines, and follow-ups for teams that sell things.
+            </p>
+            <p className="mt-3 font-mono text-xs font-bold text-amber-600 dark:text-amber-300">/business/crm →</p>
+          </Link>
+          <Link
+            href="/squads"
+            className="group rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
+          >
+            <p className="text-3xl" aria-hidden="true">👥</p>
+            <h3 className="mt-3 text-lg font-bold">Team Management</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Roles, permissions, rooms, and shared wallets for every squad.
+            </p>
+            <p className="mt-3 font-mono text-xs font-bold text-amber-600 dark:text-amber-300">/squads →</p>
+          </Link>
+          <Link
+            href="/vault"
+            className="group rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
+          >
+            <p className="text-3xl" aria-hidden="true">🗄️</p>
+            <h3 className="mt-3 text-lg font-bold">Data Vault</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Private files for you, your team, or your org; strictly separated.
+            </p>
+            <p className="mt-3 font-mono text-xs font-bold text-amber-600 dark:text-amber-300">/vault →</p>
+          </Link>
+        </div>
+        <p className="mt-6 text-center">
+          <Link href="/business" className="rounded-full bg-amber-500 px-7 py-3 text-center font-bold text-white shadow-lg shadow-amber-500/30 transition hover:-translate-y-0.5 hover:bg-amber-400">
+            Explore all business tools →
+          </Link>
+        </p>
       </section>
 
       {/* NewGamePlus; sentence in, game out */}
