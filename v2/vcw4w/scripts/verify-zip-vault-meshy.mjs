@@ -171,6 +171,12 @@ const upsertMig = read("../supabase/migrations/20261107000000_vault_path_upsert_
 for (const token of ["vault_files_scope_path_uniq", "nulls not distinct", "deleted_at", "trg_vault_files_touch"]) {
   if (!upsertMig.includes(token)) fail(`vault upsert/trash migration missing ${token}.`);
 }
+// 42501 hotfix: service_role must hold explicit grants on every vault table
+// (prod log: "permission denied for table vault_blobs" -> 500 on register).
+const grantsMig = read("../supabase/migrations/20261108000000_vault_service_grants.sql");
+for (const token of ["grant all on public.vault_blobs to service_role", "grant all on public.vault_files to service_role", "grant all on public.vault_usage to service_role"]) {
+  if (!grantsMig.includes(token)) fail(`vault grants migration missing ${token}.`);
+}
 const vaultRow = read("../app/api/vault/blobs/[id]/route.ts");
 for (const token of ["Unable to rename file.", "Unable to delete file.", "A file already has that name in this folder.", "loadOwnedFile"]) {
   if (!vaultRow.includes(token)) fail(`vault row route missing ${token}.`);
@@ -186,9 +192,10 @@ for (const token of ["Link expired.", "302"]) {
 const usageApi = read("../app/api/vault/usage/route.ts");
 if (!usageApi.includes("freeBytesPersonal")) fail("vault usage route must report freeBytesPersonal.");
 const browser = read("../components/vault/vault-browser.tsx");
-for (const token of ["500 MB", "50 MB", "quarantine", 'sandbox=""', 'role="status"', "/api/vault/usage", "/api/vault/shares"]) {
+for (const token of ["500 MB", "50 MB", "quarantine", 'sandbox=""', 'role="status"', "/api/vault/usage", "/api/vault/shares", "Pick a squad above", "Pick an org above"]) {
   if (!browser.includes(token)) fail(`vault browser missing ${token}.`);
 }
+if (!vaultRegister.includes("isMissingTrashColumn")) fail("vault blobs route must retry without the trash filter on pre-migration DBs.");
 if (!vault.includes("sanitizeVaultFilter")) fail("blob-vault lib must sanitize LIKE filters.");
 
 console.log("zip + vault + meshy integrity OK - 50 MB, 4 verdicts, strict scopes, 25% included, human-only referrals.");

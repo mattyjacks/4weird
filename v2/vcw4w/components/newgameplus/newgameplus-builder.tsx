@@ -9,6 +9,12 @@ const BUDGET_DEFAULT = 100;
 const BUDGET_MIN = 1;
 const BUDGET_MAX = 10000;
 const CONFIRM_ABOVE = 250;
+// Per-processing permission: the agent may spend up to this many coins on one
+// build without asking; anything above it opens the permission modal.
+const AUTO_APPROVE_DEFAULT = 20;
+const AUTO_APPROVE_MIN = 1;
+const AUTO_APPROVE_MAX = 250;
+const AUTO_APPROVE_STORAGE_KEY = "ngp-auto-approve-v1";
 
 type Org = { id: string; slug: string; name: string };
 type FalPick = { op: string; why: string; coins: number; fast: boolean };
@@ -63,6 +69,17 @@ export function NewGamePlusBuilder() {
   const [prompt, setPrompt] = useState("");
   const [quality, setQuality] = useState(QUALITY_DEFAULT);
   const [budget, setBudget] = useState(BUDGET_DEFAULT);
+  const [autoApprove, setAutoApprove] = useState<number>(() => {
+    try {
+      if (typeof window === "undefined") return AUTO_APPROVE_DEFAULT;
+      const raw = window.localStorage.getItem(AUTO_APPROVE_STORAGE_KEY);
+      const n = Math.round(Number(raw));
+      if (!Number.isInteger(n)) return AUTO_APPROVE_DEFAULT;
+      return Math.min(AUTO_APPROVE_MAX, Math.max(AUTO_APPROVE_MIN, n));
+    } catch {
+      return AUTO_APPROVE_DEFAULT;
+    }
+  });
   const [orgs, setOrgs] = useState<Org[]>([]);
   const [orgId, setOrgId] = useState("");
   const [archetype, setArchetype] = useState("custom");
@@ -121,6 +138,25 @@ export function NewGamePlusBuilder() {
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [loadOrgs]);
+
+  // Persist the per-processing permission ceiling (guest-first, instant).
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(AUTO_APPROVE_STORAGE_KEY, String(autoApprove));
+    } catch {
+      /* private mode: keep the in-memory value */
+    }
+  }, [autoApprove]);
+
+  // Escape closes the permission modal without spending.
+  useEffect(() => {
+    if (!confirmOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setConfirmOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [confirmOpen]);
 
   // New build → auto-load the final commit in the preview.
   useEffect(() => {
@@ -215,7 +251,10 @@ export function NewGamePlusBuilder() {
       return;
     }
     if (busy) return;
-    if (budget > CONFIRM_ABOVE && !confirmed) {
+    // Permission: spends above the caller's auto-approve ceiling need an
+    // explicit OK. The 250-coin system line always asks; a tighter personal
+    // ceiling (default 20) asks sooner. Either way the server re-checks.
+    if ((budget > CONFIRM_ABOVE || budget > autoApprove) && !confirmed) {
       setConfirmOpen(true);
       return;
     }
@@ -247,7 +286,7 @@ export function NewGamePlusBuilder() {
       setStageKey("qa");
       const body = await api<BuildResult>("/api/newgameplus/build", {
         method: "POST",
-        body: JSON.stringify({ prompt: prompt.trim(), quality, budget, org_id: orgId || undefined, confirmed, archetype, style: style.trim().slice(0, 120) || undefined }),
+        body: JSON.stringify({ prompt: prompt.trim(), quality, budget, org_id: orgId || undefined, confirmed, auto_approve_max: autoApprove, archetype, style: style.trim().slice(0, 120) || undefined }),
       });
       // Replay the server symphony as the live trail.
       for (const a of body.swarm?.agents ?? []) pushLive(`🤖 ${a.name} (${a.role}): ${a.task.slice(0, 140)}`);
@@ -267,12 +306,16 @@ export function NewGamePlusBuilder() {
       setStageKey("");
       // A 403 here is the automated-traffic check (BotID), not a broken GUI:
       // route real users to the bypass (sign in) instead of a dead end.
+      // A 402 is a spend gate (short balance or over the permission ceiling):
+      // point at the wallet or the ceiling instead of a dead end.
       const errStatus = e instanceof Error ? (e as { status?: number }).status : undefined;
       const raw = e instanceof Error ? e.message : "Build failed.";
       const msg =
         errStatus === 403
           ? `${raw} - signed-in builders bypass this check: log in, then launch again.`
-          : raw;
+          : errStatus === 402
+            ? `${raw} Top up on /pricing, lower Budget, or raise Auto-approve — then launch again.`
+            : raw;
       pushLive(`❌ ${msg}`);
       setStatus(msg);
     } finally {
@@ -451,6 +494,22 @@ export function NewGamePlusBuilder() {
         <p className="mt-1 text-xs text-slate-600 dark:text-slate-500">
           Default 100 · min {BUDGET_MIN} · max {BUDGET_MAX.toLocaleString()}. Above {CONFIRM_ABOVE} needs Confirm the Amount.{" "}
           <InfoTip side="bottom" text="Budgets above 250 coins ask for confirmation first. Gross price — 25% platform cut included, never added on top." label="About confirm amount" />
+        </p>
+        <label className="mt-3 block text-sm">
+          Auto-approve up to (coins)
+          <input
+            type="number" min={AUTO_APPROVE_MIN} max={AUTO_APPROVE_MAX} step={1} value={autoApprove}
+            onChange={(e) => setAutoApprove(Math.round(Number(e.target.value) || 0))}
+            onBlur={() => setAutoApprove((v) => Math.min(AUTO_APPROVE_MAX, Math.max(AUTO_APPROVE_MIN, Number.isFinite(v) ? v : AUTO_APPROVE_DEFAULT)))}
+            className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+            aria-label="Auto-approve ceiling in coins"
+          />
+        </label>
+        <p className="mt-1 text-xs text-slate-600 dark:text-slate-500">
+          {budget <= autoApprove
+            ? `✅ This budget (${budget}) is under your ${autoApprove}-coin ceiling — launches immediately.`
+            : `⚠️ This budget (${budget}) is above your ${autoApprove}-coin ceiling — you will be asked for permission first.`}{" "}
+          <InfoTip side="bottom" text="Each build may spend up to this ceiling silently; anything above it asks your permission first. Default 20, min 1, max 250. Saved on this device." label="About auto-approve" />
         </p>
         <p className="mt-1 rounded-md border border-cyan-400/20 bg-cyan-400/5 px-2 py-1 text-xs text-cyan-200">
           🎼 {lane === "fast" ? "Fast lane: ≤5 min, Scout → Forge → Sage, cheap fal only." : "Deluxe lane: longer but fast (≈5-12 min), full 5-bot symphony + video/3D."}
@@ -872,17 +931,20 @@ export function NewGamePlusBuilder() {
       </section>
 
       {confirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-label="Confirm the Amount">
-          <div className="w-full max-w-md rounded-2xl border border-amber-400/40 bg-slate-950 p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-label="Confirm the Amount" onClick={() => setConfirmOpen(false)}>
+          <div className="w-full max-w-md rounded-2xl border border-amber-400/40 bg-slate-950 p-6" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-black text-amber-300">⚠️ Confirm the Amount</h2>
-            <p className="mt-2 text-sm text-slate-200">
-              You are about to launch NewGamePlus with <b>{budget} coins</b>; that is above the {CONFIRM_ABOVE}-coin warning line.
+            <p className="mt-2 text-sm text-slate-200" aria-live="polite">
+              You are about to launch NewGamePlus with <b>{budget} coins</b>
+              {budget > CONFIRM_ABOVE
+                ? <>; that is above the {CONFIRM_ABOVE}-coin warning line.</>
+                : <>; that is above your {autoApprove}-coin auto-approve ceiling.</>}{" "}
               Estimated build cost is <b>lights-out cheap</b> (quality {quality}/10); you will only ever be quoted the capped spend, 25% cut included.
-              Deluxe lane conducts the full 5-bot symphony with video/3D media; longer but still fast.
+              {budget > CONFIRM_ABOVE ? " Deluxe lane conducts the full 5-bot symphony with video/3D media; longer but still fast." : ""}
             </p>
             <div className="mt-4 flex gap-2">
-              <button type="button" onClick={() => setConfirmOpen(false)} className="flex-1 rounded-md border border-slate-600 px-3 py-2 text-sm text-slate-200">Cancel</button>
-              <button type="button" disabled={busy} onClick={() => void launch(true)} className="flex-1 rounded-md bg-amber-400 px-3 py-2 text-sm font-bold text-slate-950 disabled:opacity-50">
+              <button type="button" autoFocus onClick={() => setConfirmOpen(false)} className="flex-1 rounded-md border border-slate-600 px-3 py-2 min-h-[44px] text-sm text-slate-200">Cancel</button>
+              <button type="button" disabled={busy} onClick={() => void launch(true)} className="flex-1 rounded-md bg-amber-400 px-3 py-2 min-h-[44px] text-sm font-bold text-slate-950 disabled:opacity-50">
                 Confirm {budget} coins
               </button>
             </div>

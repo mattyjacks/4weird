@@ -6,6 +6,7 @@ import { requireHuman } from "@/lib/botid";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/validate";
 import { rpcStatus } from "@/lib/agent-market";
+import { SPEND_AUTO_APPROVE_DEFAULT_COINS, SPEND_AUTO_APPROVE_MAX_COINS, SPEND_AUTO_APPROVE_MIN_COINS } from "@/lib/spend-permission";
 import {
   BUDGET_CONFIRM_THRESHOLD,
   BUDGET_DEFAULT,
@@ -35,6 +36,7 @@ import {
   timelineForLane,
 } from "@/lib/newgameplus";
 import { createHash } from "node:crypto";
+import { cleanAutoApproveMax, needsSpendPermission, spendPermissionMessage } from "@/lib/spend-permission";
 import { VAULT_BUCKET, cleanVaultPath, vaultObjectKey } from "@/lib/blob-vault";
 import { falConfigured } from "@/lib/fal";
 
@@ -108,6 +110,23 @@ export async function POST(req: Request) {
   const orgId = isUuid(input.org_id ?? input.orgId) ? String(input.org_id ?? input.orgId) : null;
 
   const plan = planBuild(quality, budget);
+  // Per-processing permission: callers that opt in with auto_approve_max let
+  // the agent spend up to that ceiling silently; anything above it needs an
+  // explicit confirmed:true. Absent/invalid input falls back to the default
+  // ceiling, but only when the caller sent the field at all — legacy callers
+  // that never heard of it keep the historic behavior (250 system line only).
+  if (input.auto_approve_max !== undefined && input.auto_approve_max !== null && input.auto_approve_max !== "") {
+    const autoMax = cleanAutoApproveMax(input.auto_approve_max);
+    if (autoMax === null) {
+      return fail(`auto_approve_max must be an integer 1-250 coins (default 20).`, 400);
+    }
+    if (needsSpendPermission(plan.spend, autoMax) && !confirmed) {
+      return fail(
+        `${spendPermissionMessage(plan.spend, autoMax)} Quoted ${plan.spend} coins capped (25% cut included).`,
+        402,
+      );
+    }
+  }
   const lane = laneForBudget(budget);
   // Style notes score like prompt words (theme + meld signals) but never
   // leak into titles; the resolved request rides the symphony brief.
@@ -523,5 +542,5 @@ export async function GET() {
     .order("updated_at", { ascending: false })
     .limit(50);
   if (error) return dbFail("newgameplus/build list", error, "Unable to load drafts.");
-  return ok({ drafts: rows ?? [], limits: { quality: { min: QUALITY_MIN, max: QUALITY_MAX, def: QUALITY_DEFAULT }, budget: { min: BUDGET_MIN, max: BUDGET_MAX, def: BUDGET_DEFAULT, confirmAbove: BUDGET_CONFIRM_THRESHOLD } } });
+  return ok({ drafts: rows ?? [], limits: { quality: { min: QUALITY_MIN, max: QUALITY_MAX, def: QUALITY_DEFAULT }, budget: { min: BUDGET_MIN, max: BUDGET_MAX, def: BUDGET_DEFAULT, confirmAbove: BUDGET_CONFIRM_THRESHOLD }, autoApprove: { min: SPEND_AUTO_APPROVE_MIN_COINS, max: SPEND_AUTO_APPROVE_MAX_COINS, def: SPEND_AUTO_APPROVE_DEFAULT_COINS } } });
 }

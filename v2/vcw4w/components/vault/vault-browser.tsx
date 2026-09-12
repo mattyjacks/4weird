@@ -126,6 +126,14 @@ export function VaultBrowser() {
   }
 
   const load = useCallback(async () => {
+    // Team/org scopes are meaningless without a picked squad/org: never fire
+    // a request the API must refuse with 400. Show a picker hint instead.
+    if ((scope === "team" || scope === "org") && !scopeId) {
+      setFiles([]);
+      setBusy(false);
+      say(scope === "team" ? "Pick a squad above to list its files." : "Pick an org above to list its files.");
+      return;
+    }
     setBusy(true);
     try {
       const params = new URLSearchParams({

@@ -21,6 +21,18 @@ import {
 export const dynamic = "force-dynamic";
 
 /**
+ * True when a PostgREST error means the trash migration
+ * (`20261107000000_vault_path_upsert_trash.sql`, `deleted_at` column) has
+ * not been applied to the database yet. Callers retry without the trash
+ * filter so lists keep working on pre-migration databases instead of 500ing.
+ */
+function isMissingTrashColumn(error: unknown): boolean {
+  const code = (error as { code?: string } | null)?.code;
+  const message = String((error as { message?: string } | null)?.message ?? error ?? "");
+  return code === "42703" || message.includes("deleted_at");
+}
+
+/**
  * GET /api/vault/blobs?scope=personal|team|org&scope_id=&limit=&prefix=
  * Lists the caller's files in ONE scope (strictly separated). `prefix`
  * filters to one folder (e.g. newgameplus/<slug>/<instance>/) for
@@ -87,43 +99,59 @@ export async function GET(req: Request) {
   const orderCol =
     sort === "name" ? "path" : sort === "size" ? "bytes" : sort === "kind" ? "kind" : "updated_at";
   if (viaBot) {
-    let query = svc.from("vault_files").select(cols).order(orderCol, { ascending: dirAsc }).limit(limit);
-    query = trashedOnly ? query.not("deleted_at", "is", null) : query.is("deleted_at", null);
-    if (scope === "personal") {
-      query = query.eq("scope", "personal").eq("owner_id", userId);
-    } else if (scope === "team") {
-      query = query.eq("scope", "team").eq("team_id", scopeId);
-    } else {
-      query = query.eq("scope", "org").eq("org_id", scopeId);
-    }
-    if (prefix) query = query.like("path", `${prefix}%`);
-    if (search) query = query.ilike("path", `%${search}%`);
-    if (kind) query = query.eq("kind", kind);
-    const { data: rows, error } = await query;
+    const buildBotQuery = (trashAware: boolean) => {
+      let q = svc.from("vault_files").select(cols).order(orderCol, { ascending: dirAsc }).limit(limit);
+      if (trashAware) q = trashedOnly ? q.not("deleted_at", "is", null) : q.is("deleted_at", null);
+      if (scope === "personal") {
+        q = q.eq("scope", "personal").eq("owner_id", userId);
+      } else if (scope === "team") {
+        q = q.eq("scope", "team").eq("team_id", scopeId);
+      } else {
+        q = q.eq("scope", "org").eq("org_id", scopeId);
+      }
+      if (prefix) q = q.like("path", `${prefix}%`);
+      if (search) q = q.ilike("path", `%${search}%`);
+      if (kind) q = q.eq("kind", kind);
+      return q;
+    };
+    let { data: rows, error } = await buildBotQuery(true);
+    if (error && isMissingTrashColumn(error)) ({ data: rows, error } = await buildBotQuery(false));
     if (error) return dbFail("api/vault/blobs", error, "Unable to list files.");
     return ok({ files: rows ?? [], scope });
   }
-  let query = supabase
-    .from("vault_files")
-    .select(cols)
-    .order(orderCol, { ascending: dirAsc })
-    .limit(limit);
-  // RLS hides trashed rows from the live policies; the trash policies expose
-  // them, so belt-and-braces filter here too (service paths use svc above).
-  query = trashedOnly ? query.not("deleted_at", "is", null) : query.is("deleted_at", null);
-  if (scope === "personal") {
-    query = query.eq("scope", "personal").eq("owner_id", userId);
-  } else if (scope === "team") {
-    if (!scopeId) return fail("scope_id required for team scope.", 400);
-    query = query.eq("scope", "team").eq("team_id", scopeId);
-  } else {
-    if (!scopeId) return fail("scope_id required for org scope.", 400);
-    query = query.eq("scope", "org").eq("org_id", scopeId);
+  const buildQuery = (trashAware: boolean) => {
+    let q = supabase
+      .from("vault_files")
+      .select(cols)
+      .order(orderCol, { ascending: dirAsc })
+      .limit(limit);
+    // RLS hides trashed rows from the live policies; the trash policies expose
+    // them, so belt-and-braces filter here too (service paths use svc above).
+    if (trashAware) q = trashedOnly ? q.not("deleted_at", "is", null) : q.is("deleted_at", null);
+    if (scope === "personal") {
+      q = q.eq("scope", "personal").eq("owner_id", userId);
+    } else if (scope === "team") {
+      if (!scopeId) return fail("scope_id required for team scope.", 400);
+      q = q.eq("scope", "team").eq("team_id", scopeId);
+    } else {
+      if (!scopeId) return fail("scope_id required for org scope.", 400);
+      q = q.eq("scope", "org").eq("org_id", scopeId);
+    }
+    if (prefix) q = q.like("path", `${prefix}%`);
+    if (search) q = q.ilike("path", `%${search}%`);
+    if (kind) q = q.eq("kind", kind);
+    return q;
+  };
+  const first = buildQuery(true);
+  // buildQuery returns a fail() Response when scope_id is missing for
+  // team/org scopes; pass it straight through.
+  if (first instanceof Response) return first;
+  let { data: rows, error } = await first;
+  if (error && isMissingTrashColumn(error)) {
+    const retry = buildQuery(false);
+    if (retry instanceof Response) return retry;
+    ({ data: rows, error } = await retry);
   }
-  if (prefix) query = query.like("path", `${prefix}%`);
-  if (search) query = query.ilike("path", `%${search}%`);
-  if (kind) query = query.eq("kind", kind);
-  const { data: rows, error } = await query;
   if (error) return dbFail("api/vault/blobs", error, "Unable to list files.");
   return ok({ files: rows ?? [], scope });
 }

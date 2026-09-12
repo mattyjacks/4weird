@@ -22,9 +22,11 @@ function isActive(pathname: string, href: string) {
 }
 
 /**
- * Global Menu Sidebar: desktop-left drawer + mobile sheet.
- * - Hidden by default; a pill stuck to the top-left re-opens it.
- * - Every link carries a 1-line "quick info" + (?) detail popup.
+ * Global Menu Sidebar: desktop-left drawer + mobile drawer.
+ * - Hidden by default; a pill re-opens it (top-left on desktop,
+ *   thumb-reachable bottom-left floating button on mobile so the sticky
+ *   header can never cover it).
+ * - Every link carries a 1-line "quick info" + (?) detail popover.
  * - "Quick info" toggle at the bottom hides/shows all extra text.
  * - Search filters links live; Escape closes; backdrop closes on mobile.
  */
@@ -188,7 +190,9 @@ export function MenuSidebar() {
 
   return (
     <>
-      {/* Reveal pill stuck to the top-left when hidden */}
+      {/* Reveal pill when hidden: top-left on desktop, floating bottom-left
+          thumb button on mobile (top-anchored pills can hide under the taller
+          sticky mobile header, so mobile gets a bottom FAB instead). */}
       {!open && (
         <button
           ref={pillRef}
@@ -202,7 +206,7 @@ export function MenuSidebar() {
           aria-expanded={false}
           aria-controls={panelId}
           title="Open menu - every link explained"
-          className="fixed left-3 top-[4.25rem] z-40 inline-flex max-w-[calc(100vw-1.5rem)] items-center gap-2 truncate rounded-full border border-border bg-background/90 py-2 pl-3 pr-4 text-sm font-black shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:shadow-xl hover:bg-accent"
+          className="fixed bottom-4 left-4 top-auto z-40 inline-flex max-w-[calc(100vw-1.5rem)] items-center gap-2 truncate rounded-full border border-border bg-background/90 py-2 pl-3 pr-4 text-sm font-black shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:shadow-xl hover:bg-accent lg:bottom-auto lg:left-3 lg:top-[4.25rem]"
         >
           <span aria-hidden="true" className="shrink-0 text-base leading-none">☰</span>
           <span className="truncate">Menu</span>

@@ -174,6 +174,23 @@ if (!read("../components/site/site-header.tsx").includes('"/newgameplus"')) {
   fail("Site nav must link to /newgameplus.");
 }
 
+// Per-processing spend permission: the agent auto-spends up to a configurable
+// ceiling (default 20) and asks permission above it. Additive to the 250 gate.
+const spendLib = read("../lib/spend-permission.ts");
+for (const token of [
+  "SPEND_AUTO_APPROVE_DEFAULT_COINS = 20",
+  "SPEND_AUTO_APPROVE_MIN_COINS",
+  "SPEND_AUTO_APPROVE_MAX_COINS",
+  "cleanAutoApproveMax",
+  "needsSpendPermission",
+]) {
+  if (!spendLib.includes(token)) fail(`spend-permission lib missing ${token}.`);
+}
+if (!route.includes("auto_approve_max")) fail("newgameplus build route must honor auto_approve_max.");
+if (!builder.includes("auto_approve_max") || !builder.includes("ngp-auto-approve-v1")) {
+  fail("newgameplus builder must send auto_approve_max with on-device persistence.");
+}
+
 // Package gate wiring.
 const pkg = read("../package.json");
 if (!pkg.includes("verify:newgameplus")) fail("package.json must wire verify:newgameplus.");

@@ -18,7 +18,7 @@ export default function NewGamePlusPage() {
           VibeCodeWorker + every related service in one launch: a bot symphony (Scout → Forge → Pixel → Echo → Sage) builds an original HTML/CSS/JS game, intelligently shortlists the fal.ai media the prompt needs, pushes it to the{" "}
           <b>Draft</b> game folder inside your org, then executes a real local playtest of it
           (boot the canvas, pump frames, drive input, observe HUD — observe → reason → act repair loops, with optional VCW ledger verify). Quality 0-10 (default 5) · Budget 100 coins default (1-10,000;
-          above 250 triggers Confirm the Amount). Fast lane (≤250 coins) finishes in ≤5 minutes; deluxe budgets run longer but stay fast. Cheapest viable build, newest viable runtime, 25% cut included
+          above 250 triggers Confirm the Amount). Each build auto-approves up to your 20-coin ceiling (configurable, max 250) and asks permission above it. Fast lane (≤250 coins) finishes in ≤5 minutes; deluxe budgets run longer but stay fast. Cheapest viable build, newest viable runtime, 25% cut included
  - and it succeeds.
         </p>
         <div className="mt-8">
