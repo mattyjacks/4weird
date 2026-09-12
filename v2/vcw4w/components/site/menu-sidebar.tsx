@@ -21,10 +21,6 @@ function isActive(pathname: string, href: string) {
   return path === target || path.startsWith(`${target}/`);
 }
 
-function prefersReducedMotion() {
-  return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
 /**
  * Global Menu Sidebar: desktop-left drawer + mobile sheet.
  * - Hidden by default; a pill stuck to the top-left re-opens it.
@@ -312,11 +308,21 @@ export function MenuSidebar() {
                       {link.label}
                       {active && <span aria-hidden="true"> ●</span>}
                     </Link>
-                    <FavoriteToggle href={link.href} label={link.label} favorited onToggle={toggle} />
+                    <FavoriteToggle href={link.href} label={link.label} favorited={isFav(link.href)} onToggle={handleFavRemove} />
                   </li>
                 );
               })}
             </ul>
+          )}
+          {/* Polite announcement for screen readers on star/unstar. */}
+          {notice && (
+            <span key={notice.seq} role="status" className="sr-only">
+              {notice.href === ""
+                ? "Favorites cleared."
+                : notice.added
+                  ? `Added ${notice.label} to favorites. ${notice.count} favorite${notice.count === 1 ? "" : "s"}.`
+                  : `Removed ${notice.label} from favorites. ${notice.count} favorite${notice.count === 1 ? "" : "s"}.`}
+            </span>
           )}
         </div>
 

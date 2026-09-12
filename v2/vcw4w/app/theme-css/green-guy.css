@@ -1,7 +1,7 @@
-/* ============ GREEN GUY (military olive + camo) ============
-   Moved from app/globals.css during the theme split (one file per palette).
-   VAST block at the bottom re-hues the hardcoded slate surfaces olive-black,
-   gives headlines a stencil-mono voice, and squares every corner. */
+/* ============ GREEN GUY (military olive + camo) — squared, stencil, dog-tag ============
+   The squarest theme on the site: sharp corners, stencil-mono headlines in
+   ALL CAPS, camo blobs at night, khaki paper by day, olive-steel buttons
+   with hard shadows. Light is sun-bleached khaki, dark is olive-black. */
 
 html.theme-green-guy {
   --t-solid: #4d7c0f; --t-solid-hover: #65a30d;
@@ -14,14 +14,14 @@ html.theme-green-guy {
   scrollbar-color: #65a30d transparent;
 }
 html.light.theme-green-guy {
-  --background: 60 40% 98%; --foreground: 60 30% 12%;
-  --card: 60 35% 96%; --card-foreground: 60 30% 12%;
-  --popover: 60 35% 96%; --popover-foreground: 60 30% 12%;
-  --primary: 84 77% 30%; --primary-foreground: 0 0% 100%;
-  --secondary: 60 30% 89%; --secondary-foreground: 60 30% 16%;
-  --muted: 60 25% 90%; --muted-foreground: 60 15% 38%;
-  --accent: 60 35% 87%; --accent-foreground: 60 35% 18%;
-  --border: 60 20% 80%; --input: 60 20% 78%; --ring: 84 70% 38%;
+  --background: 60 40% 96%; --foreground: 60 30% 12%;
+  --card: 60 35% 93%; --card-foreground: 60 30% 12%;
+  --popover: 60 35% 93%; --popover-foreground: 60 30% 12%;
+  --primary: 84 77% 28%; --primary-foreground: 0 0% 100%;
+  --secondary: 60 30% 87%; --secondary-foreground: 60 30% 16%;
+  --muted: 60 25% 88%; --muted-foreground: 60 15% 36%;
+  --accent: 60 35% 85%; --accent-foreground: 60 35% 18%;
+  --border: 60 20% 76%; --input: 60 20% 74%; --ring: 84 70% 36%;
 }
 html.dark.theme-green-guy {
   --background: 80 25% 6%; --foreground: 70 30% 94%;
@@ -34,11 +34,14 @@ html.dark.theme-green-guy {
   --border: 70 18% 19%; --input: 70 18% 19%; --ring: 84 80% 55%;
 }
 html.light.theme-green-guy body {
+  background-color: #f4f1e4;
   background-image:
-    radial-gradient(60% 40% at 12% 0%, rgb(163 163 92 / 0.30), transparent 70%),
-    radial-gradient(45% 35% at 88% 6%, rgb(101 163 13 / 0.18), transparent 70%);
+    repeating-linear-gradient(45deg, rgb(77 124 15 / 0.06) 0 2px, transparent 2px 16px),
+    radial-gradient(60% 40% at 12% 0%, rgb(163 163 92 / 0.32), transparent 70%),
+    radial-gradient(45% 35% at 88% 6%, rgb(101 163 13 / 0.20), transparent 70%);
 }
 html.dark.theme-green-guy body {
+  background-color: #0b0e05;
   background-image:
     repeating-linear-gradient(45deg, rgb(163 163 92 / 0.05) 0 2px, transparent 2px 18px),
     radial-gradient(220px 160px at 12% 18%, rgb(77 124 15 / 0.35), transparent 70%),
@@ -47,51 +50,85 @@ html.dark.theme-green-guy body {
     radial-gradient(240px 170px at 18% 82%, rgb(63 98 18 / 0.35), transparent 70%),
     radial-gradient(180px 140px at 45% 45%, rgb(101 163 13 / 0.18), transparent 70%);
 }
+html.theme-green-guy header {
+  border-top: 3px solid #365314;
+}
+html.dark.theme-green-guy header { border-top-color: #a3e635; }
 html.theme-green-guy .docs-orb-a { background: radial-gradient(circle, rgb(163 230 53 / 0.28), transparent 70%); }
 html.theme-green-guy .docs-orb-b { background: radial-gradient(circle, rgb(217 196 138 / 0.28), transparent 70%); }
 html.theme-green-guy .docs-grid-bg {
   background-image:
-    linear-gradient(to right, rgb(163 163 92 / 0.16) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(163 163 92 / 0.16) 1px, transparent 1px);
+    linear-gradient(to right, rgb(163 163 92 / 0.18) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(163 163 92 / 0.18) 1px, transparent 1px);
 }
-html.theme-green-guy ::selection { background: rgb(163 230 53 / 0.35); }
-html.theme-green-guy::-webkit-scrollbar-thumb { background: linear-gradient(#a3e635, #4d7c0f); border-radius: 9999px; }
+html.light.theme-green-guy ::selection { background: #4d7c0f; color: #f7fee7; }
+html.dark.theme-green-guy ::selection { background: rgb(163 230 53 / 0.4); color: #1a2e05; }
+html.theme-green-guy::-webkit-scrollbar-thumb { background: linear-gradient(#a3e635, #4d7c0f); border-radius: 2px; border: 1px solid #365314; }
+html.theme-green-guy :focus-visible { outline: 2px dashed #4d7c0f; outline-offset: 2px; }
+html.dark.theme-green-guy :focus-visible { outline-color: #a3e635; }
 
-/* olive-steel buttons */
+/* olive-steel buttons: hard top highlight, hard bottom shade */
 html.theme-green-guy .bg-cyan-600 {
   background-image: linear-gradient(180deg, rgb(255 255 255 / 0.16), rgb(0 0 0 / 0.18));
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), inset 0 -2px 0 rgb(0 0 0 / 0.3), 0 6px 16px -8px rgb(0 0 0 / 0.8);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), inset 0 -2px 0 rgb(0 0 0 / 0.3), 3px 3px 0 rgb(0 0 0 / 0.45);
+  border-radius: 2px;
 }
 html.dark.theme-green-guy .dark\:bg-cyan-300 {
   background-image: linear-gradient(180deg, rgb(255 255 255 / 0.35), rgb(0 0 0 / 0.12));
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4), 0 0 18px -4px rgb(163 230 53 / 0.55);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4), 0 0 18px -4px rgb(163 230 53 / 0.55), 3px 3px 0 rgb(0 0 0 / 0.6);
+  border-radius: 2px;
 }
 html.theme-green-guy .bg-amber-500 {
   background-image: linear-gradient(180deg, rgb(255 255 255 / 0.16), rgb(0 0 0 / 0.2));
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), inset 0 -2px 0 rgb(0 0 0 / 0.3);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), inset 0 -2px 0 rgb(0 0 0 / 0.3), 3px 3px 0 rgb(0 0 0 / 0.45);
+  border-radius: 2px;
 }
 html.theme-green-guy .bg-clip-text { filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.45)); }
-html.theme-green-guy footer > .h-1 { background-image: linear-gradient(90deg, #3f6212, #65a30d 30%, #a3a35c 50%, #4d7c0f 70%, #365314); }
+html.theme-green-guy footer > .h-1 { height: 4px; background-image: repeating-linear-gradient(90deg, #3f6212 0 24px, #65a30d 24px 48px, #a3a35c 48px 72px, #365314 72px 96px); }
 
-/* ---- VAST: hardcoded slate surfaces go olive-black, headlines go stencil-mono, corners square off ---- */
-html.light.theme-green-guy .bg-slate-950 { background-color: #111503; }
+/* ---- VAST: LIGHT goes khaki paper, DARK goes olive-black ---- */
+html.light.theme-green-guy .bg-slate-950 { background-color: #efe9d2; }
 html.dark.theme-green-guy .bg-slate-950 { background-color: #0b0e05; }
-html.light.theme-green-guy .bg-slate-900 { background-color: #1a2109; }
+html.light.theme-green-guy .bg-slate-900 { background-color: #e2d9b8; }
 html.dark.theme-green-guy .bg-slate-900 { background-color: #131a09; }
-html.theme-green-guy .bg-black { background-color: #090c04; }
-html.theme-green-guy .bg-black\/30 { background-color: color-mix(in srgb, #3f6212 32%, transparent); }
-html.theme-green-guy .bg-black\/40 { background-color: color-mix(in srgb, #3f6212 44%, transparent); }
-html.theme-green-guy .bg-black\/50 { background-color: color-mix(in srgb, #3f6212 54%, transparent); }
+html.light.theme-green-guy .bg-black { background-color: #f4f1e4; }
+html.dark.theme-green-guy .bg-black { background-color: #090c04; }
+html.light.theme-green-guy .bg-black\/30 { background-color: color-mix(in srgb, #3f6212 10%, transparent); }
+html.dark.theme-green-guy .bg-black\/30 { background-color: color-mix(in srgb, #3f6212 32%, transparent); }
+html.light.theme-green-guy .bg-black\/40 { background-color: color-mix(in srgb, #3f6212 12%, transparent); }
+html.dark.theme-green-guy .bg-black\/40 { background-color: color-mix(in srgb, #3f6212 44%, transparent); }
+html.light.theme-green-guy .bg-black\/50 { background-color: color-mix(in srgb, #3f6212 14%, transparent); }
+html.dark.theme-green-guy .bg-black\/50 { background-color: color-mix(in srgb, #3f6212 54%, transparent); }
+html.light.theme-green-guy .text-slate-200 { color: #3f6212; }
+html.light.theme-green-guy .text-slate-300 { color: #4d7c0f; }
+html.light.theme-green-guy .text-slate-400 { color: #65a30d; }
 html.theme-green-guy .border-slate-700 { border-color: rgb(163 230 53 / 0.20); }
+html.light.theme-green-guy .border-slate-700 { border-color: rgb(77 124 15 / 0.35); border-style: dashed; }
 html.theme-green-guy .border-slate-800 { border-color: rgb(163 230 53 / 0.12); }
+html.light.theme-green-guy .border-slate-800 { border-color: rgb(77 124 15 / 0.25); border-style: dashed; }
 html.dark.theme-green-guy .dark\:bg-slate-950 { background-color: #0b0e05; }
+html.light.theme-green-guy .dark\:bg-slate-950 { background-color: #efe9d2; }
 html.dark.theme-green-guy .dark\:bg-slate-900 { background-color: #131a09; }
+html.light.theme-green-guy .dark\:bg-slate-900 { background-color: #e2d9b8; }
 html.dark.theme-green-guy .dark\:border-slate-700 { border-color: rgb(163 230 53 / 0.20); }
 html.dark.theme-green-guy .dark\:border-slate-800 { border-color: rgb(163 230 53 / 0.12); }
-html.theme-green-guy h1 {
-  font-family: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
-  letter-spacing: 0.03em;
+/* dog-tag cards: perforated dashed borders */
+html.theme-green-guy :is(.rounded-xl, .rounded-2xl) {
+  border-style: dashed;
+  border-width: 1px;
 }
-html.theme-green-guy .rounded-lg { border-radius: 3px; }
-html.theme-green-guy .rounded-xl { border-radius: 4px; }
-html.theme-green-guy .rounded-2xl { border-radius: 6px; }
+html.theme-green-guy h1, html.theme-green-guy h2 {
+  font-family: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+html.light.theme-green-guy h1 { color: #365314; text-shadow: 1px 1px 0 #fff; }
+html.dark.theme-green-guy h1 { color: #d9f99d; text-shadow: 0 0 16px rgb(163 230 53 / 0.4); }
+html.theme-green-guy h1::before { content: "[ "; color: #65a30d; }
+html.theme-green-guy h1::after { content: " ]"; color: #65a30d; }
+/* squarest corners on the site */
+html.theme-green-guy .rounded-lg { border-radius: 2px; }
+html.theme-green-guy .rounded-xl { border-radius: 3px; }
+html.theme-green-guy .rounded-2xl { border-radius: 4px; }
+html.theme-green-guy button { border-radius: 2px; }

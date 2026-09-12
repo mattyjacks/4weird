@@ -395,9 +395,18 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
     }
   }, []);
 
+  const balanceGoneRef = useRef(false);
   const refreshBalance = useCallback(async () => {
+    if (balanceGoneRef.current) return;
     try {
       const res = await fetch("/api/coins/balance", { credentials: "include" });
+      if (res.status === 401) {
+        // Logged-out/expired: stop polling the balance (browser logs every
+        // 401 to the console, so repeat polls = endless spam). Header badges
+        // own the re-login signal; a remount retries.
+        balanceGoneRef.current = true;
+        return;
+      }
       const body = await res.json().catch(() => null);
       if (body?.success && Number.isFinite(Number(body.balance))) setBalance(Number(body.balance));
     } catch {

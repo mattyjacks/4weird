@@ -940,6 +940,11 @@ export default function Home() {
             <h3 className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-600 dark:text-cyan-300">Account</h3>
             <ul className="mt-3 space-y-3">
               <DirItem
+                href="/favorites"
+                label="★ Favorites"
+                head="Your starred pages, saved on this device."
+              />
+              <DirItem
                 href="/bot/setup"
                 label="🤖 Bots"
                 head="Issue bot keys."

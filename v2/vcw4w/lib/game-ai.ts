@@ -147,7 +147,7 @@ export const GAME_AI_FEATURES: GameAiFeature[] = [
   { gameSlug: "lastwordszombies", kind: "tts", mode: "optional", provider: "openai", label: "Unit voice lines", blurb: "Rogue cyber-units taunt you in any of 9 voices." },
   { gameSlug: "assassinanimals", kind: "director", mode: "optional", provider: "inference-api", label: "AI game director", blurb: "Facility layouts and patrols adapt to your stealth." },
   { gameSlug: "battlesharks2", kind: "tts", mode: "optional", provider: "openai", label: "Mutation announcer", blurb: "Cybernetic upgrade callouts in 9 voices." },
-  { gameSlug: "serversavershield", kind: "director", mode: "required", provider: "runpod", label: "AI attack director (required)", blurb: "This game requires AI directing: attack waves are generated on rented RunPods." },
+  { gameSlug: "serversavershield", kind: "director", mode: "optional", provider: "runpod", label: "AI attack director", blurb: "Optional RunPod-backed director tunes attack waves to your skill." },
   { gameSlug: "platform-wars", kind: "director", mode: "optional", provider: "runpod", label: "AI arena director", blurb: "Arena events and balancing from a rented GPU director." },
 ];
 

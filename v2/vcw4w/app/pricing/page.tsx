@@ -107,7 +107,7 @@ export default function Page() {
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">Play</p>
             <h2 className="mt-2 text-2xl font-black">Vibe Coins</h2>
             <p className="mt-2 text-3xl font-black">
-              $1.00 <span className="text-base font-semibold text-slate-400">100 Vibe Coins = exactly $1.00</span>
+              100 Vibe Coins <span className="text-base font-semibold text-slate-400">= exactly $1.00</span>
             </p>
             <p className="mt-3 text-sm text-slate-400">
               Pay-as-you-go fun money. 100 Vibe Coins = exactly $1.00; 25% cut already inside, never on top; free trial up to 100 coins.
@@ -242,6 +242,11 @@ export default function Page() {
             <strong className="text-white">69-day half-life</strong> decay and flow back out as{" "}
             <strong className="text-white">Tribute commons</strong> gifts to the poorest clans and members - so a
             quiet room you love doesn&apos;t die when its wallet runs dry.
+          </p>
+          <p className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+            <Link href="/account" className="text-cyan-300 hover:underline">Get coins →</Link>
+            <Link href="/games" className="text-cyan-300 hover:underline">Play now →</Link>
+            <Link href="/my/usage/" className="text-cyan-300 hover:underline">See itemized usage →</Link>
           </p>
         </div>
       </section>
@@ -393,6 +398,11 @@ export default function Page() {
             <Check>Attribution required: games built or tested with VibeCodeWorker must credit “Built with help from 4weird VibeCodeWorker - 4weird.com/vibecodeworker” in the game credits</Check>
             <Check>Prepay preferred: fees are due as quoted plus taxes; late amounts may bear interest and collection costs where allowed; we reserve the right to collect amounts owed by any lawful means (charge on file, suspension, offset, collections, court)</Check>
           </ul>
+          <p className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+            <Link href="/account" className="text-cyan-300 hover:underline">Get coins →</Link>
+            <Link href="/agents" className="text-cyan-300 hover:underline">Rent compute →</Link>
+            <Link href="/terms" className="text-cyan-300 hover:underline">Read the Terms →</Link>
+          </p>
         </div>
       </section>
 
@@ -409,6 +419,11 @@ export default function Page() {
             Changed your mind? Unspent coins from purchases made in the last 90 days can be refunded
             (pro-rated when part of a pack is already spent). Free coins are never refundable. Request
             a refund from your account page; refunded lots are marked refunded.
+          </p>
+          <p className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+            <Link href="/account" className="text-cyan-300 hover:underline">Get coins →</Link>
+            <Link href="/games" className="text-cyan-300 hover:underline">Play now →</Link>
+            <Link href="/my/usage/" className="text-cyan-300 hover:underline">See itemized usage →</Link>
           </p>
         </div>
       </section>
@@ -452,7 +467,7 @@ export default function Page() {
             },
             {
               q: "Who owns work I contribute?",
-              a: "You assign it to us on submission: games, code, art, and other contributions made through the platform are assigned to MattyJacks LLC (or exclusively licensed where assignment is not possible). Contributors do not retain ownership, and we may improve, modify, adapt, or remove games without further permission, except where the Terms expressly provide creator coin credits (the 75% on-site share, spendable on cloud computing, game credits, and other on-site services only; never cash-out). See LICENSE for the full assignment text.",
+              a: "You assign it to us on submission: games, code, art, and other contributions made through the platform are assigned to MattyJacks LLC (or exclusively licensed where assignment is not possible). Contributors do not retain ownership, and we may improve, modify, adapt, or remove games without further permission, except where the Terms expressly provide creator coin credits (the 75% share as on-site credits, never cash-out; spendable on cloud computing, game credits, and other on-site services only). See LICENSE for the full assignment text.",
             },
             {
               q: "Do I have to credit VibeCodeWorker?",
@@ -470,8 +485,8 @@ export default function Page() {
               q: "Do guests have to pay or watch ads?",
               a: "Guests never pay and never need an account: they get free loads every day (IP-limited), then keep playing by viewing instantly-skippable house ads, with an ad banner every 30 minutes. Cloud saves, multiplayer, AI, and Buddy stay signed-in only - which is exactly why signing up beats ad-watching.",
             },
-          ].map((item) => (
-            <CompactDetails key={item.q} summary={item.q}>
+          ].map((item, i) => (
+            <CompactDetails key={item.q} summary={item.q} defaultOpen={i === 0}>
               <p className="text-sm leading-relaxed text-slate-300">{item.a}</p>
             </CompactDetails>
           ))}

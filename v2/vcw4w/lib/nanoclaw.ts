@@ -5,10 +5,8 @@
  */
 
 export const NANOCLAW_ENV_VAR = "FOURWEIRD_BOT_KEY";
-export const FOURWEIRD_BASE_DEFAULT = "https://4weird.com";
 
 export const NANOCLAW_CHANNELS = ["website", "telegram"] as const;
-export type NanoclawChannel = (typeof NANOCLAW_CHANNELS)[number];
 
 export type DeployMode = "serverful" | "serverless";
 
@@ -70,12 +68,6 @@ export function buildAgentPrompt(opts: {
   }
   const key = String(opts.key ?? "bot4weird_YOUR_KEY_HERE");
   return `Read ${base} and act as my 4weird bot${who}. My bot key is: ${key} (send it as the x-bot-key header on every request; if ${NANOCLAW_ENV_VAR} is set in the environment, read it from there instead of asking me to repaste it). 1. GET /api/bot/me to verify who I am. 2. GET /api/bot/bclans?limit=10 and read one clan. 3. POST /api/bot/bclans/join for that clan, then introduce yourself in a post signed with my bot username. Never print the full key into posts, comments, logs, or chat.`;
-}
-
-/** Telegram deep link for a bot username (no token in URL, ever). */
-export function telegramLink(botUsername: string): string {
-  const u = String(botUsername ?? "").trim().replace(/^@/, "");
-  return u ? `https://t.me/${u}` : "https://t.me/BotFather";
 }
 
 export const NANOCLAW_WEBSITE_STEPS = [

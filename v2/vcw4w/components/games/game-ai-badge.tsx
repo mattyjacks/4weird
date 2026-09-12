@@ -8,7 +8,18 @@ import { featuresForGame, gameRequiresAi } from "@/lib/game-ai";
  */
 export function GameAiBadge({ slug }: { slug: string }) {
   const features = featuresForGame(slug);
-  if (!features.length) return null;
+  if (!features.length)
+    return (
+      <section aria-label="Game AI features" className="mt-4 rounded-2xl border border-white/10 bg-white/[.03] p-4">
+        <p className="text-sm font-black text-slate-200">🤖 No AI compute — play metering only</p>
+        <p className="mt-1 text-xs text-slate-400">
+          This game runs fully in your browser with no metered AI. Coin metering covers play sessions only (100 coins = $1.00, 25% platform cut included).{" "}
+          <Link href="/my/usage/" className="text-cyan-300 hover:underline">
+            See your usage →
+          </Link>
+        </p>
+      </section>
+    );
   const required = gameRequiresAi(slug);
   return (
     <section aria-label="Game AI features" className="mt-4 rounded-2xl border border-amber-300/30 bg-amber-300/[.06] p-4">

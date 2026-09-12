@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ProxyLink } from "@/components/runpod/proxy-link";
+import { InfoTip } from "@/components/ui/info-tip";
 import { SERVICE_CUT_PCT, formatUsd } from "@/lib/economy";
 import {
   RUNTIME_LABELS,
@@ -216,7 +217,8 @@ export function MyCompute() {
         {b.status === "active" && (
           <div className="mt-3 flex items-center gap-2">
             <label className="text-xs text-slate-300">
-              Seconds
+              Seconds{" "}
+              <InfoTip side="bottom" text="Reports seconds of use; gross billed per second up to your max. Ending stops billing." label="About reporting usage" />
               <input
                 type="number"
                 min={1}
@@ -322,7 +324,8 @@ export function MyCompute() {
             </select>
           </label>
           <label className="text-sm text-slate-300">
-            Max price (USD/hour, gross)
+            Max price (USD/hour, gross){" "}
+            <InfoTip side="bottom" text="Gross price — 25% platform cut included, never added on top. Billed per second, never more than the quote." label="About max hourly price" />
             <input
               type="number"
               min={PRICE_USD_MIN}
@@ -347,7 +350,8 @@ export function MyCompute() {
             <p className="text-sm text-slate-400 md:col-span-2">
               RunPod default endpoint: no URL needed. Renting auto-provisions
               the cheapest live GPU at or under your max and hands the renter
-              its proxy URL.
+              its proxy URL.{" "}
+              <InfoTip side="bottom" text="RunPod mirror: cheapest live GPU at or under your max, handed back as a proxy URL." label="About RunPod mirror" />
               {form.runtime === "xonotic-vcw" || form.runtime === "xonotic-self" ? (
                 <> Xonotic serves on port 26000 (game) + 8888 (status).</>
               ) : null}

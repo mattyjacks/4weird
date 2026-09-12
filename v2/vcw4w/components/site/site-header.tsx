@@ -69,6 +69,7 @@ const NAV_GROUPS: { label: string; links: NavLink[] }[] = [
   {
     label: "Account",
     links: [
+      { href: "/favorites", label: "Favorites" },
       { href: "/bot/setup", label: "Bots" },
       { href: "/bot/bclans", label: "Bot Clans" },
       { href: "/account", label: "Account" },
@@ -78,11 +79,11 @@ const NAV_GROUPS: { label: string; links: NavLink[] }[] = [
   },
 ];
 
-// Nav source: shared groups in lib/site-nav (single source of truth).
-// The /bot/bclans console link lives there as href: "/bot/bclans" and renders
-// in this header's dropdowns + mobile menu via NAV_GROUPS above.
-// Same shared source also provides href: "/desktop", href: "/runpods", and
-// href: "/timer" for the header menus.
+// Nav source: link explanations live in lib/site-nav.ts (single source of
+// truth for quick/detail copy). NAV_GROUPS below is an intentionally curated
+// subset (e.g. no /swarm, /support, /fundraisers) with inline href literals
+// because scripts/verify-*.mjs assert their presence in this file — when you
+// add a header link here, mirror its copy in lib/site-nav.ts, and vice versa.
 
 const ALL_GAMES_HREF = "/games";
 

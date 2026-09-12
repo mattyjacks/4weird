@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { InfoTip } from "@/components/ui/info-tip";
 import {
   DEPLOY_MODES,
   NANOCLAW_TELEGRAM_STEPS,
@@ -139,6 +140,10 @@ export function NanoclawDeploy() {
               </button>
             ))}
           </div>
+          <p className="mt-3 text-xs text-slate-500">
+            Serverful stays on; serverless sleeps free.{" "}
+            <InfoTip side="bottom" text="Serverful stays on and bills per second up to escrow; serverless sleeps free and bills per call." label="About serverful versus serverless" />
+          </p>
           <ol className="mt-4 space-y-2">
             {steps.map((s, i) => (
               <li key={s.title} className={`rounded-xl border p-3 text-sm ${i === step ? "border-cyan-300/60 bg-cyan-300/[.06]" : "border-white/10 bg-black/20"}`}>
@@ -216,7 +221,8 @@ export function NanoclawDeploy() {
             <label className="text-sm text-slate-300">Hours (max escrow)<input value={hours} onChange={(e) => setHours(e.target.value)} inputMode="numeric" className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-white" /></label>
           </div>
           <p className="mt-3 text-sm text-slate-200">
-            Up to <strong>${cost.gross.toFixed(2)}</strong> for {hours || 0}h ({cost.coins.toLocaleString()} coins) · ${cost.perSecond.toFixed(4)}/sec · billed per second, 25% cut included, never above escrow.
+            Up to <strong>${cost.gross.toFixed(2)}</strong> for {hours || 0}h ({cost.coins.toLocaleString()} coins) · ${cost.perSecond.toFixed(4)}/sec · billed per second, 25% cut included, never above escrow.{" "}
+            <InfoTip side="bottom" text="Gross price — 25% platform cut included, never added on top. Billed per second, never above escrow." label="About estimated cost" />
           </p>
           <table className="mt-3 w-full text-left text-xs text-slate-300">
             <thead><tr className="text-slate-500"><th className="py-1 pr-3">Mode</th><th className="py-1 pr-3">Billing</th><th className="py-1">Best for</th></tr></thead>

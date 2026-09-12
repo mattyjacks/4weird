@@ -38,8 +38,10 @@ export function applyColorThemeClass(id: ColorThemeId): void {
 
 /**
  * Owns the 4weird color theme (Blue Boy / Girly Girl / Trans Them / Green
- * Guy / USA), persisted to localStorage so the last choice survives reloads.
+ * Guy / USA USA), persisted to localStorage so the last choice survives reloads.
  * Light/dark mode stays with next-themes; the two compose into 10 combos.
+ * The USA USA entry keeps id `theme-usa` for backwards compat (stored prefs,
+ * CSS selectors, fireworks gate) — only its display label says USA USA.
  */
 export function SiteThemeProvider({ children }: { children: ReactNode }) {
   const [colorTheme, setColorThemeState] = useState<ColorThemeId>(DEFAULT_COLOR_THEME);

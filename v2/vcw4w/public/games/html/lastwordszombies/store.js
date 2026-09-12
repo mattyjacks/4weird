@@ -21,28 +21,50 @@ const StoreItems = {
 function setupStore(stateManager, audioManager) {
   const container = document.getElementById('store-items-container');
   const storeCoins = document.getElementById('store-coins');
-  
+
+  // Audio is optional: store clicks must never throw when audio is absent.
+  function sfx(name) {
+    try {
+      if (audioManager && typeof audioManager.playSFX === 'function') audioManager.playSFX(name);
+    } catch (e) { /* cosmetic only */ }
+  }
+
   function render() {
+    // Null-safe: store DOM may be absent (partial page / test harness).
     if (!container || !storeCoins) return;
     container.innerHTML = '';
     storeCoins.innerText = stateManager.coins;
-    
-    const activeTabButton = document.querySelector('.store-tabs .tab-btn.active');
+
+    let activeTabButton = null;
+    try {
+      activeTabButton = document.querySelector('.store-tabs .tab-btn.active');
+    } catch (e) { activeTabButton = null; }
     if (!activeTabButton) return;
-    
-    const category = activeTabButton.dataset.tab;
-    const items = StoreItems[category];
-    
+
+    const category = activeTabButton.dataset ? activeTabButton.dataset.tab : null;
+    const items = (StoreItems && StoreItems[category]) || null;
+    // Unknown tab value -> render nothing rather than throwing on undefined.
+    if (!Array.isArray(items)) return;
+
+    const owned = Array.isArray(stateManager.ownedItems) ? stateManager.ownedItems : [];
+
     items.forEach(item => {
+      if (!item || typeof item.id !== 'string' || item.id.length === 0) return;
       const card = document.createElement('div');
       card.className = 'store-card';
-      const price = Number(item.price) || 0;
+      // Numeric price fallback: missing/NaN/negative prices are FREE, never credit.
+      const rawPrice = Number(item.price);
+      const price = (isFinite(rawPrice) && rawPrice > 0) ? Math.floor(rawPrice) : 0;
 
-      const isOwned = stateManager.ownedItems.includes(item.id);
+      const isOwned = owned.includes(item.id);
+      // Equipped implies owned: a corrupt equipped id for an unowned item
+      // renders as buyable, never as EQUIPPED.
       let isEquipped = false;
-      if (category === 'blood') isEquipped = stateManager.equippedBlood === item.id;
-      if (category === 'fonts') isEquipped = stateManager.equippedFont === item.id;
-      if (category === 'music') isEquipped = stateManager.equippedMusic === item.id;
+      if (isOwned) {
+        if (category === 'blood') isEquipped = stateManager.equippedBlood === item.id;
+        if (category === 'fonts') isEquipped = stateManager.equippedFont === item.id;
+        if (category === 'music') isEquipped = stateManager.equippedMusic === item.id;
+      }
 
       let priceLabel = '';
       if (isEquipped) {
@@ -83,21 +105,26 @@ function setupStore(stateManager, audioManager) {
       `;
       
       const actionButton = card.querySelector('button');
+      if (!actionButton) return;
       actionButton.addEventListener('click', () => {
         if (!isOwned) {
           if (stateManager.buyItem(item.id, price)) {
-            audioManager.playSFX('type');
+            sfx('type');
             stateManager.equipItem(category, item.id);
             render();
           } else {
-            audioManager.playSFX('error');
+            sfx('error');
           }
         } else {
           stateManager.equipItem(category, item.id);
-          audioManager.playSFX('type');
+          sfx('type');
 
           if (category === 'music') {
-            audioManager.startSynthMusic();
+            try {
+              if (audioManager && typeof audioManager.startSynthMusic === 'function') {
+                audioManager.startSynthMusic();
+              }
+            } catch (e) { /* cosmetic only */ }
           }
           render();
         }
@@ -109,11 +136,18 @@ function setupStore(stateManager, audioManager) {
     });
   }
   
-  document.querySelectorAll('.store-tabs .tab-btn').forEach(btn => {
+  let tabButtons = [];
+  try {
+    tabButtons = document.querySelectorAll('.store-tabs .tab-btn');
+  } catch (e) { tabButtons = []; }
+  tabButtons.forEach(btn => {
     btn.addEventListener('click', (e) => {
-      document.querySelectorAll('.store-tabs .tab-btn').forEach(b => b.classList.remove('active'));
-      e.currentTarget.classList.add('active');
-      audioManager.playSFX('type');
+      const target = (e && e.currentTarget) || btn;
+      try {
+        document.querySelectorAll('.store-tabs .tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+        if (target && target.classList) { target.classList.add('active'); target.setAttribute('aria-selected', 'true'); }
+      } catch (err) { /* DOM optional */ }
+      sfx('type');
       render();
     });
   });

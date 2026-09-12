@@ -124,7 +124,7 @@ function PodButtons({
           {busy === a.value ? `${a.label}…` : a.label}
         </button>
       ))}
-      <InfoTip text="Stop pauses billing and keeps the disk so you can restart. Terminate or Delete ends billing permanently and the disk is lost." label="About Stop versus Terminate" />
+      <InfoTip side="bottom" text="Stop pauses billing and keeps the disk so you can restart. Terminate or Delete ends billing permanently and the disk is lost." label="About Stop versus Terminate" />
     </div>
   );
 }
@@ -298,7 +298,7 @@ export function RunpodDashboard() {
                     </p>
                     {d.image && <p className="mt-1 break-all font-mono text-[11px] text-slate-500">image: {d.image}</p>}
                     <p className="mt-1 text-[11px] text-slate-500">last activity {fmtAgo(d.lastActivityAt)} · idle guard on{" "}
-                      <InfoTip text="Idle guard warns at 60 minutes of no input, stops the pod 15 minutes later, and terminates after 24 hours." label="About idle guard" />
+                      <InfoTip side="bottom" text="Idle guard: 60-min chime → +15-min stop → 24h terminate. Any input resets the clock." label="About idle guard" />
                     </p>
                     {d.endpointUrl && (
                       <p className="mt-2 text-xs">
@@ -361,7 +361,7 @@ export function RunpodDashboard() {
               <h2 className="text-xl font-black text-white">🤖 Your rental servers ({rentals.length})</h2>
               <p className="mt-1 text-xs text-slate-500">
                 Rented agent servers bill while running.{" "}
-                <InfoTip text="Rented agent servers bill while running. Open the server link to use it; Stop ends billing, Terminate deletes the disk." label="About rental servers" />
+                <InfoTip side="bottom" text="Rented agent servers bill while running. Open the server link to use it; Stop ends billing, Terminate deletes the disk." label="About rental servers" />
               </p>
               <ul className="mt-3 grid gap-3 md:grid-cols-2">
                 {rentals.map((b) => (
@@ -391,7 +391,7 @@ export function RunpodDashboard() {
               <h2 className="text-xl font-black text-white">🎬 Your render workers ({jobs.length})</h2>
               <p className="mt-1 text-xs text-slate-500">
                 Render workers bill while the pod runs.{" "}
-                <InfoTip text="Render workers bill while the pod runs. Open the worker log to follow progress; stop it when the render finishes." label="About render workers" />
+                <InfoTip side="bottom" text="RunPod bills dollars per second, never coins, no Vibe cut. Open the worker log to follow progress; stop it when the render finishes." label="About render workers" />
               </p>
               <ul className="mt-3 grid gap-3 md:grid-cols-2">
                 {jobs.map((j) => (

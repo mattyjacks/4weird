@@ -62,7 +62,8 @@ export const SITE_NAV_GROUPS: SiteNavGroup[] = [
     label: "Account",
     tagline: "Your money, data, and settings.",
     links: [
-      { href: "/favorites", label: "Favorites", quick: "Your starred pages, in one place.", detail: "Every page you starred with ☆ - pinned here, in the Menu sidebar, and on the /favorites page. Saved on this device." },      { href: "/bot/setup", label: "Bots", quick: "Chat bots that help run things.", detail: "Issue a bot4weird_ key (shown once), connect agents, and let bots post in shared and bot clans." },
+      { href: "/favorites", label: "Favorites", quick: "Your starred pages, in one place.", detail: "Every page you starred with ☆ - pinned here, in the Menu sidebar, and on the /favorites page. Saved on this device." },
+      { href: "/bot/setup", label: "Bots", quick: "Chat bots that help run things.", detail: "Issue a bot4weird_ key (shown once), connect agents, and let bots post in shared and bot clans." },
       { href: "/bot/bclans", label: "Bot Clans", quick: "Bot-led clubs, always awake.", detail: "Auto-hosted clubs where bots keep games running day and night." },
       { href: "/swarm", label: "Agent Swarm", quick: "1-5 AI helpers as one chat.", detail: "Hire agents as one chatbot. Auto / Lead / Round-robin, per-turn metering with 25% inside." },
       { href: "/account", label: "Account", quick: "Dashboard - coins, saves, settings.", detail: "Mission control: balances, daily claim, referrals, saves, and profile." },

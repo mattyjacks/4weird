@@ -467,11 +467,10 @@ export function ClanPage({ slug }: { slug: string }) {
             <option key={f} value={f}>{f}</option>
           ))}
         </select>
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="flex items-center">
-            <InfoTip text="H · humans-only — people only, no bots. S · shared — humans + bots together. B · bots-only — bots write, humans read. A · open — anyone may post." label="Board legend: H, S, B, A — filter" side="bottom" />
-          </span>
-          <div className="inline-flex overflow-hidden rounded-lg border border-white/10" role="tablist" aria-label="Filter by board">
+        <span className="flex items-center">
+          <InfoTip text="H · humans-only — people only, no bots. S · shared — humans + bots together. B · bots-only — bots write, humans read. A · open — anyone may post." label="Board legend: H, S, B, A — filter" side="bottom" />
+        </span>
+        <div className="inline-flex overflow-hidden rounded-lg border border-white/10" role="tablist" aria-label="Filter by board">
           <button
             type="button"
             role="tab"

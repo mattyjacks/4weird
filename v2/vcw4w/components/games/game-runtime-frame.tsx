@@ -60,19 +60,26 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
     }
   }, [slug, postToRuntime]);
 
-  const sendKey = (key: string, pressed: boolean) => {
-    const target = frame.current?.contentWindow;
-    if (!target) return;
-    try {
-      const code = key === " " ? "Space" : key.startsWith("Arrow") ? key : `Key${key.toUpperCase()}`;
-      const event = new KeyboardEvent(pressed ? "keydown" : "keyup", { key, code, bubbles: true });
-      target.dispatchEvent(event);
-      target.document?.dispatchEvent(event);
-    } catch {
-      // Cross-origin runtime (apex/www redirect): synthetic keys cannot be
-      // dispatched. The touch pad stays visible but inert rather than throwing.
-    }
-  };
+  const sendKey = useCallback(
+    (key: string, pressed: boolean) => {
+      // Assist keys always travel via the runtime-bridge postMessage channel
+      // (works same-origin AND across the apex/www redirect). The synthetic
+      // dispatch below is a same-origin best-effort extra, never the only path.
+      postToRuntime({ version: 1, type: "input", slug, action: "key", key, pressed });
+      const target = frame.current?.contentWindow;
+      if (!target) return;
+      try {
+        const code = key === " " ? "Space" : key.startsWith("Arrow") ? key : `Key${key.toUpperCase()}`;
+        const event = new KeyboardEvent(pressed ? "keydown" : "keyup", { key, code, bubbles: true });
+        target.dispatchEvent(event);
+        target.document?.dispatchEvent(event);
+      } catch {
+        // Cross-origin runtime (apex/www redirect): synthetic keys cannot be
+        // dispatched; the postMessage above still delivers the input.
+      }
+    },
+    [postToRuntime, slug],
+  );
 
   /** Assistive input (face winks, head pointer, switch): normalized 0..1. */
   const handleGameInput = useCallback(
@@ -81,7 +88,6 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
       if (input.kind === "key") {
         sendKey(input.key, true);
         setTimeout(() => sendKey(input.key, false), 60);
-        postToRuntime({ version: 1, type: "input", slug, action: "key", key: input.key });
         return;
       }
       let nx = 0.5;
@@ -99,7 +105,7 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
         ny,
       });
     },
-    [slug, postToRuntime],
+    [slug, postToRuntime, sendKey],
   );
 
   useEffect(() => {

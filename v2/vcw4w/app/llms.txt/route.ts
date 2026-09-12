@@ -46,6 +46,7 @@ Operated by ${OPERATOR}, New Hampshire, USA. Canonical site: ${SITE_URL}
 - Leaderboards: ${SITE_URL}/leaderboards, Lobbies: ${SITE_URL}/lobbies
 - Support creators & clans (tips, tiers): ${SITE_URL}/support, Launch campaigns: ${SITE_URL}/fundraisers
 - Academy: ${SITE_URL}/academy, Technology: ${SITE_URL}/tech, Spaceships exhibit: ${SITE_URL}/spaceships
+- Favorites (your starred pages, saved on-device): ${SITE_URL}/favorites
 - Docs: ${SITE_URL}/docs (start: ${SITE_URL}/docs/getting-started, coins: ${SITE_URL}/docs/vibe-coins, support & launches: ${SITE_URL}/docs/support-launches, FAQ: ${SITE_URL}/docs/faq)
 - Sitemap: ${SITE_URL}/sitemap.xml
 

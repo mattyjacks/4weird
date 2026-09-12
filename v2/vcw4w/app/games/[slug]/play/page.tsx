@@ -48,6 +48,9 @@ export default async function PlayPage({ params }: { params: Promise<{ slug: str
   // the runtime iframe's query string client-side, where the game's own
   // matchmaking code reads it. The runtime iframe is same-origin.
   const src = game.runtimePath;
+  const guide = ["demolichdom", "discoveramerica", "fridgesimulator", "serversavershield"].includes(game.slug)
+    ? `/games/${game.slug}/guide.html`
+    : null;
   return (
     <div className="bg-black text-white" data-theme-lock="dark">
       <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-5">
@@ -74,6 +77,11 @@ export default async function PlayPage({ params }: { params: Promise<{ slug: str
           </div>
           <PlayRateBadge slug={game.slug} />
           <GameAiBadge slug={game.slug} />
+          {guide && (
+            <a href={guide} className="mt-1 text-sm font-semibold text-cyan-300 hover:underline">
+              📖 Read the {game.title} guide
+            </a>
+          )}
         </div>
       </div>
       <div className="mx-auto max-w-6xl px-4 pb-10 sm:px-5">

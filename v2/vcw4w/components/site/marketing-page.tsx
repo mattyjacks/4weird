@@ -1,6 +1,6 @@
 import { InfoTip } from "@/components/ui/info-tip";
 
-export function MarketingPage({ title, intro, children, hint }: { title: string; intro: string; children?: React.ReactNode; hint?: React.ReactNode }) {
+export function MarketingPage({ title, intro, children, hint, titleLabel }: { title: React.ReactNode; intro: React.ReactNode; children?: React.ReactNode; hint?: React.ReactNode; titleLabel?: string }) {
   return (
     <div className="bg-background text-foreground">
       <article className="mx-auto max-w-4xl px-4 py-8 sm:px-5 sm:py-10">
@@ -8,7 +8,7 @@ export function MarketingPage({ title, intro, children, hint }: { title: string;
           {title}
           {hint ? (
             <span className="ml-2 inline-flex align-middle">
-              <InfoTip text={hint} label={`About ${title}`} side="bottom" />
+              <InfoTip text={hint} label={titleLabel ? `About ${titleLabel}` : "About this page"} side="bottom" />
             </span>
           ) : null}
         </h1>

@@ -47,7 +47,6 @@ export function InfoTip({ text, label = "More info", className, side = "top" }: 
         aria-label={label}
         aria-expanded={pinned}
         aria-describedby={tipId}
-        aria-pressed={pinned}
         data-infotip-trigger
         className="ui-infotip-btn"
         onClick={() => setPinned((v) => !v)}

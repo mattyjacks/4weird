@@ -183,7 +183,7 @@ export function ClanSupport({ slug }: { slug: string }) {
           <p className="text-sm text-slate-200">
             Total Clan Support: <b>{Number(supporters.total_support).toLocaleString()} coins</b>
             {" "}· {supporters.donor_count} giver(s)
-            <InfoTip text="Lifetime gifts to this clan. Every coin is receipted here." label="About total support" />
+            <InfoTip text="Lifetime coin gifts to this clan. Every coin is receipted here." label="Total Clan Support: lifetime coin gifts" />
             {supporters.me && (
               <span className="ml-2 rounded bg-black/40 px-2 py-1 text-xs">
                 You: {supporters.me.coins} coins · {TIER_BADGE[supporters.me.tier] ?? ""}{supporters.me.tier}
@@ -200,25 +200,29 @@ export function ClanSupport({ slug }: { slug: string }) {
               ))}
             </ol>
           )}
-          <CompactDetails summary="Supporter tiers?">
-            <p className="mt-2 text-xs text-slate-500">Tiers: 🕯️Ember 1+ · ✨Spark 25+ · 🔥Beacon 100+ · 💎Patron 500+ · 🌟Legend 2,500+. Tiers are thank-yous based on lifetime gifts. No perks, no payoffs.</p>
+          <CompactDetails summary="What do my supporter tiers mean?">
+            <p className="mt-2 text-xs text-slate-500">Tiers are automatic thank-yous for lifetime gifts: 🕯️Ember 1+ · ✨Spark 25+ · 🔥Beacon 100+ · 💎Patron 500+ · 🌟Legend 2,500+. No perks, no payoffs, nothing to click.</p>
           </CompactDetails>
         </div>
       )}
 
       {tribute && (
-        <CompactDetails summary="Tribute commons sweep">
+        <CompactDetails summary="Where do my old donations go?">
           <div className="mt-4 rounded-lg bg-black/40 px-3 py-2 text-xs text-slate-300">
             <p className="font-bold text-white">🔄 Tribute commons (daily sweep)</p>
             <p className="mt-1">
               Donations older than 6 months past a full year of upkeep ({Number(tribute.reserve_floor).toLocaleString()} coins
               protected) become eligible, oldest-expiry first. At most half of all donated coins can ever leave
               ({Number(tribute.tributed_all_time).toLocaleString()} / {Number(tribute.lifetime_cap).toLocaleString()} so far - {tributePct}%),
-              at ~1% of the eligible surplus per day (≈69-day half-life). Coins older than 12 months are{" "}
-              <b>Globalized</b> into the central reserve (now {Number(tribute.reserve_balance).toLocaleString()} coins, which
-              auto-rescues delinquent clans); 6-12-month coins are <b>Given as Tribute</b> - 70% to the poorest
-              clans, 20% to the reserve, 10% to poor individuals. Expired lots never travel. Tribute is final.
+              at ~1% of the eligible surplus per day. Tribute is final.
             </p>
+            <CompactDetails summary="Who receives tribute coins?">
+              <p className="mt-1 text-xs text-slate-300">
+                Coins older than 12 months are Globalized into the central reserve (now {Number(tribute.reserve_balance).toLocaleString()} coins),
+                which auto-rescues delinquent clans. Coins aged 6–12 months are Given as Tribute: 70% to the poorest
+                clans, 20% to the reserve, 10% to poor individuals. Expired lots never travel.
+              </p>
+            </CompactDetails>
             {tribute.next_daily_estimate > 0 && (
               <p className="mt-1">Next sweep moves ≈ <b>{tribute.next_daily_estimate}</b> coins.</p>
             )}
@@ -237,14 +241,14 @@ export function ClanSupport({ slug }: { slug: string }) {
           </div>
           <div className="mt-3 flex flex-wrap items-end gap-2 text-sm">
             <label className="text-xs text-slate-400">
-              Auto-prune at 90k <InfoTip text="Auto cleanup. When the clan nears 90k members, idle members are removed first." label="About auto-prune" />
+              Auto-prune at 90k <InfoTip text="Owners/mods only. When the clan nears 90k members, idle members are removed first." label="Auto-prune: owner and mod cleanup at 90k" />
               <select aria-label="Auto-prune" value={auto ? "on" : "off"} onChange={(e) => setAuto(e.target.value === "on")} className="ml-2 rounded-lg border border-white/10 bg-slate-950 px-2 py-1 text-white">
                 <option value="on">On (default)</option>
                 <option value="off">Off</option>
               </select>
             </label>
             <label className="text-xs text-slate-400">
-              Strategy <InfoTip text="Who goes first when pruning: oldest idle, random, oldest joined, or never active." label="About prune order" />
+              Strategy <InfoTip text="Owners/mods only. Who goes first when pruning: oldest idle, random, oldest joined, or never active." label="Prune order: who goes first" />
               <select aria-label="Strategy" value={strategy} onChange={(e) => setStrategy(e.target.value)} className="ml-2 rounded-lg border border-white/10 bg-slate-950 px-2 py-1 text-white">
                 {STRATEGIES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
               </select>
@@ -255,7 +259,7 @@ export function ClanSupport({ slug }: { slug: string }) {
           </div>
           <div className="mt-2 flex flex-wrap items-end gap-2 text-sm">
             <label className="text-xs text-slate-400">
-              Headroom (10 coins / 1,000 slots) <InfoTip text="Extra member space. Paid slots raise the clan cap." label="About headroom" />
+              Headroom (10 coins / 1,000 slots) <InfoTip text="Only the owner can buy slots. 10 coins per 1,000 slots raises the member cap." label="Headroom: paid member slots" />
               <input aria-label="Headroom slots" value={slots} onChange={(e) => setSlots(e.target.value)} inputMode="numeric" className="ml-2 w-28 rounded-lg border border-white/10 bg-slate-950 px-2 py-1 text-white" />
             </label>
             <button onClick={buyHeadroom} className="rounded-lg bg-emerald-400 px-3 py-1 text-xs font-bold text-slate-950">Buy slots</button>

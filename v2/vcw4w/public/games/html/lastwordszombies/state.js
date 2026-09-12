@@ -449,8 +449,14 @@ class StateManager {
   }
 
   addCoins(amount) {
-    this.coins += amount;
-    this.coinsEarnedThisRun += amount;
+    let n = Number(amount);
+    if (!isFinite(n)) n = 0;
+    n = Math.floor(n);
+    // addCoins is earn-only; a negative/NaN coinValue on a zombie must never
+    // drain the wallet (spending goes through buyItem).
+    if (n < 0) n = 0;
+    this.coins = (Number(this.coins) || 0) + n;
+    this.coinsEarnedThisRun = (Number(this.coinsEarnedThisRun) || 0) + n;
     this.safeSet('gg_coins', String(this.coins));
     this.updateMenuStats();
   }

@@ -1,6 +1,8 @@
-/* ============ BLUE BOY (classic cyan; the site identity) ============
-   Moved from app/globals.css during the theme split (one file per palette).
-   Blue Boy needs no remap rules: it IS the current look. */
+/* ============ BLUE BOY (classic cyan arcade; the site identity) ============
+   The only theme that IS the base look — but it still gets its own full
+   light/dark surfaces, CRT scanlines at night, arcade-carpet glow by day,
+   chamfered arcade corners, neon headlines, and a cyan→fuchsia footer
+   hairline so it never reads as "default gray" next to the others. */
 
 html.theme-blue-boy {
   --t-solid: #0891b2; --t-solid-hover: #06b6d4;
@@ -12,23 +14,103 @@ html.theme-blue-boy {
   --radius: 0.5rem;
   scrollbar-color: #0891b2 transparent;
 }
-html.light.theme-blue-boy { --ring: 192 90% 40%; }
-html.dark.theme-blue-boy { --ring: 187 85% 60%; }
+html.light.theme-blue-boy {
+  --background: 195 60% 98%; --foreground: 200 50% 12%;
+  --card: 195 50% 97%; --card-foreground: 200 50% 12%;
+  --popover: 195 50% 97%; --popover-foreground: 200 50% 12%;
+  --primary: 192 90% 36%; --primary-foreground: 0 0% 100%;
+  --secondary: 195 60% 92%; --secondary-foreground: 200 50% 14%;
+  --muted: 195 40% 93%; --muted-foreground: 200 25% 38%;
+  --accent: 195 65% 91%; --accent-foreground: 200 55% 18%;
+  --border: 195 35% 86%; --input: 195 35% 84%;
+  --ring: 192 90% 40%;
+}
+html.dark.theme-blue-boy {
+  --background: 205 60% 5%; --foreground: 190 60% 96%;
+  --card: 205 55% 7%; --card-foreground: 190 60% 96%;
+  --popover: 205 55% 8%; --popover-foreground: 190 60% 96%;
+  --primary: 187 85% 68%; --primary-foreground: 205 60% 8%;
+  --secondary: 205 50% 13%; --secondary-foreground: 190 60% 96%;
+  --muted: 205 45% 12%; --muted-foreground: 195 25% 66%;
+  --accent: 205 55% 14%; --accent-foreground: 190 60% 96%;
+  --border: 205 45% 18%; --input: 205 45% 18%;
+  --ring: 187 85% 60%;
+}
+/* DAY: arcade-carpet glow over ice blue */
 html.light.theme-blue-boy body {
+  background-color: #f0fbfd;
   background-image:
-    radial-gradient(60% 40% at 12% 0%, rgb(34 211 238 / 0.10), transparent 70%),
-    radial-gradient(45% 35% at 88% 6%, rgb(217 70 239 / 0.08), transparent 70%);
+    radial-gradient(60% 40% at 12% 0%, rgb(34 211 238 / 0.14), transparent 70%),
+    radial-gradient(45% 35% at 88% 6%, rgb(217 70 239 / 0.10), transparent 70%),
+    repeating-linear-gradient(0deg, rgb(14 116 144 / 0.05) 0 1px, transparent 1px 5px);
 }
+/* NIGHT: CRT scanlines */
 html.dark.theme-blue-boy body {
-  background-image: repeating-linear-gradient(0deg, rgb(255 255 255 / 0.018) 0 1px, transparent 1px 3px);
+  background-color: #04090f;
+  background-image: repeating-linear-gradient(0deg, rgb(103 232 249 / 0.055) 0 1px, transparent 1px 4px);
 }
-html.theme-blue-boy ::selection { background: rgb(34 211 238 / 0.35); }
-html.theme-blue-boy::-webkit-scrollbar-thumb { background: linear-gradient(#22d3ee, #0891b2); border-radius: 9999px; }
+html.theme-blue-boy .docs-orb-a { background: radial-gradient(circle, rgb(34 211 238 / 0.4), transparent 70%); }
+html.theme-blue-boy .docs-orb-b { background: radial-gradient(circle, rgb(217 70 239 / 0.32), transparent 70%); }
+html.light.theme-blue-boy .docs-orb-a { background: radial-gradient(circle, rgb(8 145 178 / 0.25), transparent 70%); }
+html.light.theme-blue-boy .docs-orb-b { background: radial-gradient(circle, rgb(192 38 211 / 0.20), transparent 70%); }
+html.theme-blue-boy .docs-grid-bg {
+  background-image:
+    linear-gradient(to right, rgb(34 211 238 / 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(34 211 238 / 0.12) 1px, transparent 1px);
+}
+html.theme-blue-boy ::selection { background: rgb(34 211 238 / 0.4); }
+html.light.theme-blue-boy ::selection { background: rgb(8 145 178 / 0.45); color: #ecfeff; }
+html.dark.theme-blue-boy ::selection { background: rgb(34 211 238 / 0.35); color: #ecfeff; }
+html.theme-blue-boy::-webkit-scrollbar-thumb { background: linear-gradient(#22d3ee, #0e7490); border-radius: 4px; border: 1px solid rgb(103 232 249 / 0.5); }
 
-/* primary-button finish: neon */
-html.theme-blue-boy .bg-cyan-600 { box-shadow: 0 0 0 1px rgb(34 211 238 / 0.35), 0 8px 26px -8px rgb(34 211 238 / 0.7); }
+/* primary-button finish: neon arcade */
+html.theme-blue-boy .bg-cyan-600 {
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0) 50%);
+  box-shadow: 0 0 0 1px rgb(34 211 238 / 0.35), 0 8px 26px -8px rgb(34 211 238 / 0.7);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
 html.dark.theme-blue-boy .dark\:bg-cyan-300 { box-shadow: 0 0 22px -4px rgb(103 232 249 / 0.65); }
 html.theme-blue-boy .bg-amber-500 { box-shadow: 0 8px 22px -8px rgb(245 158 11 / 0.7); }
 
 /* gradient brand wordmarks get a neon halo */
 html.theme-blue-boy .bg-clip-text { filter: drop-shadow(0 0 10px rgb(34 211 238 / 0.45)); }
+html.theme-blue-boy footer > .h-1 { background-image: linear-gradient(90deg, #083344, #22d3ee 40%, #e879f9 70%, #083344); }
+html.light.theme-blue-boy footer > .h-1 { background-image: linear-gradient(90deg, #a5f3fc, #0891b2 40%, #f0abfc 70%, #a5f3fc); }
+
+/* ---- VAST: arcade navy surfaces, mono-neon headlines, chamfered corners ---- */
+html.light.theme-blue-boy .bg-slate-950 { background-color: #0c2a3a; }
+html.dark.theme-blue-boy .bg-slate-950 { background-color: #04090f; }
+html.light.theme-blue-boy .bg-slate-900 { background-color: #d9f2fa; }
+html.dark.theme-blue-boy .bg-slate-900 { background-color: #0a1620; }
+html.light.theme-blue-boy .bg-black { background-color: #f0fbfd; }
+html.dark.theme-blue-boy .bg-black { background-color: #020507; }
+html.light.theme-blue-boy .bg-black\/30 { background-color: color-mix(in srgb, #0e7490 10%, transparent); }
+html.dark.theme-blue-boy .bg-black\/30 { background-color: color-mix(in srgb, #164e63 32%, transparent); }
+html.light.theme-blue-boy .bg-black\/40 { background-color: color-mix(in srgb, #0e7490 12%, transparent); }
+html.dark.theme-blue-boy .bg-black\/40 { background-color: color-mix(in srgb, #164e63 44%, transparent); }
+html.light.theme-blue-boy .bg-black\/50 { background-color: color-mix(in srgb, #0e7490 14%, transparent); }
+html.dark.theme-blue-boy .bg-black\/50 { background-color: color-mix(in srgb, #164e63 54%, transparent); }
+html.light.theme-blue-boy .text-slate-200 { color: #164e63; }
+html.light.theme-blue-boy .text-slate-300 { color: #155e75; }
+html.light.theme-blue-boy .text-slate-400 { color: #0e7490; }
+html.theme-blue-boy .border-slate-700 { border-color: rgb(103 232 249 / 0.25); }
+html.light.theme-blue-boy .border-slate-700 { border-color: rgb(8 145 178 / 0.30); }
+html.theme-blue-boy .border-slate-800 { border-color: rgb(103 232 249 / 0.15); }
+html.light.theme-blue-boy .border-slate-800 { border-color: rgb(8 145 178 / 0.20); }
+html.dark.theme-blue-boy .dark\:bg-slate-950 { background-color: #04090f; }
+html.light.theme-blue-boy .dark\:bg-slate-950 { background-color: #0c2a3a; }
+html.dark.theme-blue-boy .dark\:bg-slate-900 { background-color: #0a1620; }
+html.light.theme-blue-boy .dark\:bg-slate-900 { background-color: #d9f2fa; }
+html.dark.theme-blue-boy .dark\:border-slate-700 { border-color: rgb(103 232 249 / 0.25); }
+html.dark.theme-blue-boy .dark\:border-slate-800 { border-color: rgb(103 232 249 / 0.15); }
+html.theme-blue-boy h1 {
+  font-family: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+html.light.theme-blue-boy h1 { color: #0e7490; text-shadow: 0 1px 0 #fff, 0 0 14px rgb(8 145 178 / 0.4); }
+html.dark.theme-blue-boy h1 { color: #a5f3fc; text-shadow: 0 0 18px rgb(34 211 238 / 0.55); }
+html.theme-blue-boy h1::before { content: "▸ "; color: #06b6d4; }
+html.theme-blue-boy .rounded-lg { border-radius: 2px 10px 2px 10px; }
+html.theme-blue-boy .rounded-xl { border-radius: 3px 12px 3px 12px; }
+html.theme-blue-boy .rounded-2xl { border-radius: 4px 16px 4px 16px; }

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ProxyLink } from "@/components/runpod/proxy-link";
+import { InfoTip } from "@/components/ui/info-tip";
 import { SERVICE_CUT_PCT, formatUsd } from "@/lib/economy";
 import {
   RUNTIME_LABELS,
@@ -275,7 +276,8 @@ export function Marketplace() {
               {desc && <p className="mt-1 text-xs text-slate-500">{desc}</p>}
               <p className="mt-3 text-xl font-black text-cyan-300">
                 up to {formatUsd(l.price_cents_per_hour)}
-                <span className="text-sm font-normal text-slate-400"> /hour max, gross</span>
+                <span className="text-sm font-normal text-slate-400"> /hour max, gross</span>{" "}
+                <InfoTip side="bottom" text="Gross price — 25% platform cut included, never added on top. Billed per second, never more than the quote." label="About agent price" />
               </p>
               <p className="text-xs text-slate-500">
                 ≈ ${perSec.toFixed(4)}/sec · ${usdHr.toFixed(2)}/hr cap; includes {SERVICE_CUT_PCT}% platform cut. Billed per second.
@@ -285,7 +287,8 @@ export function Marketplace() {
               </p>
               <div className="mt-4 flex items-center gap-2">
                 <label className="text-sm text-slate-300">
-                  Max hours
+                  Max hours{" "}
+                  <InfoTip side="bottom" text="Escrow locks the max upfront; per-second use releases the rest. Hours must be 1..720." label="About max rental hours" />
                   <input
                     type="number"
                     min={1}
@@ -314,7 +317,8 @@ export function Marketplace() {
               {l.provider_code === "runpod" && (
                 <p className="mt-1 text-xs text-slate-500">
                   RunPod default endpoint; no URL needed. Booking rents the
-                  cheapest live GPU at or under this max.
+                  cheapest live GPU at or under this max.{" "}
+                  <InfoTip side="bottom" text="RunPod mirror: cheapest live GPU at or under your max, handed back as a proxy URL." label="About RunPod mirror" />
                 </p>
               )}
               {l.provider_code === "custom" && (

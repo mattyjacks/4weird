@@ -5,8 +5,8 @@ import { useTheme } from "next-themes";
 import { useSiteTheme } from "@/components/site/site-theme-provider";
 
 /**
- * USA fireworks: an elaborate pointer-following pyrotechnic overlay that
- * flies only while the USA theme is active.
+ * USA USA fireworks: an elaborate pointer-following pyrotechnic overlay that
+ * flies only while the USA USA theme is active (id stays `theme-usa`).
  *
  * - Ambient rockets launch on their own every ~second (random sky show).
  * - Moving the mouse / dragging a finger sprinkles star fountains; tapping

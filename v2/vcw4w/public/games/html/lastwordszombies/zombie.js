@@ -296,8 +296,6 @@ class Zombie {
     if (this.ztype === 'boss') { prefix = '♛ '; borderColor = 'rgba(255,215,0,0.9)'; }
     if (this.isTargeted) borderColor = 'rgba(255, 0, 119, 0.9)';
 
-    const displayWord = prefix + this.word;
-    
     let fontName = 'Orbitron, sans-serif';
     if (this.fontTheme === 'pixel') fontName = 'Courier New, monospace';
     if (this.fontTheme === 'cyber') fontName = 'Arial Black, sans-serif';

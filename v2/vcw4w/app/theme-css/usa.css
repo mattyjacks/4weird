@@ -1,9 +1,14 @@
-/* ============ USA (stars + stripes + fireworks) ============
+/* ============ USA USA (stars + stripes + fireworks) ============
+   NOTE: the label is "USA USA" but the id stays `theme-usa` on purpose:
+   the id is persisted in localStorage, stamped pre-paint in layout.tsx,
+   and gates the fireworks canvas. Renaming the id would orphan every
+   saved preference. Only the display label changed.
    Old glory blue carries the old cyan role, flag red the fuchsia role;
-   coins stay amber so money reads the same in every palette. Night mode is
-   a star field over deep navy; day mode is paper with faint stripes. The
-   fireworks canvas (components/site/themes/usa-fireworks.tsx) flies over
-   everything while this theme is active: smoky by day, electric by night. */
+   coins stay amber so money reads the same in every palette.
+   NIGHT (dark) is a star field over deep navy. DAY (light) is warm
+   parchment with navy ink and flag-red primaries — never dark blocks
+   on a paper page (that was the old light-mode bug). The fireworks
+   canvas flies over everything while this theme is active. */
 
 html.theme-usa {
   --t-solid: #1d4ed8; --t-solid-hover: #2563eb;
@@ -16,14 +21,14 @@ html.theme-usa {
   scrollbar-color: #b31942 transparent;
 }
 html.light.theme-usa {
-  --background: 0 0% 100%; --foreground: 222 47% 15%;
-  --card: 220 40% 98%; --card-foreground: 222 47% 15%;
-  --popover: 220 40% 98%; --popover-foreground: 222 47% 15%;
-  --primary: 350 80% 42%; --primary-foreground: 0 0% 100%;
-  --secondary: 217 60% 93%; --secondary-foreground: 222 47% 18%;
-  --muted: 220 30% 94%; --muted-foreground: 222 25% 38%;
-  --accent: 217 60% 92%; --accent-foreground: 222 47% 20%;
-  --border: 217 35% 86%; --input: 217 35% 84%; --ring: 350 80% 50%;
+  --background: 42 48% 96%; --foreground: 222 47% 14%;
+  --card: 43 45% 93%; --card-foreground: 222 47% 14%;
+  --popover: 43 45% 93%; --popover-foreground: 222 47% 14%;
+  --primary: 350 78% 38%; --primary-foreground: 42 60% 98%;
+  --secondary: 217 55% 90%; --secondary-foreground: 222 47% 16%;
+  --muted: 42 30% 89%; --muted-foreground: 222 25% 34%;
+  --accent: 217 60% 90%; --accent-foreground: 222 47% 18%;
+  --border: 42 25% 80%; --input: 42 25% 78%; --ring: 222 70% 30%;
 }
 html.dark.theme-usa {
   --background: 222 55% 5%; --foreground: 220 60% 96%;
@@ -35,14 +40,15 @@ html.dark.theme-usa {
   --accent: 222 50% 14%; --accent-foreground: 220 60% 96%;
   --border: 222 40% 18%; --input: 222 40% 18%; --ring: 213 94% 65%;
 }
-/* day: faint stripes over paper */
+/* DAY: warm parchment + faint navy pinstripes (no more dirty red bands) */
 html.light.theme-usa body {
-  background-image: repeating-linear-gradient(180deg,
-    rgb(29 78 216 / 0.07) 0 70px,
-    rgb(190 18 60 / 0.06) 70px 140px,
-    rgb(255 255 255 / 0) 140px 210px);
+  background-color: #faf7f0;
+  background-image:
+    repeating-linear-gradient(90deg, rgb(10 49 97 / 0.05) 0 1px, transparent 1px 9px),
+    radial-gradient(60% 40% at 12% 0%, rgb(29 78 216 / 0.10), transparent 70%),
+    radial-gradient(45% 35% at 88% 6%, rgb(179 25 66 / 0.08), transparent 70%);
 }
-/* night: star field + red/blue glows */
+/* NIGHT: star field + red/blue glows (the good one — untouched) */
 html.dark.theme-usa body {
   background-image:
     radial-gradient(circle, rgb(255 255 255 / 0.85) 1px, transparent 1.6px),
@@ -51,20 +57,33 @@ html.dark.theme-usa body {
     radial-gradient(45% 35% at 88% 8%, rgb(190 18 60 / 0.28), transparent 70%);
   background-size: 90px 90px, 140px 140px, auto, auto;
 }
+/* USA USA top hairline: 4px flag bar on the header (light-friendly echo of the footer) */
+html.theme-usa header {
+  border-top: 4px solid transparent;
+  border-image: linear-gradient(90deg, #b31942 0 33%, #f8fafc 33% 66%, #0a3161 66% 100%) 1;
+}
 html.theme-usa .docs-orb-a { background: radial-gradient(circle, rgb(147 197 253 / 0.5), transparent 70%); }
 html.theme-usa .docs-orb-b { background: radial-gradient(circle, rgb(253 164 175 / 0.45), transparent 70%); }
+html.light.theme-usa .docs-orb-a { background: radial-gradient(circle, rgb(29 78 216 / 0.22), transparent 70%); }
+html.light.theme-usa .docs-orb-b { background: radial-gradient(circle, rgb(179 25 66 / 0.18), transparent 70%); }
 html.theme-usa .docs-grid-bg {
   background-image:
     linear-gradient(to right, rgb(29 78 216 / 0.14) 1px, transparent 1px),
     linear-gradient(to bottom, rgb(190 18 60 / 0.12) 1px, transparent 1px);
 }
-html.theme-usa ::selection { background: rgb(190 18 60 / 0.4); }
+html.theme-usa ::selection { background: rgb(190 18 60 / 0.4); color: #fff; }
+html.light.theme-usa ::selection { background: #0a3161; color: #faf7f0; }
 html.theme-usa::-webkit-scrollbar-thumb { background: linear-gradient(#b31942 0 38%, #ffffff 38% 62%, #0a3161 62% 100%); border-radius: 9999px; }
+html.light.theme-usa::-webkit-scrollbar-thumb { background: linear-gradient(#8f1d3a 0 38%, #e8dfc8 38% 62%, #1e3a5a 62% 100%); border-radius: 9999px; }
 
 /* bold glossy buttons: white-hot highlight, deep shadow */
 html.theme-usa .bg-cyan-600 {
   background-image: linear-gradient(180deg, rgb(255 255 255 / 0.42), rgb(255 255 255 / 0) 50%);
   box-shadow: 0 8px 24px -8px rgb(29 78 216 / 0.8), inset 0 1px 0 rgb(255 255 255 / 0.4), inset 0 -2px 0 rgb(0 0 0 / 0.25);
+}
+html.light.theme-usa .bg-cyan-600 {
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.25), rgb(0 0 0 / 0.08));
+  box-shadow: 0 2px 0 #0a3161, 4px 4px 0 rgb(179 25 66 / 0.55);
 }
 html.dark.theme-usa .dark\:bg-cyan-300 {
   background-image: linear-gradient(180deg, rgb(255 255 255 / 0.55), rgb(255 255 255 / 0) 50%);
@@ -75,30 +94,71 @@ html.theme-usa .bg-amber-500 {
   box-shadow: 0 8px 22px -8px rgb(245 158 11 / 0.7), inset 0 1px 0 rgb(255 255 255 / 0.35);
 }
 html.theme-usa .bg-clip-text { filter: drop-shadow(0 2px 10px rgb(37 99 235 / 0.5)); }
+html.light.theme-usa .bg-clip-text { filter: drop-shadow(0 1px 0 #0a3161); }
 html.theme-usa footer > .h-1 {
   background-image: linear-gradient(90deg,
     #b31942 0%, #b31942 30%, #ffffff 30%, #ffffff 36%,
     #0a3161 36%, #0a3161 64%, #ffffff 64%, #ffffff 70%, #b31942 70%, #b31942 100%);
 }
+html.light.theme-usa footer > .h-1 {
+  background-image: linear-gradient(90deg,
+    #8f1d3a 0%, #8f1d3a 30%, #e8dfc8 30%, #e8dfc8 36%,
+    #1e3a5a 36%, #1e3a5a 64%, #e8dfc8 64%, #e8dfc8 70%, #8f1d3a 70%, #8f1d3a 100%);
+}
 
-/* ---- VAST: hardcoded slate surfaces go midnight navy, headlines go poster-bold ---- */
-html.light.theme-usa .bg-slate-950 { background-color: #0a1c3f; }
+/* ---- VAST: LIGHT goes parchment (never dark blocks on paper), DARK goes midnight navy ---- */
+html.light.theme-usa .bg-slate-950 { background-color: #f1e8d5; }
 html.dark.theme-usa .bg-slate-950 { background-color: #060b18; }
-html.light.theme-usa .bg-slate-900 { background-color: #12294f; }
+html.light.theme-usa .bg-slate-900 { background-color: #e9dfc8; }
 html.dark.theme-usa .bg-slate-900 { background-color: #0b1526; }
-html.theme-usa .bg-black { background-color: #040814; }
-html.theme-usa .bg-black\/30 { background-color: color-mix(in srgb, #1e3a8a 32%, transparent); }
-html.theme-usa .bg-black\/40 { background-color: color-mix(in srgb, #1e3a8a 44%, transparent); }
-html.theme-usa .bg-black\/50 { background-color: color-mix(in srgb, #1e3a8a 54%, transparent); }
+html.light.theme-usa .bg-black { background-color: #faf7f0; }
+html.dark.theme-usa .bg-black { background-color: #040814; }
+html.light.theme-usa .bg-black\/30 { background-color: color-mix(in srgb, #0a3161 10%, transparent); }
+html.dark.theme-usa .bg-black\/30 { background-color: color-mix(in srgb, #1e3a8a 32%, transparent); }
+html.light.theme-usa .bg-black\/40 { background-color: color-mix(in srgb, #0a3161 12%, transparent); }
+html.dark.theme-usa .bg-black\/40 { background-color: color-mix(in srgb, #1e3a8a 44%, transparent); }
+html.light.theme-usa .bg-black\/50 { background-color: color-mix(in srgb, #0a3161 14%, transparent); }
+html.dark.theme-usa .bg-black\/50 { background-color: color-mix(in srgb, #1e3a8a 54%, transparent); }
+html.light.theme-usa .text-slate-200 { color: #1e3a5a; }
+html.light.theme-usa .text-slate-300 { color: #334155; }
+html.light.theme-usa .text-slate-400 { color: #475569; }
 html.theme-usa .border-slate-700 { border-color: rgb(147 197 253 / 0.28); }
+html.light.theme-usa .border-slate-700 { border-color: rgb(10 49 97 / 0.25); }
 html.theme-usa .border-slate-800 { border-color: rgb(147 197 253 / 0.18); }
+html.light.theme-usa .border-slate-800 { border-color: rgb(10 49 97 / 0.16); }
 html.dark.theme-usa .dark\:bg-slate-950 { background-color: #060b18; }
+html.light.theme-usa .dark\:bg-slate-950 { background-color: #f1e8d5; }
 html.dark.theme-usa .dark\:bg-slate-900 { background-color: #0b1526; }
+html.light.theme-usa .dark\:bg-slate-900 { background-color: #e9dfc8; }
 html.dark.theme-usa .dark\:border-slate-700 { border-color: rgb(147 197 253 / 0.28); }
+html.light.theme-usa .dark\:border-slate-700 { border-color: rgb(10 49 97 / 0.25); }
 html.dark.theme-usa .dark\:border-slate-800 { border-color: rgb(147 197 253 / 0.18); }
+html.light.theme-usa .dark\:border-slate-800 { border-color: rgb(10 49 97 / 0.16); }
+/* election-poster cards in light: navy 2px border + red offset shadow */
+html.light.theme-usa :is(.rounded-xl, .rounded-2xl) {
+  border-color: rgb(10 49 97 / 0.35);
+  box-shadow: 4px 4px 0 rgb(179 25 66 / 0.35);
+}
 html.theme-usa h1 {
   font-family: Impact, Haettenschweiler, "Arial Narrow Bold", "Arial Narrow", sans-serif;
   letter-spacing: 0.03em;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+html.light.theme-usa h1 {
+  color: #0a3161;
+  text-shadow: 2px 2px 0 #b31942;
+}
+html.dark.theme-usa h1 {
+  text-shadow: 0 0 22px rgb(37 99 235 / 0.6), 2px 2px 0 rgb(190 18 60 / 0.8);
+}
+html.theme-usa h1::before {
+  content: "★ ";
+  color: #b31942;
+}
+html.dark.theme-usa h1::before {
+  color: #fda4af;
+  text-shadow: 0 0 12px rgb(253 164 175 / 0.9);
 }
 html.theme-usa .rounded-lg { border-radius: 5px; }
 html.theme-usa .rounded-xl { border-radius: 7px; }

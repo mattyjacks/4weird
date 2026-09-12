@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { botKeyPrefix, buildAgentPrompt, isBotKeyShape } from "@/lib/nanoclaw";
+import { InfoTip } from "@/components/ui/info-tip";
 
 type Os = "ps" | "cmd" | "unix" | "node";
 
@@ -94,7 +95,12 @@ export function BotKeyGuide({ username }: { username?: string | null }) {
       </div>
 
       <div className="mt-4 rounded-xl border border-white/10 bg-black/30 p-4">
-        <p className="text-sm font-bold">Paste-shape check (runs locally, prefix-only result)</p>
+        <p className="flex items-center gap-1.5 text-sm font-bold">Paste-shape check (runs locally, prefix-only result)
+          <InfoTip
+            text="Shape check only: a bot4weird_ key with 16-64 secret chars. It never sends the key anywhere and never proves the key works — prove that with GET /api/bot/me in the Playground below."
+            label="About the shape check"
+          />
+        </p>
         <div className="mt-2 flex gap-2">
           <input
             type="password"
@@ -116,7 +122,12 @@ export function BotKeyGuide({ username }: { username?: string | null }) {
       </div>
 
       <div className="mt-4">
-        <p className="text-sm font-bold">Agent prompt builder {username ? <span className="text-slate-400">· for {username}</span> : null}</p>
+        <p className="flex items-center gap-1.5 text-sm font-bold">Agent prompt builder {username ? <span className="text-slate-400">· for {username}</span> : null}
+          <InfoTip
+            text="Env mode keeps the secret out of chat history: the agent reads FOURWEIRD_BOT_KEY itself. Paste mode embeds the key text, so only use it in a private agent session."
+            label="About prompt modes"
+          />
+        </p>
         <div className="mt-1 flex gap-2">
           {(["env", "paste"] as const).map((m) => (
             <button key={m} onClick={() => setMode(m)} className={`rounded-full px-3 py-1.5 text-xs font-bold ${mode === m ? "bg-cyan-300 text-slate-950" : "border border-white/15 text-slate-300"}`}>

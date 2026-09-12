@@ -11,7 +11,7 @@ if (missing.length) { console.error(`Missing catalog runtimes:\n${missing.join("
 const indexCount = (await files(join(process.cwd(), "public", "games", "html"))).filter((name) => name.endsWith("/index.html")).length;
 if (indexCount < 1) { console.error("No static game entrypoints found."); process.exit(1); }
 const canonicalCount = (await files(join(process.cwd(), "public", "games"))).filter((name) => /^([^/]+)\/index\.html$/.test(name)).length;
-if (canonicalCount < 33) { console.error(`Expected at least 33 canonical slug bundles, found ${canonicalCount}.`); process.exit(1); }
+if (canonicalCount < 34) { console.error(`Expected at least 34 canonical slug bundles, found ${canonicalCount}.`); process.exit(1); }
 // The sync step injects the v2 runtime bridge and absolutizes game-meta.js
 // into the generated canonical bundles (the tracked sources stay relative so
 // old-v1 parity holds). Every canonical entrypoint must carry the bridge and

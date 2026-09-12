@@ -71,7 +71,6 @@ class GameApp {
     this._eventsBound = false;
     this._settingsBound = false;
     this._dom = {};
-    this._frozenRemainingOnPause = 0;
     
     this.lastTime = 0;
     this.spawnTimer = 0;
@@ -1246,8 +1245,9 @@ class GameApp {
     const diffBtns = document.querySelectorAll('.btn-diff');
     diffBtns.forEach(btn => {
       btn.addEventListener('click', (e) => {
-        diffBtns.forEach(b => b.classList.remove('active'));
+        diffBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
         e.currentTarget.classList.add('active');
+        e.currentTarget.setAttribute('aria-pressed', 'true');
         const diff = e.currentTarget.getAttribute('data-diff');
         this.state.difficulty = diff;
         if (diff === 'easy') {
@@ -1264,8 +1264,9 @@ class GameApp {
     const levelBtns = document.querySelectorAll('.btn-level');
     levelBtns.forEach(btn => {
       btn.addEventListener('click', (e) => {
-        levelBtns.forEach(b => b.classList.remove('active'));
+        levelBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
         e.currentTarget.classList.add('active');
+        e.currentTarget.setAttribute('aria-pressed', 'true');
         const lvl = e.currentTarget.getAttribute('data-level');
         this.state.selectedLevel = lvl;
       });
@@ -1506,7 +1507,6 @@ class GameApp {
     // Drop any leftover cryo freeze from a previous run so the new run
     // never starts with a stale wall-clock freeze.
     this.state.freezeUntil = 0;
-    this._frozenRemainingOnPause = 0;
     this.zombies.forEach(z => z.destroy());
     this.zombies = [];
     this.particles.clear();
@@ -1570,6 +1570,10 @@ class GameApp {
   }
 
   calculateWaveBudget() {
+    // Spawn budget: boss waves field 1 boss + (5 + wave) escorts so the
+    // clear condition (zombiesKilled >= zombiesInWave with zero alive)
+    // stays reachable; normal waves scale linearly. bossSpawnedThisWave
+    // resets here AND in startGame so a boss can never be skipped twice.
     if (this.isBossWave(this.state.wave)) {
       // Boss wave: 1 boss + escorts scaled by wave
       this.state.zombiesInWave = 6 + this.state.wave;
@@ -1584,13 +1588,15 @@ class GameApp {
   }
 
   updateZombiesHUD() {
+    const el = this.dom('zombie-count');
+    if (!el) return;
     const left = this.state.zombiesInWave - this.state.zombiesKilled;
-    document.getElementById('zombie-count').innerText = left;
+    el.innerText = left;
   }
 
   // Single choke point for the shield bar: width + green/amber/red state
   updateHealthBar() {
-    const fill = document.getElementById('health-bar-fill');
+    const fill = this.dom('health-bar-fill');
     if (!fill) return;
     fill.style.width = `${this.state.health}%`;
     fill.classList.remove('hp-high', 'hp-mid', 'hp-low');
@@ -1599,26 +1605,36 @@ class GameApp {
 
   openStore() {
     this.state.setGameState(GameState.MENU);
-    document.getElementById('TEMPLATE-4weird-start-screen').classList.add('hidden');
-    document.getElementById('custom-store-screen').classList.remove('hidden');
-    this.storeController.render();
+    const start = document.getElementById('TEMPLATE-4weird-start-screen');
+    if (start) start.classList.add('hidden');
+    const store = document.getElementById('custom-store-screen');
+    if (store) store.classList.remove('hidden');
+    if (this.storeController) this.storeController.render();
     this.audio.init();
   }
 
   openSettings() {
-    document.getElementById('TEMPLATE-4weird-start-screen').classList.add('hidden');
-    document.getElementById('custom-settings-screen').classList.remove('hidden');
+    const start = document.getElementById('TEMPLATE-4weird-start-screen');
+    if (start) start.classList.add('hidden');
+    const settings = document.getElementById('custom-settings-screen');
+    if (settings) settings.classList.remove('hidden');
     this.audio.init();
   }
 
   closeSettings() {
-    document.getElementById('custom-settings-screen').classList.add('hidden');
-    document.getElementById('TEMPLATE-4weird-start-screen').classList.remove('hidden');
+    const settings = document.getElementById('custom-settings-screen');
+    if (settings) settings.classList.add('hidden');
+    const start = document.getElementById('TEMPLATE-4weird-start-screen');
+    if (start) start.classList.remove('hidden');
   }
 
   backToMenu() {
-    document.getElementById('custom-store-screen').classList.add('hidden');
-    document.getElementById('TEMPLATE-4weird-start-screen').classList.remove('hidden');
+    const store = document.getElementById('custom-store-screen');
+    if (store) store.classList.add('hidden');
+    const settings = document.getElementById('custom-settings-screen');
+    if (settings) settings.classList.add('hidden');
+    const start = document.getElementById('TEMPLATE-4weird-start-screen');
+    if (start) start.classList.remove('hidden');
   }
 
   quitToMenu() {
@@ -1627,6 +1643,14 @@ class GameApp {
     this.setSpeedUp(false);
     this.hideBossBar();
     this.typing.reset();
+    // New menu visit invalidates pending game-over timeouts and clears the
+    // pause overlay so MENU can never stack under PAUSED.
+    this._runSeq++;
+    this._gameOverPending = false;
+    this.gameTimeScale = 1;
+    this.state.freezeUntil = 0;
+    const pauseScreen = document.getElementById('TEMPLATE-4weird-pause-screen');
+    if (pauseScreen) pauseScreen.classList.add('hidden');
     this.state.setGameState(GameState.MENU);
   }
 
@@ -1634,11 +1658,17 @@ class GameApp {
     if (this.state.currentState === GameState.PLAYING) {
       this.blurMobileInput();
       this.unlockFrameHeight();
+      // Cryo-freeze pause compensation lives in StateManager._trackStateClock
+      // (shifts freezeUntil on resume); nothing to stash here.
       this.state.setGameState(GameState.PAUSED);
     } else if (this.state.currentState === GameState.PAUSED) {
-      this.state.currentState = GameState.PLAYING;
-      document.getElementById('TEMPLATE-4weird-pause-screen').classList.add('hidden');
-      document.getElementById('game-hud').classList.remove('hidden');
+      this.state.setGameState(GameState.PLAYING);
+      const pauseScreen = document.getElementById('TEMPLATE-4weird-pause-screen');
+      if (pauseScreen) pauseScreen.classList.add('hidden');
+      const hud = document.getElementById('game-hud');
+      if (hud) hud.classList.remove('hidden');
+      // lastTime gap while paused would otherwise inject one huge dt frame.
+      this.lastTime = 0;
       this.lockFrameHeight();
       this.focusMobileInput();
     }
@@ -1650,16 +1680,24 @@ class GameApp {
   }
 
   loop(timestamp) {
-    if (!this.lastTime) this.lastTime = timestamp;
-    const dt = Math.min(0.1, (timestamp - this.lastTime) / 1000);
-    this.lastTime = timestamp;
-    
-    if (this.state.currentState === GameState.PLAYING) {
-      this.update(dt);
-    }
-    
-    this.render(dt);
+    // The rAF chain must never die: schedule the next frame FIRST so even a
+    // throwing update/render below cannot freeze the game forever.
     requestAnimationFrame((t) => this.loop(t));
+    try {
+      if (!this.lastTime) this.lastTime = timestamp;
+      const dt = Math.min(0.1, Math.max(0, (timestamp - this.lastTime) / 1000));
+      this.lastTime = timestamp;
+
+      if (this.state.currentState === GameState.PLAYING) {
+        this.update(dt);
+      }
+
+      this.render(dt);
+    } catch (err) {
+      // One bad frame logs instead of killing the loop; lastTime already
+      // advanced so the next frame gets a sane dt.
+      if (typeof console !== 'undefined' && console.error) console.error('[LWZ] frame error:', err);
+    }
   }
 
   update(dt) {
@@ -1673,10 +1711,11 @@ class GameApp {
       if (this.killStreakTimer <= 0) this.killStreak = 0;
     }
 
-    // 0. Update door slide animations
+    // 0. Update door slide animations (open 4 units/s, close 2 units/s)
+    const DOOR_OPEN_RATE = 4.0, DOOR_CLOSE_RATE = 2.0;
     this.spawnDoors.forEach(door => {
       if (door.state === 'opening') {
-        door.slideProgress = Math.min(1.0, door.slideProgress + activeDt * 4.0);
+        door.slideProgress = Math.min(1.0, door.slideProgress + activeDt * DOOR_OPEN_RATE);
         if (door.slideProgress >= 1.0) {
           door.state = 'open';
           door.timer = 1.0;
@@ -1687,7 +1726,7 @@ class GameApp {
           door.state = 'closing';
         }
       } else if (door.state === 'closing') {
-        door.slideProgress = Math.max(0.0, door.slideProgress - activeDt * 2.0);
+        door.slideProgress = Math.max(0.0, door.slideProgress - activeDt * DOOR_CLOSE_RATE);
         if (door.slideProgress <= 0.0) {
           door.state = 'closed';
           door.statusLightMat.color.setHex(0xff0055);
@@ -1698,9 +1737,11 @@ class GameApp {
       door.doorMesh.position.y = ((doorHeight - 0.05) / 2 - 1.2) + (door.slideProgress * 2.6);
     });
 
-    // 1. Spawner Logic
+    // 1. Spawner Logic (budget: spawned-ever = killed + alive; breaches count
+    // as killed so the wave-clear condition stays attainable)
     this.spawnTimer += activeDt;
-    const spawnInterval = Math.max(1.0, 3.5 - this.state.wave * 0.25);
+    const SPAWN_BASE_INTERVAL = 3.5, SPAWN_RAMP_PER_WAVE = 0.25, SPAWN_MIN_INTERVAL = 1.0;
+    const spawnInterval = Math.max(SPAWN_MIN_INTERVAL, SPAWN_BASE_INTERVAL - this.state.wave * SPAWN_RAMP_PER_WAVE);
     
     const totalSpawned = this.state.zombiesKilled + this.zombies.length;
     
@@ -1714,7 +1755,7 @@ class GameApp {
       const z = this.zombies[i];
       z.update(activeDt);
 
-      if (z.worldZ >= 4.8) {
+      if (z.worldZ >= 4.8) { // BREACH_LINE: past the camera plane = player hit
         const dmg = z.damage || 20;
         this.state.health = Math.max(0, this.state.health - dmg);
         this.updateHealthBar();
@@ -1723,7 +1764,10 @@ class GameApp {
 
         this.triggerCameraShake(z.ztype === 'boss' ? 1.2 : 0.5);
         this.audio.playSFX('hurt');
-        if (z.ztype === 'boss') this.hideBossBar();
+        // A breached boss is gone: clear the reference (not just the bar) so
+        // the HP widget can never track a destroyed zombie. Breaches count
+        // toward the wave budget so the clear condition stays reachable.
+        if (z.ztype === 'boss') { this.bossActive = null; this.hideBossBar(); }
 
         if (this.typing.currentTarget === z) {
           this.typing.reset();
@@ -1788,6 +1832,11 @@ class GameApp {
   }
 
   handleGameOver() {
+    // Guard: health stays 0 until the delayed GAME_OVER cut, so every further
+    // breach in that window would re-enter here. One pending cut per run.
+    if (this._gameOverPending) return;
+    this._gameOverPending = true;
+    const runId = this._runSeq;
     // Slow-mo death beat: freeze zombies for drama, then cut to game over
     this.gameOverSlowMo = 1.2;
     this.gameTimeScale = 0.25;
@@ -1800,6 +1849,10 @@ class GameApp {
     const newBest = this.state.recordRunEnd(wpm, acc, streak);
     this.fillGameOverStats(wpm, acc, streak, newBest);
     setTimeout(() => {
+      // Stale timeout (user already restarted / quit) must not clobber the
+      // fresh run's state.
+      if (runId !== this._runSeq) return;
+      this._gameOverPending = false;
       this.gameTimeScale = 1;
       this.state.setGameState(GameState.GAME_OVER);
       this.blurMobileInput();
@@ -1832,7 +1885,7 @@ class GameApp {
   }
 
   updateVignette() {
-    const v = document.getElementById('damage-vignette');
+    const v = this.dom('damage-vignette');
     if (!v) return;
     const lowHp = this.state.health <= 30 ? (0.35 + 0.15 * Math.sin(performance.now() / 300)) : 0;
     const hit = Math.min(0.85, this.damageFlash);
@@ -1871,7 +1924,7 @@ class GameApp {
     const type = this.rollArchetype();
     const cfg = this.archetypeConfig(type, this.state.wave);
 
-    let wordList = SHORT_WORDS;
+    let wordList;
     if (cfg.list === 'short') wordList = SHORT_WORDS;
     else if (cfg.list === 'mid') wordList = MID_WORDS;
     else if (cfg.list === 'long') wordList = LONG_WORDS;
@@ -1895,7 +1948,7 @@ class GameApp {
       if (type === 'runner') wordList = Math.random() < 0.8 ? SHORT_WORDS : MID_WORDS;
     }
     
-    const activeStartChars = this.zombies.map(z => z.word[0].toLowerCase());
+    const activeStartChars = this.zombies.map(z => (z.word && z.word[0] || '').toLowerCase());
     let candidates = wordList.filter(w => !activeStartChars.includes(w[0].toLowerCase()));
 
     if (candidates.length === 0) {
@@ -1909,6 +1962,7 @@ class GameApp {
     }
 
     const word = candidates[Math.floor(Math.random() * candidates.length)];
+    if (!word) return; // empty external word list: skip frame, never throw
     const speed = cfg.speed;
 
     const validDoors = this.spawnDoors.filter(d => d.z < -10 && d.z > -80);
@@ -1959,7 +2013,14 @@ class GameApp {
   }
 
   render(dt) {
-    this.flickerTimer += dt;
+    // Pause truly freezes the scene: cosmetic animation (light flicker,
+    // keyboard bob, arm poke, shake decay, muzzle flare) runs on rdt = 0
+    // while PAUSED, but the final render still executes so the frame stays
+    // alive behind the overlay. update() already stops when not PLAYING,
+    // which is what freezes zombies / particles / combo timers.
+    const paused = this.state.currentState === GameState.PAUSED;
+    const rdt = paused ? 0 : dt;
+    this.flickerTimer += rdt;
     const frozen = this.state.isFrozen();
     this.lights.forEach(l => {
       const noise = Math.sin(this.flickerTimer * 12 + l.zOffset) * Math.cos(this.flickerTimer * 4);
@@ -1988,7 +2049,7 @@ class GameApp {
       
       // Keyboard press scale decay
       if (this.keyboardGroup.scale.x > 1.0) {
-        const decay = dt * 1.5;
+        const decay = rdt * 1.5;
         this.keyboardGroup.scale.x = Math.max(1.0, this.keyboardGroup.scale.x - decay);
         this.keyboardGroup.scale.y = Math.max(1.0, this.keyboardGroup.scale.y - decay);
         this.keyboardGroup.scale.z = Math.max(1.0, this.keyboardGroup.scale.z - decay);
@@ -1998,7 +2059,7 @@ class GameApp {
     // Right arm poke/idle handling
     if (this.rightArmGroup) {
       if (this.pokeTimer > 0) {
-        this.pokeTimer -= dt;
+        this.pokeTimer -= rdt;
         const progress = 1.0 - (this.pokeTimer / this.pokeDuration);
         const factor = Math.sin(progress * Math.PI);
         
@@ -2014,7 +2075,7 @@ class GameApp {
     }
     
     if (this.shakeIntensity > 0) {
-      this.shakeIntensity -= this.shakeDecay * dt;
+      this.shakeIntensity -= this.shakeDecay * rdt;
       if (this.shakeIntensity < 0) this.shakeIntensity = 0;
 
       const dx = (Math.random() - 0.5) * this.shakeIntensity * 0.15;
@@ -2027,7 +2088,7 @@ class GameApp {
 
     // Muzzle flash: flashlight flares on every kill/keystroke, decays fast
     if (this.muzzleFlash > 0) {
-      this.muzzleFlash = Math.max(0, this.muzzleFlash - dt * 6);
+      this.muzzleFlash = Math.max(0, this.muzzleFlash - rdt * 6);
       if (this.flashlight) this.flashlight.intensity = 18.0 + this.muzzleFlash * 22;
     } else if (this.flashlight) {
       this.flashlight.intensity = 18.0;

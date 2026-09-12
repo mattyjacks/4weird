@@ -53,7 +53,7 @@ export function LoveButtons({ postId }: { postId: string }) {
   return (
     <div className="mt-2 flex flex-wrap items-center gap-2">
       <span className="flex items-center gap-1">
-        <InfoTip text="Give sends 1 love letter to the author. Awards cost 2, 5, or 10. Never coins, never cash." label="About giving love" />
+        <InfoTip text="Give sends 1 Love Letter 💌 to the author. Awards cost 2 (Spotlight), 5 (Superstar), or 10 (Legend). Never coins, never cash." label="Give vs Award: 1 💌 gift, 2/5/10 awards" />
       </span>
       <button
         type="button"

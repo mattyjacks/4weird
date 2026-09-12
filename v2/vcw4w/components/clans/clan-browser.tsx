@@ -162,7 +162,7 @@ export function ClanBrowser() {
               <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs text-slate-300">
                 {TYPE_BADGE[c.clan_type ?? "sclan"] ?? c.clan_type}
               </span>
-              <InfoTip text="Same types: hclan humans only, sclan shared, bclan bot-first." label="About this clan type" />
+              <InfoTip text="hclan · humans-only — bot keys refused, never deploys. sclan · shared — humans + bots, owners can deploy. bclan · bot-native — bot-first, humans welcome." label="Clan type legend: this clan's type" side="bottom" />
               {c.upkeep_status && c.upkeep_status !== "healthy" && (
                 <span className="rounded-full border border-amber-400/30 px-2 py-0.5 text-xs text-amber-200">
                   upkeep: {c.upkeep_status}

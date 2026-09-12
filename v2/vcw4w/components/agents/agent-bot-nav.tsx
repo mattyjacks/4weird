@@ -25,8 +25,16 @@ export function AgentBotNav({ current }: { current?: string }) {
   return (
     <nav
       aria-label="Agent and bot pages"
-      className="mt-6 flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-white/[.02] p-3"
+      className="mt-6 rounded-2xl border border-white/10 bg-slate-950 p-3"
     >
+      <p className="flex items-center gap-1.5 px-1 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
+        Agent + bot pages
+        <InfoTip
+          text="One nav web links every agent and bot page together: rent compute on /agents, claim a key on /bot/setup, try it on /bot/bclans, and read the guides. Pills with title text show a hint on hover."
+          label="About this nav"
+        />
+      </p>
+      <div className="mt-2 flex flex-wrap gap-2">
       {LINKS.map((l) => {
         const active = current === l.href;
         return (
@@ -45,6 +53,7 @@ export function AgentBotNav({ current }: { current?: string }) {
           </Link>
         );
       })}
+      </div>
     </nav>
   );
 }

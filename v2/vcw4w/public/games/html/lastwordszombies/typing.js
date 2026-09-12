@@ -150,9 +150,11 @@ class TypingController {
         }
       } else {
         // Smart recovery: if the wrong key starts another zombie's word, switch to it
-        const matches = zombies.filter(z => z !== this.currentTarget && !z.isDead && z.word.toLowerCase().startsWith(letter) && z.worldZ < 4.8);
-        this.currentTarget.setTargeted(false);
-        this.currentTarget.setTypedLength(0);
+        const matches = zombies.filter(z => z && z !== this.currentTarget && !z.isDead && typeof z.word === 'string' && z.word.toLowerCase().startsWith(letter) && z.worldZ < 4.8);
+        try {
+          if (typeof this.currentTarget.setTargeted === 'function') this.currentTarget.setTargeted(false);
+          if (typeof this.currentTarget.setTypedLength === 'function') this.currentTarget.setTypedLength(0);
+        } catch (e) { /* stale target — just drop the lock */ }
         this.currentTarget = null;
         this.typedBuffer = "";
         this.keysMissed++;
@@ -167,44 +169,70 @@ class TypingController {
   }
 
   triggerExplosion(zombie, zombies) {
-    const explosionPos = zombie.group.position.clone();
-    this.particles.spawnExplosion(explosionPos, this.state.equippedBlood);
+    if (!zombie) return;
+    const list = Array.isArray(zombies) ? zombies : [];
+    let explosionPos = null;
+    try {
+      if (zombie.group && zombie.group.position && typeof zombie.group.position.clone === 'function') {
+        explosionPos = zombie.group.position.clone();
+      }
+    } catch (e) { explosionPos = null; }
+    try {
+      if (explosionPos) this.particles.spawnExplosion(explosionPos, this.state.equippedBlood);
+    } catch (e) { /* cosmetic only */ }
     // Laser tracer from player to kill - sells the "decrypt shot"
-    if (window.game && window.game.getMuzzleWorldPos) {
+    if (explosionPos && window.game && window.game.getMuzzleWorldPos) {
       try {
         this.particles.spawnTracer(window.game.getMuzzleWorldPos(), explosionPos, 0x00f2fe);
       } catch (e) { /* cosmetic only */ }
     }
-    this.particles.spawnFloatingText(
-      explosionPos.clone().add(new THREE.Vector3(0, 1.2, 0)),
-      '+' + Math.floor((zombie.scoreValue || 100) * (this.state.combo || 1)),
-      (zombie.ztype === 'boss') ? '#ffd700' : '#00ff66',
-      zombie.ztype === 'boss' || zombie.ztype === 'brute'
-    );
-    this.audio.playSFX('explosion');
+    try {
+      this.particles.spawnFloatingText(
+        explosionPos ? explosionPos.clone().add(new THREE.Vector3(0, 1.2, 0)) : new THREE.Vector3(0, 2, 0),
+        '+' + Math.floor((zombie.scoreValue || 100) * (this.state.combo || 1)),
+        (zombie.ztype === 'boss') ? '#ffd700' : '#00ff66',
+        zombie.ztype === 'boss' || zombie.ztype === 'brute'
+      );
+    } catch (e) { /* cosmetic only */ }
+    try {
+      this.audio.playSFX('explosion');
+    } catch (e) { /* audio optional */ }
 
     this.state.addScore(zombie.scoreValue || 100);
     this.state.addCoins(zombie.coinValue != null ? zombie.coinValue : 1);
     this.state.registerKill(zombie);
-    this.state.waveWords.add(zombie.word.toLowerCase());
+    if (typeof zombie.word === 'string') this.state.waveWords.add(zombie.word.toLowerCase());
 
     zombie.isDead = true;
 
-    zombies.forEach(z => {
-      if (z === zombie || z.isDead) return;
+    // Shockwave stun AoE. Empty/missing lists are a no-op. knockResist is
+    // clamped to [0, 0.9] so force stays repulsive and stun stays positive.
+    const zx = Number(zombie.worldX);
+    const zz = Number(zombie.worldZ);
+    if (!isFinite(zx) || !isFinite(zz)) {
+      if (window.game) window.game.onZombieKilled(zombie, list);
+      return;
+    }
+    list.forEach(z => {
+      if (!z || z === zombie || z.isDead) return;
+      const zx2 = Number(z.worldX);
+      const zz2 = Number(z.worldZ);
+      if (!isFinite(zx2) || !isFinite(zz2)) return;
 
-      const dx = z.worldX - zombie.worldX;
-      const dz = z.worldZ - zombie.worldZ;
+      const dx = zx2 - zx;
+      const dz = zz2 - zz;
       const dist = Math.sqrt(dx * dx + dz * dz);
 
       const maxRadius = 8.0;
       if (dist < maxRadius) {
-        const resist = z.knockResist || 0;
+        let resist = Number(z.knockResist);
+        if (!isFinite(resist)) resist = 0;
+        resist = Math.min(0.9, Math.max(0, resist));
         const force = 18.0 * (1 - dist / maxRadius) * (1 - resist);
         const angle = Math.atan2(dz, dx);
 
-        z.vx += Math.cos(angle) * force;
-        z.vz += Math.sin(angle) * force * 1.5;
+        z.vx = (Number(z.vx) || 0) + Math.cos(angle) * force;
+        z.vz = (Number(z.vz) || 0) + Math.sin(angle) * force * 1.5;
 
         z.isStunned = true;
         z.stunDuration = 1.0 * (1 - resist * 0.5);
@@ -212,23 +240,28 @@ class TypingController {
       }
     });
 
-    if (window.game) window.game.onZombieKilled(zombie, zombies);
+    if (window.game) window.game.onZombieKilled(zombie, list);
   }
 
   reset() {
     if (this.currentTarget) {
-      this.currentTarget.setTargeted(false);
-      this.currentTarget.setTypedLength(0);
+      try {
+        if (typeof this.currentTarget.setTargeted === 'function') this.currentTarget.setTargeted(false);
+        if (typeof this.currentTarget.setTypedLength === 'function') this.currentTarget.setTypedLength(0);
+      } catch (e) { /* stale target — just drop the lock */ }
     }
     this.currentTarget = null;
     this.typedBuffer = "";
   }
 
-  // Backspace: drop the current lock-on with no penalty (re-aim freely)
+  // Backspace: drop the current lock-on with no penalty (re-aim freely).
+  // Neutral for accuracy: counts neither a hit nor a miss.
   dropTarget() {
     if (!this.currentTarget) return;
-    this.currentTarget.setTargeted(false);
-    this.currentTarget.setTypedLength(0);
+    try {
+      if (typeof this.currentTarget.setTargeted === 'function') this.currentTarget.setTargeted(false);
+      if (typeof this.currentTarget.setTypedLength === 'function') this.currentTarget.setTypedLength(0);
+    } catch (e) { /* stale target — just drop the lock */ }
     this.currentTarget = null;
     this.typedBuffer = "";
   }

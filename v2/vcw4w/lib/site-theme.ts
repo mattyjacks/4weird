@@ -2,6 +2,9 @@
 // mode, giving 10 combinations in total. The color theme is a second class on
 // <html> (e.g. `theme-girly-girl`) managed by SiteThemeProvider and persisted
 // in localStorage, independent of next-themes (which keeps owning light/dark).
+// NOTE: the USA entry's display label is "USA USA" but its id stays
+// `theme-usa` — the id is the persisted + CSS + fireworks key, so renaming
+// the id would orphan saved prefs. Label-only rename is safe.
 
 export const SITE_COLOR_STORAGE_KEY = "4weird-color-theme";
 
@@ -45,8 +48,8 @@ export const COLOR_THEMES: readonly ColorTheme[] = [
   },
   {
     id: "theme-usa",
-    label: "USA",
-    tagline: "Stars, stripes, and fireworks that follow your cursor.",
+    label: "USA USA",
+    tagline: "Stars, stripes, and fireworks that follow your cursor. USA! USA!",
     swatch:
       "linear-gradient(180deg, #b31942 0 33%, #ffffff 33% 66%, #0a3161 66% 100%)",
   },

@@ -106,13 +106,40 @@
     post({ type: "metering", bytes: total });
   }
 
+  var hostAcked = false;
+  var readyTries = 0;
+  function announceUntilAck() {
+    if (hostAcked || readyTries >= 15) return;
+    readyTries += 1;
+    announceReady();
+    setTimeout(announceUntilAck, 2000);
+  }
   window.addEventListener("load", function () {
     announceReady();
     setTimeout(announceReady, 1500);
+    setTimeout(announceUntilAck, 2500);
     // Late assets (audio, levels) land after load; report once settled.
     setTimeout(reportBytes, 3000);
+    // Final metering: late level/audio fetches land after the 3s interim
+    // report, so re-report the max on pagehide (shell keeps the max).
+    try { window.addEventListener("pagehide", reportBytes); } catch (e) {}
   });
   if (document.readyState === "complete") announceReady();
+  // MADI hub worlds link to legacy preview URLs (/games/html/madi/<slug>/)
+  // which would escape the game-only canonical iframe into full-chrome pages.
+  // Reroute them to the canonical play shell instead (v2 layer, no bundle edit).
+  try {
+    document.addEventListener("click", function (event) {
+      var a = event.target && event.target.closest ? event.target.closest("a[href]") : null;
+      if (!a) return;
+      var href = a.getAttribute("href") || "";
+      var m = href.match(/\/games\/html\/madi\/([a-z0-9-]+)\/?/);
+      if (!m) return;
+      event.preventDefault();
+      try { window.top.location.href = "/games/" + m[1] + "/play"; }
+      catch (e) { window.location.href = "/games/" + m[1] + "/play"; }
+    }, true);
+  } catch (e) {}
 
   // Forward fatal runtime errors so the shell shows the real failure instead
   // of "Loading original HTML runtime..." forever. Resource 404s do not reach
@@ -135,6 +162,7 @@
     if (!data || data.version !== 1 || !isHostOrigin(event.origin)) return;
     switch (data.type) {
       case "host-ready":
+        hostAcked = true;
         break;
       case "a11y":
         try {
@@ -320,17 +348,55 @@
     }
   }
 
-  function dispatchKey(key) {
-    var k = String(key == null ? " " : key).slice(0, 1) || " ";
-    var code = k === " " ? "Space" : k === "\n" || k === "Enter" ? "Enter" : "Key" + k.toUpperCase();
-    try {
+  var NAMED_KEYS = {
+    " ": "Space",
+    spacebar: "Space",
+    arrowup: "ArrowUp",
+    arrowdown: "ArrowDown",
+    arrowleft: "ArrowLeft",
+    arrowright: "ArrowRight",
+    up: "ArrowUp",
+    down: "ArrowDown",
+    left: "ArrowLeft",
+    right: "ArrowRight",
+    esc: "Escape",
+    escape: "Escape",
+    enter: "Enter",
+    shift: "Shift",
+    p: "KeyP",
+    r: "KeyR",
+    n: "KeyN",
+    m: "KeyM",
+    q: "KeyQ",
+    e: "KeyE",
+    f: "KeyF",
+  };
+  function dispatchKey(key, pressed) {
+    var raw = String(key == null ? " " : key);
+    var lower = raw.toLowerCase();
+    var k = NAMED_KEYS[lower] ? (lower === " " || lower === "spacebar" ? " " : NAMED_KEYS[lower]) : raw.slice(0, 1) || " ";
+    // Named keys (arrows/Escape/space) keep their full key name; single chars stay literal.
+    if (!NAMED_KEYS[lower] && k !== " ") k = raw.slice(0, 1);
+    if (NAMED_KEYS[lower] && NAMED_KEYS[lower].indexOf("Arrow") === 0) k = NAMED_KEYS[lower];
+    if (NAMED_KEYS[lower] === "Escape") k = "Escape";
+    if (NAMED_KEYS[lower] === "Enter") k = "Enter";
+    if (NAMED_KEYS[lower] === "Shift") k = "Shift";
+    var code = k === " " ? "Space" : k.indexOf("Arrow") === 0 ? k : k === "Escape" ? "Escape" : k === "Enter" ? "Enter" : k === "Shift" ? "ShiftLeft" : "Key" + k.toUpperCase();
+    function emit(type) {
       var opts = { key: k, code: code, bubbles: true, cancelable: true };
-      window.dispatchEvent(new KeyboardEvent("keydown", opts));
-      document.dispatchEvent(new KeyboardEvent("keydown", opts));
-      var active = document.activeElement || document.body;
-      if (active) active.dispatchEvent(new KeyboardEvent("keydown", opts));
-      window.dispatchEvent(new KeyboardEvent("keyup", opts));
-      document.dispatchEvent(new KeyboardEvent("keyup", opts));
+      try { window.dispatchEvent(new KeyboardEvent(type, opts)); } catch (e) {}
+      try { document.dispatchEvent(new KeyboardEvent(type, opts)); } catch (e) {}
+      try {
+        var active = document.activeElement || document.body;
+        if (active) active.dispatchEvent(new KeyboardEvent(type, opts));
+      } catch (e) {}
+    }
+    try {
+      // Shell sends pressed:true/false for holds (touch pad, face/switch);
+      // legacy callers with no flag get the classic tap (down+up).
+      if (pressed === true) emit("keydown");
+      else if (pressed === false) emit("keyup");
+      else { emit("keydown"); emit("keyup"); }
     } catch (e) {
       /* synthetic keys unsupported */
     }
@@ -339,7 +405,7 @@
   function applyInput(data) {
     var action = data.action || data.kind || "click";
     if (action === "key") {
-      dispatchKey(data.key);
+      dispatchKey(data.key, data.pressed);
     } else if (action === "rightclick" || action === "right-click") {
       dispatchAt("rightclick", inputPoint(data), 2);
     } else {

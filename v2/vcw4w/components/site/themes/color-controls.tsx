@@ -27,7 +27,7 @@ export function SwatchDot({ swatch, label }: { swatch: string; label: string }) 
   );
 }
 
-/** Color-palette switcher (Blue Boy / Girly Girl / Trans Them / Green Guy / USA). */
+/** Color-palette switcher (Blue Boy / Girly Girl / Trans Them / Green Guy / USA USA). */
 export function ColorThemeSwitcher({ compact = false }: { compact?: boolean }) {
   const mounted = useMountedTheme();
   const { colorTheme, setColorTheme } = useSiteTheme();
@@ -115,8 +115,8 @@ export function SiteThemePicker() {
                 style={{ background: t.swatch }}
               />
               <span>
-                <span className="block font-bold text-white">{t.label}</span>
-                <span className="block text-xs text-slate-400">{t.tagline}</span>
+                <span className="block font-bold text-foreground">{t.label}</span>
+                <span className="block text-xs text-muted-foreground">{t.tagline}</span>
               </span>
             </label>
           );

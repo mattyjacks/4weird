@@ -133,11 +133,11 @@ export function WalletBadges({
   if (signedIn !== true || authLost) return null;
   if (coinsCc === null) {
     return (
-      <span aria-label="Loading wallet" className="inline-flex items-center gap-1.5 text-sm font-bold">
-        <span className="animate-pulse rounded-full border border-border px-2 py-0.5 text-muted-foreground">
+      <span aria-label="Loading wallet" className="inline-flex min-h-[1.75rem] items-center gap-1.5 text-sm font-bold">
+        <span className="inline-flex min-w-[4.5rem] animate-pulse justify-center rounded-full border border-border px-2 py-0.5 text-muted-foreground">
           … 🪙
         </span>
-        <span className="animate-pulse rounded-full border border-border px-2 py-0.5 text-muted-foreground">
+        <span className="inline-flex min-w-[4.5rem] animate-pulse justify-center rounded-full border border-border px-2 py-0.5 text-muted-foreground">
           … 👑
         </span>
       </span>
@@ -162,12 +162,12 @@ export function WalletBadges({
       role="status"
       aria-live="polite"
       aria-label={`${coinsLabel}, ${crownsLabel}`}
-      className="inline-flex items-center gap-1.5 text-sm font-bold"
+      className="inline-flex min-h-[1.75rem] items-center gap-1.5 text-sm font-bold"
     >
       <Link
         href="/account"
         title={`Your coin balance: ${exactCoins} coins ($${usd}). Rounded to whole coins. Click to top up on /account.${low ? " Low balance - top up soon." : ""}`}
-        className={`rounded-full border px-2 py-0.5 transition hover:bg-accent hover:text-accent-foreground ${
+        className={`inline-flex min-w-[4.5rem] justify-center rounded-full border px-2 py-0.5 transition hover:bg-accent hover:text-accent-foreground ${
           low ? "border-amber-300/60 text-amber-200" : "border-border text-foreground"
         }`}
       >
@@ -176,7 +176,7 @@ export function WalletBadges({
       <Link
         href="/account"
         title={`Your crown balance, including locked crowns: ${crownsStr} total. Click for details on /account.`}
-        className="rounded-full border border-border px-2 py-0.5 text-foreground transition hover:bg-accent hover:text-accent-foreground"
+        className="inline-flex min-w-[4.5rem] justify-center rounded-full border border-border px-2 py-0.5 text-foreground transition hover:bg-accent hover:text-accent-foreground"
       >
         {formatMenuCrowns(crowns)}
       </Link>

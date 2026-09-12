@@ -130,7 +130,7 @@ const COLUMNS: FooterColumn[] = [
       { href: "/account", label: "My Account" },
       { href: "/my/usage", label: "My Compute Usage" },
       { href: "/my/rights", label: "My Privacy Rights" },
-      { href: "/favorites", label: "My Favorites" },
+      { href: "/favorites", label: "My Favorites", blurb: "Your starred pages, saved on this device." },
       { href: "/auth/login", label: "Login" },
       { href: "/auth/sign-up", label: "Sign Up Free" },
       { href: "/auth/forgot-password", label: "Reset Password" },
