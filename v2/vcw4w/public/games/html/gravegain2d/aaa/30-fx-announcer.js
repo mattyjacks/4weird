@@ -1,6 +1,6 @@
-/* GraveGain2D AAA — 30 announcer.
+/* GraveGain2D AAA - 30 announcer.
    2D adaptation: killstreak callouts (DOUBLE KILL … GODLIKE), a combo meter
-   that rewards aggression, and a hitmarker X at screen center — gold when a
+   that rewards aggression, and a hitmarker X at screen center - gold when a
    kill lands. 2D has no applyHitToEnemy: combos feed from triggerMeleeSwing
    (its return value is the hit count), streaks poll the runKills scoreboard
    truth (covers melee, AoE abilities, and hazard kills alike).

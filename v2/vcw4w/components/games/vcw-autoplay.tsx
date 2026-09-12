@@ -246,11 +246,11 @@ export function VcwAutoplay({ gameSlug, gameTitle }: { gameSlug: string; gameTit
           </p>
           {result.connection.vncPassword && (
             <p className="mt-2 rounded-lg border border-amber-300/40 bg-amber-300/[.08] px-3 py-2 text-amber-100">
-              🔑 VNC password (shown once — save it now): <code className="font-bold">{result.connection.vncPassword}</code>
+              🔑 VNC password (shown once - save it now): <code className="font-bold">{result.connection.vncPassword}</code>
             </p>
           )}
           <ol className="mt-1 list-decimal space-y-1 pl-5 text-slate-400">
-            <li>Open the stream link above (first boot takes minutes while the desktop image pulls — a 404/“waiting” page is normal; wait, then Reload).</li>
+            <li>Open the stream link above (first boot takes minutes while the desktop image pulls - a 404/“waiting” page is normal; wait, then Reload).</li>
             <li>Log in with the VNC password, open Chromium, and go to the locked game URL{result.plan ? <>: <span className="break-all text-cyan-300">{result.plan.target_url}</span></> : "."}</li>
             <li>Play/test the game there; the worker harness drives the locked URL only. Keep this tab open for the idle guard below.</li>
           </ol>

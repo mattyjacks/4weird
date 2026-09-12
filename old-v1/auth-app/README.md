@@ -1,4 +1,4 @@
-# 4weird-auth — minimal login + user-data service
+# 4weird-auth - minimal login + user-data service
 
 Scope is deliberately narrow (security only): sessions in httpOnly cookies,
 user-scoped reads with RLS still enforced, and server-side Vibe Coins claims.

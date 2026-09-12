@@ -5,15 +5,15 @@
  *   Request: same JSON body as the JSON turn plus `"stream": true`.
  *   Response: `text/event-stream` (`Cache-Control: no-cache`,
  *     `Connection: keep-alive`), UTF-8 `data:` frames separated by `\n\n`:
- *     - `data: {"delta":"..."}` — one per OpenAI
+ *     - `data: {"delta":"..."}` - one per OpenAI
  *       `response.output_text.delta` payload while the model writes.
  *     - `data: {"done":true,"reply":...,"brain":...,"intent":...,"model":...,
- *       "estimate":...,"cost":{...},"falHint":...}` — terminal success.
+ *       "estimate":...,"cost":{...},"falHint":...}` - terminal success.
  *       `estimate` is `{chatCoins,ttsCoins,gross}` and `cost` carries the
  *       same shape as the JSON turn (`grossCoins,grossCenticentcoins,cut,
  *       provider,usdProvider,usdGross,parts,display`). Metering runs BEFORE
  *       this frame is emitted, so a `done` frame means the turn was metered.
- *     - `data: {"error":"..."}` — terminal failure (upstream error or
+ *     - `data: {"error":"..."}` - terminal failure (upstream error or
  *       `Unable to meter this turn.` when metering fails). No `done` follows.
  *   Fallback (no brain): a single `done` frame with the local reply and
  *   `cost: null`, same semantics as the JSON fallback turn.

@@ -1,4 +1,4 @@
-/* GraveGain3D Campaign — 10 director.
+/* GraveGain3D Campaign - 10 director.
    Wires campaign extras (registered by m01…m10 via 00-campaign-boot.js)
    into the live run: mission-depth redeploy, requisition buffs, campaign
    damage multiplier, themed boss overrides, star ratings, fail banner.
@@ -41,7 +41,7 @@
 
     // ---- Finale multi-phase boss support (M9 Titan + M10 Lucifer). ----
     // Reads the optional bossPhases array (campaign extra first, then the
-    // shared mission def — both are backward-compatible optional fields).
+    // shared mission def - both are backward-compatible optional fields).
     // Endless mode (no currentMission) is always a no-op.
     var PHASE_THRESHOLDS = [0.66, 0.33];
 
@@ -97,7 +97,7 @@
         try {
             var name = (phase && phase.name) ? String(phase.name) : ('PHASE ' + (stage + 1));
             if (typeof AAA_REF.announce === 'function') {
-                AAA_REF.announce(name, 'the Array shields him — break it!');
+                AAA_REF.announce(name, 'the Array shields him - break it!');
             }
         } catch (_) { /* ignore */ }
         try {
@@ -169,9 +169,9 @@
     var EPILOGUE_CODEX = ['lucifer_manifesto', 'human_earth_letter', 'gods_necros_speaks'];
 
     var EPILOGUE_LINES = [
-        { speaker: 'Valley Net', text: 'Array cold. Signal dead. For the first time in the war, MoonRock is QUIET — and it is ours.', portrait: '🤖' },
-        { speaker: 'President Angel Good', text: 'To every race that bled for this dawn: the Compact holds. MoonRock is SAVED — now we build.', portrait: '🌿' },
-        { speaker: 'Guy Young', text: 'Clint, old soldier — rest now. We all rest now. The living remember, and the graves are silent.', portrait: '👨‍🚀' }
+        { speaker: 'Valley Net', text: 'Array cold. Signal dead. For the first time in the war, MoonRock is QUIET - and it is ours.', portrait: '🤖' },
+        { speaker: 'President Angel Good', text: 'To every race that bled for this dawn: the Compact holds. MoonRock is SAVED - now we build.', portrait: '🌿' },
+        { speaker: 'Guy Young', text: 'Clint, old soldier - rest now. We all rest now. The living remember, and the graves are silent.', portrait: '👨‍🚀' }
     ];
 
     function ensureEpilogueCodex(mission) {
@@ -239,7 +239,7 @@
                     if (!extra && mission) extra = getExtra(mission.id);
                     if (mission && extra) {
                         // Core initRun already deploys at mission depth and
-                        // applies requisition — backfill only, so buffs and
+                        // applies requisition - backfill only, so buffs and
                         // dungeon builds never run twice (no stacked HP).
                         try {
                             var depth = Number(mission.minFloor);
@@ -336,7 +336,7 @@
                     var display = extra && extra.bossDisplay;
                     var boss = game.activeBoss;
                     // Core buildDungeonLayer already applied bossType /
-                    // bossHpMult / bossDisplay and flags the boss — never
+                    // bossHpMult / bossDisplay and flags the boss - never
                     // multiply HP a second time.
                     if (display && boss && !boss._campaignBossApplied) {
                         try {
@@ -426,7 +426,7 @@
         } catch (_) { /* ignore */ }
 
         // (d) completeMission: star rating. The core runtime passes a
-        // time-vs-par + deaths rating — honor it; compute the legacy
+        // time-vs-par + deaths rating - honor it; compute the legacy
         // time + accuracy fallback only when the caller gives no stars.
         // Emits are deduped: the core also emits missionComplete, and the
         // codex/UI listeners are not idempotent announcers.
@@ -489,7 +489,7 @@
                         var defeated = (data && data.victory === false) || data === false;
                         if (!defeated) return;
                         if (!game.currentMission) return;
-                        showBanner(game, 'MISSION FAILED — retry from the campaign log');
+                        showBanner(game, 'MISSION FAILED - retry from the campaign log');
                     } catch (_) { /* ignore */ }
                 });
             }

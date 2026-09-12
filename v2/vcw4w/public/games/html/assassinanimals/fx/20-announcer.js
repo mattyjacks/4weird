@@ -1,4 +1,4 @@
-/* AssassinAnimals FX — 20 announcer.
+/* AssassinAnimals FX - 20 announcer.
    Killstreak callouts (DOUBLE KILL / TRIPLE / RAMPAGE / SILENT STRING),
    combo meter, kill flash, VIP slow-mo flash + banner. Driven by
    assassin:kill / assassin:takedown events; synth stings extend (never

@@ -1,11 +1,11 @@
 /**
  * Swarm brain: OpenClaw-style per-user internal brain for Agent Swarm Chat.
  *
- * One rule everywhere: memory and RAG ride the existing chat turn — no new
+ * One rule everywhere: memory and RAG ride the existing chat turn - no new
  * ledger, no new metered kind. Turns still meter via `meter_game_ai_usage`
  * (kind `inference`, game_slug `swarm`) with the 25% cut INCLUDED.
  *
- * What this module holds (100% pure, client-safe, unit-testable — no keys,
+ * What this module holds (100% pure, client-safe, unit-testable - no keys,
  * no network, no Supabase import; routes own all I/O):
  *
  * - Per-user brain: persona + terse fact bullets + goals + exec-mode
@@ -13,7 +13,7 @@
  *   token-cheap block (≤ SWARM_BRAIN_CONTEXT_CHARS).
  * - Token-cheap memory: deterministic fact extraction from plain chat
  *   ("remember that …", "my X is Y", "call me X", "my goal is …").
- *   Nothing inferred, nothing rewritten — bullets are quotes/near-quotes,
+ *   Nothing inferred, nothing rewritten - bullets are quotes/near-quotes,
  *   capped in count and chars so memory costs ~100 tokens, not thousands.
  * - Internal RAG over the user's own .txt docs: chunk → stopword-filtered
  *   token-overlap scoring (no embeddings, no extra service, works on
@@ -22,7 +22,7 @@
  * - Execution routing (serverful vs serverless): `auto` defaults to
  *   serverless (in-request reasoning, what /swarm already does); heavy
  *   asks (GPU pods, renders, long jobs) resolve to serverful and the reply
- *   says which RunPod surface to use — never faked, never provisioned here.
+ *   says which RunPod surface to use - never faked, never provisioned here.
  * - Auto-orchestration: when one message holds parallel work ("X and also
  *   Y", "in parallel", "meanwhile", "delegate"), the router proposes up to
  *   SWARM_MAX_CHILDREN child instances of itself (new swarm_sessions rows
@@ -118,7 +118,7 @@ export function cleanDocContent(value: unknown): string {
 
 /* ---------------------------------------------------------------------------
  * Token-cheap memory: extract terse fact bullets from a turn. Deterministic:
- * same inputs -> same bullets. Only explicit statements become memory —
+ * same inputs -> same bullets. Only explicit statements become memory -
  * never inferences, never rewrites beyond whitespace + length caps.
  * ------------------------------------------------------------------------- */
 
@@ -181,7 +181,7 @@ export function mergeBrainMemory(brain: SwarmBrain, input: { facts?: string[]; g
 
 /**
  * Compact brain block for the system prompt. Budgeted: persona first, then
- * goals, then facts, then the rolling summary — cut off at
+ * goals, then facts, then the rolling summary - cut off at
  * SWARM_BRAIN_CONTEXT_CHARS so memory stays ~150 tokens.
  */
 export function compactBrainContext(brain: SwarmBrain): string {
@@ -197,7 +197,7 @@ export function compactBrainContext(brain: SwarmBrain): string {
 
 /**
  * Roll the one-line session summary forward: keep the newest turn's gist
- * plus the tail of the old summary, capped. Pure, no model call — the
+ * plus the tail of the old summary, capped. Pure, no model call - the
  * summary is extractive, so it costs zero tokens to maintain.
  */
 export function rollMemorySummary(previous: string, userMessage: string, replySnippet: string): string {
@@ -271,7 +271,7 @@ function scoreChunk(queryTokens: Set<string>, titleTokens: Set<string>, chunk: s
 
 /**
  * Retrieve top-K chunks for a query within the char budget. Returns []
- * when nothing scores — the prompt then carries no RAG block (zero tokens).
+ * when nothing scores - the prompt then carries no RAG block (zero tokens).
  */
 export function retrieveTxtChunks(query: string, docs: BrainDoc[], topK = SWARM_RAG_TOP_K): RagChunk[] {
   const qTokens = new Set(tokenize(query));

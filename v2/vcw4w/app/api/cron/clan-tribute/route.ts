@@ -5,9 +5,9 @@ import { fail, ok } from "@/lib/api-respond";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-// GET|POST /api/cron/clan-tribute — daily Clan Support commons sweep:
+// GET|POST /api/cron/clan-tribute - daily Clan Support commons sweep:
 // expire stale vintages, move ~1% of each rich clan's eligible surplus
-// (oldest-expiry first; >=12mo globalized to the reserve, 6–12mo tributed
+// (oldest-expiry first; >=12mo globalized to the reserve, 6-12mo tributed
 // 70/20/10 to poor clans / reserve / poor individuals), then spend the
 // reserve rescuing delinquent clans. Fired by Vercel Cron daily
 // (see vercel.json). Same Bearer CRON_SECRET discipline as /clan-upkeep:

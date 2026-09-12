@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * POST /api/vcw/autoplay/[id]/pod {action: stop|start|restart|terminate|
- * delete} — control YOUR autoplay remote. Only the creator
+ * delete} - control YOUR autoplay remote. Only the creator
  * (vcw_autoplay_remotes.user_id) may act; anyone else gets 404. Any action
  * counts as tending the pod (resets the idle clock).
  */

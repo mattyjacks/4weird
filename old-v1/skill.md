@@ -114,7 +114,7 @@ The agent must know:
 ### Phase 3: Polish & Validation
 
 7. **Enforce CRITICAL rule: No em/en dashes**
-   - Search all files for `—` (em dash) and `–` (en dash)
+   - Search all files for `-` (em dash) and `-` (en dash)
    - Replace with `-` (hyphen) everywhere
    - This includes code AND comments
 
@@ -371,8 +371,8 @@ The agent must know:
 ### Critical Rules
 | Rule | Enforcement |
 |------|-------------|
-| No em dashes `—` | Replace with `-` |
-| No en dashes `–` | Replace with `-` |
+| No em dashes `-` | Replace with `-` |
+| No en dashes `-` | Replace with `-` |
 | Use relative paths | `../../` not `/` |
 | Use CSS variables | `var(--neon-purple)` not `#8b5cf6` |
 | Include standard prefix | `background-clip` with `-webkit-background-clip` |

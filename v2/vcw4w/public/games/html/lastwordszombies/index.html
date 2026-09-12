@@ -65,7 +65,7 @@
         <!-- Game Canvas Frame -->
         <div class="TEMPLATE-4weird-game-frame">
             <!-- Fullscreen trigger -->
-            <button class="TEMPLATE-4weird-fullscreen-btn" id="TEMPLATE-4weird-fullscreen-btn" title="Toggle Fullscreen" aria-label="Toggle fullscreen">📺 Expand screen</button>
+            <button type="button" class="TEMPLATE-4weird-fullscreen-btn" id="TEMPLATE-4weird-fullscreen-btn" title="Toggle Fullscreen" aria-label="Toggle fullscreen">📺 Expand screen</button>
             
             <!-- Real-time game HUD -->
             <div id="game-hud" class="hidden">
@@ -97,16 +97,16 @@
             <div id="canvas-container" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1;"></div>
 
             <!-- Damage / low-HP / freeze vignette (driven by game.js) -->
-            <div id="damage-vignette" style="opacity: 0;"></div>
+            <div id="damage-vignette" aria-hidden="true" style="opacity: 0;"></div>
 
             <!-- Center crosshair with hit pulse -->
-            <div id="crosshair" class="hidden">
+            <div id="crosshair" class="hidden" aria-hidden="true">
                 <div class="ch-dot"></div>
                 <div class="ch-ring"></div>
             </div>
 
             <!-- Wave intro banner -->
-            <div id="wave-banner">
+            <div id="wave-banner" aria-hidden="true">
                 <div class="wave-banner-title">WAVE 1</div>
                 <div class="wave-banner-sub"></div>
             </div>
@@ -122,13 +122,13 @@
             </div>
 
             <!-- Wave progress -->
-            <div id="wave-progress"><div id="wave-progress-fill" style="width: 0%;"></div></div>
+            <div id="wave-progress" aria-hidden="true"><div id="wave-progress-fill" style="width: 0%;"></div></div>
 
             <!-- Powerup quick-slots (1/2/3) -->
             <div id="powerup-bar" class="hidden">
-                <button id="powerup-btn-bomb" class="powerup-btn" title="Shockwave — wipe the horde [1]">💣 <span id="powerup-count-bomb">1</span></button>
-                <button id="powerup-btn-freeze" class="powerup-btn" title="Cryo freeze — stop zombies 5s [2]">❄️ <span id="powerup-count-freeze">1</span></button>
-                <button id="powerup-btn-shield" class="powerup-btn" title="Shield restore +40 [3]">🛡️ <span id="powerup-count-shield">1</span></button>
+                <button type="button" id="powerup-btn-bomb" class="powerup-btn" title="Shockwave - wipe the horde [1]" aria-label="Use shockwave powerup, key 1">💣 <span id="powerup-count-bomb">1</span></button>
+                <button type="button" id="powerup-btn-freeze" class="powerup-btn" title="Cryo freeze - stop zombies 5s [2]" aria-label="Use cryo freeze powerup, key 2">❄️ <span id="powerup-count-freeze">1</span></button>
+                <button type="button" id="powerup-btn-shield" class="powerup-btn" title="Shield restore +40 [3]" aria-label="Use shield restore powerup, key 3">🛡️ <span id="powerup-count-shield">1</span></button>
             </div>
 
             <!-- Hidden mobile input capturing keystrokes. Anchored inside the
@@ -139,10 +139,10 @@
             <input type="text" id="mobile-game-input" class="mobile-typing-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text" enterkeyhint="go" aria-label="Typing input">
 
             <!-- Mobile Keyboard Floating Trigger -->
-            <button id="mobile-keyboard-btn" class="mobile-keyboard-trigger" style="display: none;" title="Toggle Keyboard" aria-label="Toggle on-screen keyboard">⌨️ TYPE</button>
+            <button type="button" id="mobile-keyboard-btn" class="mobile-keyboard-trigger" style="display: none;" title="Toggle Keyboard" aria-label="Toggle on-screen keyboard">⌨️ TYPE</button>
 
             <!-- Speed Up Button Overlay -->
-            <button id="game-speed-btn" class="game-speed-trigger" style="display: none;" title="Speed Up Zombies" aria-label="Hold to speed up zombies">⚡ <span id="game-speed-label">SPEED UP</span></button>
+            <button type="button" id="game-speed-btn" class="game-speed-trigger" style="display: none;" title="Speed Up Zombies" aria-label="Hold to speed up zombies">⚡ <span id="game-speed-label">SPEED UP</span></button>
 
             <!-- Loading Screen with Spinner -->
             <div class="TEMPLATE-4weird-loading-screen" id="TEMPLATE-4weird-loading-screen" role="status" aria-label="Loading game">
@@ -153,7 +153,7 @@
             <noscript><div class="webgl-error">This game needs JavaScript to run.</div></noscript>
 
             <!-- Game Start Overlay -->
-            <div class="TEMPLATE-4weird-game-overlay" id="TEMPLATE-4weird-start-screen">
+            <div class="TEMPLATE-4weird-game-overlay" id="TEMPLATE-4weird-start-screen" role="dialog" aria-modal="true" aria-labelledby="start-overlay-title" aria-describedby="start-overlay-desc">
                 <div class="TEMPLATE-4weird-overlay-content" style="max-height: 90vh; overflow-y: auto; width: 95%; max-width: 500px; display: flex; flex-direction: column;">
                     <h2 id="start-overlay-title">Last Words Zombies</h2>
                     <p id="start-overlay-desc">Decrypt rogue cyber units before they compromise your terminal.</p>
@@ -169,59 +169,59 @@
                     <ol class="menu-tutorial" aria-label="How to play">
                         <li><b>TYPE</b> the glowing word to lock on</li>
                         <li><b>FINISH</b> the word to overload the zombie</li>
-                        <li><b>SURVIVE</b> — boss every 5th wave</li>
+                        <li><b>SURVIVE</b> - boss every 5th wave</li>
                     </ol>
                     
                     <!-- Difficulty Selection -->
                     <div class="difficulty-select-container" style="margin-bottom: 18px; width: 100%; text-align: center;">
-                        <span style="font-family: var(--font-cyber); font-size: 0.75rem; color: #8a99ad; display: block; margin-bottom: 8px; letter-spacing: 1px;">PROTOCOL THREAT LEVEL</span>
+                        <span style="font-family: var(--font-cyber); font-size: 0.75rem; color: #a9b8c7; display: block; margin-bottom: 8px; letter-spacing: 1px;">PROTOCOL THREAT LEVEL</span>
                         <div class="difficulty-options" style="display: flex; gap: 8px; justify-content: center;">
-                            <button class="btn btn-diff" id="btn-diff-easy" data-diff="easy" style="flex: 1; padding: 8px 5px; font-family: var(--font-cyber); font-size: 0.75rem;">EASY</button>
-                            <button class="btn btn-diff active" id="btn-diff-normal" data-diff="normal" style="flex: 1; padding: 8px 5px; font-family: var(--font-cyber); font-size: 0.75rem;">NORMAL</button>
-                            <button class="btn btn-diff" id="btn-diff-hard" data-diff="hard" style="flex: 1; padding: 8px 5px; font-family: var(--font-cyber); font-size: 0.75rem;">HARD</button>
+                            <button type="button" class="btn btn-diff" id="btn-diff-easy" data-diff="easy" aria-pressed="false" style="flex: 1; padding: 8px 5px; font-family: var(--font-cyber); font-size: 0.75rem;">EASY</button>
+                            <button type="button" class="btn btn-diff active" id="btn-diff-normal" data-diff="normal" aria-pressed="true" style="flex: 1; padding: 8px 5px; font-family: var(--font-cyber); font-size: 0.75rem;">NORMAL</button>
+                            <button type="button" class="btn btn-diff" id="btn-diff-hard" data-diff="hard" aria-pressed="false" style="flex: 1; padding: 8px 5px; font-family: var(--font-cyber); font-size: 0.75rem;">HARD</button>
                         </div>
                     </div>
                     
                     <!-- Level Selection -->
                     <div class="level-select-container" style="margin-bottom: 22px; width: 100%; text-align: center;">
-                        <span style="font-family: var(--font-cyber); font-size: 0.75rem; color: #8a99ad; display: block; margin-bottom: 8px; letter-spacing: 1px;">SECTOR MAP (LEVEL)</span>
+                        <span style="font-family: var(--font-cyber); font-size: 0.75rem; color: #a9b8c7; display: block; margin-bottom: 8px; letter-spacing: 1px;">SECTOR MAP (LEVEL)</span>
                         <div class="level-options" style="display: flex; gap: 8px; justify-content: center;">
-                            <button class="btn btn-level active" id="btn-level-hallway" data-level="hallway" style="flex: 1; padding: 8px 5px; font-family: var(--font-cyber); font-size: 0.75rem;">HALLWAY</button>
-                            <button class="btn btn-level" id="btn-level-city" data-level="city" style="flex: 1; padding: 8px 5px; font-family: var(--font-cyber); font-size: 0.75rem;">CITY</button>
-                            <button class="btn btn-level" id="btn-level-graveyard" data-level="graveyard" style="flex: 1; padding: 8px 5px; font-family: var(--font-cyber); font-size: 0.75rem;">GRAVEYARD</button>
+                            <button type="button" class="btn btn-level active" id="btn-level-hallway" data-level="hallway" aria-pressed="true" style="flex: 1; padding: 8px 5px; font-family: var(--font-cyber); font-size: 0.75rem;">HALLWAY</button>
+                            <button type="button" class="btn btn-level" id="btn-level-city" data-level="city" aria-pressed="false" style="flex: 1; padding: 8px 5px; font-family: var(--font-cyber); font-size: 0.75rem;">CITY</button>
+                            <button type="button" class="btn btn-level" id="btn-level-graveyard" data-level="graveyard" aria-pressed="false" style="flex: 1; padding: 8px 5px; font-family: var(--font-cyber); font-size: 0.75rem;">GRAVEYARD</button>
                         </div>
                     </div>
                     
-                    <button class="btn btn-primary" id="TEMPLATE-4weird-start-btn" style="margin-bottom: 12px; width: 100%;">
+                    <button type="button" class="btn btn-primary" id="TEMPLATE-4weird-start-btn" style="margin-bottom: 12px; width: 100%;">
                         <span class="btn-emoji">▶</span> START GAME
                     </button>
                     
                     <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
-                        <button class="btn btn-secondary" id="btn-custom-store" style="flex: 1; padding: 10px 15px;" aria-label="Open Black Market store">🛒 Black Market [I]</button>
-                        <button class="btn btn-secondary" id="btn-custom-settings" style="flex: 1; padding: 10px 15px;" aria-label="Open settings">⚙️ Settings</button>
+                        <button type="button" class="btn btn-secondary" id="btn-custom-store" style="flex: 1; padding: 10px 15px;" aria-label="Open Black Market store">🛒 Black Market [I]</button>
+                        <button type="button" class="btn btn-secondary" id="btn-custom-settings" style="flex: 1; padding: 10px 15px;" aria-label="Open settings">⚙️ Settings</button>
                     </div>
                     <p class="menu-key-hint">Press <kbd>Enter</kbd> to start · <kbd>Esc</kbd> pauses · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> powerups</p>
                     
                     <div class="TEMPLATE-4weird-controls-hint" id="start-overlay-hint">
                         <p>Type matching characters to lock-on and overload invading zombies.</p>
-                        <p style="margin-top: 8px; opacity: 0.85;">💣 <kbd>1</kbd> shockwave · ❄️ <kbd>2</kbd> freeze · 🛡️ <kbd>3</kbd> shield — boss every 5th wave.</p>
+                        <p style="margin-top: 8px; opacity: 0.85;">💣 <kbd>1</kbd> shockwave · ❄️ <kbd>2</kbd> freeze · 🛡️ <kbd>3</kbd> shield - boss every 5th wave.</p>
                     </div>
                 </div>
             </div>
             
             <!-- Game Pause Overlay -->
-            <div class="TEMPLATE-4weird-game-overlay hidden" id="TEMPLATE-4weird-pause-screen">
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="TEMPLATE-4weird-pause-screen" role="dialog" aria-modal="true" aria-label="Game paused">
                 <div class="TEMPLATE-4weird-overlay-content">
                     <h2>SYSTEMS HALTED</h2>
                     <p style="margin-bottom: 20px;">Mainframe sequencer decryption frozen.</p>
-                    <button class="btn btn-primary" id="TEMPLATE-4weird-resume-btn">RESUME SYSTEM</button>
-                    <button class="btn btn-secondary" id="TEMPLATE-4weird-pause-restart-btn" style="margin-top: 10px; width: 100%;">RESTART RUN</button>
-                    <button class="btn btn-secondary" id="TEMPLATE-4weird-restart-btn" style="margin-top: 10px; width: 100%;">QUIT TO TERMINAL</button>
+                    <button type="button" class="btn btn-primary" id="TEMPLATE-4weird-resume-btn">RESUME SYSTEM</button>
+                    <button type="button" class="btn btn-secondary" id="TEMPLATE-4weird-pause-restart-btn" style="margin-top: 10px; width: 100%;">RESTART RUN</button>
+                    <button type="button" class="btn btn-secondary" id="TEMPLATE-4weird-restart-btn" style="margin-top: 10px; width: 100%;">QUIT TO TERMINAL</button>
                 </div>
             </div>
             
             <!-- Game Over Overlay -->
-            <div class="TEMPLATE-4weird-game-overlay hidden" id="TEMPLATE-4weird-game-over-screen">
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="TEMPLATE-4weird-game-over-screen" role="dialog" aria-modal="true" aria-label="Game over">
                 <div class="TEMPLATE-4weird-overlay-content" style="max-width: 500px; width: 95%; display: flex; flex-direction: column; max-height: 90vh;">
                     <h2 style="color: var(--neon-magenta); text-shadow: var(--glow-magenta); margin-bottom: 5px;">SYSTEM BREACHED</h2>
                     <p style="margin-bottom: 10px;">Terminal compromised. Mainframe data has been wiped.</p>
@@ -236,45 +236,45 @@
                     </div>
                     <p style="font-family: var(--font-cyber); font-size: 0.8rem; margin-bottom: 20px; color: var(--neon-yellow);">HIGH SCORE: <span id="TEMPLATE-4weird-gameover-highscore">0</span></p>
                     
-                    <button class="btn btn-secondary" id="btn-gameover-definitions" style="width: 100%; margin-bottom: 10px;">VIEW WAVE DEFINITIONS</button>
-                    <button class="btn btn-primary" id="TEMPLATE-4weird-play-again-btn" style="width: 100%;">REBOOT SYSTEM</button>
-                    <button class="btn btn-secondary" id="TEMPLATE-4weird-gameover-menu-btn" style="width: 100%; margin-top: 10px;">QUIT TO TERMINAL</button>
+                    <button type="button" class="btn btn-secondary" id="btn-gameover-definitions" style="width: 100%; margin-bottom: 10px;">VIEW WAVE DEFINITIONS</button>
+                    <button type="button" class="btn btn-primary" id="TEMPLATE-4weird-play-again-btn" style="width: 100%;">REBOOT SYSTEM</button>
+                    <button type="button" class="btn btn-secondary" id="TEMPLATE-4weird-gameover-menu-btn" style="width: 100%; margin-top: 10px;">QUIT TO TERMINAL</button>
                 </div>
             </div>
 
             <!-- Black Market Store Overlay -->
-            <div class="TEMPLATE-4weird-game-overlay hidden" id="custom-store-screen">
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="custom-store-screen" role="dialog" aria-modal="true" aria-label="Black Market store">
                 <div class="TEMPLATE-4weird-overlay-content" style="max-width: 500px; width: 95%;">
                     <h2 style="color: var(--neon-cyan); text-shadow: var(--glow-cyan); margin-bottom: 5px;">BLACK MARKET</h2>
                     <div class="currency-display" style="font-family: var(--font-cyber); color: var(--neon-yellow); font-size: 1.2rem; margin-bottom: 4px;">CREDITS: <span id="store-coins">0</span></div>
                     <p class="store-hint">Earn credits by decrypting zombies. <kbd>Esc</kbd> closes.</p>
                     
-                    <div class="store-tabs" style="display: flex; gap: 8px; margin-bottom: 15px; background: rgba(0, 0, 0, 0.4); padding: 4px; border-radius: 6px;">
-                        <button class="tab-btn active" data-tab="blood" style="flex: 1; padding: 8px; font-family: var(--font-cyber); font-size: 0.75rem; background: transparent; color: #fff; border: none; cursor: pointer; border-radius: 4px;">PLASMA</button>
-                        <button class="tab-btn" data-tab="fonts" style="flex: 1; padding: 8px; font-family: var(--font-cyber); font-size: 0.75rem; background: transparent; color: #fff; border: none; cursor: pointer; border-radius: 4px;">FONTS</button>
-                        <button class="tab-btn" data-tab="music" style="flex: 1; padding: 8px; font-family: var(--font-cyber); font-size: 0.75rem; background: transparent; color: #fff; border: none; cursor: pointer; border-radius: 4px;">SOUNDS</button>
+                    <div class="store-tabs" role="tablist" aria-label="Store categories" style="display: flex; gap: 8px; margin-bottom: 15px; background: rgba(0, 0, 0, 0.4); padding: 4px; border-radius: 6px;">
+                        <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-tab="blood" style="flex: 1; padding: 8px; font-family: var(--font-cyber); font-size: 0.75rem; background: transparent; color: #fff; border: none; cursor: pointer; border-radius: 4px;">PLASMA</button>
+                        <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="fonts" style="flex: 1; padding: 8px; font-family: var(--font-cyber); font-size: 0.75rem; background: transparent; color: #fff; border: none; cursor: pointer; border-radius: 4px;">FONTS</button>
+                        <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="music" style="flex: 1; padding: 8px; font-family: var(--font-cyber); font-size: 0.75rem; background: transparent; color: #fff; border: none; cursor: pointer; border-radius: 4px;">SOUNDS</button>
                     </div>
                     
                     <div class="store-grid" id="store-items-container" style="max-height: 250px; overflow-y: auto; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; text-align: left;">
                         <!-- Dynamically populated via JS -->
                     </div>
                     
-                    <button id="btn-store-back" class="btn btn-secondary" style="width: 100%;">BACK TO TERMINAL</button>
+                    <button type="button" id="btn-store-back" class="btn btn-secondary" style="width: 100%;">BACK TO TERMINAL</button>
                 </div>
             </div>
 
             <!-- Settings Overlay -->
-            <div class="TEMPLATE-4weird-game-overlay hidden" id="custom-settings-screen">
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="custom-settings-screen" role="dialog" aria-modal="true" aria-label="System settings">
                 <div class="TEMPLATE-4weird-overlay-content" style="max-width: 400px; width: 95%;">
                     <h2 style="color: var(--neon-cyan); text-shadow: var(--glow-cyan); margin-bottom: 20px;">SYSTEM SETTINGS</h2>
                     
                     <div class="settings-list" style="display: flex; flex-direction: column; gap: 20px; text-align: left; margin-bottom: 25px;">
                         <div class="setting-item" style="display: flex; flex-direction: column; gap: 8px;">
-                            <label for="slider-sfx" style="font-family: var(--font-cyber); font-size: 0.8rem; color: #fff;">SFX Volume <span class="slider-val" id="slider-sfx-val">80%</span></label>
+                            <label for="slider-sfx" style="font-family: var(--font-cyber); font-size: 0.8rem; color: #fff;">SFX Volume <span class="slider-val" id="slider-sfx-val" aria-live="polite">80%</span></label>
                             <input type="range" id="slider-sfx" min="0" max="1" step="0.1" value="0.8" style="width: 100%; accent-color: var(--neon-cyan);">
                         </div>
                         <div class="setting-item" style="display: flex; flex-direction: column; gap: 8px;">
-                            <label for="slider-music" style="font-family: var(--font-cyber); font-size: 0.8rem; color: #fff;">Music Sequencer Volume <span class="slider-val" id="slider-music-val">70%</span></label>
+                            <label for="slider-music" style="font-family: var(--font-cyber); font-size: 0.8rem; color: #fff;">Music Sequencer Volume <span class="slider-val" id="slider-music-val" aria-live="polite">70%</span></label>
                             <input type="range" id="slider-music" min="0" max="1" step="0.1" value="0.7" style="width: 100%; accent-color: var(--neon-cyan);">
                         </div>
                         <div class="setting-item" style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
@@ -286,16 +286,16 @@
                             <input type="checkbox" id="chk-shake" checked style="width: 20px; height: 20px; accent-color: var(--neon-cyan);">
                         </div>
                         <div class="setting-item">
-                            <button id="btn-reset-progress" class="btn btn-secondary" style="width: 100%; padding: 10px 15px;">🗑️ Reset All Progress</button>
+                            <button type="button" id="btn-reset-progress" class="btn btn-secondary" style="width: 100%; padding: 10px 15px;">🗑️ Reset All Progress</button>
                         </div>
                     </div>
                     
-                    <button id="btn-settings-back" class="btn btn-secondary" style="width: 100%;">CLOSE SETTINGS</button>
+                    <button type="button" id="btn-settings-back" class="btn btn-secondary" style="width: 100%;">CLOSE SETTINGS</button>
                 </div>
             </div>
 
             <!-- Wave Cleared / Glossary Screen -->
-            <div class="TEMPLATE-4weird-game-overlay" id="wave-cleared-screen" style="z-index: 999; display: none;">
+            <div class="TEMPLATE-4weird-game-overlay" id="wave-cleared-screen" role="dialog" aria-modal="true" aria-label="Wave cleared" style="z-index: 999; display: none;">
                 <div class="TEMPLATE-4weird-overlay-content" style="max-width: 500px; width: 95%; display: flex; flex-direction: column; max-height: 90vh; overflow-y: auto;">
                     <h2 style="color: var(--neon-cyan); text-shadow: var(--glow-cyan); margin-bottom: 5px;">WAVE <span id="cleared-wave-num">1</span> DECRYPTED</h2>
                     <p id="glossary-stats" style="font-family: var(--font-cyber); font-size: 0.72rem; color: var(--neon-yellow); margin-bottom: 15px;"></p>
@@ -305,7 +305,7 @@
                         <!-- Populated dynamically via JS -->
                     </div>
                     
-                    <button class="btn btn-primary" id="btn-next-wave" style="width: 100%; flex-shrink: 0;">START NEXT WAVE</button>
+                    <button type="button" class="btn btn-primary" id="btn-next-wave" style="width: 100%; flex-shrink: 0;">START NEXT WAVE</button>
                 </div>
             </div>
         </div>
@@ -315,7 +315,7 @@
             <!-- Sound FX Board -->
             <div class="TEMPLATE-4weird-panel-section sound-panel">
                 <h3><span>🔊</span> Audio Synth</h3>
-                <button class="sound-toggle-btn" id="TEMPLATE-4weird-mute-btn" aria-pressed="false" aria-label="Mute or unmute sound">🔊 Sound</button>
+                <button type="button" class="sound-toggle-btn" id="TEMPLATE-4weird-mute-btn" aria-pressed="false" aria-label="Mute or unmute sound">🔊 Sound</button>
             </div>
 
             <!-- High score -->
@@ -333,8 +333,8 @@
             <!-- Controls reference with layout tab selector -->
             <div class="TEMPLATE-4weird-panel-section">
                 <h3><span>⌨️</span> Decryption Input</h3>
-                <div class="controls-tabs">
-                    <button class="tab-btn active" data-tab="keyboard-controls-content">Keyboard</button>
+                <div class="controls-tabs" role="tablist" aria-label="Controls layout">
+                    <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-tab="keyboard-controls-content">Keyboard</button>
                 </div>
                 
                 <!-- Keyboard layout contents -->
@@ -349,7 +349,7 @@
             <div class="TEMPLATE-4weird-panel-section share-section">
                 <h3><span>🔗</span> Share Terminal</h3>
                 <div class="share-buttons">
-                    <button class="share-btn copy" onclick="copyGameLink()">📂 Copy Code</button>
+                    <button type="button" class="share-btn copy" onclick="copyGameLink()" aria-label="Copy game link">📂 Copy Code</button>
                     <a class="share-btn twitter" id="share-twitter" href="#" target="_blank" rel="noopener">🐦 Twitter/X</a>
                     <a class="share-btn reddit" id="share-reddit" href="#" target="_blank" rel="noopener">👾 Reddit</a>
                 </div>
@@ -371,6 +371,8 @@
     <section class="TEMPLATE-4weird-bio-section" id="TEMPLATE-4weird-bio">
         <div class="TEMPLATE-4weird-bio-container">
             <h2 class="TEMPLATE-4weird-bio-title">System Creator Bio</h2>
+            <p class="TEMPLATE-4weird-maker-name" id="TEMPLATE-4weird-maker-name" style="font-family: var(--font-cyber); color: #fff; letter-spacing: 1px; margin: 0 0 8px;"></p>
+            <a class="TEMPLATE-4weird-maker-link" id="TEMPLATE-4weird-maker-link" rel="noopener"></a>
             <div class="TEMPLATE-4weird-bio-content" id="TEMPLATE-4weird-maker-bio">
                 <!-- Populated from game.json -->
             </div>
@@ -383,8 +385,8 @@
             <div class="TEMPLATE-4weird-more-games-header">
                 <h2>Network Grid Nodes (More Games)</h2>
                 <div class="carousel-nav">
-                    <button class="carousel-nav-btn" id="carousel-prev" aria-label="Previous Games">◀</button>
-                    <button class="carousel-nav-btn" id="carousel-next" aria-label="Next Games">▶</button>
+                    <button type="button" class="carousel-nav-btn" id="carousel-prev" aria-label="Previous Games">◀</button>
+                    <button type="button" class="carousel-nav-btn" id="carousel-next" aria-label="Next Games">▶</button>
                 </div>
             </div>
             <div class="carousel-wrapper">
@@ -490,15 +492,17 @@
                 });
             }
 
-            // Tabs UI Interaction script for Controls Sidebar
-            const tabBtns = document.querySelectorAll('.tab-btn');
+            // Tabs UI Interaction script for Controls Sidebar (scoped: the
+            // store overlay reuses .tab-btn, which must not toggle sidebar tabs)
+            const tabBtns = document.querySelectorAll('.controls-tabs .tab-btn');
             const tabContents = document.querySelectorAll('.controls-tab-content');
             tabBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
-                    tabBtns.forEach(b => b.classList.remove('active'));
+                    tabBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
                     tabContents.forEach(c => c.classList.remove('active'));
-                    
+
                     btn.classList.add('active');
+                    btn.setAttribute('aria-selected', 'true');
                     const targetContent = document.getElementById(btn.getAttribute('data-tab'));
                     if (targetContent) targetContent.classList.add('active');
                 });

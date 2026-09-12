@@ -79,7 +79,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 /**
- * ClanSupport — Clan Supporter Status (exact lifetime totals + tiers),
+ * ClanSupport - Clan Supporter Status (exact lifetime totals + tiers),
  * Total Clan Support pile, the Tribute/commons engine status, and the
  * 100k-member scale controls (prune + headroom) for owners/mods.
  */
@@ -173,7 +173,7 @@ export function ClanSupport({ slug }: { slug: string }) {
     <section className="rounded-xl border border-white/10 bg-slate-900 p-5">
       <h2 className="font-bold text-amber-300">💛 Clan Supporter Status + commons</h2>
       <p className="mt-1 text-xs text-slate-400">
-        Every upkeep donation is receipted forever — this panel shows exactly how many coins each
+        Every upkeep donation is receipted forever - this panel shows exactly how many coins each
         supporter has dumped into the clan, the Total Clan Support pile, and what the tribute
         commons does with the surplus. Posting is never required to support.
       </p>
@@ -213,10 +213,10 @@ export function ClanSupport({ slug }: { slug: string }) {
             <p className="mt-1">
               Donations older than 6 months past a full year of upkeep ({Number(tribute.reserve_floor).toLocaleString()} coins
               protected) become eligible, oldest-expiry first. At most half of all donated coins can ever leave
-              ({Number(tribute.tributed_all_time).toLocaleString()} / {Number(tribute.lifetime_cap).toLocaleString()} so far — {tributePct}%),
+              ({Number(tribute.tributed_all_time).toLocaleString()} / {Number(tribute.lifetime_cap).toLocaleString()} so far - {tributePct}%),
               at ~1% of the eligible surplus per day (≈69-day half-life). Coins older than 12 months are{" "}
               <b>Globalized</b> into the central reserve (now {Number(tribute.reserve_balance).toLocaleString()} coins, which
-              auto-rescues delinquent clans); 6–12-month coins are <b>Given as Tribute</b> — 70% to the poorest
+              auto-rescues delinquent clans); 6-12-month coins are <b>Given as Tribute</b> - 70% to the poorest
               clans, 20% to the reserve, 10% to poor individuals. Expired lots never travel. Tribute is final.
             </p>
             {tribute.next_daily_estimate > 0 && (

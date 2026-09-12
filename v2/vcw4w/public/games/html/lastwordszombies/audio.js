@@ -36,7 +36,8 @@ class AudioManager {
     this.state.sfxVolume = Math.min(1, Math.max(0, Number(val) || 0));
     this.state.saveSettings();
     if (this.masterSFXGain && this.ctx && !this.muted) {
-      this.masterSFXGain.gain.setValueAtTime(this.state.sfxVolume, this.ctx.currentTime);
+      // Smoothed step: an instant setValueAtTime mid-blast can click.
+      this.masterSFXGain.gain.setTargetAtTime(this.state.sfxVolume, this.ctx.currentTime, 0.02);
     }
   }
 
@@ -44,11 +45,11 @@ class AudioManager {
     this.state.musicVolume = Math.min(1, Math.max(0, Number(val) || 0));
     this.state.saveSettings();
     if (this.masterMusicGain && this.ctx && !this.muted) {
-      this.masterMusicGain.gain.setValueAtTime(this.state.musicVolume, this.ctx.currentTime);
+      this.masterMusicGain.gain.setTargetAtTime(this.state.musicVolume, this.ctx.currentTime, 0.02);
     }
   }
 
-  // Call when the tab becomes visible again — browsers suspend AudioContext
+  // Call when the tab becomes visible again - browsers suspend AudioContext
   resume() {
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume();
@@ -77,12 +78,14 @@ class AudioManager {
     }
   }
 
-  // Called on wave changes — music gets tenser as waves climb.
+  // Called on wave changes - music gets tenser as waves climb.
   setIntensity(wave) {
     const target = Math.min(150, 100 + (wave - 1) * 8);
     if (target !== this.tempo) {
       this.tempo = target;
-      if (this.ctx) this.startSynthMusic();
+      // Only restart a running sequencer: never resurrect music
+      // after stopAll() silenced it (tempo still applies on next start).
+      if (this.ctx && this.musicIntervalId) this.startSynthMusic();
     }
   }
 

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/fundraisers" },
   title: "Launch campaigns | 4weird Games",
   description:
-    "Gift-based backing for game launches and tech startups in Vibe Coins. Creative projects only — not charity, not investment.",
+    "Gift-based backing for game launches and tech startups in Vibe Coins. Creative projects only - not charity, not investment.",
 };
 
 export default function FundraisersPage() {

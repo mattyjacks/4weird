@@ -1,7 +1,7 @@
 /* ============ GIRLY GIRL (pink) ============
    Moved from app/globals.css during the theme split (one file per palette).
    VAST block at the bottom re-hues the hardcoded slate surfaces, gives
-   headlines a rounded voice, and rounds every corner — so pages look
+   headlines a rounded voice, and rounds every corner - so pages look
    unmistakably Girly Girl in both modes. */
 
 html.theme-girly-girl {

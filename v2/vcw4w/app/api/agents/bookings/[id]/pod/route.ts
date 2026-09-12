@@ -65,7 +65,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (gone && (action === "stop" || action === "terminate" || action === "delete")) {
       return ok({ ok: true, action, podStatus: live.ok ? live.status : "UNKNOWN", note: "Pod already exited; billing already ended." });
     }
-    return fail(`Unable to ${action} the pod (${result.error}). It may still bill; retry or stop it from the RunPod console.`, 502);
+    try {
+      console.error("[agents-pod] lifecycle failed", { action });
+    } catch {
+      // logging must never break the route
+    }
+    return fail(`Unable to ${action} the pod. It may still bill; retry or stop it from the RunPod console.`, 502);
   }
   return ok({ ok: true, action, podStatus: result.status });
 }

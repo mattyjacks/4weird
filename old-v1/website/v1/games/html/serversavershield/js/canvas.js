@@ -43,7 +43,7 @@ function resize() {
         const maxHeight = Math.max(window.innerHeight - headerSpace, 300);
         scale = Math.min(maxWidth / CANVAS_WIDTH, maxHeight / CANVAS_HEIGHT);
     } else {
-        // On desktop: fit to available width only — no height capping.
+        // On desktop: fit to available width only - no height capping.
         // The page scrolls naturally if the canvas is taller than the viewport.
         const padding = 80; // leave room for page margins/nav
         const maxWidth = Math.max(window.innerWidth - padding, 400);

@@ -1,4 +1,4 @@
-/* GraveGain2D AAA — 90 menu upgrade.
+/* GraveGain2D AAA - 90 menu upgrade.
    2D adaptation: animated gradient title (see css/60-menu.css), a tagline
    pill, a mission-stars preview row read from the SHARED story progress
    (campaign parity with 3D), daily-challenge polish class, and a Continue

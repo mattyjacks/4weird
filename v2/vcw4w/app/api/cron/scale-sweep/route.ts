@@ -5,7 +5,7 @@ import { fail, ok } from "@/lib/api-respond";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-// GET|POST /api/cron/scale-sweep — daily Automated Member Pruning sweep:
+// GET|POST /api/cron/scale-sweep - daily Automated Member Pruning sweep:
 // orgs that opted in and sit at/above their 9,000 (or custom) threshold,
 // plus clans with auto-prune on at/above 90,000 (or custom). Fired by
 // Vercel Cron daily (see vercel.json). Bearer CRON_SECRET only.

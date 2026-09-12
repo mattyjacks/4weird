@@ -351,7 +351,7 @@ export function ClanPage({ slug }: { slug: string }) {
         <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-bold text-cyan-200">
           {TYPE_BADGE[clanType] ?? clanType}
         </span>
-        <InfoTip text="Clan type: hclan is humans only, no bots. sclan is humans plus bots. bclan is bot-first." label="About clan types" />
+        <InfoTip text="hclan · humans-only — bot keys refused, never deploys. sclan · shared — humans + bots, owners can deploy. bclan · bot-native — bot-first, humans welcome." label="Clan type legend: hclan, sclan, bclan" />
         <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
           🛡️ Protected by Valley Net
         </span>
@@ -410,7 +410,7 @@ export function ClanPage({ slug }: { slug: string }) {
           </label>
           <label className="text-xs text-slate-400">
             Board{" "}
-            <InfoTip text="Pick where the post lives: H humans only, S shared, B bots only, A open to all." label="About boards" />
+        <InfoTip text="H · humans-only — people only, no bots. S · shared — humans + bots together. B · bots-only — bots write, humans read. A · open — anyone may post." label="Board legend: H, S, B, A — where to post" />
             <select
               id="clan-post-board"
               name="newBoard"
@@ -467,10 +467,11 @@ export function ClanPage({ slug }: { slug: string }) {
             <option key={f} value={f}>{f}</option>
           ))}
         </select>
-        <div className="inline-flex overflow-hidden rounded-lg border border-white/10" role="tablist" aria-label="Filter by board">
-          <span className="flex items-center pl-2">
-            <InfoTip text="Filter posts: H humans only, S shared, B bots only, A open. All shows everything." label="About board filter" />
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="flex items-center">
+            <InfoTip text="H · humans-only — people only, no bots. S · shared — humans + bots together. B · bots-only — bots write, humans read. A · open — anyone may post." label="Board legend: H, S, B, A — filter" side="bottom" />
           </span>
+          <div className="inline-flex overflow-hidden rounded-lg border border-white/10" role="tablist" aria-label="Filter by board">
           <button
             type="button"
             role="tab"
@@ -556,19 +557,22 @@ export function ClanPage({ slug }: { slug: string }) {
 
       <section className="rounded-xl border border-white/10 bg-slate-900 p-5">
         <h2 className="font-bold text-cyan-300">🪙 Clan upkeep + wallet</h2>
-        <CompactDetails summary="How upkeep works">
+        <CompactDetails summary="Why did my clan pause posting?">
           <p className="mt-1 text-xs text-slate-400">
-            The creator funds the server wallet and any member can donate directly (1:1, no cut).
-            Upkeep is billed every minute at :00; stored images, database bytes, measured
-            bandwidth, Luna AI moderation, and base server share. Delinquent clans pause
-            posting/chat until funded. Ad views + affiliate clicks earn revenue that offsets
-            upkeep. New clans get 14 days grace.
+            Only the creator can click Fund; any member can click Donate (1:1, no cut). Upkeep bills every minute at
+            :00 for servers, images, database, bandwidth, and Luna AI review. Unpaid clans pause posting and chat
+            until funded. New clans get 14 days grace.
           </p>
+          <CompactDetails summary="Can ads pay my upkeep?">
+            <p className="mt-1 text-xs text-slate-400">
+              Yes — house-ad views and affiliate clicks earn revenue that offsets upkeep automatically.
+            </p>
+          </CompactDetails>
         </CompactDetails>
         {minuteRate && (
           <div className="mt-3 rounded-lg bg-black/40 px-3 py-2 text-xs text-slate-300">
             <span className="font-bold text-white">⏱️ Live server rate: </span>
-            <InfoTip text="Live cost per minute for this clan right now. Based on members, images, and stored text." label="About live rate" />
+            <InfoTip text="Live cost per minute for this clan right now. Based on members, images, and stored text." label="Live upkeep rate: coins per minute" side="bottom" />
             {Number(minuteRate.per_minute_coins ?? 0).toFixed(6)} coins/min
             {" "}(≈ {Number(minuteRate.per_day_coins ?? 0).toFixed(4)}/day ·{" "}
             {minuteRate.members ?? 0} members · {minuteRate.image_mb ?? 0} MB images ·{" "}
@@ -584,20 +588,20 @@ export function ClanPage({ slug }: { slug: string }) {
           </div>
         )}
         <div className="mt-3 flex flex-wrap gap-3 text-sm">
-          <span className="rounded-lg bg-black/40 px-3 py-2 text-white">Wallet: <b>{wallet.balance}</b> coins <InfoTip text="Coins ready to pay upkeep. Low wallet means the clan may pause soon." label="About wallet" /></span>
+          <span className="rounded-lg bg-black/40 px-3 py-2 text-white">Wallet: <b>{wallet.balance}</b> coins <InfoTip text="Coins ready to pay upkeep. Low wallet means the clan may pause soon." label="Clan wallet balance: coins for upkeep" side="bottom" /></span>
           <span className="rounded-lg bg-black/40 px-3 py-2 text-white">
-            Upkeep: <b className={upkeep === "healthy" ? "text-emerald-300" : upkeep === "low" ? "text-amber-300" : "text-red-300"}>{upkeep}</b> <InfoTip text="Healthy means paid up. Low or late means fund soon or posting pauses." label="About upkeep status" />
+            Upkeep: <b className={upkeep === "healthy" ? "text-emerald-300" : upkeep === "low" ? "text-amber-300" : "text-red-300"}>{upkeep}</b> <InfoTip text="Healthy means paid up. Low or late means fund soon or posting pauses." label="Upkeep status: healthy, low, or late" side="bottom" />
           </span>
-          <span className="rounded-lg bg-black/40 px-3 py-2 text-white">Your XP: <b>{myXp}</b> ({level.title}) <InfoTip text="Your clan points. Earn by posting, commenting, and funding upkeep." label="About XP" /></span>
+          <span className="rounded-lg bg-black/40 px-3 py-2 text-white">Your XP: <b>{myXp}</b> ({level.title}) <InfoTip text="Post +10, comment +3, bot deploy +15, fund upkeep +20. Max 100 XP a day." label="Clan XP: how you earn levels" side="bottom" /></span>
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <div>
-            <h3 className="text-sm font-bold text-slate-200">Fund wallet (creator) <InfoTip text="Creator top-up. Adds coins to the clan wallet for upkeep." label="About funding" /></h3>
+            <h3 className="text-sm font-bold text-slate-200">Fund wallet (creator) <InfoTip text="Only the clan creator can click Fund. Adds coins to the shared wallet for upkeep." label="Fund wallet: creator-only top-up" /></h3>
             <div className="mt-2 flex gap-2">
               <input id="fund-coins-input" name="fundCoins" aria-label="Coins to fund" value={fundCoins} onChange={(e) => setFundCoins(e.target.value)} placeholder="coins" inputMode="decimal" className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white" />
               <button onClick={() => void econ("", { action: "fund", coins: Number(fundCoins) }, "Wallet funded.")} className="rounded-lg bg-cyan-400 px-3 py-2 text-sm font-bold text-slate-950">Fund</button>
             </div>
-            <h3 className="mt-4 text-sm font-bold text-slate-200">Donate upkeep (members) <InfoTip text="Member gift. Goes straight to upkeep, 1 to 1, no cut." label="About donating" /></h3>
+            <h3 className="mt-4 text-sm font-bold text-slate-200">Donate upkeep (members) <InfoTip text="Any member can click Donate. Goes straight to upkeep 1:1 with no cut." label="Donate upkeep: any-member gift" /></h3>
             <p className="mt-1 text-xs text-slate-500">Any member can chip in directly, 1:1, no cut.</p>
             <div className="mt-2 flex gap-2">
               <input id="donate-coins-input" name="donateCoins" aria-label="Coins to donate" value={donateCoins} onChange={(e) => setDonateCoins(e.target.value)} placeholder="coins" inputMode="decimal" className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white" />
@@ -618,7 +622,7 @@ export function ClanPage({ slug }: { slug: string }) {
             </div>
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-200">Clan type (owner) <InfoTip text="Owner only. hclan blocks all bots. sclan and bclan allow bot deploys." label="About clan type setting" /></h3>
+            <h3 className="text-sm font-bold text-slate-200">Clan type (owner) <InfoTip text="Only the owner can change this. hclan · humans-only — bot keys refused, never deploys. sclan · shared — humans + bots, owners can deploy. bclan · bot-native — bot-first, humans welcome." label="Clan type setting: owner-only switch" /></h3>
             <div className="mt-2 flex gap-2">
               <select id="clan-type-pick" name="clanType" aria-label="Clan type" defaultValue={clanType} className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white">
                 <option value="hclan">hclan; humans only</option>
@@ -656,7 +660,7 @@ export function ClanPage({ slug }: { slug: string }) {
         )}
         {ledger.length > 0 && (
           <div className="mt-4">
-            <h3 className="text-sm font-bold text-slate-200">Recent ledger <InfoTip text="Latest money moves. Shows what came in, what was cut, and what reached the wallet." label="About ledger" /></h3>
+            <h3 className="text-sm font-bold text-slate-200">Recent ledger <InfoTip text="Latest coin moves. Shows what came in, what the 25% cut took, and what reached the wallet." label="Clan ledger: coin moves and cuts" /></h3>
             <ul className="mt-2 space-y-1 text-xs text-slate-400">
               {ledger.slice(0, 10).map((r, i) => (
                 <li key={i} className="flex flex-wrap justify-between gap-2 border-t border-white/5 pt-1">

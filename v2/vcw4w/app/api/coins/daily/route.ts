@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   // Human-only by design: even a VALID bot key or the self-test token must
   // still face the BotID check here. External password bots and own
-  // automation may do everything else — the daily bonus stays a real human.
+  // automation may do everything else - the daily bonus stays a real human.
   const botBlock = await requireHuman(req, "POST /api/coins/daily", { allowTrustedMachine: false });
   if (botBlock) return botBlock;
   const supabase = await createClient();

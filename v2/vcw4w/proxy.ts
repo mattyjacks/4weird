@@ -14,12 +14,18 @@ export async function proxy(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/api/") &&
     (method === "POST" || method === "PUT" || method === "PATCH" || method === "DELETE")
   ) {
-    // Presence alone is not enough: require a non-empty value, otherwise a
-    // caller that can inject an empty header name (but not its secret
-    // value) would walk through the exemption with no credential at all.
+    // Presence alone is not enough: require a plausible secret shape,
+    // otherwise a caller that can inject an empty/garbage header walks
+    // through the exemption with no credential at all. Bot keys are
+    // `bot4weird_`/`vcw_live_` prefixed; cron/bearer tokens are long
+    // random strings - garbage like `x-bot-key: 1` must NOT exempt.
     const botKey = (request.headers.get("x-bot-key") ?? "").trim();
     const auth = (request.headers.get("authorization") ?? "").trim();
-    const hasSecretAuth = botKey.length > 0 || auth.length > 0;
+    const looksLikeBotKey =
+      /^(bot4weird_[A-Za-z0-9]{16,}|vcw_live_[A-Za-z0-9]{16,})$/.test(botKey);
+    const looksLikeBearer =
+      /^Bearer\s+\S{20,}$/.test(auth) || /^(x-meshy-signature|x-fal-[a-z-]+|sk-[A-Za-z0-9])/.test(auth);
+    const hasSecretAuth = looksLikeBotKey || looksLikeBearer;
     const hasSessionCookie = request.cookies
       .getAll()
       .some((c) => c.name === "kid_session" || c.name.startsWith("sb-"));

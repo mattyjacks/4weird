@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { SITE_NAV_GROUPS } from "@/lib/site-nav";
-import { favMetaFor, useFavorites } from "@/lib/favorites";
+import { favMetaFor, normalizeFavHref, useFavorites } from "@/lib/favorites";
 import { FavoriteToggle } from "@/components/site/favorite-toggle";
 import { InfoTip } from "@/components/ui/info-tip";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,10 @@ function isActive(pathname: string, href: string) {
   return path === target || path.startsWith(`${target}/`);
 }
 
+function prefersReducedMotion() {
+  return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 /**
  * Global Menu Sidebar: desktop-left drawer + mobile sheet.
  * - Hidden by default; a pill stuck to the top-left re-opens it.
@@ -34,10 +38,35 @@ export function MenuSidebar() {
   const [quick, setQuick] = useState(true);
   const [query, setQuery] = useState("");
   const [hydrated, setHydrated] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const pillRef = useRef<HTMLButtonElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  // True when the drawer was opened via keyboard (click event.detail === 0),
+  // so focus is only stolen for keyboard users, never mouse users.
+  const keyboardOpenRef = useRef(false);
+  const prevOpenRef = useRef(false);
   const panelId = useId();
-  const { favorites, toggle, isFav } = useFavorites();
+  const { favorites, hydrated: favsHydrated, toggle, isFav, notice } = useFavorites();
+  const favsHeadingRef = useRef<HTMLParagraphElement>(null);
+  const favListRef = useRef<HTMLUListElement>(null);
+
+  /**
+   * Un-star from the pinned list, then keep keyboard focus inside the
+   * panel: next/previous remaining star, else the Favorites heading.
+   * (Removing unmounts the focused button, which would drop focus to body.)
+   */
+  const handleFavRemove = (href: string) => {
+    const key = normalizeFavHref(href);
+    const idx = favoriteLinks.findIndex((l) => normalizeFavHref(l.href) === key);
+    toggle(key);
+    requestAnimationFrame(() => {
+      const buttons = favListRef.current?.querySelectorAll<HTMLButtonElement>("button[aria-pressed]");
+      const next = buttons?.[Math.min(Math.max(idx, 0), (buttons?.length ?? 1) - 1)];
+      if (next) next.focus();
+      else favsHeadingRef.current?.focus();
+    });
+  };
 
   // Restore prefs (closed by default = cleaner interface).
   useEffect(() => {
@@ -45,9 +74,15 @@ export function MenuSidebar() {
       if (localStorage.getItem(OPEN_KEY) === "1") setOpen(true);
       if (localStorage.getItem(QUICK_KEY) === "0") setQuick(false);
     } catch {
-      /* private mode — defaults stand */
+      /* private mode - defaults stand */
     }
     setHydrated(true);
+    // Mirror site-header's matchMedia pattern: track reduced-motion live.
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReducedMotion(mq.matches);
+    const onChange = () => setReducedMotion(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
   }, []);
 
   useEffect(() => {
@@ -68,19 +103,25 @@ export function MenuSidebar() {
     }
   }, [quick, hydrated]);
 
-  // Shift desktop content so the drawer docks instead of covering.
+  // Shift desktop content + footer so the drawer docks instead of covering.
   useEffect(() => {
     const main = document.getElementById("main-content");
+    const footer = document.getElementById("site-footer");
     const apply = () => {
-      if (!main) return;
+      if (!main && !footer) return;
       const desktop = window.innerWidth >= 1024;
-      main.style.transition = "margin-left 0.22s ease";
-      main.style.marginLeft = open && desktop ? "21rem" : "";
+      const margin = open && desktop ? "21rem" : "";
+      const transition = reducedMotion ? "none" : "margin-left 0.22s ease";
+      for (const el of [main, footer]) {
+        if (!el) continue;
+        el.style.transition = transition;
+        el.style.marginLeft = margin;
+      }
     };
     apply();
     window.addEventListener("resize", apply);
     return () => window.removeEventListener("resize", apply);
-  }, [open ]);
+  }, [open, reducedMotion]);
 
   // Escape closes; lock body scroll on mobile while open.
   useEffect(() => {
@@ -92,13 +133,26 @@ export function MenuSidebar() {
     const prev = document.body.style.overflow;
     const mq = window.matchMedia("(max-width: 1023px)");
     if (mq.matches) document.body.style.overflow = "hidden";
-    // Focus the panel for keyboard users.
-    closeRef.current?.focus({ preventScroll: true });
+    // Focus the panel, but only when a keyboard user opened it - mouse
+    // users keep their pointer context (event.detail === 0 means keyboard).
+    if (keyboardOpenRef.current) {
+      closeRef.current?.focus({ preventScroll: true });
+    }
+    keyboardOpenRef.current = false;
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
     };
   }, [open ]);
+
+  // Return focus to the ☰ Menu reveal pill whenever the drawer closes,
+  // so keyboard users don't lose their place when the panel unmounts.
+  useEffect(() => {
+    if (prevOpenRef.current && !open && hydrated) {
+      pillRef.current?.focus({ preventScroll: true });
+    }
+    prevOpenRef.current = open;
+  }, [open, hydrated]);
 
   // Close drawer on navigation (mobile only; desktop stays docked).
   useEffect(() => {
@@ -141,15 +195,22 @@ export function MenuSidebar() {
       {/* Reveal pill stuck to the top-left when hidden */}
       {!open && (
         <button
+          ref={pillRef}
           type="button"
-          onClick={() => setOpen(true)}
+          onClick={(event) => {
+            // event.detail === 0 means keyboard-activated: only then steal focus on open.
+            keyboardOpenRef.current = event.detail === 0;
+            setOpen(true);
+          }}
           aria-label="Open menu sidebar"
-          title="Open menu — every link explained"
-          className="fixed left-3 top-[4.25rem] z-40 inline-flex items-center gap-2 rounded-full border border-border bg-background/90 py-2 pl-3 pr-4 text-sm font-black shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:shadow-xl hover:bg-accent"
+          aria-expanded={false}
+          aria-controls={panelId}
+          title="Open menu - every link explained"
+          className="fixed left-3 top-[4.25rem] z-40 inline-flex max-w-[calc(100vw-1.5rem)] items-center gap-2 truncate rounded-full border border-border bg-background/90 py-2 pl-3 pr-4 text-sm font-black shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:shadow-xl hover:bg-accent"
         >
-          <span aria-hidden="true" className="text-base leading-none">☰</span>
-          Menu
-          <span aria-hidden="true" className="rounded-full bg-cyan-600/15 px-1.5 text-[11px] font-bold text-cyan-700 dark:text-cyan-300">
+          <span aria-hidden="true" className="shrink-0 text-base leading-none">☰</span>
+          <span className="truncate">Menu</span>
+          <span aria-hidden="true" className="shrink-0 rounded-full bg-cyan-600/15 px-1.5 text-[11px] font-bold text-cyan-700 dark:text-cyan-300">
             {totalLinks}
           </span>
         </button>
@@ -170,9 +231,12 @@ export function MenuSidebar() {
         aria-label="Site menu with link explanations"
         aria-hidden={!open}
         className={cn(
-          "fixed bottom-0 left-0 top-14 z-50 flex w-[21rem] max-w-[86vw] flex-col border-r border-border bg-background/95 shadow-2xl backdrop-blur transition-transform duration-200",
+          "fixed bottom-0 left-0 top-14 z-50 flex w-[21rem] max-w-[86vw] flex-col border-r border-border bg-background/95 shadow-2xl backdrop-blur motion-reduce:transition-none",
+          reducedMotion ? "transition-none" : "transition-transform duration-200",
           "dark:border-white/10 dark:bg-slate-950/95",
-          open ? "translate-x-0" : "pointer-events-none -translate-x-full",
+          // invisible (visibility:hidden) drops the closed drawer from the tab
+          // order; visibility flips instantly so the slide-in still animates.
+          open ? "translate-x-0" : "invisible pointer-events-none -translate-x-full",
         )}
       >
         {/* Header */}
@@ -194,7 +258,7 @@ export function MenuSidebar() {
           </button>
         </div>
 
-        {/* Search — UX trick: filter 30+ links live */}
+        {/* Search - UX trick: filter 30+ links live */}
         <div className="border-b border-border px-3 py-2 dark:border-white/10">
           <label htmlFor={`${panelId}-search`} className="sr-only">Filter menu links</label>
           <input
@@ -203,15 +267,15 @@ export function MenuSidebar() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Filter… try “gpu”, “coins”, “bot”"
-            className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm outline-none transition placeholder:text-muted-foreground/70 focus:border-cyan-500 focus:bg-background"
+            className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm outline-none transition placeholder:text-muted-foreground/70 focus:border-cyan-500 focus:bg-background focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-1"
           />
         </div>
 
-        {/* Favorites — your starred pages, always one click away */}
+        {/* Favorites - your starred pages, always one click away */}
         <div className="border-b border-border px-3 py-2 dark:border-white/10">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-600 dark:text-amber-300">
-              ★ Favorites · {favorites.length}
+            <p ref={favsHeadingRef} tabIndex={-1} className="text-xs font-black uppercase tracking-[0.2em] text-amber-600 outline-none dark:text-amber-300">
+              <span aria-hidden="true">★</span> Favorites · {favsHydrated ? favorites.length : "…"}
             </p>
             <Link
               href="/favorites"
@@ -223,12 +287,14 @@ export function MenuSidebar() {
           </div>
           {favoriteLinks.length === 0 ? (
             <p className="mt-1.5 rounded-xl bg-muted/50 px-3 py-2 text-xs leading-snug text-muted-foreground">
-              {favorites.length === 0
-                ? "No favorites yet — tap ☆ on any link to pin it here."
-                : `No favorites match “${query}”.`}
+              {!favsHydrated
+                ? "Loading your favorites…"
+                : favorites.length === 0
+                  ? <>No favorites yet — select the <span aria-hidden="true">☆</span> star on any link to pin it here.</>
+                  : `No favorites match “${query}”.`}
             </p>
           ) : (
-            <ul className="mt-1.5 space-y-0.5">
+            <ul ref={favListRef} className="mt-1.5 space-y-0.5">
               {favoriteLinks.map((link) => {
                 const active = isActive(pathname, link.href);
                 return (
@@ -239,7 +305,7 @@ export function MenuSidebar() {
                     <Link
                       href={link.href}
                       aria-current={active ? "page" : undefined}
-                      title={`${link.label} — ${link.quick}`}
+                      title={`${link.label} - ${link.quick}`}
                       className="min-w-0 flex-1 truncate text-sm font-semibold"
                     >
                       <span aria-hidden="true" className="mr-1 text-amber-500">★</span>
@@ -255,7 +321,7 @@ export function MenuSidebar() {
         </div>
 
         {/* Links */}
-        <nav aria-label="All site links" className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
+        <nav aria-label="All site links" className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-2 [-webkit-overflow-scrolling:touch]">
           {filtered.length === 0 && (
             <p className="rounded-xl border border-dashed border-border px-3 py-6 text-center text-sm text-muted-foreground">
               No links match “{query}”. <button type="button" className="font-bold underline underline-offset-4" onClick={() => setQuery("")}>Clear</button>
@@ -288,11 +354,11 @@ export function MenuSidebar() {
                       <span className="flex items-start justify-between gap-1.5">
                         <span className="min-w-0 flex-1">
                           {link.external ? (
-                            <a href={link.href} target="_blank" rel="noreferrer noopener" title={`${link.label} — ${link.quick}`} className="block">
+                            <a href={link.href} target="_blank" rel="noreferrer noopener" title={`${link.label} - ${link.quick}`} className="block">
                               {body}
                             </a>
                           ) : (
-                            <Link href={link.href} aria-current={active ? "page" : undefined} title={`${link.label} — ${link.quick}`} className="block">
+                            <Link href={link.href} aria-current={active ? "page" : undefined} title={`${link.label} - ${link.quick}`} className="block">
                               {body}
                             </Link>
                           )}

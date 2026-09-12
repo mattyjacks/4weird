@@ -1,11 +1,11 @@
-/* GraveGain2D Campaign — 10 director.
+/* GraveGain2D Campaign - 10 director.
    Wires campaign extras (registered by m01…m10 via 00-campaign-boot.js)
    into the live 2D run: mission-depth redeploy, requisition buffs,
    campaign damage multiplier, themed boss overrides, star ratings,
    fail banner.
    Mirrors gravegain3d/campaign/10-campaign-director.js, adapted for 2D:
    - 2D has no AAA bus and game.js is a closed IIFE, so this patches the
-     live window.GraveGainGame INSTANCE (own-property shadowing — the
+     live window.GraveGainGame INSTANCE (own-property shadowing - the
      prototype is untouched and endless mode is unaffected).
    - 2D rebuild function is buildDungeonLayer (same name as 3D).
    - 2D damage hooks are triggerMeleeSwing (fixed 8 melee) and
@@ -207,7 +207,7 @@
                         try {
                             var label = 'MISSION ' + mission.id + ': ' + (mission.title || '');
                             var threat = extra.threat || '';
-                            showBanner(threat ? (label + ' — ' + threat) : label);
+                            showBanner(threat ? (label + ' - ' + threat) : label);
                         } catch (_) { /* ignore */ }
                     } else {
                         try { game._campaignDmgMult = 1; } catch (_) { /* ignore */ }
@@ -265,7 +265,7 @@
             });
         } catch (_) { /* ignore */ }
 
-        // (c) dealAoEDamage: campaign damage multiplier (clean hook — dmg
+        // (c) dealAoEDamage: campaign damage multiplier (clean hook - dmg
         // is a parameter). Covers ELF nature burst / ORC rage burst.
         try {
             wrapInstance(game, 'dealAoEDamage', function (orig, args) {
@@ -332,7 +332,7 @@
                 try {
                     var victory = args.length > 0 ? args[0] : false;
                     if (victory === false && game.currentMission) {
-                        showBanner('MISSION FAILED — retry from the campaign log');
+                        showBanner('MISSION FAILED - retry from the campaign log');
                     }
                 } catch (_) { /* garnish only */ }
                 return ret;
@@ -383,7 +383,7 @@
     }
 
     // 2D game.js builds the live instance on DOMContentLoaded; patch as
-    // soon as it exists (poll briefly — never throw, never busy-loop).
+    // soon as it exists (poll briefly - never throw, never busy-loop).
     function waitForGame() {
         try {
             var game = window.GraveGainGame || null;

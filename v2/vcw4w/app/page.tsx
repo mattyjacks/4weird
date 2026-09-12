@@ -24,7 +24,7 @@ const TICKER = [
   "🎬 .blend → mp4 renders",
   "🎨 30 fal.ai studio tools",
   "👾 hclans · sclans · bclans",
-  "🪙 100 coins = exactly $1.00",
+  "🪙 100 Vibe Coins = exactly $1.00",
   "⚙️ VibeCodeWorker autoplay QA",
 ];
 
@@ -70,11 +70,11 @@ const CLASSICS = [
 const FAQS = [
   {
     q: "Do I need crypto, a GPU, or a setup guide?",
-    a: "No. A browser is enough. Sign up, grab the free 100-coin ($1.00) trial, and rent real cloud computers by the second; or just play the arcade free.",
+    a: "No. A browser is enough. Sign up, grab the free trial (100 Vibe Coins = exactly $1.00), and rent real cloud computers by the second; or just play the arcade free.",
   },
   {
-    q: "What does 100 🪙 = $1.00 actually mean?",
-    a: "Every price already includes our 25% platform cut; never added on top. The rest credits the providers and makers as on-site platform credits (cloud computing, game credits, other on-site services only; never cash-out, never withdrawable). See /pricing and /my/usage/ for the itemized proof.",
+    q: "What does 100 Vibe Coins = exactly $1.00 mean?",
+    a: "One coin always spends like $0.01, with the 25% cut already inside, never on top. The other 75% flows to providers and makers as on-site credits, never cash-out. See /pricing and /my/usage/ for the itemized proof.",
   },
   {
     q: "Can I really turn a sentence into a game?",
@@ -115,7 +115,7 @@ function DirItem({
         {more ? (
           <>
             {" "}
-            <InfoTip text={more} label={`More about ${label}`} />
+            <InfoTip text={more} label={`More about ${label}`} side="bottom" />
           </>
         ) : null}
       </p>
@@ -183,7 +183,7 @@ export default function Home() {
               </span>
               Players, builders, bots &amp; clans already inside
             </span>
-            <span className="font-mono text-xs">★ free 100 🪙 ($1.00) trial on signup ★</span>
+            <span className="font-mono text-xs">★ free trial: 100 Vibe Coins = exactly $1.00 ★</span>
           </div>
           {/* Terminal strip */}
           <div className="mt-10 grid gap-4 lg:grid-cols-2">
@@ -226,7 +226,7 @@ export default function Home() {
             {[
               ["Per-second billing", "GPUs, desktops, agents"],
               ["Real RunPod iron", "never faked, live status"],
-              ["100 🪙 = $1.00", "one coin, every surface"],
+              ["100 Vibe Coins = exactly $1.00", "one coin, every surface"],
               ["34 arcade games", "proof of the platform"],
             ].map(([stat, label]) => (
               <div key={label} className="rounded-2xl border border-border bg-card/80 p-4 backdrop-blur">
@@ -285,11 +285,13 @@ export default function Home() {
               <InfoTip
                 text="RunPod is the GPU-cloud provider our compute rents run on. Your coins pay one gross metered price; we pay RunPod out of it."
                 label="About RunPod"
+                side="bottom"
               />{" "}
               / DigitalOcean compute. Coin escrow{" "}
               <InfoTip
-                text="Escrow means your coins are held up front when you book, then settled downward by metered heartbeats — the final charge can only go down, never above escrow."
+                text="Escrow means your coins are held up front when you book, then settled downward by metered heartbeats - the final charge can only go down, never above escrow."
                 label="About escrow"
+                side="bottom"
               />
               , per-second metering. Book time, watch it work.
             </p>
@@ -436,7 +438,7 @@ export default function Home() {
             <p className="mt-2 text-sm text-muted-foreground">
               1-5 agents as ONE chatbot. Custom prompts, auto tool use
               (VibeCodeWorker, code exports, reasoning harness, media tools), per-turn
-              metering with the cut inside.
+              metering (25% cut already inside, never on top).
             </p>
             <ul className="mt-3 space-y-1 font-mono text-xs text-muted-foreground">
               <li>→ auto / lead / round-robin orchestration</li>
@@ -579,6 +581,11 @@ export default function Home() {
             <p className="mt-3 font-mono text-xs font-bold text-emerald-600 dark:text-emerald-300">/fundraisers →</p>
           </Link>
         </div>
+        <p className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+          <Link href="/games" className="text-cyan-600 hover:underline dark:text-cyan-300">Play now →</Link>
+          <Link href="/pricing" className="text-cyan-600 hover:underline dark:text-cyan-300">Get coins →</Link>
+          <Link href="/support" className="text-cyan-600 hover:underline dark:text-cyan-300">Support a creator →</Link>
+        </p>
       </section>
 
       {/* Classics; the museum wing */}
@@ -630,8 +637,9 @@ export default function Home() {
               <p className="mt-1 text-sm text-muted-foreground">
                 Agents, desktops, testing, squad workspaces; metered, escrowed{" "}
                 <InfoTip
-                  text="Escrowed means coins are held when you book and settled downward by usage heartbeats — you never pay more than escrowed. Every cent is itemized on /my/usage/."
+                  text="Escrowed means coins are held when you book and settled downward by usage heartbeats - you never pay more than escrowed. Every cent is itemized on /my/usage/."
                   label="About escrow"
+                  side="bottom"
                 />
                 , itemized on <Link href="/my/usage/" className="font-semibold text-cyan-600 hover:underline dark:text-cyan-300">/my/usage/</Link>.
               </p>
@@ -653,6 +661,11 @@ export default function Home() {
               </p>
             </div>
           </div>
+          <p className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+            <Link href="/pricing" className="text-cyan-600 hover:underline dark:text-cyan-300">Get coins →</Link>
+            <Link href="/games" className="text-cyan-600 hover:underline dark:text-cyan-300">Play now →</Link>
+            <Link href="/my/usage/" className="text-cyan-600 hover:underline dark:text-cyan-300">See itemized usage →</Link>
+          </p>
         </div>
       </section>
 
@@ -679,7 +692,7 @@ export default function Home() {
             <div className="rounded-2xl bg-white/10 p-5 backdrop-blur">
               <p className="font-mono text-xs font-bold text-amber-300">STEP 3 - GET PAID</p>
               <h3 className="mt-2 font-bold">Earn while they play</h3>
-              <p className="mt-1 text-sm text-white/75">Set your own game rates, open support tiers, or launch a campaign. 100 🪙 = $1.00.</p>
+              <p className="mt-1 text-sm text-white/75">Set your own game rates, open support tiers, or launch a campaign. 100 Vibe Coins = exactly $1.00.</p>
               <Link href="/pricing" className="mt-3 inline-block rounded-full bg-white px-5 py-2 text-sm font-bold text-slate-900 transition hover:-translate-y-0.5">Pricing →</Link>
             </div>
           </div>
@@ -695,27 +708,28 @@ export default function Home() {
           <div className="max-w-2xl">
             <h2 className="text-2xl font-black sm:text-3xl">One coin. One promise.</h2>
             <p className="mt-2 text-white/85 sm:text-lg">
-              <strong>100 🪙 = exactly $1.00.</strong> Every price already
-              includes our 25% platform cut{" "}
+              <strong>100 Vibe Coins = exactly $1.00.</strong> 25% cut already
+              inside, never on top{" "}
               <InfoTip
-                text="The 25% cut is already inside every coin price and compute meter — never added on top. The other 75% credits providers and makers as on-site platform credits."
+                text="The 25% cut already inside, never on top: every coin price and compute meter is gross. The other 75% flows to providers and makers as on-site credits, never cash-out."
                 label="About the 25% cut"
+                side="bottom"
               />
-              ; never added on top. The rest goes to the providers and makers
-              doing the work.
+              . The rest flows to the providers and makers doing the work as
+              on-site credits, never cash-out.
             </p>
             <CompactDetails
-              summary="New words? 25% cut, escrow, RunPod, BYOK, Crowns, centicentcoins"
+              summary="New words? 25% cut, escrow, RunPod + 3 more"
               hint="Plain-language definitions of the pricing jargon used across 4weird."
               className="mt-4 border-white/20 bg-white/10 text-sm text-white/85"
             >
               <ul className="list-disc space-y-1.5 pl-5 text-sm text-white/85">
-                <li><strong className="text-white">25% cut:</strong> the platform share already inside every price; the other 75% credits providers and makers as on-site platform credits.</li>
-                <li><strong className="text-white">Escrow:</strong> coins held up front on bookings, settled downward by metered heartbeats — never above escrow.</li>
+                <li><strong className="text-white">25% cut:</strong> 25% cut already inside, never on top; the other 75% flows to providers and makers as on-site credits, never cash-out.</li>
+                <li><strong className="text-white">Escrow:</strong> coins held up front on bookings, settled downward by metered heartbeats - never above escrow.</li>
                 <li><strong className="text-white">RunPod:</strong> the GPU-cloud provider our rentals run on; per-second metering, live status, no fake provisioning.</li>
-                <li><strong className="text-white">BYOK:</strong> bring your own provider keys on self-hosted plans — you pay providers at cost plus a 15% orchestration markup and the org subscription.</li>
-                <li><strong className="text-white">Crowns:</strong> earn-only credits for individual providers under Terms 8A.1 — convert 1:1 to Coins after the lock or cash out via the payout provider; never directly spendable.</li>
-                <li><strong className="text-white">Centicentcoins:</strong> the smallest ledger unit — 100 centicentcoins = 1 coin = $0.01; purchases always spend the oldest unexpired lot first.</li>
+                <li><strong className="text-white">BYOK:</strong> bring your own provider keys on self-hosted plans - you pay providers at cost plus a 15% orchestration markup and the org subscription.</li>
+                <li><strong className="text-white">Crowns:</strong> earn-only credits for individual providers under Terms 8A.1 - convert 1:1 to Coins after the lock or cash out via the payout provider; never directly spendable.</li>
+                <li><strong className="text-white">Centicentcoins:</strong> the smallest ledger unit - 100 centicentcoins = 1 coin = $0.01; purchases always spend the oldest unexpired lot first.</li>
               </ul>
             </CompactDetails>
           </div>
@@ -801,8 +815,9 @@ export default function Home() {
                   <>
                     Rent hourly agents on RunPod{" "}
                     <InfoTip
-                      text="RunPod is the GPU-cloud provider our rentals run on — per-second metering, live status, no fake provisioning."
+                      text="RunPod is the GPU-cloud provider our rentals run on - per-second metering, live status, no fake provisioning."
                       label="About RunPod"
+                      side="bottom"
                     />{" "}
                     / DigitalOcean, billed per second.
                   </>
@@ -815,8 +830,9 @@ export default function Home() {
                   <>
                     A real RunPod{" "}
                     <InfoTip
-                      text="RunPod is the GPU-cloud provider our desktops run on — a real computer in your browser, billed per second."
+                      text="RunPod is the GPU-cloud provider our desktops run on - a real computer in your browser, billed per second."
                       label="About RunPod"
+                      side="bottom"
                     />{" "}
                     desktop in your browser, per second.
                   </>
@@ -880,8 +896,9 @@ export default function Home() {
                   <>
                     How the stack works: Next.js, Supabase, RunPod{" "}
                     <InfoTip
-                      text="RunPod is the GPU-cloud provider under the stack, beside Next.js and Supabase — with one honest coin ledger over it all."
+                      text="RunPod is the GPU-cloud provider under the stack, beside Next.js and Supabase - with one honest coin ledger over it all."
                       label="About RunPod"
+                      side="bottom"
                     />
                     , and the coin ledger.
                   </>
@@ -890,8 +907,8 @@ export default function Home() {
               <DirItem
                 href="/pricing"
                 label="🪙 Pricing"
-                head="Vibe Coin packs and the 100 🪙 = $1.00 promise."
-                more="Platform cut inside every price."
+                head="Vibe Coin packs and the 100 Vibe Coins = exactly $1.00 promise."
+                more="25% cut already inside, never on top."
               />
               <DirItem
                 href="/support"
@@ -942,6 +959,7 @@ export default function Home() {
                     <InfoTip
                       text="The RunPod mirror shows your matching provider-side spend beside the coin ledger, so every cent is itemized."
                       label="About the RunPod mirror"
+                      side="bottom"
                     />
                     .
                   </>
@@ -986,7 +1004,7 @@ export default function Home() {
               Stay for the superpowers.
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-white/75 sm:text-lg">
-              Free 100 🪙 trial on signup. No credit card to play. Real GPUs
+              Free trial on signup: 100 Vibe Coins = exactly $1.00. No credit card to play. Real GPUs
               when you&apos;re ready to build.
             </p>
             <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">

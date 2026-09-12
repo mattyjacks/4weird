@@ -8,7 +8,7 @@ import { rateLimit } from "@/lib/rate-limit";
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/vcw/autoplay/[id]/heartbeat — the test-watchdog reports input
+ * POST /api/vcw/autoplay/[id]/heartbeat - the test-watchdog reports input
  * so the idle clock restarts. Creator-only (404 otherwise). Body { warned? }
  * stamps warn_chimed_at once when the client just chimed.
  */

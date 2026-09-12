@@ -1,4 +1,4 @@
-/* AssassinAnimals FX — 50 audio director.
+/* AssassinAnimals FX - 50 audio director.
    Extends the existing audio synth (never replaces): combat/stealth/alert
    layers (faster bassline on alert), footstep ticks by operative noise,
    takedown stinger, VIP fanfare, alarm loop, UI clicks. Mute persistence

@@ -1,4 +1,4 @@
-/* GraveGain2D AAA — 60 menu upgrade: animated title, tagline, stars, daily. */
+/* GraveGain2D AAA - 60 menu upgrade: animated title, tagline, stars, daily. */
 #mainMenuScreen .menu-title.aaa-title-anim {
     background: linear-gradient(110deg, #fff 15%, hsl(350,90%,55%) 38%, hsl(270,85%,60%) 52%, hsl(45,90%,55%) 66%, #fff 85%);
     background-size: 220% auto;

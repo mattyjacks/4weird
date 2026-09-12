@@ -1,7 +1,7 @@
-/* GraveGain3D AAA — 10 film.
+/* GraveGain3D AAA - 10 film.
    Installs the film treatment overlays (vignette / grain / grade) and drives
    damage flash, heal flash, low-HP pulse, and the directional hit indicator.
-   Damage is detected by polling player HP each frame — no core edits needed. */
+   Damage is detected by polling player HP each frame - no core edits needed. */
 (function () {
     'use strict';
 

@@ -1,10 +1,10 @@
-/* GraveGain2D Campaign — 30 codex unlocks.
+/* GraveGain2D Campaign - 30 codex unlocks.
    Persists mission lore unlocks to localStorage, shows CODEX UNLOCKED
    toasts, and badges newly-unlocked lore entries with a NEW pill in
    the lore list.
    Mirrors gravegain3d/campaign/30-campaign-codex.js, adapted for 2D:
    - No AAA bus: hooks the shared GraveGainStoryEngine.completeMission
-     statically (chain-safe — captures the current function, so it
+     statically (chain-safe - captures the current function, so it
      chains with the director's star-rating wrapper) and patches the
      live window.GraveGainGame instance's renderLoreList.
    - 2D lore buttons call viewLoreEntry('id') (see game.js
@@ -48,7 +48,7 @@
         return set;
     }
 
-    // Extend the existing registry in place — never replace it.
+    // Extend the existing registry in place - never replace it.
     try {
         var Camp = window.GraveGainCampaign || (window.GraveGainCampaign = {});
         Camp.getUnlockedLore = function () {

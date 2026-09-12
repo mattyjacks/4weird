@@ -1,4 +1,4 @@
-/* GraveGain3D Campaign — 00 boot.
+/* GraveGain3D Campaign - 00 boot.
    Mission-extra registry + lazy apply onto the SHARED story missions.
    Loads BEFORE campaign/m01.js … m10.js (numeric order), so the registry
    must exist first; the mission packs register via
@@ -7,7 +7,7 @@
    window.GraveGainStoryMissions IN PLACE (overwrite dialogueBefore /
    dialogueAfter, attach mission._campaign = extra) so the runtime clone in
    initRun() carries the campaign data. The shared missions file itself is
-   never edited — only the page's runtime copies are mutated.
+   never edited - only the page's runtime copies are mutated.
    Never throws during boot: every step is guarded. */
 (function () {
     'use strict';
@@ -172,7 +172,7 @@
 
     try {
         window.GraveGainCampaign = Campaign;
-    } catch (_) { /* no window — nothing to attach to */ }
+    } catch (_) { /* no window - nothing to attach to */ }
     try {
         scheduleApply();
     } catch (_) { /* never throw during boot */ }

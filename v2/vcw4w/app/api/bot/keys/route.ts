@@ -6,7 +6,7 @@ import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
 import { exceedsBodyLimit } from "@/lib/validate";
 import { cleanKeyLabel } from "@/lib/bot-validate";
-import { botPepperConfigured, botPepperIssuanceReady, botTesterBlocked, generateBotKey, isBotTester, keyPrefix, sha256Hash } from "@/lib/bot-auth";
+import { botPepperConfigured, botPepperIssuanceReady, botTesterBlocked, generateBotKey, isBotTester, keyPrefix, privilegedSessionBlocked, sha256Hash } from "@/lib/bot-auth";
 import {
   cleanBudgetCoins,
   cleanExpiryIso,
@@ -40,7 +40,7 @@ export async function GET() {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!supabaseServiceRoleKey() || !botPepperConfigured()) return fail("Bot service is not configured.", 503);
   // State-actor grade: listing is harmless, but a weak/memorable pepper means
-  // verify runs without the PQ margin — warn the operator in server logs.
+  // verify runs without the PQ margin - warn the operator in server logs.
   if (!botPepperIssuanceReady()) console.warn("[bot-keys] BOT_KEY_PEPPER weak: rotate to `openssl rand -hex 32` (keep old as BOT_KEY_PEPPER_PREVIOUS).");
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
@@ -80,6 +80,10 @@ export async function POST(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data?.user) return fail("Login required.", 401);
+  {
+    const blocked = privilegedSessionBlocked(req, data.user.id);
+    if (blocked) return fail(blocked, blocked === botTesterBlocked() ? 403 : 401);
+  }
   const throttle = rateLimit(`bot-keys-issue:${data.user.id}`, 10);
   if (!throttle.allowed) {
     return fail("Too many attempts. Try again shortly.", 429, {

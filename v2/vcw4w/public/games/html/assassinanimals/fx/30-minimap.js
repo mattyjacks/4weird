@@ -1,4 +1,4 @@
-/* AssassinAnimals FX — 30 minimap radar.
+/* AssassinAnimals FX - 30 minimap radar.
    Small canvas top-right: player/guards/VIP/elevator dots, range rings,
    fogged unless recon (hawk ping) is active. DOM created if missing. */
 (function () {
@@ -18,7 +18,7 @@
                 cv.id = 'afxMinimap';
                 cv.className = 'afx-minimap';
                 cv.width = SIZE; cv.height = SIZE;
-                cv.title = 'Tactical radar — VIP red · guards amber · elevator green';
+                cv.title = 'Tactical radar - VIP red · guards amber · elevator green';
                 vp.appendChild(cv);
             }
             if (!cx2d && cv) cx2d = cv.getContext('2d');
@@ -49,7 +49,7 @@
             var recon = !!(s.player.reconActiveTimer && s.player.reconActiveTimer > 0);
             var alert = !!(s.alerts && s.alerts.active);
 
-            // Elevator (always shown — it's the objective)
+            // Elevator (always shown - it's the objective)
             try {
                 cx2d.fillStyle = s.run.hasKey ? '#00ff66' : '#ff007f';
                 cx2d.beginPath(); cx2d.arc(px(s.map.elevator.x), py(s.map.elevator.y), 3.5, 0, Math.PI * 2); cx2d.fill();

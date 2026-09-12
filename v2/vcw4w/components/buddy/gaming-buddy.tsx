@@ -27,7 +27,7 @@ import {
 
 type BuddyMessage = { role: "buddy" | "you"; text: string; at: string; interrupted?: boolean; tag?: string };
 
-/** One buddy chat turn (JSON body or SSE done frame — same shape). */
+/** One buddy chat turn (JSON body or SSE done frame - same shape). */
 type ChatTurn = {
   reply: string;
   voice: string;
@@ -406,7 +406,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
   }, []);
 
   // Hydrate persisted prefs once after mount (post-hydration, so the SSR
-  // HTML and the first client render stay identical — no React 418).
+  // HTML and the first client render stay identical - no React 418).
   // Defaults above stay until this runs (Nova voice, tts-1, 1.0x, auto).
   useEffect(() => {
     try {
@@ -858,7 +858,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       // of dropping the exact words the user spoke to interrupt.
       queuedTurnRef.current = { text, opts, kind: "voice" };
       cancelledRef.current = false;
-      setStatus("Buddy is answering; queued your sentence — it sends the moment this turn lands.");
+      setStatus("Buddy is answering; queued your sentence - it sends the moment this turn lands.");
       return;
     }
     void talkRef.current(text, opts);
@@ -1177,7 +1177,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
           const mr = await fetch(`/api/buddy/memory?game_slug=${encodeURIComponent(gameSlug)}`, { credentials: "include" });
           const mb = await mr.json().catch(() => null);
           const len = String(mb?.memory ?? "").length;
-          setStatus(`Buddy is live as ${voice}. It reads your screen and reacts out loud.${len > 0 ? ` Memory on — remembers ${len} chars from past ${gameTitle} sessions.` : ` Memory on — nothing remembered yet for ${gameTitle}.`}`);
+          setStatus(`Buddy is live as ${voice}. It reads your screen and reacts out loud.${len > 0 ? ` Memory on - remembers ${len} chars from past ${gameTitle} sessions.` : ` Memory on - nothing remembered yet for ${gameTitle}.`}`);
         } catch {
           /* memory readout is best-effort */
         }
@@ -1203,7 +1203,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       beginSessionState(s.id, s.started_at);
       if (s.voice && s.voice !== voice) setVoice(s.voice);
       setStatus(`Resumed your open ${s.game_slug} session; nothing was lost. Talk while you play.`);
-      pushMessage({ role: "buddy", text: `Welcome back — resuming our ${s.game_slug} session. What happened while I was away?`, at: new Date().toLocaleTimeString(), tag: "resumed" });
+      pushMessage({ role: "buddy", text: `Welcome back - resuming our ${s.game_slug} session. What happened while I was away?`, at: new Date().toLocaleTimeString(), tag: "resumed" });
       void refreshWardrobe();
       void refreshSpend(s.id);
       void refreshBalance();
@@ -1410,7 +1410,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
         ...(camFrame ? { camera_image: camFrame } : {}),
       };
       // Prefer SSE so first words render live; brains/deploys that answer
-      // classically (openrouter, fallback) return JSON — same shape.
+      // classically (openrouter, fallback) return JSON - same shape.
       const chatRes = await fetch("/api/buddy/chat", {
         method: "POST",
         credentials: "include",
@@ -1548,7 +1548,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       abortRef.current = null;
       setBusy(false);
       // Flush one queued turn (voice cut-in or auto-react), unless the user
-      // cancelled — Cancel means stop everything, not "send next".
+      // cancelled - Cancel means stop everything, not "send next".
       const queued = queuedTurnRef.current;
       queuedTurnRef.current = null;
       if (queued && sessionIdRef.current && !cancelledRef.current) {
@@ -1728,7 +1728,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
 
       {!sessionId && openSessions.length > 0 && (
         <div className="mt-3 rounded-xl border border-amber-300/30 bg-amber-300/[.05] p-3 text-xs text-slate-300">
-          <p className="font-bold text-amber-100">↩️ You have {openSessions.length} open session{openSessions.length === 1 ? "" : "s"} from before — resume instead of starting fresh:</p>
+          <p className="font-bold text-amber-100">↩️ You have {openSessions.length} open session{openSessions.length === 1 ? "" : "s"} from before - resume instead of starting fresh:</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {openSessions.slice(0, 3).map((s) => (
               <button
@@ -1797,7 +1797,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
           <p>Total: <b>{spend?.total.gross ?? 0}</b> · 24h: <b>{spend?.last24h.gross ?? 0}</b> · 1h: <b>{spend?.lastHour.gross ?? 0}</b></p>
           <p className="mt-1">
             Wallet: <b className={lowBalance ? "text-amber-200" : "text-emerald-200"}>{balance === null ? "…" : `${balance} coins`}</b>
-            {lowBalance && <span className="ml-1 text-amber-200">— low! Top up before long chats.</span>}
+            {lowBalance && <span className="ml-1 text-amber-200">- low! Top up before long chats.</span>}
           </p>
           {lastCost && <p className="mt-1 text-cyan-200">{lastCost}</p>}
           <a href={sessionId ? `/my/usage/?session=${sessionId}` : "/my/usage/"} className="mt-1 inline-block text-cyan-300 hover:underline">
@@ -2016,7 +2016,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
 
       <p role="status" className="mt-3 text-sm text-slate-400">{status}</p>
       {rateWait > 0 && (
-        <p className="mt-1 text-xs text-amber-200">Rate limited — wait ~{rateWait}s before the next turn. Your wallet was not charged.</p>
+        <p className="mt-1 text-xs text-amber-200">Rate limited - wait ~{rateWait}s before the next turn. Your wallet was not charged.</p>
       )}
       {lastError && lastFailedRef.current && (
         <div className="mt-2 flex flex-wrap items-center gap-2 rounded-xl border border-rose-300/30 bg-rose-300/[.05] p-2.5 text-xs text-rose-100">

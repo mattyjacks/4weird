@@ -5,7 +5,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { sameOrigin } from "@/lib/csrf";
 import { exceedsBodyLimit } from "@/lib/validate";
 import { isBotUsername } from "@/lib/bot-validate";
-import { botTesterBlocked, isBotTester } from "@/lib/bot-auth";
+import { botTesterBlocked, isBotTester, privilegedSessionBlocked } from "@/lib/bot-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +46,10 @@ export async function POST(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data?.user) return fail("Login required.", 401);
+  {
+    const blocked = privilegedSessionBlocked(req, data.user.id);
+    if (blocked) return fail(blocked, blocked === botTesterBlocked() ? 403 : 401);
+  }
   const throttle = rateLimit(`bot-identity:${data.user.id}`, 10);
   if (!throttle.allowed) {
     return fail("Too many attempts. Try again shortly.", 429, {

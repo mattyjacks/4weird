@@ -112,7 +112,7 @@ export function FalStudio() {
         <span className="text-xs text-slate-400">{FAL_CUT_NOTE}</span>
       </div>
       <CompactDetails summary="What am I paying for?">
-        <p className="text-xs text-slate-400">Each tool lists coins per unit with the 25% cut already included. You pay the quoted gross only when a run queues.</p>
+        <p className="text-xs text-slate-400">Gross price — 25% platform cut included, never added on top. You pay the quoted gross only when a run queues.</p>
       </CompactDetails>
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -127,7 +127,7 @@ export function FalStudio() {
             <p className="text-lg">{CATEGORY_EMOJI[o.category] ?? "✨"} <strong>{o.name}</strong></p>
             <p className="mt-1 text-sm text-slate-300">{o.blurb}</p>
             <p className="mt-2 text-xs text-slate-400">{o.coinsPerUnit} coins / {o.unit} (incl. 25% cut) · {o.category}{" "}
-              <InfoTip text="Price per unit with the 25% cut included. Nothing is charged until a run queues." label="About this price" />
+              <InfoTip side="bottom" text="Gross price — 25% platform cut included, never added on top. Nothing is charged until a run queues." label="About this price" />
             </p>
           </button>
         ))}
@@ -144,12 +144,12 @@ export function FalStudio() {
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block text-sm">
               Game slug (usage is attributed per game){" "}
-              <InfoTip text="Attributes spend to one game. Use lowercase letters and dashes." label="About game slug" />
+              <InfoTip side="bottom" text="Attributes spend to one game. Use lowercase letters and dashes." label="About game slug" />
               <input value={gameSlug} onChange={(e) => setGameSlug(e.target.value.toLowerCase())} maxLength={64} className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2" placeholder="lobby" />
             </label>
             <label className="block text-sm">
               Source image_url {active?.needsImage ? "(required for this tool)" : "(optional)"}{" "}
-              <InfoTip text="Only some tools need a start image. Leave blank unless the tool says required." label="About source image" />
+              <InfoTip side="bottom" text="Only some tools need a start image. Leave blank unless the tool says required." label="About source image" />
               <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 font-mono text-xs" placeholder="https://…" />
             </label>
           </div>
@@ -161,7 +161,7 @@ export function FalStudio() {
               <button onClick={() => void poll()} className="rounded-lg border border-white/15 px-4 py-2 font-semibold">Refresh status</button>
             )}
             {!!result?.request_id && (
-              <InfoTip text="Queue sends the job to fal.ai. Refresh status polls the live queue for results." label="About queueing" />
+              <InfoTip side="bottom" text="Queue sends the job to fal.ai. Refresh status polls the live queue for results." label="About queueing" />
             )}
           </div>
         </div>

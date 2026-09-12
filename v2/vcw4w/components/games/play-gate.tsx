@@ -335,7 +335,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
   }, [slug, age, kidHandle, guestRetry, entered]);
 
   // Signed-in metering: wait for the bridge's byte report, else bill the load.
-  // Only after Start (entered): the frame — and its byte report — doesn't
+  // Only after Start (entered): the frame - and its byte report - doesn't
   // exist before the click, so the unmeasured fallback must not fire early.
   useEffect(() => {
     if (gate.kind !== "metering" || !entered) return;
@@ -462,7 +462,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
   // Branded click-to-play start screen: shown once the age pass resolves,
   // before the boot runs. The runtime iframe never mounts until Start, so
   // landing here downloads nothing, meters no coins, and burns no guest
-  // quota — the load starts (and only starts) on the click.
+  // quota - the load starts (and only starts) on the click.
   if (!entered && age === "passed") {
     return (
       <div className="overflow-hidden rounded-2xl border border-cyan-300/30 bg-gradient-to-b from-slate-950 via-black to-slate-950">

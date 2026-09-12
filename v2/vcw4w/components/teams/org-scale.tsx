@@ -42,7 +42,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 /**
- * OrgScale — big-org controls: live cap meter (10,000 + headroom, or
+ * OrgScale - big-org controls: live cap meter (10,000 + headroom, or
  * purchased seats on self-hosted servers), Automated Member Pruning
  * (opt-in at 9,000), strategy dry-runs, manual prune, paid headroom.
  */
@@ -112,7 +112,7 @@ export function OrgScale() {
       });
       setPreview(r.prune.preview ?? []);
       setVictimCount(r.prune.victims ?? 0);
-      setMessage(r.prune.victims ? `${r.prune.victims} member(s) would be pruned by ${strategy}.` : "Nobody matches — nothing would be pruned.");
+      setMessage(r.prune.victims ? `${r.prune.victims} member(s) would be pruned by ${strategy}.` : "Nobody matches - nothing would be pruned.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Dry run failed.");
     }
@@ -150,7 +150,7 @@ export function OrgScale() {
 
   return (
     <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
-      <h2 className="text-xl font-bold">📈 Scale — 10,000 seats, pruning, headroom</h2>
+      <h2 className="text-xl font-bold">📈 Scale - 10,000 seats, pruning, headroom</h2>
       <p className="mt-2 text-sm text-slate-300">
         Orgs hold up to <b>10,000 members</b> (+ prepaid headroom). Self-hosted servers are capped by{" "}
         <b>purchased seats</b> instead. Rosters page 100 at a time with search, so 8,000-member orgs
@@ -221,7 +221,7 @@ export function OrgScale() {
           </div>
           {!scale.self_hosted && (
             <div className="rounded-xl border border-white/10 p-4">
-              <p className="font-semibold">🎟️ Paid headroom — 10 coins per 100 slots (25% cut included)</p>
+              <p className="font-semibold">🎟️ Paid headroom - 10 coins per 100 slots (25% cut included)</p>
               <p className="mt-1 text-xs text-slate-400">Prepaid cloud compute that lifts the ceiling. Upkeep still meters per member afterwards.</p>
               <div className="mt-2 flex gap-2">
                 <input aria-label="Headroom slots" value={slots} onChange={(e) => setSlots(e.target.value)} inputMode="numeric" className="w-32 rounded-lg border border-white/15 bg-black/30 px-3 py-1 text-sm" />

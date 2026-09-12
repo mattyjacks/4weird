@@ -7,7 +7,7 @@ import { getPodLive, runPodLifecycle } from "@/lib/compute";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-// GET|POST /api/cron/pod-sweep — idle-lifecycle backstop for rented RunPods
+// GET|POST /api/cron/pod-sweep - idle-lifecycle backstop for rented RunPods
 // (desktops + autoplay remotes). The browser watchdog is the fast path with
 // the audible chime; this sweep covers closed browsers so idle pods can
 // never burn money forever. Fired by Vercel Cron every 15 minutes (see
@@ -81,7 +81,7 @@ async function sweepTable(
       // Terminate wins: untended past its age, running or stopped.
       if (Number.isFinite(ageMs) && ageMs >= terminateAfterMs) {
         // Confirm the pod still exists before calling terminate: an already
-        // EXITED pod bills nothing — just mark the row.
+        // EXITED pod bills nothing - just mark the row.
         const live = await getPodLive(podId);
         const gone = !live.ok || /EXITED|TERMINATED|UNKNOWN/i.test(live.status);
         if (gone) {

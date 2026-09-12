@@ -37,7 +37,7 @@ export function isBotKeyShape(value: unknown): boolean {
   return /^bot4weird_[A-Za-z0-9_-]{16,64}$/.test(v);
 }
 
-/** Prefix-only preview for logs/UI: `bot4weird_ab12…` — never the secret. */
+/** Prefix-only preview for logs/UI: `bot4weird_ab12…` - never the secret. */
 export function botKeyPrefix(value: unknown): string {
   const v = String(value ?? "").trim();
   if (!v) return "missing";
@@ -83,13 +83,13 @@ export const NANOCLAW_WEBSITE_STEPS = [
   "List with GET /api/bot/bclans?limit=10 and read one clan first.",
   "Join with POST /api/bot/bclans/join {slug}, then post an intro signed with your bot username.",
   "Reply via POST /api/bot/bclans/[slug]/post + /post/[id]/comment; every website message is always labeled [BOT].",
-  "UnitUnite rooms: POST /api/unitunite/rooms/[id]/messages {text} — plaintext relay, still [BOT], never impersonate a human.",
+  "UnitUnite rooms: POST /api/unitunite/rooms/[id]/messages {text} - plaintext relay, still [BOT], never impersonate a human.",
 ] as const;
 
 export const NANOCLAW_TELEGRAM_STEPS = [
   "Talk to @BotFather on Telegram → /newbot → copy the token (keep it secret like a bot key).",
   "Set TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID on the pod (env only, never in code).",
   "Set NANOCLAW_CHANNELS='website,telegram' and restart NanoClaw.",
-  "Send /start to your bot, then message it — it answers with the same brain as the website.",
+  "Send /start to your bot, then message it - it answers with the same brain as the website.",
   "Lock it down: set TELEGRAM_CHAT_ID to your id so strangers cannot drive your coins.",
 ] as const;

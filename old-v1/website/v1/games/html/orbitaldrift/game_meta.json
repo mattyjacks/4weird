@@ -5,5 +5,5 @@
   "known_states": ["menu", "playing", "game_over"],
   "win_condition": "Survive for as long as possible and reach the highest distance or score.",
   "avoid": "Colliding with asteroids, debris, or other orbital bodies.",
-  "tips": "Look for a Start or Play button on the menu. During gameplay the ship moves continuously — steer carefully. After game_over, a Retry or Play Again button should appear."
+  "tips": "Look for a Start or Play button on the menu. During gameplay the ship moves continuously - steer carefully. After game_over, a Retry or Play Again button should appear."
 }

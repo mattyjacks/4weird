@@ -9,7 +9,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
-import { botTesterBlocked, isBotTester } from "@/lib/bot-auth";
+import { botTesterBlocked, isBotTester, privilegedSessionBlocked } from "@/lib/bot-auth";
 import { clientIp, isUuid } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
@@ -230,6 +230,10 @@ export async function POST(req: Request) {
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Sign in with the account you want to delete.", 401);
+  {
+    const blocked = privilegedSessionBlocked(req, u.id);
+    if (blocked) return fail(blocked, blocked === botTesterBlocked() ? 403 : 401);
+  }
 
   let body: unknown;
   try {

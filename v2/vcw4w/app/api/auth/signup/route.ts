@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient, supabaseServiceRoleKey } from "@/lib/supabase/service";
-import { globalBucket, ipBucketKey, throttleHeaders } from "@/lib/abuse-limit";
+import { globalBucket, acctBucketKey, ipBucketKey, throttleHeaders } from "@/lib/abuse-limit";
 import { rateLimit } from "@/lib/rate-limit";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
   }
   // Distributed Sybil shield: the memory bucket above is per-instance, so a
   // caller spraying instances (or a slow farm) gets N x 10/min. The shared
-  // buckets cap account creation per IP at 50/hour and 200/day — farming
+  // buckets cap account creation per IP at 50/hour and 200/day - farming
   // beyond that is rejected no matter how the traffic is spread.
   for (const [scope, limit, windowSecs] of [["signup-hour", 50, 3600], ["signup-day", 200, 86400]] as const) {
     const dist = await globalBucket(ipBucketKey(req, scope), limit, windowSecs);
@@ -57,11 +57,18 @@ export async function POST(req: Request) {
   const email = isEmail(input.email);
   const password = isPassword(input.password);
   if (!email) return fail("Enter a valid email address.", 400);
+  // Enumeration shield: slow per-address signup probing regardless of IP
+  // rotation. The already-registered vs fresh branches stay distinguishable
+  // by shape (user null vs object), so rate is the defense.
+  const enumDist = await globalBucket(acctBucketKey("signup-enum", email || "invalid"), 10, 3600);
+  if (enumDist && !enumDist.allowed) {
+    return fail("Too many attempts. Wait a while and retry.", 429, throttleHeaders(enumDist.retryAfter));
+  }
   if (!password)
     return fail("Password needs 8+ characters with 3 of: lowercase, UPPERCASE, digits, symbols.", 400);
   // COPPA + global age gates: direct accounts are 13+ only. 13-17 → teen,
   // 18+ → adult. Under 13 has no direct account: a parent/guardian signs up
-  // (adult) and creates a Child sub-account instead. No DOB is collected —
+  // (adult) and creates a Child sub-account instead. No DOB is collected -
   // only this self-declared band, stored on profiles.age_band.
   const rawBand = String(input.age_band ?? input.age_group ?? "").trim().toLowerCase();
   if (rawBand === "kid" || rawBand === "child" || rawBand === "under-13" || rawBand === "under_13") {

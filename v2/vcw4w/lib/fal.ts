@@ -243,7 +243,7 @@ export function falInputFor(op: FalOp, input: { prompt: string; imageUrl?: strin
     case "capsule-art":
       return { prompt, num_images: 1, output_format: "png" };
     case "level-inpaint":
-      return { prompt, image_url: input.imageUrl ?? undefined };
+      return { prompt, image_url: input.imageUrl && isHttpsUrl(input.imageUrl) ? input.imageUrl : undefined };
     case "upscale-hd":
     case "remove-bg":
     case "depth-map":

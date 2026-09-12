@@ -22,7 +22,7 @@ export const dynamic = "force-dynamic";
  * GET /api/desktop/provision; public plan catalog (no auth, no billing).
  * Returns both Virtual Desktop plans with their official RunPod images,
  * ports, the live cheapest-with-stock pricing example (real catalog data,
- * nulls when unavailable — never a made-up price), and the idle lifecycle
+ * nulls when unavailable - never a made-up price), and the idle lifecycle
  * policy. CPU is listed first: it is the cheapest default.
  */
 export async function GET() {

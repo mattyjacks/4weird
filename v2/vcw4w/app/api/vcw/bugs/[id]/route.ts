@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
  *
  * Misfiled reports happen (wrong slug, duplicated finding, pasted secret
  * in the description). Retraction deletes the bug row; the coin ledger is
- * untouched by design — the filing fee already moved through
+ * untouched by design - the filing fee already moved through
  * meter_vcw_usage and stays auditable in /api/coins/history, exactly like
  * a refunded pack keeps its receipt. Handoffs already generated keep
  * their markdown snapshot (they are point-in-time briefs, not live views).

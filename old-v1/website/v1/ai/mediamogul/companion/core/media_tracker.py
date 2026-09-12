@@ -84,7 +84,7 @@ class MediaLibraryTracker:
 
         lines.append("\n## ⚡ Chronological Action History Log\n")
         for idx, act in enumerate(self.action_history, 1):
-            lines.append(f"### {idx}. [{act['timestamp']}] {act['actor']} — {act['action']}")
+            lines.append(f"### {idx}. [{act['timestamp']}] {act['actor']} - {act['action']}")
             lines.append("```json")
             lines.append(json.dumps(act.get("details", {}), indent=2))
             lines.append("```\n")

@@ -24,7 +24,7 @@ export default function AgentsComputePage() {
       <DocsHero
         eyebrow="Docs · the cloud gift shop"
         title={<>Rent a supercomputer <span className={theme.title}>by the second.</span></>}
-        lede={<>AI agents by the hour, virtual desktops by the second, squad workspaces with metered cloud — all in Vibe Coins, all with the 25% cut already inside the price.</>}
+        lede={<>AI agents by the hour, virtual desktops by the second, squad workspaces with metered cloud - all in Vibe Coins, all with the 25% cut already inside the price.</>}
         stats={[
           ["1s", "metering granularity"],
           ["25/75", "split, escrowed"],
@@ -42,12 +42,12 @@ export default function AgentsComputePage() {
         title="Renting AI agents (/agents)"
         body="Browse by runtime and provider, open an agent for its hourly coin price and terms, then book. NanoClaw is the recommended runtime: serverful (always-on pod) or serverless (scale-to-zero) through the same page, chatting on the website or Telegram with one bot key from /bot/setup. The flow protects you by construction:"
       />
-      <MockWindow title="booking — escrow ledger" badge="escrow">
+      <MockWindow title="booking - escrow ledger" badge="escrow">
         <div className="space-y-1.5 font-mono text-xs sm:text-sm">
           <div className="flex justify-between gap-4"><span className="text-slate-400">BOOK · 3h @ 100 🪙/hr</span><span className="font-bold text-amber-300">−300 🪙 escrowed</span></div>
           <div className="flex justify-between gap-4"><span className="text-slate-400">♥ heartbeat · 1,842s run</span><span className="text-slate-300">metered…</span></div>
           <div className="flex justify-between gap-4"><span className="text-slate-400">SETTLE · 25/75 · used 154 🪙</span><span className="font-bold text-emerald-300">+146 🪙 refunded</span></div>
-          <p className="pt-1 text-[11px] text-slate-500">final charge can only go down — never above escrow</p>
+          <p className="pt-1 text-[11px] text-slate-500">final charge can only go down - never above escrow</p>
         </div>
       </MockWindow>
       <div className="mt-5 grid gap-3 sm:grid-cols-4">
@@ -84,11 +84,11 @@ export default function AgentsComputePage() {
       />
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <div className="overflow-hidden rounded-2xl border border-border bg-card">
-          <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/10 p-4"><p className="text-3xl" aria-hidden="true">🖥️</p><p className="mt-1 font-black">CPU box — Ubuntu</p></div>
+          <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/10 p-4"><p className="text-3xl" aria-hidden="true">🖥️</p><p className="mt-1 font-black">CPU box - Ubuntu</p></div>
           <p className="p-4 text-sm text-muted-foreground">Browsing, editing, light dev. The cheap seat with a great view.</p>
         </div>
         <div className="overflow-hidden rounded-2xl border border-border bg-card">
-          <div className="bg-gradient-to-r from-violet-500/20 to-fuchsia-500/10 p-4"><p className="text-3xl" aria-hidden="true">🎮</p><p className="mt-1 font-black">GPU workstation — graphical</p></div>
+          <div className="bg-gradient-to-r from-violet-500/20 to-fuchsia-500/10 p-4"><p className="text-3xl" aria-hidden="true">🎮</p><p className="mt-1 font-black">GPU workstation - graphical</p></div>
           <p className="p-4 text-sm text-muted-foreground">Heavier visual work and game-adjacent tasks. Bring sunglasses.</p>
         </div>
       </div>
@@ -113,10 +113,10 @@ export default function AgentsComputePage() {
         title="Cloud tips that save coins"
       />
       <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
-        <li className="rounded-xl border border-border bg-card p-3">🧪 <strong className="text-foreground">Book short first sessions</strong> to calibrate cost — per-second settlement keeps tests cheap.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🧪 <strong className="text-foreground">Book short first sessions</strong> to calibrate cost - per-second settlement keeps tests cheap.</li>
         <li className="rounded-xl border border-border bg-card p-3">💰 <strong className="text-foreground">Set a max budget</strong> on desktop provisions to avoid surprises.</li>
         <li className="rounded-xl border border-border bg-card p-3">🔌 <strong className="text-foreground">End bookings, close desktops.</strong> Metering follows run time, not browser tabs.</li>
-        <li className="rounded-xl border border-border bg-card p-3">🌊 <strong className="text-foreground">Estimates aren&apos;t guarantees</strong> — capacity, queues, and provider pricing can shift. Can&apos;t start? The page says so honestly, and you aren&apos;t charged. Track it all on <Link className="underline" href="/my/usage/">/my/usage/</Link>.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🌊 <strong className="text-foreground">Estimates aren&apos;t guarantees</strong> - capacity, queues, and provider pricing can shift. Can&apos;t start? The page says so honestly, and you aren&apos;t charged. Track it all on <Link className="underline" href="/my/usage/">/my/usage/</Link>.</li>
       </ul>
 
       <AgentBotNav current="/docs/agents-compute" />

@@ -129,12 +129,12 @@ export const CLAN_COST_NOTE =
 // tribute math. The SQL migration mirrors these numbers
 // (org_member_cap / clan_member_cap / prune settings / buy_*_headroom /
 // clan_supporter_tier / run_clan_tribute_sweep); keep both sides in sync
-// when prices change — and update LICENSE alongside pricing, always.
+// when prices change - and update LICENSE alongside pricing, always.
 // ---------------------------------------------------------------------------
 
 /** Hosted orgs hold this many members (+ prepaid headroom). */
 export const ORG_MEMBER_BASE_CAP = 10000;
-/** Self-hosted orgs are capped by purchased seats instead — no 10k rule. */
+/** Self-hosted orgs are capped by purchased seats instead - no 10k rule. */
 export const ORG_SELF_HOST_CAP_BY_SEATS = true;
 /** Clans hold this many members (+ prepaid headroom). */
 export const CLAN_MEMBER_BASE_CAP = 100000;

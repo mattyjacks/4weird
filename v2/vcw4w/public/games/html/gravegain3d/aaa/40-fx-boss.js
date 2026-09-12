@@ -1,7 +1,7 @@
-/* GraveGain3D AAA — 40 boss.
+/* GraveGain3D AAA - 40 boss.
    Warden arrival gets a full boss-fight intro (letterbox + name slam + roar);
    a warden kill gets bullet-time slow-mo and a BOSS SLAIN callout.
-   Detection polls game.activeBoss — no core edits needed. */
+   Detection polls game.activeBoss - no core edits needed. */
 (function () {
     'use strict';
 

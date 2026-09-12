@@ -33,7 +33,13 @@ export async function GET() {
     bucketSize: "day",
   });
   if (!probe.ok) {
-    return ok({ configured: true, base: runpodApiBase(), live: false, error: probe.error });
+    // Never reflect provider internals (HTTP status/body) to browsers.
+    try {
+      console.error("[runpod-status] billing probe failed");
+    } catch {
+      // logging must never break the route
+    }
+    return ok({ configured: true, base: runpodApiBase(), live: false });
   }
   return ok({ configured: true, base: runpodApiBase(), live: true, buckets: probe.rows.length });
 }

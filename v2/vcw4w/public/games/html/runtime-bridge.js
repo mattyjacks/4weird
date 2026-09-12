@@ -8,9 +8,9 @@
  *   game -> host: ready, error, metering, stats, save
  *   host -> game: host-ready, load, save-ack, pause, resume, reset,
  *     a11y (colorblind filter, reduced motion, dyslexia spacing, focus
- *     rings — applied inside the frame where shell CSS cannot reach),
+ *     rings - applied inside the frame where shell CSS cannot reach),
  *     input (click / rightclick / key synthesis for face, head-pointer,
- *     dwell, and switch control — normalized 0..1 coords or iframe px).
+ *     dwell, and switch control - normalized 0..1 coords or iframe px).
  *
  * Why this exists: the preserved v1 game bundles predate the play shell, so
  * none of them post "ready". Without it the shell sits on "Loading original

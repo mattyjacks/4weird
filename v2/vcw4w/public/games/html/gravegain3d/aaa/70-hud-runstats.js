@@ -1,4 +1,4 @@
-/* GraveGain3D AAA — 70 run stats.
+/* GraveGain3D AAA - 70 run stats.
    Owns the run clock: resets shots/hits/combo on initRun, counts trigger
    pulls and confirmed hits, and stamps a stats ribbon (time · accuracy ·
    max combo · depth · kills · gold) onto the game-over screen. */

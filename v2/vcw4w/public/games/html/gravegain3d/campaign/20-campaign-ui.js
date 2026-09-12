@@ -1,4 +1,4 @@
-/* GraveGain3D Campaign — 20 campaign UI.
+/* GraveGain3D Campaign - 20 campaign UI.
    Progress header + selected-mission briefing panel on the story
    screen, mission auto-preselect, NEXT-mission button on the game-over
    screen, and a MISSION COMPLETE announcement.
@@ -103,7 +103,7 @@
         try {
             var s = Math.max(0, Math.floor(Number(seconds) || 0));
             return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
-        } catch (_) { return '—'; }
+        } catch (_) { return '-'; }
     }
 
     function fmtDuration(ms) {
@@ -114,7 +114,7 @@
             var r = s % 60;
             var mm = (h > 0 ? String(m).padStart(2, '0') : String(m)) + ':' + String(r).padStart(2, '0');
             return h > 0 ? h + ':' + mm : mm;
-        } catch (_) { return '—'; }
+        } catch (_) { return '-'; }
     }
 
     function missionStars(id) {
@@ -144,7 +144,7 @@
                 else panel.appendChild(el);
             }
             var p = progress();
-            el.textContent = 'CAMPAIGN — ' + p.done + '/10 COMPLETE · ★' + p.stars + ' STARS';
+            el.textContent = 'CAMPAIGN - ' + p.done + '/10 COMPLETE · ★' + p.stars + ' STARS';
         } catch (_) { /* never throw */ }
     }
 
@@ -316,7 +316,7 @@
                 html += '<div class="camp-meta-row"><span>Spoils</span><strong>+' + esc(gold) + 'g | +' + esc(uusd) + '$</strong></div>';
                 html += '<div class="camp-meta-row"><span>Campaign</span><strong>' + esc(p.done) + '/10 · ★' + esc(p.stars) + '</strong></div>';
                 html += '</div>';
-                html += '<div class="camp-epi-line">“Clint, old soldier — rest now. The graves are silent.” — Guy Young</div>';
+                html += '<div class="camp-epi-line">“Clint, old soldier - rest now. The graves are silent.” - Guy Young</div>';
             } else {
                 html += '<div class="camp-vict-title">🏆 MISSION ' + esc(curId) + ' COMPLETE 🏆</div>';
                 html += '<div class="camp-stars">' + (stars > 0 ? esc('★'.repeat(stars) + '☆'.repeat(3 - stars)) : '★☆☆') + '</div>';
@@ -378,7 +378,7 @@
             btn.id = 'campNextBtn';
             btn.className = 'btn-game btn-primary';
             if (curId >= 10) {
-                btn.textContent = '★ CAMPAIGN COMPLETE — VIEW LOG';
+                btn.textContent = '★ CAMPAIGN COMPLETE - VIEW LOG';
                 btn.addEventListener('click', function () {
                     try { btn.remove(); } catch (_) { /* ignore */ }
                     try {
@@ -391,7 +391,7 @@
                 var nextId = curId + 1;
                 var nextDef = missionDef(nextId);
                 var nextTitle = (nextDef && nextDef.title) ? nextDef.title : ('MISSION ' + nextId);
-                btn.textContent = 'NEXT: MISSION ' + nextId + ' — ' + String(nextTitle).toUpperCase();
+                btn.textContent = 'NEXT: MISSION ' + nextId + ' - ' + String(nextTitle).toUpperCase();
                 btn.addEventListener('click', function () {
                     try { btn.remove(); } catch (_) { /* ignore */ }
                     try {

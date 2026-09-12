@@ -631,7 +631,7 @@ function initThree() {
     createOrbitTrack(140, 0x0f766e, 0.2);
     createOrbitTrack(167.5, 0xa78bfa, 0.22);  // outer void zone edge glow
 
-    // Satellite (Player Ship) — rebuilt per selected class
+    // Satellite (Player Ship) - rebuilt per selected class
     satellite = buildSatelliteMesh(selectedShip);
     satellite.position.set(MIN_RADIUS, 0, 0);
     scene.add(satellite);
@@ -935,7 +935,7 @@ function startGame() {
             if (t) t.classList.remove('hidden');
         } else tutorialHidden = true;
     } catch { tutorialHidden = true; }
-    showWaveBanner('WAVE 1', ship().name + ' — stable drift');
+    showWaveBanner('WAVE 1', ship().name + ' - stable drift');
 }
 
 function togglePause() {
@@ -986,10 +986,10 @@ function updateHangarSummary() {
     const el = $('hangar-last-flight');
     if (!el) return;
     if (lastFlight) {
-        el.textContent = 'Last flight — ' + Math.floor(lastFlight.score) + ' pts · ' +
+        el.textContent = 'Last flight - ' + Math.floor(lastFlight.score) + ' pts · ' +
             lastFlight.shipName + ' · ' + lastFlight.time.toFixed(1) + 's · Best ' + highScore;
     } else if (highScore > 0) {
-        el.textContent = 'Welcome back, pilot — best ' + highScore + '. Choose your hull.';
+        el.textContent = 'Welcome back, pilot - best ' + highScore + '. Choose your hull.';
     } else {
         el.textContent = 'Choose your hull, pilot.';
     }
@@ -999,7 +999,7 @@ function updateShipBests() {
     document.querySelectorAll('[data-best]').forEach((el) => {
         const id = el.getAttribute('data-best');
         const best = parseInt(store.get('orbitaldrift_best_' + id, '0') || '0', 10) || 0;
-        el.textContent = best > 0 ? 'BEST ' + best : 'BEST —';
+        el.textContent = best > 0 ? 'BEST ' + best : 'BEST -';
     });
 }
 
@@ -1275,7 +1275,7 @@ function animate(currentTime = performance.now()) {
             surgeCooldown -= delta;
             if (phase === 4 && surgeCooldown <= 0 && !surgeActive) {
                 surgeActive = true; surgeT = 5;
-                showWaveBanner('⚠ SURGE', 'debris ×2 — stardust worth more');
+                showWaveBanner('⚠ SURGE', 'debris ×2 - stardust worth more');
                 sfx.playPhaseUp();
             }
             if (surgeActive) {

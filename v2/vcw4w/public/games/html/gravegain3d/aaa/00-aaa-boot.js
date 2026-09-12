@@ -1,4 +1,4 @@
-/* GraveGain3D AAA — 00 boot.
+/* GraveGain3D AAA - 00 boot.
    Namespace, event bus, ready-queue, method-wrap helper, shared ticker.
    Every other aaa/*.js file builds on window.GraveGainAAA defined here.
    Load this file FIRST (before all other aaa/*.js). */

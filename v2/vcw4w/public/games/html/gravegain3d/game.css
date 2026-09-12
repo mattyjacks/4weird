@@ -1338,12 +1338,12 @@ body.touch-enabled .game-main {
     flex-direction: column;
 }
 
-/* Desktop HUD is hidden on touch — we use the mini-HUD overlay instead */
+/* Desktop HUD is hidden on touch - we use the mini-HUD overlay instead */
 body.touch-enabled .game-hud {
     display: none;
 }
 
-/* Control mode bar hidden on touch — we use the floating panel */
+/* Control mode bar hidden on touch - we use the floating panel */
 body.touch-enabled #controlModesBar {
     display: none;
 }

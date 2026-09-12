@@ -351,9 +351,9 @@ export function generateGameSource(
   const title = variant > 0 ? `${titleFromPrompt(prompt)} (${archetype} Mk${variant + 1})` : `${titleFromPrompt(prompt)} (${archetype})`;
   const safeTitle = escapeHtml(title);
   // Dashes collapsed: safePrompt lands inside an HTML comment, where a raw
-  // `--` would close the comment early (tags still can't form — <> are
-  // escaped — but the manifest would leak as visible text).
-  const safePrompt = escapeHtml(prompt.slice(0, 120)).replace(/--/g, "–");
+  // `--` would close the comment early (tags still can't form - <> are
+  // escaped - but the manifest would leak as visible text).
+  const safePrompt = escapeHtml(prompt.slice(0, 120)).replace(/--/g, "-");
 
   const variantJitter = variant * 1.7 + rand() * 1.2;
   const enemies = 3 + quality + (variant > 0 ? variant % 3 : 0); // 3..15, diverges per instance
@@ -579,14 +579,14 @@ export function buildVaultBundle(opts: {
 <script src="js/game.js"></script>
 </body>
 </html>`;
-  const report = `# ${opts.title} — VCW test report\n\n- Verdict: **${opts.test.verdict}** (${opts.test.loops} loops)\n- Checks: ${opts.test.checks.filter((c) => c.passed).length}/${opts.test.checks.length} green\n- Iterations: ${opts.iterations.length}\n\n## Checks\n${opts.test.checks.map((c) => `- ${c.passed ? "✅" : "❌"} ${c.label}${c.passed ? "" : ` — ${c.detail}`}`).join("\n")}\n\n## Steps\n${opts.test.steps.map((s, i) => `${i + 1}. ${s}`).join("\n")}\n\n## Findings\n${opts.test.findings.length ? opts.test.findings.map((f) => `- [${f.severity}] ${f.title}: ${f.description}`).join("\n") : "None."}\n`;
+  const report = `# ${opts.title} - VCW test report\n\n- Verdict: **${opts.test.verdict}** (${opts.test.loops} loops)\n- Checks: ${opts.test.checks.filter((c) => c.passed).length}/${opts.test.checks.length} green\n- Iterations: ${opts.iterations.length}\n\n## Checks\n${opts.test.checks.map((c) => `- ${c.passed ? "✅" : "❌"} ${c.label}${c.passed ? "" : ` - ${c.detail}`}`).join("\n")}\n\n## Steps\n${opts.test.steps.map((s, i) => `${i + 1}. ${s}`).join("\n")}\n\n## Findings\n${opts.test.findings.length ? opts.test.findings.map((f) => `- [${f.severity}] ${f.title}: ${f.description}`).join("\n") : "None."}\n`;
   const meta = JSON.stringify(
     { slug: opts.slug, title: opts.title, prompt: opts.prompt, quality: opts.quality, instanceId: opts.instanceId, folder, verdict: opts.test.verdict, iterations: opts.iterations.length, falNote: opts.falNote ?? "" },
     null,
     2,
   );
   const iterLog = opts.iterations
-    .map((it, i) => `## Iteration ${i + 1} — ${it.title} (variant ${it.variant})\n- slug: ${it.slug}\n- verdict: ${it.test.verdict} (${it.test.checks.filter((c) => c.passed).length}/${it.test.checks.length})\n- improvements next: ${it.improvements.join("; ")}\n`)
+    .map((it, i) => `## Iteration ${i + 1} - ${it.title} (variant ${it.variant})\n- slug: ${it.slug}\n- verdict: ${it.test.verdict} (${it.test.checks.filter((c) => c.passed).length}/${it.test.checks.length})\n- improvements next: ${it.improvements.join("; ")}\n`)
     .join("\n");
   const files: VaultFile[] = [
     { path: `${folder}/html/index.html`, content: html, bytes: html.length },

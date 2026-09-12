@@ -65,7 +65,7 @@ const PROFILES = {
 };
 
 const TERMS = [
-    { term: "401(k) Plan", definition: "A tax-advantaged, employer-sponsored retirement account. Contributions are made pre-tax (reducing your taxable income), and employers often match a portion of your contributions—which is essentially free money." },
+    { term: "401(k) Plan", definition: "A tax-advantaged, employer-sponsored retirement account. Contributions are made pre-tax (reducing your taxable income), and employers often match a portion of your contributions-which is essentially free money." },
     { term: "Roth IRA", definition: "An individual retirement account where you contribute post-tax dollars. The growth and withdrawals in retirement are 100% tax-free, making it extremely powerful for long-term compound growth." },
     { term: "HSA (Health Savings Account)", definition: "A triple-tax-advantaged account available to those with High Deductible Health Plans (HDHP). Contributions are tax-deductible, growth is tax-free, and withdrawals for medical expenses are tax-free." },
     { term: "FI-Number (Financial Independence)", definition: "Based on the 4% Rule of Thumb. If you accumulate 25 times your annual expenses in investments, you can safely withdraw 4% annually to cover your living costs forever without running out of money." },

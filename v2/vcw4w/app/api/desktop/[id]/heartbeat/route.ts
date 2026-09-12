@@ -8,7 +8,7 @@ import { rateLimit } from "@/lib/rate-limit";
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/desktop/[id]/heartbeat — the browser watchdog reports input
+ * POST /api/desktop/[id]/heartbeat - the browser watchdog reports input
  * activity so the idle clock (60-min warn chime → +15-min stop → 24h
  * terminate) restarts. Creator-only (404 otherwise, never confirm the row).
  * Body: {} (empty OK) or { warned?: boolean } when the client just chimed,

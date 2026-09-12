@@ -1,4 +1,4 @@
-# Repo-root Docker context ignore — keeps `docker build -f website/v1/ai/vibecodeworker/Dockerfile .`
+# Repo-root Docker context ignore - keeps `docker build -f website/v1/ai/vibecodeworker/Dockerfile .`
 # fast by excluding everything the headless image never needs.
 .git
 node_modules

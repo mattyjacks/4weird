@@ -24,7 +24,7 @@ function statusOf(message: string): number {
 
 const STRATEGIES = ["oldest_activity_first", "random_chance", "oldest_joined_first", "never_contributed"];
 
-// GET /api/clans/[slug]/scale — public: member count, cap (100k + headroom),
+// GET /api/clans/[slug]/scale - public: member count, cap (100k + headroom),
 // prune settings, supporter status, tribute status. One round trip for the
 // clan scale + commons panel.
 export async function GET(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
@@ -51,10 +51,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
   return ok({ scale, supporters, tribute });
 }
 
-// POST /api/clans/[slug]/scale — owner/mod controls.
+// POST /api/clans/[slug]/scale - owner/mod controls.
 // { action: "prune-settings", auto_enabled, threshold?, batch_size?, strategy? }
 // { action: "prune", strategy?, limit?, user_ids?, dry_run? }
-// { action: "headroom", slots } — 10 coins per 1,000 bonus slots.
+// { action: "headroom", slots } - 10 coins per 1,000 bonus slots.
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);

@@ -1,4 +1,4 @@
-/* AssassinAnimals FX — 00 boot.
+/* AssassinAnimals FX - 00 boot.
    Shared namespace, safe DOM helpers, event bus. All modules guard DOM,
    never throw, and stay mobile-safe. Adapted from gravegain3d/aaa patterns
    (boot/registry idea) without Three.js. */

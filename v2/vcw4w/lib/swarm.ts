@@ -301,7 +301,7 @@ export const SWARM_CUT_NOTE = `Includes ${SWARM_COMPUTE_CUT_PCT}% platform cut (
 /* ---------------------------------------------------------------------------
  * Prompt-driven auto-config (pure + deterministic).
  * The surface stays simple (just chat), but the swarm stays powerful: a
- * plain-English directive inside any message — or a /slash command — can
+ * plain-English directive inside any message - or a /slash command - can
  * retune the session's advanced settings, and the same fields are PATCHable
  * over the API. Same inputs -> same outputs; unknown text -> no updates.
  *

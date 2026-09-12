@@ -107,6 +107,13 @@ export async function POST(req: Request) {
         }
         bytes = Buffer.concat(chunks);
         mime = (res.headers.get("content-type") ?? "application/octet-stream").slice(0, 128);
+        // Stored-XSS guard (mirrors vault/blobs): never store browser-active
+        // markup fetched from a remote URL inline. Coerce to a safe type so
+        // opening the signed URL cannot execute attacker HTML/SVG/JS from a
+        // trusted Supabase origin.
+        if (/^\s*(text\/html|image\/svg\+xml|application\/xhtml\+xml|text\/xml|application\/xml|multipart\/related|text\/javascript|application\/javascript|application\/ecmascript|text\/ecmascript)\s*(;|$)/i.test(mime)) {
+          mime = "application/octet-stream";
+        }
       } finally {
         clearTimeout(timer);
       }

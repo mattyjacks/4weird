@@ -1,7 +1,7 @@
 {
     "title": "GraveGain3D",
     "slug": "gravegain3d",
-    "description": "A dark fantasy action RPG featuring emoji-based 3D billboard visuals, immersive real-time lighting, procedural dungeons, a dialogue system, and a starship management hub. v3.0.0 adds a full 10-mission story campaign across 7 dungeon themes with 10 unique bosses, per-mission briefing and title cards, and 1-3 star mission ratings — plus the AAA presentation layer: cinematic intros, killstreak announcer, boss cinematics with slow-mo slays, objective tracker, tutorials, run stats, and adaptive audio.",
+    "description": "A dark fantasy action RPG featuring emoji-based 3D billboard visuals, immersive real-time lighting, procedural dungeons, a dialogue system, and a starship management hub. v3.0.0 adds a full 10-mission story campaign across 7 dungeon themes with 10 unique bosses, per-mission briefing and title cards, and 1-3 star mission ratings - plus the AAA presentation layer: cinematic intros, killstreak announcer, boss cinematics with slow-mo slays, objective tracker, tutorials, run stats, and adaptive audio.",
     "genre": "RPG",
     "tags": ["HTML5", "Action", "RPG", "Rogue-like", "Three.js", "3D"],
     "maker": {

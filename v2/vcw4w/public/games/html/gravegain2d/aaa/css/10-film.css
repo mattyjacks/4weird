@@ -1,4 +1,4 @@
-/* GraveGain2D AAA — 10 film treatment (2D canvas adaptation).
+/* GraveGain2D AAA - 10 film treatment (2D canvas adaptation).
    Overlays sit inside #canvasContainer (position:relative, overflow:hidden)
    above the canvases but below mobile controls. All pointer-events:none. */
 #canvasContainer .aaa-vignette,

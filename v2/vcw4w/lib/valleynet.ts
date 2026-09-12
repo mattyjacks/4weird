@@ -2,7 +2,7 @@
  * Valley Net; the 4weird defense bot / automod layer for clans.
  *
  * Medium-bar, lenient on purpose: posts go through by default and are only
- * held or refused when bad text is CLEARLY there — i.e. an obvious Terms of
+ * held or refused when bad text is CLEARLY there - i.e. an obvious Terms of
  * Use violation (Section 2: illegal content, harassment/hate/threats,
  * sexual content involving minors, fraud/scams/spam floods, IP abuse).
  * Heated debate, trash-talk, profanity, caps, and ordinary links are NOT
@@ -19,7 +19,7 @@
  * (refuse with 403 + log). Fail-open like Luna: when everything is
  * unavailable the verdict is allow and the quarantine net (reports) remains.
  * A single weak signal (a few links, caps, a repeat burst) is NOT enough to
- * hold a post — quarantine needs Luna's explicit BLOCK or two independent
+ * hold a post - quarantine needs Luna's explicit BLOCK or two independent
  * weak signals, and block needs an unmistakable spam/scam flood.
  * Every non-allow verdict should be logged via logValleynetAction (service
  * role, best-effort, never throws).

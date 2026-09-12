@@ -351,7 +351,7 @@
             persistPreset($('settingsGraphicsPreset') ? ($('settingsGraphicsPreset').value || applied) : applied);
             setResultLine('Detected: <strong>' + applied + '</strong>' +
                 (avgFps ? ' (' + avgFps + ' fps avg)' : '') +
-                ' — applied: <strong>' + applied + '</strong>');
+                ' - applied: <strong>' + applied + '</strong>');
             if (!opts.silent) notify('⚙ Graphics: ' + applied + (avgFps ? ' (' + avgFps + ' fps)' : ''));
             return applied;
         };
@@ -449,7 +449,7 @@
         if (state.lastBenchmark) {
             setResultLine('Detected: <strong>' + state.lastBenchmark.preset + '</strong>' +
                 (state.lastBenchmark.avgFps ? ' (' + state.lastBenchmark.avgFps + ' fps avg)' : '') +
-                ' — applied: <strong>' + (state.current || state.lastBenchmark.preset) + '</strong>');
+                ' - applied: <strong>' + (state.current || state.lastBenchmark.preset) + '</strong>');
         } else if (state.current) {
             setResultLine('Applied preset: <strong>' + state.current + '</strong>');
         }

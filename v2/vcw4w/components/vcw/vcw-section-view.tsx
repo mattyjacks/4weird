@@ -74,6 +74,7 @@ export function VcwSectionView({
             title={frameTitle}
             className="h-[80vh] w-full"
             allowFullScreen
+            sandbox="allow-scripts allow-same-origin"
           />
         </div>
         <p className="mt-3 text-xs text-slate-500">

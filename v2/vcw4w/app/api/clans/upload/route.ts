@@ -84,7 +84,7 @@ export async function POST(req: Request) {
   const bytes = new Uint8Array(buf);
   const kind = MAGIC.find((m) => m.check(bytes));
   if (!kind) return fail("Not a supported image (PNG/JPEG/WebP/GIF only).", 400);
-  // Polyglot guard: magic bytes alone don't prove "just an image" — an
+  // Polyglot guard: magic bytes alone don't prove "just an image" - an
   // HTML/JS payload appended after a valid header still served from a
   // trusted origin is stored XSS. Scan head+tail for active markup.
   {

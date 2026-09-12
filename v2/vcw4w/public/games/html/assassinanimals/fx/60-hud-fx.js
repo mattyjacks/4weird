@@ -1,4 +1,4 @@
-/* AssassinAnimals FX — 60 hud-fx.
+/* AssassinAnimals FX - 60 hud-fx.
    Objective tracker (VIP + keycard + elevator arrow), detection floaters
    (❓/❗ projected above guards), directional damage vignette, VIP health
    pips, low-HP pulse, follow-light sweep, footprint trails in foliage,
@@ -18,8 +18,8 @@
         if (tracker && !tracker.dataset.built) {
             tracker.dataset.built = '1';
             tracker.innerHTML = '<div class="afx-obj-title">◈ CONTRACT</div>' +
-                '<div class="afx-obj-row"><span>🎯 VIP</span><strong class="afx-obj-vip">–</strong></div>' +
-                '<div class="afx-obj-row"><span>🔑 Keycard</span><strong class="afx-obj-key">–</strong></div>' +
+                '<div class="afx-obj-row"><span>🎯 VIP</span><strong class="afx-obj-vip">-</strong></div>' +
+                '<div class="afx-obj-row"><span>🔑 Keycard</span><strong class="afx-obj-key">-</strong></div>' +
                 '<div class="afx-obj-row"><span>🛗 Elevator</span><strong class="afx-obj-arrow">➤</strong></div>';
         }
         var pips = FX.mk('afxVipPips', 'afx-vip-pips', vp);
@@ -56,12 +56,12 @@
             return;
         }
 
-        // — Objective tracker —
+        // - Objective tracker -
         try {
             var vips = s.guards.filter(function (x) { return x.isVIP && x.state !== 'PACIFIED'; }).length;
             p.tracker.style.display = 'block';
             p.tracker.querySelector('.afx-obj-vip').textContent = vips + ' left';
-            p.tracker.querySelector('.afx-obj-key').textContent = s.run.hasKey ? 'SECURED' : '—';
+            p.tracker.querySelector('.afx-obj-key').textContent = s.run.hasKey ? 'SECURED' : '-';
             p.tracker.querySelector('.afx-obj-key').className = 'afx-obj-key ' + (s.run.hasKey ? 'yes' : 'no');
             var ang = Math.atan2(s.map.elevator.y - s.player.y, s.map.elevator.x - s.player.x) * 180 / Math.PI;
             var arrow = p.tracker.querySelector('.afx-obj-arrow');
@@ -71,7 +71,7 @@
             p.tracker.querySelector('.afx-obj-row:last-child span').textContent = '🛗 Elevator ' + Math.round(dist / 50) + 'm';
         } catch (e) {}
 
-        // — VIP health pips —
+        // - VIP health pips -
         try {
             var vipList = s.guards.filter(function (x) { return x.isVIP; }).slice(0, 3);
             if (!vipList.length) { p.pips.style.display = 'none'; }
@@ -88,7 +88,7 @@
             }
         } catch (e) {}
 
-        // — Detection floaters ❓/❗ (pooled, projected) —
+        // - Detection floaters ❓/❗ (pooled, projected) -
         try {
             p.floats.style.display = 'block';
             var need = 0;
@@ -116,7 +116,7 @@
             for (var i = need; i < floatPool.length; i++) { try { floatPool[i].style.display = 'none'; } catch (e2) {} }
         } catch (e) {}
 
-        // — Directional damage vignette + low-HP pulse —
+        // - Directional damage vignette + low-HP pulse -
         try {
             var hp = s.player.hp;
             if (lastHp >= 0 && hp < lastHp - 0.5) {
@@ -135,7 +135,7 @@
             p.low.classList.toggle('on', frac < 0.32 && hp > 0);
         } catch (e) {}
 
-        // — Follow-light sweep (soft gradient tracking player) —
+        // - Follow-light sweep (soft gradient tracking player) -
         try {
             var sc2 = worldToScreen(s, s.player.x, s.player.y);
             if (sc2) {
@@ -144,7 +144,7 @@
             }
         } catch (e) {}
 
-        // — Muzzle flashes: new bullets spawn a spark at origin —
+        // - Muzzle flashes: new bullets spawn a spark at origin -
         try {
             if (F && F.spawnParticle && s.bullets.length > lastBulletN) {
                 for (var b = lastBulletN; b < s.bullets.length; b++) {
@@ -158,7 +158,7 @@
             lastBulletN = s.bullets.length;
         } catch (e) {}
 
-        // — Footprint trails in foliage + acid/spark variety on the move —
+        // - Footprint trails in foliage + acid/spark variety on the move -
         try {
             muzzleAcc++;
             if (F && F.spawnParticle && s.player.inCover && muzzleAcc % 6 === 0) {

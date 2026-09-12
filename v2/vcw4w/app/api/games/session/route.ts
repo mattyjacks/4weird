@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     // Server-side age enforcement for full accounts (client PlayGate also
     // gates, but the server is authoritative): Adults (18+) titles require a
     // self-declared adult band. Teen/unknown/legacy-kid bands are blocked
-    // outright — a DOB entry cannot bypass the band. Teens (13+) pass teens
+    // outright - a DOB entry cannot bypass the band. Teens (13+) pass teens
     // titles; kids titles pass for all 13+ bands. Under-13s have no full
     // account and play only via Child sessions (kidSessionPlay below).
     try {
@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
   // user_id = parent): a parent session driving a kid session_id would bill
   // the parent ledger and skip kid guards. Reject with a redirect to Child
   // login instead. Runs on the service client (owner check, no RLS bypass
-  // for writes — the RPC below still enforces auth.uid()).
+  // for writes - the RPC below still enforces auth.uid()).
   async function isKidRow(sessionId: string): Promise<boolean> {
     try {
       const svc = serviceClient();

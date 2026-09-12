@@ -1,4 +1,4 @@
-/* GraveGain3D Campaign — 30 codex unlocks.
+/* GraveGain3D Campaign - 30 codex unlocks.
    Persists mission lore unlocks to localStorage, shows CODEX UNLOCKED
    toasts, announces the update, and badges newly-unlocked lore entries
    with a NEW pill in the lore list.
@@ -41,7 +41,7 @@
         return set;
     }
 
-    // Extend the existing registry in place — never replace it.
+    // Extend the existing registry in place - never replace it.
     try {
         var Camp = window.GraveGainCampaign || (window.GraveGainCampaign = {});
         Camp.getUnlockedLore = function () {
@@ -120,8 +120,8 @@
     var EPILOGUE_CODEX = ['lucifer_manifesto', 'human_earth_letter', 'gods_necros_speaks'];
 
     // Nearest-valid-key replacements for lore IDs that no longer exist.
-    // (Empty today — every shipped loreUnlocks ID was verified against
-    // lore.js — but the mechanism stays so one bad ID can't void a batch.)
+    // (Empty today - every shipped loreUnlocks ID was verified against
+    // lore.js - but the mechanism stays so one bad ID can't void a batch.)
     var LORE_FALLBACK = {
         // Example shape: 'removed_id': 'lucifer_manifesto'
     };

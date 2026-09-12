@@ -132,7 +132,7 @@ export function MeshyStudio() {
             <p className="mt-1 text-xs text-muted-foreground">{o.blurb}</p>
             <p className="mt-2 font-mono text-xs text-cyan-600 dark:text-cyan-300">
               {o.coinsPerUnit} coins · {o.mode}{" "}
-              <InfoTip text="Mode is the Meshy pipeline used; coins is the flat quote with the cut included." label="About mode and price" />
+              <InfoTip side="bottom" text="Gross price — 25% platform cut included, never added on top. Mode is the Meshy pipeline used." label="About mode and price" />
             </p>
           </button>
         ))}

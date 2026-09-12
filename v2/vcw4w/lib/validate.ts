@@ -104,6 +104,11 @@ export function jsonBytes(value: unknown): number {
 export function clientIp(request: Request): string {
   const vercelForwarded = (request.headers.get("x-vercel-forwarded-for") ?? "").trim().split(",")[0]?.trim() ?? "";
   if (vercelForwarded && /^[A-Za-z0-9:.]{1,64}$/.test(vercelForwarded)) return vercelForwarded;
+  // Production: only the Vercel edge header is trusted. x-forwarded-for is
+  // client-supplied and let callers rotate IPs per request to bypass every
+  // IP-keyed throttle (signup farm, guest quotas). Bucket spoofed/direct
+  // traffic together as "unknown" so rotation buys nothing.
+  if (process.env.VERCEL === "1" || process.env.NODE_ENV === "production") return "unknown";
   const fwd = request.headers.get("x-forwarded-for") ?? "";
   const first = fwd.split(",").map((part) => part.trim()).filter(Boolean)[0] ?? "";
   if (first && /^[A-Za-z0-9:.]{1,64}$/.test(first)) return first;

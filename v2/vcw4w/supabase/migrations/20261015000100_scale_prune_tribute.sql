@@ -4,7 +4,7 @@
 --
 -- SCALE CAPS (hard, exact, race-safe via per-org/per-clan advisory locks):
 --   orgs:  10,000 members + purchased headroom, UNLESS the org is on a
---          self-hosted customer server — then the cap is the seat count on
+--          self-hosted customer server - then the cap is the seat count on
 --          its self-host license (public.self_host_licenses, sales/admin
 --          provisioned; extra seats are bought as seats, not headroom).
 --   clans: 100,000 members + purchased headroom.
@@ -21,9 +21,9 @@
 -- owner / clan owner-mod) can always prune manually, targeted or by
 -- strategy, with dry_run previews. Owners are never pruned; joins younger
 -- than 7 days are spared by strategy sweeps (targeted removes skip the
--- grace — an explicit human decision needs no waiting period).
+-- grace - an explicit human decision needs no waiting period).
 --
--- PAID HEADROOM (the bypass): extra seats are prepaid cloud compute —
+-- PAID HEADROOM (the bypass): extra seats are prepaid cloud compute -
 --   orgs:  10 coins per 100 bonus slots,   clans: 10 coins per 1,000 slots,
 -- 25% platform cut INCLUDED (platform keeps the cut by omission, exactly
 -- like clan posting fees). Receipts land in public.scale_purchases.
@@ -33,16 +33,16 @@
 -- and every supporter has an exact lifetime total with a tier
 -- (Ember >= 1, Spark >= 25, Beacon >= 100, Patron >= 500, Legend >= 2500).
 --
--- TRIBUTE / GLOBALIZE (the commons): donations are recorded as vintages —
+-- TRIBUTE / GLOBALIZE (the commons): donations are recorded as vintages -
 -- one row per consumed coin lot (mixed-lot donations split across their
 -- lots, each keeping its own 1-year expiry). After 6 months past the
 -- average upkeep reserve, surplus vintages become eligible, oldest-expiry
 -- first. Coins older than 12 months are GLOBALIZED into the central
--- reserve; 6–12-month coins are GIVEN AS TRIBUTE (70% to the poorest
+-- reserve; 6-12-month coins are GIVEN AS TRIBUTE (70% to the poorest
 -- clans, 20% to the reserve, 10% to poor individuals). At most 50% of a
 -- clan's all-time donations can ever leave, and at most ~1% of the
 -- eligible surplus leaves per day (exponential decay, ~69-day half-life).
--- Expired lots can never be tributed — they stay home. The reserve
+-- Expired lots can never be tributed - they stay home. The reserve
 -- auto-rescues delinquent clans (up to 7 days of upkeep each).
 -- Tribute is final: gifts, not charity, not investment, no cash-out.
 -- ============================================================================
@@ -845,7 +845,7 @@ grant execute on function public.run_clan_auto_prune() to service_role;
 -- like clan posting fees; the buyer pays gross personal coins).
 --   orgs:  10 coins per 100 bonus slots (100..100,000 slots per purchase).
 --   clans: 10 coins per 1,000 bonus slots (1,000..1,000,000 per purchase).
--- Upkeep still meters per member afterwards — headroom lifts the ceiling,
+-- Upkeep still meters per member afterwards - headroom lifts the ceiling,
 -- it does not pay the rent.
 -- --------------------------------------------------------------------------
 alter table public.scale_purchases enable row level security;
@@ -978,7 +978,7 @@ grant execute on function public.clan_scale_status(uuid) to anon, authenticated;
 -- --------------------------------------------------------------------------
 -- 8. Total Clan Support: every donation/funding lands an exact receipt row,
 -- plus one vintage row per consumed coin lot (mixed-lot donations split
--- across their lots, each keeping its own 1-year expiry — read straight
+-- across their lots, each keeping its own 1-year expiry - read straight
 -- off coin_lot_spends for the debit, so the vintages always agree with
 -- the FIFO ledger). donate_clan_upkeep + fund_clan_wallet are redefined
 -- here with identical economics plus the receipts (old files untouched).
@@ -1149,7 +1149,7 @@ grant execute on function public.fund_clan_wallet(uuid, numeric) to authenticate
 
 -- Backfill receipts for pre-vintage donations (single vintage each; their
 -- own lot expiries are unknowable, so they carry a fresh 6-month clock
--- from now — never punished retroactively, never eligible instantly).
+-- from now - never punished retroactively, never eligible instantly).
 -- Donor identity for old rows is not stored in clan_cost_ledger, so these
 -- backfilled rows are donor-anonymous (donor_id null) by necessity.
 insert into public.clan_donations (clan_id, donor_id, coins, kind, created_at)
@@ -1331,7 +1331,7 @@ grant execute on function public.clan_tribute_status(uuid) to anon, authenticate
 
 -- Daily commons sweep (service_role only): expire stale vintages, move up
 -- to ~1% of each rich clan's eligible surplus (oldest-expiry first;
--- >=12mo GLOBALIZED to the reserve, 6–12mo GIVEN AS TRIBUTE split 70%
+-- >=12mo GLOBALIZED to the reserve, 6-12mo GIVEN AS TRIBUTE split 70%
 -- poorest clans / 20% reserve / 10% poor individuals), then spend the
 -- reserve rescuing delinquent clans. One sick clan never blocks the rest.
 create or replace function public.run_clan_tribute_sweep()
@@ -1350,7 +1350,7 @@ declare r record;
 begin
   perform pg_advisory_xact_lock(hashtext('clan-tribute-sweep'));
 
-  -- Expired lots can never travel — they stay home (wallets untouched).
+  -- Expired lots can never travel - they stay home (wallets untouched).
   update public.clan_donation_vintages set status = 'expired'
   where status = 'active' and expires_at <= now();
 
@@ -1380,7 +1380,7 @@ begin
       v_move := floor(v_pool * 0.01 * 100) / 100.0;
       if v_move < 1 then continue; end if;
 
-      -- Oldest-expiry first; >=12 months old GLOBALIZES, 6–12 months TRIBUTES.
+      -- Oldest-expiry first; >=12 months old GLOBALIZES, 6-12 months TRIBUTES.
       v_left := v_move; v_global_part := 0; v_trib_part := 0;
       for v_vintage in
         select id, remaining, donated_at

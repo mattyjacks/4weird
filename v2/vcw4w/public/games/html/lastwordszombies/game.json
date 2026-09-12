@@ -1,7 +1,7 @@
 {
     "title": "Last Words Zombies",
     "slug": "lastwordszombies",
-    "description": "A high-intensity 3D cyberpunk typing survival game. Decrypt runners, brutes, phantoms and bosses before they breach your mainframe — chain combos, spend powerups, chase WPM glory.",
+    "description": "A high-intensity 3D cyberpunk typing survival game. Decrypt runners, brutes, phantoms and bosses before they breach your mainframe - chain combos, spend powerups, chase WPM glory.",
     "genre": "Action",
     "tags": ["HTML5", "Action", "Cyberpunk", "Typing", "Survival"],
     "maker": {
@@ -52,7 +52,7 @@
         "local": ["game.js", "game.css"]
     },
     "meta": {
-        "version": "3.1.0",
+        "version": "3.2.0",
         "created": "2026-06-28",
         "license": "Private - All Rights Reserved"
     }

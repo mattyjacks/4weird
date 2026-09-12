@@ -25,7 +25,7 @@ export default function DocsHome() {
       <DocsHero
         eyebrow="4weird.com/docs/ · 13 guides"
         title={<>The manual for <span className={theme.title}>Future Forward Fun.</span></>}
-        lede={<>Everything about the company and how to use the site and software — one coin economy, 34 games, clans, bots, rentable agents, game AI, and QA tooling. Start anywhere; every guide links to the next.</>}
+        lede={<>Everything about the company and how to use the site and software - one coin economy, 34 games, clans, bots, rentable agents, game AI, and QA tooling. Start anywhere; every guide links to the next.</>}
         stats={[
           ["13", "guides, zero fluff"],
           ["34", "games documented"],
@@ -75,7 +75,7 @@ export default function DocsHome() {
         index="✦"
         kicker="The whole library"
         title="All 13 guides"
-        body="Each card is its own page — company, how-tos, economy, social, cloud, trust."
+        body="Each card is its own page - company, how-tos, economy, social, cloud, trust."
       />
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">

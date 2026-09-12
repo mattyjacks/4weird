@@ -1,4 +1,4 @@
-/* GraveGain2D Campaign — 20 campaign UI.
+/* GraveGain2D Campaign - 20 campaign UI.
    Progress header + selected-mission briefing panel on the story
    screen, mission auto-preselect, and a NEXT-mission button on the
    game-over screen.
@@ -107,7 +107,7 @@
         try {
             var s = Math.max(0, Math.floor(Number(seconds) || 0));
             return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
-        } catch (_) { return '—'; }
+        } catch (_) { return '-'; }
     }
 
     function refreshProgress() {
@@ -124,7 +124,7 @@
                 else panel.appendChild(el);
             }
             var p = progress();
-            el.textContent = 'CAMPAIGN — ' + p.done + '/10 COMPLETE · ★' + p.stars + ' STARS';
+            el.textContent = 'CAMPAIGN - ' + p.done + '/10 COMPLETE · ★' + p.stars + ' STARS';
         } catch (_) { /* never throw */ }
     }
 
@@ -254,7 +254,7 @@
             btn.id = 'campNextBtn';
             btn.className = 'btn-game btn-primary';
             if (curId >= 10) {
-                btn.textContent = '★ CAMPAIGN COMPLETE — VIEW LOG';
+                btn.textContent = '★ CAMPAIGN COMPLETE - VIEW LOG';
                 btn.addEventListener('click', function () {
                     try { btn.remove(); } catch (_) { /* ignore */ }
                     try {
@@ -267,7 +267,7 @@
                 var nextId = curId + 1;
                 var nextDef = missionDef(nextId);
                 var nextTitle = (nextDef && nextDef.title) ? nextDef.title : ('MISSION ' + nextId);
-                btn.textContent = 'NEXT: MISSION ' + nextId + ' — ' + String(nextTitle).toUpperCase();
+                btn.textContent = 'NEXT: MISSION ' + nextId + ' - ' + String(nextTitle).toUpperCase();
                 btn.addEventListener('click', function () {
                     try { btn.remove(); } catch (_) { /* ignore */ }
                     try {

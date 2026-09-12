@@ -49,7 +49,7 @@ export function formatMenuCrowns(totalCrowns: number): string {
  * revoked, or cookie desync) even though the client thought we were signed
  * in. We re-check the browser session once to cover the refresh race, then
  * report up via onUnauthorized so the header flips to logged-out and stops
- * polling — otherwise the 10s interval spams `GET .../balance 401` in the
+ * polling - otherwise the 10s interval spams `GET .../balance 401` in the
  * console forever (e.g. visible on /bot/setup).
  */
 export function WalletBadges({
@@ -63,46 +63,64 @@ export function WalletBadges({
   const [crownsTotal, setCrownsTotal] = useState<number | null>(null);
   const [authLost, setAuthLost] = useState(false);
   const failsRef = useRef(0);
+  const inflightRef = useRef(false);
+
+  // Latch reset: while logged out, clear the 401 latch so a fresh login
+  // retries instead of staying hidden forever (header instances persist
+  // across auth transitions).
+  useEffect(() => {
+    if (signedIn !== true) {
+      setAuthLost(false);
+      failsRef.current = 0;
+    }
+  }, [signedIn]);
 
   const load = useCallback(async () => {
-    const [{ body: coinBody, unauthorized: coin401 }, { body: crownBody, unauthorized: crown401 }] =
-      await Promise.all([
-        fetchJson<CoinBalance>("/api/coins/balance"),
-        fetchJson<CrownBalance>("/api/crowns/balance"),
-      ]);
-    if (coin401 || crown401) {
-      failsRef.current += 1;
-      // First 401 can be a refresh race (client has a session, server
-      // cookies haven't caught up). Re-check the browser session: if it is
-      // already gone, or a second consecutive poll still 401s, give up.
-      let hasSession = true;
-      try {
-        const { createClient } = await import("@/lib/supabase/client");
-        const { data } = await createClient().auth.getSession();
-        hasSession = Boolean(data.session);
-      } catch {
-        hasSession = true;
+    if (inflightRef.current) return;
+    inflightRef.current = true;
+    try {
+      const [{ body: coinBody, unauthorized: coin401 }, { body: crownBody, unauthorized: crown401 }] =
+        await Promise.all([
+          fetchJson<CoinBalance>("/api/coins/balance"),
+          fetchJson<CrownBalance>("/api/crowns/balance"),
+        ]);
+      if (coin401 || crown401) {
+        failsRef.current += 1;
+        // First 401 can be a refresh race (client has a session, server
+        // cookies haven't caught up). Re-check the browser session: if it is
+        // already gone, or a second consecutive poll still 401s, give up.
+        let hasSession = true;
+        try {
+          const { createClient } = await import("@/lib/supabase/client");
+          const { data } = await createClient().auth.getSession();
+          hasSession = Boolean(data.session);
+        } catch {
+          hasSession = true;
+        }
+        if (!hasSession || failsRef.current >= 2) {
+          setAuthLost(true);
+          onUnauthorized?.();
+        }
+        return;
       }
-      if (!hasSession || failsRef.current >= 2) {
-        setAuthLost(true);
-        onUnauthorized?.();
+      failsRef.current = 0;
+      setAuthLost(false);
+      if (coinBody) {
+        const cc =
+          typeof coinBody.centicentcoins === "number"
+            ? coinBody.centicentcoins
+            : Math.round((Number(coinBody.balance) || 0) * 100);
+        if (Number.isFinite(cc)) setCoinsCc(Math.round(cc));
       }
-      return;
+      if (crownBody) {
+        const total = Number(crownBody.total);
+        if (Number.isFinite(total)) setCrownsTotal(total);
+      }
+      // Non-401 failure: leave previous values alone so a transient
+      // failure never flashes the badges away; a fresh login reloads them.
+    } finally {
+      inflightRef.current = false;
     }
-    failsRef.current = 0;
-    if (coinBody) {
-      const cc =
-        typeof coinBody.centicentcoins === "number"
-          ? coinBody.centicentcoins
-          : Math.round((Number(coinBody.balance) || 0) * 100);
-      if (Number.isFinite(cc)) setCoinsCc(Math.round(cc));
-    }
-    if (crownBody) {
-      const total = Number(crownBody.total);
-      if (Number.isFinite(total)) setCrownsTotal(total);
-    }
-    // Non-401 failure: leave previous values alone so a transient
-    // failure never flashes the badges away; a fresh login reloads them.
   }, [onUnauthorized]);
 
   useEffect(() => {
@@ -131,7 +149,7 @@ export function WalletBadges({
   const crowns = crownsTotal ?? 0;
   const crownsRounded = Math.round(crowns);
   const crownsStr = crownsRounded.toLocaleString("en-US");
-  // Exact (fractional) coins + USD equivalent for the tooltip only —
+  // Exact (fractional) coins + USD equivalent for the tooltip only -
   // the badge itself stays whole-number + trailing emoji.
   const exactCoins = (Math.round(coinsCc) / 100).toFixed(2);
   const usd = (Math.round(coinsCc) / 100 / 100).toFixed(2);
@@ -148,7 +166,7 @@ export function WalletBadges({
     >
       <Link
         href="/account"
-        title={`Your coin balance: ${exactCoins} coins ($${usd}). Rounded to whole coins. Click to top up on /account.${low ? " Low balance — top up soon." : ""}`}
+        title={`Your coin balance: ${exactCoins} coins ($${usd}). Rounded to whole coins. Click to top up on /account.${low ? " Low balance - top up soon." : ""}`}
         className={`rounded-full border px-2 py-0.5 transition hover:bg-accent hover:text-accent-foreground ${
           low ? "border-amber-300/60 text-amber-200" : "border-border text-foreground"
         }`}

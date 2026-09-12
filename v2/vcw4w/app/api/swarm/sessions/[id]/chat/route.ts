@@ -241,7 +241,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     enabledTools,
   });
   if (execMode === "serverful") {
-    plan.trace.push("EXEC: serverful — heavy work runs on a real RunPod pod/desktop; provision from /desktop or book at /agents (metered per second, never faked here).");
+    plan.trace.push("EXEC: serverful - heavy work runs on a real RunPod pod/desktop; provision from /desktop or book at /agents (metered per second, never faked here).");
   }
 
   const agents: SwarmAgentSpec[] = Array.from({ length: size }, (_, i) => ({

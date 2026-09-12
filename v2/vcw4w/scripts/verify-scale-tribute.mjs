@@ -81,7 +81,7 @@ must(mig.includes("0.70") && mig.includes("0.20"), "tribute must split 70% poor 
 must(mig.includes("status = 'expired'"), "expired lots must be marked expired and stay home");
 must(mig.includes("grant execute on function public.run_clan_tribute_sweep() to service_role"), "tribute sweep must be service_role-only");
 
-// 8. Money-table discipline: reads/writes via existing triggers only —
+// 8. Money-table discipline: reads/writes via existing triggers only -
 // no DDL on the coin tables, ever.
 must(!/alter table public\.coin_ledger|alter table public\.coin_lots|create table .*coin_ledger|create table .*coin_lots|drop .*coin_lots/i.test(mig), "scale migration must never ALTER/CREATE/DROP coin tables");
 

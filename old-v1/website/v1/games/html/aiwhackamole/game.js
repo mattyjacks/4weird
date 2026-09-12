@@ -186,7 +186,7 @@ function init3D() {
     scene.background = new THREE.Color(0x06060c);
     scene.fog = new THREE.FogExp2(0x06060c, 0.05);
 
-    // Create Camera — framed so the cabinet sits centered: board near
+    // Create Camera - framed so the cabinet sits centered: board near
     // mid-screen (room above for speech bubbles), marquee + floor visible.
     camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
     camera.position.set(0, 6.8, 11.2);
@@ -519,7 +519,7 @@ function triggerWhack(hole, screenX, screenY) {
     }
 
     if (hole.type === 'bad') {
-        // Correctly whacked a bad AI — streak builds a combo multiplier.
+        // Correctly whacked a bad AI - streak builds a combo multiplier.
         combo = Math.min(combo + 1, COMBO_MAX);
         const pts = 100 * combo;
         score += pts;
@@ -677,7 +677,7 @@ function spawnMole() {
     hole.stayDuration = Math.max(1500, 3500 - (score * 0.4)) * SLOWMO;
 
     // Create Chat Box element (hidden until updatePhysics first positions
-    // it — otherwise it flashes one frame at its static top-left corner).
+    // it - otherwise it flashes one frame at its static top-left corner).
     const bubble = document.createElement('div');
     bubble.className = 'mole-bubble';
     bubble.textContent = hole.quote;
@@ -756,7 +756,7 @@ function updatePhysics(delta) {
                     try {
                         const p = projectHoleToScreen(h);
                         createFloatingScore(p.x, p.y, '-15 ESCAPED!', 'damage');
-                    } catch (e) { /* camera not ready — skip popup */ }
+                    } catch (e) { /* camera not ready - skip popup */ }
                     shakeScreen(true);
                     flashDamage();
                     if (health <= 0) {

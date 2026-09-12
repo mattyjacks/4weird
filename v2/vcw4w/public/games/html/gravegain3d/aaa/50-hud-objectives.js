@@ -1,4 +1,4 @@
-/* GraveGain3D AAA — 50 objectives.
+/* GraveGain3D AAA - 50 objectives.
    A persistent quest card (top-right): story contract as a live checklist
    with per-objective counts (x/y) + completion checkmarks, secondary
    objective support, and a mission-complete fanfare state; warden bounty
@@ -57,7 +57,7 @@
                 return { title: '◈ CONTRACT', html: `<div class="aaa-obj-row"><span class="aaa-obj-mark">○</span><span>${esc(what)}</span></div>` };
             }
             const rows = objs.map((o, i) => objRow(o, i > 0)).join('');
-            return { title: `◈ CONTRACT — ${m.title || 'Story Mission'}`, html: rows };
+            return { title: `◈ CONTRACT - ${m.title || 'Story Mission'}`, html: rows };
         }
 
         function describe() {

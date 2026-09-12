@@ -71,7 +71,7 @@ export function GameCatalog({ games }: { games: Game[] }) {
     setKids(next);
     window.dispatchEvent(new Event("kids-mode-changed"));
     // Best-effort account persistence for signed-in players (guests keep
-    // the device-level flag only — no request, no 401 noise). Merge over the
+    // the device-level flag only - no request, no 401 noise). Merge over the
     // stored settings so unrelated preferences are never clobbered.
     fetch("/api/auth/session", { credentials: "include" })
       .then((s) => (s.ok ? fetch("/api/settings", { credentials: "include" }) : null))

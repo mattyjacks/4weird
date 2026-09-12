@@ -52,7 +52,7 @@ export function FavoritesPage() {
         ) : starred.length === 0 ? (
           <p className="mt-3 rounded-2xl border border-dashed border-border bg-card p-5 text-sm text-muted-foreground">
             No favorites yet. Star pages with ☆ in the Menu sidebar (left) or in
-            the directory below — they will show up here and stay pinned in the
+            the directory below - they will show up here and stay pinned in the
             sidebar. Saved on this device, no account needed.
           </p>
         ) : (

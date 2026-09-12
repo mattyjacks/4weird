@@ -35,6 +35,21 @@ export async function POST(
   if (!seconds) return fail("Seconds must be 1..3600.", 400);
   // Cap single beats to 1h: previously 86400 allowed draining escrow in 1 call.
   if (seconds > 3600) return fail("Seconds must be 1..3600.", 400);
+  // Ownership gate (mirrors bookings/[id]/pod): only renter or listing owner
+  // may meter. Never call heartbeat_usage by id alone.
+  const { data: bookingRow } = await supabase
+    .from("rental_bookings")
+    .select("id,renter_id,agent_listings(id,owner_id)")
+    .eq("id", id)
+    .maybeSingle();
+  if (!bookingRow) return fail("Booking not found.", 404);
+  const brow = bookingRow as unknown as {
+    renter_id: string;
+    agent_listings: { owner_id: string } | { owner_id: string }[] | null;
+  };
+  const listing = Array.isArray(brow.agent_listings) ? brow.agent_listings[0] : brow.agent_listings;
+  if (brow.renter_id !== data.user.id && listing?.owner_id !== data.user.id)
+    return fail("Booking not found.", 404);
   const { data: usage, error } = await supabase.rpc("heartbeat_usage", {
     p_booking: id,
     p_seconds: seconds,

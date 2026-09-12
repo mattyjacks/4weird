@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    // SAVE_KEY strings are frozen contracts — never rename them. The shared
+    // SAVE_KEY strings are frozen contracts - never rename them. The shared
     // story engine owns 'gravegain_shared_story_progress_v1' and the codex
     // owns 'gravegain_campaign_codex_v1'; this module only ever touches its
     // own GraveGain3D_* keys so story progress, lore unlocks, stars, and
@@ -72,7 +72,7 @@
                 var audio = readAudioSettings(game);
                 if (audio) payload.settings = audio;
                 // Snapshot lore unlocks when the codex exposes them (read-only
-                // copy — the codex key remains the authority, never overwritten).
+                // copy - the codex key remains the authority, never overwritten).
                 try {
                     var camp = window.GraveGainCampaign;
                     if (camp && typeof camp.getUnlockedLore === 'function') {

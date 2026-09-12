@@ -1,9 +1,9 @@
-/* GraveGain2D AAA — 10 film.
+/* GraveGain2D AAA - 10 film.
    2D adaptation: installs the film treatment overlays (vignette / grain /
    grade) over #canvasContainer and drives damage flash, heal flash, low-HP
    pulse, and the directional hit indicator. Damage AND heals are detected
-   by polling player HP each frame — 2D has no potion method to wrap.
-   Camera shake goes through game.camera.applyShake — no core edits needed. */
+   by polling player HP each frame - 2D has no potion method to wrap.
+   Camera shake goes through game.camera.applyShake - no core edits needed. */
 (function () {
     'use strict';
 

@@ -1,7 +1,7 @@
 import { initBotId } from "botid/client/core";
 
 /**
- * BotID invisible CAPTCHA — client-side challenge injector (Next 15.3+ path).
+ * BotID invisible CAPTCHA - client-side challenge injector (Next 15.3+ path).
  *
  * This patches fetch/XHR so every same-origin call to a protected path+method
  * carries the `x-is-human` / `x-path` / `x-method` headers that checkBotId()
@@ -20,24 +20,24 @@ import { initBotId } from "botid/client/core";
  * - /api/meshy/webhook (HMAC-signed provider push)
  * - /api/blender/progress (64-hex job-token callback from the render pod)
  * - /api/health, /api/vcw/health (public liveness probes)
- * Those routes never call checkBotId — see lib/botid.ts.
+ * Those routes never call checkBotId - see lib/botid.ts.
  */
 initBotId({
   protect: [
-    // Tier 0 — identity, Sybil, free-money abuse surface.
+    // Tier 0 - identity, Sybil, free-money abuse surface.
     { path: "/api/auth/*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
     { path: "/api/family/*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
     { path: "/api/games/*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
     { path: "/api/coins/*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
     { path: "/api/referrals", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
     { path: "/api/verification", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
-    // Tier 1 — money movement (tips, subs, fundraisers, clan economy).
+    // Tier 1 - money movement (tips, subs, fundraisers, clan economy).
     { path: "/api/support/*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
     { path: "/api/fundraisers/*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
     { path: "/api/clans/*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
     { path: "/api/love/*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
     { path: "/api/parties/*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
-    // Tier 2 — coin-metered AI / compute (the expensive-to-serve surface).
+    // Tier 2 - coin-metered AI / compute (the expensive-to-serve surface).
     { path: "/api/fal/*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
     { path: "/api/meshy/generate", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
     { path: "/api/buddy/*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
@@ -51,7 +51,7 @@ initBotId({
     { path: "/api/desktop/*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
     { path: "/api/blender/jobs*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
     { path: "/api/cloud/*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
-    // Tier 3 — social / teams / writes that cost upkeep, XP, or moderation.
+    // Tier 3 - social / teams / writes that cost upkeep, XP, or moderation.
     { path: "/api/bot/*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
     { path: "/api/unitunite/*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
     { path: "/api/orgs/*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },

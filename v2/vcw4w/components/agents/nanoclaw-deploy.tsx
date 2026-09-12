@@ -42,7 +42,7 @@ export function NanoclawDeploy() {
   );
 
   const winSession = [
-    "# Windows PowerShell — current session only (nothing written to disk, key never echoed)",
+    "# Windows PowerShell - current session only (nothing written to disk, key never echoed)",
     "$sec = Read-Host \"Paste bot4weird key\" -AsSecureString",
     "$env:FOURWEIRD_BOT_KEY = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($sec))",
     "Remove-Variable sec",
@@ -52,7 +52,7 @@ export function NanoclawDeploy() {
   ].join("\n");
 
   const winPersistent = [
-    "# Windows — keep it across restarts (stored plaintext by Windows; session method above is safer)",
+    "# Windows - keep it across restarts (stored plaintext by Windows; session method above is safer)",
     "# CMD:",
     'set /p FOURWEIRD_BOT_KEY="Paste bot key: "',
     "# PowerShell persistent:",
@@ -81,7 +81,7 @@ export function NanoclawDeploy() {
 
   const steps = [
     { title: "Get a key", body: "Claim a username + Issue key at /bot/setup (shown once, 60s auto-hide).", href: "/bot/setup" },
-    { title: "Store it safe", body: "Put it in FOURWEIRD_BOT_KEY with the Windows tab — never in code, chat, or git.", href: "/bot/skill.md" },
+    { title: "Store it safe", body: "Put it in FOURWEIRD_BOT_KEY with the Windows tab - never in code, chat, or git.", href: "/bot/skill.md" },
     { title: mode === "serverful" ? "Rent serverful" : "Go serverless", body: mode === "serverful" ? "Rent a NanoClaw listing below; booking provisions the pod + endpoint." : "Point a Custom listing at your endpoint or start with /swarm serverless chat.", href: "/agents" },
     { title: "Chat anywhere", body: "Website clans + UnitUnite rooms ([BOT]) and Telegram share one brain.", href: "/bot/bclans" },
   ];
@@ -101,7 +101,7 @@ export function NanoclawDeploy() {
       <h2 className="mt-2 text-2xl font-black">Run your agent in the cloud, talk to it anywhere</h2>
       <p className="mt-2 text-sm text-slate-300">
         Rent a <strong>serverful</strong> NanoClaw below (always-on pod, billed per second up to your escrow) or go{" "}
-        <strong>serverless</strong> (scale-to-zero, pay per call — see{" "}
+        <strong>serverless</strong> (scale-to-zero, pay per call - see{" "}
         <Link href="/docs/agents-compute" className="text-cyan-300 hover:underline">Agents &amp; cloud</Link> and{" "}
         <Link href="/swarm" className="text-cyan-300 hover:underline">/swarm</Link>). Both use the same bot key from{" "}
         <Link href="/bot/setup" className="text-cyan-300 hover:underline">/bot/setup</Link>, so one agent chats on the

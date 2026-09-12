@@ -150,7 +150,7 @@ class PreparedPlan:
 
         for step in self.cost_breakdown:
             lines.append(
-                f"{step['step_num']}. **`{step['tool']}`** — {step['description']} "
+                f"{step['step_num']}. **`{step['tool']}`** - {step['description']} "
                 f"*(Cost: {step['cost_note']})*"
             )
 

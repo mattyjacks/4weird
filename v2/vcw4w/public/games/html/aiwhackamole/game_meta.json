@@ -4,6 +4,6 @@
   "controls": "Click or Tap a rising AI to whack it. P or Esc pauses the game.",
   "known_states": ["start_screen", "playing", "paused", "game_over"],
   "win_condition": "Score as high as possible before the 60-second timer ends. Whacking Bad AIs scores points.",
-  "avoid": "Whacking Good AIs, and letting Bad AIs escape untouched — both reduce integrity.",
+  "avoid": "Whacking Good AIs, and letting Bad AIs escape untouched - both reduce integrity.",
   "tips": "Read each chat bubble before whacking: 50% are Good AI statements, 50% are Bad AI statements. Press Start to begin, Try Again after game over. Chain Bad whacks within ~2.5s for a combo multiplier up to x5."
 }

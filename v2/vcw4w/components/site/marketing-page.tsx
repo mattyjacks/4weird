@@ -8,7 +8,7 @@ export function MarketingPage({ title, intro, children, hint }: { title: string;
           {title}
           {hint ? (
             <span className="ml-2 inline-flex align-middle">
-              <InfoTip text={hint} label={`About ${title}`} />
+              <InfoTip text={hint} label={`About ${title}`} side="bottom" />
             </span>
           ) : null}
         </h1>

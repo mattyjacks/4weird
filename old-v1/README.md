@@ -176,7 +176,7 @@ Supported AI engines & keys:
    - Models: `deepseek-chat` (V3), `deepseek-reasoner` (R1), `deepseek-v4-flash`, `deepseek-v4-pro`, `deepseek-v4-flash-vision-exp`.
    - Sign up: [DeepSeek Platform](https://platform.deepseek.com)
 2. **Meta Muse Spark (`META_API_KEY` or `OPENROUTER_API_KEY`)**:
-   - Model: `meta/muse-spark-1.3-contributor` — ultra-low cost ($0.10/1M in, $0.20/1M out) multimodal reasoning with a massive 1,048,576 token context.
+   - Model: `meta/muse-spark-1.3-contributor` - ultra-low cost ($0.10/1M in, $0.20/1M out) multimodal reasoning with a massive 1,048,576 token context.
 3. **OpenAI (`OPENAI_API_KEY`)**:
    - Flagship default models: `gpt-5.6-luna`, `gpt-5.4-mini`, `gpt-4o-mini`, `gpt-4o`.
    - Sign up: [OpenAI Platform](https://platform.openai.com)
@@ -184,7 +184,7 @@ Supported AI engines & keys:
    - Models: `gemini-2.5-flash`, `gemini-2.5-pro`.
 5. **Local Models (Free / No Key)**:
    - Ollama / LM Studio at `http://localhost:11434/api/chat`.
-6. **ElevenLabs (`ELEVENLABS_API_KEY`) — optional BYOK voice layer**:
+6. **ElevenLabs (`ELEVENLABS_API_KEY`) - optional BYOK voice layer**:
    - Text-to-speech (spoken bug alerts, streamer commentary, NPC/tutorial VO), Scribe speech-to-text (voice-command playtests, dialogue QA), sound-effect generation (auto-covers for 404'd game audio), and music composition.
    - Sign up: [ElevenLabs](https://elevenlabs.io). Game-audio QA (`/api/audio/analyze`) works fully offline with no key: **mono** single-stream by default, **stereo** opt-in reports L/R differences (imbalance, correlation, dropouts, phase).
    - Muse Spark 1.3 hears it too: PCM telemetry + transcripts ride the brain prompt, with native audio parts on supported providers.

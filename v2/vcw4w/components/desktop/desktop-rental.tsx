@@ -152,7 +152,7 @@ export function DesktopRental() {
     <section aria-label="Rent a Virtual Desktop" className="rounded-2xl border border-cyan-300/30 bg-cyan-300/[.05] p-5">
       <h2 className="text-2xl font-black text-white">Rent your desktop</h2>
       <p className="mt-2 text-sm text-slate-300">
-        <strong>CPU is preselected</strong> — the cheapest remote box. Step up to GPU only when you need hardware
+        <strong>CPU is preselected</strong> - the cheapest remote box. Step up to GPU only when you need hardware
         acceleration (Blender, CUDA, AI art, GPU play). Quotes are USD/hour maximums on real RunPod pods; billed{" "}
         <strong>per second</strong> by RunPod, never more than the quote. Coin figures (≈ {desktopUsdToCoins(1)} coins
         per $1) are display equivalents only: direct RunPod spend carries <strong>no Vibe cut</strong> and debits no
@@ -170,7 +170,7 @@ export function DesktopRental() {
             ) : (
               "."
             )}{" "}
-            Your pod is quoted exactly at rent time — stock moves, so this is an example, not a promise.
+            Your pod is quoted exactly at rent time - stock moves, so this is an example, not a promise.
           </>
         ) : (
           "💡 Live GPU price example unavailable (no stock data right now). Your pod is still quoted exactly at rent time."
@@ -246,7 +246,7 @@ export function DesktopRental() {
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <label className="text-xs text-slate-300">
           Max $/hour (0 = cheapest available with stock){" "}
-          <InfoTip text="Sets the highest hourly rate you accept. Zero picks the cheapest GPU with stock; you never pay more than the quote." label="About max price" />
+          <InfoTip side="bottom" text="Sets the highest hourly rate you accept. Zero picks the cheapest GPU with stock; you never pay more than the quote." label="About max hourly price" />
           <input
             type="number"
             min={0}
@@ -278,7 +278,7 @@ export function DesktopRental() {
         <div className="mt-3 grid gap-3">
           <label className="text-xs text-slate-300">
             Custom image (Docker ref, e.g. <code>runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04</code>; blank = plan default){" "}
-            <InfoTip text="Uses your Docker image instead of the plan default. Ports stay fixed so the browser stream link keeps working." label="About custom image" />
+            <InfoTip side="bottom" text="Uses your Docker image instead of the plan default. Ports stay fixed so the browser stream link keeps working." label="About custom image" />
             <input
               type="text"
               value={customImage}
@@ -293,7 +293,7 @@ export function DesktopRental() {
           </label>
           <div>
             <p className="text-xs font-bold text-slate-200">Idle timers for this pod (blank = default {serverPolicy.warnMinutes}/{serverPolicy.stopGraceMinutes}/{serverPolicy.terminateHours}h){" "}
-              <InfoTip text="Idle guard warns you, then stops the pod to end billing. Any mouse or keyboard input resets the clock." label="About idle timers" />
+              <InfoTip side="bottom" text="Idle guard: 60-min chime → +15-min stop → 24h terminate. Any input resets the clock." label="About idle timers" />
             </p>
             <div className="mt-2">
               <PolicyFields warn={warn} setWarn={setWarn} grace={grace} setGrace={setGrace} term={term} setTerm={setTerm} prefix="rent" />
@@ -358,12 +358,12 @@ export function DesktopRental() {
             {result.connection.gpu ? `GPU ${result.connection.gpu}` : `CPU ${result.connection.cpu ?? ""}`} · ~
             ${Number(result.connection.hourlyUsd).toFixed(2)}/hr (≈ {Number(result.connection.coinsPerHour).toFixed(0)}{" "}
             coins/hr equiv), per second · image <code className="break-all">{result.connection.image}</code>{" "}
-            <InfoTip text="RunPod bills per second while the pod runs. Stopping ends compute billing; terminating deletes the disk." label="About per-second billing" />
+            <InfoTip side="bottom" text="RunPod bills dollars per second, never coins, no Vibe cut. Stopping ends compute billing; terminating deletes the disk." label="About per-second billing" />
           </p>
           {result.connection.vncPassword && (
             <p className="mt-2 rounded-lg border border-amber-300/40 bg-amber-300/[.08] px-3 py-2 text-amber-100">
-              🔑 VNC password (shown once — save it now): <code className="font-bold">{result.connection.vncPassword}</code>{" "}
-              <InfoTip text="Shown once after rent, so save it now. Log in with it, then change it after first login." label="About VNC password" />
+              🔑 VNC password (shown once - save it now): <code className="font-bold">{result.connection.vncPassword}</code>{" "}
+              <InfoTip side="bottom" text="Shown once after rent, so save it now. Log in with it, then change it after first login." label="About VNC password" />
             </p>
           )}
           {result.interface === "jupyter" ? (

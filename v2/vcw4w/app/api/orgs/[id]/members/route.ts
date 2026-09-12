@@ -18,7 +18,7 @@ function idFrom(url: string): string {
  *
  * Big-org read path: ?paged=1&limit=&cursor=&cursor_id=&q= serves the
  * keyset-paginated org_roster_page (limit clamped 1..100, newest-last)
- * with an O(1) cached total — this is how 8,000-member orgs stay fast.
+ * with an O(1) cached total - this is how 8,000-member orgs stay fast.
  * Without ?paged, the legacy full roster (up to 500) is returned.
  */
 export async function GET(req: Request) {

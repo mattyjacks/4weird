@@ -152,7 +152,7 @@ export function NewGamePlusBuilder() {
       const raw = e instanceof Error ? e.message : "Build failed.";
       const msg =
         errStatus === 403
-          ? `${raw} — signed-in builders bypass this check: log in, then launch again.`
+          ? `${raw} - signed-in builders bypass this check: log in, then launch again.`
           : raw;
       pushLive(`❌ ${msg}`);
       setStatus(msg);
@@ -370,18 +370,18 @@ export function NewGamePlusBuilder() {
             {!!result.mastery && (
               <details className="rounded-lg border border-emerald-300/20 bg-black/30 p-3 text-xs" open>
                 <summary className="cursor-pointer font-bold text-emerald-200">
-                  🏆 Mastery {result.mastery.mastered ? "reached" : "in progress"} — test → improve → retest ({result.mastery.iterations.length} iteration{result.mastery.iterations.length === 1 ? "" : "s"})
+                  🏆 Mastery {result.mastery.mastered ? "reached" : "in progress"} - test → improve → retest ({result.mastery.iterations.length} iteration{result.mastery.iterations.length === 1 ? "" : "s"})
                 </summary>
                 <ol className="mt-2 space-y-1 text-slate-300">
                   {result.mastery.iterations.map((it, i) => (
-                    <li key={i}>· <b>{it.title}</b> ({it.slug}) — VCW {it.verdict} {it.passed}/{it.checks} · next: {it.improvements.join("; ")}</li>
+                    <li key={i}>· <b>{it.title}</b> ({it.slug}) - VCW {it.verdict} {it.passed}/{it.checks} · next: {it.improvements.join("; ")}</li>
                   ))}
                 </ol>
               </details>
             )}
             {!!result.vault && (
               <details className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs" open>
-                <summary className="cursor-pointer font-bold text-slate-200">📁 Weird Vault — {result.vault.folder} (html + css + js + content)</summary>
+                <summary className="cursor-pointer font-bold text-slate-200">📁 Weird Vault - {result.vault.folder} (html + css + js + content)</summary>
                 <ul className="mt-2 space-y-1 text-slate-300">
                   {result.vault.files.map((f) => (<li key={f.path}>· <code>{f.path}</code> ({f.bytes.toLocaleString()} bytes)</li>))}
                 </ul>

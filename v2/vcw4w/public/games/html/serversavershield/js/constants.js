@@ -78,7 +78,7 @@ var graphicsQuality = 'fast';
 try {
     const __savedGfx = window.localStorage ? window.localStorage.getItem('sss_graphics') : null;
     if (__savedGfx === 'fast' || __savedGfx === 'beautiful') graphicsQuality = __savedGfx;
-} catch (e) { /* storage unavailable — stay on fast */ }
+} catch (e) { /* storage unavailable - stay on fast */ }
 
 function isBeautiful() {
     return graphicsQuality === 'beautiful';

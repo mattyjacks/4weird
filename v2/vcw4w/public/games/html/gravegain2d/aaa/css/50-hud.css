@@ -1,4 +1,4 @@
-/* GraveGain2D AAA — 50 objectives flash, 60 tutorial toasts, 70 run stats. */
+/* GraveGain2D AAA - 50 objectives flash, 60 tutorial toasts, 70 run stats. */
 /* Objective tracker flash (existing #missionTracker element). */
 #missionTracker.aaa-flash { animation: aaa-tracker-flash 0.6s ease; }
 @keyframes aaa-tracker-flash {

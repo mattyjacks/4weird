@@ -12,8 +12,8 @@ export const dynamic = "force-dynamic";
 const GAME_RE = /^[a-z0-9-]{1,64}$/;
 
 /**
- * GET /api/buddy/memory?game_slug= — read your own opt-in memory for one game.
- * POST /api/buddy/memory — merge new lines into it (extractive only).
+ * GET /api/buddy/memory?game_slug= - read your own opt-in memory for one game.
+ * POST /api/buddy/memory - merge new lines into it (extractive only).
  * Body: { game_slug, session_id?, consent: true, text }.
  *
  * Explicit opt-in: POST without consent:true is rejected and stores nothing.

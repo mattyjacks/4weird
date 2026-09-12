@@ -31,7 +31,7 @@ export default function TermsPage() {
           <strong>Adult (18+)</strong>. You represent at signup that you meet your band (13-17 for Teen, 18+ for
           Adult) and that you meet the minimum age where you live or have parent/guardian permission where your
           law requires it (including EU GDPR consent ages 13-16, the UK age 13, and U.S. state requirements). We
-          collect no date of birth to verify this — only your self-declared band — so do not sign up with a false
+          collect no date of birth to verify this - only your self-declared band - so do not sign up with a false
           band. <strong>Under 13 has no direct account:</strong> a parent or legal guardian (an Adult 18+ account
           holder) must sign up and create a <strong>Child</strong> sub-account for the child instead (see Section
           4B); do not enter a Teen/Adult band for an under-13. If you are a minor in your jurisdiction, you may use
@@ -64,7 +64,7 @@ export default function TermsPage() {
           <li>use the Service unlawfully or in violation of any applicable law, including export-control and sanctions laws; no illegal content of any kind is allowed, anywhere on the Service;</li>
           <li>infringe intellectual-property, privacy, or other rights; upload malicious code; impersonate others; or harvest other users’ information;</li>
           <li>harass, threaten, defame, hate-target, or harm anyone; post sexual content involving minors in any form; this results in immediate removal, account termination, evidence preservation, and referral to authorities (see Section 5);</li>
-          <li>alternatively monetize, cash out, or extract value from Coins, Crowns, or Ghost Cash outside the expressly permitted paths in Sections 8–8A.1; including selling, buying, trading, exchanging, gifting-for-cash, pegging to fiat or crypto, advertising exchange rates, factoring Ghost IOUs, using balances as collateral, or routing around the closed loop (see Sections 8 and 8C);</li>
+          <li>alternatively monetize, cash out, or extract value from Coins, Crowns, or Ghost Cash outside the expressly permitted paths in Sections 8-8A.1; including selling, buying, trading, exchanging, gifting-for-cash, pegging to fiat or crypto, advertising exchange rates, factoring Ghost IOUs, using balances as collateral, or routing around the closed loop (see Sections 8 and 8C);</li>
           <li>abuse support, reporting, or privacy-request channels, including filing false reports or automated bulk requests.</li>
         </ul>
 
@@ -117,7 +117,7 @@ export default function TermsPage() {
         <h2 className={h2}>4. Games, saves, telemetry, and leaderboards</h2>
         <p>
           The catalog offers browser games in isolated play shells with guides and metadata. Cloud saves offer up to
-          four slots per game (slots 0–3, ≤1 MiB each, versioned); slot 0 is cheat-proof and can never be marked,
+          four slots per game (slots 0-3, ≤1 MiB each, versioned); slot 0 is cheat-proof and can never be marked,
           while enabling cheats on any other slot permanently marks that save
           (“cheat_mode:true”) as a database invariant that delete/recreate cannot launder, and cloud saves generally
           cannot be reset from the client. Gameplay telemetry (kills, actions, active seconds, deaths) powers
@@ -143,7 +143,7 @@ export default function TermsPage() {
         <h2 className={h2}>4B. Parent and Child accounts</h2>
         <p>
           Only an <strong>Adult (18+)</strong> account holder may become a <strong>Parent</strong> account
-          (automatically, on creating their first child) and create <strong>Child</strong> sub-accounts — including
+          (automatically, on creating their first child) and create <strong>Child</strong> sub-accounts - including
           for under-13 children, who have no other path onto the Service (COPPA verifiable parental consent: the
           parent&apos;s own Adult signup + their authenticated creation of the child IS the consent). Children
           log in with a parent-chosen <strong>username#1234 + password</strong> and have no email, no checkout, and no
@@ -161,7 +161,7 @@ export default function TermsPage() {
           Digital Services Act, California&apos;s Age-Appropriate Design Code Act, and other U.S. state regimes
           referenced in Section 18); among others, children&apos;s data is exported and
           erased together with your account at <a className={a} href="/my/rights">/my/rights/</a>. Full accounts hold
-          only Teen (13-17) or Adult (18+) bands — never Kid — set at signup and changeable on the Account page within
+          only Teen (13-17) or Adult (18+) bands - never Kid - set at signup and changeable on the Account page within
           those two bands; Teen bands apply the same Adults-blocking as Kids Mode without collecting any birth date.
           Under-18 accounts get high-privacy defaults (no behavioral ads for signed-in players, minimal data, parent
           controls where applicable).
@@ -292,10 +292,10 @@ export default function TermsPage() {
         <h2 className={h2}>8A.1. Crowns (earn): time locks, convert, and fiat payouts</h2>
         <p>
           <strong>The timelines, up front.</strong> Crowns you earn today are locked for 30 days by
-          anti-fraud and payments regulations — this cannot be bypassed, not by us and not by support.
+          anti-fraud and payments regulations - this cannot be bypassed, not by us and not by support.
           After that: converting Crowns to Coins takes effect immediately (1+ crowns, 1:1, no fee) once
           unlocked; cashing Crowns out to fiat takes a minimum of 30 days after earning plus provider
-          processing time (typically 5–10 business days after you request a payout). There is no instant
+          processing time (typically 5-10 business days after you request a payout). There is no instant
           cash-out on this Service, ever.
         </p>
         <p>
@@ -309,7 +309,7 @@ export default function TermsPage() {
         <p>
           <strong>Time locks and expiry.</strong> Every Crown lot unlocks 30 days after receipt
           (fraud/chargeback clearing required by our anti-money-laundering, sanctions, and payments
-          compliance duties — including card-network chargeback windows and the 90-day Coin refund window;
+          compliance duties - including card-network chargeback windows and the 90-day Coin refund window;
           locked Crowns cannot be paid out, converted, or expedited for any reason), expires 1 year after receipt, and is consumable only while
           unlocked and unexpired, oldest eligible first. Locked or expired Crowns do not count toward
           payouts or converts. If the underlying Coin gift refunds or chargebacks inside 90 days, we
@@ -325,7 +325,7 @@ export default function TermsPage() {
           with a fresh 25% cut if re-gifted, never directly cashable. Converts are final. (b){" "}
           <em>Fiat payout via our licensed payout provider:</em> request 5,000+ crowns ($50 minimum) for
           payout in fiat to your verified account, available only after the 30-day unlock plus provider
-          processing (typically 5–10 business days). We do not transmit the money ourselves; a licensed
+          processing (typically 5-10 business days). We do not transmit the money ourselves; a licensed
           provider (such as Stripe, Hyperwallet, or Tipalti) performs identity verification, sanctions
           screening, tax reporting, and the transfer under its own terms. We never pay out in crypto
           directly; if the provider offers a crypto rail on its side, that is between you and the provider.
@@ -341,7 +341,7 @@ export default function TermsPage() {
         <p>
           <strong>Who can cash out, and where.</strong> Payouts require: (i) age 18+ with a verified
           creator account (minors, child sub-accounts, and unverified accounts may earn and convert but
-          may never receive fiat); (ii) residence in a currently allowlisted payout country — which we have
+          may never receive fiat); (ii) residence in a currently allowlisted payout country - which we have
           not yet finalized or published, so fiat payouts are currently unavailable everywhere and Crowns
           are convertible to Coins only until we announce the country list (once published, everywhere else
           stays credits-and-convert only); (iii) clean fraud standing and completed
@@ -351,7 +351,7 @@ export default function TermsPage() {
         </p>
         <p>
           <strong>No payout guarantee; availability risk is yours.</strong> You acquire and hold Crowns at
-          your own risk. We do not promise that fiat payouts will ever be available to you — not in your
+          your own risk. We do not promise that fiat payouts will ever be available to you - not in your
           country, not at any amount, not at any time. If you cannot cash out because you live in a
           restricted or unlisted country, fail or cannot complete KYC, are sanctioned or otherwise
           ineligible, lose verification or good standing, or because the law, our provider, capacity, fraud
@@ -463,13 +463,13 @@ export default function TermsPage() {
           10 coins per 100 slots, 25% cut included); self-hosted servers are instead capped at{" "}
           <strong>purchased seats</strong>. Clans may hold up to <strong>100,000 members</strong> (plus
           prepaid headroom: 10 coins per 1,000 slots). Caps are enforced server-side; joins past the
-          cap are refused. Headroom lifts the ceiling only — per-member upkeep still meters afterwards —
+          cap are refused. Headroom lifts the ceiling only - per-member upkeep still meters afterwards -
           and headroom purchases are final.
         </p>
         <p>
           <strong>Pruning consent.</strong> By joining or staying in a large organization or clan you agree
-          its creator/moderators — and its enabled Automated Member Pruning (opt-in for orgs, on by
-          default for clans; arms at 9,000 org / 90,000 clan members) — may remove inactive seats using
+          its creator/moderators - and its enabled Automated Member Pruning (opt-in for orgs, on by
+          default for clans; arms at 9,000 org / 90,000 clan members) - may remove inactive seats using
           oldest-activity-first, random-chance, oldest-joined-first, or never-contributed ordering, with
           dry-run previews. Owners are never pruned; strategy sweeps spare joins younger than 7 days.
           Pruned members lose their seat, not their account, coins, or history. Removal is final and not
@@ -482,8 +482,8 @@ export default function TermsPage() {
           may be shared by the daily commons sweep: at most <strong>~1% of the eligible surplus per
           day</strong> (exponential decay, ≈69-day half-life) and at most <strong>50% of all donated
           coins, lifetime</strong>. Coins older than 12 months are <strong>Globalized</strong> into the
-          central clan reserve (which auto-rescues delinquent clans); 6–12-month coins are{" "}
-          <strong>Given as Tribute</strong> — 70% to the poorest clans, 20% to the reserve, 10% to poor
+          central clan reserve (which auto-rescues delinquent clans); 6-12-month coins are{" "}
+          <strong>Given as Tribute</strong> - 70% to the poorest clans, 20% to the reserve, 10% to poor
           individual members. Expired coin lots never travel. Like all Support (Section 8A), tribute is a
           gratuitous gift: not charity, not investment, no cash-out, final once moved. Tribute never mints Crowns.
         </p>

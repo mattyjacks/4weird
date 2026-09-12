@@ -1,5 +1,5 @@
 /**
- * Buddy action catalog — pure orchestrator UI over existing specialists.
+ * Buddy action catalog - pure orchestrator UI over existing specialists.
  *
  * The widget renders these as one-click delegations:
  *   fal  -> POST /api/fal/generate { op, prompt, game_slug }

@@ -30,6 +30,10 @@ const nextConfig: NextConfig = {
       { key: "X-Content-Type-Options", value: "nosniff" },
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
       { key: "Permissions-Policy", value: "camera=(self), microphone=(self), geolocation=()" },
+      // Clickjacking guard: only first-party shells may frame account/auth
+      // pages. Game bundles keep their own narrower frame-ancestors above.
+      { key: "Content-Security-Policy", value: "frame-ancestors 'self' https://4weird.com https://www.4weird.com; object-src 'none'; base-uri 'self'" },
+      { key: "X-Frame-Options", value: "SAMEORIGIN" },
       // Quantum HNDL hygiene: force HTTPS so harvest-now-decrypt-later
       // captures can't downgrade to cleartext. Vercel terminates TLS;
       // HSTS + no HSTS on http (Vercel redirects) is the ToS-safe pattern.

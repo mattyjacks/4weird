@@ -1,10 +1,10 @@
-/* GraveGain2D AAA — 20 title cards.
-   2D adaptation: every dungeon layer opens with a cinematic DOM card —
+/* GraveGain2D AAA - 20 title cards.
+   2D adaptation: every dungeon layer opens with a cinematic DOM card -
    letterbox bars slide in, the layer name slams on, the color grade shifts,
    then play resumes. Hooks buildDungeonLayer, so story runs, endless runs,
    and descents all get the treatment with zero core edits. Mission cards
    read game.currentMission (title / subtitle / location / bossType from the
-   shared story engine) — skippable by click/tap, auto-dismiss. */
+   shared story engine) - skippable by click/tap, auto-dismiss. */
 (function () {
     'use strict';
 
@@ -50,7 +50,7 @@
         let hideTimer = 0;
         let barTimer = 0;
 
-        // Click/tap skips any card (mission intros especially) — endless-safe.
+        // Click/tap skips any card (mission intros especially) - endless-safe.
         card.style.pointerEvents = 'auto';
         card.style.cursor = 'pointer';
         card.addEventListener('click', () => {
@@ -64,7 +64,7 @@
             if (!mission) return; // endless mode: floor card only
             AAA.state.floor = game.floorIndex || mission.minFloor || 1;
             const id = mission.id !== undefined && mission.id !== null ? mission.id : '?';
-            kickerEl.textContent = `— Mission ${id} —`;
+            kickerEl.textContent = `- Mission ${id} -`;
             titleEl.style.animation = 'none';
             void titleEl.offsetWidth;
             titleEl.style.animation = '';
@@ -90,7 +90,7 @@
             const info = floorInfo(n);
             AAA.state.floor = n;
             c.dataset.grade = info.grade;
-            kickerEl.textContent = `— Layer ${n} —`;
+            kickerEl.textContent = `- Layer ${n} -`;
             // Retrigger the slam-in animation on repeat visits.
             titleEl.style.animation = 'none';
             void titleEl.offsetWidth;

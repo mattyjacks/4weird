@@ -1,8 +1,8 @@
-# 4weird + Supabase + Shopify (Vibe Coins) — Setup Guide
+# 4weird + Supabase + Shopify (Vibe Coins) - Setup Guide
 
 This wires login, saved data, and Vibe Coins purchases. You do the dashboard
 clicks once; everything else is already coded. Nothing here needs confirmation
-emails (per current decision) — read **§5 Tradeoffs** before taking real money.
+emails (per current decision) - read **§5 Tradeoffs** before taking real money.
 
 ## 0. What lives where
 
@@ -10,7 +10,7 @@ emails (per current decision) — read **§5 Tradeoffs** before taking real mone
 |---|---|---|
 | Browser (HTML + `auth-server.js`) | `website/v1/account.html`, `website/v1/auth/` | **None.** No keys, no tokens (httpOnly cookies) |
 | Auth + user-data service | `auth-app/` (Next.js, separate deploy) | All Supabase keys, server-side only |
-| Local non-secret config | `website/v1/auth/config.js` (copy from `config.example.js`) | No — service URL + shop settings only, gitignored anyway |
+| Local non-secret config | `website/v1/auth/config.js` (copy from `config.example.js`) | No - service URL + shop settings only, gitignored anyway |
 | Database + RLS money rules | `supabase/schema.sql` (+ timestamped copy in `supabase/migrations/`, applied by the GitHub integration on merge to main) | No |
 | Shopify fulfillment | `supabase/functions/shopify-coins/index.ts` | service_role + webhook secret live in Supabase secrets, never in repo |
 
@@ -26,7 +26,7 @@ service_role. Page JavaScript never holds anything worth stealing.
    in a password manager (you will not need it again for this setup).
 2. Project Settings → API: copy the **Project URL**, the **publishable**
    key, and the **secret** key into `auth-app/.env` (see
-   `auth-app/.env.example`). Keys live server-side only — never in website
+   `auth-app/.env.example`). Keys live server-side only - never in website
    files, never in chat, never in git.
 3. Deploy `auth-app/` per `auth-app/README.md` (env vars live there,
    server-side). Then copy `website/v1/auth/config.example.js` →
@@ -84,7 +84,7 @@ the code), and the `/claim` route validates the user's JWT itself.
    Event `Order payment`, Format JSON,
    URL `https://YOUR-REF.supabase.co/functions/v1/shopify-coins/webhook`.
    Copy the **signing secret** (shown once) into `SHOPIFY_WEBHOOK_SECRET`.
-4. Buyers always pay on Shopify hosted checkout — card data never touches
+4. Buyers always pay on Shopify hosted checkout - card data never touches
    4weird, so PCI scope stays with Shopify. Test with Shopify Bogus gateway
    or test mode before going live.
 
@@ -108,7 +108,7 @@ Practical posture:
 
 - Fine for launch/testing and for saved-game data (nothing leaks across users).
 - **Before real money volume: turn "Confirm email" ON** (one toggle, zero
-  code changes — signup/login/claims work identically either way).
+  code changes - signup/login/claims work identically either way).
 - Until then: keep pack values small, watch Shopify + function logs for odd
   email patterns, and refund-and-revoke manually if a dispute appears.
 
@@ -116,7 +116,7 @@ Practical posture:
 
 - RLS is the lock; review `schema.sql` diffs before re-running.
 - If any key leaks: Supabase API settings → roll the key, update `config.js`
-  / secrets. The anon key is public by design — leaking it is not an
+  / secrets. The anon key is public by design - leaking it is not an
   incident; leaking `service_role` or the webhook secret is.
-- Never add a client write policy to `coin_grants`/`coin_ledger` — that would
+- Never add a client write policy to `coin_grants`/`coin_ledger` - that would
   let any logged-in user mint unlimited Vibe Coins.

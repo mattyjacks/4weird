@@ -1,4 +1,4 @@
-// Graphics Quality Setting — Fast (default) vs Beautiful.
+// Graphics Quality Setting - Fast (default) vs Beautiful.
 // Fast: no per-entity shadowBlur, sparser matrix rain, fullscreen matrix at ~20fps.
 // Beautiful: restores all glow effects + dense matrix rain every frame.
 // The choice persists in localStorage and applies live (no restart needed).

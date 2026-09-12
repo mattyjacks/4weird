@@ -1,4 +1,4 @@
-/* GraveGain2D AAA — 60 tutorial.
+/* GraveGain2D AAA - 60 tutorial.
    2D adaptation: first-run coach marks as bottom-center toasts teaching the
    2D control scheme (WASD / click attack / right-click block / F or Shift
    ability / loot + safespace goal). Shows once ever (localStorage),
@@ -21,12 +21,12 @@
             ? [
                 'Use the <b>LEFT STICK</b> to move through the dungeon',
                 'Tap ⚔️ to attack · 🛡️ to block · ✦ for your race ability',
-                'Grab 🪙 gold & gear — find the <b>safespace terminal</b> to descend'
+                'Grab 🪙 gold & gear - find the <b>safespace terminal</b> to descend'
             ]
             : [
                 '<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / arrows to move · <b>LEFT-CLICK</b> to attack',
                 '<b>RIGHT-CLICK</b> to block · <b>F</b> or <b>Shift</b> for your race ability',
-                'Loot 🪙 gold from the fallen — reach the <b>safespace terminal</b> to descend'
+                'Loot 🪙 gold from the fallen - reach the <b>safespace terminal</b> to descend'
             ];
 
         const toast = AAA.mk('aaaToast', 'aaa-toast');
@@ -70,7 +70,7 @@
             setTimeout(() => show(0), 3200); // let the title card land first
         });
 
-        // First blood means the basics clicked — jump to the goal tip.
+        // First blood means the basics clicked - jump to the goal tip.
         AAA.on('kill', () => {
             if (!started || done || idx >= steps.length - 1) return;
             clearTimeout(timer);

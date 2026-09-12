@@ -135,7 +135,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   }
   // Member sidebar stays O(1): cached total + first roster page (100).
   // The old limit-200 pull both capped memberCount at 200 and dragged 200
-  // rows on every page view — exactly what breaks at 100k members.
+  // rows on every page view - exactly what breaks at 100k members.
   let members: Array<{ user_id: string; role: string }> = [];
   {
     const { data: rosterPage, error: rosterError } = await supabase.rpc("clan_roster_page", {

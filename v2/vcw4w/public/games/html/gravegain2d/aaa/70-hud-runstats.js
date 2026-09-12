@@ -1,9 +1,9 @@
-/* GraveGain2D AAA — 70 run stats.
+/* GraveGain2D AAA - 70 run stats.
    2D adaptation: owns the run clock, resets shots/hits/combo on initRun,
    counts melee swings (triggerMeleeSwing, return = confirmed hits) for
    accuracy, and stamps a stats ribbon (time · accuracy · best combo ·
    depth · kills · gold) onto the game-over screen next to the existing
-   #go* fields — extending, never replacing, core content. */
+   #go* fields - extending, never replacing, core content. */
 (function () {
     'use strict';
 

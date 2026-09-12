@@ -3,7 +3,7 @@
  *
  * Two independent axes (see supabase/migrations/20260924000002_family_accounts.sql):
  * - family_role: 'solo' | 'parent' (full Supabase accounts; only Adult 18+
- *   accounts may become 'parent' and create children — COPPA consent)
+ *   accounts may become 'parent' and create children - COPPA consent)
  * - age_band: 'unknown' (legacy) | 'kid' (legacy full-account rows only) |
  *   'teen' (13-17) | 'adult' (18+). Full accounts are 13+ only: signup
  *   requires teen/adult, PATCH rejects kid/unknown, and teen bands block

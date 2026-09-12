@@ -53,7 +53,7 @@ export function PackCatalog() {
         <p className="mt-2 text-sm text-slate-400">Any whole-coin count from {CUSTOM_COINS_MIN.toLocaleString()} to {CUSTOM_COINS_MAX.toLocaleString()}, at 1¢ per coin. Enter the amount on the checkout screen; the quantity is set for you. Coins expire one year after receipt; spending is oldest-unexpired first.</p>
         <div className="mt-4">{customVariant ? <CustomBuy variantId={customVariant} /> : <span className="text-sm text-amber-200">Custom amounts are not on sale yet; check back soon.</span>}</div>
       </section>
-      <CompactDetails summary="Refunds, expiry, trial — in brief">
+      <CompactDetails summary="Refunds, expiry, trial - in brief">
         <p className="text-xs text-slate-500">Every price already includes the {SERVICE_CUT_PCT}% platform service cut; it is never added on top. New accounts start with a free trial of up to 100 coins ($1.00) - one per person and network. Unspent purchased coins are refundable within 90 days (pro-rated when partly spent); free coins are never refundable.</p>
       </CompactDetails>
     </div>

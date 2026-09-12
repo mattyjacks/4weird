@@ -24,7 +24,21 @@ class TypingController {
   }
 
   getWPM() {
-    const mins = Math.max(1 / 60, (performance.now() - this.runStartTime) / 60000);
+    if (!this.runStartTime) return 0;
+    // Honest clock: exclude PAUSED/GLOSSARY/menu time tracked by the state
+    // manager (see StateManager.getPausedMs / runPausedMs). Falls back to
+    // wall-clock when the state object predates that API.
+    let paused = 0;
+    try {
+      if (this.state && typeof this.state.getPausedMs === 'function') {
+        paused = this.state.getPausedMs() || 0;
+      } else if (this.state && typeof this.state.runPausedMs === 'number') {
+        paused = this.state.runPausedMs || 0;
+      }
+    } catch (e) { paused = 0; }
+    if (!isFinite(paused) || paused < 0) paused = 0;
+    const elapsed = Math.max(0, performance.now() - this.runStartTime - paused);
+    const mins = Math.max(1 / 60, elapsed / 60000);
     // Standard: 5 chars = 1 word
     return Math.round((this.keysHit / 5) / mins);
   }
@@ -35,24 +49,52 @@ class TypingController {
     return Math.round((this.keysHit / total) * 100);
   }
 
-  // Pick the most threatening match: closest to breach first, boss > brute > runner
+  // Pick the most threatening match: closest to breach first, boss > brute > runner.
+  // Deterministic: ties break by type rank, then word (case-insensitive), so
+  // the same zombie set always yields the same target regardless of spawn order.
+  // Never mutates the input array (sorts a copy).
   pickTarget(matches) {
+    if (!Array.isArray(matches) || matches.length === 0) return null;
     const rank = z => (z.ztype === 'boss' ? 0 : z.ztype === 'brute' ? 1 : z.ztype === 'runner' ? 2 : z.ztype === 'ghost' ? 3 : 4);
-    matches.sort((a, b) => (b.worldZ - a.worldZ) || (rank(a) - rank(b)));
-    return matches[0];
+    const wordOf = z => (z && typeof z.word === 'string' ? z.word.toLowerCase() : '');
+    const zOf = z => (z && isFinite(Number(z.worldZ)) ? Number(z.worldZ) : -Infinity);
+    return matches.slice().sort((a, b) =>
+      (zOf(b) - zOf(a)) ||
+      (rank(a) - rank(b)) ||
+      (wordOf(a) < wordOf(b) ? -1 : wordOf(a) > wordOf(b) ? 1 : 0)
+    )[0] || null;
   }
 
+  // Accuracy policy (documented — getAccuracy counts keysHit vs keysMissed):
+  // - correct key ............ keysHit+1 (hit)
+  // - key matching nothing .... keysMissed+1 (miss)
+  // - wrong key while locked on (smart-retarget path): keysMissed+1 (miss);
+  //   if the key starts another zombie's word we immediately re-feed it, so a
+  //   successful retarget records 1 miss + 1 hit on the new target.
+  // - dropTarget (Backspace) / auto-reset on dead target: neutral, no keys
+  //   counted either way — re-aiming is free.
   handleInput(key, zombies) {
     if (this.state.currentState !== GameState.PLAYING) return;
+    // Multi-char key names ('Shift', 'CapsLock', 'Enter', 'Backspace', dead
+    // keys) are control input, never letters — ignore before lowercasing.
+    if (typeof key !== 'string' || key.length !== 1) return;
+    if (!Array.isArray(zombies)) return;
 
     const letter = key.toLowerCase();
     if (!/^[a-z]$/.test(letter)) return;
 
     if (!this.currentTarget) {
-      const matches = zombies.filter(z => !z.isDead && z.word.toLowerCase().startsWith(letter) && z.worldZ < 4.8);
+      const matches = zombies.filter(z => z && !z.isDead && typeof z.word === 'string' && z.word.toLowerCase().startsWith(letter) && z.worldZ < 4.8);
       if (matches.length > 0) {
         this.audio.playSFX('type', this.streak);
         const target = this.pickTarget(matches);
+        if (!target) {
+          this.keysMissed++;
+          this.streak = 0;
+          this.audio.playSFX('error');
+          if (window.game) window.game.onTypingError();
+          return;
+        }
         this.currentTarget = target;
         this.typedBuffer = letter;
         this.currentTarget.setTargeted(true);
@@ -73,8 +115,14 @@ class TypingController {
         if (window.game) window.game.onTypingError();
       }
     } else {
-      // Target died or breached while typing — auto-retarget same letter
-      if (this.currentTarget.isDead || this.currentTarget.worldZ >= 4.8) {
+      // Target died or breached while typing - auto-retarget same letter.
+      // Neutral: reset() counts no keys either way, the re-fed key decides.
+      if (!this.currentTarget || this.currentTarget.isDead || this.currentTarget.worldZ >= 4.8) {
+        this.reset();
+        this.handleInput(key, zombies);
+        return;
+      }
+      if (typeof this.currentTarget.word !== 'string' || this.typedBuffer.length >= this.currentTarget.word.length) {
         this.reset();
         this.handleInput(key, zombies);
         return;
@@ -121,7 +169,7 @@ class TypingController {
   triggerExplosion(zombie, zombies) {
     const explosionPos = zombie.group.position.clone();
     this.particles.spawnExplosion(explosionPos, this.state.equippedBlood);
-    // Laser tracer from player to kill — sells the "decrypt shot"
+    // Laser tracer from player to kill - sells the "decrypt shot"
     if (window.game && window.game.getMuzzleWorldPos) {
       try {
         this.particles.spawnTracer(window.game.getMuzzleWorldPos(), explosionPos, 0x00f2fe);

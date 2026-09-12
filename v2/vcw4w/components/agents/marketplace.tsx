@@ -163,7 +163,7 @@ export function Marketplace() {
       <h2 className="text-2xl font-black">Rent an agent</h2>
       <p className="mt-2 text-sm text-slate-400">
         Quotes are USD/hour maximums (gross, 25% cut included); you pay per
-        second of actual use, never more than the quote. NanoClaw is recommended —
+        second of actual use, never more than the quote. NanoClaw is recommended -
         one bot key from <Link href="/bot/setup" className="text-cyan-300 hover:underline">/bot/setup</Link> drives
         website chat + Telegram on any listing below.
       </p>
@@ -234,7 +234,7 @@ export function Marketplace() {
         <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900 p-5 text-sm text-slate-300">
           <p className="font-bold">No available agents match right now.</p>
           <p className="mt-1 text-slate-400">
-            Try clearing search/filters — or be the supply: publish a NanoClaw listing below (RunPod needs no URL),
+            Try clearing search/filters - or be the supply: publish a NanoClaw listing below (RunPod needs no URL),
             get a key at <Link href="/bot/setup" className="text-cyan-300 hover:underline">/bot/setup</Link>, and read{" "}
             <Link href="/docs/agents-compute" className="text-cyan-300 hover:underline">/docs/agents-compute</Link>.
           </p>
@@ -319,7 +319,7 @@ export function Marketplace() {
               )}
               {l.provider_code === "custom" && (
                 <p className="mt-1 text-xs text-slate-500">
-                  Custom endpoint: your serverless URL wakes per job — ideal NanoClaw serverless target.
+                  Custom endpoint: your serverless URL wakes per job - ideal NanoClaw serverless target.
                 </p>
               )}
               {conn && conn.ok && (

@@ -15,7 +15,7 @@ function kidTokenPepper(): string {
 }
 
 /** Pinned PQ KDF cost (maxmem REQUIRED: N=32768/r=8 exceeds Node's 32 MiB
- *  default scrypt cap and throws without it — see lib/bot-auth SCRYPT_PQ). */
+ *  default scrypt cap and throws without it - see lib/bot-auth SCRYPT_PQ). */
 export const SCRYPT_PQ_KID = { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 } as const;
 
 export function hashKidPassword(password: string): string {

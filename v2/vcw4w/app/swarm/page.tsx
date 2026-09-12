@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/swarm" },
   title: "Hire an Agent Swarm | 4weird Games",
   description:
-    "Your OpenClaw-style agent on 4weird: a per-user internal brain with token-cheap memory, personal .txt file RAG, serverless chat or serverful RunPod runs, and auto-orchestrated child instances — metered per turn with the 25% cut included.",
+    "Your OpenClaw-style agent on 4weird: a per-user internal brain with token-cheap memory, personal .txt file RAG, serverless chat or serverful RunPod runs, and auto-orchestrated child instances - metered per turn with the 25% cut included.",
 };
 
 export const dynamic = "force-dynamic";

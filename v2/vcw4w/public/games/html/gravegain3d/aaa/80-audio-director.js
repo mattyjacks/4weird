@@ -1,7 +1,7 @@
-/* GraveGain3D AAA — 80 audio director.
+/* GraveGain3D AAA - 80 audio director.
    Adaptive music intensity: the ambient bed swells in combat and settles
-   while exploring. Voice lines are rationed to moments that earn them —
-   godlike streaks and warden slays — so TTS never talks over the game. */
+   while exploring. Voice lines are rationed to moments that earn them -
+   godlike streaks and warden slays - so TTS never talks over the game. */
 (function () {
     'use strict';
 
@@ -14,7 +14,7 @@
     const AWARE_RADIUS = 350;
 
     // v3.0.0 campaign: per-mission dungeonTheme base beds. Only the
-    // SoundEngine musicVolume scalar is driven — no new audio assets.
+    // SoundEngine musicVolume scalar is driven - no new audio assets.
     // citadel_darkness runs hot (dread bed); elven_grove stays ambient.
     const THEME_BASE = {
         elven_grove: 0.16,

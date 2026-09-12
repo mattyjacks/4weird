@@ -1,7 +1,7 @@
 {
   "name": "TODO: Game Title",
-  "objective": "TODO: one sentence — what the player must do.",
-  "controls": "TODO: inputs — e.g. Arrow Keys/WASD to steer, Space to boost, Click/Tap targets.",
+  "objective": "TODO: one sentence - what the player must do.",
+  "controls": "TODO: inputs - e.g. Arrow Keys/WASD to steer, Space to boost, Click/Tap targets.",
   "known_states": ["menu", "playing", "game_over"],
   "win_condition": "TODO: how to win or score.",
   "avoid": "TODO: what loses health/score or ends the run.",

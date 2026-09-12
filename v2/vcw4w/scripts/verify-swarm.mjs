@@ -110,7 +110,7 @@ if (!brainRoute.includes("swarm_brains")) throw new Error("Swarm brain route mus
 if (!docsRoute.includes("swarm_docs")) throw new Error("Swarm docs route must read/write swarm_docs.");
 if (!docsRoute.includes("20 KB") && !docsRoute.includes("20KB")) throw new Error("Swarm docs route must enforce the .txt size cap.");
 // Chat must load the brain + RAG, route exec mode, spawn children, and
-// write memory back — all best-effort, never failing the metered turn.
+// write memory back - all best-effort, never failing the metered turn.
 for (const token of ["swarm_brains", "swarm_docs", "compactBrainContext", "retrieveTxtChunks", "resolveExecMode", "planSpawn", "parent_session_id", "extractBrainBullets", "rollMemorySummary"]) {
   if (!chatRoute.includes(token)) throw new Error(`Swarm chat missing brain wiring: ${token}.`);
 }

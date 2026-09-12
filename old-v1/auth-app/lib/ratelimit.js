@@ -1,7 +1,7 @@
 /**
  * Tiny in-memory rate limiter for auth routes (login/signup brute force).
  * Per process; Vercel may run several isolates, so this is defense-in-depth
- * on top of Supabase's own auth rate limits — not the only layer.
+ * on top of Supabase's own auth rate limits - not the only layer.
  */
 const hits = new Map();
 

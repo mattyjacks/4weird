@@ -43,7 +43,7 @@ img.src = SPRITE_URL;
 
 ### Critical: No Em/En Dashes
 
-- **NEVER use**: `—` (em dash) or `–` (en dash) in code
+- **NEVER use**: `-` (em dash) or `-` (en dash) in code
 - **ALWAYS use**: `-` (hyphen) instead
 - This applies to: HTML, CSS, JavaScript, JSON, comments
 

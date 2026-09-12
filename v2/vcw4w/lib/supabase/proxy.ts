@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { hasEnvVars } from "../utils";
+import { hasServerSupabase, supabaseAnonKey, supabaseUrl } from "./service";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -8,34 +9,32 @@ export async function updateSession(request: NextRequest) {
   });
 
   // Public deployments may omit Supabase; protected routes then fail closed in their handlers.
-  if (!hasEnvVars) {
+  if (!hasEnvVars || !hasServerSupabase()) {
     return supabaseResponse;
   }
 
-  // With Fluid compute, don't put this client in a global environment
-  // variable. Always create a new one on each request.
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value),
-          );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options),
-          );
-        },
+  // Same resolution as lib/supabase/server.ts (canonical
+  // NEXT_PUBLIC_SUPABASE_* names win, legacy SUPABASE_URL / SUPABASE_ANON_KEY
+  // fallbacks accepted): the proxy and the route handlers must agree on the
+  // project, or claims validate in one and fail in the other.
+  const supabase = createServerClient(supabaseUrl(), supabaseAnonKey(), {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) =>
+          request.cookies.set(name, value),
+        );
+        supabaseResponse = NextResponse.next({
+          request,
+        });
+        cookiesToSet.forEach(({ name, value, options }) =>
+          supabaseResponse.cookies.set(name, value, options),
+        );
       },
     },
-  );
+  });
 
   // Do not run code between createServerClient and
   // supabase.auth.getClaims(). A simple mistake could make it very hard to debug
@@ -60,7 +59,11 @@ export async function updateSession(request: NextRequest) {
   // Individual route handlers enforce fine-grained method and payload authentication.
   const path = request.nextUrl.pathname;
   const method = request.method;
-  const isBotKeyAuth = request.headers.has("x-bot-key") || request.headers.get("authorization")?.startsWith("Bearer ");
+  const rawBotKey = (request.headers.get("x-bot-key") ?? "").trim();
+  const rawAuth = (request.headers.get("authorization") ?? "").trim();
+  const isBotKeyAuth =
+    /^(bot4weird_[A-Za-z0-9]{16,}|vcw_live_[A-Za-z0-9]{16,})$/.test(rawBotKey) ||
+    /^Bearer\s+\S{20,}$/.test(rawAuth);
   const isPublicApi =
     (path === "/api/games/guest-pass" && method === "POST") ||
     (path === "/api/games/rates" && method === "GET") ||

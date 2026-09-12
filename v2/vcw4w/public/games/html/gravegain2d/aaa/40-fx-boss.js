@@ -1,11 +1,11 @@
-/* GraveGain2D AAA — 40 boss.
-   2D adaptation: 2D has no game.activeBoss — a boss is any live enemy with
+/* GraveGain2D AAA - 40 boss.
+   2D adaptation: 2D has no game.activeBoss - a boss is any live enemy with
    type === 'boss' (ambient floor 6+ threats and story slay_boss targets
    alike). Arrival gets a full boss-fight intro (letterbox + name slam);
    a boss kill gets bullet-time slow-mo (2D setGameSpeed clamps to 0.5x),
    a gold ring burst through the game's ParticleSystem, and a BOSS SLAIN
-   callout. Owns the #bossBarContainer HP bar — 2D has none natively.
-   Detection polls game.enemies — no core edits needed. */
+   callout. Owns the #bossBarContainer HP bar - 2D has none natively.
+   Detection polls game.enemies - no core edits needed. */
 (function () {
     'use strict';
 

@@ -292,9 +292,9 @@ export function greetingForGame(gameTitle: string, gameSlug: string): string {
   if (slug === "lobby") return `Hey, I'm your Gaming Buddy for ${title}. I'm watching the screen; talk to me while you play.`;
   if (/zombie|lastword/i.test(`${slug} ${title}`)) return `Hey, I'm your Gaming Buddy for ${title}. Type fast, I'll call out the cyber-units crowding your terminal.`;
   if (/grave|dungeon/i.test(`${slug} ${title}`)) return `Hey, I'm your Gaming Buddy for ${title}. I'll watch the dungeon with you and drop one fair tip whenever you're stuck.`;
-  if (/shark|battle/i.test(`${slug} ${title}`)) return `Hey, I'm your Gaming Buddy for ${title}. Swim loud — I'll narrate the mutations and hype the big eats.`;
-  if (/race|overtake|neonracer/i.test(`${slug} ${title}`)) return `Hey, I'm your Gaming Buddy for ${title}. Eyes on the track — I'll call the corners while you push the nitro.`;
-  if (/platform/i.test(`${slug} ${title}`)) return `Hey, I'm your Gaming Buddy for ${title}. I'll track the arena with you — jumps, rivals, all of it.`;
+  if (/shark|battle/i.test(`${slug} ${title}`)) return `Hey, I'm your Gaming Buddy for ${title}. Swim loud - I'll narrate the mutations and hype the big eats.`;
+  if (/race|overtake|neonracer/i.test(`${slug} ${title}`)) return `Hey, I'm your Gaming Buddy for ${title}. Eyes on the track - I'll call the corners while you push the nitro.`;
+  if (/platform/i.test(`${slug} ${title}`)) return `Hey, I'm your Gaming Buddy for ${title}. I'll track the arena with you - jumps, rivals, all of it.`;
   return `Hey, I'm your Gaming Buddy for ${title}. I'm watching the screen; talk to me while you play.`;
 }
 

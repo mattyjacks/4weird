@@ -9,7 +9,7 @@ import { validatePodPolicyInput } from "@/lib/pod-idle";
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/desktop/[id]/policy — change YOUR pod's idle lifecycle
+ * POST /api/desktop/[id]/policy - change YOUR pod's idle lifecycle
  * (warn-chime minutes, stop grace, terminate hours). Creator-only (404
  * otherwise). Body accepts warn_minutes / stop_grace_minutes /
  * terminate_hours (camelCase aliases work too); omitted keys reset to the

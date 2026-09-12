@@ -727,8 +727,8 @@
                 if (room.type === 'boss') {
                     // Mission boss override: shared-mission bossType plus the
                     // campaign pack's bossHpMult / bossDisplay. The AAA boss FX
-                    // (aaa/40-fx-boss.js) exposes no public API — it polls
-                    // game.activeBoss on tick — so setting the boss plus the
+                    // (aaa/40-fx-boss.js) exposes no public API - it polls
+                    // game.activeBoss on tick - so setting the boss plus the
                     // boss bar here IS the integration; its letterbox intro,
                     // name slam and slow-mo slay fire automatically.
                     let bossName = 'ANCIENT BONE GOLIATH';
@@ -2270,7 +2270,7 @@
         }
 
         // Campaign difficulty curve: +15% enemy power per mission id.
-        // Endless mode (no currentMission) always returns 1 — untouched.
+        // Endless mode (no currentMission) always returns 1 - untouched.
         getMissionScaleMult() {
             try {
                 const m = this.currentMission;
@@ -2320,7 +2320,7 @@
                     else if (id === 'slay_elites') hit = (Number(enemyKilled.scale) || 0) >= 1.1;
                     else if (id === 'collect_ore') {
                         // Sparkite pried from armored remains and wardens
-                        // (prop caches also feed this — see breakProp).
+                        // (prop caches also feed this - see breakProp).
                         hit = !!(enemyKilled.isBoss || (Number(enemyKilled.scale) || 0) >= 1.1);
                     }
                     else hit = true; // slay_all, slay_minions, survive_waves + generic secondaryObjective
@@ -2396,7 +2396,7 @@
             } catch (_) { /* ignore */ }
             try { this.saveSave(); } catch (_) { /* ignore */ }
             try { this.combatText.showBanner(`🏆 MISSION COMPLETED! 🏆 ★${stars}`); } catch (_) { /* ignore */ }
-            // dialogueAfter, then the game-over screen — where the campaign UI
+            // dialogueAfter, then the game-over screen - where the campaign UI
             // injects the return-to-hub / next-mission prompt (20-campaign-ui).
             try {
                 this.playDialogueSequence(m.dialogueAfter, () => {

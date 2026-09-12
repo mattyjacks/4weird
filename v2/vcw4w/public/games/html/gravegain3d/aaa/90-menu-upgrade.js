@@ -1,4 +1,4 @@
-/* GraveGain3D AAA — main-menu treatment: tagline pill, animated title
+/* GraveGain3D AAA - main-menu treatment: tagline pill, animated title
    glow (see 60-menu.css), and a Continue button when a starship save exists.
    Continue restores meta-progress (already loaded by the core loadSave) and
    jumps straight to character select. */

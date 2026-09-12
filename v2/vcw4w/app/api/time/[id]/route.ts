@@ -7,7 +7,7 @@ import { isUuid } from "@/lib/validate";
 export const dynamic = "force-dynamic";
 
 // Ownership is enforced by the user_id predicate on every query; the route
-// adds defense in depth: strict uuid shape, and no false-success — zero
+// adds defense in depth: strict uuid shape, and no false-success - zero
 // matched rows is a 404, never ok:true.
 
 // PUT /api/time/[id] - Update a time entry

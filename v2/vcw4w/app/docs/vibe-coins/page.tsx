@@ -22,7 +22,7 @@ const PACKS: [string, string, string][] = [
   ["1,500 🪙", "$15", "The regular's stash"],
   ["5,000 🪙", "$50", "Clan treasuries + agent hours"],
   ["25,000 🪙", "$250", "Team war chest"],
-  ["Custom", "500–100k", "Any amount at 1¢/coin"],
+  ["Custom", "500-100k", "Any amount at 1¢/coin"],
 ];
 
 export default function VibeCoinsPage() {
@@ -31,7 +31,7 @@ export default function VibeCoinsPage() {
       <DocsHero
         eyebrow="Docs · the vault"
         title={<>Money, but <span className={theme.title}>make it fun.</span></>}
-        lede={<>One coin economy across games, clans, bots, agents, and teams: 100 coins = exactly $1.00 ($0.01/coin). Every price already includes the 25% platform cut — never added on top.</>}
+        lede={<>One coin economy across games, clans, bots, agents, and teams: 100 coins = exactly $1.00 ($0.01/coin). Every price already includes the 25% platform cut - never added on top.</>}
         stats={[
           ["100 🪙", "= $1.00 exactly"],
           ["1¢", "per coin, always"],
@@ -58,7 +58,7 @@ export default function VibeCoinsPage() {
         index="1"
         kicker="The promise"
         title="A cent is a cent is a cent"
-        body="When you pay 400 coins ($4.00) for compute, 100 goes to the platform and 300 credits the provider as on-site platform credits — but you only ever see the gross 400. Same rule for game rentals, clan fees, game AI, Buddy turns, and squad cloud. Individual earn shares mint time-locked Crowns under Terms 8A.1 (convert 1:1 to Coins after a 30-day legal lock (instant once unlocked) or cash out via our payout provider (30 days + 5-10 business days, KYC required, countries not yet announced); shared wallet credits are spendable on cloud computing, game credits, and other on-site services only; never cash-out, never withdrawable. Your receipt is /my/usage/."
+        body="When you pay 400 coins ($4.00) for compute, 100 goes to the platform and 300 credits the provider as on-site platform credits - but you only ever see the gross 400. Same rule for game rentals, clan fees, game AI, Buddy turns, and squad cloud. Individual earn shares mint time-locked Crowns under Terms 8A.1 (convert 1:1 to Coins after a 30-day legal lock (instant once unlocked) or cash out via our payout provider (30 days + 5-10 business days, KYC required, countries not yet announced); shared wallet credits are spendable on cloud computing, game credits, and other on-site services only; never cash-out, never withdrawable. Your receipt is /my/usage/."
       />
       <SplitBar />
 
@@ -69,10 +69,10 @@ export default function VibeCoinsPage() {
       />
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         {[
-          ["🎁 Free 100-coin trial", "Automatic on signup, once per person. There is intentionally no 100-coin pack — the trial stays special."],
-          ["📅 Daily bonus 5–12", "One button on /account, once per UTC day: 5 coins + 1 per streak day, capped at 12."],
+          ["🎁 Free 100-coin trial", "Automatic on signup, once per person. There is intentionally no 100-coin pack - the trial stays special."],
+          ["📅 Daily bonus 5-12", "One button on /account, once per UTC day: 5 coins + 1 per streak day, capped at 12."],
           ["💌 Referrals 25/25", "Share your 8-char code; both sides get 25 coins on redeem. One use per invitee, no self-use."],
-          ["🛒 Packs + custom", "500 / 1.5k / 5k / 25k + custom 500–100k at 1¢/coin on /pricing. Shopify checkout, reconciled by order email."],
+          ["🛒 Packs + custom", "500 / 1.5k / 5k / 25k + custom 500-100k at 1¢/coin on /pricing. Shopify checkout, reconciled by order email."],
         ].map(([t, b]) => (
           <div key={t} className="rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-yellow-400/50">
             <p className="font-black">{t}</p>
@@ -83,14 +83,14 @@ export default function VibeCoinsPage() {
 
       <Callout tone="gold" title="Grant didn't land? Recover by email first.">
         Paid grants reconcile by order email with anti-double-mint guards. Use the attach-by-email recovery on{" "}
-        <Link className="underline" href="/account">/account</Link> before contacting support — it resolves most cases instantly.
+        <Link className="underline" href="/account">/account</Link> before contacting support - it resolves most cases instantly.
       </Callout>
 
       <SectionHead
         index="3"
         kicker="The menu"
         title="Pick your stash"
-        body="100 coins is the free trial — never sold. Everything else is on /pricing, purchasable from /account."
+        body="100 coins is the free trial - never sold. Everything else is on /pricing, purchasable from /account."
       />
       <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {PACKS.map(([pack, price, blurb], i) => (
@@ -121,7 +121,7 @@ export default function VibeCoinsPage() {
         {[
           ["🕹️ Game rentals", "Load fee by exact bytes + per-second play. Same version free 24h. Itemized per game."],
           ["👾 Clan activity", "Byte-linear post/comment/message fees, split 25% platform / 75% clan wallet. Funds upkeep."],
-          ["🎙️ Game AI + Buddy", "Dialogue, directors, voice, screen reads — per token, character, or GPU minute."],
+          ["🎙️ Game AI + Buddy", "Dialogue, directors, voice, screen reads - per token, character, or GPU minute."],
           ["☁️ Agents + teams", "Bookings escrow gross coins; heartbeats settle 25/75 downward, never above escrow."],
         ].map(([t, b]) => (
           <div key={t} className="rounded-2xl border border-border bg-card p-4">
@@ -137,9 +137,9 @@ export default function VibeCoinsPage() {
         title="Rules that protect your wallet"
       />
       <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
-        <li className="rounded-xl border border-border bg-card p-3">🧾 <strong className="text-foreground">Read /my/usage/ first.</strong> Session + total + 1h/24h, by-kind + by-game, recent turns — it answers nearly every “what did I pay?” question.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🧾 <strong className="text-foreground">Read /my/usage/ first.</strong> Session + total + 1h/24h, by-kind + by-game, recent turns - it answers nearly every “what did I pay?” question.</li>
         <li className="rounded-xl border border-border bg-card p-3">🔐 <strong className="text-foreground">Money moves server-side only.</strong> Never trust a client-side display offering to “award yourself” coins.</li>
-        <li className="rounded-xl border border-border bg-card p-3">📜 <strong className="text-foreground">Coins are licensed features</strong> — no cash value, never cash-out, never withdrawable, non-transferable, spendable on cloud computing, game credits, and other on-site services only; purchases final except where law requires otherwise (<Link className="underline" href="/terms">Terms §8</Link>).</li>
+        <li className="rounded-xl border border-border bg-card p-3">📜 <strong className="text-foreground">Coins are licensed features</strong> - no cash value, never cash-out, never withdrawable, non-transferable, spendable on cloud computing, game credits, and other on-site services only; purchases final except where law requires otherwise (<Link className="underline" href="/terms">Terms §8</Link>).</li>
       </ul>
 
       <Pager current="/docs/vibe-coins" />

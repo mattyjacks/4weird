@@ -1,4 +1,4 @@
-/* GraveGain3D AAA — 60 tutorial.
+/* GraveGain3D AAA - 60 tutorial.
    First-run coach marks: a short bottom-center toast chain teaching move,
    look, attack, block, potion, and the portal goal. Shows once ever
    (localStorage), fast-forwards to the goal tip on first blood. */
@@ -63,7 +63,7 @@
             setTimeout(() => show(0), 3200); // let the title card land first
         });
 
-        // First blood means the basics clicked — jump to the goal tip.
+        // First blood means the basics clicked - jump to the goal tip.
         AAA.on('kill', () => {
             if (!started || done || idx >= steps.length - 1) return;
             clearTimeout(timer);

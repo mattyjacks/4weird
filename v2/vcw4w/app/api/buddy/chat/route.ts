@@ -39,7 +39,7 @@ export const dynamic = "force-dynamic";
  * input tokens on the chat leg.
  * memory:true (opt-in, default off) pulls the per-game rolling buffer via
  * buddy_get_memory into the system prompt and rolls this turn into it via
- * buddy_save_memory — extractive text only, zero model cost, best-effort.
+ * buddy_save_memory - extractive text only, zero model cost, best-effort.
  * message is an optional typed player question; history is an optional
  * array of { role: "user"|"buddy", text } (capped at 8 turns) that the
  * buddy remembers for this turn only; never stored server-side.
@@ -146,7 +146,7 @@ export async function POST(req: Request) {
   const brain = pickBuddyBrain({ openaiKey, openrouterKey, requested: input.brain });
   const model = brain === "openrouter" ? openrouterModel : (process.env.BUDDY_MODEL ?? "gpt-4o-mini");
   const wantStream = isBuddyStreamRequested(input);
-  // Fail fast when the wallet cannot cover even the smallest chat leg —
+  // Fail fast when the wallet cannot cover even the smallest chat leg -
   // BEFORE spending real inference (streamed or buffered) on a turn that
   // metering must then reject. Fallback replies are free and skip this.
   if (brain !== "none") {
@@ -159,7 +159,7 @@ export async function POST(req: Request) {
       return dbFail("api/buddy/chat:balance", error, "Unable to check balance.");
     }
   }
-  // SSE fallback (no brain): single done frame, cost null — same semantics as the JSON fallback below.
+  // SSE fallback (no brain): single done frame, cost null - same semantics as the JSON fallback below.
   if (wantStream && brain === "none") {
     const fbReply = fallbackReply(obs);
     return new Response(
@@ -380,7 +380,7 @@ export async function POST(req: Request) {
           return;
         }
         // Opt-in memory save: roll this turn into the per-game buffer.
-        // Best-effort — the turn is already metered and answered.
+        // Best-effort - the turn is already metered and answered.
         if (wantMemory) {
           try {
             const merged = mergeBuddyMemory(storedMemory, [
@@ -580,7 +580,7 @@ export async function POST(req: Request) {
     return dbFail("api/buddy/chat:meter", error, "Unable to meter this turn.");
   }
   // Opt-in memory save: roll this turn into the per-game buffer.
-  // Best-effort — the turn is already metered and answered.
+  // Best-effort - the turn is already metered and answered.
   if (wantMemory) {
     try {
       const merged = mergeBuddyMemory(storedMemory, [

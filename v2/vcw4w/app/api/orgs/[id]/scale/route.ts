@@ -27,7 +27,7 @@ function isUuid(v: unknown): boolean {
 }
 
 /**
- * GET /api/orgs/[id]/scale — member count, effective cap (10k + headroom,
+ * GET /api/orgs/[id]/scale - member count, effective cap (10k + headroom,
  * or purchased seats on self-hosted servers), prune settings. Members only.
  */
 export async function GET(req: Request) {
@@ -43,11 +43,11 @@ export async function GET(req: Request) {
 }
 
 /**
- * POST /api/orgs/[id]/scale — creator controls for big orgs.
+ * POST /api/orgs/[id]/scale - creator controls for big orgs.
  * { action: "prune-settings", auto_enabled, threshold?, batch_size?, strategy? }
- * { action: "prune", strategy?, limit?, user_ids?, dry_run? } — manual prune
+ * { action: "prune", strategy?, limit?, user_ids?, dry_run? } - manual prune
  *   (dry_run previews victims in strategy order without deleting).
- * { action: "headroom", slots } — prepay cloud compute: 10 coins/100 slots.
+ * { action: "headroom", slots } - prepay cloud compute: 10 coins/100 slots.
  */
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);

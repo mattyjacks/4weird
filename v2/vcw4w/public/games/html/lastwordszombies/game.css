@@ -444,7 +444,7 @@
     flex: 1;
     background: none;
     border: none;
-    color: #718096;
+    color: #9fb0c3;
     font-family: var(--font-cyber);
     font-size: 0.75rem;
     font-weight: 700;
@@ -534,7 +534,7 @@
     box-shadow: var(--glow-magenta);
 }
 
-/* ===== 10. CAROUSEL & SHARE BUTTONS ===== */
+/* ===== 9. CAROUSEL & SHARE BUTTONS ===== */
 /* Share container */
 .share-section {
     padding: 10px 0;
@@ -751,14 +751,14 @@
     box-shadow: var(--glow-cyan);
 }
 
-/* ===== 11. FOOTER & MISC ===== */
+/* ===== 10. FOOTER & MISC ===== */
 .TEMPLATE-4weird-footer {
     background: var(--cyber-black);
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     padding: 30px 0;
     text-align: center;
     font-size: 0.85rem;
-    color: #718096;
+    color: #9fb0c3;
 }
 
 .TEMPLATE-4weird-footer a {
@@ -807,7 +807,7 @@
     aspect-ratio: auto;
 }
 
-.TEMPLATE-4weird-game-frame:fullscreen #TEMPLATE-4weird-gameCanvas {
+.TEMPLATE-4weird-game-frame:fullscreen #canvas-container canvas {
     width: 100%;
     height: 100%;
 }
@@ -936,9 +936,9 @@
 }
 
 .store-card p {
-  font-size: 0.8rem;
-  color: #718096;
-  font-family: var(--font-cyber);
+    font-size: 0.8rem;
+    color: #9fb0c3;
+    font-family: var(--font-cyber);
 }
 
 .btn-buy {
@@ -1346,11 +1346,11 @@
 }
 
 .hud-types-legend {
-  font-family: var(--font-cyber);
-  font-size: 0.6rem;
-  letter-spacing: 1px;
-  color: #8a99ad;
-  margin-top: 4px;
+    font-family: var(--font-cyber);
+    font-size: 0.6rem;
+    letter-spacing: 1px;
+    color: #a9b8c7;
+    margin-top: 4px;
 }
 
 #score-val.score-pop {
@@ -1374,10 +1374,10 @@
   gap: 2px;
 }
 .gameover-stats span {
-  font-family: var(--font-cyber);
-  font-size: 0.6rem;
-  letter-spacing: 1px;
-  color: #8a99ad;
+    font-family: var(--font-cyber);
+    font-size: 0.6rem;
+    letter-spacing: 1px;
+    color: #a9b8c7;
 }
 .gameover-stats b {
   font-family: var(--font-cyber);
@@ -1480,9 +1480,9 @@
 .menu-tutorial b { color: #fff; }
 
 .menu-key-hint {
-  font-size: 0.78rem;
-  color: #8a99ad;
-  margin: 0;
+    font-size: 0.78rem;
+    color: #a9b8c7;
+    margin: 0;
 }
 .menu-key-hint kbd {
   background: #1e1e2d;
@@ -1501,11 +1501,11 @@
   margin-left: 6px;
 }
 .store-hint {
-  font-family: var(--font-cyber);
-  font-size: 0.7rem;
-  letter-spacing: 1px;
-  color: #8a99ad;
-  margin: 0 0 15px;
+    font-family: var(--font-cyber);
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    color: #a9b8c7;
+    margin: 0 0 15px;
 }
 .store-hint kbd {
   background: #1e1e2d;
@@ -1539,15 +1539,19 @@
 .tab-btn:focus-visible,
 .powerup-btn:focus-visible,
 .share-btn:focus-visible,
+a.share-btn:focus-visible,
 .sound-toggle-btn:focus-visible,
 .carousel-nav-btn:focus-visible,
+.carousel-play-btn:focus-visible,
 .TEMPLATE-4weird-fullscreen-btn:focus-visible,
 .mobile-keyboard-trigger:focus-visible,
 .game-speed-trigger:focus-visible,
 .btn-buy:focus-visible,
-.btn-equip:focus-visible {
-  outline: 2px solid var(--neon-cyan);
-  outline-offset: 2px;
+.btn-equip:focus-visible,
+input[type="range"]:focus-visible,
+input[type="checkbox"]:focus-visible {
+    outline: 2px solid var(--neon-cyan);
+    outline-offset: 2px;
 }
 
 /* 44px minimum touch targets on coarse pointers */
@@ -1609,3 +1613,90 @@
 
 /* Keep tall overlays scrollable without chaining the page behind */
 .TEMPLATE-4weird-game-overlay { overscroll-behavior: contain; }
+
+/* ===== 21. BREAKPOINT SWEEP: 1280 / 768 / 360 + short landscape ===== */
+
+/* Maker bio helpers (populated from game.json; empty until then) */
+.TEMPLATE-4weird-maker-name:empty { display: none; }
+.TEMPLATE-4weird-maker-link:empty { display: none; }
+.TEMPLATE-4weird-maker-link {
+    font-family: var(--font-cyber);
+    font-size: 0.8rem;
+    color: var(--neon-cyan);
+    letter-spacing: 1px;
+}
+
+/* 1280px: tighten the two-column shell before the 900px collapse */
+@media (max-width: 1100px) {
+    .TEMPLATE-4weird-game-main {
+        gap: 16px;
+        padding: 16px;
+    }
+}
+
+/* 768px: roomier wrapped HUD, scaled banner text, wrapping selectors */
+@media (max-width: 768px) {
+    #game-hud {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .hud-item {
+        flex: 1 1 140px;
+        min-width: 0;
+        padding: 6px 10px;
+    }
+    .hud-value { font-size: 1rem; }
+    .hud-types-legend { overflow-wrap: break-word; }
+    #boss-bar { top: 110px; width: min(86%, 420px); }
+    .TEMPLATE-4weird-overlay-content { width: 92%; }
+    .TEMPLATE-4weird-overlay-content h2 { font-size: 1.6rem; }
+    .difficulty-options, .level-options { flex-wrap: wrap; }
+}
+
+/* 360px: compact overlays, stacked floating triggers so the powerup bar,
+   the keyboard/speed triggers, and the fullscreen button never collide */
+@media (max-width: 400px) {
+    .TEMPLATE-4weird-game-main { padding: 10px; }
+    .TEMPLATE-4weird-overlay-content { padding: 18px 14px; width: 94%; }
+    .TEMPLATE-4weird-overlay-content h2 { font-size: 1.35rem; letter-spacing: 1px; }
+    .TEMPLATE-4weird-final-score { font-size: 1.15rem; }
+    #game-hud { top: 8px; left: 8px; right: 8px; gap: 6px; }
+    .hud-item { flex: 1 1 100%; padding: 5px 8px; }
+    .hud-integrity-container { width: 100%; }
+    /* Lift the centered powerup pills above the corner triggers */
+    #powerup-bar {
+        bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+        gap: 6px;
+        max-width: calc(100% - 16px);
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .powerup-btn { padding: 6px 10px; font-size: 0.7rem; }
+    /* Corner triggers sit above the fullscreen button, split left/right */
+    .mobile-keyboard-trigger {
+        bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+        right: 12px;
+        padding: 10px 14px;
+        font-size: 0.75rem;
+    }
+    .game-speed-trigger {
+        bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+        left: 12px;
+        padding: 10px 14px;
+        font-size: 0.7rem;
+    }
+    .TEMPLATE-4weird-fullscreen-btn { padding: 6px 8px; font-size: 0.65rem; }
+    #wave-banner .wave-banner-title { font-size: 1.6rem; letter-spacing: 2px; }
+    #kill-announce { font-size: 1rem; letter-spacing: 2px; }
+    .gameover-stats { grid-template-columns: repeat(2, 1fr); }
+    .store-grid { max-height: 180px; }
+    .share-buttons { flex-direction: column; }
+}
+
+/* Short landscape phones: keep overlays usable when height is the constraint */
+@media (max-height: 500px) {
+    .TEMPLATE-4weird-overlay-content { padding: 16px; gap: 8px; }
+    .TEMPLATE-4weird-overlay-content h2 { font-size: 1.3rem; margin-bottom: 8px; }
+    .TEMPLATE-4weird-overlay-content p { margin-bottom: 12px; }
+    .TEMPLATE-4weird-controls-hint { margin-top: 12px; padding: 10px; }
+}

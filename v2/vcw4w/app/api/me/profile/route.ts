@@ -3,7 +3,7 @@ import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
-import { botTesterBlocked, isBotTester } from "@/lib/bot-auth";
+import { botTesterBlocked, isBotTester, privilegedSessionBlocked } from "@/lib/bot-auth";
 import { cleanDisplayName, cleanHandle, jsonBytes } from "@/lib/validate";
 import { isAgeBand } from "@/lib/family";
 
@@ -30,12 +30,20 @@ export async function PATCH(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   // Bot tester sessions (POST /api/bot/login email+password) can play but
-  // never change the user profile.
+  // never change the user profile. Proof-gated: stripping the tester cookie
+  // alone does not escalate (full-login proof required).
   if (isBotTester(req)) return fail(botTesterBlocked(), 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Authentication required.", 401);
+  {
+    const blocked = privilegedSessionBlocked(req, u.id);
+    if (blocked) {
+      const status = blocked === botTesterBlocked() ? 403 : 401;
+      return fail(blocked, status);
+    }
+  }
   const throttle = rateLimit(`profile-patch:${u.id}`, 20);
   if (!throttle.allowed) {
     return fail("Too many profile updates. Try again shortly.", 429, {
@@ -64,7 +72,7 @@ export async function PATCH(req: Request) {
     return fail("Handle needs 3-40 letters, numbers, _ or -.", 400);
   }
   // age_band is a self-declared content band for full (13+) accounts only:
-  // teen (13-17) or adult (18+). "kid" (0-12) is NEVER valid here — under-13s
+  // teen (13-17) or adult (18+). "kid" (0-12) is NEVER valid here - under-13s
   // have no direct account (COPPA); they play on parent-created Child
   // sub-accounts. "unknown" is legacy read-only: existing rows keep working
   // (treated as teen-restricted), but new writes must pick teen or adult.
@@ -97,7 +105,7 @@ export async function PATCH(req: Request) {
   const isPublic = input.is_profile_public === undefined ? undefined : Boolean(input.is_profile_public);
   // user_id is forced from the session; RLS re-checks it. A client-supplied
   // id field is ignored entirely.
-  // TOCTOU guard: re-check kids AFTER the update when opting out — a child
+  // TOCTOU guard: re-check kids AFTER the update when opting out - a child
   // created in the race window flips the role back to parent instead of
   // leaving solo-with-kids.
   const { error } = await supabase

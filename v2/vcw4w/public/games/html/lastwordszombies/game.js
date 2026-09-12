@@ -6,8 +6,9 @@ class GameApp {
     this.state = new StateManager();
     this.audio = new AudioManager(this.state);
     
-    // 2. Three.js Setup
+    // 2. Three.js Setup (fail fast with a readable error if shell is missing)
     this.container = document.getElementById('canvas-container');
+    if (!this.container) throw new Error('Missing #canvas-container');
     this.scene = new THREE.Scene();
     
     this.scene.background = new THREE.Color(0x030308);
@@ -59,6 +60,18 @@ class GameApp {
     this.lowHpAlarmTimer = 0;
     this.muzzleFlash = 0;
     this.announceTimer = null;
+    this.announceSubTimer = null;
+    this.waveBannerTimer = null;
+    // Hardening: run token invalidates stale async timeouts (slow-mo game
+    // over, banners) when a new run starts; _gameOverPending stops repeat
+    // handleGameOver calls while health stays 0; _eventsBound keeps
+    // bindEvents single-run; _dom caches hot-path HUD lookups.
+    this._runSeq = 0;
+    this._gameOverPending = false;
+    this._eventsBound = false;
+    this._settingsBound = false;
+    this._dom = {};
+    this._frozenRemainingOnPause = 0;
     
     this.lastTime = 0;
     this.spawnTimer = 0;
@@ -73,8 +86,9 @@ class GameApp {
     this.storeController = setupStore(this.state, this.audio);
     this.initSettingsUI();
     
-    // Remove loading screen on complete
-    document.getElementById('TEMPLATE-4weird-loading-screen').classList.add('hidden');
+    // Remove loading screen on complete (null-guarded: menu shell may vary)
+    const loadingEl = document.getElementById('TEMPLATE-4weird-loading-screen');
+    if (loadingEl) loadingEl.classList.add('hidden');
     this.state.setGameState(GameState.MENU);
     
     requestAnimationFrame((t) => this.loop(t));
@@ -779,6 +793,24 @@ class GameApp {
     return v;
   }
 
+  // Cached HUD lookup: avoids per-frame getElementById + centralizes null guards.
+  dom(id) {
+    if (this._dom[id] === undefined) this._dom[id] = document.getElementById(id);
+    const el = this._dom[id];
+    // If the shell injects nodes late, retry once instead of caching null forever.
+    if (!el) this._dom[id] = document.getElementById(id);
+    return this._dom[id] || null;
+  }
+
+  // Null-safe click binding used by bindEvents so one missing button can
+  // never abort the whole wiring pass.
+  onBtn(id, evt, fn, opts) {
+    const el = document.getElementById(id);
+    if (!el) return false;
+    el.addEventListener(evt, fn, opts);
+    return true;
+  }
+
   // Center-screen toast announcements (killstreaks, powerups, boss warnings)
   announce(text, color, sub) {
     const banner = document.getElementById('kill-announce');
@@ -791,6 +823,7 @@ class GameApp {
     banner.classList.add('show');
     if (this.announceTimer) clearTimeout(this.announceTimer);
     this.announceTimer = setTimeout(() => banner.classList.remove('show'), 1400);
+    if (this.announceSubTimer) { clearTimeout(this.announceSubTimer); this.announceSubTimer = null; }
     if (sub) {
       const subEl = document.getElementById('kill-announce-sub');
       if (subEl) {
@@ -798,7 +831,7 @@ class GameApp {
         subEl.classList.remove('show');
         void subEl.offsetWidth;
         subEl.classList.add('show');
-        setTimeout(() => subEl.classList.remove('show'), 1400);
+        this.announceSubTimer = setTimeout(() => subEl.classList.remove('show'), 1400);
       }
     }
   }
@@ -814,12 +847,13 @@ class GameApp {
     void banner.offsetWidth;
     if (isBoss) banner.classList.add('boss');
     banner.classList.add('show');
-    setTimeout(() => banner.classList.remove('show'), 2200);
+    if (this.waveBannerTimer) clearTimeout(this.waveBannerTimer);
+    this.waveBannerTimer = setTimeout(() => banner.classList.remove('show'), 2200);
   }
 
   waveTagline(wave) {
     if (wave <= 1) return 'Decrypt the words. Hold the grid.';
-    if (wave === 2) return 'Runners inbound — type fast.';
+    if (wave === 2) return 'Runners inbound - type fast.';
     if (wave === 3) return 'Phantoms phase through the dark.';
     if (wave === 4) return 'Brutes incoming. Big scores.';
     return 'Threat level rising. No mercy.';
@@ -882,7 +916,7 @@ class GameApp {
   }
 
   updateWaveProgress() {
-    const fill = document.getElementById('wave-progress-fill');
+    const fill = this.dom('wave-progress-fill');
     if (!fill) return;
     const total = Math.max(1, this.state.zombiesInWave);
     const done = Math.min(total, this.state.zombiesKilled);
@@ -899,9 +933,9 @@ class GameApp {
   }
 
   updateBossBar() {
-    const bar = document.getElementById('boss-bar');
+    const bar = this.dom('boss-bar');
     if (!bar || !this.bossActive || this.bossActive.isDead) return;
-    const fill = document.getElementById('boss-hp-fill');
+    const fill = this.dom('boss-hp-fill');
     if (!fill) return;
     const total = this.bossActive.word.length;
     const left = total - this.bossActive.typedLength;
@@ -914,7 +948,14 @@ class GameApp {
   }
 
   // --- POWERUPS (keys 1/2/3 + HUD buttons) ---
+  // Bomb never consumes a charge on an empty field; shield never burns a
+  // charge at full HP. Both report why instead of silently wasting stock.
   useBomb() {
+    const live = this.zombies.filter(z => !z.isDead);
+    if (live.length === 0) {
+      this.announce('NO TARGETS', '#718096');
+      return;
+    }
     if (!this.state.usePowerup('bomb')) return;
     this.audio.playSFX('bomb');
     this.triggerCameraShake(1.0);
@@ -945,7 +986,6 @@ class GameApp {
     });
     if (this.typing.currentTarget && this.typing.currentTarget.isDead) this.typing.reset();
     this.announce(`SHOCKWAVE ×${kills}`, '#ff5500');
-    this.state.zombiesKilled += 0; // kills counted on next update sweep
     this.updateWaveProgress();
   }
 
@@ -953,12 +993,16 @@ class GameApp {
     if (!this.state.usePowerup('freeze')) return;
     this.audio.playSFX('freeze');
     this.state.freezeUntil = performance.now() + 5000;
-    this.announce('CRYO FREEZE — 5s', '#00f2fe');
+    this.announce('CRYO FREEZE - 5s', '#00f2fe');
     const center = new THREE.Vector3(0, 0.5, -12);
     this.particles.spawnPortal(center, 0x00f2fe);
   }
 
   useShield() {
+    if (this.state.health >= 100) {
+      this.announce('ARMOR FULL', '#00ff66');
+      return;
+    }
     if (!this.state.usePowerup('shield')) return;
     this.audio.playSFX('shield');
     this.state.health = Math.min(100, this.state.health + 40);
@@ -1058,6 +1102,9 @@ class GameApp {
   }
 
   bindEvents() {
+    // Single-run: a second GameApp (HMR / re-boot) must not double-wire keys.
+    if (this._eventsBound) return;
+    this._eventsBound = true;
     window.addEventListener('resize', () => this.resizeCanvas());
     // Mobile keyboards fire viewport resizes as they open/close. The frame
     // height is locked during PLAYING, so this only re-fits the renderer
@@ -1082,7 +1129,7 @@ class GameApp {
       }
 
       // Keystrokes from the hidden mobile input are handled by its own
-      // 'input' listener — letting them bubble here would double-type.
+      // 'input' listener - letting them bubble here would double-type.
       if (e.target && e.target.id === 'mobile-game-input') return;
 
       // Never hijack keys while a settings slider is being adjusted
@@ -1090,9 +1137,11 @@ class GameApp {
 
       if (this.state.currentState === GameState.MENU) {
         if (e.key === 'Escape') {
-          // Close store/settings back to the main menu
-          if (!document.getElementById('custom-store-screen').classList.contains('hidden')) this.backToMenu();
-          else if (!document.getElementById('custom-settings-screen').classList.contains('hidden')) this.closeSettings();
+          // Close store/settings back to the main menu (null-safe)
+          const storeEl = document.getElementById('custom-store-screen');
+          const settingsEl = document.getElementById('custom-settings-screen');
+          if (storeEl && !storeEl.classList.contains('hidden')) this.backToMenu();
+          else if (settingsEl && !settingsEl.classList.contains('hidden')) this.closeSettings();
         } else if (e.key === 'Enter') {
           if (this.isMenuHomeVisible()) this.startGame();
         } else if (e.key.toLowerCase() === 'i') {
@@ -1127,7 +1176,8 @@ class GameApp {
         }
       } else if (this.state.currentState === GameState.GLOSSARY) {
         if (e.key === 'Enter') {
-          document.getElementById('btn-next-wave').click();
+          const btn = document.getElementById('btn-next-wave');
+          if (btn) btn.click();
         }
       }
     });
@@ -1221,30 +1271,32 @@ class GameApp {
       });
     });
     
-    // Connect to template navigation buttons
-    document.getElementById('TEMPLATE-4weird-start-btn').addEventListener('click', () => this.startGame());
-    document.getElementById('btn-custom-store').addEventListener('click', () => this.openStore());
-    document.getElementById('btn-custom-settings').addEventListener('click', () => this.openSettings());
-    document.getElementById('btn-store-back').addEventListener('click', () => this.backToMenu());
-    document.getElementById('btn-settings-back').addEventListener('click', () => this.closeSettings());
-    document.getElementById('TEMPLATE-4weird-play-again-btn').addEventListener('click', () => this.startGame());
-    document.getElementById('TEMPLATE-4weird-resume-btn').addEventListener('click', () => this.togglePause());
-    document.getElementById('TEMPLATE-4weird-pause-restart-btn').addEventListener('click', () => this.startGame());
-    document.getElementById('TEMPLATE-4weird-restart-btn').addEventListener('click', () => this.quitToMenu());
-    document.getElementById('TEMPLATE-4weird-gameover-menu-btn').addEventListener('click', () => this.quitToMenu());
+    // Connect to template navigation buttons (each null-safe so one missing
+    // button can never throw and abort the rest of the wiring).
+    this.onBtn('TEMPLATE-4weird-start-btn', 'click', () => this.startGame());
+    this.onBtn('btn-custom-store', 'click', () => this.openStore());
+    this.onBtn('btn-custom-settings', 'click', () => this.openSettings());
+    this.onBtn('btn-store-back', 'click', () => this.backToMenu());
+    this.onBtn('btn-settings-back', 'click', () => this.closeSettings());
+    this.onBtn('TEMPLATE-4weird-play-again-btn', 'click', () => this.startGame());
+    this.onBtn('TEMPLATE-4weird-resume-btn', 'click', () => this.togglePause());
+    this.onBtn('TEMPLATE-4weird-pause-restart-btn', 'click', () => this.startGame());
+    this.onBtn('TEMPLATE-4weird-restart-btn', 'click', () => this.quitToMenu());
+    this.onBtn('TEMPLATE-4weird-gameover-menu-btn', 'click', () => this.quitToMenu());
     
     // View wave definitions from game over screen
-    document.getElementById('btn-gameover-definitions').addEventListener('click', () => {
+    this.onBtn('btn-gameover-definitions', 'click', () => {
       this.populateGlossary();
       // Temporarily change button to restart/reboot
       const btnNext = document.getElementById('btn-next-wave');
+      if (!btnNext) return;
       btnNext.innerText = 'REBOOT SYSTEM';
       btnNext.dataset.gameOverReboot = 'true';
       this.state.setGameState(GameState.GLOSSARY);
     });
 
     // Wave Cleared Glossary button
-    document.getElementById('btn-next-wave').addEventListener('click', (e) => {
+    this.onBtn('btn-next-wave', 'click', (e) => {
       if (e.currentTarget.dataset.gameOverReboot === 'true') {
         e.currentTarget.dataset.gameOverReboot = 'false';
         e.currentTarget.innerText = 'START NEXT WAVE';
@@ -1252,7 +1304,8 @@ class GameApp {
         return;
       }
       this.state.wave++;
-      document.getElementById('wave-val').innerText = this.state.wave;
+      const waveVal = document.getElementById('wave-val');
+      if (waveVal) waveVal.innerText = this.state.wave;
       this.calculateWaveBudget();
       this.triggerCameraShake(0.2);
       this.state.waveWords.clear();
@@ -1284,7 +1337,7 @@ class GameApp {
     const speedLabel = document.getElementById('game-speed-label');
     if (speedLabel) speedLabel.innerText = this.isTouchDevice() ? 'SPEED ×3' : 'SPEED UP [SHIFT]';
 
-    // Auto-pause when tab hidden — no cheap deaths while alt-tabbed
+    // Auto-pause when tab hidden - no cheap deaths while alt-tabbed
     document.addEventListener('visibilitychange', () => {
       if (document.hidden && this.state.currentState === GameState.PLAYING) {
         this.togglePause();
@@ -1300,8 +1353,8 @@ class GameApp {
       }
     });
 
-    // Mute button handler
-    document.getElementById('TEMPLATE-4weird-mute-btn').addEventListener('click', (e) => {
+    // Mute button handler (null-safe)
+    this.onBtn('TEMPLATE-4weird-mute-btn', 'click', (e) => {
         this.toggleMute(e.target);
     });
 
@@ -1332,6 +1385,7 @@ class GameApp {
   toggleMute(btn) {
     this.audio.init();
     const isMuted = this.audio.toggleMute();
+    if (!btn) return;
     if (isMuted) {
       btn.classList.add('active');
       btn.innerText = '🔇 Muted';
@@ -1376,6 +1430,7 @@ class GameApp {
 
     if (sfxSlider) {
       sfxSlider.addEventListener('input', (e) => {
+        this.audio.init();
         this.audio.setSFXVolume(parseFloat(e.target.value));
         if (sfxVal) sfxVal.innerText = `${Math.round(e.target.value * 100)}%`;
       });
@@ -1383,6 +1438,7 @@ class GameApp {
 
     if (musicSlider) {
       musicSlider.addEventListener('input', (e) => {
+        this.audio.init();
         this.audio.setMusicVolume(parseFloat(e.target.value));
         if (musicVal) musicVal.innerText = `${Math.round(e.target.value * 100)}%`;
       });
@@ -1435,14 +1491,22 @@ class GameApp {
 
   startGame() {
     this.audio.init();
+    // New run invalidates any pending slow-mo game-over timeout / banner
+    // timers from the previous run, and clears the re-entry latch.
+    this._runSeq++;
+    this._gameOverPending = false;
 
-    // Focus parked on START/REBOOT buttons would make Space re-click them —
+    // Focus parked on START/REBOOT buttons would make Space re-click them -
     // hand keyboard control back to the game.
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
 
     this.typing.reset();
     this.typing.startRun();
     this.state.startRun();
+    // Drop any leftover cryo freeze from a previous run so the new run
+    // never starts with a stale wall-clock freeze.
+    this.state.freezeUntil = 0;
+    this._frozenRemainingOnPause = 0;
     this.zombies.forEach(z => z.destroy());
     this.zombies = [];
     this.particles.clear();
@@ -1475,14 +1539,23 @@ class GameApp {
       btnNext.innerText = 'START NEXT WAVE';
     }
     
-    document.getElementById('score-val').innerText = '0';
-    document.getElementById('wave-val').innerText = '1';
+    const scoreVal = document.getElementById('score-val');
+    if (scoreVal) scoreVal.innerText = '0';
+    const waveVal = document.getElementById('wave-val');
+    if (waveVal) waveVal.innerText = '1';
     this.updateHealthBar();
     this.buildLevelScene();
     this.calculateWaveBudget();
 
     // Spawn immediately so a new run never presents an empty corridor for seconds.
-    this.spawnTimer = Number.MAX_SAFE_INTEGER;
+    // (Large finite value: forces one spawn on the next tick, then resets to 0.)
+    this.spawnTimer = 9999;
+    // startGame is a full reset from ANY state (menu / pause / game over /
+    // double-click): never leave a stale pause overlay stacked above the HUD.
+    const pauseScreen = document.getElementById('TEMPLATE-4weird-pause-screen');
+    if (pauseScreen) pauseScreen.classList.add('hidden');
+    const hud = document.getElementById('game-hud');
+    if (hud) hud.classList.remove('hidden');
     this.state.setGameState(GameState.PLAYING);
     this.audio.setIntensity(1);
     this.showWaveBanner(1, false);
@@ -1829,7 +1902,7 @@ class GameApp {
       candidates = wordList;
     }
 
-    // First zombie of a run is always a tiny word — a free tutorial kill.
+    // First zombie of a run is always a tiny word - a free tutorial kill.
     if (this.state.wave === 1 && this.state.zombiesKilled === 0 && this.zombies.length === 0 && type !== 'boss') {
       const easy = SHORT_WORDS.filter(w => w.length <= 4 && !activeStartChars.includes(w[0].toLowerCase()));
       if (easy.length > 0) candidates = easy;

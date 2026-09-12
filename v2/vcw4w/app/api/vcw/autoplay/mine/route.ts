@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * GET /api/vcw/autoplay/mine; YOUR autoplay remotes with live pod status.
- * Only rows you created (vcw_autoplay_remotes.user_id) are ever returned —
+ * Only rows you created (vcw_autoplay_remotes.user_id) are ever returned -
  * the dashboard merges these with desktops / rentals / renders.
  */
 export async function GET() {

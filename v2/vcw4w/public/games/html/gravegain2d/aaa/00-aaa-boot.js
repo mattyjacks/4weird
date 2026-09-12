@@ -1,4 +1,4 @@
-/* GraveGain2D AAA — 00 boot.
+/* GraveGain2D AAA - 00 boot.
    Namespace, event bus, ready-queue, method-wrap helper, shared ticker.
    2D adaptation of the GraveGain3D presentation layer: no Three.js, all
    overlays are DOM inside #canvasContainer, canvas FX go through the

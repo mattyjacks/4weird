@@ -16,7 +16,7 @@ import { clientIp } from "@/lib/validate";
  * Usage: keep the existing memory check (fast reject, zero I/O), then call
  * globalBucket(). Deny if EITHER denies. If the shared store is unreachable
  * the helper returns null and the caller falls back to the memory verdict
- * (fail-open on infra failure, fail-closed on abuse) — except money-minting
+ * (fail-open on infra failure, fail-closed on abuse) - except money-minting
  * paths, which must fail closed and already do via atomic RPC guards.
  */
 

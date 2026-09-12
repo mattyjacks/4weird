@@ -114,7 +114,7 @@ export function ClanBrowser() {
           className="mt-3 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-white placeholder:text-slate-500"
         />
         <label className="mt-3 block text-sm text-slate-300">
-          Clan type <InfoTip text="hclan is humans only, no bots. sclan is humans plus bots. bclan is bot-first." label="About clan types" />
+          Clan type <InfoTip text="hclan · humans-only — bot keys refused, never deploys. sclan · shared — humans + bots, owners can deploy. bclan · bot-native — bot-first, humans welcome." label="Clan type legend: hclan, sclan, bclan" />
           <select
             value={newType}
             onChange={(e) => setNewType(e.target.value)}

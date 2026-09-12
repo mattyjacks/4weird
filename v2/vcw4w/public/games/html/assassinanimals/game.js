@@ -1395,7 +1395,7 @@
             if (g.state === 'PACIFIED') return;
             const dist = Math.hypot(g.x - ax, g.y - ay);
             if (dist < g.r + 22) {
-                // Shielded Enforcer: immune from the front — flank for full damage
+                // Shielded Enforcer: immune from the front - flank for full damage
                 try {
                     if (g.elite === 'SHIELDED') {
                         const toPlayer = Math.atan2(state.player.y - g.y, state.player.x - g.x);
@@ -2164,7 +2164,7 @@
             } else {
                 g.suspicion = Math.max(0, g.suspicion - 0.6);
                 if (g.state === 'CHASE' && g.suspicion <= 0) {
-                    // Fall back to SEARCH (investigate last-known position) — INSPECT-compatible
+                    // Fall back to SEARCH (investigate last-known position) - INSPECT-compatible
                     g.state = 'SEARCH';
                     const lx = (g.lastKnownX != null) ? g.lastKnownX : player.x;
                     const ly = (g.lastKnownY != null) ? g.lastKnownY : player.y;
@@ -3763,7 +3763,7 @@
     });
 
     bindGameEvents();
-    // Agent C: load persisted settings (mute) on boot — never crash boot.
+    // Agent C: load persisted settings (mute) on boot - never crash boot.
     try {
         const saved = aaLoadSave();
         if (saved && typeof saved.muted === 'boolean' && saved.muted) {
@@ -4043,14 +4043,14 @@
             panel.id = 'aaContractPanel';
             panel.style.cssText = 'margin:12px auto;max-width:640px;padding:10px;border:1px solid rgba(0,229,255,.4);border-radius:8px;background:rgba(0,20,30,.55);color:#cbd5e1;font-size:13px;';
             const title = document.createElement('div');
-            title.innerHTML = '<strong style="color:#00e5ff">📜 CONTRACT SELECT</strong> <span style="opacity:.7">(optional — bonus DNA/score)</span>';
+            title.innerHTML = '<strong style="color:#00e5ff">📜 CONTRACT SELECT</strong> <span style="opacity:.7">(optional - bonus DNA/score)</span>';
             panel.appendChild(title);
             const sel = document.createElement('select');
             sel.id = 'aaContractSelect';
             sel.style.cssText = 'width:100%;margin-top:8px;padding:6px;background:#0b1220;color:#e2e8f0;border:1px solid #334155;border-radius:6px;';
             const none = document.createElement('option');
             none.value = '';
-            none.textContent = '— No contract (free run) —';
+            none.textContent = '- No contract (free run) -';
             sel.appendChild(none);
             api.list().forEach(c => {
                 const o = document.createElement('option');

@@ -2061,7 +2061,7 @@
                 this.physics.moveEntityWithCollision(this.player, dx, dy, this.dungeon);
                 if (this.player.x === ox && this.player.y === oy) {
                     result = 'blocked';
-                    this.setTurnFeedback('🧱 Blocked — pick another way');
+                    this.setTurnFeedback('🧱 Blocked - pick another way');
                     this.audio.play('block');
                 } else {
                     result = 'moved';
@@ -2071,12 +2071,12 @@
                 const tgt = this.nearestEnemy(81);
                 if (tgt) this.player.angle = Math.atan2(tgt.y - this.player.y, tgt.x - this.player.x);
                 result = this.triggerMeleeSwing() > 0 ? 'attack-hit' : 'attack-miss';
-                if (result === 'attack-miss') this.setTurnFeedback('💨 No foe in reach — step closer');
+                if (result === 'attack-miss') this.setTurnFeedback('💨 No foe in reach - step closer');
             }
             else if (action === 'block') this.activateBlock();
             else if (action === 'ability') {
                 result = this.player.triggerAbility() ? 'ability-ok' : 'ability-fail';
-                if (result === 'ability-fail') this.setTurnFeedback('🔋 Ability not ready — need resource');
+                if (result === 'ability-fail') this.setTurnFeedback('🔋 Ability not ready - need resource');
             }
             else if (action === 'wait') {
                 this.player.stamina = Math.min(this.player.maxStamina, this.player.stamina + 25);
@@ -2806,7 +2806,7 @@
             const missionComplete = victory && this.currentMission?.completed;
             document.getElementById('gameOverTitle').textContent = missionComplete ? 'MISSION COMPLETE' : (victory ? 'RUN COMPLETED' : 'RUN TERMINATED');
             document.getElementById('gameOverSub').textContent = missionComplete
-                ? `${this.currentMission.title} secured — campaign rewards transmitted.`
+                ? `${this.currentMission.title} secured - campaign rewards transmitted.`
                 : (victory ? 'Safespace terminal extracted' : 'Vitals flatlined');
 
             document.getElementById('goRaceClass').textContent = this.player.race.toUpperCase() + ' ' + this.player.classType.toUpperCase();

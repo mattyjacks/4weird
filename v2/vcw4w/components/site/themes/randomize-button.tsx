@@ -8,7 +8,7 @@ import { useRandomizeTheme } from "@/components/site/themes/use-randomize-theme"
 /**
  * Randomize button: rolls a random palette + light/dark combo (10 combos)
  * and applies both halves at once. Never lands on the combo you already
- * have — every click visibly changes something.
+ * have - every click visibly changes something.
  */
 export function RandomizeThemeButton({ label = "Randomize" }: { label?: string }) {
   const mounted = useMountedTheme();

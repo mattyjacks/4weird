@@ -46,7 +46,12 @@ export async function POST(_req: Request, ctx: { params: Promise<{ id: string }>
       await svc.from("blender_renders").update({ status: "stopped" }).eq("id", job.id);
       return ok({ stopped: true, note: "Worker already exited; billing already ended." });
     }
-    return fail(`Unable to stop the worker (${stopped.error}). It may still bill; retry or stop it from the RunPod console.`, 502);
+    try {
+      console.error("[blender-stop] worker stop failed");
+    } catch {
+      // logging must never break the route
+    }
+    return fail("Unable to stop the worker. It may still bill; retry or stop it from the RunPod console.", 502);
   }
   await svc.from("blender_renders").update({ status: "stopped" }).eq("id", job.id);
   return ok({ stopped: true, podStatus: stopped.status });

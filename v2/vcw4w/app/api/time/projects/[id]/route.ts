@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 // PUT /api/time/projects/[id] - Update timer project.
 // Ownership is enforced by the timer_projects_modify RLS policy (owner or
 // org admin); the route adds defense in depth: strict uuid shape, validated
-// fields, and no false-success — zero matched rows is a 404, never ok:true.
+// fields, and no false-success - zero matched rows is a 404, never ok:true.
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);

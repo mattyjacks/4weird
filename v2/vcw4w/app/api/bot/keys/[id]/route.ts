@@ -5,7 +5,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { sameOrigin } from "@/lib/csrf";
 import { exceedsBodyLimit, isUuid } from "@/lib/validate";
 import { cleanKeyLabel } from "@/lib/bot-validate";
-import { botTesterBlocked, isBotTester } from "@/lib/bot-auth";
+import { botTesterBlocked, isBotTester, privilegedSessionBlocked } from "@/lib/bot-auth";
 import {
   cleanBudgetCoins,
   cleanExpiryIso,
@@ -88,6 +88,10 @@ export async function PATCH(req: Request, ctx: Ctx) {
   if (!isUuid(keyId)) return fail("Invalid key.", 400);
   const uid = await ownerId();
   if (!uid) return fail("Login required.", 401);
+  {
+    const blocked = privilegedSessionBlocked(req, uid);
+    if (blocked) return fail(blocked, blocked === botTesterBlocked() ? 403 : 401);
+  }
   const throttle = rateLimit(`bot-keys-patch:${uid}`, 20);
   if (!throttle.allowed) {
     return fail("Too many attempts. Try again shortly.", 429, {

@@ -1,4 +1,4 @@
-/* AssassinAnimals FX — 10 titlecard.
+/* AssassinAnimals FX - 10 titlecard.
    Floor intro cinematic: letterbox bars + FLOOR N / CONTRACT NAME / threat tip,
    auto-dismiss 2.5s, click-to-skip. Wraps launchFloor via assassin:floor event
    (zero render-loop edits). */
@@ -8,7 +8,7 @@
     if (!FX) return;
 
     var CONTRACTS = [
-        { name: 'OPERATION SILENT MENAGERIE', tip: 'VIP wears a red halo — pacify or eliminate, then take the keycard.' },
+        { name: 'OPERATION SILENT MENAGERIE', tip: 'VIP wears a red halo - pacify or eliminate, then take the keycard.' },
         { name: 'OPERATION GLASS JUNGLE', tip: 'Foliage conceals you: stand still inside bushes to vanish.' },
         { name: 'OPERATION VELVET FANG', tip: 'Coins (Q / Right-click) pull patrols off their route.' },
         { name: 'OPERATION IRON WHISKER', tip: 'Enforcers (white dot) see through disguises up close.' },
@@ -51,7 +51,7 @@
         var n = Math.max(1, floor | 0 || 1);
         var c = CONTRACTS[(n - 1) % CONTRACTS.length];
         try {
-            parts.card.querySelector('.afx-kicker').textContent = '— FLOOR ' + n + ' —';
+            parts.card.querySelector('.afx-kicker').textContent = '- FLOOR ' + n + ' -';
             var t = parts.card.querySelector('.afx-title');
             t.style.animation = 'none'; void t.offsetWidth; t.style.animation = '';
             t.textContent = c.name;

@@ -55,7 +55,7 @@
  *   the `vcw_live_` gateway family uses a separate `vcw-gateway-v2$` domain so
  *   the shared pepper cannot cross-verify. Pepper REQUIRED: >=16 chars verify
  *   legacy rows, >=32 strong-random chars required to ISSUE (human-memorable
- *   passwords are rejected — use `openssl rand -hex 32`, never a password).
+ *   passwords are rejected - use `openssl rand -hex 32`, never a password).
  *   Rotation is non-breaking via BOT_KEY_PEPPER_PREVIOUS (verify current then
  *   previous, opportunistically rehash to current on next successful use).
  *   Legacy static-salt N=16384/N=32768 + sha256 rows still verify via fallback
@@ -125,7 +125,7 @@ function pepper(): string {
   // Fail closed: without a pepper the stored hash is a fast unsalted
   // sha256(key) vulnerable to offline brute force on DB leak.
   // 16 chars keeps legacy deploys verifying; 32+ strong-random chars
-  // (`openssl rand -hex 32`) is the quantum margin — warn once below that.
+  // (`openssl rand -hex 32`) is the quantum margin - warn once below that.
   // Human-memorable passwords must never be used: they carry ~30-40 bits of
   // entropy and fall to AI-assisted dictionary guessing after any DB leak.
   if (!p || p.length < 16) {
@@ -226,7 +226,7 @@ export function generateBotKey(): string {
 }
 
 /** Pinned PQ KDF cost. N=32768/r=8 needs ~34 MiB, over Node's 32 MiB default
- *  scrypt cap — maxmem is set explicitly (without it every hash THROWS
+ *  scrypt cap - maxmem is set explicitly (without it every hash THROWS
  *  ERR_CRYPTO_INVALID_SCRYPT_PARAMS and all bot auth fails closed). */
 export const SCRYPT_PQ = { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 } as const;
 
@@ -633,7 +633,7 @@ export async function resolveBotKey(req: Request): Promise<BotIdentity | null> {
   }
 }
 
-/** Stricter-than-human throttles for bot traffic — with an unlimited lane
+/** Stricter-than-human throttles for bot traffic - with an unlimited lane
  * for the owner's own automation.
  *
  * - `x-selftest-token: SELFTEST_BYPASS_TOKEN` (the AI testing its own
@@ -696,7 +696,7 @@ function readCookie(req: Request, name: string): string {
       if (part.slice(0, idx).trim() === name) return part.slice(idx + 1).trim();
     }
   } catch {
-    // ignore — missing cookie
+    // ignore - missing cookie
   }
   return "";
 }

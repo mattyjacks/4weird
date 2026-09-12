@@ -153,7 +153,7 @@ function drawManagementZone() {
         ctx.fillText(emoji, CANVAS_WIDTH * positions[index], zoneY + 25);
     });
     
-    // Draw label (no shadowBlur — this zone redraws every frame)
+    // Draw label (no shadowBlur - this zone redraws every frame)
     ctx.font = 'bold 12px Orbitron,sans-serif';
     ctx.fillStyle = '#06b6d4';
     ctx.textAlign = 'center';

@@ -70,7 +70,7 @@ export function extractGatewayKey(req: Request): string | null {
   return null;
 }
 
-/** Pinned PQ KDF cost (see lib/bot-auth SCRYPT_PQ: maxmem is REQUIRED — without
+/** Pinned PQ KDF cost (see lib/bot-auth SCRYPT_PQ: maxmem is REQUIRED - without
  *  it N=32768 throws ERR_CRYPTO_INVALID_SCRYPT_PARAMS under Node's 32 MiB cap). */
 export const SCRYPT_PQ_GW = { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 } as const;
 

@@ -25,6 +25,20 @@ export async function POST(
   if (!rl.allowed) return fail("Rate limited.", 429);
   const { id } = await params;
   if (!isUuid(id)) return fail("Invalid booking id.", 400);
+  // Same ownership gate as heartbeat/pod: never end by id alone.
+  const { data: bookingRow } = await supabase
+    .from("rental_bookings")
+    .select("id,renter_id,agent_listings(id,owner_id)")
+    .eq("id", id)
+    .maybeSingle();
+  if (!bookingRow) return fail("Booking not found.", 404);
+  const brow = bookingRow as unknown as {
+    renter_id: string;
+    agent_listings: { owner_id: string } | { owner_id: string }[] | null;
+  };
+  const listing = Array.isArray(brow.agent_listings) ? brow.agent_listings[0] : brow.agent_listings;
+  if (brow.renter_id !== data.user.id && listing?.owner_id !== data.user.id)
+    return fail("Booking not found.", 404);
   const { data: booking, error } = await supabase.rpc("end_booking", {
     p_booking: id,
   });

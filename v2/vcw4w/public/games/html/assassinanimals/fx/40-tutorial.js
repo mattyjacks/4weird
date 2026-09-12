@@ -1,4 +1,4 @@
-/* AssassinAnimals FX — 40 tutorial.
+/* AssassinAnimals FX - 40 tutorial.
    First-floor contextual toasts (move/strike/takedown/coin/ability/hack),
    localStorage-gated assassinanimals_tutorial_v1, dismissable. */
 (function () {
@@ -54,12 +54,12 @@
             if (s.mode !== 'PLAY' || !s.player) return;
             if (s.run.floor > 1) { if (!done) { done = true; mark(); var b = ensure(); if (b) b.innerHTML = ''; } return; }
             if (!seen.move && (s.keys.KeyW || s.keys.KeyA || s.keys.KeyS || s.keys.KeyD || s.touch.joystickActive)) { /* moving already */ }
-            if (!seen.move) toast('move', '🕹️', 'Move with WASD / arrows — or the left stick on touch.', 6000);
+            if (!seen.move) toast('move', '🕹️', 'Move with WASD / arrows - or the left stick on touch.', 6000);
             if (!seen.strike && s.run.kills + s.run.pacifications > 0) toast('strike', '⚔️', 'Strike: Click / Space. Sneak behind for a silent takedown (E).', 6000);
-            else if (!seen.strike && s.currentContextAction && s.currentContextAction.type === 'TAKEDOWN') toast('takedown', '🤫', 'Press E now — silent takedown available!', 6000);
+            else if (!seen.strike && s.currentContextAction && s.currentContextAction.type === 'TAKEDOWN') toast('takedown', '🤫', 'Press E now - silent takedown available!', 6000);
             if (!seen.coin && (s.thrownCoins.length || (s.guards.some(function (x) { return x.state === 'INSPECT'; })))) toast('coin', '🪙', 'Toss a coin (Q / Right-click) to pull guards off patrol.', 6000);
             if (!seen.ability && s.player.abilityCooldown > 0) toast('ability', '⚡', 'Signature ability fired (SHIFT / F). Watch the cooldown bar.', 6000);
-            if (!seen.hack && s.terminals.some(function (t) { return Math.hypot(t.x - s.player.x, t.y - s.player.y) < 120; })) toast('hack', '🖥️', 'Terminal nearby — press E to hack, loop cameras, forge keycard.', 6000);
+            if (!seen.hack && s.terminals.some(function (t) { return Math.hypot(t.x - s.player.x, t.y - s.player.y) < 120; })) toast('hack', '🖥️', 'Terminal nearby - press E to hack, loop cameras, forge keycard.', 6000);
             if (!seen.key && s.run.hasKey) { toast('key', '🔑', 'Keycard secured! Follow the green objective arrow to the elevator.', 6000); }
         } catch (e) {}
     }

@@ -23,7 +23,7 @@ export default function PlayingGamesPage() {
       <DocsHero
         eyebrow="Docs · insert coin"
         title={<>34 cabinets. <span className={theme.title}>One joystick: you.</span></>}
-        lede={<>Preserved browser games in isolated play shells — guides, cloud saves, leaderboards, guest passes, coin-metered rentals. A 5-hour session on default rates costs about 6 coins.</>}
+        lede={<>Preserved browser games in isolated play shells - guides, cloud saves, leaderboards, guest passes, coin-metered rentals. A 5-hour session on default rates costs about 6 coins.</>}
         stats={[
           ["34", "playable games"],
           ["~6 🪙", "per 5-hour session"],
@@ -46,11 +46,11 @@ export default function PlayingGamesPage() {
         index="1"
         kicker="The arcade floor"
         title="Browse like a regular"
-        body="The catalog at /games lists all 34 titles. Each game has a detail page (guide link, metadata, play-rate badge, AI badges) and a play page — the PlayGate shell around the isolated frame. Add ?match= to a play URL to join a match."
+        body="The catalog at /games lists all 34 titles. Each game has a detail page (guide link, metadata, play-rate badge, AI badges) and a play page - the PlayGate shell around the isolated frame. Add ?match= to a play URL to join a match."
       />
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         {[
-          ["🖺️ Detail page", "/games/[slug]", "Read the guide when present — controls, scoring, secrets. Check the rate badge before you play."],
+          ["🖺️ Detail page", "/games/[slug]", "Read the guide when present - controls, scoring, secrets. Check the rate badge before you play."],
           ["▶️ Play shell", "/games/[slug]/play", "Signed-in coin sessions around the frame. Guests get quota + skippable house ads."],
           ["🏆 Leaderboards", "/leaderboards", "Kills, actions, play-time from aggregate telemetry. Handles + totals only."],
         ].map(([t, code, b]) => (
@@ -66,22 +66,22 @@ export default function PlayingGamesPage() {
         index="2"
         kicker="The meter is running (gently)"
         title="Rentals: load fee + per-second play"
-        body="Signed-in play never shows ads — it meters coins instead, with the 25% cut already inside every figure. Two parts:"
+        body="Signed-in play never shows ads - it meters coins instead, with the 25% cut already inside every figure. Two parts:"
       />
-      <MockWindow title="4weird.com — play session receipt" badge="live meter">
+      <MockWindow title="4weird.com - play session receipt" badge="live meter">
         <div className="space-y-2 font-mono text-xs sm:text-sm">
           <div className="flex justify-between gap-4"><span className="text-slate-400">LOAD · 1.0 MiB fresh bytes</span><span className="font-bold text-emerald-300">−1.00 🪙</span></div>
           <div className="flex justify-between gap-4"><span className="text-slate-400">PLAY · 5h Ö 1 coin/hr, per-second</span><span className="font-bold text-emerald-300">−5.00 🪙</span></div>
           <div className="flex justify-between gap-4"><span className="text-slate-400">SAME VERSION · replay within 24h</span><span className="font-bold text-cyan-300">FREE</span></div>
           <div className="flex justify-between gap-4 border-t border-white/10 pt-2"><span className="font-bold text-slate-200">TOTAL · ≈ $0.06</span><span className="font-bold text-amber-300">−6.00 🪙</span></div>
-          <p className="pt-1 text-[11px] text-slate-500">still-playing check every 5h · heartbeats bill the delta · devs set 0–100 coins/load+hr</p>
+          <p className="pt-1 text-[11px] text-slate-500">still-playing check every 5h · heartbeats bill the delta · devs set 0-100 coins/load+hr</p>
         </div>
       </MockWindow>
       <ul className="mt-5 list-disc space-y-2 pl-6 text-sm leading-relaxed text-muted-foreground">
-        <li><strong className="text-foreground">Load fee (default 1 coin / MiB):</strong> proportional to exact bytes — sub-MB loads pay their exact fraction down to 1 centicentcoin. Same version free 24h.</li>
-        <li><strong className="text-foreground">Running play (default 1 coin/hr):</strong> billed per second from the first second — 100 centicentcoins over 3,600 seconds. 1-minute heartbeats bill only the delta.</li>
-        <li><strong className="text-foreground">Developer rates 0–100:</strong> mapped devs set their own per-load + per-hour; 0 = free game. The public price list is always visible first.</li>
-        <li><strong className="text-foreground">AI bills on top, only when used</strong> — see <Link className="underline" href="/docs/game-ai-buddy">Game AI &amp; Buddy</Link>.</li>
+        <li><strong className="text-foreground">Load fee (default 1 coin / MiB):</strong> proportional to exact bytes - sub-MB loads pay their exact fraction down to 1 centicentcoin. Same version free 24h.</li>
+        <li><strong className="text-foreground">Running play (default 1 coin/hr):</strong> billed per second from the first second - 100 centicentcoins over 3,600 seconds. 1-minute heartbeats bill only the delta.</li>
+        <li><strong className="text-foreground">Developer rates 0-100:</strong> mapped devs set their own per-load + per-hour; 0 = free game. The public price list is always visible first.</li>
+        <li><strong className="text-foreground">AI bills on top, only when used</strong> - see <Link className="underline" href="/docs/game-ai-buddy">Game AI &amp; Buddy</Link>.</li>
       </ul>
 
       <SectionHead
@@ -99,7 +99,7 @@ export default function PlayingGamesPage() {
       <SectionHead
         index="4"
         kicker="Save states"
-        title="Cloud saves, slots 0–3"
+        title="Cloud saves, slots 0-3"
       />
       <div className="mt-5 grid gap-3 sm:grid-cols-4">
         {["SLOT 0", "SLOT 1", "SLOT 2", "SLOT 3"].map((s, i) => (
@@ -111,7 +111,7 @@ export default function PlayingGamesPage() {
         ))}
       </div>
       <Callout tone="rose" title="Cheat Mode is a tattoo, not a sticker.">
-        Enabling cheats permanently marks that save (<code>cheat_mode:true</code>) as a database invariant —
+        Enabling cheats permanently marks that save (<code>cheat_mode:true</code>) as a database invariant -
         deleting and recreating the save cannot launder it. Experiment on a throwaway slot. Slot 0 can never be
         marked or allow cheats, so it is always safe.
       </Callout>
@@ -120,7 +120,7 @@ export default function PlayingGamesPage() {
         index="5"
         kicker="Glory"
         title="Telemetry, leaderboards, lobbies"
-        body="Gameplay emits aggregate events powering /leaderboards (handles + totals, anonymous-friendly). Telemetry never decides billing — the rental session does. Find humans in /lobbies and join via ?match= links; for a permanent home, join a clan."
+        body="Gameplay emits aggregate events powering /leaderboards (handles + totals, anonymous-friendly). Telemetry never decides billing - the rental session does. Find humans in /lobbies and join via ?match= links; for a permanent home, join a clan."
       />
 
       <Pager current="/docs/playing-games" />

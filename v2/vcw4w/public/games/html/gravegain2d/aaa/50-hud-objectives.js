@@ -1,8 +1,8 @@
-/* GraveGain2D AAA — 50 objectives.
+/* GraveGain2D AAA - 50 objectives.
    2D adaptation: binds to the EXISTING #missionTracker /
    #missionObjectiveText HUD (never replaces core rendering) and enriches
    it after every core updateMissionUI: story contract with live progress,
-   boss bounty with live HP, or the descent directive with hostile count —
+   boss bounty with live HP, or the descent directive with hostile count -
    each suffixed with the run kill tally. Flashes on change. */
 (function () {
     'use strict';
@@ -48,7 +48,7 @@
             return ` · ⚔ ${game.runKills || 0} kills`;
         }
 
-        // Wrap — never replace — the core renderer: let it paint first,
+        // Wrap - never replace - the core renderer: let it paint first,
         // then append the live AAA suffix.
         AAA.wrap(game, 'updateMissionUI', (orig, ...args) => {
             const out = orig(...args);
@@ -76,7 +76,7 @@
             return out;
         });
 
-        // Kills / boss HP change between core updates — refresh at 2 Hz so
+        // Kills / boss HP change between core updates - refresh at 2 Hz so
         // the tracker stays live without fighting the core renderer.
         let acc = 0;
         AAA.onTick((dt, g) => {

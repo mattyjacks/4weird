@@ -62,7 +62,7 @@ type Props = {
  * after warnMinutes of no input, and stops the pod after stopGraceMinutes
  * more idle minutes. Heartbeats the server (throttled to 1/min + on warn)
  * so the server sweep agrees about last activity. Terminating after
- * terminateHours is server-side only (sweep) — this component shows the age.
+ * terminateHours is server-side only (sweep) - this component shows the age.
  */
 export function PodIdleWatch({ heartbeatUrl, stopUrl, policy, label, compact }: Props) {
   const [idleMs, setIdleMs] = useState(0);
@@ -129,7 +129,7 @@ export function PodIdleWatch({ heartbeatUrl, stopUrl, policy, label, compact }: 
             if (!body.success) throw new Error(String(body.error ?? `Stop failed (${res.status}).`));
             setStopped(true);
           } catch (e) {
-            setStopError(e instanceof Error ? e.message : "Auto-stop failed; stop the pod manually — it may still bill.");
+            setStopError(e instanceof Error ? e.message : "Auto-stop failed; stop the pod manually - it may still bill.");
           }
         })();
       }
@@ -158,7 +158,7 @@ export function PodIdleWatch({ heartbeatUrl, stopUrl, policy, label, compact }: 
     const toStop = stopAt - idleMs;
     return (
       <div role="alert" className={compact ? "mt-1 text-xs text-amber-200" : "mt-3 rounded-xl border border-amber-300/50 bg-amber-300/[.1] p-4 text-sm text-amber-100"}>
-        <p className="font-bold">🔔 {label}: no input for {policy.warnMinutes} min — stopping in {fmtCountdown(toStop)}.</p>
+        <p className="font-bold">🔔 {label}: no input for {policy.warnMinutes} min - stopping in {fmtCountdown(toStop)}.</p>
         {!compact && (
           <p className="mt-1 text-xs">
             Move the mouse or press any key in this tab to keep it running. Unattended pods stop automatically (disk kept);
@@ -206,7 +206,7 @@ export function PolicyFields({
   return (
     <fieldset className="grid gap-3 sm:grid-cols-3">
       <label className="text-xs text-slate-300">
-        Warn chime after (min, {POD_IDLE_WARN_MINUTES_MIN}–{POD_IDLE_WARN_MINUTES_MAX})
+        Warn chime after (min, {POD_IDLE_WARN_MINUTES_MIN}-{POD_IDLE_WARN_MINUTES_MAX})
         <input
           id={`${prefix}-warn`}
           type="number"
@@ -220,7 +220,7 @@ export function PolicyFields({
         />
       </label>
       <label className="text-xs text-slate-300">
-        Stop after warn (+min, {POD_IDLE_STOP_GRACE_MINUTES_MIN}–{POD_IDLE_STOP_GRACE_MINUTES_MAX})
+        Stop after warn (+min, {POD_IDLE_STOP_GRACE_MINUTES_MIN}-{POD_IDLE_STOP_GRACE_MINUTES_MAX})
         <input
           id={`${prefix}-grace`}
           type="number"
@@ -234,7 +234,7 @@ export function PolicyFields({
         />
       </label>
       <label className="text-xs text-slate-300">
-        Terminate untended after (h, {POD_TERMINATE_AFTER_HOURS_MIN}–{POD_TERMINATE_AFTER_HOURS_MAX})
+        Terminate untended after (h, {POD_TERMINATE_AFTER_HOURS_MIN}-{POD_TERMINATE_AFTER_HOURS_MAX})
         <input
           id={`${prefix}-term`}
           type="number"

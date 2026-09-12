@@ -49,7 +49,9 @@ class Particle {
 class ShockwaveRing {
   constructor(scene, position, color) {
     this.scene = scene;
-    const geometry = new THREE.RingGeometry(0.1, 0.2, 32);
+    // Unit rings, grown via mesh.scale in update(): no per-frame
+    // RingGeometry allocs, no GC churn during blast-heavy waves.
+    const geometry = new THREE.RingGeometry(0.82, 1.0, 32);
     const material = new THREE.MeshBasicMaterial({
       color: new THREE.Color(color),
       side: THREE.DoubleSide,
@@ -69,25 +71,25 @@ class ShockwaveRing {
     this.maxRadius = 3.5;
     this.life = 1.0;
     this.speed = 9.0;
-    // Second inner ring for a richer blast
+    // Second inner ring for a richer blast (unit ring, same scaling)
     const inner = new THREE.Mesh(
-      new THREE.RingGeometry(0.05, 0.1, 32),
+      new THREE.RingGeometry(0.8, 1.0, 32),
       material.clone()
     );
     inner.position.copy(position);
     inner.rotation.x = -Math.PI / 2 + 0.35;
     this.scene.add(inner);
     this.inner = inner;
+    this.mesh.scale.set(this.radius, this.radius, 1);
+    this.inner.scale.set(this.radius * 0.55, this.radius * 0.55, 1);
   }
 
   update(dt) {
     this.radius += this.speed * dt;
-    this.mesh.geometry.dispose();
-    this.mesh.geometry = new THREE.RingGeometry(this.radius * 0.82, this.radius, 32);
+    this.mesh.scale.set(this.radius, this.radius, 1);
     if (this.inner) {
       const r2 = this.radius * 0.55;
-      this.inner.geometry.dispose();
-      this.inner.geometry = new THREE.RingGeometry(r2 * 0.8, r2, 32);
+      this.inner.scale.set(r2, r2, 1);
       this.inner.material.opacity = Math.max(0, this.life * 0.7);
     }
 
@@ -212,12 +214,13 @@ class SpawnPortal {
   update(dt) {
     this.life -= 1.6 * dt;
     const t = 1 - this.life;
-    this.rings.forEach((r, i) => {
+    for (let i = 0; i < this.rings.length; i++) {
+      const r = this.rings[i];
       const s = 1 + t * (1.2 + i * 0.4);
       r.scale.set(s, s, s);
       r.material.opacity = Math.max(0, this.life * (0.9 - i * 0.2));
       r.rotation.z += dt * (2 + i);
-    });
+    }
     return this.life > 0;
   }
   destroy() {
@@ -277,7 +280,7 @@ class ParticleManager {
     const ring = new ShockwaveRing(this.scene, position, hexColor);
     this.rings.push(ring);
 
-    // Extra flash sparks shooting upward — sells the "overload" pop
+    // Extra flash sparks shooting upward - sells the "overload" pop
     const sparkCount = this.state.ultraParticles ? 14 : 6;
     for (let i = 0; i < sparkCount; i++) {
       const p = new Particle(
@@ -363,6 +366,10 @@ class ParticleManager {
     while (this.particles.length > 400) {
       const p = this.particles.shift();
       if (p) p.destroy();
+    }
+    while (this.rings.length > 12) {
+      const r = this.rings.shift();
+      if (r) r.destroy();
     }
     while (this.floaters.length > 24) {
       const f = this.floaters.shift();

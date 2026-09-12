@@ -11,7 +11,7 @@ type ClampTextProps = {
   full?: React.ReactNode;
   /** Label for the tooltip + dropdown toggle (a11y). */
   label?: string;
-  /** Visible "More" affordance next to the (?) — the dropdown for the long text. */
+  /** Visible "More" affordance next to the (?) - the dropdown for the long text. */
   expandLabel?: string;
   /** Clamp the teaser to N lines before ellipsis (default 2). */
   lines?: 1 | 2 | 3;

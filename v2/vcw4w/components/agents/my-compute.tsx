@@ -279,7 +279,7 @@ export function MyCompute() {
           ))}
         </div>
         <p className="mt-2 text-xs text-slate-500">
-          Template fills runtime + provider + USD/hr max below — edit the name, then Publish. Earnings preview: at $
+          Template fills runtime + provider + USD/hr max below - edit the name, then Publish. Earnings preview: at $
           {Number(form.priceUsd || 0).toFixed(2)}/hr max, 1 rented hour ≈ {formatUsd(Math.round(Number(form.priceUsd || 0) * 100))} gross
           (you keep 75% as provider credits after the {SERVICE_CUT_PCT}% cut), billed per second so partial use pro-rates.
         </p>

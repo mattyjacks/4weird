@@ -1,4 +1,4 @@
-/* GraveGain3D AAA — 20 title cards.
+/* GraveGain3D AAA - 20 title cards.
    Every dungeon layer opens with a cinematic card: letterbox bars slide in,
    the layer name slams on, the color grade shifts, then play resumes.
    Hooks buildDungeonLayer, so story runs, endless runs, and descents all
@@ -48,7 +48,7 @@
         let hideTimer = 0;
         let barTimer = 0;
 
-        // Click/tap skips any card (mission intros especially) — endless-safe.
+        // Click/tap skips any card (mission intros especially) - endless-safe.
         card.style.pointerEvents = 'auto';
         card.style.cursor = 'pointer';
         card.addEventListener('click', () => {
@@ -76,7 +76,7 @@
             if (!mission) return;
             AAA.state.floor = game.floorIndex || mission.minFloor || 1;
             if (tc.grade) c.dataset.grade = tc.grade;
-            kickerEl.textContent = tc.kicker || `— Mission ${id} —`;
+            kickerEl.textContent = tc.kicker || `- Mission ${id} -`;
             titleEl.style.animation = 'none';
             void titleEl.offsetWidth;
             titleEl.style.animation = '';
@@ -100,7 +100,7 @@
             const info = floorInfo(n);
             AAA.state.floor = n;
             c.dataset.grade = info.grade;
-            kickerEl.textContent = `— Layer ${n} —`;
+            kickerEl.textContent = `- Layer ${n} -`;
             // Retrigger the slam-in animation on repeat visits.
             titleEl.style.animation = 'none';
             void titleEl.offsetWidth;

@@ -16,7 +16,19 @@ function isClanSlug(v: unknown): string {
 function isHttpsUrl(v: unknown): string {
   const s = String(v ?? "").trim().slice(0, 2048);
   if (!s) return "";
-  return s.startsWith("https://") ? s : "";
+  // Strict shape: https, no credentials, default port only. DNS/egress is
+  // re-checked with checkEgressUrl before any server fetch fan-out is added;
+  // stored webhooks are never fetched server-side today.
+  try {
+    const u = new URL(s);
+    if (u.protocol !== "https:") return "";
+    if (u.username || u.password) return "";
+    if (u.port && u.port !== "443") return "";
+    if (!u.hostname || /[\s]/.test(u.hostname)) return "";
+    return s;
+  } catch {
+    return "";
+  }
 }
 
 // GET /api/clans/[slug]/bots; public list of bots deployed on this clan.

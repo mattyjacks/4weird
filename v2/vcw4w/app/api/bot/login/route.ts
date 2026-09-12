@@ -9,12 +9,14 @@ import { clientIp, exceedsBodyLimit, isEmail, isLoginPassword } from "@/lib/vali
 import {
   BOT_SCOPES,
   BOT_TESTER_COOKIE,
+  FULL_LOGIN_COOKIE,
   botRateLimit,
   extractBotKey,
   hasBotAuth,
   invalidCredentials,
   isValidBotKeyFormat,
   resolveBotKey,
+  signBotTester,
 } from "@/lib/bot-auth";
 import { logBotKeyRequest } from "@/lib/bot-log";
 
@@ -189,13 +191,16 @@ export async function POST(req: Request) {
     clearLoginFailures(failKeyFor(email, req));
     try {
       const jar = await cookies();
-      jar.set(BOT_TESTER_COOKIE, "1", {
+      jar.set(BOT_TESTER_COOKIE, signBotTester(u.id), {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         path: "/",
         maxAge: 30 * 24 * 3600,
       });
+      // Tester sessions must never carry full-login proof: dropping the
+      // tester cookie alone must not escalate to privileged routes.
+      jar.delete(FULL_LOGIN_COOKIE);
     } catch {
       // Marker is defense-in-depth; the session itself still works for play.
     }

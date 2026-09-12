@@ -11,6 +11,20 @@ const GameState = {
 
 class StateManager {
   constructor() {
+    // Pause-aware clock bookkeeping. game.js resumes via direct assignment
+    // (currentState = PLAYING, bypassing setGameState), so currentState is
+    // an accessor: every transition — setter or setGameState — tracks pause
+    // time. TypingController.getWPM() subtracts it via getPausedMs().
+    this._currentState = GameState.MENU;
+    this.runPausedMs = 0;
+    this._pauseBeganAt = 0;
+    const self = this;
+    Object.defineProperty(this, 'currentState', {
+      configurable: true,
+      enumerable: true,
+      get() { return self._currentState; },
+      set(v) { self._trackStateClock(v); self._currentState = v; }
+    });
     this.currentState = GameState.MENU;
     
     // Core game metrics
@@ -33,8 +47,8 @@ class StateManager {
     this.runStartEpoch = 0;
     this.powerups = { bomb: 1, freeze: 1, shield: 1 }; // one of each per run to start
     this.freezeUntil = 0;
-    this.bestWPM = parseInt(this.safeGet('gg_best_wpm', '0'), 10) || 0;
-    this.bestStreak = parseInt(this.safeGet('gg_best_streak', '0'), 10) || 0;
+    this.bestWPM = this.clampInt0(parseInt(this.safeGet('gg_best_wpm', '0'), 10));
+    this.bestStreak = this.clampInt0(parseInt(this.safeGet('gg_best_streak', '0'), 10));
     
     // Difficulty Settings
     this.difficulty = 'normal';
@@ -43,9 +57,10 @@ class StateManager {
     this.waveWords = new Set();
     
     // Settings and Customizations (private-mode-safe storage reads)
-    this.coins = parseInt(this.safeGet('gg_coins', '0'), 10) || 0;
-    this.sfxVolume = this.clamp01(parseFloat(this.safeGet('gg_sfx_vol', '0.8')));
-    this.musicVolume = this.clamp01(parseFloat(this.safeGet('gg_music_vol', '0.5')));
+    // Negative-coin / NaN-volume corruption self-heals here (clamped + persisted).
+    this.coins = this.clampInt0(parseInt(this.safeGet('gg_coins', '0'), 10));
+    this.sfxVolume = this.clamp01(parseFloat(this.safeGet('gg_sfx_vol', '0.8')), 0.8);
+    this.musicVolume = this.clamp01(parseFloat(this.safeGet('gg_music_vol', '0.5')), 0.5);
     this.ultraParticles = this.safeGet('gg_ultra_particles', 'true') !== 'false';
     this.screenShake = this.safeGet('gg_screen_shake', 'true') !== 'false';
 
@@ -54,11 +69,19 @@ class StateManager {
     this.equippedFont = this.safeGet('gg_eq_font', 'default');
     this.equippedMusic = this.safeGet('gg_eq_music', 'default');
 
-    // Owned items list (JSON string)
+    // Owned items list (JSON string). Non-array / non-string entries self-heal
+    // to ['default'] (e.g. corrupted non-JSON falls back via safeParse).
     const ownedDefaults = ['default'];
     this.ownedItems = this.safeParse('gg_owned', ownedDefaults);
-    if (!Array.isArray(this.ownedItems) || !this.ownedItems.includes('default')) {
+    if (!Array.isArray(this.ownedItems)) {
       this.ownedItems = ownedDefaults.slice();
+    } else {
+      this.ownedItems = this.ownedItems.filter(x => typeof x === 'string' && x.length > 0);
+      if (!this.ownedItems.includes('default')) this.ownedItems.unshift('default');
+    }
+    // Persist healed coins so corruption does not reappear next load.
+    if (String(this.safeGet('gg_coins', '0')) !== String(this.coins)) {
+      this.safeSet('gg_coins', String(this.coins));
     }
   }
 
@@ -75,7 +98,7 @@ class StateManager {
   safeSet(key, value) {
     try {
       localStorage.setItem(key, value);
-    } catch (e) { /* storage unavailable — play session-only */ }
+    } catch (e) { /* storage unavailable - play session-only */ }
   }
 
   safeRemove(key) {
@@ -94,10 +117,61 @@ class StateManager {
     }
   }
 
-  clamp01(v) {
+  clamp01(v, fallback) {
     const n = Number(v);
-    if (!isFinite(n)) return 0.8;
+    if (!isFinite(n)) return (isFinite(Number(fallback)) ? Number(fallback) : 0.8);
     return Math.min(1, Math.max(0, n));
+  }
+
+  clampInt0(v) {
+    const n = Number(v);
+    if (!isFinite(n)) return 0;
+    return Math.max(0, Math.floor(n));
+  }
+
+  // Active-clock helpers: WPM must exclude PAUSED/GLOSSARY/menu time.
+  // _trackStateClock runs on EVERY currentState assignment (including
+  // game.js's direct-assignment resume that bypasses setGameState).
+  // Freeze is shifted forward on resume so isFrozen() (performance.now
+  // based) does not tick down while paused.
+  _nowMs() {
+    try {
+      if (typeof performance !== 'undefined' && performance && typeof performance.now === 'function') {
+        return performance.now();
+      }
+    } catch (e) { /* fall through to Date.now */ }
+    return Date.now();
+  }
+
+  _trackStateClock(next) {
+    try {
+      const prev = this._currentState;
+      if (prev === next) return;
+      if (prev === GameState.PLAYING && next !== GameState.PLAYING) {
+        if (!this._pauseBeganAt) this._pauseBeganAt = this._nowMs();
+      } else if (next === GameState.PLAYING && prev !== GameState.PLAYING) {
+        if (this._pauseBeganAt) {
+          const pausedFor = Math.max(0, this._nowMs() - this._pauseBeganAt);
+          this.runPausedMs = (Number(this.runPausedMs) || 0) + pausedFor;
+          if (Number(this.freezeUntil) > 0) this.freezeUntil += pausedFor;
+          this._pauseBeganAt = 0;
+        }
+      }
+    } catch (e) { /* clock bookkeeping must never break state transitions */ }
+  }
+
+  // Total ms excluded from WPM since the last startRun (settled pauses +
+  // the ongoing non-PLAYING stretch, if any). TypingController reads this.
+  getPausedMs() {
+    try {
+      let total = Number(this.runPausedMs) || 0;
+      if (this._currentState !== GameState.PLAYING && this._pauseBeganAt) {
+        total += Math.max(0, this._nowMs() - this._pauseBeganAt);
+      }
+      return total < 0 || !isFinite(total) ? 0 : total;
+    } catch (e) {
+      return 0;
+    }
   }
 
   // Returning-player chips on the start screen + sidebar high score
@@ -140,44 +214,58 @@ class StateManager {
   }
 
   setGameState(state) {
+    // Assignment first so the pause-clock accessor records the transition
+    // even if DOM work below throws on a partial page.
     this.currentState = state;
-    
+
+    // Null-safe DOM helpers: state transitions must never throw when a
+    // screen element is absent (partial DOM / test harness).
+    const byId = (id) => {
+      try { return document.getElementById(id); } catch (e) { return null; }
+    };
+    const hide = (id) => { const el = byId(id); if (el && el.classList) el.classList.add('hidden'); };
+    const show = (id) => { const el = byId(id); if (el && el.classList) el.classList.remove('hidden'); };
+
     // Clean up UI screens - template screens
-    document.getElementById('TEMPLATE-4weird-loading-screen').classList.add('hidden');
-    document.getElementById('TEMPLATE-4weird-start-screen').classList.add('hidden');
-    document.getElementById('TEMPLATE-4weird-pause-screen').classList.add('hidden');
-    document.getElementById('TEMPLATE-4weird-game-over-screen').classList.add('hidden');
-    document.getElementById('custom-store-screen').classList.add('hidden');
-    document.getElementById('custom-settings-screen').classList.add('hidden');
-    document.getElementById('wave-cleared-screen').style.display = 'none';
-    document.getElementById('game-hud').classList.add('hidden');
+    hide('TEMPLATE-4weird-loading-screen');
+    hide('TEMPLATE-4weird-start-screen');
+    hide('TEMPLATE-4weird-pause-screen');
+    hide('TEMPLATE-4weird-game-over-screen');
+    hide('custom-store-screen');
+    hide('custom-settings-screen');
+    const cleared = byId('wave-cleared-screen');
+    if (cleared && cleared.style) cleared.style.display = 'none';
+    hide('game-hud');
     
-    const speedBtn = document.getElementById('game-speed-btn');
-    if (speedBtn) speedBtn.style.display = 'none';
-    const powerBar = document.getElementById('powerup-bar');
-    if (powerBar) powerBar.classList.add('hidden');
-    const crosshair = document.getElementById('crosshair');
-    if (crosshair) crosshair.classList.add('hidden');
+    const speedBtn = byId('game-speed-btn');
+    if (speedBtn && speedBtn.style) speedBtn.style.display = 'none';
+    const powerBar = byId('powerup-bar');
+    if (powerBar && powerBar.classList) powerBar.classList.add('hidden');
+    const crosshair = byId('crosshair');
+    if (crosshair && crosshair.classList) crosshair.classList.add('hidden');
 
     switch (state) {
       case GameState.MENU:
-        document.getElementById('TEMPLATE-4weird-start-screen').classList.remove('hidden');
+        show('TEMPLATE-4weird-start-screen');
         this.updateMenuStats();
         break;
       case GameState.PLAYING:
-        document.getElementById('game-hud').classList.remove('hidden');
+        show('game-hud');
         if (speedBtn) speedBtn.style.display = 'flex';
         if (powerBar) powerBar.classList.remove('hidden');
         if (crosshair) crosshair.classList.remove('hidden');
         break;
       case GameState.PAUSED:
-        document.getElementById('game-hud').classList.remove('hidden');
-        document.getElementById('TEMPLATE-4weird-pause-screen').classList.remove('hidden');
+        show('game-hud');
+        show('TEMPLATE-4weird-pause-screen');
         break;
-      case GameState.GLOSSARY:
-        document.getElementById('cleared-wave-num').innerText = this.wave;
-        document.getElementById('wave-cleared-screen').style.display = 'flex';
+      case GameState.GLOSSARY: {
+        const waveEl = byId('cleared-wave-num');
+        if (waveEl) waveEl.innerText = this.wave;
+        const waveScreen = byId('wave-cleared-screen');
+        if (waveScreen && waveScreen.style) waveScreen.style.display = 'flex';
         break;
+      }
       case GameState.GAME_OVER:
         const screenEl = document.getElementById('TEMPLATE-4weird-game-over-screen');
         if (screenEl) screenEl.classList.remove('hidden');
@@ -202,9 +290,21 @@ class StateManager {
   }
 
   addScore(points) {
-    const earned = Math.floor(points * this.combo);
-    this.score += earned;
-    document.getElementById('score-val').innerText = this.score;
+    const base = Number(points);
+    const earned = Math.floor((isFinite(base) ? base : 0) * (isFinite(Number(this.combo)) ? Number(this.combo) : 1));
+    this.score = (Number(this.score) || 0) + earned;
+    // Clamp defensively: external writers (miss penalty in game.js) also
+    // touch combo, so re-assert the [1.0, 5.0] invariant before stepping.
+    let c = Number(this.combo);
+    if (!isFinite(c)) c = 1.0;
+    c = Math.min(5.0, Math.max(1.0, c));
+    this.combo = Math.min(5.0, parseFloat((c + 0.1).toFixed(1)));
+    this.bestCombo = Math.max(Number(this.bestCombo) || 1.0, this.combo);
+    this.comboTimer = this.comboThreshold;
+    try {
+      const scoreVal = document.getElementById('score-val');
+      if (scoreVal) scoreVal.innerText = this.score;
+    } catch (e) { /* HUD optional */ }
 
     // Score pop animation on the HUD
     const scoreEl = document.getElementById('score-val');
@@ -223,14 +323,21 @@ class StateManager {
 
   registerKill(zombie) {
     this.kills++;
-    this.maxWave = Math.max(this.maxWave, this.wave);
+    this.maxWave = Math.max(Number(this.maxWave) || 1, Number(this.wave) || 1);
     if (zombie && zombie.ztype === 'boss') this.bossesKilled++;
-    // Powerup trickle: every 12 kills earns a random powerup (cap 3 each)
+    // Powerup trickle: every 12 kills earns a random powerup (cap 3 each).
+    // HUD re-syncs on every mutation (increment); at-cap kills mutate
+    // nothing so no sync is needed.
+    if (!this.powerups || typeof this.powerups !== 'object') {
+      this.powerups = { bomb: 0, freeze: 0, shield: 0 };
+    }
     if (this.kills % 12 === 0) {
       const keys = ['bomb', 'freeze', 'shield'];
       const k = keys[Math.floor(Math.random() * keys.length)];
-      if (this.powerups[k] < 3) {
-        this.powerups[k]++;
+      const cur = Math.floor(Number(this.powerups[k]));
+      const safeCur = (!isFinite(cur) || cur < 0) ? 0 : cur;
+      if (safeCur < 3) {
+        this.powerups[k] = safeCur + 1;
         if (window.game) window.game.announce(`${k.toUpperCase()} +1`, k === 'bomb' ? '#ff5500' : k === 'freeze' ? '#00f2fe' : '#00ff66');
         this.updatePowerupHUD();
       }
@@ -245,28 +352,48 @@ class StateManager {
     this.runStartEpoch = Date.now();
     this.powerups = { bomb: 1, freeze: 1, shield: 1 };
     this.freezeUntil = 0;
+    // Fresh active clock for the new run (WPM excludes future pauses).
+    this.runPausedMs = 0;
+    this._pauseBeganAt = 0;
     this.updatePowerupHUD();
   }
 
   usePowerup(kind) {
-    if (!this.powerups[kind] || this.powerups[kind] <= 0) return false;
+    if (kind !== 'bomb' && kind !== 'freeze' && kind !== 'shield') return false;
+    if (!this.powerups || typeof this.powerups[kind] !== 'number' || !(this.powerups[kind] > 0)) return false;
     if (this.currentState !== GameState.PLAYING) return false;
-    this.powerups[kind]--;
+    this.powerups[kind] = Math.max(0, Math.floor(this.powerups[kind]) - 1);
     this.updatePowerupHUD();
     return true;
   }
 
   updatePowerupHUD() {
+    if (!this.powerups || typeof this.powerups !== 'object') {
+      this.powerups = { bomb: 0, freeze: 0, shield: 0 };
+    }
     ['bomb', 'freeze', 'shield'].forEach(k => {
-      const el = document.getElementById('powerup-count-' + k);
-      if (el) el.innerText = this.powerups[k] || 0;
-      const btn = document.getElementById('powerup-btn-' + k);
-      if (btn) btn.classList.toggle('depleted', !(this.powerups[k] > 0));
+      let n = Math.floor(Number(this.powerups[k]));
+      if (!isFinite(n) || n < 0) n = 0;
+      this.powerups[k] = n;
+      let el = null;
+      let btn = null;
+      try {
+        el = document.getElementById('powerup-count-' + k);
+        btn = document.getElementById('powerup-btn-' + k);
+      } catch (e) { /* HUD optional */ }
+      if (el) el.innerText = n;
+      if (btn && btn.classList) btn.classList.toggle('depleted', !(n > 0));
     });
   }
 
   isFrozen() {
-    return performance.now() < this.freezeUntil;
+    try {
+      const until = Number(this.freezeUntil);
+      if (!isFinite(until) || until <= 0) return false;
+      return this._nowMs() < until;
+    } catch (e) {
+      return false;
+    }
   }
 
   recordRunEnd(wpm, accuracy, streak) {
@@ -289,8 +416,16 @@ class StateManager {
 
   updateCombo(dt) {
     if (this.currentState !== GameState.PLAYING) return;
+    // Self-heal a stray combo (e.g. a bad external write) to the floor.
+    if (!isFinite(Number(this.combo)) || Number(this.combo) < 1.0) {
+      this.combo = 1.0;
+      this.comboTimer = 0;
+      this.updateComboHUD();
+      return;
+    }
     if (this.combo > 1.0) {
-      this.comboTimer -= dt;
+      const step = Number(dt);
+      this.comboTimer -= (isFinite(step) ? step : 0);
       if (this.comboTimer <= 0) {
         this.resetCombo();
       }
@@ -328,7 +463,12 @@ class StateManager {
   }
 
   buyItem(itemId, price) {
-    const cost = Number(price) || 0;
+    if (typeof itemId !== 'string' || itemId.length === 0) return false;
+    // Negative/NaN prices must never credit coins: floor to a sane cost.
+    let cost = Number(price);
+    if (!isFinite(cost) || cost < 0) cost = 0;
+    cost = Math.floor(cost);
+    if (!Array.isArray(this.ownedItems)) this.ownedItems = ['default'];
     if (this.coins >= cost && !this.ownedItems.includes(itemId)) {
       this.coins -= cost;
       this.safeSet('gg_coins', String(this.coins));
@@ -342,7 +482,8 @@ class StateManager {
   }
 
   equipItem(category, itemId) {
-    if (!this.ownedItems.includes(itemId)) return false;
+    if (typeof itemId !== 'string' || itemId.length === 0) return false;
+    if (!Array.isArray(this.ownedItems) || !this.ownedItems.includes(itemId)) return false;
 
     if (category === 'blood') {
       this.equippedBlood = itemId;
@@ -353,6 +494,8 @@ class StateManager {
     } else if (category === 'music') {
       this.equippedMusic = itemId;
       this.safeSet('gg_eq_music', itemId);
+    } else {
+      return false;
     }
     return true;
   }

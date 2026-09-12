@@ -221,8 +221,11 @@ class Zombie {
       }
     }
     if (this.ztype === 'ghost') {
-      // Phantom shimmer: translucent body + halo ring
+      // Phantom shimmer: translucent body + halo ring.
+      // Eyes stay opaque so the glow reads at distance and shared
+      // emissive eyeMat isn't dimmed for every ghost.
       this.group.traverse(child => {
+        if (child === this.eyeL || child === this.eyeR) return;
         if (child.isMesh && child.material && child.material.transparent !== true) {
           child.material.transparent = true;
           child.material.opacity = 0.82;
@@ -303,10 +306,7 @@ class Zombie {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
-    const typedText = displayWord.substring(0, this.typedLength + (prefix && this.typedLength > 0 ? prefix.length : 0));
-    const remainingText = displayWord.substring(this.typedLength + (prefix && this.typedLength > 0 ? prefix.length : 0));
-    // NOTE: prefix is decorative — typing progress maps to the raw word.
-    // Recompute cleanly: typed chars of the WORD only.
+    // NOTE: prefix is decorative - typing progress maps to the raw word only.
     const cleanTyped = this.word.substring(0, this.typedLength);
     const cleanRemaining = this.word.substring(this.typedLength);
 
@@ -317,7 +317,7 @@ class Zombie {
 
     const startX = (w - totalWidth) / 2;
 
-    ctx.fillStyle = 'rgba(5, 5, 12, 0.85)';
+    ctx.fillStyle = 'rgba(5, 5, 12, 0.9)';
     ctx.strokeStyle = borderColor;
     ctx.lineWidth = 4;
 
@@ -327,7 +327,7 @@ class Zombie {
     const rectY = (h - rectHeight) / 2;
 
     ctx.beginPath();
-    // roundRect is missing on older canvas — fall back to rect
+    // roundRect is missing on older canvas - fall back to rect
     if (ctx.roundRect) ctx.roundRect(rectX, rectY, rectWidth, rectHeight, 12);
     else ctx.rect(rectX, rectY, rectWidth, rectHeight);
     ctx.fill();
@@ -348,6 +348,15 @@ class Zombie {
       ctx.fillText(prefix, cursorX, h / 2);
       cursorX += prefixWidth;
     }
+
+    // Dark outline under the word so white/green text stays legible
+    // against bright level backgrounds. Stroked at the same coords
+    // as the fills below, so typed-progress alignment is unchanged.
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.9)';
+    ctx.lineJoin = 'round';
+    ctx.strokeText(cleanTyped || ' ', cursorX, h / 2);
+    ctx.strokeText(cleanRemaining || ' ', cursorX + typedWidth, h / 2);
 
     // Highlight typed characters in neon green
     ctx.fillStyle = '#00ff66';
@@ -397,7 +406,7 @@ class Zombie {
     
     const dist = Math.abs(5.0 - this.worldZ);
     const scaleFactor = Math.max(1.0, dist / 10.0);
-    // Big zombies get bigger labels — readability at distance
+    // Big zombies get bigger labels - readability at distance
     const typeLabelMul = this.ztype === 'boss' ? 1.35 : this.ztype === 'brute' ? 1.15 : 1.0;
     this.labelSprite.scale.set(2.0 * scaleFactor * typeLabelMul, 0.5 * scaleFactor * typeLabelMul, 1.0);
     
@@ -414,7 +423,7 @@ class Zombie {
       const wobble = Math.sin(this.animTime * 8 * speedMul);
       const bobbing = Math.cos(this.animTime * 16 * speedMul) * 0.05;
 
-      // Ghosts weave side-to-side — harder to ignore, fun to hunt
+      // Ghosts weave side-to-side - harder to ignore, fun to hunt
       if (this.ztype === 'ghost' && !this.spawnPhase) {
         this.strafePhase += dt * 2.2;
         this.worldX += Math.sin(this.strafePhase) * 1.1 * dt;
@@ -457,7 +466,9 @@ class Zombie {
       if (this.torso && this.torso.material && this.torso.material.emissive) {
         this.torso.material.emissive.setRGB(0, 0, 0);
       }
-      if (!this.isStunned) this.group.scale.setScalar(this.archetypeScale || 1);
+      // Always restore scale when the flash ends - a zombie stunned
+      // mid-flash must not stay frozen at the popped size.
+      this.group.scale.setScalar(this.archetypeScale || 1);
     }
 
     // Danger proximity: pulse red when about to breach (worldZ > 0.5)
@@ -498,7 +509,7 @@ class Zombie {
 
   destroy() {
     this.scene.remove(this.group);
-    // CanvasTextures are GPU resources too — free the label explicitly
+    // CanvasTextures are GPU resources too - free the label explicitly
     if (this.labelTexture) this.labelTexture.dispose();
     this.group.traverse(child => {
       if (child.isMesh || child.isSprite) {

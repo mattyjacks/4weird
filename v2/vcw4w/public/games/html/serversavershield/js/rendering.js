@@ -205,7 +205,7 @@ function drawPowerups() {
     const ctx = getContext();
     const pretty = (typeof isBeautiful === 'function') && isBeautiful();
     if (pretty) {
-        // Beautiful: per-powerup glow (GPU blur pass each — the cost Fast avoids).
+        // Beautiful: per-powerup glow (GPU blur pass each - the cost Fast avoids).
         powerups.forEach(p => {
             ctx.save();
             const pulse = Math.sin(p.pulse) * 3;
@@ -246,7 +246,7 @@ function drawParticles() {
         ctx.arc(p.x, p.y, r > 0.5 ? r : 0.5, 0, Math.PI * 2);
         ctx.fill();
     }
-    // Emoji particles are rare (kill bursts) — draw them without rotation math.
+    // Emoji particles are rare (kill bursts) - draw them without rotation math.
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     for (let i = 0; i < particles.length; i++) {
@@ -264,7 +264,7 @@ function drawEnemies() {
     const pretty = (typeof isBeautiful === 'function') && isBeautiful();
     if (pretty) {
         // Beautiful: per-enemy glow. This is the single most expensive canvas
-        // state — Fast mode below skips it entirely.
+        // state - Fast mode below skips it entirely.
         enemies.forEach(e => {
             ctx.save();
             ctx.shadowBlur = 15;
@@ -464,7 +464,7 @@ function drawComboEffect(ctx) {
     const comboMult = Math.min(comboCount, 5);
     const pulse = Math.sin(Date.now() / 100) * 0.3 + 0.7;
     
-    // Draw combo badge (glow only on Beautiful — it runs every frame while combo active)
+    // Draw combo badge (glow only on Beautiful - it runs every frame while combo active)
     ctx.save();
     ctx.font = `bold ${20 + comboMult * 3}px Orbitron,sans-serif`;
     ctx.fillStyle = `rgba(245, 158, 11, ${pulse})`; // Orange with pulse
@@ -558,7 +558,7 @@ function drawServers() {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        // Glow effect based on status (Beautiful only — Fast skips the blur pass)
+        // Glow effect based on status (Beautiful only - Fast skips the blur pass)
         if ((typeof isBeautiful === 'function') && isBeautiful()) {
             if (server.status === 'degraded') {
                 ctx.shadowBlur = 10;

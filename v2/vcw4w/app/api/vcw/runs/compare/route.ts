@@ -22,7 +22,7 @@ function countBy<T>(rows: T[], pick: (row: T) => string): CountMap {
  * of the caller's runs (authenticated, owner only, read-only so unmetered).
  *
  * Agents iterate: run, fix, re-run. The compare answers "did the fix work"
- * in one call — verdicts, step-kind mix, and bug-severity mix for both
+ * in one call - verdicts, step-kind mix, and bug-severity mix for both
  * runs, plus whether they targeted the same game. Full trails stay on
  * GET /api/vcw/runs/[id] (or the uncapped /export below).
  */

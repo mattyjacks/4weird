@@ -1,6 +1,6 @@
-/* GraveGain3D AAA — 30 announcer.
+/* GraveGain3D AAA - 30 announcer.
    Killstreak callouts (DOUBLE KILL … GODLIKE), a combo meter that rewards
-   aggression, and a hitmarker X on the crosshair — gold when it confirms
+   aggression, and a hitmarker X on the crosshair - gold when it confirms
    a kill. Exposes AAA.announce(main, sub) for other modules (boss slays). */
 (function () {
     'use strict';

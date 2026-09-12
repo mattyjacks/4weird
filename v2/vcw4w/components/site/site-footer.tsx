@@ -38,7 +38,7 @@ const COLUMNS: FooterColumn[] = [
   {
     label: "Play",
     icon: <Gamepad2 className="h-3.5 w-3.5" aria-hidden="true" />,
-    tagline: "Jump in and play — no install, no manual.",
+    tagline: "Jump in and play - no install, no manual.",
     links: [
       { href: "/", label: "Home" },
       { href: "/games", label: "All 34 Games" },
@@ -56,7 +56,7 @@ const COLUMNS: FooterColumn[] = [
   {
     label: "Create & Cloud",
     icon: <Cpu className="h-3.5 w-3.5" aria-hidden="true" />,
-    tagline: "Rent power by the minute — agents, desktops, renders.",
+    tagline: "Rent power by the minute - agents, desktops, renders.",
     links: [
       { href: "/agents", label: "AI Agents for Hire" },
       { href: "/runpods", label: "My RunPods" },
@@ -89,7 +89,7 @@ const COLUMNS: FooterColumn[] = [
   {
     label: "Community",
     icon: <Users className="h-3.5 w-3.5" aria-hidden="true" />,
-    tagline: "Clubs, creators, classrooms — bring friends.",
+    tagline: "Clubs, creators, classrooms - bring friends.",
     links: [
       { href: "/bot/setup", label: "Bot Setup" },
       { href: "/bot/bclans", label: "Bot Clans" },
@@ -124,7 +124,7 @@ const COLUMNS: FooterColumn[] = [
   {
     label: "Trust & Account",
     icon: <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />,
-    tagline: "Your money, your data, your rules — kept safe.",
+    tagline: "Your money, your data, your rules - kept safe.",
     links: [
       { href: "/pricing", label: "Get Vibe Coins" },
       { href: "/account", label: "My Account" },
@@ -151,7 +151,7 @@ const STATS = [
 
 export function SiteFooter() {
   return (
-    <footer className="relative overflow-hidden border-t border-border bg-background dark:border-white/10 dark:bg-slate-950">
+    <footer id="site-footer" className="relative overflow-hidden border-t border-border bg-background dark:border-white/10 dark:bg-slate-950">
       {/* Rainbow hairline + aurora wash */}
       <div
         aria-hidden="true"
@@ -175,7 +175,7 @@ export function SiteFooter() {
               <strong className="font-semibold text-foreground">Future Forward Fun.</strong>{" "}
               <ClampText
                 short="Arcade, clubhouse + cloud studio: 34 games, clans, buddy, rentable power."
-                full="4weird.com is an arcade, clubhouse, and cloud studio in one — 34 browser games, cozy clans, a voice buddy that watches your screen and helps you win, plus rentable AI agents, cloud desktops, and 3D render power. Your saves, coins, and high scores follow you everywhere."
+                full="4weird.com is an arcade, clubhouse, and cloud studio in one - 34 browser games, cozy clans, a voice buddy that watches your screen and helps you win, plus rentable AI agents, cloud desktops, and 3D render power. Your saves, coins, and high scores follow you everywhere."
                 label="About 4weird, in full"
               />
             </p>
@@ -222,7 +222,7 @@ export function SiteFooter() {
                 <span aria-hidden="true" className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-cyan-600 text-xs font-black text-white dark:bg-cyan-300 dark:text-slate-950">1</span>
                 <ClampText
                   short="Free account, 100 welcome coins."
-                  full={<span><Link href="/auth/sign-up" className="font-bold text-foreground underline decoration-cyan-500/50 underline-offset-4 hover:decoration-cyan-400">Create a free account</Link> and pocket 100 welcome coins — it takes under a minute.</span>}
+                  full={<span><Link href="/auth/sign-up" className="font-bold text-foreground underline decoration-cyan-500/50 underline-offset-4 hover:decoration-cyan-400">Create a free account</Link> and pocket 100 welcome coins - it takes under a minute.</span>}
                   label="Step 1, in full"
                 />
               </li>
@@ -246,7 +246,7 @@ export function SiteFooter() {
             <CompactDetails summary="Stuck? Docs can help" className="mt-2">
               Every page is explained in plain English in the{" "}
               <Link href="/docs" className="font-bold text-foreground hover:underline underline-offset-4">Docs Hub</Link>{" "}
-              — start with <Link href="/docs/getting-started" className="font-bold text-foreground hover:underline underline-offset-4">Getting Started</Link> or the{" "}
+              - start with <Link href="/docs/getting-started" className="font-bold text-foreground hover:underline underline-offset-4">Getting Started</Link> or the{" "}
               <Link href="/docs/faq" className="font-bold text-foreground hover:underline underline-offset-4">FAQ</Link>.
             </CompactDetails>
           </div>
@@ -258,13 +258,13 @@ export function SiteFooter() {
             <p className="mt-2 text-[13px] leading-snug text-muted-foreground">
               <ClampText
                 short="100 Vibe Coins = exactly $1.00. Fees included."
-                full={<span>The whole economy fits in one sentence: <strong className="font-bold text-foreground">100 Vibe Coins (🪙) = exactly $1.00</strong>, always. The 25% platform cut is already inside every price — never added on top.</span>}
+                full={<span>The whole economy fits in one sentence: <strong className="font-bold text-foreground">100 Vibe Coins (🪙) = exactly $1.00</strong>, always. The 25% platform cut is already inside every price - never added on top.</span>}
                 label="Vibe Coins, in full"
               />
             </p>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-[13px] leading-snug text-muted-foreground">
               <li>Spend coins on games, <Link href="/agents" className="font-semibold text-foreground hover:underline underline-offset-4">agents</Link>, <Link href="/desktop" className="font-semibold text-foreground hover:underline underline-offset-4">desktops</Link>, and <Link href="/fal" className="font-semibold text-foreground hover:underline underline-offset-4">art tools</Link>.</li>
-              <li>Tip makers on <Link href="/support" className="font-semibold text-foreground hover:underline underline-offset-4">Support</Link> — they keep 75% as on-site credits.</li>
+              <li>Tip makers on <Link href="/support" className="font-semibold text-foreground hover:underline underline-offset-4">Support</Link> - they keep 75% as on-site credits.</li>
               <li>Coins stay on-site (cloud, credits, gifts). Never cash-out, never withdrawable.</li>
             </ul>
             <div className="mt-3 flex flex-wrap gap-1.5 text-xs">
@@ -295,7 +295,7 @@ export function SiteFooter() {
         {/* ---- Link columns ---- */}
         <div className="mt-4 grid gap-4 rounded-2xl border border-border bg-card/50 p-4 backdrop-blur sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 dark:border-white/10 dark:bg-white/[0.02]">
           {COLUMNS.map((col) => (
-            <nav key={col.label} aria-label={`Footer — ${col.label}`} className="min-w-0">
+            <nav key={col.label} aria-label={`Footer - ${col.label}`} className="min-w-0">
               <p className="flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.2em] text-foreground">
                 <span aria-hidden="true" className="text-cyan-600 dark:text-cyan-300">{col.icon}</span>
                 {col.label}
@@ -327,7 +327,7 @@ export function SiteFooter() {
             100 Vibe Coins (🪙) = exactly $1.00
           </p>
           <CompactDetails summary="The fine print, briefly" className="mx-auto mt-2 max-w-4xl">
-            Play weird games, join cozy clans, hire robot helpers, and rent cloud power — all in your browser.
+            Play weird games, join cozy clans, hire robot helpers, and rent cloud power - all in your browser.
             Be nice, no cheating, creators raise gifts (not charity, not investment). Coins are on-site fun
             only and can&apos;t be cashed out. Full rules live in the{" "}
             <Link href="/terms" className="font-semibold hover:text-foreground hover:underline underline-offset-4">Terms</Link>,{" "}

@@ -1,9 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { clientIp, isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
+import { globalBucket, ipBucketKey, throttleHeaders } from "@/lib/abuse-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,13 @@ export async function POST(req: Request) {
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const throttle = rateLimit(`clan-report:${clientIp(req)}`, 5, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);
+  // Distributed takedown-DoS shield: memory bucket alone lets IP rotation
+  // quarantine arbitrary content (csam hides immediately). Shared bucket caps
+  // 20 reports/day per network; BotID engages after 3 in a row.
+  const dist = await globalBucket(ipBucketKey(req, "clan-report-day"), 20, 86400);
+  if (dist && !dist.allowed) {
+    return fail("Too many reports from this network. Try again later.", 429, throttleHeaders(dist.retryAfter));
+  }
   let body: unknown;
   try {
     body = await req.json();
@@ -44,10 +52,10 @@ export async function POST(req: Request) {
     p_details: details,
   });
   if (error) {
-    const msg = String(error.message ?? "");
+    const msg = String((error as { message?: string }).message ?? "");
     if (/not found/i.test(msg)) return fail("Target not found.", 404);
     if (/invalid/i.test(msg)) return fail("Invalid report.", 400);
-    return fail("Unable to file report.", 500);
+    return rpcFail("api/clans/report", error, (m) => (/not found/i.test(m) ? 404 : /invalid/i.test(m) ? 400 : 500), "Unable to file report.");
   }
   const id = (Array.isArray(rpcData) ? rpcData[0] : rpcData) as string;
   return ok(

@@ -1,4 +1,4 @@
-/* GraveGain3D Campaign — 10 campaign styles.
+/* GraveGain3D Campaign - 10 campaign styles.
    Owns all campaign visuals (#campProgress, #campBriefing, #campNextBtn,
    codex toasts, NEW badges). No global resets; core classes untouched. */
 
@@ -195,7 +195,7 @@
     }
 }
 
-/* GraveGain2D Campaign — banner (mission announce / boss / fail).
+/* GraveGain2D Campaign - banner (mission announce / boss / fail).
    2D has no combatText.showBanner, so the director renders into this. */
 
 #campBanner {

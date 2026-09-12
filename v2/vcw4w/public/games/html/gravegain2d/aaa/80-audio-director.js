@@ -1,8 +1,8 @@
-/* GraveGain2D AAA — 80 audio director.
+/* GraveGain2D AAA - 80 audio director.
    2D adaptation: extends (never replaces) the existing AudioController.
    The 2D controller has play(name) + speakFallback(text) and no music bed,
    so intensity is expressed three ways: (1) a gain scalar applied around
-   every play() call — combat hits harder, exploration sits back, boss
+   every play() call - combat hits harder, exploration sits back, boss
    fights run hot; (2) a low-HP heartbeat thump on a timer; (3) rationed
    voice lines (rampage / godlike / boss slay / victory / defeat) plus
    victory/defeat stinger sequences built from existing SFX names. */
@@ -29,7 +29,7 @@
     AAA.ready((game) => {
         // Extend the prototype once: scale masterVolume for the duration of
         // each play() call, restoring it afterwards. Chain-safe with any
-        // other wrapper — we call through to whatever is current.
+        // other wrapper - we call through to whatever is current.
         try {
             const proto = game.audio && Object.getPrototypeOf(game.audio);
             if (proto && typeof proto.play === 'function' && !proto.__aaaGainWrapped) {

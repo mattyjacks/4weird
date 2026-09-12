@@ -1,11 +1,11 @@
-/* AssassinAnimals FX — presentation overlay stylesheet (Agent D).
+/* AssassinAnimals FX - presentation overlay stylesheet (Agent D).
    Cinematic cards, announcer, radar, objectives, pips, floaters,
    vignettes, toasts, menu polish, responsive mobile. All prefixed afx-. */
 
 #viewportContainer { position: relative; }
 #gameCanvas.afx-desat { filter: saturate(0.25) contrast(1.25) brightness(1.1); transition: filter 0.25s; }
 
-/* — Letterbox + titlecard — */
+/* - Letterbox + titlecard - */
 .afx-bar { position: absolute; left: 0; right: 0; height: 0; background: #000; z-index: 20; transition: height 0.45s ease; pointer-events: none; }
 .afx-bar.afx-top { top: 0; } .afx-bar.afx-bottom { bottom: 0; }
 .afx-cine .afx-bar { height: 7%; }
@@ -17,7 +17,7 @@
 .afx-tip { font-family: Orbitron, sans-serif; font-size: 0.75rem; color: #00ff66; border: 1px solid rgba(0,255,102,0.35); border-radius: 20px; padding: 6px 16px; background: rgba(0,20,10,0.7); }
 @keyframes afx-slam { 0% { transform: scale(1.6); opacity: 0; } 60% { transform: scale(0.95); opacity: 1; } 100% { transform: scale(1); } }
 
-/* — Announcer + combo + flashes — */
+/* - Announcer + combo + flashes - */
 .afx-announcer { position: absolute; top: 14%; left: 0; right: 0; text-align: center; z-index: 22; pointer-events: none; opacity: 0; }
 .afx-announcer.on { animation: afx-ann 1.8s ease forwards; }
 .afx-announce-main { font-family: Orbitron, sans-serif; font-weight: 900; font-size: clamp(1.5rem, 5vw, 2.8rem); color: #ffea00; text-shadow: 0 0 20px rgba(255,234,0,0.8), 0 2px 0 #000; letter-spacing: 3px; }
@@ -36,7 +36,7 @@
 @keyframes afx-flash { 0% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes afx-vip { 0% { opacity: 0.85; } 100% { opacity: 0; } }
 
-/* — Objectives + VIP pips + minimap — */
+/* - Objectives + VIP pips + minimap - */
 .afx-objectives { position: absolute; top: 12px; left: 12px; z-index: 18; background: rgba(8,10,20,0.82); border: 1px solid rgba(0,229,255,0.3); border-radius: 10px; padding: 8px 12px; font-family: Orbitron, sans-serif; font-size: 0.72rem; color: #cbd5e1; pointer-events: none; min-width: 168px; }
 .afx-obj-title { color: #00e5ff; font-weight: 800; letter-spacing: 2px; margin-bottom: 4px; }
 .afx-obj-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 2px; }
@@ -50,7 +50,7 @@
 .afx-pips i.f { background: linear-gradient(90deg, #ff0055, #ff7a00); box-shadow: 0 0 6px rgba(255,0,85,0.7); }
 .afx-minimap { position: absolute; top: 12px; right: 12px; width: 148px; height: 148px; z-index: 18; border-radius: 50%; pointer-events: none; box-shadow: 0 0 18px rgba(0,229,255,0.25); }
 
-/* — Floaters / vignettes / light / toasts — */
+/* - Floaters / vignettes / light / toasts - */
 .afx-floaters { position: absolute; inset: 0; z-index: 17; pointer-events: none; overflow: hidden; }
 .afx-floater { position: absolute; top: 0; left: 0; font-size: 1.3rem; font-weight: 900; text-shadow: 0 2px 4px #000; animation: afx-bob 0.9s ease-in-out infinite alternate; }
 .afx-floater.sus { color: #ffea00; } .afx-floater.alert { color: #ff0055; font-size: 1.5rem; }
@@ -69,7 +69,7 @@
 .afx-toast-x { background: none; border: none; color: #94a3b8; font-size: 1.1rem; cursor: pointer; }
 @keyframes afx-tin { from { transform: translateX(-12px); opacity: 0; } to { transform: none; opacity: 1; } }
 
-/* — Menu polish: neon title, card shine, contracts line — */
+/* - Menu polish: neon title, card shine, contracts line - */
 .logo-title { animation: afx-neon 3.2s ease-in-out infinite; }
 @keyframes afx-neon { 0%, 100% { filter: drop-shadow(0 0 12px rgba(0,229,255,0.35)); } 50% { filter: drop-shadow(0 0 26px rgba(0,229,255,0.75)) drop-shadow(0 0 46px rgba(157,78,221,0.4)); } }
 .char-card { position: relative; overflow: hidden; }
@@ -77,11 +77,11 @@
 .char-card:hover::after { left: 130%; }
 .afx-contracts { margin-top: 4px; font-family: Orbitron, sans-serif; font-size: 0.72rem; letter-spacing: 1.5px; color: #00e5ff; opacity: 0.85; min-height: 1.2em; }
 
-/* — Pause volume row — */
+/* - Pause volume row - */
 .afx-vol-row { display: flex; align-items: center; gap: 12px; font-family: Orbitron, sans-serif; font-size: 0.8rem; color: #cbd5e1; margin: 6px 0 12px; }
 .afx-vol-row input[type="range"] { flex: 1; accent-color: #00e5ff; }
 
-/* — Responsive mobile (720px HUD wrap, larger touch) — */
+/* - Responsive mobile (720px HUD wrap, larger touch) - */
 @media (max-width: 720px) {
   .hud { flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
   .hud-left, .hud-right { gap: 10px; flex-wrap: wrap; }

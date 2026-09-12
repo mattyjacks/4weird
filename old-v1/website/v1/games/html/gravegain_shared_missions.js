@@ -164,7 +164,7 @@
                 { speaker: "Private Lisa Park", text: "We will give him back his peace, Guy. I promise.", portrait: "👩‍🚀" }
             ],
             dialogueAfter: [
-                { speaker: "Guy Young", text: "Thank you. He's at rest once more. Take his ancient service sidearm—it'll serve you well.", portrait: "👨‍🚀" }
+                { speaker: "Guy Young", text: "Thank you. He's at rest once more. Take his ancient service sidearm-it'll serve you well.", portrait: "👨‍🚀" }
             ],
             objectives: [
                 { id: "slay_boss", desc: "Defeat Reanimated Patriarch Clint", count: 1, current: 0 },

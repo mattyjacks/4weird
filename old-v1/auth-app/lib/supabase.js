@@ -16,7 +16,7 @@ export function anonClient() {
 
 /**
  * Client acting AS the user (their access token in Authorization).
- * Postgres RLS policies apply normally — a server bug cannot widen reads.
+ * Postgres RLS policies apply normally - a server bug cannot widen reads.
  */
 export function userClient(accessToken) {
   return createClient(env('SUPABASE_URL'), env('SUPABASE_ANON_KEY'), {

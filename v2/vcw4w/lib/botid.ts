@@ -4,7 +4,7 @@ import { checkBotId } from "botid/server";
 import { extractBotKey, resolveBotKey } from "@/lib/bot-auth";
 
 /**
- * BotID server gate — one helper for every protected mutation.
+ * BotID server gate - one helper for every protected mutation.
  *
  * Usage (top of POST/PUT/PATCH/DELETE, AFTER the hasServerSupabase + sameOrigin
  * checks, BEFORE rate limits and body parsing):
@@ -30,11 +30,11 @@ import { extractBotKey, resolveBotKey } from "@/lib/bot-auth";
  *     opts out of this (allowTrustedMachine:false) and stays human-only.
   *   - VALID `bot4weird_` keys (resolved against the DB: revocation, expiry,
   *     budgets enforced) → exempt everywhere EXCEPT daily. A
-  *     present-but-invalid key is NOT enough — it falls through to the
+  *     present-but-invalid key is NOT enough - it falls through to the
   *     BotID check and fails closed like any bot.
   *   - Restricted tester sessions (POST /api/bot/login email+password,
   *     `bot_tester` cookie) bypass via `{ allowAuthenticated: true }` on all
-  *     non-free-mint routes instead — they carry a real Supabase session.
+  *     non-free-mint routes instead - they carry a real Supabase session.
   *     They can never touch the user profile or destructive actions: those
   *     routes refuse the marker with 403 even in dev (no BotID involved).
   *   - Signed-in coin-spend/social callers → exempt ONLY when the route opts
@@ -45,14 +45,14 @@ import { extractBotKey, resolveBotKey } from "@/lib/bot-auth";
   *     must not 403 paid work like NewGamePlus builds, fal renders, or buddy
   *     turns. Free-money routes (signup/daily/claim/checkout/refund/
   *     alpha/referrals/guest-pass) plus kid-login, bot key issuance, and
-  *     account deletion must NEVER opt in — they stay gated even for
+  *     account deletion must NEVER opt in - they stay gated even for
   *     logged-in callers so farmed accounts cannot mint free coins.
   *     Login itself is deferred-gate (BotID only after 5 failed passwords)
   *     so external bots CAN log in with a username + password.
  * - Webhook / pod-token callbacks (meshy/webhook, blender/progress) must
- *     NEVER call this helper at all — they authenticate by HMAC/job-token.
+ *     NEVER call this helper at all - they authenticate by HMAC/job-token.
  * - Signed-in play metering (POST /api/games/session) must NEVER call this
- *   helper either — AI/automation playing through a real signed-in session
+ *   helper either - AI/automation playing through a real signed-in session
  *   is welcome and still pays coins; anti-cheat stays via the cheat_mode
  *   save invariant + rate limits. Anonymous free-play abuse stays gated at
  *   POST /api/games/guest-pass.
@@ -105,14 +105,14 @@ export function isSelfTest(req: Request): boolean {
  * True when the caller is trusted machine traffic that must bypass the
  * invisible-CAPTCHA: Vercel Cron, a VALID bot key, or the owner's AI
  * self-test token (SELFTEST_BYPASS_TOKEN). Humans (no bot-key header)
- * never hit the DB here — the resolve only runs when a key is
+ * never hit the DB here - the resolve only runs when a key is
  * actually presented.
  *
  * Own bots (valid `bot4weird_` keys) bypass here on every route EXCEPT the
  * daily bonus, which passes `{ allowTrustedMachine: false }` so it stays
  * real-human-only. External password bots (username + password login,
  * cookie session) bypass via `{ allowAuthenticated: true }` on all
- * non-free-mint routes instead — they carry no bot-key header.
+ * non-free-mint routes instead - they carry no bot-key header.
  */
 export async function isTrustedMachine(req: Request): Promise<boolean> {
   if (isCron(req)) return true;
@@ -178,7 +178,7 @@ async function isAuthenticatedUser(): Promise<boolean> {
   * social/economy writes (clan posts/comments/votes, support, fundraisers,
   * verification, openrouter-plays, rights). A valid session proves a
   * debitable account, so BotID false-positives must not block paid work or
-  * legitimate automation — including tester sessions from POST /api/bot/login
+  * legitimate automation - including tester sessions from POST /api/bot/login
   * and the owner's AI self-testing its own site.
  * Never use it on free-money or identity-mint routes
  * (signup/daily/claim/checkout/refund/alpha/referrals/guest-pass,
@@ -200,14 +200,14 @@ export async function requireHuman(
     try {
       if (await isTrustedMachine(req)) return null;
     } catch {
-      // Fall through to the BotID check — exemption failures fail closed.
+      // Fall through to the BotID check - exemption failures fail closed.
     }
   }
   if (opts?.allowAuthenticated) {
     try {
       if (await isAuthenticatedUser()) return null;
     } catch {
-      // Fall through to the BotID check — auth-check failures fail closed
+      // Fall through to the BotID check - auth-check failures fail closed
       // for anonymous callers, so free-play abuse stays gated.
     }
   }
@@ -224,7 +224,7 @@ export async function requireHuman(
     }
     return null;
   } catch (err) {
-    console.error("[botid] verifier error — allowing with backstops", {
+    console.error("[botid] verifier error - allowing with backstops", {
       route: String(route).slice(0, 120),
       message: String((err as Error)?.message ?? err).slice(0, 200),
     });

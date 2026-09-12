@@ -1,11 +1,11 @@
-/* GraveGain2D Campaign — 00 boot.
+/* GraveGain2D Campaign - 00 boot.
    Mission-extra registry + apply onto the SHARED story missions.
    Mirrors gravegain3d/campaign/00-campaign-boot.js, adapted for 2D:
    there is no AAA bus in the 2D game, so extras are applied
    synchronously at load (the shared missions script loads first, per
    index.html order) plus again on DOMContentLoaded / window load as a
    safety net for late registrations (m01…m10 load right after this).
-   The shared missions file itself is never edited — only the page's
+   The shared missions file itself is never edited - only the page's
    runtime copies are mutated. Never throws during boot. */
 (function () {
     'use strict';
@@ -180,7 +180,7 @@
 
     try {
         window.GraveGainCampaign = Campaign;
-    } catch (_) { /* no window — nothing to attach to */ }
+    } catch (_) { /* no window - nothing to attach to */ }
     try {
         scheduleApply();
     } catch (_) { /* never throw during boot */ }

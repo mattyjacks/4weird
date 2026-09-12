@@ -159,7 +159,7 @@ export function SignUpForm({
                     onChange={() => setAgeBand("under13")}
                   />
                   <span>
-                    I&apos;m under 13 — I need a parent/guardian to sign up (Adult), then create my Child account in
+                    I&apos;m under 13 - I need a parent/guardian to sign up (Adult), then create my Child account in
                     Account → Family. <Link href="/family/login" className="underline underline-offset-4">Child login</Link>
                   </span>
                 </label>
@@ -172,7 +172,7 @@ export function SignUpForm({
                   />
                   <span>
                     Where my country requires it (e.g. EU under 16), I confirm I have parent/guardian permission to
-                    create this account. No birth date is collected — only this band.
+                    create this account. No birth date is collected - only this band.
                   </span>
                 </label>
               </fieldset>

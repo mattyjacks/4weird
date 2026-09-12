@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { WalletBadges } from "@/components/site/wallet-badges";
 
 import { SITE_NAV_GROUPS as SHARED_NAV_GROUPS } from "@/lib/site-nav";
@@ -365,6 +365,9 @@ export function SiteHeader() {
   const pathname = usePathname();
   const desktopNavRef = useRef<HTMLElement>(null);
   const mobileNavRef = useRef<HTMLElement>(null);
+  // Stable identity: WalletBadges depends on this in its poll callback —
+  // an inline arrow would recreate the interval on every header render.
+  const handleUnauthorized = useCallback(() => setSignedIn(false), []);
 
   // Track auth state so the header can show Login / Sign Up vs Dashboard.
   // WalletBadges reports back on 401 (server no longer sees the session)
@@ -507,7 +510,7 @@ export function SiteHeader() {
           </nav>
 
           <div className="hidden items-center gap-2 lg:flex">
-            <WalletBadges signedIn={signedIn} onUnauthorized={() => setSignedIn(false)} />
+            <WalletBadges signedIn={signedIn} onUnauthorized={handleUnauthorized} />
             <Link
               href="/pricing"
               className="rounded-full border border-border px-3 py-1.5 text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground"
@@ -543,7 +546,7 @@ className="rounded-full bg-cyan-600 px-4 py-1.5 text-sm font-black text-white tr
 
           {/* Mobile balances + toggle: badges stay visible even when the sheet is closed */}
           <div className="flex min-w-0 flex-1 items-center justify-end gap-2 lg:hidden">
-            <WalletBadges signedIn={signedIn} onUnauthorized={() => setSignedIn(false)} />
+            <WalletBadges signedIn={signedIn} onUnauthorized={handleUnauthorized} />
             <button
               type="button"
               className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-bold text-foreground lg:hidden"

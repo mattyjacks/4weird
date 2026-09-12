@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { InfoTip } from "@/components/ui/info-tip";
 
 /**
  * One nav web so every agent/bot page links to every other one.
