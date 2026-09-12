@@ -533,6 +533,12 @@ function PolicyFields({
         </label>
         <input
           id={`${prefix}-note`}
+          name={`${prefix}-key-note`}
+          autoComplete="off"
+          readOnly
+          onFocus={(e) => {
+            e.currentTarget.readOnly = false;
+          }}
           value={form.note}
           onChange={(e) => set({ note: e.target.value.slice(0, 280) })}
           placeholder="What is this key for?"
@@ -1061,6 +1067,15 @@ export function BotSetupClient() {
           <div className="mt-4 flex gap-2">
             <input
               aria-label="Bot username"
+              name="bot-username-claim"
+              autoComplete="off"
+              // readOnly-until-focus: keeps password managers + browser
+              // autofill from dumping the saved email/login here. Real
+              // typing is unaffected (focus unlocks the field).
+              readOnly
+              onFocus={(e) => {
+                e.currentTarget.readOnly = false;
+              }}
               value={nameInput}
               onChange={(e) =>
                 setNameInput(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 24))
@@ -1089,6 +1104,14 @@ export function BotSetupClient() {
         <div className="mt-4 flex gap-2">
           <input
             aria-label="Key label"
+            name="bot-key-label"
+            autoComplete="off"
+            // readOnly-until-focus: stops the browser from auto-entering
+            // the saved email/login as the key label. Focus unlocks it.
+            readOnly
+            onFocus={(e) => {
+              e.currentTarget.readOnly = false;
+            }}
             value={labelInput}
             onChange={(e) => setLabelInput(e.target.value.slice(0, 40))}
             placeholder="Label, e.g. ci-runner"
