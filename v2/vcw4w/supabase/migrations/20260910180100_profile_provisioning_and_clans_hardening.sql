@@ -153,9 +153,11 @@ begin
     end;
   end loop;
 
-  update public.bot_identities
+  -- Alias-qualified: the OUT params (username, human_id) otherwise make the
+  -- bare column reference ambiguous (SQLSTATE 42702).
+  update public.bot_identities as b
     set username = clean
-    where user_id = auth.uid() and username is null;
+    where b.user_id = auth.uid() and b.username is null;
   if not found then raise exception 'username already set'; end if;
 
   return query select b.username, b.human_id
