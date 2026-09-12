@@ -135,20 +135,25 @@ export async function POST(req: Request) {
   };
   let charge: { billed: boolean; gross: number; cut: number } = { billed: false, gross: 0, cut: 0 };
 
-  // Anonymous callers were throttled ONLY by BotID: a passed check meant
-  // unlimited builds. Per-IP ceiling keeps the GUI usable for flagged humans
-  // (via sign-in bypass above) without opening a free-build floodgate.
+  // Single session probe, reused for the throttle AND metering below:
+  // revalidating twice would double latency and open a TOCTOU window
+  // between the anon throttle and the spend guard.
+  let authedUser: { id: string; email?: string | null } | null = null;
   if (!hasServerSupabase()) {
     // No persistence configured: local build below, nothing to throttle.
   } else {
     try {
       const probe = await createClient();
-      const { data: probeData } = await probe.auth.getUser();
-      if (!probeData.user) {
+      const { data: probeData, error: probeError } = await probe.auth.getUser();
+      if (probeError) console.error("[newgameplus/build auth]", String(probeError.message ?? probeError).slice(0, 200));
+      if (probeData.user) {
+        authedUser = probeData.user;
+      } else {
         const rl = rateLimit(`newgameplus:build:anon:${clientIp(req)}`, 10, 60_000);
         if (!rl.allowed) return fail("Rate limited. Sign in for a higher build allowance.", 429);
       }
-    } catch {
+    } catch (error) {
+      console.error("[newgameplus/build auth]", String((error as Error)?.message ?? error).slice(0, 200));
       const rl = rateLimit(`newgameplus:build:anon:${clientIp(req)}`, 10, 60_000);
       if (!rl.allowed) return fail("Rate limited. Sign in for a higher build allowance.", 429);
     }
@@ -157,10 +162,31 @@ export async function POST(req: Request) {
   if (hasServerSupabase()) {
     try {
       const supabase = await createClient();
-      const { data } = await supabase.auth.getUser();
+      const data = authedUser ? { user: authedUser } : { user: null };
       if (data.user) {
         const rl = rateLimit(`newgameplus:build:${data.user.id}`, 10, 60_000);
         if (!rl.allowed) return fail("Rate limited.", 429);
+
+        // Draft size guard: code_submissions.source caps at 256KB. Fail
+        // honest (413) instead of tripping the CHECK as a mystery save error.
+        if (Buffer.byteLength(game.source, "utf8") > 262144) {
+          return fail("This build is too large to save as a draft (256KB cap). Download the .html to keep it.", 413);
+        }
+
+        // Self-healing FK safeguard (mirrors ensure_bot_identity): accounts
+        // whose profiles row predates provisioning would otherwise FK-fail
+        // every draft save. Best-effort; the insert below stays authoritative.
+        try {
+          const svc = serviceClient();
+          const { data: prof } = await svc.from("profiles").select("id").eq("id", data.user.id).maybeSingle();
+          if (!prof) {
+            const email = (data.user.email ?? null) as string | null;
+            const fallback = (email?.split("@")[0] ?? "player").replace(/[^a-zA-Z0-9 _-]/g, "").trim().slice(0, 40) || "player";
+            await svc.from("profiles").insert({ id: data.user.id, email, display_name: fallback });
+          }
+        } catch {
+          /* provisioning is best-effort; the draft insert reports the truth */
+        }
 
         const { data: submission, error: subError } = await supabase
           .from("code_submissions")
@@ -176,13 +202,20 @@ export async function POST(req: Request) {
         // failed draft save must never 500 the whole build. The game below
         // is complete and downloadable; only the saved copy is missing.
         if (subError) {
-          console.error("[newgameplus/build draft]", subError.code ?? subError.message);
+          const se = subError as { code?: unknown; message?: unknown; details?: unknown; hint?: unknown };
+          const code = String(se.code ?? "");
+          console.error("[newgameplus/build draft]", {
+            code: code.slice(0, 16),
+            message: String(se.message ?? subError).slice(0, 300),
+            details: String(se.details ?? "").slice(0, 300),
+            hint: String(se.hint ?? "").slice(0, 200),
+          });
           draft = {
             scope: "local",
             submission_id: null,
             project_id: null,
             draft_path: draftPath,
-            note: "Built below, but the draft could not be saved (download the .html to keep it).",
+            note: `Built below, but the draft could not be saved (download the .html to keep it).${code ? ` [${code}]` : ""}`,
           };
         } else {
           draft = {
@@ -276,11 +309,13 @@ export async function POST(req: Request) {
               if (projectId) {
                 // Push the playable file plus the full vault bundle so the
                 // org Draft folder mirrors newgameplus/<slug>/<instance>/.
-                // Bundle paths are newgameplus/<slug>/<instance>/… (same instanceId
-                // passed to buildVaultBundle above), so slice(3) strips the
-                // bundle root and re-roots the html/css/js/content tree under
-                // Draft/<slug>/<instanceId>/ with no doubled segment.
-                const vaultPaths = [draftPath, ...vault.files.map((f) => `${DRAFT_FOLDER}/${game.slug}/${instanceId}/${f.path.split("/").slice(3).join("/")}`)];
+                // Re-root by stripping the bundle folder prefix (falls back
+                // to the legacy slice only if the layout ever drifts).
+                const bundlePrefix = `${vault.folder}/`;
+                const relPaths = vault.files.map((f) =>
+                  f.path.startsWith(bundlePrefix) ? f.path.slice(bundlePrefix.length) : f.path.split("/").slice(3).join("/"),
+                );
+                const vaultPaths = [draftPath, ...relPaths.map((rel) => `${DRAFT_FOLDER}/${game.slug}/${instanceId}/${rel}`)];
                 const vaultContents = [game.source, ...vault.files.map((f) => f.content)];
                 let pushError: { message?: string } | null = null;
                 for (let i = 0; i < vaultPaths.length; i++) {

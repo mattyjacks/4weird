@@ -57,6 +57,7 @@ export function NewGamePlusBuilder() {
   const [budget, setBudget] = useState(BUDGET_DEFAULT);
   const [orgs, setOrgs] = useState<Org[]>([]);
   const [orgId, setOrgId] = useState("");
+  const [signedIn, setSignedIn] = useState<"unknown" | "in" | "out">("unknown");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [liveLog, setLiveLog] = useState<string[]>([]);
@@ -73,8 +74,11 @@ export function NewGamePlusBuilder() {
     try {
       const body = await api<{ orgs: Org[] }>("/api/orgs");
       setOrgs(body.orgs ?? []);
-    } catch {
+      setSignedIn("in");
+    } catch (e) {
       setOrgs([]);
+      // 401 = signed out; anything else = signed in but list failed.
+      setSignedIn(e instanceof Error && (e as { status?: number }).status === 401 ? "out" : "in");
     }
   }, []);
 
@@ -138,6 +142,7 @@ export function NewGamePlusBuilder() {
       for (const s of body.test.steps) pushLive(`🕹️ VCW ${s}`);
       setStageKey("done");
       pushLive(`✅ Done in ${fmtClock(Date.now() - startedAt.current)} - “${body.game.title}” (${body.game.bytes.toLocaleString()} bytes). ${body.draft.note}`);
+      setElapsedMs(Date.now() - startedAt.current);
       setResult(body);
       setStatus(
         body.test.verdict === "pass"
@@ -158,6 +163,7 @@ export function NewGamePlusBuilder() {
       setStatus(msg);
     } finally {
       setBusy(false);
+      setElapsedMs(Date.now() - startedAt.current);
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
@@ -257,7 +263,11 @@ export function NewGamePlusBuilder() {
         </label>
         {!orgs.length && (
           <p className="mt-1 text-xs text-slate-500">
-            No orgs yet - <a className="text-cyan-300 underline" href="/squads">create one on /squads</a>, or launch now and save personally.
+            {signedIn === "out" ? (
+              <><a className="text-cyan-300 underline" href="/auth/login">Sign in</a> to save drafts + meter coins, or launch now for a free local build.</>
+            ) : (
+              <>No orgs yet - <a className="text-cyan-300 underline" href="/squads">create one on /squads</a>, or launch now and save personally.</>
+            )}
           </p>
         )}
 
@@ -304,7 +314,11 @@ export function NewGamePlusBuilder() {
                 💰 {result.plan.spend} coins ({result.plan.provider} provider + {result.plan.cut} cut - {result.plan.note}) · est. {result.plan.estimate} for q{result.plan.quality} · {result.plan.lane} lane ({result.plan.target})
               </p>
               <p className="mt-1 text-xs text-slate-400">
-                🧾 {result.charge?.billed ? `Billed ${result.charge.gross} coins (incl. ${result.charge.cut} cut) - see coin history + /my/usage.` : "Free local build (sign in to save drafts + meter coins)."}
+                🧾 {result.charge?.billed
+                  ? `Billed ${result.charge.gross} coins (incl. ${result.charge.cut} cut) - see coin history + /my/usage.`
+                  : signedIn === "out"
+                    ? "Free local build (sign in to save drafts + meter coins)."
+                    : "Not billed - the draft save failed, so no coins moved. Download the .html, then relaunch to retry the save."}
               </p>
               <CompactDetails summary="How to read this result">
                 <p className="text-xs text-slate-400">Verdict pass means the game survived automated play. Gross price — 25% platform cut included, never added on top; the draft path is where your game saved.</p>

@@ -151,7 +151,7 @@ export function planFalForBuild(prompt: string, budget: number, quality: number)
     note:
       selected.length === 0
         ? "Fast lane, pure local build; no fal spend. Add a voice/art keyword (or raise quality) to queue media."
-        : `${lane === "fast" ? "Fast lane" : "Deluxe lane"} fal shortlist (${totalCoins} coins gross, 25% cut included): queued via /api/fal/generate source vcw when FAL_KEY is live, else the game ships locally and the prompts stay one click away.`,
+        : `${lane === "fast" ? "Fast lane" : "Deluxe lane"} fal shortlist (${totalCoins} coins gross, 25% cut included): shortlisted below — queue via /api/fal/generate source vcw when FAL_KEY is live, else the game ships locally and the prompts stay one click away.`,
   };
 }
 
