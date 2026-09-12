@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Marketplace } from "@/components/agents/marketplace";
 import { MyCompute } from "@/components/agents/my-compute";
+import { NanoclawDeploy } from "@/components/agents/nanoclaw-deploy";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/agents" },
@@ -25,7 +26,33 @@ export default function AgentsPage() {
           Rent an OpenClaw / NanoClaw / VibeCodeWorker agent — or a Xonotic
           game server where VibeCodeWorker plays for you or you play yourself.
           Pick a listing below to rent it, or list your own compute below to
-          earn coins from other players.
+          earn coins from other players. <strong>NanoClaw is the recommended default</strong>:
+          serverful (always-on pod) or serverless (scale-to-zero) through this same page,
+          chatting on the website or Telegram with one bot key.
+        </p>
+        <p className="mt-2 text-sm text-slate-400">
+          Bot key first: claim a username + issue a <code>bot4weird_…</code> key at{" "}
+          <Link href="/bot/setup" className="text-cyan-300 hover:underline">
+            /bot/setup
+          </Link>{" "}
+          (shown once, never repeated), try it in the{" "}
+          <Link href="/bot/bclans" className="text-cyan-300 hover:underline">
+            /bot/bclans
+          </Link>{" "}
+          console, then give it to your rented agent as an env var — never paste it into posts or chat.
+          Skill your agent reads itself:{" "}
+          <Link href="/bot/skill.md" className="text-cyan-300 hover:underline">
+            /bot/skill.md
+          </Link>{" "}
+          · Guides:{" "}
+          <Link href="/docs/bots" className="text-cyan-300 hover:underline">
+            /docs/bots
+          </Link>{" "}
+          +{" "}
+          <Link href="/docs/agents-compute" className="text-cyan-300 hover:underline">
+            /docs/agents-compute
+          </Link>
+          .
         </p>
         <p className="mt-2 text-sm text-slate-400">
           Every price is a gross USD-per-hour <strong>maximum</strong> (25%
@@ -50,7 +77,25 @@ export default function AgentsPage() {
             Rent a virtual desktop →
           </Link>{" "}
           CPU Ubuntu box or GPU Kasm graphical desktop, streamed in your browser per second.
+          Prefer chat without a pod?{" "}
+          <Link href="/swarm" className="text-cyan-300 hover:underline">
+            /swarm
+          </Link>{" "}
+          is serverless agent chat ·{" "}
+          <Link href="/runpods" className="text-cyan-300 hover:underline">
+            /runpods
+          </Link>{" "}
+          manages every pod ·{" "}
+          <Link href="/my/usage" className="text-cyan-300 hover:underline">
+            /my/usage
+          </Link>{" "}
+          shows spend ·{" "}
+          <Link href="/squads" className="text-cyan-300 hover:underline">
+            /squads
+          </Link>{" "}
+          for team rooms your bot can join ([BOT]).
         </p>
+        <NanoclawDeploy />
         <nav className="mt-8 flex gap-2" aria-label="Agent marketplace tabs">
           <a
             href="#browse"

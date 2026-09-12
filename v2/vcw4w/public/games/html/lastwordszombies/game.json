@@ -1,7 +1,7 @@
 {
     "title": "Last Words Zombies",
     "slug": "lastwordszombies",
-    "description": "A high-intensity 3D cyberpunk typing survival game. Decrypt approaching rogue cyber-units before they breach your mainframe terminal.",
+    "description": "A high-intensity 3D cyberpunk typing survival game. Decrypt runners, brutes, phantoms and bosses before they breach your mainframe — chain combos, spend powerups, chase WPM glory.",
     "genre": "Action",
     "tags": ["HTML5", "Action", "Cyberpunk", "Typing", "Survival"],
     "maker": {
@@ -31,7 +31,9 @@
     "controls": {
         "keyboard": {
             "A-Z Keys": "Type matching characters to lock-on and decrypt rogue zombies",
+            "1 / 2 / 3": "Shockwave bomb / Cryo freeze / Shield restore",
             "Escape": "Toggle Pause System",
+            "Shift": "Speed up zombies (risk/reward)",
             "I Key": "Access Black Market Store (from Menu)"
         },
         "touch": {
@@ -39,7 +41,7 @@
         },
         "mouse": true
     },
-    "instructions": "Rogue zombie units are breaching the containment grid! Type the first letter of an approaching unit's code to lock-on, then complete the full sequence to trigger payload overload. Successful decrypts release energy shockwaves that push back and stun adjacent units. Protect your terminal shield integrity at all costs!",
+    "instructions": "Rogue zombie units are breaching the containment grid! Type the first letter of an approaching unit's code to lock-on, then complete the full sequence to trigger payload overload. Runners are fast, brutes hit hard, ghosts weave, and a BOSS hunts you every 5th wave. Kills release shockwaves that stun nearby units. Spend powerups (1/2/3) when overwhelmed. Protect your shield integrity!",
     "technical": {
         "canvasSize": {"width": 800, "height": 600},
         "targetFPS": 60,
@@ -50,7 +52,7 @@
         "local": ["game.js", "game.css"]
     },
     "meta": {
-        "version": "2.0.0",
+        "version": "3.1.0",
         "created": "2026-06-28",
         "license": "Private - All Rights Reserved"
     }

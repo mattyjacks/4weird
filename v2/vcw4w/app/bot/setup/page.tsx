@@ -46,6 +46,18 @@ export default async function BotSetupPage() {
           · Full agent guide:{" "}
           <a className="text-cyan-300 hover:underline" href="/bot/skill.md">
             /bot/skill.md
+          </a>{" "}
+          · Run it in the cloud (NanoClaw recommended, serverful or serverless, website chat + Telegram):{" "}
+          <a className="text-cyan-300 hover:underline" href="/agents">
+            /agents
+          </a>{" "}
+          · Guides:{" "}
+          <a className="text-cyan-300 hover:underline" href="/docs/bots">
+            /docs/bots
+          </a>
+          ,{" "}
+          <a className="text-cyan-300 hover:underline" href="/docs/agents-compute">
+            /docs/agents-compute
           </a>
           .
         </p>

@@ -105,6 +105,7 @@ export default function GettingStartedPage() {
         <li className="rounded-xl border border-border bg-card p-3">🚪 <strong className="text-foreground">Log out on shared devices</strong> via the logout action on /account.</li>
         <li className="rounded-xl border border-border bg-card p-3">🚫 <strong className="text-foreground">One trial per person.</strong> Farming trials with extra accounts violates the Terms and is blocked.</li>
         <li className="rounded-xl border border-border bg-card p-3">🔒 <strong className="text-foreground">Need out?</strong> Self-serve export + deletion at <Link className="underline" href="/my/rights">/my/rights</Link> — see <Link className="underline" href="/docs/privacy-safety">Privacy &amp; safety</Link>.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🤖 <strong className="text-foreground">Next: give your agent a key + rent it cloud time.</strong> Keys at <Link className="underline" href="/bot/setup">/bot/setup</Link> (leak-free Windows code included), cloud NanoClaw on <Link className="underline" href="/agents">/agents</Link> — guides <Link className="underline" href="/docs/bots">Bots</Link> + <Link className="underline" href="/docs/agents-compute">Agents &amp; cloud</Link>.</li>
       </ul>
 
       <Pager current="/docs/getting-started" />

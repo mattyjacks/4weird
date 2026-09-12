@@ -47,6 +47,18 @@ class GameApp {
     this.levelMeshes = [];
     this.isSpeedUpActive = false;
     this.gameTimeScale = 1;
+
+    // --- AWESOME: juice + flow state ---
+    this.killStreak = 0;
+    this.killStreakTimer = 0;
+    this.bestStreakThisRun = 0;
+    this.bossSpawnedThisWave = false;
+    this.bossActive = null;
+    this.damageFlash = 0;
+    this.gameOverSlowMo = 0;
+    this.lowHpAlarmTimer = 0;
+    this.muzzleFlash = 0;
+    this.announceTimer = null;
     
     this.lastTime = 0;
     this.spawnTimer = 0;
@@ -729,12 +741,12 @@ class GameApp {
     if (!char) return;
     const lowerChar = char.toLowerCase();
     const keyMesh = this.qwertyKeyMeshes[lowerChar];
-    
+
     if (keyMesh) {
       if (this.keyboardGroup) {
         this.keyboardGroup.scale.set(1.05, 1.05, 1.05);
       }
-      
+
       const origIntensity = keyMesh.material.emissiveIntensity;
       keyMesh.material.emissiveIntensity = 2.5;
       keyMesh.position.y = 0.005;
@@ -742,11 +754,217 @@ class GameApp {
         keyMesh.material.emissiveIntensity = origIntensity;
         keyMesh.position.y = 0.009;
       }, 75);
-      
+
       this.keyboardGroup.updateMatrix();
       this.targetPokeCamPos.copy(keyMesh.position).applyMatrix4(this.keyboardGroup.matrix);
       this.pokeTimer = this.pokeDuration;
     }
+    // Every keystroke fires a tiny muzzle flash light pulse
+    this.muzzleFlash = Math.min(1, this.muzzleFlash + 0.35);
+  }
+
+  isMenuHomeVisible() {
+    const el = document.getElementById('TEMPLATE-4weird-start-screen');
+    return el && !el.classList.contains('hidden');
+  }
+
+  // World position of the player's "gun" for laser tracers
+  getMuzzleWorldPos() {
+    const v = new THREE.Vector3();
+    if (this.keyboardGroup) {
+      this.keyboardGroup.getWorldPosition(v);
+    } else {
+      this.camera.getWorldPosition(v);
+    }
+    return v;
+  }
+
+  // Center-screen toast announcements (killstreaks, powerups, boss warnings)
+  announce(text, color, sub) {
+    const banner = document.getElementById('kill-announce');
+    if (!banner) return;
+    banner.innerText = text;
+    banner.style.color = color || '#fff';
+    banner.style.textShadow = `0 0 18px ${color || '#00f2fe'}`;
+    banner.classList.remove('show');
+    void banner.offsetWidth;
+    banner.classList.add('show');
+    if (this.announceTimer) clearTimeout(this.announceTimer);
+    this.announceTimer = setTimeout(() => banner.classList.remove('show'), 1400);
+    if (sub) {
+      const subEl = document.getElementById('kill-announce-sub');
+      if (subEl) {
+        subEl.innerText = sub;
+        subEl.classList.remove('show');
+        void subEl.offsetWidth;
+        subEl.classList.add('show');
+        setTimeout(() => subEl.classList.remove('show'), 1400);
+      }
+    }
+  }
+
+  showWaveBanner(wave, isBoss) {
+    const banner = document.getElementById('wave-banner');
+    if (!banner) return;
+    const title = banner.querySelector('.wave-banner-title');
+    const sub = banner.querySelector('.wave-banner-sub');
+    if (title) title.innerText = isBoss ? `⚠ BOSS WAVE ${wave} ⚠` : `WAVE ${wave}`;
+    if (sub) sub.innerText = isBoss ? 'A massive signature approaches. Hold the line!' : this.waveTagline(wave);
+    banner.classList.remove('show', 'boss');
+    void banner.offsetWidth;
+    if (isBoss) banner.classList.add('boss');
+    banner.classList.add('show');
+    setTimeout(() => banner.classList.remove('show'), 2200);
+  }
+
+  waveTagline(wave) {
+    if (wave <= 1) return 'Decrypt the words. Hold the grid.';
+    if (wave === 2) return 'Runners inbound — type fast.';
+    if (wave === 3) return 'Phantoms phase through the dark.';
+    if (wave === 4) return 'Brutes incoming. Big scores.';
+    return 'Threat level rising. No mercy.';
+  }
+
+  onCorrectKey(target, streak) {
+    // Crosshair pulse on every hit
+    const ch = document.getElementById('crosshair');
+    if (ch) {
+      ch.classList.remove('pulse');
+      void ch.offsetWidth;
+      ch.classList.add('pulse');
+    }
+    // Streak callouts
+    if (streak === 10) { this.announce('RAMPAGE x10', '#00f2fe'); this.audio.playSFX('streak'); }
+    else if (streak === 20) { this.announce('FRENZY x20', '#fcf003'); this.audio.playSFX('streak'); }
+    else if (streak === 35) { this.announce('UNSTOPPABLE x35', '#ff0077'); this.audio.playSFX('streak'); }
+    else if (streak === 50) { this.announce('LEGENDARY x50', '#ffd700'); this.audio.playSFX('streak'); }
+    this.killStreakTimer = 4.0;
+  }
+
+  onTypingError() {
+    // Miss = combo penalty + red edge flash (stakes without cruelty)
+    this.state.combo = Math.max(1.0, parseFloat((this.state.combo - 0.5).toFixed(1)));
+    this.state.comboTimer = Math.min(this.state.comboTimer, 1.0);
+    this.state.updateComboHUD();
+    this.damageFlash = Math.min(0.6, this.damageFlash + 0.25);
+    this.triggerCameraShake(0.12);
+  }
+
+  onZombieKilled(zombie, zombies) {
+    this.killStreak++;
+    this.bestStreakThisRun = Math.max(this.bestStreakThisRun, this.killStreak);
+    this.killStreakTimer = 4.0;
+    this.muzzleFlash = 1.0;
+    this.audio.playSFX('kill');
+
+    // Streak announcements by kills without taking damage
+    if (this.killStreak === 5) { this.announce('KILLING SPREE', '#00ff66'); this.audio.playSFX('streak'); }
+    else if (this.killStreak === 10) { this.announce('DOMINATING', '#00f2fe'); this.audio.playSFX('streak'); }
+    else if (this.killStreak === 15) { this.announce('MASSACRE', '#fcf003'); this.audio.playSFX('streak'); }
+    else if (this.killStreak === 25) { this.announce('ZOMBIE APOCALYPSE', '#ff0077'); this.audio.playSFX('streak'); }
+
+    if (zombie.ztype === 'boss') {
+      this.bossActive = null;
+      this.triggerCameraShake(1.2);
+      this.announce('BOSS DECRYPTED', '#ffd700', '+1000 PTS · +10 CREDITS');
+      this.audio.playSFX('waveclear');
+      // Boss drops a bonus powerup
+      const keys = ['bomb', 'freeze', 'shield'];
+      const k = keys[Math.floor(Math.random() * keys.length)];
+      this.state.powerups[k] = Math.min(3, (this.state.powerups[k] || 0) + 1);
+      this.state.updatePowerupHUD();
+      this.hideBossBar();
+    } else if (zombie.ztype === 'brute') {
+      this.triggerCameraShake(0.5);
+    }
+
+    this.updateWaveProgress();
+  }
+
+  updateWaveProgress() {
+    const fill = document.getElementById('wave-progress-fill');
+    if (!fill) return;
+    const total = Math.max(1, this.state.zombiesInWave);
+    const done = Math.min(total, this.state.zombiesKilled);
+    fill.style.width = `${(done / total) * 100}%`;
+  }
+
+  showBossBar(word) {
+    const bar = document.getElementById('boss-bar');
+    if (!bar) return;
+    bar.classList.remove('hidden');
+    const name = document.getElementById('boss-name');
+    if (name && word) name.innerText = `♛ ${word.toUpperCase()} ♛`;
+    this.updateBossBar();
+  }
+
+  updateBossBar() {
+    const bar = document.getElementById('boss-bar');
+    if (!bar || !this.bossActive || this.bossActive.isDead) return;
+    const fill = document.getElementById('boss-hp-fill');
+    if (!fill) return;
+    const total = this.bossActive.word.length;
+    const left = total - this.bossActive.typedLength;
+    fill.style.width = `${(left / total) * 100}%`;
+  }
+
+  hideBossBar() {
+    const bar = document.getElementById('boss-bar');
+    if (bar) bar.classList.add('hidden');
+  }
+
+  // --- POWERUPS (keys 1/2/3 + HUD buttons) ---
+  useBomb() {
+    if (!this.state.usePowerup('bomb')) return;
+    this.audio.playSFX('bomb');
+    this.triggerCameraShake(1.0);
+    const center = new THREE.Vector3(0, 0.5, -10);
+    this.particles.spawnExplosion(center, 'inferno');
+    this.particles.spawnCelebration(center);
+    // Wipe all normal zombies, chunk bosses hard (typed progress +4)
+    let kills = 0;
+    this.zombies.forEach(z => {
+      if (z.isDead) return;
+      if (z.ztype === 'boss') {
+        z.setTypedLength(Math.min(z.word.length, z.typedLength + 4));
+        if (z.typedLength >= z.word.length) {
+          this.typing.triggerExplosion(z, this.zombies);
+          kills++;
+        } else {
+          z.pingHit();
+        }
+      } else {
+        this.particles.spawnExplosion(z.group.position.clone(), this.state.equippedBlood);
+        this.state.addScore(z.scoreValue || 100);
+        this.state.addCoins(z.coinValue != null ? z.coinValue : 1);
+        this.state.registerKill(z);
+        this.state.waveWords.add(z.word.toLowerCase());
+        z.isDead = true;
+        kills++;
+      }
+    });
+    if (this.typing.currentTarget && this.typing.currentTarget.isDead) this.typing.reset();
+    this.announce(`SHOCKWAVE ×${kills}`, '#ff5500');
+    this.state.zombiesKilled += 0; // kills counted on next update sweep
+    this.updateWaveProgress();
+  }
+
+  useFreeze() {
+    if (!this.state.usePowerup('freeze')) return;
+    this.audio.playSFX('freeze');
+    this.state.freezeUntil = performance.now() + 5000;
+    this.announce('CRYO FREEZE — 5s', '#00f2fe');
+    const center = new THREE.Vector3(0, 0.5, -12);
+    this.particles.spawnPortal(center, 0x00f2fe);
+  }
+
+  useShield() {
+    if (!this.state.usePowerup('shield')) return;
+    this.audio.playSFX('shield');
+    this.state.health = Math.min(100, this.state.health + 40);
+    this.updateHealthBar();
+    this.particles.spawnFloatingText(new THREE.Vector3(0, 1, 0), '+40 SHIELD', '#00ff66', true);
+    this.announce('SHIELD RESTORED', '#00ff66');
   }
 
   isTouchDevice() {
@@ -863,24 +1081,53 @@ class GameApp {
         return;
       }
 
+      // Keystrokes from the hidden mobile input are handled by its own
+      // 'input' listener — letting them bubble here would double-type.
+      if (e.target && e.target.id === 'mobile-game-input') return;
+
+      // Never hijack keys while a settings slider is being adjusted
+      if (e.target && e.target.type === 'range' && e.key !== 'Escape') return;
+
       if (this.state.currentState === GameState.MENU) {
-        if (e.key === 'Enter') {
-          this.startGame();
+        if (e.key === 'Escape') {
+          // Close store/settings back to the main menu
+          if (!document.getElementById('custom-store-screen').classList.contains('hidden')) this.backToMenu();
+          else if (!document.getElementById('custom-settings-screen').classList.contains('hidden')) this.closeSettings();
+        } else if (e.key === 'Enter') {
+          if (this.isMenuHomeVisible()) this.startGame();
         } else if (e.key.toLowerCase() === 'i') {
-          this.openStore();
+          if (this.isMenuHomeVisible()) this.openStore();
         }
       } else if (this.state.currentState === GameState.PLAYING) {
         if (e.key === 'Escape') {
           this.togglePause();
+        } else if (e.key === 'Backspace') {
+          e.preventDefault();
+          this.typing.dropTarget();
         } else if (e.key === 'Shift' || e.key === ' ') {
           e.preventDefault();
           this.setSpeedUp(true);
-        } else {
+        } else if (e.key === '1') {
+          this.useBomb();
+        } else if (e.key === '2') {
+          this.useFreeze();
+        } else if (e.key === '3') {
+          this.useShield();
+        } else if (!e.repeat) {
+          // Held-key auto-repeat must not type for the player
           this.typing.handleInput(e.key, this.zombies);
         }
       } else if (this.state.currentState === GameState.PAUSED) {
-        if (e.key === 'Escape') {
+        if (e.key === 'Escape' || e.key === 'Enter') {
           this.togglePause();
+        }
+      } else if (this.state.currentState === GameState.GAME_OVER) {
+        if (e.key === 'Enter') {
+          this.startGame();
+        }
+      } else if (this.state.currentState === GameState.GLOSSARY) {
+        if (e.key === 'Enter') {
+          document.getElementById('btn-next-wave').click();
         }
       }
     });
@@ -913,6 +1160,7 @@ class GameApp {
         } else {
           this.focusMobileInput();
         }
+        if (mobileBtn.blur) mobileBtn.blur();
       });
     }
 
@@ -981,7 +1229,9 @@ class GameApp {
     document.getElementById('btn-settings-back').addEventListener('click', () => this.closeSettings());
     document.getElementById('TEMPLATE-4weird-play-again-btn').addEventListener('click', () => this.startGame());
     document.getElementById('TEMPLATE-4weird-resume-btn').addEventListener('click', () => this.togglePause());
+    document.getElementById('TEMPLATE-4weird-pause-restart-btn').addEventListener('click', () => this.startGame());
     document.getElementById('TEMPLATE-4weird-restart-btn').addEventListener('click', () => this.quitToMenu());
+    document.getElementById('TEMPLATE-4weird-gameover-menu-btn').addEventListener('click', () => this.quitToMenu());
     
     // View wave definitions from game over screen
     document.getElementById('btn-gameover-definitions').addEventListener('click', () => {
@@ -1006,9 +1256,48 @@ class GameApp {
       this.calculateWaveBudget();
       this.triggerCameraShake(0.2);
       this.state.waveWords.clear();
+      this.typing.reset();
       this.state.setGameState(GameState.PLAYING);
+      this.audio.setIntensity(this.state.wave);
+      this.showWaveBanner(this.state.wave, this.isBossWave(this.state.wave));
       this.lockFrameHeight();
       this.focusMobileInput();
+    });
+
+    // Powerup HUD buttons
+    ['bomb', 'freeze', 'shield'].forEach(kind => {
+      const btn = document.getElementById('powerup-btn-' + kind);
+      if (btn) {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (kind === 'bomb') this.useBomb();
+          if (kind === 'freeze') this.useFreeze();
+          if (kind === 'shield') this.useShield();
+          // Keep Space for speed-boost: never leave focus parked on the button
+          if (btn.blur) btn.blur();
+          this.focusMobileInput();
+        });
+      }
+    });
+
+    // Touch devices get a SHIFT-free speed label
+    const speedLabel = document.getElementById('game-speed-label');
+    if (speedLabel) speedLabel.innerText = this.isTouchDevice() ? 'SPEED ×3' : 'SPEED UP [SHIFT]';
+
+    // Auto-pause when tab hidden — no cheap deaths while alt-tabbed
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && this.state.currentState === GameState.PLAYING) {
+        this.togglePause();
+      } else if (!document.hidden) {
+        this.audio.resume();
+      }
+    });
+
+    // Same guard for Alt-Tab / window blur on desktop
+    window.addEventListener('blur', () => {
+      if (this.state.currentState === GameState.PLAYING) {
+        this.togglePause();
+      }
     });
 
     // Mute button handler
@@ -1046,9 +1335,11 @@ class GameApp {
     if (isMuted) {
       btn.classList.add('active');
       btn.innerText = '🔇 Muted';
+      btn.setAttribute('aria-pressed', 'true');
     } else {
       btn.classList.remove('active');
       btn.innerText = '🔊 Sound';
+      btn.setAttribute('aria-pressed', 'false');
     }
   }
 
@@ -1068,23 +1359,60 @@ class GameApp {
     const sfxSlider = document.getElementById('slider-sfx');
     const musicSlider = document.getElementById('slider-music');
     const particleCheckbox = document.getElementById('chk-particles');
-    
-    if (sfxSlider && musicSlider && particleCheckbox) {
-      sfxSlider.value = this.state.sfxVolume;
-      musicSlider.value = this.state.musicVolume;
-      particleCheckbox.checked = this.state.ultraParticles;
-      
+    const shakeCheckbox = document.getElementById('chk-shake');
+    const sfxVal = document.getElementById('slider-sfx-val');
+    const musicVal = document.getElementById('slider-music-val');
+
+    // Refresh control positions (safe to run again after a progress reset)
+    if (sfxSlider) sfxSlider.value = this.state.sfxVolume;
+    if (musicSlider) musicSlider.value = this.state.musicVolume;
+    if (particleCheckbox) particleCheckbox.checked = this.state.ultraParticles;
+    if (shakeCheckbox) shakeCheckbox.checked = this.state.screenShake !== false;
+    if (sfxVal) sfxVal.innerText = `${Math.round(this.state.sfxVolume * 100)}%`;
+    if (musicVal) musicVal.innerText = `${Math.round(this.state.musicVolume * 100)}%`;
+    // Bind listeners exactly once
+    if (this._settingsBound) return;
+    this._settingsBound = true;
+
+    if (sfxSlider) {
       sfxSlider.addEventListener('input', (e) => {
         this.audio.setSFXVolume(parseFloat(e.target.value));
+        if (sfxVal) sfxVal.innerText = `${Math.round(e.target.value * 100)}%`;
       });
-      
+    }
+
+    if (musicSlider) {
       musicSlider.addEventListener('input', (e) => {
         this.audio.setMusicVolume(parseFloat(e.target.value));
+        if (musicVal) musicVal.innerText = `${Math.round(e.target.value * 100)}%`;
       });
-      
+    }
+
+    if (particleCheckbox) {
       particleCheckbox.addEventListener('change', (e) => {
         this.state.ultraParticles = e.target.checked;
         this.state.saveSettings();
+      });
+    }
+
+    if (shakeCheckbox) {
+      shakeCheckbox.checked = this.state.screenShake !== false;
+      shakeCheckbox.addEventListener('change', (e) => {
+        this.state.screenShake = e.target.checked;
+        this.state.saveSettings();
+      });
+    }
+
+    const resetBtn = document.getElementById('btn-reset-progress');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        if (confirm('Reset high scores, credits, unlocks and stats?')) {
+          this.audio.init();
+          this.state.resetProgress();
+          this.storeController.render();
+          this.initSettingsUI();
+          this.audio.playSFX('shield');
+        }
       });
     }
   }
@@ -1107,11 +1435,26 @@ class GameApp {
 
   startGame() {
     this.audio.init();
-    
+
+    // Focus parked on START/REBOOT buttons would make Space re-click them —
+    // hand keyboard control back to the game.
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+
     this.typing.reset();
+    this.typing.startRun();
+    this.state.startRun();
     this.zombies.forEach(z => z.destroy());
     this.zombies = [];
     this.particles.clear();
+    this.killStreak = 0;
+    this.killStreakTimer = 0;
+    this.bestStreakThisRun = 0;
+    this.gameTimeScale = 1;
+    this.bossSpawnedThisWave = false;
+    this.bossActive = null;
+    this.damageFlash = 0;
+    this.gameOverSlowMo = 0;
+    this.hideBossBar();
     
     this.lastTime = 0;
     this.setSpeedUp(false);
@@ -1134,28 +1477,51 @@ class GameApp {
     
     document.getElementById('score-val').innerText = '0';
     document.getElementById('wave-val').innerText = '1';
-    document.getElementById('health-bar-fill').style.width = '100%';
+    this.updateHealthBar();
     this.buildLevelScene();
     this.calculateWaveBudget();
-    
+
     // Spawn immediately so a new run never presents an empty corridor for seconds.
     this.spawnTimer = Number.MAX_SAFE_INTEGER;
     this.state.setGameState(GameState.PLAYING);
+    this.audio.setIntensity(1);
+    this.showWaveBanner(1, false);
+    this.updateWaveProgress();
     this.resizeCanvas();
     this.lockFrameHeight();
     this.focusMobileInput();
   }
 
+  isBossWave(wave) {
+    return wave % 5 === 0;
+  }
+
   calculateWaveBudget() {
-    this.state.zombiesInWave = 10 + this.state.wave * 5;
+    if (this.isBossWave(this.state.wave)) {
+      // Boss wave: 1 boss + escorts scaled by wave
+      this.state.zombiesInWave = 6 + this.state.wave;
+      this.bossSpawnedThisWave = false;
+    } else {
+      this.state.zombiesInWave = 10 + this.state.wave * 5;
+    }
     this.state.zombiesKilled = 0;
     this.state.zombiesActive = 0;
     this.updateZombiesHUD();
+    this.updateWaveProgress();
   }
 
   updateZombiesHUD() {
     const left = this.state.zombiesInWave - this.state.zombiesKilled;
     document.getElementById('zombie-count').innerText = left;
+  }
+
+  // Single choke point for the shield bar: width + green/amber/red state
+  updateHealthBar() {
+    const fill = document.getElementById('health-bar-fill');
+    if (!fill) return;
+    fill.style.width = `${this.state.health}%`;
+    fill.classList.remove('hp-high', 'hp-mid', 'hp-low');
+    fill.classList.add(this.state.health > 60 ? 'hp-high' : this.state.health > 30 ? 'hp-mid' : 'hp-low');
   }
 
   openStore() {
@@ -1185,6 +1551,9 @@ class GameApp {
   quitToMenu() {
     this.blurMobileInput();
     this.unlockFrameHeight();
+    this.setSpeedUp(false);
+    this.hideBossBar();
+    this.typing.reset();
     this.state.setGameState(GameState.MENU);
   }
 
@@ -1203,6 +1572,7 @@ class GameApp {
   }
 
   triggerCameraShake(intensity) {
+    if (!this.state.screenShake) return;
     this.shakeIntensity = Math.min(1.5, this.shakeIntensity + intensity);
   }
 
@@ -1220,7 +1590,15 @@ class GameApp {
   }
 
   update(dt) {
-    const activeDt = (this.isSpeedUpActive ? dt * 3.0 : dt) * this.gameTimeScale;
+    // Cryo freeze: world stops, player keeps typing
+    const frozen = this.state.isFrozen();
+    const activeDt = frozen ? 0 : (this.isSpeedUpActive ? dt * 3.0 : dt) * this.gameTimeScale;
+
+    // Killstreak decay (no kill for 4s = streak over)
+    if (this.killStreakTimer > 0) {
+      this.killStreakTimer -= dt;
+      if (this.killStreakTimer <= 0) this.killStreak = 0;
+    }
 
     // 0. Update door slide animations
     this.spawnDoors.forEach(door => {
@@ -1262,103 +1640,241 @@ class GameApp {
     for (let i = this.zombies.length - 1; i >= 0; i--) {
       const z = this.zombies[i];
       z.update(activeDt);
-      
+
       if (z.worldZ >= 4.8) {
-        this.state.health = Math.max(0, this.state.health - 20);
-        document.getElementById('health-bar-fill').style.width = `${this.state.health}%`;
-        
-        this.triggerCameraShake(0.5);
+        const dmg = z.damage || 20;
+        this.state.health = Math.max(0, this.state.health - dmg);
+        this.updateHealthBar();
+        this.damageFlash = 1.0;
+        this.killStreak = 0;
+
+        this.triggerCameraShake(z.ztype === 'boss' ? 1.2 : 0.5);
         this.audio.playSFX('hurt');
-        
+        if (z.ztype === 'boss') this.hideBossBar();
+
         if (this.typing.currentTarget === z) {
           this.typing.reset();
         }
-        
+
         z.destroy();
         this.zombies.splice(i, 1);
-        
+
         this.state.zombiesKilled++;
         this.updateZombiesHUD();
-        
+        this.updateWaveProgress();
+
         if (this.state.health <= 0) {
-          this.state.setGameState(GameState.GAME_OVER);
-          this.blurMobileInput();
-          this.unlockFrameHeight();
-          this.audio.stopAll();
+          this.handleGameOver();
         }
         continue;
       }
-      
+
       if (z.isDead) {
-        this.triggerCameraShake(0.35);
+        this.triggerCameraShake(z.ztype === 'boss' ? 1.0 : 0.35);
         z.destroy();
         this.zombies.splice(i, 1);
-        
+
         this.state.zombiesKilled++;
         this.updateZombiesHUD();
+        this.updateWaveProgress();
       }
     }
-    
+
+    // Live boss HP bar
+    this.updateBossBar();
+
+    // Low-HP heartbeat alarm + vignette pulse
+    if (this.state.health <= 30 && this.state.health > 0) {
+      this.lowHpAlarmTimer -= dt;
+      if (this.lowHpAlarmTimer <= 0) {
+        this.lowHpAlarmTimer = 1.6;
+        this.audio.playSFX('alarm');
+      }
+    }
+
+    // Damage vignette decay
+    if (this.damageFlash > 0) this.damageFlash = Math.max(0, this.damageFlash - dt * 1.8);
+    this.updateVignette();
+
     if (this.state.zombiesKilled >= this.state.zombiesInWave && this.zombies.length === 0) {
       this.populateGlossary();
       this.state.setGameState(GameState.GLOSSARY);
+      this.hideBossBar();
       this.blurMobileInput();
       this.unlockFrameHeight();
       this.triggerCameraShake(0.2);
+      this.audio.playSFX('waveclear');
+      try {
+        this.particles.spawnCelebration(new THREE.Vector3(0, 1, -12));
+      } catch (e) { /* cosmetic */ }
+      this.fillGlossaryStats();
     }
     
     this.state.updateCombo(activeDt);
     this.particles.update(activeDt);
   }
 
+  handleGameOver() {
+    // Slow-mo death beat: freeze zombies for drama, then cut to game over
+    this.gameOverSlowMo = 1.2;
+    this.gameTimeScale = 0.25;
+    this.triggerCameraShake(1.0);
+    this.audio.playSFX('gameover');
+    this.hideBossBar();
+    const wpm = this.typing.getWPM ? this.typing.getWPM() : 0;
+    const acc = this.typing.getAccuracy ? this.typing.getAccuracy() : 100;
+    const streak = Math.max(this.bestStreakThisRun, this.typing.bestStreak || 0);
+    const newBest = this.state.recordRunEnd(wpm, acc, streak);
+    this.fillGameOverStats(wpm, acc, streak, newBest);
+    setTimeout(() => {
+      this.gameTimeScale = 1;
+      this.state.setGameState(GameState.GAME_OVER);
+      this.blurMobileInput();
+      this.unlockFrameHeight();
+      this.audio.stopAll();
+    }, 900);
+  }
+
+  fillGameOverStats(wpm, acc, streak, newBest) {
+    const set = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.innerText = val;
+    };
+    set('stat-kills', this.state.kills);
+    set('stat-wave', this.state.maxWave || this.state.wave);
+    set('stat-combo', (this.state.bestCombo || 1).toFixed(1) + 'x');
+    set('stat-wpm', wpm);
+    set('stat-acc', acc + '%');
+    set('stat-streak', streak);
+    const badge = document.getElementById('newbest-badge');
+    if (badge) badge.style.display = newBest ? 'inline-block' : 'none';
+  }
+
+  fillGlossaryStats() {
+    const el = document.getElementById('glossary-stats');
+    if (!el) return;
+    const wpm = this.typing.getWPM ? this.typing.getWPM() : 0;
+    const acc = this.typing.getAccuracy ? this.typing.getAccuracy() : 100;
+    el.innerText = `WAVE ${this.state.wave} · ${this.state.kills} KILLS · ${wpm} WPM · ${acc}% ACC · BEST COMBO ${(this.state.bestCombo || 1).toFixed(1)}x`;
+  }
+
+  updateVignette() {
+    const v = document.getElementById('damage-vignette');
+    if (!v) return;
+    const lowHp = this.state.health <= 30 ? (0.35 + 0.15 * Math.sin(performance.now() / 300)) : 0;
+    const hit = Math.min(0.85, this.damageFlash);
+    const frozen = this.state.isFrozen() ? 0.25 : 0;
+    const total = Math.min(0.9, lowHp + hit);
+    v.style.opacity = total.toFixed(2);
+    v.classList.toggle('frozen', frozen > 0);
+  }
+
+  // Pick archetype by wave: early = walkers, then runners/ghosts, then brutes.
+  // Boss waves force one boss first, then escorts.
+  rollArchetype() {
+    const wave = this.state.wave;
+    if (this.isBossWave(wave) && !this.bossSpawnedThisWave) return 'boss';
+    const r = Math.random();
+    if (wave <= 1) return r < 0.85 ? 'walker' : 'runner';
+    if (wave === 2) return r < 0.65 ? 'walker' : r < 0.85 ? 'runner' : 'ghost';
+    if (wave === 3) return r < 0.5 ? 'walker' : r < 0.72 ? 'runner' : r < 0.88 ? 'ghost' : 'brute';
+    if (wave === 4) return r < 0.4 ? 'walker' : r < 0.62 ? 'runner' : r < 0.8 ? 'ghost' : 'brute';
+    return r < 0.34 ? 'walker' : r < 0.56 ? 'runner' : r < 0.74 ? 'ghost' : 'brute';
+  }
+
+  archetypeConfig(type, wave) {
+    const diff = this.state.difficultyMultiplier || 1;
+    const base = (1.8 + wave * 0.22) * diff;
+    switch (type) {
+      case 'runner': return { speed: base * 1.5, score: 125, coins: 1, damage: 15, knockResist: 0, list: 'short' };
+      case 'ghost': return { speed: base * 1.2, score: 150, coins: 2, damage: 20, knockResist: 0.25, list: 'mid' };
+      case 'brute': return { speed: base * 0.68, score: 250, coins: 3, damage: 30, knockResist: 0.7, list: 'long' };
+      case 'boss': return { speed: base * 0.55, score: 1000, coins: 10, damage: 35, knockResist: 0.9, list: 'long' };
+      default: return { speed: base, score: 100, coins: 1, damage: 20, knockResist: 0, list: 'wave' };
+    }
+  }
+
   spawnZombie() {
+    const type = this.rollArchetype();
+    const cfg = this.archetypeConfig(type, this.state.wave);
+
     let wordList = SHORT_WORDS;
-    const rand = Math.random();
-    
-    if (this.state.wave === 1) {
-      wordList = rand < 0.7 ? SHORT_WORDS : MID_WORDS;
-    } else if (this.state.wave === 2) {
-      wordList = rand < 0.4 ? SHORT_WORDS : MID_WORDS;
-    } else if (this.state.wave === 3) {
-      if (rand < 0.15) wordList = SHORT_WORDS;
-      else if (rand < 0.85) wordList = MID_WORDS;
-      else wordList = LONG_WORDS;
-    } else if (this.state.wave === 4) {
-      wordList = rand < 0.5 ? MID_WORDS : LONG_WORDS;
-    } else {
-      wordList = rand < 0.1 ? MID_WORDS : LONG_WORDS;
+    if (cfg.list === 'short') wordList = SHORT_WORDS;
+    else if (cfg.list === 'mid') wordList = MID_WORDS;
+    else if (cfg.list === 'long') wordList = LONG_WORDS;
+    else {
+      const rand = Math.random();
+      if (this.state.wave === 1) {
+        wordList = rand < 0.7 ? SHORT_WORDS : MID_WORDS;
+      } else if (this.state.wave === 2) {
+        wordList = rand < 0.4 ? SHORT_WORDS : MID_WORDS;
+      } else if (this.state.wave === 3) {
+        if (rand < 0.15) wordList = SHORT_WORDS;
+        else if (rand < 0.85) wordList = MID_WORDS;
+        else wordList = LONG_WORDS;
+      } else if (this.state.wave === 4) {
+        wordList = rand < 0.5 ? MID_WORDS : LONG_WORDS;
+      } else {
+        wordList = rand < 0.1 ? MID_WORDS : LONG_WORDS;
+      }
+      // Brutes/bosses always get meaty words regardless of wave
+      if (type === 'brute' || type === 'boss') wordList = LONG_WORDS;
+      if (type === 'runner') wordList = Math.random() < 0.8 ? SHORT_WORDS : MID_WORDS;
     }
     
     const activeStartChars = this.zombies.map(z => z.word[0].toLowerCase());
     let candidates = wordList.filter(w => !activeStartChars.includes(w[0].toLowerCase()));
-    
+
     if (candidates.length === 0) {
       candidates = wordList;
     }
-    
+
+    // First zombie of a run is always a tiny word — a free tutorial kill.
+    if (this.state.wave === 1 && this.state.zombiesKilled === 0 && this.zombies.length === 0 && type !== 'boss') {
+      const easy = SHORT_WORDS.filter(w => w.length <= 4 && !activeStartChars.includes(w[0].toLowerCase()));
+      if (easy.length > 0) candidates = easy;
+    }
+
     const word = candidates[Math.floor(Math.random() * candidates.length)];
-    const speed = (1.8 + this.state.wave * 0.22) * this.state.difficultyMultiplier;
-    
+    const speed = cfg.speed;
+
     const validDoors = this.spawnDoors.filter(d => d.z < -10 && d.z > -80);
     let selectedDoor = null;
     if (validDoors.length > 0) {
       selectedDoor = validDoors[Math.floor(Math.random() * validDoors.length)];
     }
-    
+
     let spawnX = (Math.random() - 0.5) * 4.0;
     // Deep enough for the scene to breathe, close enough to be playable.
-    let spawnZ = -24.0;
-    
+    // Bosses spawn center-stage for maximum menace.
+    let spawnZ = type === 'boss' ? -20.0 : -24.0;
+
     if (selectedDoor) {
       selectedDoor.state = 'opening';
-      selectedDoor.statusLightMat.color.setHex(0x00ffcc);
-      
-      spawnX = selectedDoor.x;
+      selectedDoor.statusLightMat.color.setHex(type === 'boss' ? 0xffd700 : 0x00ffcc);
+
+      spawnX = type === 'boss' ? 0 : selectedDoor.x;
       spawnZ = Math.max(selectedDoor.z, -30.0);
+      // Spawn portal flash at the doorway
+      try {
+        const portalPos = new THREE.Vector3(selectedDoor.x, -0.5, selectedDoor.z + 0.5);
+        this.particles.spawnPortal(portalPos, type === 'boss' ? 0xffd700 : 0x00ffcc);
+      } catch (e) { /* cosmetic only */ }
     }
-    
-    const z = new Zombie(this.scene, word, speed, spawnZ, this.state.equippedFont);
+
+    const z = new Zombie(this.scene, word, speed, spawnZ, this.state.equippedFont, {
+      type, scoreValue: cfg.score, coinValue: cfg.coins, damage: cfg.damage, knockResist: cfg.knockResist
+    });
     z.worldX = spawnX;
+
+    if (type === 'boss') {
+      this.bossSpawnedThisWave = true;
+      this.bossActive = z;
+      this.showBossBar(word);
+      this.audio.playSFX('boss');
+      this.announce('⚠ BOSS INBOUND ⚠', '#ffd700', word.toUpperCase());
+      this.triggerCameraShake(0.8);
+    }
     
     if (selectedDoor) {
       z.spawnPhase = true;
@@ -1371,17 +1887,22 @@ class GameApp {
 
   render(dt) {
     this.flickerTimer += dt;
+    const frozen = this.state.isFrozen();
     this.lights.forEach(l => {
       const noise = Math.sin(this.flickerTimer * 12 + l.zOffset) * Math.cos(this.flickerTimer * 4);
       let intensity = l.baseIntensity;
-      
-      if (noise > 0.75) {
+
+      if (frozen) {
+        // Cryo freeze: dim warm lights, push everything icy blue
+        intensity *= 0.55;
+        l.bulb.material.color.setHex(0x88ddff);
+      } else if (noise > 0.75) {
         intensity *= 0.15;
         l.bulb.material.color.setHex(0x111115);
       } else {
         l.bulb.material.color.setHex(l.light.color.getHex());
       }
-      
+
       l.light.intensity = intensity;
     });
     
@@ -1422,20 +1943,44 @@ class GameApp {
     if (this.shakeIntensity > 0) {
       this.shakeIntensity -= this.shakeDecay * dt;
       if (this.shakeIntensity < 0) this.shakeIntensity = 0;
-      
+
       const dx = (Math.random() - 0.5) * this.shakeIntensity * 0.15;
       const dy = (Math.random() - 0.5) * this.shakeIntensity * 0.15;
-      
+
       this.camera.position.set(dx, 0.2 + dy, 5.0);
     } else {
       this.camera.position.set(0, 0.2, 5.0);
     }
-    
+
+    // Muzzle flash: flashlight flares on every kill/keystroke, decays fast
+    if (this.muzzleFlash > 0) {
+      this.muzzleFlash = Math.max(0, this.muzzleFlash - dt * 6);
+      if (this.flashlight) this.flashlight.intensity = 18.0 + this.muzzleFlash * 22;
+    } else if (this.flashlight) {
+      this.flashlight.intensity = 18.0;
+    }
+
     this.renderer.render(this.scene, this.camera);
   }
 }
 
-// Instantiate game app on load
+// Instantiate game app on load (with a readable error if the 3D engine or WebGL fails)
 window.addEventListener('load', () => {
-  window.game = new GameApp();
+  if (typeof THREE === 'undefined') {
+    const err = document.getElementById('loading-error');
+    if (err) {
+      err.style.display = 'block';
+      err.innerText = 'Could not load the 3D engine (CDN blocked?). Check your connection and refresh the page.';
+    }
+    return;
+  }
+  try {
+    window.game = new GameApp();
+  } catch (err) {
+    const el = document.getElementById('loading-error');
+    if (el) {
+      el.style.display = 'block';
+      el.innerText = 'WebGL unavailable: ' + (err && err.message ? err.message : err);
+    }
+  }
 });

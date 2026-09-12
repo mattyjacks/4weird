@@ -344,6 +344,9 @@ export function SiteHeader() {
   const mobileNavRef = useRef<HTMLElement>(null);
 
   // Track auth state so the header can show Login / Sign Up vs Dashboard.
+  // WalletBadges reports back on 401 (server no longer sees the session)
+  // so a stale/expired client session stops polling instead of spamming
+  // `GET .../balance 401` every 10s.
   useEffect(() => {
     let mounted = true;
     let unsubscribe: (() => void) | null = null;
@@ -354,7 +357,11 @@ export function SiteHeader() {
         const { data } = await supabase.auth.getSession();
         if (mounted) setSignedIn(Boolean(data.session));
         const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-          if (mounted) setSignedIn(Boolean(session));
+          if (!mounted) return;
+          // Any auth event without a session (SIGNED_OUT, refresh failure,
+          // expired token) means logged out: flip header + let WalletBadges
+          // unmount so balance polling stops instead of 401-spamming.
+          setSignedIn(Boolean(session));
         });
         unsubscribe = () => listener.subscription.unsubscribe();
       } catch {
@@ -477,7 +484,7 @@ export function SiteHeader() {
           </nav>
 
           <div className="hidden items-center gap-2 lg:flex">
-            <WalletBadges signedIn={signedIn} />
+            <WalletBadges signedIn={signedIn} onUnauthorized={() => setSignedIn(false)} />
             <Link
               href="/pricing"
               className="rounded-full border border-border px-3 py-1.5 text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground"
@@ -513,7 +520,7 @@ className="rounded-full bg-cyan-600 px-4 py-1.5 text-sm font-black text-white tr
 
           {/* Mobile balances + toggle: badges stay visible even when the sheet is closed */}
           <div className="flex min-w-0 flex-1 items-center justify-end gap-2 lg:hidden">
-            <WalletBadges signedIn={signedIn} />
+            <WalletBadges signedIn={signedIn} onUnauthorized={() => setSignedIn(false)} />
             <button
               type="button"
               className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-bold text-foreground lg:hidden"

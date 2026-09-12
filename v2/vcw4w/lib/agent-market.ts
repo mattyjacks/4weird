@@ -32,7 +32,7 @@ export const RUNTIME_LABELS: Record<Runtime, string> = {
 
 export const RUNTIME_DESCRIPTIONS: Record<Runtime, string> = {
   openclaw: "General-purpose OpenClaw-style agent on your rented server.",
-  nanoclaw: "Lightweight NanoClaw-style agent on your rented server.",
+  nanoclaw: "Recommended: lightweight NanoClaw agent on your rented server. Serverful (always-on pod) or serverless (scale-to-zero) + website chat + Telegram.",
   vibecodeworker: "Evidence-driven VibeCodeWorker QA loop on your rented server.",
   "xonotic-vcw": "Xonotic game server where VibeCodeWorker plays for you.",
   "xonotic-self": "Xonotic game server where you play yourself.",

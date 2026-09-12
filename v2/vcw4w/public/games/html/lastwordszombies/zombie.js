@@ -2,17 +2,28 @@
 // 3. LOW-POLY ZOMBIE MODEL & LOGIC
 // ==========================================
 class Zombie {
-  constructor(scene, word, speed, spawnZ, fontTheme) {
+  constructor(scene, word, speed, spawnZ, fontTheme, options) {
     this.scene = scene;
     this.word = word;
     this.speed = speed;
-    
+
     // Status states
     this.isDead = false;
     this.isTargeted = false;
     this.typedLength = 0;
     this.isStunned = false;
     this.stunDuration = 0;
+
+    // --- AWESOME: zombie archetypes (backwards compatible: default walker) ---
+    const opt = options || {};
+    this.ztype = opt.type || 'walker'; // walker | runner | brute | ghost | boss
+    this.scoreValue = opt.scoreValue || 100;
+    this.coinValue = opt.coinValue != null ? opt.coinValue : 1;
+    this.damage = opt.damage || 20;
+    this.knockResist = opt.knockResist || 0; // 0..0.9 reduces shockwave push
+    this.hitFlash = 0; // keystroke feedback timer
+    this.strafePhase = Math.random() * Math.PI * 2;
+    this.dangerPulse = 0;
     
     // Physics variables
     this.vx = 0;
@@ -39,7 +50,29 @@ class Zombie {
     
     this.baseTorsoColor = this.shirtColor;
     this.baseHeadColor = this.fleshColor;
-    
+
+    // Archetype tuning (visual + gameplay identity)
+    this.archetypeScale = 1.0;
+    this.eyeColor = 0xff174d;
+    this.eyeIntensity = 2.8;
+    if (this.ztype === 'runner') {
+      this.archetypeScale = 0.92;
+      this.eyeColor = 0xff9100;
+      this.eyeIntensity = 3.4;
+    } else if (this.ztype === 'brute') {
+      this.archetypeScale = 1.45;
+      this.eyeColor = 0xbb00ff;
+      this.eyeIntensity = 3.2;
+    } else if (this.ztype === 'ghost') {
+      this.archetypeScale = 1.0;
+      this.eyeColor = 0x00f2fe;
+      this.eyeIntensity = 3.6;
+    } else if (this.ztype === 'boss') {
+      this.archetypeScale = 1.9;
+      this.eyeColor = 0xff0000;
+      this.eyeIntensity = 4.5;
+    }
+
     this.createModel();
     this.createLabel();
   }
@@ -47,6 +80,7 @@ class Zombie {
   createModel() {
     this.group = new THREE.Group();
     this.group.position.set(this.worldX, this.worldY, this.worldZ);
+    this.group.scale.setScalar(this.archetypeScale || 1);
     
     // Layered, low-poly body: readable at distance without a costly character asset.
     const torsoGeo = new THREE.CylinderGeometry(0.31, 0.4, 0.9, 7);
@@ -70,8 +104,8 @@ class Zombie {
     jaw.rotation.x = -0.14;
     this.group.add(jaw);
     
-    // 2b. Two separate glowing red eyes
-    const eyeMat = new THREE.MeshStandardMaterial({ color: 0xff174d, emissive: 0xff002d, emissiveIntensity: 2.8, roughness: 0.25 });
+    // 2b. Two separate glowing eyes (color varies by archetype)
+    const eyeMat = new THREE.MeshStandardMaterial({ color: this.eyeColor, emissive: this.eyeColor, emissiveIntensity: this.eyeIntensity, roughness: 0.25 });
     const eyeGeo = new THREE.SphereGeometry(0.045, 8, 6);
     
     this.eyeL = new THREE.Mesh(eyeGeo, eyeMat);
@@ -157,6 +191,56 @@ class Zombie {
     this.rightLeg.add(rightShoe);
     
     this.group.add(this.rightLeg);
+
+    // --- Archetype flair: spikes / crown / ghost shimmer ---
+    if (this.ztype === 'brute' || this.ztype === 'boss') {
+      const spikeMat = new THREE.MeshStandardMaterial({
+        color: this.ztype === 'boss' ? 0xffd700 : 0x2a2a33,
+        emissive: this.ztype === 'boss' ? 0xff5500 : 0xbb00ff,
+        emissiveIntensity: this.ztype === 'boss' ? 1.2 : 0.7,
+        roughness: 0.4, metalness: 0.6
+      });
+      const spikes = this.ztype === 'boss' ? 5 : 3;
+      for (let s = 0; s < spikes; s++) {
+        const spike = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.3, 5), spikeMat);
+        const ang = (s / spikes) * Math.PI * 2;
+        spike.position.set(Math.cos(ang) * 0.28, 1.02, Math.sin(ang) * 0.28);
+        spike.rotation.z = -Math.cos(ang) * 0.5;
+        spike.rotation.x = Math.sin(ang) * 0.5;
+        this.group.add(spike);
+      }
+      // Boss crown ring
+      if (this.ztype === 'boss') {
+        const crown = new THREE.Mesh(
+          new THREE.TorusGeometry(0.3, 0.045, 8, 12),
+          new THREE.MeshBasicMaterial({ color: 0xffd700 })
+        );
+        crown.position.set(0, 1.58, 0);
+        crown.rotation.x = Math.PI / 2 - 0.15;
+        this.group.add(crown);
+      }
+    }
+    if (this.ztype === 'ghost') {
+      // Phantom shimmer: translucent body + halo ring
+      this.group.traverse(child => {
+        if (child.isMesh && child.material && child.material.transparent !== true) {
+          child.material.transparent = true;
+          child.material.opacity = 0.82;
+        }
+      });
+      const halo = new THREE.Mesh(
+        new THREE.TorusGeometry(0.45, 0.02, 8, 24),
+        new THREE.MeshBasicMaterial({ color: 0x00f2fe, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false })
+      );
+      halo.position.set(0, 0.15, 0);
+      halo.rotation.x = Math.PI / 2;
+      this.group.add(halo);
+      this.halo = halo;
+    }
+    // Runners lean forward aggressively
+    if (this.ztype === 'runner') {
+      this.group.rotation.x = 0.12;
+    }
     
     this.scene.add(this.group);
     this.group.traverse(child => {
@@ -197,8 +281,19 @@ class Zombie {
     const ctx = this.labelCtx;
     const w = this.labelCanvas.width;
     const h = this.labelCanvas.height;
-    
+
     ctx.clearRect(0, 0, w, h);
+
+    // Type icon prefix: instant readability at a glance
+    let prefix = '';
+    let borderColor = 'rgba(0, 242, 254, 0.3)';
+    if (this.ztype === 'runner') { prefix = '» '; borderColor = 'rgba(255,145,0,0.8)'; }
+    if (this.ztype === 'brute') { prefix = '◆ '; borderColor = 'rgba(187,0,255,0.8)'; }
+    if (this.ztype === 'ghost') { prefix = '◊ '; borderColor = 'rgba(0,242,254,0.85)'; }
+    if (this.ztype === 'boss') { prefix = '♛ '; borderColor = 'rgba(255,215,0,0.9)'; }
+    if (this.isTargeted) borderColor = 'rgba(255, 0, 119, 0.9)';
+
+    const displayWord = prefix + this.word;
     
     let fontName = 'Orbitron, sans-serif';
     if (this.fontTheme === 'pixel') fontName = 'Courier New, monospace';
@@ -208,43 +303,69 @@ class Zombie {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
-    const typedText = this.word.substring(0, this.typedLength);
-    const remainingText = this.word.substring(this.typedLength);
-    
-    const typedWidth = ctx.measureText(typedText).width;
-    const remainingWidth = ctx.measureText(remainingText).width;
-    const totalWidth = typedWidth + remainingWidth;
-    
-    let startX = (w - totalWidth) / 2;
-    
+    const typedText = displayWord.substring(0, this.typedLength + (prefix && this.typedLength > 0 ? prefix.length : 0));
+    const remainingText = displayWord.substring(this.typedLength + (prefix && this.typedLength > 0 ? prefix.length : 0));
+    // NOTE: prefix is decorative — typing progress maps to the raw word.
+    // Recompute cleanly: typed chars of the WORD only.
+    const cleanTyped = this.word.substring(0, this.typedLength);
+    const cleanRemaining = this.word.substring(this.typedLength);
+
+    const prefixWidth = prefix ? ctx.measureText(prefix).width : 0;
+    const typedWidth = ctx.measureText(cleanTyped).width;
+    const remainingWidth = ctx.measureText(cleanRemaining).width;
+    const totalWidth = prefixWidth + typedWidth + remainingWidth;
+
+    const startX = (w - totalWidth) / 2;
+
     ctx.fillStyle = 'rgba(5, 5, 12, 0.85)';
-    ctx.strokeStyle = this.isTargeted ? 'rgba(255, 0, 119, 0.7)' : 'rgba(0, 242, 254, 0.3)';
+    ctx.strokeStyle = borderColor;
     ctx.lineWidth = 4;
-    
-    const rectX = (w - totalWidth - 40) / 2;
-    const rectWidth = totalWidth + 40;
-    const rectHeight = 64;
+
+    const rectX = (w - totalWidth - 44) / 2;
+    const rectWidth = totalWidth + 44;
+    const rectHeight = this.ztype === 'boss' ? 76 : 64;
     const rectY = (h - rectHeight) / 2;
-    
+
     ctx.beginPath();
-    ctx.roundRect(rectX, rectY, rectWidth, rectHeight, 12);
+    // roundRect is missing on older canvas — fall back to rect
+    if (ctx.roundRect) ctx.roundRect(rectX, rectY, rectWidth, rectHeight, 12);
+    else ctx.rect(rectX, rectY, rectWidth, rectHeight);
     ctx.fill();
     ctx.stroke();
-    
+
     ctx.textAlign = 'left';
-    
+
+    let cursorX = startX;
+    // Type icon in its own color
+    if (prefix) {
+      ctx.fillStyle = this.ztype === 'boss' ? '#ffd700' : borderColor.replace(/[\d.]+\)$/, '1)');
+      try { ctx.fillStyle = this.ztype === 'boss' ? '#ffd700' : '#ffb300'; } catch (e) { /* noop */ }
+      if (this.ztype === 'ghost') ctx.fillStyle = '#00f2fe';
+      if (this.ztype === 'runner') ctx.fillStyle = '#ff9100';
+      if (this.ztype === 'brute') ctx.fillStyle = '#d580ff';
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = ctx.fillStyle;
+      ctx.fillText(prefix, cursorX, h / 2);
+      cursorX += prefixWidth;
+    }
+
     // Highlight typed characters in neon green
     ctx.fillStyle = '#00ff66';
     ctx.shadowBlur = 8;
     ctx.shadowColor = '#00ff66';
-    ctx.fillText(typedText, startX, h / 2);
-    
+    ctx.fillText(cleanTyped, cursorX, h / 2);
+
     // Remaining in white
     ctx.fillStyle = '#ffffff';
     ctx.shadowBlur = 0;
-    ctx.fillText(remainingText, startX + typedWidth, h / 2);
-    
+    ctx.fillText(cleanRemaining, cursorX + typedWidth, h / 2);
+
     this.labelTexture.needsUpdate = true;
+  }
+
+  // Keystroke feedback: white flash + tiny pop. Called by TypingController.
+  pingHit() {
+    this.hitFlash = 0.12;
   }
 
   update(dt) {
@@ -276,7 +397,9 @@ class Zombie {
     
     const dist = Math.abs(5.0 - this.worldZ);
     const scaleFactor = Math.max(1.0, dist / 10.0);
-    this.labelSprite.scale.set(2.0 * scaleFactor, 0.5 * scaleFactor, 1.0);
+    // Big zombies get bigger labels — readability at distance
+    const typeLabelMul = this.ztype === 'boss' ? 1.35 : this.ztype === 'brute' ? 1.15 : 1.0;
+    this.labelSprite.scale.set(2.0 * scaleFactor * typeLabelMul, 0.5 * scaleFactor * typeLabelMul, 1.0);
     
     this.vx *= Math.pow(0.1, dt);
     this.vz *= Math.pow(0.1, dt);
@@ -287,23 +410,67 @@ class Zombie {
     }
     
     if (!this.isStunned) {
-      const wobble = Math.sin(this.animTime * 8);
-      const bobbing = Math.cos(this.animTime * 16) * 0.05;
-      
+      const speedMul = this.ztype === 'runner' ? 1.7 : this.ztype === 'boss' ? 0.7 : 1.0;
+      const wobble = Math.sin(this.animTime * 8 * speedMul);
+      const bobbing = Math.cos(this.animTime * 16 * speedMul) * 0.05;
+
+      // Ghosts weave side-to-side — harder to ignore, fun to hunt
+      if (this.ztype === 'ghost' && !this.spawnPhase) {
+        this.strafePhase += dt * 2.2;
+        this.worldX += Math.sin(this.strafePhase) * 1.1 * dt;
+      }
+      // Runners zig-zag slightly
+      if (this.ztype === 'runner' && !this.spawnPhase) {
+        this.strafePhase += dt * 3.0;
+        this.worldX += Math.sin(this.strafePhase) * 0.5 * dt;
+      }
+
       this.head.position.y = 1.25 + bobbing;
       this.leftArm.rotation.x = -Math.PI / 6 + wobble * 0.2;
       this.rightArm.rotation.x = -Math.PI / 6 - wobble * 0.2;
-      
+
       // Swing legs!
       this.leftLeg.rotation.x = wobble * 0.45;
       this.rightLeg.rotation.x = -wobble * 0.45;
-      
+
       this.group.rotation.y = wobble * 0.05;
       this.group.rotation.z = 0;
+      if (this.ztype !== 'runner') this.group.rotation.x = 0;
+      if (this.halo) {
+        this.halo.rotation.z += dt * 2.5;
+        this.halo.position.y = 0.15 + Math.sin(this.animTime * 3) * 0.08;
+      }
     } else {
       this.group.rotation.z = Math.sin(this.animTime * 40) * 0.1;
     }
-    
+
+    // Keystroke hit-flash: pop white then decay
+    if (this.hitFlash > 0) {
+      this.hitFlash -= dt;
+      const k = Math.max(0, this.hitFlash / 0.12);
+      if (this.torso && this.torso.material && this.torso.material.emissive) {
+        this.torso.material.emissive.setRGB(0.6 * k, 0.6 * k, 0.6 * k);
+      }
+      const pop = 1 + 0.06 * k;
+      this.group.scale.setScalar((this.archetypeScale || 1) * pop);
+    } else {
+      if (this.torso && this.torso.material && this.torso.material.emissive) {
+        this.torso.material.emissive.setRGB(0, 0, 0);
+      }
+      if (!this.isStunned) this.group.scale.setScalar(this.archetypeScale || 1);
+    }
+
+    // Danger proximity: pulse red when about to breach (worldZ > 0.5)
+    if (this.worldZ > 0.5 && !this.isDead) {
+      this.dangerPulse += dt * 8;
+      const glow = 0.5 + 0.5 * Math.sin(this.dangerPulse);
+      if (this.eyeL) this.eyeL.scale.setScalar(1 + glow * 0.6);
+      if (this.eyeR) this.eyeR.scale.setScalar(1 + glow * 0.6);
+    } else if (this.eyeL) {
+      this.eyeL.scale.setScalar(1);
+      if (this.eyeR) this.eyeR.scale.setScalar(1);
+    }
+
     this.group.position.set(this.worldX, this.worldY, this.worldZ);
   }
 
@@ -311,8 +478,9 @@ class Zombie {
     if (this.isTargeted !== targeted) {
       this.isTargeted = targeted;
       if (targeted) {
-        this.torso.material.color.setHex(0xff0055); // pink highlight
-        this.head.material.color.setHex(0xff0055);
+        const hl = this.ztype === 'boss' ? 0xffd700 : 0xff0055;
+        this.torso.material.color.setHex(hl);
+        this.head.material.color.setHex(hl);
       } else {
         this.torso.material.color.setHex(this.baseTorsoColor);
         this.head.material.color.setHex(this.baseHeadColor);
@@ -330,6 +498,8 @@ class Zombie {
 
   destroy() {
     this.scene.remove(this.group);
+    // CanvasTextures are GPU resources too — free the label explicitly
+    if (this.labelTexture) this.labelTexture.dispose();
     this.group.traverse(child => {
       if (child.isMesh || child.isSprite) {
         if (child.geometry) child.geometry.dispose();

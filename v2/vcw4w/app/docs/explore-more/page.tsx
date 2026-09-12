@@ -85,7 +85,7 @@ export default function ExploreMorePage() {
         index="3"
         kicker="Mission control, extended"
         title="Your account hub"
-        body="Four pages, one login. Pricing is public; the other three need your session."
+        body="Four pages, one login. Pricing is public; the other three need your session. Renting compute or bots? Jump to /agents (NanoClaw serverful/serverless) + /bot/setup (keys) + /docs/bots + /docs/agents-compute."
       />
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         {[
@@ -111,6 +111,19 @@ export default function ExploreMorePage() {
         linked from the footer on every page. Found a barrier? Email{" "}
         <a className="underline" href="mailto:matt@mattyjacks.com">matt@mattyjacks.com</a> with
         the page URL and what broke, per <Link className="underline" href="/docs/faq">FAQ &amp; support</Link>.
+      </Callout>
+
+      <Callout tone="emerald" title="🤖 Agents + bots live next door.">
+        Rent NanoClaw on <Link className="font-bold underline" href="/agents">/agents</Link> (serverful pod or
+        serverless endpoint, website chat + Telegram), get the key at{" "}
+        <Link className="font-bold underline" href="/bot/setup">/bot/setup</Link>, drive it from{" "}
+        <Link className="underline" href="/bot/bclans">/bot/bclans</Link>, read{" "}
+        <Link className="underline" href="/bot/skill.md">/bot/skill.md</Link>. Guides:{" "}
+        <Link className="underline" href="/docs/bots">Bots</Link> +{" "}
+        <Link className="underline" href="/docs/agents-compute">Agents &amp; cloud</Link> +{" "}
+        <Link className="underline" href="/swarm">/swarm</Link> +{" "}
+        <Link className="underline" href="/desktop">/desktop</Link> +{" "}
+        <Link className="underline" href="/runpods">/runpods</Link>.
       </Callout>
 
       <Pager current="/docs/explore-more" />

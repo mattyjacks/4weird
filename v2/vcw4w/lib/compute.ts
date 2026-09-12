@@ -109,6 +109,23 @@ export function workloadForRuntime(runtime: AgentRuntime): {
       port: 8888,
     };
   }
+  if (runtime === "nanoclaw") {
+    // Recommended path: NanoClaw on the PyTorch CUDA base. The bootstrap on
+    // the pod installs NanoClaw, then bridges it to 4weird (bot key) +
+    // optional Telegram. Website chat works with no extra config: the agent
+    // posts through the bot key you put in FOURWEIRD_BOT_KEY. See
+    // NANOCLAW_DEPLOY_GUIDE + components/agents/nanoclaw-deploy.tsx.
+    return {
+      image: "runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04",
+      ports: ["8888/http", "22/tcp"],
+      env: {
+        AGENT_RUNTIME: "nanoclaw",
+        FOURWEIRD_BASE: "https://4weird.com",
+        NANOCLAW_RECOMMENDED: "1",
+      },
+      port: 8888,
+    };
+  }
   return {
     // Official RunPod PyTorch base (template `runpod-torch-v240`).
     image: "runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04",
@@ -116,6 +133,42 @@ export function workloadForRuntime(runtime: AgentRuntime): {
     env: { AGENT_RUNTIME: runtime },
     port: 8888,
   };
+}
+
+/**
+ * NanoClaw recommended deploy: env contract + bootstrap for a rented pod.
+ * Serverful = this marketplace (always-on RunPod pod, billed per second up
+ * to the booking escrow). Serverless = scale-to-zero endpoint you call per
+ * job (see /docs/agents-compute + /swarm serverless chat). Both speak to
+ * 4weird with the SAME bot key, so one agent can chat on the website
+ * (clans + UnitUnite rooms, always labeled [BOT]) and on Telegram.
+ *
+ * Required on the pod: FOURWEIRD_BOT_KEY (bot4weird_… from /bot/setup).
+ * Optional: TELEGRAM_BOT_TOKEN (+ TELEGRAM_CHAT_ID to lock it to you),
+ * FOURWEIRD_BASE (default https://4weird.com), NANOCLAW_CHANNELS
+ * (default "website", set "website,telegram" to bridge both).
+ */
+export const NANOCLAW_ENV_CONTRACT = [
+  "FOURWEIRD_BOT_KEY",
+  "TELEGRAM_BOT_TOKEN",
+  "TELEGRAM_CHAT_ID",
+  "FOURWEIRD_BASE",
+  "NANOCLAW_CHANNELS",
+] as const;
+
+/** Shell bootstrap run once on the rented pod to install + start NanoClaw. */
+export function nanoclawBootstrap(): string {
+  return [
+    "# 4weird NanoClaw bootstrap (run once on your rented pod)",
+    "# Needs: FOURWEIRD_BOT_KEY=bot4weird_… (from https://4weird.com/bot/setup)",
+    "# Optional: TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID for Telegram bridge",
+    "export FOURWEIRD_BASE=https://4weird.com",
+    'curl -s -H "x-bot-key: $FOURWEIRD_BOT_KEY" $FOURWEIRD_BASE/api/bot/me',
+    "# then install + start NanoClaw with the website + telegram channels",
+    "npm i -g nanoclaw  # or: pip install nanoclaw",
+    'nanoclaw init --channels website,telegram --base "$FOURWEIRD_BASE"',
+    "nanoclaw start",
+  ].join("\n");
 }
 
 type CatalogGpu = {

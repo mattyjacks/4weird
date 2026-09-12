@@ -11,6 +11,10 @@
     <meta property="og:title" content="Last Words Zombies - 4weird Games">
     <meta property="og:description" content="Decrypt approaching rogue cyber-units before they breach your mainframe terminal.">
     <meta property="og:type" content="website">
+    <meta name="theme-color" content="#050508">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Last Words Zombies - 4weird Games">
+    <meta name="twitter:description" content="Decrypt approaching rogue cyber-units before they breach your mainframe terminal.">
     
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
@@ -22,20 +26,17 @@
     
     <!-- Base Styles -->
     <link rel="stylesheet" href="../../../styles.css">
-    <link rel="stylesheet" href="game.css?v=4">
-    
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+    <link rel="stylesheet" href="game.css?v=6">
 
-    <!-- Three.js Library with Failover Check -->
+    <!-- Three.js Library with Failover Check (game boots only if THREE loads) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
         if (typeof THREE === 'undefined') {
             document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"><\/script>');
         }
     </script>
-    
-    <!-- Game Metadata (loaded for credits/bio) -->
-    <script src="game.json" type="application/json" id="game-metadata"></script>
+
+    <!-- Game Metadata is loaded via fetch('game.json') below; no script include needed. -->
 </head>
 <body class="TEMPLATE-4weird-game-page">
     <!-- Cyberpunk ambient styling grids -->
@@ -64,7 +65,7 @@
         <!-- Game Canvas Frame -->
         <div class="TEMPLATE-4weird-game-frame">
             <!-- Fullscreen trigger -->
-            <button class="TEMPLATE-4weird-fullscreen-btn" id="TEMPLATE-4weird-fullscreen-btn" title="Toggle Fullscreen">📺 Expand screen</button>
+            <button class="TEMPLATE-4weird-fullscreen-btn" id="TEMPLATE-4weird-fullscreen-btn" title="Toggle Fullscreen" aria-label="Toggle fullscreen">📺 Expand screen</button>
             
             <!-- Real-time game HUD -->
             <div id="game-hud" class="hidden">
@@ -88,11 +89,47 @@
                         <span class="hud-value" style="font-size: 0.9rem; margin-right: 12px;">Zombies: <span id="zombie-count">0</span></span>
                         <span class="hud-value" style="font-size: 0.9rem;">Combo: <span id="combo-val">1.0</span>x</span>
                     </div>
+                    <div class="hud-types-legend">» runner · ◆ brute · ◊ ghost · ♛ boss</div>
                 </div>
             </div>
 
             <!-- WebGL Game Canvas -->
             <div id="canvas-container" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1;"></div>
+
+            <!-- Damage / low-HP / freeze vignette (driven by game.js) -->
+            <div id="damage-vignette" style="opacity: 0;"></div>
+
+            <!-- Center crosshair with hit pulse -->
+            <div id="crosshair" class="hidden">
+                <div class="ch-dot"></div>
+                <div class="ch-ring"></div>
+            </div>
+
+            <!-- Wave intro banner -->
+            <div id="wave-banner">
+                <div class="wave-banner-title">WAVE 1</div>
+                <div class="wave-banner-sub"></div>
+            </div>
+
+            <!-- Killstreak / powerup announcements -->
+            <div id="kill-announce" role="status" aria-live="polite"></div>
+            <div id="kill-announce-sub" aria-hidden="true"></div>
+
+            <!-- Boss HP bar -->
+            <div id="boss-bar" class="hidden">
+                <div id="boss-name">♛ BOSS ♛</div>
+                <div class="boss-hp-bg"><div id="boss-hp-fill"></div></div>
+            </div>
+
+            <!-- Wave progress -->
+            <div id="wave-progress"><div id="wave-progress-fill" style="width: 0%;"></div></div>
+
+            <!-- Powerup quick-slots (1/2/3) -->
+            <div id="powerup-bar" class="hidden">
+                <button id="powerup-btn-bomb" class="powerup-btn" title="Shockwave — wipe the horde [1]">💣 <span id="powerup-count-bomb">1</span></button>
+                <button id="powerup-btn-freeze" class="powerup-btn" title="Cryo freeze — stop zombies 5s [2]">❄️ <span id="powerup-count-freeze">1</span></button>
+                <button id="powerup-btn-shield" class="powerup-btn" title="Shield restore +40 [3]">🛡️ <span id="powerup-count-shield">1</span></button>
+            </div>
 
             <!-- Hidden mobile input capturing keystrokes. Anchored inside the
                  game frame (see .mobile-typing-input in game.css): the old
@@ -102,22 +139,38 @@
             <input type="text" id="mobile-game-input" class="mobile-typing-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text" enterkeyhint="go" aria-label="Typing input">
 
             <!-- Mobile Keyboard Floating Trigger -->
-            <button id="mobile-keyboard-btn" class="mobile-keyboard-trigger" style="display: none;" title="Toggle Keyboard">⌨️ TYPE</button>
+            <button id="mobile-keyboard-btn" class="mobile-keyboard-trigger" style="display: none;" title="Toggle Keyboard" aria-label="Toggle on-screen keyboard">⌨️ TYPE</button>
 
             <!-- Speed Up Button Overlay -->
-            <button id="game-speed-btn" class="game-speed-trigger" style="display: none;" title="Speed Up Zombies">⚡ SPEED UP [SHIFT]</button>
+            <button id="game-speed-btn" class="game-speed-trigger" style="display: none;" title="Speed Up Zombies" aria-label="Hold to speed up zombies">⚡ <span id="game-speed-label">SPEED UP</span></button>
 
             <!-- Loading Screen with Spinner -->
-            <div class="TEMPLATE-4weird-loading-screen" id="TEMPLATE-4weird-loading-screen">
-                <div class="spinner"></div>
+            <div class="TEMPLATE-4weird-loading-screen" id="TEMPLATE-4weird-loading-screen" role="status" aria-label="Loading game">
+                <div class="spinner" aria-hidden="true"></div>
                 <h3 style="font-family: var(--font-cyber); letter-spacing: 2px; color: var(--neon-cyan); font-size: 0.9rem;">INITIALIZING ENCRYPTION GRID...</h3>
+                <p id="loading-error" class="loading-error" style="display: none;"></p>
             </div>
+            <noscript><div class="webgl-error">This game needs JavaScript to run.</div></noscript>
 
             <!-- Game Start Overlay -->
             <div class="TEMPLATE-4weird-game-overlay" id="TEMPLATE-4weird-start-screen">
                 <div class="TEMPLATE-4weird-overlay-content" style="max-height: 90vh; overflow-y: auto; width: 95%; max-width: 500px; display: flex; flex-direction: column;">
                     <h2 id="start-overlay-title">Last Words Zombies</h2>
                     <p id="start-overlay-desc">Decrypt rogue cyber units before they compromise your terminal.</p>
+
+                    <!-- Returning-player stats + wallet (filled by JS, hidden until known) -->
+                    <div id="menu-stats" class="menu-stats" style="display: none;" aria-label="Your best stats">
+                        <span title="All-time high score">🏆 <b id="menu-high-score">0</b></span>
+                        <span title="Best typing speed">⌨️ <b id="menu-best-wpm">0</b> WPM</span>
+                        <span title="Store credits">🪙 <b id="menu-coins">0</b></span>
+                    </div>
+
+                    <!-- 3-step quick tutorial -->
+                    <ol class="menu-tutorial" aria-label="How to play">
+                        <li><b>TYPE</b> the glowing word to lock on</li>
+                        <li><b>FINISH</b> the word to overload the zombie</li>
+                        <li><b>SURVIVE</b> — boss every 5th wave</li>
+                    </ol>
                     
                     <!-- Difficulty Selection -->
                     <div class="difficulty-select-container" style="margin-bottom: 18px; width: 100%; text-align: center;">
@@ -140,16 +193,18 @@
                     </div>
                     
                     <button class="btn btn-primary" id="TEMPLATE-4weird-start-btn" style="margin-bottom: 12px; width: 100%;">
-                        <span class="btn-emoji">🎮</span> LOAD SEQUENCER
+                        <span class="btn-emoji">▶</span> START GAME
                     </button>
                     
                     <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
-                        <button class="btn btn-secondary" id="btn-custom-store" style="flex: 1; padding: 10px 15px;">🛒 Black Market [I]</button>
-                        <button class="btn btn-secondary" id="btn-custom-settings" style="flex: 1; padding: 10px 15px;">⚙️ Settings</button>
+                        <button class="btn btn-secondary" id="btn-custom-store" style="flex: 1; padding: 10px 15px;" aria-label="Open Black Market store">🛒 Black Market [I]</button>
+                        <button class="btn btn-secondary" id="btn-custom-settings" style="flex: 1; padding: 10px 15px;" aria-label="Open settings">⚙️ Settings</button>
                     </div>
+                    <p class="menu-key-hint">Press <kbd>Enter</kbd> to start · <kbd>Esc</kbd> pauses · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> powerups</p>
                     
                     <div class="TEMPLATE-4weird-controls-hint" id="start-overlay-hint">
                         <p>Type matching characters to lock-on and overload invading zombies.</p>
+                        <p style="margin-top: 8px; opacity: 0.85;">💣 <kbd>1</kbd> shockwave · ❄️ <kbd>2</kbd> freeze · 🛡️ <kbd>3</kbd> shield — boss every 5th wave.</p>
                     </div>
                 </div>
             </div>
@@ -160,6 +215,7 @@
                     <h2>SYSTEMS HALTED</h2>
                     <p style="margin-bottom: 20px;">Mainframe sequencer decryption frozen.</p>
                     <button class="btn btn-primary" id="TEMPLATE-4weird-resume-btn">RESUME SYSTEM</button>
+                    <button class="btn btn-secondary" id="TEMPLATE-4weird-pause-restart-btn" style="margin-top: 10px; width: 100%;">RESTART RUN</button>
                     <button class="btn btn-secondary" id="TEMPLATE-4weird-restart-btn" style="margin-top: 10px; width: 100%;">QUIT TO TERMINAL</button>
                 </div>
             </div>
@@ -169,11 +225,20 @@
                 <div class="TEMPLATE-4weird-overlay-content" style="max-width: 500px; width: 95%; display: flex; flex-direction: column; max-height: 90vh;">
                     <h2 style="color: var(--neon-magenta); text-shadow: var(--glow-magenta); margin-bottom: 5px;">SYSTEM BREACHED</h2>
                     <p style="margin-bottom: 10px;">Terminal compromised. Mainframe data has been wiped.</p>
-                    <p class="TEMPLATE-4weird-final-score" style="margin-bottom: 10px;">SCORE: <span id="TEMPLATE-4weird-final-score-val">0</span></p>
+                    <p class="TEMPLATE-4weird-final-score" style="margin-bottom: 10px;">SCORE: <span id="TEMPLATE-4weird-final-score-val">0</span> <span id="newbest-badge" style="display: none;">★ NEW BEST ★</span></p>
+                    <div id="gameover-stats" class="gameover-stats">
+                        <div><span>KILLS</span><b id="stat-kills">0</b></div>
+                        <div><span>WAVE</span><b id="stat-wave">1</b></div>
+                        <div><span>BEST COMBO</span><b id="stat-combo">1.0x</b></div>
+                        <div><span>WPM</span><b id="stat-wpm">0</b></div>
+                        <div><span>ACCURACY</span><b id="stat-acc">100%</b></div>
+                        <div><span>BEST STREAK</span><b id="stat-streak">0</b></div>
+                    </div>
                     <p style="font-family: var(--font-cyber); font-size: 0.8rem; margin-bottom: 20px; color: var(--neon-yellow);">HIGH SCORE: <span id="TEMPLATE-4weird-gameover-highscore">0</span></p>
                     
                     <button class="btn btn-secondary" id="btn-gameover-definitions" style="width: 100%; margin-bottom: 10px;">VIEW WAVE DEFINITIONS</button>
                     <button class="btn btn-primary" id="TEMPLATE-4weird-play-again-btn" style="width: 100%;">REBOOT SYSTEM</button>
+                    <button class="btn btn-secondary" id="TEMPLATE-4weird-gameover-menu-btn" style="width: 100%; margin-top: 10px;">QUIT TO TERMINAL</button>
                 </div>
             </div>
 
@@ -181,7 +246,8 @@
             <div class="TEMPLATE-4weird-game-overlay hidden" id="custom-store-screen">
                 <div class="TEMPLATE-4weird-overlay-content" style="max-width: 500px; width: 95%;">
                     <h2 style="color: var(--neon-cyan); text-shadow: var(--glow-cyan); margin-bottom: 5px;">BLACK MARKET</h2>
-                    <div class="currency-display" style="font-family: var(--font-cyber); color: var(--neon-yellow); font-size: 1.2rem; margin-bottom: 15px;">CREDITS: <span id="store-coins">0</span></div>
+                    <div class="currency-display" style="font-family: var(--font-cyber); color: var(--neon-yellow); font-size: 1.2rem; margin-bottom: 4px;">CREDITS: <span id="store-coins">0</span></div>
+                    <p class="store-hint">Earn credits by decrypting zombies. <kbd>Esc</kbd> closes.</p>
                     
                     <div class="store-tabs" style="display: flex; gap: 8px; margin-bottom: 15px; background: rgba(0, 0, 0, 0.4); padding: 4px; border-radius: 6px;">
                         <button class="tab-btn active" data-tab="blood" style="flex: 1; padding: 8px; font-family: var(--font-cyber); font-size: 0.75rem; background: transparent; color: #fff; border: none; cursor: pointer; border-radius: 4px;">PLASMA</button>
@@ -204,16 +270,23 @@
                     
                     <div class="settings-list" style="display: flex; flex-direction: column; gap: 20px; text-align: left; margin-bottom: 25px;">
                         <div class="setting-item" style="display: flex; flex-direction: column; gap: 8px;">
-                            <label for="slider-sfx" style="font-family: var(--font-cyber); font-size: 0.8rem; color: #fff;">SFX Volume</label>
+                            <label for="slider-sfx" style="font-family: var(--font-cyber); font-size: 0.8rem; color: #fff;">SFX Volume <span class="slider-val" id="slider-sfx-val">80%</span></label>
                             <input type="range" id="slider-sfx" min="0" max="1" step="0.1" value="0.8" style="width: 100%; accent-color: var(--neon-cyan);">
                         </div>
                         <div class="setting-item" style="display: flex; flex-direction: column; gap: 8px;">
-                            <label for="slider-music" style="font-family: var(--font-cyber); font-size: 0.8rem; color: #fff;">Music Sequencer Volume</label>
+                            <label for="slider-music" style="font-family: var(--font-cyber); font-size: 0.8rem; color: #fff;">Music Sequencer Volume <span class="slider-val" id="slider-music-val">70%</span></label>
                             <input type="range" id="slider-music" min="0" max="1" step="0.1" value="0.7" style="width: 100%; accent-color: var(--neon-cyan);">
                         </div>
                         <div class="setting-item" style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
                             <label for="chk-particles" style="font-family: var(--font-cyber); font-size: 0.8rem; color: #fff;">Ultra Particles</label>
                             <input type="checkbox" id="chk-particles" checked style="width: 20px; height: 20px; accent-color: var(--neon-cyan);">
+                        </div>
+                        <div class="setting-item" style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                            <label for="chk-shake" style="font-family: var(--font-cyber); font-size: 0.8rem; color: #fff;">Screen Shake</label>
+                            <input type="checkbox" id="chk-shake" checked style="width: 20px; height: 20px; accent-color: var(--neon-cyan);">
+                        </div>
+                        <div class="setting-item">
+                            <button id="btn-reset-progress" class="btn btn-secondary" style="width: 100%; padding: 10px 15px;">🗑️ Reset All Progress</button>
                         </div>
                     </div>
                     
@@ -225,6 +298,7 @@
             <div class="TEMPLATE-4weird-game-overlay" id="wave-cleared-screen" style="z-index: 999; display: none;">
                 <div class="TEMPLATE-4weird-overlay-content" style="max-width: 500px; width: 95%; display: flex; flex-direction: column; max-height: 90vh; overflow-y: auto;">
                     <h2 style="color: var(--neon-cyan); text-shadow: var(--glow-cyan); margin-bottom: 5px;">WAVE <span id="cleared-wave-num">1</span> DECRYPTED</h2>
+                    <p id="glossary-stats" style="font-family: var(--font-cyber); font-size: 0.72rem; color: var(--neon-yellow); margin-bottom: 15px;"></p>
                     <p style="font-family: var(--font-cyber); font-size: 0.8rem; color: var(--neon-yellow); margin-bottom: 15px;">UNITS GLOSSARY DEFINITIONS</p>
                     
                     <div id="wave-word-definitions" class="definitions-container" style="flex: 1; overflow-y: visible; margin-bottom: 20px; text-align: left; display: flex; flex-direction: column; gap: 15px; padding-right: 8px;">
@@ -241,7 +315,7 @@
             <!-- Sound FX Board -->
             <div class="TEMPLATE-4weird-panel-section sound-panel">
                 <h3><span>🔊</span> Audio Synth</h3>
-                <button class="sound-toggle-btn" id="TEMPLATE-4weird-mute-btn">🔊 Sound</button>
+                <button class="sound-toggle-btn" id="TEMPLATE-4weird-mute-btn" aria-pressed="false" aria-label="Mute or unmute sound">🔊 Sound</button>
             </div>
 
             <!-- High score -->
@@ -326,14 +400,14 @@
     
     <!-- Scripts -->
     <script src="../../../components.js"></script>
-    <script src="dictionary.js?v=2"></script>
-    <script src="state.js?v=2"></script>
-    <script src="audio.js?v=2"></script>
-    <script src="particles.js?v=2"></script>
-    <script src="zombie.js?v=3"></script>
-    <script src="typing.js?v=2"></script>
-    <script src="store.js?v=2"></script>
-    <script src="game.js?v=4"></script>
+    <script src="dictionary.js?v=6"></script>
+    <script src="state.js?v=6"></script>
+    <script src="audio.js?v=6"></script>
+    <script src="particles.js?v=6"></script>
+    <script src="zombie.js?v=6"></script>
+    <script src="typing.js?v=6"></script>
+    <script src="store.js?v=6"></script>
+    <script src="game.js?v=6"></script>
     <script src="../game-meta.js"></script>
     <script>
         // Load game metadata and populate template fields

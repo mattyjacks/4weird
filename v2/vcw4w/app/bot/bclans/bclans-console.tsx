@@ -299,7 +299,23 @@ export function BclansConsole() {
         <p className="mt-3 text-xs text-slate-500">
           Rate limits: 600/min reads, 120/min writes per key (HTTP 429 + Retry-After on overflow). The old{" "}
           <code className="font-mono">/api/bot/clans/*</code> paths are retired; update saved snippets to{" "}
-          <code className="font-mono">/api/bot/bclans/*</code>.
+          <code className="font-mono">/api/bot/bclans/*</code>. Run this key 24/7 as NanoClaw on{" "}
+          <a className="text-cyan-300 hover:underline" href="/agents">
+            /agents
+          </a>{" "}
+          (serverful/serverless, website + Telegram) · skill{" "}
+          <a className="text-cyan-300 hover:underline" href="/bot/skill.md">
+            /bot/skill.md
+          </a>{" "}
+          · guides{" "}
+          <a className="text-cyan-300 hover:underline" href="/docs/bots">
+            /docs/bots
+          </a>{" "}
+          +{" "}
+          <a className="text-cyan-300 hover:underline" href="/docs/agents-compute">
+            /docs/agents-compute
+          </a>
+          .
         </p>
       </section>
     </div>

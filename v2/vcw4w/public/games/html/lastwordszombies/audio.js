@@ -33,18 +33,25 @@ class AudioManager {
   }
 
   setSFXVolume(val) {
-    this.state.sfxVolume = val;
+    this.state.sfxVolume = Math.min(1, Math.max(0, Number(val) || 0));
     this.state.saveSettings();
     if (this.masterSFXGain && this.ctx && !this.muted) {
-      this.masterSFXGain.gain.setValueAtTime(val, this.ctx.currentTime);
+      this.masterSFXGain.gain.setValueAtTime(this.state.sfxVolume, this.ctx.currentTime);
     }
   }
 
   setMusicVolume(val) {
-    this.state.musicVolume = val;
+    this.state.musicVolume = Math.min(1, Math.max(0, Number(val) || 0));
     this.state.saveSettings();
     if (this.masterMusicGain && this.ctx && !this.muted) {
-      this.masterMusicGain.gain.setValueAtTime(val, this.ctx.currentTime);
+      this.masterMusicGain.gain.setValueAtTime(this.state.musicVolume, this.ctx.currentTime);
+    }
+  }
+
+  // Call when the tab becomes visible again — browsers suspend AudioContext
+  resume() {
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume();
     }
   }
 
@@ -70,29 +77,54 @@ class AudioManager {
     }
   }
 
-  playSFX(type) {
+  // Called on wave changes — music gets tenser as waves climb.
+  setIntensity(wave) {
+    const target = Math.min(150, 100 + (wave - 1) * 8);
+    if (target !== this.tempo) {
+      this.tempo = target;
+      if (this.ctx) this.startSynthMusic();
+    }
+  }
+
+  playSFX(type, opt) {
     if (!this.ctx) return;
     if (this.ctx.state === 'suspended') this.ctx.resume();
     if (this.muted) return;
-    
+
     const t = this.ctx.currentTime;
-    
+    // Combo pitch ladder: streaks sound progressively more electric
+    const streak = typeof opt === 'number' ? opt : (opt && opt.streak) || 0;
+    const pitchMul = 1 + Math.min(12, streak) * 0.045;
+
     if (type === 'type') {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
-      
+
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(300 + Math.random() * 200, t);
-      osc.frequency.exponentialRampToValueAtTime(100, t + 0.04);
-      
-      gain.gain.setValueAtTime(0.08, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
-      
+      osc.frequency.setValueAtTime((320 + Math.random() * 200) * pitchMul, t);
+      osc.frequency.exponentialRampToValueAtTime(120 * pitchMul, t + 0.04);
+
+      gain.gain.setValueAtTime(0.09, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
+
       osc.connect(gain);
       gain.connect(this.masterSFXGain);
       osc.start(t);
       osc.stop(t + 0.05);
-    } 
+      // Sparkle layer on hot streaks
+      if (streak >= 8) {
+        const hi = this.ctx.createOscillator();
+        const hg = this.ctx.createGain();
+        hi.type = 'sine';
+        hi.frequency.setValueAtTime(1400 * pitchMul, t);
+        hg.gain.setValueAtTime(0.03, t);
+        hg.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+        hi.connect(hg);
+        hg.connect(this.masterSFXGain);
+        hi.start(t);
+        hi.stop(t + 0.09);
+      }
+    }
     else if (type === 'explosion') {
       const bufferSize = this.ctx.sampleRate * 0.6;
       const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
@@ -163,19 +195,153 @@ class AudioManager {
     else if (type === 'hurt') {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
-      
+
       osc.type = 'square';
       osc.frequency.setValueAtTime(220, t);
       osc.frequency.linearRampToValueAtTime(80, t + 0.2);
-      
+
       gain.gain.setValueAtTime(0.25, t);
       gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
-      
+
       osc.connect(gain);
       gain.connect(this.masterSFXGain);
-      
+
       osc.start(t);
       osc.stop(t + 0.22);
+    }
+    else if (type === 'kill') {
+      // Kill-confirm blip: two-note zap up
+      [660, 990].forEach((f, i) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(f, t + i * 0.05);
+        gain.gain.setValueAtTime(0.08, t + i * 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.05 + 0.09);
+        osc.connect(gain);
+        gain.connect(this.masterSFXGain);
+        osc.start(t + i * 0.05);
+        osc.stop(t + i * 0.05 + 0.1);
+      });
+    }
+    else if (type === 'streak') {
+      // Killstreak announcement arp
+      [523, 659, 784, 1047].forEach((f, i) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(f, t + i * 0.07);
+        gain.gain.setValueAtTime(0.09, t + i * 0.07);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.07 + 0.16);
+        osc.connect(gain);
+        gain.connect(this.masterSFXGain);
+        osc.start(t + i * 0.07);
+        osc.stop(t + i * 0.07 + 0.18);
+      });
+    }
+    else if (type === 'waveclear') {
+      // Wave-clear fanfare: rising major triad + shimmer
+      [392, 494, 587, 784].forEach((f, i) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(f, t + i * 0.09);
+        gain.gain.setValueAtTime(0.14, t + i * 0.09);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.09 + 0.3);
+        osc.connect(gain);
+        gain.connect(this.masterSFXGain);
+        osc.start(t + i * 0.09);
+        osc.stop(t + i * 0.09 + 0.32);
+      });
+    }
+    else if (type === 'gameover') {
+      // Dark descending sting
+      [330, 262, 208, 131].forEach((f, i) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(f, t + i * 0.18);
+        gain.gain.setValueAtTime(0.14, t + i * 0.18);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.18 + 0.3);
+        const flt = this.ctx.createBiquadFilter();
+        flt.type = 'lowpass';
+        flt.frequency.setValueAtTime(1200, t);
+        osc.connect(flt);
+        flt.connect(gain);
+        gain.connect(this.masterSFXGain);
+        osc.start(t + i * 0.18);
+        osc.stop(t + i * 0.18 + 0.32);
+      });
+    }
+    else if (type === 'boss') {
+      // Boss roar: detuned low saws + noise growl
+      [55, 58, 82].forEach(f => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(f, t);
+        osc.frequency.linearRampToValueAtTime(f * 0.6, t + 0.7);
+        gain.gain.setValueAtTime(0.16, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+        osc.connect(gain);
+        gain.connect(this.masterSFXGain);
+        osc.start(t);
+        osc.stop(t + 0.85);
+      });
+    }
+    else if (type === 'freeze') {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1200, t);
+      osc.frequency.exponentialRampToValueAtTime(300, t + 0.4);
+      gain.gain.setValueAtTime(0.16, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+      osc.connect(gain);
+      gain.connect(this.masterSFXGain);
+      osc.start(t);
+      osc.stop(t + 0.5);
+    }
+    else if (type === 'bomb') {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(120, t);
+      osc.frequency.exponentialRampToValueAtTime(28, t + 0.7);
+      gain.gain.setValueAtTime(0.5, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+      osc.connect(gain);
+      gain.connect(this.masterSFXGain);
+      osc.start(t);
+      osc.stop(t + 0.85);
+    }
+    else if (type === 'shield') {
+      [440, 554, 659].forEach((f, i) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, t + i * 0.06);
+        gain.gain.setValueAtTime(0.1, t + i * 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.06 + 0.2);
+        osc.connect(gain);
+        gain.connect(this.masterSFXGain);
+        osc.start(t + i * 0.06);
+        osc.stop(t + i * 0.06 + 0.22);
+      });
+    }
+    else if (type === 'alarm') {
+      [880, 660].forEach((f, i) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(f, t + i * 0.12);
+        gain.gain.setValueAtTime(0.06, t + i * 0.12);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.12 + 0.11);
+        osc.connect(gain);
+        gain.connect(this.masterSFXGain);
+        osc.start(t + i * 0.12);
+        osc.stop(t + i * 0.12 + 0.12);
+      });
     }
   }
 

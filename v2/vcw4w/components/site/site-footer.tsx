@@ -329,7 +329,7 @@ export function SiteFooter() {
             <Link href="/my/rights" className="rounded-full border border-border px-3 py-1.5 font-semibold text-muted-foreground transition hover:text-foreground hover:bg-accent">Privacy Rights</Link>
             <Link href="/accessibility" className="rounded-full border border-border px-3 py-1.5 font-semibold text-muted-foreground transition hover:text-foreground hover:bg-accent">Accessibility</Link>
             <Link href="/docs/faq" className="rounded-full border border-border px-3 py-1.5 font-semibold text-muted-foreground transition hover:text-foreground hover:bg-accent">FAQ</Link>
-            <Link href="/sitemap.xml" className="rounded-full border border-border px-3 py-1.5 font-semibold text-muted-foreground transition hover:text-foreground hover:bg-accent">Sitemap</Link>
+            <a href="/sitemap.xml" className="rounded-full border border-border px-3 py-1.5 font-semibold text-muted-foreground transition hover:text-foreground hover:bg-accent">Sitemap</a>
           </div>
         </div>
       </div>

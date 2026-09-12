@@ -62,7 +62,7 @@ export function MyCompute() {
   const [providers, setProviders] = useState<ProviderInfo[]>([]);
   const [form, setForm] = useState({
     name: "",
-    runtime: "openclaw",
+    runtime: "nanoclaw",
     provider_code: "runpod",
     endpoint_url: "",
     priceUsd: "1.00",
@@ -122,7 +122,7 @@ export function MyCompute() {
       const body = (await res.json()) as { success: boolean; error?: string; note?: string };
       if (!body.success) throw new Error(body.error || "Create failed.");
       setFormMsg(body.note ?? "Listing published. Renters are billed per second up to your max.");
-      setForm({ name: "", runtime: "openclaw", provider_code: "runpod", endpoint_url: "", priceUsd: "1.00" });
+      setForm({ name: "", runtime: "nanoclaw", provider_code: "runpod", endpoint_url: "", priceUsd: "1.00" });
     } catch (e) {
       setFormMsg(e instanceof Error ? e.message : "Create failed.");
     } finally {

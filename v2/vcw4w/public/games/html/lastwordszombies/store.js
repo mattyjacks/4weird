@@ -3,7 +3,9 @@ const StoreItems = {
     { name: "Acid Glow", id: "default", price: 0, color: "#00ff66" },
     { name: "Plasma Blue", id: "plasma", price: 50, color: "#00ccff" },
     { name: "Inferno Red", id: "inferno", price: 100, color: "#ff0055" },
-    { name: "Void Purple", id: "void", price: 180, color: "#bb00ff" }
+    { name: "Void Purple", id: "void", price: 180, color: "#bb00ff" },
+    { name: "Gold Rush", id: "gold", price: 250, color: "#fcf003" },
+    { name: "Toxic Lime", id: "toxic", price: 320, color: "#a3ff00" }
   ],
   fonts: [
     { name: "Cyber Decrypt", id: "default", cssClass: "font-outfit" },
@@ -34,33 +36,34 @@ function setupStore(stateManager, audioManager) {
     items.forEach(item => {
       const card = document.createElement('div');
       card.className = 'store-card';
-      
+      const price = Number(item.price) || 0;
+
       const isOwned = stateManager.ownedItems.includes(item.id);
       let isEquipped = false;
       if (category === 'blood') isEquipped = stateManager.equippedBlood === item.id;
       if (category === 'fonts') isEquipped = stateManager.equippedFont === item.id;
       if (category === 'music') isEquipped = stateManager.equippedMusic === item.id;
-      
+
       let priceLabel = '';
       if (isEquipped) {
         priceLabel = 'EQUIPPED';
       } else if (isOwned) {
         priceLabel = 'OWNED';
       } else {
-        priceLabel = `${item.price} Credits`;
+        priceLabel = price === 0 ? 'FREE' : `${price} Credits`;
       }
-      
+
       let btnText = 'Buy';
       let btnClass = 'btn-buy';
       let btnDisabled = false;
-      
+
       if (isEquipped) {
         btnText = 'Equipped';
         btnDisabled = true;
       } else if (isOwned) {
         btnText = 'Equip';
         btnClass = 'btn-equip';
-      } else if (stateManager.coins < item.price) {
+      } else if (stateManager.coins < price) {
         btnDisabled = true;
       }
       
@@ -82,7 +85,7 @@ function setupStore(stateManager, audioManager) {
       const actionButton = card.querySelector('button');
       actionButton.addEventListener('click', () => {
         if (!isOwned) {
-          if (stateManager.buyItem(item.id, item.price)) {
+          if (stateManager.buyItem(item.id, price)) {
             audioManager.playSFX('type');
             stateManager.equipItem(category, item.id);
             render();
@@ -92,12 +95,14 @@ function setupStore(stateManager, audioManager) {
         } else {
           stateManager.equipItem(category, item.id);
           audioManager.playSFX('type');
-          
+
           if (category === 'music') {
             audioManager.startSynthMusic();
           }
           render();
         }
+        // Keep Space for gameplay: never leave focus on a store button
+        if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
       });
       
       container.appendChild(card);
@@ -107,7 +112,7 @@ function setupStore(stateManager, audioManager) {
   document.querySelectorAll('.store-tabs .tab-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       document.querySelectorAll('.store-tabs .tab-btn').forEach(b => b.classList.remove('active'));
-      e.target.classList.add('active');
+      e.currentTarget.classList.add('active');
       audioManager.playSFX('type');
       render();
     });

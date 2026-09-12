@@ -24,6 +24,17 @@ class StateManager {
     this.comboTimer = 0;
     this.comboThreshold = 2.5; // seconds to keep combo
     this.coinsEarnedThisRun = 0;
+
+    // --- AWESOME: run stats + powerups ---
+    this.kills = 0;
+    this.bestCombo = 1.0;
+    this.maxWave = 1;
+    this.bossesKilled = 0;
+    this.runStartEpoch = 0;
+    this.powerups = { bomb: 1, freeze: 1, shield: 1 }; // one of each per run to start
+    this.freezeUntil = 0;
+    this.bestWPM = parseInt(this.safeGet('gg_best_wpm', '0'), 10) || 0;
+    this.bestStreak = parseInt(this.safeGet('gg_best_streak', '0'), 10) || 0;
     
     // Difficulty Settings
     this.difficulty = 'normal';
@@ -31,20 +42,101 @@ class StateManager {
     this.selectedLevel = 'hallway';
     this.waveWords = new Set();
     
-    // Settings and Customizations (Load from localStorage)
-    this.coins = parseInt(localStorage.getItem('gg_coins') || '0', 10);
-    this.sfxVolume = parseFloat(localStorage.getItem('gg_sfx_vol') || '0.8');
-    this.musicVolume = parseFloat(localStorage.getItem('gg_music_vol') || '0.5');
-    this.ultraParticles = localStorage.getItem('gg_ultra_particles') !== 'false';
-    
+    // Settings and Customizations (private-mode-safe storage reads)
+    this.coins = parseInt(this.safeGet('gg_coins', '0'), 10) || 0;
+    this.sfxVolume = this.clamp01(parseFloat(this.safeGet('gg_sfx_vol', '0.8')));
+    this.musicVolume = this.clamp01(parseFloat(this.safeGet('gg_music_vol', '0.5')));
+    this.ultraParticles = this.safeGet('gg_ultra_particles', 'true') !== 'false';
+    this.screenShake = this.safeGet('gg_screen_shake', 'true') !== 'false';
+
     // Equipped Upgrades
-    this.equippedBlood = localStorage.getItem('gg_eq_blood') || 'default';
-    this.equippedFont = localStorage.getItem('gg_eq_font') || 'default';
-    this.equippedMusic = localStorage.getItem('gg_eq_music') || 'default';
-    
+    this.equippedBlood = this.safeGet('gg_eq_blood', 'default');
+    this.equippedFont = this.safeGet('gg_eq_font', 'default');
+    this.equippedMusic = this.safeGet('gg_eq_music', 'default');
+
     // Owned items list (JSON string)
     const ownedDefaults = ['default'];
-    this.ownedItems = JSON.parse(localStorage.getItem('gg_owned') || JSON.stringify(ownedDefaults));
+    this.ownedItems = this.safeParse('gg_owned', ownedDefaults);
+    if (!Array.isArray(this.ownedItems) || !this.ownedItems.includes('default')) {
+      this.ownedItems = ownedDefaults.slice();
+    }
+  }
+
+  // --- Private-mode-safe storage (Safari/Firefox containers can throw) ---
+  safeGet(key, fallback) {
+    try {
+      const v = localStorage.getItem(key);
+      return v == null ? fallback : v;
+    } catch (e) {
+      return fallback;
+    }
+  }
+
+  safeSet(key, value) {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) { /* storage unavailable — play session-only */ }
+  }
+
+  safeRemove(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch (e) { /* noop */ }
+  }
+
+  safeParse(key, fallback) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw == null) return fallback;
+      return JSON.parse(raw);
+    } catch (e) {
+      return fallback;
+    }
+  }
+
+  clamp01(v) {
+    const n = Number(v);
+    if (!isFinite(n)) return 0.8;
+    return Math.min(1, Math.max(0, n));
+  }
+
+  // Returning-player chips on the start screen + sidebar high score
+  updateMenuStats() {
+    const set = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.innerText = val;
+    };
+    const hs = parseInt(this.safeGet('gg_high_score', '0'), 10) || 0;
+    set('menu-high-score', hs);
+    set('menu-best-wpm', this.bestWPM || 0);
+    set('menu-coins', this.coins || 0);
+    set('TEMPLATE-4weird-high-score', hs);
+    set('store-coins', this.coins);
+    const wrap = document.getElementById('menu-stats');
+    if (wrap && (hs > 0 || (this.coins || 0) > 0 || (this.bestWPM || 0) > 0)) {
+      wrap.style.display = 'flex';
+    }
+  }
+
+  resetProgress() {
+    ['gg_coins', 'gg_high_score', 'gg_best_wpm', 'gg_best_streak', 'gg_runs', 'gg_total_kills',
+     'gg_owned', 'gg_eq_blood', 'gg_eq_font', 'gg_eq_music',
+     'gg_sfx_vol', 'gg_music_vol', 'gg_ultra_particles', 'gg_screen_shake'
+    ].forEach(k => this.safeRemove(k));
+    this.coins = 0;
+    this.coinsEarnedThisRun = 0;
+    this.sfxVolume = 0.8;
+    this.musicVolume = 0.5;
+    this.ultraParticles = true;
+    this.screenShake = true;
+    this.equippedBlood = 'default';
+    this.equippedFont = 'default';
+    this.equippedMusic = 'default';
+    this.ownedItems = ['default'];
+    this.bestWPM = 0;
+    this.bestStreak = 0;
+    this.saveSettings();
+    this.updateMenuStats();
   }
 
   setGameState(state) {
@@ -62,14 +154,21 @@ class StateManager {
     
     const speedBtn = document.getElementById('game-speed-btn');
     if (speedBtn) speedBtn.style.display = 'none';
-    
+    const powerBar = document.getElementById('powerup-bar');
+    if (powerBar) powerBar.classList.add('hidden');
+    const crosshair = document.getElementById('crosshair');
+    if (crosshair) crosshair.classList.add('hidden');
+
     switch (state) {
       case GameState.MENU:
         document.getElementById('TEMPLATE-4weird-start-screen').classList.remove('hidden');
+        this.updateMenuStats();
         break;
       case GameState.PLAYING:
         document.getElementById('game-hud').classList.remove('hidden');
         if (speedBtn) speedBtn.style.display = 'flex';
+        if (powerBar) powerBar.classList.remove('hidden');
+        if (crosshair) crosshair.classList.remove('hidden');
         break;
       case GameState.PAUSED:
         document.getElementById('game-hud').classList.remove('hidden');
@@ -87,10 +186,10 @@ class StateManager {
         if (scoreValEl) scoreValEl.innerText = this.score;
         
         // Update high score!
-        const savedHighScore = parseInt(localStorage.getItem('gg_high_score') || '0', 10);
+        const savedHighScore = parseInt(this.safeGet('gg_high_score', '0'), 10) || 0;
         let finalHighScore = savedHighScore;
         if (this.score > savedHighScore) {
-            localStorage.setItem('gg_high_score', this.score);
+            this.safeSet('gg_high_score', String(this.score));
             finalHighScore = this.score;
         }
         
@@ -98,9 +197,6 @@ class StateManager {
         const hsEl2 = document.getElementById('TEMPLATE-4weird-gameover-highscore');
         if (hsEl1) hsEl1.innerText = finalHighScore;
         if (hsEl2) hsEl2.innerText = finalHighScore;
-        
-        const coinsEl = document.getElementById('coins-earned');
-        if (coinsEl) coinsEl.innerText = this.coinsEarnedThisRun;
         break;
     }
   }
@@ -109,11 +205,80 @@ class StateManager {
     const earned = Math.floor(points * this.combo);
     this.score += earned;
     document.getElementById('score-val').innerText = this.score;
-    
+
+    // Score pop animation on the HUD
+    const scoreEl = document.getElementById('score-val');
+    if (scoreEl) {
+      scoreEl.classList.remove('score-pop');
+      void scoreEl.offsetWidth;
+      scoreEl.classList.add('score-pop');
+    }
+
     // Increment combo
     this.combo = Math.min(5.0, parseFloat((this.combo + 0.1).toFixed(1)));
+    this.bestCombo = Math.max(this.bestCombo, this.combo);
     this.comboTimer = this.comboThreshold;
     this.updateComboHUD();
+  }
+
+  registerKill(zombie) {
+    this.kills++;
+    this.maxWave = Math.max(this.maxWave, this.wave);
+    if (zombie && zombie.ztype === 'boss') this.bossesKilled++;
+    // Powerup trickle: every 12 kills earns a random powerup (cap 3 each)
+    if (this.kills % 12 === 0) {
+      const keys = ['bomb', 'freeze', 'shield'];
+      const k = keys[Math.floor(Math.random() * keys.length)];
+      if (this.powerups[k] < 3) {
+        this.powerups[k]++;
+        if (window.game) window.game.announce(`${k.toUpperCase()} +1`, k === 'bomb' ? '#ff5500' : k === 'freeze' ? '#00f2fe' : '#00ff66');
+        this.updatePowerupHUD();
+      }
+    }
+  }
+
+  startRun() {
+    this.kills = 0;
+    this.bestCombo = 1.0;
+    this.maxWave = 1;
+    this.bossesKilled = 0;
+    this.runStartEpoch = Date.now();
+    this.powerups = { bomb: 1, freeze: 1, shield: 1 };
+    this.freezeUntil = 0;
+    this.updatePowerupHUD();
+  }
+
+  usePowerup(kind) {
+    if (!this.powerups[kind] || this.powerups[kind] <= 0) return false;
+    if (this.currentState !== GameState.PLAYING) return false;
+    this.powerups[kind]--;
+    this.updatePowerupHUD();
+    return true;
+  }
+
+  updatePowerupHUD() {
+    ['bomb', 'freeze', 'shield'].forEach(k => {
+      const el = document.getElementById('powerup-count-' + k);
+      if (el) el.innerText = this.powerups[k] || 0;
+      const btn = document.getElementById('powerup-btn-' + k);
+      if (btn) btn.classList.toggle('depleted', !(this.powerups[k] > 0));
+    });
+  }
+
+  isFrozen() {
+    return performance.now() < this.freezeUntil;
+  }
+
+  recordRunEnd(wpm, accuracy, streak) {
+    let newBest = false;
+    if (wpm > this.bestWPM) { this.bestWPM = wpm; this.safeSet('gg_best_wpm', String(wpm)); newBest = true; }
+    if (streak > this.bestStreak) { this.bestStreak = streak; this.safeSet('gg_best_streak', String(streak)); }
+    const games = (parseInt(this.safeGet('gg_runs', '0'), 10) || 0) + 1;
+    this.safeSet('gg_runs', String(games));
+    const totalKills = (parseInt(this.safeGet('gg_total_kills', '0'), 10) || 0) + this.kills;
+    this.safeSet('gg_total_kills', String(totalKills));
+    this.updateMenuStats();
+    return newBest;
   }
 
   resetCombo() {
@@ -151,25 +316,26 @@ class StateManager {
   addCoins(amount) {
     this.coins += amount;
     this.coinsEarnedThisRun += amount;
-    localStorage.setItem('gg_coins', this.coins);
-    
-    const storeCoinsSpan = document.getElementById('store-coins');
-    if (storeCoinsSpan) storeCoinsSpan.innerText = this.coins;
+    this.safeSet('gg_coins', String(this.coins));
+    this.updateMenuStats();
   }
 
   saveSettings() {
-    localStorage.setItem('gg_sfx_vol', this.sfxVolume);
-    localStorage.setItem('gg_music_vol', this.musicVolume);
-    localStorage.setItem('gg_ultra_particles', this.ultraParticles);
+    this.safeSet('gg_sfx_vol', String(this.sfxVolume));
+    this.safeSet('gg_music_vol', String(this.musicVolume));
+    this.safeSet('gg_ultra_particles', String(this.ultraParticles));
+    this.safeSet('gg_screen_shake', String(this.screenShake));
   }
 
   buyItem(itemId, price) {
-    if (this.coins >= price && !this.ownedItems.includes(itemId)) {
-      this.coins -= price;
-      localStorage.setItem('gg_coins', this.coins);
-      
+    const cost = Number(price) || 0;
+    if (this.coins >= cost && !this.ownedItems.includes(itemId)) {
+      this.coins -= cost;
+      this.safeSet('gg_coins', String(this.coins));
+
       this.ownedItems.push(itemId);
-      localStorage.setItem('gg_owned', JSON.stringify(this.ownedItems));
+      this.safeSet('gg_owned', JSON.stringify(this.ownedItems));
+      this.updateMenuStats();
       return true;
     }
     return false;
@@ -177,16 +343,16 @@ class StateManager {
 
   equipItem(category, itemId) {
     if (!this.ownedItems.includes(itemId)) return false;
-    
+
     if (category === 'blood') {
       this.equippedBlood = itemId;
-      localStorage.setItem('gg_eq_blood', itemId);
+      this.safeSet('gg_eq_blood', itemId);
     } else if (category === 'fonts') {
       this.equippedFont = itemId;
-      localStorage.setItem('gg_eq_font', itemId);
+      this.safeSet('gg_eq_font', itemId);
     } else if (category === 'music') {
       this.equippedMusic = itemId;
-      localStorage.setItem('gg_eq_music', itemId);
+      this.safeSet('gg_eq_music', itemId);
     }
     return true;
   }
