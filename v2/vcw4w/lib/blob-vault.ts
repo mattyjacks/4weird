@@ -73,14 +73,20 @@ export const VAULT_CUT_NOTE = `Includes ${VAULT_CUT_PCT}% platform cut; never ad
 /** Clean a vault path: relative, POSIX, no escapes, 1..512 chars. Spaces and
  *  parentheses are allowed (screenshots like "Screenshot 2026-01-01 103922.png"
  *  or "Screenshot (12).png" must store); URL-breaking / glob / escape
- *  characters (& ? # * % ` ' " | ; < > $ ! \) stay rejected. */
+ *  characters (& ? # * % ` ' " | ; < > $ ! \) stay rejected.
+ *  Dot-runs ("..", "...") collapse to "_" instead of rejecting, so everyday
+ *  screenshot names store while traversal sequences can never survive. */
 export function cleanVaultPath(value: unknown): string {
   const raw = String(value ?? "").trim().replace(/\\/g, "/");
   if (!raw || raw.length > 512) return "";
-  if (raw.startsWith("/") || raw.includes("..") || raw.includes("//")) return "";
-  if (!/^[A-Za-z0-9._/@:+() \-]+$/.test(raw.replace(/\//g, "a"))) return "";
-  if (!/^[A-Za-z0-9._/() :\-]+$/.test(raw)) return "";
-  return raw.replace(/^\/+|\/+$/g, "");
+  if (raw.startsWith("/") || raw.includes("//")) return "";
+  // Collapse dot-runs first: "Screenshot ... 103922.png" -> "Screenshot _ 103922.png".
+  // This also erases every ".." traversal sequence before the allowlist check.
+  const flat = raw.replace(/\.\.+/g, "_");
+  if (flat.includes("..")) return "";
+  if (!/^[A-Za-z0-9._/@:+() \-]+$/.test(flat.replace(/\//g, "a"))) return "";
+  if (!/^[A-Za-z0-9._/@:+() \-]+$/.test(flat)) return "";
+  return flat.replace(/^\/+|\/+$/g, "");
 }
 
 /** Storage object key: scope-bucketed + content hash (dedup-friendly). */

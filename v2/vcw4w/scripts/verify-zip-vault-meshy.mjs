@@ -55,6 +55,10 @@ for (const sig of ["keylog", "EICAR", "mimikatz", "ransomware"]) {
 if (/report.*authorit.*automatically|auto.*report.*\bip\b/i.test(zip)) {
   fail("zip-submit lib must not promise automatic IP reporting (human-only by law).");
 }
+// Vault paths must store everyday screenshot names: dot-runs ("...") collapse
+// instead of rejecting, and the allowlist accepts @/+ (the upload form preserves them).
+if (!vault.includes("@:+")) fail("blob-vault allowlist must accept @/+ (upload form preserves them).");
+if (!vault.includes("\\.\\.+/g")) fail('blob-vault must collapse dot-runs so "..." screenshot names store.');
 
 // 2. Scopes: strictly separated, registered in both bot modules.
 const policy = read("../lib/bot-key-policy.ts");
