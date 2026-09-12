@@ -302,30 +302,43 @@
 
             const missions = window.GraveGainStoryMissions;
             const storyEngine = window.GraveGainStoryEngine || { isUnlocked: () => true, getProgress: () => ({ stars: {} }) };
+            let progress = { stars: {}, completedMissions: [] };
+            try { progress = storyEngine.getProgress() || progress; } catch (_) { /* ignore */ }
             grid.innerHTML = missions.map(m => {
                 const unlocked = storyEngine.isUnlocked(m.id);
-                const progress = storyEngine.getProgress();
-                const stars = progress.stars[m.id] || 0;
+                const stars = (progress.stars && progress.stars[m.id]) || 0;
+                const completed = (progress.completedMissions || []).includes(m.id) || stars > 0;
                 const isSelected = this.game.selectedStoryMissionId === m.id;
 
                 const starStr = unlocked ? '⭐'.repeat(stars) + '☆'.repeat(3 - stars) : '🔒 Locked';
+                const lockHint = unlocked ? '' : `<div class="mission-lock-hint">Complete Mission ${m.unlockedBy} to unlock</div>`;
                 return `
-                    <div class="glass-panel story-card ${unlocked ? '' : 'disabled'} ${isSelected ? 'selected' : ''}" 
+                    <div class="glass-panel story-card mission-card ${unlocked ? 'mission-unlocked' : 'mission-locked disabled'} ${isSelected ? 'mission-selected selected' : ''} ${completed ? 'mission-completed' : ''}"
+                         data-mission-id="${m.id}"
                          style="padding: 12px; border: 1px solid ${isSelected ? 'var(--grave-gold)' : 'var(--grave-border)'}; border-radius: 8px; cursor: ${unlocked ? 'pointer' : 'not-allowed'}; opacity: ${unlocked ? 1 : 0.6}; background: ${isSelected ? 'rgba(168,85,247,0.2)' : 'rgba(0,0,0,0.4)'};"
-                         onclick="window.GraveGainGame.selectStoryMission(${m.id})">
+                          onclick="window.GraveGainGame.selectStoryMission(${m.id})">
                         <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--grave-gold);">${m.location}</div>
-                        <h4 style="margin: 4px 0; font-family: 'Orbitron'; font-size: 0.95rem; color: white;">${m.title}</h4>
+                        <h4 style="margin: 4px 0; font-family: 'Orbitron'; font-size: 0.95rem; color: white;">${completed ? '✓ ' : ''}${m.title}</h4>
                         <p style="font-size: 0.78rem; color: var(--grave-text-muted); margin: 4px 0 8px 0;">${m.subtitle}</p>
                         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
                             <span>${starStr}</span>
-                            <span class="highlight-gold">+${m.rewardGold}g | +${m.rewardUusd}$</span>
+                            <span class="highlight-gold mission-reward">+${m.rewardGold}g | +${m.rewardUusd}$</span>
                         </div>
+                        ${lockHint}
                     </div>
                 `;
             }).join('');
 
             if (btnLaunch) {
-                btnLaunch.disabled = !this.game.selectedStoryMissionId;
+                const sel = this.game.selectedStoryMissionId;
+                const selUnlocked = sel ? storyEngine.isUnlocked(sel) : false;
+                btnLaunch.disabled = !sel || !selUnlocked;
+                if (sel && selUnlocked) {
+                    const m = missions.find(x => x.id === sel);
+                    btnLaunch.textContent = m ? `⚔️ Launch: ${m.title}` : '⚔️ Launch Selected Mission';
+                } else {
+                    btnLaunch.textContent = '⚔️ Launch Selected Mission';
+                }
             }
         }
 
@@ -336,11 +349,31 @@
         }
 
         playDialogueSequence(dialogueList, onComplete) {
+            // Queue: before/after sequences (and rapid re-triggers) chain
+            // instead of overlapping. IDs dialoguePortrait/dialogueSpeaker/
+            // dialogueText/btnNextDialogue are preserved.
+            if (!this._dlgQueue) this._dlgQueue = [];
             if (!dialogueList || dialogueList.length === 0) {
                 if (onComplete) onComplete();
+                this._pumpDialogue();
                 return;
             }
+            this._dlgQueue.push({ list: dialogueList, done: onComplete });
+            if (!this._dlgActive) this._pumpDialogue();
+        }
 
+        _pumpDialogue() {
+            const next = (this._dlgQueue || []).shift();
+            if (!next) { this._dlgActive = false; return; }
+            this._dlgActive = true;
+            this._runDialogue(next.list, () => {
+                try { if (next.done) next.done(); } catch (_) { /* ignore */ }
+                this._dlgActive = false;
+                this._pumpDialogue();
+            });
+        }
+
+        _runDialogue(dialogueList, onComplete) {
             const dialogueScreen = document.getElementById('storyDialogueScreen');
             const portrait = document.getElementById('dialoguePortrait');
             const speaker = document.getElementById('dialogueSpeaker');
@@ -354,21 +387,59 @@
 
             dialogueScreen.classList.remove('hidden');
             let idx = 0;
+            let typeTimer = 0;
+            let typing = false;
+            let fullText = '';
+
+            const speakLine = (item) => {
+                try { this.game.audio.speak(`${item.speaker} says: ${item.text}`); } catch (_) { /* TTS garnish */ }
+            };
+
+            const typeLine = (item) => {
+                fullText = item.text || '';
+                text.textContent = '';
+                typing = true;
+                nextBtn.textContent = 'Skip ➔';
+                let i = 0;
+                clearInterval(typeTimer);
+                typeTimer = setInterval(() => {
+                    i += 1;
+                    text.textContent = fullText.slice(0, i);
+                    if (i >= fullText.length) {
+                        clearInterval(typeTimer);
+                        typing = false;
+                        nextBtn.textContent = (idx >= dialogueList.length - 1) ? 'Finish ✔' : 'Continue ➔';
+                    }
+                }, 18);
+            };
 
             const showLine = () => {
                 const item = dialogueList[idx];
                 portrait.textContent = item.portrait || '🤖';
+                // Portrait pop: retrigger the CSS pop animation.
+                portrait.classList.remove('dlg-pop');
+                void portrait.offsetWidth;
+                portrait.classList.add('dlg-pop');
                 speaker.textContent = item.speaker;
-                text.textContent = item.text;
-                this.game.audio.speak(`${item.speaker} says: ${item.text}`);
+                typeLine(item);
+                speakLine(item);
             };
 
             const handleNext = () => {
+                // First click while typing = skip to full line; next click advances.
+                if (typing) {
+                    clearInterval(typeTimer);
+                    typing = false;
+                    text.textContent = fullText;
+                    nextBtn.textContent = (idx >= dialogueList.length - 1) ? 'Finish ✔' : 'Continue ➔';
+                    return;
+                }
                 idx++;
                 if (idx < dialogueList.length) {
                     showLine();
                 } else {
-                    nextBtn.removeEventListener('click', handleNext);
+                    clearInterval(typeTimer);
+                    nextBtn.onclick = null;
                     dialogueScreen.classList.add('hidden');
                     if (onComplete) onComplete();
                 }

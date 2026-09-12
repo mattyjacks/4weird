@@ -9,10 +9,10 @@ var difficulty = 'easy';
 var killHistory = [];
 
 var gameState = {
-    balance: 1000,
-    incomePerSec: 10,
+    balance: 1500,
+    incomePerSec: 12,
     customerTrust: 100,
-    reputation: 50,
+    reputation: 65,
     serverCount: 1,
     bankruptcyTimer: 0,
     selectedServer: 0,
@@ -35,10 +35,10 @@ function resetGameState() {
     maxCombo = 1;
     killHistory = [];
     gameState = {
-        balance: 1000,
-        incomePerSec: 10,
+        balance: 1500,
+        incomePerSec: 12,
         customerTrust: 100,
-        reputation: 50,
+        reputation: 65,
         serverCount: 1,
         bankruptcyTimer: 0,
         selectedServer: 0,

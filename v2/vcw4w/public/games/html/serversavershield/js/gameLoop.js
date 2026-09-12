@@ -82,6 +82,8 @@ function draw() {
     }
 }
 
+var _outerMatrixTick = 0;
+
 function gameLoop() {
     try {
         if (gameRunning) {
@@ -93,10 +95,15 @@ function gameLoop() {
             if (typeof updateStars === 'function') updateStars();
             if (typeof drawStars === 'function') drawStars();
         }
-        
-        // Update page-wide matrix background
+
+        // Page-wide matrix background: every frame on Beautiful, every 3rd
+        // frame on Fast (it repaints the whole page, so this is a big saver).
         if (typeof updateAndDrawOuterMatrix === 'function') {
-            updateAndDrawOuterMatrix();
+            _outerMatrixTick++;
+            const pretty = (typeof isBeautiful === 'function') && isBeautiful();
+            if (pretty || (_outerMatrixTick % 3 === 0)) {
+                updateAndDrawOuterMatrix();
+            }
         }
     } catch (error) {
         console.error('[GAMELOOP] Error in game loop:', error);

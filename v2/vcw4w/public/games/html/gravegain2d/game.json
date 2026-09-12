@@ -1,7 +1,7 @@
 {
     "title": "GraveGain2D",
     "slug": "gravegain2d",
-    "description": "A dark fantasy action RPG featuring emoji-based visuals, 2.5D lighting, procedural dungeons, dialogue system, and a starship management hub.",
+    "description": "A dark fantasy action RPG featuring emoji-based visuals, 2.5D lighting, procedural dungeons, dialogue system, and a starship management hub. v2.0.0 adds the AAA presentation layer with full 10-mission campaign parity: cinematic layer intros, killstreak announcer, boss cinematics with slow-mo slays, objective tracker, tutorials, run stats, and adaptive audio.",
     "genre": "RPG",
     "tags": ["HTML5", "Action", "RPG", "Rogue-like"],
     "maker": {
@@ -45,10 +45,10 @@
     },
     "assets": {
         "external": [],
-        "local": ["game.js", "game.css"]
+        "local": ["game.js", "aaa/00-aaa-boot.js", "aaa/10-fx-film.js", "aaa/20-fx-titlecard.js", "aaa/30-fx-announcer.js", "aaa/40-fx-boss.js", "aaa/50-hud-objectives.js", "aaa/60-hud-tutorial.js", "aaa/70-hud-runstats.js", "aaa/80-audio-director.js", "aaa/90-menu-upgrade.js", "game.css", "aaa/css/10-film.css", "aaa/css/20-titlecard.css", "aaa/css/30-announcer-combo.css", "aaa/css/40-boss.css", "aaa/css/50-hud.css", "aaa/css/60-menu.css"]
     },
     "meta": {
-        "version": "1.2.0",
+        "version": "2.0.0",
         "created": "2026-06-08",
         "license": "MIT"
     }

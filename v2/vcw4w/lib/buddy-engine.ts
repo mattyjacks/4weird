@@ -245,6 +245,73 @@ export function smartBuddyUserPrompt(
   return lines.join("\n").slice(0, 3000);
 }
 
+/** Expand widget slash shortcuts into full model-ready prompts. Pure. */
+export function expandBuddySlashCommand(raw: string, screenText: string): { message: string; label: string | null } {
+  const text = String(raw ?? "").trim();
+  const screen = String(screenText ?? "").replace(/\s+/g, " ").trim().slice(0, 500);
+  const at = screen ? ` Current screen: ${screen}.` : "";
+  if (/^\/(tactics|tactic|tip|coach)\b/i.test(text)) {
+    const rest = text.replace(/^\/(tactics|tactic|tip|coach)\b/i, "").trim();
+    return {
+      message: `Give me one concise tactical recommendation based on the current battle state.${rest ? ` Focus: ${rest.slice(0, 300)}.` : ""}${at}`,
+      label: "tactics",
+    };
+  }
+  if (/^\/(hail|taunt|enemy)\b/i.test(text)) {
+    return {
+      message: `Hail the enemy commander: give one short fictional radio taunt, then one fair counter-tactic.${at}`,
+      label: "hail",
+    };
+  }
+  if (/^\/(react|look|see)\b/i.test(text)) {
+    const rest = text.replace(/^\/(react|look|see)\b/i, "").trim();
+    return {
+      message: `/react ${rest || screen || "to the current screen"}`.replace(/^\/react\s*/, "React to this moment in 1-2 short sentences: ").slice(0, 900) + at,
+      label: "react",
+    };
+  }
+  if (/^\/(vibe|mood|energy|camera)\b/i.test(text)) {
+    return {
+      message: "Assess my current emotional state and body language from the camera frame, then match my energy.",
+      label: "vibe",
+    };
+  }
+  if (/^\/(help|commands|\?)\b/i.test(text)) {
+    return {
+      message: "List what you can do in two short sentences: react to the screen, give one tactic, hail the enemy commander, read my vibe from the camera, and voice styles.",
+      label: "help",
+    };
+  }
+  return { message: text.slice(0, 900), label: null };
+}
+
+/** Per-game hello line so a fresh session feels alive instantly. Pure. */
+export function greetingForGame(gameTitle: string, gameSlug: string): string {
+  const title = String(gameTitle ?? "").trim() || "4weird lobby";
+  const slug = String(gameSlug ?? "").toLowerCase();
+  if (slug === "lobby") return `Hey, I'm your Gaming Buddy for ${title}. I'm watching the screen; talk to me while you play.`;
+  if (/zombie|lastword/i.test(`${slug} ${title}`)) return `Hey, I'm your Gaming Buddy for ${title}. Type fast, I'll call out the cyber-units crowding your terminal.`;
+  if (/grave|dungeon/i.test(`${slug} ${title}`)) return `Hey, I'm your Gaming Buddy for ${title}. I'll watch the dungeon with you and drop one fair tip whenever you're stuck.`;
+  if (/shark|battle/i.test(`${slug} ${title}`)) return `Hey, I'm your Gaming Buddy for ${title}. Swim loud — I'll narrate the mutations and hype the big eats.`;
+  if (/race|overtake|neonracer/i.test(`${slug} ${title}`)) return `Hey, I'm your Gaming Buddy for ${title}. Eyes on the track — I'll call the corners while you push the nitro.`;
+  if (/platform/i.test(`${slug} ${title}`)) return `Hey, I'm your Gaming Buddy for ${title}. I'll track the arena with you — jumps, rivals, all of it.`;
+  return `Hey, I'm your Gaming Buddy for ${title}. I'm watching the screen; talk to me while you play.`;
+}
+
+/** Serialize a transcript to plain text (.txt download). Pure. */
+export function transcriptToText(turns: { role: string; text: string; at: string }[]): string {
+  return turns.map((t) => `[${t.at}] ${t.role === "buddy" ? "Buddy" : "You"}: ${t.text}`).join("\n");
+}
+
+/** Rough pre-send cost estimate (chat leg only) for a draft, in coins. Pure. */
+export function estimateDraftCoins(draftChars: number, withImage: boolean): number {
+  const chars = Math.max(0, Number(draftChars) || 0);
+  const inTokens = Math.max(1, Math.ceil((chars + 400) / 4) + (withImage ? 1000 : 0));
+  const outTokens = 60;
+  const usd = (inTokens / 1_000_000) * 0.15 + (outTokens / 1_000_000) * 0.6 + 0.00002;
+  return Math.max(0.01, Math.round(((usd * 100) / 0.75) * 100) / 100);
+}
+
 /** Ready-to-fire Fal suggestion. Null = no media needed or Fal not configured. */
 export type BuddyFalHint = { op: string; model: string; prompt: string; coins: number };
 

@@ -2,7 +2,7 @@
 var powerups = [];
 
 function spawnPowerup(x, y) {
-    if (Math.random() > 0.20) return;
+    if (Math.random() > 0.28) return;
     const weaponKeys = Object.keys(WEAPONS);
     const types = [
         { type: 'heal', emoji: '💖', c: 0.15 },
@@ -40,8 +40,8 @@ function applyPowerup(type) {
         }
     } else {
         switch(type) {
-            case 'heal': gameState.balance = Math.min(gameState.balance + 100, 9999); addText(player.x, player.y - 40, '💖 +100 Balance!', '#ec4899', 16); break;
-            case 'shield': shieldTimer = 400; addText(player.x, player.y - 40, '🛡️ SHIELD ACTIVE!', '#3b82f6', 18); break;
+            case 'heal': gameState.balance = Math.min(gameState.balance + 150, 9999); addText(player.x, player.y - 40, '💖 +150 Balance!', '#ec4899', 16); break;
+            case 'shield': shieldTimer = 600; addText(player.x, player.y - 40, '🛡️ SHIELD ACTIVE!', '#3b82f6', 18); break;
             case 'companion': player.hasCompanion = true; player.companionTimer = 500; addText(player.x, player.y - 40, '👨‍💻 WHITE HAT ALLY!', '#10b981', 18); break;
             case 'nuke': enemies.forEach(e => { score += e.score; spawnParticles(e.x, e.y, '#f59e0b', 10); }); enemies = []; addText(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, '💣 SYSTEM PURGE! 💣', '#f59e0b', 24); playSound('nuke'); break;
         }

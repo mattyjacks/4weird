@@ -1,0 +1,75 @@
+/* GraveGain2D AAA — 40 boss intro + boss HP bar. */
+#canvasContainer .aaa-boss-intro {
+    position: absolute;
+    inset: 0;
+    z-index: 46;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    font-family: 'Orbitron', sans-serif;
+}
+#canvasContainer .aaa-boss-intro.on { opacity: 1; }
+#canvasContainer .aaa-boss-kicker {
+    color: hsl(0, 90%, 60%);
+    font-size: 0.85rem;
+    letter-spacing: 0.3em;
+    animation: aaa-boss-blink 0.5s steps(2) infinite;
+}
+@keyframes aaa-boss-blink {
+    50% { opacity: 0.4; }
+}
+#canvasContainer .aaa-boss-name {
+    color: #fff;
+    font-size: clamp(1.5rem, 5vw, 2.6rem);
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-shadow: 0 0 24px rgba(255, 0, 40, 0.9), 0 2px 0 #000;
+    animation: aaa-title-slam 0.5s cubic-bezier(0.2, 2.2, 0.4, 1);
+}
+#canvasContainer .aaa-boss-sub {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+}
+/* Boss HP bar: top-center of the viewport, hidden unless .on */
+#canvasContainer .aaa-bossbar {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(70%, 520px);
+    z-index: 43;
+    pointer-events: none;
+    display: none;
+    font-family: 'Orbitron', sans-serif;
+}
+#canvasContainer .aaa-bossbar.on { display: block; }
+#canvasContainer .aaa-bossbar-name {
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    color: hsl(0, 90%, 65%);
+    text-shadow: 0 1px 0 #000;
+    margin-bottom: 4px;
+}
+#canvasContainer .aaa-bossbar-track {
+    height: 10px;
+    background: rgba(0,0,0,0.6);
+    border: 1px solid rgba(255, 60, 80, 0.6);
+    border-radius: 5px;
+    overflow: hidden;
+}
+#canvasContainer .aaa-bossbar-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, hsl(0,85%,45%), hsl(0,95%,60%));
+    box-shadow: 0 0 10px rgba(255, 0, 40, 0.8);
+    transition: width 0.2s ease;
+}

@@ -1,0 +1,71 @@
+/* GraveGain3D AAA — main-menu treatment.
+   Pairs with aaa/90-menu-upgrade.js. */
+
+#mainMenuScreen .menu-title {
+    animation: aaa-menu-glow 3.2s ease-in-out infinite;
+}
+@keyframes aaa-menu-glow {
+    0%,100% { filter: drop-shadow(0 0 12px rgba(168,85,247,0.5)); }
+    50% { filter: drop-shadow(0 0 28px rgba(220,30,80,0.8)); }
+}
+
+.aaa-menu-tag {
+    display: inline-block; margin-top: 2px; font-family: 'Orbitron', sans-serif;
+    font-size: 0.68rem; letter-spacing: 0.35em; color: var(--grave-gold);
+    border: 1px solid rgba(255,204,76,0.4); border-radius: 20px; padding: 4px 14px;
+    background: rgba(255,204,76,0.06); text-transform: uppercase;
+}
+
+.aaa-continue-btn { position: relative; }
+.aaa-continue-btn::after {
+    content: 'SAVE FOUND'; position: absolute; top: -8px; right: -8px;
+    font-size: 0.55rem; font-family: 'Orbitron'; background: #16a34a; color: #fff;
+    padding: 2px 7px; border-radius: 10px; letter-spacing: 0.1em;
+}
+
+/* ---- Story campaign: mission cards, briefing panel, dialogue modal ----
+   (hub-quarters.js storyMissionsGrid render + campaign/20-campaign-ui.js) */
+
+/* Mission card states (lock/unlock/selected/completed). */
+.mission-card { transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease; }
+.mission-card.mission-unlocked:hover { transform: translateY(-2px); box-shadow: 0 4px 18px rgba(168,85,247,0.35); }
+.mission-card.mission-selected { box-shadow: 0 0 0 1px var(--grave-gold), 0 0 22px rgba(255,204,76,0.35); }
+.mission-card.mission-locked { filter: grayscale(0.6); }
+.mission-card.mission-locked:hover { transform: none; box-shadow: none; }
+.mission-card.mission-completed h4 { color: #4ade80; }
+.mission-lock-hint { font-size: 0.72rem; color: var(--grave-text-muted); margin-top: 6px; font-style: italic; }
+.mission-reward { white-space: nowrap; }
+
+/* Selected-mission briefing panel (campBriefing injected by campaign UI). */
+#campProgress {
+    font-family: 'Orbitron', sans-serif; font-size: 0.8rem; letter-spacing: 0.2em;
+    color: var(--grave-gold); margin-bottom: 12px; text-transform: uppercase;
+}
+#campBriefing {
+    margin-top: 14px; padding: 14px 16px; border-radius: 8px;
+    background: rgba(0,0,0,0.45); border: 1px solid var(--grave-gold);
+    border-left: 3px solid var(--grave-gold);
+}
+.camp-brief-empty { color: var(--grave-text-muted); font-size: 0.85rem; font-style: italic; }
+.camp-brief-title { font-family: 'Orbitron'; font-size: 1.05rem; color: #fff; }
+.camp-brief-sub { font-size: 0.82rem; color: var(--grave-gold); margin: 2px 0 8px 0; }
+.camp-brief-text { font-size: 0.85rem; line-height: 1.55; color: #e2e8f0; margin: 0 0 10px 0; }
+.camp-threat { font-size: 0.8rem; color: #f87171; margin-bottom: 10px; }
+.camp-obj-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+.camp-obj { display: flex; justify-content: space-between; font-size: 0.8rem; color: #e2e8f0; }
+.camp-meta { border-top: 1px solid var(--grave-border); padding-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+.camp-meta-row { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--grave-text-muted); }
+.camp-meta-row strong { color: #fff; font-weight: 600; }
+
+/* Dialogue modal: portrait pop + typewriter caret. */
+#dialoguePortrait.dlg-pop { animation: dlg-pop 0.35s cubic-bezier(0.16,1,0.3,1) both; }
+@keyframes dlg-pop {
+    0% { transform: scale(0.6); opacity: 0; }
+    60% { transform: scale(1.12); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+#dialogueText::after {
+    content: '▍'; color: var(--grave-gold); margin-left: 2px;
+    animation: dlg-caret 0.8s steps(1) infinite;
+}
+@keyframes dlg-caret { 0%,50% { opacity: 1; } 51%,100% { opacity: 0; } }

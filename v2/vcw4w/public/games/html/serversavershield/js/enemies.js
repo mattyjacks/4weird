@@ -1,6 +1,7 @@
 // Enemy Management
 var enemies = [];
 var spawnTimer = 0;
+var MAX_ENEMIES = 40;
 
 function spawnEnemy() {
     let types = ['blackhat', 'pentester'];
@@ -12,13 +13,14 @@ function spawnEnemy() {
     if (wave >= 7) types.push('socialeng');
     if (wave >= 8) types.push('cryptominer');
     
+    if (enemies.length >= MAX_ENEMIES) return;
     const typeKey = types[Math.floor(Math.random() * types.length)];
     const type = ENEMIES[typeKey];
     enemies.push({
         x: Math.random() * (CANVAS_WIDTH - 100) + 50,
         y: -40,
         vx: (Math.random() - 0.5) * 2,
-        vy: type.speed + (wave * 0.1),
+        vy: type.speed + (wave * 0.06),
         ...type,
         currentHp: type.hp,
         maxHp: type.hp,
@@ -31,7 +33,7 @@ function updateEnemies() {
     const diffMult = DIFFICULTY_MULTIPLIERS[difficulty].spawnRate;
     spawnTimer--;
     if (spawnTimer <= 0) {
-        spawnTimer = Math.max(20, Math.floor((60 - wave * 4) * diffMult));
+        spawnTimer = Math.max(35, Math.floor((75 - wave * 3) * diffMult));
         spawnEnemy();
     }
     

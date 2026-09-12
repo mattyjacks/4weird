@@ -32,7 +32,7 @@ export async function POST(req: Request) {
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);
   const rl = rateLimit(`buddy:presence:${data.user.id}`, 60, 60_000);
-  if (!rl.allowed) return fail("Rate limited.", 429);
+  if (!rl.allowed) return fail("Rate limited.", 429, { "Retry-After": String(rl.retryAfter) });
   let body: unknown;
   try {
     body = await req.json();
@@ -43,7 +43,11 @@ export async function POST(req: Request) {
   const feature = String(input.feature ?? "").trim().toLowerCase();
   if (!(FEATURES as readonly string[]).includes(feature)) return fail('Unknown feature. Use "avatar" or "camera".', 400);
   const qty = Number(input.qty ?? 1);
-  if (!Number.isFinite(qty) || qty <= 0 || qty > 100000000) return fail("Invalid qty.", 400);
+  // Sane per-call caps: avatar heartbeats tick 1 min (a full day = 1440);
+  // camera frames ride explicit turns (dozens max). The old 100M ceiling let
+  // a buggy loop drain a wallet in one call.
+  const maxQty = feature === "avatar" ? 1440 : 60;
+  if (!Number.isFinite(qty) || qty <= 0 || qty > maxQty) return fail(`Invalid qty (max ${maxQty} per call).`, 400);
   const game = /^[a-z0-9-]{1,64}$/.test(String(input.game_slug ?? input.game ?? "lobby"))
     ? String(input.game_slug ?? input.game ?? "lobby")
     : "lobby";

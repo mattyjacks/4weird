@@ -1,0 +1,97 @@
+/* GraveGain2D AAA — 30 killstreak announcer + combo meter + hitmarker. */
+#canvasContainer .aaa-announcer {
+    position: absolute;
+    top: 22%;
+    left: 0;
+    right: 0;
+    z-index: 47;
+    text-align: center;
+    pointer-events: none;
+    opacity: 0;
+    font-family: 'Orbitron', sans-serif;
+}
+#canvasContainer .aaa-announcer.on { animation: aaa-announce-pop 1.6s ease-out; }
+@keyframes aaa-announce-pop {
+    0% { opacity: 0; transform: scale(0.6); }
+    12% { opacity: 1; transform: scale(1.12); }
+    22% { transform: scale(1); }
+    75% { opacity: 1; }
+    100% { opacity: 0; transform: scale(1.02); }
+}
+#canvasContainer .aaa-announce-main {
+    font-size: clamp(1.4rem, 4.5vw, 2.4rem);
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    color: hsl(45, 95%, 60%);
+    text-shadow: 0 0 20px rgba(255, 180, 0, 0.9), 0 2px 0 #000;
+}
+#canvasContainer .aaa-announce-sub {
+    font-size: 0.8rem;
+    letter-spacing: 0.3em;
+    color: rgba(255,255,255,0.8);
+    text-transform: uppercase;
+}
+#canvasContainer .aaa-combo {
+    position: absolute;
+    right: 14px;
+    top: 38%;
+    z-index: 47;
+    text-align: right;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(12px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    font-family: 'Orbitron', sans-serif;
+}
+#canvasContainer .aaa-combo.on { opacity: 1; transform: none; }
+#canvasContainer .aaa-combo-n {
+    font-size: 1.3rem;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 0 12px rgba(168, 85, 247, 0.9);
+}
+#canvasContainer .aaa-combo-n small { font-size: 0.65rem; letter-spacing: 0.2em; color: hsl(45,90%,55%); }
+#canvasContainer .aaa-combo-bar {
+    width: 110px;
+    height: 5px;
+    margin-top: 4px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 3px;
+    overflow: hidden;
+}
+#canvasContainer .aaa-combo-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, hsl(270,85%,55%), hsl(45,90%,55%));
+}
+/* Hitmarker X at screen center; gold (.crit) on kills */
+#canvasContainer .aaa-hitmarker {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 26px;
+    height: 26px;
+    margin: -13px 0 0 -13px;
+    z-index: 47;
+    pointer-events: none;
+    opacity: 0;
+}
+#canvasContainer .aaa-hitmarker span {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 9px;
+    height: 2px;
+    background: #fff;
+    box-shadow: 0 0 4px rgba(255,255,255,0.9);
+}
+#canvasContainer .aaa-hitmarker span:nth-child(1) { transform: translate(-11px,-7px) rotate(45deg); }
+#canvasContainer .aaa-hitmarker span:nth-child(2) { transform: translate(2px,-7px) rotate(-45deg); }
+#canvasContainer .aaa-hitmarker span:nth-child(3) { transform: translate(-11px,5px) rotate(-45deg); }
+#canvasContainer .aaa-hitmarker span:nth-child(4) { transform: translate(2px,5px) rotate(45deg); }
+#canvasContainer .aaa-hitmarker.crit span { background: hsl(45,95%,60%); box-shadow: 0 0 6px rgba(255,180,0,1); }
+#canvasContainer .aaa-hitmarker.on { animation: aaa-marker-pop 0.3s ease-out; }
+@keyframes aaa-marker-pop {
+    0% { opacity: 1; transform: scale(1.4); }
+    100% { opacity: 0; transform: scale(0.9); }
+}

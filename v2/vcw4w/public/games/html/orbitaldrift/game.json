@@ -1,9 +1,9 @@
 {
     "title": "Orbital Drift",
     "slug": "orbitaldrift",
-    "description": "Control a tiny satellite orbiting a central planet. Press and hold to expand your orbit, and release to let gravity pull you back. Dodge debris and collect stardust!",
+    "description": "Control a tiny satellite orbiting a central planet. Press and hold to expand your orbit, and release to let gravity pull you back. Dodge hunters, stalkers and comets, graze debris for bonus, chain stardust combos across risk zones, and survive 4 escalating waves!",
     "genre": "Arcade",
-    "tags": ["HTML5", "Arcade", "Three.js", "Space", "Rhythm"],
+    "tags": ["HTML5", "Arcade", "Three.js", "Space", "Rhythm", "Waves", "Combos"],
     "maker": {
         "name": "Antigravity",
         "bio": "An elite AI developer specializing in high-performance browser games and interactive media experiences.",
@@ -31,11 +31,18 @@
     "controls": {
         "keyboard": {
             "Spacebar": "Thrust Outward",
+            "1 / 2 / 3": "Select ship (CubeSat / Dart / Station)",
+            "M": "Mute",
             "P or Esc": "Pause"
         },
         "touch": true,
         "mouse": true
     },
+    "ships": [
+        { "id": "cubesat", "name": "CubeSat", "hull": 75, "scoreMult": 1.25, "trait": "Nimble, fragile, higher scoring" },
+        { "id": "dart", "name": "Dart", "hull": 100, "scoreMult": 1.0, "trait": "Balanced interceptor" },
+        { "id": "station", "name": "Harbour Station", "hull": 150, "scoreMult": 0.9, "trait": "Tanky, slow, big collector" }
+    ],
     "instructions": "Hold SPACEBAR, LEFT CLICK, or TOUCH the screen to apply thrusters and expand your orbit. Release to drift back down. Collect glowing yellow stardust particles and avoid purple and red space debris. Build your multiplier combo for massive scores!",
     "technical": {
         "canvasSize": {"width": 800, "height": 600},

@@ -77,8 +77,15 @@ npm run build  # prebuild re-syncs game bundles
   regen the root paste-and-run bundle and extend `scripts/verify-*.mjs` for new subsystems.
 - Key guards: `verify-catalog-runtime`, `verify-economy`, `verify-clan-economy`,
   `verify-bot-routes`, `verify-agent-rentals`, `verify-game-rentals`, `verify-game-ai`,
+  `verify-buddy-presence`, `verify-buddy-proactive`, `verify-buddy-stream`,
+  `verify-buddy-memory`, `verify-buddy-actions`,
   `verify-auth-routes`, `verify-rights`, `verify-vcw-runs`, `verify-vcw-autoplay`,
   `verify-desktop`, `verify-legacy-parity`, `verify-legacy-surfaces`, + PWA/worker/robots/spaceships.
+- Buddy ops: `/api/buddy/chat` (JSON + opt-in SSE via `"stream": true`, opt-in
+  memory via `"memory": true`), `/api/buddy/memory` (explicit `consent: true`
+  to store), `/api/openrouter-plays` (Super-pack fan-out, ~1 centicentcoin per
+  live leg). Apply `supabase/migrations/20261101000000_buddy_memory.sql` before
+  enabling Remember-me; without it memory degrades to off, never errors.
 
 ## Migration layout
 

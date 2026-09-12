@@ -10,6 +10,33 @@ import { BUDDY_DEFAULT_VOICE, cleanBuddyVoice } from "@/lib/game-ai";
 export const dynamic = "force-dynamic";
 
 /**
+ * GET /api/buddy/session?open=1; list the caller's most recent buddy
+ * sessions (newest first) so the widget can resume an open session after a
+ * reload instead of orphaning it. Read-only; never mints rows.
+ */
+export async function GET(req: Request) {
+  if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) return fail("Authentication required.", 401);
+  const q = new URL(req.url).searchParams;
+  const onlyOpen = q.get("open") === "1";
+  try {
+    let query = supabase
+      .from("buddy_sessions")
+      .select("id, game_slug, voice, started_at, ended_at, turns, gross")
+      .order("started_at", { ascending: false })
+      .limit(10);
+    if (onlyOpen) query = query.is("ended_at", null);
+    const { data: sessions, error } = await query;
+    if (error) return dbFail("api/buddy/session:list", error, "Unable to list sessions.");
+    return ok({ sessions: sessions ?? [] });
+  } catch (error) {
+    return dbFail("api/buddy/session:list", error, "Unable to list sessions.");
+  }
+}
+
+/**
  * POST /api/buddy/session; open/close a universal Gaming Buddy session.
  * Body: { action: "start", game_slug?, voice? } | { action: "end", session_id }.
  * Sessions group metered turns so the widget + /my/usage show live session

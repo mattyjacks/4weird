@@ -35,7 +35,7 @@ export async function POST(req: Request) {
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);
   const rl = rateLimit(`buddy:tts:${data.user.id}`, 30, 60_000);
-  if (!rl.allowed) return fail("Rate limited.", 429);
+  if (!rl.allowed) return fail("Rate limited.", 429, { "Retry-After": String(rl.retryAfter) });
   let body: unknown;
   try {
     body = await req.json();
@@ -81,19 +81,44 @@ export async function POST(req: Request) {
   // True-cost voice leg: chars at the model's USD rate + one DB leg. The RPC
   // prices buddy-tts at 2 coins per qty unit, so derive qty from the
   // true-cost gross; the ledger lands on the accurate figure.
-  // Balance is pre-checked (402 when short) AND the debit lands BEFORE the
-  // provider call: metering gates the goods, so a failed meter fails the
-  // turn instead of serving unmetered audio (each would leak real OpenAI
-  // spend). The meter RPC re-checks balance under its spend lock, so a race
-  // that empties the wallet between check and debit still fails closed.
+  // Balance is pre-checked (402 when short) BEFORE the provider call so broke
+  // wallets never burn OpenAI spend; the debit lands AFTER the provider
+  // succeeds but BEFORE audio bytes are delivered, so users never pay for
+  // failed OpenAI calls and never receive unmetered audio. The meter RPC
+  // re-checks balance under its spend lock, so a race that empties the wallet
+  // between check and debit still fails closed (and the fetched audio is
+  // discarded, never delivered).
   const cost = quoteBuddyTtsLeg({ chars: text.length, model });
   const gross = cost.grossCoins;
   try {
     const { data: bal, error: balError } = await supabase.rpc("get_my_coin_balance");
     if (balError) return dbFail("api/buddy/tts:balance", balError, "Unable to check balance.");
-    if ((Number(bal) || 0) < gross) return fail("Insufficient Vibe Coin balance.", 402);
+    if ((Number(bal) || 0) < gross) return fail("Insufficient Vibe Coin balance. Top up to keep talking.", 402);
   } catch (error) {
     return dbFail("api/buddy/tts:balance", error, "Unable to check balance.");
+  }
+
+  let buf: Buffer;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 20_000);
+    let res: Response;
+    try {
+      res = await fetch("https://api.openai.com/v1/audio/speech", {
+        method: "POST",
+        signal: controller.signal,
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+        body: JSON.stringify({ model, voice, input: text.slice(0, 2000), speed, response_format: "mp3" }),
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+    if (!res.ok) throw new Error(`tts HTTP ${res.status}`);
+    buf = Buffer.from(await res.arrayBuffer());
+    if (buf.length > 2_000_000) throw new Error("tts too large");
+  } catch (err) {
+    console.error("[buddy] tts provider failed before metering (no charge):", err);
+    return fail("Voice generation failed before metering; no coins moved. Retry or use browser speech.", 502);
   }
   let metered: unknown = null;
   try {
@@ -110,45 +135,24 @@ export async function POST(req: Request) {
     return dbFail("api/buddy/tts:meter", error, "Unable to meter this turn.");
   }
 
-  try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 20_000);
-    let res: Response;
-    try {
-      res = await fetch("https://api.openai.com/v1/audio/speech", {
-        method: "POST",
-        signal: controller.signal,
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-        body: JSON.stringify({ model, voice, input: text.slice(0, 2000), speed, response_format: "mp3" }),
-      });
-    } finally {
-      clearTimeout(timer);
-    }
-    if (!res.ok) throw new Error(`tts HTTP ${res.status}`);
-    const buf = Buffer.from(await res.arrayBuffer());
-    if (buf.length > 2_000_000) throw new Error("tts too large");
-    return ok({
-      fallback: false,
-      voice,
-      model,
-      speed,
-      gross,
-      cost: {
-        grossCoins: cost.grossCoins,
-        grossCenticentcoins: cost.grossCenticentcoins,
-        cut: cost.cut,
-        provider: cost.provider,
-        usdProvider: cost.usdProvider,
-        usdGross: cost.usdGross,
-        parts: cost.parts,
-        display: formatBuddyCost(cost),
-      },
-      metered,
-      audio: buf.toString("base64"),
-      mime: "audio/mpeg",
-    });
-  } catch (err) {
-    console.error("[buddy] tts failed after metering:", err);
-    return fail("Voice generation failed after the turn was metered; retry or use browser speech.", 502);
-  }
+  return ok({
+    fallback: false,
+    voice,
+    model,
+    speed,
+    gross,
+    cost: {
+      grossCoins: cost.grossCoins,
+      grossCenticentcoins: cost.grossCenticentcoins,
+      cut: cost.cut,
+      provider: cost.provider,
+      usdProvider: cost.usdProvider,
+      usdGross: cost.usdGross,
+      parts: cost.parts,
+      display: formatBuddyCost(cost),
+    },
+    metered,
+    audio: buf.toString("base64"),
+    mime: "audio/mpeg",
+  });
 }

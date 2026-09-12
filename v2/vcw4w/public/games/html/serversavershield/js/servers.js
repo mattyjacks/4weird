@@ -14,8 +14,8 @@ function initServers() {
             id: i,
             x: CANVAS_WIDTH * positions[i],
             y: 440,
-            hp: 100,
-            maxHp: 100,
+            hp: 150,
+            maxHp: 150,
             emoji: emojis[i],
             status: 'online', // online, degraded, offline
             lastHit: 0,
@@ -111,7 +111,7 @@ function damageServer(serverId, damage, enemyType) {
         server.status = 'offline';
         updateServerIncomeContribution();
         playSound('die');
-    } else if (server.hp < 30) {
+    } else if (server.hp < 45) {
         server.status = 'degraded';
     }
 }
@@ -119,10 +119,10 @@ function damageServer(serverId, damage, enemyType) {
 function healServer(serverId, amount) {
     const server = servers[serverId];
     if (!server) return;
-    
+
     server.hp = Math.min(server.maxHp, server.hp + amount);
-    
-    if (server.hp > 30 && server.status === 'degraded') {
+
+    if (server.hp > 45 && server.status === 'degraded') {
         server.status = 'online';
         updateServerIncomeContribution();
     } else if (server.status === 'offline' && amount > 50) {

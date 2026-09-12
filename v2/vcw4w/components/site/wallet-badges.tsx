@@ -42,8 +42,8 @@ export function formatMenuCrowns(totalCrowns: number): string {
 /**
  * Always-on wallet badges for the site menu.
  * Polls coin + crown balances every 10s while signed in.
- * Coins always show (rounded from centicentcoins); crowns show only when
- * the total including locked crowns is >= 1.
+ * Coins always show (rounded from centicentcoins); crowns always show
+ * too (total including locked crowns, 👑0 when none yet).
  */
 export function WalletBadges({ signedIn }: { signedIn: boolean | null }) {
   const [coinsCc, setCoinsCc] = useState<number | null>(null);
@@ -80,14 +80,15 @@ export function WalletBadges({ signedIn }: { signedIn: boolean | null }) {
   if (signedIn !== true) return null;
   if (coinsCc === null) return null;
 
-  const showCrowns = crownsTotal !== null && crownsTotal >= 1;
+  const crowns = crownsTotal ?? 0;
   const coinsLabel = `${Math.round(coinsCc / 100).toLocaleString("en-US")} coins`;
+  const crownsLabel = `${Math.round(crowns).toLocaleString("en-US")} crowns`;
 
   return (
     <span
       role="status"
       aria-live="polite"
-      aria-label={showCrowns ? `${coinsLabel}, ${Math.round(crownsTotal as number).toLocaleString("en-US")} crowns` : coinsLabel}
+      aria-label={`${coinsLabel}, ${crownsLabel}`}
       className="inline-flex items-center gap-1.5 text-sm font-bold"
     >
       <Link
@@ -97,15 +98,13 @@ export function WalletBadges({ signedIn }: { signedIn: boolean | null }) {
       >
         {formatMenuCoins(coinsCc)}
       </Link>
-      {showCrowns && (
-        <Link
-          href="/account"
-          title="Your crown balance, including locked crowns"
-          className="rounded-full border border-border px-2 py-0.5 text-foreground transition hover:bg-accent hover:text-accent-foreground"
-        >
-          {formatMenuCrowns(crownsTotal as number)}
-        </Link>
-      )}
+      <Link
+        href="/account"
+        title="Your crown balance, including locked crowns"
+        className="rounded-full border border-border px-2 py-0.5 text-foreground transition hover:bg-accent hover:text-accent-foreground"
+      >
+        {formatMenuCrowns(crowns)}
+      </Link>
     </span>
   );
 }

@@ -1,7 +1,10 @@
 // Particle Effects
 var particles = [];
+var MAX_PARTICLES = 220;
 
 function spawnParticles(x, y, color, count, emoji) {
+    if (particles.length >= MAX_PARTICLES) return;
+    count = Math.min(count, MAX_PARTICLES - particles.length);
     for (let i = 0; i < count; i++) {
         const angle = (Math.PI * 2 * i) / count;
         particles.push({

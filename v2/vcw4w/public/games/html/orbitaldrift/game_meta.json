@@ -1,9 +1,24 @@
 {
   "name": "Orbital Drift",
-  "objective": "Navigate a spacecraft through orbital paths without crashing. Survive as long as possible.",
-  "controls": "Arrow Keys or WASD to steer. Space may activate thrust or special abilities.",
-  "known_states": ["menu", "playing", "game_over"],
-  "win_condition": "Survive for as long as possible and reach the highest distance or score.",
-  "avoid": "Colliding with asteroids, debris, or other orbital bodies.",
-  "tips": "Look for a Start or Play button on the menu. During gameplay the ship moves continuously — steer carefully. After game_over, a Retry or Play Again button should appear."
+  "objective": "Pick a hull (CubeSat, Dart, Harbour Station), then hold to expand orbit and release to fall back. Chain stardust combos across risk zones and survive 4 escalating waves.",
+  "controls": "Hold SPACE / mouse / touch to expand orbit, release to contract. Press 1/2/3 or click a hangar card to select CubeSat/Dart/Station. M mutes. P or Esc pauses.",
+  "ships": ["cubesat", "dart", "station"],
+  "known_states": ["menu", "playing", "paused", "game_over"],
+  "selectors": {
+    "canvas": "#TEMPLATE-4weird-gameCanvas",
+    "start": "#TEMPLATE-4weird-start-btn",
+    "resume": "#TEMPLATE-4weird-resume-btn",
+    "restart": "#TEMPLATE-4weird-restart-btn",
+    "playAgain": "#TEMPLATE-4weird-play-again-btn",
+    "hangar": "#TEMPLATE-4weird-hangar-btn",
+    "quitToHangar": "#TEMPLATE-4weird-quit-btn",
+    "score": "#hud-score",
+    "shipCards": ".TEMPLATE-4weird-ship-card"
+  },
+  "debug_api": "window.gameDebug (getState/snapshot/start/setThrust/hangar/getShip/setShip/ships/godMode/...)",
+  "engine": "three.js r128 (CDN cdnjs + unpkg fallback)",
+  "flow": "hangar (menu) -> playing -> paused -> playing | game_over (score) -> hangar. Re-launch replays the same hull; Hangar returns to ship select.",
+  "win_condition": "Survive as long as possible and reach the highest distance or score.",
+  "avoid": "Colliding with asteroids, stalkers, weavers, darters, splitters, comets, or other orbital bodies.",
+  "tips": "CubeSat scores +25% but dies fast; Station tanks 150 hull but is huge and slow. Graze debris edges for combo time. Look for a Start or Play button on the menu. After game_over, a Re-launch button appears."
 }

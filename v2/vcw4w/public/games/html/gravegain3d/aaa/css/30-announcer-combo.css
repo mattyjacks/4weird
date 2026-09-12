@@ -1,0 +1,64 @@
+/* GraveGain3D AAA — killstreak announcer + combo meter + hitmarker.
+   Pairs with aaa/30-fx-announcer.js. */
+
+.aaa-announcer {
+    position: absolute; top: 24%; left: 0; right: 0; z-index: 56; text-align: center;
+    pointer-events: none; opacity: 0;
+}
+.aaa-announcer.on { animation: aaa-announce 1.6s cubic-bezier(0.16,1,0.3,1) forwards; }
+.aaa-announcer .aaa-announce-main {
+    font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 2.2rem; letter-spacing: 0.15em;
+    background: linear-gradient(180deg, #fff 20%, var(--grave-gold) 60%, #ff6a00 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 18px rgba(255,180,40,0.55)) drop-shadow(0 3px 0 rgba(0,0,0,0.9));
+}
+.aaa-announcer .aaa-announce-sub {
+    margin-top: 4px; font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem; letter-spacing: 0.3em; color: #fff; opacity: 0.85;
+}
+@keyframes aaa-announce {
+    0% { opacity: 0; transform: scale(0.7); } 12% { opacity: 1; transform: scale(1.08); }
+    22% { transform: scale(1); } 78% { opacity: 1; } 100% { opacity: 0; transform: scale(1.02) translateY(-10px); }
+}
+
+.aaa-combo {
+    position: absolute; right: 18px; top: 42%; z-index: 44; text-align: right;
+    pointer-events: none; opacity: 0; transform: translateX(12px);
+    transition: opacity 0.2s, transform 0.2s;
+    font-family: 'Orbitron', sans-serif;
+}
+.aaa-combo.on { opacity: 1; transform: none; }
+.aaa-combo .aaa-combo-n {
+    font-size: 2rem; font-weight: 900; color: #fff;
+    text-shadow: 0 0 14px rgba(168,85,247,0.9);
+}
+.aaa-combo .aaa-combo-n small { font-size: 0.8rem; color: var(--grave-gold); letter-spacing: 0.2em; }
+.aaa-combo .aaa-combo-bar {
+    width: 120px; height: 5px; margin-top: 6px; margin-left: auto;
+    background: rgba(255,255,255,0.12); border-radius: 3px; overflow: hidden;
+}
+.aaa-combo .aaa-combo-fill {
+    height: 100%; width: 100%;
+    background: linear-gradient(90deg, var(--grave-purple-glow), var(--grave-crimson-glow), var(--grave-gold));
+}
+
+.aaa-hitmarker {
+    position: absolute; top: 50%; left: 50%; width: 34px; height: 34px; z-index: 49;
+    transform: translate(-50%,-50%); pointer-events: none; opacity: 0;
+}
+.aaa-hitmarker span {
+    position: absolute; left: 50%; top: 50%; width: 12px; height: 2px; background: #fff;
+    box-shadow: 0 0 6px rgba(255,255,255,0.9);
+}
+.aaa-hitmarker span:nth-child(1) { transform: translate(-130%,-130%) rotate(45deg); }
+.aaa-hitmarker span:nth-child(2) { transform: translate(30%,-130%) rotate(-45deg); }
+.aaa-hitmarker span:nth-child(3) { transform: translate(-130%,30%) rotate(-45deg); }
+.aaa-hitmarker span:nth-child(4) { transform: translate(30%,30%) rotate(45deg); }
+.aaa-hitmarker.on { animation: aaa-hitpop 0.18s ease-out; }
+.aaa-hitmarker.crit span {
+    background: var(--grave-gold); box-shadow: 0 0 10px rgba(255,200,60,1); height: 3px; width: 15px;
+}
+@keyframes aaa-hitpop {
+    0% { opacity: 1; transform: translate(-50%,-50%) scale(1.5); }
+    100% { opacity: 0; transform: translate(-50%,-50%) scale(0.9); }
+}

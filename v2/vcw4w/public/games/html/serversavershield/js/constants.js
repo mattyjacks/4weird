@@ -56,18 +56,30 @@ const STAFF_TYPES = {
 };
 
 const ENEMIES = {
-    blackhat: { name: 'Black Hat', emoji: '🎩', hp: 1, speed: 2.5, score: 10, color: '#a855f7', radius: 18, behavior: 'direct', reputationDmg: 2, computeUsage: 50 },
-    trojan: { name: 'Trojan Horse', emoji: '🐴', hp: 3, speed: 1.5, score: 50, color: '#f59e0b', radius: 24, behavior: 'stealth', reputationDmg: 3, computeUsage: 80 },
-    pentester: { name: 'AI Pen Tester', emoji: '🤖', hp: 2, speed: 3.5, score: 30, color: '#06b6d4', radius: 16, behavior: 'evasive', reputationDmg: 1, computeUsage: 40 },
-    agency: { name: 'Intelligence Agency', emoji: '🧠', hp: 4, speed: 2, score: 60, color: '#8b5cf6', radius: 22, behavior: 'strategic', reputationDmg: 4, computeUsage: 120 },
-    ddos: { name: 'DDOS Attack', emoji: '🔥', hp: 5, speed: 1, score: 100, color: '#dc2626', radius: 30, behavior: 'direct', reputationDmg: 5, computeUsage: 200 },
-    ransomware: { name: 'Ransomware', emoji: '🔒', hp: 4, speed: 1.2, score: 80, color: '#ec4899', radius: 26, behavior: 'stealth', reputationDmg: 6, computeUsage: 150 },
-    fraudster: { name: 'Fraudster', emoji: '💰', hp: 2, speed: 2, score: 40, color: '#f97316', radius: 16, behavior: 'economic', reputationDmg: 7, computeUsage: 100 },
-    socialeng: { name: 'Social Engineer', emoji: '🎭', hp: 1, speed: 2.8, score: 25, color: '#06b6d4', radius: 14, behavior: 'direct', reputationDmg: 8, computeUsage: 60 },
-    cryptominer: { name: 'Cryptominer', emoji: '⛏️', hp: 3, speed: 1.8, score: 55, color: '#f59e0b', radius: 20, behavior: 'stealth', reputationDmg: 4, computeUsage: 180 }
+    blackhat: { name: 'Black Hat', emoji: '🎩', hp: 1, speed: 1.8, score: 10, color: '#a855f7', radius: 18, behavior: 'direct', reputationDmg: 1, computeUsage: 50 },
+    trojan: { name: 'Trojan Horse', emoji: '🐴', hp: 2, speed: 1.1, score: 50, color: '#f59e0b', radius: 24, behavior: 'stealth', reputationDmg: 2, computeUsage: 80 },
+    pentester: { name: 'AI Pen Tester', emoji: '🤖', hp: 2, speed: 2.6, score: 30, color: '#06b6d4', radius: 16, behavior: 'evasive', reputationDmg: 1, computeUsage: 40 },
+    agency: { name: 'Intelligence Agency', emoji: '🧠', hp: 3, speed: 1.5, score: 60, color: '#8b5cf6', radius: 22, behavior: 'strategic', reputationDmg: 3, computeUsage: 120 },
+    ddos: { name: 'DDOS Attack', emoji: '🔥', hp: 4, speed: 0.8, score: 100, color: '#dc2626', radius: 30, behavior: 'direct', reputationDmg: 4, computeUsage: 200 },
+    ransomware: { name: 'Ransomware', emoji: '🔒', hp: 3, speed: 0.9, score: 80, color: '#ec4899', radius: 26, behavior: 'stealth', reputationDmg: 4, computeUsage: 150 },
+    fraudster: { name: 'Fraudster', emoji: '💰', hp: 2, speed: 1.5, score: 40, color: '#f97316', radius: 16, behavior: 'economic', reputationDmg: 5, computeUsage: 100 },
+    socialeng: { name: 'Social Engineer', emoji: '🎭', hp: 1, speed: 2.1, score: 25, color: '#06b6d4', radius: 14, behavior: 'direct', reputationDmg: 5, computeUsage: 60 },
+    cryptominer: { name: 'Cryptominer', emoji: '⛏️', hp: 2, speed: 1.3, score: 55, color: '#f59e0b', radius: 20, behavior: 'stealth', reputationDmg: 3, computeUsage: 180 }
 };
 
 const DIFFICULTY_MULTIPLIERS = {
-    easy: { spawnRate: 0.7, playerDamage: 1.3 },
-    hard: { spawnRate: 1.5, playerDamage: 0.8 }
+    easy: { spawnRate: 0.55, playerDamage: 1.6 },
+    hard: { spawnRate: 1.2, playerDamage: 1.0 }
 };
+
+// Graphics quality: 'fast' (default, lag-free) or 'beautiful' (full glow effects).
+// Read by the render path every frame; switched live from the menu buttons.
+var graphicsQuality = 'fast';
+try {
+    const __savedGfx = window.localStorage ? window.localStorage.getItem('sss_graphics') : null;
+    if (__savedGfx === 'fast' || __savedGfx === 'beautiful') graphicsQuality = __savedGfx;
+} catch (e) { /* storage unavailable — stay on fast */ }
+
+function isBeautiful() {
+    return graphicsQuality === 'beautiful';
+}

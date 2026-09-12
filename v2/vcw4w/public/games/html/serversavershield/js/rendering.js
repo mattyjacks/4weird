@@ -3,31 +3,48 @@ var outerMatrixCanvas = null;
 var outerMatrixCtx = null;
 var outerStreams = [];
 var outerInitialized = false;
+var _outerResizeHooked = false;
+
+function _outerStreamDensity() {
+    // Beautiful = dense rain; Fast = ~40% fewer columns, shorter trails.
+    const pretty = (typeof isBeautiful === 'function') && isBeautiful();
+    return pretty
+        ? { step: 18, maxLen: 20, maxLenVar: 10 }
+        : { step: 30, maxLen: 12, maxLenVar: 6 };
+}
+
+function _makeOuterStream(x, density) {
+    return {
+        x: x,
+        y: Math.random() * outerMatrixCanvas.height - outerMatrixCanvas.height,
+        speed: Math.random() * 2 + 1,
+        fontSize: Math.floor(Math.random() * 6) + 12,
+        opacity: Math.random() * 0.15 + 0.05,
+        chars: [],
+        maxLength: Math.floor(Math.random() * density.maxLenVar) + density.maxLen,
+        ticksSinceChange: 0,
+        changeInterval: Math.floor(Math.random() * 15) + 5
+    };
+}
 
 function initOuterMatrix() {
     outerMatrixCanvas = document.getElementById('TEMPLATE-4weird-starfield');
     if (!outerMatrixCanvas) return;
-    
+
     outerMatrixCtx = outerMatrixCanvas.getContext('2d');
     if (!outerMatrixCtx) return;
-    
+
     resizeOuterMatrix();
-    window.addEventListener('resize', resizeOuterMatrix);
-    
+    if (!_outerResizeHooked) {
+        window.addEventListener('resize', resizeOuterMatrix);
+        _outerResizeHooked = true;
+    }
+
+    const density = _outerStreamDensity();
     outerStreams = [];
-    const columns = Math.floor(outerMatrixCanvas.width / 18);
+    const columns = Math.floor(outerMatrixCanvas.width / density.step);
     for (let i = 0; i < columns; i++) {
-        outerStreams.push({
-            x: i * 18,
-            y: Math.random() * outerMatrixCanvas.height - outerMatrixCanvas.height,
-            speed: Math.random() * 2 + 1,
-            fontSize: Math.floor(Math.random() * 6) + 12,
-            opacity: Math.random() * 0.15 + 0.05,
-            chars: [],
-            maxLength: Math.floor(Math.random() * 20) + 10,
-            ticksSinceChange: 0,
-            changeInterval: Math.floor(Math.random() * 15) + 5
-        });
+        outerStreams.push(_makeOuterStream(i * density.step, density));
     }
     outerInitialized = true;
 }
@@ -36,23 +53,14 @@ function resizeOuterMatrix() {
     if (!outerMatrixCanvas) return;
     outerMatrixCanvas.width = window.innerWidth;
     outerMatrixCanvas.height = window.innerHeight;
-    
+
     if (outerInitialized) {
-        const columns = Math.floor(outerMatrixCanvas.width / 18);
+        const density = _outerStreamDensity();
+        const columns = Math.floor(outerMatrixCanvas.width / density.step);
         const currentCount = outerStreams.length;
         if (columns > currentCount) {
             for (let i = currentCount; i < columns; i++) {
-                outerStreams.push({
-                    x: i * 18,
-                    y: Math.random() * outerMatrixCanvas.height - outerMatrixCanvas.height,
-                    speed: Math.random() * 2 + 1,
-                    fontSize: Math.floor(Math.random() * 6) + 12,
-                    opacity: Math.random() * 0.15 + 0.05,
-                    chars: [],
-                    maxLength: Math.floor(Math.random() * 20) + 10,
-                    ticksSinceChange: 0,
-                    changeInterval: Math.floor(Math.random() * 15) + 5
-                });
+                outerStreams.push(_makeOuterStream(i * density.step, density));
             }
         } else if (columns < currentCount) {
             outerStreams.splice(columns);
@@ -107,7 +115,8 @@ function updateAndDrawOuterMatrix() {
 
 function initStars() {
     matrixStreams = [];
-    const streamCount = 40;
+    const pretty = (typeof isBeautiful === 'function') && isBeautiful();
+    const streamCount = pretty ? 40 : 22;
     for (let i = 0; i < streamCount; i++) {
         matrixStreams.push({
             x: Math.random() * CANVAS_WIDTH,
@@ -116,7 +125,7 @@ function initStars() {
             fontSize: Math.floor(Math.random() * 6) + 10,
             opacity: Math.random() * 0.4 + 0.2,
             chars: [],
-            maxLength: Math.floor(Math.random() * 12) + 6,
+            maxLength: pretty ? Math.floor(Math.random() * 12) + 6 : Math.floor(Math.random() * 8) + 4,
             changeInterval: Math.floor(Math.random() * 10) + 4,
             ticksSinceChange: 0
         });
@@ -149,15 +158,19 @@ function updateStars() {
     });
 }
 
+var _bgGrad = null;
+var _bgGradHeight = 0;
 function drawBackground() {
     const ctx = getContext();
-    ctx.fillStyle = '#020503';
-    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    const bgGrad = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-    bgGrad.addColorStop(0, '#020503');
-    bgGrad.addColorStop(0.5, '#051207');
-    bgGrad.addColorStop(1, '#020803');
-    ctx.fillStyle = bgGrad;
+    // Cache the gradient: creating it every frame allocates + forces repaint.
+    if (!_bgGrad || _bgGradHeight !== CANVAS_HEIGHT) {
+        _bgGrad = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+        _bgGrad.addColorStop(0, '#020503');
+        _bgGrad.addColorStop(0.5, '#051207');
+        _bgGrad.addColorStop(1, '#020803');
+        _bgGradHeight = CANVAS_HEIGHT;
+    }
+    ctx.fillStyle = _bgGrad;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 }
 
@@ -190,99 +203,175 @@ function drawStars() {
 
 function drawPowerups() {
     const ctx = getContext();
-    powerups.forEach(p => {
-        ctx.save();
-        ctx.globalAlpha = 1;
-        const pulse = Math.sin(p.pulse) * 3;
-        ctx.shadowBlur = 15 + pulse;
-        ctx.shadowColor = p.type === 'heal' ? '#ec4899' : p.type === 'shield' ? '#3b82f6' : p.type === 'nuke' ? '#f59e0b' : '#8b5cf6';
-        ctx.font = '24px Arial';
-        ctx.fillText(p.emoji, p.x, p.y);
-        ctx.restore();
-    });
+    const pretty = (typeof isBeautiful === 'function') && isBeautiful();
+    if (pretty) {
+        // Beautiful: per-powerup glow (GPU blur pass each — the cost Fast avoids).
+        powerups.forEach(p => {
+            ctx.save();
+            const pulse = Math.sin(p.pulse) * 3;
+            ctx.shadowBlur = 15 + pulse;
+            ctx.shadowColor = p.type === 'heal' ? '#ec4899' : p.type === 'shield' ? '#3b82f6' : p.type === 'nuke' ? '#f59e0b' : '#8b5cf6';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(p.emoji, p.x, p.y);
+            ctx.restore();
+        });
+        return;
+    }
+    // Fast: no shadowBlur. Emoji is readable without the glow.
+    ctx.save();
+    ctx.font = '24px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i < powerups.length; i++) {
+        ctx.fillText(powerups[i].emoji, powerups[i].x, powerups[i].y);
+    }
+    ctx.restore();
 }
 
 function drawParticles() {
     const ctx = getContext();
-    particles.forEach(p => {
-        ctx.save();
-        ctx.globalAlpha = Math.min(1, p.life);
-        if (p.emoji) {
-            ctx.font = p.radius * 4 + 'px Arial';
-            ctx.translate(p.x, p.y);
-            ctx.rotate(p.rotation);
-            ctx.fillText(p.emoji, 0, 0);
-        } else {
-            ctx.fillStyle = p.color;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.radius * p.life, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        ctx.restore();
-    });
+    // Batch plain circle particles into one path (one fill call per color run
+    // would be ideal; a single path + per-particle fillStyle change is still
+    // far cheaper than save/arc/fill/restore per particle).
+    ctx.save();
+    for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        if (p.emoji) continue;
+        ctx.globalAlpha = p.life <= 0 ? 0 : (p.life >= 1 ? 1 : p.life);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        const r = p.radius * (p.life >= 1 ? 1 : p.life);
+        ctx.arc(p.x, p.y, r > 0.5 ? r : 0.5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    // Emoji particles are rare (kill bursts) — draw them without rotation math.
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        if (!p.emoji) continue;
+        ctx.globalAlpha = p.life <= 0 ? 0 : (p.life >= 1 ? 1 : p.life);
+        ctx.font = (p.radius * 4) + 'px Arial';
+        ctx.fillText(p.emoji, p.x, p.y);
+    }
+    ctx.restore();
 }
 
 function drawEnemies() {
     const ctx = getContext();
-    enemies.forEach(e => {
+    const pretty = (typeof isBeautiful === 'function') && isBeautiful();
+    if (pretty) {
+        // Beautiful: per-enemy glow. This is the single most expensive canvas
+        // state — Fast mode below skips it entirely.
+        enemies.forEach(e => {
+            ctx.save();
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = e.color;
+            ctx.font = (e.radius * 1.8) + 'px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(e.emoji, e.x, e.y);
+            ctx.restore();
+        });
+    } else {
+        // Fast: batched, no shadowBlur.
         ctx.save();
-        ctx.globalAlpha = 1;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        for (let i = 0; i < enemies.length; i++) {
+            const e = enemies[i];
+            ctx.font = (e.radius * 1.8) + 'px Arial';
+            ctx.fillText(e.emoji, e.x, e.y);
+        }
+    }
+    for (let i = 0; i < enemies.length; i++) {
+        const e = enemies[i];
         if (e.maxHp > 1) {
+            const w = 30 * (e.currentHp > 0 ? e.currentHp / e.maxHp : 0);
             ctx.fillStyle = 'rgba(0,0,0,0.5)';
             ctx.fillRect(e.x - 15, e.y - e.radius - 12, 30, 5);
             ctx.fillStyle = e.color;
-            ctx.fillRect(e.x - 15, e.y - e.radius - 12, 30 * (e.currentHp / e.maxHp), 5);
+            if (w > 0) ctx.fillRect(e.x - 15, e.y - e.radius - 12, w, 5);
         }
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = e.color;
-        ctx.font = e.radius * 1.8 + 'px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(e.emoji, e.x, e.y);
-        ctx.restore();
-    });
+    }
+    ctx.restore();
 }
 
 function drawPlayer() {
     const ctx = getContext();
+    const pretty = (typeof isBeautiful === 'function') && isBeautiful();
     ctx.save();
-    ctx.globalAlpha = 1;
-    if (shieldTimer > 0) {
-        ctx.strokeStyle = 'rgba(59,130,246,' + (0.8 + Math.sin(Date.now() * 0.01) * 0.2) + ')';
-        ctx.lineWidth = 3;
+    const t = Date.now() * 0.005;
+    if (pretty) {
+        // Beautiful: full glow ring + glowing shield bubble.
+        if (shieldTimer > 0) {
+            ctx.strokeStyle = 'rgba(59,130,246,' + (0.8 + Math.sin(Date.now() * 0.01) * 0.2) + ')';
+            ctx.lineWidth = 3;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#3b82f6';
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.radius + 15, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        ctx.strokeStyle = 'rgba(139,92,246,1)';
+        ctx.lineWidth = 2;
         ctx.shadowBlur = 20;
-        ctx.shadowColor = '#3b82f6';
+        ctx.shadowColor = 'rgba(139,92,246,0.8)';
         ctx.beginPath();
-        ctx.arc(player.x, player.y, player.radius + 15, 0, Math.PI * 2);
+        ctx.arc(player.x, player.y, player.radius + 8 + Math.sin(t) * 3, 0, Math.PI * 2);
         ctx.stroke();
+        ctx.shadowBlur = 10;
+    } else {
+        // Fast: one cheap shadow for the ring, flat shield circle.
+        ctx.strokeStyle = 'rgba(139,92,246,1)';
+        ctx.lineWidth = 2;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = 'rgba(139,92,246,0.8)';
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, player.radius + 8 + Math.sin(t) * 3, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        if (shieldTimer > 0) {
+            ctx.strokeStyle = 'rgba(59,130,246,0.9)';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.radius + 15, 0, Math.PI * 2);
+            ctx.stroke();
+        }
     }
-    ctx.strokeStyle = 'rgba(139,92,246,1)';
-    ctx.lineWidth = 2;
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = 'rgba(139,92,246,0.8)';
-    ctx.beginPath();
-    ctx.arc(player.x, player.y, player.radius + 8 + Math.sin(Date.now() * 0.005) * 3, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.shadowBlur = 10;
     ctx.font = (player.radius * 2.5) + 'px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('🛡️', player.x, player.y + 5);
-    if (player.hasCompanion) { 
-        ctx.font = (player.radius * 2) + 'px Arial'; 
-        ctx.fillText('👨‍💻', player.x - player.radius - 20, player.y + player.radius); 
+    if (player.hasCompanion) {
+        ctx.font = (player.radius * 2) + 'px Arial';
+        ctx.fillText('👨‍💻', player.x - player.radius - 20, player.y + player.radius);
     }
     ctx.restore();
 }
 
 function drawBullets() {
     const ctx = getContext();
-    bullets.forEach(b => {
-        ctx.fillStyle = b.color || '#fbbf24';
-        ctx.beginPath();
+    // Batch bullets: group consecutive same-color bullets into one path.
+    ctx.save();
+    let lastColor = null;
+    for (let i = 0; i < bullets.length; i++) {
+        const b = bullets[i];
+        const c = b.color || '#fbbf24';
+        if (c !== lastColor) {
+            if (lastColor !== null) ctx.fill();
+            ctx.beginPath();
+            ctx.fillStyle = c;
+            lastColor = c;
+        }
+        // moveTo avoids connecting arcs with a line within the shared path
+        ctx.moveTo(b.x + b.radius, b.y);
         ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
-        ctx.fill();
-    });
+    }
+    if (lastColor !== null) ctx.fill();
+    ctx.restore();
 }
 
 function drawCombo() {
@@ -292,8 +381,10 @@ function drawCombo() {
         ctx.font = 'bold 20px Orbitron,sans-serif';
         ctx.fillStyle = '#f59e0b';
         ctx.textAlign = 'center';
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = '#f59e0b';
+        if ((typeof isBeautiful === 'function') && isBeautiful()) {
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#f59e0b';
+        }
         ctx.fillText('COMBO x' + comboCount, player.x, player.y - player.radius - 25);
         ctx.restore();
     }
@@ -301,17 +392,23 @@ function drawCombo() {
 
 function drawFloatingTexts() {
     const ctx = getContext();
-    floatingTexts.forEach(t => {
-        ctx.save();
-        ctx.globalAlpha = Math.min(1, t.life);
+    if (floatingTexts.length === 0) return;
+    // Fade via life/60 (life counts down from 60). Glow only on Beautiful.
+    const pretty = (typeof isBeautiful === 'function') && isBeautiful();
+    ctx.save();
+    ctx.textAlign = 'center';
+    for (let i = 0; i < floatingTexts.length; i++) {
+        const t = floatingTexts[i];
+        ctx.globalAlpha = t.life >= 60 ? 1 : t.life / 60;
         ctx.font = 'bold ' + t.size + 'px Orbitron,sans-serif';
         ctx.fillStyle = t.color;
-        ctx.textAlign = 'center';
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = t.color;
+        if (pretty) {
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = t.color;
+        }
         ctx.fillText(t.text, t.x, t.y);
-        ctx.restore();
-    });
+    }
+    ctx.restore();
 }
 
 function drawHUD() {
@@ -367,13 +464,15 @@ function drawComboEffect(ctx) {
     const comboMult = Math.min(comboCount, 5);
     const pulse = Math.sin(Date.now() / 100) * 0.3 + 0.7;
     
-    // Draw combo badge
+    // Draw combo badge (glow only on Beautiful — it runs every frame while combo active)
     ctx.save();
     ctx.font = `bold ${20 + comboMult * 3}px Orbitron,sans-serif`;
     ctx.fillStyle = `rgba(245, 158, 11, ${pulse})`; // Orange with pulse
     ctx.textAlign = 'center';
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = '#f59e0b';
+    if ((typeof isBeautiful === 'function') && isBeautiful()) {
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = '#f59e0b';
+    }
     
     const comboText = `COMBO x${comboCount}`;
     const x = CANVAS_WIDTH / 2;
@@ -401,6 +500,7 @@ function drawComboEffect(ctx) {
 var hitParticles = [];
 
 function spawnHitParticles(x, y, color = '#ff0000', count = 5) {
+    if (hitParticles.length > 200) return;
     for (let i = 0; i < count; i++) {
         hitParticles.push({
             x: x,
@@ -430,15 +530,17 @@ function updateHitParticles() {
 }
 
 function drawHitParticles(ctx) {
-    hitParticles.forEach(p => {
-        ctx.save();
+    if (hitParticles.length === 0) return;
+    ctx.save();
+    for (let i = 0; i < hitParticles.length; i++) {
+        const p = hitParticles[i];
         ctx.globalAlpha = p.life;
         ctx.fillStyle = p.color;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
-        ctx.restore();
-    });
+    }
+    ctx.restore();
 }
 
 function drawServers() {
@@ -456,13 +558,15 @@ function drawServers() {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        // Shadow/glow effect based on status
-        if (server.status === 'degraded') {
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = '#f59e0b'; // Orange warning
-        } else {
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = '#10b981'; // Green online
+        // Glow effect based on status (Beautiful only — Fast skips the blur pass)
+        if ((typeof isBeautiful === 'function') && isBeautiful()) {
+            if (server.status === 'degraded') {
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#f59e0b'; // Orange warning
+            } else {
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#10b981'; // Green online
+            }
         }
         
         ctx.fillText(server.emoji, server.x, server.y);

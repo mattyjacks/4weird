@@ -32,6 +32,13 @@ document.addEventListener('DOMContentLoaded', () => {
         
         console.log('[INIT] Calling initEventHandlers...');
         initEventHandlers();
+
+        console.log('[INIT] Calling initQualityButtons...');
+        if (typeof initQualityButtons === 'function') {
+            initQualityButtons();
+        } else {
+            console.warn('[INIT] initQualityButtons not found');
+        }
         
         console.log('[INIT] Calling initReviews...');
         if (typeof initReviews === 'function') {

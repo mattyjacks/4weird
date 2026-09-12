@@ -1,0 +1,47 @@
+/* GraveGain2D AAA — 20 cinematic title cards (2D DOM adaptation). */
+#canvasContainer .aaa-titlecard {
+    position: absolute;
+    inset: 0;
+    z-index: 46;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+    font-family: 'Orbitron', sans-serif;
+}
+#canvasContainer .aaa-titlecard.on { opacity: 1; }
+#canvasContainer .aaa-titlecard .aaa-kicker {
+    color: hsl(45, 90%, 55%);
+    font-size: 0.8rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+}
+#canvasContainer .aaa-titlecard .aaa-title {
+    color: #fff;
+    font-size: clamp(1.6rem, 5vw, 3rem);
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-shadow: 0 0 24px rgba(220, 60, 110, 0.8), 0 2px 0 #000;
+    animation: aaa-title-slam 0.5s cubic-bezier(0.2, 2.2, 0.4, 1);
+}
+@keyframes aaa-title-slam {
+    0% { transform: scale(2.2); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+#canvasContainer .aaa-titlecard .aaa-sub {
+    color: rgba(255,255,255,0.75);
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    max-width: 80%;
+}
+#canvasContainer .aaa-titlecard .aaa-rule {
+    width: 220px;
+    height: 2px;
+    margin-top: 6px;
+    background: linear-gradient(90deg, transparent, hsl(45,90%,55%), transparent);
+}

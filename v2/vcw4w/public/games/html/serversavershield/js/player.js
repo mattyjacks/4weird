@@ -17,12 +17,12 @@ var weaponTimerMax = 600;
 
 function getWeaponDuration() {
     const hasProgrammer = typeof staff !== 'undefined' && staff.some(s => s.type === 'programmer');
-    return hasProgrammer ? 600 : 300; // 10 seconds vs 5 seconds at 60fps
+    return hasProgrammer ? 750 : 450; // longer powerup windows so upgrades feel rewarding
 }
 
 function updatePlayer() {
-    player.x += (inputX - player.x) * 0.12;
-    player.y += (inputY - player.y) * 0.12;
+    player.x += (inputX - player.x) * 0.18;
+    player.y += (inputY - player.y) * 0.18;
     player.x = Math.max(player.radius, Math.min(CANVAS_WIDTH - player.radius, player.x));
     player.y = Math.max(player.radius + 30, Math.min(CANVAS_HEIGHT - player.radius, player.y));
     

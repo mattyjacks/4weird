@@ -1,0 +1,94 @@
+/* GraveGain3D AAA — quest HUD: objective tracker, tutorial toasts,
+   run-stats ribbon, HUD juice, game-over drama, reduced-motion + mobile rules.
+   Pairs with aaa/50-hud-objectives.js, 60-hud-tutorial.js, 70-hud-runstats.js. */
+
+.aaa-objective {
+    position: absolute; top: 15px; right: 15px; z-index: 42; max-width: 250px;
+    background: rgba(6,4,14,0.78); border: 1px solid rgba(255,204,76,0.35); border-left: 3px solid var(--grave-gold);
+    border-radius: 8px; padding: 10px 12px; backdrop-filter: blur(8px);
+    font-size: 0.78rem; line-height: 1.45; color: #fff; pointer-events: none;
+}
+.aaa-objective .aaa-obj-title {
+    font-family: 'Orbitron', sans-serif; font-size: 0.68rem; font-weight: 800;
+    letter-spacing: 0.2em; color: var(--grave-gold); margin-bottom: 4px;
+}
+.aaa-objective.flash { animation: aaa-obj-flash 0.6s ease; }
+@keyframes aaa-obj-flash {
+    0% { box-shadow: 0 0 0 rgba(255,204,76,0); }
+    40% { box-shadow: 0 0 24px rgba(255,204,76,0.7); }
+    100% { box-shadow: 0 0 0 rgba(255,204,76,0); }
+}
+
+/* Objective checklist rows: counts + checkmarks, secondary objectives. */
+.aaa-obj-row { display: flex; gap: 6px; align-items: baseline; margin: 2px 0; }
+.aaa-obj-mark { color: var(--grave-gold); font-weight: 800; min-width: 1.1em; }
+.aaa-obj-row.done { color: rgba(255,255,255,0.55); text-decoration: line-through; }
+.aaa-obj-row.done .aaa-obj-mark { color: #4ade80; text-decoration: none; }
+.aaa-obj-row.secondary { font-size: 0.9em; opacity: 0.85; }
+.aaa-obj-row.secondary::before { content: '◇'; color: rgba(255,204,76,0.6); margin-right: -2px; }
+.aaa-obj-count { font-variant-numeric: tabular-nums; color: #38bdf8; font-weight: 700; }
+/* Mission-complete fanfare state: gold card, green title. */
+.aaa-objective.complete { border-color: #4ade80; border-left-color: #4ade80; }
+.aaa-objective.complete .aaa-obj-title { color: #4ade80; animation: aaa-obj-flash 1.2s ease 2; }
+
+.aaa-toast {
+    position: absolute; bottom: 110px; left: 50%; transform: translateX(-50%); z-index: 57;
+    background: rgba(8,5,18,0.92); border: 1px solid rgba(56,189,248,0.5); border-radius: 10px;
+    padding: 10px 18px; font-size: 0.85rem; color: #e2e8f0; white-space: nowrap;
+    box-shadow: 0 0 20px rgba(56,189,248,0.25); pointer-events: none;
+    opacity: 0; transition: opacity 0.3s, transform 0.3s;
+}
+.aaa-toast.on { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+.aaa-toast b { color: #38bdf8; font-family: 'Orbitron', monospace; }
+.aaa-toast kbd {
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);
+    border-bottom-width: 2px; border-radius: 4px; padding: 1px 7px;
+    font-family: 'Orbitron', monospace; font-size: 0.75rem;
+}
+
+.aaa-runstats {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0;
+}
+.aaa-runstat {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px; padding: 8px; text-align: center;
+}
+.aaa-runstat .v { font-family: 'Orbitron'; font-weight: 800; font-size: 1.1rem; color: #fff; }
+.aaa-runstat .k {
+    font-size: 0.65rem; letter-spacing: 0.15em; color: var(--grave-text-muted);
+    text-transform: uppercase;
+}
+
+/* Game-over screen enters like a curtain drop, not a popup. */
+#gameOverScreen:not(.hidden) .menu-content { animation: aaa-curtain 0.7s cubic-bezier(0.16,1,0.3,1) both; }
+@keyframes aaa-curtain {
+    from { opacity: 0; transform: translateY(30px) scale(0.96); }
+    to { opacity: 1; transform: none; }
+}
+
+/* HUD juice: animated shine sweeping across bars + potion button pop. */
+.hud-bar { position: relative; overflow: hidden; }
+.hud-bar::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.45) 50%, transparent 70%);
+    transform: translateX(-100%); animation: aaa-bar-shine 3s ease-in-out infinite;
+}
+@keyframes aaa-bar-shine { 0%,60% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+.btn-potion.aaa-pop { animation: aaa-pop 0.3s ease; }
+@keyframes aaa-pop { 0% { transform: scale(1); } 40% { transform: scale(1.25); } 100% { transform: scale(1); } }
+
+/* Damage numbers get tabular weight so they don't jitter mid-fight. */
+.combat-text { font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: reduce) {
+    .aaa-grain, #mainMenuScreen .menu-title, .hud-bar::after,
+    #gameOverScreen:not(.hidden) .menu-content { animation: none !important; }
+}
+
+@media (max-width: 700px) {
+    .aaa-titlecard .aaa-title { font-size: 1.8rem; }
+    .aaa-announcer .aaa-announce-main { font-size: 1.4rem; }
+    .aaa-boss-intro .aaa-boss-name { font-size: 1.6rem; text-align: center; }
+    .aaa-objective { max-width: 180px; font-size: 0.68rem; top: auto; bottom: 220px; right: 10px; }
+    .aaa-toast { bottom: 250px; max-width: 92vw; white-space: normal; text-align: center; }
+}

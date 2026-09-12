@@ -103,8 +103,29 @@
 
             this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, powerPreference: 'high-performance' });
             this.renderer.setSize(this.container.clientWidth || 1000, this.container.clientHeight || 600);
+            // ACES-ish tone mapping when the build supports it (r128 does).
+            // Guarded: unknown builds keep the legacy linear pipeline.
+            try {
+                if ('toneMapping' in this.renderer && THREE.ACESFilmicToneMapping !== undefined) {
+                    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                    this.renderer.toneMappingExposure = 1.12;
+                }
+                if (this.renderer.outputEncoding !== undefined && THREE.sRGBEncoding !== undefined) {
+                    this.renderer.outputEncoding = THREE.sRGBEncoding;
+                }
+            } catch (_) { /* legacy pipeline stays */ }
             this.performance = new window.GraveGainPerformanceManager(this.renderer);
-            this.renderer.shadowMap.enabled = false;
+            // Graphics preset (shared FourWeirdGraphics lib wins when present).
+            // Shadows stay OFF until a high/ultra preset explicitly enables them.
+            this.gfxPreset = GraveGainGame.resolveGraphicsPreset(
+                (window.FourWeirdGraphics && (window.FourWeirdGraphics.preset || (typeof window.FourWeirdGraphics.getPreset === 'function' ? window.FourWeirdGraphics.getPreset() : null))) || null
+            );
+            this.renderer.shadowMap.enabled = !!this.gfxPreset.shadows;
+            try {
+                if (this.renderer.shadowMap) {
+                    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap || this.renderer.shadowMap.type;
+                }
+            } catch (_) {}
             this.graphics = new window.GraveGainGraphicsBridge(
                 document.getElementById('effectsCanvas'), this.container
             );
@@ -177,6 +198,15 @@
             this.dungeon = null;
             this.activeBoss = null;
 
+            // Campaign / story-mission state. Null/neutral = endless mode.
+            this.currentMission = null;
+            this.selectedStoryMissionId = null;
+            this.dungeonTheme = null;
+            this._campaignDmgMult = 1;
+            this._campaignReqAppliedFor = null;
+            this._missionStartTime = 0;
+            this._missionDeaths = 0;
+
             // Combat timers & animations
             this.swingTime = 0;
             this.swingDuration = 0.26;
@@ -201,7 +231,91 @@
             this.setupUI();
             this.loadSave();
             this.setupWindowResize();
+            // Shared-lib graphics wiring: `fourweird-graphics` event + preset.
+            try {
+                window.addEventListener('fourweird-graphics', (ev) => {
+                    try { this.applyGraphicsPreset(ev && ev.detail ? ev.detail : null); } catch (_) {}
+                });
+            } catch (_) {}
+            try { this.applyGraphicsPreset(this.gfxPreset, { initial: true }); } catch (_) {}
             this.startLoop();
+        }
+
+        // Preset table shared with the FourWeirdGraphics lib. Potato stays
+        // fast: no shadows, tiny pixel ratio, few torch lights, no postFX.
+        static GRAPHICS_PRESETS = null;
+
+        static resolveGraphicsPreset(input) {
+            const TABLE = {
+                potato:   { name: 'potato',   particleMult: 0.35, pixelRatioMax: 0.75, lightCount: 2,  shadows: false, postFX: false },
+                low:      { name: 'low',      particleMult: 0.6,  pixelRatioMax: 1.0,  lightCount: 4,  shadows: false, postFX: false },
+                balanced: { name: 'balanced', particleMult: 1.0,  pixelRatioMax: 1.25, lightCount: 8,  shadows: false, postFX: true },
+                medium:   { name: 'medium',   particleMult: 1.0,  pixelRatioMax: 1.25, lightCount: 8,  shadows: false, postFX: true },
+                high:     { name: 'high',     particleMult: 1.5,  pixelRatioMax: 1.5,  lightCount: 12, shadows: true,  postFX: true },
+                ultra:    { name: 'ultra',    particleMult: 2.0,  pixelRatioMax: 2.0,  lightCount: 16, shadows: true,  postFX: true }
+            };
+            let p = null;
+            if (typeof input === 'string' && TABLE[input]) p = TABLE[input];
+            else if (input && typeof input === 'object') {
+                const key = typeof input.name === 'string' ? input.name.toLowerCase() : '';
+                const base = TABLE[key] || TABLE.balanced;
+                p = {
+                    name: TABLE[key] ? key : (base.name || 'balanced'),
+                    particleMult: isFinite(Number(input.particleMult)) ? Number(input.particleMult) : base.particleMult,
+                    pixelRatioMax: isFinite(Number(input.pixelRatioMax || input.pixelRatio)) ? Number(input.pixelRatioMax || input.pixelRatio) : base.pixelRatioMax,
+                    lightCount: isFinite(Number(input.lightCount)) ? Math.floor(Number(input.lightCount)) : base.lightCount,
+                    shadows: typeof input.shadows === 'boolean' ? input.shadows : base.shadows,
+                    postFX: typeof input.postFX === 'boolean' ? input.postFX : base.postFX
+                };
+            }
+            return Object.assign({}, TABLE.balanced, p || TABLE.balanced);
+        }
+
+        // Apply a graphics preset to renderer / particles / lights / postFX.
+        // Never renames element IDs; endless + campaign flows untouched.
+        applyGraphicsPreset(input, opts = {}) {
+            const preset = GraveGainGame.resolveGraphicsPreset(input || this.gfxPreset);
+            this.gfxPreset = preset;
+            try {
+                if (this.vfx && typeof this.vfx.setParticleMult === 'function') {
+                    this.vfx.setParticleMult(preset.particleMult);
+                    if (typeof this.vfx.setBudget === 'function') {
+                        this.vfx.setBudget(Math.floor(450 * preset.particleMult) + 250);
+                    }
+                }
+            } catch (_) {}
+            try {
+                if (this.performance) {
+                    this.performance.maxPixelRatio = preset.pixelRatioMax;
+                    const pr = Math.min(window.devicePixelRatio || 1, preset.pixelRatioMax);
+                    this.performance.pixelRatio = pr;
+                    this.renderer.setPixelRatio(pr);
+                    const w = this.container.clientWidth || 1000;
+                    const h = this.container.clientHeight || 600;
+                    this.renderer.setSize(w, h);
+                }
+            } catch (_) {}
+            try {
+                // Shadows ONLY on high/ultra; toggling at runtime is safe.
+                this.renderer.shadowMap.enabled = !!preset.shadows;
+                if (this.flashlight) this.flashlight.castShadow = !!preset.shadows;
+            } catch (_) {}
+            try {
+                // Cap live torch PointLights to the preset budget (sprites stay).
+                if (Array.isArray(this.torches) && this.torches.length) {
+                    this.torches.forEach((t, i) => {
+                        const lit = i < preset.lightCount;
+                        if (t.light) t.light.visible = lit;
+                    });
+                }
+                // PostFX toggle: worker overlay + film grain overlay.
+                if (this.graphics && typeof this.graphics.setActive === 'function') {
+                    this.graphics.setActive(preset.postFX && !document.hidden);
+                }
+                const grain = document.getElementById('aaaGrain');
+                if (grain) grain.style.display = preset.postFX ? '' : 'none';
+            } catch (_) {}
+            return preset;
         }
 
         setupWindowResize() {
@@ -264,6 +378,10 @@
             this.turnCount = 1;
             this.isTurnProcessing = false;
             this.chronoScale = 1.0;
+            this._campaignDmgMult = 1;
+            this._campaignReqAppliedFor = null;
+            this._missionStartTime = 0;
+            this._missionDeaths = 0;
             this.setControlMode(this.controlMode || 'realtime');
 
             // Attach 3D First-Person Weapon
@@ -274,17 +392,87 @@
             this.camera3d.add(this.weaponGroup);
 
             this.audio.startAmbientMusic();
+
+            // Clone the selected story mission BEFORE deploying the dungeon so
+            // the run can start at mission depth with requisition buffs live.
+            // A missing/unresolvable mission falls through to endless mode.
+            let mission = null;
+            if (this.selectedStoryMissionId && window.GraveGainStoryMissions) {
+                try {
+                    const def = window.GraveGainStoryEngine.getMission(this.selectedStoryMissionId);
+                    if (def) mission = JSON.parse(JSON.stringify(def)); // Clone mission
+                } catch (_) { mission = null; }
+            }
+            if (mission) {
+                // Carry the campaign extra (requisition/briefing/boss/lore) on
+                // the clone whether the boot layer attached it or not.
+                try {
+                    if (!mission._campaign && window.GraveGainCampaign &&
+                        typeof window.GraveGainCampaign.getExtra === 'function') {
+                        const extra = window.GraveGainCampaign.getExtra(mission.id);
+                        if (extra) mission._campaign = extra;
+                    }
+                } catch (_) { /* extra lookup is optional */ }
+                this.currentMission = mission;
+                // Start at mission depth.
+                try {
+                    const depth = Math.floor(Number(mission.minFloor));
+                    if (isFinite(depth) && depth >= 1) this.floorIndex = depth;
+                } catch (_) { /* keep floor 1 */ }
+                // Remember the mission theme on the instance for FX/renderers.
+                try {
+                    this.dungeonTheme = mission.dungeonTheme ||
+                        (mission._campaign && mission._campaign.dungeonTheme) || null;
+                } catch (_) { this.dungeonTheme = mission.dungeonTheme || null; }
+                this._missionStartTime = Date.now();
+                this._missionDeaths = 0;
+            } else {
+                // Endless mode: no mission state may leak in from a past run.
+                this.currentMission = null;
+                this.dungeonTheme = null;
+            }
+
             this.buildDungeonLayer();
 
-            if (this.selectedStoryMissionId && window.GraveGainStoryMissions) {
-                const mission = window.GraveGainStoryEngine.getMission(this.selectedStoryMissionId);
-                if (mission) {
-                    this.currentMission = JSON.parse(JSON.stringify(mission)); // Clone mission
-                    this.combatText.showBanner(`STORY: ${mission.title}`);
-                    this.playDialogueSequence(mission.dialogueBefore, () => {
-                        this.audio.speak(`Mission Goal: ${mission.objectives[0].desc}`);
+            if (this.currentMission) {
+                const m = this.currentMission;
+                const extra = (m._campaign && typeof m._campaign === 'object') ? m._campaign : {};
+                // Requisition: bonus HP (cap +300) + damage multiplier.
+                try {
+                    const req = (extra && extra.requisition) || {};
+                    let bonusHp = Math.floor(Number(req.bonusHp)) || 0;
+                    if (bonusHp > 300) bonusHp = 300;
+                    if (bonusHp < 0) bonusHp = 0;
+                    let dmgMult = Number(req.dmgMult);
+                    if (!isFinite(dmgMult) || dmgMult <= 0) dmgMult = 1;
+                    this._campaignDmgMult = dmgMult;
+                    this._campaignReqAppliedFor = m.id;
+                    if (bonusHp > 0 && this.player) {
+                        this.player.maxHp = (Number(this.player.maxHp) || 0) + bonusHp;
+                        this.player.hp = (Number(this.player.hp) || 0) + bonusHp;
+                    }
+                } catch (_) { /* buffs are garnish */ }
+                // Intro titlecard override when the campaign pack provides one.
+                try {
+                    const titlecard = extra.introTitlecard || m.introTitlecard;
+                    if (titlecard) this.combatText.showBanner(String(titlecard));
+                    else this.combatText.showBanner(`STORY: ${m.title}`);
+                } catch (_) { /* ignore */ }
+                // Briefing in the HUD notification (queued after the title).
+                try {
+                    const briefing = extra.briefing || m.briefing;
+                    if (briefing) {
+                        setTimeout(() => {
+                            try { this.combatText.showBanner(String(briefing), 4500); } catch (_) {}
+                        }, 2600);
+                    }
+                } catch (_) { /* ignore */ }
+                try {
+                    const goal = (m.objectives && m.objectives[0]) ? m.objectives[0].desc : '';
+                    this.playDialogueSequence(m.dialogueBefore, () => {
+                        try { this.audio.speak(`Mission Goal: ${goal}`); } catch (_) {}
                     });
-                }
+                } catch (_) { /* ignore */ }
             } else {
                 this.currentMission = null;
                 this.combatText.showBanner(`LAYER 1 - DEPLOYED`);
@@ -304,8 +492,8 @@
             this.mapMeshes = [];
 
             this.torches.forEach(t => {
-                this.scene.remove(t.light);
-                this.scene.remove(t.sprite);
+                if (t.light) this.scene.remove(t.light);
+                if (t.sprite) this.scene.remove(t.sprite);
             });
             this.torches = [];
 
@@ -330,7 +518,33 @@
 
         buildDungeonLayer() {
             this.clearDungeon();
-            this.dungeon = this.generator.generate(this.floorIndex);
+            // Theme hook: resolve the active story mission's dungeonTheme
+            // (shared missions carry it; currentMission is set after the
+            // first build, so read the selected id first). generate() falls
+            // back to stone_crypt when no theme resolves (backward compat).
+            var missionTheme = null;
+            this.dungeonBossType = null;
+            try {
+                var mid = this.selectedStoryMissionId || (this.currentMission && this.currentMission.id);
+                if (mid && window.GraveGainStoryEngine) {
+                    var m = window.GraveGainStoryEngine.getMission(mid);
+                    if (m) { missionTheme = m.dungeonTheme || null; this.dungeonBossType = m.bossType || null; }
+                } else if (this.currentMission && this.currentMission.dungeonTheme) {
+                    missionTheme = this.currentMission.dungeonTheme;
+                    this.dungeonBossType = this.currentMission.bossType || null;
+                }
+            } catch (_) { /* offline/file:// without shared missions: classic crypt */ }
+            this.dungeon = this.generator.generate(this.floorIndex, missionTheme);
+            this.dungeonTheme = this.dungeon.theme;
+            // Atmosphere hook: fog + background + ambient follow the theme.
+            try {
+                var atm = this.dungeon.atmosphere;
+                if (atm) {
+                    if (this.scene.fog) { this.scene.fog.color.setHex(atm.fogColor); this.scene.fog.density = atm.fogDensity; }
+                    this.scene.background = new THREE.Color(atm.fogColor);
+                    if (this.ambientLight) this.ambientLight.color.setHex(atm.ambientColor);
+                }
+            } catch (_) {}
 
             // Spawn player in spawn room
             this.player.x = this.dungeon.spawnRoom.cx * 48 + 24;
@@ -350,11 +564,20 @@
             const waterMat = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, transparent: true, opacity: 0.75, roughness: 0.1 });
             const poisonMat = new THREE.MeshStandardMaterial({ color: 0x15803d, transparent: true, opacity: 0.7, roughness: 0.2 });
 
+            // Per-theme floor/wall tint (multiplied over the base stone maps).
+            try {
+                if (ProceduralTextures.themeTint && this.dungeon.theme) {
+                    const tint = ProceduralTextures.themeTint(this.dungeon.theme);
+                    if (tint) { wallMat.color.setHex(tint.wall); floorMat.color.setHex(tint.floor); }
+                }
+            } catch (_) {}
+
             // Instanced tile layer: one draw call per material instead of one
             // Mesh per tile (a 70x70 grid created thousands of meshes before).
             // frustumCulled is off because a single instanced mesh spans the
             // whole dungeon and r128 cannot compute its bounds reliably.
             let wallCount = 0, openCount = 0, waterCount = 0, poisonCount = 0;
+            const hazardCodes = {};
             for (let x = 0; x < this.dungeon.gridSize; x++) {
                 for (let y = 0; y < this.dungeon.gridSize; y++) {
                     const tile = this.dungeon.grid[x][y];
@@ -363,6 +586,7 @@
                         openCount++;
                         if (tile === 2) waterCount++;
                         else if (tile === 3) poisonCount++;
+                        else if (tile >= 4) hazardCodes[tile] = (hazardCodes[tile] || 0) + 1;
                     }
                 }
             }
@@ -372,6 +596,23 @@
             const ceilInst = openCount > 0 ? new THREE.InstancedMesh(ceilGeo, ceilMat, openCount) : null;
             const waterInst = waterCount > 0 ? new THREE.InstancedMesh(floorGeo, waterMat, waterCount) : null;
             const poisonInst = poisonCount > 0 ? new THREE.InstancedMesh(floorGeo, poisonMat, poisonCount) : null;
+            // Extended theme hazard overlays (tiles 4-9), colored from the
+            // generator's hazardLegend export; emissive for lava/crystal/sparkite.
+            const hazardLegend = this.dungeon.hazardLegend || {};
+            const hazardInsts = [];
+            Object.keys(hazardCodes).forEach((codeStr) => {
+                const code = parseInt(codeStr, 10);
+                const entry = hazardLegend[code] || { color: 0xffffff };
+                const hMat = new THREE.MeshStandardMaterial({
+                    color: entry.color, roughness: 0.4,
+                    emissive: entry.emissive ? entry.color : 0x000000,
+                    emissiveIntensity: entry.emissive ? 0.7 : 0,
+                    transparent: true, opacity: 0.85
+                });
+                const inst = new THREE.InstancedMesh(floorGeo, hMat, hazardCodes[code]);
+                inst.frustumCulled = false;
+                hazardInsts.push({ code, inst, i: 0 });
+            });
             [wallInst, floorInst, ceilInst, waterInst, poisonInst].forEach(inst => {
                 if (inst) inst.frustumCulled = false;
             });
@@ -412,6 +653,16 @@
                             dummy.rotation.set(-Math.PI / 2, 0, 0);
                             dummy.updateMatrix();
                             poisonInst.setMatrixAt(poi++, dummy.matrix);
+                        } else if (tile >= 4) {
+                            for (let hi = 0; hi < hazardInsts.length; hi++) {
+                                if (hazardInsts[hi].code === tile) {
+                                    dummy.position.set(tx, 0.4, ty);
+                                    dummy.rotation.set(-Math.PI / 2, 0, 0);
+                                    dummy.updateMatrix();
+                                    hazardInsts[hi].inst.setMatrixAt(hazardInsts[hi].i++, dummy.matrix);
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
@@ -422,18 +673,48 @@
                 this.scene.add(inst);
                 this.mapMeshes.push(inst);
             });
+            hazardInsts.forEach(h => {
+                h.inst.instanceMatrix.needsUpdate = true;
+                this.scene.add(h.inst);
+                this.mapMeshes.push(h.inst);
+            });
+
+            // Ground-plane grid + ceiling vignette (skipped on potato).
+            // GridHelper is one draw call; it gives the flagstones scale at
+            // distance. The ceiling gets a dark multiply so corridors fall
+            // off overhead even where fog is thin.
+            try {
+                const presetName = (this.gfxPreset && this.gfxPreset.name) || 'balanced';
+                if (presetName !== 'potato' && presetName !== 'low') {
+                    const span = this.dungeon.gridSize * 48;
+                    const grid = new THREE.GridHelper(span, this.dungeon.gridSize * 2, 0x334155, 0x1e293b);
+                    grid.position.set(span / 2, 0.6, span / 2);
+                    grid.material.transparent = true;
+                    grid.material.opacity = 0.18;
+                    this.scene.add(grid);
+                    this.mapMeshes.push(grid);
+                    try { ceilMat.color.setHex(0x9a9ab0); } catch (_) {}
+                }
+            } catch (_) { /* garnish only */ }
 
             // Spawn Torches, Props & Enemies in rooms
-            const diffScale = 1.0 + (this.floorIndex * 0.18);
+            // Campaign curve is folded in here (endless = x1, untouched).
+            const diffScale = (1.0 + (this.floorIndex * 0.18)) * this.getMissionScaleMult();
             const difficulty = DifficultyData[this.difficulty] || DifficultyData.normal;
 
-            this.dungeon.rooms.forEach((room) => {
-                // Spawn torch on room wall
+            this.dungeon.rooms.forEach((room, roomIdx) => {
+                // Spawn torch on room wall. PointLights are capped by the
+                // graphics preset (lightCount); every room still gets its
+                // flame sprite so potato keeps the look without the cost.
                 const torchX = room.cx * 48 + 24;
                 const torchZ = room.y * 48 + 4;
-                const torchLight = new THREE.PointLight(0xff9922, 1.8, 120, 1.6);
-                torchLight.position.set(torchX, 36, torchZ + 12);
-                this.scene.add(torchLight);
+                const lightBudget = (this.gfxPreset && this.gfxPreset.lightCount) || 8;
+                let torchLight = null;
+                if (roomIdx < lightBudget) {
+                    torchLight = new THREE.PointLight(0xff9922, 1.8, 120, 1.6);
+                    torchLight.position.set(torchX, 36, torchZ + 12);
+                    this.scene.add(torchLight);
+                }
 
                 const torchSprite = ProceduralTextures.createTorchFlameSprite();
                 torchSprite.position.set(torchX, 36, torchZ + 12);
@@ -444,27 +725,93 @@
                 if (room.type === 'spawn') return;
 
                 if (room.type === 'boss') {
-                    // Spawn Floor Boss: Ancient Bone Goliath
-                    const boss = new EnemyEntity({
-                        name: 'BONE GOLIATH',
-                        hp: 450 + this.floorIndex * 150,
-                        dmg: 35,
-                        speed: 75,
-                        scale: 2.5,
-                        isBoss: true,
-                        attackInterval: 1.4,
-                        hpMultiplier: difficulty.hpMultiplier,
-                        damageMultiplier: difficulty.damageMultiplier
-                    }, room.cx * 48 + 24, room.cy * 48 + 24, diffScale);
+                    // Mission boss override: shared-mission bossType plus the
+                    // campaign pack's bossHpMult / bossDisplay. The AAA boss FX
+                    // (aaa/40-fx-boss.js) exposes no public API — it polls
+                    // game.activeBoss on tick — so setting the boss plus the
+                    // boss bar here IS the integration; its letterbox intro,
+                    // name slam and slow-mo slay fire automatically.
+                    let bossName = 'ANCIENT BONE GOLIATH';
+                    let bossBanner = null;
+                    let bossHpMult = 1;
+                    try {
+                        const m = this.currentMission || null;
+                        let extra = (m && m._campaign && typeof m._campaign === 'object') ? m._campaign : null;
+                        if (!extra && m && window.GraveGainCampaign &&
+                            typeof window.GraveGainCampaign.getExtra === 'function') {
+                            extra = window.GraveGainCampaign.getExtra(m.id) || null;
+                        }
+                        if (m && m.bossType) bossName = String(m.bossType).toUpperCase();
+                        if (extra) {
+                            if (extra.bossDisplay && extra.bossDisplay.name) {
+                                bossName = String(extra.bossDisplay.name).toUpperCase();
+                            }
+                            const hm = Number(extra.bossHpMult);
+                            if (isFinite(hm) && hm > 0) bossHpMult = hm;
+                            if (extra.bossDisplay && extra.bossDisplay.banner) {
+                                bossBanner = String(extra.bossDisplay.banner);
+                            }
+                        }
+                    } catch (_) { /* defaults stand; endless keeps Goliath */ }
+                    // Spawn Floor Boss via the enemy factory: mission bossType
+                    // selects per-boss stats + visual variant (wings, tanks,
+                    // rotor...). Unknown names fall back to the Goliath.
+                    let boss = null;
+                    if (EnemyEntity.spawnForBoss) {
+                        boss = EnemyEntity.spawnForBoss(bossName, room.cx * 48 + 24, room.cy * 48 + 24, diffScale, difficulty);
+                        if (bossHpMult !== 1) { boss.maxHp *= bossHpMult; boss.hp = boss.maxHp; }
+                    } else {
+                        boss = new EnemyEntity({
+                            name: bossName,
+                            hp: (450 + this.floorIndex * 150) * bossHpMult,
+                            dmg: 35,
+                            speed: 75,
+                            scale: 2.5,
+                            isBoss: true,
+                            attackInterval: 1.4,
+                            hpMultiplier: difficulty.hpMultiplier,
+                            damageMultiplier: difficulty.damageMultiplier
+                        }, room.cx * 48 + 24, room.cy * 48 + 24, diffScale);
+                    }
                     this.scene.add(boss.group3d);
                     this.enemies.push(boss);
                     this.activeBoss = boss;
+                    // Boss presence: emissive eye/glow garnish (skipped on
+                    // potato). Traversal is guarded; unknown rigs keep their
+                    // stock materials. A glow sprite + aura ring sell the
+                    // encounter at range.
+                    try {
+                        const presetName = (this.gfxPreset && this.gfxPreset.name) || 'balanced';
+                        if (presetName !== 'potato' && boss.group3d) {
+                            boss.group3d.traverse((o) => {
+                                try {
+                                    if (o && o.isMesh && o.material && o.material.emissive) {
+                                        if (o.material.emissiveIntensity !== undefined && o.material.emissiveIntensity < 0.35) {
+                                            o.material.emissiveIntensity = 0.35;
+                                        }
+                                    }
+                                } catch (_) {}
+                            });
+                            if (ProceduralTextures.createGlowSprite) {
+                                const aura = ProceduralTextures.createGlowSprite('#a855f7');
+                                aura.position.set(0, 44, 0);
+                                boss.group3d.add(aura);
+                            }
+                            if (this.vfx && typeof this.vfx.spawnBossAuraRing === 'function') {
+                                this.vfx.spawnBossAuraRing(room.cx * 48 + 24, room.cy * 48 + 24, 0x8b5cf6, 200);
+                            }
+                        }
+                    } catch (_) { /* boss still fights without garnish */ }
+                    try { boss._campaignBossApplied = true; } catch (_) {}
 
                     const bossBar = document.getElementById('bossBarContainer');
                     if (bossBar) bossBar.classList.remove('hidden');
-                    document.getElementById('bossName').textContent = 'ANCIENT BONE GOLIATH';
+                    try {
+                        const bossNameEl = document.getElementById('bossName');
+                        if (bossNameEl) bossNameEl.textContent = bossName;
+                    } catch (_) { /* DOM may be missing */ }
                     this.audio.playSfx('boss_roar');
-                    this.combatText.showBanner('⚠️ BOSS ENCOUNTER: BONE GOLIATH ⚠️');
+                    this.combatText.showBanner(bossBanner || `⚠️ BOSS ENCOUNTER: ${bossName} ⚠️`);
                     return;
                 }
 
@@ -485,20 +832,28 @@
                     this.props.push(chest);
                 }
 
-                // Spawn enemies
+                // Spawn enemies: per-theme mob pool (names route through the
+                // enemy variant visuals); legacy random table as fallback.
                 const mobCount = room.type === 'graveyard' ? 4 : 2;
+                const mobPool = (EnemyEntity.mobsForTheme && this.dungeon.theme)
+                    ? EnemyEntity.mobsForTheme(this.dungeon.theme) : null;
                 for (let i = 0; i < mobCount; i++) {
                     const ex = (room.x + Math.floor(Math.random() * room.w)) * 48 + 24;
                     const ey = (room.y + Math.floor(Math.random() * room.h)) * 48 + 24;
 
-                    const rand = Math.random();
-                    let eData = { name: 'Goblin Skeleton', hp: 25, dmg: 8, speed: 120, scale: 0.8, type: 'skeleton' };
-                    if (rand < 0.3) {
-                        eData = { name: 'Flying Fire Skull', hp: 16, dmg: 28, speed: 155, scale: 0.9, type: 'skull' };
-                    } else if (rand < 0.6) {
-                        eData = { name: 'Armored Skeleton', hp: 65, dmg: 14, speed: 85, scale: 1.1, armored: true, type: 'skeleton' };
-                    } else if (rand < 0.85) {
-                        eData = { name: 'Skeleton Necromancer', hp: 45, dmg: 18, speed: 70, scale: 1.0, type: 'mage' };
+                    let eData;
+                    if (mobPool && mobPool.length) {
+                        eData = Object.assign({}, mobPool[Math.floor(Math.random() * mobPool.length)]);
+                    } else {
+                        const rand = Math.random();
+                        eData = { name: 'Goblin Skeleton', hp: 25, dmg: 8, speed: 120, scale: 0.8, type: 'skeleton' };
+                        if (rand < 0.3) {
+                            eData = { name: 'Flying Fire Skull', hp: 16, dmg: 28, speed: 155, scale: 0.9, type: 'skull' };
+                        } else if (rand < 0.6) {
+                            eData = { name: 'Armored Skeleton', hp: 65, dmg: 14, speed: 85, scale: 1.1, armored: true, type: 'skeleton' };
+                        } else if (rand < 0.85) {
+                            eData = { name: 'Skeleton Necromancer', hp: 45, dmg: 18, speed: 70, scale: 1.0, type: 'mage' };
+                        }
                     }
 
                     eData.hpMultiplier = difficulty.hpMultiplier;
@@ -703,6 +1058,26 @@
                     this.loot.push(item);
                 }
             }
+            // Campaign: cracked caches count toward collect_ore objectives
+            // (chests hold power crystals; crates may hide raw ore).
+            try {
+                if (this.currentMission && this.currentMission.objectives) {
+                    let oreHit = false;
+                    this.currentMission.objectives.forEach(o => {
+                        if (!o || o.id !== 'collect_ore') return;
+                        if ((Number(o.current) || 0) >= (Number(o.count) || 0)) return;
+                        if (prop.type === 'chest' || (prop.type === 'crate' && Math.random() < 0.5)) {
+                            o.current = (Number(o.current) || 0) + 1;
+                            oreHit = true;
+                            try {
+                                this.combatText.spawnText(this.player.x, 25, this.player.y,
+                                    `Ore: ${o.current}/${o.count}`, 'xp');
+                            } catch (_) { /* ignore */ }
+                        }
+                    });
+                    if (oreHit) this.checkMissionComplete();
+                }
+            } catch (_) { /* never break prop loot */ }
         }
 
         dealAoEDamage(x, y, radius, dmg, type) {
@@ -1033,12 +1408,13 @@
                         const greedMult = this.armoryRanks.greed ? (1.0 + this.armoryRanks.greed * 0.25) : 1.0;
                         const difficulty = DifficultyData[this.difficulty] || DifficultyData.normal;
                         const goldGain = Math.round((e.isBoss ? 150 : 15) * greedMult * difficulty.lootMultiplier);
-                        const xpGain = Math.round((e.isBoss ? 120 : 25) * difficulty.xpMultiplier);
+                        const xpGain = Math.round((e.isBoss ? 120 : 25) * difficulty.xpMultiplier * this.getMissionScaleMult());
 
                         this.gold += goldGain;
                         this.kills++;
                         this.player.addXp(xpGain);
                         this.vfx.spawnBlood(e.x, e.y, e.bloodColor);
+                        if (e.isBoss && this.vfx.spawnDeathBurst) this.vfx.spawnDeathBurst(e.x, e.y, e.name, 30);
 
                         // Check Story Mission objectives
                         if (this.currentMission) {
@@ -1197,12 +1573,18 @@
                         const greedMult = this.armoryRanks.greed ? (1.0 + this.armoryRanks.greed * 0.25) : 1.0;
                         const difficulty = DifficultyData[this.difficulty] || DifficultyData.normal;
                         const goldGain = Math.round((e.isBoss ? 150 : 15) * greedMult * difficulty.lootMultiplier);
-                        const xpGain = Math.round((e.isBoss ? 120 : 25) * difficulty.xpMultiplier);
+                        const xpGain = Math.round((e.isBoss ? 120 : 25) * difficulty.xpMultiplier * this.getMissionScaleMult());
 
                         this.gold += goldGain;
                         this.kills++;
                         this.player.addXp(xpGain);
                         this.vfx.spawnBlood(e.x, e.y, e.bloodColor);
+                        if (e.isBoss && this.vfx.spawnDeathBurst) this.vfx.spawnDeathBurst(e.x, e.y, e.name, 30);
+
+                        // Check Story Mission objectives (all modes, not just turn-based)
+                        if (this.currentMission) {
+                            this.checkStoryObjectives(e);
+                        }
 
                         // Drop loot
                         const loot = new LootItem(e.x, e.y, (Math.random() < 0.25 ? 'potion' : 'gold'), goldGain);
@@ -1318,12 +1700,23 @@
                 }
             }
 
-            // Torches gentle flicker
+            // Torches gentle flicker (only lit torches; unlit rooms keep sprites).
+            // Occasional ember particles on non-potato presets.
             const dynamicLights = document.getElementById('settingsDynamicLights').checked;
+            const gfxName = (this.gfxPreset && this.gfxPreset.name) || 'balanced';
             this.torches.forEach(t => {
+                if (!t.light) return;
                 const f = Math.sin(Date.now() * 0.008 + t.seed);
                 t.light.intensity = dynamicLights ? t.baseIntensity + f * 0.4 : t.baseIntensity;
             });
+            try {
+                if (gfxName !== 'potato' && this.vfx && typeof this.vfx.spawnTorchEmber === 'function' && this.torches.length) {
+                    const t = this.torches[(Math.random() * this.torches.length) | 0];
+                    if (t && t.sprite) {
+                        this.vfx.spawnTorchEmber(t.sprite.position.x, t.sprite.position.y, t.sprite.position.z, 1);
+                    }
+                }
+            } catch (_) { /* embers are garnish */ }
 
             // Camera orientation & follow
             this.cameraController.update(dt);
@@ -1515,6 +1908,13 @@
         }
 
         gameOver(victory = false) {
+            // Campaign death tracking feeds the 1-3 star rating. Endless
+            // (no currentMission) is untouched.
+            try {
+                if (!victory && this.currentMission && !this.currentMission.completed) {
+                    this._missionDeaths = (Number(this._missionDeaths) || 0) + 1;
+                }
+            } catch (_) { /* ignore */ }
             this.isPaused = true;
             document.getElementById('gameMain').classList.add('hidden');
             document.getElementById('gameOverScreen').classList.remove('hidden');
@@ -1869,38 +2269,141 @@
             if (this.hubController) return this.hubController.renderStoryMissionsList();
         }
 
+        // Campaign difficulty curve: +15% enemy power per mission id.
+        // Endless mode (no currentMission) always returns 1 — untouched.
+        getMissionScaleMult() {
+            try {
+                const m = this.currentMission;
+                if (!m) return 1;
+                const id = Math.floor(Number(m.id));
+                if (!isFinite(id) || id < 1) return 1;
+                return 1 + (id - 1) * 0.15;
+            } catch (_) {
+                return 1;
+            }
+        }
+
+        // Star rating 1-3 from clear time vs parSeconds plus deaths.
+        computeMissionStars() {
+            try {
+                let stars = 3;
+                const m = this.currentMission;
+                const extra = (m && m._campaign && typeof m._campaign === 'object') ? m._campaign :
+                    ((window.GraveGainCampaign && typeof window.GraveGainCampaign.getExtra === 'function')
+                        ? (window.GraveGainCampaign.getExtra(m && m.id) || {}) : {});
+                const par = Number(extra && extra.parSeconds);
+                if (isFinite(par) && par > 0 && (Number(this._missionStartTime) || 0) > 0) {
+                    const elapsed = (Date.now() - this._missionStartTime) / 1000;
+                    if (elapsed > par * 2) stars -= 2;
+                    else if (elapsed > par) stars -= 1;
+                }
+                const deaths = Number(this._missionDeaths) || 0;
+                if (deaths > 0) stars -= Math.min(deaths, 2);
+                if (stars < 1) stars = 1;
+                if (stars > 3) stars = 3;
+                return stars;
+            } catch (_) {
+                return 3;
+            }
+        }
+
         checkStoryObjectives(enemyKilled) {
             if (!this.currentMission || !this.currentMission.objectives) return;
-            let allComplete = true;
-
-            this.currentMission.objectives.forEach(obj => {
-                if (obj.current < obj.count) {
-                    if (obj.id === 'slay_boss' && enemyKilled.isBoss) {
-                        obj.current++;
-                    } else if (obj.id === 'slay_all' || obj.id === 'survive_waves' || obj.id === 'slay_minions') {
-                        obj.current++;
-                    } else if (obj.id === 'slay_skulls' && enemyKilled.type === 'skull') {
-                        obj.current++;
-                    } else if (obj.id === 'slay_elites' && enemyKilled.scale >= 1.5) {
-                        obj.current++;
+            if (!enemyKilled) return;
+            try {
+                this.currentMission.objectives.forEach(obj => {
+                    if (!obj || (Number(obj.current) || 0) >= (Number(obj.count) || 0)) return;
+                    const id = obj.id;
+                    let hit = false;
+                    if (id === 'slay_boss') hit = !!enemyKilled.isBoss;
+                    else if (id === 'slay_skulls') hit = enemyKilled.type === 'skull';
+                    else if (id === 'slay_elites') hit = (Number(enemyKilled.scale) || 0) >= 1.1;
+                    else if (id === 'collect_ore') {
+                        // Sparkite pried from armored remains and wardens
+                        // (prop caches also feed this — see breakProp).
+                        hit = !!(enemyKilled.isBoss || (Number(enemyKilled.scale) || 0) >= 1.1);
                     }
-                    this.combatText.spawnText(this.player.x, 25, this.player.y, `Goal: ${obj.current}/${obj.count}`, 'xp');
-                }
-                if (obj.current < obj.count) allComplete = false;
-            });
-
-            if (allComplete && !this.currentMission.completed) {
-                this.currentMission.completed = true;
-                this.gold += this.currentMission.rewardGold;
-                this.uusd += this.currentMission.rewardUusd;
-
-                window.GraveGainStoryEngine.completeMission(this.currentMission.id, 3);
-                this.saveSave();
-
-                this.combatText.showBanner(`🏆 MISSION COMPLETED! 🏆`);
-                this.playDialogueSequence(this.currentMission.dialogueAfter, () => {
-                    this.gameOver(true);
+                    else hit = true; // slay_all, slay_minions, survive_waves + generic secondaryObjective
+                    if (hit) {
+                        obj.current = (Number(obj.current) || 0) + 1;
+                        try {
+                            this.combatText.spawnText(this.player.x, 25, this.player.y,
+                                `Goal: ${obj.current}/${obj.count}`, 'xp');
+                        } catch (_) { /* ignore */ }
+                    }
                 });
+            } catch (_) { /* never break the kill loop */ }
+            this.checkMissionComplete();
+        }
+
+        // Shared completion gate: called after kill progress AND ore progress.
+        // No-ops in endless mode (no currentMission) and when already done.
+        checkMissionComplete() {
+            const m = this.currentMission;
+            if (!m || !m.objectives || m.completed) return;
+            let allComplete = true;
+            try {
+                allComplete = m.objectives.every(o => !o ||
+                    (Number(o.current) || 0) >= (Number(o.count) || 0));
+            } catch (_) { return; }
+            if (!allComplete) return;
+            m.completed = true;
+            // Rewards (guarded numbers so a bad def can't NaN the economy).
+            try {
+                const gold = Math.floor(Number(m.rewardGold)) || 0;
+                const uusd = Math.floor(Number(m.rewardUusd)) || 0;
+                if (gold > 0) this.gold += gold;
+                if (uusd > 0) this.uusd += uusd;
+            } catch (_) { /* ignore */ }
+            const stars = this.computeMissionStars();
+            try {
+                if (window.GraveGainStoryEngine &&
+                    typeof window.GraveGainStoryEngine.completeMission === 'function') {
+                    window.GraveGainStoryEngine.completeMission(m.id, stars);
+                }
+            } catch (_) { /* ignore */ }
+            // Lore unlock persistence (same store the codex layer reads), so
+            // unlocks land even if the AAA bus / campaign scripts are absent.
+            try {
+                const extra = (m._campaign && typeof m._campaign === 'object') ? m._campaign :
+                    ((window.GraveGainCampaign && typeof window.GraveGainCampaign.getExtra === 'function')
+                        ? (window.GraveGainCampaign.getExtra(m.id) || {}) : {});
+                const unlocks = (extra && Array.isArray(extra.loreUnlocks)) ? extra.loreUnlocks : [];
+                if (unlocks.length && window.localStorage) {
+                    const key = 'gravegain_campaign_codex_v1';
+                    let have = [];
+                    try {
+                        const raw = window.localStorage.getItem(key);
+                        if (raw) have = (JSON.parse(raw) || {}).unlocked || [];
+                        if (!Array.isArray(have)) have = [];
+                    } catch (_) { have = []; }
+                    const set = new Set(have.map(String));
+                    let changed = false;
+                    unlocks.forEach(id => {
+                        const lid = String(id);
+                        if (!set.has(lid)) { set.add(lid); changed = true; }
+                    });
+                    if (changed) {
+                        try { window.localStorage.setItem(key, JSON.stringify({ unlocked: [...set] })); } catch (_) {}
+                    }
+                }
+            } catch (_) { /* ignore */ }
+            // Notify campaign UI layers (codex toasts, MISSION COMPLETE card).
+            try {
+                if (window.GraveGainAAA && typeof window.GraveGainAAA.emit === 'function') {
+                    window.GraveGainAAA.emit('missionComplete', { id: m.id, stars });
+                }
+            } catch (_) { /* ignore */ }
+            try { this.saveSave(); } catch (_) { /* ignore */ }
+            try { this.combatText.showBanner(`🏆 MISSION COMPLETED! 🏆 ★${stars}`); } catch (_) { /* ignore */ }
+            // dialogueAfter, then the game-over screen — where the campaign UI
+            // injects the return-to-hub / next-mission prompt (20-campaign-ui).
+            try {
+                this.playDialogueSequence(m.dialogueAfter, () => {
+                    try { this.gameOver(true); } catch (_) {}
+                });
+            } catch (_) {
+                try { this.gameOver(true); } catch (_) {}
             }
         }
 

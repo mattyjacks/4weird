@@ -1,7 +1,7 @@
 {
     "title": "GraveGain3D",
     "slug": "gravegain3d",
-    "description": "A dark fantasy action RPG featuring emoji-based 3D billboard visuals, immersive real-time lighting, procedural dungeons, a dialogue system, and a starship management hub.",
+    "description": "A dark fantasy action RPG featuring emoji-based 3D billboard visuals, immersive real-time lighting, procedural dungeons, a dialogue system, and a starship management hub. v3.0.0 adds a full 10-mission story campaign across 7 dungeon themes with 10 unique bosses, per-mission briefing and title cards, and 1-3 star mission ratings — plus the AAA presentation layer: cinematic intros, killstreak announcer, boss cinematics with slow-mo slays, objective tracker, tutorials, run stats, and adaptive audio.",
     "genre": "RPG",
     "tags": ["HTML5", "Action", "RPG", "Rogue-like", "Three.js", "3D"],
     "maker": {
@@ -50,10 +50,10 @@
                 "description": "Three.js 3D Library (fallback mirror)"
             }
         ],
-        "local": ["../gravegain_shared_missions.js", "engine/config.js", "engine/persistence.js", "engine/camera-controller.js", "world/collision.js", "world/dungeon-generator.js", "audio/sound-engine.js", "input/input-manager.js", "graphics/procedural-textures.js", "graphics/particle-system.js", "entities/projectile.js", "engine/game-data.js", "entities/weapon-factory.js", "entities/player.js", "entities/enemy.js", "engine/game-runtime.js", "engine/graphics-bridge.js", "engine/graphics-worker.js", "engine/performance-manager.js", "ui/hub-quarters.js", "ui/combat-text.js", "ui/bot-cursor.js", "game.css", "lore.js"]
+        "local": ["../gravegain_shared_missions.js", "engine/config.js", "engine/persistence.js", "engine/camera-controller.js", "world/collision.js", "world/dungeon-generator.js", "audio/sound-engine.js", "input/input-manager.js", "graphics/procedural-textures.js", "graphics/particle-system.js", "entities/projectile.js", "engine/game-data.js", "entities/weapon-factory.js", "entities/player.js", "entities/enemy.js", "engine/game-runtime.js", "campaign/00-campaign-boot.js", "campaign/m01.js", "campaign/m02.js", "campaign/m03.js", "campaign/m04.js", "campaign/m05.js", "campaign/m06.js", "campaign/m07.js", "campaign/m08.js", "campaign/m09.js", "campaign/m10.js", "campaign/10-campaign-director.js", "campaign/20-campaign-ui.js", "campaign/30-campaign-codex.js", "aaa/00-aaa-boot.js", "aaa/10-fx-film.js", "aaa/20-fx-titlecard.js", "aaa/30-fx-announcer.js", "aaa/40-fx-boss.js", "aaa/50-hud-objectives.js", "aaa/60-hud-tutorial.js", "aaa/70-hud-runstats.js", "aaa/80-audio-director.js", "aaa/90-menu-upgrade.js", "engine/graphics-bridge.js", "engine/graphics-worker.js", "engine/graphics-settings.js", "engine/performance-manager.js", "../fourweird-graphics.js", "ui/hub-quarters.js", "ui/combat-text.js", "ui/bot-cursor.js", "game.css", "aaa/css/10-film.css", "aaa/css/20-titlecard.css", "aaa/css/30-announcer-combo.css", "aaa/css/40-boss.css", "aaa/css/50-hud.css", "aaa/css/60-menu.css", "campaign/css/10-campaign.css", "lore.js"]
     },
     "meta": {
-        "version": "1.0.0",
+        "version": "3.0.0",
         "created": "2026-06-11",
         "license": "MIT"
     }

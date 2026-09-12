@@ -250,24 +250,28 @@ function toGross(providerUsd: number, ratePerQty: number): BuddyCostBreakdown {
   };
 }
 
-/** Accurate chat-leg cost: tokens + optional screenshot + one DB leg. */
+/** Accurate chat-leg cost: tokens + attached frames + one DB leg. */
 export function quoteBuddyChatLeg(input: {
   promptChars: number;
   replyChars: number;
   hasScreenshot?: boolean;
+  /** Distinct frames attached this turn (screen + camera). Defaults to hasScreenshot ? 1 : 0. */
+  imageCount?: number;
 }): BuddyCostBreakdown {
   const rate = buddyChatUsdPer1M();
   const inTokens = Math.max(1, Math.ceil(input.promptChars / 4));
   const outTokens = Math.max(1, Math.ceil(input.replyChars / 4));
   const chatUsd = (inTokens / 1_000_000) * rate.input + (outTokens / 1_000_000) * rate.output;
-  const imageUsd = input.hasScreenshot
-    ? (BUDDY_SCREENSHOT_INPUT_TOKENS / 1_000_000) * rate.input
-    : 0;
+  const units = Number.isFinite(input.imageCount)
+    ? Math.max(0, Math.floor(Number(input.imageCount)))
+    : input.hasScreenshot ? 1 : 0;
+  const imageUsd = (units * BUDDY_SCREENSHOT_INPUT_TOKENS / 1_000_000) * rate.input;
   const dbUsd = buddyDbUsdPerLeg();
   const out = toGross(chatUsd + imageUsd + dbUsd, 3);
   out.parts = {
     chatUsd: Math.round(chatUsd * 1000000) / 1000000,
     imageUsd: Math.round(imageUsd * 1000000) / 1000000,
+    imageUnits: units,
     dbUsd,
     inTokens,
     outTokens,

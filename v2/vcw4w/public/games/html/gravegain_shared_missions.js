@@ -220,7 +220,17 @@
             ],
             rewardGold: 3000,
             rewardUusd: 5500,
-            unlockedBy: 8
+            unlockedBy: 8,
+            // Optional finale enrichment (backward compatible — readers must
+            // treat every field below as optional).
+            parSeconds: 840,
+            requisition: { bonusHp: 135, dmgMult: 1.45 },
+            secondaryObjective: { id: "gauntlet_waves", desc: "Survive 3 citadel gauntlet waves before the Titan", count: 3 },
+            bossPhases: [
+                { name: "PHASE I — ARRAY AWAKENS", hpMult: 1.0, adds: 2 },
+                { name: "PHASE II — SHIELD OF THE DEAD", hpMult: 1.0, adds: 3 },
+                { name: "PHASE III — TITAN'S WRATH", hpMult: 1.0, adds: 4 }
+            ]
         },
         {
             id: 10,
@@ -244,7 +254,17 @@
             ],
             rewardGold: 5000,
             rewardUusd: 10000,
-            unlockedBy: 9
+            unlockedBy: 9,
+            // Optional finale enrichment (backward compatible — readers must
+            // treat every field below as optional).
+            parSeconds: 900,
+            requisition: { bonusHp: 150, dmgMult: 1.5 },
+            secondaryObjective: { id: "conduit_overload", desc: "Overload 3 array conduits during phase transitions", count: 3 },
+            bossPhases: [
+                { name: "PHASE I — THE OVERLORD SCOFFS", hpMult: 1.0, adds: 2 },
+                { name: "PHASE II — NECROS INTERVENES", hpMult: 1.0, adds: 4 },
+                { name: "PHASE III — DEATH WEARS A CROWN", hpMult: 1.0, adds: 5 }
+            ]
         }
     ];
 

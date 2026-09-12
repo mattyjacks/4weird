@@ -9,13 +9,22 @@ function updateHighScoreDisplay() {
 function startGame() {
     initAudio();
     resetGameState();
-    
+
     // Clear active game entities for a clean restart
     if (typeof clearEnemies === 'function') clearEnemies();
     if (typeof clearBullets === 'function') clearBullets();
     if (typeof clearPowerups === 'function') clearPowerups();
     if (typeof clearParticles === 'function') clearParticles();
-    
+    if (typeof resetWaves === 'function') resetWaves();
+
+    // Fire from the first second: new players often don't realize firing
+    // starts OFF, so the game felt both hard and broken.
+    if (typeof isShooting !== 'undefined') {
+        isShooting = true;
+        const touchFire = document.getElementById('touchFireBtn');
+        if (touchFire) touchFire.classList.add('active');
+    }
+
     initServers();
     initStars();
     

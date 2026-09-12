@@ -153,12 +153,10 @@ function drawManagementZone() {
         ctx.fillText(emoji, CANVAS_WIDTH * positions[index], zoneY + 25);
     });
     
-    // Draw label
+    // Draw label (no shadowBlur — this zone redraws every frame)
     ctx.font = 'bold 12px Orbitron,sans-serif';
     ctx.fillStyle = '#06b6d4';
     ctx.textAlign = 'center';
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = '#06b6d4';
     ctx.fillText('👇 MANAGE BUSINESS (MOVE SHIELD HERE) 👇', CANVAS_WIDTH / 2, zoneY + 28);
     
     ctx.restore();

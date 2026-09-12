@@ -1,0 +1,41 @@
+/* GraveGain3D AAA — cinematic letterbox bars + floor title cards.
+   Pairs with aaa/20-fx-titlecard.js. */
+
+.aaa-bar {
+    position: absolute; left: 0; right: 0; height: 0; background: #000; z-index: 60;
+    transition: height 0.6s cubic-bezier(0.6,0,0.2,1);
+    pointer-events: none;
+}
+.aaa-bar.top { top: 0; }
+.aaa-bar.bottom { bottom: 0; }
+#canvasContainer.aaa-cine .aaa-bar { height: 8%; }
+
+.aaa-titlecard {
+    position: absolute; inset: 0; z-index: 61; display: flex; pointer-events: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.78) 100%);
+    opacity: 0; transition: opacity 0.45s ease;
+}
+.aaa-titlecard.on { opacity: 1; }
+.aaa-titlecard .aaa-kicker {
+    font-family: 'Orbitron', sans-serif; font-size: 0.8rem; letter-spacing: 0.5em;
+    color: var(--grave-gold); text-transform: uppercase; margin-bottom: 10px;
+}
+.aaa-titlecard .aaa-title {
+    font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 3rem;
+    letter-spacing: 0.12em; color: #fff;
+    text-shadow: 0 0 30px rgba(168,85,247,0.8), 0 0 60px rgba(220,30,80,0.5), 0 4px 0 rgba(0,0,0,0.8);
+    animation: aaa-title-in 0.7s cubic-bezier(0.16,1,0.3,1) both;
+}
+.aaa-titlecard .aaa-sub {
+    margin-top: 10px; font-size: 0.95rem; color: rgba(255,255,255,0.75); letter-spacing: 0.2em;
+    font-family: 'Orbitron', sans-serif; text-transform: uppercase; text-align: center; padding: 0 24px;
+}
+.aaa-titlecard .aaa-rule {
+    width: 220px; height: 2px; margin-top: 16px;
+    background: linear-gradient(90deg, transparent, var(--grave-gold), transparent);
+}
+@keyframes aaa-title-in {
+    from { opacity: 0; transform: translateY(24px) scale(0.94); letter-spacing: 0.3em; }
+    to { opacity: 1; transform: none; }
+}

@@ -1,7 +1,7 @@
 {
     "title": "AssassinAnimals",
     "slug": "assassinanimals",
-    "description": "Select one of 9 unique animal agents, infiltrate procedurally generated floors of a high-security facility, collect DNA splices, buy mutations, and eliminate targets in this stealth-combat rogue-like.",
+    "description": "Select one of 9 unique animal agents, infiltrate procedurally generated floors of a high-security facility, collect DNA splices, buy mutations, and eliminate targets in this stealth-combat rogue-like — now with cinematic floor titlecards, killstreak announcer, tactical radar, dynamic audio director, and AAA HUD presentation.",
     "genre": "Rogue-like",
     "tags": ["HTML5", "Stealth", "Action", "Rogue-like", "Procedural"],
     "maker": {
@@ -29,6 +29,8 @@
             "G": "Drag Neutralized Body",
             "Shift / F": "Activate Signature Ability",
             "1 / 2 / 3": "Deploy Gadget (Medkit / Tranq Dart / Smoke Bomb)",
+            "4 / 5": "Deploy Gadget (Noise Decoy / Adrenal Surge)",
+            "E (Hold)": "Hack Terminal (2s) / Pickpocket Keycard (1.5s)",
             "P / Esc": "Pause Mission"
         },
         "touch": true,
@@ -42,10 +44,10 @@
     },
     "assets": {
         "external": [],
-        "local": ["game.js", "game.css"]
+        "local": ["assassin_contracts.js", "game.js", "game.css", "fx/00-fx-boot.js", "fx/10-titlecard.js", "fx/20-announcer.js", "fx/30-minimap.js", "fx/40-tutorial.js", "fx/50-audio-director.js", "fx/60-hud-fx.js", "fx/70-menu.js", "fx/css/fx.css"]
     },
     "meta": {
-        "version": "1.0.0",
+        "version": "2.0.0",
         "created": "2026-06-08",
         "license": "MIT"
     }

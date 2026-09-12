@@ -6,8 +6,17 @@ function initAudio() {
     if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 
+// Throttle rapid-fire sounds: each oscillator costs CPU, and high-rate weapons
+// (flamethrower/minigun/inferno) could otherwise spawn dozens per second.
+var _lastSoundAt = {};
+var _soundThrottleMs = { shoot: 60, hit: 50, die: 90, powerup: 80, nuke: 200, damage: 100 };
+
 function playSound(type) {
     if (!audioCtx) return;
+    const nowMs = Date.now();
+    const minGap = _soundThrottleMs[type] || 60;
+    if (nowMs - (_lastSoundAt[type] || 0) < minGap) return;
+    _lastSoundAt[type] = nowMs;
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.connect(gain);

@@ -1,0 +1,196 @@
+/* GraveGain3D Campaign — 10 campaign styles.
+   Owns all campaign visuals (#campProgress, #campBriefing, #campNextBtn,
+   codex toasts, NEW badges). No global resets; core classes untouched. */
+
+#campProgress {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    color: #f5c542;
+    background: rgba(245, 197, 66, 0.08);
+    border: 1px solid rgba(245, 197, 66, 0.45);
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+#campBriefing {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(245, 197, 66, 0.35);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-top: 12px;
+    color: #e8e4d8;
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+#campBriefing .camp-brief-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    color: #f5c542;
+    margin-bottom: 2px;
+}
+
+#campBriefing .camp-brief-sub {
+    font-size: 0.8rem;
+    color: #9a94a8;
+    margin-bottom: 8px;
+}
+
+#campBriefing .camp-brief-text {
+    margin: 0 0 8px 0;
+    color: #e8e4d8;
+}
+
+#campBriefing .camp-brief-empty {
+    color: #9a94a8;
+    font-style: italic;
+    text-align: center;
+}
+
+#campBriefing .camp-threat {
+    color: #ff7a7a;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+#campBriefing .camp-obj-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 8px 0;
+}
+
+#campBriefing .camp-obj {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 5px 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 4px;
+}
+
+#campBriefing .camp-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+    border-top: 1px solid rgba(245, 197, 66, 0.25);
+    padding-top: 8px;
+}
+
+#campBriefing .camp-meta-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.8rem;
+}
+
+#campBriefing .camp-meta-row span {
+    color: #9a94a8;
+}
+
+#campBriefing .camp-meta-row strong {
+    color: #f5c542;
+    text-align: right;
+}
+
+#campNextBtn {
+    display: block;
+    width: 100%;
+    margin: 12px 0;
+    padding: 12px;
+    font-size: 0.95rem;
+    background: linear-gradient(180deg, #f5c542, #c9962e);
+    border: 1px solid #f5c542;
+    color: #1a1206;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#campCodexToast {
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 99999;
+    pointer-events: none;
+}
+
+#campCodexToast .camp-codex-toast {
+    background: rgba(10, 8, 20, 0.92);
+    border: 1px solid rgba(245, 197, 66, 0.6);
+    border-left: 4px solid #f5c542;
+    border-radius: 6px;
+    color: #f5eeda;
+    font-size: 0.8rem;
+    padding: 10px 14px;
+    max-width: 320px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+    animation: camp-toast-in 0.3s ease-out;
+}
+
+@keyframes camp-toast-in {
+    from {
+        transform: translateX(-110%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.camp-new-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: bold;
+    letter-spacing: 0.08em;
+    color: #06130a;
+    background: #4ade80;
+    border-radius: 999px;
+    padding: 2px 8px;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+@media (max-width: 700px) {
+    #campProgress {
+        font-size: 0.72rem;
+        padding: 6px 8px;
+    }
+
+    #campBriefing {
+        font-size: 0.78rem;
+        padding: 10px;
+    }
+
+    #campBriefing .camp-obj {
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    #campBriefing .camp-meta-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    #campBriefing .camp-meta-row strong {
+        text-align: left;
+    }
+
+    #campCodexToast {
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+    }
+
+    #campCodexToast .camp-codex-toast {
+        max-width: none;
+        font-size: 0.75rem;
+    }
+}

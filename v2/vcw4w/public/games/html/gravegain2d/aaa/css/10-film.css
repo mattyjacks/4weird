@@ -1,0 +1,89 @@
+/* GraveGain2D AAA — 10 film treatment (2D canvas adaptation).
+   Overlays sit inside #canvasContainer (position:relative, overflow:hidden)
+   above the canvases but below mobile controls. All pointer-events:none. */
+#canvasContainer .aaa-vignette,
+#canvasContainer .aaa-grain,
+#canvasContainer .aaa-grade,
+#canvasContainer .aaa-damage-flash,
+#canvasContainer .aaa-heal-flash,
+#canvasContainer .aaa-lowhp,
+#canvasContainer .aaa-dmg-dir {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 40;
+}
+#canvasContainer .aaa-vignette {
+    background: radial-gradient(ellipse at center, transparent 52%, rgba(0,0,0,0.55) 100%);
+}
+#canvasContainer .aaa-grain {
+    opacity: 0.06;
+    background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.5) 0 1px, transparent 1px 3px);
+    animation: aaa-grain-shift 0.4s steps(2) infinite;
+}
+@keyframes aaa-grain-shift {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(3px); }
+}
+#canvasContainer .aaa-grade { opacity: 0; transition: opacity 0.8s ease; }
+#canvasContainer[data-grade="ember"] .aaa-grade { opacity: 1; background: linear-gradient(180deg, rgba(255,90,0,0.10), rgba(120,0,0,0.16)); }
+#canvasContainer[data-grade="verdant"] .aaa-grade { opacity: 1; background: linear-gradient(180deg, rgba(0,255,140,0.07), rgba(0,60,20,0.18)); }
+#canvasContainer[data-grade="void"] .aaa-grade { opacity: 1; background: linear-gradient(180deg, rgba(120,0,255,0.10), rgba(10,0,40,0.22)); }
+#canvasContainer[data-grade="marrow"] .aaa-grade { opacity: 1; background: linear-gradient(180deg, rgba(255,0,90,0.08), rgba(40,0,10,0.22)); }
+#canvasContainer[data-grade="crypt"] .aaa-grade { opacity: 1; background: linear-gradient(180deg, rgba(80,120,255,0.07), rgba(0,0,20,0.20)); }
+#canvasContainer .aaa-damage-flash {
+    opacity: 0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(220,20,40,0.55) 100%);
+    transition: opacity 0.12s ease;
+}
+#canvasContainer .aaa-damage-flash.on { opacity: 1; }
+#canvasContainer .aaa-heal-flash {
+    opacity: 0;
+    background: radial-gradient(ellipse at center, transparent 45%, rgba(40,220,120,0.4) 100%);
+    transition: opacity 0.3s ease;
+}
+#canvasContainer .aaa-heal-flash.on { opacity: 1; }
+#canvasContainer .aaa-lowhp {
+    opacity: 0;
+    background: radial-gradient(ellipse at center, transparent 48%, rgba(200,0,20,0.6) 100%);
+}
+#canvasContainer .aaa-lowhp.on { animation: aaa-lowhp-pulse 1.1s ease-in-out infinite; }
+@keyframes aaa-lowhp-pulse {
+    0%, 100% { opacity: 0.25; }
+    50% { opacity: 0.9; }
+}
+#canvasContainer .aaa-dmg-dir {
+    opacity: 0;
+    background: conic-gradient(from var(--rot, 0rad), transparent 0deg, rgba(255,40,60,0.7) 18deg, transparent 40deg);
+    -webkit-mask: radial-gradient(circle, transparent 55%, black 72%);
+    mask: radial-gradient(circle, transparent 55%, black 72%);
+}
+#canvasContainer .aaa-dmg-dir.on { animation: aaa-dir-fade 0.6s ease-out; }
+@keyframes aaa-dir-fade {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+/* Letterbox bars for cinematic moments */
+#canvasContainer .aaa-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 0;
+    background: #000;
+    z-index: 45;
+    pointer-events: none;
+    transition: height 0.45s ease;
+}
+#canvasContainer .aaa-bar.top { top: 0; }
+#canvasContainer .aaa-bar.bottom { bottom: 0; }
+#canvasContainer.aaa-cine .aaa-bar { height: 7%; }
+/* Slow-mo tint */
+#canvasContainer.aaa-slowmo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 44;
+    pointer-events: none;
+    background: rgba(120, 160, 255, 0.12);
+    backdrop-filter: saturate(1.4);
+}

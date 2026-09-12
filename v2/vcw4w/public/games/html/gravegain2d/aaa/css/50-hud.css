@@ -1,0 +1,61 @@
+/* GraveGain2D AAA — 50 objectives flash, 60 tutorial toasts, 70 run stats. */
+/* Objective tracker flash (existing #missionTracker element). */
+#missionTracker.aaa-flash { animation: aaa-tracker-flash 0.6s ease; }
+@keyframes aaa-tracker-flash {
+    0% { border-color: hsl(45, 95%, 60%); box-shadow: 0 0 14px rgba(255, 180, 0, 0.5); }
+    100% { border-color: rgba(255,204,76,.35); box-shadow: none; }
+}
+/* Tutorial toast: bottom-center, above mobile controls. */
+#aaaToast {
+    position: absolute;
+    left: 50%;
+    bottom: 120px;
+    transform: translateX(-50%) translateY(8px);
+    max-width: min(88%, 520px);
+    z-index: 48;
+    padding: 10px 18px;
+    background: rgba(8, 6, 16, 0.92);
+    border: 1px solid hsl(45, 90%, 55%);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 0.85rem;
+    text-align: center;
+    line-height: 1.5;
+    pointer-events: auto;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+#aaaToast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+#aaaToast kbd {
+    display: inline-block;
+    padding: 1px 7px;
+    margin: 0 1px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 4px;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+}
+/* Run-stats ribbon on the game-over screen. */
+#gameOverScreen .aaa-runstats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.12);
+}
+#gameOverScreen .aaa-runstat { text-align: center; }
+#gameOverScreen .aaa-runstat .v {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: hsl(45, 90%, 60%);
+}
+#gameOverScreen .aaa-runstat .k {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+}

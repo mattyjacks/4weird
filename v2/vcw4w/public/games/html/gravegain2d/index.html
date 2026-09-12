@@ -10,6 +10,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../../styles.css">
     <link rel="stylesheet" href="game.css">
+    <link rel="stylesheet" href="campaign/css/10-campaign.css">
+    <link rel="stylesheet" href="aaa/css/10-film.css">
+    <link rel="stylesheet" href="aaa/css/20-titlecard.css">
+    <link rel="stylesheet" href="aaa/css/30-announcer-combo.css">
+    <link rel="stylesheet" href="aaa/css/40-boss.css">
+    <link rel="stylesheet" href="aaa/css/50-hud.css">
+    <link rel="stylesheet" href="aaa/css/60-menu.css">
 </head>
 <body class="TEMPLATE-4weird-game-page">
     <canvas id="TEMPLATE-4weird-starfield"></canvas>
@@ -133,9 +140,11 @@
             <div class="menu-content glass-panel" style="max-width: 900px; text-align: left;">
                 <h2 class="menu-title" style="font-size: 2rem; margin-bottom: 5px;">📜 Story Campaign (10 Missions)</h2>
                 <p class="menu-subtitle" style="text-align: left; margin-bottom: 15px;">MoonRock Colonial Defense - Shared 2D & 3D Progress</p>
+                <div id="campProgress">CAMPAIGN — 0/10 COMPLETE · ★0 STARS</div>
                 <div class="story-missions-grid" id="storyMissionsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; max-height: 420px; overflow-y: auto; padding-right: 8px;">
                     <!-- Filled dynamically by JS -->
                 </div>
+                <div id="campBriefing"><div class="camp-brief-empty">Select a mission above to view its briefing.</div></div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
                     <button class="btn-game" id="btnStoryBack">← Main Menu</button>
                     <button class="btn-game btn-primary" id="btnStartStoryMission" disabled>⚔️ Launch Selected Mission</button>
@@ -381,8 +390,32 @@
 
     <script src="../../../components.js"></script>
     <script src="../gravegain_shared_missions.js"></script>
+    <script src="campaign/00-campaign-boot.js"></script>
+    <script src="campaign/m01.js"></script>
+    <script src="campaign/m02.js"></script>
+    <script src="campaign/m03.js"></script>
+    <script src="campaign/m04.js"></script>
+    <script src="campaign/m05.js"></script>
+    <script src="campaign/m06.js"></script>
+    <script src="campaign/m07.js"></script>
+    <script src="campaign/m08.js"></script>
+    <script src="campaign/m09.js"></script>
+    <script src="campaign/m10.js"></script>
     <script src="lore.js"></script>
     <script src="game.js"></script>
+    <script src="campaign/10-campaign-director.js"></script>
+    <script src="campaign/20-campaign-ui.js"></script>
+    <script src="campaign/30-campaign-codex.js"></script>
+    <script src="aaa/00-aaa-boot.js"></script>
+    <script src="aaa/10-fx-film.js"></script>
+    <script src="aaa/20-fx-titlecard.js"></script>
+    <script src="aaa/30-fx-announcer.js"></script>
+    <script src="aaa/40-fx-boss.js"></script>
+    <script src="aaa/50-hud-objectives.js"></script>
+    <script src="aaa/60-hud-tutorial.js"></script>
+    <script src="aaa/70-hud-runstats.js"></script>
+    <script src="aaa/80-audio-director.js"></script>
+    <script src="aaa/90-menu-upgrade.js"></script>
     <script src="../game-meta.js"></script>
     <script>
         (function() {

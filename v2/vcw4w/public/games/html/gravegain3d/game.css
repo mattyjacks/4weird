@@ -1830,3 +1830,10 @@ body.touch-enabled .mobile-action-btn.btn-wait {
     font-size: 1.2rem;
 }
 
+/* Story campaign launch button: unmistakable disabled state. */
+#btnStartStoryMission:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    filter: grayscale(0.7);
+}
+

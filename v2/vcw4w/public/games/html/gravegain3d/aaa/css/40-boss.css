@@ -1,0 +1,41 @@
+/* GraveGain3D AAA — boss intro banner + slow-mo slay.
+   Pairs with aaa/40-fx-boss.js. */
+
+.aaa-boss-intro {
+    position: absolute; inset: 0; z-index: 62; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; pointer-events: none;
+    background: radial-gradient(ellipse at center, rgba(120,0,10,0.25), rgba(0,0,0,0.82));
+    opacity: 0; transition: opacity 0.4s;
+}
+.aaa-boss-intro.on { opacity: 1; }
+.aaa-boss-intro .aaa-boss-kicker {
+    font-family: 'Orbitron'; letter-spacing: 0.5em; font-size: 0.75rem; color: #f87171;
+}
+.aaa-boss-intro .aaa-boss-name {
+    font-family: 'Orbitron'; font-weight: 900; font-size: 2.6rem; letter-spacing: 0.1em;
+    color: #fff; text-shadow: 0 0 24px rgba(255,30,40,0.9), 0 4px 0 #000;
+    margin: 8px 0; animation: aaa-title-in 0.6s both; text-align: center; padding: 0 20px;
+}
+.aaa-boss-intro .aaa-boss-sub {
+    color: rgba(255,255,255,0.7); letter-spacing: 0.25em; font-size: 0.8rem; font-family: 'Orbitron';
+}
+
+/* Slow-mo murder tint while the warden dies in bullet time. */
+#canvasContainer.aaa-slowmo .aaa-grade { opacity: 0.9; }
+#canvasContainer.aaa-slowmo::after {
+    content: ''; position: absolute; inset: 0; z-index: 16; pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(80,0,140,0.35) 100%);
+}
+
+/* Slay flash: white-hot fullscreen pulse on the killing blow. */
+.aaa-boss-slay {
+    position: absolute; inset: 0; z-index: 63; pointer-events: none;
+    background: radial-gradient(ellipse at center, rgba(255,255,255,0.85) 0%, rgba(255,204,76,0.25) 45%, transparent 75%);
+    opacity: 0;
+}
+.aaa-boss-slay.on { animation: aaa-slay-flash 0.7s ease-out both; }
+@keyframes aaa-slay-flash {
+    0% { opacity: 0; }
+    15% { opacity: 1; }
+    100% { opacity: 0; }
+}

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Orbital Drift - 4weird Games</title>
     <meta name="description" content="Hold to expand orbit, release to shrink. Dodge space debris and collect stardust in a beautiful 3D universe.">
     
@@ -20,12 +20,18 @@
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛸</text></svg>">
     
-    <!-- Three.js Library with failover check -->
+    <!-- Three.js Library with async failover (no document.write) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        if (typeof THREE === 'undefined') {
-            document.write('<script src="https://unpkg.com/three@0.128.0/build/three.min.js"><\/script>');
-        }
+        window.__threeReady = (typeof THREE !== 'undefined')
+            ? Promise.resolve()
+            : new Promise(function (res, rej) {
+                var s = document.createElement('script');
+                s.src = 'https://unpkg.com/three@0.128.0/build/three.min.js';
+                s.onload = function () { res(); };
+                s.onerror = function () { rej(new Error('three-cdn-fail')); };
+                document.head.appendChild(s);
+            });
     </script>
     
     <!-- Game Metadata (loaded for credits/bio) -->
@@ -58,31 +64,92 @@
     <main class="TEMPLATE-4weird-game-main">
         <!-- Game Canvas/Frame -->
         <div class="TEMPLATE-4weird-game-frame" id="game-container">
-            <canvas id="TEMPLATE-4weird-gameCanvas"></canvas>
+            <canvas id="TEMPLATE-4weird-gameCanvas" aria-label="Orbital Drift 3D space arena"></canvas>
+            <div id="hit-flash"></div>
+            <div id="vignette"></div>
+            <div id="popup-layer"></div>
             
             <!-- Real-time HUD -->
             <div id="game-hud" class="hidden">
                 <div class="hud-item score-container">
                     <span class="hud-label">SCORE</span>
-                    <span id="hud-score" class="hud-value">0</span>
+                    <span id="hud-score" class="hud-value" aria-live="polite">0</span>
                 </div>
                 <div class="hud-item multiplier-container">
                     <span class="hud-label">MULT.</span>
                     <span id="hud-multiplier" class="hud-value">1.0x</span>
+                    <div class="combo-bar-bg"><div id="hud-combo-bar"></div></div>
+                    <span id="hud-combo-tier" class="combo-tier"></span>
                 </div>
                 <div class="hud-item integrity-container">
-                    <span class="hud-label">SHIELD</span>
+                    <span class="hud-label">SHIELD <span id="hud-integrity-num">100%</span></span>
                     <div class="integrity-bar-bg">
                         <div id="hud-integrity-bar" style="width: 100%;"></div>
                     </div>
                 </div>
+                <div class="hud-item TEMPLATE-4weird-powerup-chip hidden" id="TEMPLATE-4weird-powerup-magnet">
+                    <span class="hud-label">🧲 <span id="TEMPLATE-4weird-magnet-secs">7.0s</span></span>
+                    <div class="TEMPLATE-4weird-powerup-bar-bg"><div id="TEMPLATE-4weird-magnet-bar"></div></div>
+                </div>
+                <div class="hud-item TEMPLATE-4weird-powerup-chip hidden" id="TEMPLATE-4weird-powerup-shield">
+                    <span class="hud-label">🛡️ <span id="TEMPLATE-4weird-shield-secs">8.0s</span></span>
+                    <div class="TEMPLATE-4weird-powerup-bar-bg"><div id="TEMPLATE-4weird-shield-bar"></div></div>
+                </div>
+                <div class="hud-item TEMPLATE-4weird-powerup-chip hidden" id="TEMPLATE-4weird-powerup-fx">
+                    <span class="hud-label" id="TEMPLATE-4weird-fx-label">⚡</span>
+                    <div class="TEMPLATE-4weird-powerup-bar-bg"><div id="TEMPLATE-4weird-fx-bar"></div></div>
+                </div>
+            </div>
+
+            <!-- Clickable HUD controls (separate from pointer-events:none HUD) -->
+            <div class="TEMPLATE-4weird-hud-controls" id="TEMPLATE-4weird-hud-controls">
+                <button class="TEMPLATE-4weird-icon-btn" id="TEMPLATE-4weird-mute-btn" aria-label="Mute sound" aria-pressed="false" title="Mute (M)">🔊</button>
+                <button class="TEMPLATE-4weird-icon-btn" id="TEMPLATE-4weird-pause-btn" aria-label="Pause game" title="Pause (P / Esc)">⏸</button>
+            </div>
+
+            <!-- Wave / phase banner -->
+            <div class="TEMPLATE-4weird-wave-banner hidden" id="TEMPLATE-4weird-wave-banner" aria-live="polite">
+                <span id="TEMPLATE-4weird-wave-title">WAVE 1</span>
+                <span id="TEMPLATE-4weird-wave-sub">hold steady</span>
+            </div>
+
+            <!-- Tutorial hint (first run) -->
+            <div class="TEMPLATE-4weird-tutorial-hint hidden" id="TEMPLATE-4weird-tutorial-hint" aria-hidden="true">
+                <div class="TEMPLATE-4weird-tutorial-ring"></div>
+                <p>HOLD to expand &nbsp;·&nbsp; RELEASE to fall back</p>
             </div>
 
             <!-- Game Overlay States -->
             <div class="TEMPLATE-4weird-game-overlay" id="TEMPLATE-4weird-start-screen">
                 <div class="TEMPLATE-4weird-overlay-content">
                     <h2 class="glow-text">ORBITAL DRIFT</h2>
+                    <p class="TEMPLATE-4weird-hangar-eyebrow">★ HANGAR ★</p>
+                    <p id="hangar-last-flight" class="TEMPLATE-4weird-hangar-summary">Choose your hull, pilot.</p>
                     <p>Steer your satellite around the gravity well. Hold to push outward; release to fall back inward. Collect stardust and avoid orbital space debris.</p>
+                    <div class="TEMPLATE-4weird-ship-select" id="TEMPLATE-4weird-ship-select" role="radiogroup" aria-label="Choose your spacecraft">
+                        <button class="TEMPLATE-4weird-ship-card" data-ship="cubesat" role="radio" aria-checked="false">
+                            <span class="TEMPLATE-4weird-ship-emoji">📦</span>
+                            <span class="TEMPLATE-4weird-ship-name">CubeSat</span>
+                            <span class="TEMPLATE-4weird-ship-desc">Nimble · fragile · +25% score</span>
+                            <span class="TEMPLATE-4weird-ship-stats">Hull 75 · Agility ★★★ · Score ×1.25</span>
+                            <span class="TEMPLATE-4weird-ship-best" data-best="cubesat">BEST —</span>
+                        </button>
+                        <button class="TEMPLATE-4weird-ship-card selected" data-ship="dart" role="radio" aria-checked="true">
+                            <span class="TEMPLATE-4weird-ship-emoji">🛸</span>
+                            <span class="TEMPLATE-4weird-ship-name">Dart</span>
+                            <span class="TEMPLATE-4weird-ship-desc">Balanced interceptor</span>
+                            <span class="TEMPLATE-4weird-ship-stats">Hull 100 · Agility ★★ · Score ×1.0</span>
+                            <span class="TEMPLATE-4weird-ship-best" data-best="dart">BEST —</span>
+                        </button>
+                        <button class="TEMPLATE-4weird-ship-card" data-ship="station" role="radio" aria-checked="false">
+                            <span class="TEMPLATE-4weird-ship-emoji">🛰️</span>
+                            <span class="TEMPLATE-4weird-ship-name">Harbour Station</span>
+                            <span class="TEMPLATE-4weird-ship-desc">Tanky · slow · big collector</span>
+                            <span class="TEMPLATE-4weird-ship-stats">Hull 150 · Agility ★ · Score ×0.9</span>
+                            <span class="TEMPLATE-4weird-ship-best" data-best="station">BEST —</span>
+                        </button>
+                    </div>
+                    <p class="TEMPLATE-4weird-ship-hint">Press <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> to switch hull</p>
                     <button class="btn btn-primary" id="TEMPLATE-4weird-start-btn">
                         <span class="btn-emoji">🛸</span> Launch Satellite
                     </button>
@@ -97,15 +164,25 @@
                     <h2>PAUSED</h2>
                     <button class="btn btn-primary" id="TEMPLATE-4weird-resume-btn">Resume</button>
                     <button class="btn btn-secondary" id="TEMPLATE-4weird-restart-btn">Restart</button>
+                    <button class="btn btn-secondary" id="TEMPLATE-4weird-quit-btn">Hangar</button>
                 </div>
             </div>
             
-            <div class="TEMPLATE-4weird-game-overlay hidden" id="TEMPLATE-4weird-game-over-screen">
+            <div class="TEMPLATE-4weird-game-overlay hidden" id="TEMPLATE-4weird-game-over-screen" role="dialog" aria-modal="true" aria-labelledby="TEMPLATE-4weird-gameover-title">
                 <div class="TEMPLATE-4weird-overlay-content">
-                    <h2 class="glow-text header-fail">Mission Terminated</h2>
+                    <h2 class="glow-text header-fail" id="TEMPLATE-4weird-gameover-title">Mission Terminated</h2>
+                    <div class="TEMPLATE-4weird-best-badge hidden" id="TEMPLATE-4weird-best-badge">★ NEW BEST ★</div>
                     <p id="game-over-reason">Shield integrity depleted by space debris!</p>
                     <p class="TEMPLATE-4weird-final-score">Final Score: <span id="TEMPLATE-4weird-final-score-val">0</span></p>
-                    <button class="btn btn-primary" id="TEMPLATE-4weird-play-again-btn">Re-launch</button>
+                    <ul class="TEMPLATE-4weird-score-breakdown" id="TEMPLATE-4weird-score-breakdown">
+                        <li>✨ Stardust <span id="TEMPLATE-4weird-stat-dust">0</span> → <span id="TEMPLATE-4weird-stat-base">0</span> pts</li>
+                        <li>🔥 Combo bonus <span id="TEMPLATE-4weird-stat-bonus">+0</span> · Max <span id="TEMPLATE-4weird-stat-maxmult">1.0x</span></li>
+                        <li>🛸 Hull <span id="TEMPLATE-4weird-stat-ship">Dart</span> · 🚀 Grazes <span id="TEMPLATE-4weird-stat-near">0</span> · ⏱ <span id="TEMPLATE-4weird-stat-time">0.0s</span></li>
+                    </ul>
+                    <div class="TEMPLATE-4weird-overlay-actions">
+                        <button class="btn btn-primary" id="TEMPLATE-4weird-play-again-btn">Re-launch</button>
+                        <button class="btn btn-secondary" id="TEMPLATE-4weird-hangar-btn">Hangar</button>
+                    </div>
                 </div>
             </div>
         </div>

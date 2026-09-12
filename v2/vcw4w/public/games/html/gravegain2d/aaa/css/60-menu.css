@@ -1,0 +1,52 @@
+/* GraveGain2D AAA — 60 menu upgrade: animated title, tagline, stars, daily. */
+#mainMenuScreen .menu-title.aaa-title-anim {
+    background: linear-gradient(110deg, #fff 15%, hsl(350,90%,55%) 38%, hsl(270,85%,60%) 52%, hsl(45,90%,55%) 66%, #fff 85%);
+    background-size: 220% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: aaa-title-sheen 5s linear infinite;
+}
+@keyframes aaa-title-sheen {
+    0% { background-position: 0% center; }
+    100% { background-position: 220% center; }
+}
+#mainMenuScreen .aaa-menu-tag {
+    display: inline-block;
+    margin: -18px 0 18px 0;
+    padding: 4px 14px;
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: hsl(45, 90%, 65%);
+    border: 1px solid rgba(255, 204, 76, 0.4);
+    border-radius: 999px;
+    background: rgba(255, 204, 76, 0.07);
+}
+/* Mission stars preview (shared 2D/3D campaign progress). */
+#mainMenuScreen .aaa-stars-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 4px 0 14px 0;
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.5);
+}
+#mainMenuScreen .aaa-star.done { color: hsl(45, 90%, 60%); text-shadow: 0 0 8px rgba(255,180,0,0.6); }
+/* Daily challenge polish. */
+#mainMenuScreen .daily-challenges-container.aaa-daily {
+    border-color: rgba(255, 204, 76, 0.45);
+    box-shadow: 0 0 18px rgba(255, 180, 0, 0.08), inset 0 0 24px rgba(255, 180, 0, 0.04);
+}
+#mainMenuScreen .daily-challenges-container.aaa-daily .daily-challenge-item {
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.02);
+}
+#mainMenuScreen .daily-challenges-container.aaa-daily .daily-challenge-item + .daily-challenge-item {
+    border-top: 1px solid rgba(255,255,255,0.06);
+}
+#mainMenuScreen .aaa-continue-btn {
+    background: linear-gradient(135deg, hsl(45,85%,40%), hsl(350,80%,45%));
+    border-color: hsl(45,90%,55%);
+}

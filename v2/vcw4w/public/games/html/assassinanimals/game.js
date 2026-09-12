@@ -612,9 +612,20 @@
             hasKey: false,
             silentAssassin: true,
             bodiesDiscovered: 0,
+            bodiesHidden: 0,
             alarmsTriggered: 0,
+            knockouts: 0,
+            runStartTime: 0,
+            floorStartTime: 0,
+            contractId: null,
+            contractFailed: false,
+            contractFlags: {},
+            reconPingUsed: false,
+            decoyUsed: false,
+            hackCount: 0,
+            pickpocketCount: 0,
             upgrades: { health: 0, speed: 0, damage: 0, vision: 0, noise: 0, cooldown: 0 },
-            gadgets: { medkit: 1, tranq: 2, smoke: 1 }
+            gadgets: { medkit: 1, tranq: 2, smoke: 1, decoy: 1, surge: 1 }
         },
         map: null,
         guards: [],
@@ -639,6 +650,9 @@
         smokeClouds: [],
         screenShake: { intensity: 0, duration: 0 },
         alerts: { active: false, timer: 0 },
+        hack: { active: false, target: null, kind: null, progress: 0, required: 120 },
+        surge: { active: false, timer: 0 },
+        drones: [],
         camera: { x: 0, y: 0 },
         keys: {},
         mouse: { x: 0, y: 0, worldX: 0, worldY: 0 },
@@ -844,6 +858,13 @@
         state.screenShake.duration = duration;
     }
 
+    // Agent D (presentation) hook: broadcast game moments without touching systems.
+    function emitAssassinEvent(name, detail) {
+        try {
+            window.dispatchEvent(new CustomEvent('assassin:' + name, { detail: detail || {} }));
+        } catch (e) { /* never throw into game loop */ }
+    }
+
     function spawnFloatingText(x, y, text, color = '#ffffff', size = 13) {
         state.floatingTexts.push({
             x,
@@ -935,12 +956,44 @@
         state.run.score = 0;
         state.run.kills = 0;
         state.run.pacifications = 0;
+        state.run.knockouts = 0;
         state.run.hasKey = false;
         state.run.silentAssassin = true;
         state.run.bodiesDiscovered = 0;
+        state.run.bodiesHidden = 0;
         state.run.alarmsTriggered = 0;
+        state.run.runStartTime = Date.now();
+        state.run.floorStartTime = Date.now();
+        state.run.vipDeadAt = null;
+        state.run.contractFailed = false;
+        state.run.contractFlags = {};
+        state.run.reconPingUsed = false;
+        state.run.decoyUsed = false;
+        state.run.hackCount = 0;
+        state.run.pickpocketCount = 0;
+        try {
+            const api = aaGetContracts();
+            if (api && typeof api.getActive === 'function') {
+                const a = api.getActive();
+                state.run.contractId = a ? a.id : (state.run.contractId || null);
+            }
+        } catch (e) {}
+        // Contract operative enforcement: fall back to free run with notice
+        try {
+            const c = aaGetActiveContract();
+            if (c && c.operative && c.operative !== 'any' && state.selectedId !== c.operative) {
+                const need = ROSTER.find(r => r.id === c.operative);
+                if (need) {
+                    state.selectedId = c.operative;
+                    try { renderRosterGrid(); } catch (e) {}
+                }
+            }
+        } catch (e) {}
         state.run.upgrades = { health: 0, speed: 0, damage: 0, vision: 0, noise: 0, cooldown: 0 };
-        state.run.gadgets = { medkit: 1, tranq: 2, smoke: 1 };
+        state.run.gadgets = { medkit: 1, tranq: 2, smoke: 1, decoy: 1, surge: 1 };
+        state.hack = { active: false, target: null, kind: null, progress: 0, required: 120 };
+        state.surge = { active: false, timer: 0 };
+        state.drones = [];
         state.floorBlood = [];
 
         launchFloor();
@@ -1070,10 +1123,10 @@
             }
         });
 
-        // Spawn Supply Weapon Crates (Gadget pickups)
+        // Spawn Supply Weapon Crates (Gadget pickups, incl. new decoy/surge)
         state.map.rooms.forEach((r, idx) => {
             if (idx !== 0 && Math.random() < 0.5) {
-                const gadgetTypes = ['medkit', 'tranq', 'smoke'];
+                const gadgetTypes = ['medkit', 'tranq', 'smoke', 'decoy', 'surge'];
                 const loot = gadgetTypes[Math.floor(Math.random() * gadgetTypes.length)];
                 state.supplyCrates.push({
                     x: (r.x + 1 + Math.random() * (r.w - 2)) * TILE_SIZE,
@@ -1129,15 +1182,29 @@
                         state: 'PATROL',
                         speed: isVIP ? 1.7 : 2.1 + (state.run.floor * 0.08),
                         patrolNode: { x: gx, y: gy },
+                        patrolRoute: null,
+                        patrolIdx: 0,
                         patrolTimer: Math.random() * 120,
                         inspectTimer: 0,
                         inspectTarget: null,
+                        searchTarget: null,
+                        searchTimer: 0,
+                        lastKnownX: null,
+                        lastKnownY: null,
                         suspicion: 0,
+                        suspicionRate: 4.5,
                         shootCooldown: 0,
                         hp: isVIP ? 45 : 55 + state.run.floor * 10,
+                        maxHp: isVIP ? 45 : 55 + state.run.floor * 10,
                         isVIP: isVIP,
-                        isEnforcer: isEnforcer
+                        isEnforcer: isEnforcer,
+                        elite: null,
+                        revealed: false
                     };
+                    try {
+                        aaScaleGuardForFloor(guard, state.run.floor);
+                        aaBuildPatrolRoute(guard, r);
+                    } catch (e) {}
 
                     state.guards.push(guard);
                 }
@@ -1170,12 +1237,45 @@
         // Update HUD elements
         document.getElementById('hudFloor').textContent = state.run.floor;
         document.getElementById('hudDNA').textContent = state.run.dna;
-        document.getElementById('hudKey').textContent = '❌';
-        document.getElementById('hudDisguiseText').textContent = 'NONE';
+        document.getElementById('hudKey').textContent = state.run.hasKey ? '🔑 YES' : '❌';
+        document.getElementById('hudDisguiseText').textContent = state.player && state.player.disguise ? state.player.disguise : 'NONE';
+        try {
+            state.run.floorStartTime = Date.now();
+            state.hack = { active: false, target: null, kind: null, progress: 0, required: 120 };
+            // Drone (camera-mobile) elites from floor 4+
+            state.drones = [];
+            if (state.run.floor >= 4) {
+                const n = Math.min(3, 1 + Math.floor((state.run.floor - 4) / 2));
+                for (let di = 0; di < n; di++) {
+                    const rr = state.map.rooms[Math.floor(Math.random() * state.map.rooms.length)];
+                    const dx = (rr.cx + (Math.random() * 2 - 1)) * TILE_SIZE;
+                    const dy = (rr.cy + (Math.random() * 2 - 1)) * TILE_SIZE;
+                    state.drones.push({
+                        x: dx, y: dy, r: 12,
+                        angle: Math.random() * Math.PI * 2,
+                        baseAngle: Math.random() * Math.PI * 2,
+                        rotSpeed: 0.008 + Math.random() * 0.006,
+                        rotRange: 1.2, fov: 0.7, range: 170,
+                        speed: 0.7, disabledTimer: 0,
+                        wp: [{ x: rr.cx * TILE_SIZE, y: rr.cy * TILE_SIZE }, { x: dx, y: dy }],
+                        wpi: 0
+                    });
+                }
+            }
+            // Active contract: floor warning + score hook
+            const ac = aaGetActiveContract();
+            if (ac) {
+                state.run.score += 0;
+                spawnFloatingText(state.player.x, state.player.y - 40, '📜 CONTRACT: ' + ac.name, '#00e5ff', 13);
+            }
+            aaEnsureGadgetSlots();
+            aaUpdateContractBadge();
+        } catch (e) {}
         updateVIPCount();
         updateGadgetHUD();
         updateSARatingDisplay();
         resizeCanvas();
+        emitAssassinEvent('floor', { floor: state.run.floor });
     }
 
     function updateVIPCount() {
@@ -1187,13 +1287,29 @@
             document.getElementById('hudKey').textContent = '🔑 YES';
             audio.playCoin();
             spawnFloatingText(state.player.x, state.player.y - 30, '🔑 KEYCARD SECURED!', '#00ff66', 15);
+            try {
+                state.run.vipDeadAt = state.run.vipDeadAt || Date.now();
+                const c = aaGetActiveContract();
+                if (c && !state.run.contractFailed) {
+                    state.run.dna += (c.rewardDNA || 0);
+                    document.getElementById('hudDNA').textContent = state.run.dna;
+                    spawnFloatingText(state.player.x, state.player.y - 55, '📜 CONTRACT FEE: +' + (c.rewardDNA || 0) + ' DNA', '#00e5ff', 13);
+                }
+            } catch (e) {}
         }
     }
 
     function updateGadgetHUD() {
+        try { aaEnsureGadgetSlots(); } catch (e) {}
         document.getElementById('countMedkit').textContent = state.run.gadgets.medkit;
         document.getElementById('countTranq').textContent = state.run.gadgets.tranq;
         document.getElementById('countSmoke').textContent = state.run.gadgets.smoke;
+        try {
+            const dc = document.getElementById('countDecoy');
+            if (dc) dc.textContent = state.run.gadgets.decoy || 0;
+            const sc = document.getElementById('countSurge');
+            if (sc) sc.textContent = state.run.gadgets.surge || 0;
+        } catch (e) {}
 
         document.getElementById('slotMedkit').classList.toggle('empty', state.run.gadgets.medkit <= 0);
         document.getElementById('slotTranq').classList.toggle('empty', state.run.gadgets.tranq <= 0);
@@ -1202,13 +1318,35 @@
 
     function updateSARatingDisplay() {
         const el = document.getElementById('hudSAText');
-        if (state.run.silentAssassin) {
-            el.textContent = 'SILENT ASSASSIN';
-            el.className = 'sa-status highlight-green';
-        } else {
-            el.textContent = 'COVER COMPROMISED';
-            el.className = 'sa-status blown';
+        if (!el) return;
+        try {
+            const rating = aaComputeRating();
+            if (rating === 'PHANTOM') {
+                el.textContent = 'PHANTOM 👻 (+150% / no-knockout legend)';
+                el.className = 'sa-status highlight-green';
+            } else if (rating === 'GHOST') {
+                el.textContent = 'GHOST 👻 (+100% / zero alarms, zero kills)';
+                el.className = 'sa-status highlight-green';
+            } else if (rating === 'SILENT_ASSASSIN') {
+                el.textContent = 'SILENT ASSASSIN';
+                el.className = 'sa-status highlight-green';
+            } else if (rating === 'SHADOW') {
+                el.textContent = 'SHADOW (SA lost, undetected streak)';
+                el.className = 'sa-status highlight-cyan';
+            } else {
+                el.textContent = 'COVER COMPROMISED';
+                el.className = 'sa-status blown';
+            }
+        } catch (e) {
+            if (state.run.silentAssassin) {
+                el.textContent = 'SILENT ASSASSIN';
+                el.className = 'sa-status highlight-green';
+            } else {
+                el.textContent = 'COVER COMPROMISED';
+                el.className = 'sa-status blown';
+            }
         }
+        try { aaUpdateContractBadge(); } catch (e) {}
     }
 
     // ==========================================
@@ -1257,6 +1395,18 @@
             if (g.state === 'PACIFIED') return;
             const dist = Math.hypot(g.x - ax, g.y - ay);
             if (dist < g.r + 22) {
+                // Shielded Enforcer: immune from the front — flank for full damage
+                try {
+                    if (g.elite === 'SHIELDED') {
+                        const toPlayer = Math.atan2(state.player.y - g.y, state.player.x - g.x);
+                        const frontDiff = Math.abs(normalizeAngle(toPlayer - g.angle));
+                        if (frontDiff < Math.PI / 2.2) {
+                            spawnFloatingText(g.x, g.y - 20, '🛡️ BLOCKED (FLANK!)', '#94a3b8', 12);
+                            triggerSparkEffect(g.x, g.y, 6);
+                            return;
+                        }
+                    }
+                } catch (e) {}
                 let damage = 40;
 
                 if (state.selectedId === 'panther') {
@@ -1319,7 +1469,13 @@
         guard.state = 'PACIFIED';
         guard.hp = 0;
         state.run.pacifications++;
+        state.run.knockouts = (state.run.knockouts || 0) + 1;
         state.run.score += guard.isVIP ? 1500 : 200;
+        try {
+            if (guard.isVIP) state.run.vipDeadAt = Date.now();
+            const c = aaGetActiveContract();
+            if (c && c.rules && c.rules.vipOnlyKills && !guard.isVIP) aaContractFail('non-target neutralized');
+        } catch (e) {}
 
         spawnFloatingText(guard.x, guard.y - 25, guard.isVIP ? '🎯 VIP ELIMINATED!' : '💤 PACIFIED (NON-LETHAL)', '#00ff66', 14);
 
@@ -1349,6 +1505,7 @@
         if (idx !== -1) state.guards.splice(idx, 1);
 
         updateVIPCount();
+        emitAssassinEvent('takedown', { x: guard.x, y: guard.y, isVIP: !!guard.isVIP, silent: true });
     }
 
     function handleGuardDeath(guard) {
@@ -1357,6 +1514,15 @@
             state.guards.splice(idx, 1);
         }
         state.run.kills++;
+        try {
+            state.run.knockouts = (state.run.knockouts || 0) + 1;
+            if (guard.isVIP) state.run.vipDeadAt = Date.now();
+            const c = aaGetActiveContract();
+            if (c && c.rules) {
+                if (c.rules.pacifyOnly) aaContractFail('lethal force used');
+                else if (c.rules.vipOnlyKills && !guard.isVIP) aaContractFail('non-target killed');
+            }
+        } catch (e) {}
 
         if (guard.isVIP) {
             state.run.score += 1500;
@@ -1398,6 +1564,11 @@
         for (let j = 0; j < 6; j++) {
             spawnFloorBlood(guard.x + Math.random() * 28 - 14, guard.y + Math.random() * 28 - 14, 16);
         }
+        emitAssassinEvent('kill', {
+            x: guard.x, y: guard.y,
+            isVIP: !!guard.isVIP, isEnforcer: !!guard.isEnforcer,
+            kills: state.run.kills, silentAssassin: state.run.silentAssassin
+        });
     }
 
     // Active Signature Ability
@@ -1476,6 +1647,7 @@
         else if (state.selectedId === 'hawk') {
             audio.playHacking();
             state.player.reconActiveTimer = 600;
+            try { state.run.reconPingUsed = true; state.run.contractFlags.recon = true; } catch (e) {}
             spawnFloatingText(state.player.x, state.player.y - 25, 'THERMAL RECON PING ACTIVE!', '#00e5ff', 13);
         }
         else if (state.selectedId === 'badger') {
@@ -1540,6 +1712,15 @@
     // ==========================================
     function useGadget(type) {
         if (state.mode !== 'PLAY' || !state.player || state.player.hp <= 0) return;
+        try {
+            if (type === 'decoy' || type === 'surge') {
+                if (aaUseGadgetExtended(type)) return;
+                else {
+                    spawnFloatingText(state.player.x, state.player.y - 20, 'NONE LEFT!', '#94a3b8', 12);
+                    return;
+                }
+            }
+        } catch (e) {}
 
         if (type === 'medkit') {
             if (state.run.gadgets.medkit <= 0) return;
@@ -1689,12 +1870,26 @@
                 audio.playHeavySlam();
                 triggerSparkEffect(dumpster.x, dumpster.y, 12);
                 spawnFloatingText(dumpster.x, dumpster.y - 25, 'BODY CONCEALED! (SAFE)', '#00ff66', 13);
+                try {
+                    state.run.bodiesHidden = (state.run.bodiesHidden || 0) + 1;
+                    state.run.score += 150;
+                } catch (e) {}
                 return;
             }
         }
 
         let nearTerminal = state.terminals.find(t => !t.hacked && Math.hypot(t.x - player.x, t.y - player.y) < 45);
         if (nearTerminal) {
+            // Minigame-lite: hold E ~2s (progress in aaHackTick). Instant fallback if E not held.
+            try {
+                if (!state.hack.active || state.hack.target !== nearTerminal) {
+                    aaStartHack('TERMINAL', nearTerminal, 120);
+                    spawnFloatingText(nearTerminal.x, nearTerminal.y - 25, 'HACKING… HOLD E', '#00e5ff', 12);
+                    return;
+                } else {
+                    return; // hold-E progress continues in aaHackTick; instant path below is fallback only
+                }
+            } catch (e) {}
             nearTerminal.hacked = true;
             audio.playHacking();
             triggerSparkEffect(nearTerminal.x, nearTerminal.y, 20);
@@ -1705,8 +1900,36 @@
             state.run.score += 400;
 
             spawnFloatingText(nearTerminal.x, nearTerminal.y - 25, 'TERMINAL HACKED: CAMERAS LOOPED & KEYCARD OVERRIDE!', '#00e5ff', 14);
+            try {
+                state.run.hackCount++;
+                state.run.contractFlags.hacked = true;
+                state.guards.forEach(g => { if (g.isVIP) g.revealed = true; });
+                state.hack.active = false;
+            } catch (e) {}
             return;
         }
+
+        // Pickpocket keycard: sneak behind VIP, hold E 1.5s
+        try {
+            const vip = state.guards.find(g => g.isVIP && g.state !== 'PACIFIED' && Math.hypot(g.x - player.x, g.y - player.y) < 46);
+            if (vip && !state.run.hasKey) {
+                const angToVip = Math.atan2(vip.y - player.y, vip.x - player.x);
+                const behind = Math.abs(normalizeAngle(angToVip - vip.angle)) < Math.PI / 2.6;
+                const undetected = (vip.state !== 'CHASE');
+                if (behind && undetected) {
+                    if (!state.hack.active || state.hack.target !== vip) {
+                        aaStartHack('PICKPOCKET', vip, 90);
+                        spawnFloatingText(player.x, player.y - 25, 'LIFTING KEYCARD… HOLD E', '#00ff66', 12);
+                        return;
+                    }
+                }
+            }
+            if (state.hack.active && state.hack.kind === 'PICKPOCKET') {
+                const still = state.guards.includes(state.hack.target);
+                if (!still) state.hack.active = false;
+                else return; // hold-E progress continues in aaHackTick
+            }
+        } catch (e) {}
 
         let nearSupply = state.supplyCrates.find(c => !c.opened && Math.hypot(c.x - player.x, c.y - player.y) < 40);
         if (nearSupply) {
@@ -1715,7 +1938,7 @@
             audio.playCoin();
             triggerSparkEffect(nearSupply.x, nearSupply.y, 12);
             updateGadgetHUD();
-            const lootNames = { medkit: 'MEDKIT (+1)', tranq: 'TRANQ DART (+1)', smoke: 'SMOKE BOMB (+1)' };
+            const lootNames = { medkit: 'MEDKIT (+1)', tranq: 'TRANQ DART (+1)', smoke: 'SMOKE BOMB (+1)', decoy: 'NOISE DECOY (+1)', surge: 'ADRENAL SURGE (+1)' };
             spawnFloatingText(nearSupply.x, nearSupply.y - 25, `ACQUIRED: ${lootNames[nearSupply.loot]}`, '#00ff66', 13);
             return;
         }
@@ -1846,13 +2069,21 @@
                 let disguiseProtects = false;
                 if (player.disguise === 'GUARD' && !g.isVIP) {
                     if (g.isEnforcer) {
+                        // Enforcer vision: longer range, sees through disguise at close range
                         if (dist > 120) disguiseProtects = true;
+                        else if (dist < 45) disguiseProtects = false; // close-range burn
                     } else {
                         if (dist > 65) disguiseProtects = true;
                     }
                 }
 
-                if (!disguiseProtects && dist < 190 * stealthMultiplier) {
+                // Enforcer vision range bonus (compatible with stealth multiplier)
+                let visionRange = 190 * stealthMultiplier;
+                try {
+                    if (g.isEnforcer) visionRange = Math.max(visionRange, 250 * Math.max(0.35, stealthMultiplier));
+                    if (g.elite === 'VETERAN') visionRange *= 1.15;
+                } catch (e) {}
+                if (!disguiseProtects && dist < visionRange) {
                     const dirToPlayer = Math.atan2(player.y - g.y, player.x - g.x);
                     const angleDiff = Math.abs(normalizeAngle(dirToPlayer - g.angle));
 
@@ -1865,8 +2096,19 @@
             }
 
             if (canSeePlayer) {
-                g.suspicion = Math.min(100, g.suspicion + 4.5);
+                g.suspicion = Math.min(100, g.suspicion + (g.suspicionRate || 4.5));
+                // Enforcer close-range burn: suspicion spikes through disguise
+                try {
+                    if (g.isEnforcer && player.disguise !== 'NONE') {
+                        const dd = Math.hypot(player.x - g.x, player.y - g.y);
+                        if (dd < 60) g.suspicion = Math.min(100, g.suspicion + 3);
+                    }
+                } catch (e) {}
                 g.targetAngle = Math.atan2(player.y - g.y, player.x - g.x);
+                try {
+                    g.lastKnownX = player.x;
+                    g.lastKnownY = player.y;
+                } catch (e) {}
 
                 if (g.suspicion >= 40 && player.disguise !== 'NONE') {
                     player.disguise = 'NONE';
@@ -1877,6 +2119,7 @@
                 if (g.suspicion >= 85) {
                     g.state = 'CHASE';
                     anyChase = true;
+                    try { aaEscalate(g); } catch (e) {}
 
                     if (!state.alerts.active) {
                         state.alerts.active = true;
@@ -1921,8 +2164,13 @@
             } else {
                 g.suspicion = Math.max(0, g.suspicion - 0.6);
                 if (g.state === 'CHASE' && g.suspicion <= 0) {
-                    g.state = 'INSPECT';
-                    g.inspectTarget = { x: player.x, y: player.y };
+                    // Fall back to SEARCH (investigate last-known position) — INSPECT-compatible
+                    g.state = 'SEARCH';
+                    const lx = (g.lastKnownX != null) ? g.lastKnownX : player.x;
+                    const ly = (g.lastKnownY != null) ? g.lastKnownY : player.y;
+                    g.searchTarget = { x: lx, y: ly };
+                    g.searchTimer = 260;
+                    g.inspectTarget = { x: lx, y: ly };
                     g.inspectTimer = 200;
                 }
             }
@@ -1940,6 +2188,25 @@
                 if (dist > 38) {
                     targetMoveX = (dx / dist) * g.speed * 1.3;
                     targetMoveY = (dy / dist) * g.speed * 1.3;
+                }
+            } else if (g.state === 'SEARCH') {
+                // SEARCH: investigate last-known position with suspicion decay
+                g.searchTimer = (g.searchTimer || 0) - 1;
+                g.suspicion = Math.max(0, g.suspicion - 0.35);
+                if (g.searchTarget) {
+                    const sdx = g.searchTarget.x - g.x;
+                    const sdy = g.searchTarget.y - g.y;
+                    const sdist = Math.hypot(sdx, sdy);
+                    g.targetAngle = Math.atan2(sdy, sdx);
+                    if (sdist > 20) {
+                        targetMoveX = (sdx / sdist) * g.speed;
+                        targetMoveY = (sdy / sdist) * g.speed;
+                    } else {
+                        g.targetAngle += 0.06;
+                    }
+                }
+                if (g.searchTimer <= 0) {
+                    g.state = 'PATROL';
                 }
             } else if (g.state === 'INSPECT') {
                 g.inspectTimer--;
@@ -1959,12 +2226,7 @@
             } else {
                 g.patrolTimer++;
                 if (g.patrolTimer % 180 === 0) {
-                    const angle = Math.random() * Math.PI * 2;
-                    const dist = Math.random() * 110 + 40;
-                    g.patrolNode = {
-                        x: g.x + Math.cos(angle) * dist,
-                        y: g.y + Math.sin(angle) * dist
-                    };
+                    try { aaAdvancePatrol(g); } catch (e) {}
                 }
 
                 const dx = g.patrolNode.x - g.x;
@@ -1974,6 +2236,10 @@
                     g.targetAngle = Math.atan2(dy, dx);
                     targetMoveX = (dx / dist) * (g.speed * 0.7);
                     targetMoveY = (dy / dist) * (g.speed * 0.7);
+                } else {
+                    // Reached waypoint: advance 2-3 node route
+                    try { aaAdvancePatrol(g); } catch (e) {}
+                    g.patrolTimer = 0;
                 }
             }
 
@@ -2010,6 +2276,10 @@
     function updateGame(deltaTime) {
         if (state.mode !== 'PLAY' || !state.player) return;
         const player = state.player;
+        try { aaSurgeTick(); } catch (e) {}
+        try { aaHackTick(); } catch (e) {}
+        try { aaUpdateDrones(); } catch (e) {}
+        try { aaCheckContractRulesTick(); } catch (e) {}
 
         if (state.screenShake.duration > 0) {
             state.screenShake.duration--;
@@ -2152,7 +2422,9 @@
             if (vx !== 0 || vy !== 0) {
                 const length = Math.hypot(vx, vy);
                 const dragPenalty = player.draggingBody ? 0.45 : 1.0;
-                const moveSpeed = player.speed * dragPenalty;
+                let surgeMul = 1.0;
+                try { surgeMul = aaSurgeSpeedMul(); } catch (e) {}
+                const moveSpeed = player.speed * dragPenalty * surgeMul;
 
                 const nextX = player.x + (vx / length) * moveSpeed;
                 const nextY = player.y + (vy / length) * moveSpeed;
@@ -2459,11 +2731,37 @@
         const nearTerminal = state.terminals.find(t => !t.hacked && Math.hypot(t.x - player.x, t.y - player.y) < 45);
         if (nearTerminal) {
             state.currentContextAction = { type: 'HACK' };
-            promptKey.textContent = 'E';
-            promptText.textContent = 'HACK TERMINAL (LOOP CAMERAS)';
+            promptKey.textContent = 'E (HOLD)';
+            try {
+                if (state.hack.active && state.hack.target === nearTerminal) {
+                    const pct = Math.round((state.hack.progress / state.hack.required) * 100);
+                    promptText.textContent = 'HACKING TERMINAL… ' + pct + '% (HOLD E)';
+                } else {
+                    promptText.textContent = 'HACK TERMINAL (HOLD E: DISABLE CAMS 20s + REVEAL VIP)';
+                }
+            } catch (e) {
+                promptText.textContent = 'HACK TERMINAL (LOOP CAMERAS)';
+            }
             promptEl.classList.remove('hidden');
             return;
         }
+
+        // Pickpocket prompt: sneak behind VIP
+        try {
+            const pvip = state.guards.find(g => g.isVIP && g.state !== 'PACIFIED' && Math.hypot(g.x - player.x, g.y - player.y) < 46);
+            if (pvip && !state.run.hasKey && pvip.state !== 'CHASE') {
+                state.currentContextAction = { type: 'PICKPOCKET', target: pvip };
+                promptKey.textContent = 'E (HOLD)';
+                if (state.hack.active && state.hack.kind === 'PICKPOCKET') {
+                    const pct = Math.round((state.hack.progress / state.hack.required) * 100);
+                    promptText.textContent = 'LIFTING KEYCARD… ' + pct + '% (HOLD E, STAY UNSEEN)';
+                } else {
+                    promptText.textContent = 'PICKPOCKET KEYCARD (SNEAK BEHIND VIP, HOLD E)';
+                }
+                promptEl.classList.remove('hidden');
+                return;
+            }
+        } catch (e) {}
 
         const nearSupply = state.supplyCrates.find(c => !c.opened && Math.hypot(c.x - player.x, c.y - player.y) < 40);
         if (nearSupply) {
@@ -2810,6 +3108,18 @@
                 ctx.fill();
                 ctx.stroke();
             }
+            // Agent C elites: minimal functional markers (presentation owns the rest)
+            try {
+                if (g.elite === 'SHIELDED') {
+                    ctx.font = '13px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('🛡️', g.x + 14, g.y - 14);
+                } else if (g.elite === 'VETERAN') {
+                    ctx.font = '13px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('⭐', g.x + 14, g.y - 14);
+                }
+            } catch (e) {}
 
             if (g.suspicion > 0 && g.state !== 'CHASE') {
                 ctx.fillStyle = '#ffea00';
@@ -2834,9 +3144,28 @@
             ctx.fillStyle = '#1e1e2f';
             ctx.fillRect(g.x - 15, g.y + 18, 30, 4);
             ctx.fillStyle = '#10b981';
-            const maxGuardHp = g.isVIP ? 45 : 55 + state.run.floor * 10;
+            const maxGuardHp = g.maxHp || (g.isVIP ? 45 : 55 + state.run.floor * 10);
             ctx.fillRect(g.x - 15, g.y + 18, Math.max(0, 30 * (g.hp / maxGuardHp)), 4);
         });
+
+        // Agent C drones (camera-mobile elites): minimal functional render
+        try {
+            (state.drones || []).forEach(d => {
+                const isDis = d.disabledTimer && d.disabledTimer > 0;
+                if (!isDis) {
+                    ctx.fillStyle = 'rgba(255, 0, 127, 0.10)';
+                    ctx.beginPath();
+                    ctx.moveTo(d.x, d.y);
+                    ctx.arc(d.x, d.y, d.range || 170, d.angle - (d.fov || 0.7) / 2, d.angle + (d.fov || 0.7) / 2);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(isDis ? '🛰️' : '🛸', d.x, d.y);
+            });
+        } catch (e) {}
 
         state.bullets.forEach(b => {
             ctx.strokeStyle = '#f43f5e';
@@ -2972,6 +3301,7 @@
         else if (newMode === 'SELECT') {
             document.getElementById('charSelectScreen').classList.remove('hidden');
             renderRosterGrid();
+            try { aaInjectContractUI(); } catch (e) {}
         }
         else if (newMode === 'PLAY') {
             document.getElementById('gameMain').classList.remove('hidden');
@@ -2990,9 +3320,33 @@
 
             let totalScore = state.run.score;
             let saRatingText = "NO";
-            if (state.run.silentAssassin) {
-                totalScore += 2500 * state.run.floor;
-                saRatingText = "YES (👑 SILENT ASSASSIN BONUS +2500/FLR!)";
+            try {
+                const res = aaComputeFinalScore();
+                totalScore = res.total;
+                const rating = res.rating;
+                if (rating === 'PHANTOM') saRatingText = "YES (👻 PHANTOM ×2.5 +5000/FLR: zero alarms, zero knockouts, bodies hidden!)";
+                else if (rating === 'GHOST') saRatingText = "YES (👻 GHOST ×2.0 +2500/FLR: zero alarms, zero kills!)";
+                else if (rating === 'SILENT_ASSASSIN') saRatingText = "YES (👑 SILENT ASSASSIN ×1.5 +2500/FLR!)";
+                else if (rating === 'SHADOW') saRatingText = "PARTIAL (SHADOW ×1.2: SA lost but streak kept)";
+                state.run.score = totalScore;
+                // Persist run best + settings
+                try { aaRecordRunBest(); } catch (e) {}
+                // Record contract result
+                try {
+                    const c = aaGetActiveContract();
+                    const api = aaGetContracts();
+                    if (c && api && typeof api.recordResult === 'function') {
+                        const rank = state.run.contractFailed ? 'BRONZE' :
+                            (rating === 'PHANTOM' ? 'PHANTOM' : rating === 'GHOST' ? 'GHOST' :
+                             rating === 'SILENT_ASSASSIN' ? 'SILENT_ASSASSIN' : rating === 'SHADOW' ? 'SILVER' : 'BRONZE');
+                        api.recordResult(c.id, rank, { floor: state.run.floor, score: totalScore });
+                    }
+                } catch (e) {}
+            } catch (e) {
+                if (state.run.silentAssassin) {
+                    totalScore += 2500 * state.run.floor;
+                    saRatingText = "YES (👑 SILENT ASSASSIN BONUS +2500/FLR!)";
+                }
             }
 
             document.getElementById('finalKills').innerHTML = `${state.run.kills} (Silent Assassin: <span style="color:${state.run.silentAssassin ? '#00ff66' : '#ff0055'}">${saRatingText}</span>)`;
@@ -3006,14 +3360,18 @@
 
     function handleElevatorUnlock() {
         audio.playLevelUp();
+        emitAssassinEvent('elevator', { floor: state.run.floor });
+        try { aaRecordRunBest(); } catch (e) {}
         changeState('SHOP');
     }
 
     function handlePlayerDeath() {
         audio.playFailure();
+        emitAssassinEvent('playerdown', { x: state.player ? state.player.x : 0, y: state.player ? state.player.y : 0 });
         triggerBloodSplatter(state.player.x, state.player.y, 60);
         spawnGibs(state.player.x, state.player.y, 10);
         state.player.hp = 0;
+        try { aaRecordRunBest(); } catch (e) {}
         setTimeout(() => changeState('GAMEOVER'), 1000);
     }
 
@@ -3234,6 +3592,8 @@
             if (e.code === 'Digit1') useGadget('medkit');
             if (e.code === 'Digit2') useGadget('tranq');
             if (e.code === 'Digit3') useGadget('smoke');
+            if (e.code === 'Digit4') useGadget('decoy');
+            if (e.code === 'Digit5') useGadget('surge');
         });
 
         window.addEventListener('keyup', e => {
@@ -3273,6 +3633,7 @@
         document.getElementById('btnToggleSound').addEventListener('click', () => {
             const isSoundOn = audio.toggleMute();
             document.getElementById('btnToggleSound').textContent = isSoundOn ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+            try { aaPersistSettings(); } catch (e) {}
         });
 
         document.getElementById('btnToggleTouch').addEventListener('click', () => {
@@ -3334,6 +3695,11 @@
 
         document.getElementById('btnLaunchRun').addEventListener('click', () => {
             audio.playTone(800, 'sine', 0.15, 0.08);
+            try {
+                // Sync contract select (if player picked one in char select)
+                const sel = document.getElementById('aaContractSelect');
+                if (sel) aaSetContract(sel.value || null);
+            } catch (e) {}
             initRun();
             changeState('PLAY');
         });
@@ -3373,8 +3739,16 @@
         const deltaTime = Math.min(rawDeltaTime, 100) * speed;
 
         if (state.mode === 'PLAY') {
-            updateGame(deltaTime);
-            drawGame();
+            try {
+                updateGame(deltaTime);
+            } catch (e) {
+                // Frame loop must survive errors from any system (Agent C contract).
+                try { state.hack.active = false; } catch (e2) {}
+            }
+            try {
+                drawGame();
+            } catch (e) { /* render must never kill the loop */ }
+            try { aaDrawHackBar(); } catch (e) {}
         }
         requestAnimationFrame(gameLoop);
     }
@@ -3389,8 +3763,565 @@
     });
 
     bindGameEvents();
+    // Agent C: load persisted settings (mute) on boot — never crash boot.
+    try {
+        const saved = aaLoadSave();
+        if (saved && typeof saved.muted === 'boolean' && saved.muted) {
+            audio.muted = true;
+            const sb = document.getElementById('btnToggleSound');
+            if (sb) sb.textContent = '🔇 Sound: OFF';
+        }
+    } catch (e) {}
     requestAnimationFrame(gameLoop);
     changeState('MENU');
+
+    // Agent D presentation hook (additive, read-only for fx/ modules).
+    try {
+        window.AssassinGame = {
+            version: '2.0.0',
+            state: state,
+            audio: audio,
+            roster: ROSTER,
+            fns: {
+                triggerScreenShake: triggerScreenShake,
+                spawnParticle: spawnParticle,
+                spawnFloorBlood: spawnFloorBlood,
+                spawnGibs: spawnGibs,
+                spawnFloatingText: spawnFloatingText,
+                triggerBloodSplatter: triggerBloodSplatter,
+                triggerSparkEffect: triggerSparkEffect,
+                triggerAcidPuff: triggerAcidPuff
+            }
+        };
+    } catch (e) { /* never break boot */ }
+
+    // ==========================================
+    // 19B. SYSTEMS UPGRADE PACK (Agent C) - additive + defensive
+    // Contracts, persistence, guard AI helpers, hacking/pickpocket,
+    // new gadgets, difficulty scaling, scoring tiers. No render/CSS work.
+    // Every public helper is try/catch guarded; frame loop must survive.
+    // ==========================================
+    const AASAVE_KEY = 'assassinanimals_save_v1';
+
+    function aaSafe(fn, fallback) {
+        try { return fn(); } catch (e) { return fallback; }
+    }
+
+    function aaGetContracts() {
+        try { return window.AssassinContracts || null; } catch (e) { return null; }
+    }
+
+    function aaGetActiveContract() {
+        try {
+            const api = aaGetContracts();
+            if (!api) return null;
+            if (state.run.contractId) {
+                const c = api.get(state.run.contractId);
+                if (c) return c;
+            }
+            if (typeof api.getActive === 'function') {
+                const a = api.getActive();
+                if (a) return a;
+            }
+            return null;
+        } catch (e) { return null; }
+    }
+
+    function aaLoadSave() {
+        try {
+            const raw = localStorage.getItem(AASAVE_KEY);
+            if (!raw) return null;
+            const s = JSON.parse(raw);
+            if (!s || typeof s !== 'object') return null;
+            if (typeof s.muted === 'boolean') {
+                audio.muted = s.muted;
+            }
+            return s;
+        } catch (e) { return null; }
+    }
+
+    function aaWriteSave(patch) {
+        try {
+            let cur = {};
+            try {
+                cur = JSON.parse(localStorage.getItem(AASAVE_KEY) || '{}') || {};
+            } catch (e) {}
+            const next = Object.assign({}, cur, patch || {});
+            localStorage.setItem(AASAVE_KEY, JSON.stringify(next));
+        } catch (e) {}
+    }
+
+    function aaPersistSettings() {
+        aaSafe(() => {
+            aaWriteSave({ muted: !!audio.muted });
+            return true;
+        }, false);
+    }
+
+    function aaRecordRunBest() {
+        aaSafe(() => {
+            let cur = {};
+            try { cur = JSON.parse(localStorage.getItem(AASAVE_KEY) || '{}') || {}; } catch (e) {}
+            const best = cur.best || { floor: 0, score: 0 };
+            let dirty = false;
+            if (state.run.floor > (best.floor || 0)) { best.floor = state.run.floor; dirty = true; }
+            if (state.run.score > (best.score || 0)) { best.score = state.run.score; dirty = true; }
+            cur.best = best;
+            cur.lastRun = { floor: state.run.floor, score: state.run.score, kills: state.run.kills, at: Date.now() };
+            cur.muted = !!audio.muted;
+            localStorage.setItem(AASAVE_KEY, JSON.stringify(cur));
+            return dirty;
+        }, false);
+    }
+
+    function aaContractFail(reason) {
+        try {
+            if (!state.run.contractId || state.run.contractFailed) return;
+            state.run.contractFailed = true;
+            spawnFloatingText(state.player.x, state.player.y - 30, 'CONTRACT FAILED: ' + reason, '#ff0055', 13);
+        } catch (e) {}
+    }
+
+    // ---- Difficulty scaling helpers ----
+    function aaScaleGuardForFloor(g, floorNum) {
+        try {
+            const f = Math.max(1, floorNum | 0);
+            const hpMul = 1 + (f - 1) * 0.12;
+            const spMul = 1 + Math.min(0.5, (f - 1) * 0.05);
+            g.hp = Math.round(g.hp * hpMul);
+            g.maxHp = g.hp;
+            g.speed = +(g.speed * spMul).toFixed(2);
+            // Elites from floor 4+
+            if (f >= 4 && !g.isVIP && !g.elite) {
+                const roll = Math.random();
+                if (roll < 0.12 + (f - 4) * 0.03) {
+                    g.elite = 'SHIELDED';
+                    g.hp = Math.round(g.hp * 1.8);
+                    g.maxHp = g.hp;
+                    g.speed = +(g.speed * 0.95).toFixed(2);
+                } else if (roll < 0.22 + (f - 4) * 0.04) {
+                    g.elite = 'VETERAN';
+                    g.hp = Math.round(g.hp * 1.35);
+                    g.maxHp = g.hp;
+                    g.speed = +(g.speed * 1.15).toFixed(2);
+                    g.suspicionRate = 6.5;
+                }
+            }
+        } catch (e) {}
+    }
+
+    function aaBuildPatrolRoute(g, room) {
+        try {
+            const pts = [];
+            const n = 2 + Math.floor(Math.random() * 2); // 2-3 nodes
+            for (let i = 0; i < n; i++) {
+                const px = (room.x + 1 + Math.random() * Math.max(1, room.w - 2)) * TILE_SIZE;
+                const py = (room.y + 1 + Math.random() * Math.max(1, room.h - 2)) * TILE_SIZE;
+                pts.push({ x: px, y: py });
+            }
+            if (pts.length) {
+                g.patrolRoute = pts;
+                g.patrolIdx = 0;
+                g.patrolNode = pts[0];
+            }
+        } catch (e) {}
+    }
+
+    function aaAdvancePatrol(g) {
+        try {
+            if (g.patrolRoute && g.patrolRoute.length > 1) {
+                g.patrolIdx = ((g.patrolIdx || 0) + 1) % g.patrolRoute.length;
+                g.patrolNode = g.patrolRoute[g.patrolIdx];
+            } else {
+                const angle = Math.random() * Math.PI * 2;
+                const dist = Math.random() * 110 + 40;
+                g.patrolNode = { x: g.x + Math.cos(angle) * dist, y: g.y + Math.sin(angle) * dist };
+            }
+        } catch (e) {}
+    }
+
+    // ESCALATE: caller alerts nearby guards within 250px (SEARCH state)
+    function aaEscalate(sourceGuard) {
+        try {
+            state.guards.forEach(g => {
+                if (g === sourceGuard || g.state === 'PACIFIED') return;
+                const d = Math.hypot(g.x - sourceGuard.x, g.y - sourceGuard.y);
+                if (d < 250 && g.state !== 'CHASE') {
+                    g.state = 'SEARCH';
+                    g.searchTarget = { x: state.player.x, y: state.player.y };
+                    g.searchTimer = 300;
+                    g.suspicion = Math.max(g.suspicion || 0, 60);
+                }
+            });
+        } catch (e) {}
+    }
+
+    // ---- Scoring tiers ----
+    function aaComputeRating() {
+        try {
+            const r = state.run;
+            if (r.alarmsTriggered === 0 && r.kills === 0 && r.knockouts === 0 && r.bodiesDiscovered === 0) return 'PHANTOM';
+            if (r.alarmsTriggered === 0 && r.kills === 0 && r.bodiesDiscovered === 0) return 'GHOST';
+            if (r.silentAssassin && r.alarmsTriggered === 0) return 'SILENT_ASSASSIN';
+            if (r.silentAssassin) return 'SHADOW';
+            return 'COMPROMISED';
+        } catch (e) { return 'COMPROMISED'; }
+    }
+
+    function aaComputeFinalScore() {
+        try {
+            const r = state.run;
+            let total = r.score;
+            const rating = aaComputeRating();
+            const floorBonus = 250 * r.floor;
+            total += floorBonus;
+            if (rating === 'SILENT_ASSASSIN') total = Math.round(total * 1.5 + 2500 * r.floor);
+            else if (rating === 'GHOST') total = Math.round(total * 2.0 + 2500 * r.floor);
+            else if (rating === 'PHANTOM') total = Math.round(total * 2.5 + 5000 * r.floor);
+            else if (rating === 'SHADOW') total = Math.round(total * 1.2);
+            // Time bonus: faster floors pay (par 150s per floor)
+            try {
+                const elapsed = (Date.now() - (r.runStartTime || Date.now())) / 1000;
+                const par = 150 * r.floor;
+                if (elapsed < par) total += Math.round((par - elapsed) * 5);
+            } catch (e) {}
+            // Body-hidden bonus
+            total += (r.bodiesHidden || 0) * 150;
+            // Active contract multiplier
+            try {
+                const c = aaGetActiveContract();
+                if (c && !r.contractFailed && typeof c.scoreMult === 'number') {
+                    total = Math.round(total * c.scoreMult);
+                }
+            } catch (e) {}
+            return { total, rating };
+        } catch (e) { return { total: state.run.score, rating: 'COMPROMISED' }; }
+    }
+
+    function aaSetContract(id) {
+        try {
+            const api = aaGetContracts();
+            if (api && typeof api.setActive === 'function') api.setActive(id || null);
+            state.run.contractId = id || null;
+            state.run.contractFailed = false;
+            state.run.contractFlags = {};
+            aaUpdateContractBadge();
+            return true;
+        } catch (e) { return false; }
+    }
+
+    function aaUpdateContractBadge() {
+        try {
+            let badge = document.getElementById('hudContractBadge');
+            const c = aaGetActiveContract();
+            if (!c) {
+                if (badge) badge.textContent = '';
+                return;
+            }
+            if (!badge) {
+                const anchor = document.getElementById('hudSAText');
+                if (anchor && anchor.parentElement) {
+                    badge = document.createElement('span');
+                    badge.id = 'hudContractBadge';
+                    badge.className = 'sa-status';
+                    badge.style.marginLeft = '8px';
+                    anchor.parentElement.appendChild(badge);
+                } else return;
+            }
+            const prog = aaGetContracts() ? aaGetContracts().getBest(c.id) : 'NONE';
+            badge.textContent = '📜 ' + c.name + (prog && prog !== 'NONE' ? ' (BEST: ' + prog + ')' : '');
+        } catch (e) {}
+    }
+
+    function aaInjectContractUI() {
+        try {
+            const host = document.getElementById('charSelectScreen') || document.getElementById('mainMenuScreen');
+            if (!host || document.getElementById('aaContractPanel')) return;
+            const api = aaGetContracts();
+            if (!api) return;
+            const panel = document.createElement('div');
+            panel.id = 'aaContractPanel';
+            panel.style.cssText = 'margin:12px auto;max-width:640px;padding:10px;border:1px solid rgba(0,229,255,.4);border-radius:8px;background:rgba(0,20,30,.55);color:#cbd5e1;font-size:13px;';
+            const title = document.createElement('div');
+            title.innerHTML = '<strong style="color:#00e5ff">📜 CONTRACT SELECT</strong> <span style="opacity:.7">(optional — bonus DNA/score)</span>';
+            panel.appendChild(title);
+            const sel = document.createElement('select');
+            sel.id = 'aaContractSelect';
+            sel.style.cssText = 'width:100%;margin-top:8px;padding:6px;background:#0b1220;color:#e2e8f0;border:1px solid #334155;border-radius:6px;';
+            const none = document.createElement('option');
+            none.value = '';
+            none.textContent = '— No contract (free run) —';
+            sel.appendChild(none);
+            api.list().forEach(c => {
+                const o = document.createElement('option');
+                let best = 'NONE';
+                try { best = api.getBest(c.id); } catch (e) {}
+                o.value = c.id;
+                o.textContent = c.name + ' · Fl.' + c.floor + ' · ×' + c.scoreMult + ' · +' + c.rewardDNA + ' DNA' + (best !== 'NONE' ? ' · BEST ' + best : '');
+                sel.appendChild(o);
+            });
+            sel.value = state.run.contractId || api.activeId || '';
+            sel.addEventListener('change', () => {
+                aaSafe(() => {
+                    aaSetContract(sel.value || null);
+                    const c = aaGetActiveContract();
+                    const b = document.getElementById('aaContractBrief');
+                    if (b) b.textContent = c ? ('📋 ' + c.briefing + ' (Reward: +' + c.rewardDNA + ' DNA, ×' + c.scoreMult + ' score)') : '';
+                    return true;
+                }, false);
+            });
+            panel.appendChild(sel);
+            const brief = document.createElement('div');
+            brief.id = 'aaContractBrief';
+            brief.style.cssText = 'margin-top:8px;opacity:.9;';
+            const cur = aaGetActiveContract();
+            brief.textContent = cur ? ('📋 ' + cur.briefing) : '';
+            panel.appendChild(brief);
+            // Insert at top of char select container, else end of host
+            const anchor = host.querySelector('.char-select-container') || host.querySelector('.menu-container');
+            if (anchor) anchor.insertBefore(panel, anchor.firstChild);
+            else host.appendChild(panel);
+        } catch (e) {}
+    }
+
+    function aaEnforceContractOperative() {
+        try {
+            const c = aaGetActiveContract();
+            if (!c || !c.operative || c.operative === 'any') return true;
+            return state.selectedId === c.operative;
+        } catch (e) { return true; }
+    }
+
+    // ---- Hack / pickpocket hold-E progress ----
+    function aaHackTick() {
+        try {
+            const h = state.hack;
+            if (!h.active || !state.player || state.player.hp <= 0) return;
+            // Moving cancels precision work (still allow tiny drift)
+            const moving = state.keys['KeyW'] || state.keys['KeyS'] || state.keys['KeyA'] || state.keys['KeyD'] ||
+                state.keys['ArrowUp'] || state.keys['ArrowDown'] || state.keys['ArrowLeft'] || state.keys['ArrowRight'];
+            if (moving) {
+                h.progress = Math.max(0, h.progress - 2);
+                return;
+            }
+            const eHeld = !!state.keys['KeyE'];
+            if (!eHeld) return;
+            h.progress++;
+            if (h.progress >= h.required) {
+                if (h.kind === 'TERMINAL' && h.target && !h.target.hacked) {
+                    h.target.hacked = true;
+                    audio.playHacking();
+                    triggerSparkEffect(h.target.x, h.target.y, 20);
+                    state.run.hasKey = true;
+                    const hk = document.getElementById('hudKey');
+                    if (hk) hk.textContent = '🔑 YES';
+                    state.cameras.forEach(c => { c.disabledTimer = 1200; });
+                    try {
+                        state.drones.forEach(d => { d.disabledTimer = 1200; });
+                    } catch (e) {}
+                    state.run.score += 400;
+                    state.run.hackCount++;
+                    state.run.contractFlags.hacked = true;
+                    // reveal VIP
+                    state.guards.forEach(g => { if (g.isVIP) g.revealed = true; });
+                    spawnFloatingText(h.target.x, h.target.y - 25, 'TERMINAL HACKED: CAMERAS LOOPED 20s + VIP REVEALED!', '#00e5ff', 13);
+                } else if (h.kind === 'PICKPOCKET' && h.target && h.target.state !== 'PACIFIED') {
+                    state.run.hasKey = true;
+                    const hk2 = document.getElementById('hudKey');
+                    if (hk2) hk2.textContent = '🔑 YES';
+                    state.run.pickpocketCount++;
+                    state.run.contractFlags.pickpocketed = true;
+                    state.run.score += 600;
+                    audio.playCoin();
+                    spawnFloatingText(state.player.x, state.player.y - 25, '🔑 KEYCARD LIFTED (UNDETECTED)!', '#00ff66', 13);
+                }
+                state.hack.active = false;
+                state.hack.target = null;
+                state.hack.progress = 0;
+            }
+        } catch (e) {
+            try { state.hack.active = false; } catch (e2) {}
+        }
+    }
+
+    function aaStartHack(kind, target, requiredTicks) {
+        try {
+            state.hack.active = true;
+            state.hack.kind = kind;
+            state.hack.target = target;
+            state.hack.progress = 0;
+            state.hack.required = requiredTicks || 120;
+        } catch (e) {}
+    }
+
+    function aaDrawHackBar() {
+        try {
+            if (!state.hack.active) return;
+            const logicalWidth = canvas.width / (window.devicePixelRatio || 1);
+            const logicalHeight = canvas.height / (window.devicePixelRatio || 1);
+            ctx.save();
+            ctx.setTransform(window.devicePixelRatio || 1, 0, 0, window.devicePixelRatio || 1, 0, 0);
+            const w = 260, h = 14;
+            const x = (logicalWidth - w) / 2, y = logicalHeight - 90;
+            const pct = Math.min(1, state.hack.progress / state.hack.required);
+            ctx.fillStyle = 'rgba(0,0,0,.65)';
+            ctx.fillRect(x - 2, y - 2, w + 4, h + 4);
+            ctx.fillStyle = '#164e63';
+            ctx.fillRect(x, y, w, h);
+            ctx.fillStyle = state.hack.kind === 'PICKPOCKET' ? '#00ff66' : '#00e5ff';
+            ctx.fillRect(x, y, w * pct, h);
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 11px Orbitron, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(state.hack.kind === 'PICKPOCKET' ? 'LIFTING KEYCARD… HOLD E' : 'HACKING TERMINAL… HOLD E', logicalWidth / 2, y - 8);
+            ctx.restore();
+        } catch (e) {}
+    }
+
+    // ---- New gadgets: Noise Decoy (4) + Adrenal Surge (5) ----
+    function aaUseGadgetExtended(type) {
+        try {
+            if (state.mode !== 'PLAY' || !state.player || state.player.hp <= 0) return false;
+            if (type === 'decoy') {
+                if ((state.run.gadgets.decoy || 0) <= 0) return false;
+                state.run.gadgets.decoy--;
+                audio.playCoin();
+                const tx = state.mouse.worldX, ty = state.mouse.worldY;
+                state.particles.push({ type: 'SOUND_RIPPLE', x: tx, y: ty, r: 10, maxR: 200, life: 40 });
+                state.guards.forEach(g => {
+                    if (g.state === 'PACIFIED' || g.state === 'CHASE') return;
+                    const d = Math.hypot(g.x - tx, g.y - ty);
+                    if (d < 260 && !isLineBlocked(g.x, g.y, tx, ty, state.map.grid)) {
+                        g.state = 'SEARCH';
+                        g.searchTarget = { x: tx, y: ty };
+                        g.searchTimer = 260;
+                    }
+                });
+                state.run.decoyUsed = true;
+                state.run.contractFlags.decoyUsed = true;
+                spawnFloatingText(tx, ty - 20, '🔊 NOISE DECOY', '#ffea00', 13);
+                updateGadgetHUD();
+                return true;
+            }
+            if (type === 'surge') {
+                if ((state.run.gadgets.surge || 0) <= 0) return false;
+                if (state.surge.active) return false;
+                state.run.gadgets.surge--;
+                state.surge.active = true;
+                state.surge.timer = 360; // ~6s
+                audio.playLevelUp();
+                spawnFloatingText(state.player.x, state.player.y - 25, '⚡ ADRENAL SURGE!', '#00e5ff', 14);
+                updateGadgetHUD();
+                return true;
+            }
+            return false;
+        } catch (e) { return false; }
+    }
+
+    function aaSurgeTick() {
+        try {
+            if (state.surge.active) {
+                state.surge.timer--;
+                if (state.surge.timer <= 0) {
+                    state.surge.active = false;
+                    state.surge.timer = 0;
+                }
+            }
+        } catch (e) {
+            try { state.surge.active = false; } catch (e2) {}
+        }
+    }
+
+    function aaSurgeSpeedMul() {
+        try { return state.surge.active ? 1.45 : 1.0; } catch (e) { return 1.0; }
+    }
+
+    function aaEnsureGadgetSlots() {
+        try {
+            const bar = document.getElementById('gadgetBar');
+            if (!bar || document.getElementById('slotDecoy')) return;
+            const mk = (id, key, icon, name, title) => {
+                const b = document.createElement('button');
+                b.className = 'gadget-slot';
+                b.id = id;
+                b.title = title;
+                b.innerHTML = '<span class="slot-key">' + key + '</span> <span class="slot-icon">' + icon + '</span> <span class="slot-name">' + name + '</span> <span class="slot-count" id="count' + key + '">1</span>';
+                return b;
+            };
+            const d = mk('slotDecoy', 'Decoy', '🔊', 'Noise Decoy', 'Press 4: Noise Decoy (lure patrols to a point)');
+            const s = mk('slotSurge', 'Surge', '⚡', 'Adrenal Surge', 'Press 5: Adrenal Surge (6s speed boost)');
+            // fix count ids to match updateGadgetHUD expectations
+            d.querySelector('.slot-count').id = 'countDecoy';
+            s.querySelector('.slot-count').id = 'countSurge';
+            d.addEventListener('click', () => { try { useGadget('decoy'); } catch (e) {} });
+            s.addEventListener('click', () => { try { useGadget('surge'); } catch (e) {} });
+            bar.appendChild(d);
+            bar.appendChild(s);
+            const hint = document.querySelector('.ability-hint-panel');
+            if (hint && !document.getElementById('aaHint45')) {
+                const sp = document.createElement('span');
+                sp.id = 'aaHint45';
+                sp.innerHTML = ' <span class="separator">|</span> <span><strong>4-5</strong>: Decoy/Surge</span>';
+                hint.appendChild(sp);
+            }
+        } catch (e) {}
+    }
+
+    function aaUpdateDrones() {
+        try {
+            (state.drones || []).forEach(d => {
+                if (d.disabledTimer && d.disabledTimer > 0) { d.disabledTimer--; return; }
+                d.angle = (d.baseAngle || 0) + Math.sin(Date.now() * (d.rotSpeed || 0.01)) * (d.rotRange || 1.2);
+                // mobile patrol: drift along small circuit
+                if (d.wp && d.wp.length) {
+                    const t = d.wp[d.wpi || 0];
+                    const dx = t.x - d.x, dy = t.y - d.y;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist < 12) d.wpi = ((d.wpi || 0) + 1) % d.wp.length;
+                    else { d.x += (dx / dist) * (d.speed || 0.7); d.y += (dy / dist) * (d.speed || 0.7); }
+                }
+                // detection like a camera
+                const p = state.player;
+                if (p && p.hp > 0 && p.burrowTimer <= 0 && !state.alerts.active) {
+                    const dist = Math.hypot(p.x - d.x, p.y - d.y);
+                    if (dist < (d.range || 170)) {
+                        const dir = Math.atan2(p.y - d.y, p.x - d.x);
+                        if (Math.abs(normalizeAngle(dir - d.angle)) < (d.fov || 0.7) / 2) {
+                            if (!isLineBlocked(d.x, d.y, p.x, p.y, state.map.grid)) {
+                                state.alerts.active = true;
+                                state.alerts.timer = 320;
+                                state.run.alarmsTriggered++;
+                                state.run.silentAssassin = false;
+                                try { updateSARatingDisplay(); } catch (e) {}
+                                audio.playAlarm();
+                                audio.setMode('COMBAT');
+                                alertGuardsNear(d.x, d.y, 420);
+                                spawnFloatingText(p.x, p.y - 25, 'DRONE SPOTTED!', '#ff0055', 13);
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (e) {}
+    }
+
+    function aaCheckContractRulesTick() {
+        try {
+            const c = aaGetActiveContract();
+            if (!c || !c.rules) return;
+            const r = state.run;
+            if (c.rules.noAlarms && r.alarmsTriggered > 0 && !r.contractFailed) {
+                aaContractFail('alarm raised');
+            }
+            if (c.rules.timeLimitSec) {
+                const el = (Date.now() - (r.floorStartTime || Date.now())) / 1000;
+                if (el > c.rules.timeLimitSec && !r.vipDeadAt) {
+                    // only fail once VIP still alive past limit on starting floor
+                    if (!r.contractFailed) aaContractFail('time expired');
+                }
+            }
+        } catch (e) {}
+    }
 
     // ==========================================
     // 20. DEVELOPER & PLAYTEST DEBUG API

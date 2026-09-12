@@ -11,6 +11,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../../styles.css">
     <link rel="stylesheet" href="game.css">
+    <link rel="stylesheet" href="aaa/css/10-film.css">
+    <link rel="stylesheet" href="aaa/css/20-titlecard.css">
+    <link rel="stylesheet" href="aaa/css/30-announcer-combo.css">
+    <link rel="stylesheet" href="aaa/css/40-boss.css">
+    <link rel="stylesheet" href="aaa/css/50-hud.css">
+    <link rel="stylesheet" href="aaa/css/60-menu.css">
+    <link rel="stylesheet" href="campaign/css/10-campaign.css">
     <!-- Three.js Library (primary CDN with fallback mirror) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
@@ -487,6 +494,21 @@
                     </div>
 
                     <div>
+                        <label style="display:block; font-size:0.85rem; margin-bottom:5px;">Graphics Preset (Auto-detect from system load)</label>
+                        <select id="settingsGraphicsPreset" style="width:100%; padding:8px; background:rgba(0,0,0,0.5); border:1px solid var(--grave-border); color:white; border-radius:5px;">
+                            <option value="auto" selected>Auto (detect optimal from system load)</option>
+                            <option value="potato">Potato (max smoothness — low particles, no torch flicker)</option>
+                            <option value="balanced">Balanced</option>
+                            <option value="high">High</option>
+                            <option value="ultra">Ultra (shadows + full particles)</option>
+                        </select>
+                        <div style="display:flex; gap:10px; align-items:center; margin-top:8px;">
+                            <button class="btn-game" id="btnGraphicsBenchmark" style="font-size:0.8rem; padding:6px 12px;">⚙ Benchmark now</button>
+                        </div>
+                        <div id="graphicsBenchmarkResult" style="font-size:0.8rem; color:var(--grave-text-muted); margin-top:6px;">Not benchmarked yet.</div>
+                    </div>
+
+                    <div>
                         <label style="display:block; font-size:0.85rem; margin-bottom:5px;">ElevenLabs API Key (TTS Synthesis Cache)</label>
                         <input type="password" id="settingsElevenLabsKey" placeholder="sk-..." style="width:100%; padding:8px; background:rgba(0,0,0,0.5); border:1px solid var(--grave-border); color:white; border-radius:5px;">
                     </div>
@@ -574,7 +596,35 @@
 
     <script src="../../../components.js"></script>
     <script src="lore.js"></script>
+    <script src="../fourweird-graphics.js"></script>
+    <script src="engine/graphics-settings.js"></script>
     <script src="engine/game-runtime.js"></script>
+    <!-- AAA presentation layer: many focused modules, boot first. See aaa/ folder. -->
+    <script src="aaa/00-aaa-boot.js"></script>
+    <script src="aaa/10-fx-film.js"></script>
+    <script src="aaa/20-fx-titlecard.js"></script>
+    <script src="aaa/30-fx-announcer.js"></script>
+    <script src="aaa/40-fx-boss.js"></script>
+    <script src="aaa/50-hud-objectives.js"></script>
+    <script src="aaa/60-hud-tutorial.js"></script>
+    <script src="aaa/70-hud-runstats.js"></script>
+    <script src="aaa/80-audio-director.js"></script>
+    <script src="aaa/90-menu-upgrade.js"></script>
+    <!-- Lore campaign: 10-mission MoonRock saga. Boot/registry first, packs, systems last. -->
+    <script src="campaign/00-campaign-boot.js"></script>
+    <script src="campaign/m01.js"></script>
+    <script src="campaign/m02.js"></script>
+    <script src="campaign/m03.js"></script>
+    <script src="campaign/m04.js"></script>
+    <script src="campaign/m05.js"></script>
+    <script src="campaign/m06.js"></script>
+    <script src="campaign/m07.js"></script>
+    <script src="campaign/m08.js"></script>
+    <script src="campaign/m09.js"></script>
+    <script src="campaign/m10.js"></script>
+    <script src="campaign/10-campaign-director.js"></script>
+    <script src="campaign/20-campaign-ui.js"></script>
+    <script src="campaign/30-campaign-codex.js"></script>
     <script src="../game-meta.js"></script>
     <script>
         (function() {
