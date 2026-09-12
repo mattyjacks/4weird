@@ -69,14 +69,62 @@ export async function POST(req: Request) {
   if (!/^[a-z0-9-]{1,64}$/.test(slug)) return fail("A valid commit slug is required.", 400);
   const title = String(input.title ?? "Untitled Game").slice(0, 120);
   const commitN = Math.max(1, Math.floor(Number(input.commit_n ?? 1)) || 1);
+  // Cost-governor gates: final passing commit only, never quality 0.
+  // Verify is self-spend on an authenticated draft, so these gates prevent
+  // waste (not theft): one verify per build, no inconclusive ledgers.
+  const quality = Math.floor(Number(input.quality ?? 5));
+  if (quality === 0) return fail("Quality 0 is inconclusive by design — no ledger verify.", 409);
+  const commitsTotal = Math.max(1, Math.floor(Number(input.commits_total ?? commitN)) || 1);
+  if (commitN !== commitsTotal) return fail("Only the final commit can be ledger-verified (one verify per build).", 409);
   const verdictRaw = String(input.verdict ?? "inconclusive").trim().toLowerCase();
   const verdict = verdictRaw === "pass" ? "pass" : verdictRaw === "fail" ? "fail" : "inconclusive";
   const loops = Math.max(1, Math.min(99, Math.floor(Number(input.loops ?? 1)) || 1));
   const checks = (Array.isArray(input.checks) ? input.checks : []).slice(0, 30) as VerifyCheck[];
   const stepsIn = (Array.isArray(input.steps) ? input.steps : []).slice(0, 12).map((s) => String(s).slice(0, 500));
   const findingsIn = (Array.isArray(input.findings) ? input.findings : []).slice(0, 8) as VerifyFinding[];
+  // Provenance allowlist (default preserves honesty): browser-live only when
+  // the caller ships in-preview telemetry; everything else is local-headless.
+  const PROV = ["local-headless", "browser-live"] as const;
+  const prov: string = (PROV as readonly string[]).includes(String(input.provenance)) ? String(input.provenance) : "local-headless";
+  type LiveTick = { t?: unknown; score?: unknown; lives?: unknown; level?: unknown; frames?: unknown };
+  const liveTicks = (Array.isArray(input.live_ticks) ? input.live_ticks : []).slice(0, 20) as LiveTick[];
+  const liveErrs = (Array.isArray(input.live_errs) ? input.live_errs : []).slice(0, 5).map((e) => String(e).slice(0, 200));
+  const liveTag = prov === "browser-live" && liveTicks.length ? "browser-live" : "local-headless";
 
-  const goal = `NewGamePlus verify: ${title} (commit ${commitN}) — transcribed local executed playtest`.slice(0, 500);
+  const goal = `NewGamePlus verify: ${title} (commit ${commitN}) draft ${submissionId.slice(0, 8)} — transcribed ${liveTag} playtest`.slice(0, 500);
+
+  // Idempotency: same draft+commit re-posts return the existing run, never a
+  // second charge.
+  const { data: prior } = await supabase
+    .from("vcw_runs")
+    .select("id,verdict,status")
+    .eq("user_id", auth.user.id)
+    .eq("goal", goal)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (prior) {
+    return ok({ run_id: prior.id, game_slug: slug, verdict: (prior as { verdict?: string }).verdict ?? verdict, steps: 0, bugs: 0, note: "Already verified — returning the existing run, no double charge." });
+  }
+
+  // Advisory balance pre-check (meters below stay authoritative): refuse
+  // with a clear quote instead of burning a half-metered run.
+  const plannedSteps =
+    Math.min(checks.length, 20) + Math.min(stepsIn.length, 12) + Math.min(findingsIn.length, 5) +
+    Math.min(liveTicks.length, 20) + Math.min(liveErrs.length, 5);
+  const plannedBugs =
+    Math.min(checks.filter((c) => c.passed !== true).length, 8) +
+    Math.min(findingsIn.filter((f) => cleanSeverity(f.severity) === "high" || cleanSeverity(f.severity) === "critical").length, 4);
+  const quote = 10 + plannedSteps + 2 * plannedBugs;
+  try {
+    const { data: balData } = await supabase.rpc("get_my_coin_balance");
+    const bal = Number(balData);
+    if (Number.isFinite(bal) && bal < quote) {
+      return fail(`Need ~${quote} coins for VCW verify but you hold ${Math.floor(bal)}. Top up or skip — your game is unaffected.`, 402);
+    }
+  } catch {
+    /* advisory only; meters below are authoritative */
+  }
 
   const { data: run, error: runError } = await supabase
     .from("vcw_runs")
@@ -154,6 +202,28 @@ export async function POST(req: Request) {
       data: { provenance: "local-headless", commit_n: commitN },
     });
   }
+  // Browser-live telemetry: free in-preview play, recorded as observations.
+  for (const t of liveTicks) {
+    if (stepRows.length >= 52) break;
+    const num = (v: unknown) => (Number.isFinite(Number(v)) ? Math.floor(Number(v)) : 0);
+    stepRows.push({
+      run_id: runId,
+      user_id: auth.user.id,
+      kind: "observation",
+      text: `[ngp-live t+${num(t.t)}ms] score ${num(t.score)} lives ${num(t.lives)} level ${num(t.level)} frames ${num(t.frames)}`.slice(0, 1000),
+      data: { provenance: liveTag, commit_n: commitN },
+    });
+  }
+  for (const m of liveErrs) {
+    if (!m.trim() || stepRows.length >= 57) continue;
+    stepRows.push({
+      run_id: runId,
+      user_id: auth.user.id,
+      kind: "finding",
+      text: `[ngp-live error] ${m}`.slice(0, 1000),
+      data: { provenance: liveTag, commit_n: commitN },
+    });
+  }
   if (stepRows.length) {
     const { error: stepsError } = await supabase.from("vcw_run_steps").insert(stepRows);
     if (stepsError) {
@@ -210,7 +280,7 @@ export async function POST(req: Request) {
   }
 
   const passed = checks.filter((c) => c.passed === true).length;
-  const summary = `NGP local executed playtest transcription: ${passed}/${checks.length} checks green over ${loops} loop(s) (commit ${commitN}). Evidence transcribed from in-process node:vm boot + rAF frames + synthetic input; no remote browser session.`.slice(0, 5000);
+  const summary = `NGP ${liveTag} playtest transcription: ${passed}/${checks.length} checks green over ${loops} loop(s) (commit ${commitN})${liveTicks.length ? ` + ${liveTicks.length} in-browser ticks` : ""}. Evidence ${liveTag === "browser-live" ? "played live in the preview iframe" : "transcribed from in-process node:vm boot + rAF frames + synthetic input"}; no remote browser session.`.slice(0, 5000);
   const { error: completeError } = await supabase
     .from("vcw_runs")
     .update({ status: "completed", verdict, summary })

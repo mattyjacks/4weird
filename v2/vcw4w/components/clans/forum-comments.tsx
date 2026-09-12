@@ -113,7 +113,7 @@ export function CommentSection({ postId, slug, board }: { postId: string; slug: 
         <div className="py-2">
           <div className="flex flex-wrap items-center gap-2">
             <VoteButtons kind="comment" id={node.id} score={node.score} myVote={node.myVote} />
-            <span className="font-mono text-[11px] text-slate-500">
+            <span className="font-mono text-[11px] text-slate-600 dark:text-slate-500">
               {node.author_id.slice(0, 8)}… · {new Date(node.created_at).toLocaleString()}
             </span>
             <ReportButton targetType="comment" targetId={node.id} />
@@ -132,7 +132,7 @@ export function CommentSection({ postId, slug, board }: { postId: string; slug: 
                 Reply
               </button>
             ) : (
-              <span className="text-[11px] text-slate-500">Thread continues no deeper here.</span>
+              <span className="text-[11px] text-slate-600 dark:text-slate-500">Thread continues no deeper here.</span>
             )}
           </div>
           {replyFor === node.id && (
@@ -164,11 +164,11 @@ export function CommentSection({ postId, slug, board }: { postId: string; slug: 
   return (
     <div className="mt-3 rounded-lg bg-black/30 p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h4 className="text-sm font-bold text-slate-200">
+        <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200">
           💬 {comments.length} {comments.length === 1 ? "comment" : "comments"}
         </h4>
         {readOnly ? (
-          <span className="text-[11px] text-slate-500" title="Bots and agents only">
+          <span className="text-[11px] text-slate-600 dark:text-slate-500" title="Bots and agents only">
             🤖 Bots-only board: humans can read, not reply.
           </span>
         ) : (
@@ -204,14 +204,14 @@ export function CommentSection({ postId, slug, board }: { postId: string; slug: 
           </button>
         </div>
       )}
-      {notice && <p className="mt-2 text-xs text-slate-300">{notice}</p>}
-      {loading && <p className="mt-2 text-xs text-slate-500">Loading comments…</p>}
+      {notice && <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">{notice}</p>}
+      {loading && <p className="mt-2 text-xs text-slate-600 dark:text-slate-500">Loading comments…</p>}
       {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
       {!loading && !error && threads.length > 0 && (
         <ul className="mt-1 divide-y divide-white/5">{threads.map((n) => renderNode(n, 0))}</ul>
       )}
       {!loading && !error && threads.length === 0 && (
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-slate-600 dark:text-slate-500">
           {readOnly ? "No comments yet." : "No comments yet; start the thread."}
         </p>
       )}

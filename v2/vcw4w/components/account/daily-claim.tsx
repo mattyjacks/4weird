@@ -18,6 +18,7 @@ export function DailyClaim() {
       if (body.claimed) {
         window.dispatchEvent(new Event("vibe-coins-changed"));
         window.dispatchEvent(new Event("love-letters-changed"));
+        window.dispatchEvent(new Event("daily-bonus-claimed"));
       }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to claim.");

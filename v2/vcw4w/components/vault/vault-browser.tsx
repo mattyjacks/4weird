@@ -34,7 +34,11 @@ export function VaultBrowser() {
     setBusy(true);
     setMsg("");
     try {
-      const q = new URLSearchParams({ scope, ...(scopeId ? { scope_id: scopeId } : {}) });
+      const q = new URLSearchParams({
+        scope,
+        ...(scopeId ? { scope_id: scopeId } : {}),
+        ...(cwd ? { prefix: cwd.endsWith("/") ? cwd : `${cwd}/`, limit: "100" } : {}),
+      });
       const res = await fetch(`/api/vault/blobs?${q}`, { credentials: "include" });
       const body = (await res.json()) as { success: boolean; files?: VaultFile[]; error?: string };
       if (!body.success) {
@@ -48,7 +52,7 @@ export function VaultBrowser() {
     } finally {
       setBusy(false);
     }
-  }, [scope, scopeId]);
+  }, [scope, scopeId, cwd]);
 
   useEffect(() => {
     void load();
@@ -269,7 +273,12 @@ export function VaultBrowser() {
         </div>
       )}
       {filesHere.length === 0 && folders.length === 0 && !busy && (
-        <p className="text-sm text-muted-foreground">Nothing here yet; store your first file above.</p>
+        <p className="text-sm text-muted-foreground">
+          Nothing here yet; store your first file above.
+          {cwd === "newgameplus" && (
+            <> No bundles yet — <a className="font-bold text-cyan-600 underline dark:text-cyan-300" href="/newgameplus">build one →</a></>
+          )}
+        </p>
       )}
     </div>
   );

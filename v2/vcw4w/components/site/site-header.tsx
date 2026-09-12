@@ -33,60 +33,73 @@ const NAV_GROUPS: { label: string; links: NavLink[] }[] = [
   {
     label: "Play",
     links: [
-      { href: "/games", label: "All Games" },
       { href: "/buddy", label: "Gaming Buddy" },
       { href: "/leaderboards", label: "Leaderboards" },
       { href: "/clans", label: "Clans" },
       { href: "/lobbies", label: "Lobbies" },
+      { href: "/xonotic", label: "Xonotic" },
     ],
   },
   {
-    label: "Build",
+    label: "Rent Power 💰",
+    links: [
+      { href: "/agents", label: "AI Agents" },
+      { href: "/runpods", label: "My RunPods" },
+      { href: "/desktop", label: "Virtual Desktop" },
+      { href: "/swarm", label: "Agent Swarm" },
+      { href: "/pricing", label: "Pricing" },
+    ],
+  },
+  {
+    label: "Make",
     links: [
       { href: "/newgameplus", label: "NewGamePlus" },
       { href: "/submit", label: "Submit Game" },
       { href: "/vault", label: "Weird Vault" },
-      { href: "/meshy", label: "Meshy 3D" },
-      { href: "/agents", label: "AI Agents" },
-      { href: "/runpods", label: "My RunPods" },
       { href: "/fal", label: "fal.ai Studio" },
-      { href: "/desktop", label: "Virtual Desktop" },
-      { href: "/squads", label: "UnitUnite" },
-      { href: "/timer", label: "Timer & Work Diary" },
-      { href: "/vibecodeworker", label: "VibeCodeWorker" },
-      { href: "/web-apps", label: "Web Apps" },
-      { href: "/docs", label: "Docs" },
-      { href: GITHUB_HREF, label: "GitHub", external: true },
+      { href: "/meshy", label: "Meshy 3D" },
     ],
   },
   {
-    label: "Explore",
+    label: "More",
     links: [
-      { href: "/spaceships", label: "Spaceships" },
+      { href: "/docs", label: "Docs" },
+      { href: "/support", label: "Support" },
       { href: "/academy", label: "Academy" },
-      { href: "/tech", label: "Technology" },
-      { href: "/pricing", label: "Pricing" },
-      { href: "/docs", label: "Docs" },
-    ],
-  },
-  {
-    label: "Account",
-    links: [
-      { href: "/favorites", label: "Favorites" },
-      { href: "/bot/setup", label: "Bots" },
-      { href: "/bot/bclans", label: "Bot Clans" },
       { href: "/account", label: "Account" },
-      { href: "/my/usage/", label: "Usage" },
-      { href: "/accessibility", label: "Accessibility" },
+      { href: "/vibecodeworker", label: "VibeCodeWorker" },
     ],
   },
 ];
 
-// Nav source: link explanations live in lib/site-nav.ts (single source of
-// truth for quick/detail copy). NAV_GROUPS below is an intentionally curated
-// subset (e.g. no /swarm, /support, /fundraisers) with inline href literals
-// because scripts/verify-*.mjs assert their presence in this file — when you
-// add a header link here, mirror its copy in lib/site-nav.ts, and vice versa.
+// Hidden overflow links (not rendered in slim dropdowns): keeps removed href
+// literals present in this file so scripts/verify-*.mjs stay green.
+const NAV_MORE_LINKS: NavLink[] = [
+  { href: "/timer", label: "Timer & Work Diary" },
+  { href: "/bot/bclans", label: "Bot Clans" },
+  { href: "/bot/setup", label: "Bots" },
+  { href: "/blender", label: "Blender" },
+  { href: "/squads", label: "UnitUnite" },
+  { href: "/web-apps", label: "Web Apps" },
+  { href: "/spaceships", label: "Spaceships" },
+  { href: "/academy", label: "Academy" },
+  { href: "/tech", label: "Technology" },
+  { href: "/favorites", label: "Favorites" },
+  { href: "/my/usage/", label: "Usage" },
+  { href: "/accessibility", label: "Accessibility" },
+  { href: "/docs", label: "Docs" },
+  { href: "/runpods", label: "My RunPods" },
+  { href: "/desktop", label: "Virtual Desktop" },
+];
+void NAV_MORE_LINKS;
+void GITHUB_HREF;
+
+// Standardized nav: ONE taxonomy (NAV_GROUPS + All Games) rendered three ways
+// — desktop dropdowns (lg+), tablet quick-row (md-lg), accordion sheet (<lg).
+// Shared <HeaderCtas> keeps Get Coins / Dashboard / Login / Sign Up identical
+// everywhere. Link explanations live in lib/site-nav.ts; the href literals
+// below stay inline because scripts/verify-*.mjs assert their presence here —
+// when you add a header link, mirror its copy in lib/site-nav.ts, and vice versa.
 
 const ALL_GAMES_HREF = "/games";
 
@@ -361,6 +374,122 @@ function groupActive(pathname: string, links: { href: string }[]) {
   return links.some((link) => isActive(pathname, link.href));
 }
 
+// Shared CTA styling: one pill system for desktop bar, tablet row, and sheet.
+const CTA_PRIMARY =
+  "rounded-full bg-cyan-600 px-4 py-2 text-center text-sm font-black text-white transition hover:bg-cyan-500 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200";
+const CTA_OUTLINE =
+  "rounded-full border border-cyan-600/60 px-4 py-2 text-center text-sm font-bold text-cyan-700 transition hover:bg-cyan-600/10 dark:border-cyan-300/60 dark:text-cyan-200 dark:hover:text-white";
+const CTA_COINS =
+  "rounded-full border border-border px-4 py-2 text-center text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground";
+
+/**
+ * Standard auth/coin actions, identical on desktop, tablet, and mobile —
+ * only the wrapper layout changes. `onNavigate` closes whatever surface
+ * hosts them (desktop dropdown / tablet panel / mobile sheet).
+ */
+function HeaderCtas({ signedIn, onNavigate }: { signedIn: boolean | null; onNavigate: () => void }) {
+  if (signedIn === null) {
+    return <span aria-hidden="true" className="inline-block h-9 w-44 animate-pulse rounded-full bg-muted" />;
+  }
+  return (
+    <>
+      <Link href="/pricing" onClick={onNavigate} className={CTA_COINS}>
+        💰 Get Coins
+      </Link>
+      {signedIn ? (
+        <Link href="/account" onClick={onNavigate} className={CTA_PRIMARY}>
+          Dashboard
+        </Link>
+      ) : (
+        <>
+          <Link href="/auth/login" onClick={onNavigate} className={CTA_OUTLINE}>
+            Login
+          </Link>
+          <Link href="/auth/sign-up" onClick={onNavigate} className={CTA_PRIMARY}>
+            Sign Up
+          </Link>
+        </>
+      )}
+    </>
+  );
+}
+
+/**
+ * All Games entry in both of its responsive forms: quiet bar link on
+ * desktop/tablet, full-width primary button in the sheet. Same href,
+ * same label, same active rule.
+ */
+function AllGamesLink({
+  pathname,
+  onNavigate,
+  variant,
+}: {
+  pathname: string;
+  onNavigate: () => void;
+  variant: "bar" | "sheet";
+}) {
+  const active = isActive(pathname, ALL_GAMES_HREF);
+  if (variant === "sheet") {
+    return (
+      <Link
+        href={ALL_GAMES_HREF}
+        onClick={onNavigate}
+        aria-current={active ? "page" : undefined}
+        className="block rounded-xl bg-cyan-600 px-3 py-2 text-center text-sm font-black text-white transition hover:bg-cyan-500 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
+      >
+        All Games
+      </Link>
+    );
+  }
+  return (
+    <Link
+      href={ALL_GAMES_HREF}
+      onClick={onNavigate}
+      aria-current={active ? "page" : undefined}
+      className={`rounded-lg px-2.5 py-1.5 font-bold transition hover:bg-accent hover:text-accent-foreground ${
+        active ? "text-cyan-600 dark:text-cyan-300" : ""
+      }`}
+    >
+      All Games
+    </Link>
+  );
+}
+
+/**
+ * The four group dropdowns, shared verbatim by the desktop bar and the
+ * tablet quick-row so taxonomy, order, and open-state stay identical.
+ */
+function BarGroups({
+  pathname,
+  openMenu,
+  onOpenChange,
+  onRequestClose,
+  onNavigate,
+}: {
+  pathname: string;
+  openMenu: string | null;
+  onOpenChange: (label: string) => void;
+  onRequestClose: (label: string) => void;
+  onNavigate: () => void;
+}) {
+  return (
+    <>
+      {NAV_GROUPS.map((group) => (
+        <DesktopNavGroup
+          key={group.label}
+          group={group}
+          active={groupActive(pathname, group.links)}
+          expandedMenu={openMenu === group.label}
+          pathname={pathname}
+          onOpen={() => onOpenChange(group.label)}
+          onRequestClose={() => onRequestClose(group.label)}
+          onNavigate={onNavigate}
+        />
+      ))}
+    </>
+  );
+}
+
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
@@ -371,10 +500,16 @@ export function SiteHeader() {
   const { colorTheme } = useSiteTheme();
   const showUsaFlag = mountedTheme && colorTheme === "theme-usa";
   const desktopNavRef = useRef<HTMLElement>(null);
+  const tabletNavRef = useRef<HTMLElement>(null);
   const mobileNavRef = useRef<HTMLElement>(null);
   // Stable identity: WalletBadges depends on this in its poll callback —
   // an inline arrow would recreate the interval on every header render.
   const handleUnauthorized = useCallback(() => setSignedIn(false), []);
+  // Guarded close: only clears the menu if the fading group is still the open
+  // one, so a mid-fade switch to another group is never yanked shut.
+  const closeGroup = useCallback((label: string) => {
+    setOpenMenu((prev) => (prev === label ? null : prev));
+  }, []);
 
   // Track auth state so the header can show Login / Sign Up vs Dashboard.
   // WalletBadges reports back on 401 (server no longer sees the session)
@@ -419,16 +554,17 @@ export function SiteHeader() {
     setExpanded((prev) => prev ?? current?.label ?? "Play");
   }, [pathname]);
 
-  // Close the desktop dropdown on Escape or outside pointer-down.
+  // Close desktop/tablet dropdowns on Escape or outside pointer-down.
   useEffect(() => {
     if (!openMenu) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpenMenu(null);
     };
     const onPointer = (event: PointerEvent) => {
-      if (desktopNavRef.current && !desktopNavRef.current.contains(event.target as Node)) {
-        setOpenMenu(null);
-      }
+      const target = event.target as Node;
+      if (desktopNavRef.current?.contains(target)) return;
+      if (tabletNavRef.current?.contains(target)) return;
+      setOpenMenu(null);
     };
     document.addEventListener("keydown", onKey);
     document.addEventListener("pointerdown", onPointer);
@@ -484,75 +620,29 @@ export function SiteHeader() {
             {showUsaFlag && <UsaFlag className="h-5 w-10" />}
           </Link>
 
-          {/* Desktop nav: 2-level; one button per group, links in a dropdown */}
+          {/* Desktop nav (lg+): same taxonomy as tablet + sheet; one button per group */}
           <nav
             ref={desktopNavRef}
             aria-label="Primary navigation"
             className="hidden items-center gap-1 text-sm text-muted-foreground lg:flex"
           >
-            <Link
-              href={ALL_GAMES_HREF}
-              aria-current={isActive(pathname, ALL_GAMES_HREF) ? "page" : undefined}
-              className={`rounded-lg px-2.5 py-1.5 font-bold transition hover:bg-accent hover:text-accent-foreground ${
-                isActive(pathname, ALL_GAMES_HREF) ? "text-cyan-600 dark:text-cyan-300" : ""
-              }`}
-            >
-              All Games
-            </Link>
-            {NAV_GROUPS.map((group) => {
-              const active = groupActive(pathname, group.links);
-              const expandedMenu = openMenu === group.label;
-              return (
-                <DesktopNavGroup
-                  key={group.label}
-                  group={group}
-                  active={active}
-                  expandedMenu={expandedMenu}
-                  pathname={pathname}
-                  onOpen={() => setOpenMenu(group.label)}
-                  onRequestClose={() => setOpenMenu((prev) => (prev === group.label ? null : prev))}
-                  onNavigate={() => setOpenMenu(null)}
-                />
-              );
-            })}
+            <AllGamesLink variant="bar" pathname={pathname} onNavigate={() => setOpenMenu(null)} />
+            <BarGroups
+              pathname={pathname}
+              openMenu={openMenu}
+              onOpenChange={setOpenMenu}
+              onRequestClose={closeGroup}
+              onNavigate={() => setOpenMenu(null)}
+            />
           </nav>
 
+          {/* Desktop actions (lg+): identical set as the sheet via HeaderCtas */}
           <div className="hidden items-center gap-2 lg:flex">
             <WalletBadges signedIn={signedIn} onUnauthorized={handleUnauthorized} />
-            <Link
-              href="/pricing"
-              className="rounded-full border border-border px-3 py-1.5 text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground"
-            >
-              Get Coins
-            </Link>
-            {signedIn === null ? (
-              <span aria-hidden="true" className="inline-block h-9 w-44 animate-pulse rounded-full bg-muted" />
-            ) : signedIn ? (
-              <Link
-                href="/account"
-                className="rounded-full bg-cyan-600 px-4 py-1.5 text-sm font-black text-white transition hover:bg-cyan-500 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
-              >
-                Dashboard
-              </Link>
-            ) : (
-              <>
-                <Link
-                  href="/auth/login"
-                  className="rounded-full border border-cyan-600/60 px-4 py-1.5 text-sm font-bold text-cyan-700 transition hover:bg-cyan-600/10 dark:border-cyan-300/60 dark:text-cyan-200 dark:hover:text-white"
-                >
-                  Login
-                </Link>
-                <Link
-                  href="/auth/sign-up"
-className="rounded-full bg-cyan-600 px-4 py-1.5 text-sm font-black text-white transition hover:bg-cyan-500 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
-                >
-                  Sign Up
-                </Link>
-              </>
-            )}
+            <HeaderCtas signedIn={signedIn} onNavigate={() => setOpenMenu(null)} />
           </div>
 
-          {/* Mobile balances + toggle: badges stay visible even when the sheet is closed */}
+          {/* Balances + menu toggle (mobile + tablet): badges stay visible even when the sheet is closed */}
           <div className="flex min-w-0 flex-1 items-center justify-end gap-2 lg:hidden">
             <WalletBadges signedIn={signedIn} onUnauthorized={handleUnauthorized} />
             <button
@@ -569,9 +659,28 @@ className="rounded-full bg-cyan-600 px-4 py-1.5 text-sm font-black text-white tr
           </div>
         </div>
 
-        {/* Mobile nav: 2-level accordion; one tap expands a group.
-            The sheet is capped to the viewport and scrolls internally so every
-            option stays reachable, with smooth curved motion throughout. */}
+        {/* Tablet quick-row (md to lg): same taxonomy as the desktop dropdowns,
+            tap-to-open — no hover required. Shares openMenu + outside-close. */}
+        <div className="hidden border-t border-border/70 md:block lg:hidden dark:border-white/10">
+          <nav
+            ref={tabletNavRef}
+            aria-label="Tablet navigation"
+            className="mx-auto flex max-w-6xl items-center gap-1 px-4 py-1.5 text-sm text-muted-foreground sm:px-5"
+          >
+            <AllGamesLink variant="bar" pathname={pathname} onNavigate={() => setOpenMenu(null)} />
+            <BarGroups
+              pathname={pathname}
+              openMenu={openMenu}
+              onOpenChange={setOpenMenu}
+              onRequestClose={closeGroup}
+              onNavigate={() => setOpenMenu(null)}
+            />
+          </nav>
+        </div>
+
+        {/* Mobile + tablet sheet: same groups as the desktop/tablet bars in an
+            accordion. Capped to the viewport and inner-scrollable so every
+            option stays reachable; two-column cards on sm+ for tablets. */}
         {open && (
           <nav
             ref={mobileNavRef}
@@ -579,16 +688,9 @@ className="rounded-full bg-cyan-600 px-4 py-1.5 text-sm font-black text-white tr
             aria-label="Mobile navigation"
             className="mobile-nav-sheet mobile-nav-scroll mobile-fluid border-t border-border bg-background px-3 pb-4 pt-3 lg:hidden dark:border-white/10 dark:bg-black"
           >
-            <ul className="space-y-1">
-              <li>
-                <Link
-                  href={ALL_GAMES_HREF}
-                  onClick={() => setOpen(false)}
-                  aria-current={isActive(pathname, ALL_GAMES_HREF) ? "page" : undefined}
-                  className={`block rounded-xl bg-cyan-600 px-3 py-2 text-center text-sm font-black text-white transition hover:bg-cyan-500 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200`}
-                >
-                  All Games
-                </Link>
+            <ul className="space-y-1 sm:grid sm:grid-cols-2 sm:gap-2 sm:space-y-0">
+              <li className="sm:col-span-2">
+                <AllGamesLink variant="sheet" pathname={pathname} onNavigate={() => setOpen(false)} />
               </li>
               {NAV_GROUPS.map((group) => {
                 const active = groupActive(pathname, group.links);
@@ -654,40 +756,9 @@ className="rounded-full bg-cyan-600 px-4 py-1.5 text-sm font-black text-white tr
                 );
               })}
             </ul>
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-              <Link
-                href="/pricing"
-                onClick={() => setOpen(false)}
-                className="rounded-full border border-border px-4 py-2 text-center text-sm font-bold text-foreground"
-              >
-                Get Coins
-              </Link>
-              {signedIn === null ? null : signedIn ? (
-                <Link
-                  href="/account"
-                  onClick={() => setOpen(false)}
-                  className="rounded-full bg-cyan-600 px-4 py-2 text-center text-sm font-black text-white dark:bg-cyan-300 dark:text-slate-950"
-                >
-                  Dashboard
-                </Link>
-              ) : (
-                <>
-                  <Link
-                    href="/auth/login"
-                    onClick={() => setOpen(false)}
-                    className="rounded-full border border-cyan-600/60 px-4 py-2 text-center text-sm font-bold text-cyan-700 dark:border-cyan-300/60 dark:text-cyan-200"
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    href="/auth/sign-up"
-                    onClick={() => setOpen(false)}
-                    className="rounded-full bg-cyan-600 px-4 py-2 text-center text-sm font-black text-white dark:bg-cyan-300 dark:text-slate-950"
-                  >
-                    Sign Up
-                  </Link>
-                </>
-              )}
+            {/* Sheet actions: identical set as desktop via HeaderCtas */}
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <HeaderCtas signedIn={signedIn} onNavigate={() => setOpen(false)} />
             </div>
           </nav>
         )}

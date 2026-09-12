@@ -169,3 +169,104 @@ for (const token of ["Age band", "13-17", "18+", "under 13", "age_band"]) {
 }
 
 console.log(`Age-gate checks OK: bands + DOB math + ${canonical.length} catalog slugs + Kids Mode + legal notes + COPPA teen/adult gating.`);
+
+// 10. Content modes (gravegain2d/gravegain3d/lastwordszombies): shared
+// kid/teen/all infrastructure. The mode list is never filtered — locked
+// modes render disabled with a reason.
+const modes = read("lib/content-modes.ts");
+for (const token of [
+  "ContentMode",
+  "CONTENT_MODE_GAMES",
+  "gravegain2d",
+  "gravegain3d",
+  "lastwordszombies",
+  "CONTENT_MODE_LABELS",
+  "CONTENT_MODE_DESCRIPTIONS",
+  "hasContentModes",
+  "defaultContentMode",
+  "parseContentMode",
+  "contentModeStorageKey",
+  "4weird-content-mode:",
+  "readStoredContentMode",
+  "writeStoredContentMode",
+  "effectiveMinAge",
+  "canUseContentMode",
+  "listContentModesForViewer",
+  "HARD_SWEARS",
+  "MILD_SWEARS",
+  "sanitizeDialogue",
+  "filterNpcLine",
+  "isDrugContentAllowed",
+  "drugDisplayName",
+  "goreEnabledFor",
+  "getGoreConfig",
+]) {
+  must(modes.includes(token), `lib/content-modes.ts must include ${token}`);
+}
+// Only the three slugs ship modes; effective ages are kid→0, teen→13,
+// all→catalog rating; guests/unknown get kid+teen only.
+must(/gravegain2d/.test(modes) && /gravegain3d/.test(modes) && /lastwordszombies/.test(modes), "CONTENT_MODE_GAMES must list exactly the three horror slugs");
+must(modes.includes('if (mode === "kid") return 0;'), "effectiveMinAge must map kid→0");
+must(modes.includes('if (mode === "teen") return 13;'), "effectiveMinAge must map teen→13");
+must(modes.includes("getGameRating"), "effectiveMinAge(all) must keep the catalog rating");
+must(modes.includes("never filtered") || modes.includes("ALWAYS returns all three"), "listContentModesForViewer must never filter the list");
+
+// Bridge (v2-native extra under public/games/html/): mode read, gore hook,
+// profanity observer, live host switching.
+const bridge = read("public/games/html/content-mode-bridge.js");
+for (const token of [
+  "FourweirdContentMode",
+  "FourweirdGore",
+  "fourweird-content-mode",
+  "4weird-content-mode:",
+  "content-mode",
+  "MutationObserver",
+  "spawn",
+  "sanitize",
+]) {
+  must(bridge.includes(token), `content-mode-bridge.js must include ${token}`);
+}
+must(!/^import\s/m.test(bridge) && bridge.includes("(function ()"), "content-mode-bridge.js must be a vanilla IIFE with no imports");
+
+// Sync injects the bridge (+ optional per-game gore overlay) into the
+// generated bundles; parity sources stay untouched.
+const sync = read("scripts/sync-game-bundles.mjs");
+for (const token of ["content-mode-bridge.js", "gore-", "CONTENT_MODE_SLUGS", "gravegain2d", "gravegain3d", "lastwordszombies"]) {
+  must(sync.includes(token), `sync-game-bundles.mjs must include ${token}`);
+}
+
+// Runtime bridge forwards host→game live switches.
+const runtime = read("public/games/html/runtime-bridge.js");
+must(runtime.includes('"content-mode"') || runtime.includes("'content-mode'"), "runtime-bridge.js must handle the content-mode message");
+must(runtime.includes("fourweird-content-mode-host"), "runtime-bridge.js must forward content-mode as fourweird-content-mode-host");
+
+// Play shell: picker above the gates, never-filtered list, mode plumbed to
+// frame URL + session start + live postMessage, effective age for kid bands.
+const shellModes = read("components/games/play-gate.tsx");
+for (const token of [
+  "listContentModesForViewer",
+  "canUseContentMode",
+  "effectiveMinAge",
+  "content_mode",
+  "Content mode",
+  "withContentModeParam",
+  "readStoredContentMode",
+  "writeStoredContentMode",
+  "hasContentModes",
+  "🔒",
+]) {
+  must(shellModes.includes(token), `play-gate.tsx must include ${token}`);
+}
+must(shellModes.includes("{picker}"), "play-gate.tsx must render the content-mode picker in the gate branches");
+
+// Session API: content_mode accepted, band-vs-mode 403s, effective-age check,
+// echo in the response.
+const sessionRoute = read("app/api/games/session/route.ts");
+for (const token of ["content_mode", "parseContentMode", "canUseContentMode", "effectiveMinAge", "hasContentModes"]) {
+  must(sessionRoute.includes(token), `session route must include ${token}`);
+}
+
+// Detail pages explain the three modes for the three slugs.
+must(read("app/games/[slug]/page.tsx").includes("hasContentModes"), "game detail page must show the content-mode explainer");
+
+console.log("Content-mode checks OK: lib + bridge + sync injection + play-gate picker + session enforcement.");

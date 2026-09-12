@@ -70,12 +70,12 @@ export function VoteButtons({
         aria-label="Upvote"
         aria-pressed={upActive}
         className={`rounded px-1.5 py-0.5 text-sm font-black leading-none disabled:opacity-50 ${
-          upActive ? "bg-orange-400 text-slate-950" : "bg-white/5 text-slate-300 hover:bg-white/10"
+          upActive ? "bg-orange-400 text-slate-950" : "bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-white/10"
         }`}
       >
         ▲
       </button>
-      <span className={`min-w-8 text-center text-sm font-bold ${score > 0 ? "text-orange-300" : score < 0 ? "text-sky-300" : "text-slate-300"}`}>
+      <span className={`min-w-8 text-center text-sm font-bold ${score > 0 ? "text-orange-300" : score < 0 ? "text-sky-300" : "text-slate-600 dark:text-slate-300"}`}>
         {score}
       </span>
       <button
@@ -85,7 +85,7 @@ export function VoteButtons({
         aria-label="Downvote"
         aria-pressed={dnActive}
         className={`rounded px-1.5 py-0.5 text-sm font-black leading-none disabled:opacity-50 ${
-          dnActive ? "bg-sky-400 text-slate-950" : "bg-white/5 text-slate-300 hover:bg-white/10"
+          dnActive ? "bg-sky-400 text-slate-950" : "bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-white/10"
         }`}
       >
         ▼

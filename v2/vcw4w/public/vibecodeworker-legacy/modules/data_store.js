@@ -171,7 +171,7 @@ export const mockBugPool = [
 
 export const gamesCatalogue = [
   { id: 'orbitaldrift', title: '🛸 Orbital Drift', path: '../games/html/orbitaldrift/index.html', desc: '3D retro sci-fi arcade runner' },
-  { id: 'lastwordszombies', title: '🔥 Last Words Zombies', path: '../games/html/lastwordszombies/index.html', desc: 'Cyberpunk 3D top-down zombie shooter' },
+  { id: 'lastwordszombies', title: '🧟 Last Words Zombies', path: '../games/html/lastwordszombies/index.html', desc: '🧟 Zombie 3D top-down typing survival' },
   { id: 'semestersurvival', title: '🎓 Semester Survival', path: '../games/html/semester-survival/index.html', desc: 'Fast-paced campus survival runner' },
   { id: 'serversavershield', title: '🛡️ Server Saver Shield', path: '../games/html/serversavershield/index.html', desc: 'Cybersecurity defense shield strategy' },
   { id: 'overtake', title: '🏎️ Overtake', path: '../games/html/overtake/index.html', desc: 'Pseudo-3D neon arcade highway racer' },

@@ -247,7 +247,7 @@ export type GameCatalogEntry = {
 - `friendslop`: meme arcade feeding/dodging/combo experience.
 - `gravegain2d`: dark-fantasy 2D action RPG with procedural dungeons, dialogue, lighting, and starship hub.
 - `gravegain3d`: 3D billboard dark-fantasy action RPG with procedural dungeon and starship hub.
-- `lastwordszombies`: cyberpunk typing survival game against approaching rogue cyber-units.
+- `lastwordszombies`: zombie typing survival game against approaching shambling zombies.
 - `orbitaldrift`: hold/release orbital-control arcade with debris avoidance and stardust collection.
 - `overtake`: pseudo-3D arcade racing, garage progression, route unlocks, and nitro.
 - `semester-survival`: eight-semester student survival simulation.

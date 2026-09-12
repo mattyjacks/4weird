@@ -19,11 +19,11 @@ const TICKER = [
   "⚡ RTX 4090 live now",
   "🖥️ Desktops in ~60s",
   "🤖 Agents by the hour",
-  "🎮 34 playable games",
+  "🎮 34 games, free to try",
   "🐝 1-5 agent swarm chat",
   "🎬 .blend → mp4 renders",
   "🎨 30 fal.ai studio tools",
-  "👾 hclans · sclans · bclans",
+  "💼 cap-table + finance sims",
   "🪙 100 Vibe Coins = exactly $1.00",
   "⚙️ VibeCodeWorker autoplay QA",
 ];
@@ -139,38 +139,44 @@ export default function Home() {
         <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-5 sm:py-24">
           <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-500/40 px-4 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.25em] text-cyan-700 dark:text-cyan-300 sm:text-xs">
             <span aria-hidden="true" className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-            4weird Cloud; live GPUs on demand
+            34 games live · GPUs on demand · free to try
           </p>
           <h1 className="max-w-4xl text-5xl font-black leading-[0.95] tracking-tight sm:text-7xl lg:text-8xl">
-            Raw cloud power.
+            Play games.
+            <br />
+            Ship software.
             <br />
             <span className="bg-gradient-to-r from-cyan-500 via-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
-              Zero setup.
+              Keep the coins.
             </span>
           </h1>
           <p className="mt-6 max-w-2xl text-base text-muted-foreground sm:text-xl">
-            Spin up real GPUs, virtual desktops, and AI agents in seconds; test
-            software, automate the boring work, render, train, ship. The arcade
-            below is proof of what this cloud can build.
+            <strong className="text-foreground">Gamers</strong> play 34 free
+            browser games with cloud saves and leaderboards.{" "}
+            <strong className="text-foreground">Coders</strong> spin up GPUs,
+            desktops, and AI agents by the second.{" "}
+            <strong className="text-foreground">Teams</strong> practice cap
+            tables, pipelines, and revenue on business sims; all on one coin
+            where 100 🪙 = exactly $1.00.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
               className="rounded-full bg-cyan-600 px-7 py-3.5 text-center font-bold text-white shadow-lg shadow-cyan-600/30 transition hover:-translate-y-0.5 hover:bg-cyan-500 dark:bg-cyan-300 dark:text-slate-950 dark:shadow-cyan-300/20 dark:hover:bg-cyan-200"
-              href="/agents"
+              href="/games"
             >
-              ▸ Rent cloud compute
+              ▶ Play free now
             </Link>
             <Link
               className="rounded-full border border-border bg-card px-7 py-3.5 text-center font-semibold transition hover:-translate-y-0.5 hover:border-cyan-500/60"
-              href="/desktop"
+              href="/agents"
             >
-              🖥️ Get a Virtual Desktop
+              ▸ Rent GPUs &amp; agents
             </Link>
             <Link
               className="rounded-full border border-border px-7 py-3.5 text-center font-semibold text-muted-foreground transition hover:-translate-y-0.5 hover:bg-accent hover:text-accent-foreground"
-              href="/games"
+              href="/games/financialfreedom"
             >
-              Play the arcade
+              💼 Try a business sim
             </Link>
           </div>
           <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
@@ -181,7 +187,7 @@ export default function Home() {
                 <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-gradient-to-br from-amber-400 to-orange-600 text-xs">🎨</span>
                 <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-gradient-to-br from-emerald-400 to-teal-600 text-xs">👾</span>
               </span>
-              Players, builders, bots &amp; clans already inside
+              Players, coders &amp; teams already inside; no credit card to play
             </span>
             <span className="font-mono text-xs">★ free trial: 100 Vibe Coins = exactly $1.00 ★</span>
           </div>
@@ -224,10 +230,10 @@ export default function Home() {
           </div>
           <dl className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
-              ["Per-second billing", "GPUs, desktops, agents"],
-              ["Real RunPod iron", "never faked, live status"],
-              ["100 Vibe Coins = exactly $1.00", "one coin, every surface"],
-              ["34 arcade games", "proof of the platform"],
+              ["34 games, free to try", "racers, RPGs, business sims"],
+              ["GPUs & agents per-second", "4090s, desktops, swarm"],
+              ["100 Vibe Coins = exactly $1.00", "cut inside, never on top"],
+              ["Tested before you see it", "VibeCodeWorker autoplay QA"],
             ].map(([stat, label]) => (
               <div key={label} className="rounded-2xl border border-border bg-card/80 p-4 backdrop-blur">
                 <dt className="text-lg font-black text-cyan-600 dark:text-cyan-300 sm:text-xl">{stat}</dt>
@@ -250,6 +256,79 @@ export default function Home() {
                 {pill}
               </span>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pick your lane; one card per persona */}
+      <section className="mx-auto max-w-6xl px-4 pb-2 pt-14 sm:px-5 sm:pt-20" aria-label="Pick your lane">
+        <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-600 dark:text-cyan-300">
+          Pick your lane
+        </p>
+        <h2 className="mt-2 max-w-3xl text-3xl font-black tracking-tight sm:text-5xl">
+          Three doors. Same weird building.
+        </h2>
+        <p className="mt-3 max-w-3xl text-muted-foreground sm:text-lg">
+          One account, one coin, zero setup. Choose where you start; the other
+          two doors stay open.
+        </p>
+        <div className="mt-8 grid gap-4 lg:grid-cols-3">
+          <div className="flex flex-col rounded-2xl border-2 border-fuchsia-500/40 bg-card p-6">
+            <p className="text-3xl" aria-hidden="true">🎮</p>
+            <h3 className="mt-3 text-lg font-bold">Here to play?</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              34 browser games, playing in ~10 seconds. No install, no credit
+              card; cloud saves, leaderboards, lobbies, and a Buddy that
+              coaches you live.
+            </p>
+            <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
+              <li>✅ Free to try, guests welcome</li>
+              <li>✅ Racers, RPGs, typing survival</li>
+            </ul>
+            <Link
+              href="/games"
+              className="mt-5 rounded-full bg-fuchsia-600 px-6 py-3 text-center font-bold text-white shadow-lg shadow-fuchsia-600/30 transition hover:-translate-y-0.5 hover:bg-fuchsia-500"
+            >
+              Play the arcade →
+            </Link>
+          </div>
+          <div className="flex flex-col rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-cyan-500/60">
+            <p className="text-3xl" aria-hidden="true">💻</p>
+            <h3 className="mt-3 text-lg font-bold">Here to code?</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Real 4090 GPUs, browser desktops, and hire-by-the-hour AI agents;
+              metered per second. Type a sentence on NewGamePlus, get a
+              playtested game back.
+            </p>
+            <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
+              <li>✅ Live in ~60s, billed per second</li>
+              <li>✅ Autoplay QA with proof, not vibes</li>
+            </ul>
+            <Link
+              href="/agents"
+              className="mt-5 rounded-full border border-cyan-500/60 px-6 py-3 text-center font-bold text-cyan-700 transition hover:-translate-y-0.5 hover:bg-cyan-500/10 dark:text-cyan-300"
+            >
+              Rent compute →
+            </Link>
+          </div>
+          <div className="flex flex-col rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-amber-500/60">
+            <p className="text-3xl" aria-hidden="true">💼</p>
+            <h3 className="mt-3 text-lg font-bold">Here for business?</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Practice money with play money: cap-table exits, family finance,
+              sales pipelines as playable sims; plus squad workspaces with
+              metered cloud and itemized books.
+            </p>
+            <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
+              <li>✅ Learn the mistake before it costs you</li>
+              <li>✅ 100 🪙 = exactly $1.00, itemized</li>
+            </ul>
+            <Link
+              href="/games/financialfreedom"
+              className="mt-5 rounded-full border border-amber-500/60 px-6 py-3 text-center font-bold text-amber-700 transition hover:-translate-y-0.5 hover:bg-amber-500/10 dark:text-amber-300"
+            >
+              Run a money sim →
+            </Link>
           </div>
         </div>
       </section>
@@ -485,13 +564,18 @@ export default function Home() {
               The arcade
             </p>
             <h2 className="mt-2 text-3xl font-black tracking-tight sm:text-5xl">
-              Six ways to waste time beautifully.
+              Find your next weird world; six to start.
             </h2>
             <p className="mt-3 max-w-2xl text-muted-foreground sm:text-lg">
-              Hand-picked experiments built with AI on this very cloud. Every
-              play supports the makers; the full catalog of 34 lives on{" "}
+              Hand-picked experiments built with AI on this very cloud;
+              racers, RPGs, and money sims included. Every play supports the
+              makers; the full catalog of 34 lives on{" "}
               <Link href="/games" className="font-semibold text-cyan-600 hover:underline dark:text-cyan-300">
                 /games
+              </Link>
+              . Coders: steal the stack and ship your own on{" "}
+              <Link href="/newgameplus" className="font-semibold text-cyan-600 hover:underline dark:text-cyan-300">
+                /newgameplus
               </Link>
               .
             </p>
@@ -1009,8 +1093,9 @@ export default function Home() {
               Stay for the superpowers.
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-white/75 sm:text-lg">
-              Free trial on signup: 100 Vibe Coins = exactly $1.00. No credit card to play. Real GPUs
-              when you&apos;re ready to build.
+              Gamers play free. Coders rent GPUs by the second. Teams practice
+              revenue before risking it. Free trial on signup: 100 Vibe Coins
+              = exactly $1.00, no credit card to play.
             </p>
             <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
               <Link href="/auth/sign-up" className="rounded-full bg-white px-8 py-3.5 font-bold text-slate-900 transition hover:-translate-y-0.5 hover:bg-white/90">

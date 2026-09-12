@@ -522,6 +522,7 @@ const msg=document.getElementById('msg');
 let score=0,lives=3,level=1,over=false,won=false,paused=false;
 let player={x:W/2,y:H-40,r:12,vx:0,vy:0};
 let keys={};
+let __nf=0;addEventListener('error',function(e){try{parent.postMessage({ngp:'ngp-err',m:String((e&&e.message)||'err').slice(0,200)},'*')}catch(_){}});
 let foes=[],pickups=[],parts=[];
 const ARCH='${archetype}';
 const SPEED=${speedBase.toFixed(2)};
@@ -542,6 +543,7 @@ ctx.fillStyle='${foeTint}';for(const f of foes){ctx.beginPath();ctx.arc(f.x,f.y,
 ctx.fillStyle='#fff';for(const p of pickups){ctx.beginPath();ctx.arc(p.x,p.y+Math.sin(p.t)*3,p.r,0,7);ctx.fill();}
 ${particles ? "for(let i=parts.length-1;i>=0;i--){const q=parts[i];q.x+=q.vx;q.y+=q.vy;q.life--;ctx.fillStyle=q.c;ctx.fillRect(q.x,q.y,3,3);if(q.life<=0)parts.splice(i,1);}" : ""}
 hud.textContent='Score '+score+' · Lives '+lives+' · Level '+level+'/'+LEVELS+' · ${archetype} · ${theme.hero}/${theme.pickup}';
+if(++__nf%60===0)try{parent.postMessage({ngp:'ngp-tick',score:score,lives:lives,level:level,frames:__nf},'*')}catch(e){}
 requestAnimationFrame(loop);}
 function saveHi(){try{const k='ngp-hi-${archetype}';const hi=Math.max(score,Number(localStorage.getItem(k)||0));localStorage.setItem(k,String(hi));}catch(e){}}
 function reset(){score=0;lives=3;level=1;over=false;won=false;parts=[];player={x:W/2,y:H-40,r:12,vx:0,vy:0};spawn(MAXF+1);msg.textContent='${theme.verb}: WASD/arrows or drag. Collect ${theme.pickup}, dodge ${theme.foe}.';}
@@ -568,6 +570,7 @@ const WW=1600,WH=1200;
 let score=0,lives=3,level=1,over=false,won=false,paused=false;
 let player={x:WW/2,y:WH/2,r:12};
 let keys={};
+let __nf=0;addEventListener('error',function(e){try{parent.postMessage({ngp:'ngp-err',m:String((e&&e.message)||'err').slice(0,200)},'*')}catch(_){}});
 let inv=[],parts=[],herbs=[],foes=[];
 let cx=player.x-W/2,cy=player.y-H/2;
 let moveT=null;
@@ -608,6 +611,7 @@ ctx.fillStyle='#fbbf24';for(const n of NPCS){const q=mm(n.x,n.y);ctx.fillRect(q[
 ctx.fillStyle='#f87171';for(const f of foes){const q=mm(f.x,f.y);ctx.fillRect(q[0]-1,q[1]-1,2,2);}
 ${particles ? "for(let i=parts.length-1;i>=0;i--){const q=parts[i];q.x+=q.vx;q.y+=q.vy;q.life--;ctx.fillStyle=q.c;ctx.fillRect(q.x-cx,q.y-cy,3,3);if(q.life<=0)parts.splice(i,1);}" : ""}
 hud.textContent='Score '+score+' · Lives '+lives+' · Level '+level+'/'+LEVELS+' · rpg · '+inv.length+' items';
+if(++__nf%60===0)try{parent.postMessage({ngp:'ngp-tick',score:score,lives:lives,level:level,frames:__nf},'*')}catch(e){}
 requestAnimationFrame(loop);}
 function saveHi(){try{const k='ngp-hi-rpg';const hi=Math.max(score,Number(localStorage.getItem(k)||0));localStorage.setItem(k,String(hi));}catch(e){}}
 let swingCd=0;function swing(){if(swingCd>0||over||won)return;swingCd=15;blip(220);for(let i=foes.length-1;i>=0;i--){const f=foes[i];if(Math.hypot(player.x-f.x,player.y-f.y)<46){foes.splice(i,1);score+=20*level;burst(f.x,f.y,'#fff');blip(880);msg.textContent='Slime bonked! +'+(20*level)+'.';}}}

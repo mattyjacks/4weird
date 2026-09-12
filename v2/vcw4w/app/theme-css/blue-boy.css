@@ -127,3 +127,20 @@ html.light.theme-blue-boy footer nav[aria-label^="Footer"] > span[aria-hidden="t
 html.dark.theme-blue-boy footer nav[aria-label^="Footer"] > span[aria-hidden="true"] { background-image: linear-gradient(90deg, #22d3ee, #e879f9); }
 html.light.theme-blue-boy footer dl span[aria-hidden="true"] { color: #0e7490; background-image: linear-gradient(135deg, rgb(8 145 178 / 0.15), rgb(192 38 211 / 0.15)); }
 html.dark.theme-blue-boy footer dl span[aria-hidden="true"] { color: #a5f3fc; background-image: linear-gradient(135deg, rgb(34 211 238 / 0.25), rgb(217 70 239 / 0.25)); }
+/* ---- CONTRAST FIX (light): navy surfaces keep neon-ice text ----
+   globals.css inks .text-white for paper, but .bg-slate-950 stays arcade navy
+   here, so same-surface combos, navy inputs, and bare headings sitting on navy
+   would go dark-on-dark. Pale fills (.bg-slate-900, .bg-black*) type in deep
+   navy ink; unmapped dark chips keep ice. Gradient/solid brand buttons are
+   never matched (no button/a elements, own-bg spans guarded), and this file
+   never recolors button base fills (overlay/glow finish only), so the
+   white-on-cyan-600 and slate-950-on-cyan-300 pairings stand as authored. */
+html.light.theme-blue-boy .bg-slate-950.text-white { color: #ecfeff; }
+html.light.theme-blue-boy :is(.bg-slate-900, .bg-black, .bg-black\/30, .bg-black\/40, .bg-black\/50).text-white { color: #083344; }
+html.light.theme-blue-boy :is(input, select, textarea).bg-slate-950.text-white { color: #ecfeff; }
+html.light.theme-blue-boy :is(input, select, textarea).placeholder\:text-slate-500::placeholder { color: #0e7490; }
+html.light.theme-blue-boy :is(.bg-zinc-900, .bg-slate-700, .bg-black\/60).text-white { color: #f0fbfd; }
+html.light.theme-blue-boy :is(.bg-zinc-950\/40, .bg-zinc-950\/60, .bg-zinc-950\/80) :is(h1, h2, h3, h4, p, label, li, dd, span).text-white { color: #f0fbfd; }
+html.light.theme-blue-boy .bg-slate-950 :is(h1, h2, h3, h4, p, label, li, dd, span).text-white:not(.bg-slate-900):not(.bg-black):not(.bg-cyan-600):not(.bg-cyan-500):not(.bg-cyan-300):not(.bg-fuchsia-600):not(.bg-fuchsia-500):not(.bg-amber-500):not(.bg-amber-300):not(.bg-slate-700):not(.bg-zinc-900) { color: #ecfeff; }
+html.light.theme-blue-boy :is(.bg-slate-900, .bg-black, .bg-black\/30, .bg-black\/40, .bg-black\/50, .bg-white\/\[\.02\], .bg-white\/\[\.03\], .bg-white\/\[\.04\]) :is(h1, h2, h3, h4, p, label, li, dd, span).text-white { color: #083344; }
+/* dark-mode audit: remaps stay abyssal navy, white text stays legible; bright dark\:bg-cyan-300 pairs with dark\:text-slate-950 — no dark fix needed */

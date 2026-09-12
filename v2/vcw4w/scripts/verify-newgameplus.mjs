@@ -94,8 +94,51 @@ for (const token of [
   "Symphony",
   "timeline",
   "≤5 min",
+  "local-headless",
+  "/api/newgameplus/vcw-verify",
 ]) {
   if (!builder.includes(token)) fail(`newgameplus builder missing ${token}.`);
+}
+// VCW ledger verify: evidence transcribed into real vcw_runs rows, metered
+// at VCW rates, provenance-tagged, cost-governed.
+const vcwVerify = read("../app/api/newgameplus/vcw-verify/route.ts");
+for (const token of [
+  "meter_vcw_usage",
+  "local-headless",
+  "browser-live",
+  "Only the final commit",
+  "Already verified",
+  "get_my_coin_balance",
+]) {
+  if (!vcwVerify.includes(token)) fail(`newgameplus vcw-verify missing ${token}.`);
+}
+// Serverless Chromium playtest: CPU scale-to-zero worker + env-gated
+// dispatcher + thin metered route + builder panel. Key hygiene: the
+// RUNPOD_API_KEY path stays server-only (route + lib, never the builder,
+// which only fetch()es the route).
+const ngpDispatcher = read("../lib/ngp-playtest.ts");
+for (const token of [
+  "NGP_PLAYTEST_ENDPOINT_ID",
+  "ngpPlaytestConfigured",
+  "local-headless",
+  "runsync",
+]) {
+  if (!ngpDispatcher.includes(token)) fail(`ngp-playtest dispatcher missing ${token}.`);
+}
+const playtestRemote = read("../app/api/newgameplus/playtest-remote/route.ts");
+for (const token of [
+  "serverless-chromium",
+  "meter_vcw_usage",
+  "code_submissions",
+  "owner_id",
+]) {
+  if (!playtestRemote.includes(token)) fail(`newgameplus playtest-remote missing ${token}.`);
+}
+if (!builder.includes("playtest-remote") || !builder.includes("serverless-chromium")) {
+  fail("newgameplus builder missing the serverless Chromium panel.");
+}
+if (builder.includes("process.env.RUNPOD_API_KEY") || ngpDispatcher.includes("NEXT_PUBLIC_")) {
+  fail("RUNPOD_API_KEY must never cross into client bundles.");
 }
 
 // Metering: signed-in builds debit the capped spend (25% cut included) via

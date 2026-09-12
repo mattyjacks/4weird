@@ -7,6 +7,12 @@ import { rateLimit } from "@/lib/rate-limit";
 import { isSlug, isUuid } from "@/lib/validate";
 import { rpcStatus } from "@/lib/agent-market";
 import { getGameRating, requiredAgeFor } from "@/lib/age-gate";
+import {
+  canUseContentMode,
+  effectiveMinAge,
+  hasContentModes,
+  parseContentMode,
+} from "@/lib/content-modes";
 import { getKidSession, hashKidToken } from "@/lib/kid-session";
 import {
   GAME_HEARTBEAT_MAX_SECONDS,
@@ -16,6 +22,35 @@ import {
 } from "@/lib/game-rent";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * Map play-session RPC failures to HTTP status so the play gate can split
+ * UX without message-sniffing every shape: 402 short funds → top-up UI,
+ * 403 age/band/parental → denied UI (never "metering is down"), anything
+ * else → the client treats only 5xx/network/timeout as unmetered fallback.
+ */
+function playRpcStatus(message: string): number {
+  const m = message.toLowerCase();
+  if (m.includes("insufficient")) return 402;
+  if (
+    m.includes("rating blocked") ||
+    m.includes("daily time") ||
+    m.includes("allowed play hours") ||
+    m.includes("monthly budget") ||
+    m.includes("suspended") ||
+    m.includes("session expired") ||
+    m.includes("age band") ||
+    m.includes("content mode") ||
+    m.includes("content-mode") ||
+    m.includes("adults (18+)") ||
+    m.includes("teens (13+)") ||
+    m.includes("not authorized") ||
+    m.includes("child session")
+  ) {
+    return 403;
+  }
+  return rpcStatus(message);
+}
 
 /**
  * POST /api/games/session; signed-in play metering ("renting games").
@@ -72,16 +107,40 @@ export async function POST(req: NextRequest) {
     // outright - a DOB entry cannot bypass the band. Teens (13+) pass teens
     // titles; kids titles pass for all 13+ bands. Under-13s have no full
     // account and play only via Child sessions (kidSessionPlay below).
+    // Backwards compatible default: an omitted content_mode means "all"
+    // (today's full adult behavior); the play gate always sends it.
+    const contentMode = parseContentMode(input.content_mode ?? input.contentMode ?? input.content) ?? "all";
     try {
       const svc = serviceClient();
       const { data: profile } = await svc.from("profiles").select("age_band").eq("id", data.user.id).maybeSingle();
       const band = String((profile as { age_band?: unknown } | null)?.age_band ?? "unknown");
-      const minAge = requiredAgeFor(getGameRating(game));
-      if (minAge >= 18 && band !== "adult") {
-        return fail("Adults (18+) games need an Adult (18+) age band. Teens stay on Teen/Kids games.", 403);
-      }
-      if (minAge >= 13 && band !== "adult" && band !== "teen") {
-        return fail("Teens (13+) games need a Teen (13-17) or Adult (18+) age band.", 403);
+      if (hasContentModes(game)) {
+        // Band-vs-mode gate first: kid bands may only use kid, teen bands
+        // kid+teen, guests/unknown kid+teen ("all" needs adult sign-in).
+        const viewerBand = band === "kid" || band === "teen" || band === "adult" ? band : "unknown";
+        if (!canUseContentMode(viewerBand, null, contentMode)) {
+          return fail(
+            `Content mode "${contentMode}" is locked for your age band. Kid bands may only use kid mode, Teen bands kid or teen — Uncut needs an Adult (18+) age band.`,
+            403,
+          );
+        }
+        // The Adults-games-need-Adult check becomes the EFFECTIVE-age check:
+        // kid mode (0+) and teen mode (13+) lower the bar; "all" keeps 18+.
+        const minAge = effectiveMinAge(game, contentMode);
+        if (minAge >= 18 && band !== "adult") {
+          return fail("Adults (18+) games need an Adult (18+) age band. Teens stay on Teen/Kids games.", 403);
+        }
+        if (minAge >= 13 && band !== "adult" && band !== "teen") {
+          return fail("Teens (13+) games need a Teen (13-17) or Adult (18+) age band.", 403);
+        }
+      } else {
+        const minAge = requiredAgeFor(getGameRating(game));
+        if (minAge >= 18 && band !== "adult") {
+          return fail("Adults (18+) games need an Adult (18+) age band. Teens stay on Teen/Kids games.", 403);
+        }
+        if (minAge >= 13 && band !== "adult" && band !== "teen") {
+          return fail("Teens (13+) games need a Teen (13-17) or Adult (18+) age band.", 403);
+        }
       }
     } catch {
       return fail("Server misconfigured.", 500);
@@ -93,10 +152,13 @@ export async function POST(req: NextRequest) {
         p_version: version,
         p_new_bytes: bytes,
       });
-      if (error) return rpcFail("api/games/session:start", error, rpcStatus, "Unable to start play session.");
+      if (error) return rpcFail("api/games/session:start", error, playRpcStatus, "Unable to start play session.");
       session = row;
     } catch (error) {
       return dbFail("api/games/session:start", error, "Play metering is down. Try again shortly.");
+    }
+    if (hasContentModes(game)) {
+      return ok({ session, heartbeat_seconds: GAME_HEARTBEAT_SECONDS, content_mode: contentMode });
     }
     return ok({ session, heartbeat_seconds: GAME_HEARTBEAT_SECONDS });
   }
@@ -134,7 +196,7 @@ export async function POST(req: NextRequest) {
         p_session: sid,
         p_seconds: seconds,
       });
-      if (error) return rpcFail("api/games/session:heartbeat", error, rpcStatus, "Unable to record play.");
+      if (error) return rpcFail("api/games/session:heartbeat", error, playRpcStatus, "Unable to record play.");
       beat = row;
     } catch (error) {
       return dbFail("api/games/session:heartbeat", error, "Play metering is down. Try again shortly.");
@@ -148,7 +210,7 @@ export async function POST(req: NextRequest) {
     if (await isKidRow(String(sid))) return fail("Child sessions end through Child login.", 403);
     try {
       const { data: ended, error } = await supabase.rpc("end_game_session", { p_session: sid });
-      if (error) return rpcFail("api/games/session:end", error, rpcStatus, "Unable to end play session.");
+      if (error) return rpcFail("api/games/session:end", error, playRpcStatus, "Unable to end play session.");
       return ok({ session: ended });
     } catch (error) {
       return dbFail("api/games/session:end", error, "Unable to end play session.");
@@ -187,8 +249,19 @@ async function kidSessionPlay(req: NextRequest, supabase: Awaited<ReturnType<typ
     const version = isBundleVersion(input.bundle_version ?? input.version ?? "1") || "1";
     const bytes = isNewBytes(input.new_bytes ?? input.bytes ?? 0);
     if (bytes < 0) return fail("Invalid new_bytes.", 400);
-    // Required age comes from the SERVER catalog, never the client.
-    const minAge = requiredAgeFor(getGameRating(game));
+    // Required age comes from the SERVER catalog, never the client. For
+    // content-mode games it is the EFFECTIVE age of the requested mode, and
+    // the child band-vs-mode gate runs first (kid-band children: kid mode
+    // only; teen-band: kid+teen). Omitted content_mode defaults to "all".
+    const kidBand: string = session.kid.age_band;
+    const kidContentMode = parseContentMode(input.content_mode ?? input.contentMode ?? input.content) ?? "all";
+    if (hasContentModes(game) && !canUseContentMode(null, kidBand, kidContentMode)) {
+      return fail(
+        `Content mode "${kidContentMode}" is locked for this child band. Kid bands may only use kid mode; teen bands kid or teen.`,
+        403,
+      );
+    }
+    const minAge = hasContentModes(game) ? effectiveMinAge(game, kidContentMode) : requiredAgeFor(getGameRating(game));
     try {
       const { data: row, error } = await supabase.rpc("start_kid_session", {
         p_kid: session.kid.id,
@@ -198,7 +271,10 @@ async function kidSessionPlay(req: NextRequest, supabase: Awaited<ReturnType<typ
         p_new_bytes: bytes,
         p_min_age: minAge,
       });
-      if (error) return rpcFail("api/games/session:kid-start", error, rpcStatus, "Unable to start play session.");
+      if (error) return rpcFail("api/games/session:kid-start", error, playRpcStatus, "Unable to start play session.");
+      if (hasContentModes(game)) {
+        return ok({ session: row, heartbeat_seconds: GAME_HEARTBEAT_SECONDS, content_mode: kidContentMode });
+      }
       return ok({ session: row, heartbeat_seconds: GAME_HEARTBEAT_SECONDS });
     } catch (error) {
       return dbFail("api/games/session:kid-start", error, "Play metering is down. Try again shortly.");
@@ -219,7 +295,7 @@ async function kidSessionPlay(req: NextRequest, supabase: Awaited<ReturnType<typ
         p_session: sid,
         p_seconds: seconds,
       });
-      if (error) return rpcFail("api/games/session:kid-heartbeat", error, rpcStatus, "Unable to record play.");
+      if (error) return rpcFail("api/games/session:kid-heartbeat", error, playRpcStatus, "Unable to record play.");
       return ok({ beat: row });
     } catch (error) {
       return dbFail("api/games/session:kid-heartbeat", error, "Play metering is down. Try again shortly.");
@@ -235,7 +311,7 @@ async function kidSessionPlay(req: NextRequest, supabase: Awaited<ReturnType<typ
         p_token_hash: tokenHash,
         p_session: sid,
       });
-      if (error) return rpcFail("api/games/session:kid-end", error, rpcStatus, "Unable to end play session.");
+      if (error) return rpcFail("api/games/session:kid-end", error, playRpcStatus, "Unable to end play session.");
       return ok({ session: ended });
     } catch (error) {
       return dbFail("api/games/session:kid-end", error, "Unable to end play session.");

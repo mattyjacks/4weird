@@ -144,3 +144,16 @@ html.light.theme-girly-girl footer nav[aria-label^="Footer"] > span[aria-hidden=
 html.dark.theme-girly-girl footer nav[aria-label^="Footer"] > span[aria-hidden="true"] { background-image: linear-gradient(90deg, #f472b6, #e879f9); }
 html.light.theme-girly-girl footer dl span[aria-hidden="true"] { color: #9d174d; background-image: linear-gradient(135deg, rgb(219 39 119 / 0.16), rgb(192 38 211 / 0.14)); }
 html.dark.theme-girly-girl footer dl span[aria-hidden="true"] { color: #fbcfe8; background-image: linear-gradient(135deg, rgb(236 72 153 / 0.30), rgb(240 171 252 / 0.28)); }
+/* ---- CONTRAST FIX (light): strawberry-milk paper keeps plum-ink text ----
+   globals.css already inks bare .text-white for paper and this theme agrees
+   (every remapped fill goes light), so only the gaps get rules: form fields
+   type plum ink, unmapped dark chips keep candy ice, and the recolored coin
+   badge takes coin-ink by day (usa house pattern). Candy-gloss finishes never
+   recolor base fills, so white-on-pink and slate-950-on-bright pairings stand. */
+html.light.theme-girly-girl :is(input, select, textarea).text-white:not(.bg-zinc-900):not(.bg-slate-700):not(.bg-black\/60) { color: #831843; }
+html.light.theme-girly-girl :is(input, select, textarea).placeholder\:text-slate-500::placeholder { color: #a8557f; }
+html.light.theme-girly-girl :is(.bg-zinc-900, .bg-slate-700, .bg-black\/60).text-white { color: #fff1f7; }
+html.light.theme-girly-girl :is(.bg-zinc-950\/40, .bg-zinc-950\/60, .bg-zinc-950\/80) :is(h1, h2, h3, h4, p, label, li, dd, span).text-white { color: #fff1f7; }
+html.light.theme-girly-girl .bg-black\/50.text-white { color: #831843; }
+html.light.theme-girly-girl .bg-amber-500.text-white { color: var(--t-coin-ink); }
+/* dark-mode audit: remaps stay plum night, white text stays legible; bright dark\:bg-cyan-300/fuchsia-300/amber-300 pair with dark\:text-slate-950 — no dark fix needed */

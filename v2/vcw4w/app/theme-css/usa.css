@@ -206,3 +206,41 @@ html.light.theme-usa footer nav[aria-label^="Footer"] > span[aria-hidden="true"]
 html.dark.theme-usa footer nav[aria-label^="Footer"] > span[aria-hidden="true"] { background-image: linear-gradient(90deg, #e11d48, #3b82f6); }
 html.light.theme-usa footer dl span[aria-hidden="true"] { color: #0a3161; background-image: linear-gradient(135deg, rgb(179 25 66 / 0.14), rgb(10 49 97 / 0.14)); }
 html.dark.theme-usa footer dl span[aria-hidden="true"] { color: #ff8a94; background-image: linear-gradient(135deg, rgb(225 29 72 / 0.30), rgb(29 78 216 / 0.30)); }
+/* ---- CONTRAST: dark-first utilities on paper (light) + ember voice (dark) ----
+   Site chrome is dark-first: text-white / text-slate-300/400 / text-cyan-200/300
+   / border-white/x / bg-white/x assume a near-black stage (~380x text-white,
+   ~570x text-slate-2/3/400, ~320x text-cyan-2/300, ~580x border-white/x,
+   ~50x bg-white/x lines across app + components). In light USA the stage remaps to
+   paper (VAST above) while the text stays light, so those utilities re-ink to
+   flag navy here. VAST already covers .text-slate-200/300/400 + .bg-slate-950
+   / .bg-black surfaces; this block covers what it misses. Same-element combos
+   + form-element scoping keep the exemption tight (see button-text locks). */
+html.light.theme-usa .text-white { color: #0a3161; }
+html.light.theme-usa :is(.text-white\/85, .text-white\/80, .text-white\/75, .text-white\/70) { color: color-mix(in srgb, #0a3161 80%, transparent); }
+html.light.theme-usa :is(.text-white\/60, .text-white\/40, .text-white\/30) { color: color-mix(in srgb, #0a3161 55%, transparent); }
+/* leads: `bg-slate-950 text-white` inputs (party-hub, love-quests,
+   forum-comments), `font-black text-white` headings (runpod-dashboard,
+   pricing flows), `text-slate-300` labels — paper surface, navy ink */
+html.light.theme-usa :is(.bg-slate-950.text-white, .bg-black.text-white, .bg-slate-900.text-white) { color: #0a3161; }
+html.light.theme-usa :is(input, select, textarea).text-white { color: #0a3161; }
+html.light.theme-usa .placeholder\:text-slate-500::placeholder { color: #46587a; opacity: 1; }
+html.dark.theme-usa .placeholder\:text-slate-500::placeholder { color: #b6c2d6; opacity: 1; }
+html.light.theme-usa :is(.text-cyan-200, .text-cyan-300) { color: #9b1b30; }
+html.dark.theme-usa :is(.text-cyan-200, .text-cyan-300) { color: #ff8a94; }
+html.light.theme-usa :is(.border-white, .border-white\/5, .border-white\/10, .border-white\/15, .border-white\/20) { border-color: rgb(10 49 97 / 0.24); }
+html.light.theme-usa :is(.border-white\/25, .border-white\/30, .border-white\/40) { border-color: rgb(10 49 97 / 0.42); }
+html.light.theme-usa :is(.bg-white\/5, .bg-white\/10, .bg-white\/15, .bg-white\/20) { background-color: color-mix(in srgb, #0a3161 7%, transparent); }
+/* night voice: white/rose on ember navy — lock what the dark stage needs */
+html.dark.theme-usa .text-white { color: #ffffff; }
+/* ---- BUTTON TEXT: lock each restyled finish to its readable ink ----
+   Proven pairings: `bg-cyan-600 ... text-white` (vault-browser scope filter,
+   code detail, hero), `dark:bg-cyan-300 dark:text-slate-950` (hero, dark),
+   `bg-fuchsia-600 ... text-white` (hero secondary), `bg-amber-500 text-white`
+   (site-footer step badge + pricing link, light). Deep flag-red + navy steel
+   keep white; bright red keeps ember-navy; coin gold keeps coin-ink by day.
+   Two-class combos outrank the paper .text-white rule above, so primaries
+   stay white on red by day; the :not() keeps bright-red workers dark-navy. */
+html.light.theme-usa :is(.bg-cyan-600.text-white, .bg-fuchsia-600.text-white) { color: #ffffff; }
+html.dark.theme-usa :is(.bg-cyan-600.text-white, .bg-fuchsia-600.text-white):not(.dark\:bg-cyan-300) { color: #ffffff; }
+html.dark.theme-usa .dark\:bg-cyan-300 { color: #0a0e24; }
+html.light.theme-usa .bg-amber-500.text-white { color: var(--t-coin-ink); }

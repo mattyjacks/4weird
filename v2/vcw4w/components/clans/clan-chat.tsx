@@ -218,7 +218,7 @@ export function ClanChat({ slug }: { slug: string }) {
     <section className="overflow-hidden rounded-xl border border-white/10 bg-slate-900">
       <div className="border-b border-white/10 px-5 py-3">
         <h2 className="font-bold text-cyan-300">💬 Clan chat</h2>
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
           Channels, threads (reply), emoji reactions, pins, events, and roles. Every message is
           Valley Net screened and pays the standard server-cost fee.
         </p>
@@ -226,7 +226,7 @@ export function ClanChat({ slug }: { slug: string }) {
       <div className="grid md:grid-cols-[200px_1fr_180px]">
         {/* Channel sidebar */}
         <div className="border-b border-white/10 p-3 md:border-b-0 md:border-r">
-          <p className="px-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">Channels</p>
+          <p className="px-2 text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-500">Channels</p>
           <ul className="mt-1 space-y-1">
             {channels.map((c) => (
               <li key={c.id}>
@@ -236,7 +236,7 @@ export function ClanChat({ slug }: { slug: string }) {
                   className={`w-full truncate rounded-lg px-2 py-1.5 text-left text-sm ${
                     active?.id === c.id
                       ? "bg-cyan-400/15 font-bold text-cyan-200"
-                      : "text-slate-300 hover:bg-white/5"
+                      : "text-slate-600 dark:text-slate-300 hover:bg-white/5"
                   }`}
                 >
                   {c.readonly ? "📢" : c.kind === "media" ? "🖼️" : "#"} {c.name.replace(/^#/, "")}
@@ -244,7 +244,7 @@ export function ClanChat({ slug }: { slug: string }) {
               </li>
             ))}
             {channels.length === 0 && (
-              <li className="px-2 text-xs text-slate-500">No channels yet; check back soon.</li>
+              <li className="px-2 text-xs text-slate-600 dark:text-slate-500">No channels yet; check back soon.</li>
             )}
           </ul>
           <form onSubmit={createChannel} className="mt-3 flex gap-1">
@@ -264,13 +264,13 @@ export function ClanChat({ slug }: { slug: string }) {
           </form>
           {events.length > 0 && (
             <div className="mt-4">
-              <p className="px-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">Events</p>
-              <ul className="mt-1 space-y-1 text-xs text-slate-300">
+              <p className="px-2 text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-500">Events</p>
+              <ul className="mt-1 space-y-1 text-xs text-slate-600 dark:text-slate-300">
                 {events.map((ev) => (
-                  <li key={ev.id} className="rounded-lg bg-black/30 px-2 py-1.5">
-                    <span className="font-bold text-white">📅 {ev.title}</span>
-                    <br />
-                    <span className="text-slate-400">{new Date(ev.starts_at).toLocaleString()}</span>
+                    <li key={ev.id} className="rounded-lg bg-black/30 px-2 py-1.5">
+                      <span className="font-bold text-slate-900 dark:text-white">📅 {ev.title}</span>
+                      <br />
+                      <span className="text-slate-600 dark:text-slate-400">{new Date(ev.starts_at).toLocaleString()}</span>
                   </li>
                 ))}
               </ul>
@@ -280,9 +280,9 @@ export function ClanChat({ slug }: { slug: string }) {
 
         {/* Message feed */}
         <div className="flex flex-col">
-          <div className="border-b border-white/10 px-4 py-2 text-sm text-slate-300">
-            <span className="font-bold text-white">{active?.readonly ? "📢" : active?.kind === "media" ? "🖼️" : "#"} {active?.name ?? "general"}</span>
-            {active?.topic && <span className="ml-2 text-xs text-slate-400">- {active.topic}</span>}
+          <div className="border-b border-white/10 px-4 py-2 text-sm text-slate-600 dark:text-slate-300">
+            <span className="font-bold text-slate-900 dark:text-white">{active?.readonly ? "📢" : active?.kind === "media" ? "🖼️" : "#"} {active?.name ?? "general"}</span>
+            {active?.topic && <span className="ml-2 text-xs text-slate-600 dark:text-slate-400">- {active.topic}</span>}
           </div>
           <div className="perf-list flex-1 space-y-3 overflow-y-auto p-4" style={{ maxHeight: "420px" }}>
             {messages.map((m) => {
@@ -291,15 +291,15 @@ export function ClanChat({ slug }: { slug: string }) {
                 <div key={m.id} className="group rounded-lg p-2 transition hover:bg-white/5">
                   <div className="flex items-baseline gap-2">
                     <span className="font-mono text-xs font-bold text-cyan-300">{shortId(m.author_id)}</span>
-                    <span className="text-[10px] text-slate-500">{new Date(m.created_at).toLocaleTimeString()}</span>
+                    <span className="text-[10px] text-slate-600 dark:text-slate-500">{new Date(m.created_at).toLocaleTimeString()}</span>
                     {m.reply_to && (
-                      <span className="text-[10px] text-slate-400">↳ replying to {shortId(m.reply_to)}</span>
+                      <span className="text-[10px] text-slate-600 dark:text-slate-400">↳ replying to {shortId(m.reply_to)}</span>
                     )}
                     {m.status === "pending" && (
                       <span className="rounded bg-amber-400/20 px-1 text-[10px] text-amber-300">pending</span>
                     )}
                   </div>
-                  <div className="mt-1 text-sm text-slate-100">
+                  <div className="mt-1 text-sm text-slate-800 dark:text-slate-100">
                     <MarkdownView text={m.body} />
                   </div>
                   {m.image_url && (
@@ -320,7 +320,7 @@ export function ClanChat({ slug }: { slug: string }) {
                     ))}
                     <button
                       onClick={() => setReplyTo(m.id)}
-                      className="rounded px-1.5 py-0.5 text-xs text-slate-400 hover:bg-white/10 hover:text-cyan-300"
+                      className="rounded px-1.5 py-0.5 text-xs text-slate-600 dark:text-slate-400 hover:bg-white/10 hover:text-cyan-300"
                     >
                       Reply
                     </button>
@@ -329,13 +329,13 @@ export function ClanChat({ slug }: { slug: string }) {
               );
             })}
             {messages.length === 0 && (
-              <p className="text-sm text-slate-500">No messages yet; say hi.</p>
+              <p className="text-sm text-slate-600 dark:text-slate-500">No messages yet; say hi.</p>
             )}
             <div ref={bottomRef} />
           </div>
           <form onSubmit={send} className="border-t border-white/10 p-3">
             {replyTo && (
-              <p className="mb-2 text-xs text-slate-400">
+              <p className="mb-2 text-xs text-slate-600 dark:text-slate-400">
                 Replying to {shortId(replyTo)}{" "}
                 <button type="button" onClick={() => setReplyTo(null)} className="text-red-300 hover:underline">
                   cancel
@@ -361,13 +361,13 @@ export function ClanChat({ slug }: { slug: string }) {
                 {sending ? "…" : "Send"}
               </button>
             </div>
-            {notice && <p className="mt-2 text-xs text-slate-300">{notice}</p>}
+            {notice && <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">{notice}</p>}
           </form>
         </div>
 
         {/* Member sidebar */}
         <div className="border-t border-white/10 p-3 md:border-l md:border-t-0">
-          <p className="px-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          <p className="px-2 text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-500">
             Members ({memberTotal.toLocaleString()}{memberTotal > members.length ? ` · showing ${members.length}` : ""})
           </p>
           {[
@@ -379,10 +379,10 @@ export function ClanChat({ slug }: { slug: string }) {
             if (rows.length === 0) return null;
             return (
               <div key={label as string} className="mt-2">
-                <p className="px-2 text-xs font-bold text-slate-400">{label as string}</p>
+                <p className="px-2 text-xs font-bold text-slate-600 dark:text-slate-400">{label as string}</p>
                 <ul className="mt-1 space-y-1">
                   {rows.slice(0, 30).map((m) => (
-                    <li key={m.user_id} className="truncate px-2 font-mono text-xs text-slate-300">
+                    <li key={m.user_id} className="truncate px-2 font-mono text-xs text-slate-600 dark:text-slate-300">
                       {shortId(m.user_id)}
                     </li>
                   ))}
@@ -390,7 +390,7 @@ export function ClanChat({ slug }: { slug: string }) {
               </div>
             );
           })}
-          {members.length === 0 && <p className="px-2 text-xs text-slate-500">Just you (so far).</p>}
+          {members.length === 0 && <p className="px-2 text-xs text-slate-600 dark:text-slate-500">Just you (so far).</p>}
         </div>
       </div>
     </section>

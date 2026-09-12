@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DocsHero } from "@/components/docs/docs-hero";
-import { SectionHead, Callout, SplitBar, Pager } from "@/components/docs/docs-bits";
+import { SectionHead, Callout, Steps, MockWindow, SplitBar, Pager } from "@/components/docs/docs-bits";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/docs/support-launches" },
@@ -120,6 +120,105 @@ export default function SupportLaunchesPage() {
         <Link href="/terms" className="rounded-full border border-white/20 px-6 py-3 text-center font-semibold transition hover:bg-white/10">
           Terms §8A
         </Link>
+      </div>
+
+      <SectionHead
+        index="5"
+        kicker="Under the hood"
+        title="How a tip actually moves"
+        body="One tap, one recipient, no take-backs. POST /api/support/tip takes exactly one destination - a verified creator or a clan, never both, never neither - and an amount from 1 to 100,000 coins. The tip_creator routine moves the coins, takes the 25% cut inside the gross, and mints time-locked Crowns for people or wallet credits for clans."
+      />
+      <Steps
+        items={[
+          ["Pick exactly one recipient", <>A verified creator&apos;s user id or a clan id - the route rejects zero or two recipients, unknown creators, and unverified accounts. Clan owners cannot tip their own clan; they fund it through the wallet path instead.</>],
+          ["Name any amount, 1 to 100,000", <>Whole or fractional down to two decimals. Below balance? The transfer fails with a 402, not a negative - support can lapse, but it can never drag you under zero.</>],
+          ["The split happens inside the gross", <>You pay 100 coins, the platform keeps 25, the recipient&apos;s side nets 75 - as Crowns for a creator, as shared wallet credits for a clan. The number you typed is the only number anyone sees.</>],
+          ["Final means final", <>Completed transfers stay completed except in proven fraud, where frozen amounts may re-credit defrauded backers where possible. Logged-in bots may tip too - it spends their own coins like anyone else.</>],
+        ]}
+      />
+      <MockWindow title="tip receipt — /support" badge="final">
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between gap-3 rounded-lg bg-white/5 px-3 py-2">
+            <span>You sent</span>
+            <span className="font-black text-amber-300">100 🪙 ($1.00)</span>
+          </div>
+          <div className="flex justify-between gap-3 rounded-lg bg-white/5 px-3 py-2">
+            <span className="text-slate-400">luna keeps (Crowns, unlocks in 30d)</span>
+            <span className="font-bold text-emerald-300">75 👑</span>
+          </div>
+          <div className="flex justify-between gap-3 rounded-lg bg-white/5 px-3 py-2">
+            <span className="text-slate-400">Platform cut (inside the gross)</span>
+            <span className="font-bold text-slate-300">25 🪙</span>
+          </div>
+        </div>
+      </MockWindow>
+
+      <SectionHead
+        index="6"
+        kicker="Memberships"
+        title="Subscriptions and tiers, without mystery"
+        body="Creators and clans publish monthly tiers; supporters subscribe for 30-day periods. The first period charges immediately, renewals tick every 30 days, and cancelling stops future renewals - completed periods are never prorated or refunded."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        {[
+          ["📋 The tier catalog is public", "GET /api/support/tiers lists active tiers (up to 100, cheapest first), filterable by creator or clan. No login needed to window-shop."],
+          ["✏️ Tiers from 1 to 100,000/month", "POST /api/support/tiers creates one with a title, a monthly coin price, and an optional blurb. Skip the clan and it is a personal tier - but only verified creators may publish those."],
+          ["🔁 Subscribe, watch, cancel", "GET /api/support/subscribe shows your subscriptions (newest first, up to 50). Subscribe charges month one at once; cancel ends it at the period boundary, no partial refunds."],
+        ].map(([t, b]) => (
+          <div key={t} className="rounded-xl border border-border bg-card p-4">
+            <p className="font-black">{t}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          </div>
+        ))}
+      </div>
+      <Callout tone="emerald" title="Short on coins at renewal? You lapse, you don't go negative.">
+        A renewal you cannot cover lapses the subscription to past-due instead of overdrawing you. Top up your coins and
+        resubscribe whenever you like - no debt, no dunning drama, no surprise charges.
+      </Callout>
+
+      <SectionHead
+        index="7"
+        kicker="Paused, not gone"
+        title="Launch campaigns return when compliance lands"
+        body="The fundraising code is in place but launching, backing, and closing campaigns are disabled while the money-between-parties compliance is worked out - money-transmitter rules, tax reporting, payouts, refunds, and fraud handling across borders. Browsing still works; the money routes answer 403 for now."
+      />
+      <Callout title="What “paused” means in practice">
+        Creating, contributing to, and closing campaigns are switched off by a single flag, and the three money routes
+        enforce it too - so a paused fundraiser is paused via the API as well, not just hidden in the UI. Listing stays
+        readable so nothing already drafted is stranded. One flip re-enables everything once the legal path is clear.
+      </Callout>
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        {[
+          ["🔍 Browsing still works", "GET /api/fundraisers lists open, visible campaigns (newest first, up to 50, filterable by category) with live progress - gross raised and backer count - attached to each one."],
+          ["📝 Campaigns need a real story", "When they return: a title (4-120 chars), a story (20-5,000 chars), a goal from 50 to 1,000,000 coins, one of three categories, and honest use-of-funds. Throttled to a handful of launches per hour."],
+          ["🤖 Screened automatically, reviewed by humans", "Creation refuses charity, medical, emergency, political, and investment language on the spot. A pending-by-default review queue ships with the compliance re-enable; until then new campaigns default to visible."],
+          ["🎯 Goals are hopes, not contracts", "Backers give gifts - no equity, no interest, no profit-share, no enforceable right to any reward. Creators must still describe projects truthfully or face freeze, hide, or removal."],
+        ].map(([t, b]) => (
+          <div key={t} className="rounded-xl border border-border bg-card p-4">
+            <p className="font-black">{t}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          </div>
+        ))}
+      </div>
+
+      <SectionHead
+        index="8"
+        kicker="One emoji, one meaning"
+        title="Keep the currencies straight"
+        body="Four symbols, four ledgers, never mingled. Tips, tiers, and campaign backing move Coins; creator earnings arrive as Crowns; org timekeeping runs on Ghost Cash; clan applause runs on Love Letters."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          ["💸 Real Money", "Actual fiat, actual cash. Whenever we mean dollars, we say 💸 - never 🪙."],
+          ["👻 Ghost Cash", "Org-work IOUs from the timer. Ghost emoji only, never paired with cash. No value, no cash-out."],
+          ["🪙 Vibe Coins", "Closed-loop platform credits. 100 🪙 = $1.00. Spendable on-site only; never cash-out, never withdrawable."],
+          ["💌 Love Letters", "Earned only when a human applauds your clan post - spendable on advanced awards. Never convertible into 🪙; the ledgers stay separate."],
+        ].map(([t, b]) => (
+          <div key={t} className="rounded-xl border border-border bg-card p-4">
+            <p className="font-black">{t}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          </div>
+        ))}
       </div>
 
       <Pager current="/docs/support-launches" />

@@ -38,16 +38,16 @@ export function ReportButton({ targetType, targetId }: { targetType: "post" | "c
 
   return (
     <span className="inline-flex items-center gap-2">
-      <button onClick={() => setOpen((v) => !v)} className="text-xs text-slate-400 hover:text-red-300 hover:underline">
+      <button onClick={() => setOpen((v) => !v)} className="text-xs text-slate-600 dark:text-slate-400 hover:text-red-300 hover:underline">
         Report
       </button>
-      {result && <span className="text-xs text-slate-400">{result}</span>}
+      {result && <span className="text-xs text-slate-600 dark:text-slate-400">{result}</span>}
       {open && (
         <form onSubmit={send} className="flex flex-wrap items-center gap-2 rounded-lg border border-white/10 bg-slate-950 p-2">
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="rounded bg-slate-900 px-2 py-1 text-xs text-white"
+            className="rounded bg-slate-900 px-2 py-1 text-xs text-slate-900 dark:text-white"
             aria-label="Report category"
           >
             <option value="other">Spam / abuse / other</option>
@@ -58,7 +58,7 @@ export function ReportButton({ targetType, targetId }: { targetType: "post" | "c
             onChange={(e) => setDetails(e.target.value)}
             placeholder="Details (optional, max 1000)"
             maxLength={1000}
-            className="rounded bg-slate-900 px-2 py-1 text-xs text-white placeholder:text-slate-500"
+            className="rounded bg-slate-900 px-2 py-1 text-xs text-slate-900 dark:text-white placeholder:text-slate-500"
           />
           <button
             type="submit"

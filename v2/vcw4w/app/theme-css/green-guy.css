@@ -2,10 +2,15 @@
    The squarest theme on the site: sharp corners, stencil-mono headlines in
    ALL CAPS, khaki paper by day, olive-black by night, olive-steel buttons
    with hard shadows. Light is sun-bleached khaki, dark is olive-black.
-   Camo comes from the hand-authored SVG tiles in public/camo/ (referenced
-   here as url("/camo/*.svg")): light rules use camo-light-*, dark rules use
-   camo-dark-*. Tiles always sit BEHIND content as washes, hairlines, and
-   edges — never over text, never touching layout, spacing, or typography. */
+   Camo comes from the SVG tiles in public/camo/ (referenced
+   here as url("/camo/*.svg")): muted classic-woodland amoeba blobs —
+   olive drab + chocolate brown + near-black on olive-black by night,
+   sage + olive + brown on sun-bleached khaki by day. Light rules use
+   camo-light-*, dark rules use camo-dark-*. Tiles always sit BEHIND
+   content as washes, hairlines, and edges — never over text, never
+   touching layout, spacing, or typography. (Tiles are seeded-generated
+   organic blobs; .bg-black/50 scrims stay plain so modals keep their
+   translucency.) */
 
 html.theme-green-guy {
   --t-solid: #4d7c0f; --t-solid-hover: #65a30d;
@@ -103,52 +108,52 @@ html.dark.theme-green-guy::-webkit-scrollbar-thumb {
 html.theme-green-guy :focus-visible { outline: 2px dashed #4d7c0f; outline-offset: 2px; }
 html.dark.theme-green-guy :focus-visible { outline-color: #a3e635; }
 
-/* olive-steel buttons: hard top highlight, hard bottom shade, camo-fleck finish */
+/* olive-steel buttons: hard top highlight, hard bottom shade, fine camo-fleck grain */
 html.light.theme-green-guy .bg-cyan-600 {
   background-image: url("/camo/camo-light-small-fleck.svg"), linear-gradient(180deg, rgb(255 255 255 / 0.16), rgb(0 0 0 / 0.18));
-  background-size: 180px 180px, auto;
+  background-size: 120px 120px, auto;
   background-repeat: repeat, no-repeat;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), inset 0 -2px 0 rgb(0 0 0 / 0.3), 3px 3px 0 rgb(0 0 0 / 0.45);
   border-radius: 2px;
 }
 html.dark.theme-green-guy .bg-cyan-600 {
   background-image: url("/camo/camo-dark-fleck.svg"), linear-gradient(180deg, rgb(255 255 255 / 0.16), rgb(0 0 0 / 0.18));
-  background-size: 180px 180px, auto;
+  background-size: 120px 120px, auto;
   background-repeat: repeat, no-repeat;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), inset 0 -2px 0 rgb(0 0 0 / 0.3), 3px 3px 0 rgb(0 0 0 / 0.45);
   border-radius: 2px;
 }
 html.dark.theme-green-guy .dark\:bg-cyan-300 {
   background-image: url("/camo/camo-dark-fleck.svg"), linear-gradient(180deg, rgb(255 255 255 / 0.35), rgb(0 0 0 / 0.12));
-  background-size: 180px 180px, auto;
+  background-size: 120px 120px, auto;
   background-repeat: repeat, no-repeat;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4), 0 0 18px -4px rgb(163 230 53 / 0.55), 3px 3px 0 rgb(0 0 0 / 0.6);
   border-radius: 2px;
 }
 html.light.theme-green-guy .bg-fuchsia-600 {
   background-image: url("/camo/camo-light-diagonal-slash.svg"), linear-gradient(180deg, rgb(255 255 255 / 0.16), rgb(0 0 0 / 0.18));
-  background-size: 220px 220px, auto;
+  background-size: 140px 140px, auto;
   background-repeat: repeat, no-repeat;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), inset 0 -2px 0 rgb(0 0 0 / 0.3), 3px 3px 0 rgb(0 0 0 / 0.45);
   border-radius: 2px;
 }
 html.dark.theme-green-guy .bg-fuchsia-600 {
   background-image: url("/camo/camo-dark-diagonal-slash.svg"), linear-gradient(180deg, rgb(255 255 255 / 0.16), rgb(0 0 0 / 0.18));
-  background-size: 220px 220px, auto;
+  background-size: 140px 140px, auto;
   background-repeat: repeat, no-repeat;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), inset 0 -2px 0 rgb(0 0 0 / 0.3), 3px 3px 0 rgb(0 0 0 / 0.45);
   border-radius: 2px;
 }
 html.light.theme-green-guy .bg-amber-500 {
   background-image: url("/camo/camo-light-small-fleck.svg"), linear-gradient(180deg, rgb(255 255 255 / 0.16), rgb(0 0 0 / 0.2));
-  background-size: 180px 180px, auto;
+  background-size: 120px 120px, auto;
   background-repeat: repeat, no-repeat;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), inset 0 -2px 0 rgb(0 0 0 / 0.3), 3px 3px 0 rgb(0 0 0 / 0.45);
   border-radius: 2px;
 }
 html.dark.theme-green-guy .bg-amber-500 {
   background-image: url("/camo/camo-dark-fleck.svg"), linear-gradient(180deg, rgb(255 255 255 / 0.16), rgb(0 0 0 / 0.2));
-  background-size: 180px 180px, auto;
+  background-size: 120px 120px, auto;
   background-repeat: repeat, no-repeat;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), inset 0 -2px 0 rgb(0 0 0 / 0.3), 3px 3px 0 rgb(0 0 0 / 0.45);
   border-radius: 2px;
@@ -181,6 +186,19 @@ html.dark.theme-green-guy .dark\:bg-slate-900 { background-color: #131a09; }
 html.light.theme-green-guy .dark\:bg-slate-900 { background-color: #e2d9b8; }
 html.dark.theme-green-guy .dark\:border-slate-700 { border-color: rgb(163 230 53 / 0.20); }
 html.dark.theme-green-guy .dark\:border-slate-800 { border-color: rgb(163 230 53 / 0.12); }
+/* ---- CONTRAST FIX (light): khaki remaps must not keep white text ---- */
+/* same-surface combos: khaki card/page bg + white text is white-on-white */
+html.light.theme-green-guy .bg-slate-950.text-white { color: #365314; }
+html.light.theme-green-guy .bg-slate-900.text-white { color: #365314; }
+html.light.theme-green-guy .dark\:bg-slate-950.text-white { color: #365314; }
+html.light.theme-green-guy .dark\:bg-slate-900.text-white { color: #365314; }
+/* form fields: every light-mode input wash is pale khaki, so typing ink goes olive-black (buttons never match: button is not input/select/textarea) */
+html.light.theme-green-guy :is(input, select, textarea).text-white { color: #1a2e05; }
+html.light.theme-green-guy :is(input, select, textarea).placeholder\:text-slate-500::placeholder { color: #4d7c0f; }
+/* bare white headings/labels/names sitting directly on khaki surfaces (camo-button/badge spans with their own bg excluded) */
+html.light.theme-green-guy :is(.bg-slate-950, .bg-slate-900, .dark\:bg-slate-950, .dark\:bg-slate-900) :is(h1, h2, h3, h4, p, label, li, dd, span).text-white:not(.bg-cyan-600):not(.bg-amber-500):not(.bg-fuchsia-600):not(.bg-cyan-300):not(.bg-amber-300):not(.bg-fuchsia-500) { color: #365314; }
+html.light.theme-green-guy :is(.bg-black\/30, .bg-black\/40, .bg-black\/50) :is(h1, h2, h3, h4, p).text-white { color: #365314; }
+/* dark-mode audit: remaps stay olive-black, white text stays legible; lime-cream dark\:bg-cyan-300 pairs with dark\:text-slate-950 — no dark fix needed */
 
 /* header strip: oversized camo blocks behind the bar, olive / lime edge on top */
 html.light.theme-green-guy header {
@@ -223,17 +241,9 @@ html.dark.theme-green-guy .bg-slate-900 {
   background-size: 300px 300px;
   background-repeat: repeat;
 }
-/* modal frame: sparse open-field behind the dim scrim */
-html.light.theme-green-guy .bg-black\/50 {
-  background-image: url("/camo/camo-light-open-field.svg");
-  background-size: 300px 300px;
-  background-repeat: repeat;
-}
-html.dark.theme-green-guy .bg-black\/50 {
-  background-image: url("/camo/camo-dark-open-field.svg");
-  background-size: 300px 300px;
-  background-repeat: repeat;
-}
+/* NOTE: .bg-black/50 scrims stay plain color-mix on purpose — an opaque
+   camo tile here would kill modal translucency. Camo lives behind
+   content, never in front of it. */
 /* section divider: horizontal drift bands behind hr rules */
 html.light.theme-green-guy hr {
   background-color: #4d7c0f;

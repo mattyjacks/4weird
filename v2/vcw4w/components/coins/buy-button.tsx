@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export function BuyButton({ variantId, quantity = 1, label }: { variantId: string; quantity?: number; label: string }) {
+export function BuyButton({ variantId, quantity = 1, label, tone = "cyan" }: { variantId: string; quantity?: number; label: string; tone?: "cyan" | "money" }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -22,5 +22,5 @@ export function BuyButton({ variantId, quantity = 1, label }: { variantId: strin
     }
   }
 
-  return <span><button type="button" disabled={busy} onClick={start} className="rounded-full bg-cyan-300 px-5 py-2 font-bold text-slate-950 disabled:opacity-40">{busy ? "Opening…" : label}</button>{message && <span role="status" className="ml-3 text-sm text-amber-200">{message}</span>}</span>;
+  return <span><button type="button" disabled={busy} onClick={start} className={tone === "money" ? "cta-money disabled:opacity-40" : "rounded-full bg-cyan-300 px-5 py-2 font-bold text-slate-950 disabled:opacity-40"}>{busy ? "Opening…" : label}</button>{message && <span role="status" className="ml-3 text-sm text-amber-200">{message}</span>}</span>;
 }

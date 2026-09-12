@@ -86,27 +86,29 @@ if (aiMissing.length) {
   process.exit(1);
 }
 
-// VibeCodeWorker section pages embed their live legacy surface in an iframe:
-// every frameSrc in app/vibecodeworker/[section]/page.tsx must exist on disk,
-// every /vibecodeworker/* asset rewrite destination must exist, and the
+// VibeCodeWorker section pages are native React (no iframes): the page must
+// render all 7 section components and must not frame the legacy archive.
+// The legacy files above remain on disk as a static archive, every
+// /vibecodeworker/* asset rewrite destination must exist, and the
 // slash-less /vcw/agent + /vcw/desktop static pages must redirect to their
 // trailing-slash files (public/ serves exact paths only).
 const sectionPage = await readFile(join(root, "app/vibecodeworker/[section]/page.tsx"), "utf8");
-const frameSrcs = [...sectionPage.matchAll(/"(\/vibecodeworker-legacy\/[^"]+)"/g)].map((m) => m[1]);
-if (frameSrcs.length < 7) {
-  console.error(`Expected 7 legacy iframe sources, found ${frameSrcs.length}.`);
-  process.exit(1);
-}
-const frameMissing = [];
-for (const src of new Set(frameSrcs)) {
-  try {
-    await access(join(root, "public", src));
-  } catch {
-    frameMissing.push(src);
+for (const token of [
+  "VcwOverview",
+  "VcwHub",
+  "VcwRun",
+  "VcwFull",
+  "VcwPhone",
+  "VcwDocs",
+  "VcwDemo",
+]) {
+  if (!sectionPage.includes(token)) {
+    console.error(`Missing native VibeCodeWorker section: ${token}.`);
+    process.exit(1);
   }
 }
-if (frameMissing.length) {
-  console.error(`Missing legacy iframe sources:\n${frameMissing.join("\n")}`);
+if (sectionPage.includes("<iframe") || /vibecodeworker-legacy\/[^"]*\.html/.test(sectionPage)) {
+  console.error("VibeCodeWorker section pages must be native (no iframes, no legacy frame sources).");
   process.exit(1);
 }
 const nextConfig = await readFile(join(root, "next.config.ts"), "utf8");

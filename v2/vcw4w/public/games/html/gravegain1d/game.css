@@ -1,0 +1,81 @@
+/* GraveGain1D styles: game-only, fullscreen black. No site chrome. */
+:root {
+    --gg1d-gold: #fbbf24;
+    --gg1d-purple: #a855f7;
+    --gg1d-red: #ef4444;
+    --gg1d-green: #22c55e;
+    --gg1d-ink: #e2e8f0;
+    --gg1d-dim: #94a3b8;
+}
+* { box-sizing: border-box; }
+html, body {
+    margin: 0; padding: 0; min-height: 100%; background: #000; color: var(--gg1d-ink);
+    font-family: Outfit, Inter, system-ui, sans-serif;
+    overscroll-behavior: none;
+}
+#gg1dWrap {
+    position: relative; width: 100%; max-width: 1100px; margin: 0 auto;
+    padding: 10px;
+}
+#gg1dHud {
+    display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center;
+    background: rgba(10, 8, 24, 0.9); border: 1px solid rgba(168, 85, 247, 0.4);
+    border-radius: 10px; padding: 8px 12px; margin-bottom: 8px;
+    font-size: 0.85rem;
+}
+#gg1dHud .bar { position: relative; width: 150px; height: 12px; background: #1e1b2e; border-radius: 6px; overflow: hidden; }
+#gg1dHud .bar > div { position: absolute; inset: 0 auto 0 0; border-radius: 6px; }
+#gg1dHpFill { background: linear-gradient(90deg, #ef4444, #f97316); }
+#gg1dXpFill { background: linear-gradient(90deg, #a855f7, #6366f1); }
+#gg1dHud .gold { color: var(--gg1d-gold); font-weight: 700; }
+#gg1dHud .dim { color: var(--gg1d-dim); }
+#gg1dBossBar { display: none; margin-top: 6px; }
+#gg1dBossBar.on { display: block; }
+#gg1dBossFill { background: linear-gradient(90deg, #7f1d1d, #ef4444); }
+#gg1dStage { position: relative; width: 100%; }
+#gg1dCanvas { display: block; width: 100%; height: auto; border-radius: 10px; border: 1px solid rgba(168, 85, 247, 0.35); background: #05030d; touch-action: none; }
+#gg1dBanner {
+    position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+    text-align: center; pointer-events: none; padding: 0 8%;
+}
+#gg1dBanner.on { display: flex; }
+#gg1dBannerCard {
+    background: rgba(5, 5, 14, 0.88); border: 1px solid var(--gg1d-purple);
+    border-radius: 12px; padding: 16px 22px; max-width: 620px;
+    box-shadow: 0 0 40px rgba(124, 58, 237, 0.35);
+}
+#gg1dBannerTitle { font-family: Orbitron, Outfit, sans-serif; color: var(--gg1d-gold); letter-spacing: 0.1em; font-size: 0.95rem; margin: 0 0 8px; }
+#gg1dBannerText { font-size: 0.92rem; line-height: 1.55; margin: 0; white-space: pre-line; }
+#gg1dTouch {
+    display: flex; gap: 8px; margin-top: 8px;
+}
+#gg1dTouch button {
+    flex: 1; padding: 12px 4px; font-size: 0.85rem; font-weight: 700; cursor: pointer;
+    background: rgba(20, 14, 40, 0.95); color: #fff; border: 1px solid var(--gg1d-purple);
+    border-radius: 10px; font-family: Orbitron, Outfit, sans-serif;
+}
+#gg1dTouch button:active { background: #7c3aed; }
+#gg1dMenu {
+    background: rgba(10, 8, 24, 0.94); border: 1px solid rgba(168, 85, 247, 0.5);
+    border-radius: 12px; padding: 22px; margin-top: 8px; text-align: center;
+}
+#gg1dMenu h1 { font-family: Orbitron, sans-serif; letter-spacing: 0.14em; color: var(--gg1d-gold); margin: 0 0 4px; font-size: 1.6rem; }
+#gg1dMenu p.sub { color: var(--gg1d-dim); margin: 0 0 16px; font-size: 0.9rem; }
+.gg1dChoices { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 12px 0; }
+.gg1dChoices button {
+    min-width: 180px; padding: 12px 14px; cursor: pointer; border-radius: 10px;
+    background: rgba(30, 20, 60, 0.9); color: #fff; border: 1px solid var(--gg1d-purple);
+    font-family: Outfit, sans-serif; font-size: 0.88rem; line-height: 1.4;
+}
+.gg1dChoices button small { display: block; color: var(--gg1d-dim); font-size: 0.75rem; margin-top: 4px; }
+.gg1dChoices button.sel { outline: 2px solid var(--gg1d-gold); background: rgba(60, 30, 100, 0.95); }
+#gg1dGoBtn {
+    margin-top: 8px; padding: 12px 42px; font-size: 1rem; font-weight: 800; cursor: pointer;
+    background: linear-gradient(135deg, #a855f7, #6366f1); color: #fff; border: 1px solid #c084fc;
+    border-radius: 10px; font-family: Orbitron, sans-serif; letter-spacing: 0.08em;
+}
+#gg1dCodex { text-align: left; max-width: 640px; margin: 14px auto 0; font-size: 0.82rem; color: var(--gg1d-dim); }
+#gg1dCodex b { color: var(--gg1d-gold); }
+@media (prefers-reduced-motion: reduce) {
+    #gg1dBannerCard { box-shadow: none; }
+}

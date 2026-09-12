@@ -145,10 +145,10 @@ html.light .bg-white\/\[\.04\], html.light .bg-white\/\[\.03\], html.light .bg-w
 html.light .from-cyan-300\/15 { --tw-gradient-from: rgb(207 250 254 / 0.7); --tw-gradient-to: transparent; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
 html.light .from-violet-400\/15 { --tw-gradient-from: rgb(221 214 254 / 0.6); --tw-gradient-to: transparent; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
 html.light .from-amber-300\/15, html.light .from-amber-300\/10 { --tw-gradient-from: rgb(253 230 138 / 0.5); --tw-gradient-to: transparent; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-html.light .text-white { color: #020617; }
-html.light .text-slate-200 { color: #334155; }
-html.light .text-slate-300 { color: #475569; }
-html.light .text-slate-400 { color: #64748b; }
+html.light .text-white:not(.bg-cyan-600, .bg-cyan-500, .bg-fuchsia-600, .bg-violet-600) { color: #020617; }
+html.light .text-slate-200:not(.bg-cyan-600, .bg-cyan-500, .bg-fuchsia-600, .bg-violet-600) { color: #334155; }
+html.light .text-slate-300:not(.bg-cyan-600, .bg-cyan-500, .bg-fuchsia-600, .bg-violet-600) { color: #475569; }
+html.light .text-slate-400:not(.bg-cyan-600, .bg-cyan-500, .bg-fuchsia-600, .bg-violet-600) { color: #64748b; }
 html.light .text-cyan-300 { color: #0e7490; }
 html.light .text-cyan-200 { color: #155e75; }
 html.light .text-amber-200 { color: #92400e; }
@@ -158,6 +158,28 @@ html.light .border-slate-800 { border-color: #e2e8f0; }
 html.light .border-cyan-300\/30, html.light .border-cyan-300\/50, html.light .border-cyan-300\/60, html.light .border-cyan-300\/70 { border-color: #67e8f9; }
 html.light .border-violet-300\/50 { border-color: #c4b5fd; }
 html.light .border-amber-300\/40, html.light .border-amber-300\/60 { border-color: #fcd34d; }
+/* Light-mode safety net: dark-first utilities the per-theme files do not cover.
+   Same-element form combos first (their bg remaps to paper above, so ink text
+   is correct), then missing placeholder/divide/border utilities, then restores
+   for surfaces that stay colored in light mode (solid brand fills are guarded
+   by :not() above; gradient buttons/badges are restored below). Already-dark
+   text (.text-slate-950, .text-slate-900, e.g. on .bg-cyan-300/.bg-white and
+   red/pink/orange/sky-400 chips) is left alone, as are .bg-black panels that
+   stay black (game shells via the [data-theme-lock="dark"] block below).
+   Specificity is html + at most 2 classes so theme files (loaded later) still
+   win; color/border-color only, no layout/typography. */
+html.light .bg-slate-950.text-white, html.light .bg-slate-900.text-white { color: #020617; }
+html.light input.text-white, html.light select.text-white, html.light textarea.text-white { color: #020617; }
+html.light .placeholder\:text-slate-500::placeholder, html.light .placeholder\:text-slate-600::placeholder { color: #475569; }
+html.light .border-white\/5, html.light .hover\:border-white\/25:hover { border-color: #e2e8f0; }
+html.light .border-white { border-color: #cbd5e1; }
+html.light [class*="divide-white"] > * { border-color: #e2e8f0; }
+html.light [class*="bg-gradient"].text-white, html.light [class*="bg-gradient"] .text-white { color: #ffffff; }
+html.light [class*="bg-gradient"].text-slate-200, html.light [class*="bg-gradient"] .text-slate-200 { color: #e2e8f0; }
+html.light [class*="bg-gradient"].text-slate-300, html.light [class*="bg-gradient"] .text-slate-300 { color: #cbd5e1; }
+html.light [class*="bg-gradient"].text-slate-400, html.light [class*="bg-gradient"] .text-slate-400 { color: #94a3b8; }
+html.light [class*="bg-gradient"].text-cyan-200, html.light [class*="bg-gradient"] .text-cyan-200 { color: #a5f3fc; }
+html.light [class*="bg-gradient"].text-cyan-300, html.light [class*="bg-gradient"] .text-cyan-300 { color: #67e8f9; }
 
 /* ---- Nav fluid system: one JS-driven swirl on desktop, per-device
    opacity choreography everywhere. Desktop keeps the 2s mouse-disturbed
@@ -486,6 +508,55 @@ html.light [data-theme-lock="dark"] .border-white\/10, html.light [data-theme-lo
 .docs-cursor { animation: docs-blink 1s step-end infinite; }
 @keyframes docs-spin-slow { to { transform: rotate(360deg); } }
 .docs-spin-slow { animation: docs-spin-slow 14s linear infinite; will-change: transform; }
+/* ---- Docs hero motion layer (shared by all 14 guide headers) ----
+   Entrance: .docs-rise + .docs-d1…d5 stagger fade-up on every page mount.
+   Ambient: panning grid, drifting orbs, title shimmer, chip sheen, card
+   sweep, twinkling sparkles, slow orbit ring. All transform / opacity /
+   background-position only. Neutralized globally by the
+   prefers-reduced-motion rule above and the low-power list below. */
+@keyframes docs-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+.docs-rise { animation: docs-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards; will-change: transform, opacity; }
+.docs-d1 { animation-delay: 0.05s; }
+.docs-d2 { animation-delay: 0.12s; }
+.docs-d3 { animation-delay: 0.2s; }
+.docs-d4 { animation-delay: 0.28s; }
+.docs-d5 { animation-delay: 0.36s; }
+@keyframes docs-grid-pan { from { background-position: 0 0, 0 0; } to { background-position: 56px 56px, 56px 56px; } }
+.docs-grid-pan { animation: docs-grid-pan 14s linear infinite; }
+@keyframes docs-orb-drift-a { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(44px, 32px) scale(1.15); } }
+.docs-orb-drift-a { animation: docs-orb-drift-a 11s ease-in-out infinite; will-change: transform; }
+@keyframes docs-orb-drift-b { 0%, 100% { transform: translate(0, 0) scale(1.1); } 50% { transform: translate(-52px, -28px) scale(0.95); } }
+.docs-orb-drift-b { animation: docs-orb-drift-b 15s ease-in-out infinite; will-change: transform; }
+/* Gradient highlight inside the hero title gets a slow shimmer sweep. */
+@keyframes docs-shine { from { background-position: 200% center; } to { background-position: -200% center; } }
+.docs-hero h1 span { background-size: 200% auto; animation: docs-shine 7s linear infinite; }
+/* Eyebrow chip sheen sweep. */
+.docs-hero-eyebrow { position: relative; overflow: hidden; isolation: isolate; }
+.docs-hero-eyebrow::after {
+  content: ""; position: absolute; inset: -20% -60%; pointer-events: none;
+  background: linear-gradient(105deg, transparent 40%, rgb(255 255 255 / 0.35) 50%, transparent 60%);
+  transform: translateX(-60%); animation: docs-chip-sheen 3.5s ease-in-out infinite;
+}
+@keyframes docs-chip-sheen { 0% { transform: translateX(-60%); } 55%, 100% { transform: translateX(60%); } }
+/* Periodic light sweep across the whole hero card. */
+.docs-hero-sheen { position: relative; }
+.docs-hero-sheen::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, rgb(255 255 255 / 0.07) 45%, transparent 60%);
+  background-size: 250% 100%; animation: docs-hero-sweep 9s ease-in-out infinite;
+}
+@keyframes docs-hero-sweep { 0% { background-position: 120% 0; } 60%, 100% { background-position: -120% 0; } }
+/* Twinkling sparkles + slow dashed orbit ring around the glyph. */
+@keyframes docs-twinkle { 0%, 100% { opacity: 0.15; transform: scale(0.7); } 50% { opacity: 0.9; transform: scale(1.15); } }
+.docs-twinkle {
+  position: absolute; border-radius: 9999px; pointer-events: none;
+  background: radial-gradient(circle, #fff 0%, rgb(103 232 249 / 0.8) 40%, transparent 70%);
+  animation: docs-twinkle 2.8s ease-in-out infinite; will-change: transform, opacity;
+}
+.docs-hero-ring {
+  position: absolute; border: 1px dashed rgb(103 232 249 / 0.35); border-radius: 9999px;
+  pointer-events: none; animation: docs-spin-slow 26s linear infinite; will-change: transform;
+}
 
 /* ---- 4weird perf layer: GPU compositing + low-resource lists ----
    Every rule here is transform/opacity-only (compositor thread, no layout
@@ -525,10 +596,28 @@ html.perf-low-power .docs-float,
 html.perf-low-power .docs-spin-slow,
 html.perf-low-power .eq-bar,
 html.perf-low-power .docs-cursor,
+html.perf-low-power .docs-rise,
+html.perf-low-power .docs-grid-pan,
+html.perf-low-power .docs-orb-drift-a,
+html.perf-low-power .docs-orb-drift-b,
+html.perf-low-power .docs-twinkle,
+html.perf-low-power .docs-hero-ring,
+html.perf-low-power .docs-hero-eyebrow::after,
+html.perf-low-power .docs-hero-sheen::before,
+html.perf-low-power .docs-hero h1 span,
 html[data-low-power="1"] .docs-float,
 html[data-low-power="1"] .docs-spin-slow,
 html[data-low-power="1"] .eq-bar,
-html[data-low-power="1"] .docs-cursor {
+html[data-low-power="1"] .docs-cursor,
+html[data-low-power="1"] .docs-rise,
+html[data-low-power="1"] .docs-grid-pan,
+html[data-low-power="1"] .docs-orb-drift-a,
+html[data-low-power="1"] .docs-orb-drift-b,
+html[data-low-power="1"] .docs-twinkle,
+html[data-low-power="1"] .docs-hero-ring,
+html[data-low-power="1"] .docs-hero-eyebrow::after,
+html[data-low-power="1"] .docs-hero-sheen::before,
+html[data-low-power="1"] .docs-hero h1 span {
   animation: none !important;
 }
 html.perf-low-power .perf-card,
@@ -671,3 +760,121 @@ iframe { contain: layout style; }
 /* ---- Theme couture: moved per-palette into app/theme-css/*.css ----
    (corner language, button finish, brand glow, footer hairline, backdrop
    texture, scrollbar + focus-ring tints). USA lives in usa.css. */
+
+/* ---- 4weird money + gamer/coder polish (site-wide, low specificity) ----
+   Single-class utilities so per-palette theme files (loaded later) still win.
+   All motion is transform/opacity-only + killed under reduced motion. */
+.cta-money {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.625rem 1.35rem; border-radius: 9999px;
+  font-weight: 800; font-size: 0.9375rem; line-height: 1.25;
+  color: #1c1005; text-decoration: none; white-space: nowrap;
+  background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 30%, #f59e0b 62%, #fbbf24 100%);
+  border: 1px solid rgb(180 120 20 / 0.55);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.25) inset, 0 6px 22px -6px rgb(245 158 11 / 0.65), 0 2px 8px rgb(0 0 0 / 0.25);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+.cta-money:hover {
+  transform: translateY(-2px); filter: brightness(1.06);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.35) inset, 0 12px 32px -8px rgb(245 158 11 / 0.8), 0 4px 12px rgb(0 0 0 / 0.3);
+}
+.cta-money:active { transform: translateY(0); filter: brightness(0.98); }
+.cta-money:focus-visible { outline: 2px solid #fbbf24; outline-offset: 3px; }
+.dark .cta-money {
+  color: #1c1005;
+  background: linear-gradient(135deg, #fde68a 0%, #fbbf24 35%, #f59e0b 70%, #fcd34d 100%);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.2) inset, 0 0 24px -4px rgb(251 191 36 / 0.7), 0 6px 22px -6px rgb(0 0 0 / 0.7);
+}
+.cta-play {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.625rem 1.35rem; border-radius: 9999px;
+  font-weight: 800; font-size: 0.9375rem; line-height: 1.25;
+  letter-spacing: 0.02em; text-transform: uppercase; text-decoration: none; white-space: nowrap;
+  color: #062e33; background: linear-gradient(135deg, #a5f3fc 0%, #22d3ee 50%, #06b6d4 100%);
+  border: 1px solid rgb(34 211 238 / 0.7);
+  box-shadow: 0 0 18px -4px rgb(34 211 238 / 0.8), 0 6px 20px -8px rgb(34 211 238 / 0.6);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+.cta-play:hover { transform: translateY(-2px) scale(1.02); filter: brightness(1.08); box-shadow: 0 0 28px -4px rgb(34 211 238 / 0.95), 0 10px 28px -8px rgb(34 211 238 / 0.7); }
+.cta-play:active { transform: translateY(0) scale(1); }
+.cta-play:focus-visible { outline: 2px solid #22d3ee; outline-offset: 3px; }
+.cta-code {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.6rem 1.25rem; border-radius: 0.625rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.875rem; font-weight: 700; text-decoration: none; white-space: nowrap;
+  color: hsl(var(--foreground)); background: transparent;
+  border: 1px solid hsl(var(--border));
+  transition: transform 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+.cta-code:hover {
+  transform: translateY(-2px); color: #4ade80; border-color: rgb(74 222 128 / 0.7);
+  background: rgb(74 222 128 / 0.08);
+  box-shadow: 0 0 18px -6px rgb(74 222 128 / 0.7);
+}
+.cta-code:focus-visible { outline: 2px solid #4ade80; outline-offset: 3px; }
+.card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
+.card-hover:hover { transform: translateY(-4px); border-color: rgb(34 211 238 / 0.45); box-shadow: 0 16px 40px -16px rgb(34 211 238 / 0.45), 0 4px 14px rgb(0 0 0 / 0.2); }
+.card-hover-amber:hover { border-color: rgb(251 191 36 / 0.55); box-shadow: 0 16px 40px -16px rgb(251 191 36 / 0.5), 0 4px 14px rgb(0 0 0 / 0.2); }
+.card-hover-fuchsia:hover { border-color: rgb(232 121 249 / 0.5); box-shadow: 0 16px 40px -16px rgb(232 121 249 / 0.5), 0 4px 14px rgb(0 0 0 / 0.2); }
+.card-hover-green:hover { border-color: rgb(74 222 128 / 0.5); box-shadow: 0 16px 40px -16px rgb(74 222 128 / 0.45), 0 4px 14px rgb(0 0 0 / 0.2); }
+.section-kicker {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+  display: inline-flex; align-items: center; gap: 0.5rem;
+}
+.section-kicker::before { content: ""; width: 1.5rem; height: 2px; border-radius: 9999px; background: linear-gradient(90deg, #22d3ee, #e879f9); display: inline-block; }
+.hero-grid {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image: linear-gradient(to right, rgb(103 232 249 / 0.1) 1px, transparent 1px), linear-gradient(to bottom, rgb(103 232 249 / 0.1) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse 90% 85% at 50% 0%, black 25%, transparent 78%);
+}
+.hero-glow { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.hero-glow::before {
+  content: ""; position: absolute; width: 34rem; height: 20rem; left: 50%; top: -10rem; translate: -50% 0;
+  background: radial-gradient(closest-side, rgb(34 211 238 / 0.28), transparent 70%);
+  animation: hero-drift 9s ease-in-out infinite alternate; will-change: transform, opacity;
+}
+.hero-glow::after {
+  content: ""; position: absolute; width: 28rem; height: 18rem; left: 12%; bottom: -12rem;
+  background: radial-gradient(closest-side, rgb(232 121 249 / 0.22), transparent 70%);
+  animation: hero-drift 11s ease-in-out infinite alternate-reverse; will-change: transform, opacity;
+}
+@keyframes hero-drift { from { transform: translateX(-4%) scale(1); opacity: 0.85; } to { transform: translateX(4%) scale(1.08); opacity: 1; } }
+.marketing-title-gradient {
+  background: linear-gradient(100deg, hsl(var(--foreground)) 20%, #22d3ee 55%, #e879f9 85%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.price-chip {
+  display: inline-flex; align-items: center; gap: 0.375rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.75rem; font-weight: 700; white-space: nowrap;
+  padding: 0.25rem 0.625rem; border-radius: 9999px;
+  color: #fde68a; background: rgb(120 72 0 / 0.35);
+  border: 1px solid rgb(251 191 36 / 0.45);
+}
+.gamer-emoji { display: inline-block; filter: drop-shadow(0 2px 6px rgb(34 211 238 / 0.5)); transition: transform 0.18s ease; }
+.gamer-emoji:hover { transform: scale(1.18) rotate(-6deg); }
+.money-strip {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.5rem 0.75rem;
+  padding: 0.75rem 1rem; border-radius: 1rem; text-align: center;
+  font-size: 0.8125rem; line-height: 1.5;
+  background: linear-gradient(135deg, rgb(251 191 36 / 0.14), rgb(245 158 11 / 0.07));
+  border: 1px solid rgb(251 191 36 / 0.35);
+}
+.money-strip-link { font-weight: 800; color: #fbbf24; text-decoration: underline; text-underline-offset: 3px; }
+.money-strip-link:hover { color: #fde68a; }
+@media (prefers-reduced-motion: reduce) {
+  .cta-money, .cta-play, .cta-code, .card-hover, .gamer-emoji { transition: none !important; }
+  .cta-money:hover, .cta-play:hover, .cta-code:hover, .card-hover:hover, .gamer-emoji:hover { transform: none !important; }
+  .hero-glow::before, .hero-glow::after { animation: none !important; }
+}
+html.a11y-reduced-motion .cta-money, html.a11y-reduced-motion .cta-play,
+html.a11y-reduced-motion .cta-code, html.a11y-reduced-motion .card-hover,
+html.a11y-reduced-motion .gamer-emoji { transition: none !important; }
+html.a11y-reduced-motion .cta-money:hover, html.a11y-reduced-motion .cta-play:hover,
+html.a11y-reduced-motion .cta-code:hover, html.a11y-reduced-motion .card-hover:hover,
+html.a11y-reduced-motion .gamer-emoji:hover { transform: none !important; }
+html.a11y-reduced-motion .hero-glow::before, html.a11y-reduced-motion .hero-glow::after { animation: none !important; }

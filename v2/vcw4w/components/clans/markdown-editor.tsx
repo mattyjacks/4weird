@@ -71,7 +71,7 @@ export function MarkdownEditor({ value, onChange, placeholder, maxLength = 8000,
           )}
         </div>
       )}
-      <p className="mt-1 text-xs text-slate-500">{MARKDOWN_HELP}</p>
+      <p className="mt-1 text-xs text-slate-600 dark:text-slate-500">{MARKDOWN_HELP}</p>
     </div>
   );
 }

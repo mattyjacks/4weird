@@ -126,6 +126,137 @@ export default function ExploreMorePage() {
         <Link className="underline" href="/runpods">/runpods</Link>.
       </Callout>
 
+      <SectionHead
+        index="5"
+        kicker="Your shelf"
+        title="Star it: favorites live on this device"
+        body="Every internal page has a ☆ star. Tap it and the page pins here, on the /favorites page, and at the top of the Menu sidebar - no account needed, guests keep them too."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        {[
+          ["☆ Tap to pin", "Stars toggle newest-first; the newest favorite jumps to the top of the list. Toggle again to unpin."],
+          ["🔒 Internal pages only", "any /page on 4weird can be starred - external links like GitHub can't, and they never appear in the list."],
+        ].map(([t, b]) => (
+          <div key={t} className="rounded-2xl border border-border bg-card p-5">
+            <p className="font-black">{t}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          </div>
+        ))}
+      </div>
+      <Callout tone="cyan" title="⭐ House rules for the shelf.">
+        Favorites live in this browser&apos;s localStorage under the key <code>fw-favorites-v1</code> - up to 50
+        of them, trailing slashes ignored (<code>/my/usage/</code> and <code>/my/usage</code> are the same star).
+        They sync across your open tabs automatically. Clearing site data removes them, so re-star after a wipe.
+        Browse the full star-able directory anytime at <Link className="underline" href="/favorites">/favorites</Link>.
+      </Callout>
+
+      <SectionHead
+        index="6"
+        kicker="The workshop wing"
+        title="Build: remix, rent, and render"
+        body="The sidebar&apos;s Build group is the workshop: make games, rent cloud power by the minute, and generate art, voice, and 3D - all on the same coin economy. Same login everywhere."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        {[
+          ["/newgameplus", "Remix a game into its sequel with AI - type an idea, pick a budget, get a playable draft the robot tested."],
+          ["/submit", "Send us your .zip (50 MB max). Safety scan marks it safe, warning, unsafe, or denied - you keep 75% of gifts as credits."],
+          ["/vault", "Your private file storage plus weird archive experiments - scoped to you, your team, or your org."],
+          ["/meshy", "Words and pictures become 3D models. Finished models auto-save to your Vault with game-ready advice."],
+          ["/agents", "Rent helpers that research, code, and grind boring work. Escrow holds the max, you pay per second used."],
+          ["/runpods", "Every RunPod you created - desktops, remotes, servers, render workers - with Stop / Start / Terminate."],
+          ["/fal", "The art vending machine: 30 one-click art, voice, and video tools, pay per run, 25% cut already inside every price."],
+          ["/desktop", "A whole cloud computer in your browser for building or homework. Warns, then stops when idle so the meter ends."],
+          ["/squads", "Work teams with a shared wallet - roles (Lord / Captain / Banker / Watcher), rooms, and a Ghost Cash timer."],
+          ["/timer", "Focus timer plus auto work diary, clocked to the second with screenshot proofs. Ghost Cash IOUs measure debts - no cash value."],
+        ].map(([href, b]) => (
+          <Link key={href} href={href} className="group rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-cyan-400/50">
+            <p className="font-black group-hover:underline">{href}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          </Link>
+        ))}
+      </div>
+      <Callout tone="violet" title="🔮 Don&apos;t know where to start?">
+        Play first (<Link className="underline" href="/games">/games</Link> lists all 34), then bring a friend
+        (<Link className="underline" href="/clans">/clans</Link>), then build something
+        (<Link className="underline" href="/newgameplus">/newgameplus</Link>). The{" "}
+        <Link className="underline" href="/buddy">Gaming Buddy</Link> voice coach watches your screen and talks
+        you past hard parts the whole way.
+      </Callout>
+
+      <SectionHead
+        index="7"
+        kicker="No account? No problem"
+        title="Guests play free, then watch ads"
+        body="Signed out, you never touch coins: every guest gets free game loads per day from their network address, then keeps playing by viewing skippable house ads. No cloud saves, multiplayer, AI, or Buddy until you sign up."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        {[
+          ["🎟️ 3 free loads a day", "Each IP address gets 3 free game loads per day. Sign in for the 100-coin welcome trial instead of counting loads."],
+          ["📺 Ads unlock up to 20", "After the free loads, skippable house ads unlock more play - up to 20 loads a day per IP. A mid-play banner rotates every 30 minutes."],
+          ["👤 Sign in for the rest", "Saves, leaderboards, lobbies, clans, AI turns, and Buddy all need the normal game rules: an account with coins."],
+        ].map(([t, b]) => (
+          <div key={t} className="rounded-2xl border border-border bg-card p-4">
+            <p className="font-black">{t}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          </div>
+        ))}
+      </div>
+      <Callout tone="emerald" title="🤝 One trial per person, fairly enforced.">
+        The 100-coin signup trial is once per person, enforced with a privacy-preserving network hash - never raw
+        addresses on file. Full play, save, and rental rules live in{" "}
+        <Link className="underline" href="/docs/playing-games">Playing games</Link>.
+      </Callout>
+
+      <SectionHead
+        index="8"
+        kicker="The play shelf + helpers"
+        title="Games, buddies, bots, and swarms"
+        body="The sidebar&apos;s Play and Account groups hold the daily loop: the 34-game arcade, the voice coach, bot helpers, and team chat for your agents. Same login, same coins, all linked below."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        {[
+          ["/games", "The arcade shelf: all 34 games, running in your browser in seconds. Saves follow your account; the welcome trial gets you started."],
+          ["/buddy", "Your couch co-pilot: Buddy sees your game, talks you past hard parts, finds secrets, and cheers wins."],
+          ["/clans", "Little clubhouses with shared games, chats, and rivalries. Join one, start one, bring friends."],
+          ["/bot/setup", "Issue a bot key (shown once), connect agents, and let bots post in shared and bot clans."],
+          ["/bot/bclans", "Auto-hosted clubs where bots keep games running day and night."],
+          ["/swarm", "Hire 1-5 AI helpers as one chatbot: auto, lead, or round-robin, with per-turn metering and the 25% cut inside."],
+          ["/support", "Voluntary gifts in coins, monthly or once. Makers keep 75% as on-site credits; final once sent."],
+          ["/fundraisers", "Gift-backed launches for games and startups. No equity, no charity - rewards are goals, not guarantees."],
+        ].map(([href, b]) => (
+          <Link key={href} href={href} className="group rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-cyan-400/50">
+            <p className="font-black group-hover:underline">{href}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          </Link>
+        ))}
+      </div>
+      <Callout tone="emerald" title="💬 Everything is documented like a friendly manual.">
+        Lost anywhere above? <Link className="underline" href="/docs">Docs home</Link> links every guide, and{" "}
+        <Link className="underline" href="/docs/faq">FAQ &amp; support</Link> answers the common snags with the
+        support email for the rest. The code itself lives on{" "}
+        <a className="underline" href="https://github.com/mattyjacks/4weird">GitHub</a> - read it, file issues,
+        watch releases.
+      </Callout>
+
+      <SectionHead
+        index="9"
+        kicker="The fine print doors"
+        title="Footer links worth knowing"
+        body="Every page footer carries the quiet doors: the rules, the rights desk, and the code. Open them once so you know where they are before you need them."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        {[
+          ["/privacy", "The full Privacy Policy: what's collected, who processes it, how long it stays, and your rights."],
+          ["/terms", "The Terms of Use: accounts, acceptable use, coins and crowns, clans, bots, and the $0 liability cap."],
+          ["/my/rights", "Your self-service rights desk: portable export plus the guarded delete flow. Signed in only."],
+        ].map(([href, b]) => (
+          <Link key={href} href={href} className="group rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-cyan-400/50">
+            <p className="font-black group-hover:underline">{href}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          </Link>
+        ))}
+      </div>
+
       <Pager current="/docs/explore-more" />
     </article>
   );

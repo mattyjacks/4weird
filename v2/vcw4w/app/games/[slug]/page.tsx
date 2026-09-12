@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { games, getGame } from "@/content/games";
-import { getGameManifest } from "@/content/game-manifests";
+import { hasContentModes, CONTENT_MODE_DESCRIPTIONS } from "@/lib/content-modes";
+import { getGameManifest, gameGuidePath } from "@/content/game-manifests";
 import { GameAiBadge } from "@/components/games/game-ai-badge";
 import { RatingBadge } from "@/components/games/rating-badge";
 import { GamePlaybookPanel } from "@/components/games/game-playbook-panel";
@@ -45,9 +46,8 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
   const g = getGame((await params).slug);
   if (!g) notFound();
   const m = getGameManifest(g.slug);
-  const guide = ["demolichdom", "discoveramerica", "fridgesimulator", "serversavershield"].includes(g.slug)
-    ? `/games/${g.slug}/guide.html`
-    : null;
+  const guide = gameGuidePath(g.slug);
+  const rating = g.rating ?? "kids";
   return (
     <div className="bg-slate-950 text-white">
       <script
@@ -71,8 +71,32 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
         </h1>
         <p className="mt-4 text-lg text-slate-300 sm:mt-5 sm:text-xl">{g.description}</p>
         <div className="mt-4">
-          <RatingBadge rating={g.rating ?? "kids"} />
+          <RatingBadge rating={rating} />
+          {rating !== "kids" && (
+            <p className="mt-1.5 text-sm text-slate-400">
+              {rating === "adults"
+                ? "Needs Adult (18+) band – set in "
+                : "Needs Teen (13+) or Adult (18+) band – set in "}
+              <Link href="/account" className="font-semibold text-cyan-300 hover:underline">
+                Account → Settings
+              </Link>{" "}
+              before you press Play.
+            </p>
+          )}
         </div>
+        {hasContentModes(g.slug) && (
+          <section aria-label="Content modes" className="mt-4 rounded-2xl border border-white/10 bg-white/[.03] p-5 sm:p-6">
+            <h2 className="text-lg font-bold sm:text-xl">Content modes</h2>
+            <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-slate-300">
+              <li><b className="text-white">Kid:</b> {CONTENT_MODE_DESCRIPTIONS.kid}</li>
+              <li><b className="text-white">Teen:</b> {CONTENT_MODE_DESCRIPTIONS.teen}</li>
+              <li><b className="text-white">Uncut (18+):</b> {CONTENT_MODE_DESCRIPTIONS.all}</li>
+            </ul>
+            <p className="mt-3 text-sm text-slate-400">
+              Pick a mode before you play — locked modes stay visible with the reason shown.
+            </p>
+          </section>
+        )}
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
             href={`/games/${g.slug}/play`}

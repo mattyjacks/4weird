@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DocsHero } from "@/components/docs/docs-hero";
-import { SectionHead, Callout, SplitBar, Pager } from "@/components/docs/docs-bits";
+import { SectionHead, Callout, Steps, MockWindow, SplitBar, Pager } from "@/components/docs/docs-bits";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/docs/vibe-coins" },
@@ -141,6 +141,116 @@ export default function VibeCoinsPage() {
         <li className="rounded-xl border border-border bg-card p-3">🔐 <strong className="text-foreground">Money moves server-side only.</strong> Never trust a client-side display offering to “award yourself” coins.</li>
         <li className="rounded-xl border border-border bg-card p-3">📜 <strong className="text-foreground">Coins are licensed features</strong> - no cash value, never cash-out, never withdrawable, non-transferable, spendable on cloud computing, game credits, and other on-site services only; purchases final except where law requires otherwise (<Link className="underline" href="/terms">Terms §8</Link>).</li>
       </ul>
+
+      <SectionHead
+        index="6"
+        kicker="The ledger"
+        title="Your balance is a sum, not a cell"
+        body="There is no balance column anywhere. Every coin movement appends one row to the coin_ledger table, and your balance is always SUM(delta) over your rows - computed live by the get_my_coin_balance() function. Paid Shopify orders leave a second trail in coin_grants (one row per order), and each grant can mint coins exactly once."
+      />
+      <MockWindow title="coin_ledger — append-only, newest first" badge="SUM(delta)">
+        <div className="space-y-2 font-mono text-xs">
+          <div className="flex justify-between gap-3 rounded-lg bg-white/5 px-3 py-2">
+            <span>Daily login bonus (day 4)</span>
+            <span className="font-black text-emerald-300">+8</span>
+          </div>
+          <div className="flex justify-between gap-3 rounded-lg bg-white/5 px-3 py-2">
+            <span>Shopify order #1042</span>
+            <span className="font-black text-emerald-300">+5,000</span>
+          </div>
+          <div className="flex justify-between gap-3 rounded-lg bg-white/5 px-3 py-2">
+            <span>Compute escrow: render-box</span>
+            <span className="font-black text-rose-300">−400</span>
+          </div>
+          <div className="flex justify-between gap-3 rounded-lg border border-emerald-300/30 bg-emerald-300/10 px-3 py-2">
+            <span className="font-bold text-emerald-200">Balance = SUM(delta)</span>
+            <span className="font-black text-emerald-200">4,708</span>
+          </div>
+        </div>
+      </MockWindow>
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        {[
+          ["💰 GET /api/coins/balance", "Calls get_my_coin_balance() for the caller only - no arguments, nothing to inject. Returns your coins plus the centicentcoin count."],
+          ["🧾 GET /api/coins/history", "Reads your own coin_ledger rows (delta + reason + timestamp, newest first). Your receipt drawer, straight from the ledger."],
+          ["🔒 No client writes, ever", "Both tables deny client writes at the database level - Row Level Security allows reading your own rows only. Money moves through server RPCs alone."],
+        ].map(([t, b]) => (
+          <div key={t} className="rounded-2xl border border-border bg-card p-4">
+            <p className="font-black">{t}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          </div>
+        ))}
+      </div>
+      <Callout tone="emerald" title="Double-minting is structurally impossible.">
+        Paid grants carry a UNIQUE(grant_id) ledger constraint: the claim path writes the ledger row first, and if two
+        claims race, the loser sees the uniqueness violation and simply converges the grant to claimed. Retrying a claim
+        can never print coins twice.
+      </Callout>
+
+      <SectionHead
+        index="7"
+        kicker="Checkout"
+        title="From /pricing to Shopify and back"
+        body="Checkout builds a cart link - it never mints coins itself. Coins mint only from the HMAC-verified Shopify webhook after payment, and if the purchase email differs from your login email, the attach-by-email recovery on /account pairs them up."
+      />
+      <Steps
+        items={[
+          ["Pick a pack or a custom amount", <>On <Link className="underline" href="/pricing">/pricing</Link>: 500 / 1.5k / 5k / 25k, or any whole-coin custom amount from 500 to 100,000 at 1¢/coin. Custom rides on a $0.01-per-unit variant where quantity equals your coin count.</>],
+          ["POST /api/coins/checkout builds the cart", <>The route checks your pack variant against an allowlist and fails closed - an unconfigured allowlist blocks packs instead of opening checkout to anything. Misconfigured custom variants (colliding with a pack variant) refuse outright.</>],
+          ["Pay on Shopify, webhook mints", <>Only the verified webhook writes the coin_grants row and its ledger insert. The checkout URL is just a link - it cannot create money, no matter how it is shared or replayed.</>],
+          ["Grant missing? POST /api/coins/claim", <>Logged in with the order email? One tap attaches every pending grant matched by exact-lowercased email. Ledger-first, retry-safe, and guarded against claim storms (a few attempts per minute, a handful per hour).</>],
+        ]}
+      />
+
+      <SectionHead
+        index="8"
+        kicker="Refunds + gifts"
+        title="The small print, made friendly"
+        body="Purchases are final except where the law says otherwise - but inside 90 days, the unspent remainder of a purchased lot can come home. Free grants (trial, daily, referrals, alpha) are never refundable; only paid packs are."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">↩️ How refunds work</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+            <li>90-day window, unspent remainder only - spending eats lots oldest-first, so a half-spent lot refunds pro-rata</li>
+            <li>POST /api/coins/refund takes a lot id, with an optional partial amount; omit it for the full remainder</li>
+            <li>GET /api/coins/refunds shows your refundable lots plus past refunds - free coins never appear there</li>
+            <li>Minimum 0.01 coins: even dust gets its day in court</li>
+          </ul>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">🎁 Alpha + daily + dust</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+            <li>Alpha Tester gift: one-time 300 coins ($3.00), capped at 10,000 coins given away site-wide</li>
+            <li>Daily bonus is human-only by design - even valid bot keys face the human check; a second claim the same UTC day pays 0 and also drops a Love Letter on success</li>
+            <li>1 coin = 100 centicentcoins; the smallest spendable unit is 0.01 coins (1 centicentcoin ≈ $0.0001)</li>
+            <li>Balances display whole when whole, two decimals when fractional - never more precision than your money has</li>
+          </ul>
+        </div>
+      </div>
+
+      <SectionHead
+        index="9"
+        kicker="Three currencies"
+        title="Coins, Crowns, Ghost Cash - zero confusion"
+        body="One emoji, one meaning, everywhere: 🪙 Coins are closed-loop spend credits, 👑 Crowns are creator earnings with two exits, 👻 Ghost Cash is an org-work IOU with no value at all. 💸 means real fiat, and 💌 Love Letters are clan applause you can never buy."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        {[
+          ["🪙 Coins (spend)", "Bought, granted, or metered. Spend on-site only - never payout-eligible, never cash-out. 100 coins = $1.00 of platform credit."],
+          ["👑 Crowns (earn)", "Minted only from gifted net (tips, subs, launch backing, provider shares). Locked 30 days, expire after a year. Then convert 1:1 to your own Coins (1 minimum, no fee, fresh 1-year expiry) or cash out in fiat (5,000 minimum - 100 Crowns = $1.00 payout value)."],
+          ["👻 Ghost Cash (track)", "Measures org hours down to the second: (seconds / 3600) × hourly rate. No cash value, no redemption, ghost emoji only - never paired with cash."],
+        ].map(([t, b]) => (
+          <div key={t} className="rounded-2xl border border-border bg-card p-4">
+            <p className="font-black">{t}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          </div>
+        ))}
+      </div>
+      <Callout tone="violet" title="Fair play is priced in.">
+        Cosmetics cost 10 coins each and are looks-only - nothing purchasable may help win a multiplayer game, ever.
+        No single purchase may exceed 10,000 coins, and devs cannot take more than 1,000 coins/day from one player per
+        game without fresh consent. Guidance for devs: ~100 coins for deliberate buys, ~10 for automatic ones.
+      </Callout>
 
       <Pager current="/docs/vibe-coins" />
     </article>

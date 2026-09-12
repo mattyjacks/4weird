@@ -1698,14 +1698,14 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-black">🎧 Gaming Buddy; universal screen reader + voice</h2>
-          <p className="mt-1 text-sm text-slate-300">
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
             Talks while you play in any of 9 OpenAI voices (default Nova). Reads the screen, reacts to score changes,
             and runs on the VibeCodeWorker observe→reason→act loop. OpenAI + database turns meter Vibe Coins at true
             cost with the 25% cut included; every turn shows its Coins + CentiCentCoins below; local
             fallback answers are free.
           </p>
           {sessionId && (
-            <p className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+            <p className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
               <span className="rounded-full bg-emerald-400/15 px-3 py-1 font-bold text-emerald-200">● Live {formatElapsed(elapsed)}</span>
               <span className="rounded-full bg-white/10 px-3 py-1">{turnCount} turn{turnCount === 1 ? "" : "s"}</span>
               {score !== null && (
@@ -1736,7 +1736,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       </div>
 
       {!sessionId && openSessions.length > 0 && (
-        <div className="mt-3 rounded-xl border border-amber-300/30 bg-amber-300/[.05] p-3 text-xs text-slate-300">
+        <div className="mt-3 rounded-xl border border-amber-300/30 bg-amber-300/[.05] p-3 text-xs text-slate-600 dark:text-slate-300">
           <p className="font-bold text-amber-100">↩️ You have {openSessions.length} open session{openSessions.length === 1 ? "" : "s"} from before - resume instead of starting fresh:</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {openSessions.slice(0, 3).map((s) => (
@@ -1800,8 +1800,8 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
             ))}
           </select>
         </label>
-        <div className="rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-slate-300 sm:col-span-4">
-          <p className="font-bold text-white">Credits spent</p>
+        <div className="rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-slate-600 dark:text-slate-300 sm:col-span-4">
+          <p className="font-bold text-slate-900 dark:text-white">Credits spent</p>
           <p className="mt-1">Session: <b className="text-violet-200">{spend?.session.gross ?? 0}</b> ({spend?.session.turns ?? 0} turns)</p>
           <p>Total: <b>{spend?.total.gross ?? 0}</b> · 24h: <b>{spend?.last24h.gross ?? 0}</b> · 1h: <b>{spend?.lastHour.gross ?? 0}</b></p>
           <p className="mt-1">
@@ -1815,9 +1815,9 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
         </div>
       </div>
 
-      <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-slate-300">
-        <p className="font-bold text-white">👁️ Let the buddy see your screen <span className="font-normal text-slate-400">(off unless you approve; the browser picker enforces your choice)</span></p>
-        <p className="mt-1 text-slate-400">
+      <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-slate-600 dark:text-slate-300">
+        <p className="font-bold text-slate-900 dark:text-white">👁️ Let the buddy see your screen <span className="font-normal text-slate-600 dark:text-slate-400">(off unless you approve; the browser picker enforces your choice)</span></p>
+        <p className="mt-1 text-slate-600 dark:text-slate-400">
           <b className="text-emerald-200">Tab only (safest):</b> shares just this 4weird tab; other tabs, windows, and apps stay
           private. <b className="text-amber-200">Full screen:</b> you pick what to share in the browser picker; choose the game
           window to keep the rest private. Only one small snapshot per message is sent (never video, never stored).
@@ -1864,9 +1864,9 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
         <video ref={videoRef} muted playsInline className={shareMode === "off" ? "hidden" : "mt-2 max-h-32 rounded-lg border border-white/10"} aria-label="Screen share preview" />
       </div>
 
-      <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-slate-300">
-        <p className="font-bold text-white">🎙️ Talk to Buddy <span className="font-normal text-slate-400">(optional mic; mute anytime, Buddy never records you)</span></p>
-        <p className="mt-1 text-slate-400">
+      <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-slate-600 dark:text-slate-300">
+        <p className="font-bold text-slate-900 dark:text-white">🎙️ Talk to Buddy <span className="font-normal text-slate-600 dark:text-slate-400">(optional mic; mute anytime, Buddy never records you)</span></p>
+        <p className="mt-1 text-slate-600 dark:text-slate-400">
           Turn the mic on to interrupt Buddy mid-sentence; it stops, remembers what both of you said, and resumes
           from your cut-in. Only transcripts leave the device (never audio). Smart detection sends your sentence when
           you pause; turn it off to send manually.
@@ -1891,7 +1891,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
             </>
           )}
           {micOn && (
-            <span className={`rounded-full px-3 py-1 text-xs font-bold ${hearing ? "bg-emerald-400/20 text-emerald-200" : micMuted ? "bg-rose-400/20 text-rose-200" : "bg-white/10 text-slate-300"}`}>
+            <span className={`rounded-full px-3 py-1 text-xs font-bold ${hearing ? "bg-emerald-400/20 text-emerald-200" : micMuted ? "bg-rose-400/20 text-rose-200" : "bg-white/10 text-slate-600 dark:text-slate-300"}`}>
               {micMuted ? "Muted" : hearing ? "● Hearing you…" : "Listening"}
             </span>
           )}
@@ -1912,13 +1912,13 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
           </div>
         )}
         {!speechSupported && micOn && (
-          <p className="mt-1 text-slate-500">This browser has no speech-to-text; mic still detects interruptions; type or dictate elsewhere to send words.</p>
+          <p className="mt-1 text-slate-600 dark:text-slate-500">This browser has no speech-to-text; mic still detects interruptions; type or dictate elsewhere to send words.</p>
         )}
       </div>
 
-      <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-slate-300">
-        <p className="font-bold text-white">📷 Let Buddy see you <span className="font-normal text-slate-400">(optional camera; you approve every frame by sending)</span></p>
-        <p className="mt-1 text-slate-400">
+      <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-slate-600 dark:text-slate-300">
+        <p className="font-bold text-slate-900 dark:text-white">📷 Let Buddy see you <span className="font-normal text-slate-600 dark:text-slate-400">(optional camera; you approve every frame by sending)</span></p>
+        <p className="mt-1 text-slate-600 dark:text-slate-400">
           Buddy reads your energy, posture, props, and backdrop to match your mood; kindly, never diagnosing, never
           identifying. While on, each message you send carries one small frame, itemized in that turn
           (~{quoteCameraFrames(1).display} per frame). No video ever leaves the device, nothing is stored.
@@ -1943,9 +1943,9 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
         <video ref={camVideoRef} muted playsInline className={camOn ? "mt-2 max-h-32 rounded-lg border border-white/10" : "hidden"} aria-label="Camera preview" />
       </div>
 
-      <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-slate-300">
-        <p className="font-bold text-white">✨ Buddy avatar <span className="font-normal text-slate-400">(optional 3D companion - {quoteAvatarMinutes(1).display}/min, free when hidden)</span></p>
-        <p className="mt-1 text-slate-400">
+      <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-slate-600 dark:text-slate-300">
+        <p className="font-bold text-slate-900 dark:text-white">✨ Buddy avatar <span className="font-normal text-slate-600 dark:text-slate-400">(optional 3D companion - {quoteAvatarMinutes(1).display}/min, free when hidden)</span></p>
+        <p className="mt-1 text-slate-600 dark:text-slate-400">
           A cute three.js companion whose mouth follows Buddy&apos;s voice waveform and words, eyes blink, track your
           cursor, and widen with excitement. Presence meters by the minute while visible
           (this session&apos;s avatar: <b className="text-violet-200">{avatarCents} centicentcoins</b>).
@@ -1974,12 +1974,12 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
           {avatarOn && sessionId ? (
             <BuddyAvatar type={avatarType} color={outfitColor(loadout.outfit) ?? avatarColor} script={script} scriptStartedAt={scriptAt} speaking={speaking} outputEl={voiceEl} micStream={micOn && !micMuted ? micStream : null} loadout={loadout} label={`Buddy ${avatarType}`} />
           ) : (
-            <p className="text-slate-500">{sessionId ? "Avatar hidden; no presence cost. Show it anytime." : "Start a Buddy session to meet the avatar."}</p>
+            <p className="text-slate-600 dark:text-slate-500">{sessionId ? "Avatar hidden; no presence cost. Show it anytime." : "Start a Buddy session to meet the avatar."}</p>
           )}
         </div>
         <div className="mt-3 border-t border-white/10 pt-3">
-          <p className="font-bold text-white">🎩 Wardrobe <span className="font-normal text-slate-400">(one shop everywhere; every look costs 10 coins, looks-only, never pay-to-win)</span></p>
-          <p className="mt-1 text-slate-400">
+          <p className="font-bold text-slate-900 dark:text-white">🎩 Wardrobe <span className="font-normal text-slate-600 dark:text-slate-400">(one shop everywhere; every look costs 10 coins, looks-only, never pay-to-win)</span></p>
+          <p className="mt-1 text-slate-600 dark:text-slate-400">
             Buying shows the exact price first and charges only what you confirm (singleplayer boosts live behind
             guarded dev charges, capped at 10,000 coins each and 1,000/day per game; multiplayer boosts are banned).
           </p>
@@ -1987,7 +1987,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
           {wardrobeMsg && <p className="mt-1 text-cyan-200">{wardrobeMsg}</p>}
           {COSMETIC_SLOTS.map((slot) => (
             <div key={slot} className="mt-2">
-              <p className="text-xs font-bold uppercase tracking-wide text-slate-400">{slot}</p>
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400">{slot}</p>
               <div className="mt-1 flex flex-wrap gap-1.5">
                 {catalog.filter((c) => c.slot === slot && c.kinds.includes(avatarType)).map((c) => {
                   const have = owned.includes(c.id);
@@ -2011,19 +2011,19 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
         </div>
       </div>
 
-      <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-slate-300">
-        <p className="font-bold text-white">⚡ Buddy extras <span className="font-normal text-slate-400">(streaming answers are automatic; memory + auto-reacts are opt-in)</span></p>
+      <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-slate-600 dark:text-slate-300">
+        <p className="font-bold text-slate-900 dark:text-white">⚡ Buddy extras <span className="font-normal text-slate-600 dark:text-slate-400">(streaming answers are automatic; memory + auto-reacts are opt-in)</span></p>
         <label className="mt-2 flex items-start gap-2 text-xs">
           <input type="checkbox" checked={proactiveOn} onChange={(e) => setProactiveOn(e.target.checked)} className="mt-0.5" />
-          <span><b className="text-white">Auto-react to big score moments.</b> Buddy jumps in on jumps of 10+, spaced 60s apart, max 10 per session. Each auto-react is a metered turn.</span>
+          <span><b className="text-slate-900 dark:text-white">Auto-react to big score moments.</b> Buddy jumps in on jumps of 10+, spaced 60s apart, max 10 per session. Each auto-react is a metered turn.</span>
         </label>
         <label className="mt-2 flex items-start gap-2 text-xs">
           <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="mt-0.5" />
-          <span><b className="text-white">Remember me across sessions.</b> Buddy keeps a short rolling note for {gameTitle} (your words, no screen dumps). Per-game, auto-trimmed, never shared.</span>
+          <span><b className="text-slate-900 dark:text-white">Remember me across sessions.</b> Buddy keeps a short rolling note for {gameTitle} (your words, no screen dumps). Per-game, auto-trimmed, never shared.</span>
         </label>
       </div>
 
-      <p role="status" className="mt-3 text-sm text-slate-400">{status}</p>
+      <p role="status" className="mt-3 text-sm text-slate-600 dark:text-slate-400">{status}</p>
       {rateWait > 0 && (
         <p className="mt-1 text-xs text-amber-200">Rate limited - wait ~{rateWait}s before the next turn. Your wallet was not charged.</p>
       )}
@@ -2041,9 +2041,9 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
         </div>
       )}
       {falHint && (
-        <div className="mt-2 rounded-xl border border-fuchsia-300/30 bg-fuchsia-300/[.05] p-3 text-xs text-slate-200">
-          <p className="font-bold text-fuchsia-100">🎬 Buddy suggests media <span className="font-normal text-slate-400">({falHint.op} · ~{falHint.coins} coins · costs nothing until you fire it)</span></p>
-          <p className="mt-1 text-slate-300">“{falHint.prompt.slice(0, 180)}{falHint.prompt.length > 180 ? "…" : ""}”</p>
+        <div className="mt-2 rounded-xl border border-fuchsia-300/30 bg-fuchsia-300/[.05] p-3 text-xs text-slate-700 dark:text-slate-200">
+          <p className="font-bold text-fuchsia-100">🎬 Buddy suggests media <span className="font-normal text-slate-600 dark:text-slate-400">({falHint.op} · ~{falHint.coins} coins · costs nothing until you fire it)</span></p>
+          <p className="mt-1 text-slate-600 dark:text-slate-300">“{falHint.prompt.slice(0, 180)}{falHint.prompt.length > 180 ? "…" : ""}”</p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <button type="button" disabled={falBusy || !sessionId} onClick={() => void fireFalHint()} className="rounded-lg bg-fuchsia-300 px-3 py-1.5 font-bold text-slate-950 disabled:opacity-50">
               {falBusy ? "Queueing…" : "Generate it"}
@@ -2090,25 +2090,25 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
           <div ref={listRef} className="perf-list max-h-64 space-y-2 overflow-y-auto rounded-xl border border-white/10 bg-black/30 p-3" aria-live={streamingActive ? "off" : "polite"} aria-busy={streamingActive}>
             {(filter.trim() ? visibleMessages : messages).length ? (
               (filter.trim() ? visibleMessages : messages).map((m, i) => (
-                <div key={i} className={`group flex items-start gap-2 text-sm ${m.role === "buddy" ? "text-violet-100" : "text-slate-300"}`}>
+                <div key={i} className={`group flex items-start gap-2 text-sm ${m.role === "buddy" ? "text-violet-100" : "text-slate-600 dark:text-slate-300"}`}>
                   <p className="min-w-0 flex-1">
                     <b>{m.role === "buddy" ? "Buddy" : "You"}:</b> {m.text}{m.interrupted ? <em className="text-amber-200"> (cut in)</em> : null}{" "}
-                    {m.tag ? <small className="ml-1 rounded-full bg-white/10 px-1.5 py-0.5 text-slate-400">{m.tag}</small> : null}{" "}
-                    <small className="text-slate-500"><time>{m.at}</time></small>
+                    {m.tag ? <small className="ml-1 rounded-full bg-white/10 px-1.5 py-0.5 text-slate-600 dark:text-slate-400">{m.tag}</small> : null}{" "}
+                    <small className="text-slate-600 dark:text-slate-500"><time>{m.at}</time></small>
                   </p>
                   <button
                     type="button"
                     onClick={() => void copyText(m.text, i)}
                     title="Copy this message"
                     aria-label={`Copy message ${i + 1}`}
-                    className="shrink-0 rounded border border-white/10 px-1.5 py-0.5 text-xs text-slate-400 opacity-0 hover:bg-white/10 focus:opacity-100 group-hover:opacity-100"
+                    className="shrink-0 rounded border border-white/10 px-1.5 py-0.5 text-xs text-slate-600 dark:text-slate-400 opacity-0 hover:bg-white/10 focus:opacity-100 group-hover:opacity-100"
                   >
                     {copiedIdx === i ? "✓" : "⧉"}
                   </button>
                 </div>
               ))
             ) : (
-              <p className="text-sm text-slate-500">{filter.trim() ? "No turns match that filter." : "Say hi; buddy reads the screen and answers out loud."}</p>
+              <p className="text-sm text-slate-600 dark:text-slate-500">{filter.trim() ? "No turns match that filter." : "Say hi; buddy reads the screen and answers out loud."}</p>
             )}
           </div>
           <form
@@ -2154,7 +2154,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
               React to screen
             </button>
           </form>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-600 dark:text-slate-500">
             {draft.trim().length}/500 · ~{draftEst} coins chat leg{shareMode !== "off" ? " + image tokens" : ""}{camOn ? " + 1 camera frame" : ""} · Ctrl+Enter sends · Esc clears · shortcuts: <code>/tactics</code> <code>/hail</code> <code>/react</code> <code>/vibe</code> <code>/help</code>
           </p>
           <div className="flex flex-wrap gap-2">
@@ -2177,8 +2177,8 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
               📡 Hail enemy AI
             </button>
           </div>
-          <div className="rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-slate-300">
-            <p className="font-bold text-white">⚡ One-click delegations <span className="font-normal text-slate-400">(chat fires a buddy turn; media quotes before it meters)</span></p>
+          <div className="rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-slate-600 dark:text-slate-300">
+            <p className="font-bold text-slate-900 dark:text-white">⚡ One-click delegations <span className="font-normal text-slate-600 dark:text-slate-400">(chat fires a buddy turn; media quotes before it meters)</span></p>
             <div className="mt-2 flex flex-wrap gap-2">
               {buddyActs.map((a) => a.kind === "link" && a.href ? (
                 <a key={a.id} href={a.href(gameSlug)} title={a.blurb} className="rounded-lg border border-white/20 px-3 py-1.5 hover:bg-white/10">
@@ -2199,9 +2199,9 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
             </div>
             {actMsg && <p className="mt-1 text-cyan-200">{actMsg}</p>}
           </div>
-          <div className="rounded-xl border border-amber-300/25 bg-amber-300/[.04] p-3 text-xs text-slate-300">
-            <p className="font-bold text-amber-100">🔥 Super-pack <span className="font-normal text-slate-400">(multi-agent: one goal, parallel specialists)</span></p>
-            <p className="mt-1 text-slate-400">
+          <div className="rounded-xl border border-amber-300/25 bg-amber-300/[.04] p-3 text-xs text-slate-600 dark:text-slate-300">
+            <p className="font-bold text-amber-100">🔥 Super-pack <span className="font-normal text-slate-600 dark:text-slate-400">(multi-agent: one goal, parallel specialists)</span></p>
+            <p className="mt-1 text-slate-600 dark:text-slate-400">
               A coach, hype-caster, voice writer, lorekeeper and more riff on your goal at once. Each live leg meters
               ~1 centicentcoin on /api/openrouter-plays; offline legs are free and labelled.
             </p>
@@ -2235,7 +2235,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
               <div className="mt-2 space-y-2 rounded-lg border border-white/10 bg-black/30 p-2.5">
                 <div className="flex flex-wrap gap-1.5" aria-label="Specialists">
                   {pack.specialists.map((s) => (
-                    <span key={s.specialist} title={s.fallback ? "Offline reply (free)" : "Live reply (~1 centicentcoin)"} className={`rounded-full px-2 py-0.5 font-bold ${s.fallback ? "bg-white/10 text-slate-400" : "bg-emerald-400/15 text-emerald-200"}`}>
+                    <span key={s.specialist} title={s.fallback ? "Offline reply (free)" : "Live reply (~1 centicentcoin)"} className={`rounded-full px-2 py-0.5 font-bold ${s.fallback ? "bg-white/10 text-slate-600 dark:text-slate-400" : "bg-emerald-400/15 text-emerald-200"}`}>
                       {s.specialist}{s.fallback ? " · offline" : " · live"}
                     </span>
                   ))}
@@ -2251,7 +2251,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
                 </div>
                 {pack.voiceLines && (
                   <div className="rounded-lg border border-white/10 p-2">
-                    <p><b className="text-white">Voice lines:</b> {pack.voiceLines.slice(0, 300)}</p>
+                    <p><b className="text-slate-900 dark:text-white">Voice lines:</b> {pack.voiceLines.slice(0, 300)}</p>
                     <button type="button" disabled={actBusy || packBusy} onClick={() => void firePackMedia("npc-voice", pack.voiceLines, "Voice line")} className="mt-1 rounded-lg border border-fuchsia-300/40 px-2.5 py-1 text-fuchsia-100 hover:bg-fuchsia-300/10 disabled:opacity-50">
                       🎙 Voice it on Fal
                     </button>
@@ -2259,14 +2259,14 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
                 )}
                 {pack.sfxPrompts && (
                   <div className="rounded-lg border border-white/10 p-2">
-                    <p><b className="text-white">SFX:</b> {pack.sfxPrompts.slice(0, 300)}</p>
+                    <p><b className="text-slate-900 dark:text-white">SFX:</b> {pack.sfxPrompts.slice(0, 300)}</p>
                     <button type="button" disabled={actBusy || packBusy} onClick={() => void firePackMedia("sfx-burst", pack.sfxPrompts, "SFX")} className="mt-1 rounded-lg border border-fuchsia-300/40 px-2.5 py-1 text-fuchsia-100 hover:bg-fuchsia-300/10 disabled:opacity-50">
                       🔊 Make the SFX
                     </button>
                   </div>
                 )}
                 {pack.loreNote && (
-                  <p className="rounded-lg border border-white/10 p-2"><b className="text-white">Lore:</b> {pack.loreNote.slice(0, 300)}</p>
+                  <p className="rounded-lg border border-white/10 p-2"><b className="text-slate-900 dark:text-white">Lore:</b> {pack.loreNote.slice(0, 300)}</p>
                 )}
               </div>
             )}

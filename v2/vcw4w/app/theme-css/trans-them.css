@@ -147,6 +147,17 @@ html.dark.theme-trans-them .dark\:bg-slate-900 { background-color: #0c2231; }
 html.light.theme-trans-them .dark\:bg-slate-900 { background-color: #dbedf8; }
 html.dark.theme-trans-them .dark\:border-slate-700 { border-color: rgb(125 211 252 / 0.25); }
 html.dark.theme-trans-them .dark\:border-slate-800 { border-color: rgb(125 211 252 / 0.15); }
+/* ---- CONTRAST FIX (light): pale sky remaps must not keep white text ---- */
+/* same-surface combos: pale card bg + white text is white-on-white */
+html.light.theme-trans-them .bg-slate-900.text-white { color: #0f2a3d; }
+html.light.theme-trans-them .dark\:bg-slate-900.text-white { color: #0f2a3d; }
+/* form fields on pale washes type in deep-sea ink (deep bg-slate-950 inputs stay white-on-dark, excluded) */
+html.light.theme-trans-them :is(input, select, textarea).text-white:not(.bg-slate-950):not(.bg-black):not(.bg-cyan-600):not(.bg-amber-500):not(.bg-fuchsia-600) { color: #0f2a3d; }
+html.light.theme-trans-them :is(input, select, textarea).placeholder\:text-slate-500::placeholder { color: #4a7a99; }
+/* bare white headings/labels sitting directly on pale cards or pale scrim boxes (gradient buttons excluded: never button/a elements, never own-bg spans) */
+html.light.theme-trans-them :is(.bg-slate-900, .dark\:bg-slate-900) :is(h1, h2, h3, h4, p, label, li, dd).text-white:not(.bg-cyan-600):not(.bg-amber-500):not(.bg-fuchsia-600) { color: #0f2a3d; }
+html.light.theme-trans-them :is(.bg-black\/40, .bg-black\/50) :is(h1, h2, h3, h4, p).text-white { color: #0f2a3d; }
+/* dark-mode audit: remaps stay deep sea, white text stays legible; bright dark\:bg-cyan-300 pairs with dark\:text-slate-950 — no dark fix needed */
 /* airy voice: light + wide, never heavy */
 html.theme-trans-them h1 {
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;

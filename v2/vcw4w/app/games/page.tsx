@@ -4,9 +4,9 @@ import { GameCatalog } from "@/components/games/game-catalog";
 import { canonical, itemListJsonLd, jsonLdScript } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "All Games - 34 Free Browser Experiments",
+  title: "Find Your Next Weird World - All 34 Games, Free to Try",
   description:
-    "Browse all 34 4weird browser games: arcade racers, typing survival, dungeon crawlers, finance sims, and neon classics. Free to try with guides, cloud saves, and coin-metered play that pays creators.",
+    "Find your next weird world: all 34 4weird browser games. Gamers get arcade racers, typing survival, and dungeon crawlers; business minds get cap-table, finance, and pipeline sims; coders can ship their own via NewGamePlus. Free to try with guides, cloud saves, and coin-metered play that pays creators.",
   keywords: [
     "free browser games",
     "online arcade games",
@@ -14,13 +14,17 @@ export const metadata: Metadata = {
     "browser dungeon crawler",
     "arcade racer",
     "finance simulator game",
+    "cap table simulator",
+    "business simulation game",
+    "sales pipeline game",
+    "build browser game from prompt",
     "neon arcade games",
   ],
   alternates: { canonical: "/games" },
   openGraph: {
-    title: "All Games - 34 Free Browser Experiments | 4weird Games",
+    title: "Find Your Next Weird World - 34 Free Browser Games | 4weird",
     description:
-      "Arcade racers, typing survival, dungeon crawlers, finance sims, and neon classics. Free to try; play pays creators.",
+      "Racers, RPGs, typing survival, plus business sims that teach real money skills. Free to try, playing takes seconds; play pays creators.",
   },
 };
 
@@ -32,8 +36,8 @@ export default function GamesPage() {
         dangerouslySetInnerHTML={{
           __html: jsonLdScript(
             itemListJsonLd(
-              "All 4weird browser games",
-              "Every playable 4weird browser game: free to try with guides, cloud saves, and coin-metered play that pays creators.",
+              "Find your next weird world: all 34 4weird browser games",
+              "Every playable 4weird browser game — racers, RPGs, typing survival, and business sims: free to try with guides, cloud saves, and coin-metered play that pays creators.",
               games.map((g) => ({
                 name: `${g.title} (${g.genre})`,
                 url: canonical(`/games/${g.slug}`),

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { games, getGame } from "@/content/games";
+import { getGameManifest, gameGuidePath } from "@/content/game-manifests";
 import { PlayGate } from "@/components/games/play-gate";
 import { PlayRateBadge } from "@/components/games/play-rate-badge";
 import { RatingBadge } from "@/components/games/rating-badge";
@@ -48,9 +49,8 @@ export default async function PlayPage({ params }: { params: Promise<{ slug: str
   // the runtime iframe's query string client-side, where the game's own
   // matchmaking code reads it. The runtime iframe is same-origin.
   const src = game.runtimePath;
-  const guide = ["demolichdom", "discoveramerica", "fridgesimulator", "serversavershield"].includes(game.slug)
-    ? `/games/${game.slug}/guide.html`
-    : null;
+  const manifest = getGameManifest(game.slug);
+  const guide = gameGuidePath(game.slug);
   return (
     <div className="bg-black text-white" data-theme-lock="dark">
       <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-5">
@@ -86,7 +86,7 @@ export default async function PlayPage({ params }: { params: Promise<{ slug: str
       </div>
       <div className="mx-auto max-w-6xl px-4 pb-10 sm:px-5">
         <div className="mt-4">
-          <PlayGate slug={game.slug} title={game.title} src={src} emoji={game.emoji} />
+          <PlayGate slug={game.slug} title={game.title} src={src} version={String(manifest.schemaVersion)} emoji={game.emoji} />
         </div>
         <GameA11yPanel slug={game.slug} />
         <GamePlaybookPanel slug={game.slug} compact />

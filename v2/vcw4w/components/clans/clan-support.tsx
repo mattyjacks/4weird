@@ -172,7 +172,7 @@ export function ClanSupport({ slug }: { slug: string }) {
   return (
     <section className="rounded-xl border border-white/10 bg-slate-900 p-5">
       <h2 className="font-bold text-amber-300">💛 Clan Supporter Status + commons</h2>
-      <p className="mt-1 text-xs text-slate-400">
+      <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
         Every upkeep donation is receipted forever - this panel shows exactly how many coins each
         supporter has dumped into the clan, the Total Clan Support pile, and what the tribute
         commons does with the surplus. Posting is never required to support.
@@ -180,7 +180,7 @@ export function ClanSupport({ slug }: { slug: string }) {
 
       {supporters && (
         <div className="mt-3">
-          <p className="text-sm text-slate-200">
+          <p className="text-sm text-slate-700 dark:text-slate-200">
             Total Clan Support: <b>{Number(supporters.total_support).toLocaleString()} coins</b>
             {" "}· {supporters.donor_count} giver(s)
             <InfoTip text="Lifetime coin gifts to this clan. Every coin is receipted here." label="Total Clan Support: lifetime coin gifts" />
@@ -191,25 +191,25 @@ export function ClanSupport({ slug }: { slug: string }) {
             )}
           </p>
           {supporters.supporters.length > 0 && (
-            <ol className="mt-2 space-y-1 text-sm text-slate-300">
+            <ol className="mt-2 space-y-1 text-sm text-slate-600 dark:text-slate-300">
               {supporters.supporters.slice(0, 10).map((s) => (
                 <li key={s.user_id} className="flex flex-wrap justify-between gap-2 border-t border-white/5 pt-1">
-                  <span>{TIER_BADGE[s.tier] ?? ""} {s.handle} <span className="text-xs text-slate-500">· {s.tier} · {s.gifts} gift(s)</span></span>
-                  <span className="font-bold text-white">{Number(s.coins).toLocaleString()}</span>
+                  <span>{TIER_BADGE[s.tier] ?? ""} {s.handle} <span className="text-xs text-slate-600 dark:text-slate-500">· {s.tier} · {s.gifts} gift(s)</span></span>
+                  <span className="font-bold text-slate-900 dark:text-white">{Number(s.coins).toLocaleString()}</span>
                 </li>
               ))}
             </ol>
           )}
           <CompactDetails summary="What do my supporter tiers mean?">
-            <p className="mt-2 text-xs text-slate-500">Tiers are automatic thank-yous for lifetime gifts: 🕯️Ember 1+ · ✨Spark 25+ · 🔥Beacon 100+ · 💎Patron 500+ · 🌟Legend 2,500+. No perks, no payoffs, nothing to click.</p>
+            <p className="mt-2 text-xs text-slate-600 dark:text-slate-500">Tiers are automatic thank-yous for lifetime gifts: 🕯️Ember 1+ · ✨Spark 25+ · 🔥Beacon 100+ · 💎Patron 500+ · 🌟Legend 2,500+. No perks, no payoffs, nothing to click.</p>
           </CompactDetails>
         </div>
       )}
 
       {tribute && (
         <CompactDetails summary="Where do my old donations go?">
-          <div className="mt-4 rounded-lg bg-black/40 px-3 py-2 text-xs text-slate-300">
-            <p className="font-bold text-white">🔄 Tribute commons (daily sweep)</p>
+          <div className="mt-4 rounded-lg bg-black/40 px-3 py-2 text-xs text-slate-600 dark:text-slate-300">
+            <p className="font-bold text-slate-900 dark:text-white">🔄 Tribute commons (daily sweep)</p>
             <p className="mt-1">
               Donations older than 6 months past a full year of upkeep ({Number(tribute.reserve_floor).toLocaleString()} coins
               protected) become eligible, oldest-expiry first. At most half of all donated coins can ever leave
@@ -217,7 +217,7 @@ export function ClanSupport({ slug }: { slug: string }) {
               at ~1% of the eligible surplus per day. Tribute is final.
             </p>
             <CompactDetails summary="Who receives tribute coins?">
-              <p className="mt-1 text-xs text-slate-300">
+              <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
                 Coins older than 12 months are Globalized into the central reserve (now {Number(tribute.reserve_balance).toLocaleString()} coins),
                 which auto-rescues delinquent clans. Coins aged 6–12 months are Given as Tribute: 70% to the poorest
                 clans, 20% to the reserve, 10% to poor individuals. Expired lots never travel.
@@ -232,22 +232,22 @@ export function ClanSupport({ slug }: { slug: string }) {
 
       {scale && (
         <div className="mt-4">
-          <p className="text-sm text-slate-200">
-            <b>{scale.member_count.toLocaleString()}</b> / {scale.cap.toLocaleString()} members ({pct}%)
-            {scale.headroom_slots > 0 && <span className="ml-2 text-xs text-slate-400">+{scale.headroom_slots.toLocaleString()} headroom</span>}
+            <p className="text-sm text-slate-700 dark:text-slate-200">
+              <b>{scale.member_count.toLocaleString()}</b> / {scale.cap.toLocaleString()} members ({pct}%)
+              {scale.headroom_slots > 0 && <span className="ml-2 text-xs text-slate-600 dark:text-slate-400">+{scale.headroom_slots.toLocaleString()} headroom</span>}
           </p>
           <div className="mt-1 h-2 overflow-hidden rounded-full bg-white/10" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
             <div className="h-full bg-amber-300" style={{ width: `${pct}%` }} />
           </div>
           <div className="mt-3 flex flex-wrap items-end gap-2 text-sm">
-            <label className="text-xs text-slate-400">
+            <label className="text-xs text-slate-600 dark:text-slate-400">
               Auto-prune at 90k <InfoTip text="Owners/mods only. When the clan nears 90k members, idle members are removed first." label="Auto-prune: owner and mod cleanup at 90k" />
               <select aria-label="Auto-prune" value={auto ? "on" : "off"} onChange={(e) => setAuto(e.target.value === "on")} className="ml-2 rounded-lg border border-white/10 bg-slate-950 px-2 py-1 text-white">
                 <option value="on">On (default)</option>
                 <option value="off">Off</option>
               </select>
             </label>
-            <label className="text-xs text-slate-400">
+            <label className="text-xs text-slate-600 dark:text-slate-400">
               Strategy <InfoTip text="Owners/mods only. Who goes first when pruning: oldest idle, random, oldest joined, or never active." label="Prune order: who goes first" />
               <select aria-label="Strategy" value={strategy} onChange={(e) => setStrategy(e.target.value)} className="ml-2 rounded-lg border border-white/10 bg-slate-950 px-2 py-1 text-white">
                 {STRATEGIES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
@@ -258,14 +258,14 @@ export function ClanSupport({ slug }: { slug: string }) {
             <button onClick={() => { if (window.confirm("Prune these members for real? The owner is never removed.")) void prune(false); }} className="rounded-lg border border-red-300/50 px-3 py-1 text-xs text-red-200">Prune now</button>
           </div>
           <div className="mt-2 flex flex-wrap items-end gap-2 text-sm">
-            <label className="text-xs text-slate-400">
+            <label className="text-xs text-slate-600 dark:text-slate-400">
               Headroom (10 coins / 1,000 slots) <InfoTip text="Only the owner can buy slots. 10 coins per 1,000 slots raises the member cap." label="Headroom: paid member slots" />
               <input aria-label="Headroom slots" value={slots} onChange={(e) => setSlots(e.target.value)} inputMode="numeric" className="ml-2 w-28 rounded-lg border border-white/10 bg-slate-950 px-2 py-1 text-white" />
             </label>
             <button onClick={buyHeadroom} className="rounded-lg bg-emerald-400 px-3 py-1 text-xs font-bold text-slate-950">Buy slots</button>
           </div>
           {preview.length > 0 && (
-            <ul className="mt-2 max-h-32 space-y-1 overflow-y-auto text-xs text-slate-400">
+            <ul className="mt-2 max-h-32 space-y-1 overflow-y-auto text-xs text-slate-600 dark:text-slate-400">
               <li>Showing {preview.length} of {victimCount}:</li>
               {preview.map((v) => (
                 <li key={v.user_id}>{v.display_name} · joined {new Date(v.joined_at).toLocaleDateString()} · last active {v.last_active ? new Date(v.last_active).toLocaleDateString() : "never"}{v.xp != null ? ` · ${v.xp} XP` : ""}</li>
@@ -274,7 +274,7 @@ export function ClanSupport({ slug }: { slug: string }) {
           )}
         </div>
       )}
-      {note && <p role="status" className="mt-2 text-sm text-slate-300">{note}</p>}
+      {note && <p role="status" className="mt-2 text-sm text-slate-600 dark:text-slate-300">{note}</p>}
     </section>
   );
 }

@@ -39,8 +39,8 @@ const TABLE: Record<string, GameA11y> = {
     colorDependent: false,
     photosensitive: true,
     readingHeavy: true,
-    controls: "Type A-Z to lock/decrypt · 1/2/3 powerups · Shift boost · Esc pause · I Black Market (desktop keyboard required)",
-    assist: "Typing game: dyslexia font + large text apply to the shell; in-game words keep their font but get letter-spaced.",
+    controls: "Type A-Z to banish zombies · 1/2/3 holy-word powers · Shift boost · Esc pause · I survivor stash (desktop keyboard required)",
+    assist: "Typing game: dyslexia font + large text apply to the shell; in-game cursed words keep their font but get letter-spaced.",
   },
   gravegain2d: {
     slug: "gravegain2d",

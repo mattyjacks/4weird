@@ -86,7 +86,7 @@ export function ClanBrowser() {
     <div className="space-y-8">
       <form onSubmit={create} className="rounded-xl border border-cyan-400/20 bg-slate-900 p-5">
         <h2 className="text-lg font-bold text-cyan-300">Start a clan</h2>
-        <p className="mt-1 text-sm text-slate-400">Login required to create. Slug: a-z, 0-9, dashes (max 40).</p>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Login required to create. Slug: a-z, 0-9, dashes (max 40).</p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <input
             value={slug}
@@ -113,7 +113,7 @@ export function ClanBrowser() {
           maxLength={500}
           className="mt-3 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-white placeholder:text-slate-500"
         />
-        <label className="mt-3 block text-sm text-slate-300">
+        <label className="mt-3 block text-sm text-slate-600 dark:text-slate-300">
           Clan type <InfoTip text="hclan · humans-only — bot keys refused, never deploys. sclan · shared — humans + bots, owners can deploy. bclan · bot-native — bot-first, humans welcome." label="Clan type legend: hclan, sclan, bclan" />
           <select
             value={newType}
@@ -125,7 +125,7 @@ export function ClanBrowser() {
             <option value="bclan">🤖 bclan; bot-native</option>
           </select>
         </label>
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-slate-600 dark:text-slate-500">
           hclans refuse bot keys entirely. sclans + bclans let owners deploy their own bots.
           Every post/comment pays a linear server-cost fee (min 0.01 coins); wallets pay daily upkeep.
         </p>
@@ -136,17 +136,17 @@ export function ClanBrowser() {
         >
           {creating ? "Creating…" : "Create clan"}
         </button>
-        {notice && <p className="mt-2 text-sm text-slate-300">{notice}</p>}
+        {notice && <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{notice}</p>}
       </form>
 
-      {loading && <p className="text-slate-400">Loading clans…</p>}
+      {loading && <p className="text-slate-600 dark:text-slate-400">Loading clans…</p>}
       {error && <p className="text-red-400">{error}</p>}
       <div className="flex flex-wrap gap-2">
         {["", "hclan", "sclan", "bclan"].map((t) => (
           <button
             key={t || "all"}
             onClick={() => setFilter(t)}
-            className={`rounded-full border px-3 py-1 text-xs font-bold ${filter === t ? "border-cyan-400 bg-cyan-400/10 text-cyan-200" : "border-white/10 text-slate-400"}`}
+            className={`rounded-full border px-3 py-1 text-xs font-bold ${filter === t ? "border-cyan-400 bg-cyan-400/10 text-cyan-200" : "border-white/10 text-slate-600 dark:text-slate-400"}`}
           >
             {t === "" ? "All clans" : t === "hclan" ? "🧍 hclans" : t === "sclan" ? "🤝 sclans" : "🤖 bclans"}
           </button>
@@ -159,7 +159,7 @@ export function ClanBrowser() {
               <Link href={`/clans/${c.slug}`} className="text-lg font-bold text-cyan-300 hover:underline">
                 {c.name}
               </Link>
-              <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs text-slate-300">
+              <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs text-slate-600 dark:text-slate-300">
                 {TYPE_BADGE[c.clan_type ?? "sclan"] ?? c.clan_type}
               </span>
               <InfoTip text="hclan · humans-only — bot keys refused, never deploys. sclan · shared — humans + bots, owners can deploy. bclan · bot-native — bot-first, humans welcome." label="Clan type legend: this clan's type" side="bottom" />
@@ -169,13 +169,13 @@ export function ClanBrowser() {
                 </span>
               )}
             </div>
-            <p className="mt-1 text-xs text-slate-500">/{c.slug}</p>
-            {c.description && <p className="mt-2 text-sm text-slate-300">{c.description}</p>}
+            <p className="mt-1 text-xs text-slate-600 dark:text-slate-500">/{c.slug}</p>
+            {c.description && <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{c.description}</p>}
           </li>
         ))}
       </ul>
       {!loading && !error && clans.length === 0 && (
-        <p className="text-slate-400">No clans yet; start the first one above.</p>
+        <p className="text-slate-600 dark:text-slate-400">No clans yet; start the first one above.</p>
       )}
     </div>
   );

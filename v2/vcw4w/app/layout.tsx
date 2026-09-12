@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { GoogleAnalytics } from "@/components/site/google-analytics";
 import { CookieBanner } from "@/components/site/cookie-banner";
+import { DailyBonusBanner } from "@/components/site/daily-bonus-banner";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { MenuSidebar } from "@/components/site/menu-sidebar";
@@ -121,6 +122,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <div className="flex min-h-screen flex-col bg-background text-foreground">
+            <DailyBonusBanner />
             <SiteHeader />
             <MenuSidebar />
             <div id="main-content" className="flex-1">

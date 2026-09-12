@@ -56,23 +56,23 @@ export function LoveQuests({ clanId, clanSlug }: { clanId?: string; clanSlug: st
   return (
     <section className="rounded-xl border border-pink-400/20 bg-slate-900 p-5">
       <h2 className="font-bold text-pink-200">💌 Clan quests (earn love letters) <InfoTip text="Only owners/mods can post quests and mark members complete. Rewards are 1–10 Love Letters 💌, minted to the member. Never coins." label="Clan quests: who mints Love Letters" /></h2>
-      <p className="mt-1 text-xs text-slate-400">
+      <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
         Owners/mods post quests (reward 1..10 💌); marking a member complete mints it to their 💌 Earned. Daily
         bonuses are the other mint. Clan: {clanSlug}.
       </p>
       {quests.length > 0 ? (
-        <ul className="mt-3 space-y-1 text-sm text-slate-300">
+        <ul className="mt-3 space-y-1 text-sm text-slate-600 dark:text-slate-300">
           {quests.map((q) => (
             <li key={q.id} className="flex flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-1">
               <span>{q.title} <small className="text-pink-200">💌x{q.reward_ll}</small></span>
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-slate-600 dark:text-slate-500">
                 {completions.filter((c) => c.quest_id === q.id).length} completed{q.active ? "" : " · closed"}
               </span>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="mt-2 text-sm text-slate-500">No quests yet; owners/mods can post the first.</p>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-500">No quests yet; owners/mods can post the first.</p>
       )}
       <div className="mt-3 flex flex-wrap gap-2">
         <input
@@ -132,7 +132,7 @@ export function LoveQuests({ clanId, clanSlug }: { clanId?: string; clanSlug: st
           Mark complete
         </button>
       </div>
-      {note && <p role="status" className="mt-2 text-sm text-slate-300">{note}</p>}
+      {note && <p role="status" className="mt-2 text-sm text-slate-600 dark:text-slate-300">{note}</p>}
     </section>
   );
 }

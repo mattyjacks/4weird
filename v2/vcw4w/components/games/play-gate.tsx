@@ -10,10 +10,23 @@ import { RatingBadge } from "@/components/games/rating-badge";
 import { KidBanner } from "@/components/family/kid-banner";
 import { requiredAgeFor, getGameRating, isKidsMode } from "@/lib/age-gate";
 import { bandMinAge } from "@/lib/family";
+import {
+  CONTENT_MODE_LABELS,
+  canUseContentMode,
+  contentModeSummary,
+  defaultContentMode,
+  effectiveMinAge,
+  hasContentModes,
+  listContentModesForViewer,
+  readStoredContentMode,
+  withContentModeParam,
+  writeStoredContentMode,
+} from "@/lib/content-modes";
+import type { ContentMode } from "@/lib/content-modes";
 import type { HouseAd } from "@/lib/ads";
 import {
-  GAME_CACHE_FREE_BYTES,
   GAME_HEARTBEAT_SECONDS,
+  GAME_LOAD_REFERENCE_BYTES,
   GAME_STILL_PLAYING_SECONDS,
   GUEST_AD_INTERVAL_MS,
 } from "@/lib/game-rent";
@@ -37,7 +50,7 @@ const METER_TIMEOUT_MS = 20000;
 /** Assume a full load when the runtime never reports bytes (safe direction). */
 // Note: the timeout only delays *billing*, never play; the frame mounts
 // immediately in "metering", so slow game loads still report real bytes.
-const UNMEASURED_BYTES = 2 * GAME_CACHE_FREE_BYTES;
+const UNMEASURED_BYTES = 2 * GAME_LOAD_REFERENCE_BYTES;
 
 async function postJson<T>(path: string, body: unknown): Promise<T> {
   const response = await fetch(path, {
@@ -58,10 +71,14 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
 /**
  * PlayGate; the play shell's front door.
  *
- * Age ratings first: Adults (18+) games always show a date-of-birth gate
- * (checked on-device, never stored); Kids Mode accounts can never see or
- * play Adults games (hard block, no bypass), while Teens (13-17) games ask
- * Kids Mode players for a 13+ date-of-birth check.
+ * Age ratings first: the server (/api/games/session) requires
+ * profiles.age_band='adult' for Adults (18+) and 'teen'/'adult' for Teens
+ * (13+), so the date-of-birth gate (checked on-device, never stored) is
+ * shown ONLY when it can succeed server-side — adults with an adult band,
+ * teens with a teen/adult band or the Kids-Mode-device guest case. Anything
+ * else is a hard band-fix block (no DOB bypass): Adults titles explain the
+ * Account-settings Adult-band fix, Teens titles prompt for Teen/Adult band,
+ * and guests get a sign-in prompt — never a DOB gate that passes then 403s.
  *
  * Signed-in players: the game loads immediately (play is never blocked on
  * metering); when the runtime bridge reports fresh network bytes
@@ -91,9 +108,76 @@ export function PlayGate({ slug, title, src, version, emoji }: { slug: string; t
 // matchmaking code reads it. Client-side on purpose: the play page stays
 // static so unknown slugs 404 with a real 404 status, and useSearchParams
 // needs the Suspense boundary above during prerender.
+/**
+ * ContentMode picker: ALWAYS renders all three modes (kid/teen/all) via
+ * listContentModesForViewer — the list is never filtered. Modes the viewer
+ * cannot use render disabled with a 🔒 lockReason (canUseContentMode).
+ */
+function ContentModePicker({
+  slug,
+  band,
+  kidBand,
+  mode,
+  onSelect,
+}: {
+  slug: string;
+  band: "unknown" | "kid" | "teen" | "adult";
+  kidBand: string | null;
+  mode: ContentMode;
+  onSelect: (next: ContentMode) => void;
+}) {
+  if (!hasContentModes(slug)) return null;
+  const options = listContentModesForViewer(band, kidBand);
+  return (
+    <fieldset className="mb-3 rounded-2xl border border-white/15 bg-black p-4 sm:p-5">
+      <legend className="px-2 text-sm font-black text-white">Content mode</legend>
+      <div className="grid gap-2 sm:grid-cols-3">
+        {options.map((option) => {
+          const summary = contentModeSummary(option.mode);
+          const selected = mode === option.mode;
+          return (
+            <label
+              key={option.mode}
+              className={`block cursor-pointer rounded-xl border px-3 py-2.5 text-left text-xs ${
+                selected ? "border-cyan-300/70 bg-cyan-300/10" : "border-white/10 bg-white/[.03]"
+              } ${option.locked ? "cursor-not-allowed opacity-70" : "hover:bg-white/[.06]"}`}
+            >
+              <span className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name={`content-mode-${slug}`}
+                  checked={selected}
+                  disabled={option.locked}
+                  onChange={() => onSelect(option.mode)}
+                  className="accent-cyan-300"
+                />
+                <span className="text-sm font-black text-white">
+                  {option.locked ? "🔒 " : ""}
+                  {option.label}
+                </span>
+              </span>
+              <span className="mt-1 block text-slate-300">{option.description}</span>
+              <span className="mt-1 block text-slate-400">
+                Gore: {summary.gore} · Drugs: {summary.drugs} · Language: {summary.language}
+              </span>
+              {option.locked && option.lockReason && (
+                <span className="mt-1 block font-semibold text-amber-200">{option.lockReason}</span>
+              )}
+            </label>
+          );
+        })}
+      </div>
+      <p className="mt-2 text-xs text-slate-400">
+        Kid: no blood/gore, child-friendly words · Teen ({CONTENT_MODE_LABELS.teen}): gore on, mild swears only ·{" "}
+        {CONTENT_MODE_LABELS.all}: everything, 18+ only.
+      </p>
+    </fieldset>
+  );
+}
+
 function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; title: string; src: string; version?: string; emoji?: string }) {
   const match = useSearchParams().get("match");
-  const frameSrc = /^[0-9a-f-]{36}$/i.test(String(match ?? "")) ? `${src}?match=${encodeURIComponent(String(match))}` : src;
+  const matchSrc = /^[0-9a-f-]{36}$/i.test(String(match ?? "")) ? `${src}?match=${encodeURIComponent(String(match))}` : src;
   const [gate, setGate] = useState<Gate>({ kind: "checking" });
   // Click-to-play: the runtime iframe never mounts (no bytes, no metering,
   // no guest-quota burn) until the player presses Start Game on the branded
@@ -119,10 +203,42 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
   // else renders instead of the metering boot below. An entered DOB never
   // leaves the AgeGate component.
   const [age, setAge] = useState<
-    "unknown" | "blocked" | "gate-teens" | "gate-adults" | "kid-rating" | "kid-hours" | "kid-timeup" | "passed"
+    "unknown" | "blocked" | "band-teens" | "gate-teens" | "gate-adults" | "kid-rating" | "kid-hours" | "kid-timeup" | "passed"
   >("unknown");
   const [kidHandle, setKidHandle] = useState<string | null>(null);
+  // Why-blocked context for the band-fix UI: the server (/api/games/session)
+  // enforces profiles.age_band authoritatively, so a DOB entry (in-memory
+  // only, never stored) can never satisfy it. These mirror the resolution
+  // inputs so the blocked/band-teens copy can point at the real fix.
+  const [ageBand, setAgeBand] = useState<"unknown" | "kid" | "teen" | "adult">("unknown");
+  const [kidsOn, setKidsOn] = useState(false);
+  const [hasSession, setHasSession] = useState(false);
   const rating = getGameRating(slug);
+  // Content modes (gravegain2d/gravegain3d/lastwordszombies): the stored mode
+  // rides in the frame URL (?content=<mode>) and is sent to /api/games/session
+  // as content_mode; live switches also postMessage into the running frame.
+  const contentSupported = hasContentModes(slug);
+  const [contentMode, setContentMode] = useState<ContentMode>(() => defaultContentMode());
+  const [kidBand, setKidBand] = useState<string | null>(null);
+  // Bumped when the picker changes so the age resolution below re-runs (a
+  // kid-band viewer switching to kid mode can clear kid-rating live).
+  const [contentNonce, setContentNonce] = useState(0);
+  useEffect(() => {
+    setContentMode(contentSupported ? readStoredContentMode(slug) : defaultContentMode());
+  }, [slug, contentSupported]);
+  const selectContentMode = useCallback(
+    (next: ContentMode) => {
+      if (!canUseContentMode(ageBand, kidBand, next)) return;
+      setContentMode(next);
+      writeStoredContentMode(slug, next);
+      setContentNonce((n) => n + 1);
+    },
+    [slug, ageBand, kidBand],
+  );
+  const frameSrc = contentSupported ? withContentModeParam(matchSrc, contentMode) : matchSrc;
+  const picker = contentSupported ? (
+    <ContentModePicker slug={slug} band={ageBand} kidBand={kidBand} mode={contentMode} onSelect={selectContentMode} />
+  ) : null;
   // Per-second metering state: cumulative active seconds (from heartbeat
   // receipts) + how many 5-hour still-playing checks were acknowledged.
   const [activeSecs, setActiveSecs] = useState(0);
@@ -155,6 +271,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
           game_slug: slug,
           new_bytes: newBytes,
           bundle_version: version ?? "1",
+          ...(contentSupported ? { content_mode: contentMode } : {}),
         });
         sessionRef.current = body.session.session_id;
         setActiveSecs(0);
@@ -169,20 +286,53 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : "Unable to start play session.";
-        if (/insufficient balance/i.test(message)) {
+        const status = (error as { status?: number }).status;
+        const msg = message.toLowerCase();
+        if (status === 402 || /insufficient/.test(msg)) {
           setGate({ kind: "topup", message });
         } else if (kidHandle && /daily time limit|allowed play hours|monthly budget|suspended|session expired|rating blocked/i.test(message)) {
           // Child sessions fail CLOSED on parental limits: no unmetered play.
           setGate({ kind: "denied", message });
+        } else if (
+          status === 403 ||
+          status === 401 ||
+          status === 404 ||
+          status === 409 ||
+          /rating blocked|daily time limit|allowed play hours|monthly budget|suspended|session expired|not authorized|limit reached|cap reached|parental|child session/i.test(message) ||
+          /age band/i.test(message) ||
+          /content mode/i.test(message) ||
+          /Adults \(18\+\) games need an Adult|Teens \(13\+\) games need a Teen/i.test(message)
+        ) {
+          // Authoritative server age-band denial: the profile band (not the
+          // in-memory DOB check) decides. Never fall through to unmetered
+          // "playing" here — that hid the 403 behind a "metering is down"
+          // message and let DOB-passed players think billing broke.
+          // Only network/5xx/RPC failures use the unmetered fallback below.
+          // The copy names free play, not broken metering, so an age-gated
+          // adults title never reads as a broken game.
+          if (/Teens \(13\+\) games need a Teen/i.test(message)) {
+            setGate({
+              kind: "denied",
+              message: `${message} Set your age band to Teen (13-17) or Adult (18+) in Account settings — entering a date of birth cannot bypass it.`,
+            });
+          } else {
+            setGate({
+              kind: "denied",
+              message: `${message} Set your age band to Adult (18+) in Account settings — entering a date of birth cannot bypass it.`,
+            });
+          }
         } else {
-          // Metering failed but the static game is already served: play on
-          // unmetered rather than bricking the game; the next load retries.
+          // True infra failure only (5xx / network / 20s timeout path): the
+          // static game is already served, so play on free and unmetered
+          // rather than bricking the game; the next load retries.
+          // Reserved for network/5xx/RPC failures only (age-band 403s are
+          // handled above and fail closed).
           setGate({ kind: "playing", signedIn: true, sessionId: null, loadFee: 0, freeLoad: false, coinsPerHour: 1 });
-          setBroke(`Play metering is down (${message}); playing unmetered this load.`);
+          setBroke("Free play this load (metering unavailable, game unaffected).");
         }
       }
     },
-    [slug, version, kidHandle],
+    [slug, version, kidHandle, contentSupported, contentMode],
   );
 
   // Age gate first: a live child session decides by parent-attested band +
@@ -200,7 +350,15 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
         if (!live) return;
         if (kid) {
           setKidHandle(kid.handle);
-          if (bandMinAge(kid.age_band) < requiredAgeFor(rating)) {
+          setKidBand(String(kid.age_band ?? ""));
+          // Content-mode games enforce the EFFECTIVE minimum age, not the raw
+          // catalog rating: a kid-band child with kid mode stored (min age 0)
+          // passes here instead of hitting kid-rating; the server re-checks
+          // the same effective age authoritatively.
+          const effectiveMin = hasContentModes(slug)
+            ? effectiveMinAge(slug, readStoredContentMode(slug))
+            : requiredAgeFor(rating);
+          if (bandMinAge(kid.age_band) < effectiveMin) {
             setAge("kid-rating");
             return;
           }
@@ -220,17 +378,28 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
       }
       if (!live) return;
       setKidHandle(null);
+      setKidBand(null);
       const kids = isKidsMode();
+      if (live) setKidsOn(kids);
       // Full-account band enforcement (COPPA: full accounts are 13+ only;
-      // 13-17 → teen, 18+ → adult). Non-adult bands get Kids-Mode treatment:
-      // Adults titles blocked outright (no DOB bypass), Teens titles need a
-      // 13+ DOB check. Server (/api/games/session) re-enforces authoritatively.
-      // Guests have no profile (a fetch would just 401 + console noise), so
-      // check the session first and treat no-session as Kids-Mode-restricted.
-      let band = "unknown";
+      // 13-17 → teen, 18+ → adult). The server (/api/games/session) is
+      // authoritative: Adults (18+) needs profiles.age_band='adult',
+      // Teens (13+) needs 'teen'/'adult'. The client DOB gate is in-memory
+      // only (never stored) and can never satisfy the band check, so a DOB
+      // gate is shown ONLY when it can actually succeed server-side:
+      // adults → band=='adult' (plus no Kids Mode); teens → band in
+      // teen/adult, or the Kids-Mode-device guest case (guest-pass path, no
+      // band to check). Anything else renders a band-fix prompt (blocked for
+      // adults, band-teens for teens) — never a DOB gate that passes then
+      // 403s into "metering is down". Guests have no profile (a fetch would
+      // just 401 + console noise), so check the session first and treat
+      // no-session as band-less (actionable denied, not a DOB gate).
+      let band: "unknown" | "kid" | "teen" | "adult" = "unknown";
+      let signedIn = false;
       try {
         const sess = await fetch("/api/auth/session", { credentials: "include" });
         if (sess.ok) {
+          signedIn = true;
           const pres = await fetch("/api/me/profile", { credentials: "include" });
           if (pres.ok) {
             const pbody = await pres.json().catch(() => ({}));
@@ -239,12 +408,23 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
           }
         }
       } catch {
-        /* profile unreadable: fall through to Kids-Mode-only logic */
+        /* profile unreadable: fail closed below (band stays unknown) */
       }
-      const restricted = kids || band !== "adult";
-      if (rating === "adults") setAge(restricted ? "blocked" : "gate-adults");
-      else if (rating === "teens") setAge(restricted ? "gate-teens" : "passed");
-      else setAge("passed");
+      if (!live) return;
+      setAgeBand(band);
+      setHasSession(signedIn);
+      if (rating === "adults") {
+        // Hard block unless an adult band can clear the server check. Kids
+        // Mode, guests, and non-adult bands all land here with band-fix copy.
+        if (kids || !signedIn || band !== "adult") setAge("blocked");
+        else setAge("gate-adults");
+      } else if (rating === "teens") {
+        const bandOk = band === "teen" || band === "adult";
+        if (signedIn && bandOk && !kids) setAge("passed");
+        else if (signedIn && bandOk && kids) setAge("gate-teens");
+        else if (!signedIn && kids) setAge("gate-teens");
+        else setAge("band-teens");
+      } else setAge("passed");
     };
     void resolve();
     const refresh = () => void resolve();
@@ -257,7 +437,25 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
       window.removeEventListener("kid-session-changed", refresh);
       window.removeEventListener("storage", refresh);
     };
-  }, [rating, slug]);
+  }, [rating, slug, contentNonce]);
+
+  // Live content-mode switch: forward the newly picked mode into the running
+  // runtime frame (the bridge applies gore + profanity without a reload; a
+  // full reload via the ?content= frameSrc above is the fallback path).
+  useEffect(() => {
+    if (!contentSupported || !entered) return;
+    try {
+      document.querySelectorAll("iframe").forEach((frame) => {
+        try {
+          frame.contentWindow?.postMessage({ version: 1, type: "content-mode", mode: contentMode }, "*");
+        } catch {
+          /* cross-origin frame; the ?content= URL param already carried it */
+        }
+      });
+    } catch {
+      /* no DOM access; the ?content= URL param already carried the mode */
+    }
+  }, [contentSupported, contentMode, entered]);
 
   // Boot: signed in, guest, or metering-unavailable (local dev).
   // Runs only AFTER the player presses Start Game (entered): the guest-pass
@@ -366,12 +564,14 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
         if (secs > 0) setActiveSecs(secs);
       } catch (error) {
         const message = error instanceof Error ? error.message : "";
-        if (/insufficient balance/i.test(message)) {
-          setBroke("Out of coins; metering paused. Top up to keep your play counted (the game keeps running).");
+        if (/insufficient/i.test(message)) {
+          // Single concise broke line: keep the first notice, never spam one
+          // per 60s beat. Infra heartbeat failures stay silent on purpose.
+          setBroke((prev) => prev || "Out of coins; metering paused. Top up to keep your play counted (the game keeps running).");
         } else if (/daily time limit|allowed play hours|monthly budget|suspended|session expired/i.test(message)) {
           // Parental limits hit mid-play: the game keeps running, but the
           // child sees why metering stopped (server stays authoritative).
-          setBroke(`⏸️ ${message}; the game keeps running, but play time is paused.`);
+          setBroke((prev) => prev || `⏸️ ${message}; the game keeps running, but play time is paused.`);
         }
       }
     };
@@ -408,20 +608,125 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
   }, [gate]);
 
   if (age === "blocked") {
+    // Adults (18+) hard block. The server requires profiles.age_band='adult';
+    // an in-memory DOB entry can never bypass it, so there is deliberately no
+    // DOB gate here — only the real fix per cause.
+    const guestBlock = !hasSession;
     return (
+      <>
+      {picker}
       <div className="overflow-hidden rounded-2xl border border-white/15 bg-black p-6 sm:p-10" role="alert">
-        <p className="text-lg font-black text-white">🔒 Kids Mode is on</p>
-        <p className="mt-2 text-sm text-slate-300">
-          {title} is rated <RatingBadge rating={rating} /> and can&apos;t be played while Kids Mode is on.
-          Turn Kids Mode off in <Link href="/account?tab=settings" className="font-bold text-cyan-300 hover:underline">account settings</Link> (or
-          the games catalog) to play it - Adults games still ask for an 18+ age check every time.
+        <p className="text-lg font-black text-white">
+          {kidsOn ? "🔒 Kids Mode is on" : "🔞 Adults (18+) — Adult age band required"}
         </p>
+        <div className="mt-2 text-sm text-slate-300">
+          <p>
+            {title} is rated <RatingBadge rating={rating} />.{" "}
+            {kidsOn
+              ? "It can't be played while Kids Mode is on. Turn Kids Mode off in account settings (or the games catalog) to play it — Adults games still ask for an 18+ age check every time, and your account's age band must be Adult (18+)."
+              : guestBlock
+                ? "Sign in with an Adult (18+) account to play it. Guests can't clear the age check, and entering a date of birth cannot bypass the band — the server checks your account's age band."
+                : `Your account's age band is ${ageBand === "unknown" ? "not set (legacy)" : ageBand}. Adults (18+) games need an Adult (18+) age band — entering a date of birth cannot bypass it.`}
+          </p>
+          {!kidsOn && !guestBlock && (
+            <p className="mt-2">
+              Fix: open <Link href="/account#age-band" className="font-bold text-cyan-300 hover:underline">Account settings</Link> and
+              set your age band to <b className="text-white">Adult (18+)</b>, then come back — you&apos;ll get the 18+ age check, and play starts after you pass it.
+            </p>
+          )}
+          {!kidsOn && guestBlock && (
+            <p className="mt-2">
+              Fix: <Link href="/auth/sign-up" className="font-bold text-cyan-300 hover:underline">sign up as Adult (18+)</Link> (or{" "}
+              <Link href="/auth/login" className="font-bold text-cyan-300 hover:underline">log in</Link>), and make sure your age band is
+              Adult (18+) in <Link href="/account#age-band" className="font-bold text-cyan-300 hover:underline">Account settings</Link>.
+            </p>
+          )}
+          {kidsOn && (
+            <p className="mt-2">
+              Fix: turn Kids Mode off in <Link href="/account#age-band" className="font-bold text-cyan-300 hover:underline">account settings</Link> (or
+              the games catalog). Your account&apos;s age band must also be <b className="text-white">Adult (18+)</b> — set it there; a date-of-birth
+              entry cannot bypass the band.
+            </p>
+          )}
+        </div>
         <div className="mt-4 flex flex-wrap gap-2">
-          <Link href="/games" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
+          {!kidsOn && !guestBlock && (
+            <Link href="/account#age-band" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
+              Open Account settings
+            </Link>
+          )}
+          {guestBlock && !kidsOn && (
+            <>
+              <Link href="/auth/sign-up" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
+                Sign up free - 100 coins
+              </Link>
+              <Link href="/auth/login" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
+                Log in
+              </Link>
+            </>
+          )}
+          <Link href="/games" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
             Browse kid-friendly games
           </Link>
         </div>
       </div>
+      </>
+    );
+  }
+
+  if (age === "band-teens") {
+    // Teens (13+) band-fix prompt. Shown instead of a DOB gate whenever the
+    // server would 403 (signed-in band unknown/kid, or guests with no band
+    // and no Kids-Mode device flag). DOB entry cannot bypass the band.
+    const guestBand = !hasSession;
+    return (
+      <>
+      {picker}
+      <div className="overflow-hidden rounded-2xl border border-white/15 bg-black p-6 sm:p-10" role="alert">
+        <p className="text-lg font-black text-white">🔒 Teens (13+) — age band required</p>
+        <div className="mt-2 text-sm text-slate-300">
+          <p>
+            {title} is rated <RatingBadge rating={rating} />.{" "}
+            {guestBand
+              ? "Guests can't clear this check — sign in with a Teen (13-17) or Adult (18+) account. Entering a date of birth cannot bypass the band; the server checks your account's age band."
+              : `Your account's age band is ${ageBand === "unknown" ? "not set (legacy)" : ageBand}. Teens (13+) games need a Teen (13-17) or Adult (18+) age band — entering a date of birth cannot bypass it.`}
+          </p>
+          <p className="mt-2">
+            Fix: {guestBand ? (
+              <>
+                <Link href="/auth/sign-up" className="font-bold text-cyan-300 hover:underline">sign up as Teen or Adult</Link> (or{" "}
+                <Link href="/auth/login" className="font-bold text-cyan-300 hover:underline">log in</Link>), then set your band in{" "}
+                <Link href="/account#age-band" className="font-bold text-cyan-300 hover:underline">Account settings</Link>.
+              </>
+            ) : (
+              <>
+                open <Link href="/account#age-band" className="font-bold text-cyan-300 hover:underline">Account settings</Link> and
+                set your age band to <b className="text-white">Teen (13-17)</b> or <b className="text-white">Adult (18+)</b>, then come back.
+              </>
+            )}
+          </p>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {guestBand ? (
+            <>
+              <Link href="/auth/sign-up" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
+                Sign up free - 100 coins
+              </Link>
+              <Link href="/auth/login" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
+                Log in
+              </Link>
+            </>
+          ) : (
+            <Link href="/account#age-band" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
+              Open Account settings
+            </Link>
+          )}
+          <Link href="/games" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
+            Browse games
+          </Link>
+        </div>
+      </div>
+      </>
     );
   }
 
@@ -435,6 +740,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
     return (
       <div>
         <KidBanner />
+        {picker}
         <div className="overflow-hidden rounded-2xl border border-white/15 bg-black p-6 sm:p-10" role="alert">
           <p className="text-lg font-black text-white">{copy.head}</p>
           <p className="mt-2 text-sm text-slate-300">{copy.body}</p>
@@ -451,6 +757,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
   if (age === "gate-adults" || age === "gate-teens") {
     return (
       <div>
+        {picker}
         <div className="mb-2">
           <RatingBadge rating={rating} />
         </div>
@@ -465,6 +772,8 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
   // quota - the load starts (and only starts) on the click.
   if (!entered && age === "passed") {
     return (
+      <div>
+      {picker}
       <div className="overflow-hidden rounded-2xl border border-cyan-300/30 bg-gradient-to-b from-slate-950 via-black to-slate-950">
         <div className="play-frame-height grid min-h-[420px] place-items-center p-8 text-center">
           <div className="max-w-md">
@@ -487,6 +796,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
             </p>
           </div>
         </div>
+      </div>
       </div>
     );
   }
@@ -536,17 +846,49 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
 
   if (gate.kind === "denied") {
     const kidBlock = kidHandle !== null;
+    // Server age-band denial (403 from /api/games/session): surface the real
+    // fix with direct links instead of the generic guest-limit copy. Never
+    // show "metering is down / playing unmetered" for these.
+    const bandDenied = !kidBlock && /age band/i.test(gate.message);
     return (
       <div>
         {kidHandle && <KidBanner />}
         <div className="overflow-hidden rounded-2xl border border-white/15 bg-black p-6 sm:p-10">
-          <p className="text-lg font-black text-white">{kidBlock ? "⏸️ Paused by parental controls" : "🚦 Guest limit reached"}</p>
+          <p className="text-lg font-black text-white">
+            {kidBlock ? "⏸️ Paused by parental controls" : bandDenied ? "🔒 Age band required" : "🚦 Guest limit reached"}
+          </p>
           <p className="mt-2 text-sm text-slate-300">{gate.message}</p>
+          {bandDenied && (
+            <div className="mt-3 rounded-xl border border-cyan-300/30 bg-cyan-300/[.06] px-4 py-3 text-sm text-slate-200">
+              <p className="font-bold text-white">Why you still see this after entering your age</p>
+              <p className="mt-1 text-slate-300">
+                The date-of-birth check on the game page is device-only and is never saved.
+                The server unlocks Adults / Teens games from your account&apos;s age band instead.
+              </p>
+              <ol className="mt-2 list-decimal space-y-1 pl-5 text-slate-300">
+                <li>
+                  Open <Link href="/account#age-band" className="font-bold text-cyan-300 hover:underline">Account → age band</Link> and
+                  set it to <b className="text-white">Adult (18+)</b> for Adults games (Teen or Adult for Teens games).
+                </li>
+                <li>Come back here and reload the game page.</li>
+                <li>Pass the 18+ age check again — play starts right after.</li>
+              </ol>
+            </div>
+          )}
           <div className="mt-4 flex flex-wrap gap-2">
             {kidBlock ? (
               <Link href="/games" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
                 Browse your games
               </Link>
+            ) : bandDenied ? (
+              <>
+                <Link href="/account#age-band" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
+                  Open Account settings
+                </Link>
+                <Link href="/games" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
+                  Browse games
+                </Link>
+              </>
             ) : (
               <>
                 <Link href="/auth/sign-up" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
@@ -604,6 +946,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
   return (
     <div>
       {kidHandle && <KidBanner />}
+      {picker}
       {metering && (
         <p role="status" className="mb-2 rounded-xl border border-white/10 bg-white/[.04] px-4 py-2 text-xs text-slate-300">
           Measuring fresh download (first loads bill exact bytes)…
@@ -618,7 +961,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
               {hoursPlayed > 0 && <> · {hoursPlayed.toFixed(1)}h played</>}
             </>
           ) : (
-            <>Playing unmetered this load (session unavailable).</>
+            <>Free play this load (metering unavailable, game unaffected).</>
           )}
           {broke && <> · <span className="text-amber-200">{broke}</span></>}
         </p>

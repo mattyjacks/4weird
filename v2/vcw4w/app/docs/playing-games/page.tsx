@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DocsHero } from "@/components/docs/docs-hero";
-import { SectionHead, Callout, MockWindow, Pager } from "@/components/docs/docs-bits";
+import { SectionHead, Callout, Steps, MockWindow, Pager } from "@/components/docs/docs-bits";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/docs/playing-games" },
@@ -29,6 +29,7 @@ export default function PlayingGamesPage() {
           ["~6 🪙", "per 5-hour session"],
           ["3/day", "free guest loads"],
           ["4", "save slots / game"],
+          ["60s", "heartbeats bill the delta"],
         ]}
         glyph="🕹️"
         theme={theme}
@@ -122,6 +123,124 @@ export default function PlayingGamesPage() {
         title="Telemetry, leaderboards, lobbies"
         body="Gameplay emits aggregate events powering /leaderboards (handles + totals, anonymous-friendly). Telemetry never decides billing - the rental session does. Find humans in /lobbies and join via ?match= links; for a permanent home, join a clan."
       />
+
+      <SectionHead
+        index="6"
+        kicker="Start · heartbeat · end"
+        title="The session lifecycle"
+        body="Every signed-in play session is three verbs against one endpoint. Start opens the meter, heartbeats drip coins per second, end settles the tab."
+      />
+      <MockWindow title="4weird.com - session ledger" badge="per-second">
+        <div className="space-y-2 font-mono text-xs sm:text-sm">
+          <div className="flex justify-between gap-4"><span className="text-slate-400">START · fresh bytes + version</span><span className="font-bold text-emerald-300">load fee</span></div>
+          <div className="flex justify-between gap-4"><span className="text-slate-400">HEARTBEAT · +60s visible-tab</span><span className="font-bold text-emerald-300">delta only</span></div>
+          <div className="flex justify-between gap-4"><span className="text-slate-400">END · session closed</span><span className="font-bold text-cyan-300">settled</span></div>
+          <div className="flex justify-between gap-4 border-t border-white/10 pt-2"><span className="font-bold text-slate-200">402 · short funds → top up</span><span className="font-bold text-amber-300">403 · band blocked</span></div>
+          <p className="pt-1 text-[11px] text-slate-500">POST /api/games/session · actions start, heartbeat, end · each beat covers at most 5 min</p>
+        </div>
+      </MockWindow>
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        <div className="rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-fuchsia-400/50">
+          <p className="font-black">🟢 Start: version-aware</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Starting names the game, the bundle version, and how many fresh bytes loaded. Zero fresh bytes
+            costs zero - and a version you already paid for in the last 24 hours replays free.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-fuchsia-400/50">
+          <p className="font-black">💓 Heartbeat: the honest delta</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            The shell reports visible-tab seconds about every minute, and only the new seconds since the
+            last beat are debited - beats can never double-bill, and one beat covers at most 5 minutes.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-fuchsia-400/50">
+          <p className="font-black">🔚 End: errors with manners</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Short funds answer 402 (time to top up), age and band problems answer 403 (never &ldquo;metering
+            is down&rdquo;). Only true outages fall back - everything else tells you exactly what to do.
+          </p>
+        </div>
+      </div>
+      <Callout tone="violet" title="Bots may grind too.">
+        Signed-in automation is welcome at the meter: an AI playing through a real session pays coins exactly
+        like human play. Anti-cheat lives elsewhere - the cheat-mark invariant, rate limits, and aggregate
+        leaderboards. Only anonymous free-play abuse meets the bot gate.
+      </Callout>
+
+      <SectionHead
+        index="7"
+        kicker="Two switches, one tattoo"
+        title="Cheat settings: per-slot + global"
+        body="Cheats have two switches that OR together - one for this game + slot, one master switch for everything. Either one on means cheats on."
+      />
+      <Steps
+        items={[
+          ["Flip one slot", <>Point at a game + slot (1-3) and set it on or off. The server records the moment with a timestamp - and that timestamp is what brands the save&apos;s <code>cheat_mode</code> forever.</>],
+          ["Or flip the whole sky", <>One master switch covers every game and every slot at once. The play shell reads both: per-slot <strong>or</strong> global on means cheats are on for that session.</>],
+          ["Slot 0 refuses", <>Ask for cheats on slot 0 and the server answers <code>400</code>: that slot is cheat-proof and can never allow cheats. Saves written there get any client-supplied marker stripped automatically.</>],
+        ]}
+      />
+      <MockWindow title="4weird.com - cheat status" badge="slot 2">
+        <div className="space-y-2 font-mono text-xs sm:text-sm">
+          <div className="flex justify-between gap-4"><span className="text-slate-400">PER-SLOT · this game + slot</span><span className="font-bold text-rose-300">ON</span></div>
+          <div className="flex justify-between gap-4"><span className="text-slate-400">GLOBAL · every game, every slot</span><span className="font-bold text-slate-300">OFF</span></div>
+          <div className="flex justify-between gap-4"><span className="text-slate-400">EFFECTIVE · either switch on</span><span className="font-bold text-rose-300">CHEATS ON</span></div>
+          <div className="flex justify-between gap-4 border-t border-white/10 pt-2"><span className="font-bold text-slate-200">SLOT 0 · asks for cheats</span><span className="font-bold text-emerald-300">400 NO</span></div>
+          <p className="pt-1 text-[11px] text-slate-500">GET + PUT /api/cheats · per-slot or the all-games scope · saves keep cheat_mode:true forever</p>
+        </div>
+      </MockWindow>
+      <Callout tone="rose" title="There is no reset button - on purpose.">
+        Cloud saves <strong>cannot be deleted from the client at all</strong> (the request is refused), and an
+        old cheat mark is re-applied over every new write to that slot. A database trigger enforces the same
+        rule for anything that skips the API. Slot 0 is your fresh start - guard it.
+      </Callout>
+
+      <SectionHead
+        index="8"
+        kicker="Free doors + fenced yards"
+        title="Guests, age gates, and glory details"
+        body="No account? The arcade still lets you in - through a smaller door, with house ads for company. And some cabinets card you at the entrance."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-fuchsia-400/50">
+          <p className="font-black">🎟️ Guests: 3 free loads a day</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Each internet address gets <strong>3 free loads per day</strong> (20 loads max, gentle burst
+            limits). Past the free ones, instantly-skippable house ads unlock more play - with a signed token
+            chain so skipping the ad can&apos;t skip the deal. A banner drops by every 30 minutes mid-play.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-fuchsia-400/50">
+          <p className="font-black">🔞 Age gates card at the door</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Most games are all-ages. Cartoon-combat titles (think neon invaders and platform wars) need
+            Teens 13+, while intense horror and violence titles need Adult 18+. Your account&apos;s age band
+            decides - entering a birthday can&apos;t overrule it.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-fuchsia-400/50">
+          <p className="font-black">🎂 Birthdays never leave the couch</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            When a gate asks for a date of birth, it&apos;s checked in your browser&apos;s memory for that
+            moment only - never sent to any server, never stored anywhere. There&apos;s nothing to leak
+            because nothing was collected. Kids Mode is just a device flag, not age data.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-fuchsia-400/50">
+          <p className="font-black">📊 What glory remembers</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Telemetry keeps kills, actions, active seconds, and deaths - and leaderboards show handles +
+            totals only. It never touches billing: the rental session is the only meter that matters. Find
+            humans in <Link className="underline" href="/lobbies">/lobbies</Link> and join via match links.
+          </p>
+        </div>
+      </div>
+      <Callout tone="cyan" title="Kids Mode hides the grown-up shelf.">
+        Flip Kids Mode on and Adults (18+) games vanish from the catalog; Teens games still ask a 13+ check
+        before playing. Under-13 players don&apos;t browse here at all - they play through a parent-created
+        Child login with its own wallet, hours, and budget guards.
+      </Callout>
 
       <Pager current="/docs/playing-games" />
     </article>

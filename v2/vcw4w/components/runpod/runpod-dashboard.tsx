@@ -117,7 +117,7 @@ function PodButtons({
           className={`rounded-full px-4 py-1.5 text-xs font-bold disabled:opacity-50 ${
             a.danger
               ? "border border-red-500/60 text-red-300 hover:bg-red-950"
-              : "border border-white/20 text-white hover:bg-white/10"
+              : "border border-white/20 text-slate-900 dark:text-white hover:bg-white/10"
           }`}
           aria-label={`${a.label} pod ${compact}`}
         >
@@ -227,14 +227,14 @@ export function RunpodDashboard() {
 
   if (needsLogin) {
     return (
-      <div role="alert" className="rounded-xl border border-cyan-300/40 bg-cyan-300/[.08] p-4 text-sm text-slate-200">
-        <p className="font-bold text-white">Login required to manage RunPods</p>
-        <p className="mt-1 text-xs text-slate-300">Your desktops, test remotes, rental servers, and render workers live here once you sign in.</p>
+      <div role="alert" className="rounded-xl border border-cyan-300/40 bg-cyan-300/[.08] p-4 text-sm text-slate-700 dark:text-slate-200">
+        <p className="font-bold text-slate-900 dark:text-white">Login required to manage RunPods</p>
+        <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">Your desktops, test remotes, rental servers, and render workers live here once you sign in.</p>
         <div className="mt-3 flex flex-wrap gap-2">
           <Link href="/auth/login" className="rounded-full bg-cyan-300 px-5 py-2 text-sm font-bold text-slate-950 hover:bg-cyan-200">
             Login
           </Link>
-          <Link href="/auth/sign-up" className="rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-white hover:bg-white/10">
+          <Link href="/auth/sign-up" className="rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-slate-900 dark:text-white hover:bg-white/10">
             Sign up
           </Link>
         </div>
@@ -256,19 +256,19 @@ export function RunpodDashboard() {
         </p>
       )}
       {loading ? (
-        <p className="text-sm text-slate-400">Loading your RunPods…</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400">Loading your RunPods…</p>
       ) : total === 0 ? (
-        <div className="rounded-2xl border border-white/10 bg-white/[.03] p-5 text-sm text-slate-300">
-          <p className="font-bold text-white">No RunPods yet</p>
-          <p className="mt-1 text-slate-400">Rent one and it will appear here with a clickable link and power controls.</p>
+        <div className="rounded-2xl border border-white/10 bg-white/[.03] p-5 text-sm text-slate-600 dark:text-slate-300">
+          <p className="font-bold text-slate-900 dark:text-white">No RunPods yet</p>
+          <p className="mt-1 text-slate-600 dark:text-slate-400">Rent one and it will appear here with a clickable link and power controls.</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Link href="/desktop" className="rounded-full bg-cyan-300 px-5 py-2 text-sm font-bold text-slate-950 hover:bg-cyan-200">
               Rent a Virtual Desktop
             </Link>
-            <Link href="/agents" className="rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-white hover:bg-white/10">
+            <Link href="/agents" className="rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-slate-900 dark:text-white hover:bg-white/10">
               Rent an AI agent
             </Link>
-            <Link href="/blender" className="rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-white hover:bg-white/10">
+            <Link href="/blender" className="rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-slate-900 dark:text-white hover:bg-white/10">
               Render on RTX 4090
             </Link>
           </div>
@@ -277,27 +277,27 @@ export function RunpodDashboard() {
         <>
           {desktops && desktops.length > 0 && (
             <section aria-label="Your Virtual Desktops">
-              <h2 className="text-xl font-black text-white">🖥️ Your Virtual Desktops ({desktops.length})</h2>
-              <p className="mt-1 text-xs text-slate-500">
+              <h2 className="text-xl font-black text-slate-900 dark:text-white">🖥️ Your Virtual Desktops ({desktops.length})</h2>
+              <p className="mt-1 text-xs text-slate-600 dark:text-slate-500">
                 Stop ends compute billing (disk kept, storage still bills); Start boots a stopped pod; Restart reboots in place;
                 Terminate/Delete ends billing permanently (disk lost). Idle pods chime at 60 min, stop 15 min later, terminate after 24h untended.
               </p>
               <CompactDetails summary="Stop vs Terminate/Delete?">
-                <p className="text-xs text-slate-400">Stop ends compute billing but keeps the disk so you can Start again later. Terminate or Delete ends billing permanently and the disk is lost.</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400">Stop ends compute billing but keeps the disk so you can Start again later. Terminate or Delete ends billing permanently and the disk is lost.</p>
               </CompactDetails>
               <ul className="mt-3 grid gap-3 md:grid-cols-2">
                 {desktops.map((d) => (
                   <li key={d.id} className="rounded-xl border border-slate-800 bg-slate-900 p-4">
-                    <p className="font-bold text-white">
+                    <p className="font-bold text-slate-900 dark:text-white">
                       {d.kind === "gpu" ? "GPU" : "CPU"} Desktop · {d.interface === "gui" ? "Ubuntu GUI" : "Jupyter"}
                     </p>
-                    <p className="mt-1 text-xs text-slate-400">
+                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
                       {d.status}
                       {d.podStatus ? ` · pod ${d.podStatus}` : ""} · {d.gpu || d.cpu || "…"} · ~${d.hourlyUsd.toFixed(2)}/hr ·
                       since {new Date(d.createdAt).toLocaleString()}
                     </p>
-                    {d.image && <p className="mt-1 break-all font-mono text-[11px] text-slate-500">image: {d.image}</p>}
-                    <p className="mt-1 text-[11px] text-slate-500">last activity {fmtAgo(d.lastActivityAt)} · idle guard on{" "}
+                    {d.image && <p className="mt-1 break-all font-mono text-[11px] text-slate-600 dark:text-slate-500">image: {d.image}</p>}
+                    <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-500">last activity {fmtAgo(d.lastActivityAt)} · idle guard on{" "}
                       <InfoTip side="bottom" text="Idle guard: 60-min chime → +15-min stop → 24h terminate. Any input resets the clock." label="About idle guard" />
                     </p>
                     {d.endpointUrl && (
@@ -317,21 +317,21 @@ export function RunpodDashboard() {
 
           {autoplay && autoplay.length > 0 && (
             <section aria-label="Your web-app test remotes">
-              <h2 className="text-xl font-black text-white">🧪 Your web-app test remotes ({autoplay.length})</h2>
-              <p className="mt-1 text-xs text-slate-500">
+              <h2 className="text-xl font-black text-slate-900 dark:text-white">🧪 Your web-app test remotes ({autoplay.length})</h2>
+              <p className="mt-1 text-xs text-slate-600 dark:text-slate-500">
                 Kasm desktops that test 4weird games remotely: open the stream, log in with your saved VNC password, and open the locked game URL in its Chromium. Same power controls + idle guard as desktops.
               </p>
               <ul className="mt-3 grid gap-3 md:grid-cols-2">
                 {autoplay.map((r) => (
                   <li key={r.id} className="rounded-xl border border-slate-800 bg-slate-900 p-4">
-                    <p className="font-bold text-white">Test: {r.gameSlug} · {r.compute}</p>
-                    <p className="mt-1 text-xs text-slate-400">
+                    <p className="font-bold text-slate-900 dark:text-white">Test: {r.gameSlug} · {r.compute}</p>
+                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
                       {r.status}
                       {r.podStatus ? ` · pod ${r.podStatus}` : ""} · {r.siteMode} · {r.gpu || r.cpu || "…"} · ~${r.hourlyUsd.toFixed(2)}/hr ·
                       since {r.createdAt ? new Date(r.createdAt).toLocaleString() : "…"}
                     </p>
-                    {r.image && <p className="mt-1 break-all font-mono text-[11px] text-slate-500">image: {r.image}</p>}
-                    <p className="mt-1 text-[11px] text-slate-500">last activity {fmtAgo(r.lastActivityAt)} · idle guard on</p>
+                    {r.image && <p className="mt-1 break-all font-mono text-[11px] text-slate-600 dark:text-slate-500">image: {r.image}</p>}
+                    <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-500">last activity {fmtAgo(r.lastActivityAt)} · idle guard on</p>
                     {r.endpointUrl && (
                       <p className="mt-2 text-xs">
                         <ProxyLink href={r.endpointUrl} label="Open stream" />
@@ -358,16 +358,16 @@ export function RunpodDashboard() {
 
           {rentals && rentals.length > 0 && (
             <section aria-label="Your rental servers">
-              <h2 className="text-xl font-black text-white">🤖 Your rental servers ({rentals.length})</h2>
-              <p className="mt-1 text-xs text-slate-500">
+              <h2 className="text-xl font-black text-slate-900 dark:text-white">🤖 Your rental servers ({rentals.length})</h2>
+              <p className="mt-1 text-xs text-slate-600 dark:text-slate-500">
                 Rented agent servers bill while running.{" "}
                 <InfoTip side="bottom" text="Rented agent servers bill while running. Open the server link to use it; Stop ends billing, Terminate deletes the disk." label="About rental servers" />
               </p>
               <ul className="mt-3 grid gap-3 md:grid-cols-2">
                 {rentals.map((b) => (
                   <li key={b.id} className="rounded-xl border border-slate-800 bg-slate-900 p-4">
-                    <p className="font-bold text-white">{b.agent_listings?.name ?? "Agent server"}</p>
-                    <p className="mt-1 text-xs text-slate-400">
+                    <p className="font-bold text-slate-900 dark:text-white">{b.agent_listings?.name ?? "Agent server"}</p>
+                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
                       {b.status} · since {new Date(b.started_at).toLocaleString()}
                       {b.gpu_type ? ` · ${b.gpu_type}` : ""}
                     </p>
@@ -388,8 +388,8 @@ export function RunpodDashboard() {
 
           {jobs && jobs.length > 0 && (
             <section aria-label="Your render workers">
-              <h2 className="text-xl font-black text-white">🎬 Your render workers ({jobs.length})</h2>
-              <p className="mt-1 text-xs text-slate-500">
+              <h2 className="text-xl font-black text-slate-900 dark:text-white">🎬 Your render workers ({jobs.length})</h2>
+              <p className="mt-1 text-xs text-slate-600 dark:text-slate-500">
                 Render workers bill while the pod runs.{" "}
                 <InfoTip side="bottom" text="RunPod bills dollars per second, never coins, no Vibe cut. Open the worker log to follow progress; stop it when the render finishes." label="About render workers" />
               </p>
@@ -397,7 +397,7 @@ export function RunpodDashboard() {
                 {jobs.map((j) => (
                   <li key={j.id} className="rounded-xl border border-slate-800 bg-slate-900 p-4">
                     <p className="font-mono text-xs text-cyan-300">{j.id.slice(0, 8)}</p>
-                    <p className="mt-1 text-xs text-slate-400">
+                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
                       {j.status} · {j.frameCount} frames · {j.gpu ?? "no GPU"}
                       {j.hourlyUsd > 0 ? ` · $${j.hourlyUsd.toFixed(2)}/hr` : ""}
                     </p>

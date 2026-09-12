@@ -90,7 +90,7 @@ export function LoveButtons({ postId }: { postId: string }) {
           💌x{totals.letters}
         </span>
       )}
-      {note && <span role="status" className="text-xs text-slate-400">{note}</span>}
+      {note && <span role="status" className="text-xs text-slate-600 dark:text-slate-400">{note}</span>}
     </div>
   );
 }

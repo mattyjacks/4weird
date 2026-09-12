@@ -31,8 +31,16 @@ html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(
 html.light:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.text-cyan-300, .text-cyan-200) { color: var(--t-ink); }
 html.dark:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.text-cyan-300, .text-cyan-200) { color: var(--t-glow); }
 html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .dark\:text-fuchsia-300 { color: var(--t2-glow); }
+/* light-only: plain .text-fuchsia-300/200 kickers + chips (fal/meshy kickers,
+   playing-games chip + NOW PLAYING) stay Tailwind pale-pink on paper without
+   this — pale on paper in every non-Blue-Boy light theme. Dark keeps the
+   default pale (readable on the night stage), so no dark rule here. */
+html.light:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.text-fuchsia-300, .text-fuchsia-200) { color: var(--t2-solid); }
 html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .text-amber-700 { color: var(--t-coin-ink); }
-html:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.text-amber-300, .dark\:text-amber-300) { color: var(--t-coin-glow); }
+/* mode-split: plain .text-amber-300 badges (docs/bots key, amber-500/20 chips) read
+   pale-gold on paper in light — coin-ink by day, glow by night (dark unchanged). */
+html.light:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .text-amber-300 { color: var(--t-coin-ink); }
+html.dark:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) :is(.text-amber-300, .dark\:text-amber-300) { color: var(--t-coin-glow); }
 html.light:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .text-amber-200 { color: var(--t-coin-ink); }
 html.dark:is(.theme-girly-girl, .theme-trans-them, .theme-green-guy, .theme-usa) .text-amber-200 { color: var(--t-coin-glow); }
 /* borders */

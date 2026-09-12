@@ -171,11 +171,11 @@ export function BlenderStudio() {
 
   return (
     <div className="space-y-6">
-      <section aria-label="Render cost" className="rounded-2xl border border-white/10 bg-white/[.03] p-5 text-sm text-slate-300">
-        <p className="font-bold text-white">
+      <section aria-label="Render cost" className="rounded-2xl border border-white/10 bg-white/[.03] p-5 text-sm text-slate-600 dark:text-slate-300">
+        <p className="font-bold text-slate-900 dark:text-white">
           Pinned RTX 4090 · ~{rate} coins/min (~${(rate * 0.6).toFixed(2)}/hr gross, 25% cut included)
         </p>
-        <p className="mt-1 text-slate-400">
+        <p className="mt-1 text-slate-600 dark:text-slate-400">
           RunPod bills the card per second from the first second (50-min wall cap ≈ ${((BLENDER_REF_HOURLY_USD / 60) * 50).toFixed(2)} ≈ {cap.gross} coins max).
           The worker exits itself when your mp4 is uploaded, ending billing with no clicks. First ~5 minutes install Blender, then it renders.
         </p>
@@ -189,7 +189,7 @@ export function BlenderStudio() {
             accept=".blend"
             aria-label="Blender scene file"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            className="min-w-0 flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm text-slate-200"
+            className="min-w-0 flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm text-slate-700 dark:text-slate-200"
           />
           <button
             type="button"
@@ -200,7 +200,7 @@ export function BlenderStudio() {
             {busy === "upload" ? "Uploading…" : "Upload scene"}
           </button>
         </div>
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-slate-600 dark:text-slate-500">
           .blend up to {BLENDER_MAX_SCENE_BYTES / 1_048_576} MB · uploads go straight to storage ·{" "}
           <a href={BLENDER_DEMO_FILES_URL} target="_blank" rel="noreferrer" className="text-cyan-300 hover:underline">
             free Blender demo scenes →
@@ -209,13 +209,13 @@ export function BlenderStudio() {
 
         {pendingJob && (
           <div className="mt-4 rounded-xl border border-white/10 bg-black/30 p-4">
-            <p className="text-sm font-bold text-white">Frame range <span className="font-normal text-slate-400">(max {BLENDER_MAX_FRAMES} frames per render)</span></p>
+            <p className="text-sm font-bold text-slate-900 dark:text-white">Frame range <span className="font-normal text-slate-600 dark:text-slate-400">(max {BLENDER_MAX_FRAMES} frames per render)</span></p>
             <div className="mt-2 flex flex-wrap items-end gap-2">
-              <label className="text-xs text-slate-300">
+              <label className="text-xs text-slate-600 dark:text-slate-300">
                 Start
                 <input value={startFrame} onChange={(e) => setStartFrame(e.target.value)} inputMode="numeric" className="ml-1 w-24 rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-white" />
               </label>
-              <label className="text-xs text-slate-300">
+              <label className="text-xs text-slate-600 dark:text-slate-300">
                 End
                 <input value={endFrame} onChange={(e) => setEndFrame(e.target.value)} inputMode="numeric" className="ml-1 w-24 rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-white" />
               </label>
@@ -239,9 +239,9 @@ export function BlenderStudio() {
       </section>
 
       <section aria-label="Your renders">
-        <p className="font-black text-white">Your renders</p>
+        <p className="font-black text-slate-900 dark:text-white">Your renders</p>
         {jobs.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-400">No renders yet; your jobs will appear here with live status.</p>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">No renders yet; your jobs will appear here with live status.</p>
         ) : (
           <ul className="mt-2 space-y-2">
             {jobs.map((j) => (
@@ -250,9 +250,9 @@ export function BlenderStudio() {
                   <button type="button" onClick={() => void refreshSelected(j.id)} className="font-mono text-xs text-cyan-300 hover:underline">
                     {j.id.slice(0, 8)}
                   </button>
-                  <span className="rounded-full border border-white/15 px-3 py-0.5 text-xs font-bold text-slate-200">{j.status}</span>
+                  <span className="rounded-full border border-white/15 px-3 py-0.5 text-xs font-bold text-slate-600 dark:text-slate-200">{j.status}</span>
                 </div>
-                <p className="mt-1 text-xs text-slate-400">
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
                   {(j.sceneBytes / 1_048_576).toFixed(1)} MB · frames {j.startFrame}-{j.endFrame} ({j.frameCount}) · {j.gpu ?? "no GPU yet"}
                   {j.hourlyUsd > 0 ? ` · $${j.hourlyUsd.toFixed(2)}/hr` : ""}
                 </p>

@@ -5,8 +5,10 @@
  * scripts/sync-game-bundles.mjs). Speaks the { version: 1 } postMessage
  * protocol the Next.js play shell (GameRuntimeFrame) expects:
  *
- *   game -> host: ready, error, metering, stats, save
- *   host -> game: host-ready, load, save-ack, pause, resume, reset,
+  *   game -> host: ready, error, metering, stats, save
+  *   host -> game: host-ready, load, save-ack, pause, resume, reset,
+  *     content-mode (kid/teen/all live switch, forwarded to the
+  *     content-mode bridge),
  *     a11y (colorblind filter, reduced motion, dyslexia spacing, focus
  *     rings - applied inside the frame where shell CSS cannot reach),
  *     input (click / rightclick / key synthesis for face, head-pointer,
@@ -163,6 +165,26 @@
     switch (data.type) {
       case "host-ready":
         hostAcked = true;
+        break;
+      case "content-mode":
+        // Host -> game live content-mode switch (kid/teen/all). Persist for
+        // the content-mode bridge and re-broadcast where it listens, so the
+        // gore overlay + profanity filter apply without a reload.
+        try {
+          var mode = data && data.mode;
+          if (mode === "kid" || mode === "teen" || mode === "all") {
+            try {
+              window.localStorage.setItem("4weird-content-mode:" + SLUG, mode);
+            } catch (e) {}
+            try {
+              window.dispatchEvent(
+                new CustomEvent("fourweird-content-mode-host", { detail: { slug: SLUG, mode: mode } })
+              );
+            } catch (e) {}
+          }
+        } catch (e) {
+          /* content-mode forwarding is best-effort */
+        }
         break;
       case "a11y":
         try {

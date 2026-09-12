@@ -32,11 +32,11 @@ const TABLE: Record<string, GamePlaybook> = {
   },
   lastwordszombies: {
     slug: "lastwordszombies",
-    controls: "Type A-Z to lock/decrypt units · 1/2/3 Shockwave/Cryo/Shield · Shift risk boost · Esc pause · I Black Market (desktop keyboard required)",
-    goal: "Decrypt approaching cyber-units by typing their codes before they breach the mainframe.",
-    boot: ["Click the terminal to focus the keyboard.", "Type the FIRST letter of the nearest unit to lock on.", "Finish the locked word before switching targets."],
-    autoplay: ["Send type_text to the focused terminal; never blind-keypress.", "Prioritize the closest unit each second; re-read after every kill.", "Open the Black Market (I) only between waves and record spend."],
-    tips: ["Locking on early buys time; first letters matter most.", "Short words first when the grid floods.", "Pause with Esc to read the store between waves."],
+    controls: "Type A-Z to banish zombies · 1/2/3 holy words: Shockwave/Cryo/Shield · Shift holy boost · Esc pause · I survivor stash (desktop keyboard required)",
+    goal: "Banish shambling zombies by typing their cursed words before they overrun the graveyard barricade.",
+    boot: ["Click the graveyard to focus the keyboard.", "Type the FIRST letter of the nearest zombie to lock on.", "Finish the locked word before switching targets."],
+    autoplay: ["Send type_text to the focused graveyard; never blind-keypress.", "Prioritize the closest zombie each second; re-read after every banish.", "Open the survivor stash (I) only between waves and record spend."],
+    tips: ["Locking on early buys time; first letters matter most.", "Short words first when the horde floods.", "Pause with Esc to read the survivor stash between waves."],
   },
   venturemechanically: {
     slug: "venturemechanically",

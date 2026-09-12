@@ -56,6 +56,10 @@ const root = process.cwd();
 const missing = [];
 let synced = 0;
 
+// Content-mode games ship the v2-native content-mode bridge (plus an
+// optional per-game gore overlay) inside the generated bundle.
+const CONTENT_MODE_SLUGS = new Set(["gravegain2d", "gravegain3d", "lastwordszombies"]);
+
 // Post-copy fixups applied ONLY to the generated bundle (the tracked source
 // under public/games/html/ stays byte-identical for old-v1 parity):
 //  1. game-meta.js is referenced relatively ("../game-meta.js" or, from the
@@ -131,6 +135,87 @@ function normalizeRuntime(indexFile, slug) {
   }
   if (!html.includes("runtime-bridge.js")) {
     const tag = `<script src="/games/html/runtime-bridge.js" data-slug="${slug}"></script>`;
+    if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${tag}</body>`);
+    else html += tag;
+  }
+  // Shared worker pool (EVERY game): offloads pure-math tasks (seeded RNG,
+  // steering batches, particle integration, timing aggregation) with a
+  // synchronous fallback. Source lives at public/games/html/fourweird-workers.js
+  // (v2-native, outside every parity-locked tree). existsSync-guarded.
+  if (!html.includes("fourweird-workers.js")) {
+    const poolSrc = join(root, "public", "games", "html", "fourweird-workers.js");
+    if (existsSync(poolSrc)) {
+      const tag = `<script src="/games/html/fourweird-workers.js" data-slug="${slug}"></script>`;
+      if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${tag}</body>`);
+      else html += tag;
+    }
+  }
+  // V2 per-game gore layer (lastwordszombies ONLY): inject the shared-root
+  // gore script into the generated bundle when absent. The source lives at
+  // public/games/html/gore-lastwordszombies.js (outside the parity-locked
+  // lastwordszombies/ dir, so cpSync never carries it) and is referenced by
+  // absolute canonical path, mirroring game-meta.js above. existsSync guard
+  // keeps old checkouts (no gore file yet) syncing cleanly.
+  if (slug === "lastwordszombies" && !html.includes("gore-lastwordszombies.js")) {
+    const goreSrc = join(root, "public", "games", "html", "gore-lastwordszombies.js");
+    if (existsSync(goreSrc)) {
+      const goreTag = `<script src="/games/html/gore-lastwordszombies.js"></script>`;
+      if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${goreTag}</body>`);
+      else html += goreTag;
+    }
+  }
+  // Per-game gore injection — gravegain3d ONLY. The v2 gore overlay lives at
+  // public/games/html/gore-gravegain3d.js (outside the parity-locked
+  // gravegain3d/ tree). Inject by reference into the generated bundle only,
+  // and only when the source file exists and no sibling already injected it
+  // (existsSync guard avoids clobbering another agent's injection).
+  if (slug === "gravegain3d") {
+    const goreSrc = join(root, "public", "games", "html", "gore-gravegain3d.js");
+    if (existsSync(goreSrc) && !html.includes("gore-gravegain3d.js")) {
+      const tag = `<script src="/games/html/gore-gravegain3d.js"></script>`;
+      if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${tag}</body>`);
+      else html += tag;
+    }
+  }
+  // v2-native per-game gore engine (GraveGain2D only): the source file lives at
+  // public/games/html/gore-gravegain2d.js and is served as
+  // /games/html/gore-gravegain2d.js. existsSync-guarded so a missing file never
+  // breaks the sync; tracked bundle sources stay byte-identical.
+  if (slug === "gravegain2d" && !html.includes("gore-gravegain2d.js")) {
+    const goreSrc = join(root, "public", "games", "html", "gore-gravegain2d.js");
+    if (existsSync(goreSrc)) {
+      const tag = `<script src="/games/html/gore-gravegain2d.js" data-slug="gravegain2d"></script>`;
+      if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${tag}</body>`);
+      else html += tag;
+    }
+  }
+  // GraveGain epic layer (gravegain2d + gravegain3d ONLY): saga data ->
+  // cutscene engine -> graphics-plus -> worker tasks, in dependency order.
+  // All sources live at public/games/html/*.js (v2-native, outside the
+  // parity-locked gravegain2d/ + gravegain3d/ trees). existsSync-guarded,
+  // injected only when absent; tracked bundle sources stay byte-identical.
+  if ((slug === "gravegain2d" || slug === "gravegain3d") ) {
+    const epicFiles = [
+      "gravegain-epic-saga.js",
+      "gravegain-cutscenes.js",
+      "gravegain-graphics-plus.js",
+      "gravegain-workers.js",
+    ];
+    for (const file of epicFiles) {
+      if (html.includes(file)) continue;
+      const src = join(root, "public", "games", "html", file);
+      if (!existsSync(src)) continue;
+      const tag = `<script src="/games/html/${file}" data-slug="${slug}"></script>`;
+      if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${tag}</body>`);
+      else html += tag;
+    }
+  }
+  // Content-mode bridge (v2-native extra): shared gore/drugs/profanity
+  // gating for the kid-safe horror titles (per-game gore overlays are
+  // injected by the per-slug blocks above). Parity sources are untouched —
+  // only the generated bundle gains this tag.
+  if (CONTENT_MODE_SLUGS.has(slug) && !html.includes("content-mode-bridge.js")) {
+    const tag = `<script src="/games/html/content-mode-bridge.js" data-slug="${slug}"></script>`;
     if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${tag}</body>`);
     else html += tag;
   }

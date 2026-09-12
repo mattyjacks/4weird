@@ -110,7 +110,7 @@ Cookie session (`credentials: "include"`) or bot key (`x-bot-key: bot4weird_...`
 
 ## 7. VibeCodeWorker
 
-- Pages: `/vibecodeworker`, `/vibecodeworker/[section]` (overview, hub, run, full, phone, docs, demo; each embeds its live `/vibecodeworker-legacy/*` surface in an iframe plus a public service-status pill). Run lifecycle API: `/api/vcw/*` (`health` is public; every other action authenticated).
+- Pages: `/vibecodeworker`, `/vibecodeworker/[section]` (overview, hub, run, full, phone, docs, demo; each a native React page — hub drives the run loop via `/api/vcw/*`, run provisions via `/api/vcw/autoplay`, full browses same-origin `/ai`, phone is a worker remote; hub/run show a service-status pill). No iframes: game play shells keep their runtime iframes, but VCW sections never frame `/vibecodeworker-legacy/*` (static archive only). Run lifecycle API: `/api/vcw/*` (`health` is public; every other action authenticated).
 - Agent loop (login session, `credentials: "include"`; every route returns `{ success }` and rate-limits per user):
   - `GET /api/vcw/status` → `{ service, catalog_games, runs, bugs }` (start here; proves the loop is usable).
   - `GET /api/vcw/games` → `{ count, games: [{ slug, title, genre, play_url, runtime_path }] }` (every legal run target; play URLs are first-party only).

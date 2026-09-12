@@ -150,15 +150,15 @@ export function DesktopRental() {
 
   return (
     <section aria-label="Rent a Virtual Desktop" className="rounded-2xl border border-cyan-300/30 bg-cyan-300/[.05] p-5">
-      <h2 className="text-2xl font-black text-white">Rent your desktop</h2>
-      <p className="mt-2 text-sm text-slate-300">
+      <h2 className="text-2xl font-black text-slate-900 dark:text-white">Rent your desktop</h2>
+      <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
         <strong>CPU is preselected</strong> - the cheapest remote box. Step up to GPU only when you need hardware
         acceleration (Blender, CUDA, AI art, GPU play). Quotes are USD/hour maximums on real RunPod pods; billed{" "}
         <strong>per second</strong> by RunPod, never more than the quote. Coin figures (≈ {desktopUsdToCoins(1)} coins
         per $1) are display equivalents only: direct RunPod spend carries <strong>no Vibe cut</strong> and debits no
         coins.
       </p>
-      <p role="status" className="mt-2 rounded-lg border border-white/15 bg-white/[.04] px-3 py-2 text-xs text-slate-300">
+      <p role="status" className="mt-2 rounded-lg border border-white/15 bg-white/[.04] px-3 py-2 text-xs text-slate-600 dark:text-slate-300">
         {pricing?.cheapest_gpu ? (
           <>
             💡 Live example: cheapest Secure GPU with stock right now is <strong>{pricing.cheapest_gpu.id}</strong> at{" "}
@@ -176,7 +176,7 @@ export function DesktopRental() {
           "💡 Live GPU price example unavailable (no stock data right now). Your pod is still quoted exactly at rent time."
         )}
       </p>
-      <p className="mt-2 text-xs text-slate-400">🔔 {describePodIdlePolicy(serverPolicy)} Any input resets the clock.</p>
+      <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">🔔 {describePodIdlePolicy(serverPolicy)} Any input resets the clock.</p>
       {runpodReady === false && (
         <p role="status" className="mt-3 rounded-lg border border-amber-300/40 bg-amber-300/[.08] px-3 py-2 text-xs text-amber-100">
           RunPod is not configured on the server yet (RUNPOD_API_KEY). You can still try; the API will return the
@@ -244,7 +244,7 @@ export function DesktopRental() {
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <label className="text-xs text-slate-300">
+        <label className="text-xs text-slate-600 dark:text-slate-300">
           Max $/hour (0 = cheapest available with stock){" "}
           <InfoTip side="bottom" text="Sets the highest hourly rate you accept. Zero picks the cheapest GPU with stock; you never pay more than the quote." label="About max hourly price" />
           <input
@@ -256,16 +256,16 @@ export function DesktopRental() {
             onChange={(e) => setMaxUsd(e.target.value)}
             className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-white"
           />
-          <span className="mt-1 block text-slate-500">
+          <span className="mt-1 block text-slate-600 dark:text-slate-500">
             GPU picks the cheapest Secure GPU at or under this max. CPU always takes the cheapest CPU.
           </span>
         </label>
-        <div className="text-xs text-slate-300">
-          <p className="font-bold text-slate-200">Selected plan</p>
-          <p className="mt-1 text-slate-400">{plan.blurb}</p>
+        <div className="text-xs text-slate-600 dark:text-slate-300">
+          <p className="font-bold text-slate-700 dark:text-slate-200">Selected plan</p>
+          <p className="mt-1 text-slate-600 dark:text-slate-400">{plan.blurb}</p>
           <ul className="mt-2 flex flex-wrap gap-1">
             {plan.bestFor.map((b) => (
-              <li key={b} className="rounded-full border border-slate-700 px-2 py-0.5 text-[11px] text-slate-300">
+              <li key={b} className="rounded-full border border-slate-700 px-2 py-0.5 text-[11px] text-slate-600 dark:text-slate-300">
                 {b}
               </li>
             ))}
@@ -276,7 +276,7 @@ export function DesktopRental() {
       <details className="mt-4 rounded-xl border border-slate-700 bg-slate-950 p-4">
         <summary className="cursor-pointer text-sm font-bold text-white">⚙️ Advanced: custom container image + idle timers</summary>
         <div className="mt-3 grid gap-3">
-          <label className="text-xs text-slate-300">
+          <label className="text-xs text-slate-600 dark:text-slate-300">
             Custom image (Docker ref, e.g. <code>runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04</code>; blank = plan default){" "}
             <InfoTip side="bottom" text="Uses your Docker image instead of the plan default. Ports stay fixed so the browser stream link keeps working." label="About custom image" />
             <input
@@ -287,12 +287,12 @@ export function DesktopRental() {
               spellCheck={false}
               className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 font-mono text-white"
             />
-            <span className="mt-1 block text-slate-500">
+            <span className="mt-1 block text-slate-600 dark:text-slate-500">
               Ports stay the interface defaults so the stream link keeps working ({iface === "gui" ? `port ${plan.port}` : `port ${plan.jupyter.port}`}). Anything that is not a Docker ref is refused.
             </span>
           </label>
           <div>
-            <p className="text-xs font-bold text-slate-200">Idle timers for this pod (blank = default {serverPolicy.warnMinutes}/{serverPolicy.stopGraceMinutes}/{serverPolicy.terminateHours}h){" "}
+            <p className="text-xs font-bold text-slate-700 dark:text-slate-200">Idle timers for this pod (blank = default {serverPolicy.warnMinutes}/{serverPolicy.stopGraceMinutes}/{serverPolicy.terminateHours}h){" "}
               <InfoTip side="bottom" text="Idle guard: 60-min chime → +15-min stop → 24h terminate. Any input resets the clock." label="About idle timers" />
             </p>
             <div className="mt-2">
@@ -313,7 +313,7 @@ export function DesktopRental() {
         </button>
         <Link
           href="/my/usage/"
-          className="rounded-full border border-white/20 px-6 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
+          className="rounded-full border border-white/20 px-6 py-2.5 text-sm font-semibold text-slate-900 dark:text-white hover:bg-white/10"
         >
           Track spend on /my/usage/
         </Link>
@@ -325,9 +325,9 @@ export function DesktopRental() {
         </p>
       )}
       {needsLogin && (
-        <div role="alert" className="mt-3 rounded-xl border border-cyan-300/40 bg-cyan-300/[.08] p-4 text-sm text-slate-200">
-          <p className="font-bold text-white">Login required to rent a desktop</p>
-          <p className="mt-1 text-xs text-slate-300">
+        <div role="alert" className="mt-3 rounded-xl border border-cyan-300/40 bg-cyan-300/[.08] p-4 text-sm text-slate-700 dark:text-slate-200">
+          <p className="font-bold text-slate-900 dark:text-white">Login required to rent a desktop</p>
+          <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
             Renting provisions a real RunPod pod on your account, so it needs a signed-in session. New accounts get a
             100 🪙 ($1.00) trial.
           </p>
@@ -340,7 +340,7 @@ export function DesktopRental() {
             </Link>
             <Link
               href="/auth/sign-up"
-              className="rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-white hover:bg-white/10"
+              className="rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-slate-900 dark:text-white hover:bg-white/10"
             >
               Sign up
             </Link>
@@ -348,12 +348,12 @@ export function DesktopRental() {
         </div>
       )}
       {result?.success && result.started && result.connection && (
-        <div className="mt-4 rounded-xl border border-emerald-300/30 bg-emerald-300/[.06] p-4 text-xs text-slate-200">
+        <div className="mt-4 rounded-xl border border-emerald-300/30 bg-emerald-300/[.06] p-4 text-xs text-slate-700 dark:text-slate-200">
           <p className="font-bold text-emerald-200">✅ Virtual Desktop live</p>
           <p className="mt-2">
             <ProxyLink href={result.connection.endpointUrl} label="Open desktop" />
           </p>
-          <p className="mt-1 text-slate-400">
+          <p className="mt-1 text-slate-600 dark:text-slate-400">
             Pod {result.connection.podId} ·{" "}
             {result.connection.gpu ? `GPU ${result.connection.gpu}` : `CPU ${result.connection.cpu ?? ""}`} · ~
             ${Number(result.connection.hourlyUsd).toFixed(2)}/hr (≈ {Number(result.connection.coinsPerHour).toFixed(0)}{" "}
@@ -367,20 +367,20 @@ export function DesktopRental() {
             </p>
           )}
           {result.interface === "jupyter" ? (
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-slate-400">
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-slate-600 dark:text-slate-400">
               <li>JupyterLab opens at the link above; SSH per the RunPod console pod details.</li>
               <li>Install anything with apt/uv; disk is {plan.diskGb} GB ephemeral unless you attach storage.</li>
               <li>Manage it below in <strong>My pods</strong> (or <Link href="/runpods" className="text-cyan-300 hover:underline">My RunPods</Link>); stop ends billing, terminate deletes the disk.</li>
             </ul>
           ) : (
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-slate-400">
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-slate-600 dark:text-slate-400">
               <li>Log in with the VNC password above (change it after first login).</li>
               <li>Your Ubuntu desktop streams in the browser: Chromium, VS Code, terminal{result.kind === "gpu" ? ", Blender-ready GPU" : ""}.</li>
               <li>Manage it below in <strong>My pods</strong> (or <Link href="/runpods" className="text-cyan-300 hover:underline">My RunPods</Link>); stop ends billing, terminate deletes the disk.</li>
             </ul>
           )}
-          <p className="mt-2 text-slate-500">{result.billing?.note ?? result.note ?? ""}</p>
-          <p className="mt-1 text-slate-500">
+          <p className="mt-2 text-slate-600 dark:text-slate-500">{result.billing?.note ?? result.note ?? ""}</p>
+          <p className="mt-1 text-slate-600 dark:text-slate-500">
             First boot pulls a ~6.5 GB desktop image and can take several minutes; a 404 or “waiting” page on the
             link during that window is normal. Wait, then Reload. Keep this tab open and the idle guard below watches
             the pod for you.
@@ -394,7 +394,7 @@ export function DesktopRental() {
         </div>
       )}
       {result?.success && !result.started && (
-        <p role="status" className="mt-3 rounded-lg border border-white/15 bg-white/[.04] px-3 py-2 text-xs text-slate-300">
+        <p role="status" className="mt-3 rounded-lg border border-white/15 bg-white/[.04] px-3 py-2 text-xs text-slate-600 dark:text-slate-300">
           Desktop not started: {result.provision?.message ?? result.note ?? "provisioning deferred."} No spend occurred.
         </p>
       )}
