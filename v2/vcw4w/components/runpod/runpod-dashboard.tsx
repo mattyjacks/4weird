@@ -251,7 +251,7 @@ function PodStatusBadge({ dbStatus, podStatus }: { dbStatus: string; podStatus: 
   }
   if (/PROVISION|STARTING|PENDING|CREAT|INITIALIZ|RESTARTING/.test(pod)) {
     return (
-      <span className="inline-flex items-center rounded-full bg-amber-900 px-2 py-0.5 text-xs font-bold text-amber-200">
+      <span role="status" title="Pod is still starting — the link may 404 until it reports Live." className="inline-flex items-center rounded-full bg-amber-900 px-2 py-0.5 text-xs font-bold text-amber-200">
         <Loader2 className="mr-1 inline h-3 w-3 animate-spin" aria-hidden="true" />
         Starting…
       </span>
