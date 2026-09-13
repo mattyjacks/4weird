@@ -236,7 +236,9 @@ export default function TermsPage() {
           item: you always know exactly what you get before you pay. We sell no loot boxes, gacha, paid random
           draws, prize draws, raffles, wagers, or stakes, in any region - including the United States and New
           Hampshire. Luck Factory previews are free entertainment illustrations with no entry fee, no prize, and
-          no payout, and they never affect games, rewards, or balances.
+          no payout, and they never affect games, rewards, or balances. Luck Factory 🍀 Clovers are fake
+          session-only display units with no value: they reset on refresh and can never become Coins, Crowns,
+          or anything convertible or withdrawable.
         </p>
         <p>
           <strong>90-day refund on unspent purchased coins.</strong> Coins you bought (paid packs only -

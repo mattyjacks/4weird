@@ -16,7 +16,7 @@ const theme = {
   title: "bg-gradient-to-r from-violet-300 via-fuchsia-200 to-amber-200 bg-clip-text text-transparent",
 };
 
-const GUIDES: [string, string, string, string][] = [
+const GUIDES: [string, string, string][] = [
   ["/docs/studio/media-mogul", "🎬 Media Mogul timeline", "Cut gameplay, Blender, fal.ai, music, and voiceover on the browser timeline — then package for render."],
   ["/docs/studio/dictate-pic", "🎨 DictatePic layers", "Paint sprites on a 512px layered canvas: 5 working tools, 8 blend modes, 30-step undo, PNG export."],
   ["/docs/studio/commander", "⚡ Commander reference", "Every allow-listed terminal command — help to luck — with exact syntax and offline guarantees."],

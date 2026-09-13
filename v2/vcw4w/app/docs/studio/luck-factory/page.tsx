@@ -79,7 +79,7 @@ export default function LuckFactoryPage() {
         index="3"
         kicker="No cost"
         title="Free forever — no charge exists"
-        body="There are no paid draws. Nothing is charged, nothing is won, nothing is recorded: no wagers, no payouts, no prizes, no ledger writes, no fetch."
+        body="There are no paid draws. Nothing is charged, nothing is won, nothing is recorded: no wagers, no payouts, no prizes, no ledger writes, no fetch. Each draw grants 🍀 Clovers — session-only fake currency that resets on refresh and can never become coins or anything of value."
       />
       <Callout tone="rose" title="Entertainment only — not gambling">
         No paid draws, no wagers, no payouts, no prizes, no ledger writes, no fetch. FNV-1a is a non-cryptographic mixer for spreading draws uniformly — not a CSPRNG, not a KDF, not collision-resistant — and the code says so. If you want randomness you can trust with money, this is not it and never claims to be.
