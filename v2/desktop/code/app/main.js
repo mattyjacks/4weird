@@ -402,6 +402,14 @@ ipcMain.handle('test-api-keys', async (_event, suppliedKeys = {}) => {
   // Meta-direct key can be live-tested against the user's own endpoint when
   // set, otherwise against the universal Meta Llama API URL (see below).
   const metaEndpointUrl = String(suppliedKeys.endpointUrl || '').trim();
+  // 4weird base URL comes from the on-disk exe settings (config/default.json),
+  // never from the key itself; default to the live site when unset/invalid.
+  let fourWeirdBase = 'https://4weird.com';
+  try {
+    const cfgRaw = JSON.parse(fs.readFileSync(path.join(projectRoot, 'config', 'default.json'), 'utf8'));
+    const raw = String((cfgRaw && cfgRaw.fourWeirdBaseUrl) || '').trim().replace(/\/+$/, '');
+    if (/^https?:\/\/[^/\s]+/i.test(raw)) fourWeirdBase = raw;
+  } catch (_) { /* live-site default stands */ }
   const providers = [
     { name: 'openai', key: String(suppliedKeys.openai || '').trim(), url: 'https://api.openai.com/v1/responses', model: 'gpt-5.6-luna', body: () => ({ model: 'gpt-5.6-luna', input: prompt, max_output_tokens: 16, store: false }) },
     { name: 'deepseek', key: String(suppliedKeys.deepseek || '').trim(), url: 'https://api.deepseek.com/chat/completions', model: 'deepseek-v4-flash', body: () => ({ model: 'deepseek-v4-flash', max_tokens: 16, messages: [{ role: 'user', content: prompt }] }) },
@@ -409,10 +417,55 @@ ipcMain.handle('test-api-keys', async (_event, suppliedKeys = {}) => {
     { name: 'meta', key: String(suppliedKeys.meta || '').trim(), url: 'https://openrouter.ai/api/v1/chat/completions', model: 'meta-llama/llama-4-scout-17b-16e-instruct', body: () => ({ model: 'meta-llama/llama-4-scout-17b-16e-instruct', max_tokens: 16, messages: [{ role: 'user', content: prompt }] }) },
     { name: 'openrouter', key: String(suppliedKeys.openrouter || '').trim(), url: 'https://openrouter.ai/api/v1/chat/completions', model: 'meta-llama/llama-4-scout-17b-16e-instruct', body: () => ({ model: 'meta-llama/llama-4-scout-17b-16e-instruct', max_tokens: 16, messages: [{ role: 'user', content: prompt }] }) },
     { name: 'elevenlabs', key: String(suppliedKeys.elevenlabs || '').trim(), url: 'https://api.elevenlabs.io/v1/user', model: 'eleven_multilingual_v2', elevenlabs: true },
-    { name: 'runpod', key: String(suppliedKeys.runpod || '').trim(), runpod: true }
+    { name: 'runpod', key: String(suppliedKeys.runpod || '').trim(), runpod: true },
+    { name: 'fourweird', key: String(suppliedKeys.fourweird || '').trim(), fourweird: true },
+    { name: 'fal', key: String(suppliedKeys.fal || '').trim(), fal: true }
   ];
   const results = await Promise.all(providers.map(async (provider) => {
     if (!provider.key) return { provider: provider.name, status: 'skipped', detail: 'No key entered.' };
+    // 4weird bot key: live read-only VERIFY against GET /api/bot/me with the
+    // x-bot-key header. Never touches the user profile; 401/403 = bad key.
+    if (provider.fourweird) {
+      if (!/^bot4weird_[A-Za-z0-9]{20,32}$/.test(provider.key)) {
+        return { provider: provider.name, status: 'invalid', detail: 'Wrong shape — a bot key looks like bot4weird_ + 20-32 letters/digits. Copy it fresh from 4weird.com/bot/setup.' };
+      }
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 20000);
+      try {
+        const response = await fetch(`${fourWeirdBase}/api/bot/me`, { headers: { 'x-bot-key': provider.key }, signal: controller.signal });
+        if (response.ok) {
+          let who = '';
+          try {
+            const me = await response.json();
+            const handle = me && (me.username || me.handle || (me.bot && (me.bot.username || me.bot.handle)));
+            if (handle) who = ` Linked to @${handle}.`;
+          } catch (_) { /* acceptance already proven by response.ok */ }
+          return { provider: provider.name, status: 'valid', detail: `Key accepted.${who}` };
+        }
+        if (response.status === 401 || response.status === 403) return { provider: provider.name, status: 'invalid', detail: `Authentication rejected (${response.status}). Re-copy from 4weird.com/bot/setup or reissue.` };
+        return { provider: provider.name, status: 'error', detail: `4weird returned ${response.status}; the key itself was not judged bad. Key was not removed.` };
+      } catch (error) {
+        return { provider: provider.name, status: 'error', detail: error.name === 'AbortError' ? 'Timed out; key was not removed.' : 'Connection failed; key was not removed.' };
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+    // fal.ai: FREE verify — poll a nil-UUID queue status with the key. A valid
+    // key answers 404 (no such request); 401/403 means the key is bad. No
+    // model ever runs, so $0.00 is spent.
+    if (provider.fal) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 20000);
+      try {
+        const response = await fetch('https://queue.fal.run/fal-ai/flux/schnell/requests/00000000-0000-0000-0000-000000000000/status', { headers: { Authorization: `Key ${provider.key}` }, signal: controller.signal });
+        if (response.status === 401 || response.status === 403) return { provider: provider.name, status: 'invalid', detail: `Authentication rejected (${response.status}).` };
+        return { provider: provider.name, status: 'valid', detail: 'Key accepted (free probe, $0.00 spent).' };
+      } catch (error) {
+        return { provider: provider.name, status: 'error', detail: error.name === 'AbortError' ? 'Timed out; key was not removed.' : 'Connection failed; key was not removed.' };
+      } finally {
+        clearTimeout(timer);
+      }
+    }
     // ElevenLabs authenticates with xi-api-key on a GET /v1/user probe -
     // never POST test traffic that would burn voice credits.
     if (provider.runpod) {

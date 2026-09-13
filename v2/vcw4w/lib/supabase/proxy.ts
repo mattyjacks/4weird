@@ -29,14 +29,12 @@ export async function updateSession(request: NextRequest) {
         supabaseResponse = NextResponse.next({
           request,
         });
+        // Pass Supabase's cookie options through UNCHANGED (official
+        // @supabase/ssr pattern) — see lib/supabase/server.ts: forcing
+        // httpOnly here blinds the browser client while the server still
+        // sees the session (header stuck on Login/Sign Up, no badges).
         cookiesToSet.forEach(({ name, value, options }) =>
-          supabaseResponse.cookies.set(name, value, {
-            ...options,
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            path: "/",
-          }),
+          supabaseResponse.cookies.set(name, value, options),
         );
       },
     },

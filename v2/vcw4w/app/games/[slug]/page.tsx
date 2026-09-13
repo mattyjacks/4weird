@@ -94,7 +94,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
               <li><b className="text-white">Uncut (18+):</b> {CONTENT_MODE_DESCRIPTIONS.all}</li>
             </ul>
             <p className="mt-3 text-sm text-slate-400">
-              Pick a mode before you play — locked modes stay visible with the reason shown.
+              Only the modes open to your age band are offered when you play (Kid alone unless you&apos;re Teen or Adult; adults see all three) — and play auto-starts in the best one for you.
             </p>
           </section>
         )}

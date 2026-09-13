@@ -12,13 +12,16 @@ import { requiredAgeFor, getGameRating, isKidsMode } from "@/lib/age-gate";
 import { bandMinAge } from "@/lib/family";
 import {
   CONTENT_MODE_LABELS,
+  bestVisibleContentMode,
   canUseContentMode,
+  contentModeStorageKey,
   contentModeSummary,
   defaultContentMode,
   effectiveMinAge,
   hasContentModes,
   listContentModesForViewer,
   readStoredContentMode,
+  visibleContentModesForViewer,
   withContentModeParam,
   writeStoredContentMode,
 } from "@/lib/content-modes";
@@ -140,9 +143,10 @@ export function PlayGate({ slug, title, src, version, emoji }: { slug: string; t
 // static so unknown slugs 404 with a real 404 status, and useSearchParams
 // needs the Suspense boundary above during prerender.
 /**
- * ContentMode picker: ALWAYS renders all three modes (kid/teen/all) via
- * listContentModesForViewer — the list is never filtered. Modes the viewer
- * cannot use render disabled with a 🔒 lockReason (canUseContentMode).
+ * ContentMode picker: renders ONLY the modes open to this viewer
+ * (visibleContentModesForViewer) — kid-band/unknown/guest viewers see Kid
+ * alone, teens see Kid + Teen, adults see all three. Locked modes are hidden,
+ * never shown disabled, so a kid viewer never sees an Uncut row at all.
  */
 function ContentModePicker({
   slug,
@@ -158,7 +162,9 @@ function ContentModePicker({
   onSelect: (next: ContentMode) => void;
 }) {
   if (!hasContentModes(slug)) return null;
-  const options = listContentModesForViewer(band, kidBand);
+  const visible = visibleContentModesForViewer(band, kidBand);
+  const options = listContentModesForViewer(band, kidBand).filter((o) => visible.includes(o.mode));
+  const filtered = options.length < 3;
   return (
     <fieldset className="mb-3 rounded-2xl border border-white/15 bg-black p-4 sm:p-5">
       <legend className="px-2 text-sm font-black text-white">Content mode</legend>
@@ -171,19 +177,17 @@ function ContentModePicker({
               key={option.mode}
               className={`block cursor-pointer rounded-xl border px-3 py-2.5 text-left text-xs ${
                 selected ? "border-cyan-300/70 bg-cyan-300/10" : "border-white/10 bg-white/[.03]"
-              } ${option.locked ? "cursor-not-allowed opacity-70" : "hover:bg-white/[.06]"}`}
+              } hover:bg-white/[.06]`}
             >
               <span className="flex items-center gap-2">
                 <input
                   type="radio"
                   name={`content-mode-${slug}`}
                   checked={selected}
-                  disabled={option.locked}
                   onChange={() => onSelect(option.mode)}
                   className="accent-cyan-300"
                 />
                 <span className="text-sm font-black text-white">
-                  {option.locked ? "🔒 " : ""}
                   {option.label}
                 </span>
               </span>
@@ -191,9 +195,6 @@ function ContentModePicker({
               <span className="mt-1 block text-slate-400">
                 Gore: {summary.gore} · Drugs: {summary.drugs} · Language: {summary.language}
               </span>
-              {option.locked && option.lockReason && (
-                <span className="mt-1 block font-semibold text-amber-200">{option.lockReason}</span>
-              )}
             </label>
           );
         })}
@@ -201,6 +202,9 @@ function ContentModePicker({
       <p className="mt-2 text-xs text-slate-400">
         Kid: no blood/gore, child-friendly words · Teen ({CONTENT_MODE_LABELS.teen}): gore on, mild swears only ·{" "}
         {CONTENT_MODE_LABELS.all}: everything, 18+ only.
+        {filtered && (
+          <> Showing only the modes open to your age band{band === "adult" || kidBand === "adult" ? "" : " — adults see all three"}</>
+        )}
       </p>
     </fieldset>
   );
@@ -249,8 +253,11 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
   // Content modes (gravegain2d/gravegain3d/lastwordszombies): the stored mode
   // rides in the frame URL (?content=<mode>) and is sent to /api/games/session
   // as content_mode; live switches also postMessage into the running frame.
+  // Fail-closed first paint: kid mode until the band resolution below raises
+  // it to the stored/best visible mode — a teen/adult band never flashes a
+  // locked frame, and a kid viewer never flashes gore.
   const contentSupported = hasContentModes(slug);
-  const [contentMode, setContentMode] = useState<ContentMode>(() => defaultContentMode());
+  const [contentMode, setContentMode] = useState<ContentMode>("kid");
   const [kidBand, setKidBand] = useState<string | null>(null);
   // Bumped when the picker changes so the age resolution below re-runs (a
   // kid-band viewer switching to kid mode can clear kid-rating live).
@@ -501,10 +508,11 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
   // Locked stored mode (e.g. Uncut kept from an adult session, or a shared
   // ?content=all link) can never clear /api/games/session for kid/teen
   // bands — firing the doomed POST just 403s noise into the console before
-  // landing on the denied screen. Downgrade to the best allowed mode as soon
-  // as the band is definitive, so play starts in an allowed mode instead.
-  // The picker always lists every mode, so an adult signing in later can
-  // re-pick Uncut in one click.
+  // landing on the denied screen. Auto-switch to the best VISIBLE mode as soon
+  // as the band is definitive (kid viewers land on kid, teens on teen), so
+  // play starts in an allowed mode instead. The picker only ever lists visible
+  // modes, so an adult signing in later sees all three and can re-pick Uncut
+  // in one click.
   useEffect(() => {
     if (!contentSupported) return;
     // Never downgrade on a guess: an adult band may still be loading (a
@@ -519,13 +527,40 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
       if (contentMode !== stored) setContentMode(stored);
       return;
     }
-    const fallback: ContentMode = canUseContentMode(viewerBand, kidBand, "teen") ? "teen" : "kid";
+    const fallback = bestVisibleContentMode(viewerBand, kidBand);
     if (contentMode !== fallback) setContentMode(fallback);
     writeStoredContentMode(slug, fallback);
     // Re-resolve the age gate on the effective mode (a teen-band viewer with
     // Teen stored takes the teens branch instead of the adults hard block).
     setContentNonce((n) => n + 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contentSupported, slug, ageBand, kidBand, kidHandle, hasSession, age]);
+
+  // Clamp in-game mode flips: a settings select inside the runtime frame can
+  // write a locked mode straight to localStorage (same origin, so the shell
+  // sees the storage event). Rewrite it to the best visible mode and push it
+  // live into the frame, so a kid viewer can't stick Uncut visuals locally.
+  // Server enforcement is untouched (/api/games/session still 403s locked
+  // modes); this only keeps local rendering honest.
+  useEffect(() => {
+    if (!contentSupported) return;
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== null && event.key !== contentModeStorageKey(slug)) return;
+      const bandKnown = kidBand !== null || (hasSession && ageBand !== "unknown");
+      const guestDefinitive = !hasSession && kidHandle === null && age !== "unknown";
+      if (!bandKnown && !guestDefinitive) return;
+      const viewerBand = kidBand !== null ? null : hasSession ? ageBand : "unknown";
+      const stored = readStoredContentMode(slug);
+      if (canUseContentMode(viewerBand, kidBand, stored)) return;
+      const fallback = bestVisibleContentMode(viewerBand, kidBand);
+      writeStoredContentMode(slug, fallback);
+      setContentMode(fallback);
+      // Re-resolve the age gate on the clamped mode (a viewer stuck on the
+      // adults hard block by a stored Uncut drops to the teens/kids branch).
+      setContentNonce((n) => n + 1);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, [contentSupported, slug, ageBand, kidBand, kidHandle, hasSession, age]);
 
   // Live content-mode switch: forward the newly picked mode into the running

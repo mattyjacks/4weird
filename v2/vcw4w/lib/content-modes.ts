@@ -2,13 +2,19 @@
  * Shared content-mode infrastructure for the three gore/horror titles that
  * ship kid-safe variants: gravegain2d, gravegain3d, lastwordszombies.
  *
- * Three modes, always listed (never filtered — locked modes render disabled
- * with a lock reason so kid/teen viewers still see what exists):
+ * Three modes:
  * - kid: super-sanitized, no blood/gore, child-friendly words (min age 0).
  * - teen: full game, mild swears only, gore ON, no drugs/hard swears/dark
  *   lore (min age 13).
  * - all: everything, incl. growable/usable drugs, "fuck" + NPC swears,
  *   darkest lore (keeps the catalog rating, 18 for these three).
+ *
+ * Display is band-filtered: viewers only ever SEE the modes open to them
+ * (kid-band/unknown/guest → kid only; teen → kid + teen; adult → all three),
+ * and the shell auto-selects the best visible mode. Enforcement stays
+ * server-side (/api/games/session re-checks canUseContentMode + the
+ * effective age), so a forged ?content= or localStorage value can never
+ * unlock a locked mode.
  *
  * The catalog rating (lib/age-gate.ts) is untouched; this layer only maps a
  * (slug, mode) pair to an *effective* minimum age that the play gate and the
@@ -140,9 +146,36 @@ export type ContentModeOption = {
 };
 
 /**
- * ALWAYS returns all three modes (never filtered) so kid/teen viewers still
- * see the respective locked modes; locked entries carry a lockReason and the
- * picker renders them disabled with a 🔒.
+ * Modes the viewer may SEE in the picker (display filter). This is a subset
+ * of what canUseContentMode allows: anyone who is not teen or adult (kid
+ * band, unknown band, guests) sees kid mode ONLY; teens see kid + teen;
+ * adults see all three. Locked modes are hidden, not shown disabled — a kid
+ * viewer never sees an Uncut row at all.
+ */
+export function visibleContentModesForViewer(band: ViewerBand, kidBand?: string | null): ContentMode[] {
+  const kb = String(kidBand ?? "").trim().toLowerCase();
+  if (kb === "kid") return ["kid"];
+  if (kb === "teen") return ["kid", "teen"];
+  if (kb === "adult") return ["kid", "teen", "all"];
+  if (band === "kid") return ["kid"];
+  if (band === "teen") return ["kid", "teen"];
+  if (band === "adult") return ["kid", "teen", "all"];
+  return ["kid"];
+}
+
+/**
+ * Best (highest) visible mode for auto-select: kid viewers land on kid,
+ * teens on teen, adults keep their stored pick (or teen when nothing stored).
+ */
+export function bestVisibleContentMode(band: ViewerBand, kidBand?: string | null): ContentMode {
+  const visible = visibleContentModesForViewer(band, kidBand);
+  return visible[visible.length - 1] ?? "kid";
+}
+
+/**
+ * Full three-mode list with lock metadata (kept for surfaces that describe
+ * every mode, e.g. docs/detail copy). The play picker does NOT use this —
+ * it renders visibleContentModesForViewer only.
  */
 export function listContentModesForViewer(band: ViewerBand, kidBand?: string | null): ContentModeOption[] {
   return CONTENT_MODES.map((mode) => {

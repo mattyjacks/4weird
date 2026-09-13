@@ -157,4 +157,29 @@ for (const [path, body] of [["lib/family.ts", read("lib/family.ts")], ["parent-d
   must(!/porn|hentai|nsfw|erotic|sex game/i.test(body), `${path} must not describe sexual content`);
 }
 
+// 10. Age-band audit log: self-service bands stay open both ways, but every
+// change lands a tamper-evident row the owner reads (parents check /account).
+const auditMig = read("supabase/migrations/20261115000000_profile_audit_log.sql");
+for (const token of [
+  "create table if not exists public.profile_audit_log",
+  "user_id",
+  "old_value",
+  "new_value",
+  "profile_audit_log_read_own",
+  "auth.uid()",
+]) {
+  must(auditMig.includes(token), `audit migration must include ${token}`);
+}
+// Service_role writes only: no client insert/update/delete policies, so rows
+// can neither be forged nor erased from a browser session.
+must(!/for insert|for update|for delete/i.test(auditMig), "audit log must have no client write policies");
+must(profile.includes("profile_audit_log"), "me/profile PATCH must write the audit log");
+must(rights.includes("profile_audit_log"), "rights export must include the audit log");
+must(rights.includes('wipe("profile_audit_log", "user_id")'), "rights delete must erase the audit log");
+const activityRoute = read("app/api/me/activity/route.ts");
+for (const token of ["profile_audit_log", 'order("created_at"', "limit(100)", "Authentication required"]) {
+  must(activityRoute.includes(token), `me/activity route must include ${token}`);
+}
+must(accountDash.includes("/api/me/activity") && accountDash.includes("Recent account activity"), "account dashboard must show the activity log");
+
 console.log("Family checks OK: parent/child auth + controls + wallet + warlord ranks.");

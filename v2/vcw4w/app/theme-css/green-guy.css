@@ -2,8 +2,15 @@
    The squarest theme on the site: sharp corners, stencil-mono headlines in
    ALL CAPS, khaki paper by day, olive-black by night, olive-steel buttons
    with hard shadows. Light is sun-bleached khaki, dark is olive-black.
-   Camo comes from the SVG tiles in public/camo/ (referenced
-   here as url("/camo/*.svg")): muted classic-woodland amoeba blobs —
+   Camo comes from two layers: (1) the randomized full-viewport SVG rendered
+   by <GreenGuyCamo/> (lib/camo/green-guy-camo.ts, fresh crypto seed per page
+   load, light/dark palettes, zero tiling by construction) fixed behind
+   everything as #green-guy-camo-layer; (2) tiny fleck/slash grain tiles in
+   public/camo/ (referenced here as url("/camo/*.svg")) kept ONLY on small
+   controls (buttons, scrollbar) where a 120-140px grain never grids.
+   Large surfaces (body, header, hero, cards, footer, hr, aside) stay flat /
+   translucent / gradient-only so the viewport camo reads through with no
+   repeat seams — muted classic-woodland amoeba blobs —
    olive drab + chocolate brown + near-black on olive-black by night,
    sage + olive + brown on sun-bleached khaki by day. Light rules use
    camo-light-*, dark rules use camo-dark-*. Tiles always sit BEHIND
@@ -42,29 +49,36 @@ html.dark.theme-green-guy {
   --accent: 70 22% 15%; --accent-foreground: 70 30% 94%;
   --border: 70 18% 19%; --input: 70 18% 19%; --ring: 84 80% 55%;
 }
-/* body wash: dense thicket tile over the khaki paper / olive-black base */
+/* body wash: the randomized full-viewport camo layer (#green-guy-camo-layer,
+   generated fresh per page load) carries the woodland blobs. Body keeps only
+   the khaki/olive base + seamless gradients so there is never a repeat grid. */
+html.theme-green-guy #green-guy-camo-layer {
+  position: fixed; inset: 0; width: 100vw; height: 100dvh;
+  pointer-events: none; z-index: 0; contain: strict;
+  opacity: 0; transition: opacity 400ms ease-out;
+}
+html.theme-green-guy #green-guy-camo-layer.is-ready { opacity: 0.55; }
+html.theme-green-guy #green-guy-camo-layer svg { width: 100%; height: 100%; display: block; }
+html.light.theme-green-guy #green-guy-camo-layer.is-ready { opacity: 0.5; }
+html.dark.theme-green-guy #green-guy-camo-layer.is-ready { opacity: 0.62; }
 html.light.theme-green-guy body {
   background-color: #f4f1e4;
   background-image:
-    url("/camo/camo-light-thicket.svg"),
     repeating-linear-gradient(45deg, rgb(77 124 15 / 0.06) 0 2px, transparent 2px 16px),
     radial-gradient(60% 40% at 12% 0%, rgb(163 163 92 / 0.32), transparent 70%),
     radial-gradient(45% 35% at 88% 6%, rgb(101 163 13 / 0.20), transparent 70%);
-  background-size: 320px 320px, auto, auto, auto;
-  background-repeat: repeat, no-repeat, no-repeat, no-repeat;
+  background-repeat: no-repeat, no-repeat, no-repeat;
 }
 html.dark.theme-green-guy body {
   background-color: #0b0e05;
   background-image:
-    url("/camo/camo-dark-thicket.svg"),
     repeating-linear-gradient(45deg, rgb(163 163 92 / 0.05) 0 2px, transparent 2px 18px),
     radial-gradient(220px 160px at 12% 18%, rgb(77 124 15 / 0.35), transparent 70%),
     radial-gradient(260px 180px at 82% 12%, rgb(163 163 92 / 0.28), transparent 70%),
     radial-gradient(300px 200px at 68% 78%, rgb(87 83 78 / 0.3), transparent 70%),
     radial-gradient(240px 170px at 18% 82%, rgb(63 98 18 / 0.35), transparent 70%),
     radial-gradient(180px 140px at 45% 45%, rgb(101 163 13 / 0.18), transparent 70%);
-  background-size: 340px 340px, auto, auto, auto, auto, auto, auto;
-  background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
 }
 html.theme-green-guy .docs-orb-a { background: radial-gradient(circle, rgb(163 230 53 / 0.28), transparent 70%); }
 html.theme-green-guy .docs-orb-b { background: radial-gradient(circle, rgb(217 196 138 / 0.28), transparent 70%); }
@@ -73,22 +87,19 @@ html.theme-green-guy .docs-grid-bg {
     linear-gradient(to right, rgb(163 163 92 / 0.18) 1px, transparent 1px),
     linear-gradient(to bottom, rgb(163 163 92 / 0.18) 1px, transparent 1px);
 }
-/* docs-grid wash: thicket weave by day, sparse open-field by night, under the grid lines */
+/* docs-grid wash: grid lines only — blobs come from the full-viewport layer */
+/* docs-grid wash: grid lines only, over the full-viewport camo layer */
 html.light.theme-green-guy .docs-grid-bg {
   background-image:
-    url("/camo/camo-light-thicket.svg"),
     linear-gradient(to right, rgb(77 124 15 / 0.18) 1px, transparent 1px),
     linear-gradient(to bottom, rgb(77 124 15 / 0.18) 1px, transparent 1px);
-  background-size: 300px 300px, auto, auto;
-  background-repeat: repeat, repeat, repeat;
+  background-repeat: repeat, repeat;
 }
 html.dark.theme-green-guy .docs-grid-bg {
   background-image:
-    url("/camo/camo-dark-open-field.svg"),
     linear-gradient(to right, rgb(163 230 53 / 0.12) 1px, transparent 1px),
     linear-gradient(to bottom, rgb(163 230 53 / 0.12) 1px, transparent 1px);
-  background-size: 340px 340px, auto, auto;
-  background-repeat: repeat, repeat, repeat;
+  background-repeat: repeat, repeat;
 }
 html.light.theme-green-guy ::selection { background: #4d7c0f; color: #f7fee7; }
 html.dark.theme-green-guy ::selection { background: rgb(163 230 53 / 0.4); color: #1a2e05; }
@@ -200,107 +211,104 @@ html.light.theme-green-guy :is(.bg-slate-950, .bg-slate-900, .dark\:bg-slate-950
 html.light.theme-green-guy :is(.bg-black\/30, .bg-black\/40, .bg-black\/50) :is(h1, h2, h3, h4, p).text-white { color: #365314; }
 /* dark-mode audit: remaps stay olive-black, white text stays legible; lime-cream dark\:bg-cyan-300 pairs with dark\:text-slate-950 — no dark fix needed */
 
-/* header strip: oversized camo blocks behind the bar, olive / lime edge on top */
+/* header strip: flat jacket + sheen over the viewport camo, olive / lime edge on top */
 html.light.theme-green-guy header {
   border-top: 3px solid #365314;
   background-color: #e2d9b8;
-  background-image: url("/camo/camo-light-large-block.svg");
-  background-size: 280px 280px;
-  background-repeat: repeat;
-  background-position: top left;
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.14), rgb(0 0 0 / 0.10));
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: top center;
 }
 html.dark.theme-green-guy header {
   border-top: 3px solid #a3e635;
   background-color: #0b0e05;
-  background-image: url("/camo/camo-dark-large-block.svg");
-  background-size: 280px 280px;
-  background-repeat: repeat;
-  background-position: top left;
+  background-image: linear-gradient(180deg, rgb(163 230 53 / 0.12), rgb(0 0 0 / 0.35));
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: top center;
 }
 
-/* ---- CAMO WASHES: hand-authored SVG tiles layered behind content ---- */
-/* hero wash: sparse open-field over the deep section base */
+/* ---- CAMO WASHES: flat translucent surfaces over the viewport camo layer ---- */
+/* hero wash: translucent stage so the randomized blobs read through */
+/* hero wash: translucent stage over the randomized viewport camo */
 html.light.theme-green-guy .bg-slate-950 {
-  background-image: url("/camo/camo-light-open-field.svg");
-  background-size: 380px 380px;
-  background-repeat: repeat;
+  background-color: color-mix(in srgb, #efe9d2 82%, transparent);
 }
 html.dark.theme-green-guy .bg-slate-950 {
-  background-image: url("/camo/camo-dark-open-field.svg");
-  background-size: 380px 380px;
-  background-repeat: repeat;
+  background-color: color-mix(in srgb, #0b0e05 82%, transparent);
 }
-/* card edge: dense thicket weave behind card surfaces */
+/* card edge: translucent surface so the viewport camo reads through */
 html.light.theme-green-guy .bg-slate-900 {
-  background-image: url("/camo/camo-light-thicket.svg");
-  background-size: 300px 300px;
-  background-repeat: repeat;
+  background-color: color-mix(in srgb, #e2d9b8 84%, transparent);
 }
 html.dark.theme-green-guy .bg-slate-900 {
-  background-image: url("/camo/camo-dark-thicket.svg");
-  background-size: 300px 300px;
-  background-repeat: repeat;
+  background-color: color-mix(in srgb, #131a09 86%, transparent);
 }
 /* NOTE: .bg-black/50 scrims stay plain color-mix on purpose — an opaque
    camo tile here would kill modal translucency. Camo lives behind
    content, never in front of it. */
-/* section divider: horizontal drift bands behind hr rules */
+/* section divider: seamless stencil hairlines, never a cropped tile sliver */
 html.light.theme-green-guy hr {
-  background-color: #4d7c0f;
-  background-image: url("/camo/camo-light-horizontal-drift.svg");
-  background-size: 320px 320px;
-  background-repeat: repeat;
+  background-color: transparent;
+  background-image: linear-gradient(90deg, transparent, #4d7c0f 20%, #4d7c0f 80%, transparent);
+  background-size: 100% 2px;
+  background-repeat: no-repeat;
   background-position: center;
+  height: 2px; border: 0;
 }
 html.dark.theme-green-guy hr {
-  background-color: #3f6212;
-  background-image: url("/camo/camo-dark-horizontal-drift.svg");
-  background-size: 320px 320px;
-  background-repeat: repeat;
+  background-color: transparent;
+  background-image: linear-gradient(90deg, transparent, #a3e635 20%, #a3e635 80%, transparent);
+  background-size: 100% 2px;
+  background-repeat: no-repeat;
   background-position: center;
+  height: 2px; border: 0;
 }
-/* sidebar divider: diagonal slashes behind aside panels */
+/* sidebar divider: flat olive wash + stencil edge, no tile */
 html.light.theme-green-guy aside {
-  background-image: url("/camo/camo-light-diagonal-slash.svg");
-  background-size: 240px 240px;
-  background-repeat: repeat;
+  background-image: none;
+  background-color: color-mix(in srgb, #4d7c0f 8%, transparent);
+  border-left: 3px solid #4d7c0f;
 }
 html.dark.theme-green-guy aside {
-  background-image: url("/camo/camo-dark-diagonal-slash.svg");
-  background-size: 240px 240px;
-  background-repeat: repeat;
+  background-image: none;
+  background-color: color-mix(in srgb, #a3e635 10%, transparent);
+  border-left: 3px solid #a3e635;
 }
 
-/* ---- FOOTER: camo field-jacket in both modes (khaki wash by day, olive-black by night) ---- */
+/* ---- FOOTER: flat field-jacket over the viewport camo (khaki wash by day, olive-black by night) ---- */
 html.light.theme-green-guy footer#site-footer {
   background-color: #efe9d2;
-  background-image: url("/camo/camo-light-open-field.svg");
-  background-size: 380px 380px;
-  background-repeat: repeat;
+  background-image: linear-gradient(180deg, rgb(77 124 15 / 0.10), transparent 28%, rgb(77 124 15 / 0.08));
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: top center;
   border-top-color: rgb(77 124 15 / 0.35);
 }
 html.dark.theme-green-guy footer#site-footer {
   background-color: #0b0e05;
-  background-image: url("/camo/camo-dark-open-field.svg");
-  background-size: 380px 380px;
-  background-repeat: repeat;
+  background-image: linear-gradient(180deg, rgb(163 230 53 / 0.10), transparent 28%, rgb(0 0 0 / 0.35));
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: top center;
   border-top-color: rgb(163 230 53 / 0.25);
 }
 html.light.theme-green-guy footer > .h-1 {
   height: 6px;
   background-color: #4d7c0f;
-  background-image: url("/camo/camo-light-horizontal-drift.svg");
-  background-size: 320px 320px;
-  background-repeat: repeat;
-  background-position: center;
+  background-image: repeating-linear-gradient(90deg, rgb(255 255 255 / 0.22) 0 2px, transparent 2px 10px);
+  background-size: auto;
+  background-repeat: repeat-x;
+  background-position: left center;
 }
 html.dark.theme-green-guy footer > .h-1 {
   height: 6px;
   background-color: #3f6212;
-  background-image: url("/camo/camo-dark-horizontal-drift.svg");
-  background-size: 320px 320px;
-  background-repeat: repeat;
-  background-position: center;
+  background-image: repeating-linear-gradient(90deg, rgb(163 230 53 / 0.35) 0 2px, transparent 2px 10px);
+  background-size: auto;
+  background-repeat: repeat-x;
+  background-position: left center;
 }
 html.light.theme-green-guy footer .bg-clip-text { background-image: linear-gradient(90deg, #3f6212, #65a30d); }
 html.dark.theme-green-guy footer .bg-clip-text { background-image: linear-gradient(90deg, #d9f99d, #a3e635); }
@@ -310,29 +318,29 @@ html.light.theme-green-guy footer nav[aria-label^="Footer"] > p > span { color: 
 html.dark.theme-green-guy footer nav[aria-label^="Footer"] > p > span { color: #a3e635; }
 html.light.theme-green-guy footer nav[aria-label^="Footer"] > span[aria-hidden="true"] {
   background-color: #4d7c0f;
-  background-image: url("/camo/camo-light-large-block.svg");
-  background-size: 200px 200px;
-  background-repeat: repeat;
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.18), rgb(0 0 0 / 0.15));
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
 }
 html.dark.theme-green-guy footer nav[aria-label^="Footer"] > span[aria-hidden="true"] {
   background-color: #365314;
-  background-image: url("/camo/camo-dark-large-block.svg");
-  background-size: 200px 200px;
-  background-repeat: repeat;
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.14), rgb(0 0 0 / 0.25));
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
 }
 html.light.theme-green-guy footer dl span[aria-hidden="true"] {
   color: #3f6212;
   background-color: color-mix(in srgb, #4d7c0f 12%, transparent);
-  background-image: url("/camo/camo-light-diagonal-slash.svg"), linear-gradient(135deg, rgb(77 124 15 / 0.14), rgb(161 98 7 / 0.14));
-  background-size: 200px 200px, auto;
-  background-repeat: repeat, no-repeat;
+  background-image: linear-gradient(135deg, rgb(77 124 15 / 0.14), rgb(161 98 7 / 0.14));
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
 }
 html.dark.theme-green-guy footer dl span[aria-hidden="true"] {
   color: #d9f99d;
   background-color: color-mix(in srgb, #65a30d 22%, transparent);
-  background-image: url("/camo/camo-dark-diagonal-slash.svg"), linear-gradient(135deg, rgb(163 230 53 / 0.22), rgb(101 163 13 / 0.22));
-  background-size: 200px 200px, auto;
-  background-repeat: repeat, no-repeat;
+  background-image: linear-gradient(135deg, rgb(163 230 53 / 0.22), rgb(101 163 13 / 0.22));
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
 }
 
 /* dog-tag cards: perforated dashed borders */

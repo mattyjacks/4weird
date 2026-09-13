@@ -24,14 +24,16 @@ export async function createClient() {
         },
         setAll(cookiesToSet) {
           try {
+            // Pass Supabase's cookie options through UNCHANGED (official
+            // @supabase/ssr pattern). The sb-* auth cookies must stay
+            // browser-readable so createBrowserClient().auth.getSession()
+            // sees the session: forcing httpOnly here blinds the SiteHeader
+            // (Login/Sign Up shown, no coin/crown badges) while server
+            // components still see the user as signed in. App-owned hardening
+            // cookies (FULL_LOGIN_COOKIE, kid_session, bot_tester) set their
+            // own httpOnly flags at their own call sites and are unaffected.
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, {
-                ...options,
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "lax",
-                path: "/",
-              }),
+              cookieStore.set(name, value, options),
             );
           } catch {
             // The `setAll` method was called from a Server Component.

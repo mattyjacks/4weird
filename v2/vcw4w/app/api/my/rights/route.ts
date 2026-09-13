@@ -160,6 +160,9 @@ export async function GET(req: Request) {
     balance = null;
   }
 
+  // Per-account audit log (age-band changes): read-own rows, no secrets.
+  const activity = await pick("profile_audit_log", "action,old_value,new_value,created_at", { user_id: id }, 500);
+
   // Family: child accounts WITHOUT secrets (password hashes and session
   // tokens are never exported; same rule as bot key secrets). Kid tables
   // expose NO client policies by design, so the user client reads nothing
@@ -202,6 +205,7 @@ export async function GET(req: Request) {
     clans: { memberships: clanMemberships, posts: clanPosts, comments: clanComments, reportsFiled: clanReports, clansOwned },
     bots: { identities: botIdentities, keys: botKeys },
     family,
+    activity,
     economy: { balance, ledger, grants, daily, referralCode: refCode, referralsAsInviter: refAsInviter, referralsAsInvitee: refAsInvitee },
     rentals: { listings, bookings },
   });
@@ -566,6 +570,9 @@ export async function POST(req: Request) {
     // Money records for this user, then the profile row itself.
     await wipe("coin_ledger", "user_id");
     await wipe("coin_grants", "user_id");
+    // Per-account audit log goes with the account (its rows are meaningless
+    // without it, and keeping them would retain personal data post-erasure).
+    await wipe("profile_audit_log", "user_id");
     try {
       const { error: profErr } = await service.from("profiles").delete().eq("id", u.id);
       if (profErr) wipeErrors.push(`profiles:${profErr.code ?? profErr.message}`);

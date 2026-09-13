@@ -161,6 +161,8 @@ function queryElements() {
   el.openrouterApiKey = document.getElementById('openrouter-api-key');
   el.runpodApiKey = document.getElementById('runpod-api-key');
   el.elevenlabsApiKey = document.getElementById('elevenlabs-api-key');
+  el.fourweirdBotKey = document.getElementById('fourweird-bot-key');
+  el.falApiKey = document.getElementById('fal-api-key');
   el.openaiApiKeySaved = document.getElementById('openai-api-key-saved');
   el.deepseekApiKeySaved = document.getElementById('deepseek-api-key-saved');
   el.geminiApiKeySaved = document.getElementById('gemini-api-key-saved');
@@ -168,6 +170,8 @@ function queryElements() {
   el.openrouterApiKeySaved = document.getElementById('openrouter-api-key-saved');
   el.runpodApiKeySaved = document.getElementById('runpod-api-key-saved');
   el.elevenlabsApiKeySaved = document.getElementById('elevenlabs-api-key-saved');
+  el.fourweirdBotKeySaved = document.getElementById('fourweird-bot-key-saved');
+  el.falApiKeySaved = document.getElementById('fal-api-key-saved');
   el.apiKeysStatus = document.getElementById('api-keys-status');
   el.btnSaveApiKeys = document.getElementById('btn-save-api-keys');
   el.btnCloseApiKeys = document.getElementById('btn-close-api-keys');
@@ -858,7 +862,9 @@ document.addEventListener('DOMContentLoaded', () => {
       meta: el.metaApiKey?.value,
       openrouter: el.openrouterApiKey?.value,
       runpod: el.runpodApiKey?.value,
-      elevenlabs: el.elevenlabsApiKey?.value
+      elevenlabs: el.elevenlabsApiKey?.value,
+      fourweird: el.fourweirdBotKey?.value,
+      fal: el.falApiKey?.value
     });
     if (!result.success) {
       if (el.apiKeysStatus) el.apiKeysStatus.textContent = result.error;
@@ -890,7 +896,9 @@ document.addEventListener('DOMContentLoaded', () => {
       meta: pick(el.metaApiKey?.value, stored.meta),
       openrouter: pick(el.openrouterApiKey?.value, stored.openrouter),
       runpod: pick(el.runpodApiKey?.value, stored.runpod),
-      elevenlabs: pick(el.elevenlabsApiKey?.value, stored.elevenlabs)
+      elevenlabs: pick(el.elevenlabsApiKey?.value, stored.elevenlabs),
+      fourweird: pick(el.fourweirdBotKey?.value, stored.fourweird),
+      fal: pick(el.falApiKey?.value, stored.fal)
     };
     invalidTestedApiKeyProviders = [];
     el.btnTestApiKeys.disabled = true;
@@ -938,6 +946,8 @@ document.addEventListener('DOMContentLoaded', () => {
           : provider === 'openrouter' ? el.openrouterApiKey
             : provider === 'runpod' ? el.runpodApiKey
               : provider === 'elevenlabs' ? el.elevenlabsApiKey
+              : provider === 'fourweird' ? el.fourweirdBotKey
+              : provider === 'fal' ? el.falApiKey
                 : el.metaApiKey;
       if (input) input.value = '';
       if (el.providerSelect?.value === provider) {
@@ -1410,6 +1420,8 @@ function refreshMaskedApiKeyDisplay() {
   paintSavedKeyHint(el.openrouterApiKey, el.openrouterApiKeySaved, masked.openrouter, 'an OpenRouter');
   paintSavedKeyHint(el.runpodApiKey, el.runpodApiKeySaved, masked.runpod, 'a RunPod');
   paintSavedKeyHint(el.elevenlabsApiKey, el.elevenlabsApiKeySaved, masked.elevenlabs, 'an ElevenLabs');
+  paintSavedKeyHint(el.fourweirdBotKey, el.fourweirdBotKeySaved, masked.fourweird, 'a 4weird bot');
+  paintSavedKeyHint(el.falApiKey, el.falApiKeySaved, masked.fal, 'a fal.ai');
 }
 
 function openApiKeysModal() {

@@ -1433,6 +1433,11 @@
       <h2 id="api-keys-title">API Keys</h2>
       <p class="api-keys-intro">Add one key per provider. Keys are saved only in this computer’s encrypted VibeCodeWorker key store, outside the app folder, so normal updates keep them.</p>
       <div class="form-group">
+        <label for="fourweird-bot-key">4weird bot key</label>
+        <input type="password" id="fourweird-bot-key" autocomplete="off" spellcheck="false" placeholder="Paste your bot4weird_ key (issue it at 4weird.com/bot/setup)">
+        <span class="field-hint saved-key-hint" id="fourweird-bot-key-saved" aria-live="polite"></span>
+      </div>
+      <div class="form-group">
         <label for="openai-api-key">OpenAI API key</label>
         <input type="password" id="openai-api-key" autocomplete="off" spellcheck="false" placeholder="Paste an OpenAI API key">
         <span class="field-hint saved-key-hint" id="openai-api-key-saved" aria-live="polite"></span>
@@ -1466,6 +1471,11 @@
         <label for="elevenlabs-api-key">ElevenLabs API key</label>
         <input type="password" id="elevenlabs-api-key" autocomplete="off" spellcheck="false" placeholder="Paste an ElevenLabs API key">
         <span class="field-hint saved-key-hint" id="elevenlabs-api-key-saved" aria-live="polite"></span>
+      </div>
+      <div class="form-group">
+        <label for="fal-api-key">fal.ai API key</label>
+        <input type="password" id="fal-api-key" autocomplete="off" spellcheck="false" placeholder="Paste a fal.ai key (media runs)">
+        <span class="field-hint saved-key-hint" id="fal-api-key-saved" aria-live="polite"></span>
       </div>
       <div class="api-keys-actions">
         <span id="api-keys-status" class="field-hint" aria-live="polite">Keys are never written to config.json.</span>

@@ -69,6 +69,11 @@ export function LoginForm({
       // The account page is the v2 authenticated destination; /protected is a legacy starter route.
       const next = safeNext(new URLSearchParams(window.location.search).get("next"));
       router.push(next);
+      // The session was minted server-side (no browser auth event fires and
+      // the layout-level header does not remount on navigation), so refresh
+      // the RSC tree: the header re-checks /api/auth/session on route change
+      // and flips from Login/Sign Up to Dashboard + coin/crown badges.
+      router.refresh();
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {

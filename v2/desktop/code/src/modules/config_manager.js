@@ -477,11 +477,12 @@ function saveApiKeyBundle(keys = {}) {
     else if (name === 'fourweird' && !isValidBotKey(value)) {
       return { success: false, error: 'That 4weird bot key has the wrong shape — it looks like bot4weird_ + 20-32 letters/digits. Copy it fresh from 4weird.com/bot/setup.' };
     } else update[field] = value;
+    if (update[field] === value) savedNames.push(name);
   }
   if (invalid.length) return { success: false, error: `Replace the example/placeholder ${invalid.join(', ')} key.` };
   if (!Object.keys(update).length) return { success: false, error: 'Enter at least one API key to save.' };
   return saveCredentials(update)
-    ? { success: true, saved: Object.keys(update).map((field) => field.replace('ApiKey', '')) }
+    ? { success: true, saved: savedNames }
     : { success: false, error: 'The encrypted key store could not be updated.' };
 }
 

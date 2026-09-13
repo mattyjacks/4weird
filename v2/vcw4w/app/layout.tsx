@@ -12,6 +12,7 @@ import { SiteHeader } from "@/components/site/site-header";
 import { MenuSidebar } from "@/components/site/menu-sidebar";
 import { A11yProvider } from "@/components/site/a11y-provider";
 import { UsaFireworks } from "@/components/site/themes/usa-fireworks";
+import { GreenGuyCamo } from "@/components/site/themes/green-guy-camo";
 import { ColorblindFilters } from "@/components/a11y/colorblind-filters";
 import { EyeDwell } from "@/components/a11y/eye-dwell";
 import { SwitchScan } from "@/components/a11y/switch-scan";
@@ -130,6 +131,7 @@ export default function RootLayout({
             </div>
             <SiteFooter />
           </div>
+          <GreenGuyCamo />
           <UsaFireworks />
         </ThemeProvider>
         </SiteThemeProvider>

@@ -515,32 +515,85 @@ export function SiteHeader() {
   // WalletBadges reports back on 401 (server no longer sees the session)
   // so a stale/expired client session stops polling instead of spamming
   // `GET .../balance 401` every 10s.
+  // Source of truth is two-layer: the browser Supabase session first (fast,
+  // no round trip), then GET /api/auth/session as fallback. The fallback
+  // matters because logins happen server-side (POST /api/auth/login sets
+  // cookies but fires no browser auth event), and because cookies minted
+  // while the server forced httpOnly on sb-* chunks are invisible to the
+  // browser client even though the server still sees the user signed in.
+  // Without it the header sticks on Login/Sign Up with no coin/crown badges
+  // while /account correctly reports "Signed in as ...".
+  // Re-checked on every route change so a post-login navigation flips the
+  // header without requiring a full page reload.
   useEffect(() => {
     let mounted = true;
     let unsubscribe: (() => void) | null = null;
+    const checkServerSession = async () => {
+      try {
+        const response = await fetch("/api/auth/session", {
+          credentials: "include",
+          cache: "no-store",
+        });
+        return response.ok;
+      } catch {
+        return false;
+      }
+    };
+    const refresh = async () => {
+      try {
+        const { createClient } = await import("@/lib/supabase/client");
+        const supabase = createClient();
+        const { data } = await supabase.auth.getSession();
+        if (!mounted) return;
+        if (data.session) {
+          setSignedIn(true);
+          return;
+        }
+        setSignedIn(await checkServerSession());
+      } catch {
+        if (mounted) setSignedIn(await checkServerSession());
+      }
+    };
     (async () => {
       try {
         const { createClient } = await import("@/lib/supabase/client");
         const supabase = createClient();
         const { data } = await supabase.auth.getSession();
-        if (mounted) setSignedIn(Boolean(data.session));
+        if (!mounted) return;
+        if (data.session) {
+          setSignedIn(true);
+        } else {
+          setSignedIn(await checkServerSession());
+        }
         const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
           if (!mounted) return;
           // Any auth event without a session (SIGNED_OUT, refresh failure,
           // expired token) means logged out: flip header + let WalletBadges
           // unmount so balance polling stops instead of 401-spamming.
-          setSignedIn(Boolean(session));
+          // A SIGNED_IN event is authoritative; any other event re-checks
+          // the server so a server-side login/logout still flips the header.
+          if (session) {
+            setSignedIn(true);
+          } else {
+            void checkServerSession().then((ok) => {
+              if (mounted) setSignedIn(ok);
+            });
+          }
         });
         unsubscribe = () => listener.subscription.unsubscribe();
       } catch {
-        if (mounted) setSignedIn(false);
+        if (mounted) setSignedIn(await checkServerSession());
       }
     })();
+    // Post-login navigation (e.g. /auth/login -> /account) does not remount
+    // this layout-level header and fires no browser auth event (the session
+    // was minted server-side), so re-check the server session on arrival.
+    void refresh();
     return () => {
       mounted = false;
       unsubscribe?.();
     };
-  }, []);
+  }, [pathname]);
 
   // Close the desktop dropdown on route change.
   useEffect(() => {

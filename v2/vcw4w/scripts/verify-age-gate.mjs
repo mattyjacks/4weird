@@ -171,8 +171,12 @@ for (const token of ["Age band", "13-17", "18+", "under 13", "age_band"]) {
 console.log(`Age-gate checks OK: bands + DOB math + ${canonical.length} catalog slugs + Kids Mode + legal notes + COPPA teen/adult gating.`);
 
 // 10. Content modes (gravegain2d/gravegain3d/lastwordszombies): shared
-// kid/teen/all infrastructure. The mode list is never filtered — locked
-// modes render disabled with a reason.
+// kid/teen/all infrastructure. Display is band-filtered — kid/unknown/guest
+// viewers see kid only, teens kid+teen, adults all three — and the shell
+// auto-selects the best visible mode (fail-closed kid default, locked stored
+// modes downgraded, in-game stored flips clamped). Enforcement stays
+// server-side; a forged ?content=/localStorage value can never unlock a
+// locked mode.
 const modes = read("lib/content-modes.ts");
 for (const token of [
   "ContentMode",
@@ -192,6 +196,8 @@ for (const token of [
   "effectiveMinAge",
   "canUseContentMode",
   "listContentModesForViewer",
+  "visibleContentModesForViewer",
+  "bestVisibleContentMode",
   "HARD_SWEARS",
   "MILD_SWEARS",
   "sanitizeDialogue",
@@ -209,7 +215,14 @@ must(/gravegain2d/.test(modes) && /gravegain3d/.test(modes) && /lastwordszombies
 must(modes.includes('if (mode === "kid") return 0;'), "effectiveMinAge must map kid→0");
 must(modes.includes('if (mode === "teen") return 13;'), "effectiveMinAge must map teen→13");
 must(modes.includes("getGameRating"), "effectiveMinAge(all) must keep the catalog rating");
-must(modes.includes("never filtered") || modes.includes("ALWAYS returns all three"), "listContentModesForViewer must never filter the list");
+must(modes.includes("visibleContentModesForViewer"), "lib must filter picker display by band");
+must(modes.includes("bestVisibleContentMode"), "lib must auto-select the best visible mode");
+// Band-filtered display: kid/unknown/guest see kid ONLY (no teen/uncut rows),
+// teens see kid+teen, adults all three.
+must(/if \(band === "kid"\) return \["kid"\];/.test(modes), "non-teen/non-adult viewers must see kid mode only");
+must(/if \(band === "teen"\) return \["kid", "teen"\];/.test(modes), "teen viewers must see kid+teen only");
+must(/if \(band === "adult"\) return \["kid", "teen", "all"\];/.test(modes), "adult viewers must see all three modes");
+must(/return \["kid"\];\s*\n\}/.test(modes), "unknown/guest viewers must fall back to kid mode only");
 
 // Bridge (v2-native extra under public/games/html/): mode read, gore hook,
 // profanity observer, live host switching.
@@ -240,11 +253,14 @@ const runtime = read("public/games/html/runtime-bridge.js");
 must(runtime.includes('"content-mode"') || runtime.includes("'content-mode'"), "runtime-bridge.js must handle the content-mode message");
 must(runtime.includes("fourweird-content-mode-host"), "runtime-bridge.js must forward content-mode as fourweird-content-mode-host");
 
-// Play shell: picker above the gates, never-filtered list, mode plumbed to
-// frame URL + session start + live postMessage, effective age for kid bands.
+// Play shell: band-filtered picker above the gates, fail-closed kid default,
+// best-visible auto-select + stored downgrade + in-game flip clamp, mode
+// plumbed to frame URL + session start + live postMessage, effective age for
+// kid bands.
 const shellModes = read("components/games/play-gate.tsx");
 for (const token of [
-  "listContentModesForViewer",
+  "visibleContentModesForViewer",
+  "bestVisibleContentMode",
   "canUseContentMode",
   "effectiveMinAge",
   "content_mode",
@@ -258,6 +274,8 @@ for (const token of [
   must(shellModes.includes(token), `play-gate.tsx must include ${token}`);
 }
 must(shellModes.includes("{picker}"), "play-gate.tsx must render the content-mode picker in the gate branches");
+must(shellModes.includes('useState<ContentMode>("kid")'), "play-gate must default to kid mode until the band resolves");
+must(shellModes.includes("contentModeStorageKey(slug)"), "play-gate must clamp in-game stored-mode flips");
 
 // Session API: content_mode accepted, band-vs-mode 403s, effective-age check,
 // echo in the response.

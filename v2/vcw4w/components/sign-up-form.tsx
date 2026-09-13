@@ -63,6 +63,9 @@ export function SignUpForm({
         throw new Error("Email confirmation is not available yet. Please try again later.");
       }
       router.push(body.user ? "/account" : "/auth/sign-up-success");
+      // Server-minted session: refresh the RSC tree so the layout-level
+      // header re-checks auth on route change (see login-form).
+      router.refresh();
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {

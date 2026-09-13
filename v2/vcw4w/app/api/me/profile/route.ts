@@ -108,6 +108,19 @@ export async function PATCH(req: Request) {
   // is_profile_public: public 💌 stats by default; shy users may hide them.
   // Coerce truthy/falsy; undefined leaves the flag untouched.
   const isPublic = input.is_profile_public === undefined ? undefined : Boolean(input.is_profile_public);
+  // Age-band audit: remember the pre-change band so a real change lands a
+  // tamper-evident row (old → new + timestamp) in profile_audit_log, readable
+  // by the account holder on /account and in the data export. Self-service
+  // stays open; the log is what lets a parent catch a kid flipping bands.
+  let oldBand: string | null = null;
+  if (band !== undefined && band !== null) {
+    try {
+      const { data: current } = await supabase.from("profiles").select("age_band").eq("id", u.id).maybeSingle();
+      oldBand = String((current as { age_band?: unknown } | null)?.age_band ?? "");
+    } catch {
+      // Best-effort; the insert below still records the new value.
+    }
+  }
   // user_id is forced from the session; RLS re-checks it. A client-supplied
   // id field is ignored entirely.
   // TOCTOU guard: re-check kids AFTER the update when opting out - a child
@@ -141,6 +154,24 @@ export async function PATCH(req: Request) {
     const code = String((error as { code?: string }).code ?? "");
     if (code === "23505") return fail("That public handle is unavailable.", 409);
     return dbFail("api/me/profile", error, "Unable to update profile.");
+  }
+  // Log real band changes only (same-value saves stay quiet). Service-role
+  // insert: browser keys hold no write policy on the audit table by design,
+  // so rows can neither be forged nor erased client-side. Best-effort after
+  // a successful update — failing the request here would lie about a change
+  // that already landed.
+  if (band !== undefined && band !== null && oldBand !== band) {
+    try {
+      const { error: auditError } = await serviceClient().from("profile_audit_log").insert({
+        user_id: u.id,
+        action: "age_band_changed",
+        old_value: oldBand || null,
+        new_value: band,
+      });
+      if (auditError) console.error("[api/me/profile] audit insert failed:", auditError.code ?? auditError.message);
+    } catch (err) {
+      console.error("[api/me/profile] audit insert threw:", err instanceof Error ? err.message : String(err));
+    }
   }
   return ok({});
 }

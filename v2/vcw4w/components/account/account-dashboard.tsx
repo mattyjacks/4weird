@@ -5,6 +5,7 @@ import Link from "next/link";
 
 type Profile = { display_name?: string | null; family_role?: string | null; age_band?: string | null };
 type LedgerRow = { delta?: number; reason?: string; created_at?: string };
+type ActivityRow = { action?: string | null; old_value?: string | null; new_value?: string | null; created_at?: string | null };
 
 type AgeBandChoice = "" | "teen" | "adult";
 
@@ -28,17 +29,18 @@ export function AccountDashboard() {
   const [balance, setBalance] = useState<number | null>(null);
   const [centicentcoins, setCenticentcoins] = useState<number | null>(null);
   const [history, setHistory] = useState<LedgerRow[]>([]);
+  const [activity, setActivity] = useState<ActivityRow[]>([]);
   const [name, setName] = useState("");
   const [band, setBand] = useState<AgeBandChoice>("");
   const [familyRole, setFamilyRole] = useState("solo");
   const [message, setMessage] = useState("Loading account…");
   const [busy, setBusy] = useState(false);
 
-  const loadAccount = useCallback(() => { void Promise.all([request<{ profile: Profile | null }>("/api/me/profile"), request<{ balance: number; centicentcoins?: number }>("/api/coins/balance"), request<{ rows: LedgerRow[] }>("/api/coins/history?limit=25")]).then(([p, b, h]) => { setProfile(p.profile ?? null); setName(p.profile?.display_name ?? ""); setBand(toBandChoice(p.profile?.age_band)); setFamilyRole(p.profile?.family_role ?? "solo"); setBalance(b.balance); setCenticentcoins(typeof b.centicentcoins === "number" ? b.centicentcoins : Math.round((Number(b.balance) || 0) * 100)); setHistory(h.rows ?? []); setLoaded(true); setMessage(""); }).catch((error: unknown) => {
+  const loadAccount = useCallback(() => { void Promise.all([request<{ profile: Profile | null }>("/api/me/profile"), request<{ balance: number; centicentcoins?: number }>("/api/coins/balance"), request<{ rows: LedgerRow[] }>("/api/coins/history?limit=25"), request<{ rows: ActivityRow[] }>("/api/me/activity")]).then(([p, b, h, a]) => { setProfile(p.profile ?? null); setName(p.profile?.display_name ?? ""); setBand(toBandChoice(p.profile?.age_band)); setFamilyRole(p.profile?.family_role ?? "solo"); setBalance(b.balance); setCenticentcoins(typeof b.centicentcoins === "number" ? b.centicentcoins : Math.round((Number(b.balance) || 0) * 100)); setHistory(h.rows ?? []); setActivity(a.rows ?? []); setLoaded(true); setMessage(""); }).catch((error: unknown) => {
     // Never leave the previous account's data on screen when the session is
     // gone (logged out / expired on a shared device): a 401 here means these
     // numbers no longer belong to the viewer.
-    setProfile(null); setBalance(null); setCenticentcoins(null); setHistory([]); setLoaded(true); setName(""); setBand("");
+    setProfile(null); setBalance(null); setCenticentcoins(null); setHistory([]); setActivity([]); setLoaded(true); setName(""); setBand("");
     setMessage(error instanceof Error ? error.message : "Unable to load account.");
   }); }, []);
   useEffect(() => { loadAccount(); window.addEventListener("vibe-coins-changed", loadAccount); return () => window.removeEventListener("vibe-coins-changed", loadAccount); }, [loadAccount]);
@@ -120,6 +122,22 @@ export function AccountDashboard() {
           </div>
         </div>
         <p className="mt-2 text-xs text-slate-500">Current band: {profile?.age_band === "teen" || profile?.age_band === "adult" ? profile.age_band : "not set — choose Teen/Adult to play rated games"}</p>
+      </section>
+      <section aria-label="Recent account activity" className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
+        <h2 className="text-xl font-bold">Recent account activity</h2>
+        <p className="mt-2 text-sm text-slate-400">Every age-band change is recorded here automatically with its date — it can&apos;t be edited. Parents: this is where you check.</p>
+        {activity.length === 0 ? (
+          <p className="mt-3 text-sm text-slate-500">No recorded changes yet.</p>
+        ) : (
+          <ul className="mt-3 space-y-2 text-sm text-slate-300">
+            {activity.slice(0, 20).map((row, index) => (
+              <li key={`${row.created_at ?? "row"}-${index}`} className="flex flex-wrap justify-between gap-2 border-t border-white/10 pt-2">
+                <span>Age band changed: {row.old_value || "not set"} → {row.new_value || "not set"}</span>
+                <span className="text-slate-500">{row.created_at ? new Date(row.created_at).toLocaleString() : ""}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
       <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
         <div className="flex items-center justify-between">
