@@ -68,7 +68,7 @@ async function CachedPrivacyBody() {
         </p>
         <ul className="list-disc space-y-2 pl-6">
           <li><strong className="text-white">Essential (always on):</strong> sign-in session, security, fraud prevention, load balancing, and your cookie choice itself. The Service cannot sign you in without these.</li>
-          <li><strong className="text-white">Analytics (opt-in):</strong> Google Analytics measurement (env-configured measurement ID) and privacy-friendly Vercel Analytics telemetry. Google Analytics loads only after you accept analytics cookies.</li>
+          <li><strong className="text-white">Analytics:</strong> privacy-friendly Vercel Analytics telemetry (always on, anonymized, cookieless) and Google Analytics measurement (opt-in only, env-configured measurement ID; loads only after you accept analytics cookies).</li>
           <li><strong className="text-white">Functional (opt-in):</strong> remembered preferences such as theme, voices, avatar shape and color, and game settings.</li>
           <li><strong className="text-white">Marketing (opt-in):</strong> campaign and referral measurement. Marketing email is separately off by default in account settings.</li>
         </ul>
