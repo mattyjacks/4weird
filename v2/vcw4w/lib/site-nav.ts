@@ -47,6 +47,8 @@ export const SITE_NAV_GROUPS: SiteNavGroup[] = [
       { href: "/vault", label: "🗄️ Weird Vault", quick: "Private files + rare oddities.", detail: "Your private file storage plus weird archive experiments. Scoped to you, your team, or your org.\n\nUpload from any device and grab a private link to share. Vault files are never listed publicly - what is yours stays yours." },
       { href: "/web-apps", label: "🌐 Web Apps", quick: "Load, poke, and debug your builds.", detail: "Your builds under the microscope - break them safely and get evidence to fix fast.\n\nPaste a build URL and the debugger pokes every button for you. Reports read like plain English, with screenshots for each failure." },
       { href: "/vibecodeworker", label: "👩🏻‍💻 VibeCodeWorker", quick: "Robot that playtests + files bugs.", detail: "Watch → Think → Do → Report. Runs your game, clicks everything, and writes a plain-English bug report.\n\nPoint it at a game and it plays for hours while you sleep. You wake up to ranked bugs, each with steps to reproduce." },
+      { href: "/music/maker", label: "🎹 Music Maker", quick: "Synth song + SFX suite, tiny files.", detail: "Fruity-Loops-style step sequencer plus a ray-gun SFX lab, all on-device. Songs are ultra-small synth JSON made for game embeds.\n\nBots can compose too via the music API. Finished tracks appear in the public library." },
+      { href: "/music/all", label: "🎵 Music Library", quick: "Every public track + SFX.", detail: "The public jukebox: game soundtrack transcriptions, user tracks, and one-click SFX for makers.\n\nPreview in the browser, download the tiny JSON, and drop it straight into any game." },
     ],
   },
   {

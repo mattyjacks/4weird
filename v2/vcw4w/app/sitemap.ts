@@ -144,6 +144,13 @@ const STUDIO: Entry[] = [
   { path: "/studio/video/editor", changeFrequency: "weekly", priority: 0.5 },
 ];
 
+// Music maker suite: maker + public library (DS-MUSIC-03/05).
+const MUSIC: Entry[] = [
+  { path: "/music", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/music/all", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/music/maker", changeFrequency: "weekly", priority: 0.7 },
+];
+
 // Free browser tools hub + every tool.
 const TOOLS: Entry[] = [
   { path: "/tools", changeFrequency: "weekly", priority: 0.7 },
@@ -252,6 +259,10 @@ const DOCS: Entry[] = [
   { path: "/docs/studio/luck-factory", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/studio/media-mogul", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/studio/plugin-checklist", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/music", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/music/maker", changeFrequency: "monthly", priority: 0.5 },
+  { path: "/docs/music/bots", changeFrequency: "monthly", priority: 0.5 },
+  { path: "/docs/music/games", changeFrequency: "monthly", priority: 0.5 },
   { path: "/docs/vibecodeworker", changeFrequency: "monthly", priority: 0.7 },
   { path: "/docs/explore-more", changeFrequency: "monthly", priority: 0.5 },
   { path: "/docs/privacy-safety", changeFrequency: "monthly", priority: 0.6 },
@@ -282,6 +293,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...DESKTOP_EXTRA,
     ...GAMES_EXTRA,
     ...STUDIO,
+    ...MUSIC,
     ...TOOLS,
     ...ADMIN,
     ...EXPLORE,

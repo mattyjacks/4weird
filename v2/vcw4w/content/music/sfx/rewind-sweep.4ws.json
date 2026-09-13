@@ -1,0 +1,1 @@
+{"from":"v2/vcw4w/public/games/gravegain4d/audio/sound4d.js:119","sfx":{"kind":"raygun","name":"Rewind Sweep","steps":[{"dur":0.45,"freq":1200,"freqEnd":120,"type":"tone","vol":0.35,"wave":"saw"}],"v":1},"source":"gg4d rewind reverse sweep: saw 1200->120 swell"}

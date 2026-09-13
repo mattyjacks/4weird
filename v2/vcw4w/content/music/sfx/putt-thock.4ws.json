@@ -1,0 +1,1 @@
+{"from":"v2/vcw4w/public/games/gravegain4d/audio/sound4d.js:108","sfx":{"kind":"putt","name":"Putt Thock","steps":[{"dur":0.12,"freq":220,"freqEnd":70,"type":"tone","vol":0.5,"wave":"sine"},{"dur":0.03,"freq":2500,"freqEnd":1200,"type":"noise","vol":0.25,"wave":"noise"}],"v":1},"source":"gg4d putt thock: sine 220->70 thump + 2500->1200 click"}

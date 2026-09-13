@@ -1,0 +1,1 @@
+{"from":"v2/vcw4w/public/games/html/battlesharks2/game.js:46","sfx":{"kind":"raygun","name":"Laser Raygun","steps":[{"dur":0.15,"freq":880,"freqEnd":110,"type":"tone","vol":0.5,"wave":"saw"}],"v":1},"source":"battlesharks2 laser saw 880->110 zap"}

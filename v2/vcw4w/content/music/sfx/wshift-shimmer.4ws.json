@@ -1,0 +1,1 @@
+{"from":"v2/vcw4w/public/games/gravegain4d/audio/sound4d.js:112","sfx":{"kind":"jump","name":"Wshift Shimmer","steps":[{"dur":0.28,"freq":400,"freqEnd":1400,"type":"tone","vol":0.3,"wave":"tri"},{"dur":0.28,"freq":600,"freqEnd":2100,"type":"tone","vol":0.2,"wave":"sine"}],"v":1},"source":"gg4d wshift shimmer: tri 400->1400 + sine 600->2100 detuned glide"}

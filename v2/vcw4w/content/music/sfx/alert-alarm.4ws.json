@@ -1,0 +1,1 @@
+{"from":"v2/vcw4w/public/games/html/assassinanimals/game.js:280","sfx":{"kind":"alarm","name":"Alert Alarm","steps":[{"dur":0.2,"freq":650,"freqEnd":880,"type":"tone","vol":0.4,"wave":"saw"},{"dur":0.2,"freq":880,"freqEnd":650,"type":"tone","vol":0.4,"wave":"saw"}],"v":1},"source":"assassinanimals alarm saw 650->880->650 loop"}

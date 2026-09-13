@@ -1,0 +1,1 @@
+{"from":"v2/vcw4w/public/games/html/gravegain3d/audio/sound-engine.js:49","sfx":{"kind":"hit","name":"Swing Swoosh","steps":[{"dur":0.15,"freq":800,"freqEnd":300,"type":"noise","vol":0.3,"wave":"noise"}],"v":1},"source":"gg3d swing crisp noise swoosh bandpass 800->300 + gg4d swing 800->300"}

@@ -1,0 +1,1 @@
+{"format":"$music:1","kind":"song","title":"SoundPainter Scale","BPM":120,"tracks":[{"inst":"sine","notes":[{"t":0,"n":60,"d":1},{"t":1,"n":62,"d":1},{"t":2,"n":64,"d":1},{"t":3,"n":65,"d":1}]},{"inst":"square","notes":[{"t":4,"n":67,"d":1},{"t":5,"n":69,"d":1},{"t":6,"n":71,"d":1},{"t":7,"n":72,"d":1}]}]}

@@ -218,6 +218,20 @@ function normalizeRuntime(indexFile, slug) {
       else html += tag;
     }
   }
+  // Tiny music runtime (EVERY game): window.FourweirdMusic song/sfx player
+  // for ultra-small $music:1 JSON (maker at /music/maker, seeds at
+  // /music/seeds/*.json). Source lives at
+  // public/games/html/fourweird-music.js (v2-native, outside every
+  // parity-locked tree, so cpSync never carries it). existsSync-guarded,
+  // injected only when absent; tracked bundle sources stay byte-identical.
+  if (!html.includes("fourweird-music.js")) {
+    const musicSrc = join(root, "public", "games", "html", "fourweird-music.js");
+    if (existsSync(musicSrc)) {
+      const tag = `<script src="/games/html/fourweird-music.js" data-slug="${slug}"></script>`;
+      if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${tag}</body>`);
+      else html += tag;
+    }
+  }
   // BattleSharks2 mobile layer (battlesharks2 ONLY): virtual joystick + FIRE /
   // DASH / LAB touch buttons + responsive HUD / bottom-sheet lab CSS. Source
   // lives at public/games/html/battlesharks2-mobile.js (v2-native, outside
