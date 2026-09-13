@@ -1,0 +1,21 @@
+{
+  "name": "@4weird/mcp",
+  "version": "2.1.0",
+  "description": "Official 4weird Model Context Protocol server — VibeCodeWorker game QA runs, game state lookups, and squad Kanban task queries for AI coding tools.",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "4weird-mcp": "./build/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node ./build/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "typescript": "^5"
+  }
+}

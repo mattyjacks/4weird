@@ -1,0 +1,27 @@
+{
+  "name": "@4weird/discord-clan-raid-bot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "4weird clan-raid Discord bot skeleton (Remastery Feature 19, Wave 2). discord.js v14 slash commands: raid signup/leaderboard, coin-balance lookup stub, clan roster stub.",
+  "license": "UNLICENSED",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src",
+    "start": "node dist/index.js",
+    "register": "node dist/register-commands.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.51.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.0",
+    "eslint": "^9.12.0",
+    "typescript": "^5.6.2",
+    "typescript-eslint": "^8.8.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
