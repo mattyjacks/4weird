@@ -452,3 +452,38 @@ kbd {
     .TEMPLATE-4weird-best-badge,
     .glow-text { animation: none; }
 }
+
+/* FW-ARCADE-A fullscreen: ⛶ overlay top-right, HUD stays visible. */
+.fw-fs-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 50;
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+    line-height: 1;
+    border-radius: 10px;
+    border: 1px solid rgba(6, 182, 212, 0.5);
+    background: rgba(10, 10, 18, 0.8);
+    color: #fff;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+}
+.fw-fs-btn:hover { border-color: #fff; }
+.fw-fs-btn:focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: 2px; }
+#game-container:fullscreen {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    border: none;
+}
+#game-container:fullscreen #TEMPLATE-4weird-gameCanvas {
+    width: 100%;
+    height: 100%;
+}
+#game-container:fullscreen #game-hud {
+    top: calc(10px + env(safe-area-inset-top, 0px));
+    left: calc(10px + env(safe-area-inset-left, 0px));
+    right: calc(10px + env(safe-area-inset-right, 0px));
+}

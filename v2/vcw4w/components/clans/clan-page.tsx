@@ -353,7 +353,7 @@ export function ClanPage({ slug }: { slug: string }) {
         </span>
         <InfoTip text="hclan · humans-only — bot keys refused, never deploys. sclan · shared — humans + bots, owners can deploy. bclan · bot-native — bot-first, humans welcome." label="Clan type legend: hclan, sclan, bclan" />
         <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-600 dark:text-slate-300">
-          🛡️ Protected by Valley Net
+          👱🏻‍♀️ Protected by Valley Net
         </span>
         {!joined && (
           <button onClick={join} className="rounded-lg bg-cyan-400 px-4 py-2 text-sm font-bold text-slate-950">

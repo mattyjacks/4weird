@@ -25,7 +25,7 @@
             document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\/script>');
         }
     </script>
-    <script src="../gravegain_shared_missions.js"></script>
+    <script src="/games/html/gravegain_shared_missions.js"></script>
     <script src="engine/config.js"></script>
     <script src="engine/persistence.js"></script>
     <script src="engine/camera-controller.js"></script>
@@ -597,7 +597,7 @@
 
     <script src="../../../components.js"></script>
     <script src="lore.js"></script>
-    <script src="../fourweird-graphics.js"></script>
+    <script src="/games/html/fourweird-graphics.js"></script>
     <script src="engine/graphics-settings.js"></script>
     <script src="engine/game-runtime.js"></script>
     <!-- AAA presentation layer: many focused modules, boot first. See aaa/ folder. -->
@@ -639,20 +639,43 @@
                 })
                 .catch(err => console.log('Metadata load fallback:', err));
 
-            // Fullscreen toggle logic
+            // Fullscreen contract: shell helper first, native request with
+            // webkit fallback otherwise. F is the class ability in 3D, so the
+            // keyboard shortcut stays ability-only; double-click also toggles.
+            // Re-fit updates camera aspect + renderer size, guarded so
+            // pre-init calls never throw (THREE may even be absent).
             const fullscreenBtn = document.getElementById('gravegain-fullscreen-btn');
             const canvasContainer = document.getElementById('canvasContainer');
+            const gg3dToggleFullscreen = () => {
+                try {
+                    if (typeof window.__fourweirdToggleFullscreen === 'function') { window.__fourweirdToggleFullscreen(); return; }
+                    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                        const p = canvasContainer.requestFullscreen ? canvasContainer.requestFullscreen()
+                            : (canvasContainer.webkitRequestFullscreen ? canvasContainer.webkitRequestFullscreen() : null);
+                        if (p && p.catch) p.catch(() => {});
+                    } else if (document.exitFullscreen) document.exitFullscreen();
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                } catch (e) {}
+            };
             if (fullscreenBtn && canvasContainer) {
-                fullscreenBtn.addEventListener('click', () => {
-                    if (!document.fullscreenElement) {
-                        canvasContainer.requestFullscreen().catch(err => {
-                            console.error(`Error attempting to enable fullscreen: ${err.message}`);
-                        });
-                    } else {
-                        document.exitFullscreen();
-                    }
-                });
+                fullscreenBtn.addEventListener('click', gg3dToggleFullscreen);
+                canvasContainer.addEventListener('dblclick', gg3dToggleFullscreen);
             }
+            const gg3dRefit = () => {
+                try {
+                    const g = window.GraveGainGame;
+                    const box = document.getElementById('canvasContainer');
+                    const w = Math.max(320, (box && box.clientWidth) || 1000);
+                    const h = Math.max(240, (box && box.clientHeight) || 600);
+                    if (g && g.camera3d) {
+                        g.camera3d.aspect = w / h;
+                        if (typeof g.camera3d.updateProjectionMatrix === 'function') g.camera3d.updateProjectionMatrix();
+                    }
+                    if (g && g.renderer && typeof g.renderer.setSize === 'function') g.renderer.setSize(w, h);
+                } catch (e) {}
+            };
+            document.addEventListener('fullscreenchange', gg3dRefit);
+            window.addEventListener('resize', gg3dRefit);
         })();
     </script>
 </body>

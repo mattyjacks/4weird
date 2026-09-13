@@ -83,7 +83,7 @@ const COLUMNS: FooterColumn[] = [
     ],
   },
   {
-    label: "Rent Power 💰",
+    label: "Rent Tech 🌐",
     icon: <Cpu className="h-3.5 w-3.5" aria-hidden="true" />,
     tagline: "💰 Rent GPUs, desktops & studio tools by the minute — pays creators 75%.",
     links: [

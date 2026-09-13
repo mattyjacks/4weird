@@ -187,7 +187,10 @@ class Game {
         this.combo = 0;
         this.comboTimer = 0;
         this.maxCombo = 0;
-        this.highScore = parseInt(localStorage.getItem('demolichdom_hs') || '0');
+        this.highScore = 0;
+        try {
+            this.highScore = parseInt(localStorage.getItem('demolichdom_hs') || '0', 10) || 0;
+        } catch (e) { /* storage unavailable (private mode / sandbox) - keep 0 */ }
         this.sessionStart = Date.now();
         this.phaseFlash = 0;
         this.phaseFlashColor = '#10b981';
@@ -596,7 +599,7 @@ class Game {
         playSound('win');
         if (this.score > this.highScore) {
             this.highScore = this.score;
-            localStorage.setItem('demolichdom_hs', this.score);
+            try { localStorage.setItem('demolichdom_hs', this.score); } catch (e) { /* ignore */ }
         }
         const elapsed = Math.floor((Date.now() - this.sessionStart) / 1000);
         const mins = Math.floor(elapsed / 60);
@@ -614,7 +617,7 @@ class Game {
         playSound('lose');
         if (this.score > this.highScore) {
             this.highScore = this.score;
-            localStorage.setItem('demolichdom_hs', this.score);
+            try { localStorage.setItem('demolichdom_hs', this.score); } catch (e) { /* ignore */ }
         }
         document.getElementById('deathScore').textContent = this.score;
         document.getElementById('buildingsDestroyed').textContent = this.buildingsDestroyed;

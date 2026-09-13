@@ -680,7 +680,7 @@
         if (!container) return;
 
         const rect = container.getBoundingClientRect();
-        const dpr = window.devicePixelRatio || 1;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
         // Logical internal resolution maintains crisp aspect ratio
         canvas.width = rect.width * dpr;
@@ -692,6 +692,12 @@
     }
     window.addEventListener('resize', resizeCanvas);
     window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 100));
+    // Bug sweep: entering/exiting fullscreen resizes the container without a
+    // window resize event - refit then. Also resume suspended audio on return.
+    document.addEventListener('fullscreenchange', () => setTimeout(resizeCanvas, 30));
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) { try { audio.ensureActive(); } catch (e) {} }
+    });
 
     // Starfield Background
     const starfieldCanvas = document.getElementById('TEMPLATE-4weird-starfield');
@@ -1054,8 +1060,8 @@
             chargeAngle: 0
         };
 
-        const logicalWidth = canvas.width / (window.devicePixelRatio || 1);
-        const logicalHeight = canvas.height / (window.devicePixelRatio || 1);
+        const logicalWidth = canvas.width / (Math.min(window.devicePixelRatio || 1, 2));
+        const logicalHeight = canvas.height / (Math.min(window.devicePixelRatio || 1, 2));
         state.camera.x = state.player.x - logicalWidth / 2;
         state.camera.y = state.player.y - logicalHeight / 2;
 
@@ -2489,8 +2495,8 @@
             }
         }
 
-        const logicalWidth = canvas.width / (window.devicePixelRatio || 1);
-        const logicalHeight = canvas.height / (window.devicePixelRatio || 1);
+        const logicalWidth = canvas.width / (Math.min(window.devicePixelRatio || 1, 2));
+        const logicalHeight = canvas.height / (Math.min(window.devicePixelRatio || 1, 2));
         state.mouse.worldX = state.mouse.x + state.camera.x;
         state.mouse.worldY = state.mouse.y + state.camera.y;
 
@@ -2796,8 +2802,8 @@
     // 15. RENDERING PIPELINE
     // ==========================================
     function drawGame() {
-        const logicalWidth = canvas.width / (window.devicePixelRatio || 1);
-        const logicalHeight = canvas.height / (window.devicePixelRatio || 1);
+        const logicalWidth = canvas.width / (Math.min(window.devicePixelRatio || 1, 2));
+        const logicalHeight = canvas.height / (Math.min(window.devicePixelRatio || 1, 2));
 
         ctx.clearRect(0, 0, logicalWidth, logicalHeight);
 
@@ -4157,10 +4163,10 @@
     function aaDrawHackBar() {
         try {
             if (!state.hack.active) return;
-            const logicalWidth = canvas.width / (window.devicePixelRatio || 1);
-            const logicalHeight = canvas.height / (window.devicePixelRatio || 1);
+            const logicalWidth = canvas.width / (Math.min(window.devicePixelRatio || 1, 2));
+            const logicalHeight = canvas.height / (Math.min(window.devicePixelRatio || 1, 2));
             ctx.save();
-            ctx.setTransform(window.devicePixelRatio || 1, 0, 0, window.devicePixelRatio || 1, 0, 0);
+            ctx.setTransform(Math.min(window.devicePixelRatio || 1, 2), 0, 0, Math.min(window.devicePixelRatio || 1, 2), 0, 0);
             const w = 260, h = 14;
             const x = (logicalWidth - w) / 2, y = logicalHeight - 90;
             const pct = Math.min(1, state.hack.progress / state.hack.required);
@@ -4355,4 +4361,73 @@
             return this.godMode;
         }
     };
+})();
+
+// ===== FW-ARCADE-A: fullscreen helper (page scope) =====
+// Fullscreens #gameMain so the HUD (HP/DNA/floor + gadget bar) stays visible
+// (feature: HUD kept + repositioned via :fullscreen CSS below).
+// ⛶ overlay button (top-right of the viewport), F key + double-click toggle.
+// Canvas refit runs through the in-game resizeCanvas via window resize /
+// fullscreenchange listeners wired inside the game scope above.
+(function fwFullscreen() {
+    var main = document.getElementById('gameMain');
+    var viewport = document.getElementById('viewportContainer');
+    if (!main || !viewport || document.getElementById('fw-fs-btn')) return;
+    var btn = document.createElement('button');
+    btn.id = 'fw-fs-btn';
+    btn.className = 'fw-fs-btn';
+    btn.type = 'button';
+    btn.title = 'Toggle fullscreen (F)';
+    btn.setAttribute('aria-label', 'Toggle fullscreen');
+    btn.textContent = '\u26F6';
+    viewport.appendChild(btn);
+
+    function isFS() { return !!document.fullscreenElement; }
+    function refit() {
+        // Reach the closure-scoped resizeCanvas through its listeners.
+        try { window.dispatchEvent(new Event('resize')); } catch (e) {}
+    }
+    function toggleFS() {
+        if (!isFS()) {
+            // Pointer-lock conflict guard: never request pointer lock and
+            // fullscreen simultaneously - this game uses no pointer lock, but
+            // if one is ever held, exit it first and sequence fullscreen after.
+            if (document.pointerLockElement && document.exitPointerLock) {
+                try { document.exitPointerLock(); } catch (e) {}
+                setTimeout(requestFS, 60);
+            } else {
+                requestFS();
+            }
+        } else if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+    function requestFS() {
+        try {
+            var r = main.requestFullscreen ? main.requestFullscreen() : null;
+            if (r && r.catch) r.catch(function (err) { console.warn('Fullscreen rejected:', err); });
+        } catch (e) { console.warn('Fullscreen rejected:', e); }
+    }
+    btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        toggleFS();
+        if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    });
+    viewport.addEventListener('dblclick', function (e) {
+        if (e.target && e.target.closest && e.target.closest('button')) return;
+        toggleFS();
+    });
+    window.addEventListener('keydown', function (e) {
+        if (e.key !== 'f' && e.key !== 'F') return;
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        var t = e.target;
+        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+        // F-key conflict guard: F is the special-ability key during a run, so
+        // the F shortcut only applies outside active play (menus); mid-run
+        // fullscreen uses the ⛶ button or double-click.
+        if (main && !main.classList.contains('hidden')) return;
+        e.preventDefault();
+        toggleFS();
+    });
+    document.addEventListener('fullscreenchange', function () { refit(); });
 })();

@@ -43,8 +43,8 @@ export const SITE_NAV_GROUPS: SiteNavGroup[] = [
     ],
   },
   {
-    label: "⚡ Rent Power",
-    tagline: "Cloud GPUs and helpers, by the minute.",
+    label: "🌐 Rent Tech",
+    tagline: "Cloud GPUs, desktops and helpers, by the minute.",
     links: [
       { href: "/agents", label: "AI Agents", quick: "Rent helpers that do work for you.", detail: "Hire-a-brain. Agents research, code, and grind boring work. Escrow holds the max, you pay per second used.\n\nPick a helper, set a max budget, and escrow locks only that amount. Unused escrow returns automatically when the job ends." },
       { href: "/runpods", label: "My RunPods", quick: "Your cloud GPUs in one list.", detail: "Every RunPod you created - desktops, remotes, servers, render workers - with Stop / Start / Terminate.\n\nGreen means running and billing; stopped pods keep the disk but cost nothing. Terminate is the only button that deletes." },

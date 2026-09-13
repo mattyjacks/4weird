@@ -61,7 +61,7 @@
     <main class="TEMPLATE-4weird-game-main">
         <!-- Game Canvas Frame -->
         <div class="TEMPLATE-4weird-game-frame">
-            <button class="TEMPLATE-4weird-fullscreen-btn" id="TEMPLATE-4weird-fullscreen-btn" title="Toggle Fullscreen">📺 Expand screen</button>
+            <button class="TEMPLATE-4weird-fullscreen-btn" id="TEMPLATE-4weird-fullscreen-btn" title="Fullscreen (F) — Esc to exit">⛶ Fullscreen</button>
             
             <!-- Real-time game HUD -->
             <div id="game-hud" class="hidden">
@@ -229,6 +229,10 @@
                                 <option value="swipe">Touch Swipes</option>
                                 <option value="buttons">Touch Buttons</option>
                             </select>
+                        </div>
+                        <div class="setting-item">
+                            <label for="ss-fs-settings-btn">Fullscreen Display (F)</label>
+                            <button class="btn btn-secondary" id="ss-fs-settings-btn" title="Fullscreen (F) — Esc to exit">⛶ Fullscreen</button>
                         </div>
                         <div class="setting-item danger-section">
                             <button class="btn btn-danger" id="btn-reset-progress">RESET ACADEMIC PROGRESS</button>
@@ -481,10 +485,58 @@
     <script src="game.js"></script>
     
     <script>
+        // Safe copyGameLink: the v1 source page has no runtime bridge, so keep
+        // a local helper — but never let a missing clipboard API throw.
         function copyGameLink() {
-            navigator.clipboard.writeText(window.location.href);
-            alert("Game link copied to clipboard! 📋");
+            var url = window.location.href;
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url).catch(function () {});
+                    return;
+                }
+            } catch (e) { /* fall through to execCommand */ }
+            try {
+                var area = document.createElement('textarea');
+                area.value = url;
+                document.body.appendChild(area);
+                area.select();
+                document.execCommand('copy');
+                document.body.removeChild(area);
+            } catch (e) { /* copy unavailable; ignore */ }
         }
+    </script>
+    <script>
+        // 4weird fullscreen: overlay button + settings item + F key + double-click (group B).
+        // CSS-only scaling on .TEMPLATE-4weird-game-frame; renderer.js already
+        // refits on window resize, so refit on fullscreenchange is a dispatch.
+        (function () {
+            var frame = document.querySelector('.TEMPLATE-4weird-game-frame') || document.documentElement;
+            function refit() { window.dispatchEvent(new Event('resize')); }
+            function toggleFS() {
+                if (!document.fullscreenElement) {
+                    if (frame.requestFullscreen) {
+                        var p = frame.requestFullscreen();
+                        if (p && p.catch) p.catch(function () {});
+                    }
+                } else if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+            ['TEMPLATE-4weird-fullscreen-btn', 'ss-fs-settings-btn'].forEach(function (id) {
+                var b = document.getElementById(id);
+                if (b) b.addEventListener('click', toggleFS);
+            });
+            document.addEventListener('keydown', function (e) {
+                var t = e.target;
+                if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+                if (e.key === 'f' || e.key === 'F') toggleFS();
+            });
+            frame.addEventListener('dblclick', function (e) {
+                if (e.target.closest('button, input, select, textarea, a')) return;
+                toggleFS();
+            });
+            document.addEventListener('fullscreenchange', refit);
+        })();
     </script>
 </body>
 </html>

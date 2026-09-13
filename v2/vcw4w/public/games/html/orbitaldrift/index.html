@@ -64,6 +64,8 @@
     <main class="TEMPLATE-4weird-game-main">
         <!-- Game Canvas/Frame -->
         <div class="TEMPLATE-4weird-game-frame" id="game-container">
+            <!-- Fullscreen overlay (wired in game.js: ⛶ top-right, F key, double-click) -->
+            <button type="button" class="fw-fs-btn" id="fw-fs-btn" title="Toggle fullscreen (F)" aria-label="Toggle fullscreen">⛶</button>
             <canvas id="TEMPLATE-4weird-gameCanvas" aria-label="Orbital Drift 3D space arena"></canvas>
             <div id="hit-flash"></div>
             <div id="vignette"></div>
@@ -200,6 +202,7 @@
                     <li><kbd>Hold Mouse Click</kbd> / <kbd>Hold Touch</kbd> - Expand Orbit</li>
                     <li><kbd>Hold Spacebar</kbd> - Expand Orbit</li>
                     <li><kbd>P</kbd> / <kbd>Esc</kbd> - Pause Game</li>
+                    <li><kbd>F</kbd> / Double-click / <kbd>⛶</kbd> - Fullscreen</li>
                 </ul>
             </div>
             

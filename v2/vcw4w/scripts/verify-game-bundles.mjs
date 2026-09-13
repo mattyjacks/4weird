@@ -30,6 +30,12 @@ const divergedPrefixes = [
   "serversavershield/", // tuning/balance evolution (+ v2-native js/quality.js)
   "gravegain2d/", // aaa/campaign/epic layers
   "gravegain3d/", // enemy variants/blood, dungeon/hub evolution
+  "madi/", // fourweird-fullscreen-patch wave (button/F/dblclick toggles, webkit fallbacks, canvas refit, sizing CSS) + DOM null-guards
+  "kouzi/", // neon fullscreen/guard hardening wave (same patch family as madi)
+  "aiwhackamole/", // fullscreen/guard hardening wave
+  "battlesharks2/", // fullscreen/guard hardening wave
+  "DiscoverAmerica/", // fullscreen/guard hardening wave
+  "demolichdom/", // storage-guard hardening (private-mode/sandbox localStorage crashes)
 ];
 // Root-level shared files with intentional v2 divergence.
 const divergedFiles = new Set([

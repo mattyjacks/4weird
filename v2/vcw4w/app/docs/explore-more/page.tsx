@@ -154,7 +154,7 @@ export default function ExploreMorePage() {
         index="6"
         kicker="The workshop wing"
         title="Build: remix, rent, and render"
-        body="The sidebar&apos;s Build group is the workshop: make games, rent cloud power by the minute, and generate art, voice, and 3D - all on the same coin economy. Same login everywhere."
+        body="The sidebar&apos;s Build group is the workshop: make games, rent cloud tech by the minute, and generate art, voice, and 3D - all on the same coin economy. Same login everywhere."
       />
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         {[

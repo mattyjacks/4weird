@@ -720,3 +720,54 @@
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
 }
+
+/* ===== 4weird fullscreen + large-size guards (group B) ===== */
+/* DOM-heavy sim: scale the frame container, don't rewrite layout. */
+.ff-fs-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 60;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    background: rgba(6, 182, 212, 0.12);
+    border: 1px solid var(--accent-cyan);
+    border-radius: 8px;
+    cursor: pointer;
+}
+.ff-fs-btn:hover { background: rgba(6, 182, 212, 0.3); }
+.ff-fs-bar-btn {
+    background: transparent;
+    color: var(--accent-cyan);
+    border: 1px solid var(--accent-cyan);
+    padding: 12px 20px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+    margin-left: 8px;
+    white-space: nowrap;
+}
+.ff-fs-bar-btn:hover { background: rgba(6, 182, 212, 0.15); }
+.TEMPLATE-4weird-game-frame:fullscreen {
+    background: var(--primary-bg);
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    border-radius: 0;
+    border-width: 0;
+}
+.TEMPLATE-4weird-game-frame:fullscreen::backdrop { background: #000; }
+.TEMPLATE-4weird-game-frame:fullscreen .game-container {
+    max-height: none;
+    height: 100%;
+}
+/* DOM dashboard breaks at large sizes: guard overflow, clamp display type. */
+.game-tabs { overflow-x: auto; }
+.metric-value { font-size: clamp(1.1rem, 2.4vw, 1.5rem); overflow-wrap: anywhere; }
+.panel-title { font-size: clamp(0.9rem, 1.8vw, 1.1rem); overflow-wrap: anywhere; }
+.turn-control-bar { flex-wrap: wrap; gap: 12px; }
+.event-modal, .profile-selection-overlay { overflow-y: auto; }

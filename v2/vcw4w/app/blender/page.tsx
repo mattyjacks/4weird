@@ -17,7 +17,7 @@ export default function BlenderPage() {
         <Link className="text-cyan-300 hover:underline" href="/desktop">
           ← Virtual desktops
         </Link>
-        <p className="mt-4 text-xs font-bold tracking-widest text-cyan-300">4WEIRD / BLENDER RENDER FARM</p>
+        <p className="mt-4 text-xs font-bold tracking-widest text-cyan-300">🌐 RENT TECH / BLENDER RENDER FARM</p>
         <h1 className="mt-2 text-4xl font-black">Render Blender on a 4090, from your browser</h1>
         <p className="mt-4 text-slate-300">
           Blender is the free, open-source 3D suite (blender.org): you build a scene - models, materials, lights,

@@ -347,11 +347,30 @@ window.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(gameLoop);
 });
 
+// Logical playfield size in CSS pixels. The backing store is scaled by
+// devicePixelRatio for HiDPI crispness (see resizeCanvas), so all gameplay,
+// spawn, bounds and input math must use these - never the raw backing store.
+function viewW() { return (canvas && canvas.clientWidth) || viewW._last || 1000; }
+function viewH() { return (canvas && canvas.clientHeight) || viewH._last || 600; }
+
 function resizeCanvas() {
     if (!canvas) return;
     const container = canvas.parentElement;
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
+    if (!container) return;
+    const cssW = container.clientWidth;
+    const cssH = container.clientHeight;
+    if (!cssW || !cssH) return;
+    viewW._last = cssW;
+    viewH._last = cssH;
+    // HiDPI fix: backing store scaled by DPR (capped at 2), drawing stays in
+    // CSS-pixel coordinates via setTransform. Game coordinate scaling is
+    // preserved - entities, bounds and mouse mapping are all CSS-pixel based.
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+    canvas.style.width = cssW + 'px';
+    canvas.style.height = cssH + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
 // ─── Input Management ───
@@ -378,8 +397,8 @@ function setupInputListeners() {
 
     canvas.addEventListener('mousemove', e => {
         const rect = canvas.getBoundingClientRect();
-        mouse.x = (e.clientX - rect.left) * (canvas.width / rect.width);
-        mouse.y = (e.clientY - rect.top) * (canvas.height / rect.height);
+        mouse.x = (e.clientX - rect.left) * (viewW() / rect.width);
+        mouse.y = (e.clientY - rect.top) * (viewH() / rect.height);
     });
 
     canvas.addEventListener('mousedown', e => {
@@ -402,16 +421,16 @@ function setupInputListeners() {
         e.preventDefault();
         const touch = e.touches[0];
         const rect = canvas.getBoundingClientRect();
-        mouse.x = (touch.clientX - rect.left) * (canvas.width / rect.width);
-        mouse.y = (touch.clientY - rect.top) * (canvas.height / rect.height);
+        mouse.x = (touch.clientX - rect.left) * (viewW() / rect.width);
+        mouse.y = (touch.clientY - rect.top) * (viewH() / rect.height);
     }, { passive: false });
 
     canvas.addEventListener('touchstart', e => {
         e.preventDefault();
         const touch = e.touches[0];
         const rect = canvas.getBoundingClientRect();
-        mouse.x = (touch.clientX - rect.left) * (canvas.width / rect.width);
-        mouse.y = (touch.clientY - rect.top) * (canvas.height / rect.height);
+        mouse.x = (touch.clientX - rect.left) * (viewW() / rect.width);
+        mouse.y = (touch.clientY - rect.top) * (viewH() / rect.height);
         mouse.down = true;
         if (state.running && !state.paused) {
             fireWeapon();
@@ -504,7 +523,7 @@ function resetGameState() {
     state.shieldActive = false;
     
     // Player starts high above water
-    player.x = canvas ? canvas.width / 2 : 500;
+    player.x = canvas ? viewW() / 2 : 500;
     player.y = -80; 
     player.vx = 0;
     player.vy = 0.5; // Dropping velocity
@@ -689,7 +708,7 @@ window.spawnAquariumItem = function(itemType) {
         aquariumItems.push({
             type: itemType,
             x: player.x + (Math.random() - 0.5) * 150,
-            y: Math.min(canvas.height - 80, player.y + (Math.random() - 0.5) * 100),
+            y: Math.min(viewH() - 80, player.y + (Math.random() - 0.5) * 100),
             timer: 0,
             emoji: itemType === 'coral' ? '🪸' : (itemType === 'wreckage' ? '🚢' : '🌋'),
             size: 32
@@ -862,8 +881,8 @@ function spawnPrey() {
     
     preys.push({
         type: type,
-        x: Math.random() < 0.5 ? -30 : canvas.width + 30,
-        y: isBottomWalker ? canvas.height - 40 - Math.random() * 20 : Math.random() * (canvas.height - 180) + state.waterLevel + 30,
+        x: Math.random() < 0.5 ? -30 : viewW() + 30,
+        y: isBottomWalker ? viewH() - 40 - Math.random() * 20 : Math.random() * (viewH() - 180) + state.waterLevel + 30,
         vx: (Math.random() > 0.5 ? 1 : -1) * type.speed,
         vy: isBottomWalker ? 0 : (Math.random() - 0.5) * 0.5,
         radius: type.size,
@@ -878,13 +897,13 @@ function spawnEnemy() {
     let x, y, vx, vy;
 
     if (type.isStatic) {
-        x = Math.random() * (canvas.width - 100) + 50;
+        x = Math.random() * (viewW() - 100) + 50;
         y = state.waterLevel - 20; // drop down below water level
         vx = 0;
         vy = 1.3;
     } else {
-        x = Math.random() < 0.5 ? -30 : canvas.width + 30;
-        y = Math.random() * (canvas.height - 200) + state.waterLevel + 40;
+        x = Math.random() < 0.5 ? -30 : viewW() + 30;
+        y = Math.random() * (viewH() - 200) + state.waterLevel + 40;
         vx = (x < 0 ? 1 : -1) * type.speed;
         vy = (Math.random() - 0.5) * 0.5;
     }
@@ -905,7 +924,7 @@ function spawnEnemy() {
 function spawnFloatingCollectibles() {
     floatingItems.push({
         type: Math.random() < 0.3 ? 'mutagen' : 'debris',
-        x: Math.random() * (canvas.width - 100) + 50,
+        x: Math.random() * (viewW() - 100) + 50,
         y: state.waterLevel - 25,
         vy: 1.1 + Math.random() * 0.4,
         radius: 12,
@@ -1016,7 +1035,7 @@ function update(timestamp) {
             if (!pr.type.bottomWalker) {
                 pr.vy += Math.sin(timestamp * 0.005 + pr.x) * 0.06;
             }
-            if (pr.x < -80 || pr.x > canvas.width + 80) {
+            if (pr.x < -80 || pr.x > viewW() + 80) {
                 preys.splice(idx, 1);
             }
         });
@@ -1202,9 +1221,9 @@ function update(timestamp) {
 
         // Boundary safety with zeroing/bouncing
         const minX = player.radius;
-        const maxX = canvas.width - player.radius;
+        const maxX = viewW() - player.radius;
         const minY = player.radius + 20;
-        const maxY = canvas.height - player.radius - 20;
+        const maxY = viewH() - player.radius - 20;
 
         if (player.x < minX) {
             player.x = minX;
@@ -1327,7 +1346,7 @@ function update(timestamp) {
             createBubble(pr.x, pr.y, 1);
         }
 
-        if (pr.x < -80 || pr.x > canvas.width + 80) {
+        if (pr.x < -80 || pr.x > viewW() + 80) {
             preys.splice(idx, 1);
         }
     });
@@ -1374,7 +1393,7 @@ function update(timestamp) {
 
     floatingItems.forEach((item, idx) => {
         item.y += item.vy;
-        if (item.y > canvas.height + 40 || item.y < -40) {
+        if (item.y > viewH() + 40 || item.y < -40) {
             floatingItems.splice(idx, 1);
         }
     });
@@ -1421,7 +1440,7 @@ function update(timestamp) {
         proj.x += proj.vx;
         proj.y += proj.vy;
 
-        if (proj.x < -20 || proj.x > canvas.width + 20 || proj.y < -20 || proj.y > canvas.height + 20) {
+        if (proj.x < -20 || proj.x > viewW() + 20 || proj.y < -20 || proj.y > viewH() + 20) {
             projectiles.splice(idx, 1);
         }
     });
@@ -1430,7 +1449,7 @@ function update(timestamp) {
         enemy.x += enemy.vx;
         enemy.y += enemy.vy;
 
-        if (enemy.type.isStatic && enemy.y >= canvas.height - 60) {
+        if (enemy.type.isStatic && enemy.y >= viewH() - 60) {
             enemy.vy = 0;
             enemy.vx = Math.sin(timestamp * 0.002) * 0.5;
         }
@@ -1452,7 +1471,7 @@ function update(timestamp) {
             }
         }
 
-        if (enemy.x < -80 || enemy.x > canvas.width + 80) {
+        if (enemy.x < -80 || enemy.x > viewW() + 80) {
             enemies.splice(idx, 1);
         }
     });
@@ -1476,7 +1495,7 @@ function updateBoss(timestamp) {
         }
     } else if (boss.state === 'fight') {
         boss.x += boss.vx;
-        if (boss.x < 100 || boss.x > canvas.width - 100) {
+        if (boss.x < 100 || boss.x > viewW() - 100) {
             boss.vx = -boss.vx;
         }
 
@@ -1879,7 +1898,7 @@ function dealPlayerDamage(amount) {
 
 // ─── Canvas Renderer ───
 function render(timestamp) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, viewW(), viewH());
 
     ctx.save();
     if (state.cameraShake > 0) {
@@ -1891,12 +1910,12 @@ function render(timestamp) {
     // 1. Background (Above water vs Below water)
     // Draw Lab Bay air for top section (y < waterLevel)
     ctx.fillStyle = '#141424';
-    ctx.fillRect(0, 0, canvas.width, state.waterLevel);
+    ctx.fillRect(0, 0, viewW(), state.waterLevel);
     
     // Draw laboratory steel pillars/crane grid lines in air
     ctx.strokeStyle = 'rgba(255,255,255,0.03)';
     ctx.lineWidth = 4;
-    for (let i = 0; i < canvas.width; i += 120) {
+    for (let i = 0; i < viewW(); i += 120) {
         ctx.beginPath();
         ctx.moveTo(i, 0);
         ctx.lineTo(i, state.waterLevel);
@@ -1904,11 +1923,11 @@ function render(timestamp) {
     }
 
     // Draw Deep water background gradients below waterLevel
-    const lightGrd = ctx.createLinearGradient(0, state.waterLevel, 0, canvas.height);
+    const lightGrd = ctx.createLinearGradient(0, state.waterLevel, 0, viewH());
     lightGrd.addColorStop(0, '#0a1d37');
     lightGrd.addColorStop(1, '#02030a');
     ctx.fillStyle = lightGrd;
-    ctx.fillRect(0, state.waterLevel, canvas.width, canvas.height - state.waterLevel);
+    ctx.fillRect(0, state.waterLevel, viewW(), viewH() - state.waterLevel);
 
     // 2. Light Shafts (only below waterLevel)
     ctx.fillStyle = 'rgba(0, 242, 254, 0.03)';
@@ -1917,8 +1936,8 @@ function render(timestamp) {
         ctx.beginPath();
         ctx.moveTo(150 + i * 200 + offset, state.waterLevel);
         ctx.lineTo(220 + i * 200 + offset, state.waterLevel);
-        ctx.lineTo(380 + i * 200 + offset * 1.5, canvas.height);
-        ctx.lineTo(120 + i * 200 + offset * 1.5, canvas.height);
+        ctx.lineTo(380 + i * 200 + offset * 1.5, viewH());
+        ctx.lineTo(120 + i * 200 + offset * 1.5, viewH());
         ctx.fill();
     }
 
@@ -1927,7 +1946,7 @@ function render(timestamp) {
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(0, state.waterLevel);
-    for (let x = 0; x <= canvas.width; x += 15) {
+    for (let x = 0; x <= viewW(); x += 15) {
         const y = state.waterLevel + Math.sin(x * 0.02 + timestamp * 0.004) * 3.5;
         ctx.lineTo(x, y);
     }
@@ -1935,11 +1954,11 @@ function render(timestamp) {
 
     // Bottom floor
     ctx.fillStyle = 'rgba(2, 242, 254, 0.03)';
-    ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+    ctx.fillRect(0, viewH() - 40, viewW(), 40);
     ctx.strokeStyle = 'rgba(0, 242, 254, 0.15)';
     ctx.beginPath();
-    ctx.moveTo(0, canvas.height - 40);
-    ctx.lineTo(canvas.width, canvas.height - 40);
+    ctx.moveTo(0, viewH() - 40);
+    ctx.lineTo(viewW(), viewH() - 40);
     ctx.stroke();
 
     // Render Deployed Aquarium Items
@@ -2154,14 +2173,14 @@ function render(timestamp) {
         ctx.fillStyle = 'rgba(3, 3, 13, 0.85)';
         ctx.strokeStyle = 'rgba(0, 242, 254, 0.4)';
         ctx.lineWidth = 2;
-        ctx.fillRect(canvas.width / 2 - 200, 30, 400, 45);
-        ctx.strokeRect(canvas.width / 2 - 200, 30, 400, 45);
+        ctx.fillRect(viewW() / 2 - 200, 30, 400, 45);
+        ctx.strokeRect(viewW() / 2 - 200, 30, 400, 45);
 
         ctx.fillStyle = '#00f2fe';
         ctx.font = 'bold 13px Orbitron';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(notificationText, canvas.width / 2, 52);
+        ctx.fillText(notificationText, viewW() / 2, 52);
     }
 }
 
@@ -2197,3 +2216,82 @@ window.gameDebug = {
         return this.godMode;
     }
 };
+
+// ===== FW-ARCADE-A: fullscreen + bug-sweep helper =====
+// Fullscreens #gameMain so the HUD (health/biomass/score) stays visible.
+// ⛶ overlay button (top-right of the viewport), F key + double-click toggle,
+// fullscreenchange/resize refit via resizeCanvas (CSS-pixel coordinates are
+// preserved - see viewW/viewH). Feature: exiting fullscreen mid-mission pauses.
+(function fwFullscreen() {
+    var main = document.getElementById('gameMain');
+    var viewport = document.getElementById('viewportContainer');
+    if (!main || !viewport || document.getElementById('fw-fs-btn')) return;
+    var btn = document.createElement('button');
+    btn.id = 'fw-fs-btn';
+    btn.className = 'fw-fs-btn';
+    btn.type = 'button';
+    btn.title = 'Toggle fullscreen (F)';
+    btn.setAttribute('aria-label', 'Toggle fullscreen');
+    btn.textContent = '\u26F6';
+    viewport.appendChild(btn);
+
+    // Bug sweep: resume a suspended AudioContext on every gesture.
+    function resumeAudio() {
+        try {
+            if (sfx.ctx && sfx.ctx.state === 'suspended') sfx.ctx.resume().catch(function () {});
+        } catch (e) {}
+    }
+    window.addEventListener('pointerdown', resumeAudio);
+    window.addEventListener('keydown', resumeAudio);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) resumeAudio(); });
+
+    function isFS() { return !!document.fullscreenElement; }
+    function refit() { try { resizeCanvas(); } catch (e) {} }
+    function toggleFS() {
+        try { sfx.init(); } catch (e) {}
+        if (!isFS()) {
+            // Pointer-lock conflict guard: never request pointer lock and
+            // fullscreen simultaneously - this game uses no pointer lock, but
+            // if one is ever held, exit it first and sequence fullscreen after.
+            if (document.pointerLockElement && document.exitPointerLock) {
+                try { document.exitPointerLock(); } catch (e) {}
+                setTimeout(requestFS, 60);
+            } else {
+                requestFS();
+            }
+        } else if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+    function requestFS() {
+        try {
+            var r = main.requestFullscreen ? main.requestFullscreen() : null;
+            if (r && r.catch) r.catch(function (err) { console.warn('Fullscreen rejected:', err); });
+        } catch (e) { console.warn('Fullscreen rejected:', e); }
+    }
+    btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        toggleFS();
+        if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    });
+    viewport.addEventListener('dblclick', function (e) {
+        if (e.target && e.target.closest && e.target.closest('button')) return;
+        toggleFS();
+    });
+    window.addEventListener('keydown', function (e) {
+        if (e.key !== 'f' && e.key !== 'F') return;
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        var t = e.target;
+        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+        e.preventDefault();
+        toggleFS();
+    });
+    document.addEventListener('fullscreenchange', function () {
+        refit();
+        // Feature: leaving fullscreen mid-mission pauses instead of dropping input.
+        try {
+            if (!isFS() && state.running && !state.paused) togglePause();
+        } catch (e) {}
+    });
+    window.addEventListener('resize', refit);
+})();

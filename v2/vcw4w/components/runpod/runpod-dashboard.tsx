@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { Loader2 } from "lucide-react";
 import { ProxyLink } from "@/components/runpod/proxy-link";
 import { PodIdleWatch } from "@/components/runpod/pod-idle-watch";
 import { InfoTip } from "@/components/ui/info-tip";
@@ -209,6 +210,57 @@ function UnconfiguredNote({ message }: { message: string }) {
         environment variable for live data. RunPod bills your card directly — never coins, no Vibe cut.
       </p>
     </div>
+  );
+}
+
+/**
+ * One-line pod state badge: Live only when RunPod reports RUNNING.
+ * Starting shows an inline spinner; Paused means compute billing stopped
+ * (Stop — disk kept, Start resumes); Terminated/Delete are permanent.
+ */
+function PodStatusBadge({ dbStatus, podStatus }: { dbStatus: string; podStatus: string | null }) {
+  const pod = String(podStatus ?? "").toUpperCase();
+  const db = String(dbStatus ?? "").toLowerCase();
+  if (pod.includes("RUNNING")) {
+    return (
+      <span role="status" title="Pod is running — the desktop/stream link should load." className="inline-flex items-center rounded-full bg-emerald-900 px-2 py-0.5 text-xs font-bold text-emerald-200">
+        🟢 Live
+      </span>
+    );
+  }
+  if (/TERMINAT/.test(pod) || db === "terminated" || db === "deleted") {
+    return (
+      <span role="status" title="Pod terminated or deleted — billing ended permanently, disk lost." className="inline-flex items-center rounded-full bg-slate-700 px-2 py-0.5 text-xs font-bold text-slate-300">
+        ⚫ {db === "deleted" ? "Deleted" : "Terminated"}
+      </span>
+    );
+  }
+  if (/ERROR|FAILED/.test(pod)) {
+    return (
+      <span role="alert" title="Pod reported an error — try Restart, then Terminate and re-rent if it persists." className="inline-flex items-center rounded-full bg-red-900 px-2 py-0.5 text-xs font-bold text-red-200">
+        🔴 Error
+      </span>
+    );
+  }
+  if (/EXITED|STOPPED|PAUSED|SUSPENDED/.test(pod) || db === "stopped") {
+    return (
+      <span className="inline-flex items-center rounded-full bg-slate-700 px-2 py-0.5 text-xs font-bold text-slate-200" title="Compute billing stopped; disk kept. Press Start to resume.">
+        ⏸ Paused — billing stopped
+      </span>
+    );
+  }
+  if (/PROVISION|STARTING|PENDING|CREAT|INITIALIZ|RESTARTING/.test(pod)) {
+    return (
+      <span className="inline-flex items-center rounded-full bg-amber-900 px-2 py-0.5 text-xs font-bold text-amber-200">
+        <Loader2 className="mr-1 inline h-3 w-3 animate-spin" aria-hidden="true" />
+        Starting…
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center rounded-full bg-slate-700 px-2 py-0.5 text-xs font-bold text-slate-300" title={podStatus ? `RunPod reports: ${podStatus}` : "RunPod status check unavailable right now"}>
+      {podStatus ? `❔ ${podStatus}` : `❔ ${dbStatus || "unknown"}`}
+    </span>
   );
 }
 
@@ -711,6 +763,8 @@ export function RunpodDashboard() {
   const [busy, setBusy] = useState("");
   const [msg, setMsg] = useState<Record<string, string>>({});
   const [tab, setTab] = useState<DashTab>("pods");
+  const [stopAllBusy, setStopAllBusy] = useState(false);
+  const [stopAllMsg, setStopAllMsg] = useState("");
 
   const load = useCallback(async () => {
     // Per-source settle: one failing lane (desktops, autoplay, rentals, or
@@ -761,24 +815,32 @@ export function RunpodDashboard() {
     void load();
   }, [load]);
 
-  async function control(kind: "desktop" | "autoplay" | "booking" | "blender", id: string, action: PodAction) {
+  type PodKind = "desktop" | "autoplay" | "booking" | "blender";
+
+  function controlUrl(kind: PodKind, id: string) {
+    return kind === "desktop"
+      ? `/api/desktop/${id}/pod`
+      : kind === "autoplay"
+        ? `/api/vcw/autoplay/${id}/pod`
+        : kind === "booking"
+          ? `/api/agents/bookings/${id}/pod`
+          : `/api/blender/jobs/${id}/pod`;
+  }
+
+  async function postControl(kind: PodKind, id: string, action: PodAction): Promise<string> {
+    const body = await api(controlUrl(kind, id), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+    });
+    return String((body.podStatus as string) ?? "");
+  }
+
+  async function control(kind: PodKind, id: string, action: PodAction) {
     const key = `${kind}:${id}:${action}`;
     setBusy(key);
     try {
-      const url =
-        kind === "desktop"
-          ? `/api/desktop/${id}/pod`
-          : kind === "autoplay"
-            ? `/api/vcw/autoplay/${id}/pod`
-            : kind === "booking"
-              ? `/api/agents/bookings/${id}/pod`
-              : `/api/blender/jobs/${id}/pod`;
-      const body = await api(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
-      });
-      const status = String((body.podStatus as string) ?? "");
+      const status = await postControl(kind, id, action);
       setMsg((m) => ({ ...m, [`${kind}:${id}`]: `${action} sent${status ? `; pod ${status}` : ""}.` }));
       await load();
     } catch (e) {
@@ -786,6 +848,65 @@ export function RunpodDashboard() {
     } finally {
       setBusy("");
     }
+  }
+
+  /** Every pod Stop-all can pause (skips already terminated/deleted rows;
+   *  the server treats already-exited pods as stopped, so this never errors
+   *  on idle pods — it just confirms billing already ended). */
+  function collectStopTargets(): { kind: PodKind; id: string; label: string }[] {
+    const targets: { kind: PodKind; id: string; label: string }[] = [];
+    for (const d of desktops ?? []) {
+      if (d.status !== "deleted" && d.status !== "terminated") {
+        targets.push({ kind: "desktop", id: d.id, label: `Desktop ${d.id.slice(0, 8)}` });
+      }
+    }
+    for (const r of autoplay ?? []) {
+      if (r.status !== "deleted" && r.status !== "terminated") {
+        targets.push({ kind: "autoplay", id: r.id, label: `Test ${r.gameSlug} ${r.id.slice(0, 8)}` });
+      }
+    }
+    for (const b of rentals ?? []) {
+      if (b.pod_id) targets.push({ kind: "booking", id: b.id, label: `Server ${b.agent_listings?.name ?? b.id.slice(0, 8)}` });
+    }
+    for (const j of jobs ?? []) {
+      targets.push({ kind: "blender", id: j.id, label: `Render ${j.id.slice(0, 8)}` });
+    }
+    return targets;
+  }
+
+  async function stopAll() {
+    const targets = collectStopTargets();
+    if (targets.length === 0) {
+      setStopAllMsg("Nothing to stop — no active pods.");
+      return;
+    }
+    if (typeof window !== "undefined") {
+      const ok = window.confirm(
+        `Stop ${targets.length} pod(s) at once? Compute billing pauses on each (disks kept, storage still bills). Terminate/Delete stay per-card.`,
+      );
+      if (!ok) return;
+    }
+    setStopAllBusy(true);
+    setStopAllMsg(`Stopping ${targets.length} pod(s)…`);
+    const results = await Promise.allSettled(targets.map((t) => postControl(t.kind, t.id, "stop")));
+    let stopped = 0;
+    const failed: string[] = [];
+    results.forEach((r, i) => {
+      if (r.status === "fulfilled") {
+        stopped += 1;
+        const status = r.value;
+        setMsg((m) => ({ ...m, [`${targets[i].kind}:${targets[i].id}`]: `stop sent${status ? `; pod ${status}` : ""}.` }));
+      } else {
+        failed.push(targets[i].label);
+      }
+    });
+    setStopAllMsg(
+      failed.length === 0
+        ? `Stopped ${stopped} of ${targets.length} pod(s). Billing paused; disks kept — Start any card to resume.`
+        : `Stopped ${stopped} of ${targets.length}. These still need attention: ${failed.join(", ")}.`,
+    );
+    setStopAllBusy(false);
+    await load();
   }
 
   if (needsLogin) {
@@ -807,6 +928,7 @@ export function RunpodDashboard() {
 
   const loading = desktops === null || autoplay === null || rentals === null || jobs === null;
   const total = (desktops?.length ?? 0) + (autoplay?.length ?? 0) + (rentals?.length ?? 0) + (jobs?.length ?? 0);
+  const stopTargets = collectStopTargets();
 
   const tabs: { value: DashTab; label: string }[] = [
     { value: "pods", label: "Pods" },
@@ -875,6 +997,22 @@ export function RunpodDashboard() {
         </div>
       ) : (
         <>
+          {stopTargets.length > 0 && (
+            <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-amber-300/30 bg-amber-300/[.05] p-3">
+              <button
+                type="button"
+                disabled={stopAllBusy || busy !== ""}
+                onClick={() => void stopAll()}
+                className="rounded-full bg-amber-300 px-5 py-2 text-xs font-black text-slate-950 hover:bg-amber-200 disabled:opacity-50"
+              >
+                {stopAllBusy ? "Stopping all…" : `⏸ Stop all pods (${stopTargets.length}) — pause billing`}
+              </button>
+              <InfoTip side="bottom" text="Stops every pod below at once: compute billing pauses, disks are kept so you can Start again. Terminate/Delete stay per-card." label="About Stop all" />
+              {stopAllMsg && (
+                <p role="status" className="w-full text-xs text-amber-200">{stopAllMsg}</p>
+              )}
+            </div>
+          )}
           {desktops && desktops.length > 0 && (
             <section aria-label="Your Virtual Desktops">
               <h2 className="text-xl font-black text-slate-900 dark:text-white">🖥️ Your Virtual Desktops ({desktops.length})</h2>
@@ -889,7 +1027,8 @@ export function RunpodDashboard() {
                 {desktops.map((d) => (
                   <li key={d.id} className="rounded-xl border border-slate-800 bg-slate-900 p-4">
                     <p className="font-bold text-slate-900 dark:text-white">
-                      {d.kind === "gpu" ? "GPU" : "CPU"} Desktop · {d.interface === "gui" ? "Ubuntu GUI" : "Jupyter"}
+                      {d.kind === "gpu" ? "GPU" : "CPU"} Desktop · {d.interface === "gui" ? "Ubuntu GUI" : "Jupyter"}{" "}
+                      <PodStatusBadge dbStatus={d.status} podStatus={d.podStatus} />
                     </p>
                     <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
                       {d.status}
@@ -924,7 +1063,7 @@ export function RunpodDashboard() {
               <ul className="mt-3 grid gap-3 md:grid-cols-2">
                 {autoplay.map((r) => (
                   <li key={r.id} className="rounded-xl border border-slate-800 bg-slate-900 p-4">
-                    <p className="font-bold text-slate-900 dark:text-white">Test: {r.gameSlug} · {r.compute}</p>
+                    <p className="font-bold text-slate-900 dark:text-white">Test: {r.gameSlug} · {r.compute}{" "}<PodStatusBadge dbStatus={r.status} podStatus={r.podStatus} /></p>
                     <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
                       {r.status}
                       {r.podStatus ? ` · pod ${r.podStatus}` : ""} · {r.siteMode} · {r.gpu || r.cpu || "…"} · ~${r.hourlyUsd.toFixed(2)}/hr ·

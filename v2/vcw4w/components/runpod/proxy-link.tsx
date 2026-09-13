@@ -6,6 +6,8 @@ type ProxyLinkProps = {
   /** Short label shown before the URL (defaults to "Open"). */
   label?: string;
   className?: string;
+  /** Live pods render in emerald ("● Live — click to open"); warming pods stay cyan. */
+  live?: boolean;
 };
 
 /**
@@ -18,7 +20,7 @@ type ProxyLinkProps = {
  * validators enforce the same rule, but a stored row must never become
  * executable markup on click.
  */
-export function ProxyLink({ href, label = "Open", className = "" }: ProxyLinkProps) {
+export function ProxyLink({ href, label = "Open", className = "", live = false }: ProxyLinkProps) {
   if (!href) return null;
   let safe = false;
   try {
@@ -30,12 +32,15 @@ export function ProxyLink({ href, label = "Open", className = "" }: ProxyLinkPro
   if (!safe) {
     return <span className={`break-all font-mono text-xs text-slate-400 ${className}`}>{href}</span>;
   }
+  const tone = live
+    ? "text-emerald-300 decoration-emerald-300/50 hover:text-emerald-200 hover:decoration-emerald-200"
+    : "text-cyan-300 decoration-cyan-300/50 hover:text-cyan-200 hover:decoration-cyan-200";
   return (
     <a
       href={href}
       target="_blank"
       rel="noreferrer noopener"
-      className={`font-semibold text-cyan-300 underline decoration-cyan-300/50 underline-offset-2 hover:text-cyan-200 hover:decoration-cyan-200 ${className}`}
+      className={`font-semibold underline underline-offset-2 ${tone} ${className}`}
     >
       {label} <span aria-hidden="true">↗</span>{" "}
       <span className="break-all font-normal">{href}</span>

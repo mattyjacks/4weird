@@ -17,6 +17,7 @@
     <div id="TEMPLATE-4weird-nav-placeholder"></div>
 
     <div class="game-container">
+        <button class="dl-fs-btn" id="dl-fs-btn" title="Fullscreen (F) — Esc to exit">⛶</button>
         <canvas id="gameCanvas" width="800" height="500"></canvas>
         
         <div class="mobile-action-buttons" id="mobileActionButtons" style="display: none; position: absolute; bottom: 20px; right: 20px; gap: 15px; z-index: 100;">
@@ -64,7 +65,8 @@
             S: Summon Skeleton (-25 Mana)<br>
             Space: Blink (after upgrade)<br>
             1/2/3: Pick Upgrade<br>
-            P: Pause Game
+            P: Pause Game<br>
+            ⛶/F: Fullscreen (Esc exits)
         </div>
 
         <div class="phase-indicator" id="phaseIndicator">PHASE 1</div>
@@ -184,5 +186,31 @@
 
     <script src="../../../components.js"></script>
     <script src="game.js"></script>
+    <script>
+        // 4weird fullscreen: overlay button + F key + double-click (group B).
+        // Canvas is fixed 800x500 internally; CSS scales it in :fullscreen.
+        (function () {
+            var frame = document.querySelector('.game-container') || document.documentElement;
+            var canvas = document.getElementById('gameCanvas');
+            var btn = document.getElementById('dl-fs-btn');
+            function toggleFS() {
+                if (!document.fullscreenElement) {
+                    if (frame.requestFullscreen) {
+                        var p = frame.requestFullscreen();
+                        if (p && p.catch) p.catch(function () {});
+                    }
+                } else if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+            if (btn) btn.addEventListener('click', toggleFS);
+            document.addEventListener('keydown', function (e) {
+                var t = e.target;
+                if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+                if (e.key === 'f' || e.key === 'F') toggleFS();
+            });
+            if (canvas) canvas.addEventListener('dblclick', toggleFS);
+        })();
+    </script>
 </body>
 </html>

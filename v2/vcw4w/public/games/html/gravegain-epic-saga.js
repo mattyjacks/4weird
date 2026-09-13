@@ -92,7 +92,7 @@
             titlecard: { title: 'MISSION 1 — LZ CRASH SITE DEFENSE', subtitle: 'The Descent on MoonRock' },
             loreUnlocks: ['world_first_grave', 'necro_survivor', 'human_orientation'],
             intro: [
-                { speaker: 'Valley Net', portrait: '🤖',
+                { speaker: 'Valley Net', portrait: '👱🏻‍♀️',
                     kid: 'Oh no, our dropship took a tumble in Sector Alpha! Fifteen sleepy skeletons woke up grumpy in the craters. Stay close to your buddies and we will tuck them back in!',
                     teen: 'Dropship 420 is down in Sector Alpha. Fifteen freshly-risen hostiles converging on the crash site. Helmet seals LOCKED — MoonRock air kills in ninety seconds.',
                     all: 'Dropship 420 ate flak from its own reanimated artillery. Fifteen corpses are crawling out of the craters — including the burial detail we put in the ground three days ago. Fuck the odds; weapons hot.' },
@@ -106,7 +106,7 @@
                     all: 'Rifles OFF stun — stun does not work on dead bastards. Aim for the joints and they come apart like cheap scaffolding. You learned that on the guard tapes; now bleed it into muscle memory.' }
             ],
             outro: [
-                { speaker: 'Valley Net', portrait: '🤖',
+                { speaker: 'Valley Net', portrait: '👱🏻‍♀️',
                     kid: 'Yay! The crash site is tidy! The survivors are coming out with snacks and blankets. You were SO brave, cadet!',
                     teen: 'LZ secured. Fifteen hostiles neutralized, zero array signatures in the sector. Survivors falling back to the perimeter — excellent shooting, soldier.',
                     all: 'LZ secured. Fifteen hostiles back in the dirt, zero array signatures. Survivors inbound — and soldier, the first coffin we re-bury is James Wright, with full honors this time.' },
@@ -152,7 +152,7 @@
                     kid: 'Our downstairs treasure-room is full of grumpy bones sitting on my grandpa’s super-cool hammer! Help an old dwarf get his hammer back?',
                     teen: 'Our lower forge channels have been overrun! My ancestor’s legendary Golem Hammer lies trapped below.',
                     all: 'The lower forges are overrun and my ancestor’s Golem Hammer sits in a pile of risen shit. Get me my hammer, soldier, and I’ll show you what dwarven gratitude hits like.' },
-                { speaker: 'Valley Net', portrait: '🤖',
+                { speaker: 'Valley Net', portrait: '👱🏻‍♀️',
                     kid: 'Careful around the sparkly rocks — they are extra-zappy! Hold my hand (pretend!) and tiptoe!',
                     teen: 'Detecting high concentrations of unrefined Sparkite ore. Exercise extreme caution.',
                     all: 'Raw sparkite saturating the shafts — one wrong discharge and the whole vault becomes a crematorium. Watch your fire discipline down there.' },
@@ -184,7 +184,7 @@
                     kid: 'Hold hands, hold the line! We can do it together-together!',
                     teen: 'Hold the line with Groknak until our heavy artillery locks target!',
                     all: 'Hold with Groknak until artillery paints the whole field. Anything with red eyes dies — even his kin. Especially his kin. That’s the price of the Compact.' },
-                { speaker: 'Valley Net', portrait: '🤖',
+                { speaker: 'Valley Net', portrait: '👱🏻‍♀️',
                     kid: 'Counting grumpy bones… lots and lots! But we have the BIGGEST team! You got this!',
                     teen: 'Thirty hostiles converging on the gates, plus one huge berserker signature. Artillery clock is running — hold.',
                     all: 'Thirty zeds on the gates and a Huge Berserker leading them — Groknak’s own division-mate, risen wrong. Put the big bastard down first; the horde breaks without him.' }
@@ -204,7 +204,7 @@
             titlecard: { title: 'MISSION 5 — SIGNAL IN THE SHALLOWS', subtitle: 'Valley Net Uplink Restoration' },
             loreUnlocks: ['human_arty_fisher', 'necro_broadcast', 'world_farstar'],
             intro: [
-                { speaker: 'Valley Net', portrait: '🤖',
+                { speaker: 'Valley Net', portrait: '👱🏻‍♀️',
                     kid: 'Hades is making LOUD static on all my radios and I cannot hear my friends! Can you climb up and wiggle the antenna back straight?',
                     teen: 'Dr. Hades is broadcasting jamming signals across all sub-light frequencies. I need you to manually re-align Relay 09.',
                     all: 'Hades is jamming every band with Array static — I’m blind, deaf, and navigating by hate. Climb Relay 09 and re-align it by hand while his skull-swarms chew the coils.' },
@@ -218,7 +218,7 @@
                     all: 'On the spine. Feed me covering fire and keep the swarm off my seals — I realign this dish or we stay blind while Hades aims.' }
             ],
             outro: [
-                { speaker: 'Valley Net', portrait: '🤖',
+                { speaker: 'Valley Net', portrait: '👱🏻‍♀️',
                     kid: 'CRACKLE… hello? HELLO! I can hear everybody again! You fixed my ears! THANK YOU!',
                     teen: 'Uplink online! Planetary sensors are now tracking Hades’ orbital movements.',
                     all: 'UPLINK LIVE! Planetary sensors tracking Hades’ sanctum in real time — his jamming just died screaming. I can see the bastard’s front door now.' },
@@ -240,7 +240,7 @@
                     kid: 'Holding my nose and putting on my super-duper safety mask! Here I go!',
                     teen: 'Visor switched to hazmat mode. Moving in!',
                     all: 'Hazmat sealed. If the filters clog I’ve got ninety seconds of MoonRock air — so we kill that golem fast or I die coughing in my own helmet.' },
-                { speaker: 'Valley Net', portrait: '🤖',
+                { speaker: 'Valley Net', portrait: '👱🏻‍♀️',
                     kid: 'I drew you a map of the stinky clouds! Hop around the green puffs like a froggy! Ribbit!',
                     teen: 'Mapping toxin flow now — stick to the high lanes, the low vents are saturated.',
                     all: 'Toxin map live: low vents saturated, high lanes breathable. The golem vents poison when wounded — finish each phase on high ground or drown standing up.' }
@@ -268,7 +268,7 @@
                     kid: 'Of course we will help! Nobody should have wiggly dreams! We will sing the softest lullaby!',
                     teen: 'We will give him back his peace, Guy. I promise.',
                     all: 'We’ll give him back his peace, Guy — I swear it on James Wright’s grave. Nobody earns a clean death on MoonRock just to have Hades steal it.' },
-                { speaker: 'Valley Net', portrait: '🤖',
+                { speaker: 'Valley Net', portrait: '👱🏻‍♀️',
                     kid: 'Hmm, the tomb is humming a grumpy song… let us hum a nicer one, louder! LaaaAAaa!',
                     teen: 'Array spike confirmed inside the crypt. Thirty tomb guardians between you and the patriarch’s sarcophagus.',
                     all: 'Array spike inside the crypt — Hades wired the old man’s sarcophagus as a conduit. Thirty guardians, then the Patriarch himself. Put them all down, soldier.' }
@@ -288,7 +288,7 @@
             titlecard: { title: 'MISSION 8 — ORBITAL STRIKE CALIBRATION', subtitle: 'The MERCENARY Doctrine' },
             loreUnlocks: ['human_mercenary_doctrine', 'world_giantess_song', 'human_captains_log'],
             intro: [
-                { speaker: 'Valley Net', portrait: '🤖',
+                { speaker: 'Valley Net', portrait: '👱🏻‍♀️',
                     kid: 'Our big spaceship wants to throw a GIGANTIC pillow at the bad guys, but it needs you to point the flashlight where to aim! Can you be the pointer?',
                     teen: 'Targeting coordinates for LuckyStarShip’s kinetic orbital strike require manual laser targeting from the peak.',
                     all: 'LuckyStarShip’s kinetic lance is armed and I need a human finger on the peak laser — no automation, Hades spoofs every remote. Paint the horde by hand or the strike scatters on civilians.' },
@@ -302,7 +302,7 @@
                     all: 'Strike authorized — my signature, my responsibility. MERCENARY chose this system; today it watches us drop its sky-hammer on a madman. Paint it true, soldier.' }
             ],
             outro: [
-                { speaker: 'Valley Net', portrait: '🤖',
+                { speaker: 'Valley Net', portrait: '👱🏻‍♀️',
                     kid: 'POOF! The BIGGEST pillow fight ever! The bad-guy forts are all fluffy now! Nobody we like got bonked!',
                     teen: 'Kinetic strike confirmed! 80% of Hades’ perimeter forces obliterated!',
                     all: 'STRIKE CONFIRMED! Eighty percent of Hades’ perimeter is a glass scar — the Bone Goliath Warlord included. His gate stands naked. This is the beginning of his end.' },
@@ -330,7 +330,7 @@
                     all: 'Come, then. Kneel at the Gate of the NecroGenesis and I’ll show you what 200 years of solitude taught me: flesh is weak, but undeath is ETERNAL.' }
             ],
             outro: [
-                { speaker: 'Valley Net', portrait: '🤖',
+                { speaker: 'Valley Net', portrait: '👱🏻‍♀️',
                     kid: 'The big door is OPEN! You did it! Everybody is cheering SO loud! One more door to go!',
                     teen: 'Perimeter breach successful. The doors to Lucifer Hades’ chamber are unlocked.',
                     all: 'BREACH CONFIRMED! The Titan is scrap and the sanctum doors stand open — Hades’ voice just cracked on the vox. He’s afraid, soldier. Finish it.' },
@@ -358,7 +358,7 @@
                     all: 'By the Compact of Shared Blood — elf, dwarf, orc, human, one cup, one oath. Clint Oldman died clean and you defiled him. MERCENARY couldn’t stop you. VALLEY couldn’t. WE WILL.' }
             ],
             outro: [
-                { speaker: 'Valley Net', portrait: '🤖',
+                { speaker: 'Valley Net', portrait: '👱🏻‍♀️',
                     kid: '…static… …sunshine? SUNSHINE! The grumpy song STOPPED! Every skeleton is napping again! YOU DID IT!',
                     teen: 'Necromantic Array DEACTIVATED. Planetary signal terminated. MoonRock is SAVED!',
                     all: 'NECROMANTIC ARRAY DEACTIVATED. The hum is gone — twelve thousand years of stolen echoes released in one breath. Planetary signal TERMINATED. MoonRock is SAVED, soldier. Breathe — helmets optional in the SafeSpaces tonight.' },

@@ -198,7 +198,7 @@ export default function AboutPage() {
         index="6"
         kicker="Four aisles, one roof"
         title="Play · Build · Explore · Account"
-        body="The sidebar splits the whole site into four groups. Play is the arcade; Build rents you power by the minute; Explore is lore, lessons, and plain-English explainers; Account is your money, data, and settings."
+        body="The sidebar splits the whole site into four groups. Play is the arcade; Build rents you tech by the minute; Explore is lore, lessons, and plain-English explainers; Account is your money, data, and settings."
       />
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <Link href="/games" className="group rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-amber-400/50">
@@ -209,7 +209,7 @@ export default function AboutPage() {
           </p>
         </Link>
         <Link href="/agents" className="group rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-amber-400/50">
-          <p className="font-bold group-hover:underline">🛠️ Build: rent power by the minute</p>
+          <p className="font-bold group-hover:underline">🛠️ Build: rent tech by the minute</p>
           <p className="mt-1 text-sm text-muted-foreground">
             NewGamePlus remixes, game submissions, the Weird Vault, Meshy 3D, AI agents, RunPods, fal.ai
             Studio, cloud desktops, UnitUnite squads, the work timer, VibeCodeWorker, and web apps.

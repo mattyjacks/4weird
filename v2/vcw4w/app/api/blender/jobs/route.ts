@@ -108,22 +108,30 @@ export async function POST(req: Request) {
 
 /** GET /api/blender/jobs; your latest 20 render jobs (login, no secrets). */
 export async function GET() {
-  if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) return fail("Authentication required.", 401);
-  let svc;
   try {
-    svc = serviceClient();
-  } catch {
-    return fail("Upload unavailable.", 503);
+    if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) return fail("Authentication required.", 401);
+    let svc;
+    try {
+      svc = serviceClient();
+    } catch {
+      return fail("Upload unavailable.", 503);
+    }
+    const { data: rows, error } = await svc
+      .from("blender_renders")
+      .select("id,status,scene_path,scene_bytes,start_frame,end_frame,frame_count,pod_id,gpu_id,hourly_usd,output_path,error,last_ping_at,created_at,updated_at")
+      .eq("user_id", data.user.id)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (error) return dbFail("GET /api/blender/jobs", error, "Unable to list render jobs.");
+    return ok({ jobs: ((rows ?? []) as BlenderRow[]).map(publicRow) });
+  } catch (err) {
+    console.error(
+      "[api] GET /api/blender/jobs unhandled",
+      err instanceof Error ? err.message.slice(0, 200) : "unknown",
+    );
+    return fail("Unable to list render jobs.", 500);
   }
-  const { data: rows, error } = await svc
-    .from("blender_renders")
-    .select("id,status,scene_path,scene_bytes,start_frame,end_frame,frame_count,pod_id,gpu_id,hourly_usd,output_path,error,last_ping_at,created_at,updated_at")
-    .eq("user_id", data.user.id)
-    .order("created_at", { ascending: false })
-    .limit(20);
-  if (error) return dbFail("GET /api/blender/jobs", error, "Unable to list render jobs.");
-  return ok({ jobs: ((rows ?? []) as BlenderRow[]).map(publicRow) });
 }

@@ -448,6 +448,17 @@ function initUI() {
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
     window.addEventListener('pointerdown', () => sfx.init(), { once: true });
+    // Bug sweep: browsers suspend AudioContext when the tab hides; resume on
+    // every gesture, not just the first (sfx.init() resumes a live context).
+    window.addEventListener('pointerdown', () => {
+        if (sfx.ctx && sfx.ctx.state === 'suspended') sfx.ctx.resume().catch(() => {});
+    });
+    window.addEventListener('keydown', () => {
+        if (sfx.ctx && sfx.ctx.state === 'suspended') sfx.ctx.resume().catch(() => {});
+    });
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && sfx.ctx && sfx.ctx.state === 'suspended') sfx.ctx.resume().catch(() => {});
+    });
 
     document.addEventListener('visibilitychange', () => {
         if (document.hidden && gameActive && !isPaused) togglePause();
@@ -802,6 +813,10 @@ function fitToContainer() {
     if (!w || !h) return;
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
+    // HiDPI fix: re-apply capped pixel ratio on every refit (fullscreen
+    // changes container size without re-running initThree).
+    const isMobile = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2));
     renderer.setSize(w, h, false);
 }
 
@@ -1664,3 +1679,71 @@ window.gameDebug = Object.assign(window.gameDebug || {}, {
     godMode: false,
     toggleGodMode: function () { this.godMode = !this.godMode; return this.godMode; }
 });
+
+// ===== FW-ARCADE-A: fullscreen + bug-sweep helper =====
+// ⛶ overlay button (top-right), F key + double-click toggle,
+// fullscreenchange/resize refit via fitToContainer (fixed internal 3D
+// resolution is preserved - the renderer stretches via CSS sizing, so game
+// coordinates never change). Feature: exiting fullscreen mid-flight pauses.
+(function fwFullscreen() {
+    var frame = document.getElementById('game-container');
+    if (!frame || document.getElementById('fw-fs-btn')) return;
+    var btn = document.createElement('button');
+    btn.id = 'fw-fs-btn';
+    btn.className = 'fw-fs-btn';
+    btn.type = 'button';
+    btn.title = 'Toggle fullscreen (F)';
+    btn.setAttribute('aria-label', 'Toggle fullscreen');
+    btn.textContent = '\u26F6';
+    frame.appendChild(btn);
+
+    function isFS() { return !!document.fullscreenElement; }
+    function refit() { try { fitToContainer(); } catch (e) {} }
+    function toggleFS() {
+        try { sfx.init(); } catch (e) {}
+        if (!isFS()) {
+            // Pointer-lock conflict guard: never request pointer lock and
+            // fullscreen simultaneously - this game uses no pointer lock, but
+            // if one is ever held, exit it first and sequence fullscreen after.
+            if (document.pointerLockElement && document.exitPointerLock) {
+                try { document.exitPointerLock(); } catch (e) {}
+                setTimeout(requestFS, 60);
+            } else {
+                requestFS();
+            }
+        } else if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+    function requestFS() {
+        try {
+            var r = frame.requestFullscreen ? frame.requestFullscreen() : null;
+            if (r && r.catch) r.catch(function (err) { console.warn('Fullscreen rejected:', err); });
+        } catch (e) { console.warn('Fullscreen rejected:', e); }
+    }
+    btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        toggleFS();
+        if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    });
+    frame.addEventListener('dblclick', function (e) {
+        if (e.target && e.target.closest && e.target.closest('button')) return;
+        toggleFS();
+    });
+    window.addEventListener('keydown', function (e) {
+        if (e.key !== 'f' && e.key !== 'F') return;
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        var t = e.target;
+        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+        e.preventDefault();
+        toggleFS();
+    });
+    document.addEventListener('fullscreenchange', function () {
+        refit();
+        // Feature: leaving fullscreen mid-flight pauses instead of dropping input.
+        if (!isFS() && gameActive && !isPaused) {
+            try { togglePause(); } catch (e) {}
+        }
+    });
+    window.addEventListener('resize', refit);
+})();

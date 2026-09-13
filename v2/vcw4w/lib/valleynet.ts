@@ -28,7 +28,7 @@
 import { moderateText } from "@/lib/moderation";
 
 export const VALLEYNET_NAME = "Valley Net";
-export const VALLEYNET_BADGE = "🛡️ Protected by Valley Net";
+export const VALLEYNET_BADGE = "👱🏻‍♀️ Protected by Valley Net";
 
 export type ValleynetVerdict = "allow" | "quarantine" | "block";
 

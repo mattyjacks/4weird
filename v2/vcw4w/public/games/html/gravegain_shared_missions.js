@@ -17,11 +17,11 @@
             minFloor: 1,
             bossType: "Goblin Zed Leader",
             dialogueBefore: [
-                { speaker: "Valley Net", text: "Dropship 420 hit heavy ground-to-air flak from reanimated artillery. LZ is hot!", portrait: "🤖" },
+                { speaker: "Valley Net", text: "Dropship 420 hit heavy ground-to-air flak from reanimated artillery. LZ is hot!", portrait: "👱🏻‍♀️" },
                 { speaker: "Private Lisa Park", text: "My helmet seal is holding, but skeletons are crawling out of the craters!", portrait: "👩‍🚀" }
             ],
             dialogueAfter: [
-                { speaker: "Valley Net", text: "LZ secured. Survivors falling back to the perimeter. Excellent shooting, soldier.", portrait: "🤖" }
+                { speaker: "Valley Net", text: "LZ secured. Survivors falling back to the perimeter. Excellent shooting, soldier.", portrait: "👱🏻‍♀️" }
             ],
             objectives: [
                 { id: "slay_all", desc: "Eliminate all 15 initial undead threats at the crash site", count: 15, current: 0 }
@@ -65,7 +65,7 @@
             bossType: "Dwarven Zed High Thane",
             dialogueBefore: [
                 { speaker: "Forgemaster Borin", text: "Our lower forge channels have been overrun! My ancestor's legendary Golem Hammer lies trapped below.", portrait: "⛏️" },
-                { speaker: "Valley Net", text: "Detecting high concentrations of unrefined Sparkite ore. Exercise extreme caution.", portrait: "🤖" }
+                { speaker: "Valley Net", text: "Detecting high concentrations of unrefined Sparkite ore. Exercise extreme caution.", portrait: "👱🏻‍♀️" }
             ],
             dialogueAfter: [
                 { speaker: "Forgemaster Borin", text: "Ha! The mines are ours again! Have a flagon of dwarf ale on me, hero!", portrait: "⛏️" }
@@ -112,11 +112,11 @@
             minFloor: 5,
             bossType: "Corrupted Drone Array",
             dialogueBefore: [
-                { speaker: "Valley Net", text: "Dr. Hades is broadcasting jamming signals across all sub-light frequencies. I need you to manually re-align Relay 09.", portrait: "🤖" },
+                { speaker: "Valley Net", text: "Dr. Hades is broadcasting jamming signals across all sub-light frequencies. I need you to manually re-align Relay 09.", portrait: "👱🏻‍♀️" },
                 { speaker: "Arty Fisher", text: "Watch out for flying skull swarms near the energy coils!", portrait: "👨‍🔧" }
             ],
             dialogueAfter: [
-                { speaker: "Valley Net", text: "Uplink online! Planetary sensors are now tracking Hades' orbital movements.", portrait: "🤖" }
+                { speaker: "Valley Net", text: "Uplink online! Planetary sensors are now tracking Hades' orbital movements.", portrait: "👱🏻‍♀️" }
             ],
             objectives: [
                 { id: "slay_skulls", desc: "Destroy 15 Flying Skulls guarding the relay", count: 15, current: 0 },
@@ -184,11 +184,11 @@
             minFloor: 8,
             bossType: "Bone Goliath Warlord",
             dialogueBefore: [
-                { speaker: "Valley Net", text: "Targeting coordinates for LuckyStarShip's kinetic orbital strike require manual laser targeting from the peak.", portrait: "🤖" },
+                { speaker: "Valley Net", text: "Targeting coordinates for LuckyStarShip's kinetic orbital strike require manual laser targeting from the peak.", portrait: "👱🏻‍♀️" },
                 { speaker: "Warchief Groknak", text: "Bring down the fire from the sky! Burn the horde to ashes!", portrait: "👹" }
             ],
             dialogueAfter: [
-                { speaker: "Valley Net", text: "Kinetic strike confirmed! 80% of Hades' perimeter forces obliterated!", portrait: "🤖" }
+                { speaker: "Valley Net", text: "Kinetic strike confirmed! 80% of Hades' perimeter forces obliterated!", portrait: "👱🏻‍♀️" }
             ],
             objectives: [
                 { id: "slay_boss", desc: "Slay the Bone Goliath Warlord", count: 1, current: 0 },
@@ -212,7 +212,7 @@
                 { speaker: "Forgemaster Borin", text: "Smashed through their gates! Leave none of these monsters standing!", portrait: "⛏️" }
             ],
             dialogueAfter: [
-                { speaker: "Valley Net", text: "Perimeter breach successful. The doors to Lucifer Hades' chamber are unlocked.", portrait: "🤖" }
+                { speaker: "Valley Net", text: "Perimeter breach successful. The doors to Lucifer Hades' chamber are unlocked.", portrait: "👱🏻‍♀️" }
             ],
             objectives: [
                 { id: "slay_boss", desc: "Destroy the Necro-Array Titan", count: 1, current: 0 },
@@ -246,7 +246,7 @@
                 { speaker: "Private Lisa Park", text: "Your nightmare ends here, Lucifer. For MoonRock! For Earth! FOR THE LIVING!", portrait: "👩‍🚀" }
             ],
             dialogueAfter: [
-                { speaker: "Valley Net", text: "Necromantic Array DEACTIVATED. Planetary signal terminated. MoonRock is SAVED!", portrait: "🤖" },
+                { speaker: "Valley Net", text: "Necromantic Array DEACTIVATED. Planetary signal terminated. MoonRock is SAVED!", portrait: "👱🏻‍♀️" },
                 { speaker: "President Angel Good", text: "You did it! The four races are free. Humanity and MoonRock have a real future together!", portrait: "🌿" }
             ],
             objectives: [

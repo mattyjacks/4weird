@@ -12,9 +12,21 @@ const maxBytes = 1024 * 1024;
 
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getUser();
-  const u = data?.user;
+  // An unreadable session (bad/expired cookie) is "logged out", not a 500:
+  // keep the failure a stable JSON 401 instead of an unhandled throw.
+  let supabase: Awaited<ReturnType<typeof createClient>>;
+  try {
+    supabase = await createClient();
+  } catch {
+    return fail("Authentication required.", 401);
+  }
+  let u: { id: string } | null = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    u = data?.user ?? null;
+  } catch {
+    return fail("Authentication required.", 401);
+  }
   if (!u) return fail("Authentication required.", 401);
   const rl = rateLimit(`save-get:${u.id}`, 60, 60_000);
   if (!rl.allowed) return fail("Too many requests.", 429);
@@ -35,9 +47,13 @@ export async function GET(req: Request) {
     if (!/^[0-3]$/.test(slot)) return fail("Invalid slot.", 400);
     query = query.eq("slot", Number(slot));
   }
-  const { data: rows, error } = await query;
-  if (error) return dbFail("api/saves", error);
-  return ok({ saves: rows ?? [] });
+  try {
+    const { data: rows, error } = await query;
+    if (error) return dbFail("api/saves", error);
+    return ok({ saves: rows ?? [] });
+  } catch (error) {
+    return dbFail("api/saves", error);
+  }
 }
 
 export async function PUT(req: Request) {

@@ -389,7 +389,7 @@
     <div id="TEMPLATE-4weird-footer-placeholder"></div>
 
     <script src="../../../components.js"></script>
-    <script src="../gravegain_shared_missions.js"></script>
+    <script src="/games/html/gravegain_shared_missions.js"></script>
     <script src="campaign/00-campaign-boot.js"></script>
     <script src="campaign/m01.js"></script>
     <script src="campaign/m02.js"></script>
@@ -430,20 +430,42 @@
                 })
                 .catch(err => console.log('Metadata load fallback:', err));
 
-            // Fullscreen toggle logic
+            // Fullscreen contract: shell helper first, native request with
+            // webkit fallback otherwise. Game.js owns F key, double-click,
+            // pause-on-hidden, and the primary re-fit; this inline handler is
+            // a guarded idempotent second pass for out-of-order script loads.
             const fullscreenBtn = document.getElementById('gravegain-fullscreen-btn');
             const canvasContainer = document.getElementById('canvasContainer');
+            const gg2dToggleFullscreen = () => {
+                try {
+                    if (typeof window.__fourweirdToggleFullscreen === 'function') { window.__fourweirdToggleFullscreen(); return; }
+                    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                        const p = canvasContainer.requestFullscreen ? canvasContainer.requestFullscreen()
+                            : (canvasContainer.webkitRequestFullscreen ? canvasContainer.webkitRequestFullscreen() : null);
+                        if (p && p.catch) p.catch(() => {});
+                    } else if (document.exitFullscreen) document.exitFullscreen();
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                } catch (e) {}
+            };
             if (fullscreenBtn && canvasContainer) {
-                fullscreenBtn.addEventListener('click', () => {
-                    if (!document.fullscreenElement) {
-                        canvasContainer.requestFullscreen().catch(err => {
-                            console.error(`Error attempting to enable fullscreen: ${err.message}`);
-                        });
-                    } else {
-                        document.exitFullscreen();
-                    }
-                });
+                fullscreenBtn.addEventListener('click', gg2dToggleFullscreen);
             }
+            const gg2dRefit = () => {
+                try {
+                    const g = window.GraveGainGame;
+                    const box = document.getElementById('canvasContainer');
+                    if (!g || !box) return;
+                    const w = Math.max(320, box.clientWidth || 1000) | 0;
+                    const h = Math.max(240, box.clientHeight || 600) | 0;
+                    ['canvas', 'lightCanvas'].forEach((k) => {
+                        const c = g[k];
+                        if (c && (c.width !== w || c.height !== h)) { c.width = w; c.height = h; }
+                    });
+                    if (g.camera) { g.camera.width = w; g.camera.height = h; }
+                } catch (e) {}
+            };
+            document.addEventListener('fullscreenchange', gg2dRefit);
+            window.addEventListener('resize', gg2dRefit);
         })();
     </script>
 </body>

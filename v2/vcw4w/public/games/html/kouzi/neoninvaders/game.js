@@ -133,8 +133,8 @@ document.addEventListener('keydown', (e) => {
     if (e.code === 'Space' && gameState === 'gameOver') {
         restartGame();
     }
-    
-    e.preventDefault();
+
+    if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) e.preventDefault();
 });
 
 document.addEventListener('keyup', (e) => {
@@ -685,8 +685,19 @@ drawStartScreen();
 let touchStartX = 0;
 let isTouching = false;
 
+function shootBullet() {
+    if (player.tripleShot) {
+        bullets.push({ x: player.x + player.width / 2 - 2, y: player.y, vy: -8, vx: -2, color: '#00ffff' });
+        bullets.push({ x: player.x + player.width / 2 - 2, y: player.y, vy: -8, vx: 0, color: '#00ffff' });
+        bullets.push({ x: player.x + player.width / 2 - 2, y: player.y, vy: -8, vx: 2, color: '#00ffff' });
+    } else {
+        bullets.push({ x: player.x + player.width / 2 - 2, y: player.y, vy: -8, vx: 0, color: '#00ffff' });
+    }
+    bulletCooldown = player.rapidFire ? 5 : baseBulletCooldown;
+    playShootSound();
+}
+
 function setupTouchControls() {
-    const canvas = document.getElementById('gameCanvas');
     if (!canvas) return;
     
     // Touch start - record position and shoot
@@ -704,7 +715,7 @@ function setupTouchControls() {
         // Start screen / game over - tap to start
         if (gameState === 'start' || gameState === 'gameOver') {
             if (gameState === 'start') startGame();
-            else resetGame();
+            else restartGame();
         }
     }, { passive: false });
     
@@ -719,7 +730,7 @@ function setupTouchControls() {
         
         // Move player based on touch delta
         player.x += deltaX * 0.5;
-        player.x = Math.max(0, Math.min(CANVAS_WIDTH - player.width, player.x));
+        player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
         
         touchStartX = touchX;
         
@@ -752,18 +763,39 @@ window.addEventListener('message', (event) => {
     }
 });
 
+// ===== In-game fullscreen overlay (shell also provides global FS) =====
+(function () {
+  var frame = document.querySelector('.TEMPLATE-4weird-game-frame') || document.body;
+  function toggleFS() {
+    try {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        var el = document.documentElement;
+        if (el.requestFullscreen) el.requestFullscreen().catch(function () {});
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      } else if (document.exitFullscreen) document.exitFullscreen().catch(function () {});
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    } catch (e) {}
+  }
+  function fit() { canvas.style.width = '100%'; canvas.style.height = '100%'; canvas.style.objectFit = 'contain'; }
+  var b = document.createElement('button');
+  b.id = 'neon-fs-invaders'; b.textContent = '⛶'; b.title = 'Toggle fullscreen (F)';
+  b.addEventListener('click', function (e) { e.stopPropagation(); toggleFS(); });
+  frame.appendChild(b);
+  canvas.addEventListener('dblclick', toggleFS);
+  document.addEventListener('keydown', function (e) { if (e.code === 'KeyF') toggleFS(); });
+  document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
+  window.addEventListener('resize', fit); fit();
+})();
+
 // ===== DEVELOPER DEBUGGING API =====
 window.gameDebug = {
     name: "Neon Invaders",
     getScore: () => score,
-    setScore: (s) => { score = s; document.getElementById('TEMPLATE-4weird-score').textContent = score; },
+    setScore: (s) => { score = s; var el = document.getElementById('TEMPLATE-4weird-final-score'); if (el) el.textContent = score; },
     getHealth: () => lives,
-    setHealth: (h) => { lives = h; document.getElementById('TEMPLATE-4weird-lives').textContent = lives; },
-    win: () => {
-        score += 2000;
-        level++;
-        document.getElementById('TEMPLATE-4weird-level').textContent = level;
-    },
+    setHealth: (h) => { lives = h; },
+    win: () => { score += 2000; wave++; },
     lose: () => {
         gameOver();
     },

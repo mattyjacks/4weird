@@ -40,6 +40,9 @@
                 <div class="hud-stat" style="border: none; padding: 0;">
                     <button class="btn btn-secondary" id="btnSoundToggle" style="padding: 6px 12px; font-size: 0.8rem;" title="Mute/Unmute Sound (M)">🔊 Sound: ON</button>
                 </div>
+                <div class="hud-stat" style="border: none; padding: 0;">
+                    <button class="btn btn-secondary" id="btnFullscreen" style="padding: 6px 12px; font-size: 0.8rem;" title="Fullscreen (F) — Esc to exit">⛶ Fullscreen</button>
+                </div>
             </div>
 
             <!-- Floating Toast Container -->
@@ -96,7 +99,7 @@
             <a href="guide.html" class="btn btn-secondary" style="display: inline-block; margin-top: 15px; text-decoration: none;">📖 Game Guide</a>
             <div class="controls-hint">
                 <p>🛒 Buy food from shops • 🍳 Stock fridges • 👥 Feed families • 📊 Balance nutrition</p>
-                <p style="margin-top: 8px; color: var(--neon-cyan);">⌨️ Shortcuts: <strong>SPACE/N</strong> = Next Day | <strong>P/ESC</strong> = Pause</p>
+                <p style="margin-top: 8px; color: var(--neon-cyan);">⌨️ Shortcuts: <strong>SPACE/N</strong> = Next Day | <strong>P/ESC</strong> = Pause | <strong>F</strong> = Fullscreen (Esc exits)</p>
             </div>
         </div>
 
@@ -190,5 +193,33 @@
 
     <script src="../../../components.js"></script>
     <script src="game.js"></script>
+    <script>
+        // 4weird fullscreen: overlay button + F key + double-click (group B).
+        // DOM-heavy sim: CSS-only scaling on .game-wrapper, no layout rewrite.
+        (function () {
+            var frame = document.querySelector('.game-wrapper') || document.documentElement;
+            var btn = document.getElementById('btnFullscreen');
+            function toggleFS() {
+                if (!document.fullscreenElement) {
+                    if (frame.requestFullscreen) {
+                        var p = frame.requestFullscreen();
+                        if (p && p.catch) p.catch(function () {});
+                    }
+                } else if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+            if (btn) btn.addEventListener('click', toggleFS);
+            document.addEventListener('keydown', function (e) {
+                var t = e.target;
+                if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+                if (e.key === 'f' || e.key === 'F') toggleFS();
+            });
+            frame.addEventListener('dblclick', function (e) {
+                if (e.target.closest('button, input, select, textarea, a')) return;
+                toggleFS();
+            });
+        })();
+    </script>
 </body>
 </html>

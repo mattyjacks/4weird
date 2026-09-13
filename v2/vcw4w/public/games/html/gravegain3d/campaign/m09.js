@@ -6,12 +6,12 @@
             { speaker: 'Queen Aelindra', text: 'This is it - the threshold of Hades’ inner sanctum. Elf, dwarf, orc, and human: all four races stand behind you at the Citadel Perimeter.', portrait: '🧝‍♀️' },
             { speaker: 'Forgemaster Borin', text: 'We smashed through their outer gates at grievous cost! Forty elite guardians and a Necro-Array Titan hold the breach - leave NONE standing!', portrait: '⛏️' },
             { speaker: 'Warchief Groknak', text: 'My tribe has eaten, sung, and sharpened steel! Orcs do not die sitting down - TODAY WE MARCH THROUGH THE GATE!', portrait: '👹' },
-            { speaker: 'Valley Net', text: 'Floor 9 is a warden floor - the Titan waits where you land. Break its elite guard in waves, bring the Titan down, and the doors to Lucifer Hades’ chamber unlock.', portrait: '🤖' },
+            { speaker: 'Valley Net', text: 'Floor 9 is a warden floor - the Titan waits where you land. Break its elite guard in waves, bring the Titan down, and the doors to Lucifer Hades’ chamber unlock.', portrait: '👱🏻‍♀️' },
             { speaker: 'Private Lisa Park', text: 'For the Compact of Shared Blood - every race, every grave, every letter home. Through the gate. Tonight we end the perimeter.', portrait: '👩‍🚀' },
             { speaker: 'Dr. Lucifer Hades', text: 'Come, little soldier. My Titan has unmade armies. Your four races will make such BEAUTIFUL additions to my Array.', portrait: '👑' }
         ],
         dialogueAfter: [
-            { speaker: 'Valley Net', text: 'Perimeter breach successful. The Array’s outer shell is down - the doors to Lucifer Hades’ chamber stand open. MoonRock’s liberation is one strike away.', portrait: '🤖' },
+            { speaker: 'Valley Net', text: 'Perimeter breach successful. The Array’s outer shell is down - the doors to Lucifer Hades’ chamber stand open. MoonRock’s liberation is one strike away.', portrait: '👱🏻‍♀️' },
             { speaker: 'President Angel Good', text: 'You carried all four races through that gate, soldier. Rest, rearm - and finish what the Compact of Shared Blood began.', portrait: '🌿' },
             { speaker: 'Guy Young', text: 'My grandfather’s tomb taught me what peace costs. You just paid it for all of us. End it - for Clint, for every grave.', portrait: '👨‍🚀' }
         ],

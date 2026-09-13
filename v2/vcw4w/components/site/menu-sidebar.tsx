@@ -143,7 +143,7 @@ export function MenuSidebar() {
     };
   }, [open ]);
 
-  // Return focus to the ☰ Menu reveal pill whenever the drawer closes,
+  // Return focus to the ☰ menu 2 reveal pill whenever the drawer closes,
   // so keyboard users don't lose their place when the panel unmounts.
   useEffect(() => {
     if (prevOpenRef.current && !open && hydrated) {
@@ -190,9 +190,9 @@ export function MenuSidebar() {
 
   return (
     <>
-      {/* Reveal pill when hidden: top-left on desktop, floating bottom-left
-          thumb button on mobile (top-anchored pills can hide under the taller
-          sticky mobile header, so mobile gets a bottom FAB instead). */}
+      {/* Reveal pill when hidden: stick-to-screen pill pinned to the top of
+          the left side, just below the header (header is min-h-14, so top-16
+          clears it on every breakpoint). */}
       {!open && (
         <button
           ref={pillRef}
@@ -202,14 +202,14 @@ export function MenuSidebar() {
             keyboardOpenRef.current = event.detail === 0;
             setOpen(true);
           }}
-          aria-label="Open menu sidebar"
+          aria-label="Open menu 2 sidebar"
           aria-expanded={false}
           aria-controls={panelId}
-          title="Open menu - every link explained"
-          className="fixed bottom-4 left-4 top-auto z-40 inline-flex max-w-[calc(100vw-1.5rem)] items-center gap-2 truncate rounded-full border border-border bg-background/90 py-2 pl-3 pr-4 text-sm font-black shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:shadow-xl hover:bg-accent lg:bottom-auto lg:left-3 lg:top-[4.25rem]"
+          title="Open menu 2 - every link explained"
+          className="fixed left-3 top-16 z-40 inline-flex max-w-[calc(100vw-1.5rem)] items-center gap-2 truncate rounded-full border border-border bg-background/90 py-2 pl-3 pr-4 text-sm font-black shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:shadow-xl hover:bg-accent"
         >
           <span aria-hidden="true" className="shrink-0 text-base leading-none">☰</span>
-          <span className="truncate">Menu</span>
+          <span className="truncate">menu 2</span>
           <span aria-hidden="true" className="shrink-0 rounded-full bg-cyan-600/15 px-1.5 text-[11px] font-bold text-cyan-700 dark:text-cyan-300">
             {totalLinks}
           </span>
@@ -228,7 +228,7 @@ export function MenuSidebar() {
       {/* Drawer */}
       <aside
         id={panelId}
-        aria-label="Site menu with link explanations"
+        aria-label="Site menu 2 with link explanations"
         aria-hidden={!open}
         className={cn(
           "fixed bottom-0 left-0 top-14 z-50 flex w-[21rem] max-w-[86vw] flex-col border-r border-border bg-background/95 shadow-2xl backdrop-blur motion-reduce:transition-none",
@@ -243,7 +243,7 @@ export function MenuSidebar() {
         <div className="flex items-center gap-2 border-b border-border px-3 py-2.5 dark:border-white/10">
           <span aria-hidden="true" className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-cyan-400 to-fuchsia-500 text-base text-white">🎮</span>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-black">Menu</p>
+            <p className="truncate text-sm font-black">menu 2</p>
             <p className="truncate text-xs text-muted-foreground">Every link, explained.</p>
           </div>
           <button

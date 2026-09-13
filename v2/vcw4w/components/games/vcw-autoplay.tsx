@@ -54,6 +54,30 @@ export function VcwAutoplay({ gameSlug, gameTitle }: { gameSlug: string; gameTit
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<StartOk | null>(null);
   const [error, setError] = useState("");
+  const [vncCopied, setVncCopied] = useState(false);
+
+  async function copyVncPassword() {
+    const pw = result?.connection?.vncPassword ?? "";
+    if (!pw) return;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(pw);
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = pw;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+      }
+      setVncCopied(true);
+      window.setTimeout(() => setVncCopied(false), 2500);
+    } catch {
+      setVncCopied(false);
+    }
+  }
   // Server idle policy (env-overridable 60/15/24 defaults): the GET
   // describe route needs no login. Falls back to the documented defaults
   // when unreachable so the panel never renders a blank policy line.
@@ -88,6 +112,7 @@ export function VcwAutoplay({ gameSlug, gameTitle }: { gameSlug: string; gameTit
     setBusy(true);
     setError("");
     setResult(null);
+    setVncCopied(false);
     try {
       const res = await fetch("/api/vcw/autoplay", {
         method: "POST",
@@ -245,9 +270,19 @@ export function VcwAutoplay({ gameSlug, gameTitle }: { gameSlug: string; gameTit
             {result.quote ? ` · max ~$${Number(result.quote.max_run_usd).toFixed(2)} / ${result.quote.minutes} min · ${result.quote.gross_coins} coins gross` : ""}.
           </p>
           {result.connection.vncPassword && (
-            <p className="mt-2 rounded-lg border border-amber-300/40 bg-amber-300/[.08] px-3 py-2 text-amber-100">
-              🔑 VNC password (shown once - save it now): <code className="font-bold">{result.connection.vncPassword}</code>
-            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-amber-300/40 bg-amber-300/[.08] px-3 py-2 text-amber-100">
+              <p className="min-w-0 flex-1 break-all">
+                🔑 VNC password (shown once - save it now): <code className="font-bold">{result.connection.vncPassword}</code>
+              </p>
+              <button
+                type="button"
+                onClick={() => void copyVncPassword()}
+                className="shrink-0 rounded-full bg-amber-300 px-3 py-1 text-xs font-bold text-slate-950 hover:bg-amber-200"
+                aria-live="polite"
+              >
+                {vncCopied ? "Copied ✓" : "Copy"}
+              </button>
+            </div>
           )}
           <ol className="mt-1 list-decimal space-y-1 pl-5 text-slate-400">
             <li>Open the stream link above (first boot takes minutes while the desktop image pulls - a 404/“waiting” page is normal; wait, then Reload).</li>

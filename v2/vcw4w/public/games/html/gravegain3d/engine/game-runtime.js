@@ -320,12 +320,16 @@
 
         setupWindowResize() {
             const onResize = () => {
-                const w = this.container.clientWidth || 1000;
-                const h = this.container.clientHeight || 600;
-                this.camera3d.aspect = w / h;
-                this.camera3d.updateProjectionMatrix();
-                this.renderer.setSize(w, h);
-                this.graphics.resize();
+                try {
+                    const w = (this.container && this.container.clientWidth) || 1000;
+                    const h = (this.container && this.container.clientHeight) || 600;
+                    if (this.camera3d) {
+                        this.camera3d.aspect = w / h;
+                        if (typeof this.camera3d.updateProjectionMatrix === 'function') this.camera3d.updateProjectionMatrix();
+                    }
+                    if (this.renderer && typeof this.renderer.setSize === 'function') this.renderer.setSize(w, h);
+                    if (this.graphics && typeof this.graphics.resize === 'function') this.graphics.resize();
+                } catch (_) { /* pre-init resize must not throw */ }
             };
             window.addEventListener('resize', onResize);
             document.addEventListener('fullscreenchange', onResize);
@@ -699,7 +703,8 @@
 
             // Spawn Torches, Props & Enemies in rooms
             // Campaign curve is folded in here (endless = x1, untouched).
-            const diffScale = (1.0 + (this.floorIndex * 0.18)) * this.getMissionScaleMult();
+            // Soft cap: past depth 30 the curve plateaus so endless stays hard but finite.
+            const diffScale = (1.0 + (Math.min(this.floorIndex, 30) * 0.18)) * this.getMissionScaleMult();
             const difficulty = DifficultyData[this.difficulty] || DifficultyData.normal;
 
             this.dungeon.rooms.forEach((room, roomIdx) => {

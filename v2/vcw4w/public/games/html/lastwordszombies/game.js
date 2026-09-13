@@ -29,7 +29,7 @@ class GameApp {
     this.scene.add(this.camera);
     
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -1037,6 +1037,42 @@ class GameApp {
     }
   }
 
+  // FW-ARCADE-A fullscreen: toggles the .game-frame element. Pointer lock is
+  // never requested alongside fullscreen (sequenced with a delay if held).
+  toggleFullscreen() {
+    const frame = document.querySelector('.TEMPLATE-4weird-game-frame');
+    if (!frame) return;
+    this.audio.resume();
+    if (!document.fullscreenElement) {
+      const go = () => {
+        try {
+          const r = frame.requestFullscreen();
+          if (r && r.catch) r.catch(() => {});
+        } catch (e) {}
+      };
+      if (document.pointerLockElement && document.exitPointerLock) {
+        try { document.exitPointerLock(); } catch (e) {}
+        setTimeout(go, 60);
+      } else {
+        go();
+      }
+    } else if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  }
+
+  // Bug sweep (typing focus loss): a fullscreen toggle moves focus to the
+  // button/body, which breaks desktop Space handling (re-clicks the button)
+  // and drops the mobile keyboard. Blur stray focus, re-open the input.
+  refocusAfterFullscreen() {
+    if (document.activeElement && document.activeElement.blur &&
+        document.activeElement.id !== 'mobile-game-input') {
+      document.activeElement.blur();
+    }
+    this.focusMobileInput();
+  }
+
   // Pin the game frame to its current pixel height while the keyboard is up.
   // Mobile keyboards shrink the layout viewport (and vh units), which would
   // otherwise resize the frame + canvas on every open/close and make the
@@ -1111,6 +1147,45 @@ class GameApp {
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', () => this.resizeCanvas());
     }
+    // FW-ARCADE-A: fullscreen + audio bug sweep.
+    // - fullscreenchange refits the renderer. The PLAYING frame-height lock
+    //   (anti keyboard-jump) uses an inline height that would override the
+    //   :fullscreen CSS, so it is released on enter and restored on exit.
+    // - Typing focus is restored after every toggle (see refocusAfterFullscreen).
+    // - AudioContext resumes on every gesture + tab return.
+    document.addEventListener('fullscreenchange', () => {
+      if (document.fullscreenElement) {
+        this.unlockFrameHeight();
+      } else if (this.state.currentState === GameState.PLAYING) {
+        this.lockFrameHeight();
+      }
+      this._lastCanvasW = 0;
+      this._lastCanvasH = 0;
+      this.resizeCanvas();
+      this.refocusAfterFullscreen();
+    });
+    // F key + double-click toggle. F is skipped while PLAYING (it types);
+    // mid-run fullscreen uses the ⛶ button or double-click.
+    window.addEventListener('keydown', (e) => {
+      if (e.key !== 'f' && e.key !== 'F') return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+      if (this.state.currentState === GameState.PLAYING) return;
+      e.preventDefault();
+      this.toggleFullscreen();
+    });
+    const gameFrame = document.querySelector('.TEMPLATE-4weird-game-frame');
+    if (gameFrame) {
+      gameFrame.addEventListener('dblclick', (e) => {
+        if (e.target && e.target.closest && e.target.closest('button')) return;
+        this.toggleFullscreen();
+      });
+    }
+    window.addEventListener('pointerdown', () => this.audio.resume());
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) this.audio.resume();
+    });
     
     window.addEventListener('message', (e) => {
       if (e.data && e.data.type === 'SET_GAME_SPEED') {
@@ -1488,6 +1563,9 @@ class GameApp {
 
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
+    // HiDPI fix: re-apply capped pixel ratio on every refit (fullscreen
+    // changes container size without re-running the constructor).
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.setSize(w, h);
   }
 

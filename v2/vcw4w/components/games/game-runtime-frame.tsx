@@ -34,8 +34,24 @@ function originOf(src: string) {
   }
 }
 
+/**
+ * Cloud saves are signed-in only. Probe the *local* Supabase session (no
+ * network round trip, so logged-out guests never fire a doomed GET that
+ * 401s in DevTools); guests play local-only, silently.
+ */
+async function hasLocalSession(): Promise<boolean> {
+  try {
+    const { createClient } = await import("@/lib/supabase/client");
+    const { data } = await createClient().auth.getSession();
+    return Boolean(data.session);
+  } catch {
+    return false;
+  }
+}
+
 export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: string; src: string }) {
   const frame = useRef<HTMLIFrameElement>(null);
+  const shell = useRef<HTMLDivElement>(null);
   const loadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // The bundle can end up on the apex/www counterpart of the shell's origin
   // (Vercel redirects apex -> www, so a cached apex shell frames a www
@@ -51,6 +67,8 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
   const [status, setStatus] = useState("Loading original HTML runtime…");
   const [score, setScore] = useState<number | null>(null);
   const [showTouchPad, setShowTouchPad] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fakeFullscreen, setFakeFullscreen] = useState(false);
 
   const pushA11y = useCallback(() => {
     try {
@@ -126,7 +144,7 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
     focusGame();
   };
 
-  const focusGame = () => {
+  const focusGame = useCallback(() => {
     try {
       frame.current?.contentWindow?.focus();
     } catch {
@@ -136,15 +154,131 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
         /* iframe focus unavailable; keyboard still works after a click */
       }
     }
-  };
+  }, []);
+
+  // Fullscreen targets the wrapper div (works for cross-origin apex/www
+  // iframes where iframe.requestFullscreen() is denied). Standard +
+  // webkit fallbacks; any failure drops to CSS "fake fullscreen" so the
+  // button always visually works.
+  const toggleFullscreen = useCallback(async () => {
+    if (typeof document === "undefined") {
+      setFakeFullscreen((prev) => !prev);
+      focusGame();
+      return;
+    }
+    const doc = document as Document & {
+      webkitFullscreenElement?: Element | null;
+      webkitExitFullscreen?: () => Promise<void> | void;
+    };
+    const shellEl = shell.current as (HTMLElement & {
+      webkitRequestFullscreen?: () => Promise<void> | void;
+    }) | null;
+    const iframeEl = frame.current as unknown as (HTMLElement & {
+      webkitRequestFullscreen?: () => Promise<void> | void;
+    }) | null;
+    const nativeActive = Boolean(document.fullscreenElement ?? doc.webkitFullscreenElement);
+    if (nativeActive || fakeFullscreen) {
+      try {
+        if (document.fullscreenElement) {
+          await document.exitFullscreen();
+        } else if (typeof doc.webkitExitFullscreen === "function") {
+          await doc.webkitExitFullscreen();
+        }
+      } catch {
+        /* native exit failed; still clear the CSS fallback below */
+      }
+      setFakeFullscreen(false);
+      postToRuntime({ version: 1, type: "fullscreen", slug });
+      focusGame();
+      return;
+    }
+    const target = shellEl ?? iframeEl;
+    try {
+      if (target && typeof target.requestFullscreen === "function") {
+        await target.requestFullscreen();
+      } else if (target && typeof target.webkitRequestFullscreen === "function") {
+        await target.webkitRequestFullscreen();
+      } else {
+        throw new Error("fullscreen_unsupported");
+      }
+    } catch {
+      // Native fullscreen denied/unavailable (cross-origin iframe, insecure
+      // context, old Safari): CSS fallback still fills the viewport.
+      setFakeFullscreen(true);
+    }
+    postToRuntime({ version: 1, type: "fullscreen", slug });
+    focusGame();
+  }, [fakeFullscreen, focusGame, postToRuntime, slug]);
+
+  const fullscreenActive = isFullscreen || fakeFullscreen;
 
   useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
     const coarsePointer = window.matchMedia("(pointer: coarse)");
     const updateTouchMode = () => setShowTouchPad(coarsePointer.matches);
     updateTouchMode();
-    coarsePointer.addEventListener("change", updateTouchMode);
-    return () => coarsePointer.removeEventListener("change", updateTouchMode);
+    const legacy = coarsePointer as MediaQueryList & {
+      addListener?: (listener: () => void) => void;
+      removeListener?: (listener: () => void) => void;
+    };
+    if (typeof coarsePointer.addEventListener === "function") {
+      coarsePointer.addEventListener("change", updateTouchMode);
+      return () => coarsePointer.removeEventListener("change", updateTouchMode);
+    }
+    if (typeof legacy.addListener === "function" && typeof legacy.removeListener === "function") {
+      legacy.addListener(updateTouchMode);
+      return () => legacy.removeListener!(updateTouchMode);
+    }
+    return;
   }, []);
+
+  // Track native fullscreen (standard + webkit) so the button label stays
+  // correct when the user exits via Esc/browser chrome instead of the button.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const onChange = () => {
+      const doc = document as Document & { webkitFullscreenElement?: Element | null };
+      const el = document.fullscreenElement ?? doc.webkitFullscreenElement ?? null;
+      const shellEl = shell.current;
+      const iframeEl = frame.current;
+      setIsFullscreen(Boolean(el && (el === shellEl || el === iframeEl || (shellEl !== null && shellEl.contains(el)))));
+    };
+    onChange();
+    const docWithPrefix = document as unknown as {
+      addEventListener: (type: string, listener: () => void) => void;
+      removeEventListener: (type: string, listener: () => void) => void;
+    };
+    document.addEventListener("fullscreenchange", onChange);
+    docWithPrefix.addEventListener("webkitfullscreenchange", onChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", onChange);
+      docWithPrefix.removeEventListener("webkitfullscreenchange", onChange);
+    };
+  }, []);
+
+  // "f" toggles fullscreen (desktop); Esc exits the CSS fallback (native
+  // fullscreen exits itself). Ignored while typing so chat/inputs keep "f".
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && fakeFullscreen) {
+        setFakeFullscreen(false);
+        focusGame();
+        return;
+      }
+      if (event.key !== "f" && event.key !== "F") return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target) {
+        const tag = target.tagName?.toLowerCase();
+        if (tag === "input" || tag === "textarea" || tag === "select" || target.isContentEditable) return;
+      }
+      event.preventDefault();
+      void toggleFullscreen();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [fakeFullscreen, focusGame, toggleFullscreen]);
 
   // Shell-side a11y changes (colorblind filter, reduced motion, …) must
   // reach the game document, where shell CSS cannot penetrate.
@@ -200,24 +334,49 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
         setStatus("");
         frame.current?.contentWindow?.postMessage({ version: 1, type: "host-ready", slug }, origin);
         pushA11y();
-        void fetch(`/api/saves?game=${encodeURIComponent(slug)}&slot=1`, { credentials: "include" })
-          .then((response) => { if (!response.ok) { setStatus("Cloud save unavailable; playing with local progress."); return null; } return response.json(); })
-          .then((body) => {
-            const save = Array.isArray(body?.saves) ? body.saves[0] : null;
-            if (body && !Array.isArray(body.saves)) { setStatus("Cloud save data was invalid; playing with local progress."); return; }
-            if (save?.data && typeof save.data === "object" && !Array.isArray(save.data)) frame.current?.contentWindow?.postMessage({ version: 1, type: "load", slot: save.slot, schema_version: save.schema_version ?? 1, data: save.data }, origin);
-          })
-          .catch(() => undefined);
+        // Guests have no cloud saves: skip the load entirely (no 401 noise).
+        // A lapsed signed-in session (401) also stays silent — local progress
+        // keeps working; only real backend faults (5xx) warn.
+        void (async () => {
+          if (!(await hasLocalSession())) return;
+          let response: Response;
+          try {
+            response = await fetch(`/api/saves?game=${encodeURIComponent(slug)}&slot=1`, { credentials: "include" });
+          } catch {
+            return;
+          }
+          if (response.status === 401) return;
+          if (!response.ok) { setStatus("Cloud save unavailable; playing with local progress."); return; }
+          let body: { saves?: unknown } | null = null;
+          try {
+            body = (await response.json()) as { saves?: unknown };
+          } catch {
+            setStatus("Cloud save data was invalid; playing with local progress."); return;
+          }
+          const save = Array.isArray(body?.saves) ? body.saves[0] as { slot?: unknown; schema_version?: unknown; data?: unknown } | undefined : null;
+          if (body && !Array.isArray(body.saves)) { setStatus("Cloud save data was invalid; playing with local progress."); return; }
+          if (save?.data && typeof save.data === "object" && !Array.isArray(save.data)) frame.current?.contentWindow?.postMessage({ version: 1, type: "load", slot: save.slot, schema_version: save.schema_version ?? 1, data: save.data }, origin);
+        })();
       } else if (payload.type === "error") {
         setStatus(payload.message || "The game reported a runtime error.");
       } else if (payload.type === "save" && payload.data && typeof payload.data === "object") {
         const slot = Number.isInteger(payload.slot) && payload.slot! >= 0 && payload.slot! <= 3 ? payload.slot : 1;
-        void fetch("/api/saves", {
-          method: "PUT",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ game_slug: slug, slot, schema_version: Number.isInteger(payload.schema_version) ? payload.schema_version : 1, data: payload.data }),
-        }).then((response) => { if (!response.ok) throw new Error("save_failed"); }).catch(() => setStatus("Cloud save unavailable; local progress is unchanged."));
+        // No session → local progress only; never fire a doomed PUT.
+        void (async () => {
+          if (!(await hasLocalSession())) return;
+          try {
+            const response = await fetch("/api/saves", {
+              method: "PUT",
+              credentials: "include",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ game_slug: slug, slot, schema_version: Number.isInteger(payload.schema_version) ? payload.schema_version : 1, data: payload.data }),
+            });
+            if (response.status === 401) return;
+            if (!response.ok) throw new Error("save_failed");
+          } catch {
+            setStatus("Cloud save unavailable; local progress is unchanged.");
+          }
+        });
       }
     };
     window.addEventListener("message", onMessage);
@@ -225,20 +384,24 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
   }, [slug, src, pushA11y]);
 
   const command = (type: "pause" | "resume" | "fullscreen") => {
-    if (type === "fullscreen") void frame.current?.requestFullscreen?.();
+    if (type === "fullscreen") {
+      void toggleFullscreen();
+      return;
+    }
     postToRuntime({ version: 1, type, slug });
   };
 
   const padButton = (label: string, key: string, className = "") => <button type="button" aria-label={label} className={`grid h-12 w-12 touch-none place-items-center rounded-full border border-cyan-100/40 bg-slate-950/85 text-lg text-cyan-50 active:bg-cyan-400 active:text-black ${className}`} onPointerDown={(event) => { event.preventDefault(); sendKey(key, true); }} onPointerUp={() => sendKey(key, false)} onPointerCancel={() => sendKey(key, false)} onPointerLeave={() => sendKey(key, false)}>{label}</button>;
   return (
     <div>
-      <div className="perf-frame relative h-full w-full bg-black" onClick={focusGame}>
+      <div ref={shell} className={`perf-frame relative h-full w-full bg-black${fakeFullscreen ? " fixed inset-0 z-50" : ""}`} onClick={focusGame}>
         <div className="absolute right-2 top-2 z-20 flex max-w-[calc(100%-1rem)] flex-wrap items-center justify-end gap-1 rounded bg-black/70 p-1.5">
           {score !== null && <span role="status" className="px-2 py-1 text-xs text-cyan-200">Score: {score}</span>}
+          <span className="hidden px-2 py-1 text-[11px] text-white/60 lg:inline" aria-hidden="true">Press F for fullscreen</span>
           <button type="button" onClick={focusGame} className="hidden rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:inline" title="Focus the game so keyboard controls respond">Focus</button>
           <button type="button" onClick={() => command("pause")} className="hidden rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:inline">Pause</button>
           <button type="button" onClick={() => command("resume")} className="hidden rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:inline">Resume</button>
-          <button type="button" onClick={() => command("fullscreen")} className="rounded px-2 py-1 text-xs text-white hover:bg-white/20">Fullscreen</button>
+          <button type="button" onClick={() => command("fullscreen")} aria-pressed={fullscreenActive} className="rounded px-2 py-1 text-xs text-white hover:bg-white/20">{fullscreenActive ? "Exit fullscreen" : "Fullscreen"}</button>
           <a href={src} target="_blank" rel="noopener" className="rounded px-2 py-1 text-xs text-white hover:bg-white/20" title="Open the standalone game window in a new tab">Pop out</a>
         </div>
         <p role="status" className={`absolute left-2 top-2 z-20 max-w-[70%] rounded bg-black/70 px-3 py-1 text-xs text-white/80 ${status ? "" : "sr-only"}`}>{status}</p>

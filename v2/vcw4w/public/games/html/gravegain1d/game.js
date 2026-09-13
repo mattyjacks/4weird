@@ -539,8 +539,10 @@
 
     // ---------------- Audio (WebAudio bleeps, no assets) ----------------
     var AC = null;
+    var MUTED = false; // M key toggles; beep() stays silent while muted
     function beep(freq, dur, type, vol) {
         try {
+            if (MUTED) return;
             if (AC === null) {
                 var Ctor = window.AudioContext || window.webkitAudioContext;
                 if (!Ctor) return;
@@ -634,6 +636,20 @@
             G.canvas.height = Math.round(cssH * dpr);
             G.dpr = dpr;
             G.viewW = 960; G.viewH = 540;
+        } catch (e) { /* ignore */ }
+    }
+
+    // Fullscreen contract: shell helper first, native request with
+    // webkit fallback otherwise. Never throws; safe when absent.
+    function toggleFullscreen() {
+        try {
+            if (typeof window.__fourweirdToggleFullscreen === 'function') { window.__fourweirdToggleFullscreen(); return; }
+            var st = document.getElementById('gg1dStage') || document.documentElement;
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                var p = st.requestFullscreen ? st.requestFullscreen() : (st.webkitRequestFullscreen ? st.webkitRequestFullscreen() : null);
+                if (p && p.catch) p.catch(function () { /* denied */ });
+            } else if (document.exitFullscreen) document.exitFullscreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
         } catch (e) { /* ignore */ }
     }
 
@@ -1177,6 +1193,11 @@
                             addFloater(G.run.x, G.paused ? 'PAUSED' : 'LIVE', '#a5b4fc');
                         } else if (G.banner) hideBanner();
                     }
+                    else if (k === 'f' || k === 'F') toggleFullscreen();
+                    else if (k === 'm' || k === 'M') {
+                        MUTED = !MUTED;
+                        try { addFloater(G.run.x, MUTED ? 'MUTED' : 'SOUND ON', '#a5b4fc'); } catch (e2) { /* ignore */ }
+                    }
                 } catch (e) { /* ignore */ }
             });
             var cv = el('gg1dCanvas');
@@ -1186,6 +1207,8 @@
                     else if (G && G.run && G.run.mode === 'turn') doAction('attack');
                 } catch (e) { /* ignore */ }
             });
+            if (cv) cv.addEventListener('dblclick', function () { try { toggleFullscreen(); } catch (e) { /* ignore */ } });
+            document.addEventListener('fullscreenchange', function () { try { sizeCanvas(); } catch (e) { /* ignore */ } });
             document.addEventListener('visibilitychange', function () {
                 try { if (document.hidden && G && G.run && G.run.mode === 'realtime') G.paused = true; } catch (e) { /* ignore */ }
             });

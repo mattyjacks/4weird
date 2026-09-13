@@ -169,7 +169,7 @@
     var EPILOGUE_CODEX = ['lucifer_manifesto', 'human_earth_letter', 'gods_necros_speaks'];
 
     var EPILOGUE_LINES = [
-        { speaker: 'Valley Net', text: 'Array cold. Signal dead. For the first time in the war, MoonRock is QUIET - and it is ours.', portrait: '🤖' },
+        { speaker: 'Valley Net', text: 'Array cold. Signal dead. For the first time in the war, MoonRock is QUIET - and it is ours.', portrait: '👱🏻‍♀️' },
         { speaker: 'President Angel Good', text: 'To every race that bled for this dawn: the Compact holds. MoonRock is SAVED - now we build.', portrait: '🌿' },
         { speaker: 'Guy Young', text: 'Clint, old soldier - rest now. We all rest now. The living remember, and the graves are silent.', portrait: '👨‍🚀' }
     ];

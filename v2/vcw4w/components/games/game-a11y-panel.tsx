@@ -50,6 +50,9 @@ export function GameA11yPanel({ slug }: { slug: string }) {
         Below the game you&apos;ll find the face + head controller (nose aims, wink clicks), dwell-to-click for eye
         trackers, and single-switch scanning; all applied inside the game frame, not just the site.
       </p>
+      <p className="mt-2 text-xs text-slate-500">
+        Fullscreen respects reduced motion: it appears instantly with no animation.
+      </p>
     </section>
   );
 }

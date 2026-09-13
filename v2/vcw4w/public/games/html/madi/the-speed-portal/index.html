@@ -46,7 +46,7 @@
     
     <main class="TEMPLATE-4weird-game-main" style="max-width: 1200px; margin: 40px auto; padding: 0 24px; display: grid; grid-template-columns: 1fr; gap: 30px; align-items: start;">
         <div class="TEMPLATE-4weird-game-frame">
-            <button class="TEMPLATE-4weird-fullscreen-btn" id="TEMPLATE-4weird-fullscreen-btn" style="position:absolute; top:15px; right:15px; z-index:11; background:rgba(20,20,30,0.7); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 12px; border-radius:6px; cursor:pointer;" title="Toggle Fullscreen">📺 Fullscreen</button>
+            <button class="TEMPLATE-4weird-fullscreen-btn" id="TEMPLATE-4weird-fullscreen-btn" style="position:absolute; top:15px; right:15px; z-index:11; background:rgba(20,20,30,0.7); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 12px; border-radius:6px; cursor:pointer;" title="Toggle Fullscreen">⛶ Fullscreen</button>
             <canvas id="TEMPLATE-4weird-gameCanvas"></canvas>
             
             <div class="portal-hud">
@@ -116,20 +116,89 @@
 
     <script src="../../../../components.js"></script>
     <script src="game.js"></script>
-    <script>
-        const fullscreenBtn = document.getElementById('TEMPLATE-4weird-fullscreen-btn');
-        const gameFrame = document.querySelector('.TEMPLATE-4weird-game-frame');
-        if (fullscreenBtn && gameFrame) {
-            fullscreenBtn.addEventListener('click', () => {
-                if (!document.fullscreenElement) {
-                    gameFrame.requestFullscreen().catch(err => {
-                        console.error(`Error attempting to enable fullscreen: ${err.message}`);
-                    });
-                } else {
-                    document.exitFullscreen();
-                }
-            });
-        }
-    </script>
+    <style id="fourweird-fullscreen-patch">
+/* fourweird-fullscreen-patch: fullscreen sizing, centered black bg, no scrollbars, enlarged text */
+:fullscreen { background:#000 !important; }
+:-webkit-full-screen { background:#000 !important; }
+:-ms-fullscreen { background:#000 !important; }
+.TEMPLATE-4weird-game-frame:fullscreen, .TEMPLATE-4weird-game-frame:-webkit-full-screen { width:100vw !important; height:100vh !important; max-width:none !important; margin:0 !important; border-radius:0 !important; background:#000 !important; display:flex !important; align-items:center !important; justify-content:center !important; overflow:hidden !important; }
+.TEMPLATE-4weird-game-frame:fullscreen #TEMPLATE-4weird-gameCanvas, .TEMPLATE-4weird-game-frame:-webkit-full-screen #TEMPLATE-4weird-gameCanvas { width:100% !important; height:100% !important; max-width:100vw !important; max-height:100vh !important; object-fit:contain !important; display:block !important; margin:auto !important; }
+.TEMPLATE-4weird-game-frame.is-fullscreen .TEMPLATE-4weird-overlay-content h2 { font-size:2.6rem !important; }
+.TEMPLATE-4weird-game-frame.is-fullscreen .TEMPLATE-4weird-overlay-content p { font-size:1.15rem !important; }
+.TEMPLATE-4weird-game-frame.is-fullscreen .hud-item { font-size:1.2rem !important; }
+.fourweird-fs-hint { position:absolute; left:50%; bottom:14px; transform:translateX(-50%); z-index:12; background:rgba(0,0,0,0.65); color:#fff; border:1px solid rgba(255,255,255,0.25); padding:6px 12px; border-radius:8px; font-size:0.85rem; pointer-events:none; transition:opacity 0.6s ease; white-space:nowrap; }
+.fourweird-fs-hint.fourweird-fs-hint-hide { opacity:0; }
+</style>
+<script>
+/* fourweird-fullscreen-patch: overlay button + F key + double-click toggles; bridge-first with webkit fallback */
+(function () {
+  try {
+    var frame = document.querySelector('.TEMPLATE-4weird-game-frame');
+    var canvas = document.getElementById('TEMPLATE-4weird-gameCanvas');
+    var btn = document.getElementById('TEMPLATE-4weird-fullscreen-btn');
+    function isFs() { try { return !!(document.fullscreenElement || document.webkitFullscreenElement); } catch (e) { return false; } }
+    function enterFs() {
+      try { if (typeof window.__fourweirdToggleFullscreen === 'function') { window.__fourweirdToggleFullscreen('enter'); return; } } catch (e) {}
+      try {
+        var t = frame || document.documentElement;
+        if (t.requestFullscreen) { var p = t.requestFullscreen(); if (p && typeof p.catch === 'function') { p.catch(function () {}); } }
+        else if (t.webkitRequestFullscreen) { t.webkitRequestFullscreen(); }
+      } catch (e) {}
+    }
+    function exitFs() {
+      try { if (typeof window.__fourweirdToggleFullscreen === 'function') { window.__fourweirdToggleFullscreen('exit'); return; } } catch (e) {}
+      try {
+        if (document.exitFullscreen && isFs()) { var p = document.exitFullscreen(); if (p && typeof p.catch === 'function') { p.catch(function () {}); } }
+        else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+      } catch (e) {}
+    }
+    function toggleFs() {
+      try {
+        if (typeof window.__fourweirdToggleFullscreen === 'function') { window.__fourweirdToggleFullscreen('toggle'); return; }
+        if (isFs()) { exitFs(); } else { enterFs(); }
+      } catch (e) {}
+    }
+    function refit() {
+      try {
+        var fs = isFs();
+        if (document.body) { document.body.classList.toggle('is-fullscreen', fs); }
+        if (frame) { frame.classList.toggle('is-fullscreen', fs); }
+        if (typeof window.onWindowResize === 'function') { window.onWindowResize(); }
+        else if (typeof onWindowResize === 'function') { onWindowResize(); }
+      } catch (e) {}
+      try { window.dispatchEvent(new Event('fourweird-resize')); } catch (e) {}
+    }
+    if (btn && frame && !btn.getAttribute('data-fwfs')) {
+      btn.setAttribute('data-fwfs', '1');
+      btn.addEventListener('click', function (e) { try { if (e && e.stopPropagation) { e.stopPropagation(); } } catch (x) {} toggleFs(); });
+    }
+    try {
+      document.addEventListener('keydown', function (e) {
+        try {
+          if (!e) { return; }
+          var tag = (e.target && e.target.tagName) || '';
+          if (tag === 'INPUT' || tag === 'TEXTAREA') { return; }
+          if (e.key === 'f' || e.key === 'F' || e.code === 'KeyF') { toggleFs(); }
+        } catch (x) {}
+      });
+    } catch (e) {}
+    try { if (canvas && !canvas.getAttribute('data-fwfs')) { canvas.setAttribute('data-fwfs', '1'); canvas.addEventListener('dblclick', function () { try { toggleFs(); } catch (x) {} }); } } catch (e) {}
+    try { document.addEventListener('fullscreenchange', refit); } catch (e) {}
+    try { document.addEventListener('webkitfullscreenchange', refit); } catch (e) {}
+    try { window.addEventListener('resize', refit); } catch (e) {}
+    try { window.addEventListener('fourweird-fullscreen', refit); } catch (e) {}
+    try {
+      if (frame && !document.getElementById('fourweird-fs-hint')) {
+        var hint = document.createElement('div');
+        hint.setAttribute('id', 'fourweird-fs-hint');
+        hint.setAttribute('class', 'fourweird-fs-hint');
+        hint.textContent = 'A / D or arrows to rotate • F or ⛶ for fullscreen • double-click canvas';
+        frame.appendChild(hint);
+        setTimeout(function () { try { hint.classList.add('fourweird-fs-hint-hide'); } catch (x) {} setTimeout(function () { try { if (hint.parentNode) { hint.parentNode.removeChild(hint); } } catch (y) {} }, 800); }, 5000);
+      }
+    } catch (e) {}
+  } catch (e) {}
+})();
+</script>
 </body>
 </html>

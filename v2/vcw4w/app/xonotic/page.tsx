@@ -17,7 +17,7 @@ export default function XonoticPage() {
         <Link className="text-cyan-300 hover:underline" href="/agents">
           ← Rent servers
         </Link>
-        <p className="mt-4 text-xs font-bold tracking-widest text-cyan-300">4WEIRD / XONOTIC AUTOPLAY</p>
+        <p className="mt-4 text-xs font-bold tracking-widest text-cyan-300">🌐 RENT TECH / XONOTIC AUTOPLAY</p>
         <h1 className="mt-2 text-4xl font-black">Xonotic, played by VibeCodeWorker</h1>
         <p className="mt-4 text-slate-300">
           Xonotic is the one game with <b className="text-white">off-site mode on</b>: a GPU-boosted RunPod remote

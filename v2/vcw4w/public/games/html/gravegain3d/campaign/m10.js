@@ -8,10 +8,10 @@
             { speaker: 'Queen Aelindra', text: 'The Groves bled corruption for your vanity, Lucifer. Elf-kind stands in this chamber - and we do not kneel to grave-robbers.', portrait: '🧝‍♀️' },
             { speaker: 'Forgemaster Borin', text: 'Ye stole our dead and our deep roads both! Dwarf-kind holds the line beside this soldier - bring yer Overlord, we’ve hammers enough!', portrait: '⛏️' },
             { speaker: 'Warchief Groknak', text: 'Orcs do not die sitting down - and we do not kneel standing up! Come down from yer throne of bones, dead-man!', portrait: '👹' },
-            { speaker: 'Valley Net', text: 'Tactical final: the Overlord fights in PHASES - the Array shields him between staggers, and each phase wakes deadlier guardians. Break the shield, burn the conduits, and strike when he staggers.', portrait: '🤖' }
+            { speaker: 'Valley Net', text: 'Tactical final: the Overlord fights in PHASES - the Array shields him between staggers, and each phase wakes deadlier guardians. Break the shield, burn the conduits, and strike when he staggers.', portrait: '👱🏻‍♀️' }
         ],
         dialogueAfter: [
-            { speaker: 'Valley Net', text: 'Necromantic Array DEACTIVATED. Planetary signal terminated. MoonRock is SAVED!', portrait: '🤖' },
+            { speaker: 'Valley Net', text: 'Necromantic Array DEACTIVATED. Planetary signal terminated. MoonRock is SAVED!', portrait: '👱🏻‍♀️' },
             { speaker: 'President Angel Good', text: 'You did it! The four races are free - humanity and MoonRock have a real future together!', portrait: '🌿' },
             { speaker: 'Guy Young', text: 'Somewhere, an old soldier finally rests. Thank you - for Clint, for all of them, for the living.', portrait: '👨‍🚀' }
         ],

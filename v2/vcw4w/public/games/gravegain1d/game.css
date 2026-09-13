@@ -79,3 +79,7 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
     #gg1dBannerCard { box-shadow: none; }
 }
+/* Fullscreen contract: black stage, centered canvas, overlay button. */
+#gg1dStage:fullscreen { background: #000; display: flex; align-items: center; justify-content: center; width: 100vw; }
+#gg1dStage:fullscreen #gg1dCanvas { width: min(100vw, 177.78vh); height: auto; }
+#gg1dFsBtn { position: absolute; top: 8px; right: 8px; z-index: 5; background: rgba(10,8,24,.8); color: #e2e8f0; border: 1px solid rgba(168,85,247,.5); border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: .8rem; }

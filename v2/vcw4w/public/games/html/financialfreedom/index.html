@@ -53,7 +53,7 @@
     <!-- Main Game Container -->
     <main class="TEMPLATE-4weird-game-main" style="display: block;">
         <div class="TEMPLATE-4weird-game-frame">
-            
+            <button class="ff-fs-btn" id="ff-fs-btn" title="Fullscreen (F) — Esc to exit">⛶</button>
             <!-- Selection Screen Overlay -->
             <div class="profile-selection-overlay" id="profile-overlay">
                 <h2 style="font-family: 'Orbitron', sans-serif; font-size: 2rem; margin-bottom: 8px;">💵 Financial Freedom</h2>
@@ -497,6 +497,7 @@
                     </div>
                     
                     <button class="next-month-btn" id="next-month-btn">Next Month ➔</button>
+                    <button class="ff-fs-bar-btn" id="ff-fs-bar-btn" title="Fullscreen (F) — Esc to exit">⛶ Fullscreen</button>
                 </section>
                 
                 <!-- Simple logs section for quick events check -->
@@ -561,5 +562,35 @@
     <!-- Scripts -->
     <script src="../../../components.js"></script>
     <script src="game.js"></script>
+    <script>
+        // 4weird fullscreen: overlay button + control-bar item + F key + double-click (group B).
+        // DOM-heavy sim: CSS-only scaling on .TEMPLATE-4weird-game-frame, no layout rewrite.
+        (function () {
+            var frame = document.querySelector('.TEMPLATE-4weird-game-frame') || document.documentElement;
+            function toggleFS() {
+                if (!document.fullscreenElement) {
+                    if (frame.requestFullscreen) {
+                        var p = frame.requestFullscreen();
+                        if (p && p.catch) p.catch(function () {});
+                    }
+                } else if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+            ['ff-fs-btn', 'ff-fs-bar-btn'].forEach(function (id) {
+                var b = document.getElementById(id);
+                if (b) b.addEventListener('click', toggleFS);
+            });
+            document.addEventListener('keydown', function (e) {
+                var t = e.target;
+                if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+                if (e.key === 'f' || e.key === 'F') toggleFS();
+            });
+            frame.addEventListener('dblclick', function (e) {
+                if (e.target.closest('button, input, select, textarea, a')) return;
+                toggleFS();
+            });
+        })();
+    </script>
 </body>
 </html>

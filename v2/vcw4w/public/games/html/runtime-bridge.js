@@ -235,13 +235,163 @@
         }
         break;
       case "fullscreen":
-        // Fullscreen is applied by the shell to its own iframe; nothing to do
-        // inside the runtime.
+        // Shell fullscreen button: the shell fullscreens its own iframe AND
+        // forwards here so the runtime document goes fullscreen too (legacy
+        // canvas/DOM games don't resize otherwise). Supports
+        // { mode: "enter" | "exit" | "toggle" }; default toggle.
+        try {
+          toggleFullscreen(data && data.mode);
+        } catch (e) {
+          /* fullscreen is best-effort; the game stays playable */
+        }
         break;
       default:
         break;
     }
   });
+
+  // ---- Fullscreen: shell button forwarded inside the runtime. ----
+  // Legacy canvas/DOM games never resize on their own, so the bridge
+  // requests fullscreen on document.documentElement itself, injects
+  // fullscreen-friendly CSS once, and re-dispatches resize so game loops
+  // that fit on resize adapt. All best-effort; never throws.
+  var FULLSCREEN_STYLE_ID = "fourweird-fullscreen-style";
+
+  function isFullscreen() {
+    try {
+      return Boolean(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.msFullscreenElement
+      );
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function ensureFullscreenStyle() {
+    try {
+      if (typeof document === "undefined") return;
+      if (document.getElementById(FULLSCREEN_STYLE_ID)) return;
+      var style = document.createElement("style");
+      style.setAttribute("id", FULLSCREEN_STYLE_ID);
+      style.textContent =
+        ":fullscreen{background:#000!important}" +
+        ":-webkit-full-screen{background:#000!important}" +
+        ":-ms-fullscreen{background:#000!important}" +
+        ":fullscreen html,:fullscreen body,html:fullscreen,body:fullscreen{width:100vw!important;height:100vh!important;margin:0!important;padding:0!important;background:#000!important;overflow:hidden!important}" +
+        ":-webkit-full-screen html,:-webkit-full-screen body{width:100vw!important;height:100vh!important;margin:0!important;padding:0!important;background:#000!important;overflow:hidden!important}" +
+        ":fullscreen canvas:first-of-type,:fullscreen video:first-of-type{max-width:100vw!important;max-height:100vh!important;object-fit:contain!important;margin:auto!important;display:block!important}" +
+        ":-webkit-full-screen canvas:first-of-type,:-webkit-full-screen video:first-of-type{max-width:100vw!important;max-height:100vh!important;object-fit:contain!important;margin:auto!important;display:block!important}";
+      (document.head || document.documentElement).appendChild(style);
+    } catch (e) {
+      /* fullscreen CSS is best-effort */
+    }
+  }
+
+  function notifyFullscreenChanged() {
+    try {
+      var fs = isFullscreen();
+      try {
+        window.dispatchEvent(new Event("resize"));
+      } catch (e) {}
+      try {
+        window.dispatchEvent(new CustomEvent("fourweird-fullscreen", { detail: { fullscreen: fs } }));
+      } catch (e) {}
+      try {
+        window.dispatchEvent(new CustomEvent("fourweird-resize"));
+      } catch (e) {}
+    } catch (e) {
+      /* resize nudges are best-effort */
+    }
+  }
+
+  function enterFullscreen() {
+    try {
+      ensureFullscreenStyle();
+      var el = null;
+      try {
+        el = document.documentElement;
+      } catch (e) {
+        return;
+      }
+      if (!el) return;
+      var pending = null;
+      try {
+        if (el.requestFullscreen) pending = el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) pending = el.webkitRequestFullscreen();
+        else if (el.msRequestFullscreen) pending = el.msRequestFullscreen();
+      } catch (e) {
+        pending = null;
+      }
+      try {
+        if (pending && pending.catch) pending.catch(function () {});
+      } catch (e) {}
+    } catch (e) {
+      /* fullscreen request is best-effort */
+    }
+  }
+
+  function exitFullscreen() {
+    try {
+      var pending = null;
+      try {
+        if (document.exitFullscreen) pending = document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        else if (document.msExitFullscreen) document.msExitFullscreen();
+      } catch (e) {
+        pending = null;
+      }
+      try {
+        if (pending && pending.catch) pending.catch(function () {});
+      } catch (e) {}
+    } catch (e) {
+      /* exit fullscreen is best-effort */
+    }
+  }
+
+  function toggleFullscreen(mode) {
+    try {
+      ensureFullscreenStyle();
+      var m = mode === "enter" || mode === "exit" || mode === "toggle" ? mode : "toggle";
+      var fs = isFullscreen();
+      if (m === "enter") {
+        if (!fs) enterFullscreen();
+      } else if (m === "exit") {
+        if (fs) exitFullscreen();
+      } else if (fs) {
+        exitFullscreen();
+      } else {
+        enterFullscreen();
+      }
+      // Nudge legacy loops even if the request was denied; the true state
+      // sync arrives via fullscreenchange below.
+      try {
+        setTimeout(notifyFullscreenChanged, 0);
+      } catch (e) {}
+    } catch (e) {
+      /* fullscreen toggle is best-effort */
+    }
+  }
+
+  try {
+    document.addEventListener("fullscreenchange", notifyFullscreenChanged);
+  } catch (e) {}
+  try {
+    document.addEventListener("webkitfullscreenchange", notifyFullscreenChanged);
+  } catch (e) {}
+  try {
+    document.addEventListener("msfullscreenchange", notifyFullscreenChanged);
+  } catch (e) {}
+  try {
+    if (typeof window !== "undefined" && typeof window.__fourweirdToggleFullscreen !== "function") {
+      window.__fourweirdToggleFullscreen = function (mode) {
+        try {
+          toggleFullscreen(mode);
+        } catch (e) {}
+      };
+    }
+  } catch (e) {}
 
   // ---- Accessibility: shell settings applied INSIDE the game document. ----
   // Parent-page CSS cannot cross the iframe boundary, so the play shell

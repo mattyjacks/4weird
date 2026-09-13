@@ -129,3 +129,13 @@
     border: 1px solid rgba(16, 185, 129, 0.3);
     backdrop-filter: blur(4px);
 }
+
+/* fourweird-fullscreen-patch: fullscreen black bg, centered canvas, no scrollbars, enlarged text */
+:fullscreen { background:#000 !important; }
+:-webkit-full-screen { background:#000 !important; }
+:-ms-fullscreen { background:#000 !important; }
+.TEMPLATE-4weird-game-frame:fullscreen, .TEMPLATE-4weird-game-frame:-webkit-full-screen { width:100vw !important; height:100vh !important; max-width:none !important; margin:0 !important; border-radius:0 !important; background:#000 !important; display:flex !important; align-items:center !important; justify-content:center !important; overflow:hidden !important; }
+.TEMPLATE-4weird-game-frame:fullscreen #TEMPLATE-4weird-gameCanvas, .TEMPLATE-4weird-game-frame:-webkit-full-screen #TEMPLATE-4weird-gameCanvas { width:100% !important; height:100% !important; max-width:100vw !important; max-height:100vh !important; object-fit:contain !important; display:block !important; margin:auto !important; }
+.TEMPLATE-4weird-game-frame.is-fullscreen .TEMPLATE-4weird-overlay-content h2 { font-size:2.6rem !important; }
+.TEMPLATE-4weird-game-frame.is-fullscreen .TEMPLATE-4weird-overlay-content p { font-size:1.15rem !important; }
+.TEMPLATE-4weird-game-frame.is-fullscreen .hud-item { font-size:1.2rem !important; }

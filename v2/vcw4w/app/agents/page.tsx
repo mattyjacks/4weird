@@ -22,6 +22,7 @@ export default function AgentsPage() {
         <Link className="text-cyan-300 hover:underline" href="/">
           ← Home
         </Link>
+        <p className="mt-4 text-xs font-bold tracking-widest text-cyan-300">🌐 RENT TECH</p>
         <h1 className="mt-4 text-4xl font-black">Rent an agent</h1>
         <AgentBotNav current="/agents" />
         <p className="mt-4 text-slate-300">

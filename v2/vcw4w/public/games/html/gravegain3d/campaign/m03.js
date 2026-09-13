@@ -4,7 +4,7 @@
     window.GraveGainCampaign.registerMissionExtra(3, {
         dialogueBefore: [
             { speaker: 'Forgemaster Borin', text: 'Me ancestors’ Golem Hammer lies trapped in the lower forge channels, and sparkite veins thick enough to buy the mountain! Me axe is thirsty and me keg is full - TO THE VAULTS!', portrait: '⛏️' },
-            { speaker: 'Valley Net', text: 'Caution: raw sparkite saturates the Deep Mines. Five power crystals required - pry them from the armored and elite remains guarding the channels.', portrait: '🤖' },
+            { speaker: 'Valley Net', text: 'Caution: raw sparkite saturates the Deep Mines. Five power crystals required - pry them from the armored and elite remains guarding the channels.', portrait: '👱🏻‍♀️' },
             { speaker: 'Private Lisa Park', text: 'Visors dimmed for Dwarven eyes - no flashbangs in the deep, no bright lights on our allies. We take the crystals, drop the Thane, and drink to it after.', portrait: '👩‍🚀' },
             { speaker: 'Forgemaster Borin', text: 'Armored, ye say? GOOD! Me hammer loves a hard shell! Flank the knees where the plate runs thin - then bring the Thane down and every flagon in Deep Forge is YOURS!', portrait: '⛏️' },
             { speaker: 'Arty Fisher', text: 'Dwarven gear outlasts every battery I ever wired - when the grid failed, their axes still swung. Stick with Borin down there; his engineering is six thousand years proven.', portrait: '👨‍🔧' }

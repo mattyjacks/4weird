@@ -138,6 +138,20 @@
         }
     }
 
+    // Fullscreen contract: shell helper first, native request with
+    // webkit fallback otherwise. Never throws; safe when absent.
+    function toggleGraveGainFullscreen() {
+        try {
+            if (typeof window.__fourweirdToggleFullscreen === 'function') { window.__fourweirdToggleFullscreen(); return; }
+            const el = document.getElementById('canvasContainer') || document.documentElement;
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                const p = el.requestFullscreen ? el.requestFullscreen() : (el.webkitRequestFullscreen ? el.webkitRequestFullscreen() : null);
+                if (p && p.catch) p.catch(() => {});
+            } else if (document.exitFullscreen) document.exitFullscreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        } catch (e) { /* ignore */ }
+    }
+
     class InputManager {
         constructor() {
             this.keys = {};
@@ -151,6 +165,10 @@
                 if (e.code === 'KeyP' || e.code === 'Escape') {
                     if (window.GraveGainGame) window.GraveGainGame.togglePause();
                 }
+                if (e.code === 'KeyF') toggleGraveGainFullscreen();
+                if (e.code === 'KeyM' && window.GraveGainGame && window.GraveGainGame.audio) {
+                    window.GraveGainGame.audio.muted = !window.GraveGainGame.audio.muted;
+                }
                 if (window.GraveGainGame && ['Digit1', 'Digit2', 'Digit3'].includes(e.code)) {
                     const mode = { Digit1: 'realtime', Digit2: 'chrono', Digit3: 'turnbased' }[e.code];
                     window.GraveGainGame.setControlMode(mode);
@@ -162,9 +180,13 @@
             const container = document.getElementById('canvasContainer');
             const toGamePoint = (event) => {
                 const rect = container.getBoundingClientRect();
+                // Live backing-store dims (refit on fullscreen) — never hardcode 1000x600.
+                const g = window.GraveGainGame;
+                const gw = (g && g.canvas && g.canvas.width) || 1000;
+                const gh = (g && g.canvas && g.canvas.height) || 600;
                 return {
-                    x: (event.clientX - rect.left) * (1000 / rect.width),
-                    y: (event.clientY - rect.top) * (600 / rect.height)
+                    x: (event.clientX - rect.left) * (gw / rect.width),
+                    y: (event.clientY - rect.top) * (gh / rect.height)
                 };
             };
             container.addEventListener('mousemove', (e) => {
@@ -937,7 +959,8 @@
     // ==========================================
     class SaveSystem {
         static save(state) {
-            localStorage.setItem('GraveGain2D_Save', JSON.stringify({
+            try {
+                localStorage.setItem('GraveGain2D_Save', JSON.stringify({
                 gold: state.gold,
                 uusd: state.uusd,
                 quartersLevel: state.quartersLevel,
@@ -956,9 +979,13 @@
                     gameSpeed: state.gameSpeed
                 }
             }));
+            } catch (e) { /* blocked storage / quota: autosave is best-effort */ }
         }
         static load() {
-            const data = localStorage.getItem('GraveGain2D_Save');
+            let data = null;
+            try {
+                data = localStorage.getItem('GraveGain2D_Save');
+            } catch (e) { return null; /* blocked storage: start fresh */ }
             if (data) {
                 try {
                     return JSON.parse(data);
@@ -974,6 +1001,7 @@
         constructor() {
             this.ctx = null;
             this.masterVolume = 0.8;
+            this.muted = false; // M key toggles; play()/speak stay silent while muted
         }
         initCtx() {
             if (!this.ctx) {
@@ -981,6 +1009,7 @@
             }
         }
         play(soundName) {
+            if (this.muted) return;
             this.initCtx();
             if (!this.ctx) return;
 
@@ -1030,6 +1059,7 @@
             }
         }
         speakFallback(text) {
+            if (this.muted) return;
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.volume = this.masterVolume;
@@ -1548,6 +1578,36 @@
                 document.getElementById('mainMenuScreen').classList.remove('hidden');
                 this.saveState();
             });
+
+            // Pause-on-hidden: a hidden tab must never keep simulating the run.
+            document.addEventListener('visibilitychange', () => {
+                try {
+                    if (document.hidden && this.player && !this.loop.isPaused &&
+                        !document.getElementById('gameMain').classList.contains('hidden')) {
+                        this.togglePause();
+                    }
+                } catch (e) { /* ignore */ }
+            });
+
+            // Fullscreen re-fit: sync backing store + camera to the container.
+            const refitViewport = () => {
+                try {
+                    const box = document.getElementById('canvasContainer');
+                    const w = Math.max(320, box ? box.clientWidth : 1000) | 0;
+                    const h = Math.max(240, box ? box.clientHeight : 600) | 0;
+                    for (const c of [this.canvas, this.lightCanvas]) {
+                        if (c && (c.width !== w || c.height !== h)) { c.width = w; c.height = h; }
+                    }
+                    if (this.camera) { this.camera.width = w; this.camera.height = h; }
+                } catch (e) { /* ignore */ }
+            };
+            document.addEventListener('fullscreenchange', refitViewport);
+            window.addEventListener('resize', refitViewport);
+
+            // Double-click canvas toggles fullscreen (same contract as the ⛶ button).
+            try {
+                document.getElementById('canvasContainer').addEventListener('dblclick', () => toggleGraveGainFullscreen());
+            } catch (e) { /* ignore */ }
         }
 
         renderCharSelect() {
@@ -1803,7 +1863,7 @@
             this.enemies = [];
             this.loot = [];
 
-            const diffScale = 1.0 + (this.floorIndex * 0.15);
+            const diffScale = 1.0 + (Math.min(this.floorIndex, 30) * 0.15);
 
             this.dungeon.rooms.forEach((room) => {
                 if (room.type === 'spawn') return;
@@ -1889,10 +1949,12 @@
                 }
             }
             const spawn = (type, count) => {
-                for (let i = 0; i < count && openTiles.length; i++) {
+                // Hard cap: a corrupt objective count can never spawn-blowup the run.
+                const n = Math.min(Math.max(0, count | 0), 40);
+                for (let i = 0; i < n && openTiles.length; i++) {
                     const index = Math.floor(Math.random() * openTiles.length);
                     const [x, y] = openTiles.splice(index, 1)[0];
-                    this.enemies.push(this.createEnemy(type, x, y, 1 + this.floorIndex * 0.1));
+                    this.enemies.push(this.createEnemy(type, x, y, 1 + Math.min(this.floorIndex, 30) * 0.1));
                 }
             };
             const standard = EnemyTypes.find(e => e.type === 'standard');

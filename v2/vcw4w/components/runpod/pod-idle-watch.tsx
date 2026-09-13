@@ -173,14 +173,16 @@ export function PodIdleWatch({ heartbeatUrl, stopUrl, policy, label, compact }: 
   if (compact) {
     return (
       <p className="mt-1 text-[11px] text-slate-500" title={describePodIdlePolicy(policy)}>
-        Idle guard: chime in {fmtCountdown(toWarn)} of no input · auto-stop +{policy.stopGraceMinutes}m · terminate {policy.terminateHours}h
+        Idle guard: chime in {fmtCountdown(toWarn)} of no input · auto-stop +{policy.stopGraceMinutes}m · terminate {policy.terminateHours}h.
+        With zero input it chimes first, then stops the pod (disk kept), then terminates it (disk lost).
       </p>
     );
   }
   return (
     <p className="mt-2 text-xs text-slate-500" title={describePodIdlePolicy(policy)}>
       🔔 Idle guard armed: {fmtCountdown(toWarn)} of no input until the warning chime, then auto-stop {policy.stopGraceMinutes} min later
-      (disk kept), terminate after {policy.terminateHours}h untended. Any input in this tab resets the clock.
+      (disk kept), terminate after {policy.terminateHours}h untended. With zero input it chimes first, then stops the pod,
+      then terminates it. Any input in this tab resets the clock.
     </p>
   );
 }

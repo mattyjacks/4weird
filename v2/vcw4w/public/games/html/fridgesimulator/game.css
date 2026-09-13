@@ -689,3 +689,19 @@ body {
     from { opacity: 0; transform: translateY(-15px) scale(0.95); }
     to { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+/* ===== 4weird fullscreen + large-size guards (group B) ===== */
+/* DOM-heavy sim: CSS-only scaling on .game-wrapper, no layout rewrite. */
+.game-wrapper:fullscreen {
+    background: #000;
+    height: 100%;
+    max-height: none;
+}
+.game-wrapper:fullscreen::backdrop { background: #000; }
+/* DOM panels break at large sizes: keep panels scrollable, clamp display type. */
+.panel { min-height: 0; }
+.panel-title { font-size: clamp(0.85rem, 1.6vw, 1rem); overflow-wrap: anywhere; }
+.hud { overflow-x: auto; }
+.hud-value { font-size: clamp(1rem, 2vw, 1.2rem); }
+.logo-big { font-size: clamp(1.8rem, 5vw, 3rem); overflow-wrap: anywhere; }
+.screen-overlay { overflow-y: auto; }

@@ -60,7 +60,11 @@ for (const { file, global, globalRe } of overlays) {
   sources[file] = src;
   if (globalRe) check(`${file} exposes 2.5D global (${global})`, globalRe.test(src));
   else check(`${file} exposes ${global}`, src.includes(global));
-  check(`${file} idempotent (if (window.X) guard)`, /if\s*\(\s*window\.[\w$]+\s*\)\s*(\{|return)/.test(src));
+  // Idempotent = classic first-wins `if (window.X) return;` OR documented
+  // merge-mode (`window.X || ...` fill-missing-keys, per ORCH ruling for the
+  // shared window.GraveGain1DArt global). Both handle a pre-existing global.
+  const idempotentRe = /if\s*\(\s*window\.[\w$]+\s*\)\s*(\{|return)|window\.[\w$]+\s*\|\|/;
+  check(`${file} idempotent (if (window.X) guard)`, idempotentRe.test(src));
 }
 
 // ---- 2. parity trees untouched ----

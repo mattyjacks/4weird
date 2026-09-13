@@ -25,7 +25,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Base Styles -->
-    <link rel="stylesheet" href="../../../styles.css">
+    <link rel="stylesheet" href="../../../../styles.css">
     <link rel="stylesheet" href="game.css">
     
     <!-- Game Metadata -->
@@ -393,7 +393,7 @@
     <div id="TEMPLATE-4weird-footer-placeholder"></div>
     
     <!-- Scripts -->
-    <script src="../../../components.js"></script>
+    <script src="../../../../components.js"></script>
     <script src="game.js"></script>
     <script src="../../game-meta.js"></script>
     <script>
@@ -418,12 +418,15 @@
             const gameFrame = document.querySelector('.TEMPLATE-4weird-game-frame');
             if (fullscreenBtn && gameFrame) {
                 fullscreenBtn.addEventListener('click', () => {
-                    if (!document.fullscreenElement) {
-                        gameFrame.requestFullscreen().catch(err => {
+                    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                        if (gameFrame.requestFullscreen) gameFrame.requestFullscreen().catch(err => {
                             console.error(`Error attempting to enable fullscreen: ${err.message}`);
                         });
-                    } else {
+                        else if (gameFrame.webkitRequestFullscreen) gameFrame.webkitRequestFullscreen();
+                    } else if (document.exitFullscreen) {
                         document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
                     }
                 });
             }

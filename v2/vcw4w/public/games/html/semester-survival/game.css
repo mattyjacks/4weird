@@ -783,3 +783,31 @@ body.TEMPLATE-4weird-game-page {
     color: #030712;
     box-shadow: 0 0 10px var(--highlight-cyan);
 }
+
+/* ===== 4weird fullscreen + large-size guards (group B) ===== */
+/* DOM HUD over a Three.js canvas: CSS-only scaling on the frame, no layout
+   rewrite; renderer.js onResize() handles the canvas via window resize. */
+.TEMPLATE-4weird-game-frame { position: relative; }
+.TEMPLATE-4weird-fullscreen-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 60;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #e6feff;
+    background: rgba(6, 182, 212, 0.12);
+    border: 1px solid var(--highlight-cyan);
+    border-radius: 8px;
+    cursor: pointer;
+}
+.TEMPLATE-4weird-fullscreen-btn:hover { background: rgba(6, 182, 212, 0.3); }
+.TEMPLATE-4weird-game-frame:fullscreen { background: #000; width: 100%; height: 100%; }
+.TEMPLATE-4weird-game-frame:fullscreen::backdrop { background: #000; }
+#ss-fs-settings-btn { white-space: nowrap; }
+/* Guards for large sizes: overlays stay scrollable, type stays clamped. */
+.TEMPLATE-4weird-overlay-content { max-height: 100%; }
+.game-logo { font-size: clamp(1.4rem, 5vw, 2.5rem); overflow-wrap: anywhere; }
+#game-hud { overflow-x: auto; }
+.hud-value { font-size: clamp(0.85rem, 2vw, 1.1rem); }

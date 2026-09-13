@@ -64,8 +64,8 @@
     <main class="TEMPLATE-4weird-game-main">
         <!-- Game Canvas Frame -->
         <div class="TEMPLATE-4weird-game-frame">
-            <!-- Fullscreen trigger -->
-            <button type="button" class="TEMPLATE-4weird-fullscreen-btn" id="TEMPLATE-4weird-fullscreen-btn" title="Toggle Fullscreen" aria-label="Toggle fullscreen">📺 Expand screen</button>
+            <!-- Fullscreen trigger (⛶ top-right; F key + double-click wired in game.js) -->
+            <button type="button" class="TEMPLATE-4weird-fullscreen-btn" id="TEMPLATE-4weird-fullscreen-btn" title="Toggle fullscreen (F)" aria-label="Toggle fullscreen">⛶</button>
             
             <!-- Real-time game HUD -->
             <div id="game-hud" class="hidden">
@@ -494,21 +494,32 @@
                 })
                 .catch(err => console.log('Template metadata fetch error:', err));
             
-            // Fullscreen toggle logic
+            // Fullscreen toggle logic (single owner: GameApp.toggleFullscreen
+            // in game.js - refits canvas, restores typing focus, keeps HUD).
             const fullscreenBtn = document.getElementById('TEMPLATE-4weird-fullscreen-btn');
             const gameFrame = document.querySelector('.TEMPLATE-4weird-game-frame');
+            const syncFsLabel = () => {
+                if (!fullscreenBtn) return;
+                const on = !!document.fullscreenElement;
+                fullscreenBtn.title = on ? 'Exit fullscreen (F)' : 'Toggle fullscreen (F)';
+                fullscreenBtn.setAttribute('aria-label', on ? 'Exit fullscreen' : 'Toggle fullscreen');
+            };
             if (fullscreenBtn && gameFrame) {
-                fullscreenBtn.addEventListener('click', () => {
-                    if (!document.fullscreenElement) {
+                fullscreenBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (window.game && window.game.toggleFullscreen) {
+                        window.game.toggleFullscreen();
+                    } else if (!document.fullscreenElement) {
                         gameFrame.requestFullscreen().catch(err => {
                             console.error(`Error attempting to enable fullscreen: ${err.message}`);
                         });
-                        fullscreenBtn.textContent = "📺 Normal screen";
                     } else {
                         document.exitFullscreen();
-                        fullscreenBtn.textContent = "📺 Expand screen";
                     }
+                    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
                 });
+                document.addEventListener('fullscreenchange', syncFsLabel);
+                syncFsLabel();
             }
 
             // Tabs UI Interaction script for Controls Sidebar (scoped: the

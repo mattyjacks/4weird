@@ -881,3 +881,24 @@ window.gameDebug = {
     }
 };
 
+
+/* fourweird-fullscreen-patch: refit map canvas on fullscreen transitions (button/F/dblclick handled in index.html). */
+(function () {
+  'use strict';
+  try {
+    function fwRefit() {
+      try {
+        if (typeof resizeCanvas === 'function') { resizeCanvas(); }
+      } catch (e) {}
+      try {
+        var fs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+        if (document.body) { document.body.classList.toggle('is-fullscreen', fs); }
+        var f = document.querySelector('.game-wrapper');
+        if (f) { f.classList.toggle('is-fullscreen', fs); }
+      } catch (e) {}
+    }
+    document.addEventListener('fullscreenchange', fwRefit);
+    document.addEventListener('webkitfullscreenchange', fwRefit);
+    window.addEventListener('fourweird-fullscreen', fwRefit);
+  } catch (e) {}
+})();

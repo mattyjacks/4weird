@@ -1313,3 +1313,40 @@
 .touch-btn-ability span {
     color: var(--neon-green);
 }
+
+/* FW-ARCADE-A fullscreen: ⛶ overlay top-right; HUD stays visible because
+   #gameMain (HUD + gadget bar + viewport + action row) is the fullscreen
+   element. */
+.fw-fs-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 50;
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+    line-height: 1;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 229, 255, 0.5);
+    background: rgba(2, 2, 5, 0.8);
+    color: #fff;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+}
+.fw-fs-btn:hover { border-color: #fff; }
+.fw-fs-btn:focus-visible { outline: 2px solid #00e5ff; outline-offset: 2px; }
+#gameMain:fullscreen {
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    margin: 0;
+    padding: 12px;
+    overflow-y: auto;
+    background: #020205;
+    box-sizing: border-box;
+}
+#gameMain:fullscreen .viewport-container {
+    aspect-ratio: auto;
+    height: calc(100vh - 260px);
+    min-height: 320px;
+}

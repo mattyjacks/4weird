@@ -20,7 +20,7 @@ export default function DesktopPage() {
         <Link className="text-cyan-300 hover:underline" href="/">
           ← Home
         </Link>
-        <p className="mt-4 text-xs font-bold tracking-widest text-cyan-300">4WEIRD CLOUD / RUNPOD CONTROL PANE</p>
+        <p className="mt-4 text-xs font-bold tracking-widest text-cyan-300">🌐 RENT TECH / RUNPOD CONTROL PANE</p>
         <h1 className="mt-2 text-4xl font-black">Your RunPods, one control pane</h1>
         <AgentBotNav current="/desktop" />
         <p className="mt-4 max-w-3xl text-slate-300">
@@ -67,7 +67,8 @@ export default function DesktopPage() {
           <p className="mt-1 max-w-3xl text-sm text-slate-400">
             Desktops, test remotes, rental servers, render workers - each card shows its container image, live pod
             status, last activity, and idle guard, plus <strong>Stop / Start / Restart / Terminate / Delete</strong>.{" "}
-            <strong>Stop</strong> ends compute billing (disk kept, storage still bills). <strong>Start</strong> boots a
+            <strong>Stop</strong> ends compute billing (disk kept, storage still bills). <strong>Stop all pods</strong>{" "}
+            pauses every pod at once. <strong>Start</strong> boots a
             stopped pod. <strong>Restart</strong> reboots in place. <strong>Terminate / Delete</strong> ends billing
             permanently (disk lost, asks for confirmation). The same dashboard lives at{" "}
             <Link href="/runpods" className="text-cyan-300 hover:underline">My RunPods</Link>.

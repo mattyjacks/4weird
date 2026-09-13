@@ -9,8 +9,8 @@
 // committing ~8 MB of duplicated bundles.
 //
 // Idempotent: destinations are removed and re-copied on every run.
-import { cpSync, existsSync, mkdirSync, rmSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 
 // slug -> legacy path under public/games/html/
 const bundles = [
@@ -91,7 +91,7 @@ const CHROME_PATTERNS = [
   /<section[^>]*class=["'][^"']*more-kouzi-games[^"']*["'][^>]*>[\s\S]*?<\/section>\s*/gi,
   /<section[^>]*class=["'][^"']*kouzi-cta[^"']*["'][^>]*>[\s\S]*?<\/section>\s*/gi,
   /<section[^>]*class=["'][^"']*madi-cta[^"']*["'][^>]*>[\s\S]*?<\/section>\s*/gi,
-  /<!--[\s\S]*?placeholder[\s\S]*?-->\s*/gi,
+  /<!--(?:(?!-->).)*?placeholder(?:(?!-->).)*?-->\s*/gis,
 ];
 
 const EMBED_CSS = `<style id="fourweird-game-only">
@@ -108,16 +108,55 @@ body{display:block!important}
 [class*="game-frame"],.game-wrapper,.game-container{width:100%!important;max-width:none!important;margin:0!important;border-radius:0!important}
 </style>`;
 
-function stripSiteChrome(html) {
+function stripSiteChrome(html, keepInfoPanel) {
   let out = html;
   let removed = 0;
   for (const pattern of CHROME_PATTERNS) {
+    // VentureMechanically mounts its whole sim UI (tabs, inputs, offer
+    // buttons, payout details) inside the info-panel aside: stripping it
+    // removes the game itself, so this slug keeps the panel.
+    if (keepInfoPanel && pattern.source.includes("game-info-panel")) continue;
     pattern.lastIndex = 0;
     const before = out.length;
     out = out.replace(pattern, "");
     if (out.length !== before) removed += 1;
   }
   return { html: out, removed };
+}
+
+// Slugs whose gameplay UI lives inside the stripped info-panel aside. The
+// panel (and only the panel) is preserved for these; every other chrome
+// pattern still applies. Tracked sources stay byte-identical.
+const KEEP_INFO_PANEL_SLUGS = new Set(["venturemechanically"]);
+
+// Display-only DOM ids: safe to re-create as hidden spans when the bundle's
+// own scripts reference them but the stripped index.html no longer has them
+// (score/level/lives HUD nodes lived in the v1 info panel; game.js writes
+// them unguarded at top level, so one missing node kills the whole game).
+// Interactive elements (input/button/select/textarea/a) are NEVER shimmed.
+const DISPLAY_SHIM_RE = /^(?:[A-Za-z0-9_-]+-)?(score|high-score|final-score|level|final-level|lives|daily-seed|high-score-final|combo|best|seed)$/i;
+
+function hudDisplayShims(html, destDir) {
+  const have = new Set(
+    [...html.matchAll(/ id="([^"]+)"/g)].map((m) => m[1]),
+  );
+  const refs = new Set();
+  const collect = (src) => {
+    for (const r of src.matchAll(/getElementById\(['"]([^'"]+)['"]\)/g)) refs.add(r[1]);
+    for (const r of src.matchAll(/querySelector\(['"]#([\w-]+)['"]\)/g)) refs.add(r[1]);
+  };
+  // Inline <script> blocks (no src).
+  for (const m of html.matchAll(/<script(?![^>]*src=)[^>]*>([\s\S]*?)<\/script>/gi)) collect(m[1]);
+  // Bundle scripts (generated copies in the dest dir only).
+  try {
+    for (const e of readdirSync(destDir, { withFileTypes: true })) {
+      if (!e.isFile() || !e.name.endsWith(".js")) continue;
+      try { collect(readFileSync(join(destDir, e.name), "utf8")); } catch {}
+    }
+  } catch {}
+  const shims = [...refs].filter((id) => !have.has(id) && DISPLAY_SHIM_RE.test(id));
+  if (!shims.length) return "";
+  return `<span id="fourweird-hud-shims" hidden>${shims.map((id) => `<span id="${id}"></span>`).join("")}</span>`;
 }
 
 function normalizeRuntime(indexFile, slug) {
@@ -128,16 +167,43 @@ function normalizeRuntime(indexFile, slug) {
   html = html.split("src='../../game-meta.js'").join("src='/games/html/game-meta.js'");
   html = html.split('src="../../../game-meta.js"').join('src="/games/html/game-meta.js"');
   html = html.split("src='../../../game-meta.js'").join("src='/games/html/game-meta.js'");
-  const stripped = stripSiteChrome(html);
+  const stripped = stripSiteChrome(html, KEEP_INFO_PANEL_SLUGS.has(slug));
   html = stripped.html;
+  // Three.js CDN fallback (any game with a single-CDN three.js tag, e.g.
+  // madi/treasure-hunters): the tracked source stays byte-identical for
+  // old-v1 parity; only the generated bundle gains a mirror fallback, same
+  // pattern as gravegain3d/index.html. Without this, one blocked CDN turns
+  // into `Uncaught ReferenceError: THREE is not defined` at game init.
+  if (
+    /cdnjs\.cloudflare\.com\/ajax\/libs\/three\.js/i.test(html) &&
+    !html.includes("cdn.jsdelivr.net/npm/three@")
+  ) {
+    const fallback =
+      `<script>if(!window.THREE){document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\\/script>')}</script>`;
+    html = html.replace(
+      /(<script[^>]*cdnjs\.cloudflare\.com\/ajax\/libs\/three\.js[^>]*><\/script>)/i,
+      `$1${fallback}`,
+    );
+  }
   if (!html.includes('id="fourweird-game-only"')) {
     if (/<\/head>/i.test(html)) html = html.replace(/<\/head>/i, `${EMBED_CSS}</head>`);
     else html = `${EMBED_CSS}${html}`;
   }
-  if (!html.includes("runtime-bridge.js")) {
-    const tag = `<script src="/games/html/runtime-bridge.js" data-slug="${slug}"></script>`;
-    if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${tag}</body>`);
-    else html += tag;
+  // Runtime bridge (EVERY slug): exactly one canonical tag. The guard matches
+  // the script TAG (not the bare filename) so a source that merely mentions
+  // runtime-bridge.js in a comment still gets the real tag; any duplicates
+  // (e.g. re-running against an already-normalized file) collapse to one, so
+  // the injection is idempotent. The </body> match tolerates stray whitespace
+  // (</body >) so the tag never lands after </html>.
+  {
+    const bridgeTag = `<script src="/games/html/runtime-bridge.js" data-slug="${slug}"></script>`;
+    const bridgeTagPattern = /<script[^>]*src=["'][^"']*runtime-bridge\.js["'][^>]*>\s*<\/script\s*>/gi;
+    const found = html.match(bridgeTagPattern) ?? [];
+    if (found.length !== 1 || found[0] !== bridgeTag) {
+      html = html.replace(bridgeTagPattern, "");
+      if (/<\/body\s*>/i.test(html)) html = html.replace(/<\/body\s*>/i, `${bridgeTag}</body>`);
+      else html += bridgeTag;
+    }
   }
   // Shared worker pool (EVERY game): offloads pure-math tasks (seeded RNG,
   // steering batches, particle integration, timing aggregation) with a
@@ -398,6 +464,35 @@ function normalizeRuntime(indexFile, slug) {
       if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${tag}</body>`);
       else html += tag;
     }
+  }
+  // HUD display shims (crash guard): re-create stripped score/level/lives
+  // nodes referenced by the bundle's own scripts as hidden spans, so
+  // unguarded top-level writes (kouzi/neon*, aiwhackamole, friendslop,
+  // soundpainter) can't null-throw and kill the game. Canvases already draw
+  // the real HUD. Interactive elements are never shimmed (see
+  // DISPLAY_SHIM_RE); venturemechanically keeps its real panel above.
+  // Generated bundle only; tracked sources stay byte-identical.
+  try {
+    const shims = hudDisplayShims(html, dirname(indexFile));
+    if (shims && !html.includes('id="fourweird-hud-shims"')) {
+      if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${shims}</body>`);
+      else html += shims;
+    }
+  } catch {}
+  // neoninvaders touch alias: setupTouchControls looks up 'gameCanvas' but
+  // the canvas id is TEMPLATE-4weird-gameCanvas (guarded lookup, so desktop
+  // plays either way; without the alias mobile touch-to-shoot never
+  // attaches). Rewrite the generated copy only.
+  if (slug === "neoninvaders") {
+    try {
+      const jsFile = join(dirname(indexFile), "game.js");
+      if (existsSync(jsFile)) {
+        const js = readFileSync(jsFile, "utf8");
+        if (js.includes("getElementById('gameCanvas')")) {
+          writeFileSync(jsFile, js.split("getElementById('gameCanvas')").join("getElementById('TEMPLATE-4weird-gameCanvas')"));
+        }
+      }
+    } catch {}
   }
   writeFileSync(indexFile, html);
   return stripped.removed;

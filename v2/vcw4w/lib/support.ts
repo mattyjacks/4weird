@@ -135,3 +135,18 @@ export function isUuid(value: unknown): string {
   const s = String(value ?? "").trim().toLowerCase();
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(s) ? s : "";
 }
+
+/**
+ * House creator: the user ID that unmapped games tip by default (the
+ * Matt@MattyJacks.com account). Server-only env HOUSE_CREATOR_USER_ID;
+ * empty string when unset. Always validate with isUuid at the call site —
+ * a typo must fall back to the manual-ID form, never to a bad recipient.
+ * NOTE: the account itself must be verified (admin-set is_verified) or
+ * tip_creator rejects personal tips with "not a verified creator".
+ */
+export function houseCreatorUserId(): string {
+  // Client bundles have no access to server env; they simply get "" and
+  // render the manual-ID fallback until /api/games/creator resolves it.
+  if (typeof process === "undefined") return "";
+  return isUuid(process.env.HOUSE_CREATOR_USER_ID);
+}

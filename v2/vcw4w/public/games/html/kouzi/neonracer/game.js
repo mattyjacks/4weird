@@ -108,8 +108,8 @@ document.addEventListener('keydown', (e) => {
             speed = Math.max(speed - 0.5, 2);
         }
     }
-    
-    e.preventDefault();
+
+    if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) e.preventDefault();
 });
 
 document.addEventListener('keyup', (e) => keys[e.code] = false);
@@ -126,10 +126,10 @@ canvas.addEventListener('touchstart', (e) => {
     } else if (gameState === 'gameOver') {
         restartGame();
     } else if (gameState === 'playing') {
-        if (x < canvas.width / 2 && player.lane > 0) {
+        if (x < rect.width / 2 && player.lane > 0) {
             player.lane--;
             player.targetX = laneWidth * player.lane + laneWidth / 2 - player.width / 2;
-        } else if (x >= canvas.width / 2 && player.lane < laneCount - 1) {
+        } else if (x >= rect.width / 2 && player.lane < laneCount - 1) {
             player.lane++;
             player.targetX = laneWidth * player.lane + laneWidth / 2 - player.width / 2;
         }
@@ -142,13 +142,16 @@ document.getElementById('TEMPLATE-4weird-resume-btn').addEventListener('click', 
 document.getElementById('TEMPLATE-4weird-restart-btn').addEventListener('click', restartGame);
 document.getElementById('TEMPLATE-4weird-play-again-btn').addEventListener('click', restartGame);
 
-// Fullscreen
+// Fullscreen (frame button; ⛶ overlay + F/dblclick added below)
 document.getElementById('TEMPLATE-4weird-fullscreen-btn').addEventListener('click', () => {
     const frame = document.querySelector('.TEMPLATE-4weird-game-frame');
-    if (!document.fullscreenElement) {
-        frame.requestFullscreen().catch(() => {});
-    } else {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (frame.requestFullscreen) frame.requestFullscreen().catch(() => {});
+        else if (frame.webkitRequestFullscreen) frame.webkitRequestFullscreen();
+    } else if (document.exitFullscreen) {
         document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
     }
 });
 
@@ -565,17 +568,39 @@ window.addEventListener('message', (event) => {
     }
 });
 
+// ===== In-game fullscreen overlay (shell also provides global FS) =====
+(function () {
+  var frame = document.querySelector('.TEMPLATE-4weird-game-frame') || document.body;
+  function toggleFS() {
+    try {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        var el = document.documentElement;
+        if (el.requestFullscreen) el.requestFullscreen().catch(function () {});
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      } else if (document.exitFullscreen) document.exitFullscreen().catch(function () {});
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    } catch (e) {}
+  }
+  function fit() { canvas.style.width = '100%'; canvas.style.height = '100%'; canvas.style.objectFit = 'contain'; }
+  var b = document.createElement('button');
+  b.id = 'neon-fs-racer'; b.textContent = '⛶'; b.title = 'Toggle fullscreen (F)';
+  b.addEventListener('click', function (e) { e.stopPropagation(); toggleFS(); });
+  frame.appendChild(b);
+  canvas.addEventListener('dblclick', toggleFS);
+  document.addEventListener('keydown', function (e) { if (e.code === 'KeyF') toggleFS(); });
+  document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
+  window.addEventListener('resize', fit); fit();
+})();
+
 // ===== DEVELOPER DEBUGGING API =====
 window.gameDebug = {
     name: "Neon Racer",
-    getScore: () => score,
-    setScore: (s) => { score = s; document.getElementById('TEMPLATE-4weird-score').textContent = score + 'm'; },
+    getScore: () => Math.floor(distance),
+    setScore: (s) => { distance = s; },
     getHealth: () => 100,
     setHealth: () => {},
-    win: () => {
-        score += 500;
-        document.getElementById('TEMPLATE-4weird-score').textContent = score + 'm';
-    },
+    win: () => { distance += 500; },
     lose: () => {
         gameOver();
     },

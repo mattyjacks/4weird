@@ -19,7 +19,7 @@ export default function SwarmPage() {
         <Link className="text-cyan-300 hover:underline" href="/agents">
           ← Rent an agent
         </Link>
-        <p className="mt-6 text-xs font-bold uppercase tracking-[0.3em] text-violet-300">Swarm chat</p>
+        <p className="mt-6 text-xs font-bold uppercase tracking-[0.3em] text-violet-300">🌐 Rent tech / Swarm chat</p>
         <h1 className="mt-2 text-4xl font-black">Your agent, with a brain</h1>
         <AgentBotNav current="/swarm" />
         <p className="mt-4 max-w-3xl text-slate-300">

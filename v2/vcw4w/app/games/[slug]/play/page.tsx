@@ -83,6 +83,17 @@ export default async function PlayPage({ params }: { params: Promise<{ slug: str
               📖 Read the {game.title} guide
             </a>
           )}
+          {/* Plain anchor (no searchParams read) so this page stays fully
+              static and the closed catalog above keeps 404ing unknown slugs
+              with a real 404. Jumps to the frame shell below, whose own
+              controls carry the Fullscreen button (F key works there too). */}
+          <a
+            href="#game-frame"
+            className="mt-1 text-sm font-semibold text-cyan-300 hover:underline"
+            title="Jump to the game frame — use its Fullscreen button or press F"
+          >
+            ⛶ Fullscreen (F)
+          </a>
         </div>
       </div>
       <div className="mx-auto max-w-6xl px-4 pb-10 sm:px-5">

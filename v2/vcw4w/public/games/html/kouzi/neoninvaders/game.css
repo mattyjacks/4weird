@@ -203,3 +203,11 @@ body {
     50% { transform: scale(1.2); opacity: 1; }
     100% { transform: scale(1); opacity: 1; }
 }
+
+/* In-game fullscreen overlay + :fullscreen fit */
+.TEMPLATE-4weird-game-frame{position:relative}
+.TEMPLATE-4weird-game-frame:fullscreen{background:#000;display:flex;align-items:center;justify-content:center}
+.TEMPLATE-4weird-game-frame:fullscreen canvas{width:100%!important;height:100%!important;object-fit:contain;background:#000}
+:fullscreen{background:#000}
+#neon-fs-invaders{position:absolute;top:8px;right:8px;z-index:60;background:rgba(0,0,0,.6);color:#0ff;border:1px solid rgba(0,255,255,.4);border-radius:6px;padding:4px 9px;font-size:14px;line-height:1;cursor:pointer}
+#neon-fs-invaders:hover{background:rgba(0,255,255,.15)}

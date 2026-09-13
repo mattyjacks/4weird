@@ -15,7 +15,12 @@ class AudioManager {
   }
 
   init() {
-    if (this.ctx) return;
+    // Bug sweep: init used to return early when a context existed, leaving a
+    // tab-hidden-suspended context suspended forever. Resume instead.
+    if (this.ctx) {
+      if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+      return;
+    }
     
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (!AudioContextClass) return; // no WebAudio: stay silent, never throw into startGame

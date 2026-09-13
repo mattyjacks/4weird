@@ -1210,6 +1210,9 @@ body.touch-enabled .mobile-action-buttons {
     height: 100vh;
     border-radius: 0;
     border: none;
+    background: #000;
+    align-items: center;
+    justify-content: center;
 }
 
 .canvas-container:fullscreen #gameCanvas {

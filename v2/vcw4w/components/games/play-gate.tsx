@@ -69,6 +69,37 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
 }
 
 /**
+ * fetch with a hard timeout so a hung backend never wedges the play gate on
+ * "Checking your pass…" forever. Rejects on timeout; callers fall through to
+ * their safe branch (band-fix prompts / guest path), never to an auto-pass.
+ */
+async function fetchWithTimeout(path: string, init: RequestInit, ms = 12000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(path, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+const MATCH_ID_PATTERN = /^[0-9a-f-]{36}$/i;
+
+/**
+ * Append a lobby ?match=<uuid> to a runtime src without dropping existing
+ * query params (e.g. ?content=<mode> for the content-mode titles): uses &
+ * when the src already carries a query string. Invalid ids are dropped (the
+ * plain src loads), so a malformed link can never break the game boot — and
+ * nothing fullscreen-related is ever added or stripped here (the frame's
+ * allow="autoplay; fullscreen; gamepad" lives on the iframe itself).
+ */
+function withMatchParam(src: string, match: string | null): string {
+  if (!match || !MATCH_ID_PATTERN.test(match)) return src;
+  const sep = src.includes("?") ? "&" : "?";
+  return `${src}${sep}match=${encodeURIComponent(match)}`;
+}
+
+/**
  * PlayGate; the play shell's front door.
  *
  * Age ratings first: the server (/api/games/session) requires
@@ -177,7 +208,7 @@ function ContentModePicker({
 
 function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; title: string; src: string; version?: string; emoji?: string }) {
   const match = useSearchParams().get("match");
-  const matchSrc = /^[0-9a-f-]{36}$/i.test(String(match ?? "")) ? `${src}?match=${encodeURIComponent(String(match))}` : src;
+  const matchSrc = withMatchParam(src, match);
   const [gate, setGate] = useState<Gate>({ kind: "checking" });
   // Click-to-play: the runtime iframe never mounts (no bytes, no metering,
   // no guest-quota burn) until the player presses Start Game on the branded
@@ -187,6 +218,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
     setEntered(false);
     setGate({ kind: "checking" });
     setBroke("");
+    setCheckTimedOut(false);
     setShowGuestAd(false);
     setActiveSecs(0);
     setStillAcks(0);
@@ -252,6 +284,13 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
   // Bumped when the guest interstitial is dismissed so the boot effect
   // re-runs guest-pass WITH the fresh token instead of playing blind.
   const [guestRetry, setGuestRetry] = useState(0);
+  // Bumped by the "Retry check" button so a timed-out age/metering
+  // resolution re-runs instead of sticking on "Checking your pass…".
+  const [resolveNonce, setResolveNonce] = useState(0);
+  // Backstop for the checking spinner: the resolve fetches below already
+  // carry hard timeouts, but if resolution still hasn't landed after 20 s
+  // (offline tab, suspended fetch) the UI offers a retry instead of hanging.
+  const [checkTimedOut, setCheckTimedOut] = useState(false);
 
   const startSession = useCallback(
     async (newBytes: number) => {
@@ -341,7 +380,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
     let live = true;
     const resolve = async () => {
       try {
-        const res = await fetch("/api/family/kid-login", { credentials: "include" });
+        const res = await fetchWithTimeout("/api/family/kid-login", { credentials: "include" });
         const body = await res.json().catch(() => ({}));
         const kid = (body as { kid?: {
           handle: string; age_band: string; seconds_today: number;
@@ -397,10 +436,10 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
       let band: "unknown" | "kid" | "teen" | "adult" = "unknown";
       let signedIn = false;
       try {
-        const sess = await fetch("/api/auth/session", { credentials: "include" });
+        const sess = await fetchWithTimeout("/api/auth/session", { credentials: "include" });
         if (sess.ok) {
           signedIn = true;
-          const pres = await fetch("/api/me/profile", { credentials: "include" });
+          const pres = await fetchWithTimeout("/api/me/profile", { credentials: "include" });
           if (pres.ok) {
             const pbody = await pres.json().catch(() => ({}));
             const raw = String((pbody as { profile?: { age_band?: unknown } }).profile?.age_band ?? "unknown");
@@ -447,7 +486,47 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
       window.removeEventListener("kid-session-changed", refresh);
       window.removeEventListener("storage", refresh);
     };
-  }, [rating, slug, contentNonce]);
+  }, [rating, slug, contentNonce, resolveNonce]);
+
+  // Checking-spinner backstop: if the age gate still hasn't resolved 20 s
+  // after (re)mount, offer a retry instead of hanging on "Checking your
+  // pass…". Retrying only re-runs resolution — it never bypasses a gate.
+  useEffect(() => {
+    setCheckTimedOut(false);
+    if (age !== "unknown") return;
+    const timer = setTimeout(() => setCheckTimedOut(true), 20000);
+    return () => clearTimeout(timer);
+  }, [age, slug, resolveNonce]);
+
+  // Locked stored mode (e.g. Uncut kept from an adult session, or a shared
+  // ?content=all link) can never clear /api/games/session for kid/teen
+  // bands — firing the doomed POST just 403s noise into the console before
+  // landing on the denied screen. Downgrade to the best allowed mode as soon
+  // as the band is definitive, so play starts in an allowed mode instead.
+  // The picker always lists every mode, so an adult signing in later can
+  // re-pick Uncut in one click.
+  useEffect(() => {
+    if (!contentSupported) return;
+    // Never downgrade on a guess: an adult band may still be loading (a
+    // signed-in profile reads "unknown" until the resolution above lands,
+    // and guests are only definitive once it completes without a session).
+    const bandKnown = kidBand !== null || (hasSession && ageBand !== "unknown");
+    const guestDefinitive = !hasSession && kidHandle === null && age !== "unknown";
+    if (!bandKnown && !guestDefinitive) return;
+    const viewerBand = kidBand !== null ? null : hasSession ? ageBand : "unknown";
+    const stored = readStoredContentMode(slug);
+    if (canUseContentMode(viewerBand, kidBand, stored)) {
+      if (contentMode !== stored) setContentMode(stored);
+      return;
+    }
+    const fallback: ContentMode = canUseContentMode(viewerBand, kidBand, "teen") ? "teen" : "kid";
+    if (contentMode !== fallback) setContentMode(fallback);
+    writeStoredContentMode(slug, fallback);
+    // Re-resolve the age gate on the effective mode (a teen-band viewer with
+    // Teen stored takes the teens branch instead of the adults hard block).
+    setContentNonce((n) => n + 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contentSupported, slug, ageBand, kidBand, kidHandle, hasSession, age]);
 
   // Live content-mode switch: forward the newly picked mode into the running
   // runtime frame (the bridge applies gore + profanity without a reload; a
@@ -843,6 +922,21 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
           <div>
             <p className="text-lg font-bold text-white">Loading {title}…</p>
             <p className="mt-2 text-sm text-white/60">Checking your pass…</p>
+            {checkTimedOut && (
+              <div className="mt-4">
+                <p className="text-sm text-amber-200">The check is taking longer than expected.</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCheckTimedOut(false);
+                    setResolveNonce((n) => n + 1);
+                  }}
+                  className="mt-2 rounded-full bg-cyan-300 px-5 py-2 text-sm font-bold text-slate-950 hover:bg-cyan-200"
+                >
+                  Retry check
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1026,8 +1120,24 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
           for 100 coins, daily bonuses, and no ads.
         </p>
       )}
-      <div className="perf-frame overflow-hidden overscroll-contain rounded-2xl border border-white/15 bg-black">
-        <div className="play-frame-height min-h-[420px]">
+      {/* Game frame shell. The inner wrapper keeps a stable viewport height
+          (play-frame-height: 70/75svh) plus a 420px floor, so the page never
+          jumps — including when the runtime shell takes its CSS-fallback
+          fullscreen (fixed inset-0): the fixed shell leaves normal flow, but
+          this parent keeps its height, so toggling fullscreen never collapses
+          the layout behind the overlay.
+          NOTE: deliberately no .perf-frame on this wrapper. Its
+          transform:translateZ(0) would become the containing block for the
+          fixed fallback overlay and its contain:strict would paint-clip the
+          overlay to this box (native top-layer fullscreen is unaffected; the
+          CSS fallback is not). overflow-hidden stays for the rounded corners
+          in normal mode but lifts (has-[.fixed]) the moment the fallback
+          overlay engages, so no ancestor ever clips it. */}
+      <div
+        id="game-frame"
+        className="overflow-hidden overscroll-contain rounded-2xl border border-white/15 bg-black has-[.fixed]:overflow-visible"
+      >
+        <div className="play-frame-height min-h-[420px] w-full">
           <GameRuntimeFrame slug={slug} title={title} src={frameSrc} />
         </div>
       </div>

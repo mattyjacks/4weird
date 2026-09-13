@@ -98,7 +98,10 @@ class FriendSlop {
         this.vibeMeter = 100;
         this.time = 0;
         this.wave = 1;
-        this.highScore = parseInt(localStorage.getItem('friendslop-high-score')) || 0;
+        this.highScore = 0;
+        try {
+            this.highScore = parseInt(localStorage.getItem('friendslop-high-score'), 10) || 0;
+        } catch (e) { /* storage unavailable (private mode / sandbox) - keep 0 */ }
         this.dailySeed = this.getDailySeed();
         document.getElementById('friendslop-4weird-high-score').textContent = Math.floor(this.highScore);
         
@@ -433,7 +436,7 @@ class FriendSlop {
         // Update high score
         if (this.score > this.highScore) {
             this.highScore = this.score;
-            localStorage.setItem('friendslop-high-score', this.highScore);
+            try { localStorage.setItem('friendslop-high-score', this.highScore); } catch (e) { /* ignore */ }
             document.getElementById('friendslop-4weird-high-score').textContent = Math.floor(this.highScore);
         }
     }

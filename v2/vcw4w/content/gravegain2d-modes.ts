@@ -41,21 +41,21 @@ const DIALOGUE: Record<Gg2dNpcId, Record<Gg2dContentMode, Gg2dDialogueLine>> = {
   "valley-net": {
     kid: {
       speaker: "Valley Net",
-      portrait: "🤖",
+      portrait: "👱🏻‍♀️",
       greeting:
         "Hello, little star cadet! I am Valley Net, the ship's friendly helper robot. Stay close to your buddies and we will tidy up the dungeon together!",
       combatBark: "Whoopsie-daisy! Baddies incoming! Boop them gently with your spark-sword!",
     },
     teen: {
       speaker: "Valley Net",
-      portrait: "🤖",
+      portrait: "👱🏻‍♀️",
       greeting:
         "Dropship 420 is down in Sector Alpha. Hostiles converging on the crash site — keep your helmet sealed, that air will wreck your lungs.",
       combatBark: "Contact! Damn, they just keep coming — hold the line, cadet!",
     },
     all: {
       speaker: "Valley Net",
-      portrait: "🤖",
+      portrait: "👱🏻‍♀️",
       greeting:
         "Dropship 420 is down in Sector Alpha. Fifteen freshly-risen hostiles converging on the crash site. Fuck the odds — helmet seals LOCKED, weapons hot.",
       combatBark: "Fuck me, they're pouring out of the crater! Put every last one of those bastards back in the ground!",

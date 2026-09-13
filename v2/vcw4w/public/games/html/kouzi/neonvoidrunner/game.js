@@ -23,6 +23,10 @@ function initAudio() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
 }
+// Resume audio on first user gesture (autoplay policy safety)
+window.addEventListener('pointerdown', function () {
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}, { passive: true });
 function playSound(freq, duration, type = 'square', volume = 0.08) {
     if (!audioCtx) return;
     const osc = audioCtx.createOscillator();
@@ -95,6 +99,8 @@ document.addEventListener('keydown', (e) => {
             playSound(440, 0.05, 'sine', 0.05);
         }
     }
+
+    if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) e.preventDefault();
 });
 
 document.addEventListener('keyup', (e) => keys[e.code] = false);
@@ -111,7 +117,7 @@ canvas.addEventListener('touchstart', (e) => {
     } else if (gameState === 'gameOver') {
         restartGame();
     } else if (gameState === 'playing') {
-        if (x < canvas.width / 2) {
+        if (x < rect.width / 2) {
             player.x = Math.max(laneWidth / 2 - player.width / 2, player.x - laneWidth);
         } else {
             player.x = Math.min(canvas.width - laneWidth * 1.5 - player.width / 2, player.x + laneWidth);
@@ -125,7 +131,7 @@ canvas.addEventListener('click', (e) => {
     if (gameState === 'playing') {
         const rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
-        if (x < canvas.width / 2) {
+        if (x < rect.width / 2) {
             player.x = Math.max(laneWidth / 2 - player.width / 2, player.x - laneWidth);
         } else {
             player.x = Math.min(canvas.width - laneWidth * 1.5 - player.width / 2, player.x + laneWidth);
@@ -139,13 +145,16 @@ document.getElementById('TEMPLATE-4weird-resume-btn').addEventListener('click', 
 document.getElementById('TEMPLATE-4weird-restart-btn').addEventListener('click', restartGame);
 document.getElementById('TEMPLATE-4weird-play-again-btn').addEventListener('click', restartGame);
 
-// Fullscreen
+// Fullscreen (frame button; ⛶ overlay + F/dblclick added below)
 document.getElementById('TEMPLATE-4weird-fullscreen-btn').addEventListener('click', () => {
     const frame = document.querySelector('.TEMPLATE-4weird-game-frame');
-    if (!document.fullscreenElement) {
-        frame.requestFullscreen().catch(() => {});
-    } else {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (frame.requestFullscreen) frame.requestFullscreen().catch(() => {});
+        else if (frame.webkitRequestFullscreen) frame.webkitRequestFullscreen();
+    } else if (document.exitFullscreen) {
         document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
     }
 });
 
@@ -612,6 +621,31 @@ window.addEventListener('message', (event) => {
         }
     }
 });
+
+// ===== In-game fullscreen overlay (shell also provides global FS) =====
+(function () {
+  var frame = document.querySelector('.TEMPLATE-4weird-game-frame') || document.body;
+  function toggleFS() {
+    try {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        var el = document.documentElement;
+        if (el.requestFullscreen) el.requestFullscreen().catch(function () {});
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      } else if (document.exitFullscreen) document.exitFullscreen().catch(function () {});
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    } catch (e) {}
+  }
+  function fit() { canvas.style.width = '100%'; canvas.style.height = '100%'; canvas.style.objectFit = 'contain'; }
+  var b = document.createElement('button');
+  b.id = 'neon-fs-void'; b.textContent = '⛶'; b.title = 'Toggle fullscreen (F)';
+  b.addEventListener('click', function (e) { e.stopPropagation(); toggleFS(); });
+  frame.appendChild(b);
+  canvas.addEventListener('dblclick', toggleFS);
+  document.addEventListener('keydown', function (e) { if (e.code === 'KeyF') toggleFS(); });
+  document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
+  window.addEventListener('resize', fit); fit();
+})();
 
 // ===== DEVELOPER DEBUGGING API =====
 window.gameDebug = {

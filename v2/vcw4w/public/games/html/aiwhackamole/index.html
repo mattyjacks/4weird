@@ -61,6 +61,8 @@
     <main class="TEMPLATE-4weird-game-main">
         <!-- Game Canvas/Frame -->
         <div class="TEMPLATE-4weird-game-frame" id="game-container">
+            <!-- Fullscreen overlay (wired in game.js: ⛶ top-right, F key, double-click) -->
+            <button type="button" class="fw-fs-btn" id="fw-fs-btn" title="Toggle fullscreen (F)" aria-label="Toggle fullscreen">⛶</button>
             <!-- 3D Render Canvas -->
             <canvas id="TEMPLATE-4weird-gameCanvas"></canvas>
             
@@ -134,6 +136,7 @@
                 <ul id="TEMPLATE-4weird-controls-list">
                     <li><kbd>Click</kbd> / <kbd>Tap</kbd> - Whack Mole</li>
                     <li><kbd>P</kbd> / <kbd>Esc</kbd> - Pause Game</li>
+                    <li><kbd>F</kbd> / Double-click / <kbd>⛶</kbd> - Fullscreen</li>
                 </ul>
             </div>
             

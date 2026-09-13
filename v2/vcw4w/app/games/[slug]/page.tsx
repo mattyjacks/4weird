@@ -7,6 +7,7 @@ import { getGameManifest, gameGuidePath } from "@/content/game-manifests";
 import { GameAiBadge } from "@/components/games/game-ai-badge";
 import { RatingBadge } from "@/components/games/rating-badge";
 import { GamePlaybookPanel } from "@/components/games/game-playbook-panel";
+import { TipGame } from "@/components/support/tip-game";
 import { PlayRateBadge } from "@/components/games/play-rate-badge";
 import { breadcrumbJsonLd, jsonLdScript, videoGameJsonLd } from "@/lib/seo";
 
@@ -140,6 +141,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
         <PlayRateBadge slug={g.slug} />
         <GameAiBadge slug={g.slug} />
         <GamePlaybookPanel slug={g.slug} />
+        <TipGame slug={g.slug} title={g.title} />
         <section className="mt-8 rounded-2xl border border-white/10 bg-white/[.03] p-5 sm:mt-10 sm:p-6">
           <h2 className="text-lg font-bold sm:text-xl">Runtime manifest</h2>
           <p className="mt-3 break-words text-sm text-slate-400">

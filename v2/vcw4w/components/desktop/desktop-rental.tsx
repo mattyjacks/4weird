@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { Loader2 } from "lucide-react";
 import { ProxyLink } from "@/components/runpod/proxy-link";
 import { InfoTip } from "@/components/ui/info-tip";
 import { PodIdleWatch, PolicyFields } from "@/components/runpod/pod-idle-watch";
@@ -76,6 +77,14 @@ export function DesktopRental() {
   const [runpodReady, setRunpodReady] = useState<boolean | null>(null);
   const [pricing, setPricing] = useState<PlansOk["pricing_example"]>(null);
   const [serverPolicy, setServerPolicy] = useState<PodIdlePolicy>(DEFAULT_POLICY);
+  // Live RunPod status for the just-rented desktop (rechecked every 10s).
+  // The provision POST returns as soon as the pod exists, long before the
+  // ~6.5 GB image finishes pulling — so "Live" is claimed only when RunPod
+  // itself reports RUNNING.
+  const [liveStatus, setLiveStatus] = useState<string | null>(null);
+  const [dots, setDots] = useState(1);
+  const [vncCopied, setVncCopied] = useState(false);
+  const liveProbeRef = useRef(false);
 
   useEffect(() => {
     (async () => {
@@ -106,6 +115,9 @@ export function DesktopRental() {
     setError("");
     setNeedsLogin(false);
     setResult(null);
+    setLiveStatus(null);
+    setVncCopied(false);
+    setDots(1);
     try {
       const max = Number(maxUsd);
       const idle: Record<string, number> = {};
@@ -147,6 +159,79 @@ export function DesktopRental() {
         terminateHours: result.idle_policy.terminate_hours,
       }
     : serverPolicy;
+
+  // Recheck the rented pod every 10s via /api/desktop/mine (which carries
+  // the live RunPod probe per row). Skips a tick while the previous probe
+  // is still in flight so slow probes never stack up.
+  useEffect(() => {
+    const desktopId = result?.desktop?.id;
+    const podId = result?.connection?.podId;
+    if (!result?.success || !result.started || (!desktopId && !podId)) return;
+    let cancelled = false;
+    async function probe() {
+      if (liveProbeRef.current) return;
+      liveProbeRef.current = true;
+      try {
+        const res = await fetch("/api/desktop/mine", { credentials: "include", cache: "no-store" });
+        const body = (await res.json().catch(() => null)) as {
+          success?: boolean;
+          desktops?: { id: string; podId: string | null; podStatus: string | null }[];
+        } | null;
+        if (cancelled || !body?.success || !Array.isArray(body.desktops)) return;
+        const row = body.desktops.find(
+          (d) => (desktopId && d.id === desktopId) || (podId && d.podId === podId),
+        );
+        if (!cancelled) setLiveStatus(row?.podStatus ?? null);
+      } catch {
+        // Transient: keep the last known status; the next 10s tick retries.
+      } finally {
+        liveProbeRef.current = false;
+      }
+    }
+    void probe();
+    const id = window.setInterval(() => void probe(), 10_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, [result]);
+
+  // Animated ellipsis for the Starting state ("." → ".." → "...").
+  useEffect(() => {
+    if (!result?.success || !result.started) return;
+    if (String(liveStatus ?? "").toUpperCase().includes("RUNNING")) return;
+    const id = window.setInterval(() => setDots((d) => (d >= 3 ? 1 : d + 1)), 600);
+    return () => window.clearInterval(id);
+  }, [result, liveStatus]);
+
+  async function copyVncPassword() {
+    const pw = result?.connection?.vncPassword ?? "";
+    if (!pw) return;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(pw);
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = pw;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+      }
+      setVncCopied(true);
+      window.setTimeout(() => setVncCopied(false), 2500);
+    } catch {
+      setVncCopied(false);
+    }
+  }
+
+  const livePod = String(liveStatus ?? "").toUpperCase();
+  const desktopIsLive = livePod.includes("RUNNING");
+  const desktopIsPaused = !desktopIsLive && /EXITED|STOPPED|PAUSED|SUSPENDED/.test(livePod);
+  const desktopIsGone = /TERMINAT/.test(livePod);
+  const desktopIsError = /ERROR|FAILED/.test(livePod);
 
   return (
     <section aria-label="Rent a Virtual Desktop" className="rounded-2xl border border-cyan-300/30 bg-cyan-300/[.05] p-5">
@@ -349,9 +434,38 @@ export function DesktopRental() {
       )}
       {result?.success && result.started && result.connection && (
         <div className="mt-4 rounded-xl border border-emerald-300/30 bg-emerald-300/[.06] p-4 text-xs text-slate-700 dark:text-slate-200">
-          <p className="font-bold text-emerald-200">✅ Virtual Desktop live</p>
+          {desktopIsLive ? (
+            <p className="font-bold text-emerald-200">✅ Virtual Desktop live</p>
+          ) : desktopIsPaused ? (
+            <p className="font-bold text-amber-200">⏸️ Virtual Desktop paused — compute billing stopped, disk kept</p>
+          ) : desktopIsGone ? (
+            <p className="font-bold text-slate-300">⚫ Virtual Desktop terminated — disk deleted</p>
+          ) : desktopIsError ? (
+            <p className="font-bold text-red-300">🔴 Virtual Desktop error — restart it from My pods below</p>
+          ) : (
+            <p className="font-bold text-amber-200" role="status">
+              <Loader2 className="mr-1 inline h-4 w-4 animate-spin" aria-hidden="true" />
+              Virtual Desktop Starting{".".repeat(dots)}
+              <span className="sr-only">Status rechecks every 10 seconds</span>
+            </p>
+          )}
+          {!desktopIsLive && !desktopIsGone && (
+            <p className="mt-1 text-slate-600 dark:text-slate-400">
+              First boot pulls a ~6.5 GB desktop image and can take <strong>several minutes</strong>. This panel
+              rechecks the pod every 10 seconds and shows <strong>Live</strong> only when RunPod reports it running —
+              a 404 or “waiting” page on the link until then is normal. Keep this tab open.
+            </p>
+          )}
+          {desktopIsPaused && (
+            <p className="mt-1 text-slate-600 dark:text-slate-400">
+              Stopped via Stop — press <strong>Start</strong> on its card in My pods below to resume.
+            </p>
+          )}
           <p className="mt-2">
             <ProxyLink href={result.connection.endpointUrl} label="Open desktop" />
+            {!desktopIsLive && !desktopIsGone && (
+              <span className="ml-2 text-slate-600 dark:text-slate-500">(may 404 until Live — keep retrying)</span>
+            )}
           </p>
           <p className="mt-1 text-slate-600 dark:text-slate-400">
             Pod {result.connection.podId} ·{" "}
@@ -361,10 +475,20 @@ export function DesktopRental() {
             <InfoTip side="bottom" text="RunPod bills dollars per second, never coins, no Vibe cut. Stopping ends compute billing; terminating deletes the disk." label="About per-second billing" />
           </p>
           {result.connection.vncPassword && (
-            <p className="mt-2 rounded-lg border border-amber-300/40 bg-amber-300/[.08] px-3 py-2 text-amber-100">
-              🔑 VNC password (shown once - save it now): <code className="font-bold">{result.connection.vncPassword}</code>{" "}
-              <InfoTip side="bottom" text="Shown once after rent, so save it now. Log in with it, then change it after first login." label="About VNC password" />
-            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-amber-300/40 bg-amber-300/[.08] px-3 py-2 text-amber-100">
+              <p className="min-w-0 flex-1 break-all">
+                🔑 VNC password (shown once - save it now): <code className="font-bold">{result.connection.vncPassword}</code>{" "}
+                <InfoTip side="bottom" text="Shown once after rent, so save it now. Log in with it, then change it after first login." label="About VNC password" />
+              </p>
+              <button
+                type="button"
+                onClick={() => void copyVncPassword()}
+                className="shrink-0 rounded-full bg-amber-300 px-3 py-1 text-xs font-bold text-slate-950 hover:bg-amber-200"
+                aria-live="polite"
+              >
+                {vncCopied ? "Copied ✓" : "Copy"}
+              </button>
+            </div>
           )}
           {result.interface === "jupyter" ? (
             <ul className="mt-2 list-disc space-y-1 pl-5 text-slate-600 dark:text-slate-400">
@@ -380,11 +504,11 @@ export function DesktopRental() {
             </ul>
           )}
           <p className="mt-2 text-slate-600 dark:text-slate-500">{result.billing?.note ?? result.note ?? ""}</p>
-          <p className="mt-1 text-slate-600 dark:text-slate-500">
-            First boot pulls a ~6.5 GB desktop image and can take several minutes; a 404 or “waiting” page on the
-            link during that window is normal. Wait, then Reload. Keep this tab open and the idle guard below watches
-            the pod for you.
-          </p>
+          {!desktopIsLive && !desktopIsGone && (
+            <p className="mt-1 text-slate-600 dark:text-slate-500">
+              Wait, then Reload on the link above. Keep this tab open and the idle guard below watches the pod for you.
+            </p>
+          )}
           <PodIdleWatch
             heartbeatUrl={result.heartbeat_url ?? null}
             stopUrl={result.desktop ? `/api/desktop/${result.desktop.id}/pod` : null}

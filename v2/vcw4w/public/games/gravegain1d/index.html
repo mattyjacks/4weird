@@ -39,6 +39,7 @@ body{display:block!important}
         </div>
         <div id="gg1dStage">
             <canvas id="gg1dCanvas" width="960" height="540"></canvas>
+            <button id="gg1dFsBtn" title="Toggle fullscreen (F)">⛶</button>
             <div id="gg1dBanner"><div id="gg1dBannerCard">
                 <p id="gg1dBannerTitle"></p>
                 <p id="gg1dBannerText"></p>
@@ -76,5 +77,25 @@ body{display:block!important}
     <script src="/games/html/gravegain-emergent.js" data-slug="gravegain1d"></script>
     <script src="/games/html/gravegain-agegore.js" data-slug="gravegain1d"></script>
     <script src="/games/html/gravegain-perf.js" data-slug="gravegain1d"></script>
+    <script>
+        // Fullscreen overlay button: shell helper first, native fallback otherwise.
+        (function () {
+            var btn = document.getElementById('gg1dFsBtn');
+            var stage = document.getElementById('gg1dStage');
+            if (!btn || !stage) return;
+            btn.addEventListener('click', function () {
+                try {
+                    if (typeof window.__fourweirdToggleFullscreen === 'function') { window.__fourweirdToggleFullscreen(); return; }
+                    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                        var p = stage.requestFullscreen ? stage.requestFullscreen() : (stage.webkitRequestFullscreen ? stage.webkitRequestFullscreen() : null);
+                        if (p && p.catch) p.catch(function () {});
+                    } else if (document.exitFullscreen) document.exitFullscreen();
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                } catch (e) {}
+            });
+            // Re-fit hook: game.js listens for resize (sizeCanvas) + fullscreenchange itself.
+            document.addEventListener('fullscreenchange', function () { try { window.dispatchEvent(new Event('resize')); } catch (e) {} });
+        })();
+    </script>
 <script src="/games/html/runtime-bridge.js" data-slug="gravegain1d"></script><script src="/games/html/gravegain-agebands.js" data-slug="gravegain1d"></script><script src="/games/html/gravegain1d-art.js" data-slug="gravegain1d"></script><script src="/games/html/gravegain-thread-tuner.js" data-slug="gravegain1d"></script><script src="/games/html/gravegain-arsenal-2d1d.js" data-slug="gravegain1d"></script><script src="/games/html/gravegain-voxel-gore.js" data-slug="gravegain1d"></script><script src="/games/html/gravegain-enemies.js" data-slug="gravegain1d"></script><script src="/games/html/gravegain-sidequests.js" data-slug="gravegain1d"></script><script src="/games/html/gravegain-characters.js" data-slug="gravegain1d"></script><script src="/games/html/gravegain-events.js" data-slug="gravegain1d"></script><script src="/games/html/gravegain-loot.js" data-slug="gravegain1d"></script><script src="/games/html/gravegain1d-drift.js" data-slug="gravegain1d"></script><script src="/games/html/gravegain-codex.js" data-slug="gravegain1d"></script><script src="/games/html/gravegain-graphics-1d.js" data-slug="gravegain1d"></script><script src="/games/html/gravegain-arsenal-bridge.js" data-slug="gravegain1d"></script><script src="/games/html/gravegain-bestiary.js" data-slug="gravegain1d"></script><script src="/games/html/gravegain-emergent-toasts.js" data-slug="gravegain1d"></script><script src="/games/html/gravegain-netplay.js" data-slug="gravegain1d"></script></body>
 </html>
