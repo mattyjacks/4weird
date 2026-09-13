@@ -1,3 +1,4 @@
+import { cacheLife, cacheTag } from "next/cache";
 import Link from "next/link";
 
 /**
@@ -75,7 +76,10 @@ const sections: { heading: string; body: React.ReactNode }[] = [
   },
 ];
 
-export function VcwDocs() {
+export async function VcwDocs() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("vcw");
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border-l-4 border-cyan-300 bg-white/[.03] p-5">

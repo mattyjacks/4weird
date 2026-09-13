@@ -1,3 +1,4 @@
+import { cacheLife, cacheTag } from "next/cache";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -10,7 +11,12 @@ interface ToolShellProps {
 
 // Shared presentational shell for /tools sub-pages. Server-safe: no browser
 // APIs, no state — interactive UI lives in the "use client" components below.
-export function ToolShell({ kicker, title, blurb, children }: ToolShellProps) {
+// Cached per props (kicker/title/blurb form the cache key); `children` is a
+// pass-through slot, so each page's dynamic editor streams outside this entry.
+export async function ToolShell({ kicker, title, blurb, children }: ToolShellProps) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("tools");
   return (
     <div className="bg-slate-950 text-white">
       <section className="mx-auto max-w-4xl px-4 pb-16 pt-14 sm:px-5">

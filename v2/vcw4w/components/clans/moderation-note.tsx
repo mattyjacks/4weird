@@ -1,4 +1,14 @@
-export function ModerationNote() {
+import { cacheLife, cacheTag } from "next/cache";
+
+/**
+ * Static moderation-policy explainer. Pure presentational output with no
+ * per-user or live data, so it is safe to cache; membership, wallets, posts,
+ * and votes stay dynamic in the client ClanPage below it.
+ */
+export async function ModerationNote() {
+  "use cache";
+  cacheLife("days");
+  cacheTag("moderation-note");
   return (
     <aside className="rounded-xl border border-cyan-400/20 bg-slate-900 p-5 text-sm text-slate-600 dark:text-slate-300">
       <h2 className="font-bold text-cyan-300">How moderation works here</h2>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { SquadWorkspaceClient } from "./workspace-client";
 
 export async function generateMetadata({
@@ -33,8 +34,9 @@ export default async function SquadWorkspacePage({
         <Link className="text-sm text-cyan-300 hover:underline" href="/squads">
           ← All squads
         </Link>
-        <SquadWorkspaceClient
-          squadId={id}
+        <Suspense fallback={<p className="text-sm text-slate-400">Loading squad workspace…</p>}>
+          <SquadWorkspaceClient
+           squadId={id}
           squadName="Neon Drifters"
           tagline="Building fast-paced cyberpunk arcade games and custom Three.js shaders. Invite-only studio — no public marketplace, just the crew."
           walletCoins={45000}
@@ -56,7 +58,8 @@ export default async function SquadWorkspacePage({
           currentSprintName="Sprint #4 — Neon Drift"
           sprintProgress={33}
           weekHours={42.5}
-        />
+          />
+        </Suspense>
       </section>
     </main>
   );

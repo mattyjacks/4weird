@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { FundraiserDetail } from "@/components/fundraisers/fundraiser-detail";
 
 export async function generateMetadata({
@@ -26,7 +27,9 @@ export default async function FundraiserPage({ params }: { params: Promise<{ id:
         <Link className="text-cyan-300 hover:underline" href="/fundraisers">
           ← All campaigns
         </Link>
-        <FundraiserDetail id={id} />
+        <Suspense fallback={<p className="text-sm text-slate-400">Loading campaign…</p>}>
+          <FundraiserDetail id={id} />
+        </Suspense>
       </section>
     </main>
   );

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { VaultBrowser } from "@/components/vault/vault-browser";
 import { BusinessCrosslinks } from "@/components/business/business-crosslinks";
 import { VAULT_CUT_NOTE } from "@/lib/blob-vault";
@@ -35,7 +36,9 @@ export default function VaultPage() {
           <BusinessCrosslinks exclude={["/vault"]} />
         </div>
         <div className="mt-10">
-          <VaultBrowser />
+          <Suspense fallback={<p className="text-sm text-slate-400">Loading Vault…</p>}>
+            <VaultBrowser />
+          </Suspense>
         </div>
       </section>
     </main>

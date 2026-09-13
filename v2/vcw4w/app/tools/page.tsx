@@ -1,3 +1,4 @@
+import { cacheLife, cacheTag } from "next/cache";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -31,7 +32,11 @@ const TOOLS = [
   },
 ];
 
-export default function Page() {
+export default async function Page() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("tools");
+
   return (
     <div className="bg-slate-950 text-white">
       <section className="mx-auto max-w-6xl px-4 pb-10 pt-14 sm:px-5 sm:pt-20">

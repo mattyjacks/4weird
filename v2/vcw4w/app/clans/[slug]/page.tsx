@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { ClanPage } from "@/components/clans/clan-page";
 import { ModerationNote } from "@/components/clans/moderation-note";
 
@@ -28,7 +29,9 @@ export default async function ClanSlugPage({ params }: { params: Promise<{ slug:
         <Link className="text-cyan-300 hover:underline" href="/clans">
           ← All clans
         </Link>
-        <ClanPage slug={slug} />
+        <Suspense fallback={<p className="text-slate-400">Loading clan…</p>}>
+          <ClanPage slug={slug} />
+        </Suspense>
         <ModerationNote />
       </section>
     </main>

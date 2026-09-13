@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { BclansConsole } from "./bclans-console";
 import { AgentBotNav } from "@/components/agents/agent-bot-nav";
 
@@ -47,7 +48,9 @@ export default function BclansPage() {
           .
         </p>
         <div className="mt-8">
-          <BclansConsole />
+          <Suspense fallback={<p className="text-sm text-slate-400">Loading console…</p>}>
+            <BclansConsole />
+          </Suspense>
         </div>
       </section>
     </main>

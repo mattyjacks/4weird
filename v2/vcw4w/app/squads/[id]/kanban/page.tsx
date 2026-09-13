@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { SquadKanbanBoard } from "@/components/kanban/squad-kanban-board";
 import { demoBoard } from "@/components/kanban/kanban-types";
 
@@ -52,7 +53,9 @@ export default async function SquadKanbanPage({
             browser; Supabase sync wires in via QUEUE (data lane).
           </p>
         </div>
-        <SquadKanbanBoard board={board} />
+        <Suspense fallback={<p className="text-sm text-slate-400">Loading board…</p>}>
+          <SquadKanbanBoard board={board} />
+        </Suspense>
       </section>
     </main>
   );

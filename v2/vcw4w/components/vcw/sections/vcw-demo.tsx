@@ -1,3 +1,4 @@
+import { cacheLife, cacheTag } from "next/cache";
 import Link from "next/link";
 
 /**
@@ -5,7 +6,10 @@ import Link from "next/link";
  * Same safe-preview content, rewritten natively. The real capture
  * screenshots are plain <img> assets — no iframe involved.
  */
-export function VcwDemo() {
+export async function VcwDemo() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("vcw");
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-white/10 bg-white/[.03] p-5">

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { KidLoginForm } from "@/components/family/kid-login-form";
 
 export const metadata: Metadata = {
@@ -7,6 +8,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+// NOTE: no 'use cache' here — per-user session form streams in Suspense.
 export default function FamilyLoginPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -17,7 +19,9 @@ export default function FamilyLoginPage() {
           <a className="text-cyan-300 hover:underline" href="/auth/login">log in</a> page instead.
         </p>
         <div className="mt-8">
-          <KidLoginForm next="/games" />
+          <Suspense fallback={<p className="rounded-2xl border border-white/10 bg-white/[.04] p-8 text-center text-sm text-slate-400">Loading family login…</p>}>
+            <KidLoginForm next="/games" />
+          </Suspense>
         </div>
       </section>
     </main>

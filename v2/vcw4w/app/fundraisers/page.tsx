@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 import { FundraiserBrowser } from "@/components/fundraisers/fundraiser-browser";
 import { CURRENCY_LEGEND, FUNDRAISERS_COMPLIANCE_NOTE, FUNDRAISERS_DISABLED_NOTICE } from "@/lib/support";
 
@@ -9,6 +11,29 @@ export const metadata: Metadata = {
   description:
     "Gift-based backing for game launches and tech startups in Vibe Coins. Creative projects only - not charity, not investment.",
 };
+
+/**
+ * Static currency-legend fragment. Pure output from the CURRENCY_LEGEND
+ * catalog — no per-user or live totals — so it is cached; campaign list,
+ * raised amounts, and backer counts stay dynamic in FundraiserBrowser.
+ */
+async function CurrencyLegend() {
+  "use cache";
+  cacheLife("days");
+  cacheTag("currency-legend");
+  return (
+    <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+      {CURRENCY_LEGEND.map((c) => (
+        <li key={c.emoji + c.name} className="rounded-lg border border-white/10 bg-black/20 p-3 text-sm">
+          <p className="font-bold">
+            <span aria-hidden="true">{c.emoji}</span> {c.name}
+          </p>
+          <p className="mt-1 text-slate-300">{c.blurb}</p>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export default function FundraisersPage() {
   return (
@@ -35,18 +60,11 @@ export default function FundraisersPage() {
           <p className="mt-1 text-sm text-slate-400">
             One emoji, one meaning, everywhere on 4weird. Real money always uses 💸; never 🪙.
           </p>
-          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-            {CURRENCY_LEGEND.map((c) => (
-              <li key={c.emoji + c.name} className="rounded-lg border border-white/10 bg-black/20 p-3 text-sm">
-                <p className="font-bold">
-                  <span aria-hidden="true">{c.emoji}</span> {c.name}
-                </p>
-                <p className="mt-1 text-slate-300">{c.blurb}</p>
-              </li>
-            ))}
-          </ul>
+          <CurrencyLegend />
         </section>
-        <FundraiserBrowser />
+        <Suspense fallback={<p className="text-sm text-slate-400">Loading campaigns…</p>}>
+          <FundraiserBrowser />
+        </Suspense>
       </section>
     </main>
   );

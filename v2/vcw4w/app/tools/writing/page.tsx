@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { ToolShell } from "@/components/tools/tool-shell";
 import { WritingTools } from "@/components/tools/writing-tools";
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { TeamWorkspace } from "@/components/teams/team-workspace";
 import { PartyHub } from "@/components/parties/party-hub";
 import { BusinessCrosslinks } from "@/components/business/business-crosslinks";
@@ -33,8 +34,12 @@ export default function SquadsPage() {
               <BusinessCrosslinks exclude={["/squads"]} />
             </div>
           </section>
-          <TeamWorkspace />
-          <PartyHub />
+          <Suspense fallback={<p className="text-sm text-slate-400">Loading workspace…</p>}>
+            <TeamWorkspace />
+          </Suspense>
+          <Suspense fallback={<p className="mt-12 text-sm text-slate-400">Loading town square…</p>}>
+            <PartyHub />
+          </Suspense>
         </div>
       </section>
     </main>

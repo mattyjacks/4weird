@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { ToolShell } from "@/components/tools/tool-shell";
 import { SeoAnalyzer } from "@/components/tools/seo-analyzer";
 
@@ -16,7 +17,15 @@ export default function Page() {
       title="SEO Analyzer"
       blurb="Preview exactly how your page looks in Google and on social, then tick off the fundamentals — title length, description length, keyword placement, and slug hygiene."
     >
-      <SeoAnalyzer />
+      <Suspense
+        fallback={
+          <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">
+            Loading SEO analyzer…
+          </p>
+        }
+      >
+        <SeoAnalyzer />
+      </Suspense>
     </ToolShell>
   );
 }

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 import { VcwOverview } from "@/components/vcw/sections/vcw-overview";
 import { VcwHub } from "@/components/vcw/sections/vcw-hub";
 import { VcwRun } from "@/components/vcw/sections/vcw-run";
@@ -69,6 +71,32 @@ export async function generateMetadata({
   };
 }
 
+/**
+ * Static section nav — closed section list, no request-time data.
+ * Cached (`hours` + tag `vcw`). The `current` slug is a plain string,
+ * so it is a valid serializable cache-key input.
+ */
+async function CachedSectionNav({ current }: { current: string }) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("vcw");
+  return (
+    <>
+      {order
+        .filter((s) => s !== current)
+        .map((s) => (
+          <Link
+            key={s}
+            href={`/vibecodeworker/${s}`}
+            className="rounded-full border border-white/15 px-3 py-1 text-xs font-bold text-slate-300 transition hover:bg-white/10 hover:text-white"
+          >
+            {sections[s].title}
+          </Link>
+        ))}
+    </>
+  );
+}
+
 export default async function SectionPage({
   params,
 }: {
@@ -77,6 +105,12 @@ export default async function SectionPage({
   const { section } = await params;
   const content = sections[section];
   if (!content) notFound();
+  // Split: VcwOverview / VcwDocs / VcwDemo are cached static fragments
+  // (see their `use cache` scopes, tag `vcw`). VcwHub / VcwRun / VcwFull /
+  // VcwPhone are 'use client' live-run views over /api/vcw/* and must stay
+  // dynamic — hence the Suspense boundaries, never cached.
+  const isLiveSection =
+    section === "hub" || section === "run" || section === "full" || section === "phone";
   return (
     <div className="bg-slate-950 text-white">
       <article className="mx-auto max-w-6xl px-4 py-10 sm:px-5">
@@ -84,31 +118,27 @@ export default async function SectionPage({
         <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">{content.title}</h1>
         <p className="mt-3 max-w-2xl text-sm text-slate-300 sm:text-base">{content.intro}</p>
         <nav aria-label="VibeCodeWorker sections" className="mt-4 flex flex-wrap gap-1.5">
-          {order
-            .filter((s) => s !== section)
-            .map((s) => (
-              <Link
-                key={s}
-                href={`/vibecodeworker/${s}`}
-                className="rounded-full border border-white/15 px-3 py-1 text-xs font-bold text-slate-300 transition hover:bg-white/10 hover:text-white"
-              >
-                {sections[s].title}
-              </Link>
-            ))}
+          <CachedSectionNav current={section} />
         </nav>
         {(section === "hub" || section === "run") && (
           <div className="mt-4">
-            <ServiceStatus />
+            <Suspense fallback={<p className="text-sm text-slate-500">Checking worker service…</p>}>
+              <ServiceStatus />
+            </Suspense>
           </div>
         )}
         <div className="mt-6">
           {section === "overview" && <VcwOverview />}
-          {section === "hub" && <VcwHub />}
-          {section === "run" && <VcwRun />}
-          {section === "full" && <VcwFull />}
-          {section === "phone" && <VcwPhone />}
           {section === "docs" && <VcwDocs />}
           {section === "demo" && <VcwDemo />}
+          {isLiveSection && (
+            <Suspense fallback={<p className="text-sm text-slate-500">Loading workspace…</p>}>
+              {section === "hub" && <VcwHub />}
+              {section === "run" && <VcwRun />}
+              {section === "full" && <VcwFull />}
+              {section === "phone" && <VcwPhone />}
+            </Suspense>
+          )}
         </div>
         <p className="mt-6 text-xs text-slate-500">
           Native page — every section above is rendered by this site, not framed. The preserved legacy

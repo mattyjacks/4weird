@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { ToolShell } from "@/components/tools/tool-shell";
 import { ImageOptimizer } from "@/components/tools/image-optimizer";
 
@@ -16,7 +17,15 @@ export default function Page() {
       title="Image Optimizer"
       blurb="Shrink game art, screenshots, and thumbnails for the web: pick a format, tune quality and size, and download the result. Re-encoding strips EXIF metadata automatically."
     >
-      <ImageOptimizer />
+      <Suspense
+        fallback={
+          <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">
+            Loading image optimizer…
+          </p>
+        }
+      >
+        <ImageOptimizer />
+      </Suspense>
     </ToolShell>
   );
 }

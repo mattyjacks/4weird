@@ -3,6 +3,11 @@ import { withBotId } from "botid/next/config";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Cache Components (Next 16.3): component/function-level caching via the
+  // `use cache` directive + PPR shell streaming. Top-level key per
+  // node_modules/next/dist/docs/.../05-config/01-next-config-js/cacheComponents.md
+  // (NOT under `experimental`; `experimental.useCache`/`dynamicIO` are removed).
+  cacheComponents: true,
   experimental: {
     optimizePackageImports: ["lucide-react", "next-themes", "@radix-ui/react-checkbox", "@radix-ui/react-dropdown-menu", "@radix-ui/react-label", "@radix-ui/react-slot"],
   },

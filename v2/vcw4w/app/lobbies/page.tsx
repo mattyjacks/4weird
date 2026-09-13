@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { LobbiesBrowser } from "@/components/lobbies/lobbies-browser";
 import { GraveGainLobbies } from "@/components/lobbies/gravegain-lobbies";
 
@@ -25,10 +26,14 @@ export default function LobbiesPage() {
           private invite rooms never appear here.
         </p>
         <div className="mt-10">
-          <LobbiesBrowser />
+          <Suspense fallback={<p className="text-sm text-slate-400">Loading open lobbies…</p>}>
+            <LobbiesBrowser />
+          </Suspense>
         </div>
         <div className="mt-14">
-          <GraveGainLobbies />
+          <Suspense fallback={<p className="text-sm text-slate-400">Loading GraveGain party…</p>}>
+            <GraveGainLobbies />
+          </Suspense>
         </div>
       </section>
     </main>

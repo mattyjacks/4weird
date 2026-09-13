@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cacheLife, cacheTag } from "next/cache";
 import { DocsHero } from "@/components/docs/docs-hero";
 import { SectionHead, Callout, Steps, MockWindow, Pager } from "@/components/docs/docs-bits";
 
@@ -17,7 +18,10 @@ const theme = {
   title: "bg-gradient-to-r from-orange-300 via-amber-200 to-yellow-300 bg-clip-text text-transparent",
 };
 
-export default function VcwPage() {
+export default async function VcwPage() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("vcw");
   return (
     <article>
       <DocsHero

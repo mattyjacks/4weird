@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { MarketingPage } from "@/components/site/marketing-page";
 import { DebugPlayViewport } from "@/components/vcw/debug-play/debug-play-viewport";
 
@@ -38,6 +39,10 @@ const FLOW = [
  * unmetered by design for the foundation slice — auth/rate-limit/meter
  * wiring is queued to the steward, not edited here). No secrets, no DB
  * writes, no shared-manifest edits from this page.
+ *
+ * Live-run view: Suspense-only, deliberately NO `use cache` — the viewport
+ * is a 'use client' live session (frame capture + POST /api/vcw/debug-play)
+ * and must stay dynamic.
  */
 export default function DebugPlayPage() {
   return (
@@ -57,7 +62,9 @@ export default function DebugPlayPage() {
         ))}
       </ol>
       <div className="mt-6">
-        <DebugPlayViewport />
+        <Suspense fallback={<p className="text-sm text-slate-500">Loading debug-play session…</p>}>
+          <DebugPlayViewport />
+        </Suspense>
       </div>
       <p className="mt-6 text-sm text-slate-500">
         Foundation slice: frame analysis is stateless and fail-open (a well-formed answer even with

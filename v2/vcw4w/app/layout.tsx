@@ -7,7 +7,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { GoogleAnalytics } from "@/components/site/google-analytics";
 import { CookieBanner } from "@/components/site/cookie-banner";
 import { DailyBonusBanner } from "@/components/site/daily-bonus-banner";
-import { SiteFooter } from "@/components/site/site-footer";
+import { CachedSiteFooter } from "@/components/site/site-footer-cached";
 import { SiteHeader } from "@/components/site/site-header";
 import { MenuSidebar } from "@/components/site/menu-sidebar";
 import { A11yProvider } from "@/components/site/a11y-provider";
@@ -129,7 +129,17 @@ export default function RootLayout({
             <div id="main-content" className="flex-1">
               {children}
             </div>
-            <SiteFooter />
+            {/* Static footer shell: cached server component behind Suspense so
+                the PPR shell prerenders while dynamic/auth chrome streams.
+                Root layout itself stays uncached (client providers + per-user
+                banners must never be inside 'use cache'). */}
+            <Suspense
+              fallback={
+                <footer aria-hidden="true" className="border-t py-8" />
+              }
+            >
+              <CachedSiteFooter />
+            </Suspense>
           </div>
           <GreenGuyCamo />
           <UsaFireworks />

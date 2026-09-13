@@ -1,11 +1,19 @@
+import { cacheLife, cacheTag } from "next/cache";
 import Link from "next/link";
 
 /**
  * Native overview section (replaces the framed overview.html).
  * Same information as the legacy marketing surface, rewritten for the
  * site design language. No iframe: all copy lives in this component.
+ *
+ * Static marketing copy: cached per the Cache Components model
+ * (`use cache` + `cacheLife('hours')` + tag `vcw`). No props, no
+ * request-time reads — safe to prerender into the static shell.
  */
-export function VcwOverview() {
+export async function VcwOverview() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("vcw");
   return (
     <div className="space-y-8">
       <section className="rounded-2xl border border-white/10 bg-white/[.03] p-6">

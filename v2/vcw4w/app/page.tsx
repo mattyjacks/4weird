@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { getGame } from "@/content/games";
 import { CompactDetails } from "@/components/ui/compact-details";
 import { InfoTip } from "@/components/ui/info-tip";
@@ -13,7 +15,7 @@ const FEATURED_SLUGS = [
   "battlesharks2",
 ] as const;
 
-const featuredSix = FEATURED_SLUGS.map((slug) => getGame(slug)!).filter(Boolean);
+const HOME_FALLBACK = "text-sm text-muted-foreground";
 
 const TICKER = [
   "⚡ RTX 4090 live now",
@@ -93,6 +95,74 @@ const FAQS = [
     a: "Play one game, rent one desktop, ask the Buddy one question. Then read /docs/about - 12 plain-language guides covering every surface.",
   },
 ];
+
+// Static marketing sections, cached per Cache Components docs
+// (node_modules/next/dist/docs/01-app/01-getting-started/08-caching.md +
+// 03-api-reference/01-directives/use-cache.md): fully static, no
+// cookies/headers/searchParams, so they join the prerendered shell and
+// stream inside <Suspense> boundaries below.
+async function FeaturedGameCards() {
+  'use cache';
+  cacheLife('hours');
+  const games = FEATURED_SLUGS.map((slug) => getGame(slug)!).filter(Boolean);
+  return (
+    <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {games.map((game) => (
+        <Link
+          key={game.slug}
+          href={`/games/${game.slug}`}
+          className="group rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-1 hover:border-fuchsia-500/60 hover:shadow-xl hover:shadow-fuchsia-500/10"
+        >
+          <div className="text-4xl transition group-hover:scale-110" aria-hidden="true">
+            {game.emoji}
+          </div>
+          <h3 className="mt-4 text-lg font-bold">{game.title}</h3>
+          <p className="mt-2 text-sm text-muted-foreground">{game.description}</p>
+          <p className="mt-3 font-mono text-xs font-bold text-fuchsia-600 dark:text-fuchsia-300">
+            PLAY →
+          </p>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+async function ClassicsGrid() {
+  'use cache';
+  cacheLife('days');
+  return (
+    <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {CLASSICS.map((c) => (
+        <Link
+          key={c.href}
+          href={c.href}
+          className="group flex items-start gap-4 rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-1 hover:border-cyan-500/50 hover:shadow-lg"
+        >
+          <span className="text-3xl transition group-hover:scale-110" aria-hidden="true">{c.emoji}</span>
+          <span>
+            <span className="font-bold">{c.title}</span>
+            <span className="mt-1 block text-sm text-muted-foreground">{c.body}</span>
+            <span className="mt-2 block font-mono text-xs font-bold text-cyan-600 dark:text-cyan-300">{c.href} →</span>
+          </span>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+async function HomeFaqList() {
+  'use cache';
+  cacheLife('days');
+  return (
+    <div className="mt-6 grid gap-4 md:grid-cols-2">
+      {FAQS.map((f, i) => (
+        <CompactDetails key={f.q} summary={f.q} defaultOpen={i === 0}>
+          <p className="text-sm text-muted-foreground">{f.a}</p>
+        </CompactDetails>
+      ))}
+    </div>
+  );
+}
 
 function DirItem({
   href,
@@ -706,24 +776,9 @@ export default function Home() {
             Browse all 34 →
           </Link>
         </div>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {featuredSix.map((game) => (
-            <Link
-              key={game.slug}
-              href={`/games/${game.slug}`}
-              className="group rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-1 hover:border-fuchsia-500/60 hover:shadow-xl hover:shadow-fuchsia-500/10"
-            >
-              <div className="text-4xl transition group-hover:scale-110" aria-hidden="true">
-                {game.emoji}
-              </div>
-              <h3 className="mt-4 text-lg font-bold">{game.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{game.description}</p>
-              <p className="mt-3 font-mono text-xs font-bold text-fuchsia-600 dark:text-fuchsia-300">
-                PLAY →
-              </p>
-            </Link>
-          ))}
-        </div>
+        <Suspense fallback={<p className={HOME_FALLBACK}>Loading featured games…</p>}>
+          <FeaturedGameCards />
+        </Suspense>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-sm">
           <Link href="/leaderboards" className="rounded-full border border-border bg-card px-5 py-2.5 font-semibold transition hover:-translate-y-0.5 hover:border-amber-500/60">
             🏆 Leaderboards
@@ -809,22 +864,9 @@ export default function Home() {
             Read the docs →
           </Link>
         </div>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {CLASSICS.map((c) => (
-            <Link
-              key={c.href}
-              href={c.href}
-              className="group flex items-start gap-4 rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-1 hover:border-cyan-500/50 hover:shadow-lg"
-            >
-              <span className="text-3xl transition group-hover:scale-110" aria-hidden="true">{c.emoji}</span>
-              <span>
-                <span className="font-bold">{c.title}</span>
-                <span className="mt-1 block text-sm text-muted-foreground">{c.body}</span>
-                <span className="mt-2 block font-mono text-xs font-bold text-cyan-600 dark:text-cyan-300">{c.href} →</span>
-              </span>
-            </Link>
-          ))}
-        </div>
+        <Suspense fallback={<p className={HOME_FALLBACK}>Loading classics…</p>}>
+          <ClassicsGrid />
+        </Suspense>
       </section>
 
       {/* Flywheel; short, no econ spam */}
@@ -962,13 +1004,9 @@ export default function Home() {
           Questions? Good. We like those.
         </p>
         <h2 className="mt-2 text-2xl font-black sm:text-4xl">The 60-second FAQ</h2>
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          {FAQS.map((f, i) => (
-            <CompactDetails key={f.q} summary={f.q} defaultOpen={i === 0}>
-              <p className="text-sm text-muted-foreground">{f.a}</p>
-            </CompactDetails>
-          ))}
-        </div>
+        <Suspense fallback={<p className={HOME_FALLBACK}>Loading answers…</p>}>
+          <HomeFaqList />
+        </Suspense>
         <p className="mt-5 text-center text-sm text-muted-foreground">
           Still curious? <Link href="/docs/about" className="font-semibold text-cyan-600 hover:underline dark:text-cyan-300">Start at /docs/about</Link> - 12 plain-language guides, zero jargon walls.
         </p>

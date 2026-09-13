@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { ClanBrowser } from "@/components/clans/clan-browser";
 
 export const metadata: Metadata = {
@@ -27,7 +28,9 @@ export default function ClansPage() {
           bonus + quests + loved posts, spent on gifts and advanced awards.
         </p>
         <div className="mt-10">
-          <ClanBrowser />
+          <Suspense fallback={<p className="text-slate-400">Loading clans…</p>}>
+            <ClanBrowser />
+          </Suspense>
         </div>
       </section>
     </main>

@@ -42,7 +42,7 @@ export default function Page({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Suspense>
+              <Suspense fallback={<p className="text-sm text-muted-foreground">Loading error details…</p>}>
                 <ErrorContent searchParams={searchParams} />
               </Suspense>
               <Link className="mt-5 inline-block text-sm text-cyan-300 underline" href="/auth/login">Return to login</Link>
