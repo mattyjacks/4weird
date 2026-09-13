@@ -1,7 +1,7 @@
 import { initBotId } from "botid/client/core";
 
 /**
- * BotID invisible CAPTCHA - client-side challenge injector (Next 15.3+ path).
+ * BotID invisible CAPTCHA - client-side challenge injector (Next 16 path).
  *
  * This patches fetch/XHR so every same-origin call to a protected path+method
  * carries the `x-is-human` / `x-path` / `x-method` headers that checkBotId()

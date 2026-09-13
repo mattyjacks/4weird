@@ -14,7 +14,7 @@ if (!nextConfig.includes("botid/next/config")) fail("next.config.ts must import 
 if (!/withBotId\s*\(/.test(nextConfig)) fail("next.config.ts must wrap the config: export default withBotId(nextConfig).");
 
 // 2. instrumentation-client.ts must initBotId with the high-value protect list
-// (Next 15.3+ path). Missing entries fail CLOSED in production (humans 403),
+// (Next 16 path). Missing entries fail CLOSED in production (humans 403),
 // so the list must cover every route in section 4.
 if (!exists("../instrumentation-client.ts")) fail("instrumentation-client.ts is missing (initBotId protect list).");
 const client = read("../instrumentation-client.ts");

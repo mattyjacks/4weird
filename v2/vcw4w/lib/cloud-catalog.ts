@@ -116,7 +116,7 @@ export const CHEAPEST_DEFAULTS: Record<string, string> = {
 export const DO_CHEAPEST_NOTE = "DigitalOcean long-term cheapest: do-droplet-basic (Basic droplet, monthly). Includes 25% cut; never added on top.";
 
 /**
- * Newest viable runtimes; newest that still runs on this stack (Next 15 /
+ * Newest viable runtimes; newest that still runs on this stack (Next 16 /
  * React 19 / Supabase, no new deps). Pinned as labels, not floating tags,
  * so a deploy is reproducible and stays on the cheapest tier above.
  */
@@ -124,7 +124,7 @@ export const NEWEST_VIABLE = {
   node: "node-lts-newest",
   cuda: "cuda-newest-viable",
   postgres: "postgres-newest-viable",
-  next: "next-15-viable",
+  next: "next-16-viable",
   react: "react-19-viable",
 } as const;
 

@@ -115,7 +115,7 @@ Every new feature implemented into 4weird MUST adhere to these non-negotiable ru
 
 ## 1.3 Tech Stack & Runtime Environment
 
-* **Frontend Framework:** Next.js 15 (App Router), React 19, TypeScript 5.3+
+* **Frontend Framework:** Next.js 16 (App Router), React 19, TypeScript 5.3+
 * **Styling:** Vanilla CSS design tokens + Tailwind CSS utilities with dark-mode aesthetic
 * **Database & Auth:** Supabase (PostgreSQL 15+, Supabase Auth, Row Level Security, Storage buckets, Realtime WebSockets)
 * **Audio & Video Processing:** WebCodecs API, `@ffmpeg/ffmpeg` (Wasm), HTML5 Canvas, Web Audio API
