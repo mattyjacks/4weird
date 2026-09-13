@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VibeCodeWorker interface demo | 4weird</title>
+  <meta name="description" content="A safe, non-operational demo of the VibeCodeWorker interface.">
+  <link rel="canonical" href="https://4weird.com/vcw/web/demo/">
+  <link rel="icon" type="image/png" href="/vcw/vcw-logo.png">
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/vibecodeworker/demo/demo.css">
+</head>
+<body>
+  <header><a href="/vibecodeworker/">← About VibeCodeWorker</a><span class="brand">4WEIRD <b>VIBECODEWORKER</b></span><span class="preview-badge">SAFE DEMO · NO ACTIONS RUN</span></header>
+  <main>
+    <section class="notice"><strong>Interface demo</strong><span>This is a local visual demo. Targets are not loaded, no agents run, and no data or changes are sent anywhere.</span></section>
+    <section class="workspace">
+      <div class="intro"><p>PLAYTEST WORKSPACE</p><h1>Choose a target.<br>Tell the agent what matters.</h1></div>
+      <label>Target <input value="https://your-project.example" aria-label="Preview target"></label>
+      <label>Test focus <input value="Menu flow, controls & visual issues" aria-label="Preview test focus"></label>
+      <div class="actions"><button type="button" disabled>Load preview</button><button class="run" type="button" disabled>Run playtest →</button></div>
+    </section>
+    <section class="real-captures" aria-labelledby="captures-title">
+      <div class="capture-heading"><div><p>REAL LOCAL CAPTURES</p><h2 id="captures-title">VibeCodeWorker running Orbital Drift</h2></div><span>Captured from the desktop app</span></div>
+      <div class="capture-grid">
+        <figure><img src="/vibecodeworker/demo/images/workspace-loaded.png" alt="VibeCodeWorker with the Orbital Drift target loaded and a playtest goal entered"><figcaption><b>Target loaded</b><span>A real local game, a test focus, and the evidence stream ready.</span></figcaption></figure>
+        <figure><img src="/vibecodeworker/demo/images/playtest-running.png" alt="Orbital Drift launched inside a running VibeCodeWorker workspace"><figcaption><b>Game running</b><span>The live target after its launch action inside VibeCodeWorker.</span></figcaption></figure>
+      </div>
+    </section>
+    <section class="evidence"><div class="card-title"><span>EVIDENCE STREAM</span><small>STATIC EXAMPLE</small></div><p><time>00:00:00</time> Workspace ready. Choose a target to begin.</p><p><time>00:00:00</time> This page is a visual demo; no operation is available here. Try the live web versions: <a href="/vcw/web/run/" style="color:inherit">Cloud Run</a> · <a href="/vcw/web/full/" style="color:inherit">Full Web</a>.</p></section>
+  </main>
+</body>
+</html>

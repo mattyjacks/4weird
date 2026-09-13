@@ -9,6 +9,8 @@ build/
 *.log
 .env
 .env.local
+.env.*
+!.env.example
 .DS_Store
 Thumbs.db
 # Runtime data / captures (large, machine-generated)
@@ -25,6 +27,7 @@ __pycache__/
 # Secrets (keep .env.example tracked)
 *.enc
 credentials.enc
+credentials.json
 # Local DBs
 *.db
 *.db-journal

@@ -83,8 +83,13 @@
     "files": [
       "**/*",
       "!dist/*",
+      "!dist-current/*",
       "!scratch/*",
-      "!.vibecodeworker-user-data/*"
+      "!.vibecodeworker-user-data/*",
+      "!.test-appdata/*",
+      "!.env",
+      "!.env.*",
+      "!credentials.json"
     ]
   },
   "keywords": [

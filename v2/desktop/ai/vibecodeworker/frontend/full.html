@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Full Web Version - VibeCodeWorker | 4weird</title>
+  <meta name="description" content="The full VibeCodeWorker in your browser. Downloads the latest /ai source on every load, browse and search every file, then launch the workspace. No install.">
+  <link rel="canonical" href="https://4weird.com/vcw/web/full/">
+  <link rel="icon" type="image/png" href="vcw-logo.png">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="vcw-nav.css">
+  <style>
+    .full-wrap { max-width: 1100px; margin: 24px auto; padding: 20px; }
+    .full-card { border: 1px solid var(--border-color, #222); border-radius: 12px; padding: 18px; margin-bottom: 16px; background: rgba(255,255,255,.02); }
+    .full-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; align-items: center; }
+    .full-row input { padding: 8px; border-radius: 8px; border: 1px solid #333; background: #0a0d14; color: #fff; min-width: 220px; flex: 1; }
+    .full-btn { padding: 10px 16px; border-radius: 10px; border: 1px solid #00f2fe; background: rgba(0,242,254,.1); color: #fff; cursor: pointer; text-decoration: none; display: inline-block; }
+    .full-mono { font-family: monospace; font-size: 13px; }
+    #full-bar { height: 6px; border-radius: 3px; background: #1a2230; overflow: hidden; margin: 10px 0; }
+    #full-bar i { display: block; height: 100%; width: 0; background: #00f2fe; }
+    .full-cols { display: grid; grid-template-columns: 300px 1fr; gap: 16px; }
+    @media (max-width: 800px) { .full-cols { grid-template-columns: 1fr; } }
+    #full-tree { max-height: 560px; overflow-y: auto; font-family: monospace; font-size: 12px; }
+    #full-tree .dir { color: #00f2fe; margin: 8px 0 2px; }
+    #full-tree button { display: block; width: 100%; text-align: left; background: none; border: none; color: #c9d4e3; cursor: pointer; padding: 2px 4px; font: inherit; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #full-tree button:hover, #full-tree button.active { color: #fff; background: rgba(0,242,254,.1); }
+    #full-view { background: #05080e; border: 1px solid #222; border-radius: 10px; padding: 12px; max-height: 560px; overflow: auto; font-family: monospace; font-size: 12px; white-space: pre; margin: 0; }
+    #full-hits { font-family: monospace; font-size: 12px; max-height: 180px; overflow-y: auto; }
+    #full-hits button { background: none; border: none; color: #7df6ff; cursor: pointer; font: inherit; text-align: left; display: block; padding: 2px 0; }
+  </style>
+</head>
+<body data-vcw="full">
+  <div class="full-wrap">
+    <h1>Full Web Version</h1>
+    <p>The entire VibeCodeWorker <code>/ai</code> source, downloaded fresh on every load - straight from this site, with GitHub as fallback. Browse it, search it, open the workspace. No install, any computer.</p>
+    <div class="full-card">
+      <div class="full-row">
+        <button class="full-btn" id="full-reload">Reload all files</button>
+        <a class="full-btn" href="hub.html" target="_blank" rel="noopener">Launch workspace</a>
+        <a class="full-btn" href="run.html">Switch to Run mode</a>
+      </div>
+      <div class="full-mono" id="full-status">Starting...</div>
+      <div id="full-bar"><i></i></div>
+      <div class="full-mono" id="full-meta"></div>
+    </div>
+    <div class="full-card"><h3>Search</h3>
+      <div class="full-row">
+        <input id="full-q" type="search" autocomplete="off" placeholder="Filter by file name...">
+        <button class="full-btn" id="full-search">Search file contents</button>
+      </div>
+      <div id="full-hits"></div>
+    </div>
+    <div class="full-cols">
+      <div class="full-card"><h3>Files</h3><div id="full-tree"></div></div>
+      <div class="full-card"><h3 id="full-title">Viewer</h3>
+        <div class="full-row">
+          <button class="full-btn" id="full-copy">Copy</button>
+          <a class="full-btn" id="full-raw" href="#" target="_blank" rel="noopener">Open raw</a>
+        </div>
+        <pre id="full-view">Pick a file on the left.</pre>
+      </div>
+    </div>
+    <div class="full-card"><h3>Log</h3><div class="full-mono" id="full-log" style="white-space: pre-wrap;"></div></div>
+  </div>
+  <script src="vcw-nav.js"></script>
+  <script src="full.js"></script>
+</body>
+</html>
