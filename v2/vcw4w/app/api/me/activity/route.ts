@@ -29,6 +29,18 @@ export async function GET(req: Request) {
     .eq("user_id", u.id)
     .order("created_at", { ascending: false })
     .limit(100);
-  if (error) return dbFail("api/me/activity", error, "Unable to load account activity.");
+  if (error) {
+    // The audit table ships in a later migration than the dashboard; a prod
+    // DB that hasn't applied it yet (42P01 / PGRST205 / missing-table) should
+    // read as "no recorded changes yet", not a 500 that blanks Vibe Coins
+    // (the dashboard Promise.all fails as one). Real DB faults still 500.
+    const code = String((error as { code?: unknown }).code ?? "");
+    const msg = String((error as { message?: unknown }).message ?? "");
+    if (code === "42P01" || code === "PGRST205" || /profile_audit_log.*(does not exist|could not find)/i.test(msg)) {
+      console.error("[api] api/me/activity audit table missing, returning empty rows", { code: code.slice(0, 16) });
+      return ok({ rows: [] });
+    }
+    return dbFail("api/me/activity", error, "Unable to load account activity.");
+  }
   return ok({ rows: rows ?? [] });
 }

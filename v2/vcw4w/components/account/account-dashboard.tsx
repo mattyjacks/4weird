@@ -36,13 +36,28 @@ export function AccountDashboard() {
   const [message, setMessage] = useState("Loading account…");
   const [busy, setBusy] = useState(false);
 
-  const loadAccount = useCallback(() => { void Promise.all([request<{ profile: Profile | null }>("/api/me/profile"), request<{ balance: number; centicentcoins?: number }>("/api/coins/balance"), request<{ rows: LedgerRow[] }>("/api/coins/history?limit=25"), request<{ rows: ActivityRow[] }>("/api/me/activity")]).then(([p, b, h, a]) => { setProfile(p.profile ?? null); setName(p.profile?.display_name ?? ""); setBand(toBandChoice(p.profile?.age_band)); setFamilyRole(p.profile?.family_role ?? "solo"); setBalance(b.balance); setCenticentcoins(typeof b.centicentcoins === "number" ? b.centicentcoins : Math.round((Number(b.balance) || 0) * 100)); setHistory(h.rows ?? []); setActivity(a.rows ?? []); setLoaded(true); setMessage(""); }).catch((error: unknown) => {
-    // Never leave the previous account's data on screen when the session is
-    // gone (logged out / expired on a shared device): a 401 here means these
-    // numbers no longer belong to the viewer.
-    setProfile(null); setBalance(null); setCenticentcoins(null); setHistory([]); setActivity([]); setLoaded(true); setName(""); setBand("");
-    setMessage(error instanceof Error ? error.message : "Unable to load account.");
-  }); }, []);
+  const loadAccount = useCallback(() => { void Promise.allSettled([request<{ profile: Profile | null }>("/api/me/profile"), request<{ balance: number; centicentcoins?: number }>("/api/coins/balance"), request<{ rows: LedgerRow[] }>("/api/coins/history?limit=25"), request<{ rows: ActivityRow[] }>("/api/me/activity")]).then(([p, b, h, a]) => {
+      // One failing section (e.g. /api/me/activity 500 before its migration
+      // lands) must never blank the others — Vibe Coins especially. A 401 on
+      // the profile/balance calls still means logged out: clear those.
+      const profileFailed = p.status === "rejected";
+      const authed = !(profileFailed && String((p as PromiseRejectedResult).reason instanceof Error ? (p as PromiseRejectedResult).reason.message : (p as PromiseRejectedResult).reason).includes("401")) || b.status === "fulfilled" || h.status === "fulfilled";
+      if (p.status === "fulfilled") { setProfile(p.value.profile ?? null); setName(p.value.profile?.display_name ?? ""); setBand(toBandChoice(p.value.profile?.age_band)); setFamilyRole(p.value.profile?.family_role ?? "solo"); }
+      else { setProfile(null); setName(""); setBand(""); }
+      if (b.status === "fulfilled") { setBalance(b.value.balance); setCenticentcoins(typeof b.value.centicentcoins === "number" ? b.value.centicentcoins : Math.round((Number(b.value.balance) || 0) * 100)); }
+      else { setBalance(null); setCenticentcoins(null); }
+      if (h.status === "fulfilled") setHistory(h.value.rows ?? []); else setHistory([]);
+      if (a.status === "fulfilled") setActivity(a.value.rows ?? []); else setActivity([]);
+      setLoaded(true);
+      const failures: string[] = [];
+      if (p.status === "rejected") failures.push("profile");
+      if (b.status === "rejected") failures.push("coin balance");
+      if (h.status === "rejected") failures.push("coin history");
+      if (a.status === "rejected") failures.push("account activity");
+      if (failures.length === 0) setMessage("");
+      else if (!authed && profileFailed) { setProfile(null); setBalance(null); setCenticentcoins(null); setHistory([]); setActivity([]); setName(""); setBand(""); setMessage((p as PromiseRejectedResult).reason instanceof Error ? (p as PromiseRejectedResult).reason.message : "Unable to load account."); }
+      else setMessage(`Some sections failed to load (${failures.join(", ")}). Coin balance shown when available.`);
+    }); }, []);
   useEffect(() => { loadAccount(); window.addEventListener("vibe-coins-changed", loadAccount); return () => window.removeEventListener("vibe-coins-changed", loadAccount); }, [loadAccount]);
 
   // Legacy rows (null/unknown/kid) can never satisfy the play gate: the API
