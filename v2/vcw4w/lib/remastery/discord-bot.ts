@@ -145,19 +145,13 @@ export function builtinCommands(): SlashCommandSchema[] {
     },
     {
       name: "challenge",
-      description: "Challenge a rival to a 1v1 showdown.",
+      description: "Challenge a rival to a 1v1 showdown (no wagers).",
       options: [
         {
           name: "rival",
           description: "The rival to challenge",
           required: true,
           type: "user",
-        },
-        {
-          name: "wager",
-          description: "Coin wager for the showdown",
-          required: false,
-          type: "integer",
         },
       ],
     },

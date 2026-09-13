@@ -2,12 +2,20 @@ import Link from "next/link";
 import { SITE_NAV_GROUPS } from "@/lib/site-nav";
 import { ColorThemeSwitcher, ThemeSwitcher } from "@/components/theme-switcher";
 
-const NAV_QUICK_BY_HREF = new Map(
-  SITE_NAV_GROUPS.flatMap((g) => g.links).map((l) => [`${l.label}::${l.href}`, l.quick] as const),
-);
+const NAV_QUICK_BY_HREF = new Map<string, string>();
+for (const g of SITE_NAV_GROUPS) {
+  for (const l of g.links) {
+    NAV_QUICK_BY_HREF.set(`${l.label}::${l.href}`, l.quick);
+    NAV_QUICK_BY_HREF.set(l.href, l.quick);
+    const stripped = l.label.replace(/^[\p{Emoji}\s]+/u, "");
+    if (stripped) {
+      NAV_QUICK_BY_HREF.set(`${stripped}::${l.href}`, l.quick);
+    }
+  }
+}
 
 function quickFor(label: string, href: string): string | undefined {
-  return NAV_QUICK_BY_HREF.get(`${label}::${href}`);
+  return NAV_QUICK_BY_HREF.get(`${label}::${href}`) ?? NAV_QUICK_BY_HREF.get(href);
 }
 import { ClampText } from "@/components/ui/clamp-text";
 import { CompactDetails } from "@/components/ui/compact-details";
@@ -37,13 +45,13 @@ const COLUMNS: FooterColumn[] = [
     icon: <Rocket className="h-3.5 w-3.5" aria-hidden="true" />,
     tagline: "New here? Home, games, coins, and help — start free.",
     links: [
-      { href: "/", label: "Home" },
-      { href: "/games", label: "All Games" },
-      { href: "/pricing", label: "Pricing & Coins" },
-      { href: "/auth/sign-up", label: "Sign Up Free" },
-      { href: "/auth/login", label: "Login" },
-      { href: "/docs/getting-started", label: "Getting Started" },
-      { href: "/docs/faq", label: "FAQ" },
+      { href: "/", label: "🏠 Home" },
+      { href: "/games", label: "🎮 All Games" },
+      { href: "/pricing", label: "🪙 Pricing & Coins" },
+      { href: "/auth/sign-up", label: "✨ Sign Up Free" },
+      { href: "/auth/login", label: "🔑 Login" },
+      { href: "/docs/getting-started", label: "🚀 Getting Started" },
+      { href: "/docs/faq", label: "❓ FAQ" },
     ],
   },
   {
@@ -51,13 +59,13 @@ const COLUMNS: FooterColumn[] = [
     icon: <Gamepad2 className="h-3.5 w-3.5" aria-hidden="true" />,
     tagline: "Play in your browser — buddy, clans, leaderboards.",
     links: [
-      { href: "/buddy", label: "Gaming Buddy AI" },
-      { href: "/leaderboards", label: "Leaderboards" },
-      { href: "/clans", label: "Clans & Clubs" },
-      { href: "/lobbies", label: "Game Lobbies" },
-      { href: "/spaceships", label: "Spaceships" },
-      { href: "/xonotic", label: "Xonotic Arena" },
-      { href: "/academy", label: "Academy Lessons" },
+      { href: "/buddy", label: "🐶 Gaming Buddy AI" },
+      { href: "/leaderboards", label: "🏆 Leaderboards" },
+      { href: "/clans", label: "🏰 Clans & Clubs" },
+      { href: "/lobbies", label: "🎪 Game Lobbies" },
+      { href: "/spaceships", label: "🛸 Spaceships" },
+      { href: "/xonotic", label: "🔫 Xonotic Arena" },
+      { href: "/academy", label: "🎓 Academy Lessons" },
     ],
   },
   {
@@ -65,21 +73,21 @@ const COLUMNS: FooterColumn[] = [
     icon: <Clapperboard className="h-3.5 w-3.5" aria-hidden="true" />,
     tagline: "Ship games, apps, and robot-tested releases.",
     links: [
-      { href: "/newgameplus", label: "NewGamePlus" },
-      { href: "/submit", label: "Submit a Game" },
-      { href: "/vault", label: "Weird Vault" },
-      { href: "/web-apps", label: "Web Apps" },
-      { href: "/vibecodeworker", label: "VibeCodeWorker Hub" },
-      { href: "/vibecodeworker/overview", label: "Overview" },
-      { href: "/vibecodeworker/hub", label: "Workspace Hub" },
-      { href: "/vibecodeworker/run", label: "Cloud Run" },
-      { href: "/vibecodeworker/full", label: "Full Web Shell" },
-      { href: "/vibecodeworker/phone", label: "Remote Phone" },
-      { href: "/vibecodeworker/demo", label: "Live Demo" },
-      { href: "/vibecodeworker/docs", label: "Manual" },
-      { href: "/docs/vibecodeworker", label: "Guide for Makers" },
-      { href: "https://github.com/mattyjacks/4weird", label: "GitHub ↗" },
-      { href: "/tech", label: "Our Technology" },
+      { href: "/newgameplus", label: "✨ NewGamePlus" },
+      { href: "/submit", label: "🚀 Submit a Game" },
+      { href: "/vault", label: "🗄️ Weird Vault" },
+      { href: "/web-apps", label: "🌐 Web Apps" },
+      { href: "/vibecodeworker", label: "👩🏻‍💻 VibeCodeWorker Hub" },
+      { href: "/vibecodeworker/overview", label: "👩🏻‍💻 Overview" },
+      { href: "/vibecodeworker/hub", label: "🛠️ Workspace Hub" },
+      { href: "/vibecodeworker/run", label: "⚡ Cloud Run" },
+      { href: "/vibecodeworker/full", label: "💻 Full Web Shell" },
+      { href: "/vibecodeworker/phone", label: "📱 Remote Phone" },
+      { href: "/vibecodeworker/demo", label: "▶️ Live Demo" },
+      { href: "/vibecodeworker/docs", label: "📖 Manual" },
+      { href: "/docs/vibecodeworker", label: "🛠️ Guide for Makers" },
+      { href: "https://github.com/mattyjacks/4weird", label: "🐙 GitHub ↗" },
+      { href: "/tech", label: "⚙️ Our Technology" },
     ],
   },
   {
@@ -87,15 +95,15 @@ const COLUMNS: FooterColumn[] = [
     icon: <Cpu className="h-3.5 w-3.5" aria-hidden="true" />,
     tagline: "💰 Rent GPUs, desktops & studio tools by the minute — pays creators 75%.",
     links: [
-      { href: "/agents", label: "AI Agents for Hire" },
-      { href: "/runpods", label: "My RunPods" },
-      { href: "/swarm", label: "Agent Swarm Chat" },
-      { href: "/desktop", label: "Cloud Desktops" },
-      { href: "/squads", label: "Squads for Work" },
-      { href: "/timer", label: "Timer & Work Diary" },
-      { href: "/fal", label: "fal.ai Studio (30 tools)" },
-      { href: "/meshy", label: "Meshy 3D Studio" },
-      { href: "/blender", label: "Blender Renders" },
+      { href: "/agents", label: "👱🏻‍♀️ AI Agents for Hire" },
+      { href: "/runpods", label: "⚡ My RunPods" },
+      { href: "/swarm", label: "🐝 Agent Swarm Chat" },
+      { href: "/desktop", label: "💻 Cloud Desktops" },
+      { href: "/squads", label: "🛡️ Squads for Work" },
+      { href: "/timer", label: "⏱️ Timer & Work Diary" },
+      { href: "/fal", label: "🎨 fal.ai Studio (30 tools)" },
+      { href: "/meshy", label: "🧊 Meshy 3D Studio" },
+      { href: "/blender", label: "🎥 Blender Renders" },
     ],
   },
   {
@@ -103,11 +111,11 @@ const COLUMNS: FooterColumn[] = [
     icon: <HeartHandshake className="h-3.5 w-3.5" aria-hidden="true" />,
     tagline: "💰 Tips, fundraisers & ads — pays creators 75% as on-site credits.",
     links: [
-      { href: "/support", label: "Support Creators" },
-      { href: "/fundraisers", label: "Fundraisers" },
-      { href: "/ads", label: "Advertise" },
-      { href: "/docs/support-launches", label: "Docs: Support Launches" },
-      { href: "/docs/agents-compute", label: "Docs: Agents & Compute" },
+      { href: "/support", label: "💛 Support Creators" },
+      { href: "/fundraisers", label: "🎁 Fundraisers" },
+      { href: "/ads", label: "📢 Advertise" },
+      { href: "/docs/support-launches", label: "📖 Docs: Support Launches" },
+      { href: "/docs/agents-compute", label: "📖 Docs: Agents & Compute" },
     ],
   },
   {
@@ -115,26 +123,26 @@ const COLUMNS: FooterColumn[] = [
     icon: <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />,
     tagline: "Your account, privacy, and plain-English docs.",
     links: [
-      { href: "/account", label: "My Account" },
-      { href: "/my/usage", label: "My Usage" },
-      { href: "/my/rights", label: "My Privacy Rights" },
-      { href: "/favorites", label: "My Favorites", blurb: "Your starred pages, saved on this device." },
-      { href: "/family/login", label: "Family Login" },
-      { href: "/accessibility", label: "Accessibility" },
-      { href: "/terms", label: "Terms of Use" },
-      { href: "/privacy", label: "Privacy Policy" },
-      { href: "/auth/forgot-password", label: "Reset Password" },
-      { href: "/docs", label: "Docs Hub" },
-      { href: "/docs/playing-games", label: "Playing Games" },
-      { href: "/docs/vibe-coins", label: "Vibe Coins" },
-      { href: "/docs/about", label: "About 4weird" },
-      { href: "/docs/game-ai-buddy", label: "Game AI Buddy" },
-      { href: "/docs/bots", label: "Bots Guide" },
-      { href: "/docs/clans", label: "Clans Guide" },
-      { href: "/docs/explore-more", label: "Explore More" },
-      { href: "/docs/privacy-safety", label: "Privacy & Safety" },
-      { href: "/bot/setup", label: "Bot Setup" },
-      { href: "/bot/bclans", label: "Bot Clans" },
+      { href: "/account", label: "👑 My Account" },
+      { href: "/my/usage", label: "📊 My Usage" },
+      { href: "/my/rights", label: "⚖️ My Privacy Rights" },
+      { href: "/favorites", label: "⭐ My Favorites", blurb: "Your starred pages, saved on this device." },
+      { href: "/family/login", label: "👨‍👩‍👧‍👦 Family Login" },
+      { href: "/accessibility", label: "♿ Accessibility" },
+      { href: "/terms", label: "📜 Terms of Use" },
+      { href: "/privacy", label: "🔒 Privacy Policy" },
+      { href: "/auth/forgot-password", label: "🔑 Reset Password" },
+      { href: "/docs", label: "📚 Docs Hub" },
+      { href: "/docs/playing-games", label: "🎮 Playing Games" },
+      { href: "/docs/vibe-coins", label: "🪙 Vibe Coins" },
+      { href: "/docs/about", label: "ℹ️ About 4weird" },
+      { href: "/docs/game-ai-buddy", label: "🐶 Game AI Buddy" },
+      { href: "/docs/bots", label: "🤖 Bots Guide" },
+      { href: "/docs/clans", label: "🏰 Clans Guide" },
+      { href: "/docs/explore-more", label: "🗺️ Explore More" },
+      { href: "/docs/privacy-safety", label: "🛡️ Privacy & Safety" },
+      { href: "/bot/setup", label: "🤖 Bot Setup" },
+      { href: "/bot/bclans", label: "🤖 Bot Clans" },
     ],
   },
 ];

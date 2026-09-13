@@ -7,12 +7,17 @@
  * in the purchase routes; a tag you can violate is decoration; a profile
  * the server checks is compliance.
  *
+ * NO GAMBLING, ANYWHERE: chance-based mechanics (loot boxes, gacha, paid
+ * draws, wagers, prize draws) are not offered on this Service in any region,
+ * under any profile. There is no chance-based profile, no odds disclosure
+ * flow, and no region in which a paid random draw can be sold. Paid purchases
+ * are deterministic items only: you always know exactly what you get.
+ *
  * Profiles (plain-language labels included for store display):
  * - no-monetization ..... nothing may be sold (default for unknown games)
  * - cosmetics-only ....... looks-only items; safe everywhere incl. multiplayer
  * - singleplayer-boosts .. + paid gameplay boosts, singleplayer games only
  * - battle-pass .......... cosmetics + singleplayer boosts bound to a season
- * - chance-based ......... + loot-box/gacha mechanics (odds + region gates)
  *
  * Lawfulness mapping (rules as code; counsel reviews the mapping, not a
  * substitute for it):
@@ -28,10 +33,7 @@
  *   prices shown in coins + USD before consent; no pre-ticked anything;
  *   immediate digital delivery is recorded as an express-consent waiver of
  *   the 14-day withdrawal right; unknown region is treated as EU (strictest).
- * - UK: same as EU plus the loot-box self-regulation stance (odds + no kids).
- * - Belgium/Netherlands: paid chance-based mechanics are barred outright.
- * - South Korea / China / Japan: chance-based mechanics require published
- *   odds (enforced globally, not just there).
+ * - UK: same as EU.
  * - Brazil LGPD / global baseline: receipts carry no PII beyond user_id.
  *
  * Pure module (imports ./economy, ./dev-charges, ../content/games only).
@@ -47,7 +49,6 @@ export const MONETIZATION_PROFILES = [
   "cosmetics-only",
   "singleplayer-boosts",
   "battle-pass",
-  "chance-based",
 ] as const;
 export type MonetizationProfile = (typeof MONETIZATION_PROFILES)[number];
 
@@ -92,13 +93,8 @@ export const PROFILE_RULES: Record<MonetizationProfile, ProfileRules> = {
     allowsChance: false,
     requiresSeasonLabel: true,
   },
-  "chance-based": {
-    label: "Chance-Based (Odds Disclosed)",
-    blurb: "May include loot-box style draws. Every draw publishes its odds; barred in BE/NL; never for kids.",
-    allowedCategories: ["cosmetic", "singleplayer-boost"],
-    allowsChance: true,
-    requiresSeasonLabel: false,
-  },
+  // No chance-based profile exists. Loot boxes, gacha, paid draws, wagers,
+  // and prize draws cannot be declared, sold, or gated into any region.
 };
 
 /**
@@ -135,27 +131,24 @@ export function validateGameMonetization(input: {
 }): { ok: true; profile: MonetizationProfile; audience: GameAudience } | { ok: false; error: string } {
   const profile = String(input.profile ?? "");
   if (!(MONETIZATION_PROFILES as readonly string[]).includes(profile)) {
-    return { ok: false, error: "Upload must declare a monetization profile (no-monetization, cosmetics-only, singleplayer-boosts, battle-pass, chance-based)." };
+    return { ok: false, error: "Upload must declare a monetization profile (no-monetization, cosmetics-only, singleplayer-boosts, battle-pass). Chance-based mechanics are not offered and have no profile." };
   }
   const p = profile as MonetizationProfile;
   const audienceRaw = String(input.audience ?? "general");
   if (!(AUDIENCES as readonly string[]).includes(audienceRaw)) return { ok: false, error: "Audience must be general, kids, or adults." };
   const audience = audienceRaw as GameAudience;
   const multiplayer = input.multiplayer === true;
-  const chance = input.chanceBased === true;
+  // Gambling is removed Service-wide: any declared chance mechanic fails closed.
+  if (input.chanceBased === true) {
+    return { ok: false, error: "Chance-based mechanics (loot boxes, gacha, paid draws, wagers) are not offered. Remove them before go-live." };
+  }
   if (multiplayer && (p === "singleplayer-boosts" || p === "battle-pass")) {
     return { ok: false, error: "Multiplayer games are cosmetics-only: boosts must never function against other players." };
-  }
-  if (chance && !PROFILE_RULES[p].allowsChance) {
-    return { ok: false, error: "Chance-based mechanics need the chance-based profile with published odds." };
-  }
-  if (chance && input.oddsDisclosed !== true) {
-    return { ok: false, error: "Chance-based mechanics must publish their odds before go-live." };
   }
   if (PROFILE_RULES[p].requiresSeasonLabel && !String(input.seasonLabel ?? "").trim()) {
     return { ok: false, error: "Battle-pass games must name their current season." };
   }
-  if (audience === "kids" && (p === "chance-based" || p === "singleplayer-boosts" || p === "battle-pass")) {
+  if (audience === "kids" && (p === "singleplayer-boosts" || p === "battle-pass")) {
     return { ok: false, error: "Kids-audience games are cosmetics-only." };
   }
   return { ok: true, profile: p, audience };
@@ -175,8 +168,11 @@ export type RegionClass = "EU" | "UK" | "US" | "US-NH" | "KR" | "CN" | "JP" | "B
 
 export type RegionInfo = { country: string; region: string; class: RegionClass };
 
-/** Paid chance mechanics are barred outright here (BE/NL gambling stance). */
-export const CHANCE_BANNED_COUNTRIES = ["BE", "NL"];
+/**
+ * No chance mechanics exist anywhere, so no country allow/block list is
+ * needed. (Removed: the former BE/NL paid-chance bar. Gambling is not
+ * offered in ANY region, including the US.)
+ */
 
 export function resolveRegion(countryRaw: unknown, regionRaw: unknown): RegionInfo {
   const country = String(countryRaw ?? "").trim().toUpperCase();
@@ -265,17 +261,10 @@ export function checkChargeLegality(ctx: ChargeLegalityContext): ChargeLegality 
   if (PROFILE_RULES[ctx.profile].requiresSeasonLabel && !String(ctx.seasonLabel ?? "").trim()) {
     return { ok: false, error: "Battle-pass purchases need a current season.", rule: "season-required" };
   }
-  // Chance mechanics: odds everywhere, barred in BE/NL, profile must declare.
+  // Gambling is removed Service-wide: any charge flagged as chance fails
+  // closed in every region, with or without disclosed odds.
   if (ctx.chanceBased) {
-    if (!ctx.oddsDisclosed) {
-      return { ok: false, error: "Chance-based purchases must publish their odds first.", rule: "odds-required" };
-    }
-    if (CHANCE_BANNED_COUNTRIES.includes(ctx.region.country)) {
-      return { ok: false, error: "Paid chance-based mechanics are not offered in your region.", rule: "chance-region-ban" };
-    }
-    if (!rules.allowsChance) {
-      return { ok: false, error: "This game is not approved for chance-based mechanics.", rule: "chance-profile" };
-    }
+    return { ok: false, error: "Chance-based purchases are not offered. Every purchase is a deterministic item.", rule: "chance-removed" };
   }
   const eu = isEuStrict(ctx.region) || ctx.region.class === "KR" || ctx.region.class === "CN";
   return {

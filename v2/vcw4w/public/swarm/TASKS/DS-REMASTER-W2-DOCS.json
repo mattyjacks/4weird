@@ -1,1 +1,23 @@
-{"created": "2026-09-13T04:34:27.000Z", "gates": ["node scripts/verify-devswarm.mjs"], "goal": "Wave-2 guides ship as NEW files only under v2/vcw4w/app/docs/dps/ (donor setup, share sliders, earnings at 100-coins=$1, task types) and v2/vcw4w/app/docs/integrations/ (MCP server tools reference, Discord bot slash-command reference, env-only token setup). Reviewer reads /docs/dps and can donate compute; reads /docs/integrations and can point an MCP client at the server. MUST NOT touch app/docs/remastery/** (owned by done DS-REM-06) or any existing guide; nav wiring via QUEUE.md.", "id": "DS-REMASTER-W2-DOCS", "lane": "docs", "log": ["2026-09-13T04:34:27.000Z unassigned: envelope created by wave-2 triage (README 7.2 guides, docs lane, new files only)."], "owner": null, "scope": ["v2/vcw4w/app/docs/dps/**", "v2/vcw4w/app/docs/integrations/**"], "status": "open", "title": "Remastery W2 docs: DPS + integrations guides", "updated": "2026-09-13T04:34:27.000Z"}
+{
+  "created": "2026-09-13T04:34:27.000Z",
+  "gates": [
+    "node scripts/verify-devswarm.mjs"
+  ],
+  "goal": "Wave-2 guides ship as NEW files only under v2/vcw4w/app/docs/dps/ (donor setup, share sliders, earnings at 100-coins=$1, task types) and v2/vcw4w/app/docs/integrations/ (MCP server tools reference, Discord bot slash-command reference, env-only token setup). Reviewer reads /docs/dps and can donate compute; reads /docs/integrations and can point an MCP client at the server. MUST NOT touch app/docs/remastery/** (owned by done DS-REM-06) or any existing guide; nav wiring via QUEUE.md.",
+  "id": "DS-REMASTER-W2-DOCS",
+  "lane": "docs",
+  "log": [
+    "2026-09-13T04:34:27.000Z unassigned: envelope created by wave-2 triage (README 7.2 guides, docs lane, new files only).",
+    "2026-09-13T04:37:34.775453Z opencode-w23-docs: claimed for Wave-2/3 7-agent fan-out (opencode-w23 crew; conflict-checked vs R9/R10/R11/R13/R14/muse-spark-w2 scopes, target tree verified empty).",
+    "2026-09-13T04:40:34.922Z opencode-w23-docs: in_progress — README §3.4/§4.5/§4.6 + axioms read, remastery axioms page skimmed for DocsHero/docs-bits pattern; dps/ + integrations/ verified absent pre-write (new files only).",
+    "2026-09-13T04:42:35.432Z opencode-w23-docs: BLOCKED - 6 new docs pages written (dps/, integrations/); gate RED for reasons outside this scope: STATUS.json (updated 2026-09-13T05:55:00Z by another writer) claims open11/claimed1/in_progress7/blocked1/done29 but TASKS-dir recount = open12/claimed0/in_progress5/blocked4/done29. Gate error was STATUS claimed-counts mismatch (counts says 1, TASKS holds 0). Per brief, STATUS.json left untouched; needs steward recount + nav wiring."
+  ],
+  "owner": "opencode-w23-docs",
+  "scope": [
+    "v2/vcw4w/app/docs/dps/**",
+    "v2/vcw4w/app/docs/integrations/**"
+  ],
+  "status": "blocked",
+  "title": "Remastery W2 docs: DPS + integrations guides",
+  "updated": "2026-09-13T04:42:35.432Z"
+}

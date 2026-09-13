@@ -11,22 +11,22 @@ export const metadata: Metadata = {
 const TOOLS = [
   {
     href: "/tools/seo",
-    name: "SEO Analyzer",
+    name: "🔍 SEO Analyzer",
     blurb: "SERP simulator, social card preview, and heuristic checklist for any page.",
   },
   {
     href: "/tools/image",
-    name: "Image Optimizer",
+    name: "🎨 Image Optimizer",
     blurb: "Resize, compress to WebP/JPEG/PNG, and strip EXIF — 100% in your browser.",
   },
   {
     href: "/tools/writing",
-    name: "Writing Tools",
+    name: "✍️ Writing Tools",
     blurb: "Game title generator and marketing pitch copywriter for your next launch.",
   },
   {
     href: "/tools/counter",
-    name: "Counter Tools",
+    name: "⏱️ Counter Tools",
     blurb: "Words, characters, sentences, paragraphs, reading and speaking time — live.",
   },
 ];

@@ -110,11 +110,8 @@ export function VideoTimeline({ timeline, onTimelineChange, onSeek }: VideoTimel
       }
       const drag = clipDragRef.current;
       if (drag) {
-        const el = containerRef.current;
-        if (!el) return;
-        const rect = el.getBoundingClientRect();
+        // Delta-only math: scroll offsets cancel out, so no rect needed.
         const deltaSeconds = (e.clientX - drag.startX) / timeline.zoomLevel;
-        void rect;
         const next = timeline.clips.map((clip) =>
           clip.id === drag.id
             ? {
@@ -293,7 +290,7 @@ export function VideoTimeline({ timeline, onTimelineChange, onSeek }: VideoTimel
             role="slider"
             aria-label="Playhead"
             aria-valuenow={Number(timeline.currentTimeSeconds.toFixed(2))}
-                aria-valuemin={0}
+            aria-valuemin={0}
             aria-valuemax={timeline.totalDurationSeconds}
           >
             <div className="h-3 w-3 -translate-x-1/2 rounded-full bg-red-500" />

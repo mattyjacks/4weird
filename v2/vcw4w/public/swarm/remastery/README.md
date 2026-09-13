@@ -26,7 +26,7 @@
    - 3.5 Feature 05: DemoRecorder (DRe) — Screen Recorder & AI Action Dataset Logger
    - 3.6 Feature 06: Interactive 3D Pet Room & AliveSpeech Voice Companion
    - 3.7 Feature 07: CryptArt Commander (CAC) — Power-User Terminal & Scripting Engine
-   - 3.8 Feature 08: Luck Factory (LCK) — Intention Meditation & Cryptographic Luck Engine
+    - 3.8 Feature 08: Luck Factory (LCK) — Intention Meditation & Deterministic Preview Engine (no gambling)
    - 3.9 Feature 09: Cross-Tool Interoperability Suite (Bus, Clipboard, Pipelines)
    - 3.10 Feature 10: Universal `.4weird` Project Container Format
    - 3.11 Feature 11: Monaco IDE Diagnostic Panels (Testing, Web Audit, Problems)
@@ -1263,26 +1263,25 @@ export class CommandRegistry {
 
 ---
 
-## 3.8 Feature 08: Luck Factory (LCK) — Intention Meditation & Cryptographic Luck Engine
+## 3.8 Feature 08: Luck Factory (LCK) — Intention Meditation & Deterministic Preview Engine
 
 ### Architectural Blueprint
-Converts player mantras, wishes, or clan rallying cries into a deterministic cryptographic luck seed using SHA-256 hashing. The seed outputs presets (69, 420, 777) and injects directly into GraveGain loot tables, NewGamePlus procedural dungeons, and daily coin rewards.
+Converts player mantras, wishes, or clan rallying cries into a deterministic, entertainment-only D100 preview using FNV-1a hashing (non-cryptographic, disclosed as such in code and docs).
+
+> 🛡️ **NO-GAMBLING RULE (Service-wide, all regions including the US):** Luck Factory has NO paid draws, NO wagers, NO prizes, NO payouts, and NO ledger writes. It MUST NEVER feed loot tables, procedural dungeons, daily coin rewards, or any reward-granting path. Paid chance mechanics (loot boxes, gacha, prize draws) are removed from the Service entirely — there is no chance-based monetization profile and no region in which one can be sold. See `lib/monetization-policy.ts`.
 
 ```typescript
-export function computeLuckSeed(intention: string): { seed: number; preset: 69 | 420 | 777 } {
-  let hash = 0;
+export function computeLuckPreview(intention: string): { seedHex: string; roll: number } {
+  // FNV-1a 32-bit — deterministic spread only, NOT cryptographic, NOT a CSPRNG.
+  // Entertainment only: the roll is display-only and worth nothing.
+  let hash = 0x811c9dc5;
   for (let i = 0; i < intention.length; i++) {
-    hash = (hash << 5) - hash + intention.charCodeAt(i);
-    hash |= 0;
+    hash ^= intention.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
   }
-  const positive = Math.abs(hash);
-  const score = positive % 1000;
-
-  let preset: 69 | 420 | 777 = 69;
-  if (score >= 900) preset = 777;
-  else if (score >= 500) preset = 420;
-
-  return { seed: positive, preset };
+  const hex = hash.toString(16).padStart(8, "0");
+  const value = (hash >>> 0) / 4294967296;
+  return { seedHex: hex, roll: Math.floor(value * 100) + 1 };
 }
 ```
 

@@ -17,15 +17,15 @@ const featuredSix = FEATURED_SLUGS.map((slug) => getGame(slug)!).filter(Boolean)
 
 const TICKER = [
   "⚡ RTX 4090 live now",
-  "🖥️ Desktops in ~60s",
-  "🤖 Agents by the hour",
-  "🎮 34 games, free to try",
+  "💻 Desktops in ~60s",
+  "👱🏻‍♀️ Agents by the hour",
+  "🎮 35 games, free to try",
   "🐝 1-5 agent swarm chat",
-  "🎬 .blend → mp4 renders",
+  "🎥 .blend → mp4 renders",
   "🎨 30 fal.ai studio tools",
   "💼 cap-table + finance sims",
   "🪙 100 Vibe Coins = exactly $1.00",
-  "⚙️ VibeCodeWorker autoplay QA",
+  "👩🏻‍💻 VibeCodeWorker autoplay QA",
 ];
 
 const CLASSICS = [
@@ -55,7 +55,7 @@ const CLASSICS = [
   },
   {
     href: "/tech",
-    emoji: "🔧",
+    emoji: "⚙️",
     title: "Technology",
     body: "Next.js, Supabase, RunPod, and one honest coin ledger under it all.",
   },
@@ -986,20 +986,20 @@ export default function Home() {
             <ul className="mt-3 space-y-3">
               <DirItem
                 href="/games"
-                label="🕹️ All Games"
-                head="34 playable browser experiments."
+                label="🎮 All Games"
+                head="35 playable browser experiments."
                 more="With guides, cloud saves, and coin-metered play."
               />
               <DirItem
                 href="/buddy"
-                label="🎙️ Gaming Buddy"
+                label="🐶 Gaming Buddy"
                 head="Screen-aware 9-voice coach."
                 more="Live on every play page."
               />
               <DirItem href="/leaderboards" label="🏆 Leaderboards" head="Per-game kills, actions, and play-time." />
               <DirItem
                 href="/clans"
-                label="👾 Clans"
+                label="🏰 Clans"
                 head="Human, shared, and bot-native clans."
                 more="With chat, forums, and XP."
               />
@@ -1016,7 +1016,7 @@ export default function Home() {
             <ul className="mt-3 space-y-3">
               <DirItem
                 href="/agents"
-                label="🤖 AI Agents"
+                label="👱🏻‍♀️ AI Agents"
                 head={
                   <>
                     Rent hourly agents on RunPod{" "}
@@ -1031,7 +1031,7 @@ export default function Home() {
               />
               <DirItem
                 href="/desktop"
-                label="🖥️ Virtual Desktop"
+                label="💻 Virtual Desktop"
                 head={
                   <>
                     A real RunPod{" "}
@@ -1046,19 +1046,19 @@ export default function Home() {
               />
               <DirItem
                 href="/squads"
-                label="🚀 UnitUnite"
+                label="🛡️ UnitUnite"
                 head="Squad workspaces."
                 more="With metered GPU/serverless/storage cloud."
               />
               <DirItem
                 href="/vibecodeworker"
-                label="⚙️ VibeCodeWorker"
+                label="👩🏻‍💻 VibeCodeWorker"
                 head="Evidence-driven QA and autoplay."
                 more="Autoplay plays games for you."
               />
               <DirItem
                 href="/blender"
-                label="🎬 Blender Renders"
+                label="🎥 Blender Renders"
                 head="4090-backed .blend → mp4."
                 more="No install needed."
               />
@@ -1097,7 +1097,7 @@ export default function Home() {
               />
               <DirItem
                 href="/tech"
-                label="🔧 Technology"
+                label="⚙️ Technology"
                 head={
                   <>
                     How the stack works: Next.js, Supabase, RunPod{" "}
@@ -1124,7 +1124,7 @@ export default function Home() {
               />
               <DirItem
                 href="/fundraisers"
-                label="🚀 Fundraisers"
+                label="🎁 Fundraisers"
                 head="Gift-based launches."
                 more="For games and startups."
               />
@@ -1147,7 +1147,7 @@ export default function Home() {
             <ul className="mt-3 space-y-3">
               <DirItem
                 href="/favorites"
-                label="★ Favorites"
+                label="⭐ Favorites"
                 head="Your starred pages, saved on this device."
               />
               <DirItem
@@ -1158,7 +1158,7 @@ export default function Home() {
               />
               <DirItem
                 href="/account"
-                label="👤 Account"
+                label="👑 Account"
                 head="Dashboard, daily 🪙 claim, referrals, and checkout."
               />
               <DirItem
@@ -1190,7 +1190,7 @@ export default function Home() {
               />
               <DirItem
                 href="/docs"
-                label="📚 Docs"
+                label="📖 Docs"
                 head="12 guides from about → FAQ."
               />
             </ul>

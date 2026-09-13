@@ -1,5 +1,13 @@
 # DevSwarm TASKS — envelope lifecycle
 
+## Current task
+
+SwarmStart the `remastery/` folder: boot via `../SwarmStart.md` against
+`../remastery/README.md` (master implementation guide, v2.1.0-REMASTERY)
+plus its `sec*_*.py` build sources. Pick the oldest `open` envelope whose
+`scope` is disjoint from active work, claim it, and land it per the lifecycle
+below.
+
 Task envelopes (`DS-*.json` in this directory) are the machine-readable half of
 the DevSwarm hybrid bus (markdown bus + JSON envelopes). Each envelope follows
 `../schema.json` (envelope v0) EXACTLY — no extra fields.

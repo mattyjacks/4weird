@@ -26,8 +26,8 @@ export function isFavoritableHref(href: string): boolean {
 export const FAVORABLE_LINKS: SiteNavLink[] = (() => {
   const seen = new Set<string>();
   const out: SiteNavLink[] = [
-    { href: "/", label: "Home", quick: "Start here — cloud, arcade, and docs.", detail: "The 4weird homepage: cloud services, featured games, and the full site directory." },
-    { href: "/favorites", label: "Favorites", quick: "Your starred pages, in one place.", detail: "Every page you starred, saved on this device. Add or remove stars anytime." },
+    { href: "/", label: "🏠 Home", quick: "Start here — cloud, arcade, and docs.", detail: "The 4weird homepage: cloud services, featured games, and the full site directory." },
+    { href: "/favorites", label: "⭐ Favorites", quick: "Your starred pages, in one place.", detail: "Every page you starred, saved on this device. Add or remove stars anytime." },
   ];
   for (const group of SITE_NAV_GROUPS) {
     for (const link of group.links) {

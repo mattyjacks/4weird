@@ -23,13 +23,13 @@ export const metadata: Metadata = {
 };
 
 const sections = [
-  { slug: "overview", label: "Overview", blurb: "What VibeCodeWorker does and how the loop works." },
-  { slug: "hub", label: "Workspace", blurb: "Load a target, run a playtest, review evidence." },
-  { slug: "run", label: "Cloud Run", blurb: "Rent a cloud GPU with your own RunPod key (BYOK)." },
-  { slug: "full", label: "Full Web", blurb: "Browse the complete workspace source in the browser." },
-  { slug: "phone", label: "Remote", blurb: "Control a worker from your phone with a control token." },
-  { slug: "docs", label: "Manual", blurb: "Operational guidance for playtesting and debugging." },
-  { slug: "demo", label: "Demo", blurb: "A safe, non-operational interface preview." },
+  { slug: "overview", label: "👩🏻‍💻 Overview", blurb: "What VibeCodeWorker does and how the loop works." },
+  { slug: "hub", label: "🛠️ Workspace", blurb: "Load a target, run a playtest, review evidence." },
+  { slug: "run", label: "⚡ Cloud Run", blurb: "Rent a cloud GPU with your own RunPod key (BYOK)." },
+  { slug: "full", label: "💻 Full Web", blurb: "Browse the complete workspace source in the browser." },
+  { slug: "phone", label: "📱 Remote", blurb: "Control a worker from your phone with a control token." },
+  { slug: "docs", label: "📖 Manual", blurb: "Operational guidance for playtesting and debugging." },
+  { slug: "demo", label: "▶️ Demo", blurb: "A safe, non-operational interface preview." },
 ];
 
 export default function Page() {

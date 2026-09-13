@@ -1,1 +1,24 @@
-{"created": "2026-09-13T04:34:27.000Z", "gates": ["node scripts/verify-devswarm.mjs", "node scripts/verify-desktop.mjs"], "goal": "Desktop parity board for Remastery Wave-2 routes ships as NEW files only under v2/vcw4w/app/desktop/wave2/: a status page listing each Wave-2 route (DPS console, skills API, MCP/Discord packages, DPS pricing API, Wave-2 docs) as native vs webview-fallback per the parity model. Reviewer loads the page and sees every Wave-2 route covered. No existing desktop files modified.", "id": "DS-REMASTER-W2-DESKTOP", "lane": "desktop", "log": ["2026-09-13T04:34:27.000Z unassigned: envelope created by wave-2 triage (README 7.2 parity, desktop lane, new files only)."], "owner": null, "scope": ["v2/vcw4w/app/desktop/wave2/**"], "status": "open", "title": "Remastery W2 desktop: parity board for Wave-2 routes", "updated": "2026-09-13T04:34:27.000Z"}
+{
+  "created": "2026-09-13T04:34:27.000Z",
+  "gates": [
+    "node scripts/verify-devswarm.mjs",
+    "node scripts/verify-desktop.mjs"
+  ],
+  "goal": "Desktop parity board for Remastery Wave-2 routes ships as NEW files only under v2/vcw4w/app/desktop/wave2/: a status page listing each Wave-2 route (DPS console, skills API, MCP/Discord packages, DPS pricing API, Wave-2 docs) as native vs webview-fallback per the parity model. Reviewer loads the page and sees every Wave-2 route covered. No existing desktop files modified.",
+  "id": "DS-REMASTER-W2-DESKTOP",
+  "lane": "desktop",
+  "log": [
+    "2026-09-13T04:34:27.000Z unassigned: envelope created by wave-2 triage (README 7.2 parity, desktop lane, new files only).",
+    "2026-09-13T04:37:34.775453Z opencode-w23-desktop: claimed for Wave-2/3 7-agent fan-out (opencode-w23 crew; conflict-checked vs R9/R10/R11/R13/R14/muse-spark-w2 scopes, target tree verified empty).",
+    "2026-09-13T04:40:15.9367492Z opencode-w23-desktop: in_progress — Wave-1 precedent (remastery/page.tsx + parity.ts) read as pattern only, README 7.2 Wave-2 deliverables confirmed, app/desktop/wave2/ verified absent; creating new parity board files now.",
+    "2026-09-13T04:41:38.0892124Z opencode-w23-desktop: created v2/vcw4w/app/desktop/wave2/parity.ts (PARITY_MODEL + 8 WAVE2_PARITY_ROUTES) + v2/vcw4w/app/desktop/wave2/page.tsx (parity board, canonical /desktop/wave2, force-static); zero existing desktop files modified, zero Tauri changes.",
+    "2026-09-13T04:41:38.0892124Z opencode-w23-desktop: gates — node scripts/verify-desktop.mjs GREEN (Virtual Desktop integrity OK); node scripts/verify-devswarm.mjs RED (STATUS.json counts mismatch for 'claimed': counts says 1, TASKS holds 0; steward-owned STATUS.json stale vs concurrent lane moves, actual TASKS = open 11 / claimed 0 / in_progress 7 / blocked 2 / done 29). Lane work complete; blocked on steward recount only."
+  ],
+  "owner": "opencode-w23-desktop",
+  "scope": [
+    "v2/vcw4w/app/desktop/wave2/**"
+  ],
+  "status": "blocked",
+  "title": "Remastery W2 desktop: parity board for Wave-2 routes",
+  "updated": "2026-09-13T04:41:38.0892124Z"
+}

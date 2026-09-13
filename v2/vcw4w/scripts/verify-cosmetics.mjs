@@ -39,7 +39,7 @@ has(
   "lib/monetization-policy.ts",
   "MONETIZATION_PROFILES", "profileForGame", "validateGameMonetization",
   "resolveRegion", "resolveRegionFromHeaders", "checkChargeLegality",
-  "CHANCE_BANNED_COUNTRIES", "EU_WAIVER_LINE", "priceLine",
+  "EU_WAIVER_LINE", "priceLine",
 );
 
 // 4. Migration: inventory + loadouts + audited charges + atomic RPCs.
@@ -162,15 +162,17 @@ assert(policy.resolveRegion("", "").class === "UNKNOWN", "missing geo is UNKNOWN
 const ctx = (over) => ({ profile: "singleplayer-boosts", audience: "general", kidsMode: false, region: policy.resolveRegion("US", "CA"), category: "singleplayer-boost", chanceBased: false, oddsDisclosed: false, ...over });
 assert(policy.checkChargeLegality(ctx({})).ok === true, "plain boost passes");
 assert(policy.checkChargeLegality(ctx({ kidsMode: true })).ok === false, "kids blocked");
-assert(policy.checkChargeLegality(ctx({ chanceBased: true })).ok === false, "chance needs odds");
-assert(policy.checkChargeLegality(ctx({ chanceBased: true, oddsDisclosed: true, region: policy.resolveRegion("BE", "") })).ok === false, "chance banned BE");
+assert(policy.checkChargeLegality(ctx({ chanceBased: true })).ok === false, "chance removed everywhere");
+assert(policy.checkChargeLegality(ctx({ chanceBased: true, oddsDisclosed: true, region: policy.resolveRegion("BE", "") })).ok === false, "chance removed even with odds, even in BE");
+assert(policy.checkChargeLegality(ctx({ chanceBased: true, oddsDisclosed: true, region: policy.resolveRegion("US", "NH") })).ok === false, "chance removed even in NH");
 assert(policy.checkChargeLegality({ ...ctx({ category: "cosmetic" }), profile: "no-monetization" }).ok === false, "no-monetization sells nothing");
 {
   const eu = policy.checkChargeLegality({ ...ctx({ category: "cosmetic" }), profile: "cosmetics-only", region: policy.resolveRegion("FR", "") });
   assert(eu.ok === true && typeof eu.receipt.euWaiver === "string", "EU receipt carries the waiver");
 }
 assert(policy.validateGameMonetization({ profile: "singleplayer-boosts", multiplayer: true }).ok === false, "upload: multiplayer can't declare boosts");
-assert(policy.validateGameMonetization({ profile: "chance-based", multiplayer: false, chanceBased: true, oddsDisclosed: false }).ok === false, "upload: chance needs odds");
+assert(policy.validateGameMonetization({ profile: "chance-based", multiplayer: false, chanceBased: true, oddsDisclosed: false }).ok === false, "upload: chance profile no longer exists");
+assert(policy.validateGameMonetization({ profile: "cosmetics-only", multiplayer: false, chanceBased: true, oddsDisclosed: true }).ok === false, "upload: chance refused even with odds");
 assert(policy.validateGameMonetization({ profile: "battle-pass", multiplayer: false, seasonLabel: "" }).ok === false, "upload: pass needs season");
 assert(policy.validateGameMonetization({ profile: "cosmetics-only", multiplayer: true }).ok === true, "upload: multiplayer cosmetics-only passes");
 assert(policy.priceLine(10) === "10 coins ($0.10)", "price line format");

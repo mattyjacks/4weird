@@ -12,12 +12,14 @@
                   "node scripts/verify-remastery-wave23.mjs",
                   "node scripts/verify-migration-versions.mjs"
               ],
-    "status":  "in_progress",
+    "status":  "done",
     "owner":  "R14",
     "created":  "2026-09-13T04:35:12.000Z",
-    "updated":  "2026-09-13T04:35:30.000Z",
+    "updated":  "2026-09-13T04:37:18.000Z",
     "log":  [
                 "2026-09-13T04:35:12.000Z R14: claimed, starting scope survey + migration draft.",
-                "2026-09-13T04:35:30.000Z R14: in_progress, writing migration 20261116000002 + union verifier (scope disjoint from all active envelopes)."
+                "2026-09-13T04:35:30.000Z R14: in_progress, writing migration 20261116000002 + union verifier (scope disjoint from all active envelopes).",
+                "2026-09-13T04:37:18.000Z R14: GATE EVIDENCE — node --check scripts/verify-remastery-wave23.mjs PASS (silent); node scripts/verify-remastery-wave23.mjs GREEN: \u0027remastery-wave23 OK: union of 20261116000000_remastery_wave1.sql, 20261116000001_remastery_wave1.sql + 20261116000002_remastery_wave23.sql covers 19 tables + RLS + 13 policies + 6 indexes; no cross-wave dupes; no dangling squad refs; coin boundary intact.\u0027; node scripts/verify-migration-versions.mjs GREEN: \u0027Migration versions OK: 98 files, unique versions, rerunnable guards present.\u0027; sibling check node scripts/verify-remastery-wave1.mjs still GREEN (15 tables, no Wave-2/3 tables).",
+                "2026-09-13T04:37:18.000Z R14: done — QUEUE filed 3 lines (economy coin boundary, data/auth RLS policies, steward wiring+recount); no existing migration edited, R7 verifier untouched."
             ]
 }

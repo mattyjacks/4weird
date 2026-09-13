@@ -25,7 +25,7 @@ export const BUSINESS_APPS: BusinessApp[] = [
   {
     href: "/squads",
     label: "UnitUnite",
-    emoji: "🚀",
+    emoji: "🛡️",
     blurb: "Squad workspaces with projects, code, issues, and encrypted team messaging.",
   },
   {
@@ -53,15 +53,21 @@ export const BUSINESS_APPS: BusinessApp[] = [
     blurb: "Org-scoped invoice memoranda with line items (not tax invoices); settlement only via guarded flows.",
   },
   {
+    href: "/business/tax",
+    label: "Tax Info Bot",
+    emoji: "🤖",
+    blurb: "Autonomous freelance and creator tax calculator & expense categorizer.",
+  },
+  {
     href: "/business/crm",
     label: "Business CRM",
-    emoji: "🤝",
+    emoji: "👥",
     blurb: "Contacts, pipelines, and follow-ups for teams that sell things.",
   },
   {
     href: "/squads",
     label: "Team Management",
-    emoji: "👥",
+    emoji: "🤝",
     blurb: "Roles, permissions, rooms, and shared wallets for every squad.",
   },
   {

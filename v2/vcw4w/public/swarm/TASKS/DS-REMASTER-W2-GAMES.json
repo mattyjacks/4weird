@@ -1,1 +1,25 @@
-{"created": "2026-09-13T04:34:27.000Z", "gates": ["node scripts/verify-devswarm.mjs", "node scripts/verify-catalog-runtime.mjs"], "goal": "Games-side compute-job submission (Remastery Wave 2 games slice) ships as NEW files only: v2/vcw4w/lib/game-compute.ts (typed job-request builder for blender_render/video_transcode/game_bundle task types with coin-cost estimate at 100=$1 parity, pure + fail-open) plus v2/vcw4w/app/games/compute/ page where a player queues a background job for their game with offline fallback copy. Reviewer imports the builder and the page renders. No game bundles touched, no catalog manifest edits (wiring via QUEUE.md).", "id": "DS-REMASTER-W2-GAMES", "lane": "games", "log": ["2026-09-13T04:34:27.000Z unassigned: envelope created by wave-2 triage (README 7.2 + Feature 04 game jobs, games lane, new files only)."], "owner": null, "scope": ["v2/vcw4w/lib/game-compute.ts", "v2/vcw4w/app/games/compute/**"], "status": "open", "title": "Remastery W2 games: compute-job submission kit", "updated": "2026-09-13T04:34:27.000Z"}
+{
+  "created": "2026-09-13T04:34:27.000Z",
+  "gates": [
+    "node scripts/verify-devswarm.mjs",
+    "node scripts/verify-catalog-runtime.mjs"
+  ],
+  "goal": "Games-side compute-job submission (Remastery Wave 2 games slice) ships as NEW files only: v2/vcw4w/lib/game-compute.ts (typed job-request builder for blender_render/video_transcode/game_bundle task types with coin-cost estimate at 100=$1 parity, pure + fail-open) plus v2/vcw4w/app/games/compute/ page where a player queues a background job for their game with offline fallback copy. Reviewer imports the builder and the page renders. No game bundles touched, no catalog manifest edits (wiring via QUEUE.md).",
+  "id": "DS-REMASTER-W2-GAMES",
+  "lane": "games",
+  "log": [
+    "2026-09-13T04:34:27.000Z unassigned: envelope created by wave-2 triage (README 7.2 + Feature 04 game jobs, games lane, new files only).",
+    "2026-09-13T04:37:34.775453Z opencode-w23-games: claimed for Wave-2/3 7-agent fan-out (opencode-w23 crew; conflict-checked vs R9/R10/R11/R13/R14/muse-spark-w2 scopes, target tree verified empty).",
+    "2026-09-13T05:12:00.000Z opencode-w23-games: in_progress — target tree listed empty (no app/games/compute/**, no lib/game-compute.ts); creating NEW files only, no bundles touched.",
+    "2026-09-13T05:20:00.000Z opencode-w23-games: created lib/game-compute.ts (job-spec types+validator+fail-open offline queue, taskTypes blender_render/video_transcode/game_bundle/procedural/sprite, 100=$1) + app/games/compute/page.tsx + app/games/compute/compute-form.tsx (submission form, local queue first, offline fallback copy). Gates: verify-catalog-runtime OK (38 legacy entrypoints, 35 canonical bundles); verify-devswarm RED on steward-owned STATUS.json counts drift (counts open=11 vs TASKS actual 4) — cannot hand-edit STATUS.json, requesting steward recount.",
+    "2026-09-13T05:20:00.000Z opencode-w23-games: status -> blocked (gate verify-devswarm red for shared-state reason outside games scope; work product complete, zero writes outside owned scopes)."
+  ],
+  "owner": "opencode-w23-games",
+  "scope": [
+    "v2/vcw4w/lib/game-compute.ts",
+    "v2/vcw4w/app/games/compute/**"
+  ],
+  "status": "blocked",
+  "title": "Remastery W2 games: compute-job submission kit",
+  "updated": "2026-09-13T05:20:00.000Z"
+}

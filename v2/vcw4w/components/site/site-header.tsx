@@ -13,12 +13,20 @@ import { SITE_NAV_GROUPS as SHARED_NAV_GROUPS } from "@/lib/site-nav";
 // Single source of truth for link explanations lives in lib/site-nav.ts
 // (also powers MenuSidebar). The href literals below stay inline because
 // scripts/verify-*.mjs assert their presence in this file.
-const QUICK_BY_HREF = new Map(
-  SHARED_NAV_GROUPS.flatMap((g) => g.links).map((l) => [`${l.label}::${l.href}`, l.quick] as const),
-);
+const QUICK_BY_HREF = new Map<string, string>();
+for (const g of SHARED_NAV_GROUPS) {
+  for (const l of g.links) {
+    QUICK_BY_HREF.set(`${l.label}::${l.href}`, l.quick);
+    QUICK_BY_HREF.set(l.href, l.quick);
+    const stripped = l.label.replace(/^[\p{Emoji}\s]+/u, "");
+    if (stripped) {
+      QUICK_BY_HREF.set(`${stripped}::${l.href}`, l.quick);
+    }
+  }
+}
 
 function quickFor(label: string, href: string): string | undefined {
-  return QUICK_BY_HREF.get(`${label}::${href}`);
+  return QUICK_BY_HREF.get(`${label}::${href}`) ?? QUICK_BY_HREF.get(href);
 }
 
 type NavLink = {
@@ -31,43 +39,43 @@ const GITHUB_HREF = "https://github.com/mattyjacks/4weird";
 
 const NAV_GROUPS: { label: string; links: NavLink[] }[] = [
   {
-    label: "Play",
+    label: "🎮 Play",
     links: [
-      { href: "/buddy", label: "Gaming Buddy" },
-      { href: "/leaderboards", label: "Leaderboards" },
-      { href: "/clans", label: "Clans" },
-      { href: "/lobbies", label: "Lobbies" },
-      { href: "/xonotic", label: "Xonotic" },
+      { href: "/buddy", label: "🐶 Gaming Buddy" },
+      { href: "/leaderboards", label: "🏆 Leaderboards" },
+      { href: "/clans", label: "🏰 Clans" },
+      { href: "/lobbies", label: "🎪 Lobbies" },
+      { href: "/xonotic", label: "🔫 Xonotic" },
     ],
   },
   {
-    label: "Rent Tech 🌐",
+    label: "🌐 Rent Tech",
     links: [
-      { href: "/agents", label: "AI Agents" },
-      { href: "/runpods", label: "My RunPods" },
-      { href: "/desktop", label: "Virtual Desktop" },
-      { href: "/swarm", label: "Agent Swarm" },
-      { href: "/pricing", label: "Pricing" },
+      { href: "/agents", label: "👱🏻‍♀️ AI Agents" },
+      { href: "/runpods", label: "⚡ My RunPods" },
+      { href: "/desktop", label: "💻 Virtual Desktop" },
+      { href: "/swarm", label: "🐝 Agent Swarm" },
+      { href: "/pricing", label: "🪙 Pricing" },
     ],
   },
   {
-    label: "Make",
+    label: "🛠️ Make",
     links: [
-      { href: "/newgameplus", label: "NewGamePlus" },
-      { href: "/submit", label: "Submit Game" },
-      { href: "/vault", label: "Weird Vault" },
-      { href: "/fal", label: "fal.ai Studio" },
-      { href: "/meshy", label: "Meshy 3D" },
+      { href: "/newgameplus", label: "✨ NewGamePlus" },
+      { href: "/submit", label: "🚀 Submit Game" },
+      { href: "/vault", label: "🗄️ Weird Vault" },
+      { href: "/fal", label: "🎨 fal.ai Studio" },
+      { href: "/meshy", label: "🧊 Meshy 3D" },
     ],
   },
   {
-    label: "More",
+    label: "✨ More",
     links: [
-      { href: "/docs", label: "Docs" },
-      { href: "/support", label: "Support" },
-      { href: "/academy", label: "Academy" },
-      { href: "/account", label: "Account" },
-      { href: "/vibecodeworker", label: "VibeCodeWorker" },
+      { href: "/docs", label: "📖 Docs" },
+      { href: "/support", label: "💛 Support" },
+      { href: "/academy", label: "🎓 Academy" },
+      { href: "/account", label: "👑 Account" },
+      { href: "/vibecodeworker", label: "👩🏻‍💻 VibeCodeWorker" },
     ],
   },
 ];
@@ -75,21 +83,21 @@ const NAV_GROUPS: { label: string; links: NavLink[] }[] = [
 // Hidden overflow links (not rendered in slim dropdowns): keeps removed href
 // literals present in this file so scripts/verify-*.mjs stay green.
 const NAV_MORE_LINKS: NavLink[] = [
-  { href: "/timer", label: "Timer & Work Diary" },
-  { href: "/bot/bclans", label: "Bot Clans" },
-  { href: "/bot/setup", label: "Bots" },
-  { href: "/blender", label: "Blender" },
-  { href: "/squads", label: "UnitUnite" },
-  { href: "/web-apps", label: "Web Apps" },
-  { href: "/spaceships", label: "Spaceships" },
-  { href: "/academy", label: "Academy" },
-  { href: "/tech", label: "Technology" },
-  { href: "/favorites", label: "Favorites" },
-  { href: "/my/usage/", label: "Usage" },
-  { href: "/accessibility", label: "Accessibility" },
-  { href: "/docs", label: "Docs" },
-  { href: "/runpods", label: "My RunPods" },
-  { href: "/desktop", label: "Virtual Desktop" },
+  { href: "/timer", label: "⏱️ Timer & Work Diary" },
+  { href: "/bot/bclans", label: "🤖 Bot Clans" },
+  { href: "/bot/setup", label: "🤖 Bots" },
+  { href: "/blender", label: "🎥 Blender" },
+  { href: "/squads", label: "🛡️ UnitUnite" },
+  { href: "/web-apps", label: "🌐 Web Apps" },
+  { href: "/spaceships", label: "🛸 Spaceships" },
+  { href: "/academy", label: "🎓 Academy" },
+  { href: "/tech", label: "⚙️ Technology" },
+  { href: "/favorites", label: "⭐ Favorites" },
+  { href: "/my/usage/", label: "📊 Usage" },
+  { href: "/accessibility", label: "♿ Accessibility" },
+  { href: "/docs", label: "📖 Docs" },
+  { href: "/runpods", label: "⚡ My RunPods" },
+  { href: "/desktop", label: "💻 Virtual Desktop" },
 ];
 void NAV_MORE_LINKS;
 void GITHUB_HREF;
@@ -394,19 +402,19 @@ function HeaderCtas({ signedIn, onNavigate }: { signedIn: boolean | null; onNavi
   return (
     <>
       <Link href="/pricing" onClick={onNavigate} className={CTA_COINS}>
-        💰 Get Coins
+        🪙 Get Coins
       </Link>
       {signedIn ? (
         <Link href="/account" onClick={onNavigate} className={CTA_PRIMARY}>
-          Dashboard
+          👑 Dashboard
         </Link>
       ) : (
         <>
           <Link href="/auth/login" onClick={onNavigate} className={CTA_OUTLINE}>
-            Login
+            🔑 Login
           </Link>
           <Link href="/auth/sign-up" onClick={onNavigate} className={CTA_PRIMARY}>
-            Sign Up
+            ✨ Sign Up
           </Link>
         </>
       )}
@@ -437,7 +445,7 @@ function AllGamesLink({
         aria-current={active ? "page" : undefined}
         className="block rounded-xl bg-cyan-600 px-3 py-2 text-center text-sm font-black text-white transition hover:bg-cyan-500 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
       >
-        All Games
+        🎮 All Games
       </Link>
     );
   }
@@ -450,7 +458,7 @@ function AllGamesLink({
         active ? "text-cyan-600 dark:text-cyan-300" : ""
       }`}
     >
-      All Games
+      🎮 All Games
     </Link>
   );
 }

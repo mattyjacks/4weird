@@ -27,7 +27,7 @@ def get_section_1():
    - 3.5 Feature 05: DemoRecorder (DRe) — Screen Recorder & AI Action Dataset Logger
    - 3.6 Feature 06: Interactive 3D Pet Room & AliveSpeech Voice Companion
    - 3.7 Feature 07: CryptArt Commander (CAC) — Power-User Terminal & Scripting Engine
-   - 3.8 Feature 08: Luck Factory (LCK) — Intention Meditation & Cryptographic Luck Engine
+    - 3.8 Feature 08: Luck Factory (LCK) — Intention Meditation & Deterministic Preview Engine (no gambling)
    - 3.9 Feature 09: Cross-Tool Interoperability Suite (Bus, Clipboard, Pipelines)
    - 3.10 Feature 10: Universal `.4weird` Project Container Format
    - 3.11 Feature 11: Monaco IDE Diagnostic Panels (Testing, Web Audit, Problems)

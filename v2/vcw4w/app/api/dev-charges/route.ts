@@ -19,13 +19,15 @@ export const dynamic = "force-dynamic";
 /**
  * POST /api/dev-charges; a game takes coins for a declared, consented action.
  * Body: { game_slug, category ("cosmetic"|"singleplayer-boost"), amount,
- *   label, idem, acceptedQuote, season?, chance?, odds?, kidsMode? }.
+ *   label, idem, acceptedQuote, season?, kidsMode? }. The `chance`/`odds`
+ *   fields are rejected outright: gambling is removed Service-wide and no
+ *   paid random draw can be sold in any region.
  *
  * Every protection fires before money moves: category allowlist (multiplayer
  * boosts can never be recorded; the RPC rejects them too), multiplayer gate,
- * 10k single-charge cap, exact consent-quote match, per-game daily cap,
- * idempotency (retries return the original receipt), monetization-profile +
- * region legality (kids block, chance odds/region gates, EU waiver receipt),
+ * gambling refusal, 10k single-charge cap, exact consent-quote match,
+ * per-game daily cap, idempotency (retries return the original receipt),
+ * monetization-profile + region legality (kids block, EU waiver receipt),
  * balance check. Every charge lands an audit row the player can see.
  */
 export async function POST(req: Request) {
@@ -63,17 +65,21 @@ export async function POST(req: Request) {
   });
   if (!checked.ok) return fail(checked.error, 400);
 
+  // Gambling is removed Service-wide: refuse any chance-flagged charge here
+  // (checkChargeLegality also fails it closed as defense in depth).
+  if (input.chance === true || input.odds === true || input.oddsDisclosed === true) {
+    return fail("Chance-based purchases are not offered. Every purchase is a deterministic item.", 403);
+  }
   const region = resolveRegionFromHeaders(req.headers);
   const profile = profileForGame(checked.gameSlug);
-  const chance = input.chance === true;
   const legal = checkChargeLegality({
     profile,
     audience: audienceForGame(checked.gameSlug),
     kidsMode: input.kidsMode === true,
     region,
     category: checked.category,
-    chanceBased: chance,
-    oddsDisclosed: input.odds === true || input.oddsDisclosed === true,
+    chanceBased: false,
+    oddsDisclosed: false,
     seasonLabel: input.season ?? input.seasonLabel,
   });
   if (!legal.ok) return fail(legal.error, 403);

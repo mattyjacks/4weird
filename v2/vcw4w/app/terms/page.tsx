@@ -67,6 +67,7 @@ export default function TermsPage() {
           <li>infringe intellectual-property, privacy, or other rights; upload malicious code; impersonate others; or harvest other users’ information;</li>
           <li>harass, threaten, defame, hate-target, or harm anyone; post sexual content involving minors in any form; this results in immediate removal, account termination, evidence preservation, and referral to authorities (see Section 5);</li>
           <li>alternatively monetize, cash out, or extract value from Coins, Crowns, or Ghost Cash outside the expressly permitted paths in Sections 8-8A.1; including selling, buying, trading, exchanging, gifting-for-cash, pegging to fiat or crypto, advertising exchange rates, factoring Ghost IOUs, using balances as collateral, or routing around the closed loop (see Sections 8 and 8C);</li>
+          <li>gamble or operate games of chance on the Service; buy, sell, offer, or solicit loot boxes, gacha, paid random draws, prize draws, raffles, wagers, or stakes in any unit or currency; or treat Luck Factory previews - deterministic entertainment illustrations with no prize, payout, or entry fee - as gambling or as a basis for off-Service betting;</li>
           <li>abuse support, reporting, or privacy-request channels, including filing false reports or automated bulk requests.</li>
         </ul>
 
@@ -229,6 +230,13 @@ export default function TermsPage() {
           server-side transactions, are spendable on cloud computing, game credits, and other on-site services only (never cash-out, never withdrawable), and may be changed, removed, or discontinued at any time. Purchases are
           final except where required by applicable law (including non-waivable EU/UK consumer rights) or expressly
           stated otherwise; including the 90-day unspent-purchase refund below.
+        </p>
+        <p>
+          <strong>No gambling, no chance purchases.</strong> Every purchase on the Service is a deterministic
+          item: you always know exactly what you get before you pay. We sell no loot boxes, gacha, paid random
+          draws, prize draws, raffles, wagers, or stakes, in any region - including the United States and New
+          Hampshire. Luck Factory previews are free entertainment illustrations with no entry fee, no prize, and
+          no payout, and they never affect games, rewards, or balances.
         </p>
         <p>
           <strong>90-day refund on unspent purchased coins.</strong> Coins you bought (paid packs only -

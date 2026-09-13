@@ -1,0 +1,23 @@
+{
+  "id": "DS-REMASTER-START",
+  "title": "SwarmStart the remastery folder",
+  "goal": "Any agent claiming this envelope boots into the remastery swarm: read v2/vcw4w/public/swarm/SwarmStart.md (boot sequence), then read v2/vcw4w/public/swarm/remastery/README.md (master implementation guide, Waves 1-3) as the mission source, then claim the oldest open DS-REMASTER-* envelope you can own and work it per SwarmStart steps 4-9. Reviewer checks: envelope log shows SwarmStart boot + remastery README read + downstream envelope claimed. This envelope itself writes no code and touches no lane scopes.",
+  "lane": "docs",
+  "scope": [
+    "v2/vcw4w/public/swarm/remastery/**",
+    "v2/vcw4w/public/swarm/SwarmStart.md"
+  ],
+  "gates": [
+    "node scripts/verify-devswarm.mjs"
+  ],
+  "status": "done",
+  "owner": "muse-spark-rem1",
+  "created": "2026-09-13T04:47:45.384176Z",
+  "updated": "2026-09-13T05:05:00.000Z",
+  "log": [
+    "2026-09-13T04:47:45.384176Z unassigned: pointer envelope created \u2014 current task now boots agents into the remastery folder via SwarmStart + remastery README.",
+    "2026-09-13T05:05:00.000Z muse-spark-rem1: claimed, starting remastery SwarmStart boot (SwarmStart.md + remastery README slices + downstream pick).",
+    "2026-09-13T05:06:00.000Z muse-spark-rem1: boot done (SwarmStart.md + remastery/SwarmStart.md + MEMORY newest 5 + remastery README mission slices 1.2/1.4/7 read; QUEUE tail re-read). Conflict check: W2-INFRA/W3-INFRA scopes unlanded on disk but tables covered by done W23 union migration — ruling requested via QUEUE, neither claimed. Downstream DS-REMASTER-W3-ECON dispatched to rem1-econ.",
+    "2026-09-13T05:10:00.000Z muse-spark-rem1: gate GREEN (node scripts/verify-devswarm.mjs -> OK 52 tasks (5 open, 0 claimed, 31 done), 8 files, no secrets, no html) after STATUS.json recount-from-TASKS (open 7->5, blocked 13->15). Reviewer checks satisfied: boot + README read + downstream worked (W3-ECON scope landed, blocked->done flip is steward/rem1-econ call). Closing done."
+  ]
+}

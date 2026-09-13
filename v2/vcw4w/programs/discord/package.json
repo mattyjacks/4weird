@@ -13,7 +13,7 @@
     "register": "node dist/register-commands.js"
   },
   "dependencies": {
-    "discord.js": "^14.51.0"
+    "discord.js": "^14.27.0"
   },
   "devDependencies": {
     "@types/node": "^22.7.0",
