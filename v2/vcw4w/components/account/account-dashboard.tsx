@@ -34,7 +34,13 @@ export function AccountDashboard() {
   const [message, setMessage] = useState("Loading account…");
   const [busy, setBusy] = useState(false);
 
-  const loadAccount = useCallback(() => { void Promise.all([request<{ profile: Profile | null }>("/api/me/profile"), request<{ balance: number; centicentcoins?: number }>("/api/coins/balance"), request<{ rows: LedgerRow[] }>("/api/coins/history?limit=25")]).then(([p, b, h]) => { setProfile(p.profile ?? null); setName(p.profile?.display_name ?? ""); setBand(toBandChoice(p.profile?.age_band)); setFamilyRole(p.profile?.family_role ?? "solo"); setBalance(b.balance); setCenticentcoins(typeof b.centicentcoins === "number" ? b.centicentcoins : Math.round((Number(b.balance) || 0) * 100)); setHistory(h.rows ?? []); setLoaded(true); setMessage(""); }).catch((error: unknown) => setMessage(error instanceof Error ? error.message : "Unable to load account.")); }, []);
+  const loadAccount = useCallback(() => { void Promise.all([request<{ profile: Profile | null }>("/api/me/profile"), request<{ balance: number; centicentcoins?: number }>("/api/coins/balance"), request<{ rows: LedgerRow[] }>("/api/coins/history?limit=25")]).then(([p, b, h]) => { setProfile(p.profile ?? null); setName(p.profile?.display_name ?? ""); setBand(toBandChoice(p.profile?.age_band)); setFamilyRole(p.profile?.family_role ?? "solo"); setBalance(b.balance); setCenticentcoins(typeof b.centicentcoins === "number" ? b.centicentcoins : Math.round((Number(b.balance) || 0) * 100)); setHistory(h.rows ?? []); setLoaded(true); setMessage(""); }).catch((error: unknown) => {
+    // Never leave the previous account's data on screen when the session is
+    // gone (logged out / expired on a shared device): a 401 here means these
+    // numbers no longer belong to the viewer.
+    setProfile(null); setBalance(null); setCenticentcoins(null); setHistory([]); setLoaded(true); setName(""); setBand("");
+    setMessage(error instanceof Error ? error.message : "Unable to load account.");
+  }); }, []);
   useEffect(() => { loadAccount(); window.addEventListener("vibe-coins-changed", loadAccount); return () => window.removeEventListener("vibe-coins-changed", loadAccount); }, [loadAccount]);
 
   // Legacy rows (null/unknown/kid) can never satisfy the play gate: the API

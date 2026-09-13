@@ -33,7 +33,16 @@ export async function proxy(request: NextRequest) {
     const hasSessionCookie = request.cookies
       .getAll()
       .some((c) => c.name === "kid_session" || c.name.startsWith("sb-"));
-    if (!hasSecretAuth && hasSessionCookie && !sameOrigin(request)) {
+    // Logout only destroys the session (it clears the sb-* cookies and
+    // revokes nothing else), so a forged cross-site logout is at worst a
+    // nuisance, never data theft or a state change on someone else's
+    // behalf. It must stay reachable even when Origin/Referer are stripped
+    // (privacy extensions, referrer policies): the server-set session
+    // cookies are httpOnly, so this route is the ONLY path that can clear
+    // them — blocking it leaves the account logged in server-side while
+    // the browser already looks logged out.
+    const isLogout = request.nextUrl.pathname === "/api/auth/logout";
+    if (!hasSecretAuth && hasSessionCookie && !isLogout && !sameOrigin(request)) {
       return NextResponse.json(
         { success: false, error: "Invalid request origin." },
         { status: 403, headers: { "Cache-Control": "private, no-store" } },
