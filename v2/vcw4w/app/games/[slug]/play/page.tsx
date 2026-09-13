@@ -66,9 +66,10 @@ export default async function PlayPage({ params }: { params: Promise<{ slug: str
   const manifest = detail.manifest;
   return (
     <div className="bg-black text-white" data-theme-lock="dark">
-      <CachedPlayHeader slug={slug} />
-      <div className="mx-auto max-w-6xl px-4 pb-10 sm:px-5">
-        <div className="mt-4">
+      {/* Game first: the playable frame is the first thing below the site
+          menu. Title, badges, guide, and panels all render underneath it. */}
+      <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-5">
+        <div>
           <Suspense fallback={<p className="py-10 text-center text-sm text-white/60">Loading game player…</p>}>
             <PlayGate slug={game.slug} title={game.title} src={src} version={String(manifest.schemaVersion)} emoji={game.emoji} />
           </Suspense>
@@ -78,6 +79,9 @@ export default async function PlayPage({ params }: { params: Promise<{ slug: str
             <GraveGainParty slug={game.slug} />
           </Suspense>
         )}
+      </div>
+      <CachedPlayHeader slug={slug} />
+      <div className="mx-auto max-w-6xl px-4 pb-10 sm:px-5">
         <CachedPlayPanels slug={slug} />
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
           <Link

@@ -1000,7 +1000,6 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
   if (!entered && age === "passed") {
     return (
       <div>
-      {picker}
       <div className="overflow-hidden rounded-2xl border border-cyan-300/30 bg-gradient-to-b from-slate-950 via-black to-slate-950">
         <div className="play-frame-height grid min-h-[420px] place-items-center p-8 text-center">
           <div className="max-w-md">
@@ -1024,6 +1023,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
           </div>
         </div>
       </div>
+      {picker}
       </div>
     );
   }
@@ -1209,6 +1209,21 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
   return (
     <div>
       {kidHandle && <KidBanner />}
+      {/* Game first: the frame mounts at the top, directly below the site
+          menu. Picker, metering, and notices all render BELOW the game so
+          players never scroll past setup copy to reach play. */}
+      <div
+        id="game-frame"
+        className="overscroll-contain has-[.fixed]:overflow-visible"
+      >
+        <div className="w-full">
+          <GameRuntimeFrame slug={slug} title={title} src={frameSrc} />
+        </div>
+      </div>
+      <p className="mt-2 text-xs text-slate-400">
+        Click the game once to focus keyboard controls · Fullscreen or Pop out for the full game window · Progress
+        auto-starts from slot 0 (cheat-free) when you&apos;re signed in; slots 1–3 are optional alternates. Cloud saves need sign-in.
+      </p>
       {picker}
       {metering && (
         <p role="status" className="mb-2 rounded-xl border border-white/10 bg-white/[.04] px-4 py-2 text-xs text-slate-300">
@@ -1254,31 +1269,6 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
           for 100 coins, daily bonuses, and no ads.
         </p>
       )}
-      {/* Game frame shell. The inner wrapper keeps a stable viewport height
-          (play-frame-height: 70/75svh) plus a 420px floor, so the page never
-          jumps — including when the runtime shell takes its CSS-fallback
-          fullscreen (fixed inset-0): the fixed shell leaves normal flow, but
-          this parent keeps its height, so toggling fullscreen never collapses
-          the layout behind the overlay.
-          NOTE: deliberately no .perf-frame on this wrapper. Its
-          transform:translateZ(0) would become the containing block for the
-          fixed fallback overlay and its contain:strict would paint-clip the
-          overlay to this box (native top-layer fullscreen is unaffected; the
-          CSS fallback is not). overflow-hidden stays for the rounded corners
-          in normal mode but lifts (has-[.fixed]) the moment the fallback
-          overlay engages, so no ancestor ever clips it. */}
-      <div
-        id="game-frame"
-        className="overflow-hidden overscroll-contain rounded-2xl border border-white/15 bg-black has-[.fixed]:overflow-visible"
-      >
-        <div className="play-frame-height min-h-[420px] w-full">
-          <GameRuntimeFrame slug={slug} title={title} src={frameSrc} />
-        </div>
-      </div>
-      <p className="mt-2 text-xs text-slate-400">
-        Click the game once to focus keyboard controls · Fullscreen or Pop out for the full game window · Progress
-        auto-starts from slot 0 (cheat-free) when you&apos;re signed in; slots 1–3 are optional alternates. Cloud saves need sign-in.
-      </p>
       {showGuestAd && (
         <div className="mt-2">
           <AdSlot slot={`midplay-${slug}`} onSkipped={() => setShowGuestAd(false)} compact />

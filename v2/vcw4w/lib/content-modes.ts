@@ -6,7 +6,7 @@
  * - kid: super-sanitized, no blood/gore, child-friendly words (min age 0).
  * - teen: full game, mild swears only, gore ON, no drugs/hard swears/dark
  *   lore (min age 13).
- * - all: everything, incl. growable/usable drugs, "fuck" + NPC swears,
+ * - all: everything, incl. growable/usable drugs, uncut NPC dialogue,
  *   darkest lore (keeps the catalog rating, 18 for these three).
  *
  * Display is band-filtered: viewers only ever SEE the modes open to them
@@ -39,7 +39,7 @@ export const CONTENT_MODE_LABELS: Record<ContentMode, string> = {
 export const CONTENT_MODE_DESCRIPTIONS: Record<ContentMode, string> = {
   kid: "Super-sanitized: no blood or gore, child-friendly words, no scary lore.",
   teen: "Full game with gore ON, mild swears only — no drugs, hard swears, or dark lore.",
-  all: "Everything: growable/usable drugs, “fuck” + NPC swears, darkest lore.",
+  all: "Everything: growable/usable drugs, uncut NPC dialogue, darkest lore.",
 };
 
 export const CONTENT_MODES: readonly ContentMode[] = ["kid", "teen", "all"] as const;
@@ -330,5 +330,5 @@ export function contentModeSummary(mode: ContentMode): { gore: string; drugs: st
   if (mode === "teen") {
     return { gore: "Gore ON", drugs: "No drugs", language: "Mild swears only" };
   }
-  return { gore: "Gore ON (max)", drugs: "Growable/usable drugs", language: "Uncut incl. “fuck”" };
+  return { gore: "Gore ON (max)", drugs: "Growable/usable drugs", language: "Uncut strong language" };
 }

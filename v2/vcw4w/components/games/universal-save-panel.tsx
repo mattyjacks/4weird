@@ -188,15 +188,15 @@ export function UniversalSavePanel({ slug, getSnapshot, applySnapshot }: Univers
     [getSnapshot, slug],
   );
 
-  // Slot 0 is the cheat-free / cheat-proof safety slot: auto-load on mount
-  // (cloud first, device mirror as fail-open fallback).
+  // Slot 0 auto-loads once via the runtime "ready" handler in
+  // game-runtime-frame.tsx (single path, applied pre-interaction). This
+  // panel deliberately does NOT auto-load on mount: a second manual-reason
+  // load racing the ready load replaced live state mid-boot and left
+  // players stuck behind the save box. Manual Save/Load below always wins.
   useEffect(() => {
     if (autoLoaded.current === slug) return;
     autoLoaded.current = slug;
-    void loadSlot(0, { silentEmpty: true }).then((found) => {
-      if (!found) setStatus("Pick a slot, then Save or Load.");
-    });
-  }, [loadSlot, slug]);
+  }, [slug]);
 
   return (
     <section aria-label={`${slug} save slots`}>

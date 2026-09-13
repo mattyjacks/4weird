@@ -459,8 +459,8 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
     [postToRuntime],
   );
   return (
-    <div>
-      <div ref={shell} className={`perf-frame relative h-full w-full bg-black${fakeFullscreen ? " fixed inset-0 z-50" : ""}`} onClick={focusGame}>
+    <div className="w-full">
+      <div ref={shell} className={`perf-frame play-frame-height relative min-h-[420px] w-full overflow-hidden rounded-2xl border border-white/15 bg-black${fakeFullscreen ? " fixed inset-0 z-50" : ""}`} onClick={focusGame}>
         {barsOpen ? (
         <div className="absolute right-2 top-2 z-20 flex max-w-[calc(100%-1rem)] flex-wrap items-center justify-end gap-1 rounded bg-black/70 p-1.5">
           {score !== null && <span role="status" className="px-2 py-1 text-xs text-cyan-200">Score: {score}</span>}
@@ -491,12 +491,24 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
         {showTouchPad && <div className="pointer-events-none absolute inset-x-3 bottom-3 z-20 flex items-end justify-between"><div className="pointer-events-auto grid grid-cols-3 gap-1">{padButton("↑", "ArrowUp", "col-start-2")}{padButton("←", "ArrowLeft")}{padButton("↓", "ArrowDown")}{padButton("→", "ArrowRight")}</div><div className="pointer-events-auto flex items-start gap-2">{padButton("A", " ")}{padButton("↻", "r")}<button type="button" onClick={() => setShowTouchPad(false)} aria-label="Hide touch controls" title="Hide touch controls" className="grid h-12 w-12 touch-none place-items-center rounded-full border border-white/20 bg-black/70 text-sm text-white hover:bg-white/20">×</button></div></div>}
         <iframe ref={frame} title={title} src={src} onLoad={handleLoad} onError={() => setStatus("The game could not be loaded. Try the Pop out link to open the standalone runtime.")} className="h-full w-full touch-manipulation border-0 bg-black" allow="autoplay; fullscreen; gamepad" sandbox="allow-forms allow-modals allow-pointer-lock allow-same-origin allow-scripts" />
       </div>
+      {/* Save management lives BELOW the game box, never inside it: the
+          bordered shell above is the game viewport only. Slot 0 still
+          auto-loads on runtime "ready" (see the message handler); the panel
+          below is manual Save/Load per slot. */}
+      <section aria-label={`${slug} cloud saves`} className="mt-4 rounded-2xl border border-white/15 bg-black p-4 sm:p-5">
+        <h2 className="text-sm font-black text-white">Cloud saves</h2>
+        <p className="mt-1 text-xs text-slate-400">
+          Progress auto-starts from slot 0 (cheat-free) when you&apos;re signed in; slots 1–3 are optional alternates.
+        </p>
+        <div className="mt-3">
+          <UniversalSavePanel
+            slug={slug}
+            getSnapshot={getUniversalSnapshot}
+            applySnapshot={applyUniversalSnapshot}
+          />
+        </div>
+      </section>
       <div className="mt-3 grid w-full grid-cols-1 gap-3">
-        <UniversalSavePanel
-          slug={slug}
-          getSnapshot={getUniversalSnapshot}
-          applySnapshot={applyUniversalSnapshot}
-        />
         <FaceController onGameInput={handleGameInput} />
       </div>
     </div>
