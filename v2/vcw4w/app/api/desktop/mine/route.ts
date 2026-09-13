@@ -117,10 +117,12 @@ export async function GET() {
     );
     return ok({ desktops: withLive });
   } catch (err) {
-    console.error(
-      "[api] GET /api/desktop/mine unhandled",
-      err instanceof Error ? err.message.slice(0, 200) : "unknown",
-    );
+    const msg = err instanceof Error ? err.message : "unknown";
+    // Build-time prerender has no request cookies; that probe always fails
+    // here. Stay quiet for exactly that case so real failures stand out.
+    if (!msg.includes("During prerendering")) {
+      console.error("[api] GET /api/desktop/mine unhandled", msg.slice(0, 200));
+    }
     return fail("Unable to list desktops.", 500);
   }
 }

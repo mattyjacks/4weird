@@ -61,7 +61,12 @@ export async function GET() {
     { "Cache-Control": "private, max-age=60" },
   );
   } catch (e) {
-    console.error("[api] api/coins/daily/status unhandled", String((e as Error)?.message ?? e).slice(0, 300));
+    const msg = String((e as Error)?.message ?? e);
+    // Build-time prerender has no request cookies; that probe always fails
+    // here. Stay quiet for exactly that case so real failures stand out.
+    if (!msg.includes("During prerendering")) {
+      console.error("[api] api/coins/daily/status unhandled", msg.slice(0, 300));
+    }
     return fail("Backend temporarily unavailable. Try again shortly.", 500);
   }
 }

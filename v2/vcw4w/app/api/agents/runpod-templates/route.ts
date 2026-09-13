@@ -37,10 +37,12 @@ export async function GET() {
     }
     return ok({ configured: true, started: true, templates: tRes.templates, gpuTypes: gRes.gpuTypes });
   } catch (err) {
-    console.error(
-      "[runpod-templates] lookup failed",
-      err instanceof Error ? err.message.slice(0, 120) : "fetch failed",
-    );
+    const msg = err instanceof Error ? err.message : "fetch failed";
+    // Build-time prerender has no request cookies; that probe always fails
+    // here. Stay quiet for exactly that case so real failures stand out.
+    if (!msg.includes("During prerendering")) {
+      console.error("[runpod-templates] lookup failed", msg.slice(0, 120));
+    }
     return fail("RunPod template lookup failed. Try again shortly.", 502);
   }
 }

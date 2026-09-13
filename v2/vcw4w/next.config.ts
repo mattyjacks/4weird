@@ -7,11 +7,15 @@ const nextConfig: NextConfig = {
   // stated so a future edit can't silently drop it).
   compress: true,
   // Self-host/Docker path: emits .next/standalone + minimal server.js.
-  // Neutral on Vercel (its builder uses the standard .next output), required
-  // for `docker run` deploys. NOTE: standalone's server.js does NOT serve
+  // Enabled ONLY off Vercel: Vercel's builder consumes the standard .next
+  // output (including next-server.js.nft.json file traces) and its
+  // onBuildComplete step fails with ENOENT when the standalone layout
+  // reshapes it. Vercel sets VERCEL=1, so Docker/self-host builds keep
+  // standalone while Vercel builds use the standard output. NOTE:
+  // standalone's server.js does NOT serve
   // public/ — copy public/ + .next/static into the image (this app serves
   // /games, /swarm, /workers from public/).
-  output: "standalone",
+  ...(process.env.VERCEL ? {} : { output: "standalone" as const }),
   // Statically typed links disabled: `typedRoutes: true` (stable in Next 16)
   // rejects dynamic `string` hrefs + trailing-slash literals (~60 errors,
   // e.g. `href={link.href}` where href: string, `"/my/usage/"` vs `"/my/usage"`).
