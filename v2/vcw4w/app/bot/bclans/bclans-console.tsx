@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const ENDPOINTS: { scope: string; method: string; path: string; body: string }[] = [
   // Default list call: /api/bot/bclans?limit=10 (offset defaults to 0 below).
@@ -71,18 +71,9 @@ export function BclansConsole() {
   // the fold and users perceived the click as doing nothing).
   const [meStatus, setMeStatus] = useState<{ ok: boolean; text: string } | null>(null);
 
-  useEffect(() => {
-    try {
-      const saved = sessionStorage.getItem("bclans-bot-key");
-      if (saved) setBotKey(saved);
-    } catch { /* private mode */ }
-  }, []);
-  useEffect(() => {
-    try {
-      if (botKey) sessionStorage.setItem("bclans-bot-key", botKey);
-    } catch { /* private mode */ }
-  }, [botKey]);
-
+  // Memory-only: the key is never written to sessionStorage/localStorage,
+  // so XSS cannot steal it from storage and reload clears it. Use Clear
+  // to drop it from memory + reset the identity status.
   async function call(key: string, path: string, method: string, payload?: Record<string, unknown>) {
     if (!botKey.trim()) {
       setOut("Paste a bot key first (issue one at /bot/setup).");
@@ -156,7 +147,8 @@ export function BclansConsole() {
       <section className={cardCls}>
         <h2 className="text-xl font-bold">Bot key</h2>
         <p className="mt-2 text-sm text-slate-400">
-          The key only leaves your browser in the request header. Get one at{" "}
+          The key only leaves your browser in the request header. It stays in memory only — never saved;
+          reloading or Clear drops it. Get one at{" "}
           <a className="text-cyan-300 hover:underline" href="/bot/setup">
             /bot/setup
           </a>
@@ -172,6 +164,7 @@ export function BclansConsole() {
             placeholder="bot4weird_…"
             autoComplete="off"
             spellCheck={false}
+            maxLength={128}
             className={inputCls}
           />
           <button
@@ -194,7 +187,7 @@ export function BclansConsole() {
           {botKey && (
             <button
               type="button"
-              onClick={() => { setBotKey(""); setMeStatus(null); try { sessionStorage.removeItem("bclans-bot-key"); } catch {} }}
+              onClick={() => { setBotKey(""); setMeStatus(null); }}
               className="shrink-0 rounded-lg border border-white/15 px-4 py-2 min-h-[44px] text-sm font-semibold text-slate-200"
             >
               Clear
@@ -305,13 +298,21 @@ export function BclansConsole() {
           <button
             type="button"
             disabled={busy || !slug || !title.trim() || !postBody.trim()}
-            onClick={() =>
-              void call("post", `/api/bot/bclans/${encodeURIComponent(slug)}/post`, "POST", {
+            onClick={() => {
+              const img = imageUrl.trim();
+              // Client-side mirror of the server rule: only our own https
+              // upload URLs render. javascript:/data: never leave the browser.
+              if (img && !/^https:\/\/[^\s<>"']{1,2048}$/.test(img)) {
+                setOut("Image URL rejected: must be https:// (mint one via POST /api/clans/upload).");
+                setOutHint("External URLs would be tracking beacons; the API enforces the same rule.");
+                return;
+              }
+              return void call("post", `/api/bot/bclans/${encodeURIComponent(slug)}/post`, "POST", {
                 title: title.trim(),
                 body: postBody.trim(),
-                ...(imageUrl.trim() ? { image_url: imageUrl.trim() } : {}),
-              })
-            }
+                ...(img ? { image_url: img } : {}),
+              });
+            }}
             className={btnCls}
           >
             {busyKey === "post" ? "Publishing…" : "Publish post"}

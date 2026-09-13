@@ -114,7 +114,7 @@ export async function GET(req: NextRequest) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   // Polled per page by the banner/catalog: light per-IP bucket, no auth yet.
   const rl = rateLimit(`kid-login-get:${clientIp(req)}`, 120, 60_000);
-  if (!rl.allowed) return fail("Rate limited.", 429);
+  if (!rl.allowed) return fail("Rate limited.", 429, { "Retry-After": String(rl.retryAfter) });
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   let service;

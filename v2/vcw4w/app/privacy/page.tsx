@@ -12,7 +12,7 @@ const a = "text-cyan-200 underline";
 
 export default function PrivacyPage() {
   return (
-      <MarketingPage title="Privacy Policy" intro="Effective September 11, 2026 · MattyJacks LLC, New Hampshire, USA">
+      <MarketingPage title="Privacy Policy" intro="Effective September 13, 2026 · MattyJacks LLC, New Hampshire, USA">
       <section className="space-y-6">
         <p>
           This policy describes how MattyJacks LLC (“MattyJacks,” “we,” “us,” or “our”) handles information across the
@@ -46,6 +46,7 @@ export default function PrivacyPage() {
         <p><strong className="text-white">Ghost Cash and timer.</strong> Org work tracking holds contracts, timer sessions with heartbeat activity counts, worker-attached proof screenshots (≤1 MB, same handling as clan images), and hypothetical debt records. Heartbeats prove a visible tab, never screen contents; screenshots are supplied by the worker, never captured. Ghost books are org-member-visible (scoped watchers see only their scope) and export with the org member&apos;s own data on request.</p>
         <p><strong className="text-white">Consent and purchase records.</strong> Cookie-banner choices (7-day renewal), accepted purchase quotes, charge receipts, and idempotency records that prove what you confirmed and what we charged.</p>
         <p><strong className="text-white">Automatic technical data.</strong> IP address, browser and device characteristics, request logs, pages or features used, approximate location derived from IP, security and fraud-prevention events (including rate-limit and trial-abuse signals). Games and accessibility controls may store preferences and progress in your browser (local storage).</p>
+        <p><strong className="text-white">Sources and what we do not collect.</strong> We collect directly from you, automatically from your device, from parents who create Child accounts, and from providers who confirm checkout or safety signals. We do not collect phone/SMS numbers, contact lists, calendars, precise GPS, or biometric identifiers/voiceprints: voice is generated or transcribed per turn, microphone interruption audio never leaves your device, and screen/camera frames are processed per turn only and never stored. We store salted IP hashes (not raw IPs) for trial-abuse and safety records, and we collect no sensitive Article 9 data beyond what you voluntarily post.</p>
 
         <h2 className={h2}>3. How we use information (and GDPR legal bases)</h2>
         <p>We use information to provide, secure, maintain, improve, troubleshoot, personalize, and administer the Service; authenticate users; preserve progress and settings; operate Clans, bots, rentals, workspaces, and leaderboards; process and reconcile transactions; communicate about the Service; prevent fraud, abuse, and security incidents; moderate content and protect safety; and comply with legal obligations. We may create aggregated or de-identified information and use it for any lawful business purpose.</p>
@@ -66,9 +67,17 @@ export default function PrivacyPage() {
           <li><strong className="text-white">Marketing (opt-in):</strong> campaign and referral measurement. Marketing email is separately off by default in account settings.</li>
         </ul>
         <p>
-          Games and accessibility controls also use browser local storage for preferences and progress. You can change
+          Games and accessibility controls also use browser local storage for preferences and progress (including
+          4weird-a11y, theme/voice/avatar prefs, 4weird-kids-mode, fw-favorites-v1, swarm-pins, docs-progress, and
+          per-game highs/mute flags; consent choice fw-cookie-consent-v1). Essential cookies include sb-* auth
+          session, kid_session (child login), and bot_tester (bot-tester restriction). Clearing site data removes
+          them and returns the banner; date of birth is never stored anywhere. You can change
           your choice anytime by clearing site data (the banner returns), with browser controls,
-          “Do Not Track”-respecting settings where honored, or Google’s opt-out tools.
+          Global Privacy Control signals (treated as a reject-non-essential request where required by law),
+          “Do Not Track”-respecting settings where honored, or Google’s opt-out tools. Legacy static game pages
+          may load measurement scripts without the banner; the app shell above always honors your choice. We send
+          no browser push notifications; the service worker is offline game caching only, with no background
+          tracking. Marketing email is off by default with unsubscribe in every message; we send no marketing SMS/push.
         </p>
 
         <h2 className={h2}>5. Disclosures and service providers</h2>
@@ -78,17 +87,22 @@ export default function PrivacyPage() {
           <li><strong className="text-white">Accounts and data:</strong> Supabase (authentication/database);</li>
           <li><strong className="text-white">Payments:</strong> Shopify (checkout, order reconciliation) and its payment processors, under their terms;</li>
           <li><strong className="text-white">Measurement:</strong> Google Analytics (only with your analytics consent) and Vercel Analytics, under their terms;</li>
-          <li><strong className="text-white">AI chat and reasoning:</strong> OpenAI; OpenRouter (routing to Meta Muse Spark, Google Gemini, and Anthropic Claude models); DeepSeek; Google Gemini; Anthropic Claude; Meta; your prompts, transcripts, and attached images are processed to produce replies under their terms, and we do not authorize them to use your inputs to train their models;</li>
-          <li><strong className="text-white">AI voice and media:</strong> ElevenLabs (text-to-speech, speech-to-text, sound and music) and fal.ai (image, video, audio, 3D generation), under their terms;</li>
-          <li><strong className="text-white">Compute:</strong> RunPod / DigitalOcean or your custom endpoint when you book agent or cloud compute;</li>
+          <li><strong className="text-white">AI chat and reasoning:</strong> OpenAI; OpenRouter (routing to Meta Muse Spark, Google Gemini, and Anthropic Claude models); DeepSeek; Google Gemini; Anthropic Claude; Meta; your prompts, transcripts, and attached images are processed to produce replies under their terms, and we do not authorize them to use your inputs to train their models. Local/on-device brains never leave your device; desktop/BYOK keys you supply call providers directly under their terms;</li>
+          <li><strong className="text-white">AI voice and media:</strong> ElevenLabs (text-to-speech, speech-to-text, sound and music), fal.ai (image, video, audio, 3D generation), and Meshy.ai (3D generation; prompts/assets sent to produce models, finished models autosaved to your Vault), under their terms;</li>
+          <li><strong className="text-white">Compute:</strong> RunPod / DigitalOcean or your custom endpoint when you book agent or cloud compute (provision metadata and usage shared to fulfill bookings);</li>
+          <li><strong className="text-white">Fraud prevention:</strong> Kasada/BotID screening of request metadata and device signals to block bots and abuse, under its terms;</li>
+          <li><strong className="text-white">Delivery/CDN:</strong> jsDelivr, cdnjs, Google Tag Manager (consented analytics only), esm.sh, and blender.org (worker Blender downloads) deliver libraries/assets and see IP/User-Agent under their terms;</li>
+          <li><strong className="text-white">Auth email:</strong> Supabase sends transactional auth emails (signup confirm, password reset); we operate no third-party marketing-email provider;</li>
           <li><strong className="text-white">Moderation:</strong> OpenAI-based screening that assists human review of reported content;</li>
           <li><strong className="text-white">Safety and legal:</strong> NCMEC CyberTipline for suspected child exploitation (filed by a human); U.S. courts and authorities upon valid legal request such as a court order, subpoena, or other lawful process; and parties necessary to protect rights, safety, and the Service or enforce our Terms; including against illegal content, which is never allowed;</li>
           <li><strong className="text-white">Corporate:</strong> a buyer or successor in a merger, financing, sale, or reorganization, under confidentiality.</li>
         </ul>
         <p>
           We <strong className="text-white">do not sell personal information for money</strong> and do not share it
-          for cross-context behavioral advertising. Providers process information under their own terms and may process
-          it outside your state or country (see Section 6). Receipts and ledgers carry no personal details beyond
+          for cross-context behavioral advertising. Providers act as processors/service-providers on our behalf under
+          their terms (including Standard Contractual Clauses / Data Privacy Framework where they offer them) and may process
+          it outside your state or country (see Section 6). We will post material subprocessor changes here where
+          practical. Receipts and ledgers carry no personal details beyond
           your account reference.
         </p>
 
@@ -105,9 +119,12 @@ export default function PrivacyPage() {
           We retain information only as long as reasonably necessary for the purposes in Section 3: while your account
           is active; for records, security, dispute resolution, and legal compliance afterward; safety and CSAM
           evidence as required for authority referral and legal claims; and financial/transaction records as tax and
-          payments law requires. When you delete your account at <a className={a} href="/my/rights">/my/rights/</a>,
+          payments law requires. Indicative schedule: account/profile and game saves while active; coin lots expire
+          1 year after receipt (90-day purchased-lot refund window); Crowns expire 1 year, unlock 30 days; child
+          sessions expire 30 days; bot-key logs per your setting (default 90 days, up to ~5 years); public lobbies
+          visible 30 minutes; org invites up to 2 years; transaction/tax records per tax/payments law. When you delete your account at <a className={a} href="/my/rights">/my/rights/</a>,
           we delete or de-identify your personal data across our systems except where retention is permitted or
-          required by law (Section 11 lists the exceptions). Backups age out on their normal cycle.
+          required by law (Section 11 lists the exceptions). Backups age out on their normal cycle (weeks, not years).
         </p>
 
         <h2 className={h2}>8. Security</h2>

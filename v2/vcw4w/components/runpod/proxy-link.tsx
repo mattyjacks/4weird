@@ -12,9 +12,24 @@ type ProxyLinkProps = {
  * A RunPod proxy URL as a REAL clickable link (anchor), never a blue span.
  * Opens in a new tab; the pod UI (Jupyter, Kasm desktop, render log) stays
  * usable while the 4weird tab stays open.
+ *
+ * Defense in depth: only https:// URLs render as anchors. Anything else
+ * (javascript:, data:, or unparseable) renders as inert text — server
+ * validators enforce the same rule, but a stored row must never become
+ * executable markup on click.
  */
 export function ProxyLink({ href, label = "Open", className = "" }: ProxyLinkProps) {
   if (!href) return null;
+  let safe = false;
+  try {
+    const u = new URL(String(href).trim());
+    safe = u.protocol === "https:" && String(href).trim().length <= 2048 && !/[\s<>"']/.test(String(href));
+  } catch {
+    safe = false;
+  }
+  if (!safe) {
+    return <span className={`break-all font-mono text-xs text-slate-400 ${className}`}>{href}</span>;
+  }
   return (
     <a
       href={href}

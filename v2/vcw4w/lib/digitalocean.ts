@@ -18,13 +18,18 @@
 
 export const DIGITALOCEAN_API_BASE_DEFAULT = "https://api.digitalocean.com/v2";
 
+const DIGITALOCEAN_API_BASE_ALLOW = new Set(["https://api.digitalocean.com/v2"]);
+
 export function doApiBase(): string {
   const raw = (process.env.DIGITALOCEAN_API_BASE ?? "").trim().replace(/\/+$/, "");
+  // Allowlist https bases only: an operator typo (or http) must never send
+  // the Bearer token off-domain. Unknown values fail closed to the default.
   if (!raw) return DIGITALOCEAN_API_BASE_DEFAULT;
   try {
     const u = new URL(raw);
     if (u.protocol !== "https:") return DIGITALOCEAN_API_BASE_DEFAULT;
-    return raw;
+    if (DIGITALOCEAN_API_BASE_ALLOW.has(`${u.origin}${u.pathname}`.replace(/\/+$/, ""))) return raw;
+    return DIGITALOCEAN_API_BASE_DEFAULT;
   } catch {
     return DIGITALOCEAN_API_BASE_DEFAULT;
   }
@@ -134,9 +139,17 @@ function doToken(): string {
   return (process.env.DIGITALOCEAN_TOKEN ?? "").trim();
 }
 
+/** Truncate text and redact the token so errors never leak it. */
+function scrubDoText(text: string): string {
+  let out = String(text ?? "");
+  const token = doToken();
+  if (token && out.includes(token)) out = out.split(token).join("[redacted]");
+  return out.slice(0, 160);
+}
+
 function errMsg(err: unknown): string {
   const msg = err instanceof Error ? err.message : "fetch failed";
-  return `DigitalOcean request failed: ${msg.slice(0, 140)}`;
+  return `DigitalOcean request failed: ${scrubDoText(msg).slice(0, 140)}`;
 }
 
 async function doGet<T>(path: string, timeoutMs = 15_000): Promise<DoResult<T>> {
@@ -150,7 +163,8 @@ async function doGet<T>(path: string, timeoutMs = 15_000): Promise<DoResult<T>> 
       headers: doHeaders(),
     });
     if (!res.ok) return { ok: false, error: `DigitalOcean GET ${path} HTTP ${res.status}.` };
-    const data = (await res.json()) as T;
+    const data = (await res.json().catch(() => null)) as T;
+    if (data == null) return { ok: false, error: `DigitalOcean GET ${path} returned an unexpected shape.` };
     return { ok: true, data };
   } catch (err) {
     return { ok: false, error: errMsg(err) };
@@ -215,6 +229,18 @@ export async function createDroplet(opts: CreateDropletOpts): Promise<DoResult<D
   if (!name || !region || !size || !image) {
     return { ok: false, error: "Missing droplet name, region, size, or image." };
   }
+  // userData runs as root via cloud-init: length-cap it, keep it a string.
+  const userData = opts.userData == null ? "" : String(opts.userData);
+  if (userData.length > 16384) {
+    return { ok: false, error: "Droplet userData is too large (max 16384 chars)." };
+  }
+  // sshKeys/tags cross into the provider request: cap count + length each.
+  const sshKeys = Array.isArray(opts.sshKeys)
+    ? opts.sshKeys.map((k) => String(k ?? "").trim()).filter(Boolean).slice(0, 20).map((k) => k.slice(0, 1024))
+    : [];
+  const tags = Array.isArray(opts.tags)
+    ? opts.tags.map((t) => String(t ?? "").trim()).filter(Boolean).slice(0, 20).map((t) => t.slice(0, 64))
+    : [];
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 20_000);
   try {
@@ -227,14 +253,14 @@ export async function createDroplet(opts: CreateDropletOpts): Promise<DoResult<D
         region,
         size,
         image,
-        ...(opts.sshKeys && opts.sshKeys.length > 0 ? { ssh_keys: opts.sshKeys } : {}),
-        ...(opts.tags && opts.tags.length > 0 ? { tags: opts.tags } : {}),
-        ...(opts.userData ? { user_data: opts.userData } : {}),
+        ...(sshKeys.length > 0 ? { ssh_keys: sshKeys } : {}),
+        ...(tags.length > 0 ? { tags } : {}),
+        ...(userData ? { user_data: userData } : {}),
       }),
     });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      return { ok: false, error: `DigitalOcean droplet create HTTP ${res.status}: ${text.slice(0, 160)}` };
+      return { ok: false, error: `DigitalOcean droplet create HTTP ${res.status}: ${scrubDoText(text)}` };
     }
     const data = (await res.json()) as { droplet?: DoDroplet } | DoDroplet;
     const droplet = (data as { droplet?: DoDroplet }).droplet ?? (data as DoDroplet);
@@ -280,7 +306,7 @@ export async function dropletAction(
     });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      return { ok: false, error: `DigitalOcean droplet ${t} HTTP ${res.status}: ${text.slice(0, 160)}` };
+      return { ok: false, error: `DigitalOcean droplet ${t} HTTP ${res.status}: ${scrubDoText(text)}` };
     }
     const data = (await res.json()) as { action?: DoAction } | DoAction;
     const action = (data as { action?: DoAction }).action ?? (data as DoAction);
@@ -308,7 +334,7 @@ export async function deleteDroplet(id: string | number): Promise<DoResult<{ del
     });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      return { ok: false, error: `DigitalOcean droplet delete HTTP ${res.status}: ${text.slice(0, 160)}` };
+      return { ok: false, error: `DigitalOcean droplet delete HTTP ${res.status}: ${scrubDoText(text)}` };
     }
     return { ok: true, data: { deleted: true } };
   } catch (err) {

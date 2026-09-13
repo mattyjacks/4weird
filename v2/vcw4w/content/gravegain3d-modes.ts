@@ -22,12 +22,14 @@ export type GG3DContentMode = ContentMode;
 
 export const GG3D_CONTENT_MODES: readonly GG3DContentMode[] = ["kid", "teen", "all"];
 
-export type GG3DNpcId = "hub-keeper" | "dungeon-ghost" | "orc-ally";
+export type GG3DNpcId = "hub-keeper" | "dungeon-ghost" | "orc-ally" | "ember-cartographer" | "ossuary-twins";
 
 export const GG3D_NPCS: Record<GG3DNpcId, { speaker: string; portrait: string }> = {
   "hub-keeper": { speaker: "President Angel Good", portrait: "🌿" },
   "dungeon-ghost": { speaker: "Echo of Elder Mirathiel", portrait: "👻" },
   "orc-ally": { speaker: "Warchief Groknak", portrait: "👹" },
+  "ember-cartographer": { speaker: "Ember Cartographer Sable", portrait: "🗺️" },
+  "ossuary-twins": { speaker: "Ossuary Twins, Pell & Marrow", portrait: "💀" },
 };
 
 /** Bark variants per NPC per content mode. `all` is the only profane tier. */
@@ -81,6 +83,34 @@ export const GG3D_DIALOGUE: Record<GG3DNpcId, Record<GG3DContentMode, string[]>>
       "Fuck sitting down! Orcs do not die sitting down — WE KILL STANDING UP! GRAAAH!",
       "Thirty skulls at my gates and a coward hiding below. Shit odds. GOOD odds. TO WAR!",
       "You hit like an orc today, small human! Now scream with me or get the hell out of my way!",
+    ],
+  },
+  "ember-cartographer": {
+    kid: [
+      "Hello, little pathfinder! I draw every twisty tunnel in berry-ink so no explorer ever feels lost. Want to stamp your star on my map?",
+      "My lantern burns on sparkleaf tea-light leaves — sniff that minty Mint Herb smell! Cozy glows mark the safe way home.",
+    ],
+    teen: [
+      "The endless floors shift when you blink. Mark your exits in chalk — this dungeon redraws itself around the careless.",
+      "I have mapped forty descents and lost two crews to collapses. Stay on my ink line and keep your lamp lit.",
+    ],
+    all: [
+      "I charted the endless dark in the blood of my own crew — fuck me, but every dead end down here cost a life to learn.",
+      "Hell keeps redrawing the map to bury us deeper. Drink up, mark the bones, and carve our way out through the dead.",
+    ],
+  },
+  "ossuary-twins": {
+    kid: [
+      "We are Pell and Marrow! We stack the sleepy bones into cozy castles so the tunnels stay tidy. Come build with us — gentle hands!",
+      "Shhh, the bone-piles are napping. We sip warm sparkleaf cocoa (minty Mint Herb!) and hum them lullabies till morning.",
+    ],
+    teen: [
+      "Everyone the dungeon takes ends up in our walls. Learn the pile-marks or join them — your choice, delver.",
+      "We were buried together and woke together. Stick close, count your steps, and never follow the whispering cracks.",
+    ],
+    all: [
+      "Pell counts the skulls, Marrow names them — shit work, but the endless dark keeps feeding our beautiful wall.",
+      "We died stacked like cordwood and rose holding hands. Damn the Array that made us; we keep the new dead company now.",
     ],
   },
 };

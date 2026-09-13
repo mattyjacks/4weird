@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok, rpcFail } from "@/lib/api-respond";
+import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
@@ -22,7 +22,8 @@ export async function POST(
   const rl = rateLimit(`agents:heartbeat:${data.user.id}`, 60, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
   const { id } = await params;
-  if (!isUuid(id)) return fail("Invalid booking id.", 400);
+  // Never confirm a booking exists: malformed ids read the same as missing.
+  if (!isUuid(id)) return fail("Booking not found.", 404);
   let body: unknown;
   try {
     body = await req.json();
@@ -33,15 +34,16 @@ export async function POST(
     (body as Record<string, unknown> | null)?.seconds,
   );
   if (!seconds) return fail("Seconds must be 1..3600.", 400);
-  // Cap single beats to 1h: previously 86400 allowed draining escrow in 1 call.
-  if (seconds > 3600) return fail("Seconds must be 1..3600.", 400);
+  // Single beats cap at 1h (isHeartbeatSeconds enforces it above): previously
+  // 86400 allowed draining escrow in one call.
   // Ownership gate (mirrors bookings/[id]/pod): only renter or listing owner
   // may meter. Never call heartbeat_usage by id alone.
-  const { data: bookingRow } = await supabase
+  const { data: bookingRow, error: bookingRowError } = await supabase
     .from("rental_bookings")
     .select("id,renter_id,agent_listings(id,owner_id)")
     .eq("id", id)
     .maybeSingle();
+  if (bookingRowError) return dbFail("api/agents/bookings/heartbeat", bookingRowError, "Unable to load booking.");
   if (!bookingRow) return fail("Booking not found.", 404);
   const brow = bookingRow as unknown as {
     renter_id: string;

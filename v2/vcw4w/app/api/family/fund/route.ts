@@ -4,6 +4,7 @@ import { fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { rpcStatus } from "@/lib/agent-market";
+import { botTesterBlocked, isBotTester } from "@/lib/bot-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,8 @@ export async function POST(req: Request) {
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
+  // Funding moves parent coins: play/test sessions never move money.
+  if (isBotTester(req)) return fail(botTesterBlocked(), 403);
   const throttle = rateLimit(`family-fund:${u.id}`, 20);
   if (!throttle.allowed) {
     return fail("Too many requests. Try again shortly.", 429, { "Retry-After": String(throttle.retryAfter) });

@@ -1,7 +1,7 @@
 {
     "title": "GraveGain2D",
     "slug": "gravegain2d",
-    "description": "A dark fantasy action RPG featuring emoji-based visuals, 2.5D lighting, procedural dungeons, dialogue system, and a starship management hub. v2.0.0 adds the AAA presentation layer with full 10-mission campaign parity: cinematic layer intros, killstreak announcer, boss cinematics with slow-mo slays, objective tracker, tutorials, run stats, and adaptive audio.",
+    "description": "A dark fantasy 2D action RPG with emoji visuals, procedural dungeons, a 10-mission campaign, and a starship hub. BIG upgrade: 2.5D lighting/shadows + 20 weapon icons + emergent quests with wanderers and random events.",
     "genre": "RPG",
     "tags": ["HTML5", "Action", "RPG", "Rogue-like"],
     "maker": {

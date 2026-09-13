@@ -39,6 +39,8 @@ export async function GET(req: Request) {
     human_id: bot.humanId,
     key_id: bot.keyId,
     key_prefix: bot.prefix,
-    scopes: [...BOT_SCOPES],
+    // Effective scopes: a restricted subset reports itself, legacy all-scope
+    // keys report the universe. Never claim powers the key lacks.
+    scopes: bot.scopes.length ? [...bot.scopes] : [...BOT_SCOPES],
   });
 }

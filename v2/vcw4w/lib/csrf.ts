@@ -24,6 +24,7 @@ export function sameOrigin(req: Request): boolean {
     }
     if (referer) {
       const parsed = new URL(referer);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
       if (parsed.host.toLowerCase() !== host) return false;
     }
     return true;

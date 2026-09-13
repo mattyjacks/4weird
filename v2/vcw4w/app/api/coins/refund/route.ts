@@ -4,6 +4,7 @@ import { fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
 import { rateLimit } from "@/lib/rate-limit";
+import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,12 @@ export async function POST(req: Request) {
     return fail("Too many refund attempts. Try again shortly.", 429, {
       "Retry-After": String(throttle.retryAfter),
     });
+  }
+  // Distributed shield: refunds mint ledger value, so cap them per account
+  // across all instances (the RPC itself is atomic; this stops the storm).
+  const refundDist = await globalBucket(acctBucketKey("refund-hour", userData.user.id), 20, 3600);
+  if (refundDist && !refundDist.allowed) {
+    return fail("Too many refund attempts. Try again shortly.", 429, throttleHeaders(refundDist.retryAfter));
   }
   let body: { lot_id?: unknown; coins?: unknown };
   try {

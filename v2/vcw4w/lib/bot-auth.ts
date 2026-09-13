@@ -401,6 +401,21 @@ function todayDay(d = new Date()): string {
 async function ownerCoinBalance(userId: string): Promise<number | null> {
   try {
     const db = serviceClient();
+    // Server-side aggregate: no LIMIT truncation on large ledgers.
+    const { data, error } = await db
+      .from("coin_ledger")
+      .select("total:sum(delta)")
+      .eq("user_id", userId)
+      .single();
+    if (!error) {
+      const total = Number((data as { total?: unknown } | null)?.total);
+      if (Number.isFinite(total)) return Math.round(total * 100) / 100;
+    }
+  } catch {
+    /* fall through to the legacy scan */
+  }
+  try {
+    const db = serviceClient();
     const { data, error } = await db
       .from("coin_ledger")
       .select("delta")
@@ -777,7 +792,8 @@ export function hasFullLoginProof(req: Request, userId: string): boolean {
  * 1. tester marker present → 403 (bot tester, never privileged);
  * 2. strong pepper configured but no valid full-login proof → 401
  *    (re-login; blocks tester-cookie-stripping escalation);
- * 3. no pepper configured → legacy tester-cookie check only.
+ * 3. no pepper configured → refuse (fail closed: without a pepper the
+ *    tester marker is unsigned, so stripping it would escalate).
  */
 export function privilegedSessionBlocked(req: Request, userId: string): string | null {
   if (isBotTester(req)) return botTesterBlocked();
@@ -786,8 +802,12 @@ export function privilegedSessionBlocked(req: Request, userId: string): string |
     if (p.length >= 16 && userId && !hasFullLoginProof(req, userId)) {
       return "Session needs refresh. Please log in again.";
     }
+    if (p.length < 16) {
+      return "Bot service is not configured.";
+    }
   } catch {
-    // fail open to legacy check when HMAC is unavailable
+    // Fail closed when HMAC is unavailable: never allow privilege.
+    return "Bot service is not configured.";
   }
   return null;
 }

@@ -81,6 +81,15 @@ export function rpcFail(
 ): NextResponse {
   const code = String(error?.code ?? "");
   const message = String(error?.message ?? "");
-  if (code === "P0001" || code === "") return fail(message || fallbackMessage, toStatus(message));
+  // P0001 = our own SECURITY DEFINER RPC `raise exception` validation text
+  // (short stable strings like 'slug taken', 'login required' — see
+  // supabase/migrations). Safe to surface; still logged server-side truncated
+  // so failures are traceable without forwarding stacks. Any other code —
+  // including "" (no PG code at all) — is a database-side fault: stable
+  // public text via dbFail, never raw PG internals.
+  if (code === "P0001") {
+    console.error(`[api] ${route} rpc validation`, { message: message.slice(0, 160) });
+    return fail(message || fallbackMessage, toStatus(message));
+  }
   return dbFail(route, error, fallbackMessage, 500);
 }

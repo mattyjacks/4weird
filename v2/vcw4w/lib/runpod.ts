@@ -140,7 +140,7 @@ export async function fetchRunpodBilling(
     return { ok: true, rows };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "fetch failed";
-    return { ok: false, error: `RunPod request failed: ${msg.slice(0, 120)}` };
+    return { ok: false, error: `RunPod request failed: ${scrubRunpodText(msg).slice(0, 120)}` };
   } finally {
     clearTimeout(timer);
   }
@@ -244,13 +244,21 @@ function runpodKey(): string {
   return (process.env.RUNPOD_API_KEY ?? "").trim();
 }
 
+/** Truncate text and redact the API key so errors never leak it. */
+function scrubRunpodText(text: string): string {
+  let out = String(text ?? "");
+  const key = runpodKey();
+  if (key && out.includes(key)) out = out.split(key).join("[redacted]");
+  return out.slice(0, 160);
+}
+
 function runpodAuthHeaders(key: string): Record<string, string> {
   return { Authorization: `Bearer ${key}`, Accept: "application/json" };
 }
 
 function runpodErr(err: unknown): string {
   const msg = err instanceof Error ? err.message : "fetch failed";
-  return `RunPod request failed: ${msg.slice(0, 120)}`;
+  return `RunPod request failed: ${scrubRunpodText(msg).slice(0, 120)}`;
 }
 
 /** Unwrap a list payload: bare array or one of the known envelope keys. */

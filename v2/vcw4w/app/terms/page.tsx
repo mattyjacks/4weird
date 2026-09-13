@@ -12,7 +12,7 @@ const a = "text-cyan-200 underline";
 
 export default function TermsPage() {
   return (
-      <MarketingPage title="Terms of Use" intro="Effective September 11, 2026 · Please read these terms carefully.">
+      <MarketingPage title="Terms of Use" intro="Effective September 13, 2026 · Please read these terms carefully.">
       <section className="space-y-6">
         <p>
           These Terms of Use (“Terms”) form a binding agreement between you and MattyJacks LLC, a New Hampshire
@@ -22,7 +22,9 @@ export default function TermsPage() {
           virtual items, software, APIs, and related websites and services (collectively, the “Service”). By accessing
           or using the Service, you accept these Terms. If you do not agree, do not use the Service. Our{" "}
           <a className={a} href="/privacy">Privacy Policy</a> is incorporated by reference, as are any additional
-          terms presented for a specific feature or purchase.
+          terms presented for a specific feature or purchase. By using the Service you consent to receive
+          communications electronically (posting, email, or account notice), which satisfy any legal writing
+          requirement, and you agree notices we post or email are effective when posted or sent.
         </p>
 
         <h2 className={h2}>1. Eligibility and accounts</h2>
@@ -61,7 +63,7 @@ export default function TermsPage() {
           <li>copy, modify, distribute, sell, lease, sublicense, or create derivative works from the Service;</li>
           <li>reverse engineer, decompile, scrape, data-mine, circumvent security or access controls, or interfere with or disrupt the Service;</li>
           <li>exploit bugs, cheat, tamper with game state, telemetry, leaderboards, saves, coins, referrals, or metering; enabling Cheat Mode permanently marks the affected save and the mark cannot be removed by deleting or recreating the save;</li>
-          <li>use the Service unlawfully or in violation of any applicable law, including export-control and sanctions laws; no illegal content of any kind is allowed, anywhere on the Service;</li>
+          <li>use the Service unlawfully or in violation of any applicable law, including export-control and sanctions laws; no illegal content of any kind is allowed, anywhere on the Service; you represent you are not a sanctioned/denied person, are not located in or using the Service from a sanctioned jurisdiction (including Cuba, Iran, North Korea, Syria, Russia, Belarus, or occupied Ukraine, as updated by U.S. law), will not circumvent geo/sanctions controls with VPNs/proxies, and will not use GPU compute for military, nuclear, weapons, or surveillance purposes; violation is cause for immediate termination and referral;</li>
           <li>infringe intellectual-property, privacy, or other rights; upload malicious code; impersonate others; or harvest other users’ information;</li>
           <li>harass, threaten, defame, hate-target, or harm anyone; post sexual content involving minors in any form; this results in immediate removal, account termination, evidence preservation, and referral to authorities (see Section 5);</li>
           <li>alternatively monetize, cash out, or extract value from Coins, Crowns, or Ghost Cash outside the expressly permitted paths in Sections 8-8A.1; including selling, buying, trading, exchanging, gifting-for-cash, pegging to fiat or crypto, advertising exchange rates, factoring Ghost IOUs, using balances as collateral, or routing around the closed loop (see Sections 8 and 8C);</li>
@@ -72,10 +74,20 @@ export default function TermsPage() {
         <p>
           You retain ownership of content you own and post (posts, comments, images ≤1 MB in PNG/JPEG/WebP/GIF, code
           submissions, clan descriptions), but you grant MattyJacks a worldwide, royalty-free, transferable,
-          sublicensable license to host, reproduce, adapt, display, distribute, and use it as necessary to operate,
-          improve, promote, and protect the Service. You represent you have the rights to post it. Reading Clans is
+          sublicensable, perpetual and irrevocable (for backups, safety evidence, and already-distributed copies)
+          license to host, reproduce, adapt, display, distribute, and use it as necessary to operate,
+          improve, promote, and protect the Service; including the right to excerpt or feature it in promotions
+          without further approval or compensation, to the fullest extent permitted by law. You waive moral/droit-moral
+          rights to the extent waivable, grant any publicity/likeness rights in posted faces/voices as needed to
+          display them, and agree feedback/suggestions are ours to use without compensation or confidentiality. You
+          represent you own or have all rights (including model/voice releases for every identifiable person and
+          rights to every asset) to post it, and you do not grant us the right to train third-party AI on private
+          content beyond operating the Service. Platform posts are licensed, not assigned; separately, game/code
+          Contributions submitted as project contributions are governed by the repository LICENSE/contribution terms
+          where applicable (assignment), which control for that code. Reading Clans is
           public; posting requires an account and, in member-only clans, membership. Spam or suspected automated abuse
-          may be held in a pending state for review.
+          may be held in a pending state for review. User content is third-party content: we do not endorse it and
+          are not responsible for it.
         </p>
         <p>
           Moderation combines automated screening (including AI-assisted review), heuristic filters, user reports, and
@@ -94,7 +106,9 @@ export default function TermsPage() {
           deploy Root Directory). Every package is statically scanned and marked{" "}
           <strong>safe, warning, unsafe, or denied</strong>. Packages flagged unsafe or
           denied are <strong>quarantined</strong>: never served, never displayed, and
-          queued for human moderator review. Malware, keyloggers, viruses, cybercrime
+          queued for human moderator review. Scanning does not guarantee safety: user-submitted games are
+          third-party content that may still be broken, infringing, or malicious. Play and install at your
+          own risk. Malware, keyloggers, viruses, cybercrime
           tools, and sexual content (never allowed on the Service; removed, not rated)
           are hard-denied. Storage and code audits are metered in Vibe Coins with the
           25% platform cut already included. The <strong>Weird Vault</strong> stores your
@@ -123,6 +137,14 @@ export default function TermsPage() {
           cannot be reset from the client. Gameplay telemetry (kills, actions, active seconds, deaths) powers
           per-game leaderboards showing handles and totals only; anonymous play is allowed where offered. Matchmaking,
           lobbies, presence, friends, and direct messages are provided as-is and may be changed or discontinued.
+          All games are fictional entertainment only, not advice; simulations (including business/finance/tax/career
+          games) are simplified, figures are fictional, and nothing is financial, tax, legal, medical, or
+          professional advice and no professional relationship is created - consult a licensed professional.
+          Some games contain flashing lights, intense violence, or horror: if you have epilepsy, photosensitivity,
+          or a medical condition, consult a doctor before playing, stop immediately on dizziness, nausea, seizures,
+          or discomfort, play at your own risk, and supervise minors. We do not guarantee saves, progress, Vault
+          files, renders, or clan content will be preserved; back up anything important. There is no SLA: no uptime,
+          queue-time, render-time, or availability guarantee; maintenance may occur at any time.
         </p>
 
         <h2 className={h2}>4A. Age ratings, age checks, and Kids Mode</h2>
@@ -214,7 +236,14 @@ export default function TermsPage() {
           purchase, up to the unspent remainder of each coin lot. Spending uses the oldest unexpired coins first,
           so a partially-spent pack refunds pro-rata for whatever is still unspent (for example: buy 500, spend
           200, refund up to 300). Refunded lots are marked refunded and the coins are removed from your balance;
-          request a refund from your account page. Free coins are never refundable.
+          request a refund from your account page. Free coins are never refundable. By purchasing you authorize
+          us and our processors (e.g., Shopify and its processors) to charge your payment method for the gross
+          amount shown including the 25% cut, plus applicable taxes/fees; failed payments may suspend delivery;
+          prices may change prospectively with notice on the site; you are responsible for taxes/VAT/GST and for
+          providing accurate billing info. Chargebacks/fraud (including 90-day refund-window abuse) may result in
+          refusal, clawback under Section 8A.1, suspension, or termination, to the fullest extent permitted by law.
+          Coins/Crowns expiry (1-year lots) and forfeiture apply except where gift-card/stored-value law forbids
+          it (see Section 18).
         </p>
         <p>
           <strong>Ghost Cash (👻) is not currency at all.</strong> The org timer tracks work to the second and
@@ -253,7 +282,9 @@ export default function TermsPage() {
         </p>
         <p>
           <strong>Subscriptions and tips.</strong> Subscribing charges the first 30-day period immediately and renews
-          every 30 days while active; you may cancel anytime from the Support page, which stops future renewals without
+          every 30 days while active; price, billing date, and how to cancel are shown at checkout and on the
+          Support page. You consent to recurring charges until you cancel; you may cancel anytime from the Support
+          page in one click, which stops future renewals without
           proration or refund of completed periods. If a renewal cannot be covered by your balance, the subscription
           lapses to past-due instead of charging you into a negative balance. Tips are single gratuitous transfers and
           are final when sent. You cannot support yourself, and clan owners fund their own clan through the wallet
@@ -379,7 +410,15 @@ export default function TermsPage() {
           professional, medical, legal, financial, or safety advice, and do not rely on it in emergencies. We do not
           guarantee that any AI feature is available, accurate, or fit for any purpose, to the fullest extent
           permitted by law. Voice and camera features run only with your explicit opt-in, per message or frame; see
-          the Privacy Policy for what leaves your device and what never does.
+          the Privacy Policy for what leaves your device and what never does. Screen/camera frames are processed
+          for that turn only, never stored or logged; microphone interruption audio never leaves your device.
+          You own your prompts to the extent the law allows, subject to provider terms (OpenAI/OpenRouter/fal/Meshy
+          and downstream model terms apply); we do not warrant outputs are original, non-infringing, or yours to
+          commercialize. Do not clone a real person&apos;s voice/likeness, upload faces/voices/assets you lack
+          rights to, impersonate anyone, or create deepfake/NSFW content; you indemnify us for right-of-publicity
+          and IP claims from your AI use, and violations mean removal/termination. AI-generated code may be
+          insecure or buggy: test before relying on it. Never rely on AI/Buddy in an emergency: call your local
+          emergency number.
         </p>
 
         <h2 className={h2}>8C. Timer, Work Diary, and Ghost Cash (👻) non-legal debt ledger</h2>
@@ -499,9 +538,13 @@ export default function TermsPage() {
           the cut ledger. Orgs may rank members as Lord (org leader), Captain (team leader), Infantry (regular
           player), Banker (finance controller, optionally read-only), or Watcher (sees everything, changes nothing -
           optionally scoped to certain members); one member may hold several presets at once, different in every
-          org, with power always the union; rank powers are enforced server-side per action. Everyone may join up to
+          org, with power always the union; rank powers are enforced server-side per action. Team owners are
+          responsible for their members&apos; conduct in their workspaces. Everyone may join up to
           100 orgs, each with its own bosses. Compute features depend on third-party capacity and may be unavailable, delayed, or
-          re-priced; estimates are not guarantees.
+          re-priced; estimates are not guarantees. No SLA. Idle pods bill until you stop them; failed or
+          queued renders/jobs may still consume metered compute. You are responsible for content you provision
+          and compute you trigger (no mining/malware/illegal workloads); auto-shutdown is a courtesy, not a
+          guarantee. Enterprise orders (DPA/SLA/order form) control over these Terms only where expressly stated.
         </p>
 
         <h2 className={h2}>10. Intellectual property and copyright (DMCA)</h2>
@@ -512,7 +555,24 @@ export default function TermsPage() {
           copyrighted work, (b) the infringing material and its URL, (c) your contact information, (d) a good-faith
           statement, and (e) a statement under penalty of perjury that you are authorized to act, with your physical
           or electronic signature. We respond to valid notices, remove or disable qualifying material, and terminate
-          repeat infringers where appropriate.
+          repeat infringers where appropriate. We maintain a repeat-infringer policy: accounts that repeatedly
+          post infringing material are terminated, as required for safe harbor. If your material was removed on
+          a copyright complaint and you believe it was misidentified or you have rights, you may email a
+          counter-notice with (a) your contact info, (b) the removed material and its prior URL, (c) consent to
+          New Hampshire jurisdiction (and acceptance of process), and (d) a statement under penalty of perjury
+          that removal was a mistake/misidentification, with your signature; we may restore in 10-14 business
+          days unless the complainant sues first, per 17 U.S.C. 512(g). Trademark complaints may be sent to the
+          same address with mark, registration (if any), and infringing URL.
+        </p>
+
+        <h2 className={h2}>10A. Trademarks and third-party marks</h2>
+        <p>
+          4weird, VibeCodeWorker, Ghost Cash, and related names/logos are ours; do not use, copy, or challenge
+          them without written permission. All other marks (including Blender® of the Blender Foundation, NVIDIA/RTX,
+          RunPod, DigitalOcean, Vercel, Shopify, Stripe, Apple, Google, Steam/Microsoft marks) belong to their
+          owners; nominative mentions are not sponsorship or endorsement by or of anyone. External creator
+          attributions (e.g., game credits) are used with permission or as nominative/fair-use references and are
+          removed on valid objection. Do not imply affiliation, endorsement, or partnership.
         </p>
 
         <h2 className={h2}>11. Third parties; and who sees your data</h2>
@@ -524,10 +584,21 @@ export default function TermsPage() {
           assistance, and text-to-speech); OpenRouter (multi-model AI routing, including Meta Muse Spark, Google
           Gemini, and Anthropic Claude models); DeepSeek (AI chat and reasoning); Google Gemini (AI chat, directly or
           via OpenRouter); Anthropic Claude (AI chat, via OpenRouter); Meta (Muse Spark AI, directly or via
-          OpenRouter); ElevenLabs (text-to-speech, speech-to-text, sound and music generation); fal.ai (image, video,
-          audio, and 3D generation); RunPod (GPU cloud compute); and DigitalOcean (compute). We do not control,
-          endorse, or assume responsibility for third-party services; your dealings with them are solely between you
-          and the third party under their terms. See the Privacy Policy for provider categories and data flows.
+          OpenRouter);           ElevenLabs (text-to-speech, speech-to-text, sound and music generation); fal.ai (image, video,
+          audio, and 3D generation); Meshy.ai (3D generation; prompts/assets sent to produce models); RunPod (GPU cloud compute); DigitalOcean (compute);
+          Kasada/BotID (bot/fraud prevention screening of request metadata); and CDNs/edge delivery (including
+          jsDelivr, cdnjs, Google Tag Manager for consented analytics, esm.sh, blender.org for worker downloads).
+          Supabase sends transactional auth emails; we use no third-party marketing-email provider (marketing email
+          is off by default). Some AI/provider paths route via OpenRouter or run locally/on-device (no third-party
+          transfer), and desktop/BYOK keys you supply operate under those providers&apos; terms. We do not control,
+          endorse, or assume responsibility for third-party services, user-posted/external links, ads, or listings;
+          visit and transact at your own risk and your dealings with them are solely between you
+          and the third party under their terms. Affiliate/sponsor channels may earn us or clans compensation and
+          are labeled as such; creators must disclose material connections per FTC rules. If you obtain the Service
+          via Apple, Google, Microsoft, Steam, or another platform, that platform&apos;s terms also apply and control
+          for distribution (Apple has no liability for the app); sideloading requires meeting stated system/GPU/OS/
+          network requirements, and antivirus/anti-cheat flags are not our fault. Beta/experimental features are
+          labeled as such and carry no warranty. See the Privacy Policy for provider categories and data flows.
         </p>
         <p>
           We provide your information to private third parties as described in the Privacy Policy; including service
@@ -585,7 +656,11 @@ export default function TermsPage() {
           INABILITY TO USE, OR RELIANCE ON THE SERVICE, EVEN IF ADVISED OF THE POSSIBILITY. TO THE FULLEST EXTENT
           PERMITTED BY LAW, THE TOTAL AGGREGATE LIABILITY OF THOSE PARTIES FOR ALL CLAIMS ARISING OUT OF OR RELATED
           TO THE SERVICE OR THESE TERMS IS $0. YOUR SOLE AND EXCLUSIVE REMEDY FOR DISSATISFACTION IS TO STOP USING
-          THE SERVICE. Some jurisdictions do not allow certain exclusions or limitations; including limits that
+          THE SERVICE. Where $0 cannot lawfully apply, aggregate liability is capped instead at the greater of
+          $100 or amounts you actually paid us in the 12 months before the claim, to the extent permitted by law.
+          Nothing here limits liability that cannot lawfully be limited (including for death/personal injury caused
+          by negligence, fraud/fraudulent misrepresentation, or gross negligence/willful misconduct where the law
+          forbids exclusion). Some jurisdictions do not allow certain exclusions or limitations; including limits that
           would erase liability entirely; so this section applies only to the extent permitted by applicable law,
           and nothing here limits rights that cannot lawfully be waived in your jurisdiction (see Section 18).
         </p>
@@ -595,19 +670,29 @@ export default function TermsPage() {
           To the maximum extent permitted by law, you will defend, indemnify, and hold harmless MattyJacks and its
           owners, officers, employees, contractors, licensors, and suppliers from claims, liabilities, damages, losses,
           and expenses (including reasonable attorneys’ fees) arising from your use of the Service, your content, your
-          violation of these Terms, or your violation of law or another person’s rights.
+          violation of these Terms, or your violation of law or another person’s rights. We will give prompt notice
+          (failure to do so does not excuse you except for proven prejudice), you will cooperate at your expense, we
+          control defense/settlement with counsel of our choice, and you will not settle in our name without written
+          consent. This does not apply to claims caused solely by our own willful misconduct. You will mitigate
+          claimed losses where reasonable.
         </p>
 
         <h2 className={h2}>17. Governing law, venue, and claims</h2>
         <p>
-          These Terms are governed by New Hampshire law, without regard to conflict-of-law principles. To the maximum
+          These Terms are governed by New Hampshire law, without regard to conflict-of-law principles. There is no
+          arbitration agreement: disputes are resolved in court only. First, email{" "}
+          <a className={a} href="mailto:matt@mattyjacks.com">matt@mattyjacks.com</a> describing the dispute and give
+          us 30 days to resolve it informally before filing. To the maximum
           extent permitted by law, any dispute arising out of or related to these Terms or the Service must be brought
-          exclusively in the state or federal courts located in New Hampshire, and you consent to their jurisdiction
+          exclusively in the state or federal courts located in New Hampshire (small-claims court where eligible is
+          also permitted), and you consent to their jurisdiction
           and venue. You and MattyJacks agree that claims must be brought only on an individual basis, not as a
           plaintiff or class member in any purported class, collective, consolidated, or representative action, to the
-          extent permitted by law. Any claim must be filed within one year after it arose, unless a longer period
+          extent permitted by law, and you waive jury trial to the extent waivable. Any claim must be filed within one year after it arose, unless a longer period
           cannot lawfully be shortened. Nothing in these Terms limits rights that cannot lawfully be waived, including
-          non-waivable consumer, privacy, or employment protections in your jurisdiction.
+          non-waivable consumer, privacy, or employment protections in your jurisdiction. We may seek emergency
+          injunctive/equitable relief for IP, security, or safety abuse in any competent court. The prevailing party
+          in enforcement may recover reasonable attorneys&apos; fees where permitted by law.
         </p>
 
         <h2 className={h2}>18. Mandatory-rights notice</h2>
@@ -632,7 +717,12 @@ export default function TermsPage() {
           Our failure to enforce a provision is not a waiver. You may not assign these Terms; we may assign them
           without restriction (for example, in a merger or sale). These Terms, together with the Privacy Policy and
           any additional terms presented for a feature or purchase, are the complete agreement concerning the Service.
-          Questions about these Terms may be sent to MattyJacks LLC, New Hampshire, USA at{" "}
+          Sections 3 (license), 8-8D (economy), 10-10A (IP), and 14-18 (disclaimers, liability, indemnity, disputes)
+          survive termination. We are not liable for delays/failures caused by events beyond reasonable control
+          (force majeure: outages, attacks, provider failures, disasters, labor, government action). We aim for
+          accessibility (WCAG-minded design) but make no ADA guarantee; report barriers to the contact below. EU
+          consumers may use the EU Online Dispute Resolution platform; our DSA point of contact (where applicable)
+          is the email below. Questions about these Terms may be sent to MattyJacks LLC, New Hampshire, USA at{" "}
           <a className={a} href="mailto:matt@mattyjacks.com">matt@mattyjacks.com</a>. Privacy and data-rights requests:
           self-service at <a className={a} href="/my/rights">/my/rights/</a>; special cases (including deceased-user
           family requests with proof of authority) by email at{" "}

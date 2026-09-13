@@ -30,6 +30,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   }
   const { id } = await params;
   if (!isUuid(id)) return fail("Invalid file.", 400);
+  // Signed URLs are minted here: throttle ID enumeration / URL minting.
+  const readThrottle = rateLimit(`vault-read:${userId}`, 60, 60_000);
+  if (!readThrottle.allowed) return fail("Too many requests.", 429);
 
   // RLS policies enforce scope separation on the user client. Bot callers
   // have no session (anon sees nothing), so they read via the service
@@ -82,7 +85,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       if (storagePath && storagePath.startsWith(expectedPrefix)) {
         const { data: signed } = await svc.storage
           .from("game-blobs")
-          .createSignedUrl(storagePath, 3600, { download: String(r.path ?? "download").split("/").pop() ?? "download" });
+          .createSignedUrl(storagePath, 300, { download: String(r.path ?? "download").split("/").pop() ?? "download" });
         download = signed?.signedUrl ?? null;
       }
     } catch {
@@ -242,13 +245,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
   const { data: row, error } = await svc
     .from("vault_files")
-    .select("id,scope,owner_id,team_id,org_id,bytes,sha256,deleted_at")
+    .select("id,scope,owner_id,team_id,org_id,bytes,sha256,quarantined,provenance,deleted_at")
     .eq("id", id)
     .maybeSingle();
   if (error || !row || (row as { deleted_at?: string | null }).deleted_at) {
     return error ? dbFail("api/vault/ready", error, "File not found.", 404) : fail("File not found.", 404);
   }
-  const r = row as { scope: string; owner_id: string | null; team_id: string | null; org_id: string | null; bytes: number; sha256: string };
+  const r = row as { scope: string; owner_id: string | null; team_id: string | null; org_id: string | null; bytes: number; sha256: string; quarantined: boolean | null; provenance: { mime?: string } | null };
   const owns =
     (r.scope === "personal" && r.owner_id === userId) ||
     (r.scope !== "personal" &&
@@ -263,11 +266,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const { data: blob } = await svc
     .from("vault_blobs")
-    .select("storage_path,bytes")
+    .select("storage_path,bytes,mime")
     .eq("sha256", r.sha256)
     .maybeSingle();
   const storagePath = (blob as { storage_path?: string } | null)?.storage_path;
   if (!storagePath) return fail("Upload not registered.", 409);
+  // Scope-prefix gate: refuse to list another scope's folder (existence oracle).
+  const readyScopeId = String(r.scope === "personal" ? r.owner_id : r.scope === "team" ? r.team_id : r.org_id ?? "");
+  if (!storagePath.startsWith(`${r.scope}/${readyScopeId}/`)) return fail("File not found.", 404);
   const folder = storagePath.split("/").slice(0, -1).join("/");
   const { data: listed } = await svc.storage.from("game-blobs").list(folder);
   const base = storagePath.split("/").pop() ?? "";
@@ -275,6 +281,23 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!stored) return fail("Bytes not uploaded yet.", 409);
   if (typeof stored.metadata?.size === "number" && stored.metadata.size !== r.bytes) {
     return fail("Size mismatch; re-upload.", 409);
+  }
+  // Content-type check: signed-PUT bytes are attacker-controlled, so the
+  // stored object's real content-type must match the registered `mime`.
+  const normMime = (v: unknown) => {
+    const base2 = String(v ?? "").split(";")[0]?.trim().toLowerCase() ?? "";
+    return base2 || "application/octet-stream";
+  };
+  const claimed = normMime(r.provenance?.mime ?? (blob as { mime?: string } | null)?.mime);
+  const actual = normMime((stored.metadata as Record<string, unknown> | null)?.mimetype);
+  if (actual !== "application/octet-stream" && actual !== claimed) {
+    // Quarantined rows are evidence: refuse without destroying bytes (the
+    // purge legal-hold owns destruction); otherwise drop the bad upload.
+    if (!r.quarantined) {
+      await svc.storage.from("game-blobs").remove([storagePath]);
+      await svc.from("vault_files").delete().eq("id", id);
+    }
+    return fail("Content mismatch; re-upload.", 409);
   }
 
   const quote = quoteVaultStorageSplit(r.bytes);

@@ -31,6 +31,12 @@ export const GAME_ROOT_MAX_CHARS = 256;
 export const AUDIT_TEXT_CAP_BYTES = 512 * 1024;
 /** Max files inspected per audit (cheapest viable; headers first). */
 export const AUDIT_MAX_FILES = 500;
+/**
+ * Aggregate uncompressed-size budget: a 50 MB zip expanding past this is a
+ * zip bomb (the server never decompresses fully, but the downloader's
+ * machine would). Denied and held for review.
+ */
+export const ZIP_MAX_TOTAL_UNCOMPRESSED_BYTES = 500 * 1024 * 1024;
 
 export const SUBMIT_CUT_PCT = SERVICE_CUT_PCT;
 export const STORAGE_CUT_PCT = SERVICE_CUT_PCT;
@@ -105,17 +111,26 @@ export function cleanGameRoot(value: unknown): string {
 
 export type ZipEntry = { name: string; bytes: number };
 
+export type ZipList = {
+  entries: ZipEntry[];
+  /** Central-directory entry count (0 when unreadable). */
+  total: number;
+  /** True when entries exist that were NOT scanned (cap hit or count gap). */
+  truncated: boolean;
+};
+
 /**
  * Minimal ZIP central-directory file list. Reads EOCD -> central headers
- * for names + uncompressed sizes. No decompression. Returns [] when the
- * buffer is not a parseable zip (caller treats as warning, not denial).
+ * for names + uncompressed sizes. No decompression. Reports truncation so
+ * callers never return a clean verdict over an unscanned tail.
  */
-export function listZipEntries(buf: Uint8Array): ZipEntry[] {
+export function listZipEntries(buf: Uint8Array): ZipList {
   const out: ZipEntry[] = [];
+  const done = (total: number, truncated: boolean): ZipList => ({ entries: out, total, truncated });
   try {
-    if (buf.length < 22) return out;
+    if (buf.length < 22) return done(0, false);
     // PK magic check on local header.
-    if (!(buf[0] === 0x50 && buf[1] === 0x4b)) return out;
+    if (!(buf[0] === 0x50 && buf[1] === 0x4b)) return done(0, false);
     let eocd = -1;
     const scanFrom = Math.max(0, buf.length - 66000);
     for (let i = buf.length - 22; i >= scanFrom; i--) {
@@ -129,11 +144,15 @@ export function listZipEntries(buf: Uint8Array): ZipEntry[] {
         break;
       }
     }
-    if (eocd < 0) return out;
+    if (eocd < 0) return done(0, false);
     const view = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
     const count = view.getUint16(eocd + 10, true);
     let off = view.getUint32(eocd + 16, true);
-    const n = Math.min(count, AUDIT_MAX_FILES * 2);
+    // A zeroed count with parseable headers still gets scanned (never trust
+    // the count to hide entries); the cap always bounds the work.
+    const cap = AUDIT_MAX_FILES * 2;
+    const n = count > 0 ? Math.min(count, cap) : cap;
+    let seen = 0;
     for (let k = 0; k < n; k++) {
       if (off + 46 > buf.length) break;
       if (
@@ -154,14 +173,25 @@ export function listZipEntries(buf: Uint8Array): ZipEntry[] {
       } catch {
         name = "";
       }
+      seen += 1;
       if (name && !name.endsWith("/")) out.push({ name, bytes: size });
       off += 46 + nameLen + extraLen + commentLen;
-      if (out.length >= AUDIT_MAX_FILES * 2) break;
+      if (out.length >= cap) break;
     }
+    const total = count > 0 ? count : seen;
+    // Truncated when the directory claims more than we consumed, when we
+    // stopped at the cap, or when another header follows an unreadable count.
+    const moreHeaders =
+      off + 46 <= buf.length &&
+      buf[off] === 0x50 &&
+      buf[off + 1] === 0x4b &&
+      buf[off + 2] === 0x01 &&
+      buf[off + 3] === 0x02;
+    const truncated = total > seen || out.length >= cap || (count <= 0 && moreHeaders);
+    return done(total, truncated);
   } catch {
-    return out;
+    return done(0, false);
   }
-  return out;
 }
 
 export type AuditFinding = {
@@ -214,6 +244,10 @@ export function auditZipPackage(input: {
   texts?: Record<string, string>;
   totalBytes: number;
   gameRoot?: string;
+  /** Central-directory count from listZipEntries (0 when unreadable). */
+  totalFiles?: number;
+  /** True when entries exist that were NOT scanned. Never a clean verdict. */
+  truncated?: boolean;
 }): AuditReport {
   const gameRoot = cleanGameRoot(input.gameRoot ?? "");
   const entries = (input.entries ?? []).slice(0, AUDIT_MAX_FILES * 2);
@@ -232,6 +266,23 @@ export function auditZipPackage(input: {
       level: "warning",
       code: "package:unlisted",
       detail: "File list unreadable; held for human review, not denied.",
+    });
+  }
+  if (input.truncated) {
+    findings.push({
+      level: "deny",
+      code: "package:unscanned",
+      detail: `File list truncated (${input.totalFiles ?? "?"} entries declared, ${entries.length} scanned). Unscanned files are held for review, never auto-approved.`,
+    });
+  }
+  // Zip-bomb guard: aggregate uncompressed size across ALL listed entries.
+  // The server never decompresses fully, but the downloader's machine would.
+  const totalUncompressed = entries.reduce((n, e) => n + (Number.isFinite(e.bytes) ? e.bytes : 0), 0);
+  if (totalUncompressed > ZIP_MAX_TOTAL_UNCOMPRESSED_BYTES) {
+    findings.push({
+      level: "deny",
+      code: "package:bomb",
+      detail: `Uncompressed total exceeds the 500 MB budget (${totalUncompressed} bytes). Split the package or compress assets.`,
     });
   }
 
@@ -298,13 +349,15 @@ export function auditZipPackage(input: {
     if (findings.filter((f) => f.level === "deny").length >= 5) break;
   }
 
-  // Binary extension pass over the full list.
+  // Binary extension pass over the full list. Browser games never need
+  // executables, so these quarantine (deny) instead of merely warning: a
+  // `warning` verdict would still be served back via signed URL.
   for (const e of entries) {
     if (/\.(exe|dll|so|dylib|msi|bat|ps1|vbs|scr|com)$/i.test(e.name)) {
       findings.push({
-        level: "warning",
+        level: "deny",
         code: "risk:binary-blob",
-        detail: `Executable held for review: ${e.name.slice(0, 80)}`,
+        detail: `Executable quarantined for review: ${e.name.slice(0, 80)}`,
       });
       break;
     }

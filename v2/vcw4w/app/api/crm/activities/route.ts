@@ -25,7 +25,7 @@ function cleanStr(v: unknown, cap: number): string {
 
 // GET /api/crm/activities?org_id=<uuid>&deal_id=<uuid>&contact_id=<uuid>&company_id=<uuid>
 //   &kind=<kind>&done=true|false&open=true&overdue=1&q=<text>
-//   &limit=<1..100>&offset=<0..>&sort=<field>&order=<asc|desc>
+//   &limit=<1..100>&offset=<0..10000>&sort=<field>&order=<asc|desc>
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
@@ -66,7 +66,9 @@ export async function GET(req: Request) {
   const limitRaw = Number(params.get("limit") ?? 50);
   const limit = Number.isFinite(limitRaw) ? Math.min(100, Math.max(1, Math.floor(limitRaw))) : 50;
   const offsetRaw = Number(params.get("offset") ?? 0);
-  const offset = Number.isFinite(offsetRaw) ? Math.max(0, Math.floor(offsetRaw)) : 0;
+  const offset = Number.isFinite(offsetRaw)
+    ? Math.min(10000, Math.max(0, Math.floor(offsetRaw)))
+    : 0;
   const sortRaw = cleanStr(params.get("sort"), 32);
   if (sortRaw && !(SORTABLE as readonly string[]).includes(sortRaw)) {
     return fail(`Invalid sort. Expected one of: ${SORTABLE.join(", ")}.`, 400);
@@ -77,8 +79,9 @@ export async function GET(req: Request) {
     return fail("Invalid order. Expected asc or desc.", 400);
   }
   const ascending = orderRaw === "asc";
-  // Strip PostgREST `or=` separators / wildcards so free text can't break the filter.
-  const needle = rawQ.replace(/[%_(),]/g, "").trim().slice(0, 120);
+  // Strip PostgREST `or=` separators (commas, parens), quotes, backslashes,
+  // and LIKE wildcards (% _ *) so free text can't break the filter.
+  const needle = rawQ.replace(/[%_*,()"'`\\]/g, "").trim().slice(0, 120);
   let q = supabase
     .from("crm_activities")
     .select(SELECT, { count: "exact" })
@@ -141,6 +144,13 @@ export async function POST(req: Request) {
     const raw = cleanStr(input[key], 36);
     if (raw && !isUuid(raw)) return fail(`Invalid ${key}. Expected a UUID.`, 400);
   }
+  const { data: postMembership } = await supabase
+    .from("org_members")
+    .select("org_id")
+    .eq("org_id", orgId)
+    .eq("user_id", u.id)
+    .maybeSingle();
+  if (!postMembership) return fail("Not a member of this org.", 403);
   const { data: activity, error } = await supabase
     .from("crm_activities")
     .insert({
@@ -217,19 +227,17 @@ export async function PATCH(req: Request) {
   }
   if (Object.keys(patch).length === 0) return fail("Nothing to update.", 400);
   const orgRaw = String(params.get("org_id") ?? input.org_id ?? "").trim();
-  if (orgRaw && !isUuid(orgRaw)) return fail("Invalid org_id. Expected a UUID.", 400);
+  if (!orgRaw) return fail("org_id is required.", 400);
+  if (!isUuid(orgRaw)) return fail("Invalid org_id. Expected a UUID.", 400);
   const orgId = isUuid(orgRaw);
-  if (orgId) {
-    const { data: membership } = await supabase
-      .from("org_members")
-      .select("org_id")
-      .eq("org_id", orgId)
-      .eq("user_id", u.id)
-      .maybeSingle();
-    if (!membership) return fail("Not a member of this org.", 403);
-  }
-  let uq = supabase.from("crm_activities").update(patch).eq("id", id);
-  if (orgId) uq = uq.eq("org_id", orgId);
+  const { data: membership } = await supabase
+    .from("org_members")
+    .select("org_id")
+    .eq("org_id", orgId)
+    .eq("user_id", u.id)
+    .maybeSingle();
+  if (!membership) return fail("Not a member of this org.", 403);
+  const uq = supabase.from("crm_activities").update(patch).eq("id", id).eq("org_id", orgId);
   const { data: activity, error } = await uq.select(SELECT).single();
   if (error) return dbFail("PATCH /api/crm/activities", error, "Unable to update activity.");
   return ok({ activity });

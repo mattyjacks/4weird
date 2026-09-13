@@ -3,6 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
+import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit";
 import { gameSlugs } from "@/content/games";
 import { cleanGameSlug, isVcwVerdict } from "@/lib/vcw-runs";
 
@@ -74,6 +75,10 @@ export async function POST(req: Request) {
   if (!data.user) return fail("Authentication required.", 401);
   const rl = rateLimit(`vcw:runs:create:${data.user.id}`, 20, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
+  const runsDist = await globalBucket(acctBucketKey("vcw-runs-hour", data.user.id), 120, 3600);
+  if (runsDist && !runsDist.allowed) {
+    return fail("Rate limited.", 429, throttleHeaders(runsDist.retryAfter));
+  }
 
   let body: unknown;
   try {

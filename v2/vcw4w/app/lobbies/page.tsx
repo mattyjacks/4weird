@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LobbiesBrowser } from "@/components/lobbies/lobbies-browser";
+import { GraveGainLobbies } from "@/components/lobbies/gravegain-lobbies";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/lobbies" },
@@ -25,6 +26,9 @@ export default function LobbiesPage() {
         </p>
         <div className="mt-10">
           <LobbiesBrowser />
+        </div>
+        <div className="mt-14">
+          <GraveGainLobbies />
         </div>
       </section>
     </main>

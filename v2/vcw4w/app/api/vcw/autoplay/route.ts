@@ -3,6 +3,7 @@ import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
+import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit";
 import { gameSlugs } from "@/content/games";
 import {
   AUTOPLAY_MAX_MINUTES,
@@ -44,6 +45,12 @@ export async function POST(req: Request) {
   if (!data.user) return fail("Authentication required.", 401);
   const rl = rateLimit(`vcw:autoplay:${data.user.id}`, 20, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
+  // Distributed shield: local buckets multiply across serverless instances;
+  // provisioning burns real $/sec, so cap per account in Postgres too.
+  const autoplayDist = await globalBucket(acctBucketKey("autoplay-hour", data.user.id), 120, 3600);
+  if (autoplayDist && !autoplayDist.allowed) {
+    return fail("Rate limited.", 429, throttleHeaders(autoplayDist.retryAfter));
+  }
 
   let body: unknown;
   try {

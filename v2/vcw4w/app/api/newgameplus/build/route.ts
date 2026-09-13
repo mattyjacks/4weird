@@ -110,21 +110,48 @@ export async function POST(req: Request) {
   const orgId = isUuid(input.org_id ?? input.orgId) ? String(input.org_id ?? input.orgId) : null;
 
   const plan = planBuild(quality, budget);
-  // Per-processing permission: callers that opt in with auto_approve_max let
-  // the agent spend up to that ceiling silently; anything above it needs an
-  // explicit confirmed:true. Absent/invalid input falls back to the default
-  // ceiling, but only when the caller sent the field at all — legacy callers
-  // that never heard of it keep the historic behavior (250 system line only).
-  if (input.auto_approve_max !== undefined && input.auto_approve_max !== null && input.auto_approve_max !== "") {
-    const autoMax = cleanAutoApproveMax(input.auto_approve_max);
-    if (autoMax === null) {
-      return fail(`auto_approve_max must be an integer 1-250 coins (default 20).`, 400);
-    }
-    if (needsSpendPermission(plan.spend, autoMax) && !confirmed) {
-      return fail(
-        `${spendPermissionMessage(plan.spend, autoMax)} Quoted ${plan.spend} coins capped (25% cut included).`,
-        402,
-      );
+  // Per-processing permission (always enforced, fail closed): the agent may
+  // spend up to the caller's auto-approve ceiling silently (default 20 coins,
+  // configurable 1-250); anything above it needs an explicit confirmed:true.
+  // Omitting the field does NOT skip the gate — it applies the default.
+  const autoMax = cleanAutoApproveMax(input.auto_approve_max ?? SPEND_AUTO_APPROVE_DEFAULT_COINS);
+  if (autoMax === null) {
+    return fail(`auto_approve_max must be an integer 1-250 coins (default 20).`, 400);
+  }
+  if (needsSpendPermission(plan.spend, autoMax) && !confirmed) {
+    return fail(
+      `${spendPermissionMessage(plan.spend, autoMax)} Quoted ${plan.spend} coins capped (25% cut included).`,
+      402,
+    );
+  }
+  // Bind confirmations to the confirmed budget: a captured confirmed:true
+  // cannot be replayed for a bigger budget (amount-swap). The quoted spend
+  // never exceeds the budget, so confirming the budget caps the charge.
+  if ((needsAmountConfirm(budget) || needsSpendPermission(plan.spend, autoMax)) && confirmed && Number(input.confirmed_budget) !== budget) {
+    return fail(
+      `Confirm the Amount: that confirmation was for a different budget. Resend with confirmed:true and confirmed_budget:${budget} to launch ${budget} coins.`,
+      402,
+    );
+  }
+  // Session probe BEFORE the expensive symphony/mastery work below: anonymous
+  // callers are throttled before any CPU burns, and the single probe result
+  // is reused for metering (no TOCTOU between throttle and spend guard).
+  let authedUser: { id: string; email?: string | null } | null = null;
+  if (hasServerSupabase()) {
+    try {
+      const probe = await createClient();
+      const { data: probeData, error: probeError } = await probe.auth.getUser();
+      if (probeError) console.error("[newgameplus/build auth]", String(probeError.message ?? probeError).slice(0, 200));
+      if (probeData.user) {
+        authedUser = probeData.user;
+      } else {
+        const rl = rateLimit(`newgameplus:build:anon:${clientIp(req)}`, 10, 60_000);
+        if (!rl.allowed) return fail("Rate limited. Sign in for a higher build allowance.", 429);
+      }
+    } catch (error) {
+      console.error("[newgameplus/build auth]", String((error as Error)?.message ?? error).slice(0, 200));
+      const rl = rateLimit(`newgameplus:build:anon:${clientIp(req)}`, 10, 60_000);
+      if (!rl.allowed) return fail("Rate limited. Sign in for a higher build allowance.", 429);
     }
   }
   const lane = laneForBudget(budget);
@@ -179,30 +206,6 @@ export async function POST(req: Request) {
   let charge: { billed: boolean; gross: number; cut: number } = { billed: false, gross: 0, cut: 0 };
   let vaultSaved = false;
   let vaultSavedFiles = 0;
-
-  // Single session probe, reused for the throttle AND metering below:
-  // revalidating twice would double latency and open a TOCTOU window
-  // between the anon throttle and the spend guard.
-  let authedUser: { id: string; email?: string | null } | null = null;
-  if (!hasServerSupabase()) {
-    // No persistence configured: local build below, nothing to throttle.
-  } else {
-    try {
-      const probe = await createClient();
-      const { data: probeData, error: probeError } = await probe.auth.getUser();
-      if (probeError) console.error("[newgameplus/build auth]", String(probeError.message ?? probeError).slice(0, 200));
-      if (probeData.user) {
-        authedUser = probeData.user;
-      } else {
-        const rl = rateLimit(`newgameplus:build:anon:${clientIp(req)}`, 10, 60_000);
-        if (!rl.allowed) return fail("Rate limited. Sign in for a higher build allowance.", 429);
-      }
-    } catch (error) {
-      console.error("[newgameplus/build auth]", String((error as Error)?.message ?? error).slice(0, 200));
-      const rl = rateLimit(`newgameplus:build:anon:${clientIp(req)}`, 10, 60_000);
-      if (!rl.allowed) return fail("Rate limited. Sign in for a higher build allowance.", 429);
-    }
-  }
 
   if (hasServerSupabase()) {
     try {

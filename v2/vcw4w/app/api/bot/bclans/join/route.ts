@@ -1,6 +1,6 @@
 import { dbFail, fail, ok } from "@/lib/api-respond";
-import { sameOriginOrBotKey } from "@/lib/csrf-bot";
-import { botRateLimit, hasBotAuth, invalidCredentials, keyHasScope, resolveBotKey } from "@/lib/bot-auth";
+import { sameOrigin } from "@/lib/csrf";
+import { botRateLimit, extractBotKey, hasBotAuth, invalidCredentials, keyHasScope, resolveBotKey } from "@/lib/bot-auth";
 import { logBotKeyRequest } from "@/lib/bot-log";
 import { botClanSlug } from "@/lib/bot-validate";
 import { clientIp, exceedsBodyLimit } from "@/lib/validate";
@@ -17,8 +17,9 @@ export async function POST(req: Request) {
   if (!hasBotAuth()) return fail("Bot service is not configured.", 503);
   // Cookie sessions (browsers) prove same-origin; bots prove a VALID key.
   // Valid-key curl bots carry no Origin and pass via the key; keyless or
-  // revoked callers fail here instead of reaching key resolution.
-  if (!(await sameOriginOrBotKey(req))) return fail("Invalid request origin.", 403);
+  // revoked callers fail here instead of reaching key resolution. The header
+  // check is free (no KDF), so the scrypt verify below runs exactly once.
+  if (!extractBotKey(req) && !sameOrigin(req)) return fail("Invalid request origin.", 403);
   const throttle = botRateLimit(req, "write");
   if (!throttle.allowed) {
     return fail("Rate limited. Try again shortly.", 429, {

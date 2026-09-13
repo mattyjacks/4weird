@@ -51,15 +51,33 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   }
   const state = (body as Record<string, unknown> | null)?.state;
   if (!state || typeof state !== "object" || Array.isArray(state)) return fail("Invalid state.", 400);
-  const allowed = new Set(["x", "y", "score", "alive"]);
-  const clean: Record<string, number | boolean> = {};
+  const boolKeys = new Set(["alive", "revive", "winner"]);
+  const strCaps = new Map([["boss", 32], ["seed", 24], ["side", 16], ["emote", 16]]);
+  const numKeys = new Set([
+    "x", "y", "score", "hp", "maxhp", "gold", "kills", "deaths",
+    "floor", "sector", "progress", "level", "xp",
+  ]);
+  const clean: Record<string, number | boolean | string> = {};
   for (const k of Object.keys(state as Record<string, unknown>)) {
-    if (!allowed.has(k)) continue;
     const v = (state as Record<string, unknown>)[k];
-    if (k === "alive" && typeof v === "boolean") {
-      clean[k] = v;
-    } else if (typeof v === "number" && Number.isFinite(v)) {
-      clean[k] = Math.max(-1000, Math.min(2000, v));
+    if (boolKeys.has(k)) {
+      if (typeof v === "boolean") clean[k] = v;
+      continue;
+    }
+    const cap = strCaps.get(k);
+    if (cap !== undefined) {
+      if (typeof v === "string") clean[k] = v.trim().slice(0, cap);
+      continue;
+    }
+    if (!numKeys.has(k)) continue;
+    if (typeof v === "number" && Number.isFinite(v)) {
+      if (k === "progress") {
+        clean[k] = Math.max(0, Math.min(100, v));
+      } else if (k === "x" || k === "y" || k === "score") {
+        clean[k] = Math.max(-1000, Math.min(2000, v));
+      } else {
+        clean[k] = Math.max(-100000, Math.min(100000, v));
+      }
     }
   }
   const { data: rpcData, error } = await supabase.rpc("update_match_state", {

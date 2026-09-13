@@ -1,10 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient, supabaseServiceRoleKey, supabaseUrl } from "@/lib/supabase/service";
-import { fail, ok, rpcFail } from "@/lib/api-respond";
+import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
-import { isHours } from "@/lib/agent-market";
+import { isHours, rpcStatus } from "@/lib/agent-market";
 import { RUNPOD_AUTO_ENDPOINT } from "@/lib/agent-market";
 import { runpodProvider } from "@/lib/compute";
 
@@ -55,7 +55,7 @@ export async function POST(
     .select("id,name,runtime,provider_code,endpoint_url,price_cents_per_hour")
     .eq("id", id)
     .maybeSingle();
-  if (listingError) return fail("Unable to load listing.", 500);
+  if (listingError) return dbFail("api/agents/book", listingError, "Unable to load listing.");
   if (!listing) return fail("Listing not found.", 404);
 
   // Dead-end guard BEFORE escrow: DigitalOcean has no auto-provision path
@@ -72,14 +72,7 @@ export async function POST(
     p_hours: hours,
   });
   if (error)
-    return rpcFail("api/agents/book", error, (m) => {
-      const l = m.toLowerCase();
-      if (l.includes("authentication required")) return 401;
-      if (l.includes("not authorized") || l.includes("cannot book your own")) return 403;
-      if (l.includes("not found") || l.includes("not available")) return 404;
-      if (l.includes("insufficient balance")) return 402;
-      return 400;
-    });
+    return rpcFail("api/agents/book", error, rpcStatus, "Unable to book this listing.");
 
   const row = listing as ListingRow;
   const needsProvision =
@@ -104,6 +97,14 @@ export async function POST(
   });
 
   if ("error" in provisioned) {
+    try {
+      console.error("[api/agents/book] provision failed", {
+        bookingId: (booking as { id?: string })?.id ?? null,
+        code: provisioned.error,
+      });
+    } catch {
+      /* logging must never fail the request */
+    }
     return ok({
       booking,
       provision: {
@@ -111,8 +112,8 @@ export async function POST(
         code: provisioned.error,
         message:
           provisioned.error === "unconfigured"
-            ? "RunPod is not configured on the server yet (RUNPOD_API_KEY). Your escrow is locked; the host will provision once it is."
-            : (provisioned.message ?? "Provisioning failed. Your escrow is locked; try again or end the booking."),
+            ? "RunPod is not configured on the server yet (RUNPOD_API_KEY). No machine started and no usage is billed; press End below for an instant escrow refund, then re-book once configured."
+            : (provisioned.message ?? "Provisioning failed. No machine started and no usage is billed; press End below for an instant escrow refund, then re-book."),
       },
       note: "Billed per second at up to the listing's $/hr max (includes 25% platform cut).",
     });
@@ -122,7 +123,7 @@ export async function POST(
   try {
     if (supabaseUrl() && supabaseServiceRoleKey()) {
       const db = serviceClient();
-      await db
+      const { error: mirrorError } = await db
         .from("rental_bookings")
         .update({
           pod_id: provisioned.podId,
@@ -130,10 +131,21 @@ export async function POST(
           gpu_type: provisioned.gpuId,
         })
         .eq("id", (booking as { id: string }).id);
+      if (mirrorError) {
+        console.error("[api/agents/book] mirror failed", {
+          code: String(mirrorError.code ?? "").slice(0, 16),
+          message: String(mirrorError.message ?? mirrorError).slice(0, 200),
+        });
+      }
     }
-  } catch {
+  } catch (error) {
     // Read-back still returns the live values below; a failed mirror write
     // must not fail the rental itself.
+    try {
+      console.error("[api/agents/book] mirror threw", String((error as Error)?.message ?? error).slice(0, 200));
+    } catch {
+      /* logging must never fail the request */
+    }
   }
 
   const isXonotic = row.runtime === "xonotic-vcw" || row.runtime === "xonotic-self";

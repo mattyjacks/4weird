@@ -5,7 +5,8 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/validate";
 import { cookies } from "next/headers";
-import { BOT_TESTER_COOKIE } from "@/lib/bot-auth";
+import { BOT_TESTER_COOKIE, FULL_LOGIN_COOKIE } from "@/lib/bot-auth";
+import { clearKidSessionCookie } from "@/lib/kid-session";
 
 export const dynamic = "force-dynamic";
 
@@ -26,10 +27,18 @@ export async function POST(req: Request) {
       // Server sign-out is best-effort; clearing cookies logs out regardless.
     }
     try {
-      // Bot tester sessions end here too: drop the restricted-session marker
-      // alongside the Supabase cookies (see POST /api/bot/login).
+      // Bot tester sessions end here too: drop the restricted-session marker,
+      // the full-login proof, and the kid bearer alongside the Supabase
+      // cookies (otherwise they survive logout on shared family devices).
       const jar = await cookies();
       jar.delete(BOT_TESTER_COOKIE);
+      jar.delete(FULL_LOGIN_COOKIE);
+      try {
+        const kid = clearKidSessionCookie();
+        jar.set(kid.name, kid.value, { ...kid.options, maxAge: 0 });
+      } catch {
+        // best-effort
+      }
     } catch {
       // best-effort
     }

@@ -53,11 +53,15 @@ export async function POST(req: Request) {
       // Exact-lower match (not ilike): grants are written lowercased by the
       // webhook, so `User@x.com ≡ user@x.com` can't claim a differently-cased
       // row and whitespace/case variants can't shadow ownership.
+      // Bounded per call (mirrors the shopify-coins edge cap): a stale
+      // mailbox with thousands of parked grants must not turn one POST
+      // into an unbounded multi-thousand-write burst.
       const { data: pending, error: qErr } = await db
         .from("coin_grants")
         .select("id,coins,shopify_order_name")
         .eq("email", String(user.email).trim().toLowerCase())
-        .eq("claimed", false);
+        .eq("claimed", false)
+        .limit(50);
       if (qErr) return dbFail("api/coins/claim", qErr);
       let claimed = 0;
       for (const g of ((pending as { id: string; coins: number; shopify_order_name: string | null }[] | null) ?? [])) {

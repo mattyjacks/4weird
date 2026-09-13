@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
+import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
@@ -39,6 +40,12 @@ export async function POST(request: Request) {
     return fail("Too many checkout attempts. Try again shortly.", 429, {
       "Retry-After": String(throttle.retryAfter),
     });
+  }
+  // Distributed shield: stop checkout-spam/order-flood across instances
+  // (money itself mints only in the HMAC-verified webhook).
+  const checkoutDist = await globalBucket(acctBucketKey("checkout-hour", data.user.id), 30, 3600);
+  if (checkoutDist && !checkoutDist.allowed) {
+    return fail("Too many checkout attempts. Try again shortly.", 429, throttleHeaders(checkoutDist.retryAfter));
   }
   const store = (process.env.SHOPIFY_STORE_DOMAIN ?? "").trim().toLowerCase();
   if (!/^[a-z0-9][a-z0-9.-]+\.[a-z]{2,}$/.test(store)) return fail("Shop not configured.", 503);

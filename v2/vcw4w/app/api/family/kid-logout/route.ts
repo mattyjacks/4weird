@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const rl = rateLimit(`kid-logout:${clientIp(req)}`, 30, 60_000);
-  if (!rl.allowed) return fail("Too many requests.", 429);
+  if (!rl.allowed) return fail("Too many requests.", 429, { "Retry-After": String(rl.retryAfter) });
   const token = req.cookies.get("kid_session")?.value ?? "";
   if (/^[0-9a-f]{64}$/.test(token)) {
     try {

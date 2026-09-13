@@ -4,6 +4,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { requireHuman } from "@/lib/botid";
 import { rateLimit } from "@/lib/rate-limit";
+import { sameOrigin } from "@/lib/csrf";
 import { acctBucketKey, globalBucket, ipBucketKey, throttleHeaders } from "@/lib/abuse-limit";
 import { clientIp, exceedsBodyLimit, isEmail, isLoginPassword } from "@/lib/validate";
 import {
@@ -149,6 +150,14 @@ export async function POST(req: Request) {
 
   // ---- Email+password half: restricted tester session. ----
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  // Login-CSRF guard (curl-safe): browsers already carrying a session cookie
+  // must prove same-origin before they can be re-logged into another
+  // account; fresh curl callers carry no cookies and proceed.
+  {
+    const cookieHeader = req.headers.get("cookie") ?? "";
+    const hasSessionCookie = /(^|;\s*)(sb-|kid_session)/.test(cookieHeader);
+    if (hasSessionCookie && !sameOrigin(req)) return fail("Invalid request origin.", 403);
+  }
   if (!email || !password) {
     const fails = recordLoginFailure(failKeyFor(email, req));
     const distFails = await globalBucket(
@@ -216,8 +225,16 @@ export async function POST(req: Request) {
 }
 
 // DELETE /api/bot/login; sign out a tester session and clear the marker.
-export async function DELETE() {
+// State-changing on cookies alone, so same-origin + throttle apply.
+export async function DELETE(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  const logoutThrottle = rateLimit(`bot-login-delete:${clientIp(req)}`, 10);
+  if (!logoutThrottle.allowed) {
+    return fail("Too many attempts. Try again shortly.", 429, {
+      "Retry-After": String(logoutThrottle.retryAfter),
+    });
+  }
   try {
     const supabase = await createClient();
     try {
@@ -228,6 +245,7 @@ export async function DELETE() {
     try {
       const jar = await cookies();
       jar.delete(BOT_TESTER_COOKIE);
+      jar.delete(FULL_LOGIN_COOKIE);
     } catch {
       // best-effort
     }

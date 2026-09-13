@@ -40,7 +40,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
   const { data: row, error } = await svc
     .from("vault_files")
-    .select("id,scope,owner_id,team_id,org_id,bytes,sha256,deleted_at")
+    .select("id,scope,owner_id,team_id,org_id,bytes,sha256,quarantined,deleted_at")
     .eq("id", id)
     .maybeSingle();
   if (error) return dbFail("api/vault/purge", error, "Unable to load file.");
@@ -51,10 +51,25 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     org_id: string | null;
     bytes: number;
     sha256: string;
+    quarantined: boolean | null;
     deleted_at: string | null;
   } | null;
   if (!r) return fail("File not found.", 404);
   if (!r.deleted_at) return fail("Trash the file first.", 400);
+  // Legal hold: quarantined bytes under HUMAN review must neither be
+  // destroyed nor resurrected mid-review (the sha256 evidence row lives on
+  // in safety_reports either way; generic message leaks nothing).
+  if (r.quarantined === true) return fail("File is under safety review and cannot be purged.", 409);
+  {
+    const { data: holds } = await svc
+      .from("safety_reports")
+      .select("id")
+      .eq("target_type", "vault_file")
+      .eq("target_id", id)
+      .in("status", ["open", "reviewing"])
+      .limit(1);
+    if (holds && holds.length > 0) return fail("File is under safety review and cannot be purged.", 409);
+  }
   let owns = r.scope === "personal" && r.owner_id === userId;
   if (!owns && r.scope !== "personal") {
     const table = r.scope === "team" ? "team_members" : "org_members";

@@ -9,8 +9,10 @@ export const dynamic = "force-dynamic";
 
 /**
  * POST /api/blender/jobs/[id]/ready; confirm the browser's direct upload
- * landed: reads the stored object's size (service role, no download) and
- * flips draft → ready. Rejects oversize scenes instead of billing a render.
+ * landed: reads the stored object's size, range-downloads the head to verify
+ * the BLENDER magic (suffix alone lets any bytes through to a billed pod),
+ * then flips draft → ready. Rejects oversize/non-blend scenes instead of
+ * billing a render.
  */
 export async function POST(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
@@ -51,6 +53,46 @@ export async function POST(_req: Request, ctx: { params: Promise<{ id: string }>
   if (size > BLENDER_MAX_SCENE_BYTES) {
     await svc.from("blender_renders").update({ status: "failed", error: `Scene is ${size} bytes - ${BLENDER_MAX_SCENE_BYTES / 1_048_576} MB max.` }).eq("id", job.id);
     return fail(`Scene is ${(size / 1_048_576).toFixed(1)} MB - ${BLENDER_MAX_SCENE_BYTES / 1_048_576} MB max.`, 413);
+  }
+  // Content check before operator-funded GPU minutes: stream only the head
+  // (Range + first-chunk read, never the whole scene) and require the
+  // "BLENDER" magic. Runs against our own storage host via a 60s signed URL.
+  let magicOk = false;
+  try {
+    const { data: headSigned } = await svc.storage.from(BLENDER_BUCKET).createSignedUrl(job.scene_path, 60);
+    if (headSigned?.signedUrl) {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 10_000);
+      try {
+        const res = await fetch(headSigned.signedUrl, {
+          headers: { Range: "bytes=0-11" },
+          redirect: "error",
+          signal: ctrl.signal,
+        });
+        const reader = res.body?.getReader();
+        if (reader) {
+          const { value } = await reader.read();
+          try {
+            await reader.cancel();
+          } catch {
+            /* ignore */
+          }
+          const head = (value ?? new Uint8Array()).subarray(0, 12);
+          magicOk =
+            head.length >= 7 &&
+            head[0] === 0x42 && head[1] === 0x4c && head[2] === 0x45 &&
+            head[3] === 0x4e && head[4] === 0x44 && head[5] === 0x45 && head[6] === 0x52;
+        }
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+  } catch {
+    magicOk = false;
+  }
+  if (!magicOk) {
+    await svc.from("blender_renders").update({ status: "failed", error: "Scene is not a .blend file (BLENDER magic missing)." }).eq("id", job.id);
+    return fail("Scene is not a .blend file.", 400);
   }
   const { error: upErr } = await svc
     .from("blender_renders")

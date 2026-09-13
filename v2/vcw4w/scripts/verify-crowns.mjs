@@ -86,4 +86,17 @@ if (!mig.includes("check (crowns = coins)"))
 if (!mig.includes("revoke all on function public.convert_crown_to_coins"))
   throw new Error("Crowns migration must revoke convert_crown_to_coins.");
 
+// Lockdown migration: direct mint RPCs are service_role-only (all legitimate
+// minting flows through debit-first SECURITY DEFINER wrappers), and the
+// lots tables are deny-by-default RLS.
+const lockdown = read("../supabase/migrations/20261112000000_security_lockdown.sql");
+for (const token of [
+  "revoke all on function public.mint_crown(uuid, numeric, text, text, uuid) from authenticated",
+  "revoke all on function public.support_credit(uuid, uuid, uuid, numeric, text, text) from authenticated",
+  "alter table public.coin_lots enable row level security",
+  "alter table public.coin_lot_spends enable row level security",
+]) {
+  if (!lockdown.includes(token)) throw new Error(`Lockdown migration missing ${token}.`);
+}
+
 console.log("Crowns integrity OK.");

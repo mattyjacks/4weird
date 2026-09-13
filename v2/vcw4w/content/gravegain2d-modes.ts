@@ -27,7 +27,7 @@ import type { ContentMode } from "@/lib/content-modes";
 export type Gg2dContentMode = ContentMode;
 
 /** NPC ids are stable v2 keys mapped to bundle mission speakers. */
-export const GG2D_NPCS = ["valley-net", "lisa-park", "warchief-groknak"] as const;
+export const GG2D_NPCS = ["valley-net", "lisa-park", "warchief-groknak", "relay-hermit", "spore-kid"] as const;
 export type Gg2dNpcId = (typeof GG2D_NPCS)[number];
 
 export type Gg2dDialogueLine = {
@@ -105,6 +105,52 @@ const DIALOGUE: Record<Gg2dNpcId, Record<Gg2dContentMode, Gg2dDialogueLine>> = {
       greeting:
         "Hah! Fresh meat. I bit my own hand clean through to seal the Compact, and I have eaten the fucking dead so they stay dead. Fight beside me or get out of my way.",
       combatBark: "Fuck the grave you crawled out of! GROKNAK WILL SHIT ON YOUR BONES — COME ON!",
+    },
+  },
+  "relay-hermit": {
+    kid: {
+      speaker: "Relay Hermit",
+      portrait: "📻",
+      greeting:
+        "Hello, little signal-scout! I am the Relay Hermit, keeper of the deep-down message bells. I brew minty Mint Herb tea while I listen for lost friends — stay close and we will ring everyone home together!",
+      combatBark: "Baddies on the wire! Boop them softly with your spark-sword while I keep the bells ringing!",
+    },
+    teen: {
+      speaker: "Relay Hermit",
+      portrait: "📻",
+      greeting:
+        "This relay is mine — I keep the deep signal alive while the dungeon tries to drown it. The floors below us went dark last week. Keep your lamp lit and your boots quiet.",
+      combatBark: "Contact below! Hold the relay steps — nothing gets past us, you hear me?",
+    },
+    all: {
+      speaker: "Relay Hermit",
+      portrait: "📻",
+      greeting:
+        "I held this relay through fifteen cave-ins and one fucking massacre. The signal from below is screaming now. Helmet sealed, blade hot — we answer it.",
+      combatBark: "Hell take them all! They are crawling up the cable shafts — cut every last one down!",
+    },
+  },
+  "spore-kid": {
+    kid: {
+      speaker: "Spore Kid Pip",
+      portrait: "🍄",
+      greeting:
+        "Hiya hiya! I am Pip the Spore Kid! I grow glowy sparkleaf snacks and minty Mint Herb hats for all my friends! Will you wear a spore-hat and stomp-stomp with me?",
+      combatBark: "Spore power, go! Poof-poof, gentle bonks — bonk bonk!",
+    },
+    teen: {
+      speaker: "Spore Kid Pip",
+      portrait: "🍄",
+      greeting:
+        "I grew up in the spore dark where the dungeon never ends. The caps glow where the floor is safe — step only on the blue ones and keep your mask on.",
+      combatBark: "Watch the vents! Drive them back into the dark — do not let them reach the nursery rings!",
+    },
+    all: {
+      speaker: "Spore Kid Pip",
+      portrait: "🍄",
+      greeting:
+        "I sprouted from a corpse-bed in the lightless deep, and the shit never stops growing down here. Eat the pale caps, burn the red ones, and keep moving.",
+      combatBark: "Damn you, stay buried! Torch the red caps and put the risen back in the rot!",
     },
   },
 };

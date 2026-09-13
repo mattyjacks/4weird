@@ -45,6 +45,12 @@ export async function GET() {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data?.user) return fail("Login required.", 401);
+  const listThrottle = rateLimit(`bot-keys-list:${data.user.id}`, 30);
+  if (!listThrottle.allowed) {
+    return fail("Too many attempts. Try again shortly.", 429, {
+      "Retry-After": String(listThrottle.retryAfter),
+    });
+  }
   try {
     const db = serviceClient();
     const { data: rows, error } = await db
@@ -105,11 +111,15 @@ export async function POST(req: Request) {
   // Quantum hygiene: keys default to 180-day expiry (max 5y on request).
   // Pass expires_at:"" explicitly only to keep a legacy never-expiring key.
   const rawExpiry = input.expires_at ?? input.expiresAt;
-  const defaultExpiry =
-    rawExpiry === undefined || rawExpiry === null || String(rawExpiry).trim() === ""
-      ? new Date(Date.now() + 180 * 24 * 3600 * 1000).toISOString()
-      : rawExpiry;
-  const expiresAt = cleanExpiryIso(defaultExpiry);
+  const rawEmpty =
+    rawExpiry !== undefined && rawExpiry !== null && String(rawExpiry).trim() === "";
+  const expiresAt = rawEmpty
+    ? ""
+    : cleanExpiryIso(
+        rawExpiry === undefined || rawExpiry === null
+          ? new Date(Date.now() + 180 * 24 * 3600 * 1000).toISOString()
+          : rawExpiry,
+      );
   if (expiresAt === null) return fail("Expiry must be a future date (max 5 years).", 400);
   const maxUses = cleanMaxUses(input.max_uses ?? input.maxUses ?? 0);
   if (maxUses < 0) return fail("max_uses must be 0 (unlimited) to 10,000,000.", 400);
@@ -150,11 +160,13 @@ export async function POST(req: Request) {
 
   try {
     const db = serviceClient();
+    // Quota counts live keys only: expired rows no longer burn quota.
     const { count } = await db
       .from("bot_api_keys")
       .select("id", { count: "exact", head: true })
       .eq("user_id", data.user.id)
-      .eq("revoked", false);
+      .eq("revoked", false)
+      .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
     if ((count ?? 0) >= MAX_ACTIVE_KEYS) {
       return fail("Key limit reached. Revoke an old key first.", 409);
     }
@@ -186,9 +198,9 @@ export async function POST(req: Request) {
   } | null;
   if (!row?.key_id) return fail("Unable to issue key.", 500);
 
-  // Apply the policy columns (non-fatal if the migration hasn't run yet:
-  // the key itself is already issued, so report success with a flag).
-  let policyApplied = true;
+  // Apply the policy columns. Fail closed: if the policy write fails, the
+  // freshly minted key is revoked immediately rather than surviving with
+  // unlimited defaults the owner never chose.
   try {
     const db = serviceClient();
     const { error: policyError } = await db
@@ -212,9 +224,18 @@ export async function POST(req: Request) {
       })
       .eq("id", row.key_id)
       .eq("user_id", data.user.id);
-    if (policyError) policyApplied = false;
+    if (policyError) throw policyError;
   } catch {
-    policyApplied = false;
+    try {
+      await serviceClient()
+        .from("bot_api_keys")
+        .update({ revoked: true })
+        .eq("id", row.key_id)
+        .eq("user_id", data.user.id);
+    } catch {
+      /* revocation best-effort; the 500 below is authoritative */
+    }
+    return fail("Unable to issue key.", 500);
   }
 
   return ok(
@@ -224,7 +245,7 @@ export async function POST(req: Request) {
       prefix: row.prefix,
       label: row.label,
       created_at: row.created_at,
-      policyApplied,
+      policyApplied: true,
       warning: "Copy this key now; it will never be shown again.",
     },
     201,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { csvCell, defuseTxtLine, safeDateStamp } from "./csv-safety";
 
 // Tolerant row shapes: the workspace uses local aliases (amount_coins / name)
 // while /api/crm routes return value_coins / full_name. Accept both.
@@ -49,21 +50,24 @@ export type CrmReportsProps = {
 // 100 coins = exactly $1.00 (matches invoice-manager usd()).
 export const COINS_PER_USD = 100;
 
-function csvCell(v: unknown): string {
-  const s = String(v ?? "");
-  return /[",\n\r]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s;
-}
-
 function toCsv(rows: string[][]): string {
   return rows.map((r) => r.map(csvCell).join(",")).join("\n");
 }
 
 function download(filename: string, mime: string, text: string) {
+  // Security: Blob-based download (content never becomes markup) with a
+  // sanitized name — strip path separators and `..` so a hostile value can
+  // never escape the download name. Callers pass date-stamp names only.
+  const safe = String(filename ?? "")
+    .replace(/[/\\]+/g, "-")
+    .replace(/\.\.+/g, "·")
+    .replace(/[^a-zA-Z0-9._-]+/g, "-")
+    .slice(0, 80) || "download";
   const blob = new Blob([text], { type: mime });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = filename;
+  a.download = safe;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -150,7 +154,8 @@ export function CrmReports({
   }, [deals]);
 
   const totalPipeline = deals.reduce((n, d) => n + dealCoins(d), 0);
-  const stamp = new Date().toISOString().slice(0, 10);
+  // Date-only stamp: validated YYYY-MM-DD, never user input.
+  const stamp = safeDateStamp(new Date().toISOString().slice(0, 10));
 
   function exportDeals() {
     const rows: string[][] = [
@@ -226,7 +231,10 @@ export function CrmReports({
       "",
       "Rate: 100 coins = $1.00. Coin settlement happens only via guarded checkout/ledger flows.",
     ];
-    download(`crm-pipeline-summary-${stamp}.txt`, "text/plain;charset=utf-8", lines.join("\n"));
+    // Neutralize formula-leading lines (incl. values smuggled past the
+    // bullet prefix via embedded newlines) before download.
+    const safe = lines.join("\n").split("\n").map(defuseTxtLine).join("\n");
+    download(`crm-pipeline-summary-${stamp}.txt`, "text/plain;charset=utf-8", safe);
   }
 
   return (
@@ -274,6 +282,7 @@ export function CrmReports({
                 if (Number.isFinite(n)) setUsdIn((n / COINS_PER_USD).toFixed(2));
               }}
               inputMode="decimal"
+              maxLength={16}
               className={`${inputCls} w-full`}
               aria-label="Coins amount"
             />
@@ -288,6 +297,7 @@ export function CrmReports({
                 if (Number.isFinite(n)) setCoinsIn(String(Math.round(n * COINS_PER_USD)));
               }}
               inputMode="decimal"
+              maxLength={16}
               className={`${inputCls} w-full`}
               aria-label="USD amount"
             />
@@ -352,7 +362,10 @@ export function CrmReports({
         )}
       </section>
 
-      {/* Print-only summary: hidden on screen, shown when printing. */}
+      {/* Print-only summary: hidden on screen, shown when printing.
+          Security: renders loaded workspace rows + a date stamp only — never
+          URL params — all as React text nodes, so query-string markup cannot
+          reflect into the print sheet. */}
       <section className="hidden print:block" aria-label="Print summary">
         <h2>CRM pipeline summary ({stamp})</h2>
         <p>

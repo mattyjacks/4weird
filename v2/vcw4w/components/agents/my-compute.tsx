@@ -188,14 +188,21 @@ export function MyCompute() {
   }
 
   async function endBooking(bookingId: string) {
-    if (!window.confirm("End this booking now? Unused escrow refunds to the renter; provider keeps the metered share.")) return;
+    if (!window.confirm("End this booking now? The provider share settles and the unused escrow refunds to the renter.")) return;
     setBusyId(bookingId);
     try {
       const res = await fetch(`/api/agents/bookings/${bookingId}/end`, { method: "POST" });
-      const body = (await res.json()) as { success: boolean; error?: string };
+      const body = (await res.json()) as { success: boolean; error?: string; already_settled?: boolean; booking?: { refunded_coins?: number; metered_gross?: number } | null };
+      const refunded = typeof body.booking?.refunded_coins === "number" ? body.booking.refunded_coins : null;
       setActionMsg((m) => ({
         ...m,
-        [bookingId]: body.success ? "Booking ended. Unused escrow refunds to the renter; provider keeps the metered share. Pod still runs until you Stop/Terminate it on /runpods." : (body.error ?? "End failed."),
+        [bookingId]: body.success
+          ? body.already_settled
+            ? "Booking was already settled. Check /my/usage for the receipt."
+            : refunded !== null
+              ? `Booking ended. Refunded ${refunded} coins to the renter; metered ${body.booking?.metered_gross ?? 0} coins to the provider. Pod still runs until you Stop/Terminate it on /runpods.`
+              : "Booking ended. Verify the refund on /my/usage. Pod still runs until you Stop/Terminate it on /runpods."
+          : (body.error ?? "End failed."),
       }));
       if (body.success) void loadMine();
     } catch {

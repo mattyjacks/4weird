@@ -123,6 +123,51 @@ export default function PlayingGamesPage() {
         title="Telemetry, leaderboards, lobbies"
         body="Gameplay emits aggregate events powering /leaderboards (handles + totals, anonymous-friendly). Telemetry never decides billing - the rental session does. Find humans in /lobbies and join via ?match= links; for a permanent home, join a clan."
       />
+      <div className="mt-5 rounded-2xl border border-border bg-card p-5 sm:p-6">
+        <p className="font-black">Party up in GraveGain</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Multiplayer lives in three cabinets: GraveGain1D (&ldquo;Ley-Line Race&rdquo;, Teens 13+),
+          GraveGain2D (&ldquo;Dungeon Duel&rdquo;, Adults 18+), and GraveGain3D (&ldquo;Spire Siege&rdquo;, Adults 18+).
+          Age ratings are unchanged and the server enforces them - entering a birthday can&apos;t overrule your band.
+        </p>
+        <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
+          <li><strong className="text-foreground">Quick-match:</strong> POST /api/matches pairs you with opponents.</li>
+          <li><strong className="text-foreground">Party invites:</strong> /api/lobbies - invite friends, then join with a ?match=&lt;uuid&gt; link.</li>
+          <li><strong className="text-foreground">In the match:</strong> live progress, an event feed, emotes, and chat (140 characters max per message).</li>
+          <li><strong className="text-foreground">Run it back:</strong> rematch from the result screen when the dust settles.</li>
+        </ul>
+        <p className="mt-3 text-sm text-muted-foreground">
+          Signed-in players only - guests are excluded from multiplayer, like saves, AI, and Buddy.
+          Fair play is structural: there are no purchasable advantages, and multiplayer boosts are banned,
+          so every match is won on skill.
+        </p>
+      </div>
+      <div className="mt-3 rounded-2xl border border-border bg-card p-5 sm:p-6">
+        <p className="font-black">GraveGain multiplayer guide</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Controls recap (same keys as solo): GraveGain2D - WASD / arrows move, left-click melee,
+          right-click timed block, F race ability, Shift sprint, 1/2/3 temporal mode, Esc/P pause.
+          GraveGain3D - WASD move, mouse look, left-click melee/skill (hold to charge), right-click
+          block/projectile, F / Shift ability, Space jump, Q potion (drink under half health), E enter
+          buildings, Esc/P pause. GraveGain1D has no separate static guide yet, so its keys require
+          reading the on-screen help in the play shell before you queue.
+        </p>
+        <p className="mt-3 text-sm text-muted-foreground">
+          Mode rules: every mode requires the same loop - quick-match or lobby invite, play the live match,
+          rematch from the results. Exact scoring per mode requires the match shell&apos;s rules line; the names
+          signal the format: Ley-Line Race (1D) is a race, Dungeon Duel (2D) is a head-to-head dungeon run,
+          Spire Siege (3D) is a siege on the spire.
+        </p>
+        <p className="mt-3 text-sm text-muted-foreground">
+          Etiquette: keep chat under 140 characters and readable, use emotes over taunts, and never hold a
+          lobby hostage - if you must leave, leave between matches, not mid-fight.
+        </p>
+        <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
+          <li><strong className="text-foreground">401 from a match call</strong> requires a signed-in session - sign in and retry.</li>
+          <li><strong className="text-foreground">Stuck waiting</strong> requires no patience beyond action - try a lobby invite or re-queue quick-match.</li>
+          <li><strong className="text-foreground">Stale match link</strong> requires a fresh start - rematch from the results or ask for a new ?match= link.</li>
+        </ul>
+      </div>
 
       <SectionHead
         index="6"

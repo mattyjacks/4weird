@@ -70,6 +70,12 @@ export async function POST(req: Request) {
   }
   const file = form.get("file");
   if (!(file instanceof Blob)) return fail("Field 'file' required.", 400);
+  // Early reject before buffering the bytes into memory: `file.size` is
+  // client-reported, so the authoritative byte-length check after
+  // `arrayBuffer()` below still applies.
+  if (file.size > MAX_BYTES) {
+    return fail(`Image too large (${file.size} bytes). 1MB max after conversion.`, 413);
+  }
 
   const buf = Buffer.from(await file.arrayBuffer());
   // Enforce the 1MB cap AFTER any client-side conversion, server-side.
@@ -128,6 +134,10 @@ export async function POST(req: Request) {
   if (rowErr) return fail("Unable to record image.", 500);
 
   const { data: pub } = svc.storage.from("clan-images").getPublicUrl(path);
+  // Served inline for <img> by design. Content-type safety holds because the
+  // stored contentType is always `kind.mime` derived from magic bytes above
+  // (never the client MIME), and SVG/HTML are not in the allowlist, so this
+  // bucket can never serve text/html from these objects.
   return ok(
     {
       url: pub.publicUrl,

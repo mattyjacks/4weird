@@ -42,3 +42,15 @@ export function rateLimit(key: string, limit = 30, windowMs = 60_000) {
   current.count += 1;
   return { allowed: current.count <= limit, retryAfter: Math.max(1, Math.ceil((current.resetAt - now) / 1000)) };
 }
+
+/**
+ * Standard Retry-After headers for a denied rateLimit() verdict.
+ * Returns {} when allowed so callers can spread unconditionally:
+ * `fail("Rate limited.", 429, rateLimitHeaders(rl))`.
+ * Additive only: existing callers that already pass an explicit
+ * Retry-After are untouched.
+ */
+export function rateLimitHeaders(result: { allowed: boolean; retryAfter: number }): Record<string, string> {
+  if (result.allowed) return {};
+  return { "Retry-After": String(Math.max(1, Math.ceil(result.retryAfter))) };
+}

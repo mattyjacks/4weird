@@ -91,7 +91,10 @@ function renderBlockLines(lines: string[]): string {
  * <pre><code>; all other lines go through the block renderer above.
  */
 export function renderMarkdownSafe(input: string): string {
-  const text = String(input ?? "").slice(0, 8000);
+  // Strip NULs first: inlineMd uses \u0000 placeholders for code spans, so a
+  // literal NUL in user input must never reach the placeholder machinery (or
+  // a link href).
+  const text = String(input ?? "").replace(/\u0000/g, "").slice(0, 8000);
   const parts = text.split(/```/);
   const out: string[] = [];
   parts.forEach((part, i) => {

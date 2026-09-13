@@ -52,6 +52,8 @@ export async function POST(req: Request) {
   let synced = 0;
   let totalUsd = 0;
   const byKind: Record<string, number> = { pod: 0, serverless: 0, volume: 0 };
+  // One bad row must not abort the whole mirror: collect failures, continue.
+  const failures: string[] = [];
   try {
     for (const res of all) {
       if (!res.ok) continue;
@@ -68,7 +70,15 @@ export async function POST(req: Request) {
           },
           { onConflict: "user_id,kind,remote_id,time_bucket", ignoreDuplicates: false },
         );
-        if (error) return dbFail("api/agents/runpod-sync", error, "Unable to store RunPod usage.");
+        if (error) {
+          try {
+            console.error("[api/agents/runpod-sync] upsert failed", String(row.remoteId).slice(0, 64), String(error.message ?? error).slice(0, 200));
+          } catch {
+            /* logging must never fail the request */
+          }
+          failures.push(String(row.remoteId));
+          continue;
+        }
         synced += 1;
         totalUsd += row.amountUsd;
         byKind[row.kind] = Math.round((byKind[row.kind] + row.amountUsd) * 10000) / 10000;
@@ -82,6 +92,8 @@ export async function POST(req: Request) {
     days,
     totalUsd: Math.round(totalUsd * 10000) / 10000,
     byKind,
+    failed: failures.length,
+    failures: failures.slice(0, 10),
     note: "Mirrored RunPod spend (billed by RunPod; no Vibe cut).",
   });
 }

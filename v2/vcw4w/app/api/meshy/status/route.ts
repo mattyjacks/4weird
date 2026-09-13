@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { checkEgressUrl } from "@/lib/ssrf-guard";
+import { fetchEgressUrl } from "@/lib/ssrf-guard";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
@@ -7,7 +7,7 @@ import { keyHasScope, resolveBotKey } from "@/lib/bot-auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
 import { meshyApiBase, meshyConfigured, meshyGameAdvice, meshyKey } from "@/lib/meshy";
-import { VAULT_BUCKET } from "@/lib/blob-vault";
+import { VAULT_BUCKET, vaultObjectKey } from "@/lib/blob-vault";
 
 export const dynamic = "force-dynamic";
 
@@ -85,18 +85,20 @@ export async function GET(req: Request) {
 
     // Autosave to the owner's Weird Vault (personal scope).
     // resultUrl comes from the Meshy API, not the caller, but validate +
-    // pin it anyway (https-only, no private IPs, no redirects) with a
-    // timeout and a 50 MB streaming cap.
-    const egress = await checkEgressUrl(resultUrl);
-    if ("error" in egress) {
+    // fetch it in one step anyway (https-only, no private IPs, stable DNS,
+    // no redirects) with a timeout and a 50 MB streaming cap.
+    const dlController = new AbortController();
+    const dlTimer = setTimeout(() => dlController.abort(), 15_000);
+    let dl: Response;
+    try {
+      dl = await fetchEgressUrl(resultUrl, { signal: dlController.signal });
+    } catch {
+      clearTimeout(dlTimer);
       await svc.from("meshy_jobs").update({ status: "processing", result_url: resultUrl }).eq("id", job);
       return ok({ job, status: "processing", result_url: resultUrl, configured: true });
     }
-    const dlController = new AbortController();
-    const dlTimer = setTimeout(() => dlController.abort(), 15_000);
     let bytes: Buffer;
     try {
-      const dl = await fetch(egress.url.toString(), { signal: dlController.signal, redirect: "error" });
       if (!dl.ok) {
         await svc.from("meshy_jobs").update({ status: "processing", result_url: resultUrl }).eq("id", job);
         return ok({ job, status: "processing", result_url: resultUrl, configured: true });
@@ -127,11 +129,21 @@ export async function GET(req: Request) {
     }
     const sha256 = createHash("sha256").update(bytes).digest("hex");
     const ext = /\.fbx/i.test(resultUrl) ? "fbx" : /\.obj/i.test(resultUrl) ? "obj" : /\.mp4/i.test(resultUrl) ? "mp4" : "glb";
-    const objectKey = `personal/${userId}/${sha256}.${ext}`;
-    await svc.from("vault_blobs").upsert(
-      { sha256, bytes: bytes.length, mime: "model/gltf-binary", storage_path: objectKey },
-      { onConflict: "sha256" },
-    );
+    const objectKey = vaultObjectKey({ scope: "personal", scopeId: userId, sha256, ext });
+    // Insert-only blob register: never repoint another scope's storage_path
+    // (vault_blobs is keyed by sha256 globally; upsert would brick the first
+    // scope's downloads at the [id] scope-prefix check).
+    {
+      const { data: existing } = await svc.from("vault_blobs").select("sha256").eq("sha256", sha256).maybeSingle();
+      if (!existing) {
+        const { error: blobErr } = await svc
+          .from("vault_blobs")
+          .insert({ sha256, bytes: bytes.length, mime: "model/gltf-binary", storage_path: objectKey });
+        if (blobErr && (blobErr as { code?: string }).code !== "23505") {
+          return dbFail("api/meshy/status", blobErr, "Unable to save artifact.");
+        }
+      }
+    }
     await svc.storage.from(VAULT_BUCKET).upload(objectKey, bytes, {
       contentType: "model/gltf-binary",
       upsert: true,

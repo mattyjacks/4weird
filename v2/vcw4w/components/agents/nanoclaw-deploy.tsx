@@ -31,8 +31,11 @@ export function NanoclawDeploy() {
 
   async function copy(id: string, text: string) {
     setCopyError("");
-    if (/PASTE_HERE|paste-your-/.test(text)) {
-      setCopyError("Replace <PASTE> placeholders with your real key before running.");
+    // Placeholder guard: refuse to copy any snippet that still carries an
+    // unreplaced placeholder (PASTE markers). Sample tokens like
+    // 123456:ABC-... fail safely at runtime; real placeholders must not run.
+    if (/PASTE_HERE|PASTE-|paste-your-/.test(text)) {
+      setCopyError("Replace <PASTE> placeholders with your real values before running.");
       return;
     }
     try {

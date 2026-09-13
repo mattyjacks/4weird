@@ -1,7 +1,7 @@
 {
     "title": "GraveGain1D",
     "slug": "gravegain1d",
-    "description": "A one-dimensional GraveGain RPG: walk the ley-line east, always right, never jump. Turn-based tactics or real-time action on the same rules core, 5 sectors, bosses, codex lore, and endless Echo Drift.",
+    "description": "A one-dimensional GraveGain RPG: walk the ley-line east, turn-based or real-time, 5 sectors, bosses, and endless Echo Drift. BIG upgrade: emoji-parallax art + emergent wanderers with quests and events.",
     "genre": "RPG",
     "tags": ["HTML5", "RPG", "1D", "Turn-Based"],
     "maker": {

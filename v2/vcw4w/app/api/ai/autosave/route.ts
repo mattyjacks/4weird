@@ -1,12 +1,12 @@
 import { createHash } from "node:crypto";
-import { checkEgressUrl } from "@/lib/ssrf-guard";
+import { fetchEgressUrl } from "@/lib/ssrf-guard";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOriginOrBotKey } from "@/lib/csrf-bot";
 import { keyHasScope, resolveBotKey } from "@/lib/bot-auth";
 import { rateLimit } from "@/lib/rate-limit";
-import { VAULT_BUCKET, cleanVaultPath, isVaultScope, vaultPathForKind } from "@/lib/blob-vault";
+import { VAULT_BLOCKED_EXT, VAULT_BUCKET, cleanVaultPath, isVaultScope, vaultObjectKey, vaultPathForKind } from "@/lib/blob-vault";
 import {
   AUTOSAVE_CUT_NOTE,
   LOG_FULL_MAX_CHARS,
@@ -77,15 +77,24 @@ export async function POST(req: Request) {
     bytes = Buffer.from(capped, "utf8");
     mime = "text/plain";
   } else if (url) {
-    // SSRF guard: https-only, no private/link-local/metadata IPs (DNS-pinned),
-    // no redirects (blocks 302 downgrade to intranet), streaming 50 MB cap.
-    const egress = await checkEgressUrl(url);
-    if ("error" in egress) return fail(egress.error, 400);
+    // SSRF guard: validate + fetch in one step (https-only, no private/
+    // link-local/metadata IPs, stable DNS, no redirects that could downgrade
+    // to intranet), streaming 50 MB cap. No caller logic runs between the
+    // check and the fetch, minimizing the DNS TOCTOU gap.
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15_000);
+    let res: Response;
     try {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 15_000);
-      try {
-        const res = await fetch(egress.url.toString(), { signal: controller.signal, redirect: "error" });
+      res = await fetchEgressUrl(url, { signal: controller.signal });
+    } catch (e) {
+      clearTimeout(timer);
+      // Guard rejections carry safe 400 messages; timeouts/aborts are 502s.
+      if ((e as { name?: string })?.name === "AbortError") {
+        return fail("Unable to fetch artifact URL.", 502);
+      }
+      return fail(e instanceof Error ? e.message : "Artifact URL is not allowed.", 400);
+    }
+    try {
         if (!res.ok) return fail("Unable to fetch artifact URL.", 502);
         const announced = Number(res.headers.get("content-length") ?? 0);
         if (Number.isFinite(announced) && announced > 50 * 1024 * 1024) {
@@ -114,12 +123,11 @@ export async function POST(req: Request) {
         if (/^\s*(text\/html|image\/svg\+xml|application\/xhtml\+xml|text\/xml|application\/xml|multipart\/related|text\/javascript|application\/javascript|application\/ecmascript|text\/ecmascript)\s*(;|$)/i.test(mime)) {
           mime = "application/octet-stream";
         }
+      } catch {
+        return fail("Unable to fetch artifact URL.", 502);
       } finally {
         clearTimeout(timer);
       }
-    } catch {
-      return fail("Unable to fetch artifact URL.", 502);
-    }
   } else {
     return fail("Provide text or an https url.", 400);
   }
@@ -147,13 +155,29 @@ export async function POST(req: Request) {
   // Never fall back to the raw filename: an unsanitizable name would land
   // verbatim (traversal sequences included) in vault_files.path.
   const rel = cleanVaultPath(vaultPathForKind(plan.kind, filename)) || "assets/untitled";
+  if (VAULT_BLOCKED_EXT.test(rel)) return fail("That file extension cannot be stored inline.", 400);
   const sha256 = createHash("sha256").update(bytes).digest("hex");
   const ext = (rel.split(".").pop() ?? "bin").slice(0, 8);
-  const objectKey = `${scope}/${scopeId}/${sha256}.${ext}`;
-  await svc.from("vault_blobs").upsert(
-    { sha256, bytes: bytes.length, mime, storage_path: objectKey },
-    { onConflict: "sha256" },
-  );
+  const objectKey = vaultObjectKey({ scope, scopeId, sha256, ext });
+  // Insert-only blob register: never repoint another scope's storage_path
+  // (vault_blobs is keyed by sha256 globally; upsert would brick the first
+  // scope's downloads at the [id] scope-prefix check).
+  {
+    const { data: existing, error: blobSelErr } = await svc
+      .from("vault_blobs")
+      .select("sha256")
+      .eq("sha256", sha256)
+      .maybeSingle();
+    if (blobSelErr) return dbFail("api/ai/autosave", blobSelErr, "Autosave unavailable.");
+    if (!existing) {
+      const { error: blobErr } = await svc
+        .from("vault_blobs")
+        .insert({ sha256, bytes: bytes.length, mime, storage_path: objectKey });
+      if (blobErr && (blobErr as { code?: string }).code !== "23505") {
+        return dbFail("api/ai/autosave", blobErr, "Unable to save artifact.");
+      }
+    }
+  }
   await svc.storage.from(VAULT_BUCKET).upload(objectKey, bytes, { contentType: mime, upsert: true });
   const cols =
     scope === "personal"

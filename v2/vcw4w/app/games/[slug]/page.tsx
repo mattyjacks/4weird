@@ -97,6 +97,27 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
             </p>
           </section>
         )}
+        {["gravegain1d", "gravegain2d", "gravegain3d"].includes(g.slug) && (
+          <section aria-label="Multiplayer" className="mt-4 rounded-2xl border border-white/10 bg-white/[.03] p-5 sm:p-6">
+            <h2 className="text-lg font-bold sm:text-xl">Multiplayer</h2>
+            <p className="mt-2 text-sm text-slate-300">
+              Multiplayer:{" "}
+              {g.slug === "gravegain1d"
+                ? "Ley-Line Race"
+                : g.slug === "gravegain2d"
+                  ? "Dungeon Duel"
+                  : "Spire Siege"}{" "}
+              — party {g.slug === "gravegain2d" ? "duels" : "races"} with a live feed. Sign in, then
+              quick-match or share a party lobby code.
+            </p>
+            <Link
+              href={`/games/${g.slug}/play`}
+              className="mt-3 inline-flex items-center justify-center rounded-full border border-cyan-300/50 px-5 py-2 text-sm font-bold text-cyan-200 transition hover:bg-cyan-300/10"
+            >
+              Play multiplayer
+            </Link>
+          </section>
+        )}
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
             href={`/games/${g.slug}/play`}

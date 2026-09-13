@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
+import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit";
 import { sameOrigin } from "@/lib/csrf";
 import { gameSlugs } from "@/content/games";
 import { cleanGameSlug } from "@/lib/vcw-runs";
@@ -41,6 +42,10 @@ export async function POST(req: Request) {
   if (caller.mode === "session" && !sameOrigin(req)) return fail("Invalid request origin.", 403);
   const rl = rateLimit(`vcw:gateway:dispatch:${caller.keyId ?? caller.userId}`, 20, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
+  const dispatchDist = await globalBucket(acctBucketKey("gw-dispatch-hour", caller.userId), 120, 3600);
+  if (dispatchDist && !dispatchDist.allowed) {
+    return fail("Rate limited.", 429, throttleHeaders(dispatchDist.retryAfter));
+  }
 
   let body: unknown;
   try {

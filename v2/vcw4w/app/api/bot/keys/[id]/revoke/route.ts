@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
+import { requireHuman } from "@/lib/botid";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
@@ -15,6 +16,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   // Bot tester sessions can play but never revoke keys.
   if (isBotTester(req)) return fail(botTesterBlocked(), 403);
+  // Revocation is privileged like issuance: automation never revokes keys.
+  const botBlock = await requireHuman(req, "POST /api/bot/keys/[id]/revoke");
+  if (botBlock) return botBlock;
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data?.user) return fail("Login required.", 401);

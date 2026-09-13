@@ -10,6 +10,7 @@ import { GameAiBadge } from "@/components/games/game-ai-badge";
 import { GameA11yPanel } from "@/components/games/game-a11y-panel";
 import { GamePlaybookPanel } from "@/components/games/game-playbook-panel";
 import { GamingBuddy } from "@/components/buddy/gaming-buddy";
+import { GraveGainParty } from "@/components/games/gravegain-party";
 import { VcwAutoplay } from "@/components/games/vcw-autoplay";
 
 export function generateStaticParams() {
@@ -88,6 +89,7 @@ export default async function PlayPage({ params }: { params: Promise<{ slug: str
         <div className="mt-4">
           <PlayGate slug={game.slug} title={game.title} src={src} version={String(manifest.schemaVersion)} emoji={game.emoji} />
         </div>
+        {["gravegain1d", "gravegain2d", "gravegain3d"].includes(game.slug) && <GraveGainParty slug={game.slug} />}
         <GameA11yPanel slug={game.slug} />
         <GamePlaybookPanel slug={game.slug} compact />
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">

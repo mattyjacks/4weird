@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { fail } from "@/lib/api-respond";
+import { rateLimit } from "@/lib/rate-limit";
+import { globalBucket, ipBucketKey, throttleHeaders } from "@/lib/abuse-limit";
+import { clientIp } from "@/lib/validate";
 import { VAULT_BUCKET } from "@/lib/blob-vault";
 
 export const dynamic = "force-dynamic";
@@ -11,8 +14,20 @@ export const dynamic = "force-dynamic";
  * short-lived (5 min) signed URL for exactly that file. Unknown -> 404,
  * expired/revoked -> 410.
  */
-export async function GET(_req: Request, { params }: { params: Promise<{ token: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ token: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  // Public share-redeem is a token-guessing oracle by shape: throttle per IP
+  // locally, then across all instances, before touching the database.
+  const throttle = rateLimit(`vault-share:${clientIp(req)}`, 60, 60_000);
+  if (!throttle.allowed) {
+    return fail("Too many requests. Try again shortly.", 429, {
+      "Retry-After": String(throttle.retryAfter),
+    });
+  }
+  const shareDist = await globalBucket(ipBucketKey(req, "vault-share"), 600, 3600);
+  if (shareDist && !shareDist.allowed) {
+    return fail("Too many requests. Try again shortly.", 429, throttleHeaders(shareDist.retryAfter));
+  }
   const { token } = await params;
   if (!/^[0-9a-f]{32}$/.test(token)) return fail("Link not found.", 404);
 

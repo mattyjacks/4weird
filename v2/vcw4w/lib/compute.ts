@@ -18,7 +18,6 @@ import type { DesktopKind } from "@/lib/desktop";
 import { DESKTOP_IMAGE_GUI, DESKTOP_PORTS_GUI } from "@/lib/desktop";
 import type { DesktopInterface } from "@/lib/desktop";
 import {
-  RUNPOD_API_BASE_DEFAULT,
   runpodApiBase,
   runpodConfigured,
 } from "@/lib/runpod";
@@ -72,8 +71,31 @@ export interface ComputeProvider {
 }
 
 function isHttpsUrl(value: unknown): boolean {
-  const v = String(value ?? "");
-  return v.startsWith("https://") && v.length <= 2048;
+  const v = String(value ?? "").trim();
+  // https-only, length-capped, no credentials embedded.
+  if (!v.startsWith("https://") || v.length > 2048) return false;
+  let url: URL;
+  try {
+    url = new URL(v);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== "https:") return false;
+  if (url.username || url.password) return false;
+  if (!url.hostname) return false;
+  const host = url.hostname.toLowerCase();
+  if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".internal") || host.endsWith(".local")) {
+    return false;
+  }
+  return true;
+}
+
+/** Truncate upstream text and redact the RunPod key so errors never leak it. */
+function scrubComputeText(text: string): string {
+  let out = String(text ?? "");
+  const key = (process.env.RUNPOD_API_KEY ?? "").trim();
+  if (key && out.includes(key)) out = out.split(key).join("[redacted]");
+  return out.slice(0, 160);
 }
 
 function slugifyName(name: string): string {
@@ -202,7 +224,7 @@ async function fetchPodGpuCatalog(): Promise<
     return { ok: true, gpus };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "fetch failed";
-    return { ok: false, error: `RunPod request failed: ${msg.slice(0, 120)}` };
+    return { ok: false, error: `RunPod request failed: ${scrubComputeText(msg).slice(0, 120)}` };
   } finally {
     clearTimeout(timer);
   }
@@ -271,7 +293,7 @@ async function createRunpodPod(opts: {
 }): Promise<{ ok: true; podId: string } | { ok: false; error: string }> {
   const key = (process.env.RUNPOD_API_KEY ?? "").trim();
   if (!key) return { ok: false, error: "RUNPOD_API_KEY is not set." };
-  const base = (process.env.RUNPOD_API_BASE ?? "").trim().replace(/\/+$/, "") || RUNPOD_API_BASE_DEFAULT;
+  const base = runpodApiBase();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 20_000);
   try {
@@ -299,7 +321,7 @@ async function createRunpodPod(opts: {
     });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      return { ok: false, error: `RunPod pod create HTTP ${res.status}: ${text.slice(0, 160)}` };
+      return { ok: false, error: `RunPod pod create HTTP ${res.status}: ${scrubComputeText(text)}` };
     }
     const data = (await res.json()) as { id?: string; pod?: { id?: string } };
     const podId = String(data.id ?? data.pod?.id ?? "");
@@ -307,7 +329,7 @@ async function createRunpodPod(opts: {
     return { ok: true, podId };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "fetch failed";
-    return { ok: false, error: `RunPod request failed: ${msg.slice(0, 140)}` };
+    return { ok: false, error: `RunPod request failed: ${scrubComputeText(msg).slice(0, 140)}` };
   } finally {
     clearTimeout(timer);
   }
@@ -329,7 +351,7 @@ export async function getPodLive(
   if (!key) return { ok: false, error: "RUNPOD_API_KEY is not set." };
   const id = String(podId ?? "").trim();
   if (!id) return { ok: false, error: "Missing pod id." };
-  const base = (process.env.RUNPOD_API_BASE ?? "").trim().replace(/\/+$/, "") || RUNPOD_API_BASE_DEFAULT;
+  const base = runpodApiBase();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 15_000);
   try {
@@ -343,7 +365,7 @@ export async function getPodLive(
     return { ok: true, status };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "fetch failed";
-    return { ok: false, error: `RunPod request failed: ${msg.slice(0, 120)}` };
+    return { ok: false, error: `RunPod request failed: ${scrubComputeText(msg).slice(0, 120)}` };
   } finally {
     clearTimeout(timer);
   }
@@ -373,7 +395,7 @@ export async function podAction(
   if (action !== "stop" && action !== "start" && action !== "restart" && action !== "terminate") {
     return { ok: false, error: "Invalid pod action. Use stop, start, restart, or terminate." };
   }
-  const base = (process.env.RUNPOD_API_BASE ?? "").trim().replace(/\/+$/, "") || RUNPOD_API_BASE_DEFAULT;
+  const base = runpodApiBase();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 20_000);
   try {
@@ -389,7 +411,7 @@ export async function podAction(
     });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      return { ok: false, error: `RunPod pod ${action} HTTP ${res.status}: ${text.slice(0, 160)}` };
+      return { ok: false, error: `RunPod pod ${action} HTTP ${res.status}: ${scrubComputeText(text)}` };
     }
     // Terminate returns 204 with no body; no pod status to report.
     if (res.status === 204) return { ok: true, status: "TERMINATED" };
@@ -399,7 +421,7 @@ export async function podAction(
     return { ok: true, status: String(data.status ?? data.pod?.status ?? "UNKNOWN") };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "fetch failed";
-    return { ok: false, error: `RunPod request failed: ${msg.slice(0, 140)}` };
+    return { ok: false, error: `RunPod request failed: ${scrubComputeText(msg).slice(0, 140)}` };
   } finally {
     clearTimeout(timer);
   }
@@ -417,7 +439,7 @@ export async function deleteRunpodPod(
   if (!key) return { ok: false, error: "RUNPOD_API_KEY is not set." };
   const id = String(podId ?? "").trim();
   if (!id) return { ok: false, error: "Missing pod id." };
-  const base = (process.env.RUNPOD_API_BASE ?? "").trim().replace(/\/+$/, "") || RUNPOD_API_BASE_DEFAULT;
+  const base = runpodApiBase();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 20_000);
   try {
@@ -428,12 +450,12 @@ export async function deleteRunpodPod(
     });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      return { ok: false, error: `RunPod pod delete HTTP ${res.status}: ${text.slice(0, 160)}` };
+      return { ok: false, error: `RunPod pod delete HTTP ${res.status}: ${scrubComputeText(text)}` };
     }
     return { ok: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "fetch failed";
-    return { ok: false, error: `RunPod request failed: ${msg.slice(0, 140)}` };
+    return { ok: false, error: `RunPod request failed: ${scrubComputeText(msg).slice(0, 140)}` };
   } finally {
     clearTimeout(timer);
   }
@@ -734,7 +756,7 @@ function autoplayCpuHourly(row: CpuCatalogRow, vcpu = AUTOPLAY_CPU_VCPU): number
 async function fetchAutoplayCpuCatalog(): Promise<CpuCatalogRow[]> {
   const key = (process.env.RUNPOD_API_KEY ?? "").trim();
   if (!key) return [];
-  const base = (process.env.RUNPOD_API_BASE ?? "").trim().replace(/\/+$/, "") || RUNPOD_API_BASE_DEFAULT;
+  const base = runpodApiBase();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 12_000);
   try {
@@ -777,7 +799,7 @@ async function createRunpodCpuPod(opts: {
 }): Promise<{ ok: true; podId: string } | { ok: false; error: string }> {
   const key = (process.env.RUNPOD_API_KEY ?? "").trim();
   if (!key) return { ok: false, error: "RUNPOD_API_KEY is not set." };
-  const base = (process.env.RUNPOD_API_BASE ?? "").trim().replace(/\/+$/, "") || RUNPOD_API_BASE_DEFAULT;
+  const base = runpodApiBase();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 20_000);
   try {
@@ -802,7 +824,7 @@ async function createRunpodCpuPod(opts: {
     });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      return { ok: false, error: `RunPod pod create HTTP ${res.status}: ${text.slice(0, 160)}` };
+      return { ok: false, error: `RunPod pod create HTTP ${res.status}: ${scrubComputeText(text)}` };
     }
     const data = (await res.json()) as { id?: string; pod?: { id?: string } };
     const podId = String(data.id ?? data.pod?.id ?? "");
@@ -810,7 +832,7 @@ async function createRunpodCpuPod(opts: {
     return { ok: true, podId };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "fetch failed";
-    return { ok: false, error: `RunPod request failed: ${msg.slice(0, 140)}` };
+    return { ok: false, error: `RunPod request failed: ${scrubComputeText(msg).slice(0, 140)}` };
   } finally {
     clearTimeout(timer);
   }
@@ -1203,7 +1225,7 @@ async function createRunpodDesktopPod(opts: {
 }): Promise<{ ok: true; podId: string } | { ok: false; error: string }> {
   const key = (process.env.RUNPOD_API_KEY ?? "").trim();
   if (!key) return { ok: false, error: "RUNPOD_API_KEY is not set." };
-  const base = (process.env.RUNPOD_API_BASE ?? "").trim().replace(/\/+$/, "") || RUNPOD_API_BASE_DEFAULT;
+  const base = runpodApiBase();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 20_000);
   try {
@@ -1228,7 +1250,7 @@ async function createRunpodDesktopPod(opts: {
     });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      return { ok: false, error: `RunPod pod create HTTP ${res.status}: ${text.slice(0, 160)}` };
+      return { ok: false, error: `RunPod pod create HTTP ${res.status}: ${scrubComputeText(text)}` };
     }
     const data = (await res.json()) as { id?: string; pod?: { id?: string } };
     const podId = String(data.id ?? data.pod?.id ?? "");
@@ -1236,7 +1258,7 @@ async function createRunpodDesktopPod(opts: {
     return { ok: true, podId };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "fetch failed";
-    return { ok: false, error: `RunPod request failed: ${msg.slice(0, 140)}` };
+    return { ok: false, error: `RunPod request failed: ${scrubComputeText(msg).slice(0, 140)}` };
   } finally {
     clearTimeout(timer);
   }
@@ -1250,6 +1272,8 @@ async function createRunpodDesktopPod(opts: {
 export function cleanCustomImage(value: unknown): string | null {
   const v = String(value ?? "").trim().slice(0, 256);
   if (!v) return null;
+  // No URLs, no embedded credentials, no shell metachars.
+  if (v.includes("://") || v.includes("@")) return null;
   if (/[\s"'`$\\;|&<>]/.test(v)) return null;
   if (!/^[a-z0-9][a-z0-9._/-]*[a-z0-9](:[a-z0-9._-]+)?$/i.test(v)) return null;
   if (!v.includes("/") && !v.includes(":")) return null;

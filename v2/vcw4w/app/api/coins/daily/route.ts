@@ -5,6 +5,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
+import { botTesterBlocked, isBotTester } from "@/lib/bot-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,8 @@ export async function POST(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);
+  // Human-only route: restricted tester sessions never claim the bonus.
+  if (isBotTester(req)) return fail(botTesterBlocked(), 403);
   const throttle = rateLimit(`daily:${data.user.id}`, 5, 60_000);
   if (!throttle.allowed) {
     return fail("Too many attempts. Try again shortly.", 429, {

@@ -61,7 +61,7 @@ export async function POST(req: Request) {
     p_game: game,
     p_platform: platform,
     p_visibility: visibility,
-    p_title: title || "Platform Wars lobby",
+    p_title: title || `${game} lobby`,
   });
   if (error) return fail("Unable to create lobby.", 500);
   const row = (Array.isArray(rpcData) ? rpcData[0] : rpcData) as Record<string, unknown> | null;

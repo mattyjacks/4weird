@@ -68,7 +68,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
 
   if (action === "create") {
     const name = String(input.name ?? "").trim().slice(0, 24);
-    const color = String(input.color ?? "#22d3ee").trim();
+    const rawColor = String(input.color ?? "#22d3ee").trim();
+    // Strict hex only: arbitrary CSS/HTML here becomes a style-sink/CSS-
+    // injection vector wherever the color is rendered or exported.
+    if (!/^#[0-9a-fA-F]{6}$/.test(rawColor)) return fail("Color must be #rrggbb hex.", 400);
+    const color = rawColor.toLowerCase();
     if (!name) return fail("Role name required.", 400);
     const { data: rpcData, error } = await supabase.rpc("create_clan_role", {
       p_clan_id: clanId,

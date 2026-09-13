@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CrmReports } from "./crm-reports";
+import { csvCell, safeDateStamp, stripBom } from "./csv-safety";
 
 type Org = { id: string; slug: string; name: string };
 type Company = { id: string; org_id?: string; name: string; domain?: string | null; industry?: string | null; size?: string | null; website?: string | null; notes?: string | null; created_at?: string };
@@ -64,6 +65,15 @@ function weightedDealValue(d: Deal): number {
 
 const RECENT_SEARCH_KEY = "crm-recent-searches";
 const MAX_RECENT_SEARCHES = 5;
+// DoS/amplification guards for the bulk features (client-side; the API
+// re-validates everything server-side with sameOrigin + rateLimit + UUID).
+const MAX_CSV_ROWS = 200;
+const MAX_CSV_BYTES = 512_000;
+const MAX_CSV_ROW_CHARS = 8_000;
+const MAX_CSV_CONSECUTIVE_ERRORS = 10;
+const MAX_BULK_DELETE = 50;
+const UUID_RE = /^[0-9a-f-]{36}$/i;
+const MAX_RECENT_BYTES = 4_000;
 
 function normalizedNeedle(query: string): string {
   return query.trim().toLowerCase();
@@ -79,23 +89,28 @@ function companyNameOf(companies: { id: string; name: string }[], id?: string | 
   return companies.find((c) => c.id === id)?.name ?? "—";
 }
 
+// Security: plain-text splitter only. Both sides are coerced to strings and
+// rendered as React text nodes inside <mark>/<span> — never HTML, never
+// regex — so markup in user data (names, notes, titles) cannot execute.
+// The needle is capped at 120 chars to mirror the API `q` cap.
 function Highlight({ text, needle }: { text: string; needle: string }) {
-  const q = needle.trim();
-  if (!q) return <>{text}</>;
-  const lower = text.toLowerCase();
+  const safeText = String(text ?? "");
+  const q = String(needle ?? "").trim().slice(0, 120);
+  if (!q) return <>{safeText}</>;
+  const lower = safeText.toLowerCase();
   const target = q.toLowerCase();
   const parts: { chunk: string; match: boolean }[] = [];
   let i = 0;
   for (;;) {
     const at = lower.indexOf(target, i);
     if (at === -1) {
-      parts.push({ chunk: text.slice(i), match: false });
+      parts.push({ chunk: safeText.slice(i), match: false });
       break;
     }
-    if (at > i) parts.push({ chunk: text.slice(i, at), match: false });
-    parts.push({ chunk: text.slice(at, at + target.length), match: true });
+    if (at > i) parts.push({ chunk: safeText.slice(i, at), match: false });
+    parts.push({ chunk: safeText.slice(at, at + target.length), match: true });
     i = at + target.length;
-    if (i >= text.length) break;
+    if (i >= safeText.length) break;
   }
   return (
     <>
@@ -134,6 +149,7 @@ function ownerShort(ownerId?: string | null): string {
 function readRecentOrgs(): string[] {
   try {
     const raw = localStorage.getItem(RECENT_ORGS_KEY);
+    if (!raw || raw.length > MAX_RECENT_BYTES) return [];
     const parsed: unknown = raw ? JSON.parse(raw) : [];
     if (Array.isArray(parsed)) return parsed.filter((v): v is string => typeof v === "string").slice(0, RECENT_ORGS_MAX);
   } catch { /* fail-open: no recents */ }
@@ -141,9 +157,50 @@ function readRecentOrgs(): string[] {
 }
 
 function writeRecentOrgs(ids: string[]) {
+  const payload = JSON.stringify(ids.slice(0, RECENT_ORGS_MAX));
   try {
-    localStorage.setItem(RECENT_ORGS_KEY, JSON.stringify(ids.slice(0, RECENT_ORGS_MAX)));
-  } catch { /* fail-open: private mode etc. */ }
+    localStorage.setItem(RECENT_ORGS_KEY, payload);
+  } catch (err) {
+    // Fail-open with quota guard: drop stored recents and retry once so a
+    // full quota (private mode etc.) never breaks the workspace.
+    try {
+      if (err instanceof DOMException && (err.name === "QuotaExceededError" || err.code === 22)) {
+        localStorage.removeItem(RECENT_ORGS_KEY);
+        localStorage.setItem(RECENT_ORGS_KEY, payload);
+      }
+    } catch { /* fail-open: private mode etc. */ }
+  }
+}
+
+function readRecentSearches(): string[] {
+  try {
+    const raw = window.localStorage.getItem(RECENT_SEARCH_KEY);
+    if (!raw || raw.length > MAX_RECENT_BYTES) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (Array.isArray(parsed)) {
+      return parsed.filter((x): x is string => typeof x === "string").slice(0, MAX_RECENT_SEARCHES);
+    }
+  } catch {
+    // Ignore corrupt/unavailable storage.
+  }
+  return [];
+}
+
+function writeRecentSearches(next: string[]) {
+  const payload = JSON.stringify(next.slice(0, MAX_RECENT_SEARCHES));
+  try {
+    window.localStorage.setItem(RECENT_SEARCH_KEY, payload);
+  } catch (err) {
+    // Fail-open with quota guard: clear the key and retry once.
+    try {
+      if (err instanceof DOMException && (err.name === "QuotaExceededError" || err.code === 22)) {
+        window.localStorage.removeItem(RECENT_SEARCH_KEY);
+        window.localStorage.setItem(RECENT_SEARCH_KEY, payload);
+      }
+    } catch {
+      // Ignore storage failures (private mode etc.).
+    }
+  }
 }
 
 /** Fail-open auto-log: record a deal-stage move as a crm_activities note row. */
@@ -267,9 +324,20 @@ function addDaysISO(days: number): string {
   d.setDate(d.getDate() + days);
   return d.toISOString().slice(0, 10);
 }
+// Security: hardcoded Google s2 host; only the domain label is
+// attacker-influenced. It is allow-listed to hostname chars, lowercased,
+// capped at 120 chars (mirrors the API domain cap), and
+// encodeURIComponent'd, so `javascript:`/credential/path payloads in a
+// stored domain or website can never escape into the <img src>.
 function faviconFor(c: Company): string {
-  const host = (c.domain?.trim() || c.website?.trim() || "").replace(/^https?:\/\//i, "").split("/")[0];
-  return host ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64` : "";
+  const raw = (c.domain?.trim() || c.website?.trim() || "")
+    .replace(/^https?:\/\//i, "")
+    .split("/")[0]
+    .split("@")
+    .pop() ?? "";
+  const host = raw.split(":")[0].trim().toLowerCase().slice(0, 120);
+  if (!/^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$/.test(host)) return "";
+  return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64`;
 }
 // Health score: contacts*2 + open deals*5 + won/100.
 function healthScore(nContacts: number, nOpenDeals: number, wonCoins: number): number {
@@ -333,6 +401,9 @@ export function CrmWorkspace() {
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [editContact, setEditContact] = useState({ name: "", email: "", phone: "", title: "", status: "lead", notes: "", company_id: "" });
   const [csvBusy, setCsvBusy] = useState(false);
+  // Double-submit guard for the bulk-delete loops (single deletes are
+  // confirm-gated; bulk loops would otherwise fan out N DELETEs per click).
+  const [bulkBusy, setBulkBusy] = useState(false);
   // Bulk selection (contacts + companies) for bulk-delete.
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
   const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
@@ -402,28 +473,15 @@ export function CrmWorkspace() {
 
   // Saved recent searches (last 5) in localStorage — pure client-side.
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(RECENT_SEARCH_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as unknown;
-      if (Array.isArray(parsed)) {
-        setRecentSearches(parsed.filter((x): x is string => typeof x === "string").slice(0, MAX_RECENT_SEARCHES));
-      }
-    } catch {
-      // Ignore corrupt/unavailable storage.
-    }
+    setRecentSearches(readRecentSearches());
   }, []);
 
   const saveRecentSearch = useCallback((raw: string) => {
-    const q = raw.trim();
+    const q = raw.trim().slice(0, 120);
     if (!q) return;
     setRecentSearches((prev) => {
       const next = [q, ...prev.filter((x) => x.toLowerCase() !== q.toLowerCase())].slice(0, MAX_RECENT_SEARCHES);
-      try {
-        window.localStorage.setItem(RECENT_SEARCH_KEY, JSON.stringify(next));
-      } catch {
-        // Ignore storage failures (private mode etc.).
-      }
+      writeRecentSearches(next);
       return next;
     });
   }, []);
@@ -1075,23 +1133,53 @@ export function CrmWorkspace() {
   }
 
   async function bulkDeleteContacts() {
-    if (!selectedContacts.length) return;
-    if (!window.confirm(`Delete ${selectedContacts.length} contact${selectedContacts.length === 1 ? "" : "s"}? This cannot be undone.`)) return;
+    if (!selectedContacts.length || bulkBusy) return;
+    // Cap + UUID-validate client-side (server DELETE re-validates + scopes
+    // each id to org_id behind the membership gate).
+    const valid = [...new Set(selectedContacts)].filter((id) => UUID_RE.test(id.trim()));
+    const skipped = selectedContacts.length - valid.length;
+    const ids = valid.slice(0, MAX_BULK_DELETE);
+    const truncated = valid.length - ids.length;
+    if (!ids.length) {
+      setNotice(skipped ? `Bulk delete: ${skipped} invalid id${skipped === 1 ? "" : "s"} skipped — nothing to delete.` : "Nothing to delete.");
+      return;
+    }
+    if (!window.confirm(`Delete ${ids.length} contact${ids.length === 1 ? "" : "s"}? This cannot be undone.`)) return;
     setNotice("");
+    setBulkBusy(true);
     const prev = contacts;
-    const ids = new Set(selectedContacts);
-    setContacts((rows) => rows.filter((c) => !ids.has(c.id)));
+    const idSet = new Set(ids);
+    setContacts((rows) => rows.filter((c) => !idSet.has(c.id)));
     setSelectedContacts([]);
-    if (selectedContactId && ids.has(selectedContactId)) setSelectedContactId(null);
+    if (selectedContactId && idSet.has(selectedContactId)) setSelectedContactId(null);
     try {
+      // Sequential on purpose: never Promise.all an unbounded fan-out.
+      let deleted = 0;
+      const errors: string[] = [];
       for (const id of ids) {
-        await request(`/api/crm/contacts`, { method: "DELETE", body: JSON.stringify({ id, org_id: orgId }) });
+        try {
+          await request(`/api/crm/contacts`, { method: "DELETE", body: JSON.stringify({ id, org_id: orgId }) });
+          deleted++;
+        } catch (err) {
+          errors.push(`${id.slice(0, 8)}: ${err instanceof Error ? err.message : "failed"}`);
+          break; // early abort: first failure stops the loop, rest stay put
+        }
       }
-      setNotice("Selected contacts deleted.");
+      if (errors.length) {
+        setNotice(`Bulk delete stopped after ${deleted}/${ids.length} — ${errors[0]}.`);
+      } else {
+        const tail = [
+          skipped ? `${skipped} invalid skipped` : "",
+          truncated ? `${truncated} over the ${MAX_BULK_DELETE} cap left` : "",
+        ].filter(Boolean).join("; ");
+        setNotice(`Selected contacts deleted (${deleted}).${tail ? ` ${tail}.` : ""}`);
+      }
       void loadAll(orgId);
     } catch (err) {
       setContacts(prev);
       setNotice(friendlyApiError("Bulk delete contacts", err));
+    } finally {
+      setBulkBusy(false);
     }
   }
 
@@ -1156,26 +1244,56 @@ export function CrmWorkspace() {
   }
 
   async function bulkDeleteCompanies() {
-    if (!selectedCompanies.length) return;
-    if (!window.confirm(`Delete ${selectedCompanies.length} ${selectedCompanies.length === 1 ? "company" : "companies"}? This cannot be undone.`)) return;
+    if (!selectedCompanies.length || bulkBusy) return;
+    // Cap + UUID-validate client-side (server DELETE re-validates + scopes
+    // each id to org_id behind the membership gate).
+    const valid = [...new Set(selectedCompanies)].filter((id) => UUID_RE.test(id.trim()));
+    const skipped = selectedCompanies.length - valid.length;
+    const ids = valid.slice(0, MAX_BULK_DELETE);
+    const truncated = valid.length - ids.length;
+    if (!ids.length) {
+      setNotice(skipped ? `Bulk delete: ${skipped} invalid id${skipped === 1 ? "" : "s"} skipped — nothing to delete.` : "Nothing to delete.");
+      return;
+    }
+    if (!window.confirm(`Delete ${ids.length} ${ids.length === 1 ? "company" : "companies"}? This cannot be undone.`)) return;
     setNotice("");
+    setBulkBusy(true);
     const prev = companies;
     const prevDir = dirRows;
-    const ids = new Set(selectedCompanies);
-    setCompanies((rows) => rows.filter((c) => !ids.has(c.id)));
-    setDirRows((rows) => rows.filter((c) => !ids.has(c.id)));
+    const idSet = new Set(ids);
+    setCompanies((rows) => rows.filter((c) => !idSet.has(c.id)));
+    setDirRows((rows) => rows.filter((c) => !idSet.has(c.id)));
     setSelectedCompanies([]);
-    if (selectedCompanyId && ids.has(selectedCompanyId)) setSelectedCompanyId(null);
+    if (selectedCompanyId && idSet.has(selectedCompanyId)) setSelectedCompanyId(null);
     try {
-      for (const id of ids) {
-        await request(`/api/crm/companies`, { method: "DELETE", body: JSON.stringify({ id, org_id: orgId }) });
+      // Sequential on purpose: never Promise.all an unbounded fan-out.
+      let deleted = 0;
+      const errors: string[] = [];
+      for (const id of idSet) {
+        try {
+          await request(`/api/crm/companies`, { method: "DELETE", body: JSON.stringify({ id, org_id: orgId }) });
+          deleted++;
+        } catch (err) {
+          errors.push(`${id.slice(0, 8)}: ${err instanceof Error ? err.message : "failed"}`);
+          break; // early abort: first failure stops the loop, rest stay put
+        }
       }
-      setNotice("Selected companies deleted.");
+      if (errors.length) {
+        setNotice(`Bulk delete stopped after ${deleted}/${ids.length} — ${errors[0]}.`);
+      } else {
+        const tail = [
+          skipped ? `${skipped} invalid skipped` : "",
+          truncated ? `${truncated} over the ${MAX_BULK_DELETE} cap left` : "",
+        ].filter(Boolean).join("; ");
+        setNotice(`Selected companies deleted (${deleted}).${tail ? ` ${tail}.` : ""}`);
+      }
       void loadAll(orgId);
     } catch (err) {
       setCompanies(prev);
       setDirRows(prevDir);
       setNotice(friendlyApiError("Bulk delete companies", err));
+    } finally {
+      setBulkBusy(false);
     }
   }
 
@@ -1352,9 +1470,21 @@ export function CrmWorkspace() {
     }
   }
 
-  function csvCell(v: unknown): string {
-    const s = String(v ?? "");
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  // Security: contact export uses the shared csv-safety cell (OWASP
+  // single-quote defuse for formula-leading values, then RFC-4180 quoting),
+  // and downloads below are Blob-based with sanitized date-stamp filenames
+  // (no user data in the name), so cell content can never become markup.
+
+  // Security: strip path separators and `..` so a hostile value can never
+  // escape the download name or traverse directories.
+  function safeDownloadName(base: string, ext: string): string {
+    const clean =
+      String(base ?? "")
+        .replace(/[/\\]+/g, "-")
+        .replace(/\.\.+/g, "·")
+        .replace(/[^a-zA-Z0-9._-]+/g, "-")
+        .slice(0, 80) || "download";
+    return `${clean}.${ext}`;
   }
 
   function exportContactsCsv() {
@@ -1369,7 +1499,7 @@ export function CrmWorkspace() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `crm-contacts-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = safeDownloadName(`crm-contacts-${safeDateStamp(new Date().toISOString().slice(0, 10))}`, "csv");
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -1378,16 +1508,19 @@ export function CrmWorkspace() {
   }
 
   // Minimal client-side CSV parser (handles quoted fields + escaped quotes).
+  // String-splitting only — never eval. A UTF-8 BOM is stripped so it never
+  // becomes part of the first header name.
   function parseCsv(text: string): string[][] {
+    const src = stripBom(text);
     const rows: string[][] = [];
     let row: string[] = [];
     let field = "";
     let quoted = false;
-    for (let i = 0; i < text.length; i++) {
-      const ch = text[i];
+    for (let i = 0; i < src.length; i++) {
+      const ch = src[i];
       if (quoted) {
         if (ch === '"') {
-          if (text[i + 1] === '"') { field += '"'; i++; }
+          if (src[i + 1] === '"') { field += '"'; i++; }
           else quoted = false;
         } else field += ch;
       } else if (ch === '"') quoted = true;
@@ -1403,11 +1536,22 @@ export function CrmWorkspace() {
 
   async function importContactsCsv(file: File) {
     if (!orgId) { setNotice("Pick an org first."); return; }
+    if (csvBusy) return; // double-submit guard
+    if (file.size > MAX_CSV_BYTES) {
+      setNotice(`CSV too large (${Math.round(file.size / 1024)} KB) — max ${Math.round(MAX_CSV_BYTES / 1024)} KB. Split it and retry.`);
+      return;
+    }
     setCsvBusy(true);
     try {
       const text = await file.text();
+      if (text.length > MAX_CSV_BYTES * 2) { setNotice("CSV too large — split it and retry."); return; }
       const rows = parseCsv(text).filter((r) => r.some((c) => c.trim() !== ""));
       if (rows.length < 2) { setNotice("CSV is empty — add a header row plus at least one contact."); return; }
+      // Row cap: import at most MAX_CSV_ROWS data rows per run so one file
+      // can't fan out into thousands of POSTs.
+      const dataRows = rows.slice(1);
+      const truncated = dataRows.length - Math.min(dataRows.length, MAX_CSV_ROWS);
+      const work = dataRows.slice(0, MAX_CSV_ROWS);
       const header = rows[0].map((h) => h.trim().toLowerCase());
       const idx = (names: string[]) => {
         for (const n of names) {
@@ -1427,14 +1571,22 @@ export function CrmWorkspace() {
       if (iName === -1) { setNotice("CSV needs a full_name (or name) column."); return; }
       const byCompany = new Map(companies.map((c) => [c.name.trim().toLowerCase(), c.id]));
       let created = 0;
+      let consecutiveErrors = 0;
+      let aborted = false;
       const errors: string[] = [];
-      for (let r = 1; r < rows.length; r++) {
-        const cols = rows[r];
+      // Sequential on purpose: never Promise.all an unbounded fan-out; each
+      // row is one rate-limited POST and the loop aborts on repeated failure.
+      for (let r = 0; r < work.length; r++) {
+        const cols = work[r];
+        // Malformed rows (unbalanced quotes shifting the column count) are
+        // skipped with a count instead of being imported half-mapped.
+        if (cols.length !== header.length) { errors.push(`row ${r + 2}: expected ${header.length} columns, got ${cols.length} — skipped`); continue; }
+        if (cols.join(",").length > MAX_CSV_ROW_CHARS) { errors.push(`row ${r + 2}: row too large, skipped`); continue; }
         const fullName = (cols[iName] ?? "").trim().slice(0, 120);
-        if (!fullName) { errors.push(`row ${r + 1}: missing name`); continue; }
+        if (!fullName) { errors.push(`row ${r + 2}: missing name`); continue; }
         const email = iEmail === -1 ? "" : (cols[iEmail] ?? "").trim().slice(0, 160);
         const statusRaw = (iStatus === -1 ? "lead" : (cols[iStatus] ?? "").trim().toLowerCase()) || "lead";
-        const companyRaw = iCompany === -1 ? "" : (cols[iCompany] ?? "").trim().toLowerCase();
+        const companyRaw = iCompany === -1 ? "" : (cols[iCompany] ?? "").trim().slice(0, 120).toLowerCase();
         try {
           await request(`/api/crm/contacts`, {
             method: "POST",
@@ -1450,13 +1602,25 @@ export function CrmWorkspace() {
             }),
           });
           created++;
+          consecutiveErrors = 0;
         } catch (err) {
-          errors.push(`row ${r + 1}: ${err instanceof Error ? err.message : "failed"}`);
+          errors.push(`row ${r + 2}: ${err instanceof Error ? err.message : "failed"}`);
+          consecutiveErrors++;
+          if (consecutiveErrors >= MAX_CSV_CONSECUTIVE_ERRORS) {
+            aborted = true;
+            errors.push(`aborted after ${MAX_CSV_CONSECUTIVE_ERRORS} consecutive failures — fix the errors and re-import the rest`);
+            break;
+          }
         }
       }
+      const tail = [
+        truncated ? `${truncated} row${truncated === 1 ? "" : "s"} over the ${MAX_CSV_ROWS} cap ignored` : "",
+        aborted ? "import aborted early" : "",
+      ].filter(Boolean).join("; ");
       setNotice(
         `CSV import: ${created} contact${created === 1 ? "" : "s"} created` +
-        (errors.length ? `. ${errors.length} skipped (${errors.slice(0, 3).join("; ")}${errors.length > 3 ? "; …" : ""})` : "."),
+        (errors.length ? `. ${errors.length} skipped (${errors.slice(0, 3).join("; ")}${errors.length > 3 ? "; …" : ""})` : ".") +
+        (tail ? ` ${tail}.` : ""),
       );
       void loadAll(orgId);
     } catch (err) {
@@ -1575,6 +1739,7 @@ export function CrmWorkspace() {
                 aria-label="Global search across contacts, companies, deals, activities, and invoices"
                 type="search"
                 role="searchbox"
+                maxLength={120}
                 className={`${inputCls} w-full pr-16`}
               />
               {query && (
@@ -1967,7 +2132,7 @@ export function CrmWorkspace() {
 {contacts.map((c) => (<option key={c.id} value={c.id}>{contactName(c)}</option>))}
                             </select>
                           </div>
-                          <textarea value={editingDeal.notes} onChange={(e) => setEditingDeal((p) => ({ ...p, notes: e.target.value }))} placeholder="Deal notes…" aria-label="Edit deal notes" rows={2} className={`${inputCls} w-full`} />
+                          <textarea value={editingDeal.notes} onChange={(e) => setEditingDeal((p) => ({ ...p, notes: e.target.value }))} placeholder="Deal notes…" aria-label="Edit deal notes" maxLength={2000} rows={2} className={`${inputCls} w-full`} />
                           <div className="flex flex-wrap gap-2">
                             <button className={btnCls} type="submit" aria-label="Save deal changes">Save</button>
                             <button type="button" className={ghostBtnCls} onClick={() => setEditingDeal({ id: "", title: "", amount: "", prob: "", close: "", lost: "", notes: "", company: "", contact: "" })} aria-label="Cancel deal edit">Cancel</button>
@@ -1983,7 +2148,7 @@ export function CrmWorkspace() {
           <form onSubmit={(e) => void createDeal(e)} aria-label="Create deal" className={`${cardCls} min-w-0 snap-start sm:col-span-2 lg:col-span-3`}>
             <h3 className="font-bold text-white">New deal</h3>
             <div className="mt-3 flex flex-wrap gap-2">
-              <input value={dlTitle} onChange={(e) => setDlTitle(e.target.value)} placeholder="Deal title" aria-label="Deal title" className={`${inputCls} min-h-[44px] flex-1`} />
+              <input value={dlTitle} onChange={(e) => setDlTitle(e.target.value)} placeholder="Deal title" aria-label="Deal title" maxLength={160} className={`${inputCls} min-h-[44px] flex-1`} />
               <input value={dlAmount} onChange={(e) => setDlAmount(e.target.value)} placeholder="Coins" inputMode="numeric" aria-label="Deal amount in coins" className={`${inputCls} min-h-[44px] w-28`} />
               <input value={dlProb} onChange={(e) => setDlProb(e.target.value)} placeholder="Prob % (auto)" inputMode="numeric" aria-label="Deal probability percent" className={`${inputCls} min-h-[44px] w-32`} />
               <input value={dlClose} onChange={(e) => setDlClose(e.target.value)} type="date" aria-label="Expected close date" className={`${inputCls} min-h-[44px] w-40`} />
@@ -2024,7 +2189,7 @@ export function CrmWorkspace() {
               <button type="button" className={ghostBtnCls} onClick={exportContactsCsv} disabled={!filteredContacts.length} aria-label="Export visible contacts as CSV">
                 Export CSV
               </button>
-              <label className={`${ghostBtnCls} cursor-pointer`} aria-label="Import contacts from CSV">
+              <label className={`${ghostBtnCls} cursor-pointer ${csvBusy ? "pointer-events-none opacity-50" : ""}`} aria-label="Import contacts from CSV" aria-disabled={csvBusy}>
                 {csvBusy ? "Importing…" : "Import CSV"}
                 <input
                   type="file" accept=".csv,text/csv" className="hidden" disabled={csvBusy}
@@ -2065,8 +2230,8 @@ export function CrmWorkspace() {
               </button>
             )}
             {selectedContacts.length > 0 && (
-              <button type="button" className={ghostBtnCls} onClick={() => void bulkDeleteContacts()} aria-label={`Delete ${selectedContacts.length} selected contacts`}>
-                Delete selected ({selectedContacts.length})
+              <button type="button" className={ghostBtnCls} onClick={() => void bulkDeleteContacts()} disabled={bulkBusy} aria-label={`Delete ${selectedContacts.length} selected contacts`}>
+                {bulkBusy ? "Deleting…" : `Delete selected (${selectedContacts.length})`}
               </button>
             )}
           </div>
@@ -2169,12 +2334,12 @@ export function CrmWorkspace() {
       {orgId && tab === "companies" && (
         <section className={`${cardCls} space-y-4`} aria-label="Companies">
           <form onSubmit={(e) => void createCompany(e)} aria-label="Create company" className="flex flex-wrap gap-2">
-            <input value={coName} onChange={(e) => setCoName(e.target.value)} placeholder="Acme Inc" aria-label="Company name" className={`${inputCls} min-h-[44px] flex-1`} />
-            <input value={coDomain} onChange={(e) => setCoDomain(e.target.value)} placeholder="acme.com" aria-label="Company domain" className={`${inputCls} min-h-[44px] flex-1`} />
-            <input value={coIndustry} onChange={(e) => setCoIndustry(e.target.value)} placeholder="Industry (e.g. SaaS)" aria-label="Company industry" className={`${inputCls} min-h-[44px] flex-1`} />
-            <input value={coSize} onChange={(e) => setCoSize(e.target.value)} placeholder="Size (e.g. 11-50)" aria-label="Company size" className={`${inputCls} min-h-[44px] w-36`} />
-            <input value={coWebsite} onChange={(e) => setCoWebsite(e.target.value)} placeholder="https://acme.com" aria-label="Company website" className={`${inputCls} min-h-[44px] flex-1`} />
-            <input value={coNotes} onChange={(e) => setCoNotes(e.target.value)} placeholder="Notes…" aria-label="Company notes" className={`${inputCls} min-h-[44px] flex-1`} />
+            <input value={coName} onChange={(e) => setCoName(e.target.value)} placeholder="Acme Inc" aria-label="Company name" maxLength={120} className={`${inputCls} min-h-[44px] flex-1`} />
+            <input value={coDomain} onChange={(e) => setCoDomain(e.target.value)} placeholder="acme.com" aria-label="Company domain" maxLength={120} className={`${inputCls} min-h-[44px] flex-1`} />
+            <input value={coIndustry} onChange={(e) => setCoIndustry(e.target.value)} placeholder="Industry (e.g. SaaS)" aria-label="Company industry" maxLength={80} className={`${inputCls} min-h-[44px] flex-1`} />
+            <input value={coSize} onChange={(e) => setCoSize(e.target.value)} placeholder="Size (e.g. 11-50)" aria-label="Company size" maxLength={40} className={`${inputCls} min-h-[44px] w-36`} />
+            <input value={coWebsite} onChange={(e) => setCoWebsite(e.target.value)} placeholder="https://acme.com" aria-label="Company website" maxLength={200} className={`${inputCls} min-h-[44px] flex-1`} />
+            <input value={coNotes} onChange={(e) => setCoNotes(e.target.value)} placeholder="Notes…" aria-label="Company notes" maxLength={2000} className={`${inputCls} min-h-[44px] flex-1`} />
             <button className={btnCls} type="submit" aria-label="Add company">Add company</button>
           </form>
           <div className="flex flex-wrap items-center gap-2">
@@ -2242,8 +2407,8 @@ export function CrmWorkspace() {
           {selectedCompanies.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs text-slate-400">{selectedCompanies.length} selected</span>
-              <button type="button" className={ghostBtnCls} onClick={() => void bulkDeleteCompanies()} aria-label={`Delete ${selectedCompanies.length} selected companies`}>
-                Delete selected ({selectedCompanies.length})
+              <button type="button" className={ghostBtnCls} onClick={() => void bulkDeleteCompanies()} disabled={bulkBusy} aria-label={`Delete ${selectedCompanies.length} selected companies`}>
+                {bulkBusy ? "Deleting…" : `Delete selected (${selectedCompanies.length})`}
               </button>
               <button type="button" className={ghostBtnCls} onClick={() => setSelectedCompanies([])} aria-label="Clear company selection">Clear</button>
             </div>
@@ -2296,7 +2461,7 @@ export function CrmWorkspace() {
                 </form>
               )}
               <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
-                <div><dt className="text-xs uppercase tracking-widest text-slate-400">Website</dt><dd className="text-slate-200">{selectedCompany.website ? <a className="text-cyan-200 underline" href={selectedCompany.website.startsWith("http") ? selectedCompany.website : `https://${selectedCompany.website}`} target="_blank" rel="noreferrer">{selectedCompany.website}</a> : "—"}</dd></div>
+                <div><dt className="text-xs uppercase tracking-widest text-slate-400">Website</dt><dd className="text-slate-200">{selectedCompany.website ? <a className="text-cyan-200 underline" href={/^https?:\/\//i.test(selectedCompany.website.trim()) ? selectedCompany.website.trim() : `https://${selectedCompany.website.trim()}`} target="_blank" rel="noreferrer">{selectedCompany.website}</a> : "—"}</dd></div>
                 <div><dt className="text-xs uppercase tracking-widest text-slate-400">Domain</dt><dd className="text-slate-200">{selectedCompany.domain ?? "—"}</dd></div>
                 <div className="sm:col-span-2"><dt className="text-xs uppercase tracking-widest text-slate-400">Notes</dt><dd className="text-slate-200">{selectedCompany.notes || "—"}</dd></div>
               </dl>
@@ -2341,7 +2506,7 @@ export function CrmWorkspace() {
             <select value={acKind} onChange={(e) => setAcKind(e.target.value)} aria-label="Activity kind" className={`${inputCls} min-h-[44px] w-32`}>
               {ACT_KINDS.map((k) => (<option key={k} value={k}>{ACT_KIND_ICON[k]} {k}</option>))}
             </select>
-            <input value={acTitle} onChange={(e) => setAcTitle(e.target.value)} placeholder="Call Acme about proposal…" aria-label="Activity title" className={`${inputCls} min-h-[44px] flex-1`} />
+            <input value={acTitle} onChange={(e) => setAcTitle(e.target.value)} placeholder="Call Acme about proposal…" aria-label="Activity title" maxLength={2000} className={`${inputCls} min-h-[44px] flex-1`} />
             <input value={acDue} onChange={(e) => setAcDue(e.target.value)} type="date" aria-label="Activity due date" className={`${inputCls} min-h-[44px] w-44`} />
             <select value={acDeal} onChange={(e) => setAcDeal(e.target.value)} aria-label="Link deal" className={`${inputCls} min-h-[44px] max-w-xs`}>
               <option value="">No deal</option>
@@ -2481,7 +2646,7 @@ export function CrmWorkspace() {
           <GhostCashDisclaimer />
           <form onSubmit={(e) => void createInvoice(e)} aria-label="Create invoice" className="space-y-3">
             <div className="flex flex-wrap gap-2">
-              <input value={invNumber} onChange={(e) => setInvNumber(e.target.value)} placeholder="INV-001" aria-label="Invoice number" className={`${inputCls} min-h-[44px] w-40`} />
+              <input value={invNumber} onChange={(e) => setInvNumber(e.target.value)} placeholder="INV-001" aria-label="Invoice number" maxLength={60} className={`${inputCls} min-h-[44px] w-40`} />
               <select value={invCompany} onChange={(e) => setInvCompany(e.target.value)} aria-label="Invoice company" className={`${inputCls} min-h-[44px] max-w-xs`}>
                 <option value="">No company</option>
                 {companies.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
@@ -2490,7 +2655,7 @@ export function CrmWorkspace() {
             </div>
             {invLines.map((l, i) => (
               <div key={i} className="flex flex-wrap gap-2">
-                <input value={l.label} onChange={(e) => setInvLines((prev) => prev.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))} placeholder={`Item ${i + 1}`} aria-label={`Invoice line ${i + 1} label`} className={`${inputCls} min-h-[44px] flex-1`} />
+                <input value={l.label} onChange={(e) => setInvLines((prev) => prev.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))} placeholder={`Item ${i + 1}`} aria-label={`Invoice line ${i + 1} label`} maxLength={200} className={`${inputCls} min-h-[44px] flex-1`} />
                 <input value={String(l.qty)} onChange={(e) => setInvLines((prev) => prev.map((x, j) => (j === i ? { ...x, qty: Number(e.target.value || 0) } : x)))} inputMode="numeric" aria-label={`Invoice line ${i + 1} quantity`} className={`${inputCls} min-h-[44px] w-20`} />
                 <input value={String(l.unit_coins)} onChange={(e) => setInvLines((prev) => prev.map((x, j) => (j === i ? { ...x, unit_coins: Number(e.target.value || 0) } : x)))} inputMode="numeric" aria-label={`Invoice line ${i + 1} unit coins`} className={`${inputCls} min-h-[44px] w-28`} />
                 <button type="button" aria-label={`Remove invoice line ${i + 1}`} className={ghostBtnCls} onClick={() => setInvLines((prev) => prev.filter((_, j) => j !== i))} disabled={invLines.length <= 1}>Remove</button>

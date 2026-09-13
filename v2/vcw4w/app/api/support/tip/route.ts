@@ -3,6 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
+import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit";
 import { requireHuman } from "@/lib/botid";
 import { cleanSupportAmount, isUuid } from "@/lib/support";
 
@@ -30,6 +31,12 @@ export async function POST(req: Request) {
   if (botBlock) return botBlock;
   const throttle = rateLimit(`support-tip:${data.user.id}`, 10, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);
+  // Distributed shield: tips move coins, so cap them per account across all
+  // instances (the RPC itself is atomic; this stops the retry storm first).
+  const tipDist = await globalBucket(acctBucketKey("tip-hour", data.user.id), 100, 3600);
+  if (tipDist && !tipDist.allowed) {
+    return fail("Too many requests. Try again shortly.", 429, throttleHeaders(tipDist.retryAfter));
+  }
   let body: unknown;
   try {
     body = await req.json();

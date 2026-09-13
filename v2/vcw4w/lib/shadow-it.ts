@@ -136,8 +136,16 @@ const SENSITIVITY_POINTS: Record<ShadowSensitivity, number> = {
 };
 
 export function scoreShadowRisk(input: ShadowRiskInput): ShadowRiskScore {
-  const apps = Math.max(0, Math.floor(input.unapprovedApps || 0));
-  const people = Math.max(0, Math.floor(input.people || 0));
+  // Abuse hardening: clamp counts to sane ranges so giant inputs cannot
+  // inflate scoring work or surprise callers; score itself stays 0-100.
+  const rawApps = Number(input.unapprovedApps);
+  const rawPeople = Number(input.people);
+  const apps = !Number.isFinite(rawApps)
+    ? 0
+    : Math.min(100, Math.max(0, Math.floor(rawApps)));
+  const people = !Number.isFinite(rawPeople)
+    ? 0
+    : Math.min(10_000, Math.max(0, Math.floor(rawPeople)));
   const sensitivity = SENSITIVITY_POINTS[input.dataSensitivity] ?? 5;
 
   const appPoints = Math.min(40, apps * 8);

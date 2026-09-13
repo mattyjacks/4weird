@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
-import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
+import { fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { sameOriginOrBotKey } from "@/lib/csrf-bot";
 import { rateLimit } from "@/lib/rate-limit";
@@ -66,11 +66,7 @@ export async function GET(req: Request) {
       p_limit: limit,
       p_before: before,
     });
-    if (error) {
-      const code = String((error as { code?: string }).code ?? "");
-      if (code === "P0001" || code === "") return fail(String(error.message ?? "Unable to read room."), statusOf(String(error.message ?? "")));
-      return dbFail("api/unitunite/rooms/messages", error, "Unable to read room.");
-    }
+    if (error) return rpcFail("api/unitunite/rooms/messages", error, statusOf, "Unable to read room.");
     return ok({ room: (data as { room?: unknown } | null)?.room ?? null, messages: (data as { messages?: unknown } | null)?.messages ?? [] });
   }
 
@@ -139,11 +135,7 @@ export async function POST(req: Request) {
       p_session: String(input.session_key_id ?? ""),
       p_device: String(input.device ?? "agent-relay"),
     });
-    if (error) {
-      const code = String((error as { code?: string }).code ?? "");
-      if (code === "P0001" || code === "") return fail(String(error.message ?? "Unable to send."), statusOf(String(error.message ?? "")));
-      return dbFail("api/unitunite/rooms/messages", error, "Unable to send.");
-    }
+    if (error) return rpcFail("api/unitunite/rooms/messages", error, statusOf, "Unable to send.");
     return ok({ id: data, is_bot: true }, 201);
   }
 

@@ -37,7 +37,14 @@ export async function POST(req: Request) {
   const game = isSlug(input.game_slug);
   const platform = String(input.platform ?? "");
   if (!game || !["phone", "desktop"].includes(platform)) return fail("Invalid match request.", 400);
-  const { data: rpcData, error } = await supabase.rpc("quick_match", {
+  const GRAVEGAIN = new Set(["gravegain1d", "gravegain2d", "gravegain3d"]);
+  const rpcName = GRAVEGAIN.has(game)
+    ? "gravegain_quick_match"
+    : game === "platform-wars"
+      ? "quick_match"
+      : null;
+  if (!rpcName) return fail("Invalid match request.", 400);
+  const { data: rpcData, error } = await supabase.rpc(rpcName, {
     p_game: game,
     p_platform: platform,
   });

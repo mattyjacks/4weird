@@ -56,7 +56,7 @@ function autoNumber(): string {
 }
 
 // GET /api/crm/invoices?org_id=<uuid>&status=<status>&company_id=<uuid>
-//   &overdue=1&q=<text>&limit=<1..100>&offset=<0..>&sort=<field>&order=<asc|desc>
+//   &overdue=1&q=<text>&limit=<1..100>&offset=<0..10000>&sort=<field>&order=<asc|desc>
 // -> { invoices: [{ ...cols, items: [] }], total, limit, offset, sort, order }
 // overdue=1 keeps only invoices whose due_date is past and that are neither
 // paid nor void.
@@ -90,7 +90,9 @@ export async function GET(req: Request) {
   const limitRaw = Number(params.get("limit") ?? 50);
   const limit = Number.isFinite(limitRaw) ? Math.min(100, Math.max(1, Math.floor(limitRaw))) : 50;
   const offsetRaw = Number(params.get("offset") ?? 0);
-  const offset = Number.isFinite(offsetRaw) ? Math.max(0, Math.floor(offsetRaw)) : 0;
+  const offset = Number.isFinite(offsetRaw)
+    ? Math.min(10000, Math.max(0, Math.floor(offsetRaw)))
+    : 0;
   const sortRaw = clean(params.get("sort"), 32);
   if (sortRaw && !(SORTABLE as readonly string[]).includes(sortRaw)) {
     return fail(`Invalid sort. Expected one of: ${SORTABLE.join(", ")}.`, 400);
@@ -101,8 +103,9 @@ export async function GET(req: Request) {
     return fail("Invalid order. Expected asc or desc.", 400);
   }
   const ascending = orderRaw === "asc";
-  // Strip PostgREST `or=` separators / wildcards so free text can't break the filter.
-  const needle = rawQ.replace(/[%_(),]/g, "").trim().slice(0, 120);
+  // Strip PostgREST `or=` separators (commas, parens), quotes, backslashes,
+  // and LIKE wildcards (% _ *) so free text can't break the filter.
+  const needle = rawQ.replace(/[%_*,()"'`\\]/g, "").trim().slice(0, 120);
   let q = supabase
     .from("crm_invoices")
     .select(INVOICE_COLS, { count: "exact" })
@@ -125,6 +128,7 @@ export async function GET(req: Request) {
     const { data: itemRows, error: itemError } = await supabase
       .from("crm_invoice_items")
       .select(ITEM_COLS)
+      .eq("org_id", orgId)
       .in("invoice_id", ids)
       .limit(1000);
     if (itemError) return dbFail("GET /api/crm/invoices items", itemError, "Unable to load invoice items.");
@@ -174,6 +178,14 @@ export async function POST(req: Request) {
   if (!orgRaw) return fail("org_id is required.", 400);
   const orgId = isUuid(orgRaw);
   if (!orgId) return fail("Invalid org_id. Expected a UUID.", 400);
+  // Membership gate before creating anything under this org (RLS re-checks below).
+  const { data: postMembership } = await supabase
+    .from("org_members")
+    .select("org_id")
+    .eq("org_id", orgId)
+    .eq("user_id", u.id)
+    .maybeSingle();
+  if (!postMembership) return fail("Not a member of this org.", 403);
 
   const companyRaw = clean(input.company_id, 36);
   if (companyRaw && !isUuid(companyRaw)) return fail("Invalid company_id. Expected a UUID.", 400);
@@ -289,11 +301,12 @@ export async function POST(req: Request) {
   return ok({ invoice, items: savedItems ?? [] }, 201);
 }
 
-// PATCH /api/crm/invoices?id=<uuid> (or body { id, status?, notes?, payment_ref?, org_id? })
+// PATCH /api/crm/invoices?id=<uuid>&org_id=<uuid> (or body { id, org_id, status?, notes?, payment_ref? })
 // Moves draft -> sent -> paid, or voids draft/sent. Paid and void are terminal.
 // notes/payment_ref update the payment-tracking fields without moving status;
-// moving to paid stamps paid_at. When org_id is given the caller must be an
-// org member and the move is scoped to that org.
+// moving to paid stamps paid_at. org_id is required: the caller must be an
+// org member and every read + write is scoped to (id, org_id), so one org
+// can never flip another org's invoice.
 export async function PATCH(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
@@ -325,23 +338,22 @@ export async function PATCH(req: Request) {
     return fail(`Invalid status. Expected one of: ${STATUSES.join(", ")}.`, 400);
   }
   const orgRaw = String(params.get("org_id") ?? input.org_id ?? "").trim();
-  if (orgRaw && !isUuid(orgRaw)) return fail("Invalid org_id. Expected a UUID.", 400);
+  if (!orgRaw) return fail("org_id is required.", 400);
   const orgId = isUuid(orgRaw);
-  if (orgId) {
-    const { data: membership } = await supabase
-      .from("org_members")
-      .select("org_id")
-      .eq("org_id", orgId)
-      .eq("user_id", u.id)
-      .maybeSingle();
-    if (!membership) return fail("Not a member of this org.", 403);
-  }
-  let loadQ = supabase
+  if (!orgId) return fail("Invalid org_id. Expected a UUID.", 400);
+  const { data: membership } = await supabase
+    .from("org_members")
+    .select("org_id")
+    .eq("org_id", orgId)
+    .eq("user_id", u.id)
+    .maybeSingle();
+  if (!membership) return fail("Not a member of this org.", 403);
+  const { data: current, error: loadError } = await supabase
     .from("crm_invoices")
     .select("id,status")
-    .eq("id", id);
-  if (orgId) loadQ = loadQ.eq("org_id", orgId);
-  const { data: current, error: loadError } = await loadQ.single();
+    .eq("id", id)
+    .eq("org_id", orgId)
+    .single();
   if (loadError) return dbFail("PATCH /api/crm/invoices load", loadError, "Invoice not found.");
   const from = String((current as { status: string }).status);
   if (status) {
@@ -354,12 +366,13 @@ export async function PATCH(req: Request) {
   if (status === "paid" && from !== "paid") update.paid_at = new Date().toISOString();
   if (hasNotes) update.notes = clean(input.notes, 2000) || null;
   if (hasPaymentRef) update.payment_ref = clean(input.payment_ref, 120) || null;
-  let updateQ = supabase
+  const { data: invoice, error } = await supabase
     .from("crm_invoices")
     .update(update)
-    .eq("id", id);
-  if (orgId) updateQ = updateQ.eq("org_id", orgId);
-  const { data: invoice, error } = await updateQ.select(INVOICE_COLS).single();
+    .eq("id", id)
+    .eq("org_id", orgId)
+    .select(INVOICE_COLS)
+    .single();
   if (error) return dbFail("PATCH /api/crm/invoices", error, "Unable to update invoice.");
   return ok({ invoice });
 }

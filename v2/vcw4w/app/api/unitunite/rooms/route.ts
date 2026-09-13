@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
-import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
+import { fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOriginOrBotKey } from "@/lib/csrf-bot";
 import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
@@ -46,11 +46,7 @@ export async function GET(req: Request) {
     if (!keyHasScope(bot, "unitunite:read")) return fail("Key lacks scope: unitunite:read.", 403);
     const db = serviceClient();
     const { data, error } = await db.rpc("agent_list_rooms", { p_user: bot.userId, p_team: team });
-    if (error) {
-      const code = String((error as { code?: string }).code ?? "");
-      if (code === "P0001" || code === "") return fail(String(error.message ?? "Unable to load rooms."), statusOf(String(error.message ?? "")));
-      return dbFail("api/unitunite/rooms", error, "Unable to load rooms.");
-    }
+    if (error) return rpcFail("api/unitunite/rooms", error, statusOf, "Unable to load rooms.");
     return ok({ rooms: data ?? [] });
   }
 
@@ -101,11 +97,7 @@ export async function POST(req: Request) {
       p_slug: slug,
       p_name: name,
     });
-    if (error) {
-      const code = String((error as { code?: string }).code ?? "");
-      if (code === "P0001" || code === "") return fail(String(error.message ?? "Unable to create room."), statusOf(String(error.message ?? "")));
-      return dbFail("api/unitunite/rooms", error, "Unable to create room.");
-    }
+    if (error) return rpcFail("api/unitunite/rooms", error, statusOf, "Unable to create room.");
     return ok({ room: data }, 201);
   }
 

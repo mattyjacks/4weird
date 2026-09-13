@@ -71,6 +71,16 @@ export async function POST(req: Request) {
   if (buf.length < 12) return fail("Not a supported image.", 400);
   const kind = MAGIC.find((m) => m.check(new Uint8Array(buf)));
   if (!kind) return fail("Not a supported image (PNG/JPEG/WebP/GIF only).", 400);
+  // Polyglot guard (mirrors /api/clans/upload): magic bytes alone don't prove
+  // "just an image" - an HTML/JS payload appended after a valid header would
+  // otherwise be served from a trusted Supabase origin. Scan head+tail.
+  {
+    const head = buf.subarray(0, Math.min(buf.length, 2048)).toString("latin1").toLowerCase();
+    const tail = buf.subarray(Math.max(0, buf.length - 2048)).toString("latin1").toLowerCase();
+    if (/<html|<\s*script|<\s*iframe|<\s*object|<\s*embed|<\s*svg|<\?php|javascript\s*:|on\w+\s*=/.test(`${head}\n${tail}`)) {
+      return fail("Image contains embedded active content.", 400);
+    }
+  }
 
   // The timer must be mine and still open (or just closed; proof lands late).
   const { data: timer } = await supabase
@@ -99,8 +109,12 @@ export async function POST(req: Request) {
     .maybeSingle();
   if (rowErr) return dbFail("api/ghost/proofs", rowErr, "Unable to record proof.");
   // Private bucket: mint a 1-hour signed URL (same discipline as vault +
-  // blender). Never a permanent public URL for worker screenshots.
-  const { data: signed, error: signErr } = await svc.storage.from("ghost-proofs").createSignedUrl(path, 3600);
+  // blender) with attachment disposition, so opening it downloads the file
+  // instead of rendering bytes inline from a trusted origin. Never a
+  // permanent public URL for worker screenshots.
+  const { data: signed, error: signErr } = await svc.storage.from("ghost-proofs").createSignedUrl(path, 3600, {
+    download: `proof-${sha256.slice(0, 12)}.${kind.ext}`,
+  });
   if (signErr || !signed?.signedUrl) return dbFail("api/ghost/proofs", signErr, "Unable to sign proof URL.");
   return ok({ url: signed.signedUrl, expires_in: 3600, proofId: (row as { id?: string } | null)?.id ?? null, sha256 }, 201);
 }

@@ -4,6 +4,7 @@ import { fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { requireHuman } from "@/lib/botid";
+import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit";
 import { cleanSupportAmount, FUNDRAISERS_DISABLED_NOTICE, FUNDRAISERS_ENABLED } from "@/lib/support";
 
 export const dynamic = "force-dynamic";
@@ -41,6 +42,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (botBlock) return botBlock;
   const throttle = rateLimit(`launch-back:${data.user.id}`, 10, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);
+  // Distributed shield: backing spends coins, so cap it per account across
+  // all instances (the RPC itself is atomic; this stops the storm first).
+  const backDist = await globalBucket(acctBucketKey("launch-back-hour", data.user.id), 60, 3600);
+  if (backDist && !backDist.allowed) {
+    return fail("Too many requests. Try again shortly.", 429, throttleHeaders(backDist.retryAfter));
+  }
   let body: unknown;
   try {
     body = await req.json();

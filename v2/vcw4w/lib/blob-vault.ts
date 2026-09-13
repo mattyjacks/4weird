@@ -84,9 +84,63 @@ export function cleanVaultPath(value: unknown): string {
   // This also erases every ".." traversal sequence before the allowlist check.
   const flat = raw.replace(/\.\.+/g, "_");
   if (flat.includes("..")) return "";
-  if (!/^[A-Za-z0-9._/@:+() \-]+$/.test(flat.replace(/\//g, "a"))) return "";
-  if (!/^[A-Za-z0-9._/@:+() \-]+$/.test(flat)) return "";
-  return flat.replace(/^\/+|\/+$/g, "");
+  // Drop single-dot segments ("a/./b" -> "a/b") so dot junk never persists.
+  const dotted = flat
+    .split("/")
+    .filter((seg) => seg !== ".")
+    .join("/");
+  if (!dotted) return "";
+  if (!/^[A-Za-z0-9._/@:+() \-]+$/.test(dotted.replace(/\//g, "a"))) return "";
+  if (!/^[A-Za-z0-9._/@:+() \-]+$/.test(dotted)) return "";
+  return dotted.replace(/^\/+|\/+$/g, "");
+}
+
+/** MIME blocklist (identical to POST /api/vault/blobs - keep in sync). */
+export const VAULT_BLOCKED_MIME =
+  /^\s*(text\/html|image\/svg\+xml|application\/xhtml\+xml|text\/xml|application\/xml|text\/xml-external-parsed-entity|application\/xml-dtd|multipart\/related|text\/javascript|application\/javascript|application\/x-javascript|application\/ecmascript|text\/ecmascript)\s*(;|$)/i;
+
+/** Extension blocklist (identical to POST /api/vault/blobs - keep in sync). */
+export const VAULT_BLOCKED_EXT =
+  /\.(html?|xhtml|svg|svgz|shtml|hta|swf|xap|xht|xml|js|mjs|cjs|xhtm|dhtml|jse|vbs|vbe|mhtml|mht)$/i;
+
+/** MIME prefixes considered safe to serve for Vault previews/downloads. */
+export const VAULT_SAFE_MIME_PREFIXES = [
+  "application/octet-stream",
+  "text/plain",
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+  "image/avif",
+  "image/",
+  "audio/",
+  "video/",
+  "application/pdf",
+  "application/json",
+] as const;
+
+/**
+ * Shared upload gate for every vault writer (blobs/autosave/meshy/ngp):
+ * blocklist MIME + extension, else coerce unknown MIME to
+ * application/octet-stream (exactly like the autosave route).
+ */
+export function assertSafeVaultUpload(
+  path: unknown,
+  mime: unknown,
+): { ok: true; mime: string } | { ok: false; reason: string } {
+  const p = String(path ?? "");
+  const m = String(mime ?? "application/octet-stream").slice(0, 128) || "application/octet-stream";
+  if (VAULT_BLOCKED_MIME.test(m)) {
+    return { ok: false, reason: "That content type cannot be stored inline. Use a safe type." };
+  }
+  if (VAULT_BLOCKED_EXT.test(p.toLowerCase())) {
+    return { ok: false, reason: "That file extension cannot be stored inline." };
+  }
+  const lower = m.toLowerCase();
+  const safe =
+    (VAULT_SAFE_MIME_PREFIXES as readonly string[]).some((pre) => lower === pre || lower.startsWith(pre)) ||
+    lower === "application/octet-stream";
+  return { ok: true, mime: safe ? m : "application/octet-stream" };
 }
 
 /** Storage object key: scope-bucketed + content hash (dedup-friendly). */

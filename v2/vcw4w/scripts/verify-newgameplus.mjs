@@ -187,6 +187,7 @@ for (const token of [
   if (!spendLib.includes(token)) fail(`spend-permission lib missing ${token}.`);
 }
 if (!route.includes("auto_approve_max")) fail("newgameplus build route must honor auto_approve_max.");
+if (!route.includes("confirmed_budget")) fail("newgameplus build route must bind confirmations to confirmed_budget.");
 if (!builder.includes("auto_approve_max") || !builder.includes("ngp-auto-approve-v1")) {
   fail("newgameplus builder must send auto_approve_max with on-device persistence.");
 }

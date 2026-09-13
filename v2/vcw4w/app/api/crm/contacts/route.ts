@@ -34,40 +34,67 @@ function parseStatus(v: unknown): Status | "" {
 }
 
 // GET /api/crm/contacts?org_id=<uuid>&company_id=<uuid>&status=<lead|active|inactive>
-//   &q=<search>&limit=<1..200>&offset=<0..>&sort=<field>&order=<asc|desc>
+//   &q=<search>&limit=<1..100>&offset=<0..10000>&sort=<field>&order=<asc|desc>
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
-  if (!data?.user) return fail("Login required.", 401);
+  const u = data?.user;
+  if (!u) return fail("Login required.", 401);
   const params = new URL(req.url).searchParams;
-  const orgId = isUuid(params.get("org_id"));
-  const companyId = isUuid(params.get("company_id"));
-  const status = parseStatus(params.get("status"));
-  const q = cleanStr(params.get("q"), 120);
+  const orgRaw = String(params.get("org_id") ?? "").trim();
+  if (!orgRaw) return fail("org_id is required.", 400);
+  const orgId = isUuid(orgRaw);
+  if (!orgId) return fail("Invalid org_id. Expected a UUID.", 400);
+  // Membership gate before revealing org contacts (RLS re-checks below).
+  const { data: membership } = await supabase
+    .from("org_members")
+    .select("org_id")
+    .eq("org_id", orgId)
+    .eq("user_id", u.id)
+    .maybeSingle();
+  if (!membership) return fail("Not a member of this org.", 403);
+  const companyRaw = String(params.get("company_id") ?? "").trim();
+  if (companyRaw && !isUuid(companyRaw)) return fail("Invalid company_id. Expected a UUID.", 400);
+  const companyId = isUuid(companyRaw);
+  const statusRaw = String(params.get("status") ?? "").trim();
+  if (statusRaw && !(STATUSES as readonly string[]).includes(statusRaw)) {
+    return fail(`Invalid status. Expected one of: ${STATUSES.join(", ")}.`, 400);
+  }
+  const status = parseStatus(statusRaw);
+  const rawQ = cleanStr(params.get("q"), 120);
 
-  const limitRaw = Number(params.get("limit") ?? 100);
-  const limit = Number.isFinite(limitRaw) ? Math.min(200, Math.max(1, Math.floor(limitRaw))) : 100;
+  const limitRaw = Number(params.get("limit") ?? 50);
+  const limit = Number.isFinite(limitRaw) ? Math.min(100, Math.max(1, Math.floor(limitRaw))) : 50;
   const offsetRaw = Number(params.get("offset") ?? 0);
-  const offset = Number.isFinite(offsetRaw) ? Math.max(0, Math.floor(offsetRaw)) : 0;
+  const offset = Number.isFinite(offsetRaw)
+    ? Math.min(10000, Math.max(0, Math.floor(offsetRaw)))
+    : 0;
 
   const sortRaw = cleanStr(params.get("sort"), 32);
-  const sort: SortKey = (SORTABLE as readonly string[]).includes(sortRaw)
-    ? (sortRaw as SortKey)
-    : "created_at";
+  if (sortRaw && !(SORTABLE as readonly string[]).includes(sortRaw)) {
+    return fail(`Invalid sort. Expected one of: ${SORTABLE.join(", ")}.`, 400);
+  }
+  const sort: SortKey = sortRaw ? (sortRaw as SortKey) : "created_at";
   const orderRaw = cleanStr(params.get("order"), 8).toLowerCase();
+  if (orderRaw && orderRaw !== "asc" && orderRaw !== "desc") {
+    return fail("Invalid order. Expected asc or desc.", 400);
+  }
   const ascending = orderRaw === "asc";
 
   let query = supabase.from("crm_contacts").select(SELECT, { count: "exact" }).order(sort, { ascending });
-  if (orgId) query = query.eq("org_id", orgId);
+  query = query.eq("org_id", orgId);
   if (companyId) query = query.eq("company_id", companyId);
   if (status) query = query.eq("status", status);
-  if (q) {
-    // Escape %, _, and commas (OR separator) for the PostgREST filter.
-    const esc = q.replace(/[%_,]/g, (m) => `\\${m}`);
-    query = query.or(
-      `full_name.ilike.*${esc}*,email.ilike.*${esc}*,phone.ilike.*${esc}*,title.ilike.*${esc}*`,
-    );
+  if (rawQ) {
+    // Strip PostgREST `or=` separators (commas, parens), quotes, backslashes,
+    // and LIKE wildcards (% _ *) so free text can't break the filter.
+    const needle = rawQ.replace(/[%_*,()"'`\\]/g, "").trim().slice(0, 120);
+    if (needle) {
+      query = query.or(
+        `full_name.ilike.%${needle}%,email.ilike.%${needle}%,phone.ilike.%${needle}%,title.ilike.%${needle}%`,
+      );
+    }
   }
   query = query.range(offset, offset + limit - 1);
   const { data: contacts, error, count } = await query;
@@ -96,17 +123,29 @@ export async function POST(req: Request) {
   }
   const input = (body ?? {}) as Record<string, unknown>;
   const orgId = isUuid(input.org_id);
-  const companyId = isUuid(input.company_id) || null;
+  const companyRaw = cleanStr(input.company_id, 36);
+  if (companyRaw && !isUuid(companyRaw)) return fail("Invalid company_id. Expected a UUID.", 400);
+  const companyId = isUuid(companyRaw) || null;
   // Accept legacy `name` alias from older workspace forms.
   const fullName = cleanStr(input.full_name ?? input.name, 120);
   const email = cleanStr(input.email, 160) || null;
   const phone = cleanStr(input.phone, 40) || null;
   const title = cleanStr(input.title, 120) || null;
   const statusRaw = cleanStr(input.status, 20);
-  const status: Status = (STATUSES as readonly string[]).includes(statusRaw) ? (statusRaw as Status) : "lead";
+  if (statusRaw && !(STATUSES as readonly string[]).includes(statusRaw)) {
+    return fail(`Invalid status. Expected one of: ${STATUSES.join(", ")}.`, 400);
+  }
+  const status: Status = statusRaw ? (statusRaw as Status) : "lead";
   const notes = cleanStr(input.notes, 2000) || null;
   if (!orgId || fullName.length < 1) return fail("org_id and full_name are required.", 400);
   if (email && !validEmail(email)) return fail("Invalid email.", 400);
+  const { data: postMembership } = await supabase
+    .from("org_members")
+    .select("org_id")
+    .eq("org_id", orgId)
+    .eq("user_id", u.id)
+    .maybeSingle();
+  if (!postMembership) return fail("Not a member of this org.", 403);
   const { data: contact, error } = await supabase
     .from("crm_contacts")
     .insert({ org_id: orgId, owner_id: u.id, company_id: companyId, full_name: fullName, email, phone, title, status, notes })
@@ -136,9 +175,22 @@ export async function PATCH(req: Request) {
     return fail("Invalid JSON body.", 400);
   }
   const input = (body ?? {}) as Record<string, unknown>;
-  const id = isUuid(input.id);
-  const orgId = isUuid(input.org_id);
-  if (!id) return fail("id is required.", 400);
+  const params = new URL(req.url).searchParams;
+  const idRaw = String(params.get("id") ?? input.id ?? "").trim();
+  const orgRaw = String(params.get("org_id") ?? input.org_id ?? "").trim();
+  if (!idRaw) return fail("id is required.", 400);
+  if (!orgRaw) return fail("org_id is required.", 400);
+  const id = isUuid(idRaw);
+  const orgId = isUuid(orgRaw);
+  if (!id) return fail("Invalid id. Expected a UUID.", 400);
+  if (!orgId) return fail("Invalid org_id. Expected a UUID.", 400);
+  const { data: membership } = await supabase
+    .from("org_members")
+    .select("org_id")
+    .eq("org_id", orgId)
+    .eq("user_id", u.id)
+    .maybeSingle();
+  if (!membership) return fail("Not a member of this org.", 403);
 
   const patch: Record<string, string | null> = {};
   if (input.full_name !== undefined || input.name !== undefined) {
@@ -159,11 +211,14 @@ export async function PATCH(req: Request) {
     patch.status = v;
   }
   if (input.notes !== undefined) patch.notes = cleanStr(input.notes, 2000) || null;
-  if (input.company_id !== undefined) patch.company_id = isUuid(input.company_id) || null;
+  if (input.company_id !== undefined) {
+    const raw = cleanStr(input.company_id, 36);
+    if (raw && !isUuid(raw)) return fail("Invalid company_id. Expected a UUID.", 400);
+    patch.company_id = isUuid(raw) || null;
+  }
   if (Object.keys(patch).length === 0) return fail("Nothing to update.", 400);
 
-  let query = supabase.from("crm_contacts").update(patch).eq("id", id);
-  if (orgId) query = query.eq("org_id", orgId);
+  const query = supabase.from("crm_contacts").update(patch).eq("id", id).eq("org_id", orgId);
   const { data: contact, error } = await query.select(SELECT).single();
   if (error) return dbFail("PATCH /api/crm/contacts", error, "Unable to update contact.");
   return ok({ contact });

@@ -80,8 +80,18 @@ export interface SuspiciousEvent {
  */
 export function flagSuspicious({ domain, bytes, hour }: SuspiciousEvent): string[] {
   const flags: string[] = [];
-  const host = (domain || "").trim().toLowerCase();
-  const size = Math.max(0, bytes || 0);
+  // Abuse hardening: bound domain length so a giant input cannot bloat
+  // lowercasing / includes-scan work; clamp bytes/hour to sane ranges so
+  // Infinity / MAX_SAFE_INTEGER / NaN cannot propagate downstream.
+  const host = String(domain ?? "").trim().toLowerCase().slice(0, 256);
+  const rawBytes = Number(bytes);
+  const size = !Number.isFinite(rawBytes)
+    ? 0
+    : Math.min(1_000_000_000_000, Math.max(0, Math.floor(rawBytes)));
+  const rawHour = Number(hour);
+  const h = !Number.isFinite(rawHour)
+    ? 12
+    : Math.min(23, Math.max(0, Math.floor(rawHour)));
 
   const known = APPROVED_DOMAINS.some(
     (d) => host === d || host.endsWith("." + d),
@@ -91,7 +101,7 @@ export function flagSuspicious({ domain, bytes, hour }: SuspiciousEvent): string
     flags.push("bulk-upload");
     flags.push("large-download");
   }
-  if (hour < 6 || hour > 22) flags.push("off-hours-access");
+  if (h < 6 || h > 22) flags.push("off-hours-access");
   if (host.includes("ai") || host.includes("gpt") || host.includes("llm")) {
     if (!flags.includes("new-ai-tool")) flags.push("new-ai-tool");
   }

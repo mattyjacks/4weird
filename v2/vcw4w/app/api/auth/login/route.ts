@@ -7,7 +7,7 @@ import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
 import { clientIp, isEmail, isLoginPassword } from "@/lib/validate";
 import { cookies } from "next/headers";
-import { FULL_LOGIN_COOKIE, signFullLogin } from "@/lib/bot-auth";
+import { BOT_TESTER_COOKIE, FULL_LOGIN_COOKIE, signFullLogin } from "@/lib/bot-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -139,6 +139,9 @@ export async function POST(req: Request) {
       const proof = signFullLogin(u.id);
       if (proof) {
         const jar = await cookies();
+        // Full login replaces any tester marker: without this a
+        // tester->full upgrade keeps bot_tester and stays 403-locked.
+        jar.delete(BOT_TESTER_COOKIE);
         jar.set(FULL_LOGIN_COOKIE, proof, {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",

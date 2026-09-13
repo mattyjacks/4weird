@@ -65,7 +65,7 @@ function toLostReason(v: unknown): string | null {
 }
 
 // GET /api/crm/deals?org_id=<uuid>&stage=<stage>&q=<text>
-//   &limit=<1..100>&offset=<0..>&sort=<field>&order=<asc|desc>
+//   &limit=<1..100>&offset=<0..10000>&sort=<field>&order=<asc|desc>
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
@@ -93,7 +93,9 @@ export async function GET(req: Request) {
   const limitRaw = Number(params.get("limit") ?? 50);
   const limit = Number.isFinite(limitRaw) ? Math.min(100, Math.max(1, Math.floor(limitRaw))) : 50;
   const offsetRaw = Number(params.get("offset") ?? 0);
-  const offset = Number.isFinite(offsetRaw) ? Math.max(0, Math.floor(offsetRaw)) : 0;
+  const offset = Number.isFinite(offsetRaw)
+    ? Math.min(10000, Math.max(0, Math.floor(offsetRaw)))
+    : 0;
   const sortRaw = cleanStr(params.get("sort"), 32);
   if (sortRaw && !(SORTABLE as readonly string[]).includes(sortRaw)) {
     return fail(`Invalid sort. Expected one of: ${SORTABLE.join(", ")}.`, 400);
@@ -104,8 +106,9 @@ export async function GET(req: Request) {
     return fail("Invalid order. Expected asc or desc.", 400);
   }
   const ascending = orderRaw === "asc";
-  // Strip PostgREST `or=` separators / wildcards so free text can't break the filter.
-  const needle = rawQ.replace(/[%_(),]/g, "").trim().slice(0, 120);
+  // Strip PostgREST `or=` separators (commas, parens), quotes, backslashes,
+  // and LIKE wildcards (% _ *) so free text can't break the filter.
+  const needle = rawQ.replace(/[%_*,()"'`\\]/g, "").trim().slice(0, 120);
   let q = supabase
     .from("crm_deals")
     .select(SELECT, { count: "exact" })
@@ -177,6 +180,13 @@ export async function POST(req: Request) {
   if (expectedClose && !/^\d{4}-\d{2}-\d{2}$/.test(expectedClose)) {
     return fail("expected_close must be YYYY-MM-DD.", 400);
   }
+  const { data: postMembership } = await supabase
+    .from("org_members")
+    .select("org_id")
+    .eq("org_id", orgId)
+    .eq("user_id", u.id)
+    .maybeSingle();
+  if (!postMembership) return fail("Not a member of this org.", 403);
   const { data: deal, error } = await supabase
     .from("crm_deals")
     .insert({
@@ -218,17 +228,16 @@ export async function PATCH(req: Request) {
   const id = isUuid(idRaw);
   if (!id) return fail("Invalid deal id. Expected a UUID.", 400);
   const orgRaw = String(params.get("org_id") ?? input.org_id ?? "").trim();
-  if (orgRaw && !isUuid(orgRaw)) return fail("Invalid org_id. Expected a UUID.", 400);
+  if (!orgRaw) return fail("org_id is required.", 400);
+  if (!isUuid(orgRaw)) return fail("Invalid org_id. Expected a UUID.", 400);
   const orgId = isUuid(orgRaw);
-  if (orgId) {
-    const { data: membership } = await supabase
-      .from("org_members")
-      .select("org_id")
-      .eq("org_id", orgId)
-      .eq("user_id", u.id)
-      .maybeSingle();
-    if (!membership) return fail("Not a member of this org.", 403);
-  }
+  const { data: membership } = await supabase
+    .from("org_members")
+    .select("org_id")
+    .eq("org_id", orgId)
+    .eq("user_id", u.id)
+    .maybeSingle();
+  if (!membership) return fail("Not a member of this org.", 403);
   const patch: Record<string, unknown> = {};
   if (input.stage !== undefined) {
     const s = cleanStr(input.stage, 20);
@@ -285,8 +294,7 @@ export async function PATCH(req: Request) {
     patch.company_id = isUuid(raw) || null;
   }
   if (Object.keys(patch).length === 0) return fail("Nothing to update.", 400);
-  let uq = supabase.from("crm_deals").update(patch).eq("id", id);
-  if (orgId) uq = uq.eq("org_id", orgId);
+  const uq = supabase.from("crm_deals").update(patch).eq("id", id).eq("org_id", orgId);
   const { data: deal, error } = await uq.select(SELECT).single();
   if (error) return dbFail("PATCH /api/crm/deals", error, "Unable to update deal.");
   return ok({ deal });

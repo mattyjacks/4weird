@@ -22,7 +22,7 @@ function cleanStr(v: unknown, cap: number): string {
 }
 
 // GET /api/crm/companies?org_id=<uuid>&q=<text>&industry=<text>
-//   &limit=<1..100>&offset=<0..>&sort=<field>&order=<asc|desc>
+//   &limit=<1..100>&offset=<0..10000>&sort=<field>&order=<asc|desc>
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
@@ -44,11 +44,16 @@ export async function GET(req: Request) {
   if (!membership) return fail("Not a member of this org.", 403);
 
   const rawQ = cleanStr(params.get("q"), 120);
-  const industry = cleanStr(params.get("industry"), 80);
+  const industryRaw = cleanStr(params.get("industry"), 80);
+  // Strip LIKE wildcards from the single-column industry filter so it can't
+  // widen into a wildcard match.
+  const industry = industryRaw.replace(/[%_*\\]/g, "").trim().slice(0, 80);
   const limitRaw = Number(params.get("limit") ?? 50);
   const limit = Number.isFinite(limitRaw) ? Math.min(100, Math.max(1, Math.floor(limitRaw))) : 50;
   const offsetRaw = Number(params.get("offset") ?? 0);
-  const offset = Number.isFinite(offsetRaw) ? Math.max(0, Math.floor(offsetRaw)) : 0;
+  const offset = Number.isFinite(offsetRaw)
+    ? Math.min(10000, Math.max(0, Math.floor(offsetRaw)))
+    : 0;
   const sortRaw = cleanStr(params.get("sort"), 32);
   if (sortRaw && !(SORTABLE as readonly string[]).includes(sortRaw)) {
     return fail(`Invalid sort. Expected one of: ${SORTABLE.join(", ")}.`, 400);
@@ -59,8 +64,9 @@ export async function GET(req: Request) {
     return fail("Invalid order. Expected asc or desc.", 400);
   }
   const ascending = orderRaw === "asc";
-  // Strip PostgREST `or=` separators / wildcards so free text can't break the filter.
-  const needle = rawQ.replace(/[%_(),]/g, "").trim().slice(0, 120);
+  // Strip PostgREST `or=` separators (commas, parens), quotes, backslashes,
+  // and LIKE wildcards (% _ *) so free text can't break the filter.
+  const needle = rawQ.replace(/[%_*,()"'`\\]/g, "").trim().slice(0, 120);
   let q = supabase
     .from("crm_companies")
     .select(SELECT, { count: "exact" })
@@ -111,6 +117,13 @@ export async function POST(req: Request) {
   const size = cleanStr(input.size, 40) || null;
   const website = cleanStr(input.website, 200) || null;
   const notes = cleanStr(input.notes, 2000) || null;
+  const { data: postMembership } = await supabase
+    .from("org_members")
+    .select("org_id")
+    .eq("org_id", orgId)
+    .eq("user_id", u.id)
+    .maybeSingle();
+  if (!postMembership) return fail("Not a member of this org.", 403);
   const { data: company, error } = await supabase
     .from("crm_companies")
     .insert({ org_id: orgId, owner_id: u.id, name, domain, industry, size, website, notes })
@@ -147,17 +160,16 @@ export async function PATCH(req: Request) {
   const id = isUuid(idRaw);
   if (!id) return fail("Invalid company id. Expected a UUID.", 400);
   const orgRaw = String(params.get("org_id") ?? input.org_id ?? "").trim();
-  if (orgRaw && !isUuid(orgRaw)) return fail("Invalid org_id. Expected a UUID.", 400);
+  if (!orgRaw) return fail("org_id is required.", 400);
+  if (!isUuid(orgRaw)) return fail("Invalid org_id. Expected a UUID.", 400);
   const orgId = isUuid(orgRaw);
-  if (orgId) {
-    const { data: membership } = await supabase
-      .from("org_members")
-      .select("org_id")
-      .eq("org_id", orgId)
-      .eq("user_id", u.id)
-      .maybeSingle();
-    if (!membership) return fail("Not a member of this org.", 403);
-  }
+  const { data: membership } = await supabase
+    .from("org_members")
+    .select("org_id")
+    .eq("org_id", orgId)
+    .eq("user_id", u.id)
+    .maybeSingle();
+  if (!membership) return fail("Not a member of this org.", 403);
   const patch: Record<string, string | null> = {};
   if (input.name !== undefined) {
     const v = cleanStr(input.name, 120);
@@ -170,8 +182,7 @@ export async function PATCH(req: Request) {
   if (input.website !== undefined) patch.website = cleanStr(input.website, 200) || null;
   if (input.notes !== undefined) patch.notes = cleanStr(input.notes, 2000) || null;
   if (Object.keys(patch).length === 0) return fail("Nothing to update.", 400);
-  let query = supabase.from("crm_companies").update(patch).eq("id", id);
-  if (orgId) query = query.eq("org_id", orgId);
+  const query = supabase.from("crm_companies").update(patch).eq("id", id).eq("org_id", orgId);
   const { data: company, error } = await query.select(SELECT).single();
   if (error) return dbFail("PATCH /api/crm/companies", error, "Unable to update company.");
   return ok({ company });

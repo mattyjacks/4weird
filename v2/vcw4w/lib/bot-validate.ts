@@ -74,7 +74,13 @@ export function isOwnClanImageUrl(value: unknown, supabaseBase: string): boolean
     const parsed = new URL(u);
     const baseHost = new URL(base).host;
     if (!baseHost || parsed.host !== baseHost) return false;
-    return /\/storage\/v1\/object\/(public\/)?clan-images\//.test(parsed.pathname + parsed.search);
+    // Pathname only (never pathname + search): a query string must not be
+    // able to smuggle the bucket marker in (?x=/storage/v1/.../clan-images/).
+    const p = parsed.pathname;
+    return (
+      p.startsWith("/storage/v1/object/public/clan-images/") ||
+      p.startsWith("/storage/v1/object/clan-images/")
+    );
   } catch {
     return false;
   }

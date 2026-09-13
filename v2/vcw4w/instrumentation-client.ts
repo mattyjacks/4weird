@@ -43,6 +43,7 @@ initBotId({
     { path: "/api/buddy/*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
     { path: "/api/game-ai/*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
     { path: "/api/swarm/*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
+    { path: "/api/openrouter-plays*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
     { path: "/api/newgameplus/*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
     { path: "/api/code/*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },
     { path: "/api/ai/*", method: "*", advancedOptions: { checkLevel: "deepAnalysis" } },

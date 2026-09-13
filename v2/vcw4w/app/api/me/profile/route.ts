@@ -88,6 +88,15 @@ export async function PATCH(req: Request) {
   if (band === "unknown" && input.age_band !== undefined) {
     return fail("Choose your age band: Teen (13-17) or Adult (18+).", 400);
   }
+  // Privilege guard: teen->adult self-upgrades are refused. The band gates
+  // Child-account creation + adult content, so an upgrade needs verification
+  // (currently: contact matt@mattyjacks.com). Downgrades adult->teen stay open.
+  if (band === "adult") {
+    const { data: current } = await supabase.from("profiles").select("age_band").eq("id", u.id).maybeSingle();
+    if ((current as { age_band?: string } | null)?.age_band === "teen") {
+      return fail("Age band upgrades need verification. Contact matt@mattyjacks.com.", 403);
+    }
+  }
   // family_role: anyone may opt IN to parent; opting out requires zero kids.
   const role = input.family_role === undefined ? undefined : String(input.family_role);
   if (role !== undefined && role !== "parent" && role !== "solo") return fail("Invalid family role.", 400);

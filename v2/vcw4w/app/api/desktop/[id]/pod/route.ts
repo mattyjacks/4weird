@@ -67,7 +67,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       await svc.from("desktop_pods").update({ status }).eq("id", desktop.id);
       return ok({ ok: true, action, podStatus: live.ok ? live.status : "UNKNOWN", note: "Pod already exited; billing already ended." });
     }
-    return fail(`Unable to ${action} the pod (${result.error}). It may still bill; retry or stop it from the RunPod console.`, 502);
+    try {
+      console.error("[desktop-pod] lifecycle failed", { action });
+    } catch {
+      // logging must never break the route
+    }
+    return fail(`Unable to ${action} the pod. It may still bill; retry or stop it from the RunPod console.`, 502);
   }
 
   const status =

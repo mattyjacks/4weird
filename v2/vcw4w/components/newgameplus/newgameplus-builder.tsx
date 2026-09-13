@@ -254,7 +254,10 @@ export function NewGamePlusBuilder() {
     // Permission: spends above the caller's auto-approve ceiling need an
     // explicit OK. The 250-coin system line always asks; a tighter personal
     // ceiling (default 20) asks sooner. Either way the server re-checks.
-    if ((budget > CONFIRM_ABOVE || budget > autoApprove) && !confirmed) {
+    // Clamp here (not just onBlur) so a mid-typing value can't skip the modal.
+    const ceiling = Math.min(AUTO_APPROVE_MAX, Math.max(AUTO_APPROVE_MIN, Number.isFinite(autoApprove) ? autoApprove : AUTO_APPROVE_DEFAULT));
+    const cappedBudget = Math.min(BUDGET_MAX, Math.max(BUDGET_MIN, Number.isFinite(budget) ? budget : BUDGET_DEFAULT));
+    if ((cappedBudget > CONFIRM_ABOVE || cappedBudget > ceiling) && !confirmed) {
       setConfirmOpen(true);
       return;
     }
@@ -286,7 +289,7 @@ export function NewGamePlusBuilder() {
       setStageKey("qa");
       const body = await api<BuildResult>("/api/newgameplus/build", {
         method: "POST",
-        body: JSON.stringify({ prompt: prompt.trim(), quality, budget, org_id: orgId || undefined, confirmed, auto_approve_max: autoApprove, archetype, style: style.trim().slice(0, 120) || undefined }),
+        body: JSON.stringify({ prompt: prompt.trim(), quality, budget, org_id: orgId || undefined, confirmed, confirmed_budget: confirmed ? budget : undefined, auto_approve_max: autoApprove, archetype, style: style.trim().slice(0, 120) || undefined }),
       });
       // Replay the server symphony as the live trail.
       for (const a of body.swarm?.agents ?? []) pushLive(`🤖 ${a.name} (${a.role}): ${a.task.slice(0, 140)}`);
@@ -509,6 +512,7 @@ export function NewGamePlusBuilder() {
           {budget <= autoApprove
             ? `✅ This budget (${budget}) is under your ${autoApprove}-coin ceiling — launches immediately.`
             : `⚠️ This budget (${budget}) is above your ${autoApprove}-coin ceiling — you will be asked for permission first.`}{" "}
+          <button type="button" onClick={() => setAutoApprove(AUTO_APPROVE_DEFAULT)} className="underline hover:text-slate-300">Reset to {AUTO_APPROVE_DEFAULT}</button>{" "}
           <InfoTip side="bottom" text="Each build may spend up to this ceiling silently; anything above it asks your permission first. Default 20, min 1, max 250. Saved on this device." label="About auto-approve" />
         </p>
         <p className="mt-1 rounded-md border border-cyan-400/20 bg-cyan-400/5 px-2 py-1 text-xs text-cyan-200">
@@ -682,8 +686,8 @@ export function NewGamePlusBuilder() {
                       Copy
                     </button>{" "}
                     · {vcw.verdict} · {vcw.steps} steps · {vcw.bugs} bugs ·{" "}
-                    <a className="font-bold text-violet-200 underline" href={`/api/vcw/runs/${vcw.runId}`}>run</a> ·{" "}
-                    <a className="font-bold text-violet-200 underline" href={`/api/vcw/runs/${vcw.runId}/export`}>export</a>
+                    <a className="font-bold text-violet-200 underline" href={`/api/vcw/runs/${encodeURIComponent(vcw.runId)}`}>run</a> ·{" "}
+                    <a className="font-bold text-violet-200 underline" href={`/api/vcw/runs/${encodeURIComponent(vcw.runId)}/export`}>export</a>
                   </p>
                 )}
               </div>
@@ -940,6 +944,7 @@ export function NewGamePlusBuilder() {
                 ? <>; that is above the {CONFIRM_ABOVE}-coin warning line.</>
                 : <>; that is above your {autoApprove}-coin auto-approve ceiling.</>}{" "}
               Estimated build cost is <b>lights-out cheap</b> (quality {quality}/10); you will only ever be quoted the capped spend, 25% cut included.
+              Your charge is at most the {budget}-coin budget cap — never above what you confirm here.
               {budget > CONFIRM_ABOVE ? " Deluxe lane conducts the full 5-bot symphony with video/3D media; longer but still fast." : ""}
             </p>
             <div className="mt-4 flex gap-2">

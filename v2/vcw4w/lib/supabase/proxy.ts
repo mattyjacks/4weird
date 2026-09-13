@@ -30,7 +30,13 @@ export async function updateSession(request: NextRequest) {
           request,
         });
         cookiesToSet.forEach(({ name, value, options }) =>
-          supabaseResponse.cookies.set(name, value, options),
+          supabaseResponse.cookies.set(name, value, {
+            ...options,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            path: "/",
+          }),
         );
       },
     },
@@ -84,6 +90,7 @@ export async function updateSession(request: NextRequest) {
       request.nextUrl.pathname.startsWith("/api/agents") ||
       request.nextUrl.pathname.startsWith("/api/bot") ||
       request.nextUrl.pathname.startsWith("/api/cheats") ||
+      request.nextUrl.pathname.startsWith("/api/family") ||
       request.nextUrl.pathname.startsWith("/api/clans") ||
       request.nextUrl.pathname.startsWith("/api/cloud") ||
       request.nextUrl.pathname.startsWith("/api/code") ||

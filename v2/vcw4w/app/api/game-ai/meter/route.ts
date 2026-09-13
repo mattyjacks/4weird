@@ -40,7 +40,9 @@ export async function POST(req: Request) {
   const sourceRaw = String(input.source ?? "meter");
   if (!/^[a-z0-9-]{1,64}$/.test(game)) return fail("Invalid game_slug.", 400);
   if (!isGameAiKind(kind)) return fail("Invalid kind.", 400);
-  if (!Number.isFinite(qty) || qty <= 0 || qty > 100000000) return fail("Invalid qty.", 400);
+  // Bounded per call (matches buddy/presence caps): unbounded self-metering
+  // lets one stolen session drain the wallet in seconds.
+  if (!Number.isFinite(qty) || qty <= 0 || qty > 1000) return fail("Invalid qty.", 400);
   if (sessionRaw !== null && !isUuid(sessionRaw)) return fail("Invalid session_id.", 400);
   if (!["meter", "chat", "tts", "heartbeat", "manual"].includes(sourceRaw)) {
     return fail("Invalid source.", 400);

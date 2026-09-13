@@ -7,6 +7,7 @@ import { isPassword } from "@/lib/validate";
 import { isKidBand, isKidUsername, MAX_KIDS_PER_PARENT } from "@/lib/family";
 import { hashKidPassword, randomDiscriminator } from "@/lib/kid-session";
 import { rpcStatus } from "@/lib/agent-market";
+import { botTesterBlocked, isBotTester } from "@/lib/bot-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -77,6 +78,9 @@ export async function POST(req: Request) {
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
+  // Creating a child auto-promotes the creator to Parent: play/test
+  // sessions never administer family accounts.
+  if (isBotTester(req)) return fail(botTesterBlocked(), 403);
   const throttle = rateLimit(`family-create:${u.id}`, 10);
   if (!throttle.allowed) {
     return fail("Too many requests. Try again shortly.", 429, { "Retry-After": String(throttle.retryAfter) });

@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok, rpcFail } from "@/lib/api-respond";
+import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
@@ -8,10 +8,11 @@ import { rpcStatus } from "@/lib/agent-market";
 
 export const dynamic = "force-dynamic";
 
-/** End a booking (renter or listing owner). Unused escrow is refunded to the
- *  renter ledger by the end_booking RPC (escrow - metered); the API surfaces
- *  the refunded amount. Provision failures should end the booking promptly so
- *  escrow does not stay locked. */
+/** End a booking (renter or listing owner). Settlement pays the provider share
+ *  and refunds the unused escrow to the renter ledger in one guarded
+ *  transaction (settle_booking_escrow); the API surfaces the refunded amount.
+ *  Provision failures should end the booking promptly so escrow does not stay
+ *  locked. */
 export async function POST(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -24,13 +25,15 @@ export async function POST(
   const rl = rateLimit(`agents:end:${data.user.id}`, 20, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
   const { id } = await params;
-  if (!isUuid(id)) return fail("Invalid booking id.", 400);
+  // Never confirm a booking exists: malformed ids read the same as missing.
+  if (!isUuid(id)) return fail("Booking not found.", 404);
   // Same ownership gate as heartbeat/pod: never end by id alone.
-  const { data: bookingRow } = await supabase
+  const { data: bookingRow, error: bookingRowError } = await supabase
     .from("rental_bookings")
     .select("id,renter_id,agent_listings(id,owner_id)")
     .eq("id", id)
     .maybeSingle();
+  if (bookingRowError) return dbFail("api/agents/bookings/end", bookingRowError, "Unable to load booking.");
   if (!bookingRow) return fail("Booking not found.", 404);
   const brow = bookingRow as unknown as {
     renter_id: string;
@@ -39,10 +42,33 @@ export async function POST(
   const listing = Array.isArray(brow.agent_listings) ? brow.agent_listings[0] : brow.agent_listings;
   if (brow.renter_id !== data.user.id && listing?.owner_id !== data.user.id)
     return fail("Booking not found.", 404);
-  const { data: booking, error } = await supabase.rpc("end_booking", {
+  // Settle first: end_booking alone only flips status and would strand both
+  // sides' money (provider share unpaid, escrow never refunded). Settlement
+  // credits the provider, refunds the remainder, ends the booking, and is
+  // idempotent per booking (booking_settlements guard).
+  const { data: settlement, error: settleError } = await supabase.rpc("settle_booking_escrow", {
     p_booking: id,
   });
-  if (error)
-    return rpcFail("api/agents/bookings/end", error, rpcStatus, "Unable to end booking.");
-  return ok({ booking });
+  if (!settleError) return ok({ booking: settlement });
+  const settleMsg = String((settleError as { message?: unknown })?.message ?? settleError);
+  if (/already settled/i.test(settleMsg)) return ok({ booking: null, already_settled: true });
+  if (/not active/i.test(settleMsg)) {
+    // Closed earlier without settlement (legacy path): close idempotently.
+    const { data: booking, error } = await supabase.rpc("end_booking", {
+      p_booking: id,
+    });
+    if (error)
+      return rpcFail("api/agents/bookings/end", error, rpcStatus, "Unable to end booking.");
+    return ok({ booking });
+  }
+  if (/does not exist|unknown function|no function|schema/i.test(settleMsg)) {
+    // Older database without the settlement RPC: legacy close (no refund).
+    const { data: booking, error } = await supabase.rpc("end_booking", {
+      p_booking: id,
+    });
+    if (error)
+      return rpcFail("api/agents/bookings/end", error, rpcStatus, "Unable to end booking.");
+    return ok({ booking });
+  }
+  return rpcFail("api/agents/bookings/end", settleError, rpcStatus, "Unable to end booking.");
 }

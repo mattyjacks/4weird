@@ -113,7 +113,8 @@ export async function POST(req: Request) {
     return fail("Not a readable .zip package.", 400);
   }
 
-  const entries = listZipEntries(new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength));
+  const listed = listZipEntries(new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength));
+  const entries = listed.entries;
   const samples = extractTextSamples(buf);
   const texts: Record<string, string> = {};
   for (const s of samples) texts[s.name] = s.text;
@@ -128,6 +129,8 @@ export async function POST(req: Request) {
     texts,
     totalBytes: buf.length,
     gameRoot,
+    totalFiles: listed.total,
+    truncated: listed.truncated,
   });
 
   const storageQuote = quoteZipStorageSplit(buf.length);

@@ -12,8 +12,14 @@ function escapeHtml(s) {
 }
 
 function inlineMd(escaped) {
-  let s = escaped;
-  s = s.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+  // Mask inline code spans before other inline passes (mirrors
+  // lib/markdown.ts) so `[text](https://…)` inside backticks stays inert
+  // text instead of an active link. Placeholders are restored afterwards.
+  const codeSpans = [];
+  let s = String(escaped ?? "").replace(/`([^`\n]+)`/g, (_m, inner) => {
+    codeSpans.push("<code>" + inner + "</code>");
+    return "\u0000CODE" + (codeSpans.length - 1) + "\u0000";
+  });
   s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   s = s.replace(/(^|[^*\w])\*([^*\n]+)\*/g, "$1<em>$2</em>");
   s = s.replace(/__([^_]+)__/g, "<strong>$1</strong>");
@@ -23,6 +29,7 @@ function inlineMd(escaped) {
     /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
     '<a href="$2" target="_blank" rel="noopener nofollow ugc">$1</a>',
   );
+  s = s.replace(/\u0000CODE(\d+)\u0000/g, (_m, idx) => codeSpans[Number(idx)] ?? "");
   return s;
 }
 
@@ -70,7 +77,7 @@ function renderBlockLines(lines) {
 }
 
 function renderMarkdownSafe(input) {
-  const text = String(input ?? "").slice(0, 8000);
+  const text = String(input ?? "").split(String.fromCharCode(0)).join("").slice(0, 8000);
   const parts = text.split(/```/);
   const out = [];
   parts.forEach((part, i) => {

@@ -223,8 +223,8 @@ export function rpcStatus(message: string): number {
     return 401;
   if (m.includes("insufficient"))
     return 402;
-  if (m.includes("not authorized")) return 403;
-  if (m.includes("not found") || m.includes("not your child")) return 404;
+  if (m.includes("not authorized") || m.includes("cannot book your own")) return 403;
+  if (m.includes("not found") || m.includes("not available") || m.includes("not your child")) return 404;
   if (m.includes("limit reached") || m.includes("already subscribed") || m.includes("cap reached"))
     return 409;
   return 400;

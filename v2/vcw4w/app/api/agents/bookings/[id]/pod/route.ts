@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
@@ -44,7 +44,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     .select("id,renter_id,pod_id,agent_listings(id,owner_id)")
     .eq("id", id)
     .maybeSingle();
-  if (error) return fail("Unable to load booking.", 500);
+  if (error) return dbFail("api/agents/bookings/[id]/pod", error, "Unable to load booking.");
   if (!booking) return fail("Booking not found.", 404);
   const row = booking as unknown as {
     id: string;

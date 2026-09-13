@@ -52,6 +52,8 @@ export async function GET(req: Request) {
     userId = bot.userId;
     viaBot = true;
   }
+  const readThrottle = rateLimit(`vault-read:${userId}`, 60, 60_000);
+  if (!readThrottle.allowed) return fail("Too many requests.", 429);
   const q = new URL(req.url).searchParams;
   const scope = q.get("scope") ?? "personal";
   if (!isVaultScope(scope)) return fail("Invalid scope.", 400);
@@ -210,11 +212,15 @@ export async function POST(req: Request) {
   // Stored-XSS guard: never store browser-active markup that would execute
   // inline when a teammate opens the signed URL. HTML/SVG/XML/JS are
   // rejected; use text/plain or octet-stream for code instead.
-  if (/^\s*(text\/html|image\/svg\+xml|application\/xhtml\+xml|text\/xml|application\/xml|multipart\/related|text\/javascript|application\/javascript|application\/ecmascript|text\/ecmascript)\s*(;|$)/i.test(mime)) {
+  // Blocked MIME set includes text/html|image/svg+xml plus
+  // text/xml-external-parsed-entity|application/xml-dtd|application/x-javascript
+  // script flavors; blocked extensions include html?|xhtml|svg| plus
+  // xhtm|dhtml|jse|vbs|vbe|mhtml|mht script/htA-adjacent extras below.
+  if (/^\s*(text\/html|image\/svg\+xml|application\/xhtml\+xml|text\/xml|application\/xml|text\/xml-external-parsed-entity|application\/xml-dtd|application\/x-javascript|multipart\/related|text\/javascript|application\/javascript|application\/ecmascript|text\/ecmascript)\s*(;|$)/i.test(mime)) {
     return fail("That content type cannot be stored inline. Use a safe type.", 400);
   }
   const lowerPath = path.toLowerCase();
-  if (/\.(html?|xhtml|svg|svgz|shtml|hta|swf|xap|xht|xml|js|mjs|cjs)$/.test(lowerPath)) {
+  if (/\.(html?|xhtml|svg|svgz|shtml|hta|swf|xap|xht|xml|js|mjs|cjs|xhtm|dhtml|jse|vbs|vbe|mhtml|mht)$/.test(lowerPath)) {
     return fail("That file extension cannot be stored inline.", 400);
   }
 

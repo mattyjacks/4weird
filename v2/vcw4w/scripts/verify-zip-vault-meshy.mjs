@@ -198,4 +198,26 @@ for (const token of ["500 MB", "50 MB", "quarantine", 'sandbox=""', 'role="statu
 if (!vaultRegister.includes("isMissingTrashColumn")) fail("vault blobs route must retry without the trash filter on pre-migration DBs.");
 if (!vault.includes("sanitizeVaultFilter")) fail("blob-vault lib must sanitize LIKE filters.");
 
+// 10. Vault security guarantees (locked after the 2026 hardening pass).
+for (const token of ["Content mismatch; re-upload.", "createSignedUrl(storagePath, 300", "vault-read:", "readyScopeId"]) {
+  if (!vaultRow.includes(token)) fail(`vault row route missing ${token}.`);
+}
+for (const token of ["xml-dtd", "xhtm|dhtml", "isMissingTrashColumn", "vault-read:"]) {
+  if (!vaultRegister.includes(token)) fail(`vault blobs route missing ${token}.`);
+}
+const autosaveVault = read("../app/api/ai/autosave/route.ts");
+if (!autosaveVault.includes("VAULT_BLOCKED_EXT")) fail("autosave route must enforce the extension blocklist.");
+if (autosaveVault.includes('onConflict: "sha256"')) fail("autosave route must not repoint shared blob rows (insert-only).");
+const meshyVault = read("../app/api/meshy/status/route.ts");
+if (meshyVault.includes('onConflict: "sha256"')) fail("meshy status route must not repoint shared blob rows (insert-only).");
+const meterMig = read("../supabase/migrations/20261109000000_vault_meter_ownership.sql");
+if (!meterMig.includes("not your file")) fail("meter ownership migration must refuse foreign files.");
+const purgeRoute = read("../app/api/vault/blobs/[id]/purge/route.ts");
+if (!purgeRoute.includes("under safety review")) fail("purge route must hold files under safety review.");
+const redeemRoute = read("../app/api/vault/s/[token]/route.ts");
+if (!redeemRoute.includes("vault-share:")) fail("share redeem route must throttle by IP.");
+for (const token of ["VAULT_BLOCKED_EXT", 'seg !== "."']) {
+  if (!vault.includes(token)) fail(`blob-vault lib missing ${token}.`);
+}
+
 console.log("zip + vault + meshy integrity OK - 50 MB, 4 verdicts, strict scopes, 25% included, human-only referrals.");

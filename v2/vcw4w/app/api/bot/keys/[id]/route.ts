@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
+import { requireHuman } from "@/lib/botid";
 import { rateLimit } from "@/lib/rate-limit";
 import { sameOrigin } from "@/lib/csrf";
 import { exceedsBodyLimit, isUuid } from "@/lib/validate";
@@ -41,6 +42,12 @@ export async function GET(_req: Request, ctx: Ctx) {
   if (!isUuid(keyId)) return fail("Invalid key.", 400);
   const uid = await ownerId();
   if (!uid) return fail("Login required.", 401);
+  const getThrottle = rateLimit(`bot-keys-get:${uid}`, 30);
+  if (!getThrottle.allowed) {
+    return fail("Too many attempts. Try again shortly.", 429, {
+      "Retry-After": String(getThrottle.retryAfter),
+    });
+  }
   try {
     const db = serviceClient();
     const { data: keyData, error } = await db
@@ -52,18 +59,33 @@ export async function GET(_req: Request, ctx: Ctx) {
     if (error) return dbFail("api/bot/keys/[id]", error, "Unable to load key.");
     if (!keyData) return fail("Key not found.", 404);
     // Best-effort owner balance for the hard-stop meter (never fatal).
+    // Server-side aggregate first (no LIMIT truncation); legacy scan fallback.
     let balance: number | null = null;
     try {
-      const { data: ledger } = await db
+      const aggregate = await db
         .from("coin_ledger")
-        .select("delta")
+        .select("total:sum(delta)")
         .eq("user_id", uid)
-        .limit(5000);
-      let sum = 0;
-      for (const r of ((ledger ?? []) as unknown as { delta: unknown }[])) sum += Number(r.delta) || 0;
-      balance = Math.round(sum * 100) / 100;
+        .single();
+      const total = Number((aggregate.data as { total?: unknown } | null)?.total);
+      if (!aggregate.error && Number.isFinite(total)) {
+        balance = Math.round(total * 100) / 100;
+      } else {
+        throw new Error("aggregate unavailable");
+      }
     } catch {
-      balance = null;
+      try {
+        const { data: ledger } = await db
+          .from("coin_ledger")
+          .select("delta")
+          .eq("user_id", uid)
+          .limit(5000);
+        let sum = 0;
+        for (const r of ((ledger ?? []) as unknown as { delta: unknown }[])) sum += Number(r.delta) || 0;
+        balance = Math.round(sum * 100) / 100;
+      } catch {
+        balance = null;
+      }
     }
     const k = keyData as unknown as Record<string, unknown>;
     const trip =
@@ -84,6 +106,10 @@ export async function PATCH(req: Request, ctx: Ctx) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   // Bot tester sessions can play but never reconfigure keys.
   if (isBotTester(req)) return fail(botTesterBlocked(), 403);
+  // Key reconfiguration is privileged like issuance: automation never
+  // widens scopes, budgets, or lifetimes, even when logged in.
+  const botBlock = await requireHuman(req, "PATCH /api/bot/keys/[id]");
+  if (botBlock) return botBlock;
   const keyId = (await ctx.params).id;
   if (!isUuid(keyId)) return fail("Invalid key.", 400);
   const uid = await ownerId();

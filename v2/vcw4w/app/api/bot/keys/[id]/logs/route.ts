@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
+import { rateLimit } from "@/lib/rate-limit";
 import { clampLimit, isUuid } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +21,12 @@ export async function GET(req: Request, ctx: Ctx) {
   const { data } = await supabase.auth.getUser();
   if (!data?.user) return fail("Login required.", 401);
   const uid = data.user.id;
+  const logsThrottle = rateLimit(`bot-key-logs:${uid}`, 30);
+  if (!logsThrottle.allowed) {
+    return fail("Too many attempts. Try again shortly.", 429, {
+      "Retry-After": String(logsThrottle.retryAfter),
+    });
+  }
 
   const url = new URL(req.url);
   const limit = clampLimit(url.searchParams.get("limit"), 25, 100);

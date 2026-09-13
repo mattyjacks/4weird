@@ -3,6 +3,7 @@ import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
+import { clientIp } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
 import {
   DESKTOP_PLANS,
@@ -25,7 +26,9 @@ export const dynamic = "force-dynamic";
  * nulls when unavailable - never a made-up price), and the idle lifecycle
  * policy. CPU is listed first: it is the cheapest default.
  */
-export async function GET() {
+export async function GET(req: Request) {
+  const rl = rateLimit(`desktop:plans:${clientIp(req)}`, 60, 60_000);
+  if (!rl.allowed) return fail("Rate limited.", 429);
   const [quotes, policy] = await Promise.all([getLiveCheapestQuotes(), Promise.resolve(getPodIdlePolicy())]);
   return ok({
     plans: DESKTOP_PLANS.map((p) => ({

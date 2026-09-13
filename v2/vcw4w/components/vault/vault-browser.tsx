@@ -29,7 +29,7 @@ type UploadItem = {
 
 type ShareLink = { id: string; token: string; expires_at: string | null; created_at: string };
 
-const BLOCKED_EXT = /\.(html?|xhtml|svg|svgz|shtml|hta|swf|xap|xht|xml|js|mjs|cjs)$/i;
+const BLOCKED_EXT = /\.(html?|xhtml|svg|svgz|shtml|hta|swf|xap|xht|xml|js|mjs|cjs|xhtm|dhtml|jse|vbs|vbe|mhtml|mht)$/i;
 const MAX_BYTES = 50 * 1024 * 1024; // 50 MB per file, mirrors VAULT_MAX_BLOB_BYTES
 
 const KIND_OPTIONS = [

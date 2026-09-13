@@ -21,14 +21,25 @@ const client = read("../instrumentation-client.ts");
 if (!client.includes("initBotId")) fail("instrumentation-client.ts must call initBotId().");
 for (const path of [
   "/api/auth/*",
+  "/api/family/*",
   "/api/games/*",
   "/api/coins/*",
+  "/api/referrals",
+  "/api/verification",
+  "/api/support/*",
+  "/api/fundraisers/*",
   "/api/fal/*",
+  "/api/meshy/generate",
   "/api/buddy/*",
-  "/api/clans/*",
-  "/api/bot/*",
-  "/api/code/*",
+  "/api/game-ai/*",
+  "/api/swarm/*",
+  "/api/openrouter-plays",
   "/api/newgameplus/*",
+  "/api/code/*",
+  "/api/bot/*",
+  "/api/desktop/*",
+  "/api/clans/*",
+  "/api/my/rights",
 ]) {
   if (!client.includes(path)) fail(`instrumentation-client.ts must protect '${path}'.`);
 }

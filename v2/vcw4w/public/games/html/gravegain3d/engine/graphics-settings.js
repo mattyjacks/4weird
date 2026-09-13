@@ -579,3 +579,340 @@
         }
     } catch (_) { /* never break boot */ }
 })();
+
+// =========================================================================
+// G10 lane (settings + QA, append-only): quality presets hook sibling mods
+// (voxel density, 2.5D lights, emoji particles, tuner governor) plus a
+// content-mode (kid|teen|all) selector. Augments — never replaces — the
+// window.GraveGainGraphicsSettings API above. Vanilla IIFE, no imports,
+// every sibling call typeof-guarded, idempotent via window.__GraveGainG10.
+// =========================================================================
+(function () {
+    'use strict';
+    try { if (window.__GraveGainG10) return; window.__GraveGainG10 = true; }
+    catch (_) { return; }
+
+    var VERSION = '1.0.0';
+    var CONTENT_MODES = { kid: true, teen: true, all: true };
+    var CONTENT_DEFAULT = 'teen';
+    var LS_SLUG_KEY = '4weird-content-mode:gravegain3d';
+    var LS_LEGACY_KEY = 'FourweirdContentMode';
+    var CONTENT_EVENT = 'fourweird-content-mode';
+
+    // Per-preset sibling-mod tuning. Scales multiply sibling counts;
+    // booleans gate sibling features. Conservative on potato, full on ultra.
+    var SIBLING_QUALITY = {
+        potato:   { voxel: 0.3,  lights25D: false, emoji: 0.3,  governor: 'aggressive' },
+        balanced: { voxel: 0.65, lights25D: true,  emoji: 0.65, governor: 'normal' },
+        high:     { voxel: 1.0,  lights25D: true,  emoji: 1.0,  governor: 'normal' },
+        ultra:    { voxel: 1.2,  lights25D: true,  emoji: 1.2,  governor: 'relaxed' }
+    };
+
+    function clampQuality(name) {
+        if (name && SIBLING_QUALITY[name]) return name;
+        return 'balanced';
+    }
+
+    function clampMode(mode) {
+        if (mode && CONTENT_MODES[mode]) return mode;
+        return null;
+    }
+
+    function safeGet(key) {
+        try { return window.localStorage.getItem(key); } catch (_) { return null; }
+    }
+
+    function safeSet(key, value) {
+        try { window.localStorage.setItem(key, value); return true; } catch (_) { return false; }
+    }
+
+    function queryContentParam() {
+        try {
+            var m = /[?&]content=(kid|teen|all)\b/.exec(window.location.search || '');
+            if (m) return m[1];
+        } catch (_) { /* ignore */ }
+        return null;
+    }
+
+    // ---- sibling hook: voxel density (G1 voxel-gore-3d.js) ----
+    function hookVoxelDensity(scale) {
+        var s = Number(scale);
+        if (!isFinite(s) || s <= 0) s = 1;
+        try {
+            var vx = window.VoxelGore3D;
+            if (!vx) return 'absent';
+            if (!vx.__g10Wrapped) {
+                vx.__g10Wrapped = true;
+                ['burst', 'spawnKill'].forEach(function (method) {
+                    if (typeof vx[method] !== 'function') return;
+                    var orig = vx[method].bind(vx);
+                    vx[method] = function (x, y, z, count, big) {
+                        var n = (method === 'burst') ? count : z;
+                        if (isFinite(Number(n))) {
+                            var k = Number(vx.__g10Scale);
+                            if (!isFinite(k) || k <= 0) k = 1;
+                            var scaled = Math.max(1, Math.round(Number(n) * k));
+                            if (method === 'burst') return orig(x, y, z, scaled, big);
+                            return orig(x, y, scaled, count);
+                        }
+                        return orig(x, y, z, count, big);
+                    };
+                });
+            }
+            vx.__g10Scale = s;
+            if (typeof vx.setDensity === 'function') { try { vx.setDensity(s); } catch (_) {} }
+            return 'scaled:' + s;
+        } catch (_) { return 'error'; }
+    }
+
+    // ---- sibling hook: 2.5D lights (G4 gravegain2d-25d.js + graphics-plus) ----
+    // G4 exposes window.GraveGain2D_25D (underscore); the underscore-less
+    // window.GraveGain2D25D alias is also honored if some revision uses it.
+    function hookLights25D(enabled) {
+        var out = [];
+        try {
+            var d25 = null;
+            try { d25 = window.GraveGain2D25D || window.GraveGain2D_25D || null; }
+            catch (_) { d25 = null; }
+            if (d25) {
+                if (typeof d25.setLights === 'function') {
+                    try { d25.setLights(!!enabled); out.push('2d25d:setLights'); }
+                    catch (_) { out.push('2d25d:error'); }
+                } else if (typeof d25.enable === 'function') {
+                    try { d25.enable(!!enabled); out.push('2d25d:enable'); }
+                    catch (_) { out.push('2d25d:error'); }
+                } else {
+                    try { d25.lightsEnabled = !!enabled; out.push('2d25d:flag'); }
+                    catch (_) { out.push('2d25d:error'); }
+                }
+            } else {
+                out.push('2d25d:absent');
+            }
+        } catch (_) { out.push('2d25d:error'); }
+        try {
+            var plus = window.GraveGainGraphicsPlus;
+            if (plus && typeof plus.retune === 'function') {
+                try { plus.retune({ lights: !!enabled }); out.push('plus:retune'); }
+                catch (_) { out.push('plus:error'); }
+            } else {
+                out.push('plus:absent');
+            }
+        } catch (_) { out.push('plus:error'); }
+        return out.join(',');
+    }
+
+    // ---- sibling hook: emoji particles (G6 gravegain1d-art.js) ----
+    function hookEmojiParticles(scale, preset) {
+        var s = Number(scale);
+        if (!isFinite(s) || s <= 0) s = 1;
+        var out = [];
+        try {
+            var art = window.GraveGain1DArt;
+            if (art && typeof art.setParticleScale === 'function') {
+                try { art.setParticleScale(s); out.push('1dart:setParticleScale'); }
+                catch (_) { out.push('1dart:error'); }
+            } else if (art) {
+                out.push('1dart:no-api');
+            } else {
+                out.push('1dart:absent');
+            }
+        } catch (_) { out.push('1dart:error'); }
+        // 1D game.js listens for 'fourweird-graphics' (detail.settings) —
+        // broadcast so present AND future emoji layers react without polling.
+        try {
+            window.dispatchEvent(new window.CustomEvent('fourweird-graphics', {
+                detail: { preset: preset, settings: { particleMult: s }, source: 'g10-settings' }
+            }));
+            out.push('event:fourweird-graphics');
+        } catch (_) { out.push('event:error'); }
+        return out.join(',');
+    }
+
+    // ---- sibling hook: tuner governor (G3 thread-tuner + workers/perf) ----
+    function hookTunerGovernor(level, preset) {
+        var out = [];
+        try {
+            var tuner = window.GraveGainThreadTuner;
+            if (tuner && typeof tuner.setGovernor === 'function') {
+                try { tuner.setGovernor(level); out.push('tuner:setGovernor'); }
+                catch (_) { out.push('tuner:error'); }
+            } else if (tuner) {
+                out.push('tuner:no-api');
+            } else {
+                out.push('tuner:absent');
+            }
+        } catch (_) { out.push('tuner:error'); }
+        try {
+            var perf = window.GraveGainPerf;
+            if (perf && typeof perf.governor === 'function') {
+                try { perf.governor(level, preset); out.push('perf:governor'); }
+                catch (_) { out.push('perf:error'); }
+            } else {
+                out.push('perf:absent');
+            }
+        } catch (_) { out.push('perf:error'); }
+        return out.join(',');
+    }
+
+    function applySiblingHooks(preset) {
+        var q = SIBLING_QUALITY[clampQuality(preset)] || SIBLING_QUALITY.balanced;
+        var report = {};
+        try { report.voxel = hookVoxelDensity(q.voxel); } catch (_) { report.voxel = 'error'; }
+        try { report.lights = hookLights25D(q.lights25D); } catch (_) { report.lights = 'error'; }
+        try { report.emoji = hookEmojiParticles(q.emoji, clampQuality(preset)); } catch (_) { report.emoji = 'error'; }
+        try { report.governor = hookTunerGovernor(q.governor, clampQuality(preset)); } catch (_) { report.governor = 'error'; }
+        try {
+            window.dispatchEvent(new window.CustomEvent('gravegain-graphics-siblings', {
+                detail: { preset: clampQuality(preset), report: report, source: 'g10-settings' }
+            }));
+        } catch (_) { /* ignore */ }
+        return report;
+    }
+
+    // ---- content-mode selector (kid|teen|all), mode contract order ----
+    function getContentMode() {
+        var q = queryContentParam();
+        if (clampMode(q)) return q;
+        var slugRaw = safeGet(LS_SLUG_KEY);
+        if (clampMode(slugRaw)) return slugRaw;
+        var legacy = safeGet(LS_LEGACY_KEY);
+        if (clampMode(legacy)) return legacy;
+        if (legacy) {
+            try {
+                var parsed = JSON.parse(legacy);
+                if (parsed && clampMode(parsed.mode)) return parsed.mode;
+            } catch (_) { /* ignore */ }
+        }
+        try {
+            var g = window.FourweirdContentMode;
+            if (g && clampMode(g.mode)) return g.mode;
+        } catch (_) { /* ignore */ }
+        return CONTENT_DEFAULT;
+    }
+
+    function setContentMode(mode, reason) {
+        var clean = clampMode(mode);
+        if (!clean) return null;
+        safeSet(LS_SLUG_KEY, clean);
+        // Merge into legacy key without clobbering sibling fields.
+        try {
+            var prev = safeGet(LS_LEGACY_KEY);
+            var obj = null;
+            try { obj = prev ? JSON.parse(prev) : null; } catch (_) { obj = null; }
+            if (obj && typeof obj === 'object') {
+                obj.mode = clean;
+                safeSet(LS_LEGACY_KEY, JSON.stringify(obj));
+            } else if (prev && !clampMode(prev)) {
+                safeSet(LS_LEGACY_KEY, JSON.stringify({ mode: clean }));
+            } else {
+                safeSet(LS_LEGACY_KEY, clean);
+            }
+        } catch (_) { /* persistence must never break the game */ }
+        try {
+            var next = { mode: clean, slug: 'gravegain3d' };
+            try {
+                var cur = window.FourweirdContentMode;
+                if (cur && typeof cur === 'object') {
+                    for (var k in cur) {
+                        if (k !== 'mode' && k !== 'slug' && Object.prototype.hasOwnProperty.call(cur, k)) {
+                            try { next[k] = cur[k]; } catch (_) {}
+                        }
+                    }
+                }
+            } catch (_) { /* ignore */ }
+            window.FourweirdContentMode = next;
+        } catch (_) { /* ignore */ }
+        try {
+            var sel = document.getElementById('settingsContentMode');
+            if (sel && sel.value !== clean) sel.value = clean;
+        } catch (_) { /* ignore */ }
+        try {
+            window.dispatchEvent(new window.CustomEvent(CONTENT_EVENT, {
+                detail: { mode: clean, slug: 'gravegain3d', reason: reason || 'g10-settings' }
+            }));
+        } catch (_) { /* ignore */ }
+        return clean;
+    }
+
+    function bindContentModeUI() {
+        try {
+            var sel = document.getElementById('settingsContentMode');
+            if (sel && !sel.__g10Bound) {
+                sel.__g10Bound = true;
+                sel.value = getContentMode();
+                sel.addEventListener('change', function () {
+                    setContentMode(sel.value, 'manual');
+                });
+            }
+        } catch (_) { /* UI wiring is best-effort (E20 owns index.html) */ }
+    }
+
+    // Wrap applyPreset so every preset change (manual, benchmark, auto,
+    // degrade) fans out to sibling mods. Original semantics preserved.
+    function wrapApplyPreset(api) {
+        if (!api || typeof api.applyPreset !== 'function' || api.__g10Wrapped) return api;
+        try {
+            api.__g10Wrapped = true;
+            var orig = api.applyPreset.bind(api);
+            api.applyPreset = function (name, reason) {
+                var applied = orig(name, reason);
+                try { applySiblingHooks(applied); } catch (_) { /* never break apply */ }
+                return applied;
+            };
+        } catch (_) { /* ignore */ }
+        return api;
+    }
+
+    function initG10() {
+        var api = null;
+        try { api = window.GraveGainGraphicsSettings || null; } catch (_) { api = null; }
+        if (api) {
+            wrapApplyPreset(api);
+            try {
+                api.setContentMode = setContentMode;
+                api.getContentMode = getContentMode;
+                api.applySiblingHooks = applySiblingHooks;
+                api.SIBLING_QUALITY = JSON.parse(JSON.stringify(SIBLING_QUALITY));
+                api.G10_VERSION = VERSION;
+            } catch (_) { /* augmentation is best-effort */ }
+            // Reflect the persisted mode once at boot (no HTML edits: E20 owns it).
+            try { bindContentModeUI(); } catch (_) {}
+            try {
+                var poll = 0;
+                var late = function () {
+                    var stillMissing = false;
+                    try {
+                        var sel = document.getElementById('settingsContentMode');
+                        if (sel && !sel.__g10Bound) { bindContentModeUI(); stillMissing = !sel.__g10Bound; }
+                    } catch (_) {}
+                    poll++;
+                    if (stillMissing && poll < 30) setTimeout(late, 1000);
+                };
+                setTimeout(late, 1000);
+            } catch (_) {}
+            // Apply sibling tuning for the already-active preset, if any.
+            try {
+                if (api && typeof api.getCurrent === 'function' && api.getCurrent()) {
+                    applySiblingHooks(api.getCurrent());
+                }
+            } catch (_) {}
+        }
+        try {
+            window.GraveGainMods = window.GraveGainMods || [];
+            var seen = false;
+            for (var i = 0; i < window.GraveGainMods.length; i++) {
+                if (window.GraveGainMods[i] && window.GraveGainMods[i].name === 'gravegain-graphics-settings-g10') { seen = true; break; }
+            }
+            if (!seen) window.GraveGainMods.push({ name: 'gravegain-graphics-settings-g10', version: VERSION });
+        } catch (_) { /* ignore */ }
+        return api;
+    }
+
+    try {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initG10);
+        } else {
+            initG10();
+        }
+    } catch (_) { try { initG10(); } catch (_) {} }
+})();

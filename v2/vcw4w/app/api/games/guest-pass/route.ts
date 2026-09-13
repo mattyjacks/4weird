@@ -1,4 +1,4 @@
-import { createHash, createHmac } from "node:crypto";
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
@@ -156,7 +156,9 @@ export function verifyGuestAdToken(token: unknown, ip: string, game: string, use
       .update(`guest-ad|${date}|${ip}|${game}|${used}`)
       .digest("hex")
       .slice(0, 32);
-    return expect === t;
+    const a = Buffer.from(expect, "utf8");
+    const b = Buffer.from(t, "utf8");
+    return a.length === b.length && timingSafeEqual(a, b);
   } catch {
     return false;
   }

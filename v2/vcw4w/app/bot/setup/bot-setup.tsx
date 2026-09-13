@@ -1373,9 +1373,11 @@ export function BotSetupClient() {
             aria-label="Bot key for playground"
             type="password"
             value={playKey}
-            onChange={(e) => setPlayKey(e.target.value.slice(0, 128))}
+            onChange={(e) => { setPlayKey(e.target.value.slice(0, 128)); setPlayOut(""); }}
             placeholder="bot4weird_…"
             autoComplete="off"
+            spellCheck={false}
+            maxLength={128}
             className="min-w-0 flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2 font-mono"
           />
           <button

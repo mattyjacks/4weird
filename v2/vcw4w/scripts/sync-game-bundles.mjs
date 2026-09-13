@@ -251,6 +251,56 @@ function normalizeRuntime(indexFile, slug) {
       else html += tag;
     }
   }
+  // GraveGain plus overlays (aiorch-01 wave): models-3d -> 3D only,
+  // 2p5d -> 2D only, voxel-gore/perf/emergent/arsenal/enemies -> 2D+3D,
+  // 1d-art -> 1D only. existsSync-guarded, injected only when absent;
+  // tracked bundle sources stay byte-identical. Composes with the epic
+  // loop above and the BIG-UPGRADE block below (html.includes guards).
+  {
+    const plusFiles = [
+      ["gravegain-models-3d.js", ["gravegain3d"]],
+      ["gravegain-2p5d.js", ["gravegain2d"]],
+      ["gravegain-voxel-gore.js", ["gravegain2d", "gravegain3d"]],
+      ["gravegain-perf.js", ["gravegain2d", "gravegain3d"]],
+      ["gravegain-emergent.js", ["gravegain2d", "gravegain3d"]],
+      ["gravegain-arsenal.js", ["gravegain2d", "gravegain3d"]],
+      ["gravegain-enemies.js", ["gravegain2d", "gravegain3d"]],
+      ["gravegain1d-art.js", ["gravegain1d"]],
+    ];
+    for (const [file, slugs] of plusFiles) {
+      if (!slugs.includes(slug)) continue;
+      if (html.includes(file)) continue;
+      const src = join(root, "public", "games", "html", file);
+      if (!existsSync(src)) continue;
+      const tag = `<script src="/games/html/${file}" data-slug="${slug}"></script>`;
+      if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${tag}</body>`);
+      else html += tag;
+    }
+  }
+  // GraveGain BIG-UPGRADE layer (S-09 + ORCH wave-1 + toasts): arsenal ->
+  // bestiary -> emergent (+toasts herald) -> graphics tier -> gore tiers ->
+  // perf, in dependency order.
+  // ORCH wave-1 adds: arsenal data (all), arsenal3d+bestiary3d+voxgore (3D),
+  // arsenal2d+25d (2D), 1dart (1D), agegore director (all). All sources
+  // live at public/games/html/*.js (v2-native, outside the parity-locked
+  // gravegain trees). existsSync-guarded, injected only when absent; tracked
+  // bundle sources stay byte-identical.
+  if (slug === "gravegain2d" || slug === "gravegain3d" || slug === "gravegain1d") {
+    const bigFiles =
+      slug === "gravegain2d"
+        ? ["gravegain-arsenal.js", "gravegain-arsenal2d.js", "gravegain-bestiary.js", "gravegain-emergent.js", "gravegain-emergent-toasts.js", "gravegain-graphics-2d.js", "gravegain-25d.js", "gravegain-gore-tiers.js", "gravegain-agegore.js", "gravegain-perf.js"]
+        : slug === "gravegain3d"
+          ? ["gravegain-arsenal.js", "gravegain-arsenal3d.js", "gravegain-bestiary.js", "gravegain-bestiary3d.js", "gravegain-emergent.js", "gravegain-emergent-toasts.js", "gravegain-graphics-3d.js", "gravegain-gore-tiers.js", "gravegain-agegore.js", "gravegain-voxgore.js", "gravegain-perf.js"]
+          : ["gravegain-graphics-1d.js", "gravegain-1dart.js", "gravegain-arsenal.js", "gravegain-arsenal2d.js", "gravegain-bestiary.js", "gravegain-emergent.js", "gravegain-emergent-toasts.js", "gravegain-agegore.js", "gravegain-perf.js"];
+    for (const file of bigFiles) {
+      if (html.includes(file)) continue;
+      const src = join(root, "public", "games", "html", file);
+      if (!existsSync(src)) continue;
+      const tag = `<script src="/games/html/${file}" data-slug="${slug}"></script>`;
+      if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${tag}</body>`);
+      else html += tag;
+    }
+  }
   // Content-mode bridge (v2-native extra): shared gore/drugs/profanity
   // gating for the kid-safe horror titles (per-game gore overlays are
   // injected by the per-slug blocks above). Parity sources are untouched —
@@ -271,6 +321,22 @@ function normalizeRuntime(indexFile, slug) {
     const bs2DesktopSrc = join(root, "public", "games", "html", "battlesharks2-desktop.js");
     if (existsSync(bs2DesktopSrc)) {
       const tag = `<script src="/games/html/battlesharks2-desktop.js" data-slug="battlesharks2"></script>`;
+      if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${tag}</body>`);
+      else html += tag;
+    }
+  }
+  // GraveGain netplay core (gravegain1d/gravegain2d/gravegain3d ONLY):
+  // shared multiplayer transport + overlay chrome. Source lives at
+  // public/games/html/gravegain-netplay.js (v2-native, outside the
+  // parity-locked gravegain trees, so cpSync never carries it) and is
+  // referenced by absolute canonical path. existsSync-guarded, injected
+  // only when absent; tracked bundle sources stay byte-identical. Per-game
+  // adapters (mp-1d.js / mp-2d.js / mp-3d.js) are auto-loaded by the core
+  // by slug, so no adapter tags are injected here.
+  if ((slug === "gravegain1d" || slug === "gravegain2d" || slug === "gravegain3d") && !html.includes("gravegain-netplay.js")) {
+    const netplaySrc = join(root, "public", "games", "html", "gravegain-netplay.js");
+    if (existsSync(netplaySrc)) {
+      const tag = `<script src="/games/html/gravegain-netplay.js" data-slug="${slug}"></script>`;
       if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${tag}</body>`);
       else html += tag;
     }

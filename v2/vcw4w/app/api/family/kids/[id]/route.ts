@@ -7,6 +7,7 @@ import { isPassword } from "@/lib/validate";
 import { isAgeBand } from "@/lib/family";
 import { hashKidPassword } from "@/lib/kid-session";
 import { rpcStatus } from "@/lib/agent-market";
+import { botTesterBlocked, isBotTester } from "@/lib/bot-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +48,9 @@ export async function PATCH(req: Request) {
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
+  // Controls, age band, password rotation, and suspension are parent-admin
+  // acts: play/test sessions never perform them.
+  if (isBotTester(req)) return fail(botTesterBlocked(), 403);
   const kidId = idFrom(req.url);
   if (!isUuidLike(kidId)) return fail("Invalid child account.", 400);
   const throttle = rateLimit(`family-patch:${u.id}`, 30);
@@ -143,6 +147,8 @@ export async function DELETE(req: Request) {
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
+  // Closing refunds the wallet to the parent: play/test sessions never do it.
+  if (isBotTester(req)) return fail(botTesterBlocked(), 403);
   const kidId = idFrom(req.url);
   if (!isUuidLike(kidId)) return fail("Invalid child account.", 400);
   const throttle = rateLimit(`family-delete:${u.id}`, 10);

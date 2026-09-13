@@ -8,6 +8,8 @@ import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
 import { TRIAL_COINS_DEFAULT, TRIAL_COINS_MAX } from "@/lib/economy";
 import { clientIp, isEmail, isPassword } from "@/lib/validate";
+import { cookies } from "next/headers";
+import { FULL_LOGIN_COOKIE, signFullLogin } from "@/lib/bot-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +17,12 @@ async function awardTrial(userId: string, email: string, req: Request): Promise<
   const salt = process.env.SIGNUP_IP_HASH_SALT ?? "";
   // Fail closed: credits are never issued with an unsalted, reusable IP hash.
   if (!salt || !supabaseServiceRoleKey()) return false;
-  const hash = createHash("sha256").update(`${salt}|${clientIp(req)}`).digest("hex");
+  const ip = clientIp(req);
+  // "unknown" is shared deployment-wide (no edge header): issuing against it
+  // would let the UNIQUE(ip_hash) row lock the trial out for every later
+  // signup. Skip instead; per-account UNIQUE(user_id) still blocks doubles.
+  if (!ip || ip === "unknown") return false;
+  const hash = createHash("sha256").update(`${salt}|${ip}`).digest("hex");
   const coins = Math.max(1, Math.min(TRIAL_COINS_MAX, Number(process.env.FREE_TRIAL_VCOINS ?? TRIAL_COINS_DEFAULT)));
   const { data } = await serviceClient().rpc("award_signup_credit", {
     p_user: userId,
@@ -108,6 +115,23 @@ export async function POST(req: Request) {
     if (data?.session?.user) {
       const trialAwarded = await awardTrial(data.session.user.id, email, req).catch(() => false);
       const u = data.session.user;
+      // Fresh signups hold a valid session: mint the full-login proof now so
+      // profile/bot-key/rights routes work without a second login.
+      try {
+        const proof = signFullLogin(u.id);
+        if (proof) {
+          const jar = await cookies();
+          jar.set(FULL_LOGIN_COOKIE, proof, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            path: "/",
+            maxAge: 30 * 24 * 3600,
+          });
+        }
+      } catch {
+        // Proof is hardening; the session itself still works for play.
+      }
       // Persist the self-declared band (trigger defaults to unknown; the API
       // is authoritative for COPPA: teen/adult only, never kid). Best-effort:
       // signup must not fail if the profile row is not visible yet.

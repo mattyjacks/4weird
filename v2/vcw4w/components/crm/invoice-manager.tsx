@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { csvCell, safeDateStamp, slugForFilename } from "./csv-safety";
 
 type Org = { id: string; slug: string; name: string };
 type Company = { id: string; name: string };
@@ -95,11 +96,6 @@ function coins(n: number): string {
 function usd(n: number): string {
   // USD equiv: coins/100 (100 🪙 = exactly $1.00).
   return `$${(Number(n ?? 0) / 100).toFixed(2)}`;
-}
-
-function csvCell(v: unknown): string {
-  const s = String(v ?? "");
-  return /[",\n]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s;
 }
 
 const inputCls =
@@ -404,7 +400,7 @@ export function InvoiceManager() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `invoices-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `invoices-${safeDateStamp(new Date().toISOString().slice(0, 10))}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -440,7 +436,8 @@ export function InvoiceManager() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `invoice-${inv.number || inv.id.slice(0, 8)}.csv`;
+    // inv.number is user input — slug-scrub it so the filename stays safe.
+    a.download = `invoice-${slugForFilename(inv.number, inv.id.slice(0, 8))}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -513,6 +510,7 @@ export function InvoiceManager() {
             placeholder="Search by number…"
             aria-label="Search invoices by number"
             type="search"
+            maxLength={120}
             className={`${inputCls} min-h-[44px] w-full sm:w-48`}
           />
           <label className="ml-auto flex items-center gap-2 text-sm text-slate-300">
@@ -607,6 +605,7 @@ export function InvoiceManager() {
                 placeholder="Acme Co (created on submit)"
                 aria-label="Invoice company free text"
                 disabled={!!companyId}
+                maxLength={120}
                 className={`${inputCls} min-h-[44px] w-full`}
               />
             </label>
@@ -629,6 +628,7 @@ export function InvoiceManager() {
                 placeholder="Jane Doe (created on submit)"
                 aria-label="Invoice contact free text"
                 disabled={!!contactId}
+                maxLength={120}
                 className={`${inputCls} min-h-[44px] w-full`}
               />
             </label>
@@ -643,6 +643,7 @@ export function InvoiceManager() {
                 placeholder="Auto-assigned if blank (e.g. INV-20260101-1234)"
                 className={`${inputCls} w-full font-mono`}
                 aria-label="Invoice number"
+                maxLength={60}
               />
               <span className="block text-xs text-slate-400">
                 Numbers must be unique per org — sequential numbering recommended.
@@ -661,6 +662,7 @@ export function InvoiceManager() {
                 placeholder="e.g. checkout #123, wire ref…"
                 className={`${inputCls} w-full`}
                 aria-label="Payment reference"
+                maxLength={120}
               />
               <span className="block text-xs text-slate-400">
                 Stored with the invoice; shown once paid.
@@ -679,6 +681,7 @@ export function InvoiceManager() {
                   placeholder={`Line ${i + 1} label`}
                   className={`${inputCls} col-span-2 min-h-[44px] sm:col-span-1`}
                   aria-label={`Line ${i + 1} label`}
+                  maxLength={200}
                 />
                 <input
                   value={l.qty}
@@ -688,6 +691,7 @@ export function InvoiceManager() {
                   placeholder="Qty"
                   inputMode="decimal"
                   aria-label={`Line ${i + 1} quantity`}
+                  maxLength={12}
                   className={`${inputCls} min-h-[44px]`}
                 />
                 <input
@@ -698,6 +702,7 @@ export function InvoiceManager() {
                   placeholder="Unit 🪙"
                   inputMode="numeric"
                   aria-label={`Line ${i + 1} unit coins`}
+                  maxLength={12}
                   className={`${inputCls} min-h-[44px]`}
                 />
                 <button
@@ -724,11 +729,11 @@ export function InvoiceManager() {
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="space-y-1 text-sm text-slate-300">
               Discount (coins)
-              <input value={discount} onChange={(e) => setDiscount(e.target.value)} inputMode="numeric" aria-label="Invoice discount in coins" className={`${inputCls} min-h-[44px] w-full`} />
+              <input value={discount} onChange={(e) => setDiscount(e.target.value)} inputMode="numeric" aria-label="Invoice discount in coins" maxLength={12} className={`${inputCls} min-h-[44px] w-full`} />
             </label>
             <label className="space-y-1 text-sm text-slate-300">
               Tax rate (%)
-              <input value={taxRate} onChange={(e) => setTaxRate(e.target.value)} inputMode="decimal" aria-label="Invoice tax rate percent" className={`${inputCls} min-h-[44px] w-full`} />
+              <input value={taxRate} onChange={(e) => setTaxRate(e.target.value)} inputMode="decimal" aria-label="Invoice tax rate percent" maxLength={7} className={`${inputCls} min-h-[44px] w-full`} />
               <span className="block text-xs text-slate-400">≈ {usd(draftTax)} at 100 coins/$1</span>
             </label>
             <label className="space-y-1 text-sm text-slate-300">
@@ -750,6 +755,7 @@ export function InvoiceManager() {
               placeholder="Payment terms, references…"
               aria-label="Invoice notes"
               rows={2}
+              maxLength={2000}
               className={`${inputCls} w-full`}
             />
           </label>
@@ -860,6 +866,7 @@ export function InvoiceManager() {
                     placeholder="e.g. paid via checkout #123, awaiting wire…"
                     className={`${inputCls} min-h-[44px] flex-1`}
                     aria-label={`Payment note for ${inv.number || inv.id.slice(0, 8)}`}
+                    maxLength={2000}
                   />
                   <button type="button" className={ghostBtnCls} onClick={() => void saveNote(inv.id)} disabled={busy}>
                     Save note
@@ -899,6 +906,9 @@ export function InvoiceManager() {
       </section>
 
       {printInv && (
+        // Security: the print sheet renders loaded invoice rows + org state
+        // only — never URL params — all as React text nodes, so query-string
+        // markup cannot reflect into window.print output.
         <section className="invoice-print-sheet hidden rounded-2xl border border-black bg-white p-6 text-black print:block" aria-label="Print invoice">
           <h2 className="font-mono text-xl font-black">Invoice {printInv.number || printInv.id.slice(0, 8)}</h2>
           <p className="mt-1 text-sm">

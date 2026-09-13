@@ -176,6 +176,36 @@ for (const token of ["FAQ", "Ghost Cash", "org-scoped", "100 Vibe Coins"]) {
   }
 }
 
+// 9. Hardening (additive): org_members scoping, dbFail usage, no
+// service-role strings, and limit-clamp evidence in every CRM route.
+// All four hold on current code: each route gates via .from("org_members"),
+// reports DB errors via dbFail(, never embeds a service-role/admin client,
+// and bounds reads (Math.min clamp on collections, .limit( on summary).
+const HARDENED_ROUTES = [
+  "app/api/crm/companies/route.ts",
+  "app/api/crm/contacts/route.ts",
+  "app/api/crm/deals/route.ts",
+  "app/api/crm/activities/route.ts",
+  "app/api/crm/invoices/route.ts",
+  "app/api/crm/summary/route.ts",
+];
+const CLAMPED_ROUTES = HARDENED_ROUTES.slice(0, 5); // summary bounds via .limit(500)
+const SERVICE_ROLE_RE = /service_role|service-role|supabaseAdmin|createAdminClient|SERVICE_ROLE_KEY/i;
+for (const path of HARDENED_ROUTES) {
+  const body = read(path);
+  must(body.includes('.from("org_members")'), `${path} must scope via org_members`);
+  must(body.includes("dbFail("), `${path} must use dbFail for DB errors`);
+  must(!SERVICE_ROLE_RE.test(body), `${path} must never embed a service-role/admin client`);
+  must(body.includes(".limit(") || body.includes(".range("), `${path} must bound reads`);
+}
+for (const path of CLAMPED_ROUTES) {
+  must(read(path).includes("Math.min("), `${path} must clamp limit via Math.min`);
+}
+if (!read("app/api/crm/summary/route.ts").includes("Math.min(")) {
+  console.log("Business CRM note: summary bounds via .limit(500) (no Math.min clamp).");
+}
+
 console.log(
   "Business CRM checks OK: 6 tables + RLS + 6 API routes + DELETE notes + pagination + conditional v2 tables + reports + docs FAQ.",
 );
+console.log("Business CRM hardening OK: org_members + dbFail + no service-role + limit-clamp.");
