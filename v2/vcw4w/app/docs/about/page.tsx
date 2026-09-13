@@ -26,10 +26,10 @@ export default function AboutPage() {
         lede={<>4weird Games is a strange, joyful arcade of experiments, simulations, and worlds - plus the cloud business that funds it. One company, one coin economy, one account across everything.</>}
         stats={[
           ["1 LLC", "MattyJacks, NH USA"],
-          ["34", "playable games"],
+          ["35", "playable games"],
           ["100 🪙", "= $1.00, always"],
           ["75%", "to makers as on-site credits"],
-          ["4 aisles", "Play · Build · Explore · Account"],
+          ["Founder-funded", "cloud bills fund play"],
         ]}
         glyph="🎪"
         theme={theme}
@@ -62,8 +62,8 @@ export default function AboutPage() {
       <SectionHead
         index="2"
         kicker="The mission"
-        title="Future Forward Fun - the flywheel"
-        body="It started with games. Every game needs servers, AI, testing, and automation - and every developer needs the same. So 4weird sells the cloud it already runs, and the margin funds new AI-built games."
+        title="Future Forward Fun, Funded by Founders"
+        body="It started with games. Every game needs servers, AI, testing, and automation - and every founder needs the same. So 4weird is a cost-effective cloud computing center first: founders buy the cloud we already run, and the margin funds new AI-built games. Bootstrapped today by founder Matt (MattyJacks LLC); the goal is founder cloud bills carrying the arcade."
       />
       <div className="mt-6 rounded-3xl border border-border bg-card p-5 sm:p-7">
         <div className="grid gap-4 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-stretch">

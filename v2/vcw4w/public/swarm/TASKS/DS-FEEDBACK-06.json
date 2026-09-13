@@ -1,0 +1,22 @@
+{
+    "created":  "2026-09-13T08:35:00.000Z",
+    "id":  "DS-FEEDBACK-06",
+    "goal":  "Outcome for DS-FEEDBACK-06: Feedback POST API human bot. See QUEUE.md feedback run goal.",
+    "status":  "done",
+    "owner":  "fb-06",
+    "scope":  [
+                  "v2/vcw4w/app/api/feedback/route.ts"
+              ],
+    "updated":  "2026-09-13T09:15:00.000Z",
+    "gates":  [
+                  "npx tsc --noEmit",
+                  "npx eslint"
+              ],
+    "title":  "Feedback POST API human bot",
+    "log":  [
+                "2026-09-13T08:35:00.000Z unassigned: envelope created from template, awaiting claim.",
+                "2026-09-13T09:00:00.000Z fb-06: claimed; surveying conventions (health/settings/presence/api-respond/service + clans/upload read-only) before creating app/api/feedback/route.ts.",
+                "2026-09-13T09:15:00.000Z fb-06: done. Created app/api/feedback/route.ts (POST multipart reporterType/rating/critique/text/labels/botExtras/screenshot; enum+text1..4000+JPG magic/8MB checks; service-role insert to feedback_reports + feedback-screenshots upload; 503 'feedback store not set up' on missing table/bucket/config, never faked; GET 405). Gates GREEN from v2/vcw4w: npx tsc --noEmit exit 0 (TSC_EXIT:0, zero errors), npx eslint app/api/feedback/route.ts exit 0 (ESLINT_EXIT:0, zero output). Note for DS-FEEDBACK-07: expected table shape + bucket name documented in route header comment; no writes outside scope; STATUS.json/QUEUE untouched (steward-owned)."
+            ],
+    "lane":  "web"
+}

@@ -73,6 +73,15 @@ const IT_COMMAND: Entry[] = [
   { path: "/work", changeFrequency: "weekly", priority: 0.7 },
 ];
 
+// MMORPG realms: browser + rental + guides (added with the routes;
+// verify-sitemap requires every indexable route to be listed).
+const MMORPG: Entry[] = [
+  { path: "/mmorpg", changeFrequency: "daily", priority: 0.8 },
+  { path: "/mmorpg/rent", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/games/servers", changeFrequency: "daily", priority: 0.8 },
+  { path: "/games/servers/rent", changeFrequency: "weekly", priority: 0.7 },
+];
+
 // Evergreen exhibits + explainers.
 const EXPLORE: Entry[] = [
   { path: "/ads", changeFrequency: "weekly", priority: 0.5 },
@@ -115,6 +124,13 @@ const DOCS: Entry[] = [
   { path: "/docs/clans", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/bots", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/agents-compute", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/docs/mmorpg", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/docs/mmorpg/hosting", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/mmorpg/age-bands", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/mmo/player", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/mmo/host", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/mmo/safety", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/mmo/faq", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/runpod-vs-digitalocean", changeFrequency: "monthly", priority: 0.7 },
   { path: "/docs/shadow-it", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/game-ai-buddy", changeFrequency: "monthly", priority: 0.7 },
@@ -139,6 +155,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...SUPPORT,
     ...BUSINESS,
     ...IT_COMMAND,
+    ...MMORPG,
     ...EXPLORE,
     ...VCW_SECTIONS,
     ...VCW_STATIC,

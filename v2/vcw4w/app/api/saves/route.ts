@@ -9,6 +9,57 @@ import { isSlug, isSlot, jsonBytes } from "@/lib/validate";
 const slugPattern = /^[a-z0-9-]{1,64}$/;
 const maxBytes = 1024 * 1024;
 
+// Strict plain-type allowlist for save payloads (DS-SEC-GAMES-01).
+const SAVE_MAX_DEPTH = 10;
+const SAVE_MAX_KEYS = 1000;
+const SAVE_MAX_ARRAY = 10000;
+const SAVE_MAX_STRING = 65536;
+const SAVE_MAX_KEY_LEN = 128;
+
+function isPlainSaveKey(key: string): boolean {
+  if (key.length === 0 || key.length > SAVE_MAX_KEY_LEN) return false;
+  if (key === "__proto__" || key === "constructor" || key === "prototype") return false;
+  return true;
+}
+
+function isPlainSaveValue(value: unknown, depth: number, budget: { keys: number }): boolean {
+  if (value === null) return true;
+  const t = typeof value;
+  if (t === "boolean") return true;
+  if (t === "number") return Number.isFinite(value);
+  if (t === "string") return (value as string).length <= SAVE_MAX_STRING;
+  if (depth >= SAVE_MAX_DEPTH) return false;
+  if (Array.isArray(value)) {
+    if (value.length > SAVE_MAX_ARRAY) return false;
+    for (const item of value) {
+      if (!isPlainSaveValue(item, depth + 1, budget)) return false;
+    }
+    return true;
+  }
+  if (t === "object") {
+    const proto: unknown = Object.getPrototypeOf(value);
+    if (proto !== Object.prototype && proto !== null) return false;
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      if (!isPlainSaveKey(k)) return false;
+      budget.keys += 1;
+      if (budget.keys > SAVE_MAX_KEYS) return false;
+      if (!isPlainSaveValue(v, depth + 1, budget)) return false;
+    }
+    return true;
+  }
+  // undefined, function, symbol, bigint: never plain JSON game state.
+  return false;
+}
+
+function isPlainSaveData(data: unknown): boolean {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return false;
+  try {
+    return isPlainSaveValue(data, 0, { keys: 0 });
+  } catch {
+    return false;
+  }
+}
+
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   // An unreadable session (bad/expired cookie) is "logged out", not a 500:
@@ -89,15 +140,17 @@ export async function PUT(req: Request) {
     return fail("Save data must be a JSON object.", 400);
   }
   if (jsonBytes(saveData) > maxBytes) return fail("Save data is too large.", 413);
-  // Stored-XSS sink guard: reject event-handler / javascript: / data:text/html
-  // keys and string values; saves must be plain game state, never markup.
-  try {
-    const raw = JSON.stringify(saveData);
-    if (/on\w+\s*=|javascript\s*:|data\s*:\s*text\/html|<\s*script|<\s*iframe/i.test(raw)) {
-      return fail("Save data contains disallowed content.", 400);
-    }
-  } catch {
-    return fail("Save data must be a JSON object.", 400);
+  // Saves must be plain game state: a strict allowlist of JSON value types
+  // (null, boolean, finite number, length-capped string, array, plain object)
+  // with bounded depth, key counts, and key shapes. Anything else (class
+  // instances cannot survive JSON, but undefined/functions/symbols/bigints,
+  // __proto__/constructor/prototype keys, oversized strings, or runaway
+  // nesting) is rejected. This replaces the old content blocklist: markup or
+  // handler-looking strings are inert JSON data and are rendered only through
+  // safe sinks, so shape enforcement — not pattern matching — is the guard.
+  // (DS-SEC-GAMES-01)
+  if (!isPlainSaveData(saveData)) {
+    return fail("Save data must be plain JSON game state.", 400);
   }
   // Cheat marking is irreversible per save slot. A later client save cannot
   // erase it after a cheat was used, even if the browser was tampered with.

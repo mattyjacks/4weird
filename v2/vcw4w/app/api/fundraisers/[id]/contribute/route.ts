@@ -55,6 +55,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
   const coins = cleanSupportAmount((body as Record<string, unknown> | null)?.coins);
   if (!coins) return fail("Amount must be 1..100000 coins.", 400);
+  // Kids-safe mode: backing spends coins, so it is disabled (mirrors the
+  // cosmetics/dev-charges kids-block; child sub-accounts carry kid_session).
+  if ((body as Record<string, unknown> | null)?.kidsMode === true || /(?:^|;\s*)kid_session=/.test(req.headers.get("cookie") ?? "")) {
+    return fail("Kids-safe mode: purchases are disabled on this account.", 403);
+  }
   const { data: rpcData, error } = await supabase.rpc("contribute_launch_campaign", {
     p_campaign_id: id,
     p_coins: coins,

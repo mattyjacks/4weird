@@ -1,0 +1,22 @@
+{
+  "id": "DS-VCWCODE-02",
+  "title": "Boot/run helper scripts (5 ways)",
+  "goal": "scripts/node boot helpers: 5 NEW scripts under scripts/node/vcwcode-*: check-ports.js (42069/8888 conflict msg), check-env.js (.env vs .env.example key presence, no values printed), boot-smoke.js (fetch /api/status + static probe), log-tail.js (tail SmartLog dir), gpu-hint.js (explain --software fallback). Each exits 0/1 with one-line verdict.",
+  "lane": "desktop",
+  "scope": [
+    "v2/desktop/code/scripts/node/vcwcode-*.js"
+  ],
+  "gates": [
+    "node --check on every new .js file"
+  ],
+  "status": "done",
+  "owner": "vcwcode-02",
+  "created": "2026-09-13T06:35:02.730Z",
+  "updated": "2026-09-13T06:36:00.248Z",
+  "log": [
+    "2026-09-13T06:35:02.730Z unassigned: envelope created for 50-ways desktop usefulness swarm (5 each x 10).",
+    "2026-09-13T06:36:00.248Z vcwcode-02: claimed envelope, lane=desktop, starting 5x vcwcode-* boot helper scripts.",
+    "2026-09-13T06:36:00.248Z vcwcode-02: created 5 NEW scripts under v2/desktop/code/scripts/node/ (vcwcode-check-ports.js, vcwcode-check-env.js, vcwcode-boot-smoke.js, vcwcode-log-tail.js, vcwcode-gpu-hint.js); no existing files edited.",
+    "2026-09-13T06:36:00.248Z vcwcode-02: gate node --check from v2/desktop/code — vcwcode-check-ports.js: OK (no output, CHECK-PORTS OK); vcwcode-check-env.js: OK (CHECK-ENV OK); vcwcode-boot-smoke.js: OK (BOOT-SMOKE OK); vcwcode-log-tail.js: OK (LOG-TAIL OK); vcwcode-gpu-hint.js: OK (GPU-HINT OK). All 5 pass. Envelope done."
+  ]
+}

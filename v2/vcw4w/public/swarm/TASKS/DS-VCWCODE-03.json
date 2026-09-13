@@ -1,0 +1,21 @@
+{
+  "id": "DS-VCWCODE-03",
+  "title": "Regression tests pack (5 ways)",
+  "goal": "5 NEW tests under tests/vcwcode-*: boot-ports.test.js, window-bounds.test.js (pure fn copy), bot-key-regex.test.js (matches both Electron+Tauri rules), static-server.test.js, api-status-shape.test.js. All runnable via plain node, no Electron needed.",
+  "lane": "desktop",
+  "scope": [
+    "v2/desktop/code/tests/vcwcode-*.js"
+  ],
+  "gates": [
+    "node --check on every new .js file"
+  ],
+  "status": "done",
+  "owner": "vcwcode-03",
+  "created": "2026-09-13T06:35:02.730Z",
+  "updated": "2026-09-13T12:00:00.000Z",
+  "log": [
+    "2026-09-13T06:35:02.730Z unassigned: envelope created for 50-ways desktop usefulness swarm (5 each x 10).",
+    "2026-09-13T12:00:00.000Z vcwcode-03: claimed, listing tests dir (25 entries, no vcwcode-* yet), creating 5 new plain-node tests.",
+    "2026-09-13T12:00:00.000Z vcwcode-03: gates green from v2/desktop/code — node --check x5 all exit 0; runs: boot-ports exit 0 (live probe open=8888,42069), window-bounds exit 0 (4/4), bot-key-regex exit 0 (8/8), static-server exit 0 (8888 responded 404, live pass), api-status-shape exit 0 (42069 success flag, no games array). Zero Electron deps. 5 new files only, no edits to existing tests."
+  ]
+}

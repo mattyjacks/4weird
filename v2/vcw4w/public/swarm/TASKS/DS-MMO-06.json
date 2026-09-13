@@ -1,0 +1,26 @@
+{
+    "id":  "DS-MMO-06",
+    "title":  "Host rentals and subsidy modes",
+    "goal":  "Rental tiers campfire 25 through festival 400 coins per hour gross with cut included, deposit holds, subsidy modes off slash host_full slash host_split_pct slash host_cap_pool with per-player and session caps, load attribution for relay plus bandwidth plus worker CPU, spend-permission ceilings and auto-revert to off when host wallet is low. API plus lib only; tables belong to DS-MMO-10.",
+    "lane":  "economy",
+    "scope":  [
+                  "v2/vcw4w/app/api/dev-charges/host-cover/route.ts",
+                  "v2/vcw4w/app/api/budgets/host/route.ts",
+                  "v2/vcw4w/lib/host-rentals.ts",
+                  "v2/vcw4w/lib/host-metering.ts"
+              ],
+    "gates":  [
+                  "npx tsc --noEmit",
+                  "npx eslint",
+                  "node scripts/verify-economy.mjs"
+              ],
+    "status":  "done",
+    "owner":  "mmo-a06",
+    "created":  "2026-09-13T07:58:53.000Z",
+    "updated":  "2026-09-13T07:58:53.000Z",
+    "log":  [
+                "2026-09-13T07:58:53.000Z mmo-lead: envelope created from 15-agent plan, awaiting claim.",
+                "2026-09-13T08:10:00.000Z mmo-a06: claimed; read BRAIN/LANES/MEMORY + game-rent/mmo-host-billing conventions (cc math, 25% cut in gross, per-second ledger). Building 4 scope files.",
+                "2026-09-13T08:20:00.000Z mmo-a06: done. 4 scope files created, zero writes outside scope, no tables (DS-MMO-10). Gates: npx tsc --noEmit clean (zero output); npx eslint on 4 files clean (zero output); node scripts/verify-economy.mjs -> Economy integrity OK. Smoke: campfire1h 50/50 split gross 25 cut 6.25 host 12.5 player 12.5 share 3.12; festival deposit 400; load 5+20+2=27; wallet 60-25<floor 50 reverts to off."
+            ]
+}

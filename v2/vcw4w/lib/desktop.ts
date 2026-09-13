@@ -142,5 +142,67 @@ export function planForKind(kind: DesktopKind): DesktopPlan {
 }
 
 export function cleanDesktopName(value: unknown): string {
-  return String(value ?? "").trim().slice(0, 60);
+  // Strip control chars (log-injection / terminal-escape hygiene), collapse
+  // internal whitespace, then cap length. Pod names flow into the RunPod
+  // create call and server logs; printable single-line text only.
+  return String(value ?? "")
+    .split("")
+    .filter((ch) => {
+      const code = ch.charCodeAt(0);
+      return (code >= 32 && code <= 126) || code >= 160;
+    })
+    .join("")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 60);
+}
+
+/**
+ * Registry allowlist for advanced custom container images — byte-identical
+ * membership to `CUSTOM_IMAGE_REGISTRY_ALLOWLIST` in lib/compute.ts (which
+ * is SERVER-ONLY, so the list is duplicated here rather than imported; this
+ * file stays client-safe). Keep the two in sync: any host added/removed
+ * there must be added/removed here, or the provision route and provisioning
+ * will split (route-accept/compute-reject or vice versa).
+ */
+export const DESKTOP_IMAGE_REGISTRY_ALLOWLIST = [
+  "docker.io",
+  "registry.hub.docker.com",
+  "ghcr.io",
+  "gcr.io",
+  "public.ecr.aws",
+  "quay.io",
+] as const;
+
+/**
+ * Validate an advanced custom container image (Docker ref) at the desktop
+ * lane boundary. Predicate mirrors `cleanCustomImage` in lib/compute.ts
+ * branch-for-branch (same trim, same 256-char cap, same shape rejects, same
+ * registry gate: bare Docker Hub refs stay allowed, an explicit registry
+ * host must be allowlisted, `localhost`/IP hosts refused) so the provision
+ * route 400s early on exactly the refs provisioning would refuse — never a
+ * route-accept/compute-reject split. `evil.io/anything` is refused at both
+ * layers. Empty/blank means "plan default" and is handled by the caller.
+ */
+export function isValidDesktopImageRef(value: unknown): boolean {
+  const v = String(value ?? "").trim().slice(0, 256);
+  if (!v) return false;
+  // No URLs, no embedded credentials, no shell metachars.
+  if (v.includes("://") || v.includes("@")) return false;
+  if (/[\s"'`$\\;|&<>]/.test(v)) return false;
+  if (!/^[a-z0-9][a-z0-9._/-]*[a-z0-9](:[a-z0-9._-]+)?$/i.test(v)) return false;
+  if (!v.includes("/") && !v.includes(":")) return false;
+  // Registry gate (mirrors cleanCustomImage): a first path component
+  // containing '.' or ':' (or 'localhost') names an explicit host — refuse
+  // unless allowlisted. Single-component refs (`nginx:latest`, no '/') are
+  // Docker Hub and skip; bare Hub refs (`runpod/img:tag`) stay allowed.
+  if (v.includes("/")) {
+    const first = (v.split("/")[0] ?? "").toLowerCase();
+    const namesHost = first.includes(".") || first.includes(":") || first === "localhost";
+    if (namesHost) {
+      const host = (first.split(":")[0] ?? "");
+      if (!(DESKTOP_IMAGE_REGISTRY_ALLOWLIST as readonly string[]).includes(host)) return false;
+    }
+  }
+  return true;
 }

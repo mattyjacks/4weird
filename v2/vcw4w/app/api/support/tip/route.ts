@@ -43,6 +43,11 @@ export async function POST(req: Request) {
     return fail("Invalid JSON body.", 400);
   }
   const input = (body ?? {}) as Record<string, unknown>;
+  // Kids-safe mode: tipping spends coins, so it is disabled (mirrors the
+  // cosmetics/dev-charges kids-block; child sub-accounts carry kid_session).
+  if (input.kidsMode === true || /(?:^|;\s*)kid_session=/.test(req.headers.get("cookie") ?? "")) {
+    return fail("Kids-safe mode: purchases are disabled on this account.", 403);
+  }
   const coins = cleanSupportAmount(input.coins);
   if (!coins) return fail("Amount must be 1..100000 coins.", 400);
   const recipientUser = isUuid(input.recipient_user_id);
@@ -52,6 +57,11 @@ export async function POST(req: Request) {
   }
   if ((recipientUser === "") === (clanId === "")) {
     return fail("Send to exactly one recipient: a verified creator or a clan.", 400);
+  }
+  // Defense-in-depth self-tip guard (the tip_creator RPC also rejects
+  // 'you cannot support yourself'): fail fast without a money-path round trip.
+  if (recipientUser && recipientUser.toLowerCase() === data.user.id.toLowerCase()) {
+    return fail("You cannot support yourself.", 400);
   }
   const { data: rpcData, error } = await supabase.rpc("tip_creator", {
     p_recipient_user: recipientUser || null,

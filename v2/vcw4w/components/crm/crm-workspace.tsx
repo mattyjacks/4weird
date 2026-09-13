@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CrmReports } from "./crm-reports";
+import { BouncerBulkBar, BouncerVerifyButton } from "./bouncer-bulk-bar";
 import { csvCell, safeDateStamp, stripBom } from "./csv-safety";
 
 type Org = { id: string; slug: string; name: string };
@@ -2235,6 +2236,9 @@ export function CrmWorkspace() {
               </button>
             )}
           </div>
+          {orgId && (
+            <BouncerBulkBar orgId={orgId} selectedIds={selectedContacts} onDone={() => void loadAll(orgId)} />
+          )}
           {busy ? (
             <div className="space-y-2" aria-hidden="true" aria-label="Loading contacts">
               {[0, 1, 2].map((k) => (
@@ -2277,6 +2281,9 @@ export function CrmWorkspace() {
                       )}
                       <span className="text-xs text-slate-400" title={`Team attribution: contact owner ${c.owner_id ?? "unknown"}`}>owner: {ownerShort(c.owner_id)}</span>
                       <span className="ml-auto text-slate-400"><Highlight text={companyName(c.company_id)} needle={query} /></span>
+                      {orgId && c.email && (
+                        <BouncerVerifyButton orgId={orgId} contactId={c.id} onDone={() => void loadAll(orgId)} />
+                      )}
                       <button type="button" aria-label={`Delete ${contactName(c)}`} className={ghostBtnCls} onClick={() => void deleteContact(c.id)}>Delete</button>
                     </li>
                   );

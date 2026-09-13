@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SITE_NAV_GROUPS } from "@/lib/site-nav";
-import { ColorThemeSwitcher, ThemeSwitcher } from "@/components/theme-switcher";
+import { FooterThemeSection } from "@/components/site/themes/footer-theme-section";
 
 const NAV_QUICK_BY_HREF = new Map<string, string>();
 for (const g of SITE_NAV_GROUPS) {
@@ -102,6 +102,7 @@ const COLUMNS: FooterColumn[] = [
       { href: "/squads", label: "🛡️ Squads for Work" },
       { href: "/timer", label: "⏱️ Timer & Work Diary" },
       { href: "/fal", label: "🎨 fal.ai Studio (30 tools)" },
+      { href: "/stock", label: "🖼️ Free Stock (Pexels)" },
       { href: "/meshy", label: "🧊 Meshy 3D Studio" },
       { href: "/blender", label: "🎥 Blender Renders" },
     ],
@@ -148,7 +149,7 @@ const COLUMNS: FooterColumn[] = [
 ];
 
 const STATS = [
-  { icon: <Gamepad2 className="h-4 w-4" aria-hidden="true" />, title: "34 games", text: "in your browser now" },
+  { icon: <Gamepad2 className="h-4 w-4" aria-hidden="true" />, title: "35 games", text: "in your browser now" },
   { icon: <Coins className="h-4 w-4" aria-hidden="true" />, title: "100 🪙 = $1.00", text: "always, fees included" },
   { icon: <Cpu className="h-4 w-4" aria-hidden="true" />, title: "Per-second GPU billing", text: "agents, desktops, renders" },
   { icon: <HeartHandshake className="h-4 w-4" aria-hidden="true" />, title: "Creators keep 75%", text: "as on-site credits" },
@@ -177,10 +178,10 @@ export function SiteFooter() {
               4weird<span className="bg-gradient-to-r from-cyan-600 to-fuchsia-600 bg-clip-text text-transparent dark:from-cyan-300 dark:to-fuchsia-300">Games</span>
             </p>
             <p className="mt-2 text-[13px] leading-snug text-muted-foreground">
-              <strong className="font-semibold text-foreground">Future Forward Fun.</strong>{" "}
+              <strong className="font-semibold text-foreground">Future Forward Fun, Funded by Founders.</strong>{" "}
               <ClampText
-                short="Arcade, clubhouse + cloud studio: 34 games, clans, buddy, rentable power."
-                full="4weird.com is an arcade, clubhouse, and cloud studio in one - 34 browser games, cozy clans, a voice buddy that watches your screen and helps you win, plus rentable AI agents, cloud desktops, and 3D render power. Your saves, coins, and high scores follow you everywhere."
+                short="Cost-effective cloud center + arcade: 35 games, clans, buddy, rentable power."
+                full="4weird.com is a cost-effective cloud computing center with an arcade on top - 35 browser games, cozy clans, a voice buddy that watches your screen and helps you win, plus rentable AI agents, cloud desktops, and 3D render power. Founder cloud spend funds the fun (bootstrapped today by Matt, MattyJacks LLC). Your saves, coins, and high scores follow you everywhere."
                 label="About 4weird, in full"
               />
             </p>
@@ -209,12 +210,6 @@ export function SiteFooter() {
               >
                 <Github className="h-4 w-4" aria-hidden="true" /> GitHub ↗
               </a>
-            </div>
-            <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-2 border-t border-border pt-3 text-[13px] text-muted-foreground dark:border-white/10">
-              <span className="font-semibold">Theme</span>
-              <ColorThemeSwitcher />
-              <span className="font-semibold">Mode</span>
-              <ThemeSwitcher />
             </div>
           </div>
 
@@ -324,6 +319,8 @@ export function SiteFooter() {
             </nav>
           ))}
         </div>
+
+        <FooterThemeSection />
 
         {/* ---- Bottom legal bar ---- */}
         <div className="mt-6 border-t border-border pt-4 dark:border-white/10">

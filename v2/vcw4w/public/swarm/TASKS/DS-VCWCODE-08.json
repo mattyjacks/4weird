@@ -1,0 +1,22 @@
+{
+  "id": "DS-VCWCODE-08",
+  "title": "Main-process helpers pack (5 ways)",
+  "goal": "5 NEW src helpers: nav-guard.js (pure will-navigate allow-list), permission-guard.js (deny-list), tiling.js (pure split-bounds math), screenshot-guard.js (timeout fallback), eval-guard.js (8s timeout wrapper). Pure fns.",
+  "lane": "desktop",
+  "scope": [
+    "v2/desktop/code/src/main_process/vcwcode-*.js",
+    "v2/desktop/code/src/runtime/vcwcode-*.js"
+  ],
+  "gates": [
+    "node --check on every new .js file"
+  ],
+  "status": "done",
+  "owner": "vcwcode-08",
+  "created": "2026-09-13T06:35:02.730Z",
+  "updated": "2026-09-13T06:35:02.730Z",
+  "log": [
+    "2026-09-13T06:35:02.730Z unassigned: envelope created for 50-ways desktop usefulness swarm (5 each x 10).",
+    "2026-09-13T00:00:00.000Z vcwcode-08: claimed (in_progress), listing main_process + runtime dirs before writing.",
+    "2026-09-13T00:00:00.000Z vcwcode-08: done. 5 NEW files, zero edits to existing files. Gates: node --check clean on all 5 (exit 0, no output); smoke-require printed SMOKE-OK nav/perm/tiling/eval/screenshot all pass (asserts: file+localhost/127.0.0.1/[::1] allowed, external/data/junk denied, shouldGrant false, 1921px split 960/961, EVAL_TIMEOUT_MS 8000, staleFallback shape)."
+  ]
+}

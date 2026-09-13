@@ -24,7 +24,8 @@ async function CachedTermsBody() {
           These Terms of Use (“Terms”) form a binding agreement between you and MattyJacks LLC, a New Hampshire
           limited liability company (“MattyJacks,” “we,” “us,” or “our”), governing your access to and use of 4weird
           Games; including its games, play shells, guides, leaderboards, Clans social features, bot platform, agent
-          rentals, Vibe Coins economy, Teams/enterprise workspaces, VibeCodeWorker surfaces, exhibits, accounts,
+          rentals, persistent-world/MMORPG modes, server rentals, third-party stock media (Pexels),
+          Vibe Coins economy, Teams/enterprise workspaces, VibeCodeWorker surfaces, exhibits, accounts,
           virtual items, software, APIs, and related websites and services (collectively, the “Service”). By accessing
           or using the Service, you accept these Terms. If you do not agree, do not use the Service. Our{" "}
           <a className={a} href="/privacy">Privacy Policy</a> is incorporated by reference, as are any additional
@@ -194,6 +195,33 @@ async function CachedTermsBody() {
           those two bands; Teen bands apply the same Adults-blocking as Kids Mode without collecting any birth date.
           Under-18 accounts get high-privacy defaults (no behavioral ads for signed-in players, minimal data, parent
           controls where applicable).
+         </p>
+
+        <h2 className={h2}>4C. Multiplayer modes and server age bands</h2>
+        <p>
+          Persistent-world modes run as <strong>32-player shards</strong>: <strong>1D Horde</strong>,{" "}
+          <strong>2D Siege</strong>, and <strong>3D Raid</strong>, joined via{" "}
+          <strong>?mmorpg=&lt;serverId&gt;</strong>. Play fair: no griefing, no botting or automation, and no
+          snapshot forgery or tampered state; violations may be removed, reset, or banned under Sections 2 and 5.
+          Entry follows your account band: <strong>Adult (18+) servers admit all bands</strong>,{" "}
+          <strong>Teen (13-17) servers admit Kids and Teens</strong>, and <strong>Kids (0-12) servers admit Kids
+          only</strong>, all enforced server-side. Shards marked <strong>hostFree</strong> cost guests nothing
+          to join. Multiplayer is provided as-is with no SLA and no preservation promise under Section 4: we may
+          close, reset, or wipe any shard at any time, with or without notice, and progress may be lost.
+        </p>
+
+        <h2 className={h2}>4D. Server rentals and per-minute billing</h2>
+        <p>
+          Renting a server licenses a private room for play; it is not property, not a lease, and confers no
+          ownership or tenancy interest. Billing is <strong>per-minute, prorated</strong>, computed as{" "}
+          <strong>(server + load) divided by players</strong> for each minute of runtime. On{" "}
+          <strong>hostFree</strong> servers the host pays all metered cost and guests pay nothing; on split
+          servers each player pays an equal share. All prices are in Coins at <strong>100 coins = $1.00</strong>{" "}
+          with the 25% platform cut already included, never added on top. Until the rental ledger is live,
+          displayed figures are <strong>quotes only</strong> and no Coins move. Once live, metering is
+          fail-closed: if the ledger cannot charge, the server returns <strong>402</strong> rather than running
+          free. Idle servers bill until stopped or closed. Rentals are provided as-is with no SLA under Section
+          4. Meter abuse, evasion, or tampering may result in suspension or termination under Sections 2 and 13.
         </p>
 
         <h2 className={h2}>5. Safety rules you accept</h2>
@@ -216,7 +244,10 @@ async function CachedTermsBody() {
         <p>
           These exhibits and QA product surfaces (run pages, run/job APIs, evidence-driven tooling) are part of the
           Service under these Terms. Run and job APIs require authentication except where marked public; usage may be
-          metered, rate-limited, or discontinued at any time.
+          metered, rate-limited, or discontinued at any time. Email-bouncer verification, easyDNC scrub, the
+          local-only terminal, and the Discord bot are part of the Service on the same as-is basis with no SLA:
+          the terminal runs only on your own machine and nothing it shows leaves your device to us, verification
+          and scrub results are estimates only, and the bot may be unavailable or discontinued at any time.
         </p>
 
         <h2 className={h2}>8. Coins (spend) and Crowns (earn), purchases, and refunds</h2>
@@ -544,6 +575,17 @@ async function CachedTermsBody() {
           gratuitous gift: not charity, not investment, no cash-out, final once moved. Tribute never mints Crowns.
         </p>
 
+        <h2 className={h2}>8E. Free stock media (Pexels, 0 coins)</h2>
+        <p>
+          Stock photo and video search via Pexels costs <strong>0 coins</strong> and is free to browse. Use
+          requires sign-in and is rate-limited to <strong>20 requests per minute and 200 per day</strong>,
+          enforced server-side; excess requests are refused. Pexels media remains third-party content under its
+          own license: where the license or photographer asks for credit, you must give it with a credit and
+          linkback, and you are responsible for lawful use. The stock endpoint is provided as-is with no SLA and
+          no availability promise under Section 4, and where the Pexels integration reports{" "}
+          <strong>configured:false</strong>, search is honestly unavailable until configured.
+        </p>
+
         <h2 className={h2}>9. Agent rentals and Teams compute (25% cut on all computing)</h2>
         <p>
           The marketplace lists rentable agents (openclaw/nanoclaw/custom) on providers such as RunPod and
@@ -558,7 +600,8 @@ async function CachedTermsBody() {
           org, with power always the union; rank powers are enforced server-side per action. Team owners are
           responsible for their members&apos; conduct in their workspaces. Everyone may join up to
           100 orgs, each with its own bosses. Compute features depend on third-party capacity and may be unavailable, delayed, or
-          re-priced; estimates are not guarantees. No SLA. Idle pods bill until you stop them; failed or
+          re-priced; estimates are not guarantees. No SLA. Blender farm renders and DPS peer-to-peer compute are
+          metered the same way where metered, otherwise as-is with no SLA and no availability promise. Idle pods bill until you stop them; failed or
           queued renders/jobs may still consume metered compute. You are responsible for content you provision
           and compute you trigger (no mining/malware/illegal workloads); auto-shutdown is a courtesy, not a
           guarantee. Enterprise orders (DPA/SLA/order form) control over these Terms only where expressly stated.
@@ -602,7 +645,7 @@ async function CachedTermsBody() {
           Gemini, and Anthropic Claude models); DeepSeek (AI chat and reasoning); Google Gemini (AI chat, directly or
           via OpenRouter); Anthropic Claude (AI chat, via OpenRouter); Meta (Muse Spark AI, directly or via
           OpenRouter);           ElevenLabs (text-to-speech, speech-to-text, sound and music generation); fal.ai (image, video,
-          audio, and 3D generation); Meshy.ai (3D generation; prompts/assets sent to produce models); RunPod (GPU cloud compute); DigitalOcean (compute);
+          audio, and 3D generation); Meshy.ai (3D generation; prompts/assets sent to produce models); Pexels (stock photo/video); RunPod (GPU cloud compute); DigitalOcean (compute);
           Kasada/BotID (bot/fraud prevention screening of request metadata); and CDNs/edge delivery (including
           jsDelivr, cdnjs, Google Tag Manager for consented analytics, esm.sh, blender.org for worker downloads).
           Supabase sends transactional auth emails; we use no third-party marketing-email provider (marketing email
@@ -734,7 +777,7 @@ async function CachedTermsBody() {
           Our failure to enforce a provision is not a waiver. You may not assign these Terms; we may assign them
           without restriction (for example, in a merger or sale). These Terms, together with the Privacy Policy and
           any additional terms presented for a feature or purchase, are the complete agreement concerning the Service.
-          Sections 3 (license), 8-8D (economy), 10-10A (IP), and 14-18 (disclaimers, liability, indemnity, disputes)
+          Sections 3 (license), 4C-4D (multiplayer and server rentals), 8-8E (economy), 10-10A (IP), and 14-18 (disclaimers, liability, indemnity, disputes)
           survive termination. We are not liable for delays/failures caused by events beyond reasonable control
           (force majeure: outages, attacks, provider failures, disasters, labor, government action). We aim for
           accessibility (WCAG-minded design) but make no ADA guarantee; report barriers to the contact below. EU

@@ -1,0 +1,22 @@
+{
+    "created":  "2026-09-13T08:35:00.000Z",
+    "id":  "DS-FEEDBACK-05",
+    "goal":  "Outcome for DS-FEEDBACK-05: Vision smart refs autosubmit lib. See QUEUE.md feedback run goal.",
+    "status":  "done",
+    "owner":  "fb-05",
+    "scope":  [
+                  "v2/vcw4w/lib/feedback/vision-client.ts"
+              ],
+    "updated":  "2026-09-13T08:35:00.000Z",
+    "gates":  [
+                  "npx tsc --noEmit",
+                  "npx eslint"
+              ],
+    "title":  "Vision smart refs autosubmit lib",
+    "log":  [
+                "2026-09-13T08:35:00.000Z unassigned: envelope created from template, awaiting claim.",
+                "2026-09-13T09:00:00.000Z fb-05: claimed (web lane) for vision-client lib scope.",
+                "2026-09-13T09:10:00.000Z fb-05: done — created lib/feedback/vision-client.ts (detectVisionHints/buildFeedbackPayload/autoSubmitFeedback, FormData POST /api/feedback). Gates GREEN: npx tsc --noEmit exit 0 (zero output), npx eslint lib/feedback/vision-client.ts exit 0 (zero output). Scope-only write, no server code, no secrets, no old-v1."
+            ],
+    "lane":  "web"
+}

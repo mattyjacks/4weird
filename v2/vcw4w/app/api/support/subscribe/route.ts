@@ -66,6 +66,12 @@ export async function POST(req: Request) {
 
   const tierId = isUuid(input.tier_id);
   if (!tierId) return fail("Invalid tier.", 400);
+  // Kids-safe mode: subscribing spends coins, so it is disabled (mirrors the
+  // cosmetics/dev-charges kids-block; child sub-accounts carry kid_session).
+  // Cancelling stays allowed above so kids can always stop a charge.
+  if (input.kidsMode === true || /(?:^|;\s*)kid_session=/.test(req.headers.get("cookie") ?? "")) {
+    return fail("Kids-safe mode: purchases are disabled on this account.", 403);
+  }
   const { data: rpcData, error } = await supabase.rpc("subscribe_to_tier", {
     p_tier_id: tierId,
   });

@@ -10,6 +10,7 @@ import { describePodIdlePolicy, type PodIdlePolicy } from "@/lib/pod-idle";
 import {
   DESKTOP_PLANS,
   desktopUsdToCoins,
+  isValidDesktopImageRef,
   type DesktopInterface,
   type DesktopKind,
 } from "@/lib/desktop";
@@ -119,6 +120,11 @@ export function DesktopRental() {
     setVncCopied(false);
     setDots(1);
     try {
+      // Client-side mirror of the server's Docker-ref check: instant feedback
+      // before the provision round-trip (server re-validates authoritatively).
+      if (customImage.trim() && !isValidDesktopImageRef(customImage.trim())) {
+        throw new Error("That is not a Docker image ref (e.g. registry/name:tag). Clear the field for the plan default.");
+      }
       const max = Number(maxUsd);
       const idle: Record<string, number> = {};
       if (warn.trim() !== "") idle.warn_minutes = Number(warn);

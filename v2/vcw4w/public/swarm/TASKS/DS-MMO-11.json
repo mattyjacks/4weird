@@ -1,0 +1,23 @@
+{
+    "id":  "DS-MMO-11",
+    "title":  "MMO verifier suite",
+    "goal":  "New script verify-mmo.mjs in pure Node ESM style: adapter contract checks, snapshot schema fixtures plus golden replay hash, age-band matrix cases, metering math goldens, migration order checks, plus verify:mmo key spliced into the package.json test chain by the integrator via QUEUE. No game bundle edits.",
+    "lane":  "infra",
+    "scope":  [
+                  "v2/vcw4w/scripts/verify-mmo.mjs"
+              ],
+    "gates":  [
+                  "node --check verify-mmo.mjs",
+                  "node scripts/verify-devswarm.mjs"
+              ],
+    "status":  "blocked",
+    "owner":  "mmo-a11",
+    "created":  "2026-09-13T07:58:53.000Z",
+    "updated":  "2026-09-13T07:58:53.000Z",
+    "log":  [
+                "2026-09-13T07:58:53.000Z mmo-lead: envelope created from 15-agent plan, awaiting claim.",
+                "2026-09-13T09:00:00.000Z mmo-a11: claimed (infra lane); scope v2/vcw4w/scripts/verify-mmo.mjs only, target ABSENT confirmed; read BRAIN/LANES/MEMORY + verify-game-bundles + verify-devswarm headers (read-only).",
+                "2026-09-13T08:30:55.000Z mmo-a11: verify-mmo.mjs landed (new file, pure Node ESM, fail-list+SKIP+exit-1 per verify-gravegain-mmorpg pattern): [1] overlay contracts per-file globals/keys (1d GraveGainMMO1D ?line=, 2d six GraveGainMMO2D* ?shard/?party/?wing/?duel/?loot/?quest= + _pure, 3d seven GraveGainSSO* boot idioms), [2] snapshot fixtures 1good/6bad + golden replay sha256 4e46d2d832f5, [3] age-band 9/9 matrix + lib/mmo-age.ts tokens, [4] metering 9/9 goldens + invariant + 100-coins=$1 + lib/mmo-billing.ts quote-only, [5] 5x *mmo*.sql unique/sorted/post-20261202 + per-table contracts + rerunnable guards + settle exemption for DS-MMO-14 coin_settle, [6] parity game.js untouched. Gates: node --check exit 0, node scripts/verify-mmo.mjs exit 0 (3 skips: shared net DS-MMO-01 open, mmorpg sibling context, 3d bundle absent). Zero edits outside scope (no package.json, no bundles, no migrations).",
+                "2026-09-13T08:30:55.000Z mmo-a11: GATE SPLIT -> blocked (extrinsic): node scripts/verify-devswarm.mjs RED only on STATUS.json counts staleness (counts open 16/claimed 9/in_progress 12/blocked 37/done 73 at 08:12Z vs disk truth open 6/claimed 7/in_progress 3/blocked 61/done 81 across 158 envelopes; my claim accounts for exactly open-1/claimed+1). STATUS.json recount is steward-owned, out of scope, not touched. verify:mmo package.json chain key left for integrator DS-MMO-15 per brief (no shared-manifest edits). Unblock needs steward recount only; rerun both gates then."
+            ]
+}

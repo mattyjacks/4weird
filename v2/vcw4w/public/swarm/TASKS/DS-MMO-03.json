@@ -1,0 +1,31 @@
+{
+    "id":  "DS-MMO-03",
+    "title":  "2D MMORPG mode hub plus wings",
+    "goal":  "New additive files under gravegain2d: hub shard deck (Trader Row, Party Board, Duel Pits reusing Duel adapter concepts), 4-player seed-locked wing instances with plus 35 percent elite scaling, instanced loot plus split gold, shared wanderer quests, temporal-mode vote. Six files mmorpg-00 through mmorpg-50. Never hand-edit game.js or game.json.",
+    "lane":  "games",
+    "scope":  [
+                  "v2/vcw4w/public/games/gravegain2d/mmorpg-00-hub-shard.js",
+                  "v2/vcw4w/public/games/gravegain2d/mmorpg-10-party-board.js",
+                  "v2/vcw4w/public/games/gravegain2d/mmorpg-20-wing-instance.js",
+                  "v2/vcw4w/public/games/gravegain2d/mmorpg-30-duel-pits.js",
+                  "v2/vcw4w/public/games/gravegain2d/mmorpg-40-raid-loot.js",
+                  "v2/vcw4w/public/games/gravegain2d/mmorpg-50-wanderer-party.js"
+              ],
+    "gates":  [
+                  "node --check mmorpg-*.js",
+                  "node scripts/verify-game-bundles.mjs",
+                  "node scripts/verify-catalog-runtime.mjs"
+              ],
+    "status":  "blocked",
+    "owner":  "mmo-a03",
+    "created":  "2026-09-13T07:58:53.000Z",
+    "updated":  "2026-09-13T08:02:31.000Z",
+    "log":  [
+                "2026-09-13T07:58:53.000Z mmo-lead: envelope created from 15-agent plan, awaiting claim.",
+                "2026-09-13T08:02:31.000Z mmo-lead: disk check - sibling done envelope targets overlapping purpose but its file is ABSENT on disk (1D02/2D03/3D04). This envelope stays open; claimant must list the tree first and request steward single-winner ruling in QUEUE before writing.",
+                "2026-09-13T09:10:00.000Z mmo-a03: claimed. Tree listed: gravegain2d holds mp-2d/mmorpg-2d/lore/index/game.json/game.js/game.css only; all six mmorpg-{00,10,20,30,40,50} ABSENT. Sibling DS-MMORPG-2D03 done file mmo-2d.js also ABSENT on disk; scopes file-disjoint (mmo-2d.js vs mmorpg-*-series), no byte collision. Single-winner ruling requested via report QUEUE line (no QUEUE.md edit per steward-owned rule); proceeding in scope.",
+                "2026-09-13T09:40:00.000Z mmo-a03: landed 6 NEW files (scope-only, zero bytes elsewhere; game.js/game.json untouched): mmorpg-00-hub-shard.js (HubShard deck Trader Row/Party/Wing/Duel/Loot/Quest portals via CustomEvent), mmorpg-10-party-board.js (PartyBoard 4-seat tank/heal/dps + ready tally), mmorpg-20-wing-instance.js (WingInstance seed-locked mulberry32 + eliteScale x1.35), mmorpg-30-duel-pits.js (DuelPits score codec + kills-first leader, mp-2d concepts re-implemented read-only), mmorpg-40-raid-loot.js (RaidLoot instanced hash rolls + split-gold remainder-to-leader), mmorpg-50-wanderer-party.js (WandererParty shared mergeProgress + temporalVote majority/tie-classic). All overlay-only, solo-safe dormant, ASCII-only, _pure + module.exports hooks.",
+                "2026-09-13T09:45:00.000Z mmo-a03: GATES node --check all 6 -> PASS (silent exit 0 each). PURE_SMOKE 6/6 _pure hooks + behavior spot-checks OK (shard 3 valid/99 rejected; party 4 seats then full; elite 100hp->135; score 5 kills capped gold 5999; loot split 100g/3 = 34/33/33 leader A; quest merge 7+8+9 capped 20/20; vote 2-1 remix wins, 1-1 tie falls back classic). verify-game-bundles -> GREEN (parity OK: 225 archived, 26 byte-locked, 199 diverged, 141 v2-native extra). ASCII scan 0 non-ASCII in all 6.",
+                "2026-09-13T09:50:00.000Z mmo-a03: verify-catalog-runtime -> RED EXTRINSIC: fails on app/vibecodeworker/[section]/page.tsx closed-static-catalog check (vcw lane, committed e04af7aa, zero edits by this lane; git diff on that tree empty). verify-gravegain-mmorpg.mjs -> OK (mmorpg layer clean). verify-mmo.mjs adapter section -> all 6 files pass every per-file check (exists/exposes-window-global/dormant-without-query-key/query-gate/_pure/node--check, plus 35 token on -20). Envelope set blocked (red gates = not done per hard rule 6); flip to done needs steward/vcw ruling or fix on the vibecodeworker page only. QUEUE wiring line in report."
+            ]
+}

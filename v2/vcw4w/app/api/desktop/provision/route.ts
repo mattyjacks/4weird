@@ -10,6 +10,7 @@ import {
   cleanDesktopName,
   desktopUsdToCoins,
   isDesktopKind,
+  isValidDesktopImageRef,
   parseDesktopInterface,
   parseDesktopMaxUsd,
 } from "@/lib/desktop";
@@ -100,7 +101,7 @@ export async function POST(req: Request) {
     return fail("Invalid JSON body.", 400);
   }
   const input = (body ?? {}) as Record<string, unknown>;
-  const kindRaw = String(input.kind ?? "gpu").toLowerCase();
+  const kindRaw = String(input.kind ?? "cpu").toLowerCase();
   if (!isDesktopKind(kindRaw)) return fail("Invalid kind. Use cpu or gpu.", 400);
   const iface = parseDesktopInterface(input.interface ?? input.iface ?? "gui");
   const maxRaw = input.max_usd_per_hour ?? input.maxUsdPerHour ?? 0;
@@ -108,8 +109,40 @@ export async function POST(req: Request) {
   if (Number(maxRaw) !== 0 && !maxUsd) {
     return fail("max_usd_per_hour must be $0.01-$1000, or 0 for cheapest available.", 400);
   }
+  // CPU provisioning always takes the cheapest CPU (the cap is only enforced
+  // for GPUs inside provisionDesktopWorker), so enforce the caller's cap for
+  // CPU here: fail closed when the live cheapest CPU quote already exceeds
+  // it. Fail open when no live quote is available; provisioning still reports
+  // honestly and bills nothing on failure.
+  if (kindRaw === "cpu" && maxUsd > 0) {
+    try {
+      const live = await getLiveCheapestQuotes();
+      if (live.cpu && Number(live.cpu.hourlyUsd) > maxUsd) {
+        return ok({
+          started: false,
+          kind: kindRaw,
+          interface: iface,
+          provision: {
+            ok: false,
+            code: "over_budget",
+            message: `Cheapest CPU right now is ${live.cpu.id} at $${Number(live.cpu.hourlyUsd).toFixed(2)}/hr, above your $${maxUsd.toFixed(2)}/hr max.`,
+          },
+          note: "Virtual Desktop not started; no spend. Raise max_usd_per_hour or retry when cheaper stock appears.",
+        });
+      }
+    } catch {
+      // No live quote: proceed; provisioning reports honestly below.
+    }
+  }
   const name = cleanDesktopName(input.name ?? `desktop-${kindRaw}`) || `desktop-${kindRaw}`;
   const rawImage = typeof input.image === "string" && input.image.trim() ? input.image : undefined;
+  // Fail closed at the lane boundary on the exact refs provisioning would
+  // refuse (predicate mirrors compute's cleanCustomImage branch-for-branch,
+  // including its registry allowlist): 400 here instead of a started:false
+  // round-trip. Blank means plan default (not an error).
+  if (rawImage !== undefined && !isValidDesktopImageRef(rawImage)) {
+    return fail("Invalid custom image. Use a Docker ref on an allowlisted registry (Docker Hub, ghcr.io, gcr.io, public.ecr.aws, quay.io) or a bare Hub ref like runpod/name:tag.", 400);
+  }
   const idleCheck = validatePodPolicyInput({
     warnMinutes: input.warn_minutes ?? input.warnMinutes,
     stopGraceMinutes: input.stop_grace_minutes ?? input.stopGraceMinutes,

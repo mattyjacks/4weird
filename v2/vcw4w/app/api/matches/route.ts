@@ -1,9 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
-import { hasServerSupabase } from "@/lib/supabase/service";
+import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { clientIp, isSlug } from "@/lib/validate";
+import { getGameRating, requiredAgeFor } from "@/lib/age-gate";
 
 
 export async function POST(req: Request) {
@@ -43,6 +44,26 @@ export async function POST(req: Request) {
       ? "quick_match"
       : null;
   if (!rpcName) return fail("Invalid match request.", 400);
+  // Server-side age enforcement. Matchmaking has no content-mode picker, so
+  // the strict catalog rating always applies: Adults (18+) titles
+  // (gravegain2d/3d) need an Adult band; Teens (13+) need Teen or Adult.
+  // Child sessions never reach here (no Supabase user -> 401 above), and
+  // under-13s have no full account. Without this, a teen-band account could
+  // quick-match straight into an 18+ title, bypassing the session-route gate.
+  try {
+    const svc = serviceClient();
+    const { data: profile } = await svc.from("profiles").select("age_band").eq("id", u.id).maybeSingle();
+    const band = String((profile as { age_band?: unknown } | null)?.age_band ?? "unknown");
+    const minAge = requiredAgeFor(getGameRating(game));
+    if (minAge >= 18 && band !== "adult") {
+      return fail("Adults (18+) games need an Adult (18+) age band. Teens stay on Teen/Kids games.", 403);
+    }
+    if (minAge >= 13 && band !== "adult" && band !== "teen") {
+      return fail("Teens (13+) games need a Teen (13-17) or Adult (18+) age band.", 403);
+    }
+  } catch {
+    return fail("Server misconfigured.", 500);
+  }
   const { data: rpcData, error } = await supabase.rpc(rpcName, {
     p_game: game,
     p_platform: platform,

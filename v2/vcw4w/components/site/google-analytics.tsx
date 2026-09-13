@@ -5,7 +5,13 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { readCookieConsent } from "@/components/site/cookie-banner";
 
-const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "";
+const rawMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "";
+// Hardening: the id is interpolated into an inline <script> string literal
+// and a script src URL below. Accept only the GA4/measurement shapes
+// (G-XXXXXXXXXX, GT-XXXXXXX, AW-XXXXXXXXX, DC-XXXXXXXX) so a malformed
+// build-time value can never break out of the string literal or smuggle
+// URL parameters into the tag-manager src. Anything else disables GA.
+const measurementId = /^[A-Za-z]{1,3}-[A-Za-z0-9_-]{4,32}$/.test(rawMeasurementId) ? rawMeasurementId : "";
 
 declare global {
   interface Window {

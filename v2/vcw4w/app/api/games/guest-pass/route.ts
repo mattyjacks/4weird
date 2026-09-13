@@ -6,6 +6,8 @@ import { globalBucket, ipBucketKey, throttleHeaders } from "@/lib/abuse-limit";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp, isSlug } from "@/lib/validate";
 import { GUEST_FREE_LOADS_PER_DAY, GUEST_MAX_LOADS_PER_DAY } from "@/lib/game-rent";
+import { getGameRating, requiredAgeFor } from "@/lib/age-gate";
+import { effectiveMinAge, hasContentModes, parseContentMode } from "@/lib/content-modes";
 import { pickHouseAd } from "@/lib/ads";
 
 
@@ -79,6 +81,30 @@ export async function POST(req: Request) {
   }
   const game = isSlug((body as Record<string, unknown> | null)?.game_slug ?? (body as Record<string, unknown> | null)?.game);
   if (!game) return fail("Invalid game_slug.", 400);
+
+  // Server-side age-band enforcement for guests (mirrors PlayGate +
+  // /api/games/session): guests carry no profile age band, so Adults (18+)
+  // titles are never issued to them — except content-mode games played in
+  // Kid mode (effective age 0+), requested explicitly via content_mode. An
+  // omitted or forged teen-or-uncut mode on an adults-rated game is denied
+  // (fail closed); the play shell always sends its current mode. Without
+  // this, a direct POST for an 18+ slug returned allowed:true and skipped
+  // the band gate entirely (the UI blocks it, but the API did not).
+  const guestInput = (body ?? {}) as Record<string, unknown>;
+  if (hasContentModes(game)) {
+    const guestMode = parseContentMode(guestInput.content_mode ?? guestInput.contentMode ?? guestInput.content);
+    if (!guestMode) {
+      return fail("Content mode required for this game. Guests may play Kid mode; sign in with an Adult (18+) age band for Uncut play.", 403);
+    }
+    if (effectiveMinAge(game, guestMode) >= 13) {
+      return fail(
+        `Content mode "${guestMode}" needs a Teen (13+) or Adult (18+) age band. Guests may play Kid mode; sign in to unlock more.`,
+        403,
+      );
+    }
+  } else if (requiredAgeFor(getGameRating(game)) >= 18) {
+    return fail("Adults (18+) games need a signed-in Adult (18+) age band. Guests stay on Kids/Teens games.", 403);
+  }
 
   // Loads used today: the shared bucket count when available (authoritative
   // across instances), else the in-memory per-instance counter (degraded).

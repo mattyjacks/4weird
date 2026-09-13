@@ -22,7 +22,8 @@ async function CachedPrivacyBody() {
       <section className="space-y-6">
         <p>
           This policy describes how MattyJacks LLC (“MattyJacks,” “we,” “us,” or “our”) handles information across the
-          4weird Games websites, games, accounts, Clans social features, bot platform, agent rentals, Vibe Coins
+          4weird Games websites, games, persistent-world/MMORPG modes, server rentals, stock media,
+          accounts, Clans social features, bot platform, agent rentals, Vibe Coins
           economy, Teams/enterprise workspaces, VibeCodeWorker surfaces, exhibits, APIs, and related services
           (collectively, the “Service”). It applies whenever you visit or use the Service, on 4weird.com
           or any domain where the Service is served.
@@ -45,6 +46,10 @@ async function CachedPrivacyBody() {
         <p><strong className="text-white">Bots.</strong> Bot usernames, human-ID links, and API-key hashes (key secrets are shown once and never stored).</p>
         <p><strong className="text-white">Vibe Coins and transactions.</strong> Coin ledger and grant entries, daily-claim streaks, referral codes and referral links, signup-trial records (privacy-preserving IP hash), checkout sessions and order reconciliation by email, voluntary Support transfers (tips, subscriptions) and gift-based launch-Campaign backing. Campaign pages publicly show the campaign story, goal, raised totals, and backer counts; individual contribution amounts are visible only to you and the campaign creator. Card and payment details are processed by our checkout provider (Shopify and/or its payment processors); we do not store full payment-card numbers.</p>
         <p><strong className="text-white">Agent rentals and Teams compute.</strong> Listings, bookings, escrow and metered-usage records, provider references, org/team/project/room memberships and roles, cloud provisions and usage, wallet ledgers, and audit entries.</p>
+        <p><strong className="text-white">Multiplayer snapshots + presence.</strong> In persistent-world/MMORPG modes we relay your handle, server ID, age band, position (x/y), hp, gold, kills, floor/sector, progress, heartbeat timestamps, and join/leave events to peers in the same shard so shared rooms stay in sync; demo and solo modes send nothing.</p>
+        <p><strong className="text-white">Server rentals + hosting.</strong> When you rent or join a hosted shard we store server configs (mmorpg_servers) and session rows (mmorpg_sessions: join/leave times and minutes billed) to run and bill the rental; rental quotes touch no ledger until you confirm.</p>
+        <p><strong className="text-white">Pexels searches.</strong> Stock-media searches send the query text (2-100 chars), paging, and orientation/size/color/locale filters to Pexels; your IP is visible to Pexels when it serves the request.</p>
+        <p><strong className="text-white">Validation + creator tooling.</strong> Bouncer validation sends check emails to UseBouncer for deliverability screening; phone-suppression lists you upload are checked against EasyDNC.org; Blender scene files you open stay as files you supply; DPS donor hardware signals record opt-in device contributions; terminal inputs you type never leave your device; Discord IDs and messages you link are handled via Discord.</p>
         <p><strong className="text-white">Communications.</strong> Support and rights-request messages you send us, including verification and authority documents for special-case requests.</p>
         <p><strong className="text-white">AI and voice/camera features.</strong> Text you send the Gaming Buddy (messages, transcripts, screen text), one downscaled image per message when you share your screen or attach a camera frame, and voice replies we generate for you. Screen snapshots and camera frames are processed for that turn only; never stored, never logged. Microphone audio for interruption detection never leaves your device (only transcripts are sent). Avatar, voice, camera, purchase, and cookie choices tied to your account or device.</p>
         <p><strong className="text-white">Age checks (never collected).</strong> Date of birth entered in a game age gate is checked on your own device, in memory, for that check only. It is never sent to our servers, never written to any database, and never stored in your browser; there is nothing to export or delete because we never receive it. The Kids Mode flag is an ordinary account/device preference, not age data.</p>
@@ -68,7 +73,7 @@ async function CachedPrivacyBody() {
         </p>
         <ul className="list-disc space-y-2 pl-6">
           <li><strong className="text-white">Essential (always on):</strong> sign-in session, security, fraud prevention, load balancing, and your cookie choice itself. The Service cannot sign you in without these.</li>
-          <li><strong className="text-white">Analytics:</strong> privacy-friendly Vercel Analytics telemetry (always on, anonymized, cookieless) and Google Analytics measurement (opt-in only, env-configured measurement ID; loads only after you accept analytics cookies).</li>
+          <li><strong className="text-white">Analytics:</strong> privacy-friendly Vercel Analytics telemetry (always on, anonymized, cookieless) and Google Analytics measurement (opt-in only, env-configured measurement ID; loads only after you accept analytics cookies). Google Analytics loads only after you accept analytics cookies.</li>
           <li><strong className="text-white">Functional (opt-in):</strong> remembered preferences such as theme, voices, avatar shape and color, and game settings.</li>
           <li><strong className="text-white">Marketing (opt-in):</strong> campaign and referral measurement. Marketing email is separately off by default in account settings.</li>
         </ul>
@@ -101,6 +106,11 @@ async function CachedPrivacyBody() {
           <li><strong className="text-white">Auth email:</strong> Supabase sends transactional auth emails (signup confirm, password reset); we operate no third-party marketing-email provider;</li>
           <li><strong className="text-white">Moderation:</strong> OpenAI-based screening that assists human review of reported content;</li>
           <li><strong className="text-white">Safety and legal:</strong> NCMEC CyberTipline for suspected child exploitation (filed by a human); U.S. courts and authorities upon valid legal request such as a court order, subpoena, or other lawful process; and parties necessary to protect rights, safety, and the Service or enforce our Terms; including against illegal content, which is never allowed;</li>
+          <li><strong className="text-white">Stock search:</strong> Pexels Inc. receives search queries, filters, and your IP under its terms; our API key never leaves our server and no wallet data is sent;</li>
+          <li><strong className="text-white">In-shard peer relay:</strong> handles, positions, and run stats are visible to peers in the same multiplayer room to render the shared world;</li>
+          <li><strong className="text-white">Email validation:</strong> UseBouncer screens check emails under its terms;</li>
+          <li><strong className="text-white">Phone suppression:</strong> EasyDNC.org checks uploaded phone lists under its terms;</li>
+          <li><strong className="text-white">Discord link:</strong> Discord receives Discord IDs and messages you choose to link, under its terms;</li>
           <li><strong className="text-white">Corporate:</strong> a buyer or successor in a merger, financing, sale, or reorganization, under confidentiality.</li>
         </ul>
         <p>
@@ -131,6 +141,11 @@ async function CachedPrivacyBody() {
           visible 30 minutes; org invites up to 2 years; transaction/tax records per tax/payments law. When you delete your account at <a className={a} href="/my/rights">/my/rights/</a>,
           we delete or de-identify your personal data across our systems except where retention is permitted or
           required by law (Section 11 lists the exceptions). Backups age out on their normal cycle (weeks, not years).
+        </p>
+        <p>
+          Multiplayer + hosting retention: server configs and session rows (join/leave, minutes billed) are kept as
+          billing records per tax law with minimal fields; live presence is ephemeral and shards follow the 30-minute
+          lobby convention above.
         </p>
 
         <h2 className={h2}>8. Security</h2>
@@ -218,6 +233,10 @@ async function CachedPrivacyBody() {
           <a className={a} href="mailto:matt@mattyjacks.com">matt@mattyjacks.com</a> so we can delete it. Parents
           export and erase their children&apos;s data together with their own at{" "}
           <a className={a} href="/my/rights">/my/rights/</a>. Account holders must be 13 or older (see Terms).
+        </p>
+        <p>
+          Kids-band servers are join-gated and parental controls apply in-shard; bands only, no date of birth is
+          collected for shard access.
         </p>
 
         <h2 className={h2}>13. Third parties and changes</h2>

@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
+import { requireHuman } from "@/lib/botid";
 import { rateLimit } from "@/lib/rate-limit";
 import { meterLunaCheck } from "@/lib/clan-meter";
 import { logValleynetAction, valleynetCheck } from "@/lib/valleynet";
@@ -17,6 +18,14 @@ function asUuid(v: unknown): string {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(s) ? s : "";
 }
 
+// Allowlisted reaction emoji (mirrors the toggle_clan_reaction guard in
+// 20261116000004_sec_econ_hardening.sql; anything else is a 400 here and an
+// 'invalid emoji' raise in the RPC).
+const REACTION_ALLOWLIST: ReadonlySet<string> = new Set([
+  "❤️", "💌", "👍", "👏", "🔥", "🎉", "😂", "😮",
+  "😢", "😡", "🙏", "👀", "💯", "🚀", "⭐", "🎮",
+]);
+
 // POST /api/clans/[slug]/messages/[id]; one action per call:
 // { action: "react", emoji }; toggle an emoji reaction (members).
 // { action: "pin", pinned? }; pin/unpin (owner/mod).
@@ -28,6 +37,8 @@ export async function POST(
 ) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  const botBlock = await requireHuman(req, "POST /api/clans/message-action", { allowAuthenticated: true });
+  if (botBlock) return botBlock;
   const { slug: rawSlug, id: rawId } = await params;
   const slug = isClanSlug(rawSlug);
   const messageId = asUuid(rawId);
@@ -52,12 +63,14 @@ export async function POST(
   if (action === "react") {
     const emoji = String(input.emoji ?? "").trim().slice(0, 32);
     if (!emoji) return fail("Emoji required.", 400);
+    if (!REACTION_ALLOWLIST.has(emoji)) return fail("Invalid emoji.", 400);
     const { data: rpcData, error } = await supabase.rpc("toggle_clan_reaction", {
       p_message_id: messageId,
       p_emoji: emoji,
     });
     if (error) {
       const msg = String(error.message ?? "");
+      if (/invalid emoji/i.test(msg)) return fail("Invalid emoji.", 400);
       if (/join the clan/i.test(msg)) return fail("Join the clan first.", 403);
       if (/not found/i.test(msg)) return fail("Message not found.", 404);
       return fail("Unable to react.", 500);

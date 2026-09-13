@@ -1,6 +1,10 @@
-import { fail, ok } from "@/lib/api-respond";
+import { createClient } from "@/lib/supabase/server";
+import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
+import { sameOrigin } from "@/lib/csrf";
 import { clientIp } from "@/lib/validate";
+import { resolveVcwCaller, vcwWriteScope } from "@/lib/vcw-gateway-auth";
 import {
   DEBUG_PLAY_LOOP_WINDOW,
   DEBUG_PLAY_MAX_FRAME_CHARS,
@@ -16,10 +20,15 @@ import {
 /**
  * POST /api/vcw/debug-play — DebugPlay frame analyzer (Remastery §3.3).
  *
- * Stateless visual-QA foundation: accepts one game frame, returns
- * `{ bugs, nextInput }`. Fail-open — a well-formed response is returned
- * even with no OpenRouter key (heuristic fallback). No auth/DB writes in
- * this slice; metering/auth wiring is a steward QUEUE item.
+ * Accepts one game frame, returns `{ bugs, nextInput }`. Fail-open on the
+ * AI path — a well-formed response is returned even with no OpenRouter key
+ * (heuristic fallback inside analyzeGameFrameWithAI).
+ *
+ * Auth: vcw write scope (session, bot key, or `vcw_live_` gateway key;
+ * same-origin gated for cookie sessions). Every call meters one
+ * `action-step` (vcw source) BEFORE the OpenRouter call, so AI spend is
+ * never free; insufficient balance fails closed with 402. Per-IP throttle
+ * is kept alongside the per-caller throttle.
  *
  * Body: {
  *   frame: string (data-URL or raw base64, required),
@@ -31,11 +40,17 @@ import {
  * }
  */
 export async function POST(req: Request) {
-  // Stateless foundation (no session by steward QUEUE design, DS-REM-05):
-  // throttle per IP — each call can spend OpenRouter budget. Still
-  // force-dynamic + no-store.
+  if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  const caller = await resolveVcwCaller(req);
+  if (!caller) return fail("Authentication required.", 401);
+  if (!vcwWriteScope(caller)) return fail("Write scope required.", 403);
+  if (caller.mode === "session" && !sameOrigin(req)) return fail("Invalid request origin.", 403);
+  // Per-IP throttle (kept: each call can spend OpenRouter budget) plus a
+  // per-caller throttle so one credential cannot exhaust the shared window.
   const rl = rateLimit(`vcw:debug-play:${clientIp(req)}`, 20, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
+  const callerRl = rateLimit(`vcw:debug-play:caller:${caller.keyId ?? caller.userId}`, 20, 60_000);
+  if (!callerRl.allowed) return fail("Rate limited.", 429);
   let body: unknown;
   try {
     body = await req.json();
@@ -74,6 +89,53 @@ export async function POST(req: Request) {
   // Seed the previous frame hash so a repeated frame trips the guard.
   if (recent.length > 0 && frameHash) {
     guard = { ...guard, frameHash };
+  }
+
+  // Meter one action-step BEFORE the OpenRouter call — an uncharged AI
+  // analysis must never exist. Session callers meter via meter_vcw_usage()
+  // (auth.uid); key callers (bot/gateway, no session) meter via
+  // meter_vcw_usage_for(p_user, ...) through service_role. Insufficient
+  // funds fails closed with 402; every other meter fault fails closed too.
+  // The heuristic fallback inside analyzeGameFrameWithAI is preserved.
+  try {
+    if (caller.mode === "session") {
+      const meterClient = await createClient();
+      const { error: meterError } = await meterClient.rpc("meter_vcw_usage", {
+        p_op: "action-step",
+        p_qty: 1,
+        p_run: null,
+        p_source: "vcw",
+      });
+      if (meterError) {
+        const message = String(
+          (meterError as { message?: unknown } | null)?.message ?? meterError ?? "",
+        );
+        if (/insufficient|balance|funds/i.test(message)) {
+          return fail("Insufficient Vibe Coin balance.", 402);
+        }
+        return dbFail("vcw/debug-play meter", meterError, "Unable to meter the analysis.");
+      }
+    } else {
+      const db = serviceClient();
+      const { error: meterError } = await db.rpc("meter_vcw_usage_for", {
+        p_user: caller.userId,
+        p_op: "action-step",
+        p_qty: 1,
+        p_run: null,
+        p_source: "vcw",
+      });
+      if (meterError) {
+        const message = String(
+          (meterError as { message?: unknown } | null)?.message ?? meterError ?? "",
+        );
+        if (/insufficient|balance|funds/i.test(message)) {
+          return fail("Insufficient Vibe Coin balance.", 402);
+        }
+        return dbFail("vcw/debug-play meter", meterError, "Unable to meter the analysis.");
+      }
+    }
+  } catch (error) {
+    return dbFail("vcw/debug-play meter", error, "Unable to meter the analysis.");
   }
 
   const analysis = await analyzeGameFrameWithAI(frame, gameSlug, codeSnippet, {

@@ -1,6 +1,10 @@
-import { fail, ok } from "@/lib/api-respond";
+import { createClient } from "@/lib/supabase/server";
+import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
+import { sameOrigin } from "@/lib/csrf";
 import { clientIp } from "@/lib/validate";
+import { resolveVcwCaller, vcwReadScope, vcwWriteScope } from "@/lib/vcw-gateway-auth";
 import {
   DEMO_RECORDER_MAX_FRAME_CHARS,
   DEMO_RECORDER_MAX_INGEST_EVENTS,
@@ -16,13 +20,17 @@ import {
 /**
  * POST /api/vcw/recordings — DemoRecorder session ingest (Remastery Feature 05).
  *
- * Stateless capture-pipeline foundation, modelled on the debug-play route:
- * accepts `{ events, frames }`, runs them through the bounded input buffer
- * plus the capped-fps / frame-hash dedupe sampler, and returns
- * `{ sessionId, eventCount, ... }`. No auth, no DB writes, no metering in
- * this slice — raw frame bytes are never retained (hashes + sizes only) and
- * the session ledger below is an in-memory, per-instance window.
- * Auth/metering/persistence wiring is a steward QUEUE item.
+ * Capture pipeline modelled on the debug-play route: accepts `{ events,
+ * frames }`, runs them through the bounded input buffer plus the capped-fps
+ * / frame-hash dedupe sampler, and returns `{ sessionId, eventCount, ...
+ * }`. Raw frame bytes are never retained (hashes + sizes only) and the
+ * session ledger below is an in-memory, per-instance window.
+ *
+ * Auth: vcw write scope (session, bot key, or `vcw_live_` gateway key;
+ * same-origin gated for cookie sessions). Every ingest meters one
+ * `action-step` (vcw source) before packaging; insufficient balance fails
+ * closed with 402. Per-IP throttle is kept alongside the per-caller
+ * throttle.
  *
  * Body: {
  *   gameSlug?: string,
@@ -33,6 +41,7 @@ import {
 
 interface SessionLedgerEntry {
   sessionId: string;
+  userId: string;
   gameSlug: string;
   eventCount: number;
   frameCount: number;
@@ -47,6 +56,16 @@ const LEDGER: SessionLedgerEntry[] = [];
 const LEDGER_CAP = 50;
 
 export async function POST(req: Request) {
+  if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  const caller = await resolveVcwCaller(req);
+  if (!caller) return fail("Authentication required.", 401);
+  if (!vcwWriteScope(caller)) return fail("Write scope required.", 403);
+  if (caller.mode === "session" && !sameOrigin(req)) return fail("Invalid request origin.", 403);
+  // Per-IP throttle (kept) plus a per-caller throttle.
+  const rl = rateLimit(`vcw:recordings:ingest:${clientIp(req)}`, 20, 60_000);
+  if (!rl.allowed) return fail("Rate limited.", 429);
+  const callerRl = rateLimit(`vcw:recordings:ingest:caller:${caller.keyId ?? caller.userId}`, 20, 60_000);
+  if (!callerRl.allowed) return fail("Rate limited.", 429);
   let body: unknown;
   try {
     body = await req.json();
@@ -83,6 +102,51 @@ export async function POST(req: Request) {
   }
 
   const gameSlug = normalizeGameSlug(input.gameSlug);
+  // Meter one action-step before packaging — uncharged ingests must never
+  // exist. Session callers meter via meter_vcw_usage() (auth.uid); key
+  // callers (bot/gateway, no session) meter via meter_vcw_usage_for(p_user,
+  // ...) through service_role. Insufficient funds fails closed with 402;
+  // every other meter fault fails closed too.
+  try {
+    if (caller.mode === "session") {
+      const meterClient = await createClient();
+      const { error: meterError } = await meterClient.rpc("meter_vcw_usage", {
+        p_op: "action-step",
+        p_qty: 1,
+        p_run: null,
+        p_source: "vcw",
+      });
+      if (meterError) {
+        const message = String(
+          (meterError as { message?: unknown } | null)?.message ?? meterError ?? "",
+        );
+        if (/insufficient|balance|funds/i.test(message)) {
+          return fail("Insufficient Vibe Coin balance.", 402);
+        }
+        return dbFail("vcw/recordings meter", meterError, "Unable to meter the ingest.");
+      }
+    } else {
+      const db = serviceClient();
+      const { error: meterError } = await db.rpc("meter_vcw_usage_for", {
+        p_user: caller.userId,
+        p_op: "action-step",
+        p_qty: 1,
+        p_run: null,
+        p_source: "vcw",
+      });
+      if (meterError) {
+        const message = String(
+          (meterError as { message?: unknown } | null)?.message ?? meterError ?? "",
+        );
+        if (/insufficient|balance|funds/i.test(message)) {
+          return fail("Insufficient Vibe Coin balance.", 402);
+        }
+        return dbFail("vcw/recordings meter", meterError, "Unable to meter the ingest.");
+      }
+    }
+  } catch (error) {
+    return dbFail("vcw/recordings meter", error, "Unable to meter the ingest.");
+  }
   const recorder = createRecorder();
   for (const event of events) recordInputEvent(recorder, event);
   for (const frame of frames) sampleFrame(recorder, frame);
@@ -90,6 +154,7 @@ export async function POST(req: Request) {
 
   LEDGER.push({
     sessionId: session.id,
+    userId: caller.userId,
     gameSlug: session.gameSlug,
     eventCount: session.events.length,
     frameCount: session.frames.length,
@@ -113,14 +178,22 @@ export async function POST(req: Request) {
 
 /**
  * GET /api/vcw/recordings — list recently ingested session metadata.
- * Ephemeral foundation (per-instance window, metadata only); durable
- * persistence + per-user scoping ride the same QUEUE item as POST auth.
+ * Ephemeral foundation (per-instance window, metadata only), scoped per
+ * caller: authenticated callers see ONLY their own user_id rows, so no
+ * cross-user ledger leak is possible. Anonymous callers get 401. Durable
+ * persistence rides a future QUEUE item.
  */
 export async function GET(req: Request) {
+  const caller = await resolveVcwCaller(req);
+  if (!caller) return fail("Authentication required.", 401);
+  if (!vcwReadScope(caller)) return fail("Read scope required.", 403);
   const rl = rateLimit(`vcw:recordings:list:${clientIp(req)}`, 60, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
+  const callerRl = rateLimit(`vcw:recordings:list:caller:${caller.keyId ?? caller.userId}`, 60, 60_000);
+  if (!callerRl.allowed) return fail("Rate limited.", 429);
+  const mine = [...LEDGER].reverse().filter((entry) => entry.userId === caller.userId);
   return ok({
-    sessions: [...LEDGER].reverse(),
+    sessions: mine,
     ephemeral: true,
   });
 }

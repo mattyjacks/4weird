@@ -1,0 +1,16 @@
+{
+  "_comment": "VCWCode sample overlay. Copy to config/local.json and edit. Keys mirror default.json; underscore keys are comments only and ignored by the loader.",
+  "_docs": "See VCWCODE-PORTS-NOTES.md (ports), VCWCODE-ENGINES-NOTES.md (webEngine), VCWCODE-ENV-CHECKLIST.md (env keys). Validate with vcwcode-schema.json.",
+  "_serverPort_note": "Desktop API port, 1-65535. Default 42069. Change only on conflict; update gameUrl/static host accordingly.",
+  "serverPort": 42069,
+  "_webEngine_note": "ultralight (default, lightweight) | electron | chromium. Env override: VIBE_WEB_ENGINE.",
+  "webEngine": "ultralight",
+  "_provider_note": "Chat provider id. Default 'meta' in default.json.",
+  "provider": "meta",
+  "_localUrl_note": "Local chat endpoint, e.g. Ollama http://localhost:11434/api/chat.",
+  "localUrl": "http://localhost:11434/api/chat",
+  "_gameUrl_note": "Playtest game URL from the static host on port 8888.",
+  "gameUrl": "http://127.0.0.1:8888/games/html/overtake/index.html?playtest=1",
+  "_audioChannelMode_note": "mono (default, smaller captures) | stereo.",
+  "audioChannelMode": "mono"
+}

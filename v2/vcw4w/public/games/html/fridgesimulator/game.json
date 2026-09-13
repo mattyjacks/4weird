@@ -3,7 +3,7 @@
     "slug": "fridgesimulator",
     "description": "Manage fridges for multiple countries. Buy food from diverse sources, balance nutrition, and keep families alive. Feed everyone or watch them starve.",
     "genre": "Simulation",
-    "tags": ["HTML5", "Simulation", "Strategy", "Management"],
+    "tags": ["HTML5", "Simulation", "Strategy", "Management", "touch", "mouse", "cloud-saves"],
     "maker": {
         "name": "MattyJacks",
         "bio": "Founder of 4weird Games. Fridge Simulator emerged from my interest in systems thinking and resource management games. The darkly humorous premise - managing global food logistics with real consequences - exemplifies the 4weird approach to game design: take a serious concept, make it playable, and let players discover the depth for themselves.",
@@ -32,7 +32,8 @@
         "keyboard": {
             "Mouse/Touch": "Navigate interface",
             "Click": "Buy food, manage fridges",
-            "Next Day": "Advance time"
+            "Next Day": "Advance time",
+            "Pause/Resume": "P or Esc (or the pause button) - pause and resume anytime without losing the current day"
         },
         "touch": true,
         "mouse": true
@@ -41,14 +42,14 @@
     "technical": {
         "canvasSize": {"width": 1200, "height": 800},
         "targetFPS": 30,
-        "mobileOptimized": false
+        "mobileOptimized": true
     },
     "assets": {
         "external": [],
         "local": ["game.js", "game.css", "game.json"]
     },
     "meta": {
-        "version": "1.0.0",
+        "version": "1.1.0",
         "created": "2025-02-01",
         "license": "MIT"
     }

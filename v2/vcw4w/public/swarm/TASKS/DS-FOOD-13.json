@@ -1,0 +1,25 @@
+{
+  "id": "DS-FOOD-13",
+  "title": "Food batch 13: scholar-chocolate ... watch-coffee (8 items x 3 games x 3 modes)",
+  "goal": "Batch-13 done-state: v2/vcw4w/content/gravegain-food-batch-13.ts exports GRAVE_GAIN_FOOD_BATCH_13 with all 8 roster idx 104-111 items, each carrying full gravegain1d/2d/3d x endless/mission/mmorpg stats via buildFoodStatsTable() plus a 4..120-char drop note per game/mode, validateFoodBatch() clean; tsc + eslint + bundles + catalog-runtime green.",
+  "lane": "games",
+  "scope": [
+    "v2/vcw4w/content/gravegain-food-batch-13.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint content/gravegain-food-batch-13.ts",
+    "node scripts/verify-game-bundles.mjs",
+    "node scripts/verify-catalog-runtime.mjs",
+    "node scripts/verify-devswarm.mjs"
+  ],
+  "status": "blocked",
+  "owner": "food-b13",
+  "created": "2026-09-13T07:55:00.000Z",
+  "updated": "2026-09-13T08:22:41.000Z",
+  "log": [
+    "2026-09-13T07:55:00.000Z lead: envelope created, awaiting claim.",
+    "2026-09-13T08:12:23.000Z food-b13: claimed, starting batch 13.",
+    "2026-09-13T08:22:41.000Z food-b13: batch file written (8 items, validateFoodBatch clean). tsc: 0 errors mentioning batch-13 (2 pre-existing in presence/mmo/heartbeat). eslint batch-13 exit 0. bundles exit 0. catalog-runtime RED (vibecodeworker/[section] static catalog, out of scope). devswarm RED (DS-FOOD-05.json BOM parse error, other lane file). -> blocked, QUEUE to steward."
+  ]
+}

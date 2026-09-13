@@ -3,7 +3,14 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { sameOrigin } from "@/lib/csrf";
+import { requireHuman } from "@/lib/botid";
 import { LOVE_AWARD_TIERS, isLoveAwardTier } from "@/lib/love-letters";
+
+
+function isUuid(v: unknown): string {
+  const s = String(v ?? "").trim().toLowerCase();
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(s) ? s : "";
+}
 
 
 function mapErr(msg: string) {
@@ -22,6 +29,8 @@ function mapErr(msg: string) {
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  const botBlock = await requireHuman(req, "POST /api/love/award", { allowAuthenticated: true });
+  if (botBlock) return botBlock;
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
@@ -35,9 +44,11 @@ export async function POST(req: Request) {
     return fail("Invalid JSON body.", 400);
   }
   const input = (body ?? {}) as Record<string, unknown>;
-  const postId = String(input.post_id ?? "").trim();
+  const rawPostId = String(input.post_id ?? "").trim();
   const tier = String(input.tier ?? "").trim().toLowerCase();
-  if (!postId) return fail("post_id required.", 400);
+  if (!rawPostId) return fail("post_id required.", 400);
+  const postId = isUuid(rawPostId);
+  if (!postId) return fail("Invalid post_id.", 400);
   if (!isLoveAwardTier(tier)) return fail("Invalid award tier.", 400);
   const { error } = await supabase.rpc("award_love_letter", { p_post_id: postId, p_tier: tier });
   if (error) return mapErr(String(error.message ?? ""));

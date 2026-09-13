@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   const rate = Number(input.rate_ghost);
   if (!org || !worker || !payer) return fail("org_id, worker_id, and payer_id are required.", 400);
   if (title.length < 2) return fail("Title needs 2+ characters.", 400);
-  if (!Number.isFinite(rate) || rate < 0 || rate > 100000000) return fail("Invalid Ghost rate.", 400);
+  if (!Number.isFinite(rate) || rate <= 0 || rate > 100000000) return fail("Invalid Ghost rate.", 400);
   const { data: contract, error } = await supabase.rpc("ghost_create_contract", {
     p_org: org,
     p_title: title,

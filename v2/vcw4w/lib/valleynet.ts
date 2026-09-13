@@ -16,8 +16,13 @@
  *   3. Caller context; e.g. oversized payloads already rejected by routes.
  *
  * Verdicts: allow | quarantine (store as pending, human review) | block
- * (refuse with 403 + log). Fail-open like Luna: when everything is
- * unavailable the verdict is allow and the quarantine net (reports) remains.
+ * (refuse with 403 + log). Fail-closed like Luna: when Luna is
+ * unconfigured or unavailable the verdict is quarantine (never silent
+ * allow) and the report net remains. A single weak signal (a few links,
+ * caps, a repeat burst) is NOT enough to hold a post - quarantine needs
+ * Luna's explicit BLOCK, a Luna outage/unconfigured state, or two
+ * independent weak signals, and block needs an unmistakable spam/scam
+ * flood.
  * A single weak signal (a few links, caps, a repeat burst) is NOT enough to
  * hold a post - quarantine needs Luna's explicit BLOCK or two independent
  * weak signals, and block needs an unmistakable spam/scam flood.
@@ -68,17 +73,27 @@ export async function valleynetCheck(text: string): Promise<ValleynetResult> {
     if (!mod.allowed) {
       lunaBlocked = true;
       reasons.push("luna-block");
+      // Fail-closed audit trail: record WHY Luna gave no clearing verdict
+      // (unconfigured/outage vs explicit BLOCK) so human reviewers can tell
+      // "never reviewed" apart from "reviewed and refused".
+      if (mod.reason && mod.reason !== "luna-block") reasons.push(mod.reason);
     } else if (mod.heuristicHit) {
       reasons.push("luna-heuristic");
     }
   } catch {
-    // Fail-open: Luna down is not a verdict.
+    // Fail-closed (defense-in-depth; moderateText itself never throws):
+    // Luna erroring out is not a verdict of safety - quarantine now and
+    // let the throw site land in the log below via console.error.
+    reasons.push("luna-unavailable");
+    for (const hit of valleynetShapes(input)) reasons.push(hit);
+    return { verdict: "quarantine", reasons, lunaBlocked };
   }
   for (const hit of valleynetShapes(input)) reasons.push(hit);
 
   // Medium-bar verdicts: block only on unmistakable ToS abuse (scam bait or
-  // an extreme flood). Quarantine only when Luna explicitly BLOCKs (its
-  // prompt already requires a clear terms violation) or when two
+  // an extreme flood). Quarantine when Luna explicitly BLOCKs (its prompt
+  // already requires a clear terms violation), when Luna is unconfigured or
+  // unavailable (fail-closed: no clearing verdict exists), or when two
   // independent weak signals corroborate each other. A single weak signal
   // (a few links, caps, one repeat burst, one fallback heuristic) flows
   // through to `visible`.

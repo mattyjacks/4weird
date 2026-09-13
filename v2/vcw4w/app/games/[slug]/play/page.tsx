@@ -20,7 +20,9 @@ export function generateStaticParams() {
   return games.map((game) => ({ slug: game.slug }));
 }
 
-// Closed catalog (see ../page.tsx): unknown slugs 404 with a real 404 status.
+// Closed catalog (see ../page.tsx): unknown slugs 404 via notFound() with a
+// real 404 status (dynamicParams removed for cacheComponents compat), never
+// a soft-404 200.
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   // No 'use cache' here: this reuses the cached catalog helper, which

@@ -1,0 +1,25 @@
+{
+  "id": "DS-FOOD-11",
+  "title": "Food batch 11: traveler-takeout ... pearl-oyster (6 items x 3 games x 3 modes)",
+  "goal": "Batch-11 done-state: v2/vcw4w/content/gravegain-food-batch-11.ts exports GRAVE_GAIN_FOOD_BATCH_11 with all 6 roster idx 89-94 items, each carrying full gravegain1d/2d/3d x endless/mission/mmorpg stats via buildFoodStatsTable() plus a 4..120-char drop note per game/mode, validateFoodBatch() clean; tsc + eslint + bundles + catalog-runtime green.",
+  "lane": "games",
+  "scope": [
+    "v2/vcw4w/content/gravegain-food-batch-11.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint content/gravegain-food-batch-11.ts",
+    "node scripts/verify-game-bundles.mjs",
+    "node scripts/verify-catalog-runtime.mjs",
+    "node scripts/verify-devswarm.mjs"
+  ],
+  "status": "blocked",
+  "owner": "food-b11",
+  "created": "2026-09-13T07:55:00.000Z",
+  "updated": "2026-09-13T08:24:55.612Z",
+  "log": [
+    "2026-09-13T07:55:00.000Z lead: envelope created, awaiting claim.",
+    "2026-09-13T08:12:55.088Z food-b11: claimed, starting batch 11.",
+    "2026-09-13T08:24:55.612Z food-b11: batch file landed (content/gravegain-food-batch-11.ts, 6 items in order, 54 notes 36..63 chars, validateFoodBatch CLEAN via tsx). GREEN: tsc zero errors mentioning batch-11; eslint exit 0; verify-game-bundles exit 0 (225 archived files). RED extrinsic: verify-catalog-runtime fails on pre-existing app/vibecodeworker/[section]/page.tsx closed-catalog assertion (out of scope, same red as fridge-07/mmo-a02); verify-devswarm STATUS.json counts mismatch open 16 vs TASKS 15 (drift from my claim, steward recount needed, not hand-edited). QUEUE request filed. Envelope in_progress->blocked."
+  ]
+}

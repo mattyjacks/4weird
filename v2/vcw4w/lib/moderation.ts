@@ -1,7 +1,7 @@
 /**
  * 4weird Clans - Luna text moderation adapter.
  *
- * Behavior contract (medium-bar, lenient on purpose):
+ * Behavior contract (fail-CLOSED for writes, medium-bar verdicts):
  *  - Only flag text that CLEARLY violates the Terms of Use (Section 2:
  *    illegal content, harassment/hate/threats, sexual content involving
  *    minors, fraud/scams/spam, IP abuse, monetization abuse). Heated
@@ -10,19 +10,21 @@
  *    chat-completions endpoint (base https://api.openai.com/v1, model from
  *    LUNA_MODEL, default "gpt-5.6-luna"). allowed=false => caller should
  *    store the post/comment with status='pending' for human review.
- *  - WITHOUT a key (UNCONFIGURED): fail-OPEN for writes; returns
- *    { allowed: true, heuristicHit: <actual hit> } so only posts matching a
- *    narrow obvious-spam shape are treated as suspicious. Ordinary posts go
- *    straight to `visible`. Reads may still proceed.
+ *  - WITHOUT a key (UNCONFIGURED): fail-CLOSED for writes; returns
+ *    { allowed: false, reason: "unconfigured", heuristicHit: <actual hit> }
+ *    so callers quarantine the text (status='pending') for human review
+ *    instead of publishing it straight to `visible`. An unconfigured
+ *    moderator cannot affirm safety, so nothing skips review.
  *  - IMAGES without a key: NOT approved here at all. Image safety is
  *    report-driven (report-button CSAM flow auto-hides + preserves sha256)
  *    plus the 1MB cap and magic-bytes checks in the upload route. This
  *    function never sees image bytes.
- *  - NEVER throws: every failure path returns { allowed: true, reason:
+ *  - NEVER throws: every failure path returns { allowed: false, reason:
  *    "unconfigured"|"moderation-unavailable", heuristicHit: <actual hit> }
- *    and logs server-side via console.error/warn. Fail-open keeps ordinary
- *    posts flowing; quarantine (pending/hidden) is reserved for clearly bad
- *    text, and the report button remains the safety net.
+ *    and logs server-side via console.error/warn. Fail-closed keeps
+ *    unreviewed text out of `visible`; quarantine (pending) is the holding
+ *    area until Luna is configured/healthy or a human reviews, and the
+ *    report button remains the safety net.
  */
 
 export type ModerationResult = {
@@ -60,11 +62,10 @@ export async function moderateText(text: string): Promise<ModerationResult> {
   if (!key) {
     const hit = heuristicCheck(input);
     if (hit) console.warn("[moderation] UNCONFIGURED heuristic hit; caller should use status=pending");
-    // Fail-open (medium-bar): an unconfigured moderator cannot affirm
-    // safety, but it also cannot condemn ordinary posts. Only a real
-    // heuristic hit marks the text suspicious; everything else flows to
-    // `visible` with the report button as the safety net.
-    return { allowed: true, reason: "unconfigured", heuristicHit: hit };
+    // Fail-closed: an unconfigured moderator cannot affirm safety, so the
+    // text is NOT cleared for `visible`. Callers quarantine it (pending)
+    // for human review; heuristicHit stays informational for the log.
+    return { allowed: false, reason: "unconfigured", heuristicHit: hit };
   }
 
   try {
@@ -100,9 +101,9 @@ export async function moderateText(text: string): Promise<ModerationResult> {
     }
     if (!res.ok) {
       console.error("[moderation] Luna HTTP", res.status);
-      // Fail-open (medium-bar): Luna down is not a verdict. Only a real
-      // fallback-pattern hit marks the text suspicious.
-      return { allowed: true, reason: "moderation-unavailable", heuristicHit: heuristicCheck(input) };
+      // Fail-closed: Luna down is not a verdict of safety. Quarantine for
+      // human review; heuristicHit stays informational for the log.
+      return { allowed: false, reason: "moderation-unavailable", heuristicHit: heuristicCheck(input) };
     }
     const data = (await res.json()) as {
       choices?: { message?: { content?: string } }[];
@@ -112,7 +113,7 @@ export async function moderateText(text: string): Promise<ModerationResult> {
     return { allowed: true };
   } catch (err) {
     console.error("[moderation] Luna fetch failed:", err);
-    // Fail-open (medium-bar): see above.
-    return { allowed: true, reason: "moderation-unavailable", heuristicHit: heuristicCheck(input) };
+    // Fail-closed: see above.
+    return { allowed: false, reason: "moderation-unavailable", heuristicHit: heuristicCheck(input) };
   }
 }

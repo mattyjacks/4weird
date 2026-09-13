@@ -1,0 +1,21 @@
+{
+  "id": "DS-VCWCODE-04",
+  "title": "Config safety pack (5 ways)",
+  "goal": "5 NEW config aids (never edit config/default.json): config/vcwcode-schema.json (JSON schema for serverPort/webEngine/etc), config/vcwcode-sample.json (documented sample), plus NOTES/env checklist/port-range/engine-values docs.",
+  "lane": "desktop",
+  "scope": [
+    "v2/desktop/code/config/vcwcode-*"
+  ],
+  "gates": [
+    "node --check on every new .js file"
+  ],
+  "status": "done",
+  "owner": "vcwcode-04",
+  "created": "2026-09-13T06:35:02.730Z",
+  "updated": "2026-09-13T06:35:02.730Z",
+  "log": [
+    "2026-09-13T06:35:02.730Z unassigned: envelope created for 50-ways desktop usefulness swarm (5 each x 10).",
+    "2026-09-13 claimed by vcwcode-04: in_progress, building 5 config aids under v2/desktop/code/config/vcwcode-*.",
+    "done: 5 new files created, gates green (schema OK, sample OK via node JSON.parse). default.json untouched (read-only reference)."
+  ]
+}

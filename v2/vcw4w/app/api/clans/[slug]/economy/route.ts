@@ -3,6 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { clientIp } from "@/lib/validate";
+import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit";
 import { rateLimit } from "@/lib/rate-limit";
 import { isClanType } from "@/lib/clan-types";
 
@@ -69,8 +70,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
 // { action: "donate", coins } - ANY member chips in for upkeep (1:1, no cut).
 // { action: "channel", kind, label, target_url? }; owner adds a channel.
 // { action: "type", clan_type }; owner switches hclan/sclan/bclan.
-// { action: "ad-view", channel_id }; anyone, IP-throttled, credits 0.01.
-// { action: "affiliate-click", channel_id }; anyone, IP-throttled, credits 0.05.
+// { action: "ad-view", channel_id }; signed-in callers only (the RPC revoked
+// anon in the security audit), IP-throttled + per-account hourly cap, credits 0.01.
+// { action: "affiliate-click", channel_id }; same guards, credits 0.05.
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
@@ -93,9 +95,23 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   if (action === "ad-view" || action === "affiliate-click") {
     const channelId = isUuid(input.channel_id);
     if (!channelId) return fail("Invalid channel.", 400);
+    // Revenue mints clan-wallet coins, so callers must be signed in: the
+    // credit_clan_channel_revenue RPC revoked anon in the security audit
+    // (authenticated-only grant), and anonymous calls died there with a 500.
+    // Fail fast with an honest 401 instead of a money-path round trip.
+    const { data: revAuth } = await supabase.auth.getUser();
+    const revUser = revAuth?.user;
+    if (!revUser) return fail("Login required.", 401);
     const ip = clientIp(req) || "unknown";
     const throttle = rateLimit(`clan-rev:${channelId}:${ip}`, action === "ad-view" ? 10 : 3, 3_600_000);
     if (!throttle.allowed) return fail("Too many requests.", 429);
+    // Distributed shield: revenue credits mint value, so cap them per account
+    // across all instances (a single account rotating IPs must not farm the
+    // per-IP throttle into an open mint; the RPC stays the atomic authority).
+    const revDist = await globalBucket(acctBucketKey("clan-rev-hour", revUser.id), 60, 3600);
+    if (revDist && !revDist.allowed) {
+      return fail("Too many requests. Try again shortly.", 429, throttleHeaders(revDist.retryAfter));
+    }
     const { data: rpcData, error } = await supabase.rpc("credit_clan_channel_revenue", {
       p_channel_id: channelId,
       p_event: action === "ad-view" ? "view" : "click",

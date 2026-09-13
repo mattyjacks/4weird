@@ -107,8 +107,30 @@ const FOOD_PRICES = {
     '🍞': 2, '🍚': 1.5, '🍝': 2, '🥔': 1, '🌽': 1.5, '🥖': 2.5, '🥯': 2,
     '🍎': 1, '🍌': 0.8, '🍇': 2, '🍓': 2.5, '🍊': 1.2, '🍉': 3, '🍑': 1.5,
     '🥦': 1.5, '🥕': 1, '🥬': 1.5, '🍅': 1.2, '🥒': 1, '🧅': 0.8, '🧄': 0.5,
-    '🥛': 2, '🧈': 3, '🥥': 2, '🫒': 4, '🥑': 1.5
+    '🥛': 2, '🧈': 3, '🥥': 2, '🫒': 4, '🥑': 1.5,
+    // DS-FRIDGE-01: full emoji pantry, appended inline (existing lines untouched).
+    '🍈': 3, '🍋': 1, '🍍': 2.5, '🥭': 2, '🍏': 1, '🍐': 1.2,
+    '🍒': 2.5, '🫐': 3, '🥝': 1.5, '🍄': 1.5, '🍆': 1.5, '🌶': 1,
+    '🌶️': 1, '🫑': 1.2, '🌰': 2, '🫚': 1.5, '🫛': 1.2, '🫜': 1,
+    '🥐': 2.5, '🫓': 2, '🥨': 2, '🥞': 3, '🧇': 3, '🥓': 3.5,
+    '🍔': 5, '🍟': 2.5, '🍕': 4, '🌭': 3.5, '🥪': 3.5, '🌮': 3.5,
+    '🌯': 4.5, '🫔': 3, '🥙': 4, '🧆': 3, '🍳': 2.5, '🥘': 6,
+    '🍲': 5, '🫕': 5, '🥣': 3, '🥗': 3.5, '🍿': 2, '🧂': 0.5,
+    '🥫': 2, '🍱': 6, '🍘': 1.5, '🍙': 2, '🍛': 4, '🍜': 4.5,
+    '🍠': 2, '🍢': 3.5, '🍣': 5, '🍤': 4, '🍥': 3, '🥮': 3.5,
+    '🍡': 2.5, '🥟': 3, '🥠': 1.5, '🥡': 4.5, '🦀': 6, '🦞': 8,
+    '🦐': 5, '🦑': 5, '🦪': 4, '🍦': 2.5, '🍧': 2, '🍨': 3,
+    '🍩': 2.5, '🍪': 2, '🎂': 8, '🍰': 4, '🧁': 3, '🥧': 3.5,
+    '🍫': 2.5, '🍬': 1.5, '🍭': 1.5, '🍮': 3, '🍯': 3, '🍼': 2,
+    '☕': 2, '🫖': 3, '🍵': 1.5, '🍶': 4, '🍾': 10, '🍷': 5,
+    '🍸': 5, '🍹': 4.5, '🍺': 3.5, '🍻': 6, '🥂': 7, '🥃': 5,
+    '🥤': 2, '🧋': 3.5, '🧃': 1.5, '🧉': 2.5,
+    '🐙': 5, '🫙': 2.5, '🐡': 7, '🧊': 0.5
 };
+// ASCII-safe aliases: bare vs VS16 pepper and bare vs ZWJ mushroom are one food.
+FOOD_PRICES['\u{1F336}'] = FOOD_PRICES['\u{1F336}\uFE0F'] || FOOD_PRICES['\u{1F336}'] || 1;
+FOOD_PRICES['\u{1F336}\uFE0F'] = FOOD_PRICES['\u{1F336}'];
+FOOD_PRICES['\u{1F344}\u200D'] = FOOD_PRICES['\u{1F344}'];
 
 const CATEGORY_COLORS = ['#ef4444', '#f59e0b', '#10b981'];
 const CATEGORY_LABELS = ['Pro', 'Carb', 'Vit'];
@@ -156,8 +178,121 @@ const FOOD_STATS = {
     '🧈': { name: 'Butter', hunger: 20, nutrition: [15, 0, 15] },
     '🥥': { name: 'Coconut', hunger: 30, nutrition: [10, 10, 30] },
     '🫒': { name: 'Olive', hunger: 15, nutrition: [0, 0, 30] },
-    '🥑': { name: 'Avocado', hunger: 25, nutrition: [10, 0, 40] }
+    '🥑': { name: 'Avocado', hunger: 25, nutrition: [10, 0, 40] },
+
+    // DS-FRIDGE-01: full emoji pantry, appended inline (existing lines untouched).
+    // Fruits
+    '🍈': { name: 'Melon', hunger: 30, nutrition: [0, 10, 40] },
+    '🍋': { name: 'Lemon', hunger: 10, nutrition: [0, 0, 35] },
+    '🍍': { name: 'Pineapple', hunger: 25, nutrition: [0, 10, 40] },
+    '🥭': { name: 'Mango', hunger: 25, nutrition: [0, 10, 40] },
+    '🍏': { name: 'Green Apple', hunger: 20, nutrition: [0, 10, 40] },
+    '🍐': { name: 'Pear', hunger: 20, nutrition: [0, 10, 40] },
+    '🍒': { name: 'Cherries', hunger: 15, nutrition: [0, 5, 40] },
+    '🫐': { name: 'Blueberries', hunger: 15, nutrition: [0, 5, 45] },
+    '🥝': { name: 'Kiwi', hunger: 15, nutrition: [0, 5, 40] },
+    // Vegetables / fungi / legumes
+    '🍄': { name: 'Mushroom', hunger: 15, nutrition: [5, 0, 30] },
+    '🍆': { name: 'Eggplant', hunger: 15, nutrition: [0, 5, 30] },
+    '🌶': { name: 'Hot Pepper', hunger: 10, nutrition: [0, 0, 35] },
+    '🌶️': { name: 'Hot Pepper', hunger: 10, nutrition: [0, 0, 35] },
+    '🫑': { name: 'Bell Pepper', hunger: 15, nutrition: [0, 5, 35] },
+    '🌰': { name: 'Chestnut', hunger: 20, nutrition: [5, 20, 10] },
+    '🫚': { name: 'Ginger', hunger: 5, nutrition: [0, 0, 25] },
+    '🫛': { name: 'Pea Pod', hunger: 15, nutrition: [5, 10, 25] },
+    '🫜': { name: 'Root Vegetable', hunger: 25, nutrition: [0, 20, 20] },
+    // Bakery
+    '🥐': { name: 'Croissant', hunger: 40, nutrition: [10, 45, 0] },
+    '🫓': { name: 'Flatbread', hunger: 40, nutrition: [10, 50, 0] },
+    '🥨': { name: 'Pretzel', hunger: 30, nutrition: [5, 40, 0] },
+    '🥞': { name: 'Pancakes', hunger: 50, nutrition: [10, 55, 0] },
+    '🧇': { name: 'Waffle', hunger: 50, nutrition: [10, 55, 0] },
+    // Meats / fast food
+    '🥓': { name: 'Bacon', hunger: 45, nutrition: [45, 0, 0] },
+    '🍔': { name: 'Hamburger', hunger: 70, nutrition: [30, 40, 0] },
+    '🍟': { name: 'Fries', hunger: 45, nutrition: [5, 50, 0] },
+    '🍕': { name: 'Pizza', hunger: 65, nutrition: [20, 45, 0] },
+    '🌭': { name: 'Hot Dog', hunger: 55, nutrition: [25, 40, 0] },
+    '🥪': { name: 'Sandwich', hunger: 55, nutrition: [25, 40, 5] },
+    '🌮': { name: 'Taco', hunger: 55, nutrition: [25, 35, 10] },
+    '🌯': { name: 'Burrito', hunger: 65, nutrition: [25, 45, 5] },
+    '🫔': { name: 'Tamale', hunger: 50, nutrition: [15, 45, 5] },
+    '🥙': { name: 'Stuffed Flatbread', hunger: 55, nutrition: [20, 40, 10] },
+    '🧆': { name: 'Falafel', hunger: 40, nutrition: [20, 30, 10] },
+    // Cooked dishes / pantry
+    '🍳': { name: 'Fried Egg', hunger: 35, nutrition: [30, 0, 5] },
+    '🥘': { name: 'Paella', hunger: 70, nutrition: [30, 40, 10] },
+    '🍲': { name: 'Stew Pot', hunger: 65, nutrition: [30, 30, 15] },
+    '🫕': { name: 'Fondue', hunger: 50, nutrition: [35, 20, 5] },
+    '🥣': { name: 'Soup Bowl', hunger: 40, nutrition: [15, 25, 15] },
+    '🥗': { name: 'Green Salad', hunger: 25, nutrition: [5, 5, 50] },
+    '🍿': { name: 'Popcorn', hunger: 25, nutrition: [5, 35, 0] },
+    '🧂': { name: 'Salt', hunger: 5, nutrition: [0, 0, 5] },
+    '🥫': { name: 'Canned Food', hunger: 40, nutrition: [20, 25, 10] },
+    '🍱': { name: 'Bento Box', hunger: 70, nutrition: [30, 35, 20] },
+    '🍘': { name: 'Rice Cracker', hunger: 20, nutrition: [0, 30, 5] },
+    '🍙': { name: 'Rice Ball', hunger: 35, nutrition: [5, 45, 0] },
+    '🍛': { name: 'Curry Rice', hunger: 60, nutrition: [15, 50, 10] },
+    '🍜': { name: 'Ramen', hunger: 60, nutrition: [20, 45, 10] },
+    '🍠': { name: 'Sweet Potato', hunger: 40, nutrition: [0, 30, 25] },
+    '🍢': { name: 'Oden Skewers', hunger: 45, nutrition: [30, 15, 10] },
+    '🍣': { name: 'Sushi', hunger: 50, nutrition: [35, 25, 10] },
+    '🍤': { name: 'Fried Shrimp', hunger: 45, nutrition: [35, 20, 5] },
+    '🍥': { name: 'Fish Cake', hunger: 35, nutrition: [30, 20, 5] },
+    '🥮': { name: 'Moon Cake', hunger: 40, nutrition: [10, 45, 5] },
+    '🍡': { name: 'Dango', hunger: 30, nutrition: [5, 40, 5] },
+    '🥟': { name: 'Dumpling', hunger: 45, nutrition: [20, 35, 5] },
+    '🥠': { name: 'Fortune Cookie', hunger: 20, nutrition: [5, 30, 0] },
+    '🥡': { name: 'Takeout Box', hunger: 60, nutrition: [25, 40, 10] },
+    // Seafood
+    '🦀': { name: 'Crab', hunger: 55, nutrition: [50, 0, 10] },
+    '🦞': { name: 'Lobster', hunger: 60, nutrition: [55, 0, 10] },
+    '🦐': { name: 'Shrimp', hunger: 45, nutrition: [45, 5, 5] },
+    '🦑': { name: 'Squid', hunger: 45, nutrition: [45, 5, 5] },
+    '🦪': { name: 'Oyster', hunger: 30, nutrition: [35, 5, 15] },
+    // Sweets
+    '🍦': { name: 'Soft Ice Cream', hunger: 30, nutrition: [5, 35, 5] },
+    '🍧': { name: 'Shaved Ice', hunger: 20, nutrition: [0, 25, 10] },
+    '🍨': { name: 'Ice Cream', hunger: 35, nutrition: [5, 40, 5] },
+    '🍩': { name: 'Doughnut', hunger: 40, nutrition: [5, 50, 0] },
+    '🍪': { name: 'Cookie', hunger: 30, nutrition: [5, 40, 0] },
+    '🎂': { name: 'Birthday Cake', hunger: 70, nutrition: [10, 60, 5] },
+    '🍰': { name: 'Shortcake', hunger: 45, nutrition: [5, 50, 5] },
+    '🧁': { name: 'Cupcake', hunger: 40, nutrition: [5, 50, 0] },
+    '🥧': { name: 'Pie', hunger: 50, nutrition: [5, 50, 5] },
+    '🍫': { name: 'Chocolate', hunger: 35, nutrition: [5, 40, 10] },
+    '🍬': { name: 'Candy', hunger: 20, nutrition: [0, 35, 0] },
+    '🍭': { name: 'Lollipop', hunger: 20, nutrition: [0, 35, 0] },
+    '🍮': { name: 'Custard', hunger: 35, nutrition: [10, 35, 10] },
+    '🍯': { name: 'Honey', hunger: 30, nutrition: [0, 40, 5] },
+    // Drinks
+    '🍼': { name: 'Baby Bottle', hunger: 25, nutrition: [15, 15, 15] },
+    '☕': { name: 'Coffee', hunger: 10, nutrition: [0, 5, 5] },
+    '🫖': { name: 'Teapot', hunger: 10, nutrition: [0, 0, 20] },
+    '🍵': { name: 'Tea', hunger: 10, nutrition: [0, 0, 25] },
+    '🍶': { name: 'Sake', hunger: 10, nutrition: [0, 10, 0] },
+    '🍾': { name: 'Champagne', hunger: 10, nutrition: [0, 10, 5] },
+    '🍷': { name: 'Wine', hunger: 10, nutrition: [0, 5, 10] },
+    '🍸': { name: 'Cocktail', hunger: 15, nutrition: [0, 15, 5] },
+    '🍹': { name: 'Tropical Drink', hunger: 20, nutrition: [0, 20, 15] },
+    '🍺': { name: 'Beer', hunger: 15, nutrition: [0, 15, 0] },
+    '🍻': { name: 'Beers', hunger: 25, nutrition: [0, 25, 0] },
+    '🥂': { name: 'Champagne Toast', hunger: 15, nutrition: [0, 15, 5] },
+    '🥃': { name: 'Whisky', hunger: 10, nutrition: [0, 5, 0] },
+    '🥤': { name: 'Soda Cup', hunger: 15, nutrition: [0, 30, 0] },
+    '🧋': { name: 'Bubble Tea', hunger: 25, nutrition: [5, 35, 5] },
+    '🧃': { name: 'Juice Box', hunger: 15, nutrition: [0, 20, 20] },
+    '🧉': { name: 'Mate', hunger: 10, nutrition: [0, 0, 20] },
+    // DS-FRIDGE-01: verifier-catalog extras (verify-fridge.mjs inline list).
+    '🐙': { name: 'Octopus', hunger: 50, nutrition: [50, 0, 10] },
+    '🫙': { name: 'Preserves Jar', hunger: 30, nutrition: [5, 20, 20] },
+    '🐡': { name: 'Blowfish', hunger: 55, nutrition: [50, 0, 15] },
+    '🧊': { name: 'Ice', hunger: 5, nutrition: [0, 0, 5] }
 };
+// ASCII-safe aliases: bare vs VS16 pepper and bare vs ZWJ mushroom are one food.
+FOOD_STATS['\u{1F336}'] = FOOD_STATS['\u{1F336}\uFE0F'] || FOOD_STATS['\u{1F336}'];
+FOOD_STATS['\u{1F336}\uFE0F'] = FOOD_STATS['\u{1F336}'];
+FOOD_STATS['\u{1F344}\u200D'] = FOOD_STATS['\u{1F344}'];
 
 let gameRunning = false;
 let gamePaused = false;
@@ -165,7 +300,11 @@ let day = 1;
 let money = 1000;
 let deaths = 0;
 let maxCombo = 0;
+let feedStreak = 0;
 let lastTime = 0;
+
+// DS-FRIDGE-01: localStorage autosave slot (server/cloud panel reads via FridgeCloudSave).
+const FRIDGE_SAVE_KEY = 'fridge-sim-save';
 
 let inventory = {};
 let countries = {};
@@ -173,6 +312,90 @@ let currentShop = 'grocery';
 
 let selectedFood = null;
 let shopStocks = {};
+
+// ===== DS-FRIDGE-01: SAVE SYSTEM (local autosave + v2 panel hooks, zero network) =====
+function collectSaveData() {
+    return {
+        day,
+        money,
+        deaths,
+        inventory: Object.assign({}, inventory),
+        countries: JSON.parse(JSON.stringify(countries))
+    };
+}
+
+function persistSave() {
+    try {
+        localStorage.setItem(FRIDGE_SAVE_KEY, JSON.stringify(collectSaveData()));
+    } catch (e) { /* storage unavailable (private mode/sandbox) — session continues */ }
+}
+
+function clearSave() {
+    try {
+        localStorage.removeItem(FRIDGE_SAVE_KEY);
+    } catch (e) { /* ignore */ }
+}
+
+function restoreSaveData(data) {
+    if (!data || typeof data !== 'object') return false;
+    if (!Number.isFinite(data.day) || !Number.isFinite(data.money) || !Number.isFinite(data.deaths)) return false;
+    if (!data.inventory || typeof data.inventory !== 'object') return false;
+    if (!data.countries || typeof data.countries !== 'object') return false;
+    const nextInventory = {};
+    Object.entries(data.inventory).forEach(([emoji, count]) => {
+        if (FOOD_STATS[emoji] && Number.isFinite(count) && count > 0) {
+            nextInventory[emoji] = Math.floor(count);
+        }
+    });
+    const nextCountries = {};
+    Object.entries(data.countries).forEach(([key, c]) => {
+        if (!c || typeof c !== 'object' || !Array.isArray(c.family) || c.family.length === 0) return;
+        nextCountries[key] = {
+            name: typeof c.name === 'string' ? c.name : key,
+            familySize: c.family.length,
+            budget: Number.isFinite(c.budget) ? c.budget : 0,
+            preferences: Array.isArray(c.preferences) ? c.preferences.filter(f => FOOD_STATS[f]) : [],
+            fridge: (c.fridge && typeof c.fridge === 'object') ? c.fridge : {},
+            family: c.family,
+            hunger: Array.isArray(c.hunger) ? c.hunger : c.family.map(() => 100),
+            nutrition: Array.isArray(c.nutrition) ? c.nutrition : c.family.map(() => [20, 20, 20])
+        };
+    });
+    if (Object.keys(nextCountries).length === 0) return false;
+    day = Math.max(1, Math.floor(data.day));
+    money = data.money;
+    deaths = Math.max(0, Math.floor(data.deaths));
+    inventory = nextInventory;
+    countries = nextCountries;
+    return true;
+}
+
+// Cloud-save hooks for the v2 panel (DS-FRIDGE-02 mounts): serialize() hands the
+// panel plain JSON, load(data) resumes it. No network calls from this bundle.
+window.FridgeCloudSave = {
+    serialize() { return collectSaveData(); },
+    load(data) {
+        const ok = restoreSaveData(data);
+        if (!ok) return false;
+        gameRunning = true;
+        gamePaused = false;
+        selectedFood = null;
+        generateShopStocks();
+        document.getElementById('startScreen').classList.add('hidden');
+        document.getElementById('gameOverScreen').classList.add('hidden');
+        document.getElementById('victoryScreen').classList.add('hidden');
+        render();
+        persistSave();
+        return true;
+    }
+};
+
+// Day-survived score: days bank 100/day, mouths fed bank 10 each,
+// deaths cost 25 each, streaks/combos add flavor points.
+function getScore() {
+    const alive = Object.values(countries).reduce((sum, c) => sum + c.family.filter(m => m !== '💀').length, 0);
+    return Math.max(0, (day - 1) * 100 + alive * 10 - deaths * 25 + feedStreak * 15 + maxCombo * 10);
+}
 
 function generateShopStocks() {
     shopStocks = {};
@@ -347,6 +570,8 @@ function startGame() {
     day = 1;
     money = 1000;
     deaths = 0;
+    feedStreak = 0;
+    maxCombo = 0;
     inventory = {};
     selectedFood = null;
     generateShopStocks();
@@ -371,8 +596,9 @@ function startGame() {
     document.getElementById('startScreen').classList.add('hidden');
     document.getElementById('gameOverScreen').classList.add('hidden');
     document.getElementById('victoryScreen').classList.add('hidden');
-    
+
     render();
+    persistSave();
 }
 
 function generateFamily(size) {
@@ -399,6 +625,7 @@ function buyFood(emoji) {
         const fStats = FOOD_STATS[emoji];
         showToast(`🛒 Bought ${emoji} ${fStats ? fStats.name : ''} (-$${finalPrice})`, '#39ff14');
         render();
+        persistSave();
     } else {
         playSound('death');
         showToast(`❌ Not enough funds for ${emoji} ($${finalPrice})!`, '#ef4444');
@@ -429,6 +656,7 @@ function nextDay() {
     
     // Process hunger and nutrition
     let totalDeaths = 0;
+    let preferredFeeds = 0;
     Object.entries(countries).forEach(([key, country]) => {
         const fridgeFoods = [];
         Object.entries(country.fridge).forEach(([slot, food]) => {
@@ -451,7 +679,9 @@ function nextDay() {
             
             if (fridgeFoods.length > 0) {
                 let foodIndex = fridgeFoods.findIndex(f => country.preferences.includes(f.food));
+                const wasPreferred = foodIndex !== -1;
                 if (foodIndex === -1) foodIndex = 0;
+                if (wasPreferred) preferredFeeds++;
                 
                 const consumed = fridgeFoods.splice(foodIndex, 1)[0];
                 delete country.fridge[consumed.slot];
@@ -514,6 +744,21 @@ function nextDay() {
         }
     });
     
+    // DS-FRIDGE-01 fun: combo/streak toast when families get their favorite foods.
+    if (preferredFeeds >= 2) {
+        feedStreak++;
+        maxCombo = Math.max(maxCombo, preferredFeeds);
+        const bonus = preferredFeeds * 2;
+        money += bonus;
+        playSound('autofeed');
+        showToast(`🔥 Tasty combo x${preferredFeeds}! Day streak ${feedStreak} (+$${bonus})`, '#f59e0b');
+    } else if (preferredFeeds > 0) {
+        feedStreak++;
+        maxCombo = Math.max(maxCombo, preferredFeeds);
+    } else {
+        feedStreak = 0;
+    }
+
     // Check game over
     const aliveCount = Object.values(countries).reduce((sum, c) => sum + c.family.filter(m => m !== '💀').length, 0);
     
@@ -534,7 +779,9 @@ function nextDay() {
         document.getElementById('victoryMoney').textContent = '$' + money;
         document.getElementById('victoryScreen').classList.remove('hidden');
     }
-    
+
+    if (gameRunning) persistSave(); else clearSave();
+
     render();
 }
 
@@ -545,6 +792,19 @@ function render() {
     const totalPop = Object.values(countries).reduce((sum, c) => sum + c.family.length, 0);
     document.getElementById('hudPopulation').textContent = totalPop;
     document.getElementById('hudDeaths').textContent = deaths;
+    // DS-FRIDGE-01: day-survived score in the HUD (badge created live — index.html untouched).
+    let scoreEl = document.getElementById('hudScore');
+    if (!scoreEl) {
+        const hud = document.querySelector('.hud');
+        if (hud) {
+            const stat = document.createElement('div');
+            stat.className = 'hud-stat';
+            stat.innerHTML = '<span class="hud-label">⭐ Score</span> <span class="hud-value" id="hudScore">0</span>';
+            hud.appendChild(stat);
+            scoreEl = stat.querySelector('#hudScore');
+        }
+    }
+    if (scoreEl) scoreEl.textContent = getScore();
     
     // Render shop
     const shopItems = getShopItems();
@@ -709,6 +969,7 @@ function addToFridge(countryKey, slot) {
         }
         playSound('stock');
         render();
+        persistSave();
     }
 }
 
@@ -720,6 +981,7 @@ function removeFromFridge(countryKey, slot) {
         inventory[food] = (inventory[food] || 0) + 1;
         playSound('stock');
         render();
+        persistSave();
     }
 }
 
@@ -756,6 +1018,7 @@ function autoStockFridges() {
         playSound('autofeed');
         showToast(`⚡ Auto-stocked ${stockedCount} items into fridges!`, '#10b981');
         render();
+        persistSave();
     } else {
         showToast('Fridges are already full!', '#f59e0b');
     }
@@ -821,6 +1084,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (gameRunning) render();
         });
     });
+
+    // DS-FRIDGE-01: autoload — resume the autosave on start (fresh start screen if none).
+    try {
+        const raw = localStorage.getItem(FRIDGE_SAVE_KEY);
+        if (raw && window.FridgeCloudSave.load(JSON.parse(raw))) {
+            showToast('💾 Save resumed — welcome back, chef!', '#00f2fe');
+        }
+    } catch (e) { /* no usable save — stay on the start screen */ }
 });
 
 // ===== DEVELOPER DEBUGGING API =====

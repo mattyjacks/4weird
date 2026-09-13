@@ -1,0 +1,21 @@
+{
+  "id": "DS-VCWCODE-09",
+  "title": "Dashboard UX aids pack (5 ways)",
+  "goal": "5 NEW frontend/vcwcode-* aids (no edits to existing frontend): loading-state snippet, offline-banner snippet, key-drawer-hints snippet, engine-selector-note, error-toast snippet + NOTES.md wiring requests.",
+  "lane": "desktop",
+  "scope": [
+    "v2/desktop/code/frontend/vcwcode-*"
+  ],
+  "gates": [
+    "node --check on every new .js file"
+  ],
+  "status": "done",
+  "owner": "vcwcode-09",
+  "created": "2026-09-13T06:35:02.730Z",
+  "updated": "2026-09-13T06:35:02.730Z",
+  "log": [
+    "2026-09-13T06:35:02.730Z unassigned: envelope created for 50-ways desktop usefulness swarm (5 each x 10).",
+    "2026-09-13 claimed by vcwcode-09 (desktop lane): in_progress, listing frontend dir done.",
+    "2026-09-13 vcwcode-09 done: 5 NEW files in v2/desktop/code/frontend/ (vcwcode-loading-state.html, vcwcode-offline-banner.js, vcwcode-key-drawer-hints.md, vcwcode-engine-note.md, VCWCODE-NOTES.md); no existing files edited. Gates: node --check vcwcode-offline-banner.js PASS (no output); read-back verify all 5 PASS."
+  ]
+}

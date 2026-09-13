@@ -1,0 +1,31 @@
+{
+  "id": "DS-FOOD-09",
+  "title": "Food batch 09: pinch-salt ... cellar-spaghetti (9 items x 3 games x 3 modes)",
+  "goal": "Batch-09 done-state: v2/vcw4w/content/gravegain-food-batch-09.ts exports GRAVE_GAIN_FOOD_BATCH_09 with all 9 roster idx 71-79 items, each carrying full gravegain1d/2d/3d x endless/mission/mmorpg stats via buildFoodStatsTable() plus a 4..120-char drop note per game/mode, validateFoodBatch() clean; tsc + eslint + bundles + catalog-runtime green.",
+  "lane": "games",
+  "scope": [
+    "v2/vcw4w/content/gravegain-food-batch-09.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint content/gravegain-food-batch-09.ts",
+    "node scripts/verify-game-bundles.mjs",
+    "node scripts/verify-catalog-runtime.mjs",
+    "node scripts/verify-devswarm.mjs"
+  ],
+  "status": "blocked",
+  "owner": "food-b09",
+  "created": "2026-09-13T07:55:00.000Z",
+  "updated": "2026-09-13T08:25:24.000Z",
+  "log": [
+    "2026-09-13T07:55:00.000Z lead: envelope created, awaiting claim.",
+    "2026-09-13T08:14:10.000Z food-b09: claimed, starting batch 09.",
+    "2026-09-13T08:25:24.000Z food-b09: batch file written (9 ids in order, 81/81 notes 40..54 chars, spread entries, no emoji literals).",
+    "2026-09-13T08:25:24.000Z food-b09 EVIDENCE tsc: 0 errors mentioning batch-09 (2 pre-existing in app/api/presence/mmo/heartbeat/route.ts).",
+    "2026-09-13T08:25:24.000Z food-b09 EVIDENCE eslint content/gravegain-food-batch-09.ts: exit 0.",
+    "2026-09-13T08:25:24.000Z food-b09 EVIDENCE verify-game-bundles.mjs: green (26 byte-locked, 199 diverged, 141 extra).",
+    "2026-09-13T08:25:24.000Z food-b09 EVIDENCE verify-catalog-runtime.mjs: RED pre-existing app/vibecodeworker/[section]/page.tsx not closed-catalog (other lane scope).",
+    "2026-09-13T08:25:24.000Z food-b09 EVIDENCE verify-devswarm.mjs: RED STATUS.json counts vs TASKS mismatch under live-swarm churn (STATUS.json steward-owned).",
+    "2026-09-13T08:25:24.000Z food-b09: blocked — 2 red gates are pre-existing/out-of-scope; QUEUE to steward for STATUS recount + vibecodeworker lane fix."
+  ]
+}

@@ -1,0 +1,28 @@
+{
+    "id":  "DS-MMO-02",
+    "title":  "1D MMORPG mode Ley-Line March Online",
+    "goal":  "New adapter v2/vcw4w/public/games/gravegain1d/mmo-1d.js wrapping GraveGainMPAdapter: sharded persistent ley line, caravan parties up to 4 with shield-wall aura and shared boss HP pools, rival ghosts, hourly Gate Titan world boss, charge-relay events, endless ladder ghosts. Overlay only, dormant without ?line=, max 12 marks. Never touch game.js, game.json, index.html, game.css, mp-1d.js.",
+    "lane":  "games",
+    "scope":  [
+                  "v2/vcw4w/public/games/gravegain1d/mmo-1d.js",
+                  "v2/vcw4w/public/games/gravegain1d/mmo-1d.css",
+                  "v2/vcw4w/public/games/gravegain1d/mmo-1d.json"
+              ],
+    "gates":  [
+                  "node --check mmo-1d.js",
+                  "node scripts/verify-game-bundles.mjs",
+                  "node scripts/verify-catalog-runtime.mjs"
+              ],
+    "status":  "blocked",
+    "owner":  "mmo-a02",
+    "created":  "2026-09-13T07:58:53.000Z",
+    "updated":  "2026-09-13T09:25:00.000Z",
+    "log":  [
+                "2026-09-13T07:58:53.000Z mmo-lead: envelope created from 15-agent plan, awaiting claim.",
+                "2026-09-13T08:02:31.000Z mmo-lead: disk check - sibling done envelope targets overlapping purpose but its file is ABSENT on disk (1D02/2D03/3D04). This envelope stays open; claimant must list the tree first and request steward single-winner ruling in QUEUE before writing.",
+                "2026-09-13T09:10:00.000Z mmo-a02: claimed. Tree listed: gravegain1d/ holds game.css/game.js/game.json/index.html/mmorpg-1d.js/mp-1d.js - mmo-1d.* ABSENT, no byte collision. Sibling mmorpg-1d.js is a different file/contract (?mmorpg=, window.GraveGainMPAdapterMMORPG1D, 32-peer horde); mine is ?line= + window.GraveGainMMO1D, max 12 marks. No single-winner ruling needed; standard script-tag wiring request to follow via QUEUE.",
+                "2026-09-13T09:20:00.000Z mmo-a02: landed 3 NEW scope files, zero edits elsewhere: mmo-1d.js (Ley-Line March Online adapter, window.GraveGainMMO1D mode march, wraps GraveGainMPAdapter read-through without replacing it, caravan<=4/aura 8-15-25/shared boss pool/hourly Gate Titan/charge-relay watermarks/ladder top5/max 12 marks/dormant without ?line=, _pure exposed), mmo-1d.css (#gg1dMmoOverlay-scoped), mmo-1d.json (manifest). game.js/game.json/index.html/game.css/mp-1d.js untouched (git shows only ?? new files in scope).",
+                "2026-09-13T09:22:00.000Z mmo-a02: gates - node --check mmo-1d.js PASS (silent, exit 0); node smoke PASS (aura 0/8/15/25, titan bucket0 active msLeft600000 hp100000, relay [1000,2000], caravan split 3+2, boss pool 150/400, mode march); mmo-1d.json JSON.parse OK; verify-game-bundles.mjs GREEN (225 archived: 26 byte-locked, 199 diverged, 141 v2-native extra).",
+                "2026-09-13T09:24:00.000Z mmo-a02: verify-catalog-runtime.mjs RED on app/vibecodeworker/[section]/page.tsx closed-static-catalog assertion (vcw-lane scope, untouched by me). Isolation proof: moved my 3 files aside, re-ran verifier from v2/vcw4w - IDENTICAL RED, then restored all 3 (9 files in gravegain1d/, --check re-PASS). Pre-existing extrinsic failure, so envelope set blocked (never done on red) pending steward/vcw-lane repair; unblock needs only that gate green, no rework on my files. QUEUE wiring line filed for script-tag hookup."
+            ]
+}

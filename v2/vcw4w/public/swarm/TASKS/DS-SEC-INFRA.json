@@ -1,0 +1,34 @@
+{
+    "created":  "2026-09-13T07:00:00.000Z",
+    "gates":  [
+                  "node scripts/verify-bouncer.mjs",
+                  "node scripts/verify-quantum-hardening.mjs",
+                  "node scripts/verify-abuse-limits.mjs",
+                  "node scripts/verify-migration-versions.mjs",
+                  "node scripts/verify-devswarm.mjs"
+              ],
+    "goal":  "Infra security lane done-state: proxy/instrumentation enforce auth + BotID gating, abuse/IP throttles present on guest + kid-login + bonus routes, RLS enabled with policies on all new tables (no access-locked tables without ruling), migrations append-only + version-ordered. Reviewer re-runs the five gates green.",
+    "id":  "DS-SEC-INFRA",
+    "lane":  "infra",
+    "log":  [
+                "2026-09-13T07:00:00.000Z lead: envelope created, awaiting claim.",
+                "2026-09-13T07:05:50.247Z sec-infra-7g: claimed, starting scope survey.",
+                "2026-09-13T07:13:36.797Z sec-infra-7g: AUDIT proxy.ts OK (CSRF same-origin gate + bot4weird_/vcw_live_ shape exemption + Bearer 20+ shape + kid_session/sb-* session-cookie check + /api/auth/logout carve-out + matcher account/auth/api/bot only, no edge/floating-fetch). instrumentation-client.ts OK (BotID deepAnalysis Tier0-3 incl /api/auth|family|games|coins + money/AI/social tiers; cron/webhook/blender-progress/health exclusions documented, never checkBotId there).",
+                "2026-09-13T07:13:36.797Z sec-infra-7g: AUDIT throttles OK — guest-pass burst(10/m)+day+shared guest-day w/ sharedDay.hits authoritative + HMAC ad-token chain; kid-login sameOrigin+requireHuman+IP local(10/m)+shared kid-login-hour(100/h)+per-handle local(10/m)+shared(30/h) + dummy KDF on miss; daily allowTrustedMachine:false + per-user(5/m)+shared daily-hour(20/h) + tester-session refuse. lib/botid.ts fail-closed bots / fail-open verifier-outage / dev bypass documented.",
+                "2026-09-13T07:13:36.797Z sec-infra-7g: AUDIT RLS repo-wide scan: 215 created tables, 215 ENABLE RLS (0 missing). Locked new tables filed as QUEUE data/auth lines (dps_nodes/dps_tasks/community_mods/community_themes re-confirm + chat_participants NEW: 00001 covers notifications/threads/messages but not participants). Zero policies invented (out of scope). No coin-ledger columns anywhere in scope. A02 QUEUE-115 items reviewed: (1) conditional on future proxy logging — no action now; (2)/(3) optional perf-bootstrap/proxy-bundle hygiene — declined, no failing gate, will not risk green security files; (4) turbopack no-action confirmed.",
+                "2026-09-13T07:13:36.797Z sec-infra-7g: GATES from v2/vcw4w/ — verify-bouncer OK (6 cols + bouncer_batches batch_hash/total_checked/counts + RLS + select-own policy + idx + 5-status CHECK + no-coin-touch + .env BOUNCER_API_KEY/USEBOUNCER alias/x-api-key + 108-file swarm secret scan clean); verify-quantum-hardening ok; verify-abuse-limits OK (shared Postgres buckets on signup/login/kid-login/guest/daily/claim/referral/zip/vault-upload); verify-migration-versions OK (103 files, unique versions, rerunnable guards).",
+                "2026-09-13T07:13:36.797Z sec-infra-7g: DECISION 00003 NOT created — zero genuine infra gaps per brief rule (migrations append-only; empty marker file would be noise). Slot 20261116000003 left free for DS-SEC-INFRA-01/steward; QUEUE lines filed. CLOSE blocked: verify-devswarm RED extrinsic — DS-BOUNCER-01..05 missing updated (bouncer-infra/lib/api/crm/page) + DS-SEC-VCW-01.json \u0026 DS-SEC-VCW.json UNPARSEABLE (vcw lane); none touched (out of scope). STATUS recount requested, not hand-edited."
+            ],
+    "owner":  "sec-infra-7g",
+    "scope":  [
+                  "v2/vcw4w/proxy.ts",
+                  "v2/vcw4w/instrumentation-client.ts",
+                  "v2/vcw4w/scripts/verify-bouncer.mjs",
+                  "v2/vcw4w/scripts/verify-quantum-hardening.mjs",
+                  "v2/vcw4w/scripts/verify-abuse-limits.mjs",
+                  "v2/vcw4w/supabase/migrations/20261116000003_security_sweep.sql"
+              ],
+    "status":  "blocked",
+    "title":  "Security sweep INFRA: proxy/bouncer + throttles + RLS",
+    "updated":  "2026-09-13T07:13:36.797Z"
+}

@@ -1,0 +1,32 @@
+{
+    "id":  "DS-MMO-07",
+    "title":  "Server browser plus rent flow UI",
+    "goal":  "New pages app/games/servers (browser with dimension, age band, population, live per-minute quote, free-play badge), servers/rent (5-step form: game, size, age band, subsidy, quote plus confirm), servers/detail, plus client components server-browser, server-card, server-rent-form, server-panel, server-host-controls, server-quote. Follow game-catalog and PlayGate conventions. Shared manifests untouched; file QUEUE wiring for catalog and lobby APIs.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/games/servers/page.tsx",
+                  "v2/vcw4w/app/games/servers/rent/page.tsx",
+                  "v2/vcw4w/app/games/servers/[id]/page.tsx",
+                  "v2/vcw4w/components/games/server-browser.tsx",
+                  "v2/vcw4w/components/games/server-card.tsx",
+                  "v2/vcw4w/components/games/server-rent-form.tsx",
+                  "v2/vcw4w/components/games/server-panel.tsx",
+                  "v2/vcw4w/components/games/server-host-controls.tsx",
+                  "v2/vcw4w/components/games/server-quote.tsx"
+              ],
+    "gates":  [
+                  "npx tsc --noEmit",
+                  "npx eslint"
+              ],
+    "status":  "done",
+    "owner":  "mmo-a07",
+    "created":  "2026-09-13T07:58:53.000Z",
+    "updated":  "2026-09-13T09:35:00.000Z",
+    "log":  [
+                "2026-09-13T07:58:53.000Z mmo-lead: envelope created from 15-agent plan, awaiting claim.",
+                "2026-09-13T08:02:31.000Z mmo-lead: convergence note - sibling done tree covers adjacent purpose (app/mmorpg, docs/mmorpg). This envelope stays open on disjoint paths; claimant must converge with (not fork) the sibling tree and file wiring via QUEUE.",
+                "2026-09-13T08:15:00.000Z mmo-a07: claimed. Scope check: all 9 paths absent on disk (no clobber risk); sibling components/mmorpg/server-browser.tsx + server-card.tsx present (converge prop shapes, no overwrite); live APIs GET/POST /api/mmorpg/servers + GET /api/mmorpg/quote + POST /api/mmorpg/rent present (wire to them, fail-open). LANES.md assigns app/games/** + components/games/** to games lane but this envelope (lane web) explicitly scopes these 9 paths with zero sibling-envelope overlap — proceeding per binding brief, flagging for steward in report.",
+                "2026-09-13T09:35:00.000Z mmo-a07: LANDED all 9 scope files (NEW only, zero bytes elsewhere): pages servers/ (browser shell + rent CTA), servers/rent/ (catalog-fed picker via getCachedGames), servers/[id]/ (id-validated, client ServerDetail loader + host controls). Components: server-card (GameServer type field-identical to sibling MmoServer + toGameServer/toGameServers/normalizeAgeBand/serverJoinHref bridge + FreePlayBadge), server-quote (live GET quote?serverId= with local rate-card fallback), server-browser (dimension facet from declared values only + age-band + population filters over live GET servers), server-rent-form (5 steps game/size/band/subsidy/quote+confirm; live POST rent quote with local kids0/teens2/adults5 fallback; confirm POSTs servers create fail-open), server-panel (presentational detail + ServerDetail loader), server-host-controls (host-only start/stop/restart, guests see notice). Conventions: game-catalog shell (canonical + breadcrumb JSON-LD + dark bg), PlayGate fetch discipline (credentials include, no-store, fail-open offline copy, join stays a click). No old-v1, no secrets, no shared-manifest edits.",
+                "2026-09-13T09:35:00.000Z mmo-a07: GATES GREEN — npx tsc --noEmit from v2/vcw4w: exit 0, zero output (repo-wide clean). npx eslint on all 9 scope files: exit 0, zero output. QUEUE wiring filed (append-only, 3 lines: site-nav nav/sitemap for 3 routes; lobby-API contract notes for games/lobby owners incl. DS-MMO-09 supersede path + host-actions question; line-221 convergence answer). STATUS.json untouched (steward recount on close: in_progress -1, done +1). Envelope in_progress->done."
+            ]
+}

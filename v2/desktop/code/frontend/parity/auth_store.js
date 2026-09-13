@@ -1,7 +1,11 @@
 /* VCW desktop parity — unified auth store (plain script, node --check clean). */
 (function () {
   "use strict";
-  var BOT_RE = /^bot4weird_[A-Za-z0-9]{20}$|^bot4weird_[A-Za-z0-9]{32}$/;
+  // Canonical bot-key shape: `bot4weird_` + 20-32 alphanumerics (32 current
+  // issuance, 20 legacy rows, anything in between shape-valid and verified
+  // server-side). Must match BOT_KEY_RE in modules/bot_token.js, the Rust
+  // is_valid_bot_token in src-tauri, and isValidBotKeyFormat in lib/bot-auth.ts.
+  var BOT_RE = /^bot4weird_[A-Za-z0-9]{20,32}$/;
   var GATEWAY_RE = /^vcw_live_[A-Za-z0-9]{32}$/;
   var KEYS = { bot: "vcw_parity_bot", gateway: "vcw_parity_gateway", fal: "vcw_fal_key", runpod: "vibe_runpod_key" };
 
@@ -31,7 +35,7 @@
   }
   function save(slot, value) {
     var v = String(value == null ? "" : value).trim();
-    if (slot === "bot" && v && !isBotShape(v)) return { ok: false, error: "Bot key shape must be bot4weird_ + 20 or 32 alphanumerics." };
+    if (slot === "bot" && v && !isBotShape(v)) return { ok: false, error: "Bot key shape must be bot4weird_ + 20-32 alphanumerics." };
     if (slot === "gateway" && v && !isGatewayShape(v)) return { ok: false, error: "Gateway key shape must be vcw_live_ + 32 alphanumerics." };
     // Migrate legacy localStorage keys away on save.
     try {

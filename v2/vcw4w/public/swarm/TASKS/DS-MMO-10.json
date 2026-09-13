@@ -1,0 +1,24 @@
+{
+    "id":  "DS-MMO-10",
+    "title":  "MMO base migrations",
+    "goal":  "Append-only migrations after 20261202 versions with rerunnable guards: mmo_servers (game, host, team nullable, age_band check, cap 2 to 256, subsidy mode, rate, status), mmo_membership plus mmo_presence, mmo_meter charge rows only. RLS host-owns plus member-reads-joined plus RPC-only writes. Zero coin or ledger columns; ledger hooks belong to DS-MMO-14.",
+    "lane":  "infra",
+    "scope":  [
+                  "v2/vcw4w/supabase/migrations/20261203000000_mmo_servers.sql",
+                  "v2/vcw4w/supabase/migrations/20261203000001_mmo_membership.sql",
+                  "v2/vcw4w/supabase/migrations/20261203000002_mmo_meter.sql"
+              ],
+    "gates":  [
+                  "node scripts/verify-migration-versions.mjs"
+              ],
+    "status":  "done",
+    "owner":  "mmo-a10",
+    "created":  "2026-09-13T07:58:53.000Z",
+    "updated":  "2026-09-13T07:58:53.000Z",
+    "log":  [
+                "2026-09-13T07:58:53.000Z mmo-lead: envelope created from 15-agent plan, awaiting claim.",
+                "2026-09-13T09:00:00.000Z mmo-a10: claimed infra lane; scope is 3x 20261203 migrations after 20261202 tail; teams idiom public.teams+team_members(team_id).",
+                "2026-09-13T09:10:00.000Z mmo-a10: wrote 000000_mmo_servers (game/host/team nullable/age_band/cap 2-256/subsidy/rate/status) + 000001_mmo_membership/mmo_presence + 000002_mmo_meter charge-only; RLS host-owns + member-reads-joined + RPC-only writes; zero coin/ledger schema objects.",
+                "2026-09-13T09:11:00.000Z mmo-a10: gate green — node scripts/verify-migration-versions.mjs: 'Migration versions OK: 109 files, unique versions, rerunnable guards present.' Tail: 20261202 tail + 3x 20261203 files; ...000003 left free for DS-MMO-14. done."
+            ]
+}

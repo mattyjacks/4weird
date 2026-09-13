@@ -1,0 +1,25 @@
+{
+  "id": "DS-FOOD-12",
+  "title": "Food batch 12: crypt-icecream ... harvest-pie (9 items x 3 games x 3 modes)",
+  "goal": "Batch-12 done-state: v2/vcw4w/content/gravegain-food-batch-12.ts exports GRAVE_GAIN_FOOD_BATCH_12 with all 9 roster idx 95-103 items, each carrying full gravegain1d/2d/3d x endless/mission/mmorpg stats via buildFoodStatsTable() plus a 4..120-char drop note per game/mode, validateFoodBatch() clean; tsc + eslint + bundles + catalog-runtime green.",
+  "lane": "games",
+  "scope": [
+    "v2/vcw4w/content/gravegain-food-batch-12.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint content/gravegain-food-batch-12.ts",
+    "node scripts/verify-game-bundles.mjs",
+    "node scripts/verify-catalog-runtime.mjs",
+    "node scripts/verify-devswarm.mjs"
+  ],
+  "status": "blocked",
+  "owner": "food-b12",
+  "created": "2026-09-13T07:55:00.000Z",
+  "updated": "2026-09-13T08:20:00.000Z",
+  "log": [
+    "2026-09-13T07:55:00.000Z lead: envelope created, awaiting claim.",
+    "2026-09-13T08:12:15.000Z food-b12: claimed, starting batch 12.",
+    "2026-09-13T08:20:00.000Z food-b12: batch-12 file written (9 items, 81/81 notes 4..100 chars, ids in order). Gates: tsc zero batch-12 errors GREEN; eslint GREEN exit 0; verify-game-bundles GREEN (parity OK, 26 byte-locked/199 diverged/141 extra); verify-catalog-runtime RED pre-existing outside scope (app/vibecodeworker/[section]/page.tsx closed-catalog check); verify-devswarm RED pre-existing outside scope (TASKS/DS-FOOD-05.json BOM parse error). Verdict blocked on the two out-of-scope reds; QUEUE to steward requested."
+  ]
+}

@@ -25,6 +25,8 @@ export default async function FalPage() {
           Vibe Coins (100 coins = $1.00) with the 25% platform cut INCLUDED - never added on top.
           Signed-in players meter coins; usage lands on <a className="underline" href="/my/usage/">/my/usage</a> per
           op + game, and VibeCodeWorker runs can file fal art straight into their evidence trail.
+          Need real photos or clips instead of AI art? <a className="underline" href="/stock">Free stock (Pexels)</a> is
+          royalty-free at 0 coins a search.
         </p>
         <div className="mt-10">
           <Suspense

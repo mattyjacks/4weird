@@ -1,0 +1,27 @@
+{
+  "created": "2026-09-13T07:10:00.000Z",
+  "gates": [
+    "node scripts/verify-migration-versions.mjs",
+    "node scripts/verify-devswarm.mjs"
+  ],
+  "goal": "Infra sec-sweep lock-in landed as NEW files only: scripts/verify-sec-sweep.mjs asserts deny-by-default locks (coin_lots revoked, cron Bearer-gated, no sk-/service-role in client, remastery zero-policy tables stay access-locked) + QUEUE lines for chat_participants policy + clan_wallets CHECK tighten (NEW migration owned by integrator, no shipped file edited). Reviewer: verifier green, migration-versions green, devswarm green.",
+  "id": "DS-SEC-INFRA-01",
+  "lane": "infra",
+  "log": [
+    "2026-09-13T07:10:00.000Z unassigned: envelope created from 7-lane security audit (infra clean, locks to pin).",
+    "2026-09-13T07:14:12.712Z sec-infra: claimed (open->claimed->in_progress). NOTE: on-disk envelope at 07:10Z supersedes the 07:05 6-path version from my briefing (proxy/ssrf/verify-scripts/migration scope now owned by DS-SEC-INFRA sec-infra-7g + DS-SEC-VCW lanes); adopting current scope verify-sec-sweep.mjs, conflict check clean (sole claimant).",
+    "2026-09-13T07:14:12.712Z sec-infra: starting survey (coin_lots revoke, cron Bearer gates, client secret-freedom, remastery zero-policy locks, chat_participants/clan_wallets QUEUE items).",
+    "2026-09-13T07:25:49.291Z sec-infra: adopted claim (sole claimant, no conflict) + survey done: lockdown 20261112000000 pins 4 deny tables + 2 service_role-only mint paths; all 7 vercel.json cron routes Bearer CRON_SECRET + timingSafeEqual + fail-closed, zero ?secret= code usage; components/ + app non-api secret-free (26 app hits all under app/api/** server routes); wave23 4 tables RLS-enabled zero-policy (documented access-locked).",
+    "2026-09-13T07:25:49.291Z sec-infra: landed NEW v2/vcw4w/scripts/verify-sec-sweep.mjs (sole write besides QUEUE + this envelope; no shipped migration edited, no STATUS.json edit, no package.json edit). Gates: verify-sec-sweep OK (4 deny tables + 2 mint paths + 7 cron Bearer gates + 388 client files secret-free + 4 zero-policy tables); verify-migration-versions OK (104 files). verify-devswarm RED EXTRINSIC on TASKS/DS-VCWCODE-01.json lane sentence (owner vcwcode-01, done, foreign envelope untouched; same blocker sec-web filed QUEUE:131). Envelope in_progress->blocked pending steward repair + recount.",
+    "2026-09-13T07:29:28.823Z sec-infra: survey corroborated (2nd session, shared tag — co-author note in QUEUE): lockdown 20261112000000:32-33/35-42 coin tables RLS+revoke, mint_crown/support_credit service_role-only; 7/7 cron routes Bearer+401+timingSafeEqual, no ?secret=; 0 service_role in components+*.tsx; 0 sk-secrets in components+app-tsx; .env.example names-only; chat_participants RLS-on zero-policy repo-wide (20261116000001:73-101); clan_wallets CHECK still >= -1000000 (20260912000000:44) with no later ALTER; zero GRANTs to anon/authenticated on dps/mod/theme tables repo-wide; no /api/games/mods route (local-bundle fallback stands).",
+    "2026-09-13T07:29:28.823Z sec-infra: reworked verifier §4-§6 (same file, additive; §1-§3 untouched): §4 pins RLS + no-GRANTs + 0003 invariants instead of stale access-locked claim; §5 chat_participants pin; §6 clan_wallets floor pin. FINDINGS: MEDIUM — verifier success line claimed access-locked while 0003 ships 12 policies (fixed, §4 rework); LOW — 0003 lets creators bump own counter columns on unverified rows (queued to economy via existing line); INFO — 0003 policies moot without table GRANTs (none exist repo-wide); INFO — envelope briefed to me (07:05 6-path) was superseded on disk (07:10 narrow) + sec-infra-B already landed 0003+ssrf hunk in sibling scopes (steward ruling pending, not mine, untouched).",
+    "2026-09-13T07:29:28.823Z sec-infra: GATES post-rework (from v2/vcw4w/) — verify-sec-sweep GREEN [sec-sweep OK: 4 deny tables + 2 mint paths + 7 crons + 390 client files + sweep invariants + chat/clan pins]; verify-migration-versions GREEN [104 files, unique versions, rerunnable guards]; eslint GREEN on scripts/verify-sec-sweep.mjs exit 0; verify-devswarm RED extrinsic ONLY [STATUS in_progress 4 vs TASKS disk 3 (done 54/open 5/blocked 32/in_progress 3); DS-VCWCODE-01 lane valid desktop — earlier lane-sentence red already repaired]. Status stays blocked pending steward recount; STATUS.json not hand-edited. QUEUE line filed for rework + latest counts truth."
+  ],
+  "owner": "sec-infra",
+  "scope": [
+    "v2/vcw4w/scripts/verify-sec-sweep.mjs"
+  ],
+  "status": "blocked",
+  "title": "SEC infra: deny-by-default verifier + policy QUEUE",
+  "updated": "2026-09-13T07:29:28.823Z"
+}

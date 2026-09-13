@@ -3,6 +3,13 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { sameOrigin } from "@/lib/csrf";
+import { requireHuman } from "@/lib/botid";
+
+
+function isUuid(v: unknown): string {
+  const s = String(v ?? "").trim().toLowerCase();
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(s) ? s : "";
+}
 
 
 function mapErr(msg: string) {
@@ -21,6 +28,8 @@ function mapErr(msg: string) {
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  const botBlock = await requireHuman(req, "POST /api/love/give", { allowAuthenticated: true });
+  if (botBlock) return botBlock;
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
@@ -33,8 +42,10 @@ export async function POST(req: Request) {
   } catch {
     return fail("Invalid JSON body.", 400);
   }
-  const postId = String((body as Record<string, unknown> | null)?.post_id ?? "").trim();
-  if (!postId) return fail("post_id required.", 400);
+  const rawPostId = String((body as Record<string, unknown> | null)?.post_id ?? "").trim();
+  if (!rawPostId) return fail("post_id required.", 400);
+  const postId = isUuid(rawPostId);
+  if (!postId) return fail("Invalid post_id.", 400);
   const { error } = await supabase.rpc("give_love_letter", { p_post_id: postId });
   if (error) return mapErr(String(error.message ?? ""));
   return ok({ post_id: postId, cost: 1 }, 201);

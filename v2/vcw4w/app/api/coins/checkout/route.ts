@@ -55,6 +55,11 @@ export async function POST(request: Request) {
     return fail("Invalid JSON.", 400);
   }
   const input = (body ?? {}) as Record<string, unknown>;
+  // Kids-safe mode: real-money checkout is disabled (mirrors the
+  // cosmetics/dev-charges kids-block; child sub-accounts carry kid_session).
+  if (input.kidsMode === true || /(?:^|;\s*)kid_session=/.test(request.headers.get("cookie") ?? "")) {
+    return fail("Kids-safe mode: purchases are disabled on this account.", 403);
+  }
   const variantId = String(input.variantId ?? "");
   if (!variantPattern.test(variantId)) return fail("A valid product variant is required.", 400);
   // Custom amounts ride on a $0.01-per-unit variant: quantity equals coins.

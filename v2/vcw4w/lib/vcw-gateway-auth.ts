@@ -392,18 +392,22 @@ export async function resolveVcwCaller(req: Request): Promise<VcwCaller | null> 
   }
 }
 
-/** Read access: session always; key callers need vcw:read (write implies read). */
+/** Read access: session always; key callers need an explicit vcw:read
+ * (write implies read). Empty scopes fail CLOSED for key modes: a gateway
+ * row with NULL/empty scopes grants nothing (issuance always writes >=1
+ * scope, so only legacy/hand-made rows hit this path). */
 export function vcwReadScope(caller: VcwCaller | null): boolean {
   if (!caller) return false;
   if (caller.mode === "session") return true;
-  if (!caller.scopes || caller.scopes.length === 0) return true;
+  if (!caller.scopes || caller.scopes.length === 0) return false;
   return caller.scopes.includes(VCW_READ_SCOPE) || caller.scopes.includes(VCW_WRITE_SCOPE);
 }
 
-/** Write access: session always; key callers need vcw:write. */
+/** Write access: session always; key callers need an explicit vcw:write.
+ * Empty scopes fail CLOSED (see vcwReadScope). */
 export function vcwWriteScope(caller: VcwCaller | null): boolean {
   if (!caller) return false;
   if (caller.mode === "session") return true;
-  if (!caller.scopes || caller.scopes.length === 0) return true;
+  if (!caller.scopes || caller.scopes.length === 0) return false;
   return caller.scopes.includes(VCW_WRITE_SCOPE);
 }

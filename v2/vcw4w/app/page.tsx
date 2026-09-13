@@ -27,7 +27,7 @@ const TICKER = [
   "🎨 30 fal.ai studio tools",
   "💼 cap-table + finance sims",
   "🪙 100 Vibe Coins = exactly $1.00",
-  "👩🏻‍💻 VibeCodeWorker autoplay QA",
+  "💰 Founder cloud spend funds the arcade",
 ];
 
 const CLASSICS = [
@@ -209,28 +209,32 @@ export default function Home() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 opacity-[0.35] [background-image:linear-gradient(to_right,currentColor_1px,transparent_1px),linear-gradient(to_bottom,currentColor_1px,transparent_1px)] [background-size:44px_44px] text-border [mask-image:radial-gradient(ellipse_70%_60%_at_50%_0%,black,transparent)]"
         />
-        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-5 sm:py-24">
-          <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-500/40 px-4 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.25em] text-cyan-700 dark:text-cyan-300 sm:text-xs">
-            <span aria-hidden="true" className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-            34 games live · GPUs on demand · free to try
+        <div className="relative mx-auto max-w-6xl px-4 py-12 sm:px-5 sm:py-16">
+          <p className="mb-5 inline-flex max-w-full flex-wrap items-center gap-2 rounded-full border border-cyan-500/40 px-4 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-cyan-700 dark:text-cyan-300 sm:text-xs">
+            <span aria-hidden="true" className="inline-block h-2 w-2 shrink-0 animate-pulse rounded-full bg-emerald-500" />
+            Cost-Effective Cloud Computing Center · 35 games · free to try
           </p>
-          <h1 className="max-w-4xl text-5xl font-black leading-[0.95] tracking-tight sm:text-7xl lg:text-8xl">
-            Play games.
-            <br />
-            Ship software.
+          <h1 className="max-w-4xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
+            Future Forward Fun,
             <br />
             <span className="bg-gradient-to-r from-cyan-500 via-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
-              Keep the coins.
+              Funded by Founders.
             </span>
           </h1>
           <p className="mt-6 max-w-2xl text-base text-muted-foreground sm:text-xl">
-            <strong className="text-foreground">Gamers</strong> play 34 free
-            browser games with cloud saves and leaderboards.{" "}
-            <strong className="text-foreground">Coders</strong> spin up GPUs,
-            desktops, and AI agents by the second.{" "}
-            <strong className="text-foreground">Teams</strong> practice cap
-            tables, pipelines, and revenue on business sims; all on one coin
-            where 100 🪙 = exactly $1.00.
+            A cost-effective cloud computing center with a game arcade on top.{" "}
+            <strong className="text-foreground">Founders</strong> rent GPUs,
+            desktops, and AI agents by the second — and that spend funds the{" "}
+            <strong className="text-foreground">fun</strong>: 35 free browser
+            games with cloud saves and leaderboards. One coin: 100 🪙 = exactly $1.00.
+          </p>
+          <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+            Bootstrapped today by founder Matt (MattyJacks LLC). The goal: the
+            arcade pays for itself from founder cloud bills — not ads, not
+            investors.{" "}
+            <Link href="/docs/about" className="font-semibold text-cyan-600 hover:underline dark:text-cyan-300">
+              How the funding works →
+            </Link>
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
@@ -260,7 +264,7 @@ export default function Home() {
                 <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-gradient-to-br from-amber-400 to-orange-600 text-xs">🎨</span>
                 <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-gradient-to-br from-emerald-400 to-teal-600 text-xs">👾</span>
               </span>
-              Players, coders &amp; teams already inside; no credit card to play
+              Founders, coders &amp; players already inside; no credit card to play
             </span>
             <span className="font-mono text-xs">★ free trial: 100 Vibe Coins = exactly $1.00 ★</span>
           </div>
@@ -303,8 +307,8 @@ export default function Home() {
           </div>
           <dl className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
-              ["34 games, free to try", "racers, RPGs, business sims"],
-              ["GPUs & agents per-second", "4090s, desktops, swarm"],
+              ["35 games, free to try", "racers, RPGs, business sims"],
+              ["Cloud funds the arcade", "founder GPUs pay for play"],
               ["100 Vibe Coins = exactly $1.00", "cut inside, never on top"],
               ["Tested before you see it", "VibeCodeWorker autoplay QA"],
             ].map(([stat, label]) => (
@@ -350,7 +354,7 @@ export default function Home() {
             <p className="text-3xl" aria-hidden="true">🎮</p>
             <h3 className="mt-3 text-lg font-bold">Here to play?</h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              34 browser games, playing in ~10 seconds. No install, no credit
+              35 browser games, playing in ~10 seconds. No install, no credit
               card; cloud saves, leaderboards, lobbies, and a Buddy that
               coaches you live.
             </p>
@@ -367,11 +371,10 @@ export default function Home() {
           </div>
           <div className="flex flex-col rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-cyan-500/60">
             <p className="text-3xl" aria-hidden="true">💻</p>
-            <h3 className="mt-3 text-lg font-bold">Here to code?</h3>
+            <h3 className="mt-3 text-lg font-bold">Here to build?</h3>
             <p className="mt-2 text-sm text-muted-foreground">
               Real 4090 GPUs, browser desktops, and hire-by-the-hour AI agents;
-              metered per second. Type a sentence on NewGamePlus, get a
-              playtested game back.
+              metered per second. Your cloud bill funds the arcade above.
             </p>
             <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
               <li>✅ Live in ~60s, billed per second</li>
@@ -764,7 +767,7 @@ export default function Home() {
             <p className="mt-3 max-w-2xl text-muted-foreground sm:text-lg">
               Hand-picked experiments built with AI on this very cloud;
               racers, RPGs, and money sims included. Every play supports the
-              makers; the full catalog of 34 lives on{" "}
+              makers; the full catalog of 35 lives on{" "}
               <Link href="/games" className="font-semibold text-cyan-600 hover:underline dark:text-cyan-300">
                 /games
               </Link>
@@ -776,7 +779,7 @@ export default function Home() {
             </p>
           </div>
           <Link href="/games" className="text-sm font-semibold text-cyan-600 hover:underline dark:text-cyan-300">
-            Browse all 34 →
+            Browse all 35 →
           </Link>
         </div>
         <Suspense fallback={<p className={HOME_FALLBACK}>Loading featured games…</p>}>
@@ -790,7 +793,7 @@ export default function Home() {
             🎪 Lobbies; join a match
           </Link>
           <Link href="/games" className="rounded-full border border-border bg-card px-5 py-2.5 font-semibold transition hover:-translate-y-0.5 hover:border-fuchsia-500/60">
-            🕹️ All 34 games
+            🕹️ All 35 games
           </Link>
         </div>
       </section>
@@ -876,17 +879,17 @@ export default function Home() {
       <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-5 sm:pb-20" aria-label="How 4weird works">
         <div className="rounded-3xl border border-border bg-card p-6 sm:p-10">
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-600 dark:text-cyan-300">
-            The flywheel
+            Funded by Founders — what it means
           </p>
           <h2 className="mt-3 max-w-2xl text-2xl font-black sm:text-4xl">
-            Compute funds play. Play funds compute.
+            Founders buy cloud. Cloud funds play.
           </h2>
           <div className="mt-6 grid gap-6 md:grid-cols-3">
             <div>
               <p className="text-2xl" aria-hidden="true">☁️</p>
-              <h3 className="mt-2 font-bold">1. You rent cloud</h3>
+              <h3 className="mt-2 font-bold">1. Founders rent cloud</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Agents, desktops, testing, squad workspaces; metered, escrowed{" "}
+                GPUs, agents, desktops, testing, squad workspaces; metered, escrowed{" "}
                 <InfoTip
                   text="Escrowed means coins are held when you book and settled downward by usage heartbeats - you never pay more than escrowed. Every cent is itemized on /my/usage/."
                   label="About escrow"
@@ -897,18 +900,18 @@ export default function Home() {
             </div>
             <div>
               <p className="text-2xl" aria-hidden="true">🎮</p>
-              <h3 className="mt-2 font-bold">2. Players meet AI through games</h3>
+              <h3 className="mt-2 font-bold">2. That spend funds free play</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                AI-built arcade games introduce AI ideas to curious people who
-                just came to play.
+                Cloud margin pays for the arcade: 35 AI-built games stay free
+                to try, with no ads and no investors calling shots.
               </p>
             </div>
             <div>
               <p className="text-2xl" aria-hidden="true">🪙</p>
-              <h3 className="mt-2 font-bold">3. Coins flow to creators</h3>
+              <h3 className="mt-2 font-bold">3. Today: bootstrapped by Matt</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Developers set their own rates and earn while they build; the
-                arcade grows itself.
+                MattyJacks LLC covers the gap until founder cloud bills carry
+                it. Every coin is itemized on <Link href="/my/usage/" className="font-semibold text-cyan-600 hover:underline dark:text-cyan-300">/my/usage/</Link>.
               </p>
             </div>
           </div>
@@ -992,10 +995,10 @@ export default function Home() {
               See pricing
             </Link>
             <Link
-              href="/squads"
+              href="/docs/vibe-coins"
               className="rounded-full border border-white/40 px-6 py-3 text-center font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/10"
             >
-              See squad cloud
+              How coins work
             </Link>
           </div>
         </div>
@@ -1249,16 +1252,16 @@ export default function Home() {
         <div className="relative overflow-hidden rounded-3xl bg-slate-950 p-8 text-center text-white sm:p-14">
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-cyan-500/20 via-fuchsia-500/20 to-amber-500/20" />
           <div className="relative">
-            <p className="font-mono text-xs font-bold uppercase tracking-[0.3em] text-cyan-300">Future-forward fun starts here</p>
+            <p className="font-mono text-xs font-bold uppercase tracking-[0.3em] text-cyan-300">Future Forward Fun, Funded by Founders</p>
             <h2 className="mx-auto mt-3 max-w-2xl text-3xl font-black sm:text-5xl">
               Come for the games.
               <br />
-              Stay for the superpowers.
+              Stay because founders fund them.
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-white/75 sm:text-lg">
-              Gamers play free. Coders rent GPUs by the second. Teams practice
-              revenue before risking it. Free trial on signup: 100 Vibe Coins
-              = exactly $1.00, no credit card to play.
+              Gamers play free. Founders rent cost-effective cloud by the
+              second. That spend — not ads — keeps the arcade alive. Free trial
+              on signup: 100 Vibe Coins = exactly $1.00, no credit card to play.
             </p>
             <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
               <Link href="/auth/sign-up" className="rounded-full bg-white px-8 py-3.5 font-bold text-slate-900 transition hover:-translate-y-0.5 hover:bg-white/90">

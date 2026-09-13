@@ -1,0 +1,87 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-09-13",
+  "note": "Demo-only shard list for GraveGain MMORPG playtests. Hosts are local demo endpoints (demo.4weird.local) — never production. Bands follow the GraveGain content-mode contract: kids (cozy copies), teens (standard), adults (full). hostFree shards cost nothing to spin up; paid shards show demo rental cost in USD cents.",
+  "games": ["gravegain1d", "gravegain2d", "gravegain3d"],
+  "bands": ["kids", "teens", "adults"],
+  "servers": [
+    {
+      "id": "gg1d-lantern-patch",
+      "name": "Lantern Patch",
+      "game": "gravegain1d",
+      "band": "kids",
+      "host": "demo.4weird.local",
+      "port": 3101,
+      "hostFree": true,
+      "costCents": 0,
+      "costLabel": "FREE demo",
+      "capacity": 50,
+      "motd": "Cozy 1D delving for young heroes. Rainbow moons only!"
+    },
+    {
+      "id": "gg1d-ember-veil",
+      "name": "Ember Veil",
+      "game": "gravegain1d",
+      "band": "teens",
+      "host": "demo.4weird.local",
+      "port": 3102,
+      "hostFree": true,
+      "costCents": 0,
+      "costLabel": "FREE demo",
+      "capacity": 50,
+      "motd": "Standard 1D shard. Hourly Spire boss on the hour."
+    },
+    {
+      "id": "gg2d-tide-harbor",
+      "name": "Tide Harbor",
+      "game": "gravegain2d",
+      "band": "kids",
+      "host": "demo.4weird.local",
+      "port": 3103,
+      "hostFree": true,
+      "costCents": 0,
+      "costLabel": "FREE demo",
+      "capacity": 100,
+      "motd": "Cozy 2D shard. Giggle-boxes guaranteed."
+    },
+    {
+      "id": "gg2d-grim-toll",
+      "name": "Grim Toll",
+      "game": "gravegain2d",
+      "band": "adults",
+      "host": "demo.4weird.local",
+      "port": 3104,
+      "hostFree": false,
+      "costCents": 199,
+      "costLabel": "$1.99/hr demo rental",
+      "capacity": 100,
+      "motd": "Full-intensity 2D shard. Blood moons, no mercy."
+    },
+    {
+      "id": "gg3d-marrow-depths",
+      "name": "Marrow Depths",
+      "game": "gravegain3d",
+      "band": "teens",
+      "host": "demo.4weird.local",
+      "port": 3105,
+      "hostFree": false,
+      "costCents": 299,
+      "costLabel": "$2.99/hr demo rental",
+      "capacity": 200,
+      "motd": "Flagship 3D shard. Ley-line surges every 30 minutes."
+    },
+    {
+      "id": "gg3d-array-throne",
+      "name": "Array Throne",
+      "game": "gravegain3d",
+      "band": "adults",
+      "host": "demo.4weird.local",
+      "port": 3106,
+      "hostFree": false,
+      "costCents": 499,
+      "costLabel": "$4.99/hr demo rental",
+      "capacity": 200,
+      "motd": "Hardcore 3D shard. The Array watches. Bring friends."
+    }
+  ]
+}

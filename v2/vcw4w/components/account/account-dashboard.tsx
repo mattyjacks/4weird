@@ -59,7 +59,21 @@ export function AccountDashboard() {
       return;
     }
     setBusy(true); setMessage("Saving…");
-    try { await request("/api/me/profile", { method: "PATCH", body: JSON.stringify({ age_band: band }) }); setProfile((prev) => ({ ...(prev ?? {}), age_band: band })); setMessage("Age band saved."); } catch (error) { setMessage(error instanceof Error ? error.message : "Unable to save age band."); } finally { setBusy(false); }
+    try {
+      await request("/api/me/profile", { method: "PATCH", body: JSON.stringify({ age_band: band }) });
+      setProfile((prev) => ({ ...(prev ?? {}), age_band: band }));
+      setMessage("Age band saved.");
+      // Broadcast so any open game tab drops its stale "Age band required"
+      // block without a manual reload (the "I ALREADY SET MY AGE" complaint):
+      // storage events reach OTHER tabs (the play gate listens for this key),
+      // the window event covers same-tab listeners.
+      try {
+        window.localStorage.setItem("4weird-age-band-changed", JSON.stringify({ band, at: Date.now() }));
+      } catch { /* private mode; the game tab falls back to focus/pageshow recheck */ }
+      try {
+        window.dispatchEvent(new Event("age-band-changed"));
+      } catch { /* no DOM access; storage/focus handlers still cover it */ }
+    } catch (error) { setMessage(error instanceof Error ? error.message : "Unable to save age band."); } finally { setBusy(false); }
   }
 
   async function saveFamilyRole() { if (busy) return; setBusy(true); setMessage("Saving…"); try { await request("/api/me/profile", { method: "PATCH", body: JSON.stringify({ family_role: familyRole }) }); setProfile((prev) => ({ ...(prev ?? {}), family_role: familyRole })); setMessage("Profile saved."); } catch (error) { setMessage(error instanceof Error ? error.message : "Unable to save profile."); } finally { setBusy(false); } }

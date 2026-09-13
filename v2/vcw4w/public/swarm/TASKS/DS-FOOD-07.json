@@ -1,0 +1,25 @@
+{
+  "id": "DS-FOOD-07",
+  "title": "Food batch 07: ember-fries ... falafel-plate (9 items x 3 games x 3 modes)",
+  "goal": "Batch-07 done-state: v2/vcw4w/content/gravegain-food-batch-07.ts exports GRAVE_GAIN_FOOD_BATCH_07 with all 9 roster idx 53-61 items, each carrying full gravegain1d/2d/3d x endless/mission/mmorpg stats via buildFoodStatsTable() plus a 4..120-char drop note per game/mode, validateFoodBatch() clean; tsc + eslint + bundles + catalog-runtime green.",
+  "lane": "games",
+  "scope": [
+    "v2/vcw4w/content/gravegain-food-batch-07.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint content/gravegain-food-batch-07.ts",
+    "node scripts/verify-game-bundles.mjs",
+    "node scripts/verify-catalog-runtime.mjs",
+    "node scripts/verify-devswarm.mjs"
+  ],
+  "status": "blocked",
+  "owner": "food-b07",
+  "created": "2026-09-13T07:55:00.000Z",
+  "updated": "2026-09-13T08:25:04.000Z",
+  "log": [
+    "2026-09-13T07:55:00.000Z lead: envelope created, awaiting claim.",
+    "2026-09-13T08:12:28.000Z food-b07: claimed, starting batch 07.",
+    "2026-09-13T08:25:04.000Z food-b07: batch file written (9 items in order, spread roster entries, buildFoodStatsTable + 81 drop notes). Gates: tsc zero errors mentioning batch-07 (2 pre-existing errors in app/api/presence/mmo/heartbeat/route.ts, other lane); eslint content/gravegain-food-batch-07.ts exit 0; verify-game-bundles GREEN (Game bundle parity OK: 225 archived files); validateFoodBatch runtime: COUNT 9, ORDER ok, ERRORS NONE. RED (out of scope, pre-existing): verify-catalog-runtime exit 1 on app/vibecodeworker/[section]/page.tsx static-catalog check; verify-devswarm exit 1 (DS-FOOD-05.json BOM parse error; STATUS.json open counts 16 vs 15 after this claim, steward recount needed). Verdict blocked pending steward/other-lane fixes. Zero writes outside v2/vcw4w/content/gravegain-food-batch-07.ts + this envelope."
+  ]
+}

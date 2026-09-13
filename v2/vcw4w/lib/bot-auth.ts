@@ -342,7 +342,11 @@ export function keyPrefix(key: string): string {
 }
 
 /**
- * Strict present format: tag + 32 (current) or 20 (legacy) alphanumerics.
+ * Strict present format: tag + 20-32 alphanumerics (canonical range: 32 is
+ * current issuance, 20 is legacy rows, anything in between is shape-valid
+ * for parity with the desktop JS/Rust clients and verified against stored
+ * hashes — unissued lengths fail closed at the DB compare with the uniform
+ * null, never a distinct error).
  * Checked BEFORE any DB read or KDF so AI-speed garbage cannot burn scrypt
  * CPU (DoS) or probe the prefix-existence oracle cheaply.
  */
@@ -350,7 +354,7 @@ export function isValidBotKeyFormat(key: string): boolean {
   const v = String(key ?? "");
   if (!v.startsWith(BOT_KEY_TAG)) return false;
   const suffix = v.slice(BOT_KEY_TAG.length);
-  if (suffix.length !== BOT_KEY_SUFFIX_LEN && suffix.length !== BOT_KEY_SUFFIX_LEN_LEGACY) return false;
+  if (suffix.length < BOT_KEY_SUFFIX_LEN_LEGACY || suffix.length > BOT_KEY_SUFFIX_LEN) return false;
   return /^[A-Za-z0-9]+$/.test(suffix);
 }
 

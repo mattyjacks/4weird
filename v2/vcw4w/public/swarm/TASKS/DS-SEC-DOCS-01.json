@@ -1,0 +1,28 @@
+{
+  "created": "2026-09-13T07:10:00.000Z",
+  "gates": [
+    "npx eslint v2/vcw4w/app/docs/privacy-safety/page.tsx",
+    "node scripts/verify-devswarm.mjs"
+  ],
+  "goal": "Docs lane truth fix landed: privacy-safety age-band copy cites actual server enforcement location or downgrades direct-account claim to attested/client-check with game-gate disclosure kept. No code gate invented in docs. Reviewer: docs copy matches lib/age-gate.ts behavior, eslint + devswarm green. Stretch noted: code fixes for upload scan whole-buffer + pixel-dimension parse filed as QUEUE to owning lane (docs touches no upload route).",
+  "id": "DS-SEC-DOCS-01",
+  "lane": "docs",
+  "log": [
+    "2026-09-13T07:10:00.000Z unassigned: envelope created from 7-lane security audit (docs-vs-code age-band).",
+    "2026-09-13T07:18:51.400Z sec-docs: claimed, starting age-band truth fix in privacy-safety §6",
+    "2026-09-13T07:22:00.000Z sec-docs: re-read envelope + MEMORY newest-5 + page.tsx + lib/age-gate.ts (ref only). Verified server enforcement EXISTS: POST /api/auth/signup (teen/adult only, under-13 rejected), PATCH /api/me/profile (kid rejected), POST /api/games/session (Adults need adult band, DOB cannot bypass). Fix = cite-location, no downgrade. Game-gate DOB disclosure already honest (client in-memory only).",
+    "2026-09-13T07:22:28.739Z sec-docs: §6 body truth-fixed (self-declared band + signup/session server checks + not-set legacy); eslint PASS from v2/vcw4w/",
+    "2026-09-13T07:22:28.739Z sec-docs: BLOCKED — verify-devswarm RED extrinsic: TASKS/DS-BOUNCER-02.json missing updated (out of scope, QUEUE filed); verify-legal RED pre-existing on privacy page line-break (out of scope, QUEUE filed)",
+    "2026-09-13T07:26:21.000Z sec-docs: verified landed S6 copy vs code — server checks REAL (signup teen/adult-only + under-13 reject; profile kid reject; session Adults-need-adult 403, DOB cannot bypass) so cite-location wording stands, no downgrade beyond attested phrasing already landed; game-gate in-memory disclosure matches lib/age-gate.ts COMPLIANCE verbatim; zero further page bytes touched (concurrent-session fix adopted, no re-land). Gates: npx eslint app/docs/privacy-safety/page.tsx PASS exit-0 zero-output (v2/vcw4w/); node scripts/verify-devswarm.mjs RED extrinsic ONLY on STATUS.json counts (open 21 vs TASKS 5, steward-owned drift; BOUNCER-02 updated blocker already repaired by another party). Stretch filed: upload whole-buffer scan + pixel-dimension parse QUEUE line to steward/clans-upload (route untouched). Status stays blocked pending steward recount.",
+    "2026-09-13T07:27:59.764Z sec-docs: overlap found - DS-SEC-DOCS(sec-docs-7f) owns privacy-safety+getting-started; zero bytes written there, 2 NEW files landed in disjoint security/ (index + bot-keys), QUEUE conflict line filed.",
+    "2026-09-13T07:27:59.764Z sec-docs: audit done - doc-vs-code NO drift on all 7 claim families (age-gate/kids/bonus/bot-label/clan-perms/cheat/refund, code cites in QUEUE); secret scan 0 hits/161 files (skill.md+docs+swarm, guarded patterns); MockWindow bonus math mirrors dailyBonusForStreak 5/8/12.",
+    "2026-09-13T07:27:59.764Z sec-docs: gates SPLIT - eslint clean on 2 new files, tsc exit 0; verify-legal.mjs RED extrinsic (privacy GA needle, legal lane, QUEUE filed); envelope in_progress->blocked."
+  ],
+  "owner": "sec-docs",
+  "scope": [
+    "v2/vcw4w/app/docs/privacy-safety/page.tsx"
+  ],
+  "status": "blocked",
+  "title": "SEC docs: age-band copy matches enforced gate",
+  "updated": "2026-09-13T07:27:59.764Z"
+}

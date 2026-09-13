@@ -1,0 +1,23 @@
+{
+    "created":  "2026-09-13T08:35:00.000Z",
+    "id":  "DS-FEEDBACK-01",
+    "goal":  "Outcome for DS-FEEDBACK-01: Feedback Give Feedback button top. See QUEUE.md feedback run goal.",
+    "status":  "done",
+    "owner":  "fb-01",
+    "scope":  [
+                  "v2/vcw4w/components/feedback/feedback-button.tsx"
+              ],
+    "updated":  "2026-09-13T08:35:00.000Z",
+    "gates":  [
+                  "npx tsc --noEmit",
+                  "npx eslint"
+              ],
+    "title":  "Feedback Give Feedback button top",
+    "log":  [
+                "2026-09-13T08:35:00.000Z unassigned: envelope created from template, awaiting claim.",
+                "2026-09-13T12:00:00.000Z fb-01: claimed (lane web, scope feedback-button.tsx).",
+                "2026-09-13T12:05:00.000Z fb-01: wrote NEW components/feedback/feedback-button.tsx (client, FeedbackButton + default export, outline/sm Give Feedback button, next/dynamic ssr:false lazy-mount of ../feedback/feedback-dialog named export, owns open/reporterType/rating/critique/text state, POSTs /api/feedback then resets; dialog contract read from sibling fb-02 file, zero sibling bytes touched).",
+                "2026-09-13T12:06:00.000Z fb-01: gates GREEN from v2/vcw4w - npx tsc --noEmit exit 0 (zero output), npx eslint components/feedback/feedback-button.tsx exit 0 (zero output). QUEUE.md wiring request appended for integrator top-bar mount (layout/site-header untouched). Envelope in_progress->done."
+            ],
+    "lane":  "web"
+}

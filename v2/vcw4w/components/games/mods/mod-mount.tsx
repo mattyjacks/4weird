@@ -40,6 +40,9 @@ export function ModMount({ manifest, gameSlug, height = 320 }: ModMountProps) {
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       if (!(TRUSTED_MOD_ORIGINS as readonly string[]).includes(event.origin)) return;
+      // Authenticity: only the mounted mod frame may speak for this mod —
+      // a same-origin sibling frame (runtime, ad slot) must not spoof it.
+      if (event.source !== frameRef.current?.contentWindow) return;
       if (typeof event.data === "string" && event.data.startsWith("mod:")) {
         setModMessage(event.data.slice("mod:".length));
       }

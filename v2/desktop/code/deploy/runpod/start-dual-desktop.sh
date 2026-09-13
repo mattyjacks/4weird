@@ -20,6 +20,24 @@ if ! [[ "$MAX_MINUTES" =~ ^[1-9][0-9]{0,2}$ ]]; then
   exit 64
 fi
 MAX_SECONDS=$((MAX_MINUTES * 60))
+# VNC auth is mandatory: both desktops are reachable on the pod's public
+# proxy ports, so a passwordless VNC listener would expose the session to
+# anyone with the URL. Fail closed unless VNC_PASSWORD (or the control-plane
+# VNC_PW) is set; the secret is stored via x11vnc -storepasswd (mode 600)
+# and served with -rfbauth, never passed on a command line. Classic VNC
+# truncates to the first 8 chars, so require at least 8.
+VNC_PASSWORD="${VNC_PASSWORD:-${VNC_PW:-}}"
+if [ -z "$VNC_PASSWORD" ]; then
+  echo "Refusing to start passwordless VNC: set VNC_PASSWORD (min 8 chars) in the pod env." >&2
+  exit 64
+fi
+if [ "${#VNC_PASSWORD}" -lt 8 ]; then
+  echo "VNC_PASSWORD must be at least 8 characters (classic VNC uses the first 8)." >&2
+  exit 64
+fi
+mkdir -p /root/.vnc
+x11vnc -storepasswd "$VNC_PASSWORD" /root/.vnc/passwd
+VNC_PASSWD_FILE=/root/.vnc/passwd
 mkdir -p "$GAME_ROOT"
 case "$GAME_ID" in
   snake-canvas) GAME_REPO=https://github.com/adrianov/snake.git ;;
@@ -45,8 +63,8 @@ HOST=0.0.0.0 PORT=42069 STATIC_PORT=8888 VIBE_GODOT_CLOUD=1 VIBE_GODOT_DISPLAY=:
 API_PID=$!
 Xvfb :1 -screen 0 1440x900x24 -ac &
 Xvfb :2 -screen 0 1440x900x24 -ac &
-x11vnc -display :1 -forever -shared -nopw -rfbport 5901 &
-x11vnc -display :2 -forever -shared -nopw -rfbport 5902 &
+x11vnc -display :1 -forever -shared -rfbauth "$VNC_PASSWD_FILE" -rfbport 5901 &
+x11vnc -display :2 -forever -shared -rfbauth "$VNC_PASSWD_FILE" -rfbport 5902 &
 websockify --web=/usr/share/novnc 6901 localhost:5901 &
 websockify --web=/usr/share/novnc 6902 localhost:5902 &
 if [ "$GAME_ID" = "xonotic" ]; then

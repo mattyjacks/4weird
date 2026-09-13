@@ -1,0 +1,33 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-09-13",
+  "note": "Necrogenesis Moon season for GraveGain MMO endgame (games lane, v2-native). A limited-time cross-game season: the dead moon waxes over all three games, bosses regenerate unless every front holds 20%, moon-herald warbands lead the night shift. ASCII only.",
+  "id": "necrogenesis-moon",
+  "seasonNo": 2,
+  "name": { "kid": "Hummy Bone Moon", "teen": "Necrogenesis Moon", "all": "NECROGENESIS MOON" },
+  "window": { "startUtc": "2026-12-01T00:00:00Z", "endUtc": "2027-01-31T23:59:59Z" },
+  "games": ["gravegain1d", "gravegain2d", "gravegain3d"],
+  "modifiers": [
+    {
+      "id": "moonrise-regen",
+      "name": { "kid": "Moony Get-Up-Again", "teen": "Moonrise Regen", "all": "MOONRISE REGEN" },
+      "effect": "Bosses regenerate 5% per hour unless every front holds at least 20% of threshold"
+    },
+    {
+      "id": "night-shift",
+      "name": { "kid": "Cozy Night Shift", "teen": "Night Shift", "all": "NIGHT SHIFT" },
+      "effect": "moon-heralds warbands deal +10% damage all season (stacks with their banner bonus)"
+    },
+    {
+      "id": "grave-tide",
+      "name": { "kid": "Sleepy Grave Tide", "teen": "Grave Tide", "all": "GRAVE TIDE" },
+      "effect": "Codex boss entries rank up twice as fast during the season"
+    }
+  ],
+  "warbandBonus": "moon-heralds",
+  "rewards": [
+    { "id": "moon-cache", "kind": "loot", "detail": "Seasonal loot cache per boss week survived at full moons" },
+    { "id": "moonsinger-title", "kind": "title", "titleId": "moonsinger", "detail": "Warbands that kill the Marrow Choir during the season earn the moonsinger title" }
+  ],
+  "codexCategory": "seasons"
+}

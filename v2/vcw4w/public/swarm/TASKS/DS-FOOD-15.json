@@ -1,0 +1,27 @@
+{
+  "id": "DS-FOOD-15",
+  "title": "Food batch 15: oath-mugs ... mate-gourd (7 items x 3 games x 3 modes)",
+  "goal": "Batch-15 done-state: v2/vcw4w/content/gravegain-food-batch-15.ts exports GRAVE_GAIN_FOOD_BATCH_15 with all 7 roster idx 120-126 items, each carrying full gravegain1d/2d/3d x endless/mission/mmorpg stats via buildFoodStatsTable() plus a 4..120-char drop note per game/mode, validateFoodBatch() clean; tsc + eslint + bundles + catalog-runtime green.",
+  "lane": "games",
+  "scope": [
+    "v2/vcw4w/content/gravegain-food-batch-15.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint content/gravegain-food-batch-15.ts",
+    "node scripts/verify-game-bundles.mjs",
+    "node scripts/verify-catalog-runtime.mjs",
+    "node scripts/verify-devswarm.mjs"
+  ],
+  "status": "blocked",
+  "owner": "food-b15",
+  "created": "2026-09-13T07:55:00.000Z",
+  "updated": "2026-09-13T08:28:18.132Z",
+  "log": [
+    "2026-09-13T07:55:00.000Z lead: envelope created, awaiting claim.",
+    "2026-09-13T08:15:10.952Z food-b15: claimed, starting batch 15.",
+    "2026-09-13T08:28:18.132Z food-b15: WROTE content/gravegain-food-batch-15.ts (GRAVE_GAIN_FOOD_BATCH_15, 7 items in order oath-mugs/toast-flutes/smoked-tonic/trail-soda/pearl-tea/ration-juice/mate-gourd, roster-spread + buildFoodStatsTable + 63 drop notes, pattern matches sibling batch-14).",
+    "2026-09-13T08:28:18.132Z food-b15: GREEN npx tsc --noEmit exit 0 (zero batch-15 errors); GREEN npx eslint content/gravegain-food-batch-15.ts exit 0; GREEN node scripts/verify-game-bundles.mjs (parity OK 225 archived files); GREEN validateFoodBatch smoke via tsx (7 items, order exact, note lens 33..50, errors none).",
+    "2026-09-13T08:28:18.132Z food-b15: RED node scripts/verify-catalog-runtime.mjs -> app/vibecodeworker/[section]/page.tsx must be a closed static catalog (pre-existing, vibecodeworker scope, untouched by this lane). RED node scripts/verify-devswarm.mjs -> STATUS.json counts mismatch for open: counts says 16, TASKS holds 8 (steward-owned, not hand-edited per hard rule 4). Both reds extrinsic -> status blocked pending steward; zero writes outside v2/vcw4w/content/gravegain-food-batch-15.ts."
+  ]
+}

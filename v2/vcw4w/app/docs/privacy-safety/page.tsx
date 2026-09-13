@@ -130,7 +130,7 @@ export default function PrivacySafetyPage() {
         index="6"
         kicker="Kids + family"
         title="13+ accounts, parent-made kids"
-        body="Direct accounts are Teen (13-17) or Adult (18+) only - under-13s ride on a parent-created Child sub-account, never a signup form. Nobody&apos;s birth date is ever collected: bands only, enforced server-side."
+        body="Direct accounts are Teen (13-17) or Adult (18+) by your own declaration - under-13s ride on a parent-created Child sub-account, never a signup form. Nobody&apos;s birth date is ever collected: bands only, attested by you and checked server-side at signup (under-13 choices rejected) and at every rated play session (wrong band gets a 403). Older accounts may show not set until a band is picked."
       />
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         {[

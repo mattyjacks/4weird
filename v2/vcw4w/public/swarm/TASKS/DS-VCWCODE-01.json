@@ -1,0 +1,25 @@
+{
+  "id": "DS-VCWCODE-01",
+  "title": "Desktop run docs pack (5 ways)",
+  "goal": "desktop/run-docs: 5 NEW docs making v2/desktop/code runnable: README.md (root quickstart for Electron+API), docs/VCWCODE-QUICKSTART.md, docs/VCWCODE-TROUBLESHOOTING.md (GPU/port/Ollama), docs/VCWCODE-API-EXAMPLES.md (/api/status etc), docs/VCWCODE-ENV-GUIDE.md (.env from .env.example). Zero edits to existing files.",
+  "lane": "desktop",
+  "scope": [
+    "v2/desktop/code/README.md",
+    "v2/desktop/code/docs/VCWCODE-*.md"
+  ],
+  "gates": [
+    "node --check on every new .js file"
+  ],
+  "status": "done",
+  "owner": "vcwcode-01",
+  "created": "2026-09-13T06:35:02.730Z",
+  "updated": "2026-09-13T06:39:05.599Z",
+  "log": [
+    "2026-09-13T06:35:02.730Z unassigned: envelope created for 50-ways desktop usefulness swarm (5 each x 10).",
+    "2026-09-13T06:36:19.890Z vcwcode-01: claimed envelope (lane desktop, scope v2/desktop/code README + VCWCODE docs).",
+    "2026-09-13T06:36:19.890Z vcwcode-01: start - re-read v2/desktop/code/docs listing; grounding from package.json, launch_vibecodeworker.bat, .env.example, lib/api/routes.js, server/start_api_server.js, app/main.js.",
+    "2026-09-13T06:39:05.599Z vcwcode-01: created v2/desktop/code/README.md (122 lines, Electron+:42069+:8888, Node18+, bat flags, verify, logs).",
+    "2026-09-13T06:39:05.599Z vcwcode-01: created docs/VCWCODE-QUICKSTART.md (70 lines), docs/VCWCODE-TROUBLESHOOTING.md (130 lines), docs/VCWCODE-API-EXAMPLES.md (123 lines, /api/status exists + /api/health 404 verbatim list, no invented routes), docs/VCWCODE-ENV-GUIDE.md (67 lines, min-1-key).",
+    "2026-09-13T06:39:05.599Z vcwcode-01: gate evidence - files are markdown only (no node --check applicable, envelope gate references .js but zero .js created); read-back verified all 5 heads OK; docs dir lists exactly 4 VCWCODE-*.md (4678/3865/1782/3778 bytes); never created index.html, never touched old-v1/, QUEUE.md, STATUS.json, or other envelopes."
+  ]
+}

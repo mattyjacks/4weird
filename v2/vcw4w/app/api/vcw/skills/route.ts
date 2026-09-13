@@ -7,6 +7,7 @@ import {
   defaultSkillRegistry,
   listSkillSummaries,
   runRegisteredSkill,
+  skillHasPermission,
   type EchoSkillSource,
 } from "@/lib/vcw-skills";
 
@@ -79,7 +80,10 @@ async function fetchSourcePreview(raw: string): Promise<EchoSkillSource | { erro
  * execute (anything else 501, never fetched or eval'd). A caller-supplied
  * sourceUrl is validated + fetched through the canonical SSRF egress guard
  * (https-only, DNS + rebinding checks) with a bounded preview handed to the
- * skill; guard failures 400, fetch failures 502.
+ * skill; guard failures 400, fetch failures 502. A sourceUrl is only
+ * fetched for skills granted the `net.fetch` permission (403 otherwise),
+ * so the allow-list in lib/vcw-skills.ts is enforced at runtime, not just
+ * at manifest parse.
  */
 export async function POST(req: Request) {
   const caller = await resolveVcwCaller(req);
@@ -108,6 +112,12 @@ export async function POST(req: Request) {
   const sourceRaw = input.sourceUrl ?? input.source_url ?? null;
   if (sourceRaw !== null && sourceRaw !== undefined && String(sourceRaw) !== "") {
     if (typeof sourceRaw !== "string") return fail("Invalid sourceUrl (string).", 400);
+    // Permission enforcement: the route fetches on the skill's behalf, so
+    // the skill must hold `net.fetch` (allow-listed in lib/vcw-skills.ts).
+    // Without it the URL is refused before any egress is attempted.
+    if (!skillHasPermission(manifest, "net.fetch")) {
+      return fail(`Skill "${manifest.name}" is not granted the net.fetch permission (sourceUrl refused).`, 403);
+    }
     const fetched = await fetchSourcePreview(sourceRaw);
     if ("error" in fetched) {
       const fetchFailed = /unable to fetch|returned HTTP|unable to read/i.test(fetched.error);

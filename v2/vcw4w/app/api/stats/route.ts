@@ -76,6 +76,47 @@ export async function POST(req: Request) {
   ) {
     return fail("Invalid telemetry.", 400);
   }
+  const sec = n("active_seconds");
+  const actions = n("actions");
+  const kills = n("kills");
+  const deaths = n("deaths");
+  // Spoof guard: telemetry must ride a live play session. Sessions open via
+  // start_game_session and close via end_game_session; a forged 100k-kill
+  // POST with no open session for (user, game) is rejected here, before any
+  // leaderboard-aggregated row is written. (DS-SEC-GAMES-01)
+  const { data: session } = await supabase
+    .from("game_sessions")
+    .select("id")
+    .eq("user_id", u.id)
+    .eq("game_slug", game)
+    .eq("status", "open")
+    .gt("started_at", new Date(Date.now() - 24 * 3600 * 1000).toISOString())
+    .order("started_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!session) {
+    return fail("No live play session for this game. Start a session first.", 403);
+  }
+  // Per-second caps: with zero reported play time every counter must be zero;
+  // otherwise kills/deaths/actions are bounded per second so a single forged
+  // row (e.g. 100k kills in one chunk) cannot farm the all-time leaderboards.
+  // Humans sustain <10 kills/s and far fewer than 60 inputs/s; the
+  // runtime-bridge flushes ~60 s of observed play, so legit traffic is
+  // orders of magnitude below these ceilings. (DS-SEC-GAMES-01)
+  const KILLS_PER_SEC = 10;
+  const DEATHS_PER_SEC = 10;
+  const ACTIONS_PER_SEC = 60;
+  if (sec <= 0) {
+    if (actions !== 0 || kills !== 0 || deaths !== 0) {
+      return fail("Invalid telemetry.", 400);
+    }
+  } else if (
+    kills / sec > KILLS_PER_SEC ||
+    deaths / sec > DEATHS_PER_SEC ||
+    actions / sec > ACTIONS_PER_SEC
+  ) {
+    return fail("Telemetry exceeds plausible play rates.", 400);
+  }
   const { error } = await supabase.from("game_stat_events").insert({
     user_id: u.id,
     game_slug: game,

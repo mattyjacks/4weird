@@ -1,0 +1,22 @@
+{
+    "created":  "2026-09-13T08:35:00.000Z",
+    "id":  "DS-FEEDBACK-02",
+    "goal":  "Outcome for DS-FEEDBACK-02: Feedback dialog human-bot rating. See QUEUE.md feedback run goal.",
+    "status":  "blocked",
+    "owner":  "fb-02",
+    "scope":  [
+                  "v2/vcw4w/components/feedback/feedback-dialog.tsx"
+              ],
+    "updated":  "2026-09-13T08:35:00.000Z",
+    "gates":  [
+                  "npx tsc --noEmit",
+                  "npx eslint"
+              ],
+    "title":  "Feedback dialog human-bot rating",
+    "log":  [
+                "2026-09-13T08:35:00.000Z unassigned: envelope created from template, awaiting claim.",
+                "2026-09-13T09:00:00.000Z fb-02: claimed DS-FEEDBACK-02 (lane web) for feedback-dialog component.",
+                "2026-09-13T09:30:00.000Z fb-02: created components/feedback/feedback-dialog.tsx (client component: human/bot radio first, Good/Okay/Bad rating, positive/negative critique toggle, textarea, bot-only section when reporterType=bot; zero writes outside scope). EVIDENCE eslint clean: `npx eslint components/feedback/feedback-dialog.tsx` exit 0. EVIDENCE tsc RED from out-of-scope sibling lanes, zero errors in my file: run1 `components/feedback/photo-editor.tsx(51,5): error TS2322: Type 'PhotoEditorImage' is not assignable to type 'string'`; run2 `lib/feedback/vision-client.ts(134,26): error TS1109: Expression expected` (shifting under concurrency). Status blocked: repo-wide `npx tsc --noEmit` red on other-lane files I must not touch; request steward ruling/repair of photo-editor + vision-client, then re-gate."
+            ],
+    "lane":  "web"
+}

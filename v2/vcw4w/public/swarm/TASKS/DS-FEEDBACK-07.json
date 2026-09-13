@@ -1,0 +1,22 @@
+{
+    "created":  "2026-09-13T08:35:00.000Z",
+    "id":  "DS-FEEDBACK-07",
+    "goal":  "Outcome for DS-FEEDBACK-07: Feedback tables migration. See QUEUE.md feedback run goal.",
+    "status":  "done",
+    "owner":  "fb-07",
+    "scope":  [
+                  "v2/vcw4w/supabase/migrations/20261120000000_feedback.sql"
+              ],
+    "updated":  "2026-09-13T08:35:00.000Z",
+    "gates":  [
+                  "npx tsc --noEmit",
+                  "npx eslint"
+              ],
+    "title":  "Feedback tables migration",
+    "log":  [
+                "2026-09-13T08:35:00.000Z unassigned: envelope created from template, awaiting claim.",
+                "2026-09-13T09:00:00.000Z fb-07: claimed; listing shows 20261120000000 slots clean (neighbors 20261118 bouncer / 20261201 openrouter, target absent) — proceeding to create feedback migration.",
+                "2026-09-13T09:10:00.000Z fb-07: done — created 20261120000000_feedback.sql (feedback_reports, RLS, service-write + admin-read policies, status+created index). Gates: `node scripts/verify-migration-versions.mjs` → `Migration versions OK: 111 files, unique versions, rerunnable guards present.` tsc N/A (no TS touched). No shipped migrations edited, no old-v1, no secrets."
+            ],
+    "lane":  "infra"
+}

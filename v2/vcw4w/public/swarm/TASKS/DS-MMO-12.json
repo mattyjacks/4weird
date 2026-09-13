@@ -1,0 +1,26 @@
+{
+    "id":  "DS-MMO-12",
+    "title":  "MMORPG player host safety docs",
+    "goal":  "New docs pages under app/docs/mmo using DocsHero plus SectionHead plus Callout conventions: player guide (join, 100 coins equals 1 dollar math, free-play), host guide (rent, age band, subsidy, population), safety page (bands, DOB never stored, chat limits, reporting), FAQ (per-minute why, 402 and 403 cases, broke host behavior). Describe only gates the code enforces.",
+    "lane":  "docs",
+    "scope":  [
+                  "v2/vcw4w/app/docs/mmo/player/page.tsx",
+                  "v2/vcw4w/app/docs/mmo/host/page.tsx",
+                  "v2/vcw4w/app/docs/mmo/safety/page.tsx",
+                  "v2/vcw4w/app/docs/mmo/faq/page.tsx"
+              ],
+    "gates":  [
+                  "npx eslint"
+              ],
+    "status":  "done",
+    "owner":  "mmo-a12",
+    "created":  "2026-09-13T07:58:53.000Z",
+    "updated":  "2026-09-13T09:20:00.000Z",
+    "log":  [
+                "2026-09-13T07:58:53.000Z mmo-lead: envelope created from 15-agent plan, awaiting claim.",
+                "2026-09-13T08:02:31.000Z mmo-lead: convergence note - sibling done tree covers adjacent purpose (app/mmorpg, docs/mmorpg). This envelope stays open on disjoint paths; claimant must converge with (not fork) the sibling tree and file wiring via QUEUE.",
+                "2026-09-13T09:10:00.000Z mmo-a12: claimed docs lane, scope-only app/docs/mmo/{player,host,safety,faq}/page.tsx. Converging wording with docs/mmorpg/** (read-only), gates per code only.",
+                "2026-09-13T09:15:00.000Z mmo-a12: in-progress - 4 NEW files landed, scope-only, docs/mmorpg/** untouched. Code truth: 100 coins=$1 per lib/mmorpg-economy.ts MMORPG_COINS_PER_USD; split+prorated rental per lib/mmo-host-billing.ts; host_free single bool per 20261117000001 migration; 402 fail-closed per billing/charge route; 403 band matrix per lib/mmo-age.ts + join/gate routes; DOB memory-only per lib/age-gate.ts; 140-char chat cap per 20261110000000 multiplayer migration.",
+                "2026-09-13T09:18:00.000Z mmo-a12: gate GREEN - npx eslint app/docs/mmo/player,host,safety,faq/page.tsx exit 0 zero output (run from v2/vcw4w). QUEUE nav-wiring line filed (DOCS_DATA/nav/sitemap, docs-data untouched). claimed->done; STATUS recount requested, NOT hand-edited."
+            ]
+}

@@ -1,0 +1,24 @@
+{
+    "id":  "DS-MMO-09",
+    "title":  "Presence registry and relay transport",
+    "goal":  "Server registry (register, heartbeat with monotonic tick_seq, drain and dead-sweeper), Supabase Realtime Presence plus Broadcast per room for 10 to 20 Hz ephemeral state with REST as source of truth, heartbeat intake emitting presence_minutes rows for economy billing, rate limits and heartbeat bearer tokens with server-side position sanity checks. Adapters keep polling as fallback.",
+    "lane":  "vcw",
+    "scope":  [
+                  "v2/vcw4w/app/api/presence/mmo/servers/route.ts",
+                  "v2/vcw4w/app/api/presence/mmo/heartbeat/route.ts",
+                  "v2/vcw4w/lib/mmo-presence.ts"
+              ],
+    "gates":  [
+                  "npx tsc --noEmit",
+                  "npx eslint"
+              ],
+    "status":  "done",
+    "owner":  "mmo-a09",
+    "created":  "2026-09-13T07:58:53.000Z",
+    "updated":  "2026-09-13T08:20:00.000Z",
+    "log":  [
+                "2026-09-13T07:58:53.000Z mmo-lead: envelope created from 15-agent plan, awaiting claim.",
+                "2026-09-13T08:10:00.000Z mmo-a09: claimed (vcw lane). Scope verified absent on disk (presence/mmo/** + lib/mmo-presence.ts); presence PUT convention skimmed read-only.",
+                "2026-09-13T08:20:00.000Z mmo-a09: landed 3 scope files (lib/mmo-presence.ts contract+realtime hints+polling adapter; servers GET/POST/PATCH registry+drain+dead-sweep; heartbeat bearer+tick-gate+position checks+presence_minutes billing). Gates GREEN: npx tsc --noEmit exit 0 repo-wide; npx eslint on all 3 files exit 0. QUEUE line filed for Realtime/auth promotion (see report)."
+            ]
+}

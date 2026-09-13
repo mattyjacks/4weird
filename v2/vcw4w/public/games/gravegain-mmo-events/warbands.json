@@ -1,0 +1,57 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-09-13",
+  "note": "Compact Warbands for GraveGain MMO endgame (games lane, v2-native). A warband is a small fixed-size squad (compactSize members) that fights world-boss fronts together. sigil ids resolve to banner art in warband-banner.svg.js; colors are hex pair for the banner. Mottos follow the content-mode contract (kid cozy, teen standard, all loud). ASCII only.",
+  "compactSize": 4,
+  "maxWarbandsPerPlayer": 2,
+  "warbands": [
+    {
+      "id": "ember-wardens",
+      "name": "Ember Wardens",
+      "sigil": "lantern",
+      "colors": { "primary": "#c2410c", "secondary": "#fbbf24" },
+      "motto": { "kid": "We keep every lantern glowing!", "teen": "Hold the light.", "all": "HOLD THE LIGHT" },
+      "bonus": { "id": "steady-hands", "effect": "+10% front damage when all 4 members are present" }
+    },
+    {
+      "id": "tide-sworn",
+      "name": "Tide Sworn",
+      "sigil": "wave",
+      "colors": { "primary": "#0369a1", "secondary": "#67e8f9" },
+      "motto": { "kid": "Splash together, friends forever!", "teen": "Rise with the tide.", "all": "RISE WITH THE TIDE" },
+      "bonus": { "id": "even-keel", "effect": "+10% lowest-front damage (comeback help)" }
+    },
+    {
+      "id": "moon-heralds",
+      "name": "Moon Heralds",
+      "sigil": "moon",
+      "colors": { "primary": "#6d28d9", "secondary": "#e9d5ff" },
+      "motto": { "kid": "Moon friends hum us awake!", "teen": "Sing the moon down.", "all": "SING THE MOON DOWN" },
+      "bonus": { "id": "night-shift", "effect": "+10% damage during Necrogenesis Moon season" }
+    },
+    {
+      "id": "fang-pact",
+      "name": "Fang Pact",
+      "sigil": "fang",
+      "colors": { "primary": "#166534", "secondary": "#bef264" },
+      "motto": { "kid": "Nibble the grumps, share the snacks!", "teen": "Bite first.", "all": "BITE FIRST" },
+      "bonus": { "id": "pack-tactics", "effect": "+10% damage on the weakest front" }
+    },
+    {
+      "id": "skull-choir",
+      "name": "Skull Choir",
+      "sigil": "skull",
+      "colors": { "primary": "#3f3f46", "secondary": "#fafafa" },
+      "motto": { "kid": "Grinning bones sing along!", "teen": "Sing them under.", "all": "SING THEM UNDER" },
+      "bonus": { "id": "last-verse", "effect": "+10% total damage in the final hour of a boss week" }
+    },
+    {
+      "id": "drift-runners",
+      "name": "Drift Runners",
+      "sigil": "surge",
+      "colors": { "primary": "#0e7490", "secondary": "#f0abfc" },
+      "motto": { "kid": "Zoom-zoom through the sparkle drift!", "teen": "Ride the drift.", "all": "RIDE THE DRIFT" },
+      "bonus": { "id": "slipstream", "effect": "+10% damage during Echo Drift Surge season" }
+    }
+  ]
+}

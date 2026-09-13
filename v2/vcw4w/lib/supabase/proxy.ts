@@ -77,7 +77,13 @@ export async function updateSession(request: NextRequest) {
     (/^\/api\/clans\/[^/]+\/channels$/.test(path) && method === "GET") ||
     (/^\/api\/clans\/[^/]+\/economy$/.test(path) && method === "GET") ||
     (path.startsWith("/api/bot/bclans") && isBotKeyAuth) ||
-    (path === "/api/bot/me" && isBotKeyAuth);
+    (path === "/api/bot/me" && isBotKeyAuth) ||
+    // POST /api/bot/login presents credentials (API key OR email+password
+    // for a restricted tester session), so it must stay reachable WITHOUT a
+    // session: logged-out curl bots and first-time testers have no cookies
+    // yet. The route handler enforces its own IP + per-account throttles and
+    // the deferred BotID gate. DELETE stays session-gated (tester logout).
+    (path === "/api/bot/login" && method === "POST");
 
   const protectedPath =
     !isPublicApi &&

@@ -1,0 +1,25 @@
+{
+  "id": "DS-FOOD-08",
+  "title": "Food batch 08: nest-egg ... churned-butter (9 items x 3 games x 3 modes)",
+  "goal": "Batch-08 done-state: v2/vcw4w/content/gravegain-food-batch-08.ts exports GRAVE_GAIN_FOOD_BATCH_08 with all 9 roster idx 62-70 items, each carrying full gravegain1d/2d/3d x endless/mission/mmorpg stats via buildFoodStatsTable() plus a 4..120-char drop note per game/mode, validateFoodBatch() clean; tsc + eslint + bundles + catalog-runtime green.",
+  "lane": "games",
+  "scope": [
+    "v2/vcw4w/content/gravegain-food-batch-08.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint content/gravegain-food-batch-08.ts",
+    "node scripts/verify-game-bundles.mjs",
+    "node scripts/verify-catalog-runtime.mjs",
+    "node scripts/verify-devswarm.mjs"
+  ],
+  "status": "blocked",
+  "owner": "food-b08",
+  "created": "2026-09-13T07:55:00.000Z",
+  "updated": "2026-09-13T08:12:00.000Z",
+  "log": [
+    "2026-09-13T07:55:00.000Z lead: envelope created, awaiting claim.",
+    "2026-09-13T08:00:00.000Z food-b08: claimed, starting batch 08.",
+    "2026-09-13T08:12:00.000Z food-b08: wrote content/gravegain-food-batch-08.ts (9 items, buildFoodStatsTable + 81 drop notes). Gates: tsc 0x batch-08 (1 pre-existing age-verify error), eslint clean, bundles OK; catalog-runtime RED (vibecodeworker static-catalog, out of scope), devswarm RED (DS-FOOD-05.json BOM, out of scope) -> blocked."
+  ]
+}

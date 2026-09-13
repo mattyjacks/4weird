@@ -83,3 +83,17 @@ public/games/the-revenue-jungle/
 public/games/the-speed-portal/
 public/games/treasure-hunters/
 public/games/venturemechanically/
+
+# MMORPG sources that must survive bundle pruning (narrow exceptions only).
+# NOTE: gravegain2d/ and gravegain3d/ dirs are excluded above, and git cannot
+# re-include a file under an excluded dir, so each needs dir -> dir/* -> !file.
+!public/games/gravegain2d/
+public/games/gravegain2d/*
+!public/games/gravegain2d/mmorpg-2d.js
+!public/games/gravegain3d/
+public/games/gravegain3d/*
+!public/games/gravegain3d/mmorpg-3d.js
+!public/games/gravegain1d/mmorpg-1d.js
+!public/games/gravegain-mmorpg-net.js
+!public/games/gravegain-mmorpg-events.js
+!public/games/gravegain-mmorpg-demo-servers.json

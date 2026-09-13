@@ -7,6 +7,7 @@ import { FaceController, type FaceGameInput } from "@/components/a11y/face-contr
 type RuntimeEvent = {
   version?: number;
   type?: string;
+  slug?: string;
   slot?: number;
   schema_version?: number;
   data?: unknown;
@@ -292,6 +293,15 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
     const expected = originOf(src);
     const onMessage = (event: MessageEvent<RuntimeEvent>) => {
       if ((event.origin !== expected && !TRUSTED_GAME_ORIGINS.includes(event.origin)) || event.source !== frame.current?.contentWindow || !event.data || event.data.version !== 1) return;
+      // Slug-match drop (DS-SEC-GAMES-01): the bridge always tags its slug,
+      // so a payload naming another game is dropped even from an otherwise
+      // trusted source. NOTE on the outbound direction: the bundle-side
+      // public/games/html/runtime-bridge.js hostTarget() still falls back to
+      // "*" when document.referrer is untrusted — that file is parity-locked
+      // (verify-game-bundles enforced) and was deliberately left untouched;
+      // the drop-when-untrusted fix is filed as a QUEUE wiring request for
+      // the sync-game-bundles generator owner (steward-owned scripts/**).
+      if (typeof event.data.slug === "string" && event.data.slug !== slug) return;
       runtimeOrigin.current = event.origin;
       const origin = event.origin;
       const payload = event.data;

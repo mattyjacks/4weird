@@ -28,6 +28,9 @@ export const FACTS = {
   providerShare: "75% credits the providers and game makers as on-site platform credits (cloud compute, game credits, other on-site services only; never cash-out, never withdrawable)",
   trial: "free 100-coin ($1.00) trial for new accounts",
   gameCount: "35 playable browser games",
+  tagline: "Future Forward Fun, Funded by Founders",
+  taglineSub: "Cost-Effective Cloud Computing Center",
+  funding: "Bootstrapped today by founder Matt (MattyJacks LLC); on the path to being funded by founders who buy our cloud",
 } as const;
 
 /**
@@ -45,9 +48,9 @@ export const COIN_TRIAL = { coins: 100, usd: 0, label: "Free signup trial (once 
 export const BYOK_PLAN = { usdPerMonth: 420, label: "Self-hosted BYOK, 15% compute premium" } as const;
 
 export const DEFAULT_TITLE =
-  "4weird Games - Cloud Compute That Funds AI-Built Games";
+  "4weird Games - Future Forward Fun, Funded by Founders";
 export const DEFAULT_DESCRIPTION =
-  "Rent metered cloud compute, AI agents, and squad workspaces with Vibe Coins (100 🪙 = $1.00, 25% cut included); funding 35 AI-built browser games that teach AI by playing.";
+  "4weird is a Cost-Effective Cloud Computing Center: rent metered GPUs, desktops, and AI agents with Vibe Coins (100 🪙 = $1.00, 25% cut included). Founder cloud spend funds 35 AI-built browser games. Bootstrapped by Matt (MattyJacks LLC).";
 
 /** Core keyword set shared by the homepage and section hubs. */
 export const CORE_KEYWORDS = [

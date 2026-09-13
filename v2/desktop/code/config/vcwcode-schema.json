@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://4weird.dev/v2/desktop/code/config/vcwcode-schema.json",
+  "title": "VCWCode desktop config",
+  "description": "JSON Schema for v2/desktop/code/config overlays. Reference only — never edit default.json; validate overlays against this schema instead.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "serverPort": {
+      "description": "Desktop API port. Default 42069.",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535,
+      "default": 42069
+    },
+    "webEngine": {
+      "description": "Embedded web renderer. Default ultralight; override with VIBE_WEB_ENGINE.",
+      "type": "string",
+      "enum": ["ultralight", "electron", "chromium"],
+      "default": "ultralight"
+    },
+    "provider": {
+      "description": "Chat provider id (e.g. meta).",
+      "type": "string",
+      "minLength": 1
+    },
+    "localUrl": {
+      "description": "Local chat endpoint URL.",
+      "type": "string",
+      "format": "uri"
+    },
+    "gameUrl": {
+      "description": "Playtest game URL served from static host.",
+      "type": "string",
+      "format": "uri"
+    },
+    "audioChannelMode": {
+      "description": "Audio downmix mode.",
+      "type": "string",
+      "enum": ["mono", "stereo"],
+      "default": "mono"
+    }
+  }
+}

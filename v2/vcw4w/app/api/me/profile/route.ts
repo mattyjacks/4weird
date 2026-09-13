@@ -4,18 +4,26 @@ import { rateLimit } from "@/lib/rate-limit";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { botTesterBlocked, isBotTester, privilegedSessionBlocked } from "@/lib/bot-auth";
-import { cleanDisplayName, cleanHandle, jsonBytes } from "@/lib/validate";
+import { cleanDisplayName, cleanHandle, clientIp, jsonBytes } from "@/lib/validate";
 import { isAgeBand } from "@/lib/family";
 
 
 const maxRequestBytes = 8192;
 
-export async function GET() {
+export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  const ipThrottle = rateLimit(`profile-get-ip:${clientIp(req)}`, 60, 60_000);
+  if (!ipThrottle.allowed) return fail("Rate limited.", 429);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Authentication required.", 401);
+  const userThrottle = rateLimit(`profile-get:${u.id}`, 60, 60_000);
+  if (!userThrottle.allowed) {
+    return fail("Too many profile reads. Try again shortly.", 429, {
+      "Retry-After": String(userThrottle.retryAfter),
+    });
+  }
   const { data: row, error } = await supabase
     .from("profiles")
     .select("display_name,public_handle,email,family_role,age_band,created_at,is_profile_public,ll_balance,ll_earned,ll_received,ll_given")

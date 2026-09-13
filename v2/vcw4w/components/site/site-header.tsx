@@ -65,6 +65,7 @@ const NAV_GROUPS: { label: string; links: NavLink[] }[] = [
       { href: "/submit", label: "🚀 Submit Game" },
       { href: "/vault", label: "🗄️ Weird Vault" },
       { href: "/fal", label: "🎨 fal.ai Studio" },
+      { href: "/stock", label: "🖼️ Free Stock" },
       { href: "/meshy", label: "🧊 Meshy 3D" },
     ],
   },

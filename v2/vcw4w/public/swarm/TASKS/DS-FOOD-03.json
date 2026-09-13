@@ -1,0 +1,25 @@
+{
+  "id": "DS-FOOD-03",
+  "title": "Food batch 03: iron-coconut ... swift-pepper (9 items x 3 games x 3 modes)",
+  "goal": "Batch-03 done-state: v2/vcw4w/content/gravegain-food-batch-03.ts exports GRAVE_GAIN_FOOD_BATCH_03 with all 9 roster idx 18-26 items, each carrying full gravegain1d/2d/3d x endless/mission/mmorpg stats via buildFoodStatsTable() plus a 4..120-char drop note per game/mode, validateFoodBatch() clean; tsc + eslint + bundles + catalog-runtime green.",
+  "lane": "games",
+  "scope": [
+    "v2/vcw4w/content/gravegain-food-batch-03.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint content/gravegain-food-batch-03.ts",
+    "node scripts/verify-game-bundles.mjs",
+    "node scripts/verify-catalog-runtime.mjs",
+    "node scripts/verify-devswarm.mjs"
+  ],
+  "status": "blocked",
+  "owner": "food-b03",
+  "created": "2026-09-13T07:55:00.000Z",
+  "updated": "2026-09-13T08:28:57.130Z",
+  "log": [
+    "2026-09-13T07:55:00.000Z lead: envelope created, awaiting claim.",
+    "2026-09-13T08:13:11.268Z food-b03: claimed, starting batch 03.",
+    "2026-09-13T08:28:57.130Z food-b03: wrote content/gravegain-food-batch-03.ts (9 ids in order, 81/81 notes 4..100 chars, validateFoodBatch CLEAN via jiti runtime check). Gates: tsc zero batch-03 mentions (3 pre-existing errors in coins/mmo+presence/mmo, untouched); eslint clean; verify-game-bundles PASS; verify-catalog-runtime RED pre-existing (app/vibecodeworker/[section]/page.tsx closed-catalog check, out of scope, file untouched); verify-devswarm RED (STATUS.json counts open 16 vs TASKS 15 after mandated claim step; STATUS.json is steward-owned, not editable by lane). -> blocked, needs steward count sync + catalog-runtime owner fix."
+  ]
+}

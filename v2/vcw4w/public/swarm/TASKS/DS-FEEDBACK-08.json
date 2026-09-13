@@ -1,0 +1,22 @@
+{
+    "created":  "2026-09-13T08:35:00.000Z",
+    "id":  "DS-FEEDBACK-08",
+    "goal":  "Outcome for DS-FEEDBACK-08: Admin unaddressed ingest views. See QUEUE.md feedback run goal.",
+    "status":  "done",
+    "owner":  "fb-08",
+    "scope":  [
+                  "v2/vcw4w/app/feedback/admin/page.tsx"
+              ],
+    "updated":  "2026-09-13T08:35:00.000Z",
+    "gates":  [
+                  "npx tsc --noEmit",
+                  "npx eslint"
+              ],
+    "title":  "Admin unaddressed ingest views",
+    "log":  [
+                "2026-09-13T08:35:00.000Z unassigned: envelope created from template, awaiting claim.",
+                "2026-09-13T08:30:00.000Z fb-08: claimed (lane web). Scope app/feedback/admin/page.tsx only; admin-gate via app_metadata role convention.",
+                "2026-09-13T08:34:00.000Z fb-08: done. NEW app/feedback/admin/page.tsx (server page, force-dynamic, robots noindex): admin-gated via getUser + app_metadata role !== admin fail-closed deny (convention read from app/api/admin/submissions/route.ts); lists unaddressed feedback_reports newest-first (addressed=false primary, status=unaddressed fallback, 200 cap) with rating/critique/text/thumbnail + fail-open unprovisioned-table notice; no API routes created, JSON/MD wiring queued. Gates GREEN: npx tsc --noEmit exit 0 (no output); npx eslint app/feedback/admin/page.tsx 0 errors + 1 intentional no-img-element warning (remote user thumbnails outside next/image remotePatterns, documented in-file). Zero writes outside scope; no old-v1; no secrets; STATUS.json untouched."
+            ],
+    "lane":  "web"
+}

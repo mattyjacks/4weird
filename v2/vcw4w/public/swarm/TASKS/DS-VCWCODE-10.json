@@ -1,0 +1,21 @@
+{
+  "id": "DS-VCWCODE-10",
+  "title": "Packaging/automation pack (5 ways)",
+  "goal": "5 NEW automation/vcwcode-* packaging checks: dist-prune note, artifact-name check, ffmpeg-resource check, icon check, version-sync check (package.json vs VERSION vs tauri.conf). Small node scripts printing PASS/FAIL.",
+  "lane": "desktop",
+  "scope": [
+    "v2/desktop/code/automation/vcwcode-*"
+  ],
+  "gates": [
+    "node --check on every new .js file"
+  ],
+  "status": "done",
+  "owner": "vcwcode-10",
+  "created": "2026-09-13T06:35:02.730Z",
+  "updated": "2026-09-13T06:35:02.730Z",
+  "log": [
+    "2026-09-13T06:35:02.730Z unassigned: envelope created for 50-ways desktop usefulness swarm (5 each x 10).",
+    "2026-09-13T07:00:00.000Z vcwcode-10: claimed, starting 5 packaging/automation checks.",
+    "2026-09-13T07:10:00.000Z vcwcode-10: done. 5 NEW files in v2/desktop/code/automation/. Gates: node --check x5 ALL_CHECKS_OK. Runs: artifact PASS(exit0) 'artifactName=vibecodeworker-4weird.exe output=dist'; version PASS(exit0) 'package.json=2.0.0 VERSION=2.0.0 tauri=2.0.0'; icon FAIL(exit1) 'missing src/icon.png' (truthful: only src-tauri/icons/icon.png exists); ffmpeg WARN(exit0) 'extraResource source absent at v2/desktop/mediamogul/shotcut/ffmpeg.exe'; dist PASS(exit0) 'dist=5.36 GiB (118 files) vs dist-current=257.86 MiB (72 files) | prune note, never delete.' Reference-only reads: package.json build block, VERSION, tauri.conf.json. No edits outside lane."
+  ]
+}

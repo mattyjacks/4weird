@@ -744,7 +744,7 @@ export function VaultBrowser() {
               aria-label="Organization"
               value={scopeId}
               onChange={(e) => setScopeId(e.target.value)}
-              className="min-h-[44px] max-w-64 rounded-lg border border-border bg-background px-3 py-1.5 text-xs"
+              className="min-h-[44px] max-w-64 rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground"
             >
               <option value="">Pick an org…</option>
               {orgs.map((o) => (
@@ -762,7 +762,7 @@ export function VaultBrowser() {
               aria-label="Squad"
               value={scopeId}
               onChange={(e) => setScopeId(e.target.value)}
-              className="min-h-[44px] max-w-64 rounded-lg border border-border bg-background px-3 py-1.5 text-xs"
+              className="min-h-[44px] max-w-64 rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground"
             >
               <option value="">Pick a squad…</option>
               {teams.map((t) => (
@@ -803,7 +803,7 @@ export function VaultBrowser() {
             onChange={(e) => setQ(e.target.value)}
             placeholder={`Search ${cwd || "Vault"}…`}
             aria-label="Search files"
-            className="min-h-[44px] w-52 rounded-lg border border-border bg-background px-3 py-1.5 text-xs"
+            className="min-h-[44px] w-52 rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground"
           />
         </label>
         <label className="flex min-h-[44px] items-center gap-2 text-xs">
@@ -812,7 +812,7 @@ export function VaultBrowser() {
             aria-label="Sort files"
             value={sort}
             onChange={(e) => setSort(e.target.value)}
-            className="min-h-[44px] rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+            className="min-h-[44px] rounded-lg border border-border bg-background px-2 py-1.5 text-xs text-foreground"
           >
             <option value="updated">Updated</option>
             <option value="name">Name</option>
@@ -834,7 +834,7 @@ export function VaultBrowser() {
             aria-label="Filter by kind"
             value={kindFilter}
             onChange={(e) => setKindFilter(e.target.value)}
-            className="min-h-[44px] rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+            className="min-h-[44px] rounded-lg border border-border bg-background px-2 py-1.5 text-xs text-foreground"
           >
             <option value="">All</option>
             {KIND_OPTIONS.map((k) => (
@@ -861,7 +861,7 @@ export function VaultBrowser() {
           if (e.dataTransfer.files.length) enqueue(e.dataTransfer.files);
         }}
       >
-        <label htmlFor="vault-file" className="min-h-[44px] cursor-pointer rounded-full border border-border px-4 py-2 text-xs font-bold">
+        <label htmlFor="vault-file" className="min-h-[44px] cursor-pointer rounded-full border border-border px-4 py-2 text-xs font-bold text-foreground">
           Choose files
         </label>
         <input
@@ -1087,7 +1087,7 @@ export function VaultBrowser() {
           <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
             <label className="flex min-h-[44px] items-center gap-2">
               <span className="font-bold">Expires</span>
-              <select aria-label="Link expiry" value={expiryHrs} onChange={(e) => setExpiryHrs(e.target.value)} className="min-h-[44px] rounded-lg border border-border bg-background px-2 py-1.5">
+              <select aria-label="Link expiry" value={expiryHrs} onChange={(e) => setExpiryHrs(e.target.value)} className="min-h-[44px] rounded-lg border border-border bg-background px-2 py-1.5 text-foreground">
                 <option value="1">1 hour</option>
                 <option value="24">24 hours</option>
                 <option value="168">7 days</option>

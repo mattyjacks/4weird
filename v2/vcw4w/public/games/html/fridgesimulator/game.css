@@ -705,3 +705,86 @@ body {
 .hud-value { font-size: clamp(1rem, 2vw, 1.2rem); }
 .logo-big { font-size: clamp(1.8rem, 5vw, 3rem); overflow-wrap: anywhere; }
 .screen-overlay { overflow-y: auto; }
+
+/* ===== DS-FRIDGE-02 mobile+desktop playable (CSS-only, no logic) ===== */
+@media (max-width: 900px) {
+    .game-content {
+        grid-template-columns: 1fr;
+        overflow: visible;
+    }
+    .game-wrapper {
+        height: auto;
+        max-height: none;
+        overflow: visible;
+    }
+    .panel {
+        max-height: none;
+        overflow-y: visible;
+    }
+    .hud {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .fridge-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .shop-items {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+/* 44px touch targets: shop tabs, shop items, inventory items, fridge slots, HUD/action buttons */
+.shop-tab {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 10px 14px;
+}
+.shop-item {
+    min-height: 44px;
+    min-width: 44px;
+}
+.inventory-item {
+    min-height: 44px;
+    min-width: 44px;
+}
+.fridge-slot {
+    min-height: 44px;
+    min-width: 44px;
+}
+.action-buttons .btn,
+.hud .btn {
+    min-height: 44px;
+}
+#btnSoundToggle,
+#btnFullscreen {
+    min-height: 44px;
+    min-width: 44px;
+}
+/* HUD wraps (desktop + narrow) */
+.hud {
+    flex-wrap: wrap;
+}
+/* Sticky save-bar mount (empty div filled by v2 React panel / save slots) */
+#fridgeSaveBar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    background: rgba(10, 10, 15, 0.9);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 10px;
+    min-height: 44px;
+}
+#fridgeSaveBar:empty {
+    padding: 0;
+    border: none;
+    background: transparent;
+    min-height: 0;
+}
+#fridgeV2Panel:empty {
+    display: contents;
+}

@@ -1,0 +1,25 @@
+{
+  "id": "DS-FOOD-10",
+  "title": "Food batch 10: ash-potato ... fortune-cookie (9 items x 3 games x 3 modes)",
+  "goal": "Batch-10 done-state: v2/vcw4w/content/gravegain-food-batch-10.ts exports GRAVE_GAIN_FOOD_BATCH_10 with all 9 roster idx 80-88 items, each carrying full gravegain1d/2d/3d x endless/mission/mmorpg stats via buildFoodStatsTable() plus a 4..120-char drop note per game/mode, validateFoodBatch() clean; tsc + eslint + bundles + catalog-runtime green.",
+  "lane": "games",
+  "scope": [
+    "v2/vcw4w/content/gravegain-food-batch-10.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint content/gravegain-food-batch-10.ts",
+    "node scripts/verify-game-bundles.mjs",
+    "node scripts/verify-catalog-runtime.mjs",
+    "node scripts/verify-devswarm.mjs"
+  ],
+  "status": "blocked",
+  "owner": "food-b10",
+  "created": "2026-09-13T07:55:00.000Z",
+  "updated": "2026-09-13T08:25:47.357Z",
+  "log": [
+    "2026-09-13T07:55:00.000Z lead: envelope created, awaiting claim.",
+    "2026-09-13T08:13:20.476Z food-b10: claimed, starting batch 10.",
+    "2026-09-13T08:25:47.357Z food-b10: batch file written + tsc/eslint/bundles green, validateFoodBatch CLEAN; blocked: catalog-runtime red (vibecodeworker page, out of scope) + devswarm red (STATUS.json open-count 16 vs 15 after claim; steward-owned, needs steward recount)."
+  ]
+}

@@ -1,0 +1,25 @@
+{
+    "created":  "2026-09-13T08:35:00.000Z",
+    "id":  "DS-FEEDBACK-09",
+    "goal":  "Outcome for DS-FEEDBACK-09: Bot-only extras bot API. See QUEUE.md feedback run goal.",
+    "status":  "blocked",
+    "owner":  "fb-09",
+    "scope":  [
+                  "v2/vcw4w/lib/vcw-feedback.ts"
+              ],
+    "updated":  "2026-09-13T08:35:00.000Z",
+    "gates":  [
+                  "npx tsc --noEmit",
+                  "npx eslint"
+              ],
+    "title":  "Bot-only extras bot API",
+    "log":  [
+                "2026-09-13T08:35:00.000Z unassigned: envelope created from template, awaiting claim.",
+                "2026-09-13T09:00:00.000Z fb-09: claimed DS-FEEDBACK-09 (lane vcw); scope v2/vcw4w/lib/vcw-feedback.ts.",
+                "2026-09-13T09:10:00.000Z fb-09: created v2/vcw4w/lib/vcw-feedback.ts (BOT_EXTRAS_SCHEMA + validateBotExtras + submitBotFeedback POST /api/feedback reporterType bot + x-bot-key header).",
+                "2026-09-13T09:12:00.000Z fb-09: gate npx eslint lib/vcw-feedback.ts GREEN exit 0, zero warnings/errors.",
+                "2026-09-13T09:12:00.000Z fb-09: gate npx tsc --noEmit RED on pre-existing out-of-scope sibling file only: components/feedback/photo-editor.tsx(51,5) error TS2322 Type PhotoEditorImage (Blob) not assignable to string; zero tsc lines mention vcw-feedback.ts (Select-String no match). Fix belongs to owning feedback lane via QUEUE to steward; vcw lane must not touch components/feedback/**.",
+                "2026-09-13T09:12:00.000Z fb-09: status blocked (repo-wide tsc red on sibling file, not this scope). Deliverable complete; unblock by fixing photo-editor.tsx:51 or scoping the tsc gate per-file."
+            ],
+    "lane":  "vcw"
+}

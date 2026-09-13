@@ -1,0 +1,21 @@
+{
+    "id":  "DS-MMO-01",
+    "title":  "Shared MMO net library",
+    "goal":  "New client-side net library v2/vcw4w/public/games/gravegain-mmo-net.js exposing window.GraveGainMMO (join, snapshot send at 4Hz, crowd pull at 1Hz, heartbeat at 15s, interest cull to 12 nearest, position interpolation). Reuses STATE_ALLOW key semantics and string caps from gravegain-netplay.js. Race/duel/siege paths untouched; ?match= keeps old behavior, ?mmo= uses the new path; solo stays dormant.",
+    "lane":  "games",
+    "scope":  [
+                  "v2/vcw4w/public/games/gravegain-mmo-net.js"
+              ],
+    "gates":  [
+                  "node --check gravegain-mmo-net.js",
+                  "node scripts/verify-game-bundles.mjs"
+              ],
+    "status":  "blocked",
+    "owner":  null,
+    "created":  "2026-09-13T07:58:53.000Z",
+    "updated":  "2026-09-13T08:02:31.000Z",
+    "log":  [
+                "2026-09-13T07:58:53.000Z mmo-lead: envelope created from 15-agent plan, awaiting claim.",
+                "2026-09-13T08:02:31.000Z mmo-lead: SUPERSEDED by DS-MMORPG-NET01 (done) - shared/mmorpg-net.js exists on disk and serves the same purpose. Do not build gravegain-mmo-net.js as a rival core. Crowd-pull and interest-cull needs go to the netcore owner via QUEUE. Unblock only on steward ruling."
+            ]
+}

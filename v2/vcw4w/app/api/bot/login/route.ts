@@ -151,10 +151,13 @@ export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   // Login-CSRF guard (curl-safe): browsers already carrying a session cookie
   // must prove same-origin before they can be re-logged into another
-  // account; fresh curl callers carry no cookies and proceed.
+  // account; fresh curl callers carry no cookies and proceed. The marker
+  // cookies count too: bot_tester (30d) and full_login (30d) outlive the
+  // sb-* session, and a stale-marker browser re-logged cross-site into an
+  // attacker's tester account would act as the attacker.
   {
     const cookieHeader = req.headers.get("cookie") ?? "";
-    const hasSessionCookie = /(^|;\s*)(sb-|kid_session)/.test(cookieHeader);
+    const hasSessionCookie = /(^|;\s*)(sb-|kid_session|bot_tester|full_login)/.test(cookieHeader);
     if (hasSessionCookie && !sameOrigin(req)) return fail("Invalid request origin.", 403);
   }
   if (!email || !password) {

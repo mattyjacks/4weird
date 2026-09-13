@@ -1,0 +1,24 @@
+{
+    "created":  "2026-09-13T09:00:00.000Z",
+    "id":  "DS-FEEDBACK-11",
+    "goal":  "Feedback payloads retain the page URL at start and submit moments; stored as page_url and shown in admin ingest.",
+    "status":  "done",
+    "owner":  "lead",
+    "scope":  [
+                  "v2/vcw4w/components/feedback/feedback-button.tsx",
+                  "v2/vcw4w/lib/feedback/vision-client.ts",
+                  "v2/vcw4w/app/api/feedback/route.ts",
+                  "v2/vcw4w/lib/vcw-feedback.ts"
+              ],
+    "updated":  "2026-09-13T09:10:00.000Z",
+    "gates":  [
+                  "npx tsc --noEmit",
+                  "npx eslint"
+              ],
+    "title":  "Retain page URL on feedback start+submit",
+    "log":  [
+                "2026-09-13T09:00:00.000Z lead: envelope created for URL-retention follow-up, claimed.",
+                "2026-09-13T09:10:00.000Z lead: URL retention landed — button captures startedUrl on open + pageUrl at submit; vision-client carries pageUrl/startedUrl into FormData; route accepts JSON+multipart and stores page_url+user_agent; vcw bot submit takes pageUrl/startedUrl. Gates: tsc exit 0, eslint exit 0 on all 4 files."
+            ],
+    "lane":  "web"
+}

@@ -1,0 +1,26 @@
+{
+    "id":  "DS-MMO-05",
+    "title":  "Per-minute coin metering API",
+    "goal":  "Metering quote plus settlement read path: per-minute share equals server cost divided by N present, integer centicentcoin math with floor 1, dust carry-forward, split reporting with 25 percent cut included. Quote route and per-match charge history reading ledger only. All coin writes stay in DS-MMO-14. Never add a balance column.",
+    "lane":  "economy",
+    "scope":  [
+                  "v2/vcw4w/app/api/coins/mmo/quote/route.ts",
+                  "v2/vcw4w/app/api/coins/mmo/ledger/route.ts",
+                  "v2/vcw4w/lib/mmo-meter-quote.ts"
+              ],
+    "gates":  [
+                  "npx tsc --noEmit",
+                  "npx eslint",
+                  "node scripts/verify-ledger-pairing.mjs"
+              ],
+    "status":  "done",
+    "owner":  "mmo-a05",
+    "created":  "2026-09-13T07:58:53.000Z",
+    "updated":  "2026-09-13T09:45:00.000Z",
+    "log":  [
+                "2026-09-13T07:58:53.000Z mmo-lead: envelope created from 15-agent plan, awaiting claim.",
+                "2026-09-13T08:15:00.000Z mmo-a05: claimed. Scope verified absent (lib/mmo-meter-quote.ts + app/api/coins/mmo/quote + ledger routes absent); sibling lib/mmo-billing.ts + lib/economy.ts skimmed read-only, converging math not forking.",
+                "2026-09-13T09:35:00.000Z mmo-a05: in_progress. Landed NEW lib/mmo-meter-quote.ts (quoteMeter reusing mmo-billing sanitizers: floor-1, dust carry, round-25pct splits, session scaling) + NEW quote route (public pure estimator, zero DB) + NEW ledger route (auth SELECT-only per-match history). Convergence catch pre-close: DS-MMO-14 DONE mid-task with landed reasons 'MMO minute <match>#<m>'/'MMO host payout <match>#<m>' (not my draft mmo: tag) — refactored to match landed shapes + round() to match settle_mmo_minute; zero bytes of theirs touched.",
+                "2026-09-13T09:45:00.000Z mmo-a05: done. GATES GREEN: npx tsc --noEmit exit 0; npx eslint on 3 scope files exit 0 zero output; node scripts/verify-ledger-pairing.mjs OK 'Ledger pairing integrity OK'. Runtime smoke: 1000/3 -> per 333 tot 999 dustOut 1 split 83+250=333; 3/10 -> per 1 over 7 surfaced; dustCarry 1 -> dustOut 2 (conserved); empty/hostFree -> host covers 1000. Zero writes outside scope (3 NEW files only, no STATUS/QUEUE/supabase/scripts edits, no balance column)."
+            ]
+}

@@ -1,0 +1,25 @@
+{
+  "id": "DS-FOOD-06",
+  "title": "Food batch 06: spire-bagel ... warchief-burger (9 items x 3 games x 3 modes)",
+  "goal": "Batch-06 done-state: v2/vcw4w/content/gravegain-food-batch-06.ts exports GRAVE_GAIN_FOOD_BATCH_06 with all 9 roster idx 44-52 items, each carrying full gravegain1d/2d/3d x endless/mission/mmorpg stats via buildFoodStatsTable() plus a 4..120-char drop note per game/mode, validateFoodBatch() clean; tsc + eslint + bundles + catalog-runtime green.",
+  "lane": "games",
+  "scope": [
+    "v2/vcw4w/content/gravegain-food-batch-06.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint content/gravegain-food-batch-06.ts",
+    "node scripts/verify-game-bundles.mjs",
+    "node scripts/verify-catalog-runtime.mjs",
+    "node scripts/verify-devswarm.mjs"
+  ],
+  "status": "blocked",
+  "owner": "food-b06",
+  "created": "2026-09-13T07:55:00.000Z",
+  "updated": "2026-09-13T08:28:14.000Z",
+  "log": [
+    "2026-09-13T07:55:00.000Z lead: envelope created, awaiting claim.",
+    "2026-09-13T08:13:45.000Z food-b06: claimed, starting batch 06.",
+    "2026-09-13T08:28:14.000Z food-b06: batch file written (9/9 ids in order, 81 notes 33..52 chars, spread-only emoji). tsc: zero errors mentioning batch-06 (2 pre-existing in app/api/presence/mmo/heartbeat/route.ts, untouched). eslint content/gravegain-food-batch-06.ts exit 0. verify-game-bundles exit 0. BLOCKED: verify-catalog-runtime red on app/vibecodeworker/[section]/page.tsx (missing dynamicParams=false; file untouched, outside games scope -> QUEUE steward). BLOCKED: verify-devswarm red on sibling DS-FOOD-05.json BOM parse failure (not my file, must not edit -> QUEUE steward)."
+  ]
+}

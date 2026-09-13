@@ -1,0 +1,27 @@
+{
+  "id": "DS-FOOD-14",
+  "title": "Food batch 14: seer-teapot ... barley-brew (8 items x 3 games x 3 modes)",
+  "goal": "Batch-14 done-state: v2/vcw4w/content/gravegain-food-batch-14.ts exports GRAVE_GAIN_FOOD_BATCH_14 with all 8 roster idx 112-119 items, each carrying full gravegain1d/2d/3d x endless/mission/mmorpg stats via buildFoodStatsTable() plus a 4..120-char drop note per game/mode, validateFoodBatch() clean; tsc + eslint + bundles + catalog-runtime green.",
+  "lane": "games",
+  "scope": [
+    "v2/vcw4w/content/gravegain-food-batch-14.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint content/gravegain-food-batch-14.ts",
+    "node scripts/verify-game-bundles.mjs",
+    "node scripts/verify-catalog-runtime.mjs",
+    "node scripts/verify-devswarm.mjs"
+  ],
+  "status": "blocked",
+  "owner": "food-b14",
+  "created": "2026-09-13T07:55:00.000Z",
+  "updated": "2026-09-13T08:26:21.998Z",
+  "log": [
+    "2026-09-13T07:55:00.000Z lead: envelope created, awaiting claim.",
+    "2026-09-13T08:12:14.813Z food-b14: claimed, starting batch 14.",
+    "2026-09-13T08:26:21.998Z food-b14: wrote content/gravegain-food-batch-14.ts (8 items, order ok, validateFoodBatch 0 errors, max note 55 chars).",
+    "2026-09-13T08:26:21.998Z food-b14: gates: tsc zero batch-14 errors; eslint clean; verify-game-bundles PASS; verify-catalog-runtime RED (vibecodeworker [section] page, out of scope); verify-devswarm RED (DS-FOOD-05.json BOM, other lane file).",
+    "2026-09-13T08:26:21.998Z food-b14: status blocked — 2 red gates are pre-existing failures outside owned scope; QUEUE to steward for lanes owning vibecodeworker page + DS-FOOD-05 envelope."
+  ]
+}

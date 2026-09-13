@@ -42,6 +42,20 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   }
   const { id } = await params;
   if (!isUuid(id)) return fail("Invalid match.", 400);
+  // Mirror the GET participant/active checks before touching state: the RPC
+  // enforces the same predicates at the DB layer (defense in depth), but the
+  // API must fail closed with the same semantics — non-participants see 404
+  // (never confirm the match exists), finished/abandoned matches see 403.
+  // (DS-SEC-GAMES-01)
+  const { data: match, error: matchError } = await supabase
+    .from("game_matches")
+    .select("id,phone_id,desktop_id,status")
+    .eq("id", id)
+    .maybeSingle();
+  if (matchError || !match) return fail("Match not found.", 404);
+  const m = match as { phone_id?: string; desktop_id?: string; status?: string };
+  if (m.phone_id !== u.id && m.desktop_id !== u.id) return fail("Match not found.", 404);
+  if (m.status !== "active") return fail("Match is no longer active.", 403);
   let body: unknown;
   try {
     body = await req.json();

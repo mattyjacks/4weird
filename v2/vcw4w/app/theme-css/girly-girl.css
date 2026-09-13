@@ -129,7 +129,8 @@ html.theme-girly-girl .rounded-md { border-radius: 12px; }
 html.theme-girly-girl .rounded-lg { border-radius: 16px; }
 html.theme-girly-girl .rounded-xl { border-radius: 22px; }
 html.theme-girly-girl .rounded-2xl { border-radius: 30px; }
-html.theme-girly-girl button, html.theme-girly-girl input, html.theme-girly-girl .ui-details { border-radius: 9999px; }
+html.theme-girly-girl button, html.theme-girly-girl input { border-radius: 9999px; }
+html.theme-girly-girl .ui-details { border-radius: 18px; }
 html.theme-girly-girl .ui-details-body, html.theme-girly-girl .ui-clamp-body { border-radius: 18px; }
 /* ---- FOOTER: candy gloss in both modes (strawberry milk by day, plum night) ---- */
 html.light.theme-girly-girl footer#site-footer { background-color: #fdf2f8; border-top-color: rgb(219 39 119 / 0.25); }

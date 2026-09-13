@@ -484,16 +484,63 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
     };
     void resolve();
     const refresh = () => void resolve();
+    // Full recheck (for stale band blocks): drop the denied/blocked UI and
+    // re-resolve from the server profile, then retry the session boot. Used
+    // when the band may have changed elsewhere (Account tab) — plain refresh
+    // alone would leave a denied box on screen even after the fix lands.
+    const recheckBand = () => {
+      setGate({ kind: "checking" });
+      setAge("unknown");
+      setResolveNonce((n) => n + 1);
+      setGuestRetry((n) => n + 1);
+    };
+    const onStorage = (event: StorageEvent) => {
+      // Account settings broadcasts its saves under this key (other tabs):
+      // that is exactly the "I set my band but the game still blocks me"
+      // moment, so reset the block instead of just re-reading behind it.
+      if (event.key === "4weird-age-band-changed") recheckBand();
+      else refresh();
+    };
     window.addEventListener("kids-mode-changed", refresh);
     window.addEventListener("kid-session-changed", refresh);
-    window.addEventListener("storage", refresh);
+    window.addEventListener("age-band-changed", recheckBand);
+    window.addEventListener("storage", onStorage);
     return () => {
       live = false;
       window.removeEventListener("kids-mode-changed", refresh);
       window.removeEventListener("kid-session-changed", refresh);
-      window.removeEventListener("storage", refresh);
+      window.removeEventListener("age-band-changed", recheckBand);
+      window.removeEventListener("storage", onStorage);
     };
   }, [rating, slug, contentNonce, resolveNonce]);
+
+  // Stale-block backstop: the band is set on /account (often another tab),
+  // then the player returns here to the same old block — no reload, no way
+  // forward. Re-resolve when the tab becomes visible again, but ONLY while a
+  // band block is on screen (blocked / band-teens / denied). DOB-passed,
+  // playing, and metering states are untouched so refocusing never eats a
+  // just-passed age check or reboots a running game.
+  useEffect(() => {
+    const stale = age === "blocked" || age === "band-teens" || gate.kind === "denied";
+    if (!stale) return;
+    const recheck = () => {
+      setGate({ kind: "checking" });
+      setAge("unknown");
+      setResolveNonce((n) => n + 1);
+      setGuestRetry((n) => n + 1);
+    };
+    const onVisible = () => {
+      if (document.visibilityState === "visible") recheck();
+    };
+    window.addEventListener("focus", recheck);
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("pageshow", recheck);
+    return () => {
+      window.removeEventListener("focus", recheck);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("pageshow", recheck);
+    };
+  }, [age, gate.kind, slug]);
 
   // Checking-spinner backstop: if the age gate still hasn't resolved 20 s
   // after (re)mount, offer a retry instead of hanging on "Checking your
@@ -629,12 +676,21 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
       // load's ad_token (see /api/games/guest-pass); the ref carries it
       // across the interstitial retry. A 403 denial still carries a fresh
       // ad + token, so showing the interstitial and retrying converges.
+      // The current content mode rides along (read from storage, not state,
+      // so a later picker switch does not re-fire this boot and burn
+      // another quota load): /api/games/guest-pass enforces the effective
+      // age server-side, and an omitted mode on an adults-rated game is
+      // denied there — so guests must always send it.
       try {
         const guestRes = await fetch("/api/games/guest-pass", {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ game_slug: slug, ...(guestAdToken.current ? { ad_token: guestAdToken.current } : {}) }),
+          body: JSON.stringify({
+            game_slug: slug,
+            ...(contentSupported ? { content_mode: readStoredContentMode(slug) } : {}),
+            ...(guestAdToken.current ? { ad_token: guestAdToken.current } : {}),
+          }),
         });
         const pass = (await guestRes.json().catch(() => ({}))) as {
           allowed?: boolean;
@@ -668,7 +724,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
     return () => {
       live = false;
     };
-  }, [slug, age, kidHandle, guestRetry, entered]);
+  }, [slug, age, kidHandle, guestRetry, entered, contentSupported]);
 
   // Signed-in metering: wait for the bridge's byte report, else bill the load.
   // Only after Start (entered): the frame - and its byte report - doesn't
@@ -866,9 +922,21 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
               </Link>
             </>
           ) : (
-            <Link href="/account#age-band" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
-              Open Account settings
-            </Link>
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  setAge("unknown");
+                  setResolveNonce((n) => n + 1);
+                }}
+                className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200"
+              >
+                Recheck my band
+              </button>
+              <Link href="/account#age-band" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
+                Open Account settings
+              </Link>
+            </>
           )}
           <Link href="/games" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
             Browse games
@@ -1014,6 +1082,15 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
     // fix with direct links instead of the generic guest-limit copy. Never
     // show "metering is down / playing unmetered" for these.
     const bandDenied = !kidBlock && /age band/i.test(gate.message);
+    // Teens denials need no second DOB pass once the band is set (they start
+    // straight away); Adults denials still ask the 18+ check every time.
+    const teensDenied = bandDenied && /Teens \(13\+\)/i.test(gate.message);
+    const recheckBandNow = () => {
+      setGate({ kind: "checking" });
+      setAge("unknown");
+      setResolveNonce((n) => n + 1);
+      setGuestRetry((n) => n + 1);
+    };
     return (
       <div>
         {kidHandle && <KidBanner />}
@@ -1029,13 +1106,18 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
                 The date-of-birth check on the game page is device-only and is never saved.
                 The server unlocks Adults / Teens games from your account&apos;s age band instead.
               </p>
+              <p className="mt-2 text-xs text-slate-400">
+                Detected right now: {!hasSession ? "signed out" : `signed in · age band ${ageBand}`}{kidsOn ? " · Kids Mode on" : ""}.
+                {!hasSession && " If you just saved the band on another account or device, sign in here as that account first."}
+                {hasSession && ageBand !== "teen" && ageBand !== "adult" && " Your band still reads as unset — save Teen or Adult in Account settings, then hit Recheck below."}
+              </p>
               <ol className="mt-2 list-decimal space-y-1 pl-5 text-slate-300">
                 <li>
                   Open <Link href="/account#age-band" className="font-bold text-cyan-300 hover:underline">Account → age band</Link> and
                   set it to <b className="text-white">Adult (18+)</b> for Adults games (Teen or Adult for Teens games).
                 </li>
-                <li>Come back here and reload the game page.</li>
-                <li>Pass the 18+ age check again — play starts right after.</li>
+                <li>Come back here and hit <b className="text-white">Recheck my band</b> below — no page reload needed.</li>
+                <li>{teensDenied ? "With a Teen/Adult band set, Teens games start straight away (Uncut / 18+ modes still ask the 18+ check)." : "Pass the 18+ age check again — play starts right after."}</li>
               </ol>
             </div>
           )}
@@ -1046,7 +1128,14 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
               </Link>
             ) : bandDenied ? (
               <>
-                <Link href="/account#age-band" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
+                <button
+                  type="button"
+                  onClick={recheckBandNow}
+                  className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200"
+                >
+                  Recheck my band
+                </button>
+                <Link href="/account#age-band" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
                   Open Account settings
                 </Link>
                 <Link href="/games" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">

@@ -1,0 +1,22 @@
+{
+    "created":  "2026-09-13T08:35:00.000Z",
+    "id":  "DS-FEEDBACK-10",
+    "goal":  "Outcome for DS-FEEDBACK-10: Feedback docs bot guide. See QUEUE.md feedback run goal.",
+    "status":  "done",
+    "owner":  "fb-10",
+    "scope":  [
+                  "v2/vcw4w/app/docs/feedback/page.tsx"
+              ],
+    "updated":  "2026-09-13T08:35:00.000Z",
+    "gates":  [
+                  "npx tsc --noEmit",
+                  "npx eslint"
+              ],
+    "title":  "Feedback docs bot guide",
+    "log":  [
+                "2026-09-13T08:35:00.000Z unassigned: envelope created from template, awaiting claim.",
+                "2026-09-13T13:00:00.000Z fb-10: claimed DS-FEEDBACK-10 (lane docs); scope v2/vcw4w/app/docs/feedback/page.tsx only.",
+                "2026-09-13T13:20:00.000Z fb-10: done — NEW v2/vcw4w/app/docs/feedback/page.tsx (DocsHero/docs-bits pattern: Give Feedback steps, human-vs-bot, Good/Okay/Bad + critique guide, screenshot+editor, bot fetch POST example, admin unaddressed views; no nav/sitemap edits, QUEUE wiring request stands). Gates: npx eslint app/docs/feedback/page.tsx exit 0 zero output; npx tsc --noEmit zero errors mentioning docs/feedback (single repo-wide error is lib/feedback/vision-client.ts(134,26) TS1109, DS-FEEDBACK-05 scope, untouched)."
+            ],
+    "lane":  "docs"
+}

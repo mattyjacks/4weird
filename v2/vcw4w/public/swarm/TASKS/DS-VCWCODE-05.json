@@ -1,0 +1,21 @@
+{
+  "id": "DS-VCWCODE-05",
+  "title": "Lib helpers pack (5 ways)",
+  "goal": "5 NEW lib/vcwcode-*.js helpers: ports.js (isPortFree/probe), window-bounds.js (pure validate/clamp), keys.js (BOT_KEY_RE single source 20-32 chars), timeout.js (withTimeout wrapper), handoff.js (safe handoff writer). Pure requires, node --check clean.",
+  "lane": "desktop",
+  "scope": [
+    "v2/desktop/code/lib/vcwcode-*.js"
+  ],
+  "gates": [
+    "node --check on every new .js file"
+  ],
+  "status": "done",
+  "owner": "vcwcode-05",
+  "created": "2026-09-13T06:35:02.730Z",
+  "updated": "2026-09-13T06:35:02.730Z",
+  "log": [
+    "2026-09-13T06:35:02.730Z unassigned: envelope created for 50-ways desktop usefulness swarm (5 each x 10).",
+    "2026-09-13T07:00:00.000Z vcwcode-05: claimed, creating 5 NEW lib/vcwcode-*.js helpers.",
+    "2026-09-13T06:37:00.000Z vcwcode-05: done. node --check clean on all 5; smoke: ports={8888:true,42069:true} bounds-valid=true clamp={x:0,y:0,width:1920,height:600} key=true/false timeout=42 handoff success=true."
+  ]
+}

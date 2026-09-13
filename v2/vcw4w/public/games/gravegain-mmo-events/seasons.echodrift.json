@@ -1,0 +1,33 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-09-13",
+  "note": "Echo Drift Surge season for GraveGain MMO endgame (games lane, v2-native). A limited-time cross-game season: drift surges sweep all three games, warbands chase surge-front records, top warbands earn the driftskipper title. ASCII only.",
+  "id": "echo-drift-surge",
+  "seasonNo": 1,
+  "name": { "kid": "Sparkle Drift Party", "teen": "Echo Drift Surge", "all": "ECHO DRIFT SURGE" },
+  "window": { "startUtc": "2026-10-01T00:00:00Z", "endUtc": "2026-11-30T23:59:59Z" },
+  "games": ["gravegain1d", "gravegain2d", "gravegain3d"],
+  "modifiers": [
+    {
+      "id": "drift-tide",
+      "name": { "kid": "Giggle Drift Tide", "teen": "Drift Tide", "all": "DRIFT TIDE" },
+      "effect": "Hourly surge window: +25% XP in all games for 10 minutes"
+    },
+    {
+      "id": "surge-fronts",
+      "name": { "kid": "Zoomy Boss Porches", "teen": "Surge Fronts", "all": "SURGE FRONTS" },
+      "effect": "World-boss fronts deal back 10% less; warband records tracked per front"
+    },
+    {
+      "id": "slipstream-weekends",
+      "name": { "kid": "Speedy Snack Weekends", "teen": "Slipstream Weekends", "all": "SLIPSTREAM WEEKENDS" },
+      "effect": "Weekend warband bonus doubled (drift-runners sigil: +20% instead of +10%)"
+    }
+  ],
+  "warbandBonus": "drift-runners",
+  "rewards": [
+    { "id": "surge-cache", "kind": "loot", "detail": "Seasonal loot cache per cleared surge front" },
+    { "id": "driftskipper-title", "kind": "title", "titleId": "driftskipper", "detail": "Top-10 warbands each week earn the driftskipper title" }
+  ],
+  "codexCategory": "seasons"
+}

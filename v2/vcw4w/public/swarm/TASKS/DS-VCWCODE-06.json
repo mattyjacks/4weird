@@ -1,0 +1,21 @@
+{
+  "id": "DS-VCWCODE-06",
+  "title": "App boot guards pack (5 ways)",
+  "goal": "5 NEW app/vcwcode-*.js guards (no direct main.js edits, wiring via QUEUE): single-instance-note.js, gpu-fallback-note.js, port-guard.js, window-state-guard.js, cli-forward-guard.js. Each exports pure fns.",
+  "lane": "desktop",
+  "scope": [
+    "v2/desktop/code/app/vcwcode-*.js"
+  ],
+  "gates": [
+    "node --check on every new .js file"
+  ],
+  "status": "done",
+  "owner": "vcwcode-06",
+  "created": "2026-09-13T06:35:02.730Z",
+  "updated": "2026-09-13T06:35:02.730Z",
+  "log": [
+    "2026-09-13T06:35:02.730Z unassigned: envelope created for 50-ways desktop usefulness swarm (5 each x 10).",
+    "2026-09-13T07:00:00.000Z vcwcode-06: claimed, creating 5 NEW app/vcwcode-*.js boot guards (no main.js edits).",
+    "2026-09-13T07:05:00.000Z vcwcode-06: done. node --check x5 clean (no output = pass); smoke-require SMOKE-OK (port 8080/42069; bounds ok/null; gpu true/false; single true [restore,show,focus]; cli [app,--game,doom,--start-agent]). main.js untouched; wiring via QUEUE to integrator."
+  ]
+}

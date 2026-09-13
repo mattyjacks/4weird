@@ -1265,9 +1265,29 @@ async function createRunpodDesktopPod(opts: {
 }
 
 /**
+ * Registries trusted to serve advanced custom images for the control pane.
+ * Bare Docker Hub refs (no registry host, e.g. `runpod/kasm-docker:cuda11`
+ * or `nginx:latest`) are always allowed; an explicit registry host must be
+ * on this list so a typosquat/malicious host (e.g. `evil.io/payload:latest`)
+ * can never be pulled. Private registries: request listing here, do not
+ * bypass — `localhost`/IP hosts are refused (fail closed).
+ */
+const CUSTOM_IMAGE_REGISTRY_ALLOWLIST = [
+  "docker.io",
+  "registry.hub.docker.com",
+  "ghcr.io",
+  "gcr.io",
+  "public.ecr.aws",
+  "quay.io",
+];
+
+/**
  * A custom container image reference for advanced launches from the control
  * pane. Docker-ref shaped only (registry/name:tag); shell, URLs, and empty
  * strings are refused. Length-capped so it cannot smuggle RunPod API fields.
+ * An explicit registry host must be allowlisted (see above); bare Hub refs
+ * stay allowed. NOTE: `isValidDesktopImageRef` in lib/desktop.ts mirrors
+ * this predicate for early-400s — keep the two in sync (QUEUE to that lane).
  */
 export function cleanCustomImage(value: unknown): string | null {
   const v = String(value ?? "").trim().slice(0, 256);
@@ -1277,6 +1297,17 @@ export function cleanCustomImage(value: unknown): string | null {
   if (/[\s"'`$\\;|&<>]/.test(v)) return null;
   if (!/^[a-z0-9][a-z0-9._/-]*[a-z0-9](:[a-z0-9._-]+)?$/i.test(v)) return null;
   if (!v.includes("/") && !v.includes(":")) return null;
+  // Registry gate: a first path component containing '.' or ':' (or
+  // 'localhost') names an explicit host — refuse unless allowlisted.
+  // Single-component refs (`nginx:latest`, no '/') are Docker Hub and skip.
+  if (v.includes("/")) {
+    const first = (v.split("/")[0] ?? "").toLowerCase();
+    const namesHost = first.includes(".") || first.includes(":") || first === "localhost";
+    if (namesHost) {
+      const host = first.split(":")[0] ?? "";
+      if (!CUSTOM_IMAGE_REGISTRY_ALLOWLIST.includes(host)) return null;
+    }
+  }
   return v;
 }
 

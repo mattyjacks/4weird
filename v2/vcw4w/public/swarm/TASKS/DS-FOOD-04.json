@@ -1,0 +1,28 @@
+{
+  "id": "DS-FOOD-04",
+  "title": "Food batch 04: cool-cucumber ... warming-ginger (9 items x 3 games x 3 modes)",
+  "goal": "Batch-04 done-state: v2/vcw4w/content/gravegain-food-batch-04.ts exports GRAVE_GAIN_FOOD_BATCH_04 with all 9 roster idx 27-35 items, each carrying full gravegain1d/2d/3d x endless/mission/mmorpg stats via buildFoodStatsTable() plus a 4..120-char drop note per game/mode, validateFoodBatch() clean; tsc + eslint + bundles + catalog-runtime green.",
+  "lane": "games",
+  "scope": [
+    "v2/vcw4w/content/gravegain-food-batch-04.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint content/gravegain-food-batch-04.ts",
+    "node scripts/verify-game-bundles.mjs",
+    "node scripts/verify-catalog-runtime.mjs",
+    "node scripts/verify-devswarm.mjs"
+  ],
+  "status": "blocked",
+  "owner": "food-b04",
+  "created": "2026-09-13T07:55:00.000Z",
+  "updated": "2026-09-13T08:26:09.000Z",
+  "log": [
+    "2026-09-13T07:55:00.000Z lead: envelope created, awaiting claim.",
+    "2026-09-13T08:14:00.000Z food-b04: claimed, starting batch 04.",
+    "2026-09-13T08:20:00.000Z food-b04: wrote content/gravegain-food-batch-04.ts (9 items, roster spread + buildFoodStatsTable + 81 drop notes). EVIDENCE tsx validateFoodBatch: ITEMS:9 ORDER ok VALIDATE_CLEAN.",
+    "2026-09-13T08:22:00.000Z food-b04: EVIDENCE npx tsc --noEmit: zero errors mentioning batch-04 (4 repo-wide reds only in app/api/coins/mmo/quote + app/api/presence/mmo/heartbeat, out of scope, untouched); npx eslint content/gravegain-food-batch-04.ts exit 0 clean.",
+    "2026-09-13T08:24:00.000Z food-b04: EVIDENCE node scripts/verify-game-bundles.mjs PASS (Game bundle parity OK: 225 archived files); node scripts/verify-catalog-runtime.mjs RED extrinsic (app/vibecodeworker/[section]/page.tsx not closed-static, vcw lane, pre-existing, untouched); node scripts/verify-devswarm.mjs RED extrinsic only (STATUS.json counts says open 16, TASKS holds 15 after my claim; steward-owned, untouched).",
+    "2026-09-13T08:26:09.000Z food-b04: status in_progress->blocked per gate rule: scope work complete + scope gates green, blocked only on 2 extrinsic reds (catalog-runtime vcw file + steward STATUS recount). No writes outside content/gravegain-food-batch-04.ts; lib + roster read-only."
+  ]
+}

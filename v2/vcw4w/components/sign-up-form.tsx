@@ -57,8 +57,17 @@ export function SignUpForm({
         credentials: "include",
         body: JSON.stringify({ email, password, age_band: ageBand, local_consent: localConsent }),
       });
-      const body = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(body.error || "Unable to create an account.");
+      const body = (await response.json().catch(() => ({}))) as {
+        error?: unknown;
+        needsConfirmation?: boolean;
+        user?: { id: string; email?: string | null } | null;
+      };
+      // Never render a non-string server value: coerce-proof generic text so
+      // an unexpected body shape cannot surface "[object Object]".
+      if (!response.ok) {
+        const serverText = typeof body.error === "string" && body.error ? body.error : null;
+        throw new Error(serverText ?? "Unable to create an account.");
+      }
       if (body.needsConfirmation) {
         throw new Error("Email confirmation is not available yet. Please try again later.");
       }

@@ -17,9 +17,9 @@ export function generateStaticParams() {
   return games.map((g) => ({ slug: g.slug }));
 }
 
-// Closed catalog: 34 games, no dynamic fallback. Unknown slugs 404 at the
-// routing layer (correct status for crawlers) instead of rendering notFound
-// content with a 200.
+// Closed catalog: 34 games, no dynamic fallback. dynamicParams removed for
+// cacheComponents compat; unknown slugs 404 via notFound() with a real 404
+// status (never a soft-404 200 for crawlers/players).
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   // No 'use cache' here: generateMetadata reuses the cached catalog helper,

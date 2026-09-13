@@ -26,10 +26,29 @@ mod commands {
         })
     }
 
+    // Filenames arrive from the webview: confine them to one safe segment
+    // inside the temp dir (no `..`, no separators, no absolute paths, no
+    // hidden/dotfiles). Any webview script can invoke this command, so the
+    // gate must live here, not only at the JS call sites.
+    fn sanitize_report_filename(raw: &str) -> Result<String, String> {
+        let t = raw.trim();
+        if t.is_empty() || t.len() > 128 {
+            return Err("Report filename must be 1-128 chars.".to_string());
+        }
+        let chars_ok = t.bytes().all(|b| {
+            b.is_ascii_alphanumeric() || b == b'.' || b == b'_' || b == b'-'
+        });
+        if !chars_ok || t.contains("..") || t.starts_with('.') {
+            return Err("Report filename may only use letters, digits, dot, underscore, hyphen (no paths).".to_string());
+        }
+        Ok(t.to_string())
+    }
+
     #[tauri::command]
     pub fn save_report_file(filename: String, content: String) -> Result<SaveReportResponse, String> {
+        let safe = sanitize_report_filename(&filename)?;
         let mut dir = std::env::temp_dir();
-        dir.push(&filename);
+        dir.push(&safe);
         
         match std::fs::write(&dir, &content) {
             Ok(_) => Ok(SaveReportResponse {

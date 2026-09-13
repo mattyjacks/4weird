@@ -1,0 +1,31 @@
+{
+    "id":  "DS-MMO-04",
+    "title":  "3D MMORPG mode Spire Siege Online",
+    "goal":  "New files under gravegain3d/mmo: N-player shard client reusing score codec floor times 10000 plus kills, 24-player Emberhold hub, weekly 10-boss raid rotation, guild banners, age-banded voxel kill feed, perf budgets over gfxPreset with billboard impostors, pointer-lock safe overlay. Never edit live engine files.",
+    "lane":  "games",
+    "scope":  [
+                  "v2/vcw4w/public/games/gravegain3d/mmo/sso-shard-client.js",
+                  "v2/vcw4w/public/games/gravegain3d/mmo/sso-hub.js",
+                  "v2/vcw4w/public/games/gravegain3d/mmo/sso-raid-rotation.js",
+                  "v2/vcw4w/public/games/gravegain3d/mmo/sso-guild-banners.js",
+                  "v2/vcw4w/public/games/gravegain3d/mmo/sso-killfeed.js",
+                  "v2/vcw4w/public/games/gravegain3d/mmo/sso-perf.js",
+                  "v2/vcw4w/public/games/gravegain3d/mmo/sso-emotes.js"
+              ],
+    "gates":  [
+                  "node --check sso-*.js",
+                  "node scripts/verify-game-bundles.mjs",
+                  "node scripts/verify-catalog-runtime.mjs"
+              ],
+    "status":  "blocked",
+    "owner":  "mmo-a04",
+    "created":  "2026-09-13T07:58:53.000Z",
+    "updated":  "2026-09-13T08:21:03.000Z",
+    "log":  [
+                "2026-09-13T07:58:53.000Z mmo-lead: envelope created from 15-agent plan, awaiting claim.",
+                "2026-09-13T08:02:31.000Z mmo-lead: disk check - sibling done envelope targets overlapping purpose but its file is ABSENT on disk (1D02/2D03/3D04). This envelope stays open; claimant must list the tree first and request steward single-winner ruling in QUEUE before writing.",
+                "2026-09-13T08:06:20.000Z mmo-a04: claimed. Tree check: gravegain3d/mmo/ ABSENT on disk (all 7 sso-* files absent); sibling scopes DS-MMO-02 (gravegain1d/) and DS-MMO-03 (gravegain2d/) are path-disjoint, zero collision. Single-winner ruling carried as QUEUE wiring line in final report (QUEUE.md is steward-owned, not edited directly). Score codec skimmed from mp-3d.js (floor*10000+min(kills,9999)).",
+                "2026-09-13T08:21:03.000Z mmo-a04: 7 NEW files landed under v2/vcw4w/public/games/gravegain3d/mmo/ (sso-shard-client/hub/raid-rotation/guild-banners/killfeed/perf/emotes.js). Vanilla ASCII never-throws, window.GraveGainSSO* namespace (no collision with GraveGainMPAdapter/Mmorpg3D), live engine files untouched. GATES SPLIT: node --check 7/7 GREEN; verify-game-bundles GREEN (parity OK 225 archived); node smoke 7 modules all asserts GREEN (codec round-trip 71234, raid anchor week0->CRYPT GATEKEEPER, kid-band foam-sword line, low-budget billboard, tag/ward/emote validators). RED EXTRINSIC: verify-catalog-runtime fails ONLY on app/vibecodeworker/[section]/page.tsx missing dynamicParams=false (generateStaticParams+notFound present) - vcw-lane file, never touched (scope), my files are git-ignored additions the script never enumerates for that assertion. NOTE: v2/vcw4w/.gitignore:94 ignores public/games/gravegain3d/* so the 7 files are disk-only/untracked - steward/infra ruling needed on force-add vs gitignore (shared manifest, not edited). Envelope blocked pending (a) catalog-runtime repair by vcw lane, (b) single-winner ruling vs landed mmorpg-3d.js (purpose overlap, path-disjoint), (c) index/wiring via QUEUE line.",
+                "2026-09-13T08:06:20.000Z mmo-a04: claimed. Tree check: gravegain3d/mmo/ ABSENT on disk (all 7 sso-* files absent); sibling scopes DS-MMO-02 (gravegain1d/) and DS-MMO-03 (gravegain2d/) are path-disjoint, zero collision. Single-winner ruling carried as QUEUE wiring line in final report (QUEUE.md is steward-owned, not edited directly). Score codec skimmed from mp-3d.js (floor*10000+min(kills,9999))."
+            ]
+}

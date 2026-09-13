@@ -54,7 +54,10 @@ export function UpdatePasswordForm({
       // Update this route to redirect to an authenticated route. The user already has an active session.
       router.push("/account");
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
+      // Generic copy only: Supabase/Auth provider strings can leak
+      // account-enumeration or provider details, so never surface them.
+      if (error instanceof Error) console.error("[update-password-form] update failed");
+      setError("Unable to save your new password. Please try again.");
     } finally {
       setIsLoading(false);
     }

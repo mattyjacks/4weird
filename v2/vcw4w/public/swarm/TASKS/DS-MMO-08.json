@@ -1,0 +1,26 @@
+{
+    "id":  "DS-MMO-08",
+    "title":  "Age-band server entry gate",
+    "goal":  "Server age_band entry on top of the done lib/mmo-age.ts (DS-MMORPG-AGE10, exists on disk - never re-land or edit it): band-attestation httpOnly signed cookie from an in-memory DOB check (DOB never stored or sent), join API re-checks server side, browser hides ineligible servers, per-band content policy object generalizing 3D gore tiers to 1D and 2D plus kids preset-phrase chat.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/api/age-verify/route.ts",
+                  "v2/vcw4w/components/games/mmo-age-gate.tsx"
+              ],
+    "gates":  [
+                  "npx tsc --noEmit",
+                  "npx eslint",
+                  "node scripts/verify-age-gate.mjs"
+              ],
+    "status":  "done",
+    "owner":  "mmo-a08",
+    "created":  "2026-09-13T07:58:53.000Z",
+    "updated":  "2026-09-13T08:40:00.000Z",
+    "log":  [
+                "2026-09-13T07:58:53.000Z mmo-lead: envelope created from 15-agent plan, awaiting claim.",
+                "2026-09-13T08:02:31.000Z mmo-lead: scope narrowed - lib/mmo-age.ts removed (done bytes by AGE10 exist on disk). Route plus component paths verified absent.",
+                "2026-09-13T08:40:00.000Z mmo-a08: claimed (lane web). Read BRAIN/LANES/MEMORY heads + lib/age-gate.ts (read-only) + lib/mmo-age.ts (UNTouched, done bytes stand) + mmorpg gate/join routes + verify-age-gate.mjs. Scope note: components/games/** is games-lane per LANES.md but worked under this dispatcher-granted envelope scope (AGE10 precedent); lib/mmo-age.ts stays untouched, rank rule + policy ship in the two new files.",
+                "2026-09-13T08:47:00.000Z mmo-a08: landed 2 NEW files (both verified absent pre-claim): app/api/age-verify/route.ts (POST dob->httpOnly signed mmo-band-attest cookie, DOB in-memory-only never stored/forwarded/echoed; GET reads attestation; DELETE clears; exports MMO_BAND_RANK/readAttestedBand/attestedBandAllows with guests fail-closed to kids; imports lib/mmo-age.ts read-only) + components/games/mmo-age-gate.tsx (in-memory DOB state cleared post-check, GET-picks-up-cookie, filterServersForPlayer hides ineligible, MMO_CONTENT_POLICY 1D/2D/3D gore tiers + kids preset-phrase chat KIDS_PRESET_PHRASES). GATES GREEN: npx tsc --noEmit exit 0 empty (mid-task foreign reds in gravegain-food-batch-11/presence-heartbeat were concurrent-agent churn, resolved, zero matches in my paths); npx eslint on both files exit 0; node scripts/verify-age-gate.mjs OK (age-gate checks + content-mode checks). lib/mmo-age.ts untouched. Envelope in_progress->done; STATUS recount is steward's.",
+                "2026-09-13T08:47:00.000Z mmo-a08: QUEUE asks for steward to file (lane card bars direct QUEUE edits): (a) join-route owners (POST /api/mmorpg/join + matches): re-check via readAttestedBand(req)/attestedBandAllows from app/api/age-verify/route, never trust client playerBand alone; (b) AGE10 owner: route imports lib/mmo-age.ts read-only per QUEUE-222, flag export changes; (c) nuance: DOB travels once in the POST body (never stored) so strict never-sent holds everywhere except that single mint call."
+            ]
+}

@@ -1,0 +1,25 @@
+{
+  "id": "DS-FOOD-01",
+  "title": "Food batch 01: grave-grapes ... orchard-apple (9 items x 3 games x 3 modes)",
+  "goal": "Batch-01 done-state: v2/vcw4w/content/gravegain-food-batch-01.ts exports GRAVE_GAIN_FOOD_BATCH_01 with all 9 roster idx 0-8 items, each carrying full gravegain1d/2d/3d x endless/mission/mmorpg stats via buildFoodStatsTable() plus a 4..120-char drop note per game/mode, validateFoodBatch() clean; tsc + eslint + bundles + catalog-runtime green.",
+  "lane": "games",
+  "scope": [
+    "v2/vcw4w/content/gravegain-food-batch-01.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint content/gravegain-food-batch-01.ts",
+    "node scripts/verify-game-bundles.mjs",
+    "node scripts/verify-catalog-runtime.mjs",
+    "node scripts/verify-devswarm.mjs"
+  ],
+  "status": "blocked",
+  "owner": "food-b01",
+  "created": "2026-09-13T07:55:00.000Z",
+  "updated": "2026-09-13T08:24:31.046Z",
+  "log": [
+    "2026-09-13T07:55:00.000Z lead: envelope created, awaiting claim.",
+    "2026-09-13T08:09:06.183Z food-b01: claimed, starting batch 01.",
+    "2026-09-13T08:24:31.046Z food-b01: batch file written (9 items, 81 notes). tsc: zero errors mentioning batch-01. eslint batch-01: exit 0. verify-game-bundles: exit 0 parity OK. BLOCKED: verify-catalog-runtime exit 1 on app/vibecodeworker/[section]/page.tsx static catalog (out of scope, script has no gravegain-food refs); verify-devswarm exit 1 STATUS.json open counts 16 vs TASKS 15 (claim moved 16->15, counts are steward-owned)."
+  ]
+}

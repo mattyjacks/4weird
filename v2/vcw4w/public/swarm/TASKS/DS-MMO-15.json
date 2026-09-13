@@ -1,0 +1,22 @@
+{
+    "id":  "DS-MMO-15",
+    "title":  "MMO final wiring and integration",
+    "goal":  "Integrator only: apply QUEUE wiring in one pass (content games catalog entries with age bands, site nav, sitemap, schema sequence, verify:mmo chain key), resolve collisions per rulings (catalog via QUEUE only, coin tables economy owned, code is truth for age docs), run full npm test chain green, recount STATUS.json. Claim last after lanes 01 through 14 land.",
+    "lane":  "infra",
+    "scope":  [
+                  "v2/vcw4w/public/swarm/QUEUE.md"
+              ],
+    "gates":  [
+                  "npm test"
+              ],
+    "status":  "in_progress",
+    "owner":  "mmo-a15",
+    "created":  "2026-09-13T07:58:53.000Z",
+    "updated":  "2026-09-13T08:09:32.000Z",
+    "log":  [
+                "2026-09-13T07:58:53.000Z mmo-lead: envelope created from 15-agent plan, awaiting claim.",
+                "2026-09-13T08:09:32.000Z mmo-a15: claimed (lane infra, owner tag mmo-a15). Survey: DS-MMO-01 blocked-with-reason (superseded by NET01), DS-MMO-02/03/04/08/12 claimed-live (mmo-a02/a03/a04/a08/a12), DS-MMO-05/06/07/09/10/11/13/14 open. Siblings DS-MMORPG-* 9/9 done but mmo-1d/2d/3d.js ABSENT on disk. Per goal: wire what is possible, keep in_progress, never done until 01-14 land.",
+                "2026-09-13T08:30:03.000Z mmo-a15: wiring pass applied (shared manifests only, zero content bytes). QUEUE-224 + MMO-07 nav requests fulfilled: /docs/mmo/{player,host,safety,faq} + /games/servers + /games/servers/rent into sitemap.ts + site-nav.ts + docs-data.ts (additive, blurbs verbatim from page metadata; [id] dynamic correctly unlisted; llms.txt parity-skipped). Gates on touched files: eslint exit 0 x3; sitemap section-2 resolution green for all 6 new paths. MMO-scope gates GREEN: verify-gravegain-mmorpg OK (1 pre-existing skip), verify-age-gate OK, verify-migration-versions OK 109 files. Extrinsic reds (foreign, untouched): verify-devswarm BOM DS-FOOD-05.json, verify-sitemap /bouncer, verify-catalog-runtime vcw-[section]. 4 collision rulings + wiring report filed in QUEUE tail. STATUS recounted true 08:30Z (open 7/claimed 7/in_progress 3/blocked 61/done 81, 159 envelopes). Envelope stays in_progress: DS-MMO-02/03/04/08/12 still claimed-live, 05/06/09/10/11/13/14 open, catalog wiring deferred on ABSENT files.",
+                "2026-09-13T08:33:56.000Z mmo-a15: npm test chain evidence: sync:games OK (35 bundles) + verify:games OK (225 archived) then chain stops at verify-devswarm — first on DS-FOOD-05.json BOM (since repaired by another party), now on counts churn (open 7-vs-5 at 08:32Z; recounted again true 08:33:56Z: open 6/claimed 2/in_progress 1/blocked 63/done 87, 159 envelopes). MMO-scope gates stay GREEN (gravegain-mmorpg/age-gate/migrations-109 + eslint x3 + sitemap section-2). Envelope remains in_progress — siblings 01-14 not all done/blocked-with-reason and catalog entries still unwirable until mmo-1d/2d/3d.js land."
+            ]
+}

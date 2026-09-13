@@ -1,0 +1,22 @@
+{
+    "created":  "2026-09-13T08:35:00.000Z",
+    "id":  "DS-FEEDBACK-03",
+    "goal":  "Outcome for DS-FEEDBACK-03: Screenshot capture current-tab JPG. See QUEUE.md feedback run goal.",
+    "status":  "blocked",
+    "owner":  "fb-03",
+    "scope":  [
+                  "v2/vcw4w/components/feedback/screenshot-capture.ts"
+              ],
+    "updated":  "2026-09-13T08:35:00.000Z",
+    "gates":  [
+                  "npx tsc --noEmit",
+                  "npx eslint"
+              ],
+    "title":  "Screenshot capture current-tab JPG",
+    "log":  [
+                "2026-09-13T08:35:00.000Z unassigned: envelope created from template, awaiting claim.",
+                "2026-09-13T09:00:00.000Z fb-03: claimed (lane web). Scope components/feedback/screenshot-capture.ts only.",
+                "2026-09-13T09:10:00.000Z fb-03: landed components/feedback/screenshot-capture.ts (NEW, in-scope only): captureCurrentTabJpg(): Promise<Blob> via in-page documentElement snapshot (SVG foreignObject->Image->canvas->image/jpeg 0.85, max 1600px longest edge, white fill for alpha). No picker APIs anywhere in file (grep getDisplayMedia|getUserMedia|display-capture: zero hits). Fail-open: all failures reject ScreenshotCaptureError with user-showable message. Gates SPLIT: eslint components/feedback/screenshot-capture.ts exit 0; tsc zero errors mentioning screenshot-capture; repo-wide tsc RED on lib/feedback/vision-client.ts(134,26) TS1109 (sibling untracked file, out of scope, zero bytes touched). Envelope blocked pending steward ruling/repair of that file; unblock->done needs only recount, no rework on my file."
+            ],
+    "lane":  "web"
+}

@@ -1,0 +1,27 @@
+{
+    "id":  "DS-MMO-14",
+    "title":  "MMO ledger settlement hooks",
+    "goal":  "Economy-owned write path: per-minute settlement job consuming presence_minutes with idempotency key match plus minute plus player, paired ledger debit and credit entries via existing FIFO and expiry RPC, insufficient-balance due entries (never negative balances), refund-safe paid lots only. Includes mmo coin migration if needed. Owns all ledger writes for the slice.",
+    "lane":  "economy",
+    "scope":  [
+                  "v2/vcw4w/app/api/coins/mmo/tick/route.ts",
+                  "v2/vcw4w/lib/economy-mmo.ts",
+                  "v2/vcw4w/supabase/migrations/20261203000003_mmo_coin_settle.sql"
+              ],
+    "gates":  [
+                  "npx tsc --noEmit",
+                  "node scripts/verify-ledger-pairing.mjs",
+                  "node scripts/verify-economy.mjs",
+                  "node scripts/verify-migration-versions.mjs"
+              ],
+    "status":  "done",
+    "owner":  "mmo-a14",
+    "created":  "2026-09-13T07:58:53.000Z",
+    "updated":  "2026-09-13T09:30:00.000Z",
+    "log":  [
+                "2026-09-13T07:58:53.000Z mmo-lead: envelope created from 15-agent plan, awaiting claim.",
+                "2026-09-13T09:15:00.000Z mmo-a14: claimed economy lane; scope tick route + economy-mmo lib + 20261203000003 migration (all three verified absent); siblings disjoint (DS-MMO-05 quote/ledger, DS-MMO-10 00000-00002).",
+                "2026-09-13T09:20:00.000Z mmo-a14: in_progress, conventions converged (mmo-billing floor-split + mmo-host-billing cc-math + mmorpg-economy pair shapes + support-renewals CRON_SECRET Bearer + refund/claim FIFO trigger path). Writing NEW lib + route + migration only.",
+                "2026-09-13T09:30:00.000Z mmo-a14: in_progress->done. Gates: verify-ledger-pairing OK 'Ledger pairing integrity OK'; verify-economy OK 'Economy integrity OK'; verify-migration-versions OK '110 files, unique versions, rerunnable guards present'; eslint on 2 new TS files exit 0; tsc zero errors in scope (repo-wide red is 2 extrinsic errors in DS-MMO-09 open/unowned app/api/presence/mmo/heartbeat/route.ts:200-201, untouched per one-owner-per-fileset). NEW lib/economy-mmo.ts (pure floor-split + 25pct split + mmoMinuteKey idempotency) + NEW app/api/coins/mmo/tick/route.ts (CRON_SECRET job, presence_minutes consume w/ 503 when metering unlanded, per-player settle_mmo_minute RPC, counts-only logs) + NEW 20261203000003_mmo_coin_settle.sql (mmo_minute_settlements idem UNIQUE + service_role settle_mmo_minute RPC: debit-first paired legs, lots-balance due path, refund-safe via existing FIFO trigger, compute-cut to platform_ledger). Zero edits outside scope; STATUS/QUEUE untouched (steward-owned)."
+            ]
+}

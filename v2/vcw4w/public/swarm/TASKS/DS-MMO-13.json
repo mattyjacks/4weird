@@ -1,0 +1,30 @@
+{
+    "id":  "DS-MMO-13",
+    "title":  "World events and warbands content",
+    "goal":  "Additive cross-game endgame content: weekly world-boss rotation (one boss, three fronts, kill needs total at threshold and every front at least 20 percent), Compact Warbands with sigil banners, Echo Drift Surge and Necrogenesis Moon seasons, cross-game titles plus codex carryover. New JSON and JS only under gravegain-mmo-events.",
+    "lane":  "games",
+    "scope":  [
+                  "v2/vcw4w/public/games/gravegain-mmo-events/worldboss.rotation.json",
+                  "v2/vcw4w/public/games/gravegain-mmo-events/worldboss.fronts.js",
+                  "v2/vcw4w/public/games/gravegain-mmo-events/warbands.json",
+                  "v2/vcw4w/public/games/gravegain-mmo-events/warband-banner.svg.js",
+                  "v2/vcw4w/public/games/gravegain-mmo-events/seasons.echodrift.json",
+                  "v2/vcw4w/public/games/gravegain-mmo-events/seasons.necromoon.json",
+                  "v2/vcw4w/public/games/gravegain-mmo-events/titles.js",
+                  "v2/vcw4w/public/games/gravegain-mmo-events/codex-unlocks.js"
+              ],
+    "gates":  [
+                  "node --check worldboss.fronts.js",
+                  "node scripts/verify-game-bundles.mjs"
+              ],
+    "status":  "done",
+    "owner":  "mmo-a13",
+    "created":  "2026-09-13T07:58:53.000Z",
+    "updated":  "2026-09-13T07:58:53.000Z",
+    "log":  [
+                "2026-09-13T07:58:53.000Z mmo-lead: envelope created from 15-agent plan, awaiting claim.",
+                "2026-09-13T08:10:00.000Z mmo-a13: claimed (games lane). Scope verified disjoint (only envelope referencing gravegain-mmo-events/); target dir absent, 8 new files to create.",
+                "2026-09-13T08:20:00.000Z mmo-a13: 8 files landed under v2/vcw4w/public/games/gravegain-mmo-events/. GATE node --check x4 OK (worldboss.fronts.js, warband-banner.svg.js, titles.js, codex-unlocks.js). GATE JSON.parse x4 OK (rotation, warbands, echodrift, necromoon). Smoke harness OK: rotation cycles grave-titan/spire-widow/marrow-choir/lantern-thief weekly from 2026-09-14; assess KILL only at total>=threshold AND every front>=20% (weak-front + short-total correctly rejected); banner svgFor ASCII-only + sanitizes bad sigil/colors; titles 12/12 on maxed progress; codex merge keeps best rank. GATE verify-game-bundles.mjs GREEN: Game bundle parity OK (225 archived: 26 byte-locked, 199 diverged, 141 v2-native extra). ASCII check 8/8 OK. Zero writes outside scope (git status: only gravegain-mmo-events/ + own envelope).",
+                "2026-09-13T08:20:00.000Z mmo-a13: done. QUEUE request for integrator: wire gravegain-mmo-events/ into game catalog/nav (content/games.ts, game-manifests.ts, sitemap) + declare age band for the 8 files; no shared-manifest edits made (steward-owned)."
+            ]
+}

@@ -1,0 +1,26 @@
+{
+  "created": "2026-09-13T07:00:00.000Z",
+  "gates": [
+    "node scripts/verify-legal.mjs",
+    "node scripts/verify-devswarm.mjs"
+  ],
+  "goal": "Docs security lane done-state: public docs + skill.md contain zero secrets/keys/tokens, every code sample copy-paste working, age-gate/privacy docs match enforced code behavior (no doc promises the code does not keep). Reviewer re-runs both gates green + secret-scan clean.",
+  "id": "DS-SEC-DOCS",
+  "lane": "docs",
+  "log": [
+    "2026-09-13T07:00:00.000Z lead: envelope created, awaiting claim.",
+    "2026-09-13T07:05:31.502Z sec-docs-7f: claimed, starting scope survey.",
+    "2026-09-13T07:12Z sec-docs-7f: scope re-read (privacy-safety/page, getting-started/page, docs-{data,bits,nav,hero,read-tracker}, lib/markdown.ts). Audit: (a) secret-scan clean in scope — no sk-/bot4weird_/private-key hits, zero dangerouslySetInnerHTML in scope; skill.md hits all masked placeholders (bot4weird_ ellipsis/PASTE_HERE), no sk- lines, URLs all public 4weird.com/localhost; bounded regex lesson honored, naive pattern not reintroduced. (b) no executable code samples in scope — route/API references verified live: /api/auth/session returns id+email/401 Login required, POST /api/coins/daily human-only 5+streak cap 12, referral 25/25 UNIQUE(invitee), export 5/hr+20/net, delete 30-min window 3/hr+10/net confirms 5/hr. (c) age-gate/privacy docs MATCH code: DOB in-memory-only (age-gate.ts header), GAME_RATINGS intensity bands, signup teen/adult/under13-stop, kid handle#/7-day/KID_SESSION_DAYS, KidControls budget+hard_stop+daily_minutes+allowed window, kid-login throttles, export excludes key/join-code/escrow/password/session secrets, tester-sessions never open/confirm delete. Zero mismatches — no QUEUE promise-gap lines needed. (d) MarkdownView renders ONLY via renderMarkdownSafe (escape-first whitelist); worker mirrors it; faq JSON-LD dangerouslySetInnerHTML is static schema.org, not user content, out of scope. Zero in-scope fixes required — no scope files written.",
+    "2026-09-13T07:20Z sec-docs-7f: GATES RED extrinsic — verify-legal.mjs FAIL on app/privacy/page.tsx missing exact phrase (meaning present but parenthetical-split; legal lane owns, out of scope, not edited); verify-devswarm.mjs FAIL on TASKS/DS-BOUNCER-01.json missing updated (same class as sec-infra report; envelope untouched). QUEUE blocker lines filed. Envelope in_progress->blocked."
+  ],
+  "owner": "sec-docs-7f",
+  "scope": [
+    "v2/vcw4w/app/docs/privacy-safety/**",
+    "v2/vcw4w/app/docs/getting-started/**",
+    "v2/vcw4w/components/docs/**",
+    "v2/vcw4w/lib/markdown.ts"
+  ],
+  "status": "blocked",
+  "title": "Security sweep DOCS: secret-free + gate-truth audit",
+  "updated": "2026-09-13T07:20:00.000Z"
+}

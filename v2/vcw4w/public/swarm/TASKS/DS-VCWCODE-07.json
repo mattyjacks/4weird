@@ -1,0 +1,21 @@
+{
+  "id": "DS-VCWCODE-07",
+  "title": "API server aids pack (5 ways)",
+  "goal": "5 NEW server/vcwcode-*.js aids (no edits to lib/api_server.js): status-doc.js (documents real /api/status shape observed live), auth-note.js (VIBE_API_TOKEN pattern), rate-limit-note.js, timeout-note.js, body-cap-note.js + smoke hitting /api/status.",
+  "lane": "desktop",
+  "scope": [
+    "v2/desktop/code/server/vcwcode-*.js"
+  ],
+  "gates": [
+    "node --check on every new .js file"
+  ],
+  "status": "done",
+  "owner": "vcwcode-07",
+  "created": "2026-09-13T06:35:02.730Z",
+  "updated": "2026-09-13T06:35:02.730Z",
+  "log": [
+    "2026-09-13T06:35:02.730Z unassigned: envelope created for 50-ways desktop usefulness swarm (5 each x 10).",
+    "2026-09-13T00:00:00.000Z vcwcode-07: claimed (in_progress); live GET 127.0.0.1:42069/api/status OK, proceeding with 5 new aids.",
+    "2026-09-13T00:00:00.000Z vcwcode-07: done. Gates: node --check x5 -> ALL_5_NODE_CHECK_OK. Live /api/status observed {success,system,version,uptimeSeconds,runtimeMode,activeGame,activeGameUrl,totalBugs,totalApiRequests,memoryUsage}. No edits to lib/api_server.js or existing server/*.js."
+  ]
+}

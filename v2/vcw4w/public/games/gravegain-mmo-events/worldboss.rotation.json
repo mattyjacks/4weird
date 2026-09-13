@@ -1,0 +1,61 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-09-13",
+  "note": "Weekly world-boss rotation for GraveGain MMO endgame (games lane, v2-native). One boss per UTC week, same boss across gravegain1d/2d/3d. A kill counts only when total damage reaches threshold AND every one of the 3 fronts deals at least frontMinimumPct percent of threshold. Boss ids match gravegain-mmorpg-events.js. ASCII only.",
+  "rotationStartUtc": "2026-09-14T00:00:00Z",
+  "weekMs": 604800000,
+  "frontMinimumPct": 20,
+  "games": ["gravegain1d", "gravegain2d", "gravegain3d"],
+  "bosses": [
+    {
+      "id": "grave-titan",
+      "name": { "kid": "Grumbly Grave Giant", "teen": "Grave Titan", "all": "GRAVE TITAN" },
+      "threshold": 1000000,
+      "fronts": [
+        { "id": "ashen-gate", "name": { "kid": "Creaky Ash Gate", "teen": "Ashen Gate", "all": "ASHEN GATE" } },
+        { "id": "hollow-nave", "name": { "kid": "Echo Giggle Hall", "teen": "Hollow Nave", "all": "HOLLOW NAVE" } },
+        { "id": "throne-pit", "name": { "kid": "Grumbly Throne Pit", "teen": "Throne Pit", "all": "THRONE PIT" } }
+      ],
+      "rewardTitle": "titanbane"
+    },
+    {
+      "id": "spire-widow",
+      "name": { "kid": "Shy Spire Spider", "teen": "Spire Widow", "all": "SPIRE WIDOW" },
+      "threshold": 1200000,
+      "fronts": [
+        { "id": "web-terrace", "name": { "kid": "Fluffy Web Porch", "teen": "Web Terrace", "all": "WEB TERRACE" } },
+        { "id": "silk-shaft", "name": { "kid": "Slippery Silk Slide", "teen": "Silk Shaft", "all": "SILK SHAFT" } },
+        { "id": "brood-loft", "name": { "kid": "Cozy Brood Loft", "teen": "Brood Loft", "all": "BROOD LOFT" } }
+      ],
+      "rewardTitle": "widowbane"
+    },
+    {
+      "id": "marrow-choir",
+      "name": { "kid": "Humming Bone Choir", "teen": "Marrow Choir", "all": "MARROW CHOIR" },
+      "threshold": 1400000,
+      "fronts": [
+        { "id": "verse-aisle", "name": { "kid": "Humming Verse Lane", "teen": "Verse Aisle", "all": "VERSE AISLE" } },
+        { "id": "chorus-crypt", "name": { "kid": "Sing-Along Crypt", "teen": "Chorus Crypt", "all": "CHORUS CRYPT" } },
+        { "id": "requiem-roof", "name": { "kid": "Lullaby Rooftop", "teen": "Requiem Roof", "all": "REQUIEM ROOF" } }
+      ],
+      "rewardTitle": "choirbane"
+    },
+    {
+      "id": "lantern-thief",
+      "name": { "kid": "Sneaky Lantern Borrower", "teen": "Lantern Thief", "all": "LANTERN THIEF" },
+      "threshold": 1600000,
+      "fronts": [
+        { "id": "wick-ward", "name": { "kid": "Glowy Wick Corner", "teen": "Wick Ward", "all": "WICK WARD" } },
+        { "id": "glass-gallery", "name": { "kid": "Sparkle Glass Hall", "teen": "Glass Gallery", "all": "GLASS GALLERY" } },
+        { "id": "thief-trail", "name": { "kid": "Tippy-Toe Trail", "teen": "Thief Trail", "all": "THIEF TRAIL" } }
+      ],
+      "rewardTitle": "thiefbane"
+    }
+  ],
+  "killRule": {
+    "totalAtLeast": "threshold",
+    "everyFrontAtLeastPct": 20,
+    "frontPctOf": "threshold",
+    "summary": "total damage >= threshold AND each of the 3 fronts >= 20% of threshold"
+  }
+}
