@@ -221,15 +221,12 @@
         // Stash the cloud save where future game code can pick it up, and
         // fill in keys MISSING locally (never clobber same-browser state).
         // Legacy games read localStorage at init, before this message can
-        // arrive, so restored keys take effect on the NEXT visit - which is
-        // exactly the cross-device case cloud saves exist for.
+        // arrive — so when the restore actually wrote keys, apply them in
+        // THIS visit: broadcast a hot-apply event for live-aware games and,
+        // when safe, reload once so init-time reads pick up the restored
+        // state (guarded against loops; see applyCloudSave).
         try {
-          window.__fourweirdCloudSave = data;
-          window.localStorage.setItem(
-            "fourweird-v2-cloud-save:" + SLUG,
-            JSON.stringify(data)
-          );
-          restoreMissingKeys(data && data.data);
+          applyCloudSave(data, (data && data.reason) || "auto");
         } catch (e) {
           /* storage unavailable; ignore */
         }
@@ -779,18 +776,20 @@
 
   // Fill keys ABSENT from localStorage from a cloud snapshot. Same-browser
   // keys are already current, so touching them would only clobber progress.
+  // Returns the number of keys actually written (0 = nothing to apply).
   function restoreMissingKeys(cloudData) {
-    if (!cloudData || typeof cloudData !== "object") return;
+    if (!cloudData || typeof cloudData !== "object") return 0;
     var keys = cloudData.keys;
-    if (!keys || typeof keys !== "object" || Array.isArray(keys)) return;
+    if (!keys || typeof keys !== "object" || Array.isArray(keys)) return 0;
     var store = null;
     try {
       store = window.localStorage;
-      if (!store) return;
+      if (!store) return 0;
     } catch (e) {
-      return;
+      return 0;
     }
     var bytes = 0;
+    var restored = 0;
     for (var k in keys) {
       if (!Object.prototype.hasOwnProperty.call(keys, k)) continue;
       var v = keys[k];
@@ -800,10 +799,77 @@
         if (store.getItem(k) === null) {
           store.setItem(k, v);
           bytes += k.length + v.length;
+          restored += 1;
         }
       } catch (e) {
-        return; /* quota or access denied; keep what landed */
+        return restored; /* quota or access denied; keep what landed */
       }
+    }
+    return restored;
+  }
+
+  // First-visit applier: legacy bundles read localStorage at init, before
+  // the shell's slot-0 load message can arrive. When a restore actually
+  // wrote missing keys, this visit must apply them — not the next one:
+  //  1. Broadcast "fourweird-cloud-load" so live-aware games can hot-apply
+  //     without a reload (detail: { slug, slot, data, restored, reason }).
+  //  2. Reload once so init-time reads re-run against the restored keys.
+  // Reload guards (all must pass):
+  //  - restored > 0 (nothing written → nothing to apply, never reload).
+  //  - once per document (in-memory flag: the reloaded page restores 0 keys
+  //    because local now has them, so even without the other guards this
+  //    cannot loop — the flag additionally covers duplicate ready pings).
+  //  - once per session per payload (sessionStorage flag keyed by slug +
+  //    slot + payload size: a crash between setItem and reload cannot
+  //    spin, and a NEW cloud payload still applies).
+  //  - auto loads only before first interaction (statActions === 0): a
+  //    duplicate/late auto-load must never wipe mid-session progress.
+  //    Manual loads (reason "manual", i.e. the player pressed Load) always
+  //    apply — that click IS the consent to replace local state.
+  var cloudReloadedThisDocument = false;
+  function applyCloudSave(message, reason) {
+    var data = (message && message.data) || null;
+    try {
+      window.__fourweirdCloudSave = message;
+    } catch (e) {}
+    try {
+      window.localStorage.setItem(
+        "fourweird-v2-cloud-save:" + SLUG,
+        JSON.stringify(message)
+      );
+    } catch (e) {
+      /* storage unavailable; still try the event below */
+    }
+    var restored = restoreMissingKeys(data);
+    try {
+      window.dispatchEvent(
+        new CustomEvent("fourweird-cloud-load", {
+          detail: { slug: SLUG, slot: message && message.slot, data: data, restored: restored, reason: reason },
+        })
+      );
+    } catch (e) {}
+    if (!(restored > 0) || cloudReloadedThisDocument) return;
+    var isManual = reason === "manual";
+    if (!isManual && statActions !== 0) return;
+    var fingerprint = SLUG + ":" + (message && message.slot) + ":" + restored;
+    try {
+      var flagKey = "fourweird-cloud-applied:" + SLUG;
+      var seen = null;
+      try {
+        seen = window.sessionStorage.getItem(flagKey);
+      } catch (e) {
+        seen = null;
+      }
+      if (seen === fingerprint) return;
+      try {
+        window.sessionStorage.setItem(flagKey, fingerprint);
+      } catch (e) {}
+    } catch (e) {}
+    cloudReloadedThisDocument = true;
+    try {
+      window.location.reload();
+    } catch (e) {
+      cloudReloadedThisDocument = false;
     }
   }
 

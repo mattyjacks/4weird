@@ -445,12 +445,15 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
 
   // Universal save slots (0-3) for every game: manual Save snapshots the last
   // bridge-observed state, manual Load forwards the cloud/device snapshot
-  // into the runtime via the bridge's load channel.
+  // into the runtime via the bridge's load channel. Manual loads carry
+  // reason "manual" so the bridge applies them immediately even mid-session
+  // (the click is consent to replace local state); the auto slot-0 load on
+  // "ready" omits it and only applies pre-interaction.
   const getUniversalSnapshot = useCallback(() => lastSaveData.current, []);
   const applyUniversalSnapshot = useCallback(
     (snapshot: unknown, slot: number) => {
       if (snapshot && typeof snapshot === "object" && !Array.isArray(snapshot)) {
-        postToRuntime({ version: 1, type: "load", slot, schema_version: 1, data: snapshot });
+        postToRuntime({ version: 1, type: "load", slot, schema_version: 1, data: snapshot, reason: "manual" });
       }
     },
     [postToRuntime],
